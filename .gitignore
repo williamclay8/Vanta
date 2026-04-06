@@ -1,0 +1,7 @@
+.env
+.env.local
+.env.operator
+.env.operator.local
+node_modules/
+dist/
+*.tsbuildinfo
