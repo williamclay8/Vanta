@@ -1,20 +1,13 @@
 import { liveShieldAsset } from "@/solana/shieldConfig";
-
-type UnshieldOperatorRequest = {
-  amount: string;
-  destinationOwner: string;
-  mintAddress: string;
-  noteId: string;
-  owner: string;
-  vaultOwner: string;
-};
+import type { SignedUnshieldIntent } from "@/solana/unshieldAuth";
 
 type UnshieldOperatorResponse = {
+  requestId: string;
   signature: string;
 };
 
 export async function requestOperatorUnshield(
-  payload: UnshieldOperatorRequest,
+  payload: SignedUnshieldIntent,
 ): Promise<UnshieldOperatorResponse> {
   const response = await fetch(liveShieldAsset.unshieldOperatorUrl, {
     body: JSON.stringify(payload),
@@ -36,7 +29,12 @@ export async function requestOperatorUnshield(
     throw new Error("The unshield operator did not return a valid signature.");
   }
 
+  if (typeof parsed.requestId !== "string" || parsed.requestId.length === 0) {
+    throw new Error("The unshield operator did not return a valid request id.");
+  }
+
   return {
+    requestId: parsed.requestId,
     signature: parsed.signature,
   };
 }

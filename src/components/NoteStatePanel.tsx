@@ -2,6 +2,8 @@ import type { VantaShieldAccountState } from "@/solana/vantaShieldState";
 
 type NoteStatePanelProps = {
   account: VantaShieldAccountState | null;
+  compact?: boolean;
+  maxNotes?: number;
   title?: string;
 };
 
@@ -16,6 +18,13 @@ function formatAmount(value: number) {
   })} VUSD`;
 }
 
+function formatSolAmount(value: number) {
+  return `${value.toLocaleString(undefined, {
+    minimumFractionDigits: 4,
+    maximumFractionDigits: 6,
+  })} SOL`;
+}
+
 function formatDate(timestamp: number) {
   return new Intl.DateTimeFormat(undefined, {
     hour: "numeric",
@@ -27,6 +36,8 @@ function formatDate(timestamp: number) {
 
 export function NoteStatePanel({
   account,
+  compact = false,
+  maxNotes = 5,
   title = "Current note state",
 }: NoteStatePanelProps) {
   if (!account) {
@@ -37,15 +48,18 @@ export function NoteStatePanel({
             <span>Shielded note state</span>
             <h3>{title}</h3>
           </div>
-          <small>VUSD only</small>
+          <small>VUSD notes + SOL outputs</small>
         </div>
         <p className="shield-review-note">
           Connect a wallet and enter the live VUSD path to resolve current
-          spendable, consumed, and change-derived notes.
+          spendable, consumed, and change-derived notes, plus any shielded SOL
+          outputs created by Swap.
         </p>
       </div>
     );
   }
+
+  const visibleShieldedSolNotes = account.spendableShieldedSolNotes;
 
   return (
     <div className="note-state-panel">
@@ -54,7 +68,9 @@ export function NoteStatePanel({
           <span>Shielded note state</span>
           <h3>{title}</h3>
         </div>
-        <small>{account.noteStatusSummary.total} resolved notes</small>
+        <small>
+          {account.noteStatusSummary.total + visibleShieldedSolNotes.length} resolved states
+        </small>
       </div>
 
       <div className="preview-grid note-state-summary">
@@ -74,10 +90,14 @@ export function NoteStatePanel({
           <span>Shielded balance</span>
           <strong>{formatAmount(account.balance)}</strong>
         </div>
+        <div className="preview-card">
+          <span>Shielded SOL</span>
+          <strong>{formatSolAmount(account.shieldedSolBalance)}</strong>
+        </div>
       </div>
 
       <div className="note-state-list">
-        {account.noteStates.slice(0, 5).map((note) => (
+        {account.noteStates.slice(0, maxNotes).map((note) => (
           <div key={note.noteId} className="note-state-row">
             <div className="note-state-row__header">
               <div>
@@ -107,7 +127,11 @@ export function NoteStatePanel({
               {note.parentNoteId && <span>Parent {abbreviate(note.parentNoteId)}</span>}
               {note.consumedByTransitionId && note.consumedByTransitionKind && (
                 <span>
-                  {note.consumedByTransitionKind === "send" ? "Send" : "Unshield"}{" "}
+                  {note.consumedByTransitionKind === "send"
+                    ? "Send"
+                    : note.consumedByTransitionKind === "swap"
+                      ? "Swap"
+                      : "Unshield"}{" "}
                   {abbreviate(note.consumedByTransitionId)}
                 </span>
               )}
@@ -117,11 +141,44 @@ export function NoteStatePanel({
         ))}
       </div>
 
-      <p className="shield-review-note">
-        This view reflects Vanta&apos;s current resolver interpretation for
-        `VUSD`: note identity, spendability, and change lineage. It is a
-        product-facing protocol summary, not a full explorer.
-      </p>
+      {visibleShieldedSolNotes.length > 0 && (
+        <div className="note-state-list">
+          {visibleShieldedSolNotes
+            .slice(0, Math.max(1, Math.min(maxNotes, 3)))
+            .map((note) => (
+            <div key={note.noteId} className="note-state-row note-state-row--sol">
+              <div className="note-state-row__header">
+                <div>
+                  <strong>{formatSolAmount(note.amount)}</strong>
+                  <span>{abbreviate(note.noteId)}</span>
+                </div>
+                <div className="note-state-chips">
+                  <span className="note-state-chip note-state-chip--sol">Shielded SOL</span>
+                  <span className="note-state-chip note-state-chip--spendable">Unshieldable</span>
+                </div>
+              </div>
+
+              <div className="note-state-row__meta">
+                <span>Created {formatDate(note.createdAt)}</span>
+                <span>Swap output {abbreviate(note.sourceSwapNoteId)}</span>
+                {note.consumedByTransitionId && (
+                  <span>Unshield SOL {abbreviate(note.consumedByTransitionId)}</span>
+                )}
+                {note.spentMarkerId && <span>Spent {abbreviate(note.spentMarkerId)}</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!compact && (
+        <p className="shield-review-note">
+          This view reflects Vanta&apos;s current constrained resolver:
+          `VUSD` note identity, spendability, and change lineage, plus the
+          first recognized shielded `SOL` outputs created by Swap. It is a
+          product-facing protocol summary, not a full explorer.
+        </p>
+      )}
     </div>
   );
 }

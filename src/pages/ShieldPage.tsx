@@ -3,15 +3,17 @@ import { Link } from "react-router-dom";
 import {
   useSendTransaction,
   useSplToken,
-  useWaitForSignature,
 } from "@solana/react-hooks";
+import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
 import { usePrivacyFlow, type PrivacyAssetKey } from "@/context/PrivacyFlowContext";
 import { useWalletState } from "@/context/WalletContext";
+import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
 import {
   SHIELD_HOOK_FALLBACK_MINT,
   liveShieldAsset,
 } from "@/solana/shieldConfig";
+import { useRealtimeSignatureProgress } from "@/solana/useRealtimeSignatureProgress";
 import { useVantaShieldState } from "@/solana/useVantaShieldState";
 import { createShieldMemoInstruction } from "@/solana/vantaShieldState";
 
@@ -113,15 +115,18 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
       config: { tokenProgram: "auto" },
     },
   );
-  const signatureWait = useWaitForSignature(supportedToken.sendSignature ?? undefined, {
+  const signatureWait = useRealtimeSignatureProgress(supportedToken.sendSignature ?? undefined, {
     commitment: "confirmed",
     disabled: !supportedToken.sendSignature,
   });
   const stateTransaction = useSendTransaction();
-  const stateSignatureWait = useWaitForSignature(stateTransaction.signature ?? undefined, {
-    commitment: "confirmed",
-    disabled: !stateTransaction.signature,
-  });
+  const stateSignatureWait = useRealtimeSignatureProgress(
+    stateTransaction.signature ?? undefined,
+    {
+      commitment: "confirmed",
+      disabled: !stateTransaction.signature,
+    },
+  );
   const {
     account: shieldAccount,
     error: shieldStateError,
@@ -140,6 +145,8 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     selectedAsset === liveShieldAsset.assetKey
       ? shieldAccount?.balance ?? 0
       : 0;
+  const depositProgressLabel = signatureWait.detailLabel;
+  const stateProgressLabel = stateSignatureWait.detailLabel;
   const hasPublicBalance = publicBalance > 0;
   const isAmountValid =
     walletConnected &&
@@ -207,20 +214,37 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     if (!owner) {
       return;
     }
+    const mintAddress = liveShieldAsset.mintAddress;
+    const vaultOwner = liveShieldAsset.vaultOwner;
 
-    void stateTransaction.send({
-      instructions: [
-        createShieldMemoInstruction({
-          amount,
-          asset: "VUSD",
-          createdAt: Date.now(),
-          depositSignature: pendingDepositSignature,
-          mintAddress: liveShieldAsset.mintAddress,
-          owner,
-          vaultOwner: liveShieldAsset.vaultOwner,
-        }),
+    if (!mintAddress || !vaultOwner) {
+      return;
+    }
+
+    void buildHeliusPriorityFeeInstructions({
+      accountKeys: [
+        mintAddress,
+        owner,
+        pendingDepositSignature,
+        vaultOwner,
       ],
-    }).catch((error) => {
+      action: "shield_state",
+    }).then((priorityFeeInstructions) =>
+      stateTransaction.send({
+        instructions: [
+          ...priorityFeeInstructions,
+          createShieldMemoInstruction({
+            amount,
+            asset: "VUSD",
+            createdAt: Date.now(),
+            depositSignature: pendingDepositSignature,
+            mintAddress,
+            owner,
+            vaultOwner,
+          }),
+        ],
+      }),
+    ).catch((error) => {
       setStatus("failed");
       setPendingShieldAmount(null);
       setPendingDepositSignature(null);
@@ -733,10 +757,16 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
           </p>
 
           {selectedAsset === "VUSD" && (
-            <NoteStatePanel
-              account={shieldAccount}
-              title="Resolved VUSD notes"
-            />
+            <>
+              <NoteStatePanel
+                account={shieldAccount}
+                title="Resolved VUSD notes"
+              />
+              <LifecycleTimeline
+                account={shieldAccount}
+                title="VUSD lifecycle timeline"
+              />
+            </>
           )}
 
           <div className="progress-rail">
@@ -793,6 +823,9 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
             <div className="status-panel status-panel--processing">
               <span>Shielding in progress</span>
               <p>Submitting the real devnet Shield transfer from Public Wallet.</p>
+              {depositProgressLabel && (
+                <p className="shield-helper shield-helper--meta">{depositProgressLabel}</p>
+              )}
               <div className="status-bar">
                 <div className="status-bar__fill" />
               </div>
@@ -806,6 +839,9 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 Waiting for confirmed Vanta state settlement before crediting
                 Shielded State.
               </p>
+              {stateProgressLabel && (
+                <p className="shield-helper shield-helper--meta">{stateProgressLabel}</p>
+              )}
               <div className="status-bar">
                 <div className="status-bar__fill" />
               </div>

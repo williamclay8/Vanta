@@ -4,7 +4,7 @@
 
 Vanta is a zk-powered privacy layer for Solana that lets users shield assets from public wallet flows and use them through private workflows beginning with send.
 
-Vanta currently supports a constrained devnet protocol flow for one supported asset, VUSD. Users can connect a real wallet, shield VUSD into Vanta through a real deposit-backed flow, create onchain shield notes, and execute constrained send transitions that consume and evolve shielded note state. The current implementation is intentionally narrow and does not yet provide final zk privacy semantics, but it is no longer only a front-end prototype.
+Vanta currently supports a constrained real devnet lifecycle for one supported asset, VUSD, including wallet-connected Shield, note-based shielded state, constrained Send transitions, a constrained one-way `VUSD -> SOL` Meteora-backed swap lane, and operator-backed `VUSD` and `SOL` unshield with authenticated request intent and operator-side verification of referenced onchain transition state. The current implementation is intentionally narrow and does not yet provide final zk privacy semantics, but it is no longer only a front-end prototype.
 
 ---
 
@@ -18,7 +18,7 @@ Rather than treating privacy as a one-off transaction feature, Vanta begins at t
 
 The first complete Vanta loop is:
 
-**Public Wallet -> Shield -> Shielded State -> Send**
+**Public Wallet -> Shield -> Shielded State -> Send / Swap -> Unshield**
 
 That foundation later expands into:
 - **Private Swap**
@@ -42,7 +42,7 @@ This is the first meaningful product behavior in the Vanta suite and now exists 
 
 ## What's live today
 
-Vanta currently supports a constrained devnet protocol flow for one supported asset, `VUSD`.
+Vanta currently supports a constrained real devnet lifecycle for one supported asset, `VUSD`.
 
 ### Live now
 - real Solana wallet connection
@@ -50,20 +50,27 @@ Vanta currently supports a constrained devnet protocol flow for one supported as
 - real shield deposits into a Vanta-controlled devnet path
 - real onchain shield notes
 - real onchain send notes
+- real constrained `VUSD -> SOL` Meteora devnet swap
+- real shielded `SOL` outputs resolved inside Vanta
+- operator-backed constrained unshield back to Public Wallet
+- operator-backed constrained SOL unshield back to Public Wallet
 - explicit note identity
 - explicit spent-marker semantics
 - derived change-note evolution
 - shielded balance resolved from the current spendable note set
-- a connected Shield -> Send flow grounded in Vanta-recognized state
+- authenticated Unshield intent tied to the connected wallet
+- operator-side verification of referenced onchain transition state before release
+- persistent completed release records across operator restarts
+- a connected Shield -> Swap -> Unshield flow grounded in Vanta-recognized state
 
 ### Not live yet
 - final zk proof system
 - final nullifier architecture
 - recipient-private send semantics
 - generalized multi-asset support
-- swap
 - pay
 - production-grade protocol guarantees
+- symmetric two-way market proof
 
 The current implementation should be understood as a constrained but real early protocol for one asset, not just a mock interface and not yet the final privacy system.
 
@@ -86,6 +93,7 @@ The current implementation should be understood as a constrained but real early 
 - `/app/shield`
 - `/app/send`
 - `/app/swap`
+- `/app/unshield`
 - `/app/pay`
 - `/app/launch`
 
@@ -141,6 +149,8 @@ This repository currently contains:
 - Send as the first workflow unlocked by shielded state
 - shared app-level continuity between Shield and Send
 - a constrained real devnet protocol path for `VUSD`
+- authenticated operator-backed Unshield for `VUSD` and `SOL`
+- a constrained one-way live `VUSD -> SOL` swap lane
 - roadmap framing for Swap, Pay, and broader Vanta expansion
 
 The current implementation is intentionally product-led. It focuses on:
@@ -163,7 +173,7 @@ The current implementation is intentionally product-led. It focuses on:
 
 ## Additional materials
 
-For hackathon positioning, demo scripts, FAQ, and submission-ready descriptions, see:
+For hackathon positioning, proof records, demo scripts, FAQ, and submission-ready descriptions, see:
 
 `SUBMISSION.md`
 

@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { useSendTransaction, useWaitForSignature } from "@solana/react-hooks";
+import { useSendTransaction } from "@solana/react-hooks";
+import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
 import { usePrivacyFlow, type PrivacyAssetKey } from "@/context/PrivacyFlowContext";
+import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
 import { useVantaShieldState } from "@/solana/useVantaShieldState";
+import { useRealtimeSignatureProgress } from "@/solana/useRealtimeSignatureProgress";
 import { liveShieldAsset } from "@/solana/shieldConfig";
 import {
   createPreparedSendMemo,
@@ -82,15 +85,18 @@ export function SendPage({ dashboard = false }: SendPageProps) {
   const [lastChangeAmount, setLastChangeAmount] = useState<number | null>(null);
   const [pendingSpentMarker, setPendingSpentMarker] = useState<PendingSpentMarker | null>(null);
   const sendNoteTransaction = useSendTransaction();
-  const sendNoteWait = useWaitForSignature(sendNoteTransaction.signature ?? undefined, {
+  const sendNoteWait = useRealtimeSignatureProgress(sendNoteTransaction.signature ?? undefined, {
     commitment: "confirmed",
     disabled: !sendNoteTransaction.signature,
   });
   const spentMarkerTransaction = useSendTransaction();
-  const spentMarkerWait = useWaitForSignature(spentMarkerTransaction.signature ?? undefined, {
-    commitment: "confirmed",
-    disabled: !spentMarkerTransaction.signature,
-  });
+  const spentMarkerWait = useRealtimeSignatureProgress(
+    spentMarkerTransaction.signature ?? undefined,
+    {
+      commitment: "confirmed",
+      disabled: !spentMarkerTransaction.signature,
+    },
+  );
 
   const spendableNotes = useMemo(() => {
     if (selectedAsset !== "VUSD") {
@@ -143,6 +149,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     isAmountValid &&
     isRecipientValid &&
     Boolean(liveShieldAsset.mintAddress);
+  const sendProgressLabel = sendNoteWait.detailLabel;
+  const settleProgressLabel = spentMarkerWait.detailLabel;
 
   const recentShieldLabel =
     recentShield &&
@@ -193,21 +201,34 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     }
 
     setStatus("settling");
-    void spentMarkerTransaction
-      .send({
-        instructions: [
-          createSpentMarkerInstruction({
-            asset: "VUSD",
-            consumedNoteId: pendingSpentMarker.consumedNoteId,
-            createdAt: pendingSpentMarker.createdAt,
-            mintAddress: pendingSpentMarker.mintAddress,
-            owner: pendingSpentMarker.owner,
-            transitionKind: pendingSpentMarker.transitionKind,
-            transitionNoteId: pendingSpentMarker.transitionNoteId,
-            vaultOwner: pendingSpentMarker.vaultOwner,
-          }),
-        ],
-      })
+    void buildHeliusPriorityFeeInstructions({
+      accountKeys: [
+        pendingSpentMarker.consumedNoteId,
+        pendingSpentMarker.mintAddress,
+        pendingSpentMarker.owner,
+        pendingSpentMarker.transitionNoteId,
+        pendingSpentMarker.vaultOwner,
+        recipient.trim(),
+      ],
+      action: "state_finalize",
+    })
+      .then((priorityFeeInstructions) =>
+        spentMarkerTransaction.send({
+          instructions: [
+            ...priorityFeeInstructions,
+            createSpentMarkerInstruction({
+              asset: "VUSD",
+              consumedNoteId: pendingSpentMarker.consumedNoteId,
+              createdAt: pendingSpentMarker.createdAt,
+              mintAddress: pendingSpentMarker.mintAddress,
+              owner: pendingSpentMarker.owner,
+              transitionKind: pendingSpentMarker.transitionKind,
+              transitionNoteId: pendingSpentMarker.transitionNoteId,
+              vaultOwner: pendingSpentMarker.vaultOwner,
+            }),
+          ],
+        }),
+      )
       .catch((error) => {
         setStatus("failed");
         setFlowError(
@@ -307,11 +328,20 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         transitionNoteId: preparedSend.noteId,
         vaultOwner: shieldAccount.vaultOwner,
       });
+      const priorityFeeInstructions = await buildHeliusPriorityFeeInstructions({
+        accountKeys: [
+          selectedSpendableNote.noteId,
+          liveShieldAsset.mintAddress,
+          shieldAccount.owner,
+          preparedSend.noteId,
+          shieldAccount.vaultOwner,
+          recipient.trim(),
+        ],
+        action: "send_transition",
+      });
 
       await sendNoteTransaction.send({
-        instructions: [
-          preparedSend.instruction,
-        ],
+        instructions: [...priorityFeeInstructions, preparedSend.instruction],
       });
     } catch (error) {
       setPendingSpentMarker(null);
@@ -671,10 +701,16 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           </p>
 
           {selectedAsset === "VUSD" && (
-            <NoteStatePanel
-              account={shieldAccount}
-              title="Resolved VUSD notes"
-            />
+            <>
+              <NoteStatePanel
+                account={shieldAccount}
+                title="Resolved VUSD notes"
+              />
+              <LifecycleTimeline
+                account={shieldAccount}
+                title="VUSD lifecycle timeline"
+              />
+            </>
           )}
 
           {status === "review" && (
@@ -713,6 +749,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
             <div className="status-panel status-panel--processing">
               <span>Send in progress</span>
               <p>Submitting the Vanta send transition metadata on devnet.</p>
+              {sendProgressLabel && (
+                <p className="shield-helper shield-helper--meta">{sendProgressLabel}</p>
+              )}
               <div className="status-bar">
                 <div className="status-bar__fill" />
               </div>
@@ -726,6 +765,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 Confirming the spent marker and resolving the next spendable
                 note set, including any residual change note.
               </p>
+              {settleProgressLabel && (
+                <p className="shield-helper shield-helper--meta">{settleProgressLabel}</p>
+              )}
               <div className="status-bar">
                 <div className="status-bar__fill" />
               </div>

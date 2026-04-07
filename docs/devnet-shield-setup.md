@@ -63,6 +63,14 @@ The app's real Shield action transfers the supported token from the connected wa
 
 For the first constrained Unshield hardening milestone, the frontend no longer carries the vault signer. Instead, a tiny local operator service holds the devnet signer and performs the real return transfer back to Public Wallet.
 
+The current operator path is now minimally authenticated:
+- the connected wallet signs an explicit Unshield intent message
+- the operator verifies that wallet signature before moving VUSD
+- requests carry a timestamped `requestId`
+- the operator rejects expired and already-seen requests in-memory during local runs
+- the operator confirms the referenced onchain Unshield transition and consumed note are consistent before release
+- completed releases are persisted locally so duplicate protection survives operator restarts
+
 Start the operator locally:
 
 ```bash
@@ -73,6 +81,14 @@ The operator expects:
 - `VANTA_DEVNET_TOKEN_MINT`
 - `VANTA_DEVNET_VAULT_OWNER`
 - `VANTA_DEVNET_VAULT_SIGNER_SECRET_KEY`
+
+By default the operator stores completed release records at:
+
+```text
+operator/.vanta-unshield-releases.json
+```
+
+Delete that file only if you intentionally want to reset the local operator's remembered release history.
 
 ## What is real in this milestone
 

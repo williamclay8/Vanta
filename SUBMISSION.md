@@ -16,7 +16,7 @@ Vanta is a zk-powered privacy layer for Solana that lets users shield supported 
 
 Vanta is building a practical privacy layer for Solana. The project starts with the first complete Vanta loop: **Shield + Private Send**, allowing users to move supported assets out of transparent wallet flows and into a shielded state designed for more private activity. From that foundation, Vanta expands toward private swaps, private payments, and broader privacy-native workflows for users, traders, teams, builders, and commerce.
 
-Vanta currently supports a constrained devnet protocol flow for one supported asset, VUSD. Users can connect a real wallet, shield VUSD into Vanta through a real deposit-backed flow, create onchain shield notes, and execute constrained send transitions that consume and evolve shielded note state. The current implementation is intentionally narrow and does not yet provide final zk privacy semantics, but it is no longer only a front-end prototype.
+Vanta currently supports a constrained real devnet lifecycle for one supported asset, VUSD, including wallet-connected Shield, note-based shielded state, constrained Send transitions, a constrained one-way `VUSD -> SOL` Meteora-backed swap lane, and operator-backed `VUSD` and `SOL` unshield with authenticated request intent and operator-side verification of referenced onchain transition state. The current implementation is intentionally narrow and does not yet provide final zk privacy semantics, but it is no longer only a front-end prototype.
 
 ## Full description
 
@@ -62,7 +62,7 @@ Vanta is a zk-powered privacy layer for Solana that lets users shield assets fro
 
 The first complete Vanta loop is:
 
-**Public Wallet -> Shield -> Shielded State -> Send**
+**Public Wallet -> Shield -> Shielded State -> Send -> Unshield**
 
 This is the core mental model of the product.
 
@@ -81,7 +81,7 @@ The MVP is **Shield + Private Send**:
 
 ## Current implementation status
 
-Vanta currently supports a constrained devnet implementation for one supported asset, `VUSD`.
+Vanta currently supports a constrained real devnet lifecycle for one supported asset, `VUSD`.
 
 ### Live now
 - real wallet connection
@@ -89,17 +89,27 @@ Vanta currently supports a constrained devnet implementation for one supported a
 - real shield deposits into a Vanta-controlled path
 - real onchain shield notes
 - real onchain send notes
+- real constrained `VUSD -> SOL` Meteora devnet swap
+- real shielded `SOL` output notes
+- operator-backed constrained unshield back to Public Wallet
+- operator-backed constrained shielded `SOL` unshield back to Public Wallet
 - explicit note identity
 - explicit spent-marker semantics
 - residual/change-note evolution
 - shielded balance resolved from the current spendable note set
+- authenticated wallet-linked Unshield intent
+- operator-side verification of referenced onchain transition state before release
+- persistent completed release records across operator restarts
 
 ### Still constrained / not final
 - no final zk proof system yet
 - no final nullifier design yet
 - no recipient-private send semantics yet
 - no generalized multi-asset support yet
-- swap and pay remain future modules
+- no symmetric two-way market proof yet
+- pay remains future work
+
+The current Unshield path is operator-backed and intentionally constrained, but it now requires authenticated wallet intent, verifies referenced onchain transition state before release, and persists completed release records to prevent duplicate execution across restarts.
 
 This means Vanta should be understood as a real early protocol for one asset with constrained note-based state transitions, rather than only as a front-end prototype.
 
@@ -132,7 +142,7 @@ Because send alone lacks a clean product foundation. Shield + Private Send forms
 - shared app-level continuity between Shield and Send
 
 ### Current live flow
-**Public Wallet -> Shield -> Shielded State -> Send**
+**Public Wallet -> Shield -> Shielded State -> Send / Swap -> Unshield**
 
 ---
 
@@ -181,11 +191,11 @@ The project is intentionally product-led:
 
 ## Demo script - 30 seconds
 
-Vanta is a zk-powered privacy layer for Solana that starts with the right first primitive: shielding. Today, Vanta already supports a constrained devnet flow for one supported asset, VUSD, where users can connect a wallet, shield into Vanta’s onchain note state, and execute a constrained send that updates spendable shielded balance. It is intentionally narrow, but it proves the core architecture is becoming real.
+Vanta is a zk-powered privacy layer for Solana that starts with the right first primitive: shielding. Today, Vanta already supports a constrained real devnet lifecycle for one supported asset, VUSD, where users can connect a wallet, Shield into Vanta’s note-based state, move value through constrained Send transitions, swap through a constrained one-way `VUSD -> SOL` lane, and Unshield both `VUSD` and shielded `SOL` back to Public Wallet through authenticated operator-backed flows. It is intentionally narrow, but it proves the core architecture is becoming real.
 
 ## Demo script - 60 seconds
 
-Solana is fast and accessible, but holding and moving assets on it is public by default. Vanta is our answer: a privacy layer for Solana that begins with shielding supported assets into a separate Vanta state system. Today, the project already supports a constrained real devnet flow for one asset, VUSD: users can connect a wallet, deposit into Vanta, create shield notes, execute constrained send transitions, and see shielded balance resolved from the current spendable note set. It is not yet the final zk privacy system, but it is no longer just a front-end concept - it is an early protocol loop with real state transitions. That is the foundation we will build outward from into stronger privacy, swaps, and payments.
+Solana is fast and accessible, but holding and moving assets on it is public by default. Vanta is our answer: a privacy layer for Solana that begins with shielding supported assets into a separate Vanta state system. Today, the project already supports a constrained real devnet lifecycle for one asset, VUSD: users can connect a wallet, Shield into Vanta, create and evolve note-based shielded state, execute constrained Send transitions, swap through a constrained one-way `VUSD -> SOL` Meteora-backed lane, and Unshield both `VUSD` and shielded `SOL` back to Public Wallet through authenticated operator-backed flows that verify the referenced onchain transition before release and persist completed release records across restarts. It is not yet the final zk privacy system, but it is no longer just a front-end concept - it is an early protocol loop with real state transitions and a meaningfully hardened operator boundary.
 
 ---
 
@@ -193,11 +203,11 @@ Solana is fast and accessible, but holding and moving assets on it is public by 
 
 ### Does Vanta actually work today?
 
-Yes, in a constrained devnet form for one supported asset, VUSD. Users can connect a wallet, shield the asset into Vanta’s onchain note-based state, and execute constrained send transitions that update spendable shielded balance. The implementation is still early and does not yet provide final zk privacy semantics.
+Yes, in a constrained devnet form for one supported asset, VUSD. Users can connect a wallet, Shield the asset into Vanta’s note-based state, execute constrained Send transitions, swap through a constrained one-way `VUSD -> SOL` lane, and Unshield both `VUSD` and shielded `SOL` back to Public Wallet through authenticated operator-backed flows with onchain transition verification. The implementation is still early and does not yet provide final zk privacy semantics.
 
 ### Is this just a front-end prototype?
 
-No. The current app is still product-led and intentionally narrow, but it already uses real wallet-connected asset detection, real onchain note records, explicit note identity, spent-marker semantics, and note-based shielded balance resolution for one asset.
+No. The current app is still product-led and intentionally narrow, but it already uses real wallet-connected asset detection, real onchain note records, explicit note identity, spent-marker semantics, authenticated Unshield intent, operator-side onchain verification, and persistent release records for one asset.
 
 ### Is the protocol complete?
 
@@ -217,7 +227,7 @@ Because send alone lacks a clean product foundation. Shield + Private Send forms
 
 ### What is live now versus roadmap?
 
-The current implementation supports a constrained devnet flow for `VUSD` with real wallet connection, real deposit-backed Shield, real onchain note state, and constrained Send transitions. Swap and Pay are still future modules built on top of that foundation.
+The current implementation supports a constrained real devnet lifecycle for `VUSD` with real wallet connection, real deposit-backed Shield, note-based state evolution through Send, a constrained one-way `VUSD -> SOL` swap lane, and constrained operator-backed `VUSD` and `SOL` unshield. Pay and broader generalization remain future work.
 
 ### Is Vanta just a privacy-themed concept?
 

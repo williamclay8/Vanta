@@ -9,7 +9,11 @@ export const VANTA_SHIELD_MEMO_PROGRAM =
 const VANTA_SHIELD_MEMO_PREFIX = "vanta:shield-note:v1:";
 const VANTA_SEND_MEMO_PREFIX = "vanta:send-note:v1:";
 const VANTA_UNSHIELD_MEMO_PREFIX = "vanta:unshield-note:v1:";
+const VANTA_SWAP_MEMO_PREFIX = "vanta:swap-note:v1:";
+const VANTA_SOL_UNSHIELD_MEMO_PREFIX = "vanta:sol-unshield-note:v1:";
 const VANTA_SPENT_MARKER_MEMO_PREFIX = "vanta:spent-marker:v1:";
+export const VANTA_NATIVE_SOL_ASSET_ID =
+  "So11111111111111111111111111111111111111112";
 
 type BaseVantaNote = {
   amount: number;
@@ -44,15 +48,69 @@ export type VantaUnshieldNote = BaseVantaNote & {
   kind: "unshield";
 };
 
-export type VantaTransitionKind = VantaSendNote["kind"] | VantaUnshieldNote["kind"];
+export type VantaSwapNote = {
+  createdAt: number;
+  consumedNoteId: string;
+  inputAmount: number;
+  inputAsset: "VUSD";
+  kind: "swap";
+  noteId: string;
+  outputAmount: number;
+  outputAsset: "SOL";
+  outputNoteId: string;
+  owner: string;
+  quoteExpiresAt?: number;
+  quoteId?: string;
+  quoteTimestamp?: number;
+  stateSignature: string;
+  vaultOwner: string;
+  venueFamily?: "DLMM";
+  venueName?: "Meteora";
+  venueNetwork?: "Devnet";
+  venuePoolAddress?: string;
+};
+
+export type VantaShieldedSolNote = {
+  amount: number;
+  asset: "SOL";
+  consumedByTransitionId?: string;
+  consumedByTransitionKind?: "sol_unshield";
+  createdAt: number;
+  lifecycleStatus: VantaNoteLifecycleStatus;
+  noteId: string;
+  owner: string;
+  sourceSwapNoteId: string;
+  spentMarkerId?: string;
+  stateSignature: string;
+};
+
+export type VantaSolUnshieldNote = {
+  amount: number;
+  asset: "SOL";
+  assetId: string;
+  consumedNoteId: string;
+  createdAt: number;
+  destinationOwner: string;
+  kind: "sol_unshield";
+  noteId: string;
+  owner: string;
+  stateSignature: string;
+  vaultOwner: string;
+};
+
+export type VantaTransitionKind =
+  | VantaSendNote["kind"]
+  | VantaUnshieldNote["kind"]
+  | VantaSwapNote["kind"]
+  | VantaSolUnshieldNote["kind"];
 
 export type VantaSpentMarker = {
-  asset: "VUSD";
+  asset: "VUSD" | "SOL";
+  assetId: string;
   consumedNoteId: string;
   createdAt: number;
   kind: "spent_marker";
   markerId: string;
-  mintAddress: string;
   owner: string;
   stateSignature: string;
   transitionKind: VantaTransitionKind;
@@ -64,6 +122,8 @@ export type VantaShieldActivity =
   | VantaShieldNote
   | VantaSendNote
   | VantaUnshieldNote
+  | VantaSwapNote
+  | VantaSolUnshieldNote
   | VantaSpentMarker;
 
 export type VantaNoteLifecycleStatus = "spendable" | "consumed";
@@ -89,23 +149,58 @@ export type VantaNoteStatusSummary = {
   total: number;
 };
 
+export type VantaLifecycleActivityType =
+  | "shield"
+  | "send"
+  | "change_note_created"
+  | "unshield"
+  | "swap"
+  | "sol_unshield";
+
+export type VantaLifecycleStateImpact =
+  | "public_to_shielded"
+  | "shielded_transfer"
+  | "shielded_to_shielded"
+  | "shielded_to_public"
+  | "shielded_swap";
+
+export type VantaLifecycleActivity = {
+  amount: number;
+  amountLabel?: string;
+  createdAt: number;
+  description: string;
+  noteId?: string;
+  sourceState: "Public Wallet" | "Shielded State";
+  targetState: "Public Wallet" | "Shielded State";
+  title: string;
+  type: VantaLifecycleActivityType;
+  impact: VantaLifecycleStateImpact;
+};
+
 export type VantaShieldAccountState = {
   accountId: string;
   activity: VantaShieldActivity[];
   asset: "VUSD";
   balance: number;
   changeNotes: VantaShieldNote[];
+  lifecycleActivities: VantaLifecycleActivity[];
   mintAddress: string;
   noteStates: VantaAppNoteState[];
   noteStatusSummary: VantaNoteStatusSummary;
   owner: string;
   sendNotes: VantaSendNote[];
   shieldNotes: VantaShieldNote[];
+  shieldedSolBalance: number;
+  consumedShieldedSolNotes: VantaShieldedSolNote[];
+  shieldedSolNotes: VantaShieldedSolNote[];
+  solUnshieldNotes: VantaSolUnshieldNote[];
   source: "vanta_onchain_notes";
+  spendableShieldedSolNotes: VantaShieldedSolNote[];
   spendableShieldNotes: VantaShieldNote[];
   spentMarkers: VantaSpentMarker[];
   spentShieldNotes: VantaShieldNote[];
   status: "ready";
+  swapNotes: VantaSwapNote[];
   unshieldNotes: VantaUnshieldNote[];
   vaultOwner: string;
 };
@@ -152,13 +247,73 @@ type UnshieldMemoPayload = {
   vaultOwner: string;
 };
 
+type SwapMemoPayload = {
+  consumedNoteId?: string;
+  consumedShieldStateSignature?: string;
+  createdAt: number;
+  inputAmount: string;
+  inputAsset: "VUSD";
+  kind: "swap";
+  mintAddress: string;
+  noteId?: string;
+  outputAmount: string;
+  outputAsset: "SOL";
+  outputNoteId?: string;
+  owner: string;
+  quoteExpiresAt?: number;
+  quoteId?: string;
+  quoteTimestamp?: number;
+  vaultOwner: string;
+  venueFamily?: "DLMM";
+  venueName?: "Meteora";
+  venueNetwork?: "Devnet";
+  venuePoolAddress?: string;
+};
+
+type SwapMemoWirePayload = {
+  ca: number;
+  cn?: string;
+  cs?: string;
+  ia: string;
+  ii: "VUSD";
+  k: "swap";
+  ma: string;
+  ni: string;
+  oa: string;
+  oi: "SOL";
+  on: string;
+  ow: string;
+  qe?: number;
+  qi?: string;
+  qt?: number;
+  vf?: "DLMM";
+  vn?: "Meteora";
+  vo: string;
+  vp?: string;
+  vw?: "Devnet";
+};
+
+type SolUnshieldMemoPayload = {
+  amount: string;
+  asset: "SOL";
+  assetId: string;
+  consumedNoteId: string;
+  createdAt: number;
+  destinationOwner: string;
+  kind: "sol_unshield";
+  noteId?: string;
+  owner: string;
+  vaultOwner: string;
+};
+
 type SpentMarkerMemoPayload = {
-  asset: "VUSD";
+  asset: "VUSD" | "SOL";
+  assetId?: string;
   consumedNoteId: string;
   createdAt: number;
   kind: "spent_marker";
   markerId?: string;
-  mintAddress: string;
+  mintAddress?: string;
   owner: string;
   sendNoteId?: string;
   transitionKind?: VantaTransitionKind;
@@ -258,6 +413,54 @@ function createUnshieldNoteId(
   });
 }
 
+function createSwapNoteId(payload: Omit<SwapMemoPayload, "kind" | "noteId" | "outputNoteId">) {
+  return createDeterministicNoteId({
+    consumedNoteId: payload.consumedNoteId ?? payload.consumedShieldStateSignature ?? "legacy",
+    createdAt: payload.createdAt,
+    inputAmount: payload.inputAmount,
+    inputAsset: payload.inputAsset,
+    kind: "swap",
+    mintAddress: payload.mintAddress,
+    outputAmount: payload.outputAmount,
+    outputAsset: payload.outputAsset,
+    owner: payload.owner,
+    quoteId: payload.quoteId ?? "no_quote",
+    vaultOwner: payload.vaultOwner,
+  });
+}
+
+function createSolUnshieldNoteId(
+  payload: Omit<SolUnshieldMemoPayload, "kind" | "noteId">,
+) {
+  return createDeterministicNoteId({
+    amount: payload.amount,
+    asset: payload.asset,
+    assetId: payload.assetId,
+    consumedNoteId: payload.consumedNoteId,
+    createdAt: payload.createdAt,
+    destinationOwner: payload.destinationOwner,
+    kind: "sol_unshield",
+    owner: payload.owner,
+    vaultOwner: payload.vaultOwner,
+  });
+}
+
+function createSwapOutputNoteId(args: {
+  createdAt: number;
+  outputAmount: string;
+  owner: string;
+  sourceSwapNoteId: string;
+}) {
+  return createDeterministicNoteId({
+    asset: "SOL",
+    createdAt: args.createdAt,
+    kind: "swap_output",
+    outputAmount: args.outputAmount,
+    owner: args.owner,
+    sourceSwapNoteId: args.sourceSwapNoteId,
+  });
+}
+
 function createChangeNoteId(args: {
   amount: string;
   createdAt: number;
@@ -285,10 +488,10 @@ function createSpentMarkerId(
 ) {
   return createDeterministicNoteId({
     asset: payload.asset,
+    assetId: payload.assetId ?? payload.mintAddress ?? VANTA_NATIVE_SOL_ASSET_ID,
     consumedNoteId: payload.consumedNoteId,
     createdAt: payload.createdAt,
     kind: "spent_marker",
-    mintAddress: payload.mintAddress,
     owner: payload.owner,
     transitionKind: payload.transitionKind ?? "send",
     transitionNoteId: payload.transitionNoteId ?? payload.sendNoteId ?? "legacy",
@@ -357,6 +560,60 @@ export function createPreparedUnshieldMemo(
       kind: "unshield",
       noteId,
     } satisfies UnshieldMemoPayload),
+    noteId,
+  };
+}
+
+export function createPreparedSwapMemo(
+  payload: Omit<SwapMemoPayload, "kind" | "noteId" | "outputNoteId">,
+) {
+  const noteId = createSwapNoteId(payload);
+  const outputNoteId = createSwapOutputNoteId({
+    createdAt: payload.createdAt,
+    outputAmount: payload.outputAmount,
+    owner: payload.owner,
+    sourceSwapNoteId: noteId,
+  });
+
+  return {
+    instruction: createMemoInstruction(VANTA_SWAP_MEMO_PREFIX, {
+      ca: payload.createdAt,
+      cn: payload.consumedNoteId,
+      cs: payload.consumedShieldStateSignature,
+      ia: payload.inputAmount,
+      ii: payload.inputAsset,
+      k: "swap",
+      ma: payload.mintAddress,
+      ni: noteId,
+      oa: payload.outputAmount,
+      oi: payload.outputAsset,
+      on: outputNoteId,
+      ow: payload.owner,
+      qe: payload.quoteExpiresAt,
+      qi: payload.quoteId,
+      qt: payload.quoteTimestamp,
+      vf: payload.venueFamily,
+      vn: payload.venueName,
+      vo: payload.vaultOwner,
+      vp: payload.venuePoolAddress,
+      vw: payload.venueNetwork,
+    } satisfies SwapMemoWirePayload),
+    noteId,
+    outputNoteId,
+  };
+}
+
+export function createPreparedSolUnshieldMemo(
+  payload: Omit<SolUnshieldMemoPayload, "kind" | "noteId">,
+) {
+  const noteId = createSolUnshieldNoteId(payload);
+
+  return {
+    instruction: createMemoInstruction(VANTA_SOL_UNSHIELD_MEMO_PREFIX, {
+      ...payload,
+      kind: "sol_unshield",
+      noteId,
+    } satisfies SolUnshieldMemoPayload),
     noteId,
   };
 }
@@ -520,15 +777,23 @@ function parseSpentMarkerMemo(
 
   try {
     const parsed = JSON.parse(memoPayload) as Partial<SpentMarkerMemoPayload>;
+    const assetId =
+      typeof parsed.assetId === "string"
+        ? parsed.assetId
+        : typeof parsed.mintAddress === "string"
+          ? parsed.mintAddress
+          : parsed.asset === "SOL"
+            ? VANTA_NATIVE_SOL_ASSET_ID
+            : undefined;
 
     if (
       parsed.kind !== "spent_marker" ||
-      parsed.asset !== "VUSD" ||
+      (parsed.asset !== "VUSD" && parsed.asset !== "SOL") ||
       typeof parsed.owner !== "string" ||
-      typeof parsed.mintAddress !== "string" ||
       typeof parsed.vaultOwner !== "string" ||
       typeof parsed.consumedNoteId !== "string" ||
-      typeof parsed.createdAt !== "number"
+      typeof parsed.createdAt !== "number" ||
+      !assetId
     ) {
       return null;
     }
@@ -540,7 +805,10 @@ function parseSpentMarkerMemo(
           ? parsed.sendNoteId
           : undefined;
     const transitionKind =
-      parsed.transitionKind === "send" || parsed.transitionKind === "unshield"
+      parsed.transitionKind === "send" ||
+      parsed.transitionKind === "unshield" ||
+      parsed.transitionKind === "swap" ||
+      parsed.transitionKind === "sol_unshield"
         ? parsed.transitionKind
         : typeof parsed.sendNoteId === "string"
           ? "send"
@@ -551,7 +819,8 @@ function parseSpentMarkerMemo(
     }
 
     return {
-      asset: "VUSD",
+      asset: parsed.asset,
+      assetId,
       consumedNoteId: parsed.consumedNoteId,
       createdAt: parsed.createdAt,
       kind: "spent_marker",
@@ -559,20 +828,70 @@ function parseSpentMarkerMemo(
         typeof parsed.markerId === "string"
           ? parsed.markerId
           : createSpentMarkerId({
-              asset: "VUSD",
+              asset: parsed.asset,
+              assetId,
               consumedNoteId: parsed.consumedNoteId,
               createdAt: parsed.createdAt,
-              mintAddress: parsed.mintAddress,
               owner: parsed.owner,
               transitionNoteId,
               transitionKind,
               vaultOwner: parsed.vaultOwner,
             }),
-      mintAddress: parsed.mintAddress,
       owner: parsed.owner,
       stateSignature,
       transitionKind,
       transitionNoteId,
+      vaultOwner: parsed.vaultOwner,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function parseSolUnshieldMemo(
+  memo: string | null | undefined,
+  stateSignature: string,
+): (Omit<VantaSolUnshieldNote, "noteId"> & { noteId?: string }) | null {
+  const memoPayload = extractMemoPayload(memo, VANTA_SOL_UNSHIELD_MEMO_PREFIX);
+
+  if (!memoPayload) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(memoPayload) as Partial<SolUnshieldMemoPayload>;
+
+    if (
+      parsed.kind !== "sol_unshield" ||
+      parsed.asset !== "SOL" ||
+      typeof parsed.assetId !== "string" ||
+      typeof parsed.owner !== "string" ||
+      typeof parsed.vaultOwner !== "string" ||
+      typeof parsed.destinationOwner !== "string" ||
+      typeof parsed.consumedNoteId !== "string" ||
+      typeof parsed.amount !== "string" ||
+      typeof parsed.createdAt !== "number"
+    ) {
+      return null;
+    }
+
+    const parsedAmount = Number(parsed.amount);
+
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      return null;
+    }
+
+    return {
+      amount: parsedAmount,
+      asset: "SOL",
+      assetId: parsed.assetId,
+      consumedNoteId: parsed.consumedNoteId,
+      createdAt: parsed.createdAt,
+      destinationOwner: parsed.destinationOwner,
+      kind: "sol_unshield",
+      noteId: typeof parsed.noteId === "string" ? parsed.noteId : undefined,
+      owner: parsed.owner,
+      stateSignature,
       vaultOwner: parsed.vaultOwner,
     };
   } catch {
@@ -633,6 +952,108 @@ function parseUnshieldMemo(
       owner: parsed.owner,
       stateSignature,
       vaultOwner: parsed.vaultOwner,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function parseSwapMemo(
+  memo: string | null | undefined,
+  stateSignature: string,
+): (Omit<VantaSwapNote, "consumedNoteId" | "noteId" | "outputNoteId"> & {
+  consumedNoteId?: string;
+  consumedShieldStateSignature?: string;
+  noteId?: string;
+  outputNoteId?: string;
+}) | null {
+  const memoPayload = extractMemoPayload(memo, VANTA_SWAP_MEMO_PREFIX);
+
+  if (!memoPayload) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(memoPayload) as Partial<SwapMemoPayload & SwapMemoWirePayload>;
+    const kind = parsed.kind ?? parsed.k;
+    const inputAsset = parsed.inputAsset ?? parsed.ii;
+    const outputAsset = parsed.outputAsset ?? parsed.oi;
+    const owner = parsed.owner ?? parsed.ow;
+    const mintAddress = parsed.mintAddress ?? parsed.ma;
+    const vaultOwner = parsed.vaultOwner ?? parsed.vo;
+    const inputAmount = parsed.inputAmount ?? parsed.ia;
+    const outputAmount = parsed.outputAmount ?? parsed.oa;
+    const createdAt = parsed.createdAt ?? parsed.ca;
+    const consumedNoteId = parsed.consumedNoteId ?? parsed.cn;
+    const consumedShieldStateSignature =
+      parsed.consumedShieldStateSignature ?? parsed.cs;
+    const noteId = parsed.noteId ?? parsed.ni;
+    const outputNoteId = parsed.outputNoteId ?? parsed.on;
+    const quoteExpiresAt = parsed.quoteExpiresAt ?? parsed.qe;
+    const quoteId = parsed.quoteId ?? parsed.qi;
+    const quoteTimestamp = parsed.quoteTimestamp ?? parsed.qt;
+    const venueFamily = parsed.venueFamily ?? parsed.vf;
+    const venueName = parsed.venueName ?? parsed.vn;
+    const venueNetwork = parsed.venueNetwork ?? parsed.vw;
+    const venuePoolAddress = parsed.venuePoolAddress ?? parsed.vp;
+
+    if (
+      kind !== "swap" ||
+      inputAsset !== "VUSD" ||
+      outputAsset !== "SOL" ||
+      typeof owner !== "string" ||
+      typeof mintAddress !== "string" ||
+      typeof vaultOwner !== "string" ||
+      typeof inputAmount !== "string" ||
+      typeof outputAmount !== "string" ||
+      typeof createdAt !== "number"
+    ) {
+      return null;
+    }
+
+    const parsedInputAmount = Number(inputAmount);
+    const parsedOutputAmount = Number(outputAmount);
+
+    if (
+      !Number.isFinite(parsedInputAmount) ||
+      parsedInputAmount <= 0 ||
+      !Number.isFinite(parsedOutputAmount) ||
+      parsedOutputAmount <= 0
+    ) {
+      return null;
+    }
+
+    return {
+      consumedNoteId: typeof consumedNoteId === "string" ? consumedNoteId : undefined,
+      consumedShieldStateSignature:
+        typeof consumedShieldStateSignature === "string"
+          ? consumedShieldStateSignature
+          : undefined,
+      createdAt,
+      inputAmount: parsedInputAmount,
+      inputAsset: "VUSD",
+      kind: "swap",
+      noteId: typeof noteId === "string" ? noteId : undefined,
+      outputAmount: parsedOutputAmount,
+      outputAsset: "SOL",
+      outputNoteId: typeof outputNoteId === "string" ? outputNoteId : undefined,
+      owner,
+      quoteExpiresAt:
+        typeof quoteExpiresAt === "number" && Number.isFinite(quoteExpiresAt)
+          ? quoteExpiresAt
+          : undefined,
+      quoteId: typeof quoteId === "string" ? quoteId : undefined,
+      quoteTimestamp:
+        typeof quoteTimestamp === "number" && Number.isFinite(quoteTimestamp)
+          ? quoteTimestamp
+          : undefined,
+      stateSignature,
+      vaultOwner,
+      venueFamily: venueFamily === "DLMM" ? "DLMM" : undefined,
+      venueName: venueName === "Meteora" ? "Meteora" : undefined,
+      venueNetwork: venueNetwork === "Devnet" ? "Devnet" : undefined,
+      venuePoolAddress:
+        typeof venuePoolAddress === "string" ? venuePoolAddress : undefined,
     };
   } catch {
     return null;
@@ -708,6 +1129,30 @@ export async function fetchVantaShieldAccountState(args: {
         note.mintAddress === args.mintAddress &&
         note.vaultOwner === args.vaultOwner
       );
+    })
+    .sort((left, right) => left.createdAt - right.createdAt);
+
+  const parsedSwapNotes = signatures
+    .filter((item: (typeof signatures)[number]) => item.err === null)
+    .map((item: (typeof signatures)[number]) =>
+      parseSwapMemo(item.memo, item.signature.toString()),
+    )
+    .filter((note): note is NonNullable<typeof note> => {
+      return (
+        note !== null &&
+        note.owner === args.owner &&
+        note.vaultOwner === args.vaultOwner
+      );
+    })
+    .sort((left, right) => left.createdAt - right.createdAt);
+
+  const parsedSolUnshieldNotes = signatures
+    .filter((item: (typeof signatures)[number]) => item.err === null)
+    .map((item: (typeof signatures)[number]) =>
+      parseSolUnshieldMemo(item.memo, item.signature.toString()),
+    )
+    .filter((note): note is NonNullable<typeof note> => {
+      return note !== null && note.owner === args.owner && note.vaultOwner === args.vaultOwner;
     })
     .sort((left, right) => left.createdAt - right.createdAt);
 
@@ -792,6 +1237,84 @@ export async function fetchVantaShieldAccountState(args: {
     candidateUnshieldNotes.map((note) => [note.noteId, note] as const),
   );
 
+  const candidateSwapNotes = parsedSwapNotes.flatMap((note) => {
+    const resolvedConsumedNoteId =
+      note.consumedNoteId ??
+      (note.consumedShieldStateSignature
+        ? shieldNotesBySignature.get(note.consumedShieldStateSignature)?.noteId
+        : undefined);
+
+    if (!resolvedConsumedNoteId) {
+      return [];
+    }
+
+    const roundedInputAmount = Number(note.inputAmount.toFixed(6));
+    const roundedOutputAmount = Number(note.outputAmount.toFixed(9));
+    const finalizedNoteId =
+      note.noteId ??
+      createSwapNoteId({
+        consumedNoteId: resolvedConsumedNoteId,
+        createdAt: note.createdAt,
+        inputAmount: roundedInputAmount.toString(),
+        inputAsset: "VUSD",
+        mintAddress: args.mintAddress,
+        outputAmount: roundedOutputAmount.toString(),
+        outputAsset: "SOL",
+        owner: note.owner,
+        quoteId: note.quoteId,
+        vaultOwner: note.vaultOwner,
+      });
+    const finalizedOutputNoteId =
+      note.outputNoteId ??
+      createSwapOutputNoteId({
+        createdAt: note.createdAt,
+        outputAmount: roundedOutputAmount.toString(),
+        owner: note.owner,
+        sourceSwapNoteId: finalizedNoteId,
+      });
+
+    return [
+      {
+        ...note,
+        consumedNoteId: resolvedConsumedNoteId,
+        inputAmount: roundedInputAmount,
+        noteId: finalizedNoteId,
+        outputAmount: roundedOutputAmount,
+        outputNoteId: finalizedOutputNoteId,
+      } satisfies VantaSwapNote,
+    ];
+  });
+
+  const swapNotesById = new Map(
+    candidateSwapNotes.map((note) => [note.noteId, note] as const),
+  );
+  const candidateSolUnshieldNotes = parsedSolUnshieldNotes.flatMap((note) => {
+    const roundedAmount = Number(note.amount.toFixed(9));
+    const finalizedNoteId =
+      note.noteId ??
+      createSolUnshieldNoteId({
+        amount: roundedAmount.toString(),
+        asset: "SOL",
+        assetId: note.assetId,
+        consumedNoteId: note.consumedNoteId,
+        createdAt: note.createdAt,
+        destinationOwner: note.destinationOwner,
+        owner: note.owner,
+        vaultOwner: note.vaultOwner,
+      });
+
+    return [
+      {
+        ...note,
+        amount: roundedAmount,
+        noteId: finalizedNoteId,
+      } satisfies VantaSolUnshieldNote,
+    ];
+  });
+  const solUnshieldNotesById = new Map(
+    candidateSolUnshieldNotes.map((note) => [note.noteId, note] as const),
+  );
+
   const explicitSpentMarkers = signatures
     .filter((item: (typeof signatures)[number]) => item.err === null)
     .map((item: (typeof signatures)[number]) =>
@@ -801,7 +1324,6 @@ export async function fetchVantaShieldAccountState(args: {
       return (
         marker !== null &&
         marker.owner === args.owner &&
-        marker.mintAddress === args.mintAddress &&
         marker.vaultOwner === args.vaultOwner
       );
     })
@@ -818,11 +1340,13 @@ export async function fetchVantaShieldAccountState(args: {
     .map((sendNote) => {
       return {
         asset: "VUSD",
+        assetId: sendNote.mintAddress,
         consumedNoteId: sendNote.consumedNoteId,
         createdAt: sendNote.createdAt,
         kind: "spent_marker" as const,
         markerId: createSpentMarkerId({
           asset: "VUSD",
+          assetId: sendNote.mintAddress,
           consumedNoteId: sendNote.consumedNoteId,
           createdAt: sendNote.createdAt,
           mintAddress: sendNote.mintAddress,
@@ -831,7 +1355,6 @@ export async function fetchVantaShieldAccountState(args: {
           transitionNoteId: sendNote.noteId,
           vaultOwner: sendNote.vaultOwner,
         }),
-        mintAddress: sendNote.mintAddress,
         owner: sendNote.owner,
         stateSignature: `${sendNote.stateSignature}:legacy-spent`,
         transitionKind: "send" as const,
@@ -839,14 +1362,22 @@ export async function fetchVantaShieldAccountState(args: {
         vaultOwner: sendNote.vaultOwner,
       } satisfies VantaSpentMarker;
     });
+  const shieldedSolNotesBySwap = new Map<
+    string,
+    Omit<VantaShieldedSolNote, "lifecycleStatus">
+  >();
+  const consumedSolNoteIds = new Set<string>();
 
-  const spentMarkers = [...explicitSpentMarkers, ...legacySpentMarkers]
+  const shieldSpentMarkers = [...explicitSpentMarkers, ...legacySpentMarkers]
+    .filter((marker) => marker.asset === "VUSD")
     .sort((left, right) => left.createdAt - right.createdAt)
     .flatMap((marker) => {
       const transition =
         marker.transitionKind === "send"
           ? sendNotesById.get(marker.transitionNoteId)
-          : unshieldNotesById.get(marker.transitionNoteId);
+          : marker.transitionKind === "unshield"
+            ? unshieldNotesById.get(marker.transitionNoteId)
+            : swapNotesById.get(marker.transitionNoteId);
 
       if (!transition || transition.consumedNoteId !== marker.consumedNoteId) {
         return [];
@@ -923,39 +1454,115 @@ export async function fetchVantaShieldAccountState(args: {
         return [marker];
       }
 
-      const unshieldTransition = transition as VantaUnshieldNote;
-      const roundedUnshieldAmount = Number(unshieldTransition.amount.toFixed(6));
+      if (marker.transitionKind === "unshield") {
+        const unshieldTransition = transition as VantaUnshieldNote;
+        const roundedUnshieldAmount = Number(unshieldTransition.amount.toFixed(6));
 
-      if (!amountsMatch(roundedUnshieldAmount, roundedInputAmount)) {
+        if (!amountsMatch(roundedUnshieldAmount, roundedInputAmount)) {
+          return [];
+        }
+
+        consumedNoteIds.add(marker.consumedNoteId);
+
+        return [marker];
+      }
+
+      const swapTransition = transition as VantaSwapNote;
+      const roundedSwapInputAmount = Number(swapTransition.inputAmount.toFixed(6));
+
+      if (!amountsMatch(roundedSwapInputAmount, roundedInputAmount)) {
         return [];
       }
 
       consumedNoteIds.add(marker.consumedNoteId);
+      shieldedSolNotesBySwap.set(swapTransition.noteId, {
+        amount: Number(swapTransition.outputAmount.toFixed(9)),
+        asset: "SOL",
+        createdAt: swapTransition.createdAt,
+        noteId: swapTransition.outputNoteId,
+        owner: swapTransition.owner,
+        sourceSwapNoteId: swapTransition.noteId,
+        stateSignature: `${swapTransition.stateSignature}:sol-output`,
+      });
 
       return [marker];
     });
 
   const validSendNotes = candidateSendNotes.filter((note) => {
-    return spentMarkers.some(
+    return shieldSpentMarkers.some(
       (marker) =>
         marker.transitionKind === "send" && marker.transitionNoteId === note.noteId,
     );
   });
   const validUnshieldNotes = candidateUnshieldNotes.filter((note) => {
-    return spentMarkers.some(
+    return shieldSpentMarkers.some(
       (marker) =>
         marker.transitionKind === "unshield" &&
         marker.transitionNoteId === note.noteId,
     );
   });
+  const validSwapNotes = candidateSwapNotes.filter((note) => {
+    return shieldSpentMarkers.some(
+      (marker) =>
+        marker.transitionKind === "swap" && marker.transitionNoteId === note.noteId,
+    );
+  });
+  const baseShieldedSolNotes = validSwapNotes
+    .map((note) => shieldedSolNotesBySwap.get(note.noteId))
+    .filter((note): note is NonNullable<typeof note> => note !== undefined);
+
+  const solSpentMarkers = explicitSpentMarkers
+    .filter((marker) => marker.asset === "SOL")
+    .sort((left, right) => left.createdAt - right.createdAt)
+    .flatMap((marker) => {
+      if (marker.transitionKind !== "sol_unshield") {
+        return [];
+      }
+
+      const transition = solUnshieldNotesById.get(marker.transitionNoteId);
+      const consumedNote = baseShieldedSolNotes.find((note) => note.noteId === marker.consumedNoteId);
+
+      if (
+        !transition ||
+        !consumedNote ||
+        transition.consumedNoteId !== marker.consumedNoteId ||
+        consumedSolNoteIds.has(marker.consumedNoteId)
+      ) {
+        return [];
+      }
+
+      if (
+        !amountsMatch(
+          Number(transition.amount.toFixed(9)),
+          Number(consumedNote.amount.toFixed(9)),
+        )
+      ) {
+        return [];
+      }
+
+      consumedSolNoteIds.add(marker.consumedNoteId);
+      return [marker];
+    });
+  const validSolUnshieldNotes = candidateSolUnshieldNotes.filter((note) => {
+    return solSpentMarkers.some(
+      (marker) =>
+        marker.transitionKind === "sol_unshield" &&
+        marker.transitionNoteId === note.noteId,
+    );
+  });
+  const spentMarkers = [...shieldSpentMarkers, ...solSpentMarkers].sort(
+    (left, right) => left.createdAt - right.createdAt,
+  );
   const spentMarkerByConsumedNoteId = new Map(
     spentMarkers.map((marker) => [marker.consumedNoteId, marker] as const),
   );
   const transitionByConsumedNoteId = new Map(
-    [...validSendNotes, ...validUnshieldNotes].map((transition) => [
-      transition.consumedNoteId,
-      transition,
-    ] as const),
+    [
+      ...validSendNotes,
+      ...validUnshieldNotes,
+      ...validSwapNotes,
+      ...validSolUnshieldNotes,
+    ].map((transition) => [transition.consumedNoteId, transition] as const),
   );
 
   const changeNotes = [...changeNotesByParentSend.values()].sort((left, right) => {
@@ -968,12 +1575,49 @@ export async function fetchVantaShieldAccountState(args: {
     return consumedNoteIds.has(note.noteId);
   });
   const spendableShieldNotes = shieldNotes.filter((note) => {
-    return !consumedNoteIds.has(note.noteId);
+    // Once a note already has a constrained transition recorded on-chain,
+    // keep it out of the spendable set even before the spent marker lands.
+    // This avoids presenting notes as reusable when swap/send/unshield has
+    // already reserved them and the UI is just waiting on finalization.
+    return (
+      !consumedNoteIds.has(note.noteId) && !transitionByConsumedNoteId.has(note.noteId)
+    );
+  });
+  const shieldedSolNotes = baseShieldedSolNotes
+    .map((note) => {
+      const spentMarker = spentMarkerByConsumedNoteId.get(note.noteId);
+      const consumingTransition = transitionByConsumedNoteId.get(note.noteId);
+
+      return {
+        ...note,
+        consumedByTransitionId:
+          consumingTransition?.kind === "sol_unshield" ? consumingTransition.noteId : undefined,
+        consumedByTransitionKind:
+          consumingTransition?.kind === "sol_unshield" ? "sol_unshield" : undefined,
+        lifecycleStatus: spentMarker ? "consumed" : "spendable",
+        spentMarkerId: spentMarker?.markerId,
+      } satisfies VantaShieldedSolNote;
+    })
+    .sort((left, right) => right.createdAt - left.createdAt);
+  const pendingSolUnshieldByConsumedNoteId = new Set(
+    candidateSolUnshieldNotes.map((note) => note.consumedNoteId),
+  );
+  const spendableShieldedSolNotes = shieldedSolNotes.filter((note) => {
+    return (
+      note.lifecycleStatus === "spendable" &&
+      !transitionByConsumedNoteId.has(note.noteId) &&
+      !pendingSolUnshieldByConsumedNoteId.has(note.noteId)
+    );
+  });
+  const consumedShieldedSolNotes = shieldedSolNotes.filter((note) => {
+    return note.lifecycleStatus === "consumed";
   });
   const activity = [
     ...shieldNotes,
     ...validSendNotes,
+    ...validSwapNotes,
     ...validUnshieldNotes,
+    ...validSolUnshieldNotes,
     ...spentMarkers,
   ].sort((left, right) => left.createdAt - right.createdAt);
   const noteStates = [...shieldNotes]
@@ -1005,6 +1649,17 @@ export async function fetchVantaShieldAccountState(args: {
   const balance = Number(
     spendableShieldNotes.reduce((sum, note) => sum + note.amount, 0).toFixed(6),
   );
+  const shieldedSolBalance = Number(
+    spendableShieldedSolNotes.reduce((sum, note) => sum + note.amount, 0).toFixed(9),
+  );
+  const lifecycleActivities = deriveLifecycleActivities({
+    changeNotes,
+    sendNotes: validSendNotes,
+    shieldNotes,
+    solUnshieldNotes: validSolUnshieldNotes,
+    swapNotes: validSwapNotes,
+    unshieldNotes: validUnshieldNotes,
+  });
 
   return {
     accountId: getShieldAccountId(args.owner, args.mintAddress),
@@ -1012,18 +1667,139 @@ export async function fetchVantaShieldAccountState(args: {
     asset: "VUSD",
     balance,
     changeNotes,
+    lifecycleActivities,
     mintAddress: args.mintAddress,
     noteStates,
     noteStatusSummary,
     owner: args.owner,
     sendNotes: validSendNotes,
     shieldNotes,
+    consumedShieldedSolNotes,
+    shieldedSolBalance,
+    shieldedSolNotes,
+    solUnshieldNotes: validSolUnshieldNotes,
     source: "vanta_onchain_notes",
+    spendableShieldedSolNotes,
     spendableShieldNotes,
     spentMarkers,
     spentShieldNotes,
     status: "ready",
+    swapNotes: validSwapNotes,
     unshieldNotes: validUnshieldNotes,
     vaultOwner: args.vaultOwner,
   } satisfies VantaShieldAccountState;
+}
+
+function deriveLifecycleActivities(args: {
+  changeNotes: VantaShieldNote[];
+  sendNotes: VantaSendNote[];
+  shieldNotes: VantaShieldNote[];
+  solUnshieldNotes: VantaSolUnshieldNote[];
+  swapNotes: VantaSwapNote[];
+  unshieldNotes: VantaUnshieldNote[];
+}) {
+  const shieldActivities = args.shieldNotes
+    .filter((note) => note.origin === "deposit")
+    .map((note) => {
+      return {
+        amount: note.amount,
+        createdAt: note.createdAt,
+        description: `Moved ${note.amount.toFixed(2)} VUSD out of Public Wallet and into Vanta's shielded state.`,
+        noteId: note.noteId,
+        sourceState: "Public Wallet",
+        targetState: "Shielded State",
+        title: "Shield",
+        type: "shield",
+        impact: "public_to_shielded",
+      } satisfies VantaLifecycleActivity;
+    });
+
+  const sendActivities = args.sendNotes.map((note) => {
+    return {
+      amount: note.amount,
+      createdAt: note.createdAt,
+      description:
+        note.changeAmount > 0
+          ? `Sent ${note.amount.toFixed(2)} VUSD from shielded state and preserved ${note.changeAmount.toFixed(2)} VUSD as a new change note.`
+          : `Sent ${note.amount.toFixed(2)} VUSD from shielded state with no shielded value left over.`,
+      noteId: note.noteId,
+      sourceState: "Shielded State",
+      targetState: "Shielded State",
+      title: "Send",
+      type: "send",
+      impact: "shielded_transfer",
+    } satisfies VantaLifecycleActivity;
+  });
+
+  const changeActivities = args.changeNotes.map((note) => {
+    return {
+      amount: note.amount,
+      createdAt: note.createdAt,
+      description: `Created a new spendable change note for ${note.amount.toFixed(2)} VUSD after a partial send.`,
+      noteId: note.noteId,
+      sourceState: "Shielded State",
+      targetState: "Shielded State",
+      title: "Change Note Created",
+      type: "change_note_created",
+      impact: "shielded_to_shielded",
+    } satisfies VantaLifecycleActivity;
+  });
+
+  const swapActivities = args.swapNotes.map((note) => {
+    const venueSuffix =
+      note.venueName && note.venueFamily
+        ? ` via ${note.venueName} ${note.venueFamily} on devnet.`
+        : ".";
+
+    return {
+      amount: note.inputAmount,
+      amountLabel: `${note.inputAmount.toFixed(2)} VUSD -> ${note.outputAmount.toFixed(4)} SOL`,
+      createdAt: note.createdAt,
+      description: `Swapped ${note.inputAmount.toFixed(2)} VUSD into ${note.outputAmount.toFixed(4)} SOL inside Vanta's constrained shielded lifecycle${venueSuffix}`,
+      noteId: note.noteId,
+      sourceState: "Shielded State",
+      targetState: "Shielded State",
+      title: "Swap",
+      type: "swap",
+      impact: "shielded_swap",
+    } satisfies VantaLifecycleActivity;
+  });
+
+  const unshieldActivities = args.unshieldNotes.map((note) => {
+    return {
+      amount: note.amount,
+      createdAt: note.createdAt,
+      description: `Returned ${note.amount.toFixed(2)} VUSD from shielded state back into Public Wallet through the constrained operator path.`,
+      noteId: note.noteId,
+      sourceState: "Shielded State",
+      targetState: "Public Wallet",
+      title: "Unshield",
+      type: "unshield",
+      impact: "shielded_to_public",
+    } satisfies VantaLifecycleActivity;
+  });
+
+  const solUnshieldActivities = args.solUnshieldNotes.map((note) => {
+    return {
+      amount: note.amount,
+      amountLabel: `${note.amount.toFixed(4)} SOL`,
+      createdAt: note.createdAt,
+      description: `Returned ${note.amount.toFixed(4)} SOL from shielded state back into Public Wallet through the constrained operator-backed SOL exit.`,
+      noteId: note.noteId,
+      sourceState: "Shielded State",
+      targetState: "Public Wallet",
+      title: "Unshield SOL",
+      type: "sol_unshield",
+      impact: "shielded_to_public",
+    } satisfies VantaLifecycleActivity;
+  });
+
+  return [
+    ...shieldActivities,
+    ...sendActivities,
+    ...changeActivities,
+    ...swapActivities,
+    ...unshieldActivities,
+    ...solUnshieldActivities,
+  ].sort((left, right) => right.createdAt - left.createdAt);
 }

@@ -1,50 +1,77 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   useSendTransaction,
   useSplToken,
-  useWaitForSignature,
+  useWalletSession,
 } from "@solana/react-hooks";
+import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
 import { useWalletState } from "@/context/WalletContext";
-import { liveShieldAsset, SHIELD_HOOK_FALLBACK_MINT } from "@/solana/shieldConfig";
+import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
+import { useRealtimeSignatureProgress } from "@/solana/useRealtimeSignatureProgress";
+import {
+  createSolUnshieldIntentPayload,
+  signSolUnshieldIntent,
+} from "@/solana/solUnshieldAuth";
+import { requestOperatorSolUnshield } from "@/solana/solUnshieldOperatorClient";
+import { liveShieldAsset, liveSwapPair, SHIELD_HOOK_FALLBACK_MINT } from "@/solana/shieldConfig";
+import {
+  createUnshieldIntentPayload,
+  signUnshieldIntent,
+} from "@/solana/unshieldAuth";
 import { requestOperatorUnshield } from "@/solana/unshieldOperatorClient";
 import { useVantaShieldState } from "@/solana/useVantaShieldState";
 import {
+  createPreparedSolUnshieldMemo,
   createPreparedUnshieldMemo,
   createSpentMarkerInstruction,
+  VANTA_NATIVE_SOL_ASSET_ID,
 } from "@/solana/vantaShieldState";
 
-type PendingSpentMarker = {
-  amount: number;
-  consumedNoteId: string;
-  createdAt: number;
-  mintAddress: string;
-  owner: string;
-  transitionKind: "unshield";
-  transitionNoteId: string;
-  vaultOwner: string;
-};
-
+type UnshieldLane = "VUSD" | "SOL";
 type UnshieldStatus =
   | "idle"
   | "review"
   | "awaiting_confirmation"
   | "recording_transition"
-  | "returning_to_wallet"
+  | "authorizing_operator"
   | "finalizing_state"
   | "complete"
   | "failed";
 
-function formatBalance(value: number) {
+type PendingSpentMarker = {
+  asset: UnshieldLane;
+  assetId: string;
+  consumedNoteId: string;
+  createdAt: number;
+  owner: string;
+  transitionKind: "unshield" | "sol_unshield";
+  transitionNoteId: string;
+  vaultOwner: string;
+};
+
+function formatVusdAmount(value: number) {
   return `${value.toLocaleString(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })} VUSD`;
 }
 
+function formatSolAmount(value: number) {
+  return `${value.toLocaleString(undefined, {
+    minimumFractionDigits: 4,
+    maximumFractionDigits: 6,
+  })} SOL`;
+}
+
+function abbreviate(value: string) {
+  return `${value.slice(0, 10)}...${value.slice(-6)}`;
+}
+
 export function UnshieldPage() {
   const { walletAddress, walletAddressShort, walletConnected } = useWalletState();
+  const walletSession = useWalletSession();
   const {
     account: shieldAccount,
     error: shieldStateError,
@@ -55,16 +82,25 @@ export function UnshieldPage() {
     liveShieldAsset.mintAddress ?? SHIELD_HOOK_FALLBACK_MINT,
     { config: { tokenProgram: "auto" } },
   );
-  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
+  const [selectedLane, setSelectedLane] = useState<UnshieldLane>("VUSD");
+  const [selectedVusdNoteId, setSelectedVusdNoteId] = useState<string | null>(null);
+  const [selectedSolNoteId, setSelectedSolNoteId] = useState<string | null>(null);
   const [status, setStatus] = useState<UnshieldStatus>("idle");
   const [flowError, setFlowError] = useState<string | null>(null);
-  const [lastAmount, setLastAmount] = useState<number | null>(null);
   const [pendingSpentMarker, setPendingSpentMarker] = useState<PendingSpentMarker | null>(null);
-  const [returnTransferSignature, setReturnTransferSignature] = useState<string | null>(null);
+  const [operatorAuthorizationStarted, setOperatorAuthorizationStarted] = useState(false);
+  const [operatorReleaseSignature, setOperatorReleaseSignature] = useState<string | null>(null);
   const [lastTransitionSignature, setLastTransitionSignature] = useState<string | null>(null);
   const [lastSpentMarkerSignature, setLastSpentMarkerSignature] = useState<string | null>(null);
+  const [lastCompletion, setLastCompletion] = useState<{
+    amount: number;
+    asset: UnshieldLane;
+    requestId?: string;
+    transitionNoteId: string;
+  } | null>(null);
+  const operatorAuthorizationLockRef = useRef<string | null>(null);
   const transitionTransaction = useSendTransaction();
-  const transitionWait = useWaitForSignature(
+  const transitionWait = useRealtimeSignatureProgress(
     transitionTransaction.signature ?? undefined,
     {
       commitment: "confirmed",
@@ -72,50 +108,83 @@ export function UnshieldPage() {
     },
   );
   const spentMarkerTransaction = useSendTransaction();
-  const spentMarkerWait = useWaitForSignature(
+  const spentMarkerWait = useRealtimeSignatureProgress(
     spentMarkerTransaction.signature ?? undefined,
     {
       commitment: "confirmed",
       disabled: !spentMarkerTransaction.signature,
     },
   );
-  const returnTransferWait = useWaitForSignature(returnTransferSignature ?? undefined, {
-    commitment: "confirmed",
-    disabled: !returnTransferSignature,
-  });
 
-  const spendableNotes = shieldAccount?.spendableShieldNotes ?? [];
+  const spendableVusdNotes = shieldAccount?.spendableShieldNotes ?? [];
+  const spendableSolNotes = shieldAccount?.spendableShieldedSolNotes ?? [];
 
   useEffect(() => {
-    if (!spendableNotes.length) {
-      setSelectedNoteId(null);
+    if (!spendableVusdNotes.length) {
+      setSelectedVusdNoteId(null);
       return;
     }
 
-    if (!selectedNoteId || !spendableNotes.some((note) => note.noteId === selectedNoteId)) {
-      setSelectedNoteId(spendableNotes[0].noteId);
+    if (
+      !selectedVusdNoteId ||
+      !spendableVusdNotes.some((note) => note.noteId === selectedVusdNoteId)
+    ) {
+      setSelectedVusdNoteId(spendableVusdNotes[0].noteId);
     }
-  }, [selectedNoteId, spendableNotes]);
+  }, [selectedVusdNoteId, spendableVusdNotes]);
 
-  const selectedNote = useMemo(() => {
-    return spendableNotes.find((note) => note.noteId === selectedNoteId) ?? null;
-  }, [selectedNoteId, spendableNotes]);
+  useEffect(() => {
+    if (!spendableSolNotes.length) {
+      setSelectedSolNoteId(null);
+      return;
+    }
 
-  const publicBalance = Number(supportedToken.balance?.uiAmount ?? "0");
-  const shieldedBalance = shieldAccount?.balance ?? 0;
-  const postUnshieldPublicBalance =
-    selectedNote && status !== "complete" ? publicBalance + selectedNote.amount : publicBalance;
-  const postUnshieldShieldedBalance =
-    selectedNote && status !== "complete"
-      ? Number(Math.max(shieldedBalance - selectedNote.amount, 0).toFixed(6))
-      : shieldedBalance;
+    if (
+      !selectedSolNoteId ||
+      !spendableSolNotes.some((note) => note.noteId === selectedSolNoteId)
+    ) {
+      setSelectedSolNoteId(spendableSolNotes[0].noteId);
+    }
+  }, [selectedSolNoteId, spendableSolNotes]);
+
+  useEffect(() => {
+    if (selectedLane === "VUSD" && spendableVusdNotes.length === 0 && spendableSolNotes.length > 0) {
+      setSelectedLane("SOL");
+    }
+
+    if (selectedLane === "SOL" && spendableSolNotes.length === 0 && spendableVusdNotes.length > 0) {
+      setSelectedLane("VUSD");
+    }
+  }, [selectedLane, spendableSolNotes.length, spendableVusdNotes.length]);
+
+  const selectedVusdNote = useMemo(() => {
+    return spendableVusdNotes.find((note) => note.noteId === selectedVusdNoteId) ?? null;
+  }, [selectedVusdNoteId, spendableVusdNotes]);
+  const selectedSolNote = useMemo(() => {
+    return spendableSolNotes.find((note) => note.noteId === selectedSolNoteId) ?? null;
+  }, [selectedSolNoteId, spendableSolNotes]);
+
+  const selectedAmount = selectedLane === "VUSD"
+    ? selectedVusdNote?.amount ?? 0
+    : selectedSolNote?.amount ?? 0;
+  const selectedNoteLabel = selectedLane === "VUSD"
+    ? (selectedVusdNote ? abbreviate(selectedVusdNote.noteId) : "None selected")
+    : (selectedSolNote ? abbreviate(selectedSolNote.noteId) : "None selected");
+  const canUseLane =
+    selectedLane === "VUSD"
+      ? Boolean(selectedVusdNote)
+      : Boolean(selectedSolNote);
+  const transitionProgressLabel = transitionWait.detailLabel;
+  const finalizationProgressLabel = spentMarkerWait.detailLabel;
   const isReady =
     walletConnected &&
     Boolean(walletAddress) &&
-    Boolean(selectedNote) &&
-    Boolean(liveShieldAsset.mintAddress) &&
+    Boolean(walletSession?.signMessage) &&
+    canUseLane &&
     Boolean(liveShieldAsset.vaultOwner) &&
-    liveShieldAsset.unshieldConfigured;
+    (selectedLane === "VUSD"
+      ? Boolean(liveShieldAsset.mintAddress) && liveShieldAsset.unshieldConfigured
+      : Boolean(liveSwapPair.solUnshieldOperatorUrl));
 
   useEffect(() => {
     if (transitionTransaction.status === "loading") {
@@ -125,11 +194,13 @@ export function UnshieldPage() {
 
     if (transitionTransaction.status === "error") {
       setStatus("failed");
-      setFlowError(
-        transitionTransaction.error instanceof Error
-          ? transitionTransaction.error.message
-          : "The Vanta unshield record could not be submitted.",
-      );
+    setFlowError(
+      transitionTransaction.error instanceof Error
+        ? transitionTransaction.error.message
+        : "The unshield transition could not be submitted.",
+    );
+      setOperatorAuthorizationStarted(false);
+      operatorAuthorizationLockRef.current = null;
       setPendingSpentMarker(null);
     }
   }, [transitionTransaction.error, transitionTransaction.status]);
@@ -143,8 +214,10 @@ export function UnshieldPage() {
     setFlowError(
       transitionWait.waitError instanceof Error
         ? transitionWait.waitError.message
-        : "The Vanta unshield record was submitted but not confirmed.",
+        : "The unshield transition was submitted but not confirmed.",
     );
+    setOperatorAuthorizationStarted(false);
+    operatorAuthorizationLockRef.current = null;
     setPendingSpentMarker(null);
   }, [transitionWait.waitError, transitionWait.waitStatus]);
 
@@ -153,93 +226,155 @@ export function UnshieldPage() {
       transitionWait.waitStatus !== "success" ||
       !pendingSpentMarker ||
       !walletAddress ||
-      !liveShieldAsset.mintAddress ||
-      !liveShieldAsset.vaultOwner ||
-      returnTransferSignature
-    ) {
-      return;
-    }
-
-    setStatus("returning_to_wallet");
-    void requestOperatorUnshield({
-      amount: pendingSpentMarker.amount.toString(),
-      destinationOwner: walletAddress,
-      mintAddress: pendingSpentMarker.mintAddress,
-      noteId: pendingSpentMarker.consumedNoteId,
-      owner: pendingSpentMarker.owner,
-      vaultOwner: pendingSpentMarker.vaultOwner,
-    })
-      .then(({ signature }) => {
-        setReturnTransferSignature(signature);
-      })
-      .catch((error) => {
-        setStatus("failed");
-        setFlowError(
-          error instanceof Error
-            ? error.message
-            : "The unshield operator could not return VUSD to Public Wallet.",
-        );
-      });
-  }, [
-    pendingSpentMarker,
-    returnTransferSignature,
-    transitionWait.waitStatus,
-    walletAddress,
-  ]);
-
-  useEffect(() => {
-    if (returnTransferWait.waitStatus !== "error") {
-      return;
-    }
-
-    setStatus("failed");
-    setFlowError(
-      returnTransferWait.waitError instanceof Error
-        ? returnTransferWait.waitError.message
-        : "The public wallet return transfer was submitted but not confirmed.",
-    );
-  }, [returnTransferWait.waitError, returnTransferWait.waitStatus]);
-
-  useEffect(() => {
-    if (
-      returnTransferWait.waitStatus !== "success" ||
-      !pendingSpentMarker ||
+      !walletSession?.signMessage ||
+      operatorAuthorizationStarted ||
+      operatorAuthorizationLockRef.current === pendingSpentMarker.transitionNoteId ||
       spentMarkerTransaction.status === "loading" ||
       spentMarkerTransaction.signature
     ) {
       return;
     }
 
-    setStatus("finalizing_state");
-    void spentMarkerTransaction
-      .send({
-        instructions: [
-          createSpentMarkerInstruction({
-            asset: "VUSD",
-            consumedNoteId: pendingSpentMarker.consumedNoteId,
-            createdAt: pendingSpentMarker.createdAt,
-            mintAddress: pendingSpentMarker.mintAddress,
-            owner: pendingSpentMarker.owner,
-            transitionKind: pendingSpentMarker.transitionKind,
-            transitionNoteId: pendingSpentMarker.transitionNoteId,
-            vaultOwner: pendingSpentMarker.vaultOwner,
+    operatorAuthorizationLockRef.current = pendingSpentMarker.transitionNoteId;
+    setOperatorAuthorizationStarted(true);
+    setStatus("authorizing_operator");
+
+    if (pendingSpentMarker.asset === "VUSD") {
+      void signUnshieldIntent(
+        createUnshieldIntentPayload({
+          amount: selectedAmount.toString(),
+          destinationOwner: walletAddress,
+          mintAddress: liveShieldAsset.mintAddress ?? "",
+          noteId: pendingSpentMarker.consumedNoteId,
+          owner: pendingSpentMarker.owner,
+          requester: walletAddress,
+          transitionNoteId: pendingSpentMarker.transitionNoteId,
+          transitionStateSignature: transitionTransaction.signature ?? undefined,
+          vaultOwner: pendingSpentMarker.vaultOwner,
+        }),
+        walletSession.signMessage,
+      )
+        .then((signedIntent) => requestOperatorUnshield(signedIntent))
+        .then(({ requestId, signature }) => {
+          setOperatorReleaseSignature(signature);
+          setLastCompletion((current) =>
+            current ? { ...current, requestId } : current,
+          );
+          setStatus("finalizing_state");
+          return buildHeliusPriorityFeeInstructions({
+            accountKeys: [
+              pendingSpentMarker.assetId,
+              pendingSpentMarker.consumedNoteId,
+              pendingSpentMarker.owner,
+              pendingSpentMarker.transitionNoteId,
+              pendingSpentMarker.vaultOwner,
+              walletAddress,
+            ],
+            action: "state_finalize",
+          }).then((priorityFeeInstructions) =>
+            spentMarkerTransaction.send({
+              instructions: [
+                ...priorityFeeInstructions,
+                createSpentMarkerInstruction({
+                  asset: "VUSD",
+                  assetId: liveShieldAsset.mintAddress ?? "",
+                  consumedNoteId: pendingSpentMarker.consumedNoteId,
+                  createdAt: pendingSpentMarker.createdAt,
+                  mintAddress: liveShieldAsset.mintAddress ?? undefined,
+                  owner: pendingSpentMarker.owner,
+                  transitionKind: "unshield",
+                  transitionNoteId: pendingSpentMarker.transitionNoteId,
+                  vaultOwner: pendingSpentMarker.vaultOwner,
+                }),
+              ],
+            }),
+          );
+        })
+        .catch((error) => {
+          setStatus("failed");
+          setFlowError(
+            error instanceof Error
+              ? error.message
+              : "The VUSD unshield operator could not process the request.",
+          );
+          setOperatorAuthorizationStarted(false);
+          operatorAuthorizationLockRef.current = null;
+          setPendingSpentMarker(null);
+        });
+
+      return;
+    }
+
+    void signSolUnshieldIntent(
+      createSolUnshieldIntentPayload({
+        amount: selectedAmount.toString(),
+        asset: "SOL",
+        assetId: liveSwapPair.solAssetId,
+        consumedNoteId: pendingSpentMarker.consumedNoteId,
+        destinationOwner: walletAddress,
+        owner: pendingSpentMarker.owner,
+        requester: walletAddress,
+        transitionNoteId: pendingSpentMarker.transitionNoteId,
+        vaultOwner: pendingSpentMarker.vaultOwner,
+      }),
+      walletSession.signMessage,
+    )
+      .then((signedIntent) => requestOperatorSolUnshield(signedIntent))
+      .then(({ requestId, signature }) => {
+        setOperatorReleaseSignature(signature);
+        setLastCompletion((current) =>
+          current ? { ...current, requestId } : current,
+        );
+        setStatus("finalizing_state");
+        return buildHeliusPriorityFeeInstructions({
+          accountKeys: [
+            pendingSpentMarker.assetId,
+            pendingSpentMarker.consumedNoteId,
+            pendingSpentMarker.owner,
+            pendingSpentMarker.transitionNoteId,
+            pendingSpentMarker.vaultOwner,
+            walletAddress,
+          ],
+          action: "state_finalize",
+        }).then((priorityFeeInstructions) =>
+          spentMarkerTransaction.send({
+            instructions: [
+              ...priorityFeeInstructions,
+              createSpentMarkerInstruction({
+                asset: "SOL",
+                assetId: VANTA_NATIVE_SOL_ASSET_ID,
+                consumedNoteId: pendingSpentMarker.consumedNoteId,
+                createdAt: pendingSpentMarker.createdAt,
+                owner: pendingSpentMarker.owner,
+                transitionKind: "sol_unshield",
+                transitionNoteId: pendingSpentMarker.transitionNoteId,
+                vaultOwner: pendingSpentMarker.vaultOwner,
+              }),
+            ],
           }),
-        ],
+        );
       })
       .catch((error) => {
         setStatus("failed");
         setFlowError(
           error instanceof Error
             ? error.message
-            : "The spent marker could not be submitted.",
+            : "The SOL unshield operator could not process the request.",
         );
+        setOperatorAuthorizationStarted(false);
+        operatorAuthorizationLockRef.current = null;
+        setPendingSpentMarker(null);
       });
   }, [
+    operatorAuthorizationStarted,
     pendingSpentMarker,
-    returnTransferWait.waitStatus,
+    selectedAmount,
     spentMarkerTransaction,
     spentMarkerTransaction.signature,
     spentMarkerTransaction.status,
+    transitionWait.waitStatus,
+    walletAddress,
+    walletSession,
   ]);
 
   useEffect(() => {
@@ -253,6 +388,8 @@ export function UnshieldPage() {
         ? spentMarkerTransaction.error.message
         : "The spent marker could not be submitted.",
     );
+    setOperatorAuthorizationStarted(false);
+    operatorAuthorizationLockRef.current = null;
   }, [spentMarkerTransaction.error, spentMarkerTransaction.status]);
 
   useEffect(() => {
@@ -266,6 +403,8 @@ export function UnshieldPage() {
         ? spentMarkerWait.waitError.message
         : "The spent marker was submitted but not confirmed.",
     );
+    setOperatorAuthorizationStarted(false);
+    operatorAuthorizationLockRef.current = null;
   }, [spentMarkerWait.waitError, spentMarkerWait.waitStatus]);
 
   useEffect(() => {
@@ -277,6 +416,8 @@ export function UnshieldPage() {
       .then(() => {
         setStatus("complete");
         setFlowError(null);
+        setOperatorAuthorizationStarted(false);
+        operatorAuthorizationLockRef.current = null;
         setPendingSpentMarker(null);
       })
       .catch((error) => {
@@ -286,64 +427,10 @@ export function UnshieldPage() {
             ? error.message
             : "Unshield completed, but wallet or Vanta state could not be refreshed.",
         );
+        setOperatorAuthorizationStarted(false);
+        operatorAuthorizationLockRef.current = null;
       });
   }, [refreshShieldState, spentMarkerWait.waitStatus, supportedToken]);
-
-  async function handleUnshield() {
-    if (
-      !isReady ||
-      !selectedNote ||
-      !walletAddress ||
-      !liveShieldAsset.mintAddress ||
-      !liveShieldAsset.vaultOwner
-    ) {
-      return;
-    }
-
-    transitionTransaction.reset();
-    spentMarkerTransaction.reset();
-    setFlowError(null);
-    setReturnTransferSignature(null);
-    setLastTransitionSignature(null);
-    setLastSpentMarkerSignature(null);
-    setLastAmount(selectedNote.amount);
-    setStatus("awaiting_confirmation");
-
-    try {
-      const createdAt = Date.now();
-      const preparedUnshield = createPreparedUnshieldMemo({
-        amount: selectedNote.amount.toString(),
-        asset: "VUSD",
-        consumedNoteId: selectedNote.noteId,
-        createdAt,
-        destinationOwner: walletAddress,
-        mintAddress: liveShieldAsset.mintAddress,
-        owner: shieldAccount?.owner ?? walletAddress,
-        vaultOwner: liveShieldAsset.vaultOwner,
-      });
-
-      setPendingSpentMarker({
-        amount: selectedNote.amount,
-        consumedNoteId: selectedNote.noteId,
-        createdAt,
-        mintAddress: liveShieldAsset.mintAddress,
-        owner: shieldAccount?.owner ?? walletAddress,
-        transitionKind: "unshield",
-        transitionNoteId: preparedUnshield.noteId,
-        vaultOwner: liveShieldAsset.vaultOwner,
-      });
-
-      await transitionTransaction.send({
-        instructions: [preparedUnshield.instruction],
-      });
-    } catch (error) {
-      setPendingSpentMarker(null);
-      setStatus("failed");
-      setFlowError(
-        error instanceof Error ? error.message : "Unshield request was not approved.",
-      );
-    }
-  }
 
   useEffect(() => {
     if (transitionTransaction.signature) {
@@ -357,21 +444,144 @@ export function UnshieldPage() {
     }
   }, [spentMarkerTransaction.signature]);
 
+  async function handleUnshield() {
+    if (!shieldAccount || !liveShieldAsset.vaultOwner) {
+      return;
+    }
+
+    transitionTransaction.reset();
+    spentMarkerTransaction.reset();
+    setOperatorReleaseSignature(null);
+    setLastTransitionSignature(null);
+    setLastSpentMarkerSignature(null);
+    setFlowError(null);
+    setOperatorAuthorizationStarted(false);
+    operatorAuthorizationLockRef.current = null;
+    setStatus("awaiting_confirmation");
+
+    try {
+      const createdAt = Date.now();
+
+      if (selectedLane === "VUSD") {
+        if (!selectedVusdNote || !liveShieldAsset.mintAddress) {
+          return;
+        }
+
+        const prepared = createPreparedUnshieldMemo({
+          amount: selectedVusdNote.amount.toString(),
+          asset: "VUSD",
+          consumedNoteId: selectedVusdNote.noteId,
+          createdAt,
+          destinationOwner: walletAddress ?? shieldAccount.owner,
+          mintAddress: liveShieldAsset.mintAddress,
+          owner: shieldAccount.owner,
+          vaultOwner: shieldAccount.vaultOwner,
+        });
+
+        setPendingSpentMarker({
+          asset: "VUSD",
+          assetId: liveShieldAsset.mintAddress,
+          consumedNoteId: selectedVusdNote.noteId,
+          createdAt,
+          owner: shieldAccount.owner,
+          transitionKind: "unshield",
+          transitionNoteId: prepared.noteId,
+          vaultOwner: shieldAccount.vaultOwner,
+        });
+        setLastCompletion({
+          amount: selectedVusdNote.amount,
+          asset: "VUSD",
+          transitionNoteId: prepared.noteId,
+        });
+        const priorityFeeInstructions = await buildHeliusPriorityFeeInstructions({
+          accountKeys: [
+            selectedVusdNote.noteId,
+            liveShieldAsset.mintAddress,
+            shieldAccount.owner,
+            prepared.noteId,
+            shieldAccount.vaultOwner,
+            walletAddress,
+          ],
+          action: "unshield_transition",
+        });
+
+        await transitionTransaction.send({
+          instructions: [...priorityFeeInstructions, prepared.instruction],
+        });
+        return;
+      }
+
+      if (!selectedSolNote) {
+        return;
+      }
+
+      const prepared = createPreparedSolUnshieldMemo({
+        amount: selectedSolNote.amount.toString(),
+        asset: "SOL",
+        assetId: liveSwapPair.solAssetId,
+        consumedNoteId: selectedSolNote.noteId,
+        createdAt,
+        destinationOwner: walletAddress ?? shieldAccount.owner,
+        owner: shieldAccount.owner,
+        vaultOwner: shieldAccount.vaultOwner,
+      });
+
+      setPendingSpentMarker({
+        asset: "SOL",
+        assetId: liveSwapPair.solAssetId,
+        consumedNoteId: selectedSolNote.noteId,
+        createdAt,
+        owner: shieldAccount.owner,
+        transitionKind: "sol_unshield",
+        transitionNoteId: prepared.noteId,
+        vaultOwner: shieldAccount.vaultOwner,
+      });
+      setLastCompletion({
+        amount: selectedSolNote.amount,
+        asset: "SOL",
+        transitionNoteId: prepared.noteId,
+      });
+      const priorityFeeInstructions = await buildHeliusPriorityFeeInstructions({
+        accountKeys: [
+          selectedSolNote.noteId,
+          liveSwapPair.solAssetId,
+          shieldAccount.owner,
+          prepared.noteId,
+          shieldAccount.vaultOwner,
+          walletAddress,
+        ],
+        action: "sol_unshield_transition",
+      });
+
+      await transitionTransaction.send({
+        instructions: [...priorityFeeInstructions, prepared.instruction],
+      });
+    } catch (error) {
+      setPendingSpentMarker(null);
+      setStatus("failed");
+      setFlowError(
+        error instanceof Error ? error.message : "Unshield request was not approved.",
+      );
+    }
+  }
+
   let validationMessage =
-    "Unshield currently supports one spendable VUSD note at a time and returns the full note value through a constrained operator-backed devnet path.";
+    selectedLane === "VUSD"
+      ? "Unshield VUSD returns one full spendable VUSD note to Public Wallet through the constrained operator path."
+      : "Unshield SOL returns one full shielded SOL note created by Swap back to Public Wallet through the constrained operator path.";
 
   if (!walletConnected) {
-    validationMessage = "Connect a wallet to use Public Wallet as the return destination.";
-  } else if (!liveShieldAsset.unshieldConfigured) {
-    validationMessage =
-      "Unshield requires the live VUSD mint and vault path to be configured.";
+    validationMessage = "Connect a wallet to use Public Wallet as the exit destination.";
   } else if (shieldStateRefreshing || supportedToken.isFetching) {
-    validationMessage = "Refreshing wallet and Vanta note state from devnet.";
+    validationMessage = "Refreshing wallet and Vanta state from devnet.";
   } else if (shieldStateError) {
     validationMessage = shieldStateError;
-  } else if (!selectedNote) {
-    validationMessage =
-      "No spendable VUSD note is currently available to return to Public Wallet.";
+  } else if (!walletSession?.signMessage) {
+    validationMessage = "The connected wallet must support message signing to authorize Unshield.";
+  } else if (selectedLane === "VUSD" && !selectedVusdNote) {
+    validationMessage = "No spendable VUSD note is currently available for unshield.";
+  } else if (selectedLane === "SOL" && !selectedSolNote) {
+    validationMessage = "No shielded SOL note is currently available for the SOL exit lane.";
   }
 
   return (
@@ -381,27 +591,36 @@ export function UnshieldPage() {
           <span className="eyebrow">Live</span>
           <h2>Unshield</h2>
           <p>
-            Return value from Vanta&apos;s constrained shielded note system back
-            into Public Wallet state. This milestone supports one `VUSD` note
-            at a time with a real devnet exit path.
+            Return one constrained internal state back to Public Wallet. Vanta now
+            supports both `VUSD` note exit and the first shielded `SOL` exit lane
+            created by Swap.
           </p>
         </div>
 
         <div className="module-state">
           <strong>Workflow role</strong>
           <p>
-            Unshield completes the first meaningful lifecycle for `VUSD`:
-            Public Wallet to Shielded State and back out again through a
-            constrained real exit.
+            Unshield closes lanes cleanly. For `VUSD`, it returns a spendable shielded
+            note to Public Wallet. For `SOL`, it consumes one shielded swap-output note
+            and releases public-wallet SOL through a separate operator-backed path.
           </p>
         </div>
       </div>
 
       <div className="send-flow-indicator">
-        {["Public Wallet", "Shield", "Shielded State", "Unshield"].map((step, index) => (
+        {[
+          "Public Wallet",
+          "Shield",
+          "Shielded State",
+          selectedLane === "VUSD" ? "Unshield VUSD" : "Unshield SOL",
+        ].map((step, index, steps) => (
           <div
             key={step}
-            className={index === 3 ? "send-flow-step send-flow-step--active" : "send-flow-step"}
+            className={
+              index === steps.length - 1
+                ? "send-flow-step send-flow-step--active"
+                : "send-flow-step"
+            }
           >
             <span>{step}</span>
           </div>
@@ -412,49 +631,111 @@ export function UnshieldPage() {
         <article className="send-card send-card--workspace">
           <div className="shield-card__header">
             <div>
-              <span>Exit to Public Wallet</span>
-              <h3>Return one spendable note</h3>
+              <span>Return to Public Wallet</span>
+              <h3>Choose the constrained exit lane</h3>
             </div>
-            <small>VUSD only, one note at a time</small>
+            <small>One note at a time, full consumption only</small>
+          </div>
+
+          <div className="asset-list">
+            {(["VUSD", "SOL"] as UnshieldLane[]).map((asset) => {
+              const isSelected = selectedLane === asset;
+              const count =
+                asset === "VUSD" ? spendableVusdNotes.length : spendableSolNotes.length;
+              const amountLabel =
+                asset === "VUSD"
+                  ? formatVusdAmount(shieldAccount?.balance ?? 0)
+                  : formatSolAmount(shieldAccount?.shieldedSolBalance ?? 0);
+
+              return (
+                <button
+                  key={asset}
+                  type="button"
+                  className={isSelected ? "asset-row asset-row--active" : "asset-row"}
+                  onClick={() => {
+                    setSelectedLane(asset);
+                    setStatus("idle");
+                    setFlowError(null);
+                  }}
+                >
+                  <div>
+                    <strong>{asset === "VUSD" ? "Unshield VUSD" : "Unshield SOL"}</strong>
+                    <span>{asset === "VUSD" ? "Shielded note exit" : "Swap-output note exit"}</span>
+                  </div>
+                  <div className="asset-row__meta">
+                    <small>{amountLabel}</small>
+                    <em>{count} eligible note{count === 1 ? "" : "s"}</em>
+                  </div>
+                </button>
+              );
+            })}
           </div>
 
           <div className="shield-form">
             <div className="shield-form__section">
-              <label>Spendable notes</label>
+              <label>{selectedLane === "VUSD" ? "Spendable VUSD notes" : "Shielded SOL notes"}</label>
               <div className="asset-list">
-                {!walletConnected ? (
+                {selectedLane === "VUSD" ? (
+                  spendableVusdNotes.length === 0 ? (
+                    <div className="preview-card">
+                      <span>No spendable VUSD notes</span>
+                      <strong>Shield VUSD first</strong>
+                    </div>
+                  ) : (
+                    spendableVusdNotes.map((note) => (
+                      <button
+                        key={note.noteId}
+                        type="button"
+                        className={
+                          selectedVusdNoteId === note.noteId
+                            ? "asset-row asset-row--active"
+                            : "asset-row"
+                        }
+                        onClick={() => {
+                          setSelectedVusdNoteId(note.noteId);
+                          setStatus("idle");
+                          setFlowError(null);
+                        }}
+                      >
+                        <div>
+                          <strong>{formatVusdAmount(note.amount)}</strong>
+                          <span>{abbreviate(note.noteId)}</span>
+                        </div>
+                        <div className="asset-row__meta">
+                          <small>{note.origin === "change" ? "Residual note" : "Deposit note"}</small>
+                          <em>Eligible exit</em>
+                        </div>
+                      </button>
+                    ))
+                  )
+                ) : spendableSolNotes.length === 0 ? (
                   <div className="preview-card">
-                    <span>Wallet not connected</span>
-                    <strong>Connect to unshield</strong>
-                  </div>
-                ) : spendableNotes.length === 0 ? (
-                  <div className="preview-card">
-                    <span>No spendable notes</span>
-                    <strong>Shield VUSD first</strong>
+                    <span>No shielded SOL notes</span>
+                    <strong>Swap VUSD into SOL first</strong>
                   </div>
                 ) : (
-                  spendableNotes.map((note) => (
+                  spendableSolNotes.map((note) => (
                     <button
                       key={note.noteId}
                       type="button"
                       className={
-                        selectedNoteId === note.noteId
+                        selectedSolNoteId === note.noteId
                           ? "asset-row asset-row--active"
                           : "asset-row"
                       }
                       onClick={() => {
-                        setSelectedNoteId(note.noteId);
+                        setSelectedSolNoteId(note.noteId);
                         setStatus("idle");
                         setFlowError(null);
                       }}
                     >
                       <div>
-                        <strong>{formatBalance(note.amount)}</strong>
-                        <span>{`${note.noteId.slice(0, 10)}...${note.noteId.slice(-6)}`}</span>
+                        <strong>{formatSolAmount(note.amount)}</strong>
+                        <span>{abbreviate(note.noteId)}</span>
                       </div>
                       <div className="asset-row__meta">
-                        <small>{note.origin === "change" ? "Residual note" : "Deposit note"}</small>
-                        <em>Spendable note</em>
+                        <small>Swap output {abbreviate(note.sourceSwapNoteId)}</small>
+                        <em>Eligible exit</em>
                       </div>
                     </button>
                   ))
@@ -464,26 +745,55 @@ export function UnshieldPage() {
             </div>
 
             <div className="preview-grid">
-              <div className="preview-card">
-                <span>Current Public Wallet</span>
-                <strong>{formatBalance(publicBalance)}</strong>
-              </div>
               <div className="preview-card preview-card--accent">
-                <span>Current Shielded Balance</span>
-                <strong>{formatBalance(shieldedBalance)}</strong>
+                <span>Selected exit amount</span>
+                <strong>
+                  {selectedLane === "VUSD"
+                    ? formatVusdAmount(selectedAmount)
+                    : formatSolAmount(selectedAmount)}
+                </strong>
+              </div>
+              <div className="preview-card">
+                <span>Destination</span>
+                <strong>{walletAddressShort ?? "Connect wallet"}</strong>
               </div>
             </div>
 
-            <div className="preview-grid">
-              <div className="preview-card preview-card--accent">
-                <span>Returned to Public Wallet</span>
-                <strong>{formatBalance(selectedNote?.amount ?? 0)}</strong>
+            {selectedLane === "VUSD" && (
+              <div className="preview-grid">
+                <div className="preview-card">
+                  <span>Current Public Wallet VUSD</span>
+                  <strong>{formatVusdAmount(Number(supportedToken.balance?.uiAmount ?? "0"))}</strong>
+                </div>
+                <div className="preview-card">
+                  <span>Remaining shielded VUSD</span>
+                  <strong>
+                    {formatVusdAmount(
+                      Number(Math.max((shieldAccount?.balance ?? 0) - selectedAmount, 0).toFixed(6)),
+                    )}
+                  </strong>
+                </div>
               </div>
-              <div className="preview-card">
-                <span>Post-unshield Shielded State</span>
-                <strong>{formatBalance(postUnshieldShieldedBalance)}</strong>
+            )}
+
+            {selectedLane === "SOL" && (
+              <div className="preview-grid">
+                <div className="preview-card">
+                  <span>Current shielded SOL</span>
+                  <strong>{formatSolAmount(shieldAccount?.shieldedSolBalance ?? 0)}</strong>
+                </div>
+                <div className="preview-card">
+                  <span>Remaining shielded SOL</span>
+                  <strong>
+                    {formatSolAmount(
+                      Number(
+                        Math.max((shieldAccount?.shieldedSolBalance ?? 0) - selectedAmount, 0).toFixed(9),
+                      ),
+                    )}
+                  </strong>
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="shield-form__actions">
               <button
@@ -505,7 +815,7 @@ export function UnshieldPage() {
                 }}
                 disabled={!isReady || status === "recording_transition" || status === "finalizing_state"}
               >
-                Exit to Public Wallet
+                {selectedLane === "VUSD" ? "Return VUSD to Public Wallet" : "Return SOL to Public Wallet"}
               </button>
             </div>
           </div>
@@ -515,58 +825,66 @@ export function UnshieldPage() {
           <div className="shield-card__header">
             <div>
               <span>Unshield context</span>
-              <h3>Constrained exit path</h3>
+              <h3>{selectedLane === "VUSD" ? "VUSD exit lane" : "Shielded SOL exit lane"}</h3>
             </div>
             <small>{walletAddressShort ?? "No wallet connected"}</small>
           </div>
 
           <div className="review-list">
             <div className="review-row">
+              <span>Selected lane</span>
+              <strong>{selectedLane === "VUSD" ? "Unshield VUSD" : "Unshield SOL"}</strong>
+            </div>
+            <div className="review-row">
               <span>Selected note</span>
+              <strong>{selectedNoteLabel}</strong>
+            </div>
+            <div className="review-row">
+              <span>Exit amount</span>
               <strong>
-                {selectedNote
-                  ? `${selectedNote.noteId.slice(0, 10)}...${selectedNote.noteId.slice(-6)}`
-                  : "None selected"}
+                {selectedLane === "VUSD"
+                  ? formatVusdAmount(selectedAmount)
+                  : formatSolAmount(selectedAmount)}
               </strong>
             </div>
             <div className="review-row">
-              <span>Unshield amount</span>
-              <strong>{formatBalance(selectedNote?.amount ?? 0)}</strong>
-            </div>
-            <div className="review-row">
-              <span>Return destination</span>
+              <span>Destination wallet</span>
               <strong>{walletAddressShort ?? "Connect wallet"}</strong>
             </div>
             <div className="review-row">
-              <span>Exit model</span>
-              <strong>Full-note-only for v1</strong>
+              <span>Execution model</span>
+              <strong>Authenticated operator-backed devnet exit</strong>
             </div>
             <div className="review-row">
-              <span>Vault path</span>
-              <strong>Operator-backed devnet return path</strong>
+              <span>Consumption model</span>
+              <strong>Full note consumption with explicit spent marker</strong>
             </div>
             <div className="review-row">
-              <span>Projected Public Wallet</span>
-              <strong>{formatBalance(postUnshieldPublicBalance)}</strong>
+              <span>Lane posture</span>
+              <strong>
+                {selectedLane === "VUSD"
+                  ? "Existing VUSD exit path"
+                  : "First constrained shielded SOL exit path"}
+              </strong>
             </div>
           </div>
 
           <p className="shield-review-note">
-            This first Unshield milestone is intentionally narrow. It supports
-            one `VUSD` note at a time, returns the full note value to Public
-            Wallet, and then finalizes note consumption through the current
-            spent-marker model.
+            Unshield remains intentionally narrow. It supports one note at a time,
+            uses wallet-authenticated operator execution, and finalizes consumption
+            only after the matching exit release is accepted.
           </p>
 
-          <NoteStatePanel account={shieldAccount} title="Resolved VUSD notes" />
+          <NoteStatePanel account={shieldAccount} title="Resolved note state" />
+          <LifecycleTimeline account={shieldAccount} title="Constrained lifecycle timeline" />
 
           {status === "review" && (
             <div className="status-panel">
               <span>Ready to unshield</span>
               <p>
-                Submit a constrained real Unshield transition for the selected
-                note, return the value to Public Wallet, then finalize note
-                consumption.
+                {selectedLane === "VUSD"
+                  ? "Confirm the constrained VUSD exit for one spendable note."
+                  : "Confirm the constrained shielded SOL exit for one swap-created note."}
               </p>
               <div className="status-actions">
                 <button
@@ -576,7 +894,7 @@ export function UnshieldPage() {
                     void handleUnshield();
                   }}
                 >
-                  Confirm Unshield
+                  Confirm {selectedLane === "VUSD" ? "VUSD" : "SOL"} Unshield
                 </button>
               </div>
             </div>
@@ -585,7 +903,7 @@ export function UnshieldPage() {
           {status === "awaiting_confirmation" && (
             <div className="status-panel">
               <span>Awaiting wallet confirmation</span>
-              <p>Approve the Vanta unshield transition for the selected note.</p>
+              <p>Approve the constrained unshield transition for the selected note.</p>
               <div className="status-bar">
                 <div className="status-bar__fill" />
               </div>
@@ -595,17 +913,23 @@ export function UnshieldPage() {
           {status === "recording_transition" && (
             <div className="status-panel status-panel--processing">
               <span>Recording unshield transition</span>
-              <p>Submitting the Vanta unshield note on devnet.</p>
+              <p>Submitting the selected Vanta unshield transition on devnet.</p>
+              {transitionProgressLabel && (
+                <p className="shield-helper shield-helper--meta">{transitionProgressLabel}</p>
+              )}
               <div className="status-bar">
                 <div className="status-bar__fill" />
               </div>
             </div>
           )}
 
-          {status === "returning_to_wallet" && (
+          {status === "authorizing_operator" && (
             <div className="status-panel status-panel--processing">
-              <span>Returning to Public Wallet</span>
-              <p>Moving `VUSD` from the configured Vanta vault back to your wallet through the local operator path.</p>
+              <span>Authorizing operator release</span>
+              <p>
+                Sending the wallet-authenticated {selectedLane} unshield intent to the
+                constrained operator so it can verify and release the selected note.
+              </p>
               <div className="status-bar">
                 <div className="status-bar__fill" />
               </div>
@@ -615,7 +939,10 @@ export function UnshieldPage() {
           {status === "finalizing_state" && (
             <div className="status-panel status-panel--processing">
               <span>Finalizing shielded state</span>
-              <p>Submitting the spent marker and refreshing Vanta note state.</p>
+              <p>Recording the spent marker and refreshing Vanta state.</p>
+              {finalizationProgressLabel && (
+                <p className="shield-helper shield-helper--meta">{finalizationProgressLabel}</p>
+              )}
               <div className="status-bar">
                 <div className="status-bar__fill" />
               </div>
@@ -623,75 +950,50 @@ export function UnshieldPage() {
           )}
 
           {status === "failed" && (
-            <div className="status-panel status-panel--failed">
-              <span>Unshield failed</span>
-              <p>
-                The constrained exit flow did not complete cleanly, so Vanta
-                will continue to resolve note spendability from confirmed state only.
-              </p>
-              {flowError && <p className="shield-helper shield-helper--error">{flowError}</p>}
-              <button
-                className="button button-primary"
-                type="button"
-                onClick={() => {
-                  setFlowError(null);
-                  setStatus("review");
-                }}
-              >
-                Retry unshield
-              </button>
+            <div className="status-panel status-panel--warning">
+              <span>Unshield did not complete</span>
+              <p>{flowError ?? "The constrained exit flow encountered an issue."}</p>
             </div>
           )}
 
-          {status === "complete" && (
+          {status === "complete" && lastCompletion && (
             <div className="status-panel status-panel--success">
-              <span>Unshield complete</span>
+              <span>{lastCompletion.asset === "VUSD" ? "VUSD unshield complete" : "SOL unshield complete"}</span>
               <p>
-                {lastAmount !== null
-                  ? `${formatBalance(lastAmount)} returned to Public Wallet and the source shielded note is no longer spendable.`
-                  : "The constrained Vanta unshield flow completed."}
+                {lastCompletion.asset === "VUSD"
+                  ? `${formatVusdAmount(lastCompletion.amount)} returned to Public Wallet and the source shielded VUSD note is no longer spendable.`
+                  : `${formatSolAmount(lastCompletion.amount)} returned to Public Wallet and the source shielded SOL note is now consumed.`}
               </p>
-              <div className="success-metrics">
-                <div className="preview-card preview-card--accent">
-                  <span>Returned to Public Wallet</span>
-                  <strong>{formatBalance(lastAmount ?? 0)}</strong>
+              <div className="review-list">
+                <div className="review-row">
+                  <span>Transition note</span>
+                  <strong>{abbreviate(lastCompletion.transitionNoteId)}</strong>
                 </div>
-                <div className="preview-card">
-                  <span>Remaining Shielded Balance</span>
-                  <strong>{formatBalance(shieldAccount?.balance ?? 0)}</strong>
+                <div className="review-row">
+                  <span>Operator request</span>
+                  <strong>{lastCompletion.requestId ? abbreviate(lastCompletion.requestId) : "Accepted"}</strong>
                 </div>
-              </div>
-              <div className="success-metrics">
-                <div className="preview-card">
-                  <span>Public Wallet after unshield</span>
-                  <strong>{formatBalance(Number(supportedToken.balance?.uiAmount ?? "0"))}</strong>
-                </div>
-                <div className="preview-card">
-                  <span>Spendable notes after unshield</span>
-                  <strong>{shieldAccount?.spendableShieldNotes.length ?? 0}</strong>
+                <div className="review-row">
+                  <span>Operator release</span>
+                  <strong>{operatorReleaseSignature ? abbreviate(operatorReleaseSignature) : "Pending"}</strong>
                 </div>
               </div>
               {lastTransitionSignature && (
                 <p className="shield-helper shield-helper--meta">
-                  Vanta unshield note: {`${lastTransitionSignature.slice(0, 8)}...${lastTransitionSignature.slice(-8)}`}
-                </p>
-              )}
-              {returnTransferSignature && (
-                <p className="shield-helper shield-helper--meta">
-                  Public wallet return transfer: {`${returnTransferSignature.slice(0, 8)}...${returnTransferSignature.slice(-8)}`}
+                  Unshield transition: {abbreviate(lastTransitionSignature)}
                 </p>
               )}
               {lastSpentMarkerSignature && (
                 <p className="shield-helper shield-helper--meta">
-                  Spent marker: {`${lastSpentMarkerSignature.slice(0, 8)}...${lastSpentMarkerSignature.slice(-8)}`}
+                  Spent marker: {abbreviate(lastSpentMarkerSignature)}
                 </p>
               )}
               <div className="status-actions">
-                <Link className="button button-primary" to="/app/shield">
-                  Back to Shield
+                <Link className="button button-primary" to="/app">
+                  Back to Home
                 </Link>
-                <Link className="button button-ghost" to="/app/send">
-                  Continue to Send
+                <Link className="button button-ghost" to="/app/swap">
+                  Open Swap
                 </Link>
               </div>
             </div>

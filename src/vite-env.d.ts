@@ -7,6 +7,9 @@ interface ImportMetaEnv {
   readonly VITE_VANTA_DEVNET_VAULT_OWNER?: string;
   readonly VITE_VANTA_DEVNET_TOKEN_NAME?: string;
   readonly VITE_VANTA_UNSHIELD_OPERATOR_URL?: string;
+  readonly VITE_VANTA_SWAP_OPERATOR_URL?: string;
+  readonly VITE_VANTA_SOL_UNSHIELD_OPERATOR_URL?: string;
+  readonly VITE_VANTA_METEORA_DLMM_POOL_ADDRESS?: string;
 }
 
 interface ImportMeta {

@@ -2,9 +2,11 @@ import { useCallback, useEffect, useState } from "react";
 import { useSolanaClient } from "@solana/react-hooks";
 import { useWalletState } from "@/context/WalletContext";
 import { liveShieldAsset } from "@/solana/shieldConfig";
+import { fetchLocallyReleasedSolNoteIds } from "@/solana/operatorStateClient";
 import {
   fetchVantaShieldAccountState,
   type VantaShieldAccountState,
+  type VantaShieldedSolNote,
 } from "@/solana/vantaShieldState";
 
 type VantaShieldStateResult = {
@@ -38,13 +40,20 @@ export function useVantaShieldState(): VantaShieldStateResult {
     setError(null);
 
     try {
-      const nextAccount = await fetchVantaShieldAccountState({
-        client,
-        mintAddress: liveShieldAsset.mintAddress,
-        owner: walletAddress,
-        vaultOwner: liveShieldAsset.vaultOwner,
-      });
-      setAccount(nextAccount);
+      const [nextAccount, locallyReleasedSolNoteIds] = await Promise.all([
+        fetchVantaShieldAccountState({
+          client,
+          mintAddress: liveShieldAsset.mintAddress,
+          owner: walletAddress,
+          vaultOwner: liveShieldAsset.vaultOwner,
+        }),
+        fetchLocallyReleasedSolNoteIds().catch(() => new Set<string>()),
+      ]);
+      const reconciledAccount = reconcileLocallyReleasedSolNotes(
+        nextAccount,
+        locallyReleasedSolNoteIds,
+      );
+      setAccount(reconciledAccount);
     } catch (nextError) {
       setError(
         nextError instanceof Error
@@ -71,5 +80,43 @@ export function useVantaShieldState(): VantaShieldStateResult {
     ),
     isRefreshing,
     refresh,
+  };
+}
+
+function reconcileLocallyReleasedSolNotes(
+  account: VantaShieldAccountState,
+  locallyReleasedSolNoteIds: Set<string>,
+): VantaShieldAccountState {
+  if (locallyReleasedSolNoteIds.size === 0) {
+    return account;
+  }
+
+  const keepSpendableSolNote = (note: VantaShieldedSolNote) => {
+    return !locallyReleasedSolNoteIds.has(note.noteId);
+  };
+  const spendableShieldedSolNotes = account.spendableShieldedSolNotes.filter(keepSpendableSolNote);
+  const consumedShieldedSolNotes = [
+    ...account.consumedShieldedSolNotes,
+    ...account.spendableShieldedSolNotes
+      .filter((note) => locallyReleasedSolNoteIds.has(note.noteId))
+      .map((note) => ({
+        ...note,
+        consumedByTransitionKind: "sol_unshield" as const,
+        lifecycleStatus: "consumed" as const,
+      })),
+  ].sort((left, right) => right.createdAt - left.createdAt);
+  const shieldedSolNotes = [...spendableShieldedSolNotes, ...consumedShieldedSolNotes].sort(
+    (left, right) => right.createdAt - left.createdAt,
+  );
+  const shieldedSolBalance = Number(
+    spendableShieldedSolNotes.reduce((sum, note) => sum + note.amount, 0).toFixed(9),
+  );
+
+  return {
+    ...account,
+    consumedShieldedSolNotes,
+    shieldedSolBalance,
+    shieldedSolNotes,
+    spendableShieldedSolNotes,
   };
 }
