@@ -18,6 +18,13 @@ Latest successful `Swap VUSD -> SOL`
 - swap transition tx: `3ZGHnQfHHLULbFjorCFjrHGsryNGDrkEcZtL1Z1RduS3kE58d2BeY8Vgg22DgzVvGvhFvxcW9UF366LxafeBHspV`
 - swap spent-marker tx: `4anFsLgusA6WLT3ResHEYusN8oi13oopnGtYzZVV4WzXaSYNC4BQqa1Jp8XyXLFcvRxiXbjwWTNLu96eHV5wztmX`
 
+Post-cleanup confirmation `Swap VUSD -> SOL`
+- swap request ID retention verified via local operator records
+- swap request ID: `711564e4-fa16-4e1b-925f-737d88fa9ce5`
+- swap transition note ID: `vnta_note_b65ca419255e82c4`
+- swap output note ID: `vnta_note_b19657e3e92864d6`
+- swap transition signature: `4XEKJG3u38ZvFxsrNcHCgnGXapHgTHjnBCgpiXGtJtmv5pRvi1Noydr7yR7d7Q3YaaxG64myD4KqrCyGPKepJoUx`
+
 Latest successful `VUSD Unshield`
 - unshield transition tx: `3bij6K2sFkGv4X5cgcF5WYrwJtfeaw7mKS2sgdEHVbsicjU4nHRH8PFRicrPmu7krvLFpzXoCFUBiag91GAArQhZ`
 - VUSD spent-marker tx: `325sWUGU9MxVPvRfYoA16awYbVaFNGyj9PyaF3ewNy9MhvpZSZwvQwY1uf4549inUqWVwBfmncmoBGMf5GMGCj4`
@@ -28,10 +35,11 @@ Latest successful `SOL Unshield`
 
 ## Recoverable operator request IDs
 
+- swap request ID: `711564e4-fa16-4e1b-925f-737d88fa9ce5`
 - VUSD unshield request ID: `7eed0148-f513-4dc9-ab89-28bea3ccac84`
 - SOL unshield request ID: `e88b052b-0d76-4303-a6ef-f43fb52b9336`
 
-Latest swap request ID was not recoverable from the first proof run. A durable local swap record store now exists to close that gap for future runs.
+Swap request-ID retention was verified in a post-proof confirmation pass through the durable local swap record store.
 
 ## Operator release signatures
 
@@ -46,7 +54,7 @@ The main blocker was state incoherence across on-chain transitions, operator-loc
 
 - current swap proof is for the intended constrained one-way `VUSD -> SOL` lane
 - it is not a symmetric two-way market proof
-- swap request-ID retention was a known observability gap during the first proof run and is now patched for future runs
+- swap request-ID retention was a known observability gap during the first proof run and is now patched and verified for future runs
 
 ## Final truthful product status
 
