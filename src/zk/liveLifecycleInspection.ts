@@ -109,6 +109,8 @@ import {
   inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryResolutionHandoffFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryDispatchConsumerForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryDispatchHandoffForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryDispatchHandoffFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationLaunchStartFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationLaunchStartForLifecycleNode,
   inspectGenericPhase1EncoderFieldLaneExecutionAdmissionFreezeForLifecycleNode,
@@ -326,6 +328,8 @@ export type CanonicalLifecycleSuccessorSummary = {
   encoderFieldMaterializationNextResolvedBoundaryResolutionHandoffFreezeSummary?: string;
   encoderFieldMaterializationNextResolvedBoundaryDispatchConsumerSummary?: string;
   encoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreezeSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryDispatchHandoffSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryDispatchHandoffFreezeSummary?: string;
   rootReconciliationReady?: boolean;
   rootReconciliationStatus?: "pending" | "match" | "mismatch" | "unavailable";
   rootReconciliationScheme?: string;
@@ -783,6 +787,8 @@ export type CanonicalLifecycleNodeInspection = {
   encoderFieldMaterializationNextResolvedBoundaryResolutionHandoffFreezeSummary?: string;
   encoderFieldMaterializationNextResolvedBoundaryDispatchConsumerSummary?: string;
   encoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreezeSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryDispatchHandoffSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryDispatchHandoffFreezeSummary?: string;
   rootReconciliationReady: boolean;
   rootReconciliationStatus: "pending" | "match" | "mismatch" | "unavailable";
   rootReconciliationScheme?: string;
@@ -1517,6 +1523,14 @@ export function inspectCanonicalLifecycleNode(
     inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreezeForLifecycleNode(
       normalizedLifecycleId,
     );
+  const encoderFieldMaterializationNextResolvedBoundaryDispatchHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryDispatchHandoffForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryDispatchHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryDispatchHandoffFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
   const rootReconciliation = inspectCanonicalLifecycleMembershipRootReconciliation(normalizedLifecycleId);
 
   for (const event of events) {
@@ -2005,6 +2019,14 @@ export function inspectCanonicalLifecycleNode(
         encoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreezeSummary:
           createEncoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreezeSummary(
             encoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreeze,
+          ),
+        encoderFieldMaterializationNextResolvedBoundaryDispatchHandoffSummary:
+          createEncoderFieldMaterializationNextResolvedBoundaryDispatchHandoffSummary(
+            encoderFieldMaterializationNextResolvedBoundaryDispatchHandoff,
+          ),
+        encoderFieldMaterializationNextResolvedBoundaryDispatchHandoffFreezeSummary:
+          createEncoderFieldMaterializationNextResolvedBoundaryDispatchHandoffFreezeSummary(
+            encoderFieldMaterializationNextResolvedBoundaryDispatchHandoffFreeze,
           ),
         rootReconciliationReady: rootReconciliation.reconciliationReady,
         rootReconciliationStatus: rootReconciliation.status,
@@ -3590,6 +3612,18 @@ function createEncoderFieldMaterializationNextResolvedBoundaryDispatchConsumerSu
 
 function createEncoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreezeSummary(
   result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextResolvedBoundaryDispatchHandoffSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryDispatchHandoffForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextResolvedBoundaryDispatchHandoffFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryDispatchHandoffFreezeForLifecycleNode>,
 ): string {
   return result.summary;
 }
