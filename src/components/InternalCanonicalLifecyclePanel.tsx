@@ -72,6 +72,30 @@ import {
   inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningConsumerFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningBoundaryHandoffForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningBoundaryHandoffFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningBoundaryConsumerForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningBoundaryConsumerFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerHandoffForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerHandoffFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedConsumerForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedConsumerFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedHandoffForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedHandoffFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryConsumerForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryConsumerFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryHandoffForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryHandoffFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryPlanningConsumerForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryPlanningConsumerFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryPlanningHandoffForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryPlanningHandoffFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryResolutionConsumerForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryResolutionConsumerFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryResolutionHandoffForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryResolutionHandoffFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryDispatchConsumerForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationLaunchStartFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationLaunchStartForLifecycleNode,
   inspectGenericPhase1EncoderFieldLaneExecutionAdmissionFreezeForLifecycleNode,
@@ -549,6 +573,102 @@ export function InternalCanonicalLifecyclePanel() {
     );
   const encoderFieldMaterializationNextResolvedPlanningConsumerFreeze =
     inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerFreezeForLifecycleNode(
+      lookupLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedPlanningBoundaryHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningBoundaryHandoffForLifecycleNode(
+      lookupLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedPlanningBoundaryHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningBoundaryHandoffFreezeForLifecycleNode(
+      lookupLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedPlanningBoundaryConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningBoundaryConsumerForLifecycleNode(
+      lookupLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedPlanningBoundaryConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningBoundaryConsumerFreezeForLifecycleNode(
+      lookupLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedPlanningConsumerHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerHandoffForLifecycleNode(
+      lookupLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedPlanningConsumerHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerHandoffFreezeForLifecycleNode(
+      lookupLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedConsumerForLifecycleNode(
+      lookupLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedConsumerFreezeForLifecycleNode(
+      lookupLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedHandoffForLifecycleNode(
+      lookupLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedHandoffFreezeForLifecycleNode(
+      lookupLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryConsumerForLifecycleNode(
+      lookupLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryConsumerFreezeForLifecycleNode(
+      lookupLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryHandoffForLifecycleNode(
+      lookupLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryHandoffFreezeForLifecycleNode(
+      lookupLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryPlanningConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryPlanningConsumerForLifecycleNode(
+      lookupLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryPlanningConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryPlanningConsumerFreezeForLifecycleNode(
+      lookupLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryPlanningHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryPlanningHandoffForLifecycleNode(
+      lookupLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryPlanningHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryPlanningHandoffFreezeForLifecycleNode(
+      lookupLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryResolutionConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryResolutionConsumerForLifecycleNode(
+      lookupLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryResolutionConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryResolutionConsumerFreezeForLifecycleNode(
+      lookupLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryResolutionHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryResolutionHandoffForLifecycleNode(
+      lookupLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryResolutionHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryResolutionHandoffFreezeForLifecycleNode(
+      lookupLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryDispatchConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryDispatchConsumerForLifecycleNode(
+      lookupLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreezeForLifecycleNode(
       lookupLifecycleId,
     );
   const lineageRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -2430,6 +2550,798 @@ export function InternalCanonicalLifecyclePanel() {
                           96
                             ? `${encoderFieldMaterializationNextResolvedPlanningConsumerFreeze.serialized.slice(0, 96)}...`
                             : encoderFieldMaterializationNextResolvedPlanningConsumerFreeze.serialized}
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Handoff kind</span>
+                        <strong>{`${encoderFieldMaterializationNextResolvedPlanningBoundaryHandoff.handoffKind} · v${encoderFieldMaterializationNextResolvedPlanningBoundaryHandoff.handoffVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Handoff status</span>
+                        <strong>{encoderFieldMaterializationNextResolvedPlanningBoundaryHandoff.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Proceedable</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedPlanningBoundaryHandoff.proceedable
+                            ? "yes"
+                            : "no"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen consumer provenance</span>
+                        <strong>
+                          {`${encoderFieldMaterializationNextResolvedPlanningBoundaryHandoff.fieldMaterializationNextResolvedPlanningConsumerSnapshotKind} · ${encoderFieldMaterializationNextResolvedPlanningBoundaryHandoff.fieldMaterializationNextResolvedPlanningConsumerStatus}`}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Footprint</span>
+                        <strong>{encoderFieldMaterializationNextResolvedPlanningBoundaryHandoff.dispatchFootprintSummary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Reason</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedPlanningBoundaryHandoff.reason ??
+                            "ready for next resolved planning boundary handoff"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Summary</span>
+                        <strong>{encoderFieldMaterializationNextResolvedPlanningBoundaryHandoff.summary}</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Frozen handoff kind</span>
+                        <strong>{`${encoderFieldMaterializationNextResolvedPlanningBoundaryHandoffFreeze.snapshotKind} · v${encoderFieldMaterializationNextResolvedPlanningBoundaryHandoffFreeze.snapshotVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen handoff status</span>
+                        <strong>{encoderFieldMaterializationNextResolvedPlanningBoundaryHandoffFreeze.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen handoff summary</span>
+                        <strong>{encoderFieldMaterializationNextResolvedPlanningBoundaryHandoffFreeze.summary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Serialized preview</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedPlanningBoundaryHandoffFreeze.serialized.length >
+                          96
+                            ? `${encoderFieldMaterializationNextResolvedPlanningBoundaryHandoffFreeze.serialized.slice(0, 96)}...`
+                            : encoderFieldMaterializationNextResolvedPlanningBoundaryHandoffFreeze.serialized}
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Boundary consumer kind</span>
+                        <strong>{`${encoderFieldMaterializationNextResolvedPlanningBoundaryConsumer.artifactKind} · v${encoderFieldMaterializationNextResolvedPlanningBoundaryConsumer.artifactVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Boundary consumer status</span>
+                        <strong>{encoderFieldMaterializationNextResolvedPlanningBoundaryConsumer.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Proceedable</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedPlanningBoundaryConsumer.proceedable
+                            ? "yes"
+                            : "no"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen handoff provenance</span>
+                        <strong>
+                          {`${encoderFieldMaterializationNextResolvedPlanningBoundaryConsumer.fieldMaterializationNextResolvedPlanningBoundaryHandoffSnapshotKind} · ${encoderFieldMaterializationNextResolvedPlanningBoundaryConsumer.fieldMaterializationNextResolvedPlanningBoundaryHandoffStatus}`}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Footprint</span>
+                        <strong>{encoderFieldMaterializationNextResolvedPlanningBoundaryConsumer.dispatchFootprintSummary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Reason</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedPlanningBoundaryConsumer.reason ??
+                            "ready for next resolved planning-boundary consumption"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Summary</span>
+                        <strong>{encoderFieldMaterializationNextResolvedPlanningBoundaryConsumer.summary}</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Frozen boundary consumer kind</span>
+                        <strong>{`${encoderFieldMaterializationNextResolvedPlanningBoundaryConsumerFreeze.snapshotKind} · v${encoderFieldMaterializationNextResolvedPlanningBoundaryConsumerFreeze.snapshotVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen boundary consumer status</span>
+                        <strong>{encoderFieldMaterializationNextResolvedPlanningBoundaryConsumerFreeze.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen boundary consumer summary</span>
+                        <strong>{encoderFieldMaterializationNextResolvedPlanningBoundaryConsumerFreeze.summary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Serialized preview</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedPlanningBoundaryConsumerFreeze.serialized.length >
+                          96
+                            ? `${encoderFieldMaterializationNextResolvedPlanningBoundaryConsumerFreeze.serialized.slice(0, 96)}...`
+                            : encoderFieldMaterializationNextResolvedPlanningBoundaryConsumerFreeze.serialized}
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Consumer handoff kind</span>
+                        <strong>{`${encoderFieldMaterializationNextResolvedPlanningConsumerHandoff.handoffKind} · v${encoderFieldMaterializationNextResolvedPlanningConsumerHandoff.handoffVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Consumer handoff status</span>
+                        <strong>{encoderFieldMaterializationNextResolvedPlanningConsumerHandoff.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Proceedable</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedPlanningConsumerHandoff.proceedable
+                            ? "yes"
+                            : "no"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen boundary consumer provenance</span>
+                        <strong>
+                          {`${encoderFieldMaterializationNextResolvedPlanningConsumerHandoff.fieldMaterializationNextResolvedPlanningBoundaryConsumerSnapshotKind} · ${encoderFieldMaterializationNextResolvedPlanningConsumerHandoff.fieldMaterializationNextResolvedPlanningBoundaryConsumerStatus}`}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Footprint</span>
+                        <strong>{encoderFieldMaterializationNextResolvedPlanningConsumerHandoff.dispatchFootprintSummary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Reason</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedPlanningConsumerHandoff.reason ??
+                            "ready for next resolved planning consumer handoff"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Summary</span>
+                        <strong>{encoderFieldMaterializationNextResolvedPlanningConsumerHandoff.summary}</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Frozen consumer handoff kind</span>
+                        <strong>{`${encoderFieldMaterializationNextResolvedPlanningConsumerHandoffFreeze.snapshotKind} · v${encoderFieldMaterializationNextResolvedPlanningConsumerHandoffFreeze.snapshotVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen consumer handoff status</span>
+                        <strong>{encoderFieldMaterializationNextResolvedPlanningConsumerHandoffFreeze.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen consumer handoff summary</span>
+                        <strong>{encoderFieldMaterializationNextResolvedPlanningConsumerHandoffFreeze.summary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Serialized preview</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedPlanningConsumerHandoffFreeze.serialized.length >
+                          96
+                            ? `${encoderFieldMaterializationNextResolvedPlanningConsumerHandoffFreeze.serialized.slice(0, 96)}...`
+                            : encoderFieldMaterializationNextResolvedPlanningConsumerHandoffFreeze.serialized}
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Next resolved consumer kind</span>
+                        <strong>{`${encoderFieldMaterializationNextResolvedConsumer.artifactKind} · v${encoderFieldMaterializationNextResolvedConsumer.artifactVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Next resolved consumer status</span>
+                        <strong>{encoderFieldMaterializationNextResolvedConsumer.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Proceedable</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedConsumer.proceedable
+                            ? "yes"
+                            : "no"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen handoff provenance</span>
+                        <strong>
+                          {`${encoderFieldMaterializationNextResolvedConsumer.fieldMaterializationNextResolvedPlanningConsumerHandoffSnapshotKind} · ${encoderFieldMaterializationNextResolvedConsumer.fieldMaterializationNextResolvedPlanningConsumerHandoffStatus}`}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Footprint</span>
+                        <strong>{encoderFieldMaterializationNextResolvedConsumer.dispatchFootprintSummary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Reason</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedConsumer.reason ??
+                            "ready for next resolved consumption"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Summary</span>
+                        <strong>{encoderFieldMaterializationNextResolvedConsumer.summary}</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Frozen next resolved consumer kind</span>
+                        <strong>{`${encoderFieldMaterializationNextResolvedConsumerFreeze.snapshotKind} · v${encoderFieldMaterializationNextResolvedConsumerFreeze.snapshotVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen next resolved consumer status</span>
+                        <strong>{encoderFieldMaterializationNextResolvedConsumerFreeze.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen next resolved consumer summary</span>
+                        <strong>{encoderFieldMaterializationNextResolvedConsumerFreeze.summary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Serialized preview</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedConsumerFreeze.serialized.length >
+                          96
+                            ? `${encoderFieldMaterializationNextResolvedConsumerFreeze.serialized.slice(0, 96)}...`
+                            : encoderFieldMaterializationNextResolvedConsumerFreeze.serialized}
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Next resolved handoff kind</span>
+                        <strong>{`${encoderFieldMaterializationNextResolvedHandoff.handoffKind} · v${encoderFieldMaterializationNextResolvedHandoff.handoffVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Next resolved handoff status</span>
+                        <strong>{encoderFieldMaterializationNextResolvedHandoff.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Proceedable</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedHandoff.proceedable
+                            ? "yes"
+                            : "no"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen consumer provenance</span>
+                        <strong>
+                          {`${encoderFieldMaterializationNextResolvedHandoff.fieldMaterializationNextResolvedConsumerSnapshotKind} · ${encoderFieldMaterializationNextResolvedHandoff.fieldMaterializationNextResolvedConsumerStatus}`}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Footprint</span>
+                        <strong>{encoderFieldMaterializationNextResolvedHandoff.dispatchFootprintSummary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Reason</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedHandoff.reason ??
+                            "ready for next resolved handoff"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Summary</span>
+                        <strong>{encoderFieldMaterializationNextResolvedHandoff.summary}</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Frozen next resolved handoff kind</span>
+                        <strong>{`${encoderFieldMaterializationNextResolvedHandoffFreeze.snapshotKind} · v${encoderFieldMaterializationNextResolvedHandoffFreeze.snapshotVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen next resolved handoff status</span>
+                        <strong>{encoderFieldMaterializationNextResolvedHandoffFreeze.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen next resolved handoff summary</span>
+                        <strong>{encoderFieldMaterializationNextResolvedHandoffFreeze.summary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Serialized preview</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedHandoffFreeze.serialized.length >
+                          96
+                            ? `${encoderFieldMaterializationNextResolvedHandoffFreeze.serialized.slice(0, 96)}...`
+                            : encoderFieldMaterializationNextResolvedHandoffFreeze.serialized}
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Next resolved boundary consumer kind</span>
+                        <strong>{`${encoderFieldMaterializationNextResolvedBoundaryConsumer.artifactKind} · v${encoderFieldMaterializationNextResolvedBoundaryConsumer.artifactVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Boundary consumer status</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryConsumer.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Proceedable</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedBoundaryConsumer.proceedable
+                            ? "yes"
+                            : "no"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen handoff provenance</span>
+                        <strong>
+                          {`${encoderFieldMaterializationNextResolvedBoundaryConsumer.fieldMaterializationNextResolvedHandoffSnapshotKind} · ${encoderFieldMaterializationNextResolvedBoundaryConsumer.fieldMaterializationNextResolvedHandoffStatus}`}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Footprint</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryConsumer.dispatchFootprintSummary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Reason</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedBoundaryConsumer.reason ??
+                            "ready for next resolved boundary consumption"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Summary</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryConsumer.summary}</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Frozen boundary consumer kind</span>
+                        <strong>{`${encoderFieldMaterializationNextResolvedBoundaryConsumerFreeze.snapshotKind} · v${encoderFieldMaterializationNextResolvedBoundaryConsumerFreeze.snapshotVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen boundary consumer status</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryConsumerFreeze.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen boundary consumer summary</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryConsumerFreeze.summary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Serialized preview</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedBoundaryConsumerFreeze.serialized.length >
+                          96
+                            ? `${encoderFieldMaterializationNextResolvedBoundaryConsumerFreeze.serialized.slice(0, 96)}...`
+                            : encoderFieldMaterializationNextResolvedBoundaryConsumerFreeze.serialized}
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Boundary handoff kind</span>
+                        <strong>{`${encoderFieldMaterializationNextResolvedBoundaryHandoff.handoffKind} · v${encoderFieldMaterializationNextResolvedBoundaryHandoff.handoffVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Boundary handoff status</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryHandoff.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Proceedable</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedBoundaryHandoff.proceedable
+                            ? "yes"
+                            : "no"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen consumer provenance</span>
+                        <strong>
+                          {`${encoderFieldMaterializationNextResolvedBoundaryHandoff.fieldMaterializationNextResolvedBoundaryConsumerSnapshotKind} · ${encoderFieldMaterializationNextResolvedBoundaryHandoff.fieldMaterializationNextResolvedBoundaryConsumerStatus}`}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Footprint</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryHandoff.dispatchFootprintSummary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Reason</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedBoundaryHandoff.reason ??
+                            "ready for next resolved boundary handoff"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Summary</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryHandoff.summary}</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Frozen boundary handoff kind</span>
+                        <strong>{`${encoderFieldMaterializationNextResolvedBoundaryHandoffFreeze.snapshotKind} · v${encoderFieldMaterializationNextResolvedBoundaryHandoffFreeze.snapshotVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen boundary handoff status</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryHandoffFreeze.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen boundary handoff summary</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryHandoffFreeze.summary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Serialized preview</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedBoundaryHandoffFreeze.serialized.length >
+                          96
+                            ? `${encoderFieldMaterializationNextResolvedBoundaryHandoffFreeze.serialized.slice(0, 96)}...`
+                            : encoderFieldMaterializationNextResolvedBoundaryHandoffFreeze.serialized}
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Boundary planning consumer kind</span>
+                        <strong>{`${encoderFieldMaterializationNextResolvedBoundaryPlanningConsumer.artifactKind} · v${encoderFieldMaterializationNextResolvedBoundaryPlanningConsumer.artifactVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Boundary planning consumer status</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryPlanningConsumer.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Proceedable</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedBoundaryPlanningConsumer.proceedable
+                            ? "yes"
+                            : "no"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen handoff provenance</span>
+                        <strong>
+                          {`${encoderFieldMaterializationNextResolvedBoundaryPlanningConsumer.fieldMaterializationNextResolvedBoundaryHandoffSnapshotKind} · ${encoderFieldMaterializationNextResolvedBoundaryPlanningConsumer.fieldMaterializationNextResolvedBoundaryHandoffStatus}`}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Footprint</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryPlanningConsumer.dispatchFootprintSummary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Reason</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedBoundaryPlanningConsumer.reason ??
+                            "ready for next resolved boundary planning consumption"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Summary</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryPlanningConsumer.summary}</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Frozen boundary planning consumer kind</span>
+                        <strong>{`${encoderFieldMaterializationNextResolvedBoundaryPlanningConsumerFreeze.snapshotKind} · v${encoderFieldMaterializationNextResolvedBoundaryPlanningConsumerFreeze.snapshotVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen boundary planning consumer status</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryPlanningConsumerFreeze.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen boundary planning consumer summary</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryPlanningConsumerFreeze.summary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Serialized preview</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedBoundaryPlanningConsumerFreeze.serialized.length >
+                          96
+                            ? `${encoderFieldMaterializationNextResolvedBoundaryPlanningConsumerFreeze.serialized.slice(0, 96)}...`
+                            : encoderFieldMaterializationNextResolvedBoundaryPlanningConsumerFreeze.serialized}
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Boundary planning handoff kind</span>
+                        <strong>{`${encoderFieldMaterializationNextResolvedBoundaryPlanningHandoff.handoffKind} · v${encoderFieldMaterializationNextResolvedBoundaryPlanningHandoff.handoffVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Boundary planning handoff status</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryPlanningHandoff.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Proceedable</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedBoundaryPlanningHandoff.proceedable
+                            ? "yes"
+                            : "no"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen consumer provenance</span>
+                        <strong>
+                          {`${encoderFieldMaterializationNextResolvedBoundaryPlanningHandoff.fieldMaterializationNextResolvedBoundaryPlanningConsumerSnapshotKind} · ${encoderFieldMaterializationNextResolvedBoundaryPlanningHandoff.fieldMaterializationNextResolvedBoundaryPlanningConsumerStatus}`}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Footprint</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryPlanningHandoff.dispatchFootprintSummary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Reason</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedBoundaryPlanningHandoff.reason ??
+                            "ready for next resolved boundary planning handoff"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Summary</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryPlanningHandoff.summary}</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Frozen boundary planning handoff kind</span>
+                        <strong>{`${encoderFieldMaterializationNextResolvedBoundaryPlanningHandoffFreeze.snapshotKind} · v${encoderFieldMaterializationNextResolvedBoundaryPlanningHandoffFreeze.snapshotVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen boundary planning handoff status</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryPlanningHandoffFreeze.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen boundary planning handoff summary</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryPlanningHandoffFreeze.summary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Serialized preview</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedBoundaryPlanningHandoffFreeze.serialized.length >
+                          96
+                            ? `${encoderFieldMaterializationNextResolvedBoundaryPlanningHandoffFreeze.serialized.slice(0, 96)}...`
+                            : encoderFieldMaterializationNextResolvedBoundaryPlanningHandoffFreeze.serialized}
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Boundary resolution consumer kind</span>
+                        <strong>{`${encoderFieldMaterializationNextResolvedBoundaryResolutionConsumer.artifactKind} · v${encoderFieldMaterializationNextResolvedBoundaryResolutionConsumer.artifactVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Boundary resolution consumer status</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryResolutionConsumer.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Proceedable</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedBoundaryResolutionConsumer.proceedable
+                            ? "yes"
+                            : "no"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen handoff provenance</span>
+                        <strong>
+                          {`${encoderFieldMaterializationNextResolvedBoundaryResolutionConsumer.fieldMaterializationNextResolvedBoundaryPlanningHandoffSnapshotKind} · ${encoderFieldMaterializationNextResolvedBoundaryResolutionConsumer.fieldMaterializationNextResolvedBoundaryPlanningHandoffStatus}`}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Footprint</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryResolutionConsumer.dispatchFootprintSummary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Reason</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedBoundaryResolutionConsumer.reason ??
+                            "ready for next resolved boundary resolution consumption"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Summary</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryResolutionConsumer.summary}</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Frozen boundary resolution consumer kind</span>
+                        <strong>{`${encoderFieldMaterializationNextResolvedBoundaryResolutionConsumerFreeze.snapshotKind} · v${encoderFieldMaterializationNextResolvedBoundaryResolutionConsumerFreeze.snapshotVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen boundary resolution consumer status</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryResolutionConsumerFreeze.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen boundary resolution consumer summary</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryResolutionConsumerFreeze.summary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Serialized preview</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedBoundaryResolutionConsumerFreeze.serialized.length >
+                          96
+                            ? `${encoderFieldMaterializationNextResolvedBoundaryResolutionConsumerFreeze.serialized.slice(0, 96)}...`
+                            : encoderFieldMaterializationNextResolvedBoundaryResolutionConsumerFreeze.serialized}
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Boundary resolution handoff kind</span>
+                        <strong>{`${encoderFieldMaterializationNextResolvedBoundaryResolutionHandoff.handoffKind} · v${encoderFieldMaterializationNextResolvedBoundaryResolutionHandoff.handoffVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Boundary resolution handoff status</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryResolutionHandoff.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Proceedable</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedBoundaryResolutionHandoff.proceedable
+                            ? "yes"
+                            : "no"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen consumer provenance</span>
+                        <strong>
+                          {`${encoderFieldMaterializationNextResolvedBoundaryResolutionHandoff.fieldMaterializationNextResolvedBoundaryResolutionConsumerSnapshotKind} · ${encoderFieldMaterializationNextResolvedBoundaryResolutionHandoff.fieldMaterializationNextResolvedBoundaryResolutionConsumerStatus}`}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Footprint</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryResolutionHandoff.dispatchFootprintSummary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Reason</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedBoundaryResolutionHandoff.reason ??
+                            "ready for next resolved boundary resolution handoff"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Summary</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryResolutionHandoff.summary}</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Frozen boundary resolution handoff kind</span>
+                        <strong>{`${encoderFieldMaterializationNextResolvedBoundaryResolutionHandoffFreeze.snapshotKind} · v${encoderFieldMaterializationNextResolvedBoundaryResolutionHandoffFreeze.snapshotVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen boundary resolution handoff status</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryResolutionHandoffFreeze.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen boundary resolution handoff summary</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryResolutionHandoffFreeze.summary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Serialized preview</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedBoundaryResolutionHandoffFreeze.serialized.length >
+                          96
+                            ? `${encoderFieldMaterializationNextResolvedBoundaryResolutionHandoffFreeze.serialized.slice(0, 96)}...`
+                            : encoderFieldMaterializationNextResolvedBoundaryResolutionHandoffFreeze.serialized}
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Boundary dispatch consumer kind</span>
+                        <strong>{`${encoderFieldMaterializationNextResolvedBoundaryDispatchConsumer.artifactKind} · v${encoderFieldMaterializationNextResolvedBoundaryDispatchConsumer.artifactVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Boundary dispatch consumer status</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryDispatchConsumer.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Proceedable</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedBoundaryDispatchConsumer.proceedable
+                            ? "yes"
+                            : "no"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen handoff provenance</span>
+                        <strong>
+                          {`${encoderFieldMaterializationNextResolvedBoundaryDispatchConsumer.fieldMaterializationNextResolvedBoundaryResolutionHandoffSnapshotKind} · ${encoderFieldMaterializationNextResolvedBoundaryDispatchConsumer.fieldMaterializationNextResolvedBoundaryResolutionHandoffStatus}`}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Footprint</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryDispatchConsumer.dispatchFootprintSummary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Reason</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedBoundaryDispatchConsumer.reason ??
+                            "ready for next resolved boundary dispatch consumption"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Summary</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryDispatchConsumer.summary}</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Frozen boundary dispatch consumer kind</span>
+                        <strong>{`${encoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreeze.snapshotKind} · v${encoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreeze.snapshotVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen boundary dispatch consumer status</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreeze.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen boundary dispatch consumer summary</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreeze.summary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Serialized preview</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreeze.serialized.length >
+                          96
+                            ? `${encoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreeze.serialized.slice(0, 96)}...`
+                            : encoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreeze.serialized}
                         </strong>
                       </div>
                     </div>

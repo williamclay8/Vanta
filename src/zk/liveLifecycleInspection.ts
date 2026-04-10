@@ -85,6 +85,30 @@ import {
   inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningConsumerFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningBoundaryHandoffForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningBoundaryHandoffFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningBoundaryConsumerForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningBoundaryConsumerFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerHandoffForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerHandoffFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedConsumerForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedConsumerFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedHandoffForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedHandoffFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryConsumerForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryConsumerFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryHandoffForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryHandoffFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryPlanningConsumerForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryPlanningConsumerFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryPlanningHandoffForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryPlanningHandoffFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryResolutionConsumerForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryResolutionConsumerFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryResolutionHandoffForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryResolutionHandoffFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryDispatchConsumerForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationLaunchStartFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationLaunchStartForLifecycleNode,
   inspectGenericPhase1EncoderFieldLaneExecutionAdmissionFreezeForLifecycleNode,
@@ -278,6 +302,30 @@ export type CanonicalLifecycleSuccessorSummary = {
   encoderFieldMaterializationNextDownstreamPlanningConsumerFreezeSummary?: string;
   encoderFieldMaterializationNextResolvedPlanningConsumerSummary?: string;
   encoderFieldMaterializationNextResolvedPlanningConsumerFreezeSummary?: string;
+  encoderFieldMaterializationNextResolvedPlanningBoundaryHandoffSummary?: string;
+  encoderFieldMaterializationNextResolvedPlanningBoundaryHandoffFreezeSummary?: string;
+  encoderFieldMaterializationNextResolvedPlanningBoundaryConsumerSummary?: string;
+  encoderFieldMaterializationNextResolvedPlanningBoundaryConsumerFreezeSummary?: string;
+  encoderFieldMaterializationNextResolvedPlanningConsumerHandoffSummary?: string;
+  encoderFieldMaterializationNextResolvedPlanningConsumerHandoffFreezeSummary?: string;
+  encoderFieldMaterializationNextResolvedConsumerSummary?: string;
+  encoderFieldMaterializationNextResolvedConsumerFreezeSummary?: string;
+  encoderFieldMaterializationNextResolvedHandoffSummary?: string;
+  encoderFieldMaterializationNextResolvedHandoffFreezeSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryConsumerSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryConsumerFreezeSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryHandoffSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryHandoffFreezeSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryPlanningConsumerSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryPlanningConsumerFreezeSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryPlanningHandoffSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryPlanningHandoffFreezeSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryResolutionConsumerSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryResolutionConsumerFreezeSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryResolutionHandoffSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryResolutionHandoffFreezeSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryDispatchConsumerSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreezeSummary?: string;
   rootReconciliationReady?: boolean;
   rootReconciliationStatus?: "pending" | "match" | "mismatch" | "unavailable";
   rootReconciliationScheme?: string;
@@ -711,6 +759,30 @@ export type CanonicalLifecycleNodeInspection = {
   encoderFieldMaterializationNextDownstreamPlanningConsumerFreezeSummary?: string;
   encoderFieldMaterializationNextResolvedPlanningConsumerSummary?: string;
   encoderFieldMaterializationNextResolvedPlanningConsumerFreezeSummary?: string;
+  encoderFieldMaterializationNextResolvedPlanningBoundaryHandoffSummary?: string;
+  encoderFieldMaterializationNextResolvedPlanningBoundaryHandoffFreezeSummary?: string;
+  encoderFieldMaterializationNextResolvedPlanningBoundaryConsumerSummary?: string;
+  encoderFieldMaterializationNextResolvedPlanningBoundaryConsumerFreezeSummary?: string;
+  encoderFieldMaterializationNextResolvedPlanningConsumerHandoffSummary?: string;
+  encoderFieldMaterializationNextResolvedPlanningConsumerHandoffFreezeSummary?: string;
+  encoderFieldMaterializationNextResolvedConsumerSummary?: string;
+  encoderFieldMaterializationNextResolvedConsumerFreezeSummary?: string;
+  encoderFieldMaterializationNextResolvedHandoffSummary?: string;
+  encoderFieldMaterializationNextResolvedHandoffFreezeSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryConsumerSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryConsumerFreezeSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryHandoffSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryHandoffFreezeSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryPlanningConsumerSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryPlanningConsumerFreezeSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryPlanningHandoffSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryPlanningHandoffFreezeSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryResolutionConsumerSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryResolutionConsumerFreezeSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryResolutionHandoffSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryResolutionHandoffFreezeSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryDispatchConsumerSummary?: string;
+  encoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreezeSummary?: string;
   rootReconciliationReady: boolean;
   rootReconciliationStatus: "pending" | "match" | "mismatch" | "unavailable";
   rootReconciliationScheme?: string;
@@ -1349,6 +1421,102 @@ export function inspectCanonicalLifecycleNode(
     inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerFreezeForLifecycleNode(
       normalizedLifecycleId,
     );
+  const encoderFieldMaterializationNextResolvedPlanningBoundaryHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningBoundaryHandoffForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedPlanningBoundaryHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningBoundaryHandoffFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedPlanningBoundaryConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningBoundaryConsumerForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedPlanningBoundaryConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningBoundaryConsumerFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedPlanningConsumerHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerHandoffForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedPlanningConsumerHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerHandoffFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedConsumerForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedConsumerFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedHandoffForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedHandoffFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryConsumerForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryConsumerFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryHandoffForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryHandoffFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryPlanningConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryPlanningConsumerForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryPlanningConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryPlanningConsumerFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryPlanningHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryPlanningHandoffForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryPlanningHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryPlanningHandoffFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryResolutionConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryResolutionConsumerForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryResolutionConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryResolutionConsumerFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryResolutionHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryResolutionHandoffForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryResolutionHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryResolutionHandoffFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryDispatchConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryDispatchConsumerForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
   const rootReconciliation = inspectCanonicalLifecycleMembershipRootReconciliation(normalizedLifecycleId);
 
   for (const event of events) {
@@ -1741,6 +1909,102 @@ export function inspectCanonicalLifecycleNode(
         encoderFieldMaterializationNextResolvedPlanningConsumerFreezeSummary:
           createEncoderFieldMaterializationNextResolvedPlanningConsumerFreezeSummary(
             encoderFieldMaterializationNextResolvedPlanningConsumerFreeze,
+          ),
+        encoderFieldMaterializationNextResolvedPlanningBoundaryHandoffSummary:
+          createEncoderFieldMaterializationNextResolvedPlanningBoundaryHandoffSummary(
+            encoderFieldMaterializationNextResolvedPlanningBoundaryHandoff,
+          ),
+        encoderFieldMaterializationNextResolvedPlanningBoundaryHandoffFreezeSummary:
+          createEncoderFieldMaterializationNextResolvedPlanningBoundaryHandoffFreezeSummary(
+            encoderFieldMaterializationNextResolvedPlanningBoundaryHandoffFreeze,
+          ),
+        encoderFieldMaterializationNextResolvedPlanningBoundaryConsumerSummary:
+          createEncoderFieldMaterializationNextResolvedPlanningBoundaryConsumerSummary(
+            encoderFieldMaterializationNextResolvedPlanningBoundaryConsumer,
+          ),
+        encoderFieldMaterializationNextResolvedPlanningBoundaryConsumerFreezeSummary:
+          createEncoderFieldMaterializationNextResolvedPlanningBoundaryConsumerFreezeSummary(
+            encoderFieldMaterializationNextResolvedPlanningBoundaryConsumerFreeze,
+          ),
+        encoderFieldMaterializationNextResolvedPlanningConsumerHandoffSummary:
+          createEncoderFieldMaterializationNextResolvedPlanningConsumerHandoffSummary(
+            encoderFieldMaterializationNextResolvedPlanningConsumerHandoff,
+          ),
+        encoderFieldMaterializationNextResolvedPlanningConsumerHandoffFreezeSummary:
+          createEncoderFieldMaterializationNextResolvedPlanningConsumerHandoffFreezeSummary(
+            encoderFieldMaterializationNextResolvedPlanningConsumerHandoffFreeze,
+          ),
+        encoderFieldMaterializationNextResolvedConsumerSummary:
+          createEncoderFieldMaterializationNextResolvedConsumerSummary(
+            encoderFieldMaterializationNextResolvedConsumer,
+          ),
+        encoderFieldMaterializationNextResolvedConsumerFreezeSummary:
+          createEncoderFieldMaterializationNextResolvedConsumerFreezeSummary(
+            encoderFieldMaterializationNextResolvedConsumerFreeze,
+          ),
+        encoderFieldMaterializationNextResolvedHandoffSummary:
+          createEncoderFieldMaterializationNextResolvedHandoffSummary(
+            encoderFieldMaterializationNextResolvedHandoff,
+          ),
+        encoderFieldMaterializationNextResolvedHandoffFreezeSummary:
+          createEncoderFieldMaterializationNextResolvedHandoffFreezeSummary(
+            encoderFieldMaterializationNextResolvedHandoffFreeze,
+          ),
+        encoderFieldMaterializationNextResolvedBoundaryConsumerSummary:
+          createEncoderFieldMaterializationNextResolvedBoundaryConsumerSummary(
+            encoderFieldMaterializationNextResolvedBoundaryConsumer,
+          ),
+        encoderFieldMaterializationNextResolvedBoundaryConsumerFreezeSummary:
+          createEncoderFieldMaterializationNextResolvedBoundaryConsumerFreezeSummary(
+            encoderFieldMaterializationNextResolvedBoundaryConsumerFreeze,
+          ),
+        encoderFieldMaterializationNextResolvedBoundaryHandoffSummary:
+          createEncoderFieldMaterializationNextResolvedBoundaryHandoffSummary(
+            encoderFieldMaterializationNextResolvedBoundaryHandoff,
+          ),
+        encoderFieldMaterializationNextResolvedBoundaryHandoffFreezeSummary:
+          createEncoderFieldMaterializationNextResolvedBoundaryHandoffFreezeSummary(
+            encoderFieldMaterializationNextResolvedBoundaryHandoffFreeze,
+          ),
+        encoderFieldMaterializationNextResolvedBoundaryPlanningConsumerSummary:
+          createEncoderFieldMaterializationNextResolvedBoundaryPlanningConsumerSummary(
+            encoderFieldMaterializationNextResolvedBoundaryPlanningConsumer,
+          ),
+        encoderFieldMaterializationNextResolvedBoundaryPlanningConsumerFreezeSummary:
+          createEncoderFieldMaterializationNextResolvedBoundaryPlanningConsumerFreezeSummary(
+            encoderFieldMaterializationNextResolvedBoundaryPlanningConsumerFreeze,
+          ),
+        encoderFieldMaterializationNextResolvedBoundaryPlanningHandoffSummary:
+          createEncoderFieldMaterializationNextResolvedBoundaryPlanningHandoffSummary(
+            encoderFieldMaterializationNextResolvedBoundaryPlanningHandoff,
+          ),
+        encoderFieldMaterializationNextResolvedBoundaryPlanningHandoffFreezeSummary:
+          createEncoderFieldMaterializationNextResolvedBoundaryPlanningHandoffFreezeSummary(
+            encoderFieldMaterializationNextResolvedBoundaryPlanningHandoffFreeze,
+          ),
+        encoderFieldMaterializationNextResolvedBoundaryResolutionConsumerSummary:
+          createEncoderFieldMaterializationNextResolvedBoundaryResolutionConsumerSummary(
+            encoderFieldMaterializationNextResolvedBoundaryResolutionConsumer,
+          ),
+        encoderFieldMaterializationNextResolvedBoundaryResolutionConsumerFreezeSummary:
+          createEncoderFieldMaterializationNextResolvedBoundaryResolutionConsumerFreezeSummary(
+            encoderFieldMaterializationNextResolvedBoundaryResolutionConsumerFreeze,
+          ),
+        encoderFieldMaterializationNextResolvedBoundaryResolutionHandoffSummary:
+          createEncoderFieldMaterializationNextResolvedBoundaryResolutionHandoffSummary(
+            encoderFieldMaterializationNextResolvedBoundaryResolutionHandoff,
+          ),
+        encoderFieldMaterializationNextResolvedBoundaryResolutionHandoffFreezeSummary:
+          createEncoderFieldMaterializationNextResolvedBoundaryResolutionHandoffFreezeSummary(
+            encoderFieldMaterializationNextResolvedBoundaryResolutionHandoffFreeze,
+          ),
+        encoderFieldMaterializationNextResolvedBoundaryDispatchConsumerSummary:
+          createEncoderFieldMaterializationNextResolvedBoundaryDispatchConsumerSummary(
+            encoderFieldMaterializationNextResolvedBoundaryDispatchConsumer,
+          ),
+        encoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreezeSummary:
+          createEncoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreezeSummary(
+            encoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreeze,
           ),
         rootReconciliationReady: rootReconciliation.reconciliationReady,
         rootReconciliationStatus: rootReconciliation.status,
@@ -3182,6 +3446,150 @@ function createEncoderFieldMaterializationNextResolvedPlanningConsumerSummary(
 
 function createEncoderFieldMaterializationNextResolvedPlanningConsumerFreezeSummary(
   result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextResolvedPlanningBoundaryHandoffSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningBoundaryHandoffForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextResolvedPlanningBoundaryHandoffFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningBoundaryHandoffFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextResolvedPlanningBoundaryConsumerSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningBoundaryConsumerForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextResolvedPlanningBoundaryConsumerFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningBoundaryConsumerFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextResolvedPlanningConsumerHandoffSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerHandoffForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextResolvedPlanningConsumerHandoffFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerHandoffFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextResolvedConsumerSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedConsumerForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextResolvedConsumerFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedConsumerFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextResolvedHandoffSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedHandoffForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextResolvedHandoffFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedHandoffFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextResolvedBoundaryConsumerSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryConsumerForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextResolvedBoundaryConsumerFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryConsumerFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextResolvedBoundaryHandoffSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryHandoffForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextResolvedBoundaryHandoffFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryHandoffFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextResolvedBoundaryPlanningConsumerSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryPlanningConsumerForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextResolvedBoundaryPlanningConsumerFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryPlanningConsumerFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextResolvedBoundaryPlanningHandoffSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryPlanningHandoffForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextResolvedBoundaryPlanningHandoffFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryPlanningHandoffFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextResolvedBoundaryResolutionConsumerSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryResolutionConsumerForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextResolvedBoundaryResolutionConsumerFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryResolutionConsumerFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextResolvedBoundaryResolutionHandoffSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryResolutionHandoffForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextResolvedBoundaryResolutionHandoffFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryResolutionHandoffFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextResolvedBoundaryDispatchConsumerSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryDispatchConsumerForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreezeForLifecycleNode>,
 ): string {
   return result.summary;
 }
