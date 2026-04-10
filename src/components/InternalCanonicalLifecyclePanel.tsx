@@ -100,6 +100,8 @@ import {
   inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryDispatchHandoffFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalHandoffForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalHandoffFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationLaunchStartFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationLaunchStartForLifecycleNode,
   inspectGenericPhase1EncoderFieldLaneExecutionAdmissionFreezeForLifecycleNode,
@@ -689,6 +691,14 @@ export function InternalCanonicalLifecyclePanel() {
     );
   const encoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreeze =
     inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreezeForLifecycleNode(
+      lookupLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryFinalHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalHandoffForLifecycleNode(
+      lookupLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryFinalHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalHandoffFreezeForLifecycleNode(
       lookupLifecycleId,
     );
   const lineageRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -3494,6 +3504,72 @@ export function InternalCanonicalLifecyclePanel() {
                           96
                             ? `${encoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreeze.serialized.slice(0, 96)}...`
                             : encoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreeze.serialized}
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Boundary final handoff kind</span>
+                        <strong>{`${encoderFieldMaterializationNextResolvedBoundaryFinalHandoff.handoffKind} · v${encoderFieldMaterializationNextResolvedBoundaryFinalHandoff.handoffVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Boundary final handoff status</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryFinalHandoff.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Proceedable</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedBoundaryFinalHandoff.proceedable
+                            ? "yes"
+                            : "no"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen consumer provenance</span>
+                        <strong>
+                          {`${encoderFieldMaterializationNextResolvedBoundaryFinalHandoff.fieldMaterializationNextResolvedBoundaryFinalConsumerSnapshotKind} · ${encoderFieldMaterializationNextResolvedBoundaryFinalHandoff.fieldMaterializationNextResolvedBoundaryFinalConsumerStatus}`}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Footprint</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryFinalHandoff.dispatchFootprintSummary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Reason</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedBoundaryFinalHandoff.reason ??
+                            "ready for next resolved boundary final handoff"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Summary</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryFinalHandoff.summary}</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Frozen boundary final handoff kind</span>
+                        <strong>{`${encoderFieldMaterializationNextResolvedBoundaryFinalHandoffFreeze.snapshotKind} · v${encoderFieldMaterializationNextResolvedBoundaryFinalHandoffFreeze.snapshotVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen boundary final handoff status</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryFinalHandoffFreeze.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen boundary final handoff summary</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryFinalHandoffFreeze.summary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Serialized preview</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedBoundaryFinalHandoffFreeze.serialized.length >
+                          96
+                            ? `${encoderFieldMaterializationNextResolvedBoundaryFinalHandoffFreeze.serialized.slice(0, 96)}...`
+                            : encoderFieldMaterializationNextResolvedBoundaryFinalHandoffFreeze.serialized}
                         </strong>
                       </div>
                     </div>
