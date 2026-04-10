@@ -9,4 +9,26 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    chunkSizeWarningLimit: 650,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("src/components/InternalCanonicalLifecyclePanel")) {
+            return "canonical-lifecycle-panel";
+          }
+          if (id.includes("react") || id.includes("react-router-dom")) {
+            return "vendor-react";
+          }
+          if (
+            id.includes("@solana/") ||
+            id.includes("@coral-xyz/") ||
+            id.includes("@meteora-ag/")
+          ) {
+            return "vendor-solana";
+          }
+        },
+      },
+    },
+  },
 });

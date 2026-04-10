@@ -1,7 +1,16 @@
+import { Suspense, lazy } from "react";
 import { Link } from "react-router-dom";
-import { InternalCanonicalLifecyclePanel } from "@/components/InternalCanonicalLifecyclePanel";
-import { LifecycleTimeline } from "@/components/LifecycleTimeline";
-import { NoteStatePanel } from "@/components/NoteStatePanel";
+const InternalCanonicalLifecyclePanel = lazy(() =>
+  import("@/components/InternalCanonicalLifecyclePanel").then((m) => ({
+    default: m.InternalCanonicalLifecyclePanel,
+  })),
+);
+const LifecycleTimeline = lazy(() =>
+  import("@/components/LifecycleTimeline").then((m) => ({ default: m.LifecycleTimeline })),
+);
+const NoteStatePanel = lazy(() =>
+  import("@/components/NoteStatePanel").then((m) => ({ default: m.NoteStatePanel })),
+);
 import { useWalletState } from "@/data/context/WalletContext";
 import { useVantaNextStepGuidance } from "@/solana/useVantaNextStepGuidance";
 import { useVantaPositionSummary } from "@/solana/useVantaPositionSummary";
@@ -132,27 +141,29 @@ export function AppDashboardPage() {
         ))}
       </div>
 
-      <div className="dashboard-grid">
-        <article className="dashboard-card dashboard-card--timeline">
-          <LifecycleTimeline
-            account={account}
-            compact
-            maxItems={4}
-            title="Recent constrained lifecycle"
-          />
-        </article>
+      <Suspense fallback={<div className="dashboard-grid"><article className="dashboard-card">Loading dashboard details…</article></div>}>
+        <div className="dashboard-grid">
+          <article className="dashboard-card dashboard-card--timeline">
+            <LifecycleTimeline
+              account={account}
+              compact
+              maxItems={4}
+              title="Recent constrained lifecycle"
+            />
+          </article>
 
-        <article className="dashboard-card">
-          <NoteStatePanel
-            account={account}
-            compact
-            maxNotes={3}
-            title="Shielded state snapshot"
-          />
-        </article>
-      </div>
+          <article className="dashboard-card">
+            <NoteStatePanel
+              account={account}
+              compact
+              maxNotes={3}
+              title="Shielded state snapshot"
+            />
+          </article>
+        </div>
 
-      <InternalCanonicalLifecyclePanel />
+        <InternalCanonicalLifecyclePanel />
+      </Suspense>
     </section>
   );
 }
