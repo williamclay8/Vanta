@@ -4010,6 +4010,84 @@ export type BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryDispat
     summary: string;
   };
 
+
+export type BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumerStatus =
+  | "field-materialization-next-resolved-boundary-final-consumer-ready"
+  | "field-materialization-next-resolved-boundary-final-consumer-blocked"
+  | "field-materialization-next-resolved-boundary-final-consumer-not-issued";
+
+export type BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumer =
+  {
+    artifactKind: "vanta-backend-encoder-field-materialization-next-resolved-boundary-final-consumer-v1";
+    artifactVersion: 1;
+    encoderId: string;
+    encoderLabel: string;
+    fieldMaterializationNextResolvedBoundaryDispatchHandoffSnapshotKind:
+      BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryDispatchHandoffFreeze["snapshotKind"];
+    fieldMaterializationNextResolvedBoundaryDispatchHandoffSnapshotVersion:
+      BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryDispatchHandoffFreeze["snapshotVersion"];
+    fieldMaterializationNextResolvedBoundaryDispatchHandoffStatus:
+      BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryDispatchHandoffStatus;
+    status: BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumerStatus;
+    proceedable: boolean;
+    dispatchFootprintSummary: string;
+    reason?: string;
+    summary: string;
+  };
+
+export type BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumerMetadata =
+  {
+    artifactKind:
+      BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumer["artifactKind"];
+    artifactVersion:
+      BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumer["artifactVersion"];
+    encoderId: string;
+    encoderLabel: string;
+    fieldMaterializationNextResolvedBoundaryDispatchHandoffSnapshotKind:
+      BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumer["fieldMaterializationNextResolvedBoundaryDispatchHandoffSnapshotKind"];
+    fieldMaterializationNextResolvedBoundaryDispatchHandoffSnapshotVersion:
+      BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumer["fieldMaterializationNextResolvedBoundaryDispatchHandoffSnapshotVersion"];
+    fieldMaterializationNextResolvedBoundaryDispatchHandoffStatus:
+      BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumer["fieldMaterializationNextResolvedBoundaryDispatchHandoffStatus"];
+    status:
+      BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumer["status"];
+    proceedable: boolean;
+    dispatchFootprintSummary: string;
+    reason?: string;
+    summary: string;
+  };
+
+export type BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreeze =
+  {
+    snapshotKind: "vanta-backend-encoder-field-materialization-next-resolved-boundary-final-consumer-freeze-v1";
+    snapshotVersion: 1;
+    encoderId: string;
+    encoderLabel: string;
+    status: BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumerStatus;
+    serialized: string;
+    summary: string;
+  };
+
+export type BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreezeMetadata =
+  {
+    snapshotKind:
+      BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreeze["snapshotKind"];
+    snapshotVersion:
+      BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreeze["snapshotVersion"];
+    encoderId: string;
+    encoderLabel: string;
+    artifactKind:
+      BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumer["artifactKind"];
+    artifactVersion:
+      BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumer["artifactVersion"];
+    status:
+      BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreeze["status"];
+    proceedable: boolean;
+    frozen: true;
+    stable: true;
+    summary: string;
+  };
+
 export type BackendSpecificEncoderStub = {
   encoderId: string;
   label: string;
@@ -14254,6 +14332,195 @@ export function summarizeGenericPhase1EncoderFieldMaterializationNextResolvedBou
   );
 }
 
+export function inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumer {
+  const freeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryDispatchHandoffFreezeForFrozenPayload(
+      payload,
+    );
+  const snapshot =
+    readFieldMaterializationNextResolvedBoundaryDispatchHandoffFreezeSnapshot(freeze);
+  const status =
+    snapshot.status === "field-materialization-next-resolved-boundary-dispatch-handoff-ready"
+      ? "field-materialization-next-resolved-boundary-final-consumer-ready"
+      : snapshot.status === "field-materialization-next-resolved-boundary-dispatch-handoff-blocked"
+        ? "field-materialization-next-resolved-boundary-final-consumer-blocked"
+        : "field-materialization-next-resolved-boundary-final-consumer-not-issued";
+
+  return {
+    artifactKind: "vanta-backend-encoder-field-materialization-next-resolved-boundary-final-consumer-v1",
+    artifactVersion: 1,
+    encoderId: snapshot.encoderId,
+    encoderLabel: snapshot.encoderLabel,
+    fieldMaterializationNextResolvedBoundaryDispatchHandoffSnapshotKind: snapshot.snapshotKind,
+    fieldMaterializationNextResolvedBoundaryDispatchHandoffSnapshotVersion: snapshot.snapshotVersion,
+    fieldMaterializationNextResolvedBoundaryDispatchHandoffStatus: snapshot.status,
+    status,
+    proceedable: snapshot.proceedable,
+    dispatchFootprintSummary: snapshot.dispatchFootprintSummary,
+    reason: snapshot.reason,
+    summary: summarizeFieldMaterializationNextResolvedBoundaryFinalConsumer(status, snapshot),
+  };
+}
+
+export function inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerForLifecycleNode(
+  lifecycleId: string | undefined,
+): BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumer {
+  return inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerMetadataForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumerMetadata {
+  const artifact =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerForFrozenPayload(
+      payload,
+    );
+
+  return {
+    artifactKind: artifact.artifactKind,
+    artifactVersion: artifact.artifactVersion,
+    encoderId: artifact.encoderId,
+    encoderLabel: artifact.encoderLabel,
+    fieldMaterializationNextResolvedBoundaryDispatchHandoffSnapshotKind:
+      artifact.fieldMaterializationNextResolvedBoundaryDispatchHandoffSnapshotKind,
+    fieldMaterializationNextResolvedBoundaryDispatchHandoffSnapshotVersion:
+      artifact.fieldMaterializationNextResolvedBoundaryDispatchHandoffSnapshotVersion,
+    fieldMaterializationNextResolvedBoundaryDispatchHandoffStatus:
+      artifact.fieldMaterializationNextResolvedBoundaryDispatchHandoffStatus,
+    status: artifact.status,
+    proceedable: artifact.proceedable,
+    dispatchFootprintSummary: artifact.dispatchFootprintSummary,
+    reason: artifact.reason,
+    summary: artifact.summary,
+  };
+}
+
+export function inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerMetadataForLifecycleNode(
+  lifecycleId: string | undefined,
+): BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumerMetadata {
+  return inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerMetadataForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function summarizeGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): string {
+  return inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerForFrozenPayload(
+    payload,
+  ).summary;
+}
+
+export function summarizeGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerForLifecycleNode(
+  lifecycleId: string | undefined,
+): string {
+  return summarizeGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreezeForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreeze {
+  const artifact =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerForFrozenPayload(
+      payload,
+    );
+  const tuples = [
+    [
+      "snapshotKind",
+      "vanta-backend-encoder-field-materialization-next-resolved-boundary-final-consumer-freeze-v1",
+    ],
+    ["snapshotVersion", 1],
+    ["artifactKind", artifact.artifactKind],
+    ["artifactVersion", artifact.artifactVersion],
+    ["encoderId", artifact.encoderId],
+    ["encoderLabel", artifact.encoderLabel],
+    ["fieldMaterializationNextResolvedBoundaryDispatchHandoffSnapshotKind", artifact.fieldMaterializationNextResolvedBoundaryDispatchHandoffSnapshotKind],
+    ["fieldMaterializationNextResolvedBoundaryDispatchHandoffSnapshotVersion", artifact.fieldMaterializationNextResolvedBoundaryDispatchHandoffSnapshotVersion],
+    ["fieldMaterializationNextResolvedBoundaryDispatchHandoffStatus", artifact.fieldMaterializationNextResolvedBoundaryDispatchHandoffStatus],
+    ["status", artifact.status],
+    ["proceedable", artifact.proceedable],
+    ["dispatchFootprintSummary", artifact.dispatchFootprintSummary],
+    ["reason", artifact.reason ?? null],
+    ["summary", artifact.summary],
+  ] as const;
+
+  return {
+    snapshotKind: "vanta-backend-encoder-field-materialization-next-resolved-boundary-final-consumer-freeze-v1",
+    snapshotVersion: 1,
+    encoderId: artifact.encoderId,
+    encoderLabel: artifact.encoderLabel,
+    status: artifact.status,
+    serialized: JSON.stringify(tuples),
+    summary: `${artifact.status} · frozen field-materialization next resolved boundary final consumer artifact`,
+  };
+}
+
+export function inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreezeForLifecycleNode(
+  lifecycleId: string | undefined,
+): BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreeze {
+  return inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreezeForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreezeMetadataForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreezeMetadata {
+  const artifact =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerForFrozenPayload(
+      payload,
+    );
+  const freeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreezeForFrozenPayload(
+      payload,
+    );
+  const snapshot = readFieldMaterializationNextResolvedBoundaryFinalConsumerFreezeSnapshot(freeze);
+
+  return {
+    snapshotKind: snapshot.snapshotKind,
+    snapshotVersion: snapshot.snapshotVersion,
+    encoderId: snapshot.encoderId,
+    encoderLabel: snapshot.encoderLabel,
+    artifactKind: artifact.artifactKind,
+    artifactVersion: artifact.artifactVersion,
+    status: snapshot.status,
+    proceedable: snapshot.proceedable,
+    frozen: true,
+    stable: true,
+    summary: `${freeze.summary} · stable:${artifact.status}`,
+  };
+}
+
+export function inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreezeMetadataForLifecycleNode(
+  lifecycleId: string | undefined,
+): BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreezeMetadata {
+  return inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreezeMetadataForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function summarizeGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreezeForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): string {
+  return inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreezeMetadataForFrozenPayload(
+    payload,
+  ).summary;
+}
+
+export function summarizeGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreezeForLifecycleNode(
+  lifecycleId: string | undefined,
+): string {
+  return summarizeGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreezeForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
 export function inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactForFrozenPayload(
   payload: CanonicalCircuitInputAdapterPayloadFreeze,
 ): BackendSpecificEncoderFieldMaterializationDownstreamPreEncodingConsumerArtifact {
@@ -15459,6 +15726,18 @@ type ParsedFieldMaterializationNextResolvedBoundaryDispatchHandoffFreezeSnapshot
   encoderId: string;
   encoderLabel: string;
   status: BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryDispatchHandoffStatus;
+  proceedable: boolean;
+  dispatchFootprintSummary: string;
+  reason?: string;
+};
+
+
+type ParsedFieldMaterializationNextResolvedBoundaryFinalConsumerFreezeSnapshot = {
+  snapshotKind: BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreeze["snapshotKind"];
+  snapshotVersion: BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreeze["snapshotVersion"];
+  encoderId: string;
+  encoderLabel: string;
+  status: BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumerStatus;
   proceedable: boolean;
   dispatchFootprintSummary: string;
   reason?: string;
@@ -17930,6 +18209,55 @@ function readFieldMaterializationNextResolvedBoundaryDispatchHandoffFreezeSnapsh
   }
 }
 
+function readFieldMaterializationNextResolvedBoundaryFinalConsumerFreezeSnapshot(
+  freeze: BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreeze,
+): ParsedFieldMaterializationNextResolvedBoundaryFinalConsumerFreezeSnapshot {
+  try {
+    const tuples = JSON.parse(freeze.serialized) as unknown;
+
+    if (!Array.isArray(tuples)) {
+      throw new Error(
+        "serialized field-materialization-next-resolved-boundary-final-consumer snapshot was not a tuple array",
+      );
+    }
+
+    const get = (key: string) =>
+      tuples.find(
+        (entry): entry is [string, unknown] => Array.isArray(entry) && entry[0] === key,
+      )?.[1];
+
+    return {
+      snapshotKind:
+        String(get("snapshotKind") ?? freeze.snapshotKind) as ParsedFieldMaterializationNextResolvedBoundaryFinalConsumerFreezeSnapshot["snapshotKind"],
+      snapshotVersion:
+        Number(get("snapshotVersion") ?? freeze.snapshotVersion) as ParsedFieldMaterializationNextResolvedBoundaryFinalConsumerFreezeSnapshot["snapshotVersion"],
+      encoderId: String(get("encoderId") ?? freeze.encoderId),
+      encoderLabel: String(get("encoderLabel") ?? freeze.encoderLabel),
+      status:
+        String(get("status") ?? freeze.status) as ParsedFieldMaterializationNextResolvedBoundaryFinalConsumerFreezeSnapshot["status"],
+      proceedable: Boolean(get("proceedable")),
+      dispatchFootprintSummary: String(
+        get("dispatchFootprintSummary") ?? "accepted:0 · blocked:0 · unsupported:0",
+      ),
+      reason:
+        get("reason") === null || get("reason") === undefined
+          ? undefined
+          : String(get("reason")),
+    };
+  } catch {
+    return {
+      snapshotKind: freeze.snapshotKind,
+      snapshotVersion: freeze.snapshotVersion,
+      encoderId: freeze.encoderId,
+      encoderLabel: freeze.encoderLabel,
+      status: freeze.status,
+      proceedable: false,
+      dispatchFootprintSummary: "accepted:0 · blocked:0 · unsupported:0",
+      reason: "failed to parse field-materialization next resolved boundary final consumer freeze",
+    };
+  }
+}
+
 function readFieldMaterializationDownstreamPreEncodingConsumerArtifactFreezeSnapshot(
   freeze: BackendSpecificEncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreeze,
 ): ParsedFieldMaterializationDownstreamPreEncodingConsumerArtifactFreezeSnapshot {
@@ -18640,6 +18968,24 @@ function summarizeFieldMaterializationNextResolvedBoundaryDispatchConsumer(
 function summarizeFieldMaterializationNextResolvedBoundaryDispatchHandoff(
   status: BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryDispatchHandoffStatus,
   snapshot: ParsedFieldMaterializationNextResolvedBoundaryDispatchConsumerFreezeSnapshot,
+): string {
+  const parts = [
+    status,
+    `from ${snapshot.status}`,
+    snapshot.dispatchFootprintSummary,
+  ];
+
+  if (snapshot.reason) {
+    parts.push(snapshot.reason);
+  }
+
+  return parts.join(" · ");
+}
+
+
+function summarizeFieldMaterializationNextResolvedBoundaryFinalConsumer(
+  status: BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryFinalConsumerStatus,
+  snapshot: ParsedFieldMaterializationNextResolvedBoundaryDispatchHandoffFreezeSnapshot,
 ): string {
   const parts = [
     status,

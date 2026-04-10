@@ -98,6 +98,8 @@ import {
   inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryDispatchConsumerFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryDispatchHandoffForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryDispatchHandoffFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationLaunchStartFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationLaunchStartForLifecycleNode,
   inspectGenericPhase1EncoderFieldLaneExecutionAdmissionFreezeForLifecycleNode,
@@ -679,6 +681,14 @@ export function InternalCanonicalLifecyclePanel() {
     );
   const encoderFieldMaterializationNextResolvedBoundaryDispatchHandoffFreeze =
     inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryDispatchHandoffFreezeForLifecycleNode(
+      lookupLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryFinalConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerForLifecycleNode(
+      lookupLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreezeForLifecycleNode(
       lookupLifecycleId,
     );
   const lineageRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -3418,6 +3428,72 @@ export function InternalCanonicalLifecyclePanel() {
                           96
                             ? `${encoderFieldMaterializationNextResolvedBoundaryDispatchHandoffFreeze.serialized.slice(0, 96)}...`
                             : encoderFieldMaterializationNextResolvedBoundaryDispatchHandoffFreeze.serialized}
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Boundary final consumer kind</span>
+                        <strong>{`${encoderFieldMaterializationNextResolvedBoundaryFinalConsumer.artifactKind} · v${encoderFieldMaterializationNextResolvedBoundaryFinalConsumer.artifactVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Boundary final consumer status</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryFinalConsumer.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Proceedable</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedBoundaryFinalConsumer.proceedable
+                            ? "yes"
+                            : "no"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen handoff provenance</span>
+                        <strong>
+                          {`${encoderFieldMaterializationNextResolvedBoundaryFinalConsumer.fieldMaterializationNextResolvedBoundaryDispatchHandoffSnapshotKind} · ${encoderFieldMaterializationNextResolvedBoundaryFinalConsumer.fieldMaterializationNextResolvedBoundaryDispatchHandoffStatus}`}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Footprint</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryFinalConsumer.dispatchFootprintSummary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Reason</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedBoundaryFinalConsumer.reason ??
+                            "ready for next resolved boundary final consumption"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Summary</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryFinalConsumer.summary}</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Frozen boundary final consumer kind</span>
+                        <strong>{`${encoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreeze.snapshotKind} · v${encoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreeze.snapshotVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen boundary final consumer status</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreeze.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen boundary final consumer summary</span>
+                        <strong>{encoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreeze.summary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Serialized preview</span>
+                        <strong>
+                          {encoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreeze.serialized.length >
+                          96
+                            ? `${encoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreeze.serialized.slice(0, 96)}...`
+                            : encoderFieldMaterializationNextResolvedBoundaryFinalConsumerFreeze.serialized}
                         </strong>
                       </div>
                     </div>
