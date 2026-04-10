@@ -1,0 +1,6302 @@
+import {
+  listCanonicalShieldDiagnosticsSummaries,
+  type LiveShieldCanonicalDiagnosticsSummary,
+} from "./liveShieldBridge";
+import {
+  listCanonicalSendDiagnosticsSummaries,
+  type LiveSendDiagnosticsSummary,
+} from "./liveSendBridge";
+import {
+  listCanonicalSwapDiagnosticsSummaries,
+  type LiveSwapDiagnosticsSummary,
+} from "./liveSwapBridge";
+import {
+  listCanonicalUnshieldDiagnosticsSummaries,
+  type LiveUnshieldDiagnosticsSummary,
+} from "./liveUnshieldBridge";
+import {
+  findCanonicalConsumptionForLifecycleNode,
+  getCanonicalLifecycleSpendStatus,
+} from "./canonicalSpendStatus";
+import { assembleCanonicalLifecycleWitnessPackage } from "./canonicalWitnessPackage";
+import { encodeCanonicalLifecycleCircuitInput } from "./canonicalCircuitInput";
+import {
+  inspectGenericPhase1EncoderDispatchAckForLifecycleNode,
+  inspectGenericPhase1EncoderDispatchReadinessForLifecycleNode,
+  inspectGenericPhase1EncoderOrchestrationHandoffFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderOrchestrationHandoffForLifecycleNode,
+  inspectGenericPhase1EncoderRunnerIntakeFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderRunnerIntakeForLifecycleNode,
+  inspectGenericPhase1EncoderEncodingAdmissionFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderEncodingAdmissionForLifecycleNode,
+  inspectGenericPhase1EncoderFieldEncodingStartFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldEncodingStartForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationAdmissionFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationAdmissionForLifecycleNode,
+  inspectGenericPhase1EncoderFieldRowMaterializationStartFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldRowMaterializationStartForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationLaunchAdmissionFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationLaunchAdmissionForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationExecutionAdmissionForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationExecutionAdmissionFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationExecutionStartForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationExecutionStartFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationExecutionWorkEnvelopeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationExecutionWorkEnvelopeFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationExecutionPlanForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationExecutionPlanFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationExecutionPlanHandoffForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationExecutionPlanHandoffFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationPlanningConsumerForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationPlanningConsumerFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationPlanningConsumerHandoffForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationPlanningConsumerHandoffFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationDownstreamConsumerForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationDownstreamConsumerFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationDownstreamBoundaryHandoffForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationDownstreamBoundaryHandoffFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationDownstreamPlanningConsumerForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationDownstreamPlanningConsumerFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationDownstreamPlanningBoundaryHandoffForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPreEncodingConsumerForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPreEncodingConsumerFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningConsumerForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningConsumerFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationLaunchStartFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldMaterializationLaunchStartForLifecycleNode,
+  inspectGenericPhase1EncoderFieldLaneExecutionAdmissionFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldLaneExecutionAdmissionForLifecycleNode,
+  inspectGenericPhase1EncoderFieldLaneExecutionStartFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderFieldLaneExecutionStartForLifecycleNode,
+  inspectGenericPhase1EncoderRowFieldEmissionAdmissionFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderRowFieldEmissionAdmissionForLifecycleNode,
+  inspectGenericPhase1EncoderRowFieldEmissionStartFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderRowFieldEmissionStartForLifecycleNode,
+  inspectGenericPhase1EncoderRowLaneMaterializationStartFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderRowLaneMaterializationStartForLifecycleNode,
+  inspectGenericPhase1EncoderRowMaterializationAdmissionFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderRowMaterializationAdmissionForLifecycleNode,
+  inspectGenericPhase1EncoderRunnerExecutionEntryPlanForLifecycleNode,
+  inspectGenericPhase1EncoderRunnerExecutionEntryPlanFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderRunnerExecutionSessionForLifecycleNode,
+  inspectGenericPhase1EncoderRunnerExecutionSessionFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderRunnerExecutionInputForLifecycleNode,
+  inspectGenericPhase1EncoderRunnerLaunchEnvelopeFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderRunnerLaunchEnvelopeForLifecycleNode,
+  inspectGenericPhase1EncoderRunnerStartTicketFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderRunnerStartTicketForLifecycleNode,
+  inspectGenericPhase1EncoderPreflightFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderPreflightReportForLifecycleNode,
+  inspectGenericPhase1EncoderSessionTicketForLifecycleNode,
+  inspectGenericPhase1EncoderDispatchContractForLifecycleNode,
+  inspectGenericPhase1EncoderExecutionPlanForLifecycleNode,
+  inspectGenericPhase1EncoderStubForLifecycleNode,
+  inspectGenericPhase1EncoderWorkItemsForLifecycleNode,
+} from "./backendEncoderStub";
+import {
+  getCanonicalLifecycleCandidateMerkleMembershipPath,
+  getCanonicalLifecycleDerivedMembershipPath,
+  getCanonicalLifecycleMembership,
+  hasCanonicalLifecycleCandidateMerkleMembershipPath,
+  hasCanonicalLifecycleDerivedMembershipPath,
+  hasCanonicalLifecycleDerivedMembershipPathDigests,
+  inspectCanonicalLifecycleCandidateTreeAgreement,
+  inspectCanonicalLifecycleMembershipRootReconciliation,
+} from "./canonicalMembership";
+
+export type CanonicalLifecycleEventKind = "shield" | "send" | "swap" | "unshield";
+
+export type CanonicalLifecycleSuccessorSummary = {
+  label: string;
+  kind?: "recipient" | "change" | "retained" | "output";
+  lifecycleId?: string;
+  lineageId?: string;
+  predecessorLifecycleId?: string;
+  spendStatus?: "unspent" | "consumed" | "terminal" | "legacy";
+  spendCapability?: "spendable" | "terminal" | "legacy";
+  consumedByConsumptionId?: string;
+  consumedByKind?: "send" | "swap" | "unshield";
+  nullifierReady?: boolean;
+  witnessReadiness?: "ready" | "partial" | "unavailable" | "legacy";
+  membershipLinkedByLifecycle?: boolean;
+  derivedPathReady?: boolean;
+  derivedPathKind?: string;
+  derivedPathSemantics?: string;
+  derivedPathDepth?: number;
+  derivedPathLeafIndex?: number;
+  derivedPathDigestReady?: boolean;
+  derivedPathDigestScheme?: string;
+  derivedPathDigestLevelCount?: number;
+  candidatePathReady?: boolean;
+  candidatePathKind?: string;
+  candidatePathScheme?: string;
+  candidatePathDepth?: number;
+  candidateAgreementReady?: boolean;
+  candidateAgreementStatus?: "match" | "root-mismatch" | "path-mismatch" | "scheme-mismatch" | "pending" | "unavailable" | "legacy";
+  witnessPackageReadiness?: "ready" | "partial" | "legacy" | "unavailable";
+  witnessPackageSummary?: string;
+  circuitInputReadiness?: "ready" | "partial" | "legacy" | "unavailable";
+  circuitInputKind?: string;
+  circuitInputSummary?: string;
+  circuitInputFieldGroupSummary?: string;
+  fieldMappingPrecheckSummary?: string;
+  slotNormalizationSummary?: string;
+  fieldCandidateSummary?: string;
+  fieldValuePreimageSummary?: string;
+  fieldLanePlanSummary?: string;
+  laneArityPlanSummary?: string;
+  fieldEmissionScheduleSummary?: string;
+  fieldConversionManifestSummary?: string;
+  finiteFieldDraftSummary?: string;
+  draftCanonicalizationSummary?: string;
+  modulusReadinessSummary?: string;
+  reductionPlanSummary?: string;
+  fieldElementDraftSummary?: string;
+  fieldElementAssemblySummary?: string;
+  witnessLayoutSummary?: string;
+  witnessRealizationSummary?: string;
+  witnessRealizationRecipeSummary?: string;
+  witnessMaterializationManifestSummary?: string;
+  backendBridgeContractSummary?: string;
+  backendAdapterHandshakeSummary?: string;
+  backendAdapterNormalizedSummary?: string;
+  adapterPayloadFreezeSummary?: string;
+  encoderStubSummary?: string;
+  encoderWorkItemSummary?: string;
+  encoderExecutionPlanSummary?: string;
+  encoderDispatchSummary?: string;
+  encoderDispatchAckSummary?: string;
+  encoderDispatchReadinessSummary?: string;
+  encoderSessionTicketSummary?: string;
+  encoderPreflightSummary?: string;
+  encoderPreflightFreezeSummary?: string;
+  encoderOrchestrationHandoffSummary?: string;
+  encoderOrchestrationHandoffFreezeSummary?: string;
+  encoderRunnerIntakeSummary?: string;
+  encoderRunnerIntakeFreezeSummary?: string;
+  encoderRunnerLaunchEnvelopeSummary?: string;
+  encoderRunnerLaunchEnvelopeFreezeSummary?: string;
+  encoderRunnerStartTicketSummary?: string;
+  encoderRunnerStartTicketFreezeSummary?: string;
+  encoderRunnerExecutionInputSummary?: string;
+  encoderRunnerExecutionEntryPlanSummary?: string;
+  encoderRunnerExecutionEntryPlanFreezeSummary?: string;
+  encoderRunnerExecutionSessionSummary?: string;
+  encoderRunnerExecutionSessionFreezeSummary?: string;
+  encoderEncodingAdmissionSummary?: string;
+  encoderEncodingAdmissionFreezeSummary?: string;
+  encoderFieldEncodingStartSummary?: string;
+  encoderFieldEncodingStartFreezeSummary?: string;
+  encoderFieldMaterializationAdmissionSummary?: string;
+  encoderFieldMaterializationAdmissionFreezeSummary?: string;
+  encoderFieldRowMaterializationStartSummary?: string;
+  encoderFieldRowMaterializationStartFreezeSummary?: string;
+  encoderRowMaterializationAdmissionSummary?: string;
+  encoderRowMaterializationAdmissionFreezeSummary?: string;
+  encoderRowLaneMaterializationStartSummary?: string;
+  encoderRowLaneMaterializationStartFreezeSummary?: string;
+  encoderRowFieldEmissionAdmissionSummary?: string;
+  encoderRowFieldEmissionAdmissionFreezeSummary?: string;
+  encoderRowFieldEmissionStartSummary?: string;
+  encoderRowFieldEmissionStartFreezeSummary?: string;
+  encoderFieldLaneExecutionAdmissionSummary?: string;
+  encoderFieldLaneExecutionAdmissionFreezeSummary?: string;
+  encoderFieldLaneExecutionStartSummary?: string;
+  encoderFieldLaneExecutionStartFreezeSummary?: string;
+  encoderFieldMaterializationLaunchAdmissionSummary?: string;
+  encoderFieldMaterializationLaunchAdmissionFreezeSummary?: string;
+  encoderFieldMaterializationLaunchStartSummary?: string;
+  encoderFieldMaterializationLaunchStartFreezeSummary?: string;
+  encoderFieldMaterializationExecutionAdmissionSummary?: string;
+  encoderFieldMaterializationExecutionAdmissionFreezeSummary?: string;
+  encoderFieldMaterializationExecutionStartSummary?: string;
+  encoderFieldMaterializationExecutionStartFreezeSummary?: string;
+  encoderFieldMaterializationExecutionWorkEnvelopeSummary?: string;
+  encoderFieldMaterializationExecutionWorkEnvelopeFreezeSummary?: string;
+  encoderFieldMaterializationExecutionPlanSummary?: string;
+  encoderFieldMaterializationExecutionPlanFreezeSummary?: string;
+  encoderFieldMaterializationExecutionPlanHandoffSummary?: string;
+  encoderFieldMaterializationExecutionPlanHandoffFreezeSummary?: string;
+  encoderFieldMaterializationPlanningConsumerSummary?: string;
+  encoderFieldMaterializationPlanningConsumerFreezeSummary?: string;
+  encoderFieldMaterializationPlanningConsumerHandoffSummary?: string;
+  encoderFieldMaterializationPlanningConsumerHandoffFreezeSummary?: string;
+  encoderFieldMaterializationDownstreamConsumerSummary?: string;
+  encoderFieldMaterializationDownstreamConsumerFreezeSummary?: string;
+  encoderFieldMaterializationDownstreamBoundaryHandoffSummary?: string;
+  encoderFieldMaterializationDownstreamBoundaryHandoffFreezeSummary?: string;
+  encoderFieldMaterializationDownstreamPlanningConsumerSummary?: string;
+  encoderFieldMaterializationDownstreamPlanningConsumerFreezeSummary?: string;
+  encoderFieldMaterializationDownstreamPlanningBoundaryHandoffSummary?: string;
+  encoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreezeSummary?: string;
+  encoderFieldMaterializationDownstreamPreEncodingConsumerSummary?: string;
+  encoderFieldMaterializationDownstreamPreEncodingConsumerFreezeSummary?: string;
+  encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffSummary?: string;
+  encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreezeSummary?: string;
+  encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerSummary?: string;
+  encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreezeSummary?: string;
+  encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffSummary?: string;
+  encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreezeSummary?: string;
+  encoderFieldMaterializationDownstreamPreEncodingConsumerArtifactSummary?: string;
+  encoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreezeSummary?: string;
+  encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffSummary?: string;
+  encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary?: string;
+  encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSummary?: string;
+  encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreezeSummary?: string;
+  encoderFieldMaterializationNextDownstreamPreEncodingConsumerSummary?: string;
+  encoderFieldMaterializationNextDownstreamPreEncodingConsumerFreezeSummary?: string;
+  encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSummary?: string;
+  encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary?: string;
+  encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerSummary?: string;
+  encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreezeSummary?: string;
+  encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffSummary?: string;
+  encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreezeSummary?: string;
+  encoderFieldMaterializationNextDownstreamPlanningConsumerSummary?: string;
+  encoderFieldMaterializationNextDownstreamPlanningConsumerFreezeSummary?: string;
+  encoderFieldMaterializationNextResolvedPlanningConsumerSummary?: string;
+  encoderFieldMaterializationNextResolvedPlanningConsumerFreezeSummary?: string;
+  rootReconciliationReady?: boolean;
+  rootReconciliationStatus?: "pending" | "match" | "mismatch" | "unavailable";
+  rootReconciliationScheme?: string;
+  currentRootLikeDigest?: string;
+  futureRootSeamValue?: string;
+  futureRootSeamKind?: string;
+  futureRootSeamScheme?: string;
+  futureRootSeamLeafCount?: number;
+  futureRootSeamSnapshotRoot?: string;
+  amountSummary?: string;
+  assetSummary?: string;
+  liveNoteId?: string;
+  commitment?: string;
+  insertionIndex?: number;
+  snapshotRoot?: string;
+  snapshotLeafCount?: number;
+  ownerPublicKey?: string;
+};
+
+export type CanonicalLifecycleBranchContinuityQuality = "explicit" | "heuristic" | "unresolved";
+
+export type CanonicalLifecycleBranchContinuation = {
+  eventId: string;
+  eventKind: CanonicalLifecycleEventKind;
+  eventTitle: string;
+  eventAssetSummary: string;
+  continuityStatus: CanonicalLifecycleInspectionEvent["continuityStatus"];
+  createdAt: number;
+  continuityQuality: CanonicalLifecycleBranchContinuityQuality;
+  matchedBy: "lifecycle-id" | "canonical" | "live-note";
+  matchedAnchor: string;
+};
+
+export type CanonicalLifecycleBranchCondensedDescendant = {
+  eventId: string;
+  eventKind: CanonicalLifecycleEventKind;
+  eventTitle: string;
+  eventAssetSummary: string;
+  continuityStatus: CanonicalLifecycleInspectionEvent["continuityStatus"];
+  createdAt: number;
+  continuityQuality: CanonicalLifecycleBranchContinuityQuality;
+  matchedBy: "lifecycle-id" | "canonical" | "live-note";
+};
+
+export type CanonicalLifecycleBranchChainSummary = {
+  originSummary: string;
+  pathSpanLabel: string;
+  firstResolvedDescendant?: CanonicalLifecycleBranchCondensedDescendant;
+  latestResolvedDescendant?: CanonicalLifecycleBranchCondensedDescendant;
+  continuityQuality: CanonicalLifecycleBranchContinuityQuality;
+  resolutionState: "resolved" | "partial" | "unresolved";
+  resolutionSummary: string;
+};
+
+export type CanonicalLifecycleBranchPathSummary = {
+  successorLabel: string;
+  successorKind?: CanonicalLifecycleSuccessorSummary["kind"];
+  spendStatus?: CanonicalLifecycleSuccessorSummary["spendStatus"];
+  spendCapability?: CanonicalLifecycleSuccessorSummary["spendCapability"];
+  consumedByConsumptionId?: CanonicalLifecycleSuccessorSummary["consumedByConsumptionId"];
+  consumedByKind?: CanonicalLifecycleSuccessorSummary["consumedByKind"];
+  nullifierReady?: CanonicalLifecycleSuccessorSummary["nullifierReady"];
+  witnessReadiness?: CanonicalLifecycleSuccessorSummary["witnessReadiness"];
+  membershipLinkedByLifecycle?: CanonicalLifecycleSuccessorSummary["membershipLinkedByLifecycle"];
+  derivedPathReady?: CanonicalLifecycleSuccessorSummary["derivedPathReady"];
+  derivedPathKind?: CanonicalLifecycleSuccessorSummary["derivedPathKind"];
+  derivedPathSemantics?: CanonicalLifecycleSuccessorSummary["derivedPathSemantics"];
+  derivedPathDepth?: CanonicalLifecycleSuccessorSummary["derivedPathDepth"];
+  derivedPathLeafIndex?: CanonicalLifecycleSuccessorSummary["derivedPathLeafIndex"];
+  derivedPathDigestReady?: CanonicalLifecycleSuccessorSummary["derivedPathDigestReady"];
+  derivedPathDigestScheme?: CanonicalLifecycleSuccessorSummary["derivedPathDigestScheme"];
+  derivedPathDigestLevelCount?: CanonicalLifecycleSuccessorSummary["derivedPathDigestLevelCount"];
+  candidatePathReady?: CanonicalLifecycleSuccessorSummary["candidatePathReady"];
+  candidatePathKind?: CanonicalLifecycleSuccessorSummary["candidatePathKind"];
+  candidatePathScheme?: CanonicalLifecycleSuccessorSummary["candidatePathScheme"];
+  candidatePathDepth?: CanonicalLifecycleSuccessorSummary["candidatePathDepth"];
+  candidateAgreementReady?: CanonicalLifecycleSuccessorSummary["candidateAgreementReady"];
+  candidateAgreementStatus?: CanonicalLifecycleSuccessorSummary["candidateAgreementStatus"];
+  witnessPackageReadiness?: CanonicalLifecycleSuccessorSummary["witnessPackageReadiness"];
+  witnessPackageSummary?: CanonicalLifecycleSuccessorSummary["witnessPackageSummary"];
+  circuitInputReadiness?: CanonicalLifecycleSuccessorSummary["circuitInputReadiness"];
+  circuitInputKind?: CanonicalLifecycleSuccessorSummary["circuitInputKind"];
+  circuitInputSummary?: CanonicalLifecycleSuccessorSummary["circuitInputSummary"];
+  circuitInputFieldGroupSummary?: CanonicalLifecycleSuccessorSummary["circuitInputFieldGroupSummary"];
+  fieldMappingPrecheckSummary?: CanonicalLifecycleSuccessorSummary["fieldMappingPrecheckSummary"];
+  slotNormalizationSummary?: CanonicalLifecycleSuccessorSummary["slotNormalizationSummary"];
+  fieldCandidateSummary?: CanonicalLifecycleSuccessorSummary["fieldCandidateSummary"];
+  fieldValuePreimageSummary?: CanonicalLifecycleSuccessorSummary["fieldValuePreimageSummary"];
+  fieldLanePlanSummary?: CanonicalLifecycleSuccessorSummary["fieldLanePlanSummary"];
+  laneArityPlanSummary?: CanonicalLifecycleSuccessorSummary["laneArityPlanSummary"];
+  fieldEmissionScheduleSummary?: CanonicalLifecycleSuccessorSummary["fieldEmissionScheduleSummary"];
+  fieldConversionManifestSummary?: CanonicalLifecycleSuccessorSummary["fieldConversionManifestSummary"];
+  finiteFieldDraftSummary?: CanonicalLifecycleSuccessorSummary["finiteFieldDraftSummary"];
+  draftCanonicalizationSummary?: CanonicalLifecycleSuccessorSummary["draftCanonicalizationSummary"];
+  modulusReadinessSummary?: CanonicalLifecycleSuccessorSummary["modulusReadinessSummary"];
+  reductionPlanSummary?: CanonicalLifecycleSuccessorSummary["reductionPlanSummary"];
+  fieldElementDraftSummary?: CanonicalLifecycleSuccessorSummary["fieldElementDraftSummary"];
+  fieldElementAssemblySummary?: CanonicalLifecycleSuccessorSummary["fieldElementAssemblySummary"];
+  witnessLayoutSummary?: CanonicalLifecycleSuccessorSummary["witnessLayoutSummary"];
+  witnessRealizationSummary?: CanonicalLifecycleSuccessorSummary["witnessRealizationSummary"];
+  witnessRealizationRecipeSummary?: CanonicalLifecycleSuccessorSummary["witnessRealizationRecipeSummary"];
+  witnessMaterializationManifestSummary?: CanonicalLifecycleSuccessorSummary["witnessMaterializationManifestSummary"];
+  backendBridgeContractSummary?: CanonicalLifecycleSuccessorSummary["backendBridgeContractSummary"];
+  backendAdapterHandshakeSummary?: CanonicalLifecycleSuccessorSummary["backendAdapterHandshakeSummary"];
+  backendAdapterNormalizedSummary?: CanonicalLifecycleSuccessorSummary["backendAdapterNormalizedSummary"];
+  adapterPayloadFreezeSummary?: CanonicalLifecycleSuccessorSummary["adapterPayloadFreezeSummary"];
+  encoderStubSummary?: CanonicalLifecycleSuccessorSummary["encoderStubSummary"];
+  encoderWorkItemSummary?: CanonicalLifecycleSuccessorSummary["encoderWorkItemSummary"];
+  encoderExecutionPlanSummary?: CanonicalLifecycleSuccessorSummary["encoderExecutionPlanSummary"];
+  encoderDispatchSummary?: CanonicalLifecycleSuccessorSummary["encoderDispatchSummary"];
+  encoderDispatchAckSummary?: CanonicalLifecycleSuccessorSummary["encoderDispatchAckSummary"];
+  encoderDispatchReadinessSummary?: CanonicalLifecycleSuccessorSummary["encoderDispatchReadinessSummary"];
+  encoderSessionTicketSummary?: CanonicalLifecycleSuccessorSummary["encoderSessionTicketSummary"];
+  encoderPreflightSummary?: CanonicalLifecycleSuccessorSummary["encoderPreflightSummary"];
+  encoderPreflightFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderPreflightFreezeSummary"];
+  encoderOrchestrationHandoffSummary?: CanonicalLifecycleSuccessorSummary["encoderOrchestrationHandoffSummary"];
+  encoderOrchestrationHandoffFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderOrchestrationHandoffFreezeSummary"];
+  encoderRunnerIntakeSummary?: CanonicalLifecycleSuccessorSummary["encoderRunnerIntakeSummary"];
+  encoderRunnerIntakeFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderRunnerIntakeFreezeSummary"];
+  encoderRunnerLaunchEnvelopeSummary?: CanonicalLifecycleSuccessorSummary["encoderRunnerLaunchEnvelopeSummary"];
+  encoderRunnerLaunchEnvelopeFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderRunnerLaunchEnvelopeFreezeSummary"];
+  encoderRunnerStartTicketSummary?: CanonicalLifecycleSuccessorSummary["encoderRunnerStartTicketSummary"];
+  encoderRunnerStartTicketFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderRunnerStartTicketFreezeSummary"];
+  encoderRunnerExecutionInputSummary?: CanonicalLifecycleSuccessorSummary["encoderRunnerExecutionInputSummary"];
+  encoderRunnerExecutionEntryPlanSummary?: CanonicalLifecycleSuccessorSummary["encoderRunnerExecutionEntryPlanSummary"];
+  encoderRunnerExecutionEntryPlanFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderRunnerExecutionEntryPlanFreezeSummary"];
+  encoderRunnerExecutionSessionSummary?: CanonicalLifecycleSuccessorSummary["encoderRunnerExecutionSessionSummary"];
+  encoderRunnerExecutionSessionFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderRunnerExecutionSessionFreezeSummary"];
+  encoderEncodingAdmissionSummary?: CanonicalLifecycleSuccessorSummary["encoderEncodingAdmissionSummary"];
+  encoderEncodingAdmissionFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderEncodingAdmissionFreezeSummary"];
+  encoderFieldEncodingStartSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldEncodingStartSummary"];
+  encoderFieldEncodingStartFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldEncodingStartFreezeSummary"];
+  encoderFieldMaterializationAdmissionSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationAdmissionSummary"];
+  encoderFieldMaterializationAdmissionFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationAdmissionFreezeSummary"];
+  encoderFieldRowMaterializationStartSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldRowMaterializationStartSummary"];
+  encoderFieldRowMaterializationStartFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldRowMaterializationStartFreezeSummary"];
+  encoderRowMaterializationAdmissionSummary?: CanonicalLifecycleSuccessorSummary["encoderRowMaterializationAdmissionSummary"];
+  encoderRowMaterializationAdmissionFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderRowMaterializationAdmissionFreezeSummary"];
+  encoderRowLaneMaterializationStartSummary?: CanonicalLifecycleSuccessorSummary["encoderRowLaneMaterializationStartSummary"];
+  encoderRowLaneMaterializationStartFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderRowLaneMaterializationStartFreezeSummary"];
+  encoderRowFieldEmissionAdmissionSummary?: CanonicalLifecycleSuccessorSummary["encoderRowFieldEmissionAdmissionSummary"];
+  encoderRowFieldEmissionAdmissionFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderRowFieldEmissionAdmissionFreezeSummary"];
+  encoderRowFieldEmissionStartSummary?: CanonicalLifecycleSuccessorSummary["encoderRowFieldEmissionStartSummary"];
+  encoderRowFieldEmissionStartFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderRowFieldEmissionStartFreezeSummary"];
+  encoderFieldLaneExecutionAdmissionSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldLaneExecutionAdmissionSummary"];
+  encoderFieldLaneExecutionAdmissionFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldLaneExecutionAdmissionFreezeSummary"];
+  encoderFieldLaneExecutionStartSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldLaneExecutionStartSummary"];
+  encoderFieldLaneExecutionStartFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldLaneExecutionStartFreezeSummary"];
+  encoderFieldMaterializationLaunchAdmissionSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationLaunchAdmissionSummary"];
+  encoderFieldMaterializationLaunchAdmissionFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationLaunchAdmissionFreezeSummary"];
+  encoderFieldMaterializationLaunchStartSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationLaunchStartSummary"];
+  encoderFieldMaterializationLaunchStartFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationLaunchStartFreezeSummary"];
+  encoderFieldMaterializationExecutionAdmissionSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationExecutionAdmissionSummary"];
+  encoderFieldMaterializationExecutionAdmissionFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationExecutionAdmissionFreezeSummary"];
+  encoderFieldMaterializationExecutionStartSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationExecutionStartSummary"];
+  encoderFieldMaterializationExecutionStartFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationExecutionStartFreezeSummary"];
+  encoderFieldMaterializationExecutionWorkEnvelopeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationExecutionWorkEnvelopeSummary"];
+  encoderFieldMaterializationExecutionWorkEnvelopeFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationExecutionWorkEnvelopeFreezeSummary"];
+  encoderFieldMaterializationExecutionPlanSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationExecutionPlanSummary"];
+  encoderFieldMaterializationExecutionPlanFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationExecutionPlanFreezeSummary"];
+  encoderFieldMaterializationExecutionPlanHandoffSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationExecutionPlanHandoffSummary"];
+  encoderFieldMaterializationExecutionPlanHandoffFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationExecutionPlanHandoffFreezeSummary"];
+  encoderFieldMaterializationPlanningConsumerSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationPlanningConsumerSummary"];
+  encoderFieldMaterializationPlanningConsumerFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationPlanningConsumerFreezeSummary"];
+  encoderFieldMaterializationPlanningConsumerHandoffSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationPlanningConsumerHandoffSummary"];
+  encoderFieldMaterializationPlanningConsumerHandoffFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationPlanningConsumerHandoffFreezeSummary"];
+  encoderFieldMaterializationDownstreamConsumerSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationDownstreamConsumerSummary"];
+  encoderFieldMaterializationDownstreamConsumerFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationDownstreamConsumerFreezeSummary"];
+  encoderFieldMaterializationDownstreamBoundaryHandoffSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationDownstreamBoundaryHandoffSummary"];
+  encoderFieldMaterializationDownstreamBoundaryHandoffFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationDownstreamBoundaryHandoffFreezeSummary"];
+  encoderFieldMaterializationDownstreamPlanningConsumerSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationDownstreamPlanningConsumerSummary"];
+  encoderFieldMaterializationDownstreamPlanningConsumerFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationDownstreamPlanningConsumerFreezeSummary"];
+  encoderFieldMaterializationDownstreamPlanningBoundaryHandoffSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationDownstreamPlanningBoundaryHandoffSummary"];
+  encoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreezeSummary"];
+  encoderFieldMaterializationDownstreamPreEncodingConsumerSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationDownstreamPreEncodingConsumerSummary"];
+  encoderFieldMaterializationDownstreamPreEncodingConsumerFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationDownstreamPreEncodingConsumerFreezeSummary"];
+  encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffSummary"];
+  encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreezeSummary"];
+  encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerSummary"];
+  encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreezeSummary"];
+  encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffSummary"];
+  encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreezeSummary"];
+  encoderFieldMaterializationDownstreamPreEncodingConsumerArtifactSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationDownstreamPreEncodingConsumerArtifactSummary"];
+  encoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreezeSummary"];
+  encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffSummary"];
+  encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary"];
+  encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSummary"];
+  encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreezeSummary"];
+  encoderFieldMaterializationNextDownstreamPreEncodingConsumerSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationNextDownstreamPreEncodingConsumerSummary"];
+  encoderFieldMaterializationNextDownstreamPreEncodingConsumerFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationNextDownstreamPreEncodingConsumerFreezeSummary"];
+  encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSummary"];
+  encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary"];
+  encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerSummary"];
+  encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreezeSummary"];
+  encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffSummary"];
+  encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreezeSummary"];
+  encoderFieldMaterializationNextDownstreamPlanningConsumerSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationNextDownstreamPlanningConsumerSummary"];
+  encoderFieldMaterializationNextDownstreamPlanningConsumerFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationNextDownstreamPlanningConsumerFreezeSummary"];
+  encoderFieldMaterializationNextResolvedPlanningConsumerSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationNextResolvedPlanningConsumerSummary"];
+  encoderFieldMaterializationNextResolvedPlanningConsumerFreezeSummary?: CanonicalLifecycleSuccessorSummary["encoderFieldMaterializationNextResolvedPlanningConsumerFreezeSummary"];
+  rootReconciliationReady?: CanonicalLifecycleSuccessorSummary["rootReconciliationReady"];
+  rootReconciliationStatus?: CanonicalLifecycleSuccessorSummary["rootReconciliationStatus"];
+  rootReconciliationScheme?: CanonicalLifecycleSuccessorSummary["rootReconciliationScheme"];
+  currentRootLikeDigest?: CanonicalLifecycleSuccessorSummary["currentRootLikeDigest"];
+  futureRootSeamValue?: CanonicalLifecycleSuccessorSummary["futureRootSeamValue"];
+  futureRootSeamKind?: CanonicalLifecycleSuccessorSummary["futureRootSeamKind"];
+  futureRootSeamScheme?: CanonicalLifecycleSuccessorSummary["futureRootSeamScheme"];
+  futureRootSeamLeafCount?: CanonicalLifecycleSuccessorSummary["futureRootSeamLeafCount"];
+  futureRootSeamSnapshotRoot?: CanonicalLifecycleSuccessorSummary["futureRootSeamSnapshotRoot"];
+  amountSummary?: string;
+  assetSummary?: string;
+  liveNoteId?: string;
+  commitment?: string;
+  insertionIndex?: number;
+  snapshotRoot?: string;
+  snapshotLeafCount?: number;
+  ownerPublicKey?: string;
+  continuityQuality: CanonicalLifecycleBranchContinuityQuality;
+  continuitySummary: string;
+  chainSummary: CanonicalLifecycleBranchChainSummary;
+  downstreamEvents: CanonicalLifecycleBranchContinuation[];
+};
+
+export type CanonicalLifecycleBranchPointSummary = {
+  sourceEventId: string;
+  sourceEventKind: CanonicalLifecycleEventKind;
+  sourceEventTitle: string;
+  createdAt: number;
+  predecessorLiveNoteId?: string;
+  predecessorCanonicalCommitment?: string;
+  branchCount: number;
+  branchQuality: CanonicalLifecycleBranchContinuityQuality;
+  branches: CanonicalLifecycleBranchPathSummary[];
+};
+
+export type CanonicalLifecycleLineageDetailSummary = {
+  hasBranching: boolean;
+  branchPointCount: number;
+  branchingQuality: CanonicalLifecycleBranchContinuityQuality;
+  branchPoints: CanonicalLifecycleBranchPointSummary[];
+};
+
+export type CanonicalLifecycleInspectionEvent = {
+  id: string;
+  createdAt: number;
+  kind: CanonicalLifecycleEventKind;
+  lifecycleRecordId?: string;
+  lineageId?: string;
+  endpointLifecycleId?: string;
+  canonicalConsumptionId?: string;
+  canonicalConsumptionKind?: "send" | "swap" | "unshield";
+  canonicalConsumptionBasis?: string;
+  canonicalNullifierStub?: string;
+  title: string;
+  summary: string;
+  liveReferenceLabel: string;
+  liveReferenceValue: string;
+  assetSummary: string;
+  predecessorLifecycleId?: string;
+  predecessorLinkageQuality?: "explicit" | "canonical" | "live-note" | "unresolved";
+  predecessorLiveNoteId?: string;
+  predecessorCanonicalCommitment?: string;
+  predecessorCanonicalSource?: string;
+  successors: CanonicalLifecycleSuccessorSummary[];
+  transitionSignature?: string;
+  spentMarkerSignature?: string;
+  operatorRequestId?: string;
+  venueSummary?: string;
+  exitSummary?: string;
+  continuityStatus: "created" | "evolved" | "transformed" | "exited";
+};
+
+export type CanonicalLifecycleNodeInspection = {
+  lifecycleId?: string;
+  found: boolean;
+  status: "found" | "missing" | "legacy";
+  lineageId?: string;
+  lineageKey?: string;
+  nodeRole?: "origin" | "recipient" | "change" | "output" | "exit";
+  sourceKind?: CanonicalLifecycleEventKind;
+  sourceEventId?: string;
+  sourceEventTitle?: string;
+  sourceEventCreatedAt?: number;
+  assetSummary?: string;
+  amountSummary?: string;
+  spendStatus: "unspent" | "consumed" | "terminal" | "legacy";
+  spendCapability: "spendable" | "terminal" | "legacy";
+  nullifierReady: boolean;
+  predecessorLifecycleId?: string;
+  successorLifecycleIds: string[];
+  canonicalConsumptionId?: string;
+  canonicalConsumptionKind?: "send" | "swap" | "unshield";
+  canonicalConsumptionBasis?: string;
+  canonicalNullifierStub?: string;
+  consumptionRecordLifecycleId?: string;
+  witnessReadiness: "ready" | "partial" | "unavailable" | "legacy";
+  membershipLinkedByLifecycle: boolean;
+  derivedPathReady: boolean;
+  derivedPathKind?: string;
+  derivedPathSemantics?: string;
+  derivedPathDepth?: number;
+  derivedPathLeafIndex?: number;
+  derivedPathDigestReady: boolean;
+  derivedPathDigestScheme?: string;
+  derivedPathDigestLevelCount?: number;
+  candidatePathReady: boolean;
+  candidatePathKind?: string;
+  candidatePathScheme?: string;
+  candidatePathDepth?: number;
+  candidateAgreementReady: boolean;
+  candidateAgreementStatus: "match" | "root-mismatch" | "path-mismatch" | "scheme-mismatch" | "pending" | "unavailable" | "legacy";
+  witnessPackageReadiness: "ready" | "partial" | "legacy" | "unavailable";
+  witnessPackageSummary?: string;
+  circuitInputReadiness: "ready" | "partial" | "legacy" | "unavailable";
+  circuitInputKind?: string;
+  circuitInputSummary?: string;
+  circuitInputFieldGroupSummary?: string;
+  fieldMappingPrecheckSummary?: string;
+  slotNormalizationSummary?: string;
+  fieldCandidateSummary?: string;
+  fieldValuePreimageSummary?: string;
+  fieldLanePlanSummary?: string;
+  laneArityPlanSummary?: string;
+  fieldEmissionScheduleSummary?: string;
+  fieldConversionManifestSummary?: string;
+  finiteFieldDraftSummary?: string;
+  draftCanonicalizationSummary?: string;
+  modulusReadinessSummary?: string;
+  reductionPlanSummary?: string;
+  fieldElementDraftSummary?: string;
+  fieldElementAssemblySummary?: string;
+  witnessLayoutSummary?: string;
+  witnessRealizationSummary?: string;
+  witnessRealizationRecipeSummary?: string;
+  witnessMaterializationManifestSummary?: string;
+  backendBridgeContractSummary?: string;
+  backendAdapterHandshakeSummary?: string;
+  backendAdapterNormalizedSummary?: string;
+  adapterPayloadFreezeSummary?: string;
+  encoderStubSummary?: string;
+  encoderWorkItemSummary?: string;
+  encoderExecutionPlanSummary?: string;
+  encoderDispatchSummary?: string;
+  encoderDispatchAckSummary?: string;
+  encoderDispatchReadinessSummary?: string;
+  encoderSessionTicketSummary?: string;
+  encoderPreflightSummary?: string;
+  encoderPreflightFreezeSummary?: string;
+  encoderOrchestrationHandoffSummary?: string;
+  encoderOrchestrationHandoffFreezeSummary?: string;
+  encoderRunnerIntakeSummary?: string;
+  encoderRunnerIntakeFreezeSummary?: string;
+  encoderRunnerLaunchEnvelopeSummary?: string;
+  encoderRunnerLaunchEnvelopeFreezeSummary?: string;
+  encoderRunnerStartTicketSummary?: string;
+  encoderRunnerStartTicketFreezeSummary?: string;
+  encoderRunnerExecutionInputSummary?: string;
+  encoderRunnerExecutionEntryPlanSummary?: string;
+  encoderRunnerExecutionEntryPlanFreezeSummary?: string;
+  encoderRunnerExecutionSessionSummary?: string;
+  encoderRunnerExecutionSessionFreezeSummary?: string;
+  encoderEncodingAdmissionSummary?: string;
+  encoderEncodingAdmissionFreezeSummary?: string;
+  encoderFieldEncodingStartSummary?: string;
+  encoderFieldEncodingStartFreezeSummary?: string;
+  encoderFieldMaterializationAdmissionSummary?: string;
+  encoderFieldMaterializationAdmissionFreezeSummary?: string;
+  encoderFieldRowMaterializationStartSummary?: string;
+  encoderFieldRowMaterializationStartFreezeSummary?: string;
+  encoderRowMaterializationAdmissionSummary?: string;
+  encoderRowMaterializationAdmissionFreezeSummary?: string;
+  encoderRowLaneMaterializationStartSummary?: string;
+  encoderRowLaneMaterializationStartFreezeSummary?: string;
+  encoderRowFieldEmissionAdmissionSummary?: string;
+  encoderRowFieldEmissionAdmissionFreezeSummary?: string;
+  encoderRowFieldEmissionStartSummary?: string;
+  encoderRowFieldEmissionStartFreezeSummary?: string;
+  encoderFieldLaneExecutionAdmissionSummary?: string;
+  encoderFieldLaneExecutionAdmissionFreezeSummary?: string;
+  encoderFieldLaneExecutionStartSummary?: string;
+  encoderFieldLaneExecutionStartFreezeSummary?: string;
+  encoderFieldMaterializationLaunchAdmissionSummary?: string;
+  encoderFieldMaterializationLaunchAdmissionFreezeSummary?: string;
+  encoderFieldMaterializationLaunchStartSummary?: string;
+  encoderFieldMaterializationLaunchStartFreezeSummary?: string;
+  encoderFieldMaterializationExecutionAdmissionSummary?: string;
+  encoderFieldMaterializationExecutionAdmissionFreezeSummary?: string;
+  encoderFieldMaterializationExecutionStartSummary?: string;
+  encoderFieldMaterializationExecutionStartFreezeSummary?: string;
+  encoderFieldMaterializationExecutionWorkEnvelopeSummary?: string;
+  encoderFieldMaterializationExecutionWorkEnvelopeFreezeSummary?: string;
+  encoderFieldMaterializationExecutionPlanSummary?: string;
+  encoderFieldMaterializationExecutionPlanFreezeSummary?: string;
+  encoderFieldMaterializationExecutionPlanHandoffSummary?: string;
+  encoderFieldMaterializationExecutionPlanHandoffFreezeSummary?: string;
+  encoderFieldMaterializationPlanningConsumerSummary?: string;
+  encoderFieldMaterializationPlanningConsumerFreezeSummary?: string;
+  encoderFieldMaterializationPlanningConsumerHandoffSummary?: string;
+  encoderFieldMaterializationPlanningConsumerHandoffFreezeSummary?: string;
+  encoderFieldMaterializationDownstreamConsumerSummary?: string;
+  encoderFieldMaterializationDownstreamConsumerFreezeSummary?: string;
+  encoderFieldMaterializationDownstreamBoundaryHandoffSummary?: string;
+  encoderFieldMaterializationDownstreamBoundaryHandoffFreezeSummary?: string;
+  encoderFieldMaterializationDownstreamPlanningConsumerSummary?: string;
+  encoderFieldMaterializationDownstreamPlanningConsumerFreezeSummary?: string;
+  encoderFieldMaterializationDownstreamPlanningBoundaryHandoffSummary?: string;
+  encoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreezeSummary?: string;
+  encoderFieldMaterializationDownstreamPreEncodingConsumerSummary?: string;
+  encoderFieldMaterializationDownstreamPreEncodingConsumerFreezeSummary?: string;
+  encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffSummary?: string;
+  encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreezeSummary?: string;
+  encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerSummary?: string;
+  encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreezeSummary?: string;
+  encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffSummary?: string;
+  encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreezeSummary?: string;
+  encoderFieldMaterializationDownstreamPreEncodingConsumerArtifactSummary?: string;
+  encoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreezeSummary?: string;
+  encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffSummary?: string;
+  encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary?: string;
+  encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSummary?: string;
+  encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreezeSummary?: string;
+  encoderFieldMaterializationNextDownstreamPreEncodingConsumerSummary?: string;
+  encoderFieldMaterializationNextDownstreamPreEncodingConsumerFreezeSummary?: string;
+  encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSummary?: string;
+  encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary?: string;
+  encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerSummary?: string;
+  encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreezeSummary?: string;
+  encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffSummary?: string;
+  encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreezeSummary?: string;
+  encoderFieldMaterializationNextDownstreamPlanningConsumerSummary?: string;
+  encoderFieldMaterializationNextDownstreamPlanningConsumerFreezeSummary?: string;
+  encoderFieldMaterializationNextResolvedPlanningConsumerSummary?: string;
+  encoderFieldMaterializationNextResolvedPlanningConsumerFreezeSummary?: string;
+  rootReconciliationReady: boolean;
+  rootReconciliationStatus: "pending" | "match" | "mismatch" | "unavailable";
+  rootReconciliationScheme?: string;
+  currentRootLikeDigest?: string;
+  futureRootSeamValue?: string;
+  futureRootSeamKind?: string;
+  futureRootSeamScheme?: string;
+  futureRootSeamLeafCount?: number;
+  futureRootSeamSnapshotRoot?: string;
+  commitment?: string;
+  insertionIndex?: number;
+  snapshotRoot?: string;
+  snapshotLeafCount?: number;
+  lineageLabel?: string;
+  groupingQuality?: CanonicalLifecycleLineage["groupingQuality"];
+};
+
+export type CanonicalLifecycleLineage = {
+  key: string;
+  label: string;
+  groupingQuality: "explicit" | "mixed" | "resolved" | "heuristic" | "unresolved";
+  events: CanonicalLifecycleInspectionEvent[];
+  explicitAnchors: string[];
+  canonicalAnchors: string[];
+  heuristicAnchors: string[];
+  detailSummary: CanonicalLifecycleLineageDetailSummary;
+};
+
+export type CanonicalLifecycleReconciliationCohortEntry = {
+  lifecycleId: string;
+  lineageId?: string;
+  nodeRole?: CanonicalLifecycleNodeInspection["nodeRole"];
+  sourceKind?: CanonicalLifecycleNodeInspection["sourceKind"];
+  spendStatus: CanonicalLifecycleNodeInspection["spendStatus"];
+  reconciliationStatus: CanonicalLifecycleNodeInspection["rootReconciliationStatus"];
+  agreementStatus: CanonicalLifecycleNodeInspection["candidateAgreementStatus"];
+};
+
+export type CanonicalLifecycleReconciliationCohort = {
+  key: string;
+  snapshotLeafCount?: number;
+  snapshotRoot?: string;
+  futureRootSeamKind?: string;
+  futureRootSeamScheme?: string;
+  futureRootSeamValue?: string;
+  futureRootSeamSourceSummary: string;
+  nodeCount: number;
+  statusCounts: Record<CanonicalLifecycleNodeInspection["rootReconciliationStatus"], number>;
+  agreementCounts: Record<CanonicalLifecycleNodeInspection["candidateAgreementStatus"], number>;
+  entries: CanonicalLifecycleReconciliationCohortEntry[];
+  mismatchEntries: CanonicalLifecycleReconciliationCohortEntry[];
+};
+
+export function listCanonicalLifecycleInspectionEvents(): CanonicalLifecycleInspectionEvent[] {
+  const events = [
+    ...listCanonicalShieldDiagnosticsSummaries().map(normalizeShieldEvent),
+    ...listCanonicalSendDiagnosticsSummaries().map(normalizeSendEvent),
+    ...listCanonicalSwapDiagnosticsSummaries().map(normalizeSwapEvent),
+    ...listCanonicalUnshieldDiagnosticsSummaries().map(normalizeUnshieldEvent),
+  ];
+
+  return events.sort((left, right) => left.createdAt - right.createdAt);
+}
+
+export function listCanonicalLifecycleNodeIds(): string[] {
+  const ids = new Set<string>();
+
+  for (const event of listCanonicalLifecycleInspectionEvents()) {
+    if (event.endpointLifecycleId) {
+      ids.add(event.endpointLifecycleId);
+    }
+
+    for (const successor of event.successors) {
+      if (successor.lifecycleId) {
+        ids.add(successor.lifecycleId);
+      }
+    }
+  }
+
+  return [...ids].sort();
+}
+
+export function inspectCanonicalLifecycleNode(
+  lifecycleId: string | undefined,
+): CanonicalLifecycleNodeInspection {
+  const normalizedLifecycleId = lifecycleId?.trim();
+
+  if (!normalizedLifecycleId) {
+    return {
+      lifecycleId: normalizedLifecycleId,
+      found: false,
+      status: "missing",
+      spendStatus: "legacy",
+      spendCapability: "legacy",
+      nullifierReady: false,
+      witnessReadiness: "legacy",
+      membershipLinkedByLifecycle: false,
+      derivedPathReady: false,
+      derivedPathDigestReady: false,
+      candidatePathReady: false,
+      candidateAgreementReady: false,
+      candidateAgreementStatus: "unavailable",
+      witnessPackageReadiness: "unavailable",
+      circuitInputReadiness: "unavailable",
+      circuitInputFieldGroupSummary: "section substrate unavailable",
+      fieldMappingPrecheckSummary: "all groups blocked",
+      slotNormalizationSummary: "no normalized slots",
+      fieldCandidateSummary: "no field candidates",
+      fieldValuePreimageSummary: "no field preimages",
+      fieldLanePlanSummary: "no field lanes planned",
+      laneArityPlanSummary: "no lane arity planned",
+      fieldEmissionScheduleSummary: "no fields scheduled",
+      fieldConversionManifestSummary: "no field manifest rows",
+      finiteFieldDraftSummary: "no field drafts",
+      draftCanonicalizationSummary: "no canonicalized drafts",
+      modulusReadinessSummary: "no modulus readiness",
+      reductionPlanSummary: "no reduction plans",
+      fieldElementDraftSummary: "no field-element drafts",
+      fieldElementAssemblySummary: "no field-element assemblies",
+      witnessLayoutSummary: "no witness layout",
+      witnessRealizationSummary: "no witness realization precheck",
+      witnessRealizationRecipeSummary: "no witness realization recipes",
+      witnessMaterializationManifestSummary: "no witness materialization manifest",
+      backendBridgeContractSummary: "no backend bridge contract",
+      backendAdapterHandshakeSummary: "no backend adapter handshake",
+      backendAdapterNormalizedSummary: "no adapter-normalized bundle",
+      adapterPayloadFreezeSummary: "no frozen adapter payload",
+      encoderStubSummary: "no encoder stub result",
+      encoderWorkItemSummary: "no encoder work-item manifest",
+      encoderExecutionPlanSummary: "no encoder execution plan",
+      encoderDispatchSummary: "no encoder dispatch contract",
+      encoderDispatchAckSummary: "no encoder dispatch ack",
+      encoderDispatchReadinessSummary: "no encoder dispatch readiness",
+      encoderSessionTicketSummary: "no encoder session ticket",
+      encoderPreflightSummary: "no encoder preflight report",
+      encoderPreflightFreezeSummary: "no encoder preflight freeze",
+      encoderOrchestrationHandoffSummary: "no orchestration handoff",
+      encoderOrchestrationHandoffFreezeSummary: "no frozen orchestration handoff",
+      encoderRunnerIntakeSummary: "no runner intake",
+      encoderRunnerIntakeFreezeSummary: "no frozen runner intake",
+      encoderRunnerLaunchEnvelopeSummary: "no runner launch envelope",
+      encoderRunnerLaunchEnvelopeFreezeSummary: "no frozen runner launch envelope",
+      encoderRunnerStartTicketSummary: "no runner start ticket",
+      encoderRunnerStartTicketFreezeSummary: "no frozen execution-start snapshot",
+      encoderRunnerExecutionInputSummary: "no runner execution input",
+      encoderRunnerExecutionEntryPlanSummary: "no execution-entry plan",
+      encoderRunnerExecutionEntryPlanFreezeSummary: "no frozen execution-entry snapshot",
+      encoderRunnerExecutionSessionSummary: "no execution session",
+      encoderRunnerExecutionSessionFreezeSummary: "no frozen execution-admission snapshot",
+      encoderEncodingAdmissionSummary: "no encoding admission",
+      encoderEncodingAdmissionFreezeSummary: "no frozen encoding-gate snapshot",
+      encoderFieldEncodingStartSummary: "no field-encoding start",
+      encoderFieldEncodingStartFreezeSummary: "no frozen field-entry snapshot",
+      encoderFieldMaterializationAdmissionSummary:
+        "no field-materialization admission",
+      encoderFieldMaterializationAdmissionFreezeSummary:
+        "no frozen field-materialization gate snapshot",
+      encoderFieldRowMaterializationStartSummary:
+        "no field-row materialization start",
+      encoderFieldRowMaterializationStartFreezeSummary:
+        "no frozen field-row entry snapshot",
+      encoderRowMaterializationAdmissionSummary:
+        "no row-materialization admission",
+      encoderRowMaterializationAdmissionFreezeSummary:
+        "no frozen row-materialization gate snapshot",
+      encoderRowLaneMaterializationStartSummary:
+        "no row-lane materialization start",
+      encoderRowLaneMaterializationStartFreezeSummary:
+        "no frozen row-lane entry snapshot",
+      encoderRowFieldEmissionAdmissionSummary:
+        "no row-field emission admission",
+      encoderRowFieldEmissionAdmissionFreezeSummary:
+        "no frozen row-field emission gate snapshot",
+      encoderRowFieldEmissionStartSummary:
+        "no row-field emission start",
+      encoderRowFieldEmissionStartFreezeSummary:
+        "no frozen row-field emission entry snapshot",
+      encoderFieldLaneExecutionAdmissionSummary:
+        "no field-lane execution admission",
+      encoderFieldLaneExecutionAdmissionFreezeSummary:
+        "no frozen field-lane execution gate snapshot",
+      encoderFieldLaneExecutionStartSummary:
+        "no field-lane execution start",
+      encoderFieldLaneExecutionStartFreezeSummary:
+        "no frozen field-lane execution entry snapshot",
+      encoderFieldMaterializationLaunchAdmissionSummary:
+        "no field-materialization launch admission",
+      encoderFieldMaterializationLaunchAdmissionFreezeSummary:
+        "no frozen field-materialization launch gate snapshot",
+      encoderFieldMaterializationLaunchStartSummary:
+        "no field-materialization launch start",
+      encoderFieldMaterializationLaunchStartFreezeSummary:
+        "no frozen field-materialization launch entry snapshot",
+      encoderFieldMaterializationExecutionAdmissionSummary:
+        "no field-materialization execution admission",
+      encoderFieldMaterializationExecutionAdmissionFreezeSummary:
+        "no frozen field-materialization execution gate snapshot",
+      encoderFieldMaterializationExecutionStartSummary:
+        "no field-materialization execution start",
+      encoderFieldMaterializationExecutionStartFreezeSummary:
+        "no frozen field-materialization execution entry snapshot",
+      encoderFieldMaterializationExecutionWorkEnvelopeSummary:
+        "no field-materialization execution work envelope",
+      encoderFieldMaterializationExecutionWorkEnvelopeFreezeSummary:
+        "no frozen field-materialization execution work envelope",
+      encoderFieldMaterializationExecutionPlanSummary:
+        "no field-materialization execution plan",
+      encoderFieldMaterializationExecutionPlanFreezeSummary:
+        "no frozen field-materialization execution plan",
+      encoderFieldMaterializationExecutionPlanHandoffSummary:
+        "no field-materialization execution planning handoff",
+      encoderFieldMaterializationExecutionPlanHandoffFreezeSummary:
+        "no frozen field-materialization execution planning handoff",
+      encoderFieldMaterializationPlanningConsumerSummary:
+        "no field-materialization planning consumer artifact",
+      encoderFieldMaterializationPlanningConsumerFreezeSummary:
+        "no frozen field-materialization planning consumer artifact",
+      encoderFieldMaterializationPlanningConsumerHandoffSummary:
+        "no field-materialization planning consumer handoff",
+      encoderFieldMaterializationPlanningConsumerHandoffFreezeSummary:
+        "no frozen field-materialization planning consumer handoff",
+      encoderFieldMaterializationDownstreamConsumerSummary:
+        "no field-materialization downstream consumer artifact",
+      encoderFieldMaterializationDownstreamConsumerFreezeSummary:
+        "no frozen field-materialization downstream consumer artifact",
+      encoderFieldMaterializationDownstreamBoundaryHandoffSummary:
+        "no field-materialization downstream boundary handoff",
+      encoderFieldMaterializationDownstreamBoundaryHandoffFreezeSummary:
+        "no frozen field-materialization downstream boundary handoff",
+      encoderFieldMaterializationDownstreamPlanningConsumerSummary:
+        "no field-materialization downstream planning consumer artifact",
+      encoderFieldMaterializationDownstreamPlanningConsumerFreezeSummary:
+        "no frozen field-materialization downstream planning consumer artifact",
+      encoderFieldMaterializationDownstreamPlanningBoundaryHandoffSummary:
+        "no field-materialization downstream planning boundary handoff",
+      encoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreezeSummary:
+        "no frozen field-materialization downstream planning boundary handoff",
+      encoderFieldMaterializationDownstreamPreEncodingConsumerSummary:
+        "no field-materialization downstream pre-encoding consumer artifact",
+      encoderFieldMaterializationDownstreamPreEncodingConsumerFreezeSummary:
+        "no frozen field-materialization downstream pre-encoding consumer artifact",
+      encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffSummary:
+        "no field-materialization downstream pre-encoding boundary handoff",
+      encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreezeSummary:
+        "no frozen field-materialization downstream pre-encoding boundary handoff",
+      encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerSummary:
+        "no field-materialization downstream pre-encoding planning consumer artifact",
+      encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreezeSummary:
+        "no frozen field-materialization downstream pre-encoding planning consumer artifact",
+      encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffSummary:
+        "no field-materialization downstream pre-encoding planning boundary handoff",
+      encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreezeSummary:
+        "no frozen field-materialization downstream pre-encoding planning boundary handoff",
+      encoderFieldMaterializationDownstreamPreEncodingConsumerArtifactSummary:
+        "no field-materialization downstream pre-encoding consumer artifact",
+      encoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreezeSummary:
+        "no frozen field-materialization downstream pre-encoding consumer artifact",
+      encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffSummary:
+        "no field-materialization downstream pre-encoding planning-consumer handoff",
+      encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary:
+        "no frozen field-materialization downstream pre-encoding planning-consumer handoff",
+      encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSummary:
+        "no field-materialization downstream pre-encoding planning-boundary consumer artifact",
+      encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreezeSummary:
+        "no frozen field-materialization downstream pre-encoding planning-boundary consumer artifact",
+      encoderFieldMaterializationNextDownstreamPreEncodingConsumerSummary:
+        "no field-materialization next downstream pre-encoding consumer artifact",
+      encoderFieldMaterializationNextDownstreamPreEncodingConsumerFreezeSummary:
+        "no frozen field-materialization next downstream pre-encoding consumer artifact",
+      encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSummary:
+        "no field-materialization next downstream pre-encoding planning-consumer handoff",
+      encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary:
+        "no frozen field-materialization next downstream pre-encoding planning-consumer handoff",
+      encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerSummary:
+        "no field-materialization next downstream planning-boundary consumer artifact",
+      encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreezeSummary:
+        "no frozen field-materialization next downstream planning-boundary consumer artifact",
+      encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffSummary:
+        "no field-materialization next downstream planning-boundary handoff",
+      encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreezeSummary:
+        "no frozen field-materialization next downstream planning-boundary handoff",
+      encoderFieldMaterializationNextDownstreamPlanningConsumerSummary:
+        "no field-materialization next downstream planning consumer artifact",
+      encoderFieldMaterializationNextDownstreamPlanningConsumerFreezeSummary:
+        "no frozen field-materialization next downstream planning consumer artifact",
+      encoderFieldMaterializationNextResolvedPlanningConsumerSummary:
+        "no field-materialization next resolved planning consumer artifact",
+      encoderFieldMaterializationNextResolvedPlanningConsumerFreezeSummary:
+        "no frozen field-materialization next resolved planning consumer artifact",
+      rootReconciliationReady: false,
+      rootReconciliationStatus: "unavailable",
+      successorLifecycleIds: [],
+    };
+  }
+
+  const events = listCanonicalLifecycleInspectionEvents();
+  const lineages = listCanonicalLifecycleLineages();
+  const spendStatus = getCanonicalLifecycleSpendStatus(normalizedLifecycleId);
+  const consumption = findCanonicalConsumptionForLifecycleNode(normalizedLifecycleId);
+  const membership = getCanonicalLifecycleMembership(normalizedLifecycleId);
+  const derivedPath = getCanonicalLifecycleDerivedMembershipPath(normalizedLifecycleId);
+  const candidatePath = getCanonicalLifecycleCandidateMerkleMembershipPath(normalizedLifecycleId);
+  const candidateAgreement = inspectCanonicalLifecycleCandidateTreeAgreement(normalizedLifecycleId);
+  const witnessPackage = assembleCanonicalLifecycleWitnessPackage(normalizedLifecycleId);
+  const circuitInput = encodeCanonicalLifecycleCircuitInput(normalizedLifecycleId);
+  const encoderStubResult = inspectGenericPhase1EncoderStubForLifecycleNode(normalizedLifecycleId);
+  const encoderWorkItems =
+    inspectGenericPhase1EncoderWorkItemsForLifecycleNode(normalizedLifecycleId);
+  const encoderExecutionPlan =
+    inspectGenericPhase1EncoderExecutionPlanForLifecycleNode(normalizedLifecycleId);
+  const encoderDispatch =
+    inspectGenericPhase1EncoderDispatchContractForLifecycleNode(normalizedLifecycleId);
+  const encoderDispatchAck =
+    inspectGenericPhase1EncoderDispatchAckForLifecycleNode(normalizedLifecycleId);
+  const encoderDispatchReadiness =
+    inspectGenericPhase1EncoderDispatchReadinessForLifecycleNode(normalizedLifecycleId);
+  const encoderSessionTicket =
+    inspectGenericPhase1EncoderSessionTicketForLifecycleNode(normalizedLifecycleId);
+  const encoderPreflight =
+    inspectGenericPhase1EncoderPreflightReportForLifecycleNode(normalizedLifecycleId);
+  const encoderPreflightFreeze =
+    inspectGenericPhase1EncoderPreflightFreezeForLifecycleNode(normalizedLifecycleId);
+  const encoderOrchestrationHandoff =
+    inspectGenericPhase1EncoderOrchestrationHandoffForLifecycleNode(normalizedLifecycleId);
+  const encoderOrchestrationHandoffFreeze =
+    inspectGenericPhase1EncoderOrchestrationHandoffFreezeForLifecycleNode(normalizedLifecycleId);
+  const encoderRunnerIntake =
+    inspectGenericPhase1EncoderRunnerIntakeForLifecycleNode(normalizedLifecycleId);
+  const encoderRunnerIntakeFreeze =
+    inspectGenericPhase1EncoderRunnerIntakeFreezeForLifecycleNode(normalizedLifecycleId);
+  const encoderRunnerLaunchEnvelope =
+    inspectGenericPhase1EncoderRunnerLaunchEnvelopeForLifecycleNode(normalizedLifecycleId);
+  const encoderRunnerLaunchEnvelopeFreeze =
+    inspectGenericPhase1EncoderRunnerLaunchEnvelopeFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderRunnerStartTicket =
+    inspectGenericPhase1EncoderRunnerStartTicketForLifecycleNode(normalizedLifecycleId);
+  const encoderRunnerStartTicketFreeze =
+    inspectGenericPhase1EncoderRunnerStartTicketFreezeForLifecycleNode(normalizedLifecycleId);
+  const encoderRunnerExecutionInput =
+    inspectGenericPhase1EncoderRunnerExecutionInputForLifecycleNode(normalizedLifecycleId);
+  const encoderRunnerExecutionEntryPlan =
+    inspectGenericPhase1EncoderRunnerExecutionEntryPlanForLifecycleNode(normalizedLifecycleId);
+  const encoderRunnerExecutionEntryPlanFreeze =
+    inspectGenericPhase1EncoderRunnerExecutionEntryPlanFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderRunnerExecutionSession =
+    inspectGenericPhase1EncoderRunnerExecutionSessionForLifecycleNode(normalizedLifecycleId);
+  const encoderRunnerExecutionSessionFreeze =
+    inspectGenericPhase1EncoderRunnerExecutionSessionFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderEncodingAdmission =
+    inspectGenericPhase1EncoderEncodingAdmissionForLifecycleNode(normalizedLifecycleId);
+  const encoderEncodingAdmissionFreeze =
+    inspectGenericPhase1EncoderEncodingAdmissionFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldEncodingStart =
+    inspectGenericPhase1EncoderFieldEncodingStartForLifecycleNode(normalizedLifecycleId);
+  const encoderFieldEncodingStartFreeze =
+    inspectGenericPhase1EncoderFieldEncodingStartFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationAdmission =
+    inspectGenericPhase1EncoderFieldMaterializationAdmissionForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationAdmissionFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationAdmissionFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldRowMaterializationStart =
+    inspectGenericPhase1EncoderFieldRowMaterializationStartForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldRowMaterializationStartFreeze =
+    inspectGenericPhase1EncoderFieldRowMaterializationStartFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderRowMaterializationAdmission =
+    inspectGenericPhase1EncoderRowMaterializationAdmissionForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderRowMaterializationAdmissionFreeze =
+    inspectGenericPhase1EncoderRowMaterializationAdmissionFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderRowLaneMaterializationStart =
+    inspectGenericPhase1EncoderRowLaneMaterializationStartForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderRowLaneMaterializationStartFreeze =
+    inspectGenericPhase1EncoderRowLaneMaterializationStartFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderRowFieldEmissionAdmission =
+    inspectGenericPhase1EncoderRowFieldEmissionAdmissionForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderRowFieldEmissionAdmissionFreeze =
+    inspectGenericPhase1EncoderRowFieldEmissionAdmissionFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderRowFieldEmissionStart =
+    inspectGenericPhase1EncoderRowFieldEmissionStartForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderRowFieldEmissionStartFreeze =
+    inspectGenericPhase1EncoderRowFieldEmissionStartFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldLaneExecutionAdmission =
+    inspectGenericPhase1EncoderFieldLaneExecutionAdmissionForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldLaneExecutionAdmissionFreeze =
+    inspectGenericPhase1EncoderFieldLaneExecutionAdmissionFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldLaneExecutionStart =
+    inspectGenericPhase1EncoderFieldLaneExecutionStartForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldLaneExecutionStartFreeze =
+    inspectGenericPhase1EncoderFieldLaneExecutionStartFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationLaunchAdmission =
+    inspectGenericPhase1EncoderFieldMaterializationLaunchAdmissionForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationLaunchAdmissionFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationLaunchAdmissionFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationLaunchStart =
+    inspectGenericPhase1EncoderFieldMaterializationLaunchStartForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationLaunchStartFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationLaunchStartFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationExecutionAdmission =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionAdmissionForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationExecutionAdmissionFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionAdmissionFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationExecutionStart =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionStartForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationExecutionStartFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionStartFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationExecutionWorkEnvelope =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionWorkEnvelopeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationExecutionWorkEnvelopeFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionWorkEnvelopeFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationExecutionPlan =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionPlanForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationExecutionPlanFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionPlanFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationExecutionPlanHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionPlanHandoffForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationExecutionPlanHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionPlanHandoffFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationPlanningConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationPlanningConsumerForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationPlanningConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationPlanningConsumerFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationPlanningConsumerHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationPlanningConsumerHandoffForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationPlanningConsumerHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationPlanningConsumerHandoffFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationDownstreamConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamConsumerForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationDownstreamConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamConsumerFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationDownstreamBoundaryHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamBoundaryHandoffForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationDownstreamBoundaryHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamBoundaryHandoffFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationDownstreamPlanningConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPlanningConsumerForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationDownstreamPlanningConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPlanningConsumerFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationDownstreamPlanningBoundaryHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPlanningBoundaryHandoffForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationDownstreamPreEncodingConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationDownstreamPreEncodingConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationDownstreamPreEncodingPlanningConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationDownstreamPreEncodingConsumerArtifact =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextDownstreamPreEncodingConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPreEncodingConsumerForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextDownstreamPreEncodingConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPreEncodingConsumerFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextDownstreamPlanningConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningConsumerForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextDownstreamPlanningConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningConsumerFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedPlanningConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const encoderFieldMaterializationNextResolvedPlanningConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerFreezeForLifecycleNode(
+      normalizedLifecycleId,
+    );
+  const rootReconciliation = inspectCanonicalLifecycleMembershipRootReconciliation(normalizedLifecycleId);
+
+  for (const event of events) {
+    const successor = event.successors.find((candidate) => candidate.lifecycleId === normalizedLifecycleId);
+
+    if (successor) {
+      const lineage = lineages.find((candidate) => candidate.events.some((lineageEvent) => lineageEvent.id === event.id));
+
+      return {
+        lifecycleId: normalizedLifecycleId,
+        found: true,
+        status: spendStatus.spendStatus === "legacy" ? "legacy" : "found",
+        lineageId: successor.lineageId ?? spendStatus.lineageId,
+        lineageKey: lineage?.key,
+        nodeRole: successor.kind === "retained" ? "origin" : successor.kind,
+        sourceKind: event.kind,
+        sourceEventId: event.id,
+        sourceEventTitle: event.title,
+        sourceEventCreatedAt: event.createdAt,
+        assetSummary: successor.assetSummary,
+        amountSummary: successor.amountSummary,
+        spendStatus: spendStatus.spendStatus,
+        spendCapability: spendStatus.spendCapability,
+        nullifierReady: successor.nullifierReady ?? spendStatus.nullifierReady,
+        witnessReadiness: membership.readiness,
+        membershipLinkedByLifecycle: membership.membershipLinkedByLifecycle,
+        derivedPathReady: hasCanonicalLifecycleDerivedMembershipPath(normalizedLifecycleId),
+        derivedPathKind: derivedPath?.kind,
+        derivedPathSemantics: derivedPath?.semantics,
+        derivedPathDepth: derivedPath?.depth,
+        derivedPathLeafIndex: derivedPath?.leafIndex,
+        derivedPathDigestReady: hasCanonicalLifecycleDerivedMembershipPathDigests(normalizedLifecycleId),
+        derivedPathDigestScheme: derivedPath?.digestScheme,
+        derivedPathDigestLevelCount: derivedPath?.levels.length,
+        candidatePathReady: hasCanonicalLifecycleCandidateMerkleMembershipPath(normalizedLifecycleId),
+        candidatePathKind: candidatePath?.kind,
+        candidatePathScheme: candidatePath?.scheme,
+        candidatePathDepth: candidatePath?.depth,
+        candidateAgreementReady: candidateAgreement.agreementReady,
+        candidateAgreementStatus: candidateAgreement.status,
+        witnessPackageReadiness: witnessPackage.readiness,
+        witnessPackageSummary: createWitnessPackageSummary(witnessPackage),
+        circuitInputReadiness: circuitInput.readiness,
+        circuitInputKind: circuitInput.kind,
+        circuitInputSummary: createCircuitInputSummary(circuitInput),
+        circuitInputFieldGroupSummary: createCircuitInputFieldGroupSummary(circuitInput),
+        fieldMappingPrecheckSummary: createFieldMappingPrecheckSummary(circuitInput),
+        slotNormalizationSummary: createSlotNormalizationSummary(circuitInput),
+        fieldCandidateSummary: createFieldCandidateSummary(circuitInput),
+        fieldValuePreimageSummary: createFieldValuePreimageSummary(circuitInput),
+        fieldLanePlanSummary: createFieldLanePlanSummary(circuitInput),
+        laneArityPlanSummary: createLaneArityPlanSummary(circuitInput),
+        fieldEmissionScheduleSummary: createFieldEmissionScheduleSummary(circuitInput),
+        fieldConversionManifestSummary: createFieldConversionManifestSummary(circuitInput),
+        finiteFieldDraftSummary: createFiniteFieldDraftSummary(circuitInput),
+        draftCanonicalizationSummary: createDraftCanonicalizationSummary(circuitInput),
+        modulusReadinessSummary: createModulusReadinessSummary(circuitInput),
+        reductionPlanSummary: createReductionPlanSummary(circuitInput),
+        fieldElementDraftSummary: createFieldElementDraftSummary(circuitInput),
+        fieldElementAssemblySummary: createFieldElementAssemblySummary(circuitInput),
+        witnessLayoutSummary: createWitnessLayoutSummary(circuitInput),
+        witnessRealizationSummary: createWitnessRealizationSummary(circuitInput),
+        witnessRealizationRecipeSummary: createWitnessRealizationRecipeSummary(circuitInput),
+        witnessMaterializationManifestSummary:
+          createWitnessMaterializationManifestSummary(circuitInput),
+        backendBridgeContractSummary: createBackendBridgeContractSummary(circuitInput),
+        backendAdapterHandshakeSummary: createBackendAdapterHandshakeSummary(circuitInput),
+        backendAdapterNormalizedSummary: createBackendAdapterNormalizedSummary(circuitInput),
+        adapterPayloadFreezeSummary: createAdapterPayloadFreezeSummary(circuitInput),
+        encoderStubSummary: createEncoderStubSummary(encoderStubResult),
+        encoderWorkItemSummary: createEncoderWorkItemSummary(encoderWorkItems),
+        encoderExecutionPlanSummary: createEncoderExecutionPlanSummary(encoderExecutionPlan),
+        encoderDispatchSummary: createEncoderDispatchSummary(encoderDispatch),
+        encoderDispatchAckSummary: createEncoderDispatchAckSummary(encoderDispatchAck),
+        encoderDispatchReadinessSummary:
+          createEncoderDispatchReadinessSummary(encoderDispatchReadiness),
+        encoderSessionTicketSummary: createEncoderSessionTicketSummary(encoderSessionTicket),
+        encoderPreflightSummary: createEncoderPreflightSummary(encoderPreflight),
+        encoderPreflightFreezeSummary:
+          createEncoderPreflightFreezeSummary(encoderPreflightFreeze),
+        encoderOrchestrationHandoffSummary:
+          createEncoderOrchestrationHandoffSummary(encoderOrchestrationHandoff),
+        encoderOrchestrationHandoffFreezeSummary:
+          createEncoderOrchestrationHandoffFreezeSummary(encoderOrchestrationHandoffFreeze),
+        encoderRunnerIntakeSummary: createEncoderRunnerIntakeSummary(encoderRunnerIntake),
+        encoderRunnerIntakeFreezeSummary:
+          createEncoderRunnerIntakeFreezeSummary(encoderRunnerIntakeFreeze),
+        encoderRunnerLaunchEnvelopeSummary:
+          createEncoderRunnerLaunchEnvelopeSummary(encoderRunnerLaunchEnvelope),
+        encoderRunnerLaunchEnvelopeFreezeSummary:
+          createEncoderRunnerLaunchEnvelopeFreezeSummary(encoderRunnerLaunchEnvelopeFreeze),
+        encoderRunnerStartTicketSummary:
+          createEncoderRunnerStartTicketSummary(encoderRunnerStartTicket),
+        encoderRunnerStartTicketFreezeSummary:
+          createEncoderRunnerStartTicketFreezeSummary(encoderRunnerStartTicketFreeze),
+        encoderRunnerExecutionInputSummary:
+          createEncoderRunnerExecutionInputSummary(encoderRunnerExecutionInput),
+        encoderRunnerExecutionEntryPlanSummary:
+          createEncoderRunnerExecutionEntryPlanSummary(encoderRunnerExecutionEntryPlan),
+        encoderRunnerExecutionEntryPlanFreezeSummary:
+          createEncoderRunnerExecutionEntryPlanFreezeSummary(
+            encoderRunnerExecutionEntryPlanFreeze,
+          ),
+        encoderRunnerExecutionSessionSummary:
+          createEncoderRunnerExecutionSessionSummary(encoderRunnerExecutionSession),
+        encoderRunnerExecutionSessionFreezeSummary:
+          createEncoderRunnerExecutionSessionFreezeSummary(
+            encoderRunnerExecutionSessionFreeze,
+          ),
+        encoderEncodingAdmissionSummary:
+          createEncoderEncodingAdmissionSummary(encoderEncodingAdmission),
+        encoderEncodingAdmissionFreezeSummary:
+          createEncoderEncodingAdmissionFreezeSummary(
+            encoderEncodingAdmissionFreeze,
+          ),
+        encoderFieldEncodingStartSummary:
+          createEncoderFieldEncodingStartSummary(encoderFieldEncodingStart),
+        encoderFieldEncodingStartFreezeSummary:
+          createEncoderFieldEncodingStartFreezeSummary(
+            encoderFieldEncodingStartFreeze,
+          ),
+        encoderFieldMaterializationAdmissionSummary:
+          createEncoderFieldMaterializationAdmissionSummary(
+            encoderFieldMaterializationAdmission,
+          ),
+        encoderFieldMaterializationAdmissionFreezeSummary:
+          createEncoderFieldMaterializationAdmissionFreezeSummary(
+            encoderFieldMaterializationAdmissionFreeze,
+          ),
+        encoderFieldRowMaterializationStartSummary:
+          createEncoderFieldRowMaterializationStartSummary(
+            encoderFieldRowMaterializationStart,
+          ),
+        encoderFieldRowMaterializationStartFreezeSummary:
+          createEncoderFieldRowMaterializationStartFreezeSummary(
+            encoderFieldRowMaterializationStartFreeze,
+          ),
+        encoderRowMaterializationAdmissionSummary:
+          createEncoderRowMaterializationAdmissionSummary(
+            encoderRowMaterializationAdmission,
+          ),
+        encoderRowMaterializationAdmissionFreezeSummary:
+          createEncoderRowMaterializationAdmissionFreezeSummary(
+            encoderRowMaterializationAdmissionFreeze,
+          ),
+        encoderRowLaneMaterializationStartSummary:
+          createEncoderRowLaneMaterializationStartSummary(
+            encoderRowLaneMaterializationStart,
+          ),
+        encoderRowLaneMaterializationStartFreezeSummary:
+          createEncoderRowLaneMaterializationStartFreezeSummary(
+            encoderRowLaneMaterializationStartFreeze,
+          ),
+        encoderRowFieldEmissionAdmissionSummary:
+          createEncoderRowFieldEmissionAdmissionSummary(
+            encoderRowFieldEmissionAdmission,
+          ),
+        encoderRowFieldEmissionAdmissionFreezeSummary:
+          createEncoderRowFieldEmissionAdmissionFreezeSummary(
+            encoderRowFieldEmissionAdmissionFreeze,
+          ),
+        encoderRowFieldEmissionStartSummary:
+          createEncoderRowFieldEmissionStartSummary(
+            encoderRowFieldEmissionStart,
+          ),
+        encoderRowFieldEmissionStartFreezeSummary:
+          createEncoderRowFieldEmissionStartFreezeSummary(
+            encoderRowFieldEmissionStartFreeze,
+          ),
+        encoderFieldLaneExecutionAdmissionSummary:
+          createEncoderFieldLaneExecutionAdmissionSummary(
+            encoderFieldLaneExecutionAdmission,
+          ),
+        encoderFieldLaneExecutionAdmissionFreezeSummary:
+          createEncoderFieldLaneExecutionAdmissionFreezeSummary(
+            encoderFieldLaneExecutionAdmissionFreeze,
+          ),
+        encoderFieldLaneExecutionStartSummary:
+          createEncoderFieldLaneExecutionStartSummary(
+            encoderFieldLaneExecutionStart,
+          ),
+        encoderFieldLaneExecutionStartFreezeSummary:
+          createEncoderFieldLaneExecutionStartFreezeSummary(
+            encoderFieldLaneExecutionStartFreeze,
+          ),
+        encoderFieldMaterializationLaunchAdmissionSummary:
+          createEncoderFieldMaterializationLaunchAdmissionSummary(
+            encoderFieldMaterializationLaunchAdmission,
+          ),
+        encoderFieldMaterializationLaunchAdmissionFreezeSummary:
+          createEncoderFieldMaterializationLaunchAdmissionFreezeSummary(
+            encoderFieldMaterializationLaunchAdmissionFreeze,
+          ),
+        encoderFieldMaterializationLaunchStartSummary:
+          createEncoderFieldMaterializationLaunchStartSummary(
+            encoderFieldMaterializationLaunchStart,
+          ),
+        encoderFieldMaterializationLaunchStartFreezeSummary:
+          createEncoderFieldMaterializationLaunchStartFreezeSummary(
+            encoderFieldMaterializationLaunchStartFreeze,
+          ),
+        encoderFieldMaterializationExecutionAdmissionSummary:
+          createEncoderFieldMaterializationExecutionAdmissionSummary(
+            encoderFieldMaterializationExecutionAdmission,
+          ),
+        encoderFieldMaterializationExecutionAdmissionFreezeSummary:
+          createEncoderFieldMaterializationExecutionAdmissionFreezeSummary(
+            encoderFieldMaterializationExecutionAdmissionFreeze,
+          ),
+        encoderFieldMaterializationExecutionStartSummary:
+          createEncoderFieldMaterializationExecutionStartSummary(
+            encoderFieldMaterializationExecutionStart,
+          ),
+        encoderFieldMaterializationExecutionStartFreezeSummary:
+          createEncoderFieldMaterializationExecutionStartFreezeSummary(
+            encoderFieldMaterializationExecutionStartFreeze,
+          ),
+        encoderFieldMaterializationExecutionWorkEnvelopeSummary:
+          createEncoderFieldMaterializationExecutionWorkEnvelopeSummary(
+            encoderFieldMaterializationExecutionWorkEnvelope,
+          ),
+        encoderFieldMaterializationExecutionWorkEnvelopeFreezeSummary:
+          createEncoderFieldMaterializationExecutionWorkEnvelopeFreezeSummary(
+            encoderFieldMaterializationExecutionWorkEnvelopeFreeze,
+          ),
+        encoderFieldMaterializationExecutionPlanSummary:
+          createEncoderFieldMaterializationExecutionPlanSummary(
+            encoderFieldMaterializationExecutionPlan,
+          ),
+        encoderFieldMaterializationExecutionPlanFreezeSummary:
+          createEncoderFieldMaterializationExecutionPlanFreezeSummary(
+            encoderFieldMaterializationExecutionPlanFreeze,
+          ),
+        encoderFieldMaterializationExecutionPlanHandoffSummary:
+          createEncoderFieldMaterializationExecutionPlanHandoffSummary(
+            encoderFieldMaterializationExecutionPlanHandoff,
+          ),
+        encoderFieldMaterializationExecutionPlanHandoffFreezeSummary:
+          createEncoderFieldMaterializationExecutionPlanHandoffFreezeSummary(
+            encoderFieldMaterializationExecutionPlanHandoffFreeze,
+          ),
+        encoderFieldMaterializationPlanningConsumerSummary:
+          createEncoderFieldMaterializationPlanningConsumerSummary(
+            encoderFieldMaterializationPlanningConsumer,
+          ),
+        encoderFieldMaterializationPlanningConsumerFreezeSummary:
+          createEncoderFieldMaterializationPlanningConsumerFreezeSummary(
+            encoderFieldMaterializationPlanningConsumerFreeze,
+          ),
+        encoderFieldMaterializationPlanningConsumerHandoffSummary:
+          createEncoderFieldMaterializationPlanningConsumerHandoffSummary(
+            encoderFieldMaterializationPlanningConsumerHandoff,
+          ),
+        encoderFieldMaterializationPlanningConsumerHandoffFreezeSummary:
+          createEncoderFieldMaterializationPlanningConsumerHandoffFreezeSummary(
+            encoderFieldMaterializationPlanningConsumerHandoffFreeze,
+          ),
+        encoderFieldMaterializationDownstreamConsumerSummary:
+          createEncoderFieldMaterializationDownstreamConsumerSummary(
+            encoderFieldMaterializationDownstreamConsumer,
+          ),
+        encoderFieldMaterializationDownstreamConsumerFreezeSummary:
+          createEncoderFieldMaterializationDownstreamConsumerFreezeSummary(
+            encoderFieldMaterializationDownstreamConsumerFreeze,
+          ),
+        encoderFieldMaterializationDownstreamBoundaryHandoffSummary:
+          createEncoderFieldMaterializationDownstreamBoundaryHandoffSummary(
+            encoderFieldMaterializationDownstreamBoundaryHandoff,
+          ),
+        encoderFieldMaterializationDownstreamBoundaryHandoffFreezeSummary:
+          createEncoderFieldMaterializationDownstreamBoundaryHandoffFreezeSummary(
+            encoderFieldMaterializationDownstreamBoundaryHandoffFreeze,
+          ),
+        encoderFieldMaterializationDownstreamPlanningConsumerSummary:
+          createEncoderFieldMaterializationDownstreamPlanningConsumerSummary(
+            encoderFieldMaterializationDownstreamPlanningConsumer,
+          ),
+        encoderFieldMaterializationDownstreamPlanningConsumerFreezeSummary:
+          createEncoderFieldMaterializationDownstreamPlanningConsumerFreezeSummary(
+            encoderFieldMaterializationDownstreamPlanningConsumerFreeze,
+          ),
+        encoderFieldMaterializationDownstreamPlanningBoundaryHandoffSummary:
+          createEncoderFieldMaterializationDownstreamPlanningBoundaryHandoffSummary(
+            encoderFieldMaterializationDownstreamPlanningBoundaryHandoff,
+          ),
+        encoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreezeSummary:
+          createEncoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreezeSummary(
+            encoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreeze,
+          ),
+        encoderFieldMaterializationDownstreamPreEncodingConsumerSummary:
+          createEncoderFieldMaterializationDownstreamPreEncodingConsumerSummary(
+            encoderFieldMaterializationDownstreamPreEncodingConsumer,
+          ),
+        encoderFieldMaterializationDownstreamPreEncodingConsumerFreezeSummary:
+          createEncoderFieldMaterializationDownstreamPreEncodingConsumerFreezeSummary(
+            encoderFieldMaterializationDownstreamPreEncodingConsumerFreeze,
+          ),
+        encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffSummary:
+          createEncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffSummary(
+            encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoff,
+          ),
+        encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreezeSummary:
+          createEncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreezeSummary(
+            encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreeze,
+          ),
+        encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerSummary:
+          createEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerSummary(
+            encoderFieldMaterializationDownstreamPreEncodingPlanningConsumer,
+          ),
+        encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreezeSummary:
+          createEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreezeSummary(
+            encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreeze,
+          ),
+        encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffSummary:
+          createEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffSummary(
+            encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoff,
+          ),
+        encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreezeSummary:
+          createEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreezeSummary(
+            encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreeze,
+          ),
+        encoderFieldMaterializationDownstreamPreEncodingConsumerArtifactSummary:
+          createEncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactSummary(
+            encoderFieldMaterializationDownstreamPreEncodingConsumerArtifact,
+          ),
+        encoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreezeSummary:
+          createEncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreezeSummary(
+            encoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreeze,
+          ),
+        encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffSummary:
+          createEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffSummary(
+            encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoff,
+          ),
+        encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary:
+          createEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary(
+            encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreeze,
+          ),
+        encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSummary:
+          createEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSummary(
+            encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumer,
+          ),
+        encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreezeSummary:
+          createEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreezeSummary(
+            encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreeze,
+          ),
+        encoderFieldMaterializationNextDownstreamPreEncodingConsumerSummary:
+          createEncoderFieldMaterializationNextDownstreamPreEncodingConsumerSummary(
+            encoderFieldMaterializationNextDownstreamPreEncodingConsumer,
+          ),
+        encoderFieldMaterializationNextDownstreamPreEncodingConsumerFreezeSummary:
+          createEncoderFieldMaterializationNextDownstreamPreEncodingConsumerFreezeSummary(
+            encoderFieldMaterializationNextDownstreamPreEncodingConsumerFreeze,
+          ),
+        encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSummary:
+          createEncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSummary(
+            encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoff,
+          ),
+        encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary:
+          createEncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary(
+            encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreeze,
+          ),
+        encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerSummary:
+          createEncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerSummary(
+            encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumer,
+          ),
+        encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreezeSummary:
+          createEncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreezeSummary(
+            encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreeze,
+          ),
+        encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffSummary:
+          createEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffSummary(
+            encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoff,
+          ),
+        encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreezeSummary:
+          createEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreezeSummary(
+            encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreeze,
+          ),
+        encoderFieldMaterializationNextDownstreamPlanningConsumerSummary:
+          createEncoderFieldMaterializationNextDownstreamPlanningConsumerSummary(
+            encoderFieldMaterializationNextDownstreamPlanningConsumer,
+          ),
+        encoderFieldMaterializationNextDownstreamPlanningConsumerFreezeSummary:
+          createEncoderFieldMaterializationNextDownstreamPlanningConsumerFreezeSummary(
+            encoderFieldMaterializationNextDownstreamPlanningConsumerFreeze,
+          ),
+        encoderFieldMaterializationNextResolvedPlanningConsumerSummary:
+          createEncoderFieldMaterializationNextResolvedPlanningConsumerSummary(
+            encoderFieldMaterializationNextResolvedPlanningConsumer,
+          ),
+        encoderFieldMaterializationNextResolvedPlanningConsumerFreezeSummary:
+          createEncoderFieldMaterializationNextResolvedPlanningConsumerFreezeSummary(
+            encoderFieldMaterializationNextResolvedPlanningConsumerFreeze,
+          ),
+        rootReconciliationReady: rootReconciliation.reconciliationReady,
+        rootReconciliationStatus: rootReconciliation.status,
+        rootReconciliationScheme: rootReconciliation.scheme,
+        currentRootLikeDigest: rootReconciliation.currentRootLikeDigest,
+        futureRootSeamValue: rootReconciliation.futureRootValue,
+        futureRootSeamKind: rootReconciliation.futureRootSourceKind,
+        futureRootSeamScheme: rootReconciliation.futureRootScheme,
+        futureRootSeamLeafCount: rootReconciliation.futureRootSnapshotLeafCount,
+        futureRootSeamSnapshotRoot: rootReconciliation.futureRootSnapshotRoot,
+        predecessorLifecycleId: successor.predecessorLifecycleId,
+        successorLifecycleIds: consumption?.producedLifecycleIds ?? [],
+        canonicalConsumptionId: event.canonicalConsumptionId ?? spendStatus.consumptionId,
+        canonicalConsumptionKind: event.canonicalConsumptionKind ?? spendStatus.consumptionKind,
+        canonicalConsumptionBasis: consumption?.consumptionBasis.value ?? event.canonicalConsumptionBasis,
+        canonicalNullifierStub: consumption?.nullifierStub.value ?? event.canonicalNullifierStub,
+        consumptionRecordLifecycleId: consumption?.recordLifecycleId,
+        commitment: membership.commitment?.value ?? successor.commitment,
+        insertionIndex: membership.insertionIndex ?? successor.insertionIndex,
+        snapshotRoot: membership.snapshotRoot ?? successor.snapshotRoot,
+        snapshotLeafCount: membership.snapshotLeafCount ?? successor.snapshotLeafCount,
+        lineageLabel: lineage?.label,
+        groupingQuality: lineage?.groupingQuality,
+      };
+    }
+
+    if (event.endpointLifecycleId === normalizedLifecycleId) {
+      const lineage = lineages.find((candidate) => candidate.events.some((lineageEvent) => lineageEvent.id === event.id));
+
+      return {
+        lifecycleId: normalizedLifecycleId,
+        found: true,
+        status: "found",
+        lineageId: event.lineageId ?? spendStatus.lineageId,
+        lineageKey: lineage?.key,
+        nodeRole: "exit",
+        sourceKind: event.kind,
+        sourceEventId: event.id,
+        sourceEventTitle: event.title,
+        sourceEventCreatedAt: event.createdAt,
+        assetSummary: event.assetSummary,
+        spendStatus: spendStatus.spendStatus,
+        spendCapability: spendStatus.spendCapability,
+        nullifierReady: spendStatus.nullifierReady,
+        witnessReadiness: membership.readiness,
+        membershipLinkedByLifecycle: membership.membershipLinkedByLifecycle,
+        derivedPathReady: hasCanonicalLifecycleDerivedMembershipPath(normalizedLifecycleId),
+        derivedPathKind: derivedPath?.kind,
+        derivedPathSemantics: derivedPath?.semantics,
+        derivedPathDepth: derivedPath?.depth,
+        derivedPathLeafIndex: derivedPath?.leafIndex,
+        derivedPathDigestReady: hasCanonicalLifecycleDerivedMembershipPathDigests(normalizedLifecycleId),
+        derivedPathDigestScheme: derivedPath?.digestScheme,
+        derivedPathDigestLevelCount: derivedPath?.levels.length,
+        candidatePathReady: hasCanonicalLifecycleCandidateMerkleMembershipPath(normalizedLifecycleId),
+        candidatePathKind: candidatePath?.kind,
+        candidatePathScheme: candidatePath?.scheme,
+        candidatePathDepth: candidatePath?.depth,
+        candidateAgreementReady: candidateAgreement.agreementReady,
+        candidateAgreementStatus: candidateAgreement.status,
+        witnessPackageReadiness: witnessPackage.readiness,
+        witnessPackageSummary: createWitnessPackageSummary(witnessPackage),
+        circuitInputReadiness: circuitInput.readiness,
+        circuitInputKind: circuitInput.kind,
+        circuitInputSummary: createCircuitInputSummary(circuitInput),
+        circuitInputFieldGroupSummary: createCircuitInputFieldGroupSummary(circuitInput),
+        fieldMappingPrecheckSummary: createFieldMappingPrecheckSummary(circuitInput),
+        slotNormalizationSummary: createSlotNormalizationSummary(circuitInput),
+        fieldCandidateSummary: createFieldCandidateSummary(circuitInput),
+        fieldValuePreimageSummary: createFieldValuePreimageSummary(circuitInput),
+        fieldLanePlanSummary: createFieldLanePlanSummary(circuitInput),
+        laneArityPlanSummary: createLaneArityPlanSummary(circuitInput),
+        fieldEmissionScheduleSummary: createFieldEmissionScheduleSummary(circuitInput),
+        fieldConversionManifestSummary: createFieldConversionManifestSummary(circuitInput),
+        finiteFieldDraftSummary: createFiniteFieldDraftSummary(circuitInput),
+        draftCanonicalizationSummary: createDraftCanonicalizationSummary(circuitInput),
+        modulusReadinessSummary: createModulusReadinessSummary(circuitInput),
+        reductionPlanSummary: createReductionPlanSummary(circuitInput),
+        fieldElementDraftSummary: createFieldElementDraftSummary(circuitInput),
+        fieldElementAssemblySummary: createFieldElementAssemblySummary(circuitInput),
+        witnessLayoutSummary: createWitnessLayoutSummary(circuitInput),
+        witnessRealizationSummary: createWitnessRealizationSummary(circuitInput),
+        witnessRealizationRecipeSummary: createWitnessRealizationRecipeSummary(circuitInput),
+        witnessMaterializationManifestSummary:
+          createWitnessMaterializationManifestSummary(circuitInput),
+        backendBridgeContractSummary: createBackendBridgeContractSummary(circuitInput),
+        backendAdapterHandshakeSummary: createBackendAdapterHandshakeSummary(circuitInput),
+        backendAdapterNormalizedSummary: createBackendAdapterNormalizedSummary(circuitInput),
+        adapterPayloadFreezeSummary: createAdapterPayloadFreezeSummary(circuitInput),
+        encoderStubSummary: createEncoderStubSummary(encoderStubResult),
+        encoderWorkItemSummary: createEncoderWorkItemSummary(encoderWorkItems),
+        encoderExecutionPlanSummary: createEncoderExecutionPlanSummary(encoderExecutionPlan),
+        encoderDispatchSummary: createEncoderDispatchSummary(encoderDispatch),
+        encoderDispatchAckSummary: createEncoderDispatchAckSummary(encoderDispatchAck),
+        encoderDispatchReadinessSummary:
+          createEncoderDispatchReadinessSummary(encoderDispatchReadiness),
+        encoderSessionTicketSummary: createEncoderSessionTicketSummary(encoderSessionTicket),
+        encoderPreflightSummary: createEncoderPreflightSummary(encoderPreflight),
+        encoderPreflightFreezeSummary:
+          createEncoderPreflightFreezeSummary(encoderPreflightFreeze),
+        encoderOrchestrationHandoffSummary:
+          createEncoderOrchestrationHandoffSummary(encoderOrchestrationHandoff),
+        encoderOrchestrationHandoffFreezeSummary:
+          createEncoderOrchestrationHandoffFreezeSummary(encoderOrchestrationHandoffFreeze),
+        encoderRunnerIntakeSummary: createEncoderRunnerIntakeSummary(encoderRunnerIntake),
+        encoderRunnerIntakeFreezeSummary:
+          createEncoderRunnerIntakeFreezeSummary(encoderRunnerIntakeFreeze),
+        encoderRunnerLaunchEnvelopeSummary:
+          createEncoderRunnerLaunchEnvelopeSummary(encoderRunnerLaunchEnvelope),
+        encoderRunnerLaunchEnvelopeFreezeSummary:
+          createEncoderRunnerLaunchEnvelopeFreezeSummary(encoderRunnerLaunchEnvelopeFreeze),
+        encoderRunnerStartTicketSummary:
+          createEncoderRunnerStartTicketSummary(encoderRunnerStartTicket),
+        encoderRunnerStartTicketFreezeSummary:
+          createEncoderRunnerStartTicketFreezeSummary(encoderRunnerStartTicketFreeze),
+        encoderRunnerExecutionInputSummary:
+          createEncoderRunnerExecutionInputSummary(encoderRunnerExecutionInput),
+        encoderRunnerExecutionEntryPlanSummary:
+          createEncoderRunnerExecutionEntryPlanSummary(encoderRunnerExecutionEntryPlan),
+        encoderRunnerExecutionEntryPlanFreezeSummary:
+          createEncoderRunnerExecutionEntryPlanFreezeSummary(
+            encoderRunnerExecutionEntryPlanFreeze,
+          ),
+        encoderRunnerExecutionSessionSummary:
+          createEncoderRunnerExecutionSessionSummary(encoderRunnerExecutionSession),
+        encoderRunnerExecutionSessionFreezeSummary:
+          createEncoderRunnerExecutionSessionFreezeSummary(
+            encoderRunnerExecutionSessionFreeze,
+          ),
+        encoderEncodingAdmissionSummary:
+          createEncoderEncodingAdmissionSummary(encoderEncodingAdmission),
+        encoderEncodingAdmissionFreezeSummary:
+          createEncoderEncodingAdmissionFreezeSummary(
+            encoderEncodingAdmissionFreeze,
+          ),
+        encoderFieldEncodingStartSummary:
+          createEncoderFieldEncodingStartSummary(encoderFieldEncodingStart),
+        encoderFieldEncodingStartFreezeSummary:
+          createEncoderFieldEncodingStartFreezeSummary(
+            encoderFieldEncodingStartFreeze,
+          ),
+        encoderFieldMaterializationAdmissionSummary:
+          createEncoderFieldMaterializationAdmissionSummary(
+            encoderFieldMaterializationAdmission,
+          ),
+        encoderFieldMaterializationAdmissionFreezeSummary:
+          createEncoderFieldMaterializationAdmissionFreezeSummary(
+            encoderFieldMaterializationAdmissionFreeze,
+          ),
+        encoderFieldRowMaterializationStartSummary:
+          createEncoderFieldRowMaterializationStartSummary(
+            encoderFieldRowMaterializationStart,
+          ),
+        encoderFieldRowMaterializationStartFreezeSummary:
+          createEncoderFieldRowMaterializationStartFreezeSummary(
+            encoderFieldRowMaterializationStartFreeze,
+          ),
+        encoderRowMaterializationAdmissionSummary:
+          createEncoderRowMaterializationAdmissionSummary(
+            encoderRowMaterializationAdmission,
+          ),
+        rootReconciliationReady: rootReconciliation.reconciliationReady,
+        rootReconciliationStatus: rootReconciliation.status,
+        rootReconciliationScheme: rootReconciliation.scheme,
+        currentRootLikeDigest: rootReconciliation.currentRootLikeDigest,
+        futureRootSeamValue: rootReconciliation.futureRootValue,
+        futureRootSeamKind: rootReconciliation.futureRootSourceKind,
+        futureRootSeamScheme: rootReconciliation.futureRootScheme,
+        futureRootSeamLeafCount: rootReconciliation.futureRootSnapshotLeafCount,
+        futureRootSeamSnapshotRoot: rootReconciliation.futureRootSnapshotRoot,
+        predecessorLifecycleId: event.predecessorLifecycleId,
+        successorLifecycleIds: [],
+        canonicalConsumptionId: event.canonicalConsumptionId,
+        canonicalConsumptionKind: event.canonicalConsumptionKind,
+        canonicalConsumptionBasis: consumption?.consumptionBasis.value ?? event.canonicalConsumptionBasis,
+        canonicalNullifierStub: consumption?.nullifierStub.value ?? event.canonicalNullifierStub,
+        consumptionRecordLifecycleId: consumption?.recordLifecycleId ?? event.lifecycleRecordId,
+        commitment: membership.commitment?.value,
+        insertionIndex: membership.insertionIndex,
+        snapshotRoot: membership.snapshotRoot,
+        snapshotLeafCount: membership.snapshotLeafCount,
+        lineageLabel: lineage?.label,
+        groupingQuality: lineage?.groupingQuality,
+      };
+    }
+  }
+
+  return {
+    lifecycleId: normalizedLifecycleId,
+    found: false,
+    status: spendStatus.spendStatus === "legacy" ? "legacy" : "missing",
+    lineageId: spendStatus.lineageId,
+    spendStatus: spendStatus.spendStatus,
+    spendCapability: spendStatus.spendCapability,
+    nullifierReady: spendStatus.nullifierReady,
+    witnessReadiness: membership.readiness,
+    membershipLinkedByLifecycle: membership.membershipLinkedByLifecycle,
+    derivedPathReady: hasCanonicalLifecycleDerivedMembershipPath(normalizedLifecycleId),
+    derivedPathKind: derivedPath?.kind,
+    derivedPathSemantics: derivedPath?.semantics,
+    derivedPathDepth: derivedPath?.depth,
+    derivedPathLeafIndex: derivedPath?.leafIndex,
+    derivedPathDigestReady: hasCanonicalLifecycleDerivedMembershipPathDigests(normalizedLifecycleId),
+    derivedPathDigestScheme: derivedPath?.digestScheme,
+    derivedPathDigestLevelCount: derivedPath?.levels.length,
+    candidatePathReady: hasCanonicalLifecycleCandidateMerkleMembershipPath(normalizedLifecycleId),
+    candidatePathKind: candidatePath?.kind,
+    candidatePathScheme: candidatePath?.scheme,
+    candidatePathDepth: candidatePath?.depth,
+    candidateAgreementReady: candidateAgreement.agreementReady,
+    candidateAgreementStatus: candidateAgreement.status,
+    witnessPackageReadiness: witnessPackage.readiness,
+    witnessPackageSummary: createWitnessPackageSummary(witnessPackage),
+    circuitInputReadiness: circuitInput.readiness,
+    circuitInputKind: circuitInput.kind,
+    circuitInputSummary: createCircuitInputSummary(circuitInput),
+    circuitInputFieldGroupSummary: createCircuitInputFieldGroupSummary(circuitInput),
+    fieldMappingPrecheckSummary: createFieldMappingPrecheckSummary(circuitInput),
+    slotNormalizationSummary: createSlotNormalizationSummary(circuitInput),
+    fieldCandidateSummary: createFieldCandidateSummary(circuitInput),
+    fieldValuePreimageSummary: createFieldValuePreimageSummary(circuitInput),
+    fieldLanePlanSummary: createFieldLanePlanSummary(circuitInput),
+    laneArityPlanSummary: createLaneArityPlanSummary(circuitInput),
+    fieldEmissionScheduleSummary: createFieldEmissionScheduleSummary(circuitInput),
+    fieldConversionManifestSummary: createFieldConversionManifestSummary(circuitInput),
+    finiteFieldDraftSummary: createFiniteFieldDraftSummary(circuitInput),
+    draftCanonicalizationSummary: createDraftCanonicalizationSummary(circuitInput),
+    modulusReadinessSummary: createModulusReadinessSummary(circuitInput),
+    reductionPlanSummary: createReductionPlanSummary(circuitInput),
+    fieldElementDraftSummary: createFieldElementDraftSummary(circuitInput),
+    fieldElementAssemblySummary: createFieldElementAssemblySummary(circuitInput),
+    witnessLayoutSummary: createWitnessLayoutSummary(circuitInput),
+    witnessRealizationSummary: createWitnessRealizationSummary(circuitInput),
+    witnessRealizationRecipeSummary: createWitnessRealizationRecipeSummary(circuitInput),
+    witnessMaterializationManifestSummary:
+      createWitnessMaterializationManifestSummary(circuitInput),
+    backendBridgeContractSummary: createBackendBridgeContractSummary(circuitInput),
+    backendAdapterHandshakeSummary: createBackendAdapterHandshakeSummary(circuitInput),
+    backendAdapterNormalizedSummary: createBackendAdapterNormalizedSummary(circuitInput),
+    adapterPayloadFreezeSummary: createAdapterPayloadFreezeSummary(circuitInput),
+    encoderStubSummary: createEncoderStubSummary(encoderStubResult),
+    encoderWorkItemSummary: createEncoderWorkItemSummary(encoderWorkItems),
+    encoderExecutionPlanSummary: createEncoderExecutionPlanSummary(encoderExecutionPlan),
+    encoderDispatchSummary: createEncoderDispatchSummary(encoderDispatch),
+    encoderDispatchAckSummary: createEncoderDispatchAckSummary(encoderDispatchAck),
+    encoderDispatchReadinessSummary:
+      createEncoderDispatchReadinessSummary(encoderDispatchReadiness),
+    encoderSessionTicketSummary: createEncoderSessionTicketSummary(encoderSessionTicket),
+    encoderPreflightSummary: createEncoderPreflightSummary(encoderPreflight),
+    encoderPreflightFreezeSummary:
+      createEncoderPreflightFreezeSummary(encoderPreflightFreeze),
+    encoderOrchestrationHandoffSummary:
+      createEncoderOrchestrationHandoffSummary(encoderOrchestrationHandoff),
+    encoderOrchestrationHandoffFreezeSummary:
+      createEncoderOrchestrationHandoffFreezeSummary(encoderOrchestrationHandoffFreeze),
+    encoderRunnerIntakeSummary: createEncoderRunnerIntakeSummary(encoderRunnerIntake),
+    encoderRunnerIntakeFreezeSummary:
+      createEncoderRunnerIntakeFreezeSummary(encoderRunnerIntakeFreeze),
+    encoderRunnerLaunchEnvelopeSummary:
+      createEncoderRunnerLaunchEnvelopeSummary(encoderRunnerLaunchEnvelope),
+    encoderRunnerLaunchEnvelopeFreezeSummary:
+      createEncoderRunnerLaunchEnvelopeFreezeSummary(encoderRunnerLaunchEnvelopeFreeze),
+    encoderRunnerStartTicketSummary:
+      createEncoderRunnerStartTicketSummary(encoderRunnerStartTicket),
+    encoderRunnerStartTicketFreezeSummary:
+      createEncoderRunnerStartTicketFreezeSummary(encoderRunnerStartTicketFreeze),
+    encoderRunnerExecutionInputSummary:
+      createEncoderRunnerExecutionInputSummary(encoderRunnerExecutionInput),
+    encoderRunnerExecutionEntryPlanSummary:
+      createEncoderRunnerExecutionEntryPlanSummary(encoderRunnerExecutionEntryPlan),
+    encoderRunnerExecutionEntryPlanFreezeSummary:
+      createEncoderRunnerExecutionEntryPlanFreezeSummary(
+        encoderRunnerExecutionEntryPlanFreeze,
+      ),
+    encoderRunnerExecutionSessionSummary:
+      createEncoderRunnerExecutionSessionSummary(encoderRunnerExecutionSession),
+    encoderRunnerExecutionSessionFreezeSummary:
+      createEncoderRunnerExecutionSessionFreezeSummary(
+        encoderRunnerExecutionSessionFreeze,
+      ),
+    encoderEncodingAdmissionSummary:
+      createEncoderEncodingAdmissionSummary(encoderEncodingAdmission),
+    encoderEncodingAdmissionFreezeSummary:
+      createEncoderEncodingAdmissionFreezeSummary(
+        encoderEncodingAdmissionFreeze,
+      ),
+    encoderFieldEncodingStartSummary:
+      createEncoderFieldEncodingStartSummary(encoderFieldEncodingStart),
+    encoderFieldEncodingStartFreezeSummary:
+      createEncoderFieldEncodingStartFreezeSummary(
+        encoderFieldEncodingStartFreeze,
+      ),
+    encoderFieldMaterializationAdmissionSummary:
+      createEncoderFieldMaterializationAdmissionSummary(
+        encoderFieldMaterializationAdmission,
+      ),
+    encoderFieldMaterializationAdmissionFreezeSummary:
+      createEncoderFieldMaterializationAdmissionFreezeSummary(
+        encoderFieldMaterializationAdmissionFreeze,
+      ),
+    encoderFieldRowMaterializationStartSummary:
+      createEncoderFieldRowMaterializationStartSummary(
+        encoderFieldRowMaterializationStart,
+      ),
+    encoderFieldRowMaterializationStartFreezeSummary:
+      createEncoderFieldRowMaterializationStartFreezeSummary(
+        encoderFieldRowMaterializationStartFreeze,
+      ),
+    encoderRowMaterializationAdmissionSummary:
+      createEncoderRowMaterializationAdmissionSummary(
+        encoderRowMaterializationAdmission,
+      ),
+    rootReconciliationReady: rootReconciliation.reconciliationReady,
+    rootReconciliationStatus: rootReconciliation.status,
+    rootReconciliationScheme: rootReconciliation.scheme,
+    currentRootLikeDigest: rootReconciliation.currentRootLikeDigest,
+    futureRootSeamValue: rootReconciliation.futureRootValue,
+    futureRootSeamKind: rootReconciliation.futureRootSourceKind,
+    futureRootSeamScheme: rootReconciliation.futureRootScheme,
+    futureRootSeamLeafCount: rootReconciliation.futureRootSnapshotLeafCount,
+    futureRootSeamSnapshotRoot: rootReconciliation.futureRootSnapshotRoot,
+    canonicalConsumptionId: spendStatus.consumptionId,
+    canonicalConsumptionKind: spendStatus.consumptionKind,
+    commitment: membership.commitment?.value,
+    insertionIndex: membership.insertionIndex,
+    snapshotRoot: membership.snapshotRoot,
+    snapshotLeafCount: membership.snapshotLeafCount,
+    successorLifecycleIds: [],
+  };
+}
+
+export function listCanonicalLifecycleLineages(): CanonicalLifecycleLineage[] {
+  const events = listCanonicalLifecycleInspectionEvents();
+  return buildLifecycleLineages(events);
+}
+
+export function listCanonicalLifecycleReconciliationCohorts(): CanonicalLifecycleReconciliationCohort[] {
+  const nodes = listCanonicalLifecycleNodeIds()
+    .map((lifecycleId) => inspectCanonicalLifecycleNode(lifecycleId))
+    .filter((node) => node.found);
+  const cohorts = new Map<string, CanonicalLifecycleNodeInspection[]>();
+
+  for (const node of nodes) {
+    const key = [
+      node.futureRootSeamLeafCount ?? node.snapshotLeafCount ?? "unknown-leaves",
+      node.futureRootSeamSnapshotRoot ?? node.snapshotRoot ?? "unknown-snapshot",
+      node.futureRootSeamKind ?? "no-future-root-seam",
+      node.futureRootSeamValue ?? "no-future-root-value",
+    ].join("|");
+    const cohort = cohorts.get(key) ?? [];
+    cohort.push(node);
+    cohorts.set(key, cohort);
+  }
+
+  return [...cohorts.entries()]
+    .map(([key, cohortNodes]) => {
+      const entries = cohortNodes
+        .map((node) => ({
+          lifecycleId: node.lifecycleId ?? "unknown-lifecycle",
+          lineageId: node.lineageId,
+          nodeRole: node.nodeRole,
+          sourceKind: node.sourceKind,
+          spendStatus: node.spendStatus,
+          reconciliationStatus: node.rootReconciliationStatus,
+          agreementStatus: node.candidateAgreementStatus,
+        }))
+        .sort((left, right) => left.lifecycleId.localeCompare(right.lifecycleId));
+      const statusCounts = entries.reduce<Record<CanonicalLifecycleNodeInspection["rootReconciliationStatus"], number>>(
+        (counts, entry) => {
+          counts[entry.reconciliationStatus] += 1;
+          return counts;
+        },
+        {
+          match: 0,
+          mismatch: 0,
+          pending: 0,
+          unavailable: 0,
+        },
+      );
+      const agreementCounts = entries.reduce<Record<CanonicalLifecycleNodeInspection["candidateAgreementStatus"], number>>(
+        (counts, entry) => {
+          counts[entry.agreementStatus] += 1;
+          return counts;
+        },
+        {
+          match: 0,
+          "root-mismatch": 0,
+          "path-mismatch": 0,
+          "scheme-mismatch": 0,
+          pending: 0,
+          unavailable: 0,
+          legacy: 0,
+        },
+      );
+      const sampleNode = cohortNodes[0];
+
+      return {
+        key,
+        snapshotLeafCount: sampleNode?.futureRootSeamLeafCount ?? sampleNode?.snapshotLeafCount,
+        snapshotRoot: sampleNode?.futureRootSeamSnapshotRoot ?? sampleNode?.snapshotRoot,
+        futureRootSeamKind: sampleNode?.futureRootSeamKind,
+        futureRootSeamScheme: sampleNode?.futureRootSeamScheme,
+        futureRootSeamValue: sampleNode?.futureRootSeamValue,
+        futureRootSeamSourceSummary: sampleNode?.futureRootSeamKind
+          ? `${sampleNode.futureRootSeamKind} · ${sampleNode.futureRootSeamScheme ?? "unknown-scheme"} · ${sampleNode.futureRootSeamLeafCount ?? 0} leaves`
+          : "No retained seam source",
+        nodeCount: entries.length,
+        statusCounts,
+        agreementCounts,
+        mismatchEntries: entries.filter((entry) =>
+          entry.agreementStatus === "root-mismatch" ||
+          entry.agreementStatus === "path-mismatch" ||
+          entry.agreementStatus === "scheme-mismatch",
+        ),
+        entries,
+      } satisfies CanonicalLifecycleReconciliationCohort;
+    })
+    .sort((left, right) => (left.snapshotLeafCount ?? 0) - (right.snapshotLeafCount ?? 0));
+}
+
+function createWitnessPackageSummary(
+  witnessPackage: ReturnType<typeof assembleCanonicalLifecycleWitnessPackage>,
+): string {
+  if (witnessPackage.readiness === "ready") {
+    return "identity, spend, consumption, and candidate membership bundled";
+  }
+
+  if (witnessPackage.readiness === "legacy") {
+    return "legacy lifecycle node without package substrate";
+  }
+
+  if (witnessPackage.readiness === "unavailable") {
+    return "node context or membership substrate unavailable";
+  }
+
+  return witnessPackage.missingComponents.join(" · ");
+}
+
+function createCircuitInputSummary(
+  circuitInput: ReturnType<typeof encodeCanonicalLifecycleCircuitInput>,
+): string {
+  if (circuitInput.readiness === "ready") {
+    return `${circuitInput.sections.length} ordered sections encoded`;
+  }
+
+  if (circuitInput.readiness === "legacy") {
+    return "legacy witness package cannot encode as candidate circuit input";
+  }
+
+  if (circuitInput.readiness === "unavailable") {
+    return "witness package substrate unavailable for encoding";
+  }
+
+  return circuitInput.missingComponents.join(" · ");
+}
+
+function createCircuitInputFieldGroupSummary(
+  circuitInput: ReturnType<typeof encodeCanonicalLifecycleCircuitInput>,
+): string {
+  const blockers = circuitInput.fieldGroupReadiness.filter((group) => group.readiness !== "ready");
+
+  if (blockers.length === 0) {
+    return "all section groups ready";
+  }
+
+  return blockers.map((group) => `${group.sectionName}:${group.readiness}`).join(" · ");
+}
+
+function createFieldMappingPrecheckSummary(
+  circuitInput: ReturnType<typeof encodeCanonicalLifecycleCircuitInput>,
+): string {
+  const blocked = circuitInput.fieldMappingPrecheck.filter((entry) => entry.blocked);
+
+  if (blocked.length > 0) {
+    return blocked.map((entry) => `${entry.sectionName}:${entry.readiness}`).join(" · ");
+  }
+
+  return circuitInput.fieldMappingPrecheck
+    .map((entry) => `${entry.sectionName}:${entry.bucket}`)
+    .join(" · ");
+}
+
+function createSlotNormalizationSummary(
+  circuitInput: ReturnType<typeof encodeCanonicalLifecycleCircuitInput>,
+): string {
+  const blocked = circuitInput.slotNormalization.filter((entry) => !entry.normalized);
+
+  if (blocked.length > 0) {
+    return blocked.map((entry) => `${entry.sectionName}:${entry.bucket}`).join(" · ");
+  }
+
+  return `${circuitInput.slotNormalization.reduce((sum, entry) => sum + entry.slotCount, 0)} slots normalized`;
+}
+
+function createFieldCandidateSummary(
+  circuitInput: ReturnType<typeof encodeCanonicalLifecycleCircuitInput>,
+): string {
+  const blocked = circuitInput.fieldCandidates.filter((entry) => entry.blocked);
+
+  if (blocked.length > 0) {
+    return blocked.map((entry) => entry.sectionName).join(" · ");
+  }
+
+  const families = new Map<string, number>();
+
+  for (const entry of circuitInput.fieldCandidates) {
+    families.set(entry.family, (families.get(entry.family) ?? 0) + 1);
+  }
+
+  return [...families.entries()]
+    .map(([family, count]) => `${family}:${count}`)
+    .join(" · ");
+}
+
+function createFieldValuePreimageSummary(
+  circuitInput: ReturnType<typeof encodeCanonicalLifecycleCircuitInput>,
+): string {
+  const blocked = circuitInput.fieldValuePreimages.filter((entry) => !entry.present);
+
+  if (blocked.length > 0) {
+    return blocked.map((entry) => entry.sectionName).join(" · ");
+  }
+
+  const payloadKinds = new Map<string, number>();
+
+  for (const entry of circuitInput.fieldValuePreimages) {
+    if (entry.payloadKind) {
+      payloadKinds.set(entry.payloadKind, (payloadKinds.get(entry.payloadKind) ?? 0) + 1);
+    }
+  }
+
+  return [...payloadKinds.entries()]
+    .map(([kind, count]) => `${kind}:${count}`)
+    .join(" · ");
+}
+
+function createFieldLanePlanSummary(
+  circuitInput: ReturnType<typeof encodeCanonicalLifecycleCircuitInput>,
+): string {
+  const blocked = circuitInput.fieldLanePlans.filter((entry) => !entry.planned);
+
+  if (blocked.length > 0) {
+    return blocked.map((entry) => entry.sectionName).join(" · ");
+  }
+
+  const laneShapes = new Map<string, number>();
+
+  for (const entry of circuitInput.fieldLanePlans) {
+    laneShapes.set(entry.laneShape, (laneShapes.get(entry.laneShape) ?? 0) + 1);
+  }
+
+  return [...laneShapes.entries()]
+    .map(([shape, count]) => `${shape}:${count}`)
+    .join(" · ");
+}
+
+function createLaneArityPlanSummary(
+  circuitInput: ReturnType<typeof encodeCanonicalLifecycleCircuitInput>,
+): string {
+  const blocked = circuitInput.laneArityPlans.filter((entry) => !entry.planned);
+
+  if (blocked.length > 0) {
+    return blocked.map((entry) => entry.sectionName).join(" · ");
+  }
+
+  const arityKinds = new Map<string, number>();
+
+  for (const entry of circuitInput.laneArityPlans) {
+    arityKinds.set(entry.arityKind, (arityKinds.get(entry.arityKind) ?? 0) + 1);
+  }
+
+  const countsSummary = [...arityKinds.entries()]
+    .map(([kind, count]) => `${kind}:${count}`)
+    .join(" · ");
+
+  return `${countsSummary} · fields:${circuitInput.laneArityPlans.reduce((sum, entry) => sum + entry.expectedFieldCount, 0)}`;
+}
+
+function createFieldEmissionScheduleSummary(
+  circuitInput: ReturnType<typeof encodeCanonicalLifecycleCircuitInput>,
+): string {
+  if (circuitInput.fieldEmissionSchedule.length === 0) {
+    return circuitInput.laneArityPlans
+      .filter((entry) => !entry.planned)
+      .map((entry) => entry.sectionName)
+      .join(" · ");
+  }
+
+  const counts = new Map<string, number>();
+
+  for (const entry of circuitInput.fieldEmissionSchedule) {
+    counts.set(entry.sectionName, (counts.get(entry.sectionName) ?? 0) + 1);
+  }
+
+  return [...counts.entries()]
+    .map(([sectionName, count]) => `${sectionName}:${count}`)
+    .join(" · ");
+}
+
+function createFieldConversionManifestSummary(
+  circuitInput: ReturnType<typeof encodeCanonicalLifecycleCircuitInput>,
+): string {
+  if (circuitInput.fieldConversionManifest.length === 0) {
+    return "no field manifest rows";
+  }
+
+  const blocked = circuitInput.fieldConversionManifest.filter((entry) => !entry.resolved);
+
+  if (blocked.length > 0) {
+    return blocked.map((entry) => `${entry.sectionName}:${entry.conversionRecipe}`).join(" · ");
+  }
+
+  const recipes = new Map<string, number>();
+
+  for (const entry of circuitInput.fieldConversionManifest) {
+    recipes.set(entry.conversionRecipe, (recipes.get(entry.conversionRecipe) ?? 0) + 1);
+  }
+
+  return [...recipes.entries()]
+    .map(([recipe, count]) => `${recipe}:${count}`)
+    .join(" · ");
+}
+
+function createFiniteFieldDraftSummary(
+  circuitInput: ReturnType<typeof encodeCanonicalLifecycleCircuitInput>,
+): string {
+  if (circuitInput.finiteFieldInputDrafts.length === 0) {
+    return "no field drafts";
+  }
+
+  const blocked = circuitInput.finiteFieldInputDrafts.filter((entry) => !entry.resolved);
+
+  if (blocked.length > 0) {
+    return blocked.map((entry) => `${entry.sectionName}:${entry.draftFamily}`).join(" · ");
+  }
+
+  const families = new Map<string, number>();
+
+  for (const entry of circuitInput.finiteFieldInputDrafts) {
+    families.set(entry.draftFamily, (families.get(entry.draftFamily) ?? 0) + 1);
+  }
+
+  return [...families.entries()]
+    .map(([family, count]) => `${family}:${count}`)
+    .join(" · ");
+}
+
+function createDraftCanonicalizationSummary(
+  circuitInput: ReturnType<typeof encodeCanonicalLifecycleCircuitInput>,
+): string {
+  if (circuitInput.draftCanonicalizations.length === 0) {
+    return "no canonicalized drafts";
+  }
+
+  const blocked = circuitInput.draftCanonicalizations.filter((entry) => !entry.canonicalized);
+
+  if (blocked.length > 0) {
+    return blocked
+      .map((entry) => `${entry.sectionName}:${entry.canonicalizationFamily}`)
+      .join(" · ");
+  }
+
+  const families = new Map<string, number>();
+
+  for (const entry of circuitInput.draftCanonicalizations) {
+    families.set(
+      entry.canonicalizationFamily,
+      (families.get(entry.canonicalizationFamily) ?? 0) + 1,
+    );
+  }
+
+  return [...families.entries()]
+    .map(([family, count]) => `${family}:${count}`)
+    .join(" · ");
+}
+
+function createModulusReadinessSummary(
+  circuitInput: ReturnType<typeof encodeCanonicalLifecycleCircuitInput>,
+): string {
+  if (circuitInput.modulusReadiness.length === 0) {
+    return "no modulus readiness";
+  }
+
+  const blocked = circuitInput.modulusReadiness.filter((entry) => entry.readiness === "blocked");
+
+  if (blocked.length > 0) {
+    return blocked.map((entry) => `${entry.sectionName}:${entry.readiness}`).join(" · ");
+  }
+
+  const readinessCounts = new Map<string, number>();
+
+  for (const entry of circuitInput.modulusReadiness) {
+    readinessCounts.set(entry.readiness, (readinessCounts.get(entry.readiness) ?? 0) + 1);
+  }
+
+  return [...readinessCounts.entries()]
+    .map(([readiness, count]) => `${readiness}:${count}`)
+    .join(" · ");
+}
+
+function createReductionPlanSummary(
+  circuitInput: ReturnType<typeof encodeCanonicalLifecycleCircuitInput>,
+): string {
+  if (circuitInput.reductionPlans.length === 0) {
+    return "no reduction plans";
+  }
+
+  const blocked = circuitInput.reductionPlans.filter((entry) => !entry.planned);
+
+  if (blocked.length > 0) {
+    return blocked.map((entry) => `${entry.sectionName}:${entry.action}`).join(" · ");
+  }
+
+  const actionCounts = new Map<string, number>();
+
+  for (const entry of circuitInput.reductionPlans) {
+    actionCounts.set(entry.action, (actionCounts.get(entry.action) ?? 0) + 1);
+  }
+
+  return [...actionCounts.entries()]
+    .map(([action, count]) => `${action}:${count}`)
+    .join(" · ");
+}
+
+function createFieldElementDraftSummary(
+  circuitInput: ReturnType<typeof encodeCanonicalLifecycleCircuitInput>,
+): string {
+  if (circuitInput.fieldElementDrafts.length === 0) {
+    return "no field-element drafts";
+  }
+
+  const blocked = circuitInput.fieldElementDrafts.filter((entry) => !entry.present);
+
+  if (blocked.length > 0) {
+    return blocked.map((entry) => `${entry.sectionName}:${entry.draftKind}`).join(" · ");
+  }
+
+  const kindCounts = new Map<string, number>();
+
+  for (const entry of circuitInput.fieldElementDrafts) {
+    kindCounts.set(entry.draftKind, (kindCounts.get(entry.draftKind) ?? 0) + 1);
+  }
+
+  return [...kindCounts.entries()]
+    .map(([kind, count]) => `${kind}:${count}`)
+    .join(" · ");
+}
+
+function createFieldElementAssemblySummary(
+  circuitInput: ReturnType<typeof encodeCanonicalLifecycleCircuitInput>,
+): string {
+  if (circuitInput.fieldElementAssemblies.length === 0) {
+    return "no field-element assemblies";
+  }
+
+  const blocked = circuitInput.fieldElementAssemblies.filter((entry) => !entry.assembled);
+
+  if (blocked.length > 0) {
+    return blocked.map((entry) => `${entry.sectionName}:${entry.assemblyKind}`).join(" · ");
+  }
+
+  const kindCounts = new Map<string, number>();
+
+  for (const entry of circuitInput.fieldElementAssemblies) {
+    kindCounts.set(entry.assemblyKind, (kindCounts.get(entry.assemblyKind) ?? 0) + 1);
+  }
+
+  return [...kindCounts.entries()]
+    .map(([kind, count]) => `${kind}:${count}`)
+    .join(" · ");
+}
+
+function createWitnessLayoutSummary(
+  circuitInput: ReturnType<typeof encodeCanonicalLifecycleCircuitInput>,
+): string {
+  if (circuitInput.witnessLayoutManifest.length === 0) {
+    return "no witness layout";
+  }
+
+  const blocked = circuitInput.witnessLayoutManifest.filter((entry) => !entry.laidOut);
+
+  if (blocked.length > 0) {
+    return blocked.map((entry) => `${entry.sectionName}:${entry.assemblyKind}`).join(" · ");
+  }
+
+  const kindCounts = new Map<string, number>();
+
+  for (const entry of circuitInput.witnessLayoutManifest) {
+    kindCounts.set(entry.assemblyKind, (kindCounts.get(entry.assemblyKind) ?? 0) + 1);
+  }
+
+  return [...kindCounts.entries()]
+    .map(([kind, count]) => `${kind}:${count}`)
+    .join(" · ");
+}
+
+function createWitnessRealizationSummary(
+  circuitInput: ReturnType<typeof encodeCanonicalLifecycleCircuitInput>,
+): string {
+  if (circuitInput.witnessRealizationPrecheck.length === 0) {
+    return "no witness realization precheck";
+  }
+
+  const counts = new Map<string, number>();
+
+  for (const entry of circuitInput.witnessRealizationPrecheck) {
+    counts.set(entry.status, (counts.get(entry.status) ?? 0) + 1);
+  }
+
+  return [...counts.entries()]
+    .map(([status, count]) => `${status}:${count}`)
+    .join(" · ");
+}
+
+function createWitnessRealizationRecipeSummary(
+  circuitInput: ReturnType<typeof encodeCanonicalLifecycleCircuitInput>,
+): string {
+  if (circuitInput.witnessRealizationRecipes.length === 0) {
+    return "no witness realization recipes";
+  }
+
+  const counts = new Map<string, number>();
+
+  for (const entry of circuitInput.witnessRealizationRecipes) {
+    counts.set(entry.action, (counts.get(entry.action) ?? 0) + 1);
+  }
+
+  return [...counts.entries()]
+    .map(([action, count]) => `${action}:${count}`)
+    .join(" · ");
+}
+
+function createWitnessMaterializationManifestSummary(
+  circuitInput: ReturnType<typeof encodeCanonicalLifecycleCircuitInput>,
+): string {
+  if (circuitInput.witnessMaterializationManifest.length === 0) {
+    return "no witness materialization manifest";
+  }
+
+  const counts = new Map<string, number>();
+
+  for (const entry of circuitInput.witnessMaterializationManifest) {
+    counts.set(entry.action, (counts.get(entry.action) ?? 0) + 1);
+  }
+
+  return [...counts.entries()]
+    .map(([action, count]) => `${action}:${count}`)
+    .join(" · ");
+}
+
+function createBackendBridgeContractSummary(
+  circuitInput: ReturnType<typeof encodeCanonicalLifecycleCircuitInput>,
+): string {
+  if (circuitInput.backendBridgeContract.length === 0) {
+    return "no backend bridge contract";
+  }
+
+  const actionable = circuitInput.backendBridgeContract.filter((entry) => entry.actionable).length;
+  const blocked = circuitInput.backendBridgeContract.length - actionable;
+
+  return `actionable:${actionable} · blocked:${blocked}`;
+}
+
+function createBackendAdapterHandshakeSummary(
+  circuitInput: ReturnType<typeof encodeCanonicalLifecycleCircuitInput>,
+): string {
+  return circuitInput.backendAdapterHandshake.summary;
+}
+
+function createBackendAdapterNormalizedSummary(
+  circuitInput: ReturnType<typeof encodeCanonicalLifecycleCircuitInput>,
+): string {
+  return circuitInput.backendAdapterNormalizedBundle.summary;
+}
+
+function createAdapterPayloadFreezeSummary(
+  circuitInput: ReturnType<typeof encodeCanonicalLifecycleCircuitInput>,
+): string {
+  return circuitInput.adapterPayloadFreeze.summary;
+}
+
+function createEncoderStubSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderStubForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderWorkItemSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderWorkItemsForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderExecutionPlanSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderExecutionPlanForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderDispatchSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderDispatchContractForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderDispatchAckSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderDispatchAckForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderDispatchReadinessSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderDispatchReadinessForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderSessionTicketSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderSessionTicketForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderPreflightSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderPreflightReportForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderPreflightFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderPreflightFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderOrchestrationHandoffSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderOrchestrationHandoffForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderOrchestrationHandoffFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderOrchestrationHandoffFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderRunnerIntakeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderRunnerIntakeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderRunnerIntakeFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderRunnerIntakeFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderRunnerLaunchEnvelopeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderRunnerLaunchEnvelopeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderRunnerLaunchEnvelopeFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderRunnerLaunchEnvelopeFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderRunnerStartTicketSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderRunnerStartTicketForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderRunnerStartTicketFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderRunnerStartTicketFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderRunnerExecutionInputSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderRunnerExecutionInputForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderRunnerExecutionEntryPlanSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderRunnerExecutionEntryPlanForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderRunnerExecutionEntryPlanFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderRunnerExecutionEntryPlanFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderRunnerExecutionSessionSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderRunnerExecutionSessionForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderRunnerExecutionSessionFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderRunnerExecutionSessionFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderEncodingAdmissionSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderEncodingAdmissionForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderEncodingAdmissionFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderEncodingAdmissionFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldEncodingStartSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldEncodingStartForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldEncodingStartFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldEncodingStartFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationAdmissionSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationAdmissionForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationAdmissionFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationAdmissionFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldRowMaterializationStartSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldRowMaterializationStartForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldRowMaterializationStartFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldRowMaterializationStartFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderRowMaterializationAdmissionSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderRowMaterializationAdmissionForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderRowMaterializationAdmissionFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderRowMaterializationAdmissionFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderRowLaneMaterializationStartSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderRowLaneMaterializationStartForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderRowLaneMaterializationStartFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderRowLaneMaterializationStartFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderRowFieldEmissionAdmissionSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderRowFieldEmissionAdmissionForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderRowFieldEmissionAdmissionFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderRowFieldEmissionAdmissionFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderRowFieldEmissionStartSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderRowFieldEmissionStartForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderRowFieldEmissionStartFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderRowFieldEmissionStartFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldLaneExecutionAdmissionSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldLaneExecutionAdmissionForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldLaneExecutionAdmissionFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldLaneExecutionAdmissionFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldLaneExecutionStartSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldLaneExecutionStartForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldLaneExecutionStartFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldLaneExecutionStartFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationLaunchAdmissionSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationLaunchAdmissionForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationLaunchAdmissionFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationLaunchAdmissionFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationLaunchStartSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationLaunchStartForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationLaunchStartFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationLaunchStartFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationExecutionAdmissionSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationExecutionAdmissionForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationExecutionAdmissionFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationExecutionAdmissionFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationExecutionStartSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationExecutionStartForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationExecutionStartFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationExecutionStartFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationExecutionWorkEnvelopeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationExecutionWorkEnvelopeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationExecutionWorkEnvelopeFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationExecutionWorkEnvelopeFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationExecutionPlanSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationExecutionPlanForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationExecutionPlanFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationExecutionPlanFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationExecutionPlanHandoffSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationExecutionPlanHandoffForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationExecutionPlanHandoffFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationExecutionPlanHandoffFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationPlanningConsumerSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationPlanningConsumerForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationPlanningConsumerFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationPlanningConsumerFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationPlanningConsumerHandoffSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationPlanningConsumerHandoffForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationPlanningConsumerHandoffFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationPlanningConsumerHandoffFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationDownstreamConsumerSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationDownstreamConsumerForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationDownstreamConsumerFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationDownstreamConsumerFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationDownstreamBoundaryHandoffSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationDownstreamBoundaryHandoffForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationDownstreamBoundaryHandoffFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationDownstreamBoundaryHandoffFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationDownstreamPlanningConsumerSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationDownstreamPlanningConsumerForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationDownstreamPlanningConsumerFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationDownstreamPlanningConsumerFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationDownstreamPlanningBoundaryHandoffSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationDownstreamPlanningBoundaryHandoffForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationDownstreamPreEncodingConsumerSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationDownstreamPreEncodingConsumerFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextDownstreamPreEncodingConsumerSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPreEncodingConsumerForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextDownstreamPreEncodingConsumerFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPreEncodingConsumerFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextDownstreamPlanningConsumerSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningConsumerForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextDownstreamPlanningConsumerFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningConsumerFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextResolvedPlanningConsumerSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderFieldMaterializationNextResolvedPlanningConsumerFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function normalizeShieldEvent(
+  summary: LiveShieldCanonicalDiagnosticsSummary,
+): CanonicalLifecycleInspectionEvent {
+  const successorSpendStatus = getCanonicalLifecycleSpendStatus(summary.outputLifecycleId);
+  const successorMembership = getCanonicalLifecycleMembership(summary.outputLifecycleId);
+  const successorDerivedPath = getCanonicalLifecycleDerivedMembershipPath(summary.outputLifecycleId);
+  const successorCandidatePath = getCanonicalLifecycleCandidateMerkleMembershipPath(summary.outputLifecycleId);
+  const successorCandidateAgreement = inspectCanonicalLifecycleCandidateTreeAgreement(summary.outputLifecycleId);
+  const successorWitnessPackage = assembleCanonicalLifecycleWitnessPackage(summary.outputLifecycleId);
+  const successorCircuitInput = encodeCanonicalLifecycleCircuitInput(summary.outputLifecycleId);
+  const successorEncoderStub = inspectGenericPhase1EncoderStubForLifecycleNode(summary.outputLifecycleId);
+  const successorEncoderWorkItems =
+    inspectGenericPhase1EncoderWorkItemsForLifecycleNode(summary.outputLifecycleId);
+  const successorEncoderExecutionPlan =
+    inspectGenericPhase1EncoderExecutionPlanForLifecycleNode(summary.outputLifecycleId);
+  const successorEncoderDispatch =
+    inspectGenericPhase1EncoderDispatchContractForLifecycleNode(summary.outputLifecycleId);
+  const successorEncoderDispatchAck =
+    inspectGenericPhase1EncoderDispatchAckForLifecycleNode(summary.outputLifecycleId);
+  const successorEncoderDispatchReadiness =
+    inspectGenericPhase1EncoderDispatchReadinessForLifecycleNode(summary.outputLifecycleId);
+  const successorEncoderSessionTicket =
+    inspectGenericPhase1EncoderSessionTicketForLifecycleNode(summary.outputLifecycleId);
+  const successorEncoderPreflight =
+    inspectGenericPhase1EncoderPreflightReportForLifecycleNode(summary.outputLifecycleId);
+  const successorEncoderPreflightFreeze =
+    inspectGenericPhase1EncoderPreflightFreezeForLifecycleNode(summary.outputLifecycleId);
+  const successorEncoderOrchestrationHandoff =
+    inspectGenericPhase1EncoderOrchestrationHandoffForLifecycleNode(summary.outputLifecycleId);
+  const successorEncoderOrchestrationHandoffFreeze =
+    inspectGenericPhase1EncoderOrchestrationHandoffFreezeForLifecycleNode(summary.outputLifecycleId);
+  const successorEncoderRunnerIntake =
+    inspectGenericPhase1EncoderRunnerIntakeForLifecycleNode(summary.outputLifecycleId);
+  const successorEncoderRunnerIntakeFreeze =
+    inspectGenericPhase1EncoderRunnerIntakeFreezeForLifecycleNode(summary.outputLifecycleId);
+  const successorEncoderRunnerLaunchEnvelope =
+    inspectGenericPhase1EncoderRunnerLaunchEnvelopeForLifecycleNode(summary.outputLifecycleId);
+  const successorEncoderRunnerLaunchEnvelopeFreeze =
+    inspectGenericPhase1EncoderRunnerLaunchEnvelopeFreezeForLifecycleNode(summary.outputLifecycleId);
+  const successorEncoderRunnerStartTicket =
+    inspectGenericPhase1EncoderRunnerStartTicketForLifecycleNode(summary.outputLifecycleId);
+  const successorEncoderRunnerStartTicketFreeze =
+    inspectGenericPhase1EncoderRunnerStartTicketFreezeForLifecycleNode(summary.outputLifecycleId);
+  const successorEncoderRunnerExecutionInput =
+    inspectGenericPhase1EncoderRunnerExecutionInputForLifecycleNode(summary.outputLifecycleId);
+  const successorEncoderRunnerExecutionEntryPlan =
+    inspectGenericPhase1EncoderRunnerExecutionEntryPlanForLifecycleNode(summary.outputLifecycleId);
+  const successorEncoderRunnerExecutionEntryPlanFreeze =
+    inspectGenericPhase1EncoderRunnerExecutionEntryPlanFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderRunnerExecutionSession =
+    inspectGenericPhase1EncoderRunnerExecutionSessionForLifecycleNode(summary.outputLifecycleId);
+  const successorEncoderRunnerExecutionSessionFreeze =
+    inspectGenericPhase1EncoderRunnerExecutionSessionFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderEncodingAdmission =
+    inspectGenericPhase1EncoderEncodingAdmissionForLifecycleNode(summary.outputLifecycleId);
+  const successorEncoderEncodingAdmissionFreeze =
+    inspectGenericPhase1EncoderEncodingAdmissionFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldEncodingStart =
+    inspectGenericPhase1EncoderFieldEncodingStartForLifecycleNode(summary.outputLifecycleId);
+  const successorEncoderFieldEncodingStartFreeze =
+    inspectGenericPhase1EncoderFieldEncodingStartFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationAdmission =
+    inspectGenericPhase1EncoderFieldMaterializationAdmissionForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationAdmissionFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationAdmissionFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldRowMaterializationStart =
+    inspectGenericPhase1EncoderFieldRowMaterializationStartForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldRowMaterializationStartFreeze =
+    inspectGenericPhase1EncoderFieldRowMaterializationStartFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderRowMaterializationAdmission =
+    inspectGenericPhase1EncoderRowMaterializationAdmissionForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderRowMaterializationAdmissionFreeze =
+    inspectGenericPhase1EncoderRowMaterializationAdmissionFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderRowLaneMaterializationStart =
+    inspectGenericPhase1EncoderRowLaneMaterializationStartForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderRowLaneMaterializationStartFreeze =
+    inspectGenericPhase1EncoderRowLaneMaterializationStartFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderRowFieldEmissionAdmission =
+    inspectGenericPhase1EncoderRowFieldEmissionAdmissionForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderRowFieldEmissionAdmissionFreeze =
+    inspectGenericPhase1EncoderRowFieldEmissionAdmissionFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderRowFieldEmissionStart =
+    inspectGenericPhase1EncoderRowFieldEmissionStartForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderRowFieldEmissionStartFreeze =
+    inspectGenericPhase1EncoderRowFieldEmissionStartFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldLaneExecutionAdmission =
+    inspectGenericPhase1EncoderFieldLaneExecutionAdmissionForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldLaneExecutionAdmissionFreeze =
+    inspectGenericPhase1EncoderFieldLaneExecutionAdmissionFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldLaneExecutionStart =
+    inspectGenericPhase1EncoderFieldLaneExecutionStartForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldLaneExecutionStartFreeze =
+    inspectGenericPhase1EncoderFieldLaneExecutionStartFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationLaunchAdmission =
+    inspectGenericPhase1EncoderFieldMaterializationLaunchAdmissionForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationLaunchAdmissionFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationLaunchAdmissionFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationLaunchStart =
+    inspectGenericPhase1EncoderFieldMaterializationLaunchStartForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationLaunchStartFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationLaunchStartFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationExecutionAdmission =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionAdmissionForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationExecutionAdmissionFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionAdmissionFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationExecutionStart =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionStartForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationExecutionStartFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionStartFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationExecutionWorkEnvelope =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionWorkEnvelopeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationExecutionWorkEnvelopeFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionWorkEnvelopeFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationExecutionPlan =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionPlanForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationExecutionPlanFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionPlanFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationExecutionPlanHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionPlanHandoffForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationExecutionPlanHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionPlanHandoffFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationPlanningConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationPlanningConsumerForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationPlanningConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationPlanningConsumerFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationPlanningConsumerHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationPlanningConsumerHandoffForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationPlanningConsumerHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationPlanningConsumerHandoffFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationDownstreamConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamConsumerForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationDownstreamConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamConsumerFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationDownstreamBoundaryHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamBoundaryHandoffForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationDownstreamBoundaryHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamBoundaryHandoffFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationDownstreamPlanningConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPlanningConsumerForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationDownstreamPlanningConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPlanningConsumerFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationDownstreamPlanningBoundaryHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPlanningBoundaryHandoffForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationDownstreamPreEncodingConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationDownstreamPreEncodingConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationDownstreamPreEncodingConsumerArtifact =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationNextDownstreamPreEncodingConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPreEncodingConsumerForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationNextDownstreamPreEncodingConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPreEncodingConsumerFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationNextDownstreamPlanningConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningConsumerForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationNextDownstreamPlanningConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningConsumerFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationNextResolvedPlanningConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorEncoderFieldMaterializationNextResolvedPlanningConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const successorRootReconciliation = inspectCanonicalLifecycleMembershipRootReconciliation(summary.outputLifecycleId);
+  return {
+    id: `shield:${summary.recordId}`,
+    createdAt: summary.createdAt,
+    kind: "shield",
+    lifecycleRecordId: summary.lifecycleRecordId,
+    lineageId: summary.lineageId,
+    title: "Shield note created",
+    summary: "Public-wallet VUSD entered the canonical shielded lifecycle as the first retained note.",
+    liveReferenceLabel: "Shield state signature",
+    liveReferenceValue: summary.stateSignature,
+    assetSummary: `${summary.amountDisplay} (${summary.assetId})`,
+    successors: [
+      {
+        label: "Shield note",
+        kind: "retained",
+        lifecycleId: summary.outputLifecycleId,
+        lineageId: summary.lineageId,
+        spendStatus: successorSpendStatus.spendStatus,
+        spendCapability: successorSpendStatus.spendCapability,
+        consumedByConsumptionId: successorSpendStatus.consumptionId,
+        consumedByKind: successorSpendStatus.consumptionKind,
+        nullifierReady: successorSpendStatus.nullifierReady,
+        witnessReadiness: successorMembership.readiness,
+        membershipLinkedByLifecycle: successorMembership.membershipLinkedByLifecycle,
+        derivedPathReady: hasCanonicalLifecycleDerivedMembershipPath(summary.outputLifecycleId),
+        derivedPathKind: successorDerivedPath?.kind,
+        derivedPathSemantics: successorDerivedPath?.semantics,
+        derivedPathDepth: successorDerivedPath?.depth,
+        derivedPathLeafIndex: successorDerivedPath?.leafIndex,
+        derivedPathDigestReady: hasCanonicalLifecycleDerivedMembershipPathDigests(summary.outputLifecycleId),
+        derivedPathDigestScheme: successorDerivedPath?.digestScheme,
+        derivedPathDigestLevelCount: successorDerivedPath?.levels.length,
+        candidatePathReady: hasCanonicalLifecycleCandidateMerkleMembershipPath(summary.outputLifecycleId),
+        candidatePathKind: successorCandidatePath?.kind,
+        candidatePathScheme: successorCandidatePath?.scheme,
+        candidatePathDepth: successorCandidatePath?.depth,
+        candidateAgreementReady: successorCandidateAgreement.agreementReady,
+        candidateAgreementStatus: successorCandidateAgreement.status,
+        witnessPackageReadiness: successorWitnessPackage.readiness,
+        witnessPackageSummary: createWitnessPackageSummary(successorWitnessPackage),
+        circuitInputReadiness: successorCircuitInput.readiness,
+        circuitInputKind: successorCircuitInput.kind,
+        circuitInputSummary: createCircuitInputSummary(successorCircuitInput),
+        circuitInputFieldGroupSummary: createCircuitInputFieldGroupSummary(successorCircuitInput),
+        fieldMappingPrecheckSummary: createFieldMappingPrecheckSummary(successorCircuitInput),
+        slotNormalizationSummary: createSlotNormalizationSummary(successorCircuitInput),
+        fieldCandidateSummary: createFieldCandidateSummary(successorCircuitInput),
+        fieldValuePreimageSummary: createFieldValuePreimageSummary(successorCircuitInput),
+        fieldLanePlanSummary: createFieldLanePlanSummary(successorCircuitInput),
+        laneArityPlanSummary: createLaneArityPlanSummary(successorCircuitInput),
+        fieldEmissionScheduleSummary: createFieldEmissionScheduleSummary(successorCircuitInput),
+        fieldConversionManifestSummary: createFieldConversionManifestSummary(successorCircuitInput),
+        finiteFieldDraftSummary: createFiniteFieldDraftSummary(successorCircuitInput),
+        draftCanonicalizationSummary: createDraftCanonicalizationSummary(successorCircuitInput),
+        modulusReadinessSummary: createModulusReadinessSummary(successorCircuitInput),
+        reductionPlanSummary: createReductionPlanSummary(successorCircuitInput),
+        fieldElementDraftSummary: createFieldElementDraftSummary(successorCircuitInput),
+        fieldElementAssemblySummary: createFieldElementAssemblySummary(successorCircuitInput),
+        witnessLayoutSummary: createWitnessLayoutSummary(successorCircuitInput),
+        witnessRealizationSummary: createWitnessRealizationSummary(successorCircuitInput),
+        witnessRealizationRecipeSummary: createWitnessRealizationRecipeSummary(successorCircuitInput),
+        witnessMaterializationManifestSummary:
+          createWitnessMaterializationManifestSummary(successorCircuitInput),
+        backendBridgeContractSummary: createBackendBridgeContractSummary(successorCircuitInput),
+        backendAdapterHandshakeSummary: createBackendAdapterHandshakeSummary(successorCircuitInput),
+        backendAdapterNormalizedSummary: createBackendAdapterNormalizedSummary(successorCircuitInput),
+        adapterPayloadFreezeSummary: createAdapterPayloadFreezeSummary(successorCircuitInput),
+        encoderStubSummary: createEncoderStubSummary(successorEncoderStub),
+        encoderWorkItemSummary: createEncoderWorkItemSummary(successorEncoderWorkItems),
+        encoderExecutionPlanSummary:
+          createEncoderExecutionPlanSummary(successorEncoderExecutionPlan),
+        encoderDispatchSummary: createEncoderDispatchSummary(successorEncoderDispatch),
+        encoderDispatchAckSummary: createEncoderDispatchAckSummary(successorEncoderDispatchAck),
+        encoderDispatchReadinessSummary:
+          createEncoderDispatchReadinessSummary(successorEncoderDispatchReadiness),
+        encoderSessionTicketSummary:
+          createEncoderSessionTicketSummary(successorEncoderSessionTicket),
+        encoderPreflightSummary:
+          createEncoderPreflightSummary(successorEncoderPreflight),
+        encoderPreflightFreezeSummary:
+          createEncoderPreflightFreezeSummary(successorEncoderPreflightFreeze),
+        encoderOrchestrationHandoffSummary:
+          createEncoderOrchestrationHandoffSummary(successorEncoderOrchestrationHandoff),
+        encoderOrchestrationHandoffFreezeSummary:
+          createEncoderOrchestrationHandoffFreezeSummary(successorEncoderOrchestrationHandoffFreeze),
+        encoderRunnerIntakeSummary:
+          createEncoderRunnerIntakeSummary(successorEncoderRunnerIntake),
+        encoderRunnerIntakeFreezeSummary:
+          createEncoderRunnerIntakeFreezeSummary(successorEncoderRunnerIntakeFreeze),
+        encoderRunnerLaunchEnvelopeSummary:
+          createEncoderRunnerLaunchEnvelopeSummary(successorEncoderRunnerLaunchEnvelope),
+        encoderRunnerLaunchEnvelopeFreezeSummary:
+          createEncoderRunnerLaunchEnvelopeFreezeSummary(
+            successorEncoderRunnerLaunchEnvelopeFreeze,
+          ),
+        encoderRunnerStartTicketSummary:
+          createEncoderRunnerStartTicketSummary(successorEncoderRunnerStartTicket),
+        encoderRunnerStartTicketFreezeSummary:
+          createEncoderRunnerStartTicketFreezeSummary(
+            successorEncoderRunnerStartTicketFreeze,
+          ),
+        encoderRunnerExecutionInputSummary:
+          createEncoderRunnerExecutionInputSummary(
+            successorEncoderRunnerExecutionInput,
+          ),
+        encoderRunnerExecutionEntryPlanSummary:
+          createEncoderRunnerExecutionEntryPlanSummary(
+            successorEncoderRunnerExecutionEntryPlan,
+          ),
+        encoderRunnerExecutionEntryPlanFreezeSummary:
+          createEncoderRunnerExecutionEntryPlanFreezeSummary(
+            successorEncoderRunnerExecutionEntryPlanFreeze,
+          ),
+        encoderRunnerExecutionSessionSummary:
+          createEncoderRunnerExecutionSessionSummary(
+            successorEncoderRunnerExecutionSession,
+          ),
+        encoderRunnerExecutionSessionFreezeSummary:
+          createEncoderRunnerExecutionSessionFreezeSummary(
+            successorEncoderRunnerExecutionSessionFreeze,
+          ),
+        encoderEncodingAdmissionSummary:
+          createEncoderEncodingAdmissionSummary(successorEncoderEncodingAdmission),
+        encoderEncodingAdmissionFreezeSummary:
+          createEncoderEncodingAdmissionFreezeSummary(
+            successorEncoderEncodingAdmissionFreeze,
+          ),
+        encoderFieldEncodingStartSummary:
+          createEncoderFieldEncodingStartSummary(successorEncoderFieldEncodingStart),
+        encoderFieldEncodingStartFreezeSummary:
+          createEncoderFieldEncodingStartFreezeSummary(
+            successorEncoderFieldEncodingStartFreeze,
+          ),
+        encoderFieldMaterializationAdmissionSummary:
+          createEncoderFieldMaterializationAdmissionSummary(
+            successorEncoderFieldMaterializationAdmission,
+          ),
+        encoderFieldMaterializationAdmissionFreezeSummary:
+          createEncoderFieldMaterializationAdmissionFreezeSummary(
+            successorEncoderFieldMaterializationAdmissionFreeze,
+          ),
+        encoderFieldRowMaterializationStartSummary:
+          createEncoderFieldRowMaterializationStartSummary(
+            successorEncoderFieldRowMaterializationStart,
+          ),
+        encoderFieldRowMaterializationStartFreezeSummary:
+          createEncoderFieldRowMaterializationStartFreezeSummary(
+            successorEncoderFieldRowMaterializationStartFreeze,
+          ),
+        encoderRowMaterializationAdmissionSummary:
+          createEncoderRowMaterializationAdmissionSummary(
+            successorEncoderRowMaterializationAdmission,
+          ),
+        encoderRowMaterializationAdmissionFreezeSummary:
+          createEncoderRowMaterializationAdmissionFreezeSummary(
+            successorEncoderRowMaterializationAdmissionFreeze,
+          ),
+        encoderRowLaneMaterializationStartSummary:
+          createEncoderRowLaneMaterializationStartSummary(
+            successorEncoderRowLaneMaterializationStart,
+          ),
+        encoderRowLaneMaterializationStartFreezeSummary:
+          createEncoderRowLaneMaterializationStartFreezeSummary(
+            successorEncoderRowLaneMaterializationStartFreeze,
+          ),
+        encoderRowFieldEmissionAdmissionSummary:
+          createEncoderRowFieldEmissionAdmissionSummary(
+            successorEncoderRowFieldEmissionAdmission,
+          ),
+        encoderRowFieldEmissionAdmissionFreezeSummary:
+          createEncoderRowFieldEmissionAdmissionFreezeSummary(
+            successorEncoderRowFieldEmissionAdmissionFreeze,
+          ),
+        encoderRowFieldEmissionStartSummary:
+          createEncoderRowFieldEmissionStartSummary(
+            successorEncoderRowFieldEmissionStart,
+          ),
+        encoderRowFieldEmissionStartFreezeSummary:
+          createEncoderRowFieldEmissionStartFreezeSummary(
+            successorEncoderRowFieldEmissionStartFreeze,
+          ),
+        encoderFieldLaneExecutionAdmissionSummary:
+          createEncoderFieldLaneExecutionAdmissionSummary(
+            successorEncoderFieldLaneExecutionAdmission,
+          ),
+        encoderFieldLaneExecutionAdmissionFreezeSummary:
+          createEncoderFieldLaneExecutionAdmissionFreezeSummary(
+            successorEncoderFieldLaneExecutionAdmissionFreeze,
+          ),
+        encoderFieldLaneExecutionStartSummary:
+          createEncoderFieldLaneExecutionStartSummary(
+            successorEncoderFieldLaneExecutionStart,
+          ),
+        encoderFieldLaneExecutionStartFreezeSummary:
+          createEncoderFieldLaneExecutionStartFreezeSummary(
+            successorEncoderFieldLaneExecutionStartFreeze,
+          ),
+        encoderFieldMaterializationLaunchAdmissionSummary:
+          createEncoderFieldMaterializationLaunchAdmissionSummary(
+            successorEncoderFieldMaterializationLaunchAdmission,
+          ),
+        encoderFieldMaterializationLaunchAdmissionFreezeSummary:
+          createEncoderFieldMaterializationLaunchAdmissionFreezeSummary(
+            successorEncoderFieldMaterializationLaunchAdmissionFreeze,
+          ),
+        encoderFieldMaterializationLaunchStartSummary:
+          createEncoderFieldMaterializationLaunchStartSummary(
+            successorEncoderFieldMaterializationLaunchStart,
+          ),
+        encoderFieldMaterializationLaunchStartFreezeSummary:
+          createEncoderFieldMaterializationLaunchStartFreezeSummary(
+            successorEncoderFieldMaterializationLaunchStartFreeze,
+          ),
+        encoderFieldMaterializationExecutionAdmissionSummary:
+          createEncoderFieldMaterializationExecutionAdmissionSummary(
+            successorEncoderFieldMaterializationExecutionAdmission,
+          ),
+        encoderFieldMaterializationExecutionAdmissionFreezeSummary:
+          createEncoderFieldMaterializationExecutionAdmissionFreezeSummary(
+            successorEncoderFieldMaterializationExecutionAdmissionFreeze,
+          ),
+        encoderFieldMaterializationExecutionStartSummary:
+          createEncoderFieldMaterializationExecutionStartSummary(
+            successorEncoderFieldMaterializationExecutionStart,
+          ),
+        encoderFieldMaterializationExecutionStartFreezeSummary:
+          createEncoderFieldMaterializationExecutionStartFreezeSummary(
+            successorEncoderFieldMaterializationExecutionStartFreeze,
+          ),
+        encoderFieldMaterializationExecutionWorkEnvelopeSummary:
+          createEncoderFieldMaterializationExecutionWorkEnvelopeSummary(
+            successorEncoderFieldMaterializationExecutionWorkEnvelope,
+          ),
+        encoderFieldMaterializationExecutionWorkEnvelopeFreezeSummary:
+          createEncoderFieldMaterializationExecutionWorkEnvelopeFreezeSummary(
+            successorEncoderFieldMaterializationExecutionWorkEnvelopeFreeze,
+          ),
+        encoderFieldMaterializationExecutionPlanSummary:
+          createEncoderFieldMaterializationExecutionPlanSummary(
+            successorEncoderFieldMaterializationExecutionPlan,
+          ),
+        encoderFieldMaterializationExecutionPlanFreezeSummary:
+          createEncoderFieldMaterializationExecutionPlanFreezeSummary(
+            successorEncoderFieldMaterializationExecutionPlanFreeze,
+          ),
+        encoderFieldMaterializationExecutionPlanHandoffSummary:
+          createEncoderFieldMaterializationExecutionPlanHandoffSummary(
+            successorEncoderFieldMaterializationExecutionPlanHandoff,
+          ),
+        encoderFieldMaterializationExecutionPlanHandoffFreezeSummary:
+          createEncoderFieldMaterializationExecutionPlanHandoffFreezeSummary(
+            successorEncoderFieldMaterializationExecutionPlanHandoffFreeze,
+          ),
+        encoderFieldMaterializationPlanningConsumerSummary:
+          createEncoderFieldMaterializationPlanningConsumerSummary(
+            successorEncoderFieldMaterializationPlanningConsumer,
+          ),
+        encoderFieldMaterializationPlanningConsumerFreezeSummary:
+          createEncoderFieldMaterializationPlanningConsumerFreezeSummary(
+            successorEncoderFieldMaterializationPlanningConsumerFreeze,
+          ),
+        encoderFieldMaterializationPlanningConsumerHandoffSummary:
+          createEncoderFieldMaterializationPlanningConsumerHandoffSummary(
+            successorEncoderFieldMaterializationPlanningConsumerHandoff,
+          ),
+        encoderFieldMaterializationPlanningConsumerHandoffFreezeSummary:
+          createEncoderFieldMaterializationPlanningConsumerHandoffFreezeSummary(
+            successorEncoderFieldMaterializationPlanningConsumerHandoffFreeze,
+          ),
+        encoderFieldMaterializationDownstreamConsumerSummary:
+          createEncoderFieldMaterializationDownstreamConsumerSummary(
+            successorEncoderFieldMaterializationDownstreamConsumer,
+          ),
+        encoderFieldMaterializationDownstreamConsumerFreezeSummary:
+          createEncoderFieldMaterializationDownstreamConsumerFreezeSummary(
+            successorEncoderFieldMaterializationDownstreamConsumerFreeze,
+          ),
+        encoderFieldMaterializationDownstreamBoundaryHandoffSummary:
+          createEncoderFieldMaterializationDownstreamBoundaryHandoffSummary(
+            successorEncoderFieldMaterializationDownstreamBoundaryHandoff,
+          ),
+        encoderFieldMaterializationDownstreamBoundaryHandoffFreezeSummary:
+          createEncoderFieldMaterializationDownstreamBoundaryHandoffFreezeSummary(
+            successorEncoderFieldMaterializationDownstreamBoundaryHandoffFreeze,
+          ),
+        encoderFieldMaterializationDownstreamPlanningConsumerSummary:
+          createEncoderFieldMaterializationDownstreamPlanningConsumerSummary(
+            successorEncoderFieldMaterializationDownstreamPlanningConsumer,
+          ),
+        encoderFieldMaterializationDownstreamPlanningConsumerFreezeSummary:
+          createEncoderFieldMaterializationDownstreamPlanningConsumerFreezeSummary(
+            successorEncoderFieldMaterializationDownstreamPlanningConsumerFreeze,
+          ),
+        encoderFieldMaterializationDownstreamPlanningBoundaryHandoffSummary:
+          createEncoderFieldMaterializationDownstreamPlanningBoundaryHandoffSummary(
+            successorEncoderFieldMaterializationDownstreamPlanningBoundaryHandoff,
+          ),
+        encoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreezeSummary:
+          createEncoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreezeSummary(
+            successorEncoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreeze,
+          ),
+        encoderFieldMaterializationDownstreamPreEncodingConsumerSummary:
+          createEncoderFieldMaterializationDownstreamPreEncodingConsumerSummary(
+            successorEncoderFieldMaterializationDownstreamPreEncodingConsumer,
+          ),
+        encoderFieldMaterializationDownstreamPreEncodingConsumerFreezeSummary:
+          createEncoderFieldMaterializationDownstreamPreEncodingConsumerFreezeSummary(
+            successorEncoderFieldMaterializationDownstreamPreEncodingConsumerFreeze,
+          ),
+        encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffSummary:
+          createEncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffSummary(
+            successorEncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoff,
+          ),
+        encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreezeSummary:
+          createEncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreezeSummary(
+            successorEncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreeze,
+          ),
+        encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerSummary:
+          createEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerSummary(
+            successorEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumer,
+          ),
+        encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreezeSummary:
+          createEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreezeSummary(
+            successorEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreeze,
+          ),
+        encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffSummary:
+          createEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffSummary(
+            successorEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoff,
+          ),
+        encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreezeSummary:
+          createEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreezeSummary(
+            successorEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreeze,
+          ),
+        encoderFieldMaterializationDownstreamPreEncodingConsumerArtifactSummary:
+          createEncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactSummary(
+            successorEncoderFieldMaterializationDownstreamPreEncodingConsumerArtifact,
+          ),
+        encoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreezeSummary:
+          createEncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreezeSummary(
+            successorEncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreeze,
+          ),
+        encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffSummary:
+          createEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffSummary(
+            successorEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoff,
+          ),
+        encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary:
+          createEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary(
+            successorEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreeze,
+          ),
+        encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSummary:
+          createEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSummary(
+            successorEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumer,
+          ),
+        encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreezeSummary:
+          createEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreezeSummary(
+            successorEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreeze,
+          ),
+        encoderFieldMaterializationNextDownstreamPreEncodingConsumerSummary:
+          createEncoderFieldMaterializationNextDownstreamPreEncodingConsumerSummary(
+            successorEncoderFieldMaterializationNextDownstreamPreEncodingConsumer,
+          ),
+        encoderFieldMaterializationNextDownstreamPreEncodingConsumerFreezeSummary:
+          createEncoderFieldMaterializationNextDownstreamPreEncodingConsumerFreezeSummary(
+            successorEncoderFieldMaterializationNextDownstreamPreEncodingConsumerFreeze,
+          ),
+        encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSummary:
+          createEncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSummary(
+            successorEncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoff,
+          ),
+        encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary:
+          createEncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary(
+            successorEncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreeze,
+          ),
+        encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerSummary:
+          createEncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerSummary(
+            successorEncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumer,
+          ),
+        encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreezeSummary:
+          createEncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreezeSummary(
+            successorEncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreeze,
+          ),
+        encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffSummary:
+          createEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffSummary(
+            successorEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoff,
+          ),
+        encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreezeSummary:
+          createEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreezeSummary(
+            successorEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreeze,
+          ),
+        encoderFieldMaterializationNextDownstreamPlanningConsumerSummary:
+          createEncoderFieldMaterializationNextDownstreamPlanningConsumerSummary(
+            successorEncoderFieldMaterializationNextDownstreamPlanningConsumer,
+          ),
+        encoderFieldMaterializationNextDownstreamPlanningConsumerFreezeSummary:
+          createEncoderFieldMaterializationNextDownstreamPlanningConsumerFreezeSummary(
+            successorEncoderFieldMaterializationNextDownstreamPlanningConsumerFreeze,
+          ),
+        encoderFieldMaterializationNextResolvedPlanningConsumerSummary:
+          createEncoderFieldMaterializationNextResolvedPlanningConsumerSummary(
+            successorEncoderFieldMaterializationNextResolvedPlanningConsumer,
+          ),
+        encoderFieldMaterializationNextResolvedPlanningConsumerFreezeSummary:
+          createEncoderFieldMaterializationNextResolvedPlanningConsumerFreezeSummary(
+            successorEncoderFieldMaterializationNextResolvedPlanningConsumerFreeze,
+          ),
+        rootReconciliationReady: successorRootReconciliation.reconciliationReady,
+        rootReconciliationStatus: successorRootReconciliation.status,
+        rootReconciliationScheme: successorRootReconciliation.scheme,
+        currentRootLikeDigest: successorRootReconciliation.currentRootLikeDigest,
+        futureRootSeamValue: successorRootReconciliation.futureRootValue,
+        futureRootSeamKind: successorRootReconciliation.futureRootSourceKind,
+        futureRootSeamScheme: successorRootReconciliation.futureRootScheme,
+        futureRootSeamLeafCount: successorRootReconciliation.futureRootSnapshotLeafCount,
+        futureRootSeamSnapshotRoot: successorRootReconciliation.futureRootSnapshotRoot,
+        amountSummary: summary.amountDisplay,
+        assetSummary: summary.assetId,
+        commitment: summary.commitment,
+        insertionIndex: summary.insertionIndex,
+        snapshotRoot: summary.snapshotRoot,
+        snapshotLeafCount: summary.snapshotLeafCount,
+      },
+    ],
+    transitionSignature: summary.depositSignature,
+    continuityStatus: "created",
+  };
+}
+
+function normalizeSendEvent(
+  summary: LiveSendDiagnosticsSummary,
+): CanonicalLifecycleInspectionEvent {
+  return {
+    id: `send:${summary.recordId}`,
+    createdAt: summary.createdAt,
+    kind: "send",
+    lifecycleRecordId: summary.lifecycleRecordId,
+    lineageId: summary.lineageId,
+    title: "Send successor evolution",
+    summary: "A spendable VUSD note evolved into retained successor note state without leaving shielded state.",
+    liveReferenceLabel: "Consumed live note",
+    liveReferenceValue: summary.predecessorLiveNoteId,
+    assetSummary: `VUSD send to ${summary.recipient}`,
+    predecessorLifecycleId: summary.predecessorLifecycleId,
+    predecessorLinkageQuality: summary.predecessorLinkResolution,
+    canonicalConsumptionId: summary.canonicalConsumptionId,
+    canonicalConsumptionKind: summary.canonicalConsumptionKind,
+    canonicalConsumptionBasis: summary.canonicalConsumptionBasis,
+    canonicalNullifierStub: summary.canonicalNullifierStub,
+    predecessorLiveNoteId: summary.predecessorLiveNoteId,
+    predecessorCanonicalCommitment: summary.predecessorCanonicalCommitment,
+    predecessorCanonicalSource: summary.predecessorCanonicalRecordSource,
+	    successors: summary.successors.map((successor) => {
+	      const spendStatus = getCanonicalLifecycleSpendStatus(successor.lifecycleId);
+	      const membership = getCanonicalLifecycleMembership(successor.lifecycleId);
+	      const derivedPath = getCanonicalLifecycleDerivedMembershipPath(successor.lifecycleId);
+	      const candidatePath = getCanonicalLifecycleCandidateMerkleMembershipPath(successor.lifecycleId);
+	      const candidateAgreement = inspectCanonicalLifecycleCandidateTreeAgreement(successor.lifecycleId);
+	      const witnessPackage = assembleCanonicalLifecycleWitnessPackage(successor.lifecycleId);
+	      const circuitInput = encodeCanonicalLifecycleCircuitInput(successor.lifecycleId);
+	      const encoderStub = inspectGenericPhase1EncoderStubForLifecycleNode(successor.lifecycleId);
+	      const encoderWorkItems =
+	        inspectGenericPhase1EncoderWorkItemsForLifecycleNode(successor.lifecycleId);
+	      const encoderExecutionPlan =
+	        inspectGenericPhase1EncoderExecutionPlanForLifecycleNode(successor.lifecycleId);
+	      const encoderDispatch =
+	        inspectGenericPhase1EncoderDispatchContractForLifecycleNode(successor.lifecycleId);
+	      const encoderDispatchAck =
+	        inspectGenericPhase1EncoderDispatchAckForLifecycleNode(successor.lifecycleId);
+	      const encoderDispatchReadiness =
+	        inspectGenericPhase1EncoderDispatchReadinessForLifecycleNode(successor.lifecycleId);
+	      const encoderSessionTicket =
+	        inspectGenericPhase1EncoderSessionTicketForLifecycleNode(successor.lifecycleId);
+	      const encoderPreflight =
+	        inspectGenericPhase1EncoderPreflightReportForLifecycleNode(successor.lifecycleId);
+	      const encoderPreflightFreeze =
+	        inspectGenericPhase1EncoderPreflightFreezeForLifecycleNode(successor.lifecycleId);
+	      const encoderOrchestrationHandoff =
+	        inspectGenericPhase1EncoderOrchestrationHandoffForLifecycleNode(successor.lifecycleId);
+	      const encoderOrchestrationHandoffFreeze =
+	        inspectGenericPhase1EncoderOrchestrationHandoffFreezeForLifecycleNode(successor.lifecycleId);
+	      const encoderRunnerIntake =
+	        inspectGenericPhase1EncoderRunnerIntakeForLifecycleNode(successor.lifecycleId);
+	      const encoderRunnerIntakeFreeze =
+	        inspectGenericPhase1EncoderRunnerIntakeFreezeForLifecycleNode(successor.lifecycleId);
+	      const encoderRunnerLaunchEnvelope =
+	        inspectGenericPhase1EncoderRunnerLaunchEnvelopeForLifecycleNode(successor.lifecycleId);
+	      const encoderRunnerLaunchEnvelopeFreeze =
+	        inspectGenericPhase1EncoderRunnerLaunchEnvelopeFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderRunnerStartTicket =
+	        inspectGenericPhase1EncoderRunnerStartTicketForLifecycleNode(successor.lifecycleId);
+	      const encoderRunnerStartTicketFreeze =
+	        inspectGenericPhase1EncoderRunnerStartTicketFreezeForLifecycleNode(successor.lifecycleId);
+	      const encoderRunnerExecutionInput =
+	        inspectGenericPhase1EncoderRunnerExecutionInputForLifecycleNode(successor.lifecycleId);
+	      const encoderRunnerExecutionEntryPlan =
+	        inspectGenericPhase1EncoderRunnerExecutionEntryPlanForLifecycleNode(successor.lifecycleId);
+	      const encoderRunnerExecutionEntryPlanFreeze =
+	        inspectGenericPhase1EncoderRunnerExecutionEntryPlanFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderRunnerExecutionSession =
+	        inspectGenericPhase1EncoderRunnerExecutionSessionForLifecycleNode(successor.lifecycleId);
+	      const encoderRunnerExecutionSessionFreeze =
+	        inspectGenericPhase1EncoderRunnerExecutionSessionFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderEncodingAdmission =
+	        inspectGenericPhase1EncoderEncodingAdmissionForLifecycleNode(successor.lifecycleId);
+	      const encoderEncodingAdmissionFreeze =
+	        inspectGenericPhase1EncoderEncodingAdmissionFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldEncodingStart =
+	        inspectGenericPhase1EncoderFieldEncodingStartForLifecycleNode(successor.lifecycleId);
+	      const encoderFieldEncodingStartFreeze =
+	        inspectGenericPhase1EncoderFieldEncodingStartFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationAdmission =
+	        inspectGenericPhase1EncoderFieldMaterializationAdmissionForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationAdmissionFreeze =
+	        inspectGenericPhase1EncoderFieldMaterializationAdmissionFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldRowMaterializationStart =
+	        inspectGenericPhase1EncoderFieldRowMaterializationStartForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldRowMaterializationStartFreeze =
+	        inspectGenericPhase1EncoderFieldRowMaterializationStartFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderRowMaterializationAdmission =
+	        inspectGenericPhase1EncoderRowMaterializationAdmissionForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderRowMaterializationAdmissionFreeze =
+	        inspectGenericPhase1EncoderRowMaterializationAdmissionFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderRowLaneMaterializationStart =
+	        inspectGenericPhase1EncoderRowLaneMaterializationStartForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderRowLaneMaterializationStartFreeze =
+	        inspectGenericPhase1EncoderRowLaneMaterializationStartFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderRowFieldEmissionAdmission =
+	        inspectGenericPhase1EncoderRowFieldEmissionAdmissionForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderRowFieldEmissionAdmissionFreeze =
+	        inspectGenericPhase1EncoderRowFieldEmissionAdmissionFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderRowFieldEmissionStart =
+	        inspectGenericPhase1EncoderRowFieldEmissionStartForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderRowFieldEmissionStartFreeze =
+	        inspectGenericPhase1EncoderRowFieldEmissionStartFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldLaneExecutionAdmission =
+	        inspectGenericPhase1EncoderFieldLaneExecutionAdmissionForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldLaneExecutionAdmissionFreeze =
+	        inspectGenericPhase1EncoderFieldLaneExecutionAdmissionFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldLaneExecutionStart =
+	        inspectGenericPhase1EncoderFieldLaneExecutionStartForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldLaneExecutionStartFreeze =
+	        inspectGenericPhase1EncoderFieldLaneExecutionStartFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationLaunchAdmission =
+	        inspectGenericPhase1EncoderFieldMaterializationLaunchAdmissionForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationLaunchAdmissionFreeze =
+	        inspectGenericPhase1EncoderFieldMaterializationLaunchAdmissionFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationLaunchStart =
+	        inspectGenericPhase1EncoderFieldMaterializationLaunchStartForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationLaunchStartFreeze =
+	        inspectGenericPhase1EncoderFieldMaterializationLaunchStartFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationExecutionAdmission =
+	        inspectGenericPhase1EncoderFieldMaterializationExecutionAdmissionForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationExecutionAdmissionFreeze =
+	        inspectGenericPhase1EncoderFieldMaterializationExecutionAdmissionFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationExecutionStart =
+	        inspectGenericPhase1EncoderFieldMaterializationExecutionStartForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationExecutionStartFreeze =
+	        inspectGenericPhase1EncoderFieldMaterializationExecutionStartFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationExecutionWorkEnvelope =
+	        inspectGenericPhase1EncoderFieldMaterializationExecutionWorkEnvelopeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationExecutionWorkEnvelopeFreeze =
+	        inspectGenericPhase1EncoderFieldMaterializationExecutionWorkEnvelopeFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationExecutionPlan =
+	        inspectGenericPhase1EncoderFieldMaterializationExecutionPlanForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationExecutionPlanFreeze =
+	        inspectGenericPhase1EncoderFieldMaterializationExecutionPlanFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationExecutionPlanHandoff =
+	        inspectGenericPhase1EncoderFieldMaterializationExecutionPlanHandoffForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationExecutionPlanHandoffFreeze =
+	        inspectGenericPhase1EncoderFieldMaterializationExecutionPlanHandoffFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationPlanningConsumer =
+	        inspectGenericPhase1EncoderFieldMaterializationPlanningConsumerForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationPlanningConsumerFreeze =
+	        inspectGenericPhase1EncoderFieldMaterializationPlanningConsumerFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationPlanningConsumerHandoff =
+	        inspectGenericPhase1EncoderFieldMaterializationPlanningConsumerHandoffForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationPlanningConsumerHandoffFreeze =
+	        inspectGenericPhase1EncoderFieldMaterializationPlanningConsumerHandoffFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationDownstreamConsumer =
+	        inspectGenericPhase1EncoderFieldMaterializationDownstreamConsumerForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationDownstreamConsumerFreeze =
+	        inspectGenericPhase1EncoderFieldMaterializationDownstreamConsumerFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationDownstreamBoundaryHandoff =
+	        inspectGenericPhase1EncoderFieldMaterializationDownstreamBoundaryHandoffForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationDownstreamBoundaryHandoffFreeze =
+	        inspectGenericPhase1EncoderFieldMaterializationDownstreamBoundaryHandoffFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationDownstreamPlanningConsumer =
+	        inspectGenericPhase1EncoderFieldMaterializationDownstreamPlanningConsumerForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationDownstreamPlanningConsumerFreeze =
+	        inspectGenericPhase1EncoderFieldMaterializationDownstreamPlanningConsumerFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationDownstreamPlanningBoundaryHandoff =
+	        inspectGenericPhase1EncoderFieldMaterializationDownstreamPlanningBoundaryHandoffForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreeze =
+	        inspectGenericPhase1EncoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationDownstreamPreEncodingConsumer =
+	        inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationDownstreamPreEncodingConsumerFreeze =
+	        inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoff =
+	        inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreeze =
+	        inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationDownstreamPreEncodingPlanningConsumer =
+	        inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreeze =
+	        inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoff =
+	        inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreeze =
+	        inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationDownstreamPreEncodingConsumerArtifact =
+	        inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreeze =
+	        inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoff =
+	        inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreeze =
+	        inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumer =
+	        inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreeze =
+	        inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationNextDownstreamPreEncodingConsumer =
+	        inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPreEncodingConsumerForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationNextDownstreamPreEncodingConsumerFreeze =
+	        inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPreEncodingConsumerFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoff =
+	        inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreeze =
+	        inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumer =
+	        inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreeze =
+	        inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoff =
+	        inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreeze =
+	        inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationNextDownstreamPlanningConsumer =
+	        inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningConsumerForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationNextDownstreamPlanningConsumerFreeze =
+	        inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningConsumerFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationNextResolvedPlanningConsumer =
+	        inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const encoderFieldMaterializationNextResolvedPlanningConsumerFreeze =
+	        inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerFreezeForLifecycleNode(
+	          successor.lifecycleId,
+	        );
+	      const rootReconciliation = inspectCanonicalLifecycleMembershipRootReconciliation(successor.lifecycleId);
+
+      return {
+        label: successor.kind === "recipient" ? "Recipient successor" : "Change successor",
+        kind: successor.kind,
+        lifecycleId: successor.lifecycleId,
+        lineageId: successor.lineageId,
+        predecessorLifecycleId: successor.predecessorLifecycleId,
+        spendStatus: spendStatus.spendStatus,
+        spendCapability: spendStatus.spendCapability,
+        consumedByConsumptionId: spendStatus.consumptionId,
+        consumedByKind: spendStatus.consumptionKind,
+        nullifierReady: spendStatus.nullifierReady,
+        witnessReadiness: membership.readiness,
+        membershipLinkedByLifecycle: membership.membershipLinkedByLifecycle,
+        derivedPathReady: hasCanonicalLifecycleDerivedMembershipPath(successor.lifecycleId),
+        derivedPathKind: derivedPath?.kind,
+        derivedPathSemantics: derivedPath?.semantics,
+        derivedPathDepth: derivedPath?.depth,
+        derivedPathLeafIndex: derivedPath?.leafIndex,
+        derivedPathDigestReady: hasCanonicalLifecycleDerivedMembershipPathDigests(successor.lifecycleId),
+        derivedPathDigestScheme: derivedPath?.digestScheme,
+        derivedPathDigestLevelCount: derivedPath?.levels.length,
+        candidatePathReady: hasCanonicalLifecycleCandidateMerkleMembershipPath(successor.lifecycleId),
+        candidatePathKind: candidatePath?.kind,
+        candidatePathScheme: candidatePath?.scheme,
+        candidatePathDepth: candidatePath?.depth,
+        candidateAgreementReady: candidateAgreement.agreementReady,
+        candidateAgreementStatus: candidateAgreement.status,
+        witnessPackageReadiness: witnessPackage.readiness,
+        witnessPackageSummary: createWitnessPackageSummary(witnessPackage),
+        circuitInputReadiness: circuitInput.readiness,
+        circuitInputKind: circuitInput.kind,
+        circuitInputSummary: createCircuitInputSummary(circuitInput),
+        circuitInputFieldGroupSummary: createCircuitInputFieldGroupSummary(circuitInput),
+        fieldMappingPrecheckSummary: createFieldMappingPrecheckSummary(circuitInput),
+        slotNormalizationSummary: createSlotNormalizationSummary(circuitInput),
+        fieldCandidateSummary: createFieldCandidateSummary(circuitInput),
+        fieldValuePreimageSummary: createFieldValuePreimageSummary(circuitInput),
+        fieldLanePlanSummary: createFieldLanePlanSummary(circuitInput),
+        laneArityPlanSummary: createLaneArityPlanSummary(circuitInput),
+        fieldEmissionScheduleSummary: createFieldEmissionScheduleSummary(circuitInput),
+        fieldConversionManifestSummary: createFieldConversionManifestSummary(circuitInput),
+        finiteFieldDraftSummary: createFiniteFieldDraftSummary(circuitInput),
+        draftCanonicalizationSummary: createDraftCanonicalizationSummary(circuitInput),
+        modulusReadinessSummary: createModulusReadinessSummary(circuitInput),
+        reductionPlanSummary: createReductionPlanSummary(circuitInput),
+        fieldElementDraftSummary: createFieldElementDraftSummary(circuitInput),
+        fieldElementAssemblySummary: createFieldElementAssemblySummary(circuitInput),
+        witnessLayoutSummary: createWitnessLayoutSummary(circuitInput),
+        witnessRealizationSummary: createWitnessRealizationSummary(circuitInput),
+        witnessRealizationRecipeSummary: createWitnessRealizationRecipeSummary(circuitInput),
+        witnessMaterializationManifestSummary:
+          createWitnessMaterializationManifestSummary(circuitInput),
+        backendBridgeContractSummary: createBackendBridgeContractSummary(circuitInput),
+	        backendAdapterHandshakeSummary: createBackendAdapterHandshakeSummary(circuitInput),
+	        backendAdapterNormalizedSummary: createBackendAdapterNormalizedSummary(circuitInput),
+	        adapterPayloadFreezeSummary: createAdapterPayloadFreezeSummary(circuitInput),
+	        encoderStubSummary: createEncoderStubSummary(encoderStub),
+	        encoderWorkItemSummary: createEncoderWorkItemSummary(encoderWorkItems),
+	        encoderExecutionPlanSummary:
+	          createEncoderExecutionPlanSummary(encoderExecutionPlan),
+	        encoderDispatchSummary: createEncoderDispatchSummary(encoderDispatch),
+	        encoderDispatchAckSummary: createEncoderDispatchAckSummary(encoderDispatchAck),
+	        encoderDispatchReadinessSummary:
+	          createEncoderDispatchReadinessSummary(encoderDispatchReadiness),
+	        encoderSessionTicketSummary:
+	          createEncoderSessionTicketSummary(encoderSessionTicket),
+	        encoderPreflightSummary:
+	          createEncoderPreflightSummary(encoderPreflight),
+	        encoderPreflightFreezeSummary:
+	          createEncoderPreflightFreezeSummary(encoderPreflightFreeze),
+	        encoderOrchestrationHandoffSummary:
+	          createEncoderOrchestrationHandoffSummary(encoderOrchestrationHandoff),
+	        encoderOrchestrationHandoffFreezeSummary:
+	          createEncoderOrchestrationHandoffFreezeSummary(encoderOrchestrationHandoffFreeze),
+	        encoderRunnerIntakeSummary:
+	          createEncoderRunnerIntakeSummary(encoderRunnerIntake),
+	        encoderRunnerIntakeFreezeSummary:
+	          createEncoderRunnerIntakeFreezeSummary(encoderRunnerIntakeFreeze),
+	        encoderRunnerLaunchEnvelopeSummary:
+	          createEncoderRunnerLaunchEnvelopeSummary(encoderRunnerLaunchEnvelope),
+	        encoderRunnerLaunchEnvelopeFreezeSummary:
+	          createEncoderRunnerLaunchEnvelopeFreezeSummary(
+	            encoderRunnerLaunchEnvelopeFreeze,
+	          ),
+	        encoderRunnerStartTicketSummary:
+	          createEncoderRunnerStartTicketSummary(encoderRunnerStartTicket),
+	        encoderRunnerStartTicketFreezeSummary:
+	          createEncoderRunnerStartTicketFreezeSummary(
+	            encoderRunnerStartTicketFreeze,
+	          ),
+	        encoderRunnerExecutionInputSummary:
+	          createEncoderRunnerExecutionInputSummary(
+	            encoderRunnerExecutionInput,
+	          ),
+	        encoderRunnerExecutionEntryPlanSummary:
+	          createEncoderRunnerExecutionEntryPlanSummary(
+	            encoderRunnerExecutionEntryPlan,
+	          ),
+	        encoderRunnerExecutionEntryPlanFreezeSummary:
+	          createEncoderRunnerExecutionEntryPlanFreezeSummary(
+	            encoderRunnerExecutionEntryPlanFreeze,
+	          ),
+	        encoderRunnerExecutionSessionSummary:
+	          createEncoderRunnerExecutionSessionSummary(
+	            encoderRunnerExecutionSession,
+	          ),
+	        encoderRunnerExecutionSessionFreezeSummary:
+	          createEncoderRunnerExecutionSessionFreezeSummary(
+	            encoderRunnerExecutionSessionFreeze,
+	          ),
+	        encoderEncodingAdmissionSummary:
+	          createEncoderEncodingAdmissionSummary(encoderEncodingAdmission),
+	        encoderEncodingAdmissionFreezeSummary:
+	          createEncoderEncodingAdmissionFreezeSummary(
+	            encoderEncodingAdmissionFreeze,
+	          ),
+	        encoderFieldEncodingStartSummary:
+	          createEncoderFieldEncodingStartSummary(encoderFieldEncodingStart),
+	        encoderFieldEncodingStartFreezeSummary:
+	          createEncoderFieldEncodingStartFreezeSummary(
+	            encoderFieldEncodingStartFreeze,
+	          ),
+	        encoderFieldMaterializationAdmissionSummary:
+	          createEncoderFieldMaterializationAdmissionSummary(
+	            encoderFieldMaterializationAdmission,
+	          ),
+	        encoderFieldMaterializationAdmissionFreezeSummary:
+	          createEncoderFieldMaterializationAdmissionFreezeSummary(
+	            encoderFieldMaterializationAdmissionFreeze,
+	          ),
+	        encoderFieldRowMaterializationStartSummary:
+	          createEncoderFieldRowMaterializationStartSummary(
+	            encoderFieldRowMaterializationStart,
+	          ),
+	        encoderFieldRowMaterializationStartFreezeSummary:
+	          createEncoderFieldRowMaterializationStartFreezeSummary(
+	            encoderFieldRowMaterializationStartFreeze,
+	          ),
+	        encoderRowMaterializationAdmissionSummary:
+	          createEncoderRowMaterializationAdmissionSummary(
+	            encoderRowMaterializationAdmission,
+	          ),
+	        encoderRowMaterializationAdmissionFreezeSummary:
+	          createEncoderRowMaterializationAdmissionFreezeSummary(
+	            encoderRowMaterializationAdmissionFreeze,
+	          ),
+	        encoderRowLaneMaterializationStartSummary:
+	          createEncoderRowLaneMaterializationStartSummary(
+	            encoderRowLaneMaterializationStart,
+	          ),
+	        encoderRowLaneMaterializationStartFreezeSummary:
+	          createEncoderRowLaneMaterializationStartFreezeSummary(
+	            encoderRowLaneMaterializationStartFreeze,
+	          ),
+	        encoderRowFieldEmissionAdmissionSummary:
+	          createEncoderRowFieldEmissionAdmissionSummary(
+	            encoderRowFieldEmissionAdmission,
+	          ),
+	        encoderRowFieldEmissionAdmissionFreezeSummary:
+	          createEncoderRowFieldEmissionAdmissionFreezeSummary(
+	            encoderRowFieldEmissionAdmissionFreeze,
+	          ),
+	        encoderRowFieldEmissionStartSummary:
+	          createEncoderRowFieldEmissionStartSummary(
+	            encoderRowFieldEmissionStart,
+	          ),
+	        encoderRowFieldEmissionStartFreezeSummary:
+	          createEncoderRowFieldEmissionStartFreezeSummary(
+	            encoderRowFieldEmissionStartFreeze,
+	          ),
+	        encoderFieldLaneExecutionAdmissionSummary:
+	          createEncoderFieldLaneExecutionAdmissionSummary(
+	            encoderFieldLaneExecutionAdmission,
+	          ),
+	        encoderFieldLaneExecutionAdmissionFreezeSummary:
+	          createEncoderFieldLaneExecutionAdmissionFreezeSummary(
+	            encoderFieldLaneExecutionAdmissionFreeze,
+	          ),
+	        encoderFieldLaneExecutionStartSummary:
+	          createEncoderFieldLaneExecutionStartSummary(
+	            encoderFieldLaneExecutionStart,
+	          ),
+	        encoderFieldLaneExecutionStartFreezeSummary:
+	          createEncoderFieldLaneExecutionStartFreezeSummary(
+	            encoderFieldLaneExecutionStartFreeze,
+	          ),
+	        encoderFieldMaterializationLaunchAdmissionSummary:
+	          createEncoderFieldMaterializationLaunchAdmissionSummary(
+	            encoderFieldMaterializationLaunchAdmission,
+	          ),
+	        encoderFieldMaterializationLaunchAdmissionFreezeSummary:
+	          createEncoderFieldMaterializationLaunchAdmissionFreezeSummary(
+	            encoderFieldMaterializationLaunchAdmissionFreeze,
+	          ),
+	        encoderFieldMaterializationLaunchStartSummary:
+	          createEncoderFieldMaterializationLaunchStartSummary(
+	            encoderFieldMaterializationLaunchStart,
+	          ),
+	        encoderFieldMaterializationLaunchStartFreezeSummary:
+	          createEncoderFieldMaterializationLaunchStartFreezeSummary(
+	            encoderFieldMaterializationLaunchStartFreeze,
+	          ),
+	        encoderFieldMaterializationExecutionAdmissionSummary:
+	          createEncoderFieldMaterializationExecutionAdmissionSummary(
+	            encoderFieldMaterializationExecutionAdmission,
+	          ),
+	        encoderFieldMaterializationExecutionAdmissionFreezeSummary:
+	          createEncoderFieldMaterializationExecutionAdmissionFreezeSummary(
+	            encoderFieldMaterializationExecutionAdmissionFreeze,
+	          ),
+	        encoderFieldMaterializationExecutionStartSummary:
+	          createEncoderFieldMaterializationExecutionStartSummary(
+	            encoderFieldMaterializationExecutionStart,
+	          ),
+	        encoderFieldMaterializationExecutionStartFreezeSummary:
+	          createEncoderFieldMaterializationExecutionStartFreezeSummary(
+	            encoderFieldMaterializationExecutionStartFreeze,
+	          ),
+	        encoderFieldMaterializationExecutionWorkEnvelopeSummary:
+	          createEncoderFieldMaterializationExecutionWorkEnvelopeSummary(
+	            encoderFieldMaterializationExecutionWorkEnvelope,
+	          ),
+	        encoderFieldMaterializationExecutionWorkEnvelopeFreezeSummary:
+	          createEncoderFieldMaterializationExecutionWorkEnvelopeFreezeSummary(
+	            encoderFieldMaterializationExecutionWorkEnvelopeFreeze,
+	          ),
+	        encoderFieldMaterializationExecutionPlanSummary:
+	          createEncoderFieldMaterializationExecutionPlanSummary(
+	            encoderFieldMaterializationExecutionPlan,
+	          ),
+	        encoderFieldMaterializationExecutionPlanFreezeSummary:
+	          createEncoderFieldMaterializationExecutionPlanFreezeSummary(
+	            encoderFieldMaterializationExecutionPlanFreeze,
+	          ),
+	        encoderFieldMaterializationExecutionPlanHandoffSummary:
+	          createEncoderFieldMaterializationExecutionPlanHandoffSummary(
+	            encoderFieldMaterializationExecutionPlanHandoff,
+	          ),
+	        encoderFieldMaterializationExecutionPlanHandoffFreezeSummary:
+	          createEncoderFieldMaterializationExecutionPlanHandoffFreezeSummary(
+	            encoderFieldMaterializationExecutionPlanHandoffFreeze,
+	          ),
+	        encoderFieldMaterializationPlanningConsumerSummary:
+	          createEncoderFieldMaterializationPlanningConsumerSummary(
+	            encoderFieldMaterializationPlanningConsumer,
+	          ),
+	        encoderFieldMaterializationPlanningConsumerFreezeSummary:
+	          createEncoderFieldMaterializationPlanningConsumerFreezeSummary(
+	            encoderFieldMaterializationPlanningConsumerFreeze,
+	          ),
+	        encoderFieldMaterializationPlanningConsumerHandoffSummary:
+	          createEncoderFieldMaterializationPlanningConsumerHandoffSummary(
+	            encoderFieldMaterializationPlanningConsumerHandoff,
+	          ),
+	        encoderFieldMaterializationPlanningConsumerHandoffFreezeSummary:
+	          createEncoderFieldMaterializationPlanningConsumerHandoffFreezeSummary(
+	            encoderFieldMaterializationPlanningConsumerHandoffFreeze,
+	          ),
+	        encoderFieldMaterializationDownstreamConsumerSummary:
+	          createEncoderFieldMaterializationDownstreamConsumerSummary(
+	            encoderFieldMaterializationDownstreamConsumer,
+	          ),
+	        encoderFieldMaterializationDownstreamConsumerFreezeSummary:
+	          createEncoderFieldMaterializationDownstreamConsumerFreezeSummary(
+	            encoderFieldMaterializationDownstreamConsumerFreeze,
+	          ),
+	        encoderFieldMaterializationDownstreamBoundaryHandoffSummary:
+	          createEncoderFieldMaterializationDownstreamBoundaryHandoffSummary(
+	            encoderFieldMaterializationDownstreamBoundaryHandoff,
+	          ),
+	        encoderFieldMaterializationDownstreamBoundaryHandoffFreezeSummary:
+	          createEncoderFieldMaterializationDownstreamBoundaryHandoffFreezeSummary(
+	            encoderFieldMaterializationDownstreamBoundaryHandoffFreeze,
+	          ),
+	        encoderFieldMaterializationDownstreamPlanningConsumerSummary:
+	          createEncoderFieldMaterializationDownstreamPlanningConsumerSummary(
+	            encoderFieldMaterializationDownstreamPlanningConsumer,
+	          ),
+	        encoderFieldMaterializationDownstreamPlanningConsumerFreezeSummary:
+	          createEncoderFieldMaterializationDownstreamPlanningConsumerFreezeSummary(
+	            encoderFieldMaterializationDownstreamPlanningConsumerFreeze,
+	          ),
+	        encoderFieldMaterializationDownstreamPlanningBoundaryHandoffSummary:
+	          createEncoderFieldMaterializationDownstreamPlanningBoundaryHandoffSummary(
+	            encoderFieldMaterializationDownstreamPlanningBoundaryHandoff,
+	          ),
+	        encoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreezeSummary:
+	          createEncoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreezeSummary(
+	            encoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreeze,
+	          ),
+	        encoderFieldMaterializationDownstreamPreEncodingConsumerSummary:
+	          createEncoderFieldMaterializationDownstreamPreEncodingConsumerSummary(
+	            encoderFieldMaterializationDownstreamPreEncodingConsumer,
+	          ),
+	        encoderFieldMaterializationDownstreamPreEncodingConsumerFreezeSummary:
+	          createEncoderFieldMaterializationDownstreamPreEncodingConsumerFreezeSummary(
+	            encoderFieldMaterializationDownstreamPreEncodingConsumerFreeze,
+	          ),
+	        encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffSummary:
+	          createEncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffSummary(
+	            encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoff,
+	          ),
+	        encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreezeSummary:
+	          createEncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreezeSummary(
+	            encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreeze,
+	          ),
+	        encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerSummary:
+	          createEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerSummary(
+	            encoderFieldMaterializationDownstreamPreEncodingPlanningConsumer,
+	          ),
+	        encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreezeSummary:
+	          createEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreezeSummary(
+	            encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreeze,
+	          ),
+	        encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffSummary:
+	          createEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffSummary(
+	            encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoff,
+	          ),
+	        encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreezeSummary:
+	          createEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreezeSummary(
+	            encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreeze,
+	          ),
+	        encoderFieldMaterializationDownstreamPreEncodingConsumerArtifactSummary:
+	          createEncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactSummary(
+	            encoderFieldMaterializationDownstreamPreEncodingConsumerArtifact,
+	          ),
+	        encoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreezeSummary:
+	          createEncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreezeSummary(
+	            encoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreeze,
+	          ),
+	        encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffSummary:
+	          createEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffSummary(
+	            encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoff,
+	          ),
+	        encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary:
+	          createEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary(
+	            encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreeze,
+	          ),
+	        encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSummary:
+	          createEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSummary(
+	            encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumer,
+	          ),
+	        encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreezeSummary:
+	          createEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreezeSummary(
+	            encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreeze,
+	          ),
+	        encoderFieldMaterializationNextDownstreamPreEncodingConsumerSummary:
+	          createEncoderFieldMaterializationNextDownstreamPreEncodingConsumerSummary(
+	            encoderFieldMaterializationNextDownstreamPreEncodingConsumer,
+	          ),
+	        encoderFieldMaterializationNextDownstreamPreEncodingConsumerFreezeSummary:
+	          createEncoderFieldMaterializationNextDownstreamPreEncodingConsumerFreezeSummary(
+	            encoderFieldMaterializationNextDownstreamPreEncodingConsumerFreeze,
+	          ),
+	        encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSummary:
+	          createEncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSummary(
+	            encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoff,
+	          ),
+	        encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary:
+	          createEncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary(
+	            encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreeze,
+	          ),
+	        encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerSummary:
+	          createEncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerSummary(
+	            encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumer,
+	          ),
+	        encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreezeSummary:
+	          createEncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreezeSummary(
+	            encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreeze,
+	          ),
+	        encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffSummary:
+	          createEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffSummary(
+	            encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoff,
+	          ),
+	        encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreezeSummary:
+	          createEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreezeSummary(
+	            encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreeze,
+	          ),
+	        encoderFieldMaterializationNextDownstreamPlanningConsumerSummary:
+	          createEncoderFieldMaterializationNextDownstreamPlanningConsumerSummary(
+	            encoderFieldMaterializationNextDownstreamPlanningConsumer,
+	          ),
+	        encoderFieldMaterializationNextDownstreamPlanningConsumerFreezeSummary:
+	          createEncoderFieldMaterializationNextDownstreamPlanningConsumerFreezeSummary(
+	            encoderFieldMaterializationNextDownstreamPlanningConsumerFreeze,
+	          ),
+	        encoderFieldMaterializationNextResolvedPlanningConsumerSummary:
+	          createEncoderFieldMaterializationNextResolvedPlanningConsumerSummary(
+	            encoderFieldMaterializationNextResolvedPlanningConsumer,
+	          ),
+	        encoderFieldMaterializationNextResolvedPlanningConsumerFreezeSummary:
+	          createEncoderFieldMaterializationNextResolvedPlanningConsumerFreezeSummary(
+	            encoderFieldMaterializationNextResolvedPlanningConsumerFreeze,
+	          ),
+	        rootReconciliationReady: rootReconciliation.reconciliationReady,
+        rootReconciliationStatus: rootReconciliation.status,
+        rootReconciliationScheme: rootReconciliation.scheme,
+        currentRootLikeDigest: rootReconciliation.currentRootLikeDigest,
+        futureRootSeamValue: rootReconciliation.futureRootValue,
+        futureRootSeamKind: rootReconciliation.futureRootSourceKind,
+        futureRootSeamScheme: rootReconciliation.futureRootScheme,
+        futureRootSeamLeafCount: rootReconciliation.futureRootSnapshotLeafCount,
+        futureRootSeamSnapshotRoot: rootReconciliation.futureRootSnapshotRoot,
+        amountSummary: successor.amountDisplay,
+        assetSummary: successor.assetId,
+        liveNoteId: successor.liveNoteId,
+        commitment: successor.commitment,
+        insertionIndex: successor.insertionIndex,
+        snapshotRoot: successor.snapshotRoot,
+        snapshotLeafCount: successor.snapshotLeafCount,
+        ownerPublicKey: successor.ownerPublicKey,
+      };
+    }),
+    transitionSignature: summary.transitionSignature,
+    spentMarkerSignature: summary.spentMarkerSignature,
+    continuityStatus: "evolved",
+  };
+}
+
+function normalizeSwapEvent(
+  summary: LiveSwapDiagnosticsSummary,
+): CanonicalLifecycleInspectionEvent {
+  const outputSpendStatus = getCanonicalLifecycleSpendStatus(summary.outputLifecycleId);
+  const outputMembership = getCanonicalLifecycleMembership(summary.outputLifecycleId);
+  const outputDerivedPath = getCanonicalLifecycleDerivedMembershipPath(summary.outputLifecycleId);
+  const outputCandidatePath = getCanonicalLifecycleCandidateMerkleMembershipPath(summary.outputLifecycleId);
+  const outputCandidateAgreement = inspectCanonicalLifecycleCandidateTreeAgreement(summary.outputLifecycleId);
+  const outputWitnessPackage = assembleCanonicalLifecycleWitnessPackage(summary.outputLifecycleId);
+  const outputCircuitInput = encodeCanonicalLifecycleCircuitInput(summary.outputLifecycleId);
+  const outputEncoderStub = inspectGenericPhase1EncoderStubForLifecycleNode(summary.outputLifecycleId);
+  const outputEncoderWorkItems =
+    inspectGenericPhase1EncoderWorkItemsForLifecycleNode(summary.outputLifecycleId);
+  const outputEncoderExecutionPlan =
+    inspectGenericPhase1EncoderExecutionPlanForLifecycleNode(summary.outputLifecycleId);
+  const outputEncoderDispatch =
+    inspectGenericPhase1EncoderDispatchContractForLifecycleNode(summary.outputLifecycleId);
+  const outputEncoderDispatchAck =
+    inspectGenericPhase1EncoderDispatchAckForLifecycleNode(summary.outputLifecycleId);
+  const outputEncoderDispatchReadiness =
+    inspectGenericPhase1EncoderDispatchReadinessForLifecycleNode(summary.outputLifecycleId);
+  const outputEncoderSessionTicket =
+    inspectGenericPhase1EncoderSessionTicketForLifecycleNode(summary.outputLifecycleId);
+  const outputEncoderPreflight =
+    inspectGenericPhase1EncoderPreflightReportForLifecycleNode(summary.outputLifecycleId);
+  const outputEncoderPreflightFreeze =
+    inspectGenericPhase1EncoderPreflightFreezeForLifecycleNode(summary.outputLifecycleId);
+  const outputEncoderOrchestrationHandoff =
+    inspectGenericPhase1EncoderOrchestrationHandoffForLifecycleNode(summary.outputLifecycleId);
+  const outputEncoderOrchestrationHandoffFreeze =
+    inspectGenericPhase1EncoderOrchestrationHandoffFreezeForLifecycleNode(summary.outputLifecycleId);
+  const outputEncoderRunnerIntake =
+    inspectGenericPhase1EncoderRunnerIntakeForLifecycleNode(summary.outputLifecycleId);
+  const outputEncoderRunnerIntakeFreeze =
+    inspectGenericPhase1EncoderRunnerIntakeFreezeForLifecycleNode(summary.outputLifecycleId);
+  const outputEncoderRunnerLaunchEnvelope =
+    inspectGenericPhase1EncoderRunnerLaunchEnvelopeForLifecycleNode(summary.outputLifecycleId);
+  const outputEncoderRunnerLaunchEnvelopeFreeze =
+    inspectGenericPhase1EncoderRunnerLaunchEnvelopeFreezeForLifecycleNode(summary.outputLifecycleId);
+  const outputEncoderRunnerStartTicket =
+    inspectGenericPhase1EncoderRunnerStartTicketForLifecycleNode(summary.outputLifecycleId);
+  const outputEncoderRunnerStartTicketFreeze =
+    inspectGenericPhase1EncoderRunnerStartTicketFreezeForLifecycleNode(summary.outputLifecycleId);
+  const outputEncoderRunnerExecutionInput =
+    inspectGenericPhase1EncoderRunnerExecutionInputForLifecycleNode(summary.outputLifecycleId);
+  const outputEncoderRunnerExecutionEntryPlan =
+    inspectGenericPhase1EncoderRunnerExecutionEntryPlanForLifecycleNode(summary.outputLifecycleId);
+  const outputEncoderRunnerExecutionEntryPlanFreeze =
+    inspectGenericPhase1EncoderRunnerExecutionEntryPlanFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderRunnerExecutionSession =
+    inspectGenericPhase1EncoderRunnerExecutionSessionForLifecycleNode(summary.outputLifecycleId);
+  const outputEncoderRunnerExecutionSessionFreeze =
+    inspectGenericPhase1EncoderRunnerExecutionSessionFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderEncodingAdmission =
+    inspectGenericPhase1EncoderEncodingAdmissionForLifecycleNode(summary.outputLifecycleId);
+  const outputEncoderEncodingAdmissionFreeze =
+    inspectGenericPhase1EncoderEncodingAdmissionFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldEncodingStart =
+    inspectGenericPhase1EncoderFieldEncodingStartForLifecycleNode(summary.outputLifecycleId);
+  const outputEncoderFieldEncodingStartFreeze =
+    inspectGenericPhase1EncoderFieldEncodingStartFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationAdmission =
+    inspectGenericPhase1EncoderFieldMaterializationAdmissionForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationAdmissionFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationAdmissionFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldRowMaterializationStart =
+    inspectGenericPhase1EncoderFieldRowMaterializationStartForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldRowMaterializationStartFreeze =
+    inspectGenericPhase1EncoderFieldRowMaterializationStartFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderRowMaterializationAdmission =
+    inspectGenericPhase1EncoderRowMaterializationAdmissionForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderRowMaterializationAdmissionFreeze =
+    inspectGenericPhase1EncoderRowMaterializationAdmissionFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderRowLaneMaterializationStart =
+    inspectGenericPhase1EncoderRowLaneMaterializationStartForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderRowLaneMaterializationStartFreeze =
+    inspectGenericPhase1EncoderRowLaneMaterializationStartFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderRowFieldEmissionAdmission =
+    inspectGenericPhase1EncoderRowFieldEmissionAdmissionForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderRowFieldEmissionAdmissionFreeze =
+    inspectGenericPhase1EncoderRowFieldEmissionAdmissionFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderRowFieldEmissionStart =
+    inspectGenericPhase1EncoderRowFieldEmissionStartForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderRowFieldEmissionStartFreeze =
+    inspectGenericPhase1EncoderRowFieldEmissionStartFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldLaneExecutionAdmission =
+    inspectGenericPhase1EncoderFieldLaneExecutionAdmissionForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldLaneExecutionAdmissionFreeze =
+    inspectGenericPhase1EncoderFieldLaneExecutionAdmissionFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldLaneExecutionStart =
+    inspectGenericPhase1EncoderFieldLaneExecutionStartForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldLaneExecutionStartFreeze =
+    inspectGenericPhase1EncoderFieldLaneExecutionStartFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationLaunchAdmission =
+    inspectGenericPhase1EncoderFieldMaterializationLaunchAdmissionForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationLaunchAdmissionFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationLaunchAdmissionFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationLaunchStart =
+    inspectGenericPhase1EncoderFieldMaterializationLaunchStartForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationLaunchStartFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationLaunchStartFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationExecutionAdmission =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionAdmissionForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationExecutionAdmissionFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionAdmissionFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationExecutionStart =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionStartForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationExecutionStartFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionStartFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationExecutionWorkEnvelope =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionWorkEnvelopeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationExecutionWorkEnvelopeFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionWorkEnvelopeFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationExecutionPlan =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionPlanForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationExecutionPlanFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionPlanFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationExecutionPlanHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionPlanHandoffForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationExecutionPlanHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationExecutionPlanHandoffFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationPlanningConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationPlanningConsumerForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationPlanningConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationPlanningConsumerFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationPlanningConsumerHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationPlanningConsumerHandoffForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationPlanningConsumerHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationPlanningConsumerHandoffFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationDownstreamConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamConsumerForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationDownstreamConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamConsumerFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationDownstreamBoundaryHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamBoundaryHandoffForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationDownstreamBoundaryHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamBoundaryHandoffFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationDownstreamPlanningConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPlanningConsumerForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationDownstreamPlanningConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPlanningConsumerFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationDownstreamPlanningBoundaryHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPlanningBoundaryHandoffForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationDownstreamPreEncodingConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationDownstreamPreEncodingConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationDownstreamPreEncodingConsumerArtifact =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationNextDownstreamPreEncodingConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPreEncodingConsumerForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationNextDownstreamPreEncodingConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPreEncodingConsumerFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoff =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationNextDownstreamPlanningConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningConsumerForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationNextDownstreamPlanningConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningConsumerFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationNextResolvedPlanningConsumer =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputEncoderFieldMaterializationNextResolvedPlanningConsumerFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedPlanningConsumerFreezeForLifecycleNode(
+      summary.outputLifecycleId,
+    );
+  const outputRootReconciliation = inspectCanonicalLifecycleMembershipRootReconciliation(summary.outputLifecycleId);
+  return {
+    id: `swap:${summary.recordId}`,
+    createdAt: summary.createdAt,
+    kind: "swap",
+    lifecycleRecordId: summary.lifecycleRecordId,
+    lineageId: summary.lineageId,
+    title: "Swap asset transformation",
+    summary: "A VUSD predecessor note was consumed and a new shielded SOL successor note was retained in canonical state.",
+    liveReferenceLabel: "Consumed live note",
+    liveReferenceValue: summary.inputLiveNoteId,
+    assetSummary: `${summary.inputAmountDisplay} -> ${summary.outputAmountDisplay}`,
+    predecessorLifecycleId: summary.inputLifecycleId,
+    predecessorLinkageQuality: summary.inputLinkResolution,
+    canonicalConsumptionId: summary.canonicalConsumptionId,
+    canonicalConsumptionKind: summary.canonicalConsumptionKind,
+    canonicalConsumptionBasis: summary.canonicalConsumptionBasis,
+    canonicalNullifierStub: summary.canonicalNullifierStub,
+    predecessorLiveNoteId: summary.inputLiveNoteId,
+    predecessorCanonicalCommitment: summary.inputCanonicalCommitment,
+    predecessorCanonicalSource: summary.inputCanonicalRecordSource,
+    successors: [
+      {
+        label: "Shielded SOL output",
+        kind: "output",
+        lifecycleId: summary.outputLifecycleId,
+        lineageId: summary.outputLineageId,
+        predecessorLifecycleId: summary.outputPredecessorLifecycleId,
+        spendStatus: outputSpendStatus.spendStatus,
+        spendCapability: outputSpendStatus.spendCapability,
+        consumedByConsumptionId: outputSpendStatus.consumptionId,
+        consumedByKind: outputSpendStatus.consumptionKind,
+        nullifierReady: outputSpendStatus.nullifierReady,
+        witnessReadiness: outputMembership.readiness,
+        membershipLinkedByLifecycle: outputMembership.membershipLinkedByLifecycle,
+        derivedPathReady: hasCanonicalLifecycleDerivedMembershipPath(summary.outputLifecycleId),
+        derivedPathKind: outputDerivedPath?.kind,
+        derivedPathSemantics: outputDerivedPath?.semantics,
+        derivedPathDepth: outputDerivedPath?.depth,
+        derivedPathLeafIndex: outputDerivedPath?.leafIndex,
+        derivedPathDigestReady: hasCanonicalLifecycleDerivedMembershipPathDigests(summary.outputLifecycleId),
+        derivedPathDigestScheme: outputDerivedPath?.digestScheme,
+        derivedPathDigestLevelCount: outputDerivedPath?.levels.length,
+        candidatePathReady: hasCanonicalLifecycleCandidateMerkleMembershipPath(summary.outputLifecycleId),
+        candidatePathKind: outputCandidatePath?.kind,
+        candidatePathScheme: outputCandidatePath?.scheme,
+        candidatePathDepth: outputCandidatePath?.depth,
+        candidateAgreementReady: outputCandidateAgreement.agreementReady,
+        candidateAgreementStatus: outputCandidateAgreement.status,
+        witnessPackageReadiness: outputWitnessPackage.readiness,
+        witnessPackageSummary: createWitnessPackageSummary(outputWitnessPackage),
+        circuitInputReadiness: outputCircuitInput.readiness,
+        circuitInputKind: outputCircuitInput.kind,
+        circuitInputSummary: createCircuitInputSummary(outputCircuitInput),
+        circuitInputFieldGroupSummary: createCircuitInputFieldGroupSummary(outputCircuitInput),
+        fieldMappingPrecheckSummary: createFieldMappingPrecheckSummary(outputCircuitInput),
+        slotNormalizationSummary: createSlotNormalizationSummary(outputCircuitInput),
+        fieldCandidateSummary: createFieldCandidateSummary(outputCircuitInput),
+        fieldValuePreimageSummary: createFieldValuePreimageSummary(outputCircuitInput),
+        fieldLanePlanSummary: createFieldLanePlanSummary(outputCircuitInput),
+        laneArityPlanSummary: createLaneArityPlanSummary(outputCircuitInput),
+        fieldEmissionScheduleSummary: createFieldEmissionScheduleSummary(outputCircuitInput),
+        fieldConversionManifestSummary: createFieldConversionManifestSummary(outputCircuitInput),
+        finiteFieldDraftSummary: createFiniteFieldDraftSummary(outputCircuitInput),
+        draftCanonicalizationSummary: createDraftCanonicalizationSummary(outputCircuitInput),
+        modulusReadinessSummary: createModulusReadinessSummary(outputCircuitInput),
+        reductionPlanSummary: createReductionPlanSummary(outputCircuitInput),
+        fieldElementDraftSummary: createFieldElementDraftSummary(outputCircuitInput),
+        fieldElementAssemblySummary: createFieldElementAssemblySummary(outputCircuitInput),
+        witnessLayoutSummary: createWitnessLayoutSummary(outputCircuitInput),
+        witnessRealizationSummary: createWitnessRealizationSummary(outputCircuitInput),
+        witnessRealizationRecipeSummary: createWitnessRealizationRecipeSummary(outputCircuitInput),
+        witnessMaterializationManifestSummary:
+          createWitnessMaterializationManifestSummary(outputCircuitInput),
+        backendBridgeContractSummary: createBackendBridgeContractSummary(outputCircuitInput),
+	        backendAdapterHandshakeSummary:
+	          createBackendAdapterHandshakeSummary(outputCircuitInput),
+	        backendAdapterNormalizedSummary: createBackendAdapterNormalizedSummary(outputCircuitInput),
+	        adapterPayloadFreezeSummary: createAdapterPayloadFreezeSummary(outputCircuitInput),
+	        encoderStubSummary: createEncoderStubSummary(outputEncoderStub),
+	        encoderWorkItemSummary: createEncoderWorkItemSummary(outputEncoderWorkItems),
+	        encoderExecutionPlanSummary:
+	          createEncoderExecutionPlanSummary(outputEncoderExecutionPlan),
+	        encoderDispatchSummary: createEncoderDispatchSummary(outputEncoderDispatch),
+	        encoderDispatchAckSummary: createEncoderDispatchAckSummary(outputEncoderDispatchAck),
+	        encoderDispatchReadinessSummary:
+	          createEncoderDispatchReadinessSummary(outputEncoderDispatchReadiness),
+	        encoderSessionTicketSummary:
+	          createEncoderSessionTicketSummary(outputEncoderSessionTicket),
+	        encoderPreflightSummary:
+	          createEncoderPreflightSummary(outputEncoderPreflight),
+	        encoderPreflightFreezeSummary:
+	          createEncoderPreflightFreezeSummary(outputEncoderPreflightFreeze),
+	        encoderOrchestrationHandoffSummary:
+	          createEncoderOrchestrationHandoffSummary(outputEncoderOrchestrationHandoff),
+	        encoderOrchestrationHandoffFreezeSummary:
+	          createEncoderOrchestrationHandoffFreezeSummary(outputEncoderOrchestrationHandoffFreeze),
+	        encoderRunnerIntakeSummary:
+	          createEncoderRunnerIntakeSummary(outputEncoderRunnerIntake),
+	        encoderRunnerIntakeFreezeSummary:
+	          createEncoderRunnerIntakeFreezeSummary(outputEncoderRunnerIntakeFreeze),
+	        encoderRunnerLaunchEnvelopeSummary:
+	          createEncoderRunnerLaunchEnvelopeSummary(outputEncoderRunnerLaunchEnvelope),
+	        encoderRunnerLaunchEnvelopeFreezeSummary:
+	          createEncoderRunnerLaunchEnvelopeFreezeSummary(
+	            outputEncoderRunnerLaunchEnvelopeFreeze,
+	          ),
+	        encoderRunnerStartTicketSummary:
+	          createEncoderRunnerStartTicketSummary(outputEncoderRunnerStartTicket),
+	        encoderRunnerStartTicketFreezeSummary:
+	          createEncoderRunnerStartTicketFreezeSummary(
+	            outputEncoderRunnerStartTicketFreeze,
+	          ),
+	        encoderRunnerExecutionInputSummary:
+	          createEncoderRunnerExecutionInputSummary(
+	            outputEncoderRunnerExecutionInput,
+	          ),
+	        encoderRunnerExecutionEntryPlanSummary:
+	          createEncoderRunnerExecutionEntryPlanSummary(
+	            outputEncoderRunnerExecutionEntryPlan,
+	          ),
+	        encoderRunnerExecutionEntryPlanFreezeSummary:
+	          createEncoderRunnerExecutionEntryPlanFreezeSummary(
+	            outputEncoderRunnerExecutionEntryPlanFreeze,
+	          ),
+	        encoderRunnerExecutionSessionSummary:
+	          createEncoderRunnerExecutionSessionSummary(
+	            outputEncoderRunnerExecutionSession,
+	          ),
+	        encoderRunnerExecutionSessionFreezeSummary:
+	          createEncoderRunnerExecutionSessionFreezeSummary(
+	            outputEncoderRunnerExecutionSessionFreeze,
+	          ),
+	        encoderEncodingAdmissionSummary:
+	          createEncoderEncodingAdmissionSummary(outputEncoderEncodingAdmission),
+	        encoderEncodingAdmissionFreezeSummary:
+	          createEncoderEncodingAdmissionFreezeSummary(
+	            outputEncoderEncodingAdmissionFreeze,
+	          ),
+	        encoderFieldEncodingStartSummary:
+	          createEncoderFieldEncodingStartSummary(outputEncoderFieldEncodingStart),
+	        encoderFieldEncodingStartFreezeSummary:
+	          createEncoderFieldEncodingStartFreezeSummary(
+	            outputEncoderFieldEncodingStartFreeze,
+	          ),
+	        encoderFieldMaterializationAdmissionSummary:
+	          createEncoderFieldMaterializationAdmissionSummary(
+	            outputEncoderFieldMaterializationAdmission,
+	          ),
+	        encoderFieldMaterializationAdmissionFreezeSummary:
+	          createEncoderFieldMaterializationAdmissionFreezeSummary(
+	            outputEncoderFieldMaterializationAdmissionFreeze,
+	          ),
+	        encoderFieldRowMaterializationStartSummary:
+	          createEncoderFieldRowMaterializationStartSummary(
+	            outputEncoderFieldRowMaterializationStart,
+	          ),
+	        encoderFieldRowMaterializationStartFreezeSummary:
+	          createEncoderFieldRowMaterializationStartFreezeSummary(
+	            outputEncoderFieldRowMaterializationStartFreeze,
+	          ),
+	        encoderRowMaterializationAdmissionSummary:
+	          createEncoderRowMaterializationAdmissionSummary(
+	            outputEncoderRowMaterializationAdmission,
+	          ),
+	        encoderRowMaterializationAdmissionFreezeSummary:
+	          createEncoderRowMaterializationAdmissionFreezeSummary(
+	            outputEncoderRowMaterializationAdmissionFreeze,
+	          ),
+	        encoderRowLaneMaterializationStartSummary:
+	          createEncoderRowLaneMaterializationStartSummary(
+	            outputEncoderRowLaneMaterializationStart,
+	          ),
+	        encoderRowLaneMaterializationStartFreezeSummary:
+	          createEncoderRowLaneMaterializationStartFreezeSummary(
+	            outputEncoderRowLaneMaterializationStartFreeze,
+	          ),
+	        encoderRowFieldEmissionAdmissionSummary:
+	          createEncoderRowFieldEmissionAdmissionSummary(
+	            outputEncoderRowFieldEmissionAdmission,
+	          ),
+	        encoderRowFieldEmissionAdmissionFreezeSummary:
+	          createEncoderRowFieldEmissionAdmissionFreezeSummary(
+	            outputEncoderRowFieldEmissionAdmissionFreeze,
+	          ),
+	        encoderRowFieldEmissionStartSummary:
+	          createEncoderRowFieldEmissionStartSummary(
+	            outputEncoderRowFieldEmissionStart,
+	          ),
+	        encoderRowFieldEmissionStartFreezeSummary:
+	          createEncoderRowFieldEmissionStartFreezeSummary(
+	            outputEncoderRowFieldEmissionStartFreeze,
+	          ),
+	        encoderFieldLaneExecutionAdmissionSummary:
+	          createEncoderFieldLaneExecutionAdmissionSummary(
+	            outputEncoderFieldLaneExecutionAdmission,
+	          ),
+	        encoderFieldLaneExecutionAdmissionFreezeSummary:
+	          createEncoderFieldLaneExecutionAdmissionFreezeSummary(
+	            outputEncoderFieldLaneExecutionAdmissionFreeze,
+	          ),
+	        encoderFieldLaneExecutionStartSummary:
+	          createEncoderFieldLaneExecutionStartSummary(
+	            outputEncoderFieldLaneExecutionStart,
+	          ),
+	        encoderFieldLaneExecutionStartFreezeSummary:
+	          createEncoderFieldLaneExecutionStartFreezeSummary(
+	            outputEncoderFieldLaneExecutionStartFreeze,
+	          ),
+	        encoderFieldMaterializationLaunchAdmissionSummary:
+	          createEncoderFieldMaterializationLaunchAdmissionSummary(
+	            outputEncoderFieldMaterializationLaunchAdmission,
+	          ),
+	        encoderFieldMaterializationLaunchAdmissionFreezeSummary:
+	          createEncoderFieldMaterializationLaunchAdmissionFreezeSummary(
+	            outputEncoderFieldMaterializationLaunchAdmissionFreeze,
+	          ),
+	        encoderFieldMaterializationLaunchStartSummary:
+	          createEncoderFieldMaterializationLaunchStartSummary(
+	            outputEncoderFieldMaterializationLaunchStart,
+	          ),
+	        encoderFieldMaterializationLaunchStartFreezeSummary:
+	          createEncoderFieldMaterializationLaunchStartFreezeSummary(
+	            outputEncoderFieldMaterializationLaunchStartFreeze,
+	          ),
+	        encoderFieldMaterializationExecutionAdmissionSummary:
+	          createEncoderFieldMaterializationExecutionAdmissionSummary(
+	            outputEncoderFieldMaterializationExecutionAdmission,
+	          ),
+	        encoderFieldMaterializationExecutionAdmissionFreezeSummary:
+	          createEncoderFieldMaterializationExecutionAdmissionFreezeSummary(
+	            outputEncoderFieldMaterializationExecutionAdmissionFreeze,
+	          ),
+	        encoderFieldMaterializationExecutionStartSummary:
+	          createEncoderFieldMaterializationExecutionStartSummary(
+	            outputEncoderFieldMaterializationExecutionStart,
+	          ),
+	        encoderFieldMaterializationExecutionStartFreezeSummary:
+	          createEncoderFieldMaterializationExecutionStartFreezeSummary(
+	            outputEncoderFieldMaterializationExecutionStartFreeze,
+	          ),
+	        encoderFieldMaterializationExecutionWorkEnvelopeSummary:
+	          createEncoderFieldMaterializationExecutionWorkEnvelopeSummary(
+	            outputEncoderFieldMaterializationExecutionWorkEnvelope,
+	          ),
+	        encoderFieldMaterializationExecutionWorkEnvelopeFreezeSummary:
+	          createEncoderFieldMaterializationExecutionWorkEnvelopeFreezeSummary(
+	            outputEncoderFieldMaterializationExecutionWorkEnvelopeFreeze,
+	          ),
+	        encoderFieldMaterializationExecutionPlanSummary:
+	          createEncoderFieldMaterializationExecutionPlanSummary(
+	            outputEncoderFieldMaterializationExecutionPlan,
+	          ),
+	        encoderFieldMaterializationExecutionPlanFreezeSummary:
+	          createEncoderFieldMaterializationExecutionPlanFreezeSummary(
+	            outputEncoderFieldMaterializationExecutionPlanFreeze,
+	          ),
+	        encoderFieldMaterializationExecutionPlanHandoffSummary:
+	          createEncoderFieldMaterializationExecutionPlanHandoffSummary(
+	            outputEncoderFieldMaterializationExecutionPlanHandoff,
+	          ),
+	        encoderFieldMaterializationExecutionPlanHandoffFreezeSummary:
+	          createEncoderFieldMaterializationExecutionPlanHandoffFreezeSummary(
+	            outputEncoderFieldMaterializationExecutionPlanHandoffFreeze,
+	          ),
+	        encoderFieldMaterializationPlanningConsumerSummary:
+	          createEncoderFieldMaterializationPlanningConsumerSummary(
+	            outputEncoderFieldMaterializationPlanningConsumer,
+	          ),
+	        encoderFieldMaterializationPlanningConsumerFreezeSummary:
+	          createEncoderFieldMaterializationPlanningConsumerFreezeSummary(
+	            outputEncoderFieldMaterializationPlanningConsumerFreeze,
+	          ),
+	        encoderFieldMaterializationPlanningConsumerHandoffSummary:
+	          createEncoderFieldMaterializationPlanningConsumerHandoffSummary(
+	            outputEncoderFieldMaterializationPlanningConsumerHandoff,
+	          ),
+	        encoderFieldMaterializationPlanningConsumerHandoffFreezeSummary:
+	          createEncoderFieldMaterializationPlanningConsumerHandoffFreezeSummary(
+	            outputEncoderFieldMaterializationPlanningConsumerHandoffFreeze,
+	          ),
+	        encoderFieldMaterializationDownstreamConsumerSummary:
+	          createEncoderFieldMaterializationDownstreamConsumerSummary(
+	            outputEncoderFieldMaterializationDownstreamConsumer,
+	          ),
+	        encoderFieldMaterializationDownstreamConsumerFreezeSummary:
+	          createEncoderFieldMaterializationDownstreamConsumerFreezeSummary(
+	            outputEncoderFieldMaterializationDownstreamConsumerFreeze,
+	          ),
+	        encoderFieldMaterializationDownstreamBoundaryHandoffSummary:
+	          createEncoderFieldMaterializationDownstreamBoundaryHandoffSummary(
+	            outputEncoderFieldMaterializationDownstreamBoundaryHandoff,
+	          ),
+	        encoderFieldMaterializationDownstreamBoundaryHandoffFreezeSummary:
+	          createEncoderFieldMaterializationDownstreamBoundaryHandoffFreezeSummary(
+	            outputEncoderFieldMaterializationDownstreamBoundaryHandoffFreeze,
+	          ),
+	        encoderFieldMaterializationDownstreamPlanningConsumerSummary:
+	          createEncoderFieldMaterializationDownstreamPlanningConsumerSummary(
+	            outputEncoderFieldMaterializationDownstreamPlanningConsumer,
+	          ),
+	        encoderFieldMaterializationDownstreamPlanningConsumerFreezeSummary:
+	          createEncoderFieldMaterializationDownstreamPlanningConsumerFreezeSummary(
+	            outputEncoderFieldMaterializationDownstreamPlanningConsumerFreeze,
+	          ),
+	        encoderFieldMaterializationDownstreamPlanningBoundaryHandoffSummary:
+	          createEncoderFieldMaterializationDownstreamPlanningBoundaryHandoffSummary(
+	            outputEncoderFieldMaterializationDownstreamPlanningBoundaryHandoff,
+	          ),
+	        encoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreezeSummary:
+	          createEncoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreezeSummary(
+	            outputEncoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreeze,
+	          ),
+	        encoderFieldMaterializationDownstreamPreEncodingConsumerSummary:
+	          createEncoderFieldMaterializationDownstreamPreEncodingConsumerSummary(
+	            outputEncoderFieldMaterializationDownstreamPreEncodingConsumer,
+	          ),
+	        encoderFieldMaterializationDownstreamPreEncodingConsumerFreezeSummary:
+	          createEncoderFieldMaterializationDownstreamPreEncodingConsumerFreezeSummary(
+	            outputEncoderFieldMaterializationDownstreamPreEncodingConsumerFreeze,
+	          ),
+	        encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffSummary:
+	          createEncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffSummary(
+	            outputEncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoff,
+	          ),
+	        encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreezeSummary:
+	          createEncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreezeSummary(
+	            outputEncoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreeze,
+	          ),
+	        encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerSummary:
+	          createEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerSummary(
+	            outputEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumer,
+	          ),
+	        encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreezeSummary:
+	          createEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreezeSummary(
+	            outputEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreeze,
+	          ),
+	        encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffSummary:
+	          createEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffSummary(
+	            outputEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoff,
+	          ),
+	        encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreezeSummary:
+	          createEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreezeSummary(
+	            outputEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreeze,
+	          ),
+	        encoderFieldMaterializationDownstreamPreEncodingConsumerArtifactSummary:
+	          createEncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactSummary(
+	            outputEncoderFieldMaterializationDownstreamPreEncodingConsumerArtifact,
+	          ),
+	        encoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreezeSummary:
+	          createEncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreezeSummary(
+	            outputEncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreeze,
+	          ),
+	        encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffSummary:
+	          createEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffSummary(
+	            outputEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoff,
+	          ),
+	        encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary:
+	          createEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary(
+	            outputEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreeze,
+	          ),
+	        encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSummary:
+	          createEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSummary(
+	            outputEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumer,
+	          ),
+	        encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreezeSummary:
+	          createEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreezeSummary(
+	            outputEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreeze,
+	          ),
+	        encoderFieldMaterializationNextDownstreamPreEncodingConsumerSummary:
+	          createEncoderFieldMaterializationNextDownstreamPreEncodingConsumerSummary(
+	            outputEncoderFieldMaterializationNextDownstreamPreEncodingConsumer,
+	          ),
+	        encoderFieldMaterializationNextDownstreamPreEncodingConsumerFreezeSummary:
+	          createEncoderFieldMaterializationNextDownstreamPreEncodingConsumerFreezeSummary(
+	            outputEncoderFieldMaterializationNextDownstreamPreEncodingConsumerFreeze,
+	          ),
+	        encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSummary:
+	          createEncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSummary(
+	            outputEncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoff,
+	          ),
+	        encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary:
+	          createEncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary(
+	            outputEncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreeze,
+	          ),
+	        encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerSummary:
+	          createEncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerSummary(
+	            outputEncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumer,
+	          ),
+	        encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreezeSummary:
+	          createEncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreezeSummary(
+	            outputEncoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreeze,
+	          ),
+	        encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffSummary:
+	          createEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffSummary(
+	            outputEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoff,
+	          ),
+	        encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreezeSummary:
+	          createEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreezeSummary(
+	            outputEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreeze,
+	          ),
+	        encoderFieldMaterializationNextDownstreamPlanningConsumerSummary:
+	          createEncoderFieldMaterializationNextDownstreamPlanningConsumerSummary(
+	            outputEncoderFieldMaterializationNextDownstreamPlanningConsumer,
+	          ),
+	        encoderFieldMaterializationNextDownstreamPlanningConsumerFreezeSummary:
+	          createEncoderFieldMaterializationNextDownstreamPlanningConsumerFreezeSummary(
+	            outputEncoderFieldMaterializationNextDownstreamPlanningConsumerFreeze,
+	          ),
+	        encoderFieldMaterializationNextResolvedPlanningConsumerSummary:
+	          createEncoderFieldMaterializationNextResolvedPlanningConsumerSummary(
+	            outputEncoderFieldMaterializationNextResolvedPlanningConsumer,
+	          ),
+	        encoderFieldMaterializationNextResolvedPlanningConsumerFreezeSummary:
+	          createEncoderFieldMaterializationNextResolvedPlanningConsumerFreezeSummary(
+	            outputEncoderFieldMaterializationNextResolvedPlanningConsumerFreeze,
+	          ),
+	        rootReconciliationReady: outputRootReconciliation.reconciliationReady,
+        rootReconciliationStatus: outputRootReconciliation.status,
+        rootReconciliationScheme: outputRootReconciliation.scheme,
+        currentRootLikeDigest: outputRootReconciliation.currentRootLikeDigest,
+        futureRootSeamValue: outputRootReconciliation.futureRootValue,
+        futureRootSeamKind: outputRootReconciliation.futureRootSourceKind,
+        futureRootSeamScheme: outputRootReconciliation.futureRootScheme,
+        futureRootSeamLeafCount: outputRootReconciliation.futureRootSnapshotLeafCount,
+        futureRootSeamSnapshotRoot: outputRootReconciliation.futureRootSnapshotRoot,
+        amountSummary: summary.outputAmountDisplay,
+        assetSummary: summary.outputAsset,
+        liveNoteId: summary.outputLiveNoteId,
+        commitment: summary.outputCommitment,
+        insertionIndex: summary.outputInsertionIndex,
+        snapshotRoot: summary.outputSnapshotRoot,
+        snapshotLeafCount: summary.outputSnapshotLeafCount,
+      },
+    ],
+    transitionSignature: summary.transitionSignature,
+    spentMarkerSignature: summary.spentMarkerSignature,
+    operatorRequestId: summary.operatorRequestId,
+    venueSummary: summary.venueSummary,
+    continuityStatus: "transformed",
+  };
+}
+
+function normalizeUnshieldEvent(
+  summary: LiveUnshieldDiagnosticsSummary,
+): CanonicalLifecycleInspectionEvent {
+  return {
+    id: `unshield:${summary.recordId}`,
+    createdAt: summary.createdAt,
+    kind: "unshield",
+    lifecycleRecordId: summary.lifecycleRecordId,
+    lineageId: summary.lineageId,
+    endpointLifecycleId: summary.endpointLifecycleId,
+    title: summary.asset === "SOL" ? "SOL exit consumed" : "VUSD exit consumed",
+    summary: "A canonical note lifecycle endpoint was retained for a real operator-backed exit back to Public Wallet.",
+    liveReferenceLabel: "Consumed live note",
+    liveReferenceValue: summary.consumedLiveNoteId,
+    assetSummary: `${summary.amountDisplay} ${summary.asset}`,
+    predecessorLifecycleId: summary.consumedLifecycleId,
+    predecessorLinkageQuality: summary.consumedLinkResolution,
+    canonicalConsumptionId: summary.canonicalConsumptionId,
+    canonicalConsumptionKind: summary.canonicalConsumptionKind,
+    canonicalConsumptionBasis: summary.canonicalConsumptionBasis,
+    canonicalNullifierStub: summary.canonicalNullifierStub,
+    predecessorLiveNoteId: summary.consumedLiveNoteId,
+    predecessorCanonicalCommitment: summary.consumedCanonicalCommitment,
+    predecessorCanonicalSource: summary.consumedCanonicalRecordSource,
+    successors: [],
+    transitionSignature: summary.transitionSignature,
+    spentMarkerSignature: summary.spentMarkerSignature,
+    operatorRequestId: summary.operatorRequestId,
+    exitSummary: summary.destinationOwner,
+    continuityStatus: "exited",
+  };
+}
+
+function buildLifecycleLineages(
+  events: CanonicalLifecycleInspectionEvent[],
+): CanonicalLifecycleLineage[] {
+  if (events.length === 0) {
+    return [];
+  }
+
+  const parent = new Map<string, string>(events.map((event) => [event.id, event.id]));
+  const explicitAnchorsByEvent = new Map(events.map((event) => [event.id, getExplicitAnchors(event)]));
+  const canonicalAnchorsByEvent = new Map(events.map((event) => [event.id, getCanonicalAnchors(event)]));
+  const heuristicAnchorsByEvent = new Map(events.map((event) => [event.id, getHeuristicAnchors(event)]));
+
+  const find = (id: string): string => {
+    const currentParent = parent.get(id) ?? id;
+
+    if (currentParent === id) {
+      return id;
+    }
+
+    const root = find(currentParent);
+    parent.set(id, root);
+    return root;
+  };
+
+  const union = (leftId: string, rightId: string) => {
+    const leftRoot = find(leftId);
+    const rightRoot = find(rightId);
+
+    if (leftRoot !== rightRoot) {
+      parent.set(rightRoot, leftRoot);
+    }
+  };
+
+  const connectByAnchors = (anchorsByEvent: Map<string, string[]>) => {
+    const anchorOwner = new Map<string, string>();
+
+    for (const event of events) {
+      for (const anchor of anchorsByEvent.get(event.id) ?? []) {
+        const owner = anchorOwner.get(anchor);
+
+        if (owner) {
+          union(owner, event.id);
+        } else {
+          anchorOwner.set(anchor, event.id);
+        }
+      }
+    }
+  };
+
+  connectByAnchors(explicitAnchorsByEvent);
+  connectByAnchors(canonicalAnchorsByEvent);
+  connectByAnchors(heuristicAnchorsByEvent);
+
+  const groups = new Map<string, CanonicalLifecycleInspectionEvent[]>();
+
+  for (const event of events) {
+    const root = find(event.id);
+    const group = groups.get(root) ?? [];
+    group.push(event);
+    groups.set(root, group);
+  }
+
+  return [...groups.entries()]
+    .map(([groupKey, groupEvents]) => {
+      const sortedEvents = [...groupEvents].sort((left, right) => left.createdAt - right.createdAt);
+      const explicitAnchors = [...new Set(groupEvents.flatMap((event) => explicitAnchorsByEvent.get(event.id) ?? []))];
+      const canonicalAnchors = [...new Set(groupEvents.flatMap((event) => canonicalAnchorsByEvent.get(event.id) ?? []))];
+      const heuristicAnchors = [...new Set(groupEvents.flatMap((event) => heuristicAnchorsByEvent.get(event.id) ?? []))];
+
+      return {
+        key: groupKey,
+        label: createLineageLabel(sortedEvents, explicitAnchors, canonicalAnchors, heuristicAnchors),
+        groupingQuality: determineGroupingQuality(sortedEvents, explicitAnchors, canonicalAnchors, heuristicAnchors),
+        events: sortedEvents,
+        explicitAnchors,
+        canonicalAnchors,
+        heuristicAnchors,
+        detailSummary: buildLineageDetailSummary(sortedEvents),
+      } satisfies CanonicalLifecycleLineage;
+    })
+    .sort((left, right) => (left.events[0]?.createdAt ?? 0) - (right.events[0]?.createdAt ?? 0));
+}
+
+function buildLineageDetailSummary(
+  events: CanonicalLifecycleInspectionEvent[],
+): CanonicalLifecycleLineageDetailSummary {
+  const branchPoints = events
+    .filter((event) => event.successors.length > 1)
+    .map((event) => buildBranchPointSummary(event, events));
+
+  return {
+    hasBranching: branchPoints.length > 0,
+    branchPointCount: branchPoints.length,
+    branchingQuality: summarizeBranchQuality(branchPoints.map((branchPoint) => branchPoint.branchQuality)),
+    branchPoints,
+  };
+}
+
+function buildBranchPointSummary(
+  sourceEvent: CanonicalLifecycleInspectionEvent,
+  lineageEvents: CanonicalLifecycleInspectionEvent[],
+): CanonicalLifecycleBranchPointSummary {
+  const laterEvents = lineageEvents.filter((event) => event.createdAt >= sourceEvent.createdAt && event.id !== sourceEvent.id);
+  const branches = sourceEvent.successors.map((successor) => {
+    const downstreamEvents = findBranchContinuations(successor, laterEvents);
+    const continuityQuality = downstreamEvents[0]?.continuityQuality ?? "unresolved";
+    const chainSummary = buildBranchChainSummary(sourceEvent, successor, laterEvents);
+
+    return {
+      successorLabel: successor.label,
+      successorKind: successor.kind,
+      spendStatus: successor.spendStatus,
+      spendCapability: successor.spendCapability,
+      consumedByConsumptionId: successor.consumedByConsumptionId,
+      consumedByKind: successor.consumedByKind,
+      nullifierReady: successor.nullifierReady,
+      witnessReadiness: successor.witnessReadiness,
+      membershipLinkedByLifecycle: successor.membershipLinkedByLifecycle,
+      derivedPathReady: successor.derivedPathReady,
+      derivedPathKind: successor.derivedPathKind,
+      derivedPathSemantics: successor.derivedPathSemantics,
+      derivedPathDepth: successor.derivedPathDepth,
+      derivedPathLeafIndex: successor.derivedPathLeafIndex,
+      derivedPathDigestReady: successor.derivedPathDigestReady,
+      derivedPathDigestScheme: successor.derivedPathDigestScheme,
+      derivedPathDigestLevelCount: successor.derivedPathDigestLevelCount,
+      candidatePathReady: successor.candidatePathReady,
+      candidatePathKind: successor.candidatePathKind,
+      candidatePathScheme: successor.candidatePathScheme,
+      candidatePathDepth: successor.candidatePathDepth,
+      candidateAgreementReady: successor.candidateAgreementReady,
+      candidateAgreementStatus: successor.candidateAgreementStatus,
+      witnessPackageReadiness: successor.witnessPackageReadiness,
+      witnessPackageSummary: successor.witnessPackageSummary,
+      circuitInputReadiness: successor.circuitInputReadiness,
+      circuitInputKind: successor.circuitInputKind,
+      circuitInputSummary: successor.circuitInputSummary,
+      circuitInputFieldGroupSummary: successor.circuitInputFieldGroupSummary,
+      fieldMappingPrecheckSummary: successor.fieldMappingPrecheckSummary,
+      slotNormalizationSummary: successor.slotNormalizationSummary,
+      fieldCandidateSummary: successor.fieldCandidateSummary,
+      fieldValuePreimageSummary: successor.fieldValuePreimageSummary,
+      fieldLanePlanSummary: successor.fieldLanePlanSummary,
+      laneArityPlanSummary: successor.laneArityPlanSummary,
+      fieldEmissionScheduleSummary: successor.fieldEmissionScheduleSummary,
+      fieldConversionManifestSummary: successor.fieldConversionManifestSummary,
+      finiteFieldDraftSummary: successor.finiteFieldDraftSummary,
+      draftCanonicalizationSummary: successor.draftCanonicalizationSummary,
+      modulusReadinessSummary: successor.modulusReadinessSummary,
+      reductionPlanSummary: successor.reductionPlanSummary,
+      fieldElementDraftSummary: successor.fieldElementDraftSummary,
+      fieldElementAssemblySummary: successor.fieldElementAssemblySummary,
+      witnessLayoutSummary: successor.witnessLayoutSummary,
+      witnessRealizationSummary: successor.witnessRealizationSummary,
+      witnessRealizationRecipeSummary: successor.witnessRealizationRecipeSummary,
+      witnessMaterializationManifestSummary: successor.witnessMaterializationManifestSummary,
+      backendBridgeContractSummary: successor.backendBridgeContractSummary,
+      backendAdapterHandshakeSummary: successor.backendAdapterHandshakeSummary,
+      backendAdapterNormalizedSummary: successor.backendAdapterNormalizedSummary,
+      adapterPayloadFreezeSummary: successor.adapterPayloadFreezeSummary,
+      encoderStubSummary: successor.encoderStubSummary,
+      encoderWorkItemSummary: successor.encoderWorkItemSummary,
+      encoderExecutionPlanSummary: successor.encoderExecutionPlanSummary,
+      encoderDispatchSummary: successor.encoderDispatchSummary,
+      encoderDispatchAckSummary: successor.encoderDispatchAckSummary,
+      encoderDispatchReadinessSummary: successor.encoderDispatchReadinessSummary,
+      encoderSessionTicketSummary: successor.encoderSessionTicketSummary,
+      encoderPreflightSummary: successor.encoderPreflightSummary,
+      encoderPreflightFreezeSummary: successor.encoderPreflightFreezeSummary,
+      encoderOrchestrationHandoffSummary: successor.encoderOrchestrationHandoffSummary,
+      encoderOrchestrationHandoffFreezeSummary: successor.encoderOrchestrationHandoffFreezeSummary,
+      encoderRunnerIntakeSummary: successor.encoderRunnerIntakeSummary,
+      encoderRunnerIntakeFreezeSummary: successor.encoderRunnerIntakeFreezeSummary,
+      encoderRunnerLaunchEnvelopeSummary: successor.encoderRunnerLaunchEnvelopeSummary,
+      encoderRunnerLaunchEnvelopeFreezeSummary:
+        successor.encoderRunnerLaunchEnvelopeFreezeSummary,
+      encoderRunnerStartTicketSummary: successor.encoderRunnerStartTicketSummary,
+      encoderRunnerStartTicketFreezeSummary:
+        successor.encoderRunnerStartTicketFreezeSummary,
+      encoderRunnerExecutionInputSummary:
+        successor.encoderRunnerExecutionInputSummary,
+      encoderRunnerExecutionEntryPlanSummary:
+        successor.encoderRunnerExecutionEntryPlanSummary,
+      encoderRunnerExecutionEntryPlanFreezeSummary:
+        successor.encoderRunnerExecutionEntryPlanFreezeSummary,
+      encoderRunnerExecutionSessionSummary:
+        successor.encoderRunnerExecutionSessionSummary,
+      encoderRunnerExecutionSessionFreezeSummary:
+        successor.encoderRunnerExecutionSessionFreezeSummary,
+      encoderEncodingAdmissionSummary: successor.encoderEncodingAdmissionSummary,
+      encoderEncodingAdmissionFreezeSummary:
+        successor.encoderEncodingAdmissionFreezeSummary,
+      encoderFieldEncodingStartSummary: successor.encoderFieldEncodingStartSummary,
+      encoderFieldEncodingStartFreezeSummary:
+        successor.encoderFieldEncodingStartFreezeSummary,
+      encoderFieldMaterializationAdmissionSummary:
+        successor.encoderFieldMaterializationAdmissionSummary,
+      encoderFieldMaterializationAdmissionFreezeSummary:
+        successor.encoderFieldMaterializationAdmissionFreezeSummary,
+      encoderFieldRowMaterializationStartSummary:
+        successor.encoderFieldRowMaterializationStartSummary,
+      encoderFieldRowMaterializationStartFreezeSummary:
+        successor.encoderFieldRowMaterializationStartFreezeSummary,
+      encoderRowMaterializationAdmissionSummary:
+        successor.encoderRowMaterializationAdmissionSummary,
+      encoderRowMaterializationAdmissionFreezeSummary:
+        successor.encoderRowMaterializationAdmissionFreezeSummary,
+      encoderRowLaneMaterializationStartSummary:
+        successor.encoderRowLaneMaterializationStartSummary,
+      encoderRowLaneMaterializationStartFreezeSummary:
+        successor.encoderRowLaneMaterializationStartFreezeSummary,
+      encoderRowFieldEmissionAdmissionSummary:
+        successor.encoderRowFieldEmissionAdmissionSummary,
+      encoderRowFieldEmissionAdmissionFreezeSummary:
+        successor.encoderRowFieldEmissionAdmissionFreezeSummary,
+      encoderRowFieldEmissionStartSummary:
+        successor.encoderRowFieldEmissionStartSummary,
+      encoderRowFieldEmissionStartFreezeSummary:
+        successor.encoderRowFieldEmissionStartFreezeSummary,
+      encoderFieldLaneExecutionAdmissionSummary:
+        successor.encoderFieldLaneExecutionAdmissionSummary,
+      encoderFieldLaneExecutionAdmissionFreezeSummary:
+        successor.encoderFieldLaneExecutionAdmissionFreezeSummary,
+      encoderFieldLaneExecutionStartSummary:
+        successor.encoderFieldLaneExecutionStartSummary,
+      encoderFieldLaneExecutionStartFreezeSummary:
+        successor.encoderFieldLaneExecutionStartFreezeSummary,
+      encoderFieldMaterializationLaunchAdmissionSummary:
+        successor.encoderFieldMaterializationLaunchAdmissionSummary,
+      encoderFieldMaterializationLaunchAdmissionFreezeSummary:
+        successor.encoderFieldMaterializationLaunchAdmissionFreezeSummary,
+      encoderFieldMaterializationLaunchStartSummary:
+        successor.encoderFieldMaterializationLaunchStartSummary,
+      encoderFieldMaterializationLaunchStartFreezeSummary:
+        successor.encoderFieldMaterializationLaunchStartFreezeSummary,
+      encoderFieldMaterializationExecutionAdmissionSummary:
+        successor.encoderFieldMaterializationExecutionAdmissionSummary,
+      encoderFieldMaterializationExecutionAdmissionFreezeSummary:
+        successor.encoderFieldMaterializationExecutionAdmissionFreezeSummary,
+      encoderFieldMaterializationExecutionStartSummary:
+        successor.encoderFieldMaterializationExecutionStartSummary,
+      encoderFieldMaterializationExecutionStartFreezeSummary:
+        successor.encoderFieldMaterializationExecutionStartFreezeSummary,
+      encoderFieldMaterializationExecutionWorkEnvelopeSummary:
+        successor.encoderFieldMaterializationExecutionWorkEnvelopeSummary,
+      encoderFieldMaterializationExecutionWorkEnvelopeFreezeSummary:
+        successor.encoderFieldMaterializationExecutionWorkEnvelopeFreezeSummary,
+      encoderFieldMaterializationExecutionPlanSummary:
+        successor.encoderFieldMaterializationExecutionPlanSummary,
+      encoderFieldMaterializationExecutionPlanFreezeSummary:
+        successor.encoderFieldMaterializationExecutionPlanFreezeSummary,
+      encoderFieldMaterializationExecutionPlanHandoffSummary:
+        successor.encoderFieldMaterializationExecutionPlanHandoffSummary,
+      encoderFieldMaterializationExecutionPlanHandoffFreezeSummary:
+        successor.encoderFieldMaterializationExecutionPlanHandoffFreezeSummary,
+      encoderFieldMaterializationPlanningConsumerSummary:
+        successor.encoderFieldMaterializationPlanningConsumerSummary,
+      encoderFieldMaterializationPlanningConsumerFreezeSummary:
+        successor.encoderFieldMaterializationPlanningConsumerFreezeSummary,
+      encoderFieldMaterializationPlanningConsumerHandoffSummary:
+        successor.encoderFieldMaterializationPlanningConsumerHandoffSummary,
+      encoderFieldMaterializationPlanningConsumerHandoffFreezeSummary:
+        successor.encoderFieldMaterializationPlanningConsumerHandoffFreezeSummary,
+      encoderFieldMaterializationDownstreamConsumerSummary:
+        successor.encoderFieldMaterializationDownstreamConsumerSummary,
+      encoderFieldMaterializationDownstreamConsumerFreezeSummary:
+        successor.encoderFieldMaterializationDownstreamConsumerFreezeSummary,
+      encoderFieldMaterializationDownstreamBoundaryHandoffSummary:
+        successor.encoderFieldMaterializationDownstreamBoundaryHandoffSummary,
+      encoderFieldMaterializationDownstreamBoundaryHandoffFreezeSummary:
+        successor.encoderFieldMaterializationDownstreamBoundaryHandoffFreezeSummary,
+      encoderFieldMaterializationDownstreamPlanningConsumerSummary:
+        successor.encoderFieldMaterializationDownstreamPlanningConsumerSummary,
+      encoderFieldMaterializationDownstreamPlanningConsumerFreezeSummary:
+        successor.encoderFieldMaterializationDownstreamPlanningConsumerFreezeSummary,
+      encoderFieldMaterializationDownstreamPlanningBoundaryHandoffSummary:
+        successor.encoderFieldMaterializationDownstreamPlanningBoundaryHandoffSummary,
+      encoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreezeSummary:
+        successor.encoderFieldMaterializationDownstreamPlanningBoundaryHandoffFreezeSummary,
+      encoderFieldMaterializationDownstreamPreEncodingConsumerSummary:
+        successor.encoderFieldMaterializationDownstreamPreEncodingConsumerSummary,
+      encoderFieldMaterializationDownstreamPreEncodingConsumerFreezeSummary:
+        successor.encoderFieldMaterializationDownstreamPreEncodingConsumerFreezeSummary,
+      encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffSummary:
+        successor.encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffSummary,
+      encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreezeSummary:
+        successor.encoderFieldMaterializationDownstreamPreEncodingBoundaryHandoffFreezeSummary,
+      encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerSummary:
+        successor.encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerSummary,
+      encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreezeSummary:
+        successor.encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreezeSummary,
+      encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffSummary:
+        successor.encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffSummary,
+      encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreezeSummary:
+        successor.encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffFreezeSummary,
+      encoderFieldMaterializationDownstreamPreEncodingConsumerArtifactSummary:
+        successor.encoderFieldMaterializationDownstreamPreEncodingConsumerArtifactSummary,
+      encoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreezeSummary:
+        successor.encoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreezeSummary,
+      encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffSummary:
+        successor.encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffSummary,
+      encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary:
+        successor.encoderFieldMaterializationDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary,
+      encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSummary:
+        successor.encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSummary,
+      encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreezeSummary:
+        successor.encoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreezeSummary,
+      encoderFieldMaterializationNextDownstreamPreEncodingConsumerSummary:
+        successor.encoderFieldMaterializationNextDownstreamPreEncodingConsumerSummary,
+      encoderFieldMaterializationNextDownstreamPreEncodingConsumerFreezeSummary:
+        successor.encoderFieldMaterializationNextDownstreamPreEncodingConsumerFreezeSummary,
+      encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSummary:
+        successor.encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSummary,
+      encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary:
+        successor.encoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreezeSummary,
+      encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerSummary:
+        successor.encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerSummary,
+      encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreezeSummary:
+        successor.encoderFieldMaterializationNextDownstreamPlanningBoundaryConsumerFreezeSummary,
+      encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffSummary:
+        successor.encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffSummary,
+      encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreezeSummary:
+        successor.encoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffFreezeSummary,
+      encoderFieldMaterializationNextDownstreamPlanningConsumerSummary:
+        successor.encoderFieldMaterializationNextDownstreamPlanningConsumerSummary,
+      encoderFieldMaterializationNextDownstreamPlanningConsumerFreezeSummary:
+        successor.encoderFieldMaterializationNextDownstreamPlanningConsumerFreezeSummary,
+      encoderFieldMaterializationNextResolvedPlanningConsumerSummary:
+        successor.encoderFieldMaterializationNextResolvedPlanningConsumerSummary,
+      encoderFieldMaterializationNextResolvedPlanningConsumerFreezeSummary:
+        successor.encoderFieldMaterializationNextResolvedPlanningConsumerFreezeSummary,
+      rootReconciliationReady: successor.rootReconciliationReady,
+      rootReconciliationStatus: successor.rootReconciliationStatus,
+      rootReconciliationScheme: successor.rootReconciliationScheme,
+      currentRootLikeDigest: successor.currentRootLikeDigest,
+      futureRootSeamValue: successor.futureRootSeamValue,
+      futureRootSeamKind: successor.futureRootSeamKind,
+      futureRootSeamScheme: successor.futureRootSeamScheme,
+      futureRootSeamLeafCount: successor.futureRootSeamLeafCount,
+      futureRootSeamSnapshotRoot: successor.futureRootSeamSnapshotRoot,
+      amountSummary: successor.amountSummary,
+      assetSummary: successor.assetSummary,
+      liveNoteId: successor.liveNoteId,
+      commitment: successor.commitment,
+      insertionIndex: successor.insertionIndex,
+      snapshotRoot: successor.snapshotRoot,
+      snapshotLeafCount: successor.snapshotLeafCount,
+      ownerPublicKey: successor.ownerPublicKey,
+      continuityQuality,
+      continuitySummary: createBranchContinuitySummary(successor, downstreamEvents),
+      chainSummary,
+      downstreamEvents,
+    } satisfies CanonicalLifecycleBranchPathSummary;
+  });
+
+  return {
+    sourceEventId: sourceEvent.id,
+    sourceEventKind: sourceEvent.kind,
+    sourceEventTitle: sourceEvent.title,
+    createdAt: sourceEvent.createdAt,
+    predecessorLiveNoteId: sourceEvent.predecessorLiveNoteId,
+    predecessorCanonicalCommitment: sourceEvent.predecessorCanonicalCommitment,
+    branchCount: branches.length,
+    branchQuality: summarizeBranchQuality(branches.map((branch) => branch.continuityQuality)),
+    branches,
+  };
+}
+
+function findBranchContinuations(
+  successor: CanonicalLifecycleSuccessorSummary,
+  laterEvents: CanonicalLifecycleInspectionEvent[],
+): CanonicalLifecycleBranchContinuation[] {
+  const continuations = laterEvents.flatMap((event) => {
+    const matches: CanonicalLifecycleBranchContinuation[] = [];
+
+    if (
+      successor.lifecycleId &&
+      event.predecessorLifecycleId &&
+      event.predecessorLifecycleId === successor.lifecycleId
+    ) {
+      matches.push({
+        eventId: event.id,
+        eventKind: event.kind,
+        eventTitle: event.title,
+        eventAssetSummary: event.assetSummary,
+        continuityStatus: event.continuityStatus,
+        createdAt: event.createdAt,
+        continuityQuality: "explicit",
+        matchedBy: "lifecycle-id",
+        matchedAnchor: successor.lifecycleId,
+      });
+    }
+
+    if (
+      matches.length === 0 &&
+      successor.commitment &&
+      event.predecessorCanonicalCommitment &&
+      event.predecessorCanonicalCommitment === successor.commitment
+    ) {
+      matches.push({
+        eventId: event.id,
+        eventKind: event.kind,
+        eventTitle: event.title,
+        eventAssetSummary: event.assetSummary,
+        continuityStatus: event.continuityStatus,
+        createdAt: event.createdAt,
+        continuityQuality: "explicit",
+        matchedBy: "canonical",
+        matchedAnchor: successor.commitment,
+      });
+    }
+
+    if (
+      matches.length === 0 &&
+      successor.liveNoteId &&
+      event.predecessorLiveNoteId &&
+      event.predecessorLiveNoteId === successor.liveNoteId
+    ) {
+      matches.push({
+        eventId: event.id,
+        eventKind: event.kind,
+        eventTitle: event.title,
+        eventAssetSummary: event.assetSummary,
+        continuityStatus: event.continuityStatus,
+        createdAt: event.createdAt,
+        continuityQuality: "heuristic",
+        matchedBy: "live-note",
+        matchedAnchor: successor.liveNoteId,
+      });
+    }
+
+    return matches;
+  });
+
+  return continuations.sort((left, right) => left.createdAt - right.createdAt);
+}
+
+function buildBranchChainSummary(
+  sourceEvent: CanonicalLifecycleInspectionEvent,
+  successor: CanonicalLifecycleSuccessorSummary,
+  lineageEvents: CanonicalLifecycleInspectionEvent[],
+): CanonicalLifecycleBranchChainSummary {
+  const chain: CanonicalLifecycleBranchContinuation[] = [];
+  let currentSuccessor: CanonicalLifecycleSuccessorSummary | undefined = successor;
+  let searchStartTimestamp = -Infinity;
+  let terminatedByAmbiguity = false;
+
+  while (currentSuccessor) {
+    const continuation = findNextBranchContinuation(
+      currentSuccessor,
+      lineageEvents.filter((event) => event.createdAt > searchStartTimestamp && !chain.some((entry) => entry.eventId === event.id)),
+    );
+
+    if (!continuation) {
+      break;
+    }
+
+    chain.push(continuation);
+    searchStartTimestamp = continuation.createdAt;
+
+    const continuationEvent = lineageEvents.find((event) => event.id === continuation.eventId);
+
+    if (!continuationEvent) {
+      break;
+    }
+
+    if (continuationEvent.successors.length === 0) {
+      currentSuccessor = undefined;
+      break;
+    }
+
+    if (continuationEvent.successors.length > 1) {
+      terminatedByAmbiguity = true;
+      currentSuccessor = undefined;
+      break;
+    }
+
+    currentSuccessor = continuationEvent.successors[0];
+  }
+
+  const firstResolvedDescendant = chain[0] ? toCondensedDescendant(chain[0]) : undefined;
+  const latestResolvedDescendant = chain[chain.length - 1]
+    ? toCondensedDescendant(chain[chain.length - 1])
+    : undefined;
+
+  let resolutionState: CanonicalLifecycleBranchChainSummary["resolutionState"] = "unresolved";
+
+  if (chain.length > 0) {
+    resolutionState =
+      terminatedByAmbiguity || latestResolvedDescendant?.continuityStatus !== "exited"
+        ? "partial"
+        : "resolved";
+  }
+
+  return {
+    originSummary: successor.amountSummary ?? successor.assetSummary ?? successor.label,
+    pathSpanLabel: createPathSpanLabel(
+      sourceEvent.kind,
+      successor.kind,
+      chain,
+      summarizeBranchQuality([
+        ...chain.map((entry) => entry.continuityQuality),
+        ...(chain.length === 0 || resolutionState === "partial" ? (["unresolved"] as const) : []),
+      ]),
+      resolutionState,
+    ),
+    firstResolvedDescendant,
+    latestResolvedDescendant,
+    continuityQuality: summarizeBranchQuality([
+      ...chain.map((entry) => entry.continuityQuality),
+      ...(chain.length === 0 || resolutionState === "partial" ? (["unresolved"] as const) : []),
+    ]),
+    resolutionState,
+    resolutionSummary: createBranchChainResolutionSummary(
+      successor,
+      firstResolvedDescendant,
+      latestResolvedDescendant,
+      resolutionState,
+      terminatedByAmbiguity,
+    ),
+  };
+}
+
+function createPathSpanLabel(
+  sourceEventKind: CanonicalLifecycleEventKind,
+  successorKind: CanonicalLifecycleSuccessorSummary["kind"],
+  chain: CanonicalLifecycleBranchContinuation[],
+  continuityQuality: CanonicalLifecycleBranchContinuityQuality,
+  resolutionState: CanonicalLifecycleBranchChainSummary["resolutionState"],
+) {
+  const tokens: string[] = [sourceEventKind];
+
+  if (successorKind === "change") {
+    tokens.push("change");
+  } else if (chain.length === 0 && successorKind === "recipient") {
+    tokens.push("recipient");
+  }
+
+  for (const continuation of chain) {
+    const eventToken = continuation.eventKind;
+
+    if (tokens[tokens.length - 1] !== eventToken) {
+      tokens.push(eventToken);
+    }
+  }
+
+  const qualifiers: string[] = [];
+
+  if (continuityQuality === "heuristic") {
+    qualifiers.push("heuristic");
+  } else if (continuityQuality === "unresolved") {
+    qualifiers.push("unresolved");
+  }
+
+  if (resolutionState === "partial") {
+    qualifiers.push("partial");
+  } else if (resolutionState === "unresolved" && !qualifiers.includes("unresolved")) {
+    qualifiers.push("unresolved");
+  }
+
+  const baseLabel = tokens.join(" -> ");
+
+  return qualifiers.length > 0 ? `${baseLabel} (${qualifiers.join(", ")})` : baseLabel;
+}
+
+function findNextBranchContinuation(
+  successor: CanonicalLifecycleSuccessorSummary,
+  laterEvents: CanonicalLifecycleInspectionEvent[],
+): CanonicalLifecycleBranchContinuation | undefined {
+  return findBranchContinuations(successor, laterEvents)[0];
+}
+
+function toCondensedDescendant(
+  continuation: CanonicalLifecycleBranchContinuation,
+): CanonicalLifecycleBranchCondensedDescendant {
+  return {
+    eventId: continuation.eventId,
+    eventKind: continuation.eventKind,
+    eventTitle: continuation.eventTitle,
+    eventAssetSummary: continuation.eventAssetSummary,
+    continuityStatus: continuation.continuityStatus,
+    createdAt: continuation.createdAt,
+    continuityQuality: continuation.continuityQuality,
+    matchedBy: continuation.matchedBy,
+  };
+}
+
+function createBranchChainResolutionSummary(
+  successor: CanonicalLifecycleSuccessorSummary,
+  firstResolvedDescendant: CanonicalLifecycleBranchCondensedDescendant | undefined,
+  latestResolvedDescendant: CanonicalLifecycleBranchCondensedDescendant | undefined,
+  resolutionState: CanonicalLifecycleBranchChainSummary["resolutionState"],
+  terminatedByAmbiguity: boolean,
+) {
+  if (!firstResolvedDescendant) {
+    return `No resolved descendant is currently retained beyond ${successor.label}.`;
+  }
+
+  if (resolutionState === "resolved") {
+    return `Branch resolves from ${firstResolvedDescendant.eventTitle} through ${latestResolvedDescendant?.eventTitle ?? firstResolvedDescendant.eventTitle}.`;
+  }
+
+  if (terminatedByAmbiguity) {
+    return `Branch resolves through ${latestResolvedDescendant?.eventTitle ?? firstResolvedDescendant.eventTitle}, then continuity becomes ambiguous because branching resumes.`;
+  }
+
+  return `Branch resolves through ${latestResolvedDescendant?.eventTitle ?? firstResolvedDescendant.eventTitle}, but later continuity remains partial.`;
+}
+
+function createBranchContinuitySummary(
+  successor: CanonicalLifecycleSuccessorSummary,
+  downstreamEvents: CanonicalLifecycleBranchContinuation[],
+) {
+  if (downstreamEvents.length === 0) {
+    if (successor.commitment || successor.liveNoteId) {
+      return "No later downstream event in this lineage currently resolves from this successor.";
+    }
+
+    return "Successor anchor detail is not retained strongly enough to resolve continuity.";
+  }
+
+  const firstContinuation = downstreamEvents[0];
+
+  if (firstContinuation.matchedBy === "lifecycle-id") {
+    return `Later lineage continuity resolves via explicit lifecycle linkage into ${firstContinuation.eventTitle}.`;
+  }
+
+  if (firstContinuation.continuityQuality === "explicit") {
+    return `Later lineage continuity resolves via canonical predecessor commitment into ${firstContinuation.eventTitle}.`;
+  }
+
+  return `Later lineage continuity is inferred from live-note reuse into ${firstContinuation.eventTitle}.`;
+}
+
+function summarizeBranchQuality(
+  qualities: CanonicalLifecycleBranchContinuityQuality[],
+): CanonicalLifecycleBranchContinuityQuality {
+  if (qualities.includes("explicit")) {
+    return "explicit";
+  }
+
+  if (qualities.includes("heuristic")) {
+    return "heuristic";
+  }
+
+  return "unresolved";
+}
+
+function getExplicitAnchors(event: CanonicalLifecycleInspectionEvent) {
+  return [
+    event.lineageId,
+    event.lifecycleRecordId,
+    event.predecessorLifecycleId,
+    ...event.successors.map((successor) => successor.lifecycleId),
+  ].filter((value): value is string => typeof value === "string" && value.length > 0);
+}
+
+function getCanonicalAnchors(event: CanonicalLifecycleInspectionEvent) {
+  return [
+    event.predecessorCanonicalCommitment,
+    ...event.successors.map((successor) => successor.commitment),
+  ].filter((value): value is string => typeof value === "string" && value.length > 0);
+}
+
+function getHeuristicAnchors(event: CanonicalLifecycleInspectionEvent) {
+  return [
+    event.predecessorLiveNoteId,
+    event.liveReferenceValue,
+    ...event.successors.map((successor) => successor.liveNoteId),
+  ].filter((value): value is string => typeof value === "string" && value.length > 0);
+}
+
+function determineGroupingQuality(
+  events: CanonicalLifecycleInspectionEvent[],
+  explicitAnchors: string[],
+  canonicalAnchors: string[],
+  heuristicAnchors: string[],
+): CanonicalLifecycleLineage["groupingQuality"] {
+  if (explicitAnchors.length > 0) {
+    return events.every((event) => hasExplicitLifecycleIdentity(event)) ? "explicit" : "mixed";
+  }
+
+  if (canonicalAnchors.length > 0) {
+    return "resolved";
+  }
+
+  if (heuristicAnchors.length > 0) {
+    return "heuristic";
+  }
+
+  return "unresolved";
+}
+
+function hasExplicitLifecycleIdentity(event: CanonicalLifecycleInspectionEvent) {
+  return Boolean(
+    event.lineageId ||
+      event.lifecycleRecordId ||
+      event.predecessorLifecycleId ||
+      event.successors.some((successor) => successor.lifecycleId),
+  );
+}
+
+function createLineageLabel(
+  events: CanonicalLifecycleInspectionEvent[],
+  explicitAnchors: string[],
+  canonicalAnchors: string[],
+  heuristicAnchors: string[],
+) {
+  const firstEvent = events[0];
+  const eventKinds = [...new Set(events.map((event) => event.kind))];
+  const groupingQuality = determineGroupingQuality(events, explicitAnchors, canonicalAnchors, heuristicAnchors);
+
+  if (!firstEvent) {
+    return "Lifecycle lineage";
+  }
+
+  const qualityLabel =
+    groupingQuality === "explicit"
+      ? "Explicit lineage"
+      : groupingQuality === "mixed"
+        ? "Mixed lineage"
+        : groupingQuality === "resolved"
+          ? "Resolved lineage"
+          : groupingQuality === "heuristic"
+            ? "Heuristic lineage"
+            : "Unresolved lineage";
+
+  const baseLabel = `${qualityLabel} · ${eventKinds.join(" -> ")}`;
+
+  if (explicitAnchors[0]) {
+    return `${baseLabel} · ${explicitAnchors[0].slice(0, 18)}...`;
+  }
+
+  if (canonicalAnchors[0]) {
+    return `${baseLabel} · ${canonicalAnchors[0].slice(0, 10)}...`;
+  }
+
+  if (heuristicAnchors[0]) {
+    return `${baseLabel} · ${heuristicAnchors[0].slice(0, 10)}...`;
+  }
+
+  return baseLabel;
+}
