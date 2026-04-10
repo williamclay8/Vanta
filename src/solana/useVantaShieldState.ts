@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useSolanaClient } from "@solana/react-hooks";
-import { useWalletState } from "@/context/WalletContext";
+import { useWalletState } from "@/data/context/WalletContext";
 import { liveShieldAsset } from "@/solana/shieldConfig";
 import { fetchLocallyReleasedSolNoteIds } from "@/solana/operatorStateClient";
 import {

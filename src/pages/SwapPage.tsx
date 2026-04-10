@@ -6,7 +6,7 @@ import {
 } from "@solana/react-hooks";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
-import { useWalletState } from "@/context/WalletContext";
+import { useWalletState } from "@/data/context/WalletContext";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
 import { useRealtimeSignatureProgress } from "@/solana/useRealtimeSignatureProgress";
 import { createSwapIntentPayload, signSwapIntent } from "@/solana/swapAuth";
@@ -23,6 +23,10 @@ import {
   createPreparedSwapMemo,
   createSpentMarkerInstruction,
 } from "@/solana/vantaShieldState";
+import {
+  listCanonicalSwapDiagnosticsSummaries,
+  recordCanonicalSwapFromLiveSwap,
+} from "@/zk/liveSwapBridge";
 
 type PendingSpentMarker = {
   consumedNoteId: string;
@@ -32,6 +36,35 @@ type PendingSpentMarker = {
   transitionKind: "swap";
   transitionNoteId: string;
   vaultOwner: string;
+};
+
+type PendingSwapBridge = {
+  createdAt: number;
+  owner: string;
+  vaultOwner: string;
+  input: {
+    amountDisplay: string;
+    mintAddress: string;
+    noteId: string;
+    stateSignature: string;
+  };
+  output: {
+    amountDisplay: string;
+    assetId: string;
+    noteId: string;
+  };
+  transition: {
+    noteId: string;
+  };
+  venue: {
+    family: "DLMM";
+    name: "Meteora";
+    network: "Devnet";
+    poolAddress: string;
+    quoteExpiresAt: number;
+    quoteId: string;
+    quoteTimestamp: number;
+  };
 };
 
 type SwapStatus =
@@ -101,6 +134,8 @@ export function SwapPage() {
   const [laneHealthError, setLaneHealthError] = useState<string | null>(null);
   const [quoteRefreshNonce, setQuoteRefreshNonce] = useState(0);
   const [pendingSpentMarker, setPendingSpentMarker] = useState<PendingSpentMarker | null>(null);
+  const [pendingSwapBridge, setPendingSwapBridge] = useState<PendingSwapBridge | null>(null);
+  const [swapBridgeError, setSwapBridgeError] = useState<string | null>(null);
   const [operatorAuthorizationStarted, setOperatorAuthorizationStarted] = useState(false);
   const [optimisticallyConsumedNoteId, setOptimisticallyConsumedNoteId] = useState<string | null>(
     null,
@@ -255,6 +290,7 @@ export function SwapPage() {
       );
       setOperatorAuthorizationStarted(false);
       setPendingSpentMarker(null);
+      setPendingSwapBridge(null);
     }
   }, [swapTransaction.error, swapTransaction.status]);
 
@@ -271,6 +307,7 @@ export function SwapPage() {
     );
     setOperatorAuthorizationStarted(false);
     setPendingSpentMarker(null);
+    setPendingSwapBridge(null);
   }, [swapWait.waitError, swapWait.waitStatus]);
 
   useEffect(() => {
@@ -362,6 +399,7 @@ export function SwapPage() {
             ? error.message
             : "The constrained swap operator rejected the request.",
         );
+        setPendingSwapBridge(null);
       });
   }, [
     lastSwapSummary,
@@ -390,6 +428,7 @@ export function SwapPage() {
         : "The swap spent marker could not be submitted.",
     );
     setOperatorAuthorizationStarted(false);
+    setPendingSwapBridge(null);
   }, [spentMarkerTransaction.error, spentMarkerTransaction.status]);
 
   useEffect(() => {
@@ -403,6 +442,7 @@ export function SwapPage() {
         ? spentMarkerWait.waitError.message
         : "The swap spent marker was submitted but not confirmed.",
     );
+    setPendingSwapBridge(null);
   }, [spentMarkerWait.waitError, spentMarkerWait.waitStatus]);
 
   useEffect(() => {
@@ -413,7 +453,14 @@ export function SwapPage() {
     const completedConsumedNoteId = pendingSpentMarker?.consumedNoteId ?? null;
 
     void refreshShieldState()
-      .then(() => {
+      .then(async () => {
+        if (swapTransaction.signature) {
+          await retainCanonicalSwapBridge({
+            spentMarkerSignature: spentMarkerTransaction.signature ?? undefined,
+            transitionSignature: swapTransaction.signature,
+          });
+        }
+
         if (completedConsumedNoteId) {
           setOptimisticallyConsumedNoteId(completedConsumedNoteId);
         }
@@ -421,6 +468,7 @@ export function SwapPage() {
         setFlowError(null);
         setOperatorAuthorizationStarted(false);
         setPendingSpentMarker(null);
+        setPendingSwapBridge(null);
       })
       .catch((error) => {
         setStatus("failed");
@@ -431,7 +479,13 @@ export function SwapPage() {
         );
         setOperatorAuthorizationStarted(false);
       });
-  }, [pendingSpentMarker, refreshShieldState, spentMarkerWait.waitStatus]);
+  }, [
+    pendingSpentMarker,
+    refreshShieldState,
+    spentMarkerTransaction.signature,
+    spentMarkerWait.waitStatus,
+    swapTransaction.signature,
+  ]);
 
   useEffect(() => {
     if (status !== "finalizing_state" || !pendingSpentMarker || !lastSwapSummary) {
@@ -475,12 +529,29 @@ export function SwapPage() {
       return;
     }
 
-    setOptimisticallyConsumedNoteId(pendingSpentMarker.consumedNoteId);
-    setStatus("complete");
-    setFlowError(null);
-    setOperatorAuthorizationStarted(false);
-    setPendingSpentMarker(null);
-  }, [lastSwapSummary, pendingSpentMarker, shieldAccount, status]);
+    void (async () => {
+      if (swapTransaction.signature) {
+        await retainCanonicalSwapBridge({
+          spentMarkerSignature: spentMarkerTransaction.signature ?? undefined,
+          transitionSignature: swapTransaction.signature,
+        });
+      }
+
+      setOptimisticallyConsumedNoteId(pendingSpentMarker.consumedNoteId);
+      setStatus("complete");
+      setFlowError(null);
+      setOperatorAuthorizationStarted(false);
+      setPendingSpentMarker(null);
+      setPendingSwapBridge(null);
+    })();
+  }, [
+    lastSwapSummary,
+    pendingSpentMarker,
+    shieldAccount,
+    spentMarkerTransaction.signature,
+    status,
+    swapTransaction.signature,
+  ]);
 
   const currentShieldedVusdBalance = shieldAccount?.balance ?? 0;
   const currentShieldedSolBalance = shieldAccount?.shieldedSolBalance ?? 0;
@@ -495,6 +566,13 @@ export function SwapPage() {
   );
   const transitionProgressLabel = swapWait.detailLabel;
   const finalizationProgressLabel = spentMarkerWait.detailLabel;
+  const swapZkDiagnostics = listCanonicalSwapDiagnosticsSummaries().slice(0, 5);
+  const currentSwapZkDiagnostics =
+    (swapTransaction.signature
+      ? swapZkDiagnostics.find((record) => record.transitionSignature === swapTransaction.signature)
+      : null) ??
+    swapZkDiagnostics[0] ??
+    null;
   const shouldShowDiagnostics =
     status !== "idle" ||
     Boolean(flowError) ||
@@ -513,6 +591,64 @@ export function SwapPage() {
     Boolean(liveShieldAsset.vaultOwner) &&
     liveSwapPair.configured;
 
+  async function retainCanonicalSwapBridge(params: {
+    spentMarkerSignature?: string;
+    transitionSignature: string;
+  }) {
+    if (!pendingSwapBridge || !lastSwapSummary) {
+      setSwapBridgeError(
+        "Swap completed, but the canonical swap bridge context was unavailable for retention.",
+      );
+      return;
+    }
+
+    try {
+      await recordCanonicalSwapFromLiveSwap({
+        createdAt: pendingSwapBridge.createdAt,
+        owner: pendingSwapBridge.owner,
+        vaultOwner: pendingSwapBridge.vaultOwner,
+        input: {
+          asset: "VUSD",
+          mintAddress: pendingSwapBridge.input.mintAddress,
+          amountDisplay: pendingSwapBridge.input.amountDisplay,
+          noteId: pendingSwapBridge.input.noteId,
+          stateSignature: pendingSwapBridge.input.stateSignature,
+        },
+        output: {
+          asset: "SOL",
+          assetId: pendingSwapBridge.output.assetId,
+          amountDisplay: pendingSwapBridge.output.amountDisplay,
+          noteId: pendingSwapBridge.output.noteId,
+          stateSignature: `${params.transitionSignature}:sol-output`,
+        },
+        transition: {
+          noteId: pendingSwapBridge.transition.noteId,
+          signature: params.transitionSignature,
+          spentMarkerSignature: params.spentMarkerSignature,
+        },
+        operator: {
+          requestId: lastSwapSummary.requestId,
+        },
+        venue: {
+          family: pendingSwapBridge.venue.family,
+          name: pendingSwapBridge.venue.name,
+          network: pendingSwapBridge.venue.network,
+          poolAddress: pendingSwapBridge.venue.poolAddress,
+          quoteId: pendingSwapBridge.venue.quoteId,
+          quoteTimestamp: pendingSwapBridge.venue.quoteTimestamp,
+          quoteExpiresAt: pendingSwapBridge.venue.quoteExpiresAt,
+        },
+      });
+      setSwapBridgeError(null);
+    } catch (error) {
+      setSwapBridgeError(
+        error instanceof Error
+          ? error.message
+          : "Swap completed, but canonical swap diagnostics could not be retained.",
+      );
+    }
+  }
+
   async function handleSwap() {
     if (
       !selectedNote ||
@@ -527,7 +663,9 @@ export function SwapPage() {
     swapTransaction.reset();
     spentMarkerTransaction.reset();
     setFlowError(null);
+    setSwapBridgeError(null);
     setOperatorAuthorizationStarted(false);
+    setPendingSwapBridge(null);
     setStatus("awaiting_confirmation");
 
     try {
@@ -559,6 +697,34 @@ export function SwapPage() {
         transitionKind: "swap",
         transitionNoteId: preparedSwap.noteId,
         vaultOwner: shieldAccount.vaultOwner,
+      });
+      setPendingSwapBridge({
+        createdAt,
+        owner: shieldAccount.owner,
+        vaultOwner: shieldAccount.vaultOwner,
+        input: {
+          amountDisplay: selectedNote.amount.toFixed(2),
+          mintAddress: liveShieldAsset.mintAddress,
+          noteId: selectedNote.noteId,
+          stateSignature: selectedNote.stateSignature,
+        },
+        output: {
+          amountDisplay: quote.outputAmount,
+          assetId: liveSwapPair.solAssetId,
+          noteId: preparedSwap.outputNoteId,
+        },
+        transition: {
+          noteId: preparedSwap.noteId,
+        },
+        venue: {
+          family: quote.venueFamily,
+          name: quote.venueName,
+          network: quote.venueNetwork,
+          poolAddress: quote.venuePoolAddress,
+          quoteId: quote.quoteId,
+          quoteTimestamp: quote.quoteTimestamp,
+          quoteExpiresAt: quote.quoteExpiresAt,
+        },
       });
       setLastSwapSummary({
         inputAmount: selectedNote.amount,
@@ -592,6 +758,7 @@ export function SwapPage() {
     } catch (error) {
       setOperatorAuthorizationStarted(false);
       setPendingSpentMarker(null);
+      setPendingSwapBridge(null);
       setStatus("failed");
       setFlowError(error instanceof Error ? error.message : "Swap request was not approved.");
     }
@@ -1029,6 +1196,88 @@ export function SwapPage() {
                   </strong>
                 </div>
               </div>
+              <details className="preview-card" style={{ marginTop: 16 }}>
+                <summary>Internal zk diagnostics</summary>
+                <p className="shield-helper shield-helper--meta">
+                  Internal/debug only. This shows the retained canonical input/output
+                  bridge for the latest live swap record.
+                </p>
+                {swapBridgeError && (
+                  <p className="shield-helper shield-helper--meta" style={{ color: "#b42318" }}>
+                    Canonical bridge retention issue: {swapBridgeError}
+                  </p>
+                )}
+                {currentSwapZkDiagnostics ? (
+                  <div className="review-list" style={{ marginTop: 12 }}>
+                    <div className="review-row">
+                      <span>Input live note</span>
+                      <strong>{abbreviate(currentSwapZkDiagnostics.inputLiveNoteId)}</strong>
+                    </div>
+                    <div className="review-row">
+                      <span>Input canonical ref</span>
+                      <strong>
+                        {currentSwapZkDiagnostics.inputCanonicalCommitment
+                          ? abbreviate(currentSwapZkDiagnostics.inputCanonicalCommitment)
+                          : "Not yet resolvable"}
+                      </strong>
+                    </div>
+                    <div className="review-row">
+                      <span>Input source</span>
+                      <strong>{currentSwapZkDiagnostics.inputCanonicalRecordSource ?? "Unresolved"}</strong>
+                    </div>
+                    <div className="review-row">
+                      <span>Output commitment</span>
+                      <strong>{abbreviate(currentSwapZkDiagnostics.outputCommitment)}</strong>
+                    </div>
+                    <div className="review-row">
+                      <span>Insertion index</span>
+                      <strong>{currentSwapZkDiagnostics.outputInsertionIndex}</strong>
+                    </div>
+                    <div className="review-row">
+                      <span>Snapshot root</span>
+                      <strong>{abbreviate(currentSwapZkDiagnostics.outputSnapshotRoot)}</strong>
+                    </div>
+                    <div className="review-row">
+                      <span>Assets</span>
+                      <strong>
+                        {currentSwapZkDiagnostics.inputAsset} {"->"} {currentSwapZkDiagnostics.outputAsset}
+                      </strong>
+                    </div>
+                    <div className="review-row">
+                      <span>Output amount</span>
+                      <strong>{currentSwapZkDiagnostics.outputAmountDisplay}</strong>
+                    </div>
+                    <div className="review-row">
+                      <span>Transition signature</span>
+                      <strong>{abbreviate(currentSwapZkDiagnostics.transitionSignature)}</strong>
+                    </div>
+                    <div className="review-row">
+                      <span>Operator request</span>
+                      <strong>
+                        {currentSwapZkDiagnostics.operatorRequestId
+                          ? abbreviate(currentSwapZkDiagnostics.operatorRequestId)
+                          : "Unavailable"}
+                      </strong>
+                    </div>
+                    <div className="review-row">
+                      <span>Spent marker</span>
+                      <strong>
+                        {currentSwapZkDiagnostics.spentMarkerSignature
+                          ? abbreviate(currentSwapZkDiagnostics.spentMarkerSignature)
+                          : "Unavailable"}
+                      </strong>
+                    </div>
+                    <div className="review-row">
+                      <span>Venue</span>
+                      <strong>{currentSwapZkDiagnostics.venueSummary}</strong>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="shield-helper shield-helper--meta">
+                    No retained canonical swap diagnostics are available yet for this client.
+                  </p>
+                )}
+              </details>
             </div>
           )}
 

@@ -7,7 +7,7 @@ import {
 } from "@solana/react-hooks";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
-import { useWalletState } from "@/context/WalletContext";
+import { useWalletState } from "@/data/context/WalletContext";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
 import { useRealtimeSignatureProgress } from "@/solana/useRealtimeSignatureProgress";
 import {
@@ -28,6 +28,10 @@ import {
   createSpentMarkerInstruction,
   VANTA_NATIVE_SOL_ASSET_ID,
 } from "@/solana/vantaShieldState";
+import {
+  listCanonicalUnshieldDiagnosticsSummaries,
+  recordCanonicalUnshieldFromLiveUnshield,
+} from "@/zk/liveUnshieldBridge";
 
 type UnshieldLane = "VUSD" | "SOL";
 type UnshieldStatus =
@@ -48,6 +52,25 @@ type PendingSpentMarker = {
   owner: string;
   transitionKind: "unshield" | "sol_unshield";
   transitionNoteId: string;
+  vaultOwner: string;
+};
+
+type PendingUnshieldBridge = {
+  amountDisplay: string;
+  asset: UnshieldLane;
+  assetId: string;
+  createdAt: number;
+  destinationOwner: string;
+  mintAddress?: string;
+  owner: string;
+  consumed: {
+    noteId: string;
+    stateSignature: string;
+    sourceSwapNoteId?: string;
+  };
+  transition: {
+    noteId: string;
+  };
   vaultOwner: string;
 };
 
@@ -88,6 +111,8 @@ export function UnshieldPage() {
   const [status, setStatus] = useState<UnshieldStatus>("idle");
   const [flowError, setFlowError] = useState<string | null>(null);
   const [pendingSpentMarker, setPendingSpentMarker] = useState<PendingSpentMarker | null>(null);
+  const [pendingUnshieldBridge, setPendingUnshieldBridge] = useState<PendingUnshieldBridge | null>(null);
+  const [unshieldBridgeError, setUnshieldBridgeError] = useState<string | null>(null);
   const [operatorAuthorizationStarted, setOperatorAuthorizationStarted] = useState(false);
   const [operatorReleaseSignature, setOperatorReleaseSignature] = useState<string | null>(null);
   const [lastTransitionSignature, setLastTransitionSignature] = useState<string | null>(null);
@@ -176,6 +201,13 @@ export function UnshieldPage() {
       : Boolean(selectedSolNote);
   const transitionProgressLabel = transitionWait.detailLabel;
   const finalizationProgressLabel = spentMarkerWait.detailLabel;
+  const unshieldZkDiagnostics = listCanonicalUnshieldDiagnosticsSummaries().slice(0, 5);
+  const currentUnshieldZkDiagnostics =
+    (lastTransitionSignature
+      ? unshieldZkDiagnostics.find((record) => record.transitionSignature === lastTransitionSignature)
+      : null) ??
+    unshieldZkDiagnostics[0] ??
+    null;
   const isReady =
     walletConnected &&
     Boolean(walletAddress) &&
@@ -202,6 +234,7 @@ export function UnshieldPage() {
       setOperatorAuthorizationStarted(false);
       operatorAuthorizationLockRef.current = null;
       setPendingSpentMarker(null);
+      setPendingUnshieldBridge(null);
     }
   }, [transitionTransaction.error, transitionTransaction.status]);
 
@@ -219,6 +252,7 @@ export function UnshieldPage() {
     setOperatorAuthorizationStarted(false);
     operatorAuthorizationLockRef.current = null;
     setPendingSpentMarker(null);
+    setPendingUnshieldBridge(null);
   }, [transitionWait.waitError, transitionWait.waitStatus]);
 
   useEffect(() => {
@@ -300,6 +334,7 @@ export function UnshieldPage() {
           setOperatorAuthorizationStarted(false);
           operatorAuthorizationLockRef.current = null;
           setPendingSpentMarker(null);
+          setPendingUnshieldBridge(null);
         });
 
       return;
@@ -364,6 +399,7 @@ export function UnshieldPage() {
         setOperatorAuthorizationStarted(false);
         operatorAuthorizationLockRef.current = null;
         setPendingSpentMarker(null);
+        setPendingUnshieldBridge(null);
       });
   }, [
     operatorAuthorizationStarted,
@@ -390,6 +426,7 @@ export function UnshieldPage() {
     );
     setOperatorAuthorizationStarted(false);
     operatorAuthorizationLockRef.current = null;
+    setPendingUnshieldBridge(null);
   }, [spentMarkerTransaction.error, spentMarkerTransaction.status]);
 
   useEffect(() => {
@@ -405,6 +442,7 @@ export function UnshieldPage() {
     );
     setOperatorAuthorizationStarted(false);
     operatorAuthorizationLockRef.current = null;
+    setPendingUnshieldBridge(null);
   }, [spentMarkerWait.waitError, spentMarkerWait.waitStatus]);
 
   useEffect(() => {
@@ -413,12 +451,49 @@ export function UnshieldPage() {
     }
 
     void Promise.all([refreshShieldState(), supportedToken.refresh()])
-      .then(() => {
+      .then(async () => {
+        if (pendingUnshieldBridge && transitionTransaction.signature) {
+          try {
+            await recordCanonicalUnshieldFromLiveUnshield({
+              amountDisplay: pendingUnshieldBridge.amountDisplay,
+              asset: pendingUnshieldBridge.asset,
+              assetId: pendingUnshieldBridge.assetId,
+              createdAt: pendingUnshieldBridge.createdAt,
+              destinationOwner: pendingUnshieldBridge.destinationOwner,
+              mintAddress: pendingUnshieldBridge.mintAddress,
+              owner: pendingUnshieldBridge.owner,
+              consumed: pendingUnshieldBridge.consumed,
+              operator: {
+                releaseSignature: operatorReleaseSignature ?? undefined,
+                requestId: lastCompletion?.requestId,
+              },
+              transition: {
+                noteId: pendingUnshieldBridge.transition.noteId,
+                signature: transitionTransaction.signature,
+                spentMarkerSignature: spentMarkerTransaction.signature ?? undefined,
+              },
+              vaultOwner: pendingUnshieldBridge.vaultOwner,
+            });
+            setUnshieldBridgeError(null);
+          } catch (error) {
+            setUnshieldBridgeError(
+              error instanceof Error
+                ? error.message
+                : "Unshield completed, but canonical exit diagnostics could not be retained.",
+            );
+          }
+        } else {
+          setUnshieldBridgeError(
+            "Unshield completed, but the canonical exit bridge context was unavailable for retention.",
+          );
+        }
+
         setStatus("complete");
         setFlowError(null);
         setOperatorAuthorizationStarted(false);
         operatorAuthorizationLockRef.current = null;
         setPendingSpentMarker(null);
+        setPendingUnshieldBridge(null);
       })
       .catch((error) => {
         setStatus("failed");
@@ -429,8 +504,18 @@ export function UnshieldPage() {
         );
         setOperatorAuthorizationStarted(false);
         operatorAuthorizationLockRef.current = null;
+        setPendingUnshieldBridge(null);
       });
-  }, [refreshShieldState, spentMarkerWait.waitStatus, supportedToken]);
+  }, [
+    lastCompletion?.requestId,
+    operatorReleaseSignature,
+    pendingUnshieldBridge,
+    refreshShieldState,
+    spentMarkerTransaction.signature,
+    spentMarkerWait.waitStatus,
+    supportedToken,
+    transitionTransaction.signature,
+  ]);
 
   useEffect(() => {
     if (transitionTransaction.signature) {
@@ -455,8 +540,10 @@ export function UnshieldPage() {
     setLastTransitionSignature(null);
     setLastSpentMarkerSignature(null);
     setFlowError(null);
+    setUnshieldBridgeError(null);
     setOperatorAuthorizationStarted(false);
     operatorAuthorizationLockRef.current = null;
+    setPendingUnshieldBridge(null);
     setStatus("awaiting_confirmation");
 
     try {
@@ -486,6 +573,23 @@ export function UnshieldPage() {
           owner: shieldAccount.owner,
           transitionKind: "unshield",
           transitionNoteId: prepared.noteId,
+          vaultOwner: shieldAccount.vaultOwner,
+        });
+        setPendingUnshieldBridge({
+          amountDisplay: selectedVusdNote.amount.toFixed(2),
+          asset: "VUSD",
+          assetId: liveShieldAsset.mintAddress,
+          createdAt,
+          destinationOwner: walletAddress ?? shieldAccount.owner,
+          mintAddress: liveShieldAsset.mintAddress,
+          owner: shieldAccount.owner,
+          consumed: {
+            noteId: selectedVusdNote.noteId,
+            stateSignature: selectedVusdNote.stateSignature,
+          },
+          transition: {
+            noteId: prepared.noteId,
+          },
           vaultOwner: shieldAccount.vaultOwner,
         });
         setLastCompletion({
@@ -536,6 +640,23 @@ export function UnshieldPage() {
         transitionNoteId: prepared.noteId,
         vaultOwner: shieldAccount.vaultOwner,
       });
+      setPendingUnshieldBridge({
+        amountDisplay: selectedSolNote.amount.toFixed(6),
+        asset: "SOL",
+        assetId: liveSwapPair.solAssetId,
+        createdAt,
+        destinationOwner: walletAddress ?? shieldAccount.owner,
+        owner: shieldAccount.owner,
+        consumed: {
+          noteId: selectedSolNote.noteId,
+          stateSignature: selectedSolNote.stateSignature,
+          sourceSwapNoteId: selectedSolNote.sourceSwapNoteId,
+        },
+        transition: {
+          noteId: prepared.noteId,
+        },
+        vaultOwner: shieldAccount.vaultOwner,
+      });
       setLastCompletion({
         amount: selectedSolNote.amount,
         asset: "SOL",
@@ -558,6 +679,7 @@ export function UnshieldPage() {
       });
     } catch (error) {
       setPendingSpentMarker(null);
+      setPendingUnshieldBridge(null);
       setStatus("failed");
       setFlowError(
         error instanceof Error ? error.message : "Unshield request was not approved.",
@@ -988,6 +1110,86 @@ export function UnshieldPage() {
                   Spent marker: {abbreviate(lastSpentMarkerSignature)}
                 </p>
               )}
+              <details className="preview-card" style={{ marginTop: 16 }}>
+                <summary>Internal zk diagnostics</summary>
+                <p className="shield-helper shield-helper--meta">
+                  Internal/debug only. This shows the retained canonical consumption trace for
+                  the latest live unshield bridge record.
+                </p>
+                {unshieldBridgeError && (
+                  <p className="shield-helper shield-helper--meta" style={{ color: "#b42318" }}>
+                    Canonical bridge retention issue: {unshieldBridgeError}
+                  </p>
+                )}
+                {currentUnshieldZkDiagnostics ? (
+                  <div className="review-list" style={{ marginTop: 12 }}>
+                    <div className="review-row">
+                      <span>Lane</span>
+                      <strong>{currentUnshieldZkDiagnostics.asset}</strong>
+                    </div>
+                    <div className="review-row">
+                      <span>Consumed live note</span>
+                      <strong>{abbreviate(currentUnshieldZkDiagnostics.consumedLiveNoteId)}</strong>
+                    </div>
+                    <div className="review-row">
+                      <span>Canonical consumed ref</span>
+                      <strong>
+                        {currentUnshieldZkDiagnostics.consumedCanonicalCommitment
+                          ? abbreviate(currentUnshieldZkDiagnostics.consumedCanonicalCommitment)
+                          : "Not yet resolvable"}
+                      </strong>
+                    </div>
+                    <div className="review-row">
+                      <span>Canonical source</span>
+                      <strong>{currentUnshieldZkDiagnostics.consumedCanonicalRecordSource ?? "Unresolved"}</strong>
+                    </div>
+                    <div className="review-row">
+                      <span>Exit amount</span>
+                      <strong>{currentUnshieldZkDiagnostics.amountDisplay}</strong>
+                    </div>
+                    <div className="review-row">
+                      <span>Destination owner</span>
+                      <strong>{abbreviate(currentUnshieldZkDiagnostics.destinationOwner) ?? "Unavailable"}</strong>
+                    </div>
+                    <div className="review-row">
+                      <span>Transition signature</span>
+                      <strong>{abbreviate(currentUnshieldZkDiagnostics.transitionSignature)}</strong>
+                    </div>
+                    <div className="review-row">
+                      <span>Operator request</span>
+                      <strong>
+                        {currentUnshieldZkDiagnostics.operatorRequestId
+                          ? abbreviate(currentUnshieldZkDiagnostics.operatorRequestId)
+                          : "Unavailable"}
+                      </strong>
+                    </div>
+                    <div className="review-row">
+                      <span>Operator release</span>
+                      <strong>
+                        {currentUnshieldZkDiagnostics.operatorReleaseSignature
+                          ? abbreviate(currentUnshieldZkDiagnostics.operatorReleaseSignature)
+                          : "Unavailable"}
+                      </strong>
+                    </div>
+                    {currentUnshieldZkDiagnostics.spentMarkerSignature && (
+                      <div className="review-row">
+                        <span>Spent marker</span>
+                        <strong>{abbreviate(currentUnshieldZkDiagnostics.spentMarkerSignature)}</strong>
+                      </div>
+                    )}
+                    {currentUnshieldZkDiagnostics.sourceSwapNoteId && (
+                      <div className="review-row">
+                        <span>Source swap note</span>
+                        <strong>{abbreviate(currentUnshieldZkDiagnostics.sourceSwapNoteId)}</strong>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="shield-helper shield-helper--meta">
+                    No retained canonical unshield diagnostics are available yet for this client.
+                  </p>
+                )}
+              </details>
               <div className="status-actions">
                 <Link className="button button-primary" to="/app">
                   Back to Home

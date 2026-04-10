@@ -17,6 +17,12 @@ export type RecentShieldContext = {
   signature?: string;
   settlement?: "confirmed_deposit";
   timestamp: number;
+  zkBridge?: {
+    commitment: string;
+    insertionIndex: number;
+    root: string;
+    source: "canonical_note_v1";
+  };
 };
 
 type PrivacyFlowContextValue = {

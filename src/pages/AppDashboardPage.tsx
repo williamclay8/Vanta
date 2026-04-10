@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
+import { InternalCanonicalLifecyclePanel } from "@/components/InternalCanonicalLifecyclePanel";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
-import { useWalletState } from "@/context/WalletContext";
+import { useWalletState } from "@/data/context/WalletContext";
 import { useVantaNextStepGuidance } from "@/solana/useVantaNextStepGuidance";
 import { useVantaPositionSummary } from "@/solana/useVantaPositionSummary";
 import { useVantaShieldState } from "@/solana/useVantaShieldState";
@@ -150,6 +151,8 @@ export function AppDashboardPage() {
           />
         </article>
       </div>
+
+      <InternalCanonicalLifecyclePanel />
     </section>
   );
 }

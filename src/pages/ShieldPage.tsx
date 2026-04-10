@@ -6,8 +6,8 @@ import {
 } from "@solana/react-hooks";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
-import { usePrivacyFlow, type PrivacyAssetKey } from "@/context/PrivacyFlowContext";
-import { useWalletState } from "@/context/WalletContext";
+import { usePrivacyFlow, type PrivacyAssetKey } from "@/data/context/PrivacyFlowContext";
+import { useWalletState } from "@/data/context/WalletContext";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
 import {
   SHIELD_HOOK_FALLBACK_MINT,
@@ -16,6 +16,10 @@ import {
 import { useRealtimeSignatureProgress } from "@/solana/useRealtimeSignatureProgress";
 import { useVantaShieldState } from "@/solana/useVantaShieldState";
 import { createShieldMemoInstruction } from "@/solana/vantaShieldState";
+import {
+  listCanonicalShieldDiagnosticsSummaries,
+  recordCanonicalShieldFromLiveShield,
+} from "@/zk/liveShieldBridge";
 
 type ShieldPageProps = {
   dashboard?: boolean;
@@ -105,6 +109,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
   const [status, setStatus] = useState<ShieldStatus>("idle");
   const [flowError, setFlowError] = useState<string | null>(null);
   const [pendingShieldAmount, setPendingShieldAmount] = useState<number | null>(null);
+  const [pendingShieldAmountDisplay, setPendingShieldAmountDisplay] = useState<string | null>(null);
   const [pendingDepositSignature, setPendingDepositSignature] = useState<string | null>(null);
   const recordedStateSignatureRef = useRef<string | null>(null);
 
@@ -164,6 +169,9 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
 
     if (supportedToken.sendStatus === "error") {
       setStatus("failed");
+      setPendingShieldAmount(null);
+      setPendingShieldAmountDisplay(null);
+      setPendingDepositSignature(null);
       setFlowError(
         toErrorMessage(
           supportedToken.sendError,
@@ -185,6 +193,9 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     }
 
     setStatus("failed");
+    setPendingShieldAmount(null);
+    setPendingShieldAmountDisplay(null);
+    setPendingDepositSignature(null);
     setFlowError(
       toErrorMessage(
         signatureWait.waitError,
@@ -247,6 +258,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     ).catch((error) => {
       setStatus("failed");
       setPendingShieldAmount(null);
+      setPendingShieldAmountDisplay(null);
       setPendingDepositSignature(null);
       setFlowError(
         toErrorMessage(error, "The Vanta shield state note could not be recorded."),
@@ -281,15 +293,41 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
       stateSignatureWait.waitStatus !== "success" ||
       !stateTransaction.signature ||
       recordedStateSignatureRef.current === stateTransaction.signature ||
-      pendingShieldAmount === null
+      pendingShieldAmount === null ||
+      !pendingShieldAmountDisplay
     ) {
       return;
     }
 
     recordedStateSignatureRef.current = stateTransaction.signature;
+    const mintAddress = liveShieldAsset.mintAddress;
+    const owner = supportedToken.owner;
+    const stateSignature = stateTransaction.signature;
+    const vaultOwner = liveShieldAsset.vaultOwner;
+
+    if (!mintAddress || !owner || !stateSignature || !vaultOwner) {
+      setStatus("failed");
+      setPendingShieldAmount(null);
+      setPendingShieldAmountDisplay(null);
+      setPendingDepositSignature(null);
+      setFlowError("Shield settled, but canonical zk inputs were incomplete.");
+      return;
+    }
 
     void refreshShieldState()
-      .then(() => {
+      .then(async () => {
+        const zkRecord = await recordCanonicalShieldFromLiveShield({
+          amountDisplay: pendingShieldAmountDisplay,
+          amountNumeric: pendingShieldAmount,
+          assetSymbol: "VUSD",
+          createdAt: Date.now(),
+          depositSignature: pendingDepositSignature ?? undefined,
+          mintAddress,
+          owner,
+          stateSignature,
+          tokenDecimals: readTokenDecimals(supportedToken.balance),
+          vaultOwner,
+        });
         const nextBalance = Number(
           ((shieldAccount?.balance ?? 0) + pendingShieldAmount).toFixed(6),
         );
@@ -302,22 +340,36 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
           signature: stateTransaction.signature ?? undefined,
           source: "shield",
           timestamp: Date.now(),
+          zkBridge: {
+            commitment: zkRecord.artifacts.commitment.value,
+            insertionIndex: zkRecord.insertion.index,
+            root: zkRecord.insertion.root,
+            source: "canonical_note_v1",
+          },
         });
         setPendingShieldAmount(null);
+        setPendingShieldAmountDisplay(null);
         setPendingDepositSignature(null);
         setFlowError(null);
         setStatus("complete");
         void supportedToken.refresh();
       })
       .catch((error) => {
+        setPendingShieldAmount(null);
+        setPendingShieldAmountDisplay(null);
+        setPendingDepositSignature(null);
         setStatus("failed");
         setFlowError(
-          toErrorMessage(error, "Shield deposit settled, but Vanta state could not be refreshed."),
+          toErrorMessage(
+            error,
+            "Shield deposit settled, but the canonical zk shield bridge could not be recorded.",
+          ),
         );
       });
   }, [
     pendingDepositSignature,
     pendingShieldAmount,
+    pendingShieldAmountDisplay,
     refreshShieldState,
     setRecentShield,
     shieldAccount?.balance,
@@ -332,6 +384,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     isAmountValid && status !== "complete"
       ? shieldedBalance + parsedAmount
       : shieldedBalance;
+  const zkDiagnostics = listCanonicalShieldDiagnosticsSummaries().slice(0, 5);
 
   async function handleShield() {
     if (
@@ -347,6 +400,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     stateTransaction.reset();
     setFlowError(null);
     setPendingShieldAmount(parsedAmount);
+    setPendingShieldAmountDisplay(amount);
     setPendingDepositSignature(null);
     setStatus("awaiting_wallet_confirmation");
 
@@ -357,6 +411,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
       });
     } catch (error) {
       setPendingShieldAmount(null);
+      setPendingShieldAmountDisplay(null);
       setStatus("failed");
       setFlowError(toErrorMessage(error, "Shield request was not approved."));
     }
@@ -894,6 +949,54 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                   Vanta state note: {`${recentShield.signature.slice(0, 8)}...${recentShield.signature.slice(-8)}`}
                 </p>
               )}
+              <details className="shield-helper shield-helper--meta">
+                <summary>Internal zk diagnostics</summary>
+                <p>
+                  Internal/debug only. Inspect the canonical note, commitment, and
+                  append-only shielded state record created from recent live shield actions.
+                </p>
+                {zkDiagnostics.length === 0 ? (
+                  <p>No retained canonical shield records were found.</p>
+                ) : (
+                  <div className="success-metrics">
+                    {zkDiagnostics.map((record) => (
+                      <div key={record.recordId} className="preview-card">
+                        <span>
+                          Insert #{record.insertionIndex} · {new Date(record.createdAt).toLocaleTimeString()}
+                        </span>
+                        <strong>{abbreviate(record.commitment) ?? record.commitment}</strong>
+                        <small>Commitment</small>
+                        <p className="shield-helper shield-helper--meta">
+                          Root: {abbreviate(record.snapshotRoot) ?? record.snapshotRoot}
+                        </p>
+                        <p className="shield-helper shield-helper--meta">
+                          Asset ID: {record.assetId}
+                        </p>
+                        <p className="shield-helper shield-helper--meta">
+                          Amount: {record.amountDisplay} VUSD ({record.amountBaseUnits} base units)
+                        </p>
+                        <p className="shield-helper shield-helper--meta">
+                          Owner: {abbreviate(record.ownerPublicKey) ?? record.ownerPublicKey}
+                        </p>
+                        <p className="shield-helper shield-helper--meta">
+                          Hint: {record.creationHintSummary}
+                        </p>
+                        {record.depositSignature && (
+                          <p className="shield-helper shield-helper--meta">
+                            Deposit: {abbreviate(record.depositSignature) ?? record.depositSignature}
+                          </p>
+                        )}
+                        <p className="shield-helper shield-helper--meta">
+                          State note: {abbreviate(record.stateSignature) ?? record.stateSignature}
+                        </p>
+                        <p className="shield-helper shield-helper--meta">
+                          Snapshot leaves: {record.snapshotLeafCount}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </details>
               <div className="status-actions">
                 <Link className="button button-primary" to="/app/send">
                   Continue to Send
@@ -931,4 +1034,15 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
       </div>
     </section>
   );
+}
+
+function readTokenDecimals(balance: unknown) {
+  if (typeof balance !== "object" || balance === null) {
+    return undefined;
+  }
+
+  const candidate = (balance as { decimals?: unknown }).decimals;
+  return typeof candidate === "number" && Number.isInteger(candidate) && candidate >= 0
+    ? candidate
+    : undefined;
 }

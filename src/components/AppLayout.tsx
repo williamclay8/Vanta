@@ -2,7 +2,7 @@ import { NavLink, Outlet } from "react-router-dom";
 import { BrandMark } from "@/components/BrandMark";
 import { NextStepGuidance } from "@/components/NextStepGuidance";
 import { PositionSummary } from "@/components/PositionSummary";
-import { useWalletState } from "@/context/WalletContext";
+import { useWalletState } from "@/data/context/WalletContext";
 
 const appLinks = [
   { to: "/app", label: "Home", badge: "Live", end: true },

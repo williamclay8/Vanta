@@ -1,7 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
-import { PrivacyFlowProvider } from "@/context/PrivacyFlowContext";
-import { WalletProvider } from "@/context/WalletContext";
+import { PrivacyFlowProvider } from "@/data/context/PrivacyFlowContext";
+import { WalletProvider } from "@/data/context/WalletContext";
 import { AppDashboardPage } from "@/pages/AppDashboardPage";
 import { HomePage } from "@/pages/HomePage";
 import { LaunchPage } from "@/pages/LaunchPage";

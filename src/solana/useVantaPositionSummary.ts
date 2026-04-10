@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useSplToken } from "@solana/react-hooks";
-import { useWalletState } from "@/context/WalletContext";
+import { useWalletState } from "@/data/context/WalletContext";
 import { liveShieldAsset, SHIELD_HOOK_FALLBACK_MINT } from "@/solana/shieldConfig";
 import { useVantaShieldState } from "@/solana/useVantaShieldState";
 

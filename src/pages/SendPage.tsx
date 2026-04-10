@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useSendTransaction } from "@solana/react-hooks";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
-import { usePrivacyFlow, type PrivacyAssetKey } from "@/context/PrivacyFlowContext";
+import { usePrivacyFlow, type PrivacyAssetKey } from "@/data/context/PrivacyFlowContext";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
 import { useVantaShieldState } from "@/solana/useVantaShieldState";
 import { useRealtimeSignatureProgress } from "@/solana/useRealtimeSignatureProgress";
@@ -12,6 +12,10 @@ import {
   createPreparedSendMemo,
   createSpentMarkerInstruction,
 } from "@/solana/vantaShieldState";
+import {
+  listCanonicalSendDiagnosticsSummaries,
+  recordCanonicalSendFromLiveSend,
+} from "@/zk/liveSendBridge";
 
 type SendPageProps = {
   dashboard?: boolean;
@@ -27,6 +31,22 @@ type PendingSpentMarker = {
   vaultOwner: string;
 };
 
+type PendingSendBridge = {
+  changeAmountDisplay: string;
+  createdAt: number;
+  predecessor: {
+    amountDisplay: string;
+    noteId: string;
+    stateSignature: string;
+  };
+  recipient: string;
+  sentAmountDisplay: string;
+  transition: {
+    changeNoteId?: string;
+    noteId: string;
+  };
+};
+
 const assetNames: Record<PrivacyAssetKey, string> = {
   VUSD: "Vanta Devnet Test Dollar",
   USDC: "USD Coin",
@@ -40,6 +60,8 @@ const fallbackShieldedBalances: Record<PrivacyAssetKey, number> = {
   JTO: 180,
   BONK: 0,
 };
+
+const DEFAULT_VUSD_DECIMALS = 6;
 
 function formatBalance(value: number, symbol: PrivacyAssetKey) {
   if (symbol === "USDC" || symbol === "VUSD") {
@@ -60,6 +82,14 @@ function formatBalance(value: number, symbol: PrivacyAssetKey) {
     minimumFractionDigits: 0,
     maximumFractionDigits: 3,
   })} ${symbol}`;
+}
+
+function abbreviate(value: string | null | undefined) {
+  if (!value) {
+    return null;
+  }
+
+  return `${value.slice(0, 4)}...${value.slice(-4)}`;
 }
 
 export function SendPage({ dashboard = false }: SendPageProps) {
@@ -84,6 +114,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
   const [lastSentAmount, setLastSentAmount] = useState<number | null>(null);
   const [lastChangeAmount, setLastChangeAmount] = useState<number | null>(null);
   const [pendingSpentMarker, setPendingSpentMarker] = useState<PendingSpentMarker | null>(null);
+  const [pendingSendBridge, setPendingSendBridge] = useState<PendingSendBridge | null>(null);
   const sendNoteTransaction = useSendTransaction();
   const sendNoteWait = useRealtimeSignatureProgress(sendNoteTransaction.signature ?? undefined, {
     commitment: "confirmed",
@@ -155,6 +186,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
   const recentShieldLabel =
     recentShield &&
     `${formatBalance(recentShield.amount, recentShield.asset)} shielded`;
+  const sendZkDiagnostics = listCanonicalSendDiagnosticsSummaries().slice(0, 5);
 
   useEffect(() => {
     if (sendNoteTransaction.status === "loading") {
@@ -167,6 +199,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           : "The Vanta send record could not be submitted.",
       );
       setPendingSpentMarker(null);
+      setPendingSendBridge(null);
     } else if (sendNoteTransaction.signature) {
       setStatus("settling");
     }
@@ -188,6 +221,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         : "The Vanta send record was submitted but not confirmed.",
     );
     setPendingSpentMarker(null);
+    setPendingSendBridge(null);
   }, [sendNoteWait.waitError, sendNoteWait.waitStatus]);
 
   useEffect(() => {
@@ -231,6 +265,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       )
       .catch((error) => {
         setStatus("failed");
+        setPendingSendBridge(null);
         setFlowError(
           error instanceof Error
             ? error.message
@@ -256,6 +291,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         ? spentMarkerTransaction.error.message
         : "The spent marker could not be submitted.",
     );
+    setPendingSendBridge(null);
   }, [spentMarkerTransaction.error, spentMarkerTransaction.status]);
 
   useEffect(() => {
@@ -269,28 +305,62 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         ? spentMarkerWait.waitError.message
         : "The spent marker was submitted but not confirmed.",
     );
+    setPendingSendBridge(null);
   }, [spentMarkerWait.waitError, spentMarkerWait.waitStatus]);
 
   useEffect(() => {
-    if (spentMarkerWait.waitStatus !== "success") {
+    if (
+      spentMarkerWait.waitStatus !== "success" ||
+      !pendingSendBridge ||
+      !shieldAccount ||
+      !liveShieldAsset.mintAddress
+    ) {
       return;
     }
 
+    const mintAddress = liveShieldAsset.mintAddress;
+
     void refreshShieldState()
-      .then(() => {
+      .then(async () => {
+        await recordCanonicalSendFromLiveSend({
+          assetSymbol: "VUSD",
+          mintAddress,
+          owner: shieldAccount.owner,
+          vaultOwner: shieldAccount.vaultOwner,
+          createdAt: pendingSendBridge.createdAt,
+          recipient: pendingSendBridge.recipient,
+          sentAmountDisplay: pendingSendBridge.sentAmountDisplay,
+          changeAmountDisplay: pendingSendBridge.changeAmountDisplay,
+          tokenDecimals: DEFAULT_VUSD_DECIMALS,
+          predecessor: pendingSendBridge.predecessor,
+          transition: {
+            noteId: pendingSendBridge.transition.noteId,
+            signature: sendNoteTransaction.signature ?? pendingSendBridge.transition.noteId,
+            spentMarkerSignature: spentMarkerTransaction.signature ?? undefined,
+            changeNoteId: pendingSendBridge.transition.changeNoteId,
+          },
+        });
         setStatus("complete");
         setFlowError(null);
         setPendingSpentMarker(null);
+        setPendingSendBridge(null);
       })
       .catch((error) => {
         setStatus("failed");
         setFlowError(
           error instanceof Error
             ? error.message
-            : "Send settled, but shielded state could not be refreshed.",
+            : "Send settled, but canonical successor-note bridge state could not be recorded.",
         );
       });
-  }, [refreshShieldState, spentMarkerWait.waitStatus]);
+  }, [
+    pendingSendBridge,
+    refreshShieldState,
+    sendNoteTransaction.signature,
+    shieldAccount,
+    spentMarkerTransaction.signature,
+    spentMarkerWait.waitStatus,
+  ]);
 
   async function handleSend() {
     if (!isRealSendReady || !shieldAccount || !selectedSpendableNote || !liveShieldAsset.mintAddress) {
@@ -328,6 +398,21 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         transitionNoteId: preparedSend.noteId,
         vaultOwner: shieldAccount.vaultOwner,
       });
+      setPendingSendBridge({
+        changeAmountDisplay: changeAmount.toString(),
+        createdAt,
+        predecessor: {
+          amountDisplay: selectedSpendableNote.amount.toString(),
+          noteId: selectedSpendableNote.noteId,
+          stateSignature: selectedSpendableNote.stateSignature,
+        },
+        recipient: recipient.trim(),
+        sentAmountDisplay: parsedAmount.toString(),
+        transition: {
+          changeNoteId: preparedSend.changeNoteId,
+          noteId: preparedSend.noteId,
+        },
+      });
       const priorityFeeInstructions = await buildHeliusPriorityFeeInstructions({
         accountKeys: [
           selectedSpendableNote.noteId,
@@ -345,6 +430,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       });
     } catch (error) {
       setPendingSpentMarker(null);
+      setPendingSendBridge(null);
       setStatus("failed");
       setFlowError(
         error instanceof Error ? error.message : "Send request was not approved.",
@@ -833,6 +919,58 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   Spent marker: {`${spentMarkerTransaction.signature.slice(0, 8)}...${spentMarkerTransaction.signature.slice(-8)}`}
                 </p>
               )}
+              <details className="shield-helper shield-helper--meta">
+                <summary>Internal zk diagnostics</summary>
+                <p>
+                  Internal/debug only. Inspect canonical predecessor linkage and
+                  successor note insertions created from recent live send actions.
+                </p>
+                {sendZkDiagnostics.length === 0 ? (
+                  <p>No retained canonical send bridge records were found.</p>
+                ) : (
+                  <div className="success-metrics">
+                    {sendZkDiagnostics.map((record) => (
+                      <div key={record.recordId} className="preview-card">
+                        <span>{new Date(record.createdAt).toLocaleTimeString()}</span>
+                        <strong>
+                          {abbreviate(record.transitionSignature) ?? record.transitionSignature}
+                        </strong>
+                        <small>Send transition</small>
+                        <p className="shield-helper shield-helper--meta">
+                          Predecessor: {record.predecessorLiveNoteId}
+                        </p>
+                        {record.predecessorCanonicalCommitment && (
+                          <p className="shield-helper shield-helper--meta">
+                            Canonical predecessor:{" "}
+                            {abbreviate(record.predecessorCanonicalCommitment) ??
+                              record.predecessorCanonicalCommitment}
+                          </p>
+                        )}
+                        <p className="shield-helper shield-helper--meta">
+                          Recipient: {record.recipient}
+                        </p>
+                        {record.spentMarkerSignature && (
+                          <p className="shield-helper shield-helper--meta">
+                            Spent marker:{" "}
+                            {abbreviate(record.spentMarkerSignature) ??
+                              record.spentMarkerSignature}
+                          </p>
+                        )}
+                        {record.successors.map((successor) => (
+                          <p
+                            key={`${record.recordId}:${successor.kind}`}
+                            className="shield-helper shield-helper--meta"
+                          >
+                            {successor.kind} successor #{successor.insertionIndex}:{" "}
+                            {abbreviate(successor.commitment) ?? successor.commitment} · root{" "}
+                            {abbreviate(successor.snapshotRoot) ?? successor.snapshotRoot}
+                          </p>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </details>
               <div className="status-actions">
                 <button
                   className="button button-primary"
@@ -842,6 +980,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                     setAmount(selectedSpendableNote?.amount.toFixed(2) ?? "");
                     setStatus("idle");
                     setFlowError(null);
+                    setPendingSendBridge(null);
                   }}
                 >
                   Send More
