@@ -4401,6 +4401,85 @@ export type BackendSpecificEncoderConstraintSystemHandoffReadinessFreezeMetadata
   summary: string;
 };
 
+export type BackendSpecificEncoderProvingInputPackageStatus =
+  | "proving-input-package-ready"
+  | "proving-input-package-blocked"
+  | "proving-input-package-not-issued";
+
+export type BackendSpecificEncoderProvingInputPackage = {
+  artifactKind: "vanta-backend-encoder-proving-input-package-v1";
+  artifactVersion: 1;
+  encoderId: string;
+  encoderLabel: string;
+  constraintSystemHandoffReadinessSnapshotKind:
+    BackendSpecificEncoderConstraintSystemHandoffReadinessFreeze["snapshotKind"];
+  constraintSystemHandoffReadinessSnapshotVersion:
+    BackendSpecificEncoderConstraintSystemHandoffReadinessFreeze["snapshotVersion"];
+  constraintSystemHandoffReadinessStatus:
+    BackendSpecificEncoderConstraintSystemHandoffReadinessStatus;
+  adapterPayloadKind: CanonicalCircuitInputAdapterPayloadFreeze["kind"];
+  adapterPayloadVersion: CanonicalCircuitInputAdapterPayloadFreeze["version"];
+  lifecycleId?: string;
+  normalizedAcceptedRowCount: number;
+  packagedRowCount: number;
+  excludedRowCount: number;
+  status: BackendSpecificEncoderProvingInputPackageStatus;
+  proceedable: boolean;
+  dispatchFootprintSummary: string;
+  packageFootprintSummary: string;
+  reason?: string;
+  summary: string;
+};
+
+export type BackendSpecificEncoderProvingInputPackageMetadata = {
+  artifactKind: BackendSpecificEncoderProvingInputPackage["artifactKind"];
+  artifactVersion: BackendSpecificEncoderProvingInputPackage["artifactVersion"];
+  encoderId: string;
+  encoderLabel: string;
+  constraintSystemHandoffReadinessSnapshotKind:
+    BackendSpecificEncoderProvingInputPackage["constraintSystemHandoffReadinessSnapshotKind"];
+  constraintSystemHandoffReadinessSnapshotVersion:
+    BackendSpecificEncoderProvingInputPackage["constraintSystemHandoffReadinessSnapshotVersion"];
+  constraintSystemHandoffReadinessStatus:
+    BackendSpecificEncoderProvingInputPackage["constraintSystemHandoffReadinessStatus"];
+  adapterPayloadKind: BackendSpecificEncoderProvingInputPackage["adapterPayloadKind"];
+  adapterPayloadVersion: BackendSpecificEncoderProvingInputPackage["adapterPayloadVersion"];
+  lifecycleId?: string;
+  normalizedAcceptedRowCount: number;
+  packagedRowCount: number;
+  excludedRowCount: number;
+  status: BackendSpecificEncoderProvingInputPackageStatus;
+  proceedable: boolean;
+  dispatchFootprintSummary: string;
+  packageFootprintSummary: string;
+  reason?: string;
+  summary: string;
+};
+
+export type BackendSpecificEncoderProvingInputPackageFreeze = {
+  snapshotKind: "vanta-backend-encoder-proving-input-package-freeze-v1";
+  snapshotVersion: 1;
+  encoderId: string;
+  encoderLabel: string;
+  status: BackendSpecificEncoderProvingInputPackageStatus;
+  serialized: string;
+  summary: string;
+};
+
+export type BackendSpecificEncoderProvingInputPackageFreezeMetadata = {
+  snapshotKind: BackendSpecificEncoderProvingInputPackageFreeze["snapshotKind"];
+  snapshotVersion: BackendSpecificEncoderProvingInputPackageFreeze["snapshotVersion"];
+  encoderId: string;
+  encoderLabel: string;
+  artifactKind: BackendSpecificEncoderProvingInputPackage["artifactKind"];
+  artifactVersion: BackendSpecificEncoderProvingInputPackage["artifactVersion"];
+  status: BackendSpecificEncoderProvingInputPackageFreeze["status"];
+  proceedable: boolean;
+  frozen: true;
+  stable: true;
+  summary: string;
+};
+
 export type BackendSpecificEncoderStub = {
   encoderId: string;
   label: string;
@@ -15660,6 +15739,213 @@ export function summarizeGenericPhase1EncoderConstraintSystemHandoffReadinessFre
   );
 }
 
+export function inspectGenericPhase1EncoderProvingInputPackageForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): BackendSpecificEncoderProvingInputPackage {
+  const handoffFreeze = inspectGenericPhase1EncoderConstraintSystemHandoffReadinessFreezeForFrozenPayload(
+    payload,
+  );
+  const handoffSnapshot = readConstraintSystemHandoffReadinessFreezeSnapshot(handoffFreeze);
+  const normalizedRows = readFrozenNormalizedRows(payload);
+  const proceedable = handoffSnapshot.proceedable && normalizedRows.length > 0;
+  const status = proceedable
+    ? "proving-input-package-ready"
+    : handoffSnapshot.status === "constraint-system-handoff-not-issued" || normalizedRows.length === 0
+      ? "proving-input-package-not-issued"
+      : "proving-input-package-blocked";
+  const packageFootprintSummary = `packaged:${normalizedRows.length} · excluded:${payload.excludedRowCount}`;
+  const reason = proceedable
+    ? undefined
+    : handoffSnapshot.status === "constraint-system-handoff-not-issued"
+      ? handoffSnapshot.reason ?? "constraint-system handoff has not issued a proving-input package"
+      : normalizedRows.length === 0
+        ? "no normalized rows available for proving-input packaging"
+        : handoffSnapshot.reason;
+
+  return {
+    artifactKind: "vanta-backend-encoder-proving-input-package-v1",
+    artifactVersion: 1,
+    encoderId: handoffSnapshot.encoderId,
+    encoderLabel: handoffSnapshot.encoderLabel,
+    constraintSystemHandoffReadinessSnapshotKind: handoffSnapshot.snapshotKind,
+    constraintSystemHandoffReadinessSnapshotVersion: handoffSnapshot.snapshotVersion,
+    constraintSystemHandoffReadinessStatus: handoffSnapshot.status,
+    adapterPayloadKind: payload.kind,
+    adapterPayloadVersion: payload.version,
+    lifecycleId: payload.lifecycleId,
+    normalizedAcceptedRowCount: payload.acceptedRowCount,
+    packagedRowCount: normalizedRows.length,
+    excludedRowCount: payload.excludedRowCount,
+    status,
+    proceedable,
+    dispatchFootprintSummary: handoffSnapshot.dispatchFootprintSummary,
+    packageFootprintSummary,
+    reason,
+    summary: summarizeProvingInputPackage(status, handoffSnapshot, packageFootprintSummary, reason),
+  };
+}
+
+export function inspectGenericPhase1EncoderProvingInputPackageForLifecycleNode(
+  lifecycleId: string | undefined,
+): BackendSpecificEncoderProvingInputPackage {
+  return inspectGenericPhase1EncoderProvingInputPackageForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function inspectGenericPhase1EncoderProvingInputPackageMetadataForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): BackendSpecificEncoderProvingInputPackageMetadata {
+  const artifact = inspectGenericPhase1EncoderProvingInputPackageForFrozenPayload(payload);
+
+  return {
+    artifactKind: artifact.artifactKind,
+    artifactVersion: artifact.artifactVersion,
+    encoderId: artifact.encoderId,
+    encoderLabel: artifact.encoderLabel,
+    constraintSystemHandoffReadinessSnapshotKind:
+      artifact.constraintSystemHandoffReadinessSnapshotKind,
+    constraintSystemHandoffReadinessSnapshotVersion:
+      artifact.constraintSystemHandoffReadinessSnapshotVersion,
+    constraintSystemHandoffReadinessStatus: artifact.constraintSystemHandoffReadinessStatus,
+    adapterPayloadKind: artifact.adapterPayloadKind,
+    adapterPayloadVersion: artifact.adapterPayloadVersion,
+    lifecycleId: artifact.lifecycleId,
+    normalizedAcceptedRowCount: artifact.normalizedAcceptedRowCount,
+    packagedRowCount: artifact.packagedRowCount,
+    excludedRowCount: artifact.excludedRowCount,
+    status: artifact.status,
+    proceedable: artifact.proceedable,
+    dispatchFootprintSummary: artifact.dispatchFootprintSummary,
+    packageFootprintSummary: artifact.packageFootprintSummary,
+    reason: artifact.reason,
+    summary: artifact.summary,
+  };
+}
+
+export function inspectGenericPhase1EncoderProvingInputPackageMetadataForLifecycleNode(
+  lifecycleId: string | undefined,
+): BackendSpecificEncoderProvingInputPackageMetadata {
+  return inspectGenericPhase1EncoderProvingInputPackageMetadataForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function summarizeGenericPhase1EncoderProvingInputPackageForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): string {
+  return inspectGenericPhase1EncoderProvingInputPackageForFrozenPayload(payload).summary;
+}
+
+export function summarizeGenericPhase1EncoderProvingInputPackageForLifecycleNode(
+  lifecycleId: string | undefined,
+): string {
+  return summarizeGenericPhase1EncoderProvingInputPackageForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function inspectGenericPhase1EncoderProvingInputPackageFreezeForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): BackendSpecificEncoderProvingInputPackageFreeze {
+  const artifact = inspectGenericPhase1EncoderProvingInputPackageForFrozenPayload(payload);
+  const tuples = [
+    ["snapshotKind", "vanta-backend-encoder-proving-input-package-freeze-v1"],
+    ["snapshotVersion", 1],
+    ["artifactKind", artifact.artifactKind],
+    ["artifactVersion", artifact.artifactVersion],
+    ["encoderId", artifact.encoderId],
+    ["encoderLabel", artifact.encoderLabel],
+    [
+      "constraintSystemHandoffReadinessSnapshotKind",
+      artifact.constraintSystemHandoffReadinessSnapshotKind,
+    ],
+    [
+      "constraintSystemHandoffReadinessSnapshotVersion",
+      artifact.constraintSystemHandoffReadinessSnapshotVersion,
+    ],
+    [
+      "constraintSystemHandoffReadinessStatus",
+      artifact.constraintSystemHandoffReadinessStatus,
+    ],
+    ["adapterPayloadKind", artifact.adapterPayloadKind],
+    ["adapterPayloadVersion", artifact.adapterPayloadVersion],
+    ["lifecycleId", artifact.lifecycleId ?? null],
+    ["normalizedAcceptedRowCount", artifact.normalizedAcceptedRowCount],
+    ["packagedRowCount", artifact.packagedRowCount],
+    ["excludedRowCount", artifact.excludedRowCount],
+    ["status", artifact.status],
+    ["proceedable", artifact.proceedable],
+    ["dispatchFootprintSummary", artifact.dispatchFootprintSummary],
+    ["packageFootprintSummary", artifact.packageFootprintSummary],
+    ["reason", artifact.reason ?? null],
+    ["summary", artifact.summary],
+  ] as const;
+
+  return {
+    snapshotKind: "vanta-backend-encoder-proving-input-package-freeze-v1",
+    snapshotVersion: 1,
+    encoderId: artifact.encoderId,
+    encoderLabel: artifact.encoderLabel,
+    status: artifact.status,
+    serialized: JSON.stringify(tuples),
+    summary: `${artifact.status} · frozen proving-input package artifact`,
+  };
+}
+
+export function inspectGenericPhase1EncoderProvingInputPackageFreezeForLifecycleNode(
+  lifecycleId: string | undefined,
+): BackendSpecificEncoderProvingInputPackageFreeze {
+  return inspectGenericPhase1EncoderProvingInputPackageFreezeForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function inspectGenericPhase1EncoderProvingInputPackageFreezeMetadataForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): BackendSpecificEncoderProvingInputPackageFreezeMetadata {
+  const artifact = inspectGenericPhase1EncoderProvingInputPackageForFrozenPayload(payload);
+  const freeze = inspectGenericPhase1EncoderProvingInputPackageFreezeForFrozenPayload(payload);
+  const snapshot = readProvingInputPackageFreezeSnapshot(freeze);
+
+  return {
+    snapshotKind: snapshot.snapshotKind,
+    snapshotVersion: snapshot.snapshotVersion,
+    encoderId: snapshot.encoderId,
+    encoderLabel: snapshot.encoderLabel,
+    artifactKind: artifact.artifactKind,
+    artifactVersion: artifact.artifactVersion,
+    status: snapshot.status,
+    proceedable: snapshot.proceedable,
+    frozen: true,
+    stable: true,
+    summary: `${freeze.summary} · stable:${artifact.status}`,
+  };
+}
+
+export function inspectGenericPhase1EncoderProvingInputPackageFreezeMetadataForLifecycleNode(
+  lifecycleId: string | undefined,
+): BackendSpecificEncoderProvingInputPackageFreezeMetadata {
+  return inspectGenericPhase1EncoderProvingInputPackageFreezeMetadataForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function summarizeGenericPhase1EncoderProvingInputPackageFreezeForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): string {
+  return inspectGenericPhase1EncoderProvingInputPackageFreezeMetadataForFrozenPayload(payload)
+    .summary;
+}
+
+export function summarizeGenericPhase1EncoderProvingInputPackageFreezeForLifecycleNode(
+  lifecycleId: string | undefined,
+): string {
+  return summarizeGenericPhase1EncoderProvingInputPackageFreezeForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
 export function inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactForFrozenPayload(
   payload: CanonicalCircuitInputAdapterPayloadFreeze,
 ): BackendSpecificEncoderFieldMaterializationDownstreamPreEncodingConsumerArtifact {
@@ -19519,6 +19805,69 @@ function readFieldMaterializationNextResolvedBoundaryClosureConsumerFreezeSnapsh
   }
 }
 
+type ParsedProvingInputPackageFreezeSnapshot = {
+  snapshotKind: BackendSpecificEncoderProvingInputPackageFreeze["snapshotKind"];
+  snapshotVersion: BackendSpecificEncoderProvingInputPackageFreeze["snapshotVersion"];
+  encoderId: string;
+  encoderLabel: string;
+  status: BackendSpecificEncoderProvingInputPackageStatus;
+  proceedable: boolean;
+  dispatchFootprintSummary: string;
+  packageFootprintSummary: string;
+  reason?: string;
+};
+
+function readProvingInputPackageFreezeSnapshot(
+  freeze: BackendSpecificEncoderProvingInputPackageFreeze,
+): ParsedProvingInputPackageFreezeSnapshot {
+  try {
+    const tuples = JSON.parse(freeze.serialized) as unknown;
+
+    if (!Array.isArray(tuples)) {
+      throw new Error("serialized proving-input-package snapshot was not a tuple array");
+    }
+
+    const get = (key: string) =>
+      tuples.find(
+        (entry): entry is [string, unknown] => Array.isArray(entry) && entry[0] === key,
+      )?.[1];
+
+    return {
+      snapshotKind:
+        String(get("snapshotKind") ?? freeze.snapshotKind) as ParsedProvingInputPackageFreezeSnapshot["snapshotKind"],
+      snapshotVersion:
+        Number(get("snapshotVersion") ?? freeze.snapshotVersion) as ParsedProvingInputPackageFreezeSnapshot["snapshotVersion"],
+      encoderId: String(get("encoderId") ?? freeze.encoderId),
+      encoderLabel: String(get("encoderLabel") ?? freeze.encoderLabel),
+      status:
+        String(get("status") ?? freeze.status) as ParsedProvingInputPackageFreezeSnapshot["status"],
+      proceedable: Boolean(get("proceedable")),
+      dispatchFootprintSummary: String(
+        get("dispatchFootprintSummary") ?? "accepted:0 · blocked:0 · unsupported:0",
+      ),
+      packageFootprintSummary: String(
+        get("packageFootprintSummary") ?? "packaged:0 · excluded:0",
+      ),
+      reason:
+        get("reason") === null || get("reason") === undefined
+          ? undefined
+          : String(get("reason")),
+    };
+  } catch {
+    return {
+      snapshotKind: freeze.snapshotKind,
+      snapshotVersion: freeze.snapshotVersion,
+      encoderId: freeze.encoderId,
+      encoderLabel: freeze.encoderLabel,
+      status: freeze.status,
+      proceedable: false,
+      dispatchFootprintSummary: "accepted:0 · blocked:0 · unsupported:0",
+      packageFootprintSummary: "packaged:0 · excluded:0",
+      reason: "failed to parse proving-input package freeze",
+    };
+  }
+}
+
 type ParsedConstraintSystemHandoffReadinessFreezeSnapshot = {
   snapshotKind: BackendSpecificEncoderConstraintSystemHandoffReadinessFreeze["snapshotKind"];
   snapshotVersion: BackendSpecificEncoderConstraintSystemHandoffReadinessFreeze["snapshotVersion"];
@@ -20418,6 +20767,21 @@ function summarizeFieldMaterializationNextResolvedBoundaryClosureConsumer(
 
   if (snapshot.reason) {
     parts.push(snapshot.reason);
+  }
+
+  return parts.join(" · ");
+}
+
+function summarizeProvingInputPackage(
+  status: BackendSpecificEncoderProvingInputPackageStatus,
+  snapshot: ParsedConstraintSystemHandoffReadinessFreezeSnapshot,
+  packageFootprintSummary: string,
+  reason?: string,
+): string {
+  const parts = [status, `from ${snapshot.status}`, snapshot.dispatchFootprintSummary, packageFootprintSummary];
+
+  if (reason) {
+    parts.push(reason);
   }
 
   return parts.join(" · ");
