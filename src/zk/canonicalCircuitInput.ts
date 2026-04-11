@@ -527,6 +527,7 @@ export type CanonicalCircuitInputAdapterPayloadFreeze = {
   version: 1;
   adapterId: string;
   adapterLabel: string;
+  lifecycleId?: string;
   acceptedRowCount: number;
   excludedRowCount: number;
   serialized: string;
@@ -1772,6 +1773,7 @@ function serializeCanonicalCircuitInput(encoding: CanonicalLifecycleCircuitInput
         encoding.adapterPayloadFreeze.version,
         encoding.adapterPayloadFreeze.adapterId,
         encoding.adapterPayloadFreeze.adapterLabel,
+        encoding.adapterPayloadFreeze.lifecycleId,
         encoding.adapterPayloadFreeze.acceptedRowCount,
         encoding.adapterPayloadFreeze.excludedRowCount,
         encoding.adapterPayloadFreeze.serialized,
@@ -3759,6 +3761,7 @@ function freezeBackendAdapterNormalizedBundle(
     ["version", 1],
     ["adapterId", bundle.adapterId],
     ["adapterLabel", bundle.adapterLabel],
+    ["lifecycleId", normalizedRows[0]?.payloadHint ?? null],
     ["contractKind", bundle.contractKind],
     ["contractVersion", bundle.contractVersion],
     [
@@ -3784,6 +3787,7 @@ function freezeBackendAdapterNormalizedBundle(
     version: 1,
     adapterId: bundle.adapterId,
     adapterLabel: bundle.adapterLabel,
+    lifecycleId: normalizedRows[0]?.payloadHint,
     acceptedRowCount: bundle.acceptedRowCount,
     excludedRowCount: bundle.excludedRowCount,
     serialized: JSON.stringify(tuples),
