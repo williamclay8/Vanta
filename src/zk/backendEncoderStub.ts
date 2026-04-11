@@ -4550,6 +4550,76 @@ export type BackendSpecificEncoderBackendProvingSessionFreezeMetadata = {
   summary: string;
 };
 
+export type BackendSpecificEncoderProofReceiptStatus =
+  | "proof-receipt-ready"
+  | "proof-receipt-blocked"
+  | "proof-receipt-not-issued";
+
+export type BackendSpecificEncoderProofReceipt = {
+  artifactKind: "vanta-backend-encoder-proof-receipt-v1";
+  artifactVersion: 1;
+  encoderId: string;
+  encoderLabel: string;
+  backendProvingSessionSnapshotKind:
+    BackendSpecificEncoderBackendProvingSessionFreeze["snapshotKind"];
+  backendProvingSessionSnapshotVersion:
+    BackendSpecificEncoderBackendProvingSessionFreeze["snapshotVersion"];
+  backendProvingSessionStatus: BackendSpecificEncoderBackendProvingSessionStatus;
+  lifecycleId?: string;
+  packagedRowCount: number;
+  status: BackendSpecificEncoderProofReceiptStatus;
+  proceedable: boolean;
+  sessionFootprintSummary: string;
+  receiptFootprintSummary: string;
+  reason?: string;
+  summary: string;
+};
+
+export type BackendSpecificEncoderProofReceiptMetadata = {
+  artifactKind: BackendSpecificEncoderProofReceipt["artifactKind"];
+  artifactVersion: BackendSpecificEncoderProofReceipt["artifactVersion"];
+  encoderId: string;
+  encoderLabel: string;
+  backendProvingSessionSnapshotKind:
+    BackendSpecificEncoderProofReceipt["backendProvingSessionSnapshotKind"];
+  backendProvingSessionSnapshotVersion:
+    BackendSpecificEncoderProofReceipt["backendProvingSessionSnapshotVersion"];
+  backendProvingSessionStatus:
+    BackendSpecificEncoderProofReceipt["backendProvingSessionStatus"];
+  lifecycleId?: string;
+  packagedRowCount: number;
+  status: BackendSpecificEncoderProofReceiptStatus;
+  proceedable: boolean;
+  sessionFootprintSummary: string;
+  receiptFootprintSummary: string;
+  reason?: string;
+  summary: string;
+};
+
+export type BackendSpecificEncoderProofReceiptFreeze = {
+  snapshotKind: "vanta-backend-encoder-proof-receipt-freeze-v1";
+  snapshotVersion: 1;
+  encoderId: string;
+  encoderLabel: string;
+  status: BackendSpecificEncoderProofReceiptStatus;
+  serialized: string;
+  summary: string;
+};
+
+export type BackendSpecificEncoderProofReceiptFreezeMetadata = {
+  snapshotKind: BackendSpecificEncoderProofReceiptFreeze["snapshotKind"];
+  snapshotVersion: BackendSpecificEncoderProofReceiptFreeze["snapshotVersion"];
+  encoderId: string;
+  encoderLabel: string;
+  artifactKind: BackendSpecificEncoderProofReceipt["artifactKind"];
+  artifactVersion: BackendSpecificEncoderProofReceipt["artifactVersion"];
+  status: BackendSpecificEncoderProofReceiptFreeze["status"];
+  proceedable: boolean;
+  frozen: true;
+  stable: true;
+  summary: string;
+};
+
 export type BackendSpecificEncoderStub = {
   encoderId: string;
   label: string;
@@ -16209,6 +16279,202 @@ export function summarizeGenericPhase1EncoderBackendProvingSessionFreezeForLifec
   );
 }
 
+export function inspectGenericPhase1EncoderProofReceiptForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): BackendSpecificEncoderProofReceipt {
+  const backendProvingSessionFreeze = inspectGenericPhase1EncoderBackendProvingSessionFreezeForFrozenPayload(
+    payload,
+  );
+  const backendProvingSessionSnapshot = readBackendProvingSessionFreezeSnapshot(
+    backendProvingSessionFreeze,
+  );
+  const normalizedRows = readFrozenNormalizedRows(payload);
+  const proceedable =
+    backendProvingSessionSnapshot.proceedable && normalizedRows.length > 0;
+  const status = proceedable
+    ? "proof-receipt-ready"
+    : backendProvingSessionSnapshot.status === "backend-proving-session-not-issued" ||
+        normalizedRows.length === 0
+      ? "proof-receipt-not-issued"
+      : "proof-receipt-blocked";
+  const receiptFootprintSummary = `receipt-rows:${normalizedRows.length}`;
+  const reason = proceedable
+    ? undefined
+    : backendProvingSessionSnapshot.status === "backend-proving-session-not-issued"
+      ? backendProvingSessionSnapshot.reason ??
+        "backend proving session has not issued a proof receipt"
+      : normalizedRows.length === 0
+        ? "no backend session rows available for proof receipt"
+        : backendProvingSessionSnapshot.reason;
+
+  return {
+    artifactKind: "vanta-backend-encoder-proof-receipt-v1",
+    artifactVersion: 1,
+    encoderId: backendProvingSessionSnapshot.encoderId,
+    encoderLabel: backendProvingSessionSnapshot.encoderLabel,
+    backendProvingSessionSnapshotKind: backendProvingSessionSnapshot.snapshotKind,
+    backendProvingSessionSnapshotVersion:
+      backendProvingSessionSnapshot.snapshotVersion,
+    backendProvingSessionStatus: backendProvingSessionSnapshot.status,
+    lifecycleId: payload.lifecycleId,
+    packagedRowCount: normalizedRows.length,
+    status,
+    proceedable,
+    sessionFootprintSummary: backendProvingSessionSnapshot.sessionFootprintSummary,
+    receiptFootprintSummary,
+    reason,
+    summary: summarizeProofReceipt(
+      status,
+      backendProvingSessionSnapshot,
+      receiptFootprintSummary,
+      reason,
+    ),
+  };
+}
+
+export function inspectGenericPhase1EncoderProofReceiptForLifecycleNode(
+  lifecycleId: string | undefined,
+): BackendSpecificEncoderProofReceipt {
+  return inspectGenericPhase1EncoderProofReceiptForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function inspectGenericPhase1EncoderProofReceiptMetadataForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): BackendSpecificEncoderProofReceiptMetadata {
+  const artifact = inspectGenericPhase1EncoderProofReceiptForFrozenPayload(payload);
+
+  return {
+    artifactKind: artifact.artifactKind,
+    artifactVersion: artifact.artifactVersion,
+    encoderId: artifact.encoderId,
+    encoderLabel: artifact.encoderLabel,
+    backendProvingSessionSnapshotKind: artifact.backendProvingSessionSnapshotKind,
+    backendProvingSessionSnapshotVersion:
+      artifact.backendProvingSessionSnapshotVersion,
+    backendProvingSessionStatus: artifact.backendProvingSessionStatus,
+    lifecycleId: artifact.lifecycleId,
+    packagedRowCount: artifact.packagedRowCount,
+    status: artifact.status,
+    proceedable: artifact.proceedable,
+    sessionFootprintSummary: artifact.sessionFootprintSummary,
+    receiptFootprintSummary: artifact.receiptFootprintSummary,
+    reason: artifact.reason,
+    summary: artifact.summary,
+  };
+}
+
+export function inspectGenericPhase1EncoderProofReceiptMetadataForLifecycleNode(
+  lifecycleId: string | undefined,
+): BackendSpecificEncoderProofReceiptMetadata {
+  return inspectGenericPhase1EncoderProofReceiptMetadataForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function summarizeGenericPhase1EncoderProofReceiptForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): string {
+  return inspectGenericPhase1EncoderProofReceiptForFrozenPayload(payload).summary;
+}
+
+export function summarizeGenericPhase1EncoderProofReceiptForLifecycleNode(
+  lifecycleId: string | undefined,
+): string {
+  return summarizeGenericPhase1EncoderProofReceiptForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function inspectGenericPhase1EncoderProofReceiptFreezeForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): BackendSpecificEncoderProofReceiptFreeze {
+  const artifact = inspectGenericPhase1EncoderProofReceiptForFrozenPayload(payload);
+  const tuples = [
+    ["snapshotKind", "vanta-backend-encoder-proof-receipt-freeze-v1"],
+    ["snapshotVersion", 1],
+    ["artifactKind", artifact.artifactKind],
+    ["artifactVersion", artifact.artifactVersion],
+    ["encoderId", artifact.encoderId],
+    ["encoderLabel", artifact.encoderLabel],
+    ["backendProvingSessionSnapshotKind", artifact.backendProvingSessionSnapshotKind],
+    ["backendProvingSessionSnapshotVersion", artifact.backendProvingSessionSnapshotVersion],
+    ["backendProvingSessionStatus", artifact.backendProvingSessionStatus],
+    ["lifecycleId", artifact.lifecycleId ?? null],
+    ["packagedRowCount", artifact.packagedRowCount],
+    ["status", artifact.status],
+    ["proceedable", artifact.proceedable],
+    ["sessionFootprintSummary", artifact.sessionFootprintSummary],
+    ["receiptFootprintSummary", artifact.receiptFootprintSummary],
+    ["reason", artifact.reason ?? null],
+    ["summary", artifact.summary],
+  ] as const;
+
+  return {
+    snapshotKind: "vanta-backend-encoder-proof-receipt-freeze-v1",
+    snapshotVersion: 1,
+    encoderId: artifact.encoderId,
+    encoderLabel: artifact.encoderLabel,
+    status: artifact.status,
+    serialized: JSON.stringify(tuples),
+    summary: `${artifact.status} · frozen proof receipt artifact`,
+  };
+}
+
+export function inspectGenericPhase1EncoderProofReceiptFreezeForLifecycleNode(
+  lifecycleId: string | undefined,
+): BackendSpecificEncoderProofReceiptFreeze {
+  return inspectGenericPhase1EncoderProofReceiptFreezeForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function inspectGenericPhase1EncoderProofReceiptFreezeMetadataForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): BackendSpecificEncoderProofReceiptFreezeMetadata {
+  const artifact = inspectGenericPhase1EncoderProofReceiptForFrozenPayload(payload);
+  const freeze = inspectGenericPhase1EncoderProofReceiptFreezeForFrozenPayload(payload);
+  const snapshot = readProofReceiptFreezeSnapshot(freeze);
+
+  return {
+    snapshotKind: snapshot.snapshotKind,
+    snapshotVersion: snapshot.snapshotVersion,
+    encoderId: snapshot.encoderId,
+    encoderLabel: snapshot.encoderLabel,
+    artifactKind: artifact.artifactKind,
+    artifactVersion: artifact.artifactVersion,
+    status: snapshot.status,
+    proceedable: snapshot.proceedable,
+    frozen: true,
+    stable: true,
+    summary: `${freeze.summary} · stable:${artifact.status}`,
+  };
+}
+
+export function inspectGenericPhase1EncoderProofReceiptFreezeMetadataForLifecycleNode(
+  lifecycleId: string | undefined,
+): BackendSpecificEncoderProofReceiptFreezeMetadata {
+  return inspectGenericPhase1EncoderProofReceiptFreezeMetadataForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function summarizeGenericPhase1EncoderProofReceiptFreezeForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): string {
+  return inspectGenericPhase1EncoderProofReceiptFreezeMetadataForFrozenPayload(payload)
+    .summary;
+}
+
+export function summarizeGenericPhase1EncoderProofReceiptFreezeForLifecycleNode(
+  lifecycleId: string | undefined,
+): string {
+  return summarizeGenericPhase1EncoderProofReceiptFreezeForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
 export function inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactForFrozenPayload(
   payload: CanonicalCircuitInputAdapterPayloadFreeze,
 ): BackendSpecificEncoderFieldMaterializationDownstreamPreEncodingConsumerArtifact {
@@ -20068,6 +20334,65 @@ function readFieldMaterializationNextResolvedBoundaryClosureConsumerFreezeSnapsh
   }
 }
 
+type ParsedProofReceiptFreezeSnapshot = {
+  snapshotKind: BackendSpecificEncoderProofReceiptFreeze["snapshotKind"];
+  snapshotVersion: BackendSpecificEncoderProofReceiptFreeze["snapshotVersion"];
+  encoderId: string;
+  encoderLabel: string;
+  status: BackendSpecificEncoderProofReceiptStatus;
+  proceedable: boolean;
+  sessionFootprintSummary: string;
+  receiptFootprintSummary: string;
+  reason?: string;
+};
+
+function readProofReceiptFreezeSnapshot(
+  freeze: BackendSpecificEncoderProofReceiptFreeze,
+): ParsedProofReceiptFreezeSnapshot {
+  try {
+    const tuples = JSON.parse(freeze.serialized) as unknown;
+
+    if (!Array.isArray(tuples)) {
+      throw new Error("serialized proof-receipt snapshot was not a tuple array");
+    }
+
+    const get = (key: string) =>
+      tuples.find(
+        (entry): entry is [string, unknown] => Array.isArray(entry) && entry[0] === key,
+      )?.[1];
+
+    return {
+      snapshotKind:
+        String(get("snapshotKind") ?? freeze.snapshotKind) as ParsedProofReceiptFreezeSnapshot["snapshotKind"],
+      snapshotVersion:
+        Number(get("snapshotVersion") ?? freeze.snapshotVersion) as ParsedProofReceiptFreezeSnapshot["snapshotVersion"],
+      encoderId: String(get("encoderId") ?? freeze.encoderId),
+      encoderLabel: String(get("encoderLabel") ?? freeze.encoderLabel),
+      status:
+        String(get("status") ?? freeze.status) as ParsedProofReceiptFreezeSnapshot["status"],
+      proceedable: Boolean(get("proceedable")),
+      sessionFootprintSummary: String(get("sessionFootprintSummary") ?? "session-rows:0"),
+      receiptFootprintSummary: String(get("receiptFootprintSummary") ?? "receipt-rows:0"),
+      reason:
+        get("reason") === null || get("reason") === undefined
+          ? undefined
+          : String(get("reason")),
+    };
+  } catch {
+    return {
+      snapshotKind: freeze.snapshotKind,
+      snapshotVersion: freeze.snapshotVersion,
+      encoderId: freeze.encoderId,
+      encoderLabel: freeze.encoderLabel,
+      status: freeze.status,
+      proceedable: false,
+      sessionFootprintSummary: "session-rows:0",
+      receiptFootprintSummary: "receipt-rows:0",
+      reason: "failed to parse proof receipt freeze",
+    };
+  }
+}
+
 type ParsedBackendProvingSessionFreezeSnapshot = {
   snapshotKind: BackendSpecificEncoderBackendProvingSessionFreeze["snapshotKind"];
   snapshotVersion: BackendSpecificEncoderBackendProvingSessionFreeze["snapshotVersion"];
@@ -21091,6 +21416,21 @@ function summarizeFieldMaterializationNextResolvedBoundaryClosureConsumer(
 
   if (snapshot.reason) {
     parts.push(snapshot.reason);
+  }
+
+  return parts.join(" · ");
+}
+
+function summarizeProofReceipt(
+  status: BackendSpecificEncoderProofReceiptStatus,
+  snapshot: ParsedBackendProvingSessionFreezeSnapshot,
+  receiptFootprintSummary: string,
+  reason?: string,
+): string {
+  const parts = [status, `from ${snapshot.status}`, snapshot.sessionFootprintSummary, receiptFootprintSummary];
+
+  if (reason) {
+    parts.push(reason);
   }
 
   return parts.join(" · ");

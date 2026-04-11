@@ -112,6 +112,8 @@ import {
   inspectGenericPhase1EncoderProvingInputPackageFreezeForLifecycleNode,
   inspectGenericPhase1EncoderBackendProvingSessionForLifecycleNode,
   inspectGenericPhase1EncoderBackendProvingSessionFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderProofReceiptForLifecycleNode,
+  inspectGenericPhase1EncoderProofReceiptFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationLaunchStartFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationLaunchStartForLifecycleNode,
   inspectGenericPhase1EncoderFieldLaneExecutionAdmissionFreezeForLifecycleNode,
@@ -735,6 +737,10 @@ export function InternalCanonicalLifecyclePanel() {
     inspectGenericPhase1EncoderBackendProvingSessionForLifecycleNode(lookupLifecycleId);
   const encoderBackendProvingSessionFreeze =
     inspectGenericPhase1EncoderBackendProvingSessionFreezeForLifecycleNode(lookupLifecycleId);
+  const encoderProofReceipt =
+    inspectGenericPhase1EncoderProofReceiptForLifecycleNode(lookupLifecycleId);
+  const encoderProofReceiptFreeze =
+    inspectGenericPhase1EncoderProofReceiptFreezeForLifecycleNode(lookupLifecycleId);
   const lineageRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const lookupPanelRef = useRef<HTMLDivElement | null>(null);
 
@@ -3878,6 +3884,58 @@ export function InternalCanonicalLifecyclePanel() {
                           {encoderBackendProvingSessionFreeze.serialized.length > 96
                             ? `${encoderBackendProvingSessionFreeze.serialized.slice(0, 96)}...`
                             : encoderBackendProvingSessionFreeze.serialized}
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Proof receipt kind</span>
+                        <strong>{`${encoderProofReceipt.artifactKind} · v${encoderProofReceipt.artifactVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Proof receipt status</span>
+                        <strong>{encoderProofReceipt.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Proceedable</span>
+                        <strong>{encoderProofReceipt.proceedable ? "yes" : "no"}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Receipt footprint</span>
+                        <strong>{encoderProofReceipt.receiptFootprintSummary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Session provenance</span>
+                        <strong>{`${encoderProofReceipt.backendProvingSessionSnapshotKind} · ${encoderProofReceipt.backendProvingSessionStatus}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Summary</span>
+                        <strong>{encoderProofReceipt.summary}</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Frozen proof receipt kind</span>
+                        <strong>{`${encoderProofReceiptFreeze.snapshotKind} · v${encoderProofReceiptFreeze.snapshotVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen proof receipt status</span>
+                        <strong>{encoderProofReceiptFreeze.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen proof receipt summary</span>
+                        <strong>{encoderProofReceiptFreeze.summary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Serialized preview</span>
+                        <strong>
+                          {encoderProofReceiptFreeze.serialized.length > 96
+                            ? `${encoderProofReceiptFreeze.serialized.slice(0, 96)}...`
+                            : encoderProofReceiptFreeze.serialized}
                         </strong>
                       </div>
                     </div>
