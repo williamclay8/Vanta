@@ -129,6 +129,8 @@ import {
   inspectGenericPhase1EncoderProofReceiptFreezeForLifecycleNode,
   inspectGenericPhase1EncoderProofVerificationReceiptForLifecycleNode,
   inspectGenericPhase1EncoderProofVerificationReceiptFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderVerificationAttestationForLifecycleNode,
+  inspectGenericPhase1EncoderVerificationAttestationFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationLaunchStartFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationLaunchStartForLifecycleNode,
   inspectGenericPhase1EncoderFieldLaneExecutionAdmissionFreezeForLifecycleNode,
@@ -366,6 +368,8 @@ export type CanonicalLifecycleSuccessorSummary = {
   encoderProofReceiptFreezeSummary?: string;
   encoderProofVerificationReceiptSummary?: string;
   encoderProofVerificationReceiptFreezeSummary?: string;
+  encoderVerificationAttestationSummary?: string;
+  encoderVerificationAttestationFreezeSummary?: string;
   rootReconciliationReady?: boolean;
   rootReconciliationStatus?: "pending" | "match" | "mismatch" | "unavailable";
   rootReconciliationScheme?: string;
@@ -843,6 +847,8 @@ export type CanonicalLifecycleNodeInspection = {
   encoderProofReceiptFreezeSummary?: string;
   encoderProofVerificationReceiptSummary?: string;
   encoderProofVerificationReceiptFreezeSummary?: string;
+  encoderVerificationAttestationSummary?: string;
+  encoderVerificationAttestationFreezeSummary?: string;
   rootReconciliationReady: boolean;
   rootReconciliationStatus: "pending" | "match" | "mismatch" | "unavailable";
   rootReconciliationScheme?: string;
@@ -1633,6 +1639,10 @@ export function inspectCanonicalLifecycleNode(
     inspectGenericPhase1EncoderProofVerificationReceiptForLifecycleNode(normalizedLifecycleId);
   const encoderProofVerificationReceiptFreeze =
     inspectGenericPhase1EncoderProofVerificationReceiptFreezeForLifecycleNode(normalizedLifecycleId);
+  const encoderVerificationAttestation =
+    inspectGenericPhase1EncoderVerificationAttestationForLifecycleNode(normalizedLifecycleId);
+  const encoderVerificationAttestationFreeze =
+    inspectGenericPhase1EncoderVerificationAttestationFreezeForLifecycleNode(normalizedLifecycleId);
   const rootReconciliation = inspectCanonicalLifecycleMembershipRootReconciliation(normalizedLifecycleId);
 
   for (const event of events) {
@@ -1697,6 +1707,8 @@ export function inspectCanonicalLifecycleNode(
         encoderProofReceiptFreezeSummary: encoderProofReceiptFreeze.summary,
         encoderProofVerificationReceiptSummary: encoderProofVerificationReceipt.summary,
         encoderProofVerificationReceiptFreezeSummary: encoderProofVerificationReceiptFreeze.summary,
+        encoderVerificationAttestationSummary: encoderVerificationAttestation.summary,
+        encoderVerificationAttestationFreezeSummary: encoderVerificationAttestationFreeze.summary,
         fieldEmissionScheduleSummary: createFieldEmissionScheduleSummary(circuitInput),
         fieldConversionManifestSummary: createFieldConversionManifestSummary(circuitInput),
         finiteFieldDraftSummary: createFiniteFieldDraftSummary(circuitInput),
@@ -3870,6 +3882,18 @@ function createEncoderProofVerificationReceiptSummary(
 
 function createEncoderProofVerificationReceiptFreezeSummary(
   result: ReturnType<typeof inspectGenericPhase1EncoderProofVerificationReceiptFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderVerificationAttestationSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderVerificationAttestationForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderVerificationAttestationFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderVerificationAttestationFreezeForLifecycleNode>,
 ): string {
   return result.summary;
 }

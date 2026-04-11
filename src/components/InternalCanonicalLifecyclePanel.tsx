@@ -116,6 +116,8 @@ import {
   inspectGenericPhase1EncoderProofReceiptFreezeForLifecycleNode,
   inspectGenericPhase1EncoderProofVerificationReceiptForLifecycleNode,
   inspectGenericPhase1EncoderProofVerificationReceiptFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderVerificationAttestationForLifecycleNode,
+  inspectGenericPhase1EncoderVerificationAttestationFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationLaunchStartFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationLaunchStartForLifecycleNode,
   inspectGenericPhase1EncoderFieldLaneExecutionAdmissionFreezeForLifecycleNode,
@@ -747,6 +749,10 @@ export function InternalCanonicalLifecyclePanel() {
     inspectGenericPhase1EncoderProofVerificationReceiptForLifecycleNode(lookupLifecycleId);
   const encoderProofVerificationReceiptFreeze =
     inspectGenericPhase1EncoderProofVerificationReceiptFreezeForLifecycleNode(lookupLifecycleId);
+  const encoderVerificationAttestation =
+    inspectGenericPhase1EncoderVerificationAttestationForLifecycleNode(lookupLifecycleId);
+  const encoderVerificationAttestationFreeze =
+    inspectGenericPhase1EncoderVerificationAttestationFreezeForLifecycleNode(lookupLifecycleId);
   const lineageRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const lookupPanelRef = useRef<HTMLDivElement | null>(null);
 
@@ -3994,6 +4000,58 @@ export function InternalCanonicalLifecyclePanel() {
                           {encoderProofVerificationReceiptFreeze.serialized.length > 96
                             ? `${encoderProofVerificationReceiptFreeze.serialized.slice(0, 96)}...`
                             : encoderProofVerificationReceiptFreeze.serialized}
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Verification attestation kind</span>
+                        <strong>{`${encoderVerificationAttestation.artifactKind} · v${encoderVerificationAttestation.artifactVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Verification attestation status</span>
+                        <strong>{encoderVerificationAttestation.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Proceedable</span>
+                        <strong>{encoderVerificationAttestation.proceedable ? "yes" : "no"}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Attestation footprint</span>
+                        <strong>{encoderVerificationAttestation.attestationFootprintSummary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Verification provenance</span>
+                        <strong>{`${encoderVerificationAttestation.proofVerificationReceiptSnapshotKind} · ${encoderVerificationAttestation.proofVerificationReceiptStatus}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Summary</span>
+                        <strong>{encoderVerificationAttestation.summary}</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Frozen verification attestation kind</span>
+                        <strong>{`${encoderVerificationAttestationFreeze.snapshotKind} · v${encoderVerificationAttestationFreeze.snapshotVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen verification attestation status</span>
+                        <strong>{encoderVerificationAttestationFreeze.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen verification attestation summary</span>
+                        <strong>{encoderVerificationAttestationFreeze.summary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Serialized preview</span>
+                        <strong>
+                          {encoderVerificationAttestationFreeze.serialized.length > 96
+                            ? `${encoderVerificationAttestationFreeze.serialized.slice(0, 96)}...`
+                            : encoderVerificationAttestationFreeze.serialized}
                         </strong>
                       </div>
                     </div>

@@ -4688,6 +4688,76 @@ export type BackendSpecificEncoderProofVerificationReceiptFreezeMetadata = {
   summary: string;
 };
 
+export type BackendSpecificEncoderVerificationAttestationStatus =
+  | "verification-attestation-ready"
+  | "verification-attestation-blocked"
+  | "verification-attestation-not-issued";
+
+export type BackendSpecificEncoderVerificationAttestation = {
+  artifactKind: "vanta-backend-encoder-verification-attestation-v1";
+  artifactVersion: 1;
+  encoderId: string;
+  encoderLabel: string;
+  proofVerificationReceiptSnapshotKind:
+    BackendSpecificEncoderProofVerificationReceiptFreeze["snapshotKind"];
+  proofVerificationReceiptSnapshotVersion:
+    BackendSpecificEncoderProofVerificationReceiptFreeze["snapshotVersion"];
+  proofVerificationReceiptStatus: BackendSpecificEncoderProofVerificationReceiptStatus;
+  lifecycleId?: string;
+  packagedRowCount: number;
+  status: BackendSpecificEncoderVerificationAttestationStatus;
+  proceedable: boolean;
+  verificationFootprintSummary: string;
+  attestationFootprintSummary: string;
+  reason?: string;
+  summary: string;
+};
+
+export type BackendSpecificEncoderVerificationAttestationMetadata = {
+  artifactKind: BackendSpecificEncoderVerificationAttestation["artifactKind"];
+  artifactVersion: BackendSpecificEncoderVerificationAttestation["artifactVersion"];
+  encoderId: string;
+  encoderLabel: string;
+  proofVerificationReceiptSnapshotKind:
+    BackendSpecificEncoderVerificationAttestation["proofVerificationReceiptSnapshotKind"];
+  proofVerificationReceiptSnapshotVersion:
+    BackendSpecificEncoderVerificationAttestation["proofVerificationReceiptSnapshotVersion"];
+  proofVerificationReceiptStatus:
+    BackendSpecificEncoderVerificationAttestation["proofVerificationReceiptStatus"];
+  lifecycleId?: string;
+  packagedRowCount: number;
+  status: BackendSpecificEncoderVerificationAttestationStatus;
+  proceedable: boolean;
+  verificationFootprintSummary: string;
+  attestationFootprintSummary: string;
+  reason?: string;
+  summary: string;
+};
+
+export type BackendSpecificEncoderVerificationAttestationFreeze = {
+  snapshotKind: "vanta-backend-encoder-verification-attestation-freeze-v1";
+  snapshotVersion: 1;
+  encoderId: string;
+  encoderLabel: string;
+  status: BackendSpecificEncoderVerificationAttestationStatus;
+  serialized: string;
+  summary: string;
+};
+
+export type BackendSpecificEncoderVerificationAttestationFreezeMetadata = {
+  snapshotKind: BackendSpecificEncoderVerificationAttestationFreeze["snapshotKind"];
+  snapshotVersion: BackendSpecificEncoderVerificationAttestationFreeze["snapshotVersion"];
+  encoderId: string;
+  encoderLabel: string;
+  artifactKind: BackendSpecificEncoderVerificationAttestation["artifactKind"];
+  artifactVersion: BackendSpecificEncoderVerificationAttestation["artifactVersion"];
+  status: BackendSpecificEncoderVerificationAttestationFreeze["status"];
+  proceedable: boolean;
+  frozen: true;
+  stable: true;
+  summary: string;
+};
+
 export type BackendSpecificEncoderStub = {
   encoderId: string;
   label: string;
@@ -16731,6 +16801,199 @@ export function summarizeGenericPhase1EncoderProofVerificationReceiptFreezeForLi
   );
 }
 
+export function inspectGenericPhase1EncoderVerificationAttestationForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): BackendSpecificEncoderVerificationAttestation {
+  const verificationReceiptFreeze =
+    inspectGenericPhase1EncoderProofVerificationReceiptFreezeForFrozenPayload(payload);
+  const verificationReceiptSnapshot = readProofVerificationReceiptFreezeSnapshot(
+    verificationReceiptFreeze,
+  );
+  const normalizedRows = readFrozenNormalizedRows(payload);
+  const proceedable = verificationReceiptSnapshot.proceedable && normalizedRows.length > 0;
+  const status = proceedable
+    ? "verification-attestation-ready"
+    : verificationReceiptSnapshot.status === "proof-verification-receipt-not-issued" ||
+        normalizedRows.length === 0
+      ? "verification-attestation-not-issued"
+      : "verification-attestation-blocked";
+  const attestationFootprintSummary = `attestation-rows:${normalizedRows.length}`;
+  const reason = proceedable
+    ? undefined
+    : verificationReceiptSnapshot.status === "proof-verification-receipt-not-issued"
+      ? verificationReceiptSnapshot.reason ??
+        "proof verification receipt has not issued a verification attestation"
+      : normalizedRows.length === 0
+        ? "no verification receipt rows available for attestation"
+        : verificationReceiptSnapshot.reason;
+
+  return {
+    artifactKind: "vanta-backend-encoder-verification-attestation-v1",
+    artifactVersion: 1,
+    encoderId: verificationReceiptSnapshot.encoderId,
+    encoderLabel: verificationReceiptSnapshot.encoderLabel,
+    proofVerificationReceiptSnapshotKind: verificationReceiptSnapshot.snapshotKind,
+    proofVerificationReceiptSnapshotVersion: verificationReceiptSnapshot.snapshotVersion,
+    proofVerificationReceiptStatus: verificationReceiptSnapshot.status,
+    lifecycleId: payload.lifecycleId,
+    packagedRowCount: normalizedRows.length,
+    status,
+    proceedable,
+    verificationFootprintSummary: verificationReceiptSnapshot.verificationFootprintSummary,
+    attestationFootprintSummary,
+    reason,
+    summary: summarizeVerificationAttestation(
+      status,
+      verificationReceiptSnapshot,
+      attestationFootprintSummary,
+      reason,
+    ),
+  };
+}
+
+export function inspectGenericPhase1EncoderVerificationAttestationForLifecycleNode(
+  lifecycleId: string | undefined,
+): BackendSpecificEncoderVerificationAttestation {
+  return inspectGenericPhase1EncoderVerificationAttestationForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function inspectGenericPhase1EncoderVerificationAttestationMetadataForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): BackendSpecificEncoderVerificationAttestationMetadata {
+  const artifact = inspectGenericPhase1EncoderVerificationAttestationForFrozenPayload(payload);
+
+  return {
+    artifactKind: artifact.artifactKind,
+    artifactVersion: artifact.artifactVersion,
+    encoderId: artifact.encoderId,
+    encoderLabel: artifact.encoderLabel,
+    proofVerificationReceiptSnapshotKind: artifact.proofVerificationReceiptSnapshotKind,
+    proofVerificationReceiptSnapshotVersion:
+      artifact.proofVerificationReceiptSnapshotVersion,
+    proofVerificationReceiptStatus: artifact.proofVerificationReceiptStatus,
+    lifecycleId: artifact.lifecycleId,
+    packagedRowCount: artifact.packagedRowCount,
+    status: artifact.status,
+    proceedable: artifact.proceedable,
+    verificationFootprintSummary: artifact.verificationFootprintSummary,
+    attestationFootprintSummary: artifact.attestationFootprintSummary,
+    reason: artifact.reason,
+    summary: artifact.summary,
+  };
+}
+
+export function inspectGenericPhase1EncoderVerificationAttestationMetadataForLifecycleNode(
+  lifecycleId: string | undefined,
+): BackendSpecificEncoderVerificationAttestationMetadata {
+  return inspectGenericPhase1EncoderVerificationAttestationMetadataForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function summarizeGenericPhase1EncoderVerificationAttestationForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): string {
+  return inspectGenericPhase1EncoderVerificationAttestationForFrozenPayload(payload).summary;
+}
+
+export function summarizeGenericPhase1EncoderVerificationAttestationForLifecycleNode(
+  lifecycleId: string | undefined,
+): string {
+  return summarizeGenericPhase1EncoderVerificationAttestationForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function inspectGenericPhase1EncoderVerificationAttestationFreezeForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): BackendSpecificEncoderVerificationAttestationFreeze {
+  const artifact = inspectGenericPhase1EncoderVerificationAttestationForFrozenPayload(payload);
+  const tuples = [
+    ["snapshotKind", "vanta-backend-encoder-verification-attestation-freeze-v1"],
+    ["snapshotVersion", 1],
+    ["artifactKind", artifact.artifactKind],
+    ["artifactVersion", artifact.artifactVersion],
+    ["encoderId", artifact.encoderId],
+    ["encoderLabel", artifact.encoderLabel],
+    ["proofVerificationReceiptSnapshotKind", artifact.proofVerificationReceiptSnapshotKind],
+    ["proofVerificationReceiptSnapshotVersion", artifact.proofVerificationReceiptSnapshotVersion],
+    ["proofVerificationReceiptStatus", artifact.proofVerificationReceiptStatus],
+    ["lifecycleId", artifact.lifecycleId ?? null],
+    ["packagedRowCount", artifact.packagedRowCount],
+    ["status", artifact.status],
+    ["proceedable", artifact.proceedable],
+    ["verificationFootprintSummary", artifact.verificationFootprintSummary],
+    ["attestationFootprintSummary", artifact.attestationFootprintSummary],
+    ["reason", artifact.reason ?? null],
+    ["summary", artifact.summary],
+  ] as const;
+
+  return {
+    snapshotKind: "vanta-backend-encoder-verification-attestation-freeze-v1",
+    snapshotVersion: 1,
+    encoderId: artifact.encoderId,
+    encoderLabel: artifact.encoderLabel,
+    status: artifact.status,
+    serialized: JSON.stringify(tuples),
+    summary: `${artifact.status} · frozen verification attestation artifact`,
+  };
+}
+
+export function inspectGenericPhase1EncoderVerificationAttestationFreezeForLifecycleNode(
+  lifecycleId: string | undefined,
+): BackendSpecificEncoderVerificationAttestationFreeze {
+  return inspectGenericPhase1EncoderVerificationAttestationFreezeForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function inspectGenericPhase1EncoderVerificationAttestationFreezeMetadataForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): BackendSpecificEncoderVerificationAttestationFreezeMetadata {
+  const artifact = inspectGenericPhase1EncoderVerificationAttestationForFrozenPayload(payload);
+  const freeze = inspectGenericPhase1EncoderVerificationAttestationFreezeForFrozenPayload(payload);
+  const snapshot = readVerificationAttestationFreezeSnapshot(freeze);
+
+  return {
+    snapshotKind: snapshot.snapshotKind,
+    snapshotVersion: snapshot.snapshotVersion,
+    encoderId: snapshot.encoderId,
+    encoderLabel: snapshot.encoderLabel,
+    artifactKind: artifact.artifactKind,
+    artifactVersion: artifact.artifactVersion,
+    status: snapshot.status,
+    proceedable: snapshot.proceedable,
+    frozen: true,
+    stable: true,
+    summary: `${freeze.summary} · stable:${artifact.status}`,
+  };
+}
+
+export function inspectGenericPhase1EncoderVerificationAttestationFreezeMetadataForLifecycleNode(
+  lifecycleId: string | undefined,
+): BackendSpecificEncoderVerificationAttestationFreezeMetadata {
+  return inspectGenericPhase1EncoderVerificationAttestationFreezeMetadataForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function summarizeGenericPhase1EncoderVerificationAttestationFreezeForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): string {
+  return inspectGenericPhase1EncoderVerificationAttestationFreezeMetadataForFrozenPayload(payload)
+    .summary;
+}
+
+export function summarizeGenericPhase1EncoderVerificationAttestationFreezeForLifecycleNode(
+  lifecycleId: string | undefined,
+): string {
+  return summarizeGenericPhase1EncoderVerificationAttestationFreezeForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
 export function inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactForFrozenPayload(
   payload: CanonicalCircuitInputAdapterPayloadFreeze,
 ): BackendSpecificEncoderFieldMaterializationDownstreamPreEncodingConsumerArtifact {
@@ -20590,6 +20853,58 @@ function readFieldMaterializationNextResolvedBoundaryClosureConsumerFreezeSnapsh
   }
 }
 
+type ParsedVerificationAttestationFreezeSnapshot = {
+  snapshotKind: BackendSpecificEncoderVerificationAttestationFreeze["snapshotKind"];
+  snapshotVersion: BackendSpecificEncoderVerificationAttestationFreeze["snapshotVersion"];
+  encoderId: string;
+  encoderLabel: string;
+  status: BackendSpecificEncoderVerificationAttestationStatus;
+  proceedable: boolean;
+  verificationFootprintSummary: string;
+  attestationFootprintSummary: string;
+  reason?: string;
+};
+
+function readVerificationAttestationFreezeSnapshot(
+  freeze: BackendSpecificEncoderVerificationAttestationFreeze,
+): ParsedVerificationAttestationFreezeSnapshot {
+  try {
+    const tuples = JSON.parse(freeze.serialized) as unknown;
+    if (!Array.isArray(tuples)) {
+      throw new Error("serialized verification-attestation snapshot was not a tuple array");
+    }
+    const get = (key: string) =>
+      tuples.find((entry): entry is [string, unknown] => Array.isArray(entry) && entry[0] === key)?.[1];
+    return {
+      snapshotKind:
+        String(get("snapshotKind") ?? freeze.snapshotKind) as ParsedVerificationAttestationFreezeSnapshot["snapshotKind"],
+      snapshotVersion:
+        Number(get("snapshotVersion") ?? freeze.snapshotVersion) as ParsedVerificationAttestationFreezeSnapshot["snapshotVersion"],
+      encoderId: String(get("encoderId") ?? freeze.encoderId),
+      encoderLabel: String(get("encoderLabel") ?? freeze.encoderLabel),
+      status:
+        String(get("status") ?? freeze.status) as ParsedVerificationAttestationFreezeSnapshot["status"],
+      proceedable: Boolean(get("proceedable")),
+      verificationFootprintSummary: String(get("verificationFootprintSummary") ?? "verification-rows:0"),
+      attestationFootprintSummary: String(get("attestationFootprintSummary") ?? "attestation-rows:0"),
+      reason:
+        get("reason") === null || get("reason") === undefined ? undefined : String(get("reason")),
+    };
+  } catch {
+    return {
+      snapshotKind: freeze.snapshotKind,
+      snapshotVersion: freeze.snapshotVersion,
+      encoderId: freeze.encoderId,
+      encoderLabel: freeze.encoderLabel,
+      status: freeze.status,
+      proceedable: false,
+      verificationFootprintSummary: "verification-rows:0",
+      attestationFootprintSummary: "attestation-rows:0",
+      reason: "failed to parse verification attestation freeze",
+    };
+  }
+}
+
 type ParsedProofVerificationReceiptFreezeSnapshot = {
   snapshotKind: BackendSpecificEncoderProofVerificationReceiptFreeze["snapshotKind"];
   snapshotVersion: BackendSpecificEncoderProofVerificationReceiptFreeze["snapshotVersion"];
@@ -21726,6 +22041,19 @@ function summarizeFieldMaterializationNextResolvedBoundaryClosureConsumer(
     parts.push(snapshot.reason);
   }
 
+  return parts.join(" · ");
+}
+
+function summarizeVerificationAttestation(
+  status: BackendSpecificEncoderVerificationAttestationStatus,
+  snapshot: ParsedProofVerificationReceiptFreezeSnapshot,
+  attestationFootprintSummary: string,
+  reason?: string,
+): string {
+  const parts = [status, `from ${snapshot.status}`, snapshot.verificationFootprintSummary, attestationFootprintSummary];
+  if (reason) {
+    parts.push(reason);
+  }
   return parts.join(" · ");
 }
 
