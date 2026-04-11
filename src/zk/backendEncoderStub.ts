@@ -4480,6 +4480,76 @@ export type BackendSpecificEncoderProvingInputPackageFreezeMetadata = {
   summary: string;
 };
 
+export type BackendSpecificEncoderBackendProvingSessionStatus =
+  | "backend-proving-session-ready"
+  | "backend-proving-session-blocked"
+  | "backend-proving-session-not-issued";
+
+export type BackendSpecificEncoderBackendProvingSession = {
+  artifactKind: "vanta-backend-encoder-backend-proving-session-v1";
+  artifactVersion: 1;
+  encoderId: string;
+  encoderLabel: string;
+  provingInputPackageSnapshotKind:
+    BackendSpecificEncoderProvingInputPackageFreeze["snapshotKind"];
+  provingInputPackageSnapshotVersion:
+    BackendSpecificEncoderProvingInputPackageFreeze["snapshotVersion"];
+  provingInputPackageStatus: BackendSpecificEncoderProvingInputPackageStatus;
+  lifecycleId?: string;
+  packagedRowCount: number;
+  status: BackendSpecificEncoderBackendProvingSessionStatus;
+  proceedable: boolean;
+  packageFootprintSummary: string;
+  sessionFootprintSummary: string;
+  reason?: string;
+  summary: string;
+};
+
+export type BackendSpecificEncoderBackendProvingSessionMetadata = {
+  artifactKind: BackendSpecificEncoderBackendProvingSession["artifactKind"];
+  artifactVersion: BackendSpecificEncoderBackendProvingSession["artifactVersion"];
+  encoderId: string;
+  encoderLabel: string;
+  provingInputPackageSnapshotKind:
+    BackendSpecificEncoderBackendProvingSession["provingInputPackageSnapshotKind"];
+  provingInputPackageSnapshotVersion:
+    BackendSpecificEncoderBackendProvingSession["provingInputPackageSnapshotVersion"];
+  provingInputPackageStatus:
+    BackendSpecificEncoderBackendProvingSession["provingInputPackageStatus"];
+  lifecycleId?: string;
+  packagedRowCount: number;
+  status: BackendSpecificEncoderBackendProvingSessionStatus;
+  proceedable: boolean;
+  packageFootprintSummary: string;
+  sessionFootprintSummary: string;
+  reason?: string;
+  summary: string;
+};
+
+export type BackendSpecificEncoderBackendProvingSessionFreeze = {
+  snapshotKind: "vanta-backend-encoder-backend-proving-session-freeze-v1";
+  snapshotVersion: 1;
+  encoderId: string;
+  encoderLabel: string;
+  status: BackendSpecificEncoderBackendProvingSessionStatus;
+  serialized: string;
+  summary: string;
+};
+
+export type BackendSpecificEncoderBackendProvingSessionFreezeMetadata = {
+  snapshotKind: BackendSpecificEncoderBackendProvingSessionFreeze["snapshotKind"];
+  snapshotVersion: BackendSpecificEncoderBackendProvingSessionFreeze["snapshotVersion"];
+  encoderId: string;
+  encoderLabel: string;
+  artifactKind: BackendSpecificEncoderBackendProvingSession["artifactKind"];
+  artifactVersion: BackendSpecificEncoderBackendProvingSession["artifactVersion"];
+  status: BackendSpecificEncoderBackendProvingSessionFreeze["status"];
+  proceedable: boolean;
+  frozen: true;
+  stable: true;
+  summary: string;
+};
+
 export type BackendSpecificEncoderStub = {
   encoderId: string;
   label: string;
@@ -15946,6 +16016,199 @@ export function summarizeGenericPhase1EncoderProvingInputPackageFreezeForLifecyc
   );
 }
 
+export function inspectGenericPhase1EncoderBackendProvingSessionForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): BackendSpecificEncoderBackendProvingSession {
+  const provingInputPackageFreeze = inspectGenericPhase1EncoderProvingInputPackageFreezeForFrozenPayload(
+    payload,
+  );
+  const provingInputPackageSnapshot = readProvingInputPackageFreezeSnapshot(
+    provingInputPackageFreeze,
+  );
+  const normalizedRows = readFrozenNormalizedRows(payload);
+  const proceedable = provingInputPackageSnapshot.proceedable && normalizedRows.length > 0;
+  const status = proceedable
+    ? "backend-proving-session-ready"
+    : provingInputPackageSnapshot.status === "proving-input-package-not-issued" ||
+        normalizedRows.length === 0
+      ? "backend-proving-session-not-issued"
+      : "backend-proving-session-blocked";
+  const sessionFootprintSummary = `session-rows:${normalizedRows.length}`;
+  const reason = proceedable
+    ? undefined
+    : provingInputPackageSnapshot.status === "proving-input-package-not-issued"
+      ? provingInputPackageSnapshot.reason ??
+        "proving-input package has not issued a backend proving session"
+      : normalizedRows.length === 0
+        ? "no packaged rows available for backend proving session"
+        : provingInputPackageSnapshot.reason;
+
+  return {
+    artifactKind: "vanta-backend-encoder-backend-proving-session-v1",
+    artifactVersion: 1,
+    encoderId: provingInputPackageSnapshot.encoderId,
+    encoderLabel: provingInputPackageSnapshot.encoderLabel,
+    provingInputPackageSnapshotKind: provingInputPackageSnapshot.snapshotKind,
+    provingInputPackageSnapshotVersion: provingInputPackageSnapshot.snapshotVersion,
+    provingInputPackageStatus: provingInputPackageSnapshot.status,
+    lifecycleId: payload.lifecycleId,
+    packagedRowCount: normalizedRows.length,
+    status,
+    proceedable,
+    packageFootprintSummary: provingInputPackageSnapshot.packageFootprintSummary,
+    sessionFootprintSummary,
+    reason,
+    summary: summarizeBackendProvingSession(
+      status,
+      provingInputPackageSnapshot,
+      sessionFootprintSummary,
+      reason,
+    ),
+  };
+}
+
+export function inspectGenericPhase1EncoderBackendProvingSessionForLifecycleNode(
+  lifecycleId: string | undefined,
+): BackendSpecificEncoderBackendProvingSession {
+  return inspectGenericPhase1EncoderBackendProvingSessionForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function inspectGenericPhase1EncoderBackendProvingSessionMetadataForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): BackendSpecificEncoderBackendProvingSessionMetadata {
+  const artifact = inspectGenericPhase1EncoderBackendProvingSessionForFrozenPayload(payload);
+
+  return {
+    artifactKind: artifact.artifactKind,
+    artifactVersion: artifact.artifactVersion,
+    encoderId: artifact.encoderId,
+    encoderLabel: artifact.encoderLabel,
+    provingInputPackageSnapshotKind: artifact.provingInputPackageSnapshotKind,
+    provingInputPackageSnapshotVersion: artifact.provingInputPackageSnapshotVersion,
+    provingInputPackageStatus: artifact.provingInputPackageStatus,
+    lifecycleId: artifact.lifecycleId,
+    packagedRowCount: artifact.packagedRowCount,
+    status: artifact.status,
+    proceedable: artifact.proceedable,
+    packageFootprintSummary: artifact.packageFootprintSummary,
+    sessionFootprintSummary: artifact.sessionFootprintSummary,
+    reason: artifact.reason,
+    summary: artifact.summary,
+  };
+}
+
+export function inspectGenericPhase1EncoderBackendProvingSessionMetadataForLifecycleNode(
+  lifecycleId: string | undefined,
+): BackendSpecificEncoderBackendProvingSessionMetadata {
+  return inspectGenericPhase1EncoderBackendProvingSessionMetadataForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function summarizeGenericPhase1EncoderBackendProvingSessionForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): string {
+  return inspectGenericPhase1EncoderBackendProvingSessionForFrozenPayload(payload).summary;
+}
+
+export function summarizeGenericPhase1EncoderBackendProvingSessionForLifecycleNode(
+  lifecycleId: string | undefined,
+): string {
+  return summarizeGenericPhase1EncoderBackendProvingSessionForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function inspectGenericPhase1EncoderBackendProvingSessionFreezeForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): BackendSpecificEncoderBackendProvingSessionFreeze {
+  const artifact = inspectGenericPhase1EncoderBackendProvingSessionForFrozenPayload(payload);
+  const tuples = [
+    ["snapshotKind", "vanta-backend-encoder-backend-proving-session-freeze-v1"],
+    ["snapshotVersion", 1],
+    ["artifactKind", artifact.artifactKind],
+    ["artifactVersion", artifact.artifactVersion],
+    ["encoderId", artifact.encoderId],
+    ["encoderLabel", artifact.encoderLabel],
+    ["provingInputPackageSnapshotKind", artifact.provingInputPackageSnapshotKind],
+    ["provingInputPackageSnapshotVersion", artifact.provingInputPackageSnapshotVersion],
+    ["provingInputPackageStatus", artifact.provingInputPackageStatus],
+    ["lifecycleId", artifact.lifecycleId ?? null],
+    ["packagedRowCount", artifact.packagedRowCount],
+    ["status", artifact.status],
+    ["proceedable", artifact.proceedable],
+    ["packageFootprintSummary", artifact.packageFootprintSummary],
+    ["sessionFootprintSummary", artifact.sessionFootprintSummary],
+    ["reason", artifact.reason ?? null],
+    ["summary", artifact.summary],
+  ] as const;
+
+  return {
+    snapshotKind: "vanta-backend-encoder-backend-proving-session-freeze-v1",
+    snapshotVersion: 1,
+    encoderId: artifact.encoderId,
+    encoderLabel: artifact.encoderLabel,
+    status: artifact.status,
+    serialized: JSON.stringify(tuples),
+    summary: `${artifact.status} · frozen backend proving session artifact`,
+  };
+}
+
+export function inspectGenericPhase1EncoderBackendProvingSessionFreezeForLifecycleNode(
+  lifecycleId: string | undefined,
+): BackendSpecificEncoderBackendProvingSessionFreeze {
+  return inspectGenericPhase1EncoderBackendProvingSessionFreezeForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function inspectGenericPhase1EncoderBackendProvingSessionFreezeMetadataForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): BackendSpecificEncoderBackendProvingSessionFreezeMetadata {
+  const artifact = inspectGenericPhase1EncoderBackendProvingSessionForFrozenPayload(payload);
+  const freeze = inspectGenericPhase1EncoderBackendProvingSessionFreezeForFrozenPayload(payload);
+  const snapshot = readBackendProvingSessionFreezeSnapshot(freeze);
+
+  return {
+    snapshotKind: snapshot.snapshotKind,
+    snapshotVersion: snapshot.snapshotVersion,
+    encoderId: snapshot.encoderId,
+    encoderLabel: snapshot.encoderLabel,
+    artifactKind: artifact.artifactKind,
+    artifactVersion: artifact.artifactVersion,
+    status: snapshot.status,
+    proceedable: snapshot.proceedable,
+    frozen: true,
+    stable: true,
+    summary: `${freeze.summary} · stable:${artifact.status}`,
+  };
+}
+
+export function inspectGenericPhase1EncoderBackendProvingSessionFreezeMetadataForLifecycleNode(
+  lifecycleId: string | undefined,
+): BackendSpecificEncoderBackendProvingSessionFreezeMetadata {
+  return inspectGenericPhase1EncoderBackendProvingSessionFreezeMetadataForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function summarizeGenericPhase1EncoderBackendProvingSessionFreezeForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): string {
+  return inspectGenericPhase1EncoderBackendProvingSessionFreezeMetadataForFrozenPayload(payload)
+    .summary;
+}
+
+export function summarizeGenericPhase1EncoderBackendProvingSessionFreezeForLifecycleNode(
+  lifecycleId: string | undefined,
+): string {
+  return summarizeGenericPhase1EncoderBackendProvingSessionFreezeForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
 export function inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactForFrozenPayload(
   payload: CanonicalCircuitInputAdapterPayloadFreeze,
 ): BackendSpecificEncoderFieldMaterializationDownstreamPreEncodingConsumerArtifact {
@@ -19805,6 +20068,67 @@ function readFieldMaterializationNextResolvedBoundaryClosureConsumerFreezeSnapsh
   }
 }
 
+type ParsedBackendProvingSessionFreezeSnapshot = {
+  snapshotKind: BackendSpecificEncoderBackendProvingSessionFreeze["snapshotKind"];
+  snapshotVersion: BackendSpecificEncoderBackendProvingSessionFreeze["snapshotVersion"];
+  encoderId: string;
+  encoderLabel: string;
+  status: BackendSpecificEncoderBackendProvingSessionStatus;
+  proceedable: boolean;
+  packageFootprintSummary: string;
+  sessionFootprintSummary: string;
+  reason?: string;
+};
+
+function readBackendProvingSessionFreezeSnapshot(
+  freeze: BackendSpecificEncoderBackendProvingSessionFreeze,
+): ParsedBackendProvingSessionFreezeSnapshot {
+  try {
+    const tuples = JSON.parse(freeze.serialized) as unknown;
+
+    if (!Array.isArray(tuples)) {
+      throw new Error("serialized backend-proving-session snapshot was not a tuple array");
+    }
+
+    const get = (key: string) =>
+      tuples.find(
+        (entry): entry is [string, unknown] => Array.isArray(entry) && entry[0] === key,
+      )?.[1];
+
+    return {
+      snapshotKind:
+        String(get("snapshotKind") ?? freeze.snapshotKind) as ParsedBackendProvingSessionFreezeSnapshot["snapshotKind"],
+      snapshotVersion:
+        Number(get("snapshotVersion") ?? freeze.snapshotVersion) as ParsedBackendProvingSessionFreezeSnapshot["snapshotVersion"],
+      encoderId: String(get("encoderId") ?? freeze.encoderId),
+      encoderLabel: String(get("encoderLabel") ?? freeze.encoderLabel),
+      status:
+        String(get("status") ?? freeze.status) as ParsedBackendProvingSessionFreezeSnapshot["status"],
+      proceedable: Boolean(get("proceedable")),
+      packageFootprintSummary: String(
+        get("packageFootprintSummary") ?? "packaged:0 · excluded:0",
+      ),
+      sessionFootprintSummary: String(get("sessionFootprintSummary") ?? "session-rows:0"),
+      reason:
+        get("reason") === null || get("reason") === undefined
+          ? undefined
+          : String(get("reason")),
+    };
+  } catch {
+    return {
+      snapshotKind: freeze.snapshotKind,
+      snapshotVersion: freeze.snapshotVersion,
+      encoderId: freeze.encoderId,
+      encoderLabel: freeze.encoderLabel,
+      status: freeze.status,
+      proceedable: false,
+      packageFootprintSummary: "packaged:0 · excluded:0",
+      sessionFootprintSummary: "session-rows:0",
+      reason: "failed to parse backend proving session freeze",
+    };
+  }
+}
+
 type ParsedProvingInputPackageFreezeSnapshot = {
   snapshotKind: BackendSpecificEncoderProvingInputPackageFreeze["snapshotKind"];
   snapshotVersion: BackendSpecificEncoderProvingInputPackageFreeze["snapshotVersion"];
@@ -20767,6 +21091,21 @@ function summarizeFieldMaterializationNextResolvedBoundaryClosureConsumer(
 
   if (snapshot.reason) {
     parts.push(snapshot.reason);
+  }
+
+  return parts.join(" · ");
+}
+
+function summarizeBackendProvingSession(
+  status: BackendSpecificEncoderBackendProvingSessionStatus,
+  snapshot: ParsedProvingInputPackageFreezeSnapshot,
+  sessionFootprintSummary: string,
+  reason?: string,
+): string {
+  const parts = [status, `from ${snapshot.status}`, snapshot.packageFootprintSummary, sessionFootprintSummary];
+
+  if (reason) {
+    parts.push(reason);
   }
 
   return parts.join(" · ");

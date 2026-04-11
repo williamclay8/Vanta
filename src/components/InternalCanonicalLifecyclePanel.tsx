@@ -110,6 +110,8 @@ import {
   inspectGenericPhase1EncoderConstraintSystemHandoffReadinessFreezeForLifecycleNode,
   inspectGenericPhase1EncoderProvingInputPackageForLifecycleNode,
   inspectGenericPhase1EncoderProvingInputPackageFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderBackendProvingSessionForLifecycleNode,
+  inspectGenericPhase1EncoderBackendProvingSessionFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationLaunchStartFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationLaunchStartForLifecycleNode,
   inspectGenericPhase1EncoderFieldLaneExecutionAdmissionFreezeForLifecycleNode,
@@ -729,6 +731,10 @@ export function InternalCanonicalLifecyclePanel() {
     inspectGenericPhase1EncoderProvingInputPackageForLifecycleNode(lookupLifecycleId);
   const encoderProvingInputPackageFreeze =
     inspectGenericPhase1EncoderProvingInputPackageFreezeForLifecycleNode(lookupLifecycleId);
+  const encoderBackendProvingSession =
+    inspectGenericPhase1EncoderBackendProvingSessionForLifecycleNode(lookupLifecycleId);
+  const encoderBackendProvingSessionFreeze =
+    inspectGenericPhase1EncoderBackendProvingSessionFreezeForLifecycleNode(lookupLifecycleId);
   const lineageRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const lookupPanelRef = useRef<HTMLDivElement | null>(null);
 
@@ -3820,6 +3826,58 @@ export function InternalCanonicalLifecyclePanel() {
                           {encoderProvingInputPackageFreeze.serialized.length > 96
                             ? `${encoderProvingInputPackageFreeze.serialized.slice(0, 96)}...`
                             : encoderProvingInputPackageFreeze.serialized}
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Backend proving session kind</span>
+                        <strong>{`${encoderBackendProvingSession.artifactKind} · v${encoderBackendProvingSession.artifactVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Backend proving session status</span>
+                        <strong>{encoderBackendProvingSession.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Proceedable</span>
+                        <strong>{encoderBackendProvingSession.proceedable ? "yes" : "no"}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Session footprint</span>
+                        <strong>{encoderBackendProvingSession.sessionFootprintSummary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Package provenance</span>
+                        <strong>{`${encoderBackendProvingSession.provingInputPackageSnapshotKind} · ${encoderBackendProvingSession.provingInputPackageStatus}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Summary</span>
+                        <strong>{encoderBackendProvingSession.summary}</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Frozen backend proving session kind</span>
+                        <strong>{`${encoderBackendProvingSessionFreeze.snapshotKind} · v${encoderBackendProvingSessionFreeze.snapshotVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen backend proving session status</span>
+                        <strong>{encoderBackendProvingSessionFreeze.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen backend proving session summary</span>
+                        <strong>{encoderBackendProvingSessionFreeze.summary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Serialized preview</span>
+                        <strong>
+                          {encoderBackendProvingSessionFreeze.serialized.length > 96
+                            ? `${encoderBackendProvingSessionFreeze.serialized.slice(0, 96)}...`
+                            : encoderBackendProvingSessionFreeze.serialized}
                         </strong>
                       </div>
                     </div>
