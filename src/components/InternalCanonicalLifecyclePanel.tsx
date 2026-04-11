@@ -278,6 +278,12 @@ const InternalCanonicalLifecycleGroupedEventsPanel = lazy(() =>
   })),
 );
 
+const InternalCanonicalLifecycleLineageBranchPointPanel = lazy(() =>
+  import("@/components/InternalCanonicalLifecycleLineageBranchPointPanel").then((m) => ({
+    default: m.InternalCanonicalLifecycleLineageBranchPointPanel,
+  })),
+);
+
 function abbreviate(value: string | undefined) {
   if (!value) {
     return "Unavailable";
@@ -5613,166 +5619,12 @@ export function InternalCanonicalLifecyclePanel() {
                 {lineage.detailSummary.hasBranching ? (
                   <div style={{ display: "grid", gap: 12, marginTop: 12 }}>
                     {lineage.detailSummary.branchPoints.map((branchPoint) => (
-                      <div
+                      <Suspense
                         key={branchPoint.sourceEventId}
-                        className="preview-card"
-                        style={{ display: "grid", gap: 12 }}
+                        fallback={<div className="status-panel">Loading lineage branch points…</div>}
                       >
-                        <div className="review-row">
-                          <span>{branchPoint.sourceEventTitle}</span>
-                          <strong>{formatTimestamp(branchPoint.createdAt)}</strong>
-                        </div>
-                        <div className="review-row">
-                          <span>Branch quality</span>
-                          <strong>{formatBranchQuality(branchPoint.branchQuality)}</strong>
-                        </div>
-                        <div className="review-row">
-                          <span>Consumed predecessor</span>
-                          <strong>
-                            {branchPoint.predecessorCanonicalCommitment
-                              ? abbreviate(branchPoint.predecessorCanonicalCommitment)
-                              : branchPoint.predecessorLiveNoteId
-                                ? `${abbreviate(branchPoint.predecessorLiveNoteId)} (live)`
-                                : "Origin or unresolved"}
-                          </strong>
-                        </div>
-                        <div className="review-row">
-                          <span>Successor paths</span>
-                          <strong>{branchPoint.branchCount}</strong>
-                        </div>
-
-                        <div style={{ display: "grid", gap: 10 }}>
-                          {branchPoint.branches.map((branch) => (
-                            <div
-                              key={`${branchPoint.sourceEventId}:${branch.successorKind ?? branch.successorLabel}:${branch.commitment ?? branch.liveNoteId ?? "branch"}`}
-                              className="status-panel"
-                              style={{ padding: 12 }}
-                            >
-                              <div className="review-row">
-                                <span>{branch.successorLabel}</span>
-                                <strong>{formatSuccessorKind(branch.successorKind)}</strong>
-                              </div>
-                              <div className="review-row">
-                                <span>Summary</span>
-                                <strong>{branch.amountSummary ?? branch.assetSummary ?? "Successor"}</strong>
-                              </div>
-                              <div className="review-row">
-                                <span>Live note</span>
-                                <strong>{abbreviate(branch.liveNoteId)}</strong>
-                              </div>
-                              <div className="review-row">
-                                <span>Commitment</span>
-                                <strong>{abbreviate(branch.commitment)}</strong>
-                              </div>
-                              <div className="review-row">
-                                <span>Insertion</span>
-                                <strong>
-                                  {branch.insertionIndex !== undefined
-                                    ? `${branch.insertionIndex} · ${abbreviate(branch.snapshotRoot)}`
-                                    : "Not inserted"}
-                                </strong>
-                              </div>
-                              <div className="review-row">
-                                <span>Spend status</span>
-                                <strong>{branch.spendStatus ?? "legacy"}</strong>
-                              </div>
-                              <div className="review-row">
-                                <span>Consumption link</span>
-                                <strong>
-                                  {branch.consumedByKind
-                                    ? `${branch.consumedByKind} · ${abbreviate(branch.consumedByConsumptionId)}`
-                                    : branch.nullifierReady
-                                      ? "nullifier-ready and not yet consumed"
-                                      : "Legacy or terminal"}
-                                </strong>
-                              </div>
-                              <div className="review-row">
-                                <span>Witness readiness</span>
-                                <strong>{branch.witnessReadiness ?? "legacy"}</strong>
-                              </div>
-                              <div className="review-row">
-                                <span>Derived path</span>
-                                <strong>
-                                  {branch.derivedPathKind
-                                    ? `${branch.derivedPathKind} · depth ${branch.derivedPathDepth ?? 0} · leaf ${branch.derivedPathLeafIndex ?? 0}`
-                                    : "Not attached"}
-                                </strong>
-                              </div>
-                              <div className="review-row">
-                                <span>Path semantics</span>
-                                <strong>{branch.derivedPathSemantics ?? "Unavailable"}</strong>
-                              </div>
-                              <div className="review-row">
-                                <span>Path digests</span>
-                                <strong>
-                                  {branch.derivedPathDigestReady
-                                    ? `${branch.derivedPathDigestScheme} · ${branch.derivedPathDigestLevelCount ?? 0} levels`
-                                    : "Not attached"}
-                                </strong>
-                              </div>
-                              <div className="review-row">
-                                <span>Candidate path</span>
-                                <strong>
-                                  {branch.candidatePathReady
-                                    ? `${branch.candidatePathKind} · ${branch.candidatePathScheme} · depth ${branch.candidatePathDepth ?? 0}`
-                                    : "Not attached"}
-                                </strong>
-                              </div>
-                              <div className="review-row">
-                                <span>Candidate agreement</span>
-                                <strong>{branch.candidateAgreementStatus ?? "unavailable"}</strong>
-                              </div>
-                              <div className="review-row">
-                                <span>Witness package</span>
-                                <strong>
-                                  {`${branch.witnessPackageReadiness ?? "unavailable"} · ${branch.witnessPackageSummary ?? "Unavailable"}`}
-                                </strong>
-                              </div>
-                              <div className="review-row">
-                                <span>Circuit input</span>
-                                <strong>
-                                  {`${branch.circuitInputReadiness ?? "unavailable"} · ${branch.circuitInputSummary ?? "Unavailable"}`}
-                                </strong>
-                              </div>
-                              <div className="review-row">
-                                <span>Field groups</span>
-                                <strong>{branch.circuitInputFieldGroupSummary ?? "Unavailable"}</strong>
-                              </div>
-                              <div className="review-row">
-                                <span>Field mapping</span>
-                                <strong>{branch.fieldMappingPrecheckSummary ?? "Unavailable"}</strong>
-                              </div>
-                              <div className="review-row">
-                                <span>Slot shaping</span>
-                                <strong>{branch.slotNormalizationSummary ?? "Unavailable"}</strong>
-                              </div>
-                              <div className="review-row">
-                                <span>Field candidates</span>
-                                <strong>{branch.fieldCandidateSummary ?? "Unavailable"}</strong>
-                              </div>
-                              <div className="review-row">
-                                <span>Field preimages</span>
-                                <strong>{branch.fieldValuePreimageSummary ?? "Unavailable"}</strong>
-                              </div>
-                              <div className="review-row">
-                                <span>Field lanes</span>
-                                <strong>{branch.fieldLanePlanSummary ?? "Unavailable"}</strong>
-                              </div>
-                              <div className="review-row">
-                                <span>Lane arity</span>
-                                <strong>{branch.laneArityPlanSummary ?? "Unavailable"}</strong>
-                              </div>
-                              <div className="review-row">
-                                <span>Field schedule</span>
-                                <strong>{branch.fieldEmissionScheduleSummary ?? "Unavailable"}</strong>
-                              </div>
-                              <Suspense fallback={<div className="status-panel">Loading lineage branch diagnostics…</div>}>
-                                <InternalCanonicalLifecycleLineageBranchPanel branch={branch} />
-                              </Suspense>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                        <InternalCanonicalLifecycleLineageBranchPointPanel branchPoint={branchPoint} />
+                      </Suspense>
                     ))}
                   </div>
                 ) : (
