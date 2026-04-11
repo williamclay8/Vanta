@@ -119,6 +119,8 @@ import {
   inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryClosureConsumerFreezeForLifecycleNode,
   inspectGenericPhase1EncoderProvingInputReadinessForLifecycleNode,
   inspectGenericPhase1EncoderProvingInputReadinessFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderConstraintSystemHandoffReadinessForLifecycleNode,
+  inspectGenericPhase1EncoderConstraintSystemHandoffReadinessFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationLaunchStartFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationLaunchStartForLifecycleNode,
   inspectGenericPhase1EncoderFieldLaneExecutionAdmissionFreezeForLifecycleNode,
@@ -346,6 +348,8 @@ export type CanonicalLifecycleSuccessorSummary = {
   encoderFieldMaterializationNextResolvedBoundaryClosureConsumerFreezeSummary?: string;
   encoderProvingInputReadinessSummary?: string;
   encoderProvingInputReadinessFreezeSummary?: string;
+  encoderConstraintSystemHandoffReadinessSummary?: string;
+  encoderConstraintSystemHandoffReadinessFreezeSummary?: string;
   rootReconciliationReady?: boolean;
   rootReconciliationStatus?: "pending" | "match" | "mismatch" | "unavailable";
   rootReconciliationScheme?: string;
@@ -813,6 +817,8 @@ export type CanonicalLifecycleNodeInspection = {
   encoderFieldMaterializationNextResolvedBoundaryClosureConsumerFreezeSummary?: string;
   encoderProvingInputReadinessSummary?: string;
   encoderProvingInputReadinessFreezeSummary?: string;
+  encoderConstraintSystemHandoffReadinessSummary?: string;
+  encoderConstraintSystemHandoffReadinessFreezeSummary?: string;
   rootReconciliationReady: boolean;
   rootReconciliationStatus: "pending" | "match" | "mismatch" | "unavailable";
   rootReconciliationScheme?: string;
@@ -1583,6 +1589,10 @@ export function inspectCanonicalLifecycleNode(
     inspectGenericPhase1EncoderProvingInputReadinessForLifecycleNode(normalizedLifecycleId);
   const encoderProvingInputReadinessFreeze =
     inspectGenericPhase1EncoderProvingInputReadinessFreezeForLifecycleNode(normalizedLifecycleId);
+  const encoderConstraintSystemHandoffReadiness =
+    inspectGenericPhase1EncoderConstraintSystemHandoffReadinessForLifecycleNode(normalizedLifecycleId);
+  const encoderConstraintSystemHandoffReadinessFreeze =
+    inspectGenericPhase1EncoderConstraintSystemHandoffReadinessFreezeForLifecycleNode(normalizedLifecycleId);
   const rootReconciliation = inspectCanonicalLifecycleMembershipRootReconciliation(normalizedLifecycleId);
 
   for (const event of events) {
@@ -1637,6 +1647,8 @@ export function inspectCanonicalLifecycleNode(
         laneArityPlanSummary: createLaneArityPlanSummary(circuitInput),
         encoderProvingInputReadinessSummary: encoderProvingInputReadiness.summary,
         encoderProvingInputReadinessFreezeSummary: encoderProvingInputReadinessFreeze.summary,
+        encoderConstraintSystemHandoffReadinessSummary: encoderConstraintSystemHandoffReadiness.summary,
+        encoderConstraintSystemHandoffReadinessFreezeSummary: encoderConstraintSystemHandoffReadinessFreeze.summary,
         fieldEmissionScheduleSummary: createFieldEmissionScheduleSummary(circuitInput),
         fieldConversionManifestSummary: createFieldConversionManifestSummary(circuitInput),
         finiteFieldDraftSummary: createFiniteFieldDraftSummary(circuitInput),
@@ -3750,6 +3762,18 @@ function createEncoderProvingInputReadinessSummary(
 
 function createEncoderProvingInputReadinessFreezeSummary(
   result: ReturnType<typeof inspectGenericPhase1EncoderProvingInputReadinessFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderConstraintSystemHandoffReadinessSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderConstraintSystemHandoffReadinessForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderConstraintSystemHandoffReadinessFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderConstraintSystemHandoffReadinessFreezeForLifecycleNode>,
 ): string {
   return result.summary;
 }

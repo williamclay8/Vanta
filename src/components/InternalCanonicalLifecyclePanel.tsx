@@ -106,6 +106,8 @@ import {
   inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryClosureConsumerFreezeForLifecycleNode,
   inspectGenericPhase1EncoderProvingInputReadinessForLifecycleNode,
   inspectGenericPhase1EncoderProvingInputReadinessFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderConstraintSystemHandoffReadinessForLifecycleNode,
+  inspectGenericPhase1EncoderConstraintSystemHandoffReadinessFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationLaunchStartFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationLaunchStartForLifecycleNode,
   inspectGenericPhase1EncoderFieldLaneExecutionAdmissionFreezeForLifecycleNode,
@@ -717,6 +719,10 @@ export function InternalCanonicalLifecyclePanel() {
     inspectGenericPhase1EncoderProvingInputReadinessForLifecycleNode(lookupLifecycleId);
   const encoderProvingInputReadinessFreeze =
     inspectGenericPhase1EncoderProvingInputReadinessFreezeForLifecycleNode(lookupLifecycleId);
+  const encoderConstraintSystemHandoffReadiness =
+    inspectGenericPhase1EncoderConstraintSystemHandoffReadinessForLifecycleNode(lookupLifecycleId);
+  const encoderConstraintSystemHandoffReadinessFreeze =
+    inspectGenericPhase1EncoderConstraintSystemHandoffReadinessFreezeForLifecycleNode(lookupLifecycleId);
   const lineageRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const lookupPanelRef = useRef<HTMLDivElement | null>(null);
 
@@ -3704,6 +3710,58 @@ export function InternalCanonicalLifecyclePanel() {
                           {encoderProvingInputReadinessFreeze.serialized.length > 96
                             ? `${encoderProvingInputReadinessFreeze.serialized.slice(0, 96)}...`
                             : encoderProvingInputReadinessFreeze.serialized}
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Constraint-system handoff readiness kind</span>
+                        <strong>{`${encoderConstraintSystemHandoffReadiness.artifactKind} · v${encoderConstraintSystemHandoffReadiness.artifactVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Constraint-system handoff status</span>
+                        <strong>{encoderConstraintSystemHandoffReadiness.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Proceedable</span>
+                        <strong>{encoderConstraintSystemHandoffReadiness.proceedable ? "yes" : "no"}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Handoff footprint</span>
+                        <strong>{encoderConstraintSystemHandoffReadiness.handoffFootprintSummary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Proving readiness provenance</span>
+                        <strong>{`${encoderConstraintSystemHandoffReadiness.provingInputReadinessSnapshotKind} · ${encoderConstraintSystemHandoffReadiness.provingInputReadinessStatus}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Summary</span>
+                        <strong>{encoderConstraintSystemHandoffReadiness.summary}</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Frozen constraint-system handoff kind</span>
+                        <strong>{`${encoderConstraintSystemHandoffReadinessFreeze.snapshotKind} · v${encoderConstraintSystemHandoffReadinessFreeze.snapshotVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen constraint-system handoff status</span>
+                        <strong>{encoderConstraintSystemHandoffReadinessFreeze.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen constraint-system handoff summary</span>
+                        <strong>{encoderConstraintSystemHandoffReadinessFreeze.summary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Serialized preview</span>
+                        <strong>
+                          {encoderConstraintSystemHandoffReadinessFreeze.serialized.length > 96
+                            ? `${encoderConstraintSystemHandoffReadinessFreeze.serialized.slice(0, 96)}...`
+                            : encoderConstraintSystemHandoffReadinessFreeze.serialized}
                         </strong>
                       </div>
                     </div>

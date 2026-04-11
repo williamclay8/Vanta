@@ -4326,6 +4326,81 @@ export type BackendSpecificEncoderProvingInputReadinessFreezeMetadata = {
   summary: string;
 };
 
+export type BackendSpecificEncoderConstraintSystemHandoffReadinessStatus =
+  | "constraint-system-handoff-ready"
+  | "constraint-system-handoff-blocked"
+  | "constraint-system-handoff-not-issued";
+
+export type BackendSpecificEncoderConstraintSystemHandoffReadiness = {
+  artifactKind: "vanta-backend-encoder-constraint-system-handoff-readiness-v1";
+  artifactVersion: 1;
+  encoderId: string;
+  encoderLabel: string;
+  provingInputReadinessSnapshotKind:
+    BackendSpecificEncoderProvingInputReadinessFreeze["snapshotKind"];
+  provingInputReadinessSnapshotVersion:
+    BackendSpecificEncoderProvingInputReadinessFreeze["snapshotVersion"];
+  provingInputReadinessStatus: BackendSpecificEncoderProvingInputReadinessStatus;
+  adapterPayloadKind: CanonicalCircuitInputAdapterPayloadFreeze["kind"];
+  adapterPayloadVersion: CanonicalCircuitInputAdapterPayloadFreeze["version"];
+  normalizedAcceptedRowCount: number;
+  normalizedExcludedRowCount: number;
+  status: BackendSpecificEncoderConstraintSystemHandoffReadinessStatus;
+  proceedable: boolean;
+  dispatchFootprintSummary: string;
+  handoffFootprintSummary: string;
+  reason?: string;
+  summary: string;
+};
+
+export type BackendSpecificEncoderConstraintSystemHandoffReadinessMetadata = {
+  artifactKind: BackendSpecificEncoderConstraintSystemHandoffReadiness["artifactKind"];
+  artifactVersion: BackendSpecificEncoderConstraintSystemHandoffReadiness["artifactVersion"];
+  encoderId: string;
+  encoderLabel: string;
+  provingInputReadinessSnapshotKind:
+    BackendSpecificEncoderConstraintSystemHandoffReadiness["provingInputReadinessSnapshotKind"];
+  provingInputReadinessSnapshotVersion:
+    BackendSpecificEncoderConstraintSystemHandoffReadiness["provingInputReadinessSnapshotVersion"];
+  provingInputReadinessStatus:
+    BackendSpecificEncoderConstraintSystemHandoffReadiness["provingInputReadinessStatus"];
+  adapterPayloadKind: BackendSpecificEncoderConstraintSystemHandoffReadiness["adapterPayloadKind"];
+  adapterPayloadVersion:
+    BackendSpecificEncoderConstraintSystemHandoffReadiness["adapterPayloadVersion"];
+  normalizedAcceptedRowCount: number;
+  normalizedExcludedRowCount: number;
+  status: BackendSpecificEncoderConstraintSystemHandoffReadinessStatus;
+  proceedable: boolean;
+  dispatchFootprintSummary: string;
+  handoffFootprintSummary: string;
+  reason?: string;
+  summary: string;
+};
+
+export type BackendSpecificEncoderConstraintSystemHandoffReadinessFreeze = {
+  snapshotKind: "vanta-backend-encoder-constraint-system-handoff-readiness-freeze-v1";
+  snapshotVersion: 1;
+  encoderId: string;
+  encoderLabel: string;
+  status: BackendSpecificEncoderConstraintSystemHandoffReadinessStatus;
+  serialized: string;
+  summary: string;
+};
+
+export type BackendSpecificEncoderConstraintSystemHandoffReadinessFreezeMetadata = {
+  snapshotKind: BackendSpecificEncoderConstraintSystemHandoffReadinessFreeze["snapshotKind"];
+  snapshotVersion: BackendSpecificEncoderConstraintSystemHandoffReadinessFreeze["snapshotVersion"];
+  encoderId: string;
+  encoderLabel: string;
+  artifactKind: BackendSpecificEncoderConstraintSystemHandoffReadiness["artifactKind"];
+  artifactVersion: BackendSpecificEncoderConstraintSystemHandoffReadiness["artifactVersion"];
+  status: BackendSpecificEncoderConstraintSystemHandoffReadinessFreeze["status"];
+  proceedable: boolean;
+  frozen: true;
+  stable: true;
+  summary: string;
+};
+
 export type BackendSpecificEncoderStub = {
   encoderId: string;
   label: string;
@@ -15159,7 +15234,7 @@ export function inspectGenericPhase1EncoderProvingInputReadinessForFrozenPayload
     closureFreeze,
   );
   const witnessMaterializationManifest = inspectCanonicalLifecycleWitnessMaterializationManifest(
-    undefined,
+    payload.lifecycleId,
   );
   const witnessMaterializationRowCount = witnessMaterializationManifest.length;
   const actionableWitnessMaterializationRowCount = witnessMaterializationManifest.filter(
@@ -15381,6 +15456,206 @@ export function summarizeGenericPhase1EncoderProvingInputReadinessFreezeForLifec
   lifecycleId: string | undefined,
 ): string {
   return summarizeGenericPhase1EncoderProvingInputReadinessFreezeForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function inspectGenericPhase1EncoderConstraintSystemHandoffReadinessForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): BackendSpecificEncoderConstraintSystemHandoffReadiness {
+  const provingInputFreeze = inspectGenericPhase1EncoderProvingInputReadinessFreezeForFrozenPayload(
+    payload,
+  );
+  const provingInputSnapshot = readProvingInputReadinessFreezeSnapshot(provingInputFreeze);
+  const proceedable =
+    provingInputSnapshot.proceedable &&
+    payload.acceptedRowCount > 0 &&
+    payload.excludedRowCount === 0;
+  const status = proceedable
+    ? "constraint-system-handoff-ready"
+    : provingInputSnapshot.status === "proving-input-not-issued" || payload.acceptedRowCount === 0
+      ? "constraint-system-handoff-not-issued"
+      : "constraint-system-handoff-blocked";
+  const handoffFootprintSummary = `accepted:${payload.acceptedRowCount} · excluded:${payload.excludedRowCount}`;
+  const reason = proceedable
+    ? undefined
+    : provingInputSnapshot.status === "proving-input-not-issued"
+      ? provingInputSnapshot.reason ?? "proving input has not been issued for constraint-system handoff"
+      : payload.acceptedRowCount === 0
+        ? "adapter payload has no accepted normalized rows"
+        : payload.excludedRowCount > 0
+          ? `${payload.excludedRowCount} normalized rows remain excluded from constraint handoff`
+          : provingInputSnapshot.reason;
+
+  return {
+    artifactKind: "vanta-backend-encoder-constraint-system-handoff-readiness-v1",
+    artifactVersion: 1,
+    encoderId: provingInputSnapshot.encoderId,
+    encoderLabel: provingInputSnapshot.encoderLabel,
+    provingInputReadinessSnapshotKind: provingInputSnapshot.snapshotKind,
+    provingInputReadinessSnapshotVersion: provingInputSnapshot.snapshotVersion,
+    provingInputReadinessStatus: provingInputSnapshot.status,
+    adapterPayloadKind: payload.kind,
+    adapterPayloadVersion: payload.version,
+    normalizedAcceptedRowCount: payload.acceptedRowCount,
+    normalizedExcludedRowCount: payload.excludedRowCount,
+    status,
+    proceedable,
+    dispatchFootprintSummary: provingInputSnapshot.dispatchFootprintSummary,
+    handoffFootprintSummary,
+    reason,
+    summary: summarizeConstraintSystemHandoffReadiness(
+      status,
+      provingInputSnapshot,
+      handoffFootprintSummary,
+      reason,
+    ),
+  };
+}
+
+export function inspectGenericPhase1EncoderConstraintSystemHandoffReadinessForLifecycleNode(
+  lifecycleId: string | undefined,
+): BackendSpecificEncoderConstraintSystemHandoffReadiness {
+  return inspectGenericPhase1EncoderConstraintSystemHandoffReadinessForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function inspectGenericPhase1EncoderConstraintSystemHandoffReadinessMetadataForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): BackendSpecificEncoderConstraintSystemHandoffReadinessMetadata {
+  const artifact = inspectGenericPhase1EncoderConstraintSystemHandoffReadinessForFrozenPayload(payload);
+
+  return {
+    artifactKind: artifact.artifactKind,
+    artifactVersion: artifact.artifactVersion,
+    encoderId: artifact.encoderId,
+    encoderLabel: artifact.encoderLabel,
+    provingInputReadinessSnapshotKind: artifact.provingInputReadinessSnapshotKind,
+    provingInputReadinessSnapshotVersion: artifact.provingInputReadinessSnapshotVersion,
+    provingInputReadinessStatus: artifact.provingInputReadinessStatus,
+    adapterPayloadKind: artifact.adapterPayloadKind,
+    adapterPayloadVersion: artifact.adapterPayloadVersion,
+    normalizedAcceptedRowCount: artifact.normalizedAcceptedRowCount,
+    normalizedExcludedRowCount: artifact.normalizedExcludedRowCount,
+    status: artifact.status,
+    proceedable: artifact.proceedable,
+    dispatchFootprintSummary: artifact.dispatchFootprintSummary,
+    handoffFootprintSummary: artifact.handoffFootprintSummary,
+    reason: artifact.reason,
+    summary: artifact.summary,
+  };
+}
+
+export function inspectGenericPhase1EncoderConstraintSystemHandoffReadinessMetadataForLifecycleNode(
+  lifecycleId: string | undefined,
+): BackendSpecificEncoderConstraintSystemHandoffReadinessMetadata {
+  return inspectGenericPhase1EncoderConstraintSystemHandoffReadinessMetadataForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function summarizeGenericPhase1EncoderConstraintSystemHandoffReadinessForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): string {
+  return inspectGenericPhase1EncoderConstraintSystemHandoffReadinessForFrozenPayload(payload).summary;
+}
+
+export function summarizeGenericPhase1EncoderConstraintSystemHandoffReadinessForLifecycleNode(
+  lifecycleId: string | undefined,
+): string {
+  return summarizeGenericPhase1EncoderConstraintSystemHandoffReadinessForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function inspectGenericPhase1EncoderConstraintSystemHandoffReadinessFreezeForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): BackendSpecificEncoderConstraintSystemHandoffReadinessFreeze {
+  const artifact = inspectGenericPhase1EncoderConstraintSystemHandoffReadinessForFrozenPayload(payload);
+  const tuples = [
+    ["snapshotKind", "vanta-backend-encoder-constraint-system-handoff-readiness-freeze-v1"],
+    ["snapshotVersion", 1],
+    ["artifactKind", artifact.artifactKind],
+    ["artifactVersion", artifact.artifactVersion],
+    ["encoderId", artifact.encoderId],
+    ["encoderLabel", artifact.encoderLabel],
+    ["provingInputReadinessSnapshotKind", artifact.provingInputReadinessSnapshotKind],
+    ["provingInputReadinessSnapshotVersion", artifact.provingInputReadinessSnapshotVersion],
+    ["provingInputReadinessStatus", artifact.provingInputReadinessStatus],
+    ["adapterPayloadKind", artifact.adapterPayloadKind],
+    ["adapterPayloadVersion", artifact.adapterPayloadVersion],
+    ["normalizedAcceptedRowCount", artifact.normalizedAcceptedRowCount],
+    ["normalizedExcludedRowCount", artifact.normalizedExcludedRowCount],
+    ["status", artifact.status],
+    ["proceedable", artifact.proceedable],
+    ["dispatchFootprintSummary", artifact.dispatchFootprintSummary],
+    ["handoffFootprintSummary", artifact.handoffFootprintSummary],
+    ["reason", artifact.reason ?? null],
+    ["summary", artifact.summary],
+  ] as const;
+
+  return {
+    snapshotKind: "vanta-backend-encoder-constraint-system-handoff-readiness-freeze-v1",
+    snapshotVersion: 1,
+    encoderId: artifact.encoderId,
+    encoderLabel: artifact.encoderLabel,
+    status: artifact.status,
+    serialized: JSON.stringify(tuples),
+    summary: `${artifact.status} · frozen constraint-system handoff readiness artifact`,
+  };
+}
+
+export function inspectGenericPhase1EncoderConstraintSystemHandoffReadinessFreezeForLifecycleNode(
+  lifecycleId: string | undefined,
+): BackendSpecificEncoderConstraintSystemHandoffReadinessFreeze {
+  return inspectGenericPhase1EncoderConstraintSystemHandoffReadinessFreezeForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function inspectGenericPhase1EncoderConstraintSystemHandoffReadinessFreezeMetadataForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): BackendSpecificEncoderConstraintSystemHandoffReadinessFreezeMetadata {
+  const artifact = inspectGenericPhase1EncoderConstraintSystemHandoffReadinessForFrozenPayload(payload);
+  const freeze = inspectGenericPhase1EncoderConstraintSystemHandoffReadinessFreezeForFrozenPayload(payload);
+  const snapshot = readConstraintSystemHandoffReadinessFreezeSnapshot(freeze);
+
+  return {
+    snapshotKind: snapshot.snapshotKind,
+    snapshotVersion: snapshot.snapshotVersion,
+    encoderId: snapshot.encoderId,
+    encoderLabel: snapshot.encoderLabel,
+    artifactKind: artifact.artifactKind,
+    artifactVersion: artifact.artifactVersion,
+    status: snapshot.status,
+    proceedable: snapshot.proceedable,
+    frozen: true,
+    stable: true,
+    summary: `${freeze.summary} · stable:${artifact.status}`,
+  };
+}
+
+export function inspectGenericPhase1EncoderConstraintSystemHandoffReadinessFreezeMetadataForLifecycleNode(
+  lifecycleId: string | undefined,
+): BackendSpecificEncoderConstraintSystemHandoffReadinessFreezeMetadata {
+  return inspectGenericPhase1EncoderConstraintSystemHandoffReadinessFreezeMetadataForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function summarizeGenericPhase1EncoderConstraintSystemHandoffReadinessFreezeForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): string {
+  return inspectGenericPhase1EncoderConstraintSystemHandoffReadinessFreezeMetadataForFrozenPayload(
+    payload,
+  ).summary;
+}
+
+export function summarizeGenericPhase1EncoderConstraintSystemHandoffReadinessFreezeForLifecycleNode(
+  lifecycleId: string | undefined,
+): string {
+  return summarizeGenericPhase1EncoderConstraintSystemHandoffReadinessFreezeForFrozenPayload(
     inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
   );
 }
@@ -19244,6 +19519,69 @@ function readFieldMaterializationNextResolvedBoundaryClosureConsumerFreezeSnapsh
   }
 }
 
+type ParsedConstraintSystemHandoffReadinessFreezeSnapshot = {
+  snapshotKind: BackendSpecificEncoderConstraintSystemHandoffReadinessFreeze["snapshotKind"];
+  snapshotVersion: BackendSpecificEncoderConstraintSystemHandoffReadinessFreeze["snapshotVersion"];
+  encoderId: string;
+  encoderLabel: string;
+  status: BackendSpecificEncoderConstraintSystemHandoffReadinessStatus;
+  proceedable: boolean;
+  dispatchFootprintSummary: string;
+  handoffFootprintSummary: string;
+  reason?: string;
+};
+
+function readConstraintSystemHandoffReadinessFreezeSnapshot(
+  freeze: BackendSpecificEncoderConstraintSystemHandoffReadinessFreeze,
+): ParsedConstraintSystemHandoffReadinessFreezeSnapshot {
+  try {
+    const tuples = JSON.parse(freeze.serialized) as unknown;
+
+    if (!Array.isArray(tuples)) {
+      throw new Error("serialized constraint-system-handoff-readiness snapshot was not a tuple array");
+    }
+
+    const get = (key: string) =>
+      tuples.find(
+        (entry): entry is [string, unknown] => Array.isArray(entry) && entry[0] === key,
+      )?.[1];
+
+    return {
+      snapshotKind:
+        String(get("snapshotKind") ?? freeze.snapshotKind) as ParsedConstraintSystemHandoffReadinessFreezeSnapshot["snapshotKind"],
+      snapshotVersion:
+        Number(get("snapshotVersion") ?? freeze.snapshotVersion) as ParsedConstraintSystemHandoffReadinessFreezeSnapshot["snapshotVersion"],
+      encoderId: String(get("encoderId") ?? freeze.encoderId),
+      encoderLabel: String(get("encoderLabel") ?? freeze.encoderLabel),
+      status:
+        String(get("status") ?? freeze.status) as ParsedConstraintSystemHandoffReadinessFreezeSnapshot["status"],
+      proceedable: Boolean(get("proceedable")),
+      dispatchFootprintSummary: String(
+        get("dispatchFootprintSummary") ?? "accepted:0 · blocked:0 · unsupported:0",
+      ),
+      handoffFootprintSummary: String(
+        get("handoffFootprintSummary") ?? "accepted:0 · excluded:0",
+      ),
+      reason:
+        get("reason") === null || get("reason") === undefined
+          ? undefined
+          : String(get("reason")),
+    };
+  } catch {
+    return {
+      snapshotKind: freeze.snapshotKind,
+      snapshotVersion: freeze.snapshotVersion,
+      encoderId: freeze.encoderId,
+      encoderLabel: freeze.encoderLabel,
+      status: freeze.status,
+      proceedable: false,
+      dispatchFootprintSummary: "accepted:0 · blocked:0 · unsupported:0",
+      handoffFootprintSummary: "accepted:0 · excluded:0",
+      reason: "failed to parse constraint-system handoff readiness freeze",
+    };
+  }
+}
+
 type ParsedProvingInputReadinessFreezeSnapshot = {
   snapshotKind: BackendSpecificEncoderProvingInputReadinessFreeze["snapshotKind"];
   snapshotVersion: BackendSpecificEncoderProvingInputReadinessFreeze["snapshotVersion"];
@@ -20080,6 +20418,21 @@ function summarizeFieldMaterializationNextResolvedBoundaryClosureConsumer(
 
   if (snapshot.reason) {
     parts.push(snapshot.reason);
+  }
+
+  return parts.join(" · ");
+}
+
+function summarizeConstraintSystemHandoffReadiness(
+  status: BackendSpecificEncoderConstraintSystemHandoffReadinessStatus,
+  snapshot: ParsedProvingInputReadinessFreezeSnapshot,
+  handoffFootprintSummary: string,
+  reason?: string,
+): string {
+  const parts = [status, `from ${snapshot.status}`, snapshot.dispatchFootprintSummary, handoffFootprintSummary];
+
+  if (reason) {
+    parts.push(reason);
   }
 
   return parts.join(" · ");
