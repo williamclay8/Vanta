@@ -104,6 +104,8 @@ import {
   inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalHandoffFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryClosureConsumerForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryClosureConsumerFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderProvingInputReadinessForLifecycleNode,
+  inspectGenericPhase1EncoderProvingInputReadinessFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationLaunchStartFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationLaunchStartForLifecycleNode,
   inspectGenericPhase1EncoderFieldLaneExecutionAdmissionFreezeForLifecycleNode,
@@ -711,6 +713,10 @@ export function InternalCanonicalLifecyclePanel() {
     inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryClosureConsumerFreezeForLifecycleNode(
       lookupLifecycleId,
     );
+  const encoderProvingInputReadiness =
+    inspectGenericPhase1EncoderProvingInputReadinessForLifecycleNode(lookupLifecycleId);
+  const encoderProvingInputReadinessFreeze =
+    inspectGenericPhase1EncoderProvingInputReadinessFreezeForLifecycleNode(lookupLifecycleId);
   const lineageRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const lookupPanelRef = useRef<HTMLDivElement | null>(null);
 
@@ -3646,6 +3652,58 @@ export function InternalCanonicalLifecyclePanel() {
                           96
                             ? `${encoderFieldMaterializationNextResolvedBoundaryClosureConsumerFreeze.serialized.slice(0, 96)}...`
                             : encoderFieldMaterializationNextResolvedBoundaryClosureConsumerFreeze.serialized}
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Proving input readiness kind</span>
+                        <strong>{`${encoderProvingInputReadiness.artifactKind} · v${encoderProvingInputReadiness.artifactVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Proving input readiness status</span>
+                        <strong>{encoderProvingInputReadiness.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Proceedable</span>
+                        <strong>{encoderProvingInputReadiness.proceedable ? "yes" : "no"}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Witness materialization</span>
+                        <strong>{encoderProvingInputReadiness.witnessMaterializationSummary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Closure provenance</span>
+                        <strong>{`${encoderProvingInputReadiness.fieldMaterializationNextResolvedBoundaryClosureConsumerSnapshotKind} · ${encoderProvingInputReadiness.fieldMaterializationNextResolvedBoundaryClosureConsumerStatus}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Summary</span>
+                        <strong>{encoderProvingInputReadiness.summary}</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="status-panel">
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Frozen proving input readiness kind</span>
+                        <strong>{`${encoderProvingInputReadinessFreeze.snapshotKind} · v${encoderProvingInputReadinessFreeze.snapshotVersion}`}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen proving input readiness status</span>
+                        <strong>{encoderProvingInputReadinessFreeze.status}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Frozen proving input readiness summary</span>
+                        <strong>{encoderProvingInputReadinessFreeze.summary}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Serialized preview</span>
+                        <strong>
+                          {encoderProvingInputReadinessFreeze.serialized.length > 96
+                            ? `${encoderProvingInputReadinessFreeze.serialized.slice(0, 96)}...`
+                            : encoderProvingInputReadinessFreeze.serialized}
                         </strong>
                       </div>
                     </div>

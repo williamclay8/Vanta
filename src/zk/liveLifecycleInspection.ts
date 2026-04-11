@@ -117,6 +117,8 @@ import {
   inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryFinalHandoffFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryClosureConsumerForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryClosureConsumerFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderProvingInputReadinessForLifecycleNode,
+  inspectGenericPhase1EncoderProvingInputReadinessFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationLaunchStartFreezeForLifecycleNode,
   inspectGenericPhase1EncoderFieldMaterializationLaunchStartForLifecycleNode,
   inspectGenericPhase1EncoderFieldLaneExecutionAdmissionFreezeForLifecycleNode,
@@ -342,6 +344,8 @@ export type CanonicalLifecycleSuccessorSummary = {
   encoderFieldMaterializationNextResolvedBoundaryFinalHandoffFreezeSummary?: string;
   encoderFieldMaterializationNextResolvedBoundaryClosureConsumerSummary?: string;
   encoderFieldMaterializationNextResolvedBoundaryClosureConsumerFreezeSummary?: string;
+  encoderProvingInputReadinessSummary?: string;
+  encoderProvingInputReadinessFreezeSummary?: string;
   rootReconciliationReady?: boolean;
   rootReconciliationStatus?: "pending" | "match" | "mismatch" | "unavailable";
   rootReconciliationScheme?: string;
@@ -807,6 +811,8 @@ export type CanonicalLifecycleNodeInspection = {
   encoderFieldMaterializationNextResolvedBoundaryFinalHandoffFreezeSummary?: string;
   encoderFieldMaterializationNextResolvedBoundaryClosureConsumerSummary?: string;
   encoderFieldMaterializationNextResolvedBoundaryClosureConsumerFreezeSummary?: string;
+  encoderProvingInputReadinessSummary?: string;
+  encoderProvingInputReadinessFreezeSummary?: string;
   rootReconciliationReady: boolean;
   rootReconciliationStatus: "pending" | "match" | "mismatch" | "unavailable";
   rootReconciliationScheme?: string;
@@ -1573,6 +1579,10 @@ export function inspectCanonicalLifecycleNode(
     inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryClosureConsumerFreezeForLifecycleNode(
       normalizedLifecycleId,
     );
+  const encoderProvingInputReadiness =
+    inspectGenericPhase1EncoderProvingInputReadinessForLifecycleNode(normalizedLifecycleId);
+  const encoderProvingInputReadinessFreeze =
+    inspectGenericPhase1EncoderProvingInputReadinessFreezeForLifecycleNode(normalizedLifecycleId);
   const rootReconciliation = inspectCanonicalLifecycleMembershipRootReconciliation(normalizedLifecycleId);
 
   for (const event of events) {
@@ -1625,6 +1635,8 @@ export function inspectCanonicalLifecycleNode(
         fieldValuePreimageSummary: createFieldValuePreimageSummary(circuitInput),
         fieldLanePlanSummary: createFieldLanePlanSummary(circuitInput),
         laneArityPlanSummary: createLaneArityPlanSummary(circuitInput),
+        encoderProvingInputReadinessSummary: encoderProvingInputReadiness.summary,
+        encoderProvingInputReadinessFreezeSummary: encoderProvingInputReadinessFreeze.summary,
         fieldEmissionScheduleSummary: createFieldEmissionScheduleSummary(circuitInput),
         fieldConversionManifestSummary: createFieldConversionManifestSummary(circuitInput),
         finiteFieldDraftSummary: createFiniteFieldDraftSummary(circuitInput),
@@ -3726,6 +3738,18 @@ function createEncoderFieldMaterializationNextResolvedBoundaryClosureConsumerSum
 
 function createEncoderFieldMaterializationNextResolvedBoundaryClosureConsumerFreezeSummary(
   result: ReturnType<typeof inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryClosureConsumerFreezeForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderProvingInputReadinessSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderProvingInputReadinessForLifecycleNode>,
+): string {
+  return result.summary;
+}
+
+function createEncoderProvingInputReadinessFreezeSummary(
+  result: ReturnType<typeof inspectGenericPhase1EncoderProvingInputReadinessFreezeForLifecycleNode>,
 ): string {
   return result.summary;
 }

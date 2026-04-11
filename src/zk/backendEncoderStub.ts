@@ -1,6 +1,8 @@
 import {
   inspectCanonicalLifecycleAdapterPayloadFreeze,
+  inspectCanonicalLifecycleWitnessMaterializationManifest,
   type CanonicalCircuitInputAdapterPayloadFreeze,
+  type CanonicalCircuitInputWitnessMaterializationManifestRow,
 } from "./canonicalCircuitInput";
 
 export type BackendSpecificEncoderStubResultStatus =
@@ -4243,6 +4245,86 @@ export type BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryClosur
     stable: true;
     summary: string;
   };
+
+export type BackendSpecificEncoderProvingInputReadinessStatus =
+  | "proving-input-ready"
+  | "proving-input-blocked"
+  | "proving-input-not-issued";
+
+export type BackendSpecificEncoderProvingInputReadiness = {
+  artifactKind: "vanta-backend-encoder-proving-input-readiness-v1";
+  artifactVersion: 1;
+  encoderId: string;
+  encoderLabel: string;
+  fieldMaterializationNextResolvedBoundaryClosureConsumerSnapshotKind:
+    BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryClosureConsumerFreeze["snapshotKind"];
+  fieldMaterializationNextResolvedBoundaryClosureConsumerSnapshotVersion:
+    BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryClosureConsumerFreeze["snapshotVersion"];
+  fieldMaterializationNextResolvedBoundaryClosureConsumerStatus:
+    BackendSpecificEncoderFieldMaterializationNextResolvedBoundaryClosureConsumerStatus;
+  witnessMaterializationManifestKind:
+    CanonicalCircuitInputWitnessMaterializationManifestRow["kind"] | "vanta-backend-neutral-witness-materialization-manifest-v1";
+  witnessMaterializationManifestVersion: 1;
+  witnessMaterializationRowCount: number;
+  actionableWitnessMaterializationRowCount: number;
+  blockedWitnessMaterializationRowCount: number;
+  status: BackendSpecificEncoderProvingInputReadinessStatus;
+  proceedable: boolean;
+  dispatchFootprintSummary: string;
+  witnessMaterializationSummary: string;
+  reason?: string;
+  summary: string;
+};
+
+export type BackendSpecificEncoderProvingInputReadinessMetadata = {
+  artifactKind: BackendSpecificEncoderProvingInputReadiness["artifactKind"];
+  artifactVersion: BackendSpecificEncoderProvingInputReadiness["artifactVersion"];
+  encoderId: string;
+  encoderLabel: string;
+  fieldMaterializationNextResolvedBoundaryClosureConsumerSnapshotKind:
+    BackendSpecificEncoderProvingInputReadiness["fieldMaterializationNextResolvedBoundaryClosureConsumerSnapshotKind"];
+  fieldMaterializationNextResolvedBoundaryClosureConsumerSnapshotVersion:
+    BackendSpecificEncoderProvingInputReadiness["fieldMaterializationNextResolvedBoundaryClosureConsumerSnapshotVersion"];
+  fieldMaterializationNextResolvedBoundaryClosureConsumerStatus:
+    BackendSpecificEncoderProvingInputReadiness["fieldMaterializationNextResolvedBoundaryClosureConsumerStatus"];
+  witnessMaterializationManifestKind:
+    BackendSpecificEncoderProvingInputReadiness["witnessMaterializationManifestKind"];
+  witnessMaterializationManifestVersion:
+    BackendSpecificEncoderProvingInputReadiness["witnessMaterializationManifestVersion"];
+  witnessMaterializationRowCount: number;
+  actionableWitnessMaterializationRowCount: number;
+  blockedWitnessMaterializationRowCount: number;
+  status: BackendSpecificEncoderProvingInputReadinessStatus;
+  proceedable: boolean;
+  dispatchFootprintSummary: string;
+  witnessMaterializationSummary: string;
+  reason?: string;
+  summary: string;
+};
+
+export type BackendSpecificEncoderProvingInputReadinessFreeze = {
+  snapshotKind: "vanta-backend-encoder-proving-input-readiness-freeze-v1";
+  snapshotVersion: 1;
+  encoderId: string;
+  encoderLabel: string;
+  status: BackendSpecificEncoderProvingInputReadinessStatus;
+  serialized: string;
+  summary: string;
+};
+
+export type BackendSpecificEncoderProvingInputReadinessFreezeMetadata = {
+  snapshotKind: BackendSpecificEncoderProvingInputReadinessFreeze["snapshotKind"];
+  snapshotVersion: BackendSpecificEncoderProvingInputReadinessFreeze["snapshotVersion"];
+  encoderId: string;
+  encoderLabel: string;
+  artifactKind: BackendSpecificEncoderProvingInputReadiness["artifactKind"];
+  artifactVersion: BackendSpecificEncoderProvingInputReadiness["artifactVersion"];
+  status: BackendSpecificEncoderProvingInputReadinessFreeze["status"];
+  proceedable: boolean;
+  frozen: true;
+  stable: true;
+  summary: string;
+};
 
 export type BackendSpecificEncoderStub = {
   encoderId: string;
@@ -15066,6 +15148,243 @@ export function summarizeGenericPhase1EncoderFieldMaterializationNextResolvedBou
   );
 }
 
+export function inspectGenericPhase1EncoderProvingInputReadinessForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): BackendSpecificEncoderProvingInputReadiness {
+  const closureFreeze =
+    inspectGenericPhase1EncoderFieldMaterializationNextResolvedBoundaryClosureConsumerFreezeForFrozenPayload(
+      payload,
+    );
+  const closureSnapshot = readFieldMaterializationNextResolvedBoundaryClosureConsumerFreezeSnapshot(
+    closureFreeze,
+  );
+  const witnessMaterializationManifest = inspectCanonicalLifecycleWitnessMaterializationManifest(
+    undefined,
+  );
+  const witnessMaterializationRowCount = witnessMaterializationManifest.length;
+  const actionableWitnessMaterializationRowCount = witnessMaterializationManifest.filter(
+    (entry) => entry.actionable,
+  ).length;
+  const blockedWitnessMaterializationRowCount = witnessMaterializationManifest.filter(
+    (entry) => !entry.actionable,
+  ).length;
+  const proceedable =
+    closureSnapshot.proceedable &&
+    witnessMaterializationRowCount > 0 &&
+    blockedWitnessMaterializationRowCount === 0;
+  const status = proceedable
+    ? "proving-input-ready"
+    : closureSnapshot.status ===
+          "field-materialization-next-resolved-boundary-closure-consumer-not-issued" ||
+        witnessMaterializationRowCount === 0
+      ? "proving-input-not-issued"
+      : "proving-input-blocked";
+  const witnessMaterializationSummary = summarizeWitnessMaterializationManifestRows(
+    witnessMaterializationManifest,
+  );
+  const reason = proceedable
+    ? undefined
+    : closureSnapshot.status ===
+          "field-materialization-next-resolved-boundary-closure-consumer-not-issued"
+      ? closureSnapshot.reason ?? "next resolved boundary closure consumer has not issued a proving input"
+      : witnessMaterializationRowCount === 0
+        ? "witness materialization manifest is empty"
+        : blockedWitnessMaterializationRowCount > 0
+          ? `${blockedWitnessMaterializationRowCount} witness materialization rows remain blocked`
+          : closureSnapshot.reason;
+
+  return {
+    artifactKind: "vanta-backend-encoder-proving-input-readiness-v1",
+    artifactVersion: 1,
+    encoderId: closureSnapshot.encoderId,
+    encoderLabel: closureSnapshot.encoderLabel,
+    fieldMaterializationNextResolvedBoundaryClosureConsumerSnapshotKind:
+      closureSnapshot.snapshotKind,
+    fieldMaterializationNextResolvedBoundaryClosureConsumerSnapshotVersion:
+      closureSnapshot.snapshotVersion,
+    fieldMaterializationNextResolvedBoundaryClosureConsumerStatus: closureSnapshot.status,
+    witnessMaterializationManifestKind:
+      witnessMaterializationManifest[0]?.kind ??
+      "vanta-backend-neutral-witness-materialization-manifest-v1",
+    witnessMaterializationManifestVersion: witnessMaterializationManifest[0]?.version ?? 1,
+    witnessMaterializationRowCount,
+    actionableWitnessMaterializationRowCount,
+    blockedWitnessMaterializationRowCount,
+    status,
+    proceedable,
+    dispatchFootprintSummary: closureSnapshot.dispatchFootprintSummary,
+    witnessMaterializationSummary,
+    reason,
+    summary: summarizeProvingInputReadiness(status, closureSnapshot, witnessMaterializationSummary, reason),
+  };
+}
+
+export function inspectGenericPhase1EncoderProvingInputReadinessForLifecycleNode(
+  lifecycleId: string | undefined,
+): BackendSpecificEncoderProvingInputReadiness {
+  return inspectGenericPhase1EncoderProvingInputReadinessForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function inspectGenericPhase1EncoderProvingInputReadinessMetadataForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): BackendSpecificEncoderProvingInputReadinessMetadata {
+  const artifact = inspectGenericPhase1EncoderProvingInputReadinessForFrozenPayload(payload);
+
+  return {
+    artifactKind: artifact.artifactKind,
+    artifactVersion: artifact.artifactVersion,
+    encoderId: artifact.encoderId,
+    encoderLabel: artifact.encoderLabel,
+    fieldMaterializationNextResolvedBoundaryClosureConsumerSnapshotKind:
+      artifact.fieldMaterializationNextResolvedBoundaryClosureConsumerSnapshotKind,
+    fieldMaterializationNextResolvedBoundaryClosureConsumerSnapshotVersion:
+      artifact.fieldMaterializationNextResolvedBoundaryClosureConsumerSnapshotVersion,
+    fieldMaterializationNextResolvedBoundaryClosureConsumerStatus:
+      artifact.fieldMaterializationNextResolvedBoundaryClosureConsumerStatus,
+    witnessMaterializationManifestKind: artifact.witnessMaterializationManifestKind,
+    witnessMaterializationManifestVersion: artifact.witnessMaterializationManifestVersion,
+    witnessMaterializationRowCount: artifact.witnessMaterializationRowCount,
+    actionableWitnessMaterializationRowCount: artifact.actionableWitnessMaterializationRowCount,
+    blockedWitnessMaterializationRowCount: artifact.blockedWitnessMaterializationRowCount,
+    status: artifact.status,
+    proceedable: artifact.proceedable,
+    dispatchFootprintSummary: artifact.dispatchFootprintSummary,
+    witnessMaterializationSummary: artifact.witnessMaterializationSummary,
+    reason: artifact.reason,
+    summary: artifact.summary,
+  };
+}
+
+export function inspectGenericPhase1EncoderProvingInputReadinessMetadataForLifecycleNode(
+  lifecycleId: string | undefined,
+): BackendSpecificEncoderProvingInputReadinessMetadata {
+  return inspectGenericPhase1EncoderProvingInputReadinessMetadataForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function summarizeGenericPhase1EncoderProvingInputReadinessForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): string {
+  return inspectGenericPhase1EncoderProvingInputReadinessForFrozenPayload(payload).summary;
+}
+
+export function summarizeGenericPhase1EncoderProvingInputReadinessForLifecycleNode(
+  lifecycleId: string | undefined,
+): string {
+  return summarizeGenericPhase1EncoderProvingInputReadinessForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function inspectGenericPhase1EncoderProvingInputReadinessFreezeForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): BackendSpecificEncoderProvingInputReadinessFreeze {
+  const artifact = inspectGenericPhase1EncoderProvingInputReadinessForFrozenPayload(payload);
+  const tuples = [
+    ["snapshotKind", "vanta-backend-encoder-proving-input-readiness-freeze-v1"],
+    ["snapshotVersion", 1],
+    ["artifactKind", artifact.artifactKind],
+    ["artifactVersion", artifact.artifactVersion],
+    ["encoderId", artifact.encoderId],
+    ["encoderLabel", artifact.encoderLabel],
+    [
+      "fieldMaterializationNextResolvedBoundaryClosureConsumerSnapshotKind",
+      artifact.fieldMaterializationNextResolvedBoundaryClosureConsumerSnapshotKind,
+    ],
+    [
+      "fieldMaterializationNextResolvedBoundaryClosureConsumerSnapshotVersion",
+      artifact.fieldMaterializationNextResolvedBoundaryClosureConsumerSnapshotVersion,
+    ],
+    [
+      "fieldMaterializationNextResolvedBoundaryClosureConsumerStatus",
+      artifact.fieldMaterializationNextResolvedBoundaryClosureConsumerStatus,
+    ],
+    ["witnessMaterializationManifestKind", artifact.witnessMaterializationManifestKind],
+    ["witnessMaterializationManifestVersion", artifact.witnessMaterializationManifestVersion],
+    ["witnessMaterializationRowCount", artifact.witnessMaterializationRowCount],
+    [
+      "actionableWitnessMaterializationRowCount",
+      artifact.actionableWitnessMaterializationRowCount,
+    ],
+    [
+      "blockedWitnessMaterializationRowCount",
+      artifact.blockedWitnessMaterializationRowCount,
+    ],
+    ["status", artifact.status],
+    ["proceedable", artifact.proceedable],
+    ["dispatchFootprintSummary", artifact.dispatchFootprintSummary],
+    ["witnessMaterializationSummary", artifact.witnessMaterializationSummary],
+    ["reason", artifact.reason ?? null],
+    ["summary", artifact.summary],
+  ] as const;
+
+  return {
+    snapshotKind: "vanta-backend-encoder-proving-input-readiness-freeze-v1",
+    snapshotVersion: 1,
+    encoderId: artifact.encoderId,
+    encoderLabel: artifact.encoderLabel,
+    status: artifact.status,
+    serialized: JSON.stringify(tuples),
+    summary: `${artifact.status} · frozen proving-input readiness artifact`,
+  };
+}
+
+export function inspectGenericPhase1EncoderProvingInputReadinessFreezeForLifecycleNode(
+  lifecycleId: string | undefined,
+): BackendSpecificEncoderProvingInputReadinessFreeze {
+  return inspectGenericPhase1EncoderProvingInputReadinessFreezeForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function inspectGenericPhase1EncoderProvingInputReadinessFreezeMetadataForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): BackendSpecificEncoderProvingInputReadinessFreezeMetadata {
+  const artifact = inspectGenericPhase1EncoderProvingInputReadinessForFrozenPayload(payload);
+  const freeze = inspectGenericPhase1EncoderProvingInputReadinessFreezeForFrozenPayload(payload);
+  const snapshot = readProvingInputReadinessFreezeSnapshot(freeze);
+
+  return {
+    snapshotKind: snapshot.snapshotKind,
+    snapshotVersion: snapshot.snapshotVersion,
+    encoderId: snapshot.encoderId,
+    encoderLabel: snapshot.encoderLabel,
+    artifactKind: artifact.artifactKind,
+    artifactVersion: artifact.artifactVersion,
+    status: snapshot.status,
+    proceedable: snapshot.proceedable,
+    frozen: true,
+    stable: true,
+    summary: `${freeze.summary} · stable:${artifact.status}`,
+  };
+}
+
+export function inspectGenericPhase1EncoderProvingInputReadinessFreezeMetadataForLifecycleNode(
+  lifecycleId: string | undefined,
+): BackendSpecificEncoderProvingInputReadinessFreezeMetadata {
+  return inspectGenericPhase1EncoderProvingInputReadinessFreezeMetadataForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
+export function summarizeGenericPhase1EncoderProvingInputReadinessFreezeForFrozenPayload(
+  payload: CanonicalCircuitInputAdapterPayloadFreeze,
+): string {
+  return inspectGenericPhase1EncoderProvingInputReadinessFreezeMetadataForFrozenPayload(payload)
+    .summary;
+}
+
+export function summarizeGenericPhase1EncoderProvingInputReadinessFreezeForLifecycleNode(
+  lifecycleId: string | undefined,
+): string {
+  return summarizeGenericPhase1EncoderProvingInputReadinessFreezeForFrozenPayload(
+    inspectCanonicalLifecycleAdapterPayloadFreeze(lifecycleId),
+  );
+}
+
 export function inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactForFrozenPayload(
   payload: CanonicalCircuitInputAdapterPayloadFreeze,
 ): BackendSpecificEncoderFieldMaterializationDownstreamPreEncodingConsumerArtifact {
@@ -18925,6 +19244,69 @@ function readFieldMaterializationNextResolvedBoundaryClosureConsumerFreezeSnapsh
   }
 }
 
+type ParsedProvingInputReadinessFreezeSnapshot = {
+  snapshotKind: BackendSpecificEncoderProvingInputReadinessFreeze["snapshotKind"];
+  snapshotVersion: BackendSpecificEncoderProvingInputReadinessFreeze["snapshotVersion"];
+  encoderId: string;
+  encoderLabel: string;
+  status: BackendSpecificEncoderProvingInputReadinessStatus;
+  proceedable: boolean;
+  dispatchFootprintSummary: string;
+  witnessMaterializationSummary: string;
+  reason?: string;
+};
+
+function readProvingInputReadinessFreezeSnapshot(
+  freeze: BackendSpecificEncoderProvingInputReadinessFreeze,
+): ParsedProvingInputReadinessFreezeSnapshot {
+  try {
+    const tuples = JSON.parse(freeze.serialized) as unknown;
+
+    if (!Array.isArray(tuples)) {
+      throw new Error("serialized proving-input-readiness snapshot was not a tuple array");
+    }
+
+    const get = (key: string) =>
+      tuples.find(
+        (entry): entry is [string, unknown] => Array.isArray(entry) && entry[0] === key,
+      )?.[1];
+
+    return {
+      snapshotKind:
+        String(get("snapshotKind") ?? freeze.snapshotKind) as ParsedProvingInputReadinessFreezeSnapshot["snapshotKind"],
+      snapshotVersion:
+        Number(get("snapshotVersion") ?? freeze.snapshotVersion) as ParsedProvingInputReadinessFreezeSnapshot["snapshotVersion"],
+      encoderId: String(get("encoderId") ?? freeze.encoderId),
+      encoderLabel: String(get("encoderLabel") ?? freeze.encoderLabel),
+      status:
+        String(get("status") ?? freeze.status) as ParsedProvingInputReadinessFreezeSnapshot["status"],
+      proceedable: Boolean(get("proceedable")),
+      dispatchFootprintSummary: String(
+        get("dispatchFootprintSummary") ?? "accepted:0 · blocked:0 · unsupported:0",
+      ),
+      witnessMaterializationSummary: String(
+        get("witnessMaterializationSummary") ?? "witness rows:0 · actionable:0 · blocked:0",
+      ),
+      reason:
+        get("reason") === null || get("reason") === undefined
+          ? undefined
+          : String(get("reason")),
+    };
+  } catch {
+    return {
+      snapshotKind: freeze.snapshotKind,
+      snapshotVersion: freeze.snapshotVersion,
+      encoderId: freeze.encoderId,
+      encoderLabel: freeze.encoderLabel,
+      status: freeze.status,
+      proceedable: false,
+      dispatchFootprintSummary: "accepted:0 · blocked:0 · unsupported:0",
+      witnessMaterializationSummary: "witness rows:0 · actionable:0 · blocked:0",
+      reason: "failed to parse proving-input readiness freeze",
+    };
+  }
+}
+
 function readFieldMaterializationDownstreamPreEncodingConsumerArtifactFreezeSnapshot(
   freeze: BackendSpecificEncoderFieldMaterializationDownstreamPreEncodingConsumerArtifactFreeze,
 ): ParsedFieldMaterializationDownstreamPreEncodingConsumerArtifactFreezeSnapshot {
@@ -19698,6 +20080,29 @@ function summarizeFieldMaterializationNextResolvedBoundaryClosureConsumer(
 
   if (snapshot.reason) {
     parts.push(snapshot.reason);
+  }
+
+  return parts.join(" · ");
+}
+
+function summarizeWitnessMaterializationManifestRows(
+  rows: CanonicalCircuitInputWitnessMaterializationManifestRow[],
+): string {
+  const actionable = rows.filter((entry) => entry.actionable).length;
+  const blocked = rows.length - actionable;
+  return `witness rows:${rows.length} · actionable:${actionable} · blocked:${blocked}`;
+}
+
+function summarizeProvingInputReadiness(
+  status: BackendSpecificEncoderProvingInputReadinessStatus,
+  snapshot: ParsedFieldMaterializationNextResolvedBoundaryClosureConsumerFreezeSnapshot,
+  witnessMaterializationSummary: string,
+  reason?: string,
+): string {
+  const parts = [status, `from ${snapshot.status}`, snapshot.dispatchFootprintSummary, witnessMaterializationSummary];
+
+  if (reason) {
+    parts.push(reason);
   }
 
   return parts.join(" · ");
