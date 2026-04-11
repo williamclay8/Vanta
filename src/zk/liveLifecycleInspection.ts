@@ -127,6 +127,8 @@ import {
   inspectGenericPhase1EncoderProvingInputPackageFreezeForLifecycleNode,
   inspectGenericPhase1EncoderBackendProvingSessionForLifecycleNode,
   inspectGenericPhase1EncoderBackendProvingSessionFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderBackendWitnessPackageForLifecycleNode,
+  inspectGenericPhase1EncoderBackendWitnessPackageFreezeForLifecycleNode,
   inspectGenericPhase1EncoderProofReceiptForLifecycleNode,
   inspectGenericPhase1EncoderProofReceiptFreezeForLifecycleNode,
   inspectGenericPhase1EncoderProofVerificationReceiptForLifecycleNode,
@@ -366,6 +368,8 @@ export type CanonicalLifecycleSuccessorSummary = {
   encoderConstraintSystemPackageFreezeSummary?: string;
   encoderProvingInputPackageSummary?: string;
   encoderProvingInputPackageFreezeSummary?: string;
+  encoderBackendWitnessPackageSummary?: string;
+  encoderBackendWitnessPackageFreezeSummary?: string;
   encoderBackendProvingSessionSummary?: string;
   encoderBackendProvingSessionFreezeSummary?: string;
   encoderProofReceiptSummary?: string;
@@ -847,6 +851,8 @@ export type CanonicalLifecycleNodeInspection = {
   encoderConstraintSystemPackageFreezeSummary?: string;
   encoderProvingInputPackageSummary?: string;
   encoderProvingInputPackageFreezeSummary?: string;
+  encoderBackendWitnessPackageSummary?: string;
+  encoderBackendWitnessPackageFreezeSummary?: string;
   encoderBackendProvingSessionSummary?: string;
   encoderBackendProvingSessionFreezeSummary?: string;
   encoderProofReceiptSummary?: string;
@@ -1637,6 +1643,10 @@ export function inspectCanonicalLifecycleNode(
     inspectGenericPhase1EncoderProvingInputPackageForLifecycleNode(normalizedLifecycleId);
   const encoderProvingInputPackageFreeze =
     inspectGenericPhase1EncoderProvingInputPackageFreezeForLifecycleNode(normalizedLifecycleId);
+  const encoderBackendWitnessPackage =
+    inspectGenericPhase1EncoderBackendWitnessPackageForLifecycleNode(normalizedLifecycleId);
+  const encoderBackendWitnessPackageFreeze =
+    inspectGenericPhase1EncoderBackendWitnessPackageFreezeForLifecycleNode(normalizedLifecycleId);
   const encoderBackendProvingSession =
     inspectGenericPhase1EncoderBackendProvingSessionForLifecycleNode(normalizedLifecycleId);
   const encoderBackendProvingSessionFreeze =
@@ -1713,6 +1723,8 @@ export function inspectCanonicalLifecycleNode(
         encoderConstraintSystemPackageFreezeSummary: encoderConstraintSystemPackageFreeze.summary,
         encoderProvingInputPackageSummary: encoderProvingInputPackage.summary,
         encoderProvingInputPackageFreezeSummary: encoderProvingInputPackageFreeze.summary,
+        encoderBackendWitnessPackageSummary: encoderBackendWitnessPackage.summary,
+        encoderBackendWitnessPackageFreezeSummary: encoderBackendWitnessPackageFreeze.summary,
         encoderBackendProvingSessionSummary: encoderBackendProvingSession.summary,
         encoderBackendProvingSessionFreezeSummary: encoderBackendProvingSessionFreeze.summary,
         encoderProofReceiptSummary: encoderProofReceipt.summary,

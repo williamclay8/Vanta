@@ -1,6 +1,8 @@
 import {
   inspectGenericPhase1EncoderBackendProvingSessionForLifecycleNode,
   inspectGenericPhase1EncoderBackendProvingSessionFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderBackendWitnessPackageForLifecycleNode,
+  inspectGenericPhase1EncoderBackendWitnessPackageFreezeForLifecycleNode,
   inspectGenericPhase1EncoderConstraintSystemHandoffReadinessForLifecycleNode,
   inspectGenericPhase1EncoderConstraintSystemHandoffReadinessFreezeForLifecycleNode,
   inspectGenericPhase1EncoderConstraintSystemPackageForLifecycleNode,
@@ -38,6 +40,10 @@ export function InternalCanonicalLifecycleProvingPanel({
     inspectGenericPhase1EncoderProvingInputPackageForLifecycleNode(lookupLifecycleId);
   const encoderProvingInputPackageFreeze =
     inspectGenericPhase1EncoderProvingInputPackageFreezeForLifecycleNode(lookupLifecycleId);
+  const encoderBackendWitnessPackage =
+    inspectGenericPhase1EncoderBackendWitnessPackageForLifecycleNode(lookupLifecycleId);
+  const encoderBackendWitnessPackageFreeze =
+    inspectGenericPhase1EncoderBackendWitnessPackageFreezeForLifecycleNode(lookupLifecycleId);
   const encoderBackendProvingSession =
     inspectGenericPhase1EncoderBackendProvingSessionForLifecycleNode(lookupLifecycleId);
   const encoderBackendProvingSessionFreeze =
@@ -261,6 +267,58 @@ export function InternalCanonicalLifecycleProvingPanel({
               {encoderProvingInputPackageFreeze.serialized.length > 96
                 ? `${encoderProvingInputPackageFreeze.serialized.slice(0, 96)}...`
                 : encoderProvingInputPackageFreeze.serialized}
+            </strong>
+          </div>
+        </div>
+      </div>
+      <div className="status-panel">
+        <div className="review-list">
+          <div className="review-row">
+            <span>Backend witness package kind</span>
+            <strong>{`${encoderBackendWitnessPackage.artifactKind} · v${encoderBackendWitnessPackage.artifactVersion}`}</strong>
+          </div>
+          <div className="review-row">
+            <span>Backend witness package status</span>
+            <strong>{encoderBackendWitnessPackage.status}</strong>
+          </div>
+          <div className="review-row">
+            <span>Proceedable</span>
+            <strong>{encoderBackendWitnessPackage.proceedable ? "yes" : "no"}</strong>
+          </div>
+          <div className="review-row">
+            <span>Witness footprint</span>
+            <strong>{encoderBackendWitnessPackage.witnessFootprintSummary}</strong>
+          </div>
+          <div className="review-row">
+            <span>Proving-input package provenance</span>
+            <strong>{`${encoderBackendWitnessPackage.provingInputPackageSnapshotKind} · ${encoderBackendWitnessPackage.provingInputPackageStatus}`}</strong>
+          </div>
+          <div className="review-row">
+            <span>Summary</span>
+            <strong>{encoderBackendWitnessPackage.summary}</strong>
+          </div>
+        </div>
+      </div>
+      <div className="status-panel">
+        <div className="review-list">
+          <div className="review-row">
+            <span>Frozen backend witness package kind</span>
+            <strong>{`${encoderBackendWitnessPackageFreeze.snapshotKind} · v${encoderBackendWitnessPackageFreeze.snapshotVersion}`}</strong>
+          </div>
+          <div className="review-row">
+            <span>Frozen backend witness package status</span>
+            <strong>{encoderBackendWitnessPackageFreeze.status}</strong>
+          </div>
+          <div className="review-row">
+            <span>Frozen backend witness package summary</span>
+            <strong>{encoderBackendWitnessPackageFreeze.summary}</strong>
+          </div>
+          <div className="review-row">
+            <span>Serialized preview</span>
+            <strong>
+              {encoderBackendWitnessPackageFreeze.serialized.length > 96
+                ? `${encoderBackendWitnessPackageFreeze.serialized.slice(0, 96)}...`
+                : encoderBackendWitnessPackageFreeze.serialized}
             </strong>
           </div>
         </div>
