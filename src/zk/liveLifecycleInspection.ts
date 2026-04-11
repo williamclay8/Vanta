@@ -121,6 +121,8 @@ import {
   inspectGenericPhase1EncoderProvingInputReadinessFreezeForLifecycleNode,
   inspectGenericPhase1EncoderConstraintSystemHandoffReadinessForLifecycleNode,
   inspectGenericPhase1EncoderConstraintSystemHandoffReadinessFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderConstraintSystemPackageForLifecycleNode,
+  inspectGenericPhase1EncoderConstraintSystemPackageFreezeForLifecycleNode,
   inspectGenericPhase1EncoderProvingInputPackageForLifecycleNode,
   inspectGenericPhase1EncoderProvingInputPackageFreezeForLifecycleNode,
   inspectGenericPhase1EncoderBackendProvingSessionForLifecycleNode,
@@ -360,6 +362,8 @@ export type CanonicalLifecycleSuccessorSummary = {
   encoderProvingInputReadinessFreezeSummary?: string;
   encoderConstraintSystemHandoffReadinessSummary?: string;
   encoderConstraintSystemHandoffReadinessFreezeSummary?: string;
+  encoderConstraintSystemPackageSummary?: string;
+  encoderConstraintSystemPackageFreezeSummary?: string;
   encoderProvingInputPackageSummary?: string;
   encoderProvingInputPackageFreezeSummary?: string;
   encoderBackendProvingSessionSummary?: string;
@@ -839,6 +843,8 @@ export type CanonicalLifecycleNodeInspection = {
   encoderProvingInputReadinessFreezeSummary?: string;
   encoderConstraintSystemHandoffReadinessSummary?: string;
   encoderConstraintSystemHandoffReadinessFreezeSummary?: string;
+  encoderConstraintSystemPackageSummary?: string;
+  encoderConstraintSystemPackageFreezeSummary?: string;
   encoderProvingInputPackageSummary?: string;
   encoderProvingInputPackageFreezeSummary?: string;
   encoderBackendProvingSessionSummary?: string;
@@ -1623,6 +1629,10 @@ export function inspectCanonicalLifecycleNode(
     inspectGenericPhase1EncoderConstraintSystemHandoffReadinessForLifecycleNode(normalizedLifecycleId);
   const encoderConstraintSystemHandoffReadinessFreeze =
     inspectGenericPhase1EncoderConstraintSystemHandoffReadinessFreezeForLifecycleNode(normalizedLifecycleId);
+  const encoderConstraintSystemPackage =
+    inspectGenericPhase1EncoderConstraintSystemPackageForLifecycleNode(normalizedLifecycleId);
+  const encoderConstraintSystemPackageFreeze =
+    inspectGenericPhase1EncoderConstraintSystemPackageFreezeForLifecycleNode(normalizedLifecycleId);
   const encoderProvingInputPackage =
     inspectGenericPhase1EncoderProvingInputPackageForLifecycleNode(normalizedLifecycleId);
   const encoderProvingInputPackageFreeze =
@@ -1699,6 +1709,8 @@ export function inspectCanonicalLifecycleNode(
         encoderProvingInputReadinessFreezeSummary: encoderProvingInputReadinessFreeze.summary,
         encoderConstraintSystemHandoffReadinessSummary: encoderConstraintSystemHandoffReadiness.summary,
         encoderConstraintSystemHandoffReadinessFreezeSummary: encoderConstraintSystemHandoffReadinessFreeze.summary,
+        encoderConstraintSystemPackageSummary: encoderConstraintSystemPackage.summary,
+        encoderConstraintSystemPackageFreezeSummary: encoderConstraintSystemPackageFreeze.summary,
         encoderProvingInputPackageSummary: encoderProvingInputPackage.summary,
         encoderProvingInputPackageFreezeSummary: encoderProvingInputPackageFreeze.summary,
         encoderBackendProvingSessionSummary: encoderBackendProvingSession.summary,

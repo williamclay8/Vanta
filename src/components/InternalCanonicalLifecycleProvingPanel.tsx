@@ -3,6 +3,8 @@ import {
   inspectGenericPhase1EncoderBackendProvingSessionFreezeForLifecycleNode,
   inspectGenericPhase1EncoderConstraintSystemHandoffReadinessForLifecycleNode,
   inspectGenericPhase1EncoderConstraintSystemHandoffReadinessFreezeForLifecycleNode,
+  inspectGenericPhase1EncoderConstraintSystemPackageForLifecycleNode,
+  inspectGenericPhase1EncoderConstraintSystemPackageFreezeForLifecycleNode,
   inspectGenericPhase1EncoderProofReceiptForLifecycleNode,
   inspectGenericPhase1EncoderProofReceiptFreezeForLifecycleNode,
   inspectGenericPhase1EncoderProofVerificationReceiptForLifecycleNode,
@@ -28,6 +30,10 @@ export function InternalCanonicalLifecycleProvingPanel({
     inspectGenericPhase1EncoderConstraintSystemHandoffReadinessForLifecycleNode(lookupLifecycleId);
   const encoderConstraintSystemHandoffReadinessFreeze =
     inspectGenericPhase1EncoderConstraintSystemHandoffReadinessFreezeForLifecycleNode(lookupLifecycleId);
+  const encoderConstraintSystemPackage =
+    inspectGenericPhase1EncoderConstraintSystemPackageForLifecycleNode(lookupLifecycleId);
+  const encoderConstraintSystemPackageFreeze =
+    inspectGenericPhase1EncoderConstraintSystemPackageFreezeForLifecycleNode(lookupLifecycleId);
   const encoderProvingInputPackage =
     inspectGenericPhase1EncoderProvingInputPackageForLifecycleNode(lookupLifecycleId);
   const encoderProvingInputPackageFreeze =
@@ -158,6 +164,58 @@ export function InternalCanonicalLifecycleProvingPanel({
       <div className="status-panel">
         <div className="review-list">
           <div className="review-row">
+            <span>Constraint-system package kind</span>
+            <strong>{`${encoderConstraintSystemPackage.artifactKind} · v${encoderConstraintSystemPackage.artifactVersion}`}</strong>
+          </div>
+          <div className="review-row">
+            <span>Constraint-system package status</span>
+            <strong>{encoderConstraintSystemPackage.status}</strong>
+          </div>
+          <div className="review-row">
+            <span>Proceedable</span>
+            <strong>{encoderConstraintSystemPackage.proceedable ? "yes" : "no"}</strong>
+          </div>
+          <div className="review-row">
+            <span>Package footprint</span>
+            <strong>{encoderConstraintSystemPackage.packageFootprintSummary}</strong>
+          </div>
+          <div className="review-row">
+            <span>Constraint handoff provenance</span>
+            <strong>{`${encoderConstraintSystemPackage.constraintSystemHandoffReadinessSnapshotKind} · ${encoderConstraintSystemPackage.constraintSystemHandoffReadinessStatus}`}</strong>
+          </div>
+          <div className="review-row">
+            <span>Summary</span>
+            <strong>{encoderConstraintSystemPackage.summary}</strong>
+          </div>
+        </div>
+      </div>
+      <div className="status-panel">
+        <div className="review-list">
+          <div className="review-row">
+            <span>Frozen constraint-system package kind</span>
+            <strong>{`${encoderConstraintSystemPackageFreeze.snapshotKind} · v${encoderConstraintSystemPackageFreeze.snapshotVersion}`}</strong>
+          </div>
+          <div className="review-row">
+            <span>Frozen constraint-system package status</span>
+            <strong>{encoderConstraintSystemPackageFreeze.status}</strong>
+          </div>
+          <div className="review-row">
+            <span>Frozen constraint-system package summary</span>
+            <strong>{encoderConstraintSystemPackageFreeze.summary}</strong>
+          </div>
+          <div className="review-row">
+            <span>Serialized preview</span>
+            <strong>
+              {encoderConstraintSystemPackageFreeze.serialized.length > 96
+                ? `${encoderConstraintSystemPackageFreeze.serialized.slice(0, 96)}...`
+                : encoderConstraintSystemPackageFreeze.serialized}
+            </strong>
+          </div>
+        </div>
+      </div>
+      <div className="status-panel">
+        <div className="review-list">
+          <div className="review-row">
             <span>Proving-input package kind</span>
             <strong>{`${encoderProvingInputPackage.artifactKind} · v${encoderProvingInputPackage.artifactVersion}`}</strong>
           </div>
@@ -174,8 +232,8 @@ export function InternalCanonicalLifecycleProvingPanel({
             <strong>{encoderProvingInputPackage.packageFootprintSummary}</strong>
           </div>
           <div className="review-row">
-            <span>Constraint handoff provenance</span>
-            <strong>{`${encoderProvingInputPackage.constraintSystemHandoffReadinessSnapshotKind} · ${encoderProvingInputPackage.constraintSystemHandoffReadinessStatus}`}</strong>
+            <span>Constraint package provenance</span>
+            <strong>{`${encoderProvingInputPackage.constraintSystemPackageSnapshotKind} · ${encoderProvingInputPackage.constraintSystemPackageStatus}`}</strong>
           </div>
           <div className="review-row">
             <span>Summary</span>
