@@ -8,3 +8,4 @@ dist/
 operator/.vanta-unshield-releases.json
 operator/.vanta-swap-records.json
 operator/.vanta-sol-unshield-records.json
+zk/noir/**/target/
