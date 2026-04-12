@@ -52,6 +52,7 @@ The repo now already has a first narrow operator-side version of that contract:
 - verify proof
 - require the source root to be the latest registered private-core state
 - enforce nullifier uniqueness in the consume path
+- record explicit release outcomes in operator-side release state
 - surface proof execution and operator-state summaries in the app
 - bind root registration and consume to the same full witness-backed source artifact bundle:
   - `noteCommitment`
@@ -59,6 +60,7 @@ The repo now already has a first narrow operator-side version of that contract:
   - `witnessRoot`
 - reject missing or mismatched source-layer Merkle leaf and witness-root artifacts at the operator boundary
 - retain and enforce the registered root artifact basis across registration and consume
+- reject replay from both consume state and release state
 
 What still remains for `zk v1` is finishing that into a fuller verifier-side contract:
 - stronger root validity policy beyond the current local operator store

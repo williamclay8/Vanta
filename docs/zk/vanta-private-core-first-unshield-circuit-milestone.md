@@ -89,6 +89,7 @@ That command confirms:
 - operator-side consume now depends on the root already being known as current private-core state
 - the root-currentness basis can advance and then be restored
 - operator-side one-time-use semantics can record the first consume
+- the same helper-level seam now also proves the first release record basis is retained correctly
 - the same nullifier is then seen as consumed for replay purposes
 
 The repo now also has a real operator HTTP smoke test:
@@ -98,9 +99,12 @@ npm run private-core:http-smoke
 ```
 
 That command confirms the current lane through the actual server surface:
-- root and consume state endpoints start with explicit empty-state summaries
+- root, consume, and release state endpoints start with explicit empty-state summaries
 - private-core status endpoints expose `stateVersion = 1`
-- state endpoints advertise `GET` correctly through CORS preflight
+- state endpoints advertise `GET` correctly through CORS preflight across:
+  - `/state/private-core-roots`
+  - `/state/private-core-consumes`
+  - `/state/private-core-releases`
 - proof endpoint succeeds
 - consume endpoint rejects before root registration
 - tampered root registration is rejected without mutating root state across the full validated public surface:
@@ -123,9 +127,18 @@ That command confirms the current lane through the actual server surface:
 - tampered source note commitments, Merkle leaves, and witness roots are also rejected at consume time
 - consume succeeds once after root registration
 - replay is rejected
+- successful consume records an explicit private-core release outcome carrying:
+  - `nullifier`
+  - `releaseDestination`
+  - `releasedAssetId`
+  - `releasedAmount`
+  - deterministic `requestId`
+  - deterministic `transitionNoteId`
+- replay rejection leaves the private-core release state unchanged
 - root state returns the explicit `currentRoot`
 - consume state returns the explicit `latestConsume`
-- operator state endpoints reflect the registered root and consumed nullifier
+- release state returns the explicit `latestRelease`
+- operator state endpoints reflect the registered root, consumed nullifier, and recorded release outcome
 
 The repo now also has one canonical stack verification command:
 

@@ -87,9 +87,12 @@ npm run private-core:http-smoke
 
 This command:
 - starts a temporary local operator server
-- verifies the root and consume state endpoints start with explicit empty-state summaries
+- verifies the root, consume, and release state endpoints start with explicit empty-state summaries
 - verifies the private-core status endpoints expose `stateVersion = 1`
-- verifies the state endpoints advertise `GET` through CORS preflight
+- verifies the state endpoints advertise `GET` through CORS preflight for:
+  - `/state/private-core-roots`
+  - `/state/private-core-consumes`
+  - `/state/private-core-releases`
 - verifies `/private-core/unshield-proof`
 - verifies `/private-core/unshield-consume` is rejected before root registration
 - registers the root through `/private-core/register-root` using the full witness-backed source artifact bundle:
@@ -114,9 +117,18 @@ This command:
 - verifies consume also rejects missing source note commitments, Merkle leaves, and witness roots
 - verifies tampered source note commitments, Merkle leaves, and witness roots are rejected at consume time too
 - verifies consume succeeds once and replay is rejected
+- verifies successful consume records an explicit private-core release outcome including:
+  - `nullifier`
+  - `releaseDestination`
+  - `releasedAssetId`
+  - `releasedAmount`
+  - deterministic `requestId`
+  - deterministic `transitionNoteId`
+- verifies replay rejection leaves release state unchanged
 - verifies the operator root state endpoint returns the explicit `currentRoot`
 - verifies the operator consume state endpoint returns the explicit `latestConsume`
-- verifies the operator state endpoints reflect the registered root and consumed nullifier
+- verifies the operator release state endpoint returns the explicit `latestRelease`
+- verifies the operator state endpoints reflect the registered root, consumed nullifier, and recorded release outcome
 
 7. If you want to exercise fixture modes manually, materialize the fixture from the TypeScript helper into a Noir input file.
    Recommended helper:
