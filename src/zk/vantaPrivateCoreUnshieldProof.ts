@@ -230,6 +230,13 @@ export type VantaPrivateCoreProofBoundaryWitnessSummaryV0 = {
   pathDepth: number;
 };
 
+export type VantaPrivateCoreSourceVsProvingHandoffSummaryV0 = {
+  sourceLayerStatus: string;
+  provingBoundaryStatus: string;
+  handoffStatus: string;
+  primaryHandoffNote: string;
+};
+
 export type BuildVantaPrivateCoreUnshieldProofBoundaryArgs = {
   heldNote: HeldNoteViewV0;
   ownerSecretKey: Bytes32Hex;
@@ -516,6 +523,52 @@ export function summarizeVantaPrivateCoreProofBoundaryWitness(
     noteType: boundary.privateWitness.noteType,
     leafIndex: boundary.privateWitness.leafIndex,
     pathDepth: boundary.privateWitness.merklePathEncoding.depth,
+  };
+}
+
+export function summarizeVantaPrivateCoreSourceVsProvingHandoff(args: {
+  sourceProofVerified: boolean;
+  sourceProofConsistencyLabel: string | null;
+  proofBoundary: VantaPrivateCoreUnshieldProofBoundaryV0;
+  comparison: VantaPrivateCoreSourceVsProvingArtifactComparisonV0;
+}): VantaPrivateCoreSourceVsProvingHandoffSummaryV0 {
+  const sourceLayerStatus = args.sourceProofVerified
+    ? args.sourceProofConsistencyLabel === "Aligned"
+      ? "Source layer verified and aligned"
+      : "Source layer verified with follow-up review"
+    : "Source layer verification failed";
+  const provingBoundaryStatus =
+    args.proofBoundary.readiness === "ready"
+      ? "Proving boundary ready"
+      : "Proving boundary blocked";
+  const missingComparison = [
+    args.comparison.noteCommitment,
+    args.comparison.merkleLeaf,
+    args.comparison.stateRoot,
+    args.comparison.nullifier,
+    args.comparison.consumeContext,
+  ].find((entry) => entry.status !== "paired-across-hash-contracts");
+  const handoffStatus =
+    args.sourceProofVerified &&
+    args.sourceProofConsistencyLabel === "Aligned" &&
+    args.proofBoundary.readiness === "ready" &&
+    !missingComparison
+      ? "Acceptable for current v0.1 demo lane"
+      : "Review current source-to-proving handoff";
+  const primaryHandoffNote = !args.sourceProofVerified
+    ? "Source unshield proof envelope no longer verifies."
+    : args.sourceProofConsistencyLabel !== "Aligned"
+      ? "Source unshield proof envelope is not fully aligned with current source artifacts."
+      : args.proofBoundary.readiness !== "ready"
+        ? args.proofBoundary.blockers[0] ?? "Current proving boundary is blocked."
+        : missingComparison?.statusLabel ??
+          "Source and proving artifacts remain intentionally paired across different hash contracts.";
+
+  return {
+    sourceLayerStatus,
+    provingBoundaryStatus,
+    handoffStatus,
+    primaryHandoffNote,
   };
 }
 

@@ -239,6 +239,22 @@ export function VantaPrivateCoreStatePanel({
               <strong>{unshieldState?.sourceProofNullifierStatus ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
+              <span>Source layer status</span>
+              <strong>{unshieldState?.sourceLayerStatus ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Proving boundary status</span>
+              <strong>{unshieldState?.provingBoundaryStatus ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Handoff status</span>
+              <strong>{unshieldState?.handoffStatus ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Primary handoff note</span>
+              <strong>{unshieldState?.primaryHandoffNote ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
               <span>{unshieldState ? "Proving lane" : "Proving preview lane"}</span>
               <strong>{unshieldState?.provingHashLane ?? holdState?.provingPreviewHashLane ?? "Unavailable"}</strong>
             </div>
