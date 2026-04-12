@@ -65,9 +65,9 @@ type PrivacyFlowContextValue = {
 export type VantaPrivateCoreShieldState = {
   artifact: ShieldArtifactV0;
   encryptedPayload: CiphertextPackageV0;
-  noteCommitment: string;
-  payloadCommitment: string;
-  merkleRoot: string;
+  sourceNoteCommitment: string;
+  sourcePayloadCommitment: string;
+  sourceMerkleRoot: string;
   assetId: string;
   amount: string;
   noteType: string;
@@ -78,12 +78,12 @@ export type VantaPrivateCoreHoldState = {
   heldNote: HeldNoteViewV0;
   privateNoteRecovered: boolean;
   witnessAvailable: boolean;
-  currentMerkleRoot: string;
+  sourceWitnessRoot: string;
   noteSummary: string;
 };
 
 export type VantaPrivateCoreUnshieldState = {
-  nullifier: string | null;
+  sourceNullifier: string | null;
   proofEnvelope: UnshieldProofEnvelopeV0 | null;
   proofBoundary: VantaPrivateCoreUnshieldProofBoundaryV0 | null;
   provingHashLane: string | null;
@@ -123,9 +123,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     const nextShieldState: VantaPrivateCoreShieldState = {
       artifact: shield,
       encryptedPayload: shield.encryptedPayload,
-      noteCommitment: shield.commitment.value,
-      payloadCommitment: shield.encryptedPayload.payloadCommitment,
-      merkleRoot: shield.root,
+      sourceNoteCommitment: shield.commitment.value,
+      sourcePayloadCommitment: shield.encryptedPayload.payloadCommitment,
+      sourceMerkleRoot: shield.root,
       assetId: shield.note.assetId,
       amount: shield.note.amount.toString(10),
       noteType: shield.note.noteType,
@@ -137,7 +137,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       heldNote: hold,
       privateNoteRecovered: true,
       witnessAvailable: true,
-      currentMerkleRoot: hold.witness.root,
+      sourceWitnessRoot: hold.witness.root,
       noteSummary: `${formatBaseUnits(shield.note.amount, VANTA_PRIVATE_CORE_VUSD_DECIMALS)} VUSD private note`,
     });
     setPrivateCoreUnshieldState(null);
@@ -148,7 +148,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   const runPrivateCoreUnshield = useCallback((): VantaPrivateCoreUnshieldState => {
     if (!privateCoreHoldState) {
       const nextState: VantaPrivateCoreUnshieldState = {
-        nullifier: null,
+        sourceNullifier: null,
         proofEnvelope: null,
         proofBoundary: null,
         provingHashLane: null,
@@ -177,7 +177,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     try {
       const result = privateCoreLedger.unshield(privateCoreHoldState.heldNote);
       const nextState: VantaPrivateCoreUnshieldState = {
-        nullifier: result.nullifier.value,
+        sourceNullifier: result.nullifier.value,
         proofEnvelope,
         proofBoundary,
         provingHashLane: proofBoundary.noirWitnessPackage.provingHashLane,
@@ -194,7 +194,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       return nextState;
     } catch (error) {
       const nextState: VantaPrivateCoreUnshieldState = {
-        nullifier: proofEnvelope.publicInputs.nullifier,
+        sourceNullifier: proofEnvelope.publicInputs.nullifier,
         proofEnvelope,
         proofBoundary,
         provingHashLane: proofBoundary.noirWitnessPackage.provingHashLane,
@@ -215,7 +215,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   const runPrivateCoreReplayAttempt = useCallback((): VantaPrivateCoreUnshieldState => {
     if (!privateCoreHoldState) {
       const nextState: VantaPrivateCoreUnshieldState = {
-        nullifier: null,
+        sourceNullifier: null,
         proofEnvelope: null,
         proofBoundary: null,
         provingHashLane: null,
@@ -244,7 +244,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     try {
       const result = privateCoreLedger.unshield(privateCoreHoldState.heldNote);
       const nextState: VantaPrivateCoreUnshieldState = {
-        nullifier: result.nullifier.value,
+        sourceNullifier: result.nullifier.value,
         proofEnvelope,
         proofBoundary,
         provingHashLane: proofBoundary.noirWitnessPackage.provingHashLane,
@@ -261,7 +261,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       return nextState;
     } catch (error) {
       const nextState: VantaPrivateCoreUnshieldState = {
-        nullifier: proofEnvelope.publicInputs.nullifier,
+        sourceNullifier: proofEnvelope.publicInputs.nullifier,
         proofEnvelope,
         proofBoundary,
         provingHashLane: proofBoundary.noirWitnessPackage.provingHashLane,

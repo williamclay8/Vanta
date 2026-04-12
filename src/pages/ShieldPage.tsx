@@ -354,9 +354,9 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
           source: "shield",
           timestamp: Date.now(),
           zkBridge: {
-            commitment: privateCoreShield.noteCommitment || zkRecord.artifacts.commitment.value,
+            commitment: privateCoreShield.sourceNoteCommitment || zkRecord.artifacts.commitment.value,
             insertionIndex: zkRecord.insertion.index,
-            root: privateCoreShield.merkleRoot || zkRecord.insertion.root,
+            root: privateCoreShield.sourceMerkleRoot || zkRecord.insertion.root,
             source: "canonical_note_v1",
           },
         });
@@ -972,11 +972,11 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                     </div>
                     <div className="review-row">
                       <span>Note commitment</span>
-                      <strong>{abbreviate(privateCoreRecentShield.noteCommitment) ?? privateCoreRecentShield.noteCommitment}</strong>
+                      <strong>{abbreviate(privateCoreRecentShield.sourceNoteCommitment) ?? privateCoreRecentShield.sourceNoteCommitment}</strong>
                     </div>
                     <div className="review-row">
                       <span>Merkle root</span>
-                      <strong>{abbreviate(privateCoreRecentShield.merkleRoot) ?? privateCoreRecentShield.merkleRoot}</strong>
+                      <strong>{abbreviate(privateCoreRecentShield.sourceMerkleRoot) ?? privateCoreRecentShield.sourceMerkleRoot}</strong>
                     </div>
                     <div className="review-row">
                       <span>Encrypted payload</span>

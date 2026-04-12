@@ -852,14 +852,14 @@ export function UnshieldPage() {
               <summary>Internal proof diagnostics</summary>
               <div className="review-list" style={{ marginTop: 12 }}>
               <div className="review-row">
-                <span>Nullifier</span>
-                <strong>{privateCoreUnshieldState.nullifier ? abbreviate(privateCoreUnshieldState.nullifier) : "Unavailable"}</strong>
+                <span>Source nullifier</span>
+                <strong>{privateCoreUnshieldState.sourceNullifier ? abbreviate(privateCoreUnshieldState.sourceNullifier) : "Unavailable"}</strong>
               </div>
               <div className="review-row">
-                <span>Witness root</span>
+                <span>Source witness root</span>
                 <strong>
-                  {privateCoreHoldState?.currentMerkleRoot
-                    ? abbreviate(privateCoreHoldState.currentMerkleRoot)
+                  {privateCoreHoldState?.sourceWitnessRoot
+                    ? abbreviate(privateCoreHoldState.sourceWitnessRoot)
                     : "Unavailable"}
                 </strong>
               </div>

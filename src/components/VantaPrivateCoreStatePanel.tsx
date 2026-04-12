@@ -75,7 +75,7 @@ export function VantaPrivateCoreStatePanel({
             <div className="note-state-row__header">
               <div>
                 <strong>{formatAmount(shieldState.amount)}</strong>
-                <span>{abbreviate(shieldState.noteCommitment)}</span>
+                <span>{abbreviate(shieldState.sourceNoteCommitment)}</span>
               </div>
               <div className="note-state-chips">
                 <span className="note-state-chip note-state-chip--spendable">
@@ -89,9 +89,9 @@ export function VantaPrivateCoreStatePanel({
 
             <div className="note-state-row__meta">
               <span>{shieldState.noteType} note</span>
-              <span>Root {abbreviate(holdState?.currentMerkleRoot ?? shieldState.merkleRoot)}</span>
-              <span>Payload {abbreviate(shieldState.payloadCommitment)}</span>
-              {unshieldState?.nullifier && <span>Nullifier {abbreviate(unshieldState.nullifier)}</span>}
+              <span>Root {abbreviate(holdState?.sourceWitnessRoot ?? shieldState.sourceMerkleRoot)}</span>
+              <span>Payload {abbreviate(shieldState.sourcePayloadCommitment)}</span>
+              {unshieldState?.sourceNullifier && <span>Nullifier {abbreviate(unshieldState.sourceNullifier)}</span>}
             </div>
           </div>
         </div>
@@ -107,24 +107,24 @@ export function VantaPrivateCoreStatePanel({
           <summary>Internal Vanta Private Core diagnostics</summary>
           <div className="review-list" style={{ marginTop: 12 }}>
             <div className="review-row">
-              <span>Note commitment</span>
-              <strong>{abbreviate(shieldState.noteCommitment)}</strong>
+              <span>Source note commitment</span>
+              <strong>{abbreviate(shieldState.sourceNoteCommitment)}</strong>
             </div>
             <div className="review-row">
-              <span>Merkle root</span>
-              <strong>{abbreviate(holdState?.currentMerkleRoot ?? shieldState.merkleRoot)}</strong>
+              <span>Source witness root</span>
+              <strong>{abbreviate(holdState?.sourceWitnessRoot ?? shieldState.sourceMerkleRoot)}</strong>
             </div>
             <div className="review-row">
-              <span>Payload commitment</span>
-              <strong>{abbreviate(shieldState.payloadCommitment)}</strong>
+              <span>Source payload commitment</span>
+              <strong>{abbreviate(shieldState.sourcePayloadCommitment)}</strong>
             </div>
             <div className="review-row">
               <span>Witness status</span>
               <strong>{holdState?.witnessAvailable ? "Ready" : "Unavailable"}</strong>
             </div>
             <div className="review-row">
-              <span>Nullifier</span>
-              <strong>{abbreviate(unshieldState?.nullifier)}</strong>
+              <span>Source nullifier</span>
+              <strong>{abbreviate(unshieldState?.sourceNullifier)}</strong>
             </div>
             <div className="review-row">
               <span>Proving lane</span>
