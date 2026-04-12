@@ -41,7 +41,15 @@ export function VantaPrivateCoreStatePanel({
           <span>Vanta Private Core v0.1</span>
           <h3>{title}</h3>
         </div>
-        <small>{shieldState ? "Private note live" : "Awaiting shield"}</small>
+        <small>
+          {unshieldState?.replayRejected
+            ? "Replay rejected"
+            : unshieldState?.consumeSucceeded
+              ? "Private note consumed"
+              : shieldState
+                ? "Private note live"
+                : "Awaiting shield"}
+        </small>
       </div>
 
       <div className="preview-grid note-state-summary">
@@ -81,7 +89,9 @@ export function VantaPrivateCoreStatePanel({
               </div>
               <div className="note-state-chips">
                 <span className="note-state-chip note-state-chip--spendable">
-                  {unshieldState?.consumeSucceeded
+                  {unshieldState?.replayRejected
+                    ? "Replay blocked"
+                    : unshieldState?.consumeSucceeded
                     ? "Consumed"
                     : holdState?.privateNoteRecovered
                       ? "Ready"
