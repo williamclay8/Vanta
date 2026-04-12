@@ -3,9 +3,12 @@ import type {
   VantaPrivateCoreShieldState,
   VantaPrivateCoreUnshieldState,
 } from "@/data/context/PrivacyFlowContext";
+import type { VantaPrivateCoreOperatorConsumeRecord } from "@/zk/vantaPrivateCoreOperatorClient";
 
 type VantaPrivateCoreStatePanelProps = {
   holdState: VantaPrivateCoreHoldState | null;
+  operatorConsumeError?: string | null;
+  operatorConsumes?: VantaPrivateCoreOperatorConsumeRecord[];
   shieldState: VantaPrivateCoreShieldState | null;
   unshieldState: VantaPrivateCoreUnshieldState | null;
   compact?: boolean;
@@ -29,11 +32,15 @@ function formatAmount(baseUnits: string) {
 
 export function VantaPrivateCoreStatePanel({
   holdState,
+  operatorConsumeError = null,
+  operatorConsumes = [],
   shieldState,
   unshieldState,
   compact = false,
   title = "Vanta Private Core private state",
 }: VantaPrivateCoreStatePanelProps) {
+  const latestOperatorConsume = operatorConsumes[0] ?? null;
+
   return (
     <div className="note-state-panel vanta-private-core-state-panel">
       <div className="shield-card__header">
@@ -216,6 +223,24 @@ export function VantaPrivateCoreStatePanel({
                 {unshieldState?.proofFieldCount && unshieldState?.proofPublicInputCount
                   ? `${unshieldState.proofFieldCount} fields · ${unshieldState.proofPublicInputCount} public inputs`
                   : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Operator consume records</span>
+              <strong>
+                {operatorConsumeError
+                  ? "Unavailable"
+                  : operatorConsumes.length.toString()}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Latest operator nullifier</span>
+              <strong>
+                {operatorConsumeError
+                  ? operatorConsumeError
+                  : latestOperatorConsume?.nullifier
+                    ? abbreviate(latestOperatorConsume.nullifier)
+                    : "Unavailable"}
               </strong>
             </div>
             <div className="review-row">

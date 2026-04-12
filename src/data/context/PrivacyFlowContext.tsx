@@ -2,6 +2,7 @@ import {
   useCallback,
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -36,9 +37,11 @@ import {
   type VantaPrivateCoreUnshieldProofBoundaryV0,
 } from "@/zk/vantaPrivateCoreUnshieldProof";
 import {
+  fetchVantaPrivateCoreOperatorConsumes,
   requestVantaPrivateCoreOperatorConsume,
   requestVantaPrivateCoreOperatorProof,
   type VantaPrivateCoreConsumeOperatorResponse,
+  type VantaPrivateCoreOperatorConsumeRecord,
   type VantaPrivateCoreProofOperatorResponse,
 } from "@/zk/vantaPrivateCoreOperatorClient";
 
@@ -71,6 +74,8 @@ type PrivacyFlowContextValue = {
   privateCoreOwner: VantaPrivateCoreOwnerKeypair;
   privateCoreRecentShield: VantaPrivateCoreShieldState | null;
   privateCoreHoldState: VantaPrivateCoreHoldState | null;
+  privateCoreOperatorConsumes: VantaPrivateCoreOperatorConsumeRecord[];
+  privateCoreOperatorConsumeError: string | null;
   privateCoreUnshieldState: VantaPrivateCoreUnshieldState | null;
   recentShield: RecentShieldContext | null;
   runPrivateCoreShield: (args: { amountDisplay: string; asset: PrivacyAssetKey }) => VantaPrivateCoreShieldState;
@@ -221,7 +226,34 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   const [privateCoreRecentShield, setPrivateCoreRecentShield] = useState<VantaPrivateCoreShieldState | null>(null);
   const [privateCoreHoldState, setPrivateCoreHoldState] = useState<VantaPrivateCoreHoldState | null>(null);
   const [privateCoreUnshieldState, setPrivateCoreUnshieldState] = useState<VantaPrivateCoreUnshieldState | null>(null);
+  const [privateCoreOperatorConsumes, setPrivateCoreOperatorConsumes] = useState<
+    VantaPrivateCoreOperatorConsumeRecord[]
+  >([]);
+  const [privateCoreOperatorConsumeError, setPrivateCoreOperatorConsumeError] = useState<string | null>(null);
   const [recentShield, setRecentShield] = useState<RecentShieldContext | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void fetchVantaPrivateCoreOperatorConsumes()
+      .then((records) => {
+        if (cancelled) {
+          return;
+        }
+        setPrivateCoreOperatorConsumes(records);
+        setPrivateCoreOperatorConsumeError(null);
+      })
+      .catch((error) => {
+        if (cancelled) {
+          return;
+        }
+        setPrivateCoreOperatorConsumeError(error instanceof Error ? error.message : String(error));
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [privateCoreUnshieldState]);
 
   const runPrivateCoreShield = useCallback((args: { amountDisplay: string; asset: PrivacyAssetKey }): VantaPrivateCoreShieldState => {
     if (args.asset !== "VUSD") {
@@ -817,6 +849,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOwner,
       privateCoreRecentShield,
       privateCoreHoldState,
+      privateCoreOperatorConsumes,
+      privateCoreOperatorConsumeError,
       privateCoreUnshieldState,
       recentShield,
       runPrivateCoreReplayAttempt,
@@ -830,6 +864,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     [
       privateCoreHoldState,
       privateCoreOwner,
+      privateCoreOperatorConsumeError,
+      privateCoreOperatorConsumes,
       privateCoreRecentShield,
       privateCoreUnshieldState,
       recentShield,

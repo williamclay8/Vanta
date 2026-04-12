@@ -31,7 +31,13 @@ export function AppDashboardPage() {
   const summary = useVantaPositionSummary();
   const guidance = useVantaNextStepGuidance();
   const { account } = useVantaShieldState();
-  const { privateCoreHoldState, privateCoreRecentShield, privateCoreUnshieldState } = usePrivacyFlow();
+  const {
+    privateCoreHoldState,
+    privateCoreOperatorConsumeError,
+    privateCoreOperatorConsumes,
+    privateCoreRecentShield,
+    privateCoreUnshieldState,
+  } = usePrivacyFlow();
   const { walletConnected } = useWalletState();
 
   const actions: DashboardActionCard[] = [
@@ -168,6 +174,8 @@ export function AppDashboardPage() {
             <VantaPrivateCoreStatePanel
               compact
               holdState={privateCoreHoldState}
+              operatorConsumeError={privateCoreOperatorConsumeError}
+              operatorConsumes={privateCoreOperatorConsumes}
               shieldState={privateCoreRecentShield}
               title="Vanta Private Core private balance"
               unshieldState={privateCoreUnshieldState}

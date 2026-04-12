@@ -34,10 +34,6 @@ import {
   listCanonicalUnshieldDiagnosticsSummaries,
   recordCanonicalUnshieldFromLiveUnshield,
 } from "@/zk/liveUnshieldBridge";
-import {
-  fetchVantaPrivateCoreOperatorConsumes,
-  type VantaPrivateCoreOperatorConsumeRecord,
-} from "@/zk/vantaPrivateCoreOperatorClient";
 
 type UnshieldLane = "VUSD" | "SOL";
 type UnshieldStatus =
@@ -101,6 +97,8 @@ function abbreviate(value: string) {
 export function UnshieldPage() {
   const {
     privateCoreHoldState,
+    privateCoreOperatorConsumeError,
+    privateCoreOperatorConsumes,
     privateCoreRecentShield,
     privateCoreUnshieldState,
     runPrivateCoreReplayAttempt,
@@ -137,12 +135,6 @@ export function UnshieldPage() {
     transitionNoteId: string;
   } | null>(null);
   const [privateCoreActionPending, setPrivateCoreActionPending] = useState(false);
-  const [privateCoreOperatorConsumes, setPrivateCoreOperatorConsumes] = useState<
-    VantaPrivateCoreOperatorConsumeRecord[]
-  >([]);
-  const [privateCoreOperatorConsumeError, setPrivateCoreOperatorConsumeError] = useState<string | null>(
-    null,
-  );
   const operatorAuthorizationLockRef = useRef<string | null>(null);
   const transitionTransaction = useSendTransaction();
   const transitionWait = useRealtimeSignatureProgress(
@@ -268,29 +260,6 @@ export function UnshieldPage() {
     (selectedLane === "VUSD"
       ? Boolean(liveShieldAsset.mintAddress) && liveShieldAsset.unshieldConfigured
       : Boolean(liveSwapPair.solUnshieldOperatorUrl));
-
-  useEffect(() => {
-    let cancelled = false;
-
-    void fetchVantaPrivateCoreOperatorConsumes()
-      .then((records) => {
-        if (cancelled) {
-          return;
-        }
-        setPrivateCoreOperatorConsumes(records);
-        setPrivateCoreOperatorConsumeError(null);
-      })
-      .catch((error) => {
-        if (cancelled) {
-          return;
-        }
-        setPrivateCoreOperatorConsumeError(error instanceof Error ? error.message : String(error));
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [privateCoreUnshieldState]);
 
   useEffect(() => {
     if (transitionTransaction.status === "loading") {
@@ -850,6 +819,8 @@ export function UnshieldPage() {
 
         <VantaPrivateCoreStatePanel
           holdState={privateCoreHoldState}
+          operatorConsumeError={privateCoreOperatorConsumeError}
+          operatorConsumes={privateCoreOperatorConsumes}
           shieldState={privateCoreRecentShield}
           title="Vanta Private Core unshield state"
           unshieldState={privateCoreUnshieldState}
