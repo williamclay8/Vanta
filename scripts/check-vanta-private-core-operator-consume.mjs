@@ -68,21 +68,51 @@ try {
     `operator proof seam: PASS (${proofReceipt.proofFieldCount} fields / ${proofReceipt.publicInputCount} public inputs)`,
   );
 
-  const tamperedWitnessPackage = {
-    ...witnessPackage,
-    sourcePublicInputs: {
-      ...witnessPackage.sourcePublicInputs,
-      amount: "1",
+  for (const tamperCase of [
+    {
+      expectedMessage: "mismatched amount public inputs",
+      label: "amount",
+      mutate: () => ({ amount: "1" }),
     },
-  };
+    {
+      expectedMessage: "mismatched release destination public inputs",
+      label: "release-destination",
+      mutate: () => ({
+        releaseDestination:
+          "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      }),
+    },
+    {
+      expectedMessage: "mismatched asset public inputs",
+      label: "asset",
+      mutate: () => ({
+        assetId: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      }),
+    },
+    {
+      expectedMessage: "mismatched note-version public inputs",
+      label: "note-version",
+      mutate: () => ({ noteVersion: 99 }),
+    },
+  ]) {
+    const tamperedWitnessPackage = {
+      ...witnessPackage,
+      sourcePublicInputs: {
+        ...witnessPackage.sourcePublicInputs,
+        ...tamperCase.mutate(),
+      },
+    };
 
-  try {
-    await proveAndVerifyVantaPrivateCoreUnshield({ witnessPackage: tamperedWitnessPackage });
-    throw new Error("operator proof seam unexpectedly accepted mismatched source public inputs");
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    if (!message.includes("mismatched amount public inputs")) {
-      throw error;
+    try {
+      await proveAndVerifyVantaPrivateCoreUnshield({ witnessPackage: tamperedWitnessPackage });
+      throw new Error(
+        `operator proof seam unexpectedly accepted mismatched ${tamperCase.label} source public input`,
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (!message.includes(tamperCase.expectedMessage)) {
+        throw error;
+      }
     }
   }
   printStatus("operator source/public consistency gate: PASS");

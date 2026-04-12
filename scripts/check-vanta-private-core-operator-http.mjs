@@ -166,24 +166,52 @@ try {
     `operator http proof: PASS (${proofResponse.parsed.proofFieldCount} fields / ${proofResponse.parsed.publicInputCount} public inputs)`,
   );
 
-  const tamperedProofResponse = await requestJson(baseUrl, "/private-core/unshield-proof", {
-    body: JSON.stringify({
-      witnessPackage: {
-        ...witnessPackage,
-        sourcePublicInputs: {
-          ...witnessPackage.sourcePublicInputs,
-          amount: "1",
+  for (const tamperCase of [
+    {
+      expectedMessage: "mismatched amount public inputs",
+      label: "amount",
+      mutate: () => ({ amount: "1" }),
+    },
+    {
+      expectedMessage: "mismatched release destination public inputs",
+      label: "release-destination",
+      mutate: () => ({
+        releaseDestination:
+          "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      }),
+    },
+    {
+      expectedMessage: "mismatched asset public inputs",
+      label: "asset",
+      mutate: () => ({
+        assetId: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      }),
+    },
+    {
+      expectedMessage: "mismatched note-version public inputs",
+      label: "note-version",
+      mutate: () => ({ noteVersion: 99 }),
+    },
+  ]) {
+    const tamperedProofResponse = await requestJson(baseUrl, "/private-core/unshield-proof", {
+      body: JSON.stringify({
+        witnessPackage: {
+          ...witnessPackage,
+          sourcePublicInputs: {
+            ...witnessPackage.sourcePublicInputs,
+            ...tamperCase.mutate(),
+          },
         },
-      },
-    }),
-    method: "POST",
-  });
+      }),
+      method: "POST",
+    });
 
-  if (tamperedProofResponse.ok || !tamperedProofResponse.text.includes("mismatched amount public inputs")) {
-    throw new Error(
-      tamperedProofResponse.text ||
-        "operator proof endpoint unexpectedly accepted mismatched source public inputs",
-    );
+    if (tamperedProofResponse.ok || !tamperedProofResponse.text.includes(tamperCase.expectedMessage)) {
+      throw new Error(
+        tamperedProofResponse.text ||
+          `operator proof endpoint unexpectedly accepted mismatched ${tamperCase.label} source public input`,
+      );
+    }
   }
   printStatus("operator http source/public consistency gate: PASS");
 
