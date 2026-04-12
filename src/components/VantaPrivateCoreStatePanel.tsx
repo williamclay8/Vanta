@@ -203,6 +203,22 @@ export function VantaPrivateCoreStatePanel({
               <strong>{unshieldState?.proofBackend ?? holdState?.proofBackend ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
+              <span>Proof execution mode</span>
+              <strong>{unshieldState?.proofExecutionMode ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Proof execution status</span>
+              <strong>{unshieldState?.proofExecutionStatus ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Proof shape</span>
+              <strong>
+                {unshieldState?.proofFieldCount && unshieldState?.proofPublicInputCount
+                  ? `${unshieldState.proofFieldCount} fields · ${unshieldState.proofPublicInputCount} public inputs`
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
               <span>Merkle depth</span>
               <strong>{String(unshieldState?.proofMerkleDepth ?? holdState?.proofMerkleDepth ?? 0)}</strong>
             </div>
