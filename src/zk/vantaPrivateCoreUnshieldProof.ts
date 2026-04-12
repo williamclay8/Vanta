@@ -171,6 +171,8 @@ export type VantaPrivateCoreUnshieldProofBoundaryV0 = {
 export type VantaPrivateCoreProvingArtifactBundleV0 = {
   layer: "proving-lane-v0";
   provingHashLane: typeof VANTA_PRIVATE_CORE_UNSHIELD_PROVING_HASH_LANE_V0;
+  provingNoteCommitment: FieldDecimalString;
+  provingMerkleLeaf: FieldDecimalString;
   provingStateRoot: FieldDecimalString;
   provingNullifier: FieldDecimalString;
   provingConsumeContextTag: FieldDecimalString | null;
@@ -356,9 +358,16 @@ export function createVantaPrivateCoreNoirUnshieldWitnessPackage(args: {
 export function deriveVantaPrivateCoreProvingArtifactsFromBoundary(
   boundary: VantaPrivateCoreUnshieldProofBoundaryV0,
 ): VantaPrivateCoreProvingArtifactBundleV0 {
+  const provingNoteCommitment = derivePoseidonNoteCommitmentField(
+    boundary.privateWitness.noteFieldEncoding,
+  );
+  const provingMerkleLeaf = derivePoseidonMerkleLeafField(provingNoteCommitment);
+
   return {
     layer: "proving-lane-v0",
     provingHashLane: boundary.noirWitnessPackage.provingHashLane,
+    provingNoteCommitment,
+    provingMerkleLeaf,
     provingStateRoot: boundary.noirWitnessPackage.publicInputs.state_root,
     provingNullifier: boundary.noirWitnessPackage.publicInputs.nullifier,
     provingConsumeContextTag:

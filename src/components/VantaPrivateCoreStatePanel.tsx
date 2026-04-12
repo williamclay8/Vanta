@@ -127,6 +127,14 @@ export function VantaPrivateCoreStatePanel({
               <strong>{unshieldState?.provingHashLane ?? holdState?.provingPreviewHashLane ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
+              <span>{unshieldState ? "Proving note commitment" : "Proving preview commitment"}</span>
+              <strong>{abbreviate(unshieldState?.provingNoteCommitment ?? holdState?.provingPreviewNoteCommitment)}</strong>
+            </div>
+            <div className="review-row">
+              <span>{unshieldState ? "Proving leaf" : "Proving preview leaf"}</span>
+              <strong>{abbreviate(unshieldState?.provingMerkleLeaf ?? holdState?.provingPreviewMerkleLeaf)}</strong>
+            </div>
+            <div className="review-row">
               <span>{unshieldState ? "Proving root" : "Proving preview root"}</span>
               <strong>{abbreviate(unshieldState?.provingStateRoot ?? holdState?.provingPreviewStateRoot)}</strong>
             </div>

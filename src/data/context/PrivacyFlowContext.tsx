@@ -84,6 +84,8 @@ export type VantaPrivateCoreHoldState = {
   witnessAvailable: boolean;
   sourceWitnessRoot: string;
   provingPreviewHashLane: string;
+  provingPreviewNoteCommitment: string;
+  provingPreviewMerkleLeaf: string;
   provingPreviewStateRoot: string;
   provingPreviewNullifier: string;
   provingPreviewConsumeContextTag: string | null;
@@ -95,6 +97,8 @@ export type VantaPrivateCoreUnshieldState = {
   proofEnvelope: UnshieldProofEnvelopeV0 | null;
   proofBoundary: VantaPrivateCoreUnshieldProofBoundaryV0 | null;
   provingHashLane: string | null;
+  provingNoteCommitment: string | null;
+  provingMerkleLeaf: string | null;
   provingStateRoot: string | null;
   provingNullifier: string | null;
   provingConsumeContextTag: string | null;
@@ -156,6 +160,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       witnessAvailable: true,
       sourceWitnessRoot: sourceHoldArtifacts.witnessRoot ?? hold.witness.root,
       provingPreviewHashLane: provingPreviewArtifacts.provingHashLane,
+      provingPreviewNoteCommitment: provingPreviewArtifacts.provingNoteCommitment,
+      provingPreviewMerkleLeaf: provingPreviewArtifacts.provingMerkleLeaf,
       provingPreviewStateRoot: provingPreviewArtifacts.provingStateRoot,
       provingPreviewNullifier: provingPreviewArtifacts.provingNullifier,
       provingPreviewConsumeContextTag: provingPreviewArtifacts.provingConsumeContextTag,
@@ -173,6 +179,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofEnvelope: null,
         proofBoundary: null,
         provingHashLane: null,
+        provingNoteCommitment: null,
+        provingMerkleLeaf: null,
         provingStateRoot: null,
         provingNullifier: null,
         provingConsumeContextTag: null,
@@ -204,6 +212,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofEnvelope,
         proofBoundary,
         provingHashLane: provingArtifacts.provingHashLane,
+        provingNoteCommitment: provingArtifacts.provingNoteCommitment,
+        provingMerkleLeaf: provingArtifacts.provingMerkleLeaf,
         provingStateRoot: provingArtifacts.provingStateRoot,
         provingNullifier: provingArtifacts.provingNullifier,
         provingConsumeContextTag: provingArtifacts.provingConsumeContextTag,
@@ -220,6 +230,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofEnvelope,
         proofBoundary,
         provingHashLane: provingArtifacts.provingHashLane,
+        provingNoteCommitment: provingArtifacts.provingNoteCommitment,
+        provingMerkleLeaf: provingArtifacts.provingMerkleLeaf,
         provingStateRoot: provingArtifacts.provingStateRoot,
         provingNullifier: provingArtifacts.provingNullifier,
         provingConsumeContextTag: provingArtifacts.provingConsumeContextTag,
@@ -240,6 +252,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofEnvelope: null,
         proofBoundary: null,
         provingHashLane: null,
+        provingNoteCommitment: null,
+        provingMerkleLeaf: null,
         provingStateRoot: null,
         provingNullifier: null,
         provingConsumeContextTag: null,
@@ -271,6 +285,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofEnvelope,
         proofBoundary,
         provingHashLane: provingArtifacts.provingHashLane,
+        provingNoteCommitment: provingArtifacts.provingNoteCommitment,
+        provingMerkleLeaf: provingArtifacts.provingMerkleLeaf,
         provingStateRoot: provingArtifacts.provingStateRoot,
         provingNullifier: provingArtifacts.provingNullifier,
         provingConsumeContextTag: provingArtifacts.provingConsumeContextTag,
@@ -287,6 +303,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofEnvelope,
         proofBoundary,
         provingHashLane: provingArtifacts.provingHashLane,
+        provingNoteCommitment: provingArtifacts.provingNoteCommitment,
+        provingMerkleLeaf: provingArtifacts.provingMerkleLeaf,
         provingStateRoot: provingArtifacts.provingStateRoot,
         provingNullifier: provingArtifacts.provingNullifier,
         provingConsumeContextTag: provingArtifacts.provingConsumeContextTag,
