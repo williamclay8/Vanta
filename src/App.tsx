@@ -1,8 +1,12 @@
 import { Suspense, lazy } from "react";
 import { Route, Routes } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
-import { PrivacyFlowProvider } from "@/data/context/PrivacyFlowContext";
 import { WalletProvider } from "@/data/context/WalletContext";
+const PrivacyFlowProvider = lazy(() =>
+  import("@/data/context/PrivacyFlowContext").then((m) => ({
+    default: m.PrivacyFlowProvider,
+  })),
+);
 const AppDashboardPage = lazy(() => import("@/pages/AppDashboardPage").then((m) => ({ default: m.AppDashboardPage })));
 const HomePage = lazy(() => import("@/pages/HomePage").then((m) => ({ default: m.HomePage })));
 const LaunchPage = lazy(() => import("@/pages/LaunchPage").then((m) => ({ default: m.LaunchPage })));
@@ -15,8 +19,8 @@ const UnshieldPage = lazy(() => import("@/pages/UnshieldPage").then((m) => ({ de
 function App() {
   return (
     <WalletProvider>
-      <PrivacyFlowProvider>
-        <Suspense fallback={<div className="app-shell">Loading…</div>}>
+      <Suspense fallback={<div className="app-shell">Loading…</div>}>
+        <PrivacyFlowProvider>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/app" element={<AppLayout />}>
@@ -29,8 +33,8 @@ function App() {
               <Route path="launch" element={<LaunchPage />} />
             </Route>
           </Routes>
-        </Suspense>
-      </PrivacyFlowProvider>
+        </PrivacyFlowProvider>
+      </Suspense>
     </WalletProvider>
   );
 }

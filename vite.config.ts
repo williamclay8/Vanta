@@ -17,6 +17,17 @@ export default defineConfig({
           if (id.includes("src/components/InternalCanonicalLifecyclePanel")) {
             return "canonical-lifecycle-panel";
           }
+          if (id.includes("@noble/") || id.includes("poseidon-lite")) {
+            return "vendor-private-core-crypto";
+          }
+          if (
+            id.includes("src/data/context/PrivacyFlowContext") ||
+            id.includes("src/zk/vantaPrivateCore") ||
+            id.includes("src/zk/vantaPrivateCoreUnshieldProof") ||
+            id.includes("src/zk/vantaPrivateCoreOperatorClient")
+          ) {
+            return "private-core-runtime";
+          }
           if (id.includes("react") || id.includes("react-router-dom")) {
             return "vendor-react";
           }
