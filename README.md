@@ -159,6 +159,7 @@ npm run preview
 npm run private-core:check
 npm run private-core:prove
 npm run private-core:verify
+npm run private-core:demo-readiness
 ```
 
 These commands cover:
@@ -166,6 +167,8 @@ These commands cover:
 - valid and invalid witness behavior
 - local proof generation and verification
 - operator-backed consume and HTTP smoke coverage
+
+`private-core:demo-readiness` is the friendliest single entrypoint when you just want to know whether the current proof/demo lane is stage-ready.
 
 ---
 

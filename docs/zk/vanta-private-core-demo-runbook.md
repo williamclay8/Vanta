@@ -16,7 +16,7 @@ Run these before a live demo:
 
 ```bash
 npm run build
-npm run private-core:verify
+npm run private-core:demo-readiness
 ```
 
 That confirms:
@@ -91,6 +91,7 @@ Use this framing:
 Fall back in this order:
 
 1. Show `npm run private-core:verify`
+   or `npm run private-core:demo-readiness`
 2. Show the shared internal diagnostics panel
 3. Show the replay rejection path
 4. Keep the framing on:

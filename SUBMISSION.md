@@ -173,6 +173,8 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   - operator consume regression
   - operator HTTP smoke test
   - real proof generation and verification
+- `npm run private-core:demo-readiness`
+  aliases the same full verification pass with a more reviewer-friendly name
 
 These commands do not make the protocol finished, but they do make the current first zk boundary concrete and repeatable.
 
@@ -270,7 +272,7 @@ Yes. The repo includes a fixed-depth Noir single-note unshield circuit for the s
 The best concrete verification command is:
 
 ```bash
-npm run private-core:verify
+npm run private-core:demo-readiness
 ```
 
 ### Is shielding the same as hiding assets in a normal wallet?
