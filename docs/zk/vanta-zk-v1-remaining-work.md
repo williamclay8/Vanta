@@ -55,7 +55,7 @@ The consuming path still needs the verifier-side contract to be treated as real.
 
 The repo now has a first narrow operator-side version of that contract:
 - verify proof
-- require the source root to already be registered as known private-core state
+- require the source root to be the latest registered private-core state
 - enforce nullifier uniqueness in the consume path
 
 What still remains for `zk v1` is finishing that into a fuller verifier-side contract:

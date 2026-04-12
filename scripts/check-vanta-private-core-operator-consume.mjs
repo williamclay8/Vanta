@@ -94,6 +94,29 @@ try {
     throw new Error("operator root store did not retain the registered root");
   }
 
+  rootStore.recordRoot({
+    amount: sourcePublicInputs.amount,
+    assetId: sourcePublicInputs.assetId,
+    noteCommitment: "stale-root-basis",
+    recordedAt: Date.now() + 1,
+    root: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    source: "operator-consume-check-stale-root",
+  });
+
+  if (rootStore.getLatestRoot()?.root !== "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") {
+    throw new Error("operator root store did not advance to the newer stale-root basis");
+  }
+  printStatus("operator stale-root basis: PASS");
+
+  rootStore.recordRoot({
+    amount: sourcePublicInputs.amount,
+    assetId: sourcePublicInputs.assetId,
+    noteCommitment: fixture.validBoundary.privateWitness.noteCommitment,
+    recordedAt: Date.now() + 2,
+    root: sourcePublicInputs.stateRoot,
+    source: "operator-consume-check-current-root",
+  });
+
   if (consumeStore.hasNullifier(sourcePublicInputs.nullifier)) {
     throw new Error("operator consume store unexpectedly contained the fixture nullifier");
   }

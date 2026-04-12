@@ -299,17 +299,15 @@ const server = createServer(async (request, response) => {
         throw new Error("Private-core root registration request is missing a source root.");
       }
 
-      if (!privateCoreRootStore.hasRoot(root)) {
-        privateCoreRootStore.recordRoot({
-          root,
-          recordedAt: Date.now(),
-          noteCommitment:
-            typeof sourceArtifacts?.noteCommitment === "string" ? sourceArtifacts.noteCommitment : null,
-          amount: typeof sourcePublicInputs?.amount === "string" ? sourcePublicInputs.amount : null,
-          assetId: typeof sourcePublicInputs?.assetId === "string" ? sourcePublicInputs.assetId : null,
-          source: "app-private-core-shield-flow",
-        });
-      }
+      privateCoreRootStore.recordRoot({
+        root,
+        recordedAt: Date.now(),
+        noteCommitment:
+          typeof sourceArtifacts?.noteCommitment === "string" ? sourceArtifacts.noteCommitment : null,
+        amount: typeof sourcePublicInputs?.amount === "string" ? sourcePublicInputs.amount : null,
+        assetId: typeof sourcePublicInputs?.assetId === "string" ? sourcePublicInputs.assetId : null,
+        source: "app-private-core-shield-flow",
+      });
 
       writeCorsHeaders(response);
       response.writeHead(200, { "Content-Type": "application/json" });
@@ -354,6 +352,14 @@ const server = createServer(async (request, response) => {
       if (!privateCoreRootStore.hasRoot(sourcePublicInputs.stateRoot)) {
         throw new Error(
           `State root ${sourcePublicInputs.stateRoot} is not registered as current private-core state.`,
+        );
+      }
+
+      const latestRootRecord = privateCoreRootStore.getLatestRoot();
+
+      if (!latestRootRecord || latestRootRecord.root !== sourcePublicInputs.stateRoot) {
+        throw new Error(
+          `State root ${sourcePublicInputs.stateRoot} is not the latest registered private-core state.`,
         );
       }
 

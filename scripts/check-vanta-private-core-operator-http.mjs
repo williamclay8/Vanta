@@ -203,6 +203,61 @@ try {
   }
   printStatus("operator http root state: PASS");
 
+  const staleRoot = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+  const registerStaleRoot = await requestJson(baseUrl, "/private-core/register-root", {
+    body: JSON.stringify({
+      sourceArtifacts: {
+        noteCommitment: "stale-root-basis",
+      },
+      sourcePublicInputs: {
+        ...witnessPackage.sourcePublicInputs,
+        stateRoot: staleRoot,
+      },
+    }),
+    method: "POST",
+  });
+
+  if (!registerStaleRoot.ok || registerStaleRoot.parsed?.known !== true) {
+    throw new Error(registerStaleRoot.text || "operator stale-root registration failed");
+  }
+
+  const staleConsume = await requestJson(baseUrl, "/private-core/unshield-consume", {
+    body: JSON.stringify({ witnessPackage }),
+    method: "POST",
+  });
+
+  if (staleConsume.ok || !staleConsume.text.includes("not the latest registered private-core state")) {
+    throw new Error(staleConsume.text || "operator stale-root rejection did not trigger");
+  }
+  printStatus("operator http stale-root gate: PASS");
+
+  const reregisterCurrentRoot = await requestJson(baseUrl, "/private-core/register-root", {
+    body: JSON.stringify({
+      sourceArtifacts: {
+        noteCommitment: fixture.validBoundary.privateWitness.noteCommitment,
+      },
+      sourcePublicInputs: witnessPackage.sourcePublicInputs,
+    }),
+    method: "POST",
+  });
+
+  if (!reregisterCurrentRoot.ok || reregisterCurrentRoot.parsed?.known !== true) {
+    throw new Error(reregisterCurrentRoot.text || "operator current-root re-registration failed");
+  }
+
+  const currentRootState = await requestJson(baseUrl, "/state/private-core-roots", { method: "GET" });
+  if (
+    !currentRootState.ok ||
+    !Array.isArray(currentRootState.parsed?.records) ||
+    currentRootState.parsed.records[0]?.root !== witnessPackage.sourcePublicInputs.stateRoot
+  ) {
+    throw new Error(
+      JSON.stringify(currentRootState.parsed) ||
+        "operator current root did not become the latest registered root",
+    );
+  }
+  printStatus("operator http current-root restore: PASS");
+
   const consumeResponse = await requestJson(baseUrl, "/private-core/unshield-consume", {
     body: JSON.stringify({ witnessPackage }),
     method: "POST",

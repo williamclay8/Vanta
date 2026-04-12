@@ -74,6 +74,7 @@ npm run private-core:consume-check
 This command:
 - generates and verifies a real local proof for the fixed-depth witness package
 - confirms consume requires a root already known to the operator-side state view
+- confirms the latest-root currentness rule can advance and be restored
 - registers the fixture root for the current check
 - records the first consume in a temporary operator-side nullifier store
 - confirms the same nullifier is then seen as already consumed for replay purposes
@@ -89,6 +90,8 @@ This command:
 - verifies `/private-core/unshield-proof`
 - verifies `/private-core/unshield-consume` is rejected before root registration
 - registers the root through `/private-core/register-root`
+- verifies a newer stale root causes the original root to be rejected as non-current
+- re-registers the current root and verifies it becomes current again
 - verifies consume succeeds once and replay is rejected
 - verifies the operator state endpoints reflect the registered root and consumed nullifier
 

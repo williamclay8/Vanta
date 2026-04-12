@@ -87,6 +87,7 @@ npm run private-core:consume-check
 That command confirms:
 - the current fixed-depth witness still generates and verifies a real proof
 - operator-side consume now depends on the root already being known as current private-core state
+- the root-currentness basis can advance and then be restored
 - operator-side one-time-use semantics can record the first consume
 - the same nullifier is then seen as consumed for replay purposes
 
@@ -100,6 +101,8 @@ That command confirms the current lane through the actual server surface:
 - proof endpoint succeeds
 - consume endpoint rejects before root registration
 - root registration endpoint succeeds
+- a newer stale root makes the old root non-current
+- current-root re-registration restores currentness
 - consume succeeds once after root registration
 - replay is rejected
 - operator state endpoints reflect the registered root and consumed nullifier
