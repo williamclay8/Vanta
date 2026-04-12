@@ -9,11 +9,14 @@
     "check:swap-lane": "node scripts/check-meteora-swap-lane.mjs",
     "operator:unshield": "node operator/unshield-server.mjs",
     "provision:dlmm": "node scripts/provision-vusd-sol-dlmm-devnet.cjs",
+    "private-core:fixture": "node scripts/write-vanta-private-core-unshield-fixture.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.32.1",
     "@meteora-ag/dlmm": "^1.9.4",
+    "@noble/ciphers": "^2.2.0",
+    "@noble/curves": "^2.0.1",
     "@solana/client": "^1.7.0",
     "@solana/react-hooks": "^1.4.1",
     "@solana/spl-token": "^0.4.14",

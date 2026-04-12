@@ -1,0 +1,15 @@
+amount_hi = ""
+amount_lo = ""
+asset_id_hi = ""
+asset_id_lo = ""
+blinding = ""
+commitment = ""
+derivation_tag = ""
+leaf_index = ""
+membership_path = ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
+membership_path_index_bits = ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
+membership_root = ""
+note_nonce = ""
+note_secret = ""
+owner_public_key = ""
+version = ""

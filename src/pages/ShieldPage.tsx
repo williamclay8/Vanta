@@ -4,6 +4,7 @@ import {
   useSendTransaction,
   useSplToken,
 } from "@solana/react-hooks";
+import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePanel";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
 import { usePrivacyFlow, type PrivacyAssetKey } from "@/data/context/PrivacyFlowContext";
@@ -93,7 +94,15 @@ function abbreviate(value: string | null) {
 }
 
 export function ShieldPage({ dashboard = false }: ShieldPageProps) {
-  const { recentShield, setRecentShield } = usePrivacyFlow();
+  const {
+    privateCoreHoldState,
+    privateCoreOwner,
+    privateCoreRecentShield,
+    privateCoreUnshieldState,
+    recentShield,
+    runPrivateCoreShield,
+    setRecentShield,
+  } = usePrivacyFlow();
   const {
     clusterLabel,
     connectWallet,
@@ -328,6 +337,10 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
           tokenDecimals: readTokenDecimals(supportedToken.balance),
           vaultOwner,
         });
+        const privateCoreShield = runPrivateCoreShield({
+          amountDisplay: pendingShieldAmountDisplay,
+          asset: "VUSD",
+        });
         const nextBalance = Number(
           ((shieldAccount?.balance ?? 0) + pendingShieldAmount).toFixed(6),
         );
@@ -341,9 +354,9 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
           source: "shield",
           timestamp: Date.now(),
           zkBridge: {
-            commitment: zkRecord.artifacts.commitment.value,
+            commitment: privateCoreShield.noteCommitment || zkRecord.artifacts.commitment.value,
             insertionIndex: zkRecord.insertion.index,
-            root: zkRecord.insertion.root,
+            root: privateCoreShield.merkleRoot || zkRecord.insertion.root,
             source: "canonical_note_v1",
           },
         });
@@ -371,6 +384,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     pendingShieldAmount,
     pendingShieldAmountDisplay,
     refreshShieldState,
+    runPrivateCoreShield,
     setRecentShield,
     shieldAccount?.balance,
     stateSignatureWait.waitStatus,
@@ -944,11 +958,44 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                   <strong>{formatBalance(shieldedBalance, selectedAsset)}</strong>
                 </div>
               </div>
+              {privateCoreRecentShield && (
+                <div className="status-panel status-panel--processing" style={{ marginTop: 16 }}>
+                  <span>Private note created</span>
+                  <p>
+                    Your private balance is now shielded inside the Vanta Private Core v0.1 lane,
+                    with encrypted recovery material and Merkle-backed witness state ready for hold and unshield.
+                  </p>
+                  <div className="review-list" style={{ marginTop: 12 }}>
+                    <div className="review-row">
+                      <span>Private owner</span>
+                      <strong>{abbreviate(privateCoreOwner.publicKey) ?? privateCoreOwner.publicKey}</strong>
+                    </div>
+                    <div className="review-row">
+                      <span>Note commitment</span>
+                      <strong>{abbreviate(privateCoreRecentShield.noteCommitment) ?? privateCoreRecentShield.noteCommitment}</strong>
+                    </div>
+                    <div className="review-row">
+                      <span>Merkle root</span>
+                      <strong>{abbreviate(privateCoreRecentShield.merkleRoot) ?? privateCoreRecentShield.merkleRoot}</strong>
+                    </div>
+                    <div className="review-row">
+                      <span>Encrypted payload</span>
+                      <strong>{privateCoreRecentShield.encryptedPayload ? "Present" : "Missing"}</strong>
+                    </div>
+                  </div>
+                </div>
+              )}
               {recentShield?.signature && (
                 <p className="shield-helper shield-helper--meta">
                   Vanta state note: {`${recentShield.signature.slice(0, 8)}...${recentShield.signature.slice(-8)}`}
                 </p>
               )}
+              <VantaPrivateCoreStatePanel
+                holdState={privateCoreHoldState}
+                shieldState={privateCoreRecentShield}
+                title="Vanta Private Core hold state"
+                unshieldState={privateCoreUnshieldState}
+              />
               <details className="shield-helper shield-helper--meta">
                 <summary>Internal zk diagnostics</summary>
                 <p>

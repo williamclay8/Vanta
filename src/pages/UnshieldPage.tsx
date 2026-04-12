@@ -5,8 +5,10 @@ import {
   useSplToken,
   useWalletSession,
 } from "@solana/react-hooks";
+import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePanel";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
+import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
 import { useWalletState } from "@/data/context/WalletContext";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
 import { useRealtimeSignatureProgress } from "@/solana/useRealtimeSignatureProgress";
@@ -93,6 +95,13 @@ function abbreviate(value: string) {
 }
 
 export function UnshieldPage() {
+  const {
+    privateCoreHoldState,
+    privateCoreRecentShield,
+    privateCoreUnshieldState,
+    runPrivateCoreReplayAttempt,
+    runPrivateCoreUnshield,
+  } = usePrivacyFlow();
   const { walletAddress, walletAddressShort, walletConnected } = useWalletState();
   const walletSession = useWalletSession();
   const {
@@ -748,6 +757,110 @@ export function UnshieldPage() {
           </div>
         ))}
       </div>
+
+      <article className="send-card" style={{ marginBottom: 24 }}>
+        <div className="shield-card__header">
+          <div>
+            <span>Vanta Private Core v0.1</span>
+            <h3>Private money demo lane</h3>
+          </div>
+          <small>{privateCoreRecentShield ? "Ready for consume" : "Shield first"}</small>
+        </div>
+
+        <p className="shield-review-note">
+          This lane uses the Vanta Private Core for note recovery, witness state, nullifier derivation,
+          one-time consume, and replay rejection while the existing live unshield path remains intact.
+        </p>
+
+        <VantaPrivateCoreStatePanel
+          holdState={privateCoreHoldState}
+          shieldState={privateCoreRecentShield}
+          title="Vanta Private Core unshield state"
+          unshieldState={privateCoreUnshieldState}
+        />
+
+        <div className="status-actions" style={{ marginTop: 16 }}>
+          <button
+            className="button button-primary"
+            type="button"
+            onClick={() => {
+              runPrivateCoreUnshield();
+            }}
+            disabled={!privateCoreHoldState || privateCoreUnshieldState?.consumeSucceeded === true}
+          >
+            Unshield private core note
+          </button>
+          <button
+            className="button button-ghost"
+            type="button"
+            onClick={() => {
+              runPrivateCoreReplayAttempt();
+            }}
+            disabled={!privateCoreHoldState || !privateCoreUnshieldState?.consumeSucceeded}
+          >
+            Attempt replay rejection
+          </button>
+        </div>
+
+        {privateCoreUnshieldState && (
+          <div
+            className={
+              privateCoreUnshieldState.consumeSucceeded
+                ? "status-panel status-panel--success"
+                : privateCoreUnshieldState.replayRejected
+                  ? "status-panel status-panel--failed"
+                  : "status-panel status-panel--warning"
+            }
+          >
+            <span>
+              {privateCoreUnshieldState.consumeSucceeded
+                ? "Private note consumed"
+                : privateCoreUnshieldState.replayRejected
+                  ? "Replay rejected"
+                  : "Private core unshield status"}
+            </span>
+            <p>
+              {privateCoreUnshieldState.consumeSucceeded
+                ? "Funds unshielded successfully."
+                : privateCoreUnshieldState.replayRejected
+                  ? privateCoreUnshieldState.errorMessage ?? "Replay was rejected."
+                  : privateCoreUnshieldState.errorMessage ?? "The private core lane is waiting for the next action."}
+            </p>
+            <div className="review-list" style={{ marginTop: 12 }}>
+              <div className="review-row">
+                <span>Nullifier</span>
+                <strong>{privateCoreUnshieldState.nullifier ? abbreviate(privateCoreUnshieldState.nullifier) : "Unavailable"}</strong>
+              </div>
+              <div className="review-row">
+                <span>Witness root</span>
+                <strong>
+                  {privateCoreHoldState?.currentMerkleRoot
+                    ? abbreviate(privateCoreHoldState.currentMerkleRoot)
+                    : "Unavailable"}
+                </strong>
+              </div>
+              <div className="review-row">
+                <span>Proof envelope</span>
+                <strong>
+                  {privateCoreUnshieldState.proofEnvelope
+                    ? `${privateCoreUnshieldState.proofEnvelope.statement} · leaf ${privateCoreUnshieldState.proofEnvelope.publicInputs.leafIndex}`
+                    : "Unavailable"}
+                </strong>
+              </div>
+              <div className="review-row">
+                <span>Consume status</span>
+                <strong>
+                  {privateCoreUnshieldState.consumeSucceeded
+                    ? "Succeeded"
+                    : privateCoreUnshieldState.replayRejected
+                      ? "Replay blocked"
+                      : "Failed"}
+                </strong>
+              </div>
+            </div>
+          </div>
+        )}
+      </article>
 
       <div className="send-layout">
         <article className="send-card send-card--workspace">

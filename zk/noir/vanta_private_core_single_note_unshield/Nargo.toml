@@ -1,0 +1,6 @@
+[package]
+name = "vanta_private_core_single_note_unshield"
+type = "bin"
+authors = ["Vanta"]
+
+[dependencies]

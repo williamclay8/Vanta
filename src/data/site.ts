@@ -53,7 +53,7 @@ export const roadmap = [
     phase: "Phase 01",
     title: "Shield + Private Send",
     description:
-      "Current scope for Bags: a demoable Shield entrypoint plus Private Send workflow, showing the first complete privacy loop on Vanta with honest app shell boundaries.",
+      "Current scope for Vanta Private Core: a demoable Shield entrypoint plus Private Send workflow, showing the first complete privacy loop on Vanta with honest app shell boundaries.",
   },
   {
     phase: "Phase 02",
@@ -128,8 +128,8 @@ export const whyNow = [
       "As stablecoin payments, merchant tooling, and tokenized internet businesses move onchain, privacy becomes an operational requirement rather than a philosophical preference.",
   },
   {
-    label: "Bags fit",
+    label: "Hackathon fit",
     copy:
-      "For a Bags hackathon audience, Vanta is easy to judge as a serious product direction: a focused MVP today, a credible expansion path tomorrow, and clear relevance to Solana ecosystems and commerce.",
+      "For a hackathon audience, Vanta is easy to judge as a serious product direction: a focused private-core slice today, a credible expansion path tomorrow, and clear relevance to Solana ecosystems and commerce.",
   },
 ];

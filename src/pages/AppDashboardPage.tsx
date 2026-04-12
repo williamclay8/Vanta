@@ -1,5 +1,7 @@
 import { Suspense, lazy } from "react";
 import { Link } from "react-router-dom";
+import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePanel";
+import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
 const InternalCanonicalLifecyclePanel = lazy(() =>
   import("@/components/InternalCanonicalLifecyclePanel").then((m) => ({
     default: m.InternalCanonicalLifecyclePanel,
@@ -29,6 +31,7 @@ export function AppDashboardPage() {
   const summary = useVantaPositionSummary();
   const guidance = useVantaNextStepGuidance();
   const { account } = useVantaShieldState();
+  const { privateCoreHoldState, privateCoreRecentShield, privateCoreUnshieldState } = usePrivacyFlow();
   const { walletConnected } = useWalletState();
 
   const actions: DashboardActionCard[] = [
@@ -158,6 +161,16 @@ export function AppDashboardPage() {
               compact
               maxNotes={3}
               title="Shielded state snapshot"
+            />
+          </article>
+
+          <article className="dashboard-card">
+            <VantaPrivateCoreStatePanel
+              compact
+              holdState={privateCoreHoldState}
+              shieldState={privateCoreRecentShield}
+              title="Vanta Private Core private balance"
+              unshieldState={privateCoreUnshieldState}
             />
           </article>
         </div>

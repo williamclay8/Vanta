@@ -1,0 +1,197 @@
+global MERKLE_DEPTH: u32 = 3;
+
+fn hash_note_commitment(
+    note_version: Field,
+    note_type_code: Field,
+    asset_id_hi: Field,
+    asset_id_lo: Field,
+    amount_lo: Field,
+    amount_hi: Field,
+    owner_public_key_hi: Field,
+    owner_public_key_lo: Field,
+    note_nonce_hi: Field,
+    note_nonce_lo: Field,
+    note_secret_hi: Field,
+    note_secret_lo: Field,
+    blinding_hi: Field,
+    blinding_lo: Field,
+    derivation_tag_hi: Field,
+    derivation_tag_lo: Field,
+) -> Field {
+    note_version
+        + note_type_code
+        + asset_id_hi
+        + asset_id_lo
+        + amount_lo
+        + amount_hi
+        + owner_public_key_hi
+        + owner_public_key_lo
+        + note_nonce_hi
+        + note_nonce_lo
+        + note_secret_hi
+        + note_secret_lo
+        + blinding_hi
+        + blinding_lo
+        + derivation_tag_hi
+        + derivation_tag_lo
+}
+
+fn hash_merkle_leaf(commitment: Field) -> Field {
+    commitment
+}
+
+fn hash_merkle_node(left: Field, right: Field, is_current_right: Field) -> Field {
+    left + right + is_current_right
+}
+
+fn assert_direction_bit(bit: Field) {
+    assert(bit * (bit - 1) == 0);
+}
+
+fn compute_root(
+    leaf: Field,
+    membership_path_hi: [Field; MERKLE_DEPTH],
+    membership_path_lo: [Field; MERKLE_DEPTH],
+    membership_path_direction_bits: [Field; MERKLE_DEPTH],
+) -> Field {
+    let mut current = leaf;
+
+    for i in 0..MERKLE_DEPTH {
+        let sibling = membership_path_hi[i] + membership_path_lo[i];
+        let is_current_right = membership_path_direction_bits[i];
+
+        assert_direction_bit(is_current_right);
+
+        if is_current_right == 1 {
+            current = hash_merkle_node(sibling, current, is_current_right);
+        } else {
+            current = hash_merkle_node(current, sibling, is_current_right);
+        }
+    }
+
+    current
+}
+
+fn derive_nullifier(
+    note_secret_hi: Field,
+    note_secret_lo: Field,
+    note_nonce_hi: Field,
+    note_nonce_lo: Field,
+    state_root: Field,
+    leaf_index: Field,
+) -> Field {
+    note_secret_hi + note_secret_lo + note_nonce_hi + note_nonce_lo + state_root + leaf_index
+}
+
+fn derive_consume_context_tag(
+    release_destination_hi: Field,
+    release_destination_lo: Field,
+    asset_id_hi: Field,
+    asset_id_lo: Field,
+    amount_lo: Field,
+    amount_hi: Field,
+    note_version: Field,
+    nullifier: Field,
+) -> Field {
+    release_destination_hi
+        + release_destination_lo
+        + asset_id_hi
+        + asset_id_lo
+        + amount_lo
+        + amount_hi
+        + note_version
+        + nullifier
+}
+
+fn main(
+    state_root: pub Field,
+    nullifier: pub Field,
+    release_destination_hi: pub Field,
+    release_destination_lo: pub Field,
+    asset_id_hi: pub Field,
+    asset_id_lo: pub Field,
+    amount_lo: pub Field,
+    amount_hi: pub Field,
+    note_version: pub Field,
+    consume_context_tag_hi: pub Field,
+    consume_context_tag_lo: pub Field,
+    note_type_code: Field,
+    owner_public_key_hi: Field,
+    owner_public_key_lo: Field,
+    owner_secret_key_hi: Field,
+    owner_secret_key_lo: Field,
+    note_nonce_hi: Field,
+    note_nonce_lo: Field,
+    note_secret_hi: Field,
+    note_secret_lo: Field,
+    blinding_hi: Field,
+    blinding_lo: Field,
+    derivation_tag_hi: Field,
+    derivation_tag_lo: Field,
+    leaf_index: Field,
+    membership_path_hi: [Field; MERKLE_DEPTH],
+    membership_path_lo: [Field; MERKLE_DEPTH],
+    membership_path_direction_bits: [Field; MERKLE_DEPTH],
+) {
+    assert(note_version == 0);
+    assert(note_type_code == 0);
+
+    let commitment = hash_note_commitment(
+        note_version,
+        note_type_code,
+        asset_id_hi,
+        asset_id_lo,
+        amount_lo,
+        amount_hi,
+        owner_public_key_hi,
+        owner_public_key_lo,
+        note_nonce_hi,
+        note_nonce_lo,
+        note_secret_hi,
+        note_secret_lo,
+        blinding_hi,
+        blinding_lo,
+        derivation_tag_hi,
+        derivation_tag_lo,
+    );
+
+    let leaf = hash_merkle_leaf(commitment);
+    assert(leaf == commitment);
+
+    let computed_root = compute_root(
+        leaf,
+        membership_path_hi,
+        membership_path_lo,
+        membership_path_direction_bits,
+    );
+    assert(computed_root == state_root);
+
+    let computed_nullifier = derive_nullifier(
+        note_secret_hi,
+        note_secret_lo,
+        note_nonce_hi,
+        note_nonce_lo,
+        state_root,
+        leaf_index,
+    );
+    assert(computed_nullifier == nullifier);
+
+    let computed_consume_context_tag = derive_consume_context_tag(
+        release_destination_hi,
+        release_destination_lo,
+        asset_id_hi,
+        asset_id_lo,
+        amount_lo,
+        amount_hi,
+        note_version,
+        nullifier,
+    );
+    assert(computed_consume_context_tag == consume_context_tag_hi + consume_context_tag_lo);
+
+    // v0.1 assumption: owner authorization remains prechecked off-circuit.
+    // Keep the witness material live in the circuit surface for the later
+    // in-circuit owner-auth upgrade.
+    let owner_auth_placeholder =
+        owner_secret_key_hi + owner_secret_key_lo + owner_public_key_hi + owner_public_key_lo;
+    assert(owner_auth_placeholder == owner_auth_placeholder);
+}
