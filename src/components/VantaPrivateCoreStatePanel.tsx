@@ -191,6 +191,34 @@ export function VantaPrivateCoreStatePanel({
               <strong>{String(unshieldState?.proofPathDepth ?? holdState?.proofPathDepth ?? 0)}</strong>
             </div>
             <div className="review-row">
+              <span>Source proof statement</span>
+              <strong>{unshieldState?.sourceProofStatement ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Source proof verifier</span>
+              <strong>{unshieldState?.sourceProofVerifier ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Source proof commitment</span>
+              <strong>{abbreviate(unshieldState?.sourceProofCommitment)}</strong>
+            </div>
+            <div className="review-row">
+              <span>Source proof root</span>
+              <strong>{abbreviate(unshieldState?.sourceProofRoot)}</strong>
+            </div>
+            <div className="review-row">
+              <span>Source proof asset</span>
+              <strong>{abbreviate(unshieldState?.sourceProofAssetId)}</strong>
+            </div>
+            <div className="review-row">
+              <span>Source proof amount</span>
+              <strong>{unshieldState?.sourceProofAmount ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Source proof leaf index</span>
+              <strong>{String(unshieldState?.sourceProofLeafIndex ?? 0)}</strong>
+            </div>
+            <div className="review-row">
               <span>{unshieldState ? "Proving lane" : "Proving preview lane"}</span>
               <strong>{unshieldState?.provingHashLane ?? holdState?.provingPreviewHashLane ?? "Unavailable"}</strong>
             </div>

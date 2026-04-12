@@ -13,6 +13,7 @@ import {
   deriveVantaPrivateCoreSourceArtifactsFromHeldNote,
   deriveVantaPrivateCoreSourceArtifactsFromShieldArtifact,
   deriveVantaPrivateCoreSourceArtifactsFromUnshieldResult,
+  summarizeVantaPrivateCoreUnshieldProofEnvelope,
   type VantaPrivateCoreOwnerKeypair,
   type CiphertextPackageV0,
   type HeldNoteViewV0,
@@ -124,6 +125,13 @@ export type VantaPrivateCoreUnshieldState = {
   sourceNullifier: string | null;
   proofEnvelope: UnshieldProofEnvelopeV0 | null;
   proofBoundary: VantaPrivateCoreUnshieldProofBoundaryV0 | null;
+  sourceProofStatement: string | null;
+  sourceProofVerifier: string | null;
+  sourceProofCommitment: string | null;
+  sourceProofRoot: string | null;
+  sourceProofAssetId: string | null;
+  sourceProofAmount: string | null;
+  sourceProofLeafIndex: number | null;
   provingHashLane: string | null;
   provingNoteCommitment: string | null;
   provingMerkleLeaf: string | null;
@@ -260,6 +268,13 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceNullifier: null,
         proofEnvelope: null,
         proofBoundary: null,
+        sourceProofStatement: null,
+        sourceProofVerifier: null,
+        sourceProofCommitment: null,
+        sourceProofRoot: null,
+        sourceProofAssetId: null,
+        sourceProofAmount: null,
+        sourceProofLeafIndex: null,
         provingHashLane: null,
         provingNoteCommitment: null,
         provingMerkleLeaf: null,
@@ -307,6 +322,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       releaseDestination: VANTA_PRIVATE_CORE_DEMO_RELEASE_DESTINATION,
     });
     const provingArtifacts = deriveVantaPrivateCoreProvingArtifactsFromBoundary(proofBoundary);
+    const sourceProofSummary = summarizeVantaPrivateCoreUnshieldProofEnvelope(proofEnvelope);
     const proofStatus = summarizeVantaPrivateCoreProofBoundaryStatus(proofBoundary);
     const proofCompatibility = summarizeVantaPrivateCoreProofBoundaryCompatibility(proofBoundary);
     const proofConfiguration = summarizeVantaPrivateCoreProofBoundaryConfiguration(proofBoundary);
@@ -328,6 +344,13 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceNullifier: sourceUnshieldArtifacts.nullifier ?? result.nullifier.value,
         proofEnvelope,
         proofBoundary,
+        sourceProofStatement: sourceProofSummary.statement,
+        sourceProofVerifier: sourceProofSummary.proof,
+        sourceProofCommitment: sourceProofSummary.commitment,
+        sourceProofRoot: sourceProofSummary.root,
+        sourceProofAssetId: sourceProofSummary.assetId,
+        sourceProofAmount: sourceProofSummary.amount,
+        sourceProofLeafIndex: sourceProofSummary.leafIndex,
         provingHashLane: provingArtifacts.provingHashLane,
         provingNoteCommitment: provingArtifacts.provingNoteCommitment,
         provingMerkleLeaf: provingArtifacts.provingMerkleLeaf,
@@ -376,6 +399,13 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceNullifier: proofEnvelope.publicInputs.nullifier,
         proofEnvelope,
         proofBoundary,
+        sourceProofStatement: sourceProofSummary.statement,
+        sourceProofVerifier: sourceProofSummary.proof,
+        sourceProofCommitment: sourceProofSummary.commitment,
+        sourceProofRoot: sourceProofSummary.root,
+        sourceProofAssetId: sourceProofSummary.assetId,
+        sourceProofAmount: sourceProofSummary.amount,
+        sourceProofLeafIndex: sourceProofSummary.leafIndex,
         provingHashLane: provingArtifacts.provingHashLane,
         provingNoteCommitment: provingArtifacts.provingNoteCommitment,
         provingMerkleLeaf: provingArtifacts.provingMerkleLeaf,
@@ -420,6 +450,13 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceNullifier: null,
         proofEnvelope: null,
         proofBoundary: null,
+        sourceProofStatement: null,
+        sourceProofVerifier: null,
+        sourceProofCommitment: null,
+        sourceProofRoot: null,
+        sourceProofAssetId: null,
+        sourceProofAmount: null,
+        sourceProofLeafIndex: null,
         provingHashLane: null,
         provingNoteCommitment: null,
         provingMerkleLeaf: null,
@@ -467,6 +504,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       releaseDestination: VANTA_PRIVATE_CORE_DEMO_RELEASE_DESTINATION,
     });
     const provingArtifacts = deriveVantaPrivateCoreProvingArtifactsFromBoundary(proofBoundary);
+    const sourceProofSummary = summarizeVantaPrivateCoreUnshieldProofEnvelope(proofEnvelope);
     const proofStatus = summarizeVantaPrivateCoreProofBoundaryStatus(proofBoundary);
     const proofCompatibility = summarizeVantaPrivateCoreProofBoundaryCompatibility(proofBoundary);
     const proofConfiguration = summarizeVantaPrivateCoreProofBoundaryConfiguration(proofBoundary);
@@ -488,6 +526,13 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceNullifier: sourceUnshieldArtifacts.nullifier ?? result.nullifier.value,
         proofEnvelope,
         proofBoundary,
+        sourceProofStatement: sourceProofSummary.statement,
+        sourceProofVerifier: sourceProofSummary.proof,
+        sourceProofCommitment: sourceProofSummary.commitment,
+        sourceProofRoot: sourceProofSummary.root,
+        sourceProofAssetId: sourceProofSummary.assetId,
+        sourceProofAmount: sourceProofSummary.amount,
+        sourceProofLeafIndex: sourceProofSummary.leafIndex,
         provingHashLane: provingArtifacts.provingHashLane,
         provingNoteCommitment: provingArtifacts.provingNoteCommitment,
         provingMerkleLeaf: provingArtifacts.provingMerkleLeaf,
@@ -536,6 +581,13 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceNullifier: proofEnvelope.publicInputs.nullifier,
         proofEnvelope,
         proofBoundary,
+        sourceProofStatement: sourceProofSummary.statement,
+        sourceProofVerifier: sourceProofSummary.proof,
+        sourceProofCommitment: sourceProofSummary.commitment,
+        sourceProofRoot: sourceProofSummary.root,
+        sourceProofAssetId: sourceProofSummary.assetId,
+        sourceProofAmount: sourceProofSummary.amount,
+        sourceProofLeafIndex: sourceProofSummary.leafIndex,
         provingHashLane: provingArtifacts.provingHashLane,
         provingNoteCommitment: provingArtifacts.provingNoteCommitment,
         provingMerkleLeaf: provingArtifacts.provingMerkleLeaf,

@@ -189,6 +189,17 @@ export type VantaPrivateCoreSourceArtifactBundleV0 = {
   nullifier?: Bytes32Hex;
 };
 
+export type VantaPrivateCoreUnshieldProofEnvelopeSummaryV0 = {
+  statement: UnshieldProofEnvelopeV0["statement"];
+  proof: UnshieldProofEnvelopeV0["proof"];
+  commitment: Bytes32Hex;
+  root: Bytes32Hex;
+  nullifier: Bytes32Hex;
+  assetId: Bytes32Hex;
+  amount: string;
+  leafIndex: number;
+};
+
 export type VantaPrivateCoreDemoRunV0 = {
   happyPath: {
     shield: ShieldArtifactV0;
@@ -581,6 +592,21 @@ export function verifyVantaPrivateCoreUnshieldProofEnvelope(
     envelope.publicInputs.amount === note.amount.toString(10) &&
     envelope.publicInputs.leafIndex === envelope.privateInputs.witness.leafIndex
   );
+}
+
+export function summarizeVantaPrivateCoreUnshieldProofEnvelope(
+  envelope: UnshieldProofEnvelopeV0,
+): VantaPrivateCoreUnshieldProofEnvelopeSummaryV0 {
+  return {
+    statement: envelope.statement,
+    proof: envelope.proof,
+    commitment: envelope.publicInputs.commitment,
+    root: envelope.publicInputs.root,
+    nullifier: envelope.publicInputs.nullifier,
+    assetId: envelope.publicInputs.assetId,
+    amount: envelope.publicInputs.amount,
+    leafIndex: envelope.publicInputs.leafIndex,
+  };
 }
 
 export function deriveVantaPrivateCoreSourceArtifactsFromShieldArtifact(
