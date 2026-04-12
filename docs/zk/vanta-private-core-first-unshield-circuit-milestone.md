@@ -76,7 +76,7 @@ Related boundary document:
 This remains an explicitly narrow v0.1 proving lane.
 
 Known limitations:
-- the circuit currently uses a temporary additive proving lane, `field-additive-test-lane-v0`, instead of the final protocol hash lane
+- the circuit now uses a dedicated Poseidon proving lane, `poseidon-bn254-proving-lane-v0`, while the broader app-side hash surfaces remain transitional
 - owner authorization remains prevalidated off-circuit
 - this milestone covers only the first single-note unshield consume proof, not send, swap, batching, recursion, or full product integration
 
@@ -96,8 +96,8 @@ That is the correct first zk milestone for the current architecture.
 
 Freeze this milestone before broadening scope:
 1. preserve the current fixed-depth unshield lane as the baseline executable proof path
-2. add lightweight regression coverage around fixture writing and expected `nargo execute` success and failure behavior
-3. then replace the temporary additive proving lane with the final protocol-facing hash lane
+2. keep lightweight regression coverage around fixture writing and expected `nargo execute` success and failure behavior
+3. align more of the broader app-side hash surfaces with the new Poseidon proving lane without breaking the current executable path
 
 ## Reproduction commands
 

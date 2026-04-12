@@ -3,7 +3,7 @@
 ## Fixed v0.1 circuit choice
 
 - `MERKLE_DEPTH = 3`
-- proving lane: `field-additive-test-lane-v0`
+- proving lane: `poseidon-bn254-proving-lane-v0`
 - owner authorization: prechecked off-circuit
 
 ## Deterministic fixture source
@@ -54,5 +54,5 @@ nargo execute
 
 ## Important v0.1 note
 
-This circuit path is intentionally not the final protocol hash lane.
-It is the first fixed-depth proving path that stays compatible with the current Vanta Private Core boundary while the final in-circuit hash and owner-auth contracts are still pending.
+This circuit path now uses a real Poseidon-based proving lane for the Noir boundary.
+It is still a narrow v0.1 path, but it is no longer using the earlier additive placeholder hash lane.

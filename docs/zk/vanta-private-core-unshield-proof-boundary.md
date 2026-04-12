@@ -111,20 +111,22 @@ It produces:
 - one valid fixed-depth witness package
 - one invalid direction-bit witness package for a failure case
 
-## Temporary Proving Hash Lane
+## Current Proving Hash Lane
 
-The first fixed-depth circuit path uses a temporary proving lane:
+The first fixed-depth circuit path now uses a Poseidon-based proving lane:
 
-- `field-additive-test-lane-v0`
+- `poseidon-bn254-proving-lane-v0`
 
-This is intentionally not the final protocol hash lane.
-It exists only to make the first concrete circuit path executable against the current app boundary while preserving:
+This is the first real proving-hash contract for the unshield circuit path.
+It still lives alongside transitional app-side SHA-256 seams, but the Noir lane now uses circuit-friendly hashing while preserving:
 
 - note field structure
 - fixed-depth Merkle witness structure
 - nullifier semantics
 - release-destination binding
 - consume-context binding
+
+The app-side witness package continues to preserve the original source public inputs separately from the Noir proving-lane field values.
 
 ## Recommended Next Implementation Step
 

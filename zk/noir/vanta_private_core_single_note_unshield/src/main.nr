@@ -1,4 +1,10 @@
+use ::poseidon::poseidon::bn254;
+
 global MERKLE_DEPTH: u32 = 3;
+
+fn hash_note_header(note_version: Field, note_type_code: Field) -> Field {
+    bn254::hash_2([note_version, note_type_code])
+}
 
 fn hash_note_commitment(
     note_version: Field,
@@ -18,30 +24,33 @@ fn hash_note_commitment(
     derivation_tag_hi: Field,
     derivation_tag_lo: Field,
 ) -> Field {
-    note_version
-        + note_type_code
-        + asset_id_hi
-        + asset_id_lo
-        + amount_lo
-        + amount_hi
-        + owner_public_key_hi
-        + owner_public_key_lo
-        + note_nonce_hi
-        + note_nonce_lo
-        + note_secret_hi
-        + note_secret_lo
-        + blinding_hi
-        + blinding_lo
-        + derivation_tag_hi
-        + derivation_tag_lo
+    let note_header = hash_note_header(note_version, note_type_code);
+
+    bn254::hash_15([
+        note_header,
+        asset_id_hi,
+        asset_id_lo,
+        amount_lo,
+        amount_hi,
+        owner_public_key_hi,
+        owner_public_key_lo,
+        note_nonce_hi,
+        note_nonce_lo,
+        note_secret_hi,
+        note_secret_lo,
+        blinding_hi,
+        blinding_lo,
+        derivation_tag_hi,
+        derivation_tag_lo,
+    ])
 }
 
 fn hash_merkle_leaf(commitment: Field) -> Field {
-    commitment
+    bn254::hash_1([commitment])
 }
 
 fn hash_merkle_node(left: Field, right: Field, is_current_right: Field) -> Field {
-    left + right + is_current_right
+    bn254::hash_3([left, right, is_current_right])
 }
 
 fn assert_direction_bit(bit: Field) {
@@ -80,7 +89,14 @@ fn derive_nullifier(
     state_root: Field,
     leaf_index: Field,
 ) -> Field {
-    note_secret_hi + note_secret_lo + note_nonce_hi + note_nonce_lo + state_root + leaf_index
+    bn254::hash_6([
+        note_secret_hi,
+        note_secret_lo,
+        note_nonce_hi,
+        note_nonce_lo,
+        state_root,
+        leaf_index,
+    ])
 }
 
 fn derive_consume_context_tag(
@@ -93,14 +109,16 @@ fn derive_consume_context_tag(
     note_version: Field,
     nullifier: Field,
 ) -> Field {
-    release_destination_hi
-        + release_destination_lo
-        + asset_id_hi
-        + asset_id_lo
-        + amount_lo
-        + amount_hi
-        + note_version
-        + nullifier
+    bn254::hash_8([
+        release_destination_hi,
+        release_destination_lo,
+        asset_id_hi,
+        asset_id_lo,
+        amount_lo,
+        amount_hi,
+        note_version,
+        nullifier,
+    ])
 }
 
 fn main(
@@ -156,7 +174,6 @@ fn main(
     );
 
     let leaf = hash_merkle_leaf(commitment);
-    assert(leaf == commitment);
 
     let computed_root = compute_root(
         leaf,

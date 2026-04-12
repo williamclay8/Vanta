@@ -1,6 +1,14 @@
 import { x25519 } from "@noble/curves/ed25519.js";
 import { sha256 } from "@noble/hashes/sha2.js";
 import {
+  poseidon1,
+  poseidon15,
+  poseidon2,
+  poseidon3,
+  poseidon6,
+  poseidon8,
+} from "poseidon-lite";
+import {
   VANTA_PRIVATE_CORE_NOTE_ENCODING_FIELD_ORDER_V0,
   VANTA_PRIVATE_CORE_NOTE_VERSION_V0,
   VANTA_PRIVATE_CORE_PROOF_SYSTEM_V0,
@@ -38,7 +46,7 @@ export const VANTA_PRIVATE_CORE_UNSHIELD_CONSUME_CONTEXT_DOMAIN_V0 =
   "vanta.private-core.unshield-consume-context.v0" as const;
 export const VANTA_PRIVATE_CORE_UNSHIELD_CIRCUIT_MERKLE_DEPTH_V0 = 3 as const;
 export const VANTA_PRIVATE_CORE_UNSHIELD_PROVING_HASH_LANE_V0 =
-  "field-additive-test-lane-v0" as const;
+  "poseidon-bn254-proving-lane-v0" as const;
 
 export type FieldDecimalString = string;
 export type DirectionBit = "0" | "1";
@@ -270,19 +278,19 @@ export function createVantaPrivateCoreNoirUnshieldWitnessPackage(args: {
 }): VantaPrivateCoreNoirUnshieldWitnessPackageV0 {
   const releaseDestinationEncoding = encodeBytes32ToTwoU128Be(args.publicInputs.releaseDestination);
   const assetEncoding = encodeBytes32ToTwoU128Be(args.publicInputs.assetId);
-  const commitmentField = deriveAdditiveNoteCommitmentField(args.privateWitness.noteFieldEncoding);
-  const merkleLeafField = deriveAdditiveMerkleLeafField(commitmentField);
-  const stateRootField = deriveAdditiveMerkleRootField(
+  const commitmentField = derivePoseidonNoteCommitmentField(args.privateWitness.noteFieldEncoding);
+  const merkleLeafField = derivePoseidonMerkleLeafField(commitmentField);
+  const stateRootField = derivePoseidonMerkleRootField(
     merkleLeafField,
     args.privateWitness.merklePathEncoding,
   );
-  const nullifierField = deriveAdditiveNullifierField(
+  const nullifierField = derivePoseidonNullifierField(
     args.privateWitness.noteFieldEncoding.noteSecret,
     args.privateWitness.noteFieldEncoding.noteNonce,
     stateRootField,
     args.privateWitness.leafIndex,
   );
-  const consumeContextField = deriveAdditiveConsumeContextField({
+  const consumeContextField = derivePoseidonConsumeContextField({
     releaseDestination: releaseDestinationEncoding,
     assetId: assetEncoding,
     amount: args.privateWitness.noteFieldEncoding.amount,
@@ -562,87 +570,90 @@ function encodeBytes32ToTwoU128Be(value: Bytes32Hex): Bytes32EncodingV0 {
   };
 }
 
-function combineTwoU128ToFieldDecimal(value: Bytes32EncodingV0): FieldDecimalString {
-  return ((BigInt(value.hi) << 128n) | BigInt(value.lo)).toString(10);
+function derivePoseidonNoteHeaderField(encoding: VantaPrivateCoreNoteFieldEncodingV0): bigint {
+  return poseidon2([BigInt(encoding.noteVersion), BigInt(encoding.noteTypeCode)]);
 }
 
-function deriveAdditiveNoteCommitmentField(
+function derivePoseidonNoteCommitmentField(
   encoding: VantaPrivateCoreNoteFieldEncodingV0,
 ): FieldDecimalString {
-  const parts = [
-    encoding.noteVersion,
-    encoding.noteTypeCode,
-    encoding.assetId.hi,
-    encoding.assetId.lo,
-    encoding.amount.lo,
-    encoding.amount.hi,
-    encoding.ownerPublicKey.hi,
-    encoding.ownerPublicKey.lo,
-    encoding.noteNonce.hi,
-    encoding.noteNonce.lo,
-    encoding.noteSecret.hi,
-    encoding.noteSecret.lo,
-    encoding.blinding.hi,
-    encoding.blinding.lo,
-    encoding.derivationTag.hi,
-    encoding.derivationTag.lo,
-  ];
-
-  return parts.reduce((sum, value) => sum + BigInt(value), 0n).toString(10);
+  return poseidon15([
+    derivePoseidonNoteHeaderField(encoding),
+    BigInt(encoding.assetId.hi),
+    BigInt(encoding.assetId.lo),
+    BigInt(encoding.amount.lo),
+    BigInt(encoding.amount.hi),
+    BigInt(encoding.ownerPublicKey.hi),
+    BigInt(encoding.ownerPublicKey.lo),
+    BigInt(encoding.noteNonce.hi),
+    BigInt(encoding.noteNonce.lo),
+    BigInt(encoding.noteSecret.hi),
+    BigInt(encoding.noteSecret.lo),
+    BigInt(encoding.blinding.hi),
+    BigInt(encoding.blinding.lo),
+    BigInt(encoding.derivationTag.hi),
+    BigInt(encoding.derivationTag.lo),
+  ]).toString(10);
 }
 
-function deriveAdditiveMerkleLeafField(commitment: FieldDecimalString): FieldDecimalString {
-  return commitment;
+function derivePoseidonMerkleLeafField(commitment: FieldDecimalString): FieldDecimalString {
+  return poseidon1([BigInt(commitment)]).toString(10);
 }
 
-function deriveAdditiveMerkleRootField(
+function derivePoseidonMerkleRootField(
   leaf: FieldDecimalString,
   path: VantaPrivateCoreMerklePathEncodingV0,
 ): FieldDecimalString {
   let current = BigInt(leaf);
 
   for (let index = 0; index < path.depth; index += 1) {
-    const sibling = BigInt(path.siblings[index].hi) + BigInt(path.siblings[index].lo);
+    const siblingHi = BigInt(path.siblings[index].hi);
+    const siblingLo = BigInt(path.siblings[index].lo);
     const isCurrentRight = path.directionBits[index] === "1" ? 1n : 0n;
-    current = current + sibling + isCurrentRight;
+    const sibling = siblingHi + siblingLo;
+    if (isCurrentRight === 1n) {
+      current = poseidon3([sibling, current, isCurrentRight]);
+    } else {
+      current = poseidon3([current, sibling, isCurrentRight]);
+    }
   }
 
   return current.toString(10);
 }
 
-function deriveAdditiveNullifierField(
+function derivePoseidonNullifierField(
   noteSecret: Bytes32EncodingV0,
   noteNonce: Bytes32EncodingV0,
   stateRoot: FieldDecimalString,
   leafIndex: number,
 ): FieldDecimalString {
-  return (
-    BigInt(noteSecret.hi) +
-    BigInt(noteSecret.lo) +
-    BigInt(noteNonce.hi) +
-    BigInt(noteNonce.lo) +
-    BigInt(stateRoot) +
-    BigInt(leafIndex)
-  ).toString(10);
+  return poseidon6([
+    BigInt(noteSecret.hi),
+    BigInt(noteSecret.lo),
+    BigInt(noteNonce.hi),
+    BigInt(noteNonce.lo),
+    BigInt(stateRoot),
+    BigInt(leafIndex),
+  ]).toString(10);
 }
 
-function deriveAdditiveConsumeContextField(args: {
+function derivePoseidonConsumeContextField(args: {
   releaseDestination: Bytes32EncodingV0;
   assetId: Bytes32EncodingV0;
   amount: U128EncodingV0;
   noteVersion: number;
   nullifierField: FieldDecimalString;
 }): FieldDecimalString {
-  return (
-    BigInt(args.releaseDestination.hi) +
-    BigInt(args.releaseDestination.lo) +
-    BigInt(args.assetId.hi) +
-    BigInt(args.assetId.lo) +
-    BigInt(args.amount.lo) +
-    BigInt(args.amount.hi) +
-    BigInt(args.noteVersion) +
-    BigInt(args.nullifierField)
-  ).toString(10);
+  return poseidon8([
+    BigInt(args.releaseDestination.hi),
+    BigInt(args.releaseDestination.lo),
+    BigInt(args.assetId.hi),
+    BigInt(args.assetId.lo),
+    BigInt(args.amount.lo),
+    BigInt(args.amount.hi),
+    BigInt(args.noteVersion),
+    BigInt(args.nullifierField),
+  ]).toString(10);
 }
 
 function encodeU128ToTwoU64Le(value: bigint): U128EncodingV0 {
