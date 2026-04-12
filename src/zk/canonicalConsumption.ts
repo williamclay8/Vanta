@@ -1,3 +1,4 @@
+
 import type { CanonicalNullifierBasis } from "./canonicalNote";
 
 export const CANONICAL_CONSUMPTION_BASIS_SCHEME_V1 =

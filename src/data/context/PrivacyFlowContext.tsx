@@ -35,6 +35,12 @@ import {
   summarizeVantaPrivateCoreSourceVsProvingHandoff,
   type VantaPrivateCoreUnshieldProofBoundaryV0,
 } from "@/zk/vantaPrivateCoreUnshieldProof";
+import {
+  requestVantaPrivateCoreOperatorConsume,
+  requestVantaPrivateCoreOperatorProof,
+  type VantaPrivateCoreConsumeOperatorResponse,
+  type VantaPrivateCoreProofOperatorResponse,
+} from "@/zk/vantaPrivateCoreOperatorClient";
 
 export type PrivacyAssetKey = "VUSD" | "USDC" | "JTO" | "BONK";
 
@@ -68,8 +74,8 @@ type PrivacyFlowContextValue = {
   privateCoreUnshieldState: VantaPrivateCoreUnshieldState | null;
   recentShield: RecentShieldContext | null;
   runPrivateCoreShield: (args: { amountDisplay: string; asset: PrivacyAssetKey }) => VantaPrivateCoreShieldState;
-  runPrivateCoreUnshield: () => VantaPrivateCoreUnshieldState;
-  runPrivateCoreReplayAttempt: () => VantaPrivateCoreUnshieldState;
+  runPrivateCoreUnshield: () => Promise<VantaPrivateCoreUnshieldState>;
+  runPrivateCoreReplayAttempt: () => Promise<VantaPrivateCoreUnshieldState>;
   setPrivateCoreHoldState: (value: VantaPrivateCoreHoldState | null) => void;
   setPrivateCoreRecentShield: (value: VantaPrivateCoreShieldState | null) => void;
   setPrivateCoreUnshieldState: (value: VantaPrivateCoreUnshieldState | null) => void;
@@ -197,6 +203,10 @@ export type VantaPrivateCoreUnshieldState = {
   proofNoteType: string | null;
   proofLeafIndex: number | null;
   proofPathDepth: number | null;
+  proofExecutionMode: string | null;
+  proofExecutionStatus: string | null;
+  proofFieldCount: number | null;
+  proofPublicInputCount: number | null;
   consumeSucceeded: boolean;
   replayRejected: boolean;
   errorMessage: string | null;
@@ -343,7 +353,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     return nextShieldState;
   }, [privateCoreLedger, privateCoreOwner]);
 
-  const runPrivateCoreUnshield = useCallback((): VantaPrivateCoreUnshieldState => {
+  const runPrivateCoreUnshield = useCallback(async (): Promise<VantaPrivateCoreUnshieldState> => {
     if (!privateCoreHoldState) {
       const nextState: VantaPrivateCoreUnshieldState = {
         sourceNullifier: null,
@@ -397,6 +407,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofNoteType: null,
         proofLeafIndex: null,
         proofPathDepth: null,
+        proofExecutionMode: null,
+        proofExecutionStatus: null,
+        proofFieldCount: null,
+        proofPublicInputCount: null,
         consumeSucceeded: false,
         replayRejected: false,
         errorMessage: "No recovered private-core note is available to unshield.",
@@ -425,8 +439,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     const proofConfiguration = summarizeVantaPrivateCoreProofBoundaryConfiguration(proofBoundary);
     const proofPublicInputs = summarizeVantaPrivateCoreProofBoundaryPublicInputs(proofBoundary);
     const proofWitness = summarizeVantaPrivateCoreProofBoundaryWitness(proofBoundary);
+    let operatorConsumeReceipt: VantaPrivateCoreConsumeOperatorResponse | null = null;
 
     try {
+      operatorConsumeReceipt = await requestVantaPrivateCoreOperatorConsume({
+        witnessPackage: proofBoundary.noirWitnessPackage,
+      });
       const result = privateCoreLedger.unshield(privateCoreHoldState.heldNote);
       const sourceUnshieldArtifacts = deriveVantaPrivateCoreSourceArtifactsFromUnshieldResult(result);
       const sourceHoldArtifacts = deriveVantaPrivateCoreSourceArtifactsFromHeldNote(
@@ -503,6 +521,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofNoteType: proofWitness.noteType,
         proofLeafIndex: proofWitness.leafIndex,
         proofPathDepth: proofWitness.pathDepth,
+        proofExecutionMode: operatorConsumeReceipt.backend,
+        proofExecutionStatus: operatorConsumeReceipt.verified
+          ? "Operator proof verified and consume authorized"
+          : "Operator proof unavailable",
+        proofFieldCount: operatorConsumeReceipt.proofFieldCount,
+        proofPublicInputCount: operatorConsumeReceipt.publicInputCount,
         consumeSucceeded: true,
         replayRejected: false,
         errorMessage: null,
@@ -585,6 +609,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofNoteType: proofWitness.noteType,
         proofLeafIndex: proofWitness.leafIndex,
         proofPathDepth: proofWitness.pathDepth,
+        proofExecutionMode: operatorConsumeReceipt?.backend ?? null,
+        proofExecutionStatus: operatorConsumeReceipt?.verified
+          ? "Operator proof verified before failure"
+          : "Operator consume rejected request",
+        proofFieldCount: operatorConsumeReceipt?.proofFieldCount ?? null,
+        proofPublicInputCount: operatorConsumeReceipt?.publicInputCount ?? null,
         consumeSucceeded: false,
         replayRejected: false,
         errorMessage: error instanceof Error ? error.message : String(error),
@@ -595,7 +625,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     }
   }, [privateCoreHoldState, privateCoreLedger]);
 
-  const runPrivateCoreReplayAttempt = useCallback((): VantaPrivateCoreUnshieldState => {
+  const runPrivateCoreReplayAttempt = useCallback(async (): Promise<VantaPrivateCoreUnshieldState> => {
     if (!privateCoreHoldState) {
       const nextState: VantaPrivateCoreUnshieldState = {
         sourceNullifier: null,
@@ -649,6 +679,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofNoteType: null,
         proofLeafIndex: null,
         proofPathDepth: null,
+        proofExecutionMode: null,
+        proofExecutionStatus: null,
+        proofFieldCount: null,
+        proofPublicInputCount: null,
         consumeSucceeded: false,
         replayRejected: false,
         errorMessage: "No recovered private-core note is available for replay testing.",
@@ -677,91 +711,16 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     const proofConfiguration = summarizeVantaPrivateCoreProofBoundaryConfiguration(proofBoundary);
     const proofPublicInputs = summarizeVantaPrivateCoreProofBoundaryPublicInputs(proofBoundary);
     const proofWitness = summarizeVantaPrivateCoreProofBoundaryWitness(proofBoundary);
+    let operatorProofReceipt: VantaPrivateCoreProofOperatorResponse | null = null;
 
     try {
-      const result = privateCoreLedger.unshield(privateCoreHoldState.heldNote);
-      const sourceUnshieldArtifacts = deriveVantaPrivateCoreSourceArtifactsFromUnshieldResult(result);
-      const sourceHoldArtifacts = deriveVantaPrivateCoreSourceArtifactsFromHeldNote(
-        privateCoreHoldState.heldNote,
-      );
-      const sourceProofConsistency = summarizeVantaPrivateCoreUnshieldProofEnvelopeConsistency({
-        envelope: proofEnvelope,
-        sourceArtifacts: {
-          ...sourceHoldArtifacts,
-          nullifier: sourceUnshieldArtifacts.nullifier,
-        },
-        expectedNullifier: sourceUnshieldArtifacts.nullifier ?? result.nullifier.value,
+      operatorProofReceipt = await requestVantaPrivateCoreOperatorProof({
+        witnessPackage: proofBoundary.noirWitnessPackage,
       });
-      const provingComparison = compareVantaPrivateCoreSourceAndProvingArtifacts({
-        sourceArtifacts: sourceHoldArtifacts,
-        provingArtifacts,
-        sourceConsumeContextTag: proofBoundary.publicInputs.consumeContextTag ?? null,
+      await requestVantaPrivateCoreOperatorConsume({
+        witnessPackage: proofBoundary.noirWitnessPackage,
       });
-      const handoffSummary = summarizeVantaPrivateCoreSourceVsProvingHandoff({
-        sourceProofVerified: sourceProofVerification.verified,
-        sourceProofConsistencyLabel: sourceProofConsistency.overallStatusLabel,
-        proofBoundary,
-        comparison: provingComparison,
-      });
-      const nextState: VantaPrivateCoreUnshieldState = {
-        sourceNullifier: sourceUnshieldArtifacts.nullifier ?? result.nullifier.value,
-        proofEnvelope,
-        proofBoundary,
-        proofObservationMode: "Observed during replay attempt",
-        sourceProofStatement: sourceProofSummary.statement,
-        sourceProofVerifier: sourceProofSummary.proof,
-        sourceProofCommitment: sourceProofSummary.commitment,
-        sourceProofRoot: sourceProofSummary.root,
-        sourceProofAssetId: sourceProofSummary.assetId,
-        sourceProofAmount: sourceProofSummary.amount,
-        sourceProofLeafIndex: sourceProofSummary.leafIndex,
-        sourceProofVerified: sourceProofVerification.verified,
-        sourceProofStatusLabel: sourceProofVerification.statusLabel,
-        sourceProofCommitmentStatus: sourceProofConsistency.commitmentStatus,
-        sourceProofRootStatus: sourceProofConsistency.rootStatus,
-        sourceProofNullifierStatus: sourceProofConsistency.nullifierStatus,
-        sourceProofConsistencyLabel: sourceProofConsistency.overallStatusLabel,
-        sourceLayerStatus: handoffSummary.sourceLayerStatus,
-        provingBoundaryStatus: handoffSummary.provingBoundaryStatus,
-        handoffStatus: handoffSummary.handoffStatus,
-        primaryHandoffNote: handoffSummary.primaryHandoffNote,
-        provingHashLane: provingArtifacts.provingHashLane,
-        provingNoteCommitment: provingArtifacts.provingNoteCommitment,
-        provingMerkleLeaf: provingArtifacts.provingMerkleLeaf,
-        provingStateRoot: provingArtifacts.provingStateRoot,
-        provingNullifier: provingArtifacts.provingNullifier,
-        provingConsumeContextTag: provingArtifacts.provingConsumeContextTag,
-        noteCommitmentComparisonStatus: provingComparison.noteCommitment.statusLabel,
-        merkleLeafComparisonStatus: provingComparison.merkleLeaf.statusLabel,
-        stateRootComparisonStatus: provingComparison.stateRoot.statusLabel,
-        nullifierComparisonStatus: provingComparison.nullifier.statusLabel,
-        consumeContextComparisonStatus: provingComparison.consumeContext.statusLabel,
-        circuitReadinessLabel: proofStatus.readinessLabel,
-        proofBlockerCount: proofStatus.blockerCount,
-        primaryProofBlocker: proofStatus.primaryBlocker,
-        compatibilityNoteCount: proofCompatibility.noteCount,
-        primaryCompatibilityNote: proofCompatibility.primaryNote,
-        proofBoundaryKind: proofBoundary.kind,
-        proofBoundaryVersion: proofBoundary.version,
-        proofCircuit: proofConfiguration.circuit,
-        proofBackend: proofConfiguration.backend,
-        proofMerkleDepth: proofConfiguration.merkleDepth,
-        ownerAuthorizationMode: proofConfiguration.ownerAuthorizationMode,
-        nullifierKeyMode: proofConfiguration.nullifierKeyMode,
-        proofReleaseDestination: proofPublicInputs.releaseDestination,
-        proofAssetId: proofPublicInputs.assetId,
-        proofAmount: proofPublicInputs.amount,
-        proofNoteVersion: proofPublicInputs.noteVersion,
-        proofNoteType: proofWitness.noteType,
-        proofLeafIndex: proofWitness.leafIndex,
-        proofPathDepth: proofWitness.pathDepth,
-        consumeSucceeded: true,
-        replayRejected: false,
-        errorMessage: null,
-        result,
-      };
-      setPrivateCoreUnshieldState(nextState);
-      return nextState;
+      throw new Error("Replay consume unexpectedly succeeded.");
     } catch (error) {
       const sourceHoldArtifacts = deriveVantaPrivateCoreSourceArtifactsFromHeldNote(
         privateCoreHoldState.heldNote,
@@ -837,6 +796,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofNoteType: proofWitness.noteType,
         proofLeafIndex: proofWitness.leafIndex,
         proofPathDepth: proofWitness.pathDepth,
+        proofExecutionMode: operatorProofReceipt?.backend ?? null,
+        proofExecutionStatus: operatorProofReceipt?.verified
+          ? "Operator proof verified before replay rejection"
+          : "Operator replay consume rejected request",
+        proofFieldCount: operatorProofReceipt?.proofFieldCount ?? null,
+        proofPublicInputCount: operatorProofReceipt?.publicInputCount ?? null,
         consumeSucceeded: false,
         replayRejected: true,
         errorMessage: error instanceof Error ? error.message : String(error),

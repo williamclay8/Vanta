@@ -47,6 +47,8 @@ import {
   assertEligibleUnshieldTransition,
   fetchConstrainedOnchainUnshieldContext,
 } from "./vanta-onchain-state.mjs";
+import { createPrivateCoreConsumeStore } from "./private-core-consume-store.mjs";
+import { proveAndVerifyVantaPrivateCoreUnshield } from "./private-core-proof.mjs";
 import { createReleaseRecordStore } from "./release-record-store.mjs";
 
 loadEnvFile(".env");
@@ -81,6 +83,7 @@ const client = createClient({
 });
 const web3Connection = new Connection(endpoint, "confirmed");
 const releaseRecords = createReleaseRecordStore();
+const privateCoreConsumeStore = createPrivateCoreConsumeStore();
 const swapRecords = createReleaseRecordStore({
   defaultPath: "operator/.vanta-swap-records.json",
   envKey: "VANTA_SWAP_RECORD_STORE_PATH",
@@ -234,6 +237,82 @@ const server = createServer(async (request, response) => {
         error instanceof Error
           ? error.message
           : "The swap operator could not prepare a quote.",
+      );
+    }
+    return;
+  }
+
+  if (request.method === "POST" && request.url === "/private-core/unshield-proof") {
+    try {
+      const body = await readJsonBody(request);
+      const proofReceipt = await proveAndVerifyVantaPrivateCoreUnshield({
+        witnessPackage: body.witnessPackage,
+      });
+
+      writeCorsHeaders(response);
+      response.writeHead(200, { "Content-Type": "application/json" });
+      response.end(JSON.stringify(proofReceipt));
+    } catch (error) {
+      writeCorsHeaders(response);
+      response.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
+      response.end(
+        error instanceof Error
+          ? error.message
+          : "The private-core proof operator could not process the witness package.",
+      );
+    }
+    return;
+  }
+
+  if (request.method === "POST" && request.url === "/private-core/unshield-consume") {
+    try {
+      const body = await readJsonBody(request);
+      const proofReceipt = await proveAndVerifyVantaPrivateCoreUnshield({
+        witnessPackage: body.witnessPackage,
+      });
+      const sourcePublicInputs = body?.witnessPackage?.sourcePublicInputs;
+      const nullifier = sourcePublicInputs?.nullifier;
+
+      if (typeof nullifier !== "string" || nullifier.length === 0) {
+        throw new Error("Private-core consume request is missing a source nullifier.");
+      }
+
+      if (privateCoreConsumeStore.hasNullifier(nullifier)) {
+        throw new Error(`Nullifier ${nullifier} has already been consumed.`);
+      }
+
+      const consumeRecord = {
+        assetId: sourcePublicInputs.assetId,
+        amount: sourcePublicInputs.amount,
+        completedAt: Date.now(),
+        leafIndex: body?.witnessPackage?.privateWitness?.leaf_index ?? null,
+        nullifier,
+        proofFieldCount: proofReceipt.proofFieldCount,
+        publicInputCount: proofReceipt.publicInputCount,
+        releaseDestination: sourcePublicInputs.releaseDestination,
+        root: sourcePublicInputs.stateRoot,
+      };
+
+      privateCoreConsumeStore.recordConsume(consumeRecord);
+
+      writeCorsHeaders(response);
+      response.writeHead(200, { "Content-Type": "application/json" });
+      response.end(
+        JSON.stringify({
+          ...proofReceipt,
+          releasedAssetId: sourcePublicInputs.assetId,
+          releasedAmount: sourcePublicInputs.amount,
+          root: sourcePublicInputs.stateRoot,
+          nullifier,
+        }),
+      );
+    } catch (error) {
+      writeCorsHeaders(response);
+      response.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
+      response.end(
+        error instanceof Error
+          ? error.message
+          : "The private-core consume operator could not process the request.",
       );
     }
     return;

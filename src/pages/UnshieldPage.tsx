@@ -132,6 +132,7 @@ export function UnshieldPage() {
     requestId?: string;
     transitionNoteId: string;
   } | null>(null);
+  const [privateCoreActionPending, setPrivateCoreActionPending] = useState(false);
   const operatorAuthorizationLockRef = useRef<string | null>(null);
   const transitionTransaction = useSendTransaction();
   const transitionWait = useRealtimeSignatureProgress(
@@ -784,19 +785,33 @@ export function UnshieldPage() {
             className="button button-primary"
             type="button"
             onClick={() => {
-              runPrivateCoreUnshield();
+              setPrivateCoreActionPending(true);
+              void runPrivateCoreUnshield().finally(() => {
+                setPrivateCoreActionPending(false);
+              });
             }}
-            disabled={!privateCoreHoldState || privateCoreUnshieldState?.consumeSucceeded === true}
+            disabled={
+              privateCoreActionPending ||
+              !privateCoreHoldState ||
+              privateCoreUnshieldState?.consumeSucceeded === true
+            }
           >
-            Unshield private core note
+            {privateCoreActionPending ? "Generating proof..." : "Unshield private core note"}
           </button>
           <button
             className="button button-ghost"
             type="button"
             onClick={() => {
-              runPrivateCoreReplayAttempt();
+              setPrivateCoreActionPending(true);
+              void runPrivateCoreReplayAttempt().finally(() => {
+                setPrivateCoreActionPending(false);
+              });
             }}
-            disabled={!privateCoreHoldState || !privateCoreUnshieldState?.consumeSucceeded}
+            disabled={
+              privateCoreActionPending ||
+              !privateCoreHoldState ||
+              !privateCoreUnshieldState?.consumeSucceeded
+            }
           >
             Attempt replay rejection
           </button>
@@ -896,6 +911,18 @@ export function UnshieldPage() {
                 <strong>
                   {privateCoreUnshieldState.provingConsumeContextTag
                     ? abbreviate(privateCoreUnshieldState.provingConsumeContextTag)
+                    : "Unavailable"}
+                </strong>
+              </div>
+              <div className="review-row">
+                <span>Proof execution</span>
+                <strong>{privateCoreUnshieldState.proofExecutionStatus ?? "Unavailable"}</strong>
+              </div>
+              <div className="review-row">
+                <span>Proof shape</span>
+                <strong>
+                  {privateCoreUnshieldState.proofFieldCount && privateCoreUnshieldState.proofPublicInputCount
+                    ? `${privateCoreUnshieldState.proofFieldCount} fields · ${privateCoreUnshieldState.proofPublicInputCount} public inputs`
                     : "Unavailable"}
                 </strong>
               </div>
