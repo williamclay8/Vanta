@@ -123,24 +123,24 @@ export function VantaPrivateCoreStatePanel({
               <strong>{holdState?.witnessAvailable ? "Ready" : "Unavailable"}</strong>
             </div>
             <div className="review-row">
+              <span>{unshieldState ? "Proving lane" : "Proving preview lane"}</span>
+              <strong>{unshieldState?.provingHashLane ?? holdState?.provingPreviewHashLane ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>{unshieldState ? "Proving root" : "Proving preview root"}</span>
+              <strong>{abbreviate(unshieldState?.provingStateRoot ?? holdState?.provingPreviewStateRoot)}</strong>
+            </div>
+            <div className="review-row">
+              <span>{unshieldState ? "Proving nullifier" : "Proving preview nullifier"}</span>
+              <strong>{abbreviate(unshieldState?.provingNullifier ?? holdState?.provingPreviewNullifier)}</strong>
+            </div>
+            <div className="review-row">
+              <span>{unshieldState ? "Consume context" : "Proving preview context"}</span>
+              <strong>{abbreviate(unshieldState?.provingConsumeContextTag ?? holdState?.provingPreviewConsumeContextTag)}</strong>
+            </div>
+            <div className="review-row">
               <span>Source nullifier</span>
               <strong>{abbreviate(unshieldState?.sourceNullifier)}</strong>
-            </div>
-            <div className="review-row">
-              <span>Proving lane</span>
-              <strong>{unshieldState?.provingHashLane ?? "Unavailable"}</strong>
-            </div>
-            <div className="review-row">
-              <span>Proving root</span>
-              <strong>{abbreviate(unshieldState?.provingStateRoot)}</strong>
-            </div>
-            <div className="review-row">
-              <span>Proving nullifier</span>
-              <strong>{abbreviate(unshieldState?.provingNullifier)}</strong>
-            </div>
-            <div className="review-row">
-              <span>Consume context</span>
-              <strong>{abbreviate(unshieldState?.provingConsumeContextTag)}</strong>
             </div>
             <div className="review-row">
               <span>Replay</span>

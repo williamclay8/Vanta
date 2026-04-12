@@ -79,6 +79,10 @@ export type VantaPrivateCoreHoldState = {
   privateNoteRecovered: boolean;
   witnessAvailable: boolean;
   sourceWitnessRoot: string;
+  provingPreviewHashLane: string;
+  provingPreviewStateRoot: string;
+  provingPreviewNullifier: string;
+  provingPreviewConsumeContextTag: string | null;
   noteSummary: string;
 };
 
@@ -120,6 +124,11 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       encryptedPayload: shield.encryptedPayload,
       ownerSecretKey: privateCoreOwner.secretKey,
     });
+    const provingPreview = buildVantaPrivateCoreUnshieldProofBoundary({
+      heldNote: hold,
+      ownerSecretKey: privateCoreOwner.secretKey,
+      releaseDestination: VANTA_PRIVATE_CORE_DEMO_RELEASE_DESTINATION,
+    });
     const nextShieldState: VantaPrivateCoreShieldState = {
       artifact: shield,
       encryptedPayload: shield.encryptedPayload,
@@ -138,6 +147,11 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateNoteRecovered: true,
       witnessAvailable: true,
       sourceWitnessRoot: hold.witness.root,
+      provingPreviewHashLane: provingPreview.noirWitnessPackage.provingHashLane,
+      provingPreviewStateRoot: provingPreview.noirWitnessPackage.publicInputs.state_root,
+      provingPreviewNullifier: provingPreview.noirWitnessPackage.publicInputs.nullifier,
+      provingPreviewConsumeContextTag:
+        provingPreview.noirWitnessPackage.publicInputs.consume_context_tag_lo ?? null,
       noteSummary: `${formatBaseUnits(shield.note.amount, VANTA_PRIVATE_CORE_VUSD_DECIMALS)} VUSD private note`,
     });
     setPrivateCoreUnshieldState(null);
