@@ -215,40 +215,68 @@ try {
   }
   printStatus("operator http source/public consistency gate: PASS");
 
-  const tamperedRegisterRoot = await requestJson(baseUrl, "/private-core/register-root", {
-    body: JSON.stringify({
-      sourceArtifacts: {
-        noteCommitment: fixture.validBoundary.privateWitness.noteCommitment,
-      },
-      witnessPackage: {
-        ...witnessPackage,
-        sourcePublicInputs: {
-          ...witnessPackage.sourcePublicInputs,
-          amount: "1",
+  for (const tamperCase of [
+    {
+      expectedMessage: "mismatched amount public inputs",
+      label: "amount",
+      mutate: () => ({ amount: "1" }),
+    },
+    {
+      expectedMessage: "mismatched release destination public inputs",
+      label: "release-destination",
+      mutate: () => ({
+        releaseDestination:
+          "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      }),
+    },
+    {
+      expectedMessage: "mismatched asset public inputs",
+      label: "asset",
+      mutate: () => ({
+        assetId: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      }),
+    },
+    {
+      expectedMessage: "mismatched note-version public inputs",
+      label: "note-version",
+      mutate: () => ({ noteVersion: 99 }),
+    },
+  ]) {
+    const tamperedRegisterRoot = await requestJson(baseUrl, "/private-core/register-root", {
+      body: JSON.stringify({
+        sourceArtifacts: {
+          noteCommitment: fixture.validBoundary.privateWitness.noteCommitment,
         },
-      },
-    }),
-    method: "POST",
-  });
+        witnessPackage: {
+          ...witnessPackage,
+          sourcePublicInputs: {
+            ...witnessPackage.sourcePublicInputs,
+            ...tamperCase.mutate(),
+          },
+        },
+      }),
+      method: "POST",
+    });
 
-  if (tamperedRegisterRoot.ok || !tamperedRegisterRoot.text.includes("mismatched amount public inputs")) {
-    throw new Error(
-      tamperedRegisterRoot.text ||
-        "operator root registration unexpectedly accepted mismatched source public inputs",
-    );
-  }
-  const rootStateAfterTamperedRegistration = await requestJson(baseUrl, "/state/private-core-roots", {
-    method: "GET",
-  });
-  if (
-    !rootStateAfterTamperedRegistration.ok ||
-    !Array.isArray(rootStateAfterTamperedRegistration.parsed?.records) ||
-    rootStateAfterTamperedRegistration.parsed.records.length !== 0
-  ) {
-    throw new Error(
-      JSON.stringify(rootStateAfterTamperedRegistration.parsed) ||
-        "tampered root registration mutated operator root state",
-    );
+    if (tamperedRegisterRoot.ok || !tamperedRegisterRoot.text.includes(tamperCase.expectedMessage)) {
+      throw new Error(
+        tamperedRegisterRoot.text ||
+          `operator root registration unexpectedly accepted mismatched ${tamperCase.label} source public input`,
+      );
+    }
+    const rootStateAfterTamperedRegistration = await requestJson(baseUrl, "/state/private-core-roots", {
+      method: "GET",
+    });
+    if (
+      !rootStateAfterTamperedRegistration.ok ||
+      !Array.isArray(rootStateAfterTamperedRegistration.parsed?.records) ||
+      rootStateAfterTamperedRegistration.parsed.records.length !== 0
+    ) {
+      throw new Error(
+        JSON.stringify(rootStateAfterTamperedRegistration.parsed) ||
+          "tampered root registration mutated operator root state",
+      );
+    }
   }
   printStatus("operator http root registration consistency gate: PASS");
 
@@ -347,38 +375,66 @@ try {
   }
   printStatus("operator http current-root restore: PASS");
 
-  const tamperedConsume = await requestJson(baseUrl, "/private-core/unshield-consume", {
-    body: JSON.stringify({
-      witnessPackage: {
-        ...witnessPackage,
-        sourcePublicInputs: {
-          ...witnessPackage.sourcePublicInputs,
-          amount: "1",
+  for (const tamperCase of [
+    {
+      expectedMessage: "mismatched amount public inputs",
+      label: "amount",
+      mutate: () => ({ amount: "1" }),
+    },
+    {
+      expectedMessage: "mismatched release destination public inputs",
+      label: "release-destination",
+      mutate: () => ({
+        releaseDestination:
+          "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      }),
+    },
+    {
+      expectedMessage: "mismatched asset public inputs",
+      label: "asset",
+      mutate: () => ({
+        assetId: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      }),
+    },
+    {
+      expectedMessage: "mismatched note-version public inputs",
+      label: "note-version",
+      mutate: () => ({ noteVersion: 99 }),
+    },
+  ]) {
+    const tamperedConsume = await requestJson(baseUrl, "/private-core/unshield-consume", {
+      body: JSON.stringify({
+        witnessPackage: {
+          ...witnessPackage,
+          sourcePublicInputs: {
+            ...witnessPackage.sourcePublicInputs,
+            ...tamperCase.mutate(),
+          },
         },
-      },
-    }),
-    method: "POST",
-  });
+      }),
+      method: "POST",
+    });
 
-  if (tamperedConsume.ok || !tamperedConsume.text.includes("mismatched amount public inputs")) {
-    throw new Error(
-      tamperedConsume.text ||
-        "operator consume unexpectedly accepted mismatched source public inputs",
-    );
-  }
+    if (tamperedConsume.ok || !tamperedConsume.text.includes(tamperCase.expectedMessage)) {
+      throw new Error(
+        tamperedConsume.text ||
+          `operator consume unexpectedly accepted mismatched ${tamperCase.label} source public input`,
+      );
+    }
 
-  const consumeStateAfterTamperedConsume = await requestJson(baseUrl, "/state/private-core-consumes", {
-    method: "GET",
-  });
-  if (
-    !consumeStateAfterTamperedConsume.ok ||
-    !Array.isArray(consumeStateAfterTamperedConsume.parsed?.records) ||
-    consumeStateAfterTamperedConsume.parsed.records.length !== 0
-  ) {
-    throw new Error(
-      JSON.stringify(consumeStateAfterTamperedConsume.parsed) ||
-        "tampered consume mutated operator consume state",
-    );
+    const consumeStateAfterTamperedConsume = await requestJson(baseUrl, "/state/private-core-consumes", {
+      method: "GET",
+    });
+    if (
+      !consumeStateAfterTamperedConsume.ok ||
+      !Array.isArray(consumeStateAfterTamperedConsume.parsed?.records) ||
+      consumeStateAfterTamperedConsume.parsed.records.length !== 0
+    ) {
+      throw new Error(
+        JSON.stringify(consumeStateAfterTamperedConsume.parsed) ||
+          "tampered consume mutated operator consume state",
+      );
+    }
   }
   printStatus("operator http consume consistency gate: PASS");
 

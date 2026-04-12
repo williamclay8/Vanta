@@ -90,10 +90,18 @@ This command:
 - verifies `/private-core/unshield-proof`
 - verifies `/private-core/unshield-consume` is rejected before root registration
 - registers the root through `/private-core/register-root`
-- verifies tampered root registration is rejected without mutating root state
+- verifies tampered root registration is rejected without mutating root state for the full validated public surface:
+  - `releaseDestination`
+  - `assetId`
+  - `amount`
+  - `noteVersion`
 - verifies a newer stale root causes the original root to be rejected as non-current
 - re-registers the current root and verifies it becomes current again
-- verifies tampered consume is rejected without mutating consume state
+- verifies tampered consume is rejected without mutating consume state for the full validated public surface:
+  - `releaseDestination`
+  - `assetId`
+  - `amount`
+  - `noteVersion`
 - verifies consume succeeds once and replay is rejected
 - verifies the operator state endpoints reflect the registered root and consumed nullifier
 
