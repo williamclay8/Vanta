@@ -91,7 +91,11 @@ export function VantaPrivateCoreStatePanel({
               <span>{shieldState.noteType} note</span>
               <span>Source root {abbreviate(holdState?.sourceWitnessRoot ?? shieldState.sourceMerkleRoot)}</span>
               <span>Source payload {abbreviate(shieldState.sourcePayloadCommitment)}</span>
-              {unshieldState?.sourceNullifier && <span>Source nullifier {abbreviate(unshieldState.sourceNullifier)}</span>}
+              {(unshieldState?.sourceNullifier ?? holdState?.sourceProofPreviewNullifier) && (
+                <span>
+                  Source nullifier {abbreviate(unshieldState?.sourceNullifier ?? holdState?.sourceProofPreviewNullifier)}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -300,7 +304,7 @@ export function VantaPrivateCoreStatePanel({
             </div>
             <div className="review-row">
               <span>Source nullifier</span>
-              <strong>{abbreviate(unshieldState?.sourceNullifier)}</strong>
+              <strong>{abbreviate(unshieldState?.sourceNullifier ?? holdState?.sourceProofPreviewNullifier)}</strong>
             </div>
             <div className="review-row">
               <span>Replay</span>
