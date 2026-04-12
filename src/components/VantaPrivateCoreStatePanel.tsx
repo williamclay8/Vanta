@@ -89,9 +89,9 @@ export function VantaPrivateCoreStatePanel({
 
             <div className="note-state-row__meta">
               <span>{shieldState.noteType} note</span>
-              <span>Root {abbreviate(holdState?.sourceWitnessRoot ?? shieldState.sourceMerkleRoot)}</span>
-              <span>Payload {abbreviate(shieldState.sourcePayloadCommitment)}</span>
-              {unshieldState?.sourceNullifier && <span>Nullifier {abbreviate(unshieldState.sourceNullifier)}</span>}
+              <span>Source root {abbreviate(holdState?.sourceWitnessRoot ?? shieldState.sourceMerkleRoot)}</span>
+              <span>Source payload {abbreviate(shieldState.sourcePayloadCommitment)}</span>
+              {unshieldState?.sourceNullifier && <span>Source nullifier {abbreviate(unshieldState.sourceNullifier)}</span>}
             </div>
           </div>
         </div>

@@ -971,17 +971,23 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                       <strong>{abbreviate(privateCoreOwner.publicKey) ?? privateCoreOwner.publicKey}</strong>
                     </div>
                     <div className="review-row">
-                      <span>Note commitment</span>
+                      <span>Source note commitment</span>
                       <strong>{abbreviate(privateCoreRecentShield.sourceNoteCommitment) ?? privateCoreRecentShield.sourceNoteCommitment}</strong>
                     </div>
                     <div className="review-row">
-                      <span>Merkle root</span>
+                      <span>Source Merkle root</span>
                       <strong>{abbreviate(privateCoreRecentShield.sourceMerkleRoot) ?? privateCoreRecentShield.sourceMerkleRoot}</strong>
                     </div>
                     <div className="review-row">
                       <span>Encrypted payload</span>
                       <strong>{privateCoreRecentShield.encryptedPayload ? "Present" : "Missing"}</strong>
                     </div>
+                    {privateCoreHoldState && (
+                      <div className="review-row">
+                        <span>Proving preview lane</span>
+                        <strong>{privateCoreHoldState.provingPreviewHashLane}</strong>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
