@@ -159,6 +159,7 @@ try {
   if (
     !initialRootState.ok ||
     initialRootState.parsed?.stateVersion !== 1 ||
+    initialRootState.parsed?.currentRecord !== null ||
     initialRootState.parsed?.currentRoot !== null ||
     !Array.isArray(initialRootState.parsed?.records) ||
     initialRootState.parsed.records.length !== 0
@@ -448,6 +449,10 @@ try {
   if (
     !rootState.ok ||
     rootState.parsed?.stateVersion !== 1 ||
+    !rootState.parsed?.currentRecord ||
+    rootState.parsed.currentRecord.root !== witnessPackage.sourcePublicInputs.stateRoot ||
+    rootState.parsed.currentRecord.artifactBundleStatus !== "complete" ||
+    rootState.parsed.currentRecord.artifactBundleVersion !== 1 ||
     rootState.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
     !Array.isArray(rootState.parsed?.records) ||
     !rootState.parsed.records.some(
@@ -512,6 +517,8 @@ try {
   if (
     !currentRootState.ok ||
     currentRootState.parsed?.stateVersion !== 1 ||
+    !currentRootState.parsed?.currentRecord ||
+    currentRootState.parsed.currentRecord.root !== witnessPackage.sourcePublicInputs.stateRoot ||
     currentRootState.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
     !Array.isArray(currentRootState.parsed?.records) ||
     currentRootState.parsed.records[0]?.root !== witnessPackage.sourcePublicInputs.stateRoot

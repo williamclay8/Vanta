@@ -37,6 +37,7 @@ export function AppDashboardPage() {
     privateCoreOperatorConsumes,
     privateCoreOperatorCurrentRoot,
     privateCoreOperatorLatestConsume,
+    privateCoreOperatorLatestRoot,
     privateCoreOperatorRootCurrentnessLabel,
     privateCoreOperatorRootError,
     privateCoreOperatorRootRegistrationStatus,
@@ -184,6 +185,7 @@ export function AppDashboardPage() {
               operatorConsumeError={privateCoreOperatorConsumeError}
               operatorConsumes={privateCoreOperatorConsumes}
               operatorLatestConsume={privateCoreOperatorLatestConsume}
+              operatorLatestRoot={privateCoreOperatorLatestRoot}
               operatorRootCurrentnessLabel={privateCoreOperatorRootCurrentnessLabel}
               operatorRootError={privateCoreOperatorRootError}
               operatorRootRegistrationStatus={privateCoreOperatorRootRegistrationStatus}

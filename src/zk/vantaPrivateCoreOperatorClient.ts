@@ -53,6 +53,7 @@ export type VantaPrivateCoreOperatorRootRecord = {
 };
 
 export type VantaPrivateCoreOperatorRootStateResponse = {
+  currentRecord: VantaPrivateCoreOperatorRootRecord | null;
   stateVersion: number;
   currentRoot: string | null;
   records: VantaPrivateCoreOperatorRootRecord[];
@@ -256,12 +257,16 @@ export async function fetchVantaPrivateCoreOperatorRoots(): Promise<VantaPrivate
   }
 
   const parsed = (await response.json()) as {
+    currentRecord?: unknown;
     currentRoot?: unknown;
     records?: unknown;
     stateVersion?: unknown;
   };
   if (
     parsed.stateVersion !== 1 ||
+    (parsed.currentRecord !== null &&
+      parsed.currentRecord !== undefined &&
+      !isRootRecord(parsed.currentRecord)) ||
     (parsed.currentRoot !== null &&
       parsed.currentRoot !== undefined &&
       typeof parsed.currentRoot !== "string") ||
@@ -271,6 +276,7 @@ export async function fetchVantaPrivateCoreOperatorRoots(): Promise<VantaPrivate
   }
 
   return {
+    currentRecord: isRootRecord(parsed.currentRecord) ? parsed.currentRecord : null,
     stateVersion: 1,
     currentRoot: typeof parsed.currentRoot === "string" ? parsed.currentRoot : null,
     records: parsed.records.filter(isRootRecord),

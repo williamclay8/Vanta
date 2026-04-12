@@ -14,6 +14,7 @@ type VantaPrivateCoreStatePanelProps = {
   operatorConsumeError?: string | null;
   operatorConsumes?: VantaPrivateCoreOperatorConsumeRecord[];
   operatorLatestConsume?: VantaPrivateCoreOperatorConsumeRecord | null;
+  operatorLatestRoot?: VantaPrivateCoreOperatorRootRecord | null;
   operatorRootCurrentnessLabel?: string | null;
   operatorRootError?: string | null;
   operatorRootRegistrationStatus?: string | null;
@@ -45,6 +46,7 @@ export function VantaPrivateCoreStatePanel({
   operatorConsumeError = null,
   operatorConsumes = [],
   operatorLatestConsume = null,
+  operatorLatestRoot = null,
   operatorRootCurrentnessLabel = null,
   operatorRootError = null,
   operatorRootRegistrationStatus = null,
@@ -55,7 +57,7 @@ export function VantaPrivateCoreStatePanel({
   title = "Vanta Private Core private state",
 }: VantaPrivateCoreStatePanelProps) {
   const latestOperatorConsume = operatorLatestConsume ?? operatorConsumes[0] ?? null;
-  const latestOperatorRoot = operatorRoots[0] ?? null;
+  const latestOperatorRoot = operatorLatestRoot ?? operatorRoots[0] ?? null;
 
   return (
     <div className="note-state-panel vanta-private-core-state-panel">
