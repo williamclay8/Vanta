@@ -93,6 +93,7 @@ export type VantaPrivateCoreHoldState = {
   privateNoteRecovered: boolean;
   witnessAvailable: boolean;
   proofObservationMode: string;
+  replayPreviewStatus: string;
   sourceWitnessRoot: string;
   sourceProofPreviewStatement: string;
   sourceProofPreviewVerifier: string;
@@ -286,6 +287,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateNoteRecovered: true,
       witnessAvailable: true,
       proofObservationMode: "Preview before consume",
+      replayPreviewStatus: "Ready after first consume",
       sourceWitnessRoot: sourceHoldArtifacts.witnessRoot ?? hold.witness.root,
       sourceProofPreviewStatement: sourceProofPreviewSummary.statement,
       sourceProofPreviewVerifier: sourceProofPreviewSummary.proof,

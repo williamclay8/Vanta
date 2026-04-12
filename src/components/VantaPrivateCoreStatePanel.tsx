@@ -320,7 +320,11 @@ export function VantaPrivateCoreStatePanel({
             </div>
             <div className="review-row">
               <span>Replay</span>
-              <strong>{unshieldState?.replayRejected ? "Rejected" : "Not yet tested"}</strong>
+              <strong>
+                {unshieldState?.replayRejected
+                  ? "Rejected"
+                  : holdState?.replayPreviewStatus ?? "Not yet tested"}
+              </strong>
             </div>
           </div>
         </details>
