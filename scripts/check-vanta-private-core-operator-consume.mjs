@@ -281,6 +281,8 @@ try {
   const registeredRootRecord = rootStore.getLatestRoot();
   if (
     !registeredRootRecord ||
+    registeredRootRecord.artifactBundleStatus !== "complete" ||
+    registeredRootRecord.artifactBundleVersion !== 1 ||
     registeredRootRecord.noteCommitment !== sourceArtifacts.noteCommitment ||
     registeredRootRecord.merkleLeaf !== sourceArtifacts.merkleLeaf ||
     registeredRootRecord.witnessRoot !== sourceArtifacts.witnessRoot ||

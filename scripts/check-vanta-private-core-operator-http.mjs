@@ -452,6 +452,8 @@ try {
     !Array.isArray(rootState.parsed?.records) ||
     !rootState.parsed.records.some(
       (record) =>
+        record.artifactBundleStatus === "complete" &&
+        record.artifactBundleVersion === 1 &&
         record.root === witnessPackage.sourcePublicInputs.stateRoot &&
         record.noteCommitment === sourceArtifacts.noteCommitment &&
         record.merkleLeaf === sourceArtifacts.merkleLeaf &&

@@ -296,6 +296,18 @@ export function VantaPrivateCoreStatePanel({
               </strong>
             </div>
             <div className="review-row">
+              <span>Operator artifact bundle</span>
+              <strong>
+                {operatorRootError
+                  ? operatorRootError
+                  : latestOperatorRoot?.artifactBundleStatus === "complete"
+                    ? `Complete v${String(latestOperatorRoot.artifactBundleVersion ?? 1)}`
+                    : latestOperatorRoot?.artifactBundleStatus === "legacy-incomplete"
+                      ? "Legacy incomplete"
+                      : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
               <span>Merkle depth</span>
               <strong>{String(unshieldState?.proofMerkleDepth ?? holdState?.proofMerkleDepth ?? 0)}</strong>
             </div>

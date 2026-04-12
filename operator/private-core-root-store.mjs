@@ -21,13 +21,15 @@ export function createPrivateCoreRootStore(options = {}) {
       return this.listRoots()[0] ?? null;
     },
     listRoots() {
-      return Object.values(state.roots).sort((left, right) => right.recordedAt - left.recordedAt);
+      return Object.values(state.roots)
+        .map(normalizeRootRecord)
+        .sort((left, right) => right.recordedAt - left.recordedAt);
     },
     recordRoot(record) {
-      state.roots[record.root] = {
+      state.roots[record.root] = normalizeRootRecord({
         ...record,
         recordedAt: nextRecordedAt(state, record.recordedAt),
-      };
+      });
       persistStore(filePath, state);
     },
   };
@@ -65,6 +67,32 @@ function persistStore(filePath, state) {
 
 function isRecordMap(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function normalizeRootRecord(record) {
+  const noteCommitment = typeof record?.noteCommitment === "string" ? record.noteCommitment : null;
+  const merkleLeaf = typeof record?.merkleLeaf === "string" ? record.merkleLeaf : null;
+  const witnessRoot = typeof record?.witnessRoot === "string" ? record.witnessRoot : null;
+  const artifactBundleComplete =
+    noteCommitment !== null && merkleLeaf !== null && witnessRoot !== null;
+
+  return {
+    amount: typeof record?.amount === "string" ? record.amount : null,
+    assetId: typeof record?.assetId === "string" ? record.assetId : null,
+    artifactBundleStatus: artifactBundleComplete ? "complete" : "legacy-incomplete",
+    artifactBundleVersion:
+      typeof record?.artifactBundleVersion === "number"
+        ? record.artifactBundleVersion
+        : artifactBundleComplete
+          ? 1
+          : null,
+    merkleLeaf,
+    noteCommitment,
+    recordedAt: typeof record?.recordedAt === "number" ? record.recordedAt : 0,
+    root: typeof record?.root === "string" ? record.root : "",
+    source: typeof record?.source === "string" ? record.source : "unknown",
+    witnessRoot,
+  };
 }
 
 function nextRecordedAt(state, requestedAt) {

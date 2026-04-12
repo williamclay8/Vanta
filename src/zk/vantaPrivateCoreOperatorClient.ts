@@ -42,6 +42,8 @@ export type VantaPrivateCoreOperatorConsumeStateResponse = {
 export type VantaPrivateCoreOperatorRootRecord = {
   amount: string | null;
   assetId: string | null;
+  artifactBundleStatus: "complete" | "legacy-incomplete";
+  artifactBundleVersion: number | null;
   merkleLeaf: string | null;
   noteCommitment: string | null;
   recordedAt: number;
@@ -302,6 +304,11 @@ function isRootRecord(value: unknown): value is VantaPrivateCoreOperatorRootReco
   return (
     typeof value === "object" &&
     value !== null &&
+    ((value as VantaPrivateCoreOperatorRootRecord).artifactBundleStatus === "complete" ||
+      (value as VantaPrivateCoreOperatorRootRecord).artifactBundleStatus === "legacy-incomplete") &&
+    (((value as VantaPrivateCoreOperatorRootRecord).artifactBundleVersion === null ||
+      (value as VantaPrivateCoreOperatorRootRecord).artifactBundleVersion === undefined) ||
+      typeof (value as VantaPrivateCoreOperatorRootRecord).artifactBundleVersion === "number") &&
     typeof (value as VantaPrivateCoreOperatorRootRecord).recordedAt === "number" &&
     typeof (value as VantaPrivateCoreOperatorRootRecord).root === "string" &&
     typeof (value as VantaPrivateCoreOperatorRootRecord).source === "string"
