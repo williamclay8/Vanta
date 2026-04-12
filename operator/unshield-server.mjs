@@ -191,8 +191,10 @@ const server = createServer(async (request, response) => {
   if (request.method === "GET" && request.url === "/state/private-core-roots") {
     writeCorsHeaders(response);
     response.writeHead(200, { "Content-Type": "application/json" });
+    const currentRoot = privateCoreRootStore.getLatestRoot()?.root ?? null;
     response.end(
       JSON.stringify({
+        currentRoot,
         records: privateCoreRootStore.listRoots(),
       }),
     );

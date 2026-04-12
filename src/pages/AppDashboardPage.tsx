@@ -35,6 +35,7 @@ export function AppDashboardPage() {
     privateCoreHoldState,
     privateCoreOperatorConsumeError,
     privateCoreOperatorConsumes,
+    privateCoreOperatorCurrentRoot,
     privateCoreOperatorRootCurrentnessLabel,
     privateCoreOperatorRootError,
     privateCoreOperatorRootRegistrationStatus,
@@ -178,6 +179,7 @@ export function AppDashboardPage() {
             <VantaPrivateCoreStatePanel
               compact
               holdState={privateCoreHoldState}
+              operatorCurrentRoot={privateCoreOperatorCurrentRoot}
               operatorConsumeError={privateCoreOperatorConsumeError}
               operatorConsumes={privateCoreOperatorConsumes}
               operatorRootCurrentnessLabel={privateCoreOperatorRootCurrentnessLabel}

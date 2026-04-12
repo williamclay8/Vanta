@@ -325,6 +325,7 @@ try {
   const rootState = await requestJson(baseUrl, "/state/private-core-roots", { method: "GET" });
   if (
     !rootState.ok ||
+    rootState.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
     !Array.isArray(rootState.parsed?.records) ||
     !rootState.parsed.records.some((record) => record.root === witnessPackage.sourcePublicInputs.stateRoot)
   ) {
@@ -380,6 +381,7 @@ try {
   const currentRootState = await requestJson(baseUrl, "/state/private-core-roots", { method: "GET" });
   if (
     !currentRootState.ok ||
+    currentRootState.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
     !Array.isArray(currentRootState.parsed?.records) ||
     currentRootState.parsed.records[0]?.root !== witnessPackage.sourcePublicInputs.stateRoot
   ) {

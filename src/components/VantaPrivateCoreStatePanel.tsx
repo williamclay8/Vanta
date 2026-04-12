@@ -10,6 +10,7 @@ import type {
 
 type VantaPrivateCoreStatePanelProps = {
   holdState: VantaPrivateCoreHoldState | null;
+  operatorCurrentRoot?: string | null;
   operatorConsumeError?: string | null;
   operatorConsumes?: VantaPrivateCoreOperatorConsumeRecord[];
   operatorRootCurrentnessLabel?: string | null;
@@ -39,6 +40,7 @@ function formatAmount(baseUnits: string) {
 
 export function VantaPrivateCoreStatePanel({
   holdState,
+  operatorCurrentRoot = null,
   operatorConsumeError = null,
   operatorConsumes = [],
   operatorRootCurrentnessLabel = null,
@@ -278,6 +280,16 @@ export function VantaPrivateCoreStatePanel({
                   ? operatorRootError
                   : latestOperatorRoot?.root
                     ? abbreviate(latestOperatorRoot.root)
+                    : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Operator current root</span>
+              <strong>
+                {operatorRootError
+                  ? operatorRootError
+                  : operatorCurrentRoot
+                    ? abbreviate(operatorCurrentRoot)
                     : "Unavailable"}
               </strong>
             </div>

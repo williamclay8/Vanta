@@ -42,6 +42,11 @@ export type VantaPrivateCoreOperatorRootRecord = {
   source: string;
 };
 
+export type VantaPrivateCoreOperatorRootStateResponse = {
+  currentRoot: string | null;
+  records: VantaPrivateCoreOperatorRootRecord[];
+};
+
 export type VantaPrivateCoreOperatorRootRegistrationResponse = {
   known: boolean;
   root: string;
@@ -212,9 +217,7 @@ export async function fetchVantaPrivateCoreOperatorConsumes(): Promise<
   return parsed.records.filter(isConsumeRecord);
 }
 
-export async function fetchVantaPrivateCoreOperatorRoots(): Promise<
-  VantaPrivateCoreOperatorRootRecord[]
-> {
+export async function fetchVantaPrivateCoreOperatorRoots(): Promise<VantaPrivateCoreOperatorRootStateResponse> {
   const response = await fetch(getPrivateCoreRootStateUrl(), {
     method: "GET",
     signal: AbortSignal.timeout(15_000),
@@ -225,12 +228,20 @@ export async function fetchVantaPrivateCoreOperatorRoots(): Promise<
     throw new Error(message || "The private-core root operator state endpoint failed.");
   }
 
-  const parsed = (await response.json()) as { records?: unknown };
-  if (!Array.isArray(parsed.records)) {
+  const parsed = (await response.json()) as { currentRoot?: unknown; records?: unknown };
+  if (
+    (parsed.currentRoot !== null &&
+      parsed.currentRoot !== undefined &&
+      typeof parsed.currentRoot !== "string") ||
+    !Array.isArray(parsed.records)
+  ) {
     throw new Error("The private-core root operator state endpoint returned invalid data.");
   }
 
-  return parsed.records.filter(isRootRecord);
+  return {
+    currentRoot: typeof parsed.currentRoot === "string" ? parsed.currentRoot : null,
+    records: parsed.records.filter(isRootRecord),
+  };
 }
 
 function getPrivateCoreConsumeStateUrl() {

@@ -99,6 +99,7 @@ export function UnshieldPage() {
     privateCoreHoldState,
     privateCoreOperatorConsumeError,
     privateCoreOperatorConsumes,
+    privateCoreOperatorCurrentRoot,
     privateCoreOperatorRootCurrentnessLabel,
     privateCoreOperatorRootError,
     privateCoreOperatorRootRegistrationStatus,
@@ -823,6 +824,7 @@ export function UnshieldPage() {
 
         <VantaPrivateCoreStatePanel
           holdState={privateCoreHoldState}
+          operatorCurrentRoot={privateCoreOperatorCurrentRoot}
           operatorConsumeError={privateCoreOperatorConsumeError}
           operatorConsumes={privateCoreOperatorConsumes}
           operatorRootCurrentnessLabel={privateCoreOperatorRootCurrentnessLabel}
