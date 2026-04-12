@@ -200,6 +200,11 @@ export type VantaPrivateCoreUnshieldProofEnvelopeSummaryV0 = {
   leafIndex: number;
 };
 
+export type VantaPrivateCoreUnshieldProofEnvelopeVerificationSummaryV0 = {
+  verified: boolean;
+  statusLabel: "Verified" | "Failed";
+};
+
 export type VantaPrivateCoreDemoRunV0 = {
   happyPath: {
     shield: ShieldArtifactV0;
@@ -606,6 +611,17 @@ export function summarizeVantaPrivateCoreUnshieldProofEnvelope(
     assetId: envelope.publicInputs.assetId,
     amount: envelope.publicInputs.amount,
     leafIndex: envelope.publicInputs.leafIndex,
+  };
+}
+
+export function summarizeVantaPrivateCoreUnshieldProofEnvelopeVerification(
+  envelope: UnshieldProofEnvelopeV0,
+): VantaPrivateCoreUnshieldProofEnvelopeVerificationSummaryV0 {
+  const verified = verifyVantaPrivateCoreUnshieldProofEnvelope(envelope);
+
+  return {
+    verified,
+    statusLabel: verified ? "Verified" : "Failed",
   };
 }
 

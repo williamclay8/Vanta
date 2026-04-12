@@ -219,6 +219,10 @@ export function VantaPrivateCoreStatePanel({
               <strong>{String(unshieldState?.sourceProofLeafIndex ?? 0)}</strong>
             </div>
             <div className="review-row">
+              <span>Source proof status</span>
+              <strong>{unshieldState?.sourceProofStatusLabel ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
               <span>{unshieldState ? "Proving lane" : "Proving preview lane"}</span>
               <strong>{unshieldState?.provingHashLane ?? holdState?.provingPreviewHashLane ?? "Unavailable"}</strong>
             </div>

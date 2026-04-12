@@ -14,6 +14,7 @@ import {
   deriveVantaPrivateCoreSourceArtifactsFromShieldArtifact,
   deriveVantaPrivateCoreSourceArtifactsFromUnshieldResult,
   summarizeVantaPrivateCoreUnshieldProofEnvelope,
+  summarizeVantaPrivateCoreUnshieldProofEnvelopeVerification,
   type VantaPrivateCoreOwnerKeypair,
   type CiphertextPackageV0,
   type HeldNoteViewV0,
@@ -132,6 +133,8 @@ export type VantaPrivateCoreUnshieldState = {
   sourceProofAssetId: string | null;
   sourceProofAmount: string | null;
   sourceProofLeafIndex: number | null;
+  sourceProofVerified: boolean | null;
+  sourceProofStatusLabel: string | null;
   provingHashLane: string | null;
   provingNoteCommitment: string | null;
   provingMerkleLeaf: string | null;
@@ -275,6 +278,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceProofAssetId: null,
         sourceProofAmount: null,
         sourceProofLeafIndex: null,
+        sourceProofVerified: null,
+        sourceProofStatusLabel: null,
         provingHashLane: null,
         provingNoteCommitment: null,
         provingMerkleLeaf: null,
@@ -323,6 +328,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     });
     const provingArtifacts = deriveVantaPrivateCoreProvingArtifactsFromBoundary(proofBoundary);
     const sourceProofSummary = summarizeVantaPrivateCoreUnshieldProofEnvelope(proofEnvelope);
+    const sourceProofVerification = summarizeVantaPrivateCoreUnshieldProofEnvelopeVerification(
+      proofEnvelope,
+    );
     const proofStatus = summarizeVantaPrivateCoreProofBoundaryStatus(proofBoundary);
     const proofCompatibility = summarizeVantaPrivateCoreProofBoundaryCompatibility(proofBoundary);
     const proofConfiguration = summarizeVantaPrivateCoreProofBoundaryConfiguration(proofBoundary);
@@ -351,6 +359,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceProofAssetId: sourceProofSummary.assetId,
         sourceProofAmount: sourceProofSummary.amount,
         sourceProofLeafIndex: sourceProofSummary.leafIndex,
+        sourceProofVerified: sourceProofVerification.verified,
+        sourceProofStatusLabel: sourceProofVerification.statusLabel,
         provingHashLane: provingArtifacts.provingHashLane,
         provingNoteCommitment: provingArtifacts.provingNoteCommitment,
         provingMerkleLeaf: provingArtifacts.provingMerkleLeaf,
@@ -406,6 +416,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceProofAssetId: sourceProofSummary.assetId,
         sourceProofAmount: sourceProofSummary.amount,
         sourceProofLeafIndex: sourceProofSummary.leafIndex,
+        sourceProofVerified: sourceProofVerification.verified,
+        sourceProofStatusLabel: sourceProofVerification.statusLabel,
         provingHashLane: provingArtifacts.provingHashLane,
         provingNoteCommitment: provingArtifacts.provingNoteCommitment,
         provingMerkleLeaf: provingArtifacts.provingMerkleLeaf,
@@ -457,6 +469,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceProofAssetId: null,
         sourceProofAmount: null,
         sourceProofLeafIndex: null,
+        sourceProofVerified: null,
+        sourceProofStatusLabel: null,
         provingHashLane: null,
         provingNoteCommitment: null,
         provingMerkleLeaf: null,
@@ -505,6 +519,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     });
     const provingArtifacts = deriveVantaPrivateCoreProvingArtifactsFromBoundary(proofBoundary);
     const sourceProofSummary = summarizeVantaPrivateCoreUnshieldProofEnvelope(proofEnvelope);
+    const sourceProofVerification = summarizeVantaPrivateCoreUnshieldProofEnvelopeVerification(
+      proofEnvelope,
+    );
     const proofStatus = summarizeVantaPrivateCoreProofBoundaryStatus(proofBoundary);
     const proofCompatibility = summarizeVantaPrivateCoreProofBoundaryCompatibility(proofBoundary);
     const proofConfiguration = summarizeVantaPrivateCoreProofBoundaryConfiguration(proofBoundary);
@@ -533,6 +550,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceProofAssetId: sourceProofSummary.assetId,
         sourceProofAmount: sourceProofSummary.amount,
         sourceProofLeafIndex: sourceProofSummary.leafIndex,
+        sourceProofVerified: sourceProofVerification.verified,
+        sourceProofStatusLabel: sourceProofVerification.statusLabel,
         provingHashLane: provingArtifacts.provingHashLane,
         provingNoteCommitment: provingArtifacts.provingNoteCommitment,
         provingMerkleLeaf: provingArtifacts.provingMerkleLeaf,
@@ -588,6 +607,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceProofAssetId: sourceProofSummary.assetId,
         sourceProofAmount: sourceProofSummary.amount,
         sourceProofLeafIndex: sourceProofSummary.leafIndex,
+        sourceProofVerified: sourceProofVerification.verified,
+        sourceProofStatusLabel: sourceProofVerification.statusLabel,
         provingHashLane: provingArtifacts.provingHashLane,
         provingNoteCommitment: provingArtifacts.provingNoteCommitment,
         provingMerkleLeaf: provingArtifacts.provingMerkleLeaf,
