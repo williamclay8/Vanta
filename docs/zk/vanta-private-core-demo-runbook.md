@@ -20,6 +20,12 @@ npm run private-core:demo-readiness
 npm run private-core:operator-status
 ```
 
+Or use the single combined command:
+
+```bash
+npm run private-core:demo-preflight
+```
+
 That confirms:
 - the app builds
 - the fixed-depth Noir circuit still passes the valid fixture and rejects the invalid fixture

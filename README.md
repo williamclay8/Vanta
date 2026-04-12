@@ -160,6 +160,7 @@ npm run private-core:check
 npm run private-core:prove
 npm run private-core:verify
 npm run private-core:demo-readiness
+npm run private-core:demo-preflight
 npm run private-core:operator-status
 ```
 
@@ -170,6 +171,8 @@ These commands cover:
 - operator-backed consume and HTTP smoke coverage
 
 `private-core:demo-readiness` is the friendliest single entrypoint when you just want to know whether the current proof/demo lane is stage-ready.
+
+`private-core:demo-preflight` combines the full verification pass with the current operator status summary.
 
 `private-core:operator-status` gives a quick readout of the current operator root, consume, and release state when the operator server is running.
 

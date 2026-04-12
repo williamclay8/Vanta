@@ -175,6 +175,8 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   - real proof generation and verification
 - `npm run private-core:demo-readiness`
   aliases the same full verification pass with a more reviewer-friendly name
+- `npm run private-core:demo-preflight`
+  runs the full verification pass and then prints the current operator-side status summary
 - `npm run private-core:operator-status`
   prints the current operator-side root, consume, and release summary when the operator server is running
 
@@ -281,6 +283,12 @@ If the operator is already running, the quickest live status readout is:
 
 ```bash
 npm run private-core:operator-status
+```
+
+If you want one demo-operator command that does both the full verification pass and the live operator summary, use:
+
+```bash
+npm run private-core:demo-preflight
 ```
 
 ### Is shielding the same as hiding assets in a normal wallet?

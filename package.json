@@ -17,6 +17,7 @@
     "private-core:prove": "node scripts/prove-vanta-private-core-unshield.mjs",
     "private-core:verify": "npm run build && npm run private-core:check && npm run private-core:consume-check && npm run private-core:http-smoke && npm run private-core:prove",
     "private-core:demo-readiness": "npm run private-core:verify",
+    "private-core:demo-preflight": "npm run private-core:demo-readiness && npm run private-core:operator-status",
     "preview": "vite preview"
   },
   "dependencies": {
