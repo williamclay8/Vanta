@@ -828,6 +828,30 @@ export function UnshieldPage() {
             </p>
             <div className="review-list" style={{ marginTop: 12 }}>
               <div className="review-row">
+                <span>Private funds</span>
+                <strong>
+                  {privateCoreUnshieldState.consumeSucceeded
+                    ? "Exited once"
+                    : privateCoreUnshieldState.replayRejected
+                      ? "Second consume blocked"
+                      : "Awaiting successful consume"}
+                </strong>
+              </div>
+              <div className="review-row">
+                <span>Replay protection</span>
+                <strong>
+                  {privateCoreUnshieldState.replayRejected
+                    ? "Working"
+                    : privateCoreUnshieldState.consumeSucceeded
+                      ? "Ready to demonstrate"
+                      : "Not yet exercised"}
+                </strong>
+              </div>
+            </div>
+            <details className="shield-helper shield-helper--meta" style={{ marginTop: 12 }}>
+              <summary>Internal proof diagnostics</summary>
+              <div className="review-list" style={{ marginTop: 12 }}>
+              <div className="review-row">
                 <span>Nullifier</span>
                 <strong>{privateCoreUnshieldState.nullifier ? abbreviate(privateCoreUnshieldState.nullifier) : "Unavailable"}</strong>
               </div>
@@ -848,6 +872,34 @@ export function UnshieldPage() {
                 </strong>
               </div>
               <div className="review-row">
+                <span>Proving lane</span>
+                <strong>{privateCoreUnshieldState.provingHashLane ?? "Unavailable"}</strong>
+              </div>
+              <div className="review-row">
+                <span>Proving root</span>
+                <strong>
+                  {privateCoreUnshieldState.provingStateRoot
+                    ? abbreviate(privateCoreUnshieldState.provingStateRoot)
+                    : "Unavailable"}
+                </strong>
+              </div>
+              <div className="review-row">
+                <span>Proving nullifier</span>
+                <strong>
+                  {privateCoreUnshieldState.provingNullifier
+                    ? abbreviate(privateCoreUnshieldState.provingNullifier)
+                    : "Unavailable"}
+                </strong>
+              </div>
+              <div className="review-row">
+                <span>Consume context</span>
+                <strong>
+                  {privateCoreUnshieldState.provingConsumeContextTag
+                    ? abbreviate(privateCoreUnshieldState.provingConsumeContextTag)
+                    : "Unavailable"}
+                </strong>
+              </div>
+              <div className="review-row">
                 <span>Consume status</span>
                 <strong>
                   {privateCoreUnshieldState.consumeSucceeded
@@ -858,6 +910,7 @@ export function UnshieldPage() {
                 </strong>
               </div>
             </div>
+            </details>
           </div>
         )}
       </article>

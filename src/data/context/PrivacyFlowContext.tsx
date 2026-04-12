@@ -17,12 +17,18 @@ import {
   type UnshieldProofEnvelopeV0,
   type UnshieldResultV0,
 } from "@/zk/vantaPrivateCore";
+import {
+  buildVantaPrivateCoreUnshieldProofBoundary,
+  type VantaPrivateCoreUnshieldProofBoundaryV0,
+} from "@/zk/vantaPrivateCoreUnshieldProof";
 
 export type PrivacyAssetKey = "VUSD" | "USDC" | "JTO" | "BONK";
 
 const VANTA_PRIVATE_CORE_VUSD_ASSET_ID =
   "0x7675736400000000000000000000000000000000000000000000000000000000" as const;
 const VANTA_PRIVATE_CORE_VUSD_DECIMALS = 6;
+const VANTA_PRIVATE_CORE_DEMO_RELEASE_DESTINATION =
+  "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc" as const;
 
 export type RecentShieldContext = {
   asset: PrivacyAssetKey;
@@ -79,6 +85,11 @@ export type VantaPrivateCoreHoldState = {
 export type VantaPrivateCoreUnshieldState = {
   nullifier: string | null;
   proofEnvelope: UnshieldProofEnvelopeV0 | null;
+  proofBoundary: VantaPrivateCoreUnshieldProofBoundaryV0 | null;
+  provingHashLane: string | null;
+  provingStateRoot: string | null;
+  provingNullifier: string | null;
+  provingConsumeContextTag: string | null;
   consumeSucceeded: boolean;
   replayRejected: boolean;
   errorMessage: string | null;
@@ -139,6 +150,11 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       const nextState: VantaPrivateCoreUnshieldState = {
         nullifier: null,
         proofEnvelope: null,
+        proofBoundary: null,
+        provingHashLane: null,
+        provingStateRoot: null,
+        provingNullifier: null,
+        provingConsumeContextTag: null,
         consumeSucceeded: false,
         replayRejected: false,
         errorMessage: "No recovered private-core note is available to unshield.",
@@ -152,12 +168,23 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreHoldState.heldNote.note,
       privateCoreHoldState.heldNote.witness,
     );
+    const proofBoundary = buildVantaPrivateCoreUnshieldProofBoundary({
+      heldNote: privateCoreHoldState.heldNote,
+      ownerSecretKey: privateCoreOwner.secretKey,
+      releaseDestination: VANTA_PRIVATE_CORE_DEMO_RELEASE_DESTINATION,
+    });
 
     try {
       const result = privateCoreLedger.unshield(privateCoreHoldState.heldNote);
       const nextState: VantaPrivateCoreUnshieldState = {
         nullifier: result.nullifier.value,
         proofEnvelope,
+        proofBoundary,
+        provingHashLane: proofBoundary.noirWitnessPackage.provingHashLane,
+        provingStateRoot: proofBoundary.noirWitnessPackage.publicInputs.state_root,
+        provingNullifier: proofBoundary.noirWitnessPackage.publicInputs.nullifier,
+        provingConsumeContextTag:
+          proofBoundary.noirWitnessPackage.publicInputs.consume_context_tag_lo ?? null,
         consumeSucceeded: true,
         replayRejected: false,
         errorMessage: null,
@@ -169,6 +196,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       const nextState: VantaPrivateCoreUnshieldState = {
         nullifier: proofEnvelope.publicInputs.nullifier,
         proofEnvelope,
+        proofBoundary,
+        provingHashLane: proofBoundary.noirWitnessPackage.provingHashLane,
+        provingStateRoot: proofBoundary.noirWitnessPackage.publicInputs.state_root,
+        provingNullifier: proofBoundary.noirWitnessPackage.publicInputs.nullifier,
+        provingConsumeContextTag:
+          proofBoundary.noirWitnessPackage.publicInputs.consume_context_tag_lo ?? null,
         consumeSucceeded: false,
         replayRejected: false,
         errorMessage: error instanceof Error ? error.message : String(error),
@@ -184,6 +217,11 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       const nextState: VantaPrivateCoreUnshieldState = {
         nullifier: null,
         proofEnvelope: null,
+        proofBoundary: null,
+        provingHashLane: null,
+        provingStateRoot: null,
+        provingNullifier: null,
+        provingConsumeContextTag: null,
         consumeSucceeded: false,
         replayRejected: false,
         errorMessage: "No recovered private-core note is available for replay testing.",
@@ -197,12 +235,23 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreHoldState.heldNote.note,
       privateCoreHoldState.heldNote.witness,
     );
+    const proofBoundary = buildVantaPrivateCoreUnshieldProofBoundary({
+      heldNote: privateCoreHoldState.heldNote,
+      ownerSecretKey: privateCoreOwner.secretKey,
+      releaseDestination: VANTA_PRIVATE_CORE_DEMO_RELEASE_DESTINATION,
+    });
 
     try {
       const result = privateCoreLedger.unshield(privateCoreHoldState.heldNote);
       const nextState: VantaPrivateCoreUnshieldState = {
         nullifier: result.nullifier.value,
         proofEnvelope,
+        proofBoundary,
+        provingHashLane: proofBoundary.noirWitnessPackage.provingHashLane,
+        provingStateRoot: proofBoundary.noirWitnessPackage.publicInputs.state_root,
+        provingNullifier: proofBoundary.noirWitnessPackage.publicInputs.nullifier,
+        provingConsumeContextTag:
+          proofBoundary.noirWitnessPackage.publicInputs.consume_context_tag_lo ?? null,
         consumeSucceeded: true,
         replayRejected: false,
         errorMessage: null,
@@ -214,6 +263,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       const nextState: VantaPrivateCoreUnshieldState = {
         nullifier: proofEnvelope.publicInputs.nullifier,
         proofEnvelope,
+        proofBoundary,
+        provingHashLane: proofBoundary.noirWitnessPackage.provingHashLane,
+        provingStateRoot: proofBoundary.noirWitnessPackage.publicInputs.state_root,
+        provingNullifier: proofBoundary.noirWitnessPackage.publicInputs.nullifier,
+        provingConsumeContextTag:
+          proofBoundary.noirWitnessPackage.publicInputs.consume_context_tag_lo ?? null,
         consumeSucceeded: false,
         replayRejected: true,
         errorMessage: error instanceof Error ? error.message : String(error),

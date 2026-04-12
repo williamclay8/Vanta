@@ -127,6 +127,22 @@ export function VantaPrivateCoreStatePanel({
               <strong>{abbreviate(unshieldState?.nullifier)}</strong>
             </div>
             <div className="review-row">
+              <span>Proving lane</span>
+              <strong>{unshieldState?.provingHashLane ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Proving root</span>
+              <strong>{abbreviate(unshieldState?.provingStateRoot)}</strong>
+            </div>
+            <div className="review-row">
+              <span>Proving nullifier</span>
+              <strong>{abbreviate(unshieldState?.provingNullifier)}</strong>
+            </div>
+            <div className="review-row">
+              <span>Consume context</span>
+              <strong>{abbreviate(unshieldState?.provingConsumeContextTag)}</strong>
+            </div>
+            <div className="review-row">
               <span>Replay</span>
               <strong>{unshieldState?.replayRejected ? "Rejected" : "Not yet tested"}</strong>
             </div>
