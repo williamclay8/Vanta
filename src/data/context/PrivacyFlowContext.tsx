@@ -10,6 +10,9 @@ import {
   VantaPrivateCoreLedger,
   buildVantaPrivateCoreUnshieldProofEnvelope,
   createVantaPrivateCoreOwnerKeypair,
+  deriveVantaPrivateCoreSourceArtifactsFromHeldNote,
+  deriveVantaPrivateCoreSourceArtifactsFromShieldArtifact,
+  deriveVantaPrivateCoreSourceArtifactsFromUnshieldResult,
   type VantaPrivateCoreOwnerKeypair,
   type CiphertextPackageV0,
   type HeldNoteViewV0,
@@ -19,6 +22,7 @@ import {
 } from "@/zk/vantaPrivateCore";
 import {
   buildVantaPrivateCoreUnshieldProofBoundary,
+  deriveVantaPrivateCoreProvingArtifactsFromBoundary,
   type VantaPrivateCoreUnshieldProofBoundaryV0,
 } from "@/zk/vantaPrivateCoreUnshieldProof";
 
@@ -129,12 +133,16 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       ownerSecretKey: privateCoreOwner.secretKey,
       releaseDestination: VANTA_PRIVATE_CORE_DEMO_RELEASE_DESTINATION,
     });
+    const sourceShieldArtifacts = deriveVantaPrivateCoreSourceArtifactsFromShieldArtifact(shield);
+    const sourceHoldArtifacts = deriveVantaPrivateCoreSourceArtifactsFromHeldNote(hold);
+    const provingPreviewArtifacts = deriveVantaPrivateCoreProvingArtifactsFromBoundary(provingPreview);
     const nextShieldState: VantaPrivateCoreShieldState = {
       artifact: shield,
       encryptedPayload: shield.encryptedPayload,
-      sourceNoteCommitment: shield.commitment.value,
-      sourcePayloadCommitment: shield.encryptedPayload.payloadCommitment,
-      sourceMerkleRoot: shield.root,
+      sourceNoteCommitment: sourceShieldArtifacts.noteCommitment ?? shield.commitment.value,
+      sourcePayloadCommitment:
+        sourceShieldArtifacts.payloadCommitment ?? shield.encryptedPayload.payloadCommitment,
+      sourceMerkleRoot: sourceShieldArtifacts.merkleRoot ?? shield.root,
       assetId: shield.note.assetId,
       amount: shield.note.amount.toString(10),
       noteType: shield.note.noteType,
@@ -146,12 +154,11 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       heldNote: hold,
       privateNoteRecovered: true,
       witnessAvailable: true,
-      sourceWitnessRoot: hold.witness.root,
-      provingPreviewHashLane: provingPreview.noirWitnessPackage.provingHashLane,
-      provingPreviewStateRoot: provingPreview.noirWitnessPackage.publicInputs.state_root,
-      provingPreviewNullifier: provingPreview.noirWitnessPackage.publicInputs.nullifier,
-      provingPreviewConsumeContextTag:
-        provingPreview.noirWitnessPackage.publicInputs.consume_context_tag_lo ?? null,
+      sourceWitnessRoot: sourceHoldArtifacts.witnessRoot ?? hold.witness.root,
+      provingPreviewHashLane: provingPreviewArtifacts.provingHashLane,
+      provingPreviewStateRoot: provingPreviewArtifacts.provingStateRoot,
+      provingPreviewNullifier: provingPreviewArtifacts.provingNullifier,
+      provingPreviewConsumeContextTag: provingPreviewArtifacts.provingConsumeContextTag,
       noteSummary: `${formatBaseUnits(shield.note.amount, VANTA_PRIVATE_CORE_VUSD_DECIMALS)} VUSD private note`,
     });
     setPrivateCoreUnshieldState(null);
@@ -187,18 +194,19 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       ownerSecretKey: privateCoreOwner.secretKey,
       releaseDestination: VANTA_PRIVATE_CORE_DEMO_RELEASE_DESTINATION,
     });
+    const provingArtifacts = deriveVantaPrivateCoreProvingArtifactsFromBoundary(proofBoundary);
 
     try {
       const result = privateCoreLedger.unshield(privateCoreHoldState.heldNote);
+      const sourceUnshieldArtifacts = deriveVantaPrivateCoreSourceArtifactsFromUnshieldResult(result);
       const nextState: VantaPrivateCoreUnshieldState = {
-        sourceNullifier: result.nullifier.value,
+        sourceNullifier: sourceUnshieldArtifacts.nullifier ?? result.nullifier.value,
         proofEnvelope,
         proofBoundary,
-        provingHashLane: proofBoundary.noirWitnessPackage.provingHashLane,
-        provingStateRoot: proofBoundary.noirWitnessPackage.publicInputs.state_root,
-        provingNullifier: proofBoundary.noirWitnessPackage.publicInputs.nullifier,
-        provingConsumeContextTag:
-          proofBoundary.noirWitnessPackage.publicInputs.consume_context_tag_lo ?? null,
+        provingHashLane: provingArtifacts.provingHashLane,
+        provingStateRoot: provingArtifacts.provingStateRoot,
+        provingNullifier: provingArtifacts.provingNullifier,
+        provingConsumeContextTag: provingArtifacts.provingConsumeContextTag,
         consumeSucceeded: true,
         replayRejected: false,
         errorMessage: null,
@@ -211,11 +219,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceNullifier: proofEnvelope.publicInputs.nullifier,
         proofEnvelope,
         proofBoundary,
-        provingHashLane: proofBoundary.noirWitnessPackage.provingHashLane,
-        provingStateRoot: proofBoundary.noirWitnessPackage.publicInputs.state_root,
-        provingNullifier: proofBoundary.noirWitnessPackage.publicInputs.nullifier,
-        provingConsumeContextTag:
-          proofBoundary.noirWitnessPackage.publicInputs.consume_context_tag_lo ?? null,
+        provingHashLane: provingArtifacts.provingHashLane,
+        provingStateRoot: provingArtifacts.provingStateRoot,
+        provingNullifier: provingArtifacts.provingNullifier,
+        provingConsumeContextTag: provingArtifacts.provingConsumeContextTag,
         consumeSucceeded: false,
         replayRejected: false,
         errorMessage: error instanceof Error ? error.message : String(error),
@@ -254,18 +261,19 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       ownerSecretKey: privateCoreOwner.secretKey,
       releaseDestination: VANTA_PRIVATE_CORE_DEMO_RELEASE_DESTINATION,
     });
+    const provingArtifacts = deriveVantaPrivateCoreProvingArtifactsFromBoundary(proofBoundary);
 
     try {
       const result = privateCoreLedger.unshield(privateCoreHoldState.heldNote);
+      const sourceUnshieldArtifacts = deriveVantaPrivateCoreSourceArtifactsFromUnshieldResult(result);
       const nextState: VantaPrivateCoreUnshieldState = {
-        sourceNullifier: result.nullifier.value,
+        sourceNullifier: sourceUnshieldArtifacts.nullifier ?? result.nullifier.value,
         proofEnvelope,
         proofBoundary,
-        provingHashLane: proofBoundary.noirWitnessPackage.provingHashLane,
-        provingStateRoot: proofBoundary.noirWitnessPackage.publicInputs.state_root,
-        provingNullifier: proofBoundary.noirWitnessPackage.publicInputs.nullifier,
-        provingConsumeContextTag:
-          proofBoundary.noirWitnessPackage.publicInputs.consume_context_tag_lo ?? null,
+        provingHashLane: provingArtifacts.provingHashLane,
+        provingStateRoot: provingArtifacts.provingStateRoot,
+        provingNullifier: provingArtifacts.provingNullifier,
+        provingConsumeContextTag: provingArtifacts.provingConsumeContextTag,
         consumeSucceeded: true,
         replayRejected: false,
         errorMessage: null,
@@ -278,11 +286,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceNullifier: proofEnvelope.publicInputs.nullifier,
         proofEnvelope,
         proofBoundary,
-        provingHashLane: proofBoundary.noirWitnessPackage.provingHashLane,
-        provingStateRoot: proofBoundary.noirWitnessPackage.publicInputs.state_root,
-        provingNullifier: proofBoundary.noirWitnessPackage.publicInputs.nullifier,
-        provingConsumeContextTag:
-          proofBoundary.noirWitnessPackage.publicInputs.consume_context_tag_lo ?? null,
+        provingHashLane: provingArtifacts.provingHashLane,
+        provingStateRoot: provingArtifacts.provingStateRoot,
+        provingNullifier: provingArtifacts.provingNullifier,
+        provingConsumeContextTag: provingArtifacts.provingConsumeContextTag,
         consumeSucceeded: false,
         replayRejected: true,
         errorMessage: error instanceof Error ? error.message : String(error),

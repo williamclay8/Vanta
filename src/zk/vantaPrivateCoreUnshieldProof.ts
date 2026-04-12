@@ -168,6 +168,14 @@ export type VantaPrivateCoreUnshieldProofBoundaryV0 = {
   noirWitnessPackage: VantaPrivateCoreNoirUnshieldWitnessPackageV0;
 };
 
+export type VantaPrivateCoreProvingArtifactBundleV0 = {
+  layer: "proving-lane-v0";
+  provingHashLane: typeof VANTA_PRIVATE_CORE_UNSHIELD_PROVING_HASH_LANE_V0;
+  provingStateRoot: FieldDecimalString;
+  provingNullifier: FieldDecimalString;
+  provingConsumeContextTag: FieldDecimalString | null;
+};
+
 export type BuildVantaPrivateCoreUnshieldProofBoundaryArgs = {
   heldNote: HeldNoteViewV0;
   ownerSecretKey: Bytes32Hex;
@@ -342,6 +350,19 @@ export function createVantaPrivateCoreNoirUnshieldWitnessPackage(args: {
       membership_path_lo: args.privateWitness.merklePathEncoding.siblings.map((entry) => entry.lo),
       membership_path_direction_bits: args.privateWitness.merklePathEncoding.directionBits,
     },
+  };
+}
+
+export function deriveVantaPrivateCoreProvingArtifactsFromBoundary(
+  boundary: VantaPrivateCoreUnshieldProofBoundaryV0,
+): VantaPrivateCoreProvingArtifactBundleV0 {
+  return {
+    layer: "proving-lane-v0",
+    provingHashLane: boundary.noirWitnessPackage.provingHashLane,
+    provingStateRoot: boundary.noirWitnessPackage.publicInputs.state_root,
+    provingNullifier: boundary.noirWitnessPackage.publicInputs.nullifier,
+    provingConsumeContextTag:
+      boundary.noirWitnessPackage.publicInputs.consume_context_tag_lo ?? null,
   };
 }
 

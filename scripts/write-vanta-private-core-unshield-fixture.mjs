@@ -18,6 +18,7 @@ if (fixtureMode !== "valid" && fixtureMode !== "invalid-direction") {
   process.exit(1);
 }
 
+mkdirSync(resolve(repoRoot, ".tmp"), { recursive: true });
 const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-private-core-fixture-"));
 const tempTsDir = join(tempRoot, "ts");
 const tempJsDir = join(tempRoot, "js");

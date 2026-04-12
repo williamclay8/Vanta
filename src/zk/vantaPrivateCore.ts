@@ -179,6 +179,16 @@ export type UnshieldResultV0 = {
   root: Bytes32Hex;
 };
 
+export type VantaPrivateCoreSourceArtifactBundleV0 = {
+  layer: "source-layer-v0";
+  noteCommitment?: Bytes32Hex;
+  payloadCommitment?: Bytes32Hex;
+  merkleLeaf?: Bytes32Hex;
+  merkleRoot?: Bytes32Hex;
+  witnessRoot?: Bytes32Hex;
+  nullifier?: Bytes32Hex;
+};
+
 export type VantaPrivateCoreDemoRunV0 = {
   happyPath: {
     shield: ShieldArtifactV0;
@@ -571,6 +581,39 @@ export function verifyVantaPrivateCoreUnshieldProofEnvelope(
     envelope.publicInputs.amount === note.amount.toString(10) &&
     envelope.publicInputs.leafIndex === envelope.privateInputs.witness.leafIndex
   );
+}
+
+export function deriveVantaPrivateCoreSourceArtifactsFromShieldArtifact(
+  shield: ShieldArtifactV0,
+): VantaPrivateCoreSourceArtifactBundleV0 {
+  return {
+    layer: "source-layer-v0",
+    noteCommitment: shield.commitment.value,
+    payloadCommitment: shield.encryptedPayload.payloadCommitment,
+    merkleLeaf: deriveVantaPrivateCoreMerkleLeafHash(shield.commitment.value),
+    merkleRoot: shield.root,
+  };
+}
+
+export function deriveVantaPrivateCoreSourceArtifactsFromHeldNote(
+  heldNote: HeldNoteViewV0,
+): VantaPrivateCoreSourceArtifactBundleV0 {
+  return {
+    layer: "source-layer-v0",
+    noteCommitment: heldNote.commitment.value,
+    merkleLeaf: deriveVantaPrivateCoreMerkleLeafHash(heldNote.commitment.value),
+    witnessRoot: heldNote.witness.root,
+  };
+}
+
+export function deriveVantaPrivateCoreSourceArtifactsFromUnshieldResult(
+  result: UnshieldResultV0,
+): VantaPrivateCoreSourceArtifactBundleV0 {
+  return {
+    layer: "source-layer-v0",
+    merkleRoot: result.root,
+    nullifier: result.nullifier.value,
+  };
 }
 
 export class OrderedBinaryMerkleTree {
