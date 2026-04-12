@@ -30,6 +30,7 @@ That split matters because the repo already has a real first unshield proof lane
 - operator HTTP smoke test via `npm run private-core:http-smoke`
 - full-stack private-core verification via `npm run private-core:verify`
 - operator-backed proof execution and verification for the current narrow unshield lane
+- proof-backed root registration for the current narrow operator lane
 - operator-side registered-root and latest-root enforcement for the current narrow consume lane
 - explicit operator state contracts for:
   - `currentRoot`
@@ -50,6 +51,7 @@ The consuming path still needs the verifier-side contract to be treated as real.
 
 The repo now already has a first narrow operator-side version of that contract:
 - verify proof
+- bind the verified proving-lane public input vector to the witness package public input vector
 - require the source root to be the latest registered private-core state
 - enforce nullifier uniqueness in the consume path
 - record explicit release outcomes in operator-side release state

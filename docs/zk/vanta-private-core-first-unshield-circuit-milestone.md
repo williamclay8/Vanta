@@ -107,6 +107,8 @@ That command confirms the current lane through the actual server surface:
   - `/state/private-core-releases`
 - proof endpoint succeeds
 - consume endpoint rejects before root registration
+- root registration now requires the same proof-backed witness material as the current operator proof lane
+- operator proof execution now asserts the verified proving-lane public input vector matches the witness package public input vector exactly
 - tampered root registration is rejected without mutating root state across the full validated public surface:
   - `releaseDestination`
   - `assetId`
@@ -116,8 +118,7 @@ That command confirms the current lane through the actual server surface:
 - tampered source note commitments, Merkle leaves, and witness roots are also rejected at root registration
 - registered root state retains the witness-backed note commitment, Merkle leaf, and witness root metadata
 - root registration endpoint succeeds
-- a newer stale root makes the old root non-current
-- current-root re-registration restores currentness
+- the registered root remains the explicit current root
 - tampered consume is rejected without mutating consume state across the full validated public surface:
   - `releaseDestination`
   - `assetId`

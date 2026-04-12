@@ -99,6 +99,8 @@ This command:
   - `noteCommitment`
   - `merkleLeaf`
   - `witnessRoot`
+- verifies root registration is itself proof-backed through the current operator proof lane
+- verifies the operator proof seam binds the verified proving-lane public input vector to the witness package public input vector
 - verifies tampered root registration is rejected without mutating root state for the full validated public surface:
   - `releaseDestination`
   - `assetId`
@@ -107,8 +109,7 @@ This command:
 - verifies root registration also rejects missing source note commitments, Merkle leaves, and witness roots
 - verifies tampered source note commitments, Merkle leaves, and witness roots are rejected at root registration
 - verifies the registered root state retains the witness-backed note commitment, Merkle leaf, and witness root metadata
-- verifies a newer stale root causes the original root to be rejected as non-current
-- re-registers the current root and verifies it becomes current again
+- verifies the registered root remains current after registration
 - verifies tampered consume is rejected without mutating consume state for the full validated public surface:
   - `releaseDestination`
   - `assetId`
