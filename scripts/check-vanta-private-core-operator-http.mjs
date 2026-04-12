@@ -222,6 +222,24 @@ try {
   ) {
     throw new Error("operator state preflight did not advertise GET access");
   }
+  for (const statePath of [
+    "/state/private-core-consumes",
+    "/state/private-core-releases",
+  ]) {
+    const stateEndpointPreflight = await fetch(`${baseUrl}${statePath}`, {
+      headers: {
+        "Access-Control-Request-Method": "GET",
+        Origin: "http://127.0.0.1:4173",
+      },
+      method: "OPTIONS",
+    });
+    if (
+      !stateEndpointPreflight.ok ||
+      !stateEndpointPreflight.headers.get("access-control-allow-methods")?.includes("GET")
+    ) {
+      throw new Error(`operator state preflight did not advertise GET access for ${statePath}`);
+    }
+  }
   printStatus("operator http state preflight: PASS");
 
   for (const tamperCase of [
