@@ -94,6 +94,7 @@ export type VantaPrivateCoreHoldState = {
   merkleLeafComparisonStatus: string;
   stateRootComparisonStatus: string;
   nullifierComparisonStatus: string;
+  consumeContextComparisonStatus: string;
   noteSummary: string;
 };
 
@@ -111,6 +112,7 @@ export type VantaPrivateCoreUnshieldState = {
   merkleLeafComparisonStatus: string | null;
   stateRootComparisonStatus: string | null;
   nullifierComparisonStatus: string | null;
+  consumeContextComparisonStatus: string | null;
   consumeSucceeded: boolean;
   replayRejected: boolean;
   errorMessage: string | null;
@@ -152,6 +154,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     const previewComparison = compareVantaPrivateCoreSourceAndProvingArtifacts({
       sourceArtifacts: sourceShieldArtifacts,
       provingArtifacts: provingPreviewArtifacts,
+      sourceConsumeContextTag: provingPreview.publicInputs.consumeContextTag ?? null,
     });
     const nextShieldState: VantaPrivateCoreShieldState = {
       artifact: shield,
@@ -182,6 +185,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       merkleLeafComparisonStatus: previewComparison.merkleLeaf.statusLabel,
       stateRootComparisonStatus: previewComparison.stateRoot.statusLabel,
       nullifierComparisonStatus: previewComparison.nullifier.statusLabel,
+      consumeContextComparisonStatus: previewComparison.consumeContext.statusLabel,
       noteSummary: `${formatBaseUnits(shield.note.amount, VANTA_PRIVATE_CORE_VUSD_DECIMALS)} VUSD private note`,
     });
     setPrivateCoreUnshieldState(null);
@@ -205,6 +209,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         merkleLeafComparisonStatus: null,
         stateRootComparisonStatus: null,
         nullifierComparisonStatus: null,
+        consumeContextComparisonStatus: null,
         consumeSucceeded: false,
         replayRejected: false,
         errorMessage: "No recovered private-core note is available to unshield.",
@@ -234,6 +239,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       const provingComparison = compareVantaPrivateCoreSourceAndProvingArtifacts({
         sourceArtifacts: sourceHoldArtifacts,
         provingArtifacts,
+        sourceConsumeContextTag: proofBoundary.publicInputs.consumeContextTag ?? null,
       });
       const nextState: VantaPrivateCoreUnshieldState = {
         sourceNullifier: sourceUnshieldArtifacts.nullifier ?? result.nullifier.value,
@@ -249,6 +255,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         merkleLeafComparisonStatus: provingComparison.merkleLeaf.statusLabel,
         stateRootComparisonStatus: provingComparison.stateRoot.statusLabel,
         nullifierComparisonStatus: provingComparison.nullifier.statusLabel,
+        consumeContextComparisonStatus: provingComparison.consumeContext.statusLabel,
         consumeSucceeded: true,
         replayRejected: false,
         errorMessage: null,
@@ -263,6 +270,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       const provingComparison = compareVantaPrivateCoreSourceAndProvingArtifacts({
         sourceArtifacts: sourceHoldArtifacts,
         provingArtifacts,
+        sourceConsumeContextTag: proofBoundary.publicInputs.consumeContextTag ?? null,
       });
       const nextState: VantaPrivateCoreUnshieldState = {
         sourceNullifier: proofEnvelope.publicInputs.nullifier,
@@ -278,6 +286,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         merkleLeafComparisonStatus: provingComparison.merkleLeaf.statusLabel,
         stateRootComparisonStatus: provingComparison.stateRoot.statusLabel,
         nullifierComparisonStatus: provingComparison.nullifier.statusLabel,
+        consumeContextComparisonStatus: provingComparison.consumeContext.statusLabel,
         consumeSucceeded: false,
         replayRejected: false,
         errorMessage: error instanceof Error ? error.message : String(error),
@@ -304,6 +313,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         merkleLeafComparisonStatus: null,
         stateRootComparisonStatus: null,
         nullifierComparisonStatus: null,
+        consumeContextComparisonStatus: null,
         consumeSucceeded: false,
         replayRejected: false,
         errorMessage: "No recovered private-core note is available for replay testing.",
@@ -333,6 +343,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       const provingComparison = compareVantaPrivateCoreSourceAndProvingArtifacts({
         sourceArtifacts: sourceHoldArtifacts,
         provingArtifacts,
+        sourceConsumeContextTag: proofBoundary.publicInputs.consumeContextTag ?? null,
       });
       const nextState: VantaPrivateCoreUnshieldState = {
         sourceNullifier: sourceUnshieldArtifacts.nullifier ?? result.nullifier.value,
@@ -348,6 +359,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         merkleLeafComparisonStatus: provingComparison.merkleLeaf.statusLabel,
         stateRootComparisonStatus: provingComparison.stateRoot.statusLabel,
         nullifierComparisonStatus: provingComparison.nullifier.statusLabel,
+        consumeContextComparisonStatus: provingComparison.consumeContext.statusLabel,
         consumeSucceeded: true,
         replayRejected: false,
         errorMessage: null,
@@ -362,6 +374,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       const provingComparison = compareVantaPrivateCoreSourceAndProvingArtifacts({
         sourceArtifacts: sourceHoldArtifacts,
         provingArtifacts,
+        sourceConsumeContextTag: proofBoundary.publicInputs.consumeContextTag ?? null,
       });
       const nextState: VantaPrivateCoreUnshieldState = {
         sourceNullifier: proofEnvelope.publicInputs.nullifier,
@@ -377,6 +390,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         merkleLeafComparisonStatus: provingComparison.merkleLeaf.statusLabel,
         stateRootComparisonStatus: provingComparison.stateRoot.statusLabel,
         nullifierComparisonStatus: provingComparison.nullifier.statusLabel,
+        consumeContextComparisonStatus: provingComparison.consumeContext.statusLabel,
         consumeSucceeded: false,
         replayRejected: true,
         errorMessage: error instanceof Error ? error.message : String(error),

@@ -163,6 +163,10 @@ export function VantaPrivateCoreStatePanel({
               <strong>{abbreviate(unshieldState?.provingConsumeContextTag ?? holdState?.provingPreviewConsumeContextTag)}</strong>
             </div>
             <div className="review-row">
+              <span>Consume context comparison</span>
+              <strong>{unshieldState?.consumeContextComparisonStatus ?? holdState?.consumeContextComparisonStatus ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
               <span>Source nullifier</span>
               <strong>{abbreviate(unshieldState?.sourceNullifier)}</strong>
             </div>
