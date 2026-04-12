@@ -46,8 +46,10 @@ export function VantaPrivateCoreStatePanel({
             ? "Replay rejected"
             : unshieldState?.consumeSucceeded
               ? "Private note consumed"
-              : shieldState
-                ? "Private note live"
+              : holdState?.privateNoteRecovered
+                ? "Private note ready"
+                : shieldState
+                  ? "Private note live"
                 : "Awaiting shield"}
         </small>
       </div>
