@@ -321,6 +321,9 @@ const server = createServer(async (request, response) => {
   if (request.method === "POST" && request.url === "/private-core/register-root") {
     try {
       const body = await readJsonBody(request);
+      await proveAndVerifyVantaPrivateCoreUnshield({
+        witnessPackage: body?.witnessPackage,
+      });
       const witnessPackage = normalizeVantaPrivateCoreWitnessPackage(body?.witnessPackage);
       const sourcePublicInputs = witnessPackage.sourcePublicInputs;
       const sourceArtifacts = body?.sourceArtifacts;
