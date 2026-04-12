@@ -26,6 +26,7 @@ import {
   type NoteType,
   type NoteV0,
   type SerializedNoteV0,
+  type VantaPrivateCoreSourceArtifactBundleV0,
 } from "@/zk/vantaPrivateCore";
 
 export const VANTA_PRIVATE_CORE_UNSHIELD_PROOF_VERSION_V0 = 0 as const;
@@ -176,6 +177,20 @@ export type VantaPrivateCoreProvingArtifactBundleV0 = {
   provingStateRoot: FieldDecimalString;
   provingNullifier: FieldDecimalString;
   provingConsumeContextTag: FieldDecimalString | null;
+};
+
+export type VantaPrivateCoreSourceVsProvingArtifactComparisonEntryV0 = {
+  artifact: "note-commitment" | "merkle-leaf";
+  sourceValue: string | null;
+  provingValue: string | null;
+  status: "paired-across-hash-contracts" | "missing-source" | "missing-proving";
+  statusLabel: string;
+};
+
+export type VantaPrivateCoreSourceVsProvingArtifactComparisonV0 = {
+  layerSplit: "source-vs-proving-v0";
+  noteCommitment: VantaPrivateCoreSourceVsProvingArtifactComparisonEntryV0;
+  merkleLeaf: VantaPrivateCoreSourceVsProvingArtifactComparisonEntryV0;
 };
 
 export type BuildVantaPrivateCoreUnshieldProofBoundaryArgs = {
@@ -372,6 +387,25 @@ export function deriveVantaPrivateCoreProvingArtifactsFromBoundary(
     provingNullifier: boundary.noirWitnessPackage.publicInputs.nullifier,
     provingConsumeContextTag:
       boundary.noirWitnessPackage.publicInputs.consume_context_tag_lo ?? null,
+  };
+}
+
+export function compareVantaPrivateCoreSourceAndProvingArtifacts(args: {
+  sourceArtifacts: VantaPrivateCoreSourceArtifactBundleV0;
+  provingArtifacts: VantaPrivateCoreProvingArtifactBundleV0;
+}): VantaPrivateCoreSourceVsProvingArtifactComparisonV0 {
+  return {
+    layerSplit: "source-vs-proving-v0",
+    noteCommitment: createArtifactComparisonEntry({
+      artifact: "note-commitment",
+      sourceValue: args.sourceArtifacts.noteCommitment ?? null,
+      provingValue: args.provingArtifacts.provingNoteCommitment,
+    }),
+    merkleLeaf: createArtifactComparisonEntry({
+      artifact: "merkle-leaf",
+      sourceValue: args.sourceArtifacts.merkleLeaf ?? null,
+      provingValue: args.provingArtifacts.provingMerkleLeaf,
+    }),
   };
 }
 
@@ -684,6 +718,40 @@ function derivePoseidonConsumeContextField(args: {
     BigInt(args.noteVersion),
     BigInt(args.nullifierField),
   ]).toString(10);
+}
+
+function createArtifactComparisonEntry(args: {
+  artifact: "note-commitment" | "merkle-leaf";
+  sourceValue: string | null;
+  provingValue: string | null;
+}): VantaPrivateCoreSourceVsProvingArtifactComparisonEntryV0 {
+  if (!args.sourceValue) {
+    return {
+      artifact: args.artifact,
+      sourceValue: null,
+      provingValue: args.provingValue,
+      status: "missing-source",
+      statusLabel: "Missing source artifact",
+    };
+  }
+
+  if (!args.provingValue) {
+    return {
+      artifact: args.artifact,
+      sourceValue: args.sourceValue,
+      provingValue: null,
+      status: "missing-proving",
+      statusLabel: "Missing proving artifact",
+    };
+  }
+
+  return {
+    artifact: args.artifact,
+    sourceValue: args.sourceValue,
+    provingValue: args.provingValue,
+    status: "paired-across-hash-contracts",
+    statusLabel: "Paired across source and proving hash contracts",
+  };
 }
 
 function encodeU128ToTwoU64Le(value: bigint): U128EncodingV0 {
