@@ -151,6 +151,14 @@ export function VantaPrivateCoreStatePanel({
               <strong>{unshieldState?.primaryCompatibilityNote ?? holdState?.primaryCompatibilityNote ?? "None"}</strong>
             </div>
             <div className="review-row">
+              <span>Proof boundary kind</span>
+              <strong>{unshieldState?.proofBoundaryKind ?? holdState?.proofBoundaryKind ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Proof boundary version</span>
+              <strong>{String(unshieldState?.proofBoundaryVersion ?? holdState?.proofBoundaryVersion ?? 0)}</strong>
+            </div>
+            <div className="review-row">
               <span>Proof circuit</span>
               <strong>{unshieldState?.proofCircuit ?? holdState?.proofCircuit ?? "Unavailable"}</strong>
             </div>

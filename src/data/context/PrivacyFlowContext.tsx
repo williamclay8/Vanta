@@ -127,6 +127,8 @@ export type VantaPrivateCoreHoldState = {
   primaryProofBlocker: string | null;
   compatibilityNoteCount: number;
   primaryCompatibilityNote: string | null;
+  proofBoundaryKind: string;
+  proofBoundaryVersion: number;
   proofCircuit: string;
   proofBackend: string;
   proofMerkleDepth: number;
@@ -180,6 +182,8 @@ export type VantaPrivateCoreUnshieldState = {
   primaryProofBlocker: string | null;
   compatibilityNoteCount: number;
   primaryCompatibilityNote: string | null;
+  proofBoundaryKind: string | null;
+  proofBoundaryVersion: number | null;
   proofCircuit: string | null;
   proofBackend: string | null;
   proofMerkleDepth: number | null;
@@ -316,6 +320,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       primaryProofBlocker: previewStatus.primaryBlocker,
       compatibilityNoteCount: previewCompatibility.noteCount,
       primaryCompatibilityNote: previewCompatibility.primaryNote,
+      proofBoundaryKind: provingPreview.kind,
+      proofBoundaryVersion: provingPreview.version,
       proofCircuit: previewConfiguration.circuit,
       proofBackend: previewConfiguration.backend,
       proofMerkleDepth: previewConfiguration.merkleDepth,
@@ -375,6 +381,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         primaryProofBlocker: null,
         compatibilityNoteCount: 0,
         primaryCompatibilityNote: null,
+        proofBoundaryKind: null,
+        proofBoundaryVersion: null,
         proofCircuit: null,
         proofBackend: null,
         proofMerkleDepth: null,
@@ -479,6 +487,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         primaryProofBlocker: proofStatus.primaryBlocker,
         compatibilityNoteCount: proofCompatibility.noteCount,
         primaryCompatibilityNote: proofCompatibility.primaryNote,
+        proofBoundaryKind: proofBoundary.kind,
+        proofBoundaryVersion: proofBoundary.version,
         proofCircuit: proofConfiguration.circuit,
         proofBackend: proofConfiguration.backend,
         proofMerkleDepth: proofConfiguration.merkleDepth,
@@ -559,6 +569,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         primaryProofBlocker: proofStatus.primaryBlocker,
         compatibilityNoteCount: proofCompatibility.noteCount,
         primaryCompatibilityNote: proofCompatibility.primaryNote,
+        proofBoundaryKind: proofBoundary.kind,
+        proofBoundaryVersion: proofBoundary.version,
         proofCircuit: proofConfiguration.circuit,
         proofBackend: proofConfiguration.backend,
         proofMerkleDepth: proofConfiguration.merkleDepth,
@@ -621,6 +633,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         primaryProofBlocker: null,
         compatibilityNoteCount: 0,
         primaryCompatibilityNote: null,
+        proofBoundaryKind: null,
+        proofBoundaryVersion: null,
         proofCircuit: null,
         proofBackend: null,
         proofMerkleDepth: null,
@@ -725,6 +739,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         primaryProofBlocker: proofStatus.primaryBlocker,
         compatibilityNoteCount: proofCompatibility.noteCount,
         primaryCompatibilityNote: proofCompatibility.primaryNote,
+        proofBoundaryKind: proofBoundary.kind,
+        proofBoundaryVersion: proofBoundary.version,
         proofCircuit: proofConfiguration.circuit,
         proofBackend: proofConfiguration.backend,
         proofMerkleDepth: proofConfiguration.merkleDepth,
@@ -805,6 +821,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         primaryProofBlocker: proofStatus.primaryBlocker,
         compatibilityNoteCount: proofCompatibility.noteCount,
         primaryCompatibilityNote: proofCompatibility.primaryNote,
+        proofBoundaryKind: proofBoundary.kind,
+        proofBoundaryVersion: proofBoundary.version,
         proofCircuit: proofConfiguration.circuit,
         proofBackend: proofConfiguration.backend,
         proofMerkleDepth: proofConfiguration.merkleDepth,
