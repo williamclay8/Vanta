@@ -147,8 +147,16 @@ export function VantaPrivateCoreStatePanel({
               <strong>{abbreviate(unshieldState?.provingStateRoot ?? holdState?.provingPreviewStateRoot)}</strong>
             </div>
             <div className="review-row">
+              <span>Root comparison</span>
+              <strong>{unshieldState?.stateRootComparisonStatus ?? holdState?.stateRootComparisonStatus ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
               <span>{unshieldState ? "Proving nullifier" : "Proving preview nullifier"}</span>
               <strong>{abbreviate(unshieldState?.provingNullifier ?? holdState?.provingPreviewNullifier)}</strong>
+            </div>
+            <div className="review-row">
+              <span>Nullifier comparison</span>
+              <strong>{unshieldState?.nullifierComparisonStatus ?? holdState?.nullifierComparisonStatus ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>{unshieldState ? "Consume context" : "Proving preview context"}</span>

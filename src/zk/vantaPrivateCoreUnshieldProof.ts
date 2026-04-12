@@ -180,7 +180,7 @@ export type VantaPrivateCoreProvingArtifactBundleV0 = {
 };
 
 export type VantaPrivateCoreSourceVsProvingArtifactComparisonEntryV0 = {
-  artifact: "note-commitment" | "merkle-leaf";
+  artifact: "note-commitment" | "merkle-leaf" | "state-root" | "nullifier";
   sourceValue: string | null;
   provingValue: string | null;
   status: "paired-across-hash-contracts" | "missing-source" | "missing-proving";
@@ -191,6 +191,8 @@ export type VantaPrivateCoreSourceVsProvingArtifactComparisonV0 = {
   layerSplit: "source-vs-proving-v0";
   noteCommitment: VantaPrivateCoreSourceVsProvingArtifactComparisonEntryV0;
   merkleLeaf: VantaPrivateCoreSourceVsProvingArtifactComparisonEntryV0;
+  stateRoot: VantaPrivateCoreSourceVsProvingArtifactComparisonEntryV0;
+  nullifier: VantaPrivateCoreSourceVsProvingArtifactComparisonEntryV0;
 };
 
 export type BuildVantaPrivateCoreUnshieldProofBoundaryArgs = {
@@ -405,6 +407,16 @@ export function compareVantaPrivateCoreSourceAndProvingArtifacts(args: {
       artifact: "merkle-leaf",
       sourceValue: args.sourceArtifacts.merkleLeaf ?? null,
       provingValue: args.provingArtifacts.provingMerkleLeaf,
+    }),
+    stateRoot: createArtifactComparisonEntry({
+      artifact: "state-root",
+      sourceValue: args.sourceArtifacts.witnessRoot ?? args.sourceArtifacts.merkleRoot ?? null,
+      provingValue: args.provingArtifacts.provingStateRoot,
+    }),
+    nullifier: createArtifactComparisonEntry({
+      artifact: "nullifier",
+      sourceValue: args.sourceArtifacts.nullifier ?? null,
+      provingValue: args.provingArtifacts.provingNullifier,
     }),
   };
 }
@@ -721,7 +733,7 @@ function derivePoseidonConsumeContextField(args: {
 }
 
 function createArtifactComparisonEntry(args: {
-  artifact: "note-commitment" | "merkle-leaf";
+  artifact: "note-commitment" | "merkle-leaf" | "state-root" | "nullifier";
   sourceValue: string | null;
   provingValue: string | null;
 }): VantaPrivateCoreSourceVsProvingArtifactComparisonEntryV0 {

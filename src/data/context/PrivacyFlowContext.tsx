@@ -92,6 +92,8 @@ export type VantaPrivateCoreHoldState = {
   provingPreviewConsumeContextTag: string | null;
   noteCommitmentComparisonStatus: string;
   merkleLeafComparisonStatus: string;
+  stateRootComparisonStatus: string;
+  nullifierComparisonStatus: string;
   noteSummary: string;
 };
 
@@ -107,6 +109,8 @@ export type VantaPrivateCoreUnshieldState = {
   provingConsumeContextTag: string | null;
   noteCommitmentComparisonStatus: string | null;
   merkleLeafComparisonStatus: string | null;
+  stateRootComparisonStatus: string | null;
+  nullifierComparisonStatus: string | null;
   consumeSucceeded: boolean;
   replayRejected: boolean;
   errorMessage: string | null;
@@ -176,6 +180,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       provingPreviewConsumeContextTag: provingPreviewArtifacts.provingConsumeContextTag,
       noteCommitmentComparisonStatus: previewComparison.noteCommitment.statusLabel,
       merkleLeafComparisonStatus: previewComparison.merkleLeaf.statusLabel,
+      stateRootComparisonStatus: previewComparison.stateRoot.statusLabel,
+      nullifierComparisonStatus: previewComparison.nullifier.statusLabel,
       noteSummary: `${formatBaseUnits(shield.note.amount, VANTA_PRIVATE_CORE_VUSD_DECIMALS)} VUSD private note`,
     });
     setPrivateCoreUnshieldState(null);
@@ -197,6 +203,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         provingConsumeContextTag: null,
         noteCommitmentComparisonStatus: null,
         merkleLeafComparisonStatus: null,
+        stateRootComparisonStatus: null,
+        nullifierComparisonStatus: null,
         consumeSucceeded: false,
         replayRejected: false,
         errorMessage: "No recovered private-core note is available to unshield.",
@@ -239,6 +247,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         provingConsumeContextTag: provingArtifacts.provingConsumeContextTag,
         noteCommitmentComparisonStatus: provingComparison.noteCommitment.statusLabel,
         merkleLeafComparisonStatus: provingComparison.merkleLeaf.statusLabel,
+        stateRootComparisonStatus: provingComparison.stateRoot.statusLabel,
+        nullifierComparisonStatus: provingComparison.nullifier.statusLabel,
         consumeSucceeded: true,
         replayRejected: false,
         errorMessage: null,
@@ -266,6 +276,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         provingConsumeContextTag: provingArtifacts.provingConsumeContextTag,
         noteCommitmentComparisonStatus: provingComparison.noteCommitment.statusLabel,
         merkleLeafComparisonStatus: provingComparison.merkleLeaf.statusLabel,
+        stateRootComparisonStatus: provingComparison.stateRoot.statusLabel,
+        nullifierComparisonStatus: provingComparison.nullifier.statusLabel,
         consumeSucceeded: false,
         replayRejected: false,
         errorMessage: error instanceof Error ? error.message : String(error),
@@ -290,6 +302,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         provingConsumeContextTag: null,
         noteCommitmentComparisonStatus: null,
         merkleLeafComparisonStatus: null,
+        stateRootComparisonStatus: null,
+        nullifierComparisonStatus: null,
         consumeSucceeded: false,
         replayRejected: false,
         errorMessage: "No recovered private-core note is available for replay testing.",
@@ -332,6 +346,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         provingConsumeContextTag: provingArtifacts.provingConsumeContextTag,
         noteCommitmentComparisonStatus: provingComparison.noteCommitment.statusLabel,
         merkleLeafComparisonStatus: provingComparison.merkleLeaf.statusLabel,
+        stateRootComparisonStatus: provingComparison.stateRoot.statusLabel,
+        nullifierComparisonStatus: provingComparison.nullifier.statusLabel,
         consumeSucceeded: true,
         replayRejected: false,
         errorMessage: null,
@@ -359,6 +375,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         provingConsumeContextTag: provingArtifacts.provingConsumeContextTag,
         noteCommitmentComparisonStatus: provingComparison.noteCommitment.statusLabel,
         merkleLeafComparisonStatus: provingComparison.merkleLeaf.statusLabel,
+        stateRootComparisonStatus: provingComparison.stateRoot.statusLabel,
+        nullifierComparisonStatus: provingComparison.nullifier.statusLabel,
         consumeSucceeded: false,
         replayRejected: true,
         errorMessage: error instanceof Error ? error.message : String(error),
