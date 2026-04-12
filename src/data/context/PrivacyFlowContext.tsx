@@ -102,6 +102,9 @@ export type VantaPrivateCoreHoldState = {
   sourceProofPreviewLeafIndex: number;
   sourceProofPreviewStatusLabel: string;
   sourceProofPreviewConsistencyLabel: string;
+  sourceProofPreviewCommitmentStatus: string;
+  sourceProofPreviewRootStatus: string;
+  sourceProofPreviewNullifierStatus: string;
   previewSourceLayerStatus: string;
   previewProvingBoundaryStatus: string;
   previewHandoffStatus: string;
@@ -285,6 +288,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       sourceProofPreviewLeafIndex: sourceProofPreviewSummary.leafIndex,
       sourceProofPreviewStatusLabel: sourceProofPreviewVerification.statusLabel,
       sourceProofPreviewConsistencyLabel: sourceProofPreviewConsistency.overallStatusLabel,
+      sourceProofPreviewCommitmentStatus: sourceProofPreviewConsistency.commitmentStatus,
+      sourceProofPreviewRootStatus: sourceProofPreviewConsistency.rootStatus,
+      sourceProofPreviewNullifierStatus: sourceProofPreviewConsistency.nullifierStatus,
       previewSourceLayerStatus: previewHandoffSummary.sourceLayerStatus,
       previewProvingBoundaryStatus: previewHandoffSummary.provingBoundaryStatus,
       previewHandoffStatus: previewHandoffSummary.handoffStatus,

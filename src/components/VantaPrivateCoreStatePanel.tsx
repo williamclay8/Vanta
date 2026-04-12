@@ -228,15 +228,15 @@ export function VantaPrivateCoreStatePanel({
             </div>
             <div className="review-row">
               <span>Source proof commitment binding</span>
-              <strong>{unshieldState?.sourceProofCommitmentStatus ?? "Unavailable"}</strong>
+              <strong>{unshieldState?.sourceProofCommitmentStatus ?? holdState?.sourceProofPreviewCommitmentStatus ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Source proof root binding</span>
-              <strong>{unshieldState?.sourceProofRootStatus ?? "Unavailable"}</strong>
+              <strong>{unshieldState?.sourceProofRootStatus ?? holdState?.sourceProofPreviewRootStatus ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Source proof nullifier binding</span>
-              <strong>{unshieldState?.sourceProofNullifierStatus ?? "Unavailable"}</strong>
+              <strong>{unshieldState?.sourceProofNullifierStatus ?? holdState?.sourceProofPreviewNullifierStatus ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Source layer status</span>
