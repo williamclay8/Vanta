@@ -67,7 +67,13 @@ export function VantaPrivateCoreStatePanel({
         </div>
         <div className="preview-card">
           <span>Held privately</span>
-          <strong>{holdState?.privateNoteRecovered ? "Recovered" : "Unavailable"}</strong>
+          <strong>
+            {unshieldState?.replayRejected || unshieldState?.consumeSucceeded
+              ? "Consumed"
+              : holdState?.privateNoteRecovered
+                ? "Recovered"
+                : "Unavailable"}
+          </strong>
         </div>
         <div className="preview-card">
           <span>Witness</span>
