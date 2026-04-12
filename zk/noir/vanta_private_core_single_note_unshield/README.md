@@ -24,20 +24,33 @@ That helper yields:
 ## Local exercise path
 
 1. Ensure `nargo` is installed locally.
-2. Materialize the fixture from the TypeScript helper into a Noir input file.
+2. Run the canonical regression wrapper:
+
+```bash
+npm run private-core:check
+```
+
+This command:
+- writes the valid fixture
+- runs `nargo check`
+- verifies the valid proving path succeeds
+- verifies the invalid-direction witness fails
+- restores the repo to the valid fixture state
+
+3. If you want to exercise fixture modes manually, materialize the fixture from the TypeScript helper into a Noir input file.
    Recommended helper:
    - `serializeVantaPrivateCoreNoirUnshieldWitnessPackageToToml(...)`
    Repo command:
    - `npm run private-core:fixture -- valid`
    - `npm run private-core:fixture -- invalid-direction`
-3. Run:
+4. Run:
 
 ```bash
 nargo check
 nargo execute
 ```
 
-4. Use the invalid direction-bit witness package as the negative case and confirm execution fails.
+5. Use the invalid direction-bit witness package as the negative case and confirm execution fails.
 
 ## Important v0.1 note
 

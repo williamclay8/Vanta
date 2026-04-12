@@ -9,6 +9,7 @@
     "check:swap-lane": "node scripts/check-meteora-swap-lane.mjs",
     "operator:unshield": "node operator/unshield-server.mjs",
     "provision:dlmm": "node scripts/provision-vusd-sol-dlmm-devnet.cjs",
+    "private-core:check": "node scripts/check-vanta-private-core-unshield-circuit.mjs",
     "private-core:fixture": "node scripts/write-vanta-private-core-unshield-fixture.mjs",
     "preview": "vite preview"
   },

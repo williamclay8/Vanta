@@ -31,6 +31,19 @@ Current circuit scope:
 
 The first circuit lane is now repeatable locally.
 
+Canonical regression command:
+
+```bash
+npm run private-core:check
+```
+
+That wrapper:
+- writes the valid fixture
+- runs `nargo check`
+- requires the valid proving path to succeed
+- requires the invalid-direction proving path to fail
+- restores `Prover.toml` to the valid fixture before exit
+
 Fixture switching is exposed as:
 
 ```bash
@@ -89,6 +102,12 @@ Freeze this milestone before broadening scope:
 ## Reproduction commands
 
 From the repo root:
+
+```bash
+npm run private-core:check
+```
+
+Manual path:
 
 ```bash
 npm run private-core:fixture -- valid
