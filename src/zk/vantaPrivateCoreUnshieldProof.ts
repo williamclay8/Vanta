@@ -217,6 +217,13 @@ export type VantaPrivateCoreProofBoundaryConfigurationSummaryV0 = {
   nullifierKeyMode: typeof VANTA_PRIVATE_CORE_NULLIFIER_KEY_MODE_V0;
 };
 
+export type VantaPrivateCoreProofBoundaryPublicInputSummaryV0 = {
+  releaseDestination: Bytes32Hex;
+  assetId: Bytes32Hex;
+  amount: string;
+  noteVersion: typeof VANTA_PRIVATE_CORE_NOTE_VERSION_V0;
+};
+
 export type BuildVantaPrivateCoreUnshieldProofBoundaryArgs = {
   heldNote: HeldNoteViewV0;
   ownerSecretKey: Bytes32Hex;
@@ -482,6 +489,17 @@ export function summarizeVantaPrivateCoreProofBoundaryConfiguration(
     provingHashLane: boundary.noirWitnessPackage.provingHashLane,
     ownerAuthorizationMode: boundary.privateWitness.ownerAuthorizationMode,
     nullifierKeyMode: boundary.privateWitness.nullifierKeyMode,
+  };
+}
+
+export function summarizeVantaPrivateCoreProofBoundaryPublicInputs(
+  boundary: VantaPrivateCoreUnshieldProofBoundaryV0,
+): VantaPrivateCoreProofBoundaryPublicInputSummaryV0 {
+  return {
+    releaseDestination: boundary.publicInputs.releaseDestination,
+    assetId: boundary.publicInputs.assetId,
+    amount: boundary.publicInputs.amount,
+    noteVersion: boundary.publicInputs.noteVersion,
   };
 }
 

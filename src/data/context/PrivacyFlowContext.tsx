@@ -26,6 +26,7 @@ import {
   deriveVantaPrivateCoreProvingArtifactsFromBoundary,
   summarizeVantaPrivateCoreProofBoundaryConfiguration,
   summarizeVantaPrivateCoreProofBoundaryCompatibility,
+  summarizeVantaPrivateCoreProofBoundaryPublicInputs,
   summarizeVantaPrivateCoreProofBoundaryStatus,
   type VantaPrivateCoreUnshieldProofBoundaryV0,
 } from "@/zk/vantaPrivateCoreUnshieldProof";
@@ -108,6 +109,10 @@ export type VantaPrivateCoreHoldState = {
   proofMerkleDepth: number;
   ownerAuthorizationMode: string;
   nullifierKeyMode: string;
+  proofReleaseDestination: string;
+  proofAssetId: string;
+  proofAmount: string;
+  proofNoteVersion: number;
   noteSummary: string;
 };
 
@@ -136,6 +141,10 @@ export type VantaPrivateCoreUnshieldState = {
   proofMerkleDepth: number | null;
   ownerAuthorizationMode: string | null;
   nullifierKeyMode: string | null;
+  proofReleaseDestination: string | null;
+  proofAssetId: string | null;
+  proofAmount: string | null;
+  proofNoteVersion: number | null;
   consumeSucceeded: boolean;
   replayRejected: boolean;
   errorMessage: string | null;
@@ -182,6 +191,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     const previewStatus = summarizeVantaPrivateCoreProofBoundaryStatus(provingPreview);
     const previewCompatibility = summarizeVantaPrivateCoreProofBoundaryCompatibility(provingPreview);
     const previewConfiguration = summarizeVantaPrivateCoreProofBoundaryConfiguration(provingPreview);
+    const previewPublicInputs = summarizeVantaPrivateCoreProofBoundaryPublicInputs(provingPreview);
     const nextShieldState: VantaPrivateCoreShieldState = {
       artifact: shield,
       encryptedPayload: shield.encryptedPayload,
@@ -222,6 +232,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       proofMerkleDepth: previewConfiguration.merkleDepth,
       ownerAuthorizationMode: previewConfiguration.ownerAuthorizationMode,
       nullifierKeyMode: previewConfiguration.nullifierKeyMode,
+      proofReleaseDestination: previewPublicInputs.releaseDestination,
+      proofAssetId: previewPublicInputs.assetId,
+      proofAmount: previewPublicInputs.amount,
+      proofNoteVersion: previewPublicInputs.noteVersion,
       noteSummary: `${formatBaseUnits(shield.note.amount, VANTA_PRIVATE_CORE_VUSD_DECIMALS)} VUSD private note`,
     });
     setPrivateCoreUnshieldState(null);
@@ -256,6 +270,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofMerkleDepth: null,
         ownerAuthorizationMode: null,
         nullifierKeyMode: null,
+        proofReleaseDestination: null,
+        proofAssetId: null,
+        proofAmount: null,
+        proofNoteVersion: null,
         consumeSucceeded: false,
         replayRejected: false,
         errorMessage: "No recovered private-core note is available to unshield.",
@@ -278,6 +296,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     const proofStatus = summarizeVantaPrivateCoreProofBoundaryStatus(proofBoundary);
     const proofCompatibility = summarizeVantaPrivateCoreProofBoundaryCompatibility(proofBoundary);
     const proofConfiguration = summarizeVantaPrivateCoreProofBoundaryConfiguration(proofBoundary);
+    const proofPublicInputs = summarizeVantaPrivateCoreProofBoundaryPublicInputs(proofBoundary);
 
     try {
       const result = privateCoreLedger.unshield(privateCoreHoldState.heldNote);
@@ -315,6 +334,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofMerkleDepth: proofConfiguration.merkleDepth,
         ownerAuthorizationMode: proofConfiguration.ownerAuthorizationMode,
         nullifierKeyMode: proofConfiguration.nullifierKeyMode,
+        proofReleaseDestination: proofPublicInputs.releaseDestination,
+        proofAssetId: proofPublicInputs.assetId,
+        proofAmount: proofPublicInputs.amount,
+        proofNoteVersion: proofPublicInputs.noteVersion,
         consumeSucceeded: true,
         replayRejected: false,
         errorMessage: null,
@@ -356,6 +379,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofMerkleDepth: proofConfiguration.merkleDepth,
         ownerAuthorizationMode: proofConfiguration.ownerAuthorizationMode,
         nullifierKeyMode: proofConfiguration.nullifierKeyMode,
+        proofReleaseDestination: proofPublicInputs.releaseDestination,
+        proofAssetId: proofPublicInputs.assetId,
+        proofAmount: proofPublicInputs.amount,
+        proofNoteVersion: proofPublicInputs.noteVersion,
         consumeSucceeded: false,
         replayRejected: false,
         errorMessage: error instanceof Error ? error.message : String(error),
@@ -393,6 +420,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofMerkleDepth: null,
         ownerAuthorizationMode: null,
         nullifierKeyMode: null,
+        proofReleaseDestination: null,
+        proofAssetId: null,
+        proofAmount: null,
+        proofNoteVersion: null,
         consumeSucceeded: false,
         replayRejected: false,
         errorMessage: "No recovered private-core note is available for replay testing.",
@@ -415,6 +446,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     const proofStatus = summarizeVantaPrivateCoreProofBoundaryStatus(proofBoundary);
     const proofCompatibility = summarizeVantaPrivateCoreProofBoundaryCompatibility(proofBoundary);
     const proofConfiguration = summarizeVantaPrivateCoreProofBoundaryConfiguration(proofBoundary);
+    const proofPublicInputs = summarizeVantaPrivateCoreProofBoundaryPublicInputs(proofBoundary);
 
     try {
       const result = privateCoreLedger.unshield(privateCoreHoldState.heldNote);
@@ -452,6 +484,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofMerkleDepth: proofConfiguration.merkleDepth,
         ownerAuthorizationMode: proofConfiguration.ownerAuthorizationMode,
         nullifierKeyMode: proofConfiguration.nullifierKeyMode,
+        proofReleaseDestination: proofPublicInputs.releaseDestination,
+        proofAssetId: proofPublicInputs.assetId,
+        proofAmount: proofPublicInputs.amount,
+        proofNoteVersion: proofPublicInputs.noteVersion,
         consumeSucceeded: true,
         replayRejected: false,
         errorMessage: null,
@@ -493,6 +529,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofMerkleDepth: proofConfiguration.merkleDepth,
         ownerAuthorizationMode: proofConfiguration.ownerAuthorizationMode,
         nullifierKeyMode: proofConfiguration.nullifierKeyMode,
+        proofReleaseDestination: proofPublicInputs.releaseDestination,
+        proofAssetId: proofPublicInputs.assetId,
+        proofAmount: proofPublicInputs.amount,
+        proofNoteVersion: proofPublicInputs.noteVersion,
         consumeSucceeded: false,
         replayRejected: true,
         errorMessage: error instanceof Error ? error.message : String(error),
