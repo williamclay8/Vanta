@@ -78,6 +78,17 @@ This is an important step beyond witness solving alone, but it should still be r
 - a real local backend-style proof path
 - not yet full product-path proof integration
 
+The repo now also has an operator-backed consume seam check:
+
+```bash
+npm run private-core:consume-check
+```
+
+That command confirms:
+- the current fixed-depth witness still generates and verifies a real proof
+- operator-side one-time-use semantics can record the first consume
+- the same nullifier is then seen as consumed for replay purposes
+
 ## Supporting repo artifacts
 
 Updated or added:
@@ -126,6 +137,7 @@ From the repo root:
 ```bash
 npm run private-core:check
 npm run private-core:prove
+npm run private-core:consume-check
 ```
 
 Manual path:

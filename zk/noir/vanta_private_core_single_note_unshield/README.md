@@ -52,20 +52,31 @@ This command:
 - writes a proof receipt to `target/vanta_private_core_single_note_unshield.proof.json`
 - restores the repo to the valid fixture state
 
-4. If you want to exercise fixture modes manually, materialize the fixture from the TypeScript helper into a Noir input file.
+4. Run the operator-backed consume seam check when you want to verify the first proof-plus-consume semantics for the current lane:
+
+```bash
+npm run private-core:consume-check
+```
+
+This command:
+- generates and verifies a real local proof for the fixed-depth witness package
+- records the first consume in a temporary operator-side nullifier store
+- confirms the same nullifier is then seen as already consumed for replay purposes
+
+5. If you want to exercise fixture modes manually, materialize the fixture from the TypeScript helper into a Noir input file.
    Recommended helper:
    - `serializeVantaPrivateCoreNoirUnshieldWitnessPackageToToml(...)`
    Repo command:
    - `npm run private-core:fixture -- valid`
    - `npm run private-core:fixture -- invalid-direction`
-5. Run:
+6. Run:
 
 ```bash
 nargo check
 nargo execute
 ```
 
-6. Use the invalid direction-bit witness package as the negative case and confirm execution fails.
+7. Use the invalid direction-bit witness package as the negative case and confirm execution fails.
 
 ## Important v0.1 note
 
