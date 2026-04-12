@@ -237,6 +237,19 @@ try {
         "operator root registration unexpectedly accepted mismatched source public inputs",
     );
   }
+  const rootStateAfterTamperedRegistration = await requestJson(baseUrl, "/state/private-core-roots", {
+    method: "GET",
+  });
+  if (
+    !rootStateAfterTamperedRegistration.ok ||
+    !Array.isArray(rootStateAfterTamperedRegistration.parsed?.records) ||
+    rootStateAfterTamperedRegistration.parsed.records.length !== 0
+  ) {
+    throw new Error(
+      JSON.stringify(rootStateAfterTamperedRegistration.parsed) ||
+        "tampered root registration mutated operator root state",
+    );
+  }
   printStatus("operator http root registration consistency gate: PASS");
 
   const consumeBeforeRoot = await requestJson(baseUrl, "/private-core/unshield-consume", {
@@ -333,6 +346,41 @@ try {
     );
   }
   printStatus("operator http current-root restore: PASS");
+
+  const tamperedConsume = await requestJson(baseUrl, "/private-core/unshield-consume", {
+    body: JSON.stringify({
+      witnessPackage: {
+        ...witnessPackage,
+        sourcePublicInputs: {
+          ...witnessPackage.sourcePublicInputs,
+          amount: "1",
+        },
+      },
+    }),
+    method: "POST",
+  });
+
+  if (tamperedConsume.ok || !tamperedConsume.text.includes("mismatched amount public inputs")) {
+    throw new Error(
+      tamperedConsume.text ||
+        "operator consume unexpectedly accepted mismatched source public inputs",
+    );
+  }
+
+  const consumeStateAfterTamperedConsume = await requestJson(baseUrl, "/state/private-core-consumes", {
+    method: "GET",
+  });
+  if (
+    !consumeStateAfterTamperedConsume.ok ||
+    !Array.isArray(consumeStateAfterTamperedConsume.parsed?.records) ||
+    consumeStateAfterTamperedConsume.parsed.records.length !== 0
+  ) {
+    throw new Error(
+      JSON.stringify(consumeStateAfterTamperedConsume.parsed) ||
+        "tampered consume mutated operator consume state",
+    );
+  }
+  printStatus("operator http consume consistency gate: PASS");
 
   const consumeResponse = await requestJson(baseUrl, "/private-core/unshield-consume", {
     body: JSON.stringify({ witnessPackage }),

@@ -100,9 +100,11 @@ npm run private-core:http-smoke
 That command confirms the current lane through the actual server surface:
 - proof endpoint succeeds
 - consume endpoint rejects before root registration
+- tampered root registration is rejected without mutating root state
 - root registration endpoint succeeds
 - a newer stale root makes the old root non-current
 - current-root re-registration restores currentness
+- tampered consume is rejected without mutating consume state
 - consume succeeds once after root registration
 - replay is rejected
 - operator state endpoints reflect the registered root and consumed nullifier
