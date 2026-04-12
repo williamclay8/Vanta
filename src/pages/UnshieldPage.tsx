@@ -230,7 +230,10 @@ export function UnshieldPage() {
       : null) ??
     unshieldZkDiagnostics[0] ??
     null;
-  const latestPrivateCoreOperatorConsume = privateCoreOperatorConsumes[0] ?? null;
+  const latestPrivateCoreOperatorConsume =
+    privateCoreOperatorLatestConsume ?? privateCoreOperatorConsumes[0] ?? null;
+  const latestPrivateCoreOperatorRelease =
+    privateCoreOperatorLatestRelease ?? privateCoreOperatorReleases[0] ?? null;
   const privateCoreDemoSteps = [
     {
       label: "Shield private value",
@@ -1007,6 +1010,45 @@ export function UnshieldPage() {
                     ? privateCoreOperatorConsumeError
                     : latestPrivateCoreOperatorConsume?.nullifier
                       ? abbreviate(latestPrivateCoreOperatorConsume.nullifier)
+                      : "Unavailable"}
+                </strong>
+              </div>
+              <div className="review-row">
+                <span>Operator release records</span>
+                <strong>
+                  {privateCoreOperatorReleaseError
+                    ? "Unavailable"
+                    : privateCoreOperatorReleases.length.toString()}
+                </strong>
+              </div>
+              <div className="review-row">
+                <span>Latest operator release</span>
+                <strong>
+                  {privateCoreOperatorReleaseError
+                    ? privateCoreOperatorReleaseError
+                    : latestPrivateCoreOperatorRelease?.nullifier
+                      ? abbreviate(latestPrivateCoreOperatorRelease.nullifier)
+                      : "Unavailable"}
+                </strong>
+              </div>
+              <div className="review-row">
+                <span>Operator release destination</span>
+                <strong>
+                  {privateCoreOperatorReleaseError
+                    ? privateCoreOperatorReleaseError
+                    : latestPrivateCoreOperatorRelease?.releaseDestination
+                      ? abbreviate(latestPrivateCoreOperatorRelease.releaseDestination)
+                      : "Unavailable"}
+                </strong>
+              </div>
+              <div className="review-row">
+                <span>Operator released value</span>
+                <strong>
+                  {privateCoreOperatorReleaseError
+                    ? privateCoreOperatorReleaseError
+                    : latestPrivateCoreOperatorRelease?.releasedAmount &&
+                        latestPrivateCoreOperatorRelease?.releasedAssetId
+                      ? `${latestPrivateCoreOperatorRelease.releasedAmount} / ${abbreviate(latestPrivateCoreOperatorRelease.releasedAssetId)}`
                       : "Unavailable"}
                 </strong>
               </div>

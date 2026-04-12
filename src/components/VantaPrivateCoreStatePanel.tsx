@@ -288,6 +288,26 @@ export function VantaPrivateCoreStatePanel({
               </strong>
             </div>
             <div className="review-row">
+              <span>Operator release destination</span>
+              <strong>
+                {operatorReleaseError
+                  ? operatorReleaseError
+                  : latestOperatorRelease?.releaseDestination
+                    ? abbreviate(latestOperatorRelease.releaseDestination)
+                    : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Operator released value</span>
+              <strong>
+                {operatorReleaseError
+                  ? operatorReleaseError
+                  : latestOperatorRelease?.releasedAmount && latestOperatorRelease?.releasedAssetId
+                    ? `${latestOperatorRelease.releasedAmount} / ${abbreviate(latestOperatorRelease.releasedAssetId)}`
+                    : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
               <span>Operator root registration</span>
               <strong>{operatorRootRegistrationStatus ?? "Unavailable"}</strong>
             </div>
