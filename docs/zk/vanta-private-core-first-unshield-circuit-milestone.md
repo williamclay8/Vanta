@@ -90,6 +90,20 @@ That command confirms:
 - operator-side one-time-use semantics can record the first consume
 - the same nullifier is then seen as consumed for replay purposes
 
+The repo now also has a real operator HTTP smoke test:
+
+```bash
+npm run private-core:http-smoke
+```
+
+That command confirms the current lane through the actual server surface:
+- proof endpoint succeeds
+- consume endpoint rejects before root registration
+- root registration endpoint succeeds
+- consume succeeds once after root registration
+- replay is rejected
+- operator state endpoints reflect the registered root and consumed nullifier
+
 The repo now also has one canonical stack verification command:
 
 ```bash
@@ -100,6 +114,7 @@ That wrapper runs, in order:
 - the app build
 - the fixed-depth circuit regression
 - the operator consume regression
+- the operator HTTP smoke test
 - one real local proof generation and verification pass
 
 ## Supporting repo artifacts
@@ -150,6 +165,7 @@ From the repo root:
 ```bash
 npm run private-core:verify
 npm run private-core:check
+npm run private-core:http-smoke
 npm run private-core:prove
 npm run private-core:consume-check
 ```

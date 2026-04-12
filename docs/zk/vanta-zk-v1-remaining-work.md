@@ -27,6 +27,7 @@ That split matters because the repo already has a real first unshield proof lane
 - local regression guard via `npm run private-core:check`
 - local proof generation and verification via `npm run private-core:prove`
 - operator-backed consume seam check via `npm run private-core:consume-check`
+- operator HTTP smoke test via `npm run private-core:http-smoke`
 - full-stack private-core verification via `npm run private-core:verify`
 - app-side Shield, Hold, Unshield, and replay demo integration
 - internal diagnostics that expose the source-layer and proving-lane split honestly

@@ -34,6 +34,7 @@ This command:
 - builds the app
 - runs the fixed-depth circuit regression wrapper
 - runs the operator consume regression wrapper
+- runs a real HTTP smoke test against the private-core operator server endpoints
 - generates and verifies one real local proof for the current lane
 
 3. Run the canonical circuit regression wrapper when you only want the Noir-lane happy-path and negative-path check:
@@ -77,20 +78,34 @@ This command:
 - records the first consume in a temporary operator-side nullifier store
 - confirms the same nullifier is then seen as already consumed for replay purposes
 
-6. If you want to exercise fixture modes manually, materialize the fixture from the TypeScript helper into a Noir input file.
+6. Run the operator endpoint smoke test when you want to verify the same lane through the real HTTP server surface:
+
+```bash
+npm run private-core:http-smoke
+```
+
+This command:
+- starts a temporary local operator server
+- verifies `/private-core/unshield-proof`
+- verifies `/private-core/unshield-consume` is rejected before root registration
+- registers the root through `/private-core/register-root`
+- verifies consume succeeds once and replay is rejected
+- verifies the operator state endpoints reflect the registered root and consumed nullifier
+
+7. If you want to exercise fixture modes manually, materialize the fixture from the TypeScript helper into a Noir input file.
    Recommended helper:
    - `serializeVantaPrivateCoreNoirUnshieldWitnessPackageToToml(...)`
    Repo command:
    - `npm run private-core:fixture -- valid`
    - `npm run private-core:fixture -- invalid-direction`
-7. Run:
+8. Run:
 
 ```bash
 nargo check
 nargo execute
 ```
 
-8. Use the invalid direction-bit witness package as the negative case and confirm execution fails.
+9. Use the invalid direction-bit witness package as the negative case and confirm execution fails.
 
 ## Important v0.1 note
 

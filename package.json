@@ -12,8 +12,9 @@
     "private-core:check": "node scripts/check-vanta-private-core-unshield-circuit.mjs",
     "private-core:consume-check": "node scripts/check-vanta-private-core-operator-consume.mjs",
     "private-core:fixture": "node scripts/write-vanta-private-core-unshield-fixture.mjs",
+    "private-core:http-smoke": "node scripts/check-vanta-private-core-operator-http.mjs",
     "private-core:prove": "node scripts/prove-vanta-private-core-unshield.mjs",
-    "private-core:verify": "npm run build && npm run private-core:check && npm run private-core:consume-check && npm run private-core:prove",
+    "private-core:verify": "npm run build && npm run private-core:check && npm run private-core:consume-check && npm run private-core:http-smoke && npm run private-core:prove",
     "preview": "vite preview"
   },
   "dependencies": {
