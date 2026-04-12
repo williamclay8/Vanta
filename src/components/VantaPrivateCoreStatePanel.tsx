@@ -220,11 +220,11 @@ export function VantaPrivateCoreStatePanel({
             </div>
             <div className="review-row">
               <span>Source proof status</span>
-              <strong>{unshieldState?.sourceProofStatusLabel ?? "Unavailable"}</strong>
+              <strong>{unshieldState?.sourceProofStatusLabel ?? holdState?.sourceProofPreviewStatusLabel ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Source proof consistency</span>
-              <strong>{unshieldState?.sourceProofConsistencyLabel ?? "Unavailable"}</strong>
+              <strong>{unshieldState?.sourceProofConsistencyLabel ?? holdState?.sourceProofPreviewConsistencyLabel ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Source proof commitment binding</span>
@@ -240,19 +240,19 @@ export function VantaPrivateCoreStatePanel({
             </div>
             <div className="review-row">
               <span>Source layer status</span>
-              <strong>{unshieldState?.sourceLayerStatus ?? "Unavailable"}</strong>
+              <strong>{unshieldState?.sourceLayerStatus ?? holdState?.previewSourceLayerStatus ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Proving boundary status</span>
-              <strong>{unshieldState?.provingBoundaryStatus ?? "Unavailable"}</strong>
+              <strong>{unshieldState?.provingBoundaryStatus ?? holdState?.previewProvingBoundaryStatus ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Handoff status</span>
-              <strong>{unshieldState?.handoffStatus ?? "Unavailable"}</strong>
+              <strong>{unshieldState?.handoffStatus ?? holdState?.previewHandoffStatus ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Primary handoff note</span>
-              <strong>{unshieldState?.primaryHandoffNote ?? "Unavailable"}</strong>
+              <strong>{unshieldState?.primaryHandoffNote ?? holdState?.previewPrimaryHandoffNote ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>{unshieldState ? "Proving lane" : "Proving preview lane"}</span>

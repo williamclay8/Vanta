@@ -93,6 +93,12 @@ export type VantaPrivateCoreHoldState = {
   privateNoteRecovered: boolean;
   witnessAvailable: boolean;
   sourceWitnessRoot: string;
+  sourceProofPreviewStatusLabel: string;
+  sourceProofPreviewConsistencyLabel: string;
+  previewSourceLayerStatus: string;
+  previewProvingBoundaryStatus: string;
+  previewHandoffStatus: string;
+  previewPrimaryHandoffNote: string;
   provingPreviewHashLane: string;
   provingPreviewNoteCommitment: string;
   provingPreviewMerkleLeaf: string;
@@ -208,6 +214,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       ownerSecretKey: privateCoreOwner.secretKey,
       releaseDestination: VANTA_PRIVATE_CORE_DEMO_RELEASE_DESTINATION,
     });
+    const sourceProofPreviewEnvelope = buildVantaPrivateCoreUnshieldProofEnvelope(
+      hold.note,
+      hold.witness,
+    );
     const sourceShieldArtifacts = deriveVantaPrivateCoreSourceArtifactsFromShieldArtifact(shield);
     const sourceHoldArtifacts = deriveVantaPrivateCoreSourceArtifactsFromHeldNote(hold);
     const provingPreviewArtifacts = deriveVantaPrivateCoreProvingArtifactsFromBoundary(provingPreview);
@@ -215,6 +225,23 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       sourceArtifacts: sourceShieldArtifacts,
       provingArtifacts: provingPreviewArtifacts,
       sourceConsumeContextTag: provingPreview.publicInputs.consumeContextTag ?? null,
+    });
+    const sourceProofPreviewVerification =
+      summarizeVantaPrivateCoreUnshieldProofEnvelopeVerification(sourceProofPreviewEnvelope);
+    const sourceProofPreviewConsistency =
+      summarizeVantaPrivateCoreUnshieldProofEnvelopeConsistency({
+        envelope: sourceProofPreviewEnvelope,
+        sourceArtifacts: {
+          ...sourceHoldArtifacts,
+          nullifier: sourceProofPreviewEnvelope.publicInputs.nullifier,
+        },
+        expectedNullifier: sourceProofPreviewEnvelope.publicInputs.nullifier,
+      });
+    const previewHandoffSummary = summarizeVantaPrivateCoreSourceVsProvingHandoff({
+      sourceProofVerified: sourceProofPreviewVerification.verified,
+      sourceProofConsistencyLabel: sourceProofPreviewConsistency.overallStatusLabel,
+      proofBoundary: provingPreview,
+      comparison: previewComparison,
     });
     const previewStatus = summarizeVantaPrivateCoreProofBoundaryStatus(provingPreview);
     const previewCompatibility = summarizeVantaPrivateCoreProofBoundaryCompatibility(provingPreview);
@@ -240,6 +267,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateNoteRecovered: true,
       witnessAvailable: true,
       sourceWitnessRoot: sourceHoldArtifacts.witnessRoot ?? hold.witness.root,
+      sourceProofPreviewStatusLabel: sourceProofPreviewVerification.statusLabel,
+      sourceProofPreviewConsistencyLabel: sourceProofPreviewConsistency.overallStatusLabel,
+      previewSourceLayerStatus: previewHandoffSummary.sourceLayerStatus,
+      previewProvingBoundaryStatus: previewHandoffSummary.provingBoundaryStatus,
+      previewHandoffStatus: previewHandoffSummary.handoffStatus,
+      previewPrimaryHandoffNote: previewHandoffSummary.primaryHandoffNote,
       provingPreviewHashLane: provingPreviewArtifacts.provingHashLane,
       provingPreviewNoteCommitment: provingPreviewArtifacts.provingNoteCommitment,
       provingPreviewMerkleLeaf: provingPreviewArtifacts.provingMerkleLeaf,
