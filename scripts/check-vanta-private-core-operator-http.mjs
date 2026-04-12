@@ -730,7 +730,22 @@ try {
     body: JSON.stringify({ sourceArtifacts, witnessPackage }),
     method: "POST",
   });
-  if (!consumeResponse.ok || consumeResponse.parsed?.verified !== true) {
+  const expectedReleaseRequestId = `private-core-release:${witnessPackage.sourcePublicInputs.nullifier}:${witnessPackage.sourcePublicInputs.stateRoot}`;
+  const expectedReleaseTransitionId =
+    `private-core-release:${witnessPackage.sourcePublicInputs.stateRoot}:${witnessPackage.sourcePublicInputs.releaseDestination}`;
+  if (
+    !consumeResponse.ok ||
+    consumeResponse.parsed?.verified !== true ||
+    consumeResponse.parsed?.releaseRecorded !== true ||
+    consumeResponse.parsed?.nullifier !== witnessPackage.sourcePublicInputs.nullifier ||
+    consumeResponse.parsed?.root !== witnessPackage.sourcePublicInputs.stateRoot ||
+    consumeResponse.parsed?.releaseDestination !== witnessPackage.sourcePublicInputs.releaseDestination ||
+    consumeResponse.parsed?.releasedAssetId !== witnessPackage.sourcePublicInputs.assetId ||
+    consumeResponse.parsed?.releasedAmount !== witnessPackage.sourcePublicInputs.amount ||
+    consumeResponse.parsed?.releaseRequestId !== expectedReleaseRequestId ||
+    consumeResponse.parsed?.releaseTransitionNoteId !== expectedReleaseTransitionId ||
+    typeof consumeResponse.parsed?.completedAt !== "number"
+  ) {
     throw new Error(consumeResponse.text || "operator consume endpoint failed after root registration");
   }
   printStatus("operator http consume: PASS");
@@ -759,9 +774,6 @@ try {
   printStatus("operator http consume state: PASS");
 
   const releaseState = await requestJson(baseUrl, "/state/private-core-releases", { method: "GET" });
-  const expectedReleaseRequestId = `private-core-release:${witnessPackage.sourcePublicInputs.nullifier}:${witnessPackage.sourcePublicInputs.stateRoot}`;
-  const expectedReleaseTransitionId =
-    `private-core-release:${witnessPackage.sourcePublicInputs.stateRoot}:${witnessPackage.sourcePublicInputs.releaseDestination}`;
   if (
     !releaseState.ok ||
     releaseState.parsed?.stateVersion !== 1 ||

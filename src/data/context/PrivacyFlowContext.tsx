@@ -230,6 +230,9 @@ export type VantaPrivateCoreUnshieldState = {
   proofExecutionStatus: string | null;
   proofFieldCount: number | null;
   proofPublicInputCount: number | null;
+  operatorReleaseRecorded: boolean | null;
+  operatorReleaseRequestId: string | null;
+  operatorReleaseTransitionNoteId: string | null;
   consumeSucceeded: boolean;
   replayRejected: boolean;
   errorMessage: string | null;
@@ -626,6 +629,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofExecutionStatus: null,
         proofFieldCount: null,
         proofPublicInputCount: null,
+        operatorReleaseRecorded: null,
+        operatorReleaseRequestId: null,
+        operatorReleaseTransitionNoteId: null,
         consumeSucceeded: false,
         replayRejected: false,
         errorMessage: "No recovered private-core note is available to unshield.",
@@ -668,6 +674,18 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceArtifacts: sourceHoldArtifacts,
         witnessPackage: proofBoundary.noirWitnessPackage,
       });
+      const immediateOperatorConsume = summarizePrivateCoreImmediateOperatorConsume(operatorConsumeReceipt);
+      const immediateOperatorRelease = summarizePrivateCoreImmediateOperatorRelease(operatorConsumeReceipt);
+      setPrivateCoreOperatorLatestConsume(immediateOperatorConsume);
+      setPrivateCoreOperatorConsumes((records) =>
+        mergePrivateCoreOperatorConsumes(records, immediateOperatorConsume),
+      );
+      setPrivateCoreOperatorLatestRelease(immediateOperatorRelease);
+      setPrivateCoreOperatorReleases((records) =>
+        mergePrivateCoreOperatorReleases(records, immediateOperatorRelease),
+      );
+      setPrivateCoreOperatorConsumeError(null);
+      setPrivateCoreOperatorReleaseError(null);
       const result = privateCoreLedger.unshield(privateCoreHoldState.heldNote);
       const sourceUnshieldArtifacts = deriveVantaPrivateCoreSourceArtifactsFromUnshieldResult(result);
       const sourceProofConsistency = summarizeVantaPrivateCoreUnshieldProofEnvelopeConsistency({
@@ -747,6 +765,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
           : "Operator proof unavailable",
         proofFieldCount: operatorConsumeReceipt.proofFieldCount,
         proofPublicInputCount: operatorConsumeReceipt.publicInputCount,
+        operatorReleaseRecorded: operatorConsumeReceipt.releaseRecorded,
+        operatorReleaseRequestId: operatorConsumeReceipt.releaseRequestId,
+        operatorReleaseTransitionNoteId: operatorConsumeReceipt.releaseTransitionNoteId,
         consumeSucceeded: true,
         replayRejected: false,
         errorMessage: null,
@@ -832,6 +853,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
           : "Operator consume rejected request",
         proofFieldCount: operatorConsumeReceipt?.proofFieldCount ?? null,
         proofPublicInputCount: operatorConsumeReceipt?.publicInputCount ?? null,
+        operatorReleaseRecorded: operatorConsumeReceipt?.releaseRecorded ?? null,
+        operatorReleaseRequestId: operatorConsumeReceipt?.releaseRequestId ?? null,
+        operatorReleaseTransitionNoteId: operatorConsumeReceipt?.releaseTransitionNoteId ?? null,
         consumeSucceeded: false,
         replayRejected: false,
         errorMessage: error instanceof Error ? error.message : String(error),
@@ -905,6 +929,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofExecutionStatus: null,
         proofFieldCount: null,
         proofPublicInputCount: null,
+        operatorReleaseRecorded: null,
+        operatorReleaseRequestId: null,
+        operatorReleaseTransitionNoteId: null,
         consumeSucceeded: false,
         replayRejected: false,
         errorMessage: "No recovered private-core note is available for replay testing.",
@@ -1032,6 +1059,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
           : "Operator replay consume rejected request",
         proofFieldCount: operatorProofReceipt?.proofFieldCount ?? null,
         proofPublicInputCount: operatorProofReceipt?.publicInputCount ?? null,
+        operatorReleaseRecorded: null,
+        operatorReleaseRequestId: null,
+        operatorReleaseTransitionNoteId: null,
         consumeSucceeded: false,
         replayRejected: true,
         errorMessage: error instanceof Error ? error.message : String(error),
@@ -1199,4 +1229,54 @@ function applyPrivateCoreOperatorReleaseState(args: {
 }) {
   args.setPrivateCoreOperatorLatestRelease(args.releaseState.latestRelease);
   args.setPrivateCoreOperatorReleases(args.releaseState.records);
+}
+
+function summarizePrivateCoreImmediateOperatorConsume(
+  consumeReceipt: VantaPrivateCoreConsumeOperatorResponse,
+): VantaPrivateCoreOperatorConsumeRecord {
+  return {
+    assetId: consumeReceipt.releasedAssetId,
+    amount: consumeReceipt.releasedAmount,
+    completedAt: consumeReceipt.completedAt,
+    leafIndex: consumeReceipt.leafIndex,
+    nullifier: consumeReceipt.nullifier,
+    proofFieldCount: consumeReceipt.proofFieldCount,
+    publicInputCount: consumeReceipt.publicInputCount,
+    releaseDestination: consumeReceipt.releaseDestination,
+    root: consumeReceipt.root,
+  };
+}
+
+function summarizePrivateCoreImmediateOperatorRelease(
+  consumeReceipt: VantaPrivateCoreConsumeOperatorResponse,
+): VantaPrivateCoreOperatorReleaseRecord {
+  return {
+    assetId: consumeReceipt.releasedAssetId,
+    amount: consumeReceipt.releasedAmount,
+    completedAt: consumeReceipt.completedAt,
+    consumedNoteId: `private-core-nullifier:${consumeReceipt.nullifier}`,
+    nullifier: consumeReceipt.nullifier,
+    proofFieldCount: consumeReceipt.proofFieldCount,
+    publicInputCount: consumeReceipt.publicInputCount,
+    releaseDestination: consumeReceipt.releaseDestination,
+    releasedAssetId: consumeReceipt.releasedAssetId,
+    releasedAmount: consumeReceipt.releasedAmount,
+    requestId: consumeReceipt.releaseRequestId,
+    root: consumeReceipt.root,
+    transitionNoteId: consumeReceipt.releaseTransitionNoteId,
+  };
+}
+
+function mergePrivateCoreOperatorConsumes(
+  records: VantaPrivateCoreOperatorConsumeRecord[],
+  nextRecord: VantaPrivateCoreOperatorConsumeRecord,
+) {
+  return [nextRecord, ...records.filter((record) => record.nullifier !== nextRecord.nullifier)];
+}
+
+function mergePrivateCoreOperatorReleases(
+  records: VantaPrivateCoreOperatorReleaseRecord[],
+  nextRecord: VantaPrivateCoreOperatorReleaseRecord,
+) {
+  return [nextRecord, ...records.filter((record) => record.requestId !== nextRecord.requestId)];
 }

@@ -1028,7 +1028,23 @@ export function UnshieldPage() {
                     ? privateCoreOperatorReleaseError
                     : latestPrivateCoreOperatorRelease?.nullifier
                       ? abbreviate(latestPrivateCoreOperatorRelease.nullifier)
-                      : "Unavailable"}
+                    : "Unavailable"}
+                </strong>
+              </div>
+              <div className="review-row">
+                <span>Immediate release request</span>
+                <strong>
+                  {privateCoreUnshieldState.operatorReleaseRequestId
+                    ? abbreviate(privateCoreUnshieldState.operatorReleaseRequestId)
+                    : "Unavailable"}
+                </strong>
+              </div>
+              <div className="review-row">
+                <span>Immediate transition note</span>
+                <strong>
+                  {privateCoreUnshieldState.operatorReleaseTransitionNoteId
+                    ? abbreviate(privateCoreUnshieldState.operatorReleaseTransitionNoteId)
+                    : "Unavailable"}
                 </strong>
               </div>
               <div className="review-row">

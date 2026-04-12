@@ -15,6 +15,12 @@ export type VantaPrivateCoreProofOperatorResponse = {
 };
 
 export type VantaPrivateCoreConsumeOperatorResponse = VantaPrivateCoreProofOperatorResponse & {
+  completedAt: number;
+  leafIndex: string | null;
+  releaseDestination: string;
+  releaseRecorded: boolean;
+  releaseRequestId: string;
+  releaseTransitionNoteId: string;
   releasedAssetId: string;
   releasedAmount: string;
   root: string;
@@ -160,6 +166,12 @@ export async function requestVantaPrivateCoreOperatorConsume(args: {
 
   if (
     !parsed.verified ||
+    typeof parsed.completedAt !== "number" ||
+    (parsed.leafIndex !== null && typeof parsed.leafIndex !== "string") ||
+    typeof parsed.releaseDestination !== "string" ||
+    parsed.releaseRecorded !== true ||
+    typeof parsed.releaseRequestId !== "string" ||
+    typeof parsed.releaseTransitionNoteId !== "string" ||
     typeof parsed.releasedAssetId !== "string" ||
     typeof parsed.releasedAmount !== "string" ||
     typeof parsed.root !== "string" ||
@@ -180,6 +192,12 @@ export async function requestVantaPrivateCoreOperatorConsume(args: {
       ? parsed.publicInputs.filter((value): value is string => typeof value === "string")
       : [],
     verified: true,
+    completedAt: parsed.completedAt,
+    leafIndex: parsed.leafIndex ?? null,
+    releaseDestination: parsed.releaseDestination,
+    releaseRecorded: true,
+    releaseRequestId: parsed.releaseRequestId,
+    releaseTransitionNoteId: parsed.releaseTransitionNoteId,
     releasedAssetId: parsed.releasedAssetId,
     releasedAmount: parsed.releasedAmount,
     root: parsed.root,

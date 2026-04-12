@@ -482,6 +482,12 @@ const server = createServer(async (request, response) => {
       response.end(
         JSON.stringify({
           ...proofReceipt,
+          completedAt: consumeRecord.completedAt,
+          leafIndex: consumeRecord.leafIndex,
+          releaseDestination: sourcePublicInputs.releaseDestination,
+          releaseRecorded: true,
+          releaseRequestId,
+          releaseTransitionNoteId,
           releasedAssetId: sourcePublicInputs.assetId,
           releasedAmount: sourcePublicInputs.amount,
           root: sourcePublicInputs.stateRoot,

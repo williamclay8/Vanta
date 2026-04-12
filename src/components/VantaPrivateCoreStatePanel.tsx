@@ -284,8 +284,26 @@ export function VantaPrivateCoreStatePanel({
                   ? operatorReleaseError
                   : latestOperatorRelease?.nullifier
                     ? abbreviate(latestOperatorRelease.nullifier)
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Operator release recorded</span>
+              <strong>
+                {unshieldState?.operatorReleaseRecorded === true
+                  ? "Recorded during consume"
+                  : unshieldState?.operatorReleaseRecorded === false
+                    ? "Not recorded"
                     : "Unavailable"}
               </strong>
+            </div>
+            <div className="review-row">
+              <span>Immediate release request</span>
+              <strong>{abbreviate(unshieldState?.operatorReleaseRequestId)}</strong>
+            </div>
+            <div className="review-row">
+              <span>Immediate transition note</span>
+              <strong>{abbreviate(unshieldState?.operatorReleaseTransitionNoteId)}</strong>
             </div>
             <div className="review-row">
               <span>Operator release destination</span>
