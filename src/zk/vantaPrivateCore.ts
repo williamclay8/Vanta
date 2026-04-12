@@ -205,6 +205,13 @@ export type VantaPrivateCoreUnshieldProofEnvelopeVerificationSummaryV0 = {
   statusLabel: "Verified" | "Failed";
 };
 
+export type VantaPrivateCoreUnshieldProofEnvelopeConsistencySummaryV0 = {
+  commitmentStatus: "Aligned" | "Missing source artifact" | "Mismatch";
+  rootStatus: "Aligned" | "Missing source artifact" | "Mismatch";
+  nullifierStatus: "Aligned" | "Missing source artifact" | "Mismatch";
+  overallStatusLabel: "Aligned" | "Review required";
+};
+
 export type VantaPrivateCoreDemoRunV0 = {
   happyPath: {
     shield: ShieldArtifactV0;
@@ -622,6 +629,36 @@ export function summarizeVantaPrivateCoreUnshieldProofEnvelopeVerification(
   return {
     verified,
     statusLabel: verified ? "Verified" : "Failed",
+  };
+}
+
+export function summarizeVantaPrivateCoreUnshieldProofEnvelopeConsistency(args: {
+  envelope: UnshieldProofEnvelopeV0;
+  sourceArtifacts: VantaPrivateCoreSourceArtifactBundleV0;
+  expectedNullifier?: Bytes32Hex | null;
+}): VantaPrivateCoreUnshieldProofEnvelopeConsistencySummaryV0 {
+  const commitmentStatus = compareSourceEnvelopeField(
+    args.envelope.publicInputs.commitment,
+    args.sourceArtifacts.noteCommitment,
+  );
+  const rootStatus = compareSourceEnvelopeField(
+    args.envelope.publicInputs.root,
+    args.sourceArtifacts.witnessRoot ?? args.sourceArtifacts.merkleRoot,
+  );
+  const nullifierStatus = compareSourceEnvelopeField(
+    args.envelope.publicInputs.nullifier,
+    args.expectedNullifier ?? args.sourceArtifacts.nullifier,
+  );
+  const overallStatusLabel =
+    commitmentStatus === "Aligned" && rootStatus === "Aligned" && nullifierStatus === "Aligned"
+      ? "Aligned"
+      : "Review required";
+
+  return {
+    commitmentStatus,
+    rootStatus,
+    nullifierStatus,
+    overallStatusLabel,
   };
 }
 
@@ -1205,6 +1242,17 @@ function equalBytes(left: Uint8Array, right: Uint8Array): boolean {
   }
 
   return mismatch === 0;
+}
+
+function compareSourceEnvelopeField(
+  envelopeValue: Bytes32Hex,
+  expectedValue?: Bytes32Hex | null,
+): "Aligned" | "Missing source artifact" | "Mismatch" {
+  if (!expectedValue) {
+    return "Missing source artifact";
+  }
+
+  return envelopeValue === expectedValue ? "Aligned" : "Mismatch";
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

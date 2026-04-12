@@ -13,6 +13,7 @@ import {
   deriveVantaPrivateCoreSourceArtifactsFromHeldNote,
   deriveVantaPrivateCoreSourceArtifactsFromShieldArtifact,
   deriveVantaPrivateCoreSourceArtifactsFromUnshieldResult,
+  summarizeVantaPrivateCoreUnshieldProofEnvelopeConsistency,
   summarizeVantaPrivateCoreUnshieldProofEnvelope,
   summarizeVantaPrivateCoreUnshieldProofEnvelopeVerification,
   type VantaPrivateCoreOwnerKeypair,
@@ -135,6 +136,10 @@ export type VantaPrivateCoreUnshieldState = {
   sourceProofLeafIndex: number | null;
   sourceProofVerified: boolean | null;
   sourceProofStatusLabel: string | null;
+  sourceProofCommitmentStatus: string | null;
+  sourceProofRootStatus: string | null;
+  sourceProofNullifierStatus: string | null;
+  sourceProofConsistencyLabel: string | null;
   provingHashLane: string | null;
   provingNoteCommitment: string | null;
   provingMerkleLeaf: string | null;
@@ -280,6 +285,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceProofLeafIndex: null,
         sourceProofVerified: null,
         sourceProofStatusLabel: null,
+        sourceProofCommitmentStatus: null,
+        sourceProofRootStatus: null,
+        sourceProofNullifierStatus: null,
+        sourceProofConsistencyLabel: null,
         provingHashLane: null,
         provingNoteCommitment: null,
         provingMerkleLeaf: null,
@@ -343,6 +352,14 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       const sourceHoldArtifacts = deriveVantaPrivateCoreSourceArtifactsFromHeldNote(
         privateCoreHoldState.heldNote,
       );
+      const sourceProofConsistency = summarizeVantaPrivateCoreUnshieldProofEnvelopeConsistency({
+        envelope: proofEnvelope,
+        sourceArtifacts: {
+          ...sourceHoldArtifacts,
+          nullifier: sourceUnshieldArtifacts.nullifier,
+        },
+        expectedNullifier: sourceUnshieldArtifacts.nullifier ?? result.nullifier.value,
+      });
       const provingComparison = compareVantaPrivateCoreSourceAndProvingArtifacts({
         sourceArtifacts: sourceHoldArtifacts,
         provingArtifacts,
@@ -361,6 +378,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceProofLeafIndex: sourceProofSummary.leafIndex,
         sourceProofVerified: sourceProofVerification.verified,
         sourceProofStatusLabel: sourceProofVerification.statusLabel,
+        sourceProofCommitmentStatus: sourceProofConsistency.commitmentStatus,
+        sourceProofRootStatus: sourceProofConsistency.rootStatus,
+        sourceProofNullifierStatus: sourceProofConsistency.nullifierStatus,
+        sourceProofConsistencyLabel: sourceProofConsistency.overallStatusLabel,
         provingHashLane: provingArtifacts.provingHashLane,
         provingNoteCommitment: provingArtifacts.provingNoteCommitment,
         provingMerkleLeaf: provingArtifacts.provingMerkleLeaf,
@@ -400,6 +421,14 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       const sourceHoldArtifacts = deriveVantaPrivateCoreSourceArtifactsFromHeldNote(
         privateCoreHoldState.heldNote,
       );
+      const sourceProofConsistency = summarizeVantaPrivateCoreUnshieldProofEnvelopeConsistency({
+        envelope: proofEnvelope,
+        sourceArtifacts: {
+          ...sourceHoldArtifacts,
+          nullifier: proofEnvelope.publicInputs.nullifier,
+        },
+        expectedNullifier: proofEnvelope.publicInputs.nullifier,
+      });
       const provingComparison = compareVantaPrivateCoreSourceAndProvingArtifacts({
         sourceArtifacts: sourceHoldArtifacts,
         provingArtifacts,
@@ -418,6 +447,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceProofLeafIndex: sourceProofSummary.leafIndex,
         sourceProofVerified: sourceProofVerification.verified,
         sourceProofStatusLabel: sourceProofVerification.statusLabel,
+        sourceProofCommitmentStatus: sourceProofConsistency.commitmentStatus,
+        sourceProofRootStatus: sourceProofConsistency.rootStatus,
+        sourceProofNullifierStatus: sourceProofConsistency.nullifierStatus,
+        sourceProofConsistencyLabel: sourceProofConsistency.overallStatusLabel,
         provingHashLane: provingArtifacts.provingHashLane,
         provingNoteCommitment: provingArtifacts.provingNoteCommitment,
         provingMerkleLeaf: provingArtifacts.provingMerkleLeaf,
@@ -471,6 +504,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceProofLeafIndex: null,
         sourceProofVerified: null,
         sourceProofStatusLabel: null,
+        sourceProofCommitmentStatus: null,
+        sourceProofRootStatus: null,
+        sourceProofNullifierStatus: null,
+        sourceProofConsistencyLabel: null,
         provingHashLane: null,
         provingNoteCommitment: null,
         provingMerkleLeaf: null,
@@ -534,6 +571,14 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       const sourceHoldArtifacts = deriveVantaPrivateCoreSourceArtifactsFromHeldNote(
         privateCoreHoldState.heldNote,
       );
+      const sourceProofConsistency = summarizeVantaPrivateCoreUnshieldProofEnvelopeConsistency({
+        envelope: proofEnvelope,
+        sourceArtifacts: {
+          ...sourceHoldArtifacts,
+          nullifier: sourceUnshieldArtifacts.nullifier,
+        },
+        expectedNullifier: sourceUnshieldArtifacts.nullifier ?? result.nullifier.value,
+      });
       const provingComparison = compareVantaPrivateCoreSourceAndProvingArtifacts({
         sourceArtifacts: sourceHoldArtifacts,
         provingArtifacts,
@@ -552,6 +597,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceProofLeafIndex: sourceProofSummary.leafIndex,
         sourceProofVerified: sourceProofVerification.verified,
         sourceProofStatusLabel: sourceProofVerification.statusLabel,
+        sourceProofCommitmentStatus: sourceProofConsistency.commitmentStatus,
+        sourceProofRootStatus: sourceProofConsistency.rootStatus,
+        sourceProofNullifierStatus: sourceProofConsistency.nullifierStatus,
+        sourceProofConsistencyLabel: sourceProofConsistency.overallStatusLabel,
         provingHashLane: provingArtifacts.provingHashLane,
         provingNoteCommitment: provingArtifacts.provingNoteCommitment,
         provingMerkleLeaf: provingArtifacts.provingMerkleLeaf,
@@ -591,6 +640,14 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       const sourceHoldArtifacts = deriveVantaPrivateCoreSourceArtifactsFromHeldNote(
         privateCoreHoldState.heldNote,
       );
+      const sourceProofConsistency = summarizeVantaPrivateCoreUnshieldProofEnvelopeConsistency({
+        envelope: proofEnvelope,
+        sourceArtifacts: {
+          ...sourceHoldArtifacts,
+          nullifier: proofEnvelope.publicInputs.nullifier,
+        },
+        expectedNullifier: proofEnvelope.publicInputs.nullifier,
+      });
       const provingComparison = compareVantaPrivateCoreSourceAndProvingArtifacts({
         sourceArtifacts: sourceHoldArtifacts,
         provingArtifacts,
@@ -609,6 +666,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceProofLeafIndex: sourceProofSummary.leafIndex,
         sourceProofVerified: sourceProofVerification.verified,
         sourceProofStatusLabel: sourceProofVerification.statusLabel,
+        sourceProofCommitmentStatus: sourceProofConsistency.commitmentStatus,
+        sourceProofRootStatus: sourceProofConsistency.rootStatus,
+        sourceProofNullifierStatus: sourceProofConsistency.nullifierStatus,
+        sourceProofConsistencyLabel: sourceProofConsistency.overallStatusLabel,
         provingHashLane: provingArtifacts.provingHashLane,
         provingNoteCommitment: provingArtifacts.provingNoteCommitment,
         provingMerkleLeaf: provingArtifacts.provingMerkleLeaf,

@@ -223,6 +223,22 @@ export function VantaPrivateCoreStatePanel({
               <strong>{unshieldState?.sourceProofStatusLabel ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
+              <span>Source proof consistency</span>
+              <strong>{unshieldState?.sourceProofConsistencyLabel ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Source proof commitment binding</span>
+              <strong>{unshieldState?.sourceProofCommitmentStatus ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Source proof root binding</span>
+              <strong>{unshieldState?.sourceProofRootStatus ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Source proof nullifier binding</span>
+              <strong>{unshieldState?.sourceProofNullifierStatus ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
               <span>{unshieldState ? "Proving lane" : "Proving preview lane"}</span>
               <strong>{unshieldState?.provingHashLane ?? holdState?.provingPreviewHashLane ?? "Unavailable"}</strong>
             </div>
