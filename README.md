@@ -207,6 +207,10 @@ For hackathon positioning, proof records, demo scripts, FAQ, and submission-read
 
 `SUBMISSION.md`
 
+For the current private-core proof/demo lane runbook, see:
+
+`docs/zk/vanta-private-core-demo-runbook.md`
+
 ---
 
 ## Internal product rule

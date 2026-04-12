@@ -176,6 +176,10 @@ The repo now includes concrete verification commands for the Vanta Private Core 
 
 These commands do not make the protocol finished, but they do make the current first zk boundary concrete and repeatable.
 
+For the current live demo order and fallback path, see:
+
+`docs/zk/vanta-private-core-demo-runbook.md`
+
 ---
 
 ## Roadmap
