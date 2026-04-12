@@ -476,6 +476,7 @@ try {
   const consumeState = await requestJson(baseUrl, "/state/private-core-consumes", { method: "GET" });
   if (
     !consumeState.ok ||
+    consumeState.parsed?.latestConsume?.nullifier !== witnessPackage.sourcePublicInputs.nullifier ||
     !Array.isArray(consumeState.parsed?.records) ||
     !consumeState.parsed.records.some(
       (record) => record.nullifier === witnessPackage.sourcePublicInputs.nullifier,

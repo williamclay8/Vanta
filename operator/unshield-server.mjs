@@ -180,9 +180,11 @@ const server = createServer(async (request, response) => {
   if (request.method === "GET" && request.url === "/state/private-core-consumes") {
     writeCorsHeaders(response);
     response.writeHead(200, { "Content-Type": "application/json" });
+    const records = privateCoreConsumeStore.listConsumes();
     response.end(
       JSON.stringify({
-        records: privateCoreConsumeStore.listConsumes(),
+        latestConsume: records[0] ?? null,
+        records,
       }),
     );
     return;

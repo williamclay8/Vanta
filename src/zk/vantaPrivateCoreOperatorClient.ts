@@ -33,6 +33,11 @@ export type VantaPrivateCoreOperatorConsumeRecord = {
   root: string;
 };
 
+export type VantaPrivateCoreOperatorConsumeStateResponse = {
+  latestConsume: VantaPrivateCoreOperatorConsumeRecord | null;
+  records: VantaPrivateCoreOperatorConsumeRecord[];
+};
+
 export type VantaPrivateCoreOperatorRootRecord = {
   amount: string | null;
   assetId: string | null;
@@ -197,7 +202,7 @@ function getPrivateCoreRootRegistrationUrl() {
 }
 
 export async function fetchVantaPrivateCoreOperatorConsumes(): Promise<
-  VantaPrivateCoreOperatorConsumeRecord[]
+  VantaPrivateCoreOperatorConsumeStateResponse
 > {
   const response = await fetch(getPrivateCoreConsumeStateUrl(), {
     method: "GET",
@@ -209,12 +214,20 @@ export async function fetchVantaPrivateCoreOperatorConsumes(): Promise<
     throw new Error(message || "The private-core consume operator state endpoint failed.");
   }
 
-  const parsed = (await response.json()) as { records?: unknown };
-  if (!Array.isArray(parsed.records)) {
+  const parsed = (await response.json()) as { latestConsume?: unknown; records?: unknown };
+  if (
+    (parsed.latestConsume !== null &&
+      parsed.latestConsume !== undefined &&
+      !isConsumeRecord(parsed.latestConsume)) ||
+    !Array.isArray(parsed.records)
+  ) {
     throw new Error("The private-core consume operator state endpoint returned invalid data.");
   }
 
-  return parsed.records.filter(isConsumeRecord);
+  return {
+    latestConsume: isConsumeRecord(parsed.latestConsume) ? parsed.latestConsume : null,
+    records: parsed.records.filter(isConsumeRecord),
+  };
 }
 
 export async function fetchVantaPrivateCoreOperatorRoots(): Promise<VantaPrivateCoreOperatorRootStateResponse> {

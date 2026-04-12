@@ -13,6 +13,7 @@ type VantaPrivateCoreStatePanelProps = {
   operatorCurrentRoot?: string | null;
   operatorConsumeError?: string | null;
   operatorConsumes?: VantaPrivateCoreOperatorConsumeRecord[];
+  operatorLatestConsume?: VantaPrivateCoreOperatorConsumeRecord | null;
   operatorRootCurrentnessLabel?: string | null;
   operatorRootError?: string | null;
   operatorRootRegistrationStatus?: string | null;
@@ -43,6 +44,7 @@ export function VantaPrivateCoreStatePanel({
   operatorCurrentRoot = null,
   operatorConsumeError = null,
   operatorConsumes = [],
+  operatorLatestConsume = null,
   operatorRootCurrentnessLabel = null,
   operatorRootError = null,
   operatorRootRegistrationStatus = null,
@@ -52,7 +54,7 @@ export function VantaPrivateCoreStatePanel({
   compact = false,
   title = "Vanta Private Core private state",
 }: VantaPrivateCoreStatePanelProps) {
-  const latestOperatorConsume = operatorConsumes[0] ?? null;
+  const latestOperatorConsume = operatorLatestConsume ?? operatorConsumes[0] ?? null;
   const latestOperatorRoot = operatorRoots[0] ?? null;
 
   return (

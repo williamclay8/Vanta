@@ -105,6 +105,7 @@ This command:
   - `noteVersion`
 - verifies consume succeeds once and replay is rejected
 - verifies the operator root state endpoint returns the explicit `currentRoot`
+- verifies the operator consume state endpoint returns the explicit `latestConsume`
 - verifies the operator state endpoints reflect the registered root and consumed nullifier
 
 7. If you want to exercise fixture modes manually, materialize the fixture from the TypeScript helper into a Noir input file.

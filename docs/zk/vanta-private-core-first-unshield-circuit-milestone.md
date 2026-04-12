@@ -117,6 +117,7 @@ That command confirms the current lane through the actual server surface:
 - consume succeeds once after root registration
 - replay is rejected
 - root state returns the explicit `currentRoot`
+- consume state returns the explicit `latestConsume`
 - operator state endpoints reflect the registered root and consumed nullifier
 
 The repo now also has one canonical stack verification command:
