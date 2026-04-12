@@ -89,6 +89,10 @@ const client = createClient({
 const web3Connection = new Connection(endpoint, "confirmed");
 const releaseRecords = createReleaseRecordStore();
 const privateCoreConsumeStore = createPrivateCoreConsumeStore();
+const privateCoreReleaseRecords = createReleaseRecordStore({
+  defaultPath: "operator/.vanta-private-core-releases.json",
+  envKey: "VANTA_PRIVATE_CORE_RELEASE_STORE_PATH",
+});
 const privateCoreRootStore = createPrivateCoreRootStore();
 const swapRecords = createReleaseRecordStore({
   defaultPath: "operator/.vanta-swap-records.json",
@@ -186,6 +190,20 @@ const server = createServer(async (request, response) => {
       JSON.stringify({
         stateVersion: 1,
         latestConsume: records[0] ?? null,
+        records,
+      }),
+    );
+    return;
+  }
+
+  if (request.method === "GET" && request.url === "/state/private-core-releases") {
+    writeCorsHeaders(response);
+    response.writeHead(200, { "Content-Type": "application/json" });
+    const records = privateCoreReleaseRecords.listRecords();
+    response.end(
+      JSON.stringify({
+        stateVersion: 1,
+        latestRelease: records[0] ?? null,
         records,
       }),
     );
@@ -425,6 +443,21 @@ const server = createServer(async (request, response) => {
       };
 
       privateCoreConsumeStore.recordConsume(consumeRecord);
+      privateCoreReleaseRecords.recordRelease({
+        assetId: sourcePublicInputs.assetId,
+        amount: sourcePublicInputs.amount,
+        completedAt: consumeRecord.completedAt,
+        consumedNoteId: `private-core-nullifier:${nullifier}`,
+        nullifier,
+        proofFieldCount: proofReceipt.proofFieldCount,
+        publicInputCount: proofReceipt.publicInputCount,
+        releaseDestination: sourcePublicInputs.releaseDestination,
+        releasedAssetId: sourcePublicInputs.assetId,
+        releasedAmount: sourcePublicInputs.amount,
+        requestId: `private-core-release:${nullifier}:${sourcePublicInputs.stateRoot}`,
+        root: sourcePublicInputs.stateRoot,
+        transitionNoteId: `private-core-release:${sourcePublicInputs.stateRoot}:${sourcePublicInputs.releaseDestination}`,
+      });
 
       writeCorsHeaders(response);
       response.writeHead(200, { "Content-Type": "application/json" });
@@ -1124,6 +1157,7 @@ function parseSwapMemoPayload(memo) {
 server.listen(port, "127.0.0.1", () => {
   console.log(`Vanta operator listening on http://127.0.0.1:${port}`);
   console.log(`Vanta release store: ${releaseRecords.filePath}`);
+  console.log(`Vanta private-core release store: ${privateCoreReleaseRecords.filePath}`);
   console.log(`Vanta swap store: ${swapRecords.filePath}`);
   console.log(`Vanta SOL unshield store: ${solUnshieldRecords.filePath}`);
 });

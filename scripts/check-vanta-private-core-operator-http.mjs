@@ -135,6 +135,7 @@ const server = spawn("node", ["operator/unshield-server.mjs"], {
       process.env.VANTA_DEVNET_VAULT_OWNER ??
       "Gk7m3rV2Q5uH4pL9sW8xD1nB6cT3yF7kJ2qR5mN8pZ1",
     VANTA_PRIVATE_CORE_CONSUME_STORE_PATH: join(tempRoot, "consumes.json"),
+    VANTA_PRIVATE_CORE_RELEASE_STORE_PATH: join(tempRoot, "private-core-releases.json"),
     VANTA_PRIVATE_CORE_ROOT_STORE_PATH: join(tempRoot, "roots.json"),
     VANTA_RELEASE_RECORD_STORE_PATH: join(tempRoot, "releases.json"),
     VANTA_SWAP_RECORD_STORE_PATH: join(tempRoot, "swaps.json"),
@@ -181,6 +182,20 @@ try {
     throw new Error(initialConsumeState.text || "operator consume state did not start empty");
   }
   printStatus("operator http empty consume state: PASS");
+
+  const initialReleaseState = await requestJson(baseUrl, "/state/private-core-releases", {
+    method: "GET",
+  });
+  if (
+    !initialReleaseState.ok ||
+    initialReleaseState.parsed?.stateVersion !== 1 ||
+    initialReleaseState.parsed?.latestRelease !== null ||
+    !Array.isArray(initialReleaseState.parsed?.records) ||
+    initialReleaseState.parsed.records.length !== 0
+  ) {
+    throw new Error(initialReleaseState.text || "operator release state did not start empty");
+  }
+  printStatus("operator http empty release state: PASS");
 
   const proofResponse = await requestJson(baseUrl, "/private-core/unshield-proof", {
     body: JSON.stringify({ witnessPackage }),
@@ -724,6 +739,24 @@ try {
     throw new Error(consumeState.text || "operator consume state did not contain the consumed nullifier");
   }
   printStatus("operator http consume state: PASS");
+
+  const releaseState = await requestJson(baseUrl, "/state/private-core-releases", { method: "GET" });
+  if (
+    !releaseState.ok ||
+    releaseState.parsed?.stateVersion !== 1 ||
+    !releaseState.parsed?.latestRelease ||
+    releaseState.parsed.latestRelease.nullifier !== witnessPackage.sourcePublicInputs.nullifier ||
+    releaseState.parsed.latestRelease.root !== witnessPackage.sourcePublicInputs.stateRoot ||
+    releaseState.parsed.latestRelease.releaseDestination !==
+      witnessPackage.sourcePublicInputs.releaseDestination ||
+    releaseState.parsed.latestRelease.releasedAssetId !== witnessPackage.sourcePublicInputs.assetId ||
+    releaseState.parsed.latestRelease.releasedAmount !== witnessPackage.sourcePublicInputs.amount ||
+    !Array.isArray(releaseState.parsed?.records) ||
+    releaseState.parsed.records.length !== 1
+  ) {
+    throw new Error(releaseState.text || "operator release state did not reflect the first consume");
+  }
+  printStatus("operator http release state: PASS");
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   const operatorOutput = [stdout.trim(), stderr.trim()].filter(Boolean).join("\n");

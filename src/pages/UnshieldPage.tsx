@@ -102,6 +102,9 @@ export function UnshieldPage() {
     privateCoreOperatorCurrentRoot,
     privateCoreOperatorLatestConsume,
     privateCoreOperatorLatestRoot,
+    privateCoreOperatorLatestRelease,
+    privateCoreOperatorReleaseError,
+    privateCoreOperatorReleases,
     privateCoreOperatorRootCurrentnessLabel,
     privateCoreOperatorRootError,
     privateCoreOperatorRootRegistrationStatus,
@@ -830,7 +833,10 @@ export function UnshieldPage() {
           operatorConsumeError={privateCoreOperatorConsumeError}
           operatorConsumes={privateCoreOperatorConsumes}
           operatorLatestConsume={privateCoreOperatorLatestConsume}
+          operatorLatestRelease={privateCoreOperatorLatestRelease}
           operatorLatestRoot={privateCoreOperatorLatestRoot}
+          operatorReleaseError={privateCoreOperatorReleaseError}
+          operatorReleases={privateCoreOperatorReleases}
           operatorRootCurrentnessLabel={privateCoreOperatorRootCurrentnessLabel}
           operatorRootError={privateCoreOperatorRootError}
           operatorRootRegistrationStatus={privateCoreOperatorRootRegistrationStatus}

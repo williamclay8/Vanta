@@ -5,6 +5,7 @@ import type {
 } from "@/data/context/PrivacyFlowContext";
 import type {
   VantaPrivateCoreOperatorConsumeRecord,
+  VantaPrivateCoreOperatorReleaseRecord,
   VantaPrivateCoreOperatorRootRecord,
 } from "@/zk/vantaPrivateCoreOperatorClient";
 
@@ -14,7 +15,10 @@ type VantaPrivateCoreStatePanelProps = {
   operatorConsumeError?: string | null;
   operatorConsumes?: VantaPrivateCoreOperatorConsumeRecord[];
   operatorLatestConsume?: VantaPrivateCoreOperatorConsumeRecord | null;
+  operatorLatestRelease?: VantaPrivateCoreOperatorReleaseRecord | null;
   operatorLatestRoot?: VantaPrivateCoreOperatorRootRecord | null;
+  operatorReleaseError?: string | null;
+  operatorReleases?: VantaPrivateCoreOperatorReleaseRecord[];
   operatorRootCurrentnessLabel?: string | null;
   operatorRootError?: string | null;
   operatorRootRegistrationStatus?: string | null;
@@ -46,7 +50,10 @@ export function VantaPrivateCoreStatePanel({
   operatorConsumeError = null,
   operatorConsumes = [],
   operatorLatestConsume = null,
+  operatorLatestRelease = null,
   operatorLatestRoot = null,
+  operatorReleaseError = null,
+  operatorReleases = [],
   operatorRootCurrentnessLabel = null,
   operatorRootError = null,
   operatorRootRegistrationStatus = null,
@@ -57,6 +64,7 @@ export function VantaPrivateCoreStatePanel({
   title = "Vanta Private Core private state",
 }: VantaPrivateCoreStatePanelProps) {
   const latestOperatorConsume = operatorLatestConsume ?? operatorConsumes[0] ?? null;
+  const latestOperatorRelease = operatorLatestRelease ?? operatorReleases[0] ?? null;
   const latestOperatorRoot = operatorLatestRoot ?? operatorRoots[0] ?? null;
 
   return (
@@ -258,6 +266,24 @@ export function VantaPrivateCoreStatePanel({
                   ? operatorConsumeError
                   : latestOperatorConsume?.nullifier
                     ? abbreviate(latestOperatorConsume.nullifier)
+                    : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Operator release records</span>
+              <strong>
+                {operatorReleaseError
+                  ? "Unavailable"
+                  : operatorReleases.length.toString()}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Latest operator release</span>
+              <strong>
+                {operatorReleaseError
+                  ? operatorReleaseError
+                  : latestOperatorRelease?.nullifier
+                    ? abbreviate(latestOperatorRelease.nullifier)
                     : "Unavailable"}
               </strong>
             </div>

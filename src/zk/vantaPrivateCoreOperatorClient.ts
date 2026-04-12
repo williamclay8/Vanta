@@ -39,6 +39,28 @@ export type VantaPrivateCoreOperatorConsumeStateResponse = {
   records: VantaPrivateCoreOperatorConsumeRecord[];
 };
 
+export type VantaPrivateCoreOperatorReleaseRecord = {
+  assetId: string;
+  amount: string;
+  completedAt: number;
+  consumedNoteId: string;
+  nullifier: string;
+  proofFieldCount: number;
+  publicInputCount: number;
+  releaseDestination: string;
+  releasedAssetId: string;
+  releasedAmount: string;
+  requestId: string;
+  root: string;
+  transitionNoteId: string;
+};
+
+export type VantaPrivateCoreOperatorReleaseStateResponse = {
+  stateVersion: number;
+  latestRelease: VantaPrivateCoreOperatorReleaseRecord | null;
+  records: VantaPrivateCoreOperatorReleaseRecord[];
+};
+
 export type VantaPrivateCoreOperatorRootRecord = {
   amount: string | null;
   assetId: string | null;
@@ -287,8 +309,47 @@ function getPrivateCoreConsumeStateUrl() {
   return new URL("/state/private-core-consumes", liveShieldAsset.unshieldOperatorUrl).toString();
 }
 
+function getPrivateCoreReleaseStateUrl() {
+  return new URL("/state/private-core-releases", liveShieldAsset.unshieldOperatorUrl).toString();
+}
+
 function getPrivateCoreRootStateUrl() {
   return new URL("/state/private-core-roots", liveShieldAsset.unshieldOperatorUrl).toString();
+}
+
+export async function fetchVantaPrivateCoreOperatorReleases(): Promise<
+  VantaPrivateCoreOperatorReleaseStateResponse
+> {
+  const response = await fetch(getPrivateCoreReleaseStateUrl(), {
+    method: "GET",
+    signal: AbortSignal.timeout(15_000),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "The private-core release operator state endpoint failed.");
+  }
+
+  const parsed = (await response.json()) as {
+    latestRelease?: unknown;
+    records?: unknown;
+    stateVersion?: unknown;
+  };
+  if (
+    parsed.stateVersion !== 1 ||
+    (parsed.latestRelease !== null &&
+      parsed.latestRelease !== undefined &&
+      !isReleaseRecord(parsed.latestRelease)) ||
+    !Array.isArray(parsed.records)
+  ) {
+    throw new Error("The private-core release operator state endpoint returned invalid data.");
+  }
+
+  return {
+    stateVersion: 1,
+    latestRelease: isReleaseRecord(parsed.latestRelease) ? parsed.latestRelease : null,
+    records: parsed.records.filter(isReleaseRecord),
+  };
 }
 
 function isConsumeRecord(value: unknown): value is VantaPrivateCoreOperatorConsumeRecord {
@@ -318,5 +379,25 @@ function isRootRecord(value: unknown): value is VantaPrivateCoreOperatorRootReco
     typeof (value as VantaPrivateCoreOperatorRootRecord).recordedAt === "number" &&
     typeof (value as VantaPrivateCoreOperatorRootRecord).root === "string" &&
     typeof (value as VantaPrivateCoreOperatorRootRecord).source === "string"
+  );
+}
+
+function isReleaseRecord(value: unknown): value is VantaPrivateCoreOperatorReleaseRecord {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as VantaPrivateCoreOperatorReleaseRecord).assetId === "string" &&
+    typeof (value as VantaPrivateCoreOperatorReleaseRecord).amount === "string" &&
+    typeof (value as VantaPrivateCoreOperatorReleaseRecord).completedAt === "number" &&
+    typeof (value as VantaPrivateCoreOperatorReleaseRecord).consumedNoteId === "string" &&
+    typeof (value as VantaPrivateCoreOperatorReleaseRecord).nullifier === "string" &&
+    typeof (value as VantaPrivateCoreOperatorReleaseRecord).proofFieldCount === "number" &&
+    typeof (value as VantaPrivateCoreOperatorReleaseRecord).publicInputCount === "number" &&
+    typeof (value as VantaPrivateCoreOperatorReleaseRecord).releaseDestination === "string" &&
+    typeof (value as VantaPrivateCoreOperatorReleaseRecord).releasedAssetId === "string" &&
+    typeof (value as VantaPrivateCoreOperatorReleaseRecord).releasedAmount === "string" &&
+    typeof (value as VantaPrivateCoreOperatorReleaseRecord).requestId === "string" &&
+    typeof (value as VantaPrivateCoreOperatorReleaseRecord).root === "string" &&
+    typeof (value as VantaPrivateCoreOperatorReleaseRecord).transitionNoteId === "string"
   );
 }
