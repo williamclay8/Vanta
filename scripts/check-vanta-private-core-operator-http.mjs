@@ -763,11 +763,19 @@ try {
   if (
     !consumeState.ok ||
     consumeState.parsed?.stateVersion !== 1 ||
+    typeof consumeState.parsed?.latestConsume?.completedAt !== "number" ||
+    consumeState.parsed?.latestConsume?.assetId !== witnessPackage.sourcePublicInputs.assetId ||
+    consumeState.parsed?.latestConsume?.amount !== witnessPackage.sourcePublicInputs.amount ||
+    consumeState.parsed?.latestConsume?.leafIndex !== witnessPackage.privateWitness.leaf_index ||
     consumeState.parsed?.latestConsume?.nullifier !== witnessPackage.sourcePublicInputs.nullifier ||
+    consumeState.parsed?.latestConsume?.proofFieldCount !== consumeResponse.parsed.proofFieldCount ||
+    consumeState.parsed?.latestConsume?.publicInputCount !== consumeResponse.parsed.publicInputCount ||
+    consumeState.parsed?.latestConsume?.releaseDestination !==
+      witnessPackage.sourcePublicInputs.releaseDestination ||
+    consumeState.parsed?.latestConsume?.root !== witnessPackage.sourcePublicInputs.stateRoot ||
+    consumeState.parsed?.latestConsume?.completedAt !== consumeResponse.parsed.completedAt ||
     !Array.isArray(consumeState.parsed?.records) ||
-    !consumeState.parsed.records.some(
-      (record) => record.nullifier === witnessPackage.sourcePublicInputs.nullifier,
-    )
+    consumeState.parsed.records.length !== 1
   ) {
     throw new Error(consumeState.text || "operator consume state did not contain the consumed nullifier");
   }
@@ -778,7 +786,13 @@ try {
     !releaseState.ok ||
     releaseState.parsed?.stateVersion !== 1 ||
     !releaseState.parsed?.latestRelease ||
+    typeof releaseState.parsed.latestRelease.completedAt !== "number" ||
+    releaseState.parsed.latestRelease.completedAt !== consumeResponse.parsed.completedAt ||
+    releaseState.parsed.latestRelease.consumedNoteId !==
+      `private-core-nullifier:${witnessPackage.sourcePublicInputs.nullifier}` ||
     releaseState.parsed.latestRelease.nullifier !== witnessPackage.sourcePublicInputs.nullifier ||
+    releaseState.parsed.latestRelease.proofFieldCount !== consumeResponse.parsed.proofFieldCount ||
+    releaseState.parsed.latestRelease.publicInputCount !== consumeResponse.parsed.publicInputCount ||
     releaseState.parsed.latestRelease.root !== witnessPackage.sourcePublicInputs.stateRoot ||
     releaseState.parsed.latestRelease.releaseDestination !==
       witnessPackage.sourcePublicInputs.releaseDestination ||

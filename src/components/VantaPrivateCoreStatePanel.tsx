@@ -44,6 +44,29 @@ function formatAmount(baseUnits: string) {
   return `${whole}${fraction ? `.${fraction}` : ""} VUSD`;
 }
 
+function summarizeOperatorImmediateReleaseAlignment(args: {
+  latestOperatorRelease: VantaPrivateCoreOperatorReleaseRecord | null;
+  unshieldState: VantaPrivateCoreUnshieldState | null;
+}) {
+  if (!args.unshieldState?.operatorReleaseRecorded) {
+    return args.unshieldState?.replayRejected ? "Replay rejected before new release" : "Unavailable";
+  }
+
+  if (!args.latestOperatorRelease) {
+    return "Awaiting operator release state";
+  }
+
+  if (
+    args.unshieldState.operatorReleaseRequestId === args.latestOperatorRelease.requestId &&
+    args.unshieldState.operatorReleaseTransitionNoteId === args.latestOperatorRelease.transitionNoteId &&
+    args.unshieldState.sourceNullifier === args.latestOperatorRelease.nullifier
+  ) {
+    return "Immediate release matches operator state";
+  }
+
+  return "Immediate release mismatch";
+}
+
 export function VantaPrivateCoreStatePanel({
   holdState,
   operatorCurrentRoot = null,
@@ -66,6 +89,10 @@ export function VantaPrivateCoreStatePanel({
   const latestOperatorConsume = operatorLatestConsume ?? operatorConsumes[0] ?? null;
   const latestOperatorRelease = operatorLatestRelease ?? operatorReleases[0] ?? null;
   const latestOperatorRoot = operatorLatestRoot ?? operatorRoots[0] ?? null;
+  const immediateReleaseAlignmentLabel = summarizeOperatorImmediateReleaseAlignment({
+    latestOperatorRelease,
+    unshieldState,
+  });
 
   return (
     <div className="note-state-panel vanta-private-core-state-panel">
@@ -304,6 +331,10 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Immediate transition note</span>
               <strong>{abbreviate(unshieldState?.operatorReleaseTransitionNoteId)}</strong>
+            </div>
+            <div className="review-row">
+              <span>Immediate release alignment</span>
+              <strong>{immediateReleaseAlignmentLabel}</strong>
             </div>
             <div className="review-row">
               <span>Operator release destination</span>
