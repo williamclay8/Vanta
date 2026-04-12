@@ -93,6 +93,13 @@ export type VantaPrivateCoreHoldState = {
   privateNoteRecovered: boolean;
   witnessAvailable: boolean;
   sourceWitnessRoot: string;
+  sourceProofPreviewStatement: string;
+  sourceProofPreviewVerifier: string;
+  sourceProofPreviewCommitment: string;
+  sourceProofPreviewRoot: string;
+  sourceProofPreviewAssetId: string;
+  sourceProofPreviewAmount: string;
+  sourceProofPreviewLeafIndex: number;
   sourceProofPreviewStatusLabel: string;
   sourceProofPreviewConsistencyLabel: string;
   previewSourceLayerStatus: string;
@@ -228,6 +235,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     });
     const sourceProofPreviewVerification =
       summarizeVantaPrivateCoreUnshieldProofEnvelopeVerification(sourceProofPreviewEnvelope);
+    const sourceProofPreviewSummary =
+      summarizeVantaPrivateCoreUnshieldProofEnvelope(sourceProofPreviewEnvelope);
     const sourceProofPreviewConsistency =
       summarizeVantaPrivateCoreUnshieldProofEnvelopeConsistency({
         envelope: sourceProofPreviewEnvelope,
@@ -267,6 +276,13 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateNoteRecovered: true,
       witnessAvailable: true,
       sourceWitnessRoot: sourceHoldArtifacts.witnessRoot ?? hold.witness.root,
+      sourceProofPreviewStatement: sourceProofPreviewSummary.statement,
+      sourceProofPreviewVerifier: sourceProofPreviewSummary.proof,
+      sourceProofPreviewCommitment: sourceProofPreviewSummary.commitment,
+      sourceProofPreviewRoot: sourceProofPreviewSummary.root,
+      sourceProofPreviewAssetId: sourceProofPreviewSummary.assetId,
+      sourceProofPreviewAmount: sourceProofPreviewSummary.amount,
+      sourceProofPreviewLeafIndex: sourceProofPreviewSummary.leafIndex,
       sourceProofPreviewStatusLabel: sourceProofPreviewVerification.statusLabel,
       sourceProofPreviewConsistencyLabel: sourceProofPreviewConsistency.overallStatusLabel,
       previewSourceLayerStatus: previewHandoffSummary.sourceLayerStatus,

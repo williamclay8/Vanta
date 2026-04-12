@@ -192,31 +192,31 @@ export function VantaPrivateCoreStatePanel({
             </div>
             <div className="review-row">
               <span>Source proof statement</span>
-              <strong>{unshieldState?.sourceProofStatement ?? "Unavailable"}</strong>
+              <strong>{unshieldState?.sourceProofStatement ?? holdState?.sourceProofPreviewStatement ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Source proof verifier</span>
-              <strong>{unshieldState?.sourceProofVerifier ?? "Unavailable"}</strong>
+              <strong>{unshieldState?.sourceProofVerifier ?? holdState?.sourceProofPreviewVerifier ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Source proof commitment</span>
-              <strong>{abbreviate(unshieldState?.sourceProofCommitment)}</strong>
+              <strong>{abbreviate(unshieldState?.sourceProofCommitment ?? holdState?.sourceProofPreviewCommitment)}</strong>
             </div>
             <div className="review-row">
               <span>Source proof root</span>
-              <strong>{abbreviate(unshieldState?.sourceProofRoot)}</strong>
+              <strong>{abbreviate(unshieldState?.sourceProofRoot ?? holdState?.sourceProofPreviewRoot)}</strong>
             </div>
             <div className="review-row">
               <span>Source proof asset</span>
-              <strong>{abbreviate(unshieldState?.sourceProofAssetId)}</strong>
+              <strong>{abbreviate(unshieldState?.sourceProofAssetId ?? holdState?.sourceProofPreviewAssetId)}</strong>
             </div>
             <div className="review-row">
               <span>Source proof amount</span>
-              <strong>{unshieldState?.sourceProofAmount ?? "Unavailable"}</strong>
+              <strong>{unshieldState?.sourceProofAmount ?? holdState?.sourceProofPreviewAmount ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Source proof leaf index</span>
-              <strong>{String(unshieldState?.sourceProofLeafIndex ?? 0)}</strong>
+              <strong>{String(unshieldState?.sourceProofLeafIndex ?? holdState?.sourceProofPreviewLeafIndex ?? 0)}</strong>
             </div>
             <div className="review-row">
               <span>Source proof status</span>
