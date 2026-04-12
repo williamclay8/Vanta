@@ -229,6 +229,36 @@ export function UnshieldPage() {
     unshieldZkDiagnostics[0] ??
     null;
   const latestPrivateCoreOperatorConsume = privateCoreOperatorConsumes[0] ?? null;
+  const privateCoreDemoSteps = [
+    {
+      label: "Shield private value",
+      status: privateCoreRecentShield ? "done" : "pending",
+      summary: privateCoreRecentShield ? "Private note created" : "Shield first",
+    },
+    {
+      label: "Hold confirmed",
+      status: privateCoreHoldState?.privateNoteRecovered ? "done" : "pending",
+      summary: privateCoreHoldState?.privateNoteRecovered
+        ? "Note recovered with witness"
+        : "Awaiting recovered note",
+    },
+    {
+      label: "Unshield once",
+      status: privateCoreUnshieldState?.consumeSucceeded ? "done" : "pending",
+      summary: privateCoreUnshieldState?.consumeSucceeded
+        ? "Operator-authorized consume succeeded"
+        : "Awaiting first consume",
+    },
+    {
+      label: "Replay rejected",
+      status: privateCoreUnshieldState?.replayRejected ? "done" : "pending",
+      summary: privateCoreUnshieldState?.replayRejected
+        ? "Nullifier reuse blocked"
+        : privateCoreUnshieldState?.consumeSucceeded
+          ? "Ready to demonstrate"
+          : "Available after first consume",
+    },
+  ] as const;
   const isReady =
     walletConnected &&
     Boolean(walletAddress) &&
@@ -806,6 +836,17 @@ export function UnshieldPage() {
           This lane uses the Vanta Private Core for note recovery, witness state, nullifier derivation,
           one-time consume, and replay rejection while the existing live unshield path remains intact.
         </p>
+
+        <div className="review-list" style={{ marginBottom: 16 }}>
+          {privateCoreDemoSteps.map((step, index) => (
+            <div className="review-row" key={step.label}>
+              <span>{`${index + 1}. ${step.label}`}</span>
+              <strong>
+                {step.status === "done" ? `Done · ${step.summary}` : step.summary}
+              </strong>
+            </div>
+          ))}
+        </div>
 
         <VantaPrivateCoreStatePanel
           holdState={privateCoreHoldState}
