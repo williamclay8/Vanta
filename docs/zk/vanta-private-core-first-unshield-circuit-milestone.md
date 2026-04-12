@@ -59,6 +59,25 @@ Observed behavior:
 This means the first Vanta Private Core unshield circuit is no longer just a typed boundary or witness shape.
 It is now an executable proof lane with a confirmed happy path and a confirmed negative path.
 
+The repo now also has a first real local proof-generation and verification path:
+
+```bash
+npm run private-core:prove
+```
+
+That command:
+- writes the valid fixture
+- compiles the circuit
+- generates the witness
+- generates a real UltraHonk proof using `@aztec/bb.js`
+- verifies that proof locally
+- writes an ignored proof receipt into `target/`
+- restores the repo to the valid fixture state
+
+This is an important step beyond witness solving alone, but it should still be read honestly as:
+- a real local backend-style proof path
+- not yet full product-path proof integration
+
 ## Supporting repo artifacts
 
 Updated or added:
@@ -66,6 +85,7 @@ Updated or added:
 - `zk/noir/vanta_private_core_single_note_unshield/src/main.nr`
 - `zk/noir/vanta_private_core_single_note_unshield/README.md`
 - `scripts/write-vanta-private-core-unshield-fixture.mjs`
+- `scripts/prove-vanta-private-core-unshield.mjs`
 - `package.json`
 
 Related boundary document:
@@ -105,6 +125,7 @@ From the repo root:
 
 ```bash
 npm run private-core:check
+npm run private-core:prove
 ```
 
 Manual path:
