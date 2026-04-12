@@ -52,6 +52,11 @@ export async function proveAndVerifyVantaPrivateCoreUnshield(args) {
         throw new Error("Operator-side proof verification returned false.");
       }
 
+      assertProofPublicInputsMatchWitnessPackage({
+        expectedPublicInputs: extractExpectedProofPublicInputs(witnessPackage),
+        proofPublicInputs: proofData.publicInputs,
+      });
+
       return {
         backend: "barretenberg-ultrahonk",
         circuit: witnessPackage.circuit,
@@ -61,6 +66,7 @@ export async function proveAndVerifyVantaPrivateCoreUnshield(args) {
         proofFieldCount: Math.floor(proofData.proof.length / 32),
         publicInputCount: proofData.publicInputs.length,
         publicInputs: proofData.publicInputs,
+        verifiedPublicInputs: decodeVerifiedProofPublicInputs(proofData.publicInputs),
         verified: true,
       };
     } finally {
@@ -210,6 +216,69 @@ function assertWitnessPackagePublicInputConsistency(witnessPackage) {
   if (String(sourcePublicInputs.noteVersion) !== String(publicInputs.note_version)) {
     throw new Error("Private-core witness package has mismatched note-version public inputs.");
   }
+}
+
+function extractExpectedProofPublicInputs(witnessPackage) {
+  const publicInputs = witnessPackage.publicInputs;
+
+  return [
+    publicInputs.state_root,
+    publicInputs.nullifier,
+    publicInputs.release_destination_hi,
+    publicInputs.release_destination_lo,
+    publicInputs.asset_id_hi,
+    publicInputs.asset_id_lo,
+    publicInputs.amount_lo,
+    publicInputs.amount_hi,
+    publicInputs.note_version,
+    publicInputs.consume_context_tag_hi ?? "0",
+    publicInputs.consume_context_tag_lo ?? "0",
+  ].map((value) => encodeFieldElement(String(value)));
+}
+
+function assertProofPublicInputsMatchWitnessPackage(args) {
+  if (!Array.isArray(args.proofPublicInputs)) {
+    throw new Error("Operator-side proof output did not include a public input array.");
+  }
+
+  const normalizedProofPublicInputs = args.proofPublicInputs.map((value) => String(value));
+
+  if (normalizedProofPublicInputs.length !== args.expectedPublicInputs.length) {
+    throw new Error("Operator-side proof output returned an unexpected public input count.");
+  }
+
+  for (let index = 0; index < args.expectedPublicInputs.length; index += 1) {
+    if (normalizedProofPublicInputs[index] !== args.expectedPublicInputs[index]) {
+      throw new Error("Operator-side proof output did not match the expected witness public inputs.");
+    }
+  }
+}
+
+function encodeFieldElement(value) {
+  const normalized = BigInt(value);
+  return `0x${normalized.toString(16).padStart(64, "0")}`;
+}
+
+function decodeVerifiedProofPublicInputs(publicInputs) {
+  if (!Array.isArray(publicInputs) || publicInputs.length !== 11) {
+    throw new Error("Operator-side proof output returned an unexpected public input shape.");
+  }
+
+  return {
+    provingStateRoot: normalizeHex32(publicInputs[0]),
+    provingNullifier: normalizeHex32(publicInputs[1]),
+    releaseDestination: decodeBytes32FromTwoFieldHexBe(publicInputs[2], publicInputs[3]),
+    assetId: decodeBytes32FromTwoFieldHexBe(publicInputs[4], publicInputs[5]),
+    amount: decodeU128FromTwoU64Le(publicInputs[6], publicInputs[7]),
+    noteVersion: Number(BigInt(publicInputs[8])),
+    provingConsumeContextTag: normalizeHex32(publicInputs[10]),
+  };
+}
+
+function decodeBytes32FromTwoFieldHexBe(hi, lo) {
+  const hiHex = BigInt(hi).toString(16).padStart(32, "0");
+  const loHex = BigInt(lo).toString(16).padStart(32, "0");
+  return normalizeHex32(`0x${hiHex}${loHex}`);
 }
 
 function deriveSourceNoteCommitmentFromWitnessPackage(witnessPackage) {

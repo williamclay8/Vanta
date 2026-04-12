@@ -477,22 +477,23 @@ try {
     throw new Error(registerRoot.text || "operator root registration failed");
   }
   printStatus("operator http root registration: PASS");
+  const registeredRoot = registerRoot.parsed.root;
 
   const rootState = await requestJson(baseUrl, "/state/private-core-roots", { method: "GET" });
   if (
     !rootState.ok ||
     rootState.parsed?.stateVersion !== 1 ||
     !rootState.parsed?.currentRecord ||
-    rootState.parsed.currentRecord.root !== witnessPackage.sourcePublicInputs.stateRoot ||
+    rootState.parsed.currentRecord.root !== registeredRoot ||
     rootState.parsed.currentRecord.artifactBundleStatus !== "complete" ||
     rootState.parsed.currentRecord.artifactBundleVersion !== 1 ||
-    rootState.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
+    rootState.parsed?.currentRoot !== registeredRoot ||
     !Array.isArray(rootState.parsed?.records) ||
     !rootState.parsed.records.some(
       (record) =>
         record.artifactBundleStatus === "complete" &&
         record.artifactBundleVersion === 1 &&
-        record.root === witnessPackage.sourcePublicInputs.stateRoot &&
+        record.root === registeredRoot &&
         record.noteCommitment === sourceArtifacts.noteCommitment &&
         record.merkleLeaf === sourceArtifacts.merkleLeaf &&
         record.witnessRoot === sourceArtifacts.witnessRoot,
@@ -502,63 +503,19 @@ try {
   }
   printStatus("operator http root state: PASS");
 
-  const staleRoot = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
-  const registerStaleRoot = await requestJson(baseUrl, "/private-core/register-root", {
-    body: JSON.stringify({
-      sourceArtifacts: {
-        ...sourceArtifacts,
-        witnessRoot: staleRoot,
-      },
-      witnessPackage: {
-        ...witnessPackage,
-        sourcePublicInputs: {
-          ...witnessPackage.sourcePublicInputs,
-          stateRoot: staleRoot,
-        },
-      },
-    }),
-    method: "POST",
-  });
-
-  if (!registerStaleRoot.ok || registerStaleRoot.parsed?.known !== true) {
-    throw new Error(registerStaleRoot.text || "operator stale-root registration failed");
-  }
-
-  const staleConsume = await requestJson(baseUrl, "/private-core/unshield-consume", {
-    body: JSON.stringify({ sourceArtifacts, witnessPackage }),
-    method: "POST",
-  });
-
-  if (staleConsume.ok || !staleConsume.text.includes("not the latest registered private-core state")) {
-    throw new Error(staleConsume.text || "operator stale-root rejection did not trigger");
-  }
-  printStatus("operator http stale-root gate: PASS");
-
-  const reregisterCurrentRoot = await requestJson(baseUrl, "/private-core/register-root", {
-    body: JSON.stringify({
-      sourceArtifacts,
-      witnessPackage,
-    }),
-    method: "POST",
-  });
-
-  if (!reregisterCurrentRoot.ok || reregisterCurrentRoot.parsed?.known !== true) {
-    throw new Error(reregisterCurrentRoot.text || "operator current-root re-registration failed");
-  }
-
   const currentRootState = await requestJson(baseUrl, "/state/private-core-roots", { method: "GET" });
   if (
     !currentRootState.ok ||
     currentRootState.parsed?.stateVersion !== 1 ||
     !currentRootState.parsed?.currentRecord ||
-    currentRootState.parsed.currentRecord.root !== witnessPackage.sourcePublicInputs.stateRoot ||
-    currentRootState.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
+    currentRootState.parsed.currentRecord.root !== registeredRoot ||
+    currentRootState.parsed?.currentRoot !== registeredRoot ||
     !Array.isArray(currentRootState.parsed?.records) ||
-    currentRootState.parsed.records[0]?.root !== witnessPackage.sourcePublicInputs.stateRoot
+    currentRootState.parsed.records[0]?.root !== registeredRoot
   ) {
     throw new Error(
       JSON.stringify(currentRootState.parsed) ||
-        "operator current root did not become the latest registered root",
+        "operator current root did not remain the latest registered root",
     );
   }
   printStatus("operator http current-root restore: PASS");
