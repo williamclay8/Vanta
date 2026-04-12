@@ -99,6 +99,7 @@ This command:
   - `amount`
   - `noteVersion`
 - verifies tampered source note commitments, Merkle leaves, and witness roots are rejected at root registration
+- verifies the registered root state retains the witness-backed note commitment, Merkle leaf, and witness root metadata
 - verifies a newer stale root causes the original root to be rejected as non-current
 - re-registers the current root and verifies it becomes current again
 - verifies tampered consume is rejected without mutating consume state for the full validated public surface:

@@ -42,10 +42,12 @@ export type VantaPrivateCoreOperatorConsumeStateResponse = {
 export type VantaPrivateCoreOperatorRootRecord = {
   amount: string | null;
   assetId: string | null;
+  merkleLeaf: string | null;
   noteCommitment: string | null;
   recordedAt: number;
   root: string;
   source: string;
+  witnessRoot: string | null;
 };
 
 export type VantaPrivateCoreOperatorRootStateResponse = {

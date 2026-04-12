@@ -179,9 +179,11 @@ try {
     amount: sourcePublicInputs.amount,
     assetId: sourcePublicInputs.assetId,
     noteCommitment: sourceArtifacts.noteCommitment,
+    merkleLeaf: sourceArtifacts.merkleLeaf,
     recordedAt: Date.now(),
     root: sourcePublicInputs.stateRoot,
     source: "operator-consume-check",
+    witnessRoot: sourceArtifacts.witnessRoot,
   });
   printStatus("operator root registration: PASS");
 
@@ -193,9 +195,11 @@ try {
     amount: sourcePublicInputs.amount,
     assetId: sourcePublicInputs.assetId,
     noteCommitment: "stale-root-basis",
+    merkleLeaf: sourceArtifacts.merkleLeaf,
     recordedAt: Date.now() + 1,
     root: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     source: "operator-consume-check-stale-root",
+    witnessRoot: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   });
 
   if (rootStore.getLatestRoot()?.root !== "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") {
@@ -207,9 +211,11 @@ try {
     amount: sourcePublicInputs.amount,
     assetId: sourcePublicInputs.assetId,
     noteCommitment: sourceArtifacts.noteCommitment,
+    merkleLeaf: sourceArtifacts.merkleLeaf,
     recordedAt: Date.now() + 2,
     root: sourcePublicInputs.stateRoot,
     source: "operator-consume-check-current-root",
+    witnessRoot: sourceArtifacts.witnessRoot,
   });
 
   if (consumeStore.hasNullifier(sourcePublicInputs.nullifier)) {
@@ -237,6 +243,8 @@ try {
   if (
     !registeredRootRecord ||
     registeredRootRecord.noteCommitment !== sourceArtifacts.noteCommitment ||
+    registeredRootRecord.merkleLeaf !== sourceArtifacts.merkleLeaf ||
+    registeredRootRecord.witnessRoot !== sourceArtifacts.witnessRoot ||
     registeredRootRecord.assetId !== sourcePublicInputs.assetId ||
     registeredRootRecord.amount !== sourcePublicInputs.amount
   ) {

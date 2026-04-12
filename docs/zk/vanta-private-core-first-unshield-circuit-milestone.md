@@ -109,6 +109,7 @@ That command confirms the current lane through the actual server surface:
   - `amount`
   - `noteVersion`
 - tampered source note commitments, Merkle leaves, and witness roots are also rejected at root registration
+- registered root state retains the witness-backed note commitment, Merkle leaf, and witness root metadata
 - root registration endpoint succeeds
 - a newer stale root makes the old root non-current
 - current-root re-registration restores currentness

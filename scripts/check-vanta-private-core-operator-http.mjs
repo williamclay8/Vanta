@@ -406,7 +406,13 @@ try {
     rootState.parsed?.stateVersion !== 1 ||
     rootState.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
     !Array.isArray(rootState.parsed?.records) ||
-    !rootState.parsed.records.some((record) => record.root === witnessPackage.sourcePublicInputs.stateRoot)
+    !rootState.parsed.records.some(
+      (record) =>
+        record.root === witnessPackage.sourcePublicInputs.stateRoot &&
+        record.noteCommitment === sourceArtifacts.noteCommitment &&
+        record.merkleLeaf === sourceArtifacts.merkleLeaf &&
+        record.witnessRoot === sourceArtifacts.witnessRoot,
+    )
   ) {
     throw new Error(rootState.text || "operator root state did not contain the registered root");
   }

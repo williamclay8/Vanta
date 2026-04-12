@@ -55,6 +55,7 @@ The repo now already has a first narrow operator-side version of that contract:
 - surface proof execution and operator-state summaries in the app
 - bind root registration and consume to the same witness-backed source note commitment
 - reject mismatched source-layer Merkle leaf and witness-root artifacts at the operator boundary
+- retain and enforce the registered root artifact basis across registration and consume
 
 What still remains for `zk v1` is finishing that into a fuller verifier-side contract:
 - stronger root validity policy beyond the current local operator store
