@@ -11,6 +11,7 @@
     "provision:dlmm": "node scripts/provision-vusd-sol-dlmm-devnet.cjs",
     "private-core:check": "node scripts/check-vanta-private-core-unshield-circuit.mjs",
     "private-core:consume-check": "node scripts/check-vanta-private-core-operator-consume.mjs",
+    "private-core:operator-status": "node scripts/print-vanta-private-core-operator-status.mjs",
     "private-core:fixture": "node scripts/write-vanta-private-core-unshield-fixture.mjs",
     "private-core:http-smoke": "node scripts/check-vanta-private-core-operator-http.mjs",
     "private-core:prove": "node scripts/prove-vanta-private-core-unshield.mjs",

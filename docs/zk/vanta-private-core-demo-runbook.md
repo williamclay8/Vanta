@@ -17,6 +17,7 @@ Run these before a live demo:
 ```bash
 npm run build
 npm run private-core:demo-readiness
+npm run private-core:operator-status
 ```
 
 That confirms:
@@ -25,6 +26,11 @@ That confirms:
 - the operator consume regression is still green
 - the operator HTTP smoke path is still green
 - local proof generation and verification still succeeds
+
+The operator-status command gives a quick readout of:
+- current registered root
+- latest consume
+- latest release
 
 ## App demo path
 

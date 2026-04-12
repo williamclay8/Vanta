@@ -175,6 +175,8 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   - real proof generation and verification
 - `npm run private-core:demo-readiness`
   aliases the same full verification pass with a more reviewer-friendly name
+- `npm run private-core:operator-status`
+  prints the current operator-side root, consume, and release summary when the operator server is running
 
 These commands do not make the protocol finished, but they do make the current first zk boundary concrete and repeatable.
 
@@ -273,6 +275,12 @@ The best concrete verification command is:
 
 ```bash
 npm run private-core:demo-readiness
+```
+
+If the operator is already running, the quickest live status readout is:
+
+```bash
+npm run private-core:operator-status
 ```
 
 ### Is shielding the same as hiding assets in a normal wallet?
