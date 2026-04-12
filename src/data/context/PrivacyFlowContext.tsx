@@ -24,6 +24,7 @@ import {
   buildVantaPrivateCoreUnshieldProofBoundary,
   compareVantaPrivateCoreSourceAndProvingArtifacts,
   deriveVantaPrivateCoreProvingArtifactsFromBoundary,
+  summarizeVantaPrivateCoreProofBoundaryStatus,
   type VantaPrivateCoreUnshieldProofBoundaryV0,
 } from "@/zk/vantaPrivateCoreUnshieldProof";
 
@@ -95,6 +96,9 @@ export type VantaPrivateCoreHoldState = {
   stateRootComparisonStatus: string;
   nullifierComparisonStatus: string;
   consumeContextComparisonStatus: string;
+  circuitReadinessLabel: string;
+  proofBlockerCount: number;
+  primaryProofBlocker: string | null;
   noteSummary: string;
 };
 
@@ -113,6 +117,9 @@ export type VantaPrivateCoreUnshieldState = {
   stateRootComparisonStatus: string | null;
   nullifierComparisonStatus: string | null;
   consumeContextComparisonStatus: string | null;
+  circuitReadinessLabel: string | null;
+  proofBlockerCount: number;
+  primaryProofBlocker: string | null;
   consumeSucceeded: boolean;
   replayRejected: boolean;
   errorMessage: string | null;
@@ -156,6 +163,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       provingArtifacts: provingPreviewArtifacts,
       sourceConsumeContextTag: provingPreview.publicInputs.consumeContextTag ?? null,
     });
+    const previewStatus = summarizeVantaPrivateCoreProofBoundaryStatus(provingPreview);
     const nextShieldState: VantaPrivateCoreShieldState = {
       artifact: shield,
       encryptedPayload: shield.encryptedPayload,
@@ -186,6 +194,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       stateRootComparisonStatus: previewComparison.stateRoot.statusLabel,
       nullifierComparisonStatus: previewComparison.nullifier.statusLabel,
       consumeContextComparisonStatus: previewComparison.consumeContext.statusLabel,
+      circuitReadinessLabel: previewStatus.readinessLabel,
+      proofBlockerCount: previewStatus.blockerCount,
+      primaryProofBlocker: previewStatus.primaryBlocker,
       noteSummary: `${formatBaseUnits(shield.note.amount, VANTA_PRIVATE_CORE_VUSD_DECIMALS)} VUSD private note`,
     });
     setPrivateCoreUnshieldState(null);
@@ -210,6 +221,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         stateRootComparisonStatus: null,
         nullifierComparisonStatus: null,
         consumeContextComparisonStatus: null,
+        circuitReadinessLabel: null,
+        proofBlockerCount: 0,
+        primaryProofBlocker: null,
         consumeSucceeded: false,
         replayRejected: false,
         errorMessage: "No recovered private-core note is available to unshield.",
@@ -229,6 +243,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       releaseDestination: VANTA_PRIVATE_CORE_DEMO_RELEASE_DESTINATION,
     });
     const provingArtifacts = deriveVantaPrivateCoreProvingArtifactsFromBoundary(proofBoundary);
+    const proofStatus = summarizeVantaPrivateCoreProofBoundaryStatus(proofBoundary);
 
     try {
       const result = privateCoreLedger.unshield(privateCoreHoldState.heldNote);
@@ -256,6 +271,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         stateRootComparisonStatus: provingComparison.stateRoot.statusLabel,
         nullifierComparisonStatus: provingComparison.nullifier.statusLabel,
         consumeContextComparisonStatus: provingComparison.consumeContext.statusLabel,
+        circuitReadinessLabel: proofStatus.readinessLabel,
+        proofBlockerCount: proofStatus.blockerCount,
+        primaryProofBlocker: proofStatus.primaryBlocker,
         consumeSucceeded: true,
         replayRejected: false,
         errorMessage: null,
@@ -287,6 +305,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         stateRootComparisonStatus: provingComparison.stateRoot.statusLabel,
         nullifierComparisonStatus: provingComparison.nullifier.statusLabel,
         consumeContextComparisonStatus: provingComparison.consumeContext.statusLabel,
+        circuitReadinessLabel: proofStatus.readinessLabel,
+        proofBlockerCount: proofStatus.blockerCount,
+        primaryProofBlocker: proofStatus.primaryBlocker,
         consumeSucceeded: false,
         replayRejected: false,
         errorMessage: error instanceof Error ? error.message : String(error),
@@ -314,6 +335,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         stateRootComparisonStatus: null,
         nullifierComparisonStatus: null,
         consumeContextComparisonStatus: null,
+        circuitReadinessLabel: null,
+        proofBlockerCount: 0,
+        primaryProofBlocker: null,
         consumeSucceeded: false,
         replayRejected: false,
         errorMessage: "No recovered private-core note is available for replay testing.",
@@ -333,6 +357,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       releaseDestination: VANTA_PRIVATE_CORE_DEMO_RELEASE_DESTINATION,
     });
     const provingArtifacts = deriveVantaPrivateCoreProvingArtifactsFromBoundary(proofBoundary);
+    const proofStatus = summarizeVantaPrivateCoreProofBoundaryStatus(proofBoundary);
 
     try {
       const result = privateCoreLedger.unshield(privateCoreHoldState.heldNote);
@@ -360,6 +385,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         stateRootComparisonStatus: provingComparison.stateRoot.statusLabel,
         nullifierComparisonStatus: provingComparison.nullifier.statusLabel,
         consumeContextComparisonStatus: provingComparison.consumeContext.statusLabel,
+        circuitReadinessLabel: proofStatus.readinessLabel,
+        proofBlockerCount: proofStatus.blockerCount,
+        primaryProofBlocker: proofStatus.primaryBlocker,
         consumeSucceeded: true,
         replayRejected: false,
         errorMessage: null,
@@ -391,6 +419,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         stateRootComparisonStatus: provingComparison.stateRoot.statusLabel,
         nullifierComparisonStatus: provingComparison.nullifier.statusLabel,
         consumeContextComparisonStatus: provingComparison.consumeContext.statusLabel,
+        circuitReadinessLabel: proofStatus.readinessLabel,
+        proofBlockerCount: proofStatus.blockerCount,
+        primaryProofBlocker: proofStatus.primaryBlocker,
         consumeSucceeded: false,
         replayRejected: true,
         errorMessage: error instanceof Error ? error.message : String(error),

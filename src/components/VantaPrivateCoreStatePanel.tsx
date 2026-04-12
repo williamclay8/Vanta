@@ -123,6 +123,18 @@ export function VantaPrivateCoreStatePanel({
               <strong>{holdState?.witnessAvailable ? "Ready" : "Unavailable"}</strong>
             </div>
             <div className="review-row">
+              <span>Circuit readiness</span>
+              <strong>{unshieldState?.circuitReadinessLabel ?? holdState?.circuitReadinessLabel ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Proof blockers</span>
+              <strong>{String(unshieldState?.proofBlockerCount ?? holdState?.proofBlockerCount ?? 0)}</strong>
+            </div>
+            <div className="review-row">
+              <span>Primary blocker</span>
+              <strong>{unshieldState?.primaryProofBlocker ?? holdState?.primaryProofBlocker ?? "None"}</strong>
+            </div>
+            <div className="review-row">
               <span>{unshieldState ? "Proving lane" : "Proving preview lane"}</span>
               <strong>{unshieldState?.provingHashLane ?? holdState?.provingPreviewHashLane ?? "Unavailable"}</strong>
             </div>

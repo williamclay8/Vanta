@@ -196,6 +196,13 @@ export type VantaPrivateCoreSourceVsProvingArtifactComparisonV0 = {
   consumeContext: VantaPrivateCoreSourceVsProvingArtifactComparisonEntryV0;
 };
 
+export type VantaPrivateCoreProofBoundaryStatusSummaryV0 = {
+  circuitReadiness: "ready" | "blocked";
+  readinessLabel: string;
+  blockerCount: number;
+  primaryBlocker: string | null;
+};
+
 export type BuildVantaPrivateCoreUnshieldProofBoundaryArgs = {
   heldNote: HeldNoteViewV0;
   ownerSecretKey: Bytes32Hex;
@@ -425,6 +432,20 @@ export function compareVantaPrivateCoreSourceAndProvingArtifacts(args: {
       sourceValue: args.sourceConsumeContextTag ?? null,
       provingValue: args.provingArtifacts.provingConsumeContextTag,
     }),
+  };
+}
+
+export function summarizeVantaPrivateCoreProofBoundaryStatus(
+  boundary: VantaPrivateCoreUnshieldProofBoundaryV0,
+): VantaPrivateCoreProofBoundaryStatusSummaryV0 {
+  return {
+    circuitReadiness: boundary.readiness,
+    readinessLabel:
+      boundary.readiness === "ready"
+        ? "Ready for current unshield circuit"
+        : "Blocked for current unshield circuit",
+    blockerCount: boundary.blockers.length,
+    primaryBlocker: boundary.blockers[0] ?? null,
   };
 }
 
