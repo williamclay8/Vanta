@@ -94,6 +94,8 @@ function normalizeWitnessPackage(input) {
     throw new Error("Private-core witness package is missing required sections.");
   }
 
+  assertWitnessPackagePublicInputConsistency(witnessPackage);
+
   return witnessPackage;
 }
 
@@ -139,4 +141,62 @@ function serializeTomlArray(values) {
   }
 
   return `[${values.map((value) => `"${value}"`).join(", ")}]`;
+}
+
+function assertWitnessPackagePublicInputConsistency(witnessPackage) {
+  const sourcePublicInputs = witnessPackage.sourcePublicInputs;
+  const publicInputs = witnessPackage.publicInputs;
+
+  if (!sourcePublicInputs || typeof sourcePublicInputs !== "object") {
+    throw new Error("Private-core witness package is missing source public inputs.");
+  }
+
+  const decodedReleaseDestination = decodeBytes32FromTwoU128Be(
+    publicInputs.release_destination_hi,
+    publicInputs.release_destination_lo,
+  );
+  if (normalizeHex32(sourcePublicInputs.releaseDestination) !== decodedReleaseDestination) {
+    throw new Error("Private-core witness package has mismatched release destination public inputs.");
+  }
+
+  const decodedAssetId = decodeBytes32FromTwoU128Be(
+    publicInputs.asset_id_hi,
+    publicInputs.asset_id_lo,
+  );
+  if (normalizeHex32(sourcePublicInputs.assetId) !== decodedAssetId) {
+    throw new Error("Private-core witness package has mismatched asset public inputs.");
+  }
+
+  const decodedAmount = decodeU128FromTwoU64Le(publicInputs.amount_lo, publicInputs.amount_hi);
+  if (String(sourcePublicInputs.amount) !== decodedAmount) {
+    throw new Error("Private-core witness package has mismatched amount public inputs.");
+  }
+
+  if (String(sourcePublicInputs.noteVersion) !== String(publicInputs.note_version)) {
+    throw new Error("Private-core witness package has mismatched note-version public inputs.");
+  }
+}
+
+function decodeBytes32FromTwoU128Be(hi, lo) {
+  const hiHex = BigInt(hi).toString(16).padStart(32, "0");
+  const loHex = BigInt(lo).toString(16).padStart(32, "0");
+  return normalizeHex32(`0x${hiHex}${loHex}`);
+}
+
+function decodeU128FromTwoU64Le(lo, hi) {
+  const value = (BigInt(hi) << 64n) + BigInt(lo);
+  return value.toString(10);
+}
+
+function normalizeHex32(value) {
+  if (typeof value !== "string") {
+    throw new Error("Expected a 32-byte hex string.");
+  }
+
+  const normalized = value.toLowerCase();
+  if (!/^0x[0-9a-f]{64}$/.test(normalized)) {
+    throw new Error("Expected a normalized 32-byte hex string.");
+  }
+
+  return normalized;
 }

@@ -166,6 +166,27 @@ try {
     `operator http proof: PASS (${proofResponse.parsed.proofFieldCount} fields / ${proofResponse.parsed.publicInputCount} public inputs)`,
   );
 
+  const tamperedProofResponse = await requestJson(baseUrl, "/private-core/unshield-proof", {
+    body: JSON.stringify({
+      witnessPackage: {
+        ...witnessPackage,
+        sourcePublicInputs: {
+          ...witnessPackage.sourcePublicInputs,
+          amount: "1",
+        },
+      },
+    }),
+    method: "POST",
+  });
+
+  if (tamperedProofResponse.ok || !tamperedProofResponse.text.includes("mismatched amount public inputs")) {
+    throw new Error(
+      tamperedProofResponse.text ||
+        "operator proof endpoint unexpectedly accepted mismatched source public inputs",
+    );
+  }
+  printStatus("operator http source/public consistency gate: PASS");
+
   const consumeBeforeRoot = await requestJson(baseUrl, "/private-core/unshield-consume", {
     body: JSON.stringify({ witnessPackage }),
     method: "POST",

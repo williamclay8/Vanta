@@ -68,6 +68,25 @@ try {
     `operator proof seam: PASS (${proofReceipt.proofFieldCount} fields / ${proofReceipt.publicInputCount} public inputs)`,
   );
 
+  const tamperedWitnessPackage = {
+    ...witnessPackage,
+    sourcePublicInputs: {
+      ...witnessPackage.sourcePublicInputs,
+      amount: "1",
+    },
+  };
+
+  try {
+    await proveAndVerifyVantaPrivateCoreUnshield({ witnessPackage: tamperedWitnessPackage });
+    throw new Error("operator proof seam unexpectedly accepted mismatched source public inputs");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (!message.includes("mismatched amount public inputs")) {
+      throw error;
+    }
+  }
+  printStatus("operator source/public consistency gate: PASS");
+
   const consumeStore = createPrivateCoreConsumeStore({
     defaultPath: join(tempRoot, "consumes.json"),
   });
