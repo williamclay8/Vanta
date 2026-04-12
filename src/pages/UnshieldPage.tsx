@@ -99,6 +99,7 @@ export function UnshieldPage() {
     privateCoreHoldState,
     privateCoreOperatorConsumeError,
     privateCoreOperatorConsumes,
+    privateCoreOperatorRootCurrentnessLabel,
     privateCoreOperatorRootError,
     privateCoreOperatorRootRegistrationStatus,
     privateCoreOperatorRoots,
@@ -824,6 +825,7 @@ export function UnshieldPage() {
           holdState={privateCoreHoldState}
           operatorConsumeError={privateCoreOperatorConsumeError}
           operatorConsumes={privateCoreOperatorConsumes}
+          operatorRootCurrentnessLabel={privateCoreOperatorRootCurrentnessLabel}
           operatorRootError={privateCoreOperatorRootError}
           operatorRootRegistrationStatus={privateCoreOperatorRootRegistrationStatus}
           operatorRoots={privateCoreOperatorRoots}
@@ -999,6 +1001,10 @@ export function UnshieldPage() {
               <div className="review-row">
                 <span>Operator root registration</span>
                 <strong>{privateCoreOperatorRootRegistrationStatus ?? "Unavailable"}</strong>
+              </div>
+              <div className="review-row">
+                <span>Operator root currentness</span>
+                <strong>{privateCoreOperatorRootCurrentnessLabel ?? "Unavailable"}</strong>
               </div>
               <div className="review-row">
                 <span>Operator root records</span>

@@ -98,6 +98,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreHoldState,
     privateCoreOwner,
     privateCoreOperatorRootError,
+    privateCoreOperatorRootCurrentnessLabel,
     privateCoreOperatorRootRegistrationStatus,
     privateCoreOperatorRoots,
     privateCoreRecentShield,
@@ -1001,6 +1002,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
               )}
               <VantaPrivateCoreStatePanel
                 holdState={privateCoreHoldState}
+                operatorRootCurrentnessLabel={privateCoreOperatorRootCurrentnessLabel}
                 operatorRootError={privateCoreOperatorRootError}
                 operatorRootRegistrationStatus={privateCoreOperatorRootRegistrationStatus}
                 operatorRoots={privateCoreOperatorRoots}

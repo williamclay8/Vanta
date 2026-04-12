@@ -12,6 +12,7 @@ type VantaPrivateCoreStatePanelProps = {
   holdState: VantaPrivateCoreHoldState | null;
   operatorConsumeError?: string | null;
   operatorConsumes?: VantaPrivateCoreOperatorConsumeRecord[];
+  operatorRootCurrentnessLabel?: string | null;
   operatorRootError?: string | null;
   operatorRootRegistrationStatus?: string | null;
   operatorRoots?: VantaPrivateCoreOperatorRootRecord[];
@@ -40,6 +41,7 @@ export function VantaPrivateCoreStatePanel({
   holdState,
   operatorConsumeError = null,
   operatorConsumes = [],
+  operatorRootCurrentnessLabel = null,
   operatorRootError = null,
   operatorRootRegistrationStatus = null,
   operatorRoots = [],
@@ -256,6 +258,10 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Operator root registration</span>
               <strong>{operatorRootRegistrationStatus ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Operator root currentness</span>
+              <strong>{operatorRootCurrentnessLabel ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Operator root records</span>

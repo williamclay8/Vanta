@@ -82,6 +82,7 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorRoots: VantaPrivateCoreOperatorRootRecord[];
   privateCoreOperatorRootError: string | null;
   privateCoreOperatorRootRegistrationStatus: string | null;
+  privateCoreOperatorRootCurrentnessLabel: string | null;
   privateCoreUnshieldState: VantaPrivateCoreUnshieldState | null;
   recentShield: RecentShieldContext | null;
   runPrivateCoreShield: (args: { amountDisplay: string; asset: PrivacyAssetKey }) => VantaPrivateCoreShieldState;
@@ -986,6 +987,14 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorRoots,
       privateCoreOperatorRootError,
       privateCoreOperatorRootRegistrationStatus,
+      privateCoreOperatorRootCurrentnessLabel: summarizePrivateCoreOperatorRootCurrentness({
+        currentRoot:
+          privateCoreHoldState?.sourceWitnessRoot ??
+          privateCoreRecentShield?.sourceMerkleRoot ??
+          null,
+        operatorRootError: privateCoreOperatorRootError,
+        operatorRoots: privateCoreOperatorRoots,
+      }),
       privateCoreUnshieldState,
       recentShield,
       runPrivateCoreReplayAttempt,
@@ -1047,4 +1056,34 @@ function formatBaseUnits(amount: bigint, decimals: number): string {
   const whole = raw.slice(0, -decimals);
   const fraction = raw.slice(-decimals).replace(/0+$/, "");
   return fraction.length > 0 ? `${whole}.${fraction}` : whole;
+}
+
+function summarizePrivateCoreOperatorRootCurrentness(args: {
+  currentRoot: string | null;
+  operatorRootError: string | null;
+  operatorRoots: VantaPrivateCoreOperatorRootRecord[];
+}): string | null {
+  if (!args.currentRoot) {
+    return null;
+  }
+
+  if (args.operatorRootError) {
+    return "Operator root state unavailable";
+  }
+
+  const latestRoot = args.operatorRoots[0]?.root ?? null;
+
+  if (!latestRoot) {
+    return "Root not yet registered";
+  }
+
+  if (latestRoot === args.currentRoot) {
+    return "Current operator root";
+  }
+
+  if (args.operatorRoots.some((record) => record.root === args.currentRoot)) {
+    return "Registered but not current";
+  }
+
+  return "Root not yet registered";
 }
