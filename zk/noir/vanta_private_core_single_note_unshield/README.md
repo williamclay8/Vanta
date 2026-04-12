@@ -24,7 +24,19 @@ That helper yields:
 ## Local exercise path
 
 1. Ensure `nargo` is installed locally.
-2. Run the canonical regression wrapper:
+2. Run the full-stack verification wrapper when you want one canonical pass across build, circuit regression, operator consume semantics, and real proof generation:
+
+```bash
+npm run private-core:verify
+```
+
+This command:
+- builds the app
+- runs the fixed-depth circuit regression wrapper
+- runs the operator consume regression wrapper
+- generates and verifies one real local proof for the current lane
+
+3. Run the canonical circuit regression wrapper when you only want the Noir-lane happy-path and negative-path check:
 
 ```bash
 npm run private-core:check
@@ -37,7 +49,7 @@ This command:
 - verifies the invalid-direction witness fails
 - restores the repo to the valid fixture state
 
-3. Run the canonical local proof-generation command when you want one real proof and verification pass for the current lane:
+4. Run the canonical local proof-generation command when you want one real proof and verification pass for the current lane:
 
 ```bash
 npm run private-core:prove
@@ -52,7 +64,7 @@ This command:
 - writes a proof receipt to `target/vanta_private_core_single_note_unshield.proof.json`
 - restores the repo to the valid fixture state
 
-4. Run the operator-backed consume seam check when you want to verify the first proof-plus-consume semantics for the current lane:
+5. Run the operator-backed consume seam check when you want to verify the first proof-plus-consume semantics for the current lane:
 
 ```bash
 npm run private-core:consume-check
@@ -63,20 +75,20 @@ This command:
 - records the first consume in a temporary operator-side nullifier store
 - confirms the same nullifier is then seen as already consumed for replay purposes
 
-5. If you want to exercise fixture modes manually, materialize the fixture from the TypeScript helper into a Noir input file.
+6. If you want to exercise fixture modes manually, materialize the fixture from the TypeScript helper into a Noir input file.
    Recommended helper:
    - `serializeVantaPrivateCoreNoirUnshieldWitnessPackageToToml(...)`
    Repo command:
    - `npm run private-core:fixture -- valid`
    - `npm run private-core:fixture -- invalid-direction`
-6. Run:
+7. Run:
 
 ```bash
 nargo check
 nargo execute
 ```
 
-7. Use the invalid direction-bit witness package as the negative case and confirm execution fails.
+8. Use the invalid direction-bit witness package as the negative case and confirm execution fails.
 
 ## Important v0.1 note
 

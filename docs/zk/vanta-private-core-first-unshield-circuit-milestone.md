@@ -89,6 +89,18 @@ That command confirms:
 - operator-side one-time-use semantics can record the first consume
 - the same nullifier is then seen as consumed for replay purposes
 
+The repo now also has one canonical stack verification command:
+
+```bash
+npm run private-core:verify
+```
+
+That wrapper runs, in order:
+- the app build
+- the fixed-depth circuit regression
+- the operator consume regression
+- one real local proof generation and verification pass
+
 ## Supporting repo artifacts
 
 Updated or added:
@@ -135,6 +147,7 @@ Freeze this milestone before broadening scope:
 From the repo root:
 
 ```bash
+npm run private-core:verify
 npm run private-core:check
 npm run private-core:prove
 npm run private-core:consume-check
