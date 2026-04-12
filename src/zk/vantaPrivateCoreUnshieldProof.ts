@@ -203,6 +203,11 @@ export type VantaPrivateCoreProofBoundaryStatusSummaryV0 = {
   primaryBlocker: string | null;
 };
 
+export type VantaPrivateCoreProofBoundaryCompatibilitySummaryV0 = {
+  noteCount: number;
+  primaryNote: string | null;
+};
+
 export type BuildVantaPrivateCoreUnshieldProofBoundaryArgs = {
   heldNote: HeldNoteViewV0;
   ownerSecretKey: Bytes32Hex;
@@ -446,6 +451,15 @@ export function summarizeVantaPrivateCoreProofBoundaryStatus(
         : "Blocked for current unshield circuit",
     blockerCount: boundary.blockers.length,
     primaryBlocker: boundary.blockers[0] ?? null,
+  };
+}
+
+export function summarizeVantaPrivateCoreProofBoundaryCompatibility(
+  boundary: VantaPrivateCoreUnshieldProofBoundaryV0,
+): VantaPrivateCoreProofBoundaryCompatibilitySummaryV0 {
+  return {
+    noteCount: boundary.compatibilityNotes.length,
+    primaryNote: boundary.compatibilityNotes[0] ?? null,
   };
 }
 

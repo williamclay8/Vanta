@@ -24,6 +24,7 @@ import {
   buildVantaPrivateCoreUnshieldProofBoundary,
   compareVantaPrivateCoreSourceAndProvingArtifacts,
   deriveVantaPrivateCoreProvingArtifactsFromBoundary,
+  summarizeVantaPrivateCoreProofBoundaryCompatibility,
   summarizeVantaPrivateCoreProofBoundaryStatus,
   type VantaPrivateCoreUnshieldProofBoundaryV0,
 } from "@/zk/vantaPrivateCoreUnshieldProof";
@@ -99,6 +100,8 @@ export type VantaPrivateCoreHoldState = {
   circuitReadinessLabel: string;
   proofBlockerCount: number;
   primaryProofBlocker: string | null;
+  compatibilityNoteCount: number;
+  primaryCompatibilityNote: string | null;
   noteSummary: string;
 };
 
@@ -120,6 +123,8 @@ export type VantaPrivateCoreUnshieldState = {
   circuitReadinessLabel: string | null;
   proofBlockerCount: number;
   primaryProofBlocker: string | null;
+  compatibilityNoteCount: number;
+  primaryCompatibilityNote: string | null;
   consumeSucceeded: boolean;
   replayRejected: boolean;
   errorMessage: string | null;
@@ -164,6 +169,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       sourceConsumeContextTag: provingPreview.publicInputs.consumeContextTag ?? null,
     });
     const previewStatus = summarizeVantaPrivateCoreProofBoundaryStatus(provingPreview);
+    const previewCompatibility = summarizeVantaPrivateCoreProofBoundaryCompatibility(provingPreview);
     const nextShieldState: VantaPrivateCoreShieldState = {
       artifact: shield,
       encryptedPayload: shield.encryptedPayload,
@@ -197,6 +203,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       circuitReadinessLabel: previewStatus.readinessLabel,
       proofBlockerCount: previewStatus.blockerCount,
       primaryProofBlocker: previewStatus.primaryBlocker,
+      compatibilityNoteCount: previewCompatibility.noteCount,
+      primaryCompatibilityNote: previewCompatibility.primaryNote,
       noteSummary: `${formatBaseUnits(shield.note.amount, VANTA_PRIVATE_CORE_VUSD_DECIMALS)} VUSD private note`,
     });
     setPrivateCoreUnshieldState(null);
@@ -224,6 +232,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         circuitReadinessLabel: null,
         proofBlockerCount: 0,
         primaryProofBlocker: null,
+        compatibilityNoteCount: 0,
+        primaryCompatibilityNote: null,
         consumeSucceeded: false,
         replayRejected: false,
         errorMessage: "No recovered private-core note is available to unshield.",
@@ -244,6 +254,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     });
     const provingArtifacts = deriveVantaPrivateCoreProvingArtifactsFromBoundary(proofBoundary);
     const proofStatus = summarizeVantaPrivateCoreProofBoundaryStatus(proofBoundary);
+    const proofCompatibility = summarizeVantaPrivateCoreProofBoundaryCompatibility(proofBoundary);
 
     try {
       const result = privateCoreLedger.unshield(privateCoreHoldState.heldNote);
@@ -274,6 +285,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         circuitReadinessLabel: proofStatus.readinessLabel,
         proofBlockerCount: proofStatus.blockerCount,
         primaryProofBlocker: proofStatus.primaryBlocker,
+        compatibilityNoteCount: proofCompatibility.noteCount,
+        primaryCompatibilityNote: proofCompatibility.primaryNote,
         consumeSucceeded: true,
         replayRejected: false,
         errorMessage: null,
@@ -308,6 +321,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         circuitReadinessLabel: proofStatus.readinessLabel,
         proofBlockerCount: proofStatus.blockerCount,
         primaryProofBlocker: proofStatus.primaryBlocker,
+        compatibilityNoteCount: proofCompatibility.noteCount,
+        primaryCompatibilityNote: proofCompatibility.primaryNote,
         consumeSucceeded: false,
         replayRejected: false,
         errorMessage: error instanceof Error ? error.message : String(error),
@@ -338,6 +353,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         circuitReadinessLabel: null,
         proofBlockerCount: 0,
         primaryProofBlocker: null,
+        compatibilityNoteCount: 0,
+        primaryCompatibilityNote: null,
         consumeSucceeded: false,
         replayRejected: false,
         errorMessage: "No recovered private-core note is available for replay testing.",
@@ -358,6 +375,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     });
     const provingArtifacts = deriveVantaPrivateCoreProvingArtifactsFromBoundary(proofBoundary);
     const proofStatus = summarizeVantaPrivateCoreProofBoundaryStatus(proofBoundary);
+    const proofCompatibility = summarizeVantaPrivateCoreProofBoundaryCompatibility(proofBoundary);
 
     try {
       const result = privateCoreLedger.unshield(privateCoreHoldState.heldNote);
@@ -388,6 +406,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         circuitReadinessLabel: proofStatus.readinessLabel,
         proofBlockerCount: proofStatus.blockerCount,
         primaryProofBlocker: proofStatus.primaryBlocker,
+        compatibilityNoteCount: proofCompatibility.noteCount,
+        primaryCompatibilityNote: proofCompatibility.primaryNote,
         consumeSucceeded: true,
         replayRejected: false,
         errorMessage: null,
@@ -422,6 +442,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         circuitReadinessLabel: proofStatus.readinessLabel,
         proofBlockerCount: proofStatus.blockerCount,
         primaryProofBlocker: proofStatus.primaryBlocker,
+        compatibilityNoteCount: proofCompatibility.noteCount,
+        primaryCompatibilityNote: proofCompatibility.primaryNote,
         consumeSucceeded: false,
         replayRejected: true,
         errorMessage: error instanceof Error ? error.message : String(error),

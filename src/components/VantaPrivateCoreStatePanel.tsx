@@ -135,6 +135,14 @@ export function VantaPrivateCoreStatePanel({
               <strong>{unshieldState?.primaryProofBlocker ?? holdState?.primaryProofBlocker ?? "None"}</strong>
             </div>
             <div className="review-row">
+              <span>Compatibility notes</span>
+              <strong>{String(unshieldState?.compatibilityNoteCount ?? holdState?.compatibilityNoteCount ?? 0)}</strong>
+            </div>
+            <div className="review-row">
+              <span>Primary assumption</span>
+              <strong>{unshieldState?.primaryCompatibilityNote ?? holdState?.primaryCompatibilityNote ?? "None"}</strong>
+            </div>
+            <div className="review-row">
               <span>{unshieldState ? "Proving lane" : "Proving preview lane"}</span>
               <strong>{unshieldState?.provingHashLane ?? holdState?.provingPreviewHashLane ?? "Unavailable"}</strong>
             </div>
