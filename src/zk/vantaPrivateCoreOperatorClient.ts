@@ -1,5 +1,5 @@
 import { liveShieldAsset } from "@/solana/shieldConfig";
-import type { VantaPrivateCoreSourceArtifactBundleV0 } from "@/zk/vantaPrivateCore";
+import type { VantaPrivateCoreOperatorSourceArtifactBundleV0 } from "@/zk/vantaPrivateCore";
 import type { VantaPrivateCoreNoirUnshieldWitnessPackageV0 } from "@/zk/vantaPrivateCoreUnshieldProof";
 
 export type VantaPrivateCoreProofOperatorResponse = {
@@ -111,7 +111,7 @@ export async function requestVantaPrivateCoreOperatorProof(args: {
 }
 
 export async function requestVantaPrivateCoreOperatorConsume(args: {
-  sourceArtifacts: VantaPrivateCoreSourceArtifactBundleV0;
+  sourceArtifacts: VantaPrivateCoreOperatorSourceArtifactBundleV0;
   witnessPackage: VantaPrivateCoreNoirUnshieldWitnessPackageV0;
 }): Promise<VantaPrivateCoreConsumeOperatorResponse> {
   const response = await fetch(getPrivateCoreConsumeOperatorUrl(), {
@@ -163,7 +163,7 @@ export async function requestVantaPrivateCoreOperatorConsume(args: {
 }
 
 export async function registerVantaPrivateCoreOperatorRoot(args: {
-  sourceArtifacts: VantaPrivateCoreSourceArtifactBundleV0;
+  sourceArtifacts: VantaPrivateCoreOperatorSourceArtifactBundleV0;
   witnessPackage: VantaPrivateCoreNoirUnshieldWitnessPackageV0;
 }): Promise<VantaPrivateCoreOperatorRootRegistrationResponse> {
   const response = await fetch(getPrivateCoreRootRegistrationUrl(), {

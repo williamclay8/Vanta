@@ -27,6 +27,7 @@ import {
   type NoteType,
   type NoteV0,
   type SerializedNoteV0,
+  type VantaPrivateCoreOperatorSourceArtifactBundleV0,
   type VantaPrivateCoreSourceArtifactBundleV0,
 } from "@/zk/vantaPrivateCore";
 
@@ -250,7 +251,7 @@ export type BuildVantaPrivateCoreUnshieldProofBoundaryArgs = {
 export type VantaPrivateCoreFixedDepthUnshieldFixtureV0 = {
   merkleDepth: typeof VANTA_PRIVATE_CORE_UNSHIELD_CIRCUIT_MERKLE_DEPTH_V0;
   releaseDestination: Bytes32Hex;
-  validSourceArtifacts: VantaPrivateCoreSourceArtifactBundleV0;
+  validSourceArtifacts: VantaPrivateCoreOperatorSourceArtifactBundleV0;
   validBoundary: VantaPrivateCoreUnshieldProofBoundaryV0;
   invalidDirectionWitnessPackage: VantaPrivateCoreNoirUnshieldWitnessPackageV0;
 };
