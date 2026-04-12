@@ -92,6 +92,7 @@ export type VantaPrivateCoreHoldState = {
   heldNote: HeldNoteViewV0;
   privateNoteRecovered: boolean;
   witnessAvailable: boolean;
+  proofObservationMode: string;
   sourceWitnessRoot: string;
   sourceProofPreviewStatement: string;
   sourceProofPreviewVerifier: string;
@@ -145,6 +146,7 @@ export type VantaPrivateCoreUnshieldState = {
   sourceNullifier: string | null;
   proofEnvelope: UnshieldProofEnvelopeV0 | null;
   proofBoundary: VantaPrivateCoreUnshieldProofBoundaryV0 | null;
+  proofObservationMode: string | null;
   sourceProofStatement: string | null;
   sourceProofVerifier: string | null;
   sourceProofCommitment: string | null;
@@ -279,6 +281,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       heldNote: hold,
       privateNoteRecovered: true,
       witnessAvailable: true,
+      proofObservationMode: "Preview before consume",
       sourceWitnessRoot: sourceHoldArtifacts.witnessRoot ?? hold.witness.root,
       sourceProofPreviewStatement: sourceProofPreviewSummary.statement,
       sourceProofPreviewVerifier: sourceProofPreviewSummary.proof,
@@ -338,6 +341,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceNullifier: null,
         proofEnvelope: null,
         proofBoundary: null,
+        proofObservationMode: null,
         sourceProofStatement: null,
         sourceProofVerifier: null,
         sourceProofCommitment: null,
@@ -441,6 +445,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceNullifier: sourceUnshieldArtifacts.nullifier ?? result.nullifier.value,
         proofEnvelope,
         proofBoundary,
+        proofObservationMode: "Observed during unshield",
         sourceProofStatement: sourceProofSummary.statement,
         sourceProofVerifier: sourceProofSummary.proof,
         sourceProofCommitment: sourceProofSummary.commitment,
@@ -520,6 +525,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceNullifier: proofEnvelope.publicInputs.nullifier,
         proofEnvelope,
         proofBoundary,
+        proofObservationMode: "Observed during unshield failure",
         sourceProofStatement: sourceProofSummary.statement,
         sourceProofVerifier: sourceProofSummary.proof,
         sourceProofCommitment: sourceProofSummary.commitment,
@@ -581,6 +587,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceNullifier: null,
         proofEnvelope: null,
         proofBoundary: null,
+        proofObservationMode: null,
         sourceProofStatement: null,
         sourceProofVerifier: null,
         sourceProofCommitment: null,
@@ -684,6 +691,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceNullifier: sourceUnshieldArtifacts.nullifier ?? result.nullifier.value,
         proofEnvelope,
         proofBoundary,
+        proofObservationMode: "Observed during replay attempt",
         sourceProofStatement: sourceProofSummary.statement,
         sourceProofVerifier: sourceProofSummary.proof,
         sourceProofCommitment: sourceProofSummary.commitment,
@@ -763,6 +771,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceNullifier: proofEnvelope.publicInputs.nullifier,
         proofEnvelope,
         proofBoundary,
+        proofObservationMode: "Observed during replay rejection",
         sourceProofStatement: sourceProofSummary.statement,
         sourceProofVerifier: sourceProofSummary.proof,
         sourceProofCommitment: sourceProofSummary.commitment,

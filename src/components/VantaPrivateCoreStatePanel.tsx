@@ -127,6 +127,10 @@ export function VantaPrivateCoreStatePanel({
               <strong>{holdState?.witnessAvailable ? "Ready" : "Unavailable"}</strong>
             </div>
             <div className="review-row">
+              <span>Observation mode</span>
+              <strong>{unshieldState?.proofObservationMode ?? holdState?.proofObservationMode ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
               <span>Circuit readiness</span>
               <strong>{unshieldState?.circuitReadinessLabel ?? holdState?.circuitReadinessLabel ?? "Unavailable"}</strong>
             </div>
