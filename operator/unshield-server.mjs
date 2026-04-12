@@ -434,6 +434,20 @@ const server = createServer(async (request, response) => {
         throw new Error(`Private-core release for nullifier ${nullifier} has already been recorded.`);
       }
 
+      const releaseRequestId = `private-core-release:${nullifier}:${sourcePublicInputs.stateRoot}`;
+      const releaseTransitionNoteId =
+        `private-core-release:${sourcePublicInputs.stateRoot}:${sourcePublicInputs.releaseDestination}`;
+
+      if (privateCoreReleaseRecords.hasRequestId(releaseRequestId)) {
+        throw new Error(`Private-core release request ${releaseRequestId} has already been recorded.`);
+      }
+
+      if (privateCoreReleaseRecords.hasTransitionNoteId(releaseTransitionNoteId)) {
+        throw new Error(
+          `Private-core release transition ${releaseTransitionNoteId} has already been recorded.`,
+        );
+      }
+
       const consumeRecord = {
         assetId: sourcePublicInputs.assetId,
         amount: sourcePublicInputs.amount,
@@ -458,9 +472,9 @@ const server = createServer(async (request, response) => {
         releaseDestination: sourcePublicInputs.releaseDestination,
         releasedAssetId: sourcePublicInputs.assetId,
         releasedAmount: sourcePublicInputs.amount,
-        requestId: `private-core-release:${nullifier}:${sourcePublicInputs.stateRoot}`,
+        requestId: releaseRequestId,
         root: sourcePublicInputs.stateRoot,
-        transitionNoteId: `private-core-release:${sourcePublicInputs.stateRoot}:${sourcePublicInputs.releaseDestination}`,
+        transitionNoteId: releaseTransitionNoteId,
       });
 
       writeCorsHeaders(response);
