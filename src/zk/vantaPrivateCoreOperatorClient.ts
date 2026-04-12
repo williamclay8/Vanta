@@ -153,7 +153,7 @@ export async function registerVantaPrivateCoreOperatorRoot(args: {
   const response = await fetch(getPrivateCoreRootRegistrationUrl(), {
     body: JSON.stringify({
       sourceArtifacts: args.sourceArtifacts,
-      sourcePublicInputs: args.witnessPackage.sourcePublicInputs,
+      witnessPackage: args.witnessPackage,
     }),
     headers: {
       "Content-Type": "application/json",

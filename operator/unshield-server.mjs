@@ -49,7 +49,10 @@ import {
 } from "./vanta-onchain-state.mjs";
 import { createPrivateCoreConsumeStore } from "./private-core-consume-store.mjs";
 import { createPrivateCoreRootStore } from "./private-core-root-store.mjs";
-import { proveAndVerifyVantaPrivateCoreUnshield } from "./private-core-proof.mjs";
+import {
+  normalizeVantaPrivateCoreWitnessPackage,
+  proveAndVerifyVantaPrivateCoreUnshield,
+} from "./private-core-proof.mjs";
 import { createReleaseRecordStore } from "./release-record-store.mjs";
 
 loadEnvFile(".env");
@@ -291,7 +294,8 @@ const server = createServer(async (request, response) => {
   if (request.method === "POST" && request.url === "/private-core/register-root") {
     try {
       const body = await readJsonBody(request);
-      const sourcePublicInputs = body?.sourcePublicInputs;
+      const witnessPackage = normalizeVantaPrivateCoreWitnessPackage(body?.witnessPackage);
+      const sourcePublicInputs = witnessPackage.sourcePublicInputs;
       const sourceArtifacts = body?.sourceArtifacts;
       const root = sourcePublicInputs?.stateRoot;
 

@@ -206,7 +206,7 @@ try {
       method: "POST",
     });
 
-    if (tamperedProofResponse.ok || !tamperedProofResponse.text.includes(tamperCase.expectedMessage)) {
+  if (tamperedProofResponse.ok || !tamperedProofResponse.text.includes(tamperCase.expectedMessage)) {
       throw new Error(
         tamperedProofResponse.text ||
           `operator proof endpoint unexpectedly accepted mismatched ${tamperCase.label} source public input`,
@@ -214,6 +214,30 @@ try {
     }
   }
   printStatus("operator http source/public consistency gate: PASS");
+
+  const tamperedRegisterRoot = await requestJson(baseUrl, "/private-core/register-root", {
+    body: JSON.stringify({
+      sourceArtifacts: {
+        noteCommitment: fixture.validBoundary.privateWitness.noteCommitment,
+      },
+      witnessPackage: {
+        ...witnessPackage,
+        sourcePublicInputs: {
+          ...witnessPackage.sourcePublicInputs,
+          amount: "1",
+        },
+      },
+    }),
+    method: "POST",
+  });
+
+  if (tamperedRegisterRoot.ok || !tamperedRegisterRoot.text.includes("mismatched amount public inputs")) {
+    throw new Error(
+      tamperedRegisterRoot.text ||
+        "operator root registration unexpectedly accepted mismatched source public inputs",
+    );
+  }
+  printStatus("operator http root registration consistency gate: PASS");
 
   const consumeBeforeRoot = await requestJson(baseUrl, "/private-core/unshield-consume", {
     body: JSON.stringify({ witnessPackage }),
@@ -232,7 +256,7 @@ try {
       sourceArtifacts: {
         noteCommitment: fixture.validBoundary.privateWitness.noteCommitment,
       },
-      sourcePublicInputs: witnessPackage.sourcePublicInputs,
+      witnessPackage,
     }),
     method: "POST",
   });
@@ -258,9 +282,12 @@ try {
       sourceArtifacts: {
         noteCommitment: "stale-root-basis",
       },
-      sourcePublicInputs: {
-        ...witnessPackage.sourcePublicInputs,
-        stateRoot: staleRoot,
+      witnessPackage: {
+        ...witnessPackage,
+        sourcePublicInputs: {
+          ...witnessPackage.sourcePublicInputs,
+          stateRoot: staleRoot,
+        },
       },
     }),
     method: "POST",
@@ -285,7 +312,7 @@ try {
       sourceArtifacts: {
         noteCommitment: fixture.validBoundary.privateWitness.noteCommitment,
       },
-      sourcePublicInputs: witnessPackage.sourcePublicInputs,
+      witnessPackage,
     }),
     method: "POST",
   });

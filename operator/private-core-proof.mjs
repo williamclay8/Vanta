@@ -14,7 +14,7 @@ const nargoEnv = {
 };
 
 export async function proveAndVerifyVantaPrivateCoreUnshield(args) {
-  const witnessPackage = normalizeWitnessPackage(args.witnessPackage);
+  const witnessPackage = normalizeVantaPrivateCoreWitnessPackage(args.witnessPackage);
   mkdirSync(resolve(repoRoot, ".tmp"), { recursive: true });
   const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-private-core-operator-proof-"));
   const tempCircuitDir = join(tempRoot, "circuit");
@@ -79,7 +79,7 @@ function runNargo(args, cwd) {
   });
 }
 
-function normalizeWitnessPackage(input) {
+export function normalizeVantaPrivateCoreWitnessPackage(input) {
   if (!input || typeof input !== "object") {
     throw new Error("Expected a private-core witness package object.");
   }
