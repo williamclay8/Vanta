@@ -179,6 +179,18 @@ export function VantaPrivateCoreStatePanel({
               <strong>{String(unshieldState?.proofNoteVersion ?? holdState?.proofNoteVersion ?? 0)}</strong>
             </div>
             <div className="review-row">
+              <span>Witness note type</span>
+              <strong>{unshieldState?.proofNoteType ?? holdState?.proofNoteType ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Witness leaf index</span>
+              <strong>{String(unshieldState?.proofLeafIndex ?? holdState?.proofLeafIndex ?? 0)}</strong>
+            </div>
+            <div className="review-row">
+              <span>Witness path depth</span>
+              <strong>{String(unshieldState?.proofPathDepth ?? holdState?.proofPathDepth ?? 0)}</strong>
+            </div>
+            <div className="review-row">
               <span>{unshieldState ? "Proving lane" : "Proving preview lane"}</span>
               <strong>{unshieldState?.provingHashLane ?? holdState?.provingPreviewHashLane ?? "Unavailable"}</strong>
             </div>

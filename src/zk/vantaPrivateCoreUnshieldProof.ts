@@ -224,6 +224,12 @@ export type VantaPrivateCoreProofBoundaryPublicInputSummaryV0 = {
   noteVersion: typeof VANTA_PRIVATE_CORE_NOTE_VERSION_V0;
 };
 
+export type VantaPrivateCoreProofBoundaryWitnessSummaryV0 = {
+  noteType: NoteType;
+  leafIndex: number;
+  pathDepth: number;
+};
+
 export type BuildVantaPrivateCoreUnshieldProofBoundaryArgs = {
   heldNote: HeldNoteViewV0;
   ownerSecretKey: Bytes32Hex;
@@ -500,6 +506,16 @@ export function summarizeVantaPrivateCoreProofBoundaryPublicInputs(
     assetId: boundary.publicInputs.assetId,
     amount: boundary.publicInputs.amount,
     noteVersion: boundary.publicInputs.noteVersion,
+  };
+}
+
+export function summarizeVantaPrivateCoreProofBoundaryWitness(
+  boundary: VantaPrivateCoreUnshieldProofBoundaryV0,
+): VantaPrivateCoreProofBoundaryWitnessSummaryV0 {
+  return {
+    noteType: boundary.privateWitness.noteType,
+    leafIndex: boundary.privateWitness.leafIndex,
+    pathDepth: boundary.privateWitness.merklePathEncoding.depth,
   };
 }
 
