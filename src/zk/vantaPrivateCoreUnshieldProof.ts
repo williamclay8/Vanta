@@ -15,6 +15,7 @@ import {
   VantaPrivateCoreLedger,
   createVantaPrivateCoreOwnerKeypair,
   createVantaPrivateCoreWitnessRequest,
+  deriveVantaPrivateCoreSourceArtifactsFromHeldNote,
   deriveVantaPrivateCoreMerkleLeafHash,
   deriveVantaPrivateCoreNoteCommitment,
   deriveVantaPrivateCoreNullifier,
@@ -249,6 +250,7 @@ export type BuildVantaPrivateCoreUnshieldProofBoundaryArgs = {
 export type VantaPrivateCoreFixedDepthUnshieldFixtureV0 = {
   merkleDepth: typeof VANTA_PRIVATE_CORE_UNSHIELD_CIRCUIT_MERKLE_DEPTH_V0;
   releaseDestination: Bytes32Hex;
+  validSourceArtifacts: VantaPrivateCoreSourceArtifactBundleV0;
   validBoundary: VantaPrivateCoreUnshieldProofBoundaryV0;
   invalidDirectionWitnessPackage: VantaPrivateCoreNoirUnshieldWitnessPackageV0;
 };
@@ -683,6 +685,7 @@ export function getVantaPrivateCoreFixedDepthUnshieldFixtureV0():
     encryptedPayload: shields[targetIndex].encryptedPayload,
     ownerSecretKey: owners[targetIndex].secretKey,
   });
+  const validSourceArtifacts = deriveVantaPrivateCoreSourceArtifactsFromHeldNote(heldNote);
   const validBoundary = buildVantaPrivateCoreUnshieldProofBoundary({
     heldNote,
     ownerSecretKey: owners[targetIndex].secretKey,
@@ -705,6 +708,7 @@ export function getVantaPrivateCoreFixedDepthUnshieldFixtureV0():
   return {
     merkleDepth: VANTA_PRIVATE_CORE_UNSHIELD_CIRCUIT_MERKLE_DEPTH_V0,
     releaseDestination,
+    validSourceArtifacts,
     validBoundary,
     invalidDirectionWitnessPackage,
   };

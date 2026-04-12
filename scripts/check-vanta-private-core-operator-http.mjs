@@ -116,6 +116,7 @@ async function loadFixture() {
 
 const fixture = await loadFixture();
 const witnessPackage = fixture.validBoundary.noirWitnessPackage;
+const sourceArtifacts = fixture.validSourceArtifacts;
 mkdirSync(resolve(repoRoot, ".tmp"), { recursive: true });
 const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/private-core-operator-http-server-"));
 const port = randomPort();
@@ -285,9 +286,7 @@ try {
   ]) {
     const tamperedRegisterRoot = await requestJson(baseUrl, "/private-core/register-root", {
       body: JSON.stringify({
-        sourceArtifacts: {
-          noteCommitment: fixture.validBoundary.privateWitness.noteCommitment,
-        },
+        sourceArtifacts,
         witnessPackage: {
           ...witnessPackage,
           sourcePublicInputs: {
@@ -319,10 +318,30 @@ try {
       );
     }
   }
+
+  const tamperedRegisterRootSourceArtifacts = await requestJson(baseUrl, "/private-core/register-root", {
+    body: JSON.stringify({
+      sourceArtifacts: {
+        noteCommitment: "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      },
+      witnessPackage,
+    }),
+    method: "POST",
+  });
+
+  if (
+    tamperedRegisterRootSourceArtifacts.ok ||
+    !tamperedRegisterRootSourceArtifacts.text.includes("mismatched note commitment")
+  ) {
+    throw new Error(
+      tamperedRegisterRootSourceArtifacts.text ||
+        "operator root registration unexpectedly accepted a mismatched note commitment",
+    );
+  }
   printStatus("operator http root registration consistency gate: PASS");
 
   const consumeBeforeRoot = await requestJson(baseUrl, "/private-core/unshield-consume", {
-    body: JSON.stringify({ witnessPackage }),
+    body: JSON.stringify({ sourceArtifacts, witnessPackage }),
     method: "POST",
   });
 
@@ -335,9 +354,7 @@ try {
 
   const registerRoot = await requestJson(baseUrl, "/private-core/register-root", {
     body: JSON.stringify({
-      sourceArtifacts: {
-        noteCommitment: fixture.validBoundary.privateWitness.noteCommitment,
-      },
+      sourceArtifacts,
       witnessPackage,
     }),
     method: "POST",
@@ -363,9 +380,7 @@ try {
   const staleRoot = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
   const registerStaleRoot = await requestJson(baseUrl, "/private-core/register-root", {
     body: JSON.stringify({
-      sourceArtifacts: {
-        noteCommitment: "stale-root-basis",
-      },
+      sourceArtifacts,
       witnessPackage: {
         ...witnessPackage,
         sourcePublicInputs: {
@@ -382,7 +397,7 @@ try {
   }
 
   const staleConsume = await requestJson(baseUrl, "/private-core/unshield-consume", {
-    body: JSON.stringify({ witnessPackage }),
+    body: JSON.stringify({ sourceArtifacts, witnessPackage }),
     method: "POST",
   });
 
@@ -393,9 +408,7 @@ try {
 
   const reregisterCurrentRoot = await requestJson(baseUrl, "/private-core/register-root", {
     body: JSON.stringify({
-      sourceArtifacts: {
-        noteCommitment: fixture.validBoundary.privateWitness.noteCommitment,
-      },
+      sourceArtifacts,
       witnessPackage,
     }),
     method: "POST",
@@ -449,6 +462,7 @@ try {
   ]) {
     const tamperedConsume = await requestJson(baseUrl, "/private-core/unshield-consume", {
       body: JSON.stringify({
+        sourceArtifacts,
         witnessPackage: {
           ...witnessPackage,
           sourcePublicInputs: {
@@ -481,10 +495,30 @@ try {
       );
     }
   }
+
+  const tamperedConsumeSourceArtifacts = await requestJson(baseUrl, "/private-core/unshield-consume", {
+    body: JSON.stringify({
+      sourceArtifacts: {
+        noteCommitment: "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      },
+      witnessPackage,
+    }),
+    method: "POST",
+  });
+
+  if (
+    tamperedConsumeSourceArtifacts.ok ||
+    !tamperedConsumeSourceArtifacts.text.includes("mismatched note commitment")
+  ) {
+    throw new Error(
+      tamperedConsumeSourceArtifacts.text ||
+        "operator consume unexpectedly accepted a mismatched note commitment",
+    );
+  }
   printStatus("operator http consume consistency gate: PASS");
 
   const consumeResponse = await requestJson(baseUrl, "/private-core/unshield-consume", {
-    body: JSON.stringify({ witnessPackage }),
+    body: JSON.stringify({ sourceArtifacts, witnessPackage }),
     method: "POST",
   });
   if (!consumeResponse.ok || consumeResponse.parsed?.verified !== true) {
@@ -493,7 +527,7 @@ try {
   printStatus("operator http consume: PASS");
 
   const replayResponse = await requestJson(baseUrl, "/private-core/unshield-consume", {
-    body: JSON.stringify({ witnessPackage }),
+    body: JSON.stringify({ sourceArtifacts, witnessPackage }),
     method: "POST",
   });
   if (!replayResponse.text.includes("has already been consumed")) {

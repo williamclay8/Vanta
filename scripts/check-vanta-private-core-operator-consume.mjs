@@ -3,6 +3,7 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "nod
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createPrivateCoreConsumeStore } from "../operator/private-core-consume-store.mjs";
+import { assertVantaPrivateCoreSourceArtifactConsistency } from "../operator/private-core-proof.mjs";
 import { proveAndVerifyVantaPrivateCoreUnshield } from "../operator/private-core-proof.mjs";
 import { createPrivateCoreRootStore } from "../operator/private-core-root-store.mjs";
 
@@ -62,6 +63,7 @@ try {
   const fixture = compiledModule.getVantaPrivateCoreFixedDepthUnshieldFixtureV0();
   const witnessPackage = fixture.validBoundary.noirWitnessPackage;
   const sourcePublicInputs = witnessPackage.sourcePublicInputs;
+  const sourceArtifacts = fixture.validSourceArtifacts;
 
   const proofReceipt = await proveAndVerifyVantaPrivateCoreUnshield({ witnessPackage });
   printStatus(
@@ -117,6 +119,22 @@ try {
   }
   printStatus("operator source/public consistency gate: PASS");
 
+  try {
+    assertVantaPrivateCoreSourceArtifactConsistency(
+      {
+        noteCommitment: "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      },
+      witnessPackage,
+    );
+    throw new Error("operator source-artifact seam unexpectedly accepted a mismatched note commitment");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (!message.includes("mismatched note commitment")) {
+      throw error;
+    }
+  }
+  printStatus("operator source-artifact consistency gate: PASS");
+
   const consumeStore = createPrivateCoreConsumeStore({
     defaultPath: join(tempRoot, "consumes.json"),
   });
@@ -132,7 +150,7 @@ try {
   rootStore.recordRoot({
     amount: sourcePublicInputs.amount,
     assetId: sourcePublicInputs.assetId,
-    noteCommitment: fixture.validBoundary.privateWitness.noteCommitment,
+    noteCommitment: sourceArtifacts.noteCommitment,
     recordedAt: Date.now(),
     root: sourcePublicInputs.stateRoot,
     source: "operator-consume-check",
@@ -160,7 +178,7 @@ try {
   rootStore.recordRoot({
     amount: sourcePublicInputs.amount,
     assetId: sourcePublicInputs.assetId,
-    noteCommitment: fixture.validBoundary.privateWitness.noteCommitment,
+    noteCommitment: sourceArtifacts.noteCommitment,
     recordedAt: Date.now() + 2,
     root: sourcePublicInputs.stateRoot,
     source: "operator-consume-check-current-root",
@@ -186,6 +204,17 @@ try {
   if (!consumeStore.hasNullifier(sourcePublicInputs.nullifier)) {
     throw new Error("operator consume store did not retain the first-consume nullifier");
   }
+
+  const registeredRootRecord = rootStore.getLatestRoot();
+  if (
+    !registeredRootRecord ||
+    registeredRootRecord.noteCommitment !== sourceArtifacts.noteCommitment ||
+    registeredRootRecord.assetId !== sourcePublicInputs.assetId ||
+    registeredRootRecord.amount !== sourcePublicInputs.amount
+  ) {
+    throw new Error("operator root store metadata did not retain the witness-backed registration basis");
+  }
+  printStatus("operator root metadata basis: PASS");
 
   printStatus("operator replay rejection basis: PASS");
 } catch (error) {

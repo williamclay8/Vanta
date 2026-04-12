@@ -3,6 +3,7 @@ import { cpSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } f
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Barretenberg, UltraHonkBackend } from "@aztec/bb.js";
+import { sha256 } from "@noble/hashes/sha2.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "..");
@@ -99,6 +100,22 @@ export function normalizeVantaPrivateCoreWitnessPackage(input) {
   return witnessPackage;
 }
 
+export function assertVantaPrivateCoreSourceArtifactConsistency(sourceArtifacts, witnessPackage) {
+  if (!sourceArtifacts || typeof sourceArtifacts !== "object") {
+    throw new Error("Private-core source artifacts are required.");
+  }
+
+  if (typeof sourceArtifacts.noteCommitment !== "string") {
+    throw new Error("Private-core source artifacts are missing a note commitment.");
+  }
+
+  const expectedNoteCommitment = deriveSourceNoteCommitmentFromWitnessPackage(witnessPackage);
+
+  if (normalizeHex32(sourceArtifacts.noteCommitment) !== expectedNoteCommitment) {
+    throw new Error("Private-core source artifacts have a mismatched note commitment.");
+  }
+}
+
 function serializeWitnessPackageToToml(witnessPackage) {
   const publicInputs = witnessPackage.publicInputs;
   const privateWitness = witnessPackage.privateWitness;
@@ -177,6 +194,38 @@ function assertWitnessPackagePublicInputConsistency(witnessPackage) {
   }
 }
 
+function deriveSourceNoteCommitmentFromWitnessPackage(witnessPackage) {
+  const sourcePublicInputs = witnessPackage.sourcePublicInputs;
+  const publicInputs = witnessPackage.publicInputs;
+  const privateWitness = witnessPackage.privateWitness;
+
+  const encodedNote = concatBytes(
+    encodeDomain("vanta.private-core.note.v0"),
+    encodeU8(Number(publicInputs.note_version)),
+    encodeU8(Number(privateWitness.note_type_code)),
+    hexToBytes(normalizeHex32(sourcePublicInputs.assetId)),
+    encodeU128(BigInt(String(sourcePublicInputs.amount))),
+    hexToBytes(
+      decodeBytes32FromTwoU128Be(
+        privateWitness.owner_public_key_hi,
+        privateWitness.owner_public_key_lo,
+      ),
+    ),
+    hexToBytes(decodeBytes32FromTwoU128Be(privateWitness.note_nonce_hi, privateWitness.note_nonce_lo)),
+    hexToBytes(decodeBytes32FromTwoU128Be(privateWitness.note_secret_hi, privateWitness.note_secret_lo)),
+    hexToBytes(decodeBytes32FromTwoU128Be(privateWitness.blinding_hi, privateWitness.blinding_lo)),
+    hexToBytes(
+      decodeBytes32FromTwoU128Be(privateWitness.derivation_tag_hi, privateWitness.derivation_tag_lo),
+    ),
+  );
+
+  return normalizeHex32(
+    `0x${Buffer.from(
+      sha256(concatBytes(encodeDomain("vanta.private-core.note-commitment.v0"), encodedNote)),
+    ).toString("hex")}`,
+  );
+}
+
 function decodeBytes32FromTwoU128Be(hi, lo) {
   const hiHex = BigInt(hi).toString(16).padStart(32, "0");
   const loHex = BigInt(lo).toString(16).padStart(32, "0");
@@ -199,4 +248,59 @@ function normalizeHex32(value) {
   }
 
   return normalized;
+}
+
+function encodeDomain(value) {
+  const bytes = new TextEncoder().encode(value);
+  return concatBytes(encodeU32(bytes.length), bytes);
+}
+
+function encodeU8(value) {
+  const normalized = Number(value);
+  if (!Number.isInteger(normalized) || normalized < 0 || normalized > 0xff) {
+    throw new Error(`Expected an unsigned 8-bit integer, received ${String(value)}.`);
+  }
+  return Uint8Array.of(normalized);
+}
+
+function encodeU128(value) {
+  const normalized = BigInt(value);
+  if (normalized < 0n || normalized > (1n << 128n) - 1n) {
+    throw new Error(`Expected an unsigned 128-bit integer, received ${String(value)}.`);
+  }
+  const output = new Uint8Array(16);
+  let cursor = normalized;
+  for (let index = 15; index >= 0; index -= 1) {
+    output[index] = Number(cursor & 0xffn);
+    cursor >>= 8n;
+  }
+  return output;
+}
+
+function encodeU32(value) {
+  const normalized = Number(value);
+  if (!Number.isInteger(normalized) || normalized < 0 || normalized > 0xffffffff) {
+    throw new Error(`Expected an unsigned 32-bit integer, received ${String(value)}.`);
+  }
+  const output = new Uint8Array(4);
+  new DataView(output.buffer).setUint32(0, normalized, false);
+  return output;
+}
+
+function hexToBytes(value) {
+  const normalized = value.startsWith("0x") ? value.slice(2) : value;
+  return Uint8Array.from(Buffer.from(normalized, "hex"));
+}
+
+function concatBytes(...parts) {
+  const totalLength = parts.reduce((sum, part) => sum + part.length, 0);
+  const output = new Uint8Array(totalLength);
+  let offset = 0;
+
+  for (const part of parts) {
+    output.set(part, offset);
+    offset += part.length;
+  }
+
+  return output;
 }

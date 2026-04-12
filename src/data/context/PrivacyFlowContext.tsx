@@ -620,6 +620,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceArtifacts: sourceHoldArtifacts,
       });
       operatorConsumeReceipt = await requestVantaPrivateCoreOperatorConsume({
+        sourceArtifacts: sourceHoldArtifacts,
         witnessPackage: proofBoundary.noirWitnessPackage,
       });
       const result = privateCoreLedger.unshield(privateCoreHoldState.heldNote);
@@ -901,6 +902,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         witnessPackage: proofBoundary.noirWitnessPackage,
       });
       await requestVantaPrivateCoreOperatorConsume({
+        sourceArtifacts: sourceHoldArtifacts,
         witnessPackage: proofBoundary.noirWitnessPackage,
       });
       throw new Error("Replay consume unexpectedly succeeded.");

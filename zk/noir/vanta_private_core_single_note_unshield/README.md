@@ -98,6 +98,7 @@ This command:
   - `assetId`
   - `amount`
   - `noteVersion`
+- verifies tampered source note commitments are rejected at root registration
 - verifies a newer stale root causes the original root to be rejected as non-current
 - re-registers the current root and verifies it becomes current again
 - verifies tampered consume is rejected without mutating consume state for the full validated public surface:
@@ -105,6 +106,7 @@ This command:
   - `assetId`
   - `amount`
   - `noteVersion`
+- verifies tampered source note commitments are rejected at consume time too
 - verifies consume succeeds once and replay is rejected
 - verifies the operator root state endpoint returns the explicit `currentRoot`
 - verifies the operator consume state endpoint returns the explicit `latestConsume`

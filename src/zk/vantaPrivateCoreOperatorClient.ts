@@ -109,10 +109,12 @@ export async function requestVantaPrivateCoreOperatorProof(args: {
 }
 
 export async function requestVantaPrivateCoreOperatorConsume(args: {
+  sourceArtifacts: VantaPrivateCoreSourceArtifactBundleV0;
   witnessPackage: VantaPrivateCoreNoirUnshieldWitnessPackageV0;
 }): Promise<VantaPrivateCoreConsumeOperatorResponse> {
   const response = await fetch(getPrivateCoreConsumeOperatorUrl(), {
     body: JSON.stringify({
+      sourceArtifacts: args.sourceArtifacts,
       witnessPackage: args.witnessPackage,
     }),
     headers: {

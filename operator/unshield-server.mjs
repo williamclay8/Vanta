@@ -50,6 +50,7 @@ import {
 import { createPrivateCoreConsumeStore } from "./private-core-consume-store.mjs";
 import { createPrivateCoreRootStore } from "./private-core-root-store.mjs";
 import {
+  assertVantaPrivateCoreSourceArtifactConsistency,
   normalizeVantaPrivateCoreWitnessPackage,
   proveAndVerifyVantaPrivateCoreUnshield,
 } from "./private-core-proof.mjs";
@@ -309,11 +310,12 @@ const server = createServer(async (request, response) => {
         throw new Error("Private-core root registration request is missing a source root.");
       }
 
+      assertVantaPrivateCoreSourceArtifactConsistency(sourceArtifacts, witnessPackage);
+
       privateCoreRootStore.recordRoot({
         root,
         recordedAt: Date.now(),
-        noteCommitment:
-          typeof sourceArtifacts?.noteCommitment === "string" ? sourceArtifacts.noteCommitment : null,
+        noteCommitment: sourceArtifacts.noteCommitment,
         amount: typeof sourcePublicInputs?.amount === "string" ? sourcePublicInputs.amount : null,
         assetId: typeof sourcePublicInputs?.assetId === "string" ? sourcePublicInputs.assetId : null,
         source: "app-private-core-shield-flow",
@@ -346,6 +348,7 @@ const server = createServer(async (request, response) => {
         witnessPackage: body.witnessPackage,
       });
       const sourcePublicInputs = body?.witnessPackage?.sourcePublicInputs;
+      const sourceArtifacts = body?.sourceArtifacts;
       const nullifier = sourcePublicInputs?.nullifier;
 
       if (typeof nullifier !== "string" || nullifier.length === 0) {
@@ -370,6 +373,22 @@ const server = createServer(async (request, response) => {
       if (!latestRootRecord || latestRootRecord.root !== sourcePublicInputs.stateRoot) {
         throw new Error(
           `State root ${sourcePublicInputs.stateRoot} is not the latest registered private-core state.`,
+        );
+      }
+
+      assertVantaPrivateCoreSourceArtifactConsistency(sourceArtifacts, body?.witnessPackage);
+
+      if (latestRootRecord.assetId !== sourcePublicInputs.assetId) {
+        throw new Error("Registered private-core root asset metadata does not match this consume request.");
+      }
+
+      if (latestRootRecord.amount !== sourcePublicInputs.amount) {
+        throw new Error("Registered private-core root amount metadata does not match this consume request.");
+      }
+
+      if (latestRootRecord.noteCommitment !== sourceArtifacts.noteCommitment) {
+        throw new Error(
+          "Registered private-core root note commitment metadata does not match this consume request.",
         );
       }
 
