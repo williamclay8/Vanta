@@ -29,6 +29,12 @@ That split matters because the repo already has a real first unshield proof lane
 - operator-backed consume seam check via `npm run private-core:consume-check`
 - operator HTTP smoke test via `npm run private-core:http-smoke`
 - full-stack private-core verification via `npm run private-core:verify`
+- operator-backed proof execution and verification for the current narrow unshield lane
+- operator-side registered-root and latest-root enforcement for the current narrow consume lane
+- explicit operator state contracts for:
+  - `currentRoot`
+  - `latestConsume`
+  - empty-state summaries for both endpoints
 - app-side Shield, Hold, Unshield, and replay demo integration
 - internal diagnostics that expose the source-layer and proving-lane split honestly
 
@@ -36,34 +42,24 @@ That split matters because the repo already has a real first unshield proof lane
 
 These are the items that still look mandatory before `zk v1` should be called finished.
 
-### 1. Real proof execution in the product path
-
-The repo can now solve the first circuit locally and generate plus verify one real UltraHonk proof through:
-
-- `npm run private-core:prove`
-
-What still remains for `zk v1` is wiring that proof lifecycle into the real app or operator path for the chosen narrow lane:
-- proof generation
-- proof verification
-- honest surfacing of proof success or failure in the real path
-
-### 2. Verifier-side semantics
+### 1. Finish verifier-side semantics into a real release contract
 
 The circuit alone is not enough.
 
 The consuming path still needs the verifier-side contract to be treated as real.
 
-The repo now has a first narrow operator-side version of that contract:
+The repo now already has a first narrow operator-side version of that contract:
 - verify proof
 - require the source root to be the latest registered private-core state
 - enforce nullifier uniqueness in the consume path
+- surface proof execution and operator-state summaries in the app
 
 What still remains for `zk v1` is finishing that into a fuller verifier-side contract:
-- stronger root validity and currentness policy
-- explicit release authorization semantics
-- atomic release with nullifier consumption in the chosen real product lane
+- stronger root validity policy beyond the current local operator store
+- explicit release authorization semantics tied to the real product exit path
+- atomic release with nullifier consumption in the chosen real product lane, not just operator-local state
 
-### 3. Freeze the owner-auth decision for v1
+### 2. Freeze the owner-auth decision for v1
 
 Today the first circuit explicitly keeps owner authorization off-circuit.
 
@@ -73,7 +69,7 @@ That can be acceptable for a narrow `v1`, but it needs to be frozen clearly:
 
 What should not happen is leaving this ambiguous.
 
-### 4. Reduce the remaining source/proving split
+### 3. Reduce the remaining source/proving split
 
 The first unshield circuit uses the Poseidon proving lane, while broader app-side source artifacts still use transitional SHA-256 surfaces.
 
@@ -82,7 +78,7 @@ The first unshield circuit uses the Poseidon proving lane, while broader app-sid
 - an explicit frozen contract for what is proving-lane truth
 - no user- or operator-facing ambiguity about which values govern proof validity
 
-### 5. Ship the first real private workflow required by the product spec
+### 4. Ship the first real private workflow required by the product spec
 
 `docs/privacy-model.md` defines `v1` around:
 
@@ -114,9 +110,9 @@ These look important, but not strictly blocking for the narrowest plausible `zk 
 
 ## Suggested finish order
 
-1. Keep the current unshield proof lane green with `npm run private-core:check`.
+1. Keep the current unshield proof lane and operator seam green with `npm run private-core:verify`.
 2. Freeze the `v1` owner-auth and verifier-side assumptions in writing.
-3. Wire real proof generation and verification for the current narrow lane.
+3. Finish the real release-side contract around the current operator-backed proof lane.
 4. Finish one real private send flow from shielded state.
 5. Re-evaluate the remaining source/proving split after send is real.
 

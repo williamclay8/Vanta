@@ -123,10 +123,12 @@ The current best reading is:
 - Vanta already has its first real zk consume lane
 - Vanta does not yet have finished `zk v1`
 
-The next major build step after this assumptions freeze is:
+The next major build step after this assumptions freeze was:
 
 - wire real proof generation and verification for the current narrow lane
 
-The next major product step after that is:
+That step is now done for the current operator-backed unshield lane.
+
+The next major product step from here is:
 
 - finish one real private send flow from shielded state
