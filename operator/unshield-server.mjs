@@ -316,10 +316,8 @@ const server = createServer(async (request, response) => {
         root,
         recordedAt: Date.now(),
         noteCommitment: sourceArtifacts.noteCommitment,
-        merkleLeaf:
-          typeof sourceArtifacts?.merkleLeaf === "string" ? sourceArtifacts.merkleLeaf : null,
-        witnessRoot:
-          typeof sourceArtifacts?.witnessRoot === "string" ? sourceArtifacts.witnessRoot : null,
+        merkleLeaf: sourceArtifacts.merkleLeaf,
+        witnessRoot: sourceArtifacts.witnessRoot,
         amount: typeof sourcePublicInputs?.amount === "string" ? sourcePublicInputs.amount : null,
         assetId: typeof sourcePublicInputs?.assetId === "string" ? sourcePublicInputs.assetId : null,
         source: "app-private-core-shield-flow",
@@ -396,13 +394,13 @@ const server = createServer(async (request, response) => {
         );
       }
 
-      if (latestRootRecord.merkleLeaf !== (sourceArtifacts.merkleLeaf ?? null)) {
+      if (latestRootRecord.merkleLeaf !== sourceArtifacts.merkleLeaf) {
         throw new Error(
           "Registered private-core root Merkle leaf metadata does not match this consume request.",
         );
       }
 
-      if (latestRootRecord.witnessRoot !== (sourceArtifacts.witnessRoot ?? null)) {
+      if (latestRootRecord.witnessRoot !== sourceArtifacts.witnessRoot) {
         throw new Error(
           "Registered private-core root witness root metadata does not match this consume request.",
         );

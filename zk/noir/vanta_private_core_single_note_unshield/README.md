@@ -92,12 +92,16 @@ This command:
 - verifies the state endpoints advertise `GET` through CORS preflight
 - verifies `/private-core/unshield-proof`
 - verifies `/private-core/unshield-consume` is rejected before root registration
-- registers the root through `/private-core/register-root`
+- registers the root through `/private-core/register-root` using the full witness-backed source artifact bundle:
+  - `noteCommitment`
+  - `merkleLeaf`
+  - `witnessRoot`
 - verifies tampered root registration is rejected without mutating root state for the full validated public surface:
   - `releaseDestination`
   - `assetId`
   - `amount`
   - `noteVersion`
+- verifies root registration also rejects missing source note commitments, Merkle leaves, and witness roots
 - verifies tampered source note commitments, Merkle leaves, and witness roots are rejected at root registration
 - verifies the registered root state retains the witness-backed note commitment, Merkle leaf, and witness root metadata
 - verifies a newer stale root causes the original root to be rejected as non-current
@@ -107,6 +111,7 @@ This command:
   - `assetId`
   - `amount`
   - `noteVersion`
+- verifies consume also rejects missing source note commitments, Merkle leaves, and witness roots
 - verifies tampered source note commitments, Merkle leaves, and witness roots are rejected at consume time too
 - verifies consume succeeds once and replay is rejected
 - verifies the operator root state endpoint returns the explicit `currentRoot`

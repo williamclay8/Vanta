@@ -109,23 +109,27 @@ export function assertVantaPrivateCoreSourceArtifactConsistency(sourceArtifacts,
     throw new Error("Private-core source artifacts are missing a note commitment.");
   }
 
+  if (typeof sourceArtifacts.merkleLeaf !== "string") {
+    throw new Error("Private-core source artifacts are missing a Merkle leaf.");
+  }
+
+  if (typeof sourceArtifacts.witnessRoot !== "string") {
+    throw new Error("Private-core source artifacts are missing a witness root.");
+  }
+
   const expectedNoteCommitment = deriveSourceNoteCommitmentFromWitnessPackage(witnessPackage);
+  const expectedMerkleLeaf = deriveSourceMerkleLeaf(expectedNoteCommitment);
+  const expectedWitnessRoot = normalizeHex32(witnessPackage.sourcePublicInputs.stateRoot);
 
   if (normalizeHex32(sourceArtifacts.noteCommitment) !== expectedNoteCommitment) {
     throw new Error("Private-core source artifacts have a mismatched note commitment.");
   }
 
-  if (
-    sourceArtifacts.merkleLeaf !== undefined &&
-    normalizeHex32(sourceArtifacts.merkleLeaf) !== deriveSourceMerkleLeaf(expectedNoteCommitment)
-  ) {
+  if (normalizeHex32(sourceArtifacts.merkleLeaf) !== expectedMerkleLeaf) {
     throw new Error("Private-core source artifacts have a mismatched Merkle leaf.");
   }
 
-  if (
-    sourceArtifacts.witnessRoot !== undefined &&
-    normalizeHex32(sourceArtifacts.witnessRoot) !== normalizeHex32(witnessPackage.sourcePublicInputs.stateRoot)
-  ) {
+  if (normalizeHex32(sourceArtifacts.witnessRoot) !== expectedWitnessRoot) {
     throw new Error("Private-core source artifacts have a mismatched witness root.");
   }
 }

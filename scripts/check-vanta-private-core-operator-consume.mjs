@@ -123,6 +123,8 @@ try {
     assertVantaPrivateCoreSourceArtifactConsistency(
       {
         noteCommitment: "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        merkleLeaf: sourceArtifacts.merkleLeaf,
+        witnessRoot: sourceArtifacts.witnessRoot,
       },
       witnessPackage,
     );
@@ -134,6 +136,43 @@ try {
     }
   }
   printStatus("operator source-artifact consistency gate: PASS");
+
+  for (const missingFieldCase of [
+    {
+      expectedMessage: "missing a note commitment",
+      sourceArtifacts: {
+        merkleLeaf: sourceArtifacts.merkleLeaf,
+        witnessRoot: sourceArtifacts.witnessRoot,
+      },
+    },
+    {
+      expectedMessage: "missing a Merkle leaf",
+      sourceArtifacts: {
+        noteCommitment: sourceArtifacts.noteCommitment,
+        witnessRoot: sourceArtifacts.witnessRoot,
+      },
+    },
+    {
+      expectedMessage: "missing a witness root",
+      sourceArtifacts: {
+        noteCommitment: sourceArtifacts.noteCommitment,
+        merkleLeaf: sourceArtifacts.merkleLeaf,
+      },
+    },
+  ]) {
+    try {
+      assertVantaPrivateCoreSourceArtifactConsistency(missingFieldCase.sourceArtifacts, witnessPackage);
+      throw new Error(
+        `operator source-artifact seam unexpectedly accepted ${missingFieldCase.expectedMessage}`,
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (!message.includes(missingFieldCase.expectedMessage)) {
+        throw error;
+      }
+    }
+  }
+  printStatus("operator source-artifact required fields: PASS");
 
   for (const tamperCase of [
     {

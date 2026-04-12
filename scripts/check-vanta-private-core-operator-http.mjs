@@ -323,6 +323,8 @@ try {
     body: JSON.stringify({
       sourceArtifacts: {
         noteCommitment: "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        merkleLeaf: sourceArtifacts.merkleLeaf,
+        witnessRoot: sourceArtifacts.witnessRoot,
       },
       witnessPackage,
     }),
@@ -337,6 +339,48 @@ try {
       tamperedRegisterRootSourceArtifacts.text ||
         "operator root registration unexpectedly accepted a mismatched note commitment",
     );
+  }
+
+  for (const missingFieldCase of [
+    {
+      expectedMessage: "missing a note commitment",
+      sourceArtifacts: {
+        merkleLeaf: sourceArtifacts.merkleLeaf,
+        witnessRoot: sourceArtifacts.witnessRoot,
+      },
+    },
+    {
+      expectedMessage: "missing a Merkle leaf",
+      sourceArtifacts: {
+        noteCommitment: sourceArtifacts.noteCommitment,
+        witnessRoot: sourceArtifacts.witnessRoot,
+      },
+    },
+    {
+      expectedMessage: "missing a witness root",
+      sourceArtifacts: {
+        noteCommitment: sourceArtifacts.noteCommitment,
+        merkleLeaf: sourceArtifacts.merkleLeaf,
+      },
+    },
+  ]) {
+    const missingRegisterRootArtifacts = await requestJson(baseUrl, "/private-core/register-root", {
+      body: JSON.stringify({
+        sourceArtifacts: missingFieldCase.sourceArtifacts,
+        witnessPackage,
+      }),
+      method: "POST",
+    });
+
+    if (
+      missingRegisterRootArtifacts.ok ||
+      !missingRegisterRootArtifacts.text.includes(missingFieldCase.expectedMessage)
+    ) {
+      throw new Error(
+        missingRegisterRootArtifacts.text ||
+          `operator root registration unexpectedly accepted ${missingFieldCase.expectedMessage}`,
+      );
+    }
   }
 
   for (const tamperCase of [
@@ -544,6 +588,8 @@ try {
     body: JSON.stringify({
       sourceArtifacts: {
         noteCommitment: "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        merkleLeaf: sourceArtifacts.merkleLeaf,
+        witnessRoot: sourceArtifacts.witnessRoot,
       },
       witnessPackage,
     }),
@@ -558,6 +604,48 @@ try {
       tamperedConsumeSourceArtifacts.text ||
         "operator consume unexpectedly accepted a mismatched note commitment",
     );
+  }
+
+  for (const missingFieldCase of [
+    {
+      expectedMessage: "missing a note commitment",
+      sourceArtifacts: {
+        merkleLeaf: sourceArtifacts.merkleLeaf,
+        witnessRoot: sourceArtifacts.witnessRoot,
+      },
+    },
+    {
+      expectedMessage: "missing a Merkle leaf",
+      sourceArtifacts: {
+        noteCommitment: sourceArtifacts.noteCommitment,
+        witnessRoot: sourceArtifacts.witnessRoot,
+      },
+    },
+    {
+      expectedMessage: "missing a witness root",
+      sourceArtifacts: {
+        noteCommitment: sourceArtifacts.noteCommitment,
+        merkleLeaf: sourceArtifacts.merkleLeaf,
+      },
+    },
+  ]) {
+    const missingConsumeArtifacts = await requestJson(baseUrl, "/private-core/unshield-consume", {
+      body: JSON.stringify({
+        sourceArtifacts: missingFieldCase.sourceArtifacts,
+        witnessPackage,
+      }),
+      method: "POST",
+    });
+
+    if (
+      missingConsumeArtifacts.ok ||
+      !missingConsumeArtifacts.text.includes(missingFieldCase.expectedMessage)
+    ) {
+      throw new Error(
+        missingConsumeArtifacts.text ||
+          `operator consume unexpectedly accepted ${missingFieldCase.expectedMessage}`,
+      );
+    }
   }
 
   for (const tamperCase of [

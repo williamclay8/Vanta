@@ -319,8 +319,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       ownerSecretKey: privateCoreOwner.secretKey,
       releaseDestination: VANTA_PRIVATE_CORE_DEMO_RELEASE_DESTINATION,
     });
-    const sourceArtifacts = deriveVantaPrivateCoreSourceArtifactsFromShieldArtifact(
-      privateCoreRecentShield.artifact,
+    const sourceArtifacts = deriveVantaPrivateCoreSourceArtifactsFromHeldNote(
+      privateCoreHoldState.heldNote,
     );
 
     void registerVantaPrivateCoreOperatorRoot({

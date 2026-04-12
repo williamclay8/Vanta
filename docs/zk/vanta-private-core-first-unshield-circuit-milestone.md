@@ -108,6 +108,7 @@ That command confirms the current lane through the actual server surface:
   - `assetId`
   - `amount`
   - `noteVersion`
+- missing source note commitments, Merkle leaves, and witness roots are rejected at root registration
 - tampered source note commitments, Merkle leaves, and witness roots are also rejected at root registration
 - registered root state retains the witness-backed note commitment, Merkle leaf, and witness root metadata
 - root registration endpoint succeeds
@@ -118,6 +119,7 @@ That command confirms the current lane through the actual server surface:
   - `assetId`
   - `amount`
   - `noteVersion`
+- missing source note commitments, Merkle leaves, and witness roots are rejected at consume time
 - tampered source note commitments, Merkle leaves, and witness roots are also rejected at consume time
 - consume succeeds once after root registration
 - replay is rejected
