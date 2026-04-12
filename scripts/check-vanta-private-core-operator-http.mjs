@@ -154,6 +154,30 @@ server.stderr.on("data", (chunk) => {
 try {
   await waitForHealth(baseUrl);
 
+  const initialRootState = await requestJson(baseUrl, "/state/private-core-roots", { method: "GET" });
+  if (
+    !initialRootState.ok ||
+    initialRootState.parsed?.currentRoot !== null ||
+    !Array.isArray(initialRootState.parsed?.records) ||
+    initialRootState.parsed.records.length !== 0
+  ) {
+    throw new Error(initialRootState.text || "operator root state did not start empty");
+  }
+  printStatus("operator http empty root state: PASS");
+
+  const initialConsumeState = await requestJson(baseUrl, "/state/private-core-consumes", {
+    method: "GET",
+  });
+  if (
+    !initialConsumeState.ok ||
+    initialConsumeState.parsed?.latestConsume !== null ||
+    !Array.isArray(initialConsumeState.parsed?.records) ||
+    initialConsumeState.parsed.records.length !== 0
+  ) {
+    throw new Error(initialConsumeState.text || "operator consume state did not start empty");
+  }
+  printStatus("operator http empty consume state: PASS");
+
   const proofResponse = await requestJson(baseUrl, "/private-core/unshield-proof", {
     body: JSON.stringify({ witnessPackage }),
     method: "POST",
