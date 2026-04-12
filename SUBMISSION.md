@@ -156,6 +156,28 @@ Because send alone lacks a clean product foundation. Shield + Private Send forms
 
 ---
 
+## Technical checkpoints
+
+The repo now includes concrete verification commands for the Vanta Private Core proof lane:
+
+- `npm run private-core:check`
+  verifies the fixed-depth Noir circuit with:
+  - one valid witness that succeeds
+  - one invalid-direction witness that fails
+- `npm run private-core:prove`
+  generates and verifies a real local proof for the current single-note unshield lane
+- `npm run private-core:verify`
+  runs the full stack:
+  - app build
+  - circuit regression
+  - operator consume regression
+  - operator HTTP smoke test
+  - real proof generation and verification
+
+These commands do not make the protocol finished, but they do make the current first zk boundary concrete and repeatable.
+
+---
+
 ## Roadmap
 
 ### Phase 1 - Shield + Private Send
