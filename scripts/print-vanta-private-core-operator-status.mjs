@@ -14,6 +14,7 @@ try {
   printLine("Root records", String(Array.isArray(roots.records) ? roots.records.length : 0));
   printLine("Consume state version", String(consumes.stateVersion ?? "unknown"));
   printLine("Latest consume", abbreviate(consumes.latestConsume?.nullifier));
+  printLine("Latest consume proof", abbreviate(consumes.latestConsume?.proofId));
   printLine("Consume records", String(Array.isArray(consumes.records) ? consumes.records.length : 0));
   printLine("Proof state version", String(proofs.stateVersion ?? "unknown"));
   printLine("Latest proof", abbreviate(proofs.latestProof?.proofId));
@@ -21,6 +22,7 @@ try {
   printLine("Proof records", String(Array.isArray(proofs.records) ? proofs.records.length : 0));
   printLine("Release state version", String(releases.stateVersion ?? "unknown"));
   printLine("Latest release", abbreviate(releases.latestRelease?.nullifier));
+  printLine("Latest release proof", abbreviate(releases.latestRelease?.proofId));
   printLine("Release destination", abbreviate(releases.latestRelease?.releaseDestination));
   printLine(
     "Released value",

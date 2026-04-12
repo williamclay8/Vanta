@@ -331,6 +331,16 @@ export function VantaPrivateCoreStatePanel({
                   ? operatorConsumeError
                   : latestOperatorConsume?.nullifier
                     ? abbreviate(latestOperatorConsume.nullifier)
+                      : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Latest consume proof</span>
+              <strong>
+                {operatorConsumeError
+                  ? operatorConsumeError
+                  : latestOperatorConsume?.proofId
+                    ? abbreviate(latestOperatorConsume.proofId)
                     : "Unavailable"}
               </strong>
             </div>
