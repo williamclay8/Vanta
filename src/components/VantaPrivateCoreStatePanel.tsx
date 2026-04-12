@@ -84,6 +84,8 @@ function summarizeOperatorImmediateProofAlignment(args: {
   }
 
   if (
+    (!args.unshieldState.operatorProofId ||
+      args.latestOperatorProof.proofId === args.unshieldState.operatorProofId) &&
     args.latestOperatorProof.nullifier === args.unshieldState.sourceNullifier &&
     args.latestOperatorProof.root === args.unshieldState.sourceProofRoot &&
     args.latestOperatorProof.proofFieldCount === args.unshieldState.proofFieldCount &&
@@ -351,6 +353,14 @@ export function VantaPrivateCoreStatePanel({
               </strong>
             </div>
             <div className="review-row">
+              <span>Immediate proof id</span>
+              <strong>
+                {unshieldState?.operatorProofId
+                  ? abbreviate(unshieldState.operatorProofId)
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
               <span>Latest proof action</span>
               <strong>{operatorProofError ? operatorProofError : operatorLatestProof?.action ?? "Unavailable"}</strong>
             </div>
@@ -393,6 +403,16 @@ export function VantaPrivateCoreStatePanel({
                   ? "Recorded during consume"
                   : unshieldState?.operatorReleaseRecorded === false
                     ? "Not recorded"
+                    : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Latest release proof</span>
+              <strong>
+                {operatorReleaseError
+                  ? operatorReleaseError
+                  : latestOperatorRelease?.proofId
+                    ? abbreviate(latestOperatorRelease.proofId)
                     : "Unavailable"}
               </strong>
             </div>

@@ -18,6 +18,7 @@ export type VantaPrivateCoreConsumeOperatorResponse = VantaPrivateCoreProofOpera
   completedAt: number;
   leafIndex: string | null;
   releaseDestination: string;
+  proofId: string;
   releaseRecorded: boolean;
   releaseRequestId: string;
   releaseTransitionNoteId: string;
@@ -34,6 +35,7 @@ export type VantaPrivateCoreOperatorConsumeRecord = {
   leafIndex: string | null;
   nullifier: string;
   proofFieldCount: number;
+  proofId: string;
   publicInputCount: number;
   releaseDestination: string;
   root: string;
@@ -77,6 +79,7 @@ export type VantaPrivateCoreOperatorReleaseRecord = {
   consumedNoteId: string;
   nullifier: string;
   proofFieldCount: number;
+  proofId: string;
   publicInputCount: number;
   releaseDestination: string;
   releasedAssetId: string;
@@ -194,6 +197,7 @@ export async function requestVantaPrivateCoreOperatorConsume(args: {
     typeof parsed.completedAt !== "number" ||
     (parsed.leafIndex !== null && typeof parsed.leafIndex !== "string") ||
     typeof parsed.releaseDestination !== "string" ||
+    typeof parsed.proofId !== "string" ||
     parsed.releaseRecorded !== true ||
     typeof parsed.releaseRequestId !== "string" ||
     typeof parsed.releaseTransitionNoteId !== "string" ||
@@ -219,6 +223,7 @@ export async function requestVantaPrivateCoreOperatorConsume(args: {
     verified: true,
     completedAt: parsed.completedAt,
     leafIndex: parsed.leafIndex ?? null,
+    proofId: parsed.proofId,
     releaseDestination: parsed.releaseDestination,
     releaseRecorded: true,
     releaseRequestId: parsed.releaseRequestId,
@@ -443,6 +448,7 @@ function isConsumeRecord(value: unknown): value is VantaPrivateCoreOperatorConsu
     typeof (value as VantaPrivateCoreOperatorConsumeRecord).completedAt === "number" &&
     typeof (value as VantaPrivateCoreOperatorConsumeRecord).nullifier === "string" &&
     typeof (value as VantaPrivateCoreOperatorConsumeRecord).proofFieldCount === "number" &&
+    typeof (value as VantaPrivateCoreOperatorConsumeRecord).proofId === "string" &&
     typeof (value as VantaPrivateCoreOperatorConsumeRecord).publicInputCount === "number" &&
     typeof (value as VantaPrivateCoreOperatorConsumeRecord).releaseDestination === "string" &&
     typeof (value as VantaPrivateCoreOperatorConsumeRecord).root === "string"
@@ -499,6 +505,7 @@ function isReleaseRecord(value: unknown): value is VantaPrivateCoreOperatorRelea
     typeof (value as VantaPrivateCoreOperatorReleaseRecord).consumedNoteId === "string" &&
     typeof (value as VantaPrivateCoreOperatorReleaseRecord).nullifier === "string" &&
     typeof (value as VantaPrivateCoreOperatorReleaseRecord).proofFieldCount === "number" &&
+    typeof (value as VantaPrivateCoreOperatorReleaseRecord).proofId === "string" &&
     typeof (value as VantaPrivateCoreOperatorReleaseRecord).publicInputCount === "number" &&
     typeof (value as VantaPrivateCoreOperatorReleaseRecord).releaseDestination === "string" &&
     typeof (value as VantaPrivateCoreOperatorReleaseRecord).releasedAssetId === "string" &&

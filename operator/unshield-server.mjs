@@ -432,13 +432,12 @@ const server = createServer(async (request, response) => {
       }
 
       assertVantaPrivateCoreSourceArtifactConsistency(sourceArtifacts, body?.witnessPackage);
-      privateCoreProofStore.recordProof(
-        summarizePrivateCoreProofRecord({
-          action: "consume",
-          proofReceipt,
-          witnessPackage: body.witnessPackage,
-        }),
-      );
+      const proofRecord = summarizePrivateCoreProofRecord({
+        action: "consume",
+        proofReceipt,
+        witnessPackage: body.witnessPackage,
+      });
+      privateCoreProofStore.recordProof(proofRecord);
 
       if (latestRootRecord.assetId !== sourcePublicInputs.assetId) {
         throw new Error("Registered private-core root asset metadata does not match this consume request.");
@@ -495,6 +494,7 @@ const server = createServer(async (request, response) => {
         leafIndex: body?.witnessPackage?.privateWitness?.leaf_index ?? null,
         nullifier,
         proofFieldCount: proofReceipt.proofFieldCount,
+        proofId: proofRecord.proofId,
         publicInputCount: proofReceipt.publicInputCount,
         releaseDestination: sourcePublicInputs.releaseDestination,
         root: sourcePublicInputs.stateRoot,
@@ -508,6 +508,7 @@ const server = createServer(async (request, response) => {
         consumedNoteId: `private-core-nullifier:${nullifier}`,
         nullifier,
         proofFieldCount: proofReceipt.proofFieldCount,
+        proofId: proofRecord.proofId,
         publicInputCount: proofReceipt.publicInputCount,
         releaseDestination: sourcePublicInputs.releaseDestination,
         releasedAssetId: sourcePublicInputs.assetId,
@@ -524,6 +525,7 @@ const server = createServer(async (request, response) => {
           ...proofReceipt,
           completedAt: consumeRecord.completedAt,
           leafIndex: consumeRecord.leafIndex,
+          proofId: proofRecord.proofId,
           releaseDestination: sourcePublicInputs.releaseDestination,
           releaseRecorded: true,
           releaseRequestId,

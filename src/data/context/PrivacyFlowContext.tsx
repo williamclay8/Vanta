@@ -236,6 +236,7 @@ export type VantaPrivateCoreUnshieldState = {
   proofExecutionStatus: string | null;
   proofFieldCount: number | null;
   proofPublicInputCount: number | null;
+  operatorProofId: string | null;
   operatorReleaseRecorded: boolean | null;
   operatorReleaseRequestId: string | null;
   operatorReleaseTransitionNoteId: string | null;
@@ -668,6 +669,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofExecutionStatus: null,
         proofFieldCount: null,
         proofPublicInputCount: null,
+        operatorProofId: null,
         operatorReleaseRecorded: null,
         operatorReleaseRequestId: null,
         operatorReleaseTransitionNoteId: null,
@@ -804,6 +806,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
           : "Operator proof unavailable",
         proofFieldCount: operatorConsumeReceipt.proofFieldCount,
         proofPublicInputCount: operatorConsumeReceipt.publicInputCount,
+        operatorProofId: operatorConsumeReceipt.proofId,
         operatorReleaseRecorded: operatorConsumeReceipt.releaseRecorded,
         operatorReleaseRequestId: operatorConsumeReceipt.releaseRequestId,
         operatorReleaseTransitionNoteId: operatorConsumeReceipt.releaseTransitionNoteId,
@@ -892,6 +895,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
           : "Operator consume rejected request",
         proofFieldCount: operatorConsumeReceipt?.proofFieldCount ?? null,
         proofPublicInputCount: operatorConsumeReceipt?.publicInputCount ?? null,
+        operatorProofId: operatorConsumeReceipt?.proofId ?? null,
         operatorReleaseRecorded: operatorConsumeReceipt?.releaseRecorded ?? null,
         operatorReleaseRequestId: operatorConsumeReceipt?.releaseRequestId ?? null,
         operatorReleaseTransitionNoteId: operatorConsumeReceipt?.releaseTransitionNoteId ?? null,
@@ -968,6 +972,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofExecutionStatus: null,
         proofFieldCount: null,
         proofPublicInputCount: null,
+        operatorProofId: null,
         operatorReleaseRecorded: null,
         operatorReleaseRequestId: null,
         operatorReleaseTransitionNoteId: null,
@@ -1098,6 +1103,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
           : "Operator replay consume rejected request",
         proofFieldCount: operatorProofReceipt?.proofFieldCount ?? null,
         proofPublicInputCount: operatorProofReceipt?.publicInputCount ?? null,
+        operatorProofId: null,
         operatorReleaseRecorded: null,
         operatorReleaseRequestId: null,
         operatorReleaseTransitionNoteId: null,
@@ -1295,6 +1301,7 @@ function summarizePrivateCoreImmediateOperatorConsume(
     leafIndex: consumeReceipt.leafIndex,
     nullifier: consumeReceipt.nullifier,
     proofFieldCount: consumeReceipt.proofFieldCount,
+    proofId: consumeReceipt.proofId,
     publicInputCount: consumeReceipt.publicInputCount,
     releaseDestination: consumeReceipt.releaseDestination,
     root: consumeReceipt.root,
@@ -1311,6 +1318,7 @@ function summarizePrivateCoreImmediateOperatorRelease(
     consumedNoteId: `private-core-nullifier:${consumeReceipt.nullifier}`,
     nullifier: consumeReceipt.nullifier,
     proofFieldCount: consumeReceipt.proofFieldCount,
+    proofId: consumeReceipt.proofId,
     publicInputCount: consumeReceipt.publicInputCount,
     releaseDestination: consumeReceipt.releaseDestination,
     releasedAssetId: consumeReceipt.releasedAssetId,
