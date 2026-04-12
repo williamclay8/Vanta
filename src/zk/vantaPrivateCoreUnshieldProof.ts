@@ -208,6 +208,15 @@ export type VantaPrivateCoreProofBoundaryCompatibilitySummaryV0 = {
   primaryNote: string | null;
 };
 
+export type VantaPrivateCoreProofBoundaryConfigurationSummaryV0 = {
+  circuit: typeof VANTA_PRIVATE_CORE_UNSHIELD_CIRCUIT_V0;
+  backend: typeof VANTA_PRIVATE_CORE_UNSHIELD_BACKEND_V0;
+  merkleDepth: typeof VANTA_PRIVATE_CORE_UNSHIELD_CIRCUIT_MERKLE_DEPTH_V0;
+  provingHashLane: typeof VANTA_PRIVATE_CORE_UNSHIELD_PROVING_HASH_LANE_V0;
+  ownerAuthorizationMode: typeof VANTA_PRIVATE_CORE_UNSHIELD_OWNER_AUTH_MODE_V0;
+  nullifierKeyMode: typeof VANTA_PRIVATE_CORE_NULLIFIER_KEY_MODE_V0;
+};
+
 export type BuildVantaPrivateCoreUnshieldProofBoundaryArgs = {
   heldNote: HeldNoteViewV0;
   ownerSecretKey: Bytes32Hex;
@@ -460,6 +469,19 @@ export function summarizeVantaPrivateCoreProofBoundaryCompatibility(
   return {
     noteCount: boundary.compatibilityNotes.length,
     primaryNote: boundary.compatibilityNotes[0] ?? null,
+  };
+}
+
+export function summarizeVantaPrivateCoreProofBoundaryConfiguration(
+  boundary: VantaPrivateCoreUnshieldProofBoundaryV0,
+): VantaPrivateCoreProofBoundaryConfigurationSummaryV0 {
+  return {
+    circuit: boundary.circuit,
+    backend: boundary.backend,
+    merkleDepth: boundary.noirWitnessPackage.merkleDepth,
+    provingHashLane: boundary.noirWitnessPackage.provingHashLane,
+    ownerAuthorizationMode: boundary.privateWitness.ownerAuthorizationMode,
+    nullifierKeyMode: boundary.privateWitness.nullifierKeyMode,
   };
 }
 

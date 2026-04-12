@@ -143,6 +143,26 @@ export function VantaPrivateCoreStatePanel({
               <strong>{unshieldState?.primaryCompatibilityNote ?? holdState?.primaryCompatibilityNote ?? "None"}</strong>
             </div>
             <div className="review-row">
+              <span>Proof circuit</span>
+              <strong>{unshieldState?.proofCircuit ?? holdState?.proofCircuit ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Proof backend</span>
+              <strong>{unshieldState?.proofBackend ?? holdState?.proofBackend ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Merkle depth</span>
+              <strong>{String(unshieldState?.proofMerkleDepth ?? holdState?.proofMerkleDepth ?? 0)}</strong>
+            </div>
+            <div className="review-row">
+              <span>Owner auth mode</span>
+              <strong>{unshieldState?.ownerAuthorizationMode ?? holdState?.ownerAuthorizationMode ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Nullifier key mode</span>
+              <strong>{unshieldState?.nullifierKeyMode ?? holdState?.nullifierKeyMode ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
               <span>{unshieldState ? "Proving lane" : "Proving preview lane"}</span>
               <strong>{unshieldState?.provingHashLane ?? holdState?.provingPreviewHashLane ?? "Unavailable"}</strong>
             </div>
