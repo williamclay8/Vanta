@@ -6,6 +6,13 @@ Vanta is a zk-powered privacy layer for Solana that lets users shield assets fro
 
 Vanta currently supports a constrained real devnet lifecycle for one supported asset, VUSD, including wallet-connected Shield, note-based shielded state, constrained Send transitions, a constrained one-way `VUSD -> SOL` Meteora-backed swap lane, and operator-backed `VUSD` and `SOL` unshield with authenticated request intent and operator-side verification of referenced onchain transition state. The current implementation is intentionally narrow and does not yet provide final zk privacy semantics, but it is no longer only a front-end prototype.
 
+The repo also now includes a standalone **Vanta Private Core** lane for the first shield-hold-unshield proof boundary:
+- canonical `NoteV0`
+- deterministic commitments, Merkle paths, nullifiers, and replay rejection
+- a fixed-depth Noir single-note unshield circuit
+- local proof generation and verification
+- operator-backed proof, root-registration, consume, and release-state checks
+
 ---
 
 ## What is Vanta?
@@ -62,6 +69,12 @@ Vanta currently supports a constrained real devnet lifecycle for one supported a
 - operator-side verification of referenced onchain transition state before release
 - persistent completed release records across operator restarts
 - a connected Shield -> Swap -> Unshield flow grounded in Vanta-recognized state
+- Vanta Private Core shield -> hold -> unshield -> replay-rejection demo flow
+- first executable fixed-depth Noir unshield circuit for Vanta Private Core
+- local proof generation via `npm run private-core:prove`
+- full-stack private-core verification via `npm run private-core:verify`
+- operator-backed proof execution for the current narrow private-core consume lane
+- proof-backed private-core root registration
 
 ### Not live yet
 - final zk proof system
@@ -73,6 +86,8 @@ Vanta currently supports a constrained real devnet lifecycle for one supported a
 - symmetric two-way market proof
 
 The current implementation should be understood as a constrained but real early protocol for one asset, not just a mock interface and not yet the final privacy system.
+
+The current private-core proof lane should be understood the same way: real and executable, but still intentionally narrow. It proves the first single-note unshield boundary and an operator-backed verifier path, not the full eventual Vanta privacy protocol.
 
 ---
 
@@ -138,6 +153,20 @@ npm run build
 npm run preview
 ```
 
+## Private Core verification
+
+```bash
+npm run private-core:check
+npm run private-core:prove
+npm run private-core:verify
+```
+
+These commands cover:
+- fixed-depth Noir circuit regression
+- valid and invalid witness behavior
+- local proof generation and verification
+- operator-backed consume and HTTP smoke coverage
+
 ---
 
 ## What's in this repository
@@ -151,6 +180,7 @@ This repository currently contains:
 - a constrained real devnet protocol path for `VUSD`
 - authenticated operator-backed Unshield for `VUSD` and `SOL`
 - a constrained one-way live `VUSD -> SOL` swap lane
+- a standalone Vanta Private Core proof lane with operator-backed verification
 - roadmap framing for Swap, Pay, and broader Vanta expansion
 
 The current implementation is intentionally product-led. It focuses on:
