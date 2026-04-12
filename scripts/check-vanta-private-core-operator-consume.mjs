@@ -333,6 +333,11 @@ try {
   }
   printStatus("operator release record basis: PASS");
 
+  if (!releaseStore.hasConsumedNoteId(`private-core-nullifier:${sourcePublicInputs.nullifier}`)) {
+    throw new Error("operator release store did not retain the release replay-rejection basis");
+  }
+  printStatus("operator release replay basis: PASS");
+
   printStatus("operator replay rejection basis: PASS");
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);

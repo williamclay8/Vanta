@@ -430,6 +430,10 @@ const server = createServer(async (request, response) => {
         throw new Error(`Nullifier ${nullifier} has already been consumed.`);
       }
 
+      if (privateCoreReleaseRecords.hasConsumedNoteId(`private-core-nullifier:${nullifier}`)) {
+        throw new Error(`Private-core release for nullifier ${nullifier} has already been recorded.`);
+      }
+
       const consumeRecord = {
         assetId: sourcePublicInputs.assetId,
         amount: sourcePublicInputs.amount,

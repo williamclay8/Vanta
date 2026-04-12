@@ -757,6 +757,19 @@ try {
     throw new Error(releaseState.text || "operator release state did not reflect the first consume");
   }
   printStatus("operator http release state: PASS");
+
+  const replayReleaseState = await requestJson(baseUrl, "/state/private-core-releases", { method: "GET" });
+  if (
+    !replayReleaseState.ok ||
+    replayReleaseState.parsed?.stateVersion !== 1 ||
+    !Array.isArray(replayReleaseState.parsed?.records) ||
+    replayReleaseState.parsed.records.length !== 1
+  ) {
+    throw new Error(
+      replayReleaseState.text || "operator release state changed after replay rejection",
+    );
+  }
+  printStatus("operator http release replay basis: PASS");
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   const operatorOutput = [stdout.trim(), stderr.trim()].filter(Boolean).join("\n");
