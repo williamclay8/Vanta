@@ -34,6 +34,10 @@ import {
   listCanonicalUnshieldDiagnosticsSummaries,
   recordCanonicalUnshieldFromLiveUnshield,
 } from "@/zk/liveUnshieldBridge";
+import {
+  fetchVantaPrivateCoreOperatorConsumes,
+  type VantaPrivateCoreOperatorConsumeRecord,
+} from "@/zk/vantaPrivateCoreOperatorClient";
 
 type UnshieldLane = "VUSD" | "SOL";
 type UnshieldStatus =
@@ -133,6 +137,12 @@ export function UnshieldPage() {
     transitionNoteId: string;
   } | null>(null);
   const [privateCoreActionPending, setPrivateCoreActionPending] = useState(false);
+  const [privateCoreOperatorConsumes, setPrivateCoreOperatorConsumes] = useState<
+    VantaPrivateCoreOperatorConsumeRecord[]
+  >([]);
+  const [privateCoreOperatorConsumeError, setPrivateCoreOperatorConsumeError] = useState<string | null>(
+    null,
+  );
   const operatorAuthorizationLockRef = useRef<string | null>(null);
   const transitionTransaction = useSendTransaction();
   const transitionWait = useRealtimeSignatureProgress(
@@ -218,6 +228,7 @@ export function UnshieldPage() {
       : null) ??
     unshieldZkDiagnostics[0] ??
     null;
+  const latestPrivateCoreOperatorConsume = privateCoreOperatorConsumes[0] ?? null;
   const isReady =
     walletConnected &&
     Boolean(walletAddress) &&
@@ -227,6 +238,29 @@ export function UnshieldPage() {
     (selectedLane === "VUSD"
       ? Boolean(liveShieldAsset.mintAddress) && liveShieldAsset.unshieldConfigured
       : Boolean(liveSwapPair.solUnshieldOperatorUrl));
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void fetchVantaPrivateCoreOperatorConsumes()
+      .then((records) => {
+        if (cancelled) {
+          return;
+        }
+        setPrivateCoreOperatorConsumes(records);
+        setPrivateCoreOperatorConsumeError(null);
+      })
+      .catch((error) => {
+        if (cancelled) {
+          return;
+        }
+        setPrivateCoreOperatorConsumeError(error instanceof Error ? error.message : String(error));
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [privateCoreUnshieldState]);
 
   useEffect(() => {
     if (transitionTransaction.status === "loading") {
@@ -924,6 +958,24 @@ export function UnshieldPage() {
                   {privateCoreUnshieldState.proofFieldCount && privateCoreUnshieldState.proofPublicInputCount
                     ? `${privateCoreUnshieldState.proofFieldCount} fields · ${privateCoreUnshieldState.proofPublicInputCount} public inputs`
                     : "Unavailable"}
+                </strong>
+              </div>
+              <div className="review-row">
+                <span>Operator consume records</span>
+                <strong>
+                  {privateCoreOperatorConsumeError
+                    ? "Unavailable"
+                    : privateCoreOperatorConsumes.length.toString()}
+                </strong>
+              </div>
+              <div className="review-row">
+                <span>Latest operator nullifier</span>
+                <strong>
+                  {privateCoreOperatorConsumeError
+                    ? privateCoreOperatorConsumeError
+                    : latestPrivateCoreOperatorConsume?.nullifier
+                      ? abbreviate(latestPrivateCoreOperatorConsume.nullifier)
+                      : "Unavailable"}
                 </strong>
               </div>
               <div className="review-row">

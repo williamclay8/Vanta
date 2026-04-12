@@ -20,6 +20,18 @@ export type VantaPrivateCoreConsumeOperatorResponse = VantaPrivateCoreProofOpera
   nullifier: string;
 };
 
+export type VantaPrivateCoreOperatorConsumeRecord = {
+  assetId: string;
+  amount: string;
+  completedAt: number;
+  leafIndex: string | null;
+  nullifier: string;
+  proofFieldCount: number;
+  publicInputCount: number;
+  releaseDestination: string;
+  root: string;
+};
+
 export async function requestVantaPrivateCoreOperatorProof(args: {
   witnessPackage: VantaPrivateCoreNoirUnshieldWitnessPackageV0;
 }): Promise<VantaPrivateCoreProofOperatorResponse> {
@@ -125,4 +137,44 @@ function getPrivateCoreProofOperatorUrl() {
 
 function getPrivateCoreConsumeOperatorUrl() {
   return new URL("/private-core/unshield-consume", liveShieldAsset.unshieldOperatorUrl).toString();
+}
+
+export async function fetchVantaPrivateCoreOperatorConsumes(): Promise<
+  VantaPrivateCoreOperatorConsumeRecord[]
+> {
+  const response = await fetch(getPrivateCoreConsumeStateUrl(), {
+    method: "GET",
+    signal: AbortSignal.timeout(15_000),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "The private-core consume operator state endpoint failed.");
+  }
+
+  const parsed = (await response.json()) as { records?: unknown };
+  if (!Array.isArray(parsed.records)) {
+    throw new Error("The private-core consume operator state endpoint returned invalid data.");
+  }
+
+  return parsed.records.filter(isConsumeRecord);
+}
+
+function getPrivateCoreConsumeStateUrl() {
+  return new URL("/state/private-core-consumes", liveShieldAsset.unshieldOperatorUrl).toString();
+}
+
+function isConsumeRecord(value: unknown): value is VantaPrivateCoreOperatorConsumeRecord {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as VantaPrivateCoreOperatorConsumeRecord).assetId === "string" &&
+    typeof (value as VantaPrivateCoreOperatorConsumeRecord).amount === "string" &&
+    typeof (value as VantaPrivateCoreOperatorConsumeRecord).completedAt === "number" &&
+    typeof (value as VantaPrivateCoreOperatorConsumeRecord).nullifier === "string" &&
+    typeof (value as VantaPrivateCoreOperatorConsumeRecord).proofFieldCount === "number" &&
+    typeof (value as VantaPrivateCoreOperatorConsumeRecord).publicInputCount === "number" &&
+    typeof (value as VantaPrivateCoreOperatorConsumeRecord).releaseDestination === "string" &&
+    typeof (value as VantaPrivateCoreOperatorConsumeRecord).root === "string"
+  );
 }

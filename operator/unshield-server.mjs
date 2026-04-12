@@ -172,6 +172,17 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (request.method === "GET" && request.url === "/state/private-core-consumes") {
+    writeCorsHeaders(response);
+    response.writeHead(200, { "Content-Type": "application/json" });
+    response.end(
+      JSON.stringify({
+        records: privateCoreConsumeStore.listConsumes(),
+      }),
+    );
+    return;
+  }
+
   if (request.method === "GET" && request.url === "/state/swap-records") {
     writeCorsHeaders(response);
     response.writeHead(200, { "Content-Type": "application/json" });
