@@ -86,6 +86,7 @@ npm run private-core:consume-check
 
 That command confirms:
 - the current fixed-depth witness still generates and verifies a real proof
+- operator-side consume now depends on the root already being known as current private-core state
 - operator-side one-time-use semantics can record the first consume
 - the same nullifier is then seen as consumed for replay purposes
 

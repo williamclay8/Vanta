@@ -48,6 +48,7 @@ import {
   fetchConstrainedOnchainUnshieldContext,
 } from "./vanta-onchain-state.mjs";
 import { createPrivateCoreConsumeStore } from "./private-core-consume-store.mjs";
+import { createPrivateCoreRootStore } from "./private-core-root-store.mjs";
 import { proveAndVerifyVantaPrivateCoreUnshield } from "./private-core-proof.mjs";
 import { createReleaseRecordStore } from "./release-record-store.mjs";
 
@@ -84,6 +85,7 @@ const client = createClient({
 const web3Connection = new Connection(endpoint, "confirmed");
 const releaseRecords = createReleaseRecordStore();
 const privateCoreConsumeStore = createPrivateCoreConsumeStore();
+const privateCoreRootStore = createPrivateCoreRootStore();
 const swapRecords = createReleaseRecordStore({
   defaultPath: "operator/.vanta-swap-records.json",
   envKey: "VANTA_SWAP_RECORD_STORE_PATH",
@@ -183,6 +185,17 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (request.method === "GET" && request.url === "/state/private-core-roots") {
+    writeCorsHeaders(response);
+    response.writeHead(200, { "Content-Type": "application/json" });
+    response.end(
+      JSON.stringify({
+        records: privateCoreRootStore.listRoots(),
+      }),
+    );
+    return;
+  }
+
   if (request.method === "GET" && request.url === "/state/swap-records") {
     writeCorsHeaders(response);
     response.writeHead(200, { "Content-Type": "application/json" });
@@ -275,6 +288,49 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (request.method === "POST" && request.url === "/private-core/register-root") {
+    try {
+      const body = await readJsonBody(request);
+      const sourcePublicInputs = body?.sourcePublicInputs;
+      const sourceArtifacts = body?.sourceArtifacts;
+      const root = sourcePublicInputs?.stateRoot;
+
+      if (typeof root !== "string" || root.length === 0) {
+        throw new Error("Private-core root registration request is missing a source root.");
+      }
+
+      if (!privateCoreRootStore.hasRoot(root)) {
+        privateCoreRootStore.recordRoot({
+          root,
+          recordedAt: Date.now(),
+          noteCommitment:
+            typeof sourceArtifacts?.noteCommitment === "string" ? sourceArtifacts.noteCommitment : null,
+          amount: typeof sourcePublicInputs?.amount === "string" ? sourcePublicInputs.amount : null,
+          assetId: typeof sourcePublicInputs?.assetId === "string" ? sourcePublicInputs.assetId : null,
+          source: "app-private-core-shield-flow",
+        });
+      }
+
+      writeCorsHeaders(response);
+      response.writeHead(200, { "Content-Type": "application/json" });
+      response.end(
+        JSON.stringify({
+          known: true,
+          root,
+        }),
+      );
+    } catch (error) {
+      writeCorsHeaders(response);
+      response.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
+      response.end(
+        error instanceof Error
+          ? error.message
+          : "The private-core root operator could not process the request.",
+      );
+    }
+    return;
+  }
+
   if (request.method === "POST" && request.url === "/private-core/unshield-consume") {
     try {
       const body = await readJsonBody(request);
@@ -286,6 +342,19 @@ const server = createServer(async (request, response) => {
 
       if (typeof nullifier !== "string" || nullifier.length === 0) {
         throw new Error("Private-core consume request is missing a source nullifier.");
+      }
+
+      if (
+        typeof sourcePublicInputs?.stateRoot !== "string" ||
+        sourcePublicInputs.stateRoot.length === 0
+      ) {
+        throw new Error("Private-core consume request is missing a source root.");
+      }
+
+      if (!privateCoreRootStore.hasRoot(sourcePublicInputs.stateRoot)) {
+        throw new Error(
+          `State root ${sourcePublicInputs.stateRoot} is not registered as current private-core state.`,
+        );
       }
 
       if (privateCoreConsumeStore.hasNullifier(nullifier)) {

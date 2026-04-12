@@ -99,6 +99,9 @@ export function UnshieldPage() {
     privateCoreHoldState,
     privateCoreOperatorConsumeError,
     privateCoreOperatorConsumes,
+    privateCoreOperatorRootError,
+    privateCoreOperatorRootRegistrationStatus,
+    privateCoreOperatorRoots,
     privateCoreRecentShield,
     privateCoreUnshieldState,
     runPrivateCoreReplayAttempt,
@@ -821,6 +824,9 @@ export function UnshieldPage() {
           holdState={privateCoreHoldState}
           operatorConsumeError={privateCoreOperatorConsumeError}
           operatorConsumes={privateCoreOperatorConsumes}
+          operatorRootError={privateCoreOperatorRootError}
+          operatorRootRegistrationStatus={privateCoreOperatorRootRegistrationStatus}
+          operatorRoots={privateCoreOperatorRoots}
           shieldState={privateCoreRecentShield}
           title="Vanta Private Core unshield state"
           unshieldState={privateCoreUnshieldState}
@@ -988,6 +994,18 @@ export function UnshieldPage() {
                     : latestPrivateCoreOperatorConsume?.nullifier
                       ? abbreviate(latestPrivateCoreOperatorConsume.nullifier)
                       : "Unavailable"}
+                </strong>
+              </div>
+              <div className="review-row">
+                <span>Operator root registration</span>
+                <strong>{privateCoreOperatorRootRegistrationStatus ?? "Unavailable"}</strong>
+              </div>
+              <div className="review-row">
+                <span>Operator root records</span>
+                <strong>
+                  {privateCoreOperatorRootError
+                    ? "Unavailable"
+                    : privateCoreOperatorRoots.length.toString()}
                 </strong>
               </div>
               <div className="review-row">

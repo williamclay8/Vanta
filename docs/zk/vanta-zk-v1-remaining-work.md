@@ -50,11 +50,17 @@ What still remains for `zk v1` is wiring that proof lifecycle into the real app 
 
 The circuit alone is not enough.
 
-The consuming path still needs the verifier-side contract to be treated as real:
+The consuming path still needs the verifier-side contract to be treated as real.
+
+The repo now has a first narrow operator-side version of that contract:
 - verify proof
-- check root validity and currentness
-- enforce nullifier uniqueness in the real consume path
-- authorize release atomically with nullifier consumption
+- require the source root to already be registered as known private-core state
+- enforce nullifier uniqueness in the consume path
+
+What still remains for `zk v1` is finishing that into a fuller verifier-side contract:
+- stronger root validity and currentness policy
+- explicit release authorization semantics
+- atomic release with nullifier consumption in the chosen real product lane
 
 ### 3. Freeze the owner-auth decision for v1
 

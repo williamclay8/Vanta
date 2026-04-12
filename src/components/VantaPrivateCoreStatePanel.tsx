@@ -3,12 +3,18 @@ import type {
   VantaPrivateCoreShieldState,
   VantaPrivateCoreUnshieldState,
 } from "@/data/context/PrivacyFlowContext";
-import type { VantaPrivateCoreOperatorConsumeRecord } from "@/zk/vantaPrivateCoreOperatorClient";
+import type {
+  VantaPrivateCoreOperatorConsumeRecord,
+  VantaPrivateCoreOperatorRootRecord,
+} from "@/zk/vantaPrivateCoreOperatorClient";
 
 type VantaPrivateCoreStatePanelProps = {
   holdState: VantaPrivateCoreHoldState | null;
   operatorConsumeError?: string | null;
   operatorConsumes?: VantaPrivateCoreOperatorConsumeRecord[];
+  operatorRootError?: string | null;
+  operatorRootRegistrationStatus?: string | null;
+  operatorRoots?: VantaPrivateCoreOperatorRootRecord[];
   shieldState: VantaPrivateCoreShieldState | null;
   unshieldState: VantaPrivateCoreUnshieldState | null;
   compact?: boolean;
@@ -34,12 +40,16 @@ export function VantaPrivateCoreStatePanel({
   holdState,
   operatorConsumeError = null,
   operatorConsumes = [],
+  operatorRootError = null,
+  operatorRootRegistrationStatus = null,
+  operatorRoots = [],
   shieldState,
   unshieldState,
   compact = false,
   title = "Vanta Private Core private state",
 }: VantaPrivateCoreStatePanelProps) {
   const latestOperatorConsume = operatorConsumes[0] ?? null;
+  const latestOperatorRoot = operatorRoots[0] ?? null;
 
   return (
     <div className="note-state-panel vanta-private-core-state-panel">
@@ -240,6 +250,28 @@ export function VantaPrivateCoreStatePanel({
                   ? operatorConsumeError
                   : latestOperatorConsume?.nullifier
                     ? abbreviate(latestOperatorConsume.nullifier)
+                    : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Operator root registration</span>
+              <strong>{operatorRootRegistrationStatus ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Operator root records</span>
+              <strong>
+                {operatorRootError
+                  ? "Unavailable"
+                  : operatorRoots.length.toString()}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Latest operator root</span>
+              <strong>
+                {operatorRootError
+                  ? operatorRootError
+                  : latestOperatorRoot?.root
+                    ? abbreviate(latestOperatorRoot.root)
                     : "Unavailable"}
               </strong>
             </div>

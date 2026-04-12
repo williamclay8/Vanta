@@ -4,6 +4,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createPrivateCoreConsumeStore } from "../operator/private-core-consume-store.mjs";
 import { proveAndVerifyVantaPrivateCoreUnshield } from "../operator/private-core-proof.mjs";
+import { createPrivateCoreRootStore } from "../operator/private-core-root-store.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "..");
@@ -70,6 +71,28 @@ try {
   const consumeStore = createPrivateCoreConsumeStore({
     defaultPath: join(tempRoot, "consumes.json"),
   });
+  const rootStore = createPrivateCoreRootStore({
+    defaultPath: join(tempRoot, "roots.json"),
+  });
+
+  if (rootStore.hasRoot(sourcePublicInputs.stateRoot)) {
+    throw new Error("operator root store unexpectedly contained the fixture root");
+  }
+  printStatus("operator root currentness basis: PASS");
+
+  rootStore.recordRoot({
+    amount: sourcePublicInputs.amount,
+    assetId: sourcePublicInputs.assetId,
+    noteCommitment: fixture.validBoundary.privateWitness.noteCommitment,
+    recordedAt: Date.now(),
+    root: sourcePublicInputs.stateRoot,
+    source: "operator-consume-check",
+  });
+  printStatus("operator root registration: PASS");
+
+  if (!rootStore.hasRoot(sourcePublicInputs.stateRoot)) {
+    throw new Error("operator root store did not retain the registered root");
+  }
 
   if (consumeStore.hasNullifier(sourcePublicInputs.nullifier)) {
     throw new Error("operator consume store unexpectedly contained the fixture nullifier");

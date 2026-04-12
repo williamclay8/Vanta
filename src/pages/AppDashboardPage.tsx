@@ -35,6 +35,9 @@ export function AppDashboardPage() {
     privateCoreHoldState,
     privateCoreOperatorConsumeError,
     privateCoreOperatorConsumes,
+    privateCoreOperatorRootError,
+    privateCoreOperatorRootRegistrationStatus,
+    privateCoreOperatorRoots,
     privateCoreRecentShield,
     privateCoreUnshieldState,
   } = usePrivacyFlow();
@@ -176,6 +179,9 @@ export function AppDashboardPage() {
               holdState={privateCoreHoldState}
               operatorConsumeError={privateCoreOperatorConsumeError}
               operatorConsumes={privateCoreOperatorConsumes}
+              operatorRootError={privateCoreOperatorRootError}
+              operatorRootRegistrationStatus={privateCoreOperatorRootRegistrationStatus}
+              operatorRoots={privateCoreOperatorRoots}
               shieldState={privateCoreRecentShield}
               title="Vanta Private Core private balance"
               unshieldState={privateCoreUnshieldState}

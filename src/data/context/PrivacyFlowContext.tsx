@@ -38,10 +38,13 @@ import {
 } from "@/zk/vantaPrivateCoreUnshieldProof";
 import {
   fetchVantaPrivateCoreOperatorConsumes,
+  fetchVantaPrivateCoreOperatorRoots,
+  registerVantaPrivateCoreOperatorRoot,
   requestVantaPrivateCoreOperatorConsume,
   requestVantaPrivateCoreOperatorProof,
   type VantaPrivateCoreConsumeOperatorResponse,
   type VantaPrivateCoreOperatorConsumeRecord,
+  type VantaPrivateCoreOperatorRootRecord,
   type VantaPrivateCoreProofOperatorResponse,
 } from "@/zk/vantaPrivateCoreOperatorClient";
 
@@ -76,6 +79,9 @@ type PrivacyFlowContextValue = {
   privateCoreHoldState: VantaPrivateCoreHoldState | null;
   privateCoreOperatorConsumes: VantaPrivateCoreOperatorConsumeRecord[];
   privateCoreOperatorConsumeError: string | null;
+  privateCoreOperatorRoots: VantaPrivateCoreOperatorRootRecord[];
+  privateCoreOperatorRootError: string | null;
+  privateCoreOperatorRootRegistrationStatus: string | null;
   privateCoreUnshieldState: VantaPrivateCoreUnshieldState | null;
   recentShield: RecentShieldContext | null;
   runPrivateCoreShield: (args: { amountDisplay: string; asset: PrivacyAssetKey }) => VantaPrivateCoreShieldState;
@@ -230,6 +236,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     VantaPrivateCoreOperatorConsumeRecord[]
   >([]);
   const [privateCoreOperatorConsumeError, setPrivateCoreOperatorConsumeError] = useState<string | null>(null);
+  const [privateCoreOperatorRoots, setPrivateCoreOperatorRoots] = useState<
+    VantaPrivateCoreOperatorRootRecord[]
+  >([]);
+  const [privateCoreOperatorRootError, setPrivateCoreOperatorRootError] = useState<string | null>(null);
+  const [privateCoreOperatorRootRegistrationStatus, setPrivateCoreOperatorRootRegistrationStatus] =
+    useState<string | null>(null);
   const [recentShield, setRecentShield] = useState<RecentShieldContext | null>(null);
 
   useEffect(() => {
@@ -254,6 +266,108 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, [privateCoreUnshieldState]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void fetchVantaPrivateCoreOperatorRoots()
+      .then((records) => {
+        if (cancelled) {
+          return;
+        }
+        setPrivateCoreOperatorRoots(records);
+        setPrivateCoreOperatorRootError(null);
+      })
+      .catch((error) => {
+        if (cancelled) {
+          return;
+        }
+        setPrivateCoreOperatorRootError(error instanceof Error ? error.message : String(error));
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [privateCoreRecentShield, privateCoreUnshieldState]);
+
+  useEffect(() => {
+    if (!privateCoreRecentShield || !privateCoreHoldState) {
+      return;
+    }
+
+    let cancelled = false;
+    setPrivateCoreOperatorRootRegistrationStatus("Registering root with operator");
+
+    const proofBoundary = buildVantaPrivateCoreUnshieldProofBoundary({
+      heldNote: privateCoreHoldState.heldNote,
+      ownerSecretKey: privateCoreOwner.secretKey,
+      releaseDestination: VANTA_PRIVATE_CORE_DEMO_RELEASE_DESTINATION,
+    });
+    const sourceArtifacts = deriveVantaPrivateCoreSourceArtifactsFromShieldArtifact(
+      privateCoreRecentShield.artifact,
+    );
+
+    void registerVantaPrivateCoreOperatorRoot({
+      sourceArtifacts,
+      witnessPackage: proofBoundary.noirWitnessPackage,
+    })
+      .then((registration) => {
+        if (cancelled) {
+          return;
+        }
+        setPrivateCoreOperatorRootRegistrationStatus(
+          registration.known
+            ? "Operator root registered"
+            : "Operator root registration unavailable",
+        );
+        return fetchVantaPrivateCoreOperatorRoots();
+      })
+      .then((records) => {
+        if (cancelled || !records) {
+          return;
+        }
+        setPrivateCoreOperatorRoots(records);
+        setPrivateCoreOperatorRootError(null);
+      })
+      .catch((error) => {
+        if (cancelled) {
+          return;
+        }
+        setPrivateCoreOperatorRootRegistrationStatus("Operator root registration failed");
+        setPrivateCoreOperatorRootError(error instanceof Error ? error.message : String(error));
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [privateCoreHoldState, privateCoreOwner.secretKey, privateCoreRecentShield]);
+
+  const ensurePrivateCoreOperatorRootKnown = useCallback(
+    async (args: {
+      proofBoundary: VantaPrivateCoreUnshieldProofBoundaryV0;
+      sourceArtifacts: ReturnType<typeof deriveVantaPrivateCoreSourceArtifactsFromHeldNote>;
+    }) => {
+      const sourceRoot = args.proofBoundary.publicInputs.stateRoot;
+
+      if (privateCoreOperatorRoots.some((record) => record.root === sourceRoot)) {
+        return;
+      }
+
+      setPrivateCoreOperatorRootRegistrationStatus("Registering root with operator");
+      const registration = await registerVantaPrivateCoreOperatorRoot({
+        sourceArtifacts: args.sourceArtifacts,
+        witnessPackage: args.proofBoundary.noirWitnessPackage,
+      });
+      const records = await fetchVantaPrivateCoreOperatorRoots();
+
+      setPrivateCoreOperatorRoots(records);
+      setPrivateCoreOperatorRootError(null);
+      setPrivateCoreOperatorRootRegistrationStatus(
+        registration.known ? "Operator root registered" : "Operator root registration unavailable",
+      );
+    },
+    [privateCoreOperatorRoots],
+  );
 
   const runPrivateCoreShield = useCallback((args: { amountDisplay: string; asset: PrivacyAssetKey }): VantaPrivateCoreShieldState => {
     if (args.asset !== "VUSD") {
@@ -471,17 +585,21 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     const proofConfiguration = summarizeVantaPrivateCoreProofBoundaryConfiguration(proofBoundary);
     const proofPublicInputs = summarizeVantaPrivateCoreProofBoundaryPublicInputs(proofBoundary);
     const proofWitness = summarizeVantaPrivateCoreProofBoundaryWitness(proofBoundary);
+    const sourceHoldArtifacts = deriveVantaPrivateCoreSourceArtifactsFromHeldNote(
+      privateCoreHoldState.heldNote,
+    );
     let operatorConsumeReceipt: VantaPrivateCoreConsumeOperatorResponse | null = null;
 
     try {
+      await ensurePrivateCoreOperatorRootKnown({
+        proofBoundary,
+        sourceArtifacts: sourceHoldArtifacts,
+      });
       operatorConsumeReceipt = await requestVantaPrivateCoreOperatorConsume({
         witnessPackage: proofBoundary.noirWitnessPackage,
       });
       const result = privateCoreLedger.unshield(privateCoreHoldState.heldNote);
       const sourceUnshieldArtifacts = deriveVantaPrivateCoreSourceArtifactsFromUnshieldResult(result);
-      const sourceHoldArtifacts = deriveVantaPrivateCoreSourceArtifactsFromHeldNote(
-        privateCoreHoldState.heldNote,
-      );
       const sourceProofConsistency = summarizeVantaPrivateCoreUnshieldProofEnvelopeConsistency({
         envelope: proofEnvelope,
         sourceArtifacts: {
@@ -555,7 +673,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofPathDepth: proofWitness.pathDepth,
         proofExecutionMode: operatorConsumeReceipt.backend,
         proofExecutionStatus: operatorConsumeReceipt.verified
-          ? "Operator proof verified and consume authorized"
+          ? "Operator proof verified, root accepted, and consume authorized"
           : "Operator proof unavailable",
         proofFieldCount: operatorConsumeReceipt.proofFieldCount,
         proofPublicInputCount: operatorConsumeReceipt.publicInputCount,
@@ -567,9 +685,6 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreUnshieldState(nextState);
       return nextState;
     } catch (error) {
-      const sourceHoldArtifacts = deriveVantaPrivateCoreSourceArtifactsFromHeldNote(
-        privateCoreHoldState.heldNote,
-      );
       const sourceProofConsistency = summarizeVantaPrivateCoreUnshieldProofEnvelopeConsistency({
         envelope: proofEnvelope,
         sourceArtifacts: {
@@ -655,7 +770,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreUnshieldState(nextState);
       return nextState;
     }
-  }, [privateCoreHoldState, privateCoreLedger]);
+  }, [
+    ensurePrivateCoreOperatorRootKnown,
+    privateCoreHoldState,
+    privateCoreLedger,
+    privateCoreOwner.secretKey,
+  ]);
 
   const runPrivateCoreReplayAttempt = useCallback(async (): Promise<VantaPrivateCoreUnshieldState> => {
     if (!privateCoreHoldState) {
@@ -743,9 +863,16 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     const proofConfiguration = summarizeVantaPrivateCoreProofBoundaryConfiguration(proofBoundary);
     const proofPublicInputs = summarizeVantaPrivateCoreProofBoundaryPublicInputs(proofBoundary);
     const proofWitness = summarizeVantaPrivateCoreProofBoundaryWitness(proofBoundary);
+    const sourceHoldArtifacts = deriveVantaPrivateCoreSourceArtifactsFromHeldNote(
+      privateCoreHoldState.heldNote,
+    );
     let operatorProofReceipt: VantaPrivateCoreProofOperatorResponse | null = null;
 
     try {
+      await ensurePrivateCoreOperatorRootKnown({
+        proofBoundary,
+        sourceArtifacts: sourceHoldArtifacts,
+      });
       operatorProofReceipt = await requestVantaPrivateCoreOperatorProof({
         witnessPackage: proofBoundary.noirWitnessPackage,
       });
@@ -842,7 +969,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreUnshieldState(nextState);
       return nextState;
     }
-  }, [privateCoreHoldState, privateCoreLedger]);
+  }, [
+    ensurePrivateCoreOperatorRootKnown,
+    privateCoreHoldState,
+    privateCoreLedger,
+    privateCoreOwner.secretKey,
+  ]);
 
   const value = useMemo<PrivacyFlowContextValue>(
     () => ({
@@ -851,6 +983,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreHoldState,
       privateCoreOperatorConsumes,
       privateCoreOperatorConsumeError,
+      privateCoreOperatorRoots,
+      privateCoreOperatorRootError,
+      privateCoreOperatorRootRegistrationStatus,
       privateCoreUnshieldState,
       recentShield,
       runPrivateCoreReplayAttempt,
@@ -866,6 +1001,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOwner,
       privateCoreOperatorConsumeError,
       privateCoreOperatorConsumes,
+      privateCoreOperatorRootError,
+      privateCoreOperatorRootRegistrationStatus,
+      privateCoreOperatorRoots,
       privateCoreRecentShield,
       privateCoreUnshieldState,
       recentShield,

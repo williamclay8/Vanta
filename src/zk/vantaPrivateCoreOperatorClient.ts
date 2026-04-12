@@ -1,4 +1,5 @@
 import { liveShieldAsset } from "@/solana/shieldConfig";
+import type { VantaPrivateCoreSourceArtifactBundleV0 } from "@/zk/vantaPrivateCore";
 import type { VantaPrivateCoreNoirUnshieldWitnessPackageV0 } from "@/zk/vantaPrivateCoreUnshieldProof";
 
 export type VantaPrivateCoreProofOperatorResponse = {
@@ -29,6 +30,20 @@ export type VantaPrivateCoreOperatorConsumeRecord = {
   proofFieldCount: number;
   publicInputCount: number;
   releaseDestination: string;
+  root: string;
+};
+
+export type VantaPrivateCoreOperatorRootRecord = {
+  amount: string | null;
+  assetId: string | null;
+  noteCommitment: string | null;
+  recordedAt: number;
+  root: string;
+  source: string;
+};
+
+export type VantaPrivateCoreOperatorRootRegistrationResponse = {
+  known: boolean;
   root: string;
 };
 
@@ -131,12 +146,49 @@ export async function requestVantaPrivateCoreOperatorConsume(args: {
   };
 }
 
+export async function registerVantaPrivateCoreOperatorRoot(args: {
+  sourceArtifacts: VantaPrivateCoreSourceArtifactBundleV0;
+  witnessPackage: VantaPrivateCoreNoirUnshieldWitnessPackageV0;
+}): Promise<VantaPrivateCoreOperatorRootRegistrationResponse> {
+  const response = await fetch(getPrivateCoreRootRegistrationUrl(), {
+    body: JSON.stringify({
+      sourceArtifacts: args.sourceArtifacts,
+      sourcePublicInputs: args.witnessPackage.sourcePublicInputs,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+    signal: AbortSignal.timeout(15_000),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "The private-core root operator rejected the registration request.");
+  }
+
+  const parsed = (await response.json()) as Partial<VantaPrivateCoreOperatorRootRegistrationResponse>;
+
+  if (parsed.known !== true || typeof parsed.root !== "string") {
+    throw new Error("The private-core root operator returned an invalid root registration summary.");
+  }
+
+  return {
+    known: true,
+    root: parsed.root,
+  };
+}
+
 function getPrivateCoreProofOperatorUrl() {
   return new URL("/private-core/unshield-proof", liveShieldAsset.unshieldOperatorUrl).toString();
 }
 
 function getPrivateCoreConsumeOperatorUrl() {
   return new URL("/private-core/unshield-consume", liveShieldAsset.unshieldOperatorUrl).toString();
+}
+
+function getPrivateCoreRootRegistrationUrl() {
+  return new URL("/private-core/register-root", liveShieldAsset.unshieldOperatorUrl).toString();
 }
 
 export async function fetchVantaPrivateCoreOperatorConsumes(): Promise<
@@ -160,8 +212,33 @@ export async function fetchVantaPrivateCoreOperatorConsumes(): Promise<
   return parsed.records.filter(isConsumeRecord);
 }
 
+export async function fetchVantaPrivateCoreOperatorRoots(): Promise<
+  VantaPrivateCoreOperatorRootRecord[]
+> {
+  const response = await fetch(getPrivateCoreRootStateUrl(), {
+    method: "GET",
+    signal: AbortSignal.timeout(15_000),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "The private-core root operator state endpoint failed.");
+  }
+
+  const parsed = (await response.json()) as { records?: unknown };
+  if (!Array.isArray(parsed.records)) {
+    throw new Error("The private-core root operator state endpoint returned invalid data.");
+  }
+
+  return parsed.records.filter(isRootRecord);
+}
+
 function getPrivateCoreConsumeStateUrl() {
   return new URL("/state/private-core-consumes", liveShieldAsset.unshieldOperatorUrl).toString();
+}
+
+function getPrivateCoreRootStateUrl() {
+  return new URL("/state/private-core-roots", liveShieldAsset.unshieldOperatorUrl).toString();
 }
 
 function isConsumeRecord(value: unknown): value is VantaPrivateCoreOperatorConsumeRecord {
@@ -176,5 +253,15 @@ function isConsumeRecord(value: unknown): value is VantaPrivateCoreOperatorConsu
     typeof (value as VantaPrivateCoreOperatorConsumeRecord).publicInputCount === "number" &&
     typeof (value as VantaPrivateCoreOperatorConsumeRecord).releaseDestination === "string" &&
     typeof (value as VantaPrivateCoreOperatorConsumeRecord).root === "string"
+  );
+}
+
+function isRootRecord(value: unknown): value is VantaPrivateCoreOperatorRootRecord {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as VantaPrivateCoreOperatorRootRecord).recordedAt === "number" &&
+    typeof (value as VantaPrivateCoreOperatorRootRecord).root === "string" &&
+    typeof (value as VantaPrivateCoreOperatorRootRecord).source === "string"
   );
 }
