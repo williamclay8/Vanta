@@ -166,6 +166,21 @@ try {
     `operator http proof: PASS (${proofResponse.parsed.proofFieldCount} fields / ${proofResponse.parsed.publicInputCount} public inputs)`,
   );
 
+  const statePreflight = await fetch(`${baseUrl}/state/private-core-roots`, {
+    headers: {
+      "Access-Control-Request-Method": "GET",
+      Origin: "http://127.0.0.1:4173",
+    },
+    method: "OPTIONS",
+  });
+  if (
+    !statePreflight.ok ||
+    !statePreflight.headers.get("access-control-allow-methods")?.includes("GET")
+  ) {
+    throw new Error("operator state preflight did not advertise GET access");
+  }
+  printStatus("operator http state preflight: PASS");
+
   for (const tamperCase of [
     {
       expectedMessage: "mismatched amount public inputs",

@@ -87,6 +87,7 @@ npm run private-core:http-smoke
 
 This command:
 - starts a temporary local operator server
+- verifies the state endpoints advertise `GET` through CORS preflight
 - verifies `/private-core/unshield-proof`
 - verifies `/private-core/unshield-consume` is rejected before root registration
 - registers the root through `/private-core/register-root`
