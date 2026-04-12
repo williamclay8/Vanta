@@ -741,6 +741,9 @@ try {
   printStatus("operator http consume state: PASS");
 
   const releaseState = await requestJson(baseUrl, "/state/private-core-releases", { method: "GET" });
+  const expectedReleaseRequestId = `private-core-release:${witnessPackage.sourcePublicInputs.nullifier}:${witnessPackage.sourcePublicInputs.stateRoot}`;
+  const expectedReleaseTransitionId =
+    `private-core-release:${witnessPackage.sourcePublicInputs.stateRoot}:${witnessPackage.sourcePublicInputs.releaseDestination}`;
   if (
     !releaseState.ok ||
     releaseState.parsed?.stateVersion !== 1 ||
@@ -751,6 +754,8 @@ try {
       witnessPackage.sourcePublicInputs.releaseDestination ||
     releaseState.parsed.latestRelease.releasedAssetId !== witnessPackage.sourcePublicInputs.assetId ||
     releaseState.parsed.latestRelease.releasedAmount !== witnessPackage.sourcePublicInputs.amount ||
+    releaseState.parsed.latestRelease.requestId !== expectedReleaseRequestId ||
+    releaseState.parsed.latestRelease.transitionNoteId !== expectedReleaseTransitionId ||
     !Array.isArray(releaseState.parsed?.records) ||
     releaseState.parsed.records.length !== 1
   ) {
