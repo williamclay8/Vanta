@@ -1,9 +1,10 @@
 const baseUrl = resolveBaseUrl(process.argv.slice(2));
 
 try {
-  const [roots, consumes, releases] = await Promise.all([
+  const [roots, consumes, proofs, releases] = await Promise.all([
     requestJson("/state/private-core-roots"),
     requestJson("/state/private-core-consumes"),
+    requestJson("/state/private-core-proofs"),
     requestJson("/state/private-core-releases"),
   ]);
 
@@ -14,6 +15,10 @@ try {
   printLine("Consume state version", String(consumes.stateVersion ?? "unknown"));
   printLine("Latest consume", abbreviate(consumes.latestConsume?.nullifier));
   printLine("Consume records", String(Array.isArray(consumes.records) ? consumes.records.length : 0));
+  printLine("Proof state version", String(proofs.stateVersion ?? "unknown"));
+  printLine("Latest proof", abbreviate(proofs.latestProof?.proofId));
+  printLine("Latest proof action", proofs.latestProof?.action ?? "Unavailable");
+  printLine("Proof records", String(Array.isArray(proofs.records) ? proofs.records.length : 0));
   printLine("Release state version", String(releases.stateVersion ?? "unknown"));
   printLine("Latest release", abbreviate(releases.latestRelease?.nullifier));
   printLine("Release destination", abbreviate(releases.latestRelease?.releaseDestination));

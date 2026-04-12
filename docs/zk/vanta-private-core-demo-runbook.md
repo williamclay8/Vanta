@@ -35,6 +35,7 @@ That confirms:
 
 The operator-status command gives a quick readout of:
 - current registered root
+- latest proof
 - latest consume
 - latest release
 

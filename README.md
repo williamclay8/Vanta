@@ -174,7 +174,7 @@ These commands cover:
 
 `private-core:demo-preflight` combines the full verification pass with the current operator status summary.
 
-`private-core:operator-status` gives a quick readout of the current operator root, consume, and release state when the operator server is running.
+`private-core:operator-status` gives a quick readout of the current operator root, proof, consume, and release state when the operator server is running.
 
 ---
 

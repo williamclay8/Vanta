@@ -45,6 +45,31 @@ export type VantaPrivateCoreOperatorConsumeStateResponse = {
   records: VantaPrivateCoreOperatorConsumeRecord[];
 };
 
+export type VantaPrivateCoreOperatorProofRecord = {
+  action: "consume" | "proof-only" | "register-root";
+  assetId: string;
+  amount: string;
+  backend: string;
+  circuit: string;
+  completedAt: number;
+  noteVersion: number;
+  nullifier: string;
+  proofFieldCount: number;
+  proofId: string;
+  proofVersion: number;
+  provingHashLane: string;
+  publicInputCount: number;
+  releaseDestination: string;
+  root: string;
+  verified: boolean;
+};
+
+export type VantaPrivateCoreOperatorProofStateResponse = {
+  stateVersion: number;
+  latestProof: VantaPrivateCoreOperatorProofRecord | null;
+  records: VantaPrivateCoreOperatorProofRecord[];
+};
+
 export type VantaPrivateCoreOperatorReleaseRecord = {
   assetId: string;
   amount: string;
@@ -285,6 +310,41 @@ export async function fetchVantaPrivateCoreOperatorConsumes(): Promise<
   };
 }
 
+export async function fetchVantaPrivateCoreOperatorProofs(): Promise<
+  VantaPrivateCoreOperatorProofStateResponse
+> {
+  const response = await fetch(getPrivateCoreProofStateUrl(), {
+    method: "GET",
+    signal: AbortSignal.timeout(15_000),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "The private-core proof operator state endpoint failed.");
+  }
+
+  const parsed = (await response.json()) as {
+    latestProof?: unknown;
+    records?: unknown;
+    stateVersion?: unknown;
+  };
+  if (
+    parsed.stateVersion !== 1 ||
+    (parsed.latestProof !== null &&
+      parsed.latestProof !== undefined &&
+      !isProofRecord(parsed.latestProof)) ||
+    !Array.isArray(parsed.records)
+  ) {
+    throw new Error("The private-core proof operator state endpoint returned invalid data.");
+  }
+
+  return {
+    stateVersion: 1,
+    latestProof: isProofRecord(parsed.latestProof) ? parsed.latestProof : null,
+    records: parsed.records.filter(isProofRecord),
+  };
+}
+
 export async function fetchVantaPrivateCoreOperatorRoots(): Promise<VantaPrivateCoreOperatorRootStateResponse> {
   const response = await fetch(getPrivateCoreRootStateUrl(), {
     method: "GET",
@@ -325,6 +385,10 @@ export async function fetchVantaPrivateCoreOperatorRoots(): Promise<VantaPrivate
 
 function getPrivateCoreConsumeStateUrl() {
   return new URL("/state/private-core-consumes", liveShieldAsset.unshieldOperatorUrl).toString();
+}
+
+function getPrivateCoreProofStateUrl() {
+  return new URL("/state/private-core-proofs", liveShieldAsset.unshieldOperatorUrl).toString();
 }
 
 function getPrivateCoreReleaseStateUrl() {
@@ -382,6 +446,31 @@ function isConsumeRecord(value: unknown): value is VantaPrivateCoreOperatorConsu
     typeof (value as VantaPrivateCoreOperatorConsumeRecord).publicInputCount === "number" &&
     typeof (value as VantaPrivateCoreOperatorConsumeRecord).releaseDestination === "string" &&
     typeof (value as VantaPrivateCoreOperatorConsumeRecord).root === "string"
+  );
+}
+
+function isProofRecord(value: unknown): value is VantaPrivateCoreOperatorProofRecord {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    (((value as VantaPrivateCoreOperatorProofRecord).action === "consume" ||
+      (value as VantaPrivateCoreOperatorProofRecord).action === "proof-only" ||
+      (value as VantaPrivateCoreOperatorProofRecord).action === "register-root")) &&
+    typeof (value as VantaPrivateCoreOperatorProofRecord).assetId === "string" &&
+    typeof (value as VantaPrivateCoreOperatorProofRecord).amount === "string" &&
+    typeof (value as VantaPrivateCoreOperatorProofRecord).backend === "string" &&
+    typeof (value as VantaPrivateCoreOperatorProofRecord).circuit === "string" &&
+    typeof (value as VantaPrivateCoreOperatorProofRecord).completedAt === "number" &&
+    typeof (value as VantaPrivateCoreOperatorProofRecord).noteVersion === "number" &&
+    typeof (value as VantaPrivateCoreOperatorProofRecord).nullifier === "string" &&
+    typeof (value as VantaPrivateCoreOperatorProofRecord).proofFieldCount === "number" &&
+    typeof (value as VantaPrivateCoreOperatorProofRecord).proofId === "string" &&
+    typeof (value as VantaPrivateCoreOperatorProofRecord).proofVersion === "number" &&
+    typeof (value as VantaPrivateCoreOperatorProofRecord).provingHashLane === "string" &&
+    typeof (value as VantaPrivateCoreOperatorProofRecord).publicInputCount === "number" &&
+    typeof (value as VantaPrivateCoreOperatorProofRecord).releaseDestination === "string" &&
+    typeof (value as VantaPrivateCoreOperatorProofRecord).root === "string" &&
+    typeof (value as VantaPrivateCoreOperatorProofRecord).verified === "boolean"
   );
 }
 

@@ -37,8 +37,11 @@ export function AppDashboardPage() {
     privateCoreOperatorConsumes,
     privateCoreOperatorCurrentRoot,
     privateCoreOperatorLatestConsume,
+    privateCoreOperatorLatestProof,
     privateCoreOperatorLatestRoot,
     privateCoreOperatorLatestRelease,
+    privateCoreOperatorProofError,
+    privateCoreOperatorProofs,
     privateCoreOperatorReleaseError,
     privateCoreOperatorReleases,
     privateCoreOperatorRootCurrentnessLabel,
@@ -188,8 +191,11 @@ export function AppDashboardPage() {
               operatorConsumeError={privateCoreOperatorConsumeError}
               operatorConsumes={privateCoreOperatorConsumes}
               operatorLatestConsume={privateCoreOperatorLatestConsume}
+              operatorLatestProof={privateCoreOperatorLatestProof}
               operatorLatestRelease={privateCoreOperatorLatestRelease}
               operatorLatestRoot={privateCoreOperatorLatestRoot}
+              operatorProofError={privateCoreOperatorProofError}
+              operatorProofs={privateCoreOperatorProofs}
               operatorReleaseError={privateCoreOperatorReleaseError}
               operatorReleases={privateCoreOperatorReleases}
               operatorRootCurrentnessLabel={privateCoreOperatorRootCurrentnessLabel}

@@ -5,6 +5,7 @@ import type {
 } from "@/data/context/PrivacyFlowContext";
 import type {
   VantaPrivateCoreOperatorConsumeRecord,
+  VantaPrivateCoreOperatorProofRecord,
   VantaPrivateCoreOperatorReleaseRecord,
   VantaPrivateCoreOperatorRootRecord,
 } from "@/zk/vantaPrivateCoreOperatorClient";
@@ -15,8 +16,11 @@ type VantaPrivateCoreStatePanelProps = {
   operatorConsumeError?: string | null;
   operatorConsumes?: VantaPrivateCoreOperatorConsumeRecord[];
   operatorLatestConsume?: VantaPrivateCoreOperatorConsumeRecord | null;
+  operatorLatestProof?: VantaPrivateCoreOperatorProofRecord | null;
   operatorLatestRelease?: VantaPrivateCoreOperatorReleaseRecord | null;
   operatorLatestRoot?: VantaPrivateCoreOperatorRootRecord | null;
+  operatorProofError?: string | null;
+  operatorProofs?: VantaPrivateCoreOperatorProofRecord[];
   operatorReleaseError?: string | null;
   operatorReleases?: VantaPrivateCoreOperatorReleaseRecord[];
   operatorRootCurrentnessLabel?: string | null;
@@ -67,14 +71,41 @@ function summarizeOperatorImmediateReleaseAlignment(args: {
   return "Immediate release mismatch";
 }
 
+function summarizeOperatorImmediateProofAlignment(args: {
+  latestOperatorProof: VantaPrivateCoreOperatorProofRecord | null;
+  unshieldState: VantaPrivateCoreUnshieldState | null;
+}) {
+  if (!args.unshieldState?.proofExecutionStatus) {
+    return "Unavailable";
+  }
+
+  if (!args.latestOperatorProof) {
+    return "Awaiting operator proof state";
+  }
+
+  if (
+    args.latestOperatorProof.nullifier === args.unshieldState.sourceNullifier &&
+    args.latestOperatorProof.root === args.unshieldState.sourceProofRoot &&
+    args.latestOperatorProof.proofFieldCount === args.unshieldState.proofFieldCount &&
+    args.latestOperatorProof.publicInputCount === args.unshieldState.proofPublicInputCount
+  ) {
+    return "Immediate proof matches operator state";
+  }
+
+  return "Immediate proof mismatch";
+}
+
 export function VantaPrivateCoreStatePanel({
   holdState,
   operatorCurrentRoot = null,
   operatorConsumeError = null,
   operatorConsumes = [],
   operatorLatestConsume = null,
+  operatorLatestProof = null,
   operatorLatestRelease = null,
   operatorLatestRoot = null,
+  operatorProofError = null,
+  operatorProofs = [],
   operatorReleaseError = null,
   operatorReleases = [],
   operatorRootCurrentnessLabel = null,
@@ -87,8 +118,13 @@ export function VantaPrivateCoreStatePanel({
   title = "Vanta Private Core private state",
 }: VantaPrivateCoreStatePanelProps) {
   const latestOperatorConsume = operatorLatestConsume ?? operatorConsumes[0] ?? null;
+  const latestOperatorProof = operatorLatestProof ?? operatorProofs[0] ?? null;
   const latestOperatorRelease = operatorLatestRelease ?? operatorReleases[0] ?? null;
   const latestOperatorRoot = operatorLatestRoot ?? operatorRoots[0] ?? null;
+  const immediateProofAlignmentLabel = summarizeOperatorImmediateProofAlignment({
+    latestOperatorProof,
+    unshieldState,
+  });
   const immediateReleaseAlignmentLabel = summarizeOperatorImmediateReleaseAlignment({
     latestOperatorRelease,
     unshieldState,
@@ -295,6 +331,42 @@ export function VantaPrivateCoreStatePanel({
                     ? abbreviate(latestOperatorConsume.nullifier)
                     : "Unavailable"}
               </strong>
+            </div>
+            <div className="review-row">
+              <span>Operator proof records</span>
+              <strong>
+                {operatorProofError
+                  ? "Unavailable"
+                  : operatorProofs.length.toString()}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Latest operator proof</span>
+              <strong>
+                {operatorProofError
+                  ? operatorProofError
+                  : operatorLatestProof?.proofId
+                    ? abbreviate(operatorLatestProof.proofId)
+                    : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Latest proof action</span>
+              <strong>{operatorProofError ? operatorProofError : operatorLatestProof?.action ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Latest proof root</span>
+              <strong>
+                {operatorProofError
+                  ? operatorProofError
+                  : operatorLatestProof?.root
+                    ? abbreviate(operatorLatestProof.root)
+                    : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Immediate proof alignment</span>
+              <strong>{immediateProofAlignmentLabel}</strong>
             </div>
             <div className="review-row">
               <span>Operator release records</span>

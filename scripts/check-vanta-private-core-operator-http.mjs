@@ -135,6 +135,7 @@ const server = spawn("node", ["operator/unshield-server.mjs"], {
       process.env.VANTA_DEVNET_VAULT_OWNER ??
       "Gk7m3rV2Q5uH4pL9sW8xD1nB6cT3yF7kJ2qR5mN8pZ1",
     VANTA_PRIVATE_CORE_CONSUME_STORE_PATH: join(tempRoot, "consumes.json"),
+    VANTA_PRIVATE_CORE_PROOF_STORE_PATH: join(tempRoot, "proofs.json"),
     VANTA_PRIVATE_CORE_RELEASE_STORE_PATH: join(tempRoot, "private-core-releases.json"),
     VANTA_PRIVATE_CORE_ROOT_STORE_PATH: join(tempRoot, "roots.json"),
     VANTA_RELEASE_RECORD_STORE_PATH: join(tempRoot, "releases.json"),
@@ -183,6 +184,20 @@ try {
   }
   printStatus("operator http empty consume state: PASS");
 
+  const initialProofState = await requestJson(baseUrl, "/state/private-core-proofs", {
+    method: "GET",
+  });
+  if (
+    !initialProofState.ok ||
+    initialProofState.parsed?.stateVersion !== 1 ||
+    initialProofState.parsed?.latestProof !== null ||
+    !Array.isArray(initialProofState.parsed?.records) ||
+    initialProofState.parsed.records.length !== 0
+  ) {
+    throw new Error(initialProofState.text || "operator proof state did not start empty");
+  }
+  printStatus("operator http empty proof state: PASS");
+
   const initialReleaseState = await requestJson(baseUrl, "/state/private-core-releases", {
     method: "GET",
   });
@@ -209,6 +224,20 @@ try {
     `operator http proof: PASS (${proofResponse.parsed.proofFieldCount} fields / ${proofResponse.parsed.publicInputCount} public inputs)`,
   );
 
+  const proofState = await requestJson(baseUrl, "/state/private-core-proofs", { method: "GET" });
+  if (
+    !proofState.ok ||
+    proofState.parsed?.stateVersion !== 1 ||
+    proofState.parsed?.latestProof?.action !== "proof-only" ||
+    proofState.parsed?.latestProof?.verified !== true ||
+    proofState.parsed?.latestProof?.root !== witnessPackage.sourcePublicInputs.stateRoot ||
+    !Array.isArray(proofState.parsed?.records) ||
+    proofState.parsed.records.length !== 1
+  ) {
+    throw new Error(proofState.text || "operator proof state did not record the proof endpoint result");
+  }
+  printStatus("operator http proof state: PASS");
+
   const statePreflight = await fetch(`${baseUrl}/state/private-core-roots`, {
     headers: {
       "Access-Control-Request-Method": "GET",
@@ -224,6 +253,7 @@ try {
   }
   for (const statePath of [
     "/state/private-core-consumes",
+    "/state/private-core-proofs",
     "/state/private-core-releases",
   ]) {
     const stateEndpointPreflight = await fetch(`${baseUrl}${statePath}`, {
@@ -520,6 +550,22 @@ try {
   }
   printStatus("operator http current-root restore: PASS");
 
+  const proofStateAfterRegistration = await requestJson(baseUrl, "/state/private-core-proofs", {
+    method: "GET",
+  });
+  if (
+    !proofStateAfterRegistration.ok ||
+    proofStateAfterRegistration.parsed?.latestProof?.action !== "register-root" ||
+    proofStateAfterRegistration.parsed?.latestProof?.root !== registeredRoot ||
+    !Array.isArray(proofStateAfterRegistration.parsed?.records) ||
+    proofStateAfterRegistration.parsed.records.length < 2
+  ) {
+    throw new Error(
+      proofStateAfterRegistration.text || "operator proof state did not retain the registration proof",
+    );
+  }
+  printStatus("operator http registration proof state: PASS");
+
   for (const tamperCase of [
     {
       expectedMessage: "mismatched amount public inputs",
@@ -737,6 +783,23 @@ try {
     throw new Error(consumeState.text || "operator consume state did not contain the consumed nullifier");
   }
   printStatus("operator http consume state: PASS");
+
+  const proofStateAfterConsume = await requestJson(baseUrl, "/state/private-core-proofs", {
+    method: "GET",
+  });
+  if (
+    !proofStateAfterConsume.ok ||
+    proofStateAfterConsume.parsed?.stateVersion !== 1 ||
+    proofStateAfterConsume.parsed?.latestProof?.action !== "consume" ||
+    proofStateAfterConsume.parsed?.latestProof?.nullifier !== witnessPackage.sourcePublicInputs.nullifier ||
+    proofStateAfterConsume.parsed?.latestProof?.root !== witnessPackage.sourcePublicInputs.stateRoot ||
+    proofStateAfterConsume.parsed?.latestProof?.verified !== true ||
+    !Array.isArray(proofStateAfterConsume.parsed?.records) ||
+    proofStateAfterConsume.parsed.records.length < 3
+  ) {
+    throw new Error(proofStateAfterConsume.text || "operator proof state did not retain the consume proof");
+  }
+  printStatus("operator http consume proof state: PASS");
 
   const releaseState = await requestJson(baseUrl, "/state/private-core-releases", { method: "GET" });
   if (

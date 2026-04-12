@@ -48,6 +48,7 @@ import {
   fetchConstrainedOnchainUnshieldContext,
 } from "./vanta-onchain-state.mjs";
 import { createPrivateCoreConsumeStore } from "./private-core-consume-store.mjs";
+import { createPrivateCoreProofStore } from "./private-core-proof-store.mjs";
 import { createPrivateCoreRootStore } from "./private-core-root-store.mjs";
 import {
   assertVantaPrivateCoreSourceArtifactConsistency,
@@ -89,6 +90,7 @@ const client = createClient({
 const web3Connection = new Connection(endpoint, "confirmed");
 const releaseRecords = createReleaseRecordStore();
 const privateCoreConsumeStore = createPrivateCoreConsumeStore();
+const privateCoreProofStore = createPrivateCoreProofStore();
 const privateCoreReleaseRecords = createReleaseRecordStore({
   defaultPath: "operator/.vanta-private-core-releases.json",
   envKey: "VANTA_PRIVATE_CORE_RELEASE_STORE_PATH",
@@ -190,6 +192,20 @@ const server = createServer(async (request, response) => {
       JSON.stringify({
         stateVersion: 1,
         latestConsume: records[0] ?? null,
+        records,
+      }),
+    );
+    return;
+  }
+
+  if (request.method === "GET" && request.url === "/state/private-core-proofs") {
+    writeCorsHeaders(response);
+    response.writeHead(200, { "Content-Type": "application/json" });
+    const records = privateCoreProofStore.listProofs();
+    response.end(
+      JSON.stringify({
+        stateVersion: 1,
+        latestProof: records[0] ?? null,
         records,
       }),
     );
@@ -302,6 +318,13 @@ const server = createServer(async (request, response) => {
       const proofReceipt = await proveAndVerifyVantaPrivateCoreUnshield({
         witnessPackage: body.witnessPackage,
       });
+      privateCoreProofStore.recordProof(
+        summarizePrivateCoreProofRecord({
+          action: "proof-only",
+          proofReceipt,
+          witnessPackage: body.witnessPackage,
+        }),
+      );
 
       writeCorsHeaders(response);
       response.writeHead(200, { "Content-Type": "application/json" });
@@ -321,7 +344,7 @@ const server = createServer(async (request, response) => {
   if (request.method === "POST" && request.url === "/private-core/register-root") {
     try {
       const body = await readJsonBody(request);
-      await proveAndVerifyVantaPrivateCoreUnshield({
+      const proofReceipt = await proveAndVerifyVantaPrivateCoreUnshield({
         witnessPackage: body?.witnessPackage,
       });
       const witnessPackage = normalizeVantaPrivateCoreWitnessPackage(body?.witnessPackage);
@@ -334,6 +357,13 @@ const server = createServer(async (request, response) => {
       }
 
       assertVantaPrivateCoreSourceArtifactConsistency(sourceArtifacts, witnessPackage);
+      privateCoreProofStore.recordProof(
+        summarizePrivateCoreProofRecord({
+          action: "register-root",
+          proofReceipt,
+          witnessPackage,
+        }),
+      );
 
       privateCoreRootStore.recordRoot({
         root,
@@ -402,6 +432,13 @@ const server = createServer(async (request, response) => {
       }
 
       assertVantaPrivateCoreSourceArtifactConsistency(sourceArtifacts, body?.witnessPackage);
+      privateCoreProofStore.recordProof(
+        summarizePrivateCoreProofRecord({
+          action: "consume",
+          proofReceipt,
+          witnessPackage: body.witnessPackage,
+        }),
+      );
 
       if (latestRootRecord.assetId !== sourcePublicInputs.assetId) {
         throw new Error("Registered private-core root asset metadata does not match this consume request.");
@@ -1184,6 +1221,7 @@ function parseSwapMemoPayload(memo) {
 server.listen(port, "127.0.0.1", () => {
   console.log(`Vanta operator listening on http://127.0.0.1:${port}`);
   console.log(`Vanta release store: ${releaseRecords.filePath}`);
+  console.log(`Vanta private-core proof store: ${privateCoreProofStore.filePath}`);
   console.log(`Vanta private-core release store: ${privateCoreReleaseRecords.filePath}`);
   console.log(`Vanta swap store: ${swapRecords.filePath}`);
   console.log(`Vanta SOL unshield store: ${solUnshieldRecords.filePath}`);
@@ -1193,6 +1231,37 @@ function writeCorsHeaders(response) {
   response.setHeader("Access-Control-Allow-Origin", "*");
   response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+}
+
+function summarizePrivateCoreProofRecord(args) {
+  const witnessPackage = normalizeVantaPrivateCoreWitnessPackage(args.witnessPackage);
+  const sourcePublicInputs = witnessPackage.sourcePublicInputs;
+  const completedAt = Date.now();
+
+  return {
+    action: args.action,
+    assetId: sourcePublicInputs.assetId,
+    amount: sourcePublicInputs.amount,
+    backend: args.proofReceipt.backend,
+    circuit: args.proofReceipt.circuit,
+    completedAt,
+    noteVersion: sourcePublicInputs.noteVersion,
+    nullifier: sourcePublicInputs.nullifier,
+    proofFieldCount: args.proofReceipt.proofFieldCount,
+    proofId: [
+      "private-core-proof",
+      args.action,
+      sourcePublicInputs.nullifier,
+      sourcePublicInputs.stateRoot,
+      String(completedAt),
+    ].join(":"),
+    proofVersion: args.proofReceipt.proofVersion,
+    provingHashLane: args.proofReceipt.provingHashLane,
+    publicInputCount: args.proofReceipt.publicInputCount,
+    releaseDestination: sourcePublicInputs.releaseDestination,
+    root: sourcePublicInputs.stateRoot,
+    verified: args.proofReceipt.verified === true,
+  };
 }
 
 async function readJsonBody(request) {

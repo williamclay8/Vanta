@@ -99,8 +99,11 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOwner,
     privateCoreOperatorCurrentRoot,
     privateCoreOperatorLatestConsume,
+    privateCoreOperatorLatestProof,
     privateCoreOperatorLatestRoot,
     privateCoreOperatorLatestRelease,
+    privateCoreOperatorProofError,
+    privateCoreOperatorProofs,
     privateCoreOperatorReleaseError,
     privateCoreOperatorReleases,
     privateCoreOperatorRootError,
@@ -1010,8 +1013,11 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 holdState={privateCoreHoldState}
                 operatorCurrentRoot={privateCoreOperatorCurrentRoot}
                 operatorLatestConsume={privateCoreOperatorLatestConsume}
+                operatorLatestProof={privateCoreOperatorLatestProof}
                 operatorLatestRelease={privateCoreOperatorLatestRelease}
                 operatorLatestRoot={privateCoreOperatorLatestRoot}
+                operatorProofError={privateCoreOperatorProofError}
+                operatorProofs={privateCoreOperatorProofs}
                 operatorReleaseError={privateCoreOperatorReleaseError}
                 operatorReleases={privateCoreOperatorReleases}
                 operatorRootCurrentnessLabel={privateCoreOperatorRootCurrentnessLabel}
