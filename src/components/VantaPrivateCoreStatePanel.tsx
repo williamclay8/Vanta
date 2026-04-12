@@ -57,7 +57,13 @@ export function VantaPrivateCoreStatePanel({
       <div className="preview-grid note-state-summary">
         <div className="preview-card preview-card--accent">
           <span>Private note</span>
-          <strong>{shieldState ? "Created" : "Not yet"}</strong>
+          <strong>
+            {unshieldState?.replayRejected || unshieldState?.consumeSucceeded
+              ? "Consumed"
+              : shieldState
+                ? "Created"
+                : "Not yet"}
+          </strong>
         </div>
         <div className="preview-card">
           <span>Held privately</span>
