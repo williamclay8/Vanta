@@ -51,9 +51,9 @@ Vanta introduces a privacy-preserving layer for Solana that starts by allowing u
 
 As Solana matures into a serious environment for finance, applications, and commerce, privacy becomes a missing piece of infrastructure. Users do not stop needing discretion simply because they move onchain. Vanta is being built to make privacy feel usable, structured, and native to the next era of Solana activity.
 
-## Why Bags
+## Why this hackathon
 
-Bags sits close to the world of Solana-native products, tokenized ecosystems, and onchain commerce. Vanta complements that world by focusing on the privacy layer that can eventually support more discreet transfers, payment flows, and broader ecosystem participation across Solana. The hackathon is the right place to present that wedge: a privacy-native product suite with clear utility and expansion potential.
+This hackathon is the right environment to show Vanta’s wedge clearly: a product-led Solana privacy layer with a real early protocol loop, a meaningful first zk boundary, and a credible path from shielded state into broader private transfer, swap, and payment workflows.
 
 ---
 
@@ -142,7 +142,7 @@ Because send alone lacks a clean product foundation. Shield + Private Send forms
 - explanation of shielded state
 - product suite overview
 - roadmap
-- Bags hackathon positioning
+- Vanta hackathon positioning
 
 ### Application
 - Shield as the primary entrypoint
