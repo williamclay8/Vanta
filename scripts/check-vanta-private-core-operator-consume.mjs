@@ -135,6 +135,34 @@ try {
   }
   printStatus("operator source-artifact consistency gate: PASS");
 
+  for (const tamperCase of [
+    {
+      expectedMessage: "mismatched Merkle leaf",
+      sourceArtifacts: {
+        ...sourceArtifacts,
+        merkleLeaf: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      },
+    },
+    {
+      expectedMessage: "mismatched witness root",
+      sourceArtifacts: {
+        ...sourceArtifacts,
+        witnessRoot: "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      },
+    },
+  ]) {
+    try {
+      assertVantaPrivateCoreSourceArtifactConsistency(tamperCase.sourceArtifacts, witnessPackage);
+      throw new Error(`operator source-artifact seam unexpectedly accepted ${tamperCase.expectedMessage}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (!message.includes(tamperCase.expectedMessage)) {
+        throw error;
+      }
+    }
+  }
+  printStatus("operator source-artifact extended gate: PASS");
+
   const consumeStore = createPrivateCoreConsumeStore({
     defaultPath: join(tempRoot, "consumes.json"),
   });

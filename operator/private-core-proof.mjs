@@ -114,6 +114,20 @@ export function assertVantaPrivateCoreSourceArtifactConsistency(sourceArtifacts,
   if (normalizeHex32(sourceArtifacts.noteCommitment) !== expectedNoteCommitment) {
     throw new Error("Private-core source artifacts have a mismatched note commitment.");
   }
+
+  if (
+    sourceArtifacts.merkleLeaf !== undefined &&
+    normalizeHex32(sourceArtifacts.merkleLeaf) !== deriveSourceMerkleLeaf(expectedNoteCommitment)
+  ) {
+    throw new Error("Private-core source artifacts have a mismatched Merkle leaf.");
+  }
+
+  if (
+    sourceArtifacts.witnessRoot !== undefined &&
+    normalizeHex32(sourceArtifacts.witnessRoot) !== normalizeHex32(witnessPackage.sourcePublicInputs.stateRoot)
+  ) {
+    throw new Error("Private-core source artifacts have a mismatched witness root.");
+  }
 }
 
 function serializeWitnessPackageToToml(witnessPackage) {
@@ -222,6 +236,14 @@ function deriveSourceNoteCommitmentFromWitnessPackage(witnessPackage) {
   return normalizeHex32(
     `0x${Buffer.from(
       sha256(concatBytes(encodeDomain("vanta.private-core.note-commitment.v0"), encodedNote)),
+    ).toString("hex")}`,
+  );
+}
+
+function deriveSourceMerkleLeaf(noteCommitment) {
+  return normalizeHex32(
+    `0x${Buffer.from(
+      sha256(concatBytes(encodeDomain("vanta.private-core.merkle-leaf.v0"), hexToBytes(noteCommitment))),
     ).toString("hex")}`,
   );
 }

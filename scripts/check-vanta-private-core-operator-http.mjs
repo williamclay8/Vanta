@@ -338,6 +338,41 @@ try {
         "operator root registration unexpectedly accepted a mismatched note commitment",
     );
   }
+
+  for (const tamperCase of [
+    {
+      expectedMessage: "mismatched Merkle leaf",
+      sourceArtifacts: {
+        ...sourceArtifacts,
+        merkleLeaf: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      },
+    },
+    {
+      expectedMessage: "mismatched witness root",
+      sourceArtifacts: {
+        ...sourceArtifacts,
+        witnessRoot: "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      },
+    },
+  ]) {
+    const tamperedRegisterRootArtifacts = await requestJson(baseUrl, "/private-core/register-root", {
+      body: JSON.stringify({
+        sourceArtifacts: tamperCase.sourceArtifacts,
+        witnessPackage,
+      }),
+      method: "POST",
+    });
+
+    if (
+      tamperedRegisterRootArtifacts.ok ||
+      !tamperedRegisterRootArtifacts.text.includes(tamperCase.expectedMessage)
+    ) {
+      throw new Error(
+        tamperedRegisterRootArtifacts.text ||
+          `operator root registration unexpectedly accepted ${tamperCase.expectedMessage}`,
+      );
+    }
+  }
   printStatus("operator http root registration consistency gate: PASS");
 
   const consumeBeforeRoot = await requestJson(baseUrl, "/private-core/unshield-consume", {
@@ -380,7 +415,10 @@ try {
   const staleRoot = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
   const registerStaleRoot = await requestJson(baseUrl, "/private-core/register-root", {
     body: JSON.stringify({
-      sourceArtifacts,
+      sourceArtifacts: {
+        ...sourceArtifacts,
+        witnessRoot: staleRoot,
+      },
       witnessPackage: {
         ...witnessPackage,
         sourcePublicInputs: {
@@ -514,6 +552,41 @@ try {
       tamperedConsumeSourceArtifacts.text ||
         "operator consume unexpectedly accepted a mismatched note commitment",
     );
+  }
+
+  for (const tamperCase of [
+    {
+      expectedMessage: "mismatched Merkle leaf",
+      sourceArtifacts: {
+        ...sourceArtifacts,
+        merkleLeaf: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      },
+    },
+    {
+      expectedMessage: "mismatched witness root",
+      sourceArtifacts: {
+        ...sourceArtifacts,
+        witnessRoot: "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      },
+    },
+  ]) {
+    const tamperedConsumeArtifacts = await requestJson(baseUrl, "/private-core/unshield-consume", {
+      body: JSON.stringify({
+        sourceArtifacts: tamperCase.sourceArtifacts,
+        witnessPackage,
+      }),
+      method: "POST",
+    });
+
+    if (
+      tamperedConsumeArtifacts.ok ||
+      !tamperedConsumeArtifacts.text.includes(tamperCase.expectedMessage)
+    ) {
+      throw new Error(
+        tamperedConsumeArtifacts.text ||
+          `operator consume unexpectedly accepted ${tamperCase.expectedMessage}`,
+      );
+    }
   }
   printStatus("operator http consume consistency gate: PASS");
 
