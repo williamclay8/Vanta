@@ -6,6 +6,7 @@ import { createPrivateCoreConsumeStore } from "../operator/private-core-consume-
 import { assertVantaPrivateCoreSourceArtifactConsistency } from "../operator/private-core-proof.mjs";
 import { proveAndVerifyVantaPrivateCoreUnshield } from "../operator/private-core-proof.mjs";
 import { createPrivateCoreRootStore } from "../operator/private-core-root-store.mjs";
+import { createReleaseRecordStore } from "../operator/release-record-store.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "..");
@@ -205,6 +206,10 @@ try {
   const consumeStore = createPrivateCoreConsumeStore({
     defaultPath: join(tempRoot, "consumes.json"),
   });
+  const releaseStore = createReleaseRecordStore({
+    defaultPath: join(tempRoot, "private-core-releases.json"),
+    envKey: "VANTA_PRIVATE_CORE_RELEASE_STORE_PATH",
+  });
   const rootStore = createPrivateCoreRootStore({
     defaultPath: join(tempRoot, "roots.json"),
   });
@@ -272,6 +277,21 @@ try {
     releaseDestination: sourcePublicInputs.releaseDestination,
     root: sourcePublicInputs.stateRoot,
   });
+  releaseStore.recordRelease({
+    assetId: sourcePublicInputs.assetId,
+    amount: sourcePublicInputs.amount,
+    completedAt: Date.now(),
+    consumedNoteId: `private-core-nullifier:${sourcePublicInputs.nullifier}`,
+    nullifier: sourcePublicInputs.nullifier,
+    proofFieldCount: proofReceipt.proofFieldCount,
+    publicInputCount: proofReceipt.publicInputCount,
+    releaseDestination: sourcePublicInputs.releaseDestination,
+    releasedAssetId: sourcePublicInputs.assetId,
+    releasedAmount: sourcePublicInputs.amount,
+    requestId: `private-core-release:${sourcePublicInputs.nullifier}:${sourcePublicInputs.stateRoot}`,
+    root: sourcePublicInputs.stateRoot,
+    transitionNoteId: `private-core-release:${sourcePublicInputs.stateRoot}:${sourcePublicInputs.releaseDestination}`,
+  });
   printStatus("operator consume first pass: PASS");
 
   if (!consumeStore.hasNullifier(sourcePublicInputs.nullifier)) {
@@ -292,6 +312,26 @@ try {
     throw new Error("operator root store metadata did not retain the witness-backed registration basis");
   }
   printStatus("operator root metadata basis: PASS");
+
+  const latestReleaseRecord = releaseStore.listRecords()[0];
+  if (
+    !latestReleaseRecord ||
+    latestReleaseRecord.nullifier !== sourcePublicInputs.nullifier ||
+    latestReleaseRecord.root !== sourcePublicInputs.stateRoot ||
+    latestReleaseRecord.releaseDestination !== sourcePublicInputs.releaseDestination ||
+    latestReleaseRecord.releasedAssetId !== sourcePublicInputs.assetId ||
+    latestReleaseRecord.releasedAmount !== sourcePublicInputs.amount ||
+    !releaseStore.hasConsumedNoteId(`private-core-nullifier:${sourcePublicInputs.nullifier}`) ||
+    !releaseStore.hasRequestId(
+      `private-core-release:${sourcePublicInputs.nullifier}:${sourcePublicInputs.stateRoot}`,
+    ) ||
+    !releaseStore.hasTransitionNoteId(
+      `private-core-release:${sourcePublicInputs.stateRoot}:${sourcePublicInputs.releaseDestination}`,
+    )
+  ) {
+    throw new Error("operator release store did not retain the first authorized private-core release");
+  }
+  printStatus("operator release record basis: PASS");
 
   printStatus("operator replay rejection basis: PASS");
 } catch (error) {
