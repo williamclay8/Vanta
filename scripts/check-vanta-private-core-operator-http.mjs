@@ -157,6 +157,7 @@ try {
   const initialRootState = await requestJson(baseUrl, "/state/private-core-roots", { method: "GET" });
   if (
     !initialRootState.ok ||
+    initialRootState.parsed?.stateVersion !== 1 ||
     initialRootState.parsed?.currentRoot !== null ||
     !Array.isArray(initialRootState.parsed?.records) ||
     initialRootState.parsed.records.length !== 0
@@ -170,6 +171,7 @@ try {
   });
   if (
     !initialConsumeState.ok ||
+    initialConsumeState.parsed?.stateVersion !== 1 ||
     initialConsumeState.parsed?.latestConsume !== null ||
     !Array.isArray(initialConsumeState.parsed?.records) ||
     initialConsumeState.parsed.records.length !== 0
@@ -349,6 +351,7 @@ try {
   const rootState = await requestJson(baseUrl, "/state/private-core-roots", { method: "GET" });
   if (
     !rootState.ok ||
+    rootState.parsed?.stateVersion !== 1 ||
     rootState.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
     !Array.isArray(rootState.parsed?.records) ||
     !rootState.parsed.records.some((record) => record.root === witnessPackage.sourcePublicInputs.stateRoot)
@@ -405,6 +408,7 @@ try {
   const currentRootState = await requestJson(baseUrl, "/state/private-core-roots", { method: "GET" });
   if (
     !currentRootState.ok ||
+    currentRootState.parsed?.stateVersion !== 1 ||
     currentRootState.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
     !Array.isArray(currentRootState.parsed?.records) ||
     currentRootState.parsed.records[0]?.root !== witnessPackage.sourcePublicInputs.stateRoot
@@ -500,6 +504,7 @@ try {
   const consumeState = await requestJson(baseUrl, "/state/private-core-consumes", { method: "GET" });
   if (
     !consumeState.ok ||
+    consumeState.parsed?.stateVersion !== 1 ||
     consumeState.parsed?.latestConsume?.nullifier !== witnessPackage.sourcePublicInputs.nullifier ||
     !Array.isArray(consumeState.parsed?.records) ||
     !consumeState.parsed.records.some(

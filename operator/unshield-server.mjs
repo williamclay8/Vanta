@@ -183,6 +183,7 @@ const server = createServer(async (request, response) => {
     const records = privateCoreConsumeStore.listConsumes();
     response.end(
       JSON.stringify({
+        stateVersion: 1,
         latestConsume: records[0] ?? null,
         records,
       }),
@@ -196,6 +197,7 @@ const server = createServer(async (request, response) => {
     const currentRoot = privateCoreRootStore.getLatestRoot()?.root ?? null;
     response.end(
       JSON.stringify({
+        stateVersion: 1,
         currentRoot,
         records: privateCoreRootStore.listRoots(),
       }),

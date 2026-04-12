@@ -99,6 +99,7 @@ npm run private-core:http-smoke
 
 That command confirms the current lane through the actual server surface:
 - root and consume state endpoints start with explicit empty-state summaries
+- private-core status endpoints expose `stateVersion = 1`
 - state endpoints advertise `GET` correctly through CORS preflight
 - proof endpoint succeeds
 - consume endpoint rejects before root registration

@@ -34,6 +34,7 @@ export type VantaPrivateCoreOperatorConsumeRecord = {
 };
 
 export type VantaPrivateCoreOperatorConsumeStateResponse = {
+  stateVersion: number;
   latestConsume: VantaPrivateCoreOperatorConsumeRecord | null;
   records: VantaPrivateCoreOperatorConsumeRecord[];
 };
@@ -48,6 +49,7 @@ export type VantaPrivateCoreOperatorRootRecord = {
 };
 
 export type VantaPrivateCoreOperatorRootStateResponse = {
+  stateVersion: number;
   currentRoot: string | null;
   records: VantaPrivateCoreOperatorRootRecord[];
 };
@@ -214,8 +216,13 @@ export async function fetchVantaPrivateCoreOperatorConsumes(): Promise<
     throw new Error(message || "The private-core consume operator state endpoint failed.");
   }
 
-  const parsed = (await response.json()) as { latestConsume?: unknown; records?: unknown };
+  const parsed = (await response.json()) as {
+    latestConsume?: unknown;
+    records?: unknown;
+    stateVersion?: unknown;
+  };
   if (
+    parsed.stateVersion !== 1 ||
     (parsed.latestConsume !== null &&
       parsed.latestConsume !== undefined &&
       !isConsumeRecord(parsed.latestConsume)) ||
@@ -225,6 +232,7 @@ export async function fetchVantaPrivateCoreOperatorConsumes(): Promise<
   }
 
   return {
+    stateVersion: 1,
     latestConsume: isConsumeRecord(parsed.latestConsume) ? parsed.latestConsume : null,
     records: parsed.records.filter(isConsumeRecord),
   };
@@ -241,8 +249,13 @@ export async function fetchVantaPrivateCoreOperatorRoots(): Promise<VantaPrivate
     throw new Error(message || "The private-core root operator state endpoint failed.");
   }
 
-  const parsed = (await response.json()) as { currentRoot?: unknown; records?: unknown };
+  const parsed = (await response.json()) as {
+    currentRoot?: unknown;
+    records?: unknown;
+    stateVersion?: unknown;
+  };
   if (
+    parsed.stateVersion !== 1 ||
     (parsed.currentRoot !== null &&
       parsed.currentRoot !== undefined &&
       typeof parsed.currentRoot !== "string") ||
@@ -252,6 +265,7 @@ export async function fetchVantaPrivateCoreOperatorRoots(): Promise<VantaPrivate
   }
 
   return {
+    stateVersion: 1,
     currentRoot: typeof parsed.currentRoot === "string" ? parsed.currentRoot : null,
     records: parsed.records.filter(isRootRecord),
   };
