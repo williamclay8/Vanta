@@ -255,6 +255,20 @@ No. The current system is an early constrained protocol loop for one supported a
 
 The private-core proof lane makes the first zk boundary real, but it should still be understood as a narrow v0.1 proving lane rather than a complete finished privacy protocol.
 
+### Do you have a real zk circuit today?
+
+Yes. The repo includes a fixed-depth Noir single-note unshield circuit for the standalone Vanta Private Core lane, plus:
+- valid/invalid circuit regression checks
+- local proof generation and verification
+- operator-backed proof execution
+- replay rejection and operator-state smoke coverage
+
+The best concrete verification command is:
+
+```bash
+npm run private-core:verify
+```
+
 ### Is shielding the same as hiding assets in a normal wallet?
 
 No. Vanta's model is that supported assets move out of ordinary transparent wallet flows and into a privacy-preserving Vanta layer. The product should be understood as creating shielded state, not making normal public wallet accounts invisible.
