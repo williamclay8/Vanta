@@ -849,6 +849,25 @@ try {
     );
   }
   printStatus("operator http release replay basis: PASS");
+
+  const operatorStatusOutput = execFileSync("node", [
+    "scripts/print-vanta-private-core-operator-status.mjs",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  if (
+    !operatorStatusOutput.includes("Proof state version: 1") ||
+    !operatorStatusOutput.includes("Latest proof action: consume") ||
+    !operatorStatusOutput.includes("Latest consume proof:") ||
+    !operatorStatusOutput.includes("Latest release proof:")
+  ) {
+    throw new Error(operatorStatusOutput || "operator-status did not reflect proof-linked private-core state");
+  }
+  printStatus("operator http operator-status surface: PASS");
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   const operatorOutput = [stdout.trim(), stderr.trim()].filter(Boolean).join("\n");
