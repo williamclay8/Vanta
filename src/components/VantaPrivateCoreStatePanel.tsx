@@ -91,7 +91,7 @@ export function VantaPrivateCoreStatePanel({
             {unshieldState?.consumeSucceeded
               ? "Consumed once"
               : unshieldState?.replayRejected
-                ? "Replay blocked"
+                ? "Replay rejected"
                 : holdState?.privateNoteRecovered
                   ? "Ready to consume"
                   : "Not yet consumed"}
