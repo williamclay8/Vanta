@@ -64,7 +64,9 @@ export function VantaPrivateCoreStatePanel({
               ? "Consumed once"
               : unshieldState?.replayRejected
                 ? "Replay blocked"
-                : "Not yet consumed"}
+                : holdState?.privateNoteRecovered
+                  ? "Ready to consume"
+                  : "Not yet consumed"}
           </strong>
         </div>
       </div>
@@ -79,7 +81,11 @@ export function VantaPrivateCoreStatePanel({
               </div>
               <div className="note-state-chips">
                 <span className="note-state-chip note-state-chip--spendable">
-                  {unshieldState?.consumeSucceeded ? "Consumed" : "Holdable"}
+                  {unshieldState?.consumeSucceeded
+                    ? "Consumed"
+                    : holdState?.privateNoteRecovered
+                      ? "Ready"
+                      : "Holdable"}
                 </span>
                 <span className="note-state-chip note-state-chip--change">
                   Note v{shieldState.noteVersion}
