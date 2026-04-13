@@ -225,21 +225,27 @@ try {
   }
   printStatus("operator restart setup consume: PASS");
 
-  const sendProofResponse = await requestJson(baseUrl, "/private-core/send-proof", {
+  const sendTransitionResponse = await requestJson(baseUrl, "/private-core/send-transition", {
     body: JSON.stringify({ witnessPackage: sendWitnessPackage }),
     method: "POST",
   });
   if (
-    !sendProofResponse.ok ||
-    sendProofResponse.parsed?.verified !== true ||
-    sendProofResponse.parsed?.circuit !== "vanta_private_core_single_note_send"
+    !sendTransitionResponse.ok ||
+    sendTransitionResponse.parsed?.verified !== true ||
+    sendTransitionResponse.parsed?.sendRecorded !== true ||
+    sendTransitionResponse.parsed?.circuit !== "vanta_private_core_single_note_send"
   ) {
-    throw new Error(sendProofResponse.text || "operator restart setup could not prove the send lane");
+    throw new Error(
+      sendTransitionResponse.text || "operator restart setup could not record the send lane",
+    );
   }
-  printStatus("operator restart setup send proof: PASS");
+  printStatus("operator restart setup send transition: PASS");
 
   const preRestartRoots = await requestJson(baseUrl, "/state/private-core-roots", { method: "GET" });
   const preRestartSendProofs = await requestJson(baseUrl, "/state/private-core-send-proofs", {
+    method: "GET",
+  });
+  const preRestartSends = await requestJson(baseUrl, "/state/private-core-sends", {
     method: "GET",
   });
   const preRestartSummary = await requestJson(baseUrl, "/state/private-core-summary", {
@@ -255,6 +261,12 @@ try {
     preRestartSendProofs.parsed?.latestProof?.circuit !== "vanta_private_core_single_note_send" ||
     !Array.isArray(preRestartSendProofs.parsed?.records) ||
     preRestartSendProofs.parsed.records.length < 1 ||
+    !preRestartSends.ok ||
+    preRestartSends.parsed?.stateVersion !== 1 ||
+    preRestartSends.parsed?.latestSend?.sendId !== sendTransitionResponse.parsed.sendId ||
+    preRestartSends.parsed?.latestSend?.proofId !== sendTransitionResponse.parsed.proofId ||
+    !Array.isArray(preRestartSends.parsed?.records) ||
+    preRestartSends.parsed.records.length < 1 ||
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.stateVersion !== 1 ||
     preRestartSummary.parsed?.summaryVersion !== 1 ||
@@ -291,6 +303,9 @@ try {
   const postRestartSendProofs = await requestJson(baseUrl, "/state/private-core-send-proofs", {
     method: "GET",
   });
+  const postRestartSends = await requestJson(baseUrl, "/state/private-core-sends", {
+    method: "GET",
+  });
 
   if (
     !postRestartSummary.ok ||
@@ -312,6 +327,17 @@ try {
     postRestartSendProofs.parsed.records.length < 1
   ) {
     throw new Error(postRestartSendProofs.text || "operator restart lost send-proof state");
+  }
+
+  if (
+    !postRestartSends.ok ||
+    postRestartSends.parsed?.stateVersion !== 1 ||
+    postRestartSends.parsed?.latestSend?.sendId !== sendTransitionResponse.parsed.sendId ||
+    postRestartSends.parsed?.latestSend?.proofId !== sendTransitionResponse.parsed.proofId ||
+    !Array.isArray(postRestartSends.parsed?.records) ||
+    postRestartSends.parsed.records.length < 1
+  ) {
+    throw new Error(postRestartSends.text || "operator restart lost send-transition state");
   }
 
   if (
@@ -359,6 +385,7 @@ try {
   if (
     !operatorStatusOutput.includes("Latest proof action: consume") ||
     !operatorStatusOutput.includes("Latest send proof action: send-proof") ||
+    !operatorStatusOutput.includes("Latest send transition:") ||
     !operatorStatusOutput.includes("Summary generated:") ||
     !operatorStatusOutput.includes("Latest consume proof:") ||
     !operatorStatusOutput.includes("Latest release proof:") ||
