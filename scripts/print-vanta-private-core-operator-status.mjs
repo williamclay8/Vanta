@@ -8,6 +8,7 @@ try {
   printLine("Summary version", String(summary.summaryVersion ?? "unknown"));
   printLine("Summary generated", formatTimestamp(summary.generatedAt));
   printLine("Current root", abbreviate(summary.currentRoot));
+  printLine("Current root proof", abbreviate(summary.currentRecord?.proofId));
   printLine("Root records", String(summary.rootRecordCount ?? 0));
   printLine("Latest consume", abbreviate(summary.latestConsume?.nullifier));
   printLine("Latest consume proof", abbreviate(summary.latestConsume?.proofId));
@@ -26,6 +27,7 @@ try {
   printLine("Send resulting root status", humanizeSendResultingRootStatus(summary.sendResultingRootStatus));
   printLine("Send resulting root note", summary.sendResultingRootNote ?? "Unavailable");
   printLine("Send resulting root record", abbreviate(summary.sendResultingRootRecord?.root));
+  printLine("Send resulting root proof", abbreviate(summary.sendResultingRootRecord?.proofId));
   printLine(
     "Send resulting root bundle",
     summary.sendResultingRootRecord?.artifactBundleStatus === "complete"

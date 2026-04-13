@@ -88,6 +88,7 @@ function normalizeRootRecord(record) {
           : null,
     merkleLeaf,
     noteCommitment,
+    proofId: typeof record?.proofId === "string" ? record.proofId : null,
     recordedAt: typeof record?.recordedAt === "number" ? record.recordedAt : 0,
     root: typeof record?.root === "string" ? record.root : "",
     source: typeof record?.source === "string" ? record.source : "unknown",

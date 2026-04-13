@@ -594,6 +594,11 @@ try {
   }
   printStatus("operator http registration proof state: PASS");
 
+  if (rootState.parsed.currentRecord.proofId !== proofStateAfterRegistration.parsed.latestProof.proofId) {
+    throw new Error("operator root state did not retain the registration proof id");
+  }
+  printStatus("operator http root proof linkage: PASS");
+
   for (const tamperCase of [
     {
       expectedMessage: "mismatched amount public inputs",
@@ -932,7 +937,7 @@ try {
   });
   if (
     !operatorStatusOutput.includes("Summary state version: 1") ||
-    !operatorStatusOutput.includes("Summary version: 1") ||
+    !operatorStatusOutput.includes("Summary version: 2") ||
     !operatorStatusOutput.includes("Summary generated:") ||
     !operatorStatusOutput.includes("Latest proof action: consume") ||
     !operatorStatusOutput.includes("Latest consume proof:") ||
@@ -940,6 +945,8 @@ try {
     !operatorStatusOutput.includes("Latest release proof:") ||
     !operatorStatusOutput.includes("Latest release linked proof:") ||
     !operatorStatusOutput.includes("Latest send resulting root:") ||
+    !operatorStatusOutput.includes("Send resulting root status: Unavailable") ||
+    !operatorStatusOutput.includes("Send resulting root record: Unavailable") ||
     !operatorStatusOutput.includes("Proof/consume link: linked") ||
     !operatorStatusOutput.includes("Proof/release link: linked") ||
     !operatorStatusOutput.includes("Boundary status: Operator boundary coherent") ||

@@ -751,8 +751,14 @@ export function VantaPrivateCoreStatePanel({
                 {operatorRootError
                   ? operatorRootError
                   : operatorCurrentRoot
-                  ? abbreviate(operatorCurrentRoot)
-                  : "Unavailable"}
+                    ? abbreviate(operatorCurrentRoot)
+                    : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Operator current root proof</span>
+              <strong>
+                {operatorLatestRoot?.proofId ? abbreviate(operatorLatestRoot.proofId) : "Unavailable"}
               </strong>
             </div>
             <div className="review-row">
@@ -776,6 +782,14 @@ export function VantaPrivateCoreStatePanel({
               <strong>
                 {operatorSendResultingRootRecord?.root
                   ? abbreviate(operatorSendResultingRootRecord.root)
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Send resulting root proof</span>
+              <strong>
+                {operatorSendResultingRootRecord?.proofId
+                  ? abbreviate(operatorSendResultingRootRecord.proofId)
                   : "Unavailable"}
               </strong>
             </div>

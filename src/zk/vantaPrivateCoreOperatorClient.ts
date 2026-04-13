@@ -165,6 +165,7 @@ export type VantaPrivateCoreOperatorRootRecord = {
   artifactBundleVersion: number | null;
   merkleLeaf: string | null;
   noteCommitment: string | null;
+  proofId: string | null;
   recordedAt: number;
   root: string;
   source: string;
@@ -952,6 +953,9 @@ function isRootRecord(value: unknown): value is VantaPrivateCoreOperatorRootReco
     (((value as VantaPrivateCoreOperatorRootRecord).artifactBundleVersion === null ||
       (value as VantaPrivateCoreOperatorRootRecord).artifactBundleVersion === undefined) ||
       typeof (value as VantaPrivateCoreOperatorRootRecord).artifactBundleVersion === "number") &&
+    (((value as VantaPrivateCoreOperatorRootRecord).proofId === null ||
+      (value as VantaPrivateCoreOperatorRootRecord).proofId === undefined) ||
+      typeof (value as VantaPrivateCoreOperatorRootRecord).proofId === "string") &&
     typeof (value as VantaPrivateCoreOperatorRootRecord).recordedAt === "number" &&
     typeof (value as VantaPrivateCoreOperatorRootRecord).root === "string" &&
     typeof (value as VantaPrivateCoreOperatorRootRecord).source === "string"

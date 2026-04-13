@@ -524,13 +524,12 @@ const server = createServer(async (request, response) => {
       }
 
       assertVantaPrivateCoreSourceArtifactConsistency(sourceArtifacts, witnessPackage);
-      privateCoreProofStore.recordProof(
-        summarizePrivateCoreProofRecord({
-          action: "register-root",
-          proofReceipt,
-          witnessPackage,
-        }),
-      );
+      const proofRecord = summarizePrivateCoreProofRecord({
+        action: "register-root",
+        proofReceipt,
+        witnessPackage,
+      });
+      privateCoreProofStore.recordProof(proofRecord);
 
       privateCoreRootStore.recordRoot({
         root,
@@ -540,6 +539,7 @@ const server = createServer(async (request, response) => {
         witnessRoot: sourceArtifacts.witnessRoot,
         amount: typeof sourcePublicInputs?.amount === "string" ? sourcePublicInputs.amount : null,
         assetId: typeof sourcePublicInputs?.assetId === "string" ? sourcePublicInputs.assetId : null,
+        proofId: proofRecord.proofId,
         source: "app-private-core-shield-flow",
       });
 
