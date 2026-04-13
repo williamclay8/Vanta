@@ -340,11 +340,11 @@ export async function requestVantaPrivateCoreOperatorSendProof(args: {
 
 export async function requestVantaPrivateCoreOperatorSendTransition(args: {
   witnessPackage: VantaPrivateCoreNoirSendWitnessPackageV0;
-  resultingRoot?: string | null;
+  resultingRoot: string;
 }): Promise<VantaPrivateCoreSendOperatorResponse> {
   const response = await fetch(getPrivateCoreSendTransitionOperatorUrl(), {
     body: JSON.stringify({
-      resultingRoot: args.resultingRoot ?? null,
+      resultingRoot: args.resultingRoot,
       witnessPackage: args.witnessPackage,
     }),
     headers: {

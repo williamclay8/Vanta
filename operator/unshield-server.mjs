@@ -476,10 +476,10 @@ const server = createServer(async (request, response) => {
         );
       }
 
-      const resultingRoot =
-        typeof body?.resultingRoot === "string" && body.resultingRoot.length > 0
-          ? normalizePrivateCoreHex32(body.resultingRoot, "Private-core send resulting root")
-          : null;
+      const resultingRoot = normalizePrivateCoreHex32(
+        body?.resultingRoot,
+        "Private-core send resulting root",
+      );
       const proofReceipt = await proveAndVerifyVantaPrivateCoreSend({
         witnessPackage,
       });

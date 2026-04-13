@@ -274,7 +274,7 @@ try {
   printStatus("operator send http summary send-proof state: PASS");
 
   const missingRootTransition = await requestJson(baseUrl, "/private-core/send-transition", {
-    body: JSON.stringify({ witnessPackage }),
+    body: JSON.stringify({ resultingRoot: fixture.send.validResultingRoot, witnessPackage }),
     method: "POST",
   });
   if (!missingRootTransition.text.includes("input root is not registered")) {
@@ -335,6 +335,18 @@ try {
     throw new Error(restoreRootResponse.text || "send http root registration restore failed");
   }
   printStatus("operator send http root proof linkage restore: PASS");
+
+  const missingResultingRootTransition = await requestJson(baseUrl, "/private-core/send-transition", {
+    body: JSON.stringify({ witnessPackage }),
+    method: "POST",
+  });
+  if (!missingResultingRootTransition.text.includes("Private-core send resulting root is missing.")) {
+    throw new Error(
+      missingResultingRootTransition.text ||
+        "send transition unexpectedly accepted a missing resulting root",
+    );
+  }
+  printStatus("operator send http resulting-root required gate: PASS");
 
   const malformedRootTransition = await requestJson(baseUrl, "/private-core/send-transition", {
     body: JSON.stringify({ resultingRoot: "0x1234", witnessPackage }),
