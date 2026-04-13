@@ -1250,6 +1250,24 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               <strong>{abbreviate(privateCoreOperatorLatestSend?.sendId) ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
+              <span>Residual private note</span>
+              <strong>
+                {privateCoreHoldState
+                  ? `${formatBaseUnits(privateCoreHoldState.heldNote.note.amount, DEFAULT_VUSD_DECIMALS)} VUSD`
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Residual note readiness</span>
+              <strong>
+                {privateCoreSendExecution.status === "verified"
+                  ? privateCoreHoldState?.witnessAvailable
+                    ? "Recovered and ready"
+                    : "Awaiting witness"
+                  : "Not yet transitioned"}
+              </strong>
+            </div>
+            <div className="review-row">
               <span>Linked send proof</span>
               <strong>
                 {abbreviate(privateCoreOperatorLatestSendLinkedProof?.proofId) ?? "Unavailable"}
@@ -1315,7 +1333,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               <span>Send proof verified</span>
               <p>
                 The operator verified the current private send witness package and recorded a
-                proof-backed send transition without mutating unshield consume or release state.
+                proof-backed send transition. The shared private-core state now advances to the
+                residual change note, so the next hold or unshield step can continue from the
+                updated private balance.
               </p>
               <div className="success-metrics">
                 <div className="preview-card preview-card--accent">
@@ -1325,6 +1345,14 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 <div className="preview-card">
                   <span>Public inputs</span>
                   <strong>{privateCoreSendExecution.proofPublicInputCount ?? 0}</strong>
+                </div>
+                <div className="preview-card">
+                  <span>Residual private note</span>
+                  <strong>
+                    {privateCoreHoldState
+                      ? `${formatBaseUnits(privateCoreHoldState.heldNote.note.amount, DEFAULT_VUSD_DECIMALS)} VUSD`
+                      : "Unavailable"}
+                  </strong>
                 </div>
               </div>
               <p className="shield-helper shield-helper--meta">
@@ -1351,6 +1379,34 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               <p className="shield-helper shield-helper--meta">
                 Proof/send link: {privateCoreOperatorProofSendLinkStatus ?? "Unavailable"}
               </p>
+              <p className="shield-helper shield-helper--meta">
+                Residual note ready:{" "}
+                {privateCoreHoldState?.witnessAvailable ? "Yes" : "Awaiting refreshed hold state"}
+              </p>
+              <div className="status-actions">
+                <Link className="button button-primary" to="/app/unshield">
+                  Unshield Residual Note
+                </Link>
+                <button
+                  className="button button-ghost"
+                  type="button"
+                  onClick={() => {
+                    setStatus("idle");
+                    setFlowError(null);
+                    setPrivateCoreSendExecution({
+                      errorMessage: null,
+                      latestProofAction: null,
+                      latestProofId: null,
+                      latestSendId: null,
+                      proofFieldCount: null,
+                      proofPublicInputCount: null,
+                      status: "idle",
+                    });
+                  }}
+                >
+                  Continue Sending
+                </button>
+              </div>
             </div>
           )}
 
