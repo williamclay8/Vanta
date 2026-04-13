@@ -11,7 +11,10 @@ import {
 import {
   VANTA_PRIVATE_CORE_NOTE_VERSION_V0,
   VANTA_PRIVATE_CORE_PROOF_SYSTEM_V0,
+  VantaPrivateCoreLedger,
+  createVantaPrivateCoreOwnerKeypair,
   createVantaPrivateCoreWitnessRequest,
+  buildVantaPrivateCoreSendTransition,
   deriveVantaPrivateCoreMerkleLeafHash,
   deriveVantaPrivateCoreNoteCommitment,
   deriveVantaPrivateCoreNullifier,
@@ -194,6 +197,12 @@ export type VantaPrivateCoreSendProofBoundaryV0 = {
   publicInputs: SendPublicInputsV0;
   privateWitness: SendPrivateWitnessV0;
   noirWitnessPackage: VantaPrivateCoreNoirSendWitnessPackageV0;
+};
+
+export type VantaPrivateCoreFixedDepthSendFixtureV0 = {
+  merkleDepth: typeof VANTA_PRIVATE_CORE_SEND_CIRCUIT_MERKLE_DEPTH_V0;
+  validBoundary: VantaPrivateCoreSendProofBoundaryV0;
+  invalidDirectionWitnessPackage: VantaPrivateCoreNoirSendWitnessPackageV0;
 };
 
 export type BuildVantaPrivateCoreSendProofBoundaryArgs = {
@@ -454,6 +463,159 @@ export function deriveVantaPrivateCoreSendContextTag(args: {
   );
 }
 
+export function serializeVantaPrivateCoreNoirSendWitnessPackageToToml(
+  witnessPackage: VantaPrivateCoreNoirSendWitnessPackageV0,
+): string {
+  const publicInputs = witnessPackage.publicInputs;
+  const privateWitness = witnessPackage.privateWitness;
+
+  return [
+    `state_root = "${publicInputs.state_root}"`,
+    `input_nullifier = "${publicInputs.input_nullifier}"`,
+    `recipient_commitment = "${publicInputs.recipient_commitment}"`,
+    `change_commitment = "${publicInputs.change_commitment}"`,
+    `asset_id_hi = "${publicInputs.asset_id_hi}"`,
+    `asset_id_lo = "${publicInputs.asset_id_lo}"`,
+    `send_amount_lo = "${publicInputs.send_amount_lo}"`,
+    `send_amount_hi = "${publicInputs.send_amount_hi}"`,
+    `change_amount_lo = "${publicInputs.change_amount_lo}"`,
+    `change_amount_hi = "${publicInputs.change_amount_hi}"`,
+    `note_version = "${publicInputs.note_version}"`,
+    `send_context_tag_hi = "${publicInputs.send_context_tag_hi ?? "0"}"`,
+    `send_context_tag_lo = "${publicInputs.send_context_tag_lo ?? "0"}"`,
+    `input_note_type_code = "${privateWitness.input_note_type_code}"`,
+    `sender_public_key_hi = "${privateWitness.sender_public_key_hi}"`,
+    `sender_public_key_lo = "${privateWitness.sender_public_key_lo}"`,
+    `sender_secret_key_hi = "${privateWitness.sender_secret_key_hi}"`,
+    `sender_secret_key_lo = "${privateWitness.sender_secret_key_lo}"`,
+    `input_note_nonce_hi = "${privateWitness.input_note_nonce_hi}"`,
+    `input_note_nonce_lo = "${privateWitness.input_note_nonce_lo}"`,
+    `input_note_secret_hi = "${privateWitness.input_note_secret_hi}"`,
+    `input_note_secret_lo = "${privateWitness.input_note_secret_lo}"`,
+    `input_blinding_hi = "${privateWitness.input_blinding_hi}"`,
+    `input_blinding_lo = "${privateWitness.input_blinding_lo}"`,
+    `input_derivation_tag_hi = "${privateWitness.input_derivation_tag_hi}"`,
+    `input_derivation_tag_lo = "${privateWitness.input_derivation_tag_lo}"`,
+    `input_leaf_index = "${privateWitness.input_leaf_index}"`,
+    `membership_path_hi = ${serializeTomlArray(privateWitness.membership_path_hi)}`,
+    `membership_path_lo = ${serializeTomlArray(privateWitness.membership_path_lo)}`,
+    `membership_path_direction_bits = ${serializeTomlArray(privateWitness.membership_path_direction_bits)}`,
+    `recipient_note_type_code = "${privateWitness.recipient_note_type_code}"`,
+    `recipient_owner_public_key_hi = "${privateWitness.recipient_owner_public_key_hi}"`,
+    `recipient_owner_public_key_lo = "${privateWitness.recipient_owner_public_key_lo}"`,
+    `recipient_note_nonce_hi = "${privateWitness.recipient_note_nonce_hi}"`,
+    `recipient_note_nonce_lo = "${privateWitness.recipient_note_nonce_lo}"`,
+    `recipient_note_secret_hi = "${privateWitness.recipient_note_secret_hi}"`,
+    `recipient_note_secret_lo = "${privateWitness.recipient_note_secret_lo}"`,
+    `recipient_blinding_hi = "${privateWitness.recipient_blinding_hi}"`,
+    `recipient_blinding_lo = "${privateWitness.recipient_blinding_lo}"`,
+    `recipient_derivation_tag_hi = "${privateWitness.recipient_derivation_tag_hi}"`,
+    `recipient_derivation_tag_lo = "${privateWitness.recipient_derivation_tag_lo}"`,
+    `change_note_type_code = "${privateWitness.change_note_type_code}"`,
+    `change_owner_public_key_hi = "${privateWitness.change_owner_public_key_hi}"`,
+    `change_owner_public_key_lo = "${privateWitness.change_owner_public_key_lo}"`,
+    `change_note_nonce_hi = "${privateWitness.change_note_nonce_hi}"`,
+    `change_note_nonce_lo = "${privateWitness.change_note_nonce_lo}"`,
+    `change_note_secret_hi = "${privateWitness.change_note_secret_hi}"`,
+    `change_note_secret_lo = "${privateWitness.change_note_secret_lo}"`,
+    `change_blinding_hi = "${privateWitness.change_blinding_hi}"`,
+    `change_blinding_lo = "${privateWitness.change_blinding_lo}"`,
+    `change_derivation_tag_hi = "${privateWitness.change_derivation_tag_hi}"`,
+    `change_derivation_tag_lo = "${privateWitness.change_derivation_tag_lo}"`,
+  ].join("\n");
+}
+
+export function getVantaPrivateCoreFixedDepthSendFixtureV0():
+  VantaPrivateCoreFixedDepthSendFixtureV0 {
+  const entries = [
+    {
+      secretKey: "0x1010101010101010101010101010101010101010101010101010101010101010",
+      amount: 11_000_000n,
+    },
+    {
+      secretKey: "0x2020202020202020202020202020202020202020202020202020202020202020",
+      amount: 22_000_000n,
+    },
+    {
+      secretKey: "0x3030303030303030303030303030303030303030303030303030303030303030",
+      amount: 33_000_000n,
+    },
+    {
+      secretKey: "0x4040404040404040404040404040404040404040404040404040404040404040",
+      amount: 44_000_000n,
+    },
+    {
+      secretKey: "0x5050505050505050505050505050505050505050505050505050505050505050",
+      amount: 55_000_000n,
+    },
+  ] as const;
+  const assetId =
+    "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" as Bytes32Hex;
+  const ledger = new VantaPrivateCoreLedger();
+  const owners = entries.map((entry) =>
+    createVantaPrivateCoreOwnerKeypair(entry.secretKey as Bytes32Hex),
+  );
+  const shields = entries.map((entry, index) =>
+    ledger.shield({
+      assetId,
+      amount: entry.amount,
+      ownerPublicKey: owners[index].publicKey,
+      noteNonce: toRepeatedByteHex(index + 1),
+      noteSecret: toRepeatedByteHex(index + 11),
+      blinding: toRepeatedByteHex(index + 21),
+      derivationTag: toRepeatedByteHex(index + 31),
+      senderEphemeralSecretKey: toRepeatedByteHex(index + 41),
+      payloadNonce: toRepeatedByteHex12(index + 51),
+    }),
+  );
+  const senderIndex = 2;
+  const recipientIndex = 4;
+  const heldNote = ledger.hold({
+    encryptedPayload: shields[senderIndex].encryptedPayload,
+    ownerSecretKey: owners[senderIndex].secretKey,
+  });
+  const transition = buildVantaPrivateCoreSendTransition({
+    input: heldNote,
+    sendAmount: 13_000_000n,
+    recipientOwnerPublicKey: owners[recipientIndex].publicKey,
+    recipientNoteNonce: "0x6161616161616161616161616161616161616161616161616161616161616161",
+    recipientNoteSecret: "0x7171717171717171717171717171717171717171717171717171717171717171",
+    recipientBlinding: "0x8181818181818181818181818181818181818181818181818181818181818181",
+    recipientDerivationTag: "0x9191919191919191919191919191919191919191919191919191919191919191",
+    recipientSenderEphemeralSecretKey:
+      "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    changeNoteNonce: "0xb1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1",
+    changeNoteSecret: "0xc1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1",
+    changeBlinding: "0xd1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1",
+    changeDerivationTag: "0xe1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1",
+    changeSenderEphemeralSecretKey:
+      "0xf1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1",
+  });
+  const validBoundary = buildVantaPrivateCoreSendProofBoundary({
+    transition,
+    senderSecretKey: owners[senderIndex].secretKey,
+    circuitMerkleDepth: VANTA_PRIVATE_CORE_SEND_CIRCUIT_MERKLE_DEPTH_V0,
+    requireNontrivialMerklePath: true,
+  });
+
+  const invalidDirectionWitnessPackage: VantaPrivateCoreNoirSendWitnessPackageV0 = {
+    ...validBoundary.noirWitnessPackage,
+    privateWitness: {
+      ...validBoundary.noirWitnessPackage.privateWitness,
+      membership_path_direction_bits:
+        validBoundary.noirWitnessPackage.privateWitness.membership_path_direction_bits.map(
+          (bit, index) => (index === 0 ? (bit === "1" ? "0" : "1") : bit),
+        ),
+    },
+  };
+
+  return {
+    merkleDepth: VANTA_PRIVATE_CORE_SEND_CIRCUIT_MERKLE_DEPTH_V0,
+    validBoundary,
+    invalidDirectionWitnessPackage,
+  };
+}
+
 function collectSendProofBoundaryBlockers(args: {
   transition: SendTransitionV0;
   inputCommitment: Bytes32Hex;
@@ -664,6 +826,10 @@ function encodeFieldToPublicPair(value: FieldDecimalString): { hi: FieldDecimalS
   };
 }
 
+function serializeTomlArray(values: readonly string[]): string {
+  return `[${values.map((value) => `"${value}"`).join(", ")}]`;
+}
+
 function encodeU128ToTwoU64Le(value: bigint): U128EncodingV0 {
   if (value < 0n || value > (1n << 128n) - 1n) {
     throw new Error(`Value ${String(value)} cannot be encoded as u128.`);
@@ -751,4 +917,16 @@ function toHex32(bytes: Uint8Array): Bytes32Hex {
 
 function zeroHex32(): Bytes32Hex {
   return "0x0000000000000000000000000000000000000000000000000000000000000000";
+}
+
+function toRepeatedByteHex(byte: number): Bytes32Hex {
+  const normalizedByte = byte & 0xff;
+  const pair = normalizedByte.toString(16).padStart(2, "0");
+  return `0x${pair.repeat(32)}` as Bytes32Hex;
+}
+
+function toRepeatedByteHex12(byte: number): `0x${string}` {
+  const normalizedByte = byte & 0xff;
+  const pair = normalizedByte.toString(16).padStart(2, "0");
+  return `0x${pair.repeat(12)}`;
 }
