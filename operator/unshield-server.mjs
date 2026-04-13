@@ -1447,6 +1447,10 @@ function buildPrivateCoreSummaryState() {
     latestSend,
     rootRecords,
   });
+  const sendResultingRootRecord =
+    latestSend?.resultingRoot
+      ? rootRecords.find((record) => record.root === latestSend.resultingRoot) ?? null
+      : null;
   const boundaryStatus = summarizePrivateCoreBoundaryStatus({
     currentRoot: rootRecords[0]?.root ?? null,
     proofConsumeLinkStatus,
@@ -1458,10 +1462,11 @@ function buildPrivateCoreSummaryState() {
     boundaryStatus: boundaryStatus.status,
     boundaryNote: boundaryStatus.note,
     generatedAt: Date.now(),
+    sendResultingRootRecord,
     sendResultingRootNote: sendResultingRootStatus.note,
     sendResultingRootStatus: sendResultingRootStatus.status,
     stateVersion: 1,
-    summaryVersion: 1,
+    summaryVersion: 2,
     currentRoot: rootRecords[0]?.root ?? null,
     currentRecord: rootRecords[0] ?? null,
     rootRecords,

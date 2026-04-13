@@ -56,6 +56,7 @@ The operator-status command gives a quick summary snapshot of:
 - latest send linked proof
 - latest send resulting root
 - send resulting root status
+- send resulting root record
 - latest consume
 - latest release
 - proof/send link status

@@ -273,7 +273,7 @@ try {
     preRestartSends.parsed.records.length < 1 ||
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.stateVersion !== 1 ||
-    preRestartSummary.parsed?.summaryVersion !== 1 ||
+    preRestartSummary.parsed?.summaryVersion !== 2 ||
     typeof preRestartSummary.parsed?.generatedAt !== "number" ||
     preRestartSummary.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
     preRestartSummary.parsed?.latestSendProof?.action !== "send-proof" ||
@@ -316,7 +316,7 @@ try {
   if (
     !postRestartSummary.ok ||
     postRestartSummary.parsed?.stateVersion !== 1 ||
-    postRestartSummary.parsed?.summaryVersion !== 1 ||
+    postRestartSummary.parsed?.summaryVersion !== 2 ||
     typeof postRestartSummary.parsed?.generatedAt !== "number" ||
     postRestartSummary.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
     postRestartSummary.parsed?.rootRecordCount < 1

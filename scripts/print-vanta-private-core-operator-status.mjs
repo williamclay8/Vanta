@@ -25,6 +25,15 @@ try {
   printLine("Latest send resulting root", abbreviate(summary.latestSend?.resultingRoot));
   printLine("Send resulting root status", humanizeSendResultingRootStatus(summary.sendResultingRootStatus));
   printLine("Send resulting root note", summary.sendResultingRootNote ?? "Unavailable");
+  printLine("Send resulting root record", abbreviate(summary.sendResultingRootRecord?.root));
+  printLine(
+    "Send resulting root bundle",
+    summary.sendResultingRootRecord?.artifactBundleStatus === "complete"
+      ? `Complete v${String(summary.sendResultingRootRecord.artifactBundleVersion ?? 1)}`
+      : summary.sendResultingRootRecord?.artifactBundleStatus === "legacy-incomplete"
+        ? "Legacy incomplete"
+        : "Unavailable",
+  );
   printLine(
     "Latest send amount",
     typeof summary.latestSend?.sendAmount === "string" ? summary.latestSend.sendAmount : "Unavailable",

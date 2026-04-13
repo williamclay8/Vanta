@@ -148,6 +148,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorLatestSend,
     privateCoreOperatorLatestSendLinkedProof,
     privateCoreOperatorLatestSendProof,
+    privateCoreOperatorSendResultingRootRecord,
     privateCoreOperatorSendResultingRootPrimaryNote,
     privateCoreOperatorSendResultingRootStatusLabel,
     privateCoreOperatorProofSendLinkStatus,
@@ -1486,6 +1487,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               </p>
               <p className="shield-helper shield-helper--meta">
                 Send root note: {privateCoreSendState.resultingRootPrimaryNote}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Send root record: {abbreviate(privateCoreOperatorSendResultingRootRecord?.root) ?? "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
                 Residual state: {privateCoreSendState.residualStateStatus}

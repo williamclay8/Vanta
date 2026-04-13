@@ -220,7 +220,7 @@ try {
   if (
     !initialSummaryState.ok ||
     initialSummaryState.parsed?.stateVersion !== 1 ||
-    initialSummaryState.parsed?.summaryVersion !== 1 ||
+    initialSummaryState.parsed?.summaryVersion !== 2 ||
     typeof initialSummaryState.parsed?.generatedAt !== "number" ||
     initialSummaryState.parsed?.currentRoot !== null ||
     initialSummaryState.parsed?.latestProof !== null ||
@@ -844,7 +844,7 @@ try {
   if (
     !summaryStateAfterConsume.ok ||
     summaryStateAfterConsume.parsed?.stateVersion !== 1 ||
-    summaryStateAfterConsume.parsed?.summaryVersion !== 1 ||
+    summaryStateAfterConsume.parsed?.summaryVersion !== 2 ||
     typeof summaryStateAfterConsume.parsed?.generatedAt !== "number" ||
     summaryStateAfterConsume.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
     summaryStateAfterConsume.parsed?.latestConsumeProof?.proofId !== consumeResponse.parsed.proofId ||

@@ -41,6 +41,7 @@ type VantaPrivateCoreStatePanelProps = {
   operatorRootError?: string | null;
   operatorRootRegistrationStatus?: string | null;
   operatorRoots?: VantaPrivateCoreOperatorRootRecord[];
+  operatorSendResultingRootRecord?: VantaPrivateCoreOperatorRootRecord | null;
   operatorSendResultingRootPrimaryNote?: string | null;
   operatorSendResultingRootStatusLabel?: string | null;
   operatorSendError?: string | null;
@@ -158,6 +159,7 @@ export function VantaPrivateCoreStatePanel({
   operatorRootError = null,
   operatorRootRegistrationStatus = null,
   operatorRoots = [],
+  operatorSendResultingRootRecord = null,
   operatorSendResultingRootPrimaryNote = null,
   operatorSendResultingRootStatusLabel = null,
   operatorSendError = null,
@@ -305,6 +307,14 @@ export function VantaPrivateCoreStatePanel({
                   {sendState.resultingRootPrimaryNote ??
                     operatorSendResultingRootPrimaryNote ??
                     "Unavailable"}
+                </strong>
+              </div>
+              <div className="review-row">
+                <span>Resulting root record</span>
+                <strong>
+                  {operatorSendResultingRootRecord?.root
+                    ? abbreviate(operatorSendResultingRootRecord.root)
+                    : "Unavailable"}
                 </strong>
               </div>
               <div className="review-row">
@@ -759,6 +769,24 @@ export function VantaPrivateCoreStatePanel({
                 {sendState?.resultingRootPrimaryNote ??
                   operatorSendResultingRootPrimaryNote ??
                   "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Send resulting root record</span>
+              <strong>
+                {operatorSendResultingRootRecord?.root
+                  ? abbreviate(operatorSendResultingRootRecord.root)
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Send resulting root bundle</span>
+              <strong>
+                {operatorSendResultingRootRecord?.artifactBundleStatus === "complete"
+                  ? `Complete v${String(operatorSendResultingRootRecord.artifactBundleVersion ?? 1)}`
+                  : operatorSendResultingRootRecord?.artifactBundleStatus === "legacy-incomplete"
+                    ? "Legacy incomplete"
+                    : "Unavailable"}
               </strong>
             </div>
             <div className="review-row">

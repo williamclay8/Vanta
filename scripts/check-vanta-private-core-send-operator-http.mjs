@@ -256,10 +256,11 @@ try {
   if (
     !summaryState.ok ||
     summaryState.parsed?.stateVersion !== 1 ||
-    summaryState.parsed?.summaryVersion !== 1 ||
+    summaryState.parsed?.summaryVersion !== 2 ||
     summaryState.parsed?.latestSendProof?.action !== "send-proof" ||
     summaryState.parsed?.latestSendProof?.circuit !== "vanta_private_core_single_note_send" ||
     summaryState.parsed?.sendProofRecordCount !== 1 ||
+    summaryState.parsed?.sendResultingRootRecord !== null ||
     summaryState.parsed?.sendResultingRootStatus !== "unavailable"
   ) {
     throw new Error(summaryState.text || "operator summary did not reflect send-proof state");
@@ -326,6 +327,7 @@ try {
     !summaryAfterTransition.ok ||
     summaryAfterTransition.parsed?.sendProofRecordCount !== 2 ||
     summaryAfterTransition.parsed?.sendRecordCount !== 1 ||
+    summaryAfterTransition.parsed?.sendResultingRootRecord !== null ||
     summaryAfterTransition.parsed?.latestSend?.sendId !== transitionResponse.parsed.sendId ||
     summaryAfterTransition.parsed?.sendResultingRootStatus !== "unregistered"
   ) {

@@ -208,7 +208,7 @@ These commands cover:
 
 `private-core:demo-preflight` combines the full verification pass with the current operator status summary.
 
-`private-core:operator-status` gives a quick readout of the current operator root, proof, send-proof, send-transition, consume, and release state when the operator server is running, including proof/send, proof/consume, and proof/release linkage. It also reports the latest send resulting-root continuity status so you can see whether the newest private-send root is still unregistered, current, stale, or already consumed/released downstream. The send lane uses the same current-root registration discipline as consume before the operator will accept a transition.
+`private-core:operator-status` gives a quick readout of the current operator root, proof, send-proof, send-transition, consume, and release state when the operator server is running, including proof/send, proof/consume, and proof/release linkage. It also reports the latest send resulting-root continuity status plus the concrete registered root record behind that resulting root when one exists, so you can see whether the newest private-send root is still unregistered, current, stale, or already consumed/released downstream. The send lane uses the same current-root registration discipline as consume before the operator will accept a transition.
 
 ---
 

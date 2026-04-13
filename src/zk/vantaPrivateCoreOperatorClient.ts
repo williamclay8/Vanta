@@ -192,6 +192,7 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
     | "proof-consume-unlinked"
     | "proof-release-unlinked";
   sendResultingRootNote: string;
+  sendResultingRootRecord: VantaPrivateCoreOperatorRootRecord | null;
   sendResultingRootStatus:
     | "unavailable"
     | "missing"
@@ -769,6 +770,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     summaryVersion?: unknown;
     boundaryStatus?: unknown;
     boundaryNote?: unknown;
+    sendResultingRootRecord?: unknown;
     sendResultingRootStatus?: unknown;
     sendResultingRootNote?: unknown;
     generatedAt?: unknown;
@@ -801,9 +803,12 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.summaryVersion !== 1 ||
+    parsed.summaryVersion !== 2 ||
     !isBoundaryStatus(parsed.boundaryStatus) ||
     typeof parsed.boundaryNote !== "string" ||
+    (parsed.sendResultingRootRecord !== null &&
+      parsed.sendResultingRootRecord !== undefined &&
+      !isRootRecord(parsed.sendResultingRootRecord)) ||
     !isSendResultingRootStatus(parsed.sendResultingRootStatus) ||
     typeof parsed.sendResultingRootNote !== "string" ||
     typeof parsed.generatedAt !== "number" ||
@@ -858,9 +863,12 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   return {
     stateVersion: 1,
-    summaryVersion: 1,
+    summaryVersion: 2,
     boundaryStatus: parsed.boundaryStatus,
     boundaryNote: parsed.boundaryNote,
+    sendResultingRootRecord: isRootRecord(parsed.sendResultingRootRecord)
+      ? parsed.sendResultingRootRecord
+      : null,
     sendResultingRootStatus: parsed.sendResultingRootStatus,
     sendResultingRootNote: parsed.sendResultingRootNote,
     generatedAt: parsed.generatedAt,
