@@ -36,6 +36,8 @@ That confirms:
 - received private notes can still become the input to a second private send coherently
 - one operator-backed private send still proves, applies, recovers for the recipient, and preserves sender privacy
 - one operator-backed private send now requires the current input root to be registered before transition
+- one operator-backed private send now also requires that input root to stay linked to its registration proof
+- one operator-backed private send now rejects missing, malformed, or non-transitioning resulting roots before proof execution
 - one operator-backed private send can now flow into operator-backed recipient unshield coherently
 - two operator-backed private send transitions can now flow into operator-backed recipient unshield coherently
 - two operator-backed private send transitions can now execute in sequence on evolving private state
@@ -102,6 +104,7 @@ If you want the technical audience version, expand the internal diagnostics and 
 - source witness root
 - latest send proof
 - latest send transition
+- latest send resulting-root basis
 - proof/send link status
 - proving lane
 - proving root

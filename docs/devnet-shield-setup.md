@@ -119,6 +119,7 @@ The operator-status command now prints:
 - latest proof
 - latest send proof
 - latest send linked proof
+- latest send resulting-root basis
 - latest send resulting root
 - send resulting root status
 - send resulting root record
@@ -151,6 +152,8 @@ These commands currently prove:
 - recipient notes from private send still recover and spend coherently
 - received private notes can still chain into a second private send coherently
 - one operator-backed private send still proves, applies, recovers for the recipient, and preserves sender privacy
+- one operator-backed private send now requires the current input root to stay linked to its registration proof
+- one operator-backed private send now rejects missing, malformed, or non-transitioning resulting roots before proof execution
 - one operator-backed private send can now flow into operator-backed recipient unshield coherently
 - two operator-backed private send transitions can now flow into operator-backed recipient unshield coherently
 - two operator-backed private send transitions can now verify in sequence on evolving private state

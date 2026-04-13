@@ -173,7 +173,7 @@ The repo now includes concrete verification commands for the Vanta Private Core 
 - `npm run private-core:send-prove`
   generates and verifies a real local proof for the current single-note private-send lane
 - `npm run private-core:send-http-smoke`
-  proves the operator rejects unregistered send input roots, accepts proof-backed root registration, verifies the current send witness package over HTTP, persists explicit send-proof state, and preserves the expected shared root-registration proof state
+  proves the operator rejects unregistered send input roots, requires the current input root to stay linked to its registration proof, rejects missing / malformed / non-transitioning resulting roots, accepts proof-backed root registration, verifies the current send witness package over HTTP, persists explicit send-proof state, and preserves the expected shared root-registration proof state
 - `npm run private-core:send-roundtrip-check`
   proves one operator-backed private-send roundtrip from verified send transition through sender residual-change recovery, recipient note recovery, recipient spendability, and sender privacy failure
 - `npm run private-core:send-unshield-roundtrip-check`
@@ -216,7 +216,7 @@ The repo now includes concrete verification commands for the Vanta Private Core 
 - `npm run private-core:demo-preflight`
   runs the full verification pass and then prints the current operator-side status summary
 - `npm run private-core:operator-status`
-  prints the current operator-side root, proof, send-proof, send-transition, consume, and release state when the operator server is running, including proof/send, proof/consume, proof/release, and root-registration proof linkage plus send resulting-root continuity status and the matched resulting-root record when available
+  prints the current operator-side root, proof, send-proof, send-transition, consume, and release state when the operator server is running, including proof/send, proof/consume, proof/release, and root-registration proof linkage plus send resulting-root continuity status, resulting-root provenance, and the matched resulting-root record when available
 
 These commands do not make the protocol finished, but they do make the current first zk boundary concrete and repeatable.
 
