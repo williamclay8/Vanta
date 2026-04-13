@@ -219,6 +219,7 @@ try {
     !initialSummaryState.ok ||
     initialSummaryState.parsed?.stateVersion !== 1 ||
     initialSummaryState.parsed?.summaryVersion !== 1 ||
+    typeof initialSummaryState.parsed?.generatedAt !== "number" ||
     initialSummaryState.parsed?.currentRoot !== null ||
     initialSummaryState.parsed?.latestProof !== null ||
     initialSummaryState.parsed?.latestConsume !== null ||
@@ -838,6 +839,7 @@ try {
     !summaryStateAfterConsume.ok ||
     summaryStateAfterConsume.parsed?.stateVersion !== 1 ||
     summaryStateAfterConsume.parsed?.summaryVersion !== 1 ||
+    typeof summaryStateAfterConsume.parsed?.generatedAt !== "number" ||
     summaryStateAfterConsume.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
     summaryStateAfterConsume.parsed?.latestConsumeProof?.proofId !== consumeResponse.parsed.proofId ||
     summaryStateAfterConsume.parsed?.latestConsume?.proofId !== consumeResponse.parsed.proofId ||
@@ -885,6 +887,7 @@ try {
   });
   if (
     !summaryStateAfterRelease.ok ||
+    typeof summaryStateAfterRelease.parsed?.generatedAt !== "number" ||
     summaryStateAfterRelease.parsed?.latestConsumeProof?.proofId !== consumeResponse.parsed.proofId ||
     summaryStateAfterRelease.parsed?.latestConsume?.proofId !== consumeResponse.parsed.proofId ||
     summaryStateAfterRelease.parsed?.latestReleaseProof?.proofId !== consumeResponse.parsed.proofId ||
@@ -924,6 +927,7 @@ try {
   if (
     !operatorStatusOutput.includes("Summary state version: 1") ||
     !operatorStatusOutput.includes("Summary version: 1") ||
+    !operatorStatusOutput.includes("Summary generated:") ||
     !operatorStatusOutput.includes("Latest proof action: consume") ||
     !operatorStatusOutput.includes("Latest consume proof:") ||
     !operatorStatusOutput.includes("Latest consume linked proof:") ||

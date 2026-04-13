@@ -6,6 +6,7 @@ try {
   printLine("Operator", baseUrl);
   printLine("Summary state version", String(summary.stateVersion ?? "unknown"));
   printLine("Summary version", String(summary.summaryVersion ?? "unknown"));
+  printLine("Summary generated", formatTimestamp(summary.generatedAt));
   printLine("Current root", abbreviate(summary.currentRoot));
   printLine("Root records", String(summary.rootRecordCount ?? 0));
   printLine("Latest consume", abbreviate(summary.latestConsume?.nullifier));
@@ -80,6 +81,18 @@ function abbreviate(value) {
 
 function printLine(label, value) {
   console.log(`${label}: ${value}`);
+}
+
+function formatTimestamp(value) {
+  if (typeof value !== "number") {
+    return "Unavailable";
+  }
+
+  return new Date(value).toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+  });
 }
 
 function humanizeBoundaryStatus(value) {

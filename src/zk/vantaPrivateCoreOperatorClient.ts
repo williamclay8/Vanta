@@ -127,6 +127,7 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
     | "awaiting-current-root"
     | "proof-consume-unlinked"
     | "proof-release-unlinked";
+  generatedAt: number;
   stateVersion: number;
   summaryVersion: number;
   currentRoot: string | null;
@@ -489,6 +490,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     summaryVersion?: unknown;
     boundaryStatus?: unknown;
     boundaryNote?: unknown;
+    generatedAt?: unknown;
     currentRoot?: unknown;
     currentRecord?: unknown;
     rootRecords?: unknown;
@@ -513,6 +515,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     parsed.summaryVersion !== 1 ||
     !isBoundaryStatus(parsed.boundaryStatus) ||
     typeof parsed.boundaryNote !== "string" ||
+    typeof parsed.generatedAt !== "number" ||
     (parsed.currentRoot !== null &&
       parsed.currentRoot !== undefined &&
       typeof parsed.currentRoot !== "string") ||
@@ -553,6 +556,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     summaryVersion: 1,
     boundaryStatus: parsed.boundaryStatus,
     boundaryNote: parsed.boundaryNote,
+    generatedAt: parsed.generatedAt,
     currentRoot: typeof parsed.currentRoot === "string" ? parsed.currentRoot : null,
     currentRecord: isRootRecord(parsed.currentRecord) ? parsed.currentRecord : null,
     rootRecords: parsed.rootRecords.filter(isRootRecord),

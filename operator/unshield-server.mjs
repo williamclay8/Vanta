@@ -1275,6 +1275,7 @@ function buildPrivateCoreSummaryState() {
   return {
     boundaryStatus: boundaryStatus.status,
     boundaryNote: boundaryStatus.note,
+    generatedAt: Date.now(),
     stateVersion: 1,
     summaryVersion: 1,
     currentRoot: rootRecords[0]?.root ?? null,

@@ -216,6 +216,7 @@ try {
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.stateVersion !== 1 ||
     preRestartSummary.parsed?.summaryVersion !== 1 ||
+    typeof preRestartSummary.parsed?.generatedAt !== "number" ||
     preRestartSummary.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
     preRestartSummary.parsed?.latestConsume?.proofId !== consumeResponse.parsed.proofId ||
     preRestartSummary.parsed?.latestConsumeProof?.proofId !== consumeResponse.parsed.proofId ||
@@ -247,6 +248,7 @@ try {
     !postRestartSummary.ok ||
     postRestartSummary.parsed?.stateVersion !== 1 ||
     postRestartSummary.parsed?.summaryVersion !== 1 ||
+    typeof postRestartSummary.parsed?.generatedAt !== "number" ||
     postRestartSummary.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
     postRestartSummary.parsed?.rootRecordCount < 1
   ) {
@@ -289,6 +291,7 @@ try {
   });
   if (
     !operatorStatusOutput.includes("Latest proof action: consume") ||
+    !operatorStatusOutput.includes("Summary generated:") ||
     !operatorStatusOutput.includes("Latest consume proof:") ||
     !operatorStatusOutput.includes("Latest release proof:") ||
     !operatorStatusOutput.includes("Boundary status: Operator boundary coherent")

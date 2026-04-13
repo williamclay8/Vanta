@@ -324,7 +324,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     setPrivateCoreOperatorProofError(null);
     setPrivateCoreOperatorReleaseError(null);
     setPrivateCoreOperatorRootError(null);
-    setPrivateCoreOperatorSummaryUpdatedAt(Date.now());
+    setPrivateCoreOperatorSummaryUpdatedAt(summaryState.generatedAt);
     return summaryState;
   }, []);
 
