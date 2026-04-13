@@ -1494,6 +1494,8 @@ function buildPrivateCoreSummaryState() {
   const boundaryStatus = summarizePrivateCoreBoundaryStatus({
     currentRoot: currentRootRecord?.root ?? null,
     currentRootProofLinkStatus,
+    hasConsume: latestConsume !== null,
+    hasRelease: latestRelease !== null,
     proofConsumeLinkStatus,
     proofSendLinkStatus,
     proofReleaseLinkStatus,
@@ -1632,7 +1634,7 @@ function summarizePrivateCoreBoundaryStatus(args) {
     };
   }
 
-  if (args.proofConsumeLinkStatus !== "linked") {
+  if (args.hasConsume && args.proofConsumeLinkStatus !== "linked") {
     return {
       status: "proof-consume-unlinked",
       note:
@@ -1642,7 +1644,7 @@ function summarizePrivateCoreBoundaryStatus(args) {
     };
   }
 
-  if (args.proofReleaseLinkStatus !== "linked") {
+  if (args.hasRelease && args.proofReleaseLinkStatus !== "linked") {
     return {
       status: "proof-release-unlinked",
       note:

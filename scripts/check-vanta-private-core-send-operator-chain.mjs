@@ -359,6 +359,7 @@ try {
     !summary.ok ||
     summary.parsed?.sendRecordCount !== 2 ||
     summary.parsed?.sendProofRecordCount !== 2 ||
+    summary.parsed?.boundaryStatus !== "coherent" ||
     summary.parsed?.proofSendLinkStatus !== "linked" ||
     summary.parsed?.latestSend?.sendId !== secondTransitionResponse.parsed.sendId ||
     summary.parsed?.latestSend?.resultingRootBasis !== "client-declared" ||

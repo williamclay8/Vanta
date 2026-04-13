@@ -294,6 +294,7 @@ try {
     summaryState.parsed?.latestSend?.resultingRootBasis !== "client-declared" ||
     summaryState.parsed?.latestSendProof?.proofId !== transitionResponse.parsed.proofId ||
     summaryState.parsed?.latestSendLinkedProof?.proofId !== transitionResponse.parsed.proofId ||
+    summaryState.parsed?.boundaryStatus !== "coherent" ||
     summaryState.parsed?.proofSendLinkStatus !== "linked" ||
     summaryState.parsed?.sendResultingRootStatus !== "unregistered"
   ) {

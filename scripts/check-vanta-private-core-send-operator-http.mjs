@@ -415,6 +415,7 @@ try {
     summaryAfterTransition.parsed?.sendProofRecordCount !== 2 ||
     summaryAfterTransition.parsed?.sendRecordCount !== 1 ||
     summaryAfterTransition.parsed?.latestSend?.resultingRootBasis !== "client-declared" ||
+    summaryAfterTransition.parsed?.boundaryStatus !== "coherent" ||
     summaryAfterTransition.parsed?.sendResultingRootRecord !== null ||
     summaryAfterTransition.parsed?.latestSend?.sendId !== transitionResponse.parsed.sendId ||
     summaryAfterTransition.parsed?.sendResultingRootStatus !== "unregistered"
