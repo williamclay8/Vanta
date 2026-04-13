@@ -32,6 +32,7 @@ That confirms:
 - the operator consume regression is still green
 - the operator HTTP smoke path is still green
 - operator state survives a restart
+- replay is still rejected after restart
 - local proof generation and verification still succeeds
 
 The operator-status command gives a quick readout of:

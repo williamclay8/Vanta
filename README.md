@@ -171,6 +171,7 @@ These commands cover:
 - local proof generation and verification
 - operator-backed consume and HTTP smoke coverage
 - operator state persistence across restart
+- replay rejection after operator restart
 
 `private-core:demo-readiness` is the friendliest single entrypoint when you just want to know whether the current proof/demo lane is stage-ready.
 

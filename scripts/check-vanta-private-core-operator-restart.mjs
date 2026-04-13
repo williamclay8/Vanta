@@ -282,6 +282,15 @@ try {
   }
   printStatus("operator restart persisted state: PASS");
 
+  const replayAfterRestart = await requestJson(baseUrl, "/private-core/unshield-consume", {
+    body: JSON.stringify({ sourceArtifacts, witnessPackage }),
+    method: "POST",
+  });
+  if (!replayAfterRestart.text.includes("has already been consumed")) {
+    throw new Error(replayAfterRestart.text || "operator restart lost replay rejection state");
+  }
+  printStatus("operator restart replay rejection: PASS");
+
   const operatorStatusOutput = execFileSync("node", [
     "scripts/print-vanta-private-core-operator-status.mjs",
     "--base-url",
