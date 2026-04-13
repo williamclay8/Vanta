@@ -31,6 +31,7 @@ type VantaPrivateCoreStatePanelProps = {
   operatorRootError?: string | null;
   operatorRootRegistrationStatus?: string | null;
   operatorRoots?: VantaPrivateCoreOperatorRootRecord[];
+  operatorSummaryUpdatedAt?: number | null;
   shieldState: VantaPrivateCoreShieldState | null;
   unshieldState: VantaPrivateCoreUnshieldState | null;
   compact?: boolean;
@@ -50,6 +51,18 @@ function formatAmount(baseUnits: string) {
   const whole = raw.slice(0, -6);
   const fraction = raw.slice(-6).replace(/0+$/, "");
   return `${whole}${fraction ? `.${fraction}` : ""} VUSD`;
+}
+
+function formatOperatorSummaryFreshness(value: number | null) {
+  if (!value) {
+    return "Unavailable";
+  }
+
+  return new Date(value).toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+  });
 }
 
 function summarizeOperatorImmediateReleaseAlignment(args: {
@@ -122,6 +135,7 @@ export function VantaPrivateCoreStatePanel({
   operatorRootError = null,
   operatorRootRegistrationStatus = null,
   operatorRoots = [],
+  operatorSummaryUpdatedAt = null,
   shieldState,
   unshieldState,
   compact = false,
@@ -271,6 +285,10 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Observation mode</span>
               <strong>{unshieldState?.proofObservationMode ?? holdState?.proofObservationMode ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Operator summary refresh</span>
+              <strong>{formatOperatorSummaryFreshness(operatorSummaryUpdatedAt)}</strong>
             </div>
             <div className="review-row">
               <span>Circuit readiness</span>

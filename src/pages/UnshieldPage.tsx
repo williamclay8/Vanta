@@ -116,6 +116,7 @@ export function UnshieldPage() {
     privateCoreOperatorRootError,
     privateCoreOperatorRootRegistrationStatus,
     privateCoreOperatorRoots,
+    privateCoreOperatorSummaryUpdatedAt,
     privateCoreRecentShield,
     privateCoreUnshieldState,
     runPrivateCoreReplayAttempt,
@@ -858,6 +859,7 @@ export function UnshieldPage() {
           operatorRootError={privateCoreOperatorRootError}
           operatorRootRegistrationStatus={privateCoreOperatorRootRegistrationStatus}
           operatorRoots={privateCoreOperatorRoots}
+          operatorSummaryUpdatedAt={privateCoreOperatorSummaryUpdatedAt}
           shieldState={privateCoreRecentShield}
           title="Vanta Private Core unshield state"
           unshieldState={privateCoreUnshieldState}

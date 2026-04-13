@@ -98,6 +98,7 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorRootError: string | null;
   privateCoreOperatorRootRegistrationStatus: string | null;
   privateCoreOperatorRootCurrentnessLabel: string | null;
+  privateCoreOperatorSummaryUpdatedAt: number | null;
   privateCoreUnshieldState: VantaPrivateCoreUnshieldState | null;
   recentShield: RecentShieldContext | null;
   runPrivateCoreShield: (args: { amountDisplay: string; asset: PrivacyAssetKey }) => VantaPrivateCoreShieldState;
@@ -287,52 +288,67 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   const [privateCoreOperatorRootError, setPrivateCoreOperatorRootError] = useState<string | null>(null);
   const [privateCoreOperatorRootRegistrationStatus, setPrivateCoreOperatorRootRegistrationStatus] =
     useState<string | null>(null);
+  const [privateCoreOperatorSummaryUpdatedAt, setPrivateCoreOperatorSummaryUpdatedAt] =
+    useState<number | null>(null);
   const [recentShield, setRecentShield] = useState<RecentShieldContext | null>(null);
+
+  const refreshPrivateCoreOperatorSummary = useCallback(async () => {
+    const summaryState = await fetchVantaPrivateCoreOperatorSummary();
+    applyPrivateCoreOperatorSummaryState({
+      summaryState,
+      setPrivateCoreOperatorCurrentRoot,
+      setPrivateCoreOperatorLatestConsume,
+      setPrivateCoreOperatorLatestConsumeProof,
+      setPrivateCoreOperatorLatestProof,
+      setPrivateCoreOperatorLatestRelease,
+      setPrivateCoreOperatorLatestReleaseProof,
+      setPrivateCoreOperatorLatestRoot,
+      setPrivateCoreOperatorConsumes,
+      setPrivateCoreOperatorProofConsumeLinkStatus,
+      setPrivateCoreOperatorProofs,
+      setPrivateCoreOperatorProofReleaseLinkStatus,
+      setPrivateCoreOperatorReleases,
+      setPrivateCoreOperatorRoots,
+    });
+    setPrivateCoreOperatorConsumeError(null);
+    setPrivateCoreOperatorProofError(null);
+    setPrivateCoreOperatorReleaseError(null);
+    setPrivateCoreOperatorRootError(null);
+    setPrivateCoreOperatorSummaryUpdatedAt(Date.now());
+    return summaryState;
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
 
-    void fetchVantaPrivateCoreOperatorSummary()
-      .then((summaryState) => {
-        if (cancelled) {
-          return;
-        }
-        applyPrivateCoreOperatorSummaryState({
-          summaryState,
-          setPrivateCoreOperatorCurrentRoot,
-          setPrivateCoreOperatorLatestConsume,
-          setPrivateCoreOperatorLatestConsumeProof,
-          setPrivateCoreOperatorLatestProof,
-          setPrivateCoreOperatorLatestRelease,
-          setPrivateCoreOperatorLatestReleaseProof,
-          setPrivateCoreOperatorLatestRoot,
-          setPrivateCoreOperatorConsumes,
-          setPrivateCoreOperatorProofConsumeLinkStatus,
-          setPrivateCoreOperatorProofs,
-          setPrivateCoreOperatorProofReleaseLinkStatus,
-          setPrivateCoreOperatorReleases,
-          setPrivateCoreOperatorRoots,
+    const loadSummary = () =>
+      refreshPrivateCoreOperatorSummary()
+        .then(() => {
+          if (cancelled) {
+            return;
+          }
+        })
+        .catch((error) => {
+          if (cancelled) {
+            return;
+          }
+          const message = error instanceof Error ? error.message : String(error);
+          setPrivateCoreOperatorConsumeError(message);
+          setPrivateCoreOperatorProofError(message);
+          setPrivateCoreOperatorReleaseError(message);
+          setPrivateCoreOperatorRootError(message);
         });
-        setPrivateCoreOperatorConsumeError(null);
-        setPrivateCoreOperatorProofError(null);
-        setPrivateCoreOperatorReleaseError(null);
-        setPrivateCoreOperatorRootError(null);
-      })
-      .catch((error) => {
-        if (cancelled) {
-          return;
-        }
-        const message = error instanceof Error ? error.message : String(error);
-        setPrivateCoreOperatorConsumeError(message);
-        setPrivateCoreOperatorProofError(message);
-        setPrivateCoreOperatorReleaseError(message);
-        setPrivateCoreOperatorRootError(message);
-      });
+
+    void loadSummary();
+    const intervalId = window.setInterval(() => {
+      void loadSummary();
+    }, 15_000);
 
     return () => {
       cancelled = true;
+      window.clearInterval(intervalId);
     };
-  }, [privateCoreRecentShield, privateCoreUnshieldState]);
+  }, [privateCoreRecentShield, privateCoreUnshieldState, refreshPrivateCoreOperatorSummary]);
 
   useEffect(() => {
     if (!privateCoreRecentShield || !privateCoreHoldState) {
@@ -364,32 +380,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
             ? "Operator root registered"
             : "Operator root registration unavailable",
         );
-        return fetchVantaPrivateCoreOperatorSummary();
+        return refreshPrivateCoreOperatorSummary();
       })
-      .then((summaryState) => {
-        if (cancelled || !summaryState) {
+      .then(() => {
+        if (cancelled) {
           return;
         }
-        applyPrivateCoreOperatorSummaryState({
-          summaryState,
-          setPrivateCoreOperatorCurrentRoot,
-          setPrivateCoreOperatorLatestConsume,
-          setPrivateCoreOperatorLatestConsumeProof,
-          setPrivateCoreOperatorLatestProof,
-          setPrivateCoreOperatorLatestRelease,
-          setPrivateCoreOperatorLatestReleaseProof,
-          setPrivateCoreOperatorLatestRoot,
-          setPrivateCoreOperatorConsumes,
-          setPrivateCoreOperatorProofConsumeLinkStatus,
-          setPrivateCoreOperatorProofs,
-          setPrivateCoreOperatorProofReleaseLinkStatus,
-          setPrivateCoreOperatorReleases,
-          setPrivateCoreOperatorRoots,
-        });
-        setPrivateCoreOperatorConsumeError(null);
-        setPrivateCoreOperatorProofError(null);
-        setPrivateCoreOperatorReleaseError(null);
-        setPrivateCoreOperatorRootError(null);
       })
       .catch((error) => {
         if (cancelled) {
@@ -420,28 +416,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceArtifacts: args.sourceArtifacts,
         witnessPackage: args.proofBoundary.noirWitnessPackage,
       });
-      const summaryState = await fetchVantaPrivateCoreOperatorSummary();
-
-      applyPrivateCoreOperatorSummaryState({
-        summaryState,
-        setPrivateCoreOperatorCurrentRoot,
-        setPrivateCoreOperatorLatestConsume,
-        setPrivateCoreOperatorLatestConsumeProof,
-        setPrivateCoreOperatorLatestProof,
-        setPrivateCoreOperatorLatestRelease,
-        setPrivateCoreOperatorLatestReleaseProof,
-        setPrivateCoreOperatorLatestRoot,
-        setPrivateCoreOperatorConsumes,
-        setPrivateCoreOperatorProofConsumeLinkStatus,
-        setPrivateCoreOperatorProofs,
-        setPrivateCoreOperatorProofReleaseLinkStatus,
-        setPrivateCoreOperatorReleases,
-        setPrivateCoreOperatorRoots,
-      });
-      setPrivateCoreOperatorConsumeError(null);
-      setPrivateCoreOperatorProofError(null);
-      setPrivateCoreOperatorReleaseError(null);
-      setPrivateCoreOperatorRootError(null);
+      await refreshPrivateCoreOperatorSummary();
       setPrivateCoreOperatorRootRegistrationStatus(
         registration.known ? "Operator root registered" : "Operator root registration unavailable",
       );
@@ -684,27 +659,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         witnessPackage: proofBoundary.noirWitnessPackage,
       });
       try {
-        const summaryState = await fetchVantaPrivateCoreOperatorSummary();
-        applyPrivateCoreOperatorSummaryState({
-          summaryState,
-          setPrivateCoreOperatorCurrentRoot,
-          setPrivateCoreOperatorLatestConsume,
-          setPrivateCoreOperatorLatestConsumeProof,
-          setPrivateCoreOperatorLatestProof,
-          setPrivateCoreOperatorLatestRelease,
-          setPrivateCoreOperatorLatestReleaseProof,
-          setPrivateCoreOperatorLatestRoot,
-          setPrivateCoreOperatorConsumes,
-          setPrivateCoreOperatorProofConsumeLinkStatus,
-          setPrivateCoreOperatorProofs,
-          setPrivateCoreOperatorProofReleaseLinkStatus,
-          setPrivateCoreOperatorReleases,
-          setPrivateCoreOperatorRoots,
-        });
-        setPrivateCoreOperatorConsumeError(null);
-        setPrivateCoreOperatorProofError(null);
-        setPrivateCoreOperatorReleaseError(null);
-        setPrivateCoreOperatorRootError(null);
+        await refreshPrivateCoreOperatorSummary();
       } catch (error) {
         const immediateOperatorConsume = summarizePrivateCoreImmediateOperatorConsume(operatorConsumeReceipt);
         const immediateOperatorRelease = summarizePrivateCoreImmediateOperatorRelease(operatorConsumeReceipt);
@@ -1147,6 +1102,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         operatorRootError: privateCoreOperatorRootError,
         operatorRoots: privateCoreOperatorRoots,
       }),
+      privateCoreOperatorSummaryUpdatedAt,
       privateCoreUnshieldState,
       recentShield,
       runPrivateCoreReplayAttempt,
@@ -1178,6 +1134,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorRootRegistrationStatus,
       privateCoreOperatorReleases,
       privateCoreOperatorRoots,
+      privateCoreOperatorSummaryUpdatedAt,
       privateCoreRecentShield,
       privateCoreUnshieldState,
       recentShield,
