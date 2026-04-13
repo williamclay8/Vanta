@@ -269,7 +269,11 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-grid">
               <div className="review-row">
                 <span>Recipient payload</span>
-                <strong>{abbreviate(sendState.recipientPayloadCommitment)}</strong>
+                <strong>
+                  {sendState.recipientPayloadCommitment
+                    ? abbreviate(sendState.recipientPayloadCommitment)
+                    : "Unavailable from operator summary"}
+                </strong>
               </div>
               <div className="review-row">
                 <span>Change amount</span>
@@ -277,7 +281,15 @@ export function VantaPrivateCoreStatePanel({
               </div>
               <div className="review-row">
                 <span>Resulting root</span>
-                <strong>{abbreviate(sendState.resultingRoot)}</strong>
+                <strong>
+                  {sendState.resultingRoot
+                    ? abbreviate(sendState.resultingRoot)
+                    : "Unavailable from operator summary"}
+                </strong>
+              </div>
+              <div className="review-row">
+                <span>Observation mode</span>
+                <strong>{sendState.observationMode}</strong>
               </div>
             </div>
           </div>

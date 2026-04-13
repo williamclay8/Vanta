@@ -150,6 +150,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorSummaryUpdatedAt,
     privateCoreOwner,
     recentShield,
+    privateCoreSendState,
     refreshPrivateCoreOperatorSummary,
     runPrivateCoreSendTransition,
   } = usePrivacyFlow();
@@ -1419,6 +1420,41 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   Continue Sending
                 </button>
               </div>
+            </div>
+          )}
+
+          {privateCoreSendState && privateCoreSendExecution.status !== "verified" && (
+            <div className="status-panel status-panel--success">
+              <span>Latest private send</span>
+              <p>
+                The latest private send handoff is still available from shared state, so this flow
+                can resume after refresh. The recipient note remains private, and the sender
+                residual state stays visible for the next hold or unshield step.
+              </p>
+              <div className="success-metrics">
+                <div className="preview-card preview-card--accent">
+                  <span>Recipient note</span>
+                  <strong>
+                    {formatBaseUnits(BigInt(privateCoreSendState.recipientAmount), DEFAULT_VUSD_DECIMALS)} VUSD
+                  </strong>
+                </div>
+                <div className="preview-card">
+                  <span>Residual note</span>
+                  <strong>
+                    {formatBaseUnits(BigInt(privateCoreSendState.changeAmount), DEFAULT_VUSD_DECIMALS)} VUSD
+                  </strong>
+                </div>
+                <div className="preview-card">
+                  <span>Observation mode</span>
+                  <strong>{privateCoreSendState.observationMode}</strong>
+                </div>
+              </div>
+              <p className="shield-helper shield-helper--meta">
+                Recipient recovery: {privateCoreSendState.recipientRecoveryStatus}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Residual state: {privateCoreSendState.residualStateStatus}
+              </p>
             </div>
           )}
 

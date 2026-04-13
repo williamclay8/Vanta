@@ -204,14 +204,15 @@ export type VantaPrivateCoreHoldState = {
 
 export type VantaPrivateCoreSendState = {
   recipientCommitment: string;
-  recipientPayloadCommitment: string;
+  recipientPayloadCommitment: string | null;
   recipientAmount: string;
   changeCommitment: string | null;
   changeAmount: string;
-  resultingRoot: string;
+  resultingRoot: string | null;
   recipientRecoveryStatus: string;
   residualStateStatus: string;
   noteSummary: string;
+  observationMode: string;
 };
 
 export type VantaPrivateCoreUnshieldState = {
@@ -287,7 +288,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   const [privateCoreOwner] = useState(() => createVantaPrivateCoreOwnerKeypair());
   const [privateCoreRecentShield, setPrivateCoreRecentShield] = useState<VantaPrivateCoreShieldState | null>(null);
   const [privateCoreHoldState, setPrivateCoreHoldState] = useState<VantaPrivateCoreHoldState | null>(null);
-  const [privateCoreSendState, setPrivateCoreSendState] = useState<VantaPrivateCoreSendState | null>(null);
+  const [privateCoreLocalSendState, setPrivateCoreLocalSendState] = useState<VantaPrivateCoreSendState | null>(null);
   const [privateCoreUnshieldState, setPrivateCoreUnshieldState] = useState<VantaPrivateCoreUnshieldState | null>(null);
   const [privateCoreOperatorConsumes, setPrivateCoreOperatorConsumes] = useState<
     VantaPrivateCoreOperatorConsumeRecord[]
@@ -383,6 +384,16 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     setPrivateCoreOperatorSummaryUpdatedAt(summaryState.generatedAt);
     return summaryState;
   }, []);
+
+  const privateCoreSendState = useMemo(
+    () =>
+      privateCoreLocalSendState ??
+      summarizePrivateCoreOperatorSendState({
+        latestSend: privateCoreOperatorLatestSend,
+        linkedProof: privateCoreOperatorLatestSendLinkedProof,
+      }),
+    [privateCoreLocalSendState, privateCoreOperatorLatestSend, privateCoreOperatorLatestSendLinkedProof],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -644,7 +655,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
 
     setPrivateCoreRecentShield(nextShieldState);
     setPrivateCoreHoldState(nextHoldState);
-    setPrivateCoreSendState(null);
+    setPrivateCoreLocalSendState(null);
     setPrivateCoreUnshieldState(null);
 
     return nextShieldState;
@@ -680,7 +691,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
 
       setPrivateCoreRecentShield(nextPresentedState?.shieldState ?? null);
       setPrivateCoreHoldState(nextPresentedState?.holdState ?? null);
-      setPrivateCoreSendState({
+      setPrivateCoreLocalSendState({
         recipientCommitment: result.recipient.commitment.value,
         recipientPayloadCommitment: result.recipient.encryptedPayload.payloadCommitment,
         recipientAmount: result.recipient.note.amount.toString(10),
@@ -693,6 +704,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
             ? "Residual note is current private state"
             : "No residual note remains",
         noteSummary: `${formatBaseUnits(result.recipient.note.amount, VANTA_PRIVATE_CORE_VUSD_DECIMALS)} VUSD sent privately`,
+        observationMode: "Local send handoff",
       });
       setPrivateCoreUnshieldState(null);
 
@@ -1508,6 +1520,34 @@ function summarizePrivateCoreOperatorBoundaryStatus(args: {
   return {
     statusLabel: "Operator boundary coherent",
     primaryNote: "Current root, linked proof, consume, and release state all agree.",
+  };
+}
+
+function summarizePrivateCoreOperatorSendState(args: {
+  latestSend: VantaPrivateCoreOperatorSendRecord | null;
+  linkedProof: VantaPrivateCoreOperatorSendProofRecord | null;
+}): VantaPrivateCoreSendState | null {
+  if (!args.latestSend) {
+    return null;
+  }
+
+  return {
+    recipientCommitment: args.latestSend.recipientCommitment,
+    recipientPayloadCommitment: null,
+    recipientAmount: args.latestSend.sendAmount,
+    changeCommitment: args.latestSend.changeCommitment,
+    changeAmount: args.latestSend.changeAmount,
+    resultingRoot: null,
+    recipientRecoveryStatus:
+      args.linkedProof?.proofId === args.latestSend.proofId
+        ? "Recipient note recorded in operator send state"
+        : "Recipient note pending linked proof",
+    residualStateStatus:
+      args.latestSend.changeAmount !== "0"
+        ? "Residual note expected from send transition"
+        : "No residual note remains",
+    noteSummary: `${formatBaseUnits(BigInt(args.latestSend.sendAmount), VANTA_PRIVATE_CORE_VUSD_DECIMALS)} VUSD sent privately`,
+    observationMode: "Operator send summary",
   };
 }
 
