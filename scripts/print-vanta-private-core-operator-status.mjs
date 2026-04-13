@@ -139,6 +139,8 @@ function humanizeBoundaryStatus(value) {
       return "Awaiting current root";
     case "root-registration-unlinked":
       return "Current root registration unlinked";
+    case "send-root-registration-unlinked":
+      return "Send root registration unlinked";
     case "proof-send-unlinked":
       return "Proof/send not linked";
     case "proof-consume-unlinked":

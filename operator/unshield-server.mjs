@@ -1474,6 +1474,8 @@ function buildPrivateCoreSummaryState() {
     proofConsumeLinkStatus,
     proofSendLinkStatus,
     proofReleaseLinkStatus,
+    sendResultingRootProofLinkStatus,
+    sendResultingRootStatus: sendResultingRootStatus.status,
   });
 
   return {
@@ -1581,6 +1583,22 @@ function summarizePrivateCoreBoundaryStatus(args) {
         args.currentRootProofLinkStatus === "mismatch"
           ? "Current root record does not match its linked registration proof."
           : "Current root registration proof linkage is unavailable.",
+    };
+  }
+
+  const sendResultingRootShouldBeLinked =
+    args.sendResultingRootStatus === "current-root" ||
+    args.sendResultingRootStatus === "registered-stale" ||
+    args.sendResultingRootStatus === "downstream-consumed" ||
+    args.sendResultingRootStatus === "downstream-released";
+
+  if (sendResultingRootShouldBeLinked && args.sendResultingRootProofLinkStatus !== "linked") {
+    return {
+      status: "send-root-registration-unlinked",
+      note:
+        args.sendResultingRootProofLinkStatus === "mismatch"
+          ? "Send resulting root record does not match its linked registration proof."
+          : "Send resulting root registration proof linkage is unavailable.",
     };
   }
 

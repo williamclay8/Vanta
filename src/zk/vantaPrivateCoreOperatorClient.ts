@@ -190,6 +190,7 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
     | "coherent"
     | "awaiting-current-root"
     | "root-registration-unlinked"
+    | "send-root-registration-unlinked"
     | "proof-send-unlinked"
     | "proof-consume-unlinked"
     | "proof-release-unlinked";
@@ -1066,6 +1067,7 @@ function isBoundaryStatus(
   | "coherent"
   | "awaiting-current-root"
   | "root-registration-unlinked"
+  | "send-root-registration-unlinked"
   | "proof-send-unlinked"
   | "proof-consume-unlinked"
   | "proof-release-unlinked" {
@@ -1073,6 +1075,7 @@ function isBoundaryStatus(
     value === "coherent" ||
     value === "awaiting-current-root" ||
     value === "root-registration-unlinked" ||
+    value === "send-root-registration-unlinked" ||
     value === "proof-send-unlinked" ||
     value === "proof-consume-unlinked" ||
     value === "proof-release-unlinked"
