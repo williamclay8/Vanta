@@ -253,6 +253,9 @@ export function UnshieldPage() {
     privateCoreOperatorLatestConsume ?? privateCoreOperatorConsumes[0] ?? null;
   const latestPrivateCoreOperatorRelease =
     privateCoreOperatorLatestRelease ?? privateCoreOperatorReleases[0] ?? null;
+  const privateCoreSendCompleted = Boolean(
+    privateCoreSendState || privateCoreOperatorLatestSend || privateCoreOperatorLatestSendProof,
+  );
   const privateCoreDemoSteps = [
     {
       label: "Shield private value",
@@ -267,11 +270,20 @@ export function UnshieldPage() {
         : "Awaiting recovered note",
     },
     {
+      label: "Send privately",
+      status: privateCoreSendCompleted ? "done" : "pending",
+      summary: privateCoreSendCompleted
+        ? privateCoreSendState?.residualStateStatus ?? "Private send verified and applied"
+        : "Awaiting first private send",
+    },
+    {
       label: "Unshield once",
       status: privateCoreUnshieldState?.consumeSucceeded ? "done" : "pending",
       summary: privateCoreUnshieldState?.consumeSucceeded
         ? "Operator-authorized consume succeeded"
-        : "Awaiting first consume",
+        : privateCoreSendCompleted
+          ? "Awaiting first consume"
+          : "Available after private send",
     },
     {
       label: "Replay rejected",
