@@ -104,7 +104,9 @@ At minimum, `v1` still needs:
 The repo now has the first frozen source-layer target for that work in:
 
 - `docs/zk/vanta-private-core-send-boundary.md`
+- `docs/zk/vanta-private-core-send-proof-boundary.md`
 - `src/zk/vantaPrivateCore.ts`
+- `src/zk/vantaPrivateCoreSendProof.ts`
 
 That boundary is intentionally narrow:
 - one input note

@@ -136,3 +136,4 @@ The next major product step from here is:
 The first frozen source-layer send target for that work now exists in:
 
 - `docs/zk/vanta-private-core-send-boundary.md`
+- `docs/zk/vanta-private-core-send-proof-boundary.md`
