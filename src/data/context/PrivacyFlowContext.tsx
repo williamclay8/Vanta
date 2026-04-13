@@ -83,6 +83,7 @@ type PrivacyFlowContextValue = {
   privateCoreOwner: VantaPrivateCoreOwnerKeypair;
   privateCoreRecentShield: VantaPrivateCoreShieldState | null;
   privateCoreHoldState: VantaPrivateCoreHoldState | null;
+  privateCoreSendState: VantaPrivateCoreSendState | null;
   privateCoreOperatorConsumes: VantaPrivateCoreOperatorConsumeRecord[];
   privateCoreOperatorConsumeError: string | null;
   privateCoreOperatorLatestConsume: VantaPrivateCoreOperatorConsumeRecord | null;
@@ -201,6 +202,18 @@ export type VantaPrivateCoreHoldState = {
   noteSummary: string;
 };
 
+export type VantaPrivateCoreSendState = {
+  recipientCommitment: string;
+  recipientPayloadCommitment: string;
+  recipientAmount: string;
+  changeCommitment: string | null;
+  changeAmount: string;
+  resultingRoot: string;
+  recipientRecoveryStatus: string;
+  residualStateStatus: string;
+  noteSummary: string;
+};
+
 export type VantaPrivateCoreUnshieldState = {
   sourceNullifier: string | null;
   proofEnvelope: UnshieldProofEnvelopeV0 | null;
@@ -274,6 +287,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   const [privateCoreOwner] = useState(() => createVantaPrivateCoreOwnerKeypair());
   const [privateCoreRecentShield, setPrivateCoreRecentShield] = useState<VantaPrivateCoreShieldState | null>(null);
   const [privateCoreHoldState, setPrivateCoreHoldState] = useState<VantaPrivateCoreHoldState | null>(null);
+  const [privateCoreSendState, setPrivateCoreSendState] = useState<VantaPrivateCoreSendState | null>(null);
   const [privateCoreUnshieldState, setPrivateCoreUnshieldState] = useState<VantaPrivateCoreUnshieldState | null>(null);
   const [privateCoreOperatorConsumes, setPrivateCoreOperatorConsumes] = useState<
     VantaPrivateCoreOperatorConsumeRecord[]
@@ -630,6 +644,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
 
     setPrivateCoreRecentShield(nextShieldState);
     setPrivateCoreHoldState(nextHoldState);
+    setPrivateCoreSendState(null);
     setPrivateCoreUnshieldState(null);
 
     return nextShieldState;
@@ -665,6 +680,20 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
 
       setPrivateCoreRecentShield(nextPresentedState?.shieldState ?? null);
       setPrivateCoreHoldState(nextPresentedState?.holdState ?? null);
+      setPrivateCoreSendState({
+        recipientCommitment: result.recipient.commitment.value,
+        recipientPayloadCommitment: result.recipient.encryptedPayload.payloadCommitment,
+        recipientAmount: result.recipient.note.amount.toString(10),
+        changeCommitment: result.change?.commitment.value ?? null,
+        changeAmount: (result.change?.note.amount ?? 0n).toString(10),
+        resultingRoot: result.resultingRoot,
+        recipientRecoveryStatus: "Recipient note created privately",
+        residualStateStatus:
+          result.change !== null
+            ? "Residual note is current private state"
+            : "No residual note remains",
+        noteSummary: `${formatBaseUnits(result.recipient.note.amount, VANTA_PRIVATE_CORE_VUSD_DECIMALS)} VUSD sent privately`,
+      });
       setPrivateCoreUnshieldState(null);
 
       return {
@@ -1221,6 +1250,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOwner,
       privateCoreRecentShield,
       privateCoreHoldState,
+      privateCoreSendState,
       privateCoreOperatorConsumes,
       privateCoreOperatorConsumeError,
       privateCoreOperatorLatestConsume,
@@ -1269,6 +1299,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     [
       privateCoreHoldState,
       privateCoreOwner,
+      privateCoreSendState,
       privateCoreOperatorConsumeError,
       privateCoreOperatorConsumes,
       privateCoreOperatorLatestConsume,

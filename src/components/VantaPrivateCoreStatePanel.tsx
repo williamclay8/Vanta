@@ -1,5 +1,6 @@
 import type {
   VantaPrivateCoreHoldState,
+  VantaPrivateCoreSendState,
   VantaPrivateCoreShieldState,
   VantaPrivateCoreUnshieldState,
 } from "@/data/context/PrivacyFlowContext";
@@ -14,6 +15,7 @@ import type {
 
 type VantaPrivateCoreStatePanelProps = {
   holdState: VantaPrivateCoreHoldState | null;
+  sendState?: VantaPrivateCoreSendState | null;
   operatorCurrentRoot?: string | null;
   operatorConsumeError?: string | null;
   operatorConsumes?: VantaPrivateCoreOperatorConsumeRecord[];
@@ -128,6 +130,7 @@ function summarizeOperatorImmediateProofAlignment(args: {
 
 export function VantaPrivateCoreStatePanel({
   holdState,
+  sendState = null,
   operatorCurrentRoot = null,
   operatorConsumeError = null,
   operatorConsumes = [],
@@ -247,6 +250,39 @@ export function VantaPrivateCoreStatePanel({
           </strong>
         </div>
       </div>
+
+      {sendState ? (
+        <div className="note-state-list">
+          <div className="note-state-row">
+            <div className="note-state-row__header">
+              <div>
+                <strong>{formatAmount(sendState.recipientAmount)}</strong>
+                <span>{abbreviate(sendState.recipientCommitment)}</span>
+              </div>
+              <div className="note-state-chips">
+                <span className="note-state-chip note-state-chip--spendable">
+                  {sendState.recipientRecoveryStatus}
+                </span>
+                <span className="note-state-chip">{sendState.residualStateStatus}</span>
+              </div>
+            </div>
+            <div className="review-grid">
+              <div className="review-row">
+                <span>Recipient payload</span>
+                <strong>{abbreviate(sendState.recipientPayloadCommitment)}</strong>
+              </div>
+              <div className="review-row">
+                <span>Change amount</span>
+                <strong>{formatAmount(sendState.changeAmount)}</strong>
+              </div>
+              <div className="review-row">
+                <span>Resulting root</span>
+                <strong>{abbreviate(sendState.resultingRoot)}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {shieldState ? (
         <div className="note-state-list">
