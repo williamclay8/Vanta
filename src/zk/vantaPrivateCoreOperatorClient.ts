@@ -23,6 +23,7 @@ export type VantaPrivateCoreSendOperatorResponse = VantaPrivateCoreProofOperator
   inputRoot: string;
   proofId: string;
   recipientCommitment: string;
+  resultingRootBasis: "client-declared";
   resultingRoot: string | null;
   sendAmount: string;
   sendId: string;
@@ -368,6 +369,7 @@ export async function requestVantaPrivateCoreOperatorSendTransition(args: {
     typeof parsed.inputRoot !== "string" ||
     typeof parsed.proofId !== "string" ||
     typeof parsed.recipientCommitment !== "string" ||
+    parsed.resultingRootBasis !== "client-declared" ||
     typeof parsed.sendAmount !== "string" ||
     typeof parsed.sendId !== "string"
   ) {
@@ -392,6 +394,7 @@ export async function requestVantaPrivateCoreOperatorSendTransition(args: {
       ? parsed.publicInputs.filter((value): value is string => typeof value === "string")
       : [],
     recipientCommitment: parsed.recipientCommitment,
+    resultingRootBasis: parsed.resultingRootBasis === "client-declared" ? "client-declared" : "client-declared",
     resultingRoot: typeof parsed.resultingRoot === "string" ? parsed.resultingRoot : null,
     sendAmount: parsed.sendAmount,
     sendId: parsed.sendId,

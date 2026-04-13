@@ -344,6 +344,7 @@ try {
     !transitionResponse.ok ||
     transitionResponse.parsed?.verified !== true ||
     transitionResponse.parsed?.sendRecorded !== true ||
+    transitionResponse.parsed?.resultingRootBasis !== "client-declared" ||
     typeof transitionResponse.parsed?.sendId !== "string" ||
     typeof transitionResponse.parsed?.proofId !== "string"
   ) {

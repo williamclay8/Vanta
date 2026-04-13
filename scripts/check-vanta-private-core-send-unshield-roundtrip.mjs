@@ -268,6 +268,7 @@ try {
     !sendTransitionResponse.ok ||
     sendTransitionResponse.parsed?.verified !== true ||
     sendTransitionResponse.parsed?.sendRecorded !== true ||
+    sendTransitionResponse.parsed?.resultingRootBasis !== "client-declared" ||
     typeof sendTransitionResponse.parsed?.proofId !== "string"
   ) {
     throw new Error(sendTransitionResponse.text || "operator-backed send transition failed");

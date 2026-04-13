@@ -506,6 +506,7 @@ const server = createServer(async (request, response) => {
           inputNullifier: sendRecord.inputNullifier,
           inputRoot: sendRecord.inputRoot,
           recipientCommitment: sendRecord.recipientCommitment,
+          resultingRootBasis: sendRecord.resultingRootBasis,
           resultingRoot: sendRecord.resultingRoot,
           changeCommitment: sendRecord.changeCommitment,
           proofId: sendRecord.proofId,
