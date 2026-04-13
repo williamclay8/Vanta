@@ -9,6 +9,7 @@ try {
   printLine("Summary generated", formatTimestamp(summary.generatedAt));
   printLine("Current root", abbreviate(summary.currentRoot));
   printLine("Current root proof", abbreviate(summary.currentRecord?.proofId));
+  printLine("Current root linked proof", abbreviate(summary.currentRootLinkedProof?.proofId));
   printLine("Current root proof link", summary.currentRootProofLinkStatus ?? "Unavailable");
   printLine("Root records", String(summary.rootRecordCount ?? 0));
   printLine("Latest consume", abbreviate(summary.latestConsume?.nullifier));
@@ -29,6 +30,10 @@ try {
   printLine("Send resulting root note", summary.sendResultingRootNote ?? "Unavailable");
   printLine("Send resulting root record", abbreviate(summary.sendResultingRootRecord?.root));
   printLine("Send resulting root proof", abbreviate(summary.sendResultingRootRecord?.proofId));
+  printLine(
+    "Send resulting root linked proof",
+    abbreviate(summary.sendResultingRootLinkedProof?.proofId),
+  );
   printLine(
     "Send resulting root proof link",
     summary.sendResultingRootProofLinkStatus ?? "Unavailable",

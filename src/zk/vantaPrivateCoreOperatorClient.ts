@@ -193,8 +193,10 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
     | "proof-send-unlinked"
     | "proof-consume-unlinked"
     | "proof-release-unlinked";
+  currentRootLinkedProof: VantaPrivateCoreOperatorProofRecord | null;
   currentRootProofLinkStatus: "linked" | "mismatch" | "unavailable";
   sendResultingRootNote: string;
+  sendResultingRootLinkedProof: VantaPrivateCoreOperatorProofRecord | null;
   sendResultingRootRecord: VantaPrivateCoreOperatorRootRecord | null;
   sendResultingRootProofLinkStatus: "linked" | "mismatch" | "unavailable";
   sendResultingRootStatus:
@@ -774,7 +776,9 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     summaryVersion?: unknown;
     boundaryStatus?: unknown;
     boundaryNote?: unknown;
+    currentRootLinkedProof?: unknown;
     currentRootProofLinkStatus?: unknown;
+    sendResultingRootLinkedProof?: unknown;
     sendResultingRootRecord?: unknown;
     sendResultingRootStatus?: unknown;
     sendResultingRootNote?: unknown;
@@ -809,10 +813,16 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.summaryVersion !== 3 ||
+    parsed.summaryVersion !== 4 ||
     !isBoundaryStatus(parsed.boundaryStatus) ||
     typeof parsed.boundaryNote !== "string" ||
+    (parsed.currentRootLinkedProof !== null &&
+      parsed.currentRootLinkedProof !== undefined &&
+      !isProofRecord(parsed.currentRootLinkedProof)) ||
     !isLinkStatus(parsed.currentRootProofLinkStatus) ||
+    (parsed.sendResultingRootLinkedProof !== null &&
+      parsed.sendResultingRootLinkedProof !== undefined &&
+      !isProofRecord(parsed.sendResultingRootLinkedProof)) ||
     (parsed.sendResultingRootRecord !== null &&
       parsed.sendResultingRootRecord !== undefined &&
       !isRootRecord(parsed.sendResultingRootRecord)) ||
@@ -871,10 +881,16 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   return {
     stateVersion: 1,
-    summaryVersion: 3,
+    summaryVersion: 4,
     boundaryStatus: parsed.boundaryStatus,
     boundaryNote: parsed.boundaryNote,
+    currentRootLinkedProof: isProofRecord(parsed.currentRootLinkedProof)
+      ? parsed.currentRootLinkedProof
+      : null,
     currentRootProofLinkStatus: parsed.currentRootProofLinkStatus,
+    sendResultingRootLinkedProof: isProofRecord(parsed.sendResultingRootLinkedProof)
+      ? parsed.sendResultingRootLinkedProof
+      : null,
     sendResultingRootRecord: isRootRecord(parsed.sendResultingRootRecord)
       ? parsed.sendResultingRootRecord
       : null,

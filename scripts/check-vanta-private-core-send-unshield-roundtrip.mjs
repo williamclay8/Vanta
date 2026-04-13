@@ -335,6 +335,8 @@ try {
     summary.parsed?.latestConsume?.proofId !== consumeResponse.parsed.proofId ||
     summary.parsed?.latestRelease?.proofId !== consumeResponse.parsed.proofId ||
     summary.parsed?.latestRelease?.releasedAmount !== "13000000" ||
+    summary.parsed?.sendResultingRootLinkedProof?.proofId !==
+      summary.parsed?.sendResultingRootRecord?.proofId ||
     summary.parsed?.sendResultingRootRecord?.root !== heldRecipient.witness.root ||
     typeof summary.parsed?.sendResultingRootRecord?.proofId !== "string" ||
     summary.parsed?.sendResultingRootProofLinkStatus !== "linked" ||

@@ -348,6 +348,8 @@ try {
     preRestartSummary.parsed?.latestSend?.proofId !== sendTransitionResponse.parsed.proofId ||
     preRestartSummary.parsed?.latestConsume?.proofId !== consumeResponse.parsed.proofId ||
     preRestartSummary.parsed?.latestRelease?.proofId !== consumeResponse.parsed.proofId ||
+    preRestartSummary.parsed?.sendResultingRootLinkedProof?.proofId !==
+      preRestartSummary.parsed?.sendResultingRootRecord?.proofId ||
     preRestartSummary.parsed?.sendResultingRootRecord?.root !== heldRecipient.witness.root ||
     typeof preRestartSummary.parsed?.sendResultingRootRecord?.proofId !== "string" ||
     preRestartSummary.parsed?.sendResultingRootProofLinkStatus !== "linked" ||
@@ -378,6 +380,8 @@ try {
     postRestartSummary.parsed?.latestSend?.proofId !== sendTransitionResponse.parsed.proofId ||
     postRestartSummary.parsed?.latestConsume?.proofId !== consumeResponse.parsed.proofId ||
     postRestartSummary.parsed?.latestRelease?.proofId !== consumeResponse.parsed.proofId ||
+    postRestartSummary.parsed?.sendResultingRootLinkedProof?.proofId !==
+      postRestartSummary.parsed?.sendResultingRootRecord?.proofId ||
     postRestartSummary.parsed?.sendResultingRootRecord?.root !== heldRecipient.witness.root ||
     typeof postRestartSummary.parsed?.sendResultingRootRecord?.proofId !== "string" ||
     postRestartSummary.parsed?.sendResultingRootProofLinkStatus !== "linked" ||
