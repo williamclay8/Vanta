@@ -229,6 +229,21 @@ export type SendTransitionV0 = {
   root: Bytes32Hex;
 };
 
+export type SendAppliedOutputV0 = {
+  note: NoteV0;
+  commitment: NoteCommitmentV0;
+  encryptedPayload: CiphertextPackageV0;
+  insertionIndex: number;
+};
+
+export type SendResultV0 = {
+  inputNullifier: NoteNullifierV0;
+  inputRoot: Bytes32Hex;
+  resultingRoot: Bytes32Hex;
+  recipient: SendAppliedOutputV0;
+  change: SendAppliedOutputV0 | null;
+};
+
 export type VantaPrivateCoreSendProofEnvelopeSummaryV0 = {
   statement: SendProofEnvelopeV0["statement"];
   proof: SendProofEnvelopeV0["proof"];
@@ -1208,6 +1223,56 @@ export class VantaPrivateCoreLedger {
       releasedAmount: heldNote.note.amount,
       nullifier,
       root: heldNote.witness.root,
+    };
+  }
+
+  send(transition: SendTransitionV0): SendResultV0 {
+    const envelope = buildVantaPrivateCoreSendProofEnvelope(transition);
+
+    if (!verifyVantaPrivateCoreSendProofEnvelope(envelope)) {
+      throw new VantaPrivateCoreError("Send proof verification failed.");
+    }
+
+    const inputNullifier = deriveVantaPrivateCoreNullifier(
+      transition.input.note,
+      transition.input.witness,
+    );
+
+    if (this.consumedNullifiers.has(inputNullifier.value)) {
+      throw new VantaPrivateCoreError(`Nullifier ${inputNullifier.value} has already been consumed.`);
+    }
+
+    this.consumedNullifiers.add(inputNullifier.value);
+
+    const recipientInsertionIndex = this.tree.insert(transition.recipient.commitment.value);
+    this.commitments.push({ commitment: transition.recipient.commitment });
+
+    const changeInsertionIndex =
+      transition.change !== null ? this.tree.insert(transition.change.commitment.value) : null;
+
+    if (transition.change) {
+      this.commitments.push({ commitment: transition.change.commitment });
+    }
+
+    return {
+      inputNullifier,
+      inputRoot: transition.input.witness.root,
+      resultingRoot: this.tree.getRoot(),
+      recipient: {
+        note: transition.recipient.note,
+        commitment: transition.recipient.commitment,
+        encryptedPayload: transition.recipient.encryptedPayload,
+        insertionIndex: recipientInsertionIndex,
+      },
+      change:
+        transition.change && changeInsertionIndex !== null
+          ? {
+              note: transition.change.note,
+              commitment: transition.change.commitment,
+              encryptedPayload: transition.change.encryptedPayload,
+              insertionIndex: changeInsertionIndex,
+            }
+          : null,
     };
   }
 
