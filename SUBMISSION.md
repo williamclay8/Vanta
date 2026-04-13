@@ -289,6 +289,7 @@ Yes. The repo includes a fixed-depth Noir single-note unshield circuit for the s
 - valid/invalid circuit regression checks
 - source-layer send application regression checks
 - send-to-unshield continuity regression checks
+- recipient-side send recovery regression checks
 - local proof generation and verification
 - operator-backed proof execution
 - replay rejection and operator-state smoke coverage

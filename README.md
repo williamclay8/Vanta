@@ -160,6 +160,7 @@ npm run private-core:check
 npm run private-core:send-check
 npm run private-core:send-apply-check
 npm run private-core:send-continuity-check
+npm run private-core:send-recipient-check
 npm run private-core:restart-check
 npm run private-core:prove
 npm run private-core:send-prove
@@ -175,6 +176,7 @@ These commands cover:
 - fixed-depth send-circuit regression
 - source-layer send transition application and change-note recovery
 - send-to-hold-to-unshield continuity after a private send
+- recipient-side note recovery and spendability after a private send
 - valid and invalid witness behavior
 - local unshield proof generation and verification
 - local send proof generation and verification
