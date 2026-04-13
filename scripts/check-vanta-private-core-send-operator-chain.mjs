@@ -302,6 +302,20 @@ try {
 
   const secondPreviewResult = ledger.previewSend(secondTransition);
 
+  const staleFirstTransitionResponse = await requestJson(baseUrl, "/private-core/send-transition", {
+    body: JSON.stringify({
+      resultingRoot: firstPreviewResult.resultingRoot,
+      witnessPackage: firstBoundary.noirWitnessPackage,
+    }),
+    method: "POST",
+  });
+  if (!staleFirstTransitionResponse.text.includes("not the latest registered root")) {
+    throw new Error(
+      staleFirstTransitionResponse.text || "stale first send input root was not rejected",
+    );
+  }
+  printStatus("private-core send operator chain stale-root gate: PASS");
+
   const secondTransitionResponse = await requestJson(baseUrl, "/private-core/send-transition", {
     body: JSON.stringify({
       resultingRoot: secondPreviewResult.resultingRoot,
