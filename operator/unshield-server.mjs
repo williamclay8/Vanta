@@ -476,6 +476,10 @@ const server = createServer(async (request, response) => {
         );
       }
 
+      const resultingRoot =
+        typeof body?.resultingRoot === "string" && body.resultingRoot.length > 0
+          ? normalizePrivateCoreHex32(body.resultingRoot, "Private-core send resulting root")
+          : null;
       const proofReceipt = await proveAndVerifyVantaPrivateCoreSend({
         witnessPackage,
       });
@@ -485,10 +489,6 @@ const server = createServer(async (request, response) => {
         witnessPackage,
       });
       privateCoreSendProofStore.recordProof(proofRecord);
-      const resultingRoot =
-        typeof body?.resultingRoot === "string" && body.resultingRoot.length > 0
-          ? body.resultingRoot.toLowerCase()
-          : null;
       const sendRecord = summarizePrivateCoreSendRecord({
         proofRecord,
         proofReceipt,
@@ -1807,6 +1807,19 @@ function summarizePrivateCoreSendRecord(args) {
       String(completedAt),
     ].join(":"),
   };
+}
+
+function normalizePrivateCoreHex32(value, label) {
+  if (typeof value !== "string") {
+    throw new Error(`${label} is missing.`);
+  }
+
+  const normalized = value.toLowerCase();
+  if (!/^0x[0-9a-f]{64}$/.test(normalized)) {
+    throw new Error(`${label} must be a canonical 32-byte hex value.`);
+  }
+
+  return normalized;
 }
 
 async function readJsonBody(request) {

@@ -336,6 +336,18 @@ try {
   }
   printStatus("operator send http root proof linkage restore: PASS");
 
+  const malformedRootTransition = await requestJson(baseUrl, "/private-core/send-transition", {
+    body: JSON.stringify({ resultingRoot: "0x1234", witnessPackage }),
+    method: "POST",
+  });
+  if (!malformedRootTransition.text.includes("resulting root must be a canonical 32-byte hex value")) {
+    throw new Error(
+      malformedRootTransition.text ||
+        "send transition unexpectedly accepted a malformed resulting root",
+    );
+  }
+  printStatus("operator send http resulting-root format gate: PASS");
+
   const transitionResponse = await requestJson(baseUrl, "/private-core/send-transition", {
     body: JSON.stringify({ resultingRoot: fixture.send.validResultingRoot, witnessPackage }),
     method: "POST",
