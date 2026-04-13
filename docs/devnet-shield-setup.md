@@ -122,6 +122,8 @@ The operator-status command now prints:
 - latest send resulting root
 - send resulting root status
 - send resulting root record
+- current root proof link
+- send resulting root proof link
 - latest consume
 - latest release
 - proof/send link status
