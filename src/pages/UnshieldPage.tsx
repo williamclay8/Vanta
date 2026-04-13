@@ -817,11 +817,15 @@ export function UnshieldPage() {
 
       <article className="send-card" style={{ marginBottom: 24 }}>
         <div className="shield-card__header">
-          <div>
-            <span>Vanta Private Core v0.1</span>
-            <h3>Private money demo lane</h3>
-          </div>
-          <small>{privateCoreRecentShield ? "Ready for consume" : "Shield first"}</small>
+        <div>
+          <span>Vanta Private Core v0.1</span>
+          <h3>Private money demo lane</h3>
+        </div>
+          <small>
+            {privateCoreRecentShield
+              ? privateCoreOperatorBoundaryStatusLabel ?? "Ready for consume"
+              : "Shield first"}
+          </small>
         </div>
 
         <p className="shield-review-note">
