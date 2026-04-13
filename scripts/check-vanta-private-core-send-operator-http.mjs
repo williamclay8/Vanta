@@ -279,7 +279,9 @@ try {
   });
   if (
     !summaryAfterTransition.ok ||
-    summaryAfterTransition.parsed?.sendProofRecordCount !== 2
+    summaryAfterTransition.parsed?.sendProofRecordCount !== 2 ||
+    summaryAfterTransition.parsed?.sendRecordCount !== 1 ||
+    summaryAfterTransition.parsed?.latestSend?.sendId !== transitionResponse.parsed.sendId
   ) {
     throw new Error(
       summaryAfterTransition.text || "operator summary did not reflect transition-backed send proof state",

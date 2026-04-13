@@ -1363,10 +1363,12 @@ function buildPrivateCoreSummaryState() {
   const rootRecords = privateCoreRootStore.listRoots();
   const proofRecords = privateCoreProofStore.listProofs();
   const sendProofRecords = privateCoreSendProofStore.listProofs();
+  const sendRecords = privateCoreSendStore.listSends();
   const consumeRecords = privateCoreConsumeStore.listConsumes();
   const releaseRecords = privateCoreReleaseRecords.listRecords();
   const latestProof = proofRecords[0] ?? null;
   const latestSendProof = sendProofRecords[0] ?? null;
+  const latestSend = sendRecords[0] ?? null;
   const latestConsume = consumeRecords[0] ?? null;
   const latestRelease = releaseRecords[0] ?? null;
   const latestConsumeProof =
@@ -1404,6 +1406,8 @@ function buildPrivateCoreSummaryState() {
     proofRecords,
     latestSendProof,
     sendProofRecords,
+    latestSend,
+    sendRecords,
     latestConsume,
     consumeRecords,
     latestConsumeProof,
@@ -1413,6 +1417,7 @@ function buildPrivateCoreSummaryState() {
     rootRecordCount: rootRecords.length,
     proofRecordCount: proofRecords.length,
     sendProofRecordCount: sendProofRecords.length,
+    sendRecordCount: sendRecords.length,
     consumeRecordCount: consumeRecords.length,
     releaseRecordCount: releaseRecords.length,
     proofConsumeLinkStatus,

@@ -275,6 +275,8 @@ try {
     preRestartSummary.parsed?.latestSendProof?.action !== "send-proof" ||
     preRestartSummary.parsed?.latestSendProof?.circuit !== "vanta_private_core_single_note_send" ||
     preRestartSummary.parsed?.sendProofRecordCount < 1 ||
+    preRestartSummary.parsed?.latestSend?.sendId !== sendTransitionResponse.parsed.sendId ||
+    preRestartSummary.parsed?.sendRecordCount < 1 ||
     preRestartSummary.parsed?.latestConsume?.proofId !== consumeResponse.parsed.proofId ||
     preRestartSummary.parsed?.latestConsumeProof?.proofId !== consumeResponse.parsed.proofId ||
     preRestartSummary.parsed?.latestRelease?.proofId !== consumeResponse.parsed.proofId ||
@@ -343,9 +345,11 @@ try {
   if (
     postRestartSummary.parsed?.latestSendProof?.action !== "send-proof" ||
     postRestartSummary.parsed?.latestSendProof?.circuit !== "vanta_private_core_single_note_send" ||
-    postRestartSummary.parsed?.sendProofRecordCount < 1
+    postRestartSummary.parsed?.sendProofRecordCount < 1 ||
+    postRestartSummary.parsed?.latestSend?.sendId !== sendTransitionResponse.parsed.sendId ||
+    postRestartSummary.parsed?.sendRecordCount < 1
   ) {
-    throw new Error(postRestartSummary.text || "operator restart summary lost send-proof state");
+    throw new Error(postRestartSummary.text || "operator restart summary lost send lane state");
   }
 
   if (
