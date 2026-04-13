@@ -1333,9 +1333,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               <span>Send proof verified</span>
               <p>
                 The operator verified the current private send witness package and recorded a
-                proof-backed send transition. The shared private-core state now advances to the
-                residual change note, so the next hold or unshield step can continue from the
-                updated private balance.
+                proof-backed send transition. The recipient now has a private note for the sent
+                value, and the shared private-core state advances to the residual change note so
+                the next hold or unshield step can continue from the updated private balance.
               </p>
               <div className="success-metrics">
                 <div className="preview-card preview-card--accent">
@@ -1345,6 +1345,14 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 <div className="preview-card">
                   <span>Public inputs</span>
                   <strong>{privateCoreSendExecution.proofPublicInputCount ?? 0}</strong>
+                </div>
+                <div className="preview-card">
+                  <span>Recipient private note</span>
+                  <strong>
+                    {privateCoreSendPreview
+                      ? `${formatBaseUnits(BigInt(privateCoreSendPreview.sendAmountBaseUnits), DEFAULT_VUSD_DECIMALS)} VUSD`
+                      : "Unavailable"}
+                  </strong>
                 </div>
                 <div className="preview-card">
                   <span>Residual private note</span>
@@ -1378,6 +1386,10 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               </p>
               <p className="shield-helper shield-helper--meta">
                 Proof/send link: {privateCoreOperatorProofSendLinkStatus ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Recipient recovery: Recipient can recover the sent note privately with the matched
+                private key.
               </p>
               <p className="shield-helper shield-helper--meta">
                 Residual note ready:{" "}

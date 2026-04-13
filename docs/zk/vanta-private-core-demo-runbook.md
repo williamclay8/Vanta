@@ -6,9 +6,10 @@ Show one coherent private-core loop that proves:
 
 1. a private note can be created
 2. the note can be held and recovered
-3. the note can be consumed once
-4. replay is rejected
-5. the current proof lane is real and repeatable
+3. the note can be sent privately
+4. the residual note can be consumed once
+5. replay is rejected
+6. the current proof lane is real and repeatable
 
 ## Recommended preflight
 
@@ -32,6 +33,7 @@ That confirms:
 - source-layer send transitions still consume the input note and recover the change note coherently
 - residual change notes from private send still flow into hold and unshield coherently
 - recipient notes from private send still recover and spend coherently
+- one operator-backed private send still proves, applies, recovers for the recipient, and preserves sender privacy
 - the operator consume regression is still green
 - the operator HTTP smoke path is still green
 - send-proof state is still explicit and restart-safe
@@ -62,15 +64,22 @@ Use the current Vanta app and walk this sequence:
    - source Merkle root
 4. Move to the dashboard or shared private-core panel
 5. Confirm the note is held privately and a witness is available
-6. Open `Unshield`
-7. Run the first private-core unshield
+6. Open `Send`
+7. Run one private-core send
 8. Confirm:
+   - operator send proof verified
+   - send transition recorded
+   - residual note becomes the current private state
+   - recipient note exists privately
+9. Open `Unshield`
+10. Run the first private-core unshield against the residual note
+11. Confirm:
    - consume succeeds
    - operator proof verified
    - operator release recorded
    - operator boundary shows coherent
-9. Trigger the replay attempt
-10. Confirm replay is rejected clearly
+12. Trigger the replay attempt
+13. Confirm replay is rejected clearly
 
 ## Internal diagnostics to show
 
@@ -78,6 +87,9 @@ If you want the technical audience version, expand the internal diagnostics and 
 
 - source note commitment
 - source witness root
+- latest send proof
+- latest send transition
+- proof/send link status
 - proving lane
 - proving root
 - proof execution status

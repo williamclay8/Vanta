@@ -143,6 +143,7 @@ These commands currently prove:
 - source-layer send transitions still consume the input note and recover the change note coherently
 - residual change notes from private send still hold and unshield coherently
 - recipient notes from private send still recover and spend coherently
+- one operator-backed private send still proves, applies, recovers for the recipient, and preserves sender privacy
 - a real local proof can still be generated and verified
 - the operator HTTP surface is still coherent
 - operator proof, consume, release, and root state survive restart
