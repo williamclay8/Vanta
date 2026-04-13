@@ -843,6 +843,9 @@ try {
     summaryStateAfterConsume.parsed?.latestConsume?.proofId !== consumeResponse.parsed.proofId ||
     summaryStateAfterConsume.parsed?.latestReleaseProof?.proofId !== consumeResponse.parsed.proofId ||
     summaryStateAfterConsume.parsed?.latestRelease?.proofId !== consumeResponse.parsed.proofId ||
+    summaryStateAfterConsume.parsed?.boundaryStatus !== "coherent" ||
+    summaryStateAfterConsume.parsed?.boundaryNote !==
+      "Current root, consume, release, and linked proofs agree." ||
     summaryStateAfterConsume.parsed?.proofConsumeLinkStatus !== "linked" ||
     summaryStateAfterConsume.parsed?.proofReleaseLinkStatus !== "linked"
   ) {
@@ -886,6 +889,9 @@ try {
     summaryStateAfterRelease.parsed?.latestConsume?.proofId !== consumeResponse.parsed.proofId ||
     summaryStateAfterRelease.parsed?.latestReleaseProof?.proofId !== consumeResponse.parsed.proofId ||
     summaryStateAfterRelease.parsed?.latestRelease?.proofId !== consumeResponse.parsed.proofId ||
+    summaryStateAfterRelease.parsed?.boundaryStatus !== "coherent" ||
+    summaryStateAfterRelease.parsed?.boundaryNote !==
+      "Current root, consume, release, and linked proofs agree." ||
     summaryStateAfterRelease.parsed?.proofConsumeLinkStatus !== "linked" ||
     summaryStateAfterRelease.parsed?.proofReleaseLinkStatus !== "linked"
   ) {

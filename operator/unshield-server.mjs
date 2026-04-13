@@ -1258,8 +1258,23 @@ function buildPrivateCoreSummaryState() {
     latestRelease && typeof latestRelease.proofId === "string"
       ? proofRecords.find((record) => record.proofId === latestRelease.proofId) ?? null
       : null;
+  const proofConsumeLinkStatus = summarizePrivateCoreProofConsumeLinkStatus({
+    linkedProof: latestConsumeProof,
+    latestConsume,
+  });
+  const proofReleaseLinkStatus = summarizePrivateCoreProofReleaseLinkStatus({
+    linkedProof: latestReleaseProof,
+    latestRelease,
+  });
+  const boundaryStatus = summarizePrivateCoreBoundaryStatus({
+    currentRoot: rootRecords[0]?.root ?? null,
+    proofConsumeLinkStatus,
+    proofReleaseLinkStatus,
+  });
 
   return {
+    boundaryStatus: boundaryStatus.status,
+    boundaryNote: boundaryStatus.note,
     stateVersion: 1,
     summaryVersion: 1,
     currentRoot: rootRecords[0]?.root ?? null,
@@ -1277,14 +1292,42 @@ function buildPrivateCoreSummaryState() {
     proofRecordCount: proofRecords.length,
     consumeRecordCount: consumeRecords.length,
     releaseRecordCount: releaseRecords.length,
-    proofConsumeLinkStatus: summarizePrivateCoreProofConsumeLinkStatus({
-      linkedProof: latestConsumeProof,
-      latestConsume,
-    }),
-    proofReleaseLinkStatus: summarizePrivateCoreProofReleaseLinkStatus({
-      linkedProof: latestReleaseProof,
-      latestRelease,
-    }),
+    proofConsumeLinkStatus,
+    proofReleaseLinkStatus,
+  };
+}
+
+function summarizePrivateCoreBoundaryStatus(args) {
+  if (!args.currentRoot) {
+    return {
+      status: "awaiting-current-root",
+      note: "No current root is registered yet.",
+    };
+  }
+
+  if (args.proofConsumeLinkStatus !== "linked") {
+    return {
+      status: "proof-consume-unlinked",
+      note:
+        args.proofConsumeLinkStatus === "mismatch"
+          ? "Latest consume record does not match its linked proof."
+          : "Latest consume proof linkage is unavailable.",
+    };
+  }
+
+  if (args.proofReleaseLinkStatus !== "linked") {
+    return {
+      status: "proof-release-unlinked",
+      note:
+        args.proofReleaseLinkStatus === "mismatch"
+          ? "Latest release record does not match its linked proof."
+          : "Latest release proof linkage is unavailable.",
+    };
+  }
+
+  return {
+    status: "coherent",
+    note: "Current root, consume, release, and linked proofs agree.",
   };
 }
 

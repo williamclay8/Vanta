@@ -121,6 +121,12 @@ export type VantaPrivateCoreOperatorRootRegistrationResponse = {
 };
 
 export type VantaPrivateCoreOperatorSummaryStateResponse = {
+  boundaryNote: string;
+  boundaryStatus:
+    | "coherent"
+    | "awaiting-current-root"
+    | "proof-consume-unlinked"
+    | "proof-release-unlinked";
   stateVersion: number;
   summaryVersion: number;
   currentRoot: string | null;
@@ -481,6 +487,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
   const parsed = (await response.json()) as {
     stateVersion?: unknown;
     summaryVersion?: unknown;
+    boundaryStatus?: unknown;
+    boundaryNote?: unknown;
     currentRoot?: unknown;
     currentRecord?: unknown;
     rootRecords?: unknown;
@@ -503,6 +511,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
   if (
     parsed.stateVersion !== 1 ||
     parsed.summaryVersion !== 1 ||
+    !isBoundaryStatus(parsed.boundaryStatus) ||
+    typeof parsed.boundaryNote !== "string" ||
     (parsed.currentRoot !== null &&
       parsed.currentRoot !== undefined &&
       typeof parsed.currentRoot !== "string") ||
@@ -541,6 +551,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
   return {
     stateVersion: 1,
     summaryVersion: 1,
+    boundaryStatus: parsed.boundaryStatus,
+    boundaryNote: parsed.boundaryNote,
     currentRoot: typeof parsed.currentRoot === "string" ? parsed.currentRoot : null,
     currentRecord: isRootRecord(parsed.currentRecord) ? parsed.currentRecord : null,
     rootRecords: parsed.rootRecords.filter(isRootRecord),
@@ -640,4 +652,15 @@ function isReleaseRecord(value: unknown): value is VantaPrivateCoreOperatorRelea
 
 function isLinkStatus(value: unknown): value is "linked" | "mismatch" | "unavailable" {
   return value === "linked" || value === "mismatch" || value === "unavailable";
+}
+
+function isBoundaryStatus(
+  value: unknown,
+): value is "coherent" | "awaiting-current-root" | "proof-consume-unlinked" | "proof-release-unlinked" {
+  return (
+    value === "coherent" ||
+    value === "awaiting-current-root" ||
+    value === "proof-consume-unlinked" ||
+    value === "proof-release-unlinked"
+  );
 }

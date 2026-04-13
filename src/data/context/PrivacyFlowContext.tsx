@@ -88,6 +88,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorLatestReleaseProof: VantaPrivateCoreOperatorProofRecord | null;
   privateCoreOperatorCurrentRoot: string | null;
   privateCoreOperatorLatestRoot: VantaPrivateCoreOperatorRootRecord | null;
+  privateCoreOperatorRawBoundaryNote: string | null;
+  privateCoreOperatorRawBoundaryStatus: string | null;
   privateCoreOperatorProofConsumeLinkStatus: string | null;
   privateCoreOperatorProofError: string | null;
   privateCoreOperatorProofs: VantaPrivateCoreOperatorProofRecord[];
@@ -272,6 +274,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   const [privateCoreOperatorCurrentRoot, setPrivateCoreOperatorCurrentRoot] = useState<string | null>(null);
   const [privateCoreOperatorLatestRoot, setPrivateCoreOperatorLatestRoot] =
     useState<VantaPrivateCoreOperatorRootRecord | null>(null);
+  const [privateCoreOperatorRawBoundaryNote, setPrivateCoreOperatorRawBoundaryNote] =
+    useState<string | null>(null);
+  const [privateCoreOperatorRawBoundaryStatus, setPrivateCoreOperatorRawBoundaryStatus] =
+    useState<string | null>(null);
   const [privateCoreOperatorProofConsumeLinkStatus, setPrivateCoreOperatorProofConsumeLinkStatus] =
     useState<string | null>(null);
   const [privateCoreOperatorProofError, setPrivateCoreOperatorProofError] = useState<string | null>(null);
@@ -305,6 +311,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorLatestRelease,
       setPrivateCoreOperatorLatestReleaseProof,
       setPrivateCoreOperatorLatestRoot,
+      setPrivateCoreOperatorRawBoundaryNote,
+      setPrivateCoreOperatorRawBoundaryStatus,
       setPrivateCoreOperatorConsumes,
       setPrivateCoreOperatorProofConsumeLinkStatus,
       setPrivateCoreOperatorProofs,
@@ -1084,6 +1092,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         operatorRoots: privateCoreOperatorRoots,
       });
       const privateCoreOperatorBoundarySummary = summarizePrivateCoreOperatorBoundaryStatus({
+        operatorBoundaryNote: privateCoreOperatorRawBoundaryNote,
+        operatorBoundaryStatus: privateCoreOperatorRawBoundaryStatus,
         operatorConsumeError: privateCoreOperatorConsumeError,
         operatorProofConsumeLinkStatus: privateCoreOperatorProofConsumeLinkStatus,
         operatorProofError: privateCoreOperatorProofError,
@@ -1107,6 +1117,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorLatestReleaseProof,
       privateCoreOperatorCurrentRoot,
       privateCoreOperatorLatestRoot,
+      privateCoreOperatorRawBoundaryNote,
+      privateCoreOperatorRawBoundaryStatus,
       privateCoreOperatorProofConsumeLinkStatus,
       privateCoreOperatorProofError,
       privateCoreOperatorProofs,
@@ -1143,6 +1155,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorLatestReleaseProof,
       privateCoreOperatorCurrentRoot,
       privateCoreOperatorLatestRoot,
+      privateCoreOperatorRawBoundaryNote,
+      privateCoreOperatorRawBoundaryStatus,
       privateCoreOperatorProofConsumeLinkStatus,
       privateCoreOperatorProofError,
       privateCoreOperatorProofs,
@@ -1230,6 +1244,8 @@ function summarizePrivateCoreOperatorRootCurrentness(args: {
 }
 
 function summarizePrivateCoreOperatorBoundaryStatus(args: {
+  operatorBoundaryNote: string | null;
+  operatorBoundaryStatus: string | null;
   operatorConsumeError: string | null;
   operatorProofConsumeLinkStatus: string | null;
   operatorProofError: string | null;
@@ -1262,6 +1278,18 @@ function summarizePrivateCoreOperatorBoundaryStatus(args: {
     return {
       statusLabel: "Awaiting operator summary",
       primaryNote: "No operator summary has been observed yet.",
+    };
+  }
+
+  if (args.operatorBoundaryStatus && args.operatorBoundaryStatus !== "coherent") {
+    return {
+      statusLabel:
+        args.operatorBoundaryStatus === "awaiting-current-root"
+          ? "Awaiting current root"
+          : args.operatorBoundaryStatus === "proof-consume-unlinked"
+            ? "Proof and consume not linked"
+            : "Proof and release not linked",
+      primaryNote: args.operatorBoundaryNote,
     };
   }
 
@@ -1315,6 +1343,8 @@ function applyPrivateCoreOperatorSummaryState(args: {
   setPrivateCoreOperatorLatestRelease: (value: VantaPrivateCoreOperatorReleaseRecord | null) => void;
   setPrivateCoreOperatorLatestReleaseProof: (value: VantaPrivateCoreOperatorProofRecord | null) => void;
   setPrivateCoreOperatorLatestRoot: (value: VantaPrivateCoreOperatorRootRecord | null) => void;
+  setPrivateCoreOperatorRawBoundaryNote: (value: string | null) => void;
+  setPrivateCoreOperatorRawBoundaryStatus: (value: string | null) => void;
   setPrivateCoreOperatorConsumes: (value: VantaPrivateCoreOperatorConsumeRecord[]) => void;
   setPrivateCoreOperatorProofConsumeLinkStatus: (value: string | null) => void;
   setPrivateCoreOperatorProofs: (value: VantaPrivateCoreOperatorProofRecord[]) => void;
@@ -1329,6 +1359,8 @@ function applyPrivateCoreOperatorSummaryState(args: {
   args.setPrivateCoreOperatorLatestConsumeProof(args.summaryState.latestConsumeProof);
   args.setPrivateCoreOperatorLatestRelease(args.summaryState.latestRelease);
   args.setPrivateCoreOperatorLatestReleaseProof(args.summaryState.latestReleaseProof);
+  args.setPrivateCoreOperatorRawBoundaryNote(args.summaryState.boundaryNote);
+  args.setPrivateCoreOperatorRawBoundaryStatus(args.summaryState.boundaryStatus);
   args.setPrivateCoreOperatorRoots(args.summaryState.rootRecords);
   args.setPrivateCoreOperatorProofs(args.summaryState.proofRecords);
   args.setPrivateCoreOperatorConsumes(args.summaryState.consumeRecords);

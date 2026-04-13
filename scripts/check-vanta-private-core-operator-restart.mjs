@@ -221,6 +221,9 @@ try {
     preRestartSummary.parsed?.latestConsumeProof?.proofId !== consumeResponse.parsed.proofId ||
     preRestartSummary.parsed?.latestRelease?.proofId !== consumeResponse.parsed.proofId ||
     preRestartSummary.parsed?.latestReleaseProof?.proofId !== consumeResponse.parsed.proofId ||
+    preRestartSummary.parsed?.boundaryStatus !== "coherent" ||
+    preRestartSummary.parsed?.boundaryNote !==
+      "Current root, consume, release, and linked proofs agree." ||
     preRestartSummary.parsed?.proofConsumeLinkStatus !== "linked" ||
     preRestartSummary.parsed?.proofReleaseLinkStatus !== "linked"
   ) {
@@ -256,6 +259,9 @@ try {
     postRestartSummary.parsed?.latestRelease?.proofId !== consumeResponse.parsed.proofId ||
     postRestartSummary.parsed?.latestReleaseProof?.proofId !== consumeResponse.parsed.proofId ||
     postRestartSummary.parsed?.proofRecordCount < 2 ||
+    postRestartSummary.parsed?.boundaryStatus !== "coherent" ||
+    postRestartSummary.parsed?.boundaryNote !==
+      "Current root, consume, release, and linked proofs agree." ||
     postRestartSummary.parsed?.proofConsumeLinkStatus !== "linked" ||
     postRestartSummary.parsed?.proofReleaseLinkStatus !== "linked"
   ) {
