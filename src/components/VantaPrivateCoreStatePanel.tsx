@@ -16,11 +16,15 @@ type VantaPrivateCoreStatePanelProps = {
   operatorConsumeError?: string | null;
   operatorConsumes?: VantaPrivateCoreOperatorConsumeRecord[];
   operatorLatestConsume?: VantaPrivateCoreOperatorConsumeRecord | null;
+  operatorLatestConsumeProof?: VantaPrivateCoreOperatorProofRecord | null;
   operatorLatestProof?: VantaPrivateCoreOperatorProofRecord | null;
   operatorLatestRelease?: VantaPrivateCoreOperatorReleaseRecord | null;
+  operatorLatestReleaseProof?: VantaPrivateCoreOperatorProofRecord | null;
   operatorLatestRoot?: VantaPrivateCoreOperatorRootRecord | null;
+  operatorProofConsumeLinkStatus?: string | null;
   operatorProofError?: string | null;
   operatorProofs?: VantaPrivateCoreOperatorProofRecord[];
+  operatorProofReleaseLinkStatus?: string | null;
   operatorReleaseError?: string | null;
   operatorReleases?: VantaPrivateCoreOperatorReleaseRecord[];
   operatorRootCurrentnessLabel?: string | null;
@@ -103,11 +107,15 @@ export function VantaPrivateCoreStatePanel({
   operatorConsumeError = null,
   operatorConsumes = [],
   operatorLatestConsume = null,
+  operatorLatestConsumeProof = null,
   operatorLatestProof = null,
   operatorLatestRelease = null,
+  operatorLatestReleaseProof = null,
   operatorLatestRoot = null,
+  operatorProofConsumeLinkStatus = null,
   operatorProofError = null,
   operatorProofs = [],
+  operatorProofReleaseLinkStatus = null,
   operatorReleaseError = null,
   operatorReleases = [],
   operatorRootCurrentnessLabel = null,
@@ -345,6 +353,16 @@ export function VantaPrivateCoreStatePanel({
               </strong>
             </div>
             <div className="review-row">
+              <span>Linked consume proof</span>
+              <strong>
+                {operatorProofError
+                  ? operatorProofError
+                  : operatorLatestConsumeProof?.proofId
+                    ? abbreviate(operatorLatestConsumeProof.proofId)
+                    : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
               <span>Operator proof records</span>
               <strong>
                 {operatorProofError
@@ -389,6 +407,10 @@ export function VantaPrivateCoreStatePanel({
               <strong>{immediateProofAlignmentLabel}</strong>
             </div>
             <div className="review-row">
+              <span>Proof/consume link</span>
+              <strong>{operatorProofConsumeLinkStatus ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
               <span>Operator release records</span>
               <strong>
                 {operatorReleaseError
@@ -427,6 +449,16 @@ export function VantaPrivateCoreStatePanel({
               </strong>
             </div>
             <div className="review-row">
+              <span>Linked release proof</span>
+              <strong>
+                {operatorProofError
+                  ? operatorProofError
+                  : operatorLatestReleaseProof?.proofId
+                    ? abbreviate(operatorLatestReleaseProof.proofId)
+                    : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
               <span>Immediate release request</span>
               <strong>{abbreviate(unshieldState?.operatorReleaseRequestId)}</strong>
             </div>
@@ -437,6 +469,10 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Immediate release alignment</span>
               <strong>{immediateReleaseAlignmentLabel}</strong>
+            </div>
+            <div className="review-row">
+              <span>Proof/release link</span>
+              <strong>{operatorProofReleaseLinkStatus ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Operator release destination</span>

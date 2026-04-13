@@ -82,12 +82,16 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorConsumes: VantaPrivateCoreOperatorConsumeRecord[];
   privateCoreOperatorConsumeError: string | null;
   privateCoreOperatorLatestConsume: VantaPrivateCoreOperatorConsumeRecord | null;
+  privateCoreOperatorLatestConsumeProof: VantaPrivateCoreOperatorProofRecord | null;
   privateCoreOperatorLatestProof: VantaPrivateCoreOperatorProofRecord | null;
   privateCoreOperatorLatestRelease: VantaPrivateCoreOperatorReleaseRecord | null;
+  privateCoreOperatorLatestReleaseProof: VantaPrivateCoreOperatorProofRecord | null;
   privateCoreOperatorCurrentRoot: string | null;
   privateCoreOperatorLatestRoot: VantaPrivateCoreOperatorRootRecord | null;
+  privateCoreOperatorProofConsumeLinkStatus: string | null;
   privateCoreOperatorProofError: string | null;
   privateCoreOperatorProofs: VantaPrivateCoreOperatorProofRecord[];
+  privateCoreOperatorProofReleaseLinkStatus: string | null;
   privateCoreOperatorReleaseError: string | null;
   privateCoreOperatorReleases: VantaPrivateCoreOperatorReleaseRecord[];
   privateCoreOperatorRoots: VantaPrivateCoreOperatorRootRecord[];
@@ -254,17 +258,25 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   const [privateCoreOperatorConsumeError, setPrivateCoreOperatorConsumeError] = useState<string | null>(null);
   const [privateCoreOperatorLatestConsume, setPrivateCoreOperatorLatestConsume] =
     useState<VantaPrivateCoreOperatorConsumeRecord | null>(null);
+  const [privateCoreOperatorLatestConsumeProof, setPrivateCoreOperatorLatestConsumeProof] =
+    useState<VantaPrivateCoreOperatorProofRecord | null>(null);
   const [privateCoreOperatorLatestProof, setPrivateCoreOperatorLatestProof] =
     useState<VantaPrivateCoreOperatorProofRecord | null>(null);
   const [privateCoreOperatorLatestRelease, setPrivateCoreOperatorLatestRelease] =
     useState<VantaPrivateCoreOperatorReleaseRecord | null>(null);
+  const [privateCoreOperatorLatestReleaseProof, setPrivateCoreOperatorLatestReleaseProof] =
+    useState<VantaPrivateCoreOperatorProofRecord | null>(null);
   const [privateCoreOperatorCurrentRoot, setPrivateCoreOperatorCurrentRoot] = useState<string | null>(null);
   const [privateCoreOperatorLatestRoot, setPrivateCoreOperatorLatestRoot] =
     useState<VantaPrivateCoreOperatorRootRecord | null>(null);
+  const [privateCoreOperatorProofConsumeLinkStatus, setPrivateCoreOperatorProofConsumeLinkStatus] =
+    useState<string | null>(null);
   const [privateCoreOperatorProofError, setPrivateCoreOperatorProofError] = useState<string | null>(null);
   const [privateCoreOperatorProofs, setPrivateCoreOperatorProofs] = useState<
     VantaPrivateCoreOperatorProofRecord[]
   >([]);
+  const [privateCoreOperatorProofReleaseLinkStatus, setPrivateCoreOperatorProofReleaseLinkStatus] =
+    useState<string | null>(null);
   const [privateCoreOperatorReleaseError, setPrivateCoreOperatorReleaseError] = useState<string | null>(null);
   const [privateCoreOperatorReleases, setPrivateCoreOperatorReleases] = useState<
     VantaPrivateCoreOperatorReleaseRecord[]
@@ -289,11 +301,15 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
           summaryState,
           setPrivateCoreOperatorCurrentRoot,
           setPrivateCoreOperatorLatestConsume,
+          setPrivateCoreOperatorLatestConsumeProof,
           setPrivateCoreOperatorLatestProof,
           setPrivateCoreOperatorLatestRelease,
+          setPrivateCoreOperatorLatestReleaseProof,
           setPrivateCoreOperatorLatestRoot,
           setPrivateCoreOperatorConsumes,
+          setPrivateCoreOperatorProofConsumeLinkStatus,
           setPrivateCoreOperatorProofs,
+          setPrivateCoreOperatorProofReleaseLinkStatus,
           setPrivateCoreOperatorReleases,
           setPrivateCoreOperatorRoots,
         });
@@ -358,11 +374,15 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
           summaryState,
           setPrivateCoreOperatorCurrentRoot,
           setPrivateCoreOperatorLatestConsume,
+          setPrivateCoreOperatorLatestConsumeProof,
           setPrivateCoreOperatorLatestProof,
           setPrivateCoreOperatorLatestRelease,
+          setPrivateCoreOperatorLatestReleaseProof,
           setPrivateCoreOperatorLatestRoot,
           setPrivateCoreOperatorConsumes,
+          setPrivateCoreOperatorProofConsumeLinkStatus,
           setPrivateCoreOperatorProofs,
+          setPrivateCoreOperatorProofReleaseLinkStatus,
           setPrivateCoreOperatorReleases,
           setPrivateCoreOperatorRoots,
         });
@@ -406,11 +426,15 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         summaryState,
         setPrivateCoreOperatorCurrentRoot,
         setPrivateCoreOperatorLatestConsume,
+        setPrivateCoreOperatorLatestConsumeProof,
         setPrivateCoreOperatorLatestProof,
         setPrivateCoreOperatorLatestRelease,
+        setPrivateCoreOperatorLatestReleaseProof,
         setPrivateCoreOperatorLatestRoot,
         setPrivateCoreOperatorConsumes,
+        setPrivateCoreOperatorProofConsumeLinkStatus,
         setPrivateCoreOperatorProofs,
+        setPrivateCoreOperatorProofReleaseLinkStatus,
         setPrivateCoreOperatorReleases,
         setPrivateCoreOperatorRoots,
       });
@@ -665,11 +689,15 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
           summaryState,
           setPrivateCoreOperatorCurrentRoot,
           setPrivateCoreOperatorLatestConsume,
+          setPrivateCoreOperatorLatestConsumeProof,
           setPrivateCoreOperatorLatestProof,
           setPrivateCoreOperatorLatestRelease,
+          setPrivateCoreOperatorLatestReleaseProof,
           setPrivateCoreOperatorLatestRoot,
           setPrivateCoreOperatorConsumes,
+          setPrivateCoreOperatorProofConsumeLinkStatus,
           setPrivateCoreOperatorProofs,
+          setPrivateCoreOperatorProofReleaseLinkStatus,
           setPrivateCoreOperatorReleases,
           setPrivateCoreOperatorRoots,
         });
@@ -1095,12 +1123,16 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorConsumes,
       privateCoreOperatorConsumeError,
       privateCoreOperatorLatestConsume,
+      privateCoreOperatorLatestConsumeProof,
       privateCoreOperatorLatestProof,
       privateCoreOperatorLatestRelease,
+      privateCoreOperatorLatestReleaseProof,
       privateCoreOperatorCurrentRoot,
       privateCoreOperatorLatestRoot,
+      privateCoreOperatorProofConsumeLinkStatus,
       privateCoreOperatorProofError,
       privateCoreOperatorProofs,
+      privateCoreOperatorProofReleaseLinkStatus,
       privateCoreOperatorReleaseError,
       privateCoreOperatorReleases,
       privateCoreOperatorRoots,
@@ -1131,12 +1163,16 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorConsumeError,
       privateCoreOperatorConsumes,
       privateCoreOperatorLatestConsume,
+      privateCoreOperatorLatestConsumeProof,
       privateCoreOperatorLatestProof,
       privateCoreOperatorLatestRelease,
+      privateCoreOperatorLatestReleaseProof,
       privateCoreOperatorCurrentRoot,
       privateCoreOperatorLatestRoot,
+      privateCoreOperatorProofConsumeLinkStatus,
       privateCoreOperatorProofError,
       privateCoreOperatorProofs,
+      privateCoreOperatorProofReleaseLinkStatus,
       privateCoreOperatorReleaseError,
       privateCoreOperatorRootError,
       privateCoreOperatorRootRegistrationStatus,
@@ -1222,11 +1258,15 @@ function applyPrivateCoreOperatorSummaryState(args: {
   summaryState: VantaPrivateCoreOperatorSummaryStateResponse;
   setPrivateCoreOperatorCurrentRoot: (value: string | null) => void;
   setPrivateCoreOperatorLatestConsume: (value: VantaPrivateCoreOperatorConsumeRecord | null) => void;
+  setPrivateCoreOperatorLatestConsumeProof: (value: VantaPrivateCoreOperatorProofRecord | null) => void;
   setPrivateCoreOperatorLatestProof: (value: VantaPrivateCoreOperatorProofRecord | null) => void;
   setPrivateCoreOperatorLatestRelease: (value: VantaPrivateCoreOperatorReleaseRecord | null) => void;
+  setPrivateCoreOperatorLatestReleaseProof: (value: VantaPrivateCoreOperatorProofRecord | null) => void;
   setPrivateCoreOperatorLatestRoot: (value: VantaPrivateCoreOperatorRootRecord | null) => void;
   setPrivateCoreOperatorConsumes: (value: VantaPrivateCoreOperatorConsumeRecord[]) => void;
+  setPrivateCoreOperatorProofConsumeLinkStatus: (value: string | null) => void;
   setPrivateCoreOperatorProofs: (value: VantaPrivateCoreOperatorProofRecord[]) => void;
+  setPrivateCoreOperatorProofReleaseLinkStatus: (value: string | null) => void;
   setPrivateCoreOperatorReleases: (value: VantaPrivateCoreOperatorReleaseRecord[]) => void;
   setPrivateCoreOperatorRoots: (value: VantaPrivateCoreOperatorRootRecord[]) => void;
 }) {
@@ -1234,11 +1274,15 @@ function applyPrivateCoreOperatorSummaryState(args: {
   args.setPrivateCoreOperatorLatestRoot(args.summaryState.currentRecord);
   args.setPrivateCoreOperatorLatestProof(args.summaryState.latestProof);
   args.setPrivateCoreOperatorLatestConsume(args.summaryState.latestConsume);
+  args.setPrivateCoreOperatorLatestConsumeProof(args.summaryState.latestConsumeProof);
   args.setPrivateCoreOperatorLatestRelease(args.summaryState.latestRelease);
+  args.setPrivateCoreOperatorLatestReleaseProof(args.summaryState.latestReleaseProof);
   args.setPrivateCoreOperatorRoots(args.summaryState.rootRecords);
   args.setPrivateCoreOperatorProofs(args.summaryState.proofRecords);
   args.setPrivateCoreOperatorConsumes(args.summaryState.consumeRecords);
+  args.setPrivateCoreOperatorProofConsumeLinkStatus(args.summaryState.proofConsumeLinkStatus);
   args.setPrivateCoreOperatorReleases(args.summaryState.releaseRecords);
+  args.setPrivateCoreOperatorProofReleaseLinkStatus(args.summaryState.proofReleaseLinkStatus);
 }
 
 function summarizePrivateCoreImmediateOperatorConsume(

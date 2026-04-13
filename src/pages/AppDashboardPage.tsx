@@ -37,11 +37,15 @@ export function AppDashboardPage() {
     privateCoreOperatorConsumes,
     privateCoreOperatorCurrentRoot,
     privateCoreOperatorLatestConsume,
+    privateCoreOperatorLatestConsumeProof,
     privateCoreOperatorLatestProof,
     privateCoreOperatorLatestRoot,
     privateCoreOperatorLatestRelease,
+    privateCoreOperatorLatestReleaseProof,
+    privateCoreOperatorProofConsumeLinkStatus,
     privateCoreOperatorProofError,
     privateCoreOperatorProofs,
+    privateCoreOperatorProofReleaseLinkStatus,
     privateCoreOperatorReleaseError,
     privateCoreOperatorReleases,
     privateCoreOperatorRootCurrentnessLabel,
@@ -191,11 +195,15 @@ export function AppDashboardPage() {
               operatorConsumeError={privateCoreOperatorConsumeError}
               operatorConsumes={privateCoreOperatorConsumes}
               operatorLatestConsume={privateCoreOperatorLatestConsume}
+              operatorLatestConsumeProof={privateCoreOperatorLatestConsumeProof}
               operatorLatestProof={privateCoreOperatorLatestProof}
               operatorLatestRelease={privateCoreOperatorLatestRelease}
+              operatorLatestReleaseProof={privateCoreOperatorLatestReleaseProof}
               operatorLatestRoot={privateCoreOperatorLatestRoot}
+              operatorProofConsumeLinkStatus={privateCoreOperatorProofConsumeLinkStatus}
               operatorProofError={privateCoreOperatorProofError}
               operatorProofs={privateCoreOperatorProofs}
+              operatorProofReleaseLinkStatus={privateCoreOperatorProofReleaseLinkStatus}
               operatorReleaseError={privateCoreOperatorReleaseError}
               operatorReleases={privateCoreOperatorReleases}
               operatorRootCurrentnessLabel={privateCoreOperatorRootCurrentnessLabel}
