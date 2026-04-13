@@ -91,12 +91,14 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorCurrentRoot: string | null;
   privateCoreOperatorLatestRoot: VantaPrivateCoreOperatorRootRecord | null;
   privateCoreOperatorLatestSend: VantaPrivateCoreOperatorSendRecord | null;
+  privateCoreOperatorLatestSendLinkedProof: VantaPrivateCoreOperatorSendProofRecord | null;
   privateCoreOperatorLatestSendProof: VantaPrivateCoreOperatorSendProofRecord | null;
   privateCoreOperatorRawBoundaryNote: string | null;
   privateCoreOperatorRawBoundaryStatus: string | null;
   privateCoreOperatorProofConsumeLinkStatus: string | null;
   privateCoreOperatorProofError: string | null;
   privateCoreOperatorProofs: VantaPrivateCoreOperatorProofRecord[];
+  privateCoreOperatorProofSendLinkStatus: string | null;
   privateCoreOperatorProofReleaseLinkStatus: string | null;
   privateCoreOperatorReleaseError: string | null;
   privateCoreOperatorReleases: VantaPrivateCoreOperatorReleaseRecord[];
@@ -284,6 +286,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<VantaPrivateCoreOperatorRootRecord | null>(null);
   const [privateCoreOperatorLatestSend, setPrivateCoreOperatorLatestSend] =
     useState<VantaPrivateCoreOperatorSendRecord | null>(null);
+  const [privateCoreOperatorLatestSendLinkedProof, setPrivateCoreOperatorLatestSendLinkedProof] =
+    useState<VantaPrivateCoreOperatorSendProofRecord | null>(null);
   const [privateCoreOperatorLatestSendProof, setPrivateCoreOperatorLatestSendProof] =
     useState<VantaPrivateCoreOperatorSendProofRecord | null>(null);
   const [privateCoreOperatorRawBoundaryNote, setPrivateCoreOperatorRawBoundaryNote] =
@@ -296,6 +300,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   const [privateCoreOperatorProofs, setPrivateCoreOperatorProofs] = useState<
     VantaPrivateCoreOperatorProofRecord[]
   >([]);
+  const [privateCoreOperatorProofSendLinkStatus, setPrivateCoreOperatorProofSendLinkStatus] =
+    useState<string | null>(null);
   const [privateCoreOperatorProofReleaseLinkStatus, setPrivateCoreOperatorProofReleaseLinkStatus] =
     useState<string | null>(null);
   const [privateCoreOperatorReleaseError, setPrivateCoreOperatorReleaseError] = useState<string | null>(null);
@@ -332,11 +338,13 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorLatestReleaseProof,
       setPrivateCoreOperatorLatestRoot,
       setPrivateCoreOperatorLatestSend,
+      setPrivateCoreOperatorLatestSendLinkedProof,
       setPrivateCoreOperatorRawBoundaryNote,
       setPrivateCoreOperatorRawBoundaryStatus,
       setPrivateCoreOperatorConsumes,
       setPrivateCoreOperatorProofConsumeLinkStatus,
       setPrivateCoreOperatorProofs,
+      setPrivateCoreOperatorProofSendLinkStatus,
       setPrivateCoreOperatorProofReleaseLinkStatus,
       setPrivateCoreOperatorReleases,
       setPrivateCoreOperatorRoots,
@@ -1125,6 +1133,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         operatorConsumeError: privateCoreOperatorConsumeError,
         operatorProofConsumeLinkStatus: privateCoreOperatorProofConsumeLinkStatus,
         operatorProofError: privateCoreOperatorProofError,
+        operatorProofSendLinkStatus: privateCoreOperatorProofSendLinkStatus,
         operatorProofReleaseLinkStatus: privateCoreOperatorProofReleaseLinkStatus,
         operatorReleaseError: privateCoreOperatorReleaseError,
         operatorRootCurrentnessLabel: privateCoreOperatorRootCurrentnessLabel,
@@ -1146,12 +1155,14 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorCurrentRoot,
       privateCoreOperatorLatestRoot,
       privateCoreOperatorLatestSend,
+      privateCoreOperatorLatestSendLinkedProof,
       privateCoreOperatorLatestSendProof,
       privateCoreOperatorRawBoundaryNote,
       privateCoreOperatorRawBoundaryStatus,
       privateCoreOperatorProofConsumeLinkStatus,
       privateCoreOperatorProofError,
       privateCoreOperatorProofs,
+      privateCoreOperatorProofSendLinkStatus,
       privateCoreOperatorProofReleaseLinkStatus,
       privateCoreOperatorReleaseError,
       privateCoreOperatorReleases,
@@ -1190,12 +1201,14 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorCurrentRoot,
       privateCoreOperatorLatestRoot,
       privateCoreOperatorLatestSend,
+      privateCoreOperatorLatestSendLinkedProof,
       privateCoreOperatorLatestSendProof,
       privateCoreOperatorRawBoundaryNote,
       privateCoreOperatorRawBoundaryStatus,
       privateCoreOperatorProofConsumeLinkStatus,
       privateCoreOperatorProofError,
       privateCoreOperatorProofs,
+      privateCoreOperatorProofSendLinkStatus,
       privateCoreOperatorProofReleaseLinkStatus,
       privateCoreOperatorReleaseError,
       privateCoreOperatorRootError,
@@ -1289,6 +1302,7 @@ function summarizePrivateCoreOperatorBoundaryStatus(args: {
   operatorConsumeError: string | null;
   operatorProofConsumeLinkStatus: string | null;
   operatorProofError: string | null;
+  operatorProofSendLinkStatus: string | null;
   operatorProofReleaseLinkStatus: string | null;
   operatorReleaseError: string | null;
   operatorRootCurrentnessLabel: string | null;
@@ -1326,6 +1340,8 @@ function summarizePrivateCoreOperatorBoundaryStatus(args: {
       statusLabel:
         args.operatorBoundaryStatus === "awaiting-current-root"
           ? "Awaiting current root"
+          : args.operatorBoundaryStatus === "proof-send-unlinked"
+            ? "Proof and send not linked"
           : args.operatorBoundaryStatus === "proof-consume-unlinked"
             ? "Proof and consume not linked"
             : "Proof and release not linked",
@@ -1337,6 +1353,16 @@ function summarizePrivateCoreOperatorBoundaryStatus(args: {
     return {
       statusLabel: "Operator root not current",
       primaryNote: args.operatorRootCurrentnessLabel ?? "Operator root status unavailable.",
+    };
+  }
+
+  if (args.operatorProofSendLinkStatus !== "linked" && args.operatorProofSendLinkStatus !== "unavailable") {
+    return {
+      statusLabel: "Proof and send not linked",
+      primaryNote:
+        args.operatorProofSendLinkStatus === "mismatch"
+          ? "Latest send record does not match its linked proof."
+          : "Latest send proof linkage is unavailable.",
     };
   }
 
@@ -1384,12 +1410,14 @@ function applyPrivateCoreOperatorSummaryState(args: {
   setPrivateCoreOperatorLatestReleaseProof: (value: VantaPrivateCoreOperatorProofRecord | null) => void;
   setPrivateCoreOperatorLatestRoot: (value: VantaPrivateCoreOperatorRootRecord | null) => void;
   setPrivateCoreOperatorLatestSend: (value: VantaPrivateCoreOperatorSendRecord | null) => void;
+  setPrivateCoreOperatorLatestSendLinkedProof: (value: VantaPrivateCoreOperatorSendProofRecord | null) => void;
   setPrivateCoreOperatorLatestSendProof: (value: VantaPrivateCoreOperatorSendProofRecord | null) => void;
   setPrivateCoreOperatorRawBoundaryNote: (value: string | null) => void;
   setPrivateCoreOperatorRawBoundaryStatus: (value: string | null) => void;
   setPrivateCoreOperatorConsumes: (value: VantaPrivateCoreOperatorConsumeRecord[]) => void;
   setPrivateCoreOperatorProofConsumeLinkStatus: (value: string | null) => void;
   setPrivateCoreOperatorProofs: (value: VantaPrivateCoreOperatorProofRecord[]) => void;
+  setPrivateCoreOperatorProofSendLinkStatus: (value: string | null) => void;
   setPrivateCoreOperatorProofReleaseLinkStatus: (value: string | null) => void;
   setPrivateCoreOperatorReleases: (value: VantaPrivateCoreOperatorReleaseRecord[]) => void;
   setPrivateCoreOperatorRoots: (value: VantaPrivateCoreOperatorRootRecord[]) => void;
@@ -1400,6 +1428,7 @@ function applyPrivateCoreOperatorSummaryState(args: {
   args.setPrivateCoreOperatorLatestRoot(args.summaryState.currentRecord);
   args.setPrivateCoreOperatorLatestProof(args.summaryState.latestProof);
   args.setPrivateCoreOperatorLatestSend(args.summaryState.latestSend);
+  args.setPrivateCoreOperatorLatestSendLinkedProof(args.summaryState.latestSendLinkedProof);
   args.setPrivateCoreOperatorLatestSendProof(args.summaryState.latestSendProof);
   args.setPrivateCoreOperatorLatestConsume(args.summaryState.latestConsume);
   args.setPrivateCoreOperatorLatestConsumeProof(args.summaryState.latestConsumeProof);
@@ -1412,6 +1441,7 @@ function applyPrivateCoreOperatorSummaryState(args: {
   args.setPrivateCoreOperatorSends(args.summaryState.sendRecords);
   args.setPrivateCoreOperatorSendProofs(args.summaryState.sendProofRecords);
   args.setPrivateCoreOperatorConsumes(args.summaryState.consumeRecords);
+  args.setPrivateCoreOperatorProofSendLinkStatus(args.summaryState.proofSendLinkStatus);
   args.setPrivateCoreOperatorProofConsumeLinkStatus(args.summaryState.proofConsumeLinkStatus);
   args.setPrivateCoreOperatorReleases(args.summaryState.releaseRecords);
   args.setPrivateCoreOperatorProofReleaseLinkStatus(args.summaryState.proofReleaseLinkStatus);

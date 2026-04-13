@@ -1369,6 +1369,10 @@ function buildPrivateCoreSummaryState() {
   const latestProof = proofRecords[0] ?? null;
   const latestSendProof = sendProofRecords[0] ?? null;
   const latestSend = sendRecords[0] ?? null;
+  const latestLinkedSendProof =
+    latestSend && typeof latestSend.proofId === "string"
+      ? sendProofRecords.find((record) => record.proofId === latestSend.proofId) ?? null
+      : null;
   const latestConsume = consumeRecords[0] ?? null;
   const latestRelease = releaseRecords[0] ?? null;
   const latestConsumeProof =
@@ -1383,6 +1387,10 @@ function buildPrivateCoreSummaryState() {
     linkedProof: latestConsumeProof,
     latestConsume,
   });
+  const proofSendLinkStatus = summarizePrivateCoreProofSendLinkStatus({
+    linkedProof: latestLinkedSendProof,
+    latestSend,
+  });
   const proofReleaseLinkStatus = summarizePrivateCoreProofReleaseLinkStatus({
     linkedProof: latestReleaseProof,
     latestRelease,
@@ -1390,6 +1398,7 @@ function buildPrivateCoreSummaryState() {
   const boundaryStatus = summarizePrivateCoreBoundaryStatus({
     currentRoot: rootRecords[0]?.root ?? null,
     proofConsumeLinkStatus,
+    proofSendLinkStatus,
     proofReleaseLinkStatus,
   });
 
@@ -1406,6 +1415,7 @@ function buildPrivateCoreSummaryState() {
     proofRecords,
     latestSendProof,
     sendProofRecords,
+    latestSendLinkedProof: latestLinkedSendProof,
     latestSend,
     sendRecords,
     latestConsume,
@@ -1421,6 +1431,7 @@ function buildPrivateCoreSummaryState() {
     consumeRecordCount: consumeRecords.length,
     releaseRecordCount: releaseRecords.length,
     proofConsumeLinkStatus,
+    proofSendLinkStatus,
     proofReleaseLinkStatus,
   };
 }
@@ -1430,6 +1441,13 @@ function summarizePrivateCoreBoundaryStatus(args) {
     return {
       status: "awaiting-current-root",
       note: "No current root is registered yet.",
+    };
+  }
+
+  if (args.proofSendLinkStatus !== "linked" && args.proofSendLinkStatus !== "unavailable") {
+    return {
+      status: "proof-send-unlinked",
+      note: "Latest send record does not match its linked proof.",
     };
   }
 
@@ -1457,6 +1475,22 @@ function summarizePrivateCoreBoundaryStatus(args) {
     status: "coherent",
     note: "Current root, consume, release, and linked proofs agree.",
   };
+}
+
+function summarizePrivateCoreProofSendLinkStatus(args) {
+  if (!args.linkedProof || !args.latestSend) {
+    return "unavailable";
+  }
+
+  if (
+    args.linkedProof.proofId === args.latestSend.proofId &&
+    args.linkedProof.root === args.latestSend.inputRoot &&
+    args.linkedProof.nullifier === args.latestSend.inputNullifier
+  ) {
+    return "linked";
+  }
+
+  return "mismatch";
 }
 
 function summarizePrivateCoreProofConsumeLinkStatus(args) {

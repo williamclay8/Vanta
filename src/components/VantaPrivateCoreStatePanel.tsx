@@ -24,12 +24,14 @@ type VantaPrivateCoreStatePanelProps = {
   operatorLatestReleaseProof?: VantaPrivateCoreOperatorProofRecord | null;
   operatorLatestRoot?: VantaPrivateCoreOperatorRootRecord | null;
   operatorLatestSend?: VantaPrivateCoreOperatorSendRecord | null;
+  operatorLatestSendLinkedProof?: VantaPrivateCoreOperatorSendProofRecord | null;
   operatorLatestSendProof?: VantaPrivateCoreOperatorSendProofRecord | null;
   operatorBoundaryPrimaryNote?: string | null;
   operatorBoundaryStatusLabel?: string | null;
   operatorProofConsumeLinkStatus?: string | null;
   operatorProofError?: string | null;
   operatorProofs?: VantaPrivateCoreOperatorProofRecord[];
+  operatorProofSendLinkStatus?: string | null;
   operatorProofReleaseLinkStatus?: string | null;
   operatorReleaseError?: string | null;
   operatorReleases?: VantaPrivateCoreOperatorReleaseRecord[];
@@ -136,12 +138,14 @@ export function VantaPrivateCoreStatePanel({
   operatorLatestReleaseProof = null,
   operatorLatestRoot = null,
   operatorLatestSend = null,
+  operatorLatestSendLinkedProof = null,
   operatorLatestSendProof = null,
   operatorBoundaryPrimaryNote = null,
   operatorBoundaryStatusLabel = null,
   operatorProofConsumeLinkStatus = null,
   operatorProofError = null,
   operatorProofs = [],
+  operatorProofSendLinkStatus = null,
   operatorProofReleaseLinkStatus = null,
   operatorReleaseError = null,
   operatorReleases = [],
@@ -164,6 +168,11 @@ export function VantaPrivateCoreStatePanel({
   const latestOperatorRelease = operatorLatestRelease ?? operatorReleases[0] ?? null;
   const latestOperatorRoot = operatorLatestRoot ?? operatorRoots[0] ?? null;
   const latestOperatorSend = operatorLatestSend ?? operatorSends[0] ?? null;
+  const latestOperatorSendLinkedProof =
+    operatorLatestSendLinkedProof ??
+    (latestOperatorSend?.proofId
+      ? operatorSendProofs.find((record) => record.proofId === latestOperatorSend.proofId) ?? null
+      : null);
   const latestOperatorSendProof = operatorLatestSendProof ?? operatorSendProofs[0] ?? null;
   const immediateProofAlignmentLabel = summarizeOperatorImmediateProofAlignment({
     latestOperatorProof,
@@ -475,6 +484,16 @@ export function VantaPrivateCoreStatePanel({
               </strong>
             </div>
             <div className="review-row">
+              <span>Linked send proof</span>
+              <strong>
+                {operatorSendProofError
+                  ? operatorSendProofError
+                  : latestOperatorSendLinkedProof?.proofId
+                    ? abbreviate(latestOperatorSendLinkedProof.proofId)
+                    : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
               <span>Latest send amount</span>
               <strong>
                 {operatorSendError
@@ -501,6 +520,10 @@ export function VantaPrivateCoreStatePanel({
                   ? operatorSendProofError
                   : latestOperatorSendProof?.action ?? "Unavailable"}
               </strong>
+            </div>
+            <div className="review-row">
+              <span>Proof/send link</span>
+              <strong>{operatorProofSendLinkStatus ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Latest send proof root</span>

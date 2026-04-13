@@ -43,12 +43,14 @@ export function AppDashboardPage() {
     privateCoreOperatorLatestRelease,
     privateCoreOperatorLatestReleaseProof,
     privateCoreOperatorLatestSendProof,
+    privateCoreOperatorLatestSendLinkedProof,
     privateCoreOperatorLatestSend,
     privateCoreOperatorBoundaryPrimaryNote,
     privateCoreOperatorBoundaryStatusLabel,
     privateCoreOperatorProofConsumeLinkStatus,
     privateCoreOperatorProofError,
     privateCoreOperatorProofs,
+    privateCoreOperatorProofSendLinkStatus,
     privateCoreOperatorProofReleaseLinkStatus,
     privateCoreOperatorReleaseError,
     privateCoreOperatorReleases,
@@ -206,17 +208,19 @@ export function AppDashboardPage() {
               operatorLatestConsume={privateCoreOperatorLatestConsume}
               operatorLatestConsumeProof={privateCoreOperatorLatestConsumeProof}
               operatorLatestProof={privateCoreOperatorLatestProof}
-              operatorLatestRelease={privateCoreOperatorLatestRelease}
-              operatorLatestReleaseProof={privateCoreOperatorLatestReleaseProof}
-              operatorLatestRoot={privateCoreOperatorLatestRoot}
-              operatorLatestSend={privateCoreOperatorLatestSend}
-              operatorLatestSendProof={privateCoreOperatorLatestSendProof}
-              operatorBoundaryPrimaryNote={privateCoreOperatorBoundaryPrimaryNote}
-              operatorBoundaryStatusLabel={privateCoreOperatorBoundaryStatusLabel}
-              operatorProofConsumeLinkStatus={privateCoreOperatorProofConsumeLinkStatus}
-              operatorProofError={privateCoreOperatorProofError}
-              operatorProofs={privateCoreOperatorProofs}
-              operatorProofReleaseLinkStatus={privateCoreOperatorProofReleaseLinkStatus}
+          operatorLatestRelease={privateCoreOperatorLatestRelease}
+          operatorLatestReleaseProof={privateCoreOperatorLatestReleaseProof}
+          operatorLatestRoot={privateCoreOperatorLatestRoot}
+          operatorLatestSend={privateCoreOperatorLatestSend}
+          operatorLatestSendLinkedProof={privateCoreOperatorLatestSendLinkedProof}
+          operatorLatestSendProof={privateCoreOperatorLatestSendProof}
+          operatorBoundaryPrimaryNote={privateCoreOperatorBoundaryPrimaryNote}
+          operatorBoundaryStatusLabel={privateCoreOperatorBoundaryStatusLabel}
+          operatorProofConsumeLinkStatus={privateCoreOperatorProofConsumeLinkStatus}
+          operatorProofError={privateCoreOperatorProofError}
+          operatorProofs={privateCoreOperatorProofs}
+          operatorProofSendLinkStatus={privateCoreOperatorProofSendLinkStatus}
+          operatorProofReleaseLinkStatus={privateCoreOperatorProofReleaseLinkStatus}
               operatorReleaseError={privateCoreOperatorReleaseError}
               operatorReleases={privateCoreOperatorReleases}
               operatorRootCurrentnessLabel={privateCoreOperatorRootCurrentnessLabel}

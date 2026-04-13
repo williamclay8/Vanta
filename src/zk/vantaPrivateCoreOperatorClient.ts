@@ -186,6 +186,7 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   boundaryStatus:
     | "coherent"
     | "awaiting-current-root"
+    | "proof-send-unlinked"
     | "proof-consume-unlinked"
     | "proof-release-unlinked";
   generatedAt: number;
@@ -198,6 +199,7 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   proofRecords: VantaPrivateCoreOperatorProofRecord[];
   latestSendProof: VantaPrivateCoreOperatorSendProofRecord | null;
   sendProofRecords: VantaPrivateCoreOperatorSendProofRecord[];
+  latestSendLinkedProof: VantaPrivateCoreOperatorSendProofRecord | null;
   latestSend: VantaPrivateCoreOperatorSendRecord | null;
   sendRecords: VantaPrivateCoreOperatorSendRecord[];
   latestConsume: VantaPrivateCoreOperatorConsumeRecord | null;
@@ -212,6 +214,7 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   sendRecordCount: number;
   consumeRecordCount: number;
   releaseRecordCount: number;
+  proofSendLinkStatus: "linked" | "mismatch" | "unavailable";
   proofConsumeLinkStatus: "linked" | "mismatch" | "unavailable";
   proofReleaseLinkStatus: "linked" | "mismatch" | "unavailable";
 };
@@ -760,6 +763,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     proofRecords?: unknown;
     latestSendProof?: unknown;
     sendProofRecords?: unknown;
+    latestSendLinkedProof?: unknown;
     latestSend?: unknown;
     sendRecords?: unknown;
     latestConsume?: unknown;
@@ -774,6 +778,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     sendRecordCount?: unknown;
     consumeRecordCount?: unknown;
     releaseRecordCount?: unknown;
+    proofSendLinkStatus?: unknown;
     proofConsumeLinkStatus?: unknown;
     proofReleaseLinkStatus?: unknown;
   };
@@ -799,6 +804,9 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
       parsed.latestSendProof !== undefined &&
       !isSendProofRecord(parsed.latestSendProof)) ||
     !Array.isArray(parsed.sendProofRecords) ||
+    (parsed.latestSendLinkedProof !== null &&
+      parsed.latestSendLinkedProof !== undefined &&
+      !isSendProofRecord(parsed.latestSendLinkedProof)) ||
     (parsed.latestSend !== null &&
       parsed.latestSend !== undefined &&
       !isSendRecord(parsed.latestSend)) ||
@@ -823,6 +831,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     typeof parsed.sendRecordCount !== "number" ||
     typeof parsed.consumeRecordCount !== "number" ||
     typeof parsed.releaseRecordCount !== "number" ||
+    !isLinkStatus(parsed.proofSendLinkStatus) ||
     !isLinkStatus(parsed.proofConsumeLinkStatus) ||
     !isLinkStatus(parsed.proofReleaseLinkStatus)
   ) {
@@ -842,6 +851,9 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     proofRecords: parsed.proofRecords.filter(isProofRecord),
     latestSendProof: isSendProofRecord(parsed.latestSendProof) ? parsed.latestSendProof : null,
     sendProofRecords: parsed.sendProofRecords.filter(isSendProofRecord),
+    latestSendLinkedProof: isSendProofRecord(parsed.latestSendLinkedProof)
+      ? parsed.latestSendLinkedProof
+      : null,
     latestSend: isSendRecord(parsed.latestSend) ? parsed.latestSend : null,
     sendRecords: parsed.sendRecords.filter(isSendRecord),
     latestConsume: isConsumeRecord(parsed.latestConsume) ? parsed.latestConsume : null,
@@ -856,6 +868,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     sendRecordCount: parsed.sendRecordCount,
     consumeRecordCount: parsed.consumeRecordCount,
     releaseRecordCount: parsed.releaseRecordCount,
+    proofSendLinkStatus: parsed.proofSendLinkStatus,
     proofConsumeLinkStatus: parsed.proofConsumeLinkStatus,
     proofReleaseLinkStatus: parsed.proofReleaseLinkStatus,
   };
@@ -993,6 +1006,7 @@ function isBoundaryStatus(
   return (
     value === "coherent" ||
     value === "awaiting-current-root" ||
+    value === "proof-send-unlinked" ||
     value === "proof-consume-unlinked" ||
     value === "proof-release-unlinked"
   );
