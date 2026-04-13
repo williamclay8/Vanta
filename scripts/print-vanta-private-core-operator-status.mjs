@@ -21,6 +21,7 @@ try {
   printLine("Send proof records", String(summary.sendProofRecordCount ?? 0));
   printLine("Latest send transition", abbreviate(summary.latestSend?.sendId));
   printLine("Latest send proof link", abbreviate(summary.latestSend?.proofId));
+  printLine("Latest send linked proof", abbreviate(summary.latestSendLinkedProof?.proofId));
   printLine(
     "Latest send amount",
     typeof summary.latestSend?.sendAmount === "string" ? summary.latestSend.sendAmount : "Unavailable",
@@ -37,6 +38,7 @@ try {
       : "Unavailable",
   );
   printLine("Release records", String(summary.releaseRecordCount ?? 0));
+  printLine("Proof/send link", summary.proofSendLinkStatus ?? "Unavailable");
   printLine("Proof/consume link", summary.proofConsumeLinkStatus ?? "Unavailable");
   printLine("Proof/release link", summary.proofReleaseLinkStatus ?? "Unavailable");
   printLine("Boundary status", humanizeBoundaryStatus(summary.boundaryStatus));
@@ -111,6 +113,8 @@ function humanizeBoundaryStatus(value) {
       return "Operator boundary coherent";
     case "awaiting-current-root":
       return "Awaiting current root";
+    case "proof-send-unlinked":
+      return "Proof/send not linked";
     case "proof-consume-unlinked":
       return "Proof/consume not linked";
     case "proof-release-unlinked":

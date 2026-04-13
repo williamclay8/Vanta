@@ -40,8 +40,10 @@ The operator-status command gives a quick summary snapshot of:
 - current registered root
 - latest proof
 - latest send proof
+- latest send linked proof
 - latest consume
 - latest release
+- proof/send link status
 - proof/consume link status
 - proof/release link status
 

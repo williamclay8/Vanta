@@ -303,6 +303,8 @@ If the operator is already running, the quickest live status readout is:
 npm run private-core:operator-status
 ```
 
+That status readout now includes proof/send, proof/consume, and proof/release linkage across the operator summary boundary.
+
 If you want one demo-operator command that does both the full verification pass and the live operator summary, use:
 
 ```bash

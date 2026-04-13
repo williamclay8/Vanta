@@ -185,7 +185,7 @@ These commands cover:
 
 `private-core:demo-preflight` combines the full verification pass with the current operator status summary.
 
-`private-core:operator-status` gives a quick readout of the current operator root, proof, send-proof, send-transition, consume, and release state when the operator server is running, including proof/consume and proof/release linkage.
+`private-core:operator-status` gives a quick readout of the current operator root, proof, send-proof, send-transition, consume, and release state when the operator server is running, including proof/send, proof/consume, and proof/release linkage.
 
 ---
 
