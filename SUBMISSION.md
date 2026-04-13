@@ -193,7 +193,7 @@ The repo now includes concrete verification commands for the Vanta Private Core 
 - `npm run private-core:demo-preflight`
   runs the full verification pass and then prints the current operator-side status summary
 - `npm run private-core:operator-status`
-  prints the current operator-side root, proof, send-proof, consume, and release state when the operator server is running, including proof/consume and proof/release linkage
+  prints the current operator-side root, proof, send-proof, consume, and release state from the operator summary snapshot when the operator server is running, including proof/consume and proof/release linkage
 
 These commands do not make the protocol finished, but they do make the current first zk boundary concrete and repeatable.
 

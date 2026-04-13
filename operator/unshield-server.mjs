@@ -1296,9 +1296,11 @@ function writeCorsHeaders(response) {
 function buildPrivateCoreSummaryState() {
   const rootRecords = privateCoreRootStore.listRoots();
   const proofRecords = privateCoreProofStore.listProofs();
+  const sendProofRecords = privateCoreSendProofStore.listProofs();
   const consumeRecords = privateCoreConsumeStore.listConsumes();
   const releaseRecords = privateCoreReleaseRecords.listRecords();
   const latestProof = proofRecords[0] ?? null;
+  const latestSendProof = sendProofRecords[0] ?? null;
   const latestConsume = consumeRecords[0] ?? null;
   const latestRelease = releaseRecords[0] ?? null;
   const latestConsumeProof =
@@ -1334,6 +1336,8 @@ function buildPrivateCoreSummaryState() {
     rootRecords,
     latestProof,
     proofRecords,
+    latestSendProof,
+    sendProofRecords,
     latestConsume,
     consumeRecords,
     latestConsumeProof,
@@ -1342,6 +1346,7 @@ function buildPrivateCoreSummaryState() {
     latestReleaseProof,
     rootRecordCount: rootRecords.length,
     proofRecordCount: proofRecords.length,
+    sendProofRecordCount: sendProofRecords.length,
     consumeRecordCount: consumeRecords.length,
     releaseRecordCount: releaseRecords.length,
     proofConsumeLinkStatus,

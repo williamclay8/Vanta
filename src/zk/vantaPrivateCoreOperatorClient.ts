@@ -161,6 +161,8 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   rootRecords: VantaPrivateCoreOperatorRootRecord[];
   latestProof: VantaPrivateCoreOperatorProofRecord | null;
   proofRecords: VantaPrivateCoreOperatorProofRecord[];
+  latestSendProof: VantaPrivateCoreOperatorSendProofRecord | null;
+  sendProofRecords: VantaPrivateCoreOperatorSendProofRecord[];
   latestConsume: VantaPrivateCoreOperatorConsumeRecord | null;
   consumeRecords: VantaPrivateCoreOperatorConsumeRecord[];
   latestConsumeProof: VantaPrivateCoreOperatorProofRecord | null;
@@ -169,6 +171,7 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   latestReleaseProof: VantaPrivateCoreOperatorProofRecord | null;
   rootRecordCount: number;
   proofRecordCount: number;
+  sendProofRecordCount: number;
   consumeRecordCount: number;
   releaseRecordCount: number;
   proofConsumeLinkStatus: "linked" | "mismatch" | "unavailable";
@@ -614,6 +617,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     rootRecords?: unknown;
     latestProof?: unknown;
     proofRecords?: unknown;
+    latestSendProof?: unknown;
+    sendProofRecords?: unknown;
     latestConsume?: unknown;
     consumeRecords?: unknown;
     latestConsumeProof?: unknown;
@@ -622,6 +627,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     latestReleaseProof?: unknown;
     rootRecordCount?: unknown;
     proofRecordCount?: unknown;
+    sendProofRecordCount?: unknown;
     consumeRecordCount?: unknown;
     releaseRecordCount?: unknown;
     proofConsumeLinkStatus?: unknown;
@@ -645,6 +651,10 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
       parsed.latestProof !== undefined &&
       !isProofRecord(parsed.latestProof)) ||
     !Array.isArray(parsed.proofRecords) ||
+    (parsed.latestSendProof !== null &&
+      parsed.latestSendProof !== undefined &&
+      !isSendProofRecord(parsed.latestSendProof)) ||
+    !Array.isArray(parsed.sendProofRecords) ||
     (parsed.latestConsume !== null &&
       parsed.latestConsume !== undefined &&
       !isConsumeRecord(parsed.latestConsume)) ||
@@ -661,6 +671,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
       !isProofRecord(parsed.latestReleaseProof)) ||
     typeof parsed.rootRecordCount !== "number" ||
     typeof parsed.proofRecordCount !== "number" ||
+    typeof parsed.sendProofRecordCount !== "number" ||
     typeof parsed.consumeRecordCount !== "number" ||
     typeof parsed.releaseRecordCount !== "number" ||
     !isLinkStatus(parsed.proofConsumeLinkStatus) ||
@@ -680,6 +691,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     rootRecords: parsed.rootRecords.filter(isRootRecord),
     latestProof: isProofRecord(parsed.latestProof) ? parsed.latestProof : null,
     proofRecords: parsed.proofRecords.filter(isProofRecord),
+    latestSendProof: isSendProofRecord(parsed.latestSendProof) ? parsed.latestSendProof : null,
+    sendProofRecords: parsed.sendProofRecords.filter(isSendProofRecord),
     latestConsume: isConsumeRecord(parsed.latestConsume) ? parsed.latestConsume : null,
     consumeRecords: parsed.consumeRecords.filter(isConsumeRecord),
     latestConsumeProof: isProofRecord(parsed.latestConsumeProof) ? parsed.latestConsumeProof : null,
@@ -688,6 +701,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     latestReleaseProof: isProofRecord(parsed.latestReleaseProof) ? parsed.latestReleaseProof : null,
     rootRecordCount: parsed.rootRecordCount,
     proofRecordCount: parsed.proofRecordCount,
+    sendProofRecordCount: parsed.sendProofRecordCount,
     consumeRecordCount: parsed.consumeRecordCount,
     releaseRecordCount: parsed.releaseRecordCount,
     proofConsumeLinkStatus: parsed.proofConsumeLinkStatus,

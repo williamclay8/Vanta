@@ -37,7 +37,6 @@ import {
   type VantaPrivateCoreUnshieldProofBoundaryV0,
 } from "@/zk/vantaPrivateCoreUnshieldProof";
 import {
-  fetchVantaPrivateCoreOperatorSendProofs,
   fetchVantaPrivateCoreOperatorSummary,
   registerVantaPrivateCoreOperatorRoot,
   requestVantaPrivateCoreOperatorConsume,
@@ -312,10 +311,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   const [recentShield, setRecentShield] = useState<RecentShieldContext | null>(null);
 
   const refreshPrivateCoreOperatorSummary = useCallback(async () => {
-    const [summaryState, sendProofState] = await Promise.all([
-      fetchVantaPrivateCoreOperatorSummary(),
-      fetchVantaPrivateCoreOperatorSendProofs(),
-    ]);
+    const summaryState = await fetchVantaPrivateCoreOperatorSummary();
     applyPrivateCoreOperatorSummaryState({
       summaryState,
       setPrivateCoreOperatorCurrentRoot,
@@ -333,9 +329,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorProofReleaseLinkStatus,
       setPrivateCoreOperatorReleases,
       setPrivateCoreOperatorRoots,
+      setPrivateCoreOperatorLatestSendProof,
+      setPrivateCoreOperatorSendProofs,
     });
-    setPrivateCoreOperatorLatestSendProof(sendProofState.latestProof);
-    setPrivateCoreOperatorSendProofs(sendProofState.records);
     setPrivateCoreOperatorConsumeError(null);
     setPrivateCoreOperatorProofError(null);
     setPrivateCoreOperatorReleaseError(null);
@@ -1367,6 +1363,7 @@ function applyPrivateCoreOperatorSummaryState(args: {
   setPrivateCoreOperatorLatestRelease: (value: VantaPrivateCoreOperatorReleaseRecord | null) => void;
   setPrivateCoreOperatorLatestReleaseProof: (value: VantaPrivateCoreOperatorProofRecord | null) => void;
   setPrivateCoreOperatorLatestRoot: (value: VantaPrivateCoreOperatorRootRecord | null) => void;
+  setPrivateCoreOperatorLatestSendProof: (value: VantaPrivateCoreOperatorSendProofRecord | null) => void;
   setPrivateCoreOperatorRawBoundaryNote: (value: string | null) => void;
   setPrivateCoreOperatorRawBoundaryStatus: (value: string | null) => void;
   setPrivateCoreOperatorConsumes: (value: VantaPrivateCoreOperatorConsumeRecord[]) => void;
@@ -1375,10 +1372,12 @@ function applyPrivateCoreOperatorSummaryState(args: {
   setPrivateCoreOperatorProofReleaseLinkStatus: (value: string | null) => void;
   setPrivateCoreOperatorReleases: (value: VantaPrivateCoreOperatorReleaseRecord[]) => void;
   setPrivateCoreOperatorRoots: (value: VantaPrivateCoreOperatorRootRecord[]) => void;
+  setPrivateCoreOperatorSendProofs: (value: VantaPrivateCoreOperatorSendProofRecord[]) => void;
 }) {
   args.setPrivateCoreOperatorCurrentRoot(args.summaryState.currentRoot);
   args.setPrivateCoreOperatorLatestRoot(args.summaryState.currentRecord);
   args.setPrivateCoreOperatorLatestProof(args.summaryState.latestProof);
+  args.setPrivateCoreOperatorLatestSendProof(args.summaryState.latestSendProof);
   args.setPrivateCoreOperatorLatestConsume(args.summaryState.latestConsume);
   args.setPrivateCoreOperatorLatestConsumeProof(args.summaryState.latestConsumeProof);
   args.setPrivateCoreOperatorLatestRelease(args.summaryState.latestRelease);
@@ -1387,6 +1386,7 @@ function applyPrivateCoreOperatorSummaryState(args: {
   args.setPrivateCoreOperatorRawBoundaryStatus(args.summaryState.boundaryStatus);
   args.setPrivateCoreOperatorRoots(args.summaryState.rootRecords);
   args.setPrivateCoreOperatorProofs(args.summaryState.proofRecords);
+  args.setPrivateCoreOperatorSendProofs(args.summaryState.sendProofRecords);
   args.setPrivateCoreOperatorConsumes(args.summaryState.consumeRecords);
   args.setPrivateCoreOperatorProofConsumeLinkStatus(args.summaryState.proofConsumeLinkStatus);
   args.setPrivateCoreOperatorReleases(args.summaryState.releaseRecords);

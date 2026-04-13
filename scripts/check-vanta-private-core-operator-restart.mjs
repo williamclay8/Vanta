@@ -260,6 +260,9 @@ try {
     preRestartSummary.parsed?.summaryVersion !== 1 ||
     typeof preRestartSummary.parsed?.generatedAt !== "number" ||
     preRestartSummary.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
+    preRestartSummary.parsed?.latestSendProof?.action !== "send-proof" ||
+    preRestartSummary.parsed?.latestSendProof?.circuit !== "vanta_private_core_single_note_send" ||
+    preRestartSummary.parsed?.sendProofRecordCount < 1 ||
     preRestartSummary.parsed?.latestConsume?.proofId !== consumeResponse.parsed.proofId ||
     preRestartSummary.parsed?.latestConsumeProof?.proofId !== consumeResponse.parsed.proofId ||
     preRestartSummary.parsed?.latestRelease?.proofId !== consumeResponse.parsed.proofId ||
@@ -309,6 +312,14 @@ try {
     postRestartSendProofs.parsed.records.length < 1
   ) {
     throw new Error(postRestartSendProofs.text || "operator restart lost send-proof state");
+  }
+
+  if (
+    postRestartSummary.parsed?.latestSendProof?.action !== "send-proof" ||
+    postRestartSummary.parsed?.latestSendProof?.circuit !== "vanta_private_core_single_note_send" ||
+    postRestartSummary.parsed?.sendProofRecordCount < 1
+  ) {
+    throw new Error(postRestartSummary.text || "operator restart summary lost send-proof state");
   }
 
   if (

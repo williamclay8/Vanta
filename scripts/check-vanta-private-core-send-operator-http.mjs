@@ -217,6 +217,19 @@ try {
   }
   printStatus("operator send http send-proof state: PASS");
 
+  const summaryState = await requestJson(baseUrl, "/state/private-core-summary", { method: "GET" });
+  if (
+    !summaryState.ok ||
+    summaryState.parsed?.stateVersion !== 1 ||
+    summaryState.parsed?.summaryVersion !== 1 ||
+    summaryState.parsed?.latestSendProof?.action !== "send-proof" ||
+    summaryState.parsed?.latestSendProof?.circuit !== "vanta_private_core_single_note_send" ||
+    summaryState.parsed?.sendProofRecordCount !== 1
+  ) {
+    throw new Error(summaryState.text || "operator summary did not reflect send-proof state");
+  }
+  printStatus("operator send http summary send-proof state: PASS");
+
   const proofState = await requestJson(baseUrl, "/state/private-core-proofs", { method: "GET" });
   if (
     !proofState.ok ||

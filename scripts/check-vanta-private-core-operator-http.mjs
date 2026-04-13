@@ -222,10 +222,12 @@ try {
     typeof initialSummaryState.parsed?.generatedAt !== "number" ||
     initialSummaryState.parsed?.currentRoot !== null ||
     initialSummaryState.parsed?.latestProof !== null ||
+    initialSummaryState.parsed?.latestSendProof !== null ||
     initialSummaryState.parsed?.latestConsume !== null ||
     initialSummaryState.parsed?.latestRelease !== null ||
     initialSummaryState.parsed?.rootRecordCount !== 0 ||
     initialSummaryState.parsed?.proofRecordCount !== 0 ||
+    initialSummaryState.parsed?.sendProofRecordCount !== 0 ||
     initialSummaryState.parsed?.consumeRecordCount !== 0 ||
     initialSummaryState.parsed?.releaseRecordCount !== 0
   ) {
