@@ -40,6 +40,8 @@ The operator-status command gives a quick summary snapshot of:
 - latest proof
 - latest consume
 - latest release
+- proof/consume link status
+- proof/release link status
 
 ## App demo path
 
@@ -59,6 +61,7 @@ Use the current Vanta app and walk this sequence:
    - consume succeeds
    - operator proof verified
    - operator release recorded
+   - operator boundary shows coherent
 9. Trigger the replay attempt
 10. Confirm replay is rejected clearly
 
@@ -72,6 +75,7 @@ If you want the technical audience version, expand the internal diagnostics and 
 - proving root
 - proof execution status
 - proof shape
+- operator boundary status
 - immediate release request id
 - immediate transition note id
 - latest operator release

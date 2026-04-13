@@ -180,7 +180,7 @@ The repo now includes concrete verification commands for the Vanta Private Core 
 - `npm run private-core:demo-preflight`
   runs the full verification pass and then prints the current operator-side status summary
 - `npm run private-core:operator-status`
-  prints the current operator-side root, proof, consume, and release summary snapshot when the operator server is running
+  prints the current operator-side root, proof, consume, and release summary snapshot when the operator server is running, including proof/consume and proof/release linkage
 
 These commands do not make the protocol finished, but they do make the current first zk boundary concrete and repeatable.
 
@@ -260,6 +260,8 @@ Separately, the repo also contains a real standalone private-core proof lane for
 No. The current app is still product-led and intentionally narrow, but it already uses real wallet-connected asset detection, real onchain note records, explicit note identity, spent-marker semantics, authenticated Unshield intent, operator-side onchain verification, and persistent release records for one asset.
 
 It also includes a real executable Noir circuit and local/operator-backed proof verification path for the first Vanta Private Core unshield lane.
+
+The operator-backed lane is now also summary-driven across the app, CLI, and regression commands, so the current verifier-side state is inspected through one coherent snapshot rather than ad hoc endpoint reads.
 
 ### Is the protocol complete?
 

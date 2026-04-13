@@ -172,12 +172,13 @@ These commands cover:
 - operator-backed consume and HTTP smoke coverage
 - operator state persistence across restart
 - replay rejection after operator restart
+- operator summary snapshot coherence across app, CLI, and regression surfaces
 
 `private-core:demo-readiness` is the friendliest single entrypoint when you just want to know whether the current proof/demo lane is stage-ready.
 
 `private-core:demo-preflight` combines the full verification pass with the current operator status summary.
 
-`private-core:operator-status` gives a quick readout of the current operator root, proof, consume, and release summary snapshot when the operator server is running.
+`private-core:operator-status` gives a quick readout of the current operator root, proof, consume, and release summary snapshot when the operator server is running, including proof/consume and proof/release linkage.
 
 ---
 
