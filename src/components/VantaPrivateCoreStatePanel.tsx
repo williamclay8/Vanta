@@ -8,6 +8,7 @@ import type {
   VantaPrivateCoreOperatorProofRecord,
   VantaPrivateCoreOperatorReleaseRecord,
   VantaPrivateCoreOperatorRootRecord,
+  VantaPrivateCoreOperatorSendRecord,
   VantaPrivateCoreOperatorSendProofRecord,
 } from "@/zk/vantaPrivateCoreOperatorClient";
 
@@ -22,6 +23,7 @@ type VantaPrivateCoreStatePanelProps = {
   operatorLatestRelease?: VantaPrivateCoreOperatorReleaseRecord | null;
   operatorLatestReleaseProof?: VantaPrivateCoreOperatorProofRecord | null;
   operatorLatestRoot?: VantaPrivateCoreOperatorRootRecord | null;
+  operatorLatestSend?: VantaPrivateCoreOperatorSendRecord | null;
   operatorLatestSendProof?: VantaPrivateCoreOperatorSendProofRecord | null;
   operatorBoundaryPrimaryNote?: string | null;
   operatorBoundaryStatusLabel?: string | null;
@@ -35,6 +37,8 @@ type VantaPrivateCoreStatePanelProps = {
   operatorRootError?: string | null;
   operatorRootRegistrationStatus?: string | null;
   operatorRoots?: VantaPrivateCoreOperatorRootRecord[];
+  operatorSendError?: string | null;
+  operatorSends?: VantaPrivateCoreOperatorSendRecord[];
   operatorSendProofError?: string | null;
   operatorSendProofs?: VantaPrivateCoreOperatorSendProofRecord[];
   operatorSummaryUpdatedAt?: number | null;
@@ -131,6 +135,7 @@ export function VantaPrivateCoreStatePanel({
   operatorLatestRelease = null,
   operatorLatestReleaseProof = null,
   operatorLatestRoot = null,
+  operatorLatestSend = null,
   operatorLatestSendProof = null,
   operatorBoundaryPrimaryNote = null,
   operatorBoundaryStatusLabel = null,
@@ -144,6 +149,8 @@ export function VantaPrivateCoreStatePanel({
   operatorRootError = null,
   operatorRootRegistrationStatus = null,
   operatorRoots = [],
+  operatorSendError = null,
+  operatorSends = [],
   operatorSendProofError = null,
   operatorSendProofs = [],
   operatorSummaryUpdatedAt = null,
@@ -156,6 +163,7 @@ export function VantaPrivateCoreStatePanel({
   const latestOperatorProof = operatorLatestProof ?? operatorProofs[0] ?? null;
   const latestOperatorRelease = operatorLatestRelease ?? operatorReleases[0] ?? null;
   const latestOperatorRoot = operatorLatestRoot ?? operatorRoots[0] ?? null;
+  const latestOperatorSend = operatorLatestSend ?? operatorSends[0] ?? null;
   const latestOperatorSendProof = operatorLatestSendProof ?? operatorSendProofs[0] ?? null;
   const immediateProofAlignmentLabel = summarizeOperatorImmediateProofAlignment({
     latestOperatorProof,
@@ -436,6 +444,44 @@ export function VantaPrivateCoreStatePanel({
                 {operatorSendProofError
                   ? "Unavailable"
                   : operatorSendProofs.length.toString()}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Operator send records</span>
+              <strong>
+                {operatorSendError
+                  ? "Unavailable"
+                  : operatorSends.length.toString()}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Latest operator send</span>
+              <strong>
+                {operatorSendError
+                  ? operatorSendError
+                  : latestOperatorSend?.sendId
+                    ? abbreviate(latestOperatorSend.sendId)
+                    : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Latest send proof link</span>
+              <strong>
+                {operatorSendError
+                  ? operatorSendError
+                  : latestOperatorSend?.proofId
+                    ? abbreviate(latestOperatorSend.proofId)
+                    : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Latest send amount</span>
+              <strong>
+                {operatorSendError
+                  ? operatorSendError
+                  : latestOperatorSend?.sendAmount
+                    ? `${latestOperatorSend.sendAmount} / ${latestOperatorSend.changeAmount}`
+                    : "Unavailable"}
               </strong>
             </div>
             <div className="review-row">

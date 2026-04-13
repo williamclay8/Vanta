@@ -43,6 +43,7 @@ export function AppDashboardPage() {
     privateCoreOperatorLatestRelease,
     privateCoreOperatorLatestReleaseProof,
     privateCoreOperatorLatestSendProof,
+    privateCoreOperatorLatestSend,
     privateCoreOperatorBoundaryPrimaryNote,
     privateCoreOperatorBoundaryStatusLabel,
     privateCoreOperatorProofConsumeLinkStatus,
@@ -55,6 +56,8 @@ export function AppDashboardPage() {
     privateCoreOperatorRootError,
     privateCoreOperatorRootRegistrationStatus,
     privateCoreOperatorRoots,
+    privateCoreOperatorSendError,
+    privateCoreOperatorSends,
     privateCoreOperatorSendProofError,
     privateCoreOperatorSendProofs,
     privateCoreOperatorSummaryUpdatedAt,
@@ -206,6 +209,7 @@ export function AppDashboardPage() {
               operatorLatestRelease={privateCoreOperatorLatestRelease}
               operatorLatestReleaseProof={privateCoreOperatorLatestReleaseProof}
               operatorLatestRoot={privateCoreOperatorLatestRoot}
+              operatorLatestSend={privateCoreOperatorLatestSend}
               operatorLatestSendProof={privateCoreOperatorLatestSendProof}
               operatorBoundaryPrimaryNote={privateCoreOperatorBoundaryPrimaryNote}
               operatorBoundaryStatusLabel={privateCoreOperatorBoundaryStatusLabel}
@@ -219,6 +223,8 @@ export function AppDashboardPage() {
               operatorRootError={privateCoreOperatorRootError}
               operatorRootRegistrationStatus={privateCoreOperatorRootRegistrationStatus}
               operatorRoots={privateCoreOperatorRoots}
+              operatorSendError={privateCoreOperatorSendError}
+              operatorSends={privateCoreOperatorSends}
               operatorSendProofError={privateCoreOperatorSendProofError}
               operatorSendProofs={privateCoreOperatorSendProofs}
               operatorSummaryUpdatedAt={privateCoreOperatorSummaryUpdatedAt}

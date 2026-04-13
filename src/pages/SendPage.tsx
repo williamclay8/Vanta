@@ -27,8 +27,8 @@ import {
 } from "@/zk/vantaPrivateCore";
 import { buildVantaPrivateCoreSendProofBoundary } from "@/zk/vantaPrivateCoreSendProof";
 import {
-  fetchVantaPrivateCoreOperatorSendProofs,
-  requestVantaPrivateCoreOperatorSendProof,
+  fetchVantaPrivateCoreOperatorSends,
+  requestVantaPrivateCoreOperatorSendTransition,
 } from "@/zk/vantaPrivateCoreOperatorClient";
 
 type SendPageProps = {
@@ -74,6 +74,7 @@ type PrivateCoreSendExecutionState = {
   errorMessage: string | null;
   latestProofAction: string | null;
   latestProofId: string | null;
+  latestSendId: string | null;
   proofFieldCount: number | null;
   proofPublicInputCount: number | null;
   status: "idle" | "running" | "verified" | "failed";
@@ -152,6 +153,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       errorMessage: null,
       latestProofAction: null,
       latestProofId: null,
+      latestSendId: null,
       proofFieldCount: null,
       proofPublicInputCount: null,
       status: "idle",
@@ -291,6 +293,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       errorMessage: null,
       latestProofAction: null,
       latestProofId: null,
+      latestSendId: null,
       proofFieldCount: null,
       proofPublicInputCount: null,
       status: "idle",
@@ -556,23 +559,25 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       errorMessage: null,
       latestProofAction: null,
       latestProofId: null,
+      latestSendId: null,
       proofFieldCount: null,
       proofPublicInputCount: null,
       status: "running",
     });
 
     try {
-      const proofReceipt = await requestVantaPrivateCoreOperatorSendProof({
+      const sendReceipt = await requestVantaPrivateCoreOperatorSendTransition({
         witnessPackage: privateCoreSendPreview.boundary.noirWitnessPackage,
       });
-      const sendProofState = await fetchVantaPrivateCoreOperatorSendProofs();
+      const sendState = await fetchVantaPrivateCoreOperatorSends();
 
       setPrivateCoreSendExecution({
         errorMessage: null,
-        latestProofAction: sendProofState.latestProof?.action ?? null,
-        latestProofId: sendProofState.latestProof?.proofId ?? null,
-        proofFieldCount: proofReceipt.proofFieldCount,
-        proofPublicInputCount: proofReceipt.publicInputCount,
+        latestProofAction: "send-transition",
+        latestProofId: sendReceipt.proofId,
+        latestSendId: sendState.latestSend?.sendId ?? sendReceipt.sendId,
+        proofFieldCount: sendReceipt.proofFieldCount,
+        proofPublicInputCount: sendReceipt.publicInputCount,
         status: "verified",
       });
     } catch (error) {
@@ -580,6 +585,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         errorMessage: error instanceof Error ? error.message : "The private-core send proof failed.",
         latestProofAction: null,
         latestProofId: null,
+        latestSendId: null,
         proofFieldCount: null,
         proofPublicInputCount: null,
         status: "failed",
@@ -1262,8 +1268,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
             <div className="status-panel status-panel--success">
               <span>Send proof verified</span>
               <p>
-                The operator verified the current private send witness package without mutating
-                unshield consume or release state.
+                The operator verified the current private send witness package and recorded a
+                proof-backed send transition without mutating unshield consume or release state.
               </p>
               <div className="success-metrics">
                 <div className="preview-card preview-card--accent">
@@ -1283,6 +1289,12 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               </p>
               <p className="shield-helper shield-helper--meta">
                 Latest send proof action: {privateCoreSendExecution.latestProofAction ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Latest send transition:{" "}
+                {abbreviate(privateCoreSendExecution.latestSendId) ??
+                  privateCoreSendExecution.latestSendId ??
+                  "Unavailable"}
               </p>
             </div>
           )}

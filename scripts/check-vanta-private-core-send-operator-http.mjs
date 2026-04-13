@@ -135,6 +135,7 @@ const server = spawn("node", ["operator/unshield-server.mjs"], {
     VANTA_PRIVATE_CORE_CONSUME_STORE_PATH: join(tempRoot, "consumes.json"),
     VANTA_PRIVATE_CORE_PROOF_STORE_PATH: join(tempRoot, "proofs.json"),
     VANTA_PRIVATE_CORE_SEND_PROOF_STORE_PATH: join(tempRoot, "send-proofs.json"),
+    VANTA_PRIVATE_CORE_SEND_STORE_PATH: join(tempRoot, "sends.json"),
     VANTA_PRIVATE_CORE_RELEASE_STORE_PATH: join(tempRoot, "private-core-releases.json"),
     VANTA_PRIVATE_CORE_ROOT_STORE_PATH: join(tempRoot, "roots.json"),
     VANTA_RELEASE_RECORD_STORE_PATH: join(tempRoot, "releases.json"),
@@ -184,6 +185,20 @@ try {
   }
   printStatus("operator send http empty send-proof state: PASS");
 
+  const initialSendState = await requestJson(baseUrl, "/state/private-core-sends", {
+    method: "GET",
+  });
+  if (
+    !initialSendState.ok ||
+    initialSendState.parsed?.stateVersion !== 1 ||
+    initialSendState.parsed?.latestSend !== null ||
+    !Array.isArray(initialSendState.parsed?.records) ||
+    initialSendState.parsed.records.length !== 0
+  ) {
+    throw new Error(initialSendState.text || "operator send state did not start empty");
+  }
+  printStatus("operator send http empty send state: PASS");
+
   const proofResponse = await requestJson(baseUrl, "/private-core/send-proof", {
     body: JSON.stringify({ witnessPackage }),
     method: "POST",
@@ -229,6 +244,48 @@ try {
     throw new Error(summaryState.text || "operator summary did not reflect send-proof state");
   }
   printStatus("operator send http summary send-proof state: PASS");
+
+  const transitionResponse = await requestJson(baseUrl, "/private-core/send-transition", {
+    body: JSON.stringify({ witnessPackage }),
+    method: "POST",
+  });
+  if (
+    !transitionResponse.ok ||
+    transitionResponse.parsed?.verified !== true ||
+    transitionResponse.parsed?.sendRecorded !== true ||
+    typeof transitionResponse.parsed?.sendId !== "string" ||
+    typeof transitionResponse.parsed?.proofId !== "string"
+  ) {
+    throw new Error(transitionResponse.text || "operator send transition endpoint failed");
+  }
+  printStatus("operator send http transition: PASS");
+
+  const sendState = await requestJson(baseUrl, "/state/private-core-sends", { method: "GET" });
+  if (
+    !sendState.ok ||
+    sendState.parsed?.stateVersion !== 1 ||
+    !sendState.parsed?.latestSend ||
+    sendState.parsed.latestSend?.sendId !== transitionResponse.parsed.sendId ||
+    sendState.parsed.latestSend?.proofId !== transitionResponse.parsed.proofId ||
+    !Array.isArray(sendState.parsed?.records) ||
+    sendState.parsed.records.length !== 1
+  ) {
+    throw new Error(sendState.text || "send transition endpoint did not persist send state");
+  }
+  printStatus("operator send http send state: PASS");
+
+  const summaryAfterTransition = await requestJson(baseUrl, "/state/private-core-summary", {
+    method: "GET",
+  });
+  if (
+    !summaryAfterTransition.ok ||
+    summaryAfterTransition.parsed?.sendProofRecordCount !== 2
+  ) {
+    throw new Error(
+      summaryAfterTransition.text || "operator summary did not reflect transition-backed send proof state",
+    );
+  }
+  printStatus("operator send http summary after transition: PASS");
 
   const proofState = await requestJson(baseUrl, "/state/private-core-proofs", { method: "GET" });
   if (

@@ -53,6 +53,7 @@ import {
   createPrivateCoreSendProofStore,
 } from "./private-core-proof-store.mjs";
 import { createPrivateCoreRootStore } from "./private-core-root-store.mjs";
+import { createPrivateCoreSendStore } from "./private-core-send-store.mjs";
 import {
   assertVantaPrivateCoreSourceArtifactConsistency,
   normalizeVantaPrivateCoreSendWitnessPackage,
@@ -97,6 +98,7 @@ const releaseRecords = createReleaseRecordStore();
 const privateCoreConsumeStore = createPrivateCoreConsumeStore();
 const privateCoreProofStore = createPrivateCoreProofStore();
 const privateCoreSendProofStore = createPrivateCoreSendProofStore();
+const privateCoreSendStore = createPrivateCoreSendStore();
 const privateCoreReleaseRecords = createReleaseRecordStore({
   defaultPath: "operator/.vanta-private-core-releases.json",
   envKey: "VANTA_PRIVATE_CORE_RELEASE_STORE_PATH",
@@ -233,6 +235,20 @@ const server = createServer(async (request, response) => {
       JSON.stringify({
         stateVersion: 1,
         latestProof: records[0] ?? null,
+        records,
+      }),
+    );
+    return;
+  }
+
+  if (request.method === "GET" && request.url === "/state/private-core-sends") {
+    writeCorsHeaders(response);
+    response.writeHead(200, { "Content-Type": "application/json" });
+    const records = privateCoreSendStore.listSends();
+    response.end(
+      JSON.stringify({
+        stateVersion: 1,
+        latestSend: records[0] ?? null,
         records,
       }),
     );
@@ -393,6 +409,55 @@ const server = createServer(async (request, response) => {
         error instanceof Error
           ? error.message
           : "The private-core send proof operator could not process the witness package.",
+      );
+    }
+    return;
+  }
+
+  if (request.method === "POST" && request.url === "/private-core/send-transition") {
+    try {
+      const body = await readJsonBody(request);
+      const witnessPackage = normalizeVantaPrivateCoreSendWitnessPackage(body?.witnessPackage);
+      const proofReceipt = await proveAndVerifyVantaPrivateCoreSend({
+        witnessPackage,
+      });
+      const proofRecord = summarizePrivateCoreSendProofRecord({
+        action: "send-proof",
+        proofReceipt,
+        witnessPackage,
+      });
+      privateCoreSendProofStore.recordProof(proofRecord);
+      const sendRecord = summarizePrivateCoreSendRecord({
+        proofRecord,
+        proofReceipt,
+        witnessPackage,
+      });
+      privateCoreSendStore.recordSend(sendRecord);
+
+      writeCorsHeaders(response);
+      response.writeHead(200, { "Content-Type": "application/json" });
+      response.end(
+        JSON.stringify({
+          ...proofReceipt,
+          completedAt: sendRecord.completedAt,
+          inputNullifier: sendRecord.inputNullifier,
+          inputRoot: sendRecord.inputRoot,
+          recipientCommitment: sendRecord.recipientCommitment,
+          changeCommitment: sendRecord.changeCommitment,
+          proofId: sendRecord.proofId,
+          sendAmount: sendRecord.sendAmount,
+          sendId: sendRecord.sendId,
+          sendRecorded: true,
+          changeAmount: sendRecord.changeAmount,
+        }),
+      );
+    } catch (error) {
+      writeCorsHeaders(response);
+      response.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
+      response.end(
+        error instanceof Error
+          ? error.message
+          : "The private-core send operator could not process the transition request.",
       );
     }
     return;
@@ -1282,6 +1347,7 @@ server.listen(port, "127.0.0.1", () => {
   console.log(`Vanta release store: ${releaseRecords.filePath}`);
   console.log(`Vanta private-core proof store: ${privateCoreProofStore.filePath}`);
   console.log(`Vanta private-core send proof store: ${privateCoreSendProofStore.filePath}`);
+  console.log(`Vanta private-core send store: ${privateCoreSendStore.filePath}`);
   console.log(`Vanta private-core release store: ${privateCoreReleaseRecords.filePath}`);
   console.log(`Vanta swap store: ${swapRecords.filePath}`);
   console.log(`Vanta SOL unshield store: ${solUnshieldRecords.filePath}`);
@@ -1479,6 +1545,32 @@ function summarizePrivateCoreSendProofRecord(args) {
     releaseDestination: sourcePublicInputs.recipient,
     root: sourcePublicInputs.inputStateRoot,
     verified: args.proofReceipt.verified === true,
+  };
+}
+
+function summarizePrivateCoreSendRecord(args) {
+  const sourcePublicInputs = args.witnessPackage.sourcePublicInputs;
+  const completedAt = Date.now();
+
+  return {
+    assetId: sourcePublicInputs.assetId,
+    changeAmount: sourcePublicInputs.changeAmount,
+    changeCommitment: sourcePublicInputs.changeCommitment,
+    completedAt,
+    inputNullifier: sourcePublicInputs.inputNullifier,
+    inputRoot: sourcePublicInputs.inputStateRoot,
+    noteVersion: sourcePublicInputs.noteVersion,
+    proofFieldCount: args.proofReceipt.proofFieldCount,
+    proofId: args.proofRecord.proofId,
+    publicInputCount: args.proofReceipt.publicInputCount,
+    recipientCommitment: sourcePublicInputs.recipientCommitment,
+    sendAmount: sourcePublicInputs.sendAmount,
+    sendId: [
+      "private-core-send",
+      sourcePublicInputs.inputNullifier,
+      sourcePublicInputs.inputStateRoot,
+      String(completedAt),
+    ].join(":"),
   };
 }
 

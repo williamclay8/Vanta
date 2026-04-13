@@ -15,6 +15,19 @@ export type VantaPrivateCoreProofOperatorResponse = {
   verified: boolean;
 };
 
+export type VantaPrivateCoreSendOperatorResponse = VantaPrivateCoreProofOperatorResponse & {
+  changeAmount: string;
+  changeCommitment: string | null;
+  completedAt: number;
+  inputNullifier: string;
+  inputRoot: string;
+  proofId: string;
+  recipientCommitment: string;
+  sendAmount: string;
+  sendId: string;
+  sendRecorded: boolean;
+};
+
 export type VantaPrivateCoreConsumeOperatorResponse = VantaPrivateCoreProofOperatorResponse & {
   completedAt: number;
   leafIndex: string | null;
@@ -96,6 +109,28 @@ export type VantaPrivateCoreOperatorSendProofStateResponse = {
   stateVersion: number;
   latestProof: VantaPrivateCoreOperatorSendProofRecord | null;
   records: VantaPrivateCoreOperatorSendProofRecord[];
+};
+
+export type VantaPrivateCoreOperatorSendRecord = {
+  assetId: string;
+  changeAmount: string;
+  changeCommitment: string | null;
+  completedAt: number;
+  inputNullifier: string;
+  inputRoot: string;
+  noteVersion: number;
+  proofFieldCount: number;
+  proofId: string;
+  publicInputCount: number;
+  recipientCommitment: string;
+  sendAmount: string;
+  sendId: string;
+};
+
+export type VantaPrivateCoreOperatorSendStateResponse = {
+  stateVersion: number;
+  latestSend: VantaPrivateCoreOperatorSendRecord | null;
+  records: VantaPrivateCoreOperatorSendRecord[];
 };
 
 export type VantaPrivateCoreOperatorReleaseRecord = {
@@ -276,6 +311,66 @@ export async function requestVantaPrivateCoreOperatorSendProof(args: {
   };
 }
 
+export async function requestVantaPrivateCoreOperatorSendTransition(args: {
+  witnessPackage: VantaPrivateCoreNoirSendWitnessPackageV0;
+}): Promise<VantaPrivateCoreSendOperatorResponse> {
+  const response = await fetch(getPrivateCoreSendTransitionOperatorUrl(), {
+    body: JSON.stringify({
+      witnessPackage: args.witnessPackage,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+    signal: AbortSignal.timeout(30_000),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "The private-core send operator rejected the transition request.");
+  }
+
+  const parsed = (await response.json()) as Partial<VantaPrivateCoreSendOperatorResponse>;
+
+  if (
+    !parsed.verified ||
+    parsed.sendRecorded !== true ||
+    typeof parsed.completedAt !== "number" ||
+    typeof parsed.inputNullifier !== "string" ||
+    typeof parsed.inputRoot !== "string" ||
+    typeof parsed.proofId !== "string" ||
+    typeof parsed.recipientCommitment !== "string" ||
+    typeof parsed.sendAmount !== "string" ||
+    typeof parsed.sendId !== "string"
+  ) {
+    throw new Error("The private-core send operator returned an invalid transition summary.");
+  }
+
+  return {
+    backend: parsed.backend ?? "barretenberg-ultrahonk",
+    changeAmount: parsed.changeAmount ?? "0",
+    changeCommitment: parsed.changeCommitment ?? null,
+    circuit: parsed.circuit ?? "vanta_private_core_single_note_send",
+    completedAt: parsed.completedAt,
+    inputNullifier: parsed.inputNullifier,
+    inputRoot: parsed.inputRoot,
+    proofVersion: parsed.proofVersion ?? 0,
+    provingHashLane: parsed.provingHashLane ?? "poseidon-bn254-proving-lane-v0",
+    proofByteLength: parsed.proofByteLength ?? 0,
+    proofFieldCount: parsed.proofFieldCount ?? 0,
+    proofId: parsed.proofId,
+    publicInputCount: parsed.publicInputCount ?? 0,
+    publicInputs: Array.isArray(parsed.publicInputs)
+      ? parsed.publicInputs.filter((value): value is string => typeof value === "string")
+      : [],
+    recipientCommitment: parsed.recipientCommitment,
+    sendAmount: parsed.sendAmount,
+    sendId: parsed.sendId,
+    sendRecorded: true,
+    verified: true,
+  };
+}
+
 export async function requestVantaPrivateCoreOperatorConsume(args: {
   sourceArtifacts: VantaPrivateCoreOperatorSourceArtifactBundleV0;
   witnessPackage: VantaPrivateCoreNoirUnshieldWitnessPackageV0;
@@ -381,6 +476,10 @@ function getPrivateCoreProofOperatorUrl() {
 
 function getPrivateCoreSendProofOperatorUrl() {
   return new URL("/private-core/send-proof", liveShieldAsset.unshieldOperatorUrl).toString();
+}
+
+function getPrivateCoreSendTransitionOperatorUrl() {
+  return new URL("/private-core/send-transition", liveShieldAsset.unshieldOperatorUrl).toString();
 }
 
 function getPrivateCoreConsumeOperatorUrl() {
@@ -496,6 +595,41 @@ export async function fetchVantaPrivateCoreOperatorSendProofs(): Promise<
   };
 }
 
+export async function fetchVantaPrivateCoreOperatorSends(): Promise<
+  VantaPrivateCoreOperatorSendStateResponse
+> {
+  const response = await fetch(getPrivateCoreSendStateUrl(), {
+    method: "GET",
+    signal: AbortSignal.timeout(15_000),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "The private-core send operator state endpoint failed.");
+  }
+
+  const parsed = (await response.json()) as {
+    latestSend?: unknown;
+    records?: unknown;
+    stateVersion?: unknown;
+  };
+  if (
+    parsed.stateVersion !== 1 ||
+    (parsed.latestSend !== null &&
+      parsed.latestSend !== undefined &&
+      !isSendRecord(parsed.latestSend)) ||
+    !Array.isArray(parsed.records)
+  ) {
+    throw new Error("The private-core send operator state endpoint returned invalid data.");
+  }
+
+  return {
+    stateVersion: 1,
+    latestSend: isSendRecord(parsed.latestSend) ? parsed.latestSend : null,
+    records: parsed.records.filter(isSendRecord),
+  };
+}
+
 export async function fetchVantaPrivateCoreOperatorRoots(): Promise<VantaPrivateCoreOperatorRootStateResponse> {
   const response = await fetch(getPrivateCoreRootStateUrl(), {
     method: "GET",
@@ -544,6 +678,10 @@ function getPrivateCoreProofStateUrl() {
 
 function getPrivateCoreSendProofStateUrl() {
   return new URL("/state/private-core-send-proofs", liveShieldAsset.unshieldOperatorUrl).toString();
+}
+
+function getPrivateCoreSendStateUrl() {
+  return new URL("/state/private-core-sends", liveShieldAsset.unshieldOperatorUrl).toString();
 }
 
 function getPrivateCoreReleaseStateUrl() {
@@ -785,6 +923,28 @@ function isSendProofRecord(value: unknown): value is VantaPrivateCoreOperatorSen
     typeof (value as VantaPrivateCoreOperatorSendProofRecord).releaseDestination === "string" &&
     typeof (value as VantaPrivateCoreOperatorSendProofRecord).root === "string" &&
     typeof (value as VantaPrivateCoreOperatorSendProofRecord).verified === "boolean"
+  );
+}
+
+function isSendRecord(value: unknown): value is VantaPrivateCoreOperatorSendRecord {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as VantaPrivateCoreOperatorSendRecord).assetId === "string" &&
+    typeof (value as VantaPrivateCoreOperatorSendRecord).changeAmount === "string" &&
+    (((value as VantaPrivateCoreOperatorSendRecord).changeCommitment === null ||
+      (value as VantaPrivateCoreOperatorSendRecord).changeCommitment === undefined) ||
+      typeof (value as VantaPrivateCoreOperatorSendRecord).changeCommitment === "string") &&
+    typeof (value as VantaPrivateCoreOperatorSendRecord).completedAt === "number" &&
+    typeof (value as VantaPrivateCoreOperatorSendRecord).inputNullifier === "string" &&
+    typeof (value as VantaPrivateCoreOperatorSendRecord).inputRoot === "string" &&
+    typeof (value as VantaPrivateCoreOperatorSendRecord).noteVersion === "number" &&
+    typeof (value as VantaPrivateCoreOperatorSendRecord).proofFieldCount === "number" &&
+    typeof (value as VantaPrivateCoreOperatorSendRecord).proofId === "string" &&
+    typeof (value as VantaPrivateCoreOperatorSendRecord).publicInputCount === "number" &&
+    typeof (value as VantaPrivateCoreOperatorSendRecord).recipientCommitment === "string" &&
+    typeof (value as VantaPrivateCoreOperatorSendRecord).sendAmount === "string" &&
+    typeof (value as VantaPrivateCoreOperatorSendRecord).sendId === "string"
   );
 }
 

@@ -107,6 +107,7 @@ export function UnshieldPage() {
     privateCoreOperatorLatestRelease,
     privateCoreOperatorLatestReleaseProof,
     privateCoreOperatorLatestSendProof,
+    privateCoreOperatorLatestSend,
     privateCoreOperatorBoundaryPrimaryNote,
     privateCoreOperatorBoundaryStatusLabel,
     privateCoreOperatorProofConsumeLinkStatus,
@@ -119,6 +120,8 @@ export function UnshieldPage() {
     privateCoreOperatorRootError,
     privateCoreOperatorRootRegistrationStatus,
     privateCoreOperatorRoots,
+    privateCoreOperatorSendError,
+    privateCoreOperatorSends,
     privateCoreOperatorSendProofError,
     privateCoreOperatorSendProofs,
     privateCoreOperatorSummaryUpdatedAt,
@@ -866,6 +869,7 @@ export function UnshieldPage() {
           operatorLatestRelease={privateCoreOperatorLatestRelease}
           operatorLatestReleaseProof={privateCoreOperatorLatestReleaseProof}
           operatorLatestRoot={privateCoreOperatorLatestRoot}
+          operatorLatestSend={privateCoreOperatorLatestSend}
           operatorLatestSendProof={privateCoreOperatorLatestSendProof}
           operatorBoundaryPrimaryNote={privateCoreOperatorBoundaryPrimaryNote}
           operatorBoundaryStatusLabel={privateCoreOperatorBoundaryStatusLabel}
@@ -879,6 +883,8 @@ export function UnshieldPage() {
           operatorRootError={privateCoreOperatorRootError}
           operatorRootRegistrationStatus={privateCoreOperatorRootRegistrationStatus}
           operatorRoots={privateCoreOperatorRoots}
+          operatorSendError={privateCoreOperatorSendError}
+          operatorSends={privateCoreOperatorSends}
           operatorSendProofError={privateCoreOperatorSendProofError}
           operatorSendProofs={privateCoreOperatorSendProofs}
           operatorSummaryUpdatedAt={privateCoreOperatorSummaryUpdatedAt}

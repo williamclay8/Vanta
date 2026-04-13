@@ -37,6 +37,7 @@ import {
   type VantaPrivateCoreUnshieldProofBoundaryV0,
 } from "@/zk/vantaPrivateCoreUnshieldProof";
 import {
+  fetchVantaPrivateCoreOperatorSends,
   fetchVantaPrivateCoreOperatorSummary,
   registerVantaPrivateCoreOperatorRoot,
   requestVantaPrivateCoreOperatorConsume,
@@ -46,6 +47,7 @@ import {
   type VantaPrivateCoreOperatorProofRecord,
   type VantaPrivateCoreOperatorReleaseRecord,
   type VantaPrivateCoreOperatorRootRecord,
+  type VantaPrivateCoreOperatorSendRecord,
   type VantaPrivateCoreOperatorSendProofRecord,
   type VantaPrivateCoreOperatorSummaryStateResponse,
   type VantaPrivateCoreProofOperatorResponse,
@@ -89,6 +91,7 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorLatestReleaseProof: VantaPrivateCoreOperatorProofRecord | null;
   privateCoreOperatorCurrentRoot: string | null;
   privateCoreOperatorLatestRoot: VantaPrivateCoreOperatorRootRecord | null;
+  privateCoreOperatorLatestSend: VantaPrivateCoreOperatorSendRecord | null;
   privateCoreOperatorLatestSendProof: VantaPrivateCoreOperatorSendProofRecord | null;
   privateCoreOperatorRawBoundaryNote: string | null;
   privateCoreOperatorRawBoundaryStatus: string | null;
@@ -99,6 +102,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorReleaseError: string | null;
   privateCoreOperatorReleases: VantaPrivateCoreOperatorReleaseRecord[];
   privateCoreOperatorRoots: VantaPrivateCoreOperatorRootRecord[];
+  privateCoreOperatorSendError: string | null;
+  privateCoreOperatorSends: VantaPrivateCoreOperatorSendRecord[];
   privateCoreOperatorSendProofError: string | null;
   privateCoreOperatorSendProofs: VantaPrivateCoreOperatorSendProofRecord[];
   privateCoreOperatorBoundaryPrimaryNote: string | null;
@@ -278,6 +283,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   const [privateCoreOperatorCurrentRoot, setPrivateCoreOperatorCurrentRoot] = useState<string | null>(null);
   const [privateCoreOperatorLatestRoot, setPrivateCoreOperatorLatestRoot] =
     useState<VantaPrivateCoreOperatorRootRecord | null>(null);
+  const [privateCoreOperatorLatestSend, setPrivateCoreOperatorLatestSend] =
+    useState<VantaPrivateCoreOperatorSendRecord | null>(null);
   const [privateCoreOperatorLatestSendProof, setPrivateCoreOperatorLatestSendProof] =
     useState<VantaPrivateCoreOperatorSendProofRecord | null>(null);
   const [privateCoreOperatorRawBoundaryNote, setPrivateCoreOperatorRawBoundaryNote] =
@@ -296,6 +303,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   const [privateCoreOperatorReleases, setPrivateCoreOperatorReleases] = useState<
     VantaPrivateCoreOperatorReleaseRecord[]
   >([]);
+  const [privateCoreOperatorSendError, setPrivateCoreOperatorSendError] = useState<string | null>(null);
+  const [privateCoreOperatorSends, setPrivateCoreOperatorSends] = useState<
+    VantaPrivateCoreOperatorSendRecord[]
+  >([]);
   const [privateCoreOperatorSendProofError, setPrivateCoreOperatorSendProofError] = useState<string | null>(null);
   const [privateCoreOperatorSendProofs, setPrivateCoreOperatorSendProofs] = useState<
     VantaPrivateCoreOperatorSendProofRecord[]
@@ -311,7 +322,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   const [recentShield, setRecentShield] = useState<RecentShieldContext | null>(null);
 
   const refreshPrivateCoreOperatorSummary = useCallback(async () => {
-    const summaryState = await fetchVantaPrivateCoreOperatorSummary();
+    const [summaryState, sendState] = await Promise.all([
+      fetchVantaPrivateCoreOperatorSummary(),
+      fetchVantaPrivateCoreOperatorSends(),
+    ]);
     applyPrivateCoreOperatorSummaryState({
       summaryState,
       setPrivateCoreOperatorCurrentRoot,
@@ -332,10 +346,13 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorLatestSendProof,
       setPrivateCoreOperatorSendProofs,
     });
+    setPrivateCoreOperatorLatestSend(sendState.latestSend);
+    setPrivateCoreOperatorSends(sendState.records);
     setPrivateCoreOperatorConsumeError(null);
     setPrivateCoreOperatorProofError(null);
     setPrivateCoreOperatorReleaseError(null);
     setPrivateCoreOperatorRootError(null);
+    setPrivateCoreOperatorSendError(null);
     setPrivateCoreOperatorSendProofError(null);
     setPrivateCoreOperatorSummaryUpdatedAt(summaryState.generatedAt);
     return summaryState;
@@ -360,6 +377,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
           setPrivateCoreOperatorProofError(message);
           setPrivateCoreOperatorReleaseError(message);
           setPrivateCoreOperatorRootError(message);
+          setPrivateCoreOperatorSendError(message);
           setPrivateCoreOperatorSendProofError(message);
         });
 
@@ -1131,6 +1149,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorLatestReleaseProof,
       privateCoreOperatorCurrentRoot,
       privateCoreOperatorLatestRoot,
+      privateCoreOperatorLatestSend,
       privateCoreOperatorLatestSendProof,
       privateCoreOperatorRawBoundaryNote,
       privateCoreOperatorRawBoundaryStatus,
@@ -1141,6 +1160,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorReleaseError,
       privateCoreOperatorReleases,
       privateCoreOperatorRoots,
+      privateCoreOperatorSendError,
+      privateCoreOperatorSends,
       privateCoreOperatorSendProofError,
       privateCoreOperatorSendProofs,
       privateCoreOperatorBoundaryPrimaryNote: privateCoreOperatorBoundarySummary.primaryNote,
@@ -1172,6 +1193,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorLatestReleaseProof,
       privateCoreOperatorCurrentRoot,
       privateCoreOperatorLatestRoot,
+      privateCoreOperatorLatestSend,
       privateCoreOperatorLatestSendProof,
       privateCoreOperatorRawBoundaryNote,
       privateCoreOperatorRawBoundaryStatus,
@@ -1184,6 +1206,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorRootRegistrationStatus,
       privateCoreOperatorReleases,
       privateCoreOperatorRoots,
+      privateCoreOperatorSendError,
+      privateCoreOperatorSends,
       privateCoreOperatorSendProofError,
       privateCoreOperatorSendProofs,
       privateCoreOperatorSummaryUpdatedAt,

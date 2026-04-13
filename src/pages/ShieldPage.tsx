@@ -105,6 +105,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOperatorLatestRelease,
     privateCoreOperatorLatestReleaseProof,
     privateCoreOperatorLatestSendProof,
+    privateCoreOperatorLatestSend,
     privateCoreOperatorBoundaryPrimaryNote,
     privateCoreOperatorBoundaryStatusLabel,
     privateCoreOperatorProofConsumeLinkStatus,
@@ -117,6 +118,8 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOperatorRootCurrentnessLabel,
     privateCoreOperatorRootRegistrationStatus,
     privateCoreOperatorRoots,
+    privateCoreOperatorSendError,
+    privateCoreOperatorSends,
     privateCoreOperatorSendProofError,
     privateCoreOperatorSendProofs,
     privateCoreOperatorSummaryUpdatedAt,
@@ -1028,6 +1031,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 operatorLatestRelease={privateCoreOperatorLatestRelease}
                 operatorLatestReleaseProof={privateCoreOperatorLatestReleaseProof}
                 operatorLatestRoot={privateCoreOperatorLatestRoot}
+                operatorLatestSend={privateCoreOperatorLatestSend}
                 operatorLatestSendProof={privateCoreOperatorLatestSendProof}
                 operatorBoundaryPrimaryNote={privateCoreOperatorBoundaryPrimaryNote}
                 operatorBoundaryStatusLabel={privateCoreOperatorBoundaryStatusLabel}
@@ -1041,6 +1045,8 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 operatorRootError={privateCoreOperatorRootError}
                 operatorRootRegistrationStatus={privateCoreOperatorRootRegistrationStatus}
                 operatorRoots={privateCoreOperatorRoots}
+                operatorSendError={privateCoreOperatorSendError}
+                operatorSends={privateCoreOperatorSends}
                 operatorSendProofError={privateCoreOperatorSendProofError}
                 operatorSendProofs={privateCoreOperatorSendProofs}
                 operatorSummaryUpdatedAt={privateCoreOperatorSummaryUpdatedAt}
