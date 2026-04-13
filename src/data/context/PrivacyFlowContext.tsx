@@ -96,7 +96,9 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorLatestSend: VantaPrivateCoreOperatorSendRecord | null;
   privateCoreOperatorLatestSendLinkedProof: VantaPrivateCoreOperatorSendProofRecord | null;
   privateCoreOperatorLatestSendProof: VantaPrivateCoreOperatorSendProofRecord | null;
+  privateCoreOperatorCurrentRootLinkedProof: VantaPrivateCoreOperatorProofRecord | null;
   privateCoreOperatorCurrentRootProofLinkStatus: string | null;
+  privateCoreOperatorSendResultingRootLinkedProof: VantaPrivateCoreOperatorProofRecord | null;
   privateCoreOperatorSendResultingRootRecord: VantaPrivateCoreOperatorRootRecord | null;
   privateCoreOperatorRawSendResultingRootNote: string | null;
   privateCoreOperatorSendResultingRootProofLinkStatus: string | null;
@@ -328,8 +330,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<VantaPrivateCoreOperatorSendProofRecord | null>(null);
   const [privateCoreOperatorLatestSendProof, setPrivateCoreOperatorLatestSendProof] =
     useState<VantaPrivateCoreOperatorSendProofRecord | null>(null);
+  const [privateCoreOperatorCurrentRootLinkedProof, setPrivateCoreOperatorCurrentRootLinkedProof] =
+    useState<VantaPrivateCoreOperatorProofRecord | null>(null);
   const [privateCoreOperatorCurrentRootProofLinkStatus, setPrivateCoreOperatorCurrentRootProofLinkStatus] =
     useState<string | null>(null);
+  const [privateCoreOperatorSendResultingRootLinkedProof, setPrivateCoreOperatorSendResultingRootLinkedProof] =
+    useState<VantaPrivateCoreOperatorProofRecord | null>(null);
   const [privateCoreOperatorSendResultingRootRecord, setPrivateCoreOperatorSendResultingRootRecord] =
     useState<VantaPrivateCoreOperatorRootRecord | null>(null);
   const [privateCoreOperatorRawSendResultingRootNote, setPrivateCoreOperatorRawSendResultingRootNote] =
@@ -388,7 +394,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorLatestSend,
       setPrivateCoreOperatorLatestSendLinkedProof,
       setPrivateCoreOperatorCurrentRootProofLinkStatus,
+      setPrivateCoreOperatorCurrentRootLinkedProof,
       setPrivateCoreOperatorRawSendResultingRootNote,
+      setPrivateCoreOperatorSendResultingRootLinkedProof,
       setPrivateCoreOperatorSendResultingRootRecord,
       setPrivateCoreOperatorSendResultingRootProofLinkStatus,
       setPrivateCoreOperatorRawSendResultingRootStatus,
@@ -1346,7 +1354,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorLatestSend,
       privateCoreOperatorLatestSendLinkedProof,
       privateCoreOperatorLatestSendProof,
+      privateCoreOperatorCurrentRootLinkedProof,
       privateCoreOperatorCurrentRootProofLinkStatus,
+      privateCoreOperatorSendResultingRootLinkedProof,
       privateCoreOperatorSendResultingRootRecord,
       privateCoreOperatorRawSendResultingRootNote,
       privateCoreOperatorSendResultingRootProofLinkStatus,
@@ -1406,7 +1416,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorLatestSend,
       privateCoreOperatorLatestSendLinkedProof,
       privateCoreOperatorLatestSendProof,
+      privateCoreOperatorCurrentRootLinkedProof,
       privateCoreOperatorCurrentRootProofLinkStatus,
+      privateCoreOperatorSendResultingRootLinkedProof,
       privateCoreOperatorSendResultingRootRecord,
       privateCoreOperatorRawSendResultingRootNote,
       privateCoreOperatorSendResultingRootProofLinkStatus,
@@ -1778,7 +1790,9 @@ function applyPrivateCoreOperatorSummaryState(args: {
   setPrivateCoreOperatorLatestSend: (value: VantaPrivateCoreOperatorSendRecord | null) => void;
   setPrivateCoreOperatorLatestSendLinkedProof: (value: VantaPrivateCoreOperatorSendProofRecord | null) => void;
   setPrivateCoreOperatorLatestSendProof: (value: VantaPrivateCoreOperatorSendProofRecord | null) => void;
+  setPrivateCoreOperatorCurrentRootLinkedProof: (value: VantaPrivateCoreOperatorProofRecord | null) => void;
   setPrivateCoreOperatorCurrentRootProofLinkStatus: (value: string | null) => void;
+  setPrivateCoreOperatorSendResultingRootLinkedProof: (value: VantaPrivateCoreOperatorProofRecord | null) => void;
   setPrivateCoreOperatorSendResultingRootRecord: (value: VantaPrivateCoreOperatorRootRecord | null) => void;
   setPrivateCoreOperatorRawSendResultingRootNote: (value: string | null) => void;
   setPrivateCoreOperatorSendResultingRootProofLinkStatus: (value: string | null) => void;
@@ -1801,7 +1815,9 @@ function applyPrivateCoreOperatorSummaryState(args: {
   args.setPrivateCoreOperatorLatestSend(args.summaryState.latestSend);
   args.setPrivateCoreOperatorLatestSendLinkedProof(args.summaryState.latestSendLinkedProof);
   args.setPrivateCoreOperatorLatestSendProof(args.summaryState.latestSendProof);
+  args.setPrivateCoreOperatorCurrentRootLinkedProof(args.summaryState.currentRootLinkedProof);
   args.setPrivateCoreOperatorCurrentRootProofLinkStatus(args.summaryState.currentRootProofLinkStatus);
+  args.setPrivateCoreOperatorSendResultingRootLinkedProof(args.summaryState.sendResultingRootLinkedProof);
   args.setPrivateCoreOperatorSendResultingRootRecord(args.summaryState.sendResultingRootRecord);
   args.setPrivateCoreOperatorRawSendResultingRootNote(args.summaryState.sendResultingRootNote);
   args.setPrivateCoreOperatorSendResultingRootProofLinkStatus(

@@ -256,7 +256,7 @@ try {
   if (
     !summaryState.ok ||
     summaryState.parsed?.stateVersion !== 1 ||
-    summaryState.parsed?.summaryVersion !== 2 ||
+    summaryState.parsed?.summaryVersion !== 4 ||
     summaryState.parsed?.latestSendProof?.action !== "send-proof" ||
     summaryState.parsed?.latestSendProof?.circuit !== "vanta_private_core_single_note_send" ||
     summaryState.parsed?.sendProofRecordCount !== 1 ||

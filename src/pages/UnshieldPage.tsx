@@ -111,7 +111,9 @@ export function UnshieldPage() {
     privateCoreOperatorLatestSend,
     privateCoreOperatorBoundaryPrimaryNote,
     privateCoreOperatorBoundaryStatusLabel,
+    privateCoreOperatorCurrentRootLinkedProof,
     privateCoreOperatorCurrentRootProofLinkStatus,
+    privateCoreOperatorSendResultingRootLinkedProof,
     privateCoreOperatorSendResultingRootRecord,
     privateCoreOperatorSendResultingRootPrimaryNote,
     privateCoreOperatorSendResultingRootProofLinkStatus,
@@ -895,7 +897,9 @@ export function UnshieldPage() {
           operatorLatestSendProof={privateCoreOperatorLatestSendProof}
           operatorBoundaryPrimaryNote={privateCoreOperatorBoundaryPrimaryNote}
           operatorBoundaryStatusLabel={privateCoreOperatorBoundaryStatusLabel}
+          operatorCurrentRootLinkedProof={privateCoreOperatorCurrentRootLinkedProof}
           operatorCurrentRootProofLinkStatus={privateCoreOperatorCurrentRootProofLinkStatus}
+          operatorSendResultingRootLinkedProof={privateCoreOperatorSendResultingRootLinkedProof}
           operatorSendResultingRootRecord={privateCoreOperatorSendResultingRootRecord}
           operatorSendResultingRootPrimaryNote={privateCoreOperatorSendResultingRootPrimaryNote}
           operatorSendResultingRootProofLinkStatus={privateCoreOperatorSendResultingRootProofLinkStatus}
