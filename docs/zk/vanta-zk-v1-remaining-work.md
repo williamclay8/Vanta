@@ -101,6 +101,17 @@ At minimum, `v1` still needs:
 - one real environment
 - one real private send flow from shielded state
 
+The repo now has the first frozen source-layer target for that work in:
+
+- `docs/zk/vanta-private-core-send-boundary.md`
+- `src/zk/vantaPrivateCore.ts`
+
+That boundary is intentionally narrow:
+- one input note
+- one recipient output note
+- optional one change output note
+- one later proving lane to match it
+
 Until that exists, the current state is better described as:
 - a strong private-core and unshield milestone
 - not the complete `v1` privacy product

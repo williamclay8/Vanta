@@ -132,3 +132,7 @@ That step is now done for the current operator-backed unshield lane.
 The next major product step from here is:
 
 - finish one real private send flow from shielded state
+
+The first frozen source-layer send target for that work now exists in:
+
+- `docs/zk/vanta-private-core-send-boundary.md`
