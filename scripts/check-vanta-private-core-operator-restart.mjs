@@ -391,6 +391,7 @@ try {
     !operatorStatusOutput.includes("Latest proof action: consume") ||
     !operatorStatusOutput.includes("Latest send proof action: send-proof") ||
     !operatorStatusOutput.includes("Latest send transition:") ||
+    !operatorStatusOutput.includes("Latest send resulting root:") ||
     !operatorStatusOutput.includes("Summary generated:") ||
     !operatorStatusOutput.includes("Latest consume proof:") ||
     !operatorStatusOutput.includes("Latest release proof:") ||

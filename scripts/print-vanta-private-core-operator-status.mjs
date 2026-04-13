@@ -22,6 +22,7 @@ try {
   printLine("Latest send transition", abbreviate(summary.latestSend?.sendId));
   printLine("Latest send proof link", abbreviate(summary.latestSend?.proofId));
   printLine("Latest send linked proof", abbreviate(summary.latestSendLinkedProof?.proofId));
+  printLine("Latest send resulting root", abbreviate(summary.latestSend?.resultingRoot));
   printLine(
     "Latest send amount",
     typeof summary.latestSend?.sendAmount === "string" ? summary.latestSend.sendAmount : "Unavailable",

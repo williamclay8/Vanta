@@ -939,6 +939,7 @@ try {
     !operatorStatusOutput.includes("Latest consume linked proof:") ||
     !operatorStatusOutput.includes("Latest release proof:") ||
     !operatorStatusOutput.includes("Latest release linked proof:") ||
+    !operatorStatusOutput.includes("Latest send resulting root:") ||
     !operatorStatusOutput.includes("Proof/consume link: linked") ||
     !operatorStatusOutput.includes("Proof/release link: linked") ||
     !operatorStatusOutput.includes("Boundary status: Operator boundary coherent") ||

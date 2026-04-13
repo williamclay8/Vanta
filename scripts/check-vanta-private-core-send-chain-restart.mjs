@@ -384,6 +384,7 @@ try {
   });
   if (
     !operatorStatusOutput.includes("Latest send proof action: send-proof") ||
+    !operatorStatusOutput.includes("Latest send resulting root:") ||
     !operatorStatusOutput.includes("Send proof records: 2") ||
     !operatorStatusOutput.includes("Send records: 2")
   ) {
