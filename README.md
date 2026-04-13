@@ -195,6 +195,7 @@ This repository currently contains:
 - a modular application experience
 - Shield as the primary entrypoint into the suite
 - Send as the first workflow unlocked by shielded state
+- an app-path Vanta Private Core send-proof check inside the Send experience
 - shared app-level continuity between Shield and Send
 - a constrained real devnet protocol path for `VUSD`
 - authenticated operator-backed Unshield for `VUSD` and `SOL`

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { sha256 } from "@noble/hashes/sha2";
 import { useSendTransaction } from "@solana/react-hooks";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
@@ -16,6 +17,19 @@ import {
   listCanonicalSendDiagnosticsSummaries,
   recordCanonicalSendFromLiveSend,
 } from "@/zk/liveSendBridge";
+import {
+  buildVantaPrivateCoreSendProofEnvelope,
+  buildVantaPrivateCoreSendTransition,
+  deriveVantaPrivateCoreSourceArtifactsFromHeldNote,
+  summarizeVantaPrivateCoreSendProofEnvelopeConsistency,
+  summarizeVantaPrivateCoreSendProofEnvelopeVerification,
+  type Bytes32Hex,
+} from "@/zk/vantaPrivateCore";
+import { buildVantaPrivateCoreSendProofBoundary } from "@/zk/vantaPrivateCoreSendProof";
+import {
+  fetchVantaPrivateCoreOperatorSendProofs,
+  requestVantaPrivateCoreOperatorSendProof,
+} from "@/zk/vantaPrivateCoreOperatorClient";
 
 type SendPageProps = {
   dashboard?: boolean;
@@ -45,6 +59,24 @@ type PendingSendBridge = {
     changeNoteId?: string;
     noteId: string;
   };
+};
+
+type PrivateCoreSendPreview = {
+  boundary: ReturnType<typeof buildVantaPrivateCoreSendProofBoundary>;
+  changeAmountBaseUnits: string;
+  recipientPublicKey: Bytes32Hex;
+  sendAmountBaseUnits: string;
+  sourceConsistencyLabel: string;
+  sourceVerificationLabel: string;
+};
+
+type PrivateCoreSendExecutionState = {
+  errorMessage: string | null;
+  latestProofAction: string | null;
+  latestProofId: string | null;
+  proofFieldCount: number | null;
+  proofPublicInputCount: number | null;
+  status: "idle" | "running" | "verified" | "failed";
 };
 
 const assetNames: Record<PrivacyAssetKey, string> = {
@@ -93,7 +125,7 @@ function abbreviate(value: string | null | undefined) {
 }
 
 export function SendPage({ dashboard = false }: SendPageProps) {
-  const { recentShield } = usePrivacyFlow();
+  const { privateCoreHoldState, privateCoreOwner, recentShield } = usePrivacyFlow();
   const {
     account: shieldAccount,
     error: shieldStateError,
@@ -115,6 +147,15 @@ export function SendPage({ dashboard = false }: SendPageProps) {
   const [lastChangeAmount, setLastChangeAmount] = useState<number | null>(null);
   const [pendingSpentMarker, setPendingSpentMarker] = useState<PendingSpentMarker | null>(null);
   const [pendingSendBridge, setPendingSendBridge] = useState<PendingSendBridge | null>(null);
+  const [privateCoreSendExecution, setPrivateCoreSendExecution] =
+    useState<PrivateCoreSendExecutionState>({
+      errorMessage: null,
+      latestProofAction: null,
+      latestProofId: null,
+      proofFieldCount: null,
+      proofPublicInputCount: null,
+      status: "idle",
+    });
   const sendNoteTransaction = useSendTransaction();
   const sendNoteWait = useRealtimeSignatureProgress(sendNoteTransaction.signature ?? undefined, {
     commitment: "confirmed",
@@ -182,11 +223,79 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     Boolean(liveShieldAsset.mintAddress);
   const sendProgressLabel = sendNoteWait.detailLabel;
   const settleProgressLabel = spentMarkerWait.detailLabel;
+  const privateCoreSendPreview = useMemo<PrivateCoreSendPreview | null>(() => {
+    if (
+      selectedAsset !== "VUSD" ||
+      !privateCoreHoldState ||
+      !isRecipientValid ||
+      !Number.isFinite(parsedAmount) ||
+      parsedAmount <= 0
+    ) {
+      return null;
+    }
+
+    try {
+      const sendAmountBaseUnits = decimalToBaseUnitsExact(amount, DEFAULT_VUSD_DECIMALS);
+      if (sendAmountBaseUnits > privateCoreHoldState.heldNote.note.amount) {
+        return null;
+      }
+
+      const recipientPublicKey = derivePrivateCoreRecipientPublicKey(recipient.trim());
+      const transition = buildVantaPrivateCoreSendTransition({
+        input: privateCoreHoldState.heldNote,
+        sendAmount: sendAmountBaseUnits,
+        recipientOwnerPublicKey: recipientPublicKey,
+      });
+      const envelope = buildVantaPrivateCoreSendProofEnvelope(transition);
+      const sourceVerification = summarizeVantaPrivateCoreSendProofEnvelopeVerification(envelope);
+      const sourceConsistency = summarizeVantaPrivateCoreSendProofEnvelopeConsistency({
+        envelope,
+        sourceArtifacts: deriveVantaPrivateCoreSourceArtifactsFromHeldNote(
+          privateCoreHoldState.heldNote,
+        ),
+        expectedNullifier: envelope.publicInputs.inputNullifier,
+      });
+      const boundary = buildVantaPrivateCoreSendProofBoundary({
+        senderSecretKey: privateCoreOwner.secretKey,
+        transition,
+      });
+
+      return {
+        boundary,
+        changeAmountBaseUnits: transition.change?.note.amount.toString(10) ?? "0",
+        recipientPublicKey,
+        sendAmountBaseUnits: sendAmountBaseUnits.toString(10),
+        sourceConsistencyLabel: sourceConsistency.overallStatusLabel,
+        sourceVerificationLabel: sourceVerification.statusLabel,
+      };
+    } catch {
+      return null;
+    }
+  }, [
+    amount,
+    isRecipientValid,
+    parsedAmount,
+    privateCoreHoldState,
+    privateCoreOwner.secretKey,
+    recipient,
+    selectedAsset,
+  ]);
 
   const recentShieldLabel =
     recentShield &&
     `${formatBalance(recentShield.amount, recentShield.asset)} shielded`;
   const sendZkDiagnostics = listCanonicalSendDiagnosticsSummaries().slice(0, 5);
+
+  useEffect(() => {
+    setPrivateCoreSendExecution({
+      errorMessage: null,
+      latestProofAction: null,
+      latestProofId: null,
+      proofFieldCount: null,
+      proofPublicInputCount: null,
+      status: "idle",
+    });
+  }, [amount, privateCoreHoldState, recipient, selectedAsset]);
 
   useEffect(() => {
     if (sendNoteTransaction.status === "loading") {
@@ -435,6 +544,46 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       setFlowError(
         error instanceof Error ? error.message : "Send request was not approved.",
       );
+    }
+  }
+
+  async function handlePrivateCoreSendProof() {
+    if (!privateCoreSendPreview) {
+      return;
+    }
+
+    setPrivateCoreSendExecution({
+      errorMessage: null,
+      latestProofAction: null,
+      latestProofId: null,
+      proofFieldCount: null,
+      proofPublicInputCount: null,
+      status: "running",
+    });
+
+    try {
+      const proofReceipt = await requestVantaPrivateCoreOperatorSendProof({
+        witnessPackage: privateCoreSendPreview.boundary.noirWitnessPackage,
+      });
+      const sendProofState = await fetchVantaPrivateCoreOperatorSendProofs();
+
+      setPrivateCoreSendExecution({
+        errorMessage: null,
+        latestProofAction: sendProofState.latestProof?.action ?? null,
+        latestProofId: sendProofState.latestProof?.proofId ?? null,
+        proofFieldCount: proofReceipt.proofFieldCount,
+        proofPublicInputCount: proofReceipt.publicInputCount,
+        status: "verified",
+      });
+    } catch (error) {
+      setPrivateCoreSendExecution({
+        errorMessage: error instanceof Error ? error.message : "The private-core send proof failed.",
+        latestProofAction: null,
+        latestProofId: null,
+        proofFieldCount: null,
+        proofPublicInputCount: null,
+        status: "failed",
+      });
     }
   }
 
@@ -999,7 +1148,224 @@ export function SendPage({ dashboard = false }: SendPageProps) {
             </div>
           )}
         </article>
+
+        <article className="send-card">
+          <div className="shield-card__header">
+            <div>
+              <span>Vanta Private Core</span>
+              <h3>Private send proof lane</h3>
+            </div>
+            <small>Operator-backed send proof</small>
+          </div>
+
+          <div className="review-list">
+            <div className="review-row">
+              <span>Held private note</span>
+              <strong>
+                {privateCoreHoldState
+                  ? `${formatBaseUnits(privateCoreHoldState.heldNote.note.amount, DEFAULT_VUSD_DECIMALS)} VUSD`
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Requested send</span>
+              <strong>
+                {privateCoreSendPreview
+                  ? `${formatBaseUnits(BigInt(privateCoreSendPreview.sendAmountBaseUnits), DEFAULT_VUSD_DECIMALS)} VUSD`
+                  : "Not ready"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Projected change</span>
+              <strong>
+                {privateCoreSendPreview
+                  ? `${formatBaseUnits(BigInt(privateCoreSendPreview.changeAmountBaseUnits), DEFAULT_VUSD_DECIMALS)} VUSD`
+                  : "Not ready"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Boundary readiness</span>
+              <strong>{privateCoreSendPreview?.boundary.readiness ?? "Blocked"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Source proof</span>
+              <strong>{privateCoreSendPreview?.sourceVerificationLabel ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Source consistency</span>
+              <strong>{privateCoreSendPreview?.sourceConsistencyLabel ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Recipient key</span>
+              <strong>{abbreviate(privateCoreSendPreview?.recipientPublicKey) ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Operator send proof</span>
+              <strong>
+                {privateCoreSendExecution.status === "verified"
+                  ? "Verified"
+                  : privateCoreSendExecution.status === "running"
+                    ? "Running"
+                    : privateCoreSendExecution.status === "failed"
+                      ? "Failed"
+                      : "Not run yet"}
+              </strong>
+            </div>
+          </div>
+
+          <p className="shield-review-note">
+            This is the first app-path send proof check for Vanta Private Core. It proves the
+            current held note can support one recipient output and one optional change output,
+            then asks the operator to verify the frozen send witness package over HTTP.
+          </p>
+
+          <div className="status-actions">
+            <button
+              className="button button-primary"
+              type="button"
+              onClick={() => {
+                void handlePrivateCoreSendProof();
+              }}
+              disabled={
+                !privateCoreSendPreview ||
+                privateCoreSendPreview.boundary.readiness !== "ready" ||
+                privateCoreSendExecution.status === "running"
+              }
+            >
+              Verify private send proof
+            </button>
+          </div>
+
+          {privateCoreSendExecution.status === "running" && (
+            <div className="status-panel status-panel--processing">
+              <span>Verifying send proof</span>
+              <p>Submitting the current private send witness package to the operator.</p>
+              <div className="status-bar">
+                <div className="status-bar__fill" />
+              </div>
+            </div>
+          )}
+
+          {privateCoreSendExecution.status === "failed" && (
+            <div className="status-panel status-panel--failed">
+              <span>Send proof failed</span>
+              <p>The operator did not accept the current private send witness package.</p>
+              {privateCoreSendExecution.errorMessage && (
+                <p className="shield-helper shield-helper--error">
+                  {privateCoreSendExecution.errorMessage}
+                </p>
+              )}
+            </div>
+          )}
+
+          {privateCoreSendExecution.status === "verified" && (
+            <div className="status-panel status-panel--success">
+              <span>Send proof verified</span>
+              <p>
+                The operator verified the current private send witness package without mutating
+                unshield consume or release state.
+              </p>
+              <div className="success-metrics">
+                <div className="preview-card preview-card--accent">
+                  <span>Proof fields</span>
+                  <strong>{privateCoreSendExecution.proofFieldCount ?? 0}</strong>
+                </div>
+                <div className="preview-card">
+                  <span>Public inputs</span>
+                  <strong>{privateCoreSendExecution.proofPublicInputCount ?? 0}</strong>
+                </div>
+              </div>
+              <p className="shield-helper shield-helper--meta">
+                Latest send proof:{" "}
+                {abbreviate(privateCoreSendExecution.latestProofId) ??
+                  privateCoreSendExecution.latestProofId ??
+                  "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Latest send proof action: {privateCoreSendExecution.latestProofAction ?? "Unavailable"}
+              </p>
+            </div>
+          )}
+
+          <details className="shield-helper shield-helper--meta">
+            <summary>Internal send-proof diagnostics</summary>
+            {privateCoreSendPreview ? (
+              <>
+                <p>Send circuit: {privateCoreSendPreview.boundary.circuit}</p>
+                <p>Send backend: {privateCoreSendPreview.boundary.backend}</p>
+                <p>
+                  Source input root:{" "}
+                  {abbreviate(privateCoreSendPreview.boundary.publicInputs.stateRoot) ??
+                    privateCoreSendPreview.boundary.publicInputs.stateRoot}
+                </p>
+                <p>
+                  Source input nullifier:{" "}
+                  {abbreviate(privateCoreSendPreview.boundary.publicInputs.inputNullifier) ??
+                    privateCoreSendPreview.boundary.publicInputs.inputNullifier}
+                </p>
+                <p>
+                  Recipient commitment:{" "}
+                  {abbreviate(privateCoreSendPreview.boundary.publicInputs.recipientCommitment) ??
+                    privateCoreSendPreview.boundary.publicInputs.recipientCommitment}
+                </p>
+                <p>
+                  Change commitment:{" "}
+                  {abbreviate(privateCoreSendPreview.boundary.publicInputs.changeCommitment) ??
+                    privateCoreSendPreview.boundary.publicInputs.changeCommitment ??
+                    "None"}
+                </p>
+                <p>
+                  Send context tag:{" "}
+                  {abbreviate(privateCoreSendPreview.boundary.publicInputs.sendContextTag) ??
+                    privateCoreSendPreview.boundary.publicInputs.sendContextTag}
+                </p>
+                {privateCoreSendPreview.boundary.blockers.length > 0 && (
+                  <p>
+                    Blockers: {privateCoreSendPreview.boundary.blockers.join(" | ")}
+                  </p>
+                )}
+              </>
+            ) : (
+              <p>No private-core send proof preview is ready yet.</p>
+            )}
+          </details>
+        </article>
       </div>
     </section>
   );
+}
+
+function decimalToBaseUnitsExact(value: string, decimals: number): bigint {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    throw new Error("Amount is required.");
+  }
+
+  const [wholePartRaw, fractionPartRaw = ""] = trimmed.split(".");
+  const wholePart = wholePartRaw === "" ? "0" : wholePartRaw;
+  if (!/^\d+$/.test(wholePart) || !/^\d*$/.test(fractionPartRaw)) {
+    throw new Error("Amount must be numeric.");
+  }
+
+  const normalizedFraction = `${fractionPartRaw}${"0".repeat(decimals)}`.slice(0, decimals);
+  return BigInt(wholePart) * 10n ** BigInt(decimals) + BigInt(normalizedFraction || "0");
+}
+
+function formatBaseUnits(amount: bigint, decimals: number): string {
+  const divisor = 10n ** BigInt(decimals);
+  const whole = amount / divisor;
+  const fraction = amount % divisor;
+
+  if (fraction === 0n) {
+    return whole.toString(10);
+  }
+
+  return `${whole.toString(10)}.${fraction.toString(10).padStart(decimals, "0").replace(/0+$/, "")}`;
+}
+
+function derivePrivateCoreRecipientPublicKey(reference: string): Bytes32Hex {
+  const bytes = sha256(
+    new TextEncoder().encode(`vanta.private-core.send-recipient.v0:${reference.trim().toLowerCase()}`),
+  );
+  return (`0x${Array.from(bytes, (value) => value.toString(16).padStart(2, "0")).join("")}`) as Bytes32Hex;
 }
