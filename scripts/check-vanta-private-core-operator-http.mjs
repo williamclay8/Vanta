@@ -924,7 +924,9 @@ try {
     !operatorStatusOutput.includes("Latest release proof:") ||
     !operatorStatusOutput.includes("Latest release linked proof:") ||
     !operatorStatusOutput.includes("Proof/consume link: linked") ||
-    !operatorStatusOutput.includes("Proof/release link: linked")
+    !operatorStatusOutput.includes("Proof/release link: linked") ||
+    !operatorStatusOutput.includes("Boundary status: Operator boundary coherent") ||
+    !operatorStatusOutput.includes("Boundary note: Current root, consume, release, and linked proofs agree.")
   ) {
     throw new Error(operatorStatusOutput || "operator-status did not reflect proof-linked private-core state");
   }

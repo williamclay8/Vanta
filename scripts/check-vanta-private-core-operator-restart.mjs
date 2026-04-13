@@ -284,7 +284,8 @@ try {
   if (
     !operatorStatusOutput.includes("Latest proof action: consume") ||
     !operatorStatusOutput.includes("Latest consume proof:") ||
-    !operatorStatusOutput.includes("Latest release proof:")
+    !operatorStatusOutput.includes("Latest release proof:") ||
+    !operatorStatusOutput.includes("Boundary status: Operator boundary coherent")
   ) {
     throw new Error(operatorStatusOutput || "operator restart status output did not reflect persisted state");
   }

@@ -2,6 +2,7 @@ const baseUrl = resolveBaseUrl(process.argv.slice(2));
 
 try {
   const summary = await requestJson("/state/private-core-summary");
+  const boundary = summarizeBoundaryStatus(summary);
 
   printLine("Operator", baseUrl);
   printLine("Summary state version", String(summary.stateVersion ?? "unknown"));
@@ -28,6 +29,8 @@ try {
   printLine("Release records", String(summary.releaseRecordCount ?? 0));
   printLine("Proof/consume link", summary.proofConsumeLinkStatus ?? "Unavailable");
   printLine("Proof/release link", summary.proofReleaseLinkStatus ?? "Unavailable");
+  printLine("Boundary status", boundary.status);
+  printLine("Boundary note", boundary.note);
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   console.error(`private-core operator status: FAIL\n${message}`);
@@ -78,4 +81,38 @@ function abbreviate(value) {
 
 function printLine(label, value) {
   console.log(`${label}: ${value}`);
+}
+
+function summarizeBoundaryStatus(summary) {
+  if (!summary.currentRoot) {
+    return {
+      status: "Awaiting current root",
+      note: "No current root is registered yet.",
+    };
+  }
+
+  if (summary.proofConsumeLinkStatus !== "linked") {
+    return {
+      status: "Proof/consume not linked",
+      note:
+        summary.proofConsumeLinkStatus === "mismatch"
+          ? "Latest consume record does not match its linked proof."
+          : "Latest consume proof linkage is unavailable.",
+    };
+  }
+
+  if (summary.proofReleaseLinkStatus !== "linked") {
+    return {
+      status: "Proof/release not linked",
+      note:
+        summary.proofReleaseLinkStatus === "mismatch"
+          ? "Latest release record does not match its linked proof."
+          : "Latest release proof linkage is unavailable.",
+    };
+  }
+
+  return {
+    status: "Operator boundary coherent",
+    note: "Current root, consume, release, and linked proofs agree.",
+  };
 }
