@@ -1412,6 +1412,7 @@ function buildPrivateCoreSummaryState() {
   const consumeRecords = privateCoreConsumeStore.listConsumes();
   const releaseRecords = privateCoreReleaseRecords.listRecords();
   const latestProof = proofRecords[0] ?? null;
+  const currentRootRecord = rootRecords[0] ?? null;
   const latestSendProof = sendProofRecords[0] ?? null;
   const latestSend = sendRecords[0] ?? null;
   const latestLinkedSendProof =
@@ -1451,8 +1452,25 @@ function buildPrivateCoreSummaryState() {
     latestSend?.resultingRoot
       ? rootRecords.find((record) => record.root === latestSend.resultingRoot) ?? null
       : null;
+  const currentRootLinkedProof =
+    currentRootRecord?.proofId
+      ? proofRecords.find((record) => record.proofId === currentRootRecord.proofId) ?? null
+      : null;
+  const sendResultingRootLinkedProof =
+    sendResultingRootRecord?.proofId
+      ? proofRecords.find((record) => record.proofId === sendResultingRootRecord.proofId) ?? null
+      : null;
+  const currentRootProofLinkStatus = summarizePrivateCoreRootProofLinkStatus({
+    linkedProof: currentRootLinkedProof,
+    rootRecord: currentRootRecord,
+  });
+  const sendResultingRootProofLinkStatus = summarizePrivateCoreRootProofLinkStatus({
+    linkedProof: sendResultingRootLinkedProof,
+    rootRecord: sendResultingRootRecord,
+  });
   const boundaryStatus = summarizePrivateCoreBoundaryStatus({
-    currentRoot: rootRecords[0]?.root ?? null,
+    currentRoot: currentRootRecord?.root ?? null,
+    currentRootProofLinkStatus,
     proofConsumeLinkStatus,
     proofSendLinkStatus,
     proofReleaseLinkStatus,
@@ -1461,14 +1479,16 @@ function buildPrivateCoreSummaryState() {
   return {
     boundaryStatus: boundaryStatus.status,
     boundaryNote: boundaryStatus.note,
+    currentRootProofLinkStatus,
     generatedAt: Date.now(),
     sendResultingRootRecord,
     sendResultingRootNote: sendResultingRootStatus.note,
+    sendResultingRootProofLinkStatus,
     sendResultingRootStatus: sendResultingRootStatus.status,
     stateVersion: 1,
-    summaryVersion: 2,
-    currentRoot: rootRecords[0]?.root ?? null,
-    currentRecord: rootRecords[0] ?? null,
+    summaryVersion: 3,
+    currentRoot: currentRootRecord?.root ?? null,
+    currentRecord: currentRootRecord,
     rootRecords,
     latestProof,
     proofRecords,
@@ -1552,6 +1572,16 @@ function summarizePrivateCoreBoundaryStatus(args) {
     };
   }
 
+  if (args.currentRootProofLinkStatus !== "linked") {
+    return {
+      status: "root-registration-unlinked",
+      note:
+        args.currentRootProofLinkStatus === "mismatch"
+          ? "Current root record does not match its linked registration proof."
+          : "Current root registration proof linkage is unavailable.",
+    };
+  }
+
   if (args.proofSendLinkStatus !== "linked" && args.proofSendLinkStatus !== "unavailable") {
     return {
       status: "proof-send-unlinked",
@@ -1583,6 +1613,22 @@ function summarizePrivateCoreBoundaryStatus(args) {
     status: "coherent",
     note: "Current root, consume, release, and linked proofs agree.",
   };
+}
+
+function summarizePrivateCoreRootProofLinkStatus(args) {
+  if (!args.rootRecord || !args.rootRecord.proofId || !args.linkedProof) {
+    return "unavailable";
+  }
+
+  if (
+    args.linkedProof.action === "register-root" &&
+    args.linkedProof.proofId === args.rootRecord.proofId &&
+    args.linkedProof.root === args.rootRecord.root
+  ) {
+    return "linked";
+  }
+
+  return "mismatch";
 }
 
 function summarizePrivateCoreProofSendLinkStatus(args) {

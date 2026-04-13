@@ -145,11 +145,13 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreHoldState,
     privateCoreOperatorBoundaryPrimaryNote,
     privateCoreOperatorBoundaryStatusLabel,
+    privateCoreOperatorCurrentRootProofLinkStatus,
     privateCoreOperatorLatestSend,
     privateCoreOperatorLatestSendLinkedProof,
     privateCoreOperatorLatestSendProof,
     privateCoreOperatorSendResultingRootRecord,
     privateCoreOperatorSendResultingRootPrimaryNote,
+    privateCoreOperatorSendResultingRootProofLinkStatus,
     privateCoreOperatorSendResultingRootStatusLabel,
     privateCoreOperatorProofSendLinkStatus,
     privateCoreOperatorSummaryUpdatedAt,
@@ -1546,6 +1548,13 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 <p>
                   Send resulting root note:{" "}
                   {privateCoreOperatorSendResultingRootPrimaryNote ?? "Unavailable"}
+                </p>
+                <p>
+                  Current root proof link: {privateCoreOperatorCurrentRootProofLinkStatus ?? "Unavailable"}
+                </p>
+                <p>
+                  Send resulting root proof link:{" "}
+                  {privateCoreOperatorSendResultingRootProofLinkStatus ?? "Unavailable"}
                 </p>
                 <p>
                   Operator summary refresh: {formatOperatorSummaryFreshness(privateCoreOperatorSummaryUpdatedAt)}

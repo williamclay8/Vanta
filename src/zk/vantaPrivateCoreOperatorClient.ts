@@ -189,11 +189,14 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   boundaryStatus:
     | "coherent"
     | "awaiting-current-root"
+    | "root-registration-unlinked"
     | "proof-send-unlinked"
     | "proof-consume-unlinked"
     | "proof-release-unlinked";
+  currentRootProofLinkStatus: "linked" | "mismatch" | "unavailable";
   sendResultingRootNote: string;
   sendResultingRootRecord: VantaPrivateCoreOperatorRootRecord | null;
+  sendResultingRootProofLinkStatus: "linked" | "mismatch" | "unavailable";
   sendResultingRootStatus:
     | "unavailable"
     | "missing"
@@ -771,9 +774,11 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     summaryVersion?: unknown;
     boundaryStatus?: unknown;
     boundaryNote?: unknown;
+    currentRootProofLinkStatus?: unknown;
     sendResultingRootRecord?: unknown;
     sendResultingRootStatus?: unknown;
     sendResultingRootNote?: unknown;
+    sendResultingRootProofLinkStatus?: unknown;
     generatedAt?: unknown;
     currentRoot?: unknown;
     currentRecord?: unknown;
@@ -804,14 +809,16 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.summaryVersion !== 2 ||
+    parsed.summaryVersion !== 3 ||
     !isBoundaryStatus(parsed.boundaryStatus) ||
     typeof parsed.boundaryNote !== "string" ||
+    !isLinkStatus(parsed.currentRootProofLinkStatus) ||
     (parsed.sendResultingRootRecord !== null &&
       parsed.sendResultingRootRecord !== undefined &&
       !isRootRecord(parsed.sendResultingRootRecord)) ||
     !isSendResultingRootStatus(parsed.sendResultingRootStatus) ||
     typeof parsed.sendResultingRootNote !== "string" ||
+    !isLinkStatus(parsed.sendResultingRootProofLinkStatus) ||
     typeof parsed.generatedAt !== "number" ||
     (parsed.currentRoot !== null &&
       parsed.currentRoot !== undefined &&
@@ -864,14 +871,16 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   return {
     stateVersion: 1,
-    summaryVersion: 2,
+    summaryVersion: 3,
     boundaryStatus: parsed.boundaryStatus,
     boundaryNote: parsed.boundaryNote,
+    currentRootProofLinkStatus: parsed.currentRootProofLinkStatus,
     sendResultingRootRecord: isRootRecord(parsed.sendResultingRootRecord)
       ? parsed.sendResultingRootRecord
       : null,
     sendResultingRootStatus: parsed.sendResultingRootStatus,
     sendResultingRootNote: parsed.sendResultingRootNote,
+    sendResultingRootProofLinkStatus: parsed.sendResultingRootProofLinkStatus,
     generatedAt: parsed.generatedAt,
     currentRoot: typeof parsed.currentRoot === "string" ? parsed.currentRoot : null,
     currentRecord: isRootRecord(parsed.currentRecord) ? parsed.currentRecord : null,
@@ -1037,10 +1046,17 @@ function isLinkStatus(value: unknown): value is "linked" | "mismatch" | "unavail
 
 function isBoundaryStatus(
   value: unknown,
-): value is "coherent" | "awaiting-current-root" | "proof-consume-unlinked" | "proof-release-unlinked" {
+): value is
+  | "coherent"
+  | "awaiting-current-root"
+  | "root-registration-unlinked"
+  | "proof-send-unlinked"
+  | "proof-consume-unlinked"
+  | "proof-release-unlinked" {
   return (
     value === "coherent" ||
     value === "awaiting-current-root" ||
+    value === "root-registration-unlinked" ||
     value === "proof-send-unlinked" ||
     value === "proof-consume-unlinked" ||
     value === "proof-release-unlinked"

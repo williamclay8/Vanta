@@ -220,7 +220,7 @@ try {
   if (
     !initialSummaryState.ok ||
     initialSummaryState.parsed?.stateVersion !== 1 ||
-    initialSummaryState.parsed?.summaryVersion !== 2 ||
+    initialSummaryState.parsed?.summaryVersion !== 3 ||
     typeof initialSummaryState.parsed?.generatedAt !== "number" ||
     initialSummaryState.parsed?.currentRoot !== null ||
     initialSummaryState.parsed?.latestProof !== null ||
@@ -849,13 +849,14 @@ try {
   if (
     !summaryStateAfterConsume.ok ||
     summaryStateAfterConsume.parsed?.stateVersion !== 1 ||
-    summaryStateAfterConsume.parsed?.summaryVersion !== 2 ||
+    summaryStateAfterConsume.parsed?.summaryVersion !== 3 ||
     typeof summaryStateAfterConsume.parsed?.generatedAt !== "number" ||
     summaryStateAfterConsume.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
     summaryStateAfterConsume.parsed?.latestConsumeProof?.proofId !== consumeResponse.parsed.proofId ||
     summaryStateAfterConsume.parsed?.latestConsume?.proofId !== consumeResponse.parsed.proofId ||
     summaryStateAfterConsume.parsed?.latestReleaseProof?.proofId !== consumeResponse.parsed.proofId ||
     summaryStateAfterConsume.parsed?.latestRelease?.proofId !== consumeResponse.parsed.proofId ||
+    summaryStateAfterConsume.parsed?.currentRootProofLinkStatus !== "linked" ||
     summaryStateAfterConsume.parsed?.boundaryStatus !== "coherent" ||
     summaryStateAfterConsume.parsed?.boundaryNote !==
       "Current root, consume, release, and linked proofs agree." ||
@@ -937,13 +938,14 @@ try {
   });
   if (
     !operatorStatusOutput.includes("Summary state version: 1") ||
-    !operatorStatusOutput.includes("Summary version: 2") ||
+    !operatorStatusOutput.includes("Summary version: 3") ||
     !operatorStatusOutput.includes("Summary generated:") ||
     !operatorStatusOutput.includes("Latest proof action: consume") ||
     !operatorStatusOutput.includes("Latest consume proof:") ||
     !operatorStatusOutput.includes("Latest consume linked proof:") ||
     !operatorStatusOutput.includes("Latest release proof:") ||
     !operatorStatusOutput.includes("Latest release linked proof:") ||
+    !operatorStatusOutput.includes("Current root proof link: linked") ||
     !operatorStatusOutput.includes("Latest send resulting root:") ||
     !operatorStatusOutput.includes("Send resulting root status: Unavailable") ||
     !operatorStatusOutput.includes("Send resulting root record: Unavailable") ||

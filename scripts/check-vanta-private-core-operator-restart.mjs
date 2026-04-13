@@ -273,7 +273,7 @@ try {
     preRestartSends.parsed.records.length < 1 ||
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.stateVersion !== 1 ||
-    preRestartSummary.parsed?.summaryVersion !== 2 ||
+    preRestartSummary.parsed?.summaryVersion !== 3 ||
     typeof preRestartSummary.parsed?.generatedAt !== "number" ||
     preRestartSummary.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
     preRestartSummary.parsed?.latestSendProof?.action !== "send-proof" ||
@@ -285,6 +285,7 @@ try {
     preRestartSummary.parsed?.latestConsumeProof?.proofId !== consumeResponse.parsed.proofId ||
     preRestartSummary.parsed?.latestRelease?.proofId !== consumeResponse.parsed.proofId ||
     preRestartSummary.parsed?.latestReleaseProof?.proofId !== consumeResponse.parsed.proofId ||
+    preRestartSummary.parsed?.currentRootProofLinkStatus !== "linked" ||
     preRestartSummary.parsed?.boundaryStatus !== "coherent" ||
     preRestartSummary.parsed?.boundaryNote !==
       "Current root, consume, release, and linked proofs agree." ||
@@ -316,7 +317,7 @@ try {
   if (
     !postRestartSummary.ok ||
     postRestartSummary.parsed?.stateVersion !== 1 ||
-    postRestartSummary.parsed?.summaryVersion !== 2 ||
+    postRestartSummary.parsed?.summaryVersion !== 3 ||
     typeof postRestartSummary.parsed?.generatedAt !== "number" ||
     postRestartSummary.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
     postRestartSummary.parsed?.rootRecordCount < 1
@@ -362,6 +363,7 @@ try {
     postRestartSummary.parsed?.latestRelease?.proofId !== consumeResponse.parsed.proofId ||
     postRestartSummary.parsed?.latestReleaseProof?.proofId !== consumeResponse.parsed.proofId ||
     postRestartSummary.parsed?.proofRecordCount < 2 ||
+    postRestartSummary.parsed?.currentRootProofLinkStatus !== "linked" ||
     postRestartSummary.parsed?.boundaryStatus !== "coherent" ||
     postRestartSummary.parsed?.boundaryNote !==
       "Current root, consume, release, and linked proofs agree." ||

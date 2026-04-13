@@ -9,6 +9,7 @@ try {
   printLine("Summary generated", formatTimestamp(summary.generatedAt));
   printLine("Current root", abbreviate(summary.currentRoot));
   printLine("Current root proof", abbreviate(summary.currentRecord?.proofId));
+  printLine("Current root proof link", summary.currentRootProofLinkStatus ?? "Unavailable");
   printLine("Root records", String(summary.rootRecordCount ?? 0));
   printLine("Latest consume", abbreviate(summary.latestConsume?.nullifier));
   printLine("Latest consume proof", abbreviate(summary.latestConsume?.proofId));
@@ -28,6 +29,10 @@ try {
   printLine("Send resulting root note", summary.sendResultingRootNote ?? "Unavailable");
   printLine("Send resulting root record", abbreviate(summary.sendResultingRootRecord?.root));
   printLine("Send resulting root proof", abbreviate(summary.sendResultingRootRecord?.proofId));
+  printLine(
+    "Send resulting root proof link",
+    summary.sendResultingRootProofLinkStatus ?? "Unavailable",
+  );
   printLine(
     "Send resulting root bundle",
     summary.sendResultingRootRecord?.artifactBundleStatus === "complete"
@@ -127,6 +132,8 @@ function humanizeBoundaryStatus(value) {
       return "Operator boundary coherent";
     case "awaiting-current-root":
       return "Awaiting current root";
+    case "root-registration-unlinked":
+      return "Current root registration unlinked";
     case "proof-send-unlinked":
       return "Proof/send not linked";
     case "proof-consume-unlinked":

@@ -30,6 +30,7 @@ type VantaPrivateCoreStatePanelProps = {
   operatorLatestSendProof?: VantaPrivateCoreOperatorSendProofRecord | null;
   operatorBoundaryPrimaryNote?: string | null;
   operatorBoundaryStatusLabel?: string | null;
+  operatorCurrentRootProofLinkStatus?: string | null;
   operatorProofConsumeLinkStatus?: string | null;
   operatorProofError?: string | null;
   operatorProofs?: VantaPrivateCoreOperatorProofRecord[];
@@ -43,6 +44,7 @@ type VantaPrivateCoreStatePanelProps = {
   operatorRoots?: VantaPrivateCoreOperatorRootRecord[];
   operatorSendResultingRootRecord?: VantaPrivateCoreOperatorRootRecord | null;
   operatorSendResultingRootPrimaryNote?: string | null;
+  operatorSendResultingRootProofLinkStatus?: string | null;
   operatorSendResultingRootStatusLabel?: string | null;
   operatorSendError?: string | null;
   operatorSends?: VantaPrivateCoreOperatorSendRecord[];
@@ -148,6 +150,7 @@ export function VantaPrivateCoreStatePanel({
   operatorLatestSendProof = null,
   operatorBoundaryPrimaryNote = null,
   operatorBoundaryStatusLabel = null,
+  operatorCurrentRootProofLinkStatus = null,
   operatorProofConsumeLinkStatus = null,
   operatorProofError = null,
   operatorProofs = [],
@@ -161,6 +164,7 @@ export function VantaPrivateCoreStatePanel({
   operatorRoots = [],
   operatorSendResultingRootRecord = null,
   operatorSendResultingRootPrimaryNote = null,
+  operatorSendResultingRootProofLinkStatus = null,
   operatorSendResultingRootStatusLabel = null,
   operatorSendError = null,
   operatorSends = [],
@@ -762,6 +766,10 @@ export function VantaPrivateCoreStatePanel({
               </strong>
             </div>
             <div className="review-row">
+              <span>Operator current root proof link</span>
+              <strong>{operatorCurrentRootProofLinkStatus ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
               <span>Send resulting root status</span>
               <strong>
                 {sendState?.resultingRootStatusLabel ??
@@ -792,6 +800,10 @@ export function VantaPrivateCoreStatePanel({
                   ? abbreviate(operatorSendResultingRootRecord.proofId)
                   : "Unavailable"}
               </strong>
+            </div>
+            <div className="review-row">
+              <span>Send resulting root proof link</span>
+              <strong>{operatorSendResultingRootProofLinkStatus ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Send resulting root bundle</span>
