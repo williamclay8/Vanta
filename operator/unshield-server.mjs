@@ -480,6 +480,9 @@ const server = createServer(async (request, response) => {
         body?.resultingRoot,
         "Private-core send resulting root",
       );
+      if (resultingRoot === sourcePublicInputs.stateRoot) {
+        throw new Error("Private-core send resulting root must differ from the input root.");
+      }
       const proofReceipt = await proveAndVerifyVantaPrivateCoreSend({
         witnessPackage,
       });

@@ -348,6 +348,21 @@ try {
   }
   printStatus("operator send http resulting-root required gate: PASS");
 
+  const sameRootTransition = await requestJson(baseUrl, "/private-core/send-transition", {
+    body: JSON.stringify({
+      resultingRoot: witnessPackage.sourcePublicInputs.stateRoot,
+      witnessPackage,
+    }),
+    method: "POST",
+  });
+  if (!sameRootTransition.text.includes("resulting root must differ from the input root")) {
+    throw new Error(
+      sameRootTransition.text ||
+        "send transition unexpectedly accepted a non-transitioning resulting root",
+    );
+  }
+  printStatus("operator send http resulting-root change gate: PASS");
+
   const malformedRootTransition = await requestJson(baseUrl, "/private-core/send-transition", {
     body: JSON.stringify({ resultingRoot: "0x1234", witnessPackage }),
     method: "POST",
