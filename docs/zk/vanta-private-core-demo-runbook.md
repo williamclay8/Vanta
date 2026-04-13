@@ -36,6 +36,7 @@ That confirms:
 - received private notes can still become the input to a second private send coherently
 - one operator-backed private send still proves, applies, recovers for the recipient, and preserves sender privacy
 - two operator-backed private send transitions can now execute in sequence on evolving private state
+- two operator-backed private send transitions now persist coherently across operator restart
 - the operator consume regression is still green
 - the operator HTTP smoke path is still green
 - send-proof state is still explicit and restart-safe

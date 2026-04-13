@@ -189,6 +189,7 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   - chained private-send regression
   - operator-backed private-send roundtrip regression
   - operator-backed chained private-send regression
+  - operator-backed chained private-send restart regression
   - operator consume regression
   - operator HTTP smoke test
   - operator send-proof HTTP smoke test
