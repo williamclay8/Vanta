@@ -21,7 +21,7 @@ function sleep(ms) {
 async function waitForHealth(baseUrl) {
   for (let attempt = 0; attempt < 40; attempt += 1) {
     try {
-      const response = await fetch(`${baseUrl}/state/private-core-proofs`);
+      const response = await fetch(`${baseUrl}/state/private-core-summary`);
       if (response.ok) {
         return;
       }
@@ -206,23 +206,23 @@ try {
   printStatus("operator restart setup consume: PASS");
 
   const preRestartRoots = await requestJson(baseUrl, "/state/private-core-roots", { method: "GET" });
-  const preRestartProofs = await requestJson(baseUrl, "/state/private-core-proofs", { method: "GET" });
-  const preRestartConsumes = await requestJson(baseUrl, "/state/private-core-consumes", {
-    method: "GET",
-  });
-  const preRestartReleases = await requestJson(baseUrl, "/state/private-core-releases", {
+  const preRestartSummary = await requestJson(baseUrl, "/state/private-core-summary", {
     method: "GET",
   });
 
   if (
     !preRestartRoots.ok ||
     preRestartRoots.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
-    !preRestartProofs.ok ||
-    preRestartProofs.parsed?.latestProof?.proofId !== consumeResponse.parsed.proofId ||
-    !preRestartConsumes.ok ||
-    preRestartConsumes.parsed?.latestConsume?.proofId !== consumeResponse.parsed.proofId ||
-    !preRestartReleases.ok ||
-    preRestartReleases.parsed?.latestRelease?.proofId !== consumeResponse.parsed.proofId
+    !preRestartSummary.ok ||
+    preRestartSummary.parsed?.stateVersion !== 1 ||
+    preRestartSummary.parsed?.summaryVersion !== 1 ||
+    preRestartSummary.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
+    preRestartSummary.parsed?.latestConsume?.proofId !== consumeResponse.parsed.proofId ||
+    preRestartSummary.parsed?.latestConsumeProof?.proofId !== consumeResponse.parsed.proofId ||
+    preRestartSummary.parsed?.latestRelease?.proofId !== consumeResponse.parsed.proofId ||
+    preRestartSummary.parsed?.latestReleaseProof?.proofId !== consumeResponse.parsed.proofId ||
+    preRestartSummary.parsed?.proofConsumeLinkStatus !== "linked" ||
+    preRestartSummary.parsed?.proofReleaseLinkStatus !== "linked"
   ) {
     throw new Error("operator restart setup did not produce the expected persisted state");
   }
@@ -236,49 +236,30 @@ try {
   liveServer = started.server;
   await waitForHealth(baseUrl);
 
-  const postRestartRoots = await requestJson(baseUrl, "/state/private-core-roots", { method: "GET" });
-  const postRestartProofs = await requestJson(baseUrl, "/state/private-core-proofs", { method: "GET" });
-  const postRestartConsumes = await requestJson(baseUrl, "/state/private-core-consumes", {
-    method: "GET",
-  });
-  const postRestartReleases = await requestJson(baseUrl, "/state/private-core-releases", {
+  const postRestartSummary = await requestJson(baseUrl, "/state/private-core-summary", {
     method: "GET",
   });
 
   if (
-    !postRestartRoots.ok ||
-    postRestartRoots.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
-    !Array.isArray(postRestartRoots.parsed?.records) ||
-    postRestartRoots.parsed.records.length < 1
+    !postRestartSummary.ok ||
+    postRestartSummary.parsed?.stateVersion !== 1 ||
+    postRestartSummary.parsed?.summaryVersion !== 1 ||
+    postRestartSummary.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
+    postRestartSummary.parsed?.rootRecordCount < 1
   ) {
-    throw new Error(postRestartRoots.text || "operator restart lost root state");
+    throw new Error(postRestartSummary.text || "operator restart lost root state");
   }
 
   if (
-    !postRestartProofs.ok ||
-    postRestartProofs.parsed?.latestProof?.proofId !== consumeResponse.parsed.proofId ||
-    !Array.isArray(postRestartProofs.parsed?.records) ||
-    postRestartProofs.parsed.records.length < 2
+    postRestartSummary.parsed?.latestConsume?.proofId !== consumeResponse.parsed.proofId ||
+    postRestartSummary.parsed?.latestConsumeProof?.proofId !== consumeResponse.parsed.proofId ||
+    postRestartSummary.parsed?.latestRelease?.proofId !== consumeResponse.parsed.proofId ||
+    postRestartSummary.parsed?.latestReleaseProof?.proofId !== consumeResponse.parsed.proofId ||
+    postRestartSummary.parsed?.proofRecordCount < 2 ||
+    postRestartSummary.parsed?.proofConsumeLinkStatus !== "linked" ||
+    postRestartSummary.parsed?.proofReleaseLinkStatus !== "linked"
   ) {
-    throw new Error(postRestartProofs.text || "operator restart lost proof state");
-  }
-
-  if (
-    !postRestartConsumes.ok ||
-    postRestartConsumes.parsed?.latestConsume?.proofId !== consumeResponse.parsed.proofId ||
-    !Array.isArray(postRestartConsumes.parsed?.records) ||
-    postRestartConsumes.parsed.records.length !== 1
-  ) {
-    throw new Error(postRestartConsumes.text || "operator restart lost consume state");
-  }
-
-  if (
-    !postRestartReleases.ok ||
-    postRestartReleases.parsed?.latestRelease?.proofId !== consumeResponse.parsed.proofId ||
-    !Array.isArray(postRestartReleases.parsed?.records) ||
-    postRestartReleases.parsed.records.length !== 1
-  ) {
-    throw new Error(postRestartReleases.text || "operator restart lost release state");
+    throw new Error(postRestartSummary.text || "operator restart lost linked proof/consume/release state");
   }
   printStatus("operator restart persisted state: PASS");
 
