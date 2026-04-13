@@ -172,6 +172,7 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   - circuit regression
   - operator consume regression
   - operator HTTP smoke test
+  - operator restart persistence check
   - real proof generation and verification
 - `npm run private-core:demo-readiness`
   aliases the same full verification pass with a more reviewer-friendly name

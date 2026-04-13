@@ -1,0 +1,314 @@
+import { execFileSync, spawn } from "node:child_process";
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const repoRoot = resolve(__dirname, "..");
+
+function printStatus(message) {
+  console.log(message);
+}
+
+function randomPort() {
+  return 9900 + Math.floor(Math.random() * 100);
+}
+
+function sleep(ms) {
+  return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
+}
+
+async function waitForHealth(baseUrl) {
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    try {
+      const response = await fetch(`${baseUrl}/state/private-core-proofs`);
+      if (response.ok) {
+        return;
+      }
+    } catch {
+      // Keep retrying until server is ready.
+    }
+
+    await sleep(250);
+  }
+
+  throw new Error("operator server did not become ready in time");
+}
+
+async function requestJson(baseUrl, path, options = {}) {
+  const response = await fetch(`${baseUrl}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers ?? {}),
+    },
+  });
+
+  const text = await response.text();
+  let parsed = null;
+
+  try {
+    parsed = text ? JSON.parse(text) : null;
+  } catch {
+    parsed = null;
+  }
+
+  return {
+    ok: response.ok,
+    parsed,
+    status: response.status,
+    text,
+  };
+}
+
+async function loadFixture() {
+  mkdirSync(resolve(repoRoot, ".tmp"), { recursive: true });
+  const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/private-core-operator-restart-check-"));
+  const tempTsDir = join(tempRoot, "ts");
+  const tempJsDir = join(tempRoot, "js");
+
+  try {
+    const privateCoreSource = readFileSync(resolve(repoRoot, "src/zk/vantaPrivateCore.ts"), "utf8");
+    const proofBoundarySource = readFileSync(
+      resolve(repoRoot, "src/zk/vantaPrivateCoreUnshieldProof.ts"),
+      "utf8",
+    ).replace(/from "@\/zk\/vantaPrivateCore"/g, 'from "./vantaPrivateCore"');
+
+    mkdirSync(tempTsDir, { recursive: true });
+    writeFileSync(join(tempTsDir, "vantaPrivateCore.ts"), privateCoreSource);
+    writeFileSync(join(tempTsDir, "vantaPrivateCoreUnshieldProof.ts"), proofBoundarySource);
+
+    execFileSync(
+      resolve(repoRoot, "node_modules/.bin/tsc"),
+      [
+        join(tempTsDir, "vantaPrivateCore.ts"),
+        join(tempTsDir, "vantaPrivateCoreUnshieldProof.ts"),
+        "--target",
+        "ES2022",
+        "--module",
+        "ESNext",
+        "--moduleResolution",
+        "Bundler",
+        "--lib",
+        "ES2022,DOM",
+        "--skipLibCheck",
+        "--outDir",
+        tempJsDir,
+      ],
+      { cwd: repoRoot, stdio: "pipe" },
+    );
+
+    const compiledProofBoundaryPath = join(tempJsDir, "vantaPrivateCoreUnshieldProof.js");
+    writeFileSync(
+      compiledProofBoundaryPath,
+      readFileSync(compiledProofBoundaryPath, "utf8").replace(
+        /from "\.\/vantaPrivateCore"/g,
+        'from "./vantaPrivateCore.js"',
+      ),
+    );
+
+    const compiledModule = await import(pathToFileURL(compiledProofBoundaryPath).href);
+    return compiledModule.getVantaPrivateCoreFixedDepthUnshieldFixtureV0();
+  } finally {
+    rmSync(tempRoot, { recursive: true, force: true });
+  }
+}
+
+function createOperatorEnv(tempRoot, port) {
+  return {
+    ...process.env,
+    PATH: `${process.env.HOME}/.nargo/bin:${process.env.PATH ?? ""}`,
+    VANTA_UNSHIELD_OPERATOR_PORT: String(port),
+    VANTA_DEVNET_TOKEN_MINT:
+      process.env.VANTA_DEVNET_TOKEN_MINT ??
+      "8j9mJY4hPW4N1pQ6XJk4oL9bQ4u8sF3o6T2jW7vF6dEm",
+    VANTA_DEVNET_VAULT_OWNER:
+      process.env.VANTA_DEVNET_VAULT_OWNER ??
+      "Gk7m3rV2Q5uH4pL9sW8xD1nB6cT3yF7kJ2qR5mN8pZ1",
+    VANTA_PRIVATE_CORE_CONSUME_STORE_PATH: join(tempRoot, "consumes.json"),
+    VANTA_PRIVATE_CORE_PROOF_STORE_PATH: join(tempRoot, "proofs.json"),
+    VANTA_PRIVATE_CORE_RELEASE_STORE_PATH: join(tempRoot, "private-core-releases.json"),
+    VANTA_PRIVATE_CORE_ROOT_STORE_PATH: join(tempRoot, "roots.json"),
+    VANTA_RELEASE_RECORD_STORE_PATH: join(tempRoot, "releases.json"),
+    VANTA_SWAP_RECORD_STORE_PATH: join(tempRoot, "swaps.json"),
+    VANTA_SOL_UNSHIELD_RECORD_STORE_PATH: join(tempRoot, "sol-unshields.json"),
+  };
+}
+
+function startServer(tempRoot, port) {
+  const server = spawn("node", ["operator/unshield-server.mjs"], {
+    cwd: repoRoot,
+    env: createOperatorEnv(tempRoot, port),
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+
+  let stderr = "";
+  let stdout = "";
+  server.stdout.on("data", (chunk) => {
+    stdout += chunk.toString("utf8");
+  });
+  server.stderr.on("data", (chunk) => {
+    stderr += chunk.toString("utf8");
+  });
+
+  return {
+    server,
+    getOutput() {
+      return [stdout.trim(), stderr.trim()].filter(Boolean).join("\n");
+    },
+  };
+}
+
+async function stopServer(server) {
+  server.kill("SIGTERM");
+  await new Promise((resolvePromise) => {
+    server.once("exit", () => resolvePromise(undefined));
+    setTimeout(() => resolvePromise(undefined), 1000);
+  });
+}
+
+const fixture = await loadFixture();
+const witnessPackage = fixture.validBoundary.noirWitnessPackage;
+const sourceArtifacts = fixture.validSourceArtifacts;
+mkdirSync(resolve(repoRoot, ".tmp"), { recursive: true });
+const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/private-core-operator-restart-server-"));
+const port = randomPort();
+const baseUrl = `http://127.0.0.1:${port}`;
+
+let liveServer = null;
+let serverOutput = "";
+
+try {
+  let started = startServer(tempRoot, port);
+  liveServer = started.server;
+  await waitForHealth(baseUrl);
+
+  const registerRoot = await requestJson(baseUrl, "/private-core/register-root", {
+    body: JSON.stringify({ sourceArtifacts, witnessPackage }),
+    method: "POST",
+  });
+  if (!registerRoot.ok || registerRoot.parsed?.known !== true) {
+    throw new Error(registerRoot.text || "operator restart setup could not register the root");
+  }
+
+  const consumeResponse = await requestJson(baseUrl, "/private-core/unshield-consume", {
+    body: JSON.stringify({ sourceArtifacts, witnessPackage }),
+    method: "POST",
+  });
+  if (
+    !consumeResponse.ok ||
+    consumeResponse.parsed?.verified !== true ||
+    typeof consumeResponse.parsed?.proofId !== "string" ||
+    consumeResponse.parsed?.releaseRecorded !== true
+  ) {
+    throw new Error(consumeResponse.text || "operator restart setup could not consume the note");
+  }
+  printStatus("operator restart setup consume: PASS");
+
+  const preRestartRoots = await requestJson(baseUrl, "/state/private-core-roots", { method: "GET" });
+  const preRestartProofs = await requestJson(baseUrl, "/state/private-core-proofs", { method: "GET" });
+  const preRestartConsumes = await requestJson(baseUrl, "/state/private-core-consumes", {
+    method: "GET",
+  });
+  const preRestartReleases = await requestJson(baseUrl, "/state/private-core-releases", {
+    method: "GET",
+  });
+
+  if (
+    !preRestartRoots.ok ||
+    preRestartRoots.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
+    !preRestartProofs.ok ||
+    preRestartProofs.parsed?.latestProof?.proofId !== consumeResponse.parsed.proofId ||
+    !preRestartConsumes.ok ||
+    preRestartConsumes.parsed?.latestConsume?.proofId !== consumeResponse.parsed.proofId ||
+    !preRestartReleases.ok ||
+    preRestartReleases.parsed?.latestRelease?.proofId !== consumeResponse.parsed.proofId
+  ) {
+    throw new Error("operator restart setup did not produce the expected persisted state");
+  }
+  printStatus("operator restart pre-shutdown state: PASS");
+
+  await stopServer(liveServer);
+  liveServer = null;
+  serverOutput = started.getOutput();
+
+  started = startServer(tempRoot, port);
+  liveServer = started.server;
+  await waitForHealth(baseUrl);
+
+  const postRestartRoots = await requestJson(baseUrl, "/state/private-core-roots", { method: "GET" });
+  const postRestartProofs = await requestJson(baseUrl, "/state/private-core-proofs", { method: "GET" });
+  const postRestartConsumes = await requestJson(baseUrl, "/state/private-core-consumes", {
+    method: "GET",
+  });
+  const postRestartReleases = await requestJson(baseUrl, "/state/private-core-releases", {
+    method: "GET",
+  });
+
+  if (
+    !postRestartRoots.ok ||
+    postRestartRoots.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
+    !Array.isArray(postRestartRoots.parsed?.records) ||
+    postRestartRoots.parsed.records.length < 1
+  ) {
+    throw new Error(postRestartRoots.text || "operator restart lost root state");
+  }
+
+  if (
+    !postRestartProofs.ok ||
+    postRestartProofs.parsed?.latestProof?.proofId !== consumeResponse.parsed.proofId ||
+    !Array.isArray(postRestartProofs.parsed?.records) ||
+    postRestartProofs.parsed.records.length < 2
+  ) {
+    throw new Error(postRestartProofs.text || "operator restart lost proof state");
+  }
+
+  if (
+    !postRestartConsumes.ok ||
+    postRestartConsumes.parsed?.latestConsume?.proofId !== consumeResponse.parsed.proofId ||
+    !Array.isArray(postRestartConsumes.parsed?.records) ||
+    postRestartConsumes.parsed.records.length !== 1
+  ) {
+    throw new Error(postRestartConsumes.text || "operator restart lost consume state");
+  }
+
+  if (
+    !postRestartReleases.ok ||
+    postRestartReleases.parsed?.latestRelease?.proofId !== consumeResponse.parsed.proofId ||
+    !Array.isArray(postRestartReleases.parsed?.records) ||
+    postRestartReleases.parsed.records.length !== 1
+  ) {
+    throw new Error(postRestartReleases.text || "operator restart lost release state");
+  }
+  printStatus("operator restart persisted state: PASS");
+
+  const operatorStatusOutput = execFileSync("node", [
+    "scripts/print-vanta-private-core-operator-status.mjs",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  if (
+    !operatorStatusOutput.includes("Latest proof action: consume") ||
+    !operatorStatusOutput.includes("Latest consume proof:") ||
+    !operatorStatusOutput.includes("Latest release proof:")
+  ) {
+    throw new Error(operatorStatusOutput || "operator restart status output did not reflect persisted state");
+  }
+  printStatus("operator restart operator-status: PASS");
+} catch (error) {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error(message);
+  if (serverOutput) {
+    console.error(serverOutput);
+  }
+  process.exitCode = 1;
+} finally {
+  if (liveServer) {
+    await stopServer(liveServer);
+  }
+  rmSync(tempRoot, { recursive: true, force: true });
+}

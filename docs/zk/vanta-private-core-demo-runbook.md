@@ -31,6 +31,7 @@ That confirms:
 - the fixed-depth Noir circuit still passes the valid fixture and rejects the invalid fixture
 - the operator consume regression is still green
 - the operator HTTP smoke path is still green
+- operator state survives a restart
 - local proof generation and verification still succeeds
 
 The operator-status command gives a quick readout of:
