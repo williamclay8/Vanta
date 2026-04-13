@@ -120,6 +120,28 @@ export type VantaPrivateCoreOperatorRootRegistrationResponse = {
   root: string;
 };
 
+export type VantaPrivateCoreOperatorSummaryStateResponse = {
+  stateVersion: number;
+  summaryVersion: number;
+  currentRoot: string | null;
+  currentRecord: VantaPrivateCoreOperatorRootRecord | null;
+  rootRecords: VantaPrivateCoreOperatorRootRecord[];
+  latestProof: VantaPrivateCoreOperatorProofRecord | null;
+  proofRecords: VantaPrivateCoreOperatorProofRecord[];
+  latestConsume: VantaPrivateCoreOperatorConsumeRecord | null;
+  consumeRecords: VantaPrivateCoreOperatorConsumeRecord[];
+  latestConsumeProof: VantaPrivateCoreOperatorProofRecord | null;
+  latestRelease: VantaPrivateCoreOperatorReleaseRecord | null;
+  releaseRecords: VantaPrivateCoreOperatorReleaseRecord[];
+  latestReleaseProof: VantaPrivateCoreOperatorProofRecord | null;
+  rootRecordCount: number;
+  proofRecordCount: number;
+  consumeRecordCount: number;
+  releaseRecordCount: number;
+  proofConsumeLinkStatus: "linked" | "mismatch" | "unavailable";
+  proofReleaseLinkStatus: "linked" | "mismatch" | "unavailable";
+};
+
 export async function requestVantaPrivateCoreOperatorProof(args: {
   witnessPackage: VantaPrivateCoreNoirUnshieldWitnessPackageV0;
 }): Promise<VantaPrivateCoreProofOperatorResponse> {
@@ -404,6 +426,10 @@ function getPrivateCoreRootStateUrl() {
   return new URL("/state/private-core-roots", liveShieldAsset.unshieldOperatorUrl).toString();
 }
 
+function getPrivateCoreSummaryStateUrl() {
+  return new URL("/state/private-core-summary", liveShieldAsset.unshieldOperatorUrl).toString();
+}
+
 export async function fetchVantaPrivateCoreOperatorReleases(): Promise<
   VantaPrivateCoreOperatorReleaseStateResponse
 > {
@@ -436,6 +462,102 @@ export async function fetchVantaPrivateCoreOperatorReleases(): Promise<
     stateVersion: 1,
     latestRelease: isReleaseRecord(parsed.latestRelease) ? parsed.latestRelease : null,
     records: parsed.records.filter(isReleaseRecord),
+  };
+}
+
+export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
+  VantaPrivateCoreOperatorSummaryStateResponse
+> {
+  const response = await fetch(getPrivateCoreSummaryStateUrl(), {
+    method: "GET",
+    signal: AbortSignal.timeout(15_000),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "The private-core operator summary endpoint failed.");
+  }
+
+  const parsed = (await response.json()) as {
+    stateVersion?: unknown;
+    summaryVersion?: unknown;
+    currentRoot?: unknown;
+    currentRecord?: unknown;
+    rootRecords?: unknown;
+    latestProof?: unknown;
+    proofRecords?: unknown;
+    latestConsume?: unknown;
+    consumeRecords?: unknown;
+    latestConsumeProof?: unknown;
+    latestRelease?: unknown;
+    releaseRecords?: unknown;
+    latestReleaseProof?: unknown;
+    rootRecordCount?: unknown;
+    proofRecordCount?: unknown;
+    consumeRecordCount?: unknown;
+    releaseRecordCount?: unknown;
+    proofConsumeLinkStatus?: unknown;
+    proofReleaseLinkStatus?: unknown;
+  };
+
+  if (
+    parsed.stateVersion !== 1 ||
+    parsed.summaryVersion !== 1 ||
+    (parsed.currentRoot !== null &&
+      parsed.currentRoot !== undefined &&
+      typeof parsed.currentRoot !== "string") ||
+    (parsed.currentRecord !== null &&
+      parsed.currentRecord !== undefined &&
+      !isRootRecord(parsed.currentRecord)) ||
+    !Array.isArray(parsed.rootRecords) ||
+    (parsed.latestProof !== null &&
+      parsed.latestProof !== undefined &&
+      !isProofRecord(parsed.latestProof)) ||
+    !Array.isArray(parsed.proofRecords) ||
+    (parsed.latestConsume !== null &&
+      parsed.latestConsume !== undefined &&
+      !isConsumeRecord(parsed.latestConsume)) ||
+    !Array.isArray(parsed.consumeRecords) ||
+    (parsed.latestConsumeProof !== null &&
+      parsed.latestConsumeProof !== undefined &&
+      !isProofRecord(parsed.latestConsumeProof)) ||
+    (parsed.latestRelease !== null &&
+      parsed.latestRelease !== undefined &&
+      !isReleaseRecord(parsed.latestRelease)) ||
+    !Array.isArray(parsed.releaseRecords) ||
+    (parsed.latestReleaseProof !== null &&
+      parsed.latestReleaseProof !== undefined &&
+      !isProofRecord(parsed.latestReleaseProof)) ||
+    typeof parsed.rootRecordCount !== "number" ||
+    typeof parsed.proofRecordCount !== "number" ||
+    typeof parsed.consumeRecordCount !== "number" ||
+    typeof parsed.releaseRecordCount !== "number" ||
+    !isLinkStatus(parsed.proofConsumeLinkStatus) ||
+    !isLinkStatus(parsed.proofReleaseLinkStatus)
+  ) {
+    throw new Error("The private-core operator summary endpoint returned invalid data.");
+  }
+
+  return {
+    stateVersion: 1,
+    summaryVersion: 1,
+    currentRoot: typeof parsed.currentRoot === "string" ? parsed.currentRoot : null,
+    currentRecord: isRootRecord(parsed.currentRecord) ? parsed.currentRecord : null,
+    rootRecords: parsed.rootRecords.filter(isRootRecord),
+    latestProof: isProofRecord(parsed.latestProof) ? parsed.latestProof : null,
+    proofRecords: parsed.proofRecords.filter(isProofRecord),
+    latestConsume: isConsumeRecord(parsed.latestConsume) ? parsed.latestConsume : null,
+    consumeRecords: parsed.consumeRecords.filter(isConsumeRecord),
+    latestConsumeProof: isProofRecord(parsed.latestConsumeProof) ? parsed.latestConsumeProof : null,
+    latestRelease: isReleaseRecord(parsed.latestRelease) ? parsed.latestRelease : null,
+    releaseRecords: parsed.releaseRecords.filter(isReleaseRecord),
+    latestReleaseProof: isProofRecord(parsed.latestReleaseProof) ? parsed.latestReleaseProof : null,
+    rootRecordCount: parsed.rootRecordCount,
+    proofRecordCount: parsed.proofRecordCount,
+    consumeRecordCount: parsed.consumeRecordCount,
+    releaseRecordCount: parsed.releaseRecordCount,
+    proofConsumeLinkStatus: parsed.proofConsumeLinkStatus,
+    proofReleaseLinkStatus: parsed.proofReleaseLinkStatus,
   };
 }
 
@@ -514,4 +636,8 @@ function isReleaseRecord(value: unknown): value is VantaPrivateCoreOperatorRelea
     typeof (value as VantaPrivateCoreOperatorReleaseRecord).root === "string" &&
     typeof (value as VantaPrivateCoreOperatorReleaseRecord).transitionNoteId === "string"
   );
+}
+
+function isLinkStatus(value: unknown): value is "linked" | "mismatch" | "unavailable" {
+  return value === "linked" || value === "mismatch" || value === "unavailable";
 }
