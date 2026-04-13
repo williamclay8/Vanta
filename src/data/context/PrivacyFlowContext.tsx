@@ -20,6 +20,8 @@ import {
   type VantaPrivateCoreOwnerKeypair,
   type CiphertextPackageV0,
   type HeldNoteViewV0,
+  type SendResultV0,
+  type SendTransitionV0,
   type ShieldArtifactV0,
   type UnshieldProofEnvelopeV0,
   type UnshieldResultV0,
@@ -115,6 +117,12 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorSummaryUpdatedAt: number | null;
   privateCoreUnshieldState: VantaPrivateCoreUnshieldState | null;
   recentShield: RecentShieldContext | null;
+  refreshPrivateCoreOperatorSummary: () => Promise<VantaPrivateCoreOperatorSummaryStateResponse>;
+  runPrivateCoreSendTransition: (transition: SendTransitionV0) => {
+    nextHoldState: VantaPrivateCoreHoldState | null;
+    nextShieldState: VantaPrivateCoreShieldState | null;
+    result: SendResultV0;
+  };
   runPrivateCoreShield: (args: { amountDisplay: string; asset: PrivacyAssetKey }) => VantaPrivateCoreShieldState;
   runPrivateCoreUnshield: () => Promise<VantaPrivateCoreUnshieldState>;
   runPrivateCoreReplayAttempt: () => Promise<VantaPrivateCoreUnshieldState>;
@@ -470,6 +478,136 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     [privateCoreOperatorRoots],
   );
 
+  const buildPrivateCorePresentedState = useCallback(
+    (args: { hold: HeldNoteViewV0; shieldArtifact: ShieldArtifactV0 }) => {
+      const provingPreview = buildVantaPrivateCoreUnshieldProofBoundary({
+        heldNote: args.hold,
+        ownerSecretKey: privateCoreOwner.secretKey,
+        releaseDestination: VANTA_PRIVATE_CORE_DEMO_RELEASE_DESTINATION,
+      });
+      const sourceProofPreviewEnvelope = buildVantaPrivateCoreUnshieldProofEnvelope(
+        args.hold.note,
+        args.hold.witness,
+      );
+      const sourceShieldArtifacts = deriveVantaPrivateCoreSourceArtifactsFromShieldArtifact(
+        args.shieldArtifact,
+      );
+      const sourceHoldArtifacts = deriveVantaPrivateCoreSourceArtifactsFromHeldNote(args.hold);
+      const provingPreviewArtifacts = deriveVantaPrivateCoreProvingArtifactsFromBoundary(
+        provingPreview,
+      );
+      const previewComparison = compareVantaPrivateCoreSourceAndProvingArtifacts({
+        sourceArtifacts: sourceShieldArtifacts,
+        provingArtifacts: provingPreviewArtifacts,
+        sourceConsumeContextTag: provingPreview.publicInputs.consumeContextTag ?? null,
+      });
+      const sourceProofPreviewVerification =
+        summarizeVantaPrivateCoreUnshieldProofEnvelopeVerification(sourceProofPreviewEnvelope);
+      const sourceProofPreviewSummary =
+        summarizeVantaPrivateCoreUnshieldProofEnvelope(sourceProofPreviewEnvelope);
+      const sourceProofPreviewConsistency =
+        summarizeVantaPrivateCoreUnshieldProofEnvelopeConsistency({
+          envelope: sourceProofPreviewEnvelope,
+          sourceArtifacts: {
+            ...sourceHoldArtifacts,
+            nullifier: sourceProofPreviewEnvelope.publicInputs.nullifier,
+          },
+          expectedNullifier: sourceProofPreviewEnvelope.publicInputs.nullifier,
+        });
+      const previewHandoffSummary = summarizeVantaPrivateCoreSourceVsProvingHandoff({
+        sourceProofVerified: sourceProofPreviewVerification.verified,
+        sourceProofConsistencyLabel: sourceProofPreviewConsistency.overallStatusLabel,
+        proofBoundary: provingPreview,
+        comparison: previewComparison,
+      });
+      const previewStatus = summarizeVantaPrivateCoreProofBoundaryStatus(provingPreview);
+      const previewCompatibility = summarizeVantaPrivateCoreProofBoundaryCompatibility(
+        provingPreview,
+      );
+      const previewConfiguration =
+        summarizeVantaPrivateCoreProofBoundaryConfiguration(provingPreview);
+      const previewPublicInputs = summarizeVantaPrivateCoreProofBoundaryPublicInputs(
+        provingPreview,
+      );
+      const previewWitness = summarizeVantaPrivateCoreProofBoundaryWitness(provingPreview);
+
+      const shieldState: VantaPrivateCoreShieldState = {
+        artifact: args.shieldArtifact,
+        encryptedPayload: args.shieldArtifact.encryptedPayload,
+        sourceNoteCommitment:
+          sourceShieldArtifacts.noteCommitment ?? args.shieldArtifact.commitment.value,
+        sourcePayloadCommitment:
+          sourceShieldArtifacts.payloadCommitment ??
+          args.shieldArtifact.encryptedPayload.payloadCommitment,
+        sourceMerkleRoot: sourceShieldArtifacts.merkleRoot ?? args.shieldArtifact.root,
+        assetId: args.shieldArtifact.note.assetId,
+        amount: args.shieldArtifact.note.amount.toString(10),
+        noteType: args.shieldArtifact.note.noteType,
+        noteVersion: args.shieldArtifact.note.version,
+      };
+
+      const holdState: VantaPrivateCoreHoldState = {
+        heldNote: args.hold,
+        privateNoteRecovered: true,
+        witnessAvailable: true,
+        proofObservationMode: "Preview before consume",
+        replayPreviewStatus: "Ready after first consume",
+        sourceWitnessRoot: sourceHoldArtifacts.witnessRoot ?? args.hold.witness.root,
+        sourceProofPreviewStatement: sourceProofPreviewSummary.statement,
+        sourceProofPreviewVerifier: sourceProofPreviewSummary.proof,
+        sourceProofPreviewCommitment: sourceProofPreviewSummary.commitment,
+        sourceProofPreviewRoot: sourceProofPreviewSummary.root,
+        sourceProofPreviewAssetId: sourceProofPreviewSummary.assetId,
+        sourceProofPreviewAmount: sourceProofPreviewSummary.amount,
+        sourceProofPreviewLeafIndex: sourceProofPreviewSummary.leafIndex,
+        sourceProofPreviewNullifier: sourceProofPreviewEnvelope.publicInputs.nullifier,
+        sourceProofPreviewStatusLabel: sourceProofPreviewVerification.statusLabel,
+        sourceProofPreviewConsistencyLabel: sourceProofPreviewConsistency.overallStatusLabel,
+        sourceProofPreviewCommitmentStatus: sourceProofPreviewConsistency.commitmentStatus,
+        sourceProofPreviewRootStatus: sourceProofPreviewConsistency.rootStatus,
+        sourceProofPreviewNullifierStatus: sourceProofPreviewConsistency.nullifierStatus,
+        previewSourceLayerStatus: previewHandoffSummary.sourceLayerStatus,
+        previewProvingBoundaryStatus: previewHandoffSummary.provingBoundaryStatus,
+        previewHandoffStatus: previewHandoffSummary.handoffStatus,
+        previewPrimaryHandoffNote: previewHandoffSummary.primaryHandoffNote,
+        provingPreviewHashLane: provingPreviewArtifacts.provingHashLane,
+        provingPreviewNoteCommitment: provingPreviewArtifacts.provingNoteCommitment,
+        provingPreviewMerkleLeaf: provingPreviewArtifacts.provingMerkleLeaf,
+        provingPreviewStateRoot: provingPreviewArtifacts.provingStateRoot,
+        provingPreviewNullifier: provingPreviewArtifacts.provingNullifier,
+        provingPreviewConsumeContextTag: provingPreviewArtifacts.provingConsumeContextTag,
+        noteCommitmentComparisonStatus: previewComparison.noteCommitment.statusLabel,
+        merkleLeafComparisonStatus: previewComparison.merkleLeaf.statusLabel,
+        stateRootComparisonStatus: previewComparison.stateRoot.statusLabel,
+        nullifierComparisonStatus: previewComparison.nullifier.statusLabel,
+        consumeContextComparisonStatus: previewComparison.consumeContext.statusLabel,
+        circuitReadinessLabel: previewStatus.readinessLabel,
+        proofBlockerCount: previewStatus.blockerCount,
+        primaryProofBlocker: previewStatus.primaryBlocker,
+        compatibilityNoteCount: previewCompatibility.noteCount,
+        primaryCompatibilityNote: previewCompatibility.primaryNote,
+        proofBoundaryKind: provingPreview.kind,
+        proofBoundaryVersion: provingPreview.version,
+        proofCircuit: previewConfiguration.circuit,
+        proofBackend: previewConfiguration.backend,
+        proofMerkleDepth: previewConfiguration.merkleDepth,
+        ownerAuthorizationMode: previewConfiguration.ownerAuthorizationMode,
+        nullifierKeyMode: previewConfiguration.nullifierKeyMode,
+        proofReleaseDestination: previewPublicInputs.releaseDestination,
+        proofAssetId: previewPublicInputs.assetId,
+        proofAmount: previewPublicInputs.amount,
+        proofNoteVersion: previewPublicInputs.noteVersion,
+        proofNoteType: previewWitness.noteType,
+        proofLeafIndex: previewWitness.leafIndex,
+        proofPathDepth: previewWitness.pathDepth,
+        noteSummary: `${formatBaseUnits(args.shieldArtifact.note.amount, VANTA_PRIVATE_CORE_VUSD_DECIMALS)} VUSD private note`,
+      };
+
+      return { holdState, shieldState };
+    },
+    [privateCoreOwner.secretKey],
+  );
+
   const runPrivateCoreShield = useCallback((args: { amountDisplay: string; asset: PrivacyAssetKey }): VantaPrivateCoreShieldState => {
     if (args.asset !== "VUSD") {
       throw new Error("Vanta Private Core v0.1 currently supports the VUSD demo lane only.");
@@ -484,121 +622,59 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       encryptedPayload: shield.encryptedPayload,
       ownerSecretKey: privateCoreOwner.secretKey,
     });
-    const provingPreview = buildVantaPrivateCoreUnshieldProofBoundary({
-      heldNote: hold,
-      ownerSecretKey: privateCoreOwner.secretKey,
-      releaseDestination: VANTA_PRIVATE_CORE_DEMO_RELEASE_DESTINATION,
-    });
-    const sourceProofPreviewEnvelope = buildVantaPrivateCoreUnshieldProofEnvelope(
-      hold.note,
-      hold.witness,
-    );
-    const sourceShieldArtifacts = deriveVantaPrivateCoreSourceArtifactsFromShieldArtifact(shield);
-    const sourceHoldArtifacts = deriveVantaPrivateCoreSourceArtifactsFromHeldNote(hold);
-    const provingPreviewArtifacts = deriveVantaPrivateCoreProvingArtifactsFromBoundary(provingPreview);
-    const previewComparison = compareVantaPrivateCoreSourceAndProvingArtifacts({
-      sourceArtifacts: sourceShieldArtifacts,
-      provingArtifacts: provingPreviewArtifacts,
-      sourceConsumeContextTag: provingPreview.publicInputs.consumeContextTag ?? null,
-    });
-    const sourceProofPreviewVerification =
-      summarizeVantaPrivateCoreUnshieldProofEnvelopeVerification(sourceProofPreviewEnvelope);
-    const sourceProofPreviewSummary =
-      summarizeVantaPrivateCoreUnshieldProofEnvelope(sourceProofPreviewEnvelope);
-    const sourceProofPreviewConsistency =
-      summarizeVantaPrivateCoreUnshieldProofEnvelopeConsistency({
-        envelope: sourceProofPreviewEnvelope,
-        sourceArtifacts: {
-          ...sourceHoldArtifacts,
-          nullifier: sourceProofPreviewEnvelope.publicInputs.nullifier,
-        },
-        expectedNullifier: sourceProofPreviewEnvelope.publicInputs.nullifier,
+    const { holdState: nextHoldState, shieldState: nextShieldState } =
+      buildPrivateCorePresentedState({
+        hold,
+        shieldArtifact: shield,
       });
-    const previewHandoffSummary = summarizeVantaPrivateCoreSourceVsProvingHandoff({
-      sourceProofVerified: sourceProofPreviewVerification.verified,
-      sourceProofConsistencyLabel: sourceProofPreviewConsistency.overallStatusLabel,
-      proofBoundary: provingPreview,
-      comparison: previewComparison,
-    });
-    const previewStatus = summarizeVantaPrivateCoreProofBoundaryStatus(provingPreview);
-    const previewCompatibility = summarizeVantaPrivateCoreProofBoundaryCompatibility(provingPreview);
-    const previewConfiguration = summarizeVantaPrivateCoreProofBoundaryConfiguration(provingPreview);
-    const previewPublicInputs = summarizeVantaPrivateCoreProofBoundaryPublicInputs(provingPreview);
-    const previewWitness = summarizeVantaPrivateCoreProofBoundaryWitness(provingPreview);
-    const nextShieldState: VantaPrivateCoreShieldState = {
-      artifact: shield,
-      encryptedPayload: shield.encryptedPayload,
-      sourceNoteCommitment: sourceShieldArtifacts.noteCommitment ?? shield.commitment.value,
-      sourcePayloadCommitment:
-        sourceShieldArtifacts.payloadCommitment ?? shield.encryptedPayload.payloadCommitment,
-      sourceMerkleRoot: sourceShieldArtifacts.merkleRoot ?? shield.root,
-      assetId: shield.note.assetId,
-      amount: shield.note.amount.toString(10),
-      noteType: shield.note.noteType,
-      noteVersion: shield.note.version,
-    };
 
     setPrivateCoreRecentShield(nextShieldState);
-    setPrivateCoreHoldState({
-      heldNote: hold,
-      privateNoteRecovered: true,
-      witnessAvailable: true,
-      proofObservationMode: "Preview before consume",
-      replayPreviewStatus: "Ready after first consume",
-      sourceWitnessRoot: sourceHoldArtifacts.witnessRoot ?? hold.witness.root,
-      sourceProofPreviewStatement: sourceProofPreviewSummary.statement,
-      sourceProofPreviewVerifier: sourceProofPreviewSummary.proof,
-      sourceProofPreviewCommitment: sourceProofPreviewSummary.commitment,
-      sourceProofPreviewRoot: sourceProofPreviewSummary.root,
-      sourceProofPreviewAssetId: sourceProofPreviewSummary.assetId,
-      sourceProofPreviewAmount: sourceProofPreviewSummary.amount,
-      sourceProofPreviewLeafIndex: sourceProofPreviewSummary.leafIndex,
-      sourceProofPreviewNullifier: sourceProofPreviewEnvelope.publicInputs.nullifier,
-      sourceProofPreviewStatusLabel: sourceProofPreviewVerification.statusLabel,
-      sourceProofPreviewConsistencyLabel: sourceProofPreviewConsistency.overallStatusLabel,
-      sourceProofPreviewCommitmentStatus: sourceProofPreviewConsistency.commitmentStatus,
-      sourceProofPreviewRootStatus: sourceProofPreviewConsistency.rootStatus,
-      sourceProofPreviewNullifierStatus: sourceProofPreviewConsistency.nullifierStatus,
-      previewSourceLayerStatus: previewHandoffSummary.sourceLayerStatus,
-      previewProvingBoundaryStatus: previewHandoffSummary.provingBoundaryStatus,
-      previewHandoffStatus: previewHandoffSummary.handoffStatus,
-      previewPrimaryHandoffNote: previewHandoffSummary.primaryHandoffNote,
-      provingPreviewHashLane: provingPreviewArtifacts.provingHashLane,
-      provingPreviewNoteCommitment: provingPreviewArtifacts.provingNoteCommitment,
-      provingPreviewMerkleLeaf: provingPreviewArtifacts.provingMerkleLeaf,
-      provingPreviewStateRoot: provingPreviewArtifacts.provingStateRoot,
-      provingPreviewNullifier: provingPreviewArtifacts.provingNullifier,
-      provingPreviewConsumeContextTag: provingPreviewArtifacts.provingConsumeContextTag,
-      noteCommitmentComparisonStatus: previewComparison.noteCommitment.statusLabel,
-      merkleLeafComparisonStatus: previewComparison.merkleLeaf.statusLabel,
-      stateRootComparisonStatus: previewComparison.stateRoot.statusLabel,
-      nullifierComparisonStatus: previewComparison.nullifier.statusLabel,
-      consumeContextComparisonStatus: previewComparison.consumeContext.statusLabel,
-      circuitReadinessLabel: previewStatus.readinessLabel,
-      proofBlockerCount: previewStatus.blockerCount,
-      primaryProofBlocker: previewStatus.primaryBlocker,
-      compatibilityNoteCount: previewCompatibility.noteCount,
-      primaryCompatibilityNote: previewCompatibility.primaryNote,
-      proofBoundaryKind: provingPreview.kind,
-      proofBoundaryVersion: provingPreview.version,
-      proofCircuit: previewConfiguration.circuit,
-      proofBackend: previewConfiguration.backend,
-      proofMerkleDepth: previewConfiguration.merkleDepth,
-      ownerAuthorizationMode: previewConfiguration.ownerAuthorizationMode,
-      nullifierKeyMode: previewConfiguration.nullifierKeyMode,
-      proofReleaseDestination: previewPublicInputs.releaseDestination,
-      proofAssetId: previewPublicInputs.assetId,
-      proofAmount: previewPublicInputs.amount,
-      proofNoteVersion: previewPublicInputs.noteVersion,
-      proofNoteType: previewWitness.noteType,
-      proofLeafIndex: previewWitness.leafIndex,
-      proofPathDepth: previewWitness.pathDepth,
-      noteSummary: `${formatBaseUnits(shield.note.amount, VANTA_PRIVATE_CORE_VUSD_DECIMALS)} VUSD private note`,
-    });
+    setPrivateCoreHoldState(nextHoldState);
     setPrivateCoreUnshieldState(null);
 
     return nextShieldState;
-  }, [privateCoreLedger, privateCoreOwner]);
+  }, [buildPrivateCorePresentedState, privateCoreLedger, privateCoreOwner]);
+
+  const runPrivateCoreSendTransition = useCallback(
+    (transition: SendTransitionV0) => {
+      const result = privateCoreLedger.send(transition);
+      const nextShieldState =
+        result.change !== null
+          ? ({
+              note: result.change.note,
+              commitment: result.change.commitment,
+              encryptedPayload: result.change.encryptedPayload,
+              insertionIndex: result.change.insertionIndex,
+              root: result.resultingRoot,
+            } satisfies ShieldArtifactV0)
+          : null;
+      const nextHold =
+        result.change !== null
+          ? privateCoreLedger.hold({
+              encryptedPayload: result.change.encryptedPayload,
+              ownerSecretKey: privateCoreOwner.secretKey,
+            })
+          : null;
+      const nextPresentedState =
+        nextShieldState && nextHold
+          ? buildPrivateCorePresentedState({
+              hold: nextHold,
+              shieldArtifact: nextShieldState,
+            })
+          : null;
+
+      setPrivateCoreRecentShield(nextPresentedState?.shieldState ?? null);
+      setPrivateCoreHoldState(nextPresentedState?.holdState ?? null);
+      setPrivateCoreUnshieldState(null);
+
+      return {
+        result,
+        nextShieldState: nextPresentedState?.shieldState ?? null,
+        nextHoldState: nextPresentedState?.holdState ?? null,
+      };
+    },
+    [buildPrivateCorePresentedState, privateCoreLedger, privateCoreOwner.secretKey],
+  );
 
   const runPrivateCoreUnshield = useCallback(async (): Promise<VantaPrivateCoreUnshieldState> => {
     if (!privateCoreHoldState) {
@@ -1179,6 +1255,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSummaryUpdatedAt,
       privateCoreUnshieldState,
       recentShield,
+      refreshPrivateCoreOperatorSummary,
+      runPrivateCoreSendTransition,
       runPrivateCoreReplayAttempt,
       runPrivateCoreShield,
       runPrivateCoreUnshield,
@@ -1223,6 +1301,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreRecentShield,
       privateCoreUnshieldState,
       recentShield,
+      refreshPrivateCoreOperatorSummary,
+      runPrivateCoreSendTransition,
       runPrivateCoreReplayAttempt,
       runPrivateCoreShield,
       runPrivateCoreUnshield,

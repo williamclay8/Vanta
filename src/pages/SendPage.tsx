@@ -23,11 +23,11 @@ import {
   deriveVantaPrivateCoreSourceArtifactsFromHeldNote,
   summarizeVantaPrivateCoreSendProofEnvelopeConsistency,
   summarizeVantaPrivateCoreSendProofEnvelopeVerification,
+  type SendTransitionV0,
   type Bytes32Hex,
 } from "@/zk/vantaPrivateCore";
 import { buildVantaPrivateCoreSendProofBoundary } from "@/zk/vantaPrivateCoreSendProof";
 import {
-  fetchVantaPrivateCoreOperatorSends,
   requestVantaPrivateCoreOperatorSendTransition,
 } from "@/zk/vantaPrivateCoreOperatorClient";
 
@@ -68,6 +68,7 @@ type PrivateCoreSendPreview = {
   sendAmountBaseUnits: string;
   sourceConsistencyLabel: string;
   sourceVerificationLabel: string;
+  transition: SendTransitionV0;
 };
 
 type PrivateCoreSendExecutionState = {
@@ -125,8 +126,33 @@ function abbreviate(value: string | null | undefined) {
   return `${value.slice(0, 4)}...${value.slice(-4)}`;
 }
 
+function formatOperatorSummaryFreshness(value: number | null) {
+  if (!value) {
+    return "Unavailable";
+  }
+
+  return new Date(value).toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
 export function SendPage({ dashboard = false }: SendPageProps) {
-  const { privateCoreHoldState, privateCoreOwner, recentShield } = usePrivacyFlow();
+  const {
+    privateCoreHoldState,
+    privateCoreOperatorBoundaryPrimaryNote,
+    privateCoreOperatorBoundaryStatusLabel,
+    privateCoreOperatorLatestSend,
+    privateCoreOperatorLatestSendLinkedProof,
+    privateCoreOperatorLatestSendProof,
+    privateCoreOperatorProofSendLinkStatus,
+    privateCoreOperatorSummaryUpdatedAt,
+    privateCoreOwner,
+    recentShield,
+    refreshPrivateCoreOperatorSummary,
+    runPrivateCoreSendTransition,
+  } = usePrivacyFlow();
   const {
     account: shieldAccount,
     error: shieldStateError,
@@ -269,6 +295,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         sendAmountBaseUnits: sendAmountBaseUnits.toString(10),
         sourceConsistencyLabel: sourceConsistency.overallStatusLabel,
         sourceVerificationLabel: sourceVerification.statusLabel,
+        transition,
       };
     } catch {
       return null;
@@ -569,13 +596,14 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       const sendReceipt = await requestVantaPrivateCoreOperatorSendTransition({
         witnessPackage: privateCoreSendPreview.boundary.noirWitnessPackage,
       });
-      const sendState = await fetchVantaPrivateCoreOperatorSends();
+      runPrivateCoreSendTransition(privateCoreSendPreview.transition);
+      const summaryState = await refreshPrivateCoreOperatorSummary();
 
       setPrivateCoreSendExecution({
         errorMessage: null,
         latestProofAction: "send-transition",
         latestProofId: sendReceipt.proofId,
-        latestSendId: sendState.latestSend?.sendId ?? sendReceipt.sendId,
+        latestSendId: summaryState.latestSend?.sendId ?? sendReceipt.sendId,
         proofFieldCount: sendReceipt.proofFieldCount,
         proofPublicInputCount: sendReceipt.publicInputCount,
         status: "verified",
@@ -1217,6 +1245,24 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                       : "Not run yet"}
               </strong>
             </div>
+            <div className="review-row">
+              <span>Latest operator send</span>
+              <strong>{abbreviate(privateCoreOperatorLatestSend?.sendId) ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Linked send proof</span>
+              <strong>
+                {abbreviate(privateCoreOperatorLatestSendLinkedProof?.proofId) ?? "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Proof/send link</span>
+              <strong>{privateCoreOperatorProofSendLinkStatus ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Operator boundary</span>
+              <strong>{privateCoreOperatorBoundaryStatusLabel ?? "Unavailable"}</strong>
+            </div>
           </div>
 
           <p className="shield-review-note">
@@ -1296,6 +1342,15 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   privateCoreSendExecution.latestSendId ??
                   "Unavailable"}
               </p>
+              <p className="shield-helper shield-helper--meta">
+                Linked send proof:{" "}
+                {abbreviate(privateCoreOperatorLatestSendLinkedProof?.proofId) ??
+                  privateCoreOperatorLatestSendLinkedProof?.proofId ??
+                  "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Proof/send link: {privateCoreOperatorProofSendLinkStatus ?? "Unavailable"}
+              </p>
             </div>
           )}
 
@@ -1330,6 +1385,19 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   Send context tag:{" "}
                   {abbreviate(privateCoreSendPreview.boundary.publicInputs.sendContextTag) ??
                     privateCoreSendPreview.boundary.publicInputs.sendContextTag}
+                </p>
+                <p>
+                  Latest operator send proof:{" "}
+                  {abbreviate(privateCoreOperatorLatestSendProof?.proofId) ?? "Unavailable"}
+                </p>
+                <p>
+                  Latest linked send proof:{" "}
+                  {abbreviate(privateCoreOperatorLatestSendLinkedProof?.proofId) ?? "Unavailable"}
+                </p>
+                <p>Operator boundary status: {privateCoreOperatorBoundaryStatusLabel ?? "Unavailable"}</p>
+                <p>Operator boundary note: {privateCoreOperatorBoundaryPrimaryNote ?? "Unavailable"}</p>
+                <p>
+                  Operator summary refresh: {formatOperatorSummaryFreshness(privateCoreOperatorSummaryUpdatedAt)}
                 </p>
                 {privateCoreSendPreview.boundary.blockers.length > 0 && (
                   <p>
