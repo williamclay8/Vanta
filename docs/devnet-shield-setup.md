@@ -90,6 +90,60 @@ operator/.vanta-unshield-releases.json
 
 Delete that file only if you intentionally want to reset the local operator's remembered release history.
 
+The same local operator now also serves the narrow Vanta Private Core verifier lane used by the fixed-depth single-note unshield proof boundary. That means the current operator process is responsible for:
+- authenticated devnet unshield for the live `VUSD` / `SOL` path
+- private-core proof verification
+- private-core root registration
+- private-core consume / replay enforcement
+- private-core proof, consume, release, and root summary state
+
+## Recommended local operator preflight
+
+Before a live demo or local verification pass, use:
+
+```bash
+npm run private-core:demo-preflight
+```
+
+That runs the current full private-core verification stack and then prints the live operator summary snapshot.
+
+If you want the commands separately:
+
+```bash
+npm run private-core:verify
+npm run private-core:operator-status
+```
+
+The operator-status command now prints:
+- current root
+- latest proof
+- latest consume
+- latest release
+- proof/consume link status
+- proof/release link status
+- operator boundary status
+- operator boundary note
+- operator summary generation time
+
+## What the private-core verification stack proves today
+
+```bash
+npm run private-core:check
+npm run private-core:prove
+npm run private-core:http-smoke
+npm run private-core:restart-check
+npm run private-core:verify
+```
+
+These commands currently prove:
+- the fixed-depth Noir circuit still accepts the valid witness
+- the malformed Merkle-path witness still fails
+- a real local proof can still be generated and verified
+- the operator HTTP surface is still coherent
+- operator proof, consume, release, and root state survive restart
+- replay is still rejected after restart
+- the operator summary snapshot remains coherent across app, CLI, and regression surfaces
+
 ## What is real in this milestone
 
 - wallet connection
@@ -97,9 +151,11 @@ Delete that file only if you intentionally want to reset the local operator's re
 - wallet-signed SPL token transfer into the configured Vanta vault owner
 - confirmed shield receipt reflected in app state
 - constrained real Unshield back to Public Wallet through a local operator-backed devnet path
+- operator-backed Vanta Private Core proof / consume / replay-rejection lane with summary-driven verifier state
 
 ## What remains intentionally narrow
 
 - shielded state is represented in-app from confirmed devnet deposit receipts
 - this is the first real Shield milestone, not the final Vanta protocol architecture
 - Private Send remains the next real protocol milestone
+- the current Vanta Private Core lane is still the first narrow single-note unshield boundary, not the full final zk protocol
