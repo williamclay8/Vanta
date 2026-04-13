@@ -178,6 +178,8 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   proves one operator-backed private-send roundtrip from verified send transition through sender residual-change recovery, recipient note recovery, recipient spendability, and sender privacy failure
 - `npm run private-core:send-chain-check`
   proves a received private note can become the input to a second private send, with coherent chained nullifier use, output recovery, and privacy preservation
+- `npm run private-core:send-chain-http-smoke`
+  proves the operator can verify two private send transitions in sequence on evolving private state and keep the latest send summary linked coherently
 - the `Send` page now includes an app-path `Verify private send proof` action that exercises the same operator-backed send witness lane from the product UI
 - `npm run private-core:verify`
   runs the full stack:
@@ -186,6 +188,7 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   - send circuit regression
   - chained private-send regression
   - operator-backed private-send roundtrip regression
+  - operator-backed chained private-send regression
   - operator consume regression
   - operator HTTP smoke test
   - operator send-proof HTTP smoke test
