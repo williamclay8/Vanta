@@ -182,6 +182,8 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   proves two operator-backed private send transitions can hand off into final-recipient root registration, operator-backed recipient unshield, linked release state, and replay rejection
 - `npm run private-core:send-unshield-restart-check`
   proves that same operator-backed send-to-recipient-unshield roundtrip survives operator restart with coherent persisted summary state and replay rejection
+- `npm run private-core:send-chain-unshield-restart-check`
+  proves that chained operator-backed send-to-recipient-unshield roundtrip also survives operator restart with coherent persisted summary state and replay rejection
 - `npm run private-core:send-chain-check`
   proves a received private note can become the input to a second private send, with coherent chained nullifier use, output recovery, and privacy preservation
 - `npm run private-core:send-chain-http-smoke`
@@ -199,6 +201,7 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   - operator-backed chained private-send regression
   - operator-backed chained private-send restart regression
   - operator-backed private-send to recipient-unshield restart regression
+  - operator-backed chained private-send to recipient-unshield restart regression
   - operator consume regression
   - operator HTTP smoke test
   - operator send-proof HTTP smoke test

@@ -169,6 +169,7 @@ npm run private-core:send-chain-http-smoke
 npm run private-core:restart-check
 npm run private-core:send-chain-restart-check
 npm run private-core:send-unshield-restart-check
+npm run private-core:send-chain-unshield-restart-check
 npm run private-core:prove
 npm run private-core:send-prove
 npm run private-core:send-http-smoke
@@ -191,6 +192,7 @@ These commands cover:
 - operator-backed chained private-send continuity across two verified send transitions
 - operator-backed chained private-send persistence across operator restart
 - operator-backed private send to recipient unshield persistence across operator restart
+- operator-backed chained private send to recipient unshield persistence across operator restart
 - valid and invalid witness behavior
 - local unshield proof generation and verification
 - local send proof generation and verification

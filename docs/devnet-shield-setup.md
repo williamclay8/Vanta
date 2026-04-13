@@ -150,6 +150,7 @@ These commands currently prove:
 - two operator-backed private send transitions can now verify in sequence on evolving private state
 - two operator-backed private send transitions now persist coherently across operator restart
 - one operator-backed private send to recipient unshield now persists coherently across operator restart
+- two operator-backed private send transitions to recipient unshield now persist coherently across operator restart
 - a real local proof can still be generated and verified
 - the operator HTTP surface is still coherent
 - operator proof, consume, release, and root state survive restart
