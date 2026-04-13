@@ -172,6 +172,8 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   generates and verifies a real local proof for the current single-note unshield lane
 - `npm run private-core:send-prove`
   generates and verifies a real local proof for the current single-note private-send lane
+- `npm run private-core:send-http-smoke`
+  proves the operator can accept and verify the current send witness package over HTTP without mutating the current unshield-root/consume/release summary state
 - `npm run private-core:verify`
   runs the full stack:
   - app build
@@ -179,6 +181,7 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   - send circuit regression
   - operator consume regression
   - operator HTTP smoke test
+  - operator send-proof HTTP smoke test
   - operator restart persistence check
   - replay rejection after restart
   - real unshield proof generation and verification

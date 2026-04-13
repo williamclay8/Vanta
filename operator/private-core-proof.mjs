@@ -8,6 +8,7 @@ import { sha256 } from "@noble/hashes/sha2.js";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "..");
 const canonicalCircuitDir = resolve(repoRoot, "zk/noir/vanta_private_core_single_note_unshield");
+const canonicalSendCircuitDir = resolve(repoRoot, "zk/noir/vanta_private_core_single_note_send");
 
 const nargoEnv = {
   ...process.env,
@@ -77,6 +78,71 @@ export async function proveAndVerifyVantaPrivateCoreUnshield(args) {
   }
 }
 
+export async function proveAndVerifyVantaPrivateCoreSend(args) {
+  const witnessPackage = normalizeVantaPrivateCoreSendWitnessPackage(args.witnessPackage);
+  mkdirSync(resolve(repoRoot, ".tmp"), { recursive: true });
+  const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-private-core-operator-send-proof-"));
+  const tempCircuitDir = join(tempRoot, "circuit");
+
+  try {
+    mkdirSync(tempCircuitDir, { recursive: true });
+    cpSync(join(canonicalSendCircuitDir, "Nargo.toml"), join(tempCircuitDir, "Nargo.toml"));
+    cpSync(join(canonicalSendCircuitDir, "src"), join(tempCircuitDir, "src"), {
+      recursive: true,
+    });
+    writeFileSync(
+      join(tempCircuitDir, "Prover.toml"),
+      `${serializeSendWitnessPackageToToml(witnessPackage)}\n`,
+    );
+
+    runNargo(["compile"], tempCircuitDir);
+    runNargo(["execute"], tempCircuitDir);
+
+    const compiledProgram = JSON.parse(
+      readFileSync(
+        join(tempCircuitDir, "target", "vanta_private_core_single_note_send.json"),
+        "utf8",
+      ),
+    );
+    const compressedWitness = readFileSync(
+      join(tempCircuitDir, "target", "vanta_private_core_single_note_send.gz"),
+    );
+
+    const api = await Barretenberg.new({ threads: 1 });
+    try {
+      const backend = new UltraHonkBackend(compiledProgram.bytecode, api);
+      const proofData = await backend.generateProof(compressedWitness);
+      const verified = await backend.verifyProof(proofData);
+
+      if (!verified) {
+        throw new Error("Operator-side send proof verification returned false.");
+      }
+
+      assertSendProofPublicInputsMatchWitnessPackage({
+        expectedPublicInputs: extractExpectedSendProofPublicInputs(witnessPackage),
+        proofPublicInputs: proofData.publicInputs,
+      });
+
+      return {
+        backend: "barretenberg-ultrahonk",
+        circuit: witnessPackage.circuit,
+        proofVersion: witnessPackage.proofVersion,
+        provingHashLane: witnessPackage.provingHashLane,
+        proofByteLength: proofData.proof.length,
+        proofFieldCount: Math.floor(proofData.proof.length / 32),
+        publicInputCount: proofData.publicInputs.length,
+        publicInputs: proofData.publicInputs,
+        verifiedPublicInputs: decodeVerifiedSendProofPublicInputs(proofData.publicInputs),
+        verified: true,
+      };
+    } finally {
+      await api.destroy();
+    }
+  } finally {
+    rmSync(tempRoot, { force: true, recursive: true });
+  }
+}
+
 function runNargo(args, cwd) {
   return execFileSync("nargo", args, {
     cwd,
@@ -102,6 +168,26 @@ export function normalizeVantaPrivateCoreWitnessPackage(input) {
   }
 
   assertWitnessPackagePublicInputConsistency(witnessPackage);
+
+  return witnessPackage;
+}
+
+export function normalizeVantaPrivateCoreSendWitnessPackage(input) {
+  if (!input || typeof input !== "object") {
+    throw new Error("Expected a private-core send witness package object.");
+  }
+
+  const witnessPackage = input;
+
+  if (witnessPackage.circuit !== "vanta_private_core_single_note_send") {
+    throw new Error("Unsupported private-core send proof circuit.");
+  }
+
+  if (!witnessPackage.publicInputs || !witnessPackage.privateWitness) {
+    throw new Error("Private-core send witness package is missing required sections.");
+  }
+
+  assertSendWitnessPackagePublicInputConsistency(witnessPackage);
 
   return witnessPackage;
 }
@@ -176,6 +262,66 @@ function serializeWitnessPackageToToml(witnessPackage) {
   ].join("\n");
 }
 
+function serializeSendWitnessPackageToToml(witnessPackage) {
+  const publicInputs = witnessPackage.publicInputs;
+  const privateWitness = witnessPackage.privateWitness;
+
+  return [
+    `state_root = "${publicInputs.state_root}"`,
+    `input_nullifier = "${publicInputs.input_nullifier}"`,
+    `recipient_commitment = "${publicInputs.recipient_commitment}"`,
+    `change_commitment = "${publicInputs.change_commitment}"`,
+    `asset_id_hi = "${publicInputs.asset_id_hi}"`,
+    `asset_id_lo = "${publicInputs.asset_id_lo}"`,
+    `send_amount_lo = "${publicInputs.send_amount_lo}"`,
+    `send_amount_hi = "${publicInputs.send_amount_hi}"`,
+    `change_amount_lo = "${publicInputs.change_amount_lo}"`,
+    `change_amount_hi = "${publicInputs.change_amount_hi}"`,
+    `note_version = "${publicInputs.note_version}"`,
+    `send_context_tag_hi = "${publicInputs.send_context_tag_hi ?? "0"}"`,
+    `send_context_tag_lo = "${publicInputs.send_context_tag_lo ?? "0"}"`,
+    `input_note_type_code = "${privateWitness.input_note_type_code}"`,
+    `sender_public_key_hi = "${privateWitness.sender_public_key_hi}"`,
+    `sender_public_key_lo = "${privateWitness.sender_public_key_lo}"`,
+    `sender_secret_key_hi = "${privateWitness.sender_secret_key_hi}"`,
+    `sender_secret_key_lo = "${privateWitness.sender_secret_key_lo}"`,
+    `input_note_nonce_hi = "${privateWitness.input_note_nonce_hi}"`,
+    `input_note_nonce_lo = "${privateWitness.input_note_nonce_lo}"`,
+    `input_note_secret_hi = "${privateWitness.input_note_secret_hi}"`,
+    `input_note_secret_lo = "${privateWitness.input_note_secret_lo}"`,
+    `input_blinding_hi = "${privateWitness.input_blinding_hi}"`,
+    `input_blinding_lo = "${privateWitness.input_blinding_lo}"`,
+    `input_derivation_tag_hi = "${privateWitness.input_derivation_tag_hi}"`,
+    `input_derivation_tag_lo = "${privateWitness.input_derivation_tag_lo}"`,
+    `input_leaf_index = "${privateWitness.input_leaf_index}"`,
+    `membership_path_hi = ${serializeTomlArray(privateWitness.membership_path_hi)}`,
+    `membership_path_lo = ${serializeTomlArray(privateWitness.membership_path_lo)}`,
+    `membership_path_direction_bits = ${serializeTomlArray(privateWitness.membership_path_direction_bits)}`,
+    `recipient_note_type_code = "${privateWitness.recipient_note_type_code}"`,
+    `recipient_owner_public_key_hi = "${privateWitness.recipient_owner_public_key_hi}"`,
+    `recipient_owner_public_key_lo = "${privateWitness.recipient_owner_public_key_lo}"`,
+    `recipient_note_nonce_hi = "${privateWitness.recipient_note_nonce_hi}"`,
+    `recipient_note_nonce_lo = "${privateWitness.recipient_note_nonce_lo}"`,
+    `recipient_note_secret_hi = "${privateWitness.recipient_note_secret_hi}"`,
+    `recipient_note_secret_lo = "${privateWitness.recipient_note_secret_lo}"`,
+    `recipient_blinding_hi = "${privateWitness.recipient_blinding_hi}"`,
+    `recipient_blinding_lo = "${privateWitness.recipient_blinding_lo}"`,
+    `recipient_derivation_tag_hi = "${privateWitness.recipient_derivation_tag_hi}"`,
+    `recipient_derivation_tag_lo = "${privateWitness.recipient_derivation_tag_lo}"`,
+    `change_note_type_code = "${privateWitness.change_note_type_code}"`,
+    `change_owner_public_key_hi = "${privateWitness.change_owner_public_key_hi}"`,
+    `change_owner_public_key_lo = "${privateWitness.change_owner_public_key_lo}"`,
+    `change_note_nonce_hi = "${privateWitness.change_note_nonce_hi}"`,
+    `change_note_nonce_lo = "${privateWitness.change_note_nonce_lo}"`,
+    `change_note_secret_hi = "${privateWitness.change_note_secret_hi}"`,
+    `change_note_secret_lo = "${privateWitness.change_note_secret_lo}"`,
+    `change_blinding_hi = "${privateWitness.change_blinding_hi}"`,
+    `change_blinding_lo = "${privateWitness.change_blinding_lo}"`,
+    `change_derivation_tag_hi = "${privateWitness.change_derivation_tag_hi}"`,
+    `change_derivation_tag_lo = "${privateWitness.change_derivation_tag_lo}"`,
+  ].join("\n");
+}
+
 function serializeTomlArray(values) {
   if (!Array.isArray(values)) {
     throw new Error("Expected a witness-package array field.");
@@ -218,6 +364,43 @@ function assertWitnessPackagePublicInputConsistency(witnessPackage) {
   }
 }
 
+function assertSendWitnessPackagePublicInputConsistency(witnessPackage) {
+  const sourcePublicInputs = witnessPackage.sourcePublicInputs;
+  const publicInputs = witnessPackage.publicInputs;
+
+  if (!sourcePublicInputs || typeof sourcePublicInputs !== "object") {
+    throw new Error("Private-core send witness package is missing source public inputs.");
+  }
+
+  const decodedAssetId = decodeBytes32FromTwoU128Be(
+    publicInputs.asset_id_hi,
+    publicInputs.asset_id_lo,
+  );
+  if (normalizeHex32(sourcePublicInputs.assetId) !== decodedAssetId) {
+    throw new Error("Private-core send witness package has mismatched asset public inputs.");
+  }
+
+  const decodedSendAmount = decodeU128FromTwoU64Le(
+    publicInputs.send_amount_lo,
+    publicInputs.send_amount_hi,
+  );
+  if (String(sourcePublicInputs.sendAmount) !== decodedSendAmount) {
+    throw new Error("Private-core send witness package has mismatched send-amount public inputs.");
+  }
+
+  const decodedChangeAmount = decodeU128FromTwoU64Le(
+    publicInputs.change_amount_lo,
+    publicInputs.change_amount_hi,
+  );
+  if (String(sourcePublicInputs.changeAmount) !== decodedChangeAmount) {
+    throw new Error("Private-core send witness package has mismatched change-amount public inputs.");
+  }
+
+  if (String(sourcePublicInputs.noteVersion) !== String(publicInputs.note_version)) {
+    throw new Error("Private-core send witness package has mismatched note-version public inputs.");
+  }
+}
+
 function extractExpectedProofPublicInputs(witnessPackage) {
   const publicInputs = witnessPackage.publicInputs;
 
@@ -236,6 +419,26 @@ function extractExpectedProofPublicInputs(witnessPackage) {
   ].map((value) => encodeFieldElement(String(value)));
 }
 
+function extractExpectedSendProofPublicInputs(witnessPackage) {
+  const publicInputs = witnessPackage.publicInputs;
+
+  return [
+    publicInputs.state_root,
+    publicInputs.input_nullifier,
+    publicInputs.recipient_commitment,
+    publicInputs.change_commitment,
+    publicInputs.asset_id_hi,
+    publicInputs.asset_id_lo,
+    publicInputs.send_amount_lo,
+    publicInputs.send_amount_hi,
+    publicInputs.change_amount_lo,
+    publicInputs.change_amount_hi,
+    publicInputs.note_version,
+    publicInputs.send_context_tag_hi ?? "0",
+    publicInputs.send_context_tag_lo ?? "0",
+  ].map((value) => encodeFieldElement(String(value)));
+}
+
 function assertProofPublicInputsMatchWitnessPackage(args) {
   if (!Array.isArray(args.proofPublicInputs)) {
     throw new Error("Operator-side proof output did not include a public input array.");
@@ -250,6 +453,24 @@ function assertProofPublicInputsMatchWitnessPackage(args) {
   for (let index = 0; index < args.expectedPublicInputs.length; index += 1) {
     if (normalizedProofPublicInputs[index] !== args.expectedPublicInputs[index]) {
       throw new Error("Operator-side proof output did not match the expected witness public inputs.");
+    }
+  }
+}
+
+function assertSendProofPublicInputsMatchWitnessPackage(args) {
+  if (!Array.isArray(args.proofPublicInputs)) {
+    throw new Error("Operator-side send proof output did not include a public input array.");
+  }
+
+  const normalizedProofPublicInputs = args.proofPublicInputs.map((value) => String(value));
+
+  if (normalizedProofPublicInputs.length !== args.expectedPublicInputs.length) {
+    throw new Error("Operator-side send proof output returned an unexpected public input count.");
+  }
+
+  for (let index = 0; index < args.expectedPublicInputs.length; index += 1) {
+    if (normalizedProofPublicInputs[index] !== args.expectedPublicInputs[index]) {
+      throw new Error("Operator-side send proof output did not match the expected witness public inputs.");
     }
   }
 }
@@ -272,6 +493,24 @@ function decodeVerifiedProofPublicInputs(publicInputs) {
     amount: decodeU128FromTwoU64Le(publicInputs[6], publicInputs[7]),
     noteVersion: Number(BigInt(publicInputs[8])),
     provingConsumeContextTag: normalizeHex32(publicInputs[10]),
+  };
+}
+
+function decodeVerifiedSendProofPublicInputs(publicInputs) {
+  if (!Array.isArray(publicInputs) || publicInputs.length !== 13) {
+    throw new Error("Operator-side send proof output returned an unexpected public input shape.");
+  }
+
+  return {
+    provingStateRoot: normalizeHex32(publicInputs[0]),
+    provingInputNullifier: normalizeHex32(publicInputs[1]),
+    provingRecipientCommitment: normalizeHex32(publicInputs[2]),
+    provingChangeCommitment: normalizeHex32(publicInputs[3]),
+    assetId: decodeBytes32FromTwoFieldHexBe(publicInputs[4], publicInputs[5]),
+    sendAmount: decodeU128FromTwoU64Le(publicInputs[6], publicInputs[7]),
+    changeAmount: decodeU128FromTwoU64Le(publicInputs[8], publicInputs[9]),
+    noteVersion: Number(BigInt(publicInputs[10])),
+    provingSendContextTag: normalizeHex32(publicInputs[12]),
   };
 }
 

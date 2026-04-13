@@ -53,6 +53,7 @@ import { createPrivateCoreRootStore } from "./private-core-root-store.mjs";
 import {
   assertVantaPrivateCoreSourceArtifactConsistency,
   normalizeVantaPrivateCoreWitnessPackage,
+  proveAndVerifyVantaPrivateCoreSend,
   proveAndVerifyVantaPrivateCoreUnshield,
 } from "./private-core-proof.mjs";
 import { createReleaseRecordStore } from "./release-record-store.mjs";
@@ -343,6 +344,28 @@ const server = createServer(async (request, response) => {
         error instanceof Error
           ? error.message
           : "The private-core proof operator could not process the witness package.",
+      );
+    }
+    return;
+  }
+
+  if (request.method === "POST" && request.url === "/private-core/send-proof") {
+    try {
+      const body = await readJsonBody(request);
+      const proofReceipt = await proveAndVerifyVantaPrivateCoreSend({
+        witnessPackage: body.witnessPackage,
+      });
+
+      writeCorsHeaders(response);
+      response.writeHead(200, { "Content-Type": "application/json" });
+      response.end(JSON.stringify(proofReceipt));
+    } catch (error) {
+      writeCorsHeaders(response);
+      response.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
+      response.end(
+        error instanceof Error
+          ? error.message
+          : "The private-core send proof operator could not process the witness package.",
       );
     }
     return;

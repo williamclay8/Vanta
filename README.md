@@ -161,6 +161,7 @@ npm run private-core:send-check
 npm run private-core:restart-check
 npm run private-core:prove
 npm run private-core:send-prove
+npm run private-core:send-http-smoke
 npm run private-core:verify
 npm run private-core:demo-readiness
 npm run private-core:demo-preflight
@@ -173,6 +174,7 @@ These commands cover:
 - valid and invalid witness behavior
 - local unshield proof generation and verification
 - local send proof generation and verification
+- operator-backed send proof HTTP smoke coverage
 - operator-backed consume and HTTP smoke coverage
 - operator state persistence across restart
 - replay rejection after operator restart

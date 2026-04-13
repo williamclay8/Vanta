@@ -1,5 +1,6 @@
 import { liveShieldAsset } from "@/solana/shieldConfig";
 import type { VantaPrivateCoreOperatorSourceArtifactBundleV0 } from "@/zk/vantaPrivateCore";
+import type { VantaPrivateCoreNoirSendWitnessPackageV0 } from "@/zk/vantaPrivateCoreSendProof";
 import type { VantaPrivateCoreNoirUnshieldWitnessPackageV0 } from "@/zk/vantaPrivateCoreUnshieldProof";
 
 export type VantaPrivateCoreProofOperatorResponse = {
@@ -198,6 +199,55 @@ export async function requestVantaPrivateCoreOperatorProof(args: {
   };
 }
 
+export async function requestVantaPrivateCoreOperatorSendProof(args: {
+  witnessPackage: VantaPrivateCoreNoirSendWitnessPackageV0;
+}): Promise<VantaPrivateCoreProofOperatorResponse> {
+  const response = await fetch(getPrivateCoreSendProofOperatorUrl(), {
+    body: JSON.stringify({
+      witnessPackage: args.witnessPackage,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+    signal: AbortSignal.timeout(30_000),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "The private-core send proof operator rejected the request.");
+  }
+
+  const parsed = (await response.json()) as Partial<VantaPrivateCoreProofOperatorResponse>;
+
+  if (!parsed.verified) {
+    throw new Error("The private-core send proof operator did not verify the proof successfully.");
+  }
+
+  if (
+    typeof parsed.proofFieldCount !== "number" ||
+    typeof parsed.publicInputCount !== "number" ||
+    typeof parsed.proofByteLength !== "number" ||
+    typeof parsed.provingHashLane !== "string"
+  ) {
+    throw new Error("The private-core send proof operator returned an invalid proof summary.");
+  }
+
+  return {
+    backend: parsed.backend ?? "barretenberg-ultrahonk",
+    circuit: parsed.circuit ?? "vanta_private_core_single_note_send",
+    proofVersion: parsed.proofVersion ?? 0,
+    provingHashLane: parsed.provingHashLane,
+    proofByteLength: parsed.proofByteLength,
+    proofFieldCount: parsed.proofFieldCount,
+    publicInputCount: parsed.publicInputCount,
+    publicInputs: Array.isArray(parsed.publicInputs)
+      ? parsed.publicInputs.filter((value): value is string => typeof value === "string")
+      : [],
+    verified: true,
+  };
+}
+
 export async function requestVantaPrivateCoreOperatorConsume(args: {
   sourceArtifacts: VantaPrivateCoreOperatorSourceArtifactBundleV0;
   witnessPackage: VantaPrivateCoreNoirUnshieldWitnessPackageV0;
@@ -299,6 +349,10 @@ export async function registerVantaPrivateCoreOperatorRoot(args: {
 
 function getPrivateCoreProofOperatorUrl() {
   return new URL("/private-core/unshield-proof", liveShieldAsset.unshieldOperatorUrl).toString();
+}
+
+function getPrivateCoreSendProofOperatorUrl() {
+  return new URL("/private-core/send-proof", liveShieldAsset.unshieldOperatorUrl).toString();
 }
 
 function getPrivateCoreConsumeOperatorUrl() {
