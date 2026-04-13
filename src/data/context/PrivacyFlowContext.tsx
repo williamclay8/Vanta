@@ -218,6 +218,8 @@ export type VantaPrivateCoreSendState = {
   changeCommitment: string | null;
   changeAmount: string;
   resultingRoot: string | null;
+  resultingRootStatusLabel: string;
+  resultingRootPrimaryNote: string;
   recipientRecoveryStatus: string;
   recipientUnshieldStatus: string;
   residualStateStatus: string;
@@ -401,6 +403,20 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     return summaryState;
   }, []);
 
+  const privateCoreOperatorSendResultingRootSummary = useMemo(
+    () =>
+      summarizePrivateCoreOperatorSendResultingRootStatus({
+        latestSend: privateCoreOperatorLatestSend,
+        rawNote: privateCoreOperatorRawSendResultingRootNote,
+        rawStatus: privateCoreOperatorRawSendResultingRootStatus,
+      }),
+    [
+      privateCoreOperatorLatestSend,
+      privateCoreOperatorRawSendResultingRootNote,
+      privateCoreOperatorRawSendResultingRootStatus,
+    ],
+  );
+
   const privateCoreSendState = useMemo(
     () =>
       mergePrivateCoreSendStateWithOperatorDownstream({
@@ -411,9 +427,13 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
             latestRelease: privateCoreOperatorLatestRelease,
             latestSend: privateCoreOperatorLatestSend,
             linkedProof: privateCoreOperatorLatestSendLinkedProof,
+            resultingRootPrimaryNote: privateCoreOperatorSendResultingRootSummary.primaryNote,
+            resultingRootStatusLabel: privateCoreOperatorSendResultingRootSummary.statusLabel,
           }),
         latestConsume: privateCoreOperatorLatestConsume,
         latestRelease: privateCoreOperatorLatestRelease,
+        resultingRootPrimaryNote: privateCoreOperatorSendResultingRootSummary.primaryNote,
+        resultingRootStatusLabel: privateCoreOperatorSendResultingRootSummary.statusLabel,
       }),
     [
       privateCoreLocalSendState,
@@ -421,6 +441,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorLatestRelease,
       privateCoreOperatorLatestSend,
       privateCoreOperatorLatestSendLinkedProof,
+      privateCoreOperatorSendResultingRootSummary.primaryNote,
+      privateCoreOperatorSendResultingRootSummary.statusLabel,
     ],
   );
 
@@ -727,6 +749,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         changeCommitment: result.change?.commitment.value ?? null,
         changeAmount: (result.change?.note.amount ?? 0n).toString(10),
         resultingRoot: result.resultingRoot,
+        resultingRootStatusLabel: "Send root pending operator summary",
+        resultingRootPrimaryNote:
+          "The send resulting root exists locally and is waiting for the next operator summary refresh.",
         recipientRecoveryStatus: "Recipient note created privately",
         recipientUnshieldStatus: "Recipient note ready for private hold or unshield",
         residualStateStatus:
@@ -1292,13 +1317,6 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         operatorRootError: privateCoreOperatorRootError,
         operatorSummaryUpdatedAt: privateCoreOperatorSummaryUpdatedAt,
       });
-      const privateCoreOperatorSendResultingRootSummary =
-        summarizePrivateCoreOperatorSendResultingRootStatus({
-          latestSend: privateCoreOperatorLatestSend,
-          rawNote: privateCoreOperatorRawSendResultingRootNote,
-          rawStatus: privateCoreOperatorRawSendResultingRootStatus,
-        });
-
       return {
       privateCoreOwner,
       privateCoreRecentShield,
@@ -1640,6 +1658,8 @@ function summarizePrivateCoreOperatorSendState(args: {
   latestRelease: VantaPrivateCoreOperatorReleaseRecord | null;
   latestSend: VantaPrivateCoreOperatorSendRecord | null;
   linkedProof: VantaPrivateCoreOperatorSendProofRecord | null;
+  resultingRootPrimaryNote: string | null;
+  resultingRootStatusLabel: string | null;
 }): VantaPrivateCoreSendState | null {
   if (!args.latestSend) {
     return null;
@@ -1658,6 +1678,9 @@ function summarizePrivateCoreOperatorSendState(args: {
     changeCommitment: args.latestSend.changeCommitment,
     changeAmount: args.latestSend.changeAmount,
     resultingRoot: args.latestSend.resultingRoot,
+    resultingRootStatusLabel: args.resultingRootStatusLabel ?? "Send root status unavailable",
+    resultingRootPrimaryNote:
+      args.resultingRootPrimaryNote ?? "Operator send resulting-root status unavailable.",
     recipientRecoveryStatus:
       args.linkedProof?.proofId === args.latestSend.proofId
         ? "Recipient note recorded in operator send state"
@@ -1678,18 +1701,28 @@ function mergePrivateCoreSendStateWithOperatorDownstream(args: {
   baseState: VantaPrivateCoreSendState | null;
   latestConsume: VantaPrivateCoreOperatorConsumeRecord | null;
   latestRelease: VantaPrivateCoreOperatorReleaseRecord | null;
+  resultingRootPrimaryNote: string | null;
+  resultingRootStatusLabel: string | null;
 }): VantaPrivateCoreSendState | null {
   if (!args.baseState) {
     return null;
   }
 
-  if (!args.baseState.resultingRoot) {
-    return args.baseState;
+  const withOperatorRootStatus = {
+    ...args.baseState,
+    resultingRootStatusLabel:
+      args.resultingRootStatusLabel ?? args.baseState.resultingRootStatusLabel,
+    resultingRootPrimaryNote:
+      args.resultingRootPrimaryNote ?? args.baseState.resultingRootPrimaryNote,
+  };
+
+  if (!withOperatorRootStatus.resultingRoot) {
+    return withOperatorRootStatus;
   }
 
-  const rootMatchesConsume = args.latestConsume?.root === args.baseState.resultingRoot;
-  const rootMatchesRelease = args.latestRelease?.root === args.baseState.resultingRoot;
-  const releaseMatchesAmount = args.latestRelease?.releasedAmount === args.baseState.recipientAmount;
+  const rootMatchesConsume = args.latestConsume?.root === withOperatorRootStatus.resultingRoot;
+  const rootMatchesRelease = args.latestRelease?.root === withOperatorRootStatus.resultingRoot;
+  const releaseMatchesAmount = args.latestRelease?.releasedAmount === withOperatorRootStatus.recipientAmount;
 
   if (
     rootMatchesConsume &&
@@ -1698,19 +1731,19 @@ function mergePrivateCoreSendStateWithOperatorDownstream(args: {
     args.latestConsume?.proofId === args.latestRelease?.proofId
   ) {
     return {
-      ...args.baseState,
+      ...withOperatorRootStatus,
       recipientUnshieldStatus: "Recipient note already unshielded through operator release",
     };
   }
 
   if (rootMatchesConsume) {
     return {
-      ...args.baseState,
+      ...withOperatorRootStatus,
       recipientUnshieldStatus: "Recipient note consumed; awaiting operator release summary",
     };
   }
 
-  return args.baseState;
+  return withOperatorRootStatus;
 }
 
 function applyPrivateCoreOperatorSummaryState(args: {

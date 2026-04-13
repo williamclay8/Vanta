@@ -1482,6 +1482,12 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 Recipient unshield: {privateCoreSendState.recipientUnshieldStatus}
               </p>
               <p className="shield-helper shield-helper--meta">
+                Send resulting root: {privateCoreSendState.resultingRootStatusLabel}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Send root note: {privateCoreSendState.resultingRootPrimaryNote}
+              </p>
+              <p className="shield-helper shield-helper--meta">
                 Residual state: {privateCoreSendState.residualStateStatus}
               </p>
             </div>

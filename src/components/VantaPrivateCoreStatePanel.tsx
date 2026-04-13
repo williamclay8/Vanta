@@ -293,7 +293,19 @@ export function VantaPrivateCoreStatePanel({
               </div>
               <div className="review-row">
                 <span>Resulting root status</span>
-                <strong>{operatorSendResultingRootStatusLabel ?? "Unavailable"}</strong>
+                <strong>
+                  {sendState.resultingRootStatusLabel ??
+                    operatorSendResultingRootStatusLabel ??
+                    "Unavailable"}
+                </strong>
+              </div>
+              <div className="review-row">
+                <span>Resulting root note</span>
+                <strong>
+                  {sendState.resultingRootPrimaryNote ??
+                    operatorSendResultingRootPrimaryNote ??
+                    "Unavailable"}
+                </strong>
               </div>
               <div className="review-row">
                 <span>Recipient unshield</span>
@@ -735,11 +747,19 @@ export function VantaPrivateCoreStatePanel({
             </div>
             <div className="review-row">
               <span>Send resulting root status</span>
-              <strong>{operatorSendResultingRootStatusLabel ?? "Unavailable"}</strong>
+              <strong>
+                {sendState?.resultingRootStatusLabel ??
+                  operatorSendResultingRootStatusLabel ??
+                  "Unavailable"}
+              </strong>
             </div>
             <div className="review-row">
               <span>Send resulting root note</span>
-              <strong>{operatorSendResultingRootPrimaryNote ?? "Unavailable"}</strong>
+              <strong>
+                {sendState?.resultingRootPrimaryNote ??
+                  operatorSendResultingRootPrimaryNote ??
+                  "Unavailable"}
+              </strong>
             </div>
             <div className="review-row">
               <span>Operator artifact bundle</span>
