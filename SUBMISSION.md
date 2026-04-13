@@ -164,12 +164,17 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   verifies the fixed-depth Noir circuit with:
   - one valid witness that succeeds
   - one invalid-direction witness that fails
+- `npm run private-core:send-check`
+  verifies the first fixed-depth private-send circuit with:
+  - one valid send witness that succeeds
+  - one invalid-direction witness that fails
 - `npm run private-core:prove`
   generates and verifies a real local proof for the current single-note unshield lane
 - `npm run private-core:verify`
   runs the full stack:
   - app build
-  - circuit regression
+  - unshield circuit regression
+  - send circuit regression
   - operator consume regression
   - operator HTTP smoke test
   - operator restart persistence check

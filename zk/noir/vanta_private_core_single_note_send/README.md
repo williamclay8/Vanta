@@ -19,6 +19,18 @@ node scripts/write-vanta-private-core-send-fixture.mjs valid
 node scripts/write-vanta-private-core-send-fixture.mjs invalid-direction
 ```
 
+Current regression command:
+
+```bash
+npm run private-core:send-check
+```
+
+That command proves:
+
+- valid fixture succeeds
+- invalid-direction fixture fails
+- the workspace ends in valid-fixture state
+
 The first intended circuit target remains intentionally narrow:
 
 - one input note
