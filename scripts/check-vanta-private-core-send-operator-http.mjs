@@ -140,39 +140,45 @@ const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/private-core-send-operator-
 const port = randomPort();
 const baseUrl = `http://127.0.0.1:${port}`;
 
-const server = spawn("node", ["operator/unshield-server.mjs"], {
-  cwd: repoRoot,
-  env: {
-    ...process.env,
-    PATH: `${process.env.HOME}/.nargo/bin:${process.env.PATH ?? ""}`,
-    VANTA_UNSHIELD_OPERATOR_PORT: String(port),
-    VANTA_DEVNET_TOKEN_MINT:
-      process.env.VANTA_DEVNET_TOKEN_MINT ??
-      "8j9mJY4hPW4N1pQ6XJk4oL9bQ4u8sF3o6T2jW7vF6dEm",
-    VANTA_DEVNET_VAULT_OWNER:
-      process.env.VANTA_DEVNET_VAULT_OWNER ??
-      "Gk7m3rV2Q5uH4pL9sW8xD1nB6cT3yF7kJ2qR5mN8pZ1",
-    VANTA_PRIVATE_CORE_CONSUME_STORE_PATH: join(tempRoot, "consumes.json"),
-    VANTA_PRIVATE_CORE_PROOF_STORE_PATH: join(tempRoot, "proofs.json"),
-    VANTA_PRIVATE_CORE_SEND_PROOF_STORE_PATH: join(tempRoot, "send-proofs.json"),
-    VANTA_PRIVATE_CORE_SEND_STORE_PATH: join(tempRoot, "sends.json"),
-    VANTA_PRIVATE_CORE_RELEASE_STORE_PATH: join(tempRoot, "private-core-releases.json"),
-    VANTA_PRIVATE_CORE_ROOT_STORE_PATH: join(tempRoot, "roots.json"),
-    VANTA_RELEASE_RECORD_STORE_PATH: join(tempRoot, "releases.json"),
-    VANTA_SWAP_RECORD_STORE_PATH: join(tempRoot, "swaps.json"),
-    VANTA_SOL_UNSHIELD_RECORD_STORE_PATH: join(tempRoot, "sol-unshields.json"),
-  },
-  stdio: ["ignore", "pipe", "pipe"],
-});
-
 let stderr = "";
 let stdout = "";
-server.stdout.on("data", (chunk) => {
-  stdout += chunk.toString("utf8");
-});
-server.stderr.on("data", (chunk) => {
-  stderr += chunk.toString("utf8");
-});
+let server = startServer();
+
+function startServer() {
+  const child = spawn("node", ["operator/unshield-server.mjs"], {
+    cwd: repoRoot,
+    env: {
+      ...process.env,
+      PATH: `${process.env.HOME}/.nargo/bin:${process.env.PATH ?? ""}`,
+      VANTA_UNSHIELD_OPERATOR_PORT: String(port),
+      VANTA_DEVNET_TOKEN_MINT:
+        process.env.VANTA_DEVNET_TOKEN_MINT ??
+        "8j9mJY4hPW4N1pQ6XJk4oL9bQ4u8sF3o6T2jW7vF6dEm",
+      VANTA_DEVNET_VAULT_OWNER:
+        process.env.VANTA_DEVNET_VAULT_OWNER ??
+        "Gk7m3rV2Q5uH4pL9sW8xD1nB6cT3yF7kJ2qR5mN8pZ1",
+      VANTA_PRIVATE_CORE_CONSUME_STORE_PATH: join(tempRoot, "consumes.json"),
+      VANTA_PRIVATE_CORE_PROOF_STORE_PATH: join(tempRoot, "proofs.json"),
+      VANTA_PRIVATE_CORE_SEND_PROOF_STORE_PATH: join(tempRoot, "send-proofs.json"),
+      VANTA_PRIVATE_CORE_SEND_STORE_PATH: join(tempRoot, "sends.json"),
+      VANTA_PRIVATE_CORE_RELEASE_STORE_PATH: join(tempRoot, "private-core-releases.json"),
+      VANTA_PRIVATE_CORE_ROOT_STORE_PATH: join(tempRoot, "roots.json"),
+      VANTA_RELEASE_RECORD_STORE_PATH: join(tempRoot, "releases.json"),
+      VANTA_SWAP_RECORD_STORE_PATH: join(tempRoot, "swaps.json"),
+      VANTA_SOL_UNSHIELD_RECORD_STORE_PATH: join(tempRoot, "sol-unshields.json"),
+    },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+
+  child.stdout.on("data", (chunk) => {
+    stdout += chunk.toString("utf8");
+  });
+  child.stderr.on("data", (chunk) => {
+    stderr += chunk.toString("utf8");
+  });
+
+  return child;
+}
 
 try {
   await waitForHealth(baseUrl);
@@ -290,6 +296,46 @@ try {
   }
   printStatus("operator send http root registration: PASS");
 
+  const rootStorePath = join(tempRoot, "roots.json");
+  const tamperedRootStore = JSON.parse(readFileSync(rootStorePath, "utf8"));
+  tamperedRootStore.roots[rootWitnessPackage.sourcePublicInputs.stateRoot].proofId =
+    "private-core-proof:tampered";
+  writeFileSync(rootStorePath, `${JSON.stringify(tamperedRootStore, null, 2)}\n`, "utf8");
+
+  server.kill("SIGTERM");
+  await new Promise((resolvePromise) => server.once("exit", resolvePromise));
+  server = startServer();
+  await waitForHealth(baseUrl);
+
+  const unlinkedRootTransition = await requestJson(baseUrl, "/private-core/send-transition", {
+    body: JSON.stringify({ witnessPackage }),
+    method: "POST",
+  });
+  if (
+    !unlinkedRootTransition.text.includes("input root does not match its linked registration proof") &&
+    !unlinkedRootTransition.text.includes(
+      "input root registration proof linkage is unavailable",
+    )
+  ) {
+    throw new Error(
+      unlinkedRootTransition.text ||
+        "send transition unexpectedly succeeded with a tampered root registration proof link",
+    );
+  }
+  printStatus("operator send http root proof linkage gate: PASS");
+
+  const restoreRootResponse = await requestJson(baseUrl, "/private-core/register-root", {
+    body: JSON.stringify({
+      sourceArtifacts: rootSourceArtifacts,
+      witnessPackage: rootWitnessPackage,
+    }),
+    method: "POST",
+  });
+  if (!restoreRootResponse.ok || restoreRootResponse.parsed?.known !== true) {
+    throw new Error(restoreRootResponse.text || "send http root registration restore failed");
+  }
+  printStatus("operator send http root proof linkage restore: PASS");
+
   const transitionResponse = await requestJson(baseUrl, "/private-core/send-transition", {
     body: JSON.stringify({ resultingRoot: fixture.send.validResultingRoot, witnessPackage }),
     method: "POST",
@@ -344,7 +390,7 @@ try {
     proofState.parsed?.latestProof?.action !== "register-root" ||
     proofState.parsed?.latestProof?.root !== rootWitnessPackage.sourcePublicInputs.stateRoot ||
     !Array.isArray(proofState.parsed?.records) ||
-    proofState.parsed.records.length !== 1
+    proofState.parsed.records.length < 1
   ) {
     throw new Error(proofState.text || "send proof path did not preserve the expected shared root-registration proof state");
   }

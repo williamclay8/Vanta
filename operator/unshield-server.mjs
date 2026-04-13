@@ -457,6 +457,25 @@ const server = createServer(async (request, response) => {
         );
       }
 
+      const latestRootLinkedProof =
+        latestRootRecord.proofId
+          ? privateCoreProofStore
+              .listProofs()
+              .find((record) => record.proofId === latestRootRecord.proofId) ?? null
+          : null;
+      const latestRootProofLinkStatus = summarizePrivateCoreRootProofLinkStatus({
+        linkedProof: latestRootLinkedProof,
+        rootRecord: latestRootRecord,
+      });
+
+      if (latestRootProofLinkStatus !== "linked") {
+        throw new Error(
+          latestRootProofLinkStatus === "mismatch"
+            ? "Private-core send transition input root does not match its linked registration proof."
+            : "Private-core send transition input root registration proof linkage is unavailable.",
+        );
+      }
+
       const proofReceipt = await proveAndVerifyVantaPrivateCoreSend({
         witnessPackage,
       });
