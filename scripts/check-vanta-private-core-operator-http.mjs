@@ -21,7 +21,7 @@ function sleep(ms) {
 async function waitForHealth(baseUrl) {
   for (let attempt = 0; attempt < 40; attempt += 1) {
     try {
-      const response = await fetch(`${baseUrl}/state/private-core-consumes`);
+      const response = await fetch(`${baseUrl}/state/private-core-summary`);
       if (response.ok) {
         return;
       }
@@ -212,6 +212,26 @@ try {
   }
   printStatus("operator http empty release state: PASS");
 
+  const initialSummaryState = await requestJson(baseUrl, "/state/private-core-summary", {
+    method: "GET",
+  });
+  if (
+    !initialSummaryState.ok ||
+    initialSummaryState.parsed?.stateVersion !== 1 ||
+    initialSummaryState.parsed?.summaryVersion !== 1 ||
+    initialSummaryState.parsed?.currentRoot !== null ||
+    initialSummaryState.parsed?.latestProof !== null ||
+    initialSummaryState.parsed?.latestConsume !== null ||
+    initialSummaryState.parsed?.latestRelease !== null ||
+    initialSummaryState.parsed?.rootRecordCount !== 0 ||
+    initialSummaryState.parsed?.proofRecordCount !== 0 ||
+    initialSummaryState.parsed?.consumeRecordCount !== 0 ||
+    initialSummaryState.parsed?.releaseRecordCount !== 0
+  ) {
+    throw new Error(initialSummaryState.text || "operator summary state did not start empty");
+  }
+  printStatus("operator http empty summary state: PASS");
+
   const proofResponse = await requestJson(baseUrl, "/private-core/unshield-proof", {
     body: JSON.stringify({ witnessPackage }),
     method: "POST",
@@ -253,6 +273,7 @@ try {
   }
   for (const statePath of [
     "/state/private-core-consumes",
+    "/state/private-core-summary",
     "/state/private-core-proofs",
     "/state/private-core-releases",
   ]) {
@@ -810,6 +831,25 @@ try {
   }
   printStatus("operator http consume proof state: PASS");
 
+  const summaryStateAfterConsume = await requestJson(baseUrl, "/state/private-core-summary", {
+    method: "GET",
+  });
+  if (
+    !summaryStateAfterConsume.ok ||
+    summaryStateAfterConsume.parsed?.stateVersion !== 1 ||
+    summaryStateAfterConsume.parsed?.summaryVersion !== 1 ||
+    summaryStateAfterConsume.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
+    summaryStateAfterConsume.parsed?.latestConsumeProof?.proofId !== consumeResponse.parsed.proofId ||
+    summaryStateAfterConsume.parsed?.latestConsume?.proofId !== consumeResponse.parsed.proofId ||
+    summaryStateAfterConsume.parsed?.latestReleaseProof?.proofId !== consumeResponse.parsed.proofId ||
+    summaryStateAfterConsume.parsed?.latestRelease?.proofId !== consumeResponse.parsed.proofId ||
+    summaryStateAfterConsume.parsed?.proofConsumeLinkStatus !== "linked" ||
+    summaryStateAfterConsume.parsed?.proofReleaseLinkStatus !== "linked"
+  ) {
+    throw new Error(summaryStateAfterConsume.text || "operator summary state did not reflect linked consume/release state");
+  }
+  printStatus("operator http summary consume linkage: PASS");
+
   const releaseState = await requestJson(baseUrl, "/state/private-core-releases", { method: "GET" });
   if (
     !releaseState.ok ||
@@ -837,6 +877,22 @@ try {
   }
   printStatus("operator http release state: PASS");
 
+  const summaryStateAfterRelease = await requestJson(baseUrl, "/state/private-core-summary", {
+    method: "GET",
+  });
+  if (
+    !summaryStateAfterRelease.ok ||
+    summaryStateAfterRelease.parsed?.latestConsumeProof?.proofId !== consumeResponse.parsed.proofId ||
+    summaryStateAfterRelease.parsed?.latestConsume?.proofId !== consumeResponse.parsed.proofId ||
+    summaryStateAfterRelease.parsed?.latestReleaseProof?.proofId !== consumeResponse.parsed.proofId ||
+    summaryStateAfterRelease.parsed?.latestRelease?.proofId !== consumeResponse.parsed.proofId ||
+    summaryStateAfterRelease.parsed?.proofConsumeLinkStatus !== "linked" ||
+    summaryStateAfterRelease.parsed?.proofReleaseLinkStatus !== "linked"
+  ) {
+    throw new Error(summaryStateAfterRelease.text || "operator summary state did not reflect proof/release linkage");
+  }
+  printStatus("operator http summary release linkage: PASS");
+
   const replayReleaseState = await requestJson(baseUrl, "/state/private-core-releases", { method: "GET" });
   if (
     !replayReleaseState.ok ||
@@ -860,10 +916,15 @@ try {
     stdio: "pipe",
   });
   if (
-    !operatorStatusOutput.includes("Proof state version: 1") ||
+    !operatorStatusOutput.includes("Summary state version: 1") ||
+    !operatorStatusOutput.includes("Summary version: 1") ||
     !operatorStatusOutput.includes("Latest proof action: consume") ||
     !operatorStatusOutput.includes("Latest consume proof:") ||
-    !operatorStatusOutput.includes("Latest release proof:")
+    !operatorStatusOutput.includes("Latest consume linked proof:") ||
+    !operatorStatusOutput.includes("Latest release proof:") ||
+    !operatorStatusOutput.includes("Latest release linked proof:") ||
+    !operatorStatusOutput.includes("Proof/consume link: linked") ||
+    !operatorStatusOutput.includes("Proof/release link: linked")
   ) {
     throw new Error(operatorStatusOutput || "operator-status did not reflect proof-linked private-core state");
   }

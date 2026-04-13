@@ -198,6 +198,13 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (request.method === "GET" && request.url === "/state/private-core-summary") {
+    writeCorsHeaders(response);
+    response.writeHead(200, { "Content-Type": "application/json" });
+    response.end(JSON.stringify(buildPrivateCoreSummaryState()));
+    return;
+  }
+
   if (request.method === "GET" && request.url === "/state/private-core-proofs") {
     writeCorsHeaders(response);
     response.writeHead(200, { "Content-Type": "application/json" });
@@ -1233,6 +1240,80 @@ function writeCorsHeaders(response) {
   response.setHeader("Access-Control-Allow-Origin", "*");
   response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+}
+
+function buildPrivateCoreSummaryState() {
+  const rootRecords = privateCoreRootStore.listRoots();
+  const proofRecords = privateCoreProofStore.listProofs();
+  const consumeRecords = privateCoreConsumeStore.listConsumes();
+  const releaseRecords = privateCoreReleaseRecords.listRecords();
+  const latestProof = proofRecords[0] ?? null;
+  const latestConsume = consumeRecords[0] ?? null;
+  const latestRelease = releaseRecords[0] ?? null;
+  const latestConsumeProof =
+    latestConsume && typeof latestConsume.proofId === "string"
+      ? proofRecords.find((record) => record.proofId === latestConsume.proofId) ?? null
+      : null;
+  const latestReleaseProof =
+    latestRelease && typeof latestRelease.proofId === "string"
+      ? proofRecords.find((record) => record.proofId === latestRelease.proofId) ?? null
+      : null;
+
+  return {
+    stateVersion: 1,
+    summaryVersion: 1,
+    currentRoot: rootRecords[0]?.root ?? null,
+    currentRecord: rootRecords[0] ?? null,
+    latestProof,
+    latestConsume,
+    latestConsumeProof,
+    latestRelease,
+    latestReleaseProof,
+    rootRecordCount: rootRecords.length,
+    proofRecordCount: proofRecords.length,
+    consumeRecordCount: consumeRecords.length,
+    releaseRecordCount: releaseRecords.length,
+    proofConsumeLinkStatus: summarizePrivateCoreProofConsumeLinkStatus({
+      linkedProof: latestConsumeProof,
+      latestConsume,
+    }),
+    proofReleaseLinkStatus: summarizePrivateCoreProofReleaseLinkStatus({
+      linkedProof: latestReleaseProof,
+      latestRelease,
+    }),
+  };
+}
+
+function summarizePrivateCoreProofConsumeLinkStatus(args) {
+  if (!args.linkedProof || !args.latestConsume) {
+    return "unavailable";
+  }
+
+  if (
+    args.linkedProof.proofId === args.latestConsume.proofId &&
+    args.linkedProof.root === args.latestConsume.root &&
+    args.linkedProof.nullifier === args.latestConsume.nullifier
+  ) {
+    return "linked";
+  }
+
+  return "mismatch";
+}
+
+function summarizePrivateCoreProofReleaseLinkStatus(args) {
+  if (!args.linkedProof || !args.latestRelease) {
+    return "unavailable";
+  }
+
+  if (
+    args.linkedProof.proofId === args.latestRelease.proofId &&
+    args.linkedProof.root === args.latestRelease.root &&
+    args.linkedProof.nullifier === args.latestRelease.nullifier
+  ) {
+    return "linked";
+  }
+
+  return "mismatch";
 }
 
 function summarizePrivateCoreProofRecord(args) {

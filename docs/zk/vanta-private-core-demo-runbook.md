@@ -35,7 +35,7 @@ That confirms:
 - replay is still rejected after restart
 - local proof generation and verification still succeeds
 
-The operator-status command gives a quick readout of:
+The operator-status command gives a quick summary snapshot of:
 - current registered root
 - latest proof
 - latest consume

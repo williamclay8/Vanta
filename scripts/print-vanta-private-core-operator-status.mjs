@@ -1,36 +1,33 @@
 const baseUrl = resolveBaseUrl(process.argv.slice(2));
 
 try {
-  const [roots, consumes, proofs, releases] = await Promise.all([
-    requestJson("/state/private-core-roots"),
-    requestJson("/state/private-core-consumes"),
-    requestJson("/state/private-core-proofs"),
-    requestJson("/state/private-core-releases"),
-  ]);
+  const summary = await requestJson("/state/private-core-summary");
 
   printLine("Operator", baseUrl);
-  printLine("Roots state version", String(roots.stateVersion ?? "unknown"));
-  printLine("Current root", abbreviate(roots.currentRoot));
-  printLine("Root records", String(Array.isArray(roots.records) ? roots.records.length : 0));
-  printLine("Consume state version", String(consumes.stateVersion ?? "unknown"));
-  printLine("Latest consume", abbreviate(consumes.latestConsume?.nullifier));
-  printLine("Latest consume proof", abbreviate(consumes.latestConsume?.proofId));
-  printLine("Consume records", String(Array.isArray(consumes.records) ? consumes.records.length : 0));
-  printLine("Proof state version", String(proofs.stateVersion ?? "unknown"));
-  printLine("Latest proof", abbreviate(proofs.latestProof?.proofId));
-  printLine("Latest proof action", proofs.latestProof?.action ?? "Unavailable");
-  printLine("Proof records", String(Array.isArray(proofs.records) ? proofs.records.length : 0));
-  printLine("Release state version", String(releases.stateVersion ?? "unknown"));
-  printLine("Latest release", abbreviate(releases.latestRelease?.nullifier));
-  printLine("Latest release proof", abbreviate(releases.latestRelease?.proofId));
-  printLine("Release destination", abbreviate(releases.latestRelease?.releaseDestination));
+  printLine("Summary state version", String(summary.stateVersion ?? "unknown"));
+  printLine("Summary version", String(summary.summaryVersion ?? "unknown"));
+  printLine("Current root", abbreviate(summary.currentRoot));
+  printLine("Root records", String(summary.rootRecordCount ?? 0));
+  printLine("Latest consume", abbreviate(summary.latestConsume?.nullifier));
+  printLine("Latest consume proof", abbreviate(summary.latestConsume?.proofId));
+  printLine("Latest consume linked proof", abbreviate(summary.latestConsumeProof?.proofId));
+  printLine("Consume records", String(summary.consumeRecordCount ?? 0));
+  printLine("Latest proof", abbreviate(summary.latestProof?.proofId));
+  printLine("Latest proof action", summary.latestProof?.action ?? "Unavailable");
+  printLine("Proof records", String(summary.proofRecordCount ?? 0));
+  printLine("Latest release", abbreviate(summary.latestRelease?.nullifier));
+  printLine("Latest release proof", abbreviate(summary.latestRelease?.proofId));
+  printLine("Latest release linked proof", abbreviate(summary.latestReleaseProof?.proofId));
+  printLine("Release destination", abbreviate(summary.latestRelease?.releaseDestination));
   printLine(
     "Released value",
-    releases.latestRelease?.releasedAmount && releases.latestRelease?.releasedAssetId
-      ? `${releases.latestRelease.releasedAmount} / ${abbreviate(releases.latestRelease.releasedAssetId)}`
+    summary.latestRelease?.releasedAmount && summary.latestRelease?.releasedAssetId
+      ? `${summary.latestRelease.releasedAmount} / ${abbreviate(summary.latestRelease.releasedAssetId)}`
       : "Unavailable",
   );
-  printLine("Release records", String(Array.isArray(releases.records) ? releases.records.length : 0));
+  printLine("Release records", String(summary.releaseRecordCount ?? 0));
+  printLine("Proof/consume link", summary.proofConsumeLinkStatus ?? "Unavailable");
+  printLine("Proof/release link", summary.proofReleaseLinkStatus ?? "Unavailable");
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   console.error(`private-core operator status: FAIL\n${message}`);
