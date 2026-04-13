@@ -838,6 +838,14 @@ export function UnshieldPage() {
               </strong>
             </div>
           ))}
+          <div className="review-row">
+            <span>5. Operator boundary</span>
+            <strong>
+              {privateCoreOperatorBoundaryStatusLabel
+                ? `${privateCoreOperatorBoundaryStatusLabel} · ${privateCoreOperatorBoundaryPrimaryNote ?? "No note"}`
+                : "Awaiting operator summary"}
+            </strong>
+          </div>
         </div>
 
         <VantaPrivateCoreStatePanel
