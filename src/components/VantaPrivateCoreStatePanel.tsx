@@ -574,6 +574,14 @@ export function VantaPrivateCoreStatePanel({
               </strong>
             </div>
             <div className="review-row">
+              <span>Latest send root basis</span>
+              <strong>
+                {operatorSendError
+                  ? operatorSendError
+                  : latestOperatorSend?.resultingRootBasis ?? "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
               <span>Linked send proof</span>
               <strong>
                 {operatorSendProofError

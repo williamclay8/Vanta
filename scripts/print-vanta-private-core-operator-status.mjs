@@ -25,6 +25,7 @@ try {
   printLine("Latest send transition", abbreviate(summary.latestSend?.sendId));
   printLine("Latest send proof link", abbreviate(summary.latestSend?.proofId));
   printLine("Latest send linked proof", abbreviate(summary.latestSendLinkedProof?.proofId));
+  printLine("Latest send resulting-root basis", summary.latestSend?.resultingRootBasis ?? "Unavailable");
   printLine("Latest send resulting root", abbreviate(summary.latestSend?.resultingRoot));
   printLine("Send resulting root status", humanizeSendResultingRootStatus(summary.sendResultingRootStatus));
   printLine("Send resulting root note", summary.sendResultingRootNote ?? "Unavailable");

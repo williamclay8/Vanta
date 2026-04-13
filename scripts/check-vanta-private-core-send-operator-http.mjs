@@ -358,6 +358,7 @@ try {
     !sendState.parsed?.latestSend ||
     sendState.parsed.latestSend?.sendId !== transitionResponse.parsed.sendId ||
     sendState.parsed.latestSend?.proofId !== transitionResponse.parsed.proofId ||
+    sendState.parsed.latestSend?.resultingRootBasis !== "client-declared" ||
     sendState.parsed.latestSend?.resultingRoot !== transitionResponse.parsed.resultingRoot ||
     !Array.isArray(sendState.parsed?.records) ||
     sendState.parsed.records.length !== 1
@@ -373,6 +374,7 @@ try {
     !summaryAfterTransition.ok ||
     summaryAfterTransition.parsed?.sendProofRecordCount !== 2 ||
     summaryAfterTransition.parsed?.sendRecordCount !== 1 ||
+    summaryAfterTransition.parsed?.latestSend?.resultingRootBasis !== "client-declared" ||
     summaryAfterTransition.parsed?.sendResultingRootRecord !== null ||
     summaryAfterTransition.parsed?.latestSend?.sendId !== transitionResponse.parsed.sendId ||
     summaryAfterTransition.parsed?.sendResultingRootStatus !== "unregistered"

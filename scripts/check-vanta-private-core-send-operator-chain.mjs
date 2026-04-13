@@ -361,6 +361,7 @@ try {
     summary.parsed?.sendProofRecordCount !== 2 ||
     summary.parsed?.proofSendLinkStatus !== "linked" ||
     summary.parsed?.latestSend?.sendId !== secondTransitionResponse.parsed.sendId ||
+    summary.parsed?.latestSend?.resultingRootBasis !== "client-declared" ||
     summary.parsed?.latestSendLinkedProof?.proofId !== secondTransitionResponse.parsed.proofId
   ) {
     throw new Error(summary.text || "operator summary did not reflect chained private sends");

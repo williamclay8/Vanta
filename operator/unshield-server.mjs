@@ -1796,6 +1796,7 @@ function summarizePrivateCoreSendRecord(args) {
     proofId: args.proofRecord.proofId,
     publicInputCount: args.proofReceipt.publicInputCount,
     recipientCommitment: sourcePublicInputs.recipientCommitment,
+    resultingRootBasis: "client-declared",
     resultingRoot: typeof args.resultingRoot === "string" ? args.resultingRoot : null,
     sendAmount: sourcePublicInputs.sendAmount,
     sendId: [

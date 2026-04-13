@@ -124,6 +124,7 @@ export type VantaPrivateCoreOperatorSendRecord = {
   proofId: string;
   publicInputCount: number;
   recipientCommitment: string;
+  resultingRootBasis: "client-declared";
   resultingRoot: string | null;
   sendAmount: string;
   sendId: string;
@@ -1028,6 +1029,7 @@ function isSendRecord(value: unknown): value is VantaPrivateCoreOperatorSendReco
     typeof (value as VantaPrivateCoreOperatorSendRecord).proofId === "string" &&
     typeof (value as VantaPrivateCoreOperatorSendRecord).publicInputCount === "number" &&
     typeof (value as VantaPrivateCoreOperatorSendRecord).recipientCommitment === "string" &&
+    (value as VantaPrivateCoreOperatorSendRecord).resultingRootBasis === "client-declared" &&
     (((value as VantaPrivateCoreOperatorSendRecord).resultingRoot === null ||
       (value as VantaPrivateCoreOperatorSendRecord).resultingRoot === undefined) ||
       typeof (value as VantaPrivateCoreOperatorSendRecord).resultingRoot === "string") &&

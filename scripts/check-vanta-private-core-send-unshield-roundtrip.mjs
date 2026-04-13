@@ -332,6 +332,7 @@ try {
     !summary.ok ||
     summary.parsed?.currentRoot !== heldRecipient.witness.root ||
     summary.parsed?.latestSend?.proofId !== sendTransitionResponse.parsed.proofId ||
+    summary.parsed?.latestSend?.resultingRootBasis !== "client-declared" ||
     summary.parsed?.latestConsume?.proofId !== consumeResponse.parsed.proofId ||
     summary.parsed?.latestRelease?.proofId !== consumeResponse.parsed.proofId ||
     summary.parsed?.latestRelease?.releasedAmount !== "13000000" ||

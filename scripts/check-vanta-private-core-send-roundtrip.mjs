@@ -290,6 +290,7 @@ try {
   if (
     !summaryState.ok ||
     summaryState.parsed?.latestSend?.sendId !== transitionResponse.parsed.sendId ||
+    summaryState.parsed?.latestSend?.resultingRootBasis !== "client-declared" ||
     summaryState.parsed?.latestSendProof?.proofId !== transitionResponse.parsed.proofId ||
     summaryState.parsed?.latestSendLinkedProof?.proofId !== transitionResponse.parsed.proofId ||
     summaryState.parsed?.proofSendLinkStatus !== "linked" ||
