@@ -164,6 +164,7 @@ npm run private-core:send-recipient-check
 npm run private-core:send-chain-check
 npm run private-core:send-roundtrip-check
 npm run private-core:send-unshield-roundtrip-check
+npm run private-core:send-chain-unshield-check
 npm run private-core:send-chain-http-smoke
 npm run private-core:restart-check
 npm run private-core:send-chain-restart-check
@@ -186,6 +187,7 @@ These commands cover:
 - chained private-send continuity from one recipient into a second private send
 - operator-backed private send roundtrip from verified send transition to recipient recovery
 - operator-backed private send to recipient unshield roundtrip
+- operator-backed chained private send to recipient unshield roundtrip
 - operator-backed chained private-send continuity across two verified send transitions
 - operator-backed chained private-send persistence across operator restart
 - operator-backed private send to recipient unshield persistence across operator restart
