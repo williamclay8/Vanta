@@ -41,6 +41,8 @@ type VantaPrivateCoreStatePanelProps = {
   operatorRootError?: string | null;
   operatorRootRegistrationStatus?: string | null;
   operatorRoots?: VantaPrivateCoreOperatorRootRecord[];
+  operatorSendResultingRootPrimaryNote?: string | null;
+  operatorSendResultingRootStatusLabel?: string | null;
   operatorSendError?: string | null;
   operatorSends?: VantaPrivateCoreOperatorSendRecord[];
   operatorSendProofError?: string | null;
@@ -156,6 +158,8 @@ export function VantaPrivateCoreStatePanel({
   operatorRootError = null,
   operatorRootRegistrationStatus = null,
   operatorRoots = [],
+  operatorSendResultingRootPrimaryNote = null,
+  operatorSendResultingRootStatusLabel = null,
   operatorSendError = null,
   operatorSends = [],
   operatorSendProofError = null,
@@ -286,6 +290,10 @@ export function VantaPrivateCoreStatePanel({
                     ? abbreviate(sendState.resultingRoot)
                     : "Unavailable from operator summary"}
                 </strong>
+              </div>
+              <div className="review-row">
+                <span>Resulting root status</span>
+                <strong>{operatorSendResultingRootStatusLabel ?? "Unavailable"}</strong>
               </div>
               <div className="review-row">
                 <span>Recipient unshield</span>
@@ -721,9 +729,17 @@ export function VantaPrivateCoreStatePanel({
                 {operatorRootError
                   ? operatorRootError
                   : operatorCurrentRoot
-                    ? abbreviate(operatorCurrentRoot)
-                    : "Unavailable"}
+                  ? abbreviate(operatorCurrentRoot)
+                  : "Unavailable"}
               </strong>
+            </div>
+            <div className="review-row">
+              <span>Send resulting root status</span>
+              <strong>{operatorSendResultingRootStatusLabel ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Send resulting root note</span>
+              <strong>{operatorSendResultingRootPrimaryNote ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Operator artifact bundle</span>

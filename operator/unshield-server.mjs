@@ -1440,6 +1440,13 @@ function buildPrivateCoreSummaryState() {
     linkedProof: latestReleaseProof,
     latestRelease,
   });
+  const sendResultingRootStatus = summarizePrivateCoreSendResultingRootStatus({
+    currentRoot: rootRecords[0]?.root ?? null,
+    latestConsume,
+    latestRelease,
+    latestSend,
+    rootRecords,
+  });
   const boundaryStatus = summarizePrivateCoreBoundaryStatus({
     currentRoot: rootRecords[0]?.root ?? null,
     proofConsumeLinkStatus,
@@ -1451,6 +1458,8 @@ function buildPrivateCoreSummaryState() {
     boundaryStatus: boundaryStatus.status,
     boundaryNote: boundaryStatus.note,
     generatedAt: Date.now(),
+    sendResultingRootNote: sendResultingRootStatus.note,
+    sendResultingRootStatus: sendResultingRootStatus.status,
     stateVersion: 1,
     summaryVersion: 1,
     currentRoot: rootRecords[0]?.root ?? null,
@@ -1478,6 +1487,55 @@ function buildPrivateCoreSummaryState() {
     proofConsumeLinkStatus,
     proofSendLinkStatus,
     proofReleaseLinkStatus,
+  };
+}
+
+function summarizePrivateCoreSendResultingRootStatus(args) {
+  if (!args.latestSend) {
+    return {
+      status: "unavailable",
+      note: "No private send transition has been recorded yet.",
+    };
+  }
+
+  if (!args.latestSend.resultingRoot) {
+    return {
+      status: "missing",
+      note: "Latest private send transition did not persist a resulting root.",
+    };
+  }
+
+  if (args.latestRelease?.root === args.latestSend.resultingRoot) {
+    return {
+      status: "downstream-released",
+      note: "Latest private send resulting root has already been released downstream.",
+    };
+  }
+
+  if (args.latestConsume?.root === args.latestSend.resultingRoot) {
+    return {
+      status: "downstream-consumed",
+      note: "Latest private send resulting root has already been consumed downstream.",
+    };
+  }
+
+  if (args.currentRoot === args.latestSend.resultingRoot) {
+    return {
+      status: "current-root",
+      note: "Latest private send resulting root is the current registered operator root.",
+    };
+  }
+
+  if (args.rootRecords.some((record) => record.root === args.latestSend.resultingRoot)) {
+    return {
+      status: "registered-stale",
+      note: "Latest private send resulting root is registered but not current anymore.",
+    };
+  }
+
+  return {
+    status: "unregistered",
+    note: "Latest private send resulting root has not been registered with the operator yet.",
   };
 }
 

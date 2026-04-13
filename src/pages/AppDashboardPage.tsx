@@ -48,6 +48,8 @@ export function AppDashboardPage() {
     privateCoreOperatorLatestSend,
     privateCoreOperatorBoundaryPrimaryNote,
     privateCoreOperatorBoundaryStatusLabel,
+    privateCoreOperatorSendResultingRootPrimaryNote,
+    privateCoreOperatorSendResultingRootStatusLabel,
     privateCoreOperatorProofConsumeLinkStatus,
     privateCoreOperatorProofError,
     privateCoreOperatorProofs,
@@ -218,6 +220,8 @@ export function AppDashboardPage() {
           operatorLatestSendProof={privateCoreOperatorLatestSendProof}
           operatorBoundaryPrimaryNote={privateCoreOperatorBoundaryPrimaryNote}
           operatorBoundaryStatusLabel={privateCoreOperatorBoundaryStatusLabel}
+          operatorSendResultingRootPrimaryNote={privateCoreOperatorSendResultingRootPrimaryNote}
+          operatorSendResultingRootStatusLabel={privateCoreOperatorSendResultingRootStatusLabel}
           operatorProofConsumeLinkStatus={privateCoreOperatorProofConsumeLinkStatus}
           operatorProofError={privateCoreOperatorProofError}
           operatorProofs={privateCoreOperatorProofs}

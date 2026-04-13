@@ -292,7 +292,8 @@ try {
     summaryState.parsed?.latestSend?.sendId !== transitionResponse.parsed.sendId ||
     summaryState.parsed?.latestSendProof?.proofId !== transitionResponse.parsed.proofId ||
     summaryState.parsed?.latestSendLinkedProof?.proofId !== transitionResponse.parsed.proofId ||
-    summaryState.parsed?.proofSendLinkStatus !== "linked"
+    summaryState.parsed?.proofSendLinkStatus !== "linked" ||
+    summaryState.parsed?.sendResultingRootStatus !== "unregistered"
   ) {
     throw new Error(summaryState.text || "operator summary did not reflect the send transition");
   }

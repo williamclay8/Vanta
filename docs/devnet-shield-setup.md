@@ -120,6 +120,7 @@ The operator-status command now prints:
 - latest send proof
 - latest send linked proof
 - latest send resulting root
+- send resulting root status
 - latest consume
 - latest release
 - proof/send link status

@@ -23,6 +23,8 @@ try {
   printLine("Latest send proof link", abbreviate(summary.latestSend?.proofId));
   printLine("Latest send linked proof", abbreviate(summary.latestSendLinkedProof?.proofId));
   printLine("Latest send resulting root", abbreviate(summary.latestSend?.resultingRoot));
+  printLine("Send resulting root status", humanizeSendResultingRootStatus(summary.sendResultingRootStatus));
+  printLine("Send resulting root note", summary.sendResultingRootNote ?? "Unavailable");
   printLine(
     "Latest send amount",
     typeof summary.latestSend?.sendAmount === "string" ? summary.latestSend.sendAmount : "Unavailable",
@@ -120,6 +122,27 @@ function humanizeBoundaryStatus(value) {
       return "Proof/consume not linked";
     case "proof-release-unlinked":
       return "Proof/release not linked";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeSendResultingRootStatus(value) {
+  switch (value) {
+    case "current-root":
+      return "Current root";
+    case "registered-stale":
+      return "Registered but stale";
+    case "downstream-consumed":
+      return "Consumed downstream";
+    case "downstream-released":
+      return "Released downstream";
+    case "unregistered":
+      return "Unregistered";
+    case "missing":
+      return "Missing";
+    case "unavailable":
+      return "Unavailable";
     default:
       return "Unavailable";
   }

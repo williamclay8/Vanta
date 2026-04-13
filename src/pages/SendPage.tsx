@@ -148,6 +148,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorLatestSend,
     privateCoreOperatorLatestSendLinkedProof,
     privateCoreOperatorLatestSendProof,
+    privateCoreOperatorSendResultingRootPrimaryNote,
+    privateCoreOperatorSendResultingRootStatusLabel,
     privateCoreOperatorProofSendLinkStatus,
     privateCoreOperatorSummaryUpdatedAt,
     privateCoreOwner,
@@ -1302,6 +1304,10 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               <span>Operator boundary</span>
               <strong>{privateCoreOperatorBoundaryStatusLabel ?? "Unavailable"}</strong>
             </div>
+            <div className="review-row">
+              <span>Send resulting root</span>
+              <strong>{privateCoreOperatorSendResultingRootStatusLabel ?? "Unavailable"}</strong>
+            </div>
           </div>
 
           <p className="shield-review-note">
@@ -1523,6 +1529,14 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 </p>
                 <p>Operator boundary status: {privateCoreOperatorBoundaryStatusLabel ?? "Unavailable"}</p>
                 <p>Operator boundary note: {privateCoreOperatorBoundaryPrimaryNote ?? "Unavailable"}</p>
+                <p>
+                  Send resulting root status:{" "}
+                  {privateCoreOperatorSendResultingRootStatusLabel ?? "Unavailable"}
+                </p>
+                <p>
+                  Send resulting root note:{" "}
+                  {privateCoreOperatorSendResultingRootPrimaryNote ?? "Unavailable"}
+                </p>
                 <p>
                   Operator summary refresh: {formatOperatorSummaryFreshness(privateCoreOperatorSummaryUpdatedAt)}
                 </p>

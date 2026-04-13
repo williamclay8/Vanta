@@ -191,6 +191,15 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
     | "proof-send-unlinked"
     | "proof-consume-unlinked"
     | "proof-release-unlinked";
+  sendResultingRootNote: string;
+  sendResultingRootStatus:
+    | "unavailable"
+    | "missing"
+    | "current-root"
+    | "registered-stale"
+    | "downstream-consumed"
+    | "downstream-released"
+    | "unregistered";
   generatedAt: number;
   stateVersion: number;
   summaryVersion: number;
@@ -760,6 +769,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     summaryVersion?: unknown;
     boundaryStatus?: unknown;
     boundaryNote?: unknown;
+    sendResultingRootStatus?: unknown;
+    sendResultingRootNote?: unknown;
     generatedAt?: unknown;
     currentRoot?: unknown;
     currentRecord?: unknown;
@@ -793,6 +804,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     parsed.summaryVersion !== 1 ||
     !isBoundaryStatus(parsed.boundaryStatus) ||
     typeof parsed.boundaryNote !== "string" ||
+    !isSendResultingRootStatus(parsed.sendResultingRootStatus) ||
+    typeof parsed.sendResultingRootNote !== "string" ||
     typeof parsed.generatedAt !== "number" ||
     (parsed.currentRoot !== null &&
       parsed.currentRoot !== undefined &&
@@ -848,6 +861,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     summaryVersion: 1,
     boundaryStatus: parsed.boundaryStatus,
     boundaryNote: parsed.boundaryNote,
+    sendResultingRootStatus: parsed.sendResultingRootStatus,
+    sendResultingRootNote: parsed.sendResultingRootNote,
     generatedAt: parsed.generatedAt,
     currentRoot: typeof parsed.currentRoot === "string" ? parsed.currentRoot : null,
     currentRecord: isRootRecord(parsed.currentRecord) ? parsed.currentRecord : null,
@@ -1017,5 +1032,19 @@ function isBoundaryStatus(
     value === "proof-send-unlinked" ||
     value === "proof-consume-unlinked" ||
     value === "proof-release-unlinked"
+  );
+}
+
+function isSendResultingRootStatus(
+  value: unknown,
+): value is VantaPrivateCoreOperatorSummaryStateResponse["sendResultingRootStatus"] {
+  return (
+    value === "unavailable" ||
+    value === "missing" ||
+    value === "current-root" ||
+    value === "registered-stale" ||
+    value === "downstream-consumed" ||
+    value === "downstream-released" ||
+    value === "unregistered"
   );
 }
