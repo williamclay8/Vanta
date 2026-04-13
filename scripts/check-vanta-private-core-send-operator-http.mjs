@@ -72,16 +72,22 @@ async function loadFixture() {
       resolve(repoRoot, "src/zk/vantaPrivateCoreSendProof.ts"),
       "utf8",
     ).replace(/from "@\/zk\/vantaPrivateCore"/g, 'from "./vantaPrivateCore"');
+    const unshieldProofSource = readFileSync(
+      resolve(repoRoot, "src/zk/vantaPrivateCoreUnshieldProof.ts"),
+      "utf8",
+    ).replace(/from "@\/zk\/vantaPrivateCore"/g, 'from "./vantaPrivateCore"');
 
     mkdirSync(tempTsDir, { recursive: true });
     writeFileSync(join(tempTsDir, "vantaPrivateCore.ts"), privateCoreSource);
     writeFileSync(join(tempTsDir, "vantaPrivateCoreSendProof.ts"), sendProofSource);
+    writeFileSync(join(tempTsDir, "vantaPrivateCoreUnshieldProof.ts"), unshieldProofSource);
 
     execFileSync(
       resolve(repoRoot, "node_modules/.bin/tsc"),
       [
         join(tempTsDir, "vantaPrivateCore.ts"),
         join(tempTsDir, "vantaPrivateCoreSendProof.ts"),
+        join(tempTsDir, "vantaPrivateCoreUnshieldProof.ts"),
         "--target",
         "ES2022",
         "--module",
@@ -98,6 +104,7 @@ async function loadFixture() {
     );
 
     const compiledPath = join(tempJsDir, "vantaPrivateCoreSendProof.js");
+    const compiledUnshieldPath = join(tempJsDir, "vantaPrivateCoreUnshieldProof.js");
     writeFileSync(
       compiledPath,
       readFileSync(compiledPath, "utf8").replace(
@@ -105,16 +112,29 @@ async function loadFixture() {
         'from "./vantaPrivateCore.js"',
       ),
     );
+    writeFileSync(
+      compiledUnshieldPath,
+      readFileSync(compiledUnshieldPath, "utf8").replace(
+        /from "\.\/vantaPrivateCore"/g,
+        'from "./vantaPrivateCore.js"',
+      ),
+    );
 
     const compiledModule = await import(pathToFileURL(compiledPath).href);
-    return compiledModule.getVantaPrivateCoreFixedDepthSendFixtureV0();
+    const unshieldModule = await import(pathToFileURL(compiledUnshieldPath).href);
+    return {
+      send: compiledModule.getVantaPrivateCoreFixedDepthSendFixtureV0(),
+      unshield: unshieldModule.getVantaPrivateCoreFixedDepthUnshieldFixtureV0(),
+    };
   } finally {
     rmSync(tempRoot, { recursive: true, force: true });
   }
 }
 
 const fixture = await loadFixture();
-const witnessPackage = fixture.validBoundary.noirWitnessPackage;
+const witnessPackage = fixture.send.validBoundary.noirWitnessPackage;
+const rootWitnessPackage = fixture.unshield.validBoundary.noirWitnessPackage;
+const rootSourceArtifacts = fixture.unshield.validSourceArtifacts;
 mkdirSync(resolve(repoRoot, ".tmp"), { recursive: true });
 const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/private-core-send-operator-http-server-"));
 const port = randomPort();
@@ -245,8 +265,31 @@ try {
   }
   printStatus("operator send http summary send-proof state: PASS");
 
-  const transitionResponse = await requestJson(baseUrl, "/private-core/send-transition", {
+  const missingRootTransition = await requestJson(baseUrl, "/private-core/send-transition", {
     body: JSON.stringify({ witnessPackage }),
+    method: "POST",
+  });
+  if (!missingRootTransition.text.includes("input root is not registered")) {
+    throw new Error(
+      missingRootTransition.text || "send transition unexpectedly succeeded without registered input root",
+    );
+  }
+  printStatus("operator send http root gate: PASS");
+
+  const registerRootResponse = await requestJson(baseUrl, "/private-core/register-root", {
+    body: JSON.stringify({
+      sourceArtifacts: rootSourceArtifacts,
+      witnessPackage: rootWitnessPackage,
+    }),
+    method: "POST",
+  });
+  if (!registerRootResponse.ok || registerRootResponse.parsed?.known !== true) {
+    throw new Error(registerRootResponse.text || "send http input root registration failed");
+  }
+  printStatus("operator send http root registration: PASS");
+
+  const transitionResponse = await requestJson(baseUrl, "/private-core/send-transition", {
+    body: JSON.stringify({ resultingRoot: fixture.send.validResultingRoot, witnessPackage }),
     method: "POST",
   });
   if (
@@ -294,13 +337,14 @@ try {
   if (
     !proofState.ok ||
     proofState.parsed?.stateVersion !== 1 ||
-    proofState.parsed?.latestProof !== null ||
+    proofState.parsed?.latestProof?.action !== "register-root" ||
+    proofState.parsed?.latestProof?.root !== rootWitnessPackage.sourcePublicInputs.stateRoot ||
     !Array.isArray(proofState.parsed?.records) ||
-    proofState.parsed.records.length !== 0
+    proofState.parsed.records.length !== 1
   ) {
-    throw new Error(proofState.text || "send proof endpoint unexpectedly mutated shared proof state");
+    throw new Error(proofState.text || "send proof path did not preserve the expected shared root-registration proof state");
   }
-  printStatus("operator send http proof state isolation: PASS");
+  printStatus("operator send http shared proof state: PASS");
 } finally {
   server.kill("SIGTERM");
   await new Promise((resolvePromise) => server.once("exit", resolvePromise));

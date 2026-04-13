@@ -234,8 +234,34 @@ server.stderr.on("data", (chunk) => {
 try {
   await waitForHealth(baseUrl);
 
+  const inputRootBoundary = unshieldProof.buildVantaPrivateCoreUnshieldProofBoundary({
+    heldNote: heldInput,
+    ownerSecretKey: sender.secretKey,
+    releaseDestination,
+    circuitMerkleDepth: 3,
+    requireNontrivialMerklePath: true,
+  });
+  const inputSourceArtifacts =
+    privateCore.deriveVantaPrivateCoreSourceArtifactsFromHeldNote(heldInput);
+  const inputRegisterRootResponse = await requestJson(baseUrl, "/private-core/register-root", {
+    body: JSON.stringify({
+      sourceArtifacts: inputSourceArtifacts,
+      witnessPackage: inputRootBoundary.noirWitnessPackage,
+    }),
+    method: "POST",
+  });
+  if (!inputRegisterRootResponse.ok || inputRegisterRootResponse.parsed?.known !== true) {
+    throw new Error(inputRegisterRootResponse.text || "operator-backed send input root registration failed");
+  }
+  printStatus("private-core send->unshield input root registration: PASS");
+
+  const previewResult = ledger.previewSend(transition);
+
   const sendTransitionResponse = await requestJson(baseUrl, "/private-core/send-transition", {
-    body: JSON.stringify({ witnessPackage: sendBoundary.noirWitnessPackage }),
+    body: JSON.stringify({
+      resultingRoot: previewResult.resultingRoot,
+      witnessPackage: sendBoundary.noirWitnessPackage,
+    }),
     method: "POST",
   });
   if (

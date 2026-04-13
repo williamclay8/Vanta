@@ -56,6 +56,7 @@ import { createPrivateCoreRootStore } from "./private-core-root-store.mjs";
 import { createPrivateCoreSendStore } from "./private-core-send-store.mjs";
 import {
   assertVantaPrivateCoreSourceArtifactConsistency,
+  deriveVantaPrivateCoreSendInputArtifactsFromWitnessPackage,
   normalizeVantaPrivateCoreSendWitnessPackage,
   normalizeVantaPrivateCoreWitnessPackage,
   proveAndVerifyVantaPrivateCoreSend,
@@ -418,6 +419,44 @@ const server = createServer(async (request, response) => {
     try {
       const body = await readJsonBody(request);
       const witnessPackage = normalizeVantaPrivateCoreSendWitnessPackage(body?.witnessPackage);
+      const sourcePublicInputs = witnessPackage.sourcePublicInputs;
+      const inputArtifacts = deriveVantaPrivateCoreSendInputArtifactsFromWitnessPackage(witnessPackage);
+
+      if (!privateCoreRootStore.hasRoot(sourcePublicInputs.stateRoot)) {
+        throw new Error("Private-core send transition input root is not registered.");
+      }
+
+      const latestRootRecord = privateCoreRootStore.getLatestRoot();
+      if (!latestRootRecord || latestRootRecord.root !== sourcePublicInputs.stateRoot) {
+        throw new Error("Private-core send transition input root is not the latest registered root.");
+      }
+
+      if (latestRootRecord.assetId !== inputArtifacts.assetId) {
+        throw new Error("Private-core send transition asset does not match the registered input root.");
+      }
+
+      if (latestRootRecord.amount !== inputArtifacts.amount) {
+        throw new Error("Private-core send transition amount basis does not match the registered input root.");
+      }
+
+      if (latestRootRecord.noteCommitment !== inputArtifacts.noteCommitment) {
+        throw new Error(
+          "Private-core send transition source note commitment does not match the registered input root.",
+        );
+      }
+
+      if (latestRootRecord.merkleLeaf !== inputArtifacts.merkleLeaf) {
+        throw new Error(
+          "Private-core send transition source Merkle leaf does not match the registered input root.",
+        );
+      }
+
+      if (latestRootRecord.witnessRoot !== inputArtifacts.witnessRoot) {
+        throw new Error(
+          "Private-core send transition source witness root does not match the registered input root.",
+        );
+      }
+
       const proofReceipt = await proveAndVerifyVantaPrivateCoreSend({
         witnessPackage,
       });
@@ -427,9 +466,14 @@ const server = createServer(async (request, response) => {
         witnessPackage,
       });
       privateCoreSendProofStore.recordProof(proofRecord);
+      const resultingRoot =
+        typeof body?.resultingRoot === "string" && body.resultingRoot.length > 0
+          ? body.resultingRoot.toLowerCase()
+          : null;
       const sendRecord = summarizePrivateCoreSendRecord({
         proofRecord,
         proofReceipt,
+        resultingRoot,
         witnessPackage,
       });
       privateCoreSendStore.recordSend(sendRecord);
@@ -1576,14 +1620,14 @@ function summarizePrivateCoreSendProofRecord(args) {
       "private-core-send-proof",
       args.action,
       sourcePublicInputs.inputNullifier,
-      sourcePublicInputs.inputStateRoot,
+      sourcePublicInputs.stateRoot,
       String(completedAt),
     ].join(":"),
     proofVersion: args.proofReceipt.proofVersion,
     provingHashLane: args.proofReceipt.provingHashLane,
     publicInputCount: args.proofReceipt.publicInputCount,
-    releaseDestination: sourcePublicInputs.recipient,
-    root: sourcePublicInputs.inputStateRoot,
+    releaseDestination: sourcePublicInputs.recipientCommitment,
+    root: sourcePublicInputs.stateRoot,
     verified: args.proofReceipt.verified === true,
   };
 }
@@ -1598,18 +1642,18 @@ function summarizePrivateCoreSendRecord(args) {
     changeCommitment: sourcePublicInputs.changeCommitment,
     completedAt,
     inputNullifier: sourcePublicInputs.inputNullifier,
-    inputRoot: sourcePublicInputs.inputStateRoot,
+    inputRoot: sourcePublicInputs.stateRoot,
     noteVersion: sourcePublicInputs.noteVersion,
     proofFieldCount: args.proofReceipt.proofFieldCount,
     proofId: args.proofRecord.proofId,
     publicInputCount: args.proofReceipt.publicInputCount,
     recipientCommitment: sourcePublicInputs.recipientCommitment,
-    resultingRoot: sourcePublicInputs.resultingStateRoot,
+    resultingRoot: typeof args.resultingRoot === "string" ? args.resultingRoot : null,
     sendAmount: sourcePublicInputs.sendAmount,
     sendId: [
       "private-core-send",
       sourcePublicInputs.inputNullifier,
-      sourcePublicInputs.inputStateRoot,
+      sourcePublicInputs.stateRoot,
       String(completedAt),
     ].join(":"),
   };

@@ -190,6 +190,7 @@ These commands cover:
 - operator-backed private send to recipient unshield roundtrip
 - operator-backed chained private send to recipient unshield roundtrip
 - operator-backed chained private-send continuity across two verified send transitions
+- operator-backed private send now requires the current input root to be registered before transition
 - operator-backed chained private-send persistence across operator restart
 - operator-backed private send to recipient unshield persistence across operator restart
 - operator-backed chained private send to recipient unshield persistence across operator restart
@@ -207,7 +208,7 @@ These commands cover:
 
 `private-core:demo-preflight` combines the full verification pass with the current operator status summary.
 
-`private-core:operator-status` gives a quick readout of the current operator root, proof, send-proof, send-transition, consume, and release state when the operator server is running, including proof/send, proof/consume, and proof/release linkage.
+`private-core:operator-status` gives a quick readout of the current operator root, proof, send-proof, send-transition, consume, and release state when the operator server is running, including proof/send, proof/consume, and proof/release linkage. The send lane now uses the same current-root registration discipline as consume before the operator will accept a transition.
 
 ---
 

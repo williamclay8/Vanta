@@ -117,7 +117,9 @@ npm run private-core:operator-status
 The operator-status command now prints:
 - current root
 - latest proof
+- latest send proof
 - latest send linked proof
+- latest send resulting root
 - latest consume
 - latest release
 - proof/send link status

@@ -80,12 +80,20 @@ async function loadPrivateCoreModule() {
         'from "./vantaPrivateCore"',
       ),
     );
+    writeFileSync(
+      join(tempTsDir, "vantaPrivateCoreUnshieldProof.ts"),
+      readFileSync(resolve(repoRoot, "src/zk/vantaPrivateCoreUnshieldProof.ts"), "utf8").replace(
+        /from "@\/zk\/vantaPrivateCore"/g,
+        'from "./vantaPrivateCore"',
+      ),
+    );
 
     execFileSync(
       resolve(repoRoot, "node_modules/.bin/tsc"),
       [
         join(tempTsDir, "vantaPrivateCore.ts"),
         join(tempTsDir, "vantaPrivateCoreSendProof.ts"),
+        join(tempTsDir, "vantaPrivateCoreUnshieldProof.ts"),
         "--target",
         "ES2022",
         "--module",
@@ -102,6 +110,7 @@ async function loadPrivateCoreModule() {
     );
 
     const sendProofPath = join(tempJsDir, "vantaPrivateCoreSendProof.js");
+    const unshieldProofPath = join(tempJsDir, "vantaPrivateCoreUnshieldProof.js");
     writeFileSync(
       sendProofPath,
       readFileSync(sendProofPath, "utf8").replace(
@@ -109,16 +118,24 @@ async function loadPrivateCoreModule() {
         'from "./vantaPrivateCore.js"',
       ),
     );
+    writeFileSync(
+      unshieldProofPath,
+      readFileSync(unshieldProofPath, "utf8").replace(
+        /from "\.\/vantaPrivateCore"/g,
+        'from "./vantaPrivateCore.js"',
+      ),
+    );
 
     const privateCore = await import(pathToFileURL(join(tempJsDir, "vantaPrivateCore.js")).href);
     const sendProof = await import(pathToFileURL(sendProofPath).href);
-    return { privateCore, sendProof };
+    const unshieldProof = await import(pathToFileURL(unshieldProofPath).href);
+    return { privateCore, sendProof, unshieldProof };
   } finally {
     rmSync(tempRoot, { recursive: true, force: true });
   }
 }
 
-const { privateCore, sendProof } = await loadPrivateCoreModule();
+const { privateCore, sendProof, unshieldProof } = await loadPrivateCoreModule();
 
 const entries = [
   {
@@ -228,8 +245,31 @@ server.stderr.on("data", (chunk) => {
 try {
   await waitForHealth(baseUrl);
 
+  const inputRootBoundary = unshieldProof.buildVantaPrivateCoreUnshieldProofBoundary({
+    heldNote: heldInput,
+    ownerSecretKey: sender.secretKey,
+    releaseDestination:
+      "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    circuitMerkleDepth: 3,
+    requireNontrivialMerklePath: true,
+  });
+  const inputSourceArtifacts = privateCore.deriveVantaPrivateCoreSourceArtifactsFromHeldNote(heldInput);
+  const registerRootResponse = await requestJson(baseUrl, "/private-core/register-root", {
+    body: JSON.stringify({
+      sourceArtifacts: inputSourceArtifacts,
+      witnessPackage: inputRootBoundary.noirWitnessPackage,
+    }),
+    method: "POST",
+  });
+  if (!registerRootResponse.ok || registerRootResponse.parsed?.known !== true) {
+    throw new Error(registerRootResponse.text || "operator-backed send input root registration failed");
+  }
+  printStatus("private-core send roundtrip input root registration: PASS");
+
+  const previewResult = ledger.previewSend(transition);
+
   const transitionResponse = await requestJson(baseUrl, "/private-core/send-transition", {
-    body: JSON.stringify({ witnessPackage }),
+    body: JSON.stringify({ resultingRoot: previewResult.resultingRoot, witnessPackage }),
     method: "POST",
   });
 

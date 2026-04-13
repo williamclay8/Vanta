@@ -226,6 +226,63 @@ export function assertVantaPrivateCoreSourceArtifactConsistency(sourceArtifacts,
   }
 }
 
+export function deriveVantaPrivateCoreSendInputArtifactsFromWitnessPackage(witnessPackage) {
+  const normalizedWitnessPackage = normalizeVantaPrivateCoreSendWitnessPackage(witnessPackage);
+  const sourcePublicInputs = normalizedWitnessPackage.sourcePublicInputs;
+  const publicInputs = normalizedWitnessPackage.publicInputs;
+  const privateWitness = normalizedWitnessPackage.privateWitness;
+  const inputAmount = BigInt(String(sourcePublicInputs.sendAmount)) + BigInt(String(sourcePublicInputs.changeAmount));
+
+  const encodedNote = concatBytes(
+    encodeDomain("vanta.private-core.note.v0"),
+    encodeU8(Number(publicInputs.note_version)),
+    encodeU8(Number(privateWitness.input_note_type_code)),
+    hexToBytes(normalizeHex32(sourcePublicInputs.assetId)),
+    encodeU128(inputAmount),
+    hexToBytes(
+      decodeBytes32FromTwoU128Be(
+        privateWitness.sender_public_key_hi,
+        privateWitness.sender_public_key_lo,
+      ),
+    ),
+    hexToBytes(
+      decodeBytes32FromTwoU128Be(
+        privateWitness.input_note_nonce_hi,
+        privateWitness.input_note_nonce_lo,
+      ),
+    ),
+    hexToBytes(
+      decodeBytes32FromTwoU128Be(
+        privateWitness.input_note_secret_hi,
+        privateWitness.input_note_secret_lo,
+      ),
+    ),
+    hexToBytes(decodeBytes32FromTwoU128Be(privateWitness.input_blinding_hi, privateWitness.input_blinding_lo)),
+    hexToBytes(
+      decodeBytes32FromTwoU128Be(
+        privateWitness.input_derivation_tag_hi,
+        privateWitness.input_derivation_tag_lo,
+      ),
+    ),
+  );
+
+  const noteCommitment = normalizeHex32(
+    `0x${Buffer.from(
+      sha256(concatBytes(encodeDomain("vanta.private-core.note-commitment.v0"), encodedNote)),
+    ).toString("hex")}`,
+  );
+  const merkleLeaf = deriveSourceMerkleLeaf(noteCommitment);
+  const witnessRoot = normalizeHex32(sourcePublicInputs.stateRoot);
+
+  return {
+    amount: inputAmount.toString(10),
+    assetId: normalizeHex32(sourcePublicInputs.assetId),
+    merkleLeaf,
+    noteCommitment,
+    witnessRoot,
+  };
+}
+
 function serializeWitnessPackageToToml(witnessPackage) {
   const publicInputs = witnessPackage.publicInputs;
   const privateWitness = witnessPackage.privateWitness;

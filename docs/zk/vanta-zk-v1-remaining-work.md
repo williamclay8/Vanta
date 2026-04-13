@@ -53,6 +53,7 @@ The repo now already has a first narrow operator-side version of that contract:
 - verify proof
 - bind the verified proving-lane public input vector to the witness package public input vector
 - require the source root to be the latest registered private-core state
+- require private send transitions to use the latest registered input root too
 - enforce nullifier uniqueness in the consume path
 - record explicit release outcomes in operator-side release state
 - surface proof execution and operator-state summaries in the app

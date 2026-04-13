@@ -227,7 +227,10 @@ try {
   printStatus("operator restart setup consume: PASS");
 
   const sendTransitionResponse = await requestJson(baseUrl, "/private-core/send-transition", {
-    body: JSON.stringify({ witnessPackage: sendWitnessPackage }),
+    body: JSON.stringify({
+      resultingRoot: fixtures.send.validResultingRoot,
+      witnessPackage: sendWitnessPackage,
+    }),
     method: "POST",
   });
   if (

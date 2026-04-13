@@ -35,6 +35,7 @@ That confirms:
 - recipient notes from private send still recover and spend coherently
 - received private notes can still become the input to a second private send coherently
 - one operator-backed private send still proves, applies, recovers for the recipient, and preserves sender privacy
+- one operator-backed private send now requires the current input root to be registered before transition
 - one operator-backed private send can now flow into operator-backed recipient unshield coherently
 - two operator-backed private send transitions can now flow into operator-backed recipient unshield coherently
 - two operator-backed private send transitions can now execute in sequence on evolving private state
@@ -53,6 +54,7 @@ The operator-status command gives a quick summary snapshot of:
 - latest proof
 - latest send proof
 - latest send linked proof
+- latest send resulting root
 - latest consume
 - latest release
 - proof/send link status

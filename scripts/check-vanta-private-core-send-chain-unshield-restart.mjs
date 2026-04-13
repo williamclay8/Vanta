@@ -258,8 +258,34 @@ try {
   liveServer = started.server;
   await waitForHealth(baseUrl);
 
+  const firstInputRootBoundary = unshieldProof.buildVantaPrivateCoreUnshieldProofBoundary({
+    heldNote: firstHeldSender,
+    ownerSecretKey: firstSender.secretKey,
+    releaseDestination,
+    circuitMerkleDepth: 3,
+    requireNontrivialMerklePath: true,
+  });
+  const firstInputSourceArtifacts =
+    privateCore.deriveVantaPrivateCoreSourceArtifactsFromHeldNote(firstHeldSender);
+  const firstRegisterRootResponse = await requestJson(baseUrl, "/private-core/register-root", {
+    body: JSON.stringify({
+      sourceArtifacts: firstInputSourceArtifacts,
+      witnessPackage: firstInputRootBoundary.noirWitnessPackage,
+    }),
+    method: "POST",
+  });
+  if (!firstRegisterRootResponse.ok || firstRegisterRootResponse.parsed?.known !== true) {
+    throw new Error(firstRegisterRootResponse.text || "first operator-backed send input root registration failed");
+  }
+  printStatus("private-core send-chain->unshield restart first input root registration: PASS");
+
+  const firstPreviewResult = ledger.previewSend(firstTransition);
+
   const firstTransitionResponse = await requestJson(baseUrl, "/private-core/send-transition", {
-    body: JSON.stringify({ witnessPackage: firstBoundary.noirWitnessPackage }),
+    body: JSON.stringify({
+      resultingRoot: firstPreviewResult.resultingRoot,
+      witnessPackage: firstBoundary.noirWitnessPackage,
+    }),
     method: "POST",
   });
   if (!firstTransitionResponse.ok || firstTransitionResponse.parsed?.verified !== true) {
@@ -284,8 +310,34 @@ try {
     requireNontrivialMerklePath: true,
   });
 
+  const secondInputRootBoundary = unshieldProof.buildVantaPrivateCoreUnshieldProofBoundary({
+    heldNote: heldFirstRecipient,
+    ownerSecretKey: firstRecipient.secretKey,
+    releaseDestination,
+    circuitMerkleDepth: 3,
+    requireNontrivialMerklePath: true,
+  });
+  const secondInputSourceArtifacts =
+    privateCore.deriveVantaPrivateCoreSourceArtifactsFromHeldNote(heldFirstRecipient);
+  const secondRegisterRootResponse = await requestJson(baseUrl, "/private-core/register-root", {
+    body: JSON.stringify({
+      sourceArtifacts: secondInputSourceArtifacts,
+      witnessPackage: secondInputRootBoundary.noirWitnessPackage,
+    }),
+    method: "POST",
+  });
+  if (!secondRegisterRootResponse.ok || secondRegisterRootResponse.parsed?.known !== true) {
+    throw new Error(secondRegisterRootResponse.text || "second operator-backed send input root registration failed");
+  }
+  printStatus("private-core send-chain->unshield restart second input root registration: PASS");
+
+  const secondPreviewResult = ledger.previewSend(secondTransition);
+
   const secondTransitionResponse = await requestJson(baseUrl, "/private-core/send-transition", {
-    body: JSON.stringify({ witnessPackage: secondBoundary.noirWitnessPackage }),
+    body: JSON.stringify({
+      resultingRoot: secondPreviewResult.resultingRoot,
+      witnessPackage: secondBoundary.noirWitnessPackage,
+    }),
     method: "POST",
   });
   if (!secondTransitionResponse.ok || secondTransitionResponse.parsed?.verified !== true) {

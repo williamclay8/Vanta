@@ -118,7 +118,12 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorSummaryUpdatedAt: number | null;
   privateCoreUnshieldState: VantaPrivateCoreUnshieldState | null;
   recentShield: RecentShieldContext | null;
+  ensurePrivateCoreOperatorRootKnown: (args: {
+    proofBoundary: VantaPrivateCoreUnshieldProofBoundaryV0;
+    sourceArtifacts: ReturnType<typeof deriveVantaPrivateCoreSourceArtifactsFromHeldNote>;
+  }) => Promise<void>;
   refreshPrivateCoreOperatorSummary: () => Promise<VantaPrivateCoreOperatorSummaryStateResponse>;
+  previewPrivateCoreSendTransition: (transition: SendTransitionV0) => SendResultV0;
   runPrivateCoreSendTransition: (transition: SendTransitionV0) => {
     nextHoldState: VantaPrivateCoreHoldState | null;
     nextShieldState: VantaPrivateCoreShieldState | null;
@@ -732,6 +737,11 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     [buildPrivateCorePresentedState, privateCoreLedger, privateCoreOwner.secretKey],
   );
 
+  const previewPrivateCoreSendTransition = useCallback(
+    (transition: SendTransitionV0) => privateCoreLedger.previewSend(transition),
+    [privateCoreLedger],
+  );
+
   const runPrivateCoreUnshield = useCallback(async (): Promise<VantaPrivateCoreUnshieldState> => {
     if (!privateCoreHoldState) {
       const nextState: VantaPrivateCoreUnshieldState = {
@@ -1312,7 +1322,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSummaryUpdatedAt,
       privateCoreUnshieldState,
       recentShield,
+      ensurePrivateCoreOperatorRootKnown,
       refreshPrivateCoreOperatorSummary,
+      previewPrivateCoreSendTransition,
       runPrivateCoreSendTransition,
       runPrivateCoreReplayAttempt,
       runPrivateCoreShield,
@@ -1359,7 +1371,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreRecentShield,
       privateCoreUnshieldState,
       recentShield,
+      ensurePrivateCoreOperatorRootKnown,
       refreshPrivateCoreOperatorSummary,
+      previewPrivateCoreSendTransition,
       runPrivateCoreSendTransition,
       runPrivateCoreReplayAttempt,
       runPrivateCoreShield,

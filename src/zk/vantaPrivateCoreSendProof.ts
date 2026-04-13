@@ -202,6 +202,7 @@ export type VantaPrivateCoreSendProofBoundaryV0 = {
 export type VantaPrivateCoreFixedDepthSendFixtureV0 = {
   merkleDepth: typeof VANTA_PRIVATE_CORE_SEND_CIRCUIT_MERKLE_DEPTH_V0;
   validBoundary: VantaPrivateCoreSendProofBoundaryV0;
+  validResultingRoot: Bytes32Hex;
   invalidDirectionWitnessPackage: VantaPrivateCoreNoirSendWitnessPackageV0;
 };
 
@@ -597,6 +598,7 @@ export function getVantaPrivateCoreFixedDepthSendFixtureV0():
     circuitMerkleDepth: VANTA_PRIVATE_CORE_SEND_CIRCUIT_MERKLE_DEPTH_V0,
     requireNontrivialMerklePath: true,
   });
+  const validResultingRoot = ledger.previewSend(transition).resultingRoot;
 
   const invalidDirectionWitnessPackage: VantaPrivateCoreNoirSendWitnessPackageV0 = {
     ...validBoundary.noirWitnessPackage,
@@ -612,6 +614,7 @@ export function getVantaPrivateCoreFixedDepthSendFixtureV0():
   return {
     merkleDepth: VANTA_PRIVATE_CORE_SEND_CIRCUIT_MERKLE_DEPTH_V0,
     validBoundary,
+    validResultingRoot,
     invalidDirectionWitnessPackage,
   };
 }

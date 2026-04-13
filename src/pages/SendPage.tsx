@@ -27,6 +27,7 @@ import {
   type Bytes32Hex,
 } from "@/zk/vantaPrivateCore";
 import { buildVantaPrivateCoreSendProofBoundary } from "@/zk/vantaPrivateCoreSendProof";
+import { buildVantaPrivateCoreUnshieldProofBoundary } from "@/zk/vantaPrivateCoreUnshieldProof";
 import {
   requestVantaPrivateCoreOperatorSendTransition,
 } from "@/zk/vantaPrivateCoreOperatorClient";
@@ -140,6 +141,7 @@ function formatOperatorSummaryFreshness(value: number | null) {
 
 export function SendPage({ dashboard = false }: SendPageProps) {
   const {
+    ensurePrivateCoreOperatorRootKnown,
     privateCoreHoldState,
     privateCoreOperatorBoundaryPrimaryNote,
     privateCoreOperatorBoundaryStatusLabel,
@@ -151,6 +153,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOwner,
     recentShield,
     privateCoreSendState,
+    previewPrivateCoreSendTransition,
     refreshPrivateCoreOperatorSummary,
     runPrivateCoreSendTransition,
   } = usePrivacyFlow();
@@ -594,7 +597,24 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     });
 
     try {
+      const previewResult = previewPrivateCoreSendTransition(privateCoreSendPreview.transition);
+
+      if (privateCoreHoldState) {
+        await ensurePrivateCoreOperatorRootKnown({
+          proofBoundary: buildVantaPrivateCoreUnshieldProofBoundary({
+            heldNote: privateCoreHoldState.heldNote,
+            ownerSecretKey: privateCoreOwner.secretKey,
+            releaseDestination:
+              "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          }),
+          sourceArtifacts: deriveVantaPrivateCoreSourceArtifactsFromHeldNote(
+            privateCoreHoldState.heldNote,
+          ),
+        });
+      }
+
       const sendReceipt = await requestVantaPrivateCoreOperatorSendTransition({
+        resultingRoot: previewResult.resultingRoot,
         witnessPackage: privateCoreSendPreview.boundary.noirWitnessPackage,
       });
       runPrivateCoreSendTransition(privateCoreSendPreview.transition);

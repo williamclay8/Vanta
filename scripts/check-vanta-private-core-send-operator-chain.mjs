@@ -73,15 +73,21 @@ async function loadModules() {
       resolve(repoRoot, "src/zk/vantaPrivateCoreSendProof.ts"),
       "utf8",
     ).replace(/from "@\/zk\/vantaPrivateCore"/g, 'from "./vantaPrivateCore"');
+    const unshieldProofSource = readFileSync(
+      resolve(repoRoot, "src/zk/vantaPrivateCoreUnshieldProof.ts"),
+      "utf8",
+    ).replace(/from "@\/zk\/vantaPrivateCore"/g, 'from "./vantaPrivateCore"');
 
     writeFileSync(join(tempTsDir, "vantaPrivateCore.ts"), privateCoreSource);
     writeFileSync(join(tempTsDir, "vantaPrivateCoreSendProof.ts"), sendProofSource);
+    writeFileSync(join(tempTsDir, "vantaPrivateCoreUnshieldProof.ts"), unshieldProofSource);
 
     execFileSync(
       resolve(repoRoot, "node_modules/.bin/tsc"),
       [
         join(tempTsDir, "vantaPrivateCore.ts"),
         join(tempTsDir, "vantaPrivateCoreSendProof.ts"),
+        join(tempTsDir, "vantaPrivateCoreUnshieldProof.ts"),
         "--target",
         "ES2022",
         "--module",
@@ -98,9 +104,17 @@ async function loadModules() {
     );
 
     const sendProofPath = join(tempJsDir, "vantaPrivateCoreSendProof.js");
+    const unshieldProofPath = join(tempJsDir, "vantaPrivateCoreUnshieldProof.js");
     writeFileSync(
       sendProofPath,
       readFileSync(sendProofPath, "utf8").replace(
+        /from "\.\/vantaPrivateCore"/g,
+        'from "./vantaPrivateCore.js"',
+      ),
+    );
+    writeFileSync(
+      unshieldProofPath,
+      readFileSync(unshieldProofPath, "utf8").replace(
         /from "\.\/vantaPrivateCore"/g,
         'from "./vantaPrivateCore.js"',
       ),
@@ -109,13 +123,14 @@ async function loadModules() {
     return {
       privateCore: await import(pathToFileURL(join(tempJsDir, "vantaPrivateCore.js")).href),
       sendProof: await import(pathToFileURL(sendProofPath).href),
+      unshieldProof: await import(pathToFileURL(unshieldProofPath).href),
     };
   } finally {
     rmSync(tempRoot, { recursive: true, force: true });
   }
 }
 
-const { privateCore, sendProof } = await loadModules();
+const { privateCore, sendProof, unshieldProof } = await loadModules();
 
 const entries = [
   { secretKey: "0x1010101010101010101010101010101010101010101010101010101010101010", amount: 11_000_000n },
@@ -208,8 +223,35 @@ const server = spawn("node", ["operator/unshield-server.mjs"], {
 try {
   await waitForHealth(baseUrl);
 
+  const firstInputRootBoundary = unshieldProof.buildVantaPrivateCoreUnshieldProofBoundary({
+    heldNote: firstHeldSender,
+    ownerSecretKey: firstSender.secretKey,
+    releaseDestination:
+      "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    circuitMerkleDepth: 3,
+    requireNontrivialMerklePath: true,
+  });
+  const firstInputSourceArtifacts =
+    privateCore.deriveVantaPrivateCoreSourceArtifactsFromHeldNote(firstHeldSender);
+  const firstRegisterRootResponse = await requestJson(baseUrl, "/private-core/register-root", {
+    body: JSON.stringify({
+      sourceArtifacts: firstInputSourceArtifacts,
+      witnessPackage: firstInputRootBoundary.noirWitnessPackage,
+    }),
+    method: "POST",
+  });
+  if (!firstRegisterRootResponse.ok || firstRegisterRootResponse.parsed?.known !== true) {
+    throw new Error(firstRegisterRootResponse.text || "first send input root registration failed");
+  }
+  printStatus("private-core send operator chain first input root registration: PASS");
+
+  const firstPreviewResult = ledger.previewSend(firstTransition);
+
   const firstTransitionResponse = await requestJson(baseUrl, "/private-core/send-transition", {
-    body: JSON.stringify({ witnessPackage: firstBoundary.noirWitnessPackage }),
+    body: JSON.stringify({
+      resultingRoot: firstPreviewResult.resultingRoot,
+      witnessPackage: firstBoundary.noirWitnessPackage,
+    }),
     method: "POST",
   });
   if (!firstTransitionResponse.ok || firstTransitionResponse.parsed?.verified !== true) {
@@ -236,8 +278,35 @@ try {
     requireNontrivialMerklePath: true,
   });
 
+  const secondInputRootBoundary = unshieldProof.buildVantaPrivateCoreUnshieldProofBoundary({
+    heldNote: heldFirstRecipient,
+    ownerSecretKey: firstRecipient.secretKey,
+    releaseDestination:
+      "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    circuitMerkleDepth: 3,
+    requireNontrivialMerklePath: true,
+  });
+  const secondInputSourceArtifacts =
+    privateCore.deriveVantaPrivateCoreSourceArtifactsFromHeldNote(heldFirstRecipient);
+  const secondRegisterRootResponse = await requestJson(baseUrl, "/private-core/register-root", {
+    body: JSON.stringify({
+      sourceArtifacts: secondInputSourceArtifacts,
+      witnessPackage: secondInputRootBoundary.noirWitnessPackage,
+    }),
+    method: "POST",
+  });
+  if (!secondRegisterRootResponse.ok || secondRegisterRootResponse.parsed?.known !== true) {
+    throw new Error(secondRegisterRootResponse.text || "second send input root registration failed");
+  }
+  printStatus("private-core send operator chain second input root registration: PASS");
+
+  const secondPreviewResult = ledger.previewSend(secondTransition);
+
   const secondTransitionResponse = await requestJson(baseUrl, "/private-core/send-transition", {
-    body: JSON.stringify({ witnessPackage: secondBoundary.noirWitnessPackage }),
+    body: JSON.stringify({
+      resultingRoot: secondPreviewResult.resultingRoot,
+      witnessPackage: secondBoundary.noirWitnessPackage,
+    }),
     method: "POST",
   });
   if (!secondTransitionResponse.ok || secondTransitionResponse.parsed?.verified !== true) {

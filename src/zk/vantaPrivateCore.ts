@@ -1226,7 +1226,7 @@ export class VantaPrivateCoreLedger {
     };
   }
 
-  send(transition: SendTransitionV0): SendResultV0 {
+  previewSend(transition: SendTransitionV0): SendResultV0 {
     const envelope = buildVantaPrivateCoreSendProofEnvelope(transition);
 
     if (!verifyVantaPrivateCoreSendProofEnvelope(envelope)) {
@@ -1242,22 +1242,19 @@ export class VantaPrivateCoreLedger {
       throw new VantaPrivateCoreError(`Nullifier ${inputNullifier.value} has already been consumed.`);
     }
 
-    this.consumedNullifiers.add(inputNullifier.value);
-
-    const recipientInsertionIndex = this.tree.insert(transition.recipient.commitment.value);
-    this.commitments.push({ commitment: transition.recipient.commitment });
-
-    const changeInsertionIndex =
-      transition.change !== null ? this.tree.insert(transition.change.commitment.value) : null;
-
-    if (transition.change) {
-      this.commitments.push({ commitment: transition.change.commitment });
+    const previewTree = new OrderedBinaryMerkleTree();
+    for (const stored of this.commitments) {
+      previewTree.insert(stored.commitment.value);
     }
+
+    const recipientInsertionIndex = previewTree.insert(transition.recipient.commitment.value);
+    const changeInsertionIndex =
+      transition.change !== null ? previewTree.insert(transition.change.commitment.value) : null;
 
     return {
       inputNullifier,
       inputRoot: transition.input.witness.root,
-      resultingRoot: this.tree.getRoot(),
+      resultingRoot: previewTree.getRoot(),
       recipient: {
         note: transition.recipient.note,
         commitment: transition.recipient.commitment,
@@ -1274,6 +1271,22 @@ export class VantaPrivateCoreLedger {
             }
           : null,
     };
+  }
+
+  send(transition: SendTransitionV0): SendResultV0 {
+    const preview = this.previewSend(transition);
+
+    this.consumedNullifiers.add(preview.inputNullifier.value);
+
+    this.tree.insert(transition.recipient.commitment.value);
+    this.commitments.push({ commitment: transition.recipient.commitment });
+
+    if (transition.change) {
+      this.tree.insert(transition.change.commitment.value);
+      this.commitments.push({ commitment: transition.change.commitment });
+    }
+
+    return preview;
   }
 
   isNullifierConsumed(nullifier: Bytes32Hex): boolean {
