@@ -21,6 +21,8 @@ type VantaPrivateCoreStatePanelProps = {
   operatorLatestRelease?: VantaPrivateCoreOperatorReleaseRecord | null;
   operatorLatestReleaseProof?: VantaPrivateCoreOperatorProofRecord | null;
   operatorLatestRoot?: VantaPrivateCoreOperatorRootRecord | null;
+  operatorBoundaryPrimaryNote?: string | null;
+  operatorBoundaryStatusLabel?: string | null;
   operatorProofConsumeLinkStatus?: string | null;
   operatorProofError?: string | null;
   operatorProofs?: VantaPrivateCoreOperatorProofRecord[];
@@ -125,6 +127,8 @@ export function VantaPrivateCoreStatePanel({
   operatorLatestRelease = null,
   operatorLatestReleaseProof = null,
   operatorLatestRoot = null,
+  operatorBoundaryPrimaryNote = null,
+  operatorBoundaryStatusLabel = null,
   operatorProofConsumeLinkStatus = null,
   operatorProofError = null,
   operatorProofs = [],
@@ -289,6 +293,14 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Operator summary refresh</span>
               <strong>{formatOperatorSummaryFreshness(operatorSummaryUpdatedAt)}</strong>
+            </div>
+            <div className="review-row">
+              <span>Operator boundary status</span>
+              <strong>{operatorBoundaryStatusLabel ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Operator boundary note</span>
+              <strong>{operatorBoundaryPrimaryNote ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Circuit readiness</span>

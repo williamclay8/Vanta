@@ -95,6 +95,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorReleaseError: string | null;
   privateCoreOperatorReleases: VantaPrivateCoreOperatorReleaseRecord[];
   privateCoreOperatorRoots: VantaPrivateCoreOperatorRootRecord[];
+  privateCoreOperatorBoundaryPrimaryNote: string | null;
+  privateCoreOperatorBoundaryStatusLabel: string | null;
   privateCoreOperatorRootError: string | null;
   privateCoreOperatorRootRegistrationStatus: string | null;
   privateCoreOperatorRootCurrentnessLabel: string | null;
@@ -1071,7 +1073,28 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   ]);
 
   const value = useMemo<PrivacyFlowContextValue>(
-    () => ({
+    () => {
+      const privateCoreOperatorRootCurrentnessLabel = summarizePrivateCoreOperatorRootCurrentness({
+        currentRoot:
+          privateCoreHoldState?.sourceWitnessRoot ??
+          privateCoreRecentShield?.sourceMerkleRoot ??
+          null,
+        operatorCurrentRoot: privateCoreOperatorCurrentRoot,
+        operatorRootError: privateCoreOperatorRootError,
+        operatorRoots: privateCoreOperatorRoots,
+      });
+      const privateCoreOperatorBoundarySummary = summarizePrivateCoreOperatorBoundaryStatus({
+        operatorConsumeError: privateCoreOperatorConsumeError,
+        operatorProofConsumeLinkStatus: privateCoreOperatorProofConsumeLinkStatus,
+        operatorProofError: privateCoreOperatorProofError,
+        operatorProofReleaseLinkStatus: privateCoreOperatorProofReleaseLinkStatus,
+        operatorReleaseError: privateCoreOperatorReleaseError,
+        operatorRootCurrentnessLabel: privateCoreOperatorRootCurrentnessLabel,
+        operatorRootError: privateCoreOperatorRootError,
+        operatorSummaryUpdatedAt: privateCoreOperatorSummaryUpdatedAt,
+      });
+
+      return {
       privateCoreOwner,
       privateCoreRecentShield,
       privateCoreHoldState,
@@ -1091,17 +1114,11 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorReleaseError,
       privateCoreOperatorReleases,
       privateCoreOperatorRoots,
+      privateCoreOperatorBoundaryPrimaryNote: privateCoreOperatorBoundarySummary.primaryNote,
+      privateCoreOperatorBoundaryStatusLabel: privateCoreOperatorBoundarySummary.statusLabel,
       privateCoreOperatorRootError,
       privateCoreOperatorRootRegistrationStatus,
-      privateCoreOperatorRootCurrentnessLabel: summarizePrivateCoreOperatorRootCurrentness({
-        currentRoot:
-          privateCoreHoldState?.sourceWitnessRoot ??
-          privateCoreRecentShield?.sourceMerkleRoot ??
-          null,
-        operatorCurrentRoot: privateCoreOperatorCurrentRoot,
-        operatorRootError: privateCoreOperatorRootError,
-        operatorRoots: privateCoreOperatorRoots,
-      }),
+      privateCoreOperatorRootCurrentnessLabel,
       privateCoreOperatorSummaryUpdatedAt,
       privateCoreUnshieldState,
       recentShield,
@@ -1112,7 +1129,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreRecentShield,
       setPrivateCoreUnshieldState,
       setRecentShield,
-    }),
+    };
+    },
     [
       privateCoreHoldState,
       privateCoreOwner,
@@ -1209,6 +1227,83 @@ function summarizePrivateCoreOperatorRootCurrentness(args: {
   }
 
   return "Root not yet registered";
+}
+
+function summarizePrivateCoreOperatorBoundaryStatus(args: {
+  operatorConsumeError: string | null;
+  operatorProofConsumeLinkStatus: string | null;
+  operatorProofError: string | null;
+  operatorProofReleaseLinkStatus: string | null;
+  operatorReleaseError: string | null;
+  operatorRootCurrentnessLabel: string | null;
+  operatorRootError: string | null;
+  operatorSummaryUpdatedAt: number | null;
+}): {
+  statusLabel: string | null;
+  primaryNote: string | null;
+} {
+  if (
+    args.operatorConsumeError ||
+    args.operatorProofError ||
+    args.operatorReleaseError ||
+    args.operatorRootError
+  ) {
+    return {
+      statusLabel: "Operator state unavailable",
+      primaryNote:
+        args.operatorProofError ??
+        args.operatorConsumeError ??
+        args.operatorReleaseError ??
+        args.operatorRootError,
+    };
+  }
+
+  if (!args.operatorSummaryUpdatedAt) {
+    return {
+      statusLabel: "Awaiting operator summary",
+      primaryNote: "No operator summary has been observed yet.",
+    };
+  }
+
+  if (args.operatorRootCurrentnessLabel !== "Current operator root") {
+    return {
+      statusLabel: "Operator root not current",
+      primaryNote: args.operatorRootCurrentnessLabel ?? "Operator root status unavailable.",
+    };
+  }
+
+  if (args.operatorProofConsumeLinkStatus !== "linked") {
+    return {
+      statusLabel: "Proof and consume not linked",
+      primaryNote:
+        args.operatorProofConsumeLinkStatus === "mismatch"
+          ? "Latest consume record does not match its linked proof."
+          : "Latest consume proof linkage is unavailable.",
+    };
+  }
+
+  if (args.operatorProofReleaseLinkStatus !== "linked") {
+    return {
+      statusLabel: "Proof and release not linked",
+      primaryNote:
+        args.operatorProofReleaseLinkStatus === "mismatch"
+          ? "Latest release record does not match its linked proof."
+          : "Latest release proof linkage is unavailable.",
+    };
+  }
+
+  const summaryAgeMs = Date.now() - args.operatorSummaryUpdatedAt;
+  if (summaryAgeMs > 30_000) {
+    return {
+      statusLabel: "Operator summary aging",
+      primaryNote: "Operator summary is older than 30 seconds.",
+    };
+  }
+
+  return {
+    statusLabel: "Operator boundary coherent",
+    primaryNote: "Current root, linked proof, consume, and release state all agree.",
+  };
 }
 
 function applyPrivateCoreOperatorSummaryState(args: {
