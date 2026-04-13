@@ -288,6 +288,7 @@ The private-core proof lane makes the first zk boundary real, but it should stil
 Yes. The repo includes a fixed-depth Noir single-note unshield circuit for the standalone Vanta Private Core lane, plus:
 - valid/invalid circuit regression checks
 - source-layer send application regression checks
+- send-to-unshield continuity regression checks
 - local proof generation and verification
 - operator-backed proof execution
 - replay rejection and operator-state smoke coverage

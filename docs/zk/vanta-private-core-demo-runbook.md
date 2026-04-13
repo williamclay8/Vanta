@@ -30,6 +30,7 @@ That confirms:
 - the app builds
 - the fixed-depth Noir circuit still passes the valid fixture and rejects the invalid fixture
 - source-layer send transitions still consume the input note and recover the change note coherently
+- residual change notes from private send still flow into hold and unshield coherently
 - the operator consume regression is still green
 - the operator HTTP smoke path is still green
 - send-proof state is still explicit and restart-safe

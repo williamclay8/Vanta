@@ -141,6 +141,7 @@ These commands currently prove:
 - the fixed-depth Noir circuit still accepts the valid witness
 - the malformed Merkle-path witness still fails
 - source-layer send transitions still consume the input note and recover the change note coherently
+- residual change notes from private send still hold and unshield coherently
 - a real local proof can still be generated and verified
 - the operator HTTP surface is still coherent
 - operator proof, consume, release, and root state survive restart
