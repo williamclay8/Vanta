@@ -106,6 +106,7 @@ export function UnshieldPage() {
     privateCoreOperatorLatestRoot,
     privateCoreOperatorLatestRelease,
     privateCoreOperatorLatestReleaseProof,
+    privateCoreOperatorLatestSendProof,
     privateCoreOperatorBoundaryPrimaryNote,
     privateCoreOperatorBoundaryStatusLabel,
     privateCoreOperatorProofConsumeLinkStatus,
@@ -118,6 +119,8 @@ export function UnshieldPage() {
     privateCoreOperatorRootError,
     privateCoreOperatorRootRegistrationStatus,
     privateCoreOperatorRoots,
+    privateCoreOperatorSendProofError,
+    privateCoreOperatorSendProofs,
     privateCoreOperatorSummaryUpdatedAt,
     privateCoreRecentShield,
     privateCoreUnshieldState,
@@ -863,6 +866,7 @@ export function UnshieldPage() {
           operatorLatestRelease={privateCoreOperatorLatestRelease}
           operatorLatestReleaseProof={privateCoreOperatorLatestReleaseProof}
           operatorLatestRoot={privateCoreOperatorLatestRoot}
+          operatorLatestSendProof={privateCoreOperatorLatestSendProof}
           operatorBoundaryPrimaryNote={privateCoreOperatorBoundaryPrimaryNote}
           operatorBoundaryStatusLabel={privateCoreOperatorBoundaryStatusLabel}
           operatorProofConsumeLinkStatus={privateCoreOperatorProofConsumeLinkStatus}
@@ -875,6 +879,8 @@ export function UnshieldPage() {
           operatorRootError={privateCoreOperatorRootError}
           operatorRootRegistrationStatus={privateCoreOperatorRootRegistrationStatus}
           operatorRoots={privateCoreOperatorRoots}
+          operatorSendProofError={privateCoreOperatorSendProofError}
+          operatorSendProofs={privateCoreOperatorSendProofs}
           operatorSummaryUpdatedAt={privateCoreOperatorSummaryUpdatedAt}
           shieldState={privateCoreRecentShield}
           title="Vanta Private Core unshield state"

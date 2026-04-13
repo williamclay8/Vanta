@@ -42,6 +42,7 @@ export function AppDashboardPage() {
     privateCoreOperatorLatestRoot,
     privateCoreOperatorLatestRelease,
     privateCoreOperatorLatestReleaseProof,
+    privateCoreOperatorLatestSendProof,
     privateCoreOperatorBoundaryPrimaryNote,
     privateCoreOperatorBoundaryStatusLabel,
     privateCoreOperatorProofConsumeLinkStatus,
@@ -54,6 +55,8 @@ export function AppDashboardPage() {
     privateCoreOperatorRootError,
     privateCoreOperatorRootRegistrationStatus,
     privateCoreOperatorRoots,
+    privateCoreOperatorSendProofError,
+    privateCoreOperatorSendProofs,
     privateCoreOperatorSummaryUpdatedAt,
     privateCoreRecentShield,
     privateCoreUnshieldState,
@@ -203,6 +206,7 @@ export function AppDashboardPage() {
               operatorLatestRelease={privateCoreOperatorLatestRelease}
               operatorLatestReleaseProof={privateCoreOperatorLatestReleaseProof}
               operatorLatestRoot={privateCoreOperatorLatestRoot}
+              operatorLatestSendProof={privateCoreOperatorLatestSendProof}
               operatorBoundaryPrimaryNote={privateCoreOperatorBoundaryPrimaryNote}
               operatorBoundaryStatusLabel={privateCoreOperatorBoundaryStatusLabel}
               operatorProofConsumeLinkStatus={privateCoreOperatorProofConsumeLinkStatus}
@@ -215,6 +219,8 @@ export function AppDashboardPage() {
               operatorRootError={privateCoreOperatorRootError}
               operatorRootRegistrationStatus={privateCoreOperatorRootRegistrationStatus}
               operatorRoots={privateCoreOperatorRoots}
+              operatorSendProofError={privateCoreOperatorSendProofError}
+              operatorSendProofs={privateCoreOperatorSendProofs}
               operatorSummaryUpdatedAt={privateCoreOperatorSummaryUpdatedAt}
               shieldState={privateCoreRecentShield}
               title="Vanta Private Core private balance"

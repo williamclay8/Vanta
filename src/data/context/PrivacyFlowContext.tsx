@@ -37,6 +37,7 @@ import {
   type VantaPrivateCoreUnshieldProofBoundaryV0,
 } from "@/zk/vantaPrivateCoreUnshieldProof";
 import {
+  fetchVantaPrivateCoreOperatorSendProofs,
   fetchVantaPrivateCoreOperatorSummary,
   registerVantaPrivateCoreOperatorRoot,
   requestVantaPrivateCoreOperatorConsume,
@@ -46,6 +47,7 @@ import {
   type VantaPrivateCoreOperatorProofRecord,
   type VantaPrivateCoreOperatorReleaseRecord,
   type VantaPrivateCoreOperatorRootRecord,
+  type VantaPrivateCoreOperatorSendProofRecord,
   type VantaPrivateCoreOperatorSummaryStateResponse,
   type VantaPrivateCoreProofOperatorResponse,
 } from "@/zk/vantaPrivateCoreOperatorClient";
@@ -88,6 +90,7 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorLatestReleaseProof: VantaPrivateCoreOperatorProofRecord | null;
   privateCoreOperatorCurrentRoot: string | null;
   privateCoreOperatorLatestRoot: VantaPrivateCoreOperatorRootRecord | null;
+  privateCoreOperatorLatestSendProof: VantaPrivateCoreOperatorSendProofRecord | null;
   privateCoreOperatorRawBoundaryNote: string | null;
   privateCoreOperatorRawBoundaryStatus: string | null;
   privateCoreOperatorProofConsumeLinkStatus: string | null;
@@ -97,6 +100,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorReleaseError: string | null;
   privateCoreOperatorReleases: VantaPrivateCoreOperatorReleaseRecord[];
   privateCoreOperatorRoots: VantaPrivateCoreOperatorRootRecord[];
+  privateCoreOperatorSendProofError: string | null;
+  privateCoreOperatorSendProofs: VantaPrivateCoreOperatorSendProofRecord[];
   privateCoreOperatorBoundaryPrimaryNote: string | null;
   privateCoreOperatorBoundaryStatusLabel: string | null;
   privateCoreOperatorRootError: string | null;
@@ -274,6 +279,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   const [privateCoreOperatorCurrentRoot, setPrivateCoreOperatorCurrentRoot] = useState<string | null>(null);
   const [privateCoreOperatorLatestRoot, setPrivateCoreOperatorLatestRoot] =
     useState<VantaPrivateCoreOperatorRootRecord | null>(null);
+  const [privateCoreOperatorLatestSendProof, setPrivateCoreOperatorLatestSendProof] =
+    useState<VantaPrivateCoreOperatorSendProofRecord | null>(null);
   const [privateCoreOperatorRawBoundaryNote, setPrivateCoreOperatorRawBoundaryNote] =
     useState<string | null>(null);
   const [privateCoreOperatorRawBoundaryStatus, setPrivateCoreOperatorRawBoundaryStatus] =
@@ -290,6 +297,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   const [privateCoreOperatorReleases, setPrivateCoreOperatorReleases] = useState<
     VantaPrivateCoreOperatorReleaseRecord[]
   >([]);
+  const [privateCoreOperatorSendProofError, setPrivateCoreOperatorSendProofError] = useState<string | null>(null);
+  const [privateCoreOperatorSendProofs, setPrivateCoreOperatorSendProofs] = useState<
+    VantaPrivateCoreOperatorSendProofRecord[]
+  >([]);
   const [privateCoreOperatorRoots, setPrivateCoreOperatorRoots] = useState<
     VantaPrivateCoreOperatorRootRecord[]
   >([]);
@@ -301,7 +312,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   const [recentShield, setRecentShield] = useState<RecentShieldContext | null>(null);
 
   const refreshPrivateCoreOperatorSummary = useCallback(async () => {
-    const summaryState = await fetchVantaPrivateCoreOperatorSummary();
+    const [summaryState, sendProofState] = await Promise.all([
+      fetchVantaPrivateCoreOperatorSummary(),
+      fetchVantaPrivateCoreOperatorSendProofs(),
+    ]);
     applyPrivateCoreOperatorSummaryState({
       summaryState,
       setPrivateCoreOperatorCurrentRoot,
@@ -320,10 +334,13 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorReleases,
       setPrivateCoreOperatorRoots,
     });
+    setPrivateCoreOperatorLatestSendProof(sendProofState.latestProof);
+    setPrivateCoreOperatorSendProofs(sendProofState.records);
     setPrivateCoreOperatorConsumeError(null);
     setPrivateCoreOperatorProofError(null);
     setPrivateCoreOperatorReleaseError(null);
     setPrivateCoreOperatorRootError(null);
+    setPrivateCoreOperatorSendProofError(null);
     setPrivateCoreOperatorSummaryUpdatedAt(summaryState.generatedAt);
     return summaryState;
   }, []);
@@ -347,6 +364,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
           setPrivateCoreOperatorProofError(message);
           setPrivateCoreOperatorReleaseError(message);
           setPrivateCoreOperatorRootError(message);
+          setPrivateCoreOperatorSendProofError(message);
         });
 
     void loadSummary();
@@ -1117,6 +1135,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorLatestReleaseProof,
       privateCoreOperatorCurrentRoot,
       privateCoreOperatorLatestRoot,
+      privateCoreOperatorLatestSendProof,
       privateCoreOperatorRawBoundaryNote,
       privateCoreOperatorRawBoundaryStatus,
       privateCoreOperatorProofConsumeLinkStatus,
@@ -1126,6 +1145,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorReleaseError,
       privateCoreOperatorReleases,
       privateCoreOperatorRoots,
+      privateCoreOperatorSendProofError,
+      privateCoreOperatorSendProofs,
       privateCoreOperatorBoundaryPrimaryNote: privateCoreOperatorBoundarySummary.primaryNote,
       privateCoreOperatorBoundaryStatusLabel: privateCoreOperatorBoundarySummary.statusLabel,
       privateCoreOperatorRootError,
@@ -1155,6 +1176,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorLatestReleaseProof,
       privateCoreOperatorCurrentRoot,
       privateCoreOperatorLatestRoot,
+      privateCoreOperatorLatestSendProof,
       privateCoreOperatorRawBoundaryNote,
       privateCoreOperatorRawBoundaryStatus,
       privateCoreOperatorProofConsumeLinkStatus,
@@ -1166,6 +1188,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorRootRegistrationStatus,
       privateCoreOperatorReleases,
       privateCoreOperatorRoots,
+      privateCoreOperatorSendProofError,
+      privateCoreOperatorSendProofs,
       privateCoreOperatorSummaryUpdatedAt,
       privateCoreRecentShield,
       privateCoreUnshieldState,

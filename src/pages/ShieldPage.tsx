@@ -104,6 +104,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOperatorLatestRoot,
     privateCoreOperatorLatestRelease,
     privateCoreOperatorLatestReleaseProof,
+    privateCoreOperatorLatestSendProof,
     privateCoreOperatorBoundaryPrimaryNote,
     privateCoreOperatorBoundaryStatusLabel,
     privateCoreOperatorProofConsumeLinkStatus,
@@ -116,6 +117,8 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOperatorRootCurrentnessLabel,
     privateCoreOperatorRootRegistrationStatus,
     privateCoreOperatorRoots,
+    privateCoreOperatorSendProofError,
+    privateCoreOperatorSendProofs,
     privateCoreOperatorSummaryUpdatedAt,
     privateCoreRecentShield,
     privateCoreUnshieldState,
@@ -1025,6 +1028,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 operatorLatestRelease={privateCoreOperatorLatestRelease}
                 operatorLatestReleaseProof={privateCoreOperatorLatestReleaseProof}
                 operatorLatestRoot={privateCoreOperatorLatestRoot}
+                operatorLatestSendProof={privateCoreOperatorLatestSendProof}
                 operatorBoundaryPrimaryNote={privateCoreOperatorBoundaryPrimaryNote}
                 operatorBoundaryStatusLabel={privateCoreOperatorBoundaryStatusLabel}
                 operatorProofConsumeLinkStatus={privateCoreOperatorProofConsumeLinkStatus}
@@ -1037,6 +1041,8 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 operatorRootError={privateCoreOperatorRootError}
                 operatorRootRegistrationStatus={privateCoreOperatorRootRegistrationStatus}
                 operatorRoots={privateCoreOperatorRoots}
+                operatorSendProofError={privateCoreOperatorSendProofError}
+                operatorSendProofs={privateCoreOperatorSendProofs}
                 operatorSummaryUpdatedAt={privateCoreOperatorSummaryUpdatedAt}
                 shieldState={privateCoreRecentShield}
                 title="Vanta Private Core hold state"

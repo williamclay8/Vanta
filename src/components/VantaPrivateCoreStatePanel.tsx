@@ -8,6 +8,7 @@ import type {
   VantaPrivateCoreOperatorProofRecord,
   VantaPrivateCoreOperatorReleaseRecord,
   VantaPrivateCoreOperatorRootRecord,
+  VantaPrivateCoreOperatorSendProofRecord,
 } from "@/zk/vantaPrivateCoreOperatorClient";
 
 type VantaPrivateCoreStatePanelProps = {
@@ -21,6 +22,7 @@ type VantaPrivateCoreStatePanelProps = {
   operatorLatestRelease?: VantaPrivateCoreOperatorReleaseRecord | null;
   operatorLatestReleaseProof?: VantaPrivateCoreOperatorProofRecord | null;
   operatorLatestRoot?: VantaPrivateCoreOperatorRootRecord | null;
+  operatorLatestSendProof?: VantaPrivateCoreOperatorSendProofRecord | null;
   operatorBoundaryPrimaryNote?: string | null;
   operatorBoundaryStatusLabel?: string | null;
   operatorProofConsumeLinkStatus?: string | null;
@@ -33,6 +35,8 @@ type VantaPrivateCoreStatePanelProps = {
   operatorRootError?: string | null;
   operatorRootRegistrationStatus?: string | null;
   operatorRoots?: VantaPrivateCoreOperatorRootRecord[];
+  operatorSendProofError?: string | null;
+  operatorSendProofs?: VantaPrivateCoreOperatorSendProofRecord[];
   operatorSummaryUpdatedAt?: number | null;
   shieldState: VantaPrivateCoreShieldState | null;
   unshieldState: VantaPrivateCoreUnshieldState | null;
@@ -127,6 +131,7 @@ export function VantaPrivateCoreStatePanel({
   operatorLatestRelease = null,
   operatorLatestReleaseProof = null,
   operatorLatestRoot = null,
+  operatorLatestSendProof = null,
   operatorBoundaryPrimaryNote = null,
   operatorBoundaryStatusLabel = null,
   operatorProofConsumeLinkStatus = null,
@@ -139,6 +144,8 @@ export function VantaPrivateCoreStatePanel({
   operatorRootError = null,
   operatorRootRegistrationStatus = null,
   operatorRoots = [],
+  operatorSendProofError = null,
+  operatorSendProofs = [],
   operatorSummaryUpdatedAt = null,
   shieldState,
   unshieldState,
@@ -149,6 +156,7 @@ export function VantaPrivateCoreStatePanel({
   const latestOperatorProof = operatorLatestProof ?? operatorProofs[0] ?? null;
   const latestOperatorRelease = operatorLatestRelease ?? operatorReleases[0] ?? null;
   const latestOperatorRoot = operatorLatestRoot ?? operatorRoots[0] ?? null;
+  const latestOperatorSendProof = operatorLatestSendProof ?? operatorSendProofs[0] ?? null;
   const immediateProofAlignmentLabel = summarizeOperatorImmediateProofAlignment({
     latestOperatorProof,
     unshieldState,
@@ -421,6 +429,42 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Latest proof action</span>
               <strong>{operatorProofError ? operatorProofError : operatorLatestProof?.action ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Operator send proof records</span>
+              <strong>
+                {operatorSendProofError
+                  ? "Unavailable"
+                  : operatorSendProofs.length.toString()}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Latest operator send proof</span>
+              <strong>
+                {operatorSendProofError
+                  ? operatorSendProofError
+                  : latestOperatorSendProof?.proofId
+                    ? abbreviate(latestOperatorSendProof.proofId)
+                    : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Latest send proof action</span>
+              <strong>
+                {operatorSendProofError
+                  ? operatorSendProofError
+                  : latestOperatorSendProof?.action ?? "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Latest send proof root</span>
+              <strong>
+                {operatorSendProofError
+                  ? operatorSendProofError
+                  : latestOperatorSendProof?.root
+                    ? abbreviate(latestOperatorSendProof.root)
+                    : "Unavailable"}
+              </strong>
             </div>
             <div className="review-row">
               <span>Latest proof root</span>
