@@ -23,6 +23,7 @@ export type VantaPrivateCoreSendOperatorResponse = VantaPrivateCoreProofOperator
   inputRoot: string;
   proofId: string;
   recipientCommitment: string;
+  resultingRoot: string;
   sendAmount: string;
   sendId: string;
   sendRecorded: boolean;
@@ -123,6 +124,7 @@ export type VantaPrivateCoreOperatorSendRecord = {
   proofId: string;
   publicInputCount: number;
   recipientCommitment: string;
+  resultingRoot: string;
   sendAmount: string;
   sendId: string;
 };
@@ -346,6 +348,7 @@ export async function requestVantaPrivateCoreOperatorSendTransition(args: {
     typeof parsed.inputRoot !== "string" ||
     typeof parsed.proofId !== "string" ||
     typeof parsed.recipientCommitment !== "string" ||
+    typeof parsed.resultingRoot !== "string" ||
     typeof parsed.sendAmount !== "string" ||
     typeof parsed.sendId !== "string"
   ) {
@@ -370,6 +373,7 @@ export async function requestVantaPrivateCoreOperatorSendTransition(args: {
       ? parsed.publicInputs.filter((value): value is string => typeof value === "string")
       : [],
     recipientCommitment: parsed.recipientCommitment,
+    resultingRoot: parsed.resultingRoot,
     sendAmount: parsed.sendAmount,
     sendId: parsed.sendId,
     sendRecorded: true,
@@ -970,6 +974,7 @@ function isSendRecord(value: unknown): value is VantaPrivateCoreOperatorSendReco
     typeof (value as VantaPrivateCoreOperatorSendRecord).proofId === "string" &&
     typeof (value as VantaPrivateCoreOperatorSendRecord).publicInputCount === "number" &&
     typeof (value as VantaPrivateCoreOperatorSendRecord).recipientCommitment === "string" &&
+    typeof (value as VantaPrivateCoreOperatorSendRecord).resultingRoot === "string" &&
     typeof (value as VantaPrivateCoreOperatorSendRecord).sendAmount === "string" &&
     typeof (value as VantaPrivateCoreOperatorSendRecord).sendId === "string"
   );

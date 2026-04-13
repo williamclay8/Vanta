@@ -1453,6 +1453,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 Recipient recovery: {privateCoreSendState.recipientRecoveryStatus}
               </p>
               <p className="shield-helper shield-helper--meta">
+                Recipient unshield: {privateCoreSendState.recipientUnshieldStatus}
+              </p>
+              <p className="shield-helper shield-helper--meta">
                 Residual state: {privateCoreSendState.residualStateStatus}
               </p>
             </div>

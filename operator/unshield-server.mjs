@@ -443,6 +443,7 @@ const server = createServer(async (request, response) => {
           inputNullifier: sendRecord.inputNullifier,
           inputRoot: sendRecord.inputRoot,
           recipientCommitment: sendRecord.recipientCommitment,
+          resultingRoot: sendRecord.resultingRoot,
           changeCommitment: sendRecord.changeCommitment,
           proofId: sendRecord.proofId,
           sendAmount: sendRecord.sendAmount,
@@ -1603,6 +1604,7 @@ function summarizePrivateCoreSendRecord(args) {
     proofId: args.proofRecord.proofId,
     publicInputCount: args.proofReceipt.publicInputCount,
     recipientCommitment: sourcePublicInputs.recipientCommitment,
+    resultingRoot: sourcePublicInputs.resultingStateRoot,
     sendAmount: sourcePublicInputs.sendAmount,
     sendId: [
       "private-core-send",

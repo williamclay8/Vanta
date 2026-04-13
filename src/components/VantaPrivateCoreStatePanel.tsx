@@ -288,6 +288,10 @@ export function VantaPrivateCoreStatePanel({
                 </strong>
               </div>
               <div className="review-row">
+                <span>Recipient unshield</span>
+                <strong>{sendState.recipientUnshieldStatus}</strong>
+              </div>
+              <div className="review-row">
                 <span>Observation mode</span>
                 <strong>{sendState.observationMode}</strong>
               </div>

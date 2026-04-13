@@ -267,6 +267,7 @@ try {
     !sendState.parsed?.latestSend ||
     sendState.parsed.latestSend?.sendId !== transitionResponse.parsed.sendId ||
     sendState.parsed.latestSend?.proofId !== transitionResponse.parsed.proofId ||
+    sendState.parsed.latestSend?.resultingRoot !== transitionResponse.parsed.resultingRoot ||
     !Array.isArray(sendState.parsed?.records) ||
     sendState.parsed.records.length !== 1
   ) {

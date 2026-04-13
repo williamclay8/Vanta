@@ -210,6 +210,7 @@ export type VantaPrivateCoreSendState = {
   changeAmount: string;
   resultingRoot: string | null;
   recipientRecoveryStatus: string;
+  recipientUnshieldStatus: string;
   residualStateStatus: string;
   noteSummary: string;
   observationMode: string;
@@ -387,12 +388,25 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
 
   const privateCoreSendState = useMemo(
     () =>
-      privateCoreLocalSendState ??
-      summarizePrivateCoreOperatorSendState({
-        latestSend: privateCoreOperatorLatestSend,
-        linkedProof: privateCoreOperatorLatestSendLinkedProof,
+      mergePrivateCoreSendStateWithOperatorDownstream({
+        baseState:
+          privateCoreLocalSendState ??
+          summarizePrivateCoreOperatorSendState({
+            latestConsume: privateCoreOperatorLatestConsume,
+            latestRelease: privateCoreOperatorLatestRelease,
+            latestSend: privateCoreOperatorLatestSend,
+            linkedProof: privateCoreOperatorLatestSendLinkedProof,
+          }),
+        latestConsume: privateCoreOperatorLatestConsume,
+        latestRelease: privateCoreOperatorLatestRelease,
       }),
-    [privateCoreLocalSendState, privateCoreOperatorLatestSend, privateCoreOperatorLatestSendLinkedProof],
+    [
+      privateCoreLocalSendState,
+      privateCoreOperatorLatestConsume,
+      privateCoreOperatorLatestRelease,
+      privateCoreOperatorLatestSend,
+      privateCoreOperatorLatestSendLinkedProof,
+    ],
   );
 
   useEffect(() => {
@@ -699,6 +713,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         changeAmount: (result.change?.note.amount ?? 0n).toString(10),
         resultingRoot: result.resultingRoot,
         recipientRecoveryStatus: "Recipient note created privately",
+        recipientUnshieldStatus: "Recipient note ready for private hold or unshield",
         residualStateStatus:
           result.change !== null
             ? "Residual note is current private state"
@@ -1524,6 +1539,8 @@ function summarizePrivateCoreOperatorBoundaryStatus(args: {
 }
 
 function summarizePrivateCoreOperatorSendState(args: {
+  latestConsume: VantaPrivateCoreOperatorConsumeRecord | null;
+  latestRelease: VantaPrivateCoreOperatorReleaseRecord | null;
   latestSend: VantaPrivateCoreOperatorSendRecord | null;
   linkedProof: VantaPrivateCoreOperatorSendProofRecord | null;
 }): VantaPrivateCoreSendState | null {
@@ -1531,17 +1548,26 @@ function summarizePrivateCoreOperatorSendState(args: {
     return null;
   }
 
+  const recipientUnshielded =
+    args.latestConsume?.root === args.latestSend.resultingRoot &&
+    args.latestRelease?.root === args.latestSend.resultingRoot &&
+    args.latestRelease?.releasedAmount === args.latestSend.sendAmount &&
+    args.latestConsume?.proofId === args.latestRelease?.proofId;
+
   return {
     recipientCommitment: args.latestSend.recipientCommitment,
     recipientPayloadCommitment: null,
     recipientAmount: args.latestSend.sendAmount,
     changeCommitment: args.latestSend.changeCommitment,
     changeAmount: args.latestSend.changeAmount,
-    resultingRoot: null,
+    resultingRoot: args.latestSend.resultingRoot,
     recipientRecoveryStatus:
       args.linkedProof?.proofId === args.latestSend.proofId
         ? "Recipient note recorded in operator send state"
         : "Recipient note pending linked proof",
+    recipientUnshieldStatus: recipientUnshielded
+      ? "Recipient note already unshielded through operator release"
+      : "Recipient note ready for private hold or unshield",
     residualStateStatus:
       args.latestSend.changeAmount !== "0"
         ? "Residual note expected from send transition"
@@ -1549,6 +1575,45 @@ function summarizePrivateCoreOperatorSendState(args: {
     noteSummary: `${formatBaseUnits(BigInt(args.latestSend.sendAmount), VANTA_PRIVATE_CORE_VUSD_DECIMALS)} VUSD sent privately`,
     observationMode: "Operator send summary",
   };
+}
+
+function mergePrivateCoreSendStateWithOperatorDownstream(args: {
+  baseState: VantaPrivateCoreSendState | null;
+  latestConsume: VantaPrivateCoreOperatorConsumeRecord | null;
+  latestRelease: VantaPrivateCoreOperatorReleaseRecord | null;
+}): VantaPrivateCoreSendState | null {
+  if (!args.baseState) {
+    return null;
+  }
+
+  if (!args.baseState.resultingRoot) {
+    return args.baseState;
+  }
+
+  const rootMatchesConsume = args.latestConsume?.root === args.baseState.resultingRoot;
+  const rootMatchesRelease = args.latestRelease?.root === args.baseState.resultingRoot;
+  const releaseMatchesAmount = args.latestRelease?.releasedAmount === args.baseState.recipientAmount;
+
+  if (
+    rootMatchesConsume &&
+    rootMatchesRelease &&
+    releaseMatchesAmount &&
+    args.latestConsume?.proofId === args.latestRelease?.proofId
+  ) {
+    return {
+      ...args.baseState,
+      recipientUnshieldStatus: "Recipient note already unshielded through operator release",
+    };
+  }
+
+  if (rootMatchesConsume) {
+    return {
+      ...args.baseState,
+      recipientUnshieldStatus: "Recipient note consumed; awaiting operator release summary",
+    };
+  }
+
+  return args.baseState;
 }
 
 function applyPrivateCoreOperatorSummaryState(args: {
