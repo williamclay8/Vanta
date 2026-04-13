@@ -145,6 +145,7 @@ These commands currently prove:
 - recipient notes from private send still recover and spend coherently
 - received private notes can still chain into a second private send coherently
 - one operator-backed private send still proves, applies, recovers for the recipient, and preserves sender privacy
+- one operator-backed private send can now flow into operator-backed recipient unshield coherently
 - two operator-backed private send transitions can now verify in sequence on evolving private state
 - two operator-backed private send transitions now persist coherently across operator restart
 - a real local proof can still be generated and verified

@@ -35,6 +35,7 @@ That confirms:
 - recipient notes from private send still recover and spend coherently
 - received private notes can still become the input to a second private send coherently
 - one operator-backed private send still proves, applies, recovers for the recipient, and preserves sender privacy
+- one operator-backed private send can now flow into operator-backed recipient unshield coherently
 - two operator-backed private send transitions can now execute in sequence on evolving private state
 - two operator-backed private send transitions now persist coherently across operator restart
 - the operator consume regression is still green
