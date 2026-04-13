@@ -38,6 +38,7 @@ That confirms:
 The operator-status command gives a quick summary snapshot of:
 - current registered root
 - latest proof
+- latest send proof
 - latest consume
 - latest release
 - proof/consume link status

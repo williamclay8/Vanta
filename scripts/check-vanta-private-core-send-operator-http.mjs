@@ -134,6 +134,7 @@ const server = spawn("node", ["operator/unshield-server.mjs"], {
       "Gk7m3rV2Q5uH4pL9sW8xD1nB6cT3yF7kJ2qR5mN8pZ1",
     VANTA_PRIVATE_CORE_CONSUME_STORE_PATH: join(tempRoot, "consumes.json"),
     VANTA_PRIVATE_CORE_PROOF_STORE_PATH: join(tempRoot, "proofs.json"),
+    VANTA_PRIVATE_CORE_SEND_PROOF_STORE_PATH: join(tempRoot, "send-proofs.json"),
     VANTA_PRIVATE_CORE_RELEASE_STORE_PATH: join(tempRoot, "private-core-releases.json"),
     VANTA_PRIVATE_CORE_ROOT_STORE_PATH: join(tempRoot, "roots.json"),
     VANTA_RELEASE_RECORD_STORE_PATH: join(tempRoot, "releases.json"),
@@ -169,6 +170,20 @@ try {
   }
   printStatus("operator send http empty proof state: PASS");
 
+  const initialSendProofState = await requestJson(baseUrl, "/state/private-core-send-proofs", {
+    method: "GET",
+  });
+  if (
+    !initialSendProofState.ok ||
+    initialSendProofState.parsed?.stateVersion !== 1 ||
+    initialSendProofState.parsed?.latestProof !== null ||
+    !Array.isArray(initialSendProofState.parsed?.records) ||
+    initialSendProofState.parsed.records.length !== 0
+  ) {
+    throw new Error(initialSendProofState.text || "operator send proof state did not start empty");
+  }
+  printStatus("operator send http empty send-proof state: PASS");
+
   const proofResponse = await requestJson(baseUrl, "/private-core/send-proof", {
     body: JSON.stringify({ witnessPackage }),
     method: "POST",
@@ -185,6 +200,22 @@ try {
   printStatus(
     `operator send http proof: PASS (${proofResponse.parsed.proofFieldCount} fields / ${proofResponse.parsed.publicInputCount} public inputs)`,
   );
+
+  const sendProofState = await requestJson(baseUrl, "/state/private-core-send-proofs", {
+    method: "GET",
+  });
+  if (
+    !sendProofState.ok ||
+    sendProofState.parsed?.stateVersion !== 1 ||
+    !sendProofState.parsed?.latestProof ||
+    sendProofState.parsed.latestProof?.action !== "send-proof" ||
+    sendProofState.parsed.latestProof?.circuit !== "vanta_private_core_single_note_send" ||
+    !Array.isArray(sendProofState.parsed?.records) ||
+    sendProofState.parsed.records.length !== 1
+  ) {
+    throw new Error(sendProofState.text || "send proof endpoint did not persist send-proof state");
+  }
+  printStatus("operator send http send-proof state: PASS");
 
   const proofState = await requestJson(baseUrl, "/state/private-core-proofs", { method: "GET" });
   if (

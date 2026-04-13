@@ -48,10 +48,14 @@ import {
   fetchConstrainedOnchainUnshieldContext,
 } from "./vanta-onchain-state.mjs";
 import { createPrivateCoreConsumeStore } from "./private-core-consume-store.mjs";
-import { createPrivateCoreProofStore } from "./private-core-proof-store.mjs";
+import {
+  createPrivateCoreProofStore,
+  createPrivateCoreSendProofStore,
+} from "./private-core-proof-store.mjs";
 import { createPrivateCoreRootStore } from "./private-core-root-store.mjs";
 import {
   assertVantaPrivateCoreSourceArtifactConsistency,
+  normalizeVantaPrivateCoreSendWitnessPackage,
   normalizeVantaPrivateCoreWitnessPackage,
   proveAndVerifyVantaPrivateCoreSend,
   proveAndVerifyVantaPrivateCoreUnshield,
@@ -92,6 +96,7 @@ const web3Connection = new Connection(endpoint, "confirmed");
 const releaseRecords = createReleaseRecordStore();
 const privateCoreConsumeStore = createPrivateCoreConsumeStore();
 const privateCoreProofStore = createPrivateCoreProofStore();
+const privateCoreSendProofStore = createPrivateCoreSendProofStore();
 const privateCoreReleaseRecords = createReleaseRecordStore({
   defaultPath: "operator/.vanta-private-core-releases.json",
   envKey: "VANTA_PRIVATE_CORE_RELEASE_STORE_PATH",
@@ -210,6 +215,20 @@ const server = createServer(async (request, response) => {
     writeCorsHeaders(response);
     response.writeHead(200, { "Content-Type": "application/json" });
     const records = privateCoreProofStore.listProofs();
+    response.end(
+      JSON.stringify({
+        stateVersion: 1,
+        latestProof: records[0] ?? null,
+        records,
+      }),
+    );
+    return;
+  }
+
+  if (request.method === "GET" && request.url === "/state/private-core-send-proofs") {
+    writeCorsHeaders(response);
+    response.writeHead(200, { "Content-Type": "application/json" });
+    const records = privateCoreSendProofStore.listProofs();
     response.end(
       JSON.stringify({
         stateVersion: 1,
@@ -352,9 +371,17 @@ const server = createServer(async (request, response) => {
   if (request.method === "POST" && request.url === "/private-core/send-proof") {
     try {
       const body = await readJsonBody(request);
+      const witnessPackage = normalizeVantaPrivateCoreSendWitnessPackage(body?.witnessPackage);
       const proofReceipt = await proveAndVerifyVantaPrivateCoreSend({
-        witnessPackage: body.witnessPackage,
+        witnessPackage,
       });
+      privateCoreSendProofStore.recordProof(
+        summarizePrivateCoreSendProofRecord({
+          action: "send-proof",
+          proofReceipt,
+          witnessPackage,
+        }),
+      );
 
       writeCorsHeaders(response);
       response.writeHead(200, { "Content-Type": "application/json" });
@@ -1254,6 +1281,7 @@ server.listen(port, "127.0.0.1", () => {
   console.log(`Vanta operator listening on http://127.0.0.1:${port}`);
   console.log(`Vanta release store: ${releaseRecords.filePath}`);
   console.log(`Vanta private-core proof store: ${privateCoreProofStore.filePath}`);
+  console.log(`Vanta private-core send proof store: ${privateCoreSendProofStore.filePath}`);
   console.log(`Vanta private-core release store: ${privateCoreReleaseRecords.filePath}`);
   console.log(`Vanta swap store: ${swapRecords.filePath}`);
   console.log(`Vanta SOL unshield store: ${solUnshieldRecords.filePath}`);
@@ -1414,6 +1442,37 @@ function summarizePrivateCoreProofRecord(args) {
     publicInputCount: args.proofReceipt.publicInputCount,
     releaseDestination: sourcePublicInputs.releaseDestination,
     root: sourcePublicInputs.stateRoot,
+    verified: args.proofReceipt.verified === true,
+  };
+}
+
+function summarizePrivateCoreSendProofRecord(args) {
+  const witnessPackage = normalizeVantaPrivateCoreSendWitnessPackage(args.witnessPackage);
+  const sourcePublicInputs = witnessPackage.sourcePublicInputs;
+  const completedAt = Date.now();
+
+  return {
+    action: args.action,
+    assetId: sourcePublicInputs.assetId,
+    amount: sourcePublicInputs.sendAmount,
+    backend: args.proofReceipt.backend,
+    circuit: args.proofReceipt.circuit,
+    completedAt,
+    noteVersion: sourcePublicInputs.noteVersion,
+    nullifier: sourcePublicInputs.inputNullifier,
+    proofFieldCount: args.proofReceipt.proofFieldCount,
+    proofId: [
+      "private-core-send-proof",
+      args.action,
+      sourcePublicInputs.inputNullifier,
+      sourcePublicInputs.inputStateRoot,
+      String(completedAt),
+    ].join(":"),
+    proofVersion: args.proofReceipt.proofVersion,
+    provingHashLane: args.proofReceipt.provingHashLane,
+    publicInputCount: args.proofReceipt.publicInputCount,
+    releaseDestination: sourcePublicInputs.recipient,
+    root: sourcePublicInputs.inputStateRoot,
     verified: args.proofReceipt.verified === true,
   };
 }

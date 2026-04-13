@@ -173,7 +173,7 @@ The repo now includes concrete verification commands for the Vanta Private Core 
 - `npm run private-core:send-prove`
   generates and verifies a real local proof for the current single-note private-send lane
 - `npm run private-core:send-http-smoke`
-  proves the operator can accept and verify the current send witness package over HTTP without mutating the current unshield-root/consume/release summary state
+  proves the operator can accept and verify the current send witness package over HTTP, persist explicit send-proof state, and avoid mutating the current unshield-root/consume/release summary state
 - `npm run private-core:verify`
   runs the full stack:
   - app build
@@ -191,7 +191,7 @@ The repo now includes concrete verification commands for the Vanta Private Core 
 - `npm run private-core:demo-preflight`
   runs the full verification pass and then prints the current operator-side status summary
 - `npm run private-core:operator-status`
-  prints the current operator-side root, proof, consume, and release summary snapshot when the operator server is running, including proof/consume and proof/release linkage
+  prints the current operator-side root, proof, send-proof, consume, and release state when the operator server is running, including proof/consume and proof/release linkage
 
 These commands do not make the protocol finished, but they do make the current first zk boundary concrete and repeatable.
 

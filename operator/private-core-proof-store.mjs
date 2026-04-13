@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "
 import { dirname, resolve } from "node:path";
 
 const DEFAULT_PRIVATE_CORE_PROOF_STORE_PATH = "operator/.vanta-private-core-proofs.json";
+const DEFAULT_PRIVATE_CORE_SEND_PROOF_STORE_PATH = "operator/.vanta-private-core-send-proofs.json";
 
 export function createPrivateCoreProofStore(options = {}) {
   const filePath = resolve(
@@ -25,6 +26,14 @@ export function createPrivateCoreProofStore(options = {}) {
       persistStore(filePath, state);
     },
   };
+}
+
+export function createPrivateCoreSendProofStore(options = {}) {
+  return createPrivateCoreProofStore({
+    defaultPath: DEFAULT_PRIVATE_CORE_SEND_PROOF_STORE_PATH,
+    envKey: "VANTA_PRIVATE_CORE_SEND_PROOF_STORE_PATH",
+    ...options,
+  });
 }
 
 function loadStore(filePath) {

@@ -2,6 +2,7 @@ const baseUrl = resolveBaseUrl(process.argv.slice(2));
 
 try {
   const summary = await requestJson("/state/private-core-summary");
+  const sendProofState = await requestJson("/state/private-core-send-proofs");
 
   printLine("Operator", baseUrl);
   printLine("Summary state version", String(summary.stateVersion ?? "unknown"));
@@ -16,6 +17,9 @@ try {
   printLine("Latest proof", abbreviate(summary.latestProof?.proofId));
   printLine("Latest proof action", summary.latestProof?.action ?? "Unavailable");
   printLine("Proof records", String(summary.proofRecordCount ?? 0));
+  printLine("Latest send proof", abbreviate(sendProofState.latestProof?.proofId));
+  printLine("Latest send proof action", sendProofState.latestProof?.action ?? "Unavailable");
+  printLine("Send proof records", String(sendProofState.records?.length ?? 0));
   printLine("Latest release", abbreviate(summary.latestRelease?.nullifier));
   printLine("Latest release proof", abbreviate(summary.latestRelease?.proofId));
   printLine("Latest release linked proof", abbreviate(summary.latestReleaseProof?.proofId));

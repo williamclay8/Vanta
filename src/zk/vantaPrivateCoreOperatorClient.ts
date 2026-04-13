@@ -73,6 +73,31 @@ export type VantaPrivateCoreOperatorProofStateResponse = {
   records: VantaPrivateCoreOperatorProofRecord[];
 };
 
+export type VantaPrivateCoreOperatorSendProofRecord = {
+  action: "send-proof";
+  assetId: string;
+  amount: string;
+  backend: string;
+  circuit: string;
+  completedAt: number;
+  noteVersion: number;
+  nullifier: string;
+  proofFieldCount: number;
+  proofId: string;
+  proofVersion: number;
+  provingHashLane: string;
+  publicInputCount: number;
+  releaseDestination: string;
+  root: string;
+  verified: boolean;
+};
+
+export type VantaPrivateCoreOperatorSendProofStateResponse = {
+  stateVersion: number;
+  latestProof: VantaPrivateCoreOperatorSendProofRecord | null;
+  records: VantaPrivateCoreOperatorSendProofRecord[];
+};
+
 export type VantaPrivateCoreOperatorReleaseRecord = {
   assetId: string;
   amount: string;
@@ -433,6 +458,41 @@ export async function fetchVantaPrivateCoreOperatorProofs(): Promise<
   };
 }
 
+export async function fetchVantaPrivateCoreOperatorSendProofs(): Promise<
+  VantaPrivateCoreOperatorSendProofStateResponse
+> {
+  const response = await fetch(getPrivateCoreSendProofStateUrl(), {
+    method: "GET",
+    signal: AbortSignal.timeout(15_000),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "The private-core send proof operator state endpoint failed.");
+  }
+
+  const parsed = (await response.json()) as {
+    latestProof?: unknown;
+    records?: unknown;
+    stateVersion?: unknown;
+  };
+  if (
+    parsed.stateVersion !== 1 ||
+    (parsed.latestProof !== null &&
+      parsed.latestProof !== undefined &&
+      !isSendProofRecord(parsed.latestProof)) ||
+    !Array.isArray(parsed.records)
+  ) {
+    throw new Error("The private-core send proof operator state endpoint returned invalid data.");
+  }
+
+  return {
+    stateVersion: 1,
+    latestProof: isSendProofRecord(parsed.latestProof) ? parsed.latestProof : null,
+    records: parsed.records.filter(isSendProofRecord),
+  };
+}
+
 export async function fetchVantaPrivateCoreOperatorRoots(): Promise<VantaPrivateCoreOperatorRootStateResponse> {
   const response = await fetch(getPrivateCoreRootStateUrl(), {
     method: "GET",
@@ -477,6 +537,10 @@ function getPrivateCoreConsumeStateUrl() {
 
 function getPrivateCoreProofStateUrl() {
   return new URL("/state/private-core-proofs", liveShieldAsset.unshieldOperatorUrl).toString();
+}
+
+function getPrivateCoreSendProofStateUrl() {
+  return new URL("/state/private-core-send-proofs", liveShieldAsset.unshieldOperatorUrl).toString();
 }
 
 function getPrivateCoreReleaseStateUrl() {
@@ -684,6 +748,29 @@ function isRootRecord(value: unknown): value is VantaPrivateCoreOperatorRootReco
     typeof (value as VantaPrivateCoreOperatorRootRecord).recordedAt === "number" &&
     typeof (value as VantaPrivateCoreOperatorRootRecord).root === "string" &&
     typeof (value as VantaPrivateCoreOperatorRootRecord).source === "string"
+  );
+}
+
+function isSendProofRecord(value: unknown): value is VantaPrivateCoreOperatorSendProofRecord {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    (value as VantaPrivateCoreOperatorSendProofRecord).action === "send-proof" &&
+    typeof (value as VantaPrivateCoreOperatorSendProofRecord).assetId === "string" &&
+    typeof (value as VantaPrivateCoreOperatorSendProofRecord).amount === "string" &&
+    typeof (value as VantaPrivateCoreOperatorSendProofRecord).backend === "string" &&
+    typeof (value as VantaPrivateCoreOperatorSendProofRecord).circuit === "string" &&
+    typeof (value as VantaPrivateCoreOperatorSendProofRecord).completedAt === "number" &&
+    typeof (value as VantaPrivateCoreOperatorSendProofRecord).noteVersion === "number" &&
+    typeof (value as VantaPrivateCoreOperatorSendProofRecord).nullifier === "string" &&
+    typeof (value as VantaPrivateCoreOperatorSendProofRecord).proofFieldCount === "number" &&
+    typeof (value as VantaPrivateCoreOperatorSendProofRecord).proofId === "string" &&
+    typeof (value as VantaPrivateCoreOperatorSendProofRecord).proofVersion === "number" &&
+    typeof (value as VantaPrivateCoreOperatorSendProofRecord).provingHashLane === "string" &&
+    typeof (value as VantaPrivateCoreOperatorSendProofRecord).publicInputCount === "number" &&
+    typeof (value as VantaPrivateCoreOperatorSendProofRecord).releaseDestination === "string" &&
+    typeof (value as VantaPrivateCoreOperatorSendProofRecord).root === "string" &&
+    typeof (value as VantaPrivateCoreOperatorSendProofRecord).verified === "boolean"
   );
 }
 
