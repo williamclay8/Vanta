@@ -183,6 +183,7 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   - operator HTTP smoke test
   - operator send-proof HTTP smoke test
   - operator restart persistence check
+  - persisted send-proof state across restart
   - replay rejection after restart
   - real unshield proof generation and verification
   - real send proof generation and verification

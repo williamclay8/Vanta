@@ -176,7 +176,7 @@ These commands cover:
 - local send proof generation and verification
 - operator-backed send proof HTTP smoke coverage and persisted send-proof state
 - operator-backed consume and HTTP smoke coverage
-- operator state persistence across restart
+- operator state persistence across restart, including send-proof state
 - replay rejection after operator restart
 - operator summary snapshot coherence across app, CLI, and regression surfaces
 

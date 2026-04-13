@@ -31,6 +31,7 @@ That confirms:
 - the fixed-depth Noir circuit still passes the valid fixture and rejects the invalid fixture
 - the operator consume regression is still green
 - the operator HTTP smoke path is still green
+- send-proof state is still explicit and restart-safe
 - operator state survives a restart
 - replay is still rejected after restart
 - local proof generation and verification still succeeds

@@ -61,7 +61,7 @@ async function requestJson(baseUrl, path, options = {}) {
   };
 }
 
-async function loadFixture() {
+async function loadFixtures() {
   mkdirSync(resolve(repoRoot, ".tmp"), { recursive: true });
   const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/private-core-operator-restart-check-"));
   const tempTsDir = join(tempRoot, "ts");
@@ -69,20 +69,26 @@ async function loadFixture() {
 
   try {
     const privateCoreSource = readFileSync(resolve(repoRoot, "src/zk/vantaPrivateCore.ts"), "utf8");
-    const proofBoundarySource = readFileSync(
+    const unshieldProofBoundarySource = readFileSync(
       resolve(repoRoot, "src/zk/vantaPrivateCoreUnshieldProof.ts"),
+      "utf8",
+    ).replace(/from "@\/zk\/vantaPrivateCore"/g, 'from "./vantaPrivateCore"');
+    const sendProofBoundarySource = readFileSync(
+      resolve(repoRoot, "src/zk/vantaPrivateCoreSendProof.ts"),
       "utf8",
     ).replace(/from "@\/zk\/vantaPrivateCore"/g, 'from "./vantaPrivateCore"');
 
     mkdirSync(tempTsDir, { recursive: true });
     writeFileSync(join(tempTsDir, "vantaPrivateCore.ts"), privateCoreSource);
-    writeFileSync(join(tempTsDir, "vantaPrivateCoreUnshieldProof.ts"), proofBoundarySource);
+    writeFileSync(join(tempTsDir, "vantaPrivateCoreUnshieldProof.ts"), unshieldProofBoundarySource);
+    writeFileSync(join(tempTsDir, "vantaPrivateCoreSendProof.ts"), sendProofBoundarySource);
 
     execFileSync(
       resolve(repoRoot, "node_modules/.bin/tsc"),
       [
         join(tempTsDir, "vantaPrivateCore.ts"),
         join(tempTsDir, "vantaPrivateCoreUnshieldProof.ts"),
+        join(tempTsDir, "vantaPrivateCoreSendProof.ts"),
         "--target",
         "ES2022",
         "--module",
@@ -106,9 +112,21 @@ async function loadFixture() {
         'from "./vantaPrivateCore.js"',
       ),
     );
+    const compiledSendProofBoundaryPath = join(tempJsDir, "vantaPrivateCoreSendProof.js");
+    writeFileSync(
+      compiledSendProofBoundaryPath,
+      readFileSync(compiledSendProofBoundaryPath, "utf8").replace(
+        /from "\.\/vantaPrivateCore"/g,
+        'from "./vantaPrivateCore.js"',
+      ),
+    );
 
-    const compiledModule = await import(pathToFileURL(compiledProofBoundaryPath).href);
-    return compiledModule.getVantaPrivateCoreFixedDepthUnshieldFixtureV0();
+    const unshieldModule = await import(pathToFileURL(compiledProofBoundaryPath).href);
+    const sendModule = await import(pathToFileURL(compiledSendProofBoundaryPath).href);
+    return {
+      send: sendModule.getVantaPrivateCoreFixedDepthSendFixtureV0(),
+      unshield: unshieldModule.getVantaPrivateCoreFixedDepthUnshieldFixtureV0(),
+    };
   } finally {
     rmSync(tempRoot, { recursive: true, force: true });
   }
@@ -127,6 +145,7 @@ function createOperatorEnv(tempRoot, port) {
       "Gk7m3rV2Q5uH4pL9sW8xD1nB6cT3yF7kJ2qR5mN8pZ1",
     VANTA_PRIVATE_CORE_CONSUME_STORE_PATH: join(tempRoot, "consumes.json"),
     VANTA_PRIVATE_CORE_PROOF_STORE_PATH: join(tempRoot, "proofs.json"),
+    VANTA_PRIVATE_CORE_SEND_PROOF_STORE_PATH: join(tempRoot, "send-proofs.json"),
     VANTA_PRIVATE_CORE_RELEASE_STORE_PATH: join(tempRoot, "private-core-releases.json"),
     VANTA_PRIVATE_CORE_ROOT_STORE_PATH: join(tempRoot, "roots.json"),
     VANTA_RELEASE_RECORD_STORE_PATH: join(tempRoot, "releases.json"),
@@ -167,9 +186,10 @@ async function stopServer(server) {
   });
 }
 
-const fixture = await loadFixture();
-const witnessPackage = fixture.validBoundary.noirWitnessPackage;
-const sourceArtifacts = fixture.validSourceArtifacts;
+const fixtures = await loadFixtures();
+const witnessPackage = fixtures.unshield.validBoundary.noirWitnessPackage;
+const sourceArtifacts = fixtures.unshield.validSourceArtifacts;
+const sendWitnessPackage = fixtures.send.validBoundary.noirWitnessPackage;
 mkdirSync(resolve(repoRoot, ".tmp"), { recursive: true });
 const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/private-core-operator-restart-server-"));
 const port = randomPort();
@@ -205,7 +225,23 @@ try {
   }
   printStatus("operator restart setup consume: PASS");
 
+  const sendProofResponse = await requestJson(baseUrl, "/private-core/send-proof", {
+    body: JSON.stringify({ witnessPackage: sendWitnessPackage }),
+    method: "POST",
+  });
+  if (
+    !sendProofResponse.ok ||
+    sendProofResponse.parsed?.verified !== true ||
+    sendProofResponse.parsed?.circuit !== "vanta_private_core_single_note_send"
+  ) {
+    throw new Error(sendProofResponse.text || "operator restart setup could not prove the send lane");
+  }
+  printStatus("operator restart setup send proof: PASS");
+
   const preRestartRoots = await requestJson(baseUrl, "/state/private-core-roots", { method: "GET" });
+  const preRestartSendProofs = await requestJson(baseUrl, "/state/private-core-send-proofs", {
+    method: "GET",
+  });
   const preRestartSummary = await requestJson(baseUrl, "/state/private-core-summary", {
     method: "GET",
   });
@@ -213,6 +249,12 @@ try {
   if (
     !preRestartRoots.ok ||
     preRestartRoots.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
+    !preRestartSendProofs.ok ||
+    preRestartSendProofs.parsed?.stateVersion !== 1 ||
+    preRestartSendProofs.parsed?.latestProof?.action !== "send-proof" ||
+    preRestartSendProofs.parsed?.latestProof?.circuit !== "vanta_private_core_single_note_send" ||
+    !Array.isArray(preRestartSendProofs.parsed?.records) ||
+    preRestartSendProofs.parsed.records.length < 1 ||
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.stateVersion !== 1 ||
     preRestartSummary.parsed?.summaryVersion !== 1 ||
@@ -243,6 +285,9 @@ try {
   const postRestartSummary = await requestJson(baseUrl, "/state/private-core-summary", {
     method: "GET",
   });
+  const postRestartSendProofs = await requestJson(baseUrl, "/state/private-core-send-proofs", {
+    method: "GET",
+  });
 
   if (
     !postRestartSummary.ok ||
@@ -253,6 +298,17 @@ try {
     postRestartSummary.parsed?.rootRecordCount < 1
   ) {
     throw new Error(postRestartSummary.text || "operator restart lost root state");
+  }
+
+  if (
+    !postRestartSendProofs.ok ||
+    postRestartSendProofs.parsed?.stateVersion !== 1 ||
+    postRestartSendProofs.parsed?.latestProof?.action !== "send-proof" ||
+    postRestartSendProofs.parsed?.latestProof?.circuit !== "vanta_private_core_single_note_send" ||
+    !Array.isArray(postRestartSendProofs.parsed?.records) ||
+    postRestartSendProofs.parsed.records.length < 1
+  ) {
+    throw new Error(postRestartSendProofs.text || "operator restart lost send-proof state");
   }
 
   if (
@@ -291,6 +347,7 @@ try {
   });
   if (
     !operatorStatusOutput.includes("Latest proof action: consume") ||
+    !operatorStatusOutput.includes("Latest send proof action: send-proof") ||
     !operatorStatusOutput.includes("Summary generated:") ||
     !operatorStatusOutput.includes("Latest consume proof:") ||
     !operatorStatusOutput.includes("Latest release proof:") ||
