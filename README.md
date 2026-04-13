@@ -160,6 +160,7 @@ npm run private-core:check
 npm run private-core:send-check
 npm run private-core:restart-check
 npm run private-core:prove
+npm run private-core:send-prove
 npm run private-core:verify
 npm run private-core:demo-readiness
 npm run private-core:demo-preflight
@@ -170,7 +171,8 @@ These commands cover:
 - fixed-depth Noir circuit regression
 - fixed-depth send-circuit regression
 - valid and invalid witness behavior
-- local proof generation and verification
+- local unshield proof generation and verification
+- local send proof generation and verification
 - operator-backed consume and HTTP smoke coverage
 - operator state persistence across restart
 - replay rejection after operator restart

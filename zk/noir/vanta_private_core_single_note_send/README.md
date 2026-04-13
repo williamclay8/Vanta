@@ -31,6 +31,21 @@ That command proves:
 - invalid-direction fixture fails
 - the workspace ends in valid-fixture state
 
+Current proof command:
+
+```bash
+npm run private-core:send-prove
+```
+
+That command:
+
+- writes the valid deterministic send fixture
+- compiles the Noir send circuit
+- executes the witness
+- generates a real local proof with Barretenberg
+- verifies that proof locally
+- writes an ignored proof receipt under `target/`
+
 The first intended circuit target remains intentionally narrow:
 
 - one input note

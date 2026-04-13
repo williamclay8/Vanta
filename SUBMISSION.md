@@ -170,6 +170,8 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   - one invalid-direction witness that fails
 - `npm run private-core:prove`
   generates and verifies a real local proof for the current single-note unshield lane
+- `npm run private-core:send-prove`
+  generates and verifies a real local proof for the current single-note private-send lane
 - `npm run private-core:verify`
   runs the full stack:
   - app build
@@ -179,7 +181,8 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   - operator HTTP smoke test
   - operator restart persistence check
   - replay rejection after restart
-  - real proof generation and verification
+  - real unshield proof generation and verification
+  - real send proof generation and verification
 - `npm run private-core:demo-readiness`
   aliases the same full verification pass with a more reviewer-friendly name
 - `npm run private-core:demo-preflight`

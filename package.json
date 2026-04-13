@@ -15,10 +15,11 @@
     "private-core:fixture": "node scripts/write-vanta-private-core-unshield-fixture.mjs",
     "private-core:send-fixture": "node scripts/write-vanta-private-core-send-fixture.mjs",
     "private-core:send-check": "node scripts/check-vanta-private-core-send-circuit.mjs",
+    "private-core:send-prove": "node scripts/prove-vanta-private-core-send.mjs",
     "private-core:http-smoke": "node scripts/check-vanta-private-core-operator-http.mjs",
     "private-core:restart-check": "node scripts/check-vanta-private-core-operator-restart.mjs",
     "private-core:prove": "node scripts/prove-vanta-private-core-unshield.mjs",
-    "private-core:verify": "npm run build && npm run private-core:check && npm run private-core:send-check && npm run private-core:consume-check && npm run private-core:http-smoke && npm run private-core:restart-check && npm run private-core:prove",
+    "private-core:verify": "npm run build && npm run private-core:check && npm run private-core:send-check && npm run private-core:consume-check && npm run private-core:http-smoke && npm run private-core:restart-check && npm run private-core:prove && npm run private-core:send-prove",
     "private-core:demo-readiness": "npm run private-core:verify",
     "private-core:demo-preflight": "npm run private-core:demo-readiness && npm run private-core:operator-status",
     "preview": "vite preview"
