@@ -134,6 +134,8 @@ export function UnshieldPage() {
     privateCoreOperatorSupportedProofSystem,
     privateCoreOperatorSupportedUnshieldCircuit,
     privateCoreOperatorSupportedSendCircuit,
+    privateCoreOperatorSupportedUnshieldMerkleDepth,
+    privateCoreOperatorSupportedSendMerkleDepth,
     privateCoreOperatorSupportedReleaseAuthorizationBasis,
     privateCoreOperatorSupportedReleaseRootPolicy,
     privateCoreOperatorOwnerAuthorizationMode,
@@ -952,6 +954,8 @@ export function UnshieldPage() {
           operatorSupportedProofSystem={privateCoreOperatorSupportedProofSystem}
           operatorSupportedUnshieldCircuit={privateCoreOperatorSupportedUnshieldCircuit}
           operatorSupportedSendCircuit={privateCoreOperatorSupportedSendCircuit}
+          operatorSupportedUnshieldMerkleDepth={privateCoreOperatorSupportedUnshieldMerkleDepth}
+          operatorSupportedSendMerkleDepth={privateCoreOperatorSupportedSendMerkleDepth}
           operatorSupportedReleaseAuthorizationBasis={
             privateCoreOperatorSupportedReleaseAuthorizationBasis
           }

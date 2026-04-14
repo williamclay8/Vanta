@@ -245,6 +245,8 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedProofSystem: "noir-acir-ultrahonk-bbjs";
   supportedUnshieldCircuit: "vanta_private_core_single_note_unshield";
   supportedSendCircuit: "vanta_private_core_single_note_send";
+  supportedUnshieldMerkleDepth: number;
+  supportedSendMerkleDepth: number;
   supportedReleaseAuthorizationBasis: "proof-backed-consume";
   supportedReleaseRootPolicy: "latest-registered-root";
   ownerAuthorizationMode: "x25519-secret-prechecked-off-circuit";
@@ -857,6 +859,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedProofSystem?: unknown;
     supportedUnshieldCircuit?: unknown;
     supportedSendCircuit?: unknown;
+    supportedUnshieldMerkleDepth?: unknown;
+    supportedSendMerkleDepth?: unknown;
     supportedReleaseAuthorizationBasis?: unknown;
     supportedReleaseRootPolicy?: unknown;
     ownerAuthorizationMode?: unknown;
@@ -892,7 +896,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.summaryVersion !== 13 ||
+    parsed.summaryVersion !== 14 ||
     !isBoundaryStatus(parsed.boundaryStatus) ||
     typeof parsed.boundaryNote !== "string" ||
     (parsed.currentRootLinkedProof !== null &&
@@ -933,6 +937,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     parsed.supportedProofSystem !== "noir-acir-ultrahonk-bbjs" ||
     parsed.supportedUnshieldCircuit !== "vanta_private_core_single_note_unshield" ||
     parsed.supportedSendCircuit !== "vanta_private_core_single_note_send" ||
+    parsed.supportedUnshieldMerkleDepth !== 3 ||
+    parsed.supportedSendMerkleDepth !== 3 ||
     parsed.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     parsed.supportedReleaseRootPolicy !== "latest-registered-root" ||
     parsed.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
@@ -990,7 +996,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   return {
     stateVersion: 1,
-    summaryVersion: 13,
+    summaryVersion: 14,
     boundaryStatus: parsed.boundaryStatus,
     boundaryNote: parsed.boundaryNote,
     supportedSendLaneVersion: 1,
@@ -1016,6 +1022,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedProofSystem: "noir-acir-ultrahonk-bbjs",
     supportedUnshieldCircuit: "vanta_private_core_single_note_unshield",
     supportedSendCircuit: "vanta_private_core_single_note_send",
+    supportedUnshieldMerkleDepth: 3,
+    supportedSendMerkleDepth: 3,
     supportedReleaseAuthorizationBasis: "proof-backed-consume",
     supportedReleaseRootPolicy: "latest-registered-root",
     ownerAuthorizationMode: "x25519-secret-prechecked-off-circuit",

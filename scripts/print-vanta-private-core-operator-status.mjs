@@ -49,8 +49,18 @@ try {
     humanizeSupportedReleaseDestinationModel(summary.supportedReleaseDestinationModel),
   );
   printLine("Supported proof system", humanizeSupportedProofSystem(summary.supportedProofSystem));
-  printLine("Supported unshield circuit", summary.supportedUnshieldCircuit ?? "Unavailable");
-  printLine("Supported send circuit", summary.supportedSendCircuit ?? "Unavailable");
+  printLine(
+    "Supported unshield circuit",
+    summary.supportedUnshieldCircuit
+      ? `${summary.supportedUnshieldCircuit} @ depth ${String(summary.supportedUnshieldMerkleDepth ?? "?")}`
+      : "Unavailable",
+  );
+  printLine(
+    "Supported send circuit",
+    summary.supportedSendCircuit
+      ? `${summary.supportedSendCircuit} @ depth ${String(summary.supportedSendMerkleDepth ?? "?")}`
+      : "Unavailable",
+  );
   printLine(
     "Supported release authorization",
     humanizeReleaseAuthorization(summary.supportedReleaseAuthorizationBasis),

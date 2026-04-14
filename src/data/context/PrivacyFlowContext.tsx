@@ -130,6 +130,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorSupportedProofSystem: string | null;
   privateCoreOperatorSupportedUnshieldCircuit: string | null;
   privateCoreOperatorSupportedSendCircuit: string | null;
+  privateCoreOperatorSupportedUnshieldMerkleDepth: number | null;
+  privateCoreOperatorSupportedSendMerkleDepth: number | null;
   privateCoreOperatorSupportedReleaseAuthorizationBasis: string | null;
   privateCoreOperatorSupportedReleaseRootPolicy: string | null;
   privateCoreOperatorOwnerAuthorizationMode: string | null;
@@ -436,6 +438,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<string | null>(null);
   const [privateCoreOperatorSupportedSendCircuit, setPrivateCoreOperatorSupportedSendCircuit] =
     useState<string | null>(null);
+  const [privateCoreOperatorSupportedUnshieldMerkleDepth, setPrivateCoreOperatorSupportedUnshieldMerkleDepth] =
+    useState<number | null>(null);
+  const [privateCoreOperatorSupportedSendMerkleDepth, setPrivateCoreOperatorSupportedSendMerkleDepth] =
+    useState<number | null>(null);
   const [
     privateCoreOperatorSupportedReleaseAuthorizationBasis,
     setPrivateCoreOperatorSupportedReleaseAuthorizationBasis,
@@ -529,6 +535,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSupportedProofSystem,
       setPrivateCoreOperatorSupportedUnshieldCircuit,
       setPrivateCoreOperatorSupportedSendCircuit,
+      setPrivateCoreOperatorSupportedUnshieldMerkleDepth,
+      setPrivateCoreOperatorSupportedSendMerkleDepth,
       setPrivateCoreOperatorSupportedReleaseAuthorizationBasis,
       setPrivateCoreOperatorSupportedReleaseRootPolicy,
       setPrivateCoreOperatorOwnerAuthorizationMode,
@@ -1531,6 +1539,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedProofSystem,
       privateCoreOperatorSupportedUnshieldCircuit,
       privateCoreOperatorSupportedSendCircuit,
+      privateCoreOperatorSupportedUnshieldMerkleDepth,
+      privateCoreOperatorSupportedSendMerkleDepth,
       privateCoreOperatorSupportedReleaseAuthorizationBasis,
       privateCoreOperatorSupportedReleaseRootPolicy,
       privateCoreOperatorOwnerAuthorizationMode,
@@ -1627,6 +1637,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedProofSystem,
       privateCoreOperatorSupportedUnshieldCircuit,
       privateCoreOperatorSupportedSendCircuit,
+      privateCoreOperatorSupportedUnshieldMerkleDepth,
+      privateCoreOperatorSupportedSendMerkleDepth,
       privateCoreOperatorSupportedReleaseAuthorizationBasis,
       privateCoreOperatorSupportedReleaseRootPolicy,
       privateCoreOperatorOwnerAuthorizationMode,
@@ -2071,6 +2083,8 @@ function applyPrivateCoreOperatorSummaryState(args: {
   setPrivateCoreOperatorSupportedProofSystem: (value: string | null) => void;
   setPrivateCoreOperatorSupportedUnshieldCircuit: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSendCircuit: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedUnshieldMerkleDepth: (value: number | null) => void;
+  setPrivateCoreOperatorSupportedSendMerkleDepth: (value: number | null) => void;
   setPrivateCoreOperatorSupportedReleaseAuthorizationBasis: (value: string | null) => void;
   setPrivateCoreOperatorSupportedReleaseRootPolicy: (value: string | null) => void;
   setPrivateCoreOperatorOwnerAuthorizationMode: (value: string | null) => void;
@@ -2142,6 +2156,10 @@ function applyPrivateCoreOperatorSummaryState(args: {
   args.setPrivateCoreOperatorSupportedProofSystem(args.summaryState.supportedProofSystem);
   args.setPrivateCoreOperatorSupportedUnshieldCircuit(args.summaryState.supportedUnshieldCircuit);
   args.setPrivateCoreOperatorSupportedSendCircuit(args.summaryState.supportedSendCircuit);
+  args.setPrivateCoreOperatorSupportedUnshieldMerkleDepth(
+    args.summaryState.supportedUnshieldMerkleDepth,
+  );
+  args.setPrivateCoreOperatorSupportedSendMerkleDepth(args.summaryState.supportedSendMerkleDepth);
   args.setPrivateCoreOperatorSupportedReleaseAuthorizationBasis(
     args.summaryState.supportedReleaseAuthorizationBasis,
   );

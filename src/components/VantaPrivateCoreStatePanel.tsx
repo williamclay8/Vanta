@@ -53,6 +53,8 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSupportedProofSystem?: string | null;
   operatorSupportedUnshieldCircuit?: string | null;
   operatorSupportedSendCircuit?: string | null;
+  operatorSupportedUnshieldMerkleDepth?: number | null;
+  operatorSupportedSendMerkleDepth?: number | null;
   operatorSupportedReleaseAuthorizationBasis?: string | null;
   operatorSupportedReleaseRootPolicy?: string | null;
   operatorOwnerAuthorizationMode?: string | null;
@@ -223,6 +225,8 @@ export function VantaPrivateCoreStatePanel({
   operatorSupportedProofSystem = null,
   operatorSupportedUnshieldCircuit = null,
   operatorSupportedSendCircuit = null,
+  operatorSupportedUnshieldMerkleDepth = null,
+  operatorSupportedSendMerkleDepth = null,
   operatorSupportedReleaseAuthorizationBasis = null,
   operatorSupportedReleaseRootPolicy = null,
   operatorOwnerAuthorizationMode = null,
@@ -573,11 +577,19 @@ export function VantaPrivateCoreStatePanel({
             </div>
             <div className="review-row">
               <span>Supported unshield circuit</span>
-              <strong>{operatorSupportedUnshieldCircuit ?? "Unavailable"}</strong>
+              <strong>
+                {operatorSupportedUnshieldCircuit
+                  ? `${operatorSupportedUnshieldCircuit} @ depth ${String(operatorSupportedUnshieldMerkleDepth ?? "?")}`
+                  : "Unavailable"}
+              </strong>
             </div>
             <div className="review-row">
               <span>Supported send circuit</span>
-              <strong>{operatorSupportedSendCircuit ?? "Unavailable"}</strong>
+              <strong>
+                {operatorSupportedSendCircuit
+                  ? `${operatorSupportedSendCircuit} @ depth ${String(operatorSupportedSendMerkleDepth ?? "?")}`
+                  : "Unavailable"}
+              </strong>
             </div>
             <div className="review-row">
               <span>Supported release auth</span>

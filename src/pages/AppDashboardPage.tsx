@@ -71,6 +71,8 @@ export function AppDashboardPage() {
     privateCoreOperatorSupportedProofSystem,
     privateCoreOperatorSupportedUnshieldCircuit,
     privateCoreOperatorSupportedSendCircuit,
+    privateCoreOperatorSupportedUnshieldMerkleDepth,
+    privateCoreOperatorSupportedSendMerkleDepth,
     privateCoreOperatorSupportedReleaseAuthorizationBasis,
     privateCoreOperatorSupportedReleaseRootPolicy,
     privateCoreOperatorOwnerAuthorizationMode,
@@ -280,6 +282,8 @@ export function AppDashboardPage() {
           operatorSupportedProofSystem={privateCoreOperatorSupportedProofSystem}
           operatorSupportedUnshieldCircuit={privateCoreOperatorSupportedUnshieldCircuit}
           operatorSupportedSendCircuit={privateCoreOperatorSupportedSendCircuit}
+          operatorSupportedUnshieldMerkleDepth={privateCoreOperatorSupportedUnshieldMerkleDepth}
+          operatorSupportedSendMerkleDepth={privateCoreOperatorSupportedSendMerkleDepth}
           operatorSupportedReleaseAuthorizationBasis={
             privateCoreOperatorSupportedReleaseAuthorizationBasis
           }

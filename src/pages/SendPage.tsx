@@ -208,6 +208,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorSupportedProofSystem,
     privateCoreOperatorSupportedUnshieldCircuit,
     privateCoreOperatorSupportedSendCircuit,
+    privateCoreOperatorSupportedUnshieldMerkleDepth,
+    privateCoreOperatorSupportedSendMerkleDepth,
     privateCoreOperatorSupportedReleaseAuthorizationBasis,
     privateCoreOperatorSupportedReleaseRootPolicy,
     privateCoreOperatorSummaryUpdatedAt,
@@ -1672,6 +1674,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         operatorSupportedProofSystem={privateCoreOperatorSupportedProofSystem}
         operatorSupportedUnshieldCircuit={privateCoreOperatorSupportedUnshieldCircuit}
         operatorSupportedSendCircuit={privateCoreOperatorSupportedSendCircuit}
+        operatorSupportedUnshieldMerkleDepth={privateCoreOperatorSupportedUnshieldMerkleDepth}
+        operatorSupportedSendMerkleDepth={privateCoreOperatorSupportedSendMerkleDepth}
         operatorSupportedReleaseAuthorizationBasis={
           privateCoreOperatorSupportedReleaseAuthorizationBasis
         }

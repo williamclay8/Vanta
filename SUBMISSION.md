@@ -353,6 +353,8 @@ The same operator summary now also versions the supported narrow unshield lane:
 - `supportedProofSystem = noir-acir-ultrahonk-bbjs`
 - `supportedUnshieldCircuit = vanta_private_core_single_note_unshield`
 - `supportedSendCircuit = vanta_private_core_single_note_send`
+- `supportedUnshieldMerkleDepth = 3`
+- `supportedSendMerkleDepth = 3`
 - `supportedReleaseAuthorizationBasis = proof-backed-consume`
 - `supportedReleaseRootPolicy = latest-registered-root`
 
