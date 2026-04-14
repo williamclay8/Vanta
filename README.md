@@ -222,6 +222,8 @@ The operator summary now versions the narrow unshield lane too:
 - `supportedUnshieldLaneVersion = 1`
 - `supportedUnshieldLaneKind = single-note-proof-backed-consume`
 - `supportedUnshieldLaneStatus = supported`
+- `supportedReleaseAuthorizationBasis = proof-backed-consume`
+- `supportedReleaseRootPolicy = latest-registered-root`
 
 ---
 

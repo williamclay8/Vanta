@@ -21,6 +21,14 @@ try {
     humanizeSupportedUnshieldLaneStatus(summary.supportedUnshieldLaneStatus),
   );
   printLine("Supported unshield lane note", summary.supportedUnshieldLaneNote ?? "Unavailable");
+  printLine(
+    "Supported release authorization",
+    humanizeReleaseAuthorization(summary.supportedReleaseAuthorizationBasis),
+  );
+  printLine(
+    "Supported release root policy",
+    humanizeReleaseRootPolicy(summary.supportedReleaseRootPolicy),
+  );
   printLine("Owner authorization mode", humanizeOwnerAuthorizationMode(summary.ownerAuthorizationMode));
   printLine("Nullifier key mode", humanizeNullifierKeyMode(summary.nullifierKeyMode));
   printLine("Proving hash lane", summary.provingHashLane ?? "Unavailable");

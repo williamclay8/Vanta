@@ -115,6 +115,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorSupportedUnshieldLaneNote: string | null;
   privateCoreOperatorSupportedUnshieldLaneStatus: string | null;
   privateCoreOperatorSupportedUnshieldLaneVersion: number | null;
+  privateCoreOperatorSupportedReleaseAuthorizationBasis: string | null;
+  privateCoreOperatorSupportedReleaseRootPolicy: string | null;
   privateCoreOperatorOwnerAuthorizationMode: string | null;
   privateCoreOperatorNullifierKeyMode: string | null;
   privateCoreOperatorProvingHashLane: string | null;
@@ -387,6 +389,14 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<string | null>(null);
   const [privateCoreOperatorSupportedUnshieldLaneVersion, setPrivateCoreOperatorSupportedUnshieldLaneVersion] =
     useState<number | null>(null);
+  const [
+    privateCoreOperatorSupportedReleaseAuthorizationBasis,
+    setPrivateCoreOperatorSupportedReleaseAuthorizationBasis,
+  ] = useState<string | null>(null);
+  const [
+    privateCoreOperatorSupportedReleaseRootPolicy,
+    setPrivateCoreOperatorSupportedReleaseRootPolicy,
+  ] = useState<string | null>(null);
   const [privateCoreOperatorOwnerAuthorizationMode, setPrivateCoreOperatorOwnerAuthorizationMode] =
     useState<string | null>(null);
   const [privateCoreOperatorNullifierKeyMode, setPrivateCoreOperatorNullifierKeyMode] =
@@ -457,6 +467,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSupportedUnshieldLaneNote,
       setPrivateCoreOperatorSupportedUnshieldLaneStatus,
       setPrivateCoreOperatorSupportedUnshieldLaneVersion,
+      setPrivateCoreOperatorSupportedReleaseAuthorizationBasis,
+      setPrivateCoreOperatorSupportedReleaseRootPolicy,
       setPrivateCoreOperatorOwnerAuthorizationMode,
       setPrivateCoreOperatorNullifierKeyMode,
       setPrivateCoreOperatorProvingHashLane,
@@ -1442,6 +1454,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedUnshieldLaneNote,
       privateCoreOperatorSupportedUnshieldLaneStatus,
       privateCoreOperatorSupportedUnshieldLaneVersion,
+      privateCoreOperatorSupportedReleaseAuthorizationBasis,
+      privateCoreOperatorSupportedReleaseRootPolicy,
       privateCoreOperatorOwnerAuthorizationMode,
       privateCoreOperatorNullifierKeyMode,
       privateCoreOperatorProvingHashLane,
@@ -1521,6 +1535,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedUnshieldLaneNote,
       privateCoreOperatorSupportedUnshieldLaneStatus,
       privateCoreOperatorSupportedUnshieldLaneVersion,
+      privateCoreOperatorSupportedReleaseAuthorizationBasis,
+      privateCoreOperatorSupportedReleaseRootPolicy,
       privateCoreOperatorOwnerAuthorizationMode,
       privateCoreOperatorNullifierKeyMode,
       privateCoreOperatorProvingHashLane,
@@ -1948,6 +1964,8 @@ function applyPrivateCoreOperatorSummaryState(args: {
   setPrivateCoreOperatorSupportedUnshieldLaneNote: (value: string | null) => void;
   setPrivateCoreOperatorSupportedUnshieldLaneStatus: (value: string | null) => void;
   setPrivateCoreOperatorSupportedUnshieldLaneVersion: (value: number | null) => void;
+  setPrivateCoreOperatorSupportedReleaseAuthorizationBasis: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedReleaseRootPolicy: (value: string | null) => void;
   setPrivateCoreOperatorOwnerAuthorizationMode: (value: string | null) => void;
   setPrivateCoreOperatorNullifierKeyMode: (value: string | null) => void;
   setPrivateCoreOperatorProvingHashLane: (value: string | null) => void;
@@ -1998,6 +2016,10 @@ function applyPrivateCoreOperatorSummaryState(args: {
   args.setPrivateCoreOperatorSupportedUnshieldLaneVersion(
     args.summaryState.supportedUnshieldLaneVersion,
   );
+  args.setPrivateCoreOperatorSupportedReleaseAuthorizationBasis(
+    args.summaryState.supportedReleaseAuthorizationBasis,
+  );
+  args.setPrivateCoreOperatorSupportedReleaseRootPolicy(args.summaryState.supportedReleaseRootPolicy);
   args.setPrivateCoreOperatorOwnerAuthorizationMode(args.summaryState.ownerAuthorizationMode);
   args.setPrivateCoreOperatorNullifierKeyMode(args.summaryState.nullifierKeyMode);
   args.setPrivateCoreOperatorProvingHashLane(args.summaryState.provingHashLane);

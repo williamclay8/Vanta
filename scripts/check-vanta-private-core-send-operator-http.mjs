@@ -262,13 +262,15 @@ try {
   if (
     !summaryState.ok ||
     summaryState.parsed?.stateVersion !== 1 ||
-    summaryState.parsed?.summaryVersion !== 7 ||
+    summaryState.parsed?.summaryVersion !== 8 ||
     summaryState.parsed?.supportedSendLaneVersion !== 1 ||
     summaryState.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     summaryState.parsed?.supportedSendLaneStatus !== "supported" ||
     summaryState.parsed?.supportedUnshieldLaneVersion !== 1 ||
     summaryState.parsed?.supportedUnshieldLaneKind !== "single-note-proof-backed-consume" ||
     summaryState.parsed?.supportedUnshieldLaneStatus !== "supported" ||
+    summaryState.parsed?.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
+    summaryState.parsed?.supportedReleaseRootPolicy !== "latest-registered-root" ||
     summaryState.parsed?.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
     summaryState.parsed?.nullifierKeyMode !== "note-secret-as-nullifier-key-v0" ||
     summaryState.parsed?.provingHashLane !== "poseidon-bn254-proving-lane-v0" ||
