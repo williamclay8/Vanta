@@ -127,6 +127,8 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOperatorSupportedFlowVersion,
     privateCoreOperatorSupportedAssetSymbol,
     privateCoreOperatorSupportedEnvironment,
+    privateCoreOperatorSupportedNoteSchema,
+    privateCoreOperatorSupportedNoteVersion,
     privateCoreOperatorSupportedRecipientModel,
     privateCoreOperatorSupportedReleaseDestinationModel,
     privateCoreOperatorSupportedProofSystem,
@@ -1097,6 +1099,8 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 operatorSupportedFlowVersion={privateCoreOperatorSupportedFlowVersion}
                 operatorSupportedAssetSymbol={privateCoreOperatorSupportedAssetSymbol}
                 operatorSupportedEnvironment={privateCoreOperatorSupportedEnvironment}
+                operatorSupportedNoteSchema={privateCoreOperatorSupportedNoteSchema}
+                operatorSupportedNoteVersion={privateCoreOperatorSupportedNoteVersion}
                 operatorSupportedRecipientModel={privateCoreOperatorSupportedRecipientModel}
                 operatorSupportedReleaseDestinationModel={
                   privateCoreOperatorSupportedReleaseDestinationModel

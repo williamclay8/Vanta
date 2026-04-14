@@ -273,7 +273,7 @@ try {
     preRestartSends.parsed.records.length < 1 ||
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.stateVersion !== 1 ||
-    preRestartSummary.parsed?.summaryVersion !== 14 ||
+    preRestartSummary.parsed?.summaryVersion !== 15 ||
     preRestartSummary.parsed?.supportedSendLaneVersion !== 1 ||
     preRestartSummary.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     preRestartSummary.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -291,6 +291,8 @@ try {
     typeof preRestartSummary.parsed?.supportedFlowNote !== "string" ||
     preRestartSummary.parsed?.supportedAssetSymbol !== "VUSD" ||
     preRestartSummary.parsed?.supportedEnvironment !== "solana-devnet" ||
+    preRestartSummary.parsed?.supportedNoteSchema !== "note-v0" ||
+    preRestartSummary.parsed?.supportedNoteVersion !== 0 ||
     preRestartSummary.parsed?.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     preRestartSummary.parsed?.supportedReleaseDestinationModel !==
       "32-byte-release-destination-field" ||
@@ -349,7 +351,7 @@ try {
   if (
     !postRestartSummary.ok ||
     postRestartSummary.parsed?.stateVersion !== 1 ||
-    postRestartSummary.parsed?.summaryVersion !== 14 ||
+    postRestartSummary.parsed?.summaryVersion !== 15 ||
     postRestartSummary.parsed?.supportedSendLaneVersion !== 1 ||
     postRestartSummary.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     postRestartSummary.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -367,6 +369,8 @@ try {
     typeof postRestartSummary.parsed?.supportedFlowNote !== "string" ||
     postRestartSummary.parsed?.supportedAssetSymbol !== "VUSD" ||
     postRestartSummary.parsed?.supportedEnvironment !== "solana-devnet" ||
+    postRestartSummary.parsed?.supportedNoteSchema !== "note-v0" ||
+    postRestartSummary.parsed?.supportedNoteVersion !== 0 ||
     postRestartSummary.parsed?.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     postRestartSummary.parsed?.supportedReleaseDestinationModel !==
       "32-byte-release-destination-field" ||
@@ -457,7 +461,7 @@ try {
     stdio: "pipe",
   });
   if (
-    !operatorStatusOutput.includes("Summary version: 14") ||
+    !operatorStatusOutput.includes("Summary version: 15") ||
     !operatorStatusOutput.includes("Supported send lane version: 1") ||
     !operatorStatusOutput.includes("Supported send lane status: Supported") ||
     !operatorStatusOutput.includes("Supported unshield lane version: 1") ||
@@ -474,6 +478,7 @@ try {
     !operatorStatusOutput.includes("Supported flow note: Current narrow zk v1 product flow is shield, hold, private send, unshield, and replay guard") ||
     !operatorStatusOutput.includes("Supported asset: VUSD") ||
     !operatorStatusOutput.includes("Supported environment: solana-devnet") ||
+    !operatorStatusOutput.includes("Supported note schema: NoteV0 / v0") ||
     !operatorStatusOutput.includes("Supported recipient model: Hashed reference to owner key") ||
     !operatorStatusOutput.includes(
       "Supported release destination model: 32-byte release destination field",

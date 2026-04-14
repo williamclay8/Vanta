@@ -262,7 +262,7 @@ try {
   if (
     !summaryState.ok ||
     summaryState.parsed?.stateVersion !== 1 ||
-    summaryState.parsed?.summaryVersion !== 14 ||
+    summaryState.parsed?.summaryVersion !== 15 ||
     summaryState.parsed?.supportedSendLaneVersion !== 1 ||
     summaryState.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     summaryState.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -280,6 +280,8 @@ try {
     typeof summaryState.parsed?.supportedFlowNote !== "string" ||
     summaryState.parsed?.supportedAssetSymbol !== "VUSD" ||
     summaryState.parsed?.supportedEnvironment !== "solana-devnet" ||
+    summaryState.parsed?.supportedNoteSchema !== "note-v0" ||
+    summaryState.parsed?.supportedNoteVersion !== 0 ||
     summaryState.parsed?.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     summaryState.parsed?.supportedReleaseDestinationModel !==
       "32-byte-release-destination-field" ||

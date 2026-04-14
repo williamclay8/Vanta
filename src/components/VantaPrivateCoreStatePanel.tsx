@@ -48,6 +48,8 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSupportedFlowVersion?: number | null;
   operatorSupportedAssetSymbol?: string | null;
   operatorSupportedEnvironment?: string | null;
+  operatorSupportedNoteSchema?: string | null;
+  operatorSupportedNoteVersion?: number | null;
   operatorSupportedRecipientModel?: string | null;
   operatorSupportedReleaseDestinationModel?: string | null;
   operatorSupportedProofSystem?: string | null;
@@ -220,6 +222,8 @@ export function VantaPrivateCoreStatePanel({
   operatorSupportedFlowVersion = null,
   operatorSupportedAssetSymbol = null,
   operatorSupportedEnvironment = null,
+  operatorSupportedNoteSchema = null,
+  operatorSupportedNoteVersion = null,
   operatorSupportedRecipientModel = null,
   operatorSupportedReleaseDestinationModel = null,
   operatorSupportedProofSystem = null,
@@ -550,6 +554,14 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Supported environment</span>
               <strong>{operatorSupportedEnvironment ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Supported note schema</span>
+              <strong>
+                {operatorSupportedNoteSchema === "note-v0"
+                  ? `NoteV0 / v${String(operatorSupportedNoteVersion ?? 0)}`
+                  : "Unavailable"}
+              </strong>
             </div>
             <div className="review-row">
               <span>Supported recipient model</span>

@@ -41,6 +41,12 @@ try {
   printLine("Supported asset", summary.supportedAssetSymbol ?? "Unavailable");
   printLine("Supported environment", summary.supportedEnvironment ?? "Unavailable");
   printLine(
+    "Supported note schema",
+    summary.supportedNoteSchema === "note-v0"
+      ? `NoteV0 / v${String(summary.supportedNoteVersion ?? 0)}`
+      : "Unavailable",
+  );
+  printLine(
     "Supported recipient model",
     humanizeSupportedRecipientModel(summary.supportedRecipientModel),
   );

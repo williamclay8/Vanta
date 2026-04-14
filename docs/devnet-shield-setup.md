@@ -135,6 +135,7 @@ The operator-status command now prints:
 - supported release lane version / kind / status
 - supported product flow version / kind / status
 - supported asset and environment
+- supported note schema and note version
 - supported recipient and release-destination models
 - supported proof system and current unshield/send circuit ids plus fixed Merkle depth
 - supported release authorization basis

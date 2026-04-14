@@ -125,6 +125,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorSupportedFlowVersion: number | null;
   privateCoreOperatorSupportedAssetSymbol: string | null;
   privateCoreOperatorSupportedEnvironment: string | null;
+  privateCoreOperatorSupportedNoteSchema: string | null;
+  privateCoreOperatorSupportedNoteVersion: number | null;
   privateCoreOperatorSupportedRecipientModel: string | null;
   privateCoreOperatorSupportedReleaseDestinationModel: string | null;
   privateCoreOperatorSupportedProofSystem: string | null;
@@ -426,6 +428,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<string | null>(null);
   const [privateCoreOperatorSupportedEnvironment, setPrivateCoreOperatorSupportedEnvironment] =
     useState<string | null>(null);
+  const [privateCoreOperatorSupportedNoteSchema, setPrivateCoreOperatorSupportedNoteSchema] =
+    useState<string | null>(null);
+  const [privateCoreOperatorSupportedNoteVersion, setPrivateCoreOperatorSupportedNoteVersion] =
+    useState<number | null>(null);
   const [privateCoreOperatorSupportedRecipientModel, setPrivateCoreOperatorSupportedRecipientModel] =
     useState<string | null>(null);
   const [
@@ -530,6 +536,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSupportedFlowVersion,
       setPrivateCoreOperatorSupportedAssetSymbol,
       setPrivateCoreOperatorSupportedEnvironment,
+      setPrivateCoreOperatorSupportedNoteSchema,
+      setPrivateCoreOperatorSupportedNoteVersion,
       setPrivateCoreOperatorSupportedRecipientModel,
       setPrivateCoreOperatorSupportedReleaseDestinationModel,
       setPrivateCoreOperatorSupportedProofSystem,
@@ -1534,6 +1542,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedFlowVersion,
       privateCoreOperatorSupportedAssetSymbol,
       privateCoreOperatorSupportedEnvironment,
+      privateCoreOperatorSupportedNoteSchema,
+      privateCoreOperatorSupportedNoteVersion,
       privateCoreOperatorSupportedRecipientModel,
       privateCoreOperatorSupportedReleaseDestinationModel,
       privateCoreOperatorSupportedProofSystem,
@@ -1632,6 +1642,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedFlowVersion,
       privateCoreOperatorSupportedAssetSymbol,
       privateCoreOperatorSupportedEnvironment,
+      privateCoreOperatorSupportedNoteSchema,
+      privateCoreOperatorSupportedNoteVersion,
       privateCoreOperatorSupportedRecipientModel,
       privateCoreOperatorSupportedReleaseDestinationModel,
       privateCoreOperatorSupportedProofSystem,
@@ -2078,6 +2090,8 @@ function applyPrivateCoreOperatorSummaryState(args: {
   setPrivateCoreOperatorSupportedFlowVersion: (value: number | null) => void;
   setPrivateCoreOperatorSupportedAssetSymbol: (value: string | null) => void;
   setPrivateCoreOperatorSupportedEnvironment: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedNoteSchema: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedNoteVersion: (value: number | null) => void;
   setPrivateCoreOperatorSupportedRecipientModel: (value: string | null) => void;
   setPrivateCoreOperatorSupportedReleaseDestinationModel: (value: string | null) => void;
   setPrivateCoreOperatorSupportedProofSystem: (value: string | null) => void;
@@ -2149,6 +2163,8 @@ function applyPrivateCoreOperatorSummaryState(args: {
   args.setPrivateCoreOperatorSupportedFlowVersion(args.summaryState.supportedFlowVersion);
   args.setPrivateCoreOperatorSupportedAssetSymbol(args.summaryState.supportedAssetSymbol);
   args.setPrivateCoreOperatorSupportedEnvironment(args.summaryState.supportedEnvironment);
+  args.setPrivateCoreOperatorSupportedNoteSchema(args.summaryState.supportedNoteSchema);
+  args.setPrivateCoreOperatorSupportedNoteVersion(args.summaryState.supportedNoteVersion);
   args.setPrivateCoreOperatorSupportedRecipientModel(args.summaryState.supportedRecipientModel);
   args.setPrivateCoreOperatorSupportedReleaseDestinationModel(
     args.summaryState.supportedReleaseDestinationModel,

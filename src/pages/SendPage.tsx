@@ -203,6 +203,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorSupportedFlowVersion,
     privateCoreOperatorSupportedAssetSymbol,
     privateCoreOperatorSupportedEnvironment,
+    privateCoreOperatorSupportedNoteSchema,
+    privateCoreOperatorSupportedNoteVersion,
     privateCoreOperatorSupportedRecipientModel,
     privateCoreOperatorSupportedReleaseDestinationModel,
     privateCoreOperatorSupportedProofSystem,
@@ -1667,6 +1669,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         operatorSupportedFlowVersion={privateCoreOperatorSupportedFlowVersion}
         operatorSupportedAssetSymbol={privateCoreOperatorSupportedAssetSymbol}
         operatorSupportedEnvironment={privateCoreOperatorSupportedEnvironment}
+        operatorSupportedNoteSchema={privateCoreOperatorSupportedNoteSchema}
+        operatorSupportedNoteVersion={privateCoreOperatorSupportedNoteVersion}
         operatorSupportedRecipientModel={privateCoreOperatorSupportedRecipientModel}
         operatorSupportedReleaseDestinationModel={
           privateCoreOperatorSupportedReleaseDestinationModel
