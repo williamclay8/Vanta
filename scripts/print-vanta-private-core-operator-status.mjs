@@ -21,6 +21,9 @@ try {
     humanizeSupportedUnshieldLaneStatus(summary.supportedUnshieldLaneStatus),
   );
   printLine("Supported unshield lane note", summary.supportedUnshieldLaneNote ?? "Unavailable");
+  printLine("Owner authorization mode", humanizeOwnerAuthorizationMode(summary.ownerAuthorizationMode));
+  printLine("Nullifier key mode", humanizeNullifierKeyMode(summary.nullifierKeyMode));
+  printLine("Proving hash lane", summary.provingHashLane ?? "Unavailable");
   printLine("Current root", abbreviate(summary.currentRoot));
   printLine("Current root proof", abbreviate(summary.currentRecord?.proofId));
   printLine("Current root registration", humanizeRootRegistrationBasis(summary.currentRecord?.registrationBasis));
@@ -264,6 +267,24 @@ function humanizeSupportedUnshieldLaneStatus(value) {
   switch (value) {
     case "supported":
       return "Supported";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeOwnerAuthorizationMode(value) {
+  switch (value) {
+    case "x25519-secret-prechecked-off-circuit":
+      return "X25519 secret prechecked off-circuit";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeNullifierKeyMode(value) {
+  switch (value) {
+    case "note-secret-as-nullifier-key-v0":
+      return "Note secret as nullifier key v0";
     default:
       return "Unavailable";
   }

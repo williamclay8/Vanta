@@ -273,13 +273,16 @@ try {
     preRestartSends.parsed.records.length < 1 ||
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.stateVersion !== 1 ||
-    preRestartSummary.parsed?.summaryVersion !== 6 ||
+    preRestartSummary.parsed?.summaryVersion !== 7 ||
     preRestartSummary.parsed?.supportedSendLaneVersion !== 1 ||
     preRestartSummary.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     preRestartSummary.parsed?.supportedSendLaneStatus !== "supported" ||
     preRestartSummary.parsed?.supportedUnshieldLaneVersion !== 1 ||
     preRestartSummary.parsed?.supportedUnshieldLaneKind !== "single-note-proof-backed-consume" ||
     preRestartSummary.parsed?.supportedUnshieldLaneStatus !== "supported" ||
+    preRestartSummary.parsed?.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
+    preRestartSummary.parsed?.nullifierKeyMode !== "note-secret-as-nullifier-key-v0" ||
+    preRestartSummary.parsed?.provingHashLane !== "poseidon-bn254-proving-lane-v0" ||
     typeof preRestartSummary.parsed?.generatedAt !== "number" ||
     preRestartSummary.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
     preRestartSummary.parsed?.latestSendProof?.action !== "send-proof" ||
@@ -324,13 +327,16 @@ try {
   if (
     !postRestartSummary.ok ||
     postRestartSummary.parsed?.stateVersion !== 1 ||
-    postRestartSummary.parsed?.summaryVersion !== 6 ||
+    postRestartSummary.parsed?.summaryVersion !== 7 ||
     postRestartSummary.parsed?.supportedSendLaneVersion !== 1 ||
     postRestartSummary.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     postRestartSummary.parsed?.supportedSendLaneStatus !== "supported" ||
     postRestartSummary.parsed?.supportedUnshieldLaneVersion !== 1 ||
     postRestartSummary.parsed?.supportedUnshieldLaneKind !== "single-note-proof-backed-consume" ||
     postRestartSummary.parsed?.supportedUnshieldLaneStatus !== "supported" ||
+    postRestartSummary.parsed?.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
+    postRestartSummary.parsed?.nullifierKeyMode !== "note-secret-as-nullifier-key-v0" ||
+    postRestartSummary.parsed?.provingHashLane !== "poseidon-bn254-proving-lane-v0" ||
     typeof postRestartSummary.parsed?.generatedAt !== "number" ||
     postRestartSummary.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
     postRestartSummary.parsed?.rootRecordCount < 1
@@ -407,11 +413,14 @@ try {
     stdio: "pipe",
   });
   if (
-    !operatorStatusOutput.includes("Summary version: 6") ||
+    !operatorStatusOutput.includes("Summary version: 7") ||
     !operatorStatusOutput.includes("Supported send lane version: 1") ||
     !operatorStatusOutput.includes("Supported send lane status: Supported") ||
     !operatorStatusOutput.includes("Supported unshield lane version: 1") ||
     !operatorStatusOutput.includes("Supported unshield lane status: Supported") ||
+    !operatorStatusOutput.includes("Owner authorization mode: X25519 secret prechecked off-circuit") ||
+    !operatorStatusOutput.includes("Nullifier key mode: Note secret as nullifier key v0") ||
+    !operatorStatusOutput.includes("Proving hash lane: poseidon-bn254-proving-lane-v0") ||
     !operatorStatusOutput.includes("Latest proof action: consume") ||
     !operatorStatusOutput.includes("Latest send proof action: send-proof") ||
     !operatorStatusOutput.includes("Latest send transition:") ||

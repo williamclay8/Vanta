@@ -220,7 +220,7 @@ try {
   if (
     !initialSummaryState.ok ||
     initialSummaryState.parsed?.stateVersion !== 1 ||
-    initialSummaryState.parsed?.summaryVersion !== 6 ||
+    initialSummaryState.parsed?.summaryVersion !== 7 ||
     initialSummaryState.parsed?.supportedSendLaneVersion !== 1 ||
     initialSummaryState.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     initialSummaryState.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -229,6 +229,9 @@ try {
     initialSummaryState.parsed?.supportedUnshieldLaneKind !== "single-note-proof-backed-consume" ||
     initialSummaryState.parsed?.supportedUnshieldLaneStatus !== "supported" ||
     typeof initialSummaryState.parsed?.supportedUnshieldLaneNote !== "string" ||
+    initialSummaryState.parsed?.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
+    initialSummaryState.parsed?.nullifierKeyMode !== "note-secret-as-nullifier-key-v0" ||
+    initialSummaryState.parsed?.provingHashLane !== "poseidon-bn254-proving-lane-v0" ||
     typeof initialSummaryState.parsed?.generatedAt !== "number" ||
     initialSummaryState.parsed?.currentRoot !== null ||
     initialSummaryState.parsed?.latestProof !== null ||
@@ -861,13 +864,16 @@ try {
   if (
     !summaryStateAfterConsume.ok ||
     summaryStateAfterConsume.parsed?.stateVersion !== 1 ||
-    summaryStateAfterConsume.parsed?.summaryVersion !== 6 ||
+    summaryStateAfterConsume.parsed?.summaryVersion !== 7 ||
     summaryStateAfterConsume.parsed?.supportedSendLaneVersion !== 1 ||
     summaryStateAfterConsume.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     summaryStateAfterConsume.parsed?.supportedSendLaneStatus !== "supported" ||
     summaryStateAfterConsume.parsed?.supportedUnshieldLaneVersion !== 1 ||
     summaryStateAfterConsume.parsed?.supportedUnshieldLaneKind !== "single-note-proof-backed-consume" ||
     summaryStateAfterConsume.parsed?.supportedUnshieldLaneStatus !== "supported" ||
+    summaryStateAfterConsume.parsed?.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
+    summaryStateAfterConsume.parsed?.nullifierKeyMode !== "note-secret-as-nullifier-key-v0" ||
+    summaryStateAfterConsume.parsed?.provingHashLane !== "poseidon-bn254-proving-lane-v0" ||
     typeof summaryStateAfterConsume.parsed?.generatedAt !== "number" ||
     summaryStateAfterConsume.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
     summaryStateAfterConsume.parsed?.latestConsumeProof?.proofId !== consumeResponse.parsed.proofId ||
@@ -921,13 +927,16 @@ try {
   });
   if (
     !summaryStateAfterRelease.ok ||
-    summaryStateAfterRelease.parsed?.summaryVersion !== 6 ||
+    summaryStateAfterRelease.parsed?.summaryVersion !== 7 ||
     summaryStateAfterRelease.parsed?.supportedSendLaneVersion !== 1 ||
     summaryStateAfterRelease.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     summaryStateAfterRelease.parsed?.supportedSendLaneStatus !== "supported" ||
     summaryStateAfterRelease.parsed?.supportedUnshieldLaneVersion !== 1 ||
     summaryStateAfterRelease.parsed?.supportedUnshieldLaneKind !== "single-note-proof-backed-consume" ||
     summaryStateAfterRelease.parsed?.supportedUnshieldLaneStatus !== "supported" ||
+    summaryStateAfterRelease.parsed?.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
+    summaryStateAfterRelease.parsed?.nullifierKeyMode !== "note-secret-as-nullifier-key-v0" ||
+    summaryStateAfterRelease.parsed?.provingHashLane !== "poseidon-bn254-proving-lane-v0" ||
     typeof summaryStateAfterRelease.parsed?.generatedAt !== "number" ||
     summaryStateAfterRelease.parsed?.latestConsumeProof?.proofId !== consumeResponse.parsed.proofId ||
     summaryStateAfterRelease.parsed?.latestConsume?.proofId !== consumeResponse.parsed.proofId ||
@@ -967,7 +976,7 @@ try {
   });
   if (
     !operatorStatusOutput.includes("Summary state version: 1") ||
-    !operatorStatusOutput.includes("Summary version: 6") ||
+    !operatorStatusOutput.includes("Summary version: 7") ||
     !operatorStatusOutput.includes("Summary generated:") ||
     !operatorStatusOutput.includes("Supported send lane version: 1") ||
     !operatorStatusOutput.includes("Supported send lane kind: Single input / recipient / optional change") ||
@@ -977,6 +986,9 @@ try {
     !operatorStatusOutput.includes("Supported unshield lane kind: Single-note proof-backed consume") ||
     !operatorStatusOutput.includes("Supported unshield lane status: Supported") ||
     !operatorStatusOutput.includes("Supported unshield lane note: Current narrow zk v1 unshield lane is supported") ||
+    !operatorStatusOutput.includes("Owner authorization mode: X25519 secret prechecked off-circuit") ||
+    !operatorStatusOutput.includes("Nullifier key mode: Note secret as nullifier key v0") ||
+    !operatorStatusOutput.includes("Proving hash lane: poseidon-bn254-proving-lane-v0") ||
     !operatorStatusOutput.includes("Latest proof action: consume") ||
     !operatorStatusOutput.includes("Latest consume proof:") ||
     !operatorStatusOutput.includes("Latest consume linked proof:") ||

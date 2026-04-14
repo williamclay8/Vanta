@@ -148,6 +148,9 @@ const PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_NOTE =
   "Current narrow zk v1 unshield lane is supported for one note consume with proof-backed release recording.";
 const PRIVATE_CORE_RELEASE_AUTHORIZATION_BASIS = "proof-backed-consume";
 const PRIVATE_CORE_RELEASE_ROOT_POLICY = "latest-registered-root";
+const PRIVATE_CORE_OWNER_AUTH_MODE = "x25519-secret-prechecked-off-circuit";
+const PRIVATE_CORE_NULLIFIER_KEY_MODE = "note-secret-as-nullifier-key-v0";
+const PRIVATE_CORE_PROVING_HASH_LANE = "poseidon-bn254-proving-lane-v0";
 
 if (!swapLaneConfigValidation.valid) {
   console.warn(
@@ -1542,6 +1545,9 @@ function buildPrivateCoreSummaryState() {
     supportedUnshieldLaneKind: PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_KIND,
     supportedUnshieldLaneStatus: PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_STATUS,
     supportedUnshieldLaneNote: PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_NOTE,
+    ownerAuthorizationMode: PRIVATE_CORE_OWNER_AUTH_MODE,
+    nullifierKeyMode: PRIVATE_CORE_NULLIFIER_KEY_MODE,
+    provingHashLane: PRIVATE_CORE_PROVING_HASH_LANE,
     currentRootLinkedProof,
     currentRootProofLinkStatus,
     generatedAt: Date.now(),
@@ -1553,7 +1559,7 @@ function buildPrivateCoreSummaryState() {
     sendResultingRootProofLinkStatus,
     sendResultingRootStatus: sendResultingRootStatus.status,
     stateVersion: 1,
-    summaryVersion: 6,
+    summaryVersion: 7,
     currentRoot: currentRootRecord?.root ?? null,
     currentRecord: currentRootRecord,
     rootRecords,
