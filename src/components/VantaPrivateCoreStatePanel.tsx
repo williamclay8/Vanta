@@ -77,6 +77,9 @@ type VantaPrivateCoreStatePanelProps = {
   operatorRootError?: string | null;
   operatorRootRegistrationStatus?: string | null;
   operatorRoots?: VantaPrivateCoreOperatorRootRecord[];
+  operatorContractStateVersion?: number | null;
+  operatorContractVersion?: number | null;
+  operatorContractSummaryVersion?: number | null;
   operatorSendResultingRootLinkedProof?: VantaPrivateCoreOperatorProofRecord | null;
   operatorSendResultingRootRecord?: VantaPrivateCoreOperatorRootRecord | null;
   operatorSendResultingRootPrimaryNote?: string | null;
@@ -253,6 +256,9 @@ export function VantaPrivateCoreStatePanel({
   operatorRootError = null,
   operatorRootRegistrationStatus = null,
   operatorRoots = [],
+  operatorContractStateVersion = null,
+  operatorContractVersion = null,
+  operatorContractSummaryVersion = null,
   operatorSendResultingRootLinkedProof = null,
   operatorSendResultingRootRecord = null,
   operatorSendResultingRootPrimaryNote = null,
@@ -496,8 +502,28 @@ export function VantaPrivateCoreStatePanel({
               <strong>{unshieldState?.proofObservationMode ?? holdState?.proofObservationMode ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
+              <span>Operator contract</span>
+              <strong>
+                {operatorContractVersion
+                  ? `v${String(operatorContractVersion)} · state ${String(operatorContractStateVersion ?? 1)}`
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Contract summary compatibility</span>
+              <strong>
+                {operatorContractSummaryVersion
+                  ? `Summary v${String(operatorContractSummaryVersion)}`
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
               <span>Operator summary refresh</span>
               <strong>{formatOperatorSummaryFreshness(operatorSummaryUpdatedAt)}</strong>
+            </div>
+            <div className="review-row">
+              <span>Operator contract source</span>
+              <strong>Dedicated operator contract endpoint</strong>
             </div>
             <div className="review-row">
               <span>Operator boundary status</span>

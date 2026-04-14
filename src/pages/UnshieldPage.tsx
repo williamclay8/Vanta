@@ -165,6 +165,9 @@ export function UnshieldPage() {
     privateCoreOperatorRootError,
     privateCoreOperatorRootRegistrationStatus,
     privateCoreOperatorRoots,
+    privateCoreOperatorContractStateVersion,
+    privateCoreOperatorContractVersion,
+    privateCoreOperatorContractSummaryVersion,
     privateCoreOperatorSendError,
     privateCoreOperatorSends,
     privateCoreOperatorSendProofError,
@@ -999,6 +1002,9 @@ export function UnshieldPage() {
           operatorRootError={privateCoreOperatorRootError}
           operatorRootRegistrationStatus={privateCoreOperatorRootRegistrationStatus}
           operatorRoots={privateCoreOperatorRoots}
+          operatorContractStateVersion={privateCoreOperatorContractStateVersion}
+          operatorContractVersion={privateCoreOperatorContractVersion}
+          operatorContractSummaryVersion={privateCoreOperatorContractSummaryVersion}
           operatorSendError={privateCoreOperatorSendError}
           operatorSends={privateCoreOperatorSends}
           operatorSendProofError={privateCoreOperatorSendProofError}

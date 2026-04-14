@@ -125,6 +125,56 @@ try {
   }
   printStatus("operator contract endpoint: PASS");
 
+  const summaryState = await requestJson(baseUrl, "/state/private-core-summary", { method: "GET" });
+  const mirroredContractFields = [
+    "summaryVersion",
+    "supportedSendLaneVersion",
+    "supportedSendLaneKind",
+    "supportedSendLaneStatus",
+    "supportedSendLaneNote",
+    "supportedUnshieldLaneVersion",
+    "supportedUnshieldLaneKind",
+    "supportedUnshieldLaneStatus",
+    "supportedUnshieldLaneNote",
+    "supportedReleaseLaneVersion",
+    "supportedReleaseLaneKind",
+    "supportedReleaseLaneStatus",
+    "supportedReleaseLaneNote",
+    "supportedFlowVersion",
+    "supportedFlowKind",
+    "supportedFlowStatus",
+    "supportedFlowNote",
+    "supportedAssetSymbol",
+    "supportedEnvironment",
+    "supportedNoteSchema",
+    "supportedNoteVersion",
+    "supportedRootRegistrationProvenance",
+    "supportedSendResultingRootBasis",
+    "supportedRecipientModel",
+    "supportedReleaseDestinationModel",
+    "supportedProofSystem",
+    "supportedUnshieldCircuit",
+    "supportedSendCircuit",
+    "supportedUnshieldMerkleDepth",
+    "supportedSendMerkleDepth",
+    "supportedReleaseAuthorizationBasis",
+    "supportedReleaseRootPolicy",
+    "ownerAuthorizationMode",
+    "nullifierKeyMode",
+    "provingHashLane",
+  ];
+  const mismatchedMirroredFields = !summaryState.ok
+    ? ["summary fetch failed"]
+    : mirroredContractFields.filter(
+        (field) => summaryState.parsed?.[field] !== contractState.parsed?.[field],
+      );
+  if (mismatchedMirroredFields.length > 0) {
+    throw new Error(
+      `operator summary did not mirror contract fields: ${mismatchedMirroredFields.join(", ")}`,
+    );
+  }
+  printStatus("operator contract summary mirror: PASS");
+
   const contractPreflight = await fetch(`${baseUrl}/state/private-core-contract`, {
     headers: {
       "Access-Control-Request-Method": "GET",

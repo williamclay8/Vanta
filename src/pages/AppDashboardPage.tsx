@@ -102,6 +102,9 @@ export function AppDashboardPage() {
     privateCoreOperatorRootError,
     privateCoreOperatorRootRegistrationStatus,
     privateCoreOperatorRoots,
+    privateCoreOperatorContractStateVersion,
+    privateCoreOperatorContractVersion,
+    privateCoreOperatorContractSummaryVersion,
     privateCoreOperatorSendError,
     privateCoreOperatorSends,
     privateCoreOperatorSendProofError,
@@ -327,6 +330,9 @@ export function AppDashboardPage() {
               operatorRootError={privateCoreOperatorRootError}
               operatorRootRegistrationStatus={privateCoreOperatorRootRegistrationStatus}
               operatorRoots={privateCoreOperatorRoots}
+              operatorContractStateVersion={privateCoreOperatorContractStateVersion}
+              operatorContractVersion={privateCoreOperatorContractVersion}
+              operatorContractSummaryVersion={privateCoreOperatorContractSummaryVersion}
               operatorSendError={privateCoreOperatorSendError}
               operatorSends={privateCoreOperatorSends}
               operatorSendProofError={privateCoreOperatorSendProofError}

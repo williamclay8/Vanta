@@ -39,11 +39,13 @@ import {
   type VantaPrivateCoreUnshieldProofBoundaryV0,
 } from "@/zk/vantaPrivateCoreUnshieldProof";
 import {
+  fetchVantaPrivateCoreOperatorContract,
   fetchVantaPrivateCoreOperatorSummary,
   registerVantaPrivateCoreOperatorRoot,
   requestVantaPrivateCoreOperatorConsume,
   requestVantaPrivateCoreOperatorProof,
   type VantaPrivateCoreConsumeOperatorResponse,
+  type VantaPrivateCoreOperatorContractStateResponse,
   type VantaPrivateCoreOperatorConsumeRecord,
   type VantaPrivateCoreOperatorProofRecord,
   type VantaPrivateCoreOperatorReleaseRecord,
@@ -162,6 +164,9 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorRootError: string | null;
   privateCoreOperatorRootRegistrationStatus: string | null;
   privateCoreOperatorRootCurrentnessLabel: string | null;
+  privateCoreOperatorContractStateVersion: number | null;
+  privateCoreOperatorContractVersion: number | null;
+  privateCoreOperatorContractSummaryVersion: number | null;
   privateCoreOperatorSummaryUpdatedAt: number | null;
   privateCoreUnshieldState: VantaPrivateCoreUnshieldState | null;
   recentShield: RecentShieldContext | null;
@@ -500,34 +505,26 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   const [privateCoreOperatorRootError, setPrivateCoreOperatorRootError] = useState<string | null>(null);
   const [privateCoreOperatorRootRegistrationStatus, setPrivateCoreOperatorRootRegistrationStatus] =
     useState<string | null>(null);
+  const [privateCoreOperatorContractStateVersion, setPrivateCoreOperatorContractStateVersion] =
+    useState<number | null>(null);
+  const [privateCoreOperatorContractVersion, setPrivateCoreOperatorContractVersion] =
+    useState<number | null>(null);
+  const [privateCoreOperatorContractSummaryVersion, setPrivateCoreOperatorContractSummaryVersion] =
+    useState<number | null>(null);
   const [privateCoreOperatorSummaryUpdatedAt, setPrivateCoreOperatorSummaryUpdatedAt] =
     useState<number | null>(null);
   const [recentShield, setRecentShield] = useState<RecentShieldContext | null>(null);
 
   const refreshPrivateCoreOperatorSummary = useCallback(async () => {
-    const summaryState = await fetchVantaPrivateCoreOperatorSummary();
-    applyPrivateCoreOperatorSummaryState({
-      summaryState,
-      setPrivateCoreOperatorCurrentRoot,
-      setPrivateCoreOperatorLatestConsume,
-      setPrivateCoreOperatorLatestConsumeProof,
-      setPrivateCoreOperatorLatestProof,
-      setPrivateCoreOperatorLatestRelease,
-      setPrivateCoreOperatorLatestReleaseProof,
-      setPrivateCoreOperatorLatestRoot,
-      setPrivateCoreOperatorLatestSend,
-      setPrivateCoreOperatorLatestSendLinkedProof,
-      setPrivateCoreOperatorCurrentRootProofLinkStatus,
-      setPrivateCoreOperatorCurrentRootLinkedProof,
-      setPrivateCoreOperatorRawSendResultingRootNote,
-      setPrivateCoreOperatorRawSendResultingRootRegistrationNote,
-      setPrivateCoreOperatorRawSendResultingRootRegistrationStatus,
-      setPrivateCoreOperatorSendResultingRootLinkedProof,
-      setPrivateCoreOperatorSendResultingRootRecord,
-      setPrivateCoreOperatorSendResultingRootProofLinkStatus,
-      setPrivateCoreOperatorRawSendResultingRootStatus,
-      setPrivateCoreOperatorRawBoundaryNote,
-      setPrivateCoreOperatorRawBoundaryStatus,
+    const [contractState, summaryState] = await Promise.all([
+      fetchVantaPrivateCoreOperatorContract(),
+      fetchVantaPrivateCoreOperatorSummary(),
+    ]);
+    applyPrivateCoreOperatorContractState({
+      contractState,
+      setPrivateCoreOperatorContractStateVersion,
+      setPrivateCoreOperatorContractVersion,
+      setPrivateCoreOperatorContractSummaryVersion,
       setPrivateCoreOperatorSupportedSendLaneKind,
       setPrivateCoreOperatorSupportedSendLaneNote,
       setPrivateCoreOperatorSupportedSendLaneStatus,
@@ -562,6 +559,29 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorOwnerAuthorizationMode,
       setPrivateCoreOperatorNullifierKeyMode,
       setPrivateCoreOperatorProvingHashLane,
+    });
+    applyPrivateCoreOperatorSummaryState({
+      summaryState,
+      setPrivateCoreOperatorCurrentRoot,
+      setPrivateCoreOperatorLatestConsume,
+      setPrivateCoreOperatorLatestConsumeProof,
+      setPrivateCoreOperatorLatestProof,
+      setPrivateCoreOperatorLatestRelease,
+      setPrivateCoreOperatorLatestReleaseProof,
+      setPrivateCoreOperatorLatestRoot,
+      setPrivateCoreOperatorLatestSend,
+      setPrivateCoreOperatorLatestSendLinkedProof,
+      setPrivateCoreOperatorCurrentRootProofLinkStatus,
+      setPrivateCoreOperatorCurrentRootLinkedProof,
+      setPrivateCoreOperatorRawSendResultingRootNote,
+      setPrivateCoreOperatorRawSendResultingRootRegistrationNote,
+      setPrivateCoreOperatorRawSendResultingRootRegistrationStatus,
+      setPrivateCoreOperatorSendResultingRootLinkedProof,
+      setPrivateCoreOperatorSendResultingRootRecord,
+      setPrivateCoreOperatorSendResultingRootProofLinkStatus,
+      setPrivateCoreOperatorRawSendResultingRootStatus,
+      setPrivateCoreOperatorRawBoundaryNote,
+      setPrivateCoreOperatorRawBoundaryStatus,
       setPrivateCoreOperatorConsumes,
       setPrivateCoreOperatorProofConsumeLinkStatus,
       setPrivateCoreOperatorProofs,
@@ -1595,6 +1615,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorRootError,
       privateCoreOperatorRootRegistrationStatus,
       privateCoreOperatorRootCurrentnessLabel,
+      privateCoreOperatorContractStateVersion,
+      privateCoreOperatorContractVersion,
+      privateCoreOperatorContractSummaryVersion,
       privateCoreOperatorSummaryUpdatedAt,
       privateCoreUnshieldState,
       recentShield,
@@ -1680,12 +1703,18 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorReleaseError,
       privateCoreOperatorRootError,
       privateCoreOperatorRootRegistrationStatus,
+      privateCoreOperatorContractStateVersion,
+      privateCoreOperatorContractVersion,
+      privateCoreOperatorContractSummaryVersion,
       privateCoreOperatorReleases,
       privateCoreOperatorRoots,
       privateCoreOperatorSendError,
       privateCoreOperatorSends,
       privateCoreOperatorSendProofError,
       privateCoreOperatorSendProofs,
+      privateCoreOperatorContractStateVersion,
+      privateCoreOperatorContractVersion,
+      privateCoreOperatorContractSummaryVersion,
       privateCoreOperatorSummaryUpdatedAt,
       privateCoreRecentShield,
       privateCoreUnshieldState,
@@ -2065,29 +2094,11 @@ function mergePrivateCoreSendStateWithOperatorDownstream(args: {
   return withOperatorRootStatus;
 }
 
-function applyPrivateCoreOperatorSummaryState(args: {
-  summaryState: VantaPrivateCoreOperatorSummaryStateResponse;
-  setPrivateCoreOperatorCurrentRoot: (value: string | null) => void;
-  setPrivateCoreOperatorLatestConsume: (value: VantaPrivateCoreOperatorConsumeRecord | null) => void;
-  setPrivateCoreOperatorLatestConsumeProof: (value: VantaPrivateCoreOperatorProofRecord | null) => void;
-  setPrivateCoreOperatorLatestProof: (value: VantaPrivateCoreOperatorProofRecord | null) => void;
-  setPrivateCoreOperatorLatestRelease: (value: VantaPrivateCoreOperatorReleaseRecord | null) => void;
-  setPrivateCoreOperatorLatestReleaseProof: (value: VantaPrivateCoreOperatorProofRecord | null) => void;
-  setPrivateCoreOperatorLatestRoot: (value: VantaPrivateCoreOperatorRootRecord | null) => void;
-  setPrivateCoreOperatorLatestSend: (value: VantaPrivateCoreOperatorSendRecord | null) => void;
-  setPrivateCoreOperatorLatestSendLinkedProof: (value: VantaPrivateCoreOperatorSendProofRecord | null) => void;
-  setPrivateCoreOperatorLatestSendProof: (value: VantaPrivateCoreOperatorSendProofRecord | null) => void;
-  setPrivateCoreOperatorCurrentRootLinkedProof: (value: VantaPrivateCoreOperatorProofRecord | null) => void;
-  setPrivateCoreOperatorCurrentRootProofLinkStatus: (value: string | null) => void;
-  setPrivateCoreOperatorSendResultingRootLinkedProof: (value: VantaPrivateCoreOperatorProofRecord | null) => void;
-  setPrivateCoreOperatorSendResultingRootRecord: (value: VantaPrivateCoreOperatorRootRecord | null) => void;
-  setPrivateCoreOperatorRawSendResultingRootNote: (value: string | null) => void;
-  setPrivateCoreOperatorRawSendResultingRootRegistrationNote: (value: string | null) => void;
-  setPrivateCoreOperatorRawSendResultingRootRegistrationStatus: (value: string | null) => void;
-  setPrivateCoreOperatorSendResultingRootProofLinkStatus: (value: string | null) => void;
-  setPrivateCoreOperatorRawSendResultingRootStatus: (value: string | null) => void;
-  setPrivateCoreOperatorRawBoundaryNote: (value: string | null) => void;
-  setPrivateCoreOperatorRawBoundaryStatus: (value: string | null) => void;
+function applyPrivateCoreOperatorContractState(args: {
+  contractState: VantaPrivateCoreOperatorContractStateResponse;
+  setPrivateCoreOperatorContractStateVersion: (value: number | null) => void;
+  setPrivateCoreOperatorContractVersion: (value: number | null) => void;
+  setPrivateCoreOperatorContractSummaryVersion: (value: number | null) => void;
   setPrivateCoreOperatorSupportedSendLaneKind: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSendLaneNote: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSendLaneStatus: (value: string | null) => void;
@@ -2122,6 +2133,91 @@ function applyPrivateCoreOperatorSummaryState(args: {
   setPrivateCoreOperatorOwnerAuthorizationMode: (value: string | null) => void;
   setPrivateCoreOperatorNullifierKeyMode: (value: string | null) => void;
   setPrivateCoreOperatorProvingHashLane: (value: string | null) => void;
+}) {
+  args.setPrivateCoreOperatorContractStateVersion(args.contractState.stateVersion);
+  args.setPrivateCoreOperatorContractVersion(args.contractState.contractVersion);
+  args.setPrivateCoreOperatorContractSummaryVersion(args.contractState.summaryVersion);
+  args.setPrivateCoreOperatorSupportedSendLaneKind(args.contractState.supportedSendLaneKind);
+  args.setPrivateCoreOperatorSupportedSendLaneNote(args.contractState.supportedSendLaneNote);
+  args.setPrivateCoreOperatorSupportedSendLaneStatus(args.contractState.supportedSendLaneStatus);
+  args.setPrivateCoreOperatorSupportedSendLaneVersion(args.contractState.supportedSendLaneVersion);
+  args.setPrivateCoreOperatorSupportedUnshieldLaneKind(args.contractState.supportedUnshieldLaneKind);
+  args.setPrivateCoreOperatorSupportedUnshieldLaneNote(args.contractState.supportedUnshieldLaneNote);
+  args.setPrivateCoreOperatorSupportedUnshieldLaneStatus(
+    args.contractState.supportedUnshieldLaneStatus,
+  );
+  args.setPrivateCoreOperatorSupportedUnshieldLaneVersion(
+    args.contractState.supportedUnshieldLaneVersion,
+  );
+  args.setPrivateCoreOperatorSupportedReleaseLaneKind(args.contractState.supportedReleaseLaneKind);
+  args.setPrivateCoreOperatorSupportedReleaseLaneNote(args.contractState.supportedReleaseLaneNote);
+  args.setPrivateCoreOperatorSupportedReleaseLaneStatus(
+    args.contractState.supportedReleaseLaneStatus,
+  );
+  args.setPrivateCoreOperatorSupportedReleaseLaneVersion(
+    args.contractState.supportedReleaseLaneVersion,
+  );
+  args.setPrivateCoreOperatorSupportedFlowKind(args.contractState.supportedFlowKind);
+  args.setPrivateCoreOperatorSupportedFlowNote(args.contractState.supportedFlowNote);
+  args.setPrivateCoreOperatorSupportedFlowStatus(args.contractState.supportedFlowStatus);
+  args.setPrivateCoreOperatorSupportedFlowVersion(args.contractState.supportedFlowVersion);
+  args.setPrivateCoreOperatorSupportedAssetSymbol(args.contractState.supportedAssetSymbol);
+  args.setPrivateCoreOperatorSupportedEnvironment(args.contractState.supportedEnvironment);
+  args.setPrivateCoreOperatorSupportedNoteSchema(args.contractState.supportedNoteSchema);
+  args.setPrivateCoreOperatorSupportedNoteVersion(args.contractState.supportedNoteVersion);
+  args.setPrivateCoreOperatorSupportedRootRegistrationProvenance(
+    args.contractState.supportedRootRegistrationProvenance,
+  );
+  args.setPrivateCoreOperatorSupportedSendResultingRootBasis(
+    args.contractState.supportedSendResultingRootBasis,
+  );
+  args.setPrivateCoreOperatorSupportedRecipientModel(args.contractState.supportedRecipientModel);
+  args.setPrivateCoreOperatorSupportedReleaseDestinationModel(
+    args.contractState.supportedReleaseDestinationModel,
+  );
+  args.setPrivateCoreOperatorSupportedProofSystem(args.contractState.supportedProofSystem);
+  args.setPrivateCoreOperatorSupportedUnshieldCircuit(args.contractState.supportedUnshieldCircuit);
+  args.setPrivateCoreOperatorSupportedSendCircuit(args.contractState.supportedSendCircuit);
+  args.setPrivateCoreOperatorSupportedUnshieldMerkleDepth(
+    args.contractState.supportedUnshieldMerkleDepth,
+  );
+  args.setPrivateCoreOperatorSupportedSendMerkleDepth(
+    args.contractState.supportedSendMerkleDepth,
+  );
+  args.setPrivateCoreOperatorSupportedReleaseAuthorizationBasis(
+    args.contractState.supportedReleaseAuthorizationBasis,
+  );
+  args.setPrivateCoreOperatorSupportedReleaseRootPolicy(
+    args.contractState.supportedReleaseRootPolicy,
+  );
+  args.setPrivateCoreOperatorOwnerAuthorizationMode(args.contractState.ownerAuthorizationMode);
+  args.setPrivateCoreOperatorNullifierKeyMode(args.contractState.nullifierKeyMode);
+  args.setPrivateCoreOperatorProvingHashLane(args.contractState.provingHashLane);
+}
+
+function applyPrivateCoreOperatorSummaryState(args: {
+  summaryState: VantaPrivateCoreOperatorSummaryStateResponse;
+  setPrivateCoreOperatorCurrentRoot: (value: string | null) => void;
+  setPrivateCoreOperatorLatestConsume: (value: VantaPrivateCoreOperatorConsumeRecord | null) => void;
+  setPrivateCoreOperatorLatestConsumeProof: (value: VantaPrivateCoreOperatorProofRecord | null) => void;
+  setPrivateCoreOperatorLatestProof: (value: VantaPrivateCoreOperatorProofRecord | null) => void;
+  setPrivateCoreOperatorLatestRelease: (value: VantaPrivateCoreOperatorReleaseRecord | null) => void;
+  setPrivateCoreOperatorLatestReleaseProof: (value: VantaPrivateCoreOperatorProofRecord | null) => void;
+  setPrivateCoreOperatorLatestRoot: (value: VantaPrivateCoreOperatorRootRecord | null) => void;
+  setPrivateCoreOperatorLatestSend: (value: VantaPrivateCoreOperatorSendRecord | null) => void;
+  setPrivateCoreOperatorLatestSendLinkedProof: (value: VantaPrivateCoreOperatorSendProofRecord | null) => void;
+  setPrivateCoreOperatorLatestSendProof: (value: VantaPrivateCoreOperatorSendProofRecord | null) => void;
+  setPrivateCoreOperatorCurrentRootLinkedProof: (value: VantaPrivateCoreOperatorProofRecord | null) => void;
+  setPrivateCoreOperatorCurrentRootProofLinkStatus: (value: string | null) => void;
+  setPrivateCoreOperatorSendResultingRootLinkedProof: (value: VantaPrivateCoreOperatorProofRecord | null) => void;
+  setPrivateCoreOperatorSendResultingRootRecord: (value: VantaPrivateCoreOperatorRootRecord | null) => void;
+  setPrivateCoreOperatorRawSendResultingRootNote: (value: string | null) => void;
+  setPrivateCoreOperatorRawSendResultingRootRegistrationNote: (value: string | null) => void;
+  setPrivateCoreOperatorRawSendResultingRootRegistrationStatus: (value: string | null) => void;
+  setPrivateCoreOperatorSendResultingRootProofLinkStatus: (value: string | null) => void;
+  setPrivateCoreOperatorRawSendResultingRootStatus: (value: string | null) => void;
+  setPrivateCoreOperatorRawBoundaryNote: (value: string | null) => void;
+  setPrivateCoreOperatorRawBoundaryStatus: (value: string | null) => void;
   setPrivateCoreOperatorConsumes: (value: VantaPrivateCoreOperatorConsumeRecord[]) => void;
   setPrivateCoreOperatorProofConsumeLinkStatus: (value: string | null) => void;
   setPrivateCoreOperatorProofs: (value: VantaPrivateCoreOperatorProofRecord[]) => void;
@@ -2159,54 +2255,6 @@ function applyPrivateCoreOperatorSummaryState(args: {
   args.setPrivateCoreOperatorLatestReleaseProof(args.summaryState.latestReleaseProof);
   args.setPrivateCoreOperatorRawBoundaryNote(args.summaryState.boundaryNote);
   args.setPrivateCoreOperatorRawBoundaryStatus(args.summaryState.boundaryStatus);
-  args.setPrivateCoreOperatorSupportedSendLaneKind(args.summaryState.supportedSendLaneKind);
-  args.setPrivateCoreOperatorSupportedSendLaneNote(args.summaryState.supportedSendLaneNote);
-  args.setPrivateCoreOperatorSupportedSendLaneStatus(args.summaryState.supportedSendLaneStatus);
-  args.setPrivateCoreOperatorSupportedSendLaneVersion(args.summaryState.supportedSendLaneVersion);
-  args.setPrivateCoreOperatorSupportedUnshieldLaneKind(args.summaryState.supportedUnshieldLaneKind);
-  args.setPrivateCoreOperatorSupportedUnshieldLaneNote(args.summaryState.supportedUnshieldLaneNote);
-  args.setPrivateCoreOperatorSupportedUnshieldLaneStatus(args.summaryState.supportedUnshieldLaneStatus);
-  args.setPrivateCoreOperatorSupportedUnshieldLaneVersion(
-    args.summaryState.supportedUnshieldLaneVersion,
-  );
-  args.setPrivateCoreOperatorSupportedReleaseLaneKind(args.summaryState.supportedReleaseLaneKind);
-  args.setPrivateCoreOperatorSupportedReleaseLaneNote(args.summaryState.supportedReleaseLaneNote);
-  args.setPrivateCoreOperatorSupportedReleaseLaneStatus(args.summaryState.supportedReleaseLaneStatus);
-  args.setPrivateCoreOperatorSupportedReleaseLaneVersion(
-    args.summaryState.supportedReleaseLaneVersion,
-  );
-  args.setPrivateCoreOperatorSupportedFlowKind(args.summaryState.supportedFlowKind);
-  args.setPrivateCoreOperatorSupportedFlowNote(args.summaryState.supportedFlowNote);
-  args.setPrivateCoreOperatorSupportedFlowStatus(args.summaryState.supportedFlowStatus);
-  args.setPrivateCoreOperatorSupportedFlowVersion(args.summaryState.supportedFlowVersion);
-  args.setPrivateCoreOperatorSupportedAssetSymbol(args.summaryState.supportedAssetSymbol);
-  args.setPrivateCoreOperatorSupportedEnvironment(args.summaryState.supportedEnvironment);
-  args.setPrivateCoreOperatorSupportedNoteSchema(args.summaryState.supportedNoteSchema);
-  args.setPrivateCoreOperatorSupportedNoteVersion(args.summaryState.supportedNoteVersion);
-  args.setPrivateCoreOperatorSupportedRootRegistrationProvenance(
-    args.summaryState.supportedRootRegistrationProvenance,
-  );
-  args.setPrivateCoreOperatorSupportedSendResultingRootBasis(
-    args.summaryState.supportedSendResultingRootBasis,
-  );
-  args.setPrivateCoreOperatorSupportedRecipientModel(args.summaryState.supportedRecipientModel);
-  args.setPrivateCoreOperatorSupportedReleaseDestinationModel(
-    args.summaryState.supportedReleaseDestinationModel,
-  );
-  args.setPrivateCoreOperatorSupportedProofSystem(args.summaryState.supportedProofSystem);
-  args.setPrivateCoreOperatorSupportedUnshieldCircuit(args.summaryState.supportedUnshieldCircuit);
-  args.setPrivateCoreOperatorSupportedSendCircuit(args.summaryState.supportedSendCircuit);
-  args.setPrivateCoreOperatorSupportedUnshieldMerkleDepth(
-    args.summaryState.supportedUnshieldMerkleDepth,
-  );
-  args.setPrivateCoreOperatorSupportedSendMerkleDepth(args.summaryState.supportedSendMerkleDepth);
-  args.setPrivateCoreOperatorSupportedReleaseAuthorizationBasis(
-    args.summaryState.supportedReleaseAuthorizationBasis,
-  );
-  args.setPrivateCoreOperatorSupportedReleaseRootPolicy(args.summaryState.supportedReleaseRootPolicy);
-  args.setPrivateCoreOperatorOwnerAuthorizationMode(args.summaryState.ownerAuthorizationMode);
-  args.setPrivateCoreOperatorNullifierKeyMode(args.summaryState.nullifierKeyMode);
-  args.setPrivateCoreOperatorProvingHashLane(args.summaryState.provingHashLane);
   args.setPrivateCoreOperatorRoots(args.summaryState.rootRecords);
   args.setPrivateCoreOperatorProofs(args.summaryState.proofRecords);
   args.setPrivateCoreOperatorSends(args.summaryState.sendRecords);

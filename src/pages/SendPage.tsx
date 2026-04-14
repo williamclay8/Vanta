@@ -180,6 +180,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorRootError,
     privateCoreOperatorRootRegistrationStatus,
     privateCoreOperatorRoots,
+    privateCoreOperatorContractStateVersion,
+    privateCoreOperatorContractVersion,
+    privateCoreOperatorContractSummaryVersion,
     privateCoreOperatorProofSendLinkStatus,
     privateCoreOperatorSendError,
     privateCoreOperatorSends,
@@ -1719,6 +1722,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         operatorRootError={privateCoreOperatorRootError}
         operatorRootRegistrationStatus={privateCoreOperatorRootRegistrationStatus}
         operatorRoots={privateCoreOperatorRoots}
+        operatorContractStateVersion={privateCoreOperatorContractStateVersion}
+        operatorContractVersion={privateCoreOperatorContractVersion}
+        operatorContractSummaryVersion={privateCoreOperatorContractSummaryVersion}
         operatorSendError={privateCoreOperatorSendError}
         operatorSends={privateCoreOperatorSends}
         operatorSendProofError={privateCoreOperatorSendProofError}
