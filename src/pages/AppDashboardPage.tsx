@@ -53,6 +53,8 @@ export function AppDashboardPage() {
     privateCoreOperatorSendResultingRootLinkedProof,
     privateCoreOperatorSendResultingRootRecord,
     privateCoreOperatorSendResultingRootPrimaryNote,
+    privateCoreOperatorSendResultingRootRegistrationPrimaryNote,
+    privateCoreOperatorSendResultingRootRegistrationStatusLabel,
     privateCoreOperatorSendResultingRootProofLinkStatus,
     privateCoreOperatorSendResultingRootStatusLabel,
     privateCoreOperatorProofConsumeLinkStatus,
@@ -230,6 +232,12 @@ export function AppDashboardPage() {
           operatorSendResultingRootLinkedProof={privateCoreOperatorSendResultingRootLinkedProof}
           operatorSendResultingRootRecord={privateCoreOperatorSendResultingRootRecord}
           operatorSendResultingRootPrimaryNote={privateCoreOperatorSendResultingRootPrimaryNote}
+          operatorSendResultingRootRegistrationPrimaryNote={
+            privateCoreOperatorSendResultingRootRegistrationPrimaryNote
+          }
+          operatorSendResultingRootRegistrationStatusLabel={
+            privateCoreOperatorSendResultingRootRegistrationStatusLabel
+          }
           operatorSendResultingRootProofLinkStatus={privateCoreOperatorSendResultingRootProofLinkStatus}
           operatorSendResultingRootStatusLabel={privateCoreOperatorSendResultingRootStatusLabel}
           operatorProofConsumeLinkStatus={privateCoreOperatorProofConsumeLinkStatus}

@@ -114,6 +114,8 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOperatorSendResultingRootLinkedProof,
     privateCoreOperatorSendResultingRootRecord,
     privateCoreOperatorSendResultingRootPrimaryNote,
+    privateCoreOperatorSendResultingRootRegistrationPrimaryNote,
+    privateCoreOperatorSendResultingRootRegistrationStatusLabel,
     privateCoreOperatorSendResultingRootProofLinkStatus,
     privateCoreOperatorSendResultingRootStatusLabel,
     privateCoreOperatorProofConsumeLinkStatus,
@@ -1052,6 +1054,12 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 operatorSendResultingRootLinkedProof={privateCoreOperatorSendResultingRootLinkedProof}
                 operatorSendResultingRootRecord={privateCoreOperatorSendResultingRootRecord}
                 operatorSendResultingRootPrimaryNote={privateCoreOperatorSendResultingRootPrimaryNote}
+                operatorSendResultingRootRegistrationPrimaryNote={
+                  privateCoreOperatorSendResultingRootRegistrationPrimaryNote
+                }
+                operatorSendResultingRootRegistrationStatusLabel={
+                  privateCoreOperatorSendResultingRootRegistrationStatusLabel
+                }
                 operatorSendResultingRootProofLinkStatus={privateCoreOperatorSendResultingRootProofLinkStatus}
                 operatorSendResultingRootStatusLabel={privateCoreOperatorSendResultingRootStatusLabel}
                 operatorProofConsumeLinkStatus={privateCoreOperatorProofConsumeLinkStatus}

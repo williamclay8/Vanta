@@ -101,6 +101,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorSendResultingRootLinkedProof: VantaPrivateCoreOperatorProofRecord | null;
   privateCoreOperatorSendResultingRootRecord: VantaPrivateCoreOperatorRootRecord | null;
   privateCoreOperatorRawSendResultingRootNote: string | null;
+  privateCoreOperatorRawSendResultingRootRegistrationNote: string | null;
+  privateCoreOperatorRawSendResultingRootRegistrationStatus: string | null;
   privateCoreOperatorSendResultingRootProofLinkStatus: string | null;
   privateCoreOperatorRawSendResultingRootStatus: string | null;
   privateCoreOperatorRawBoundaryNote: string | null;
@@ -120,6 +122,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorBoundaryPrimaryNote: string | null;
   privateCoreOperatorBoundaryStatusLabel: string | null;
   privateCoreOperatorSendResultingRootPrimaryNote: string | null;
+  privateCoreOperatorSendResultingRootRegistrationPrimaryNote: string | null;
+  privateCoreOperatorSendResultingRootRegistrationStatusLabel: string | null;
   privateCoreOperatorSendResultingRootStatusLabel: string | null;
   privateCoreOperatorRootError: string | null;
   privateCoreOperatorRootRegistrationStatus: string | null;
@@ -340,6 +344,14 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<VantaPrivateCoreOperatorRootRecord | null>(null);
   const [privateCoreOperatorRawSendResultingRootNote, setPrivateCoreOperatorRawSendResultingRootNote] =
     useState<string | null>(null);
+  const [
+    privateCoreOperatorRawSendResultingRootRegistrationNote,
+    setPrivateCoreOperatorRawSendResultingRootRegistrationNote,
+  ] = useState<string | null>(null);
+  const [
+    privateCoreOperatorRawSendResultingRootRegistrationStatus,
+    setPrivateCoreOperatorRawSendResultingRootRegistrationStatus,
+  ] = useState<string | null>(null);
   const [privateCoreOperatorSendResultingRootProofLinkStatus, setPrivateCoreOperatorSendResultingRootProofLinkStatus] =
     useState<string | null>(null);
   const [privateCoreOperatorRawSendResultingRootStatus, setPrivateCoreOperatorRawSendResultingRootStatus] =
@@ -396,6 +408,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorCurrentRootProofLinkStatus,
       setPrivateCoreOperatorCurrentRootLinkedProof,
       setPrivateCoreOperatorRawSendResultingRootNote,
+      setPrivateCoreOperatorRawSendResultingRootRegistrationNote,
+      setPrivateCoreOperatorRawSendResultingRootRegistrationStatus,
       setPrivateCoreOperatorSendResultingRootLinkedProof,
       setPrivateCoreOperatorSendResultingRootRecord,
       setPrivateCoreOperatorSendResultingRootProofLinkStatus,
@@ -434,6 +448,17 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorLatestSend,
       privateCoreOperatorRawSendResultingRootNote,
       privateCoreOperatorRawSendResultingRootStatus,
+    ],
+  );
+  const privateCoreOperatorSendResultingRootRegistrationSummary = useMemo(
+    () =>
+      summarizePrivateCoreOperatorSendResultingRootRegistration({
+        rawNote: privateCoreOperatorRawSendResultingRootRegistrationNote,
+        rawStatus: privateCoreOperatorRawSendResultingRootRegistrationStatus,
+      }),
+    [
+      privateCoreOperatorRawSendResultingRootRegistrationNote,
+      privateCoreOperatorRawSendResultingRootRegistrationStatus,
     ],
   );
 
@@ -1359,6 +1384,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSendResultingRootLinkedProof,
       privateCoreOperatorSendResultingRootRecord,
       privateCoreOperatorRawSendResultingRootNote,
+      privateCoreOperatorRawSendResultingRootRegistrationNote,
+      privateCoreOperatorRawSendResultingRootRegistrationStatus,
       privateCoreOperatorSendResultingRootProofLinkStatus,
       privateCoreOperatorRawSendResultingRootStatus,
       privateCoreOperatorRawBoundaryNote,
@@ -1379,6 +1406,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorBoundaryStatusLabel: privateCoreOperatorBoundarySummary.statusLabel,
       privateCoreOperatorSendResultingRootPrimaryNote:
         privateCoreOperatorSendResultingRootSummary.primaryNote,
+      privateCoreOperatorSendResultingRootRegistrationPrimaryNote:
+        privateCoreOperatorSendResultingRootRegistrationSummary.primaryNote,
+      privateCoreOperatorSendResultingRootRegistrationStatusLabel:
+        privateCoreOperatorSendResultingRootRegistrationSummary.statusLabel,
       privateCoreOperatorSendResultingRootStatusLabel:
         privateCoreOperatorSendResultingRootSummary.statusLabel,
       privateCoreOperatorRootError,
@@ -1421,6 +1452,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSendResultingRootLinkedProof,
       privateCoreOperatorSendResultingRootRecord,
       privateCoreOperatorRawSendResultingRootNote,
+      privateCoreOperatorRawSendResultingRootRegistrationNote,
+      privateCoreOperatorRawSendResultingRootRegistrationStatus,
       privateCoreOperatorSendResultingRootProofLinkStatus,
       privateCoreOperatorRawSendResultingRootStatus,
       privateCoreOperatorRawBoundaryNote,
@@ -1689,6 +1722,42 @@ function summarizePrivateCoreOperatorSendResultingRootStatus(args: {
   }
 }
 
+function summarizePrivateCoreOperatorSendResultingRootRegistration(args: {
+  rawNote: string | null;
+  rawStatus: string | null;
+}): {
+  statusLabel: string | null;
+  primaryNote: string | null;
+} {
+  switch (args.rawStatus) {
+    case "linked-recipient-output":
+      return {
+        statusLabel: "Linked to recipient output",
+        primaryNote: args.rawNote,
+      };
+    case "linked-change-output":
+      return {
+        statusLabel: "Linked to change output",
+        primaryNote: args.rawNote,
+      };
+    case "mismatch":
+      return {
+        statusLabel: "Send root output mismatch",
+        primaryNote: args.rawNote,
+      };
+    case "unavailable":
+      return {
+        statusLabel: "Awaiting send root registration",
+        primaryNote: args.rawNote,
+      };
+    default:
+      return {
+        statusLabel: "Send root registration status unavailable",
+        primaryNote: args.rawNote ?? "Operator send resulting-root registration status unavailable.",
+      };
+  }
+}
+
 function summarizePrivateCoreOperatorSendState(args: {
   latestConsume: VantaPrivateCoreOperatorConsumeRecord | null;
   latestRelease: VantaPrivateCoreOperatorReleaseRecord | null;
@@ -1799,6 +1868,8 @@ function applyPrivateCoreOperatorSummaryState(args: {
   setPrivateCoreOperatorSendResultingRootLinkedProof: (value: VantaPrivateCoreOperatorProofRecord | null) => void;
   setPrivateCoreOperatorSendResultingRootRecord: (value: VantaPrivateCoreOperatorRootRecord | null) => void;
   setPrivateCoreOperatorRawSendResultingRootNote: (value: string | null) => void;
+  setPrivateCoreOperatorRawSendResultingRootRegistrationNote: (value: string | null) => void;
+  setPrivateCoreOperatorRawSendResultingRootRegistrationStatus: (value: string | null) => void;
   setPrivateCoreOperatorSendResultingRootProofLinkStatus: (value: string | null) => void;
   setPrivateCoreOperatorRawSendResultingRootStatus: (value: string | null) => void;
   setPrivateCoreOperatorRawBoundaryNote: (value: string | null) => void;
@@ -1824,6 +1895,12 @@ function applyPrivateCoreOperatorSummaryState(args: {
   args.setPrivateCoreOperatorSendResultingRootLinkedProof(args.summaryState.sendResultingRootLinkedProof);
   args.setPrivateCoreOperatorSendResultingRootRecord(args.summaryState.sendResultingRootRecord);
   args.setPrivateCoreOperatorRawSendResultingRootNote(args.summaryState.sendResultingRootNote);
+  args.setPrivateCoreOperatorRawSendResultingRootRegistrationNote(
+    args.summaryState.sendResultingRootRegistrationNote,
+  );
+  args.setPrivateCoreOperatorRawSendResultingRootRegistrationStatus(
+    args.summaryState.sendResultingRootRegistrationStatus,
+  );
   args.setPrivateCoreOperatorSendResultingRootProofLinkStatus(
     args.summaryState.sendResultingRootProofLinkStatus,
   );
