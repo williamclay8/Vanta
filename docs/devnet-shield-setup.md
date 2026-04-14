@@ -105,14 +105,30 @@ Before a live demo or local verification pass, use:
 npm run private-core:demo-preflight
 ```
 
-That runs the current full private-core verification stack and then prints the live operator summary snapshot.
+That runs the current full private-core verification stack and then prints the live operator contract snapshot plus the live operator summary snapshot.
 
 If you want the commands separately:
 
 ```bash
 npm run private-core:verify
+npm run private-core:operator-contract
 npm run private-core:operator-status
 ```
+
+The operator-contract command now prints the static narrow zk-v1 support contract:
+- contract version / summary compatibility
+- supported send, unshield, and release lanes
+- supported product flow
+- supported asset and environment
+- supported note schema and version
+- supported root-registration provenance and send resulting-root basis
+- supported recipient and release-destination models
+- supported proof system
+- supported unshield/send circuit ids and fixed Merkle depths
+- supported release authorization / root policy
+- owner-auth mode
+- nullifier-key mode
+- proving hash lane
 
 The operator-status command now prints:
 - current root
@@ -153,6 +169,7 @@ The operator-status command now prints:
 ```bash
 npm run private-core:check
 npm run private-core:prove
+npm run private-core:contract-smoke
 npm run private-core:http-smoke
 npm run private-core:restart-check
 npm run private-core:verify
@@ -161,6 +178,7 @@ npm run private-core:verify
 These commands currently prove:
 - the fixed-depth Noir circuit still accepts the valid witness
 - the malformed Merkle-path witness still fails
+- the dedicated operator-contract endpoint stays coherent and typed
 - source-layer send transitions still consume the input note and recover the change note coherently
 - residual change notes from private send still hold and unshield coherently
 - recipient notes from private send still recover and spend coherently

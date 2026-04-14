@@ -174,10 +174,12 @@ npm run private-core:send-change-unshield-restart-check
 npm run private-core:send-chain-unshield-restart-check
 npm run private-core:prove
 npm run private-core:send-prove
+npm run private-core:contract-smoke
 npm run private-core:send-http-smoke
 npm run private-core:verify
 npm run private-core:demo-readiness
 npm run private-core:demo-preflight
+npm run private-core:operator-contract
 npm run private-core:operator-status
 ```
 
@@ -205,20 +207,25 @@ These commands cover:
 - valid and invalid witness behavior
 - local unshield proof generation and verification
 - local send proof generation and verification
+- dedicated operator-contract endpoint coverage
 - operator-backed send proof HTTP smoke coverage and persisted send-proof state
 - operator-backed consume and HTTP smoke coverage
 - operator state persistence across restart, including send-proof state
 - proof-backed send-transition state persistence across restart
 - replay rejection after operator restart
-- operator summary snapshot coherence across app, CLI, and regression surfaces
+- operator contract and summary snapshot coherence across app, CLI, and regression surfaces
 
 `private-core:demo-readiness` is the friendliest single entrypoint when you just want to know whether the current proof/demo lane is stage-ready.
 
-`private-core:demo-preflight` combines the full verification pass with the current operator status summary.
+`private-core:demo-preflight` combines the full verification pass with both the current operator contract surface and the current operator status summary.
+
+`private-core:operator-contract` gives the static narrow zk-v1 contract the operator currently supports: send lane, unshield lane, release lane, supported flow, supported asset/environment, note contract, recipient/release-destination models, proof system, fixed circuit ids, fixed Merkle depth, owner-auth mode, nullifier-key mode, proving hash lane, root-registration provenance, and the current send resulting-root basis.
 
 `private-core:operator-status` gives a quick readout of the current operator root, proof, send-proof, send-transition, consume, and release state when the operator server is running, including proof/send, proof/consume, proof/release, and root-registration proof linkage. It also reports the supported send-lane version and identity carried by the operator summary, plus the latest send resulting-root continuity status and the concrete registered root record behind that resulting root when one exists, so you can see whether the newest private-send root is still unregistered, current, stale, or already consumed/released downstream. The current private-core release lane now also carries explicit release authorization and root-policy fields, so the operator summary says not just that a release was recorded, but that it was authorized by `proof-backed-consume` under the `latest-registered-root` policy. The send lane still requires the current input root to stay linked to its registration proof before the operator will accept a transition, the resulting root remains explicitly `client-declared` until later registration proves continuity, and registered roots now carry explicit provenance as `shield-input`, `send-recipient-output`, or `send-change-output`.
 
-The operator summary now versions the narrow unshield lane too:
+The operator contract now freezes the narrow zk-v1 contract surface explicitly:
+- `contractVersion = 1`
+- `summaryVersion = 16`
 - `supportedUnshieldLaneVersion = 1`
 - `supportedUnshieldLaneKind = single-note-proof-backed-consume`
 - `supportedUnshieldLaneStatus = supported`
@@ -239,6 +246,21 @@ The operator summary now versions the narrow unshield lane too:
 - `supportedProofSystem = noir-acir-ultrahonk-bbjs`
 - `supportedUnshieldCircuit = vanta_private_core_single_note_unshield`
 - `supportedSendCircuit = vanta_private_core_single_note_send`
+- `supportedUnshieldMerkleDepth = 3`
+- `supportedSendMerkleDepth = 3`
+- `supportedReleaseAuthorizationBasis = proof-backed-consume`
+- `supportedReleaseRootPolicy = latest-registered-root`
+- `supportedOwnerAuthorizationMode = off-circuit-prechecked-v0-1`
+- `supportedNullifierKeyMode = note-secret-temporary-v0-1`
+- `supportedProvingHashLane = poseidon-bn254-proving-lane-v0`
+
+The live operator summary layers dynamic verifier-side state on top of that contract:
+- current root / current root record
+- latest proof / send proof / send transition / consume / release
+- proof-send / proof-consume / proof-release / registration link status
+- latest send resulting-root continuity and registration status
+- boundary status / boundary note
+- summary generation time
 - `supportedUnshieldMerkleDepth = 3`
 - `supportedSendMerkleDepth = 3`
 - `supportedReleaseAuthorizationBasis = proof-backed-consume`

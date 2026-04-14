@@ -209,6 +209,7 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   - operator-backed private-send to change-unshield restart regression
   - operator-backed chained private-send to recipient-unshield restart regression
   - operator consume regression
+  - operator contract smoke test
   - operator HTTP smoke test
   - operator send-proof HTTP smoke test
   - operator restart persistence check
@@ -220,7 +221,9 @@ The repo now includes concrete verification commands for the Vanta Private Core 
 - `npm run private-core:demo-readiness`
   aliases the same full verification pass with a more reviewer-friendly name
 - `npm run private-core:demo-preflight`
-  runs the full verification pass and then prints the current operator-side status summary
+  runs the full verification pass and then prints the current operator-side contract and status summaries
+- `npm run private-core:operator-contract`
+  prints the static operator-side private-core contract surface for the current narrow zk-v1 lane
 - `npm run private-core:operator-status`
   prints the current operator-side root, proof, send-proof, send-transition, consume, and release state when the operator server is running, including proof/send, proof/consume, proof/release, and root-registration proof linkage plus send resulting-root continuity status, resulting-root provenance, and the matched resulting-root record when available
 
@@ -331,12 +334,31 @@ npm run private-core:demo-readiness
 If the operator is already running, the quickest live status readout is:
 
 ```bash
+npm run private-core:operator-contract
 npm run private-core:operator-status
 ```
 
-That status readout now includes proof/send, proof/consume, and proof/release linkage across the operator summary boundary, the supported send-lane version and identity carried by the operator summary, explicit release authorization / root-policy fields for the current unshield lane, plus explicit send-root registration provenance (`shield-input`, `send-recipient-output`, or `send-change-output`) when downstream continuity has been established.
+The contract readout gives the static narrow-zk-v1 support contract:
+- `contractVersion = 1`
+- `summaryVersion = 16`
+- supported send / unshield / release lanes
+- supported product flow
+- supported asset / environment
+- supported note schema / version
+- supported root-registration provenance
+- supported send resulting-root basis
+- supported recipient / release-destination models
+- supported proof system
+- supported unshield / send circuits
+- supported fixed Merkle depths
+- supported release authorization / root policy
+- owner-auth mode
+- nullifier-key mode
+- proving hash lane
 
-The same operator summary now also versions the supported narrow unshield lane:
+The status readout now includes proof/send, proof/consume, and proof/release linkage across the operator summary boundary, the supported send-lane version and identity carried by the operator summary, explicit release authorization / root-policy fields for the current unshield lane, plus explicit send-root registration provenance (`shield-input`, `send-recipient-output`, or `send-change-output`) when downstream continuity has been established.
+
+The same operator contract now also versions the supported narrow unshield lane:
 - `supportedUnshieldLaneVersion = 1`
 - `supportedUnshieldLaneKind = single-note-proof-backed-consume`
 - `supportedUnshieldLaneStatus = supported`
@@ -361,6 +383,9 @@ The same operator summary now also versions the supported narrow unshield lane:
 - `supportedSendMerkleDepth = 3`
 - `supportedReleaseAuthorizationBasis = proof-backed-consume`
 - `supportedReleaseRootPolicy = latest-registered-root`
+- `supportedOwnerAuthorizationMode = off-circuit-prechecked-v0-1`
+- `supportedNullifierKeyMode = note-secret-temporary-v0-1`
+- `supportedProvingHashLane = poseidon-bn254-proving-lane-v0`
 
 If you want one demo-operator command that does both the full verification pass and the live operator summary, use:
 

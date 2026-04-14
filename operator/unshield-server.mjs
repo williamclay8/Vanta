@@ -253,6 +253,13 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (request.method === "GET" && request.url === "/state/private-core-contract") {
+    writeCorsHeaders(response);
+    response.writeHead(200, { "Content-Type": "application/json" });
+    response.end(JSON.stringify(buildPrivateCoreContractState()));
+    return;
+  }
+
   if (request.method === "GET" && request.url === "/state/private-core-proofs") {
     writeCorsHeaders(response);
     response.writeHead(200, { "Content-Type": "application/json" });
@@ -1478,6 +1485,7 @@ function writeCorsHeaders(response) {
 }
 
 function buildPrivateCoreSummaryState() {
+  const contractState = buildPrivateCoreContractState();
   const rootRecords = privateCoreRootStore.listRoots();
   const proofRecords = privateCoreProofStore.listProofs();
   const sendProofRecords = privateCoreSendProofStore.listProofs();
@@ -1559,8 +1567,52 @@ function buildPrivateCoreSummaryState() {
   });
 
   return {
+    ...contractState,
     boundaryStatus: boundaryStatus.status,
     boundaryNote: boundaryStatus.note,
+    currentRootLinkedProof,
+    currentRootProofLinkStatus,
+    generatedAt: Date.now(),
+    sendResultingRootLinkedProof,
+    sendResultingRootRecord,
+    sendResultingRootNote: sendResultingRootStatus.note,
+    sendResultingRootRegistrationNote: sendResultingRootRegistration.note,
+    sendResultingRootRegistrationStatus: sendResultingRootRegistration.status,
+    sendResultingRootProofLinkStatus,
+    sendResultingRootStatus: sendResultingRootStatus.status,
+    currentRoot: currentRootRecord?.root ?? null,
+    currentRecord: currentRootRecord,
+    rootRecords,
+    latestProof,
+    proofRecords,
+    latestSendProof,
+    sendProofRecords,
+    latestSendLinkedProof: latestLinkedSendProof,
+    latestSend,
+    sendRecords,
+    latestConsume,
+    consumeRecords,
+    latestConsumeProof,
+    latestRelease,
+    releaseRecords,
+    latestReleaseProof,
+    rootRecordCount: rootRecords.length,
+    proofRecordCount: proofRecords.length,
+    sendProofRecordCount: sendProofRecords.length,
+    sendRecordCount: sendRecords.length,
+    consumeRecordCount: consumeRecords.length,
+    releaseRecordCount: releaseRecords.length,
+    proofConsumeLinkStatus,
+    proofSendLinkStatus,
+    proofReleaseLinkStatus,
+  };
+}
+
+function buildPrivateCoreContractState() {
+  return {
+    stateVersion: 1,
+    contractVersion: 1,
+    summaryVersion: 16,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
@@ -1596,43 +1648,6 @@ function buildPrivateCoreSummaryState() {
     ownerAuthorizationMode: PRIVATE_CORE_OWNER_AUTH_MODE,
     nullifierKeyMode: PRIVATE_CORE_NULLIFIER_KEY_MODE,
     provingHashLane: PRIVATE_CORE_PROVING_HASH_LANE,
-    currentRootLinkedProof,
-    currentRootProofLinkStatus,
-    generatedAt: Date.now(),
-    sendResultingRootLinkedProof,
-    sendResultingRootRecord,
-    sendResultingRootNote: sendResultingRootStatus.note,
-    sendResultingRootRegistrationNote: sendResultingRootRegistration.note,
-    sendResultingRootRegistrationStatus: sendResultingRootRegistration.status,
-    sendResultingRootProofLinkStatus,
-    sendResultingRootStatus: sendResultingRootStatus.status,
-    stateVersion: 1,
-    summaryVersion: 16,
-    currentRoot: currentRootRecord?.root ?? null,
-    currentRecord: currentRootRecord,
-    rootRecords,
-    latestProof,
-    proofRecords,
-    latestSendProof,
-    sendProofRecords,
-    latestSendLinkedProof: latestLinkedSendProof,
-    latestSend,
-    sendRecords,
-    latestConsume,
-    consumeRecords,
-    latestConsumeProof,
-    latestRelease,
-    releaseRecords,
-    latestReleaseProof,
-    rootRecordCount: rootRecords.length,
-    proofRecordCount: proofRecords.length,
-    sendProofRecordCount: sendProofRecords.length,
-    sendRecordCount: sendRecords.length,
-    consumeRecordCount: consumeRecords.length,
-    releaseRecordCount: releaseRecords.length,
-    proofConsumeLinkStatus,
-    proofSendLinkStatus,
-    proofReleaseLinkStatus,
   };
 }
 

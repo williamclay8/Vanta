@@ -286,6 +286,46 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   proofReleaseLinkStatus: "linked" | "mismatch" | "unavailable";
 };
 
+export type VantaPrivateCoreOperatorContractStateResponse = {
+  stateVersion: number;
+  contractVersion: number;
+  summaryVersion: number;
+  supportedSendLaneVersion: number;
+  supportedSendLaneKind: "single-input-single-recipient-optional-change";
+  supportedSendLaneStatus: "supported";
+  supportedSendLaneNote: string;
+  supportedUnshieldLaneVersion: number;
+  supportedUnshieldLaneKind: "single-note-proof-backed-consume";
+  supportedUnshieldLaneStatus: "supported";
+  supportedUnshieldLaneNote: string;
+  supportedReleaseLaneVersion: number;
+  supportedReleaseLaneKind: "proof-backed-consume-latest-registered-root";
+  supportedReleaseLaneStatus: "supported";
+  supportedReleaseLaneNote: string;
+  supportedFlowVersion: number;
+  supportedFlowKind: "shield-hold-send-unshield-replay-guard";
+  supportedFlowStatus: "supported";
+  supportedFlowNote: string;
+  supportedAssetSymbol: "VUSD";
+  supportedEnvironment: "solana-devnet";
+  supportedNoteSchema: "note-v0";
+  supportedNoteVersion: number;
+  supportedRootRegistrationProvenance: "shield-input|send-recipient-output|send-change-output";
+  supportedSendResultingRootBasis: "client-declared";
+  supportedRecipientModel: "hashed-reference-to-owner-key";
+  supportedReleaseDestinationModel: "32-byte-release-destination-field";
+  supportedProofSystem: "noir-acir-ultrahonk-bbjs";
+  supportedUnshieldCircuit: "vanta_private_core_single_note_unshield";
+  supportedSendCircuit: "vanta_private_core_single_note_send";
+  supportedUnshieldMerkleDepth: number;
+  supportedSendMerkleDepth: number;
+  supportedReleaseAuthorizationBasis: "proof-backed-consume";
+  supportedReleaseRootPolicy: "latest-registered-root";
+  ownerAuthorizationMode: "x25519-secret-prechecked-off-circuit";
+  nullifierKeyMode: "note-secret-as-nullifier-key-v0";
+  provingHashLane: "poseidon-bn254-proving-lane-v0";
+};
+
 export async function requestVantaPrivateCoreOperatorProof(args: {
   witnessPackage: VantaPrivateCoreNoirUnshieldWitnessPackageV0;
 }): Promise<VantaPrivateCoreProofOperatorResponse> {
@@ -778,6 +818,10 @@ function getPrivateCoreSummaryStateUrl() {
   return new URL("/state/private-core-summary", liveShieldAsset.unshieldOperatorUrl).toString();
 }
 
+function getPrivateCoreContractStateUrl() {
+  return new URL("/state/private-core-contract", liveShieldAsset.unshieldOperatorUrl).toString();
+}
+
 export async function fetchVantaPrivateCoreOperatorReleases(): Promise<
   VantaPrivateCoreOperatorReleaseStateResponse
 > {
@@ -1090,6 +1134,144 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     proofSendLinkStatus: parsed.proofSendLinkStatus,
     proofConsumeLinkStatus: parsed.proofConsumeLinkStatus,
     proofReleaseLinkStatus: parsed.proofReleaseLinkStatus,
+  };
+}
+
+export async function fetchVantaPrivateCoreOperatorContract(): Promise<
+  VantaPrivateCoreOperatorContractStateResponse
+> {
+  const response = await fetch(getPrivateCoreContractStateUrl(), {
+    method: "GET",
+    signal: AbortSignal.timeout(15_000),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "The private-core operator contract endpoint failed.");
+  }
+
+  const parsed = (await response.json()) as {
+    stateVersion?: unknown;
+    contractVersion?: unknown;
+    summaryVersion?: unknown;
+    supportedSendLaneVersion?: unknown;
+    supportedSendLaneKind?: unknown;
+    supportedSendLaneStatus?: unknown;
+    supportedSendLaneNote?: unknown;
+    supportedUnshieldLaneVersion?: unknown;
+    supportedUnshieldLaneKind?: unknown;
+    supportedUnshieldLaneStatus?: unknown;
+    supportedUnshieldLaneNote?: unknown;
+    supportedReleaseLaneVersion?: unknown;
+    supportedReleaseLaneKind?: unknown;
+    supportedReleaseLaneStatus?: unknown;
+    supportedReleaseLaneNote?: unknown;
+    supportedFlowVersion?: unknown;
+    supportedFlowKind?: unknown;
+    supportedFlowStatus?: unknown;
+    supportedFlowNote?: unknown;
+    supportedAssetSymbol?: unknown;
+    supportedEnvironment?: unknown;
+    supportedNoteSchema?: unknown;
+    supportedNoteVersion?: unknown;
+    supportedRootRegistrationProvenance?: unknown;
+    supportedSendResultingRootBasis?: unknown;
+    supportedRecipientModel?: unknown;
+    supportedReleaseDestinationModel?: unknown;
+    supportedProofSystem?: unknown;
+    supportedUnshieldCircuit?: unknown;
+    supportedSendCircuit?: unknown;
+    supportedUnshieldMerkleDepth?: unknown;
+    supportedSendMerkleDepth?: unknown;
+    supportedReleaseAuthorizationBasis?: unknown;
+    supportedReleaseRootPolicy?: unknown;
+    ownerAuthorizationMode?: unknown;
+    nullifierKeyMode?: unknown;
+    provingHashLane?: unknown;
+  };
+
+  if (
+    parsed.stateVersion !== 1 ||
+    parsed.contractVersion !== 1 ||
+    parsed.summaryVersion !== 16 ||
+    parsed.supportedSendLaneVersion !== 1 ||
+    parsed.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
+    parsed.supportedSendLaneStatus !== "supported" ||
+    typeof parsed.supportedSendLaneNote !== "string" ||
+    parsed.supportedUnshieldLaneVersion !== 1 ||
+    parsed.supportedUnshieldLaneKind !== "single-note-proof-backed-consume" ||
+    parsed.supportedUnshieldLaneStatus !== "supported" ||
+    typeof parsed.supportedUnshieldLaneNote !== "string" ||
+    parsed.supportedReleaseLaneVersion !== 1 ||
+    parsed.supportedReleaseLaneKind !== "proof-backed-consume-latest-registered-root" ||
+    parsed.supportedReleaseLaneStatus !== "supported" ||
+    typeof parsed.supportedReleaseLaneNote !== "string" ||
+    parsed.supportedFlowVersion !== 1 ||
+    parsed.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
+    parsed.supportedFlowStatus !== "supported" ||
+    typeof parsed.supportedFlowNote !== "string" ||
+    parsed.supportedAssetSymbol !== "VUSD" ||
+    parsed.supportedEnvironment !== "solana-devnet" ||
+    parsed.supportedNoteSchema !== "note-v0" ||
+    parsed.supportedNoteVersion !== 0 ||
+    parsed.supportedRootRegistrationProvenance !==
+      "shield-input|send-recipient-output|send-change-output" ||
+    parsed.supportedSendResultingRootBasis !== "client-declared" ||
+    parsed.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
+    parsed.supportedReleaseDestinationModel !== "32-byte-release-destination-field" ||
+    parsed.supportedProofSystem !== "noir-acir-ultrahonk-bbjs" ||
+    parsed.supportedUnshieldCircuit !== "vanta_private_core_single_note_unshield" ||
+    parsed.supportedSendCircuit !== "vanta_private_core_single_note_send" ||
+    parsed.supportedUnshieldMerkleDepth !== 3 ||
+    parsed.supportedSendMerkleDepth !== 3 ||
+    parsed.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
+    parsed.supportedReleaseRootPolicy !== "latest-registered-root" ||
+    parsed.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
+    parsed.nullifierKeyMode !== "note-secret-as-nullifier-key-v0" ||
+    parsed.provingHashLane !== "poseidon-bn254-proving-lane-v0"
+  ) {
+    throw new Error("The private-core operator contract endpoint returned invalid data.");
+  }
+
+  return {
+    stateVersion: 1,
+    contractVersion: 1,
+    summaryVersion: 16,
+    supportedSendLaneVersion: 1,
+    supportedSendLaneKind: "single-input-single-recipient-optional-change",
+    supportedSendLaneStatus: "supported",
+    supportedSendLaneNote: parsed.supportedSendLaneNote,
+    supportedUnshieldLaneVersion: 1,
+    supportedUnshieldLaneKind: "single-note-proof-backed-consume",
+    supportedUnshieldLaneStatus: "supported",
+    supportedUnshieldLaneNote: parsed.supportedUnshieldLaneNote,
+    supportedReleaseLaneVersion: 1,
+    supportedReleaseLaneKind: "proof-backed-consume-latest-registered-root",
+    supportedReleaseLaneStatus: "supported",
+    supportedReleaseLaneNote: parsed.supportedReleaseLaneNote,
+    supportedFlowVersion: 1,
+    supportedFlowKind: "shield-hold-send-unshield-replay-guard",
+    supportedFlowStatus: "supported",
+    supportedFlowNote: parsed.supportedFlowNote,
+    supportedAssetSymbol: "VUSD",
+    supportedEnvironment: "solana-devnet",
+    supportedNoteSchema: "note-v0",
+    supportedNoteVersion: 0,
+    supportedRootRegistrationProvenance:
+      "shield-input|send-recipient-output|send-change-output",
+    supportedSendResultingRootBasis: "client-declared",
+    supportedRecipientModel: "hashed-reference-to-owner-key",
+    supportedReleaseDestinationModel: "32-byte-release-destination-field",
+    supportedProofSystem: "noir-acir-ultrahonk-bbjs",
+    supportedUnshieldCircuit: "vanta_private_core_single_note_unshield",
+    supportedSendCircuit: "vanta_private_core_single_note_send",
+    supportedUnshieldMerkleDepth: 3,
+    supportedSendMerkleDepth: 3,
+    supportedReleaseAuthorizationBasis: "proof-backed-consume",
+    supportedReleaseRootPolicy: "latest-registered-root",
+    ownerAuthorizationMode: "x25519-secret-prechecked-off-circuit",
+    nullifierKeyMode: "note-secret-as-nullifier-key-v0",
+    provingHashLane: "poseidon-bn254-proving-lane-v0",
   };
 }
 

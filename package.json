@@ -11,6 +11,8 @@
     "provision:dlmm": "node scripts/provision-vusd-sol-dlmm-devnet.cjs",
     "private-core:check": "node scripts/check-vanta-private-core-unshield-circuit.mjs",
     "private-core:consume-check": "node scripts/check-vanta-private-core-operator-consume.mjs",
+    "private-core:contract-smoke": "node scripts/check-vanta-private-core-operator-contract.mjs",
+    "private-core:operator-contract": "node scripts/print-vanta-private-core-operator-contract.mjs",
     "private-core:operator-status": "node scripts/print-vanta-private-core-operator-status.mjs",
     "private-core:fixture": "node scripts/write-vanta-private-core-unshield-fixture.mjs",
     "private-core:send-fixture": "node scripts/write-vanta-private-core-send-fixture.mjs",
@@ -33,9 +35,9 @@
     "private-core:http-smoke": "node scripts/check-vanta-private-core-operator-http.mjs",
     "private-core:restart-check": "node scripts/check-vanta-private-core-operator-restart.mjs",
     "private-core:prove": "node scripts/prove-vanta-private-core-unshield.mjs",
-    "private-core:verify": "npm run build && npm run private-core:check && npm run private-core:send-check && npm run private-core:send-apply-check && npm run private-core:send-continuity-check && npm run private-core:send-recipient-check && npm run private-core:send-chain-check && npm run private-core:send-roundtrip-check && npm run private-core:send-unshield-roundtrip-check && npm run private-core:send-change-unshield-check && npm run private-core:send-chain-unshield-check && npm run private-core:consume-check && npm run private-core:http-smoke && npm run private-core:send-http-smoke && npm run private-core:send-chain-http-smoke && npm run private-core:restart-check && npm run private-core:send-chain-restart-check && npm run private-core:send-unshield-restart-check && npm run private-core:send-change-unshield-restart-check && npm run private-core:send-chain-unshield-restart-check && npm run private-core:prove && npm run private-core:send-prove",
+    "private-core:verify": "npm run build && npm run private-core:check && npm run private-core:send-check && npm run private-core:send-apply-check && npm run private-core:send-continuity-check && npm run private-core:send-recipient-check && npm run private-core:send-chain-check && npm run private-core:send-roundtrip-check && npm run private-core:send-unshield-roundtrip-check && npm run private-core:send-change-unshield-check && npm run private-core:send-chain-unshield-check && npm run private-core:consume-check && npm run private-core:contract-smoke && npm run private-core:http-smoke && npm run private-core:send-http-smoke && npm run private-core:send-chain-http-smoke && npm run private-core:restart-check && npm run private-core:send-chain-restart-check && npm run private-core:send-unshield-restart-check && npm run private-core:send-change-unshield-restart-check && npm run private-core:send-chain-unshield-restart-check && npm run private-core:prove && npm run private-core:send-prove",
     "private-core:demo-readiness": "npm run private-core:verify",
-    "private-core:demo-preflight": "npm run private-core:demo-readiness && npm run private-core:operator-status",
+    "private-core:demo-preflight": "npm run private-core:demo-readiness && npm run private-core:operator-contract && npm run private-core:operator-status",
     "preview": "vite preview"
   },
   "dependencies": {
