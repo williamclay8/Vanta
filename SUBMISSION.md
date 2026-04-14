@@ -178,6 +178,8 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   proves one operator-backed private-send roundtrip from verified send transition through sender residual-change recovery, recipient note recovery, recipient spendability, and sender privacy failure
 - `npm run private-core:send-unshield-roundtrip-check`
   proves one operator-backed private send can hand off into proof-backed root registration, operator-backed recipient unshield, linked release state, and replay rejection
+- `npm run private-core:send-change-unshield-check`
+  proves one operator-backed private send can also hand off into proof-backed change-note root registration, operator-backed sender-change unshield, linked release state, and replay rejection
 - `npm run private-core:send-chain-unshield-check`
   proves two operator-backed private send transitions can hand off into final-recipient root registration, operator-backed recipient unshield, linked release state, and replay rejection
 - `npm run private-core:send-unshield-restart-check`
@@ -197,6 +199,7 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   - chained private-send regression
   - operator-backed private-send roundtrip regression
   - operator-backed private-send to recipient-unshield regression
+  - operator-backed private-send to change-unshield regression
   - operator-backed chained private-send to recipient-unshield regression
   - operator-backed chained private-send regression
   - operator-backed chained private-send restart regression
@@ -328,7 +331,7 @@ If the operator is already running, the quickest live status readout is:
 npm run private-core:operator-status
 ```
 
-That status readout now includes proof/send, proof/consume, and proof/release linkage across the operator summary boundary.
+That status readout now includes proof/send, proof/consume, and proof/release linkage across the operator summary boundary, plus explicit send-root registration provenance (`shield-input`, `send-recipient-output`, or `send-change-output`) when downstream continuity has been established.
 
 If you want one demo-operator command that does both the full verification pass and the live operator summary, use:
 

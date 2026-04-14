@@ -164,6 +164,7 @@ npm run private-core:send-recipient-check
 npm run private-core:send-chain-check
 npm run private-core:send-roundtrip-check
 npm run private-core:send-unshield-roundtrip-check
+npm run private-core:send-change-unshield-check
 npm run private-core:send-chain-unshield-check
 npm run private-core:send-chain-http-smoke
 npm run private-core:restart-check
@@ -188,12 +189,14 @@ These commands cover:
 - chained private-send continuity from one recipient into a second private send
 - operator-backed private send roundtrip from verified send transition to recipient recovery
 - operator-backed private send to recipient unshield roundtrip
+- operator-backed private send to sender-change unshield roundtrip
 - operator-backed chained private send to recipient unshield roundtrip
 - operator-backed chained private-send continuity across two verified send transitions
 - operator-backed private send now requires the current input root to be registered before transition
 - operator-backed private send now requires that current input root to remain linked to its registration proof
 - operator-backed private send transitions now require an explicit canonical resulting root that differs from the input root
 - operator-backed send state now marks resulting roots honestly as `client-declared` until later root registration proves continuity
+- downstream root registration now records whether continuity was proven through a send recipient output or a send change output
 - operator-backed chained private-send persistence across operator restart
 - operator-backed private send to recipient unshield persistence across operator restart
 - operator-backed chained private send to recipient unshield persistence across operator restart
@@ -211,7 +214,7 @@ These commands cover:
 
 `private-core:demo-preflight` combines the full verification pass with the current operator status summary.
 
-`private-core:operator-status` gives a quick readout of the current operator root, proof, send-proof, send-transition, consume, and release state when the operator server is running, including proof/send, proof/consume, proof/release, and root-registration proof linkage. It also reports the latest send resulting-root continuity status plus the concrete registered root record behind that resulting root when one exists, so you can see whether the newest private-send root is still unregistered, current, stale, or already consumed/released downstream. The send lane now requires the current input root to stay linked to its registration proof before the operator will accept a transition, and the resulting root remains explicitly `client-declared` until later registration proves continuity.
+`private-core:operator-status` gives a quick readout of the current operator root, proof, send-proof, send-transition, consume, and release state when the operator server is running, including proof/send, proof/consume, proof/release, and root-registration proof linkage. It also reports the latest send resulting-root continuity status plus the concrete registered root record behind that resulting root when one exists, so you can see whether the newest private-send root is still unregistered, current, stale, or already consumed/released downstream. The send lane now requires the current input root to stay linked to its registration proof before the operator will accept a transition, the resulting root remains explicitly `client-declared` until later registration proves continuity, and registered roots now carry explicit provenance as `shield-input`, `send-recipient-output`, or `send-change-output`.
 
 ---
 
