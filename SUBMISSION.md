@@ -350,6 +350,9 @@ The same operator summary now also versions the supported narrow unshield lane:
 - `supportedEnvironment = solana-devnet`
 - `supportedRecipientModel = hashed-reference-to-owner-key`
 - `supportedReleaseDestinationModel = 32-byte-release-destination-field`
+- `supportedProofSystem = noir-acir-ultrahonk-bbjs`
+- `supportedUnshieldCircuit = vanta_private_core_single_note_unshield`
+- `supportedSendCircuit = vanta_private_core_single_note_send`
 - `supportedReleaseAuthorizationBasis = proof-backed-consume`
 - `supportedReleaseRootPolicy = latest-registered-root`
 

@@ -136,6 +136,7 @@ The operator-status command now prints:
 - supported product flow version / kind / status
 - supported asset and environment
 - supported recipient and release-destination models
+- supported proof system and current unshield/send circuit ids
 - supported release authorization basis
 - supported release root policy
 - proof/send link status

@@ -273,7 +273,7 @@ try {
     preRestartSends.parsed.records.length < 1 ||
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.stateVersion !== 1 ||
-    preRestartSummary.parsed?.summaryVersion !== 12 ||
+    preRestartSummary.parsed?.summaryVersion !== 13 ||
     preRestartSummary.parsed?.supportedSendLaneVersion !== 1 ||
     preRestartSummary.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     preRestartSummary.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -294,6 +294,10 @@ try {
     preRestartSummary.parsed?.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     preRestartSummary.parsed?.supportedReleaseDestinationModel !==
       "32-byte-release-destination-field" ||
+    preRestartSummary.parsed?.supportedProofSystem !== "noir-acir-ultrahonk-bbjs" ||
+    preRestartSummary.parsed?.supportedUnshieldCircuit !==
+      "vanta_private_core_single_note_unshield" ||
+    preRestartSummary.parsed?.supportedSendCircuit !== "vanta_private_core_single_note_send" ||
     preRestartSummary.parsed?.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     preRestartSummary.parsed?.supportedReleaseRootPolicy !== "latest-registered-root" ||
     preRestartSummary.parsed?.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
@@ -343,7 +347,7 @@ try {
   if (
     !postRestartSummary.ok ||
     postRestartSummary.parsed?.stateVersion !== 1 ||
-    postRestartSummary.parsed?.summaryVersion !== 12 ||
+    postRestartSummary.parsed?.summaryVersion !== 13 ||
     postRestartSummary.parsed?.supportedSendLaneVersion !== 1 ||
     postRestartSummary.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     postRestartSummary.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -364,6 +368,10 @@ try {
     postRestartSummary.parsed?.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     postRestartSummary.parsed?.supportedReleaseDestinationModel !==
       "32-byte-release-destination-field" ||
+    postRestartSummary.parsed?.supportedProofSystem !== "noir-acir-ultrahonk-bbjs" ||
+    postRestartSummary.parsed?.supportedUnshieldCircuit !==
+      "vanta_private_core_single_note_unshield" ||
+    postRestartSummary.parsed?.supportedSendCircuit !== "vanta_private_core_single_note_send" ||
     postRestartSummary.parsed?.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     postRestartSummary.parsed?.supportedReleaseRootPolicy !== "latest-registered-root" ||
     postRestartSummary.parsed?.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
@@ -445,7 +453,7 @@ try {
     stdio: "pipe",
   });
   if (
-    !operatorStatusOutput.includes("Summary version: 12") ||
+    !operatorStatusOutput.includes("Summary version: 13") ||
     !operatorStatusOutput.includes("Supported send lane version: 1") ||
     !operatorStatusOutput.includes("Supported send lane status: Supported") ||
     !operatorStatusOutput.includes("Supported unshield lane version: 1") ||
@@ -465,6 +473,13 @@ try {
     !operatorStatusOutput.includes("Supported recipient model: Hashed reference to owner key") ||
     !operatorStatusOutput.includes(
       "Supported release destination model: 32-byte release destination field",
+    ) ||
+    !operatorStatusOutput.includes("Supported proof system: Noir ACIR / UltraHonk / bb.js") ||
+    !operatorStatusOutput.includes(
+      "Supported unshield circuit: vanta_private_core_single_note_unshield",
+    ) ||
+    !operatorStatusOutput.includes(
+      "Supported send circuit: vanta_private_core_single_note_send",
     ) ||
     !operatorStatusOutput.includes("Supported release authorization: Proof-backed consume") ||
     !operatorStatusOutput.includes("Supported release root policy: Latest registered root") ||

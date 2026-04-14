@@ -129,6 +129,9 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOperatorSupportedEnvironment,
     privateCoreOperatorSupportedRecipientModel,
     privateCoreOperatorSupportedReleaseDestinationModel,
+    privateCoreOperatorSupportedProofSystem,
+    privateCoreOperatorSupportedUnshieldCircuit,
+    privateCoreOperatorSupportedSendCircuit,
     privateCoreOperatorSupportedReleaseAuthorizationBasis,
     privateCoreOperatorSupportedReleaseRootPolicy,
     privateCoreOperatorOwnerAuthorizationMode,
@@ -1096,6 +1099,9 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 operatorSupportedReleaseDestinationModel={
                   privateCoreOperatorSupportedReleaseDestinationModel
                 }
+                operatorSupportedProofSystem={privateCoreOperatorSupportedProofSystem}
+                operatorSupportedUnshieldCircuit={privateCoreOperatorSupportedUnshieldCircuit}
+                operatorSupportedSendCircuit={privateCoreOperatorSupportedSendCircuit}
                 operatorSupportedReleaseAuthorizationBasis={
                   privateCoreOperatorSupportedReleaseAuthorizationBasis
                 }

@@ -48,6 +48,9 @@ try {
     "Supported release destination model",
     humanizeSupportedReleaseDestinationModel(summary.supportedReleaseDestinationModel),
   );
+  printLine("Supported proof system", humanizeSupportedProofSystem(summary.supportedProofSystem));
+  printLine("Supported unshield circuit", summary.supportedUnshieldCircuit ?? "Unavailable");
+  printLine("Supported send circuit", summary.supportedSendCircuit ?? "Unavailable");
   printLine(
     "Supported release authorization",
     humanizeReleaseAuthorization(summary.supportedReleaseAuthorizationBasis),
@@ -356,6 +359,15 @@ function humanizeSupportedReleaseDestinationModel(value) {
   switch (value) {
     case "32-byte-release-destination-field":
       return "32-byte release destination field";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeSupportedProofSystem(value) {
+  switch (value) {
+    case "noir-acir-ultrahonk-bbjs":
+      return "Noir ACIR / UltraHonk / bb.js";
     default:
       return "Unavailable";
   }

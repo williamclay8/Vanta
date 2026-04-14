@@ -160,6 +160,9 @@ const PRIVATE_CORE_SUPPORTED_ASSET_SYMBOL = "VUSD";
 const PRIVATE_CORE_SUPPORTED_ENVIRONMENT = "solana-devnet";
 const PRIVATE_CORE_SUPPORTED_RECIPIENT_MODEL = "hashed-reference-to-owner-key";
 const PRIVATE_CORE_SUPPORTED_RELEASE_DESTINATION_MODEL = "32-byte-release-destination-field";
+const PRIVATE_CORE_SUPPORTED_PROOF_SYSTEM = "noir-acir-ultrahonk-bbjs";
+const PRIVATE_CORE_SUPPORTED_UNSHIELD_CIRCUIT = "vanta_private_core_single_note_unshield";
+const PRIVATE_CORE_SUPPORTED_SEND_CIRCUIT = "vanta_private_core_single_note_send";
 const PRIVATE_CORE_RELEASE_AUTHORIZATION_BASIS = "proof-backed-consume";
 const PRIVATE_CORE_RELEASE_ROOT_POLICY = "latest-registered-root";
 const PRIVATE_CORE_OWNER_AUTH_MODE = "x25519-secret-prechecked-off-circuit";
@@ -1571,6 +1574,9 @@ function buildPrivateCoreSummaryState() {
     supportedEnvironment: PRIVATE_CORE_SUPPORTED_ENVIRONMENT,
     supportedRecipientModel: PRIVATE_CORE_SUPPORTED_RECIPIENT_MODEL,
     supportedReleaseDestinationModel: PRIVATE_CORE_SUPPORTED_RELEASE_DESTINATION_MODEL,
+    supportedProofSystem: PRIVATE_CORE_SUPPORTED_PROOF_SYSTEM,
+    supportedUnshieldCircuit: PRIVATE_CORE_SUPPORTED_UNSHIELD_CIRCUIT,
+    supportedSendCircuit: PRIVATE_CORE_SUPPORTED_SEND_CIRCUIT,
     supportedReleaseAuthorizationBasis: PRIVATE_CORE_RELEASE_AUTHORIZATION_BASIS,
     supportedReleaseRootPolicy: PRIVATE_CORE_RELEASE_ROOT_POLICY,
     ownerAuthorizationMode: PRIVATE_CORE_OWNER_AUTH_MODE,
@@ -1587,7 +1593,7 @@ function buildPrivateCoreSummaryState() {
     sendResultingRootProofLinkStatus,
     sendResultingRootStatus: sendResultingRootStatus.status,
     stateVersion: 1,
-    summaryVersion: 12,
+    summaryVersion: 13,
     currentRoot: currentRootRecord?.root ?? null,
     currentRecord: currentRootRecord,
     rootRecords,

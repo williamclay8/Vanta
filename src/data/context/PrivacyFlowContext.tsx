@@ -127,6 +127,9 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorSupportedEnvironment: string | null;
   privateCoreOperatorSupportedRecipientModel: string | null;
   privateCoreOperatorSupportedReleaseDestinationModel: string | null;
+  privateCoreOperatorSupportedProofSystem: string | null;
+  privateCoreOperatorSupportedUnshieldCircuit: string | null;
+  privateCoreOperatorSupportedSendCircuit: string | null;
   privateCoreOperatorSupportedReleaseAuthorizationBasis: string | null;
   privateCoreOperatorSupportedReleaseRootPolicy: string | null;
   privateCoreOperatorOwnerAuthorizationMode: string | null;
@@ -427,6 +430,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     privateCoreOperatorSupportedReleaseDestinationModel,
     setPrivateCoreOperatorSupportedReleaseDestinationModel,
   ] = useState<string | null>(null);
+  const [privateCoreOperatorSupportedProofSystem, setPrivateCoreOperatorSupportedProofSystem] =
+    useState<string | null>(null);
+  const [privateCoreOperatorSupportedUnshieldCircuit, setPrivateCoreOperatorSupportedUnshieldCircuit] =
+    useState<string | null>(null);
+  const [privateCoreOperatorSupportedSendCircuit, setPrivateCoreOperatorSupportedSendCircuit] =
+    useState<string | null>(null);
   const [
     privateCoreOperatorSupportedReleaseAuthorizationBasis,
     setPrivateCoreOperatorSupportedReleaseAuthorizationBasis,
@@ -517,6 +526,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSupportedEnvironment,
       setPrivateCoreOperatorSupportedRecipientModel,
       setPrivateCoreOperatorSupportedReleaseDestinationModel,
+      setPrivateCoreOperatorSupportedProofSystem,
+      setPrivateCoreOperatorSupportedUnshieldCircuit,
+      setPrivateCoreOperatorSupportedSendCircuit,
       setPrivateCoreOperatorSupportedReleaseAuthorizationBasis,
       setPrivateCoreOperatorSupportedReleaseRootPolicy,
       setPrivateCoreOperatorOwnerAuthorizationMode,
@@ -1516,6 +1528,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedEnvironment,
       privateCoreOperatorSupportedRecipientModel,
       privateCoreOperatorSupportedReleaseDestinationModel,
+      privateCoreOperatorSupportedProofSystem,
+      privateCoreOperatorSupportedUnshieldCircuit,
+      privateCoreOperatorSupportedSendCircuit,
       privateCoreOperatorSupportedReleaseAuthorizationBasis,
       privateCoreOperatorSupportedReleaseRootPolicy,
       privateCoreOperatorOwnerAuthorizationMode,
@@ -1609,6 +1624,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedEnvironment,
       privateCoreOperatorSupportedRecipientModel,
       privateCoreOperatorSupportedReleaseDestinationModel,
+      privateCoreOperatorSupportedProofSystem,
+      privateCoreOperatorSupportedUnshieldCircuit,
+      privateCoreOperatorSupportedSendCircuit,
       privateCoreOperatorSupportedReleaseAuthorizationBasis,
       privateCoreOperatorSupportedReleaseRootPolicy,
       privateCoreOperatorOwnerAuthorizationMode,
@@ -2050,6 +2068,9 @@ function applyPrivateCoreOperatorSummaryState(args: {
   setPrivateCoreOperatorSupportedEnvironment: (value: string | null) => void;
   setPrivateCoreOperatorSupportedRecipientModel: (value: string | null) => void;
   setPrivateCoreOperatorSupportedReleaseDestinationModel: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedProofSystem: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedUnshieldCircuit: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedSendCircuit: (value: string | null) => void;
   setPrivateCoreOperatorSupportedReleaseAuthorizationBasis: (value: string | null) => void;
   setPrivateCoreOperatorSupportedReleaseRootPolicy: (value: string | null) => void;
   setPrivateCoreOperatorOwnerAuthorizationMode: (value: string | null) => void;
@@ -2118,6 +2139,9 @@ function applyPrivateCoreOperatorSummaryState(args: {
   args.setPrivateCoreOperatorSupportedReleaseDestinationModel(
     args.summaryState.supportedReleaseDestinationModel,
   );
+  args.setPrivateCoreOperatorSupportedProofSystem(args.summaryState.supportedProofSystem);
+  args.setPrivateCoreOperatorSupportedUnshieldCircuit(args.summaryState.supportedUnshieldCircuit);
+  args.setPrivateCoreOperatorSupportedSendCircuit(args.summaryState.supportedSendCircuit);
   args.setPrivateCoreOperatorSupportedReleaseAuthorizationBasis(
     args.summaryState.supportedReleaseAuthorizationBasis,
   );

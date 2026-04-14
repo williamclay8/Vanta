@@ -242,6 +242,9 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedEnvironment: "solana-devnet";
   supportedRecipientModel: "hashed-reference-to-owner-key";
   supportedReleaseDestinationModel: "32-byte-release-destination-field";
+  supportedProofSystem: "noir-acir-ultrahonk-bbjs";
+  supportedUnshieldCircuit: "vanta_private_core_single_note_unshield";
+  supportedSendCircuit: "vanta_private_core_single_note_send";
   supportedReleaseAuthorizationBasis: "proof-backed-consume";
   supportedReleaseRootPolicy: "latest-registered-root";
   ownerAuthorizationMode: "x25519-secret-prechecked-off-circuit";
@@ -851,6 +854,9 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedEnvironment?: unknown;
     supportedRecipientModel?: unknown;
     supportedReleaseDestinationModel?: unknown;
+    supportedProofSystem?: unknown;
+    supportedUnshieldCircuit?: unknown;
+    supportedSendCircuit?: unknown;
     supportedReleaseAuthorizationBasis?: unknown;
     supportedReleaseRootPolicy?: unknown;
     ownerAuthorizationMode?: unknown;
@@ -886,7 +892,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.summaryVersion !== 12 ||
+    parsed.summaryVersion !== 13 ||
     !isBoundaryStatus(parsed.boundaryStatus) ||
     typeof parsed.boundaryNote !== "string" ||
     (parsed.currentRootLinkedProof !== null &&
@@ -924,6 +930,9 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     parsed.supportedEnvironment !== "solana-devnet" ||
     parsed.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     parsed.supportedReleaseDestinationModel !== "32-byte-release-destination-field" ||
+    parsed.supportedProofSystem !== "noir-acir-ultrahonk-bbjs" ||
+    parsed.supportedUnshieldCircuit !== "vanta_private_core_single_note_unshield" ||
+    parsed.supportedSendCircuit !== "vanta_private_core_single_note_send" ||
     parsed.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     parsed.supportedReleaseRootPolicy !== "latest-registered-root" ||
     parsed.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
@@ -981,7 +990,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   return {
     stateVersion: 1,
-    summaryVersion: 12,
+    summaryVersion: 13,
     boundaryStatus: parsed.boundaryStatus,
     boundaryNote: parsed.boundaryNote,
     supportedSendLaneVersion: 1,
@@ -1004,6 +1013,9 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedEnvironment: "solana-devnet",
     supportedRecipientModel: "hashed-reference-to-owner-key",
     supportedReleaseDestinationModel: "32-byte-release-destination-field",
+    supportedProofSystem: "noir-acir-ultrahonk-bbjs",
+    supportedUnshieldCircuit: "vanta_private_core_single_note_unshield",
+    supportedSendCircuit: "vanta_private_core_single_note_send",
     supportedReleaseAuthorizationBasis: "proof-backed-consume",
     supportedReleaseRootPolicy: "latest-registered-root",
     ownerAuthorizationMode: "x25519-secret-prechecked-off-circuit",

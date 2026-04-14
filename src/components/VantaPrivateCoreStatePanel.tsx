@@ -50,6 +50,9 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSupportedEnvironment?: string | null;
   operatorSupportedRecipientModel?: string | null;
   operatorSupportedReleaseDestinationModel?: string | null;
+  operatorSupportedProofSystem?: string | null;
+  operatorSupportedUnshieldCircuit?: string | null;
+  operatorSupportedSendCircuit?: string | null;
   operatorSupportedReleaseAuthorizationBasis?: string | null;
   operatorSupportedReleaseRootPolicy?: string | null;
   operatorOwnerAuthorizationMode?: string | null;
@@ -217,6 +220,9 @@ export function VantaPrivateCoreStatePanel({
   operatorSupportedEnvironment = null,
   operatorSupportedRecipientModel = null,
   operatorSupportedReleaseDestinationModel = null,
+  operatorSupportedProofSystem = null,
+  operatorSupportedUnshieldCircuit = null,
+  operatorSupportedSendCircuit = null,
   operatorSupportedReleaseAuthorizationBasis = null,
   operatorSupportedReleaseRootPolicy = null,
   operatorOwnerAuthorizationMode = null,
@@ -556,6 +562,22 @@ export function VantaPrivateCoreStatePanel({
                   ? "32-byte release destination field"
                   : "Unavailable"}
               </strong>
+            </div>
+            <div className="review-row">
+              <span>Supported proof system</span>
+              <strong>
+                {operatorSupportedProofSystem === "noir-acir-ultrahonk-bbjs"
+                  ? "Noir ACIR / UltraHonk / bb.js"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Supported unshield circuit</span>
+              <strong>{operatorSupportedUnshieldCircuit ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Supported send circuit</span>
+              <strong>{operatorSupportedSendCircuit ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Supported release auth</span>

@@ -262,7 +262,7 @@ try {
   if (
     !summaryState.ok ||
     summaryState.parsed?.stateVersion !== 1 ||
-    summaryState.parsed?.summaryVersion !== 12 ||
+    summaryState.parsed?.summaryVersion !== 13 ||
     summaryState.parsed?.supportedSendLaneVersion !== 1 ||
     summaryState.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     summaryState.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -283,6 +283,10 @@ try {
     summaryState.parsed?.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     summaryState.parsed?.supportedReleaseDestinationModel !==
       "32-byte-release-destination-field" ||
+    summaryState.parsed?.supportedProofSystem !== "noir-acir-ultrahonk-bbjs" ||
+    summaryState.parsed?.supportedUnshieldCircuit !==
+      "vanta_private_core_single_note_unshield" ||
+    summaryState.parsed?.supportedSendCircuit !== "vanta_private_core_single_note_send" ||
     summaryState.parsed?.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     summaryState.parsed?.supportedReleaseRootPolicy !== "latest-registered-root" ||
     summaryState.parsed?.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
