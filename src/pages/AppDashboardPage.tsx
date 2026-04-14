@@ -66,6 +66,8 @@ export function AppDashboardPage() {
     privateCoreOperatorSupportedFlowVersion,
     privateCoreOperatorSupportedAssetSymbol,
     privateCoreOperatorSupportedEnvironment,
+    privateCoreOperatorSupportedRecipientModel,
+    privateCoreOperatorSupportedReleaseDestinationModel,
     privateCoreOperatorSupportedReleaseAuthorizationBasis,
     privateCoreOperatorSupportedReleaseRootPolicy,
     privateCoreOperatorOwnerAuthorizationMode,
@@ -268,6 +270,10 @@ export function AppDashboardPage() {
           operatorSupportedFlowVersion={privateCoreOperatorSupportedFlowVersion}
           operatorSupportedAssetSymbol={privateCoreOperatorSupportedAssetSymbol}
           operatorSupportedEnvironment={privateCoreOperatorSupportedEnvironment}
+          operatorSupportedRecipientModel={privateCoreOperatorSupportedRecipientModel}
+          operatorSupportedReleaseDestinationModel={
+            privateCoreOperatorSupportedReleaseDestinationModel
+          }
           operatorSupportedReleaseAuthorizationBasis={
             privateCoreOperatorSupportedReleaseAuthorizationBasis
           }

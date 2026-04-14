@@ -230,6 +230,8 @@ The operator summary now versions the narrow unshield lane too:
 - `supportedFlowStatus = supported`
 - `supportedAssetSymbol = VUSD`
 - `supportedEnvironment = solana-devnet`
+- `supportedRecipientModel = hashed-reference-to-owner-key`
+- `supportedReleaseDestinationModel = 32-byte-release-destination-field`
 - `supportedReleaseAuthorizationBasis = proof-backed-consume`
 - `supportedReleaseRootPolicy = latest-registered-root`
 

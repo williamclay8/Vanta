@@ -158,6 +158,8 @@ const PRIVATE_CORE_SUPPORTED_FLOW_NOTE =
   "Current narrow zk v1 product flow is shield, hold, private send, unshield, and replay guard on the resulting consume path.";
 const PRIVATE_CORE_SUPPORTED_ASSET_SYMBOL = "VUSD";
 const PRIVATE_CORE_SUPPORTED_ENVIRONMENT = "solana-devnet";
+const PRIVATE_CORE_SUPPORTED_RECIPIENT_MODEL = "hashed-reference-to-owner-key";
+const PRIVATE_CORE_SUPPORTED_RELEASE_DESTINATION_MODEL = "32-byte-release-destination-field";
 const PRIVATE_CORE_RELEASE_AUTHORIZATION_BASIS = "proof-backed-consume";
 const PRIVATE_CORE_RELEASE_ROOT_POLICY = "latest-registered-root";
 const PRIVATE_CORE_OWNER_AUTH_MODE = "x25519-secret-prechecked-off-circuit";
@@ -1567,6 +1569,8 @@ function buildPrivateCoreSummaryState() {
     supportedFlowNote: PRIVATE_CORE_SUPPORTED_FLOW_NOTE,
     supportedAssetSymbol: PRIVATE_CORE_SUPPORTED_ASSET_SYMBOL,
     supportedEnvironment: PRIVATE_CORE_SUPPORTED_ENVIRONMENT,
+    supportedRecipientModel: PRIVATE_CORE_SUPPORTED_RECIPIENT_MODEL,
+    supportedReleaseDestinationModel: PRIVATE_CORE_SUPPORTED_RELEASE_DESTINATION_MODEL,
     supportedReleaseAuthorizationBasis: PRIVATE_CORE_RELEASE_AUTHORIZATION_BASIS,
     supportedReleaseRootPolicy: PRIVATE_CORE_RELEASE_ROOT_POLICY,
     ownerAuthorizationMode: PRIVATE_CORE_OWNER_AUTH_MODE,
@@ -1583,7 +1587,7 @@ function buildPrivateCoreSummaryState() {
     sendResultingRootProofLinkStatus,
     sendResultingRootStatus: sendResultingRootStatus.status,
     stateVersion: 1,
-    summaryVersion: 11,
+    summaryVersion: 12,
     currentRoot: currentRootRecord?.root ?? null,
     currentRecord: currentRootRecord,
     rootRecords,

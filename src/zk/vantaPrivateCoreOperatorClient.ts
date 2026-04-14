@@ -240,6 +240,8 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedFlowVersion: number;
   supportedAssetSymbol: "VUSD";
   supportedEnvironment: "solana-devnet";
+  supportedRecipientModel: "hashed-reference-to-owner-key";
+  supportedReleaseDestinationModel: "32-byte-release-destination-field";
   supportedReleaseAuthorizationBasis: "proof-backed-consume";
   supportedReleaseRootPolicy: "latest-registered-root";
   ownerAuthorizationMode: "x25519-secret-prechecked-off-circuit";
@@ -847,6 +849,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedFlowVersion?: unknown;
     supportedAssetSymbol?: unknown;
     supportedEnvironment?: unknown;
+    supportedRecipientModel?: unknown;
+    supportedReleaseDestinationModel?: unknown;
     supportedReleaseAuthorizationBasis?: unknown;
     supportedReleaseRootPolicy?: unknown;
     ownerAuthorizationMode?: unknown;
@@ -882,7 +886,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.summaryVersion !== 11 ||
+    parsed.summaryVersion !== 12 ||
     !isBoundaryStatus(parsed.boundaryStatus) ||
     typeof parsed.boundaryNote !== "string" ||
     (parsed.currentRootLinkedProof !== null &&
@@ -918,6 +922,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     typeof parsed.supportedFlowNote !== "string" ||
     parsed.supportedAssetSymbol !== "VUSD" ||
     parsed.supportedEnvironment !== "solana-devnet" ||
+    parsed.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
+    parsed.supportedReleaseDestinationModel !== "32-byte-release-destination-field" ||
     parsed.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     parsed.supportedReleaseRootPolicy !== "latest-registered-root" ||
     parsed.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
@@ -975,7 +981,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   return {
     stateVersion: 1,
-    summaryVersion: 11,
+    summaryVersion: 12,
     boundaryStatus: parsed.boundaryStatus,
     boundaryNote: parsed.boundaryNote,
     supportedSendLaneVersion: 1,
@@ -996,6 +1002,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedFlowNote: parsed.supportedFlowNote,
     supportedAssetSymbol: "VUSD",
     supportedEnvironment: "solana-devnet",
+    supportedRecipientModel: "hashed-reference-to-owner-key",
+    supportedReleaseDestinationModel: "32-byte-release-destination-field",
     supportedReleaseAuthorizationBasis: "proof-backed-consume",
     supportedReleaseRootPolicy: "latest-registered-root",
     ownerAuthorizationMode: "x25519-secret-prechecked-off-circuit",

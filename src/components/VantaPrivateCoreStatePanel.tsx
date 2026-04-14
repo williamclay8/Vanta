@@ -48,6 +48,8 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSupportedFlowVersion?: number | null;
   operatorSupportedAssetSymbol?: string | null;
   operatorSupportedEnvironment?: string | null;
+  operatorSupportedRecipientModel?: string | null;
+  operatorSupportedReleaseDestinationModel?: string | null;
   operatorSupportedReleaseAuthorizationBasis?: string | null;
   operatorSupportedReleaseRootPolicy?: string | null;
   operatorOwnerAuthorizationMode?: string | null;
@@ -213,6 +215,8 @@ export function VantaPrivateCoreStatePanel({
   operatorSupportedFlowVersion = null,
   operatorSupportedAssetSymbol = null,
   operatorSupportedEnvironment = null,
+  operatorSupportedRecipientModel = null,
+  operatorSupportedReleaseDestinationModel = null,
   operatorSupportedReleaseAuthorizationBasis = null,
   operatorSupportedReleaseRootPolicy = null,
   operatorOwnerAuthorizationMode = null,
@@ -536,6 +540,22 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Supported environment</span>
               <strong>{operatorSupportedEnvironment ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Supported recipient model</span>
+              <strong>
+                {operatorSupportedRecipientModel === "hashed-reference-to-owner-key"
+                  ? "Hashed reference to owner key"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Supported release destination model</span>
+              <strong>
+                {operatorSupportedReleaseDestinationModel === "32-byte-release-destination-field"
+                  ? "32-byte release destination field"
+                  : "Unavailable"}
+              </strong>
             </div>
             <div className="review-row">
               <span>Supported release auth</span>

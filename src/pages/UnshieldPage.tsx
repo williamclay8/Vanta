@@ -129,6 +129,8 @@ export function UnshieldPage() {
     privateCoreOperatorSupportedFlowVersion,
     privateCoreOperatorSupportedAssetSymbol,
     privateCoreOperatorSupportedEnvironment,
+    privateCoreOperatorSupportedRecipientModel,
+    privateCoreOperatorSupportedReleaseDestinationModel,
     privateCoreOperatorSupportedReleaseAuthorizationBasis,
     privateCoreOperatorSupportedReleaseRootPolicy,
     privateCoreOperatorOwnerAuthorizationMode,
@@ -940,6 +942,10 @@ export function UnshieldPage() {
           operatorSupportedFlowVersion={privateCoreOperatorSupportedFlowVersion}
           operatorSupportedAssetSymbol={privateCoreOperatorSupportedAssetSymbol}
           operatorSupportedEnvironment={privateCoreOperatorSupportedEnvironment}
+          operatorSupportedRecipientModel={privateCoreOperatorSupportedRecipientModel}
+          operatorSupportedReleaseDestinationModel={
+            privateCoreOperatorSupportedReleaseDestinationModel
+          }
           operatorSupportedReleaseAuthorizationBasis={
             privateCoreOperatorSupportedReleaseAuthorizationBasis
           }

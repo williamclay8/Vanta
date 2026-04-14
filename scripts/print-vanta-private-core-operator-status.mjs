@@ -41,6 +41,14 @@ try {
   printLine("Supported asset", summary.supportedAssetSymbol ?? "Unavailable");
   printLine("Supported environment", summary.supportedEnvironment ?? "Unavailable");
   printLine(
+    "Supported recipient model",
+    humanizeSupportedRecipientModel(summary.supportedRecipientModel),
+  );
+  printLine(
+    "Supported release destination model",
+    humanizeSupportedReleaseDestinationModel(summary.supportedReleaseDestinationModel),
+  );
+  printLine(
     "Supported release authorization",
     humanizeReleaseAuthorization(summary.supportedReleaseAuthorizationBasis),
   );
@@ -330,6 +338,24 @@ function humanizeSupportedFlowStatus(value) {
   switch (value) {
     case "supported":
       return "Supported";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeSupportedRecipientModel(value) {
+  switch (value) {
+    case "hashed-reference-to-owner-key":
+      return "Hashed reference to owner key";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeSupportedReleaseDestinationModel(value) {
+  switch (value) {
+    case "32-byte-release-destination-field":
+      return "32-byte release destination field";
     default:
       return "Unavailable";
   }

@@ -273,7 +273,7 @@ try {
     preRestartSends.parsed.records.length < 1 ||
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.stateVersion !== 1 ||
-    preRestartSummary.parsed?.summaryVersion !== 11 ||
+    preRestartSummary.parsed?.summaryVersion !== 12 ||
     preRestartSummary.parsed?.supportedSendLaneVersion !== 1 ||
     preRestartSummary.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     preRestartSummary.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -291,6 +291,9 @@ try {
     typeof preRestartSummary.parsed?.supportedFlowNote !== "string" ||
     preRestartSummary.parsed?.supportedAssetSymbol !== "VUSD" ||
     preRestartSummary.parsed?.supportedEnvironment !== "solana-devnet" ||
+    preRestartSummary.parsed?.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
+    preRestartSummary.parsed?.supportedReleaseDestinationModel !==
+      "32-byte-release-destination-field" ||
     preRestartSummary.parsed?.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     preRestartSummary.parsed?.supportedReleaseRootPolicy !== "latest-registered-root" ||
     preRestartSummary.parsed?.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
@@ -340,7 +343,7 @@ try {
   if (
     !postRestartSummary.ok ||
     postRestartSummary.parsed?.stateVersion !== 1 ||
-    postRestartSummary.parsed?.summaryVersion !== 11 ||
+    postRestartSummary.parsed?.summaryVersion !== 12 ||
     postRestartSummary.parsed?.supportedSendLaneVersion !== 1 ||
     postRestartSummary.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     postRestartSummary.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -358,6 +361,9 @@ try {
     typeof postRestartSummary.parsed?.supportedFlowNote !== "string" ||
     postRestartSummary.parsed?.supportedAssetSymbol !== "VUSD" ||
     postRestartSummary.parsed?.supportedEnvironment !== "solana-devnet" ||
+    postRestartSummary.parsed?.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
+    postRestartSummary.parsed?.supportedReleaseDestinationModel !==
+      "32-byte-release-destination-field" ||
     postRestartSummary.parsed?.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     postRestartSummary.parsed?.supportedReleaseRootPolicy !== "latest-registered-root" ||
     postRestartSummary.parsed?.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
@@ -439,7 +445,7 @@ try {
     stdio: "pipe",
   });
   if (
-    !operatorStatusOutput.includes("Summary version: 11") ||
+    !operatorStatusOutput.includes("Summary version: 12") ||
     !operatorStatusOutput.includes("Supported send lane version: 1") ||
     !operatorStatusOutput.includes("Supported send lane status: Supported") ||
     !operatorStatusOutput.includes("Supported unshield lane version: 1") ||
@@ -456,6 +462,10 @@ try {
     !operatorStatusOutput.includes("Supported flow note: Current narrow zk v1 product flow is shield, hold, private send, unshield, and replay guard") ||
     !operatorStatusOutput.includes("Supported asset: VUSD") ||
     !operatorStatusOutput.includes("Supported environment: solana-devnet") ||
+    !operatorStatusOutput.includes("Supported recipient model: Hashed reference to owner key") ||
+    !operatorStatusOutput.includes(
+      "Supported release destination model: 32-byte release destination field",
+    ) ||
     !operatorStatusOutput.includes("Supported release authorization: Proof-backed consume") ||
     !operatorStatusOutput.includes("Supported release root policy: Latest registered root") ||
     !operatorStatusOutput.includes("Owner authorization mode: X25519 secret prechecked off-circuit") ||
