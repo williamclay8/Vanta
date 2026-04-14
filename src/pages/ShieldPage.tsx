@@ -117,6 +117,10 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOperatorSupportedUnshieldLaneNote,
     privateCoreOperatorSupportedUnshieldLaneStatus,
     privateCoreOperatorSupportedUnshieldLaneVersion,
+    privateCoreOperatorSupportedReleaseLaneKind,
+    privateCoreOperatorSupportedReleaseLaneNote,
+    privateCoreOperatorSupportedReleaseLaneStatus,
+    privateCoreOperatorSupportedReleaseLaneVersion,
     privateCoreOperatorSupportedReleaseAuthorizationBasis,
     privateCoreOperatorSupportedReleaseRootPolicy,
     privateCoreOperatorOwnerAuthorizationMode,
@@ -1070,6 +1074,10 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 operatorSupportedUnshieldLaneNote={privateCoreOperatorSupportedUnshieldLaneNote}
                 operatorSupportedUnshieldLaneStatus={privateCoreOperatorSupportedUnshieldLaneStatus}
                 operatorSupportedUnshieldLaneVersion={privateCoreOperatorSupportedUnshieldLaneVersion}
+                operatorSupportedReleaseLaneKind={privateCoreOperatorSupportedReleaseLaneKind}
+                operatorSupportedReleaseLaneNote={privateCoreOperatorSupportedReleaseLaneNote}
+                operatorSupportedReleaseLaneStatus={privateCoreOperatorSupportedReleaseLaneStatus}
+                operatorSupportedReleaseLaneVersion={privateCoreOperatorSupportedReleaseLaneVersion}
                 operatorSupportedReleaseAuthorizationBasis={
                   privateCoreOperatorSupportedReleaseAuthorizationBasis
                 }

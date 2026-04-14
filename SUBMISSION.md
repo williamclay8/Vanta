@@ -340,6 +340,9 @@ The same operator summary now also versions the supported narrow unshield lane:
 - `supportedUnshieldLaneVersion = 1`
 - `supportedUnshieldLaneKind = single-note-proof-backed-consume`
 - `supportedUnshieldLaneStatus = supported`
+- `supportedReleaseLaneVersion = 1`
+- `supportedReleaseLaneKind = proof-backed-consume-latest-registered-root`
+- `supportedReleaseLaneStatus = supported`
 - `supportedReleaseAuthorizationBasis = proof-backed-consume`
 - `supportedReleaseRootPolicy = latest-registered-root`
 

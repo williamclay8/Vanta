@@ -230,6 +230,10 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedUnshieldLaneNote: string;
   supportedUnshieldLaneStatus: "supported";
   supportedUnshieldLaneVersion: number;
+  supportedReleaseLaneKind: "proof-backed-consume-latest-registered-root";
+  supportedReleaseLaneNote: string;
+  supportedReleaseLaneStatus: "supported";
+  supportedReleaseLaneVersion: number;
   supportedReleaseAuthorizationBasis: "proof-backed-consume";
   supportedReleaseRootPolicy: "latest-registered-root";
   ownerAuthorizationMode: "x25519-secret-prechecked-off-circuit";
@@ -827,6 +831,10 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedUnshieldLaneNote?: unknown;
     supportedUnshieldLaneStatus?: unknown;
     supportedUnshieldLaneVersion?: unknown;
+    supportedReleaseLaneKind?: unknown;
+    supportedReleaseLaneNote?: unknown;
+    supportedReleaseLaneStatus?: unknown;
+    supportedReleaseLaneVersion?: unknown;
     supportedReleaseAuthorizationBasis?: unknown;
     supportedReleaseRootPolicy?: unknown;
     ownerAuthorizationMode?: unknown;
@@ -862,7 +870,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.summaryVersion !== 8 ||
+    parsed.summaryVersion !== 9 ||
     !isBoundaryStatus(parsed.boundaryStatus) ||
     typeof parsed.boundaryNote !== "string" ||
     (parsed.currentRootLinkedProof !== null &&
@@ -888,6 +896,10 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     parsed.supportedUnshieldLaneKind !== "single-note-proof-backed-consume" ||
     parsed.supportedUnshieldLaneStatus !== "supported" ||
     typeof parsed.supportedUnshieldLaneNote !== "string" ||
+    parsed.supportedReleaseLaneVersion !== 1 ||
+    parsed.supportedReleaseLaneKind !== "proof-backed-consume-latest-registered-root" ||
+    parsed.supportedReleaseLaneStatus !== "supported" ||
+    typeof parsed.supportedReleaseLaneNote !== "string" ||
     parsed.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     parsed.supportedReleaseRootPolicy !== "latest-registered-root" ||
     parsed.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
@@ -945,7 +957,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   return {
     stateVersion: 1,
-    summaryVersion: 8,
+    summaryVersion: 9,
     boundaryStatus: parsed.boundaryStatus,
     boundaryNote: parsed.boundaryNote,
     supportedSendLaneVersion: 1,
@@ -956,6 +968,10 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedUnshieldLaneKind: "single-note-proof-backed-consume",
     supportedUnshieldLaneStatus: "supported",
     supportedUnshieldLaneNote: parsed.supportedUnshieldLaneNote,
+    supportedReleaseLaneVersion: 1,
+    supportedReleaseLaneKind: "proof-backed-consume-latest-registered-root",
+    supportedReleaseLaneStatus: "supported",
+    supportedReleaseLaneNote: parsed.supportedReleaseLaneNote,
     supportedReleaseAuthorizationBasis: "proof-backed-consume",
     supportedReleaseRootPolicy: "latest-registered-root",
     ownerAuthorizationMode: "x25519-secret-prechecked-off-circuit",

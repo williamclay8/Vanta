@@ -115,6 +115,10 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorSupportedUnshieldLaneNote: string | null;
   privateCoreOperatorSupportedUnshieldLaneStatus: string | null;
   privateCoreOperatorSupportedUnshieldLaneVersion: number | null;
+  privateCoreOperatorSupportedReleaseLaneKind: string | null;
+  privateCoreOperatorSupportedReleaseLaneNote: string | null;
+  privateCoreOperatorSupportedReleaseLaneStatus: string | null;
+  privateCoreOperatorSupportedReleaseLaneVersion: number | null;
   privateCoreOperatorSupportedReleaseAuthorizationBasis: string | null;
   privateCoreOperatorSupportedReleaseRootPolicy: string | null;
   privateCoreOperatorOwnerAuthorizationMode: string | null;
@@ -389,6 +393,14 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<string | null>(null);
   const [privateCoreOperatorSupportedUnshieldLaneVersion, setPrivateCoreOperatorSupportedUnshieldLaneVersion] =
     useState<number | null>(null);
+  const [privateCoreOperatorSupportedReleaseLaneKind, setPrivateCoreOperatorSupportedReleaseLaneKind] =
+    useState<string | null>(null);
+  const [privateCoreOperatorSupportedReleaseLaneNote, setPrivateCoreOperatorSupportedReleaseLaneNote] =
+    useState<string | null>(null);
+  const [privateCoreOperatorSupportedReleaseLaneStatus, setPrivateCoreOperatorSupportedReleaseLaneStatus] =
+    useState<string | null>(null);
+  const [privateCoreOperatorSupportedReleaseLaneVersion, setPrivateCoreOperatorSupportedReleaseLaneVersion] =
+    useState<number | null>(null);
   const [
     privateCoreOperatorSupportedReleaseAuthorizationBasis,
     setPrivateCoreOperatorSupportedReleaseAuthorizationBasis,
@@ -467,6 +479,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSupportedUnshieldLaneNote,
       setPrivateCoreOperatorSupportedUnshieldLaneStatus,
       setPrivateCoreOperatorSupportedUnshieldLaneVersion,
+      setPrivateCoreOperatorSupportedReleaseLaneKind,
+      setPrivateCoreOperatorSupportedReleaseLaneNote,
+      setPrivateCoreOperatorSupportedReleaseLaneStatus,
+      setPrivateCoreOperatorSupportedReleaseLaneVersion,
       setPrivateCoreOperatorSupportedReleaseAuthorizationBasis,
       setPrivateCoreOperatorSupportedReleaseRootPolicy,
       setPrivateCoreOperatorOwnerAuthorizationMode,
@@ -1454,6 +1470,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedUnshieldLaneNote,
       privateCoreOperatorSupportedUnshieldLaneStatus,
       privateCoreOperatorSupportedUnshieldLaneVersion,
+      privateCoreOperatorSupportedReleaseLaneKind,
+      privateCoreOperatorSupportedReleaseLaneNote,
+      privateCoreOperatorSupportedReleaseLaneStatus,
+      privateCoreOperatorSupportedReleaseLaneVersion,
       privateCoreOperatorSupportedReleaseAuthorizationBasis,
       privateCoreOperatorSupportedReleaseRootPolicy,
       privateCoreOperatorOwnerAuthorizationMode,
@@ -1535,6 +1555,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedUnshieldLaneNote,
       privateCoreOperatorSupportedUnshieldLaneStatus,
       privateCoreOperatorSupportedUnshieldLaneVersion,
+      privateCoreOperatorSupportedReleaseLaneKind,
+      privateCoreOperatorSupportedReleaseLaneNote,
+      privateCoreOperatorSupportedReleaseLaneStatus,
+      privateCoreOperatorSupportedReleaseLaneVersion,
       privateCoreOperatorSupportedReleaseAuthorizationBasis,
       privateCoreOperatorSupportedReleaseRootPolicy,
       privateCoreOperatorOwnerAuthorizationMode,
@@ -1964,6 +1988,10 @@ function applyPrivateCoreOperatorSummaryState(args: {
   setPrivateCoreOperatorSupportedUnshieldLaneNote: (value: string | null) => void;
   setPrivateCoreOperatorSupportedUnshieldLaneStatus: (value: string | null) => void;
   setPrivateCoreOperatorSupportedUnshieldLaneVersion: (value: number | null) => void;
+  setPrivateCoreOperatorSupportedReleaseLaneKind: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedReleaseLaneNote: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedReleaseLaneStatus: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedReleaseLaneVersion: (value: number | null) => void;
   setPrivateCoreOperatorSupportedReleaseAuthorizationBasis: (value: string | null) => void;
   setPrivateCoreOperatorSupportedReleaseRootPolicy: (value: string | null) => void;
   setPrivateCoreOperatorOwnerAuthorizationMode: (value: string | null) => void;
@@ -2015,6 +2043,12 @@ function applyPrivateCoreOperatorSummaryState(args: {
   args.setPrivateCoreOperatorSupportedUnshieldLaneStatus(args.summaryState.supportedUnshieldLaneStatus);
   args.setPrivateCoreOperatorSupportedUnshieldLaneVersion(
     args.summaryState.supportedUnshieldLaneVersion,
+  );
+  args.setPrivateCoreOperatorSupportedReleaseLaneKind(args.summaryState.supportedReleaseLaneKind);
+  args.setPrivateCoreOperatorSupportedReleaseLaneNote(args.summaryState.supportedReleaseLaneNote);
+  args.setPrivateCoreOperatorSupportedReleaseLaneStatus(args.summaryState.supportedReleaseLaneStatus);
+  args.setPrivateCoreOperatorSupportedReleaseLaneVersion(
+    args.summaryState.supportedReleaseLaneVersion,
   );
   args.setPrivateCoreOperatorSupportedReleaseAuthorizationBasis(
     args.summaryState.supportedReleaseAuthorizationBasis,

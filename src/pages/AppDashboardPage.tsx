@@ -56,6 +56,10 @@ export function AppDashboardPage() {
     privateCoreOperatorSupportedUnshieldLaneNote,
     privateCoreOperatorSupportedUnshieldLaneStatus,
     privateCoreOperatorSupportedUnshieldLaneVersion,
+    privateCoreOperatorSupportedReleaseLaneKind,
+    privateCoreOperatorSupportedReleaseLaneNote,
+    privateCoreOperatorSupportedReleaseLaneStatus,
+    privateCoreOperatorSupportedReleaseLaneVersion,
     privateCoreOperatorSupportedReleaseAuthorizationBasis,
     privateCoreOperatorSupportedReleaseRootPolicy,
     privateCoreOperatorOwnerAuthorizationMode,
@@ -248,6 +252,10 @@ export function AppDashboardPage() {
           operatorSupportedUnshieldLaneNote={privateCoreOperatorSupportedUnshieldLaneNote}
           operatorSupportedUnshieldLaneStatus={privateCoreOperatorSupportedUnshieldLaneStatus}
           operatorSupportedUnshieldLaneVersion={privateCoreOperatorSupportedUnshieldLaneVersion}
+          operatorSupportedReleaseLaneKind={privateCoreOperatorSupportedReleaseLaneKind}
+          operatorSupportedReleaseLaneNote={privateCoreOperatorSupportedReleaseLaneNote}
+          operatorSupportedReleaseLaneStatus={privateCoreOperatorSupportedReleaseLaneStatus}
+          operatorSupportedReleaseLaneVersion={privateCoreOperatorSupportedReleaseLaneVersion}
           operatorSupportedReleaseAuthorizationBasis={
             privateCoreOperatorSupportedReleaseAuthorizationBasis
           }

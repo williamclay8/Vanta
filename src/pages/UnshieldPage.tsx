@@ -119,6 +119,10 @@ export function UnshieldPage() {
     privateCoreOperatorSupportedUnshieldLaneNote,
     privateCoreOperatorSupportedUnshieldLaneStatus,
     privateCoreOperatorSupportedUnshieldLaneVersion,
+    privateCoreOperatorSupportedReleaseLaneKind,
+    privateCoreOperatorSupportedReleaseLaneNote,
+    privateCoreOperatorSupportedReleaseLaneStatus,
+    privateCoreOperatorSupportedReleaseLaneVersion,
     privateCoreOperatorSupportedReleaseAuthorizationBasis,
     privateCoreOperatorSupportedReleaseRootPolicy,
     privateCoreOperatorOwnerAuthorizationMode,
@@ -920,6 +924,10 @@ export function UnshieldPage() {
           operatorSupportedUnshieldLaneNote={privateCoreOperatorSupportedUnshieldLaneNote}
           operatorSupportedUnshieldLaneStatus={privateCoreOperatorSupportedUnshieldLaneStatus}
           operatorSupportedUnshieldLaneVersion={privateCoreOperatorSupportedUnshieldLaneVersion}
+          operatorSupportedReleaseLaneKind={privateCoreOperatorSupportedReleaseLaneKind}
+          operatorSupportedReleaseLaneNote={privateCoreOperatorSupportedReleaseLaneNote}
+          operatorSupportedReleaseLaneStatus={privateCoreOperatorSupportedReleaseLaneStatus}
+          operatorSupportedReleaseLaneVersion={privateCoreOperatorSupportedReleaseLaneVersion}
           operatorSupportedReleaseAuthorizationBasis={
             privateCoreOperatorSupportedReleaseAuthorizationBasis
           }

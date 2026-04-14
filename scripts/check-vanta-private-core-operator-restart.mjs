@@ -273,13 +273,18 @@ try {
     preRestartSends.parsed.records.length < 1 ||
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.stateVersion !== 1 ||
-    preRestartSummary.parsed?.summaryVersion !== 8 ||
+    preRestartSummary.parsed?.summaryVersion !== 9 ||
     preRestartSummary.parsed?.supportedSendLaneVersion !== 1 ||
     preRestartSummary.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     preRestartSummary.parsed?.supportedSendLaneStatus !== "supported" ||
     preRestartSummary.parsed?.supportedUnshieldLaneVersion !== 1 ||
     preRestartSummary.parsed?.supportedUnshieldLaneKind !== "single-note-proof-backed-consume" ||
     preRestartSummary.parsed?.supportedUnshieldLaneStatus !== "supported" ||
+    preRestartSummary.parsed?.supportedReleaseLaneVersion !== 1 ||
+    preRestartSummary.parsed?.supportedReleaseLaneKind !==
+      "proof-backed-consume-latest-registered-root" ||
+    preRestartSummary.parsed?.supportedReleaseLaneStatus !== "supported" ||
+    typeof preRestartSummary.parsed?.supportedReleaseLaneNote !== "string" ||
     preRestartSummary.parsed?.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     preRestartSummary.parsed?.supportedReleaseRootPolicy !== "latest-registered-root" ||
     preRestartSummary.parsed?.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
@@ -329,13 +334,18 @@ try {
   if (
     !postRestartSummary.ok ||
     postRestartSummary.parsed?.stateVersion !== 1 ||
-    postRestartSummary.parsed?.summaryVersion !== 8 ||
+    postRestartSummary.parsed?.summaryVersion !== 9 ||
     postRestartSummary.parsed?.supportedSendLaneVersion !== 1 ||
     postRestartSummary.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     postRestartSummary.parsed?.supportedSendLaneStatus !== "supported" ||
     postRestartSummary.parsed?.supportedUnshieldLaneVersion !== 1 ||
     postRestartSummary.parsed?.supportedUnshieldLaneKind !== "single-note-proof-backed-consume" ||
     postRestartSummary.parsed?.supportedUnshieldLaneStatus !== "supported" ||
+    postRestartSummary.parsed?.supportedReleaseLaneVersion !== 1 ||
+    postRestartSummary.parsed?.supportedReleaseLaneKind !==
+      "proof-backed-consume-latest-registered-root" ||
+    postRestartSummary.parsed?.supportedReleaseLaneStatus !== "supported" ||
+    typeof postRestartSummary.parsed?.supportedReleaseLaneNote !== "string" ||
     postRestartSummary.parsed?.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     postRestartSummary.parsed?.supportedReleaseRootPolicy !== "latest-registered-root" ||
     postRestartSummary.parsed?.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
@@ -417,11 +427,17 @@ try {
     stdio: "pipe",
   });
   if (
-    !operatorStatusOutput.includes("Summary version: 8") ||
+    !operatorStatusOutput.includes("Summary version: 9") ||
     !operatorStatusOutput.includes("Supported send lane version: 1") ||
     !operatorStatusOutput.includes("Supported send lane status: Supported") ||
     !operatorStatusOutput.includes("Supported unshield lane version: 1") ||
     !operatorStatusOutput.includes("Supported unshield lane status: Supported") ||
+    !operatorStatusOutput.includes("Supported release lane version: 1") ||
+    !operatorStatusOutput.includes(
+      "Supported release lane kind: Proof-backed consume / latest registered root",
+    ) ||
+    !operatorStatusOutput.includes("Supported release lane status: Supported") ||
+    !operatorStatusOutput.includes("Supported release lane note: Current narrow zk v1 release lane is supported") ||
     !operatorStatusOutput.includes("Supported release authorization: Proof-backed consume") ||
     !operatorStatusOutput.includes("Supported release root policy: Latest registered root") ||
     !operatorStatusOutput.includes("Owner authorization mode: X25519 secret prechecked off-circuit") ||

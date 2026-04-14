@@ -193,6 +193,10 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorSupportedUnshieldLaneNote,
     privateCoreOperatorSupportedUnshieldLaneStatus,
     privateCoreOperatorSupportedUnshieldLaneVersion,
+    privateCoreOperatorSupportedReleaseLaneKind,
+    privateCoreOperatorSupportedReleaseLaneNote,
+    privateCoreOperatorSupportedReleaseLaneStatus,
+    privateCoreOperatorSupportedReleaseLaneVersion,
     privateCoreOperatorSupportedReleaseAuthorizationBasis,
     privateCoreOperatorSupportedReleaseRootPolicy,
     privateCoreOperatorSummaryUpdatedAt,
@@ -1640,6 +1644,10 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         operatorSupportedUnshieldLaneNote={privateCoreOperatorSupportedUnshieldLaneNote}
         operatorSupportedUnshieldLaneStatus={privateCoreOperatorSupportedUnshieldLaneStatus}
         operatorSupportedUnshieldLaneVersion={privateCoreOperatorSupportedUnshieldLaneVersion}
+        operatorSupportedReleaseLaneKind={privateCoreOperatorSupportedReleaseLaneKind}
+        operatorSupportedReleaseLaneNote={privateCoreOperatorSupportedReleaseLaneNote}
+        operatorSupportedReleaseLaneStatus={privateCoreOperatorSupportedReleaseLaneStatus}
+        operatorSupportedReleaseLaneVersion={privateCoreOperatorSupportedReleaseLaneVersion}
         operatorSupportedReleaseAuthorizationBasis={
           privateCoreOperatorSupportedReleaseAuthorizationBasis
         }

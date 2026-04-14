@@ -146,6 +146,11 @@ const PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_KIND = "single-note-proof-backed-cons
 const PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_STATUS = "supported";
 const PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_NOTE =
   "Current narrow zk v1 unshield lane is supported for one note consume with proof-backed release recording.";
+const PRIVATE_CORE_SUPPORTED_RELEASE_LANE_VERSION = 1;
+const PRIVATE_CORE_SUPPORTED_RELEASE_LANE_KIND = "proof-backed-consume-latest-registered-root";
+const PRIVATE_CORE_SUPPORTED_RELEASE_LANE_STATUS = "supported";
+const PRIVATE_CORE_SUPPORTED_RELEASE_LANE_NOTE =
+  "Current narrow zk v1 release lane is supported for proof-backed consume-authorized release under the latest registered root policy.";
 const PRIVATE_CORE_RELEASE_AUTHORIZATION_BASIS = "proof-backed-consume";
 const PRIVATE_CORE_RELEASE_ROOT_POLICY = "latest-registered-root";
 const PRIVATE_CORE_OWNER_AUTH_MODE = "x25519-secret-prechecked-off-circuit";
@@ -1545,6 +1550,10 @@ function buildPrivateCoreSummaryState() {
     supportedUnshieldLaneKind: PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_KIND,
     supportedUnshieldLaneStatus: PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_STATUS,
     supportedUnshieldLaneNote: PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_NOTE,
+    supportedReleaseLaneVersion: PRIVATE_CORE_SUPPORTED_RELEASE_LANE_VERSION,
+    supportedReleaseLaneKind: PRIVATE_CORE_SUPPORTED_RELEASE_LANE_KIND,
+    supportedReleaseLaneStatus: PRIVATE_CORE_SUPPORTED_RELEASE_LANE_STATUS,
+    supportedReleaseLaneNote: PRIVATE_CORE_SUPPORTED_RELEASE_LANE_NOTE,
     supportedReleaseAuthorizationBasis: PRIVATE_CORE_RELEASE_AUTHORIZATION_BASIS,
     supportedReleaseRootPolicy: PRIVATE_CORE_RELEASE_ROOT_POLICY,
     ownerAuthorizationMode: PRIVATE_CORE_OWNER_AUTH_MODE,
@@ -1561,7 +1570,7 @@ function buildPrivateCoreSummaryState() {
     sendResultingRootProofLinkStatus,
     sendResultingRootStatus: sendResultingRootStatus.status,
     stateVersion: 1,
-    summaryVersion: 8,
+    summaryVersion: 9,
     currentRoot: currentRootRecord?.root ?? null,
     currentRecord: currentRootRecord,
     rootRecords,

@@ -22,6 +22,19 @@ try {
   );
   printLine("Supported unshield lane note", summary.supportedUnshieldLaneNote ?? "Unavailable");
   printLine(
+    "Supported release lane version",
+    String(summary.supportedReleaseLaneVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported release lane kind",
+    humanizeSupportedReleaseLaneKind(summary.supportedReleaseLaneKind),
+  );
+  printLine(
+    "Supported release lane status",
+    humanizeSupportedReleaseLaneStatus(summary.supportedReleaseLaneStatus),
+  );
+  printLine("Supported release lane note", summary.supportedReleaseLaneNote ?? "Unavailable");
+  printLine(
     "Supported release authorization",
     humanizeReleaseAuthorization(summary.supportedReleaseAuthorizationBasis),
   );
@@ -272,6 +285,24 @@ function humanizeSupportedUnshieldLaneKind(value) {
 }
 
 function humanizeSupportedUnshieldLaneStatus(value) {
+  switch (value) {
+    case "supported":
+      return "Supported";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeSupportedReleaseLaneKind(value) {
+  switch (value) {
+    case "proof-backed-consume-latest-registered-root":
+      return "Proof-backed consume / latest registered root";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeSupportedReleaseLaneStatus(value) {
   switch (value) {
     case "supported":
       return "Supported";

@@ -38,6 +38,10 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSupportedUnshieldLaneNote?: string | null;
   operatorSupportedUnshieldLaneStatus?: string | null;
   operatorSupportedUnshieldLaneVersion?: number | null;
+  operatorSupportedReleaseLaneKind?: string | null;
+  operatorSupportedReleaseLaneNote?: string | null;
+  operatorSupportedReleaseLaneStatus?: string | null;
+  operatorSupportedReleaseLaneVersion?: number | null;
   operatorSupportedReleaseAuthorizationBasis?: string | null;
   operatorSupportedReleaseRootPolicy?: string | null;
   operatorOwnerAuthorizationMode?: string | null;
@@ -193,6 +197,10 @@ export function VantaPrivateCoreStatePanel({
   operatorSupportedUnshieldLaneNote = null,
   operatorSupportedUnshieldLaneStatus = null,
   operatorSupportedUnshieldLaneVersion = null,
+  operatorSupportedReleaseLaneKind = null,
+  operatorSupportedReleaseLaneNote = null,
+  operatorSupportedReleaseLaneStatus = null,
+  operatorSupportedReleaseLaneVersion = null,
   operatorSupportedReleaseAuthorizationBasis = null,
   operatorSupportedReleaseRootPolicy = null,
   operatorOwnerAuthorizationMode = null,
@@ -486,6 +494,18 @@ export function VantaPrivateCoreStatePanel({
               <strong>{operatorSupportedUnshieldLaneStatus ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
+              <span>Supported release lane</span>
+              <strong>
+                {operatorSupportedReleaseLaneKind === "proof-backed-consume-latest-registered-root"
+                  ? `v${String(operatorSupportedReleaseLaneVersion ?? 1)} · Proof-backed consume / latest registered root`
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Supported release status</span>
+              <strong>{operatorSupportedReleaseLaneStatus ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
               <span>Supported release auth</span>
               <strong>
                 {operatorSupportedReleaseAuthorizationBasis === "proof-backed-consume"
@@ -512,6 +532,10 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Supported unshield note</span>
               <strong>{operatorSupportedUnshieldLaneNote ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Supported release note</span>
+              <strong>{operatorSupportedReleaseLaneNote ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Operator owner auth</span>

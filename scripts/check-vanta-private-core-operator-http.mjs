@@ -220,7 +220,7 @@ try {
   if (
     !initialSummaryState.ok ||
     initialSummaryState.parsed?.stateVersion !== 1 ||
-    initialSummaryState.parsed?.summaryVersion !== 8 ||
+    initialSummaryState.parsed?.summaryVersion !== 9 ||
     initialSummaryState.parsed?.supportedSendLaneVersion !== 1 ||
     initialSummaryState.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     initialSummaryState.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -229,6 +229,11 @@ try {
     initialSummaryState.parsed?.supportedUnshieldLaneKind !== "single-note-proof-backed-consume" ||
     initialSummaryState.parsed?.supportedUnshieldLaneStatus !== "supported" ||
     typeof initialSummaryState.parsed?.supportedUnshieldLaneNote !== "string" ||
+    initialSummaryState.parsed?.supportedReleaseLaneVersion !== 1 ||
+    initialSummaryState.parsed?.supportedReleaseLaneKind !==
+      "proof-backed-consume-latest-registered-root" ||
+    initialSummaryState.parsed?.supportedReleaseLaneStatus !== "supported" ||
+    typeof initialSummaryState.parsed?.supportedReleaseLaneNote !== "string" ||
     initialSummaryState.parsed?.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     initialSummaryState.parsed?.supportedReleaseRootPolicy !== "latest-registered-root" ||
     initialSummaryState.parsed?.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
@@ -866,13 +871,18 @@ try {
   if (
     !summaryStateAfterConsume.ok ||
     summaryStateAfterConsume.parsed?.stateVersion !== 1 ||
-    summaryStateAfterConsume.parsed?.summaryVersion !== 8 ||
+    summaryStateAfterConsume.parsed?.summaryVersion !== 9 ||
     summaryStateAfterConsume.parsed?.supportedSendLaneVersion !== 1 ||
     summaryStateAfterConsume.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     summaryStateAfterConsume.parsed?.supportedSendLaneStatus !== "supported" ||
     summaryStateAfterConsume.parsed?.supportedUnshieldLaneVersion !== 1 ||
     summaryStateAfterConsume.parsed?.supportedUnshieldLaneKind !== "single-note-proof-backed-consume" ||
     summaryStateAfterConsume.parsed?.supportedUnshieldLaneStatus !== "supported" ||
+    summaryStateAfterConsume.parsed?.supportedReleaseLaneVersion !== 1 ||
+    summaryStateAfterConsume.parsed?.supportedReleaseLaneKind !==
+      "proof-backed-consume-latest-registered-root" ||
+    summaryStateAfterConsume.parsed?.supportedReleaseLaneStatus !== "supported" ||
+    typeof summaryStateAfterConsume.parsed?.supportedReleaseLaneNote !== "string" ||
     summaryStateAfterConsume.parsed?.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     summaryStateAfterConsume.parsed?.supportedReleaseRootPolicy !== "latest-registered-root" ||
     summaryStateAfterConsume.parsed?.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
@@ -931,13 +941,18 @@ try {
   });
   if (
     !summaryStateAfterRelease.ok ||
-    summaryStateAfterRelease.parsed?.summaryVersion !== 8 ||
+    summaryStateAfterRelease.parsed?.summaryVersion !== 9 ||
     summaryStateAfterRelease.parsed?.supportedSendLaneVersion !== 1 ||
     summaryStateAfterRelease.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     summaryStateAfterRelease.parsed?.supportedSendLaneStatus !== "supported" ||
     summaryStateAfterRelease.parsed?.supportedUnshieldLaneVersion !== 1 ||
     summaryStateAfterRelease.parsed?.supportedUnshieldLaneKind !== "single-note-proof-backed-consume" ||
     summaryStateAfterRelease.parsed?.supportedUnshieldLaneStatus !== "supported" ||
+    summaryStateAfterRelease.parsed?.supportedReleaseLaneVersion !== 1 ||
+    summaryStateAfterRelease.parsed?.supportedReleaseLaneKind !==
+      "proof-backed-consume-latest-registered-root" ||
+    summaryStateAfterRelease.parsed?.supportedReleaseLaneStatus !== "supported" ||
+    typeof summaryStateAfterRelease.parsed?.supportedReleaseLaneNote !== "string" ||
     summaryStateAfterRelease.parsed?.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     summaryStateAfterRelease.parsed?.supportedReleaseRootPolicy !== "latest-registered-root" ||
     summaryStateAfterRelease.parsed?.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
@@ -982,7 +997,7 @@ try {
   });
   if (
     !operatorStatusOutput.includes("Summary state version: 1") ||
-    !operatorStatusOutput.includes("Summary version: 8") ||
+    !operatorStatusOutput.includes("Summary version: 9") ||
     !operatorStatusOutput.includes("Summary generated:") ||
     !operatorStatusOutput.includes("Supported send lane version: 1") ||
     !operatorStatusOutput.includes("Supported send lane kind: Single input / recipient / optional change") ||
@@ -992,6 +1007,12 @@ try {
     !operatorStatusOutput.includes("Supported unshield lane kind: Single-note proof-backed consume") ||
     !operatorStatusOutput.includes("Supported unshield lane status: Supported") ||
     !operatorStatusOutput.includes("Supported unshield lane note: Current narrow zk v1 unshield lane is supported") ||
+    !operatorStatusOutput.includes("Supported release lane version: 1") ||
+    !operatorStatusOutput.includes(
+      "Supported release lane kind: Proof-backed consume / latest registered root",
+    ) ||
+    !operatorStatusOutput.includes("Supported release lane status: Supported") ||
+    !operatorStatusOutput.includes("Supported release lane note: Current narrow zk v1 release lane is supported") ||
     !operatorStatusOutput.includes("Supported release authorization: Proof-backed consume") ||
     !operatorStatusOutput.includes("Supported release root policy: Latest registered root") ||
     !operatorStatusOutput.includes("Owner authorization mode: X25519 secret prechecked off-circuit") ||

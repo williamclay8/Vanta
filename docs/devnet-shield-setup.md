@@ -132,6 +132,7 @@ The operator-status command now prints:
 - latest consume
 - latest release
 - release authorization and root policy
+- supported release lane version / kind / status
 - supported release authorization basis
 - supported release root policy
 - proof/send link status
