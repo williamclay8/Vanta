@@ -352,6 +352,7 @@ try {
       preRestartSummary.parsed?.sendResultingRootRecord?.proofId ||
     preRestartSummary.parsed?.sendResultingRootRecord?.root !== heldRecipient.witness.root ||
     typeof preRestartSummary.parsed?.sendResultingRootRecord?.proofId !== "string" ||
+    preRestartSummary.parsed?.sendResultingRootRegistrationStatus !== "linked-recipient-output" ||
     preRestartSummary.parsed?.sendResultingRootProofLinkStatus !== "linked" ||
     preRestartSummary.parsed?.proofSendLinkStatus !== "linked" ||
     preRestartSummary.parsed?.proofConsumeLinkStatus !== "linked" ||
@@ -384,6 +385,7 @@ try {
       postRestartSummary.parsed?.sendResultingRootRecord?.proofId ||
     postRestartSummary.parsed?.sendResultingRootRecord?.root !== heldRecipient.witness.root ||
     typeof postRestartSummary.parsed?.sendResultingRootRecord?.proofId !== "string" ||
+    postRestartSummary.parsed?.sendResultingRootRegistrationStatus !== "linked-recipient-output" ||
     postRestartSummary.parsed?.sendResultingRootProofLinkStatus !== "linked" ||
     postRestartSummary.parsed?.proofSendLinkStatus !== "linked" ||
     postRestartSummary.parsed?.proofConsumeLinkStatus !== "linked" ||
@@ -406,6 +408,31 @@ try {
     throw new Error(replay.text || "send->unshield replay rejection did not survive restart");
   }
   printStatus("private-core send->unshield restart replay rejection: PASS");
+
+  const rootStorePath = join(tempRoot, "roots.json");
+  const tamperedRootStore = JSON.parse(readFileSync(rootStorePath, "utf8"));
+  tamperedRootStore.roots[heldRecipient.witness.root].noteCommitment = inputSourceArtifacts.noteCommitment;
+  writeFileSync(rootStorePath, `${JSON.stringify(tamperedRootStore, null, 2)}\n`, "utf8");
+
+  await stopServer(liveServer);
+  liveServer = null;
+  serverOutput = started.getOutput();
+
+  started = startServer(tempRoot, port);
+  liveServer = started.server;
+  await waitForHealth(baseUrl);
+
+  const tamperedSummary = await requestJson(baseUrl, "/state/private-core-summary", {
+    method: "GET",
+  });
+  if (
+    !tamperedSummary.ok ||
+    tamperedSummary.parsed?.sendResultingRootRegistrationStatus !== "mismatch" ||
+    tamperedSummary.parsed?.boundaryStatus !== "send-root-output-mismatch"
+  ) {
+    throw new Error(tamperedSummary.text || "tampered send-root registration mismatch was not detected");
+  }
+  printStatus("private-core send->unshield restart tampered output continuity: PASS");
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   console.error(message);
