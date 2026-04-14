@@ -262,7 +262,7 @@ try {
   if (
     !summaryState.ok ||
     summaryState.parsed?.stateVersion !== 1 ||
-    summaryState.parsed?.summaryVersion !== 4 ||
+    summaryState.parsed?.summaryVersion !== 5 ||
     summaryState.parsed?.latestSendProof?.action !== "send-proof" ||
     summaryState.parsed?.latestSendProof?.circuit !== "vanta_private_core_single_note_send" ||
     summaryState.parsed?.sendProofRecordCount !== 1 ||
@@ -418,7 +418,8 @@ try {
     summaryAfterTransition.parsed?.boundaryStatus !== "coherent" ||
     summaryAfterTransition.parsed?.sendResultingRootRecord !== null ||
     summaryAfterTransition.parsed?.latestSend?.sendId !== transitionResponse.parsed.sendId ||
-    summaryAfterTransition.parsed?.sendResultingRootStatus !== "unregistered"
+    summaryAfterTransition.parsed?.sendResultingRootStatus !== "unregistered" ||
+    summaryAfterTransition.parsed?.sendResultingRootRegistrationStatus !== "unavailable"
   ) {
     throw new Error(
       summaryAfterTransition.text || "operator summary did not reflect transition-backed send proof state",

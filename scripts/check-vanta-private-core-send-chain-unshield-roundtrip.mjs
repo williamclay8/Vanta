@@ -378,6 +378,7 @@ try {
     summary.parsed?.latestConsume?.proofId !== consumeResponse.parsed.proofId ||
     summary.parsed?.latestRelease?.proofId !== consumeResponse.parsed.proofId ||
     summary.parsed?.latestRelease?.releasedAmount !== "13000000" ||
+    summary.parsed?.sendResultingRootRegistrationStatus !== "linked-recipient-output" ||
     summary.parsed?.proofSendLinkStatus !== "linked" ||
     summary.parsed?.proofConsumeLinkStatus !== "linked" ||
     summary.parsed?.proofReleaseLinkStatus !== "linked" ||

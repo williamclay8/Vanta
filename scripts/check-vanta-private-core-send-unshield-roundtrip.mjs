@@ -341,6 +341,7 @@ try {
       summary.parsed?.sendResultingRootRecord?.proofId ||
     summary.parsed?.sendResultingRootRecord?.root !== heldRecipient.witness.root ||
     typeof summary.parsed?.sendResultingRootRecord?.proofId !== "string" ||
+    summary.parsed?.sendResultingRootRegistrationStatus !== "linked-recipient-output" ||
     summary.parsed?.sendResultingRootProofLinkStatus !== "linked" ||
     summary.parsed?.proofSendLinkStatus !== "linked" ||
     summary.parsed?.proofConsumeLinkStatus !== "linked" ||

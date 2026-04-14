@@ -29,6 +29,14 @@ try {
   printLine("Latest send resulting root", abbreviate(summary.latestSend?.resultingRoot));
   printLine("Send resulting root status", humanizeSendResultingRootStatus(summary.sendResultingRootStatus));
   printLine("Send resulting root note", summary.sendResultingRootNote ?? "Unavailable");
+  printLine(
+    "Send resulting root registration",
+    humanizeSendResultingRootRegistrationStatus(summary.sendResultingRootRegistrationStatus),
+  );
+  printLine(
+    "Send resulting root registration note",
+    summary.sendResultingRootRegistrationNote ?? "Unavailable",
+  );
   printLine("Send resulting root record", abbreviate(summary.sendResultingRootRecord?.root));
   printLine("Send resulting root proof", abbreviate(summary.sendResultingRootRecord?.proofId));
   printLine(
@@ -142,6 +150,8 @@ function humanizeBoundaryStatus(value) {
       return "Current root registration unlinked";
     case "send-root-registration-unlinked":
       return "Send root registration unlinked";
+    case "send-root-output-mismatch":
+      return "Send root output mismatch";
     case "proof-send-unlinked":
       return "Proof/send not linked";
     case "proof-consume-unlinked":
@@ -167,6 +177,21 @@ function humanizeSendResultingRootStatus(value) {
       return "Unregistered";
     case "missing":
       return "Missing";
+    case "unavailable":
+      return "Unavailable";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeSendResultingRootRegistrationStatus(value) {
+  switch (value) {
+    case "linked-recipient-output":
+      return "Linked to recipient output";
+    case "linked-change-output":
+      return "Linked to change output";
+    case "mismatch":
+      return "Output mismatch";
     case "unavailable":
       return "Unavailable";
     default:

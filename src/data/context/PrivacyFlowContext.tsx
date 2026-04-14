@@ -1568,6 +1568,8 @@ function summarizePrivateCoreOperatorBoundaryStatus(args: {
             ? "Root registration unlinked"
           : args.operatorBoundaryStatus === "send-root-registration-unlinked"
             ? "Send root registration unlinked"
+          : args.operatorBoundaryStatus === "send-root-output-mismatch"
+            ? "Send root output mismatch"
           : args.operatorBoundaryStatus === "proof-send-unlinked"
             ? "Proof and send not linked"
             : args.operatorBoundaryStatus === "proof-consume-unlinked"

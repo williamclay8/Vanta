@@ -193,6 +193,7 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
     | "awaiting-current-root"
     | "root-registration-unlinked"
     | "send-root-registration-unlinked"
+    | "send-root-output-mismatch"
     | "proof-send-unlinked"
     | "proof-consume-unlinked"
     | "proof-release-unlinked";
@@ -201,6 +202,12 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   sendResultingRootNote: string;
   sendResultingRootLinkedProof: VantaPrivateCoreOperatorProofRecord | null;
   sendResultingRootRecord: VantaPrivateCoreOperatorRootRecord | null;
+  sendResultingRootRegistrationNote: string;
+  sendResultingRootRegistrationStatus:
+    | "unavailable"
+    | "linked-recipient-output"
+    | "linked-change-output"
+    | "mismatch";
   sendResultingRootProofLinkStatus: "linked" | "mismatch" | "unavailable";
   sendResultingRootStatus:
     | "unavailable"
@@ -787,6 +794,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     sendResultingRootRecord?: unknown;
     sendResultingRootStatus?: unknown;
     sendResultingRootNote?: unknown;
+    sendResultingRootRegistrationStatus?: unknown;
+    sendResultingRootRegistrationNote?: unknown;
     sendResultingRootProofLinkStatus?: unknown;
     generatedAt?: unknown;
     currentRoot?: unknown;
@@ -818,7 +827,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.summaryVersion !== 4 ||
+    parsed.summaryVersion !== 5 ||
     !isBoundaryStatus(parsed.boundaryStatus) ||
     typeof parsed.boundaryNote !== "string" ||
     (parsed.currentRootLinkedProof !== null &&
@@ -833,6 +842,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
       !isRootRecord(parsed.sendResultingRootRecord)) ||
     !isSendResultingRootStatus(parsed.sendResultingRootStatus) ||
     typeof parsed.sendResultingRootNote !== "string" ||
+    !isSendResultingRootRegistrationStatus(parsed.sendResultingRootRegistrationStatus) ||
+    typeof parsed.sendResultingRootRegistrationNote !== "string" ||
     !isLinkStatus(parsed.sendResultingRootProofLinkStatus) ||
     typeof parsed.generatedAt !== "number" ||
     (parsed.currentRoot !== null &&
@@ -886,7 +897,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   return {
     stateVersion: 1,
-    summaryVersion: 4,
+    summaryVersion: 5,
     boundaryStatus: parsed.boundaryStatus,
     boundaryNote: parsed.boundaryNote,
     currentRootLinkedProof: isProofRecord(parsed.currentRootLinkedProof)
@@ -901,6 +912,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
       : null,
     sendResultingRootStatus: parsed.sendResultingRootStatus,
     sendResultingRootNote: parsed.sendResultingRootNote,
+    sendResultingRootRegistrationStatus: parsed.sendResultingRootRegistrationStatus,
+    sendResultingRootRegistrationNote: parsed.sendResultingRootRegistrationNote,
     sendResultingRootProofLinkStatus: parsed.sendResultingRootProofLinkStatus,
     generatedAt: parsed.generatedAt,
     currentRoot: typeof parsed.currentRoot === "string" ? parsed.currentRoot : null,
@@ -1073,6 +1086,7 @@ function isBoundaryStatus(
   | "awaiting-current-root"
   | "root-registration-unlinked"
   | "send-root-registration-unlinked"
+  | "send-root-output-mismatch"
   | "proof-send-unlinked"
   | "proof-consume-unlinked"
   | "proof-release-unlinked" {
@@ -1081,6 +1095,7 @@ function isBoundaryStatus(
     value === "awaiting-current-root" ||
     value === "root-registration-unlinked" ||
     value === "send-root-registration-unlinked" ||
+    value === "send-root-output-mismatch" ||
     value === "proof-send-unlinked" ||
     value === "proof-consume-unlinked" ||
     value === "proof-release-unlinked"
@@ -1098,5 +1113,16 @@ function isSendResultingRootStatus(
     value === "downstream-consumed" ||
     value === "downstream-released" ||
     value === "unregistered"
+  );
+}
+
+function isSendResultingRootRegistrationStatus(
+  value: unknown,
+): value is VantaPrivateCoreOperatorSummaryStateResponse["sendResultingRootRegistrationStatus"] {
+  return (
+    value === "unavailable" ||
+    value === "linked-recipient-output" ||
+    value === "linked-change-output" ||
+    value === "mismatch"
   );
 }

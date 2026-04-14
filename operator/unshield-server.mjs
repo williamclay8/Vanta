@@ -547,6 +547,12 @@ const server = createServer(async (request, response) => {
       }
 
       assertVantaPrivateCoreSourceArtifactConsistency(sourceArtifacts, witnessPackage);
+      const latestSend = privateCoreSendStore.getLatestSend();
+      assertPrivateCoreSendResultingRootRegistrationConsistency({
+        latestSend,
+        root,
+        sourceArtifacts,
+      });
       const proofRecord = summarizePrivateCoreProofRecord({
         action: "register-root",
         proofReceipt,
@@ -1475,6 +1481,10 @@ function buildPrivateCoreSummaryState() {
     latestSend?.resultingRoot
       ? rootRecords.find((record) => record.root === latestSend.resultingRoot) ?? null
       : null;
+  const sendResultingRootRegistration = summarizePrivateCoreSendResultingRootRegistration({
+    latestSend,
+    sendResultingRootRecord,
+  });
   const currentRootLinkedProof =
     currentRootRecord?.proofId
       ? proofRecords.find((record) => record.proofId === currentRootRecord.proofId) ?? null
@@ -1499,6 +1509,7 @@ function buildPrivateCoreSummaryState() {
     proofConsumeLinkStatus,
     proofSendLinkStatus,
     proofReleaseLinkStatus,
+    sendResultingRootRegistrationStatus: sendResultingRootRegistration.status,
     sendResultingRootProofLinkStatus,
     sendResultingRootStatus: sendResultingRootStatus.status,
   });
@@ -1512,10 +1523,12 @@ function buildPrivateCoreSummaryState() {
     sendResultingRootLinkedProof,
     sendResultingRootRecord,
     sendResultingRootNote: sendResultingRootStatus.note,
+    sendResultingRootRegistrationNote: sendResultingRootRegistration.note,
+    sendResultingRootRegistrationStatus: sendResultingRootRegistration.status,
     sendResultingRootProofLinkStatus,
     sendResultingRootStatus: sendResultingRootStatus.status,
     stateVersion: 1,
-    summaryVersion: 4,
+    summaryVersion: 5,
     currentRoot: currentRootRecord?.root ?? null,
     currentRecord: currentRootRecord,
     rootRecords,
@@ -1593,6 +1606,37 @@ function summarizePrivateCoreSendResultingRootStatus(args) {
   };
 }
 
+function summarizePrivateCoreSendResultingRootRegistration(args) {
+  if (!args.latestSend || !args.latestSend.resultingRoot || !args.sendResultingRootRecord) {
+    return {
+      status: "unavailable",
+      note: "No registered send resulting root is available for output-continuity checks yet.",
+    };
+  }
+
+  if (args.sendResultingRootRecord.noteCommitment === args.latestSend.recipientCommitment) {
+    return {
+      status: "linked-recipient-output",
+      note: "Registered send resulting root matches the latest send recipient output commitment.",
+    };
+  }
+
+  if (
+    args.latestSend.changeCommitment &&
+    args.sendResultingRootRecord.noteCommitment === args.latestSend.changeCommitment
+  ) {
+    return {
+      status: "linked-change-output",
+      note: "Registered send resulting root matches the latest send change output commitment.",
+    };
+  }
+
+  return {
+    status: "mismatch",
+    note: "Registered send resulting root does not match either output commitment from the latest send.",
+  };
+}
+
 function summarizePrivateCoreBoundaryStatus(args) {
   if (!args.currentRoot) {
     return {
@@ -1624,6 +1668,17 @@ function summarizePrivateCoreBoundaryStatus(args) {
         args.sendResultingRootProofLinkStatus === "mismatch"
           ? "Send resulting root record does not match its linked registration proof."
           : "Send resulting root registration proof linkage is unavailable.",
+    };
+  }
+
+  if (
+    sendResultingRootShouldBeLinked &&
+    args.sendResultingRootRegistrationStatus !== "linked-recipient-output" &&
+    args.sendResultingRootRegistrationStatus !== "linked-change-output"
+  ) {
+    return {
+      status: "send-root-output-mismatch",
+      note: "Registered send resulting root does not match either output commitment from the latest send.",
     };
   }
 
@@ -1674,6 +1729,27 @@ function summarizePrivateCoreRootProofLinkStatus(args) {
   }
 
   return "mismatch";
+}
+
+function assertPrivateCoreSendResultingRootRegistrationConsistency(args) {
+  if (!args.latestSend || args.latestSend.resultingRoot !== args.root) {
+    return;
+  }
+
+  if (args.sourceArtifacts.noteCommitment === args.latestSend.recipientCommitment) {
+    return;
+  }
+
+  if (
+    args.latestSend.changeCommitment &&
+    args.sourceArtifacts.noteCommitment === args.latestSend.changeCommitment
+  ) {
+    return;
+  }
+
+  throw new Error(
+    "Private-core send resulting root registration does not match either output commitment from the latest send.",
+  );
 }
 
 function summarizePrivateCoreProofSendLinkStatus(args) {
