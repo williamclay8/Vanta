@@ -111,6 +111,10 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorSupportedSendLaneNote: string | null;
   privateCoreOperatorSupportedSendLaneStatus: string | null;
   privateCoreOperatorSupportedSendLaneVersion: number | null;
+  privateCoreOperatorSupportedUnshieldLaneKind: string | null;
+  privateCoreOperatorSupportedUnshieldLaneNote: string | null;
+  privateCoreOperatorSupportedUnshieldLaneStatus: string | null;
+  privateCoreOperatorSupportedUnshieldLaneVersion: number | null;
   privateCoreOperatorProofConsumeLinkStatus: string | null;
   privateCoreOperatorProofError: string | null;
   privateCoreOperatorProofs: VantaPrivateCoreOperatorProofRecord[];
@@ -372,6 +376,14 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<string | null>(null);
   const [privateCoreOperatorSupportedSendLaneVersion, setPrivateCoreOperatorSupportedSendLaneVersion] =
     useState<number | null>(null);
+  const [privateCoreOperatorSupportedUnshieldLaneKind, setPrivateCoreOperatorSupportedUnshieldLaneKind] =
+    useState<string | null>(null);
+  const [privateCoreOperatorSupportedUnshieldLaneNote, setPrivateCoreOperatorSupportedUnshieldLaneNote] =
+    useState<string | null>(null);
+  const [privateCoreOperatorSupportedUnshieldLaneStatus, setPrivateCoreOperatorSupportedUnshieldLaneStatus] =
+    useState<string | null>(null);
+  const [privateCoreOperatorSupportedUnshieldLaneVersion, setPrivateCoreOperatorSupportedUnshieldLaneVersion] =
+    useState<number | null>(null);
   const [privateCoreOperatorProofConsumeLinkStatus, setPrivateCoreOperatorProofConsumeLinkStatus] =
     useState<string | null>(null);
   const [privateCoreOperatorProofError, setPrivateCoreOperatorProofError] = useState<string | null>(null);
@@ -432,6 +444,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSupportedSendLaneNote,
       setPrivateCoreOperatorSupportedSendLaneStatus,
       setPrivateCoreOperatorSupportedSendLaneVersion,
+      setPrivateCoreOperatorSupportedUnshieldLaneKind,
+      setPrivateCoreOperatorSupportedUnshieldLaneNote,
+      setPrivateCoreOperatorSupportedUnshieldLaneStatus,
+      setPrivateCoreOperatorSupportedUnshieldLaneVersion,
       setPrivateCoreOperatorConsumes,
       setPrivateCoreOperatorProofConsumeLinkStatus,
       setPrivateCoreOperatorProofs,
@@ -1410,6 +1426,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedSendLaneNote,
       privateCoreOperatorSupportedSendLaneStatus,
       privateCoreOperatorSupportedSendLaneVersion,
+      privateCoreOperatorSupportedUnshieldLaneKind,
+      privateCoreOperatorSupportedUnshieldLaneNote,
+      privateCoreOperatorSupportedUnshieldLaneStatus,
+      privateCoreOperatorSupportedUnshieldLaneVersion,
       privateCoreOperatorProofConsumeLinkStatus,
       privateCoreOperatorProofError,
       privateCoreOperatorProofs,
@@ -1482,6 +1502,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedSendLaneNote,
       privateCoreOperatorSupportedSendLaneStatus,
       privateCoreOperatorSupportedSendLaneVersion,
+      privateCoreOperatorSupportedUnshieldLaneKind,
+      privateCoreOperatorSupportedUnshieldLaneNote,
+      privateCoreOperatorSupportedUnshieldLaneStatus,
+      privateCoreOperatorSupportedUnshieldLaneVersion,
       privateCoreOperatorProofConsumeLinkStatus,
       privateCoreOperatorProofError,
       privateCoreOperatorProofs,
@@ -1902,6 +1926,10 @@ function applyPrivateCoreOperatorSummaryState(args: {
   setPrivateCoreOperatorSupportedSendLaneNote: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSendLaneStatus: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSendLaneVersion: (value: number | null) => void;
+  setPrivateCoreOperatorSupportedUnshieldLaneKind: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedUnshieldLaneNote: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedUnshieldLaneStatus: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedUnshieldLaneVersion: (value: number | null) => void;
   setPrivateCoreOperatorConsumes: (value: VantaPrivateCoreOperatorConsumeRecord[]) => void;
   setPrivateCoreOperatorProofConsumeLinkStatus: (value: string | null) => void;
   setPrivateCoreOperatorProofs: (value: VantaPrivateCoreOperatorProofRecord[]) => void;
@@ -1943,6 +1971,12 @@ function applyPrivateCoreOperatorSummaryState(args: {
   args.setPrivateCoreOperatorSupportedSendLaneNote(args.summaryState.supportedSendLaneNote);
   args.setPrivateCoreOperatorSupportedSendLaneStatus(args.summaryState.supportedSendLaneStatus);
   args.setPrivateCoreOperatorSupportedSendLaneVersion(args.summaryState.supportedSendLaneVersion);
+  args.setPrivateCoreOperatorSupportedUnshieldLaneKind(args.summaryState.supportedUnshieldLaneKind);
+  args.setPrivateCoreOperatorSupportedUnshieldLaneNote(args.summaryState.supportedUnshieldLaneNote);
+  args.setPrivateCoreOperatorSupportedUnshieldLaneStatus(args.summaryState.supportedUnshieldLaneStatus);
+  args.setPrivateCoreOperatorSupportedUnshieldLaneVersion(
+    args.summaryState.supportedUnshieldLaneVersion,
+  );
   args.setPrivateCoreOperatorRoots(args.summaryState.rootRecords);
   args.setPrivateCoreOperatorProofs(args.summaryState.proofRecords);
   args.setPrivateCoreOperatorSends(args.summaryState.sendRecords);

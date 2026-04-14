@@ -125,6 +125,7 @@ The repo now has the first frozen source-layer target for that work in:
 - `docs/zk/vanta-private-core-send-boundary.md`
 - `docs/zk/vanta-private-core-send-proof-boundary.md`
 - `docs/zk/vanta-zk-v1-supported-send-lane.md`
+- `docs/zk/vanta-zk-v1-supported-unshield-lane.md`
 - `src/zk/vantaPrivateCore.ts`
 - `src/zk/vantaPrivateCoreSendProof.ts`
 

@@ -34,6 +34,10 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSupportedSendLaneNote?: string | null;
   operatorSupportedSendLaneStatus?: string | null;
   operatorSupportedSendLaneVersion?: number | null;
+  operatorSupportedUnshieldLaneKind?: string | null;
+  operatorSupportedUnshieldLaneNote?: string | null;
+  operatorSupportedUnshieldLaneStatus?: string | null;
+  operatorSupportedUnshieldLaneVersion?: number | null;
   operatorCurrentRootLinkedProof?: VantaPrivateCoreOperatorProofRecord | null;
   operatorCurrentRootProofLinkStatus?: string | null;
   operatorProofConsumeLinkStatus?: string | null;
@@ -180,6 +184,10 @@ export function VantaPrivateCoreStatePanel({
   operatorSupportedSendLaneNote = null,
   operatorSupportedSendLaneStatus = null,
   operatorSupportedSendLaneVersion = null,
+  operatorSupportedUnshieldLaneKind = null,
+  operatorSupportedUnshieldLaneNote = null,
+  operatorSupportedUnshieldLaneStatus = null,
+  operatorSupportedUnshieldLaneVersion = null,
   operatorCurrentRootLinkedProof = null,
   operatorCurrentRootProofLinkStatus = null,
   operatorProofConsumeLinkStatus = null,
@@ -456,12 +464,28 @@ export function VantaPrivateCoreStatePanel({
               <strong>{operatorSupportedSendLaneStatus ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
+              <span>Supported unshield lane</span>
+              <strong>
+                {operatorSupportedUnshieldLaneKind === "single-note-proof-backed-consume"
+                  ? `v${String(operatorSupportedUnshieldLaneVersion ?? 1)} · Single-note proof-backed consume`
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Supported unshield status</span>
+              <strong>{operatorSupportedUnshieldLaneStatus ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
               <span>Operator boundary note</span>
               <strong>{operatorBoundaryPrimaryNote ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Supported lane note</span>
               <strong>{operatorSupportedSendLaneNote ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Supported unshield note</span>
+              <strong>{operatorSupportedUnshieldLaneNote ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Circuit readiness</span>

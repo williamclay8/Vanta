@@ -336,6 +336,11 @@ npm run private-core:operator-status
 
 That status readout now includes proof/send, proof/consume, and proof/release linkage across the operator summary boundary, the supported send-lane version and identity carried by the operator summary, explicit release authorization / root-policy fields for the current unshield lane, plus explicit send-root registration provenance (`shield-input`, `send-recipient-output`, or `send-change-output`) when downstream continuity has been established.
 
+The same operator summary now also versions the supported narrow unshield lane:
+- `supportedUnshieldLaneVersion = 1`
+- `supportedUnshieldLaneKind = single-note-proof-backed-consume`
+- `supportedUnshieldLaneStatus = supported`
+
 If you want one demo-operator command that does both the full verification pass and the live operator summary, use:
 
 ```bash

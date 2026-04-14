@@ -266,6 +266,9 @@ try {
     summaryState.parsed?.supportedSendLaneVersion !== 1 ||
     summaryState.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     summaryState.parsed?.supportedSendLaneStatus !== "supported" ||
+    summaryState.parsed?.supportedUnshieldLaneVersion !== 1 ||
+    summaryState.parsed?.supportedUnshieldLaneKind !== "single-note-proof-backed-consume" ||
+    summaryState.parsed?.supportedUnshieldLaneStatus !== "supported" ||
     summaryState.parsed?.latestSendProof?.action !== "send-proof" ||
     summaryState.parsed?.latestSendProof?.circuit !== "vanta_private_core_single_note_send" ||
     summaryState.parsed?.sendProofRecordCount !== 1 ||

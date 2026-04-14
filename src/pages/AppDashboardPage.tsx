@@ -52,6 +52,10 @@ export function AppDashboardPage() {
     privateCoreOperatorSupportedSendLaneNote,
     privateCoreOperatorSupportedSendLaneStatus,
     privateCoreOperatorSupportedSendLaneVersion,
+    privateCoreOperatorSupportedUnshieldLaneKind,
+    privateCoreOperatorSupportedUnshieldLaneNote,
+    privateCoreOperatorSupportedUnshieldLaneStatus,
+    privateCoreOperatorSupportedUnshieldLaneVersion,
     privateCoreOperatorCurrentRootLinkedProof,
     privateCoreOperatorCurrentRootProofLinkStatus,
     privateCoreOperatorSendResultingRootLinkedProof,
@@ -235,6 +239,10 @@ export function AppDashboardPage() {
           operatorSupportedSendLaneNote={privateCoreOperatorSupportedSendLaneNote}
           operatorSupportedSendLaneStatus={privateCoreOperatorSupportedSendLaneStatus}
           operatorSupportedSendLaneVersion={privateCoreOperatorSupportedSendLaneVersion}
+          operatorSupportedUnshieldLaneKind={privateCoreOperatorSupportedUnshieldLaneKind}
+          operatorSupportedUnshieldLaneNote={privateCoreOperatorSupportedUnshieldLaneNote}
+          operatorSupportedUnshieldLaneStatus={privateCoreOperatorSupportedUnshieldLaneStatus}
+          operatorSupportedUnshieldLaneVersion={privateCoreOperatorSupportedUnshieldLaneVersion}
           operatorCurrentRootLinkedProof={privateCoreOperatorCurrentRootLinkedProof}
           operatorCurrentRootProofLinkStatus={privateCoreOperatorCurrentRootProofLinkStatus}
           operatorSendResultingRootLinkedProof={privateCoreOperatorSendResultingRootLinkedProof}

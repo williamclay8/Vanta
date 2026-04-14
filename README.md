@@ -218,6 +218,11 @@ These commands cover:
 
 `private-core:operator-status` gives a quick readout of the current operator root, proof, send-proof, send-transition, consume, and release state when the operator server is running, including proof/send, proof/consume, proof/release, and root-registration proof linkage. It also reports the supported send-lane version and identity carried by the operator summary, plus the latest send resulting-root continuity status and the concrete registered root record behind that resulting root when one exists, so you can see whether the newest private-send root is still unregistered, current, stale, or already consumed/released downstream. The current private-core release lane now also carries explicit release authorization and root-policy fields, so the operator summary says not just that a release was recorded, but that it was authorized by `proof-backed-consume` under the `latest-registered-root` policy. The send lane still requires the current input root to stay linked to its registration proof before the operator will accept a transition, the resulting root remains explicitly `client-declared` until later registration proves continuity, and registered roots now carry explicit provenance as `shield-input`, `send-recipient-output`, or `send-change-output`.
 
+The operator summary now versions the narrow unshield lane too:
+- `supportedUnshieldLaneVersion = 1`
+- `supportedUnshieldLaneKind = single-note-proof-backed-consume`
+- `supportedUnshieldLaneStatus = supported`
+
 ---
 
 ## What's in this repository

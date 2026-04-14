@@ -11,6 +11,16 @@ try {
   printLine("Supported send lane kind", humanizeSupportedSendLaneKind(summary.supportedSendLaneKind));
   printLine("Supported send lane status", humanizeSupportedSendLaneStatus(summary.supportedSendLaneStatus));
   printLine("Supported send lane note", summary.supportedSendLaneNote ?? "Unavailable");
+  printLine("Supported unshield lane version", String(summary.supportedUnshieldLaneVersion ?? "unknown"));
+  printLine(
+    "Supported unshield lane kind",
+    humanizeSupportedUnshieldLaneKind(summary.supportedUnshieldLaneKind),
+  );
+  printLine(
+    "Supported unshield lane status",
+    humanizeSupportedUnshieldLaneStatus(summary.supportedUnshieldLaneStatus),
+  );
+  printLine("Supported unshield lane note", summary.supportedUnshieldLaneNote ?? "Unavailable");
   printLine("Current root", abbreviate(summary.currentRoot));
   printLine("Current root proof", abbreviate(summary.currentRecord?.proofId));
   printLine("Current root registration", humanizeRootRegistrationBasis(summary.currentRecord?.registrationBasis));
@@ -233,6 +243,24 @@ function humanizeSupportedSendLaneKind(value) {
 }
 
 function humanizeSupportedSendLaneStatus(value) {
+  switch (value) {
+    case "supported":
+      return "Supported";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeSupportedUnshieldLaneKind(value) {
+  switch (value) {
+    case "single-note-proof-backed-consume":
+      return "Single-note proof-backed consume";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeSupportedUnshieldLaneStatus(value) {
   switch (value) {
     case "supported":
       return "Supported";

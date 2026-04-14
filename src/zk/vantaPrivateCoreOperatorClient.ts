@@ -226,6 +226,10 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedSendLaneNote: string;
   supportedSendLaneStatus: "supported";
   supportedSendLaneVersion: number;
+  supportedUnshieldLaneKind: "single-note-proof-backed-consume";
+  supportedUnshieldLaneNote: string;
+  supportedUnshieldLaneStatus: "supported";
+  supportedUnshieldLaneVersion: number;
   generatedAt: number;
   stateVersion: number;
   summaryVersion: number;
@@ -814,6 +818,10 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedSendLaneNote?: unknown;
     supportedSendLaneStatus?: unknown;
     supportedSendLaneVersion?: unknown;
+    supportedUnshieldLaneKind?: unknown;
+    supportedUnshieldLaneNote?: unknown;
+    supportedUnshieldLaneStatus?: unknown;
+    supportedUnshieldLaneVersion?: unknown;
     generatedAt?: unknown;
     currentRoot?: unknown;
     currentRecord?: unknown;
@@ -866,6 +874,10 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     parsed.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     parsed.supportedSendLaneStatus !== "supported" ||
     typeof parsed.supportedSendLaneNote !== "string" ||
+    parsed.supportedUnshieldLaneVersion !== 1 ||
+    parsed.supportedUnshieldLaneKind !== "single-note-proof-backed-consume" ||
+    parsed.supportedUnshieldLaneStatus !== "supported" ||
+    typeof parsed.supportedUnshieldLaneNote !== "string" ||
     typeof parsed.generatedAt !== "number" ||
     (parsed.currentRoot !== null &&
       parsed.currentRoot !== undefined &&
@@ -925,6 +937,10 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedSendLaneKind: "single-input-single-recipient-optional-change",
     supportedSendLaneStatus: "supported",
     supportedSendLaneNote: parsed.supportedSendLaneNote,
+    supportedUnshieldLaneVersion: 1,
+    supportedUnshieldLaneKind: "single-note-proof-backed-consume",
+    supportedUnshieldLaneStatus: "supported",
+    supportedUnshieldLaneNote: parsed.supportedUnshieldLaneNote,
     currentRootLinkedProof: isProofRecord(parsed.currentRootLinkedProof)
       ? parsed.currentRootLinkedProof
       : null,

@@ -225,6 +225,10 @@ try {
     initialSummaryState.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     initialSummaryState.parsed?.supportedSendLaneStatus !== "supported" ||
     typeof initialSummaryState.parsed?.supportedSendLaneNote !== "string" ||
+    initialSummaryState.parsed?.supportedUnshieldLaneVersion !== 1 ||
+    initialSummaryState.parsed?.supportedUnshieldLaneKind !== "single-note-proof-backed-consume" ||
+    initialSummaryState.parsed?.supportedUnshieldLaneStatus !== "supported" ||
+    typeof initialSummaryState.parsed?.supportedUnshieldLaneNote !== "string" ||
     typeof initialSummaryState.parsed?.generatedAt !== "number" ||
     initialSummaryState.parsed?.currentRoot !== null ||
     initialSummaryState.parsed?.latestProof !== null ||
@@ -861,6 +865,9 @@ try {
     summaryStateAfterConsume.parsed?.supportedSendLaneVersion !== 1 ||
     summaryStateAfterConsume.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     summaryStateAfterConsume.parsed?.supportedSendLaneStatus !== "supported" ||
+    summaryStateAfterConsume.parsed?.supportedUnshieldLaneVersion !== 1 ||
+    summaryStateAfterConsume.parsed?.supportedUnshieldLaneKind !== "single-note-proof-backed-consume" ||
+    summaryStateAfterConsume.parsed?.supportedUnshieldLaneStatus !== "supported" ||
     typeof summaryStateAfterConsume.parsed?.generatedAt !== "number" ||
     summaryStateAfterConsume.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
     summaryStateAfterConsume.parsed?.latestConsumeProof?.proofId !== consumeResponse.parsed.proofId ||
@@ -918,6 +925,9 @@ try {
     summaryStateAfterRelease.parsed?.supportedSendLaneVersion !== 1 ||
     summaryStateAfterRelease.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     summaryStateAfterRelease.parsed?.supportedSendLaneStatus !== "supported" ||
+    summaryStateAfterRelease.parsed?.supportedUnshieldLaneVersion !== 1 ||
+    summaryStateAfterRelease.parsed?.supportedUnshieldLaneKind !== "single-note-proof-backed-consume" ||
+    summaryStateAfterRelease.parsed?.supportedUnshieldLaneStatus !== "supported" ||
     typeof summaryStateAfterRelease.parsed?.generatedAt !== "number" ||
     summaryStateAfterRelease.parsed?.latestConsumeProof?.proofId !== consumeResponse.parsed.proofId ||
     summaryStateAfterRelease.parsed?.latestConsume?.proofId !== consumeResponse.parsed.proofId ||
@@ -963,6 +973,10 @@ try {
     !operatorStatusOutput.includes("Supported send lane kind: Single input / recipient / optional change") ||
     !operatorStatusOutput.includes("Supported send lane status: Supported") ||
     !operatorStatusOutput.includes("Supported send lane note: Current narrow zk v1 send lane is supported") ||
+    !operatorStatusOutput.includes("Supported unshield lane version: 1") ||
+    !operatorStatusOutput.includes("Supported unshield lane kind: Single-note proof-backed consume") ||
+    !operatorStatusOutput.includes("Supported unshield lane status: Supported") ||
+    !operatorStatusOutput.includes("Supported unshield lane note: Current narrow zk v1 unshield lane is supported") ||
     !operatorStatusOutput.includes("Latest proof action: consume") ||
     !operatorStatusOutput.includes("Latest consume proof:") ||
     !operatorStatusOutput.includes("Latest consume linked proof:") ||

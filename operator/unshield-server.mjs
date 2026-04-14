@@ -141,6 +141,11 @@ const PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND = "single-input-single-recipient-opt
 const PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS = "supported";
 const PRIVATE_CORE_SUPPORTED_SEND_LANE_NOTE =
   "Current narrow zk v1 send lane is supported for one input note, one recipient output, and optional change.";
+const PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_VERSION = 1;
+const PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_KIND = "single-note-proof-backed-consume";
+const PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_STATUS = "supported";
+const PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_NOTE =
+  "Current narrow zk v1 unshield lane is supported for one note consume with proof-backed release recording.";
 const PRIVATE_CORE_RELEASE_AUTHORIZATION_BASIS = "proof-backed-consume";
 const PRIVATE_CORE_RELEASE_ROOT_POLICY = "latest-registered-root";
 
@@ -1533,6 +1538,10 @@ function buildPrivateCoreSummaryState() {
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
     supportedSendLaneNote: PRIVATE_CORE_SUPPORTED_SEND_LANE_NOTE,
+    supportedUnshieldLaneVersion: PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_VERSION,
+    supportedUnshieldLaneKind: PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_KIND,
+    supportedUnshieldLaneStatus: PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_STATUS,
+    supportedUnshieldLaneNote: PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_NOTE,
     currentRootLinkedProof,
     currentRootProofLinkStatus,
     generatedAt: Date.now(),
