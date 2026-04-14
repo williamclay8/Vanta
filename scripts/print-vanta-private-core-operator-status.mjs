@@ -47,6 +47,19 @@ try {
       : "Unavailable",
   );
   printLine(
+    "Supported root provenance",
+    summary.supportedRootRegistrationProvenance ===
+      "shield-input|send-recipient-output|send-change-output"
+      ? "Shield input / send recipient output / send change output"
+      : "Unavailable",
+  );
+  printLine(
+    "Supported send root basis",
+    summary.supportedSendResultingRootBasis === "client-declared"
+      ? "Client-declared"
+      : "Unavailable",
+  );
+  printLine(
     "Supported recipient model",
     humanizeSupportedRecipientModel(summary.supportedRecipientModel),
   );

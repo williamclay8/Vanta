@@ -205,6 +205,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorSupportedEnvironment,
     privateCoreOperatorSupportedNoteSchema,
     privateCoreOperatorSupportedNoteVersion,
+    privateCoreOperatorSupportedRootRegistrationProvenance,
+    privateCoreOperatorSupportedSendResultingRootBasis,
     privateCoreOperatorSupportedRecipientModel,
     privateCoreOperatorSupportedReleaseDestinationModel,
     privateCoreOperatorSupportedProofSystem,
@@ -1671,6 +1673,12 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         operatorSupportedEnvironment={privateCoreOperatorSupportedEnvironment}
         operatorSupportedNoteSchema={privateCoreOperatorSupportedNoteSchema}
         operatorSupportedNoteVersion={privateCoreOperatorSupportedNoteVersion}
+        operatorSupportedRootRegistrationProvenance={
+          privateCoreOperatorSupportedRootRegistrationProvenance
+        }
+        operatorSupportedSendResultingRootBasis={
+          privateCoreOperatorSupportedSendResultingRootBasis
+        }
         operatorSupportedRecipientModel={privateCoreOperatorSupportedRecipientModel}
         operatorSupportedReleaseDestinationModel={
           privateCoreOperatorSupportedReleaseDestinationModel

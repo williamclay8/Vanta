@@ -262,7 +262,7 @@ try {
   if (
     !summaryState.ok ||
     summaryState.parsed?.stateVersion !== 1 ||
-    summaryState.parsed?.summaryVersion !== 15 ||
+    summaryState.parsed?.summaryVersion !== 16 ||
     summaryState.parsed?.supportedSendLaneVersion !== 1 ||
     summaryState.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     summaryState.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -282,6 +282,9 @@ try {
     summaryState.parsed?.supportedEnvironment !== "solana-devnet" ||
     summaryState.parsed?.supportedNoteSchema !== "note-v0" ||
     summaryState.parsed?.supportedNoteVersion !== 0 ||
+    summaryState.parsed?.supportedRootRegistrationProvenance !==
+      "shield-input|send-recipient-output|send-change-output" ||
+    summaryState.parsed?.supportedSendResultingRootBasis !== "client-declared" ||
     summaryState.parsed?.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     summaryState.parsed?.supportedReleaseDestinationModel !==
       "32-byte-release-destination-field" ||

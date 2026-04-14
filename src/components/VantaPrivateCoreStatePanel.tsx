@@ -50,6 +50,8 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSupportedEnvironment?: string | null;
   operatorSupportedNoteSchema?: string | null;
   operatorSupportedNoteVersion?: number | null;
+  operatorSupportedRootRegistrationProvenance?: string | null;
+  operatorSupportedSendResultingRootBasis?: string | null;
   operatorSupportedRecipientModel?: string | null;
   operatorSupportedReleaseDestinationModel?: string | null;
   operatorSupportedProofSystem?: string | null;
@@ -224,6 +226,8 @@ export function VantaPrivateCoreStatePanel({
   operatorSupportedEnvironment = null,
   operatorSupportedNoteSchema = null,
   operatorSupportedNoteVersion = null,
+  operatorSupportedRootRegistrationProvenance = null,
+  operatorSupportedSendResultingRootBasis = null,
   operatorSupportedRecipientModel = null,
   operatorSupportedReleaseDestinationModel = null,
   operatorSupportedProofSystem = null,
@@ -560,6 +564,23 @@ export function VantaPrivateCoreStatePanel({
               <strong>
                 {operatorSupportedNoteSchema === "note-v0"
                   ? `NoteV0 / v${String(operatorSupportedNoteVersion ?? 0)}`
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Supported root provenance</span>
+              <strong>
+                {operatorSupportedRootRegistrationProvenance ===
+                "shield-input|send-recipient-output|send-change-output"
+                  ? "Shield input / send recipient output / send change output"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Supported send root basis</span>
+              <strong>
+                {operatorSupportedSendResultingRootBasis === "client-declared"
+                  ? "Client-declared"
                   : "Unavailable"}
               </strong>
             </div>

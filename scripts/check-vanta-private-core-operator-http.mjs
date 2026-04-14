@@ -220,7 +220,7 @@ try {
   if (
     !initialSummaryState.ok ||
     initialSummaryState.parsed?.stateVersion !== 1 ||
-    initialSummaryState.parsed?.summaryVersion !== 15 ||
+    initialSummaryState.parsed?.summaryVersion !== 16 ||
     initialSummaryState.parsed?.supportedSendLaneVersion !== 1 ||
     initialSummaryState.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     initialSummaryState.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -242,6 +242,9 @@ try {
     initialSummaryState.parsed?.supportedEnvironment !== "solana-devnet" ||
     initialSummaryState.parsed?.supportedNoteSchema !== "note-v0" ||
     initialSummaryState.parsed?.supportedNoteVersion !== 0 ||
+    initialSummaryState.parsed?.supportedRootRegistrationProvenance !==
+      "shield-input|send-recipient-output|send-change-output" ||
+    initialSummaryState.parsed?.supportedSendResultingRootBasis !== "client-declared" ||
     initialSummaryState.parsed?.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     initialSummaryState.parsed?.supportedReleaseDestinationModel !==
       "32-byte-release-destination-field" ||
@@ -888,7 +891,7 @@ try {
   if (
     !summaryStateAfterConsume.ok ||
     summaryStateAfterConsume.parsed?.stateVersion !== 1 ||
-    summaryStateAfterConsume.parsed?.summaryVersion !== 15 ||
+    summaryStateAfterConsume.parsed?.summaryVersion !== 16 ||
     summaryStateAfterConsume.parsed?.supportedSendLaneVersion !== 1 ||
     summaryStateAfterConsume.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     summaryStateAfterConsume.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -908,6 +911,9 @@ try {
     summaryStateAfterConsume.parsed?.supportedEnvironment !== "solana-devnet" ||
     summaryStateAfterConsume.parsed?.supportedNoteSchema !== "note-v0" ||
     summaryStateAfterConsume.parsed?.supportedNoteVersion !== 0 ||
+    summaryStateAfterConsume.parsed?.supportedRootRegistrationProvenance !==
+      "shield-input|send-recipient-output|send-change-output" ||
+    summaryStateAfterConsume.parsed?.supportedSendResultingRootBasis !== "client-declared" ||
     summaryStateAfterConsume.parsed?.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     summaryStateAfterConsume.parsed?.supportedReleaseDestinationModel !==
       "32-byte-release-destination-field" ||
@@ -975,7 +981,7 @@ try {
   });
   if (
     !summaryStateAfterRelease.ok ||
-    summaryStateAfterRelease.parsed?.summaryVersion !== 15 ||
+    summaryStateAfterRelease.parsed?.summaryVersion !== 16 ||
     summaryStateAfterRelease.parsed?.supportedSendLaneVersion !== 1 ||
     summaryStateAfterRelease.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     summaryStateAfterRelease.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -995,6 +1001,9 @@ try {
     summaryStateAfterRelease.parsed?.supportedEnvironment !== "solana-devnet" ||
     summaryStateAfterRelease.parsed?.supportedNoteSchema !== "note-v0" ||
     summaryStateAfterRelease.parsed?.supportedNoteVersion !== 0 ||
+    summaryStateAfterRelease.parsed?.supportedRootRegistrationProvenance !==
+      "shield-input|send-recipient-output|send-change-output" ||
+    summaryStateAfterRelease.parsed?.supportedSendResultingRootBasis !== "client-declared" ||
     summaryStateAfterRelease.parsed?.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     summaryStateAfterRelease.parsed?.supportedReleaseDestinationModel !==
       "32-byte-release-destination-field" ||
@@ -1048,7 +1057,7 @@ try {
   });
   if (
     !operatorStatusOutput.includes("Summary state version: 1") ||
-    !operatorStatusOutput.includes("Summary version: 15") ||
+    !operatorStatusOutput.includes("Summary version: 16") ||
     !operatorStatusOutput.includes("Summary generated:") ||
     !operatorStatusOutput.includes("Supported send lane version: 1") ||
     !operatorStatusOutput.includes("Supported send lane kind: Single input / recipient / optional change") ||
@@ -1071,6 +1080,10 @@ try {
     !operatorStatusOutput.includes("Supported asset: VUSD") ||
     !operatorStatusOutput.includes("Supported environment: solana-devnet") ||
     !operatorStatusOutput.includes("Supported note schema: NoteV0 / v0") ||
+    !operatorStatusOutput.includes(
+      "Supported root provenance: Shield input / send recipient output / send change output",
+    ) ||
+    !operatorStatusOutput.includes("Supported send root basis: Client-declared") ||
     !operatorStatusOutput.includes("Supported recipient model: Hashed reference to owner key") ||
     !operatorStatusOutput.includes(
       "Supported release destination model: 32-byte release destination field",

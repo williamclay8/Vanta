@@ -131,6 +131,8 @@ export function UnshieldPage() {
     privateCoreOperatorSupportedEnvironment,
     privateCoreOperatorSupportedNoteSchema,
     privateCoreOperatorSupportedNoteVersion,
+    privateCoreOperatorSupportedRootRegistrationProvenance,
+    privateCoreOperatorSupportedSendResultingRootBasis,
     privateCoreOperatorSupportedRecipientModel,
     privateCoreOperatorSupportedReleaseDestinationModel,
     privateCoreOperatorSupportedProofSystem,
@@ -951,6 +953,12 @@ export function UnshieldPage() {
           operatorSupportedEnvironment={privateCoreOperatorSupportedEnvironment}
           operatorSupportedNoteSchema={privateCoreOperatorSupportedNoteSchema}
           operatorSupportedNoteVersion={privateCoreOperatorSupportedNoteVersion}
+          operatorSupportedRootRegistrationProvenance={
+            privateCoreOperatorSupportedRootRegistrationProvenance
+          }
+          operatorSupportedSendResultingRootBasis={
+            privateCoreOperatorSupportedSendResultingRootBasis
+          }
           operatorSupportedRecipientModel={privateCoreOperatorSupportedRecipientModel}
           operatorSupportedReleaseDestinationModel={
             privateCoreOperatorSupportedReleaseDestinationModel

@@ -162,6 +162,9 @@ const PRIVATE_CORE_SUPPORTED_RECIPIENT_MODEL = "hashed-reference-to-owner-key";
 const PRIVATE_CORE_SUPPORTED_RELEASE_DESTINATION_MODEL = "32-byte-release-destination-field";
 const PRIVATE_CORE_SUPPORTED_NOTE_SCHEMA = "note-v0";
 const PRIVATE_CORE_SUPPORTED_NOTE_VERSION = 0;
+const PRIVATE_CORE_SUPPORTED_ROOT_REGISTRATION_PROVENANCE =
+  "shield-input|send-recipient-output|send-change-output";
+const PRIVATE_CORE_SUPPORTED_SEND_RESULTING_ROOT_BASIS = "client-declared";
 const PRIVATE_CORE_SUPPORTED_PROOF_SYSTEM = "noir-acir-ultrahonk-bbjs";
 const PRIVATE_CORE_SUPPORTED_UNSHIELD_CIRCUIT = "vanta_private_core_single_note_unshield";
 const PRIVATE_CORE_SUPPORTED_SEND_CIRCUIT = "vanta_private_core_single_note_send";
@@ -1578,6 +1581,9 @@ function buildPrivateCoreSummaryState() {
     supportedEnvironment: PRIVATE_CORE_SUPPORTED_ENVIRONMENT,
     supportedNoteSchema: PRIVATE_CORE_SUPPORTED_NOTE_SCHEMA,
     supportedNoteVersion: PRIVATE_CORE_SUPPORTED_NOTE_VERSION,
+    supportedRootRegistrationProvenance:
+      PRIVATE_CORE_SUPPORTED_ROOT_REGISTRATION_PROVENANCE,
+    supportedSendResultingRootBasis: PRIVATE_CORE_SUPPORTED_SEND_RESULTING_ROOT_BASIS,
     supportedRecipientModel: PRIVATE_CORE_SUPPORTED_RECIPIENT_MODEL,
     supportedReleaseDestinationModel: PRIVATE_CORE_SUPPORTED_RELEASE_DESTINATION_MODEL,
     supportedProofSystem: PRIVATE_CORE_SUPPORTED_PROOF_SYSTEM,
@@ -1601,7 +1607,7 @@ function buildPrivateCoreSummaryState() {
     sendResultingRootProofLinkStatus,
     sendResultingRootStatus: sendResultingRootStatus.status,
     stateVersion: 1,
-    summaryVersion: 15,
+    summaryVersion: 16,
     currentRoot: currentRootRecord?.root ?? null,
     currentRecord: currentRootRecord,
     rootRecords,

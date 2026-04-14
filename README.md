@@ -232,6 +232,8 @@ The operator summary now versions the narrow unshield lane too:
 - `supportedEnvironment = solana-devnet`
 - `supportedNoteSchema = note-v0`
 - `supportedNoteVersion = 0`
+- `supportedRootRegistrationProvenance = shield-input|send-recipient-output|send-change-output`
+- `supportedSendResultingRootBasis = client-declared`
 - `supportedRecipientModel = hashed-reference-to-owner-key`
 - `supportedReleaseDestinationModel = 32-byte-release-destination-field`
 - `supportedProofSystem = noir-acir-ultrahonk-bbjs`

@@ -242,6 +242,8 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedEnvironment: "solana-devnet";
   supportedNoteSchema: "note-v0";
   supportedNoteVersion: number;
+  supportedRootRegistrationProvenance: "shield-input|send-recipient-output|send-change-output";
+  supportedSendResultingRootBasis: "client-declared";
   supportedRecipientModel: "hashed-reference-to-owner-key";
   supportedReleaseDestinationModel: "32-byte-release-destination-field";
   supportedProofSystem: "noir-acir-ultrahonk-bbjs";
@@ -858,6 +860,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedEnvironment?: unknown;
     supportedNoteSchema?: unknown;
     supportedNoteVersion?: unknown;
+    supportedRootRegistrationProvenance?: unknown;
+    supportedSendResultingRootBasis?: unknown;
     supportedRecipientModel?: unknown;
     supportedReleaseDestinationModel?: unknown;
     supportedProofSystem?: unknown;
@@ -900,7 +904,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.summaryVersion !== 15 ||
+    parsed.summaryVersion !== 16 ||
     !isBoundaryStatus(parsed.boundaryStatus) ||
     typeof parsed.boundaryNote !== "string" ||
     (parsed.currentRootLinkedProof !== null &&
@@ -938,6 +942,9 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     parsed.supportedEnvironment !== "solana-devnet" ||
     parsed.supportedNoteSchema !== "note-v0" ||
     parsed.supportedNoteVersion !== 0 ||
+    parsed.supportedRootRegistrationProvenance !==
+      "shield-input|send-recipient-output|send-change-output" ||
+    parsed.supportedSendResultingRootBasis !== "client-declared" ||
     parsed.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     parsed.supportedReleaseDestinationModel !== "32-byte-release-destination-field" ||
     parsed.supportedProofSystem !== "noir-acir-ultrahonk-bbjs" ||
@@ -1002,7 +1009,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   return {
     stateVersion: 1,
-    summaryVersion: 15,
+    summaryVersion: 16,
     boundaryStatus: parsed.boundaryStatus,
     boundaryNote: parsed.boundaryNote,
     supportedSendLaneVersion: 1,
@@ -1025,6 +1032,9 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedEnvironment: "solana-devnet",
     supportedNoteSchema: "note-v0",
     supportedNoteVersion: 0,
+    supportedRootRegistrationProvenance:
+      "shield-input|send-recipient-output|send-change-output",
+    supportedSendResultingRootBasis: "client-declared",
     supportedRecipientModel: "hashed-reference-to-owner-key",
     supportedReleaseDestinationModel: "32-byte-release-destination-field",
     supportedProofSystem: "noir-acir-ultrahonk-bbjs",
