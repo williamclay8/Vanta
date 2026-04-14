@@ -545,12 +545,14 @@ try {
     rootState.parsed.currentRecord.root !== registeredRoot ||
     rootState.parsed.currentRecord.artifactBundleStatus !== "complete" ||
     rootState.parsed.currentRecord.artifactBundleVersion !== 1 ||
+    rootState.parsed.currentRecord.registrationBasis !== "shield-input" ||
     rootState.parsed?.currentRoot !== registeredRoot ||
     !Array.isArray(rootState.parsed?.records) ||
     !rootState.parsed.records.some(
       (record) =>
         record.artifactBundleStatus === "complete" &&
         record.artifactBundleVersion === 1 &&
+        record.registrationBasis === "shield-input" &&
         record.root === registeredRoot &&
         record.noteCommitment === sourceArtifacts.noteCommitment &&
         record.merkleLeaf === sourceArtifacts.merkleLeaf &&

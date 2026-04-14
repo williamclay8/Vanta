@@ -9,6 +9,7 @@ try {
   printLine("Summary generated", formatTimestamp(summary.generatedAt));
   printLine("Current root", abbreviate(summary.currentRoot));
   printLine("Current root proof", abbreviate(summary.currentRecord?.proofId));
+  printLine("Current root registration", humanizeRootRegistrationBasis(summary.currentRecord?.registrationBasis));
   printLine("Current root linked proof", abbreviate(summary.currentRootLinkedProof?.proofId));
   printLine("Current root proof link", summary.currentRootProofLinkStatus ?? "Unavailable");
   printLine("Root records", String(summary.rootRecordCount ?? 0));
@@ -32,6 +33,10 @@ try {
   printLine(
     "Send resulting root registration",
     humanizeSendResultingRootRegistrationStatus(summary.sendResultingRootRegistrationStatus),
+  );
+  printLine(
+    "Send resulting root registration basis",
+    humanizeRootRegistrationBasis(summary.sendResultingRootRecord?.registrationBasis),
   );
   printLine(
     "Send resulting root registration note",
@@ -194,6 +199,19 @@ function humanizeSendResultingRootRegistrationStatus(value) {
       return "Output mismatch";
     case "unavailable":
       return "Unavailable";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeRootRegistrationBasis(value) {
+  switch (value) {
+    case "shield-input":
+      return "Shield input";
+    case "send-recipient-output":
+      return "Send recipient output";
+    case "send-change-output":
+      return "Send change output";
     default:
       return "Unavailable";
   }

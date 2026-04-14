@@ -351,6 +351,8 @@ try {
     preRestartSummary.parsed?.sendResultingRootLinkedProof?.proofId !==
       preRestartSummary.parsed?.sendResultingRootRecord?.proofId ||
     preRestartSummary.parsed?.sendResultingRootRecord?.root !== heldRecipient.witness.root ||
+    preRestartSummary.parsed?.sendResultingRootRecord?.registrationBasis !==
+      "send-recipient-output" ||
     typeof preRestartSummary.parsed?.sendResultingRootRecord?.proofId !== "string" ||
     preRestartSummary.parsed?.sendResultingRootRegistrationStatus !== "linked-recipient-output" ||
     preRestartSummary.parsed?.sendResultingRootProofLinkStatus !== "linked" ||
@@ -384,6 +386,8 @@ try {
     postRestartSummary.parsed?.sendResultingRootLinkedProof?.proofId !==
       postRestartSummary.parsed?.sendResultingRootRecord?.proofId ||
     postRestartSummary.parsed?.sendResultingRootRecord?.root !== heldRecipient.witness.root ||
+    postRestartSummary.parsed?.sendResultingRootRecord?.registrationBasis !==
+      "send-recipient-output" ||
     typeof postRestartSummary.parsed?.sendResultingRootRecord?.proofId !== "string" ||
     postRestartSummary.parsed?.sendResultingRootRegistrationStatus !== "linked-recipient-output" ||
     postRestartSummary.parsed?.sendResultingRootProofLinkStatus !== "linked" ||

@@ -168,6 +168,7 @@ export type VantaPrivateCoreOperatorRootRecord = {
   merkleLeaf: string | null;
   noteCommitment: string | null;
   proofId: string | null;
+  registrationBasis: "shield-input" | "send-recipient-output" | "send-change-output";
   recordedAt: number;
   root: string;
   source: string;
@@ -999,6 +1000,10 @@ function isRootRecord(value: unknown): value is VantaPrivateCoreOperatorRootReco
     (((value as VantaPrivateCoreOperatorRootRecord).proofId === null ||
       (value as VantaPrivateCoreOperatorRootRecord).proofId === undefined) ||
       typeof (value as VantaPrivateCoreOperatorRootRecord).proofId === "string") &&
+    ((value as VantaPrivateCoreOperatorRootRecord).registrationBasis === "shield-input" ||
+      (value as VantaPrivateCoreOperatorRootRecord).registrationBasis ===
+        "send-recipient-output" ||
+      (value as VantaPrivateCoreOperatorRootRecord).registrationBasis === "send-change-output") &&
     typeof (value as VantaPrivateCoreOperatorRootRecord).recordedAt === "number" &&
     typeof (value as VantaPrivateCoreOperatorRootRecord).root === "string" &&
     typeof (value as VantaPrivateCoreOperatorRootRecord).source === "string"

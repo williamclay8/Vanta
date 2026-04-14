@@ -548,7 +548,7 @@ const server = createServer(async (request, response) => {
 
       assertVantaPrivateCoreSourceArtifactConsistency(sourceArtifacts, witnessPackage);
       const latestSend = privateCoreSendStore.getLatestSend();
-      assertPrivateCoreSendResultingRootRegistrationConsistency({
+      const sendRegistrationConsistency = assertPrivateCoreSendResultingRootRegistrationConsistency({
         latestSend,
         root,
         sourceArtifacts,
@@ -568,8 +568,9 @@ const server = createServer(async (request, response) => {
         witnessRoot: sourceArtifacts.witnessRoot,
         amount: typeof sourcePublicInputs?.amount === "string" ? sourcePublicInputs.amount : null,
         assetId: typeof sourcePublicInputs?.assetId === "string" ? sourcePublicInputs.assetId : null,
+        registrationBasis: sendRegistrationConsistency.registrationBasis,
         proofId: proofRecord.proofId,
-        source: "app-private-core-shield-flow",
+        source: sendRegistrationConsistency.source,
       });
 
       writeCorsHeaders(response);
@@ -1733,18 +1734,27 @@ function summarizePrivateCoreRootProofLinkStatus(args) {
 
 function assertPrivateCoreSendResultingRootRegistrationConsistency(args) {
   if (!args.latestSend || args.latestSend.resultingRoot !== args.root) {
-    return;
+    return {
+      registrationBasis: "shield-input",
+      source: "app-private-core-shield-flow",
+    };
   }
 
   if (args.sourceArtifacts.noteCommitment === args.latestSend.recipientCommitment) {
-    return;
+    return {
+      registrationBasis: "send-recipient-output",
+      source: "app-private-core-send-recipient-flow",
+    };
   }
 
   if (
     args.latestSend.changeCommitment &&
     args.sourceArtifacts.noteCommitment === args.latestSend.changeCommitment
   ) {
-    return;
+    return {
+      registrationBasis: "send-change-output",
+      source: "app-private-core-send-change-flow",
+    };
   }
 
   throw new Error(

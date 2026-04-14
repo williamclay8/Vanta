@@ -73,6 +73,16 @@ function normalizeRootRecord(record) {
   const noteCommitment = typeof record?.noteCommitment === "string" ? record.noteCommitment : null;
   const merkleLeaf = typeof record?.merkleLeaf === "string" ? record.merkleLeaf : null;
   const witnessRoot = typeof record?.witnessRoot === "string" ? record.witnessRoot : null;
+  const registrationBasis =
+    record?.registrationBasis === "send-recipient-output" ||
+    record?.registrationBasis === "send-change-output" ||
+    record?.registrationBasis === "shield-input"
+      ? record.registrationBasis
+      : record?.source === "app-private-core-send-recipient-flow"
+        ? "send-recipient-output"
+        : record?.source === "app-private-core-send-change-flow"
+          ? "send-change-output"
+          : "shield-input";
   const artifactBundleComplete =
     noteCommitment !== null && merkleLeaf !== null && witnessRoot !== null;
 
@@ -89,6 +99,7 @@ function normalizeRootRecord(record) {
     merkleLeaf,
     noteCommitment,
     proofId: typeof record?.proofId === "string" ? record.proofId : null,
+    registrationBasis,
     recordedAt: typeof record?.recordedAt === "number" ? record.recordedAt : 0,
     root: typeof record?.root === "string" ? record.root : "",
     source: typeof record?.source === "string" ? record.source : "unknown",

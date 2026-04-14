@@ -340,6 +340,7 @@ try {
     summary.parsed?.sendResultingRootLinkedProof?.proofId !==
       summary.parsed?.sendResultingRootRecord?.proofId ||
     summary.parsed?.sendResultingRootRecord?.root !== heldRecipient.witness.root ||
+    summary.parsed?.sendResultingRootRecord?.registrationBasis !== "send-recipient-output" ||
     typeof summary.parsed?.sendResultingRootRecord?.proofId !== "string" ||
     summary.parsed?.sendResultingRootRegistrationStatus !== "linked-recipient-output" ||
     summary.parsed?.sendResultingRootProofLinkStatus !== "linked" ||
