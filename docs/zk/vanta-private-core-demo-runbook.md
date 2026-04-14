@@ -44,6 +44,7 @@ That confirms:
 - two operator-backed private send transitions can now execute in sequence on evolving private state
 - two operator-backed private send transitions now persist coherently across operator restart
 - one operator-backed private send to recipient unshield now persists coherently across operator restart
+- one operator-backed private send to sender-change unshield now persists coherently across operator restart
 - two operator-backed private send transitions to recipient unshield now persist coherently across operator restart
 - the operator consume regression is still green
 - the operator HTTP smoke path is still green

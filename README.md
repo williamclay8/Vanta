@@ -170,6 +170,7 @@ npm run private-core:send-chain-http-smoke
 npm run private-core:restart-check
 npm run private-core:send-chain-restart-check
 npm run private-core:send-unshield-restart-check
+npm run private-core:send-change-unshield-restart-check
 npm run private-core:send-chain-unshield-restart-check
 npm run private-core:prove
 npm run private-core:send-prove
@@ -199,6 +200,7 @@ These commands cover:
 - downstream root registration now records whether continuity was proven through a send recipient output or a send change output
 - operator-backed chained private-send persistence across operator restart
 - operator-backed private send to recipient unshield persistence across operator restart
+- operator-backed private send to sender-change unshield persistence across operator restart
 - operator-backed chained private send to recipient unshield persistence across operator restart
 - valid and invalid witness behavior
 - local unshield proof generation and verification
