@@ -88,6 +88,24 @@ function formatOperatorSummaryFreshness(value: number | null) {
   });
 }
 
+function formatOperatorRootRegistrationBasis(
+  value: "shield-input" | "send-recipient-output" | "send-change-output" | null | undefined,
+) {
+  if (value === "shield-input") {
+    return "Shield input";
+  }
+
+  if (value === "send-recipient-output") {
+    return "Send recipient output";
+  }
+
+  if (value === "send-change-output") {
+    return "Send change output";
+  }
+
+  return "Unavailable";
+}
+
 function summarizeOperatorImmediateReleaseAlignment(args: {
   latestOperatorRelease: VantaPrivateCoreOperatorReleaseRecord | null;
   unshieldState: VantaPrivateCoreUnshieldState | null;
@@ -794,6 +812,12 @@ export function VantaPrivateCoreStatePanel({
               <strong>{operatorCurrentRootProofLinkStatus ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
+              <span>Operator current root registration</span>
+              <strong>
+                {formatOperatorRootRegistrationBasis(operatorLatestRoot?.registrationBasis)}
+              </strong>
+            </div>
+            <div className="review-row">
               <span>Send resulting root status</span>
               <strong>
                 {sendState?.resultingRootStatusLabel ??
@@ -815,6 +839,14 @@ export function VantaPrivateCoreStatePanel({
                 {operatorSendResultingRootRecord?.root
                   ? abbreviate(operatorSendResultingRootRecord.root)
                   : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Send root registration basis</span>
+              <strong>
+                {formatOperatorRootRegistrationBasis(
+                  operatorSendResultingRootRecord?.registrationBasis,
+                )}
               </strong>
             </div>
             <div className="review-row">
