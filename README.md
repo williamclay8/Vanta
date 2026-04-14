@@ -79,7 +79,7 @@ Vanta currently supports a constrained real devnet lifecycle for one supported a
 ### Not live yet
 - final zk proof system
 - final nullifier architecture
-- recipient-private send semantics
+- broader recipient-private send product semantics
 - generalized multi-asset support
 - pay
 - production-grade protocol guarantees

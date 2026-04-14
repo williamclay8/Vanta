@@ -110,11 +110,12 @@ The next real zk step after this freeze should be:
 
 ## Practical interpretation
 
-This note does **not** mean private send is finished.
+This note does **not** mean private send is final-form.
 
 It means the repo now has:
 
 - a real unshield lane
+- a real narrow send lane
 - a frozen first send boundary target
 
-That is the right foundation for actually finishing `zk v1` instead of letting “send” remain abstract.
+That is the right foundation for actually freezing the supported `v1` send lane instead of letting “send” remain abstract.

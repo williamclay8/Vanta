@@ -1215,7 +1215,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               <span>Vanta Private Core</span>
               <h3>Private send proof lane</h3>
             </div>
-            <small>Operator-backed send proof</small>
+            <small>Supported zk v1 send lane</small>
           </div>
 
           <div className="review-list">
@@ -1314,8 +1314,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           </div>
 
           <p className="shield-review-note">
-            This is the first app-path send proof check for Vanta Private Core. It proves the
-            current held note can support one recipient output and one optional change output,
+            This is the currently supported narrow private-send lane for Vanta zk v1. It proves
+            the current held note can support one recipient output and one optional change output,
             then asks the operator to verify the frozen send witness package over HTTP.
           </p>
 

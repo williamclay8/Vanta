@@ -111,7 +111,7 @@ Vanta currently supports a constrained real devnet lifecycle for one supported a
 ### Still constrained / not final
 - no final zk proof system yet
 - no final nullifier design yet
-- no recipient-private send semantics yet
+- no broad recipient-private send product semantics yet
 - no generalized multi-asset support yet
 - no symmetric two-way market proof yet
 - pay remains future work

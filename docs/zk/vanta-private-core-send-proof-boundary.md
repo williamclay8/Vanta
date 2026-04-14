@@ -105,11 +105,12 @@ The next real zk send step after this boundary freeze should be:
 
 ## Practical interpretation
 
-This note does not mean private send is already live.
+This note does not mean private send is already final-form.
 
 It means the repo now has:
 
 - a source-layer send contract
 - a zk-facing send proving contract
+- an executable narrow send lane in the repo
 
-That is the minimum disciplined setup needed to make the first `zk v1` send circuit real next.
+That is the disciplined setup that made the first `zk v1` send circuit real and now anchors the supported narrow send lane.

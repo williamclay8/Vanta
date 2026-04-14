@@ -6,7 +6,8 @@ This note freezes the current assumptions that are acceptable for the narrowest 
 
 It exists to stop the finish line from moving while Vanta still has:
 - a real first unshield proof lane
-- a broader product `v1` definition that still requires private send
+- a real first private-send lane
+- a broader product `v1` definition that still requires that send lane to be frozen as the supported product path
 
 This is not a final-form protocol document.
 It is a `v1` discipline document.
@@ -19,7 +20,7 @@ These assumptions apply to the current Vanta path:
 - one supported asset
 - one shield flow
 - one shielded state model
-- one real private send flow still to be completed
+- one real private send flow that now exists in narrow operator-backed form
 - one already-executable single-note unshield proof lane
 
 ## Frozen assumptions for v1
@@ -80,15 +81,17 @@ Changes to the proving lane should be treated as regressions unless that command
 - invalid-direction fixture fails
 - fixture state is restored
 
-### 5. Unshield proof completion is not the same as full zk v1 completion
+### 5. Real send-lane existence is not the same as full zk v1 completion
 
-The current repo has a real first consume proof lane.
+The current repo has:
+- a real first consume proof lane
+- a real first private-send proof lane
 
-That is necessary, but not sufficient, for product `v1`.
+Those are necessary, but still not sufficient, for product `v1`.
 
 `zk v1` is only complete once Vanta also has:
 - a real shield-to-shielded-state transition
-- a real private send flow from shielded state
+- a frozen supported private send lane from shielded state
 - honest frontend truth around what is live versus modeled
 
 ## Explicit non-requirements for v1
@@ -121,6 +124,7 @@ Before `zk v1` is called finished, the repo and docs should not be ambiguous abo
 The current best reading is:
 
 - Vanta already has its first real zk consume lane
+- Vanta already has its first real zk send lane
 - Vanta does not yet have finished `zk v1`
 
 The next major build step after this assumptions freeze was:
@@ -131,9 +135,10 @@ That step is now done for the current operator-backed unshield lane.
 
 The next major product step from here is:
 
-- finish one real private send flow from shielded state
+- freeze the current real private send flow as the supported `v1` lane across app, operator, and docs
 
 The first frozen source-layer send target for that work now exists in:
 
 - `docs/zk/vanta-private-core-send-boundary.md`
 - `docs/zk/vanta-private-core-send-proof-boundary.md`
+- `docs/zk/vanta-zk-v1-supported-send-lane.md`

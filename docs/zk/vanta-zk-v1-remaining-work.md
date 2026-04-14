@@ -9,8 +9,8 @@ There are two different finish lines in the repo right now:
 
 Current estimate:
 
-- Vanta Private Core zk foundation: `65-75%`
-- Full Vanta zk v1 product: `35-45%`
+- Vanta Private Core zk foundation: `80-90%`
+- Full Vanta zk v1 product: `50-60%`
 
 That split matters because the repo already has a real first unshield proof lane, but the product-level `v1` definition in `docs/privacy-model.md` is broader than the current unshield milestone.
 
@@ -30,6 +30,7 @@ That split matters because the repo already has a real first unshield proof lane
 - operator HTTP smoke test via `npm run private-core:http-smoke`
 - full-stack private-core verification via `npm run private-core:verify`
 - operator-backed proof execution and verification for the current narrow unshield lane
+- operator-backed proof execution and verification for the current narrow send lane
 - proof-backed root registration for the current narrow operator lane
 - operator-side registered-root and latest-root enforcement for the current narrow consume lane
 - explicit operator state contracts for:
@@ -37,6 +38,19 @@ That split matters because the repo already has a real first unshield proof lane
   - `latestConsume`
   - empty-state summaries for both endpoints
 - app-side Shield, Hold, Unshield, and replay demo integration
+- operator-backed private send transitions from shielded state
+- recipient-output downstream continuity:
+  - register
+  - consume
+  - replay rejection
+  - restart persistence
+  - tamper detection
+- change-output downstream continuity:
+  - register
+  - consume
+  - replay rejection
+  - restart persistence
+  - tamper detection
 - internal diagnostics that expose the source-layer and proving-lane split honestly
 
 ## Must-have for zk v1
@@ -89,23 +103,27 @@ The first unshield circuit uses the Poseidon proving lane, while broader app-sid
 - an explicit frozen contract for what is proving-lane truth
 - no user- or operator-facing ambiguity about which values govern proof validity
 
-### 4. Ship the first real private workflow required by the product spec
+### 4. Finish the first real private workflow into a product-frozen v1 lane
 
 `docs/privacy-model.md` defines `v1` around:
 
 `Public Wallet -> Shield -> Shielded State -> Send`
 
-That means full `zk v1` is not finished with unshield alone.
+The repo is no longer blocked on unshield alone.
+It now has a real narrow private-send lane too.
 
-At minimum, `v1` still needs:
+What still remains for `v1` is freezing that send lane into the supported product path:
 - one real asset
 - one real environment
-- one real private send flow from shielded state
+- one honest sender flow
+- one honest recipient / change downstream interpretation in the product surfaces
+- a clear statement of which send path is the supported `v1` lane versus deeper private-core diagnostics
 
 The repo now has the first frozen source-layer target for that work in:
 
 - `docs/zk/vanta-private-core-send-boundary.md`
 - `docs/zk/vanta-private-core-send-proof-boundary.md`
+- `docs/zk/vanta-zk-v1-supported-send-lane.md`
 - `src/zk/vantaPrivateCore.ts`
 - `src/zk/vantaPrivateCoreSendProof.ts`
 
@@ -115,9 +133,9 @@ That boundary is intentionally narrow:
 - optional one change output note
 - one later proving lane to match it
 
-Until that exists, the current state is better described as:
-- a strong private-core and unshield milestone
-- not the complete `v1` privacy product
+Until that is frozen as the supported product lane, the current state is better described as:
+- a strong private-core with real unshield and send lanes
+- not yet the complete `v1` privacy product
 
 ## Can slip to v1.1
 
@@ -137,7 +155,7 @@ These look important, but not strictly blocking for the narrowest plausible `zk 
 1. Keep the current unshield proof lane and operator seam green with `npm run private-core:verify`.
 2. Freeze the `v1` owner-auth and verifier-side assumptions in writing.
 3. Finish the real release-side contract around the current operator-backed proof lane.
-4. Finish one real private send flow from shielded state.
+4. Freeze the current real private send lane as the explicit supported `v1` product path.
 5. Re-evaluate the remaining source/proving split after send is real.
 
 ## Honest summary
@@ -147,7 +165,7 @@ If the question is "is the first Vanta zk lane real yet?", the answer is yes.
 If the question is "is Vanta zk v1 finished?", the honest answer is no.
 
 The current repo is much closer to:
-- `first real zk consume lane`
+- `first real zk consume + send lanes`
 
 than to:
 - `finished Vanta zk v1 product`
