@@ -4,6 +4,7 @@ import { sha256 } from "@noble/hashes/sha2";
 import { useSendTransaction } from "@solana/react-hooks";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
+import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePanel";
 import { usePrivacyFlow, type PrivacyAssetKey } from "@/data/context/PrivacyFlowContext";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
 import { useVantaShieldState } from "@/solana/useVantaShieldState";
@@ -143,21 +144,61 @@ export function SendPage({ dashboard = false }: SendPageProps) {
   const {
     ensurePrivateCoreOperatorRootKnown,
     privateCoreHoldState,
+    privateCoreOperatorConsumeError,
+    privateCoreOperatorConsumes,
+    privateCoreOperatorCurrentRoot,
+    privateCoreOperatorCurrentRootLinkedProof,
     privateCoreOperatorBoundaryPrimaryNote,
     privateCoreOperatorBoundaryStatusLabel,
     privateCoreOperatorCurrentRootProofLinkStatus,
+    privateCoreOperatorLatestConsume,
+    privateCoreOperatorLatestConsumeProof,
+    privateCoreOperatorLatestProof,
+    privateCoreOperatorLatestRelease,
+    privateCoreOperatorLatestReleaseProof,
+    privateCoreOperatorLatestRoot,
     privateCoreOperatorLatestSend,
     privateCoreOperatorLatestSendLinkedProof,
     privateCoreOperatorLatestSendProof,
+    privateCoreOperatorOwnerAuthorizationMode,
+    privateCoreOperatorNullifierKeyMode,
+    privateCoreOperatorProofConsumeLinkStatus,
+    privateCoreOperatorProofError,
+    privateCoreOperatorProofs,
+    privateCoreOperatorProofReleaseLinkStatus,
     privateCoreOperatorSendResultingRootRecord,
+    privateCoreOperatorSendResultingRootLinkedProof,
     privateCoreOperatorSendResultingRootPrimaryNote,
+    privateCoreOperatorSendResultingRootRegistrationPrimaryNote,
+    privateCoreOperatorSendResultingRootRegistrationStatusLabel,
     privateCoreOperatorSendResultingRootProofLinkStatus,
     privateCoreOperatorSendResultingRootStatusLabel,
+    privateCoreOperatorProvingHashLane,
+    privateCoreOperatorReleaseError,
+    privateCoreOperatorReleases,
+    privateCoreOperatorRootCurrentnessLabel,
+    privateCoreOperatorRootError,
+    privateCoreOperatorRootRegistrationStatus,
+    privateCoreOperatorRoots,
     privateCoreOperatorProofSendLinkStatus,
+    privateCoreOperatorSendError,
+    privateCoreOperatorSends,
+    privateCoreOperatorSendProofError,
+    privateCoreOperatorSendProofs,
+    privateCoreOperatorSupportedSendLaneKind,
+    privateCoreOperatorSupportedSendLaneNote,
+    privateCoreOperatorSupportedSendLaneStatus,
+    privateCoreOperatorSupportedSendLaneVersion,
+    privateCoreOperatorSupportedUnshieldLaneKind,
+    privateCoreOperatorSupportedUnshieldLaneNote,
+    privateCoreOperatorSupportedUnshieldLaneStatus,
+    privateCoreOperatorSupportedUnshieldLaneVersion,
     privateCoreOperatorSummaryUpdatedAt,
     privateCoreOwner,
+    privateCoreRecentShield,
     recentShield,
     privateCoreSendState,
+    privateCoreUnshieldState,
     previewPrivateCoreSendTransition,
     refreshPrivateCoreOperatorSummary,
     runPrivateCoreSendTransition,
@@ -1571,6 +1612,68 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           </details>
         </article>
       </div>
+
+      <VantaPrivateCoreStatePanel
+        holdState={privateCoreHoldState}
+        sendState={privateCoreSendState}
+        operatorCurrentRoot={privateCoreOperatorCurrentRoot}
+        operatorConsumeError={privateCoreOperatorConsumeError}
+        operatorConsumes={privateCoreOperatorConsumes}
+        operatorLatestConsume={privateCoreOperatorLatestConsume}
+        operatorLatestConsumeProof={privateCoreOperatorLatestConsumeProof}
+        operatorLatestProof={privateCoreOperatorLatestProof}
+        operatorLatestRelease={privateCoreOperatorLatestRelease}
+        operatorLatestReleaseProof={privateCoreOperatorLatestReleaseProof}
+        operatorLatestRoot={privateCoreOperatorLatestRoot}
+        operatorLatestSend={privateCoreOperatorLatestSend}
+        operatorLatestSendLinkedProof={privateCoreOperatorLatestSendLinkedProof}
+        operatorLatestSendProof={privateCoreOperatorLatestSendProof}
+        operatorBoundaryPrimaryNote={privateCoreOperatorBoundaryPrimaryNote}
+        operatorBoundaryStatusLabel={privateCoreOperatorBoundaryStatusLabel}
+        operatorSupportedSendLaneKind={privateCoreOperatorSupportedSendLaneKind}
+        operatorSupportedSendLaneNote={privateCoreOperatorSupportedSendLaneNote}
+        operatorSupportedSendLaneStatus={privateCoreOperatorSupportedSendLaneStatus}
+        operatorSupportedSendLaneVersion={privateCoreOperatorSupportedSendLaneVersion}
+        operatorSupportedUnshieldLaneKind={privateCoreOperatorSupportedUnshieldLaneKind}
+        operatorSupportedUnshieldLaneNote={privateCoreOperatorSupportedUnshieldLaneNote}
+        operatorSupportedUnshieldLaneStatus={privateCoreOperatorSupportedUnshieldLaneStatus}
+        operatorSupportedUnshieldLaneVersion={privateCoreOperatorSupportedUnshieldLaneVersion}
+        operatorOwnerAuthorizationMode={privateCoreOperatorOwnerAuthorizationMode}
+        operatorNullifierKeyMode={privateCoreOperatorNullifierKeyMode}
+        operatorProvingHashLane={privateCoreOperatorProvingHashLane}
+        operatorCurrentRootLinkedProof={privateCoreOperatorCurrentRootLinkedProof}
+        operatorCurrentRootProofLinkStatus={privateCoreOperatorCurrentRootProofLinkStatus}
+        operatorSendResultingRootLinkedProof={privateCoreOperatorSendResultingRootLinkedProof}
+        operatorSendResultingRootRecord={privateCoreOperatorSendResultingRootRecord}
+        operatorSendResultingRootPrimaryNote={privateCoreOperatorSendResultingRootPrimaryNote}
+        operatorSendResultingRootRegistrationPrimaryNote={
+          privateCoreOperatorSendResultingRootRegistrationPrimaryNote
+        }
+        operatorSendResultingRootRegistrationStatusLabel={
+          privateCoreOperatorSendResultingRootRegistrationStatusLabel
+        }
+        operatorSendResultingRootProofLinkStatus={privateCoreOperatorSendResultingRootProofLinkStatus}
+        operatorSendResultingRootStatusLabel={privateCoreOperatorSendResultingRootStatusLabel}
+        operatorProofConsumeLinkStatus={privateCoreOperatorProofConsumeLinkStatus}
+        operatorProofError={privateCoreOperatorProofError}
+        operatorProofs={privateCoreOperatorProofs}
+        operatorProofSendLinkStatus={privateCoreOperatorProofSendLinkStatus}
+        operatorProofReleaseLinkStatus={privateCoreOperatorProofReleaseLinkStatus}
+        operatorReleaseError={privateCoreOperatorReleaseError}
+        operatorReleases={privateCoreOperatorReleases}
+        operatorRootCurrentnessLabel={privateCoreOperatorRootCurrentnessLabel}
+        operatorRootError={privateCoreOperatorRootError}
+        operatorRootRegistrationStatus={privateCoreOperatorRootRegistrationStatus}
+        operatorRoots={privateCoreOperatorRoots}
+        operatorSendError={privateCoreOperatorSendError}
+        operatorSends={privateCoreOperatorSends}
+        operatorSendProofError={privateCoreOperatorSendProofError}
+        operatorSendProofs={privateCoreOperatorSendProofs}
+        operatorSummaryUpdatedAt={privateCoreOperatorSummaryUpdatedAt}
+        shieldState={privateCoreRecentShield}
+        title="Vanta Private Core send state"
+        unshieldState={privateCoreUnshieldState}
+      />
     </section>
   );
 }
