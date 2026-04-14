@@ -130,6 +130,7 @@ The operator-status command now prints:
 - send resulting root proof link
 - latest consume
 - latest release
+- release authorization and root policy
 - proof/send link status
 - proof/consume link status
 - proof/release link status

@@ -280,12 +280,14 @@ try {
   releaseStore.recordRelease({
     assetId: sourcePublicInputs.assetId,
     amount: sourcePublicInputs.amount,
+    authorizationBasis: "proof-backed-consume",
     completedAt: Date.now(),
     consumedNoteId: `private-core-nullifier:${sourcePublicInputs.nullifier}`,
     nullifier: sourcePublicInputs.nullifier,
     proofFieldCount: proofReceipt.proofFieldCount,
     publicInputCount: proofReceipt.publicInputCount,
     releaseDestination: sourcePublicInputs.releaseDestination,
+    rootPolicy: "latest-registered-root",
     releasedAssetId: sourcePublicInputs.assetId,
     releasedAmount: sourcePublicInputs.amount,
     requestId: `private-core-release:${sourcePublicInputs.nullifier}:${sourcePublicInputs.stateRoot}`,
@@ -316,9 +318,11 @@ try {
   const latestReleaseRecord = releaseStore.listRecords()[0];
   if (
     !latestReleaseRecord ||
+    latestReleaseRecord.authorizationBasis !== "proof-backed-consume" ||
     latestReleaseRecord.nullifier !== sourcePublicInputs.nullifier ||
     latestReleaseRecord.root !== sourcePublicInputs.stateRoot ||
     latestReleaseRecord.releaseDestination !== sourcePublicInputs.releaseDestination ||
+    latestReleaseRecord.rootPolicy !== "latest-registered-root" ||
     latestReleaseRecord.releasedAssetId !== sourcePublicInputs.assetId ||
     latestReleaseRecord.releasedAmount !== sourcePublicInputs.amount ||
     !releaseStore.hasConsumedNoteId(`private-core-nullifier:${sourcePublicInputs.nullifier}`) ||

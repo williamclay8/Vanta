@@ -70,6 +70,7 @@ The repo now already has a first narrow operator-side version of that contract:
 - require private send transitions to use the latest registered input root too
 - enforce nullifier uniqueness in the consume path
 - record explicit release outcomes in operator-side release state
+- record explicit release authorization basis and root-policy metadata in operator-side release state
 - surface proof execution and operator-state summaries in the app
 - bind root registration and consume to the same full witness-backed source artifact bundle:
   - `noteCommitment`

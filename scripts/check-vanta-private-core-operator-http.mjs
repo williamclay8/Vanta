@@ -778,8 +778,10 @@ try {
   if (
     !consumeResponse.ok ||
     consumeResponse.parsed?.verified !== true ||
+    consumeResponse.parsed?.authorizationBasis !== "proof-backed-consume" ||
     typeof consumeResponse.parsed?.proofId !== "string" ||
     consumeResponse.parsed?.releaseRecorded !== true ||
+    consumeResponse.parsed?.rootPolicy !== "latest-registered-root" ||
     consumeResponse.parsed?.nullifier !== witnessPackage.sourcePublicInputs.nullifier ||
     consumeResponse.parsed?.root !== witnessPackage.sourcePublicInputs.stateRoot ||
     consumeResponse.parsed?.releaseDestination !== witnessPackage.sourcePublicInputs.releaseDestination ||
@@ -891,9 +893,11 @@ try {
     releaseState.parsed.latestRelease.proofFieldCount !== consumeResponse.parsed.proofFieldCount ||
     releaseState.parsed.latestRelease.proofId !== consumeResponse.parsed.proofId ||
     releaseState.parsed.latestRelease.publicInputCount !== consumeResponse.parsed.publicInputCount ||
+    releaseState.parsed.latestRelease.authorizationBasis !== "proof-backed-consume" ||
     releaseState.parsed.latestRelease.root !== witnessPackage.sourcePublicInputs.stateRoot ||
     releaseState.parsed.latestRelease.releaseDestination !==
       witnessPackage.sourcePublicInputs.releaseDestination ||
+    releaseState.parsed.latestRelease.rootPolicy !== "latest-registered-root" ||
     releaseState.parsed.latestRelease.releasedAssetId !== witnessPackage.sourcePublicInputs.assetId ||
     releaseState.parsed.latestRelease.releasedAmount !== witnessPackage.sourcePublicInputs.amount ||
     releaseState.parsed.latestRelease.requestId !== expectedReleaseRequestId ||
@@ -964,6 +968,8 @@ try {
     !operatorStatusOutput.includes("Latest consume linked proof:") ||
     !operatorStatusOutput.includes("Latest release proof:") ||
     !operatorStatusOutput.includes("Latest release linked proof:") ||
+    !operatorStatusOutput.includes("Release authorization: Proof-backed consume") ||
+    !operatorStatusOutput.includes("Release root policy: Latest registered root") ||
     !operatorStatusOutput.includes("Current root linked proof:") ||
     !operatorStatusOutput.includes("Current root proof link: linked") ||
     !operatorStatusOutput.includes("Latest send resulting root:") ||

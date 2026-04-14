@@ -141,6 +141,8 @@ const PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND = "single-input-single-recipient-opt
 const PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS = "supported";
 const PRIVATE_CORE_SUPPORTED_SEND_LANE_NOTE =
   "Current narrow zk v1 send lane is supported for one input note, one recipient output, and optional change.";
+const PRIVATE_CORE_RELEASE_AUTHORIZATION_BASIS = "proof-backed-consume";
+const PRIVATE_CORE_RELEASE_ROOT_POLICY = "latest-registered-root";
 
 if (!swapLaneConfigValidation.valid) {
   console.warn(
@@ -706,6 +708,7 @@ const server = createServer(async (request, response) => {
       privateCoreReleaseRecords.recordRelease({
         assetId: sourcePublicInputs.assetId,
         amount: sourcePublicInputs.amount,
+        authorizationBasis: PRIVATE_CORE_RELEASE_AUTHORIZATION_BASIS,
         completedAt: consumeRecord.completedAt,
         consumedNoteId: `private-core-nullifier:${nullifier}`,
         nullifier,
@@ -713,6 +716,7 @@ const server = createServer(async (request, response) => {
         proofId: proofRecord.proofId,
         publicInputCount: proofReceipt.publicInputCount,
         releaseDestination: sourcePublicInputs.releaseDestination,
+        rootPolicy: PRIVATE_CORE_RELEASE_ROOT_POLICY,
         releasedAssetId: sourcePublicInputs.assetId,
         releasedAmount: sourcePublicInputs.amount,
         requestId: releaseRequestId,
@@ -728,9 +732,11 @@ const server = createServer(async (request, response) => {
           completedAt: consumeRecord.completedAt,
           leafIndex: consumeRecord.leafIndex,
           proofId: proofRecord.proofId,
+          authorizationBasis: PRIVATE_CORE_RELEASE_AUTHORIZATION_BASIS,
           releaseDestination: sourcePublicInputs.releaseDestination,
           releaseRecorded: true,
           releaseRequestId,
+          rootPolicy: PRIVATE_CORE_RELEASE_ROOT_POLICY,
           releaseTransitionNoteId,
           releasedAssetId: sourcePublicInputs.assetId,
           releasedAmount: sourcePublicInputs.amount,

@@ -334,7 +334,7 @@ If the operator is already running, the quickest live status readout is:
 npm run private-core:operator-status
 ```
 
-That status readout now includes proof/send, proof/consume, and proof/release linkage across the operator summary boundary, the supported send-lane version and identity carried by the operator summary, plus explicit send-root registration provenance (`shield-input`, `send-recipient-output`, or `send-change-output`) when downstream continuity has been established.
+That status readout now includes proof/send, proof/consume, and proof/release linkage across the operator summary boundary, the supported send-lane version and identity carried by the operator summary, explicit release authorization / root-policy fields for the current unshield lane, plus explicit send-root registration provenance (`shield-input`, `send-recipient-output`, or `send-change-output`) when downstream continuity has been established.
 
 If you want one demo-operator command that does both the full verification pass and the live operator summary, use:
 

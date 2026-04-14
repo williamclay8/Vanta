@@ -736,6 +736,22 @@ export function VantaPrivateCoreStatePanel({
               </strong>
             </div>
             <div className="review-row">
+              <span>Release authorization</span>
+              <strong>
+                {latestOperatorRelease?.authorizationBasis === "proof-backed-consume"
+                  ? "Proof-backed consume"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Release root policy</span>
+              <strong>
+                {latestOperatorRelease?.rootPolicy === "latest-registered-root"
+                  ? "Latest registered root"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
               <span>Linked release proof</span>
               <strong>
                 {operatorProofError

@@ -1977,6 +1977,7 @@ function summarizePrivateCoreImmediateOperatorRelease(
   return {
     assetId: consumeReceipt.releasedAssetId,
     amount: consumeReceipt.releasedAmount,
+    authorizationBasis: consumeReceipt.authorizationBasis,
     completedAt: consumeReceipt.completedAt,
     consumedNoteId: `private-core-nullifier:${consumeReceipt.nullifier}`,
     nullifier: consumeReceipt.nullifier,
@@ -1984,6 +1985,7 @@ function summarizePrivateCoreImmediateOperatorRelease(
     proofId: consumeReceipt.proofId,
     publicInputCount: consumeReceipt.publicInputCount,
     releaseDestination: consumeReceipt.releaseDestination,
+    rootPolicy: consumeReceipt.rootPolicy,
     releasedAssetId: consumeReceipt.releasedAssetId,
     releasedAmount: consumeReceipt.releasedAmount,
     requestId: consumeReceipt.releaseRequestId,

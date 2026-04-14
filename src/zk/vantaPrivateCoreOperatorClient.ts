@@ -31,12 +31,14 @@ export type VantaPrivateCoreSendOperatorResponse = VantaPrivateCoreProofOperator
 };
 
 export type VantaPrivateCoreConsumeOperatorResponse = VantaPrivateCoreProofOperatorResponse & {
+  authorizationBasis: "proof-backed-consume";
   completedAt: number;
   leafIndex: string | null;
   releaseDestination: string;
   proofId: string;
   releaseRecorded: boolean;
   releaseRequestId: string;
+  rootPolicy: "latest-registered-root";
   releaseTransitionNoteId: string;
   releasedAssetId: string;
   releasedAmount: string;
@@ -140,6 +142,7 @@ export type VantaPrivateCoreOperatorSendStateResponse = {
 export type VantaPrivateCoreOperatorReleaseRecord = {
   assetId: string;
   amount: string;
+  authorizationBasis: "proof-backed-consume";
   completedAt: number;
   consumedNoteId: string;
   nullifier: string;
@@ -147,6 +150,7 @@ export type VantaPrivateCoreOperatorReleaseRecord = {
   proofId: string;
   publicInputCount: number;
   releaseDestination: string;
+  rootPolicy: "latest-registered-root";
   releasedAssetId: string;
   releasedAmount: string;
   requestId: string;
@@ -442,10 +446,12 @@ export async function requestVantaPrivateCoreOperatorConsume(args: {
     !parsed.verified ||
     typeof parsed.completedAt !== "number" ||
     (parsed.leafIndex !== null && typeof parsed.leafIndex !== "string") ||
+    parsed.authorizationBasis !== "proof-backed-consume" ||
     typeof parsed.releaseDestination !== "string" ||
     typeof parsed.proofId !== "string" ||
     parsed.releaseRecorded !== true ||
     typeof parsed.releaseRequestId !== "string" ||
+    parsed.rootPolicy !== "latest-registered-root" ||
     typeof parsed.releaseTransitionNoteId !== "string" ||
     typeof parsed.releasedAssetId !== "string" ||
     typeof parsed.releasedAmount !== "string" ||
@@ -467,12 +473,14 @@ export async function requestVantaPrivateCoreOperatorConsume(args: {
       ? parsed.publicInputs.filter((value): value is string => typeof value === "string")
       : [],
     verified: true,
+    authorizationBasis: "proof-backed-consume",
     completedAt: parsed.completedAt,
     leafIndex: parsed.leafIndex ?? null,
     proofId: parsed.proofId,
     releaseDestination: parsed.releaseDestination,
     releaseRecorded: true,
     releaseRequestId: parsed.releaseRequestId,
+    rootPolicy: "latest-registered-root",
     releaseTransitionNoteId: parsed.releaseTransitionNoteId,
     releasedAssetId: parsed.releasedAssetId,
     releasedAmount: parsed.releasedAmount,
@@ -1081,6 +1089,7 @@ function isReleaseRecord(value: unknown): value is VantaPrivateCoreOperatorRelea
     value !== null &&
     typeof (value as VantaPrivateCoreOperatorReleaseRecord).assetId === "string" &&
     typeof (value as VantaPrivateCoreOperatorReleaseRecord).amount === "string" &&
+    (value as VantaPrivateCoreOperatorReleaseRecord).authorizationBasis === "proof-backed-consume" &&
     typeof (value as VantaPrivateCoreOperatorReleaseRecord).completedAt === "number" &&
     typeof (value as VantaPrivateCoreOperatorReleaseRecord).consumedNoteId === "string" &&
     typeof (value as VantaPrivateCoreOperatorReleaseRecord).nullifier === "string" &&
@@ -1088,6 +1097,7 @@ function isReleaseRecord(value: unknown): value is VantaPrivateCoreOperatorRelea
     typeof (value as VantaPrivateCoreOperatorReleaseRecord).proofId === "string" &&
     typeof (value as VantaPrivateCoreOperatorReleaseRecord).publicInputCount === "number" &&
     typeof (value as VantaPrivateCoreOperatorReleaseRecord).releaseDestination === "string" &&
+    (value as VantaPrivateCoreOperatorReleaseRecord).rootPolicy === "latest-registered-root" &&
     typeof (value as VantaPrivateCoreOperatorReleaseRecord).releasedAssetId === "string" &&
     typeof (value as VantaPrivateCoreOperatorReleaseRecord).releasedAmount === "string" &&
     typeof (value as VantaPrivateCoreOperatorReleaseRecord).requestId === "string" &&

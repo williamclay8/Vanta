@@ -72,6 +72,8 @@ try {
   printLine("Latest release", abbreviate(summary.latestRelease?.nullifier));
   printLine("Latest release proof", abbreviate(summary.latestRelease?.proofId));
   printLine("Latest release linked proof", abbreviate(summary.latestReleaseProof?.proofId));
+  printLine("Release authorization", humanizeReleaseAuthorization(summary.latestRelease?.authorizationBasis));
+  printLine("Release root policy", humanizeReleaseRootPolicy(summary.latestRelease?.rootPolicy));
   printLine("Release destination", abbreviate(summary.latestRelease?.releaseDestination));
   printLine(
     "Released value",
@@ -234,6 +236,24 @@ function humanizeSupportedSendLaneStatus(value) {
   switch (value) {
     case "supported":
       return "Supported";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeReleaseAuthorization(value) {
+  switch (value) {
+    case "proof-backed-consume":
+      return "Proof-backed consume";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeReleaseRootPolicy(value) {
+  switch (value) {
+    case "latest-registered-root":
+      return "Latest registered root";
     default:
       return "Unavailable";
   }

@@ -411,6 +411,8 @@ try {
     !operatorStatusOutput.includes("Summary generated:") ||
     !operatorStatusOutput.includes("Latest consume proof:") ||
     !operatorStatusOutput.includes("Latest release proof:") ||
+    !operatorStatusOutput.includes("Release authorization: Proof-backed consume") ||
+    !operatorStatusOutput.includes("Release root policy: Latest registered root") ||
     !operatorStatusOutput.includes("Boundary status: Operator boundary coherent")
   ) {
     throw new Error(operatorStatusOutput || "operator restart status output did not reflect persisted state");
