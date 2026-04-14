@@ -31,12 +31,23 @@ That split matters because the repo already has a real first unshield proof lane
 - full-stack private-core verification via `npm run private-core:verify`
 - operator-backed proof execution and verification for the current narrow unshield lane
 - operator-backed proof execution and verification for the current narrow send lane
+- operator-summary versioning for the supported narrow:
+  - send lane
+  - unshield lane
+  - release lane
 - proof-backed root registration for the current narrow operator lane
 - operator-side registered-root and latest-root enforcement for the current narrow consume lane
 - explicit operator state contracts for:
   - `currentRoot`
   - `latestConsume`
   - empty-state summaries for both endpoints
+- explicit supported-lane and assumption contracts in the operator summary for:
+  - send lane
+  - unshield lane
+  - release lane
+  - owner auth mode
+  - nullifier key mode
+  - proving hash lane
 - app-side Shield, Hold, Unshield, and replay demo integration
 - operator-backed private send transitions from shielded state
 - recipient-output downstream continuity:
@@ -84,6 +95,7 @@ What still remains for `zk v1` is finishing that into a fuller verifier-side con
 - stronger root validity policy beyond the current local operator store
 - explicit release authorization semantics tied to the real product exit path
 - atomic release with nullifier consumption in the chosen real product lane, not just operator-local state
+- a clear decision about whether the current operator-summary-supported release lane is already sufficient for the narrowest `v1`, or still only a proving milestone
 
 ### 2. Freeze the owner-auth decision for v1
 
@@ -157,8 +169,8 @@ These look important, but not strictly blocking for the narrowest plausible `zk 
 1. Keep the current unshield proof lane and operator seam green with `npm run private-core:verify`.
 2. Freeze the `v1` owner-auth and verifier-side assumptions in writing.
 3. Finish the real release-side contract around the current operator-backed proof lane.
-4. Freeze the current real private send lane as the explicit supported `v1` product path.
-5. Re-evaluate the remaining source/proving split after send is real.
+4. Freeze the current real private send and release lanes as the explicit supported `v1` product path.
+5. Re-evaluate the remaining source/proving split after the supported send/release path is frozen.
 
 ## Honest summary
 

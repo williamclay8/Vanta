@@ -135,7 +135,16 @@ That step is now done for the current operator-backed unshield lane.
 
 The next major product step from here is:
 
-- freeze the current real private send flow as the supported `v1` lane across app, operator, and docs
+- freeze the current real private send and release flows as the supported `v1` lane across app, operator, and docs
+
+The operator summary now already freezes the currently supported narrow private-core contracts for:
+
+- send lane
+- unshield lane
+- release lane
+- owner auth mode
+- nullifier key mode
+- proving hash lane
 
 The first frozen source-layer send target for that work now exists in:
 
