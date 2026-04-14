@@ -225,6 +225,9 @@ The operator summary now versions the narrow unshield lane too:
 - `supportedReleaseLaneVersion = 1`
 - `supportedReleaseLaneKind = proof-backed-consume-latest-registered-root`
 - `supportedReleaseLaneStatus = supported`
+- `supportedFlowVersion = 1`
+- `supportedFlowKind = shield-hold-send-unshield-replay-guard`
+- `supportedFlowStatus = supported`
 - `supportedAssetSymbol = VUSD`
 - `supportedEnvironment = solana-devnet`
 - `supportedReleaseAuthorizationBasis = proof-backed-consume`

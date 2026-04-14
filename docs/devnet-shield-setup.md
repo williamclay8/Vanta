@@ -133,6 +133,7 @@ The operator-status command now prints:
 - latest release
 - release authorization and root policy
 - supported release lane version / kind / status
+- supported product flow version / kind / status
 - supported asset and environment
 - supported release authorization basis
 - supported release root policy

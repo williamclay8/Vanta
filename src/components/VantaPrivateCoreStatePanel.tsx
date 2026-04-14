@@ -42,6 +42,10 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSupportedReleaseLaneNote?: string | null;
   operatorSupportedReleaseLaneStatus?: string | null;
   operatorSupportedReleaseLaneVersion?: number | null;
+  operatorSupportedFlowKind?: string | null;
+  operatorSupportedFlowNote?: string | null;
+  operatorSupportedFlowStatus?: string | null;
+  operatorSupportedFlowVersion?: number | null;
   operatorSupportedAssetSymbol?: string | null;
   operatorSupportedEnvironment?: string | null;
   operatorSupportedReleaseAuthorizationBasis?: string | null;
@@ -203,6 +207,10 @@ export function VantaPrivateCoreStatePanel({
   operatorSupportedReleaseLaneNote = null,
   operatorSupportedReleaseLaneStatus = null,
   operatorSupportedReleaseLaneVersion = null,
+  operatorSupportedFlowKind = null,
+  operatorSupportedFlowNote = null,
+  operatorSupportedFlowStatus = null,
+  operatorSupportedFlowVersion = null,
   operatorSupportedAssetSymbol = null,
   operatorSupportedEnvironment = null,
   operatorSupportedReleaseAuthorizationBasis = null,
@@ -510,6 +518,18 @@ export function VantaPrivateCoreStatePanel({
               <strong>{operatorSupportedReleaseLaneStatus ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
+              <span>Supported flow</span>
+              <strong>
+                {operatorSupportedFlowKind === "shield-hold-send-unshield-replay-guard"
+                  ? `v${String(operatorSupportedFlowVersion ?? 1)} · Shield / hold / send / unshield / replay guard`
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Supported flow status</span>
+              <strong>{operatorSupportedFlowStatus ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
               <span>Supported asset</span>
               <strong>{operatorSupportedAssetSymbol ?? "Unavailable"}</strong>
             </div>
@@ -548,6 +568,10 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Supported release note</span>
               <strong>{operatorSupportedReleaseLaneNote ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Supported flow note</span>
+              <strong>{operatorSupportedFlowNote ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Operator owner auth</span>

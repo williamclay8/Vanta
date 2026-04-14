@@ -197,6 +197,10 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorSupportedReleaseLaneNote,
     privateCoreOperatorSupportedReleaseLaneStatus,
     privateCoreOperatorSupportedReleaseLaneVersion,
+    privateCoreOperatorSupportedFlowKind,
+    privateCoreOperatorSupportedFlowNote,
+    privateCoreOperatorSupportedFlowStatus,
+    privateCoreOperatorSupportedFlowVersion,
     privateCoreOperatorSupportedAssetSymbol,
     privateCoreOperatorSupportedEnvironment,
     privateCoreOperatorSupportedReleaseAuthorizationBasis,
@@ -1650,6 +1654,10 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         operatorSupportedReleaseLaneNote={privateCoreOperatorSupportedReleaseLaneNote}
         operatorSupportedReleaseLaneStatus={privateCoreOperatorSupportedReleaseLaneStatus}
         operatorSupportedReleaseLaneVersion={privateCoreOperatorSupportedReleaseLaneVersion}
+        operatorSupportedFlowKind={privateCoreOperatorSupportedFlowKind}
+        operatorSupportedFlowNote={privateCoreOperatorSupportedFlowNote}
+        operatorSupportedFlowStatus={privateCoreOperatorSupportedFlowStatus}
+        operatorSupportedFlowVersion={privateCoreOperatorSupportedFlowVersion}
         operatorSupportedAssetSymbol={privateCoreOperatorSupportedAssetSymbol}
         operatorSupportedEnvironment={privateCoreOperatorSupportedEnvironment}
         operatorSupportedReleaseAuthorizationBasis={

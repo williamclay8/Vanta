@@ -220,7 +220,7 @@ try {
   if (
     !initialSummaryState.ok ||
     initialSummaryState.parsed?.stateVersion !== 1 ||
-    initialSummaryState.parsed?.summaryVersion !== 10 ||
+    initialSummaryState.parsed?.summaryVersion !== 11 ||
     initialSummaryState.parsed?.supportedSendLaneVersion !== 1 ||
     initialSummaryState.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     initialSummaryState.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -234,6 +234,10 @@ try {
       "proof-backed-consume-latest-registered-root" ||
     initialSummaryState.parsed?.supportedReleaseLaneStatus !== "supported" ||
     typeof initialSummaryState.parsed?.supportedReleaseLaneNote !== "string" ||
+    initialSummaryState.parsed?.supportedFlowVersion !== 1 ||
+    initialSummaryState.parsed?.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
+    initialSummaryState.parsed?.supportedFlowStatus !== "supported" ||
+    typeof initialSummaryState.parsed?.supportedFlowNote !== "string" ||
     initialSummaryState.parsed?.supportedAssetSymbol !== "VUSD" ||
     initialSummaryState.parsed?.supportedEnvironment !== "solana-devnet" ||
     initialSummaryState.parsed?.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
@@ -873,7 +877,7 @@ try {
   if (
     !summaryStateAfterConsume.ok ||
     summaryStateAfterConsume.parsed?.stateVersion !== 1 ||
-    summaryStateAfterConsume.parsed?.summaryVersion !== 10 ||
+    summaryStateAfterConsume.parsed?.summaryVersion !== 11 ||
     summaryStateAfterConsume.parsed?.supportedSendLaneVersion !== 1 ||
     summaryStateAfterConsume.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     summaryStateAfterConsume.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -885,6 +889,10 @@ try {
       "proof-backed-consume-latest-registered-root" ||
     summaryStateAfterConsume.parsed?.supportedReleaseLaneStatus !== "supported" ||
     typeof summaryStateAfterConsume.parsed?.supportedReleaseLaneNote !== "string" ||
+    summaryStateAfterConsume.parsed?.supportedFlowVersion !== 1 ||
+    summaryStateAfterConsume.parsed?.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
+    summaryStateAfterConsume.parsed?.supportedFlowStatus !== "supported" ||
+    typeof summaryStateAfterConsume.parsed?.supportedFlowNote !== "string" ||
     summaryStateAfterConsume.parsed?.supportedAssetSymbol !== "VUSD" ||
     summaryStateAfterConsume.parsed?.supportedEnvironment !== "solana-devnet" ||
     summaryStateAfterConsume.parsed?.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
@@ -945,7 +953,7 @@ try {
   });
   if (
     !summaryStateAfterRelease.ok ||
-    summaryStateAfterRelease.parsed?.summaryVersion !== 10 ||
+    summaryStateAfterRelease.parsed?.summaryVersion !== 11 ||
     summaryStateAfterRelease.parsed?.supportedSendLaneVersion !== 1 ||
     summaryStateAfterRelease.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     summaryStateAfterRelease.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -957,6 +965,10 @@ try {
       "proof-backed-consume-latest-registered-root" ||
     summaryStateAfterRelease.parsed?.supportedReleaseLaneStatus !== "supported" ||
     typeof summaryStateAfterRelease.parsed?.supportedReleaseLaneNote !== "string" ||
+    summaryStateAfterRelease.parsed?.supportedFlowVersion !== 1 ||
+    summaryStateAfterRelease.parsed?.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
+    summaryStateAfterRelease.parsed?.supportedFlowStatus !== "supported" ||
+    typeof summaryStateAfterRelease.parsed?.supportedFlowNote !== "string" ||
     summaryStateAfterRelease.parsed?.supportedAssetSymbol !== "VUSD" ||
     summaryStateAfterRelease.parsed?.supportedEnvironment !== "solana-devnet" ||
     summaryStateAfterRelease.parsed?.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
@@ -1003,7 +1015,7 @@ try {
   });
   if (
     !operatorStatusOutput.includes("Summary state version: 1") ||
-    !operatorStatusOutput.includes("Summary version: 10") ||
+    !operatorStatusOutput.includes("Summary version: 11") ||
     !operatorStatusOutput.includes("Summary generated:") ||
     !operatorStatusOutput.includes("Supported send lane version: 1") ||
     !operatorStatusOutput.includes("Supported send lane kind: Single input / recipient / optional change") ||
@@ -1019,6 +1031,10 @@ try {
     ) ||
     !operatorStatusOutput.includes("Supported release lane status: Supported") ||
     !operatorStatusOutput.includes("Supported release lane note: Current narrow zk v1 release lane is supported") ||
+    !operatorStatusOutput.includes("Supported flow version: 1") ||
+    !operatorStatusOutput.includes("Supported flow kind: Shield / hold / send / unshield / replay guard") ||
+    !operatorStatusOutput.includes("Supported flow status: Supported") ||
+    !operatorStatusOutput.includes("Supported flow note: Current narrow zk v1 product flow is shield, hold, private send, unshield, and replay guard") ||
     !operatorStatusOutput.includes("Supported asset: VUSD") ||
     !operatorStatusOutput.includes("Supported environment: solana-devnet") ||
     !operatorStatusOutput.includes("Supported release authorization: Proof-backed consume") ||

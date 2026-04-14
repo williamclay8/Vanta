@@ -273,7 +273,7 @@ try {
     preRestartSends.parsed.records.length < 1 ||
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.stateVersion !== 1 ||
-    preRestartSummary.parsed?.summaryVersion !== 10 ||
+    preRestartSummary.parsed?.summaryVersion !== 11 ||
     preRestartSummary.parsed?.supportedSendLaneVersion !== 1 ||
     preRestartSummary.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     preRestartSummary.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -285,6 +285,10 @@ try {
       "proof-backed-consume-latest-registered-root" ||
     preRestartSummary.parsed?.supportedReleaseLaneStatus !== "supported" ||
     typeof preRestartSummary.parsed?.supportedReleaseLaneNote !== "string" ||
+    preRestartSummary.parsed?.supportedFlowVersion !== 1 ||
+    preRestartSummary.parsed?.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
+    preRestartSummary.parsed?.supportedFlowStatus !== "supported" ||
+    typeof preRestartSummary.parsed?.supportedFlowNote !== "string" ||
     preRestartSummary.parsed?.supportedAssetSymbol !== "VUSD" ||
     preRestartSummary.parsed?.supportedEnvironment !== "solana-devnet" ||
     preRestartSummary.parsed?.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
@@ -336,7 +340,7 @@ try {
   if (
     !postRestartSummary.ok ||
     postRestartSummary.parsed?.stateVersion !== 1 ||
-    postRestartSummary.parsed?.summaryVersion !== 10 ||
+    postRestartSummary.parsed?.summaryVersion !== 11 ||
     postRestartSummary.parsed?.supportedSendLaneVersion !== 1 ||
     postRestartSummary.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     postRestartSummary.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -348,6 +352,10 @@ try {
       "proof-backed-consume-latest-registered-root" ||
     postRestartSummary.parsed?.supportedReleaseLaneStatus !== "supported" ||
     typeof postRestartSummary.parsed?.supportedReleaseLaneNote !== "string" ||
+    postRestartSummary.parsed?.supportedFlowVersion !== 1 ||
+    postRestartSummary.parsed?.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
+    postRestartSummary.parsed?.supportedFlowStatus !== "supported" ||
+    typeof postRestartSummary.parsed?.supportedFlowNote !== "string" ||
     postRestartSummary.parsed?.supportedAssetSymbol !== "VUSD" ||
     postRestartSummary.parsed?.supportedEnvironment !== "solana-devnet" ||
     postRestartSummary.parsed?.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
@@ -431,7 +439,7 @@ try {
     stdio: "pipe",
   });
   if (
-    !operatorStatusOutput.includes("Summary version: 10") ||
+    !operatorStatusOutput.includes("Summary version: 11") ||
     !operatorStatusOutput.includes("Supported send lane version: 1") ||
     !operatorStatusOutput.includes("Supported send lane status: Supported") ||
     !operatorStatusOutput.includes("Supported unshield lane version: 1") ||
@@ -442,6 +450,10 @@ try {
     ) ||
     !operatorStatusOutput.includes("Supported release lane status: Supported") ||
     !operatorStatusOutput.includes("Supported release lane note: Current narrow zk v1 release lane is supported") ||
+    !operatorStatusOutput.includes("Supported flow version: 1") ||
+    !operatorStatusOutput.includes("Supported flow kind: Shield / hold / send / unshield / replay guard") ||
+    !operatorStatusOutput.includes("Supported flow status: Supported") ||
+    !operatorStatusOutput.includes("Supported flow note: Current narrow zk v1 product flow is shield, hold, private send, unshield, and replay guard") ||
     !operatorStatusOutput.includes("Supported asset: VUSD") ||
     !operatorStatusOutput.includes("Supported environment: solana-devnet") ||
     !operatorStatusOutput.includes("Supported release authorization: Proof-backed consume") ||

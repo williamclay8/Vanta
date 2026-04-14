@@ -234,6 +234,10 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedReleaseLaneNote: string;
   supportedReleaseLaneStatus: "supported";
   supportedReleaseLaneVersion: number;
+  supportedFlowKind: "shield-hold-send-unshield-replay-guard";
+  supportedFlowNote: string;
+  supportedFlowStatus: "supported";
+  supportedFlowVersion: number;
   supportedAssetSymbol: "VUSD";
   supportedEnvironment: "solana-devnet";
   supportedReleaseAuthorizationBasis: "proof-backed-consume";
@@ -837,6 +841,10 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedReleaseLaneNote?: unknown;
     supportedReleaseLaneStatus?: unknown;
     supportedReleaseLaneVersion?: unknown;
+    supportedFlowKind?: unknown;
+    supportedFlowNote?: unknown;
+    supportedFlowStatus?: unknown;
+    supportedFlowVersion?: unknown;
     supportedAssetSymbol?: unknown;
     supportedEnvironment?: unknown;
     supportedReleaseAuthorizationBasis?: unknown;
@@ -874,7 +882,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.summaryVersion !== 10 ||
+    parsed.summaryVersion !== 11 ||
     !isBoundaryStatus(parsed.boundaryStatus) ||
     typeof parsed.boundaryNote !== "string" ||
     (parsed.currentRootLinkedProof !== null &&
@@ -904,6 +912,10 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     parsed.supportedReleaseLaneKind !== "proof-backed-consume-latest-registered-root" ||
     parsed.supportedReleaseLaneStatus !== "supported" ||
     typeof parsed.supportedReleaseLaneNote !== "string" ||
+    parsed.supportedFlowVersion !== 1 ||
+    parsed.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
+    parsed.supportedFlowStatus !== "supported" ||
+    typeof parsed.supportedFlowNote !== "string" ||
     parsed.supportedAssetSymbol !== "VUSD" ||
     parsed.supportedEnvironment !== "solana-devnet" ||
     parsed.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
@@ -963,7 +975,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   return {
     stateVersion: 1,
-    summaryVersion: 10,
+    summaryVersion: 11,
     boundaryStatus: parsed.boundaryStatus,
     boundaryNote: parsed.boundaryNote,
     supportedSendLaneVersion: 1,
@@ -978,6 +990,10 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedReleaseLaneKind: "proof-backed-consume-latest-registered-root",
     supportedReleaseLaneStatus: "supported",
     supportedReleaseLaneNote: parsed.supportedReleaseLaneNote,
+    supportedFlowVersion: 1,
+    supportedFlowKind: "shield-hold-send-unshield-replay-guard",
+    supportedFlowStatus: "supported",
+    supportedFlowNote: parsed.supportedFlowNote,
     supportedAssetSymbol: "VUSD",
     supportedEnvironment: "solana-devnet",
     supportedReleaseAuthorizationBasis: "proof-backed-consume",

@@ -262,7 +262,7 @@ try {
   if (
     !summaryState.ok ||
     summaryState.parsed?.stateVersion !== 1 ||
-    summaryState.parsed?.summaryVersion !== 10 ||
+    summaryState.parsed?.summaryVersion !== 11 ||
     summaryState.parsed?.supportedSendLaneVersion !== 1 ||
     summaryState.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     summaryState.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -274,6 +274,10 @@ try {
       "proof-backed-consume-latest-registered-root" ||
     summaryState.parsed?.supportedReleaseLaneStatus !== "supported" ||
     typeof summaryState.parsed?.supportedReleaseLaneNote !== "string" ||
+    summaryState.parsed?.supportedFlowVersion !== 1 ||
+    summaryState.parsed?.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
+    summaryState.parsed?.supportedFlowStatus !== "supported" ||
+    typeof summaryState.parsed?.supportedFlowNote !== "string" ||
     summaryState.parsed?.supportedAssetSymbol !== "VUSD" ||
     summaryState.parsed?.supportedEnvironment !== "solana-devnet" ||
     summaryState.parsed?.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||

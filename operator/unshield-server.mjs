@@ -151,6 +151,11 @@ const PRIVATE_CORE_SUPPORTED_RELEASE_LANE_KIND = "proof-backed-consume-latest-re
 const PRIVATE_CORE_SUPPORTED_RELEASE_LANE_STATUS = "supported";
 const PRIVATE_CORE_SUPPORTED_RELEASE_LANE_NOTE =
   "Current narrow zk v1 release lane is supported for proof-backed consume-authorized release under the latest registered root policy.";
+const PRIVATE_CORE_SUPPORTED_FLOW_VERSION = 1;
+const PRIVATE_CORE_SUPPORTED_FLOW_KIND = "shield-hold-send-unshield-replay-guard";
+const PRIVATE_CORE_SUPPORTED_FLOW_STATUS = "supported";
+const PRIVATE_CORE_SUPPORTED_FLOW_NOTE =
+  "Current narrow zk v1 product flow is shield, hold, private send, unshield, and replay guard on the resulting consume path.";
 const PRIVATE_CORE_SUPPORTED_ASSET_SYMBOL = "VUSD";
 const PRIVATE_CORE_SUPPORTED_ENVIRONMENT = "solana-devnet";
 const PRIVATE_CORE_RELEASE_AUTHORIZATION_BASIS = "proof-backed-consume";
@@ -1556,6 +1561,10 @@ function buildPrivateCoreSummaryState() {
     supportedReleaseLaneKind: PRIVATE_CORE_SUPPORTED_RELEASE_LANE_KIND,
     supportedReleaseLaneStatus: PRIVATE_CORE_SUPPORTED_RELEASE_LANE_STATUS,
     supportedReleaseLaneNote: PRIVATE_CORE_SUPPORTED_RELEASE_LANE_NOTE,
+    supportedFlowVersion: PRIVATE_CORE_SUPPORTED_FLOW_VERSION,
+    supportedFlowKind: PRIVATE_CORE_SUPPORTED_FLOW_KIND,
+    supportedFlowStatus: PRIVATE_CORE_SUPPORTED_FLOW_STATUS,
+    supportedFlowNote: PRIVATE_CORE_SUPPORTED_FLOW_NOTE,
     supportedAssetSymbol: PRIVATE_CORE_SUPPORTED_ASSET_SYMBOL,
     supportedEnvironment: PRIVATE_CORE_SUPPORTED_ENVIRONMENT,
     supportedReleaseAuthorizationBasis: PRIVATE_CORE_RELEASE_AUTHORIZATION_BASIS,
@@ -1574,7 +1583,7 @@ function buildPrivateCoreSummaryState() {
     sendResultingRootProofLinkStatus,
     sendResultingRootStatus: sendResultingRootStatus.status,
     stateVersion: 1,
-    summaryVersion: 10,
+    summaryVersion: 11,
     currentRoot: currentRootRecord?.root ?? null,
     currentRecord: currentRootRecord,
     rootRecords,

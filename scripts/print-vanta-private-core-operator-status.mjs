@@ -34,6 +34,10 @@ try {
     humanizeSupportedReleaseLaneStatus(summary.supportedReleaseLaneStatus),
   );
   printLine("Supported release lane note", summary.supportedReleaseLaneNote ?? "Unavailable");
+  printLine("Supported flow version", String(summary.supportedFlowVersion ?? "unknown"));
+  printLine("Supported flow kind", humanizeSupportedFlowKind(summary.supportedFlowKind));
+  printLine("Supported flow status", humanizeSupportedFlowStatus(summary.supportedFlowStatus));
+  printLine("Supported flow note", summary.supportedFlowNote ?? "Unavailable");
   printLine("Supported asset", summary.supportedAssetSymbol ?? "Unavailable");
   printLine("Supported environment", summary.supportedEnvironment ?? "Unavailable");
   printLine(
@@ -305,6 +309,24 @@ function humanizeSupportedReleaseLaneKind(value) {
 }
 
 function humanizeSupportedReleaseLaneStatus(value) {
+  switch (value) {
+    case "supported":
+      return "Supported";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeSupportedFlowKind(value) {
+  switch (value) {
+    case "shield-hold-send-unshield-replay-guard":
+      return "Shield / hold / send / unshield / replay guard";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeSupportedFlowStatus(value) {
   switch (value) {
     case "supported":
       return "Supported";
