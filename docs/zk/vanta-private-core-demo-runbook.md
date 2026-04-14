@@ -55,6 +55,7 @@ That confirms:
 
 The operator-status command gives a quick summary snapshot of:
 - current registered root
+- supported send-lane version and identity
 - latest proof
 - latest send proof
 - latest send linked proof

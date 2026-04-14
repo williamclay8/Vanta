@@ -30,6 +30,10 @@ type VantaPrivateCoreStatePanelProps = {
   operatorLatestSendProof?: VantaPrivateCoreOperatorSendProofRecord | null;
   operatorBoundaryPrimaryNote?: string | null;
   operatorBoundaryStatusLabel?: string | null;
+  operatorSupportedSendLaneKind?: string | null;
+  operatorSupportedSendLaneNote?: string | null;
+  operatorSupportedSendLaneStatus?: string | null;
+  operatorSupportedSendLaneVersion?: number | null;
   operatorCurrentRootLinkedProof?: VantaPrivateCoreOperatorProofRecord | null;
   operatorCurrentRootProofLinkStatus?: string | null;
   operatorProofConsumeLinkStatus?: string | null;
@@ -172,6 +176,10 @@ export function VantaPrivateCoreStatePanel({
   operatorLatestSendProof = null,
   operatorBoundaryPrimaryNote = null,
   operatorBoundaryStatusLabel = null,
+  operatorSupportedSendLaneKind = null,
+  operatorSupportedSendLaneNote = null,
+  operatorSupportedSendLaneStatus = null,
+  operatorSupportedSendLaneVersion = null,
   operatorCurrentRootLinkedProof = null,
   operatorCurrentRootProofLinkStatus = null,
   operatorProofConsumeLinkStatus = null,
@@ -436,8 +444,24 @@ export function VantaPrivateCoreStatePanel({
               <strong>{operatorBoundaryStatusLabel ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
+              <span>Supported send lane</span>
+              <strong>
+                {operatorSupportedSendLaneKind === "single-input-single-recipient-optional-change"
+                  ? `v${String(operatorSupportedSendLaneVersion ?? 1)} · Single input / recipient / optional change`
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Supported lane status</span>
+              <strong>{operatorSupportedSendLaneStatus ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
               <span>Operator boundary note</span>
               <strong>{operatorBoundaryPrimaryNote ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Supported lane note</span>
+              <strong>{operatorSupportedSendLaneNote ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Circuit readiness</span>

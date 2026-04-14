@@ -136,6 +136,11 @@ const swapTransitionLookupDelayMs = Number(
 const VANTA_UNSHIELD_MEMO_PREFIX = "vanta:unshield-note:v1:";
 const VANTA_SWAP_MEMO_PREFIX = "vanta:swap-note:v1:";
 const VANTA_MEMO_PROGRAM_ID = "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
+const PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION = 1;
+const PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND = "single-input-single-recipient-optional-change";
+const PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS = "supported";
+const PRIVATE_CORE_SUPPORTED_SEND_LANE_NOTE =
+  "Current narrow zk v1 send lane is supported for one input note, one recipient output, and optional change.";
 
 if (!swapLaneConfigValidation.valid) {
   console.warn(
@@ -1518,6 +1523,10 @@ function buildPrivateCoreSummaryState() {
   return {
     boundaryStatus: boundaryStatus.status,
     boundaryNote: boundaryStatus.note,
+    supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
+    supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
+    supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
+    supportedSendLaneNote: PRIVATE_CORE_SUPPORTED_SEND_LANE_NOTE,
     currentRootLinkedProof,
     currentRootProofLinkStatus,
     generatedAt: Date.now(),
@@ -1529,7 +1538,7 @@ function buildPrivateCoreSummaryState() {
     sendResultingRootProofLinkStatus,
     sendResultingRootStatus: sendResultingRootStatus.status,
     stateVersion: 1,
-    summaryVersion: 5,
+    summaryVersion: 6,
     currentRoot: currentRootRecord?.root ?? null,
     currentRecord: currentRootRecord,
     rootRecords,

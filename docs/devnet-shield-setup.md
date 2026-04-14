@@ -116,6 +116,7 @@ npm run private-core:operator-status
 
 The operator-status command now prints:
 - current root
+- supported send-lane version and identity
 - latest proof
 - latest send proof
 - latest send linked proof

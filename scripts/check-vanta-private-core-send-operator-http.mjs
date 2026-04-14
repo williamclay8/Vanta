@@ -262,7 +262,10 @@ try {
   if (
     !summaryState.ok ||
     summaryState.parsed?.stateVersion !== 1 ||
-    summaryState.parsed?.summaryVersion !== 5 ||
+    summaryState.parsed?.summaryVersion !== 6 ||
+    summaryState.parsed?.supportedSendLaneVersion !== 1 ||
+    summaryState.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
+    summaryState.parsed?.supportedSendLaneStatus !== "supported" ||
     summaryState.parsed?.latestSendProof?.action !== "send-proof" ||
     summaryState.parsed?.latestSendProof?.circuit !== "vanta_private_core_single_note_send" ||
     summaryState.parsed?.sendProofRecordCount !== 1 ||

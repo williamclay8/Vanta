@@ -218,6 +218,10 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
     | "downstream-consumed"
     | "downstream-released"
     | "unregistered";
+  supportedSendLaneKind: "single-input-single-recipient-optional-change";
+  supportedSendLaneNote: string;
+  supportedSendLaneStatus: "supported";
+  supportedSendLaneVersion: number;
   generatedAt: number;
   stateVersion: number;
   summaryVersion: number;
@@ -798,6 +802,10 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     sendResultingRootRegistrationStatus?: unknown;
     sendResultingRootRegistrationNote?: unknown;
     sendResultingRootProofLinkStatus?: unknown;
+    supportedSendLaneKind?: unknown;
+    supportedSendLaneNote?: unknown;
+    supportedSendLaneStatus?: unknown;
+    supportedSendLaneVersion?: unknown;
     generatedAt?: unknown;
     currentRoot?: unknown;
     currentRecord?: unknown;
@@ -828,7 +836,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.summaryVersion !== 5 ||
+    parsed.summaryVersion !== 6 ||
     !isBoundaryStatus(parsed.boundaryStatus) ||
     typeof parsed.boundaryNote !== "string" ||
     (parsed.currentRootLinkedProof !== null &&
@@ -846,6 +854,10 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     !isSendResultingRootRegistrationStatus(parsed.sendResultingRootRegistrationStatus) ||
     typeof parsed.sendResultingRootRegistrationNote !== "string" ||
     !isLinkStatus(parsed.sendResultingRootProofLinkStatus) ||
+    parsed.supportedSendLaneVersion !== 1 ||
+    parsed.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
+    parsed.supportedSendLaneStatus !== "supported" ||
+    typeof parsed.supportedSendLaneNote !== "string" ||
     typeof parsed.generatedAt !== "number" ||
     (parsed.currentRoot !== null &&
       parsed.currentRoot !== undefined &&
@@ -898,9 +910,13 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   return {
     stateVersion: 1,
-    summaryVersion: 5,
+    summaryVersion: 6,
     boundaryStatus: parsed.boundaryStatus,
     boundaryNote: parsed.boundaryNote,
+    supportedSendLaneVersion: 1,
+    supportedSendLaneKind: "single-input-single-recipient-optional-change",
+    supportedSendLaneStatus: "supported",
+    supportedSendLaneNote: parsed.supportedSendLaneNote,
     currentRootLinkedProof: isProofRecord(parsed.currentRootLinkedProof)
       ? parsed.currentRootLinkedProof
       : null,

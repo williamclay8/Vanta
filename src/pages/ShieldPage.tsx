@@ -109,6 +109,10 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOperatorLatestSend,
     privateCoreOperatorBoundaryPrimaryNote,
     privateCoreOperatorBoundaryStatusLabel,
+    privateCoreOperatorSupportedSendLaneKind,
+    privateCoreOperatorSupportedSendLaneNote,
+    privateCoreOperatorSupportedSendLaneStatus,
+    privateCoreOperatorSupportedSendLaneVersion,
     privateCoreOperatorCurrentRootLinkedProof,
     privateCoreOperatorCurrentRootProofLinkStatus,
     privateCoreOperatorSendResultingRootLinkedProof,
@@ -1049,6 +1053,10 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 operatorLatestSendProof={privateCoreOperatorLatestSendProof}
                 operatorBoundaryPrimaryNote={privateCoreOperatorBoundaryPrimaryNote}
                 operatorBoundaryStatusLabel={privateCoreOperatorBoundaryStatusLabel}
+                operatorSupportedSendLaneKind={privateCoreOperatorSupportedSendLaneKind}
+                operatorSupportedSendLaneNote={privateCoreOperatorSupportedSendLaneNote}
+                operatorSupportedSendLaneStatus={privateCoreOperatorSupportedSendLaneStatus}
+                operatorSupportedSendLaneVersion={privateCoreOperatorSupportedSendLaneVersion}
                 operatorCurrentRootLinkedProof={privateCoreOperatorCurrentRootLinkedProof}
                 operatorCurrentRootProofLinkStatus={privateCoreOperatorCurrentRootProofLinkStatus}
                 operatorSendResultingRootLinkedProof={privateCoreOperatorSendResultingRootLinkedProof}

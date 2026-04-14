@@ -107,6 +107,10 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorRawSendResultingRootStatus: string | null;
   privateCoreOperatorRawBoundaryNote: string | null;
   privateCoreOperatorRawBoundaryStatus: string | null;
+  privateCoreOperatorSupportedSendLaneKind: string | null;
+  privateCoreOperatorSupportedSendLaneNote: string | null;
+  privateCoreOperatorSupportedSendLaneStatus: string | null;
+  privateCoreOperatorSupportedSendLaneVersion: number | null;
   privateCoreOperatorProofConsumeLinkStatus: string | null;
   privateCoreOperatorProofError: string | null;
   privateCoreOperatorProofs: VantaPrivateCoreOperatorProofRecord[];
@@ -360,6 +364,14 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<string | null>(null);
   const [privateCoreOperatorRawBoundaryStatus, setPrivateCoreOperatorRawBoundaryStatus] =
     useState<string | null>(null);
+  const [privateCoreOperatorSupportedSendLaneKind, setPrivateCoreOperatorSupportedSendLaneKind] =
+    useState<string | null>(null);
+  const [privateCoreOperatorSupportedSendLaneNote, setPrivateCoreOperatorSupportedSendLaneNote] =
+    useState<string | null>(null);
+  const [privateCoreOperatorSupportedSendLaneStatus, setPrivateCoreOperatorSupportedSendLaneStatus] =
+    useState<string | null>(null);
+  const [privateCoreOperatorSupportedSendLaneVersion, setPrivateCoreOperatorSupportedSendLaneVersion] =
+    useState<number | null>(null);
   const [privateCoreOperatorProofConsumeLinkStatus, setPrivateCoreOperatorProofConsumeLinkStatus] =
     useState<string | null>(null);
   const [privateCoreOperatorProofError, setPrivateCoreOperatorProofError] = useState<string | null>(null);
@@ -416,6 +428,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorRawSendResultingRootStatus,
       setPrivateCoreOperatorRawBoundaryNote,
       setPrivateCoreOperatorRawBoundaryStatus,
+      setPrivateCoreOperatorSupportedSendLaneKind,
+      setPrivateCoreOperatorSupportedSendLaneNote,
+      setPrivateCoreOperatorSupportedSendLaneStatus,
+      setPrivateCoreOperatorSupportedSendLaneVersion,
       setPrivateCoreOperatorConsumes,
       setPrivateCoreOperatorProofConsumeLinkStatus,
       setPrivateCoreOperatorProofs,
@@ -1390,6 +1406,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorRawSendResultingRootStatus,
       privateCoreOperatorRawBoundaryNote,
       privateCoreOperatorRawBoundaryStatus,
+      privateCoreOperatorSupportedSendLaneKind,
+      privateCoreOperatorSupportedSendLaneNote,
+      privateCoreOperatorSupportedSendLaneStatus,
+      privateCoreOperatorSupportedSendLaneVersion,
       privateCoreOperatorProofConsumeLinkStatus,
       privateCoreOperatorProofError,
       privateCoreOperatorProofs,
@@ -1458,6 +1478,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorRawSendResultingRootStatus,
       privateCoreOperatorRawBoundaryNote,
       privateCoreOperatorRawBoundaryStatus,
+      privateCoreOperatorSupportedSendLaneKind,
+      privateCoreOperatorSupportedSendLaneNote,
+      privateCoreOperatorSupportedSendLaneStatus,
+      privateCoreOperatorSupportedSendLaneVersion,
       privateCoreOperatorProofConsumeLinkStatus,
       privateCoreOperatorProofError,
       privateCoreOperatorProofs,
@@ -1874,6 +1898,10 @@ function applyPrivateCoreOperatorSummaryState(args: {
   setPrivateCoreOperatorRawSendResultingRootStatus: (value: string | null) => void;
   setPrivateCoreOperatorRawBoundaryNote: (value: string | null) => void;
   setPrivateCoreOperatorRawBoundaryStatus: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedSendLaneKind: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedSendLaneNote: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedSendLaneStatus: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedSendLaneVersion: (value: number | null) => void;
   setPrivateCoreOperatorConsumes: (value: VantaPrivateCoreOperatorConsumeRecord[]) => void;
   setPrivateCoreOperatorProofConsumeLinkStatus: (value: string | null) => void;
   setPrivateCoreOperatorProofs: (value: VantaPrivateCoreOperatorProofRecord[]) => void;
@@ -1911,6 +1939,10 @@ function applyPrivateCoreOperatorSummaryState(args: {
   args.setPrivateCoreOperatorLatestReleaseProof(args.summaryState.latestReleaseProof);
   args.setPrivateCoreOperatorRawBoundaryNote(args.summaryState.boundaryNote);
   args.setPrivateCoreOperatorRawBoundaryStatus(args.summaryState.boundaryStatus);
+  args.setPrivateCoreOperatorSupportedSendLaneKind(args.summaryState.supportedSendLaneKind);
+  args.setPrivateCoreOperatorSupportedSendLaneNote(args.summaryState.supportedSendLaneNote);
+  args.setPrivateCoreOperatorSupportedSendLaneStatus(args.summaryState.supportedSendLaneStatus);
+  args.setPrivateCoreOperatorSupportedSendLaneVersion(args.summaryState.supportedSendLaneVersion);
   args.setPrivateCoreOperatorRoots(args.summaryState.rootRecords);
   args.setPrivateCoreOperatorProofs(args.summaryState.proofRecords);
   args.setPrivateCoreOperatorSends(args.summaryState.sendRecords);

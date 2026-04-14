@@ -74,6 +74,12 @@ The canonical regression command for the supported lane is:
 
 - `npm run private-core:verify`
 
+The canonical operator-summary identity for the supported lane is now:
+
+- `supportedSendLaneVersion = 1`
+- `supportedSendLaneKind = single-input-single-recipient-optional-change`
+- `supportedSendLaneStatus = supported`
+
 That command now covers:
 
 - unshield circuit regression

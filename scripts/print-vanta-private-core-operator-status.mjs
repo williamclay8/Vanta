@@ -7,6 +7,10 @@ try {
   printLine("Summary state version", String(summary.stateVersion ?? "unknown"));
   printLine("Summary version", String(summary.summaryVersion ?? "unknown"));
   printLine("Summary generated", formatTimestamp(summary.generatedAt));
+  printLine("Supported send lane version", String(summary.supportedSendLaneVersion ?? "unknown"));
+  printLine("Supported send lane kind", humanizeSupportedSendLaneKind(summary.supportedSendLaneKind));
+  printLine("Supported send lane status", humanizeSupportedSendLaneStatus(summary.supportedSendLaneStatus));
+  printLine("Supported send lane note", summary.supportedSendLaneNote ?? "Unavailable");
   printLine("Current root", abbreviate(summary.currentRoot));
   printLine("Current root proof", abbreviate(summary.currentRecord?.proofId));
   printLine("Current root registration", humanizeRootRegistrationBasis(summary.currentRecord?.registrationBasis));
@@ -212,6 +216,24 @@ function humanizeRootRegistrationBasis(value) {
       return "Send recipient output";
     case "send-change-output":
       return "Send change output";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeSupportedSendLaneKind(value) {
+  switch (value) {
+    case "single-input-single-recipient-optional-change":
+      return "Single input / recipient / optional change";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeSupportedSendLaneStatus(value) {
+  switch (value) {
+    case "supported":
+      return "Supported";
     default:
       return "Unavailable";
   }

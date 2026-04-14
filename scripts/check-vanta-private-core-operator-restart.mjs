@@ -273,7 +273,10 @@ try {
     preRestartSends.parsed.records.length < 1 ||
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.stateVersion !== 1 ||
-    preRestartSummary.parsed?.summaryVersion !== 5 ||
+    preRestartSummary.parsed?.summaryVersion !== 6 ||
+    preRestartSummary.parsed?.supportedSendLaneVersion !== 1 ||
+    preRestartSummary.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
+    preRestartSummary.parsed?.supportedSendLaneStatus !== "supported" ||
     typeof preRestartSummary.parsed?.generatedAt !== "number" ||
     preRestartSummary.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
     preRestartSummary.parsed?.latestSendProof?.action !== "send-proof" ||
@@ -318,7 +321,10 @@ try {
   if (
     !postRestartSummary.ok ||
     postRestartSummary.parsed?.stateVersion !== 1 ||
-    postRestartSummary.parsed?.summaryVersion !== 5 ||
+    postRestartSummary.parsed?.summaryVersion !== 6 ||
+    postRestartSummary.parsed?.supportedSendLaneVersion !== 1 ||
+    postRestartSummary.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
+    postRestartSummary.parsed?.supportedSendLaneStatus !== "supported" ||
     typeof postRestartSummary.parsed?.generatedAt !== "number" ||
     postRestartSummary.parsed?.currentRoot !== witnessPackage.sourcePublicInputs.stateRoot ||
     postRestartSummary.parsed?.rootRecordCount < 1
@@ -395,6 +401,9 @@ try {
     stdio: "pipe",
   });
   if (
+    !operatorStatusOutput.includes("Summary version: 6") ||
+    !operatorStatusOutput.includes("Supported send lane version: 1") ||
+    !operatorStatusOutput.includes("Supported send lane status: Supported") ||
     !operatorStatusOutput.includes("Latest proof action: consume") ||
     !operatorStatusOutput.includes("Latest send proof action: send-proof") ||
     !operatorStatusOutput.includes("Latest send transition:") ||
