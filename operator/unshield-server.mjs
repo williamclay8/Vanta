@@ -151,6 +151,8 @@ const PRIVATE_CORE_SUPPORTED_RELEASE_LANE_KIND = "proof-backed-consume-latest-re
 const PRIVATE_CORE_SUPPORTED_RELEASE_LANE_STATUS = "supported";
 const PRIVATE_CORE_SUPPORTED_RELEASE_LANE_NOTE =
   "Current narrow zk v1 release lane is supported for proof-backed consume-authorized release under the latest registered root policy.";
+const PRIVATE_CORE_SUPPORTED_ASSET_SYMBOL = "VUSD";
+const PRIVATE_CORE_SUPPORTED_ENVIRONMENT = "solana-devnet";
 const PRIVATE_CORE_RELEASE_AUTHORIZATION_BASIS = "proof-backed-consume";
 const PRIVATE_CORE_RELEASE_ROOT_POLICY = "latest-registered-root";
 const PRIVATE_CORE_OWNER_AUTH_MODE = "x25519-secret-prechecked-off-circuit";
@@ -1554,6 +1556,8 @@ function buildPrivateCoreSummaryState() {
     supportedReleaseLaneKind: PRIVATE_CORE_SUPPORTED_RELEASE_LANE_KIND,
     supportedReleaseLaneStatus: PRIVATE_CORE_SUPPORTED_RELEASE_LANE_STATUS,
     supportedReleaseLaneNote: PRIVATE_CORE_SUPPORTED_RELEASE_LANE_NOTE,
+    supportedAssetSymbol: PRIVATE_CORE_SUPPORTED_ASSET_SYMBOL,
+    supportedEnvironment: PRIVATE_CORE_SUPPORTED_ENVIRONMENT,
     supportedReleaseAuthorizationBasis: PRIVATE_CORE_RELEASE_AUTHORIZATION_BASIS,
     supportedReleaseRootPolicy: PRIVATE_CORE_RELEASE_ROOT_POLICY,
     ownerAuthorizationMode: PRIVATE_CORE_OWNER_AUTH_MODE,
@@ -1570,7 +1574,7 @@ function buildPrivateCoreSummaryState() {
     sendResultingRootProofLinkStatus,
     sendResultingRootStatus: sendResultingRootStatus.status,
     stateVersion: 1,
-    summaryVersion: 9,
+    summaryVersion: 10,
     currentRoot: currentRootRecord?.root ?? null,
     currentRecord: currentRootRecord,
     rootRecords,

@@ -197,6 +197,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorSupportedReleaseLaneNote,
     privateCoreOperatorSupportedReleaseLaneStatus,
     privateCoreOperatorSupportedReleaseLaneVersion,
+    privateCoreOperatorSupportedAssetSymbol,
+    privateCoreOperatorSupportedEnvironment,
     privateCoreOperatorSupportedReleaseAuthorizationBasis,
     privateCoreOperatorSupportedReleaseRootPolicy,
     privateCoreOperatorSummaryUpdatedAt,
@@ -1648,6 +1650,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         operatorSupportedReleaseLaneNote={privateCoreOperatorSupportedReleaseLaneNote}
         operatorSupportedReleaseLaneStatus={privateCoreOperatorSupportedReleaseLaneStatus}
         operatorSupportedReleaseLaneVersion={privateCoreOperatorSupportedReleaseLaneVersion}
+        operatorSupportedAssetSymbol={privateCoreOperatorSupportedAssetSymbol}
+        operatorSupportedEnvironment={privateCoreOperatorSupportedEnvironment}
         operatorSupportedReleaseAuthorizationBasis={
           privateCoreOperatorSupportedReleaseAuthorizationBasis
         }

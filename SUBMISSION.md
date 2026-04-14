@@ -343,6 +343,8 @@ The same operator summary now also versions the supported narrow unshield lane:
 - `supportedReleaseLaneVersion = 1`
 - `supportedReleaseLaneKind = proof-backed-consume-latest-registered-root`
 - `supportedReleaseLaneStatus = supported`
+- `supportedAssetSymbol = VUSD`
+- `supportedEnvironment = solana-devnet`
 - `supportedReleaseAuthorizationBasis = proof-backed-consume`
 - `supportedReleaseRootPolicy = latest-registered-root`
 

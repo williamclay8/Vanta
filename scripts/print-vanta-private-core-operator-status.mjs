@@ -34,6 +34,8 @@ try {
     humanizeSupportedReleaseLaneStatus(summary.supportedReleaseLaneStatus),
   );
   printLine("Supported release lane note", summary.supportedReleaseLaneNote ?? "Unavailable");
+  printLine("Supported asset", summary.supportedAssetSymbol ?? "Unavailable");
+  printLine("Supported environment", summary.supportedEnvironment ?? "Unavailable");
   printLine(
     "Supported release authorization",
     humanizeReleaseAuthorization(summary.supportedReleaseAuthorizationBasis),

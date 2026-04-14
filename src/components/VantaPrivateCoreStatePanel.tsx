@@ -42,6 +42,8 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSupportedReleaseLaneNote?: string | null;
   operatorSupportedReleaseLaneStatus?: string | null;
   operatorSupportedReleaseLaneVersion?: number | null;
+  operatorSupportedAssetSymbol?: string | null;
+  operatorSupportedEnvironment?: string | null;
   operatorSupportedReleaseAuthorizationBasis?: string | null;
   operatorSupportedReleaseRootPolicy?: string | null;
   operatorOwnerAuthorizationMode?: string | null;
@@ -201,6 +203,8 @@ export function VantaPrivateCoreStatePanel({
   operatorSupportedReleaseLaneNote = null,
   operatorSupportedReleaseLaneStatus = null,
   operatorSupportedReleaseLaneVersion = null,
+  operatorSupportedAssetSymbol = null,
+  operatorSupportedEnvironment = null,
   operatorSupportedReleaseAuthorizationBasis = null,
   operatorSupportedReleaseRootPolicy = null,
   operatorOwnerAuthorizationMode = null,
@@ -504,6 +508,14 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Supported release status</span>
               <strong>{operatorSupportedReleaseLaneStatus ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Supported asset</span>
+              <strong>{operatorSupportedAssetSymbol ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Supported environment</span>
+              <strong>{operatorSupportedEnvironment ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Supported release auth</span>

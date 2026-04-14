@@ -273,7 +273,7 @@ try {
     preRestartSends.parsed.records.length < 1 ||
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.stateVersion !== 1 ||
-    preRestartSummary.parsed?.summaryVersion !== 9 ||
+    preRestartSummary.parsed?.summaryVersion !== 10 ||
     preRestartSummary.parsed?.supportedSendLaneVersion !== 1 ||
     preRestartSummary.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     preRestartSummary.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -285,6 +285,8 @@ try {
       "proof-backed-consume-latest-registered-root" ||
     preRestartSummary.parsed?.supportedReleaseLaneStatus !== "supported" ||
     typeof preRestartSummary.parsed?.supportedReleaseLaneNote !== "string" ||
+    preRestartSummary.parsed?.supportedAssetSymbol !== "VUSD" ||
+    preRestartSummary.parsed?.supportedEnvironment !== "solana-devnet" ||
     preRestartSummary.parsed?.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     preRestartSummary.parsed?.supportedReleaseRootPolicy !== "latest-registered-root" ||
     preRestartSummary.parsed?.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
@@ -334,7 +336,7 @@ try {
   if (
     !postRestartSummary.ok ||
     postRestartSummary.parsed?.stateVersion !== 1 ||
-    postRestartSummary.parsed?.summaryVersion !== 9 ||
+    postRestartSummary.parsed?.summaryVersion !== 10 ||
     postRestartSummary.parsed?.supportedSendLaneVersion !== 1 ||
     postRestartSummary.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     postRestartSummary.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -346,6 +348,8 @@ try {
       "proof-backed-consume-latest-registered-root" ||
     postRestartSummary.parsed?.supportedReleaseLaneStatus !== "supported" ||
     typeof postRestartSummary.parsed?.supportedReleaseLaneNote !== "string" ||
+    postRestartSummary.parsed?.supportedAssetSymbol !== "VUSD" ||
+    postRestartSummary.parsed?.supportedEnvironment !== "solana-devnet" ||
     postRestartSummary.parsed?.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     postRestartSummary.parsed?.supportedReleaseRootPolicy !== "latest-registered-root" ||
     postRestartSummary.parsed?.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
@@ -427,7 +431,7 @@ try {
     stdio: "pipe",
   });
   if (
-    !operatorStatusOutput.includes("Summary version: 9") ||
+    !operatorStatusOutput.includes("Summary version: 10") ||
     !operatorStatusOutput.includes("Supported send lane version: 1") ||
     !operatorStatusOutput.includes("Supported send lane status: Supported") ||
     !operatorStatusOutput.includes("Supported unshield lane version: 1") ||
@@ -438,6 +442,8 @@ try {
     ) ||
     !operatorStatusOutput.includes("Supported release lane status: Supported") ||
     !operatorStatusOutput.includes("Supported release lane note: Current narrow zk v1 release lane is supported") ||
+    !operatorStatusOutput.includes("Supported asset: VUSD") ||
+    !operatorStatusOutput.includes("Supported environment: solana-devnet") ||
     !operatorStatusOutput.includes("Supported release authorization: Proof-backed consume") ||
     !operatorStatusOutput.includes("Supported release root policy: Latest registered root") ||
     !operatorStatusOutput.includes("Owner authorization mode: X25519 secret prechecked off-circuit") ||

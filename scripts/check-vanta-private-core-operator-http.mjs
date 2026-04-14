@@ -220,7 +220,7 @@ try {
   if (
     !initialSummaryState.ok ||
     initialSummaryState.parsed?.stateVersion !== 1 ||
-    initialSummaryState.parsed?.summaryVersion !== 9 ||
+    initialSummaryState.parsed?.summaryVersion !== 10 ||
     initialSummaryState.parsed?.supportedSendLaneVersion !== 1 ||
     initialSummaryState.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     initialSummaryState.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -234,6 +234,8 @@ try {
       "proof-backed-consume-latest-registered-root" ||
     initialSummaryState.parsed?.supportedReleaseLaneStatus !== "supported" ||
     typeof initialSummaryState.parsed?.supportedReleaseLaneNote !== "string" ||
+    initialSummaryState.parsed?.supportedAssetSymbol !== "VUSD" ||
+    initialSummaryState.parsed?.supportedEnvironment !== "solana-devnet" ||
     initialSummaryState.parsed?.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     initialSummaryState.parsed?.supportedReleaseRootPolicy !== "latest-registered-root" ||
     initialSummaryState.parsed?.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
@@ -871,7 +873,7 @@ try {
   if (
     !summaryStateAfterConsume.ok ||
     summaryStateAfterConsume.parsed?.stateVersion !== 1 ||
-    summaryStateAfterConsume.parsed?.summaryVersion !== 9 ||
+    summaryStateAfterConsume.parsed?.summaryVersion !== 10 ||
     summaryStateAfterConsume.parsed?.supportedSendLaneVersion !== 1 ||
     summaryStateAfterConsume.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     summaryStateAfterConsume.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -883,6 +885,8 @@ try {
       "proof-backed-consume-latest-registered-root" ||
     summaryStateAfterConsume.parsed?.supportedReleaseLaneStatus !== "supported" ||
     typeof summaryStateAfterConsume.parsed?.supportedReleaseLaneNote !== "string" ||
+    summaryStateAfterConsume.parsed?.supportedAssetSymbol !== "VUSD" ||
+    summaryStateAfterConsume.parsed?.supportedEnvironment !== "solana-devnet" ||
     summaryStateAfterConsume.parsed?.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     summaryStateAfterConsume.parsed?.supportedReleaseRootPolicy !== "latest-registered-root" ||
     summaryStateAfterConsume.parsed?.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
@@ -941,7 +945,7 @@ try {
   });
   if (
     !summaryStateAfterRelease.ok ||
-    summaryStateAfterRelease.parsed?.summaryVersion !== 9 ||
+    summaryStateAfterRelease.parsed?.summaryVersion !== 10 ||
     summaryStateAfterRelease.parsed?.supportedSendLaneVersion !== 1 ||
     summaryStateAfterRelease.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     summaryStateAfterRelease.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -953,6 +957,8 @@ try {
       "proof-backed-consume-latest-registered-root" ||
     summaryStateAfterRelease.parsed?.supportedReleaseLaneStatus !== "supported" ||
     typeof summaryStateAfterRelease.parsed?.supportedReleaseLaneNote !== "string" ||
+    summaryStateAfterRelease.parsed?.supportedAssetSymbol !== "VUSD" ||
+    summaryStateAfterRelease.parsed?.supportedEnvironment !== "solana-devnet" ||
     summaryStateAfterRelease.parsed?.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     summaryStateAfterRelease.parsed?.supportedReleaseRootPolicy !== "latest-registered-root" ||
     summaryStateAfterRelease.parsed?.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
@@ -997,7 +1003,7 @@ try {
   });
   if (
     !operatorStatusOutput.includes("Summary state version: 1") ||
-    !operatorStatusOutput.includes("Summary version: 9") ||
+    !operatorStatusOutput.includes("Summary version: 10") ||
     !operatorStatusOutput.includes("Summary generated:") ||
     !operatorStatusOutput.includes("Supported send lane version: 1") ||
     !operatorStatusOutput.includes("Supported send lane kind: Single input / recipient / optional change") ||
@@ -1013,6 +1019,8 @@ try {
     ) ||
     !operatorStatusOutput.includes("Supported release lane status: Supported") ||
     !operatorStatusOutput.includes("Supported release lane note: Current narrow zk v1 release lane is supported") ||
+    !operatorStatusOutput.includes("Supported asset: VUSD") ||
+    !operatorStatusOutput.includes("Supported environment: solana-devnet") ||
     !operatorStatusOutput.includes("Supported release authorization: Proof-backed consume") ||
     !operatorStatusOutput.includes("Supported release root policy: Latest registered root") ||
     !operatorStatusOutput.includes("Owner authorization mode: X25519 secret prechecked off-circuit") ||

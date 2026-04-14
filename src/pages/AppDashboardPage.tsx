@@ -60,6 +60,8 @@ export function AppDashboardPage() {
     privateCoreOperatorSupportedReleaseLaneNote,
     privateCoreOperatorSupportedReleaseLaneStatus,
     privateCoreOperatorSupportedReleaseLaneVersion,
+    privateCoreOperatorSupportedAssetSymbol,
+    privateCoreOperatorSupportedEnvironment,
     privateCoreOperatorSupportedReleaseAuthorizationBasis,
     privateCoreOperatorSupportedReleaseRootPolicy,
     privateCoreOperatorOwnerAuthorizationMode,
@@ -256,6 +258,8 @@ export function AppDashboardPage() {
           operatorSupportedReleaseLaneNote={privateCoreOperatorSupportedReleaseLaneNote}
           operatorSupportedReleaseLaneStatus={privateCoreOperatorSupportedReleaseLaneStatus}
           operatorSupportedReleaseLaneVersion={privateCoreOperatorSupportedReleaseLaneVersion}
+          operatorSupportedAssetSymbol={privateCoreOperatorSupportedAssetSymbol}
+          operatorSupportedEnvironment={privateCoreOperatorSupportedEnvironment}
           operatorSupportedReleaseAuthorizationBasis={
             privateCoreOperatorSupportedReleaseAuthorizationBasis
           }

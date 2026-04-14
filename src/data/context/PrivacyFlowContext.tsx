@@ -119,6 +119,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorSupportedReleaseLaneNote: string | null;
   privateCoreOperatorSupportedReleaseLaneStatus: string | null;
   privateCoreOperatorSupportedReleaseLaneVersion: number | null;
+  privateCoreOperatorSupportedAssetSymbol: string | null;
+  privateCoreOperatorSupportedEnvironment: string | null;
   privateCoreOperatorSupportedReleaseAuthorizationBasis: string | null;
   privateCoreOperatorSupportedReleaseRootPolicy: string | null;
   privateCoreOperatorOwnerAuthorizationMode: string | null;
@@ -401,6 +403,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<string | null>(null);
   const [privateCoreOperatorSupportedReleaseLaneVersion, setPrivateCoreOperatorSupportedReleaseLaneVersion] =
     useState<number | null>(null);
+  const [privateCoreOperatorSupportedAssetSymbol, setPrivateCoreOperatorSupportedAssetSymbol] =
+    useState<string | null>(null);
+  const [privateCoreOperatorSupportedEnvironment, setPrivateCoreOperatorSupportedEnvironment] =
+    useState<string | null>(null);
   const [
     privateCoreOperatorSupportedReleaseAuthorizationBasis,
     setPrivateCoreOperatorSupportedReleaseAuthorizationBasis,
@@ -483,6 +489,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSupportedReleaseLaneNote,
       setPrivateCoreOperatorSupportedReleaseLaneStatus,
       setPrivateCoreOperatorSupportedReleaseLaneVersion,
+      setPrivateCoreOperatorSupportedAssetSymbol,
+      setPrivateCoreOperatorSupportedEnvironment,
       setPrivateCoreOperatorSupportedReleaseAuthorizationBasis,
       setPrivateCoreOperatorSupportedReleaseRootPolicy,
       setPrivateCoreOperatorOwnerAuthorizationMode,
@@ -1474,6 +1482,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedReleaseLaneNote,
       privateCoreOperatorSupportedReleaseLaneStatus,
       privateCoreOperatorSupportedReleaseLaneVersion,
+      privateCoreOperatorSupportedAssetSymbol,
+      privateCoreOperatorSupportedEnvironment,
       privateCoreOperatorSupportedReleaseAuthorizationBasis,
       privateCoreOperatorSupportedReleaseRootPolicy,
       privateCoreOperatorOwnerAuthorizationMode,
@@ -1559,6 +1569,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedReleaseLaneNote,
       privateCoreOperatorSupportedReleaseLaneStatus,
       privateCoreOperatorSupportedReleaseLaneVersion,
+      privateCoreOperatorSupportedAssetSymbol,
+      privateCoreOperatorSupportedEnvironment,
       privateCoreOperatorSupportedReleaseAuthorizationBasis,
       privateCoreOperatorSupportedReleaseRootPolicy,
       privateCoreOperatorOwnerAuthorizationMode,
@@ -1992,6 +2004,8 @@ function applyPrivateCoreOperatorSummaryState(args: {
   setPrivateCoreOperatorSupportedReleaseLaneNote: (value: string | null) => void;
   setPrivateCoreOperatorSupportedReleaseLaneStatus: (value: string | null) => void;
   setPrivateCoreOperatorSupportedReleaseLaneVersion: (value: number | null) => void;
+  setPrivateCoreOperatorSupportedAssetSymbol: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedEnvironment: (value: string | null) => void;
   setPrivateCoreOperatorSupportedReleaseAuthorizationBasis: (value: string | null) => void;
   setPrivateCoreOperatorSupportedReleaseRootPolicy: (value: string | null) => void;
   setPrivateCoreOperatorOwnerAuthorizationMode: (value: string | null) => void;
@@ -2050,6 +2064,8 @@ function applyPrivateCoreOperatorSummaryState(args: {
   args.setPrivateCoreOperatorSupportedReleaseLaneVersion(
     args.summaryState.supportedReleaseLaneVersion,
   );
+  args.setPrivateCoreOperatorSupportedAssetSymbol(args.summaryState.supportedAssetSymbol);
+  args.setPrivateCoreOperatorSupportedEnvironment(args.summaryState.supportedEnvironment);
   args.setPrivateCoreOperatorSupportedReleaseAuthorizationBasis(
     args.summaryState.supportedReleaseAuthorizationBasis,
   );
