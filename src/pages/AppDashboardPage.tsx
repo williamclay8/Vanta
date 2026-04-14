@@ -56,6 +56,9 @@ export function AppDashboardPage() {
     privateCoreOperatorSupportedUnshieldLaneNote,
     privateCoreOperatorSupportedUnshieldLaneStatus,
     privateCoreOperatorSupportedUnshieldLaneVersion,
+    privateCoreOperatorOwnerAuthorizationMode,
+    privateCoreOperatorNullifierKeyMode,
+    privateCoreOperatorProvingHashLane,
     privateCoreOperatorCurrentRootLinkedProof,
     privateCoreOperatorCurrentRootProofLinkStatus,
     privateCoreOperatorSendResultingRootLinkedProof,
@@ -243,6 +246,9 @@ export function AppDashboardPage() {
           operatorSupportedUnshieldLaneNote={privateCoreOperatorSupportedUnshieldLaneNote}
           operatorSupportedUnshieldLaneStatus={privateCoreOperatorSupportedUnshieldLaneStatus}
           operatorSupportedUnshieldLaneVersion={privateCoreOperatorSupportedUnshieldLaneVersion}
+          operatorOwnerAuthorizationMode={privateCoreOperatorOwnerAuthorizationMode}
+          operatorNullifierKeyMode={privateCoreOperatorNullifierKeyMode}
+          operatorProvingHashLane={privateCoreOperatorProvingHashLane}
           operatorCurrentRootLinkedProof={privateCoreOperatorCurrentRootLinkedProof}
           operatorCurrentRootProofLinkStatus={privateCoreOperatorCurrentRootProofLinkStatus}
           operatorSendResultingRootLinkedProof={privateCoreOperatorSendResultingRootLinkedProof}

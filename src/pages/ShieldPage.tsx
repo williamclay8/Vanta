@@ -117,6 +117,9 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOperatorSupportedUnshieldLaneNote,
     privateCoreOperatorSupportedUnshieldLaneStatus,
     privateCoreOperatorSupportedUnshieldLaneVersion,
+    privateCoreOperatorOwnerAuthorizationMode,
+    privateCoreOperatorNullifierKeyMode,
+    privateCoreOperatorProvingHashLane,
     privateCoreOperatorCurrentRootLinkedProof,
     privateCoreOperatorCurrentRootProofLinkStatus,
     privateCoreOperatorSendResultingRootLinkedProof,
@@ -1065,6 +1068,9 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 operatorSupportedUnshieldLaneNote={privateCoreOperatorSupportedUnshieldLaneNote}
                 operatorSupportedUnshieldLaneStatus={privateCoreOperatorSupportedUnshieldLaneStatus}
                 operatorSupportedUnshieldLaneVersion={privateCoreOperatorSupportedUnshieldLaneVersion}
+                operatorOwnerAuthorizationMode={privateCoreOperatorOwnerAuthorizationMode}
+                operatorNullifierKeyMode={privateCoreOperatorNullifierKeyMode}
+                operatorProvingHashLane={privateCoreOperatorProvingHashLane}
                 operatorCurrentRootLinkedProof={privateCoreOperatorCurrentRootLinkedProof}
                 operatorCurrentRootProofLinkStatus={privateCoreOperatorCurrentRootProofLinkStatus}
                 operatorSendResultingRootLinkedProof={privateCoreOperatorSendResultingRootLinkedProof}

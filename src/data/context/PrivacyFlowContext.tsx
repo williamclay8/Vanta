@@ -115,6 +115,9 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorSupportedUnshieldLaneNote: string | null;
   privateCoreOperatorSupportedUnshieldLaneStatus: string | null;
   privateCoreOperatorSupportedUnshieldLaneVersion: number | null;
+  privateCoreOperatorOwnerAuthorizationMode: string | null;
+  privateCoreOperatorNullifierKeyMode: string | null;
+  privateCoreOperatorProvingHashLane: string | null;
   privateCoreOperatorProofConsumeLinkStatus: string | null;
   privateCoreOperatorProofError: string | null;
   privateCoreOperatorProofs: VantaPrivateCoreOperatorProofRecord[];
@@ -384,6 +387,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<string | null>(null);
   const [privateCoreOperatorSupportedUnshieldLaneVersion, setPrivateCoreOperatorSupportedUnshieldLaneVersion] =
     useState<number | null>(null);
+  const [privateCoreOperatorOwnerAuthorizationMode, setPrivateCoreOperatorOwnerAuthorizationMode] =
+    useState<string | null>(null);
+  const [privateCoreOperatorNullifierKeyMode, setPrivateCoreOperatorNullifierKeyMode] =
+    useState<string | null>(null);
+  const [privateCoreOperatorProvingHashLane, setPrivateCoreOperatorProvingHashLane] =
+    useState<string | null>(null);
   const [privateCoreOperatorProofConsumeLinkStatus, setPrivateCoreOperatorProofConsumeLinkStatus] =
     useState<string | null>(null);
   const [privateCoreOperatorProofError, setPrivateCoreOperatorProofError] = useState<string | null>(null);
@@ -448,6 +457,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSupportedUnshieldLaneNote,
       setPrivateCoreOperatorSupportedUnshieldLaneStatus,
       setPrivateCoreOperatorSupportedUnshieldLaneVersion,
+      setPrivateCoreOperatorOwnerAuthorizationMode,
+      setPrivateCoreOperatorNullifierKeyMode,
+      setPrivateCoreOperatorProvingHashLane,
       setPrivateCoreOperatorConsumes,
       setPrivateCoreOperatorProofConsumeLinkStatus,
       setPrivateCoreOperatorProofs,
@@ -1430,6 +1442,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedUnshieldLaneNote,
       privateCoreOperatorSupportedUnshieldLaneStatus,
       privateCoreOperatorSupportedUnshieldLaneVersion,
+      privateCoreOperatorOwnerAuthorizationMode,
+      privateCoreOperatorNullifierKeyMode,
+      privateCoreOperatorProvingHashLane,
       privateCoreOperatorProofConsumeLinkStatus,
       privateCoreOperatorProofError,
       privateCoreOperatorProofs,
@@ -1506,6 +1521,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedUnshieldLaneNote,
       privateCoreOperatorSupportedUnshieldLaneStatus,
       privateCoreOperatorSupportedUnshieldLaneVersion,
+      privateCoreOperatorOwnerAuthorizationMode,
+      privateCoreOperatorNullifierKeyMode,
+      privateCoreOperatorProvingHashLane,
       privateCoreOperatorProofConsumeLinkStatus,
       privateCoreOperatorProofError,
       privateCoreOperatorProofs,
@@ -1930,6 +1948,9 @@ function applyPrivateCoreOperatorSummaryState(args: {
   setPrivateCoreOperatorSupportedUnshieldLaneNote: (value: string | null) => void;
   setPrivateCoreOperatorSupportedUnshieldLaneStatus: (value: string | null) => void;
   setPrivateCoreOperatorSupportedUnshieldLaneVersion: (value: number | null) => void;
+  setPrivateCoreOperatorOwnerAuthorizationMode: (value: string | null) => void;
+  setPrivateCoreOperatorNullifierKeyMode: (value: string | null) => void;
+  setPrivateCoreOperatorProvingHashLane: (value: string | null) => void;
   setPrivateCoreOperatorConsumes: (value: VantaPrivateCoreOperatorConsumeRecord[]) => void;
   setPrivateCoreOperatorProofConsumeLinkStatus: (value: string | null) => void;
   setPrivateCoreOperatorProofs: (value: VantaPrivateCoreOperatorProofRecord[]) => void;
@@ -1977,6 +1998,9 @@ function applyPrivateCoreOperatorSummaryState(args: {
   args.setPrivateCoreOperatorSupportedUnshieldLaneVersion(
     args.summaryState.supportedUnshieldLaneVersion,
   );
+  args.setPrivateCoreOperatorOwnerAuthorizationMode(args.summaryState.ownerAuthorizationMode);
+  args.setPrivateCoreOperatorNullifierKeyMode(args.summaryState.nullifierKeyMode);
+  args.setPrivateCoreOperatorProvingHashLane(args.summaryState.provingHashLane);
   args.setPrivateCoreOperatorRoots(args.summaryState.rootRecords);
   args.setPrivateCoreOperatorProofs(args.summaryState.proofRecords);
   args.setPrivateCoreOperatorSends(args.summaryState.sendRecords);

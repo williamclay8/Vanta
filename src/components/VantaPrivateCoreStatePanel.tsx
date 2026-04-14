@@ -38,6 +38,9 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSupportedUnshieldLaneNote?: string | null;
   operatorSupportedUnshieldLaneStatus?: string | null;
   operatorSupportedUnshieldLaneVersion?: number | null;
+  operatorOwnerAuthorizationMode?: string | null;
+  operatorNullifierKeyMode?: string | null;
+  operatorProvingHashLane?: string | null;
   operatorCurrentRootLinkedProof?: VantaPrivateCoreOperatorProofRecord | null;
   operatorCurrentRootProofLinkStatus?: string | null;
   operatorProofConsumeLinkStatus?: string | null;
@@ -188,6 +191,9 @@ export function VantaPrivateCoreStatePanel({
   operatorSupportedUnshieldLaneNote = null,
   operatorSupportedUnshieldLaneStatus = null,
   operatorSupportedUnshieldLaneVersion = null,
+  operatorOwnerAuthorizationMode = null,
+  operatorNullifierKeyMode = null,
+  operatorProvingHashLane = null,
   operatorCurrentRootLinkedProof = null,
   operatorCurrentRootProofLinkStatus = null,
   operatorProofConsumeLinkStatus = null,
@@ -486,6 +492,26 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Supported unshield note</span>
               <strong>{operatorSupportedUnshieldLaneNote ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Operator owner auth</span>
+              <strong>
+                {operatorOwnerAuthorizationMode === "x25519-secret-prechecked-off-circuit"
+                  ? "X25519 secret prechecked off-circuit"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Operator nullifier key</span>
+              <strong>
+                {operatorNullifierKeyMode === "note-secret-as-nullifier-key-v0"
+                  ? "Note secret as nullifier key v0"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Operator proving lane</span>
+              <strong>{operatorProvingHashLane ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Circuit readiness</span>
