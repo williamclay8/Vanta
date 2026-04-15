@@ -314,6 +314,43 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
     | "downstream-consumed"
     | "downstream-released"
     | "unregistered";
+  swapBoundaryNote: string;
+  swapBoundaryStatus:
+    | "unavailable"
+    | "missing-resulting-root"
+    | "awaiting-registration"
+    | "output-mismatch"
+    | "registration-proof-unlinked"
+    | "proof-swap-unlinked"
+    | "coherent-current-root"
+    | "coherent-registered-stale"
+    | "downstream-consumed"
+    | "downstream-released";
+  swapResultingRootLinkedProof: VantaPrivateCoreOperatorProofRecord | null;
+  swapResultingRootRecord: VantaPrivateCoreOperatorRootRecord | null;
+  swapResultingRootNote: string;
+  swapResultingRootRegistrationNote: string;
+  swapResultingRootRegistrationStatus: "unavailable" | "linked-output" | "mismatch";
+  swapResultingRootProofLinkStatus: "linked" | "mismatch" | "unavailable";
+  swapContinuityNote: string;
+  swapContinuityStatus:
+    | "unavailable"
+    | "missing-resulting-root"
+    | "awaiting-registration"
+    | "output-mismatch"
+    | "registration-proof-unlinked"
+    | "ready-current-root"
+    | "ready-registered-stale"
+    | "downstream-consumed"
+    | "downstream-released";
+  swapResultingRootStatus:
+    | "unavailable"
+    | "missing"
+    | "current-root"
+    | "registered-stale"
+    | "downstream-consumed"
+    | "downstream-released"
+    | "unregistered";
   supportedSendLaneKind: "single-input-single-recipient-optional-change";
   supportedSendLaneNote: string;
   supportedSendLaneStatus: "supported";
@@ -517,6 +554,59 @@ function isSendBoundaryStatus(
     value === "downstream-consumed" ||
     value === "downstream-released"
   );
+}
+
+function isSwapContinuityStatus(
+  value: unknown,
+): value is VantaPrivateCoreOperatorSummaryStateResponse["swapContinuityStatus"] {
+  return (
+    value === "unavailable" ||
+    value === "missing-resulting-root" ||
+    value === "awaiting-registration" ||
+    value === "output-mismatch" ||
+    value === "registration-proof-unlinked" ||
+    value === "ready-current-root" ||
+    value === "ready-registered-stale" ||
+    value === "downstream-consumed" ||
+    value === "downstream-released"
+  );
+}
+
+function isSwapBoundaryStatus(
+  value: unknown,
+): value is VantaPrivateCoreOperatorSummaryStateResponse["swapBoundaryStatus"] {
+  return (
+    value === "unavailable" ||
+    value === "missing-resulting-root" ||
+    value === "awaiting-registration" ||
+    value === "output-mismatch" ||
+    value === "registration-proof-unlinked" ||
+    value === "proof-swap-unlinked" ||
+    value === "coherent-current-root" ||
+    value === "coherent-registered-stale" ||
+    value === "downstream-consumed" ||
+    value === "downstream-released"
+  );
+}
+
+function isSwapResultingRootStatus(
+  value: unknown,
+): value is VantaPrivateCoreOperatorSummaryStateResponse["swapResultingRootStatus"] {
+  return (
+    value === "unavailable" ||
+    value === "missing" ||
+    value === "current-root" ||
+    value === "registered-stale" ||
+    value === "downstream-consumed" ||
+    value === "downstream-released" ||
+    value === "unregistered"
+  );
+}
+
+function isSwapResultingRootRegistrationStatus(
+  value: unknown,
+): value is VantaPrivateCoreOperatorSummaryStateResponse["swapResultingRootRegistrationStatus"] {
+  return value === "unavailable" || value === "linked-output" || value === "mismatch";
 }
 
 export async function requestVantaPrivateCoreOperatorProof(args: {
@@ -1277,6 +1367,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     boundaryNote?: unknown;
     sendBoundaryStatus?: unknown;
     sendBoundaryNote?: unknown;
+    swapBoundaryStatus?: unknown;
+    swapBoundaryNote?: unknown;
     currentRootLinkedProof?: unknown;
     currentRootProofLinkStatus?: unknown;
     sendResultingRootLinkedProof?: unknown;
@@ -1288,6 +1380,15 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     sendResultingRootProofLinkStatus?: unknown;
     sendContinuityStatus?: unknown;
     sendContinuityNote?: unknown;
+    swapResultingRootLinkedProof?: unknown;
+    swapResultingRootRecord?: unknown;
+    swapResultingRootStatus?: unknown;
+    swapResultingRootNote?: unknown;
+    swapResultingRootRegistrationStatus?: unknown;
+    swapResultingRootRegistrationNote?: unknown;
+    swapResultingRootProofLinkStatus?: unknown;
+    swapContinuityStatus?: unknown;
+    swapContinuityNote?: unknown;
     supportedSendLaneKind?: unknown;
     supportedSendLaneNote?: unknown;
     supportedSendLaneStatus?: unknown;
@@ -1387,13 +1488,15 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
   if (
     parsed.stateVersion !== 1 ||
     parsed.contractVersion !== 10 ||
-    parsed.summaryVersion !== 29 ||
+    parsed.summaryVersion !== 30 ||
     !isContractMirrorStatus(parsed.contractMirrorStatus) ||
     typeof parsed.contractMirrorNote !== "string" ||
     !isBoundaryStatus(parsed.boundaryStatus) ||
     typeof parsed.boundaryNote !== "string" ||
     !isSendBoundaryStatus(parsed.sendBoundaryStatus) ||
     typeof parsed.sendBoundaryNote !== "string" ||
+    !isSwapBoundaryStatus(parsed.swapBoundaryStatus) ||
+    typeof parsed.swapBoundaryNote !== "string" ||
     (parsed.currentRootLinkedProof !== null &&
       parsed.currentRootLinkedProof !== undefined &&
       !isProofRecord(parsed.currentRootLinkedProof)) ||
@@ -1411,6 +1514,19 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     !isLinkStatus(parsed.sendResultingRootProofLinkStatus) ||
     !isSendContinuityStatus(parsed.sendContinuityStatus) ||
     typeof parsed.sendContinuityNote !== "string" ||
+    (parsed.swapResultingRootLinkedProof !== null &&
+      parsed.swapResultingRootLinkedProof !== undefined &&
+      !isProofRecord(parsed.swapResultingRootLinkedProof)) ||
+    (parsed.swapResultingRootRecord !== null &&
+      parsed.swapResultingRootRecord !== undefined &&
+      !isRootRecord(parsed.swapResultingRootRecord)) ||
+    !isSwapResultingRootStatus(parsed.swapResultingRootStatus) ||
+    typeof parsed.swapResultingRootNote !== "string" ||
+    !isSwapResultingRootRegistrationStatus(parsed.swapResultingRootRegistrationStatus) ||
+    typeof parsed.swapResultingRootRegistrationNote !== "string" ||
+    !isLinkStatus(parsed.swapResultingRootProofLinkStatus) ||
+    !isSwapContinuityStatus(parsed.swapContinuityStatus) ||
+    typeof parsed.swapContinuityNote !== "string" ||
     parsed.supportedSendLaneVersion !== 1 ||
     parsed.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     parsed.supportedSendLaneStatus !== "supported" ||
@@ -1540,14 +1656,16 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   return {
     stateVersion: 1,
-    contractVersion: 9,
-    summaryVersion: 28,
+    contractVersion: 10,
+    summaryVersion: 30,
     contractMirrorStatus: parsed.contractMirrorStatus,
     contractMirrorNote: parsed.contractMirrorNote,
     boundaryStatus: parsed.boundaryStatus,
     boundaryNote: parsed.boundaryNote,
     sendBoundaryStatus: parsed.sendBoundaryStatus,
     sendBoundaryNote: parsed.sendBoundaryNote,
+    swapBoundaryStatus: parsed.swapBoundaryStatus,
+    swapBoundaryNote: parsed.swapBoundaryNote,
     supportedSendLaneVersion: 1,
     supportedSendLaneKind: "single-input-single-recipient-optional-change",
     supportedSendLaneStatus: "supported",
@@ -1628,6 +1746,19 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     sendResultingRootProofLinkStatus: parsed.sendResultingRootProofLinkStatus,
     sendContinuityStatus: parsed.sendContinuityStatus,
     sendContinuityNote: parsed.sendContinuityNote,
+    swapResultingRootLinkedProof: isProofRecord(parsed.swapResultingRootLinkedProof)
+      ? parsed.swapResultingRootLinkedProof
+      : null,
+    swapResultingRootRecord: isRootRecord(parsed.swapResultingRootRecord)
+      ? parsed.swapResultingRootRecord
+      : null,
+    swapResultingRootStatus: parsed.swapResultingRootStatus,
+    swapResultingRootNote: parsed.swapResultingRootNote,
+    swapResultingRootRegistrationStatus: parsed.swapResultingRootRegistrationStatus,
+    swapResultingRootRegistrationNote: parsed.swapResultingRootRegistrationNote,
+    swapResultingRootProofLinkStatus: parsed.swapResultingRootProofLinkStatus,
+    swapContinuityStatus: parsed.swapContinuityStatus,
+    swapContinuityNote: parsed.swapContinuityNote,
     generatedAt: parsed.generatedAt,
     currentRoot: typeof parsed.currentRoot === "string" ? parsed.currentRoot : null,
     currentRecord: isRootRecord(parsed.currentRecord) ? parsed.currentRecord : null,
@@ -1751,7 +1882,7 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
   if (
     parsed.stateVersion !== 1 ||
     parsed.contractVersion !== 10 ||
-    parsed.summaryVersion !== 29 ||
+    parsed.summaryVersion !== 30 ||
     parsed.supportedSendLaneVersion !== 1 ||
     parsed.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     parsed.supportedSendLaneStatus !== "supported" ||
@@ -1821,8 +1952,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
 
   return {
     stateVersion: 1,
-    contractVersion: 9,
-    summaryVersion: 28,
+    contractVersion: 10,
+    summaryVersion: 30,
     supportedSendLaneVersion: 1,
     supportedSendLaneKind: "single-input-single-recipient-optional-change",
     supportedSendLaneStatus: "supported",

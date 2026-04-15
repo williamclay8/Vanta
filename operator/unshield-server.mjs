@@ -1763,13 +1763,28 @@ function buildPrivateCoreSummaryState() {
     latestSend,
     rootRecords,
   });
+  const swapResultingRootStatus = summarizePrivateCoreSwapResultingRootStatus({
+    currentRoot: rootRecords[0]?.root ?? null,
+    latestConsume,
+    latestRelease,
+    latestSwap,
+    rootRecords,
+  });
   const sendResultingRootRecord =
     latestSend?.resultingRoot
       ? rootRecords.find((record) => record.root === latestSend.resultingRoot) ?? null
       : null;
+  const swapResultingRootRecord =
+    latestSwap?.resultingRoot
+      ? rootRecords.find((record) => record.root === latestSwap.resultingRoot) ?? null
+      : null;
   const sendResultingRootRegistration = summarizePrivateCoreSendResultingRootRegistration({
     latestSend,
     sendResultingRootRecord,
+  });
+  const swapResultingRootRegistration = summarizePrivateCoreSwapResultingRootRegistration({
+    latestSwap,
+    swapResultingRootRecord,
   });
   const currentRootLinkedProof =
     currentRootRecord?.proofId
@@ -1779,6 +1794,10 @@ function buildPrivateCoreSummaryState() {
     sendResultingRootRecord?.proofId
       ? proofRecords.find((record) => record.proofId === sendResultingRootRecord.proofId) ?? null
       : null;
+  const swapResultingRootLinkedProof =
+    swapResultingRootRecord?.proofId
+      ? proofRecords.find((record) => record.proofId === swapResultingRootRecord.proofId) ?? null
+      : null;
   const currentRootProofLinkStatus = summarizePrivateCoreRootProofLinkStatus({
     linkedProof: currentRootLinkedProof,
     rootRecord: currentRootRecord,
@@ -1786,6 +1805,10 @@ function buildPrivateCoreSummaryState() {
   const sendResultingRootProofLinkStatus = summarizePrivateCoreRootProofLinkStatus({
     linkedProof: sendResultingRootLinkedProof,
     rootRecord: sendResultingRootRecord,
+  });
+  const swapResultingRootProofLinkStatus = summarizePrivateCoreRootProofLinkStatus({
+    linkedProof: swapResultingRootLinkedProof,
+    rootRecord: swapResultingRootRecord,
   });
   const sendContinuity = summarizePrivateCoreSendContinuityStatus({
     latestSend,
@@ -1800,6 +1823,20 @@ function buildPrivateCoreSummaryState() {
     sendContinuityStatus: sendContinuity.status,
     sendResultingRootNote: sendResultingRootStatus.note,
     sendResultingRootStatus: sendResultingRootStatus.status,
+  });
+  const swapContinuity = summarizePrivateCoreSwapContinuityStatus({
+    latestSwap,
+    swapResultingRootProofLinkStatus,
+    swapResultingRootRegistrationStatus: swapResultingRootRegistration.status,
+    swapResultingRootStatus: swapResultingRootStatus.status,
+  });
+  const swapBoundaryStatus = summarizePrivateCoreSwapBoundaryStatus({
+    latestSwap,
+    proofSwapLinkStatus,
+    swapContinuityNote: swapContinuity.note,
+    swapContinuityStatus: swapContinuity.status,
+    swapResultingRootNote: swapResultingRootStatus.note,
+    swapResultingRootStatus: swapResultingRootStatus.status,
   });
   const boundaryStatus = summarizePrivateCoreBoundaryStatus({
     currentRoot: currentRootRecord?.root ?? null,
@@ -1820,17 +1857,28 @@ function buildPrivateCoreSummaryState() {
     boundaryNote: boundaryStatus.note,
     sendBoundaryStatus: sendBoundaryStatus.status,
     sendBoundaryNote: sendBoundaryStatus.note,
+    swapBoundaryStatus: swapBoundaryStatus.status,
+    swapBoundaryNote: swapBoundaryStatus.note,
     currentRootLinkedProof,
     currentRootProofLinkStatus,
     sendResultingRootLinkedProof,
+    swapResultingRootLinkedProof,
     sendResultingRootRecord,
+    swapResultingRootRecord,
     sendResultingRootNote: sendResultingRootStatus.note,
+    swapResultingRootNote: swapResultingRootStatus.note,
     sendResultingRootRegistrationNote: sendResultingRootRegistration.note,
+    swapResultingRootRegistrationNote: swapResultingRootRegistration.note,
     sendResultingRootRegistrationStatus: sendResultingRootRegistration.status,
+    swapResultingRootRegistrationStatus: swapResultingRootRegistration.status,
     sendResultingRootProofLinkStatus,
+    swapResultingRootProofLinkStatus,
     sendResultingRootStatus: sendResultingRootStatus.status,
+    swapResultingRootStatus: swapResultingRootStatus.status,
     sendContinuityNote: sendContinuity.note,
     sendContinuityStatus: sendContinuity.status,
+    swapContinuityNote: swapContinuity.note,
+    swapContinuityStatus: swapContinuity.status,
     currentRoot: currentRootRecord?.root ?? null,
     currentRecord: currentRootRecord,
     rootRecords,
@@ -1882,7 +1930,7 @@ function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
     contractVersion: 10,
-    summaryVersion: 29,
+    summaryVersion: 30,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
@@ -2261,6 +2309,232 @@ function summarizePrivateCoreSendBoundaryStatus(args) {
       return {
         status: "unavailable",
         note: args.sendContinuityNote ?? "Private send boundary state is not available yet.",
+      };
+  }
+}
+
+function summarizePrivateCoreSwapResultingRootStatus(args) {
+  if (!args.latestSwap) {
+    return {
+      status: "unavailable",
+      note: "No private swap transition has been recorded yet.",
+    };
+  }
+
+  if (!args.latestSwap.resultingRoot) {
+    return {
+      status: "missing",
+      note: "Latest private swap transition did not persist a resulting root.",
+    };
+  }
+
+  if (args.latestRelease?.root === args.latestSwap.resultingRoot) {
+    return {
+      status: "downstream-released",
+      note: "Latest private swap resulting root has already been released downstream.",
+    };
+  }
+
+  if (args.latestConsume?.root === args.latestSwap.resultingRoot) {
+    return {
+      status: "downstream-consumed",
+      note: "Latest private swap resulting root has already been consumed downstream.",
+    };
+  }
+
+  if (args.currentRoot === args.latestSwap.resultingRoot) {
+    return {
+      status: "current-root",
+      note: "Latest private swap resulting root is the current registered operator root.",
+    };
+  }
+
+  if (args.rootRecords.some((record) => record.root === args.latestSwap.resultingRoot)) {
+    return {
+      status: "registered-stale",
+      note: "Latest private swap resulting root is registered but not current anymore.",
+    };
+  }
+
+  return {
+    status: "unregistered",
+    note: "Latest private swap resulting root has not been registered with the operator yet.",
+  };
+}
+
+function summarizePrivateCoreSwapResultingRootRegistration(args) {
+  if (!args.latestSwap || !args.latestSwap.resultingRoot || !args.swapResultingRootRecord) {
+    return {
+      status: "unavailable",
+      note: "No registered swap resulting root is available for output-continuity checks yet.",
+    };
+  }
+
+  if (args.swapResultingRootRecord.noteCommitment === args.latestSwap.outputCommitment) {
+    return {
+      status: "linked-output",
+      note: "Registered swap resulting root matches the latest swap output commitment.",
+    };
+  }
+
+  return {
+    status: "mismatch",
+    note: "Registered swap resulting root does not match the output commitment from the latest swap.",
+  };
+}
+
+function summarizePrivateCoreSwapContinuityStatus(args) {
+  if (!args.latestSwap) {
+    return {
+      status: "unavailable",
+      note: "No private swap transition is available for continuity checks yet.",
+    };
+  }
+
+  if (!args.latestSwap.resultingRoot) {
+    return {
+      status: "missing-resulting-root",
+      note: "Latest private swap transition did not persist a resulting root for downstream continuity.",
+    };
+  }
+
+  if (args.swapResultingRootRegistrationStatus === "mismatch") {
+    return {
+      status: "output-mismatch",
+      note: "Registered swap resulting root does not match the output commitment from the latest swap.",
+    };
+  }
+
+  if (args.swapResultingRootProofLinkStatus === "mismatch") {
+    return {
+      status: "registration-proof-unlinked",
+      note: "Registered swap resulting root does not match its linked registration proof.",
+    };
+  }
+
+  if (args.swapResultingRootProofLinkStatus === "unavailable") {
+    if (args.swapResultingRootStatus === "unregistered") {
+      return {
+        status: "awaiting-registration",
+        note: "Latest swap resulting root still needs operator registration before downstream continuity is established.",
+      };
+    }
+
+    return {
+      status: "registration-proof-unlinked",
+      note: "Registered swap resulting root is missing a linked registration proof.",
+    };
+  }
+
+  if (args.swapResultingRootStatus === "current-root") {
+    return {
+      status: "ready-current-root",
+      note: "Latest swap resulting root is registered, linked, and current for downstream send or unshield use.",
+    };
+  }
+
+  if (args.swapResultingRootStatus === "registered-stale") {
+    return {
+      status: "ready-registered-stale",
+      note: "Latest swap resulting root is registered and linked, but no longer the current operator root.",
+    };
+  }
+
+  if (args.swapResultingRootStatus === "downstream-consumed") {
+    return {
+      status: "downstream-consumed",
+      note: "Latest swap resulting root has already been consumed downstream.",
+    };
+  }
+
+  if (args.swapResultingRootStatus === "downstream-released") {
+    return {
+      status: "downstream-released",
+      note: "Latest swap resulting root has already been released downstream.",
+    };
+  }
+
+  return {
+    status: "awaiting-registration",
+    note: "Latest swap resulting root is not yet ready for downstream continuity checks.",
+  };
+}
+
+function summarizePrivateCoreSwapBoundaryStatus(args) {
+  if (!args.latestSwap) {
+    return {
+      status: "unavailable",
+      note: "No private swap transition is available for boundary checks yet.",
+    };
+  }
+
+  if (args.proofSwapLinkStatus === "mismatch") {
+    return {
+      status: "proof-swap-unlinked",
+      note: "Latest swap transition does not match its linked swap proof.",
+    };
+  }
+
+  if (args.proofSwapLinkStatus === "unavailable") {
+    return {
+      status: "proof-swap-unlinked",
+      note: "Latest swap transition is missing a linked swap proof.",
+    };
+  }
+
+  switch (args.swapContinuityStatus) {
+    case "missing-resulting-root":
+      return {
+        status: "missing-resulting-root",
+        note: args.swapContinuityNote,
+      };
+    case "output-mismatch":
+      return {
+        status: "output-mismatch",
+        note: args.swapContinuityNote,
+      };
+    case "registration-proof-unlinked":
+      return {
+        status: "registration-proof-unlinked",
+        note: args.swapContinuityNote,
+      };
+    case "awaiting-registration":
+      return {
+        status: "awaiting-registration",
+        note: args.swapContinuityNote,
+      };
+    case "ready-current-root":
+      return {
+        status: "coherent-current-root",
+        note: args.swapContinuityNote,
+      };
+    case "ready-registered-stale":
+      return {
+        status: "coherent-registered-stale",
+        note: args.swapContinuityNote,
+      };
+    case "downstream-consumed":
+      return {
+        status: "downstream-consumed",
+        note: args.swapContinuityNote,
+      };
+    case "downstream-released":
+      return {
+        status: "downstream-released",
+        note: args.swapContinuityNote,
+      };
+    case "unavailable":
+    default:
+      if (args.swapResultingRootStatus === "missing") {
+        return {
+          status: "missing-resulting-root",
+          note: args.swapResultingRootNote,
+        };
+      }
+
+      return {
+        status: "unavailable",
+        note: args.swapContinuityNote ?? "Private swap boundary state is not available yet.",
       };
   }
 }

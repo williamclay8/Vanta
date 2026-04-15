@@ -234,7 +234,7 @@ These commands cover:
 - operator contract and summary snapshot coherence across app, CLI, and regression surfaces
 - frozen operator contract surface:
   - `contractVersion = 10`
-  - `summaryVersion = 29`
+  - `summaryVersion = 30`
   - `supportedSendV1Decision = accepted-narrow-v1-path`
   - `supportedUnshieldV1Decision = accepted-narrow-v1-path`
   - `supportedReleaseV1Decision = accepted-narrow-v1-path`
@@ -252,7 +252,7 @@ These commands cover:
 
 The operator contract now freezes the narrow zk-v1 contract surface explicitly:
 - `contractVersion = 10`
-- `summaryVersion = 29`
+- `summaryVersion = 30`
 - `supportedUnshieldLaneVersion = 1`
 - `supportedUnshieldLaneKind = single-note-proof-backed-consume`
 - `supportedUnshieldLaneStatus = supported`

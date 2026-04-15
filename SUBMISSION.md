@@ -249,7 +249,7 @@ The repo now includes concrete verification commands for the Vanta Private Core 
 
 The current frozen operator-backed private-core contract now states the narrow accepted `v1` path explicitly:
 - `contractVersion = 10`
-- `summaryVersion = 29`
+- `summaryVersion = 30`
 - `supportedSendV1Decision = accepted-narrow-v1-path`
 - `supportedUnshieldV1Decision = accepted-narrow-v1-path`
 - `supportedReleaseV1Decision = accepted-narrow-v1-path`

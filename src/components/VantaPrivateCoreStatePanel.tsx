@@ -41,6 +41,10 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSendBoundaryStatusLabel?: string | null;
   operatorSendContinuityPrimaryNote?: string | null;
   operatorSendContinuityStatusLabel?: string | null;
+  operatorSwapBoundaryPrimaryNote?: string | null;
+  operatorSwapBoundaryStatusLabel?: string | null;
+  operatorSwapContinuityPrimaryNote?: string | null;
+  operatorSwapContinuityStatusLabel?: string | null;
   operatorSupportedSendLaneKind?: string | null;
   operatorSupportedSendLaneNote?: string | null;
   operatorSupportedSendLaneStatus?: string | null;
@@ -123,6 +127,13 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSendResultingRootProofLinkStatus?: string | null;
   operatorSendResultingRootRegistrationStatusLabel?: string | null;
   operatorSendResultingRootStatusLabel?: string | null;
+  operatorSwapResultingRootLinkedProof?: VantaPrivateCoreOperatorProofRecord | null;
+  operatorSwapResultingRootRecord?: VantaPrivateCoreOperatorRootRecord | null;
+  operatorSwapResultingRootPrimaryNote?: string | null;
+  operatorSwapResultingRootRegistrationPrimaryNote?: string | null;
+  operatorSwapResultingRootProofLinkStatus?: string | null;
+  operatorSwapResultingRootRegistrationStatusLabel?: string | null;
+  operatorSwapResultingRootStatusLabel?: string | null;
   operatorSendError?: string | null;
   operatorSends?: VantaPrivateCoreOperatorSendRecord[];
   operatorSendProofError?: string | null;
@@ -266,6 +277,10 @@ export function VantaPrivateCoreStatePanel({
   operatorSendBoundaryStatusLabel = null,
   operatorSendContinuityPrimaryNote = null,
   operatorSendContinuityStatusLabel = null,
+  operatorSwapBoundaryPrimaryNote = null,
+  operatorSwapBoundaryStatusLabel = null,
+  operatorSwapContinuityPrimaryNote = null,
+  operatorSwapContinuityStatusLabel = null,
   operatorSupportedSendLaneKind = null,
   operatorSupportedSendLaneNote = null,
   operatorSupportedSendLaneStatus = null,
@@ -348,6 +363,13 @@ export function VantaPrivateCoreStatePanel({
   operatorSendResultingRootProofLinkStatus = null,
   operatorSendResultingRootRegistrationStatusLabel = null,
   operatorSendResultingRootStatusLabel = null,
+  operatorSwapResultingRootLinkedProof = null,
+  operatorSwapResultingRootRecord = null,
+  operatorSwapResultingRootPrimaryNote = null,
+  operatorSwapResultingRootRegistrationPrimaryNote = null,
+  operatorSwapResultingRootProofLinkStatus = null,
+  operatorSwapResultingRootRegistrationStatusLabel = null,
+  operatorSwapResultingRootStatusLabel = null,
   operatorSendError = null,
   operatorSends = [],
   operatorSendProofError = null,
@@ -1235,6 +1257,30 @@ export function VantaPrivateCoreStatePanel({
               <strong>{abbreviate(latestOperatorSwap?.resultingRoot)}</strong>
             </div>
             <div className="review-row">
+              <span>Swap resulting root status</span>
+              <strong>{operatorSwapResultingRootStatusLabel ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Swap resulting root note</span>
+              <strong>{operatorSwapResultingRootPrimaryNote ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Swap continuity status</span>
+              <strong>{operatorSwapContinuityStatusLabel ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Swap continuity note</span>
+              <strong>{operatorSwapContinuityPrimaryNote ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Swap boundary status</span>
+              <strong>{operatorSwapBoundaryStatusLabel ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Swap boundary note</span>
+              <strong>{operatorSwapBoundaryPrimaryNote ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
               <span>Proof/swap link</span>
               <strong>{operatorProofSwapLinkStatus ?? "Unavailable"}</strong>
             </div>
@@ -1495,6 +1541,84 @@ export function VantaPrivateCoreStatePanel({
                     ? "Legacy incomplete"
                     : "Unavailable"}
               </strong>
+            </div>
+            <div className="review-row">
+              <span>Swap resulting root status</span>
+              <strong>{operatorSwapResultingRootStatusLabel ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Swap resulting root note</span>
+              <strong>{operatorSwapResultingRootPrimaryNote ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Swap resulting root record</span>
+              <strong>
+                {operatorSwapResultingRootRecord?.root
+                  ? abbreviate(operatorSwapResultingRootRecord.root)
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Swap root registration basis</span>
+              <strong>
+                {formatOperatorRootRegistrationBasis(
+                  operatorSwapResultingRootRecord?.registrationBasis,
+                )}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Swap root registration status</span>
+              <strong>{operatorSwapResultingRootRegistrationStatusLabel ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Swap root registration note</span>
+              <strong>{operatorSwapResultingRootRegistrationPrimaryNote ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Swap resulting root proof</span>
+              <strong>
+                {operatorSwapResultingRootRecord?.proofId
+                  ? abbreviate(operatorSwapResultingRootRecord.proofId)
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Swap resulting root linked proof</span>
+              <strong>
+                {operatorSwapResultingRootLinkedProof?.proofId
+                  ? abbreviate(operatorSwapResultingRootLinkedProof.proofId)
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Swap resulting root proof link</span>
+              <strong>{operatorSwapResultingRootProofLinkStatus ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Swap resulting root bundle</span>
+              <strong>
+                {operatorSwapResultingRootRecord?.artifactBundleStatus === "complete"
+                  ? `Complete v${String(operatorSwapResultingRootRecord.artifactBundleVersion ?? 1)}`
+                  : operatorSwapResultingRootRecord?.artifactBundleStatus === "legacy-incomplete"
+                    ? "Legacy incomplete"
+                    : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Swap continuity status</span>
+              <strong>{operatorSwapContinuityStatusLabel ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Swap continuity note</span>
+              <strong>{operatorSwapContinuityPrimaryNote ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Swap boundary status</span>
+              <strong>{operatorSwapBoundaryStatusLabel ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Swap boundary note</span>
+              <strong>{operatorSwapBoundaryPrimaryNote ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Operator artifact bundle</span>

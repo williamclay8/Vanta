@@ -223,6 +223,48 @@ try {
   );
   printLine("Latest swap resulting-root basis", summary.latestSwap?.resultingRootBasis ?? "Unavailable");
   printLine("Latest swap resulting root", abbreviate(summary.latestSwap?.resultingRoot));
+  printLine(
+    "Swap resulting root status",
+    humanizeSwapResultingRootStatus(summary.swapResultingRootStatus),
+  );
+  printLine("Swap resulting root note", summary.swapResultingRootNote ?? "Unavailable");
+  printLine(
+    "Swap resulting root registration",
+    humanizeSwapResultingRootRegistrationStatus(summary.swapResultingRootRegistrationStatus),
+  );
+  printLine(
+    "Swap resulting root registration basis",
+    humanizeRootRegistrationBasis(summary.swapResultingRootRecord?.registrationBasis),
+  );
+  printLine(
+    "Swap resulting root registration note",
+    summary.swapResultingRootRegistrationNote ?? "Unavailable",
+  );
+  printLine(
+    "Swap continuity status",
+    humanizeSwapContinuityStatus(summary.swapContinuityStatus),
+  );
+  printLine("Swap continuity note", summary.swapContinuityNote ?? "Unavailable");
+  printLine("Swap boundary status", humanizeSwapBoundaryStatus(summary.swapBoundaryStatus));
+  printLine("Swap boundary note", summary.swapBoundaryNote ?? "Unavailable");
+  printLine("Swap resulting root record", abbreviate(summary.swapResultingRootRecord?.root));
+  printLine("Swap resulting root proof", abbreviate(summary.swapResultingRootRecord?.proofId));
+  printLine(
+    "Swap resulting root linked proof",
+    abbreviate(summary.swapResultingRootLinkedProof?.proofId),
+  );
+  printLine(
+    "Swap resulting root proof link",
+    summary.swapResultingRootProofLinkStatus ?? "Unavailable",
+  );
+  printLine(
+    "Swap resulting root bundle",
+    summary.swapResultingRootRecord?.artifactBundleStatus === "complete"
+      ? `Complete v${String(summary.swapResultingRootRecord.artifactBundleVersion ?? 1)}`
+      : summary.swapResultingRootRecord?.artifactBundleStatus === "legacy-incomplete"
+        ? "Legacy incomplete"
+        : "Unavailable",
+  );
   printLine("Swap records", String(summary.swapRecordCount ?? 0));
   printLine("Proof/swap link", summary.proofSwapLinkStatus ?? "Unavailable");
   printLine("Latest send proof", abbreviate(summary.latestSendProof?.proofId));
@@ -476,6 +518,92 @@ function humanizeSendBoundaryStatus(value) {
       return "Downstream consumed";
     case "downstream-released":
       return "Downstream released";
+    case "unavailable":
+      return "Unavailable";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeSwapResultingRootStatus(value) {
+  switch (value) {
+    case "current-root":
+      return "Current root";
+    case "registered-stale":
+      return "Registered but stale";
+    case "downstream-consumed":
+      return "Consumed downstream";
+    case "downstream-released":
+      return "Released downstream";
+    case "unregistered":
+      return "Unregistered";
+    case "missing":
+      return "Missing resulting root";
+    case "unavailable":
+      return "Unavailable";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeSwapResultingRootRegistrationStatus(value) {
+  switch (value) {
+    case "linked-output":
+      return "Linked to swap output";
+    case "mismatch":
+      return "Output mismatch";
+    case "unavailable":
+      return "Unavailable";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeSwapContinuityStatus(value) {
+  switch (value) {
+    case "ready-current-root":
+      return "Ready on current root";
+    case "ready-registered-stale":
+      return "Registered but stale";
+    case "awaiting-registration":
+      return "Awaiting registration";
+    case "registration-proof-unlinked":
+      return "Registration proof unlinked";
+    case "output-mismatch":
+      return "Output mismatch";
+    case "downstream-consumed":
+      return "Consumed downstream";
+    case "downstream-released":
+      return "Released downstream";
+    case "missing-resulting-root":
+      return "Missing resulting root";
+    case "unavailable":
+      return "Unavailable";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeSwapBoundaryStatus(value) {
+  switch (value) {
+    case "coherent-current-root":
+      return "Coherent on current root";
+    case "coherent-registered-stale":
+      return "Coherent but stale";
+    case "awaiting-registration":
+      return "Awaiting registration";
+    case "proof-swap-unlinked":
+      return "Swap proof unlinked";
+    case "registration-proof-unlinked":
+      return "Registration proof unlinked";
+    case "output-mismatch":
+      return "Output mismatch";
+    case "missing-resulting-root":
+      return "Missing resulting root";
+    case "downstream-consumed":
+      return "Consumed downstream";
+    case "downstream-released":
+      return "Released downstream";
     case "unavailable":
       return "Unavailable";
     default:
