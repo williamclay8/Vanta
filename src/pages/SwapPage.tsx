@@ -726,6 +726,12 @@ export function SwapPage() {
     preparedCurrentPrivateCoreSwapCandidate.status === "blocked"
       ? preparedCurrentPrivateCoreSwapCandidate.proofBoundary.blockers[0] ?? null
       : null;
+  const swapProofBasisLabel =
+    preparedCurrentPrivateCoreSwapCandidate.status === "ready"
+      ? "Current held note + live quote"
+      : preparedCurrentPrivateCoreSwapCandidate.status === "blocked"
+        ? "Current held note blocked -> fixture fallback"
+        : "Deterministic fixture fallback";
   const swapProofActionLabel =
     preparedCurrentPrivateCoreSwapCandidate.status === "ready"
       ? "Verify current private swap proof"
@@ -1922,11 +1928,7 @@ export function SwapPage() {
                 </div>
                 <div className="review-row">
                   <span>Swap proof basis</span>
-                  <strong>
-                    {currentPrivateCoreSwapCandidate
-                      ? "Current held note + live quote"
-                      : "Deterministic fixture fallback"}
-                  </strong>
+                  <strong>{swapProofBasisLabel}</strong>
                 </div>
                 <div className="review-row">
                   <span>Swap proof action</span>
