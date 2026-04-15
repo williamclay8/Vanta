@@ -712,6 +712,14 @@ export function SwapPage() {
     ],
   );
   const currentPrivateCoreSwapPathNote = preparedCurrentPrivateCoreSwapCandidate.note;
+  const swapProofActionLabel =
+    preparedCurrentPrivateCoreSwapCandidate.status === "ready"
+      ? "Verify current private swap proof"
+      : "Verify fixture private swap proof";
+  const swapTransitionActionLabel =
+    preparedCurrentPrivateCoreSwapCandidate.status === "ready"
+      ? "Record current private swap transition"
+      : "Record fixture private swap transition";
   const currentPrivateCoreSwapCandidate = useMemo(() => {
     if (
       preparedCurrentPrivateCoreSwapCandidate.status !== "ready" ||
@@ -1889,6 +1897,14 @@ export function SwapPage() {
                   </strong>
                 </div>
                 <div className="review-row">
+                  <span>Swap proof action</span>
+                  <strong>{swapProofActionLabel}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Swap transition action</span>
+                  <strong>{swapTransitionActionLabel}</strong>
+                </div>
+                <div className="review-row">
                   <span>Swap proof path note</span>
                   <strong>{currentPrivateCoreSwapPathNote}</strong>
                 </div>
@@ -1904,7 +1920,7 @@ export function SwapPage() {
                 >
                   {privateCoreSwapProofExecution.status === "verifying"
                     ? "Verifying swap proof"
-                    : "Verify private swap proof"}
+                    : swapProofActionLabel}
                 </button>
                 <button
                   className="button button-ghost"
@@ -1916,7 +1932,7 @@ export function SwapPage() {
                 >
                   {privateCoreSwapTransitionExecution.status === "recording"
                     ? "Recording swap transition"
-                    : "Record private swap transition"}
+                    : swapTransitionActionLabel}
                 </button>
               </div>
               {privateCoreSwapProofExecution.errorMessage && (
