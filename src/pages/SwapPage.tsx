@@ -28,12 +28,11 @@ import {
   requestVantaPrivateCoreOperatorSwapTransition,
 } from "@/zk/vantaPrivateCoreOperatorClient";
 import {
-  buildVantaPrivateCoreSwapTransition,
   deriveVantaPrivateCoreSourceArtifactsFromHeldNote,
 } from "@/zk/vantaPrivateCore";
 import {
-  buildVantaPrivateCoreSwapProofBoundary,
   getVantaPrivateCoreFixedDepthSwapFixtureV0,
+  prepareVantaPrivateCoreLiveSwapCandidate,
 } from "@/zk/vantaPrivateCoreSwapProof";
 import {
   buildVantaPrivateCoreUnshieldProofBoundary,
@@ -151,20 +150,6 @@ function formatDiagnosticValue(value: string | null | undefined) {
   }
 
   return value;
-}
-
-function decimalAmountToBaseUnits(value: string, decimals: number) {
-  const normalized = value.trim();
-
-  if (!/^\d+(\.\d+)?$/.test(normalized)) {
-    throw new Error("Invalid decimal amount for private-core swap.");
-  }
-
-  const [wholePart, fractionPart = ""] = normalized.split(".");
-  const scaledFraction = `${fractionPart}${"0".repeat(decimals)}`.slice(0, decimals);
-  const combined = `${wholePart}${scaledFraction}`.replace(/^0+(?=\d)/, "");
-
-  return BigInt(combined || "0");
 }
 
 export function SwapPage() {
@@ -708,97 +693,58 @@ export function SwapPage() {
       : null) ??
     swapZkDiagnostics[0] ??
     null;
-  const currentPrivateCoreSwapPathNote = useMemo(() => {
-    if (!privacyFlow.privateCoreHoldState) {
-      return "No current private-core held note is available yet.";
-    }
-
-    if (!quote) {
-      return "No live quote is available yet for the current private-core swap path.";
-    }
-
-    if (Date.now() > quote.quoteExpiresAt) {
-      return "The latest live quote expired, so the swap proof actions are using fixture fallback.";
+  const preparedCurrentPrivateCoreSwapCandidate = useMemo(
+    () =>
+      prepareVantaPrivateCoreLiveSwapCandidate({
+        heldNote: privacyFlow.privateCoreHoldState?.heldNote ?? null,
+        outputAssetId: liveSwapPair.solAssetId as `0x${string}`,
+        quoteExpiresAt: quote?.quoteExpiresAt ?? null,
+        quoteInputAmount: quote?.inputAmount ?? null,
+        quoteOutputAmount: quote?.outputAmount ?? null,
+        recipientOwnerPublicKey: privacyFlow.privateCoreOwner.publicKey,
+        senderSecretKey: privacyFlow.privateCoreOwner.secretKey,
+      }),
+    [
+      privacyFlow.privateCoreHoldState,
+      privacyFlow.privateCoreOwner.publicKey,
+      privacyFlow.privateCoreOwner.secretKey,
+      quote,
+    ],
+  );
+  const currentPrivateCoreSwapPathNote = preparedCurrentPrivateCoreSwapCandidate.note;
+  const currentPrivateCoreSwapCandidate = useMemo(() => {
+    if (
+      preparedCurrentPrivateCoreSwapCandidate.status !== "ready" ||
+      !privacyFlow.privateCoreHoldState
+    ) {
+      return null;
     }
 
     const heldNote = privacyFlow.privateCoreHoldState.heldNote;
+    const inputProofBoundary = buildVantaPrivateCoreUnshieldProofBoundary({
+      heldNote,
+      ownerSecretKey: privacyFlow.privateCoreOwner.secretKey,
+      releaseDestination:
+        "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    });
+    const sourceArtifacts = deriveVantaPrivateCoreSourceArtifactsFromHeldNote(heldNote);
+    const preview = privacyFlow.previewPrivateCoreSwapTransition(
+      preparedCurrentPrivateCoreSwapCandidate.transition,
+    );
 
-    if (
-      heldNote.note.assetId !==
-      "0x7675736400000000000000000000000000000000000000000000000000000000"
-    ) {
-      return "The current private-core held note is not a VUSD input note, so the swap proof actions are using fixture fallback.";
-    }
-
-    try {
-      const expectedInputAmount = decimalAmountToBaseUnits(quote.inputAmount, 6);
-
-      if (heldNote.note.amount !== expectedInputAmount) {
-        return "The current private-core held note amount does not match the live quote input amount, so the swap proof actions are using fixture fallback.";
-      }
-    } catch {
-      return "The live quote amount could not be converted into the private-core swap lane, so the swap proof actions are using fixture fallback.";
-    }
-
-    return "The current private-core held note and live quote align, so the swap proof actions are using the real current-note path.";
-  }, [privacyFlow.privateCoreHoldState, quote]);
-  const currentPrivateCoreSwapCandidate = useMemo(() => {
-    if (!privacyFlow.privateCoreHoldState || !quote) {
-      return null;
-    }
-
-    try {
-      if (Date.now() > quote.quoteExpiresAt) {
-        return null;
-      }
-
-      const heldNote = privacyFlow.privateCoreHoldState.heldNote;
-      const expectedInputAmount = decimalAmountToBaseUnits(quote.inputAmount, 6);
-
-      if (
-        heldNote.note.assetId !==
-          "0x7675736400000000000000000000000000000000000000000000000000000000" ||
-        heldNote.note.amount !== expectedInputAmount
-      ) {
-        return null;
-      }
-
-      const transition = buildVantaPrivateCoreSwapTransition({
-        input: heldNote,
-        outputAssetId: liveSwapPair.solAssetId as `0x${string}`,
-        outputAmount: decimalAmountToBaseUnits(quote.outputAmount, 9),
-        recipientOwnerPublicKey: privacyFlow.privateCoreOwner.publicKey,
-      });
-      const proofBoundary = buildVantaPrivateCoreSwapProofBoundary({
-        transition,
-        senderSecretKey: privacyFlow.privateCoreOwner.secretKey,
-      });
-      const inputProofBoundary = buildVantaPrivateCoreUnshieldProofBoundary({
-        heldNote,
-        ownerSecretKey: privacyFlow.privateCoreOwner.secretKey,
-        releaseDestination:
-          "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-      });
-      const sourceArtifacts = deriveVantaPrivateCoreSourceArtifactsFromHeldNote(heldNote);
-      const preview = privacyFlow.previewPrivateCoreSwapTransition(transition);
-
-      return {
-        executionMode: "current-held-note" as const,
-        inputProofBoundary,
-        proofBoundary,
-        resultingRoot: preview.resultingRoot,
-        sourceArtifacts,
-        transition,
-      };
-    } catch {
-      return null;
-    }
+    return {
+      executionMode: "current-held-note" as const,
+      inputProofBoundary,
+      proofBoundary: preparedCurrentPrivateCoreSwapCandidate.proofBoundary,
+      resultingRoot: preview.resultingRoot,
+      sourceArtifacts,
+      transition: preparedCurrentPrivateCoreSwapCandidate.transition,
+    };
   }, [
+    preparedCurrentPrivateCoreSwapCandidate,
     privacyFlow.previewPrivateCoreSwapTransition,
     privacyFlow.privateCoreHoldState,
-    privacyFlow.privateCoreOwner.publicKey,
     privacyFlow.privateCoreOwner.secretKey,
-    quote,
   ]);
   const shouldShowDiagnostics =
     status !== "idle" ||

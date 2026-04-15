@@ -181,6 +181,8 @@ npm run private-core:send-chain-unshield-restart-check
 npm run private-core:prove
 npm run private-core:send-prove
 npm run private-core:swap-prove
+npm run private-core:swap-boundary-check
+npm run private-core:swap-live-path-check
 npm run private-core:swap-unshield-roundtrip-check
 npm run private-core:contract-smoke
 npm run private-core:send-http-smoke
@@ -199,6 +201,7 @@ These commands cover:
 - fixed-depth Noir circuit regression
 - fixed-depth send-circuit regression
 - fixed-depth swap-circuit regression
+- live held-note plus live-quote swap-path readiness and fallback regression
 - source-layer send transition application and change-note recovery
 - send-to-hold-to-unshield continuity after a private send
 - recipient-side note recovery and spendability after a private send

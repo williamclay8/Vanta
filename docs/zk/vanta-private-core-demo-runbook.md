@@ -30,6 +30,7 @@ npm run private-core:demo-preflight
 That confirms:
 - the app builds
 - the fixed-depth Noir circuit still passes the valid fixture and rejects the invalid fixture
+- the current private-core swap live path still accepts a current held note plus fresh live quote and rejects stale or mismatched quote inputs
 - source-layer send transitions still consume the input note and recover the change note coherently
 - residual change notes from private send still flow into hold and unshield coherently
 - recipient notes from private send still recover and spend coherently
@@ -155,6 +156,7 @@ Fall back in this order:
 
 1. Show `npm run private-core:verify`
    or `npm run private-core:demo-readiness`
+   If the question is whether the Swap page is using a real current-note path or fixture fallback, show `npm run private-core:swap-live-path-check`
    If you need to isolate the constrained swap seam, show `npm run private-core:swap-transition-http-smoke`
    If you need to show the downstream swap handoff, show `npm run private-core:swap-unshield-roundtrip-check`
    If the question is downstream swap durability, show `npm run private-core:swap-unshield-restart-check`

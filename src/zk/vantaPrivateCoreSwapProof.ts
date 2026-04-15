@@ -14,6 +14,7 @@ import {
   serializeVantaPrivateCoreNoteV0,
   verifyVantaPrivateCoreWitnessResponse,
   type Bytes32Hex,
+  type HeldNoteViewV0,
   type MerkleProofV0,
   type NoteType,
   type SerializedNoteV0,
@@ -187,6 +188,20 @@ export type VantaPrivateCoreFixedDepthSwapFixtureV0 = {
   invalidDirectionWitnessPackage: VantaPrivateCoreNoirSwapWitnessPackageV0;
 };
 
+export type VantaPrivateCorePreparedLiveSwapCandidateV0 =
+  | {
+      status: "ready";
+      note: string;
+      transition: SwapTransitionV0;
+      proofBoundary: VantaPrivateCoreSwapProofBoundaryV0;
+    }
+  | {
+      status: "fallback";
+      note: string;
+      transition: null;
+      proofBoundary: null;
+    };
+
 export type BuildVantaPrivateCoreSwapProofBoundaryArgs = {
   transition: SwapTransitionV0;
   senderSecretKey: Bytes32Hex;
@@ -194,6 +209,115 @@ export type BuildVantaPrivateCoreSwapProofBoundaryArgs = {
   circuitMerkleDepth?: number;
   requireNontrivialMerklePath?: boolean;
 };
+
+export function prepareVantaPrivateCoreLiveSwapCandidate(args: {
+  heldNote: HeldNoteViewV0 | null;
+  senderSecretKey: Bytes32Hex;
+  recipientOwnerPublicKey: Bytes32Hex;
+  outputAssetId: Bytes32Hex;
+  quoteInputAmount: string | null;
+  quoteOutputAmount: string | null;
+  quoteExpiresAt?: number | null;
+  nowMs?: number;
+  expectedInputAssetId?: Bytes32Hex;
+  inputDecimals?: number;
+  outputDecimals?: number;
+}): VantaPrivateCorePreparedLiveSwapCandidateV0 {
+  if (!args.heldNote) {
+    return {
+      note: "No current private-core held note is available yet.",
+      proofBoundary: null,
+      status: "fallback",
+      transition: null,
+    };
+  }
+
+  if (!args.quoteInputAmount || !args.quoteOutputAmount) {
+    return {
+      note: "No live quote is available yet for the current private-core swap path.",
+      proofBoundary: null,
+      status: "fallback",
+      transition: null,
+    };
+  }
+
+  if (
+    typeof args.quoteExpiresAt === "number" &&
+    Number.isFinite(args.quoteExpiresAt) &&
+    (args.nowMs ?? Date.now()) > args.quoteExpiresAt
+  ) {
+    return {
+      note: "The latest live quote expired, so the swap proof actions are using fixture fallback.",
+      proofBoundary: null,
+      status: "fallback",
+      transition: null,
+    };
+  }
+
+  const expectedInputAssetId =
+    args.expectedInputAssetId ??
+    ("0x7675736400000000000000000000000000000000000000000000000000000000" as Bytes32Hex);
+
+  if (args.heldNote.note.assetId !== expectedInputAssetId) {
+    return {
+      note: "The current private-core held note is not a VUSD input note, so the swap proof actions are using fixture fallback.",
+      proofBoundary: null,
+      status: "fallback",
+      transition: null,
+    };
+  }
+
+  let expectedInputAmount: bigint;
+  let outputAmount: bigint;
+
+  try {
+    expectedInputAmount = decimalAmountToBaseUnits(args.quoteInputAmount, args.inputDecimals ?? 6);
+    outputAmount = decimalAmountToBaseUnits(args.quoteOutputAmount, args.outputDecimals ?? 9);
+  } catch {
+    return {
+      note: "The live quote amount could not be converted into the private-core swap lane, so the swap proof actions are using fixture fallback.",
+      proofBoundary: null,
+      status: "fallback",
+      transition: null,
+    };
+  }
+
+  if (args.heldNote.note.amount !== expectedInputAmount) {
+    return {
+      note: "The current private-core held note amount does not match the live quote input amount, so the swap proof actions are using fixture fallback.",
+      proofBoundary: null,
+      status: "fallback",
+      transition: null,
+    };
+  }
+
+  try {
+    const transition = buildVantaPrivateCoreSwapTransition({
+      input: args.heldNote,
+      outputAmount,
+      outputAssetId: args.outputAssetId,
+      recipientOwnerPublicKey: args.recipientOwnerPublicKey,
+    });
+    const proofBoundary = buildVantaPrivateCoreSwapProofBoundary({
+      transition,
+      senderSecretKey: args.senderSecretKey,
+    });
+
+    return {
+      note: "The current private-core held note and live quote align, so the swap proof actions are using the real current-note path.",
+      proofBoundary,
+      status: "ready",
+      transition,
+    };
+  } catch {
+    return {
+      note: "The private-core swap lane could not build a coherent current-note proving boundary, so the swap proof actions are using fixture fallback.",
+      proofBoundary: null,
+      status: "fallback",
+      transition: null,
+    };
+  }
+}
 
 export function buildVantaPrivateCoreSwapProofBoundary(
   args: BuildVantaPrivateCoreSwapProofBoundaryArgs,
@@ -784,6 +908,20 @@ function toRepeatedByteHex12(byte: number): `0x${string}` {
   const normalizedByte = byte & 0xff;
   const pair = normalizedByte.toString(16).padStart(2, "0");
   return `0x${pair.repeat(12)}`;
+}
+
+function decimalAmountToBaseUnits(value: string, decimals: number): bigint {
+  const normalized = value.trim();
+
+  if (!/^\d+(\.\d+)?$/.test(normalized)) {
+    throw new Error("Invalid decimal amount for private-core swap.");
+  }
+
+  const [wholePart, fractionPart = ""] = normalized.split(".");
+  const scaledFraction = `${fractionPart}${"0".repeat(decimals)}`.slice(0, decimals);
+  const combined = `${wholePart}${scaledFraction}`.replace(/^0+(?=\d)/, "");
+
+  return BigInt(combined || "0");
 }
 
 function serializeTomlArray(values: readonly string[]): string {
