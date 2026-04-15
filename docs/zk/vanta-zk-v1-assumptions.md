@@ -171,3 +171,4 @@ The first frozen source-layer send target for that work now exists in:
 - `docs/zk/vanta-private-core-send-proof-boundary.md`
 - `docs/zk/vanta-zk-v1-supported-send-lane.md`
 - `docs/zk/vanta-zk-v1-supported-unshield-lane.md`
+- `docs/zk/vanta-zk-v1-supported-release-lane.md`
