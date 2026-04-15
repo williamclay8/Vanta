@@ -33,6 +33,11 @@ The repo now freezes that as an explicit operator-contract assumption:
 - `ownerAuthorizationMode = x25519-secret-prechecked-off-circuit`
 - `ownerAuthorizationDecision = accepted-v1-off-circuit-precheck`
 
+The repo now also freezes the current source/proving split explicitly:
+- `sourceArtifactTruthBasis = source-layer-artifact-bundle`
+- `provingArtifactTruthBasis = verified-proving-public-input-vector`
+- `sourceProvingRelationship = explicit-split-no-implicit-equality`
+
 That means:
 - the app or operator path may recompute the owner public key from the supplied secret material
 - the first Noir unshield circuit does not need to prove X25519 ownership in-circuit

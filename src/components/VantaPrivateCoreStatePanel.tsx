@@ -75,6 +75,9 @@ type VantaPrivateCoreStatePanelProps = {
   operatorOwnerAuthorizationMode?: string | null;
   operatorOwnerAuthorizationDecision?: string | null;
   operatorOwnerAuthorizationDecisionNote?: string | null;
+  operatorSourceArtifactTruthBasis?: string | null;
+  operatorProvingArtifactTruthBasis?: string | null;
+  operatorSourceProvingRelationship?: string | null;
   operatorNullifierKeyMode?: string | null;
   operatorProvingHashLane?: string | null;
   operatorCurrentRootLinkedProof?: VantaPrivateCoreOperatorProofRecord | null;
@@ -267,6 +270,9 @@ export function VantaPrivateCoreStatePanel({
   operatorOwnerAuthorizationMode = null,
   operatorOwnerAuthorizationDecision = null,
   operatorOwnerAuthorizationDecisionNote = null,
+  operatorSourceArtifactTruthBasis = null,
+  operatorProvingArtifactTruthBasis = null,
+  operatorSourceProvingRelationship = null,
   operatorNullifierKeyMode = null,
   operatorProvingHashLane = null,
   operatorCurrentRootLinkedProof = null,
@@ -798,6 +804,30 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Owner auth decision note</span>
               <strong>{operatorOwnerAuthorizationDecisionNote ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Source artifact truth</span>
+              <strong>
+                {operatorSourceArtifactTruthBasis === "source-layer-artifact-bundle"
+                  ? "Source-layer artifact bundle"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Proving artifact truth</span>
+              <strong>
+                {operatorProvingArtifactTruthBasis === "verified-proving-public-input-vector"
+                  ? "Verified proving public-input vector"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Source/proving relationship</span>
+              <strong>
+                {operatorSourceProvingRelationship === "explicit-split-no-implicit-equality"
+                  ? "Explicit split / no implicit equality"
+                  : "Unavailable"}
+              </strong>
             </div>
             <div className="review-row">
               <span>Operator nullifier key</span>

@@ -288,6 +288,9 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   ownerAuthorizationMode: "x25519-secret-prechecked-off-circuit";
   ownerAuthorizationDecision: "accepted-v1-off-circuit-precheck";
   ownerAuthorizationDecisionNote: string;
+  sourceArtifactTruthBasis: "source-layer-artifact-bundle";
+  provingArtifactTruthBasis: "verified-proving-public-input-vector";
+  sourceProvingRelationship: "explicit-split-no-implicit-equality";
   nullifierKeyMode: "note-secret-as-nullifier-key-v0";
   provingHashLane: "poseidon-bn254-proving-lane-v0";
   generatedAt: number;
@@ -364,6 +367,9 @@ export type VantaPrivateCoreOperatorContractStateResponse = {
   ownerAuthorizationMode: "x25519-secret-prechecked-off-circuit";
   ownerAuthorizationDecision: "accepted-v1-off-circuit-precheck";
   ownerAuthorizationDecisionNote: string;
+  sourceArtifactTruthBasis: "source-layer-artifact-bundle";
+  provingArtifactTruthBasis: "verified-proving-public-input-vector";
+  sourceProvingRelationship: "explicit-split-no-implicit-equality";
   nullifierKeyMode: "note-secret-as-nullifier-key-v0";
   provingHashLane: "poseidon-bn254-proving-lane-v0";
 };
@@ -1009,6 +1015,9 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     ownerAuthorizationMode?: unknown;
     ownerAuthorizationDecision?: unknown;
     ownerAuthorizationDecisionNote?: unknown;
+    sourceArtifactTruthBasis?: unknown;
+    provingArtifactTruthBasis?: unknown;
+    sourceProvingRelationship?: unknown;
     nullifierKeyMode?: unknown;
     provingHashLane?: unknown;
     generatedAt?: unknown;
@@ -1041,8 +1050,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 3 ||
-    parsed.summaryVersion !== 22 ||
+    parsed.contractVersion !== 4 ||
+    parsed.summaryVersion !== 23 ||
     !isContractMirrorStatus(parsed.contractMirrorStatus) ||
     typeof parsed.contractMirrorNote !== "string" ||
     !isBoundaryStatus(parsed.boundaryStatus) ||
@@ -1108,6 +1117,9 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     parsed.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
     parsed.ownerAuthorizationDecision !== "accepted-v1-off-circuit-precheck" ||
     typeof parsed.ownerAuthorizationDecisionNote !== "string" ||
+    parsed.sourceArtifactTruthBasis !== "source-layer-artifact-bundle" ||
+    parsed.provingArtifactTruthBasis !== "verified-proving-public-input-vector" ||
+    parsed.sourceProvingRelationship !== "explicit-split-no-implicit-equality" ||
     parsed.nullifierKeyMode !== "note-secret-as-nullifier-key-v0" ||
     parsed.provingHashLane !== "poseidon-bn254-proving-lane-v0" ||
     typeof parsed.generatedAt !== "number" ||
@@ -1162,8 +1174,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   return {
     stateVersion: 1,
-    contractVersion: 3,
-    summaryVersion: 22,
+    contractVersion: 4,
+    summaryVersion: 23,
     contractMirrorStatus: parsed.contractMirrorStatus,
     contractMirrorNote: parsed.contractMirrorNote,
     boundaryStatus: parsed.boundaryStatus,
@@ -1212,6 +1224,9 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     ownerAuthorizationMode: "x25519-secret-prechecked-off-circuit",
     ownerAuthorizationDecision: "accepted-v1-off-circuit-precheck",
     ownerAuthorizationDecisionNote: parsed.ownerAuthorizationDecisionNote,
+    sourceArtifactTruthBasis: "source-layer-artifact-bundle",
+    provingArtifactTruthBasis: "verified-proving-public-input-vector",
+    sourceProvingRelationship: "explicit-split-no-implicit-equality",
     nullifierKeyMode: "note-secret-as-nullifier-key-v0",
     provingHashLane: "poseidon-bn254-proving-lane-v0",
     currentRootLinkedProof: isProofRecord(parsed.currentRootLinkedProof)
@@ -1318,14 +1333,17 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     ownerAuthorizationMode?: unknown;
     ownerAuthorizationDecision?: unknown;
     ownerAuthorizationDecisionNote?: unknown;
+    sourceArtifactTruthBasis?: unknown;
+    provingArtifactTruthBasis?: unknown;
+    sourceProvingRelationship?: unknown;
     nullifierKeyMode?: unknown;
     provingHashLane?: unknown;
   };
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 3 ||
-    parsed.summaryVersion !== 22 ||
+    parsed.contractVersion !== 4 ||
+    parsed.summaryVersion !== 23 ||
     parsed.supportedSendLaneVersion !== 1 ||
     parsed.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     parsed.supportedSendLaneStatus !== "supported" ||
@@ -1368,6 +1386,9 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     parsed.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
     parsed.ownerAuthorizationDecision !== "accepted-v1-off-circuit-precheck" ||
     typeof parsed.ownerAuthorizationDecisionNote !== "string" ||
+    parsed.sourceArtifactTruthBasis !== "source-layer-artifact-bundle" ||
+    parsed.provingArtifactTruthBasis !== "verified-proving-public-input-vector" ||
+    parsed.sourceProvingRelationship !== "explicit-split-no-implicit-equality" ||
     parsed.nullifierKeyMode !== "note-secret-as-nullifier-key-v0" ||
     parsed.provingHashLane !== "poseidon-bn254-proving-lane-v0"
   ) {
@@ -1376,8 +1397,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
 
   return {
     stateVersion: 1,
-    contractVersion: 3,
-    summaryVersion: 22,
+    contractVersion: 4,
+    summaryVersion: 23,
     supportedSendLaneVersion: 1,
     supportedSendLaneKind: "single-input-single-recipient-optional-change",
     supportedSendLaneStatus: "supported",
@@ -1420,6 +1441,9 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     ownerAuthorizationMode: "x25519-secret-prechecked-off-circuit",
     ownerAuthorizationDecision: "accepted-v1-off-circuit-precheck",
     ownerAuthorizationDecisionNote: parsed.ownerAuthorizationDecisionNote,
+    sourceArtifactTruthBasis: "source-layer-artifact-bundle",
+    provingArtifactTruthBasis: "verified-proving-public-input-vector",
+    sourceProvingRelationship: "explicit-split-no-implicit-equality",
     nullifierKeyMode: "note-secret-as-nullifier-key-v0",
     provingHashLane: "poseidon-bn254-proving-lane-v0",
   };

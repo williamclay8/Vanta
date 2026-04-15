@@ -102,8 +102,8 @@ try {
   if (
     !contractState.ok ||
     contractState.parsed?.stateVersion !== 1 ||
-    contractState.parsed?.contractVersion !== 3 ||
-    contractState.parsed?.summaryVersion !== 22 ||
+    contractState.parsed?.contractVersion !== 4 ||
+    contractState.parsed?.summaryVersion !== 23 ||
     contractState.parsed?.supportedSendLaneVersion !== 1 ||
     contractState.parsed?.supportedUnshieldLaneVersion !== 1 ||
     contractState.parsed?.supportedReleaseLaneVersion !== 1 ||
@@ -129,7 +129,10 @@ try {
       "operator-local-atomic-consume-and-release-record" ||
     contractState.parsed?.supportedReleasePersistenceModel !== "json-store-v1" ||
     contractState.parsed?.ownerAuthorizationDecision !== "accepted-v1-off-circuit-precheck" ||
-    typeof contractState.parsed?.ownerAuthorizationDecisionNote !== "string"
+    typeof contractState.parsed?.ownerAuthorizationDecisionNote !== "string" ||
+    contractState.parsed?.sourceArtifactTruthBasis !== "source-layer-artifact-bundle" ||
+    contractState.parsed?.provingArtifactTruthBasis !== "verified-proving-public-input-vector" ||
+    contractState.parsed?.sourceProvingRelationship !== "explicit-split-no-implicit-equality"
   ) {
     throw new Error(contractState.text || "operator contract endpoint returned invalid data");
   }
@@ -177,6 +180,9 @@ try {
     "ownerAuthorizationMode",
     "ownerAuthorizationDecision",
     "ownerAuthorizationDecisionNote",
+    "sourceArtifactTruthBasis",
+    "provingArtifactTruthBasis",
+    "sourceProvingRelationship",
     "nullifierKeyMode",
     "provingHashLane",
   ];
@@ -218,8 +224,8 @@ try {
   });
   if (
     !contractOutput.includes("Contract state version: 1") ||
-    !contractOutput.includes("Contract version: 3") ||
-    !contractOutput.includes("Summary compatibility: 22") ||
+    !contractOutput.includes("Contract version: 4") ||
+    !contractOutput.includes("Summary compatibility: 23") ||
     !contractOutput.includes("Supported note schema: NoteV0 / v0") ||
     !contractOutput.includes(
       "Supported root provenance: Shield input / send recipient output / send change output",
@@ -237,6 +243,13 @@ try {
     !contractOutput.includes("Supported release persistence: json-store-v1") ||
     !contractOutput.includes(
       "Owner authorization decision: accepted-v1-off-circuit-precheck",
+    ) ||
+    !contractOutput.includes("Source artifact truth: source-layer-artifact-bundle") ||
+    !contractOutput.includes(
+      "Proving artifact truth: verified-proving-public-input-vector",
+    ) ||
+    !contractOutput.includes(
+      "Source/proving relationship: explicit-split-no-implicit-equality",
     ) ||
     !contractOutput.includes(
       "Supported send output registration: Resulting root must register as recipient or change output",

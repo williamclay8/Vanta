@@ -220,7 +220,7 @@ try {
   if (
     !initialSummaryState.ok ||
     initialSummaryState.parsed?.stateVersion !== 1 ||
-    initialSummaryState.parsed?.summaryVersion !== 22 ||
+    initialSummaryState.parsed?.summaryVersion !== 23 ||
     initialSummaryState.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     initialSummaryState.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -895,7 +895,7 @@ try {
   if (
     !summaryStateAfterConsume.ok ||
     summaryStateAfterConsume.parsed?.stateVersion !== 1 ||
-    summaryStateAfterConsume.parsed?.summaryVersion !== 22 ||
+    summaryStateAfterConsume.parsed?.summaryVersion !== 23 ||
     summaryStateAfterConsume.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterConsume.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -989,7 +989,7 @@ try {
   });
   if (
     !summaryStateAfterRelease.ok ||
-    summaryStateAfterRelease.parsed?.summaryVersion !== 22 ||
+    summaryStateAfterRelease.parsed?.summaryVersion !== 23 ||
     summaryStateAfterRelease.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterRelease.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -1069,8 +1069,8 @@ try {
   });
   if (
     !operatorStatusOutput.includes("Summary state version: 1") ||
-    !operatorStatusOutput.includes("Mirrored contract version: 3") ||
-    !operatorStatusOutput.includes("Summary version: 22") ||
+    !operatorStatusOutput.includes("Mirrored contract version: 4") ||
+    !operatorStatusOutput.includes("Summary version: 23") ||
     !operatorStatusOutput.includes("Supported release execution: Operator-recorded devnet release") ||
     !operatorStatusOutput.includes(
       "Supported release atomicity: Operator-local atomic consume + release record",
@@ -1078,6 +1078,13 @@ try {
     !operatorStatusOutput.includes("Supported release persistence: JSON store v1") ||
     !operatorStatusOutput.includes(
       "Owner authorization decision: Accepted v1 off-circuit precheck",
+    ) ||
+    !operatorStatusOutput.includes("Source artifact truth: Source-layer artifact bundle") ||
+    !operatorStatusOutput.includes(
+      "Proving artifact truth: Verified proving public-input vector",
+    ) ||
+    !operatorStatusOutput.includes(
+      "Source/proving relationship: Explicit split / no implicit equality",
     ) ||
     !operatorStatusOutput.includes(
       "Supported send input-root policy: Latest registered root with linked registration proof",

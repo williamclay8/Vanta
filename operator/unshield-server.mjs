@@ -183,6 +183,9 @@ const PRIVATE_CORE_OWNER_AUTH_MODE = "x25519-secret-prechecked-off-circuit";
 const PRIVATE_CORE_OWNER_AUTH_DECISION = "accepted-v1-off-circuit-precheck";
 const PRIVATE_CORE_OWNER_AUTH_DECISION_NOTE =
   "Current narrow zk v1 explicitly accepts off-circuit prechecked X25519 owner authorization; in-circuit owner auth is deferred.";
+const PRIVATE_CORE_SOURCE_ARTIFACT_TRUTH_BASIS = "source-layer-artifact-bundle";
+const PRIVATE_CORE_PROVING_ARTIFACT_TRUTH_BASIS = "verified-proving-public-input-vector";
+const PRIVATE_CORE_SOURCE_PROVING_RELATIONSHIP = "explicit-split-no-implicit-equality";
 const PRIVATE_CORE_NULLIFIER_KEY_MODE = "note-secret-as-nullifier-key-v0";
 const PRIVATE_CORE_PROVING_HASH_LANE = "poseidon-bn254-proving-lane-v0";
 
@@ -1649,8 +1652,8 @@ function buildPrivateCoreSummaryState() {
 function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
-    contractVersion: 3,
-    summaryVersion: 22,
+    contractVersion: 4,
+    summaryVersion: 23,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
@@ -1692,6 +1695,9 @@ function buildPrivateCoreContractState() {
     ownerAuthorizationMode: PRIVATE_CORE_OWNER_AUTH_MODE,
     ownerAuthorizationDecision: PRIVATE_CORE_OWNER_AUTH_DECISION,
     ownerAuthorizationDecisionNote: PRIVATE_CORE_OWNER_AUTH_DECISION_NOTE,
+    sourceArtifactTruthBasis: PRIVATE_CORE_SOURCE_ARTIFACT_TRUTH_BASIS,
+    provingArtifactTruthBasis: PRIVATE_CORE_PROVING_ARTIFACT_TRUTH_BASIS,
+    sourceProvingRelationship: PRIVATE_CORE_SOURCE_PROVING_RELATIONSHIP,
     nullifierKeyMode: PRIVATE_CORE_NULLIFIER_KEY_MODE,
     provingHashLane: PRIVATE_CORE_PROVING_HASH_LANE,
   };
@@ -1739,6 +1745,9 @@ function summarizePrivateCoreContractMirrorStatus(args) {
     "ownerAuthorizationMode",
     "ownerAuthorizationDecision",
     "ownerAuthorizationDecisionNote",
+    "sourceArtifactTruthBasis",
+    "provingArtifactTruthBasis",
+    "sourceProvingRelationship",
     "nullifierKeyMode",
     "provingHashLane",
   ];

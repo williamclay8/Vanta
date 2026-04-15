@@ -124,6 +124,18 @@ try {
     "Owner authorization decision note",
     summary.ownerAuthorizationDecisionNote ?? "Unavailable",
   );
+  printLine(
+    "Source artifact truth",
+    humanizeSourceArtifactTruthBasis(summary.sourceArtifactTruthBasis),
+  );
+  printLine(
+    "Proving artifact truth",
+    humanizeProvingArtifactTruthBasis(summary.provingArtifactTruthBasis),
+  );
+  printLine(
+    "Source/proving relationship",
+    humanizeSourceProvingRelationship(summary.sourceProvingRelationship),
+  );
   printLine("Nullifier key mode", humanizeNullifierKeyMode(summary.nullifierKeyMode));
   printLine("Proving hash lane", summary.provingHashLane ?? "Unavailable");
   printLine("Current root", abbreviate(summary.currentRoot));
@@ -576,6 +588,33 @@ function humanizeOwnerAuthorizationDecision(value) {
   switch (value) {
     case "accepted-v1-off-circuit-precheck":
       return "Accepted v1 off-circuit precheck";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeSourceArtifactTruthBasis(value) {
+  switch (value) {
+    case "source-layer-artifact-bundle":
+      return "Source-layer artifact bundle";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeProvingArtifactTruthBasis(value) {
+  switch (value) {
+    case "verified-proving-public-input-vector":
+      return "Verified proving public-input vector";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeSourceProvingRelationship(value) {
+  switch (value) {
+    case "explicit-split-no-implicit-equality":
+      return "Explicit split / no implicit equality";
     default:
       return "Unavailable";
   }

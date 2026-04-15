@@ -116,6 +116,9 @@ try {
     "Owner authorization decision note",
     contract.ownerAuthorizationDecisionNote ?? "Unavailable",
   );
+  printLine("Source artifact truth", contract.sourceArtifactTruthBasis ?? "Unavailable");
+  printLine("Proving artifact truth", contract.provingArtifactTruthBasis ?? "Unavailable");
+  printLine("Source/proving relationship", contract.sourceProvingRelationship ?? "Unavailable");
   printLine("Nullifier key mode", contract.nullifierKeyMode ?? "Unavailable");
   printLine("Proving hash lane", contract.provingHashLane ?? "Unavailable");
 } catch (error) {

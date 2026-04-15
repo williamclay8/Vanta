@@ -71,6 +71,7 @@ The operator-status command gives a quick summary snapshot of:
 - latest release
 - release authorization and root policy
 - release execution, atomicity, and persistence model
+- source-artifact truth, proving-truth, and source/proving relationship
 - proof/send link status
 - proof/consume link status
 - proof/release link status

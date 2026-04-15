@@ -152,6 +152,9 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorOwnerAuthorizationMode: string | null;
   privateCoreOperatorOwnerAuthorizationDecision: string | null;
   privateCoreOperatorOwnerAuthorizationDecisionNote: string | null;
+  privateCoreOperatorSourceArtifactTruthBasis: string | null;
+  privateCoreOperatorProvingArtifactTruthBasis: string | null;
+  privateCoreOperatorSourceProvingRelationship: string | null;
   privateCoreOperatorNullifierKeyMode: string | null;
   privateCoreOperatorProvingHashLane: string | null;
   privateCoreOperatorProofConsumeLinkStatus: string | null;
@@ -530,6 +533,18 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     privateCoreOperatorOwnerAuthorizationDecisionNote,
     setPrivateCoreOperatorOwnerAuthorizationDecisionNote,
   ] = useState<string | null>(null);
+  const [
+    privateCoreOperatorSourceArtifactTruthBasis,
+    setPrivateCoreOperatorSourceArtifactTruthBasis,
+  ] = useState<string | null>(null);
+  const [
+    privateCoreOperatorProvingArtifactTruthBasis,
+    setPrivateCoreOperatorProvingArtifactTruthBasis,
+  ] = useState<string | null>(null);
+  const [
+    privateCoreOperatorSourceProvingRelationship,
+    setPrivateCoreOperatorSourceProvingRelationship,
+  ] = useState<string | null>(null);
   const [privateCoreOperatorNullifierKeyMode, setPrivateCoreOperatorNullifierKeyMode] =
     useState<string | null>(null);
   const [privateCoreOperatorProvingHashLane, setPrivateCoreOperatorProvingHashLane] =
@@ -621,6 +636,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorOwnerAuthorizationMode,
       setPrivateCoreOperatorOwnerAuthorizationDecision,
       setPrivateCoreOperatorOwnerAuthorizationDecisionNote,
+      setPrivateCoreOperatorSourceArtifactTruthBasis,
+      setPrivateCoreOperatorProvingArtifactTruthBasis,
+      setPrivateCoreOperatorSourceProvingRelationship,
       setPrivateCoreOperatorNullifierKeyMode,
       setPrivateCoreOperatorProvingHashLane,
     });
@@ -1692,6 +1710,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorOwnerAuthorizationMode,
       privateCoreOperatorOwnerAuthorizationDecision,
       privateCoreOperatorOwnerAuthorizationDecisionNote,
+      privateCoreOperatorSourceArtifactTruthBasis,
+      privateCoreOperatorProvingArtifactTruthBasis,
+      privateCoreOperatorSourceProvingRelationship,
       privateCoreOperatorNullifierKeyMode,
       privateCoreOperatorProvingHashLane,
       privateCoreOperatorProofConsumeLinkStatus,
@@ -1824,6 +1845,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorOwnerAuthorizationMode,
       privateCoreOperatorOwnerAuthorizationDecision,
       privateCoreOperatorOwnerAuthorizationDecisionNote,
+      privateCoreOperatorSourceArtifactTruthBasis,
+      privateCoreOperatorProvingArtifactTruthBasis,
+      privateCoreOperatorSourceProvingRelationship,
       privateCoreOperatorNullifierKeyMode,
       privateCoreOperatorProvingHashLane,
       privateCoreOperatorProofConsumeLinkStatus,
@@ -2424,6 +2448,9 @@ function applyPrivateCoreOperatorContractState(args: {
   setPrivateCoreOperatorOwnerAuthorizationMode: (value: string | null) => void;
   setPrivateCoreOperatorOwnerAuthorizationDecision: (value: string | null) => void;
   setPrivateCoreOperatorOwnerAuthorizationDecisionNote: (value: string | null) => void;
+  setPrivateCoreOperatorSourceArtifactTruthBasis: (value: string | null) => void;
+  setPrivateCoreOperatorProvingArtifactTruthBasis: (value: string | null) => void;
+  setPrivateCoreOperatorSourceProvingRelationship: (value: string | null) => void;
   setPrivateCoreOperatorNullifierKeyMode: (value: string | null) => void;
   setPrivateCoreOperatorProvingHashLane: (value: string | null) => void;
 }) {
@@ -2504,6 +2531,15 @@ function applyPrivateCoreOperatorContractState(args: {
   );
   args.setPrivateCoreOperatorOwnerAuthorizationDecisionNote(
     args.contractState.ownerAuthorizationDecisionNote,
+  );
+  args.setPrivateCoreOperatorSourceArtifactTruthBasis(
+    args.contractState.sourceArtifactTruthBasis,
+  );
+  args.setPrivateCoreOperatorProvingArtifactTruthBasis(
+    args.contractState.provingArtifactTruthBasis,
+  );
+  args.setPrivateCoreOperatorSourceProvingRelationship(
+    args.contractState.sourceProvingRelationship,
   );
   args.setPrivateCoreOperatorNullifierKeyMode(args.contractState.nullifierKeyMode);
   args.setPrivateCoreOperatorProvingHashLane(args.contractState.provingHashLane);

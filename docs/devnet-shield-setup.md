@@ -127,6 +127,7 @@ The operator-contract command now prints the static narrow zk-v1 support contrac
 - supported unshield/send circuit ids and fixed Merkle depths
 - supported release authorization / root policy
 - supported release execution / atomicity / persistence
+- explicit source-artifact truth / proving-truth / source-vs-proving relationship
 - owner-auth mode
 - nullifier-key mode
 - proving hash lane

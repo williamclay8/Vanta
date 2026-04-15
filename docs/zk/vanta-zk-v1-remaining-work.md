@@ -120,6 +120,11 @@ The first unshield circuit uses the Poseidon proving lane, while broader app-sid
 - an explicit frozen contract for what is proving-lane truth
 - no user- or operator-facing ambiguity about which values govern proof validity
 
+The repo now freezes that split more explicitly in the operator contract:
+- `sourceArtifactTruthBasis = source-layer-artifact-bundle`
+- `provingArtifactTruthBasis = verified-proving-public-input-vector`
+- `sourceProvingRelationship = explicit-split-no-implicit-equality`
+
 ### 4. Finish the first real private workflow into a product-frozen v1 lane
 
 `docs/privacy-model.md` defines `v1` around:
