@@ -1015,7 +1015,10 @@ export function SwapPage() {
       });
 
       if (currentPrivateCoreSwapCandidate) {
-        privacyFlow.runPrivateCoreSwapTransition(currentPrivateCoreSwapCandidate.transition);
+        privacyFlow.runPrivateCoreSwapTransition(currentPrivateCoreSwapCandidate.transition, {
+          executionBasisLabel: "Current held note + live quote",
+          executionPrimaryNote: currentPrivateCoreSwapPathNote,
+        });
       }
 
       await refreshPrivateCoreOperatorSummary();
@@ -1610,6 +1613,10 @@ export function SwapPage() {
                   <strong>{privateCoreSwapState.observationMode}</strong>
                 </div>
                 <div className="preview-card">
+                  <span>Swap execution basis</span>
+                  <strong>{privateCoreSwapState.executionBasisLabel}</strong>
+                </div>
+                <div className="preview-card">
                   <span>Swap boundary</span>
                   <strong>{privateCoreSwapState.boundaryStatusLabel}</strong>
                 </div>
@@ -1618,6 +1625,12 @@ export function SwapPage() {
                   <strong>{privateCoreSwapState.continuityStatusLabel}</strong>
                 </div>
               </div>
+              <p className="shield-helper shield-helper--meta">
+                Swap execution basis: {privateCoreSwapState.executionBasisLabel}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Swap execution note: {privateCoreSwapState.executionPrimaryNote}
+              </p>
               <p className="shield-helper shield-helper--meta">
                 Output recovery: {privateCoreSwapState.outputRecoveryStatus}
               </p>

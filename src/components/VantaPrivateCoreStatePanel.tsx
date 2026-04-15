@@ -572,6 +572,14 @@ export function VantaPrivateCoreStatePanel({
             </div>
             <div className="review-grid">
               <div className="review-row">
+                <span>Swap execution basis</span>
+                <strong>{swapState.executionBasisLabel}</strong>
+              </div>
+              <div className="review-row">
+                <span>Swap execution note</span>
+                <strong>{swapState.executionPrimaryNote}</strong>
+              </div>
+              <div className="review-row">
                 <span>Output payload</span>
                 <strong>
                   {swapState.outputPayloadCommitment

@@ -264,7 +264,13 @@ type PrivacyFlowContextValue = {
     nextShieldState: VantaPrivateCoreShieldState | null;
     result: SendResultV0;
   };
-  runPrivateCoreSwapTransition: (transition: SwapTransitionV0) => {
+  runPrivateCoreSwapTransition: (
+    transition: SwapTransitionV0,
+    options?: {
+      executionBasisLabel?: string;
+      executionPrimaryNote?: string;
+    },
+  ) => {
     nextHoldState: VantaPrivateCoreHoldState | null;
     nextShieldState: VantaPrivateCoreShieldState | null;
     result: SwapResultV0;
@@ -368,6 +374,8 @@ export type VantaPrivateCoreSwapState = {
   outputPayloadCommitment: string | null;
   outputAssetId: string;
   outputAmount: string;
+  executionBasisLabel: string;
+  executionPrimaryNote: string;
   resultingRoot: string | null;
   resultingRootStatusLabel: string;
   resultingRootPrimaryNote: string;
@@ -1394,7 +1402,13 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   );
 
   const runPrivateCoreSwapTransition = useCallback(
-    (transition: SwapTransitionV0) => {
+    (
+      transition: SwapTransitionV0,
+      options?: {
+        executionBasisLabel?: string;
+        executionPrimaryNote?: string;
+      },
+    ) => {
       const result = privateCoreLedger.swap(transition);
       const nextShieldState = {
         note: result.output.note,
@@ -1420,6 +1434,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         outputPayloadCommitment: result.output.encryptedPayload.payloadCommitment,
         outputAssetId: result.output.note.assetId,
         outputAmount: result.output.note.amount.toString(10),
+        executionBasisLabel: options?.executionBasisLabel ?? "Local swap transition",
+        executionPrimaryNote:
+          options?.executionPrimaryNote ??
+          "A private-core swap transition was applied locally and is waiting for the next operator summary refresh.",
         resultingRoot: result.resultingRoot,
         resultingRootStatusLabel: "Swap root pending operator summary",
         resultingRootPrimaryNote:
@@ -3008,6 +3026,9 @@ function summarizePrivateCoreOperatorSwapState(args: {
     outputPayloadCommitment: null,
     outputAssetId: args.latestSwap.outputAssetId,
     outputAmount: args.latestSwap.outputAmount,
+    executionBasisLabel: "Operator summary-backed swap state",
+    executionPrimaryNote:
+      "This swap handoff is being reconstructed from persisted operator summary state rather than a newly applied local current-note path.",
     resultingRoot: args.latestSwap.resultingRoot,
     resultingRootStatusLabel: args.resultingRootStatusLabel ?? "Swap root status unavailable",
     resultingRootPrimaryNote:
