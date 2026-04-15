@@ -13,6 +13,7 @@ The repo already has:
 What this note adds is the next concrete bridge:
 
 - the first proving-boundary contract for narrow private swap
+- the first executable fixed-depth swap circuit target
 
 ## Scope
 
@@ -97,14 +98,33 @@ For this frozen `v0.1` boundary:
   - input membership correctness
   - explicit asset change binding
 
+## Current executable target
+
+The repo now also has the first executable fixed-depth swap circuit lane under:
+
+- `zk/noir/vanta_private_core_single_note_swap`
+
+with:
+
+- deterministic valid and invalid-direction fixtures
+- `npm run private-core:swap-fixture -- valid`
+- `npm run private-core:swap-check`
+
+The current executable circuit remains intentionally narrow:
+
+- one input note
+- one output note
+- fixed `MERKLE_DEPTH = 3`
+- off-circuit owner auth for `v0.1`
+
 ## Immediate next implementation target
 
-The next real zk swap step after this boundary freeze should be:
+The next real zk swap step after this boundary and circuit freeze should be:
 
-1. choose whether the first swap circuit deserves its own dedicated Noir workspace now
-2. add a deterministic constrained swap fixture
-3. decide how much of quote and venue context remains verifier-side versus circuit-bound for the first lane
-4. add a regression wrapper equivalent to the current send and unshield lanes
+1. add local swap proof generation equivalent to `private-core:prove` and `private-core:send-prove`
+2. decide how much quote and venue context remains verifier-side versus circuit-bound for the first lane
+3. decide whether the constrained swap lane belongs in the canonical operator summary the same way send and unshield do today
+4. add operator-backed swap proof execution if the lane remains in current `v1` scope
 
 ## Practical interpretation
 
@@ -115,5 +135,6 @@ It means the repo now has:
 - a constrained supported swap lane in the operator contract
 - a source-layer swap transition contract
 - a zk-facing swap proving contract
+- an executable fixed-depth swap circuit regression lane
 
-That is the disciplined setup needed before the first executable swap circuit becomes real.
+That is the disciplined setup needed before swap proof generation and operator-backed swap proving can become real.

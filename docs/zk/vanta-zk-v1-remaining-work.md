@@ -164,7 +164,7 @@ That boundary is intentionally narrow:
 - one recipient output note
 - optional one change output note
 - one later proving lane to match it
-- one constrained swap proving boundary for the current `VUSD -> shielded SOL` lane, but not yet an executable swap circuit
+- one constrained swap proving boundary and first executable swap circuit regression lane for the current `VUSD -> shielded SOL` lane, but not yet swap proof generation or operator-backed swap proving
 
 Until that is frozen as the supported product lane, the current state is better described as:
 - a strong private-core with real unshield and send lanes

@@ -1,6 +1,6 @@
 import { x25519 } from "@noble/curves/ed25519.js";
 import { sha256 } from "@noble/hashes/sha2.js";
-import { poseidon1, poseidon2, poseidon3, poseidon6, poseidon8 } from "poseidon-lite";
+import { poseidon1, poseidon15, poseidon2, poseidon3, poseidon6, poseidon8 } from "poseidon-lite";
 import {
   VANTA_PRIVATE_CORE_NOTE_VERSION_V0,
   VANTA_PRIVATE_CORE_PROOF_SYSTEM_V0,
@@ -178,6 +178,13 @@ export type VantaPrivateCoreSwapProofBoundaryV0 = {
   publicInputs: SwapPublicInputsV0;
   privateWitness: SwapPrivateWitnessV0;
   noirWitnessPackage: VantaPrivateCoreNoirSwapWitnessPackageV0;
+};
+
+export type VantaPrivateCoreFixedDepthSwapFixtureV0 = {
+  merkleDepth: typeof VANTA_PRIVATE_CORE_SWAP_CIRCUIT_MERKLE_DEPTH_V0;
+  validBoundary: VantaPrivateCoreSwapProofBoundaryV0;
+  validResultingRoot: Bytes32Hex;
+  invalidDirectionWitnessPackage: VantaPrivateCoreNoirSwapWitnessPackageV0;
 };
 
 export type BuildVantaPrivateCoreSwapProofBoundaryArgs = {
@@ -414,6 +421,59 @@ export function deriveVantaPrivateCoreSwapContextTag(args: {
   );
 }
 
+export function serializeVantaPrivateCoreNoirSwapWitnessPackageToToml(
+  witnessPackage: VantaPrivateCoreNoirSwapWitnessPackageV0,
+): string {
+  const publicInputs = witnessPackage.publicInputs;
+  const privateWitness = witnessPackage.privateWitness;
+
+  return [
+    `state_root = "${publicInputs.state_root}"`,
+    `input_nullifier = "${publicInputs.input_nullifier}"`,
+    `output_commitment = "${publicInputs.output_commitment}"`,
+    `input_asset_id_hi = "${publicInputs.input_asset_id_hi}"`,
+    `input_asset_id_lo = "${publicInputs.input_asset_id_lo}"`,
+    `output_asset_id_hi = "${publicInputs.output_asset_id_hi}"`,
+    `output_asset_id_lo = "${publicInputs.output_asset_id_lo}"`,
+    `input_amount_lo = "${publicInputs.input_amount_lo}"`,
+    `input_amount_hi = "${publicInputs.input_amount_hi}"`,
+    `output_amount_lo = "${publicInputs.output_amount_lo}"`,
+    `output_amount_hi = "${publicInputs.output_amount_hi}"`,
+    `input_note_version = "${publicInputs.input_note_version}"`,
+    `output_note_version = "${publicInputs.output_note_version}"`,
+    `swap_context_tag_hi = "${publicInputs.swap_context_tag_hi ?? "0"}"`,
+    `swap_context_tag_lo = "${publicInputs.swap_context_tag_lo ?? "0"}"`,
+    `input_note_type_code = "${privateWitness.input_note_type_code}"`,
+    `sender_public_key_hi = "${privateWitness.sender_public_key_hi}"`,
+    `sender_public_key_lo = "${privateWitness.sender_public_key_lo}"`,
+    `sender_secret_key_hi = "${privateWitness.sender_secret_key_hi}"`,
+    `sender_secret_key_lo = "${privateWitness.sender_secret_key_lo}"`,
+    `input_note_nonce_hi = "${privateWitness.input_note_nonce_hi}"`,
+    `input_note_nonce_lo = "${privateWitness.input_note_nonce_lo}"`,
+    `input_note_secret_hi = "${privateWitness.input_note_secret_hi}"`,
+    `input_note_secret_lo = "${privateWitness.input_note_secret_lo}"`,
+    `input_blinding_hi = "${privateWitness.input_blinding_hi}"`,
+    `input_blinding_lo = "${privateWitness.input_blinding_lo}"`,
+    `input_derivation_tag_hi = "${privateWitness.input_derivation_tag_hi}"`,
+    `input_derivation_tag_lo = "${privateWitness.input_derivation_tag_lo}"`,
+    `input_leaf_index = "${privateWitness.input_leaf_index}"`,
+    `membership_path_hi = ${serializeTomlArray(privateWitness.membership_path_hi)}`,
+    `membership_path_lo = ${serializeTomlArray(privateWitness.membership_path_lo)}`,
+    `membership_path_direction_bits = ${serializeTomlArray(privateWitness.membership_path_direction_bits)}`,
+    `output_note_type_code = "${privateWitness.output_note_type_code}"`,
+    `output_owner_public_key_hi = "${privateWitness.output_owner_public_key_hi}"`,
+    `output_owner_public_key_lo = "${privateWitness.output_owner_public_key_lo}"`,
+    `output_note_nonce_hi = "${privateWitness.output_note_nonce_hi}"`,
+    `output_note_nonce_lo = "${privateWitness.output_note_nonce_lo}"`,
+    `output_note_secret_hi = "${privateWitness.output_note_secret_hi}"`,
+    `output_note_secret_lo = "${privateWitness.output_note_secret_lo}"`,
+    `output_blinding_hi = "${privateWitness.output_blinding_hi}"`,
+    `output_blinding_lo = "${privateWitness.output_blinding_lo}"`,
+    `output_derivation_tag_hi = "${privateWitness.output_derivation_tag_hi}"`,
+    `output_derivation_tag_lo = "${privateWitness.output_derivation_tag_lo}"`,
+  ].join("\n");
+}
+
 function collectSwapProofBoundaryBlockers(args: {
   transition: SwapTransitionV0;
   inputCommitment: Bytes32Hex;
@@ -512,10 +572,10 @@ function derivePoseidonSwapContextField(args: {
   return poseidon8ToString([
     BigInt(args.inputNullifierField),
     BigInt(args.outputCommitmentField),
-    combineHiLoToField(args.inputAssetId),
-    combineHiLoToField(args.outputAssetId),
-    combineU128LeToField(args.inputAmount),
-    combineU128LeToField(args.outputAmount),
+    BigInt(args.inputAssetId.hi) + BigInt(args.inputAssetId.lo),
+    BigInt(args.outputAssetId.hi) + BigInt(args.outputAssetId.lo),
+    BigInt(args.inputAmount.lo) + BigInt(args.inputAmount.hi),
+    BigInt(args.outputAmount.lo) + BigInt(args.outputAmount.hi),
     BigInt(args.inputNoteVersion),
     BigInt(args.outputNoteVersion),
   ]);
@@ -524,20 +584,23 @@ function derivePoseidonSwapContextField(args: {
 function derivePoseidonNoteCommitmentField(
   encoding: VantaPrivateCoreNoteFieldEncodingV0,
 ): FieldDecimalString {
-  return poseidon8ToString([
-    BigInt(encoding.noteVersion),
-    BigInt(encoding.noteTypeCode),
-    combineHiLoToField(encoding.assetId),
-    combineU128LeToField(encoding.amount),
-    combineHiLoToField(encoding.ownerPublicKey),
-    combineHiLoToField(encoding.noteNonce),
-    combineHiLoToField(encoding.noteSecret),
-    poseidon3ToStringAsBigInt([
-      combineHiLoToField(encoding.blinding),
-      combineHiLoToField(encoding.derivationTag),
-      0n,
-    ]),
-  ]);
+  return poseidon15([
+    derivePoseidonNoteHeaderField(encoding),
+    BigInt(encoding.assetId.hi),
+    BigInt(encoding.assetId.lo),
+    BigInt(encoding.amount.lo),
+    BigInt(encoding.amount.hi),
+    BigInt(encoding.ownerPublicKey.hi),
+    BigInt(encoding.ownerPublicKey.lo),
+    BigInt(encoding.noteNonce.hi),
+    BigInt(encoding.noteNonce.lo),
+    BigInt(encoding.noteSecret.hi),
+    BigInt(encoding.noteSecret.lo),
+    BigInt(encoding.blinding.hi),
+    BigInt(encoding.blinding.lo),
+    BigInt(encoding.derivationTag.hi),
+    BigInt(encoding.derivationTag.lo),
+  ]).toString(10);
 }
 
 function derivePoseidonMerkleLeafField(noteCommitmentField: FieldDecimalString): FieldDecimalString {
@@ -551,14 +614,21 @@ function derivePoseidonMerkleRootField(
   let current = BigInt(leafField);
 
   for (let index = 0; index < pathEncoding.depth; index += 1) {
-    const sibling = combineHiLoToField(pathEncoding.siblings[index]);
+    const siblingHi = BigInt(pathEncoding.siblings[index].hi);
+    const siblingLo = BigInt(pathEncoding.siblings[index].lo);
+    const sibling = siblingHi + siblingLo;
+    const isCurrentRight = pathEncoding.directionBits[index] === "1" ? 1n : 0n;
     current =
-      pathEncoding.directionBits[index] === "1"
-        ? poseidon2ToStringAsBigInt([sibling, current])
-        : poseidon2ToStringAsBigInt([current, sibling]);
+      isCurrentRight === 1n
+        ? poseidon3ToStringAsBigInt([sibling, current, isCurrentRight])
+        : poseidon3ToStringAsBigInt([current, sibling, isCurrentRight]);
   }
 
   return current.toString(10);
+}
+
+function derivePoseidonNoteHeaderField(encoding: VantaPrivateCoreNoteFieldEncodingV0): bigint {
+  return poseidon2([BigInt(encoding.noteVersion), BigInt(encoding.noteTypeCode)]);
 }
 
 function derivePoseidonNullifierField(
@@ -568,12 +638,12 @@ function derivePoseidonNullifierField(
   leafIndex: number,
 ): FieldDecimalString {
   return poseidon6ToString([
-    combineHiLoToField(noteSecret),
-    combineHiLoToField(noteNonce),
+    BigInt(noteSecret.hi),
+    BigInt(noteSecret.lo),
+    BigInt(noteNonce.hi),
+    BigInt(noteNonce.lo),
     BigInt(stateRootField),
     BigInt(leafIndex),
-    0n,
-    0n,
   ]);
 }
 
@@ -627,10 +697,6 @@ function poseidon6ToString(values: bigint[]): FieldDecimalString {
 
 function poseidon8ToString(values: bigint[]): FieldDecimalString {
   return poseidon8(values).toString(10);
-}
-
-function poseidon2ToStringAsBigInt(values: bigint[]): bigint {
-  return poseidon2(values);
 }
 
 function poseidon3ToStringAsBigInt(values: bigint[]): bigint {
@@ -720,7 +786,16 @@ function toRepeatedByteHex12(byte: number): `0x${string}` {
   return `0x${pair.repeat(12)}`;
 }
 
+function serializeTomlArray(values: readonly string[]): string {
+  return `[${values.map((value) => `"${value}"`).join(", ")}]`;
+}
+
 export function getVantaPrivateCoreSwapProofBoundaryExample() {
+  return getVantaPrivateCoreFixedDepthSwapFixtureV0().validBoundary;
+}
+
+export function getVantaPrivateCoreFixedDepthSwapFixtureV0():
+  VantaPrivateCoreFixedDepthSwapFixtureV0 {
   const senders = [
     createVantaPrivateCoreOwnerKeypair(
       "0x1010101010101010101010101010101010101010101010101010101010101010",
@@ -769,10 +844,36 @@ export function getVantaPrivateCoreSwapProofBoundaryExample() {
     outputAssetId,
     outputAmount: 1_250_000_000n,
     recipientOwnerPublicKey: recipient.publicKey,
+    outputNoteNonce: "0x6161616161616161616161616161616161616161616161616161616161616161",
+    outputNoteSecret: "0x7171717171717171717171717171717171717171717171717171717171717171",
+    outputBlinding: "0x8181818181818181818181818181818181818181818181818181818181818181",
+    outputDerivationTag: "0x9191919191919191919191919191919191919191919191919191919191919191",
+    outputSenderEphemeralSecretKey:
+      "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
   });
-
-  return buildVantaPrivateCoreSwapProofBoundary({
+  const validBoundary = buildVantaPrivateCoreSwapProofBoundary({
     transition,
     senderSecretKey: senders[senderIndex].secretKey,
+    circuitMerkleDepth: VANTA_PRIVATE_CORE_SWAP_CIRCUIT_MERKLE_DEPTH_V0,
+    requireNontrivialMerklePath: true,
   });
+  const validResultingRoot = ledger.previewSwap(transition).resultingRoot;
+
+  const invalidDirectionWitnessPackage: VantaPrivateCoreNoirSwapWitnessPackageV0 = {
+    ...validBoundary.noirWitnessPackage,
+    privateWitness: {
+      ...validBoundary.noirWitnessPackage.privateWitness,
+      membership_path_direction_bits:
+        validBoundary.noirWitnessPackage.privateWitness.membership_path_direction_bits.map(
+          (bit, index) => (index === 0 ? (bit === "1" ? "0" : "1") : bit),
+        ),
+    },
+  };
+
+  return {
+    merkleDepth: VANTA_PRIVATE_CORE_SWAP_CIRCUIT_MERKLE_DEPTH_V0,
+    validBoundary,
+    validResultingRoot,
+    invalidDirectionWitnessPackage,
+  };
 }
