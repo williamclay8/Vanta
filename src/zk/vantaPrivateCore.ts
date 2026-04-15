@@ -244,6 +244,62 @@ export type SendResultV0 = {
   change: SendAppliedOutputV0 | null;
 };
 
+export type SwapOutputV0 = {
+  note: NoteV0;
+  commitment: NoteCommitmentV0;
+  encryptedPayload: CiphertextPackageV0;
+};
+
+export type SwapPublicInputsV0 = {
+  statement: typeof VANTA_PRIVATE_CORE_PROOF_SYSTEM_V0;
+  inputCommitment: Bytes32Hex;
+  inputRoot: Bytes32Hex;
+  inputNullifier: Bytes32Hex;
+  outputCommitment: Bytes32Hex;
+  inputAssetId: Bytes32Hex;
+  outputAssetId: Bytes32Hex;
+  inputAmount: string;
+  outputAmount: string;
+  inputLeafIndex: number;
+  inputNoteVersion: typeof VANTA_PRIVATE_CORE_NOTE_VERSION_V0;
+  outputNoteVersion: typeof VANTA_PRIVATE_CORE_NOTE_VERSION_V0;
+};
+
+export type SwapPrivateInputsV0 = {
+  statement: typeof VANTA_PRIVATE_CORE_PROOF_SYSTEM_V0;
+  inputNote: SerializedNoteV0;
+  inputWitness: WitnessResponseV0;
+  outputNote: SerializedNoteV0;
+};
+
+export type SwapProofEnvelopeV0 = {
+  statement: typeof VANTA_PRIVATE_CORE_PROOF_SYSTEM_V0;
+  publicInputs: SwapPublicInputsV0;
+  privateInputs: SwapPrivateInputsV0;
+  proof: "mvp-local-verifier";
+};
+
+export type SwapTransitionV0 = {
+  input: HeldNoteViewV0;
+  output: SwapOutputV0;
+  nullifier: NoteNullifierV0;
+  root: Bytes32Hex;
+};
+
+export type SwapAppliedOutputV0 = {
+  note: NoteV0;
+  commitment: NoteCommitmentV0;
+  encryptedPayload: CiphertextPackageV0;
+  insertionIndex: number;
+};
+
+export type SwapResultV0 = {
+  inputNullifier: NoteNullifierV0;
+  inputRoot: Bytes32Hex;
+  resultingRoot: Bytes32Hex;
+  output: SwapAppliedOutputV0;
+};
+
 export type VantaPrivateCoreSendProofEnvelopeSummaryV0 = {
   statement: SendProofEnvelopeV0["statement"];
   proof: SendProofEnvelopeV0["proof"];
@@ -265,6 +321,34 @@ export type VantaPrivateCoreSendProofEnvelopeVerificationSummaryV0 = {
 };
 
 export type VantaPrivateCoreSendProofEnvelopeConsistencySummaryV0 = {
+  inputCommitmentStatus: "Aligned" | "Missing source artifact" | "Mismatch";
+  inputRootStatus: "Aligned" | "Missing source artifact" | "Mismatch";
+  inputNullifierStatus: "Aligned" | "Missing source artifact" | "Mismatch";
+  overallStatusLabel: "Aligned" | "Review required";
+};
+
+export type VantaPrivateCoreSwapProofEnvelopeSummaryV0 = {
+  statement: SwapProofEnvelopeV0["statement"];
+  proof: SwapProofEnvelopeV0["proof"];
+  inputCommitment: Bytes32Hex;
+  inputRoot: Bytes32Hex;
+  inputNullifier: Bytes32Hex;
+  outputCommitment: Bytes32Hex;
+  inputAssetId: Bytes32Hex;
+  outputAssetId: Bytes32Hex;
+  inputAmount: string;
+  outputAmount: string;
+  inputLeafIndex: number;
+  inputNoteVersion: typeof VANTA_PRIVATE_CORE_NOTE_VERSION_V0;
+  outputNoteVersion: typeof VANTA_PRIVATE_CORE_NOTE_VERSION_V0;
+};
+
+export type VantaPrivateCoreSwapProofEnvelopeVerificationSummaryV0 = {
+  verified: boolean;
+  statusLabel: "Verified" | "Failed";
+};
+
+export type VantaPrivateCoreSwapProofEnvelopeConsistencySummaryV0 = {
   inputCommitmentStatus: "Aligned" | "Missing source artifact" | "Mismatch";
   inputRootStatus: "Aligned" | "Missing source artifact" | "Mismatch";
   inputNullifierStatus: "Aligned" | "Missing source artifact" | "Mismatch";
@@ -796,6 +880,90 @@ export function buildVantaPrivateCoreSendProofEnvelope(
   };
 }
 
+export function buildVantaPrivateCoreSwapTransition(args: {
+  input: HeldNoteViewV0;
+  outputAssetId: Bytes32Hex;
+  outputAmount: bigint | number | string;
+  recipientOwnerPublicKey: Bytes32Hex;
+  outputNoteNonce?: Bytes32Hex;
+  outputNoteSecret?: Bytes32Hex;
+  outputBlinding?: Bytes32Hex;
+  outputDerivationTag?: Bytes32Hex;
+  outputSenderEphemeralSecretKey?: Bytes32Hex;
+}): SwapTransitionV0 {
+  const outputAmount = normalizeU128(args.outputAmount, "outputAmount");
+
+  if (outputAmount <= 0n) {
+    throw new VantaPrivateCoreError("Swap output amount must be greater than zero.");
+  }
+
+  const nullifier = deriveVantaPrivateCoreNullifier(args.input.note, args.input.witness);
+  const outputNote = createVantaPrivateCoreNoteV0({
+    assetId: args.outputAssetId,
+    amount: outputAmount,
+    ownerPublicKey: args.recipientOwnerPublicKey,
+    noteType: args.input.note.noteType,
+    noteNonce: args.outputNoteNonce,
+    noteSecret: args.outputNoteSecret,
+    blinding: args.outputBlinding,
+    derivationTag: args.outputDerivationTag,
+  });
+  const outputCommitment = deriveVantaPrivateCoreNoteCommitment(outputNote);
+  const outputPayload = encryptVantaPrivateCorePayload(
+    outputNote,
+    outputNote.ownerPublicKey,
+    args.outputSenderEphemeralSecretKey,
+  );
+
+  return {
+    input: args.input,
+    output: {
+      note: outputNote,
+      commitment: outputCommitment,
+      encryptedPayload: outputPayload,
+    },
+    nullifier,
+    root: args.input.witness.root,
+  };
+}
+
+export function buildVantaPrivateCoreSwapProofEnvelope(
+  transition: SwapTransitionV0,
+): SwapProofEnvelopeV0 {
+  const inputCommitment = deriveVantaPrivateCoreNoteCommitment(transition.input.note);
+
+  if (inputCommitment.value !== transition.input.witness.commitment) {
+    throw new VantaPrivateCoreError(
+      "Cannot build swap proof envelope for an input note with mismatched witness.",
+    );
+  }
+
+  return {
+    statement: VANTA_PRIVATE_CORE_PROOF_SYSTEM_V0,
+    publicInputs: {
+      statement: VANTA_PRIVATE_CORE_PROOF_SYSTEM_V0,
+      inputCommitment: inputCommitment.value,
+      inputRoot: transition.input.witness.root,
+      inputNullifier: transition.nullifier.value,
+      outputCommitment: transition.output.commitment.value,
+      inputAssetId: transition.input.note.assetId,
+      outputAssetId: transition.output.note.assetId,
+      inputAmount: transition.input.note.amount.toString(10),
+      outputAmount: transition.output.note.amount.toString(10),
+      inputLeafIndex: transition.input.witness.leafIndex,
+      inputNoteVersion: transition.input.note.version,
+      outputNoteVersion: transition.output.note.version,
+    },
+    privateInputs: {
+      statement: VANTA_PRIVATE_CORE_PROOF_SYSTEM_V0,
+      inputNote: serializeVantaPrivateCoreNoteV0(transition.input.note),
+      inputWitness: transition.input.witness,
+      outputNote: serializeVantaPrivateCoreNoteV0(transition.output.note),
+    },
+    proof: "mvp-local-verifier",
+  };
+}
+
 export function verifyVantaPrivateCoreUnshieldProofEnvelope(
   envelope: UnshieldProofEnvelopeV0,
 ): boolean {
@@ -895,6 +1063,54 @@ export function verifyVantaPrivateCoreSendProofEnvelope(
   );
 }
 
+export function verifyVantaPrivateCoreSwapProofEnvelope(
+  envelope: SwapProofEnvelopeV0,
+): boolean {
+  const inputNote = parseSerializedVantaPrivateCoreNoteV0(envelope.privateInputs.inputNote);
+  const inputCommitment = deriveVantaPrivateCoreNoteCommitment(inputNote);
+
+  if (inputCommitment.value !== envelope.publicInputs.inputCommitment) {
+    return false;
+  }
+
+  if (
+    !verifyVantaPrivateCoreWitnessResponse(
+      createVantaPrivateCoreWitnessRequest(inputCommitment.value),
+      envelope.privateInputs.inputWitness,
+    )
+  ) {
+    return false;
+  }
+
+  const outputNote = parseSerializedVantaPrivateCoreNoteV0(envelope.privateInputs.outputNote);
+  const outputCommitment = deriveVantaPrivateCoreNoteCommitment(outputNote);
+  const inputNullifier = deriveVantaPrivateCoreNullifier(inputNote, envelope.privateInputs.inputWitness);
+  const inputAmount = normalizeU128(envelope.publicInputs.inputAmount, "inputAmount");
+  const outputAmount = normalizeU128(envelope.publicInputs.outputAmount, "outputAmount");
+
+  if (
+    inputAmount !== inputNote.amount ||
+    outputAmount !== outputNote.amount ||
+    envelope.publicInputs.inputNoteVersion !== inputNote.version ||
+    envelope.publicInputs.outputNoteVersion !== outputNote.version ||
+    envelope.publicInputs.inputAssetId !== inputNote.assetId ||
+    envelope.publicInputs.outputAssetId !== outputNote.assetId
+  ) {
+    return false;
+  }
+
+  return (
+    envelope.statement === VANTA_PRIVATE_CORE_PROOF_SYSTEM_V0 &&
+    envelope.publicInputs.statement === VANTA_PRIVATE_CORE_PROOF_SYSTEM_V0 &&
+    envelope.privateInputs.statement === VANTA_PRIVATE_CORE_PROOF_SYSTEM_V0 &&
+    envelope.publicInputs.inputRoot === envelope.privateInputs.inputWitness.root &&
+    envelope.publicInputs.inputLeafIndex === envelope.privateInputs.inputWitness.leafIndex &&
+    envelope.publicInputs.inputNullifier === inputNullifier.value &&
+    envelope.publicInputs.outputCommitment === outputCommitment.value &&
+    envelope.publicInputs.inputAssetId !== envelope.publicInputs.outputAssetId
+  );
+}
+
 export function summarizeVantaPrivateCoreUnshieldProofEnvelope(
   envelope: UnshieldProofEnvelopeV0,
 ): VantaPrivateCoreUnshieldProofEnvelopeSummaryV0 {
@@ -929,6 +1145,26 @@ export function summarizeVantaPrivateCoreSendProofEnvelope(
   };
 }
 
+export function summarizeVantaPrivateCoreSwapProofEnvelope(
+  envelope: SwapProofEnvelopeV0,
+): VantaPrivateCoreSwapProofEnvelopeSummaryV0 {
+  return {
+    statement: envelope.statement,
+    proof: envelope.proof,
+    inputCommitment: envelope.publicInputs.inputCommitment,
+    inputRoot: envelope.publicInputs.inputRoot,
+    inputNullifier: envelope.publicInputs.inputNullifier,
+    outputCommitment: envelope.publicInputs.outputCommitment,
+    inputAssetId: envelope.publicInputs.inputAssetId,
+    outputAssetId: envelope.publicInputs.outputAssetId,
+    inputAmount: envelope.publicInputs.inputAmount,
+    outputAmount: envelope.publicInputs.outputAmount,
+    inputLeafIndex: envelope.publicInputs.inputLeafIndex,
+    inputNoteVersion: envelope.publicInputs.inputNoteVersion,
+    outputNoteVersion: envelope.publicInputs.outputNoteVersion,
+  };
+}
+
 export function summarizeVantaPrivateCoreUnshieldProofEnvelopeVerification(
   envelope: UnshieldProofEnvelopeV0,
 ): VantaPrivateCoreUnshieldProofEnvelopeVerificationSummaryV0 {
@@ -944,6 +1180,17 @@ export function summarizeVantaPrivateCoreSendProofEnvelopeVerification(
   envelope: SendProofEnvelopeV0,
 ): VantaPrivateCoreSendProofEnvelopeVerificationSummaryV0 {
   const verified = verifyVantaPrivateCoreSendProofEnvelope(envelope);
+
+  return {
+    verified,
+    statusLabel: verified ? "Verified" : "Failed",
+  };
+}
+
+export function summarizeVantaPrivateCoreSwapProofEnvelopeVerification(
+  envelope: SwapProofEnvelopeV0,
+): VantaPrivateCoreSwapProofEnvelopeVerificationSummaryV0 {
+  const verified = verifyVantaPrivateCoreSwapProofEnvelope(envelope);
 
   return {
     verified,
@@ -986,6 +1233,38 @@ export function summarizeVantaPrivateCoreSendProofEnvelopeConsistency(args: {
   sourceArtifacts: VantaPrivateCoreSourceArtifactBundleV0;
   expectedNullifier?: Bytes32Hex | null;
 }): VantaPrivateCoreSendProofEnvelopeConsistencySummaryV0 {
+  const inputCommitmentStatus = compareSourceEnvelopeField(
+    args.envelope.publicInputs.inputCommitment,
+    args.sourceArtifacts.noteCommitment,
+  );
+  const inputRootStatus = compareSourceEnvelopeField(
+    args.envelope.publicInputs.inputRoot,
+    args.sourceArtifacts.witnessRoot ?? args.sourceArtifacts.merkleRoot,
+  );
+  const inputNullifierStatus = compareSourceEnvelopeField(
+    args.envelope.publicInputs.inputNullifier,
+    args.expectedNullifier ?? args.sourceArtifacts.nullifier,
+  );
+  const overallStatusLabel =
+    inputCommitmentStatus === "Aligned" &&
+    inputRootStatus === "Aligned" &&
+    inputNullifierStatus === "Aligned"
+      ? "Aligned"
+      : "Review required";
+
+  return {
+    inputCommitmentStatus,
+    inputRootStatus,
+    inputNullifierStatus,
+    overallStatusLabel,
+  };
+}
+
+export function summarizeVantaPrivateCoreSwapProofEnvelopeConsistency(args: {
+  envelope: SwapProofEnvelopeV0;
+  sourceArtifacts: VantaPrivateCoreSourceArtifactBundleV0;
+  expectedNullifier?: Bytes32Hex | null;
+}): VantaPrivateCoreSwapProofEnvelopeConsistencySummaryV0 {
   const inputCommitmentStatus = compareSourceEnvelopeField(
     args.envelope.publicInputs.inputCommitment,
     args.sourceArtifacts.noteCommitment,
@@ -1285,6 +1564,52 @@ export class VantaPrivateCoreLedger {
       this.tree.insert(transition.change.commitment.value);
       this.commitments.push({ commitment: transition.change.commitment });
     }
+
+    return preview;
+  }
+
+  previewSwap(transition: SwapTransitionV0): SwapResultV0 {
+    const envelope = buildVantaPrivateCoreSwapProofEnvelope(transition);
+
+    if (!verifyVantaPrivateCoreSwapProofEnvelope(envelope)) {
+      throw new VantaPrivateCoreError("Swap proof verification failed.");
+    }
+
+    const inputNullifier = deriveVantaPrivateCoreNullifier(
+      transition.input.note,
+      transition.input.witness,
+    );
+
+    if (this.consumedNullifiers.has(inputNullifier.value)) {
+      throw new VantaPrivateCoreError(`Nullifier ${inputNullifier.value} has already been consumed.`);
+    }
+
+    const previewTree = new OrderedBinaryMerkleTree();
+    for (const stored of this.commitments) {
+      previewTree.insert(stored.commitment.value);
+    }
+
+    const outputInsertionIndex = previewTree.insert(transition.output.commitment.value);
+
+    return {
+      inputNullifier,
+      inputRoot: transition.input.witness.root,
+      resultingRoot: previewTree.getRoot(),
+      output: {
+        note: transition.output.note,
+        commitment: transition.output.commitment,
+        encryptedPayload: transition.output.encryptedPayload,
+        insertionIndex: outputInsertionIndex,
+      },
+    };
+  }
+
+  swap(transition: SwapTransitionV0): SwapResultV0 {
+    const preview = this.previewSwap(transition);
+
+    this.consumedNullifiers.add(preview.inputNullifier.value);
+    this.tree.insert(transition.output.commitment.value);
+    this.commitments.push({ commitment: transition.output.commitment });
 
     return preview;
   }

@@ -151,17 +151,20 @@ The repo now has the first frozen source-layer target for that work in:
 
 - `docs/zk/vanta-private-core-send-boundary.md`
 - `docs/zk/vanta-private-core-send-proof-boundary.md`
+- `docs/zk/vanta-private-core-swap-proof-boundary.md`
 - `docs/zk/vanta-zk-v1-supported-send-lane.md`
 - `docs/zk/vanta-zk-v1-supported-unshield-lane.md`
 - `docs/zk/vanta-zk-v1-supported-release-lane.md`
 - `src/zk/vantaPrivateCore.ts`
 - `src/zk/vantaPrivateCoreSendProof.ts`
+- `src/zk/vantaPrivateCoreSwapProof.ts`
 
 That boundary is intentionally narrow:
 - one input note
 - one recipient output note
 - optional one change output note
 - one later proving lane to match it
+- one constrained swap proving boundary for the current `VUSD -> shielded SOL` lane, but not yet an executable swap circuit
 
 Until that is frozen as the supported product lane, the current state is better described as:
 - a strong private-core with real unshield and send lanes

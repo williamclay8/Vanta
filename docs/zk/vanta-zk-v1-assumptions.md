@@ -161,6 +161,7 @@ The operator summary now already freezes the currently supported narrow private-
 - send lane
 - unshield lane
 - release lane
+- swap lane
 - owner auth mode
 - nullifier key mode
 - proving hash lane
@@ -169,6 +170,7 @@ The first frozen source-layer send target for that work now exists in:
 
 - `docs/zk/vanta-private-core-send-boundary.md`
 - `docs/zk/vanta-private-core-send-proof-boundary.md`
+- `docs/zk/vanta-private-core-swap-proof-boundary.md`
 - `docs/zk/vanta-zk-v1-supported-send-lane.md`
 - `docs/zk/vanta-zk-v1-supported-unshield-lane.md`
 - `docs/zk/vanta-zk-v1-supported-release-lane.md`
