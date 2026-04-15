@@ -143,6 +143,8 @@ export type VantaPrivateCoreOperatorSwapProofStateResponse = {
 
 export type VantaPrivateCoreSwapOperatorResponse = VantaPrivateCoreProofOperatorResponse & {
   completedAt: number;
+  executionQuoteReference: string | null;
+  executionVenueLabel: string | null;
   inputNullifier: string;
   inputRoot: string;
   inputAssetId: string;
@@ -159,6 +161,8 @@ export type VantaPrivateCoreSwapOperatorResponse = VantaPrivateCoreProofOperator
 
 export type VantaPrivateCoreOperatorSwapRecord = {
   completedAt: number;
+  executionQuoteReference: string | null;
+  executionVenueLabel: string | null;
   inputAssetId: string;
   inputNullifier: string;
   inputRoot: string;
@@ -763,11 +767,15 @@ export async function requestVantaPrivateCoreOperatorSwapProof(args: {
 }
 
 export async function requestVantaPrivateCoreOperatorSwapTransition(args: {
+  executionQuoteReference?: string | null;
+  executionVenueLabel?: string | null;
   witnessPackage: VantaPrivateCoreNoirSwapWitnessPackageV0;
   resultingRoot: string;
 }): Promise<VantaPrivateCoreSwapOperatorResponse> {
   const response = await fetch(getPrivateCoreSwapTransitionOperatorUrl(), {
     body: JSON.stringify({
+      executionQuoteReference: args.executionQuoteReference ?? null,
+      executionVenueLabel: args.executionVenueLabel ?? null,
       resultingRoot: args.resultingRoot,
       witnessPackage: args.witnessPackage,
     }),
@@ -807,6 +815,10 @@ export async function requestVantaPrivateCoreOperatorSwapTransition(args: {
     backend: parsed.backend ?? "barretenberg-ultrahonk",
     circuit: parsed.circuit ?? "vanta_private_core_single_note_swap",
     completedAt: parsed.completedAt,
+    executionQuoteReference:
+      typeof parsed.executionQuoteReference === "string" ? parsed.executionQuoteReference : null,
+    executionVenueLabel:
+      typeof parsed.executionVenueLabel === "string" ? parsed.executionVenueLabel : null,
     inputNullifier: parsed.inputNullifier,
     inputRoot: parsed.inputRoot,
     inputAssetId: parsed.inputAssetId,
@@ -2167,6 +2179,12 @@ function isSwapRecord(value: unknown): value is VantaPrivateCoreOperatorSwapReco
     typeof value === "object" &&
     value !== null &&
     typeof (value as VantaPrivateCoreOperatorSwapRecord).completedAt === "number" &&
+    (((value as VantaPrivateCoreOperatorSwapRecord).executionQuoteReference === null ||
+      (value as VantaPrivateCoreOperatorSwapRecord).executionQuoteReference === undefined) ||
+      typeof (value as VantaPrivateCoreOperatorSwapRecord).executionQuoteReference === "string") &&
+    (((value as VantaPrivateCoreOperatorSwapRecord).executionVenueLabel === null ||
+      (value as VantaPrivateCoreOperatorSwapRecord).executionVenueLabel === undefined) ||
+      typeof (value as VantaPrivateCoreOperatorSwapRecord).executionVenueLabel === "string") &&
     typeof (value as VantaPrivateCoreOperatorSwapRecord).inputAssetId === "string" &&
     typeof (value as VantaPrivateCoreOperatorSwapRecord).inputNullifier === "string" &&
     typeof (value as VantaPrivateCoreOperatorSwapRecord).inputRoot === "string" &&

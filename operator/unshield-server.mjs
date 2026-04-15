@@ -645,6 +645,8 @@ const server = createServer(async (request, response) => {
       });
       privateCoreSwapProofStore.recordProof(proofRecord);
       const swapRecord = summarizePrivateCoreSwapRecord({
+        executionQuoteReference: body?.executionQuoteReference,
+        executionVenueLabel: body?.executionVenueLabel,
         proofRecord,
         proofReceipt,
         resultingRoot,
@@ -658,6 +660,8 @@ const server = createServer(async (request, response) => {
         JSON.stringify({
           ...proofReceipt,
           completedAt: swapRecord.completedAt,
+          executionQuoteReference: swapRecord.executionQuoteReference,
+          executionVenueLabel: swapRecord.executionVenueLabel,
           inputNullifier: swapRecord.inputNullifier,
           inputRoot: swapRecord.inputRoot,
           inputAssetId: swapRecord.inputAssetId,
@@ -2879,6 +2883,14 @@ function summarizePrivateCoreSwapRecord(args) {
 
   return {
     completedAt,
+    executionQuoteReference:
+      typeof args.executionQuoteReference === "string" && args.executionQuoteReference.length > 0
+        ? args.executionQuoteReference
+        : null,
+    executionVenueLabel:
+      typeof args.executionVenueLabel === "string" && args.executionVenueLabel.length > 0
+        ? args.executionVenueLabel
+        : null,
     inputAssetId: sourcePublicInputs.inputAssetId,
     inputNullifier: sourcePublicInputs.inputNullifier,
     inputRoot: sourcePublicInputs.stateRoot,

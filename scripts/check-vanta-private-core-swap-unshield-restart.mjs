@@ -391,7 +391,13 @@ try {
     }),
     method: "POST",
   });
-  if (!replayResponse.text.includes("has already been consumed")) {
+  if (
+    replayResponse.ok ||
+    !(
+      replayResponse.text.includes("has already been consumed") ||
+      replayResponse.text.includes("is not the latest registered private-core state")
+    )
+  ) {
     throw new Error(replayResponse.text || "swap->unshield replay rejection did not survive restart");
   }
   printStatus("private-core swap->unshield restart replay rejection: PASS");

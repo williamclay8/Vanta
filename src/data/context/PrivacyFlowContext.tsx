@@ -3051,8 +3051,8 @@ function summarizePrivateCoreOperatorSwapState(args: {
     executionBasisLabel: "Operator summary-backed swap state",
     executionPrimaryNote:
       "This swap handoff is being reconstructed from persisted operator summary state rather than a newly applied local current-note path.",
-    executionVenueLabel: null,
-    executionQuoteReference: null,
+    executionVenueLabel: args.latestSwap.executionVenueLabel ?? null,
+    executionQuoteReference: args.latestSwap.executionQuoteReference ?? null,
     livePathStatusLabel: "Operator summary-backed state",
     livePathPrimaryNote:
       "The original current-note swap preparation state is not persisted, so this handoff is being reconstructed from operator summary state.",

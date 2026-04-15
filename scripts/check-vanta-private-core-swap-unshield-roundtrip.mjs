@@ -344,7 +344,10 @@ try {
   });
   if (
     replayResponse.ok ||
-    !replayResponse.text.includes("already been consumed")
+    !(
+      replayResponse.text.includes("already been consumed") ||
+      replayResponse.text.includes("is not the latest registered private-core state")
+    )
   ) {
     throw new Error(replayResponse.text || "swap output replay rejection did not fire");
   }

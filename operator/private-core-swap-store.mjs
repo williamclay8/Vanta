@@ -66,6 +66,14 @@ function isRecordMap(value) {
 function normalizeSwapRecord(record) {
   return {
     completedAt: typeof record?.completedAt === "number" ? record.completedAt : 0,
+    executionQuoteReference:
+      typeof record?.executionQuoteReference === "string" && record.executionQuoteReference.length > 0
+        ? record.executionQuoteReference
+        : null,
+    executionVenueLabel:
+      typeof record?.executionVenueLabel === "string" && record.executionVenueLabel.length > 0
+        ? record.executionVenueLabel
+        : null,
     inputAssetId: typeof record?.inputAssetId === "string" ? record.inputAssetId : "",
     inputNullifier: typeof record?.inputNullifier === "string" ? record.inputNullifier : "",
     inputRoot: typeof record?.inputRoot === "string" ? record.inputRoot : "",

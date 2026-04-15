@@ -1038,6 +1038,10 @@ export function SwapPage() {
       await registerVantaPrivateCoreOperatorRoot(rootRegistrationArgs);
 
       const transitionReceipt = await requestVantaPrivateCoreOperatorSwapTransition({
+        executionQuoteReference: quote?.quoteId ?? null,
+        executionVenueLabel: quote
+          ? `${quote.venueName} ${quote.venueFamily} (${quote.venueNetwork})`
+          : null,
         resultingRoot,
         witnessPackage: swapBoundary.noirWitnessPackage,
       });

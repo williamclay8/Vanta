@@ -145,6 +145,8 @@ const swapWitnessPackage = fixtures.swap.validBoundary.noirWitnessPackage;
 const resultingRoot = fixtures.swap.validResultingRoot;
 const rootWitnessPackage = fixtures.unshield.validBoundary.noirWitnessPackage;
 const rootSourceArtifacts = fixtures.unshield.validSourceArtifacts;
+const executionVenueLabel = "Meteora DLMM (Devnet)";
+const executionQuoteReference = "quote-live-path-http-check";
 
 if (swapWitnessPackage.sourcePublicInputs.stateRoot !== rootWitnessPackage.sourcePublicInputs.stateRoot) {
   throw new Error("Swap fixture root does not match the root-registration fixture root.");
@@ -235,6 +237,8 @@ try {
 
   const transitionResponse = await requestJson(baseUrl, "/private-core/swap-transition", {
     body: JSON.stringify({
+      executionQuoteReference,
+      executionVenueLabel,
       resultingRoot,
       witnessPackage: swapWitnessPackage,
     }),
@@ -244,6 +248,8 @@ try {
     !transitionResponse.ok ||
     transitionResponse.parsed?.verified !== true ||
     transitionResponse.parsed?.swapRecorded !== true ||
+    transitionResponse.parsed?.executionQuoteReference !== executionQuoteReference ||
+    transitionResponse.parsed?.executionVenueLabel !== executionVenueLabel ||
     transitionResponse.parsed?.resultingRoot !== resultingRoot ||
     transitionResponse.parsed?.resultingRootBasis !== "client-declared" ||
     transitionResponse.parsed?.circuit !== "vanta_private_core_single_note_swap"
@@ -259,6 +265,8 @@ try {
     !swapState.ok ||
     swapState.parsed?.stateVersion !== 1 ||
     !swapState.parsed?.latestSwap ||
+    swapState.parsed.latestSwap?.executionQuoteReference !== executionQuoteReference ||
+    swapState.parsed.latestSwap?.executionVenueLabel !== executionVenueLabel ||
     swapState.parsed.latestSwap?.swapId !== transitionResponse.parsed?.swapId ||
     swapState.parsed.latestSwap?.proofId !== transitionResponse.parsed?.proofId ||
     swapState.parsed.latestSwap?.resultingRoot !== resultingRoot ||
@@ -286,6 +294,8 @@ try {
     !summaryState.ok ||
     summaryState.parsed?.stateVersion !== 1 ||
     typeof summaryState.parsed?.summaryVersion !== "number" ||
+    summaryState.parsed?.latestSwap?.executionQuoteReference !== executionQuoteReference ||
+    summaryState.parsed?.latestSwap?.executionVenueLabel !== executionVenueLabel ||
     summaryState.parsed?.latestSwap?.swapId !== transitionResponse.parsed?.swapId ||
     summaryState.parsed?.latestSwap?.proofId !== transitionResponse.parsed?.proofId ||
     summaryState.parsed?.latestSwap?.resultingRoot !== resultingRoot ||

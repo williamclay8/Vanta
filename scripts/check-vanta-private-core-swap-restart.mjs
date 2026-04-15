@@ -194,6 +194,8 @@ const swapWitnessPackage = fixtures.swap.validBoundary.noirWitnessPackage;
 const resultingRoot = fixtures.swap.validResultingRoot;
 const rootWitnessPackage = fixtures.unshield.validBoundary.noirWitnessPackage;
 const rootSourceArtifacts = fixtures.unshield.validSourceArtifacts;
+const executionVenueLabel = "Meteora DLMM (Devnet)";
+const executionQuoteReference = "quote-live-path-restart-check";
 
 if (swapWitnessPackage.sourcePublicInputs.stateRoot !== rootWitnessPackage.sourcePublicInputs.stateRoot) {
   throw new Error("Swap restart fixture root does not match the root-registration fixture root.");
@@ -226,6 +228,8 @@ try {
 
   const transitionResponse = await requestJson(baseUrl, "/private-core/swap-transition", {
     body: JSON.stringify({
+      executionQuoteReference,
+      executionVenueLabel,
       resultingRoot,
       witnessPackage: swapWitnessPackage,
     }),
@@ -253,10 +257,14 @@ try {
 
   if (
     !preRestartSwapState.ok ||
+    preRestartSwapState.parsed?.latestSwap?.executionQuoteReference !== executionQuoteReference ||
+    preRestartSwapState.parsed?.latestSwap?.executionVenueLabel !== executionVenueLabel ||
     preRestartSwapState.parsed?.latestSwap?.swapId !== transitionResponse.parsed?.swapId ||
     !preRestartSwapProofState.ok ||
     preRestartSwapProofState.parsed?.latestProof?.proofId !== transitionResponse.parsed?.proofId ||
     !preRestartSummary.ok ||
+    preRestartSummary.parsed?.latestSwap?.executionQuoteReference !== executionQuoteReference ||
+    preRestartSummary.parsed?.latestSwap?.executionVenueLabel !== executionVenueLabel ||
     preRestartSummary.parsed?.latestSwap?.swapId !== transitionResponse.parsed?.swapId ||
     preRestartSummary.parsed?.latestSwapProof?.proofId !== transitionResponse.parsed?.proofId ||
     preRestartSummary.parsed?.latestSwapLinkedProof?.proofId !== transitionResponse.parsed?.proofId ||
@@ -286,12 +294,16 @@ try {
 
   if (
     !postRestartSwapState.ok ||
+    postRestartSwapState.parsed?.latestSwap?.executionQuoteReference !== executionQuoteReference ||
+    postRestartSwapState.parsed?.latestSwap?.executionVenueLabel !== executionVenueLabel ||
     postRestartSwapState.parsed?.latestSwap?.swapId !== transitionResponse.parsed?.swapId ||
     postRestartSwapState.parsed?.latestSwap?.proofId !== transitionResponse.parsed?.proofId ||
     postRestartSwapState.parsed?.latestSwap?.resultingRoot !== resultingRoot ||
     !postRestartSwapProofState.ok ||
     postRestartSwapProofState.parsed?.latestProof?.proofId !== transitionResponse.parsed?.proofId ||
     !postRestartSummary.ok ||
+    postRestartSummary.parsed?.latestSwap?.executionQuoteReference !== executionQuoteReference ||
+    postRestartSummary.parsed?.latestSwap?.executionVenueLabel !== executionVenueLabel ||
     postRestartSummary.parsed?.latestSwap?.swapId !== transitionResponse.parsed?.swapId ||
     postRestartSummary.parsed?.latestSwapProof?.proofId !== transitionResponse.parsed?.proofId ||
     postRestartSummary.parsed?.latestSwapLinkedProof?.proofId !== transitionResponse.parsed?.proofId ||
