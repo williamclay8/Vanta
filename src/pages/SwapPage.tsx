@@ -1965,6 +1965,14 @@ export function SwapPage() {
                     : swapTransitionActionLabel}
                 </button>
               </div>
+              <p className="shield-helper shield-helper--meta">
+                Swap live path: {currentPrivateCoreSwapPathStatusLabel}. {currentPrivateCoreSwapPathNote}
+              </p>
+              {currentPrivateCoreSwapPathPrimaryBlocker && (
+                <p className="shield-helper shield-helper--meta">
+                  Primary live-path blocker: {currentPrivateCoreSwapPathPrimaryBlocker}
+                </p>
+              )}
               {privateCoreSwapProofExecution.errorMessage && (
                 <p className="shield-helper shield-helper--meta" style={{ color: "#b42318" }}>
                   Swap proof error: {privateCoreSwapProofExecution.errorMessage}
