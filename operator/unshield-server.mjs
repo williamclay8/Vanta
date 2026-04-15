@@ -190,6 +190,9 @@ const PRIVATE_CORE_SOURCE_ARTIFACT_TRUTH_BASIS = "source-layer-artifact-bundle";
 const PRIVATE_CORE_PROVING_ARTIFACT_TRUTH_BASIS = "verified-proving-public-input-vector";
 const PRIVATE_CORE_SOURCE_PROVING_RELATIONSHIP = "explicit-split-no-implicit-equality";
 const PRIVATE_CORE_NULLIFIER_KEY_MODE = "note-secret-as-nullifier-key-v0";
+const PRIVATE_CORE_NULLIFIER_KEY_DECISION = "accepted-v1-temporary-note-secret-key";
+const PRIVATE_CORE_NULLIFIER_KEY_DECISION_NOTE =
+  "Current narrow zk v1 explicitly accepts the temporary note-secret nullifier-key basis; a stronger in-circuit key contract is deferred.";
 const PRIVATE_CORE_PROVING_HASH_LANE = "poseidon-bn254-proving-lane-v0";
 
 if (!swapLaneConfigValidation.valid) {
@@ -1655,8 +1658,8 @@ function buildPrivateCoreSummaryState() {
 function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
-    contractVersion: 5,
-    summaryVersion: 24,
+    contractVersion: 6,
+    summaryVersion: 25,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
@@ -1704,6 +1707,8 @@ function buildPrivateCoreContractState() {
     provingArtifactTruthBasis: PRIVATE_CORE_PROVING_ARTIFACT_TRUTH_BASIS,
     sourceProvingRelationship: PRIVATE_CORE_SOURCE_PROVING_RELATIONSHIP,
     nullifierKeyMode: PRIVATE_CORE_NULLIFIER_KEY_MODE,
+    nullifierKeyDecision: PRIVATE_CORE_NULLIFIER_KEY_DECISION,
+    nullifierKeyDecisionNote: PRIVATE_CORE_NULLIFIER_KEY_DECISION_NOTE,
     provingHashLane: PRIVATE_CORE_PROVING_HASH_LANE,
   };
 }
@@ -1756,6 +1761,8 @@ function summarizePrivateCoreContractMirrorStatus(args) {
     "provingArtifactTruthBasis",
     "sourceProvingRelationship",
     "nullifierKeyMode",
+    "nullifierKeyDecision",
+    "nullifierKeyDecisionNote",
     "provingHashLane",
   ];
   const mismatchedFields = mirroredFields.filter(

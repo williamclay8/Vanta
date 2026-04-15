@@ -294,6 +294,8 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   provingArtifactTruthBasis: "verified-proving-public-input-vector";
   sourceProvingRelationship: "explicit-split-no-implicit-equality";
   nullifierKeyMode: "note-secret-as-nullifier-key-v0";
+  nullifierKeyDecision: "accepted-v1-temporary-note-secret-key";
+  nullifierKeyDecisionNote: string;
   provingHashLane: "poseidon-bn254-proving-lane-v0";
   generatedAt: number;
   stateVersion: number;
@@ -375,6 +377,8 @@ export type VantaPrivateCoreOperatorContractStateResponse = {
   provingArtifactTruthBasis: "verified-proving-public-input-vector";
   sourceProvingRelationship: "explicit-split-no-implicit-equality";
   nullifierKeyMode: "note-secret-as-nullifier-key-v0";
+  nullifierKeyDecision: "accepted-v1-temporary-note-secret-key";
+  nullifierKeyDecisionNote: string;
   provingHashLane: "poseidon-bn254-proving-lane-v0";
 };
 
@@ -1025,6 +1029,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     provingArtifactTruthBasis?: unknown;
     sourceProvingRelationship?: unknown;
     nullifierKeyMode?: unknown;
+    nullifierKeyDecision?: unknown;
+    nullifierKeyDecisionNote?: unknown;
     provingHashLane?: unknown;
     generatedAt?: unknown;
     currentRoot?: unknown;
@@ -1056,8 +1062,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 5 ||
-    parsed.summaryVersion !== 24 ||
+    parsed.contractVersion !== 6 ||
+    parsed.summaryVersion !== 25 ||
     !isContractMirrorStatus(parsed.contractMirrorStatus) ||
     typeof parsed.contractMirrorNote !== "string" ||
     !isBoundaryStatus(parsed.boundaryStatus) ||
@@ -1129,6 +1135,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     parsed.provingArtifactTruthBasis !== "verified-proving-public-input-vector" ||
     parsed.sourceProvingRelationship !== "explicit-split-no-implicit-equality" ||
     parsed.nullifierKeyMode !== "note-secret-as-nullifier-key-v0" ||
+    parsed.nullifierKeyDecision !== "accepted-v1-temporary-note-secret-key" ||
+    typeof parsed.nullifierKeyDecisionNote !== "string" ||
     parsed.provingHashLane !== "poseidon-bn254-proving-lane-v0" ||
     typeof parsed.generatedAt !== "number" ||
     (parsed.currentRoot !== null &&
@@ -1182,8 +1190,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   return {
     stateVersion: 1,
-    contractVersion: 5,
-    summaryVersion: 24,
+    contractVersion: 6,
+    summaryVersion: 25,
     contractMirrorStatus: parsed.contractMirrorStatus,
     contractMirrorNote: parsed.contractMirrorNote,
     boundaryStatus: parsed.boundaryStatus,
@@ -1238,6 +1246,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     provingArtifactTruthBasis: "verified-proving-public-input-vector",
     sourceProvingRelationship: "explicit-split-no-implicit-equality",
     nullifierKeyMode: "note-secret-as-nullifier-key-v0",
+    nullifierKeyDecision: "accepted-v1-temporary-note-secret-key",
+    nullifierKeyDecisionNote: parsed.nullifierKeyDecisionNote,
     provingHashLane: "poseidon-bn254-proving-lane-v0",
     currentRootLinkedProof: isProofRecord(parsed.currentRootLinkedProof)
       ? parsed.currentRootLinkedProof
@@ -1349,13 +1359,15 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     provingArtifactTruthBasis?: unknown;
     sourceProvingRelationship?: unknown;
     nullifierKeyMode?: unknown;
+    nullifierKeyDecision?: unknown;
+    nullifierKeyDecisionNote?: unknown;
     provingHashLane?: unknown;
   };
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 5 ||
-    parsed.summaryVersion !== 24 ||
+    parsed.contractVersion !== 6 ||
+    parsed.summaryVersion !== 25 ||
     parsed.supportedSendLaneVersion !== 1 ||
     parsed.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     parsed.supportedSendLaneStatus !== "supported" ||
@@ -1404,6 +1416,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     parsed.provingArtifactTruthBasis !== "verified-proving-public-input-vector" ||
     parsed.sourceProvingRelationship !== "explicit-split-no-implicit-equality" ||
     parsed.nullifierKeyMode !== "note-secret-as-nullifier-key-v0" ||
+    parsed.nullifierKeyDecision !== "accepted-v1-temporary-note-secret-key" ||
+    typeof parsed.nullifierKeyDecisionNote !== "string" ||
     parsed.provingHashLane !== "poseidon-bn254-proving-lane-v0"
   ) {
     throw new Error("The private-core operator contract endpoint returned invalid data.");
@@ -1411,8 +1425,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
 
   return {
     stateVersion: 1,
-    contractVersion: 5,
-    summaryVersion: 24,
+    contractVersion: 6,
+    summaryVersion: 25,
     supportedSendLaneVersion: 1,
     supportedSendLaneKind: "single-input-single-recipient-optional-change",
     supportedSendLaneStatus: "supported",
@@ -1461,6 +1475,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     provingArtifactTruthBasis: "verified-proving-public-input-vector",
     sourceProvingRelationship: "explicit-split-no-implicit-equality",
     nullifierKeyMode: "note-secret-as-nullifier-key-v0",
+    nullifierKeyDecision: "accepted-v1-temporary-note-secret-key",
+    nullifierKeyDecisionNote: parsed.nullifierKeyDecisionNote,
     provingHashLane: "poseidon-bn254-proving-lane-v0",
   };
 }

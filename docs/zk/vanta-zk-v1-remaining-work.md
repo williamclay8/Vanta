@@ -100,6 +100,9 @@ What still remains for `zk v1` is finishing that into a fuller verifier-side con
 The repo now freezes that current narrow choice explicitly:
 - `supportedReleaseV1Decision = accepted-narrow-v1-path`
 
+The repo now also freezes the current narrow nullifier-key choice explicitly:
+- `nullifierKeyDecision = accepted-v1-temporary-note-secret-key`
+
 ### 2. Freeze the owner-auth decision for v1
 
 Today the first circuit explicitly keeps owner authorization off-circuit.

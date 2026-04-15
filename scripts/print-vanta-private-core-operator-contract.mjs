@@ -128,6 +128,11 @@ try {
   printLine("Proving artifact truth", contract.provingArtifactTruthBasis ?? "Unavailable");
   printLine("Source/proving relationship", contract.sourceProvingRelationship ?? "Unavailable");
   printLine("Nullifier key mode", contract.nullifierKeyMode ?? "Unavailable");
+  printLine("Nullifier key decision", contract.nullifierKeyDecision ?? "Unavailable");
+  printLine(
+    "Nullifier key decision note",
+    contract.nullifierKeyDecisionNote ?? "Unavailable",
+  );
   printLine("Proving hash lane", contract.provingHashLane ?? "Unavailable");
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);

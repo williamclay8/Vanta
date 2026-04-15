@@ -273,7 +273,7 @@ try {
     preRestartSends.parsed.records.length < 1 ||
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.stateVersion !== 1 ||
-    preRestartSummary.parsed?.summaryVersion !== 24 ||
+    preRestartSummary.parsed?.summaryVersion !== 25 ||
     preRestartSummary.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     preRestartSummary.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -358,7 +358,7 @@ try {
   if (
     !postRestartSummary.ok ||
     postRestartSummary.parsed?.stateVersion !== 1 ||
-    postRestartSummary.parsed?.summaryVersion !== 24 ||
+    postRestartSummary.parsed?.summaryVersion !== 25 ||
     postRestartSummary.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     postRestartSummary.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -475,14 +475,14 @@ try {
     stdio: "pipe",
   });
   if (
-    !operatorStatusOutput.includes("Summary version: 24") ||
+    !operatorStatusOutput.includes("Summary version: 25") ||
     !operatorStatusOutput.includes(
       "Supported send input-root policy: Latest registered root with linked registration proof",
     ) ||
     !operatorStatusOutput.includes(
       "Supported send output registration: Resulting root must register as recipient or change output",
     ) ||
-    !operatorStatusOutput.includes("Mirrored contract version: 5") ||
+    !operatorStatusOutput.includes("Mirrored contract version: 6") ||
     !operatorStatusOutput.includes("Supported release v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported release execution: Operator-recorded devnet release") ||
     !operatorStatusOutput.includes(
@@ -498,6 +498,9 @@ try {
     ) ||
     !operatorStatusOutput.includes(
       "Source/proving relationship: Explicit split / no implicit equality",
+    ) ||
+    !operatorStatusOutput.includes(
+      "Nullifier key decision: Accepted v1 temporary note-secret key",
     ) ||
     !operatorStatusOutput.includes("Supported send lane version: 1") ||
     !operatorStatusOutput.includes("Supported unshield lane version: 1") ||

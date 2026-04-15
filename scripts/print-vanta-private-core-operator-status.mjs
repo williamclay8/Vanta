@@ -145,6 +145,14 @@ try {
     humanizeSourceProvingRelationship(summary.sourceProvingRelationship),
   );
   printLine("Nullifier key mode", humanizeNullifierKeyMode(summary.nullifierKeyMode));
+  printLine(
+    "Nullifier key decision",
+    humanizeNullifierKeyDecision(summary.nullifierKeyDecision),
+  );
+  printLine(
+    "Nullifier key decision note",
+    summary.nullifierKeyDecisionNote ?? "Unavailable",
+  );
   printLine("Proving hash lane", summary.provingHashLane ?? "Unavailable");
   printLine("Current root", abbreviate(summary.currentRoot));
   printLine("Current root proof", abbreviate(summary.currentRecord?.proofId));
@@ -632,6 +640,15 @@ function humanizeSourceProvingRelationship(value) {
   switch (value) {
     case "explicit-split-no-implicit-equality":
       return "Explicit split / no implicit equality";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeNullifierKeyDecision(value) {
+  switch (value) {
+    case "accepted-v1-temporary-note-secret-key":
+      return "Accepted v1 temporary note-secret key";
     default:
       return "Unavailable";
   }

@@ -220,7 +220,7 @@ try {
   if (
     !initialSummaryState.ok ||
     initialSummaryState.parsed?.stateVersion !== 1 ||
-    initialSummaryState.parsed?.summaryVersion !== 24 ||
+    initialSummaryState.parsed?.summaryVersion !== 25 ||
     initialSummaryState.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     initialSummaryState.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -895,7 +895,7 @@ try {
   if (
     !summaryStateAfterConsume.ok ||
     summaryStateAfterConsume.parsed?.stateVersion !== 1 ||
-    summaryStateAfterConsume.parsed?.summaryVersion !== 24 ||
+    summaryStateAfterConsume.parsed?.summaryVersion !== 25 ||
     summaryStateAfterConsume.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterConsume.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -989,7 +989,7 @@ try {
   });
   if (
     !summaryStateAfterRelease.ok ||
-    summaryStateAfterRelease.parsed?.summaryVersion !== 24 ||
+    summaryStateAfterRelease.parsed?.summaryVersion !== 25 ||
     summaryStateAfterRelease.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterRelease.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -1069,8 +1069,8 @@ try {
   });
   if (
     !operatorStatusOutput.includes("Summary state version: 1") ||
-    !operatorStatusOutput.includes("Mirrored contract version: 5") ||
-    !operatorStatusOutput.includes("Summary version: 24") ||
+    !operatorStatusOutput.includes("Mirrored contract version: 6") ||
+    !operatorStatusOutput.includes("Summary version: 25") ||
     !operatorStatusOutput.includes("Supported release v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported release execution: Operator-recorded devnet release") ||
     !operatorStatusOutput.includes(
@@ -1086,6 +1086,9 @@ try {
     ) ||
     !operatorStatusOutput.includes(
       "Source/proving relationship: Explicit split / no implicit equality",
+    ) ||
+    !operatorStatusOutput.includes(
+      "Nullifier key decision: Accepted v1 temporary note-secret key",
     ) ||
     !operatorStatusOutput.includes(
       "Supported send input-root policy: Latest registered root with linked registration proof",

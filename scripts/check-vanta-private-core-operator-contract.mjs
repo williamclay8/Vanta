@@ -102,8 +102,8 @@ try {
   if (
     !contractState.ok ||
     contractState.parsed?.stateVersion !== 1 ||
-    contractState.parsed?.contractVersion !== 5 ||
-    contractState.parsed?.summaryVersion !== 24 ||
+    contractState.parsed?.contractVersion !== 6 ||
+    contractState.parsed?.summaryVersion !== 25 ||
     contractState.parsed?.supportedSendLaneVersion !== 1 ||
     contractState.parsed?.supportedUnshieldLaneVersion !== 1 ||
     contractState.parsed?.supportedReleaseLaneVersion !== 1 ||
@@ -134,7 +134,9 @@ try {
     typeof contractState.parsed?.ownerAuthorizationDecisionNote !== "string" ||
     contractState.parsed?.sourceArtifactTruthBasis !== "source-layer-artifact-bundle" ||
     contractState.parsed?.provingArtifactTruthBasis !== "verified-proving-public-input-vector" ||
-    contractState.parsed?.sourceProvingRelationship !== "explicit-split-no-implicit-equality"
+    contractState.parsed?.sourceProvingRelationship !== "explicit-split-no-implicit-equality" ||
+    contractState.parsed?.nullifierKeyDecision !== "accepted-v1-temporary-note-secret-key" ||
+    typeof contractState.parsed?.nullifierKeyDecisionNote !== "string"
   ) {
     throw new Error(contractState.text || "operator contract endpoint returned invalid data");
   }
@@ -188,6 +190,8 @@ try {
     "provingArtifactTruthBasis",
     "sourceProvingRelationship",
     "nullifierKeyMode",
+    "nullifierKeyDecision",
+    "nullifierKeyDecisionNote",
     "provingHashLane",
   ];
   const mismatchedMirroredFields = !summaryState.ok
@@ -228,8 +232,8 @@ try {
   });
   if (
     !contractOutput.includes("Contract state version: 1") ||
-    !contractOutput.includes("Contract version: 5") ||
-    !contractOutput.includes("Summary compatibility: 24") ||
+    !contractOutput.includes("Contract version: 6") ||
+    !contractOutput.includes("Summary compatibility: 25") ||
     !contractOutput.includes("Supported note schema: NoteV0 / v0") ||
     !contractOutput.includes(
       "Supported root provenance: Shield input / send recipient output / send change output",
@@ -248,6 +252,9 @@ try {
     !contractOutput.includes("Supported release persistence: json-store-v1") ||
     !contractOutput.includes(
       "Owner authorization decision: accepted-v1-off-circuit-precheck",
+    ) ||
+    !contractOutput.includes(
+      "Nullifier key decision: accepted-v1-temporary-note-secret-key",
     ) ||
     !contractOutput.includes("Source artifact truth: source-layer-artifact-bundle") ||
     !contractOutput.includes(

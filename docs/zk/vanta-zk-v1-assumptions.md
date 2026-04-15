@@ -41,6 +41,9 @@ The repo now also freezes the current source/proving split explicitly:
 The repo now also freezes the current release-lane decision explicitly:
 - `supportedReleaseV1Decision = accepted-narrow-v1-path`
 
+The repo now also freezes the current nullifier-key decision explicitly:
+- `nullifierKeyDecision = accepted-v1-temporary-note-secret-key`
+
 That means:
 - the app or operator path may recompute the owner public key from the supplied secret material
 - the first Noir unshield circuit does not need to prove X25519 ownership in-circuit
