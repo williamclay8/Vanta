@@ -138,6 +138,7 @@ The operator-status command now prints:
 - latest send proof
 - latest send linked proof
 - latest send resulting-root basis
+- send continuity status
 - latest send resulting root
 - send resulting root status
 - send resulting root registration status
@@ -152,7 +153,7 @@ The operator-status command now prints:
 - supported product flow version / kind / status
 - supported asset and environment
 - supported note schema and note version
-- supported root-registration provenance and send resulting-root basis
+- supported root-registration provenance, send resulting-root basis, send input-root policy, and send output-registration policy
 - supported recipient and release-destination models
 - supported proof system and current unshield/send circuit ids plus fixed Merkle depth
 - supported release authorization basis

@@ -141,6 +141,11 @@ try {
     "Send resulting root registration note",
     summary.sendResultingRootRegistrationNote ?? "Unavailable",
   );
+  printLine(
+    "Send continuity status",
+    humanizeSendContinuityStatus(summary.sendContinuityStatus),
+  );
+  printLine("Send continuity note", summary.sendContinuityNote ?? "Unavailable");
   printLine("Send resulting root record", abbreviate(summary.sendResultingRootRecord?.root));
   printLine("Send resulting root proof", abbreviate(summary.sendResultingRootRecord?.proofId));
   printLine(
@@ -311,6 +316,31 @@ function humanizeSendResultingRootRegistrationStatus(value) {
       return "Linked to change output";
     case "mismatch":
       return "Output mismatch";
+    case "unavailable":
+      return "Unavailable";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeSendContinuityStatus(value) {
+  switch (value) {
+    case "ready-current-root":
+      return "Ready on current root";
+    case "ready-registered-stale":
+      return "Registered but stale";
+    case "awaiting-registration":
+      return "Awaiting registration";
+    case "registration-proof-unlinked":
+      return "Registration proof unlinked";
+    case "output-mismatch":
+      return "Output mismatch";
+    case "downstream-consumed":
+      return "Consumed downstream";
+    case "downstream-released":
+      return "Released downstream";
+    case "missing-resulting-root":
+      return "Missing resulting root";
     case "unavailable":
       return "Unavailable";
     default:

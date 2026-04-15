@@ -220,7 +220,7 @@ try {
   if (
     !initialSummaryState.ok ||
     initialSummaryState.parsed?.stateVersion !== 1 ||
-    initialSummaryState.parsed?.summaryVersion !== 18 ||
+    initialSummaryState.parsed?.summaryVersion !== 19 ||
     initialSummaryState.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     initialSummaryState.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -894,7 +894,7 @@ try {
   if (
     !summaryStateAfterConsume.ok ||
     summaryStateAfterConsume.parsed?.stateVersion !== 1 ||
-    summaryStateAfterConsume.parsed?.summaryVersion !== 18 ||
+    summaryStateAfterConsume.parsed?.summaryVersion !== 19 ||
     summaryStateAfterConsume.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterConsume.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -987,7 +987,7 @@ try {
   });
   if (
     !summaryStateAfterRelease.ok ||
-    summaryStateAfterRelease.parsed?.summaryVersion !== 18 ||
+    summaryStateAfterRelease.parsed?.summaryVersion !== 19 ||
     summaryStateAfterRelease.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterRelease.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -1067,7 +1067,7 @@ try {
   if (
     !operatorStatusOutput.includes("Summary state version: 1") ||
     !operatorStatusOutput.includes("Mirrored contract version: 1") ||
-    !operatorStatusOutput.includes("Summary version: 18") ||
+    !operatorStatusOutput.includes("Summary version: 19") ||
     !operatorStatusOutput.includes(
       "Supported send input-root policy: Latest registered root with linked registration proof",
     ) ||
@@ -1080,6 +1080,7 @@ try {
     !operatorStatusOutput.includes("Latest proof action: consume") ||
     !operatorStatusOutput.includes("Proof/consume link: linked") ||
     !operatorStatusOutput.includes("Proof/release link: linked") ||
+    !operatorStatusOutput.includes("Send continuity status: Unavailable") ||
     !operatorStatusOutput.includes("Contract mirror status: Summary mirrors frozen contract") ||
     !operatorStatusOutput.includes("Boundary status: Operator boundary coherent")
   ) {

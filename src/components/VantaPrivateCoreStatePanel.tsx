@@ -32,6 +32,8 @@ type VantaPrivateCoreStatePanelProps = {
   operatorBoundaryStatusLabel?: string | null;
   operatorContractMirrorPrimaryNote?: string | null;
   operatorContractMirrorStatusLabel?: string | null;
+  operatorSendContinuityPrimaryNote?: string | null;
+  operatorSendContinuityStatusLabel?: string | null;
   operatorSupportedSendLaneKind?: string | null;
   operatorSupportedSendLaneNote?: string | null;
   operatorSupportedSendLaneStatus?: string | null;
@@ -215,6 +217,8 @@ export function VantaPrivateCoreStatePanel({
   operatorBoundaryStatusLabel = null,
   operatorContractMirrorPrimaryNote = null,
   operatorContractMirrorStatusLabel = null,
+  operatorSendContinuityPrimaryNote = null,
+  operatorSendContinuityStatusLabel = null,
   operatorSupportedSendLaneKind = null,
   operatorSupportedSendLaneNote = null,
   operatorSupportedSendLaneStatus = null,
@@ -703,6 +707,14 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Contract mirror note</span>
               <strong>{operatorContractMirrorPrimaryNote ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Send continuity status</span>
+              <strong>{operatorSendContinuityStatusLabel ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Send continuity note</span>
+              <strong>{operatorSendContinuityPrimaryNote ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Supported lane note</span>

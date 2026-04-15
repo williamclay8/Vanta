@@ -1557,6 +1557,12 @@ function buildPrivateCoreSummaryState() {
     linkedProof: sendResultingRootLinkedProof,
     rootRecord: sendResultingRootRecord,
   });
+  const sendContinuity = summarizePrivateCoreSendContinuityStatus({
+    latestSend,
+    sendResultingRootProofLinkStatus,
+    sendResultingRootRegistrationStatus: sendResultingRootRegistration.status,
+    sendResultingRootStatus: sendResultingRootStatus.status,
+  });
   const boundaryStatus = summarizePrivateCoreBoundaryStatus({
     currentRoot: currentRootRecord?.root ?? null,
     currentRootProofLinkStatus,
@@ -1582,6 +1588,8 @@ function buildPrivateCoreSummaryState() {
     sendResultingRootRegistrationStatus: sendResultingRootRegistration.status,
     sendResultingRootProofLinkStatus,
     sendResultingRootStatus: sendResultingRootStatus.status,
+    sendContinuityNote: sendContinuity.note,
+    sendContinuityStatus: sendContinuity.status,
     currentRoot: currentRootRecord?.root ?? null,
     currentRecord: currentRootRecord,
     rootRecords,
@@ -1625,7 +1633,7 @@ function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
     contractVersion: 1,
-    summaryVersion: 18,
+    summaryVersion: 19,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
@@ -1801,6 +1809,83 @@ function summarizePrivateCoreSendResultingRootRegistration(args) {
   return {
     status: "mismatch",
     note: "Registered send resulting root does not match either output commitment from the latest send.",
+  };
+}
+
+function summarizePrivateCoreSendContinuityStatus(args) {
+  if (!args.latestSend) {
+    return {
+      status: "unavailable",
+      note: "No private send transition is available for continuity checks yet.",
+    };
+  }
+
+  if (!args.latestSend.resultingRoot) {
+    return {
+      status: "missing-resulting-root",
+      note: "Latest private send transition did not persist a resulting root for downstream continuity.",
+    };
+  }
+
+  if (args.sendResultingRootRegistrationStatus === "mismatch") {
+    return {
+      status: "output-mismatch",
+      note: "Registered send resulting root does not match the recipient or change output commitment from the latest send.",
+    };
+  }
+
+  if (args.sendResultingRootProofLinkStatus === "mismatch") {
+    return {
+      status: "registration-proof-unlinked",
+      note: "Registered send resulting root does not match its linked registration proof.",
+    };
+  }
+
+  if (args.sendResultingRootProofLinkStatus === "unavailable") {
+    if (args.sendResultingRootStatus === "unregistered") {
+      return {
+        status: "awaiting-registration",
+        note: "Latest send resulting root still needs operator registration before downstream continuity is established.",
+      };
+    }
+
+    return {
+      status: "registration-proof-unlinked",
+      note: "Registered send resulting root is missing a linked registration proof.",
+    };
+  }
+
+  if (args.sendResultingRootStatus === "current-root") {
+    return {
+      status: "ready-current-root",
+      note: "Latest send resulting root is registered, linked, and current for downstream send or unshield use.",
+    };
+  }
+
+  if (args.sendResultingRootStatus === "registered-stale") {
+    return {
+      status: "ready-registered-stale",
+      note: "Latest send resulting root is registered and linked, but no longer the current operator root.",
+    };
+  }
+
+  if (args.sendResultingRootStatus === "downstream-consumed") {
+    return {
+      status: "downstream-consumed",
+      note: "Latest send resulting root has already been consumed downstream.",
+    };
+  }
+
+  if (args.sendResultingRootStatus === "downstream-released") {
+    return {
+      status: "downstream-released",
+      note: "Latest send resulting root has already been released downstream.",
+    };
+  }
+
+  return {
+    status: "awaiting-registration",
+    note: "Latest send resulting root is not yet ready for downstream continuity checks.",
   };
 }
 

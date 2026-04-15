@@ -34,6 +34,14 @@ async function waitForHealth(baseUrl) {
   throw new Error("operator server did not become ready in time");
 }
 
+async function stopServer(server) {
+  server.kill("SIGTERM");
+  await new Promise((resolvePromise) => {
+    server.once("exit", () => resolvePromise(undefined));
+    setTimeout(() => resolvePromise(undefined), 1000);
+  });
+}
+
 async function requestJson(baseUrl, path, options = {}) {
   const response = await fetch(`${baseUrl}${path}`, {
     ...options,
@@ -401,8 +409,7 @@ try {
   }
   printStatus("private-core send-chain->unshield replay rejection: PASS");
 } finally {
-  server.kill("SIGTERM");
-  await new Promise((resolvePromise) => server.once("exit", resolvePromise));
+  await stopServer(server);
   rmSync(tempRoot, { recursive: true, force: true });
 }
 

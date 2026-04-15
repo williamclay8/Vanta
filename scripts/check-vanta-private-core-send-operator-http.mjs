@@ -35,6 +35,14 @@ async function waitForHealth(baseUrl) {
   throw new Error("operator server did not become ready in time");
 }
 
+async function stopServer(server) {
+  server.kill("SIGTERM");
+  await new Promise((resolvePromise) => {
+    server.once("exit", () => resolvePromise(undefined));
+    setTimeout(() => resolvePromise(undefined), 1000);
+  });
+}
+
 async function requestJson(baseUrl, path, options = {}) {
   const response = await fetch(`${baseUrl}${path}`, {
     ...options,
@@ -262,7 +270,7 @@ try {
   if (
     !summaryState.ok ||
     summaryState.parsed?.stateVersion !== 1 ||
-    summaryState.parsed?.summaryVersion !== 18 ||
+    summaryState.parsed?.summaryVersion !== 19 ||
     summaryState.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryState.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -341,8 +349,7 @@ try {
     "private-core-proof:tampered";
   writeFileSync(rootStorePath, `${JSON.stringify(tamperedRootStore, null, 2)}\n`, "utf8");
 
-  server.kill("SIGTERM");
-  await new Promise((resolvePromise) => server.once("exit", resolvePromise));
+  await stopServer(server);
   server = startServer();
   await waitForHealth(baseUrl);
 
@@ -458,7 +465,8 @@ try {
     summaryAfterTransition.parsed?.sendResultingRootRecord !== null ||
     summaryAfterTransition.parsed?.latestSend?.sendId !== transitionResponse.parsed.sendId ||
     summaryAfterTransition.parsed?.sendResultingRootStatus !== "unregistered" ||
-    summaryAfterTransition.parsed?.sendResultingRootRegistrationStatus !== "unavailable"
+    summaryAfterTransition.parsed?.sendResultingRootRegistrationStatus !== "unavailable" ||
+    summaryAfterTransition.parsed?.sendContinuityStatus !== "awaiting-registration"
   ) {
     throw new Error(
       summaryAfterTransition.text || "operator summary did not reflect transition-backed send proof state",
@@ -479,7 +487,6 @@ try {
   }
   printStatus("operator send http shared proof state: PASS");
 } finally {
-  server.kill("SIGTERM");
-  await new Promise((resolvePromise) => server.once("exit", resolvePromise));
+  await stopServer(server);
   rmSync(tempRoot, { recursive: true, force: true });
 }

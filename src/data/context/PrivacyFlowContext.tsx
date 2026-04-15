@@ -102,6 +102,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorCurrentRootProofLinkStatus: string | null;
   privateCoreOperatorSendResultingRootLinkedProof: VantaPrivateCoreOperatorProofRecord | null;
   privateCoreOperatorSendResultingRootRecord: VantaPrivateCoreOperatorRootRecord | null;
+  privateCoreOperatorRawSendContinuityNote: string | null;
+  privateCoreOperatorRawSendContinuityStatus: string | null;
   privateCoreOperatorRawSendResultingRootNote: string | null;
   privateCoreOperatorRawSendResultingRootRegistrationNote: string | null;
   privateCoreOperatorRawSendResultingRootRegistrationStatus: string | null;
@@ -161,6 +163,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorBoundaryStatusLabel: string | null;
   privateCoreOperatorContractMirrorPrimaryNote: string | null;
   privateCoreOperatorContractMirrorStatusLabel: string | null;
+  privateCoreOperatorSendContinuityPrimaryNote: string | null;
+  privateCoreOperatorSendContinuityStatusLabel: string | null;
   privateCoreOperatorSendResultingRootPrimaryNote: string | null;
   privateCoreOperatorSendResultingRootRegistrationPrimaryNote: string | null;
   privateCoreOperatorSendResultingRootRegistrationStatusLabel: string | null;
@@ -385,6 +389,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<VantaPrivateCoreOperatorProofRecord | null>(null);
   const [privateCoreOperatorSendResultingRootRecord, setPrivateCoreOperatorSendResultingRootRecord] =
     useState<VantaPrivateCoreOperatorRootRecord | null>(null);
+  const [privateCoreOperatorRawSendContinuityNote, setPrivateCoreOperatorRawSendContinuityNote] =
+    useState<string | null>(null);
+  const [privateCoreOperatorRawSendContinuityStatus, setPrivateCoreOperatorRawSendContinuityStatus] =
+    useState<string | null>(null);
   const [privateCoreOperatorRawSendResultingRootNote, setPrivateCoreOperatorRawSendResultingRootNote] =
     useState<string | null>(null);
   const [
@@ -591,6 +599,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorLatestSendLinkedProof,
       setPrivateCoreOperatorCurrentRootProofLinkStatus,
       setPrivateCoreOperatorCurrentRootLinkedProof,
+      setPrivateCoreOperatorRawSendContinuityNote,
+      setPrivateCoreOperatorRawSendContinuityStatus,
       setPrivateCoreOperatorRawSendResultingRootNote,
       setPrivateCoreOperatorRawSendResultingRootRegistrationNote,
       setPrivateCoreOperatorRawSendResultingRootRegistrationStatus,
@@ -635,6 +645,14 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorRawSendResultingRootNote,
       privateCoreOperatorRawSendResultingRootStatus,
     ],
+  );
+  const privateCoreOperatorSendContinuitySummary = useMemo(
+    () =>
+      summarizePrivateCoreOperatorSendContinuityStatus({
+        rawNote: privateCoreOperatorRawSendContinuityNote,
+        rawStatus: privateCoreOperatorRawSendContinuityStatus,
+      }),
+    [privateCoreOperatorRawSendContinuityNote, privateCoreOperatorRawSendContinuityStatus],
   );
   const privateCoreOperatorSendResultingRootRegistrationSummary = useMemo(
     () =>
@@ -1574,6 +1592,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorCurrentRootProofLinkStatus,
       privateCoreOperatorSendResultingRootLinkedProof,
       privateCoreOperatorSendResultingRootRecord,
+      privateCoreOperatorRawSendContinuityNote,
+      privateCoreOperatorRawSendContinuityStatus,
       privateCoreOperatorRawSendResultingRootNote,
       privateCoreOperatorRawSendResultingRootRegistrationNote,
       privateCoreOperatorRawSendResultingRootRegistrationStatus,
@@ -1637,6 +1657,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         privateCoreOperatorContractMirrorSummary.primaryNote,
       privateCoreOperatorContractMirrorStatusLabel:
         privateCoreOperatorContractMirrorSummary.statusLabel,
+      privateCoreOperatorSendContinuityPrimaryNote:
+        privateCoreOperatorSendContinuitySummary.primaryNote,
+      privateCoreOperatorSendContinuityStatusLabel:
+        privateCoreOperatorSendContinuitySummary.statusLabel,
       privateCoreOperatorSendResultingRootPrimaryNote:
         privateCoreOperatorSendResultingRootSummary.primaryNote,
       privateCoreOperatorSendResultingRootRegistrationPrimaryNote:
@@ -1687,6 +1711,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorCurrentRootProofLinkStatus,
       privateCoreOperatorSendResultingRootLinkedProof,
       privateCoreOperatorSendResultingRootRecord,
+      privateCoreOperatorRawSendContinuityNote,
+      privateCoreOperatorRawSendContinuityStatus,
       privateCoreOperatorRawSendResultingRootNote,
       privateCoreOperatorRawSendResultingRootRegistrationNote,
       privateCoreOperatorRawSendResultingRootRegistrationStatus,
@@ -1696,6 +1722,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorRawBoundaryStatus,
       privateCoreOperatorRawContractMirrorNote,
       privateCoreOperatorRawContractMirrorStatus,
+      privateCoreOperatorSendContinuitySummary,
       privateCoreOperatorSupportedSendLaneKind,
       privateCoreOperatorSupportedSendLaneNote,
       privateCoreOperatorSupportedSendLaneStatus,
@@ -2066,6 +2093,67 @@ function summarizePrivateCoreOperatorSendResultingRootRegistration(args: {
   }
 }
 
+function summarizePrivateCoreOperatorSendContinuityStatus(args: {
+  rawNote: string | null;
+  rawStatus: string | null;
+}): {
+  statusLabel: string | null;
+  primaryNote: string | null;
+} {
+  switch (args.rawStatus) {
+    case "ready-current-root":
+      return {
+        statusLabel: "Downstream continuity ready",
+        primaryNote: args.rawNote,
+      };
+    case "ready-registered-stale":
+      return {
+        statusLabel: "Continuity registered but stale",
+        primaryNote: args.rawNote,
+      };
+    case "awaiting-registration":
+      return {
+        statusLabel: "Awaiting continuity registration",
+        primaryNote: args.rawNote,
+      };
+    case "registration-proof-unlinked":
+      return {
+        statusLabel: "Continuity proof linkage missing",
+        primaryNote: args.rawNote,
+      };
+    case "output-mismatch":
+      return {
+        statusLabel: "Continuity output mismatch",
+        primaryNote: args.rawNote,
+      };
+    case "downstream-consumed":
+      return {
+        statusLabel: "Continuity consumed downstream",
+        primaryNote: args.rawNote,
+      };
+    case "downstream-released":
+      return {
+        statusLabel: "Continuity released downstream",
+        primaryNote: args.rawNote,
+      };
+    case "missing-resulting-root":
+      return {
+        statusLabel: "Continuity missing resulting root",
+        primaryNote: args.rawNote,
+      };
+    case "unavailable":
+      return {
+        statusLabel: "No continuity observed",
+        primaryNote: args.rawNote,
+      };
+    default:
+      return {
+        statusLabel: "Continuity status unavailable",
+        primaryNote: args.rawNote ?? "Operator send continuity status unavailable.",
+      };
+  }
+}
+
 function summarizePrivateCoreOperatorSendState(args: {
   latestConsume: VantaPrivateCoreOperatorConsumeRecord | null;
   latestRelease: VantaPrivateCoreOperatorReleaseRecord | null;
@@ -2284,6 +2372,8 @@ function applyPrivateCoreOperatorSummaryState(args: {
   setPrivateCoreOperatorCurrentRootProofLinkStatus: (value: string | null) => void;
   setPrivateCoreOperatorSendResultingRootLinkedProof: (value: VantaPrivateCoreOperatorProofRecord | null) => void;
   setPrivateCoreOperatorSendResultingRootRecord: (value: VantaPrivateCoreOperatorRootRecord | null) => void;
+  setPrivateCoreOperatorRawSendContinuityNote: (value: string | null) => void;
+  setPrivateCoreOperatorRawSendContinuityStatus: (value: string | null) => void;
   setPrivateCoreOperatorRawSendResultingRootNote: (value: string | null) => void;
   setPrivateCoreOperatorRawSendResultingRootRegistrationNote: (value: string | null) => void;
   setPrivateCoreOperatorRawSendResultingRootRegistrationStatus: (value: string | null) => void;
@@ -2313,6 +2403,8 @@ function applyPrivateCoreOperatorSummaryState(args: {
   args.setPrivateCoreOperatorCurrentRootProofLinkStatus(args.summaryState.currentRootProofLinkStatus);
   args.setPrivateCoreOperatorSendResultingRootLinkedProof(args.summaryState.sendResultingRootLinkedProof);
   args.setPrivateCoreOperatorSendResultingRootRecord(args.summaryState.sendResultingRootRecord);
+  args.setPrivateCoreOperatorRawSendContinuityNote(args.summaryState.sendContinuityNote);
+  args.setPrivateCoreOperatorRawSendContinuityStatus(args.summaryState.sendContinuityStatus);
   args.setPrivateCoreOperatorRawSendResultingRootNote(args.summaryState.sendResultingRootNote);
   args.setPrivateCoreOperatorRawSendResultingRootRegistrationNote(
     args.summaryState.sendResultingRootRegistrationNote,

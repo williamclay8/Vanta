@@ -217,6 +217,17 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
     | "linked-change-output"
     | "mismatch";
   sendResultingRootProofLinkStatus: "linked" | "mismatch" | "unavailable";
+  sendContinuityNote: string;
+  sendContinuityStatus:
+    | "unavailable"
+    | "missing-resulting-root"
+    | "awaiting-registration"
+    | "output-mismatch"
+    | "registration-proof-unlinked"
+    | "ready-current-root"
+    | "ready-registered-stale"
+    | "downstream-consumed"
+    | "downstream-released";
   sendResultingRootStatus:
     | "unavailable"
     | "missing"
@@ -337,6 +348,22 @@ export type VantaPrivateCoreOperatorContractStateResponse = {
 
 function isContractMirrorStatus(value: unknown): value is "mirrors-contract" | "contract-mismatch" {
   return value === "mirrors-contract" || value === "contract-mismatch";
+}
+
+function isSendContinuityStatus(
+  value: unknown,
+): value is VantaPrivateCoreOperatorSummaryStateResponse["sendContinuityStatus"] {
+  return (
+    value === "unavailable" ||
+    value === "missing-resulting-root" ||
+    value === "awaiting-registration" ||
+    value === "output-mismatch" ||
+    value === "registration-proof-unlinked" ||
+    value === "ready-current-root" ||
+    value === "ready-registered-stale" ||
+    value === "downstream-consumed" ||
+    value === "downstream-released"
+  );
 }
 
 export async function requestVantaPrivateCoreOperatorProof(args: {
@@ -900,6 +927,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     sendResultingRootRegistrationStatus?: unknown;
     sendResultingRootRegistrationNote?: unknown;
     sendResultingRootProofLinkStatus?: unknown;
+    sendContinuityStatus?: unknown;
+    sendContinuityNote?: unknown;
     supportedSendLaneKind?: unknown;
     supportedSendLaneNote?: unknown;
     supportedSendLaneStatus?: unknown;
@@ -967,7 +996,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
   if (
     parsed.stateVersion !== 1 ||
     parsed.contractVersion !== 1 ||
-    parsed.summaryVersion !== 18 ||
+    parsed.summaryVersion !== 19 ||
     !isContractMirrorStatus(parsed.contractMirrorStatus) ||
     typeof parsed.contractMirrorNote !== "string" ||
     !isBoundaryStatus(parsed.boundaryStatus) ||
@@ -987,6 +1016,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     !isSendResultingRootRegistrationStatus(parsed.sendResultingRootRegistrationStatus) ||
     typeof parsed.sendResultingRootRegistrationNote !== "string" ||
     !isLinkStatus(parsed.sendResultingRootProofLinkStatus) ||
+    !isSendContinuityStatus(parsed.sendContinuityStatus) ||
+    typeof parsed.sendContinuityNote !== "string" ||
     parsed.supportedSendLaneVersion !== 1 ||
     parsed.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     parsed.supportedSendLaneStatus !== "supported" ||
@@ -1079,7 +1110,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
   return {
     stateVersion: 1,
     contractVersion: 1,
-    summaryVersion: 18,
+    summaryVersion: 19,
     contractMirrorStatus: parsed.contractMirrorStatus,
     contractMirrorNote: parsed.contractMirrorNote,
     boundaryStatus: parsed.boundaryStatus,
@@ -1138,6 +1169,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     sendResultingRootRegistrationStatus: parsed.sendResultingRootRegistrationStatus,
     sendResultingRootRegistrationNote: parsed.sendResultingRootRegistrationNote,
     sendResultingRootProofLinkStatus: parsed.sendResultingRootProofLinkStatus,
+    sendContinuityStatus: parsed.sendContinuityStatus,
+    sendContinuityNote: parsed.sendContinuityNote,
     generatedAt: parsed.generatedAt,
     currentRoot: typeof parsed.currentRoot === "string" ? parsed.currentRoot : null,
     currentRecord: isRootRecord(parsed.currentRecord) ? parsed.currentRecord : null,
@@ -1227,7 +1260,7 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
   if (
     parsed.stateVersion !== 1 ||
     parsed.contractVersion !== 1 ||
-    parsed.summaryVersion !== 18 ||
+    parsed.summaryVersion !== 19 ||
     parsed.supportedSendLaneVersion !== 1 ||
     parsed.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     parsed.supportedSendLaneStatus !== "supported" ||
@@ -1274,7 +1307,7 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
   return {
     stateVersion: 1,
     contractVersion: 1,
-    summaryVersion: 18,
+    summaryVersion: 19,
     supportedSendLaneVersion: 1,
     supportedSendLaneKind: "single-input-single-recipient-optional-change",
     supportedSendLaneStatus: "supported",

@@ -273,7 +273,7 @@ try {
     preRestartSends.parsed.records.length < 1 ||
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.stateVersion !== 1 ||
-    preRestartSummary.parsed?.summaryVersion !== 18 ||
+    preRestartSummary.parsed?.summaryVersion !== 19 ||
     preRestartSummary.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     preRestartSummary.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -357,7 +357,7 @@ try {
   if (
     !postRestartSummary.ok ||
     postRestartSummary.parsed?.stateVersion !== 1 ||
-    postRestartSummary.parsed?.summaryVersion !== 18 ||
+    postRestartSummary.parsed?.summaryVersion !== 19 ||
     postRestartSummary.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     postRestartSummary.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -473,7 +473,7 @@ try {
     stdio: "pipe",
   });
   if (
-    !operatorStatusOutput.includes("Summary version: 18") ||
+    !operatorStatusOutput.includes("Summary version: 19") ||
     !operatorStatusOutput.includes(
       "Supported send input-root policy: Latest registered root with linked registration proof",
     ) ||
@@ -488,6 +488,7 @@ try {
     !operatorStatusOutput.includes("Latest send proof action: send-proof") ||
     !operatorStatusOutput.includes("Latest send transition:") ||
     !operatorStatusOutput.includes("Latest send resulting root:") ||
+    !operatorStatusOutput.includes("Send continuity status: Awaiting registration") ||
     !operatorStatusOutput.includes("Proof/send link: linked") ||
     !operatorStatusOutput.includes("Proof/consume link: linked") ||
     !operatorStatusOutput.includes("Proof/release link: linked") ||
