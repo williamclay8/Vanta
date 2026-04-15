@@ -224,8 +224,8 @@ These commands cover:
 `private-core:operator-status` gives a quick readout of the current operator root, proof, send-proof, send-transition, consume, and release state when the operator server is running, including proof/send, proof/consume, proof/release, and root-registration proof linkage. It also reports the supported send-lane version and identity carried by the operator summary, plus the latest send resulting-root continuity status and the concrete registered root record behind that resulting root when one exists, so you can see whether the newest private-send root is still unregistered, current, stale, or already consumed/released downstream. The current private-core release lane now also carries explicit release authorization, root-policy, execution, atomicity, and persistence fields, so the operator summary says not just that a release was recorded, but that it was authorized by `proof-backed-consume` under the `latest-registered-root` policy, executed as an operator-recorded devnet release, atomically recorded with consume state in the local operator lane, and persisted in the current JSON store. The send lane still requires the current input root to stay linked to its registration proof before the operator will accept a transition, the resulting root remains explicitly `client-declared` until later registration proves continuity, and registered roots now carry explicit provenance as `shield-input`, `send-recipient-output`, or `send-change-output`.
 
 The operator contract now freezes the narrow zk-v1 contract surface explicitly:
-- `contractVersion = 2`
-- `summaryVersion = 21`
+- `contractVersion = 3`
+- `summaryVersion = 22`
 - `supportedUnshieldLaneVersion = 1`
 - `supportedUnshieldLaneKind = single-note-proof-backed-consume`
 - `supportedUnshieldLaneStatus = supported`
@@ -256,6 +256,7 @@ The operator contract now freezes the narrow zk-v1 contract surface explicitly:
 - `supportedReleaseAtomicityModel = operator-local-atomic-consume-and-release-record`
 - `supportedReleasePersistenceModel = json-store-v1`
 - `supportedOwnerAuthorizationMode = off-circuit-prechecked-v0-1`
+- `ownerAuthorizationDecision = accepted-v1-off-circuit-precheck`
 - `supportedNullifierKeyMode = note-secret-temporary-v0-1`
 - `supportedProvingHashLane = poseidon-bn254-proving-lane-v0`
 
@@ -276,6 +277,7 @@ The live operator summary layers dynamic verifier-side state on top of that cont
 - `supportedReleaseExecutionModel = operator-recorded-devnet-release`
 - `supportedReleaseAtomicityModel = operator-local-atomic-consume-and-release-record`
 - `supportedReleasePersistenceModel = json-store-v1`
+- `ownerAuthorizationDecision = accepted-v1-off-circuit-precheck`
 
 ---
 

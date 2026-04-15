@@ -116,6 +116,14 @@ try {
     humanizeReleasePersistenceModel(summary.supportedReleasePersistenceModel),
   );
   printLine("Owner authorization mode", humanizeOwnerAuthorizationMode(summary.ownerAuthorizationMode));
+  printLine(
+    "Owner authorization decision",
+    humanizeOwnerAuthorizationDecision(summary.ownerAuthorizationDecision),
+  );
+  printLine(
+    "Owner authorization decision note",
+    summary.ownerAuthorizationDecisionNote ?? "Unavailable",
+  );
   printLine("Nullifier key mode", humanizeNullifierKeyMode(summary.nullifierKeyMode));
   printLine("Proving hash lane", summary.provingHashLane ?? "Unavailable");
   printLine("Current root", abbreviate(summary.currentRoot));
@@ -559,6 +567,15 @@ function humanizeReleasePersistenceModel(value) {
   switch (value) {
     case "json-store-v1":
       return "JSON store v1";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeOwnerAuthorizationDecision(value) {
+  switch (value) {
+    case "accepted-v1-off-circuit-precheck":
+      return "Accepted v1 off-circuit precheck";
     default:
       return "Unavailable";
   }

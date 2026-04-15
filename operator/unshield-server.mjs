@@ -180,6 +180,9 @@ const PRIVATE_CORE_RELEASE_EXECUTION_MODEL = "operator-recorded-devnet-release";
 const PRIVATE_CORE_RELEASE_ATOMICITY_MODEL = "operator-local-atomic-consume-and-release-record";
 const PRIVATE_CORE_RELEASE_PERSISTENCE_MODEL = "json-store-v1";
 const PRIVATE_CORE_OWNER_AUTH_MODE = "x25519-secret-prechecked-off-circuit";
+const PRIVATE_CORE_OWNER_AUTH_DECISION = "accepted-v1-off-circuit-precheck";
+const PRIVATE_CORE_OWNER_AUTH_DECISION_NOTE =
+  "Current narrow zk v1 explicitly accepts off-circuit prechecked X25519 owner authorization; in-circuit owner auth is deferred.";
 const PRIVATE_CORE_NULLIFIER_KEY_MODE = "note-secret-as-nullifier-key-v0";
 const PRIVATE_CORE_PROVING_HASH_LANE = "poseidon-bn254-proving-lane-v0";
 
@@ -1646,8 +1649,8 @@ function buildPrivateCoreSummaryState() {
 function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
-    contractVersion: 2,
-    summaryVersion: 21,
+    contractVersion: 3,
+    summaryVersion: 22,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
@@ -1687,6 +1690,8 @@ function buildPrivateCoreContractState() {
     supportedReleaseAtomicityModel: PRIVATE_CORE_RELEASE_ATOMICITY_MODEL,
     supportedReleasePersistenceModel: PRIVATE_CORE_RELEASE_PERSISTENCE_MODEL,
     ownerAuthorizationMode: PRIVATE_CORE_OWNER_AUTH_MODE,
+    ownerAuthorizationDecision: PRIVATE_CORE_OWNER_AUTH_DECISION,
+    ownerAuthorizationDecisionNote: PRIVATE_CORE_OWNER_AUTH_DECISION_NOTE,
     nullifierKeyMode: PRIVATE_CORE_NULLIFIER_KEY_MODE,
     provingHashLane: PRIVATE_CORE_PROVING_HASH_LANE,
   };
@@ -1732,6 +1737,8 @@ function summarizePrivateCoreContractMirrorStatus(args) {
     "supportedReleaseAtomicityModel",
     "supportedReleasePersistenceModel",
     "ownerAuthorizationMode",
+    "ownerAuthorizationDecision",
+    "ownerAuthorizationDecisionNote",
     "nullifierKeyMode",
     "provingHashLane",
   ];

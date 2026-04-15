@@ -73,6 +73,8 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSupportedReleaseAtomicityModel?: string | null;
   operatorSupportedReleasePersistenceModel?: string | null;
   operatorOwnerAuthorizationMode?: string | null;
+  operatorOwnerAuthorizationDecision?: string | null;
+  operatorOwnerAuthorizationDecisionNote?: string | null;
   operatorNullifierKeyMode?: string | null;
   operatorProvingHashLane?: string | null;
   operatorCurrentRootLinkedProof?: VantaPrivateCoreOperatorProofRecord | null;
@@ -263,6 +265,8 @@ export function VantaPrivateCoreStatePanel({
   operatorSupportedReleaseAtomicityModel = null,
   operatorSupportedReleasePersistenceModel = null,
   operatorOwnerAuthorizationMode = null,
+  operatorOwnerAuthorizationDecision = null,
+  operatorOwnerAuthorizationDecisionNote = null,
   operatorNullifierKeyMode = null,
   operatorProvingHashLane = null,
   operatorCurrentRootLinkedProof = null,
@@ -782,6 +786,18 @@ export function VantaPrivateCoreStatePanel({
                   ? "X25519 secret prechecked off-circuit"
                   : "Unavailable"}
               </strong>
+            </div>
+            <div className="review-row">
+              <span>Owner auth decision</span>
+              <strong>
+                {operatorOwnerAuthorizationDecision === "accepted-v1-off-circuit-precheck"
+                  ? "Accepted v1 off-circuit precheck"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Owner auth decision note</span>
+              <strong>{operatorOwnerAuthorizationDecisionNote ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Operator nullifier key</span>

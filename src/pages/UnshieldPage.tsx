@@ -154,6 +154,8 @@ export function UnshieldPage() {
     privateCoreOperatorSupportedReleaseAtomicityModel,
     privateCoreOperatorSupportedReleasePersistenceModel,
     privateCoreOperatorOwnerAuthorizationMode,
+    privateCoreOperatorOwnerAuthorizationDecision,
+    privateCoreOperatorOwnerAuthorizationDecisionNote,
     privateCoreOperatorNullifierKeyMode,
     privateCoreOperatorProvingHashLane,
     privateCoreOperatorCurrentRootLinkedProof,
@@ -1008,6 +1010,8 @@ export function UnshieldPage() {
             privateCoreOperatorSupportedReleasePersistenceModel
           }
           operatorOwnerAuthorizationMode={privateCoreOperatorOwnerAuthorizationMode}
+          operatorOwnerAuthorizationDecision={privateCoreOperatorOwnerAuthorizationDecision}
+          operatorOwnerAuthorizationDecisionNote={privateCoreOperatorOwnerAuthorizationDecisionNote}
           operatorNullifierKeyMode={privateCoreOperatorNullifierKeyMode}
           operatorProvingHashLane={privateCoreOperatorProvingHashLane}
           operatorCurrentRootLinkedProof={privateCoreOperatorCurrentRootLinkedProof}

@@ -230,6 +230,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorSupportedReleaseExecutionModel,
     privateCoreOperatorSupportedReleaseAtomicityModel,
     privateCoreOperatorSupportedReleasePersistenceModel,
+    privateCoreOperatorOwnerAuthorizationDecision,
+    privateCoreOperatorOwnerAuthorizationDecisionNote,
     privateCoreOperatorSummaryUpdatedAt,
     privateCoreOwner,
     privateCoreRecentShield,
@@ -1768,6 +1770,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           privateCoreOperatorSupportedReleasePersistenceModel
         }
         operatorOwnerAuthorizationMode={privateCoreOperatorOwnerAuthorizationMode}
+        operatorOwnerAuthorizationDecision={privateCoreOperatorOwnerAuthorizationDecision}
+        operatorOwnerAuthorizationDecisionNote={privateCoreOperatorOwnerAuthorizationDecisionNote}
         operatorNullifierKeyMode={privateCoreOperatorNullifierKeyMode}
         operatorProvingHashLane={privateCoreOperatorProvingHashLane}
         operatorCurrentRootLinkedProof={privateCoreOperatorCurrentRootLinkedProof}

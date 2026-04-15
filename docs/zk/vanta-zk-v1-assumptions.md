@@ -29,6 +29,10 @@ These assumptions apply to the current Vanta path:
 
 For the current narrow `v1`, owner authorization may remain prevalidated off-circuit.
 
+The repo now freezes that as an explicit operator-contract assumption:
+- `ownerAuthorizationMode = x25519-secret-prechecked-off-circuit`
+- `ownerAuthorizationDecision = accepted-v1-off-circuit-precheck`
+
 That means:
 - the app or operator path may recompute the owner public key from the supplied secret material
 - the first Noir unshield circuit does not need to prove X25519 ownership in-circuit

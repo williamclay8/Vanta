@@ -108,6 +108,14 @@ try {
     contract.supportedReleasePersistenceModel ?? "Unavailable",
   );
   printLine("Owner authorization mode", contract.ownerAuthorizationMode ?? "Unavailable");
+  printLine(
+    "Owner authorization decision",
+    contract.ownerAuthorizationDecision ?? "Unavailable",
+  );
+  printLine(
+    "Owner authorization decision note",
+    contract.ownerAuthorizationDecisionNote ?? "Unavailable",
+  );
   printLine("Nullifier key mode", contract.nullifierKeyMode ?? "Unavailable");
   printLine("Proving hash lane", contract.provingHashLane ?? "Unavailable");
 } catch (error) {

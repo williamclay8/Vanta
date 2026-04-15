@@ -102,8 +102,8 @@ try {
   if (
     !contractState.ok ||
     contractState.parsed?.stateVersion !== 1 ||
-    contractState.parsed?.contractVersion !== 2 ||
-    contractState.parsed?.summaryVersion !== 21 ||
+    contractState.parsed?.contractVersion !== 3 ||
+    contractState.parsed?.summaryVersion !== 22 ||
     contractState.parsed?.supportedSendLaneVersion !== 1 ||
     contractState.parsed?.supportedUnshieldLaneVersion !== 1 ||
     contractState.parsed?.supportedReleaseLaneVersion !== 1 ||
@@ -127,7 +127,9 @@ try {
     contractState.parsed?.supportedReleaseExecutionModel !== "operator-recorded-devnet-release" ||
     contractState.parsed?.supportedReleaseAtomicityModel !==
       "operator-local-atomic-consume-and-release-record" ||
-    contractState.parsed?.supportedReleasePersistenceModel !== "json-store-v1"
+    contractState.parsed?.supportedReleasePersistenceModel !== "json-store-v1" ||
+    contractState.parsed?.ownerAuthorizationDecision !== "accepted-v1-off-circuit-precheck" ||
+    typeof contractState.parsed?.ownerAuthorizationDecisionNote !== "string"
   ) {
     throw new Error(contractState.text || "operator contract endpoint returned invalid data");
   }
@@ -173,6 +175,8 @@ try {
     "supportedReleaseAtomicityModel",
     "supportedReleasePersistenceModel",
     "ownerAuthorizationMode",
+    "ownerAuthorizationDecision",
+    "ownerAuthorizationDecisionNote",
     "nullifierKeyMode",
     "provingHashLane",
   ];
@@ -214,8 +218,8 @@ try {
   });
   if (
     !contractOutput.includes("Contract state version: 1") ||
-    !contractOutput.includes("Contract version: 2") ||
-    !contractOutput.includes("Summary compatibility: 21") ||
+    !contractOutput.includes("Contract version: 3") ||
+    !contractOutput.includes("Summary compatibility: 22") ||
     !contractOutput.includes("Supported note schema: NoteV0 / v0") ||
     !contractOutput.includes(
       "Supported root provenance: Shield input / send recipient output / send change output",
@@ -231,6 +235,9 @@ try {
       "Supported release atomicity: operator-local-atomic-consume-and-release-record",
     ) ||
     !contractOutput.includes("Supported release persistence: json-store-v1") ||
+    !contractOutput.includes(
+      "Owner authorization decision: accepted-v1-off-circuit-precheck",
+    ) ||
     !contractOutput.includes(
       "Supported send output registration: Resulting root must register as recipient or change output",
     ) ||

@@ -150,6 +150,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorSupportedReleaseAtomicityModel: string | null;
   privateCoreOperatorSupportedReleasePersistenceModel: string | null;
   privateCoreOperatorOwnerAuthorizationMode: string | null;
+  privateCoreOperatorOwnerAuthorizationDecision: string | null;
+  privateCoreOperatorOwnerAuthorizationDecisionNote: string | null;
   privateCoreOperatorNullifierKeyMode: string | null;
   privateCoreOperatorProvingHashLane: string | null;
   privateCoreOperatorProofConsumeLinkStatus: string | null;
@@ -520,6 +522,14 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   ] = useState<string | null>(null);
   const [privateCoreOperatorOwnerAuthorizationMode, setPrivateCoreOperatorOwnerAuthorizationMode] =
     useState<string | null>(null);
+  const [
+    privateCoreOperatorOwnerAuthorizationDecision,
+    setPrivateCoreOperatorOwnerAuthorizationDecision,
+  ] = useState<string | null>(null);
+  const [
+    privateCoreOperatorOwnerAuthorizationDecisionNote,
+    setPrivateCoreOperatorOwnerAuthorizationDecisionNote,
+  ] = useState<string | null>(null);
   const [privateCoreOperatorNullifierKeyMode, setPrivateCoreOperatorNullifierKeyMode] =
     useState<string | null>(null);
   const [privateCoreOperatorProvingHashLane, setPrivateCoreOperatorProvingHashLane] =
@@ -609,6 +619,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSupportedReleaseAtomicityModel,
       setPrivateCoreOperatorSupportedReleasePersistenceModel,
       setPrivateCoreOperatorOwnerAuthorizationMode,
+      setPrivateCoreOperatorOwnerAuthorizationDecision,
+      setPrivateCoreOperatorOwnerAuthorizationDecisionNote,
       setPrivateCoreOperatorNullifierKeyMode,
       setPrivateCoreOperatorProvingHashLane,
     });
@@ -1678,6 +1690,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedReleaseAtomicityModel,
       privateCoreOperatorSupportedReleasePersistenceModel,
       privateCoreOperatorOwnerAuthorizationMode,
+      privateCoreOperatorOwnerAuthorizationDecision,
+      privateCoreOperatorOwnerAuthorizationDecisionNote,
       privateCoreOperatorNullifierKeyMode,
       privateCoreOperatorProvingHashLane,
       privateCoreOperatorProofConsumeLinkStatus,
@@ -1808,6 +1822,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedReleaseAtomicityModel,
       privateCoreOperatorSupportedReleasePersistenceModel,
       privateCoreOperatorOwnerAuthorizationMode,
+      privateCoreOperatorOwnerAuthorizationDecision,
+      privateCoreOperatorOwnerAuthorizationDecisionNote,
       privateCoreOperatorNullifierKeyMode,
       privateCoreOperatorProvingHashLane,
       privateCoreOperatorProofConsumeLinkStatus,
@@ -2406,6 +2422,8 @@ function applyPrivateCoreOperatorContractState(args: {
   setPrivateCoreOperatorSupportedReleaseAtomicityModel: (value: string | null) => void;
   setPrivateCoreOperatorSupportedReleasePersistenceModel: (value: string | null) => void;
   setPrivateCoreOperatorOwnerAuthorizationMode: (value: string | null) => void;
+  setPrivateCoreOperatorOwnerAuthorizationDecision: (value: string | null) => void;
+  setPrivateCoreOperatorOwnerAuthorizationDecisionNote: (value: string | null) => void;
   setPrivateCoreOperatorNullifierKeyMode: (value: string | null) => void;
   setPrivateCoreOperatorProvingHashLane: (value: string | null) => void;
 }) {
@@ -2481,6 +2499,12 @@ function applyPrivateCoreOperatorContractState(args: {
     args.contractState.supportedReleasePersistenceModel,
   );
   args.setPrivateCoreOperatorOwnerAuthorizationMode(args.contractState.ownerAuthorizationMode);
+  args.setPrivateCoreOperatorOwnerAuthorizationDecision(
+    args.contractState.ownerAuthorizationDecision,
+  );
+  args.setPrivateCoreOperatorOwnerAuthorizationDecisionNote(
+    args.contractState.ownerAuthorizationDecisionNote,
+  );
   args.setPrivateCoreOperatorNullifierKeyMode(args.contractState.nullifierKeyMode);
   args.setPrivateCoreOperatorProvingHashLane(args.contractState.provingHashLane);
 }

@@ -286,6 +286,8 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedReleaseAtomicityModel: "operator-local-atomic-consume-and-release-record";
   supportedReleasePersistenceModel: "json-store-v1";
   ownerAuthorizationMode: "x25519-secret-prechecked-off-circuit";
+  ownerAuthorizationDecision: "accepted-v1-off-circuit-precheck";
+  ownerAuthorizationDecisionNote: string;
   nullifierKeyMode: "note-secret-as-nullifier-key-v0";
   provingHashLane: "poseidon-bn254-proving-lane-v0";
   generatedAt: number;
@@ -360,6 +362,8 @@ export type VantaPrivateCoreOperatorContractStateResponse = {
   supportedReleaseAtomicityModel: "operator-local-atomic-consume-and-release-record";
   supportedReleasePersistenceModel: "json-store-v1";
   ownerAuthorizationMode: "x25519-secret-prechecked-off-circuit";
+  ownerAuthorizationDecision: "accepted-v1-off-circuit-precheck";
+  ownerAuthorizationDecisionNote: string;
   nullifierKeyMode: "note-secret-as-nullifier-key-v0";
   provingHashLane: "poseidon-bn254-proving-lane-v0";
 };
@@ -1003,6 +1007,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedReleaseAtomicityModel?: unknown;
     supportedReleasePersistenceModel?: unknown;
     ownerAuthorizationMode?: unknown;
+    ownerAuthorizationDecision?: unknown;
+    ownerAuthorizationDecisionNote?: unknown;
     nullifierKeyMode?: unknown;
     provingHashLane?: unknown;
     generatedAt?: unknown;
@@ -1035,8 +1041,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 2 ||
-    parsed.summaryVersion !== 21 ||
+    parsed.contractVersion !== 3 ||
+    parsed.summaryVersion !== 22 ||
     !isContractMirrorStatus(parsed.contractMirrorStatus) ||
     typeof parsed.contractMirrorNote !== "string" ||
     !isBoundaryStatus(parsed.boundaryStatus) ||
@@ -1100,6 +1106,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     parsed.supportedReleaseAtomicityModel !== "operator-local-atomic-consume-and-release-record" ||
     parsed.supportedReleasePersistenceModel !== "json-store-v1" ||
     parsed.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
+    parsed.ownerAuthorizationDecision !== "accepted-v1-off-circuit-precheck" ||
+    typeof parsed.ownerAuthorizationDecisionNote !== "string" ||
     parsed.nullifierKeyMode !== "note-secret-as-nullifier-key-v0" ||
     parsed.provingHashLane !== "poseidon-bn254-proving-lane-v0" ||
     typeof parsed.generatedAt !== "number" ||
@@ -1154,8 +1162,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   return {
     stateVersion: 1,
-    contractVersion: 2,
-    summaryVersion: 21,
+    contractVersion: 3,
+    summaryVersion: 22,
     contractMirrorStatus: parsed.contractMirrorStatus,
     contractMirrorNote: parsed.contractMirrorNote,
     boundaryStatus: parsed.boundaryStatus,
@@ -1202,6 +1210,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedReleaseAtomicityModel: "operator-local-atomic-consume-and-release-record",
     supportedReleasePersistenceModel: "json-store-v1",
     ownerAuthorizationMode: "x25519-secret-prechecked-off-circuit",
+    ownerAuthorizationDecision: "accepted-v1-off-circuit-precheck",
+    ownerAuthorizationDecisionNote: parsed.ownerAuthorizationDecisionNote,
     nullifierKeyMode: "note-secret-as-nullifier-key-v0",
     provingHashLane: "poseidon-bn254-proving-lane-v0",
     currentRootLinkedProof: isProofRecord(parsed.currentRootLinkedProof)
@@ -1306,14 +1316,16 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedReleaseAtomicityModel?: unknown;
     supportedReleasePersistenceModel?: unknown;
     ownerAuthorizationMode?: unknown;
+    ownerAuthorizationDecision?: unknown;
+    ownerAuthorizationDecisionNote?: unknown;
     nullifierKeyMode?: unknown;
     provingHashLane?: unknown;
   };
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 2 ||
-    parsed.summaryVersion !== 21 ||
+    parsed.contractVersion !== 3 ||
+    parsed.summaryVersion !== 22 ||
     parsed.supportedSendLaneVersion !== 1 ||
     parsed.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     parsed.supportedSendLaneStatus !== "supported" ||
@@ -1354,6 +1366,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     parsed.supportedReleaseAtomicityModel !== "operator-local-atomic-consume-and-release-record" ||
     parsed.supportedReleasePersistenceModel !== "json-store-v1" ||
     parsed.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
+    parsed.ownerAuthorizationDecision !== "accepted-v1-off-circuit-precheck" ||
+    typeof parsed.ownerAuthorizationDecisionNote !== "string" ||
     parsed.nullifierKeyMode !== "note-secret-as-nullifier-key-v0" ||
     parsed.provingHashLane !== "poseidon-bn254-proving-lane-v0"
   ) {
@@ -1362,8 +1376,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
 
   return {
     stateVersion: 1,
-    contractVersion: 2,
-    summaryVersion: 21,
+    contractVersion: 3,
+    summaryVersion: 22,
     supportedSendLaneVersion: 1,
     supportedSendLaneKind: "single-input-single-recipient-optional-change",
     supportedSendLaneStatus: "supported",
@@ -1404,6 +1418,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedReleaseAtomicityModel: "operator-local-atomic-consume-and-release-record",
     supportedReleasePersistenceModel: "json-store-v1",
     ownerAuthorizationMode: "x25519-secret-prechecked-off-circuit",
+    ownerAuthorizationDecision: "accepted-v1-off-circuit-precheck",
+    ownerAuthorizationDecisionNote: parsed.ownerAuthorizationDecisionNote,
     nullifierKeyMode: "note-secret-as-nullifier-key-v0",
     provingHashLane: "poseidon-bn254-proving-lane-v0",
   };

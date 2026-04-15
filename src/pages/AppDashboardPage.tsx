@@ -91,6 +91,8 @@ export function AppDashboardPage() {
     privateCoreOperatorSupportedReleaseAtomicityModel,
     privateCoreOperatorSupportedReleasePersistenceModel,
     privateCoreOperatorOwnerAuthorizationMode,
+    privateCoreOperatorOwnerAuthorizationDecision,
+    privateCoreOperatorOwnerAuthorizationDecisionNote,
     privateCoreOperatorNullifierKeyMode,
     privateCoreOperatorProvingHashLane,
     privateCoreOperatorCurrentRootLinkedProof,
@@ -336,6 +338,8 @@ export function AppDashboardPage() {
             privateCoreOperatorSupportedReleasePersistenceModel
           }
           operatorOwnerAuthorizationMode={privateCoreOperatorOwnerAuthorizationMode}
+          operatorOwnerAuthorizationDecision={privateCoreOperatorOwnerAuthorizationDecision}
+          operatorOwnerAuthorizationDecisionNote={privateCoreOperatorOwnerAuthorizationDecisionNote}
           operatorNullifierKeyMode={privateCoreOperatorNullifierKeyMode}
           operatorProvingHashLane={privateCoreOperatorProvingHashLane}
           operatorCurrentRootLinkedProof={privateCoreOperatorCurrentRootLinkedProof}

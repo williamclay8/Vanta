@@ -105,6 +105,10 @@ That can be acceptable for a narrow `v1`, but it needs to be frozen clearly:
 - either keep off-circuit owner auth as an explicit `v1` assumption
 - or move owner auth in-circuit before claiming `zk v1`
 
+The repo now freezes the current narrow choice more explicitly in the operator contract:
+- `ownerAuthorizationMode = x25519-secret-prechecked-off-circuit`
+- `ownerAuthorizationDecision = accepted-v1-off-circuit-precheck`
+
 What should not happen is leaving this ambiguous.
 
 ### 3. Reduce the remaining source/proving split

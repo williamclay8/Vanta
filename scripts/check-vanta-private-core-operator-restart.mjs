@@ -273,7 +273,7 @@ try {
     preRestartSends.parsed.records.length < 1 ||
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.stateVersion !== 1 ||
-    preRestartSummary.parsed?.summaryVersion !== 21 ||
+    preRestartSummary.parsed?.summaryVersion !== 22 ||
     preRestartSummary.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     preRestartSummary.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -358,7 +358,7 @@ try {
   if (
     !postRestartSummary.ok ||
     postRestartSummary.parsed?.stateVersion !== 1 ||
-    postRestartSummary.parsed?.summaryVersion !== 21 ||
+    postRestartSummary.parsed?.summaryVersion !== 22 ||
     postRestartSummary.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     postRestartSummary.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -475,19 +475,22 @@ try {
     stdio: "pipe",
   });
   if (
-    !operatorStatusOutput.includes("Summary version: 21") ||
+    !operatorStatusOutput.includes("Summary version: 22") ||
     !operatorStatusOutput.includes(
       "Supported send input-root policy: Latest registered root with linked registration proof",
     ) ||
     !operatorStatusOutput.includes(
       "Supported send output registration: Resulting root must register as recipient or change output",
     ) ||
-    !operatorStatusOutput.includes("Mirrored contract version: 2") ||
+    !operatorStatusOutput.includes("Mirrored contract version: 3") ||
     !operatorStatusOutput.includes("Supported release execution: Operator-recorded devnet release") ||
     !operatorStatusOutput.includes(
       "Supported release atomicity: Operator-local atomic consume + release record",
     ) ||
     !operatorStatusOutput.includes("Supported release persistence: JSON store v1") ||
+    !operatorStatusOutput.includes(
+      "Owner authorization decision: Accepted v1 off-circuit precheck",
+    ) ||
     !operatorStatusOutput.includes("Supported send lane version: 1") ||
     !operatorStatusOutput.includes("Supported unshield lane version: 1") ||
     !operatorStatusOutput.includes("Supported proof system: Noir ACIR / UltraHonk / bb.js") ||
