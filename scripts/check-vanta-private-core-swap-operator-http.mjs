@@ -150,6 +150,7 @@ function startServer() {
       VANTA_PRIVATE_CORE_SEND_PROOF_STORE_PATH: join(tempRoot, "send-proofs.json"),
       VANTA_PRIVATE_CORE_SWAP_PROOF_STORE_PATH: join(tempRoot, "swap-proofs.json"),
       VANTA_PRIVATE_CORE_SEND_STORE_PATH: join(tempRoot, "sends.json"),
+      VANTA_PRIVATE_CORE_SWAP_STORE_PATH: join(tempRoot, "private-core-swaps.json"),
       VANTA_PRIVATE_CORE_RELEASE_STORE_PATH: join(tempRoot, "private-core-releases.json"),
       VANTA_PRIVATE_CORE_ROOT_STORE_PATH: join(tempRoot, "roots.json"),
       VANTA_RELEASE_RECORD_STORE_PATH: join(tempRoot, "releases.json"),
@@ -254,10 +255,16 @@ try {
     typeof summaryState.parsed?.summaryVersion !== "number" ||
     summaryState.parsed?.proofRecordCount !== 0 ||
     summaryState.parsed?.sendProofRecordCount !== 0 ||
+    summaryState.parsed?.swapProofRecordCount !== 1 ||
     summaryState.parsed?.sendRecordCount !== 0 ||
+    summaryState.parsed?.swapRecordCount !== 0 ||
     summaryState.parsed?.consumeRecordCount !== 0 ||
     summaryState.parsed?.releaseRecordCount !== 0 ||
     summaryState.parsed?.rootRecordCount !== 0 ||
+    summaryState.parsed?.latestSwapProof?.proofId !== swapProofState.parsed?.latestProof?.proofId ||
+    summaryState.parsed?.latestSwapLinkedProof !== null ||
+    summaryState.parsed?.latestSwap !== null ||
+    summaryState.parsed?.proofSwapLinkStatus !== "unavailable" ||
     summaryState.parsed?.boundaryStatus !== "awaiting-current-root"
   ) {
     throw new Error(summaryState.text || "operator summary drifted after swap proof execution");

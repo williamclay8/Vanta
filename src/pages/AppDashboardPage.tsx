@@ -46,6 +46,9 @@ export function AppDashboardPage() {
     privateCoreOperatorLatestSendProof,
     privateCoreOperatorLatestSendLinkedProof,
     privateCoreOperatorLatestSend,
+    privateCoreOperatorLatestSwapProof,
+    privateCoreOperatorLatestSwapLinkedProof,
+    privateCoreOperatorLatestSwap,
     privateCoreOperatorBoundaryPrimaryNote,
     privateCoreOperatorBoundaryStatusLabel,
     privateCoreOperatorContractMirrorPrimaryNote,
@@ -125,6 +128,7 @@ export function AppDashboardPage() {
     privateCoreOperatorProofError,
     privateCoreOperatorProofs,
     privateCoreOperatorProofSendLinkStatus,
+    privateCoreOperatorProofSwapLinkStatus,
     privateCoreOperatorProofReleaseLinkStatus,
     privateCoreOperatorReleaseError,
     privateCoreOperatorReleases,
@@ -139,6 +143,8 @@ export function AppDashboardPage() {
     privateCoreOperatorSends,
     privateCoreOperatorSendProofError,
     privateCoreOperatorSendProofs,
+    privateCoreOperatorSwaps,
+    privateCoreOperatorSwapProofs,
     privateCoreOperatorSummaryUpdatedAt,
     privateCoreRecentShield,
     privateCoreUnshieldState,
@@ -292,6 +298,9 @@ export function AppDashboardPage() {
           operatorLatestSend={privateCoreOperatorLatestSend}
           operatorLatestSendLinkedProof={privateCoreOperatorLatestSendLinkedProof}
           operatorLatestSendProof={privateCoreOperatorLatestSendProof}
+          operatorLatestSwap={privateCoreOperatorLatestSwap}
+          operatorLatestSwapLinkedProof={privateCoreOperatorLatestSwapLinkedProof}
+          operatorLatestSwapProof={privateCoreOperatorLatestSwapProof}
           operatorBoundaryPrimaryNote={privateCoreOperatorBoundaryPrimaryNote}
           operatorBoundaryStatusLabel={privateCoreOperatorBoundaryStatusLabel}
           operatorContractMirrorPrimaryNote={privateCoreOperatorContractMirrorPrimaryNote}
@@ -395,9 +404,10 @@ export function AppDashboardPage() {
           operatorSendResultingRootStatusLabel={privateCoreOperatorSendResultingRootStatusLabel}
           operatorProofConsumeLinkStatus={privateCoreOperatorProofConsumeLinkStatus}
           operatorProofError={privateCoreOperatorProofError}
-          operatorProofs={privateCoreOperatorProofs}
-          operatorProofSendLinkStatus={privateCoreOperatorProofSendLinkStatus}
-          operatorProofReleaseLinkStatus={privateCoreOperatorProofReleaseLinkStatus}
+              operatorProofs={privateCoreOperatorProofs}
+              operatorProofSendLinkStatus={privateCoreOperatorProofSendLinkStatus}
+              operatorProofSwapLinkStatus={privateCoreOperatorProofSwapLinkStatus}
+              operatorProofReleaseLinkStatus={privateCoreOperatorProofReleaseLinkStatus}
               operatorReleaseError={privateCoreOperatorReleaseError}
               operatorReleases={privateCoreOperatorReleases}
               operatorRootCurrentnessLabel={privateCoreOperatorRootCurrentnessLabel}
@@ -411,6 +421,8 @@ export function AppDashboardPage() {
               operatorSends={privateCoreOperatorSends}
               operatorSendProofError={privateCoreOperatorSendProofError}
               operatorSendProofs={privateCoreOperatorSendProofs}
+              operatorSwaps={privateCoreOperatorSwaps}
+              operatorSwapProofs={privateCoreOperatorSwapProofs}
               operatorSummaryUpdatedAt={privateCoreOperatorSummaryUpdatedAt}
               shieldState={privateCoreRecentShield}
               title="Vanta Private Core private balance"

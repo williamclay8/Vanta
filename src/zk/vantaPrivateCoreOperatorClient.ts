@@ -385,9 +385,14 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   proofRecords: VantaPrivateCoreOperatorProofRecord[];
   latestSendProof: VantaPrivateCoreOperatorSendProofRecord | null;
   sendProofRecords: VantaPrivateCoreOperatorSendProofRecord[];
+  latestSwapProof: VantaPrivateCoreOperatorSwapProofRecord | null;
+  swapProofRecords: VantaPrivateCoreOperatorSwapProofRecord[];
   latestSendLinkedProof: VantaPrivateCoreOperatorSendProofRecord | null;
+  latestSwapLinkedProof: VantaPrivateCoreOperatorSwapProofRecord | null;
   latestSend: VantaPrivateCoreOperatorSendRecord | null;
   sendRecords: VantaPrivateCoreOperatorSendRecord[];
+  latestSwap: VantaPrivateCoreOperatorSwapRecord | null;
+  swapRecords: VantaPrivateCoreOperatorSwapRecord[];
   latestConsume: VantaPrivateCoreOperatorConsumeRecord | null;
   consumeRecords: VantaPrivateCoreOperatorConsumeRecord[];
   latestConsumeProof: VantaPrivateCoreOperatorProofRecord | null;
@@ -397,10 +402,13 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   rootRecordCount: number;
   proofRecordCount: number;
   sendProofRecordCount: number;
+  swapProofRecordCount: number;
   sendRecordCount: number;
+  swapRecordCount: number;
   consumeRecordCount: number;
   releaseRecordCount: number;
   proofSendLinkStatus: "linked" | "mismatch" | "unavailable";
+  proofSwapLinkStatus: "linked" | "mismatch" | "unavailable";
   proofConsumeLinkStatus: "linked" | "mismatch" | "unavailable";
   proofReleaseLinkStatus: "linked" | "mismatch" | "unavailable";
 };
@@ -1346,9 +1354,14 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     proofRecords?: unknown;
     latestSendProof?: unknown;
     sendProofRecords?: unknown;
+    latestSwapProof?: unknown;
+    swapProofRecords?: unknown;
     latestSendLinkedProof?: unknown;
+    latestSwapLinkedProof?: unknown;
     latestSend?: unknown;
     sendRecords?: unknown;
+    latestSwap?: unknown;
+    swapRecords?: unknown;
     latestConsume?: unknown;
     consumeRecords?: unknown;
     latestConsumeProof?: unknown;
@@ -1358,10 +1371,13 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     rootRecordCount?: unknown;
     proofRecordCount?: unknown;
     sendProofRecordCount?: unknown;
+    swapProofRecordCount?: unknown;
     sendRecordCount?: unknown;
+    swapRecordCount?: unknown;
     consumeRecordCount?: unknown;
     releaseRecordCount?: unknown;
     proofSendLinkStatus?: unknown;
+    proofSwapLinkStatus?: unknown;
     proofConsumeLinkStatus?: unknown;
     proofReleaseLinkStatus?: unknown;
   };
@@ -1472,13 +1488,24 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
       parsed.latestSendProof !== undefined &&
       !isSendProofRecord(parsed.latestSendProof)) ||
     !Array.isArray(parsed.sendProofRecords) ||
+    (parsed.latestSwapProof !== null &&
+      parsed.latestSwapProof !== undefined &&
+      !isSwapProofRecord(parsed.latestSwapProof)) ||
+    !Array.isArray(parsed.swapProofRecords) ||
     (parsed.latestSendLinkedProof !== null &&
       parsed.latestSendLinkedProof !== undefined &&
       !isSendProofRecord(parsed.latestSendLinkedProof)) ||
+    (parsed.latestSwapLinkedProof !== null &&
+      parsed.latestSwapLinkedProof !== undefined &&
+      !isSwapProofRecord(parsed.latestSwapLinkedProof)) ||
     (parsed.latestSend !== null &&
       parsed.latestSend !== undefined &&
       !isSendRecord(parsed.latestSend)) ||
     !Array.isArray(parsed.sendRecords) ||
+    (parsed.latestSwap !== null &&
+      parsed.latestSwap !== undefined &&
+      !isSwapRecord(parsed.latestSwap)) ||
+    !Array.isArray(parsed.swapRecords) ||
     (parsed.latestConsume !== null &&
       parsed.latestConsume !== undefined &&
       !isConsumeRecord(parsed.latestConsume)) ||
@@ -1496,10 +1523,13 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     typeof parsed.rootRecordCount !== "number" ||
     typeof parsed.proofRecordCount !== "number" ||
     typeof parsed.sendProofRecordCount !== "number" ||
+    typeof parsed.swapProofRecordCount !== "number" ||
     typeof parsed.sendRecordCount !== "number" ||
+    typeof parsed.swapRecordCount !== "number" ||
     typeof parsed.consumeRecordCount !== "number" ||
     typeof parsed.releaseRecordCount !== "number" ||
     !isLinkStatus(parsed.proofSendLinkStatus) ||
+    !isLinkStatus(parsed.proofSwapLinkStatus) ||
     !isLinkStatus(parsed.proofConsumeLinkStatus) ||
     !isLinkStatus(parsed.proofReleaseLinkStatus)
   ) {
@@ -1604,11 +1634,18 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     proofRecords: parsed.proofRecords.filter(isProofRecord),
     latestSendProof: isSendProofRecord(parsed.latestSendProof) ? parsed.latestSendProof : null,
     sendProofRecords: parsed.sendProofRecords.filter(isSendProofRecord),
+    latestSwapProof: isSwapProofRecord(parsed.latestSwapProof) ? parsed.latestSwapProof : null,
+    swapProofRecords: parsed.swapProofRecords.filter(isSwapProofRecord),
     latestSendLinkedProof: isSendProofRecord(parsed.latestSendLinkedProof)
       ? parsed.latestSendLinkedProof
       : null,
+    latestSwapLinkedProof: isSwapProofRecord(parsed.latestSwapLinkedProof)
+      ? parsed.latestSwapLinkedProof
+      : null,
     latestSend: isSendRecord(parsed.latestSend) ? parsed.latestSend : null,
     sendRecords: parsed.sendRecords.filter(isSendRecord),
+    latestSwap: isSwapRecord(parsed.latestSwap) ? parsed.latestSwap : null,
+    swapRecords: parsed.swapRecords.filter(isSwapRecord),
     latestConsume: isConsumeRecord(parsed.latestConsume) ? parsed.latestConsume : null,
     consumeRecords: parsed.consumeRecords.filter(isConsumeRecord),
     latestConsumeProof: isProofRecord(parsed.latestConsumeProof) ? parsed.latestConsumeProof : null,
@@ -1618,10 +1655,13 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     rootRecordCount: parsed.rootRecordCount,
     proofRecordCount: parsed.proofRecordCount,
     sendProofRecordCount: parsed.sendProofRecordCount,
+    swapProofRecordCount: parsed.swapProofRecordCount,
     sendRecordCount: parsed.sendRecordCount,
+    swapRecordCount: parsed.swapRecordCount,
     consumeRecordCount: parsed.consumeRecordCount,
     releaseRecordCount: parsed.releaseRecordCount,
     proofSendLinkStatus: parsed.proofSendLinkStatus,
+    proofSwapLinkStatus: parsed.proofSwapLinkStatus,
     proofConsumeLinkStatus: parsed.proofConsumeLinkStatus,
     proofReleaseLinkStatus: parsed.proofReleaseLinkStatus,
   };

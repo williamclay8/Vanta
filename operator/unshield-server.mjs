@@ -1709,16 +1709,24 @@ function buildPrivateCoreSummaryState() {
   const rootRecords = privateCoreRootStore.listRoots();
   const proofRecords = privateCoreProofStore.listProofs();
   const sendProofRecords = privateCoreSendProofStore.listProofs();
+  const swapProofRecords = privateCoreSwapProofStore.listProofs();
   const sendRecords = privateCoreSendStore.listSends();
+  const swapRecords = privateCoreSwapStore.listSwaps();
   const consumeRecords = privateCoreConsumeStore.listConsumes();
   const releaseRecords = privateCoreReleaseRecords.listRecords();
   const latestProof = proofRecords[0] ?? null;
   const currentRootRecord = rootRecords[0] ?? null;
   const latestSendProof = sendProofRecords[0] ?? null;
+  const latestSwapProof = swapProofRecords[0] ?? null;
   const latestSend = sendRecords[0] ?? null;
+  const latestSwap = swapRecords[0] ?? null;
   const latestLinkedSendProof =
     latestSend && typeof latestSend.proofId === "string"
       ? sendProofRecords.find((record) => record.proofId === latestSend.proofId) ?? null
+      : null;
+  const latestLinkedSwapProof =
+    latestSwap && typeof latestSwap.proofId === "string"
+      ? swapProofRecords.find((record) => record.proofId === latestSwap.proofId) ?? null
       : null;
   const latestConsume = consumeRecords[0] ?? null;
   const latestRelease = releaseRecords[0] ?? null;
@@ -1737,6 +1745,10 @@ function buildPrivateCoreSummaryState() {
   const proofSendLinkStatus = summarizePrivateCoreProofSendLinkStatus({
     linkedProof: latestLinkedSendProof,
     latestSend,
+  });
+  const proofSwapLinkStatus = summarizePrivateCoreProofSwapLinkStatus({
+    linkedProof: latestLinkedSwapProof,
+    latestSwap,
   });
   const proofReleaseLinkStatus = summarizePrivateCoreProofReleaseLinkStatus({
     linkedProof: latestReleaseProof,
@@ -1824,9 +1836,14 @@ function buildPrivateCoreSummaryState() {
     proofRecords,
     latestSendProof,
     sendProofRecords,
+    latestSwapProof,
+    swapProofRecords,
     latestSendLinkedProof: latestLinkedSendProof,
+    latestSwapLinkedProof: latestLinkedSwapProof,
     latestSend,
     sendRecords,
+    latestSwap,
+    swapRecords,
     latestConsume,
     consumeRecords,
     latestConsumeProof,
@@ -1836,11 +1853,14 @@ function buildPrivateCoreSummaryState() {
     rootRecordCount: rootRecords.length,
     proofRecordCount: proofRecords.length,
     sendProofRecordCount: sendProofRecords.length,
+    swapProofRecordCount: swapProofRecords.length,
     sendRecordCount: sendRecords.length,
+    swapRecordCount: swapRecords.length,
     consumeRecordCount: consumeRecords.length,
     releaseRecordCount: releaseRecords.length,
     proofConsumeLinkStatus,
     proofSendLinkStatus,
+    proofSwapLinkStatus,
     proofReleaseLinkStatus,
   };
   const contractMirrorStatus = summarizePrivateCoreContractMirrorStatus({
@@ -2397,6 +2417,22 @@ function summarizePrivateCoreProofSendLinkStatus(args) {
     args.linkedProof.proofId === args.latestSend.proofId &&
     args.linkedProof.root === args.latestSend.inputRoot &&
     args.linkedProof.nullifier === args.latestSend.inputNullifier
+  ) {
+    return "linked";
+  }
+
+  return "mismatch";
+}
+
+function summarizePrivateCoreProofSwapLinkStatus(args) {
+  if (!args.linkedProof || !args.latestSwap) {
+    return "unavailable";
+  }
+
+  if (
+    args.linkedProof.proofId === args.latestSwap.proofId &&
+    args.linkedProof.root === args.latestSwap.inputRoot &&
+    args.linkedProof.nullifier === args.latestSwap.inputNullifier
   ) {
     return "linked";
   }

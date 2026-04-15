@@ -280,6 +280,24 @@ try {
     throw new Error(swapProofState.text || "operator swap transition did not persist swap-proof state");
   }
   printStatus("operator swap transition proof state: PASS");
+
+  const summaryState = await requestJson(baseUrl, "/state/private-core-summary", { method: "GET" });
+  if (
+    !summaryState.ok ||
+    summaryState.parsed?.stateVersion !== 1 ||
+    typeof summaryState.parsed?.summaryVersion !== "number" ||
+    summaryState.parsed?.latestSwap?.swapId !== transitionResponse.parsed?.swapId ||
+    summaryState.parsed?.latestSwap?.proofId !== transitionResponse.parsed?.proofId ||
+    summaryState.parsed?.latestSwap?.resultingRoot !== resultingRoot ||
+    summaryState.parsed?.latestSwapProof?.proofId !== transitionResponse.parsed?.proofId ||
+    summaryState.parsed?.latestSwapLinkedProof?.proofId !== transitionResponse.parsed?.proofId ||
+    summaryState.parsed?.swapRecordCount !== 1 ||
+    summaryState.parsed?.swapProofRecordCount !== 1 ||
+    summaryState.parsed?.proofSwapLinkStatus !== "linked"
+  ) {
+    throw new Error(summaryState.text || "operator summary did not capture swap transition state");
+  }
+  printStatus("operator swap transition summary state: PASS");
 } catch (error) {
   console.error(stdout);
   console.error(stderr);

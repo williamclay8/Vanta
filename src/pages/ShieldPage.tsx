@@ -107,6 +107,9 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOperatorLatestSendProof,
     privateCoreOperatorLatestSendLinkedProof,
     privateCoreOperatorLatestSend,
+    privateCoreOperatorLatestSwapProof,
+    privateCoreOperatorLatestSwapLinkedProof,
+    privateCoreOperatorLatestSwap,
     privateCoreOperatorBoundaryPrimaryNote,
     privateCoreOperatorBoundaryStatusLabel,
     privateCoreOperatorContractMirrorPrimaryNote,
@@ -186,6 +189,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOperatorProofError,
     privateCoreOperatorProofs,
     privateCoreOperatorProofSendLinkStatus,
+    privateCoreOperatorProofSwapLinkStatus,
     privateCoreOperatorProofReleaseLinkStatus,
     privateCoreOperatorReleaseError,
     privateCoreOperatorReleases,
@@ -200,6 +204,8 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOperatorSends,
     privateCoreOperatorSendProofError,
     privateCoreOperatorSendProofs,
+    privateCoreOperatorSwaps,
+    privateCoreOperatorSwapProofs,
     privateCoreOperatorSummaryUpdatedAt,
     privateCoreRecentShield,
     privateCoreSendState,
@@ -1114,6 +1120,9 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 operatorLatestSend={privateCoreOperatorLatestSend}
                 operatorLatestSendLinkedProof={privateCoreOperatorLatestSendLinkedProof}
                 operatorLatestSendProof={privateCoreOperatorLatestSendProof}
+                operatorLatestSwap={privateCoreOperatorLatestSwap}
+                operatorLatestSwapLinkedProof={privateCoreOperatorLatestSwapLinkedProof}
+                operatorLatestSwapProof={privateCoreOperatorLatestSwapProof}
                 operatorBoundaryPrimaryNote={privateCoreOperatorBoundaryPrimaryNote}
                 operatorBoundaryStatusLabel={privateCoreOperatorBoundaryStatusLabel}
                 operatorContractMirrorPrimaryNote={privateCoreOperatorContractMirrorPrimaryNote}
@@ -1223,6 +1232,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 operatorProofError={privateCoreOperatorProofError}
                 operatorProofs={privateCoreOperatorProofs}
                 operatorProofSendLinkStatus={privateCoreOperatorProofSendLinkStatus}
+                operatorProofSwapLinkStatus={privateCoreOperatorProofSwapLinkStatus}
                 operatorProofReleaseLinkStatus={privateCoreOperatorProofReleaseLinkStatus}
                 operatorReleaseError={privateCoreOperatorReleaseError}
                 operatorReleases={privateCoreOperatorReleases}
@@ -1237,6 +1247,8 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 operatorSends={privateCoreOperatorSends}
                 operatorSendProofError={privateCoreOperatorSendProofError}
                 operatorSendProofs={privateCoreOperatorSendProofs}
+                operatorSwaps={privateCoreOperatorSwaps}
+                operatorSwapProofs={privateCoreOperatorSwapProofs}
                 operatorSummaryUpdatedAt={privateCoreOperatorSummaryUpdatedAt}
                 shieldState={privateCoreRecentShield}
                 title="Vanta Private Core hold state"

@@ -109,6 +109,9 @@ export function UnshieldPage() {
     privateCoreOperatorLatestSendProof,
     privateCoreOperatorLatestSendLinkedProof,
     privateCoreOperatorLatestSend,
+    privateCoreOperatorLatestSwapProof,
+    privateCoreOperatorLatestSwapLinkedProof,
+    privateCoreOperatorLatestSwap,
     privateCoreOperatorBoundaryPrimaryNote,
     privateCoreOperatorBoundaryStatusLabel,
     privateCoreOperatorContractMirrorPrimaryNote,
@@ -188,6 +191,7 @@ export function UnshieldPage() {
     privateCoreOperatorProofError,
     privateCoreOperatorProofs,
     privateCoreOperatorProofSendLinkStatus,
+    privateCoreOperatorProofSwapLinkStatus,
     privateCoreOperatorProofReleaseLinkStatus,
     privateCoreOperatorReleaseError,
     privateCoreOperatorReleases,
@@ -202,6 +206,8 @@ export function UnshieldPage() {
     privateCoreOperatorSends,
     privateCoreOperatorSendProofError,
     privateCoreOperatorSendProofs,
+    privateCoreOperatorSwaps,
+    privateCoreOperatorSwapProofs,
     privateCoreOperatorSummaryUpdatedAt,
     privateCoreRecentShield,
     privateCoreSendState,
@@ -964,6 +970,9 @@ export function UnshieldPage() {
           operatorLatestSend={privateCoreOperatorLatestSend}
           operatorLatestSendLinkedProof={privateCoreOperatorLatestSendLinkedProof}
           operatorLatestSendProof={privateCoreOperatorLatestSendProof}
+          operatorLatestSwap={privateCoreOperatorLatestSwap}
+          operatorLatestSwapLinkedProof={privateCoreOperatorLatestSwapLinkedProof}
+          operatorLatestSwapProof={privateCoreOperatorLatestSwapProof}
           operatorBoundaryPrimaryNote={privateCoreOperatorBoundaryPrimaryNote}
           operatorBoundaryStatusLabel={privateCoreOperatorBoundaryStatusLabel}
           operatorContractMirrorPrimaryNote={privateCoreOperatorContractMirrorPrimaryNote}
@@ -1069,6 +1078,7 @@ export function UnshieldPage() {
           operatorProofError={privateCoreOperatorProofError}
           operatorProofs={privateCoreOperatorProofs}
           operatorProofSendLinkStatus={privateCoreOperatorProofSendLinkStatus}
+          operatorProofSwapLinkStatus={privateCoreOperatorProofSwapLinkStatus}
           operatorProofReleaseLinkStatus={privateCoreOperatorProofReleaseLinkStatus}
           operatorReleaseError={privateCoreOperatorReleaseError}
           operatorReleases={privateCoreOperatorReleases}
@@ -1083,6 +1093,8 @@ export function UnshieldPage() {
           operatorSends={privateCoreOperatorSends}
           operatorSendProofError={privateCoreOperatorSendProofError}
           operatorSendProofs={privateCoreOperatorSendProofs}
+          operatorSwaps={privateCoreOperatorSwaps}
+          operatorSwapProofs={privateCoreOperatorSwapProofs}
           operatorSummaryUpdatedAt={privateCoreOperatorSummaryUpdatedAt}
           shieldState={privateCoreRecentShield}
           title="Vanta Private Core unshield state"

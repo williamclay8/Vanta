@@ -11,6 +11,8 @@ import type {
   VantaPrivateCoreOperatorRootRecord,
   VantaPrivateCoreOperatorSendRecord,
   VantaPrivateCoreOperatorSendProofRecord,
+  VantaPrivateCoreOperatorSwapProofRecord,
+  VantaPrivateCoreOperatorSwapRecord,
 } from "@/zk/vantaPrivateCoreOperatorClient";
 
 type VantaPrivateCoreStatePanelProps = {
@@ -28,6 +30,9 @@ type VantaPrivateCoreStatePanelProps = {
   operatorLatestSend?: VantaPrivateCoreOperatorSendRecord | null;
   operatorLatestSendLinkedProof?: VantaPrivateCoreOperatorSendProofRecord | null;
   operatorLatestSendProof?: VantaPrivateCoreOperatorSendProofRecord | null;
+  operatorLatestSwap?: VantaPrivateCoreOperatorSwapRecord | null;
+  operatorLatestSwapLinkedProof?: VantaPrivateCoreOperatorSwapProofRecord | null;
+  operatorLatestSwapProof?: VantaPrivateCoreOperatorSwapProofRecord | null;
   operatorBoundaryPrimaryNote?: string | null;
   operatorBoundaryStatusLabel?: string | null;
   operatorContractMirrorPrimaryNote?: string | null;
@@ -100,6 +105,7 @@ type VantaPrivateCoreStatePanelProps = {
   operatorProofError?: string | null;
   operatorProofs?: VantaPrivateCoreOperatorProofRecord[];
   operatorProofSendLinkStatus?: string | null;
+  operatorProofSwapLinkStatus?: string | null;
   operatorProofReleaseLinkStatus?: string | null;
   operatorReleaseError?: string | null;
   operatorReleases?: VantaPrivateCoreOperatorReleaseRecord[];
@@ -121,6 +127,8 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSends?: VantaPrivateCoreOperatorSendRecord[];
   operatorSendProofError?: string | null;
   operatorSendProofs?: VantaPrivateCoreOperatorSendProofRecord[];
+  operatorSwaps?: VantaPrivateCoreOperatorSwapRecord[];
+  operatorSwapProofs?: VantaPrivateCoreOperatorSwapProofRecord[];
   operatorSummaryUpdatedAt?: number | null;
   shieldState: VantaPrivateCoreShieldState | null;
   unshieldState: VantaPrivateCoreUnshieldState | null;
@@ -237,6 +245,9 @@ export function VantaPrivateCoreStatePanel({
   operatorLatestSend = null,
   operatorLatestSendLinkedProof = null,
   operatorLatestSendProof = null,
+  operatorLatestSwap = null,
+  operatorLatestSwapLinkedProof = null,
+  operatorLatestSwapProof = null,
   operatorBoundaryPrimaryNote = null,
   operatorBoundaryStatusLabel = null,
   operatorContractMirrorPrimaryNote = null,
@@ -309,6 +320,7 @@ export function VantaPrivateCoreStatePanel({
   operatorProofError = null,
   operatorProofs = [],
   operatorProofSendLinkStatus = null,
+  operatorProofSwapLinkStatus = null,
   operatorProofReleaseLinkStatus = null,
   operatorReleaseError = null,
   operatorReleases = [],
@@ -330,6 +342,8 @@ export function VantaPrivateCoreStatePanel({
   operatorSends = [],
   operatorSendProofError = null,
   operatorSendProofs = [],
+  operatorSwaps = [],
+  operatorSwapProofs = [],
   operatorSummaryUpdatedAt = null,
   shieldState,
   unshieldState,
@@ -347,6 +361,13 @@ export function VantaPrivateCoreStatePanel({
       ? operatorSendProofs.find((record) => record.proofId === latestOperatorSend.proofId) ?? null
       : null);
   const latestOperatorSendProof = operatorLatestSendProof ?? operatorSendProofs[0] ?? null;
+  const latestOperatorSwap = operatorLatestSwap ?? operatorSwaps[0] ?? null;
+  const latestOperatorSwapLinkedProof =
+    operatorLatestSwapLinkedProof ??
+    (latestOperatorSwap?.proofId
+      ? operatorSwapProofs.find((record) => record.proofId === latestOperatorSwap.proofId) ?? null
+      : null);
+  const latestOperatorSwapProof = operatorLatestSwapProof ?? operatorSwapProofs[0] ?? null;
   const immediateProofAlignmentLabel = summarizeOperatorImmediateProofAlignment({
     latestOperatorProof,
     unshieldState,
@@ -1154,6 +1175,58 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Proof/send link</span>
               <strong>{operatorProofSendLinkStatus ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Operator swap proof records</span>
+              <strong>{operatorSwapProofs.length.toString()}</strong>
+            </div>
+            <div className="review-row">
+              <span>Operator swap records</span>
+              <strong>{operatorSwaps.length.toString()}</strong>
+            </div>
+            <div className="review-row">
+              <span>Latest operator swap</span>
+              <strong>
+                {latestOperatorSwap?.swapId ? abbreviate(latestOperatorSwap.swapId) : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Latest swap proof link</span>
+              <strong>
+                {latestOperatorSwap?.proofId ? abbreviate(latestOperatorSwap.proofId) : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Latest operator swap proof</span>
+              <strong>
+                {latestOperatorSwapProof?.proofId
+                  ? abbreviate(latestOperatorSwapProof.proofId)
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Linked swap proof</span>
+              <strong>
+                {latestOperatorSwapLinkedProof?.proofId
+                  ? abbreviate(latestOperatorSwapLinkedProof.proofId)
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Latest swap output</span>
+              <strong>
+                {latestOperatorSwap?.outputAmount && latestOperatorSwap?.outputAssetId
+                  ? `${latestOperatorSwap.outputAmount} / ${abbreviate(latestOperatorSwap.outputAssetId)}`
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Latest swap resulting root</span>
+              <strong>{abbreviate(latestOperatorSwap?.resultingRoot)}</strong>
+            </div>
+            <div className="review-row">
+              <span>Proof/swap link</span>
+              <strong>{operatorProofSwapLinkStatus ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Latest send proof root</span>

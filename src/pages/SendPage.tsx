@@ -166,11 +166,15 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorLatestSend,
     privateCoreOperatorLatestSendLinkedProof,
     privateCoreOperatorLatestSendProof,
+    privateCoreOperatorLatestSwap,
+    privateCoreOperatorLatestSwapLinkedProof,
+    privateCoreOperatorLatestSwapProof,
     privateCoreOperatorOwnerAuthorizationMode,
     privateCoreOperatorNullifierKeyMode,
     privateCoreOperatorProofConsumeLinkStatus,
     privateCoreOperatorProofError,
     privateCoreOperatorProofs,
+    privateCoreOperatorProofSwapLinkStatus,
     privateCoreOperatorProofReleaseLinkStatus,
     privateCoreOperatorSendResultingRootRecord,
     privateCoreOperatorSendResultingRootLinkedProof,
@@ -194,6 +198,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorSends,
     privateCoreOperatorSendProofError,
     privateCoreOperatorSendProofs,
+    privateCoreOperatorSwaps,
+    privateCoreOperatorSwapProofs,
     privateCoreOperatorSupportedSendLaneKind,
     privateCoreOperatorSupportedSendLaneNote,
     privateCoreOperatorSupportedSendLaneStatus,
@@ -1724,6 +1730,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         operatorLatestSend={privateCoreOperatorLatestSend}
         operatorLatestSendLinkedProof={privateCoreOperatorLatestSendLinkedProof}
         operatorLatestSendProof={privateCoreOperatorLatestSendProof}
+        operatorLatestSwap={privateCoreOperatorLatestSwap}
+        operatorLatestSwapLinkedProof={privateCoreOperatorLatestSwapLinkedProof}
+        operatorLatestSwapProof={privateCoreOperatorLatestSwapProof}
         operatorBoundaryPrimaryNote={privateCoreOperatorBoundaryPrimaryNote}
         operatorBoundaryStatusLabel={privateCoreOperatorBoundaryStatusLabel}
         operatorContractMirrorPrimaryNote={privateCoreOperatorContractMirrorPrimaryNote}
@@ -1829,6 +1838,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         operatorProofError={privateCoreOperatorProofError}
         operatorProofs={privateCoreOperatorProofs}
         operatorProofSendLinkStatus={privateCoreOperatorProofSendLinkStatus}
+        operatorProofSwapLinkStatus={privateCoreOperatorProofSwapLinkStatus}
         operatorProofReleaseLinkStatus={privateCoreOperatorProofReleaseLinkStatus}
         operatorReleaseError={privateCoreOperatorReleaseError}
         operatorReleases={privateCoreOperatorReleases}
@@ -1843,6 +1853,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         operatorSends={privateCoreOperatorSends}
         operatorSendProofError={privateCoreOperatorSendProofError}
         operatorSendProofs={privateCoreOperatorSendProofs}
+        operatorSwaps={privateCoreOperatorSwaps}
+        operatorSwapProofs={privateCoreOperatorSwapProofs}
         operatorSummaryUpdatedAt={privateCoreOperatorSummaryUpdatedAt}
         shieldState={privateCoreRecentShield}
         title="Vanta Private Core send state"
