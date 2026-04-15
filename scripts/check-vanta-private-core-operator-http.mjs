@@ -220,7 +220,7 @@ try {
   if (
     !initialSummaryState.ok ||
     initialSummaryState.parsed?.stateVersion !== 1 ||
-    initialSummaryState.parsed?.summaryVersion !== 26 ||
+    initialSummaryState.parsed?.summaryVersion !== 27 ||
     initialSummaryState.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     initialSummaryState.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -241,6 +241,12 @@ try {
       "proof-backed-consume-latest-registered-root" ||
     initialSummaryState.parsed?.supportedReleaseLaneStatus !== "supported" ||
     typeof initialSummaryState.parsed?.supportedReleaseLaneNote !== "string" ||
+    initialSummaryState.parsed?.supportedSwapLaneVersion !== 1 ||
+    initialSummaryState.parsed?.supportedSwapLaneKind !== "single-input-vusd-to-shielded-sol" ||
+    initialSummaryState.parsed?.supportedSwapLaneStatus !== "supported" ||
+    typeof initialSummaryState.parsed?.supportedSwapLaneNote !== "string" ||
+    initialSummaryState.parsed?.supportedSwapVenue !== "meteora-dlmm-devnet" ||
+    initialSummaryState.parsed?.supportedSwapOutputModel !== "shielded-sol-output-note" ||
     initialSummaryState.parsed?.supportedFlowVersion !== 1 ||
     initialSummaryState.parsed?.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
     initialSummaryState.parsed?.supportedFlowStatus !== "supported" ||
@@ -899,7 +905,7 @@ try {
   if (
     !summaryStateAfterConsume.ok ||
     summaryStateAfterConsume.parsed?.stateVersion !== 1 ||
-    summaryStateAfterConsume.parsed?.summaryVersion !== 26 ||
+    summaryStateAfterConsume.parsed?.summaryVersion !== 27 ||
     summaryStateAfterConsume.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterConsume.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -916,6 +922,12 @@ try {
       "proof-backed-consume-latest-registered-root" ||
     summaryStateAfterConsume.parsed?.supportedReleaseLaneStatus !== "supported" ||
     typeof summaryStateAfterConsume.parsed?.supportedReleaseLaneNote !== "string" ||
+    summaryStateAfterConsume.parsed?.supportedSwapLaneVersion !== 1 ||
+    summaryStateAfterConsume.parsed?.supportedSwapLaneKind !== "single-input-vusd-to-shielded-sol" ||
+    summaryStateAfterConsume.parsed?.supportedSwapLaneStatus !== "supported" ||
+    typeof summaryStateAfterConsume.parsed?.supportedSwapLaneNote !== "string" ||
+    summaryStateAfterConsume.parsed?.supportedSwapVenue !== "meteora-dlmm-devnet" ||
+    summaryStateAfterConsume.parsed?.supportedSwapOutputModel !== "shielded-sol-output-note" ||
     summaryStateAfterConsume.parsed?.supportedFlowVersion !== 1 ||
     summaryStateAfterConsume.parsed?.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
     summaryStateAfterConsume.parsed?.supportedFlowStatus !== "supported" ||
@@ -995,7 +1007,7 @@ try {
   });
   if (
     !summaryStateAfterRelease.ok ||
-    summaryStateAfterRelease.parsed?.summaryVersion !== 26 ||
+    summaryStateAfterRelease.parsed?.summaryVersion !== 27 ||
     summaryStateAfterRelease.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterRelease.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -1012,6 +1024,12 @@ try {
       "proof-backed-consume-latest-registered-root" ||
     summaryStateAfterRelease.parsed?.supportedReleaseLaneStatus !== "supported" ||
     typeof summaryStateAfterRelease.parsed?.supportedReleaseLaneNote !== "string" ||
+    summaryStateAfterRelease.parsed?.supportedSwapLaneVersion !== 1 ||
+    summaryStateAfterRelease.parsed?.supportedSwapLaneKind !== "single-input-vusd-to-shielded-sol" ||
+    summaryStateAfterRelease.parsed?.supportedSwapLaneStatus !== "supported" ||
+    typeof summaryStateAfterRelease.parsed?.supportedSwapLaneNote !== "string" ||
+    summaryStateAfterRelease.parsed?.supportedSwapVenue !== "meteora-dlmm-devnet" ||
+    summaryStateAfterRelease.parsed?.supportedSwapOutputModel !== "shielded-sol-output-note" ||
     summaryStateAfterRelease.parsed?.supportedFlowVersion !== 1 ||
     summaryStateAfterRelease.parsed?.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
     summaryStateAfterRelease.parsed?.supportedFlowStatus !== "supported" ||
@@ -1077,11 +1095,16 @@ try {
   });
   if (
     !operatorStatusOutput.includes("Summary state version: 1") ||
-    !operatorStatusOutput.includes("Mirrored contract version: 7") ||
-    !operatorStatusOutput.includes("Summary version: 26") ||
+    !operatorStatusOutput.includes("Mirrored contract version: 8") ||
+    !operatorStatusOutput.includes("Summary version: 27") ||
     !operatorStatusOutput.includes("Supported send v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported unshield v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported release v1 decision: Accepted narrow v1 path") ||
+    !operatorStatusOutput.includes("Supported swap lane version: 1") ||
+    !operatorStatusOutput.includes("Supported swap lane kind: Single input VUSD to shielded SOL") ||
+    !operatorStatusOutput.includes("Supported swap lane status: Supported") ||
+    !operatorStatusOutput.includes("Supported swap venue: Meteora DLMM devnet") ||
+    !operatorStatusOutput.includes("Supported swap output model: Shielded SOL output note") ||
     !operatorStatusOutput.includes("Supported release execution: Operator-recorded devnet release") ||
     !operatorStatusOutput.includes(
       "Supported release atomicity: Operator-local atomic consume + release record",

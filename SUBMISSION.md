@@ -232,11 +232,13 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   prints the current operator-side root, proof, send-proof, send-transition, consume, and release state when the operator server is running, including proof/send, proof/consume, proof/release, and root-registration proof linkage plus send resulting-root continuity status, resulting-root provenance, and the matched resulting-root record when available
 
 The current frozen operator-backed private-core contract now states the narrow accepted `v1` path explicitly:
-- `contractVersion = 7`
-- `summaryVersion = 26`
+- `contractVersion = 8`
+- `summaryVersion = 27`
 - `supportedSendV1Decision = accepted-narrow-v1-path`
 - `supportedUnshieldV1Decision = accepted-narrow-v1-path`
 - `supportedReleaseV1Decision = accepted-narrow-v1-path`
+- `supportedSwapLaneKind = single-input-vusd-to-shielded-sol`
+- `supportedSwapVenue = meteora-dlmm-devnet`
 
 These commands do not make the protocol finished, but they do make the current first zk boundary concrete and repeatable.
 
@@ -350,9 +352,9 @@ npm run private-core:operator-status
 ```
 
 The contract readout gives the static narrow-zk-v1 support contract:
-- `contractVersion = 6`
-- `summaryVersion = 25`
-- supported send / unshield / release lanes
+- `contractVersion = 8`
+- `summaryVersion = 27`
+- supported send / unshield / release / swap lanes
 - supported product flow
 - supported asset / environment
 - supported note schema / version
@@ -360,6 +362,7 @@ The contract readout gives the static narrow-zk-v1 support contract:
 - supported send resulting-root basis
 - supported send input-root policy
 - supported send output-registration policy
+- supported constrained swap venue / output model
 - supported recipient / release-destination models
 - supported proof system
 - supported unshield / send circuits
@@ -383,6 +386,11 @@ The same operator contract now also versions the supported narrow unshield lane:
 - `supportedReleaseLaneKind = proof-backed-consume-latest-registered-root`
 - `supportedReleaseLaneStatus = supported`
 - `supportedReleaseV1Decision = accepted-narrow-v1-path`
+- `supportedSwapLaneVersion = 1`
+- `supportedSwapLaneKind = single-input-vusd-to-shielded-sol`
+- `supportedSwapLaneStatus = supported`
+- `supportedSwapVenue = meteora-dlmm-devnet`
+- `supportedSwapOutputModel = shielded-sol-output-note`
 - `supportedFlowVersion = 1`
 - `supportedFlowKind = shield-hold-send-unshield-replay-guard`
 - `supportedFlowStatus = supported`

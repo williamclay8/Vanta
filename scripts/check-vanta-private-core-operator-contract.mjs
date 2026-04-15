@@ -102,8 +102,8 @@ try {
   if (
     !contractState.ok ||
     contractState.parsed?.stateVersion !== 1 ||
-    contractState.parsed?.contractVersion !== 7 ||
-    contractState.parsed?.summaryVersion !== 26 ||
+    contractState.parsed?.contractVersion !== 8 ||
+    contractState.parsed?.summaryVersion !== 27 ||
     contractState.parsed?.supportedSendLaneVersion !== 1 ||
     contractState.parsed?.supportedSendV1Decision !== "accepted-narrow-v1-path" ||
     typeof contractState.parsed?.supportedSendV1DecisionNote !== "string" ||
@@ -111,6 +111,12 @@ try {
     contractState.parsed?.supportedUnshieldV1Decision !== "accepted-narrow-v1-path" ||
     typeof contractState.parsed?.supportedUnshieldV1DecisionNote !== "string" ||
     contractState.parsed?.supportedReleaseLaneVersion !== 1 ||
+    contractState.parsed?.supportedSwapLaneVersion !== 1 ||
+    contractState.parsed?.supportedSwapLaneKind !== "single-input-vusd-to-shielded-sol" ||
+    contractState.parsed?.supportedSwapLaneStatus !== "supported" ||
+    typeof contractState.parsed?.supportedSwapLaneNote !== "string" ||
+    contractState.parsed?.supportedSwapVenue !== "meteora-dlmm-devnet" ||
+    contractState.parsed?.supportedSwapOutputModel !== "shielded-sol-output-note" ||
     contractState.parsed?.supportedFlowVersion !== 1 ||
     contractState.parsed?.supportedAssetSymbol !== "VUSD" ||
     contractState.parsed?.supportedEnvironment !== "solana-devnet" ||
@@ -167,6 +173,12 @@ try {
     "supportedReleaseLaneNote",
     "supportedReleaseV1Decision",
     "supportedReleaseV1DecisionNote",
+    "supportedSwapLaneVersion",
+    "supportedSwapLaneKind",
+    "supportedSwapLaneStatus",
+    "supportedSwapLaneNote",
+    "supportedSwapVenue",
+    "supportedSwapOutputModel",
     "supportedFlowVersion",
     "supportedFlowKind",
     "supportedFlowStatus",
@@ -240,8 +252,8 @@ try {
   });
   if (
     !contractOutput.includes("Contract state version: 1") ||
-    !contractOutput.includes("Contract version: 7") ||
-    !contractOutput.includes("Summary compatibility: 26") ||
+    !contractOutput.includes("Contract version: 8") ||
+    !contractOutput.includes("Summary compatibility: 27") ||
     !contractOutput.includes("Supported note schema: NoteV0 / v0") ||
     !contractOutput.includes("Supported send v1 decision: accepted-narrow-v1-path") ||
     !contractOutput.includes("Supported unshield v1 decision: accepted-narrow-v1-path") ||
@@ -250,6 +262,11 @@ try {
     ) ||
     !contractOutput.includes("Supported send root basis: Client-declared") ||
     !contractOutput.includes("Supported release v1 decision: accepted-narrow-v1-path") ||
+    !contractOutput.includes("Supported swap lane version: 1") ||
+    !contractOutput.includes("Supported swap lane kind: single-input-vusd-to-shielded-sol") ||
+    !contractOutput.includes("Supported swap lane status: supported") ||
+    !contractOutput.includes("Supported swap venue: meteora-dlmm-devnet") ||
+    !contractOutput.includes("Supported swap output model: shielded-sol-output-note") ||
     !contractOutput.includes(
       "Supported send input-root policy: Latest registered root with linked registration proof",
     ) ||

@@ -270,7 +270,7 @@ try {
   if (
     !summaryState.ok ||
     summaryState.parsed?.stateVersion !== 1 ||
-    summaryState.parsed?.summaryVersion !== 26 ||
+    summaryState.parsed?.summaryVersion !== 27 ||
     summaryState.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryState.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -287,6 +287,12 @@ try {
       "proof-backed-consume-latest-registered-root" ||
     summaryState.parsed?.supportedReleaseLaneStatus !== "supported" ||
     typeof summaryState.parsed?.supportedReleaseLaneNote !== "string" ||
+    summaryState.parsed?.supportedSwapLaneVersion !== 1 ||
+    summaryState.parsed?.supportedSwapLaneKind !== "single-input-vusd-to-shielded-sol" ||
+    summaryState.parsed?.supportedSwapLaneStatus !== "supported" ||
+    typeof summaryState.parsed?.supportedSwapLaneNote !== "string" ||
+    summaryState.parsed?.supportedSwapVenue !== "meteora-dlmm-devnet" ||
+    summaryState.parsed?.supportedSwapOutputModel !== "shielded-sol-output-note" ||
     summaryState.parsed?.supportedFlowVersion !== 1 ||
     summaryState.parsed?.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
     summaryState.parsed?.supportedFlowStatus !== "supported" ||

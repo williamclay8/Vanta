@@ -52,6 +52,18 @@ try {
     "Supported release v1 decision note",
     contract.supportedReleaseV1DecisionNote ?? "Unavailable",
   );
+  printLine(
+    "Supported swap lane version",
+    String(contract.supportedSwapLaneVersion ?? "unknown"),
+  );
+  printLine("Supported swap lane kind", contract.supportedSwapLaneKind ?? "Unavailable");
+  printLine("Supported swap lane status", contract.supportedSwapLaneStatus ?? "Unavailable");
+  printLine("Supported swap lane note", contract.supportedSwapLaneNote ?? "Unavailable");
+  printLine("Supported swap venue", contract.supportedSwapVenue ?? "Unavailable");
+  printLine(
+    "Supported swap output model",
+    contract.supportedSwapOutputModel ?? "Unavailable",
+  );
   printLine("Supported flow version", String(contract.supportedFlowVersion ?? "unknown"));
   printLine("Supported flow kind", contract.supportedFlowKind ?? "Unavailable");
   printLine("Supported flow status", contract.supportedFlowStatus ?? "Unavailable");

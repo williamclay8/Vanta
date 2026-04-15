@@ -59,6 +59,24 @@ try {
     "Supported release v1 decision note",
     summary.supportedReleaseV1DecisionNote ?? "Unavailable",
   );
+  printLine(
+    "Supported swap lane version",
+    String(summary.supportedSwapLaneVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported swap lane kind",
+    humanizeSupportedSwapLaneKind(summary.supportedSwapLaneKind),
+  );
+  printLine(
+    "Supported swap lane status",
+    humanizeSupportedSwapLaneStatus(summary.supportedSwapLaneStatus),
+  );
+  printLine("Supported swap lane note", summary.supportedSwapLaneNote ?? "Unavailable");
+  printLine("Supported swap venue", humanizeSupportedSwapVenue(summary.supportedSwapVenue));
+  printLine(
+    "Supported swap output model",
+    humanizeSupportedSwapOutputModel(summary.supportedSwapOutputModel),
+  );
   printLine("Supported flow version", String(summary.supportedFlowVersion ?? "unknown"));
   printLine("Supported flow kind", humanizeSupportedFlowKind(summary.supportedFlowKind));
   printLine("Supported flow status", humanizeSupportedFlowStatus(summary.supportedFlowStatus));
@@ -503,6 +521,42 @@ function humanizeSupportedReleaseLaneStatus(value) {
   switch (value) {
     case "supported":
       return "Supported";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeSupportedSwapLaneKind(value) {
+  switch (value) {
+    case "single-input-vusd-to-shielded-sol":
+      return "Single input VUSD to shielded SOL";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeSupportedSwapLaneStatus(value) {
+  switch (value) {
+    case "supported":
+      return "Supported";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeSupportedSwapVenue(value) {
+  switch (value) {
+    case "meteora-dlmm-devnet":
+      return "Meteora DLMM devnet";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeSupportedSwapOutputModel(value) {
+  switch (value) {
+    case "shielded-sol-output-note":
+      return "Shielded SOL output note";
     default:
       return "Unavailable";
   }

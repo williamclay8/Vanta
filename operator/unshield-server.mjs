@@ -160,6 +160,13 @@ const PRIVATE_CORE_SUPPORTED_RELEASE_LANE_NOTE =
 const PRIVATE_CORE_SUPPORTED_RELEASE_V1_DECISION = "accepted-narrow-v1-path";
 const PRIVATE_CORE_SUPPORTED_RELEASE_V1_DECISION_NOTE =
   "Current operator-backed proof-backed release lane is accepted as the narrow zk v1 release path for VUSD on solana-devnet.";
+const PRIVATE_CORE_SUPPORTED_SWAP_LANE_VERSION = 1;
+const PRIVATE_CORE_SUPPORTED_SWAP_LANE_KIND = "single-input-vusd-to-shielded-sol";
+const PRIVATE_CORE_SUPPORTED_SWAP_LANE_STATUS = "supported";
+const PRIVATE_CORE_SUPPORTED_SWAP_LANE_NOTE =
+  "Current constrained swap lane supports one VUSD input note into one shielded SOL output through an operator-backed Meteora-aware quote and execution path.";
+const PRIVATE_CORE_SUPPORTED_SWAP_VENUE = "meteora-dlmm-devnet";
+const PRIVATE_CORE_SUPPORTED_SWAP_OUTPUT_MODEL = "shielded-sol-output-note";
 const PRIVATE_CORE_SUPPORTED_FLOW_VERSION = 1;
 const PRIVATE_CORE_SUPPORTED_FLOW_KIND = "shield-hold-send-unshield-replay-guard";
 const PRIVATE_CORE_SUPPORTED_FLOW_STATUS = "supported";
@@ -1664,8 +1671,8 @@ function buildPrivateCoreSummaryState() {
 function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
-    contractVersion: 7,
-    summaryVersion: 26,
+    contractVersion: 8,
+    summaryVersion: 27,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
@@ -1684,6 +1691,12 @@ function buildPrivateCoreContractState() {
     supportedReleaseLaneNote: PRIVATE_CORE_SUPPORTED_RELEASE_LANE_NOTE,
     supportedReleaseV1Decision: PRIVATE_CORE_SUPPORTED_RELEASE_V1_DECISION,
     supportedReleaseV1DecisionNote: PRIVATE_CORE_SUPPORTED_RELEASE_V1_DECISION_NOTE,
+    supportedSwapLaneVersion: PRIVATE_CORE_SUPPORTED_SWAP_LANE_VERSION,
+    supportedSwapLaneKind: PRIVATE_CORE_SUPPORTED_SWAP_LANE_KIND,
+    supportedSwapLaneStatus: PRIVATE_CORE_SUPPORTED_SWAP_LANE_STATUS,
+    supportedSwapLaneNote: PRIVATE_CORE_SUPPORTED_SWAP_LANE_NOTE,
+    supportedSwapVenue: PRIVATE_CORE_SUPPORTED_SWAP_VENUE,
+    supportedSwapOutputModel: PRIVATE_CORE_SUPPORTED_SWAP_OUTPUT_MODEL,
     supportedFlowVersion: PRIVATE_CORE_SUPPORTED_FLOW_VERSION,
     supportedFlowKind: PRIVATE_CORE_SUPPORTED_FLOW_KIND,
     supportedFlowStatus: PRIVATE_CORE_SUPPORTED_FLOW_STATUS,
@@ -1744,6 +1757,12 @@ function summarizePrivateCoreContractMirrorStatus(args) {
     "supportedReleaseLaneNote",
     "supportedReleaseV1Decision",
     "supportedReleaseV1DecisionNote",
+    "supportedSwapLaneVersion",
+    "supportedSwapLaneKind",
+    "supportedSwapLaneStatus",
+    "supportedSwapLaneNote",
+    "supportedSwapVenue",
+    "supportedSwapOutputModel",
     "supportedFlowVersion",
     "supportedFlowKind",
     "supportedFlowStatus",

@@ -219,23 +219,25 @@ These commands cover:
 - replay rejection after operator restart
 - operator contract and summary snapshot coherence across app, CLI, and regression surfaces
 - frozen operator contract surface:
-  - `contractVersion = 7`
-  - `summaryVersion = 26`
+  - `contractVersion = 8`
+  - `summaryVersion = 27`
   - `supportedSendV1Decision = accepted-narrow-v1-path`
   - `supportedUnshieldV1Decision = accepted-narrow-v1-path`
   - `supportedReleaseV1Decision = accepted-narrow-v1-path`
+  - `supportedSwapLaneKind = single-input-vusd-to-shielded-sol`
+  - `supportedSwapVenue = meteora-dlmm-devnet`
 
 `private-core:demo-readiness` is the friendliest single entrypoint when you just want to know whether the current proof/demo lane is stage-ready.
 
 `private-core:demo-preflight` combines the full verification pass with both the current operator contract surface and the current operator status summary.
 
-`private-core:operator-contract` gives the static narrow zk-v1 contract the operator currently supports: send lane, unshield lane, release lane, supported flow, supported asset/environment, note contract, recipient/release-destination models, proof system, fixed circuit ids, fixed Merkle depth, owner-auth mode, nullifier-key mode, proving hash lane, root-registration provenance, send input-root policy, send output-registration policy, and the current send resulting-root basis.
+`private-core:operator-contract` gives the static narrow zk-v1 contract the operator currently supports: send lane, unshield lane, release lane, swap lane, supported flow, supported asset/environment, note contract, recipient/release-destination models, proof system, fixed circuit ids, fixed Merkle depth, owner-auth mode, nullifier-key mode, proving hash lane, root-registration provenance, send input-root policy, send output-registration policy, the current send resulting-root basis, and the currently supported constrained swap venue/output model.
 
 `private-core:operator-status` gives a quick readout of the current operator root, proof, send-proof, send-transition, consume, and release state when the operator server is running, including proof/send, proof/consume, proof/release, and root-registration proof linkage. It also reports the supported send-lane version and identity carried by the operator summary, plus the latest send resulting-root continuity status and the concrete registered root record behind that resulting root when one exists, so you can see whether the newest private-send root is still unregistered, current, stale, or already consumed/released downstream. The current private-core release lane now also carries explicit release authorization, root-policy, execution, atomicity, and persistence fields, so the operator summary says not just that a release was recorded, but that it was authorized by `proof-backed-consume` under the `latest-registered-root` policy, executed as an operator-recorded devnet release, atomically recorded with consume state in the local operator lane, and persisted in the current JSON store. The send lane still requires the current input root to stay linked to its registration proof before the operator will accept a transition, the resulting root remains explicitly `client-declared` until later registration proves continuity, and registered roots now carry explicit provenance as `shield-input`, `send-recipient-output`, or `send-change-output`.
 
 The operator contract now freezes the narrow zk-v1 contract surface explicitly:
-- `contractVersion = 6`
-- `summaryVersion = 25`
+- `contractVersion = 8`
+- `summaryVersion = 27`
 - `supportedUnshieldLaneVersion = 1`
 - `supportedUnshieldLaneKind = single-note-proof-backed-consume`
 - `supportedUnshieldLaneStatus = supported`
@@ -243,6 +245,11 @@ The operator contract now freezes the narrow zk-v1 contract surface explicitly:
 - `supportedReleaseLaneKind = proof-backed-consume-latest-registered-root`
 - `supportedReleaseLaneStatus = supported`
 - `supportedReleaseV1Decision = accepted-narrow-v1-path`
+- `supportedSwapLaneVersion = 1`
+- `supportedSwapLaneKind = single-input-vusd-to-shielded-sol`
+- `supportedSwapLaneStatus = supported`
+- `supportedSwapVenue = meteora-dlmm-devnet`
+- `supportedSwapOutputModel = shielded-sol-output-note`
 - `supportedFlowVersion = 1`
 - `supportedFlowKind = shield-hold-send-unshield-replay-guard`
 - `supportedFlowStatus = supported`

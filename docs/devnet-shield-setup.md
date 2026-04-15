@@ -117,11 +117,12 @@ npm run private-core:operator-status
 
 The operator-contract command now prints the static narrow zk-v1 support contract:
 - contract version / summary compatibility
-- supported send, unshield, and release lanes
+- supported send, unshield, release, and swap lanes
 - supported product flow
 - supported asset and environment
 - supported note schema and version
 - supported root-registration provenance, send resulting-root basis, send input-root policy, and send output-registration policy
+- supported constrained swap venue and swap output model
 - supported recipient and release-destination models
 - supported proof system
 - supported unshield/send circuit ids and fixed Merkle depths
@@ -136,6 +137,7 @@ The operator-status command now prints:
 - current root
 - supported send-lane version and identity
 - supported unshield-lane version and identity
+- supported swap-lane version and identity
 - latest proof
 - latest send proof
 - latest send linked proof
