@@ -202,6 +202,10 @@ These commands cover:
 - fixed-depth send-circuit regression
 - fixed-depth swap-circuit regression
 - live held-note plus live-quote swap-path readiness and fallback regression
+- in-app swap live-path truth surfaces now show:
+  - ready vs blocked vs fixture fallback
+  - primary blocker when blocked
+  - persisted execution venue and quote reference for the last applied shared swap handoff
 - source-layer send transition application and change-note recovery
 - send-to-hold-to-unshield continuity after a private send
 - recipient-side note recovery and spendability after a private send

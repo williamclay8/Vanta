@@ -162,6 +162,13 @@ Fall back in this order:
    If the question is downstream swap durability, show `npm run private-core:swap-unshield-restart-check`
    If the question is operator durability, show `npm run private-core:swap-restart-check`
 2. Show the shared internal diagnostics panel
+   On the Swap page, point to:
+   - `Swap live path`
+   - `Swap live path blockers`
+   - `Swap live path primary blocker`
+   - `Execution venue`
+   - `Quote reference`
+   The same live-path summary is also retained in the shared private-core swap handoff panel after the action completes.
 3. Show the replay rejection path
 4. Keep the framing on:
    - real proof lane
