@@ -53,6 +53,20 @@ try {
       ? "Client-declared"
       : "Unavailable",
   );
+  printLine(
+    "Supported send input-root policy",
+    contract.supportedSendInputRootPolicy ===
+      "latest-registered-root-with-linked-registration-proof"
+      ? "Latest registered root with linked registration proof"
+      : "Unavailable",
+  );
+  printLine(
+    "Supported send output registration",
+    contract.supportedSendOutputRegistrationPolicy ===
+      "resulting-root-must-register-as-recipient-or-change-output"
+      ? "Resulting root must register as recipient or change output"
+      : "Unavailable",
+  );
   printLine("Supported recipient model", contract.supportedRecipientModel ?? "Unavailable");
   printLine(
     "Supported release destination model",

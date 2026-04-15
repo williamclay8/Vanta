@@ -121,7 +121,7 @@ The operator-contract command now prints the static narrow zk-v1 support contrac
 - supported product flow
 - supported asset and environment
 - supported note schema and version
-- supported root-registration provenance and send resulting-root basis
+- supported root-registration provenance, send resulting-root basis, send input-root policy, and send output-registration policy
 - supported recipient and release-destination models
 - supported proof system
 - supported unshield/send circuit ids and fixed Merkle depths

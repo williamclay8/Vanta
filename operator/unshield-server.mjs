@@ -165,6 +165,10 @@ const PRIVATE_CORE_SUPPORTED_NOTE_VERSION = 0;
 const PRIVATE_CORE_SUPPORTED_ROOT_REGISTRATION_PROVENANCE =
   "shield-input|send-recipient-output|send-change-output";
 const PRIVATE_CORE_SUPPORTED_SEND_RESULTING_ROOT_BASIS = "client-declared";
+const PRIVATE_CORE_SUPPORTED_SEND_INPUT_ROOT_POLICY =
+  "latest-registered-root-with-linked-registration-proof";
+const PRIVATE_CORE_SUPPORTED_SEND_OUTPUT_REGISTRATION_POLICY =
+  "resulting-root-must-register-as-recipient-or-change-output";
 const PRIVATE_CORE_SUPPORTED_PROOF_SYSTEM = "noir-acir-ultrahonk-bbjs";
 const PRIVATE_CORE_SUPPORTED_UNSHIELD_CIRCUIT = "vanta_private_core_single_note_unshield";
 const PRIVATE_CORE_SUPPORTED_SEND_CIRCUIT = "vanta_private_core_single_note_send";
@@ -1621,7 +1625,7 @@ function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
     contractVersion: 1,
-    summaryVersion: 17,
+    summaryVersion: 18,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
@@ -1645,6 +1649,9 @@ function buildPrivateCoreContractState() {
     supportedRootRegistrationProvenance:
       PRIVATE_CORE_SUPPORTED_ROOT_REGISTRATION_PROVENANCE,
     supportedSendResultingRootBasis: PRIVATE_CORE_SUPPORTED_SEND_RESULTING_ROOT_BASIS,
+    supportedSendInputRootPolicy: PRIVATE_CORE_SUPPORTED_SEND_INPUT_ROOT_POLICY,
+    supportedSendOutputRegistrationPolicy:
+      PRIVATE_CORE_SUPPORTED_SEND_OUTPUT_REGISTRATION_POLICY,
     supportedRecipientModel: PRIVATE_CORE_SUPPORTED_RECIPIENT_MODEL,
     supportedReleaseDestinationModel: PRIVATE_CORE_SUPPORTED_RELEASE_DESTINATION_MODEL,
     supportedProofSystem: PRIVATE_CORE_SUPPORTED_PROOF_SYSTEM,
@@ -1685,6 +1692,8 @@ function summarizePrivateCoreContractMirrorStatus(args) {
     "supportedNoteVersion",
     "supportedRootRegistrationProvenance",
     "supportedSendResultingRootBasis",
+    "supportedSendInputRootPolicy",
+    "supportedSendOutputRegistrationPolicy",
     "supportedRecipientModel",
     "supportedReleaseDestinationModel",
     "supportedProofSystem",

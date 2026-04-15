@@ -54,6 +54,8 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSupportedNoteVersion?: number | null;
   operatorSupportedRootRegistrationProvenance?: string | null;
   operatorSupportedSendResultingRootBasis?: string | null;
+  operatorSupportedSendInputRootPolicy?: string | null;
+  operatorSupportedSendOutputRegistrationPolicy?: string | null;
   operatorSupportedRecipientModel?: string | null;
   operatorSupportedReleaseDestinationModel?: string | null;
   operatorSupportedProofSystem?: string | null;
@@ -235,6 +237,8 @@ export function VantaPrivateCoreStatePanel({
   operatorSupportedNoteVersion = null,
   operatorSupportedRootRegistrationProvenance = null,
   operatorSupportedSendResultingRootBasis = null,
+  operatorSupportedSendInputRootPolicy = null,
+  operatorSupportedSendOutputRegistrationPolicy = null,
   operatorSupportedRecipientModel = null,
   operatorSupportedReleaseDestinationModel = null,
   operatorSupportedProofSystem = null,
@@ -615,6 +619,24 @@ export function VantaPrivateCoreStatePanel({
               <strong>
                 {operatorSupportedSendResultingRootBasis === "client-declared"
                   ? "Client-declared"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Supported send input-root policy</span>
+              <strong>
+                {operatorSupportedSendInputRootPolicy ===
+                "latest-registered-root-with-linked-registration-proof"
+                  ? "Latest registered root with linked registration proof"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Supported send output registration</span>
+              <strong>
+                {operatorSupportedSendOutputRegistrationPolicy ===
+                "resulting-root-must-register-as-recipient-or-change-output"
+                  ? "Resulting root must register as recipient or change output"
                   : "Unavailable"}
               </strong>
             </div>

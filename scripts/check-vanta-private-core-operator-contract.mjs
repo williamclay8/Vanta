@@ -103,7 +103,7 @@ try {
     !contractState.ok ||
     contractState.parsed?.stateVersion !== 1 ||
     contractState.parsed?.contractVersion !== 1 ||
-    contractState.parsed?.summaryVersion !== 17 ||
+    contractState.parsed?.summaryVersion !== 18 ||
     contractState.parsed?.supportedSendLaneVersion !== 1 ||
     contractState.parsed?.supportedUnshieldLaneVersion !== 1 ||
     contractState.parsed?.supportedReleaseLaneVersion !== 1 ||
@@ -115,6 +115,10 @@ try {
     contractState.parsed?.supportedRootRegistrationProvenance !==
       "shield-input|send-recipient-output|send-change-output" ||
     contractState.parsed?.supportedSendResultingRootBasis !== "client-declared" ||
+    contractState.parsed?.supportedSendInputRootPolicy !==
+      "latest-registered-root-with-linked-registration-proof" ||
+    contractState.parsed?.supportedSendOutputRegistrationPolicy !==
+      "resulting-root-must-register-as-recipient-or-change-output" ||
     contractState.parsed?.supportedProofSystem !== "noir-acir-ultrahonk-bbjs" ||
     contractState.parsed?.supportedUnshieldCircuit !== "vanta_private_core_single_note_unshield" ||
     contractState.parsed?.supportedSendCircuit !== "vanta_private_core_single_note_send" ||
@@ -150,6 +154,8 @@ try {
     "supportedNoteVersion",
     "supportedRootRegistrationProvenance",
     "supportedSendResultingRootBasis",
+    "supportedSendInputRootPolicy",
+    "supportedSendOutputRegistrationPolicy",
     "supportedRecipientModel",
     "supportedReleaseDestinationModel",
     "supportedProofSystem",
@@ -202,12 +208,18 @@ try {
   if (
     !contractOutput.includes("Contract state version: 1") ||
     !contractOutput.includes("Contract version: 1") ||
-    !contractOutput.includes("Summary compatibility: 17") ||
+    !contractOutput.includes("Summary compatibility: 18") ||
     !contractOutput.includes("Supported note schema: NoteV0 / v0") ||
     !contractOutput.includes(
       "Supported root provenance: Shield input / send recipient output / send change output",
     ) ||
     !contractOutput.includes("Supported send root basis: Client-declared") ||
+    !contractOutput.includes(
+      "Supported send input-root policy: Latest registered root with linked registration proof",
+    ) ||
+    !contractOutput.includes(
+      "Supported send output registration: Resulting root must register as recipient or change output",
+    ) ||
     !contractOutput.includes("Supported proof system: Noir ACIR / UltraHonk / bb.js") ||
     !contractOutput.includes(
       "Supported unshield circuit: vanta_private_core_single_note_unshield @ depth 3",

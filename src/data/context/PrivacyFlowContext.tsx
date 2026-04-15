@@ -131,6 +131,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorSupportedNoteVersion: number | null;
   privateCoreOperatorSupportedRootRegistrationProvenance: string | null;
   privateCoreOperatorSupportedSendResultingRootBasis: string | null;
+  privateCoreOperatorSupportedSendInputRootPolicy: string | null;
+  privateCoreOperatorSupportedSendOutputRegistrationPolicy: string | null;
   privateCoreOperatorSupportedRecipientModel: string | null;
   privateCoreOperatorSupportedReleaseDestinationModel: string | null;
   privateCoreOperatorSupportedProofSystem: string | null;
@@ -453,6 +455,14 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     privateCoreOperatorSupportedSendResultingRootBasis,
     setPrivateCoreOperatorSupportedSendResultingRootBasis,
   ] = useState<string | null>(null);
+  const [
+    privateCoreOperatorSupportedSendInputRootPolicy,
+    setPrivateCoreOperatorSupportedSendInputRootPolicy,
+  ] = useState<string | null>(null);
+  const [
+    privateCoreOperatorSupportedSendOutputRegistrationPolicy,
+    setPrivateCoreOperatorSupportedSendOutputRegistrationPolicy,
+  ] = useState<string | null>(null);
   const [privateCoreOperatorSupportedRecipientModel, setPrivateCoreOperatorSupportedRecipientModel] =
     useState<string | null>(null);
   const [
@@ -553,6 +563,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSupportedNoteVersion,
       setPrivateCoreOperatorSupportedRootRegistrationProvenance,
       setPrivateCoreOperatorSupportedSendResultingRootBasis,
+      setPrivateCoreOperatorSupportedSendInputRootPolicy,
+      setPrivateCoreOperatorSupportedSendOutputRegistrationPolicy,
       setPrivateCoreOperatorSupportedRecipientModel,
       setPrivateCoreOperatorSupportedReleaseDestinationModel,
       setPrivateCoreOperatorSupportedProofSystem,
@@ -1593,6 +1605,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedNoteVersion,
       privateCoreOperatorSupportedRootRegistrationProvenance,
       privateCoreOperatorSupportedSendResultingRootBasis,
+      privateCoreOperatorSupportedSendInputRootPolicy,
+      privateCoreOperatorSupportedSendOutputRegistrationPolicy,
       privateCoreOperatorSupportedRecipientModel,
       privateCoreOperatorSupportedReleaseDestinationModel,
       privateCoreOperatorSupportedProofSystem,
@@ -1704,6 +1718,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedNoteVersion,
       privateCoreOperatorSupportedRootRegistrationProvenance,
       privateCoreOperatorSupportedSendResultingRootBasis,
+      privateCoreOperatorSupportedSendInputRootPolicy,
+      privateCoreOperatorSupportedSendOutputRegistrationPolicy,
       privateCoreOperatorSupportedRecipientModel,
       privateCoreOperatorSupportedReleaseDestinationModel,
       privateCoreOperatorSupportedProofSystem,
@@ -2170,6 +2186,8 @@ function applyPrivateCoreOperatorContractState(args: {
   setPrivateCoreOperatorSupportedNoteVersion: (value: number | null) => void;
   setPrivateCoreOperatorSupportedRootRegistrationProvenance: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSendResultingRootBasis: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedSendInputRootPolicy: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedSendOutputRegistrationPolicy: (value: string | null) => void;
   setPrivateCoreOperatorSupportedRecipientModel: (value: string | null) => void;
   setPrivateCoreOperatorSupportedReleaseDestinationModel: (value: string | null) => void;
   setPrivateCoreOperatorSupportedProofSystem: (value: string | null) => void;
@@ -2219,6 +2237,12 @@ function applyPrivateCoreOperatorContractState(args: {
   );
   args.setPrivateCoreOperatorSupportedSendResultingRootBasis(
     args.contractState.supportedSendResultingRootBasis,
+  );
+  args.setPrivateCoreOperatorSupportedSendInputRootPolicy(
+    args.contractState.supportedSendInputRootPolicy,
+  );
+  args.setPrivateCoreOperatorSupportedSendOutputRegistrationPolicy(
+    args.contractState.supportedSendOutputRegistrationPolicy,
   );
   args.setPrivateCoreOperatorSupportedRecipientModel(args.contractState.supportedRecipientModel);
   args.setPrivateCoreOperatorSupportedReleaseDestinationModel(

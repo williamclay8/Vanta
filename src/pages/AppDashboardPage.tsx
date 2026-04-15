@@ -72,6 +72,8 @@ export function AppDashboardPage() {
     privateCoreOperatorSupportedNoteVersion,
     privateCoreOperatorSupportedRootRegistrationProvenance,
     privateCoreOperatorSupportedSendResultingRootBasis,
+    privateCoreOperatorSupportedSendInputRootPolicy,
+    privateCoreOperatorSupportedSendOutputRegistrationPolicy,
     privateCoreOperatorSupportedRecipientModel,
     privateCoreOperatorSupportedReleaseDestinationModel,
     privateCoreOperatorSupportedProofSystem,
@@ -293,6 +295,12 @@ export function AppDashboardPage() {
           }
           operatorSupportedSendResultingRootBasis={
             privateCoreOperatorSupportedSendResultingRootBasis
+          }
+          operatorSupportedSendInputRootPolicy={
+            privateCoreOperatorSupportedSendInputRootPolicy
+          }
+          operatorSupportedSendOutputRegistrationPolicy={
+            privateCoreOperatorSupportedSendOutputRegistrationPolicy
           }
           operatorSupportedRecipientModel={privateCoreOperatorSupportedRecipientModel}
           operatorSupportedReleaseDestinationModel={

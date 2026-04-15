@@ -133,6 +133,8 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOperatorSupportedNoteVersion,
     privateCoreOperatorSupportedRootRegistrationProvenance,
     privateCoreOperatorSupportedSendResultingRootBasis,
+    privateCoreOperatorSupportedSendInputRootPolicy,
+    privateCoreOperatorSupportedSendOutputRegistrationPolicy,
     privateCoreOperatorSupportedRecipientModel,
     privateCoreOperatorSupportedReleaseDestinationModel,
     privateCoreOperatorSupportedProofSystem,
@@ -1115,6 +1117,12 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 }
                 operatorSupportedSendResultingRootBasis={
                   privateCoreOperatorSupportedSendResultingRootBasis
+                }
+                operatorSupportedSendInputRootPolicy={
+                  privateCoreOperatorSupportedSendInputRootPolicy
+                }
+                operatorSupportedSendOutputRegistrationPolicy={
+                  privateCoreOperatorSupportedSendOutputRegistrationPolicy
                 }
                 operatorSupportedRecipientModel={privateCoreOperatorSupportedRecipientModel}
                 operatorSupportedReleaseDestinationModel={

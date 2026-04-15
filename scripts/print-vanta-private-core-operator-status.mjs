@@ -61,6 +61,20 @@ try {
       : "Unavailable",
   );
   printLine(
+    "Supported send input-root policy",
+    summary.supportedSendInputRootPolicy ===
+      "latest-registered-root-with-linked-registration-proof"
+      ? "Latest registered root with linked registration proof"
+      : "Unavailable",
+  );
+  printLine(
+    "Supported send output registration",
+    summary.supportedSendOutputRegistrationPolicy ===
+      "resulting-root-must-register-as-recipient-or-change-output"
+      ? "Resulting root must register as recipient or change output"
+      : "Unavailable",
+  );
+  printLine(
     "Supported recipient model",
     humanizeSupportedRecipientModel(summary.supportedRecipientModel),
   );

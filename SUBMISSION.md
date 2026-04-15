@@ -340,13 +340,15 @@ npm run private-core:operator-status
 
 The contract readout gives the static narrow-zk-v1 support contract:
 - `contractVersion = 1`
-- `summaryVersion = 17`
+- `summaryVersion = 18`
 - supported send / unshield / release lanes
 - supported product flow
 - supported asset / environment
 - supported note schema / version
 - supported root-registration provenance
 - supported send resulting-root basis
+- supported send input-root policy
+- supported send output-registration policy
 - supported recipient / release-destination models
 - supported proof system
 - supported unshield / send circuits

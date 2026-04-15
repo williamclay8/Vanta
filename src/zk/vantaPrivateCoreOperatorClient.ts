@@ -247,6 +247,9 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedNoteVersion: number;
   supportedRootRegistrationProvenance: "shield-input|send-recipient-output|send-change-output";
   supportedSendResultingRootBasis: "client-declared";
+  supportedSendInputRootPolicy: "latest-registered-root-with-linked-registration-proof";
+  supportedSendOutputRegistrationPolicy:
+    "resulting-root-must-register-as-recipient-or-change-output";
   supportedRecipientModel: "hashed-reference-to-owner-key";
   supportedReleaseDestinationModel: "32-byte-release-destination-field";
   supportedProofSystem: "noir-acir-ultrahonk-bbjs";
@@ -315,6 +318,9 @@ export type VantaPrivateCoreOperatorContractStateResponse = {
   supportedNoteVersion: number;
   supportedRootRegistrationProvenance: "shield-input|send-recipient-output|send-change-output";
   supportedSendResultingRootBasis: "client-declared";
+  supportedSendInputRootPolicy: "latest-registered-root-with-linked-registration-proof";
+  supportedSendOutputRegistrationPolicy:
+    "resulting-root-must-register-as-recipient-or-change-output";
   supportedRecipientModel: "hashed-reference-to-owner-key";
   supportedReleaseDestinationModel: "32-byte-release-destination-field";
   supportedProofSystem: "noir-acir-ultrahonk-bbjs";
@@ -916,6 +922,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedNoteVersion?: unknown;
     supportedRootRegistrationProvenance?: unknown;
     supportedSendResultingRootBasis?: unknown;
+    supportedSendInputRootPolicy?: unknown;
+    supportedSendOutputRegistrationPolicy?: unknown;
     supportedRecipientModel?: unknown;
     supportedReleaseDestinationModel?: unknown;
     supportedProofSystem?: unknown;
@@ -959,7 +967,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
   if (
     parsed.stateVersion !== 1 ||
     parsed.contractVersion !== 1 ||
-    parsed.summaryVersion !== 17 ||
+    parsed.summaryVersion !== 18 ||
     !isContractMirrorStatus(parsed.contractMirrorStatus) ||
     typeof parsed.contractMirrorNote !== "string" ||
     !isBoundaryStatus(parsed.boundaryStatus) ||
@@ -1002,6 +1010,10 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     parsed.supportedRootRegistrationProvenance !==
       "shield-input|send-recipient-output|send-change-output" ||
     parsed.supportedSendResultingRootBasis !== "client-declared" ||
+    parsed.supportedSendInputRootPolicy !==
+      "latest-registered-root-with-linked-registration-proof" ||
+    parsed.supportedSendOutputRegistrationPolicy !==
+      "resulting-root-must-register-as-recipient-or-change-output" ||
     parsed.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     parsed.supportedReleaseDestinationModel !== "32-byte-release-destination-field" ||
     parsed.supportedProofSystem !== "noir-acir-ultrahonk-bbjs" ||
@@ -1067,7 +1079,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
   return {
     stateVersion: 1,
     contractVersion: 1,
-    summaryVersion: 17,
+    summaryVersion: 18,
     contractMirrorStatus: parsed.contractMirrorStatus,
     contractMirrorNote: parsed.contractMirrorNote,
     boundaryStatus: parsed.boundaryStatus,
@@ -1095,6 +1107,10 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedRootRegistrationProvenance:
       "shield-input|send-recipient-output|send-change-output",
     supportedSendResultingRootBasis: "client-declared",
+    supportedSendInputRootPolicy:
+      "latest-registered-root-with-linked-registration-proof",
+    supportedSendOutputRegistrationPolicy:
+      "resulting-root-must-register-as-recipient-or-change-output",
     supportedRecipientModel: "hashed-reference-to-owner-key",
     supportedReleaseDestinationModel: "32-byte-release-destination-field",
     supportedProofSystem: "noir-acir-ultrahonk-bbjs",
@@ -1192,6 +1208,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedNoteVersion?: unknown;
     supportedRootRegistrationProvenance?: unknown;
     supportedSendResultingRootBasis?: unknown;
+    supportedSendInputRootPolicy?: unknown;
+    supportedSendOutputRegistrationPolicy?: unknown;
     supportedRecipientModel?: unknown;
     supportedReleaseDestinationModel?: unknown;
     supportedProofSystem?: unknown;
@@ -1209,7 +1227,7 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
   if (
     parsed.stateVersion !== 1 ||
     parsed.contractVersion !== 1 ||
-    parsed.summaryVersion !== 17 ||
+    parsed.summaryVersion !== 18 ||
     parsed.supportedSendLaneVersion !== 1 ||
     parsed.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     parsed.supportedSendLaneStatus !== "supported" ||
@@ -1233,6 +1251,10 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     parsed.supportedRootRegistrationProvenance !==
       "shield-input|send-recipient-output|send-change-output" ||
     parsed.supportedSendResultingRootBasis !== "client-declared" ||
+    parsed.supportedSendInputRootPolicy !==
+      "latest-registered-root-with-linked-registration-proof" ||
+    parsed.supportedSendOutputRegistrationPolicy !==
+      "resulting-root-must-register-as-recipient-or-change-output" ||
     parsed.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     parsed.supportedReleaseDestinationModel !== "32-byte-release-destination-field" ||
     parsed.supportedProofSystem !== "noir-acir-ultrahonk-bbjs" ||
@@ -1252,7 +1274,7 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
   return {
     stateVersion: 1,
     contractVersion: 1,
-    summaryVersion: 17,
+    summaryVersion: 18,
     supportedSendLaneVersion: 1,
     supportedSendLaneKind: "single-input-single-recipient-optional-change",
     supportedSendLaneStatus: "supported",
@@ -1276,6 +1298,10 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedRootRegistrationProvenance:
       "shield-input|send-recipient-output|send-change-output",
     supportedSendResultingRootBasis: "client-declared",
+    supportedSendInputRootPolicy:
+      "latest-registered-root-with-linked-registration-proof",
+    supportedSendOutputRegistrationPolicy:
+      "resulting-root-must-register-as-recipient-or-change-output",
     supportedRecipientModel: "hashed-reference-to-owner-key",
     supportedReleaseDestinationModel: "32-byte-release-destination-field",
     supportedProofSystem: "noir-acir-ultrahonk-bbjs",
