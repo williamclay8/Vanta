@@ -5,6 +5,7 @@ try {
 
   printLine("Operator", baseUrl);
   printLine("Summary state version", String(summary.stateVersion ?? "unknown"));
+  printLine("Mirrored contract version", String(summary.contractVersion ?? "unknown"));
   printLine("Summary version", String(summary.summaryVersion ?? "unknown"));
   printLine("Summary generated", formatTimestamp(summary.generatedAt));
   printLine("Supported send lane version", String(summary.supportedSendLaneVersion ?? "unknown"));

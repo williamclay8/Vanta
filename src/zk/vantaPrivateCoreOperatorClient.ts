@@ -192,6 +192,7 @@ export type VantaPrivateCoreOperatorRootRegistrationResponse = {
 };
 
 export type VantaPrivateCoreOperatorSummaryStateResponse = {
+  contractVersion: number;
   contractMirrorNote: string;
   contractMirrorStatus: "mirrors-contract" | "contract-mismatch";
   boundaryNote: string;
@@ -878,6 +879,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   const parsed = (await response.json()) as {
     stateVersion?: unknown;
+    contractVersion?: unknown;
     summaryVersion?: unknown;
     contractMirrorStatus?: unknown;
     contractMirrorNote?: unknown;
@@ -956,6 +958,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
+    parsed.contractVersion !== 1 ||
     parsed.summaryVersion !== 17 ||
     !isContractMirrorStatus(parsed.contractMirrorStatus) ||
     typeof parsed.contractMirrorNote !== "string" ||
@@ -1063,6 +1066,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   return {
     stateVersion: 1,
+    contractVersion: 1,
     summaryVersion: 17,
     contractMirrorStatus: parsed.contractMirrorStatus,
     contractMirrorNote: parsed.contractMirrorNote,

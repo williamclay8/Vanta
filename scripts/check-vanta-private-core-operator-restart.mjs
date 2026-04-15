@@ -474,6 +474,7 @@ try {
   });
   if (
     !operatorStatusOutput.includes("Summary version: 17") ||
+    !operatorStatusOutput.includes("Mirrored contract version: 1") ||
     !operatorStatusOutput.includes("Supported send lane version: 1") ||
     !operatorStatusOutput.includes("Supported unshield lane version: 1") ||
     !operatorStatusOutput.includes("Supported proof system: Noir ACIR / UltraHonk / bb.js") ||
