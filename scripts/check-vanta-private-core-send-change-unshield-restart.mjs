@@ -363,6 +363,8 @@ try {
     preRestartSummary.parsed?.proofReleaseLinkStatus !== "linked" ||
     preRestartSummary.parsed?.sendResultingRootStatus !== "downstream-released" ||
     preRestartSummary.parsed?.sendBoundaryStatus !== "downstream-released" ||
+    preRestartSummary.parsed?.sendBoundaryNote !==
+      "Latest send resulting root has already been released downstream." ||
     preRestartSummary.parsed?.boundaryStatus !== "coherent"
   ) {
     throw new Error(preRestartSummary.text || "pre-restart send-change->unshield summary mismatch");
@@ -399,6 +401,8 @@ try {
     postRestartSummary.parsed?.proofReleaseLinkStatus !== "linked" ||
     postRestartSummary.parsed?.sendResultingRootStatus !== "downstream-released" ||
     postRestartSummary.parsed?.sendBoundaryStatus !== "downstream-released" ||
+    postRestartSummary.parsed?.sendBoundaryNote !==
+      "Latest send resulting root has already been released downstream." ||
     postRestartSummary.parsed?.boundaryStatus !== "coherent"
   ) {
     throw new Error(postRestartSummary.text || "post-restart send-change->unshield summary mismatch");
@@ -437,6 +441,8 @@ try {
     !tamperedSummary.ok ||
     tamperedSummary.parsed?.sendResultingRootRegistrationStatus !== "mismatch" ||
     tamperedSummary.parsed?.sendBoundaryStatus !== "output-mismatch" ||
+    tamperedSummary.parsed?.sendBoundaryNote !==
+      "Registered send resulting root does not match the recipient or change output commitment from the latest send." ||
     tamperedSummary.parsed?.boundaryStatus !== "send-root-output-mismatch"
   ) {
     throw new Error(tamperedSummary.text || "tampered send-root registration mismatch was not detected");

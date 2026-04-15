@@ -360,6 +360,8 @@ try {
     summary.parsed?.proofReleaseLinkStatus !== "linked" ||
     summary.parsed?.sendResultingRootStatus !== "downstream-released" ||
     summary.parsed?.sendBoundaryStatus !== "downstream-released" ||
+    summary.parsed?.sendBoundaryNote !==
+      "Latest send resulting root has already been released downstream." ||
     summary.parsed?.boundaryStatus !== "coherent"
   ) {
     throw new Error(summary.text || "operator summary did not reflect send-change->unshield roundtrip");

@@ -383,6 +383,8 @@ try {
     preRestartSummary.parsed?.sendRecordCount !== 2 ||
     preRestartSummary.parsed?.sendProofRecordCount !== 2 ||
     preRestartSummary.parsed?.sendBoundaryStatus !== "awaiting-registration" ||
+    preRestartSummary.parsed?.sendBoundaryNote !==
+      "Latest send resulting root still needs operator registration before downstream continuity is established." ||
     preRestartSummary.parsed?.proofSendLinkStatus !== "linked" ||
     preRestartSummary.parsed?.latestSend?.sendId !== secondResponse.parsed.sendId ||
     preRestartSummary.parsed?.latestSendLinkedProof?.proofId !== secondResponse.parsed.proofId ||
@@ -425,6 +427,8 @@ try {
     postRestartSummary.parsed?.sendRecordCount !== 2 ||
     postRestartSummary.parsed?.sendProofRecordCount !== 2 ||
     postRestartSummary.parsed?.sendBoundaryStatus !== "awaiting-registration" ||
+    postRestartSummary.parsed?.sendBoundaryNote !==
+      "Latest send resulting root still needs operator registration before downstream continuity is established." ||
     postRestartSummary.parsed?.proofSendLinkStatus !== "linked" ||
     postRestartSummary.parsed?.latestSend?.sendId !== secondResponse.parsed.sendId ||
     postRestartSummary.parsed?.latestSendLinkedProof?.proofId !== secondResponse.parsed.proofId ||

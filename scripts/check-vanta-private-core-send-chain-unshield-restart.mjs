@@ -403,6 +403,8 @@ try {
     preRestartSummary.parsed?.proofConsumeLinkStatus !== "linked" ||
     preRestartSummary.parsed?.proofReleaseLinkStatus !== "linked" ||
     preRestartSummary.parsed?.sendBoundaryStatus !== "downstream-released" ||
+    preRestartSummary.parsed?.sendBoundaryNote !==
+      "Latest send resulting root has already been released downstream." ||
     preRestartSummary.parsed?.boundaryStatus !== "coherent"
   ) {
     throw new Error(preRestartSummary.text || "pre-restart chained send->unshield summary mismatch");
@@ -432,6 +434,8 @@ try {
     postRestartSummary.parsed?.proofConsumeLinkStatus !== "linked" ||
     postRestartSummary.parsed?.proofReleaseLinkStatus !== "linked" ||
     postRestartSummary.parsed?.sendBoundaryStatus !== "downstream-released" ||
+    postRestartSummary.parsed?.sendBoundaryNote !==
+      "Latest send resulting root has already been released downstream." ||
     postRestartSummary.parsed?.boundaryStatus !== "coherent"
   ) {
     throw new Error(postRestartSummary.text || "post-restart chained send->unshield summary mismatch");
@@ -471,6 +475,8 @@ try {
     !tamperedSummary.ok ||
     tamperedSummary.parsed?.sendResultingRootRegistrationStatus !== "mismatch" ||
     tamperedSummary.parsed?.sendBoundaryStatus !== "output-mismatch" ||
+    tamperedSummary.parsed?.sendBoundaryNote !==
+      "Registered send resulting root does not match the recipient or change output commitment from the latest send." ||
     tamperedSummary.parsed?.boundaryStatus !== "send-root-output-mismatch"
   ) {
     throw new Error(

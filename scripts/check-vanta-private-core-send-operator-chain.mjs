@@ -368,6 +368,8 @@ try {
     summary.parsed?.sendRecordCount !== 2 ||
     summary.parsed?.sendProofRecordCount !== 2 ||
     summary.parsed?.sendBoundaryStatus !== "awaiting-registration" ||
+    summary.parsed?.sendBoundaryNote !==
+      "Latest send resulting root still needs operator registration before downstream continuity is established." ||
     summary.parsed?.boundaryStatus !== "coherent" ||
     summary.parsed?.proofSendLinkStatus !== "linked" ||
     summary.parsed?.latestSend?.sendId !== secondTransitionResponse.parsed.sendId ||
