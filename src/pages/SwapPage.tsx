@@ -20,6 +20,11 @@ import {
 } from "@/solana/swapOperatorClient";
 import { useVantaShieldState } from "@/solana/useVantaShieldState";
 import {
+  fetchVantaPrivateCoreOperatorSwapProofs,
+  requestVantaPrivateCoreOperatorSwapProof,
+} from "@/zk/vantaPrivateCoreOperatorClient";
+import { getVantaPrivateCoreFixedDepthSwapFixtureV0 } from "@/zk/vantaPrivateCoreSwapProof";
+import {
   createPreparedSwapMemo,
   createSpentMarkerInstruction,
 } from "@/solana/vantaShieldState";
@@ -77,6 +82,15 @@ type SwapStatus =
   | "finalizing_state"
   | "complete"
   | "failed";
+
+type PrivateCoreSwapProofExecution = {
+  errorMessage: string | null;
+  latestProofAction: string | null;
+  latestProofId: string | null;
+  proofFieldCount: number | null;
+  proofPublicInputCount: number | null;
+  status: "idle" | "verifying" | "verified" | "failed";
+};
 
 function formatVusdAmount(value: number) {
   return `${value.toLocaleString(undefined, {
@@ -154,6 +168,25 @@ export function SwapPage() {
     venueNetwork: "Devnet";
     venuePoolAddress: string;
   } | null>(null);
+  const [privateCoreSwapProofExecution, setPrivateCoreSwapProofExecution] =
+    useState<PrivateCoreSwapProofExecution>({
+      errorMessage: null,
+      latestProofAction: null,
+      latestProofId: null,
+      proofFieldCount: null,
+      proofPublicInputCount: null,
+      status: "idle",
+    });
+  const [privateCoreSwapProofError, setPrivateCoreSwapProofError] = useState<string | null>(null);
+  const [privateCoreSwapProofs, setPrivateCoreSwapProofs] = useState<
+    Array<{
+      action: string;
+      proofId: string;
+      proofFieldCount: number;
+      publicInputCount: number;
+      root: string;
+    }>
+  >([]);
   const swapTransaction = useSendTransaction();
   const swapWait = useRealtimeSignatureProgress(swapTransaction.signature ?? undefined, {
     commitment: "confirmed",
@@ -202,6 +235,41 @@ export function SwapPage() {
   const selectedNote = useMemo(() => {
     return spendableNotes.find((note) => note.noteId === selectedNoteId) ?? null;
   }, [selectedNoteId, spendableNotes]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void fetchVantaPrivateCoreOperatorSwapProofs()
+      .then((state) => {
+        if (cancelled) {
+          return;
+        }
+
+        setPrivateCoreSwapProofError(null);
+        setPrivateCoreSwapProofs(state.records);
+        setPrivateCoreSwapProofExecution((current) => ({
+          ...current,
+          latestProofAction: state.latestProof?.action ?? current.latestProofAction,
+          latestProofId: state.latestProof?.proofId ?? current.latestProofId,
+        }));
+      })
+      .catch((error) => {
+        if (cancelled) {
+          return;
+        }
+
+        setPrivateCoreSwapProofError(
+          error instanceof Error
+            ? error.message
+            : "The private-core swap proof operator state could not be loaded.",
+        );
+        setPrivateCoreSwapProofs([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [quoteRefreshNonce, status]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -764,6 +832,47 @@ export function SwapPage() {
     }
   }
 
+  async function handleVerifyPrivateCoreSwapProof() {
+    setPrivateCoreSwapProofExecution((current) => ({
+      ...current,
+      errorMessage: null,
+      proofFieldCount: null,
+      proofPublicInputCount: null,
+      status: "verifying",
+    }));
+
+    try {
+      const fixture = getVantaPrivateCoreFixedDepthSwapFixtureV0();
+      const proofReceipt = await requestVantaPrivateCoreOperatorSwapProof({
+        witnessPackage: fixture.validBoundary.noirWitnessPackage,
+      });
+      const nextState = await fetchVantaPrivateCoreOperatorSwapProofs();
+
+      setPrivateCoreSwapProofError(null);
+      setPrivateCoreSwapProofs(nextState.records);
+      setPrivateCoreSwapProofExecution({
+        errorMessage: null,
+        latestProofAction: nextState.latestProof?.action ?? null,
+        latestProofId: nextState.latestProof?.proofId ?? null,
+        proofFieldCount: proofReceipt.proofFieldCount,
+        proofPublicInputCount: proofReceipt.publicInputCount,
+        status: "verified",
+      });
+    } catch (error) {
+      setPrivateCoreSwapProofExecution({
+        errorMessage:
+          error instanceof Error
+            ? error.message
+            : "The private-core swap proof lane failed.",
+        latestProofAction: null,
+        latestProofId: null,
+        proofFieldCount: null,
+        proofPublicInputCount: null,
+        status: "failed",
+      });
+    }
+  }
+
   let validationMessage =
     "Swap v2 supports one full spendable VUSD note at a time and replaces it with one shielded SOL output state inside Vanta using a constrained Meteora-aware operator quote.";
 
@@ -1195,6 +1304,16 @@ export function SwapPage() {
                       : "Accepted"}
                   </strong>
                 </div>
+                <div className="review-row">
+                  <span>Latest swap proof</span>
+                  <strong>
+                    {privateCoreSwapProofExecution.latestProofId
+                      ? abbreviate(privateCoreSwapProofExecution.latestProofId)
+                      : privateCoreSwapProofs[0]?.proofId
+                        ? abbreviate(privateCoreSwapProofs[0].proofId)
+                        : "Unavailable"}
+                  </strong>
+                </div>
               </div>
               <details className="preview-card" style={{ marginTop: 16 }}>
                 <summary>Internal zk diagnostics</summary>
@@ -1346,7 +1465,67 @@ export function SwapPage() {
                   <span>Flow error</span>
                   <strong>{formatDiagnosticValue(flowError)}</strong>
                 </div>
+                <div className="review-row">
+                  <span>Private-core swap proof</span>
+                  <strong>{privateCoreSwapProofExecution.status}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Latest operator swap proof</span>
+                  <strong>
+                    {privateCoreSwapProofError
+                      ? privateCoreSwapProofError
+                      : privateCoreSwapProofExecution.latestProofId
+                        ? abbreviate(privateCoreSwapProofExecution.latestProofId)
+                        : privateCoreSwapProofs[0]?.proofId
+                          ? abbreviate(privateCoreSwapProofs[0].proofId)
+                          : "Unavailable"}
+                  </strong>
+                </div>
+                <div className="review-row">
+                  <span>Latest swap proof action</span>
+                  <strong>
+                    {privateCoreSwapProofError
+                      ? privateCoreSwapProofError
+                      : privateCoreSwapProofExecution.latestProofAction ??
+                        privateCoreSwapProofs[0]?.action ??
+                        "Unavailable"}
+                  </strong>
+                </div>
+                <div className="review-row">
+                  <span>Swap proof records</span>
+                  <strong>
+                    {privateCoreSwapProofError ? "Unavailable" : String(privateCoreSwapProofs.length)}
+                  </strong>
+                </div>
+                <div className="review-row">
+                  <span>Swap proof shape</span>
+                  <strong>
+                    {privateCoreSwapProofExecution.proofFieldCount &&
+                    privateCoreSwapProofExecution.proofPublicInputCount
+                      ? `${privateCoreSwapProofExecution.proofFieldCount} fields · ${privateCoreSwapProofExecution.proofPublicInputCount} public inputs`
+                      : "Unavailable"}
+                  </strong>
+                </div>
               </div>
+              <div className="status-actions">
+                <button
+                  className="button button-ghost"
+                  type="button"
+                  onClick={() => {
+                    void handleVerifyPrivateCoreSwapProof();
+                  }}
+                  disabled={privateCoreSwapProofExecution.status === "verifying"}
+                >
+                  {privateCoreSwapProofExecution.status === "verifying"
+                    ? "Verifying swap proof"
+                    : "Verify private swap proof"}
+                </button>
+              </div>
+              {privateCoreSwapProofExecution.errorMessage && (
+                <p className="shield-helper shield-helper--meta" style={{ color: "#b42318" }}>
+                  Swap proof error: {privateCoreSwapProofExecution.errorMessage}
+                </p>
+              )}
             </div>
           )}
         </article>
