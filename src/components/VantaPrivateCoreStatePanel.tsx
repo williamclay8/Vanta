@@ -474,6 +474,49 @@ export function VantaPrivateCoreStatePanel({
         </div>
       </div>
 
+      {compact &&
+      (latestOperatorSwap ||
+        operatorSwapBoundaryStatusLabel ||
+        operatorSwapContinuityStatusLabel ||
+        operatorSwapResultingRootStatusLabel) ? (
+        <div className="note-state-list">
+          <div className="note-state-row">
+            <div className="note-state-row__header">
+              <div>
+                <strong>
+                  {latestOperatorSwap?.outputAmount
+                    ? `${latestOperatorSwap.outputAmount} SOL`
+                    : "Latest swap output"}
+                </strong>
+                <span>
+                  {latestOperatorSwap?.swapId
+                    ? abbreviate(latestOperatorSwap.swapId)
+                    : "No swap transition recorded"}
+                </span>
+              </div>
+              <div className="note-state-chips">
+                <span className="note-state-chip">
+                  {operatorSwapBoundaryStatusLabel ?? "Swap boundary unavailable"}
+                </span>
+                <span className="note-state-chip">
+                  {operatorSwapContinuityStatusLabel ?? "No swap continuity observed"}
+                </span>
+              </div>
+            </div>
+            <div className="note-state-row__meta">
+              <span>
+                Swap root{" "}
+                {latestOperatorSwap?.resultingRoot
+                  ? abbreviate(latestOperatorSwap.resultingRoot)
+                  : "Unavailable"}
+              </span>
+              <span>{operatorSwapResultingRootStatusLabel ?? "Swap root unavailable"}</span>
+              <span>{operatorSwapBoundaryPrimaryNote ?? "No swap boundary note yet"}</span>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {sendState ? (
         <div className="note-state-list">
           <div className="note-state-row">
