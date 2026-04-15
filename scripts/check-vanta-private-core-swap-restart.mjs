@@ -314,6 +314,27 @@ try {
     throw new Error(postRestartSummary.text || "swap restart persisted state was incoherent");
   }
   printStatus("private-core swap restart persisted state: PASS");
+
+  const operatorStatusOutput = execFileSync("node", [
+    "scripts/print-vanta-private-core-operator-status.mjs",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  if (
+    !operatorStatusOutput.includes(`Latest swap execution venue: ${executionVenueLabel}`) ||
+    !operatorStatusOutput.includes(`Latest swap quote reference: ${executionQuoteReference}`) ||
+    !operatorStatusOutput.includes("Latest swap transition:") ||
+    !operatorStatusOutput.includes("Latest swap linked proof:")
+  ) {
+    throw new Error(
+      operatorStatusOutput || "swap restart operator-status output did not reflect persisted swap context",
+    );
+  }
+  printStatus("private-core swap restart operator-status: PASS");
 } catch (error) {
   console.error(serverOutput);
   if (liveServer) {

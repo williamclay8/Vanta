@@ -308,6 +308,27 @@ try {
     throw new Error(summaryState.text || "operator summary did not capture swap transition state");
   }
   printStatus("operator swap transition summary state: PASS");
+
+  const operatorStatusOutput = execFileSync("node", [
+    "scripts/print-vanta-private-core-operator-status.mjs",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  if (
+    !operatorStatusOutput.includes(`Latest swap execution venue: ${executionVenueLabel}`) ||
+    !operatorStatusOutput.includes(`Latest swap quote reference: ${executionQuoteReference}`) ||
+    !operatorStatusOutput.includes("Latest swap transition:") ||
+    !operatorStatusOutput.includes("Latest swap linked proof:")
+  ) {
+    throw new Error(
+      operatorStatusOutput || "operator swap transition operator-status surface was not coherent",
+    );
+  }
+  printStatus("operator swap transition operator-status: PASS");
 } catch (error) {
   console.error(stdout);
   console.error(stderr);
