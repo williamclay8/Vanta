@@ -339,8 +339,8 @@ npm run private-core:operator-status
 ```
 
 The contract readout gives the static narrow-zk-v1 support contract:
-- `contractVersion = 4`
-- `summaryVersion = 23`
+- `contractVersion = 5`
+- `summaryVersion = 24`
 - supported send / unshield / release lanes
 - supported product flow
 - supported asset / environment
@@ -371,6 +371,7 @@ The same operator contract now also versions the supported narrow unshield lane:
 - `supportedReleaseLaneVersion = 1`
 - `supportedReleaseLaneKind = proof-backed-consume-latest-registered-root`
 - `supportedReleaseLaneStatus = supported`
+- `supportedReleaseV1Decision = accepted-narrow-v1-path`
 - `supportedFlowVersion = 1`
 - `supportedFlowKind = shield-hold-send-unshield-replay-guard`
 - `supportedFlowStatus = supported`

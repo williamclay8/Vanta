@@ -35,6 +35,14 @@ try {
     humanizeSupportedReleaseLaneStatus(summary.supportedReleaseLaneStatus),
   );
   printLine("Supported release lane note", summary.supportedReleaseLaneNote ?? "Unavailable");
+  printLine(
+    "Supported release v1 decision",
+    humanizeSupportedReleaseV1Decision(summary.supportedReleaseV1Decision),
+  );
+  printLine(
+    "Supported release v1 decision note",
+    summary.supportedReleaseV1DecisionNote ?? "Unavailable",
+  );
   printLine("Supported flow version", String(summary.supportedFlowVersion ?? "unknown"));
   printLine("Supported flow kind", humanizeSupportedFlowKind(summary.supportedFlowKind));
   printLine("Supported flow status", humanizeSupportedFlowStatus(summary.supportedFlowStatus));
@@ -471,6 +479,15 @@ function humanizeSupportedReleaseLaneStatus(value) {
   switch (value) {
     case "supported":
       return "Supported";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeSupportedReleaseV1Decision(value) {
+  switch (value) {
+    case "accepted-narrow-v1-path":
+      return "Accepted narrow v1 path";
     default:
       return "Unavailable";
   }

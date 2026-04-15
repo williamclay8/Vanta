@@ -151,6 +151,9 @@ const PRIVATE_CORE_SUPPORTED_RELEASE_LANE_KIND = "proof-backed-consume-latest-re
 const PRIVATE_CORE_SUPPORTED_RELEASE_LANE_STATUS = "supported";
 const PRIVATE_CORE_SUPPORTED_RELEASE_LANE_NOTE =
   "Current narrow zk v1 release lane is supported for proof-backed consume-authorized release under the latest registered root policy.";
+const PRIVATE_CORE_SUPPORTED_RELEASE_V1_DECISION = "accepted-narrow-v1-path";
+const PRIVATE_CORE_SUPPORTED_RELEASE_V1_DECISION_NOTE =
+  "Current operator-backed proof-backed release lane is accepted as the narrow zk v1 release path for VUSD on solana-devnet.";
 const PRIVATE_CORE_SUPPORTED_FLOW_VERSION = 1;
 const PRIVATE_CORE_SUPPORTED_FLOW_KIND = "shield-hold-send-unshield-replay-guard";
 const PRIVATE_CORE_SUPPORTED_FLOW_STATUS = "supported";
@@ -1652,8 +1655,8 @@ function buildPrivateCoreSummaryState() {
 function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
-    contractVersion: 4,
-    summaryVersion: 23,
+    contractVersion: 5,
+    summaryVersion: 24,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
@@ -1666,6 +1669,8 @@ function buildPrivateCoreContractState() {
     supportedReleaseLaneKind: PRIVATE_CORE_SUPPORTED_RELEASE_LANE_KIND,
     supportedReleaseLaneStatus: PRIVATE_CORE_SUPPORTED_RELEASE_LANE_STATUS,
     supportedReleaseLaneNote: PRIVATE_CORE_SUPPORTED_RELEASE_LANE_NOTE,
+    supportedReleaseV1Decision: PRIVATE_CORE_SUPPORTED_RELEASE_V1_DECISION,
+    supportedReleaseV1DecisionNote: PRIVATE_CORE_SUPPORTED_RELEASE_V1_DECISION_NOTE,
     supportedFlowVersion: PRIVATE_CORE_SUPPORTED_FLOW_VERSION,
     supportedFlowKind: PRIVATE_CORE_SUPPORTED_FLOW_KIND,
     supportedFlowStatus: PRIVATE_CORE_SUPPORTED_FLOW_STATUS,
@@ -1718,6 +1723,8 @@ function summarizePrivateCoreContractMirrorStatus(args) {
     "supportedReleaseLaneKind",
     "supportedReleaseLaneStatus",
     "supportedReleaseLaneNote",
+    "supportedReleaseV1Decision",
+    "supportedReleaseV1DecisionNote",
     "supportedFlowVersion",
     "supportedFlowKind",
     "supportedFlowStatus",

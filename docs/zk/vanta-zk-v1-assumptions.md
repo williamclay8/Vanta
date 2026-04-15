@@ -38,6 +38,9 @@ The repo now also freezes the current source/proving split explicitly:
 - `provingArtifactTruthBasis = verified-proving-public-input-vector`
 - `sourceProvingRelationship = explicit-split-no-implicit-equality`
 
+The repo now also freezes the current release-lane decision explicitly:
+- `supportedReleaseV1Decision = accepted-narrow-v1-path`
+
 That means:
 - the app or operator path may recompute the owner public key from the supplied secret material
 - the first Noir unshield circuit does not need to prove X25519 ownership in-circuit

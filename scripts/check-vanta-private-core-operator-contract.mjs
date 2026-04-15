@@ -102,8 +102,8 @@ try {
   if (
     !contractState.ok ||
     contractState.parsed?.stateVersion !== 1 ||
-    contractState.parsed?.contractVersion !== 4 ||
-    contractState.parsed?.summaryVersion !== 23 ||
+    contractState.parsed?.contractVersion !== 5 ||
+    contractState.parsed?.summaryVersion !== 24 ||
     contractState.parsed?.supportedSendLaneVersion !== 1 ||
     contractState.parsed?.supportedUnshieldLaneVersion !== 1 ||
     contractState.parsed?.supportedReleaseLaneVersion !== 1 ||
@@ -124,6 +124,8 @@ try {
     contractState.parsed?.supportedSendCircuit !== "vanta_private_core_single_note_send" ||
     contractState.parsed?.supportedUnshieldMerkleDepth !== 3 ||
     contractState.parsed?.supportedSendMerkleDepth !== 3 ||
+    contractState.parsed?.supportedReleaseV1Decision !== "accepted-narrow-v1-path" ||
+    typeof contractState.parsed?.supportedReleaseV1DecisionNote !== "string" ||
     contractState.parsed?.supportedReleaseExecutionModel !== "operator-recorded-devnet-release" ||
     contractState.parsed?.supportedReleaseAtomicityModel !==
       "operator-local-atomic-consume-and-release-record" ||
@@ -153,6 +155,8 @@ try {
     "supportedReleaseLaneKind",
     "supportedReleaseLaneStatus",
     "supportedReleaseLaneNote",
+    "supportedReleaseV1Decision",
+    "supportedReleaseV1DecisionNote",
     "supportedFlowVersion",
     "supportedFlowKind",
     "supportedFlowStatus",
@@ -224,13 +228,14 @@ try {
   });
   if (
     !contractOutput.includes("Contract state version: 1") ||
-    !contractOutput.includes("Contract version: 4") ||
-    !contractOutput.includes("Summary compatibility: 23") ||
+    !contractOutput.includes("Contract version: 5") ||
+    !contractOutput.includes("Summary compatibility: 24") ||
     !contractOutput.includes("Supported note schema: NoteV0 / v0") ||
     !contractOutput.includes(
       "Supported root provenance: Shield input / send recipient output / send change output",
     ) ||
     !contractOutput.includes("Supported send root basis: Client-declared") ||
+    !contractOutput.includes("Supported release v1 decision: accepted-narrow-v1-path") ||
     !contractOutput.includes(
       "Supported send input-root policy: Latest registered root with linked registration proof",
     ) ||

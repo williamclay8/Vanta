@@ -97,6 +97,9 @@ What still remains for `zk v1` is finishing that into a fuller verifier-side con
 - atomic release with nullifier consumption in the chosen real product lane, not just operator-local state
 - a clear decision about whether the current operator-summary-supported release lane is already sufficient for the narrowest `v1`, or still only a proving milestone
 
+The repo now freezes that current narrow choice explicitly:
+- `supportedReleaseV1Decision = accepted-narrow-v1-path`
+
 ### 2. Freeze the owner-auth decision for v1
 
 Today the first circuit explicitly keeps owner authorization off-circuit.

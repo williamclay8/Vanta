@@ -28,6 +28,14 @@ try {
   printLine("Supported release lane kind", contract.supportedReleaseLaneKind ?? "Unavailable");
   printLine("Supported release lane status", contract.supportedReleaseLaneStatus ?? "Unavailable");
   printLine("Supported release lane note", contract.supportedReleaseLaneNote ?? "Unavailable");
+  printLine(
+    "Supported release v1 decision",
+    contract.supportedReleaseV1Decision ?? "Unavailable",
+  );
+  printLine(
+    "Supported release v1 decision note",
+    contract.supportedReleaseV1DecisionNote ?? "Unavailable",
+  );
   printLine("Supported flow version", String(contract.supportedFlowVersion ?? "unknown"));
   printLine("Supported flow kind", contract.supportedFlowKind ?? "Unavailable");
   printLine("Supported flow status", contract.supportedFlowStatus ?? "Unavailable");
