@@ -449,6 +449,35 @@ try {
     throw new Error(replay.text || "final recipient replay rejection did not survive restart");
   }
   printStatus("private-core send-chain->unshield restart replay rejection: PASS");
+
+  const rootStorePath = join(tempRoot, "roots.json");
+  const tamperedRootStore = JSON.parse(readFileSync(rootStorePath, "utf8"));
+  tamperedRootStore.roots[finalHeldRecipient.witness.root].noteCommitment =
+    firstInputSourceArtifacts.noteCommitment;
+  writeFileSync(rootStorePath, `${JSON.stringify(tamperedRootStore, null, 2)}\n`, "utf8");
+
+  await stopServer(liveServer);
+  liveServer = null;
+  serverOutput = started.getOutput();
+
+  started = startServer(tempRoot, port);
+  liveServer = started.server;
+  await waitForHealth(baseUrl);
+
+  const tamperedSummary = await requestJson(baseUrl, "/state/private-core-summary", {
+    method: "GET",
+  });
+  if (
+    !tamperedSummary.ok ||
+    tamperedSummary.parsed?.sendResultingRootRegistrationStatus !== "mismatch" ||
+    tamperedSummary.parsed?.sendBoundaryStatus !== "output-mismatch" ||
+    tamperedSummary.parsed?.boundaryStatus !== "send-root-output-mismatch"
+  ) {
+    throw new Error(
+      tamperedSummary.text || "tampered chained send-root registration mismatch was not detected",
+    );
+  }
+  printStatus("private-core send-chain->unshield restart tampered output continuity: PASS");
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   console.error(message);
