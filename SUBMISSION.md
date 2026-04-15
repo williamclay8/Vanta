@@ -184,6 +184,8 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   proves the operator verifies the current constrained swap witness package over HTTP, persists explicit swap-proof state, and keeps the unshield/send verifier state untouched because this first seam is proof-only
 - `npm run private-core:swap-transition-http-smoke`
   proves the operator enforces current registered-root gating for the constrained swap input note, verifies the current constrained swap witness package over HTTP, persists explicit swap-transition state, and links that transition to its swap proof
+- `npm run private-core:swap-restart-check`
+  proves the constrained swap proof + swap-transition state survive operator restart with coherent summary-backed proof/swap linkage
 - `npm run private-core:send-roundtrip-check`
   proves one operator-backed private-send roundtrip from verified send transition through sender residual-change recovery, recipient note recovery, recipient spendability, and sender privacy failure
 - `npm run private-core:send-unshield-roundtrip-check`
@@ -224,6 +226,7 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   - operator send-proof HTTP smoke test
   - operator swap-proof HTTP smoke test
   - operator swap-transition HTTP smoke test
+  - operator swap restart persistence check
   - operator restart persistence check
   - persisted send-proof state across restart
   - persisted send-transition state across restart
