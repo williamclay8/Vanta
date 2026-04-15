@@ -133,6 +133,8 @@ export function UnshieldPage() {
     privateCoreOperatorSupportedReleaseLaneNote,
     privateCoreOperatorSupportedReleaseLaneStatus,
     privateCoreOperatorSupportedReleaseLaneVersion,
+    privateCoreOperatorSupportedReleaseV1Decision,
+    privateCoreOperatorSupportedReleaseV1DecisionNote,
     privateCoreOperatorSupportedFlowKind,
     privateCoreOperatorSupportedFlowNote,
     privateCoreOperatorSupportedFlowStatus,
@@ -980,6 +982,10 @@ export function UnshieldPage() {
           operatorSupportedReleaseLaneNote={privateCoreOperatorSupportedReleaseLaneNote}
           operatorSupportedReleaseLaneStatus={privateCoreOperatorSupportedReleaseLaneStatus}
           operatorSupportedReleaseLaneVersion={privateCoreOperatorSupportedReleaseLaneVersion}
+          operatorSupportedReleaseV1Decision={privateCoreOperatorSupportedReleaseV1Decision}
+          operatorSupportedReleaseV1DecisionNote={
+            privateCoreOperatorSupportedReleaseV1DecisionNote
+          }
           operatorSupportedFlowKind={privateCoreOperatorSupportedFlowKind}
           operatorSupportedFlowNote={privateCoreOperatorSupportedFlowNote}
           operatorSupportedFlowStatus={privateCoreOperatorSupportedFlowStatus}

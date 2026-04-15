@@ -52,6 +52,8 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSupportedReleaseLaneNote?: string | null;
   operatorSupportedReleaseLaneStatus?: string | null;
   operatorSupportedReleaseLaneVersion?: number | null;
+  operatorSupportedReleaseV1Decision?: string | null;
+  operatorSupportedReleaseV1DecisionNote?: string | null;
   operatorSupportedFlowKind?: string | null;
   operatorSupportedFlowNote?: string | null;
   operatorSupportedFlowStatus?: string | null;
@@ -251,6 +253,8 @@ export function VantaPrivateCoreStatePanel({
   operatorSupportedReleaseLaneNote = null,
   operatorSupportedReleaseLaneStatus = null,
   operatorSupportedReleaseLaneVersion = null,
+  operatorSupportedReleaseV1Decision = null,
+  operatorSupportedReleaseV1DecisionNote = null,
   operatorSupportedFlowKind = null,
   operatorSupportedFlowNote = null,
   operatorSupportedFlowStatus = null,
@@ -812,6 +816,18 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Supported release note</span>
               <strong>{operatorSupportedReleaseLaneNote ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Release v1 decision</span>
+              <strong>
+                {operatorSupportedReleaseV1Decision === "accepted-narrow-v1-path"
+                  ? "Accepted narrow v1 path"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Release v1 decision note</span>
+              <strong>{operatorSupportedReleaseV1DecisionNote ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Supported flow note</span>
