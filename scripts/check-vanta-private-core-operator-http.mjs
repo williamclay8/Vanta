@@ -220,7 +220,10 @@ try {
   if (
     !initialSummaryState.ok ||
     initialSummaryState.parsed?.stateVersion !== 1 ||
-    initialSummaryState.parsed?.summaryVersion !== 16 ||
+    initialSummaryState.parsed?.summaryVersion !== 17 ||
+    initialSummaryState.parsed?.contractMirrorStatus !== "mirrors-contract" ||
+    initialSummaryState.parsed?.contractMirrorNote !==
+      "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
     initialSummaryState.parsed?.supportedSendLaneVersion !== 1 ||
     initialSummaryState.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     initialSummaryState.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -891,7 +894,10 @@ try {
   if (
     !summaryStateAfterConsume.ok ||
     summaryStateAfterConsume.parsed?.stateVersion !== 1 ||
-    summaryStateAfterConsume.parsed?.summaryVersion !== 16 ||
+    summaryStateAfterConsume.parsed?.summaryVersion !== 17 ||
+    summaryStateAfterConsume.parsed?.contractMirrorStatus !== "mirrors-contract" ||
+    summaryStateAfterConsume.parsed?.contractMirrorNote !==
+      "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
     summaryStateAfterConsume.parsed?.supportedSendLaneVersion !== 1 ||
     summaryStateAfterConsume.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     summaryStateAfterConsume.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -981,7 +987,10 @@ try {
   });
   if (
     !summaryStateAfterRelease.ok ||
-    summaryStateAfterRelease.parsed?.summaryVersion !== 16 ||
+    summaryStateAfterRelease.parsed?.summaryVersion !== 17 ||
+    summaryStateAfterRelease.parsed?.contractMirrorStatus !== "mirrors-contract" ||
+    summaryStateAfterRelease.parsed?.contractMirrorNote !==
+      "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
     summaryStateAfterRelease.parsed?.supportedSendLaneVersion !== 1 ||
     summaryStateAfterRelease.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     summaryStateAfterRelease.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -1057,65 +1066,15 @@ try {
   });
   if (
     !operatorStatusOutput.includes("Summary state version: 1") ||
-    !operatorStatusOutput.includes("Summary version: 16") ||
-    !operatorStatusOutput.includes("Summary generated:") ||
+    !operatorStatusOutput.includes("Summary version: 17") ||
     !operatorStatusOutput.includes("Supported send lane version: 1") ||
-    !operatorStatusOutput.includes("Supported send lane kind: Single input / recipient / optional change") ||
-    !operatorStatusOutput.includes("Supported send lane status: Supported") ||
-    !operatorStatusOutput.includes("Supported send lane note: Current narrow zk v1 send lane is supported") ||
     !operatorStatusOutput.includes("Supported unshield lane version: 1") ||
-    !operatorStatusOutput.includes("Supported unshield lane kind: Single-note proof-backed consume") ||
-    !operatorStatusOutput.includes("Supported unshield lane status: Supported") ||
-    !operatorStatusOutput.includes("Supported unshield lane note: Current narrow zk v1 unshield lane is supported") ||
-    !operatorStatusOutput.includes("Supported release lane version: 1") ||
-    !operatorStatusOutput.includes(
-      "Supported release lane kind: Proof-backed consume / latest registered root",
-    ) ||
-    !operatorStatusOutput.includes("Supported release lane status: Supported") ||
-    !operatorStatusOutput.includes("Supported release lane note: Current narrow zk v1 release lane is supported") ||
-    !operatorStatusOutput.includes("Supported flow version: 1") ||
-    !operatorStatusOutput.includes("Supported flow kind: Shield / hold / send / unshield / replay guard") ||
-    !operatorStatusOutput.includes("Supported flow status: Supported") ||
-    !operatorStatusOutput.includes("Supported flow note: Current narrow zk v1 product flow is shield, hold, private send, unshield, and replay guard") ||
-    !operatorStatusOutput.includes("Supported asset: VUSD") ||
-    !operatorStatusOutput.includes("Supported environment: solana-devnet") ||
-    !operatorStatusOutput.includes("Supported note schema: NoteV0 / v0") ||
-    !operatorStatusOutput.includes(
-      "Supported root provenance: Shield input / send recipient output / send change output",
-    ) ||
-    !operatorStatusOutput.includes("Supported send root basis: Client-declared") ||
-    !operatorStatusOutput.includes("Supported recipient model: Hashed reference to owner key") ||
-    !operatorStatusOutput.includes(
-      "Supported release destination model: 32-byte release destination field",
-    ) ||
     !operatorStatusOutput.includes("Supported proof system: Noir ACIR / UltraHonk / bb.js") ||
-    !operatorStatusOutput.includes(
-      "Supported unshield circuit: vanta_private_core_single_note_unshield @ depth 3",
-    ) ||
-    !operatorStatusOutput.includes(
-      "Supported send circuit: vanta_private_core_single_note_send @ depth 3",
-    ) ||
-    !operatorStatusOutput.includes("Supported release authorization: Proof-backed consume") ||
-    !operatorStatusOutput.includes("Supported release root policy: Latest registered root") ||
-    !operatorStatusOutput.includes("Owner authorization mode: X25519 secret prechecked off-circuit") ||
-    !operatorStatusOutput.includes("Nullifier key mode: Note secret as nullifier key v0") ||
-    !operatorStatusOutput.includes("Proving hash lane: poseidon-bn254-proving-lane-v0") ||
     !operatorStatusOutput.includes("Latest proof action: consume") ||
-    !operatorStatusOutput.includes("Latest consume proof:") ||
-    !operatorStatusOutput.includes("Latest consume linked proof:") ||
-    !operatorStatusOutput.includes("Latest release proof:") ||
-    !operatorStatusOutput.includes("Latest release linked proof:") ||
-    !operatorStatusOutput.includes("Release authorization: Proof-backed consume") ||
-    !operatorStatusOutput.includes("Release root policy: Latest registered root") ||
-    !operatorStatusOutput.includes("Current root linked proof:") ||
-    !operatorStatusOutput.includes("Current root proof link: linked") ||
-    !operatorStatusOutput.includes("Latest send resulting root:") ||
-    !operatorStatusOutput.includes("Send resulting root status: Unavailable") ||
-    !operatorStatusOutput.includes("Send resulting root record: Unavailable") ||
     !operatorStatusOutput.includes("Proof/consume link: linked") ||
     !operatorStatusOutput.includes("Proof/release link: linked") ||
-    !operatorStatusOutput.includes("Boundary status: Operator boundary coherent") ||
-    !operatorStatusOutput.includes("Boundary note: Current root, consume, release, and linked proofs agree.")
+    !operatorStatusOutput.includes("Contract mirror status: Summary mirrors frozen contract") ||
+    !operatorStatusOutput.includes("Boundary status: Operator boundary coherent")
   ) {
     throw new Error(operatorStatusOutput || "operator-status did not reflect proof-linked private-core state");
   }

@@ -157,6 +157,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorSendProofs: VantaPrivateCoreOperatorSendProofRecord[];
   privateCoreOperatorBoundaryPrimaryNote: string | null;
   privateCoreOperatorBoundaryStatusLabel: string | null;
+  privateCoreOperatorContractMirrorPrimaryNote: string | null;
+  privateCoreOperatorContractMirrorStatusLabel: string | null;
   privateCoreOperatorSendResultingRootPrimaryNote: string | null;
   privateCoreOperatorSendResultingRootRegistrationPrimaryNote: string | null;
   privateCoreOperatorSendResultingRootRegistrationStatusLabel: string | null;
@@ -399,6 +401,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<string | null>(null);
   const [privateCoreOperatorRawBoundaryStatus, setPrivateCoreOperatorRawBoundaryStatus] =
     useState<string | null>(null);
+  const [privateCoreOperatorRawContractMirrorNote, setPrivateCoreOperatorRawContractMirrorNote] =
+    useState<string | null>(null);
+  const [privateCoreOperatorRawContractMirrorStatus, setPrivateCoreOperatorRawContractMirrorStatus] =
+    useState<string | null>(null);
   const [privateCoreOperatorSupportedSendLaneKind, setPrivateCoreOperatorSupportedSendLaneKind] =
     useState<string | null>(null);
   const [privateCoreOperatorSupportedSendLaneNote, setPrivateCoreOperatorSupportedSendLaneNote] =
@@ -582,6 +588,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorRawSendResultingRootStatus,
       setPrivateCoreOperatorRawBoundaryNote,
       setPrivateCoreOperatorRawBoundaryStatus,
+      setPrivateCoreOperatorRawContractMirrorNote,
+      setPrivateCoreOperatorRawContractMirrorStatus,
       setPrivateCoreOperatorConsumes,
       setPrivateCoreOperatorProofConsumeLinkStatus,
       setPrivateCoreOperatorProofs,
@@ -1528,6 +1536,11 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         operatorRootError: privateCoreOperatorRootError,
         operatorSummaryUpdatedAt: privateCoreOperatorSummaryUpdatedAt,
       });
+      const privateCoreOperatorContractMirrorSummary =
+        summarizePrivateCoreOperatorContractMirrorStatus({
+          contractMirrorNote: privateCoreOperatorRawContractMirrorNote,
+          contractMirrorStatus: privateCoreOperatorRawContractMirrorStatus,
+        });
       return {
       privateCoreOwner,
       privateCoreRecentShield,
@@ -1556,6 +1569,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorRawSendResultingRootStatus,
       privateCoreOperatorRawBoundaryNote,
       privateCoreOperatorRawBoundaryStatus,
+      privateCoreOperatorRawContractMirrorNote,
+      privateCoreOperatorRawContractMirrorStatus,
       privateCoreOperatorSupportedSendLaneKind,
       privateCoreOperatorSupportedSendLaneNote,
       privateCoreOperatorSupportedSendLaneStatus,
@@ -1604,6 +1619,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSendProofs,
       privateCoreOperatorBoundaryPrimaryNote: privateCoreOperatorBoundarySummary.primaryNote,
       privateCoreOperatorBoundaryStatusLabel: privateCoreOperatorBoundarySummary.statusLabel,
+      privateCoreOperatorContractMirrorPrimaryNote:
+        privateCoreOperatorContractMirrorSummary.primaryNote,
+      privateCoreOperatorContractMirrorStatusLabel:
+        privateCoreOperatorContractMirrorSummary.statusLabel,
       privateCoreOperatorSendResultingRootPrimaryNote:
         privateCoreOperatorSendResultingRootSummary.primaryNote,
       privateCoreOperatorSendResultingRootRegistrationPrimaryNote:
@@ -1661,6 +1680,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorRawSendResultingRootStatus,
       privateCoreOperatorRawBoundaryNote,
       privateCoreOperatorRawBoundaryStatus,
+      privateCoreOperatorRawContractMirrorNote,
+      privateCoreOperatorRawContractMirrorStatus,
       privateCoreOperatorSupportedSendLaneKind,
       privateCoreOperatorSupportedSendLaneNote,
       privateCoreOperatorSupportedSendLaneStatus,
@@ -1903,6 +1924,34 @@ function summarizePrivateCoreOperatorBoundaryStatus(args: {
   return {
     statusLabel: "Operator boundary coherent",
     primaryNote: "Current root, linked proof, consume, and release state all agree.",
+  };
+}
+
+function summarizePrivateCoreOperatorContractMirrorStatus(args: {
+  contractMirrorNote: string | null;
+  contractMirrorStatus: string | null;
+}) {
+  if (args.contractMirrorStatus === "mirrors-contract") {
+    return {
+      primaryNote:
+        args.contractMirrorNote ??
+        "Operator summary mirrors the frozen private-core contract.",
+      statusLabel: "Summary mirrors contract",
+    };
+  }
+
+  if (args.contractMirrorStatus === "contract-mismatch") {
+    return {
+      primaryNote:
+        args.contractMirrorNote ??
+        "Operator summary drifted from the frozen private-core contract.",
+      statusLabel: "Summary drift detected",
+    };
+  }
+
+  return {
+    primaryNote: "No operator contract mirror status has been observed yet.",
+    statusLabel: "Awaiting contract mirror state",
   };
 }
 
@@ -2218,6 +2267,8 @@ function applyPrivateCoreOperatorSummaryState(args: {
   setPrivateCoreOperatorRawSendResultingRootStatus: (value: string | null) => void;
   setPrivateCoreOperatorRawBoundaryNote: (value: string | null) => void;
   setPrivateCoreOperatorRawBoundaryStatus: (value: string | null) => void;
+  setPrivateCoreOperatorRawContractMirrorNote: (value: string | null) => void;
+  setPrivateCoreOperatorRawContractMirrorStatus: (value: string | null) => void;
   setPrivateCoreOperatorConsumes: (value: VantaPrivateCoreOperatorConsumeRecord[]) => void;
   setPrivateCoreOperatorProofConsumeLinkStatus: (value: string | null) => void;
   setPrivateCoreOperatorProofs: (value: VantaPrivateCoreOperatorProofRecord[]) => void;
@@ -2253,6 +2304,8 @@ function applyPrivateCoreOperatorSummaryState(args: {
   args.setPrivateCoreOperatorLatestConsumeProof(args.summaryState.latestConsumeProof);
   args.setPrivateCoreOperatorLatestRelease(args.summaryState.latestRelease);
   args.setPrivateCoreOperatorLatestReleaseProof(args.summaryState.latestReleaseProof);
+  args.setPrivateCoreOperatorRawContractMirrorNote(args.summaryState.contractMirrorNote);
+  args.setPrivateCoreOperatorRawContractMirrorStatus(args.summaryState.contractMirrorStatus);
   args.setPrivateCoreOperatorRawBoundaryNote(args.summaryState.boundaryNote);
   args.setPrivateCoreOperatorRawBoundaryStatus(args.summaryState.boundaryStatus);
   args.setPrivateCoreOperatorRoots(args.summaryState.rootRecords);

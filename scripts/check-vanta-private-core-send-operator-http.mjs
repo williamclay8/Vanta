@@ -262,7 +262,10 @@ try {
   if (
     !summaryState.ok ||
     summaryState.parsed?.stateVersion !== 1 ||
-    summaryState.parsed?.summaryVersion !== 16 ||
+    summaryState.parsed?.summaryVersion !== 17 ||
+    summaryState.parsed?.contractMirrorStatus !== "mirrors-contract" ||
+    summaryState.parsed?.contractMirrorNote !==
+      "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
     summaryState.parsed?.supportedSendLaneVersion !== 1 ||
     summaryState.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     summaryState.parsed?.supportedSendLaneStatus !== "supported" ||

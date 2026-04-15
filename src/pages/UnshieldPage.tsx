@@ -111,6 +111,8 @@ export function UnshieldPage() {
     privateCoreOperatorLatestSend,
     privateCoreOperatorBoundaryPrimaryNote,
     privateCoreOperatorBoundaryStatusLabel,
+    privateCoreOperatorContractMirrorPrimaryNote,
+    privateCoreOperatorContractMirrorStatusLabel,
     privateCoreOperatorSupportedSendLaneKind,
     privateCoreOperatorSupportedSendLaneNote,
     privateCoreOperatorSupportedSendLaneStatus,
@@ -936,6 +938,8 @@ export function UnshieldPage() {
           operatorLatestSendProof={privateCoreOperatorLatestSendProof}
           operatorBoundaryPrimaryNote={privateCoreOperatorBoundaryPrimaryNote}
           operatorBoundaryStatusLabel={privateCoreOperatorBoundaryStatusLabel}
+          operatorContractMirrorPrimaryNote={privateCoreOperatorContractMirrorPrimaryNote}
+          operatorContractMirrorStatusLabel={privateCoreOperatorContractMirrorStatusLabel}
           operatorSupportedSendLaneKind={privateCoreOperatorSupportedSendLaneKind}
           operatorSupportedSendLaneNote={privateCoreOperatorSupportedSendLaneNote}
           operatorSupportedSendLaneStatus={privateCoreOperatorSupportedSendLaneStatus}

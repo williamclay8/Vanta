@@ -48,6 +48,8 @@ export function AppDashboardPage() {
     privateCoreOperatorLatestSend,
     privateCoreOperatorBoundaryPrimaryNote,
     privateCoreOperatorBoundaryStatusLabel,
+    privateCoreOperatorContractMirrorPrimaryNote,
+    privateCoreOperatorContractMirrorStatusLabel,
     privateCoreOperatorSupportedSendLaneKind,
     privateCoreOperatorSupportedSendLaneNote,
     privateCoreOperatorSupportedSendLaneStatus,
@@ -264,6 +266,8 @@ export function AppDashboardPage() {
           operatorLatestSendProof={privateCoreOperatorLatestSendProof}
           operatorBoundaryPrimaryNote={privateCoreOperatorBoundaryPrimaryNote}
           operatorBoundaryStatusLabel={privateCoreOperatorBoundaryStatusLabel}
+          operatorContractMirrorPrimaryNote={privateCoreOperatorContractMirrorPrimaryNote}
+          operatorContractMirrorStatusLabel={privateCoreOperatorContractMirrorStatusLabel}
           operatorSupportedSendLaneKind={privateCoreOperatorSupportedSendLaneKind}
           operatorSupportedSendLaneNote={privateCoreOperatorSupportedSendLaneNote}
           operatorSupportedSendLaneStatus={privateCoreOperatorSupportedSendLaneStatus}

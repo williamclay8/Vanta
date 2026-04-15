@@ -1565,14 +1565,12 @@ function buildPrivateCoreSummaryState() {
     sendResultingRootProofLinkStatus,
     sendResultingRootStatus: sendResultingRootStatus.status,
   });
-
-  return {
+  const summaryState = {
     ...contractState,
     boundaryStatus: boundaryStatus.status,
     boundaryNote: boundaryStatus.note,
     currentRootLinkedProof,
     currentRootProofLinkStatus,
-    generatedAt: Date.now(),
     sendResultingRootLinkedProof,
     sendResultingRootRecord,
     sendResultingRootNote: sendResultingRootStatus.note,
@@ -1606,13 +1604,24 @@ function buildPrivateCoreSummaryState() {
     proofSendLinkStatus,
     proofReleaseLinkStatus,
   };
+  const contractMirrorStatus = summarizePrivateCoreContractMirrorStatus({
+    contractState,
+    summaryState,
+  });
+
+  return {
+    ...summaryState,
+    contractMirrorStatus: contractMirrorStatus.status,
+    contractMirrorNote: contractMirrorStatus.note,
+    generatedAt: Date.now(),
+  };
 }
 
 function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
     contractVersion: 1,
-    summaryVersion: 16,
+    summaryVersion: 17,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
@@ -1648,6 +1657,61 @@ function buildPrivateCoreContractState() {
     ownerAuthorizationMode: PRIVATE_CORE_OWNER_AUTH_MODE,
     nullifierKeyMode: PRIVATE_CORE_NULLIFIER_KEY_MODE,
     provingHashLane: PRIVATE_CORE_PROVING_HASH_LANE,
+  };
+}
+
+function summarizePrivateCoreContractMirrorStatus(args) {
+  const mirroredFields = [
+    "summaryVersion",
+    "supportedSendLaneVersion",
+    "supportedSendLaneKind",
+    "supportedSendLaneStatus",
+    "supportedSendLaneNote",
+    "supportedUnshieldLaneVersion",
+    "supportedUnshieldLaneKind",
+    "supportedUnshieldLaneStatus",
+    "supportedUnshieldLaneNote",
+    "supportedReleaseLaneVersion",
+    "supportedReleaseLaneKind",
+    "supportedReleaseLaneStatus",
+    "supportedReleaseLaneNote",
+    "supportedFlowVersion",
+    "supportedFlowKind",
+    "supportedFlowStatus",
+    "supportedFlowNote",
+    "supportedAssetSymbol",
+    "supportedEnvironment",
+    "supportedNoteSchema",
+    "supportedNoteVersion",
+    "supportedRootRegistrationProvenance",
+    "supportedSendResultingRootBasis",
+    "supportedRecipientModel",
+    "supportedReleaseDestinationModel",
+    "supportedProofSystem",
+    "supportedUnshieldCircuit",
+    "supportedSendCircuit",
+    "supportedUnshieldMerkleDepth",
+    "supportedSendMerkleDepth",
+    "supportedReleaseAuthorizationBasis",
+    "supportedReleaseRootPolicy",
+    "ownerAuthorizationMode",
+    "nullifierKeyMode",
+    "provingHashLane",
+  ];
+  const mismatchedFields = mirroredFields.filter(
+    (field) => args.summaryState[field] !== args.contractState[field],
+  );
+
+  if (mismatchedFields.length > 0) {
+    return {
+      note: `Operator summary drifted from the frozen contract on ${mismatchedFields.join(", ")}.`,
+      status: "contract-mismatch",
+    };
+  }
+
+  return {
+    note: "Operator summary mirrors the frozen private-core contract across all supported static fields.",
+    status: "mirrors-contract",
   };
 }
 

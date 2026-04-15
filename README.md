@@ -225,7 +225,7 @@ These commands cover:
 
 The operator contract now freezes the narrow zk-v1 contract surface explicitly:
 - `contractVersion = 1`
-- `summaryVersion = 16`
+- `summaryVersion = 17`
 - `supportedUnshieldLaneVersion = 1`
 - `supportedUnshieldLaneKind = single-note-proof-backed-consume`
 - `supportedUnshieldLaneStatus = supported`
@@ -258,6 +258,7 @@ The live operator summary layers dynamic verifier-side state on top of that cont
 - current root / current root record
 - latest proof / send proof / send transition / consume / release
 - proof-send / proof-consume / proof-release / registration link status
+- contract-mirror status / note
 - latest send resulting-root continuity and registration status
 - boundary status / boundary note
 - summary generation time

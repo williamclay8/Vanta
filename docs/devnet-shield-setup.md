@@ -160,6 +160,8 @@ The operator-status command now prints:
 - proof/send link status
 - proof/consume link status
 - proof/release link status
+- contract mirror status
+- contract mirror note
 - operator boundary status
 - operator boundary note
 - operator summary generation time

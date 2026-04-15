@@ -30,6 +30,8 @@ type VantaPrivateCoreStatePanelProps = {
   operatorLatestSendProof?: VantaPrivateCoreOperatorSendProofRecord | null;
   operatorBoundaryPrimaryNote?: string | null;
   operatorBoundaryStatusLabel?: string | null;
+  operatorContractMirrorPrimaryNote?: string | null;
+  operatorContractMirrorStatusLabel?: string | null;
   operatorSupportedSendLaneKind?: string | null;
   operatorSupportedSendLaneNote?: string | null;
   operatorSupportedSendLaneStatus?: string | null;
@@ -209,6 +211,8 @@ export function VantaPrivateCoreStatePanel({
   operatorLatestSendProof = null,
   operatorBoundaryPrimaryNote = null,
   operatorBoundaryStatusLabel = null,
+  operatorContractMirrorPrimaryNote = null,
+  operatorContractMirrorStatusLabel = null,
   operatorSupportedSendLaneKind = null,
   operatorSupportedSendLaneNote = null,
   operatorSupportedSendLaneStatus = null,
@@ -530,6 +534,10 @@ export function VantaPrivateCoreStatePanel({
               <strong>{operatorBoundaryStatusLabel ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
+              <span>Contract mirror status</span>
+              <strong>{operatorContractMirrorStatusLabel ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
               <span>Supported send lane</span>
               <strong>
                 {operatorSupportedSendLaneKind === "single-input-single-recipient-optional-change"
@@ -669,6 +677,10 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Operator boundary note</span>
               <strong>{operatorBoundaryPrimaryNote ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Contract mirror note</span>
+              <strong>{operatorContractMirrorPrimaryNote ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Supported lane note</span>

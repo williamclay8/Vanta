@@ -150,6 +150,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorCurrentRootLinkedProof,
     privateCoreOperatorBoundaryPrimaryNote,
     privateCoreOperatorBoundaryStatusLabel,
+    privateCoreOperatorContractMirrorPrimaryNote,
+    privateCoreOperatorContractMirrorStatusLabel,
     privateCoreOperatorCurrentRootProofLinkStatus,
     privateCoreOperatorLatestConsume,
     privateCoreOperatorLatestConsumeProof,
@@ -1656,6 +1658,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         operatorLatestSendProof={privateCoreOperatorLatestSendProof}
         operatorBoundaryPrimaryNote={privateCoreOperatorBoundaryPrimaryNote}
         operatorBoundaryStatusLabel={privateCoreOperatorBoundaryStatusLabel}
+        operatorContractMirrorPrimaryNote={privateCoreOperatorContractMirrorPrimaryNote}
+        operatorContractMirrorStatusLabel={privateCoreOperatorContractMirrorStatusLabel}
         operatorSupportedSendLaneKind={privateCoreOperatorSupportedSendLaneKind}
         operatorSupportedSendLaneNote={privateCoreOperatorSupportedSendLaneNote}
         operatorSupportedSendLaneStatus={privateCoreOperatorSupportedSendLaneStatus}

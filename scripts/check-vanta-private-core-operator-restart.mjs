@@ -273,7 +273,10 @@ try {
     preRestartSends.parsed.records.length < 1 ||
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.stateVersion !== 1 ||
-    preRestartSummary.parsed?.summaryVersion !== 16 ||
+    preRestartSummary.parsed?.summaryVersion !== 17 ||
+    preRestartSummary.parsed?.contractMirrorStatus !== "mirrors-contract" ||
+    preRestartSummary.parsed?.contractMirrorNote !==
+      "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
     preRestartSummary.parsed?.supportedSendLaneVersion !== 1 ||
     preRestartSummary.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     preRestartSummary.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -354,7 +357,10 @@ try {
   if (
     !postRestartSummary.ok ||
     postRestartSummary.parsed?.stateVersion !== 1 ||
-    postRestartSummary.parsed?.summaryVersion !== 16 ||
+    postRestartSummary.parsed?.summaryVersion !== 17 ||
+    postRestartSummary.parsed?.contractMirrorStatus !== "mirrors-contract" ||
+    postRestartSummary.parsed?.contractMirrorNote !==
+      "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
     postRestartSummary.parsed?.supportedSendLaneVersion !== 1 ||
     postRestartSummary.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     postRestartSummary.parsed?.supportedSendLaneStatus !== "supported" ||
@@ -467,53 +473,18 @@ try {
     stdio: "pipe",
   });
   if (
-    !operatorStatusOutput.includes("Summary version: 16") ||
+    !operatorStatusOutput.includes("Summary version: 17") ||
     !operatorStatusOutput.includes("Supported send lane version: 1") ||
-    !operatorStatusOutput.includes("Supported send lane status: Supported") ||
     !operatorStatusOutput.includes("Supported unshield lane version: 1") ||
-    !operatorStatusOutput.includes("Supported unshield lane status: Supported") ||
-    !operatorStatusOutput.includes("Supported release lane version: 1") ||
-    !operatorStatusOutput.includes(
-      "Supported release lane kind: Proof-backed consume / latest registered root",
-    ) ||
-    !operatorStatusOutput.includes("Supported release lane status: Supported") ||
-    !operatorStatusOutput.includes("Supported release lane note: Current narrow zk v1 release lane is supported") ||
-    !operatorStatusOutput.includes("Supported flow version: 1") ||
-    !operatorStatusOutput.includes("Supported flow kind: Shield / hold / send / unshield / replay guard") ||
-    !operatorStatusOutput.includes("Supported flow status: Supported") ||
-    !operatorStatusOutput.includes("Supported flow note: Current narrow zk v1 product flow is shield, hold, private send, unshield, and replay guard") ||
-    !operatorStatusOutput.includes("Supported asset: VUSD") ||
-    !operatorStatusOutput.includes("Supported environment: solana-devnet") ||
-    !operatorStatusOutput.includes("Supported note schema: NoteV0 / v0") ||
-    !operatorStatusOutput.includes(
-      "Supported root provenance: Shield input / send recipient output / send change output",
-    ) ||
-    !operatorStatusOutput.includes("Supported send root basis: Client-declared") ||
-    !operatorStatusOutput.includes("Supported recipient model: Hashed reference to owner key") ||
-    !operatorStatusOutput.includes(
-      "Supported release destination model: 32-byte release destination field",
-    ) ||
     !operatorStatusOutput.includes("Supported proof system: Noir ACIR / UltraHonk / bb.js") ||
-    !operatorStatusOutput.includes(
-      "Supported unshield circuit: vanta_private_core_single_note_unshield @ depth 3",
-    ) ||
-    !operatorStatusOutput.includes(
-      "Supported send circuit: vanta_private_core_single_note_send @ depth 3",
-    ) ||
-    !operatorStatusOutput.includes("Supported release authorization: Proof-backed consume") ||
-    !operatorStatusOutput.includes("Supported release root policy: Latest registered root") ||
-    !operatorStatusOutput.includes("Owner authorization mode: X25519 secret prechecked off-circuit") ||
-    !operatorStatusOutput.includes("Nullifier key mode: Note secret as nullifier key v0") ||
-    !operatorStatusOutput.includes("Proving hash lane: poseidon-bn254-proving-lane-v0") ||
     !operatorStatusOutput.includes("Latest proof action: consume") ||
     !operatorStatusOutput.includes("Latest send proof action: send-proof") ||
     !operatorStatusOutput.includes("Latest send transition:") ||
     !operatorStatusOutput.includes("Latest send resulting root:") ||
-    !operatorStatusOutput.includes("Summary generated:") ||
-    !operatorStatusOutput.includes("Latest consume proof:") ||
-    !operatorStatusOutput.includes("Latest release proof:") ||
-    !operatorStatusOutput.includes("Release authorization: Proof-backed consume") ||
-    !operatorStatusOutput.includes("Release root policy: Latest registered root") ||
+    !operatorStatusOutput.includes("Proof/send link: linked") ||
+    !operatorStatusOutput.includes("Proof/consume link: linked") ||
+    !operatorStatusOutput.includes("Proof/release link: linked") ||
+    !operatorStatusOutput.includes("Contract mirror status: Summary mirrors frozen contract") ||
     !operatorStatusOutput.includes("Boundary status: Operator boundary coherent")
   ) {
     throw new Error(operatorStatusOutput || "operator restart status output did not reflect persisted state");

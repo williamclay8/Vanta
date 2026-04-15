@@ -165,6 +165,8 @@ try {
   printLine("Proof/send link", summary.proofSendLinkStatus ?? "Unavailable");
   printLine("Proof/consume link", summary.proofConsumeLinkStatus ?? "Unavailable");
   printLine("Proof/release link", summary.proofReleaseLinkStatus ?? "Unavailable");
+  printLine("Contract mirror status", humanizeContractMirrorStatus(summary.contractMirrorStatus));
+  printLine("Contract mirror note", summary.contractMirrorNote ?? "Unavailable");
   printLine("Boundary status", humanizeBoundaryStatus(summary.boundaryStatus));
   printLine("Boundary note", summary.boundaryNote ?? "Unavailable");
 } catch (error) {
@@ -249,6 +251,17 @@ function humanizeBoundaryStatus(value) {
       return "Proof/consume not linked";
     case "proof-release-unlinked":
       return "Proof/release not linked";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeContractMirrorStatus(value) {
+  switch (value) {
+    case "mirrors-contract":
+      return "Summary mirrors frozen contract";
+    case "contract-mismatch":
+      return "Summary drift detected";
     default:
       return "Unavailable";
   }
