@@ -164,6 +164,7 @@ npm run private-core:check
 npm run private-core:send-check
 npm run private-core:swap-check
 npm run private-core:send-apply-check
+npm run private-core:swap-apply-check
 npm run private-core:send-continuity-check
 npm run private-core:send-recipient-check
 npm run private-core:send-chain-check

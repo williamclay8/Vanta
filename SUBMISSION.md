@@ -176,6 +176,8 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   generates and verifies a real local proof for the current single-note unshield lane
 - `npm run private-core:send-prove`
   generates and verifies a real local proof for the current single-note private-send lane
+- `npm run private-core:swap-apply-check`
+  proves the constrained swap lane can be applied locally as a source-layer state transition, including recipient output recovery, resulting-root coherence, and sender privacy failure on the output payload
 - `npm run private-core:swap-prove`
   generates and verifies a real local proof for the current single-note constrained swap lane
 - `npm run private-core:swap-unshield-roundtrip-check`
