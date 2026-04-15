@@ -384,6 +384,36 @@ try {
   }
   printStatus("private-core swap->unshield restart persisted state: PASS");
 
+  const operatorStatusOutput = execFileSync("node", [
+    "scripts/print-vanta-private-core-operator-status.mjs",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  const expectedStatusLines = [
+    "Latest swap transition:",
+    "Latest swap linked proof:",
+    "Latest swap execution venue: Unavailable",
+    "Latest swap quote reference: Unavailable",
+    "Latest release:",
+    "Proof/swap link: linked",
+    "Proof/consume link: linked",
+    "Proof/release link: linked",
+    "Swap boundary status: Released downstream",
+  ];
+  const missingStatusLines = expectedStatusLines.filter(
+    (line) => !operatorStatusOutput.includes(line),
+  );
+  if (missingStatusLines.length > 0) {
+    throw new Error(
+      `Missing operator-status lines: ${missingStatusLines.join(", ")}\n${operatorStatusOutput}`,
+    );
+  }
+  printStatus("private-core swap->unshield restart operator-status: PASS");
+
   const replayResponse = await requestJson(baseUrl, "/private-core/unshield-consume", {
     body: JSON.stringify({
       sourceArtifacts: outputSourceArtifacts,
