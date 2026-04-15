@@ -712,6 +712,12 @@ export function SwapPage() {
     ],
   );
   const currentPrivateCoreSwapPathNote = preparedCurrentPrivateCoreSwapCandidate.note;
+  const currentPrivateCoreSwapPathStatusLabel =
+    preparedCurrentPrivateCoreSwapCandidate.status === "ready"
+      ? "Ready"
+      : preparedCurrentPrivateCoreSwapCandidate.status === "blocked"
+        ? "Blocked"
+        : "Fixture fallback";
   const swapProofActionLabel =
     preparedCurrentPrivateCoreSwapCandidate.status === "ready"
       ? "Verify current private swap proof"
@@ -1907,6 +1913,10 @@ export function SwapPage() {
                 <div className="review-row">
                   <span>Swap proof path note</span>
                   <strong>{currentPrivateCoreSwapPathNote}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Swap live path status</span>
+                  <strong>{currentPrivateCoreSwapPathStatusLabel}</strong>
                 </div>
               </div>
               <div className="status-actions">

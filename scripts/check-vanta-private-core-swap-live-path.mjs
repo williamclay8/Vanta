@@ -122,6 +122,29 @@ if (ready.proofBoundary.readiness !== "ready") {
 }
 printStatus("private-core swap live path ready candidate: PASS");
 
+const blocked = swapProof.prepareVantaPrivateCoreLiveSwapCandidate({
+  heldNote,
+  senderSecretKey:
+    "0x9090909090909090909090909090909090909090909090909090909090909090",
+  recipientOwnerPublicKey: recipient.publicKey,
+  outputAssetId,
+  quoteInputAmount: "33.000000",
+  quoteOutputAmount: "1.250000000",
+  quoteExpiresAt: Date.now() + 60_000,
+});
+
+if (
+  blocked.status !== "blocked" ||
+  !blocked.transition ||
+  !blocked.proofBoundary ||
+  blocked.proofBoundary.readiness !== "blocked" ||
+  blocked.proofBoundary.blockers.length === 0 ||
+  !blocked.note.includes("fixture fallback")
+) {
+  throw new Error("expected malformed current-note witness to surface a blocked live swap candidate");
+}
+printStatus("private-core swap live path blocked candidate: PASS");
+
 const staleQuote = swapProof.prepareVantaPrivateCoreLiveSwapCandidate({
   heldNote,
   senderSecretKey: sender.secretKey,

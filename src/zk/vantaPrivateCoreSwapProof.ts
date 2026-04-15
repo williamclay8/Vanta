@@ -196,6 +196,12 @@ export type VantaPrivateCorePreparedLiveSwapCandidateV0 =
       proofBoundary: VantaPrivateCoreSwapProofBoundaryV0;
     }
   | {
+      status: "blocked";
+      note: string;
+      transition: SwapTransitionV0;
+      proofBoundary: VantaPrivateCoreSwapProofBoundaryV0;
+    }
+  | {
       status: "fallback";
       note: string;
       transition: null;
@@ -302,6 +308,16 @@ export function prepareVantaPrivateCoreLiveSwapCandidate(args: {
       transition,
       senderSecretKey: args.senderSecretKey,
     });
+
+    if (proofBoundary.readiness !== "ready") {
+      const primaryBlocker = proofBoundary.blockers[0] ?? "The current private-core swap path is not ready.";
+      return {
+        note: `${primaryBlocker} The swap proof actions are using fixture fallback until the current-note path is ready.`,
+        proofBoundary,
+        status: "blocked",
+        transition,
+      };
+    }
 
     return {
       note: "The current private-core held note and live quote align, so the swap proof actions are using the real current-note path.",
