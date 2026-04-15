@@ -143,6 +143,8 @@ The operator-status command now prints:
 - latest swap proof
 - latest send proof
 - latest send linked proof
+- latest swap execution venue
+- latest swap quote reference
 - latest send resulting-root basis
 - send continuity status
 - send boundary status

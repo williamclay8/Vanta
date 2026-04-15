@@ -395,7 +395,7 @@ The contract readout gives the static narrow-zk-v1 support contract:
 - nullifier-key mode
 - proving hash lane
 
-The status readout now includes proof/send, proof/consume, and proof/release linkage across the operator summary boundary, the supported send-lane version and identity carried by the operator summary, explicit release authorization / root-policy fields for the current unshield lane, plus explicit downstream root-registration provenance (`shield-input`, `send-recipient-output`, `send-change-output`, or `swap-output`) when continuity has been established.
+The status readout now includes proof/send, proof/consume, and proof/release linkage across the operator summary boundary, the supported send-lane version and identity carried by the operator summary, explicit release authorization / root-policy fields for the current unshield lane, persisted swap execution venue / quote-reference context for the latest constrained swap transition, plus explicit downstream root-registration provenance (`shield-input`, `send-recipient-output`, `send-change-output`, or `swap-output`) when continuity has been established.
 It now also includes explicit contract-mirror status so the live summary says whether it is still mirroring the frozen private-core operator contract surface.
 It now also includes explicit send-boundary status so the private-send lane reads as one operator-owned health summary instead of only a bundle of lower-level linkage rows.
 It now also includes explicit send-continuity status so the downstream send path reads as one live verifier-state summary instead of only a bundle of lower-level root and registration rows.

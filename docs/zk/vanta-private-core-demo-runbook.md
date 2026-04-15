@@ -169,6 +169,9 @@ Fall back in this order:
    - `Execution venue`
    - `Quote reference`
    The same live-path summary is also retained in the shared private-core swap handoff panel after the action completes.
+   If you need the operator-side persisted view after reload or restart, show `npm run private-core:operator-status` and point to:
+   - `Latest swap execution venue`
+   - `Latest swap quote reference`
 3. Show the replay rejection path
 4. Keep the framing on:
    - real proof lane
