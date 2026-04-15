@@ -145,10 +145,21 @@ function formatDiagnosticValue(value: string | null | undefined) {
 export function SwapPage() {
   const { walletAddress, walletAddressShort, walletConnected } = useWalletState();
   const {
+    privateCoreOperatorSwapBoundaryPrimaryNote,
+    privateCoreOperatorSwapBoundaryStatusLabel,
+    privateCoreOperatorSwapContinuityPrimaryNote,
+    privateCoreOperatorSwapContinuityStatusLabel,
     privateCoreOperatorLatestSwap,
     privateCoreOperatorLatestSwapLinkedProof,
     privateCoreOperatorLatestSwapProof,
     privateCoreOperatorProofSwapLinkStatus,
+    privateCoreOperatorSwapResultingRootLinkedProof,
+    privateCoreOperatorSwapResultingRootPrimaryNote,
+    privateCoreOperatorSwapResultingRootProofLinkStatus,
+    privateCoreOperatorSwapResultingRootRecord,
+    privateCoreOperatorSwapResultingRootRegistrationPrimaryNote,
+    privateCoreOperatorSwapResultingRootRegistrationStatusLabel,
+    privateCoreOperatorSwapResultingRootStatusLabel,
     privateCoreOperatorSwapProofs,
     privateCoreOperatorSwaps,
     refreshPrivateCoreOperatorSummary,
@@ -1640,6 +1651,70 @@ export function SwapPage() {
                 <div className="review-row">
                   <span>Latest swap resulting root</span>
                   <strong>{formatDiagnosticValue(privateCoreOperatorLatestSwap?.resultingRoot ?? undefined)}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Swap resulting root status</span>
+                  <strong>{formatDiagnosticValue(privateCoreOperatorSwapResultingRootStatusLabel)}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Swap resulting root note</span>
+                  <strong>{formatDiagnosticValue(privateCoreOperatorSwapResultingRootPrimaryNote)}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Swap resulting root registration</span>
+                  <strong>
+                    {formatDiagnosticValue(
+                      privateCoreOperatorSwapResultingRootRegistrationStatusLabel,
+                    )}
+                  </strong>
+                </div>
+                <div className="review-row">
+                  <span>Swap root registration note</span>
+                  <strong>
+                    {formatDiagnosticValue(
+                      privateCoreOperatorSwapResultingRootRegistrationPrimaryNote,
+                    )}
+                  </strong>
+                </div>
+                <div className="review-row">
+                  <span>Swap resulting root record</span>
+                  <strong>
+                    {formatDiagnosticValue(privateCoreOperatorSwapResultingRootRecord?.root)}
+                  </strong>
+                </div>
+                <div className="review-row">
+                  <span>Swap resulting root proof</span>
+                  <strong>
+                    {formatDiagnosticValue(privateCoreOperatorSwapResultingRootRecord?.proofId)}
+                  </strong>
+                </div>
+                <div className="review-row">
+                  <span>Swap resulting root linked proof</span>
+                  <strong>
+                    {formatDiagnosticValue(privateCoreOperatorSwapResultingRootLinkedProof?.proofId)}
+                  </strong>
+                </div>
+                <div className="review-row">
+                  <span>Swap resulting root proof link</span>
+                  <strong>
+                    {formatDiagnosticValue(privateCoreOperatorSwapResultingRootProofLinkStatus)}
+                  </strong>
+                </div>
+                <div className="review-row">
+                  <span>Swap continuity status</span>
+                  <strong>{formatDiagnosticValue(privateCoreOperatorSwapContinuityStatusLabel)}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Swap continuity note</span>
+                  <strong>{formatDiagnosticValue(privateCoreOperatorSwapContinuityPrimaryNote)}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Swap boundary status</span>
+                  <strong>{formatDiagnosticValue(privateCoreOperatorSwapBoundaryStatusLabel)}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Swap boundary note</span>
+                  <strong>{formatDiagnosticValue(privateCoreOperatorSwapBoundaryPrimaryNote)}</strong>
                 </div>
                 <div className="review-row">
                   <span>Recorded transition status</span>
