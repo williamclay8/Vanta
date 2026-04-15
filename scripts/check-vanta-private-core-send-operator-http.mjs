@@ -270,16 +270,18 @@ try {
   if (
     !summaryState.ok ||
     summaryState.parsed?.stateVersion !== 1 ||
-    summaryState.parsed?.summaryVersion !== 25 ||
+    summaryState.parsed?.summaryVersion !== 26 ||
     summaryState.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryState.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
     summaryState.parsed?.supportedSendLaneVersion !== 1 ||
     summaryState.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     summaryState.parsed?.supportedSendLaneStatus !== "supported" ||
+    summaryState.parsed?.supportedSendV1Decision !== "accepted-narrow-v1-path" ||
     summaryState.parsed?.supportedUnshieldLaneVersion !== 1 ||
     summaryState.parsed?.supportedUnshieldLaneKind !== "single-note-proof-backed-consume" ||
     summaryState.parsed?.supportedUnshieldLaneStatus !== "supported" ||
+    summaryState.parsed?.supportedUnshieldV1Decision !== "accepted-narrow-v1-path" ||
     summaryState.parsed?.supportedReleaseLaneVersion !== 1 ||
     summaryState.parsed?.supportedReleaseLaneKind !==
       "proof-backed-consume-latest-registered-root" ||

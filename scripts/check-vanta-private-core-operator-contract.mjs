@@ -102,10 +102,14 @@ try {
   if (
     !contractState.ok ||
     contractState.parsed?.stateVersion !== 1 ||
-    contractState.parsed?.contractVersion !== 6 ||
-    contractState.parsed?.summaryVersion !== 25 ||
+    contractState.parsed?.contractVersion !== 7 ||
+    contractState.parsed?.summaryVersion !== 26 ||
     contractState.parsed?.supportedSendLaneVersion !== 1 ||
+    contractState.parsed?.supportedSendV1Decision !== "accepted-narrow-v1-path" ||
+    typeof contractState.parsed?.supportedSendV1DecisionNote !== "string" ||
     contractState.parsed?.supportedUnshieldLaneVersion !== 1 ||
+    contractState.parsed?.supportedUnshieldV1Decision !== "accepted-narrow-v1-path" ||
+    typeof contractState.parsed?.supportedUnshieldV1DecisionNote !== "string" ||
     contractState.parsed?.supportedReleaseLaneVersion !== 1 ||
     contractState.parsed?.supportedFlowVersion !== 1 ||
     contractState.parsed?.supportedAssetSymbol !== "VUSD" ||
@@ -149,10 +153,14 @@ try {
     "supportedSendLaneKind",
     "supportedSendLaneStatus",
     "supportedSendLaneNote",
+    "supportedSendV1Decision",
+    "supportedSendV1DecisionNote",
     "supportedUnshieldLaneVersion",
     "supportedUnshieldLaneKind",
     "supportedUnshieldLaneStatus",
     "supportedUnshieldLaneNote",
+    "supportedUnshieldV1Decision",
+    "supportedUnshieldV1DecisionNote",
     "supportedReleaseLaneVersion",
     "supportedReleaseLaneKind",
     "supportedReleaseLaneStatus",
@@ -232,9 +240,11 @@ try {
   });
   if (
     !contractOutput.includes("Contract state version: 1") ||
-    !contractOutput.includes("Contract version: 6") ||
-    !contractOutput.includes("Summary compatibility: 25") ||
+    !contractOutput.includes("Contract version: 7") ||
+    !contractOutput.includes("Summary compatibility: 26") ||
     !contractOutput.includes("Supported note schema: NoteV0 / v0") ||
+    !contractOutput.includes("Supported send v1 decision: accepted-narrow-v1-path") ||
+    !contractOutput.includes("Supported unshield v1 decision: accepted-narrow-v1-path") ||
     !contractOutput.includes(
       "Supported root provenance: Shield input / send recipient output / send change output",
     ) ||

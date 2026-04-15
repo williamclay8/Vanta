@@ -141,11 +141,17 @@ const PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND = "single-input-single-recipient-opt
 const PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS = "supported";
 const PRIVATE_CORE_SUPPORTED_SEND_LANE_NOTE =
   "Current narrow zk v1 send lane is supported for one input note, one recipient output, and optional change.";
+const PRIVATE_CORE_SUPPORTED_SEND_V1_DECISION = "accepted-narrow-v1-path";
+const PRIVATE_CORE_SUPPORTED_SEND_V1_DECISION_NOTE =
+  "Current operator-backed private send lane is accepted as the narrow zk v1 send path for VUSD on solana-devnet.";
 const PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_VERSION = 1;
 const PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_KIND = "single-note-proof-backed-consume";
 const PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_STATUS = "supported";
 const PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_NOTE =
   "Current narrow zk v1 unshield lane is supported for one note consume with proof-backed release recording.";
+const PRIVATE_CORE_SUPPORTED_UNSHIELD_V1_DECISION = "accepted-narrow-v1-path";
+const PRIVATE_CORE_SUPPORTED_UNSHIELD_V1_DECISION_NOTE =
+  "Current operator-backed proof-backed unshield lane is accepted as the narrow zk v1 unshield path for VUSD on solana-devnet.";
 const PRIVATE_CORE_SUPPORTED_RELEASE_LANE_VERSION = 1;
 const PRIVATE_CORE_SUPPORTED_RELEASE_LANE_KIND = "proof-backed-consume-latest-registered-root";
 const PRIVATE_CORE_SUPPORTED_RELEASE_LANE_STATUS = "supported";
@@ -1658,16 +1664,20 @@ function buildPrivateCoreSummaryState() {
 function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
-    contractVersion: 6,
-    summaryVersion: 25,
+    contractVersion: 7,
+    summaryVersion: 26,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
     supportedSendLaneNote: PRIVATE_CORE_SUPPORTED_SEND_LANE_NOTE,
+    supportedSendV1Decision: PRIVATE_CORE_SUPPORTED_SEND_V1_DECISION,
+    supportedSendV1DecisionNote: PRIVATE_CORE_SUPPORTED_SEND_V1_DECISION_NOTE,
     supportedUnshieldLaneVersion: PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_VERSION,
     supportedUnshieldLaneKind: PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_KIND,
     supportedUnshieldLaneStatus: PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_STATUS,
     supportedUnshieldLaneNote: PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_NOTE,
+    supportedUnshieldV1Decision: PRIVATE_CORE_SUPPORTED_UNSHIELD_V1_DECISION,
+    supportedUnshieldV1DecisionNote: PRIVATE_CORE_SUPPORTED_UNSHIELD_V1_DECISION_NOTE,
     supportedReleaseLaneVersion: PRIVATE_CORE_SUPPORTED_RELEASE_LANE_VERSION,
     supportedReleaseLaneKind: PRIVATE_CORE_SUPPORTED_RELEASE_LANE_KIND,
     supportedReleaseLaneStatus: PRIVATE_CORE_SUPPORTED_RELEASE_LANE_STATUS,
@@ -1720,10 +1730,14 @@ function summarizePrivateCoreContractMirrorStatus(args) {
     "supportedSendLaneKind",
     "supportedSendLaneStatus",
     "supportedSendLaneNote",
+    "supportedSendV1Decision",
+    "supportedSendV1DecisionNote",
     "supportedUnshieldLaneVersion",
     "supportedUnshieldLaneKind",
     "supportedUnshieldLaneStatus",
     "supportedUnshieldLaneNote",
+    "supportedUnshieldV1Decision",
+    "supportedUnshieldV1DecisionNote",
     "supportedReleaseLaneVersion",
     "supportedReleaseLaneKind",
     "supportedReleaseLaneStatus",

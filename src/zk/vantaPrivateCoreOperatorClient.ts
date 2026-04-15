@@ -252,10 +252,14 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedSendLaneNote: string;
   supportedSendLaneStatus: "supported";
   supportedSendLaneVersion: number;
+  supportedSendV1Decision: "accepted-narrow-v1-path";
+  supportedSendV1DecisionNote: string;
   supportedUnshieldLaneKind: "single-note-proof-backed-consume";
   supportedUnshieldLaneNote: string;
   supportedUnshieldLaneStatus: "supported";
   supportedUnshieldLaneVersion: number;
+  supportedUnshieldV1Decision: "accepted-narrow-v1-path";
+  supportedUnshieldV1DecisionNote: string;
   supportedReleaseLaneKind: "proof-backed-consume-latest-registered-root";
   supportedReleaseLaneNote: string;
   supportedReleaseLaneStatus: "supported";
@@ -335,10 +339,14 @@ export type VantaPrivateCoreOperatorContractStateResponse = {
   supportedSendLaneKind: "single-input-single-recipient-optional-change";
   supportedSendLaneStatus: "supported";
   supportedSendLaneNote: string;
+  supportedSendV1Decision: "accepted-narrow-v1-path";
+  supportedSendV1DecisionNote: string;
   supportedUnshieldLaneVersion: number;
   supportedUnshieldLaneKind: "single-note-proof-backed-consume";
   supportedUnshieldLaneStatus: "supported";
   supportedUnshieldLaneNote: string;
+  supportedUnshieldV1Decision: "accepted-narrow-v1-path";
+  supportedUnshieldV1DecisionNote: string;
   supportedReleaseLaneVersion: number;
   supportedReleaseLaneKind: "proof-backed-consume-latest-registered-root";
   supportedReleaseLaneStatus: "supported";
@@ -988,10 +996,14 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedSendLaneNote?: unknown;
     supportedSendLaneStatus?: unknown;
     supportedSendLaneVersion?: unknown;
+    supportedSendV1Decision?: unknown;
+    supportedSendV1DecisionNote?: unknown;
     supportedUnshieldLaneKind?: unknown;
     supportedUnshieldLaneNote?: unknown;
     supportedUnshieldLaneStatus?: unknown;
     supportedUnshieldLaneVersion?: unknown;
+    supportedUnshieldV1Decision?: unknown;
+    supportedUnshieldV1DecisionNote?: unknown;
     supportedReleaseLaneKind?: unknown;
     supportedReleaseLaneNote?: unknown;
     supportedReleaseV1Decision?: unknown;
@@ -1062,8 +1074,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 6 ||
-    parsed.summaryVersion !== 25 ||
+    parsed.contractVersion !== 7 ||
+    parsed.summaryVersion !== 26 ||
     !isContractMirrorStatus(parsed.contractMirrorStatus) ||
     typeof parsed.contractMirrorNote !== "string" ||
     !isBoundaryStatus(parsed.boundaryStatus) ||
@@ -1091,10 +1103,14 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     parsed.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     parsed.supportedSendLaneStatus !== "supported" ||
     typeof parsed.supportedSendLaneNote !== "string" ||
+    parsed.supportedSendV1Decision !== "accepted-narrow-v1-path" ||
+    typeof parsed.supportedSendV1DecisionNote !== "string" ||
     parsed.supportedUnshieldLaneVersion !== 1 ||
     parsed.supportedUnshieldLaneKind !== "single-note-proof-backed-consume" ||
     parsed.supportedUnshieldLaneStatus !== "supported" ||
     typeof parsed.supportedUnshieldLaneNote !== "string" ||
+    parsed.supportedUnshieldV1Decision !== "accepted-narrow-v1-path" ||
+    typeof parsed.supportedUnshieldV1DecisionNote !== "string" ||
     parsed.supportedReleaseLaneVersion !== 1 ||
     parsed.supportedReleaseLaneKind !== "proof-backed-consume-latest-registered-root" ||
     parsed.supportedReleaseLaneStatus !== "supported" ||
@@ -1190,8 +1206,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   return {
     stateVersion: 1,
-    contractVersion: 6,
-    summaryVersion: 25,
+    contractVersion: 7,
+    summaryVersion: 26,
     contractMirrorStatus: parsed.contractMirrorStatus,
     contractMirrorNote: parsed.contractMirrorNote,
     boundaryStatus: parsed.boundaryStatus,
@@ -1202,10 +1218,14 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedSendLaneKind: "single-input-single-recipient-optional-change",
     supportedSendLaneStatus: "supported",
     supportedSendLaneNote: parsed.supportedSendLaneNote,
+    supportedSendV1Decision: "accepted-narrow-v1-path",
+    supportedSendV1DecisionNote: parsed.supportedSendV1DecisionNote,
     supportedUnshieldLaneVersion: 1,
     supportedUnshieldLaneKind: "single-note-proof-backed-consume",
     supportedUnshieldLaneStatus: "supported",
     supportedUnshieldLaneNote: parsed.supportedUnshieldLaneNote,
+    supportedUnshieldV1Decision: "accepted-narrow-v1-path",
+    supportedUnshieldV1DecisionNote: parsed.supportedUnshieldV1DecisionNote,
     supportedReleaseLaneVersion: 1,
     supportedReleaseLaneKind: "proof-backed-consume-latest-registered-root",
     supportedReleaseLaneStatus: "supported",
@@ -1318,10 +1338,14 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedSendLaneKind?: unknown;
     supportedSendLaneStatus?: unknown;
     supportedSendLaneNote?: unknown;
+    supportedSendV1Decision?: unknown;
+    supportedSendV1DecisionNote?: unknown;
     supportedUnshieldLaneVersion?: unknown;
     supportedUnshieldLaneKind?: unknown;
     supportedUnshieldLaneStatus?: unknown;
     supportedUnshieldLaneNote?: unknown;
+    supportedUnshieldV1Decision?: unknown;
+    supportedUnshieldV1DecisionNote?: unknown;
     supportedReleaseLaneVersion?: unknown;
     supportedReleaseLaneKind?: unknown;
     supportedReleaseLaneStatus?: unknown;
@@ -1366,16 +1390,20 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 6 ||
-    parsed.summaryVersion !== 25 ||
+    parsed.contractVersion !== 7 ||
+    parsed.summaryVersion !== 26 ||
     parsed.supportedSendLaneVersion !== 1 ||
     parsed.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     parsed.supportedSendLaneStatus !== "supported" ||
     typeof parsed.supportedSendLaneNote !== "string" ||
+    parsed.supportedSendV1Decision !== "accepted-narrow-v1-path" ||
+    typeof parsed.supportedSendV1DecisionNote !== "string" ||
     parsed.supportedUnshieldLaneVersion !== 1 ||
     parsed.supportedUnshieldLaneKind !== "single-note-proof-backed-consume" ||
     parsed.supportedUnshieldLaneStatus !== "supported" ||
     typeof parsed.supportedUnshieldLaneNote !== "string" ||
+    parsed.supportedUnshieldV1Decision !== "accepted-narrow-v1-path" ||
+    typeof parsed.supportedUnshieldV1DecisionNote !== "string" ||
     parsed.supportedReleaseLaneVersion !== 1 ||
     parsed.supportedReleaseLaneKind !== "proof-backed-consume-latest-registered-root" ||
     parsed.supportedReleaseLaneStatus !== "supported" ||
@@ -1425,16 +1453,20 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
 
   return {
     stateVersion: 1,
-    contractVersion: 6,
-    summaryVersion: 25,
+    contractVersion: 7,
+    summaryVersion: 26,
     supportedSendLaneVersion: 1,
     supportedSendLaneKind: "single-input-single-recipient-optional-change",
     supportedSendLaneStatus: "supported",
     supportedSendLaneNote: parsed.supportedSendLaneNote,
+    supportedSendV1Decision: "accepted-narrow-v1-path",
+    supportedSendV1DecisionNote: parsed.supportedSendV1DecisionNote,
     supportedUnshieldLaneVersion: 1,
     supportedUnshieldLaneKind: "single-note-proof-backed-consume",
     supportedUnshieldLaneStatus: "supported",
     supportedUnshieldLaneNote: parsed.supportedUnshieldLaneNote,
+    supportedUnshieldV1Decision: "accepted-narrow-v1-path",
+    supportedUnshieldV1DecisionNote: parsed.supportedUnshieldV1DecisionNote,
     supportedReleaseLaneVersion: 1,
     supportedReleaseLaneKind: "proof-backed-consume-latest-registered-root",
     supportedReleaseLaneStatus: "supported",

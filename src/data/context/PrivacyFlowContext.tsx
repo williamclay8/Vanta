@@ -117,10 +117,14 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorSupportedSendLaneNote: string | null;
   privateCoreOperatorSupportedSendLaneStatus: string | null;
   privateCoreOperatorSupportedSendLaneVersion: number | null;
+  privateCoreOperatorSupportedSendV1Decision: string | null;
+  privateCoreOperatorSupportedSendV1DecisionNote: string | null;
   privateCoreOperatorSupportedUnshieldLaneKind: string | null;
   privateCoreOperatorSupportedUnshieldLaneNote: string | null;
   privateCoreOperatorSupportedUnshieldLaneStatus: string | null;
   privateCoreOperatorSupportedUnshieldLaneVersion: number | null;
+  privateCoreOperatorSupportedUnshieldV1Decision: string | null;
+  privateCoreOperatorSupportedUnshieldV1DecisionNote: string | null;
   privateCoreOperatorSupportedReleaseLaneKind: string | null;
   privateCoreOperatorSupportedReleaseLaneNote: string | null;
   privateCoreOperatorSupportedReleaseLaneStatus: string | null;
@@ -439,6 +443,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<string | null>(null);
   const [privateCoreOperatorSupportedSendLaneVersion, setPrivateCoreOperatorSupportedSendLaneVersion] =
     useState<number | null>(null);
+  const [privateCoreOperatorSupportedSendV1Decision, setPrivateCoreOperatorSupportedSendV1Decision] =
+    useState<string | null>(null);
+  const [
+    privateCoreOperatorSupportedSendV1DecisionNote,
+    setPrivateCoreOperatorSupportedSendV1DecisionNote,
+  ] = useState<string | null>(null);
   const [privateCoreOperatorSupportedUnshieldLaneKind, setPrivateCoreOperatorSupportedUnshieldLaneKind] =
     useState<string | null>(null);
   const [privateCoreOperatorSupportedUnshieldLaneNote, setPrivateCoreOperatorSupportedUnshieldLaneNote] =
@@ -447,6 +457,14 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<string | null>(null);
   const [privateCoreOperatorSupportedUnshieldLaneVersion, setPrivateCoreOperatorSupportedUnshieldLaneVersion] =
     useState<number | null>(null);
+  const [
+    privateCoreOperatorSupportedUnshieldV1Decision,
+    setPrivateCoreOperatorSupportedUnshieldV1Decision,
+  ] = useState<string | null>(null);
+  const [
+    privateCoreOperatorSupportedUnshieldV1DecisionNote,
+    setPrivateCoreOperatorSupportedUnshieldV1DecisionNote,
+  ] = useState<string | null>(null);
   const [privateCoreOperatorSupportedReleaseLaneKind, setPrivateCoreOperatorSupportedReleaseLaneKind] =
     useState<string | null>(null);
   const [privateCoreOperatorSupportedReleaseLaneNote, setPrivateCoreOperatorSupportedReleaseLaneNote] =
@@ -601,10 +619,14 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSupportedSendLaneNote,
       setPrivateCoreOperatorSupportedSendLaneStatus,
       setPrivateCoreOperatorSupportedSendLaneVersion,
+      setPrivateCoreOperatorSupportedSendV1Decision,
+      setPrivateCoreOperatorSupportedSendV1DecisionNote,
       setPrivateCoreOperatorSupportedUnshieldLaneKind,
       setPrivateCoreOperatorSupportedUnshieldLaneNote,
       setPrivateCoreOperatorSupportedUnshieldLaneStatus,
       setPrivateCoreOperatorSupportedUnshieldLaneVersion,
+      setPrivateCoreOperatorSupportedUnshieldV1Decision,
+      setPrivateCoreOperatorSupportedUnshieldV1DecisionNote,
       setPrivateCoreOperatorSupportedReleaseLaneKind,
       setPrivateCoreOperatorSupportedReleaseLaneNote,
       setPrivateCoreOperatorSupportedReleaseLaneStatus,
@@ -1675,10 +1697,14 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedSendLaneNote,
       privateCoreOperatorSupportedSendLaneStatus,
       privateCoreOperatorSupportedSendLaneVersion,
+      privateCoreOperatorSupportedSendV1Decision,
+      privateCoreOperatorSupportedSendV1DecisionNote,
       privateCoreOperatorSupportedUnshieldLaneKind,
       privateCoreOperatorSupportedUnshieldLaneNote,
       privateCoreOperatorSupportedUnshieldLaneStatus,
       privateCoreOperatorSupportedUnshieldLaneVersion,
+      privateCoreOperatorSupportedUnshieldV1Decision,
+      privateCoreOperatorSupportedUnshieldV1DecisionNote,
       privateCoreOperatorSupportedReleaseLaneKind,
       privateCoreOperatorSupportedReleaseLaneNote,
       privateCoreOperatorSupportedReleaseLaneStatus,
@@ -1810,10 +1836,14 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedSendLaneNote,
       privateCoreOperatorSupportedSendLaneStatus,
       privateCoreOperatorSupportedSendLaneVersion,
+      privateCoreOperatorSupportedSendV1Decision,
+      privateCoreOperatorSupportedSendV1DecisionNote,
       privateCoreOperatorSupportedUnshieldLaneKind,
       privateCoreOperatorSupportedUnshieldLaneNote,
       privateCoreOperatorSupportedUnshieldLaneStatus,
       privateCoreOperatorSupportedUnshieldLaneVersion,
+      privateCoreOperatorSupportedUnshieldV1Decision,
+      privateCoreOperatorSupportedUnshieldV1DecisionNote,
       privateCoreOperatorSupportedReleaseLaneKind,
       privateCoreOperatorSupportedReleaseLaneNote,
       privateCoreOperatorSupportedReleaseLaneStatus,
@@ -2413,10 +2443,14 @@ function applyPrivateCoreOperatorContractState(args: {
   setPrivateCoreOperatorSupportedSendLaneNote: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSendLaneStatus: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSendLaneVersion: (value: number | null) => void;
+  setPrivateCoreOperatorSupportedSendV1Decision: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedSendV1DecisionNote: (value: string | null) => void;
   setPrivateCoreOperatorSupportedUnshieldLaneKind: (value: string | null) => void;
   setPrivateCoreOperatorSupportedUnshieldLaneNote: (value: string | null) => void;
   setPrivateCoreOperatorSupportedUnshieldLaneStatus: (value: string | null) => void;
   setPrivateCoreOperatorSupportedUnshieldLaneVersion: (value: number | null) => void;
+  setPrivateCoreOperatorSupportedUnshieldV1Decision: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedUnshieldV1DecisionNote: (value: string | null) => void;
   setPrivateCoreOperatorSupportedReleaseLaneKind: (value: string | null) => void;
   setPrivateCoreOperatorSupportedReleaseLaneNote: (value: string | null) => void;
   setPrivateCoreOperatorSupportedReleaseLaneStatus: (value: string | null) => void;
@@ -2461,6 +2495,12 @@ function applyPrivateCoreOperatorContractState(args: {
   args.setPrivateCoreOperatorSupportedSendLaneNote(args.contractState.supportedSendLaneNote);
   args.setPrivateCoreOperatorSupportedSendLaneStatus(args.contractState.supportedSendLaneStatus);
   args.setPrivateCoreOperatorSupportedSendLaneVersion(args.contractState.supportedSendLaneVersion);
+  args.setPrivateCoreOperatorSupportedSendV1Decision(
+    args.contractState.supportedSendV1Decision,
+  );
+  args.setPrivateCoreOperatorSupportedSendV1DecisionNote(
+    args.contractState.supportedSendV1DecisionNote,
+  );
   args.setPrivateCoreOperatorSupportedUnshieldLaneKind(args.contractState.supportedUnshieldLaneKind);
   args.setPrivateCoreOperatorSupportedUnshieldLaneNote(args.contractState.supportedUnshieldLaneNote);
   args.setPrivateCoreOperatorSupportedUnshieldLaneStatus(
@@ -2468,6 +2508,12 @@ function applyPrivateCoreOperatorContractState(args: {
   );
   args.setPrivateCoreOperatorSupportedUnshieldLaneVersion(
     args.contractState.supportedUnshieldLaneVersion,
+  );
+  args.setPrivateCoreOperatorSupportedUnshieldV1Decision(
+    args.contractState.supportedUnshieldV1Decision,
+  );
+  args.setPrivateCoreOperatorSupportedUnshieldV1DecisionNote(
+    args.contractState.supportedUnshieldV1DecisionNote,
   );
   args.setPrivateCoreOperatorSupportedReleaseLaneKind(args.contractState.supportedReleaseLaneKind);
   args.setPrivateCoreOperatorSupportedReleaseLaneNote(args.contractState.supportedReleaseLaneNote);

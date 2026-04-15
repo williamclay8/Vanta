@@ -220,7 +220,7 @@ try {
   if (
     !initialSummaryState.ok ||
     initialSummaryState.parsed?.stateVersion !== 1 ||
-    initialSummaryState.parsed?.summaryVersion !== 25 ||
+    initialSummaryState.parsed?.summaryVersion !== 26 ||
     initialSummaryState.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     initialSummaryState.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -228,10 +228,14 @@ try {
     initialSummaryState.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     initialSummaryState.parsed?.supportedSendLaneStatus !== "supported" ||
     typeof initialSummaryState.parsed?.supportedSendLaneNote !== "string" ||
+    initialSummaryState.parsed?.supportedSendV1Decision !== "accepted-narrow-v1-path" ||
+    typeof initialSummaryState.parsed?.supportedSendV1DecisionNote !== "string" ||
     initialSummaryState.parsed?.supportedUnshieldLaneVersion !== 1 ||
     initialSummaryState.parsed?.supportedUnshieldLaneKind !== "single-note-proof-backed-consume" ||
     initialSummaryState.parsed?.supportedUnshieldLaneStatus !== "supported" ||
     typeof initialSummaryState.parsed?.supportedUnshieldLaneNote !== "string" ||
+    initialSummaryState.parsed?.supportedUnshieldV1Decision !== "accepted-narrow-v1-path" ||
+    typeof initialSummaryState.parsed?.supportedUnshieldV1DecisionNote !== "string" ||
     initialSummaryState.parsed?.supportedReleaseLaneVersion !== 1 ||
     initialSummaryState.parsed?.supportedReleaseLaneKind !==
       "proof-backed-consume-latest-registered-root" ||
@@ -895,16 +899,18 @@ try {
   if (
     !summaryStateAfterConsume.ok ||
     summaryStateAfterConsume.parsed?.stateVersion !== 1 ||
-    summaryStateAfterConsume.parsed?.summaryVersion !== 25 ||
+    summaryStateAfterConsume.parsed?.summaryVersion !== 26 ||
     summaryStateAfterConsume.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterConsume.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
     summaryStateAfterConsume.parsed?.supportedSendLaneVersion !== 1 ||
     summaryStateAfterConsume.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     summaryStateAfterConsume.parsed?.supportedSendLaneStatus !== "supported" ||
+    summaryStateAfterConsume.parsed?.supportedSendV1Decision !== "accepted-narrow-v1-path" ||
     summaryStateAfterConsume.parsed?.supportedUnshieldLaneVersion !== 1 ||
     summaryStateAfterConsume.parsed?.supportedUnshieldLaneKind !== "single-note-proof-backed-consume" ||
     summaryStateAfterConsume.parsed?.supportedUnshieldLaneStatus !== "supported" ||
+    summaryStateAfterConsume.parsed?.supportedUnshieldV1Decision !== "accepted-narrow-v1-path" ||
     summaryStateAfterConsume.parsed?.supportedReleaseLaneVersion !== 1 ||
     summaryStateAfterConsume.parsed?.supportedReleaseLaneKind !==
       "proof-backed-consume-latest-registered-root" ||
@@ -989,16 +995,18 @@ try {
   });
   if (
     !summaryStateAfterRelease.ok ||
-    summaryStateAfterRelease.parsed?.summaryVersion !== 25 ||
+    summaryStateAfterRelease.parsed?.summaryVersion !== 26 ||
     summaryStateAfterRelease.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterRelease.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
     summaryStateAfterRelease.parsed?.supportedSendLaneVersion !== 1 ||
     summaryStateAfterRelease.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     summaryStateAfterRelease.parsed?.supportedSendLaneStatus !== "supported" ||
+    summaryStateAfterRelease.parsed?.supportedSendV1Decision !== "accepted-narrow-v1-path" ||
     summaryStateAfterRelease.parsed?.supportedUnshieldLaneVersion !== 1 ||
     summaryStateAfterRelease.parsed?.supportedUnshieldLaneKind !== "single-note-proof-backed-consume" ||
     summaryStateAfterRelease.parsed?.supportedUnshieldLaneStatus !== "supported" ||
+    summaryStateAfterRelease.parsed?.supportedUnshieldV1Decision !== "accepted-narrow-v1-path" ||
     summaryStateAfterRelease.parsed?.supportedReleaseLaneVersion !== 1 ||
     summaryStateAfterRelease.parsed?.supportedReleaseLaneKind !==
       "proof-backed-consume-latest-registered-root" ||
@@ -1069,8 +1077,10 @@ try {
   });
   if (
     !operatorStatusOutput.includes("Summary state version: 1") ||
-    !operatorStatusOutput.includes("Mirrored contract version: 6") ||
-    !operatorStatusOutput.includes("Summary version: 25") ||
+    !operatorStatusOutput.includes("Mirrored contract version: 7") ||
+    !operatorStatusOutput.includes("Summary version: 26") ||
+    !operatorStatusOutput.includes("Supported send v1 decision: Accepted narrow v1 path") ||
+    !operatorStatusOutput.includes("Supported unshield v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported release v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported release execution: Operator-recorded devnet release") ||
     !operatorStatusOutput.includes(

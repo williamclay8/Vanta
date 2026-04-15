@@ -75,6 +75,10 @@ Vanta currently supports a constrained real devnet lifecycle for one supported a
 - full-stack private-core verification via `npm run private-core:verify`
 - operator-backed proof execution for the current narrow private-core consume lane
 - proof-backed private-core root registration
+- explicit narrow-v1 acceptance decisions for the current private-core:
+  - send lane
+  - unshield lane
+  - release lane
 
 ### Not live yet
 - final zk proof system
@@ -214,6 +218,12 @@ These commands cover:
 - proof-backed send-transition state persistence across restart
 - replay rejection after operator restart
 - operator contract and summary snapshot coherence across app, CLI, and regression surfaces
+- frozen operator contract surface:
+  - `contractVersion = 7`
+  - `summaryVersion = 26`
+  - `supportedSendV1Decision = accepted-narrow-v1-path`
+  - `supportedUnshieldV1Decision = accepted-narrow-v1-path`
+  - `supportedReleaseV1Decision = accepted-narrow-v1-path`
 
 `private-core:demo-readiness` is the friendliest single entrypoint when you just want to know whether the current proof/demo lane is stage-ready.
 

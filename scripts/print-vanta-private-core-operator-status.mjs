@@ -12,6 +12,14 @@ try {
   printLine("Supported send lane kind", humanizeSupportedSendLaneKind(summary.supportedSendLaneKind));
   printLine("Supported send lane status", humanizeSupportedSendLaneStatus(summary.supportedSendLaneStatus));
   printLine("Supported send lane note", summary.supportedSendLaneNote ?? "Unavailable");
+  printLine(
+    "Supported send v1 decision",
+    humanizeSupportedV1Decision(summary.supportedSendV1Decision),
+  );
+  printLine(
+    "Supported send v1 decision note",
+    summary.supportedSendV1DecisionNote ?? "Unavailable",
+  );
   printLine("Supported unshield lane version", String(summary.supportedUnshieldLaneVersion ?? "unknown"));
   printLine(
     "Supported unshield lane kind",
@@ -22,6 +30,14 @@ try {
     humanizeSupportedUnshieldLaneStatus(summary.supportedUnshieldLaneStatus),
   );
   printLine("Supported unshield lane note", summary.supportedUnshieldLaneNote ?? "Unavailable");
+  printLine(
+    "Supported unshield v1 decision",
+    humanizeSupportedV1Decision(summary.supportedUnshieldV1Decision),
+  );
+  printLine(
+    "Supported unshield v1 decision note",
+    summary.supportedUnshieldV1DecisionNote ?? "Unavailable",
+  );
   printLine(
     "Supported release lane version",
     String(summary.supportedReleaseLaneVersion ?? "unknown"),
@@ -37,7 +53,7 @@ try {
   printLine("Supported release lane note", summary.supportedReleaseLaneNote ?? "Unavailable");
   printLine(
     "Supported release v1 decision",
-    humanizeSupportedReleaseV1Decision(summary.supportedReleaseV1Decision),
+    humanizeSupportedV1Decision(summary.supportedReleaseV1Decision),
   );
   printLine(
     "Supported release v1 decision note",
@@ -492,7 +508,7 @@ function humanizeSupportedReleaseLaneStatus(value) {
   }
 }
 
-function humanizeSupportedReleaseV1Decision(value) {
+function humanizeSupportedV1Decision(value) {
   switch (value) {
     case "accepted-narrow-v1-path":
       return "Accepted narrow v1 path";

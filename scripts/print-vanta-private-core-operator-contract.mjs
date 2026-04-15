@@ -12,6 +12,14 @@ try {
   printLine("Supported send lane status", contract.supportedSendLaneStatus ?? "Unavailable");
   printLine("Supported send lane note", contract.supportedSendLaneNote ?? "Unavailable");
   printLine(
+    "Supported send v1 decision",
+    contract.supportedSendV1Decision ?? "Unavailable",
+  );
+  printLine(
+    "Supported send v1 decision note",
+    contract.supportedSendV1DecisionNote ?? "Unavailable",
+  );
+  printLine(
     "Supported unshield lane version",
     String(contract.supportedUnshieldLaneVersion ?? "unknown"),
   );
@@ -21,6 +29,14 @@ try {
     contract.supportedUnshieldLaneStatus ?? "Unavailable",
   );
   printLine("Supported unshield lane note", contract.supportedUnshieldLaneNote ?? "Unavailable");
+  printLine(
+    "Supported unshield v1 decision",
+    contract.supportedUnshieldV1Decision ?? "Unavailable",
+  );
+  printLine(
+    "Supported unshield v1 decision note",
+    contract.supportedUnshieldV1DecisionNote ?? "Unavailable",
+  );
   printLine(
     "Supported release lane version",
     String(contract.supportedReleaseLaneVersion ?? "unknown"),

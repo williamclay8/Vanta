@@ -41,6 +41,10 @@ The repo now also freezes the current source/proving split explicitly:
 The repo now also freezes the current release-lane decision explicitly:
 - `supportedReleaseV1Decision = accepted-narrow-v1-path`
 
+The repo now also freezes the current send-lane and unshield-lane decisions explicitly:
+- `supportedSendV1Decision = accepted-narrow-v1-path`
+- `supportedUnshieldV1Decision = accepted-narrow-v1-path`
+
 The repo now also freezes the current nullifier-key decision explicitly:
 - `nullifierKeyDecision = accepted-v1-temporary-note-secret-key`
 

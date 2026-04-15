@@ -273,16 +273,18 @@ try {
     preRestartSends.parsed.records.length < 1 ||
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.stateVersion !== 1 ||
-    preRestartSummary.parsed?.summaryVersion !== 25 ||
+    preRestartSummary.parsed?.summaryVersion !== 26 ||
     preRestartSummary.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     preRestartSummary.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
     preRestartSummary.parsed?.supportedSendLaneVersion !== 1 ||
     preRestartSummary.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     preRestartSummary.parsed?.supportedSendLaneStatus !== "supported" ||
+    preRestartSummary.parsed?.supportedSendV1Decision !== "accepted-narrow-v1-path" ||
     preRestartSummary.parsed?.supportedUnshieldLaneVersion !== 1 ||
     preRestartSummary.parsed?.supportedUnshieldLaneKind !== "single-note-proof-backed-consume" ||
     preRestartSummary.parsed?.supportedUnshieldLaneStatus !== "supported" ||
+    preRestartSummary.parsed?.supportedUnshieldV1Decision !== "accepted-narrow-v1-path" ||
     preRestartSummary.parsed?.supportedReleaseLaneVersion !== 1 ||
     preRestartSummary.parsed?.supportedReleaseLaneKind !==
       "proof-backed-consume-latest-registered-root" ||
@@ -358,16 +360,18 @@ try {
   if (
     !postRestartSummary.ok ||
     postRestartSummary.parsed?.stateVersion !== 1 ||
-    postRestartSummary.parsed?.summaryVersion !== 25 ||
+    postRestartSummary.parsed?.summaryVersion !== 26 ||
     postRestartSummary.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     postRestartSummary.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
     postRestartSummary.parsed?.supportedSendLaneVersion !== 1 ||
     postRestartSummary.parsed?.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     postRestartSummary.parsed?.supportedSendLaneStatus !== "supported" ||
+    postRestartSummary.parsed?.supportedSendV1Decision !== "accepted-narrow-v1-path" ||
     postRestartSummary.parsed?.supportedUnshieldLaneVersion !== 1 ||
     postRestartSummary.parsed?.supportedUnshieldLaneKind !== "single-note-proof-backed-consume" ||
     postRestartSummary.parsed?.supportedUnshieldLaneStatus !== "supported" ||
+    postRestartSummary.parsed?.supportedUnshieldV1Decision !== "accepted-narrow-v1-path" ||
     postRestartSummary.parsed?.supportedReleaseLaneVersion !== 1 ||
     postRestartSummary.parsed?.supportedReleaseLaneKind !==
       "proof-backed-consume-latest-registered-root" ||
@@ -475,14 +479,16 @@ try {
     stdio: "pipe",
   });
   if (
-    !operatorStatusOutput.includes("Summary version: 25") ||
+    !operatorStatusOutput.includes("Summary version: 26") ||
+    !operatorStatusOutput.includes("Mirrored contract version: 7") ||
+    !operatorStatusOutput.includes("Supported send v1 decision: Accepted narrow v1 path") ||
+    !operatorStatusOutput.includes("Supported unshield v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes(
       "Supported send input-root policy: Latest registered root with linked registration proof",
     ) ||
     !operatorStatusOutput.includes(
       "Supported send output registration: Resulting root must register as recipient or change output",
     ) ||
-    !operatorStatusOutput.includes("Mirrored contract version: 6") ||
     !operatorStatusOutput.includes("Supported release v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported release execution: Operator-recorded devnet release") ||
     !operatorStatusOutput.includes(

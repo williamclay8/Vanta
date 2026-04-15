@@ -41,7 +41,7 @@ That split matters because the repo already has a real first unshield proof lane
   - `currentRoot`
   - `latestConsume`
   - empty-state summaries for both endpoints
-- explicit supported-lane and assumption contracts in the operator summary for:
+- explicit supported-lane, v1-decision, and assumption contracts in the operator summary for:
   - send lane
   - unshield lane
   - release lane
@@ -184,7 +184,7 @@ These look important, but not strictly blocking for the narrowest plausible `zk 
 1. Keep the current unshield proof lane and operator seam green with `npm run private-core:verify`.
 2. Freeze the `v1` owner-auth and verifier-side assumptions in writing.
 3. Finish the real release-side contract around the current operator-backed proof lane.
-4. Freeze the current real private send and release lanes as the explicit supported `v1` product path.
+4. Freeze the current real private send, unshield, and release lanes as the explicit supported `v1` product path.
 5. Re-evaluate the remaining source/proving split after the supported send/release path is frozen.
 
 ## Honest summary

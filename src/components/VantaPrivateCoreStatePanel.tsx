@@ -40,10 +40,14 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSupportedSendLaneNote?: string | null;
   operatorSupportedSendLaneStatus?: string | null;
   operatorSupportedSendLaneVersion?: number | null;
+  operatorSupportedSendV1Decision?: string | null;
+  operatorSupportedSendV1DecisionNote?: string | null;
   operatorSupportedUnshieldLaneKind?: string | null;
   operatorSupportedUnshieldLaneNote?: string | null;
   operatorSupportedUnshieldLaneStatus?: string | null;
   operatorSupportedUnshieldLaneVersion?: number | null;
+  operatorSupportedUnshieldV1Decision?: string | null;
+  operatorSupportedUnshieldV1DecisionNote?: string | null;
   operatorSupportedReleaseLaneKind?: string | null;
   operatorSupportedReleaseLaneNote?: string | null;
   operatorSupportedReleaseLaneStatus?: string | null;
@@ -235,10 +239,14 @@ export function VantaPrivateCoreStatePanel({
   operatorSupportedSendLaneNote = null,
   operatorSupportedSendLaneStatus = null,
   operatorSupportedSendLaneVersion = null,
+  operatorSupportedSendV1Decision = null,
+  operatorSupportedSendV1DecisionNote = null,
   operatorSupportedUnshieldLaneKind = null,
   operatorSupportedUnshieldLaneNote = null,
   operatorSupportedUnshieldLaneStatus = null,
   operatorSupportedUnshieldLaneVersion = null,
+  operatorSupportedUnshieldV1Decision = null,
+  operatorSupportedUnshieldV1DecisionNote = null,
   operatorSupportedReleaseLaneKind = null,
   operatorSupportedReleaseLaneNote = null,
   operatorSupportedReleaseLaneStatus = null,
@@ -774,8 +782,32 @@ export function VantaPrivateCoreStatePanel({
               <strong>{operatorSupportedSendLaneNote ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
+              <span>Send v1 decision</span>
+              <strong>
+                {operatorSupportedSendV1Decision === "accepted-narrow-v1-path"
+                  ? "Accepted narrow v1 path"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Send v1 decision note</span>
+              <strong>{operatorSupportedSendV1DecisionNote ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
               <span>Supported unshield note</span>
               <strong>{operatorSupportedUnshieldLaneNote ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Unshield v1 decision</span>
+              <strong>
+                {operatorSupportedUnshieldV1Decision === "accepted-narrow-v1-path"
+                  ? "Accepted narrow v1 path"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Unshield v1 decision note</span>
+              <strong>{operatorSupportedUnshieldV1DecisionNote ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Supported release note</span>

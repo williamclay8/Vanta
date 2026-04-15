@@ -107,6 +107,10 @@ Vanta currently supports a constrained real devnet lifecycle for one supported a
 - first executable fixed-depth Noir single-note unshield circuit
 - local proof generation and verification for the current private-core lane
 - operator-backed proof execution and proof-backed root registration for the current narrow private-core consume lane
+- explicit narrow-v1 acceptance decisions for the current private-core:
+  - send lane
+  - unshield lane
+  - release lane
 
 ### Still constrained / not final
 - no final zk proof system yet
@@ -226,6 +230,13 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   prints the static operator-side private-core contract surface for the current narrow zk-v1 lane
 - `npm run private-core:operator-status`
   prints the current operator-side root, proof, send-proof, send-transition, consume, and release state when the operator server is running, including proof/send, proof/consume, proof/release, and root-registration proof linkage plus send resulting-root continuity status, resulting-root provenance, and the matched resulting-root record when available
+
+The current frozen operator-backed private-core contract now states the narrow accepted `v1` path explicitly:
+- `contractVersion = 7`
+- `summaryVersion = 26`
+- `supportedSendV1Decision = accepted-narrow-v1-path`
+- `supportedUnshieldV1Decision = accepted-narrow-v1-path`
+- `supportedReleaseV1Decision = accepted-narrow-v1-path`
 
 These commands do not make the protocol finished, but they do make the current first zk boundary concrete and repeatable.
 

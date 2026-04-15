@@ -58,10 +58,14 @@ export function AppDashboardPage() {
     privateCoreOperatorSupportedSendLaneNote,
     privateCoreOperatorSupportedSendLaneStatus,
     privateCoreOperatorSupportedSendLaneVersion,
+    privateCoreOperatorSupportedSendV1Decision,
+    privateCoreOperatorSupportedSendV1DecisionNote,
     privateCoreOperatorSupportedUnshieldLaneKind,
     privateCoreOperatorSupportedUnshieldLaneNote,
     privateCoreOperatorSupportedUnshieldLaneStatus,
     privateCoreOperatorSupportedUnshieldLaneVersion,
+    privateCoreOperatorSupportedUnshieldV1Decision,
+    privateCoreOperatorSupportedUnshieldV1DecisionNote,
     privateCoreOperatorSupportedReleaseLaneKind,
     privateCoreOperatorSupportedReleaseLaneNote,
     privateCoreOperatorSupportedReleaseLaneStatus,
@@ -290,10 +294,16 @@ export function AppDashboardPage() {
           operatorSupportedSendLaneNote={privateCoreOperatorSupportedSendLaneNote}
           operatorSupportedSendLaneStatus={privateCoreOperatorSupportedSendLaneStatus}
           operatorSupportedSendLaneVersion={privateCoreOperatorSupportedSendLaneVersion}
+          operatorSupportedSendV1Decision={privateCoreOperatorSupportedSendV1Decision}
+          operatorSupportedSendV1DecisionNote={privateCoreOperatorSupportedSendV1DecisionNote}
           operatorSupportedUnshieldLaneKind={privateCoreOperatorSupportedUnshieldLaneKind}
           operatorSupportedUnshieldLaneNote={privateCoreOperatorSupportedUnshieldLaneNote}
           operatorSupportedUnshieldLaneStatus={privateCoreOperatorSupportedUnshieldLaneStatus}
           operatorSupportedUnshieldLaneVersion={privateCoreOperatorSupportedUnshieldLaneVersion}
+          operatorSupportedUnshieldV1Decision={privateCoreOperatorSupportedUnshieldV1Decision}
+          operatorSupportedUnshieldV1DecisionNote={
+            privateCoreOperatorSupportedUnshieldV1DecisionNote
+          }
           operatorSupportedReleaseLaneKind={privateCoreOperatorSupportedReleaseLaneKind}
           operatorSupportedReleaseLaneNote={privateCoreOperatorSupportedReleaseLaneNote}
           operatorSupportedReleaseLaneStatus={privateCoreOperatorSupportedReleaseLaneStatus}
