@@ -554,6 +554,8 @@ try {
     !operatorStatusOutput.includes("Latest send proof action: send-proof") ||
     !operatorStatusOutput.includes("Latest send transition:") ||
     !operatorStatusOutput.includes("Latest send resulting root:") ||
+    !operatorStatusOutput.includes("Latest swap execution venue: Unavailable") ||
+    !operatorStatusOutput.includes("Latest swap quote reference: Unavailable") ||
     !operatorStatusOutput.includes("Send continuity status: Awaiting registration") ||
     !operatorStatusOutput.includes("Send boundary status: Awaiting registration") ||
     !operatorStatusOutput.includes("Proof/send link: linked") ||

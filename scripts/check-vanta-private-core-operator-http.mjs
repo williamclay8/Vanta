@@ -1167,6 +1167,8 @@ try {
     !operatorStatusOutput.includes("Latest proof action: consume") ||
     !operatorStatusOutput.includes("Proof/consume link: linked") ||
     !operatorStatusOutput.includes("Proof/release link: linked") ||
+    !operatorStatusOutput.includes("Latest swap execution venue: Unavailable") ||
+    !operatorStatusOutput.includes("Latest swap quote reference: Unavailable") ||
     !operatorStatusOutput.includes("Send continuity status: Unavailable") ||
     !operatorStatusOutput.includes("Send boundary status: Unavailable") ||
     !operatorStatusOutput.includes("Contract mirror status: Summary mirrors frozen contract") ||

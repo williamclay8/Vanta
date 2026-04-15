@@ -233,6 +233,11 @@ try {
   printLine("Latest swap transition", abbreviate(summary.latestSwap?.swapId));
   printLine("Latest swap proof link", abbreviate(summary.latestSwap?.proofId));
   printLine("Latest swap linked proof", abbreviate(summary.latestSwapLinkedProof?.proofId));
+  printLine("Latest swap execution venue", summary.latestSwap?.executionVenueLabel ?? "Unavailable");
+  printLine(
+    "Latest swap quote reference",
+    summary.latestSwap?.executionQuoteReference ?? "Unavailable",
+  );
   printLine(
     "Latest swap output",
     summary.latestSwap?.outputAmount && summary.latestSwap?.outputAssetId
