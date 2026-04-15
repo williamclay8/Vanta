@@ -27,8 +27,18 @@ import {
   requestVantaPrivateCoreOperatorSwapProof,
   requestVantaPrivateCoreOperatorSwapTransition,
 } from "@/zk/vantaPrivateCoreOperatorClient";
-import { getVantaPrivateCoreFixedDepthSwapFixtureV0 } from "@/zk/vantaPrivateCoreSwapProof";
-import { getVantaPrivateCoreFixedDepthUnshieldFixtureV0 } from "@/zk/vantaPrivateCoreUnshieldProof";
+import {
+  buildVantaPrivateCoreSwapTransition,
+  deriveVantaPrivateCoreSourceArtifactsFromHeldNote,
+} from "@/zk/vantaPrivateCore";
+import {
+  buildVantaPrivateCoreSwapProofBoundary,
+  getVantaPrivateCoreFixedDepthSwapFixtureV0,
+} from "@/zk/vantaPrivateCoreSwapProof";
+import {
+  buildVantaPrivateCoreUnshieldProofBoundary,
+  getVantaPrivateCoreFixedDepthUnshieldFixtureV0,
+} from "@/zk/vantaPrivateCoreUnshieldProof";
 import {
   createPreparedSwapMemo,
   createSpentMarkerInstruction,
@@ -141,6 +151,20 @@ function formatDiagnosticValue(value: string | null | undefined) {
   }
 
   return value;
+}
+
+function decimalAmountToBaseUnits(value: string, decimals: number) {
+  const normalized = value.trim();
+
+  if (!/^\d+(\.\d+)?$/.test(normalized)) {
+    throw new Error("Invalid decimal amount for private-core swap.");
+  }
+
+  const [wholePart, fractionPart = ""] = normalized.split(".");
+  const scaledFraction = `${fractionPart}${"0".repeat(decimals)}`.slice(0, decimals);
+  const combined = `${wholePart}${scaledFraction}`.replace(/^0+(?=\d)/, "");
+
+  return BigInt(combined || "0");
 }
 
 export function SwapPage() {
@@ -684,6 +708,60 @@ export function SwapPage() {
       : null) ??
     swapZkDiagnostics[0] ??
     null;
+  const currentPrivateCoreSwapCandidate = useMemo(() => {
+    if (!privacyFlow.privateCoreHoldState || !quote) {
+      return null;
+    }
+
+    try {
+      const heldNote = privacyFlow.privateCoreHoldState.heldNote;
+      const expectedInputAmount = decimalAmountToBaseUnits(quote.inputAmount, 6);
+
+      if (
+        heldNote.note.assetId !==
+          "0x7675736400000000000000000000000000000000000000000000000000000000" ||
+        heldNote.note.amount !== expectedInputAmount
+      ) {
+        return null;
+      }
+
+      const transition = buildVantaPrivateCoreSwapTransition({
+        input: heldNote,
+        outputAssetId: liveSwapPair.solAssetId as `0x${string}`,
+        outputAmount: decimalAmountToBaseUnits(quote.outputAmount, 9),
+        recipientOwnerPublicKey: privacyFlow.privateCoreOwner.publicKey,
+      });
+      const proofBoundary = buildVantaPrivateCoreSwapProofBoundary({
+        transition,
+        senderSecretKey: privacyFlow.privateCoreOwner.secretKey,
+      });
+      const inputProofBoundary = buildVantaPrivateCoreUnshieldProofBoundary({
+        heldNote,
+        ownerSecretKey: privacyFlow.privateCoreOwner.secretKey,
+        releaseDestination:
+          "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      });
+      const sourceArtifacts = deriveVantaPrivateCoreSourceArtifactsFromHeldNote(heldNote);
+      const preview = privacyFlow.previewPrivateCoreSwapTransition(transition);
+
+      return {
+        executionMode: "current-held-note" as const,
+        inputProofBoundary,
+        proofBoundary,
+        resultingRoot: preview.resultingRoot,
+        sourceArtifacts,
+        transition,
+      };
+    } catch {
+      return null;
+    }
+  }, [
+    privacyFlow.previewPrivateCoreSwapTransition,
+    privacyFlow.privateCoreHoldState,
+    privacyFlow.privateCoreOwner.publicKey,
+    privacyFlow.privateCoreOwner.secretKey,
+    quote,
+  ]);
   const shouldShowDiagnostics =
     status !== "idle" ||
     Boolean(flowError) ||
@@ -886,8 +964,11 @@ export function SwapPage() {
 
     try {
       const fixture = getVantaPrivateCoreFixedDepthSwapFixtureV0();
+      const witnessPackage =
+        currentPrivateCoreSwapCandidate?.proofBoundary.noirWitnessPackage ??
+        fixture.validBoundary.noirWitnessPackage;
       const proofReceipt = await requestVantaPrivateCoreOperatorSwapProof({
-        witnessPackage: fixture.validBoundary.noirWitnessPackage,
+        witnessPackage,
       });
       const nextState = await fetchVantaPrivateCoreOperatorSwapProofs();
 
@@ -926,18 +1007,32 @@ export function SwapPage() {
     });
 
     try {
-      const rootFixture = getVantaPrivateCoreFixedDepthUnshieldFixtureV0();
       const swapFixture = getVantaPrivateCoreFixedDepthSwapFixtureV0();
+      const rootFixture = getVantaPrivateCoreFixedDepthUnshieldFixtureV0();
+      const rootRegistrationArgs = currentPrivateCoreSwapCandidate
+        ? {
+            sourceArtifacts: currentPrivateCoreSwapCandidate.sourceArtifacts,
+            witnessPackage: currentPrivateCoreSwapCandidate.inputProofBoundary.noirWitnessPackage,
+          }
+        : {
+            sourceArtifacts: rootFixture.validSourceArtifacts,
+            witnessPackage: rootFixture.validBoundary.noirWitnessPackage,
+          };
+      const swapBoundary =
+        currentPrivateCoreSwapCandidate?.proofBoundary ?? swapFixture.validBoundary;
+      const resultingRoot =
+        currentPrivateCoreSwapCandidate?.resultingRoot ?? swapFixture.validResultingRoot;
 
-      await registerVantaPrivateCoreOperatorRoot({
-        sourceArtifacts: rootFixture.validSourceArtifacts,
-        witnessPackage: rootFixture.validBoundary.noirWitnessPackage,
-      });
+      await registerVantaPrivateCoreOperatorRoot(rootRegistrationArgs);
 
       const transitionReceipt = await requestVantaPrivateCoreOperatorSwapTransition({
-        resultingRoot: swapFixture.validResultingRoot,
-        witnessPackage: swapFixture.validBoundary.noirWitnessPackage,
+        resultingRoot,
+        witnessPackage: swapBoundary.noirWitnessPackage,
       });
+
+      if (currentPrivateCoreSwapCandidate) {
+        privacyFlow.runPrivateCoreSwapTransition(currentPrivateCoreSwapCandidate.transition);
+      }
 
       await refreshPrivateCoreOperatorSummary();
 
@@ -1787,6 +1882,14 @@ export function SwapPage() {
                 <div className="review-row">
                   <span>Proof/swap link</span>
                   <strong>{formatDiagnosticValue(privateCoreOperatorProofSwapLinkStatus)}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Swap proof basis</span>
+                  <strong>
+                    {currentPrivateCoreSwapCandidate
+                      ? "Current held note + live quote"
+                      : "Deterministic fixture fallback"}
+                  </strong>
                 </div>
               </div>
               <div className="status-actions">
