@@ -180,6 +180,7 @@ npm run private-core:send-chain-unshield-restart-check
 npm run private-core:prove
 npm run private-core:send-prove
 npm run private-core:swap-prove
+npm run private-core:swap-unshield-roundtrip-check
 npm run private-core:contract-smoke
 npm run private-core:send-http-smoke
 npm run private-core:swap-http-smoke
@@ -218,6 +219,7 @@ These commands cover:
 - local unshield proof generation and verification
 - local send proof generation and verification
 - local swap proof generation and verification
+- operator-backed constrained swap to recipient-unshield roundtrip
 - dedicated operator-contract endpoint coverage
 - operator-backed send proof HTTP smoke coverage and persisted send-proof state
 - operator-backed swap proof HTTP smoke coverage and persisted swap-proof state

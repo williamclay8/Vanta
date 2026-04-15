@@ -22,9 +22,12 @@ import {
 import { useVantaShieldState } from "@/solana/useVantaShieldState";
 import {
   fetchVantaPrivateCoreOperatorSwapProofs,
+  registerVantaPrivateCoreOperatorRoot,
   requestVantaPrivateCoreOperatorSwapProof,
+  requestVantaPrivateCoreOperatorSwapTransition,
 } from "@/zk/vantaPrivateCoreOperatorClient";
 import { getVantaPrivateCoreFixedDepthSwapFixtureV0 } from "@/zk/vantaPrivateCoreSwapProof";
+import { getVantaPrivateCoreFixedDepthUnshieldFixtureV0 } from "@/zk/vantaPrivateCoreUnshieldProof";
 import {
   createPreparedSwapMemo,
   createSpentMarkerInstruction,
@@ -93,6 +96,14 @@ type PrivateCoreSwapProofExecution = {
   status: "idle" | "verifying" | "verified" | "failed";
 };
 
+type PrivateCoreSwapTransitionExecution = {
+  errorMessage: string | null;
+  latestSwapId: string | null;
+  latestProofId: string | null;
+  resultingRoot: string | null;
+  status: "idle" | "recording" | "recorded" | "failed";
+};
+
 function formatVusdAmount(value: number) {
   return `${value.toLocaleString(undefined, {
     minimumFractionDigits: 2,
@@ -140,6 +151,7 @@ export function SwapPage() {
     privateCoreOperatorProofSwapLinkStatus,
     privateCoreOperatorSwapProofs,
     privateCoreOperatorSwaps,
+    refreshPrivateCoreOperatorSummary,
   } = usePrivacyFlow();
   const walletSession = useWalletSession();
   const {
@@ -184,6 +196,14 @@ export function SwapPage() {
       latestProofId: null,
       proofFieldCount: null,
       proofPublicInputCount: null,
+      status: "idle",
+    });
+  const [privateCoreSwapTransitionExecution, setPrivateCoreSwapTransitionExecution] =
+    useState<PrivateCoreSwapTransitionExecution>({
+      errorMessage: null,
+      latestProofId: null,
+      latestSwapId: null,
+      resultingRoot: null,
       status: "idle",
     });
   const [privateCoreSwapProofError, setPrivateCoreSwapProofError] = useState<string | null>(null);
@@ -882,6 +902,52 @@ export function SwapPage() {
     }
   }
 
+  async function handleRecordPrivateCoreSwapTransition() {
+    setPrivateCoreSwapTransitionExecution({
+      errorMessage: null,
+      latestProofId: null,
+      latestSwapId: null,
+      resultingRoot: null,
+      status: "recording",
+    });
+
+    try {
+      const rootFixture = getVantaPrivateCoreFixedDepthUnshieldFixtureV0();
+      const swapFixture = getVantaPrivateCoreFixedDepthSwapFixtureV0();
+
+      await registerVantaPrivateCoreOperatorRoot({
+        sourceArtifacts: rootFixture.validSourceArtifacts,
+        witnessPackage: rootFixture.validBoundary.noirWitnessPackage,
+      });
+
+      const transitionReceipt = await requestVantaPrivateCoreOperatorSwapTransition({
+        resultingRoot: swapFixture.validResultingRoot,
+        witnessPackage: swapFixture.validBoundary.noirWitnessPackage,
+      });
+
+      await refreshPrivateCoreOperatorSummary();
+
+      setPrivateCoreSwapTransitionExecution({
+        errorMessage: null,
+        latestProofId: transitionReceipt.proofId,
+        latestSwapId: transitionReceipt.swapId,
+        resultingRoot: transitionReceipt.resultingRoot,
+        status: "recorded",
+      });
+    } catch (error) {
+      setPrivateCoreSwapTransitionExecution({
+        errorMessage:
+          error instanceof Error
+            ? error.message
+            : "The private-core swap transition lane failed.",
+        latestProofId: null,
+        latestSwapId: null,
+        resultingRoot: null,
+        status: "failed",
+      });
+    }
+  }
+
   let validationMessage =
     "Swap v2 supports one full spendable VUSD note at a time and replaces it with one shielded SOL output state inside Vanta using a constrained Meteora-aware operator quote.";
 
@@ -1339,6 +1405,14 @@ export function SwapPage() {
                       : "Unavailable"}
                   </strong>
                 </div>
+                <div className="review-row">
+                  <span>Recorded swap transition</span>
+                  <strong>
+                    {privateCoreSwapTransitionExecution.latestSwapId
+                      ? abbreviate(privateCoreSwapTransitionExecution.latestSwapId)
+                      : "Unavailable"}
+                  </strong>
+                </div>
               </div>
               <details className="preview-card" style={{ marginTop: 16 }}>
                 <summary>Internal zk diagnostics</summary>
@@ -1568,6 +1642,18 @@ export function SwapPage() {
                   <strong>{formatDiagnosticValue(privateCoreOperatorLatestSwap?.resultingRoot ?? undefined)}</strong>
                 </div>
                 <div className="review-row">
+                  <span>Recorded transition status</span>
+                  <strong>{privateCoreSwapTransitionExecution.status}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Recorded transition proof</span>
+                  <strong>{formatDiagnosticValue(privateCoreSwapTransitionExecution.latestProofId)}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Recorded transition root</span>
+                  <strong>{formatDiagnosticValue(privateCoreSwapTransitionExecution.resultingRoot)}</strong>
+                </div>
+                <div className="review-row">
                   <span>Proof/swap link</span>
                   <strong>{formatDiagnosticValue(privateCoreOperatorProofSwapLinkStatus)}</strong>
                 </div>
@@ -1585,10 +1671,27 @@ export function SwapPage() {
                     ? "Verifying swap proof"
                     : "Verify private swap proof"}
                 </button>
+                <button
+                  className="button button-ghost"
+                  type="button"
+                  onClick={() => {
+                    void handleRecordPrivateCoreSwapTransition();
+                  }}
+                  disabled={privateCoreSwapTransitionExecution.status === "recording"}
+                >
+                  {privateCoreSwapTransitionExecution.status === "recording"
+                    ? "Recording swap transition"
+                    : "Record private swap transition"}
+                </button>
               </div>
               {privateCoreSwapProofExecution.errorMessage && (
                 <p className="shield-helper shield-helper--meta" style={{ color: "#b42318" }}>
                   Swap proof error: {privateCoreSwapProofExecution.errorMessage}
+                </p>
+              )}
+              {privateCoreSwapTransitionExecution.errorMessage && (
+                <p className="shield-helper shield-helper--meta" style={{ color: "#b42318" }}>
+                  Swap transition error: {privateCoreSwapTransitionExecution.errorMessage}
                 </p>
               )}
             </div>

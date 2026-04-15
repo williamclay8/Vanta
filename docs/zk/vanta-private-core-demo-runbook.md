@@ -156,6 +156,7 @@ Fall back in this order:
 1. Show `npm run private-core:verify`
    or `npm run private-core:demo-readiness`
    If you need to isolate the constrained swap seam, show `npm run private-core:swap-transition-http-smoke`
+   If you need to show the downstream swap handoff, show `npm run private-core:swap-unshield-roundtrip-check`
    If the question is operator durability, show `npm run private-core:swap-restart-check`
 2. Show the shared internal diagnostics panel
 3. Show the replay rejection path

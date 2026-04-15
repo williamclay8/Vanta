@@ -178,6 +178,8 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   generates and verifies a real local proof for the current single-note private-send lane
 - `npm run private-core:swap-prove`
   generates and verifies a real local proof for the current single-note constrained swap lane
+- `npm run private-core:swap-unshield-roundtrip-check`
+  proves one operator-backed constrained swap can hand off into proof-backed root registration, operator-backed recipient unshield, linked release state, and replay rejection
 - `npm run private-core:send-http-smoke`
   proves the operator rejects unregistered send input roots, requires the current input root to stay linked to its registration proof, rejects missing / malformed / non-transitioning resulting roots, accepts proof-backed root registration, verifies the current send witness package over HTTP, persists explicit send-proof state, and preserves the expected shared root-registration proof state
 - `npm run private-core:swap-http-smoke`
