@@ -1468,6 +1468,10 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   </strong>
                 </div>
                 <div className="preview-card">
+                  <span>Send boundary</span>
+                  <strong>{privateCoreOperatorSendBoundaryStatusLabel ?? "Unavailable"}</strong>
+                </div>
+                <div className="preview-card">
                   <span>Downstream continuity</span>
                   <strong>{privateCoreOperatorSendContinuityStatusLabel ?? "Unavailable"}</strong>
                 </div>
@@ -1495,6 +1499,12 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               </p>
               <p className="shield-helper shield-helper--meta">
                 Proof/send link: {privateCoreOperatorProofSendLinkStatus ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Send boundary: {privateCoreOperatorSendBoundaryStatusLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Send boundary note: {privateCoreOperatorSendBoundaryPrimaryNote ?? "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
                 Downstream continuity: {privateCoreOperatorSendContinuityStatusLabel ?? "Unavailable"}
@@ -1563,6 +1573,10 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   <strong>{privateCoreSendState.observationMode}</strong>
                 </div>
                 <div className="preview-card">
+                  <span>Send boundary</span>
+                  <strong>{privateCoreOperatorSendBoundaryStatusLabel ?? "Unavailable"}</strong>
+                </div>
+                <div className="preview-card">
                   <span>Downstream continuity</span>
                   <strong>{privateCoreOperatorSendContinuityStatusLabel ?? "Unavailable"}</strong>
                 </div>
@@ -1578,6 +1592,12 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               </p>
               <p className="shield-helper shield-helper--meta">
                 Send root note: {privateCoreSendState.resultingRootPrimaryNote}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Send boundary: {privateCoreOperatorSendBoundaryStatusLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Send boundary note: {privateCoreOperatorSendBoundaryPrimaryNote ?? "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
                 Downstream continuity: {privateCoreOperatorSendContinuityStatusLabel ?? "Unavailable"}
