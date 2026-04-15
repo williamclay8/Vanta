@@ -225,6 +225,7 @@ export function UnshieldPage() {
     privateCoreOperatorSummaryUpdatedAt,
     privateCoreRecentShield,
     privateCoreSendState,
+    privateCoreSwapState,
     privateCoreUnshieldState,
     runPrivateCoreReplayAttempt,
     runPrivateCoreUnshield,
@@ -972,6 +973,7 @@ export function UnshieldPage() {
         <VantaPrivateCoreStatePanel
           holdState={privateCoreHoldState}
           sendState={privateCoreSendState}
+          swapState={privateCoreSwapState}
           operatorCurrentRoot={privateCoreOperatorCurrentRoot}
           operatorConsumeError={privateCoreOperatorConsumeError}
           operatorConsumes={privateCoreOperatorConsumes}

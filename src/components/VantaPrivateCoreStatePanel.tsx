@@ -2,6 +2,7 @@ import type {
   VantaPrivateCoreHoldState,
   VantaPrivateCoreSendState,
   VantaPrivateCoreShieldState,
+  VantaPrivateCoreSwapState,
   VantaPrivateCoreUnshieldState,
 } from "@/data/context/PrivacyFlowContext";
 import type {
@@ -18,6 +19,7 @@ import type {
 type VantaPrivateCoreStatePanelProps = {
   holdState: VantaPrivateCoreHoldState | null;
   sendState?: VantaPrivateCoreSendState | null;
+  swapState?: VantaPrivateCoreSwapState | null;
   operatorCurrentRoot?: string | null;
   operatorConsumeError?: string | null;
   operatorConsumes?: VantaPrivateCoreOperatorConsumeRecord[];
@@ -165,6 +167,19 @@ function formatAmount(baseUnits: string) {
   return `${whole}${fraction ? `.${fraction}` : ""} VUSD`;
 }
 
+function formatAssetAmount(assetId: string | null | undefined, baseUnits: string) {
+  if (
+    assetId === "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  ) {
+    const raw = baseUnits.padStart(10, "0");
+    const whole = raw.slice(0, -9);
+    const fraction = raw.slice(-9).replace(/0+$/, "");
+    return `${whole}${fraction ? `.${fraction}` : ""} SOL`;
+  }
+
+  return formatAmount(baseUnits);
+}
+
 function formatOperatorSummaryFreshness(value: number | null) {
   if (!value) {
     return "Unavailable";
@@ -257,6 +272,7 @@ function summarizeOperatorImmediateProofAlignment(args: {
 export function VantaPrivateCoreStatePanel({
   holdState,
   sendState = null,
+  swapState = null,
   operatorCurrentRoot = null,
   operatorConsumeError = null,
   operatorConsumes = [],
@@ -481,7 +497,8 @@ export function VantaPrivateCoreStatePanel({
       </div>
 
       {compact &&
-      (latestOperatorSwap ||
+      (swapState ||
+        latestOperatorSwap ||
         operatorSwapBoundaryStatusLabel ||
         operatorSwapContinuityStatusLabel ||
         operatorSwapResultingRootStatusLabel) ? (
@@ -490,12 +507,16 @@ export function VantaPrivateCoreStatePanel({
             <div className="note-state-row__header">
               <div>
                 <strong>
-                  {latestOperatorSwap?.outputAmount
-                    ? `${latestOperatorSwap.outputAmount} SOL`
+                  {swapState
+                    ? formatAssetAmount(swapState.outputAssetId, swapState.outputAmount)
+                    : latestOperatorSwap?.outputAmount
+                      ? `${latestOperatorSwap.outputAmount} SOL`
                     : "Latest swap output"}
                 </strong>
                 <span>
-                  {latestOperatorSwap?.swapId
+                  {swapState?.outputCommitment
+                    ? abbreviate(swapState.outputCommitment)
+                    : latestOperatorSwap?.swapId
                     ? abbreviate(latestOperatorSwap.swapId)
                     : "No swap transition recorded"}
                 </span>
@@ -512,12 +533,75 @@ export function VantaPrivateCoreStatePanel({
             <div className="note-state-row__meta">
               <span>
                 Swap root{" "}
-                {latestOperatorSwap?.resultingRoot
-                  ? abbreviate(latestOperatorSwap.resultingRoot)
+                {swapState?.resultingRoot
+                  ? abbreviate(swapState.resultingRoot)
+                  : latestOperatorSwap?.resultingRoot
+                    ? abbreviate(latestOperatorSwap.resultingRoot)
                   : "Unavailable"}
               </span>
-              <span>{operatorSwapResultingRootStatusLabel ?? "Swap root unavailable"}</span>
-              <span>{operatorSwapBoundaryPrimaryNote ?? "No swap boundary note yet"}</span>
+              <span>
+                {swapState?.resultingRootStatusLabel ??
+                  operatorSwapResultingRootStatusLabel ??
+                  "Swap root unavailable"}
+              </span>
+              <span>
+                {swapState?.resultingRootPrimaryNote ??
+                  operatorSwapBoundaryPrimaryNote ??
+                  "No swap boundary note yet"}
+              </span>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {swapState ? (
+        <div className="note-state-list">
+          <div className="note-state-row">
+            <div className="note-state-row__header">
+              <div>
+                <strong>{formatAssetAmount(swapState.outputAssetId, swapState.outputAmount)}</strong>
+                <span>{abbreviate(swapState.outputCommitment)}</span>
+              </div>
+              <div className="note-state-chips">
+                <span className="note-state-chip note-state-chip--spendable">
+                  {swapState.outputRecoveryStatus}
+                </span>
+                <span className="note-state-chip">{swapState.outputUnshieldStatus}</span>
+              </div>
+            </div>
+            <div className="review-grid">
+              <div className="review-row">
+                <span>Output payload</span>
+                <strong>
+                  {swapState.outputPayloadCommitment
+                    ? abbreviate(swapState.outputPayloadCommitment)
+                    : "Unavailable from operator summary"}
+                </strong>
+              </div>
+              <div className="review-row">
+                <span>Output asset</span>
+                <strong>{abbreviate(swapState.outputAssetId)}</strong>
+              </div>
+              <div className="review-row">
+                <span>Resulting root</span>
+                <strong>
+                  {swapState.resultingRoot
+                    ? abbreviate(swapState.resultingRoot)
+                    : "Unavailable from operator summary"}
+                </strong>
+              </div>
+              <div className="review-row">
+                <span>Swap root status</span>
+                <strong>{swapState.resultingRootStatusLabel ?? "Unavailable"}</strong>
+              </div>
+              <div className="review-row">
+                <span>Swap root note</span>
+                <strong>{swapState.resultingRootPrimaryNote ?? "Unavailable"}</strong>
+              </div>
+              <div className="review-row">
+                <span>Observation mode</span>
+                <strong>{swapState.observationMode}</strong>
+              </div>
             </div>
           </div>
         </div>

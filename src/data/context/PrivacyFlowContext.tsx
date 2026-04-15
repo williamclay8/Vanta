@@ -23,6 +23,8 @@ import {
   type SendResultV0,
   type SendTransitionV0,
   type ShieldArtifactV0,
+  type SwapResultV0,
+  type SwapTransitionV0,
   type UnshieldProofEnvelopeV0,
   type UnshieldResultV0,
 } from "@/zk/vantaPrivateCore";
@@ -63,8 +65,23 @@ export type PrivacyAssetKey = "VUSD" | "USDC" | "JTO" | "BONK";
 const VANTA_PRIVATE_CORE_VUSD_ASSET_ID =
   "0x7675736400000000000000000000000000000000000000000000000000000000" as const;
 const VANTA_PRIVATE_CORE_VUSD_DECIMALS = 6;
+const VANTA_PRIVATE_CORE_SOL_ASSET_ID =
+  "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" as const;
+const VANTA_PRIVATE_CORE_SOL_DECIMALS = 9;
 const VANTA_PRIVATE_CORE_DEMO_RELEASE_DESTINATION =
   "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc" as const;
+
+function formatPrivateCoreAssetAmount(assetId: string, amount: bigint) {
+  if (assetId === VANTA_PRIVATE_CORE_VUSD_ASSET_ID) {
+    return `${formatBaseUnits(amount, VANTA_PRIVATE_CORE_VUSD_DECIMALS)} VUSD`;
+  }
+
+  if (assetId === VANTA_PRIVATE_CORE_SOL_ASSET_ID) {
+    return `${formatBaseUnits(amount, VANTA_PRIVATE_CORE_SOL_DECIMALS)} SOL`;
+  }
+
+  return amount.toString(10);
+}
 
 export type RecentShieldContext = {
   asset: PrivacyAssetKey;
@@ -88,6 +105,7 @@ type PrivacyFlowContextValue = {
   privateCoreRecentShield: VantaPrivateCoreShieldState | null;
   privateCoreHoldState: VantaPrivateCoreHoldState | null;
   privateCoreSendState: VantaPrivateCoreSendState | null;
+  privateCoreSwapState: VantaPrivateCoreSwapState | null;
   privateCoreOperatorConsumes: VantaPrivateCoreOperatorConsumeRecord[];
   privateCoreOperatorConsumeError: string | null;
   privateCoreOperatorLatestConsume: VantaPrivateCoreOperatorConsumeRecord | null;
@@ -240,10 +258,16 @@ type PrivacyFlowContextValue = {
   }) => Promise<void>;
   refreshPrivateCoreOperatorSummary: () => Promise<VantaPrivateCoreOperatorSummaryStateResponse>;
   previewPrivateCoreSendTransition: (transition: SendTransitionV0) => SendResultV0;
+  previewPrivateCoreSwapTransition: (transition: SwapTransitionV0) => SwapResultV0;
   runPrivateCoreSendTransition: (transition: SendTransitionV0) => {
     nextHoldState: VantaPrivateCoreHoldState | null;
     nextShieldState: VantaPrivateCoreShieldState | null;
     result: SendResultV0;
+  };
+  runPrivateCoreSwapTransition: (transition: SwapTransitionV0) => {
+    nextHoldState: VantaPrivateCoreHoldState | null;
+    nextShieldState: VantaPrivateCoreShieldState | null;
+    result: SwapResultV0;
   };
   runPrivateCoreShield: (args: { amountDisplay: string; asset: PrivacyAssetKey }) => VantaPrivateCoreShieldState;
   runPrivateCoreUnshield: () => Promise<VantaPrivateCoreUnshieldState>;
@@ -339,6 +363,20 @@ export type VantaPrivateCoreSendState = {
   observationMode: string;
 };
 
+export type VantaPrivateCoreSwapState = {
+  outputCommitment: string;
+  outputPayloadCommitment: string | null;
+  outputAssetId: string;
+  outputAmount: string;
+  resultingRoot: string | null;
+  resultingRootStatusLabel: string;
+  resultingRootPrimaryNote: string;
+  outputRecoveryStatus: string;
+  outputUnshieldStatus: string;
+  noteSummary: string;
+  observationMode: string;
+};
+
 export type VantaPrivateCoreUnshieldState = {
   sourceNullifier: string | null;
   proofEnvelope: UnshieldProofEnvelopeV0 | null;
@@ -413,6 +451,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   const [privateCoreRecentShield, setPrivateCoreRecentShield] = useState<VantaPrivateCoreShieldState | null>(null);
   const [privateCoreHoldState, setPrivateCoreHoldState] = useState<VantaPrivateCoreHoldState | null>(null);
   const [privateCoreLocalSendState, setPrivateCoreLocalSendState] = useState<VantaPrivateCoreSendState | null>(null);
+  const [privateCoreLocalSwapState, setPrivateCoreLocalSwapState] = useState<VantaPrivateCoreSwapState | null>(null);
   const [privateCoreUnshieldState, setPrivateCoreUnshieldState] = useState<VantaPrivateCoreUnshieldState | null>(null);
   const [privateCoreOperatorConsumes, setPrivateCoreOperatorConsumes] = useState<
     VantaPrivateCoreOperatorConsumeRecord[]
@@ -973,6 +1012,35 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     ],
   );
 
+  const privateCoreSwapState = useMemo(
+    () =>
+      mergePrivateCoreSwapStateWithOperatorDownstream({
+        baseState:
+          privateCoreLocalSwapState ??
+          summarizePrivateCoreOperatorSwapState({
+            latestConsume: privateCoreOperatorLatestConsume,
+            latestRelease: privateCoreOperatorLatestRelease,
+            latestSwap: privateCoreOperatorLatestSwap,
+            linkedProof: privateCoreOperatorLatestSwapLinkedProof,
+            resultingRootPrimaryNote: privateCoreOperatorSwapResultingRootSummary.primaryNote,
+            resultingRootStatusLabel: privateCoreOperatorSwapResultingRootSummary.statusLabel,
+          }),
+        latestConsume: privateCoreOperatorLatestConsume,
+        latestRelease: privateCoreOperatorLatestRelease,
+        resultingRootPrimaryNote: privateCoreOperatorSwapResultingRootSummary.primaryNote,
+        resultingRootStatusLabel: privateCoreOperatorSwapResultingRootSummary.statusLabel,
+      }),
+    [
+      privateCoreLocalSwapState,
+      privateCoreOperatorLatestConsume,
+      privateCoreOperatorLatestRelease,
+      privateCoreOperatorLatestSwap,
+      privateCoreOperatorLatestSwapLinkedProof,
+      privateCoreOperatorSwapResultingRootSummary.primaryNote,
+      privateCoreOperatorSwapResultingRootSummary.statusLabel,
+    ],
+  );
+
   useEffect(() => {
     let cancelled = false;
 
@@ -1203,7 +1271,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofNoteType: previewWitness.noteType,
         proofLeafIndex: previewWitness.leafIndex,
         proofPathDepth: previewWitness.pathDepth,
-        noteSummary: `${formatBaseUnits(args.shieldArtifact.note.amount, VANTA_PRIVATE_CORE_VUSD_DECIMALS)} VUSD private note`,
+        noteSummary: `${formatPrivateCoreAssetAmount(
+          args.shieldArtifact.note.assetId,
+          args.shieldArtifact.note.amount,
+        )} private note`,
       };
 
       return { holdState, shieldState };
@@ -1234,6 +1305,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     setPrivateCoreRecentShield(nextShieldState);
     setPrivateCoreHoldState(nextHoldState);
     setPrivateCoreLocalSendState(null);
+    setPrivateCoreLocalSwapState(null);
     setPrivateCoreUnshieldState(null);
 
     return nextShieldState;
@@ -1288,6 +1360,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         noteSummary: `${formatBaseUnits(result.recipient.note.amount, VANTA_PRIVATE_CORE_VUSD_DECIMALS)} VUSD sent privately`,
         observationMode: "Local send handoff",
       });
+      setPrivateCoreLocalSwapState(null);
       setPrivateCoreUnshieldState(null);
 
       return {
@@ -1301,6 +1374,61 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
 
   const previewPrivateCoreSendTransition = useCallback(
     (transition: SendTransitionV0) => privateCoreLedger.previewSend(transition),
+    [privateCoreLedger],
+  );
+
+  const runPrivateCoreSwapTransition = useCallback(
+    (transition: SwapTransitionV0) => {
+      const result = privateCoreLedger.swap(transition);
+      const nextShieldState = {
+        note: result.output.note,
+        commitment: result.output.commitment,
+        encryptedPayload: result.output.encryptedPayload,
+        insertionIndex: result.output.insertionIndex,
+        root: result.resultingRoot,
+      } satisfies ShieldArtifactV0;
+      const nextHold = privateCoreLedger.hold({
+        encryptedPayload: result.output.encryptedPayload,
+        ownerSecretKey: privateCoreOwner.secretKey,
+      });
+      const nextPresentedState = buildPrivateCorePresentedState({
+        hold: nextHold,
+        shieldArtifact: nextShieldState,
+      });
+
+      setPrivateCoreRecentShield(nextPresentedState.shieldState);
+      setPrivateCoreHoldState(nextPresentedState.holdState);
+      setPrivateCoreLocalSendState(null);
+      setPrivateCoreLocalSwapState({
+        outputCommitment: result.output.commitment.value,
+        outputPayloadCommitment: result.output.encryptedPayload.payloadCommitment,
+        outputAssetId: result.output.note.assetId,
+        outputAmount: result.output.note.amount.toString(10),
+        resultingRoot: result.resultingRoot,
+        resultingRootStatusLabel: "Swap root pending operator summary",
+        resultingRootPrimaryNote:
+          "The swap resulting root exists locally and is waiting for the next operator summary refresh.",
+        outputRecoveryStatus: "Swap output note created privately",
+        outputUnshieldStatus: "Swap output ready for private hold or unshield",
+        noteSummary: `${formatPrivateCoreAssetAmount(
+          result.output.note.assetId,
+          result.output.note.amount,
+        )} swapped privately`,
+        observationMode: "Local swap handoff",
+      });
+      setPrivateCoreUnshieldState(null);
+
+      return {
+        result,
+        nextHoldState: nextPresentedState.holdState,
+        nextShieldState: nextPresentedState.shieldState,
+      };
+    },
+    [buildPrivateCorePresentedState, privateCoreLedger, privateCoreOwner.secretKey],
+  );
+
+  const previewPrivateCoreSwapTransition = useCallback(
+    (transition: SwapTransitionV0) => privateCoreLedger.previewSwap(transition),
     [privateCoreLedger],
   );
 
@@ -1854,6 +1982,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreRecentShield,
       privateCoreHoldState,
       privateCoreSendState,
+      privateCoreSwapState,
       privateCoreOperatorConsumes,
       privateCoreOperatorConsumeError,
       privateCoreOperatorLatestConsume,
@@ -2023,7 +2152,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       ensurePrivateCoreOperatorRootKnown,
       refreshPrivateCoreOperatorSummary,
       previewPrivateCoreSendTransition,
+      previewPrivateCoreSwapTransition,
       runPrivateCoreSendTransition,
+      runPrivateCoreSwapTransition,
       runPrivateCoreReplayAttempt,
       runPrivateCoreShield,
       runPrivateCoreUnshield,
@@ -2037,6 +2168,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreHoldState,
       privateCoreOwner,
       privateCoreSendState,
+      privateCoreSwapState,
       privateCoreOperatorConsumeError,
       privateCoreOperatorConsumes,
       privateCoreOperatorLatestConsume,
@@ -2162,7 +2294,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       ensurePrivateCoreOperatorRootKnown,
       refreshPrivateCoreOperatorSummary,
       previewPrivateCoreSendTransition,
+      previewPrivateCoreSwapTransition,
       runPrivateCoreSendTransition,
+      runPrivateCoreSwapTransition,
       runPrivateCoreReplayAttempt,
       runPrivateCoreShield,
       runPrivateCoreUnshield,
@@ -2819,6 +2953,90 @@ function mergePrivateCoreSendStateWithOperatorDownstream(args: {
     return {
       ...withOperatorRootStatus,
       recipientUnshieldStatus: "Recipient note consumed; awaiting operator release summary",
+    };
+  }
+
+  return withOperatorRootStatus;
+}
+
+function summarizePrivateCoreOperatorSwapState(args: {
+  latestConsume: VantaPrivateCoreOperatorConsumeRecord | null;
+  latestRelease: VantaPrivateCoreOperatorReleaseRecord | null;
+  latestSwap: VantaPrivateCoreOperatorSwapRecord | null;
+  linkedProof: VantaPrivateCoreOperatorSwapProofRecord | null;
+  resultingRootPrimaryNote: string | null;
+  resultingRootStatusLabel: string | null;
+}): VantaPrivateCoreSwapState | null {
+  if (!args.latestSwap) {
+    return null;
+  }
+
+  const outputUnshielded =
+    args.latestConsume?.root === args.latestSwap.resultingRoot &&
+    args.latestRelease?.root === args.latestSwap.resultingRoot &&
+    args.latestRelease?.releasedAmount === args.latestSwap.outputAmount &&
+    args.latestConsume?.proofId === args.latestRelease?.proofId;
+
+  return {
+    outputCommitment: args.latestSwap.outputCommitment,
+    outputPayloadCommitment: null,
+    outputAssetId: args.latestSwap.outputAssetId,
+    outputAmount: args.latestSwap.outputAmount,
+    resultingRoot: args.latestSwap.resultingRoot,
+    resultingRootStatusLabel: args.resultingRootStatusLabel ?? "Swap root status unavailable",
+    resultingRootPrimaryNote:
+      args.resultingRootPrimaryNote ?? "Operator swap resulting-root status unavailable.",
+    outputRecoveryStatus:
+      args.linkedProof?.proofId === args.latestSwap.proofId
+        ? "Swap output recorded in operator state"
+        : "Swap output pending linked proof",
+    outputUnshieldStatus: outputUnshielded
+      ? "Swap output already unshielded through operator release"
+      : "Swap output ready for private hold or unshield",
+    noteSummary: `${formatPrivateCoreAssetAmount(
+      args.latestSwap.outputAssetId,
+      BigInt(args.latestSwap.outputAmount),
+    )} swapped privately`,
+    observationMode: "Operator swap summary",
+  };
+}
+
+function mergePrivateCoreSwapStateWithOperatorDownstream(args: {
+  baseState: VantaPrivateCoreSwapState | null;
+  latestConsume: VantaPrivateCoreOperatorConsumeRecord | null;
+  latestRelease: VantaPrivateCoreOperatorReleaseRecord | null;
+  resultingRootPrimaryNote: string | null;
+  resultingRootStatusLabel: string | null;
+}): VantaPrivateCoreSwapState | null {
+  if (!args.baseState) {
+    return null;
+  }
+
+  const withOperatorRootStatus = {
+    ...args.baseState,
+    resultingRootStatusLabel:
+      args.resultingRootStatusLabel ?? args.baseState.resultingRootStatusLabel,
+    resultingRootPrimaryNote:
+      args.resultingRootPrimaryNote ?? args.baseState.resultingRootPrimaryNote,
+  };
+
+  if (!withOperatorRootStatus.resultingRoot) {
+    return withOperatorRootStatus;
+  }
+
+  const rootMatchesConsume = args.latestConsume?.root === withOperatorRootStatus.resultingRoot;
+  const rootMatchesRelease = args.latestRelease?.root === withOperatorRootStatus.resultingRoot;
+  const releaseMatchesAmount = args.latestRelease?.releasedAmount === withOperatorRootStatus.outputAmount;
+
+  if (
+    rootMatchesConsume &&
+    rootMatchesRelease &&
+    releaseMatchesAmount &&
+    args.latestConsume?.proofId === args.latestRelease?.proofId
+  ) {
+    return {
+      ...withOperatorRootStatus,
+      outputUnshieldStatus: "Swap output already unshielded through operator release",
     };
   }
 

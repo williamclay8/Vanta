@@ -145,6 +145,7 @@ function formatDiagnosticValue(value: string | null | undefined) {
 export function SwapPage() {
   const { walletAddress, walletAddressShort, walletConnected } = useWalletState();
   const {
+    privateCoreSwapState,
     privateCoreOperatorSwapBoundaryPrimaryNote,
     privateCoreOperatorSwapBoundaryStatusLabel,
     privateCoreOperatorSwapContinuityPrimaryNote,
@@ -1507,6 +1508,47 @@ export function SwapPage() {
                   </p>
                 )}
               </details>
+            </div>
+          )}
+
+          {privateCoreSwapState && privateCoreSwapTransitionExecution.status !== "recorded" && (
+            <div className="status-panel status-panel--success">
+              <span>Latest private swap</span>
+              <p>
+                The latest private swap handoff is still available from shared state, so
+                this flow can resume after refresh. The shielded output remains private
+                and the downstream root can continue into registration or unshield.
+              </p>
+              <div className="success-metrics">
+                <div className="preview-card preview-card--accent">
+                  <span>Swap output</span>
+                  <strong>{privateCoreSwapState.noteSummary}</strong>
+                </div>
+                <div className="preview-card">
+                  <span>Observation mode</span>
+                  <strong>{privateCoreSwapState.observationMode}</strong>
+                </div>
+                <div className="preview-card">
+                  <span>Swap boundary</span>
+                  <strong>{privateCoreOperatorSwapBoundaryStatusLabel ?? "Unavailable"}</strong>
+                </div>
+                <div className="preview-card">
+                  <span>Downstream continuity</span>
+                  <strong>{privateCoreOperatorSwapContinuityStatusLabel ?? "Unavailable"}</strong>
+                </div>
+              </div>
+              <p className="shield-helper shield-helper--meta">
+                Output recovery: {privateCoreSwapState.outputRecoveryStatus}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Output unshield: {privateCoreSwapState.outputUnshieldStatus}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Swap resulting root: {privateCoreSwapState.resultingRootStatusLabel}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Swap root note: {privateCoreSwapState.resultingRootPrimaryNote}
+              </p>
             </div>
           )}
 

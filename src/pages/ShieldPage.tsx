@@ -223,6 +223,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOperatorSummaryUpdatedAt,
     privateCoreRecentShield,
     privateCoreSendState,
+    privateCoreSwapState,
     privateCoreUnshieldState,
     recentShield,
     runPrivateCoreShield,
@@ -1124,6 +1125,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
               <VantaPrivateCoreStatePanel
                 holdState={privateCoreHoldState}
                 sendState={privateCoreSendState}
+                swapState={privateCoreSwapState}
                 operatorCurrentRoot={privateCoreOperatorCurrentRoot}
                 operatorLatestConsume={privateCoreOperatorLatestConsume}
                 operatorLatestConsumeProof={privateCoreOperatorLatestConsumeProof}

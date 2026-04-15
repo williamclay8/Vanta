@@ -274,6 +274,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreRecentShield,
     recentShield,
     privateCoreSendState,
+    privateCoreSwapState,
     privateCoreUnshieldState,
     previewPrivateCoreSendTransition,
     refreshPrivateCoreOperatorSummary,
@@ -1732,6 +1733,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       <VantaPrivateCoreStatePanel
         holdState={privateCoreHoldState}
         sendState={privateCoreSendState}
+        swapState={privateCoreSwapState}
         operatorCurrentRoot={privateCoreOperatorCurrentRoot}
         operatorConsumeError={privateCoreOperatorConsumeError}
         operatorConsumes={privateCoreOperatorConsumes}

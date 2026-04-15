@@ -34,6 +34,7 @@ export function AppDashboardPage() {
   const {
     privateCoreHoldState,
     privateCoreSendState,
+    privateCoreSwapState,
     privateCoreOperatorConsumeError,
     privateCoreOperatorConsumes,
     privateCoreOperatorCurrentRoot,
@@ -300,6 +301,7 @@ export function AppDashboardPage() {
               compact
               holdState={privateCoreHoldState}
               sendState={privateCoreSendState}
+              swapState={privateCoreSwapState}
               operatorCurrentRoot={privateCoreOperatorCurrentRoot}
               operatorConsumeError={privateCoreOperatorConsumeError}
               operatorConsumes={privateCoreOperatorConsumes}
