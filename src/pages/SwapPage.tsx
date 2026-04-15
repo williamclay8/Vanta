@@ -6,6 +6,7 @@ import {
 } from "@solana/react-hooks";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
+import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
 import { useWalletState } from "@/data/context/WalletContext";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
 import { useRealtimeSignatureProgress } from "@/solana/useRealtimeSignatureProgress";
@@ -132,6 +133,14 @@ function formatDiagnosticValue(value: string | null | undefined) {
 
 export function SwapPage() {
   const { walletAddress, walletAddressShort, walletConnected } = useWalletState();
+  const {
+    privateCoreOperatorLatestSwap,
+    privateCoreOperatorLatestSwapLinkedProof,
+    privateCoreOperatorLatestSwapProof,
+    privateCoreOperatorProofSwapLinkStatus,
+    privateCoreOperatorSwapProofs,
+    privateCoreOperatorSwaps,
+  } = usePrivacyFlow();
   const walletSession = useWalletSession();
   const {
     account: shieldAccount,
@@ -1314,6 +1323,22 @@ export function SwapPage() {
                         : "Unavailable"}
                   </strong>
                 </div>
+                <div className="review-row">
+                  <span>Latest swap transition</span>
+                  <strong>
+                    {privateCoreOperatorLatestSwap?.swapId
+                      ? abbreviate(privateCoreOperatorLatestSwap.swapId)
+                      : "Unavailable"}
+                  </strong>
+                </div>
+                <div className="review-row">
+                  <span>Latest swap linked proof</span>
+                  <strong>
+                    {privateCoreOperatorLatestSwapLinkedProof?.proofId
+                      ? abbreviate(privateCoreOperatorLatestSwapLinkedProof.proofId)
+                      : "Unavailable"}
+                  </strong>
+                </div>
               </div>
               <details className="preview-card" style={{ marginTop: 16 }}>
                 <summary>Internal zk diagnostics</summary>
@@ -1505,6 +1530,46 @@ export function SwapPage() {
                       ? `${privateCoreSwapProofExecution.proofFieldCount} fields · ${privateCoreSwapProofExecution.proofPublicInputCount} public inputs`
                       : "Unavailable"}
                   </strong>
+                </div>
+                <div className="review-row">
+                  <span>Operator swap records</span>
+                  <strong>{String(privateCoreOperatorSwaps.length)}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Operator swap proof records</span>
+                  <strong>{String(privateCoreOperatorSwapProofs.length)}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Latest operator swap transition</span>
+                  <strong>
+                    {privateCoreOperatorLatestSwap?.swapId
+                      ? abbreviate(privateCoreOperatorLatestSwap.swapId)
+                      : "Unavailable"}
+                  </strong>
+                </div>
+                <div className="review-row">
+                  <span>Latest operator swap linked proof</span>
+                  <strong>
+                    {privateCoreOperatorLatestSwapLinkedProof?.proofId
+                      ? abbreviate(privateCoreOperatorLatestSwapLinkedProof.proofId)
+                      : "Unavailable"}
+                  </strong>
+                </div>
+                <div className="review-row">
+                  <span>Latest operator swap proof summary</span>
+                  <strong>
+                    {privateCoreOperatorLatestSwapProof?.proofId
+                      ? abbreviate(privateCoreOperatorLatestSwapProof.proofId)
+                      : "Unavailable"}
+                  </strong>
+                </div>
+                <div className="review-row">
+                  <span>Latest swap resulting root</span>
+                  <strong>{formatDiagnosticValue(privateCoreOperatorLatestSwap?.resultingRoot ?? undefined)}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Proof/swap link</span>
+                  <strong>{formatDiagnosticValue(privateCoreOperatorProofSwapLinkStatus)}</strong>
                 </div>
               </div>
               <div className="status-actions">
