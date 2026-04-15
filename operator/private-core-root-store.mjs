@@ -76,12 +76,15 @@ function normalizeRootRecord(record) {
   const registrationBasis =
     record?.registrationBasis === "send-recipient-output" ||
     record?.registrationBasis === "send-change-output" ||
+    record?.registrationBasis === "swap-output" ||
     record?.registrationBasis === "shield-input"
       ? record.registrationBasis
       : record?.source === "app-private-core-send-recipient-flow"
         ? "send-recipient-output"
         : record?.source === "app-private-core-send-change-flow"
           ? "send-change-output"
+          : record?.source === "app-private-core-swap-output-flow"
+            ? "swap-output"
           : "shield-input";
   const artifactBundleComplete =
     noteCommitment !== null && merkleLeaf !== null && witnessRoot !== null;

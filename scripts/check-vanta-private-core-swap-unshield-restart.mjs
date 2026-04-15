@@ -340,6 +340,7 @@ try {
   if (
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.currentRoot !== heldOutput.witness.root ||
+    preRestartSummary.parsed?.currentRecord?.registrationBasis !== "swap-output" ||
     preRestartSummary.parsed?.latestSwap?.proofId !== swapTransitionResponse.parsed.proofId ||
     preRestartSummary.parsed?.latestSwap?.swapId !== swapTransitionResponse.parsed.swapId ||
     preRestartSummary.parsed?.latestSwapLinkedProof?.proofId !== swapTransitionResponse.parsed.proofId ||
@@ -368,6 +369,7 @@ try {
   if (
     !postRestartSummary.ok ||
     postRestartSummary.parsed?.currentRoot !== heldOutput.witness.root ||
+    postRestartSummary.parsed?.currentRecord?.registrationBasis !== "swap-output" ||
     postRestartSummary.parsed?.latestSwap?.proofId !== swapTransitionResponse.parsed.proofId ||
     postRestartSummary.parsed?.latestSwap?.swapId !== swapTransitionResponse.parsed.swapId ||
     postRestartSummary.parsed?.latestSwapLinkedProof?.proofId !== swapTransitionResponse.parsed.proofId ||

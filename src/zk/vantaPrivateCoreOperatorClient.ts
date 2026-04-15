@@ -238,7 +238,7 @@ export type VantaPrivateCoreOperatorRootRecord = {
   merkleLeaf: string | null;
   noteCommitment: string | null;
   proofId: string | null;
-  registrationBasis: "shield-input" | "send-recipient-output" | "send-change-output";
+  registrationBasis: "shield-input" | "send-recipient-output" | "send-change-output" | "swap-output";
   recordedAt: number;
   root: string;
   source: string;
@@ -348,7 +348,8 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedEnvironment: "solana-devnet";
   supportedNoteSchema: "note-v0";
   supportedNoteVersion: number;
-  supportedRootRegistrationProvenance: "shield-input|send-recipient-output|send-change-output";
+  supportedRootRegistrationProvenance:
+    "shield-input|send-recipient-output|send-change-output|swap-output";
   supportedSendResultingRootBasis: "client-declared";
   supportedSendInputRootPolicy: "latest-registered-root-with-linked-registration-proof";
   supportedSendOutputRegistrationPolicy:
@@ -451,7 +452,8 @@ export type VantaPrivateCoreOperatorContractStateResponse = {
   supportedEnvironment: "solana-devnet";
   supportedNoteSchema: "note-v0";
   supportedNoteVersion: number;
-  supportedRootRegistrationProvenance: "shield-input|send-recipient-output|send-change-output";
+  supportedRootRegistrationProvenance:
+    "shield-input|send-recipient-output|send-change-output|swap-output";
   supportedSendResultingRootBasis: "client-declared";
   supportedSendInputRootPolicy: "latest-registered-root-with-linked-registration-proof";
   supportedSendOutputRegistrationPolicy:
@@ -1384,8 +1386,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 9 ||
-    parsed.summaryVersion !== 28 ||
+    parsed.contractVersion !== 10 ||
+    parsed.summaryVersion !== 29 ||
     !isContractMirrorStatus(parsed.contractMirrorStatus) ||
     typeof parsed.contractMirrorNote !== "string" ||
     !isBoundaryStatus(parsed.boundaryStatus) ||
@@ -1444,7 +1446,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     parsed.supportedNoteSchema !== "note-v0" ||
     parsed.supportedNoteVersion !== 0 ||
     parsed.supportedRootRegistrationProvenance !==
-      "shield-input|send-recipient-output|send-change-output" ||
+      "shield-input|send-recipient-output|send-change-output|swap-output" ||
     parsed.supportedSendResultingRootBasis !== "client-declared" ||
     parsed.supportedSendInputRootPolicy !==
       "latest-registered-root-with-linked-registration-proof" ||
@@ -1581,7 +1583,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedNoteSchema: "note-v0",
     supportedNoteVersion: 0,
     supportedRootRegistrationProvenance:
-      "shield-input|send-recipient-output|send-change-output",
+      "shield-input|send-recipient-output|send-change-output|swap-output",
     supportedSendResultingRootBasis: "client-declared",
     supportedSendInputRootPolicy:
       "latest-registered-root-with-linked-registration-proof",
@@ -1748,8 +1750,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 9 ||
-    parsed.summaryVersion !== 28 ||
+    parsed.contractVersion !== 10 ||
+    parsed.summaryVersion !== 29 ||
     parsed.supportedSendLaneVersion !== 1 ||
     parsed.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     parsed.supportedSendLaneStatus !== "supported" ||
@@ -1785,7 +1787,7 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     parsed.supportedNoteSchema !== "note-v0" ||
     parsed.supportedNoteVersion !== 0 ||
     parsed.supportedRootRegistrationProvenance !==
-      "shield-input|send-recipient-output|send-change-output" ||
+      "shield-input|send-recipient-output|send-change-output|swap-output" ||
     parsed.supportedSendResultingRootBasis !== "client-declared" ||
     parsed.supportedSendInputRootPolicy !==
       "latest-registered-root-with-linked-registration-proof" ||
@@ -1856,7 +1858,7 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedNoteSchema: "note-v0",
     supportedNoteVersion: 0,
     supportedRootRegistrationProvenance:
-      "shield-input|send-recipient-output|send-change-output",
+      "shield-input|send-recipient-output|send-change-output|swap-output",
     supportedSendResultingRootBasis: "client-declared",
     supportedSendInputRootPolicy:
       "latest-registered-root-with-linked-registration-proof",
@@ -1943,7 +1945,8 @@ function isRootRecord(value: unknown): value is VantaPrivateCoreOperatorRootReco
     ((value as VantaPrivateCoreOperatorRootRecord).registrationBasis === "shield-input" ||
       (value as VantaPrivateCoreOperatorRootRecord).registrationBasis ===
         "send-recipient-output" ||
-      (value as VantaPrivateCoreOperatorRootRecord).registrationBasis === "send-change-output") &&
+      (value as VantaPrivateCoreOperatorRootRecord).registrationBasis === "send-change-output" ||
+      (value as VantaPrivateCoreOperatorRootRecord).registrationBasis === "swap-output") &&
     typeof (value as VantaPrivateCoreOperatorRootRecord).recordedAt === "number" &&
     typeof (value as VantaPrivateCoreOperatorRootRecord).root === "string" &&
     typeof (value as VantaPrivateCoreOperatorRootRecord).source === "string"

@@ -220,7 +220,7 @@ try {
   if (
     !initialSummaryState.ok ||
     initialSummaryState.parsed?.stateVersion !== 1 ||
-    initialSummaryState.parsed?.summaryVersion !== 28 ||
+    initialSummaryState.parsed?.summaryVersion !== 29 ||
     initialSummaryState.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     initialSummaryState.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -258,7 +258,7 @@ try {
     initialSummaryState.parsed?.supportedNoteSchema !== "note-v0" ||
     initialSummaryState.parsed?.supportedNoteVersion !== 0 ||
     initialSummaryState.parsed?.supportedRootRegistrationProvenance !==
-      "shield-input|send-recipient-output|send-change-output" ||
+      "shield-input|send-recipient-output|send-change-output|swap-output" ||
     initialSummaryState.parsed?.supportedSendResultingRootBasis !== "client-declared" ||
     initialSummaryState.parsed?.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     initialSummaryState.parsed?.supportedReleaseDestinationModel !==
@@ -907,7 +907,7 @@ try {
   if (
     !summaryStateAfterConsume.ok ||
     summaryStateAfterConsume.parsed?.stateVersion !== 1 ||
-    summaryStateAfterConsume.parsed?.summaryVersion !== 28 ||
+    summaryStateAfterConsume.parsed?.summaryVersion !== 29 ||
     summaryStateAfterConsume.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterConsume.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -941,7 +941,7 @@ try {
     summaryStateAfterConsume.parsed?.supportedNoteSchema !== "note-v0" ||
     summaryStateAfterConsume.parsed?.supportedNoteVersion !== 0 ||
     summaryStateAfterConsume.parsed?.supportedRootRegistrationProvenance !==
-      "shield-input|send-recipient-output|send-change-output" ||
+      "shield-input|send-recipient-output|send-change-output|swap-output" ||
     summaryStateAfterConsume.parsed?.supportedSendResultingRootBasis !== "client-declared" ||
     summaryStateAfterConsume.parsed?.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     summaryStateAfterConsume.parsed?.supportedReleaseDestinationModel !==
@@ -1011,7 +1011,7 @@ try {
   });
   if (
     !summaryStateAfterRelease.ok ||
-    summaryStateAfterRelease.parsed?.summaryVersion !== 28 ||
+    summaryStateAfterRelease.parsed?.summaryVersion !== 29 ||
     summaryStateAfterRelease.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterRelease.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -1045,7 +1045,7 @@ try {
     summaryStateAfterRelease.parsed?.supportedNoteSchema !== "note-v0" ||
     summaryStateAfterRelease.parsed?.supportedNoteVersion !== 0 ||
     summaryStateAfterRelease.parsed?.supportedRootRegistrationProvenance !==
-      "shield-input|send-recipient-output|send-change-output" ||
+      "shield-input|send-recipient-output|send-change-output|swap-output" ||
     summaryStateAfterRelease.parsed?.supportedSendResultingRootBasis !== "client-declared" ||
     summaryStateAfterRelease.parsed?.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     summaryStateAfterRelease.parsed?.supportedReleaseDestinationModel !==
@@ -1101,8 +1101,8 @@ try {
   });
   if (
     !operatorStatusOutput.includes("Summary state version: 1") ||
-    !operatorStatusOutput.includes("Mirrored contract version: 9") ||
-    !operatorStatusOutput.includes("Summary version: 28") ||
+    !operatorStatusOutput.includes("Mirrored contract version: 10") ||
+    !operatorStatusOutput.includes("Summary version: 29") ||
     !operatorStatusOutput.includes("Supported send v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported unshield v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported release v1 decision: Accepted narrow v1 path") ||
@@ -1135,6 +1135,9 @@ try {
     ) ||
     !operatorStatusOutput.includes(
       "Supported send output registration: Resulting root must register as recipient or change output",
+    ) ||
+    !operatorStatusOutput.includes(
+      "Supported root provenance: Shield input / send recipient output / send change output / swap output",
     ) ||
     !operatorStatusOutput.includes("Supported send lane version: 1") ||
     !operatorStatusOutput.includes("Supported unshield lane version: 1") ||

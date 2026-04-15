@@ -102,8 +102,8 @@ try {
   if (
     !contractState.ok ||
     contractState.parsed?.stateVersion !== 1 ||
-    contractState.parsed?.contractVersion !== 9 ||
-    contractState.parsed?.summaryVersion !== 28 ||
+    contractState.parsed?.contractVersion !== 10 ||
+    contractState.parsed?.summaryVersion !== 29 ||
     contractState.parsed?.supportedSendLaneVersion !== 1 ||
     contractState.parsed?.supportedSendV1Decision !== "accepted-narrow-v1-path" ||
     typeof contractState.parsed?.supportedSendV1DecisionNote !== "string" ||
@@ -125,7 +125,7 @@ try {
     contractState.parsed?.supportedNoteSchema !== "note-v0" ||
     contractState.parsed?.supportedNoteVersion !== 0 ||
     contractState.parsed?.supportedRootRegistrationProvenance !==
-      "shield-input|send-recipient-output|send-change-output" ||
+      "shield-input|send-recipient-output|send-change-output|swap-output" ||
     contractState.parsed?.supportedSendResultingRootBasis !== "client-declared" ||
     contractState.parsed?.supportedSendInputRootPolicy !==
       "latest-registered-root-with-linked-registration-proof" ||
@@ -256,13 +256,13 @@ try {
   });
   if (
     !contractOutput.includes("Contract state version: 1") ||
-    !contractOutput.includes("Contract version: 9") ||
-    !contractOutput.includes("Summary compatibility: 28") ||
+    !contractOutput.includes("Contract version: 10") ||
+    !contractOutput.includes("Summary compatibility: 29") ||
     !contractOutput.includes("Supported note schema: NoteV0 / v0") ||
     !contractOutput.includes("Supported send v1 decision: accepted-narrow-v1-path") ||
     !contractOutput.includes("Supported unshield v1 decision: accepted-narrow-v1-path") ||
     !contractOutput.includes(
-      "Supported root provenance: Shield input / send recipient output / send change output",
+      "Supported root provenance: Shield input / send recipient output / send change output / swap output",
     ) ||
     !contractOutput.includes("Supported send root basis: Client-declared") ||
     !contractOutput.includes("Supported release v1 decision: accepted-narrow-v1-path") ||

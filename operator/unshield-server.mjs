@@ -189,7 +189,7 @@ const PRIVATE_CORE_SUPPORTED_RELEASE_DESTINATION_MODEL = "32-byte-release-destin
 const PRIVATE_CORE_SUPPORTED_NOTE_SCHEMA = "note-v0";
 const PRIVATE_CORE_SUPPORTED_NOTE_VERSION = 0;
 const PRIVATE_CORE_SUPPORTED_ROOT_REGISTRATION_PROVENANCE =
-  "shield-input|send-recipient-output|send-change-output";
+  "shield-input|send-recipient-output|send-change-output|swap-output";
 const PRIVATE_CORE_SUPPORTED_SEND_RESULTING_ROOT_BASIS = "client-declared";
 const PRIVATE_CORE_SUPPORTED_SEND_INPUT_ROOT_POLICY =
   "latest-registered-root-with-linked-registration-proof";
@@ -812,8 +812,10 @@ const server = createServer(async (request, response) => {
 
       assertVantaPrivateCoreSourceArtifactConsistency(sourceArtifacts, witnessPackage);
       const latestSend = privateCoreSendStore.getLatestSend();
-      const sendRegistrationConsistency = assertPrivateCoreSendResultingRootRegistrationConsistency({
+      const latestSwap = privateCoreSwapStore.getLatestSwap();
+      const rootRegistrationConsistency = assertPrivateCoreDownstreamRootRegistrationConsistency({
         latestSend,
+        latestSwap,
         root,
         sourceArtifacts,
       });
@@ -832,9 +834,9 @@ const server = createServer(async (request, response) => {
         witnessRoot: sourceArtifacts.witnessRoot,
         amount: typeof sourcePublicInputs?.amount === "string" ? sourcePublicInputs.amount : null,
         assetId: typeof sourcePublicInputs?.assetId === "string" ? sourcePublicInputs.assetId : null,
-        registrationBasis: sendRegistrationConsistency.registrationBasis,
+        registrationBasis: rootRegistrationConsistency.registrationBasis,
         proofId: proofRecord.proofId,
-        source: sendRegistrationConsistency.source,
+        source: rootRegistrationConsistency.source,
       });
 
       writeCorsHeaders(response);
@@ -1879,8 +1881,8 @@ function buildPrivateCoreSummaryState() {
 function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
-    contractVersion: 9,
-    summaryVersion: 28,
+    contractVersion: 10,
+    summaryVersion: 29,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
@@ -2378,7 +2380,43 @@ function summarizePrivateCoreRootProofLinkStatus(args) {
   return "mismatch";
 }
 
-function assertPrivateCoreSendResultingRootRegistrationConsistency(args) {
+function assertPrivateCoreDownstreamRootRegistrationConsistency(args) {
+  if (args.latestSend?.resultingRoot === args.root) {
+    if (args.sourceArtifacts.noteCommitment === args.latestSend.recipientCommitment) {
+      return {
+        registrationBasis: "send-recipient-output",
+        source: "app-private-core-send-recipient-flow",
+      };
+    }
+
+    if (
+      args.latestSend.changeCommitment &&
+      args.sourceArtifacts.noteCommitment === args.latestSend.changeCommitment
+    ) {
+      return {
+        registrationBasis: "send-change-output",
+        source: "app-private-core-send-change-flow",
+      };
+    }
+
+    throw new Error(
+      "Private-core send resulting root registration does not match either output commitment from the latest send.",
+    );
+  }
+
+  if (args.latestSwap?.resultingRoot === args.root) {
+    if (args.sourceArtifacts.noteCommitment === args.latestSwap.outputCommitment) {
+      return {
+        registrationBasis: "swap-output",
+        source: "app-private-core-swap-output-flow",
+      };
+    }
+
+    throw new Error(
+      "Private-core swap resulting root registration does not match the output commitment from the latest swap.",
+    );
+  }
+
   if (!args.latestSend || args.latestSend.resultingRoot !== args.root) {
     return {
       registrationBasis: "shield-input",
@@ -2386,26 +2424,10 @@ function assertPrivateCoreSendResultingRootRegistrationConsistency(args) {
     };
   }
 
-  if (args.sourceArtifacts.noteCommitment === args.latestSend.recipientCommitment) {
-    return {
-      registrationBasis: "send-recipient-output",
-      source: "app-private-core-send-recipient-flow",
-    };
-  }
-
-  if (
-    args.latestSend.changeCommitment &&
-    args.sourceArtifacts.noteCommitment === args.latestSend.changeCommitment
-  ) {
-    return {
-      registrationBasis: "send-change-output",
-      source: "app-private-core-send-change-flow",
-    };
-  }
-
-  throw new Error(
-    "Private-core send resulting root registration does not match either output commitment from the latest send.",
-  );
+  return {
+    registrationBasis: "shield-input",
+    source: "app-private-core-shield-flow",
+  };
 }
 
 function summarizePrivateCoreProofSendLinkStatus(args) {

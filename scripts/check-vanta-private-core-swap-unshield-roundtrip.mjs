@@ -327,6 +327,7 @@ try {
   if (
     !summaryState.ok ||
     summaryState.parsed?.latestSwap?.swapId !== swapTransitionResponse.parsed?.swapId ||
+    summaryState.parsed?.currentRecord?.registrationBasis !== "swap-output" ||
     summaryState.parsed?.latestRelease?.proofId !== consumeResponse.parsed?.proofId ||
     summaryState.parsed?.proofSwapLinkStatus !== "linked"
   ) {

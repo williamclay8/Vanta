@@ -270,7 +270,7 @@ try {
   if (
     !summaryState.ok ||
     summaryState.parsed?.stateVersion !== 1 ||
-    summaryState.parsed?.summaryVersion !== 28 ||
+    summaryState.parsed?.summaryVersion !== 29 ||
     summaryState.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryState.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -304,7 +304,7 @@ try {
     summaryState.parsed?.supportedNoteSchema !== "note-v0" ||
     summaryState.parsed?.supportedNoteVersion !== 0 ||
     summaryState.parsed?.supportedRootRegistrationProvenance !==
-      "shield-input|send-recipient-output|send-change-output" ||
+      "shield-input|send-recipient-output|send-change-output|swap-output" ||
     summaryState.parsed?.supportedSendResultingRootBasis !== "client-declared" ||
     summaryState.parsed?.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     summaryState.parsed?.supportedReleaseDestinationModel !==

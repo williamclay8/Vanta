@@ -87,8 +87,8 @@ try {
   printLine(
     "Supported root provenance",
     contract.supportedRootRegistrationProvenance ===
-      "shield-input|send-recipient-output|send-change-output"
-      ? "Shield input / send recipient output / send change output"
+      "shield-input|send-recipient-output|send-change-output|swap-output"
+      ? "Shield input / send recipient output / send change output / swap output"
       : "Unavailable",
   );
   printLine(

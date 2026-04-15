@@ -164,7 +164,13 @@ function formatOperatorSummaryFreshness(value: number | null) {
 }
 
 function formatOperatorRootRegistrationBasis(
-  value: "shield-input" | "send-recipient-output" | "send-change-output" | null | undefined,
+  value:
+    | "shield-input"
+    | "send-recipient-output"
+    | "send-change-output"
+    | "swap-output"
+    | null
+    | undefined,
 ) {
   if (value === "shield-input") {
     return "Shield input";
@@ -176,6 +182,10 @@ function formatOperatorRootRegistrationBasis(
 
   if (value === "send-change-output") {
     return "Send change output";
+  }
+
+  if (value === "swap-output") {
+    return "Swap output";
   }
 
   return "Unavailable";
@@ -722,8 +732,8 @@ export function VantaPrivateCoreStatePanel({
               <span>Supported root provenance</span>
               <strong>
                 {operatorSupportedRootRegistrationProvenance ===
-                "shield-input|send-recipient-output|send-change-output"
-                  ? "Shield input / send recipient output / send change output"
+                "shield-input|send-recipient-output|send-change-output|swap-output"
+                  ? "Shield input / send recipient output / send change output / swap output"
                   : "Unavailable"}
               </strong>
             </div>

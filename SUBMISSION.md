@@ -248,8 +248,8 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   prints the current operator-side root, proof, send-proof, send-transition, consume, and release state when the operator server is running, including proof/send, proof/consume, proof/release, and root-registration proof linkage plus send resulting-root continuity status, resulting-root provenance, and the matched resulting-root record when available
 
 The current frozen operator-backed private-core contract now states the narrow accepted `v1` path explicitly:
-- `contractVersion = 9`
-- `summaryVersion = 28`
+- `contractVersion = 10`
+- `summaryVersion = 29`
 - `supportedSendV1Decision = accepted-narrow-v1-path`
 - `supportedUnshieldV1Decision = accepted-narrow-v1-path`
 - `supportedReleaseV1Decision = accepted-narrow-v1-path`
@@ -390,7 +390,7 @@ The contract readout gives the static narrow-zk-v1 support contract:
 - nullifier-key mode
 - proving hash lane
 
-The status readout now includes proof/send, proof/consume, and proof/release linkage across the operator summary boundary, the supported send-lane version and identity carried by the operator summary, explicit release authorization / root-policy fields for the current unshield lane, plus explicit send-root registration provenance (`shield-input`, `send-recipient-output`, or `send-change-output`) when downstream continuity has been established.
+The status readout now includes proof/send, proof/consume, and proof/release linkage across the operator summary boundary, the supported send-lane version and identity carried by the operator summary, explicit release authorization / root-policy fields for the current unshield lane, plus explicit downstream root-registration provenance (`shield-input`, `send-recipient-output`, `send-change-output`, or `swap-output`) when continuity has been established.
 It now also includes explicit contract-mirror status so the live summary says whether it is still mirroring the frozen private-core operator contract surface.
 It now also includes explicit send-boundary status so the private-send lane reads as one operator-owned health summary instead of only a bundle of lower-level linkage rows.
 It now also includes explicit send-continuity status so the downstream send path reads as one live verifier-state summary instead of only a bundle of lower-level root and registration rows.
@@ -416,7 +416,7 @@ The same operator contract now also versions the supported narrow unshield lane:
 - `supportedEnvironment = solana-devnet`
 - `supportedNoteSchema = note-v0`
 - `supportedNoteVersion = 0`
-- `supportedRootRegistrationProvenance = shield-input|send-recipient-output|send-change-output`
+- `supportedRootRegistrationProvenance = shield-input|send-recipient-output|send-change-output|swap-output`
 - `supportedSendResultingRootBasis = client-declared`
 - `supportedRecipientModel = hashed-reference-to-owner-key`
 - `supportedReleaseDestinationModel = 32-byte-release-destination-field`

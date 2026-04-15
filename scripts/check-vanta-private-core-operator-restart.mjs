@@ -273,7 +273,7 @@ try {
     preRestartSends.parsed.records.length < 1 ||
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.stateVersion !== 1 ||
-    preRestartSummary.parsed?.summaryVersion !== 28 ||
+    preRestartSummary.parsed?.summaryVersion !== 29 ||
     preRestartSummary.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     preRestartSummary.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -307,7 +307,7 @@ try {
     preRestartSummary.parsed?.supportedNoteSchema !== "note-v0" ||
     preRestartSummary.parsed?.supportedNoteVersion !== 0 ||
     preRestartSummary.parsed?.supportedRootRegistrationProvenance !==
-      "shield-input|send-recipient-output|send-change-output" ||
+      "shield-input|send-recipient-output|send-change-output|swap-output" ||
     preRestartSummary.parsed?.supportedSendResultingRootBasis !== "client-declared" ||
     preRestartSummary.parsed?.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     preRestartSummary.parsed?.supportedReleaseDestinationModel !==
@@ -368,7 +368,7 @@ try {
   if (
     !postRestartSummary.ok ||
     postRestartSummary.parsed?.stateVersion !== 1 ||
-    postRestartSummary.parsed?.summaryVersion !== 28 ||
+    postRestartSummary.parsed?.summaryVersion !== 29 ||
     postRestartSummary.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     postRestartSummary.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -402,7 +402,7 @@ try {
     postRestartSummary.parsed?.supportedNoteSchema !== "note-v0" ||
     postRestartSummary.parsed?.supportedNoteVersion !== 0 ||
     postRestartSummary.parsed?.supportedRootRegistrationProvenance !==
-      "shield-input|send-recipient-output|send-change-output" ||
+      "shield-input|send-recipient-output|send-change-output|swap-output" ||
     postRestartSummary.parsed?.supportedSendResultingRootBasis !== "client-declared" ||
     postRestartSummary.parsed?.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     postRestartSummary.parsed?.supportedReleaseDestinationModel !==
@@ -495,8 +495,8 @@ try {
     stdio: "pipe",
   });
   if (
-    !operatorStatusOutput.includes("Summary version: 28") ||
-    !operatorStatusOutput.includes("Mirrored contract version: 9") ||
+    !operatorStatusOutput.includes("Summary version: 29") ||
+    !operatorStatusOutput.includes("Mirrored contract version: 10") ||
     !operatorStatusOutput.includes("Supported send v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported unshield v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported swap lane version: 1") ||

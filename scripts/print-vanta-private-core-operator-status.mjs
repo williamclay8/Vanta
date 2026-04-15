@@ -100,8 +100,8 @@ try {
   printLine(
     "Supported root provenance",
     summary.supportedRootRegistrationProvenance ===
-      "shield-input|send-recipient-output|send-change-output"
-      ? "Shield input / send recipient output / send change output"
+      "shield-input|send-recipient-output|send-change-output|swap-output"
+      ? "Shield input / send recipient output / send change output / swap output"
       : "Unavailable",
   );
   printLine(
@@ -491,6 +491,8 @@ function humanizeRootRegistrationBasis(value) {
       return "Send recipient output";
     case "send-change-output":
       return "Send change output";
+    case "swap-output":
+      return "Swap output";
     default:
       return "Unavailable";
   }
