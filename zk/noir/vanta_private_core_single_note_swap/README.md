@@ -36,3 +36,9 @@ Run the regression wrapper:
 ```bash
 npm run private-core:swap-check
 ```
+
+Generate and verify a local proof:
+
+```bash
+npm run private-core:swap-prove
+```
