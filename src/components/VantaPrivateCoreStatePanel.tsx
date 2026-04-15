@@ -523,10 +523,14 @@ export function VantaPrivateCoreStatePanel({
               </div>
               <div className="note-state-chips">
                 <span className="note-state-chip">
-                  {operatorSwapBoundaryStatusLabel ?? "Swap boundary unavailable"}
+                  {swapState?.boundaryStatusLabel ??
+                    operatorSwapBoundaryStatusLabel ??
+                    "Swap boundary unavailable"}
                 </span>
                 <span className="note-state-chip">
-                  {operatorSwapContinuityStatusLabel ?? "No swap continuity observed"}
+                  {swapState?.continuityStatusLabel ??
+                    operatorSwapContinuityStatusLabel ??
+                    "No swap continuity observed"}
                 </span>
               </div>
             </div>
@@ -545,7 +549,8 @@ export function VantaPrivateCoreStatePanel({
                   "Swap root unavailable"}
               </span>
               <span>
-                {swapState?.boundaryPrimaryNote ??
+                {swapState?.livePathPrimaryNote ??
+                  swapState?.boundaryPrimaryNote ??
                   swapState?.resultingRootPrimaryNote ??
                   operatorSwapBoundaryPrimaryNote ??
                   "No swap boundary note yet"}
