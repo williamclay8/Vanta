@@ -131,6 +131,12 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorSupportedReleaseLaneVersion: number | null;
   privateCoreOperatorSupportedReleaseV1Decision: string | null;
   privateCoreOperatorSupportedReleaseV1DecisionNote: string | null;
+  privateCoreOperatorSupportedSwapLaneKind: string | null;
+  privateCoreOperatorSupportedSwapLaneNote: string | null;
+  privateCoreOperatorSupportedSwapLaneStatus: string | null;
+  privateCoreOperatorSupportedSwapLaneVersion: number | null;
+  privateCoreOperatorSupportedSwapVenue: string | null;
+  privateCoreOperatorSupportedSwapOutputModel: string | null;
   privateCoreOperatorSupportedFlowKind: string | null;
   privateCoreOperatorSupportedFlowNote: string | null;
   privateCoreOperatorSupportedFlowStatus: string | null;
@@ -483,6 +489,18 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     privateCoreOperatorSupportedReleaseV1DecisionNote,
     setPrivateCoreOperatorSupportedReleaseV1DecisionNote,
   ] = useState<string | null>(null);
+  const [privateCoreOperatorSupportedSwapLaneKind, setPrivateCoreOperatorSupportedSwapLaneKind] =
+    useState<string | null>(null);
+  const [privateCoreOperatorSupportedSwapLaneNote, setPrivateCoreOperatorSupportedSwapLaneNote] =
+    useState<string | null>(null);
+  const [privateCoreOperatorSupportedSwapLaneStatus, setPrivateCoreOperatorSupportedSwapLaneStatus] =
+    useState<string | null>(null);
+  const [privateCoreOperatorSupportedSwapLaneVersion, setPrivateCoreOperatorSupportedSwapLaneVersion] =
+    useState<number | null>(null);
+  const [privateCoreOperatorSupportedSwapVenue, setPrivateCoreOperatorSupportedSwapVenue] =
+    useState<string | null>(null);
+  const [privateCoreOperatorSupportedSwapOutputModel, setPrivateCoreOperatorSupportedSwapOutputModel] =
+    useState<string | null>(null);
   const [privateCoreOperatorSupportedFlowKind, setPrivateCoreOperatorSupportedFlowKind] =
     useState<string | null>(null);
   const [privateCoreOperatorSupportedFlowNote, setPrivateCoreOperatorSupportedFlowNote] =
@@ -643,6 +661,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSupportedReleaseLaneVersion,
       setPrivateCoreOperatorSupportedReleaseV1Decision,
       setPrivateCoreOperatorSupportedReleaseV1DecisionNote,
+      setPrivateCoreOperatorSupportedSwapLaneKind,
+      setPrivateCoreOperatorSupportedSwapLaneNote,
+      setPrivateCoreOperatorSupportedSwapLaneStatus,
+      setPrivateCoreOperatorSupportedSwapLaneVersion,
+      setPrivateCoreOperatorSupportedSwapVenue,
+      setPrivateCoreOperatorSupportedSwapOutputModel,
       setPrivateCoreOperatorSupportedFlowKind,
       setPrivateCoreOperatorSupportedFlowNote,
       setPrivateCoreOperatorSupportedFlowStatus,
@@ -1723,6 +1747,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedReleaseLaneVersion,
       privateCoreOperatorSupportedReleaseV1Decision,
       privateCoreOperatorSupportedReleaseV1DecisionNote,
+      privateCoreOperatorSupportedSwapLaneKind,
+      privateCoreOperatorSupportedSwapLaneNote,
+      privateCoreOperatorSupportedSwapLaneStatus,
+      privateCoreOperatorSupportedSwapLaneVersion,
+      privateCoreOperatorSupportedSwapVenue,
+      privateCoreOperatorSupportedSwapOutputModel,
       privateCoreOperatorSupportedFlowKind,
       privateCoreOperatorSupportedFlowNote,
       privateCoreOperatorSupportedFlowStatus,
@@ -1864,6 +1894,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedReleaseLaneVersion,
       privateCoreOperatorSupportedReleaseV1Decision,
       privateCoreOperatorSupportedReleaseV1DecisionNote,
+      privateCoreOperatorSupportedSwapLaneKind,
+      privateCoreOperatorSupportedSwapLaneNote,
+      privateCoreOperatorSupportedSwapLaneStatus,
+      privateCoreOperatorSupportedSwapLaneVersion,
+      privateCoreOperatorSupportedSwapVenue,
+      privateCoreOperatorSupportedSwapOutputModel,
       privateCoreOperatorSupportedFlowKind,
       privateCoreOperatorSupportedFlowNote,
       privateCoreOperatorSupportedFlowStatus,
@@ -2473,6 +2509,12 @@ function applyPrivateCoreOperatorContractState(args: {
   setPrivateCoreOperatorSupportedReleaseLaneVersion: (value: number | null) => void;
   setPrivateCoreOperatorSupportedReleaseV1Decision: (value: string | null) => void;
   setPrivateCoreOperatorSupportedReleaseV1DecisionNote: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedSwapLaneKind: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedSwapLaneNote: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedSwapLaneStatus: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedSwapLaneVersion: (value: number | null) => void;
+  setPrivateCoreOperatorSupportedSwapVenue: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedSwapOutputModel: (value: string | null) => void;
   setPrivateCoreOperatorSupportedFlowKind: (value: string | null) => void;
   setPrivateCoreOperatorSupportedFlowNote: (value: string | null) => void;
   setPrivateCoreOperatorSupportedFlowStatus: (value: string | null) => void;
@@ -2546,6 +2588,16 @@ function applyPrivateCoreOperatorContractState(args: {
   );
   args.setPrivateCoreOperatorSupportedReleaseV1DecisionNote(
     args.contractState.supportedReleaseV1DecisionNote,
+  );
+  args.setPrivateCoreOperatorSupportedSwapLaneKind(args.contractState.supportedSwapLaneKind);
+  args.setPrivateCoreOperatorSupportedSwapLaneNote(args.contractState.supportedSwapLaneNote);
+  args.setPrivateCoreOperatorSupportedSwapLaneStatus(args.contractState.supportedSwapLaneStatus);
+  args.setPrivateCoreOperatorSupportedSwapLaneVersion(
+    args.contractState.supportedSwapLaneVersion,
+  );
+  args.setPrivateCoreOperatorSupportedSwapVenue(args.contractState.supportedSwapVenue);
+  args.setPrivateCoreOperatorSupportedSwapOutputModel(
+    args.contractState.supportedSwapOutputModel,
   );
   args.setPrivateCoreOperatorSupportedFlowKind(args.contractState.supportedFlowKind);
   args.setPrivateCoreOperatorSupportedFlowNote(args.contractState.supportedFlowNote);

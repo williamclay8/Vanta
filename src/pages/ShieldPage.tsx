@@ -131,6 +131,12 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOperatorSupportedReleaseLaneNote,
     privateCoreOperatorSupportedReleaseLaneStatus,
     privateCoreOperatorSupportedReleaseLaneVersion,
+    privateCoreOperatorSupportedSwapLaneKind,
+    privateCoreOperatorSupportedSwapLaneNote,
+    privateCoreOperatorSupportedSwapLaneStatus,
+    privateCoreOperatorSupportedSwapLaneVersion,
+    privateCoreOperatorSupportedSwapVenue,
+    privateCoreOperatorSupportedSwapOutputModel,
     privateCoreOperatorSupportedReleaseV1Decision,
     privateCoreOperatorSupportedReleaseV1DecisionNote,
     privateCoreOperatorSupportedFlowKind,
@@ -1132,6 +1138,12 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 operatorSupportedReleaseLaneNote={privateCoreOperatorSupportedReleaseLaneNote}
                 operatorSupportedReleaseLaneStatus={privateCoreOperatorSupportedReleaseLaneStatus}
                 operatorSupportedReleaseLaneVersion={privateCoreOperatorSupportedReleaseLaneVersion}
+                operatorSupportedSwapLaneKind={privateCoreOperatorSupportedSwapLaneKind}
+                operatorSupportedSwapLaneNote={privateCoreOperatorSupportedSwapLaneNote}
+                operatorSupportedSwapLaneStatus={privateCoreOperatorSupportedSwapLaneStatus}
+                operatorSupportedSwapLaneVersion={privateCoreOperatorSupportedSwapLaneVersion}
+                operatorSupportedSwapVenue={privateCoreOperatorSupportedSwapVenue}
+                operatorSupportedSwapOutputModel={privateCoreOperatorSupportedSwapOutputModel}
                 operatorSupportedReleaseV1Decision={privateCoreOperatorSupportedReleaseV1Decision}
                 operatorSupportedReleaseV1DecisionNote={
                   privateCoreOperatorSupportedReleaseV1DecisionNote

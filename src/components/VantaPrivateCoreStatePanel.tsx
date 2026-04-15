@@ -54,6 +54,12 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSupportedReleaseLaneVersion?: number | null;
   operatorSupportedReleaseV1Decision?: string | null;
   operatorSupportedReleaseV1DecisionNote?: string | null;
+  operatorSupportedSwapLaneKind?: string | null;
+  operatorSupportedSwapLaneNote?: string | null;
+  operatorSupportedSwapLaneStatus?: string | null;
+  operatorSupportedSwapLaneVersion?: number | null;
+  operatorSupportedSwapVenue?: string | null;
+  operatorSupportedSwapOutputModel?: string | null;
   operatorSupportedFlowKind?: string | null;
   operatorSupportedFlowNote?: string | null;
   operatorSupportedFlowStatus?: string | null;
@@ -255,6 +261,12 @@ export function VantaPrivateCoreStatePanel({
   operatorSupportedReleaseLaneVersion = null,
   operatorSupportedReleaseV1Decision = null,
   operatorSupportedReleaseV1DecisionNote = null,
+  operatorSupportedSwapLaneKind = null,
+  operatorSupportedSwapLaneNote = null,
+  operatorSupportedSwapLaneStatus = null,
+  operatorSupportedSwapLaneVersion = null,
+  operatorSupportedSwapVenue = null,
+  operatorSupportedSwapOutputModel = null,
   operatorSupportedFlowKind = null,
   operatorSupportedFlowNote = null,
   operatorSupportedFlowStatus = null,
@@ -618,6 +630,34 @@ export function VantaPrivateCoreStatePanel({
               <strong>{operatorSupportedReleaseLaneStatus ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
+              <span>Supported swap lane</span>
+              <strong>
+                {operatorSupportedSwapLaneKind === "single-input-vusd-to-shielded-sol"
+                  ? `v${String(operatorSupportedSwapLaneVersion ?? 1)} · Single input VUSD to shielded SOL`
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Supported swap status</span>
+              <strong>{operatorSupportedSwapLaneStatus ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Supported swap venue</span>
+              <strong>
+                {operatorSupportedSwapVenue === "meteora-dlmm-devnet"
+                  ? "Meteora DLMM devnet"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Supported swap output</span>
+              <strong>
+                {operatorSupportedSwapOutputModel === "shielded-sol-output-note"
+                  ? "Shielded SOL output note"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
               <span>Supported flow</span>
               <strong>
                 {operatorSupportedFlowKind === "shield-hold-send-unshield-replay-guard"
@@ -828,6 +868,10 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Release v1 decision note</span>
               <strong>{operatorSupportedReleaseV1DecisionNote ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Supported swap note</span>
+              <strong>{operatorSupportedSwapLaneNote ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Supported flow note</span>
