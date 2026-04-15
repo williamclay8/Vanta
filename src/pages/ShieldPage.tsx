@@ -118,6 +118,10 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOperatorSendBoundaryStatusLabel,
     privateCoreOperatorSendContinuityPrimaryNote,
     privateCoreOperatorSendContinuityStatusLabel,
+    privateCoreOperatorSwapBoundaryPrimaryNote,
+    privateCoreOperatorSwapBoundaryStatusLabel,
+    privateCoreOperatorSwapContinuityPrimaryNote,
+    privateCoreOperatorSwapContinuityStatusLabel,
     privateCoreOperatorSupportedSendLaneKind,
     privateCoreOperatorSupportedSendLaneNote,
     privateCoreOperatorSupportedSendLaneStatus,
@@ -185,6 +189,13 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOperatorSendResultingRootRegistrationStatusLabel,
     privateCoreOperatorSendResultingRootProofLinkStatus,
     privateCoreOperatorSendResultingRootStatusLabel,
+    privateCoreOperatorSwapResultingRootLinkedProof,
+    privateCoreOperatorSwapResultingRootRecord,
+    privateCoreOperatorSwapResultingRootPrimaryNote,
+    privateCoreOperatorSwapResultingRootRegistrationPrimaryNote,
+    privateCoreOperatorSwapResultingRootRegistrationStatusLabel,
+    privateCoreOperatorSwapResultingRootProofLinkStatus,
+    privateCoreOperatorSwapResultingRootStatusLabel,
     privateCoreOperatorProofConsumeLinkStatus,
     privateCoreOperatorProofError,
     privateCoreOperatorProofs,
@@ -1131,6 +1142,10 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 operatorSendBoundaryStatusLabel={privateCoreOperatorSendBoundaryStatusLabel}
                 operatorSendContinuityPrimaryNote={privateCoreOperatorSendContinuityPrimaryNote}
                 operatorSendContinuityStatusLabel={privateCoreOperatorSendContinuityStatusLabel}
+                operatorSwapBoundaryPrimaryNote={privateCoreOperatorSwapBoundaryPrimaryNote}
+                operatorSwapBoundaryStatusLabel={privateCoreOperatorSwapBoundaryStatusLabel}
+                operatorSwapContinuityPrimaryNote={privateCoreOperatorSwapContinuityPrimaryNote}
+                operatorSwapContinuityStatusLabel={privateCoreOperatorSwapContinuityStatusLabel}
                 operatorSupportedSendLaneKind={privateCoreOperatorSupportedSendLaneKind}
                 operatorSupportedSendLaneNote={privateCoreOperatorSupportedSendLaneNote}
                 operatorSupportedSendLaneStatus={privateCoreOperatorSupportedSendLaneStatus}
@@ -1228,6 +1243,19 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 }
                 operatorSendResultingRootProofLinkStatus={privateCoreOperatorSendResultingRootProofLinkStatus}
                 operatorSendResultingRootStatusLabel={privateCoreOperatorSendResultingRootStatusLabel}
+                operatorSwapResultingRootLinkedProof={privateCoreOperatorSwapResultingRootLinkedProof}
+                operatorSwapResultingRootRecord={privateCoreOperatorSwapResultingRootRecord}
+                operatorSwapResultingRootPrimaryNote={privateCoreOperatorSwapResultingRootPrimaryNote}
+                operatorSwapResultingRootRegistrationPrimaryNote={
+                  privateCoreOperatorSwapResultingRootRegistrationPrimaryNote
+                }
+                operatorSwapResultingRootRegistrationStatusLabel={
+                  privateCoreOperatorSwapResultingRootRegistrationStatusLabel
+                }
+                operatorSwapResultingRootProofLinkStatus={
+                  privateCoreOperatorSwapResultingRootProofLinkStatus
+                }
+                operatorSwapResultingRootStatusLabel={privateCoreOperatorSwapResultingRootStatusLabel}
                 operatorProofConsumeLinkStatus={privateCoreOperatorProofConsumeLinkStatus}
                 operatorProofError={privateCoreOperatorProofError}
                 operatorProofs={privateCoreOperatorProofs}

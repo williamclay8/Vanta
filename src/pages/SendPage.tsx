@@ -156,6 +156,10 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorSendBoundaryStatusLabel,
     privateCoreOperatorSendContinuityPrimaryNote,
     privateCoreOperatorSendContinuityStatusLabel,
+    privateCoreOperatorSwapBoundaryPrimaryNote,
+    privateCoreOperatorSwapBoundaryStatusLabel,
+    privateCoreOperatorSwapContinuityPrimaryNote,
+    privateCoreOperatorSwapContinuityStatusLabel,
     privateCoreOperatorCurrentRootProofLinkStatus,
     privateCoreOperatorLatestConsume,
     privateCoreOperatorLatestConsumeProof,
@@ -183,6 +187,13 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorSendResultingRootRegistrationStatusLabel,
     privateCoreOperatorSendResultingRootProofLinkStatus,
     privateCoreOperatorSendResultingRootStatusLabel,
+    privateCoreOperatorSwapResultingRootLinkedProof,
+    privateCoreOperatorSwapResultingRootRecord,
+    privateCoreOperatorSwapResultingRootPrimaryNote,
+    privateCoreOperatorSwapResultingRootRegistrationPrimaryNote,
+    privateCoreOperatorSwapResultingRootRegistrationStatusLabel,
+    privateCoreOperatorSwapResultingRootProofLinkStatus,
+    privateCoreOperatorSwapResultingRootStatusLabel,
     privateCoreOperatorProvingHashLane,
     privateCoreOperatorReleaseError,
     privateCoreOperatorReleases,
@@ -1741,6 +1752,10 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         operatorSendBoundaryStatusLabel={privateCoreOperatorSendBoundaryStatusLabel}
         operatorSendContinuityPrimaryNote={privateCoreOperatorSendContinuityPrimaryNote}
         operatorSendContinuityStatusLabel={privateCoreOperatorSendContinuityStatusLabel}
+        operatorSwapBoundaryPrimaryNote={privateCoreOperatorSwapBoundaryPrimaryNote}
+        operatorSwapBoundaryStatusLabel={privateCoreOperatorSwapBoundaryStatusLabel}
+        operatorSwapContinuityPrimaryNote={privateCoreOperatorSwapContinuityPrimaryNote}
+        operatorSwapContinuityStatusLabel={privateCoreOperatorSwapContinuityStatusLabel}
         operatorSupportedSendLaneKind={privateCoreOperatorSupportedSendLaneKind}
         operatorSupportedSendLaneNote={privateCoreOperatorSupportedSendLaneNote}
         operatorSupportedSendLaneStatus={privateCoreOperatorSupportedSendLaneStatus}
@@ -1834,6 +1849,19 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         }
         operatorSendResultingRootProofLinkStatus={privateCoreOperatorSendResultingRootProofLinkStatus}
         operatorSendResultingRootStatusLabel={privateCoreOperatorSendResultingRootStatusLabel}
+        operatorSwapResultingRootLinkedProof={privateCoreOperatorSwapResultingRootLinkedProof}
+        operatorSwapResultingRootRecord={privateCoreOperatorSwapResultingRootRecord}
+        operatorSwapResultingRootPrimaryNote={privateCoreOperatorSwapResultingRootPrimaryNote}
+        operatorSwapResultingRootRegistrationPrimaryNote={
+          privateCoreOperatorSwapResultingRootRegistrationPrimaryNote
+        }
+        operatorSwapResultingRootRegistrationStatusLabel={
+          privateCoreOperatorSwapResultingRootRegistrationStatusLabel
+        }
+        operatorSwapResultingRootProofLinkStatus={
+          privateCoreOperatorSwapResultingRootProofLinkStatus
+        }
+        operatorSwapResultingRootStatusLabel={privateCoreOperatorSwapResultingRootStatusLabel}
         operatorProofConsumeLinkStatus={privateCoreOperatorProofConsumeLinkStatus}
         operatorProofError={privateCoreOperatorProofError}
         operatorProofs={privateCoreOperatorProofs}

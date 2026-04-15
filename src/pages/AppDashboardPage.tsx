@@ -57,6 +57,10 @@ export function AppDashboardPage() {
     privateCoreOperatorSendBoundaryStatusLabel,
     privateCoreOperatorSendContinuityPrimaryNote,
     privateCoreOperatorSendContinuityStatusLabel,
+    privateCoreOperatorSwapBoundaryPrimaryNote,
+    privateCoreOperatorSwapBoundaryStatusLabel,
+    privateCoreOperatorSwapContinuityPrimaryNote,
+    privateCoreOperatorSwapContinuityStatusLabel,
     privateCoreOperatorSupportedSendLaneKind,
     privateCoreOperatorSupportedSendLaneNote,
     privateCoreOperatorSupportedSendLaneStatus,
@@ -124,6 +128,13 @@ export function AppDashboardPage() {
     privateCoreOperatorSendResultingRootRegistrationStatusLabel,
     privateCoreOperatorSendResultingRootProofLinkStatus,
     privateCoreOperatorSendResultingRootStatusLabel,
+    privateCoreOperatorSwapResultingRootLinkedProof,
+    privateCoreOperatorSwapResultingRootRecord,
+    privateCoreOperatorSwapResultingRootPrimaryNote,
+    privateCoreOperatorSwapResultingRootRegistrationPrimaryNote,
+    privateCoreOperatorSwapResultingRootRegistrationStatusLabel,
+    privateCoreOperatorSwapResultingRootProofLinkStatus,
+    privateCoreOperatorSwapResultingRootStatusLabel,
     privateCoreOperatorProofConsumeLinkStatus,
     privateCoreOperatorProofError,
     privateCoreOperatorProofs,
@@ -309,6 +320,10 @@ export function AppDashboardPage() {
           operatorSendBoundaryStatusLabel={privateCoreOperatorSendBoundaryStatusLabel}
           operatorSendContinuityPrimaryNote={privateCoreOperatorSendContinuityPrimaryNote}
           operatorSendContinuityStatusLabel={privateCoreOperatorSendContinuityStatusLabel}
+          operatorSwapBoundaryPrimaryNote={privateCoreOperatorSwapBoundaryPrimaryNote}
+          operatorSwapBoundaryStatusLabel={privateCoreOperatorSwapBoundaryStatusLabel}
+          operatorSwapContinuityPrimaryNote={privateCoreOperatorSwapContinuityPrimaryNote}
+          operatorSwapContinuityStatusLabel={privateCoreOperatorSwapContinuityStatusLabel}
           operatorSupportedSendLaneKind={privateCoreOperatorSupportedSendLaneKind}
           operatorSupportedSendLaneNote={privateCoreOperatorSupportedSendLaneNote}
           operatorSupportedSendLaneStatus={privateCoreOperatorSupportedSendLaneStatus}
@@ -402,6 +417,19 @@ export function AppDashboardPage() {
           }
           operatorSendResultingRootProofLinkStatus={privateCoreOperatorSendResultingRootProofLinkStatus}
           operatorSendResultingRootStatusLabel={privateCoreOperatorSendResultingRootStatusLabel}
+          operatorSwapResultingRootLinkedProof={privateCoreOperatorSwapResultingRootLinkedProof}
+          operatorSwapResultingRootRecord={privateCoreOperatorSwapResultingRootRecord}
+          operatorSwapResultingRootPrimaryNote={privateCoreOperatorSwapResultingRootPrimaryNote}
+          operatorSwapResultingRootRegistrationPrimaryNote={
+            privateCoreOperatorSwapResultingRootRegistrationPrimaryNote
+          }
+          operatorSwapResultingRootRegistrationStatusLabel={
+            privateCoreOperatorSwapResultingRootRegistrationStatusLabel
+          }
+          operatorSwapResultingRootProofLinkStatus={
+            privateCoreOperatorSwapResultingRootProofLinkStatus
+          }
+          operatorSwapResultingRootStatusLabel={privateCoreOperatorSwapResultingRootStatusLabel}
           operatorProofConsumeLinkStatus={privateCoreOperatorProofConsumeLinkStatus}
           operatorProofError={privateCoreOperatorProofError}
               operatorProofs={privateCoreOperatorProofs}

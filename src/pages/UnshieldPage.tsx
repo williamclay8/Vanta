@@ -120,6 +120,10 @@ export function UnshieldPage() {
     privateCoreOperatorSendBoundaryStatusLabel,
     privateCoreOperatorSendContinuityPrimaryNote,
     privateCoreOperatorSendContinuityStatusLabel,
+    privateCoreOperatorSwapBoundaryPrimaryNote,
+    privateCoreOperatorSwapBoundaryStatusLabel,
+    privateCoreOperatorSwapContinuityPrimaryNote,
+    privateCoreOperatorSwapContinuityStatusLabel,
     privateCoreOperatorSupportedSendLaneKind,
     privateCoreOperatorSupportedSendLaneNote,
     privateCoreOperatorSupportedSendLaneStatus,
@@ -187,6 +191,13 @@ export function UnshieldPage() {
     privateCoreOperatorSendResultingRootRegistrationStatusLabel,
     privateCoreOperatorSendResultingRootProofLinkStatus,
     privateCoreOperatorSendResultingRootStatusLabel,
+    privateCoreOperatorSwapResultingRootLinkedProof,
+    privateCoreOperatorSwapResultingRootRecord,
+    privateCoreOperatorSwapResultingRootPrimaryNote,
+    privateCoreOperatorSwapResultingRootRegistrationPrimaryNote,
+    privateCoreOperatorSwapResultingRootRegistrationStatusLabel,
+    privateCoreOperatorSwapResultingRootProofLinkStatus,
+    privateCoreOperatorSwapResultingRootStatusLabel,
     privateCoreOperatorProofConsumeLinkStatus,
     privateCoreOperatorProofError,
     privateCoreOperatorProofs,
@@ -981,6 +992,10 @@ export function UnshieldPage() {
           operatorSendBoundaryStatusLabel={privateCoreOperatorSendBoundaryStatusLabel}
           operatorSendContinuityPrimaryNote={privateCoreOperatorSendContinuityPrimaryNote}
           operatorSendContinuityStatusLabel={privateCoreOperatorSendContinuityStatusLabel}
+          operatorSwapBoundaryPrimaryNote={privateCoreOperatorSwapBoundaryPrimaryNote}
+          operatorSwapBoundaryStatusLabel={privateCoreOperatorSwapBoundaryStatusLabel}
+          operatorSwapContinuityPrimaryNote={privateCoreOperatorSwapContinuityPrimaryNote}
+          operatorSwapContinuityStatusLabel={privateCoreOperatorSwapContinuityStatusLabel}
           operatorSupportedSendLaneKind={privateCoreOperatorSupportedSendLaneKind}
           operatorSupportedSendLaneNote={privateCoreOperatorSupportedSendLaneNote}
           operatorSupportedSendLaneStatus={privateCoreOperatorSupportedSendLaneStatus}
@@ -1074,6 +1089,19 @@ export function UnshieldPage() {
           }
           operatorSendResultingRootProofLinkStatus={privateCoreOperatorSendResultingRootProofLinkStatus}
           operatorSendResultingRootStatusLabel={privateCoreOperatorSendResultingRootStatusLabel}
+          operatorSwapResultingRootLinkedProof={privateCoreOperatorSwapResultingRootLinkedProof}
+          operatorSwapResultingRootRecord={privateCoreOperatorSwapResultingRootRecord}
+          operatorSwapResultingRootPrimaryNote={privateCoreOperatorSwapResultingRootPrimaryNote}
+          operatorSwapResultingRootRegistrationPrimaryNote={
+            privateCoreOperatorSwapResultingRootRegistrationPrimaryNote
+          }
+          operatorSwapResultingRootRegistrationStatusLabel={
+            privateCoreOperatorSwapResultingRootRegistrationStatusLabel
+          }
+          operatorSwapResultingRootProofLinkStatus={
+            privateCoreOperatorSwapResultingRootProofLinkStatus
+          }
+          operatorSwapResultingRootStatusLabel={privateCoreOperatorSwapResultingRootStatusLabel}
           operatorProofConsumeLinkStatus={privateCoreOperatorProofConsumeLinkStatus}
           operatorProofError={privateCoreOperatorProofError}
           operatorProofs={privateCoreOperatorProofs}
