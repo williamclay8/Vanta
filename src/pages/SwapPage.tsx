@@ -6,6 +6,7 @@ import {
 } from "@solana/react-hooks";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
+import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePanel";
 import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
 import { useWalletState } from "@/data/context/WalletContext";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
@@ -144,6 +145,7 @@ function formatDiagnosticValue(value: string | null | undefined) {
 
 export function SwapPage() {
   const { walletAddress, walletAddressShort, walletConnected } = useWalletState();
+  const privacyFlow = usePrivacyFlow();
   const {
     privateCoreSwapState,
     privateCoreOperatorSwapBoundaryPrimaryNote,
@@ -164,7 +166,7 @@ export function SwapPage() {
     privateCoreOperatorSwapProofs,
     privateCoreOperatorSwaps,
     refreshPrivateCoreOperatorSummary,
-  } = usePrivacyFlow();
+  } = privacyFlow;
   const walletSession = useWalletSession();
   const {
     account: shieldAccount,
@@ -1815,6 +1817,141 @@ export function SwapPage() {
           )}
         </article>
       </div>
+
+      <VantaPrivateCoreStatePanel
+        holdState={privacyFlow.privateCoreHoldState}
+        shieldState={privacyFlow.privateCoreRecentShield}
+        sendState={privacyFlow.privateCoreSendState}
+        swapState={privacyFlow.privateCoreSwapState}
+        unshieldState={privacyFlow.privateCoreUnshieldState}
+        operatorCurrentRoot={privacyFlow.privateCoreOperatorCurrentRoot}
+        operatorConsumeError={privacyFlow.privateCoreOperatorConsumeError}
+        operatorConsumes={privacyFlow.privateCoreOperatorConsumes}
+        operatorLatestConsume={privacyFlow.privateCoreOperatorLatestConsume}
+        operatorLatestConsumeProof={privacyFlow.privateCoreOperatorLatestConsumeProof}
+        operatorLatestProof={privacyFlow.privateCoreOperatorLatestProof}
+        operatorLatestRelease={privacyFlow.privateCoreOperatorLatestRelease}
+        operatorLatestReleaseProof={privacyFlow.privateCoreOperatorLatestReleaseProof}
+        operatorLatestRoot={privacyFlow.privateCoreOperatorLatestRoot}
+        operatorLatestSend={privacyFlow.privateCoreOperatorLatestSend}
+        operatorLatestSendLinkedProof={privacyFlow.privateCoreOperatorLatestSendLinkedProof}
+        operatorLatestSendProof={privacyFlow.privateCoreOperatorLatestSendProof}
+        operatorLatestSwap={privacyFlow.privateCoreOperatorLatestSwap}
+        operatorLatestSwapLinkedProof={privacyFlow.privateCoreOperatorLatestSwapLinkedProof}
+        operatorLatestSwapProof={privacyFlow.privateCoreOperatorLatestSwapProof}
+        operatorBoundaryPrimaryNote={privacyFlow.privateCoreOperatorBoundaryPrimaryNote}
+        operatorBoundaryStatusLabel={privacyFlow.privateCoreOperatorBoundaryStatusLabel}
+        operatorContractMirrorPrimaryNote={privacyFlow.privateCoreOperatorContractMirrorPrimaryNote}
+        operatorContractMirrorStatusLabel={privacyFlow.privateCoreOperatorContractMirrorStatusLabel}
+        operatorSendBoundaryPrimaryNote={privacyFlow.privateCoreOperatorSendBoundaryPrimaryNote}
+        operatorSendBoundaryStatusLabel={privacyFlow.privateCoreOperatorSendBoundaryStatusLabel}
+        operatorSendContinuityPrimaryNote={privacyFlow.privateCoreOperatorSendContinuityPrimaryNote}
+        operatorSendContinuityStatusLabel={privacyFlow.privateCoreOperatorSendContinuityStatusLabel}
+        operatorSwapBoundaryPrimaryNote={privacyFlow.privateCoreOperatorSwapBoundaryPrimaryNote}
+        operatorSwapBoundaryStatusLabel={privacyFlow.privateCoreOperatorSwapBoundaryStatusLabel}
+        operatorSwapContinuityPrimaryNote={privacyFlow.privateCoreOperatorSwapContinuityPrimaryNote}
+        operatorSwapContinuityStatusLabel={privacyFlow.privateCoreOperatorSwapContinuityStatusLabel}
+        operatorSupportedSendLaneKind={privacyFlow.privateCoreOperatorSupportedSendLaneKind}
+        operatorSupportedSendLaneNote={privacyFlow.privateCoreOperatorSupportedSendLaneNote}
+        operatorSupportedSendLaneStatus={privacyFlow.privateCoreOperatorSupportedSendLaneStatus}
+        operatorSupportedSendLaneVersion={privacyFlow.privateCoreOperatorSupportedSendLaneVersion}
+        operatorSupportedSendV1Decision={privacyFlow.privateCoreOperatorSupportedSendV1Decision}
+        operatorSupportedSendV1DecisionNote={privacyFlow.privateCoreOperatorSupportedSendV1DecisionNote}
+        operatorSupportedUnshieldLaneKind={privacyFlow.privateCoreOperatorSupportedUnshieldLaneKind}
+        operatorSupportedUnshieldLaneNote={privacyFlow.privateCoreOperatorSupportedUnshieldLaneNote}
+        operatorSupportedUnshieldLaneStatus={privacyFlow.privateCoreOperatorSupportedUnshieldLaneStatus}
+        operatorSupportedUnshieldLaneVersion={privacyFlow.privateCoreOperatorSupportedUnshieldLaneVersion}
+        operatorSupportedUnshieldV1Decision={privacyFlow.privateCoreOperatorSupportedUnshieldV1Decision}
+        operatorSupportedUnshieldV1DecisionNote={privacyFlow.privateCoreOperatorSupportedUnshieldV1DecisionNote}
+        operatorSupportedReleaseLaneKind={privacyFlow.privateCoreOperatorSupportedReleaseLaneKind}
+        operatorSupportedReleaseLaneNote={privacyFlow.privateCoreOperatorSupportedReleaseLaneNote}
+        operatorSupportedReleaseLaneStatus={privacyFlow.privateCoreOperatorSupportedReleaseLaneStatus}
+        operatorSupportedReleaseLaneVersion={privacyFlow.privateCoreOperatorSupportedReleaseLaneVersion}
+        operatorSupportedReleaseV1Decision={privacyFlow.privateCoreOperatorSupportedReleaseV1Decision}
+        operatorSupportedReleaseV1DecisionNote={privacyFlow.privateCoreOperatorSupportedReleaseV1DecisionNote}
+        operatorSupportedSwapLaneKind={privacyFlow.privateCoreOperatorSupportedSwapLaneKind}
+        operatorSupportedSwapLaneNote={privacyFlow.privateCoreOperatorSupportedSwapLaneNote}
+        operatorSupportedSwapLaneStatus={privacyFlow.privateCoreOperatorSupportedSwapLaneStatus}
+        operatorSupportedSwapLaneVersion={privacyFlow.privateCoreOperatorSupportedSwapLaneVersion}
+        operatorSupportedSwapV1Decision={privacyFlow.privateCoreOperatorSupportedSwapV1Decision}
+        operatorSupportedSwapV1DecisionNote={privacyFlow.privateCoreOperatorSupportedSwapV1DecisionNote}
+        operatorSupportedSwapVenue={privacyFlow.privateCoreOperatorSupportedSwapVenue}
+        operatorSupportedSwapOutputModel={privacyFlow.privateCoreOperatorSupportedSwapOutputModel}
+        operatorSupportedSwapResultingRootBasis={privacyFlow.privateCoreOperatorSupportedSwapResultingRootBasis}
+        operatorSupportedSwapInputRootPolicy={privacyFlow.privateCoreOperatorSupportedSwapInputRootPolicy}
+        operatorSupportedSwapOutputRegistrationPolicy={privacyFlow.privateCoreOperatorSupportedSwapOutputRegistrationPolicy}
+        operatorSupportedFlowKind={privacyFlow.privateCoreOperatorSupportedFlowKind}
+        operatorSupportedFlowNote={privacyFlow.privateCoreOperatorSupportedFlowNote}
+        operatorSupportedFlowStatus={privacyFlow.privateCoreOperatorSupportedFlowStatus}
+        operatorSupportedFlowVersion={privacyFlow.privateCoreOperatorSupportedFlowVersion}
+        operatorSupportedAssetSymbol={privacyFlow.privateCoreOperatorSupportedAssetSymbol}
+        operatorSupportedEnvironment={privacyFlow.privateCoreOperatorSupportedEnvironment}
+        operatorSupportedNoteSchema={privacyFlow.privateCoreOperatorSupportedNoteSchema}
+        operatorSupportedNoteVersion={privacyFlow.privateCoreOperatorSupportedNoteVersion}
+        operatorSupportedRootRegistrationProvenance={privacyFlow.privateCoreOperatorSupportedRootRegistrationProvenance}
+        operatorSupportedSendResultingRootBasis={privacyFlow.privateCoreOperatorSupportedSendResultingRootBasis}
+        operatorSupportedSendInputRootPolicy={privacyFlow.privateCoreOperatorSupportedSendInputRootPolicy}
+        operatorSupportedSendOutputRegistrationPolicy={privacyFlow.privateCoreOperatorSupportedSendOutputRegistrationPolicy}
+        operatorSupportedRecipientModel={privacyFlow.privateCoreOperatorSupportedRecipientModel}
+        operatorSupportedReleaseDestinationModel={privacyFlow.privateCoreOperatorSupportedReleaseDestinationModel}
+        operatorSupportedProofSystem={privacyFlow.privateCoreOperatorSupportedProofSystem}
+        operatorSupportedUnshieldCircuit={privacyFlow.privateCoreOperatorSupportedUnshieldCircuit}
+        operatorSupportedSendCircuit={privacyFlow.privateCoreOperatorSupportedSendCircuit}
+        operatorSupportedUnshieldMerkleDepth={privacyFlow.privateCoreOperatorSupportedUnshieldMerkleDepth}
+        operatorSupportedSendMerkleDepth={privacyFlow.privateCoreOperatorSupportedSendMerkleDepth}
+        operatorSupportedReleaseAuthorizationBasis={privacyFlow.privateCoreOperatorSupportedReleaseAuthorizationBasis}
+        operatorSupportedReleaseRootPolicy={privacyFlow.privateCoreOperatorSupportedReleaseRootPolicy}
+        operatorSupportedReleaseExecutionModel={privacyFlow.privateCoreOperatorSupportedReleaseExecutionModel}
+        operatorSupportedReleaseAtomicityModel={privacyFlow.privateCoreOperatorSupportedReleaseAtomicityModel}
+        operatorSupportedReleasePersistenceModel={privacyFlow.privateCoreOperatorSupportedReleasePersistenceModel}
+        operatorOwnerAuthorizationMode={privacyFlow.privateCoreOperatorOwnerAuthorizationMode}
+        operatorOwnerAuthorizationDecision={privacyFlow.privateCoreOperatorOwnerAuthorizationDecision}
+        operatorOwnerAuthorizationDecisionNote={privacyFlow.privateCoreOperatorOwnerAuthorizationDecisionNote}
+        operatorSourceArtifactTruthBasis={privacyFlow.privateCoreOperatorSourceArtifactTruthBasis}
+        operatorProvingArtifactTruthBasis={privacyFlow.privateCoreOperatorProvingArtifactTruthBasis}
+        operatorSourceProvingRelationship={privacyFlow.privateCoreOperatorSourceProvingRelationship}
+        operatorNullifierKeyMode={privacyFlow.privateCoreOperatorNullifierKeyMode}
+        operatorProvingHashLane={privacyFlow.privateCoreOperatorProvingHashLane}
+        operatorCurrentRootLinkedProof={privacyFlow.privateCoreOperatorCurrentRootLinkedProof}
+        operatorCurrentRootProofLinkStatus={privacyFlow.privateCoreOperatorCurrentRootProofLinkStatus}
+        operatorProofConsumeLinkStatus={privacyFlow.privateCoreOperatorProofConsumeLinkStatus}
+        operatorProofError={privacyFlow.privateCoreOperatorProofError}
+        operatorProofs={privacyFlow.privateCoreOperatorProofs}
+        operatorProofSendLinkStatus={privacyFlow.privateCoreOperatorProofSendLinkStatus}
+        operatorProofSwapLinkStatus={privacyFlow.privateCoreOperatorProofSwapLinkStatus}
+        operatorProofReleaseLinkStatus={privacyFlow.privateCoreOperatorProofReleaseLinkStatus}
+        operatorReleaseError={privacyFlow.privateCoreOperatorReleaseError}
+        operatorReleases={privacyFlow.privateCoreOperatorReleases}
+        operatorRootCurrentnessLabel={privacyFlow.privateCoreOperatorRootCurrentnessLabel}
+        operatorRootError={privacyFlow.privateCoreOperatorRootError}
+        operatorRootRegistrationStatus={privacyFlow.privateCoreOperatorRootRegistrationStatus}
+        operatorRoots={privacyFlow.privateCoreOperatorRoots}
+        operatorContractStateVersion={privacyFlow.privateCoreOperatorContractStateVersion}
+        operatorContractVersion={privacyFlow.privateCoreOperatorContractVersion}
+        operatorContractSummaryVersion={privacyFlow.privateCoreOperatorContractSummaryVersion}
+        operatorSendResultingRootLinkedProof={privacyFlow.privateCoreOperatorSendResultingRootLinkedProof}
+        operatorSendResultingRootRecord={privacyFlow.privateCoreOperatorSendResultingRootRecord}
+        operatorSendResultingRootPrimaryNote={privacyFlow.privateCoreOperatorSendResultingRootPrimaryNote}
+        operatorSendResultingRootRegistrationPrimaryNote={privacyFlow.privateCoreOperatorSendResultingRootRegistrationPrimaryNote}
+        operatorSendResultingRootProofLinkStatus={privacyFlow.privateCoreOperatorSendResultingRootProofLinkStatus}
+        operatorSendResultingRootRegistrationStatusLabel={privacyFlow.privateCoreOperatorSendResultingRootRegistrationStatusLabel}
+        operatorSendResultingRootStatusLabel={privacyFlow.privateCoreOperatorSendResultingRootStatusLabel}
+        operatorSwapResultingRootLinkedProof={privacyFlow.privateCoreOperatorSwapResultingRootLinkedProof}
+        operatorSwapResultingRootRecord={privacyFlow.privateCoreOperatorSwapResultingRootRecord}
+        operatorSwapResultingRootPrimaryNote={privacyFlow.privateCoreOperatorSwapResultingRootPrimaryNote}
+        operatorSwapResultingRootRegistrationPrimaryNote={privacyFlow.privateCoreOperatorSwapResultingRootRegistrationPrimaryNote}
+        operatorSwapResultingRootProofLinkStatus={privacyFlow.privateCoreOperatorSwapResultingRootProofLinkStatus}
+        operatorSwapResultingRootRegistrationStatusLabel={privacyFlow.privateCoreOperatorSwapResultingRootRegistrationStatusLabel}
+        operatorSwapResultingRootStatusLabel={privacyFlow.privateCoreOperatorSwapResultingRootStatusLabel}
+        operatorSendError={privacyFlow.privateCoreOperatorSendError}
+        operatorSends={privacyFlow.privateCoreOperatorSends}
+        operatorSendProofError={privacyFlow.privateCoreOperatorSendProofError}
+        operatorSendProofs={privacyFlow.privateCoreOperatorSendProofs}
+        operatorSwaps={privacyFlow.privateCoreOperatorSwaps}
+        operatorSwapProofs={privacyFlow.privateCoreOperatorSwapProofs}
+        operatorSummaryUpdatedAt={privacyFlow.privateCoreOperatorSummaryUpdatedAt}
+        title="Shared private-core state"
+      />
     </section>
   );
 }
