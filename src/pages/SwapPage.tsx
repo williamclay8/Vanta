@@ -718,6 +718,14 @@ export function SwapPage() {
       : preparedCurrentPrivateCoreSwapCandidate.status === "blocked"
         ? "Blocked"
         : "Fixture fallback";
+  const currentPrivateCoreSwapPathBlockerCount =
+    preparedCurrentPrivateCoreSwapCandidate.status === "blocked"
+      ? preparedCurrentPrivateCoreSwapCandidate.proofBoundary.blockers.length
+      : 0;
+  const currentPrivateCoreSwapPathPrimaryBlocker =
+    preparedCurrentPrivateCoreSwapCandidate.status === "blocked"
+      ? preparedCurrentPrivateCoreSwapCandidate.proofBoundary.blockers[0] ?? null
+      : null;
   const swapProofActionLabel =
     preparedCurrentPrivateCoreSwapCandidate.status === "ready"
       ? "Verify current private swap proof"
@@ -1917,6 +1925,18 @@ export function SwapPage() {
                 <div className="review-row">
                   <span>Swap live path status</span>
                   <strong>{currentPrivateCoreSwapPathStatusLabel}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Swap live path blockers</span>
+                  <strong>
+                    {currentPrivateCoreSwapPathBlockerCount > 0
+                      ? String(currentPrivateCoreSwapPathBlockerCount)
+                      : "None"}
+                  </strong>
+                </div>
+                <div className="review-row">
+                  <span>Swap live path primary blocker</span>
+                  <strong>{formatDiagnosticValue(currentPrivateCoreSwapPathPrimaryBlocker)}</strong>
                 </div>
               </div>
               <div className="status-actions">
