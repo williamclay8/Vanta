@@ -212,6 +212,7 @@ These commands currently prove:
 - the constrained swap lane now also has a proof-backed swap-transition HTTP seam with explicit registered-root gating and persisted swap state
 - the constrained swap lane can now also hand off into proof-backed root registration, operator-backed recipient unshield, linked release state, and replay rejection
 - the constrained swap lane now also proves summary-backed swap proof and swap-transition persistence across operator restart
+- the constrained swap to recipient-unshield handoff now also persists coherently across operator restart
 - the operator HTTP surface is still coherent
 - operator proof, consume, release, and root state survive restart
 - replay is still rejected after restart
