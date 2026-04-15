@@ -155,6 +155,7 @@ Fall back in this order:
 
 1. Show `npm run private-core:verify`
    or `npm run private-core:demo-readiness`
+   If you need to isolate the constrained swap seam, show `npm run private-core:swap-transition-http-smoke`
 2. Show the shared internal diagnostics panel
 3. Show the replay rejection path
 4. Keep the framing on:

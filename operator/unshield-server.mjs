@@ -55,9 +55,11 @@ import {
 } from "./private-core-proof-store.mjs";
 import { createPrivateCoreRootStore } from "./private-core-root-store.mjs";
 import { createPrivateCoreSendStore } from "./private-core-send-store.mjs";
+import { createPrivateCoreSwapStore } from "./private-core-swap-store.mjs";
 import {
   assertVantaPrivateCoreSourceArtifactConsistency,
   deriveVantaPrivateCoreSendInputArtifactsFromWitnessPackage,
+  deriveVantaPrivateCoreSwapInputArtifactsFromWitnessPackage,
   normalizeVantaPrivateCoreSendWitnessPackage,
   normalizeVantaPrivateCoreSwapWitnessPackage,
   normalizeVantaPrivateCoreWitnessPackage,
@@ -104,6 +106,7 @@ const privateCoreProofStore = createPrivateCoreProofStore();
 const privateCoreSendProofStore = createPrivateCoreSendProofStore();
 const privateCoreSwapProofStore = createPrivateCoreSwapProofStore();
 const privateCoreSendStore = createPrivateCoreSendStore();
+const privateCoreSwapStore = createPrivateCoreSwapStore();
 const privateCoreReleaseRecords = createReleaseRecordStore({
   defaultPath: "operator/.vanta-private-core-releases.json",
   envKey: "VANTA_PRIVATE_CORE_RELEASE_STORE_PATH",
@@ -355,6 +358,20 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (request.method === "GET" && request.url === "/state/private-core-swaps") {
+    writeCorsHeaders(response);
+    response.writeHead(200, { "Content-Type": "application/json" });
+    const records = privateCoreSwapStore.listSwaps();
+    response.end(
+      JSON.stringify({
+        stateVersion: 1,
+        latestSwap: records[0] ?? null,
+        records,
+      }),
+    );
+    return;
+  }
+
   if (request.method === "GET" && request.url === "/state/private-core-releases") {
     writeCorsHeaders(response);
     response.writeHead(200, { "Content-Type": "application/json" });
@@ -539,6 +556,124 @@ const server = createServer(async (request, response) => {
         error instanceof Error
           ? error.message
           : "The private-core swap proof operator could not process the witness package.",
+      );
+    }
+    return;
+  }
+
+  if (request.method === "POST" && request.url === "/private-core/swap-transition") {
+    try {
+      const body = await readJsonBody(request);
+      const witnessPackage = normalizeVantaPrivateCoreSwapWitnessPackage(body?.witnessPackage);
+      const sourcePublicInputs = witnessPackage.sourcePublicInputs;
+      const inputArtifacts = deriveVantaPrivateCoreSwapInputArtifactsFromWitnessPackage(witnessPackage);
+
+      if (!privateCoreRootStore.hasRoot(sourcePublicInputs.stateRoot)) {
+        throw new Error("Private-core swap transition input root is not registered.");
+      }
+
+      const latestRootRecord = privateCoreRootStore.getLatestRoot();
+      if (!latestRootRecord || latestRootRecord.root !== sourcePublicInputs.stateRoot) {
+        throw new Error("Private-core swap transition input root is not the latest registered root.");
+      }
+
+      if (latestRootRecord.assetId !== inputArtifacts.assetId) {
+        throw new Error("Private-core swap transition asset does not match the registered input root.");
+      }
+
+      if (latestRootRecord.amount !== inputArtifacts.amount) {
+        throw new Error("Private-core swap transition amount basis does not match the registered input root.");
+      }
+
+      if (latestRootRecord.noteCommitment !== inputArtifacts.noteCommitment) {
+        throw new Error(
+          "Private-core swap transition source note commitment does not match the registered input root.",
+        );
+      }
+
+      if (latestRootRecord.merkleLeaf !== inputArtifacts.merkleLeaf) {
+        throw new Error(
+          "Private-core swap transition source Merkle leaf does not match the registered input root.",
+        );
+      }
+
+      if (latestRootRecord.witnessRoot !== inputArtifacts.witnessRoot) {
+        throw new Error(
+          "Private-core swap transition source witness root does not match the registered input root.",
+        );
+      }
+
+      const latestRootLinkedProof =
+        latestRootRecord.proofId
+          ? privateCoreProofStore
+              .listProofs()
+              .find((record) => record.proofId === latestRootRecord.proofId) ?? null
+          : null;
+      const latestRootProofLinkStatus = summarizePrivateCoreRootProofLinkStatus({
+        linkedProof: latestRootLinkedProof,
+        rootRecord: latestRootRecord,
+      });
+
+      if (latestRootProofLinkStatus !== "linked") {
+        throw new Error(
+          latestRootProofLinkStatus === "mismatch"
+            ? "Private-core swap transition input root does not match its linked registration proof."
+            : "Private-core swap transition input root registration proof linkage is unavailable.",
+        );
+      }
+
+      const resultingRoot = normalizePrivateCoreHex32(
+        body?.resultingRoot,
+        "Private-core swap resulting root",
+      );
+      if (resultingRoot === sourcePublicInputs.stateRoot) {
+        throw new Error("Private-core swap resulting root must differ from the input root.");
+      }
+
+      const proofReceipt = await proveAndVerifyVantaPrivateCoreSwap({
+        witnessPackage,
+      });
+      const proofRecord = summarizePrivateCoreSwapProofRecord({
+        action: "swap-proof",
+        proofReceipt,
+        witnessPackage,
+      });
+      privateCoreSwapProofStore.recordProof(proofRecord);
+      const swapRecord = summarizePrivateCoreSwapRecord({
+        proofRecord,
+        proofReceipt,
+        resultingRoot,
+        witnessPackage,
+      });
+      privateCoreSwapStore.recordSwap(swapRecord);
+
+      writeCorsHeaders(response);
+      response.writeHead(200, { "Content-Type": "application/json" });
+      response.end(
+        JSON.stringify({
+          ...proofReceipt,
+          completedAt: swapRecord.completedAt,
+          inputNullifier: swapRecord.inputNullifier,
+          inputRoot: swapRecord.inputRoot,
+          inputAssetId: swapRecord.inputAssetId,
+          inputAmount: swapRecord.inputAmount,
+          outputAssetId: swapRecord.outputAssetId,
+          outputAmount: swapRecord.outputAmount,
+          outputCommitment: swapRecord.outputCommitment,
+          proofId: swapRecord.proofId,
+          resultingRootBasis: swapRecord.resultingRootBasis,
+          resultingRoot: swapRecord.resultingRoot,
+          swapId: swapRecord.swapId,
+          swapRecorded: true,
+        }),
+      );
+    } catch (error) {
+      writeCorsHeaders(response);
+      response.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
+      response.end(
+        error instanceof Error
+          ? error.message
+          : "The private-core swap operator could not process the transition request.",
       );
     }
     return;
@@ -1557,6 +1692,7 @@ server.listen(port, "127.0.0.1", () => {
   console.log(`Vanta private-core send proof store: ${privateCoreSendProofStore.filePath}`);
   console.log(`Vanta private-core swap proof store: ${privateCoreSwapProofStore.filePath}`);
   console.log(`Vanta private-core send store: ${privateCoreSendStore.filePath}`);
+  console.log(`Vanta private-core swap store: ${privateCoreSwapStore.filePath}`);
   console.log(`Vanta private-core release store: ${privateCoreReleaseRecords.filePath}`);
   console.log(`Vanta swap store: ${swapRecords.filePath}`);
   console.log(`Vanta SOL unshield store: ${solUnshieldRecords.filePath}`);
@@ -2390,6 +2526,34 @@ function summarizePrivateCoreSwapProofRecord(args) {
     releaseDestination: sourcePublicInputs.outputCommitment,
     root: sourcePublicInputs.stateRoot,
     verified: args.proofReceipt.verified === true,
+  };
+}
+
+function summarizePrivateCoreSwapRecord(args) {
+  const sourcePublicInputs = args.witnessPackage.sourcePublicInputs;
+  const completedAt = Date.now();
+
+  return {
+    completedAt,
+    inputAssetId: sourcePublicInputs.inputAssetId,
+    inputNullifier: sourcePublicInputs.inputNullifier,
+    inputRoot: sourcePublicInputs.stateRoot,
+    inputAmount: sourcePublicInputs.inputAmount,
+    noteVersion: sourcePublicInputs.inputNoteVersion,
+    outputAssetId: sourcePublicInputs.outputAssetId,
+    outputAmount: sourcePublicInputs.outputAmount,
+    outputCommitment: sourcePublicInputs.outputCommitment,
+    proofFieldCount: args.proofReceipt.proofFieldCount,
+    proofId: args.proofRecord.proofId,
+    publicInputCount: args.proofReceipt.publicInputCount,
+    resultingRootBasis: "client-declared",
+    resultingRoot: typeof args.resultingRoot === "string" ? args.resultingRoot : null,
+    swapId: [
+      "private-core-swap",
+      sourcePublicInputs.inputNullifier,
+      sourcePublicInputs.stateRoot,
+      String(completedAt),
+    ].join(":"),
   };
 }
 
