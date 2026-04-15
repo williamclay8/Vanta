@@ -339,8 +339,8 @@ npm run private-core:operator-status
 ```
 
 The contract readout gives the static narrow-zk-v1 support contract:
-- `contractVersion = 1`
-- `summaryVersion = 20`
+- `contractVersion = 2`
+- `summaryVersion = 21`
 - supported send / unshield / release lanes
 - supported product flow
 - supported asset / environment
@@ -354,6 +354,7 @@ The contract readout gives the static narrow-zk-v1 support contract:
 - supported unshield / send circuits
 - supported fixed Merkle depths
 - supported release authorization / root policy
+- supported release execution / atomicity / persistence
 - owner-auth mode
 - nullifier-key mode
 - proving hash lane
@@ -388,6 +389,9 @@ The same operator contract now also versions the supported narrow unshield lane:
 - `supportedSendMerkleDepth = 3`
 - `supportedReleaseAuthorizationBasis = proof-backed-consume`
 - `supportedReleaseRootPolicy = latest-registered-root`
+- `supportedReleaseExecutionModel = operator-recorded-devnet-release`
+- `supportedReleaseAtomicityModel = operator-local-atomic-consume-and-release-record`
+- `supportedReleasePersistenceModel = json-store-v1`
 - `supportedOwnerAuthorizationMode = off-circuit-prechecked-v0-1`
 - `supportedNullifierKeyMode = note-secret-temporary-v0-1`
 - `supportedProvingHashLane = poseidon-bn254-proving-lane-v0`

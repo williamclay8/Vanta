@@ -87,6 +87,9 @@ export function AppDashboardPage() {
     privateCoreOperatorSupportedSendMerkleDepth,
     privateCoreOperatorSupportedReleaseAuthorizationBasis,
     privateCoreOperatorSupportedReleaseRootPolicy,
+    privateCoreOperatorSupportedReleaseExecutionModel,
+    privateCoreOperatorSupportedReleaseAtomicityModel,
+    privateCoreOperatorSupportedReleasePersistenceModel,
     privateCoreOperatorOwnerAuthorizationMode,
     privateCoreOperatorNullifierKeyMode,
     privateCoreOperatorProvingHashLane,
@@ -323,6 +326,15 @@ export function AppDashboardPage() {
             privateCoreOperatorSupportedReleaseAuthorizationBasis
           }
           operatorSupportedReleaseRootPolicy={privateCoreOperatorSupportedReleaseRootPolicy}
+          operatorSupportedReleaseExecutionModel={
+            privateCoreOperatorSupportedReleaseExecutionModel
+          }
+          operatorSupportedReleaseAtomicityModel={
+            privateCoreOperatorSupportedReleaseAtomicityModel
+          }
+          operatorSupportedReleasePersistenceModel={
+            privateCoreOperatorSupportedReleasePersistenceModel
+          }
           operatorOwnerAuthorizationMode={privateCoreOperatorOwnerAuthorizationMode}
           operatorNullifierKeyMode={privateCoreOperatorNullifierKeyMode}
           operatorProvingHashLane={privateCoreOperatorProvingHashLane}

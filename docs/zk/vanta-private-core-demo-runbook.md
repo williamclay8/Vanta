@@ -70,6 +70,7 @@ The operator-status command gives a quick summary snapshot of:
 - latest consume
 - latest release
 - release authorization and root policy
+- release execution, atomicity, and persistence model
 - proof/send link status
 - proof/consume link status
 - proof/release link status

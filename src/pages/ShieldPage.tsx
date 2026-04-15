@@ -148,6 +148,9 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOperatorSupportedSendMerkleDepth,
     privateCoreOperatorSupportedReleaseAuthorizationBasis,
     privateCoreOperatorSupportedReleaseRootPolicy,
+    privateCoreOperatorSupportedReleaseExecutionModel,
+    privateCoreOperatorSupportedReleaseAtomicityModel,
+    privateCoreOperatorSupportedReleasePersistenceModel,
     privateCoreOperatorOwnerAuthorizationMode,
     privateCoreOperatorNullifierKeyMode,
     privateCoreOperatorProvingHashLane,
@@ -1145,6 +1148,15 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                   privateCoreOperatorSupportedReleaseAuthorizationBasis
                 }
                 operatorSupportedReleaseRootPolicy={privateCoreOperatorSupportedReleaseRootPolicy}
+                operatorSupportedReleaseExecutionModel={
+                  privateCoreOperatorSupportedReleaseExecutionModel
+                }
+                operatorSupportedReleaseAtomicityModel={
+                  privateCoreOperatorSupportedReleaseAtomicityModel
+                }
+                operatorSupportedReleasePersistenceModel={
+                  privateCoreOperatorSupportedReleasePersistenceModel
+                }
                 operatorOwnerAuthorizationMode={privateCoreOperatorOwnerAuthorizationMode}
                 operatorNullifierKeyMode={privateCoreOperatorNullifierKeyMode}
                 operatorProvingHashLane={privateCoreOperatorProvingHashLane}

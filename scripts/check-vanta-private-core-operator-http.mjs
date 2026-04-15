@@ -220,7 +220,7 @@ try {
   if (
     !initialSummaryState.ok ||
     initialSummaryState.parsed?.stateVersion !== 1 ||
-    initialSummaryState.parsed?.summaryVersion !== 20 ||
+    initialSummaryState.parsed?.summaryVersion !== 21 ||
     initialSummaryState.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     initialSummaryState.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -895,7 +895,7 @@ try {
   if (
     !summaryStateAfterConsume.ok ||
     summaryStateAfterConsume.parsed?.stateVersion !== 1 ||
-    summaryStateAfterConsume.parsed?.summaryVersion !== 20 ||
+    summaryStateAfterConsume.parsed?.summaryVersion !== 21 ||
     summaryStateAfterConsume.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterConsume.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -989,7 +989,7 @@ try {
   });
   if (
     !summaryStateAfterRelease.ok ||
-    summaryStateAfterRelease.parsed?.summaryVersion !== 20 ||
+    summaryStateAfterRelease.parsed?.summaryVersion !== 21 ||
     summaryStateAfterRelease.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterRelease.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -1069,8 +1069,13 @@ try {
   });
   if (
     !operatorStatusOutput.includes("Summary state version: 1") ||
-    !operatorStatusOutput.includes("Mirrored contract version: 1") ||
-    !operatorStatusOutput.includes("Summary version: 20") ||
+    !operatorStatusOutput.includes("Mirrored contract version: 2") ||
+    !operatorStatusOutput.includes("Summary version: 21") ||
+    !operatorStatusOutput.includes("Supported release execution: Operator-recorded devnet release") ||
+    !operatorStatusOutput.includes(
+      "Supported release atomicity: Operator-local atomic consume + release record",
+    ) ||
+    !operatorStatusOutput.includes("Supported release persistence: JSON store v1") ||
     !operatorStatusOutput.includes(
       "Supported send input-root policy: Latest registered root with linked registration proof",
     ) ||

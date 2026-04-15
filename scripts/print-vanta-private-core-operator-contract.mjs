@@ -95,6 +95,18 @@ try {
     contract.supportedReleaseAuthorizationBasis ?? "Unavailable",
   );
   printLine("Supported release root policy", contract.supportedReleaseRootPolicy ?? "Unavailable");
+  printLine(
+    "Supported release execution",
+    contract.supportedReleaseExecutionModel ?? "Unavailable",
+  );
+  printLine(
+    "Supported release atomicity",
+    contract.supportedReleaseAtomicityModel ?? "Unavailable",
+  );
+  printLine(
+    "Supported release persistence",
+    contract.supportedReleasePersistenceModel ?? "Unavailable",
+  );
   printLine("Owner authorization mode", contract.ownerAuthorizationMode ?? "Unavailable");
   printLine("Nullifier key mode", contract.nullifierKeyMode ?? "Unavailable");
   printLine("Proving hash lane", contract.provingHashLane ?? "Unavailable");

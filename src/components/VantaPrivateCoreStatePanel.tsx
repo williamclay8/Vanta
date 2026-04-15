@@ -69,6 +69,9 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSupportedSendMerkleDepth?: number | null;
   operatorSupportedReleaseAuthorizationBasis?: string | null;
   operatorSupportedReleaseRootPolicy?: string | null;
+  operatorSupportedReleaseExecutionModel?: string | null;
+  operatorSupportedReleaseAtomicityModel?: string | null;
+  operatorSupportedReleasePersistenceModel?: string | null;
   operatorOwnerAuthorizationMode?: string | null;
   operatorNullifierKeyMode?: string | null;
   operatorProvingHashLane?: string | null;
@@ -256,6 +259,9 @@ export function VantaPrivateCoreStatePanel({
   operatorSupportedSendMerkleDepth = null,
   operatorSupportedReleaseAuthorizationBasis = null,
   operatorSupportedReleaseRootPolicy = null,
+  operatorSupportedReleaseExecutionModel = null,
+  operatorSupportedReleaseAtomicityModel = null,
+  operatorSupportedReleasePersistenceModel = null,
   operatorOwnerAuthorizationMode = null,
   operatorNullifierKeyMode = null,
   operatorProvingHashLane = null,
@@ -705,6 +711,31 @@ export function VantaPrivateCoreStatePanel({
               <strong>
                 {operatorSupportedReleaseRootPolicy === "latest-registered-root"
                   ? "Latest registered root"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Supported release execution</span>
+              <strong>
+                {operatorSupportedReleaseExecutionModel === "operator-recorded-devnet-release"
+                  ? "Operator-recorded devnet release"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Supported release atomicity</span>
+              <strong>
+                {operatorSupportedReleaseAtomicityModel ===
+                "operator-local-atomic-consume-and-release-record"
+                  ? "Operator-local atomic consume + release record"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Supported release persistence</span>
+              <strong>
+                {operatorSupportedReleasePersistenceModel === "json-store-v1"
+                  ? "JSON store v1"
                   : "Unavailable"}
               </strong>
             </div>

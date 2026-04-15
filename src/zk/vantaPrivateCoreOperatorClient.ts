@@ -282,6 +282,9 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedSendMerkleDepth: number;
   supportedReleaseAuthorizationBasis: "proof-backed-consume";
   supportedReleaseRootPolicy: "latest-registered-root";
+  supportedReleaseExecutionModel: "operator-recorded-devnet-release";
+  supportedReleaseAtomicityModel: "operator-local-atomic-consume-and-release-record";
+  supportedReleasePersistenceModel: "json-store-v1";
   ownerAuthorizationMode: "x25519-secret-prechecked-off-circuit";
   nullifierKeyMode: "note-secret-as-nullifier-key-v0";
   provingHashLane: "poseidon-bn254-proving-lane-v0";
@@ -353,6 +356,9 @@ export type VantaPrivateCoreOperatorContractStateResponse = {
   supportedSendMerkleDepth: number;
   supportedReleaseAuthorizationBasis: "proof-backed-consume";
   supportedReleaseRootPolicy: "latest-registered-root";
+  supportedReleaseExecutionModel: "operator-recorded-devnet-release";
+  supportedReleaseAtomicityModel: "operator-local-atomic-consume-and-release-record";
+  supportedReleasePersistenceModel: "json-store-v1";
   ownerAuthorizationMode: "x25519-secret-prechecked-off-circuit";
   nullifierKeyMode: "note-secret-as-nullifier-key-v0";
   provingHashLane: "poseidon-bn254-proving-lane-v0";
@@ -993,6 +999,9 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedSendMerkleDepth?: unknown;
     supportedReleaseAuthorizationBasis?: unknown;
     supportedReleaseRootPolicy?: unknown;
+    supportedReleaseExecutionModel?: unknown;
+    supportedReleaseAtomicityModel?: unknown;
+    supportedReleasePersistenceModel?: unknown;
     ownerAuthorizationMode?: unknown;
     nullifierKeyMode?: unknown;
     provingHashLane?: unknown;
@@ -1026,8 +1035,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 1 ||
-    parsed.summaryVersion !== 20 ||
+    parsed.contractVersion !== 2 ||
+    parsed.summaryVersion !== 21 ||
     !isContractMirrorStatus(parsed.contractMirrorStatus) ||
     typeof parsed.contractMirrorNote !== "string" ||
     !isBoundaryStatus(parsed.boundaryStatus) ||
@@ -1087,6 +1096,9 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     parsed.supportedSendMerkleDepth !== 3 ||
     parsed.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     parsed.supportedReleaseRootPolicy !== "latest-registered-root" ||
+    parsed.supportedReleaseExecutionModel !== "operator-recorded-devnet-release" ||
+    parsed.supportedReleaseAtomicityModel !== "operator-local-atomic-consume-and-release-record" ||
+    parsed.supportedReleasePersistenceModel !== "json-store-v1" ||
     parsed.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
     parsed.nullifierKeyMode !== "note-secret-as-nullifier-key-v0" ||
     parsed.provingHashLane !== "poseidon-bn254-proving-lane-v0" ||
@@ -1142,8 +1154,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   return {
     stateVersion: 1,
-    contractVersion: 1,
-    summaryVersion: 20,
+    contractVersion: 2,
+    summaryVersion: 21,
     contractMirrorStatus: parsed.contractMirrorStatus,
     contractMirrorNote: parsed.contractMirrorNote,
     boundaryStatus: parsed.boundaryStatus,
@@ -1186,6 +1198,9 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedSendMerkleDepth: 3,
     supportedReleaseAuthorizationBasis: "proof-backed-consume",
     supportedReleaseRootPolicy: "latest-registered-root",
+    supportedReleaseExecutionModel: "operator-recorded-devnet-release",
+    supportedReleaseAtomicityModel: "operator-local-atomic-consume-and-release-record",
+    supportedReleasePersistenceModel: "json-store-v1",
     ownerAuthorizationMode: "x25519-secret-prechecked-off-circuit",
     nullifierKeyMode: "note-secret-as-nullifier-key-v0",
     provingHashLane: "poseidon-bn254-proving-lane-v0",
@@ -1287,6 +1302,9 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedSendMerkleDepth?: unknown;
     supportedReleaseAuthorizationBasis?: unknown;
     supportedReleaseRootPolicy?: unknown;
+    supportedReleaseExecutionModel?: unknown;
+    supportedReleaseAtomicityModel?: unknown;
+    supportedReleasePersistenceModel?: unknown;
     ownerAuthorizationMode?: unknown;
     nullifierKeyMode?: unknown;
     provingHashLane?: unknown;
@@ -1294,8 +1312,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 1 ||
-    parsed.summaryVersion !== 20 ||
+    parsed.contractVersion !== 2 ||
+    parsed.summaryVersion !== 21 ||
     parsed.supportedSendLaneVersion !== 1 ||
     parsed.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     parsed.supportedSendLaneStatus !== "supported" ||
@@ -1332,6 +1350,9 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     parsed.supportedSendMerkleDepth !== 3 ||
     parsed.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     parsed.supportedReleaseRootPolicy !== "latest-registered-root" ||
+    parsed.supportedReleaseExecutionModel !== "operator-recorded-devnet-release" ||
+    parsed.supportedReleaseAtomicityModel !== "operator-local-atomic-consume-and-release-record" ||
+    parsed.supportedReleasePersistenceModel !== "json-store-v1" ||
     parsed.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
     parsed.nullifierKeyMode !== "note-secret-as-nullifier-key-v0" ||
     parsed.provingHashLane !== "poseidon-bn254-proving-lane-v0"
@@ -1341,8 +1362,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
 
   return {
     stateVersion: 1,
-    contractVersion: 1,
-    summaryVersion: 20,
+    contractVersion: 2,
+    summaryVersion: 21,
     supportedSendLaneVersion: 1,
     supportedSendLaneKind: "single-input-single-recipient-optional-change",
     supportedSendLaneStatus: "supported",
@@ -1379,6 +1400,9 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedSendMerkleDepth: 3,
     supportedReleaseAuthorizationBasis: "proof-backed-consume",
     supportedReleaseRootPolicy: "latest-registered-root",
+    supportedReleaseExecutionModel: "operator-recorded-devnet-release",
+    supportedReleaseAtomicityModel: "operator-local-atomic-consume-and-release-record",
+    supportedReleasePersistenceModel: "json-store-v1",
     ownerAuthorizationMode: "x25519-secret-prechecked-off-circuit",
     nullifierKeyMode: "note-secret-as-nullifier-key-v0",
     provingHashLane: "poseidon-bn254-proving-lane-v0",

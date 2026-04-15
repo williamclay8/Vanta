@@ -126,6 +126,7 @@ The operator-contract command now prints the static narrow zk-v1 support contrac
 - supported proof system
 - supported unshield/send circuit ids and fixed Merkle depths
 - supported release authorization / root policy
+- supported release execution / atomicity / persistence
 - owner-auth mode
 - nullifier-key mode
 - proving hash lane
@@ -159,6 +160,9 @@ The operator-status command now prints:
 - supported proof system and current unshield/send circuit ids plus fixed Merkle depth
 - supported release authorization basis
 - supported release root policy
+- supported release execution model
+- supported release atomicity model
+- supported release persistence model
 - proof/send link status
 - proof/consume link status
 - proof/release link status

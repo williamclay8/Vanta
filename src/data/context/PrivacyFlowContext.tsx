@@ -146,6 +146,9 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorSupportedSendMerkleDepth: number | null;
   privateCoreOperatorSupportedReleaseAuthorizationBasis: string | null;
   privateCoreOperatorSupportedReleaseRootPolicy: string | null;
+  privateCoreOperatorSupportedReleaseExecutionModel: string | null;
+  privateCoreOperatorSupportedReleaseAtomicityModel: string | null;
+  privateCoreOperatorSupportedReleasePersistenceModel: string | null;
   privateCoreOperatorOwnerAuthorizationMode: string | null;
   privateCoreOperatorNullifierKeyMode: string | null;
   privateCoreOperatorProvingHashLane: string | null;
@@ -503,6 +506,18 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     privateCoreOperatorSupportedReleaseRootPolicy,
     setPrivateCoreOperatorSupportedReleaseRootPolicy,
   ] = useState<string | null>(null);
+  const [
+    privateCoreOperatorSupportedReleaseExecutionModel,
+    setPrivateCoreOperatorSupportedReleaseExecutionModel,
+  ] = useState<string | null>(null);
+  const [
+    privateCoreOperatorSupportedReleaseAtomicityModel,
+    setPrivateCoreOperatorSupportedReleaseAtomicityModel,
+  ] = useState<string | null>(null);
+  const [
+    privateCoreOperatorSupportedReleasePersistenceModel,
+    setPrivateCoreOperatorSupportedReleasePersistenceModel,
+  ] = useState<string | null>(null);
   const [privateCoreOperatorOwnerAuthorizationMode, setPrivateCoreOperatorOwnerAuthorizationMode] =
     useState<string | null>(null);
   const [privateCoreOperatorNullifierKeyMode, setPrivateCoreOperatorNullifierKeyMode] =
@@ -590,6 +605,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSupportedSendMerkleDepth,
       setPrivateCoreOperatorSupportedReleaseAuthorizationBasis,
       setPrivateCoreOperatorSupportedReleaseRootPolicy,
+      setPrivateCoreOperatorSupportedReleaseExecutionModel,
+      setPrivateCoreOperatorSupportedReleaseAtomicityModel,
+      setPrivateCoreOperatorSupportedReleasePersistenceModel,
       setPrivateCoreOperatorOwnerAuthorizationMode,
       setPrivateCoreOperatorNullifierKeyMode,
       setPrivateCoreOperatorProvingHashLane,
@@ -1656,6 +1674,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedSendMerkleDepth,
       privateCoreOperatorSupportedReleaseAuthorizationBasis,
       privateCoreOperatorSupportedReleaseRootPolicy,
+      privateCoreOperatorSupportedReleaseExecutionModel,
+      privateCoreOperatorSupportedReleaseAtomicityModel,
+      privateCoreOperatorSupportedReleasePersistenceModel,
       privateCoreOperatorOwnerAuthorizationMode,
       privateCoreOperatorNullifierKeyMode,
       privateCoreOperatorProvingHashLane,
@@ -1783,6 +1804,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedSendMerkleDepth,
       privateCoreOperatorSupportedReleaseAuthorizationBasis,
       privateCoreOperatorSupportedReleaseRootPolicy,
+      privateCoreOperatorSupportedReleaseExecutionModel,
+      privateCoreOperatorSupportedReleaseAtomicityModel,
+      privateCoreOperatorSupportedReleasePersistenceModel,
       privateCoreOperatorOwnerAuthorizationMode,
       privateCoreOperatorNullifierKeyMode,
       privateCoreOperatorProvingHashLane,
@@ -2378,6 +2402,9 @@ function applyPrivateCoreOperatorContractState(args: {
   setPrivateCoreOperatorSupportedSendMerkleDepth: (value: number | null) => void;
   setPrivateCoreOperatorSupportedReleaseAuthorizationBasis: (value: string | null) => void;
   setPrivateCoreOperatorSupportedReleaseRootPolicy: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedReleaseExecutionModel: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedReleaseAtomicityModel: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedReleasePersistenceModel: (value: string | null) => void;
   setPrivateCoreOperatorOwnerAuthorizationMode: (value: string | null) => void;
   setPrivateCoreOperatorNullifierKeyMode: (value: string | null) => void;
   setPrivateCoreOperatorProvingHashLane: (value: string | null) => void;
@@ -2443,6 +2470,15 @@ function applyPrivateCoreOperatorContractState(args: {
   );
   args.setPrivateCoreOperatorSupportedReleaseRootPolicy(
     args.contractState.supportedReleaseRootPolicy,
+  );
+  args.setPrivateCoreOperatorSupportedReleaseExecutionModel(
+    args.contractState.supportedReleaseExecutionModel,
+  );
+  args.setPrivateCoreOperatorSupportedReleaseAtomicityModel(
+    args.contractState.supportedReleaseAtomicityModel,
+  );
+  args.setPrivateCoreOperatorSupportedReleasePersistenceModel(
+    args.contractState.supportedReleasePersistenceModel,
   );
   args.setPrivateCoreOperatorOwnerAuthorizationMode(args.contractState.ownerAuthorizationMode);
   args.setPrivateCoreOperatorNullifierKeyMode(args.contractState.nullifierKeyMode);

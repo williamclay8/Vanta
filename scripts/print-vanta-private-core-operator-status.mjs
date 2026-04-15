@@ -103,6 +103,18 @@ try {
     "Supported release root policy",
     humanizeReleaseRootPolicy(summary.supportedReleaseRootPolicy),
   );
+  printLine(
+    "Supported release execution",
+    humanizeReleaseExecutionModel(summary.supportedReleaseExecutionModel),
+  );
+  printLine(
+    "Supported release atomicity",
+    humanizeReleaseAtomicityModel(summary.supportedReleaseAtomicityModel),
+  );
+  printLine(
+    "Supported release persistence",
+    humanizeReleasePersistenceModel(summary.supportedReleasePersistenceModel),
+  );
   printLine("Owner authorization mode", humanizeOwnerAuthorizationMode(summary.ownerAuthorizationMode));
   printLine("Nullifier key mode", humanizeNullifierKeyMode(summary.nullifierKeyMode));
   printLine("Proving hash lane", summary.provingHashLane ?? "Unavailable");
@@ -520,6 +532,33 @@ function humanizeReleaseRootPolicy(value) {
   switch (value) {
     case "latest-registered-root":
       return "Latest registered root";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeReleaseExecutionModel(value) {
+  switch (value) {
+    case "operator-recorded-devnet-release":
+      return "Operator-recorded devnet release";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeReleaseAtomicityModel(value) {
+  switch (value) {
+    case "operator-local-atomic-consume-and-release-record":
+      return "Operator-local atomic consume + release record";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeReleasePersistenceModel(value) {
+  switch (value) {
+    case "json-store-v1":
+      return "JSON store v1";
     default:
       return "Unavailable";
   }

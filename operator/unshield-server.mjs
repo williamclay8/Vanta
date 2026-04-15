@@ -176,6 +176,9 @@ const PRIVATE_CORE_SUPPORTED_UNSHIELD_MERKLE_DEPTH = 3;
 const PRIVATE_CORE_SUPPORTED_SEND_MERKLE_DEPTH = 3;
 const PRIVATE_CORE_RELEASE_AUTHORIZATION_BASIS = "proof-backed-consume";
 const PRIVATE_CORE_RELEASE_ROOT_POLICY = "latest-registered-root";
+const PRIVATE_CORE_RELEASE_EXECUTION_MODEL = "operator-recorded-devnet-release";
+const PRIVATE_CORE_RELEASE_ATOMICITY_MODEL = "operator-local-atomic-consume-and-release-record";
+const PRIVATE_CORE_RELEASE_PERSISTENCE_MODEL = "json-store-v1";
 const PRIVATE_CORE_OWNER_AUTH_MODE = "x25519-secret-prechecked-off-circuit";
 const PRIVATE_CORE_NULLIFIER_KEY_MODE = "note-secret-as-nullifier-key-v0";
 const PRIVATE_CORE_PROVING_HASH_LANE = "poseidon-bn254-proving-lane-v0";
@@ -1643,8 +1646,8 @@ function buildPrivateCoreSummaryState() {
 function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
-    contractVersion: 1,
-    summaryVersion: 20,
+    contractVersion: 2,
+    summaryVersion: 21,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
@@ -1680,6 +1683,9 @@ function buildPrivateCoreContractState() {
     supportedSendMerkleDepth: PRIVATE_CORE_SUPPORTED_SEND_MERKLE_DEPTH,
     supportedReleaseAuthorizationBasis: PRIVATE_CORE_RELEASE_AUTHORIZATION_BASIS,
     supportedReleaseRootPolicy: PRIVATE_CORE_RELEASE_ROOT_POLICY,
+    supportedReleaseExecutionModel: PRIVATE_CORE_RELEASE_EXECUTION_MODEL,
+    supportedReleaseAtomicityModel: PRIVATE_CORE_RELEASE_ATOMICITY_MODEL,
+    supportedReleasePersistenceModel: PRIVATE_CORE_RELEASE_PERSISTENCE_MODEL,
     ownerAuthorizationMode: PRIVATE_CORE_OWNER_AUTH_MODE,
     nullifierKeyMode: PRIVATE_CORE_NULLIFIER_KEY_MODE,
     provingHashLane: PRIVATE_CORE_PROVING_HASH_LANE,
@@ -1722,6 +1728,9 @@ function summarizePrivateCoreContractMirrorStatus(args) {
     "supportedSendMerkleDepth",
     "supportedReleaseAuthorizationBasis",
     "supportedReleaseRootPolicy",
+    "supportedReleaseExecutionModel",
+    "supportedReleaseAtomicityModel",
+    "supportedReleasePersistenceModel",
     "ownerAuthorizationMode",
     "nullifierKeyMode",
     "provingHashLane",

@@ -150,6 +150,9 @@ export function UnshieldPage() {
     privateCoreOperatorSupportedSendMerkleDepth,
     privateCoreOperatorSupportedReleaseAuthorizationBasis,
     privateCoreOperatorSupportedReleaseRootPolicy,
+    privateCoreOperatorSupportedReleaseExecutionModel,
+    privateCoreOperatorSupportedReleaseAtomicityModel,
+    privateCoreOperatorSupportedReleasePersistenceModel,
     privateCoreOperatorOwnerAuthorizationMode,
     privateCoreOperatorNullifierKeyMode,
     privateCoreOperatorProvingHashLane,
@@ -995,6 +998,15 @@ export function UnshieldPage() {
             privateCoreOperatorSupportedReleaseAuthorizationBasis
           }
           operatorSupportedReleaseRootPolicy={privateCoreOperatorSupportedReleaseRootPolicy}
+          operatorSupportedReleaseExecutionModel={
+            privateCoreOperatorSupportedReleaseExecutionModel
+          }
+          operatorSupportedReleaseAtomicityModel={
+            privateCoreOperatorSupportedReleaseAtomicityModel
+          }
+          operatorSupportedReleasePersistenceModel={
+            privateCoreOperatorSupportedReleasePersistenceModel
+          }
           operatorOwnerAuthorizationMode={privateCoreOperatorOwnerAuthorizationMode}
           operatorNullifierKeyMode={privateCoreOperatorNullifierKeyMode}
           operatorProvingHashLane={privateCoreOperatorProvingHashLane}

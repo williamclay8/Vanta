@@ -227,6 +227,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorSupportedSendMerkleDepth,
     privateCoreOperatorSupportedReleaseAuthorizationBasis,
     privateCoreOperatorSupportedReleaseRootPolicy,
+    privateCoreOperatorSupportedReleaseExecutionModel,
+    privateCoreOperatorSupportedReleaseAtomicityModel,
+    privateCoreOperatorSupportedReleasePersistenceModel,
     privateCoreOperatorSummaryUpdatedAt,
     privateCoreOwner,
     privateCoreRecentShield,
@@ -1755,6 +1758,15 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           privateCoreOperatorSupportedReleaseAuthorizationBasis
         }
         operatorSupportedReleaseRootPolicy={privateCoreOperatorSupportedReleaseRootPolicy}
+        operatorSupportedReleaseExecutionModel={
+          privateCoreOperatorSupportedReleaseExecutionModel
+        }
+        operatorSupportedReleaseAtomicityModel={
+          privateCoreOperatorSupportedReleaseAtomicityModel
+        }
+        operatorSupportedReleasePersistenceModel={
+          privateCoreOperatorSupportedReleasePersistenceModel
+        }
         operatorOwnerAuthorizationMode={privateCoreOperatorOwnerAuthorizationMode}
         operatorNullifierKeyMode={privateCoreOperatorNullifierKeyMode}
         operatorProvingHashLane={privateCoreOperatorProvingHashLane}
