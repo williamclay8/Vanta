@@ -368,6 +368,36 @@ try {
   }
   printStatus("private-core send-change->unshield operator summary linkage: PASS");
 
+  const operatorStatusOutput = execFileSync("node", [
+    "scripts/print-vanta-private-core-operator-status.mjs",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  const expectedStatusLines = [
+    "Latest send transition:",
+    "Latest send linked proof:",
+    "Latest release:",
+    "Proof/send link: linked",
+    "Proof/consume link: linked",
+    "Proof/release link: linked",
+    "Send boundary status: Downstream released",
+    "Send resulting root status: Released downstream",
+    "Send resulting root registration: Linked to change output",
+  ];
+  const missingStatusLines = expectedStatusLines.filter(
+    (line) => !operatorStatusOutput.includes(line),
+  );
+  if (missingStatusLines.length > 0) {
+    throw new Error(
+      `Missing operator-status lines: ${missingStatusLines.join(", ")}\n${operatorStatusOutput}`,
+    );
+  }
+  printStatus("private-core send-change->unshield operator-status: PASS");
+
   const replay = await requestJson(baseUrl, "/private-core/unshield-consume", {
     body: JSON.stringify({
       sourceArtifacts: changeSourceArtifacts,
