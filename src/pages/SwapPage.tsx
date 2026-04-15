@@ -1540,7 +1540,31 @@ export function SwapPage() {
                       : "Unavailable"}
                   </strong>
                 </div>
+                <div className="review-row">
+                  <span>Swap execution basis</span>
+                  <strong>
+                    {privateCoreSwapState?.executionBasisLabel ?? swapProofBasisLabel}
+                  </strong>
+                </div>
+                <div className="review-row">
+                  <span>Swap live path</span>
+                  <strong>
+                    {privateCoreSwapState?.livePathStatusLabel ??
+                      currentPrivateCoreSwapPathStatusLabel}
+                  </strong>
+                </div>
               </div>
+              <p className="shield-helper shield-helper--meta">
+                {privateCoreSwapState?.livePathPrimaryNote ?? currentPrivateCoreSwapPathNote}
+              </p>
+              {(privateCoreSwapState?.livePathPrimaryBlocker ??
+                currentPrivateCoreSwapPathPrimaryBlocker) && (
+                <p className="shield-helper shield-helper--meta">
+                  Live path blocker:{" "}
+                  {privateCoreSwapState?.livePathPrimaryBlocker ??
+                    currentPrivateCoreSwapPathPrimaryBlocker}
+                </p>
+              )}
               <details className="preview-card" style={{ marginTop: 16 }}>
                 <summary>Internal zk diagnostics</summary>
                 <p className="shield-helper shield-helper--meta">
