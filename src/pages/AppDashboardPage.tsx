@@ -85,6 +85,9 @@ export function AppDashboardPage() {
     privateCoreOperatorSupportedSwapV1DecisionNote,
     privateCoreOperatorSupportedSwapVenue,
     privateCoreOperatorSupportedSwapOutputModel,
+    privateCoreOperatorSupportedSwapResultingRootBasis,
+    privateCoreOperatorSupportedSwapInputRootPolicy,
+    privateCoreOperatorSupportedSwapOutputRegistrationPolicy,
     privateCoreOperatorSupportedReleaseV1Decision,
     privateCoreOperatorSupportedReleaseV1DecisionNote,
     privateCoreOperatorSupportedFlowKind,
@@ -350,6 +353,11 @@ export function AppDashboardPage() {
           operatorSupportedSwapV1DecisionNote={privateCoreOperatorSupportedSwapV1DecisionNote}
           operatorSupportedSwapVenue={privateCoreOperatorSupportedSwapVenue}
           operatorSupportedSwapOutputModel={privateCoreOperatorSupportedSwapOutputModel}
+          operatorSupportedSwapResultingRootBasis={privateCoreOperatorSupportedSwapResultingRootBasis}
+          operatorSupportedSwapInputRootPolicy={privateCoreOperatorSupportedSwapInputRootPolicy}
+          operatorSupportedSwapOutputRegistrationPolicy={
+            privateCoreOperatorSupportedSwapOutputRegistrationPolicy
+          }
           operatorSupportedReleaseV1Decision={privateCoreOperatorSupportedReleaseV1Decision}
           operatorSupportedReleaseV1DecisionNote={
             privateCoreOperatorSupportedReleaseV1DecisionNote

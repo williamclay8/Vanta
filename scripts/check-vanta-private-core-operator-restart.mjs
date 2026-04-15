@@ -273,7 +273,7 @@ try {
     preRestartSends.parsed.records.length < 1 ||
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.stateVersion !== 1 ||
-    preRestartSummary.parsed?.summaryVersion !== 30 ||
+    preRestartSummary.parsed?.summaryVersion !== 31 ||
     preRestartSummary.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     preRestartSummary.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -298,6 +298,11 @@ try {
     typeof preRestartSummary.parsed?.supportedSwapV1DecisionNote !== "string" ||
     preRestartSummary.parsed?.supportedSwapVenue !== "meteora-dlmm-devnet" ||
     preRestartSummary.parsed?.supportedSwapOutputModel !== "shielded-sol-output-note" ||
+    preRestartSummary.parsed?.supportedSwapResultingRootBasis !== "client-declared" ||
+    preRestartSummary.parsed?.supportedSwapInputRootPolicy !==
+      "latest-registered-root-with-linked-registration-proof" ||
+    preRestartSummary.parsed?.supportedSwapOutputRegistrationPolicy !==
+      "resulting-root-must-register-as-swap-output" ||
     preRestartSummary.parsed?.supportedFlowVersion !== 1 ||
     preRestartSummary.parsed?.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
     preRestartSummary.parsed?.supportedFlowStatus !== "supported" ||
@@ -368,7 +373,7 @@ try {
   if (
     !postRestartSummary.ok ||
     postRestartSummary.parsed?.stateVersion !== 1 ||
-    postRestartSummary.parsed?.summaryVersion !== 30 ||
+    postRestartSummary.parsed?.summaryVersion !== 31 ||
     postRestartSummary.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     postRestartSummary.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -393,6 +398,11 @@ try {
     typeof postRestartSummary.parsed?.supportedSwapV1DecisionNote !== "string" ||
     postRestartSummary.parsed?.supportedSwapVenue !== "meteora-dlmm-devnet" ||
     postRestartSummary.parsed?.supportedSwapOutputModel !== "shielded-sol-output-note" ||
+    postRestartSummary.parsed?.supportedSwapResultingRootBasis !== "client-declared" ||
+    postRestartSummary.parsed?.supportedSwapInputRootPolicy !==
+      "latest-registered-root-with-linked-registration-proof" ||
+    postRestartSummary.parsed?.supportedSwapOutputRegistrationPolicy !==
+      "resulting-root-must-register-as-swap-output" ||
     postRestartSummary.parsed?.supportedFlowVersion !== 1 ||
     postRestartSummary.parsed?.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
     postRestartSummary.parsed?.supportedFlowStatus !== "supported" ||
@@ -495,8 +505,8 @@ try {
     stdio: "pipe",
   });
   if (
-    !operatorStatusOutput.includes("Summary version: 30") ||
-    !operatorStatusOutput.includes("Mirrored contract version: 10") ||
+    !operatorStatusOutput.includes("Summary version: 31") ||
+    !operatorStatusOutput.includes("Mirrored contract version: 11") ||
     !operatorStatusOutput.includes("Supported send v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported unshield v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported swap lane version: 1") ||
@@ -505,6 +515,13 @@ try {
     !operatorStatusOutput.includes("Supported swap v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported swap venue: Meteora DLMM devnet") ||
     !operatorStatusOutput.includes("Supported swap output model: Shielded SOL output note") ||
+    !operatorStatusOutput.includes("Supported swap root basis: Client-declared") ||
+    !operatorStatusOutput.includes(
+      "Supported swap input-root policy: Latest registered root with linked registration proof",
+    ) ||
+    !operatorStatusOutput.includes(
+      "Supported swap output registration: Resulting root must register as swap output",
+    ) ||
     !operatorStatusOutput.includes(
       "Supported send input-root policy: Latest registered root with linked registration proof",
     ) ||

@@ -71,6 +71,9 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSupportedSwapV1DecisionNote?: string | null;
   operatorSupportedSwapVenue?: string | null;
   operatorSupportedSwapOutputModel?: string | null;
+  operatorSupportedSwapResultingRootBasis?: string | null;
+  operatorSupportedSwapInputRootPolicy?: string | null;
+  operatorSupportedSwapOutputRegistrationPolicy?: string | null;
   operatorSupportedFlowKind?: string | null;
   operatorSupportedFlowNote?: string | null;
   operatorSupportedFlowStatus?: string | null;
@@ -307,6 +310,9 @@ export function VantaPrivateCoreStatePanel({
   operatorSupportedSwapV1DecisionNote = null,
   operatorSupportedSwapVenue = null,
   operatorSupportedSwapOutputModel = null,
+  operatorSupportedSwapResultingRootBasis = null,
+  operatorSupportedSwapInputRootPolicy = null,
+  operatorSupportedSwapOutputRegistrationPolicy = null,
   operatorSupportedFlowKind = null,
   operatorSupportedFlowNote = null,
   operatorSupportedFlowStatus = null,
@@ -758,6 +764,32 @@ export function VantaPrivateCoreStatePanel({
               </strong>
             </div>
             <div className="review-row">
+              <span>Supported swap root basis</span>
+              <strong>
+                {operatorSupportedSwapResultingRootBasis === "client-declared"
+                  ? "Client-declared"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Supported swap input-root policy</span>
+              <strong>
+                {operatorSupportedSwapInputRootPolicy ===
+                "latest-registered-root-with-linked-registration-proof"
+                  ? "Latest registered root with linked registration proof"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Supported swap output registration</span>
+              <strong>
+                {operatorSupportedSwapOutputRegistrationPolicy ===
+                "resulting-root-must-register-as-swap-output"
+                  ? "Resulting root must register as swap output"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
               <span>Swap v1 decision</span>
               <strong>
                 {operatorSupportedSwapV1Decision === "accepted-narrow-v1-path"
@@ -825,6 +857,32 @@ export function VantaPrivateCoreStatePanel({
                 {operatorSupportedSendOutputRegistrationPolicy ===
                 "resulting-root-must-register-as-recipient-or-change-output"
                   ? "Resulting root must register as recipient or change output"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Supported swap root basis</span>
+              <strong>
+                {operatorSupportedSwapResultingRootBasis === "client-declared"
+                  ? "Client-declared"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Supported swap input-root policy</span>
+              <strong>
+                {operatorSupportedSwapInputRootPolicy ===
+                "latest-registered-root-with-linked-registration-proof"
+                  ? "Latest registered root with linked registration proof"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Supported swap output registration</span>
+              <strong>
+                {operatorSupportedSwapOutputRegistrationPolicy ===
+                "resulting-root-must-register-as-swap-output"
+                  ? "Resulting root must register as swap output"
                   : "Unavailable"}
               </strong>
             </div>

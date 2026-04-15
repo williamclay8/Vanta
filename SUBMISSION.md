@@ -248,8 +248,8 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   prints the current operator-side root, proof, send-proof, send-transition, consume, and release state when the operator server is running, including proof/send, proof/consume, proof/release, and root-registration proof linkage plus send resulting-root continuity status, resulting-root provenance, and the matched resulting-root record when available
 
 The current frozen operator-backed private-core contract now states the narrow accepted `v1` path explicitly:
-- `contractVersion = 10`
-- `summaryVersion = 30`
+- `contractVersion = 11`
+- `summaryVersion = 31`
 - `supportedSendV1Decision = accepted-narrow-v1-path`
 - `supportedUnshieldV1Decision = accepted-narrow-v1-path`
 - `supportedReleaseV1Decision = accepted-narrow-v1-path`
@@ -369,8 +369,8 @@ npm run private-core:operator-status
 ```
 
 The contract readout gives the static narrow-zk-v1 support contract:
-- `contractVersion = 8`
-- `summaryVersion = 27`
+- `contractVersion = 11`
+- `summaryVersion = 31`
 - supported send / unshield / release / swap lanes
 - supported product flow
 - supported asset / environment
@@ -379,6 +379,9 @@ The contract readout gives the static narrow-zk-v1 support contract:
 - supported send resulting-root basis
 - supported send input-root policy
 - supported send output-registration policy
+- supported swap resulting-root basis
+- supported swap input-root policy
+- supported swap output-registration policy
 - supported constrained swap venue / output model
 - supported recipient / release-destination models
 - supported proof system
@@ -409,6 +412,9 @@ The same operator contract now also versions the supported narrow unshield lane:
 - `supportedSwapLaneStatus = supported`
 - `supportedSwapVenue = meteora-dlmm-devnet`
 - `supportedSwapOutputModel = shielded-sol-output-note`
+- `supportedSwapResultingRootBasis = client-declared`
+- `supportedSwapInputRootPolicy = latest-registered-root-with-linked-registration-proof`
+- `supportedSwapOutputRegistrationPolicy = resulting-root-must-register-as-swap-output`
 - `supportedFlowVersion = 1`
 - `supportedFlowKind = shield-hold-send-unshield-replay-guard`
 - `supportedFlowStatus = supported`

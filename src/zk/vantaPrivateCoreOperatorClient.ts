@@ -391,6 +391,9 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedSendInputRootPolicy: "latest-registered-root-with-linked-registration-proof";
   supportedSendOutputRegistrationPolicy:
     "resulting-root-must-register-as-recipient-or-change-output";
+  supportedSwapResultingRootBasis: "client-declared";
+  supportedSwapInputRootPolicy: "latest-registered-root-with-linked-registration-proof";
+  supportedSwapOutputRegistrationPolicy: "resulting-root-must-register-as-swap-output";
   supportedRecipientModel: "hashed-reference-to-owner-key";
   supportedReleaseDestinationModel: "32-byte-release-destination-field";
   supportedProofSystem: "noir-acir-ultrahonk-bbjs";
@@ -495,6 +498,9 @@ export type VantaPrivateCoreOperatorContractStateResponse = {
   supportedSendInputRootPolicy: "latest-registered-root-with-linked-registration-proof";
   supportedSendOutputRegistrationPolicy:
     "resulting-root-must-register-as-recipient-or-change-output";
+  supportedSwapResultingRootBasis: "client-declared";
+  supportedSwapInputRootPolicy: "latest-registered-root-with-linked-registration-proof";
+  supportedSwapOutputRegistrationPolicy: "resulting-root-must-register-as-swap-output";
   supportedRecipientModel: "hashed-reference-to-owner-key";
   supportedReleaseDestinationModel: "32-byte-release-destination-field";
   supportedProofSystem: "noir-acir-ultrahonk-bbjs";
@@ -1427,6 +1433,9 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedSendResultingRootBasis?: unknown;
     supportedSendInputRootPolicy?: unknown;
     supportedSendOutputRegistrationPolicy?: unknown;
+    supportedSwapResultingRootBasis?: unknown;
+    supportedSwapInputRootPolicy?: unknown;
+    supportedSwapOutputRegistrationPolicy?: unknown;
     supportedRecipientModel?: unknown;
     supportedReleaseDestinationModel?: unknown;
     supportedProofSystem?: unknown;
@@ -1487,8 +1496,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 10 ||
-    parsed.summaryVersion !== 30 ||
+    parsed.contractVersion !== 11 ||
+    parsed.summaryVersion !== 31 ||
     !isContractMirrorStatus(parsed.contractMirrorStatus) ||
     typeof parsed.contractMirrorNote !== "string" ||
     !isBoundaryStatus(parsed.boundaryStatus) ||
@@ -1568,6 +1577,11 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
       "latest-registered-root-with-linked-registration-proof" ||
     parsed.supportedSendOutputRegistrationPolicy !==
       "resulting-root-must-register-as-recipient-or-change-output" ||
+    parsed.supportedSwapResultingRootBasis !== "client-declared" ||
+    parsed.supportedSwapInputRootPolicy !==
+      "latest-registered-root-with-linked-registration-proof" ||
+    parsed.supportedSwapOutputRegistrationPolicy !==
+      "resulting-root-must-register-as-swap-output" ||
     parsed.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     parsed.supportedReleaseDestinationModel !== "32-byte-release-destination-field" ||
     parsed.supportedProofSystem !== "noir-acir-ultrahonk-bbjs" ||
@@ -1656,8 +1670,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   return {
     stateVersion: 1,
-    contractVersion: 10,
-    summaryVersion: 30,
+    contractVersion: 11,
+    summaryVersion: 31,
     contractMirrorStatus: parsed.contractMirrorStatus,
     contractMirrorNote: parsed.contractMirrorNote,
     boundaryStatus: parsed.boundaryStatus,
@@ -1707,6 +1721,11 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
       "latest-registered-root-with-linked-registration-proof",
     supportedSendOutputRegistrationPolicy:
       "resulting-root-must-register-as-recipient-or-change-output",
+    supportedSwapResultingRootBasis: "client-declared",
+    supportedSwapInputRootPolicy:
+      "latest-registered-root-with-linked-registration-proof",
+    supportedSwapOutputRegistrationPolicy:
+      "resulting-root-must-register-as-swap-output",
     supportedRecipientModel: "hashed-reference-to-owner-key",
     supportedReleaseDestinationModel: "32-byte-release-destination-field",
     supportedProofSystem: "noir-acir-ultrahonk-bbjs",
@@ -1855,6 +1874,9 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedSendResultingRootBasis?: unknown;
     supportedSendInputRootPolicy?: unknown;
     supportedSendOutputRegistrationPolicy?: unknown;
+    supportedSwapResultingRootBasis?: unknown;
+    supportedSwapInputRootPolicy?: unknown;
+    supportedSwapOutputRegistrationPolicy?: unknown;
     supportedRecipientModel?: unknown;
     supportedReleaseDestinationModel?: unknown;
     supportedProofSystem?: unknown;
@@ -1881,8 +1903,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 10 ||
-    parsed.summaryVersion !== 30 ||
+    parsed.contractVersion !== 11 ||
+    parsed.summaryVersion !== 31 ||
     parsed.supportedSendLaneVersion !== 1 ||
     parsed.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     parsed.supportedSendLaneStatus !== "supported" ||
@@ -1924,6 +1946,11 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
       "latest-registered-root-with-linked-registration-proof" ||
     parsed.supportedSendOutputRegistrationPolicy !==
       "resulting-root-must-register-as-recipient-or-change-output" ||
+    parsed.supportedSwapResultingRootBasis !== "client-declared" ||
+    parsed.supportedSwapInputRootPolicy !==
+      "latest-registered-root-with-linked-registration-proof" ||
+    parsed.supportedSwapOutputRegistrationPolicy !==
+      "resulting-root-must-register-as-swap-output" ||
     parsed.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     parsed.supportedReleaseDestinationModel !== "32-byte-release-destination-field" ||
     parsed.supportedProofSystem !== "noir-acir-ultrahonk-bbjs" ||
@@ -1952,8 +1979,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
 
   return {
     stateVersion: 1,
-    contractVersion: 10,
-    summaryVersion: 30,
+    contractVersion: 11,
+    summaryVersion: 31,
     supportedSendLaneVersion: 1,
     supportedSendLaneKind: "single-input-single-recipient-optional-change",
     supportedSendLaneStatus: "supported",
@@ -1995,6 +2022,11 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
       "latest-registered-root-with-linked-registration-proof",
     supportedSendOutputRegistrationPolicy:
       "resulting-root-must-register-as-recipient-or-change-output",
+    supportedSwapResultingRootBasis: "client-declared",
+    supportedSwapInputRootPolicy:
+      "latest-registered-root-with-linked-registration-proof",
+    supportedSwapOutputRegistrationPolicy:
+      "resulting-root-must-register-as-swap-output",
     supportedRecipientModel: "hashed-reference-to-owner-key",
     supportedReleaseDestinationModel: "32-byte-release-destination-field",
     supportedProofSystem: "noir-acir-ultrahonk-bbjs",

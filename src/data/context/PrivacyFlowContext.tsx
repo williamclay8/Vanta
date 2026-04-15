@@ -155,6 +155,9 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorSupportedSwapV1DecisionNote: string | null;
   privateCoreOperatorSupportedSwapVenue: string | null;
   privateCoreOperatorSupportedSwapOutputModel: string | null;
+  privateCoreOperatorSupportedSwapResultingRootBasis: string | null;
+  privateCoreOperatorSupportedSwapInputRootPolicy: string | null;
+  privateCoreOperatorSupportedSwapOutputRegistrationPolicy: string | null;
   privateCoreOperatorSupportedFlowKind: string | null;
   privateCoreOperatorSupportedFlowNote: string | null;
   privateCoreOperatorSupportedFlowStatus: string | null;
@@ -570,6 +573,18 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<string | null>(null);
   const [privateCoreOperatorSupportedSwapOutputModel, setPrivateCoreOperatorSupportedSwapOutputModel] =
     useState<string | null>(null);
+  const [
+    privateCoreOperatorSupportedSwapResultingRootBasis,
+    setPrivateCoreOperatorSupportedSwapResultingRootBasis,
+  ] = useState<string | null>(null);
+  const [
+    privateCoreOperatorSupportedSwapInputRootPolicy,
+    setPrivateCoreOperatorSupportedSwapInputRootPolicy,
+  ] = useState<string | null>(null);
+  const [
+    privateCoreOperatorSupportedSwapOutputRegistrationPolicy,
+    setPrivateCoreOperatorSupportedSwapOutputRegistrationPolicy,
+  ] = useState<string | null>(null);
   const [privateCoreOperatorSupportedFlowKind, setPrivateCoreOperatorSupportedFlowKind] =
     useState<string | null>(null);
   const [privateCoreOperatorSupportedFlowNote, setPrivateCoreOperatorSupportedFlowNote] =
@@ -746,6 +761,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSupportedSwapV1DecisionNote,
       setPrivateCoreOperatorSupportedSwapVenue,
       setPrivateCoreOperatorSupportedSwapOutputModel,
+      setPrivateCoreOperatorSupportedSwapResultingRootBasis,
+      setPrivateCoreOperatorSupportedSwapInputRootPolicy,
+      setPrivateCoreOperatorSupportedSwapOutputRegistrationPolicy,
       setPrivateCoreOperatorSupportedFlowKind,
       setPrivateCoreOperatorSupportedFlowNote,
       setPrivateCoreOperatorSupportedFlowStatus,
@@ -1905,6 +1923,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedSwapV1DecisionNote,
       privateCoreOperatorSupportedSwapVenue,
       privateCoreOperatorSupportedSwapOutputModel,
+      privateCoreOperatorSupportedSwapResultingRootBasis,
+      privateCoreOperatorSupportedSwapInputRootPolicy,
+      privateCoreOperatorSupportedSwapOutputRegistrationPolicy,
       privateCoreOperatorSupportedFlowKind,
       privateCoreOperatorSupportedFlowNote,
       privateCoreOperatorSupportedFlowStatus,
@@ -2076,6 +2097,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedSwapV1DecisionNote,
       privateCoreOperatorSupportedSwapVenue,
       privateCoreOperatorSupportedSwapOutputModel,
+      privateCoreOperatorSupportedSwapResultingRootBasis,
+      privateCoreOperatorSupportedSwapInputRootPolicy,
+      privateCoreOperatorSupportedSwapOutputRegistrationPolicy,
       privateCoreOperatorSupportedFlowKind,
       privateCoreOperatorSupportedFlowNote,
       privateCoreOperatorSupportedFlowStatus,
@@ -2832,6 +2856,9 @@ function applyPrivateCoreOperatorContractState(args: {
   setPrivateCoreOperatorSupportedSwapV1DecisionNote: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSwapVenue: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSwapOutputModel: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedSwapResultingRootBasis: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedSwapInputRootPolicy: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedSwapOutputRegistrationPolicy: (value: string | null) => void;
   setPrivateCoreOperatorSupportedFlowKind: (value: string | null) => void;
   setPrivateCoreOperatorSupportedFlowNote: (value: string | null) => void;
   setPrivateCoreOperatorSupportedFlowStatus: (value: string | null) => void;
@@ -2921,6 +2948,15 @@ function applyPrivateCoreOperatorContractState(args: {
   args.setPrivateCoreOperatorSupportedSwapVenue(args.contractState.supportedSwapVenue);
   args.setPrivateCoreOperatorSupportedSwapOutputModel(
     args.contractState.supportedSwapOutputModel,
+  );
+  args.setPrivateCoreOperatorSupportedSwapResultingRootBasis(
+    args.contractState.supportedSwapResultingRootBasis,
+  );
+  args.setPrivateCoreOperatorSupportedSwapInputRootPolicy(
+    args.contractState.supportedSwapInputRootPolicy,
+  );
+  args.setPrivateCoreOperatorSupportedSwapOutputRegistrationPolicy(
+    args.contractState.supportedSwapOutputRegistrationPolicy,
   );
   args.setPrivateCoreOperatorSupportedFlowKind(args.contractState.supportedFlowKind);
   args.setPrivateCoreOperatorSupportedFlowNote(args.contractState.supportedFlowNote);

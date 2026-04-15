@@ -102,8 +102,8 @@ try {
   if (
     !contractState.ok ||
     contractState.parsed?.stateVersion !== 1 ||
-    contractState.parsed?.contractVersion !== 10 ||
-    contractState.parsed?.summaryVersion !== 30 ||
+    contractState.parsed?.contractVersion !== 11 ||
+    contractState.parsed?.summaryVersion !== 31 ||
     contractState.parsed?.supportedSendLaneVersion !== 1 ||
     contractState.parsed?.supportedSendV1Decision !== "accepted-narrow-v1-path" ||
     typeof contractState.parsed?.supportedSendV1DecisionNote !== "string" ||
@@ -119,6 +119,11 @@ try {
     typeof contractState.parsed?.supportedSwapV1DecisionNote !== "string" ||
     contractState.parsed?.supportedSwapVenue !== "meteora-dlmm-devnet" ||
     contractState.parsed?.supportedSwapOutputModel !== "shielded-sol-output-note" ||
+    contractState.parsed?.supportedSwapResultingRootBasis !== "client-declared" ||
+    contractState.parsed?.supportedSwapInputRootPolicy !==
+      "latest-registered-root-with-linked-registration-proof" ||
+    contractState.parsed?.supportedSwapOutputRegistrationPolicy !==
+      "resulting-root-must-register-as-swap-output" ||
     contractState.parsed?.supportedFlowVersion !== 1 ||
     contractState.parsed?.supportedAssetSymbol !== "VUSD" ||
     contractState.parsed?.supportedEnvironment !== "solana-devnet" ||
@@ -183,6 +188,9 @@ try {
     "supportedSwapV1DecisionNote",
     "supportedSwapVenue",
     "supportedSwapOutputModel",
+    "supportedSwapResultingRootBasis",
+    "supportedSwapInputRootPolicy",
+    "supportedSwapOutputRegistrationPolicy",
     "supportedFlowVersion",
     "supportedFlowKind",
     "supportedFlowStatus",
@@ -256,8 +264,8 @@ try {
   });
   if (
     !contractOutput.includes("Contract state version: 1") ||
-    !contractOutput.includes("Contract version: 10") ||
-    !contractOutput.includes("Summary compatibility: 30") ||
+    !contractOutput.includes("Contract version: 11") ||
+    !contractOutput.includes("Summary compatibility: 31") ||
     !contractOutput.includes("Supported note schema: NoteV0 / v0") ||
     !contractOutput.includes("Supported send v1 decision: accepted-narrow-v1-path") ||
     !contractOutput.includes("Supported unshield v1 decision: accepted-narrow-v1-path") ||
@@ -272,6 +280,13 @@ try {
     !contractOutput.includes("Supported swap v1 decision: accepted-narrow-v1-path") ||
     !contractOutput.includes("Supported swap venue: meteora-dlmm-devnet") ||
     !contractOutput.includes("Supported swap output model: shielded-sol-output-note") ||
+    !contractOutput.includes("Supported swap root basis: Client-declared") ||
+    !contractOutput.includes(
+      "Supported swap input-root policy: Latest registered root with linked registration proof",
+    ) ||
+    !contractOutput.includes(
+      "Supported swap output registration: Resulting root must register as swap output",
+    ) ||
     !contractOutput.includes(
       "Supported send input-root policy: Latest registered root with linked registration proof",
     ) ||

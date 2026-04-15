@@ -85,6 +85,24 @@ try {
     "Supported swap output model",
     humanizeSupportedSwapOutputModel(summary.supportedSwapOutputModel),
   );
+  printLine(
+    "Supported swap root basis",
+    summary.supportedSwapResultingRootBasis === "client-declared" ? "Client-declared" : "Unavailable",
+  );
+  printLine(
+    "Supported swap input-root policy",
+    summary.supportedSwapInputRootPolicy ===
+      "latest-registered-root-with-linked-registration-proof"
+      ? "Latest registered root with linked registration proof"
+      : "Unavailable",
+  );
+  printLine(
+    "Supported swap output registration",
+    summary.supportedSwapOutputRegistrationPolicy ===
+      "resulting-root-must-register-as-swap-output"
+      ? "Resulting root must register as swap output"
+      : "Unavailable",
+  );
   printLine("Supported flow version", String(summary.supportedFlowVersion ?? "unknown"));
   printLine("Supported flow kind", humanizeSupportedFlowKind(summary.supportedFlowKind));
   printLine("Supported flow status", humanizeSupportedFlowStatus(summary.supportedFlowStatus));

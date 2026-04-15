@@ -146,6 +146,9 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOperatorSupportedSwapV1DecisionNote,
     privateCoreOperatorSupportedSwapVenue,
     privateCoreOperatorSupportedSwapOutputModel,
+    privateCoreOperatorSupportedSwapResultingRootBasis,
+    privateCoreOperatorSupportedSwapInputRootPolicy,
+    privateCoreOperatorSupportedSwapOutputRegistrationPolicy,
     privateCoreOperatorSupportedReleaseV1Decision,
     privateCoreOperatorSupportedReleaseV1DecisionNote,
     privateCoreOperatorSupportedFlowKind,
@@ -1174,6 +1177,11 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 }
                 operatorSupportedSwapVenue={privateCoreOperatorSupportedSwapVenue}
                 operatorSupportedSwapOutputModel={privateCoreOperatorSupportedSwapOutputModel}
+                operatorSupportedSwapResultingRootBasis={privateCoreOperatorSupportedSwapResultingRootBasis}
+                operatorSupportedSwapInputRootPolicy={privateCoreOperatorSupportedSwapInputRootPolicy}
+                operatorSupportedSwapOutputRegistrationPolicy={
+                  privateCoreOperatorSupportedSwapOutputRegistrationPolicy
+                }
                 operatorSupportedReleaseV1Decision={privateCoreOperatorSupportedReleaseV1Decision}
                 operatorSupportedReleaseV1DecisionNote={
                   privateCoreOperatorSupportedReleaseV1DecisionNote

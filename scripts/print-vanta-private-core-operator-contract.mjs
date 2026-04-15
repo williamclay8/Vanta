@@ -72,6 +72,26 @@ try {
     "Supported swap output model",
     contract.supportedSwapOutputModel ?? "Unavailable",
   );
+  printLine(
+    "Supported swap root basis",
+    contract.supportedSwapResultingRootBasis === "client-declared"
+      ? "Client-declared"
+      : "Unavailable",
+  );
+  printLine(
+    "Supported swap input-root policy",
+    contract.supportedSwapInputRootPolicy ===
+      "latest-registered-root-with-linked-registration-proof"
+      ? "Latest registered root with linked registration proof"
+      : "Unavailable",
+  );
+  printLine(
+    "Supported swap output registration",
+    contract.supportedSwapOutputRegistrationPolicy ===
+      "resulting-root-must-register-as-swap-output"
+      ? "Resulting root must register as swap output"
+      : "Unavailable",
+  );
   printLine("Supported flow version", String(contract.supportedFlowVersion ?? "unknown"));
   printLine("Supported flow kind", contract.supportedFlowKind ?? "Unavailable");
   printLine("Supported flow status", contract.supportedFlowStatus ?? "Unavailable");

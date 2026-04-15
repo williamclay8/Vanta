@@ -220,7 +220,7 @@ try {
   if (
     !initialSummaryState.ok ||
     initialSummaryState.parsed?.stateVersion !== 1 ||
-    initialSummaryState.parsed?.summaryVersion !== 30 ||
+    initialSummaryState.parsed?.summaryVersion !== 31 ||
     initialSummaryState.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     initialSummaryState.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -249,6 +249,11 @@ try {
     typeof initialSummaryState.parsed?.supportedSwapV1DecisionNote !== "string" ||
     initialSummaryState.parsed?.supportedSwapVenue !== "meteora-dlmm-devnet" ||
     initialSummaryState.parsed?.supportedSwapOutputModel !== "shielded-sol-output-note" ||
+    initialSummaryState.parsed?.supportedSwapResultingRootBasis !== "client-declared" ||
+    initialSummaryState.parsed?.supportedSwapInputRootPolicy !==
+      "latest-registered-root-with-linked-registration-proof" ||
+    initialSummaryState.parsed?.supportedSwapOutputRegistrationPolicy !==
+      "resulting-root-must-register-as-swap-output" ||
     initialSummaryState.parsed?.supportedFlowVersion !== 1 ||
     initialSummaryState.parsed?.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
     initialSummaryState.parsed?.supportedFlowStatus !== "supported" ||
@@ -907,7 +912,7 @@ try {
   if (
     !summaryStateAfterConsume.ok ||
     summaryStateAfterConsume.parsed?.stateVersion !== 1 ||
-    summaryStateAfterConsume.parsed?.summaryVersion !== 30 ||
+    summaryStateAfterConsume.parsed?.summaryVersion !== 31 ||
     summaryStateAfterConsume.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterConsume.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -932,6 +937,11 @@ try {
     typeof summaryStateAfterConsume.parsed?.supportedSwapV1DecisionNote !== "string" ||
     summaryStateAfterConsume.parsed?.supportedSwapVenue !== "meteora-dlmm-devnet" ||
     summaryStateAfterConsume.parsed?.supportedSwapOutputModel !== "shielded-sol-output-note" ||
+    summaryStateAfterConsume.parsed?.supportedSwapResultingRootBasis !== "client-declared" ||
+    summaryStateAfterConsume.parsed?.supportedSwapInputRootPolicy !==
+      "latest-registered-root-with-linked-registration-proof" ||
+    summaryStateAfterConsume.parsed?.supportedSwapOutputRegistrationPolicy !==
+      "resulting-root-must-register-as-swap-output" ||
     summaryStateAfterConsume.parsed?.supportedFlowVersion !== 1 ||
     summaryStateAfterConsume.parsed?.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
     summaryStateAfterConsume.parsed?.supportedFlowStatus !== "supported" ||
@@ -1011,7 +1021,7 @@ try {
   });
   if (
     !summaryStateAfterRelease.ok ||
-    summaryStateAfterRelease.parsed?.summaryVersion !== 30 ||
+    summaryStateAfterRelease.parsed?.summaryVersion !== 31 ||
     summaryStateAfterRelease.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterRelease.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -1036,6 +1046,11 @@ try {
     typeof summaryStateAfterRelease.parsed?.supportedSwapV1DecisionNote !== "string" ||
     summaryStateAfterRelease.parsed?.supportedSwapVenue !== "meteora-dlmm-devnet" ||
     summaryStateAfterRelease.parsed?.supportedSwapOutputModel !== "shielded-sol-output-note" ||
+    summaryStateAfterRelease.parsed?.supportedSwapResultingRootBasis !== "client-declared" ||
+    summaryStateAfterRelease.parsed?.supportedSwapInputRootPolicy !==
+      "latest-registered-root-with-linked-registration-proof" ||
+    summaryStateAfterRelease.parsed?.supportedSwapOutputRegistrationPolicy !==
+      "resulting-root-must-register-as-swap-output" ||
     summaryStateAfterRelease.parsed?.supportedFlowVersion !== 1 ||
     summaryStateAfterRelease.parsed?.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
     summaryStateAfterRelease.parsed?.supportedFlowStatus !== "supported" ||
@@ -1101,8 +1116,8 @@ try {
   });
   if (
     !operatorStatusOutput.includes("Summary state version: 1") ||
-    !operatorStatusOutput.includes("Mirrored contract version: 10") ||
-    !operatorStatusOutput.includes("Summary version: 30") ||
+    !operatorStatusOutput.includes("Mirrored contract version: 11") ||
+    !operatorStatusOutput.includes("Summary version: 31") ||
     !operatorStatusOutput.includes("Supported send v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported unshield v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported release v1 decision: Accepted narrow v1 path") ||
@@ -1112,6 +1127,13 @@ try {
     !operatorStatusOutput.includes("Supported swap v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported swap venue: Meteora DLMM devnet") ||
     !operatorStatusOutput.includes("Supported swap output model: Shielded SOL output note") ||
+    !operatorStatusOutput.includes("Supported swap root basis: Client-declared") ||
+    !operatorStatusOutput.includes(
+      "Supported swap input-root policy: Latest registered root with linked registration proof",
+    ) ||
+    !operatorStatusOutput.includes(
+      "Supported swap output registration: Resulting root must register as swap output",
+    ) ||
     !operatorStatusOutput.includes("Supported release execution: Operator-recorded devnet release") ||
     !operatorStatusOutput.includes(
       "Supported release atomicity: Operator-local atomic consume + release record",

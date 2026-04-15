@@ -10,6 +10,9 @@ This note freezes the current constrained swap lane that Vanta exposes in the na
 - `supportedSwapV1Decision = accepted-narrow-v1-path`
 - `supportedSwapVenue = meteora-dlmm-devnet`
 - `supportedSwapOutputModel = shielded-sol-output-note`
+- `supportedSwapResultingRootBasis = client-declared`
+- `supportedSwapInputRootPolicy = latest-registered-root-with-linked-registration-proof`
+- `supportedSwapOutputRegistrationPolicy = resulting-root-must-register-as-swap-output`
 
 ## What this means today
 
@@ -32,6 +35,9 @@ For the swap lane specifically, the operator contract needs to say:
 - what lane shape is supported
 - what venue assumption is currently frozen
 - what output model the lane produces
+- what resulting-root basis is currently accepted
+- what input-root policy the operator enforces
+- what output-registration rule downstream continuity requires
 
 That keeps the product honest while the broader swap work remains intentionally constrained.
 
@@ -42,3 +48,6 @@ When the operator contract reports the current narrow zk v1 support surface, the
 - Vanta currently supports one specific `VUSD -> shielded SOL` swap lane
 - that lane is operator-backed and venue-constrained
 - the output remains private-state oriented rather than a plain public SOL payout
+- the resulting root remains explicitly client-declared until downstream registration proves continuity
+- the input root must be the latest registered root and stay linked to its registration proof
+- the resulting root must later register as a `swap-output` root before downstream release can stay coherent

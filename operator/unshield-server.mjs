@@ -177,6 +177,11 @@ const PRIVATE_CORE_SUPPORTED_SWAP_V1_DECISION_NOTE =
   "Current constrained operator-backed VUSD to shielded SOL swap lane is accepted as the narrow zk v1 swap path on solana-devnet.";
 const PRIVATE_CORE_SUPPORTED_SWAP_VENUE = "meteora-dlmm-devnet";
 const PRIVATE_CORE_SUPPORTED_SWAP_OUTPUT_MODEL = "shielded-sol-output-note";
+const PRIVATE_CORE_SUPPORTED_SWAP_RESULTING_ROOT_BASIS = "client-declared";
+const PRIVATE_CORE_SUPPORTED_SWAP_INPUT_ROOT_POLICY =
+  "latest-registered-root-with-linked-registration-proof";
+const PRIVATE_CORE_SUPPORTED_SWAP_OUTPUT_REGISTRATION_POLICY =
+  "resulting-root-must-register-as-swap-output";
 const PRIVATE_CORE_SUPPORTED_FLOW_VERSION = 1;
 const PRIVATE_CORE_SUPPORTED_FLOW_KIND = "shield-hold-send-unshield-replay-guard";
 const PRIVATE_CORE_SUPPORTED_FLOW_STATUS = "supported";
@@ -1929,8 +1934,8 @@ function buildPrivateCoreSummaryState() {
 function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
-    contractVersion: 10,
-    summaryVersion: 30,
+    contractVersion: 11,
+    summaryVersion: 31,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
@@ -1971,6 +1976,10 @@ function buildPrivateCoreContractState() {
     supportedSendInputRootPolicy: PRIVATE_CORE_SUPPORTED_SEND_INPUT_ROOT_POLICY,
     supportedSendOutputRegistrationPolicy:
       PRIVATE_CORE_SUPPORTED_SEND_OUTPUT_REGISTRATION_POLICY,
+    supportedSwapResultingRootBasis: PRIVATE_CORE_SUPPORTED_SWAP_RESULTING_ROOT_BASIS,
+    supportedSwapInputRootPolicy: PRIVATE_CORE_SUPPORTED_SWAP_INPUT_ROOT_POLICY,
+    supportedSwapOutputRegistrationPolicy:
+      PRIVATE_CORE_SUPPORTED_SWAP_OUTPUT_REGISTRATION_POLICY,
     supportedRecipientModel: PRIVATE_CORE_SUPPORTED_RECIPIENT_MODEL,
     supportedReleaseDestinationModel: PRIVATE_CORE_SUPPORTED_RELEASE_DESTINATION_MODEL,
     supportedProofSystem: PRIVATE_CORE_SUPPORTED_PROOF_SYSTEM,
@@ -2037,6 +2046,9 @@ function summarizePrivateCoreContractMirrorStatus(args) {
     "supportedSendResultingRootBasis",
     "supportedSendInputRootPolicy",
     "supportedSendOutputRegistrationPolicy",
+    "supportedSwapResultingRootBasis",
+    "supportedSwapInputRootPolicy",
+    "supportedSwapOutputRegistrationPolicy",
     "supportedRecipientModel",
     "supportedReleaseDestinationModel",
     "supportedProofSystem",
