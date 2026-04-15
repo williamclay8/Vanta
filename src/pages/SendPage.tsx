@@ -152,6 +152,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorBoundaryStatusLabel,
     privateCoreOperatorContractMirrorPrimaryNote,
     privateCoreOperatorContractMirrorStatusLabel,
+    privateCoreOperatorSendBoundaryPrimaryNote,
+    privateCoreOperatorSendBoundaryStatusLabel,
     privateCoreOperatorSendContinuityPrimaryNote,
     privateCoreOperatorSendContinuityStatusLabel,
     privateCoreOperatorCurrentRootProofLinkStatus,
@@ -1684,6 +1686,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         operatorBoundaryStatusLabel={privateCoreOperatorBoundaryStatusLabel}
         operatorContractMirrorPrimaryNote={privateCoreOperatorContractMirrorPrimaryNote}
         operatorContractMirrorStatusLabel={privateCoreOperatorContractMirrorStatusLabel}
+        operatorSendBoundaryPrimaryNote={privateCoreOperatorSendBoundaryPrimaryNote}
+        operatorSendBoundaryStatusLabel={privateCoreOperatorSendBoundaryStatusLabel}
         operatorSendContinuityPrimaryNote={privateCoreOperatorSendContinuityPrimaryNote}
         operatorSendContinuityStatusLabel={privateCoreOperatorSendContinuityStatusLabel}
         operatorSupportedSendLaneKind={privateCoreOperatorSupportedSendLaneKind}

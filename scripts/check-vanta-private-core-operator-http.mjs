@@ -220,7 +220,7 @@ try {
   if (
     !initialSummaryState.ok ||
     initialSummaryState.parsed?.stateVersion !== 1 ||
-    initialSummaryState.parsed?.summaryVersion !== 19 ||
+    initialSummaryState.parsed?.summaryVersion !== 20 ||
     initialSummaryState.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     initialSummaryState.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -274,7 +274,8 @@ try {
     initialSummaryState.parsed?.sendProofRecordCount !== 0 ||
     initialSummaryState.parsed?.sendRecordCount !== 0 ||
     initialSummaryState.parsed?.consumeRecordCount !== 0 ||
-    initialSummaryState.parsed?.releaseRecordCount !== 0
+    initialSummaryState.parsed?.releaseRecordCount !== 0 ||
+    initialSummaryState.parsed?.sendBoundaryStatus !== "unavailable"
   ) {
     throw new Error(initialSummaryState.text || "operator summary state did not start empty");
   }
@@ -894,7 +895,7 @@ try {
   if (
     !summaryStateAfterConsume.ok ||
     summaryStateAfterConsume.parsed?.stateVersion !== 1 ||
-    summaryStateAfterConsume.parsed?.summaryVersion !== 19 ||
+    summaryStateAfterConsume.parsed?.summaryVersion !== 20 ||
     summaryStateAfterConsume.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterConsume.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -946,6 +947,7 @@ try {
     summaryStateAfterConsume.parsed?.boundaryStatus !== "coherent" ||
     summaryStateAfterConsume.parsed?.boundaryNote !==
       "Current root, consume, release, and linked proofs agree." ||
+    summaryStateAfterConsume.parsed?.sendBoundaryStatus !== "unavailable" ||
     summaryStateAfterConsume.parsed?.proofConsumeLinkStatus !== "linked" ||
     summaryStateAfterConsume.parsed?.proofReleaseLinkStatus !== "linked"
   ) {
@@ -987,7 +989,7 @@ try {
   });
   if (
     !summaryStateAfterRelease.ok ||
-    summaryStateAfterRelease.parsed?.summaryVersion !== 19 ||
+    summaryStateAfterRelease.parsed?.summaryVersion !== 20 ||
     summaryStateAfterRelease.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterRelease.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -1035,6 +1037,7 @@ try {
     summaryStateAfterRelease.parsed?.boundaryStatus !== "coherent" ||
     summaryStateAfterRelease.parsed?.boundaryNote !==
       "Current root, consume, release, and linked proofs agree." ||
+    summaryStateAfterRelease.parsed?.sendBoundaryStatus !== "unavailable" ||
     summaryStateAfterRelease.parsed?.proofConsumeLinkStatus !== "linked" ||
     summaryStateAfterRelease.parsed?.proofReleaseLinkStatus !== "linked"
   ) {
@@ -1067,7 +1070,7 @@ try {
   if (
     !operatorStatusOutput.includes("Summary state version: 1") ||
     !operatorStatusOutput.includes("Mirrored contract version: 1") ||
-    !operatorStatusOutput.includes("Summary version: 19") ||
+    !operatorStatusOutput.includes("Summary version: 20") ||
     !operatorStatusOutput.includes(
       "Supported send input-root policy: Latest registered root with linked registration proof",
     ) ||
@@ -1081,6 +1084,7 @@ try {
     !operatorStatusOutput.includes("Proof/consume link: linked") ||
     !operatorStatusOutput.includes("Proof/release link: linked") ||
     !operatorStatusOutput.includes("Send continuity status: Unavailable") ||
+    !operatorStatusOutput.includes("Send boundary status: Unavailable") ||
     !operatorStatusOutput.includes("Contract mirror status: Summary mirrors frozen contract") ||
     !operatorStatusOutput.includes("Boundary status: Operator boundary coherent")
   ) {

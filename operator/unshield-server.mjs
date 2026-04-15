@@ -1563,6 +1563,14 @@ function buildPrivateCoreSummaryState() {
     sendResultingRootRegistrationStatus: sendResultingRootRegistration.status,
     sendResultingRootStatus: sendResultingRootStatus.status,
   });
+  const sendBoundaryStatus = summarizePrivateCoreSendBoundaryStatus({
+    latestSend,
+    proofSendLinkStatus,
+    sendContinuityNote: sendContinuity.note,
+    sendContinuityStatus: sendContinuity.status,
+    sendResultingRootNote: sendResultingRootStatus.note,
+    sendResultingRootStatus: sendResultingRootStatus.status,
+  });
   const boundaryStatus = summarizePrivateCoreBoundaryStatus({
     currentRoot: currentRootRecord?.root ?? null,
     currentRootProofLinkStatus,
@@ -1574,11 +1582,14 @@ function buildPrivateCoreSummaryState() {
     sendResultingRootRegistrationStatus: sendResultingRootRegistration.status,
     sendResultingRootProofLinkStatus,
     sendResultingRootStatus: sendResultingRootStatus.status,
+    sendBoundaryStatus: sendBoundaryStatus.status,
   });
   const summaryState = {
     ...contractState,
     boundaryStatus: boundaryStatus.status,
     boundaryNote: boundaryStatus.note,
+    sendBoundaryStatus: sendBoundaryStatus.status,
+    sendBoundaryNote: sendBoundaryStatus.note,
     currentRootLinkedProof,
     currentRootProofLinkStatus,
     sendResultingRootLinkedProof,
@@ -1633,7 +1644,7 @@ function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
     contractVersion: 1,
-    summaryVersion: 19,
+    summaryVersion: 20,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
@@ -1889,6 +1900,85 @@ function summarizePrivateCoreSendContinuityStatus(args) {
   };
 }
 
+function summarizePrivateCoreSendBoundaryStatus(args) {
+  if (!args.latestSend) {
+    return {
+      status: "unavailable",
+      note: "No private send transition is available for boundary checks yet.",
+    };
+  }
+
+  if (args.proofSendLinkStatus === "mismatch") {
+    return {
+      status: "proof-send-unlinked",
+      note: "Latest send transition does not match its linked send proof.",
+    };
+  }
+
+  if (args.proofSendLinkStatus === "unavailable") {
+    return {
+      status: "proof-send-unlinked",
+      note: "Latest send transition is missing a linked send proof.",
+    };
+  }
+
+  switch (args.sendContinuityStatus) {
+    case "missing-resulting-root":
+      return {
+        status: "missing-resulting-root",
+        note: args.sendContinuityNote,
+      };
+    case "output-mismatch":
+      return {
+        status: "output-mismatch",
+        note: args.sendContinuityNote,
+      };
+    case "registration-proof-unlinked":
+      return {
+        status: "registration-proof-unlinked",
+        note: args.sendContinuityNote,
+      };
+    case "awaiting-registration":
+      return {
+        status: "awaiting-registration",
+        note: args.sendContinuityNote,
+      };
+    case "ready-current-root":
+      return {
+        status: "coherent-current-root",
+        note: args.sendContinuityNote,
+      };
+    case "ready-registered-stale":
+      return {
+        status: "coherent-registered-stale",
+        note: args.sendContinuityNote,
+      };
+    case "downstream-consumed":
+      return {
+        status: "downstream-consumed",
+        note: args.sendContinuityNote,
+      };
+    case "downstream-released":
+      return {
+        status: "downstream-released",
+        note: args.sendContinuityNote,
+      };
+    case "unavailable":
+    default:
+      if (args.sendResultingRootStatus === "missing") {
+        return {
+          status: "missing-resulting-root",
+          note: args.sendResultingRootNote,
+        };
+      }
+
+      return {
+        status: "unavailable",
+        note: args.sendContinuityNote ?? "Private send boundary state is not available yet.",
+      };
+  }
+}
+
 function summarizePrivateCoreBoundaryStatus(args) {
   if (!args.currentRoot) {
     return {
@@ -1904,6 +1994,27 @@ function summarizePrivateCoreBoundaryStatus(args) {
         args.currentRootProofLinkStatus === "mismatch"
           ? "Current root record does not match its linked registration proof."
           : "Current root registration proof linkage is unavailable.",
+    };
+  }
+
+  if (
+    args.sendBoundaryStatus === "proof-send-unlinked" ||
+    args.sendBoundaryStatus === "output-mismatch" ||
+    args.sendBoundaryStatus === "registration-proof-unlinked"
+  ) {
+    return {
+      status:
+        args.sendBoundaryStatus === "proof-send-unlinked"
+          ? "proof-send-unlinked"
+          : args.sendBoundaryStatus === "output-mismatch"
+            ? "send-root-output-mismatch"
+            : "send-root-registration-unlinked",
+      note:
+        args.sendBoundaryStatus === "proof-send-unlinked"
+          ? "Latest send record does not match its linked proof."
+          : args.sendBoundaryStatus === "output-mismatch"
+            ? "Registered send resulting root does not match either output commitment from the latest send."
+            : "Send resulting root registration proof linkage is unavailable.",
     };
   }
 

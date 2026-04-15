@@ -113,6 +113,8 @@ export function UnshieldPage() {
     privateCoreOperatorBoundaryStatusLabel,
     privateCoreOperatorContractMirrorPrimaryNote,
     privateCoreOperatorContractMirrorStatusLabel,
+    privateCoreOperatorSendBoundaryPrimaryNote,
+    privateCoreOperatorSendBoundaryStatusLabel,
     privateCoreOperatorSendContinuityPrimaryNote,
     privateCoreOperatorSendContinuityStatusLabel,
     privateCoreOperatorSupportedSendLaneKind,
@@ -944,6 +946,8 @@ export function UnshieldPage() {
           operatorBoundaryStatusLabel={privateCoreOperatorBoundaryStatusLabel}
           operatorContractMirrorPrimaryNote={privateCoreOperatorContractMirrorPrimaryNote}
           operatorContractMirrorStatusLabel={privateCoreOperatorContractMirrorStatusLabel}
+          operatorSendBoundaryPrimaryNote={privateCoreOperatorSendBoundaryPrimaryNote}
+          operatorSendBoundaryStatusLabel={privateCoreOperatorSendBoundaryStatusLabel}
           operatorSendContinuityPrimaryNote={privateCoreOperatorSendContinuityPrimaryNote}
           operatorSendContinuityStatusLabel={privateCoreOperatorSendContinuityStatusLabel}
           operatorSupportedSendLaneKind={privateCoreOperatorSupportedSendLaneKind}

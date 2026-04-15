@@ -340,7 +340,7 @@ npm run private-core:operator-status
 
 The contract readout gives the static narrow-zk-v1 support contract:
 - `contractVersion = 1`
-- `summaryVersion = 19`
+- `summaryVersion = 20`
 - supported send / unshield / release lanes
 - supported product flow
 - supported asset / environment
@@ -360,6 +360,7 @@ The contract readout gives the static narrow-zk-v1 support contract:
 
 The status readout now includes proof/send, proof/consume, and proof/release linkage across the operator summary boundary, the supported send-lane version and identity carried by the operator summary, explicit release authorization / root-policy fields for the current unshield lane, plus explicit send-root registration provenance (`shield-input`, `send-recipient-output`, or `send-change-output`) when downstream continuity has been established.
 It now also includes explicit contract-mirror status so the live summary says whether it is still mirroring the frozen private-core operator contract surface.
+It now also includes explicit send-boundary status so the private-send lane reads as one operator-owned health summary instead of only a bundle of lower-level linkage rows.
 It now also includes explicit send-continuity status so the downstream send path reads as one live verifier-state summary instead of only a bundle of lower-level root and registration rows.
 
 The same operator contract now also versions the supported narrow unshield lane:

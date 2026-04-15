@@ -205,6 +205,18 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
     | "proof-send-unlinked"
     | "proof-consume-unlinked"
     | "proof-release-unlinked";
+  sendBoundaryNote: string;
+  sendBoundaryStatus:
+    | "unavailable"
+    | "missing-resulting-root"
+    | "awaiting-registration"
+    | "output-mismatch"
+    | "registration-proof-unlinked"
+    | "proof-send-unlinked"
+    | "coherent-current-root"
+    | "coherent-registered-stale"
+    | "downstream-consumed"
+    | "downstream-released";
   currentRootLinkedProof: VantaPrivateCoreOperatorProofRecord | null;
   currentRootProofLinkStatus: "linked" | "mismatch" | "unavailable";
   sendResultingRootNote: string;
@@ -361,6 +373,23 @@ function isSendContinuityStatus(
     value === "registration-proof-unlinked" ||
     value === "ready-current-root" ||
     value === "ready-registered-stale" ||
+    value === "downstream-consumed" ||
+    value === "downstream-released"
+  );
+}
+
+function isSendBoundaryStatus(
+  value: unknown,
+): value is VantaPrivateCoreOperatorSummaryStateResponse["sendBoundaryStatus"] {
+  return (
+    value === "unavailable" ||
+    value === "missing-resulting-root" ||
+    value === "awaiting-registration" ||
+    value === "output-mismatch" ||
+    value === "registration-proof-unlinked" ||
+    value === "proof-send-unlinked" ||
+    value === "coherent-current-root" ||
+    value === "coherent-registered-stale" ||
     value === "downstream-consumed" ||
     value === "downstream-released"
   );
@@ -918,6 +947,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     contractMirrorNote?: unknown;
     boundaryStatus?: unknown;
     boundaryNote?: unknown;
+    sendBoundaryStatus?: unknown;
+    sendBoundaryNote?: unknown;
     currentRootLinkedProof?: unknown;
     currentRootProofLinkStatus?: unknown;
     sendResultingRootLinkedProof?: unknown;
@@ -996,11 +1027,13 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
   if (
     parsed.stateVersion !== 1 ||
     parsed.contractVersion !== 1 ||
-    parsed.summaryVersion !== 19 ||
+    parsed.summaryVersion !== 20 ||
     !isContractMirrorStatus(parsed.contractMirrorStatus) ||
     typeof parsed.contractMirrorNote !== "string" ||
     !isBoundaryStatus(parsed.boundaryStatus) ||
     typeof parsed.boundaryNote !== "string" ||
+    !isSendBoundaryStatus(parsed.sendBoundaryStatus) ||
+    typeof parsed.sendBoundaryNote !== "string" ||
     (parsed.currentRootLinkedProof !== null &&
       parsed.currentRootLinkedProof !== undefined &&
       !isProofRecord(parsed.currentRootLinkedProof)) ||
@@ -1110,11 +1143,13 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
   return {
     stateVersion: 1,
     contractVersion: 1,
-    summaryVersion: 19,
+    summaryVersion: 20,
     contractMirrorStatus: parsed.contractMirrorStatus,
     contractMirrorNote: parsed.contractMirrorNote,
     boundaryStatus: parsed.boundaryStatus,
     boundaryNote: parsed.boundaryNote,
+    sendBoundaryStatus: parsed.sendBoundaryStatus,
+    sendBoundaryNote: parsed.sendBoundaryNote,
     supportedSendLaneVersion: 1,
     supportedSendLaneKind: "single-input-single-recipient-optional-change",
     supportedSendLaneStatus: "supported",
@@ -1260,7 +1295,7 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
   if (
     parsed.stateVersion !== 1 ||
     parsed.contractVersion !== 1 ||
-    parsed.summaryVersion !== 19 ||
+    parsed.summaryVersion !== 20 ||
     parsed.supportedSendLaneVersion !== 1 ||
     parsed.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     parsed.supportedSendLaneStatus !== "supported" ||
@@ -1307,7 +1342,7 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
   return {
     stateVersion: 1,
     contractVersion: 1,
-    summaryVersion: 19,
+    summaryVersion: 20,
     supportedSendLaneVersion: 1,
     supportedSendLaneKind: "single-input-single-recipient-optional-change",
     supportedSendLaneStatus: "supported",

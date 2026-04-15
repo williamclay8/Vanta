@@ -103,7 +103,7 @@ try {
     !contractState.ok ||
     contractState.parsed?.stateVersion !== 1 ||
     contractState.parsed?.contractVersion !== 1 ||
-    contractState.parsed?.summaryVersion !== 19 ||
+    contractState.parsed?.summaryVersion !== 20 ||
     contractState.parsed?.supportedSendLaneVersion !== 1 ||
     contractState.parsed?.supportedUnshieldLaneVersion !== 1 ||
     contractState.parsed?.supportedReleaseLaneVersion !== 1 ||
@@ -208,7 +208,7 @@ try {
   if (
     !contractOutput.includes("Contract state version: 1") ||
     !contractOutput.includes("Contract version: 1") ||
-    !contractOutput.includes("Summary compatibility: 19") ||
+    !contractOutput.includes("Summary compatibility: 20") ||
     !contractOutput.includes("Supported note schema: NoteV0 / v0") ||
     !contractOutput.includes(
       "Supported root provenance: Shield input / send recipient output / send change output",

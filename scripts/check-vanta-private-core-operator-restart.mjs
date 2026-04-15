@@ -273,7 +273,7 @@ try {
     preRestartSends.parsed.records.length < 1 ||
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.stateVersion !== 1 ||
-    preRestartSummary.parsed?.summaryVersion !== 19 ||
+    preRestartSummary.parsed?.summaryVersion !== 20 ||
     preRestartSummary.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     preRestartSummary.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -329,6 +329,7 @@ try {
     preRestartSummary.parsed?.boundaryStatus !== "coherent" ||
     preRestartSummary.parsed?.boundaryNote !==
       "Current root, consume, release, and linked proofs agree." ||
+    preRestartSummary.parsed?.sendBoundaryStatus !== "awaiting-registration" ||
     preRestartSummary.parsed?.proofConsumeLinkStatus !== "linked" ||
     preRestartSummary.parsed?.proofReleaseLinkStatus !== "linked"
   ) {
@@ -357,7 +358,7 @@ try {
   if (
     !postRestartSummary.ok ||
     postRestartSummary.parsed?.stateVersion !== 1 ||
-    postRestartSummary.parsed?.summaryVersion !== 19 ||
+    postRestartSummary.parsed?.summaryVersion !== 20 ||
     postRestartSummary.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     postRestartSummary.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -447,6 +448,7 @@ try {
     postRestartSummary.parsed?.boundaryStatus !== "coherent" ||
     postRestartSummary.parsed?.boundaryNote !==
       "Current root, consume, release, and linked proofs agree." ||
+    postRestartSummary.parsed?.sendBoundaryStatus !== "awaiting-registration" ||
     postRestartSummary.parsed?.proofConsumeLinkStatus !== "linked" ||
     postRestartSummary.parsed?.proofReleaseLinkStatus !== "linked"
   ) {
@@ -473,7 +475,7 @@ try {
     stdio: "pipe",
   });
   if (
-    !operatorStatusOutput.includes("Summary version: 19") ||
+    !operatorStatusOutput.includes("Summary version: 20") ||
     !operatorStatusOutput.includes(
       "Supported send input-root policy: Latest registered root with linked registration proof",
     ) ||
@@ -489,6 +491,7 @@ try {
     !operatorStatusOutput.includes("Latest send transition:") ||
     !operatorStatusOutput.includes("Latest send resulting root:") ||
     !operatorStatusOutput.includes("Send continuity status: Awaiting registration") ||
+    !operatorStatusOutput.includes("Send boundary status: Awaiting registration") ||
     !operatorStatusOutput.includes("Proof/send link: linked") ||
     !operatorStatusOutput.includes("Proof/consume link: linked") ||
     !operatorStatusOutput.includes("Proof/release link: linked") ||

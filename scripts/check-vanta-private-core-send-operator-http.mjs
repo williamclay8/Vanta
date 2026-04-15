@@ -270,7 +270,7 @@ try {
   if (
     !summaryState.ok ||
     summaryState.parsed?.stateVersion !== 1 ||
-    summaryState.parsed?.summaryVersion !== 19 ||
+    summaryState.parsed?.summaryVersion !== 20 ||
     summaryState.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryState.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -314,7 +314,8 @@ try {
     summaryState.parsed?.latestSendProof?.circuit !== "vanta_private_core_single_note_send" ||
     summaryState.parsed?.sendProofRecordCount !== 1 ||
     summaryState.parsed?.sendResultingRootRecord !== null ||
-    summaryState.parsed?.sendResultingRootStatus !== "unavailable"
+    summaryState.parsed?.sendResultingRootStatus !== "unavailable" ||
+    summaryState.parsed?.sendBoundaryStatus !== "unavailable"
   ) {
     throw new Error(summaryState.text || "operator summary did not reflect send-proof state");
   }
@@ -466,7 +467,8 @@ try {
     summaryAfterTransition.parsed?.latestSend?.sendId !== transitionResponse.parsed.sendId ||
     summaryAfterTransition.parsed?.sendResultingRootStatus !== "unregistered" ||
     summaryAfterTransition.parsed?.sendResultingRootRegistrationStatus !== "unavailable" ||
-    summaryAfterTransition.parsed?.sendContinuityStatus !== "awaiting-registration"
+    summaryAfterTransition.parsed?.sendContinuityStatus !== "awaiting-registration" ||
+    summaryAfterTransition.parsed?.sendBoundaryStatus !== "awaiting-registration"
   ) {
     throw new Error(
       summaryAfterTransition.text || "operator summary did not reflect transition-backed send proof state",

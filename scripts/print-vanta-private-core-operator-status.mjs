@@ -146,6 +146,8 @@ try {
     humanizeSendContinuityStatus(summary.sendContinuityStatus),
   );
   printLine("Send continuity note", summary.sendContinuityNote ?? "Unavailable");
+  printLine("Send boundary status", humanizeSendBoundaryStatus(summary.sendBoundaryStatus));
+  printLine("Send boundary note", summary.sendBoundaryNote ?? "Unavailable");
   printLine("Send resulting root record", abbreviate(summary.sendResultingRootRecord?.root));
   printLine("Send resulting root proof", abbreviate(summary.sendResultingRootRecord?.proofId));
   printLine(
@@ -341,6 +343,33 @@ function humanizeSendContinuityStatus(value) {
       return "Released downstream";
     case "missing-resulting-root":
       return "Missing resulting root";
+    case "unavailable":
+      return "Unavailable";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeSendBoundaryStatus(value) {
+  switch (value) {
+    case "coherent-current-root":
+      return "Coherent / current root";
+    case "coherent-registered-stale":
+      return "Coherent / registered stale";
+    case "awaiting-registration":
+      return "Awaiting registration";
+    case "proof-send-unlinked":
+      return "Proof/send unlinked";
+    case "registration-proof-unlinked":
+      return "Registration proof unlinked";
+    case "output-mismatch":
+      return "Output mismatch";
+    case "missing-resulting-root":
+      return "Missing resulting root";
+    case "downstream-consumed":
+      return "Downstream consumed";
+    case "downstream-released":
+      return "Downstream released";
     case "unavailable":
       return "Unavailable";
     default:

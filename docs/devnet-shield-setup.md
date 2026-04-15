@@ -139,6 +139,7 @@ The operator-status command now prints:
 - latest send linked proof
 - latest send resulting-root basis
 - send continuity status
+- send boundary status
 - latest send resulting root
 - send resulting root status
 - send resulting root registration status
