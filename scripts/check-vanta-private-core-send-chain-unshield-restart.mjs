@@ -402,6 +402,7 @@ try {
     preRestartSummary.parsed?.proofSendLinkStatus !== "linked" ||
     preRestartSummary.parsed?.proofConsumeLinkStatus !== "linked" ||
     preRestartSummary.parsed?.proofReleaseLinkStatus !== "linked" ||
+    preRestartSummary.parsed?.sendBoundaryStatus !== "downstream-released" ||
     preRestartSummary.parsed?.boundaryStatus !== "coherent"
   ) {
     throw new Error(preRestartSummary.text || "pre-restart chained send->unshield summary mismatch");
@@ -430,6 +431,7 @@ try {
     postRestartSummary.parsed?.proofSendLinkStatus !== "linked" ||
     postRestartSummary.parsed?.proofConsumeLinkStatus !== "linked" ||
     postRestartSummary.parsed?.proofReleaseLinkStatus !== "linked" ||
+    postRestartSummary.parsed?.sendBoundaryStatus !== "downstream-released" ||
     postRestartSummary.parsed?.boundaryStatus !== "coherent"
   ) {
     throw new Error(postRestartSummary.text || "post-restart chained send->unshield summary mismatch");

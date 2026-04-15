@@ -391,6 +391,7 @@ try {
     summary.parsed?.proofSendLinkStatus !== "linked" ||
     summary.parsed?.proofConsumeLinkStatus !== "linked" ||
     summary.parsed?.proofReleaseLinkStatus !== "linked" ||
+    summary.parsed?.sendBoundaryStatus !== "downstream-released" ||
     summary.parsed?.boundaryStatus !== "coherent"
   ) {
     throw new Error(summary.text || "operator summary did not reflect chained send -> unshield roundtrip");

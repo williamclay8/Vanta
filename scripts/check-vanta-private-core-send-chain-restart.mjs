@@ -382,6 +382,7 @@ try {
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.sendRecordCount !== 2 ||
     preRestartSummary.parsed?.sendProofRecordCount !== 2 ||
+    preRestartSummary.parsed?.sendBoundaryStatus !== "awaiting-registration" ||
     preRestartSummary.parsed?.proofSendLinkStatus !== "linked" ||
     preRestartSummary.parsed?.latestSend?.sendId !== secondResponse.parsed.sendId ||
     preRestartSummary.parsed?.latestSendLinkedProof?.proofId !== secondResponse.parsed.proofId ||
@@ -423,6 +424,7 @@ try {
     !postRestartSummary.ok ||
     postRestartSummary.parsed?.sendRecordCount !== 2 ||
     postRestartSummary.parsed?.sendProofRecordCount !== 2 ||
+    postRestartSummary.parsed?.sendBoundaryStatus !== "awaiting-registration" ||
     postRestartSummary.parsed?.proofSendLinkStatus !== "linked" ||
     postRestartSummary.parsed?.latestSend?.sendId !== secondResponse.parsed.sendId ||
     postRestartSummary.parsed?.latestSendLinkedProof?.proofId !== secondResponse.parsed.proofId ||
@@ -454,6 +456,7 @@ try {
   if (
     !operatorStatusOutput.includes("Latest send proof action: send-proof") ||
     !operatorStatusOutput.includes("Latest send resulting root:") ||
+    !operatorStatusOutput.includes("Send boundary status: Awaiting registration") ||
     !operatorStatusOutput.includes("Send proof records: 2") ||
     !operatorStatusOutput.includes("Send records: 2")
   ) {
