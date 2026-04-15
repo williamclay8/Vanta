@@ -545,7 +545,8 @@ export function VantaPrivateCoreStatePanel({
                   "Swap root unavailable"}
               </span>
               <span>
-                {swapState?.resultingRootPrimaryNote ??
+                {swapState?.boundaryPrimaryNote ??
+                  swapState?.resultingRootPrimaryNote ??
                   operatorSwapBoundaryPrimaryNote ??
                   "No swap boundary note yet"}
               </span>
@@ -597,6 +598,22 @@ export function VantaPrivateCoreStatePanel({
               <div className="review-row">
                 <span>Swap root note</span>
                 <strong>{swapState.resultingRootPrimaryNote ?? "Unavailable"}</strong>
+              </div>
+              <div className="review-row">
+                <span>Swap boundary</span>
+                <strong>{swapState.boundaryStatusLabel ?? "Unavailable"}</strong>
+              </div>
+              <div className="review-row">
+                <span>Swap boundary note</span>
+                <strong>{swapState.boundaryPrimaryNote ?? "Unavailable"}</strong>
+              </div>
+              <div className="review-row">
+                <span>Swap continuity</span>
+                <strong>{swapState.continuityStatusLabel ?? "Unavailable"}</strong>
+              </div>
+              <div className="review-row">
+                <span>Swap continuity note</span>
+                <strong>{swapState.continuityPrimaryNote ?? "Unavailable"}</strong>
               </div>
               <div className="review-row">
                 <span>Observation mode</span>

@@ -373,6 +373,10 @@ export type VantaPrivateCoreSwapState = {
   resultingRootPrimaryNote: string;
   outputRecoveryStatus: string;
   outputUnshieldStatus: string;
+  boundaryStatusLabel: string;
+  boundaryPrimaryNote: string;
+  continuityStatusLabel: string;
+  continuityPrimaryNote: string;
   noteSummary: string;
   observationMode: string;
 };
@@ -1022,9 +1026,17 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
             latestRelease: privateCoreOperatorLatestRelease,
             latestSwap: privateCoreOperatorLatestSwap,
             linkedProof: privateCoreOperatorLatestSwapLinkedProof,
+            boundaryPrimaryNote: privateCoreOperatorSwapBoundarySummary.primaryNote,
+            boundaryStatusLabel: privateCoreOperatorSwapBoundarySummary.statusLabel,
+            continuityPrimaryNote: privateCoreOperatorSwapContinuitySummary.primaryNote,
+            continuityStatusLabel: privateCoreOperatorSwapContinuitySummary.statusLabel,
             resultingRootPrimaryNote: privateCoreOperatorSwapResultingRootSummary.primaryNote,
             resultingRootStatusLabel: privateCoreOperatorSwapResultingRootSummary.statusLabel,
           }),
+        boundaryPrimaryNote: privateCoreOperatorSwapBoundarySummary.primaryNote,
+        boundaryStatusLabel: privateCoreOperatorSwapBoundarySummary.statusLabel,
+        continuityPrimaryNote: privateCoreOperatorSwapContinuitySummary.primaryNote,
+        continuityStatusLabel: privateCoreOperatorSwapContinuitySummary.statusLabel,
         latestConsume: privateCoreOperatorLatestConsume,
         latestRelease: privateCoreOperatorLatestRelease,
         resultingRootPrimaryNote: privateCoreOperatorSwapResultingRootSummary.primaryNote,
@@ -1036,6 +1048,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorLatestRelease,
       privateCoreOperatorLatestSwap,
       privateCoreOperatorLatestSwapLinkedProof,
+      privateCoreOperatorSwapBoundarySummary.primaryNote,
+      privateCoreOperatorSwapBoundarySummary.statusLabel,
+      privateCoreOperatorSwapContinuitySummary.primaryNote,
+      privateCoreOperatorSwapContinuitySummary.statusLabel,
       privateCoreOperatorSwapResultingRootSummary.primaryNote,
       privateCoreOperatorSwapResultingRootSummary.statusLabel,
     ],
@@ -1410,6 +1426,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
           "The swap resulting root exists locally and is waiting for the next operator summary refresh.",
         outputRecoveryStatus: "Swap output note created privately",
         outputUnshieldStatus: "Swap output ready for private hold or unshield",
+        boundaryStatusLabel: "Swap boundary pending operator summary",
+        boundaryPrimaryNote:
+          "The swap handoff exists locally and is waiting for the next operator boundary summary refresh.",
+        continuityStatusLabel: "Swap continuity pending operator summary",
+        continuityPrimaryNote:
+          "The downstream continuity of the local swap handoff is waiting for the next operator summary refresh.",
         noteSummary: `${formatPrivateCoreAssetAmount(
           result.output.note.assetId,
           result.output.note.amount,
@@ -2964,6 +2986,10 @@ function summarizePrivateCoreOperatorSwapState(args: {
   latestRelease: VantaPrivateCoreOperatorReleaseRecord | null;
   latestSwap: VantaPrivateCoreOperatorSwapRecord | null;
   linkedProof: VantaPrivateCoreOperatorSwapProofRecord | null;
+  boundaryPrimaryNote: string | null;
+  boundaryStatusLabel: string | null;
+  continuityPrimaryNote: string | null;
+  continuityStatusLabel: string | null;
   resultingRootPrimaryNote: string | null;
   resultingRootStatusLabel: string | null;
 }): VantaPrivateCoreSwapState | null {
@@ -2993,6 +3019,12 @@ function summarizePrivateCoreOperatorSwapState(args: {
     outputUnshieldStatus: outputUnshielded
       ? "Swap output already unshielded through operator release"
       : "Swap output ready for private hold or unshield",
+    boundaryStatusLabel: args.boundaryStatusLabel ?? "Swap boundary status unavailable",
+    boundaryPrimaryNote:
+      args.boundaryPrimaryNote ?? "Operator swap boundary status unavailable.",
+    continuityStatusLabel: args.continuityStatusLabel ?? "Swap continuity status unavailable",
+    continuityPrimaryNote:
+      args.continuityPrimaryNote ?? "Operator swap continuity status unavailable.",
     noteSummary: `${formatPrivateCoreAssetAmount(
       args.latestSwap.outputAssetId,
       BigInt(args.latestSwap.outputAmount),
@@ -3003,6 +3035,10 @@ function summarizePrivateCoreOperatorSwapState(args: {
 
 function mergePrivateCoreSwapStateWithOperatorDownstream(args: {
   baseState: VantaPrivateCoreSwapState | null;
+  boundaryPrimaryNote: string | null;
+  boundaryStatusLabel: string | null;
+  continuityPrimaryNote: string | null;
+  continuityStatusLabel: string | null;
   latestConsume: VantaPrivateCoreOperatorConsumeRecord | null;
   latestRelease: VantaPrivateCoreOperatorReleaseRecord | null;
   resultingRootPrimaryNote: string | null;
@@ -3014,6 +3050,10 @@ function mergePrivateCoreSwapStateWithOperatorDownstream(args: {
 
   const withOperatorRootStatus = {
     ...args.baseState,
+    boundaryStatusLabel: args.boundaryStatusLabel ?? args.baseState.boundaryStatusLabel,
+    boundaryPrimaryNote: args.boundaryPrimaryNote ?? args.baseState.boundaryPrimaryNote,
+    continuityStatusLabel: args.continuityStatusLabel ?? args.baseState.continuityStatusLabel,
+    continuityPrimaryNote: args.continuityPrimaryNote ?? args.baseState.continuityPrimaryNote,
     resultingRootStatusLabel:
       args.resultingRootStatusLabel ?? args.baseState.resultingRootStatusLabel,
     resultingRootPrimaryNote:

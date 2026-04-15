@@ -1532,11 +1532,11 @@ export function SwapPage() {
                 </div>
                 <div className="preview-card">
                   <span>Swap boundary</span>
-                  <strong>{privateCoreOperatorSwapBoundaryStatusLabel ?? "Unavailable"}</strong>
+                  <strong>{privateCoreSwapState.boundaryStatusLabel}</strong>
                 </div>
                 <div className="preview-card">
                   <span>Downstream continuity</span>
-                  <strong>{privateCoreOperatorSwapContinuityStatusLabel ?? "Unavailable"}</strong>
+                  <strong>{privateCoreSwapState.continuityStatusLabel}</strong>
                 </div>
               </div>
               <p className="shield-helper shield-helper--meta">
@@ -1550,6 +1550,18 @@ export function SwapPage() {
               </p>
               <p className="shield-helper shield-helper--meta">
                 Swap root note: {privateCoreSwapState.resultingRootPrimaryNote}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Swap boundary: {privateCoreSwapState.boundaryStatusLabel}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Swap boundary note: {privateCoreSwapState.boundaryPrimaryNote}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Downstream continuity: {privateCoreSwapState.continuityStatusLabel}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Continuity note: {privateCoreSwapState.continuityPrimaryNote}
               </p>
             </div>
           )}
