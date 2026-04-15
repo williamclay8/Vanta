@@ -176,8 +176,12 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   generates and verifies a real local proof for the current single-note unshield lane
 - `npm run private-core:send-prove`
   generates and verifies a real local proof for the current single-note private-send lane
+- `npm run private-core:swap-prove`
+  generates and verifies a real local proof for the current single-note constrained swap lane
 - `npm run private-core:send-http-smoke`
   proves the operator rejects unregistered send input roots, requires the current input root to stay linked to its registration proof, rejects missing / malformed / non-transitioning resulting roots, accepts proof-backed root registration, verifies the current send witness package over HTTP, persists explicit send-proof state, and preserves the expected shared root-registration proof state
+- `npm run private-core:swap-http-smoke`
+  proves the operator verifies the current constrained swap witness package over HTTP, persists explicit swap-proof state, and keeps the unshield/send verifier state untouched because this first seam is proof-only
 - `npm run private-core:send-roundtrip-check`
   proves one operator-backed private-send roundtrip from verified send transition through sender residual-change recovery, recipient note recovery, recipient spendability, and sender privacy failure
 - `npm run private-core:send-unshield-roundtrip-check`
@@ -216,12 +220,14 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   - operator contract smoke test
   - operator HTTP smoke test
   - operator send-proof HTTP smoke test
+  - operator swap-proof HTTP smoke test
   - operator restart persistence check
   - persisted send-proof state across restart
   - persisted send-transition state across restart
   - replay rejection after restart
   - real unshield proof generation and verification
   - real send proof generation and verification
+  - real swap proof generation and verification
 - `npm run private-core:demo-readiness`
   aliases the same full verification pass with a more reviewer-friendly name
 - `npm run private-core:demo-preflight`

@@ -2,6 +2,7 @@ const baseUrl = resolveBaseUrl(process.argv.slice(2));
 
 try {
   const summary = await requestJson("/state/private-core-summary");
+  const swapProofState = await requestJson("/state/private-core-swap-proofs");
 
   printLine("Operator", baseUrl);
   printLine("Summary state version", String(summary.stateVersion ?? "unknown"));
@@ -209,6 +210,12 @@ try {
   printLine("Latest proof", abbreviate(summary.latestProof?.proofId));
   printLine("Latest proof action", summary.latestProof?.action ?? "Unavailable");
   printLine("Proof records", String(summary.proofRecordCount ?? 0));
+  printLine("Latest swap proof", abbreviate(swapProofState.latestProof?.proofId));
+  printLine("Latest swap proof action", swapProofState.latestProof?.action ?? "Unavailable");
+  printLine(
+    "Swap proof records",
+    Array.isArray(swapProofState.records) ? String(swapProofState.records.length) : "0",
+  );
   printLine("Latest send proof", abbreviate(summary.latestSendProof?.proofId));
   printLine("Latest send proof action", summary.latestSendProof?.action ?? "Unavailable");
   printLine("Send proof records", String(summary.sendProofRecordCount ?? 0));

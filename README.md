@@ -162,6 +162,7 @@ npm run preview
 ```bash
 npm run private-core:check
 npm run private-core:send-check
+npm run private-core:swap-check
 npm run private-core:send-apply-check
 npm run private-core:send-continuity-check
 npm run private-core:send-recipient-check
@@ -178,8 +179,10 @@ npm run private-core:send-change-unshield-restart-check
 npm run private-core:send-chain-unshield-restart-check
 npm run private-core:prove
 npm run private-core:send-prove
+npm run private-core:swap-prove
 npm run private-core:contract-smoke
 npm run private-core:send-http-smoke
+npm run private-core:swap-http-smoke
 npm run private-core:verify
 npm run private-core:demo-readiness
 npm run private-core:demo-preflight
@@ -190,6 +193,7 @@ npm run private-core:operator-status
 These commands cover:
 - fixed-depth Noir circuit regression
 - fixed-depth send-circuit regression
+- fixed-depth swap-circuit regression
 - source-layer send transition application and change-note recovery
 - send-to-hold-to-unshield continuity after a private send
 - recipient-side note recovery and spendability after a private send
@@ -211,8 +215,10 @@ These commands cover:
 - valid and invalid witness behavior
 - local unshield proof generation and verification
 - local send proof generation and verification
+- local swap proof generation and verification
 - dedicated operator-contract endpoint coverage
 - operator-backed send proof HTTP smoke coverage and persisted send-proof state
+- operator-backed swap proof HTTP smoke coverage and persisted swap-proof state
 - operator-backed consume and HTTP smoke coverage
 - operator state persistence across restart, including send-proof state
 - proof-backed send-transition state persistence across restart

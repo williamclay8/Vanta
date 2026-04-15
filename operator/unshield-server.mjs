@@ -51,6 +51,7 @@ import { createPrivateCoreConsumeStore } from "./private-core-consume-store.mjs"
 import {
   createPrivateCoreProofStore,
   createPrivateCoreSendProofStore,
+  createPrivateCoreSwapProofStore,
 } from "./private-core-proof-store.mjs";
 import { createPrivateCoreRootStore } from "./private-core-root-store.mjs";
 import { createPrivateCoreSendStore } from "./private-core-send-store.mjs";
@@ -58,8 +59,10 @@ import {
   assertVantaPrivateCoreSourceArtifactConsistency,
   deriveVantaPrivateCoreSendInputArtifactsFromWitnessPackage,
   normalizeVantaPrivateCoreSendWitnessPackage,
+  normalizeVantaPrivateCoreSwapWitnessPackage,
   normalizeVantaPrivateCoreWitnessPackage,
   proveAndVerifyVantaPrivateCoreSend,
+  proveAndVerifyVantaPrivateCoreSwap,
   proveAndVerifyVantaPrivateCoreUnshield,
 } from "./private-core-proof.mjs";
 import { createReleaseRecordStore } from "./release-record-store.mjs";
@@ -99,6 +102,7 @@ const releaseRecords = createReleaseRecordStore();
 const privateCoreConsumeStore = createPrivateCoreConsumeStore();
 const privateCoreProofStore = createPrivateCoreProofStore();
 const privateCoreSendProofStore = createPrivateCoreSendProofStore();
+const privateCoreSwapProofStore = createPrivateCoreSwapProofStore();
 const privateCoreSendStore = createPrivateCoreSendStore();
 const privateCoreReleaseRecords = createReleaseRecordStore({
   defaultPath: "operator/.vanta-private-core-releases.json",
@@ -323,6 +327,20 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (request.method === "GET" && request.url === "/state/private-core-swap-proofs") {
+    writeCorsHeaders(response);
+    response.writeHead(200, { "Content-Type": "application/json" });
+    const records = privateCoreSwapProofStore.listProofs();
+    response.end(
+      JSON.stringify({
+        stateVersion: 1,
+        latestProof: records[0] ?? null,
+        records,
+      }),
+    );
+    return;
+  }
+
   if (request.method === "GET" && request.url === "/state/private-core-sends") {
     writeCorsHeaders(response);
     response.writeHead(200, { "Content-Type": "application/json" });
@@ -491,6 +509,36 @@ const server = createServer(async (request, response) => {
         error instanceof Error
           ? error.message
           : "The private-core send proof operator could not process the witness package.",
+      );
+    }
+    return;
+  }
+
+  if (request.method === "POST" && request.url === "/private-core/swap-proof") {
+    try {
+      const body = await readJsonBody(request);
+      const witnessPackage = normalizeVantaPrivateCoreSwapWitnessPackage(body?.witnessPackage);
+      const proofReceipt = await proveAndVerifyVantaPrivateCoreSwap({
+        witnessPackage,
+      });
+      privateCoreSwapProofStore.recordProof(
+        summarizePrivateCoreSwapProofRecord({
+          action: "swap-proof",
+          proofReceipt,
+          witnessPackage,
+        }),
+      );
+
+      writeCorsHeaders(response);
+      response.writeHead(200, { "Content-Type": "application/json" });
+      response.end(JSON.stringify(proofReceipt));
+    } catch (error) {
+      writeCorsHeaders(response);
+      response.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
+      response.end(
+        error instanceof Error
+          ? error.message
+          : "The private-core swap proof operator could not process the witness package.",
       );
     }
     return;
@@ -1507,6 +1555,7 @@ server.listen(port, "127.0.0.1", () => {
   console.log(`Vanta release store: ${releaseRecords.filePath}`);
   console.log(`Vanta private-core proof store: ${privateCoreProofStore.filePath}`);
   console.log(`Vanta private-core send proof store: ${privateCoreSendProofStore.filePath}`);
+  console.log(`Vanta private-core swap proof store: ${privateCoreSwapProofStore.filePath}`);
   console.log(`Vanta private-core send store: ${privateCoreSendStore.filePath}`);
   console.log(`Vanta private-core release store: ${privateCoreReleaseRecords.filePath}`);
   console.log(`Vanta swap store: ${swapRecords.filePath}`);
@@ -2308,6 +2357,37 @@ function summarizePrivateCoreSendProofRecord(args) {
     provingHashLane: args.proofReceipt.provingHashLane,
     publicInputCount: args.proofReceipt.publicInputCount,
     releaseDestination: sourcePublicInputs.recipientCommitment,
+    root: sourcePublicInputs.stateRoot,
+    verified: args.proofReceipt.verified === true,
+  };
+}
+
+function summarizePrivateCoreSwapProofRecord(args) {
+  const witnessPackage = normalizeVantaPrivateCoreSwapWitnessPackage(args.witnessPackage);
+  const sourcePublicInputs = witnessPackage.sourcePublicInputs;
+  const completedAt = Date.now();
+
+  return {
+    action: args.action,
+    assetId: sourcePublicInputs.inputAssetId,
+    amount: sourcePublicInputs.inputAmount,
+    backend: args.proofReceipt.backend,
+    circuit: args.proofReceipt.circuit,
+    completedAt,
+    noteVersion: sourcePublicInputs.inputNoteVersion,
+    nullifier: sourcePublicInputs.inputNullifier,
+    proofFieldCount: args.proofReceipt.proofFieldCount,
+    proofId: [
+      "private-core-swap-proof",
+      args.action,
+      sourcePublicInputs.inputNullifier,
+      sourcePublicInputs.stateRoot,
+      String(completedAt),
+    ].join(":"),
+    proofVersion: args.proofReceipt.proofVersion,
+    provingHashLane: args.proofReceipt.provingHashLane,
+    publicInputCount: args.proofReceipt.publicInputCount,
+    releaseDestination: sourcePublicInputs.outputCommitment,
     root: sourcePublicInputs.stateRoot,
     verified: args.proofReceipt.verified === true,
   };

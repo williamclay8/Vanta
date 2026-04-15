@@ -1,6 +1,7 @@
 import { liveShieldAsset } from "@/solana/shieldConfig";
 import type { VantaPrivateCoreOperatorSourceArtifactBundleV0 } from "@/zk/vantaPrivateCore";
 import type { VantaPrivateCoreNoirSendWitnessPackageV0 } from "@/zk/vantaPrivateCoreSendProof";
+import type { VantaPrivateCoreNoirSwapWitnessPackageV0 } from "@/zk/vantaPrivateCoreSwapProof";
 import type { VantaPrivateCoreNoirUnshieldWitnessPackageV0 } from "@/zk/vantaPrivateCoreUnshieldProof";
 
 export type VantaPrivateCoreProofOperatorResponse = {
@@ -113,6 +114,31 @@ export type VantaPrivateCoreOperatorSendProofStateResponse = {
   stateVersion: number;
   latestProof: VantaPrivateCoreOperatorSendProofRecord | null;
   records: VantaPrivateCoreOperatorSendProofRecord[];
+};
+
+export type VantaPrivateCoreOperatorSwapProofRecord = {
+  action: "swap-proof";
+  assetId: string;
+  amount: string;
+  backend: string;
+  circuit: string;
+  completedAt: number;
+  noteVersion: number;
+  nullifier: string;
+  proofFieldCount: number;
+  proofId: string;
+  proofVersion: number;
+  provingHashLane: string;
+  publicInputCount: number;
+  releaseDestination: string;
+  root: string;
+  verified: boolean;
+};
+
+export type VantaPrivateCoreOperatorSwapProofStateResponse = {
+  stateVersion: number;
+  latestProof: VantaPrivateCoreOperatorSwapProofRecord | null;
+  records: VantaPrivateCoreOperatorSwapProofRecord[];
 };
 
 export type VantaPrivateCoreOperatorSendRecord = {
@@ -541,6 +567,55 @@ export async function requestVantaPrivateCoreOperatorSendProof(args: {
   };
 }
 
+export async function requestVantaPrivateCoreOperatorSwapProof(args: {
+  witnessPackage: VantaPrivateCoreNoirSwapWitnessPackageV0;
+}): Promise<VantaPrivateCoreProofOperatorResponse> {
+  const response = await fetch(getPrivateCoreSwapProofOperatorUrl(), {
+    body: JSON.stringify({
+      witnessPackage: args.witnessPackage,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+    signal: AbortSignal.timeout(30_000),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "The private-core swap proof operator rejected the request.");
+  }
+
+  const parsed = (await response.json()) as Partial<VantaPrivateCoreProofOperatorResponse>;
+
+  if (!parsed.verified) {
+    throw new Error("The private-core swap proof operator did not verify the proof successfully.");
+  }
+
+  if (
+    typeof parsed.proofFieldCount !== "number" ||
+    typeof parsed.publicInputCount !== "number" ||
+    typeof parsed.proofByteLength !== "number" ||
+    typeof parsed.provingHashLane !== "string"
+  ) {
+    throw new Error("The private-core swap proof operator returned an invalid proof summary.");
+  }
+
+  return {
+    backend: parsed.backend ?? "barretenberg-ultrahonk",
+    circuit: parsed.circuit ?? "vanta_private_core_single_note_swap",
+    proofVersion: parsed.proofVersion ?? 0,
+    provingHashLane: parsed.provingHashLane,
+    proofByteLength: parsed.proofByteLength,
+    proofFieldCount: parsed.proofFieldCount,
+    publicInputCount: parsed.publicInputCount,
+    publicInputs: Array.isArray(parsed.publicInputs)
+      ? parsed.publicInputs.filter((value): value is string => typeof value === "string")
+      : [],
+    verified: true,
+  };
+}
+
 export async function requestVantaPrivateCoreOperatorSendTransition(args: {
   witnessPackage: VantaPrivateCoreNoirSendWitnessPackageV0;
   resultingRoot: string;
@@ -717,6 +792,10 @@ function getPrivateCoreSendProofOperatorUrl() {
   return new URL("/private-core/send-proof", liveShieldAsset.unshieldOperatorUrl).toString();
 }
 
+function getPrivateCoreSwapProofOperatorUrl() {
+  return new URL("/private-core/swap-proof", liveShieldAsset.unshieldOperatorUrl).toString();
+}
+
 function getPrivateCoreSendTransitionOperatorUrl() {
   return new URL("/private-core/send-transition", liveShieldAsset.unshieldOperatorUrl).toString();
 }
@@ -834,6 +913,41 @@ export async function fetchVantaPrivateCoreOperatorSendProofs(): Promise<
   };
 }
 
+export async function fetchVantaPrivateCoreOperatorSwapProofs(): Promise<
+  VantaPrivateCoreOperatorSwapProofStateResponse
+> {
+  const response = await fetch(getPrivateCoreSwapProofStateUrl(), {
+    method: "GET",
+    signal: AbortSignal.timeout(15_000),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "The private-core swap proof operator state endpoint failed.");
+  }
+
+  const parsed = (await response.json()) as {
+    latestProof?: unknown;
+    records?: unknown;
+    stateVersion?: unknown;
+  };
+  if (
+    parsed.stateVersion !== 1 ||
+    (parsed.latestProof !== null &&
+      parsed.latestProof !== undefined &&
+      !isSwapProofRecord(parsed.latestProof)) ||
+    !Array.isArray(parsed.records)
+  ) {
+    throw new Error("The private-core swap proof operator state endpoint returned invalid data.");
+  }
+
+  return {
+    stateVersion: 1,
+    latestProof: isSwapProofRecord(parsed.latestProof) ? parsed.latestProof : null,
+    records: parsed.records.filter(isSwapProofRecord),
+  };
+}
+
 export async function fetchVantaPrivateCoreOperatorSends(): Promise<
   VantaPrivateCoreOperatorSendStateResponse
 > {
@@ -917,6 +1031,10 @@ function getPrivateCoreProofStateUrl() {
 
 function getPrivateCoreSendProofStateUrl() {
   return new URL("/state/private-core-send-proofs", liveShieldAsset.unshieldOperatorUrl).toString();
+}
+
+function getPrivateCoreSwapProofStateUrl() {
+  return new URL("/state/private-core-swap-proofs", liveShieldAsset.unshieldOperatorUrl).toString();
 }
 
 function getPrivateCoreSendStateUrl() {
@@ -1660,6 +1778,29 @@ function isSendProofRecord(value: unknown): value is VantaPrivateCoreOperatorSen
     typeof (value as VantaPrivateCoreOperatorSendProofRecord).releaseDestination === "string" &&
     typeof (value as VantaPrivateCoreOperatorSendProofRecord).root === "string" &&
     typeof (value as VantaPrivateCoreOperatorSendProofRecord).verified === "boolean"
+  );
+}
+
+function isSwapProofRecord(value: unknown): value is VantaPrivateCoreOperatorSwapProofRecord {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    (value as VantaPrivateCoreOperatorSwapProofRecord).action === "swap-proof" &&
+    typeof (value as VantaPrivateCoreOperatorSwapProofRecord).assetId === "string" &&
+    typeof (value as VantaPrivateCoreOperatorSwapProofRecord).amount === "string" &&
+    typeof (value as VantaPrivateCoreOperatorSwapProofRecord).backend === "string" &&
+    typeof (value as VantaPrivateCoreOperatorSwapProofRecord).circuit === "string" &&
+    typeof (value as VantaPrivateCoreOperatorSwapProofRecord).completedAt === "number" &&
+    typeof (value as VantaPrivateCoreOperatorSwapProofRecord).noteVersion === "number" &&
+    typeof (value as VantaPrivateCoreOperatorSwapProofRecord).nullifier === "string" &&
+    typeof (value as VantaPrivateCoreOperatorSwapProofRecord).proofFieldCount === "number" &&
+    typeof (value as VantaPrivateCoreOperatorSwapProofRecord).proofId === "string" &&
+    typeof (value as VantaPrivateCoreOperatorSwapProofRecord).proofVersion === "number" &&
+    typeof (value as VantaPrivateCoreOperatorSwapProofRecord).provingHashLane === "string" &&
+    typeof (value as VantaPrivateCoreOperatorSwapProofRecord).publicInputCount === "number" &&
+    typeof (value as VantaPrivateCoreOperatorSwapProofRecord).releaseDestination === "string" &&
+    typeof (value as VantaPrivateCoreOperatorSwapProofRecord).root === "string" &&
+    typeof (value as VantaPrivateCoreOperatorSwapProofRecord).verified === "boolean"
   );
 }
 

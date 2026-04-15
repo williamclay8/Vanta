@@ -140,6 +140,7 @@ The operator-status command now prints:
 - supported swap-lane version and identity
 - supported swap-v1 decision
 - latest proof
+- latest swap proof
 - latest send proof
 - latest send linked proof
 - latest send resulting-root basis
@@ -207,6 +208,7 @@ These commands currently prove:
 - one operator-backed private send to sender-change unshield now persists coherently across operator restart
 - two operator-backed private send transitions to recipient unshield now persist coherently across operator restart
 - a real local proof can still be generated and verified
+- the constrained swap lane can now also be proved locally and verified over the operator HTTP seam
 - the operator HTTP surface is still coherent
 - operator proof, consume, release, and root state survive restart
 - replay is still rejected after restart

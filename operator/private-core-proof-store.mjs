@@ -3,6 +3,7 @@ import { dirname, resolve } from "node:path";
 
 const DEFAULT_PRIVATE_CORE_PROOF_STORE_PATH = "operator/.vanta-private-core-proofs.json";
 const DEFAULT_PRIVATE_CORE_SEND_PROOF_STORE_PATH = "operator/.vanta-private-core-send-proofs.json";
+const DEFAULT_PRIVATE_CORE_SWAP_PROOF_STORE_PATH = "operator/.vanta-private-core-swap-proofs.json";
 
 export function createPrivateCoreProofStore(options = {}) {
   const filePath = resolve(
@@ -32,6 +33,14 @@ export function createPrivateCoreSendProofStore(options = {}) {
   return createPrivateCoreProofStore({
     defaultPath: DEFAULT_PRIVATE_CORE_SEND_PROOF_STORE_PATH,
     envKey: "VANTA_PRIVATE_CORE_SEND_PROOF_STORE_PATH",
+    ...options,
+  });
+}
+
+export function createPrivateCoreSwapProofStore(options = {}) {
+  return createPrivateCoreProofStore({
+    defaultPath: DEFAULT_PRIVATE_CORE_SWAP_PROOF_STORE_PATH,
+    envKey: "VANTA_PRIVATE_CORE_SWAP_PROOF_STORE_PATH",
     ...options,
   });
 }
