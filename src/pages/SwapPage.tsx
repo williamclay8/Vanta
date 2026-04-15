@@ -1046,6 +1046,10 @@ export function SwapPage() {
         privacyFlow.runPrivateCoreSwapTransition(currentPrivateCoreSwapCandidate.transition, {
           executionBasisLabel: "Current held note + live quote",
           executionPrimaryNote: currentPrivateCoreSwapPathNote,
+          executionVenueLabel: quote
+            ? `${quote.venueName} ${quote.venueFamily} (${quote.venueNetwork})`
+            : null,
+          executionQuoteReference: quote?.quoteId ?? null,
           livePathStatusLabel: currentPrivateCoreSwapPathStatusLabel,
           livePathPrimaryNote: currentPrivateCoreSwapPathNote,
           livePathPrimaryBlocker: currentPrivateCoreSwapPathPrimaryBlocker,
@@ -1672,6 +1676,10 @@ export function SwapPage() {
                   <strong>{privateCoreSwapState.executionBasisLabel}</strong>
                 </div>
                 <div className="preview-card">
+                  <span>Execution venue</span>
+                  <strong>{privateCoreSwapState.executionVenueLabel ?? "Unavailable"}</strong>
+                </div>
+                <div className="preview-card">
                   <span>Live path status</span>
                   <strong>{privateCoreSwapState.livePathStatusLabel}</strong>
                 </div>
@@ -1689,6 +1697,12 @@ export function SwapPage() {
               </p>
               <p className="shield-helper shield-helper--meta">
                 Swap execution note: {privateCoreSwapState.executionPrimaryNote}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Execution venue: {privateCoreSwapState.executionVenueLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Quote reference: {privateCoreSwapState.executionQuoteReference ?? "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
                 Swap live path: {privateCoreSwapState.livePathStatusLabel}

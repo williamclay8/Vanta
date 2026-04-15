@@ -269,6 +269,8 @@ type PrivacyFlowContextValue = {
     options?: {
       executionBasisLabel?: string;
       executionPrimaryNote?: string;
+      executionVenueLabel?: string | null;
+      executionQuoteReference?: string | null;
       livePathStatusLabel?: string;
       livePathPrimaryNote?: string;
       livePathPrimaryBlocker?: string | null;
@@ -379,6 +381,8 @@ export type VantaPrivateCoreSwapState = {
   outputAmount: string;
   executionBasisLabel: string;
   executionPrimaryNote: string;
+  executionVenueLabel: string | null;
+  executionQuoteReference: string | null;
   livePathStatusLabel: string;
   livePathPrimaryNote: string;
   livePathPrimaryBlocker: string | null;
@@ -1410,13 +1414,15 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   const runPrivateCoreSwapTransition = useCallback(
     (
       transition: SwapTransitionV0,
-      options?: {
-        executionBasisLabel?: string;
-        executionPrimaryNote?: string;
-        livePathStatusLabel?: string;
-        livePathPrimaryNote?: string;
-        livePathPrimaryBlocker?: string | null;
-      },
+    options?: {
+      executionBasisLabel?: string;
+      executionPrimaryNote?: string;
+      executionVenueLabel?: string | null;
+      executionQuoteReference?: string | null;
+      livePathStatusLabel?: string;
+      livePathPrimaryNote?: string;
+      livePathPrimaryBlocker?: string | null;
+    },
     ) => {
       const result = privateCoreLedger.swap(transition);
       const nextShieldState = {
@@ -1447,6 +1453,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         executionPrimaryNote:
           options?.executionPrimaryNote ??
           "A private-core swap transition was applied locally and is waiting for the next operator summary refresh.",
+        executionVenueLabel: options?.executionVenueLabel ?? null,
+        executionQuoteReference: options?.executionQuoteReference ?? null,
         livePathStatusLabel: options?.livePathStatusLabel ?? "Locally applied transition",
         livePathPrimaryNote:
           options?.livePathPrimaryNote ??
@@ -3043,6 +3051,8 @@ function summarizePrivateCoreOperatorSwapState(args: {
     executionBasisLabel: "Operator summary-backed swap state",
     executionPrimaryNote:
       "This swap handoff is being reconstructed from persisted operator summary state rather than a newly applied local current-note path.",
+    executionVenueLabel: null,
+    executionQuoteReference: null,
     livePathStatusLabel: "Operator summary-backed state",
     livePathPrimaryNote:
       "The original current-note swap preparation state is not persisted, so this handoff is being reconstructed from operator summary state.",

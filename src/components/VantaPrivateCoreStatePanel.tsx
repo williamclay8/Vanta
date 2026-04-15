@@ -585,6 +585,14 @@ export function VantaPrivateCoreStatePanel({
                 <strong>{swapState.executionPrimaryNote}</strong>
               </div>
               <div className="review-row">
+                <span>Execution venue</span>
+                <strong>{swapState.executionVenueLabel ?? "Unavailable"}</strong>
+              </div>
+              <div className="review-row">
+                <span>Quote reference</span>
+                <strong>{swapState.executionQuoteReference ?? "Unavailable"}</strong>
+              </div>
+              <div className="review-row">
                 <span>Swap live path</span>
                 <strong>{swapState.livePathStatusLabel}</strong>
               </div>
