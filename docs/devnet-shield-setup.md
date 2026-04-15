@@ -138,6 +138,7 @@ The operator-status command now prints:
 - supported send-lane version and identity
 - supported unshield-lane version and identity
 - supported swap-lane version and identity
+- supported swap-v1 decision
 - latest proof
 - latest send proof
 - latest send linked proof

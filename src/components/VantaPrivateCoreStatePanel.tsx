@@ -58,6 +58,8 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSupportedSwapLaneNote?: string | null;
   operatorSupportedSwapLaneStatus?: string | null;
   operatorSupportedSwapLaneVersion?: number | null;
+  operatorSupportedSwapV1Decision?: string | null;
+  operatorSupportedSwapV1DecisionNote?: string | null;
   operatorSupportedSwapVenue?: string | null;
   operatorSupportedSwapOutputModel?: string | null;
   operatorSupportedFlowKind?: string | null;
@@ -265,6 +267,8 @@ export function VantaPrivateCoreStatePanel({
   operatorSupportedSwapLaneNote = null,
   operatorSupportedSwapLaneStatus = null,
   operatorSupportedSwapLaneVersion = null,
+  operatorSupportedSwapV1Decision = null,
+  operatorSupportedSwapV1DecisionNote = null,
   operatorSupportedSwapVenue = null,
   operatorSupportedSwapOutputModel = null,
   operatorSupportedFlowKind = null,
@@ -658,6 +662,14 @@ export function VantaPrivateCoreStatePanel({
               </strong>
             </div>
             <div className="review-row">
+              <span>Swap v1 decision</span>
+              <strong>
+                {operatorSupportedSwapV1Decision === "accepted-narrow-v1-path"
+                  ? "Accepted narrow v1 path"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
               <span>Supported flow</span>
               <strong>
                 {operatorSupportedFlowKind === "shield-hold-send-unshield-replay-guard"
@@ -872,6 +884,10 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Supported swap note</span>
               <strong>{operatorSupportedSwapLaneNote ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Swap v1 decision note</span>
+              <strong>{operatorSupportedSwapV1DecisionNote ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Supported flow note</span>

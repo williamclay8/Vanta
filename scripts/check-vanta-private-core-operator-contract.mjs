@@ -102,8 +102,8 @@ try {
   if (
     !contractState.ok ||
     contractState.parsed?.stateVersion !== 1 ||
-    contractState.parsed?.contractVersion !== 8 ||
-    contractState.parsed?.summaryVersion !== 27 ||
+    contractState.parsed?.contractVersion !== 9 ||
+    contractState.parsed?.summaryVersion !== 28 ||
     contractState.parsed?.supportedSendLaneVersion !== 1 ||
     contractState.parsed?.supportedSendV1Decision !== "accepted-narrow-v1-path" ||
     typeof contractState.parsed?.supportedSendV1DecisionNote !== "string" ||
@@ -115,6 +115,8 @@ try {
     contractState.parsed?.supportedSwapLaneKind !== "single-input-vusd-to-shielded-sol" ||
     contractState.parsed?.supportedSwapLaneStatus !== "supported" ||
     typeof contractState.parsed?.supportedSwapLaneNote !== "string" ||
+    contractState.parsed?.supportedSwapV1Decision !== "accepted-narrow-v1-path" ||
+    typeof contractState.parsed?.supportedSwapV1DecisionNote !== "string" ||
     contractState.parsed?.supportedSwapVenue !== "meteora-dlmm-devnet" ||
     contractState.parsed?.supportedSwapOutputModel !== "shielded-sol-output-note" ||
     contractState.parsed?.supportedFlowVersion !== 1 ||
@@ -177,6 +179,8 @@ try {
     "supportedSwapLaneKind",
     "supportedSwapLaneStatus",
     "supportedSwapLaneNote",
+    "supportedSwapV1Decision",
+    "supportedSwapV1DecisionNote",
     "supportedSwapVenue",
     "supportedSwapOutputModel",
     "supportedFlowVersion",
@@ -252,8 +256,8 @@ try {
   });
   if (
     !contractOutput.includes("Contract state version: 1") ||
-    !contractOutput.includes("Contract version: 8") ||
-    !contractOutput.includes("Summary compatibility: 27") ||
+    !contractOutput.includes("Contract version: 9") ||
+    !contractOutput.includes("Summary compatibility: 28") ||
     !contractOutput.includes("Supported note schema: NoteV0 / v0") ||
     !contractOutput.includes("Supported send v1 decision: accepted-narrow-v1-path") ||
     !contractOutput.includes("Supported unshield v1 decision: accepted-narrow-v1-path") ||
@@ -265,6 +269,7 @@ try {
     !contractOutput.includes("Supported swap lane version: 1") ||
     !contractOutput.includes("Supported swap lane kind: single-input-vusd-to-shielded-sol") ||
     !contractOutput.includes("Supported swap lane status: supported") ||
+    !contractOutput.includes("Supported swap v1 decision: accepted-narrow-v1-path") ||
     !contractOutput.includes("Supported swap venue: meteora-dlmm-devnet") ||
     !contractOutput.includes("Supported swap output model: shielded-sol-output-note") ||
     !contractOutput.includes(

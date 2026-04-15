@@ -72,6 +72,14 @@ try {
     humanizeSupportedSwapLaneStatus(summary.supportedSwapLaneStatus),
   );
   printLine("Supported swap lane note", summary.supportedSwapLaneNote ?? "Unavailable");
+  printLine(
+    "Supported swap v1 decision",
+    humanizeSupportedV1Decision(summary.supportedSwapV1Decision),
+  );
+  printLine(
+    "Supported swap v1 decision note",
+    summary.supportedSwapV1DecisionNote ?? "Unavailable",
+  );
   printLine("Supported swap venue", humanizeSupportedSwapVenue(summary.supportedSwapVenue));
   printLine(
     "Supported swap output model",

@@ -74,6 +74,8 @@ export function AppDashboardPage() {
     privateCoreOperatorSupportedSwapLaneNote,
     privateCoreOperatorSupportedSwapLaneStatus,
     privateCoreOperatorSupportedSwapLaneVersion,
+    privateCoreOperatorSupportedSwapV1Decision,
+    privateCoreOperatorSupportedSwapV1DecisionNote,
     privateCoreOperatorSupportedSwapVenue,
     privateCoreOperatorSupportedSwapOutputModel,
     privateCoreOperatorSupportedReleaseV1Decision,
@@ -320,6 +322,8 @@ export function AppDashboardPage() {
           operatorSupportedSwapLaneNote={privateCoreOperatorSupportedSwapLaneNote}
           operatorSupportedSwapLaneStatus={privateCoreOperatorSupportedSwapLaneStatus}
           operatorSupportedSwapLaneVersion={privateCoreOperatorSupportedSwapLaneVersion}
+          operatorSupportedSwapV1Decision={privateCoreOperatorSupportedSwapV1Decision}
+          operatorSupportedSwapV1DecisionNote={privateCoreOperatorSupportedSwapV1DecisionNote}
           operatorSupportedSwapVenue={privateCoreOperatorSupportedSwapVenue}
           operatorSupportedSwapOutputModel={privateCoreOperatorSupportedSwapOutputModel}
           operatorSupportedReleaseV1Decision={privateCoreOperatorSupportedReleaseV1Decision}

@@ -135,6 +135,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorSupportedSwapLaneNote: string | null;
   privateCoreOperatorSupportedSwapLaneStatus: string | null;
   privateCoreOperatorSupportedSwapLaneVersion: number | null;
+  privateCoreOperatorSupportedSwapV1Decision: string | null;
+  privateCoreOperatorSupportedSwapV1DecisionNote: string | null;
   privateCoreOperatorSupportedSwapVenue: string | null;
   privateCoreOperatorSupportedSwapOutputModel: string | null;
   privateCoreOperatorSupportedFlowKind: string | null;
@@ -497,6 +499,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<string | null>(null);
   const [privateCoreOperatorSupportedSwapLaneVersion, setPrivateCoreOperatorSupportedSwapLaneVersion] =
     useState<number | null>(null);
+  const [privateCoreOperatorSupportedSwapV1Decision, setPrivateCoreOperatorSupportedSwapV1Decision] =
+    useState<string | null>(null);
+  const [
+    privateCoreOperatorSupportedSwapV1DecisionNote,
+    setPrivateCoreOperatorSupportedSwapV1DecisionNote,
+  ] = useState<string | null>(null);
   const [privateCoreOperatorSupportedSwapVenue, setPrivateCoreOperatorSupportedSwapVenue] =
     useState<string | null>(null);
   const [privateCoreOperatorSupportedSwapOutputModel, setPrivateCoreOperatorSupportedSwapOutputModel] =
@@ -665,6 +673,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSupportedSwapLaneNote,
       setPrivateCoreOperatorSupportedSwapLaneStatus,
       setPrivateCoreOperatorSupportedSwapLaneVersion,
+      setPrivateCoreOperatorSupportedSwapV1Decision,
+      setPrivateCoreOperatorSupportedSwapV1DecisionNote,
       setPrivateCoreOperatorSupportedSwapVenue,
       setPrivateCoreOperatorSupportedSwapOutputModel,
       setPrivateCoreOperatorSupportedFlowKind,
@@ -1751,6 +1761,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedSwapLaneNote,
       privateCoreOperatorSupportedSwapLaneStatus,
       privateCoreOperatorSupportedSwapLaneVersion,
+      privateCoreOperatorSupportedSwapV1Decision,
+      privateCoreOperatorSupportedSwapV1DecisionNote,
       privateCoreOperatorSupportedSwapVenue,
       privateCoreOperatorSupportedSwapOutputModel,
       privateCoreOperatorSupportedFlowKind,
@@ -1898,6 +1910,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedSwapLaneNote,
       privateCoreOperatorSupportedSwapLaneStatus,
       privateCoreOperatorSupportedSwapLaneVersion,
+      privateCoreOperatorSupportedSwapV1Decision,
+      privateCoreOperatorSupportedSwapV1DecisionNote,
       privateCoreOperatorSupportedSwapVenue,
       privateCoreOperatorSupportedSwapOutputModel,
       privateCoreOperatorSupportedFlowKind,
@@ -2513,6 +2527,8 @@ function applyPrivateCoreOperatorContractState(args: {
   setPrivateCoreOperatorSupportedSwapLaneNote: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSwapLaneStatus: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSwapLaneVersion: (value: number | null) => void;
+  setPrivateCoreOperatorSupportedSwapV1Decision: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedSwapV1DecisionNote: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSwapVenue: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSwapOutputModel: (value: string | null) => void;
   setPrivateCoreOperatorSupportedFlowKind: (value: string | null) => void;
@@ -2594,6 +2610,12 @@ function applyPrivateCoreOperatorContractState(args: {
   args.setPrivateCoreOperatorSupportedSwapLaneStatus(args.contractState.supportedSwapLaneStatus);
   args.setPrivateCoreOperatorSupportedSwapLaneVersion(
     args.contractState.supportedSwapLaneVersion,
+  );
+  args.setPrivateCoreOperatorSupportedSwapV1Decision(
+    args.contractState.supportedSwapV1Decision,
+  );
+  args.setPrivateCoreOperatorSupportedSwapV1DecisionNote(
+    args.contractState.supportedSwapV1DecisionNote,
   );
   args.setPrivateCoreOperatorSupportedSwapVenue(args.contractState.supportedSwapVenue);
   args.setPrivateCoreOperatorSupportedSwapOutputModel(

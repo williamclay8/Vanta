@@ -232,11 +232,12 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   prints the current operator-side root, proof, send-proof, send-transition, consume, and release state when the operator server is running, including proof/send, proof/consume, proof/release, and root-registration proof linkage plus send resulting-root continuity status, resulting-root provenance, and the matched resulting-root record when available
 
 The current frozen operator-backed private-core contract now states the narrow accepted `v1` path explicitly:
-- `contractVersion = 8`
-- `summaryVersion = 27`
+- `contractVersion = 9`
+- `summaryVersion = 28`
 - `supportedSendV1Decision = accepted-narrow-v1-path`
 - `supportedUnshieldV1Decision = accepted-narrow-v1-path`
 - `supportedReleaseV1Decision = accepted-narrow-v1-path`
+- `supportedSwapV1Decision = accepted-narrow-v1-path`
 - `supportedSwapLaneKind = single-input-vusd-to-shielded-sol`
 - `supportedSwapVenue = meteora-dlmm-devnet`
 
@@ -386,6 +387,7 @@ The same operator contract now also versions the supported narrow unshield lane:
 - `supportedReleaseLaneKind = proof-backed-consume-latest-registered-root`
 - `supportedReleaseLaneStatus = supported`
 - `supportedReleaseV1Decision = accepted-narrow-v1-path`
+- `supportedSwapV1Decision = accepted-narrow-v1-path`
 - `supportedSwapLaneVersion = 1`
 - `supportedSwapLaneKind = single-input-vusd-to-shielded-sol`
 - `supportedSwapLaneStatus = supported`

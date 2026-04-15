@@ -273,7 +273,7 @@ try {
     preRestartSends.parsed.records.length < 1 ||
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.stateVersion !== 1 ||
-    preRestartSummary.parsed?.summaryVersion !== 27 ||
+    preRestartSummary.parsed?.summaryVersion !== 28 ||
     preRestartSummary.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     preRestartSummary.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -294,6 +294,8 @@ try {
     preRestartSummary.parsed?.supportedSwapLaneKind !== "single-input-vusd-to-shielded-sol" ||
     preRestartSummary.parsed?.supportedSwapLaneStatus !== "supported" ||
     typeof preRestartSummary.parsed?.supportedSwapLaneNote !== "string" ||
+    preRestartSummary.parsed?.supportedSwapV1Decision !== "accepted-narrow-v1-path" ||
+    typeof preRestartSummary.parsed?.supportedSwapV1DecisionNote !== "string" ||
     preRestartSummary.parsed?.supportedSwapVenue !== "meteora-dlmm-devnet" ||
     preRestartSummary.parsed?.supportedSwapOutputModel !== "shielded-sol-output-note" ||
     preRestartSummary.parsed?.supportedFlowVersion !== 1 ||
@@ -366,7 +368,7 @@ try {
   if (
     !postRestartSummary.ok ||
     postRestartSummary.parsed?.stateVersion !== 1 ||
-    postRestartSummary.parsed?.summaryVersion !== 27 ||
+    postRestartSummary.parsed?.summaryVersion !== 28 ||
     postRestartSummary.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     postRestartSummary.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -387,6 +389,8 @@ try {
     postRestartSummary.parsed?.supportedSwapLaneKind !== "single-input-vusd-to-shielded-sol" ||
     postRestartSummary.parsed?.supportedSwapLaneStatus !== "supported" ||
     typeof postRestartSummary.parsed?.supportedSwapLaneNote !== "string" ||
+    postRestartSummary.parsed?.supportedSwapV1Decision !== "accepted-narrow-v1-path" ||
+    typeof postRestartSummary.parsed?.supportedSwapV1DecisionNote !== "string" ||
     postRestartSummary.parsed?.supportedSwapVenue !== "meteora-dlmm-devnet" ||
     postRestartSummary.parsed?.supportedSwapOutputModel !== "shielded-sol-output-note" ||
     postRestartSummary.parsed?.supportedFlowVersion !== 1 ||
@@ -491,13 +495,14 @@ try {
     stdio: "pipe",
   });
   if (
-    !operatorStatusOutput.includes("Summary version: 27") ||
-    !operatorStatusOutput.includes("Mirrored contract version: 8") ||
+    !operatorStatusOutput.includes("Summary version: 28") ||
+    !operatorStatusOutput.includes("Mirrored contract version: 9") ||
     !operatorStatusOutput.includes("Supported send v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported unshield v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported swap lane version: 1") ||
     !operatorStatusOutput.includes("Supported swap lane kind: Single input VUSD to shielded SOL") ||
     !operatorStatusOutput.includes("Supported swap lane status: Supported") ||
+    !operatorStatusOutput.includes("Supported swap v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported swap venue: Meteora DLMM devnet") ||
     !operatorStatusOutput.includes("Supported swap output model: Shielded SOL output note") ||
     !operatorStatusOutput.includes(

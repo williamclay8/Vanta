@@ -7,6 +7,7 @@ This note freezes the current constrained swap lane that Vanta exposes in the na
 - `supportedSwapLaneVersion = 1`
 - `supportedSwapLaneKind = single-input-vusd-to-shielded-sol`
 - `supportedSwapLaneStatus = supported`
+- `supportedSwapV1Decision = accepted-narrow-v1-path`
 - `supportedSwapVenue = meteora-dlmm-devnet`
 - `supportedSwapOutputModel = shielded-sol-output-note`
 
@@ -19,6 +20,8 @@ The current supported swap path is deliberately narrow:
 - one shielded SOL output note
 
 This is not a claim that arbitrary private swaps are already supported. It is a freeze of the one constrained swap lane the current product/operator contract is willing to describe as supported.
+
+The operator contract now also says this lane is explicitly accepted as part of the narrow current `v1` path, rather than leaving that interpretation implicit.
 
 ## Why the contract says this explicitly
 

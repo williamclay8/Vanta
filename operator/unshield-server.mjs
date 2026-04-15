@@ -165,6 +165,9 @@ const PRIVATE_CORE_SUPPORTED_SWAP_LANE_KIND = "single-input-vusd-to-shielded-sol
 const PRIVATE_CORE_SUPPORTED_SWAP_LANE_STATUS = "supported";
 const PRIVATE_CORE_SUPPORTED_SWAP_LANE_NOTE =
   "Current constrained swap lane supports one VUSD input note into one shielded SOL output through an operator-backed Meteora-aware quote and execution path.";
+const PRIVATE_CORE_SUPPORTED_SWAP_V1_DECISION = "accepted-narrow-v1-path";
+const PRIVATE_CORE_SUPPORTED_SWAP_V1_DECISION_NOTE =
+  "Current constrained operator-backed VUSD to shielded SOL swap lane is accepted as the narrow zk v1 swap path on solana-devnet.";
 const PRIVATE_CORE_SUPPORTED_SWAP_VENUE = "meteora-dlmm-devnet";
 const PRIVATE_CORE_SUPPORTED_SWAP_OUTPUT_MODEL = "shielded-sol-output-note";
 const PRIVATE_CORE_SUPPORTED_FLOW_VERSION = 1;
@@ -1671,8 +1674,8 @@ function buildPrivateCoreSummaryState() {
 function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
-    contractVersion: 8,
-    summaryVersion: 27,
+    contractVersion: 9,
+    summaryVersion: 28,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
@@ -1695,6 +1698,8 @@ function buildPrivateCoreContractState() {
     supportedSwapLaneKind: PRIVATE_CORE_SUPPORTED_SWAP_LANE_KIND,
     supportedSwapLaneStatus: PRIVATE_CORE_SUPPORTED_SWAP_LANE_STATUS,
     supportedSwapLaneNote: PRIVATE_CORE_SUPPORTED_SWAP_LANE_NOTE,
+    supportedSwapV1Decision: PRIVATE_CORE_SUPPORTED_SWAP_V1_DECISION,
+    supportedSwapV1DecisionNote: PRIVATE_CORE_SUPPORTED_SWAP_V1_DECISION_NOTE,
     supportedSwapVenue: PRIVATE_CORE_SUPPORTED_SWAP_VENUE,
     supportedSwapOutputModel: PRIVATE_CORE_SUPPORTED_SWAP_OUTPUT_MODEL,
     supportedFlowVersion: PRIVATE_CORE_SUPPORTED_FLOW_VERSION,
@@ -1761,6 +1766,8 @@ function summarizePrivateCoreContractMirrorStatus(args) {
     "supportedSwapLaneKind",
     "supportedSwapLaneStatus",
     "supportedSwapLaneNote",
+    "supportedSwapV1Decision",
+    "supportedSwapV1DecisionNote",
     "supportedSwapVenue",
     "supportedSwapOutputModel",
     "supportedFlowVersion",

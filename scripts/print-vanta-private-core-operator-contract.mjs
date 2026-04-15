@@ -59,6 +59,14 @@ try {
   printLine("Supported swap lane kind", contract.supportedSwapLaneKind ?? "Unavailable");
   printLine("Supported swap lane status", contract.supportedSwapLaneStatus ?? "Unavailable");
   printLine("Supported swap lane note", contract.supportedSwapLaneNote ?? "Unavailable");
+  printLine(
+    "Supported swap v1 decision",
+    contract.supportedSwapV1Decision ?? "Unavailable",
+  );
+  printLine(
+    "Supported swap v1 decision note",
+    contract.supportedSwapV1DecisionNote ?? "Unavailable",
+  );
   printLine("Supported swap venue", contract.supportedSwapVenue ?? "Unavailable");
   printLine(
     "Supported swap output model",

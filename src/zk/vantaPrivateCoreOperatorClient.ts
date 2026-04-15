@@ -270,6 +270,8 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedSwapLaneKind: "single-input-vusd-to-shielded-sol";
   supportedSwapLaneStatus: "supported";
   supportedSwapLaneNote: string;
+  supportedSwapV1Decision: "accepted-narrow-v1-path";
+  supportedSwapV1DecisionNote: string;
   supportedSwapVenue: "meteora-dlmm-devnet";
   supportedSwapOutputModel: "shielded-sol-output-note";
   supportedFlowKind: "shield-hold-send-unshield-replay-guard";
@@ -363,6 +365,8 @@ export type VantaPrivateCoreOperatorContractStateResponse = {
   supportedSwapLaneKind: "single-input-vusd-to-shielded-sol";
   supportedSwapLaneStatus: "supported";
   supportedSwapLaneNote: string;
+  supportedSwapV1Decision: "accepted-narrow-v1-path";
+  supportedSwapV1DecisionNote: string;
   supportedSwapVenue: "meteora-dlmm-devnet";
   supportedSwapOutputModel: "shielded-sol-output-note";
   supportedFlowVersion: number;
@@ -1026,6 +1030,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedSwapLaneKind?: unknown;
     supportedSwapLaneStatus?: unknown;
     supportedSwapLaneNote?: unknown;
+    supportedSwapV1Decision?: unknown;
+    supportedSwapV1DecisionNote?: unknown;
     supportedSwapVenue?: unknown;
     supportedSwapOutputModel?: unknown;
     supportedFlowKind?: unknown;
@@ -1092,8 +1098,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 8 ||
-    parsed.summaryVersion !== 27 ||
+    parsed.contractVersion !== 9 ||
+    parsed.summaryVersion !== 28 ||
     !isContractMirrorStatus(parsed.contractMirrorStatus) ||
     typeof parsed.contractMirrorNote !== "string" ||
     !isBoundaryStatus(parsed.boundaryStatus) ||
@@ -1139,6 +1145,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     parsed.supportedSwapLaneKind !== "single-input-vusd-to-shielded-sol" ||
     parsed.supportedSwapLaneStatus !== "supported" ||
     typeof parsed.supportedSwapLaneNote !== "string" ||
+    parsed.supportedSwapV1Decision !== "accepted-narrow-v1-path" ||
+    typeof parsed.supportedSwapV1DecisionNote !== "string" ||
     parsed.supportedSwapVenue !== "meteora-dlmm-devnet" ||
     parsed.supportedSwapOutputModel !== "shielded-sol-output-note" ||
     parsed.supportedFlowVersion !== 1 ||
@@ -1230,8 +1238,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   return {
     stateVersion: 1,
-    contractVersion: 8,
-    summaryVersion: 27,
+    contractVersion: 9,
+    summaryVersion: 28,
     contractMirrorStatus: parsed.contractMirrorStatus,
     contractMirrorNote: parsed.contractMirrorNote,
     boundaryStatus: parsed.boundaryStatus,
@@ -1260,6 +1268,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedSwapLaneKind: "single-input-vusd-to-shielded-sol",
     supportedSwapLaneStatus: "supported",
     supportedSwapLaneNote: parsed.supportedSwapLaneNote,
+    supportedSwapV1Decision: "accepted-narrow-v1-path",
+    supportedSwapV1DecisionNote: parsed.supportedSwapV1DecisionNote,
     supportedSwapVenue: "meteora-dlmm-devnet",
     supportedSwapOutputModel: "shielded-sol-output-note",
     supportedFlowVersion: 1,
@@ -1386,6 +1396,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedSwapLaneKind?: unknown;
     supportedSwapLaneStatus?: unknown;
     supportedSwapLaneNote?: unknown;
+    supportedSwapV1Decision?: unknown;
+    supportedSwapV1DecisionNote?: unknown;
     supportedSwapVenue?: unknown;
     supportedSwapOutputModel?: unknown;
     supportedFlowVersion?: unknown;
@@ -1426,8 +1438,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 8 ||
-    parsed.summaryVersion !== 27 ||
+    parsed.contractVersion !== 9 ||
+    parsed.summaryVersion !== 28 ||
     parsed.supportedSendLaneVersion !== 1 ||
     parsed.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     parsed.supportedSendLaneStatus !== "supported" ||
@@ -1450,6 +1462,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     parsed.supportedSwapLaneKind !== "single-input-vusd-to-shielded-sol" ||
     parsed.supportedSwapLaneStatus !== "supported" ||
     typeof parsed.supportedSwapLaneNote !== "string" ||
+    parsed.supportedSwapV1Decision !== "accepted-narrow-v1-path" ||
+    typeof parsed.supportedSwapV1DecisionNote !== "string" ||
     parsed.supportedSwapVenue !== "meteora-dlmm-devnet" ||
     parsed.supportedSwapOutputModel !== "shielded-sol-output-note" ||
     parsed.supportedFlowVersion !== 1 ||
@@ -1495,8 +1509,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
 
   return {
     stateVersion: 1,
-    contractVersion: 8,
-    summaryVersion: 27,
+    contractVersion: 9,
+    summaryVersion: 28,
     supportedSendLaneVersion: 1,
     supportedSendLaneKind: "single-input-single-recipient-optional-change",
     supportedSendLaneStatus: "supported",
@@ -1519,6 +1533,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedSwapLaneKind: "single-input-vusd-to-shielded-sol",
     supportedSwapLaneStatus: "supported",
     supportedSwapLaneNote: parsed.supportedSwapLaneNote,
+    supportedSwapV1Decision: "accepted-narrow-v1-path",
+    supportedSwapV1DecisionNote: parsed.supportedSwapV1DecisionNote,
     supportedSwapVenue: "meteora-dlmm-devnet",
     supportedSwapOutputModel: "shielded-sol-output-note",
     supportedFlowVersion: 1,
