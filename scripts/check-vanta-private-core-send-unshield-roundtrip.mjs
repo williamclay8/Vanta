@@ -263,6 +263,17 @@ try {
   }
   printStatus("private-core send->unshield input root registration: PASS");
 
+  const initialSummary = await requestJson(baseUrl, "/state/private-core-summary", { method: "GET" });
+  if (
+    !initialSummary.ok ||
+    initialSummary.parsed?.sendBoundaryStatus !== "unavailable" ||
+    initialSummary.parsed?.sendBoundaryNote !==
+      "No private send transition is available for boundary checks yet."
+  ) {
+    throw new Error(initialSummary.text || "initial send boundary state was not unavailable");
+  }
+  printStatus("private-core send->unshield initial boundary state: PASS");
+
   const previewResult = ledger.previewSend(transition);
 
   const sendTransitionResponse = await requestJson(baseUrl, "/private-core/send-transition", {
@@ -282,6 +293,21 @@ try {
     throw new Error(sendTransitionResponse.text || "operator-backed send transition failed");
   }
   printStatus("private-core send->unshield operator send transition: PASS");
+
+  const summaryAfterTransition = await requestJson(baseUrl, "/state/private-core-summary", {
+    method: "GET",
+  });
+  if (
+    !summaryAfterTransition.ok ||
+    summaryAfterTransition.parsed?.sendBoundaryStatus !== "awaiting-registration" ||
+    summaryAfterTransition.parsed?.sendBoundaryNote !==
+      "Latest send resulting root still needs operator registration before downstream continuity is established."
+  ) {
+    throw new Error(
+      summaryAfterTransition.text || "send boundary did not enter awaiting-registration after transition",
+    );
+  }
+  printStatus("private-core send->unshield boundary awaiting registration: PASS");
 
   const sendResult = ledger.send(transition);
   const heldRecipient = ledger.hold({
@@ -317,6 +343,21 @@ try {
     throw new Error(registerRootResponse.text || "operator-backed recipient root registration failed");
   }
   printStatus("private-core send->unshield recipient root registration: PASS");
+
+  const summaryAfterRegistration = await requestJson(baseUrl, "/state/private-core-summary", {
+    method: "GET",
+  });
+  if (
+    !summaryAfterRegistration.ok ||
+    summaryAfterRegistration.parsed?.sendBoundaryStatus !== "coherent-current-root" ||
+    summaryAfterRegistration.parsed?.sendBoundaryNote !==
+      "Latest send resulting root is registered, linked, and current for downstream send or unshield use."
+  ) {
+    throw new Error(
+      summaryAfterRegistration.text || "send boundary did not become coherent-current-root after registration",
+    );
+  }
+  printStatus("private-core send->unshield boundary current-root ready: PASS");
 
   const consumeResponse = await requestJson(baseUrl, "/private-core/unshield-consume", {
     body: JSON.stringify({
@@ -356,6 +397,9 @@ try {
     summary.parsed?.proofConsumeLinkStatus !== "linked" ||
     summary.parsed?.proofReleaseLinkStatus !== "linked" ||
     summary.parsed?.sendResultingRootStatus !== "downstream-released" ||
+    summary.parsed?.sendBoundaryStatus !== "downstream-released" ||
+    summary.parsed?.sendBoundaryNote !==
+      "Latest send resulting root has already been released downstream." ||
     summary.parsed?.boundaryStatus !== "coherent"
   ) {
     throw new Error(summary.text || "operator summary did not reflect send->unshield roundtrip");
