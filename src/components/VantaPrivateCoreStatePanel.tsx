@@ -580,6 +580,18 @@ export function VantaPrivateCoreStatePanel({
                 <strong>{swapState.executionPrimaryNote}</strong>
               </div>
               <div className="review-row">
+                <span>Swap live path</span>
+                <strong>{swapState.livePathStatusLabel}</strong>
+              </div>
+              <div className="review-row">
+                <span>Swap live path note</span>
+                <strong>{swapState.livePathPrimaryNote}</strong>
+              </div>
+              <div className="review-row">
+                <span>Swap live path blocker</span>
+                <strong>{swapState.livePathPrimaryBlocker ?? "None"}</strong>
+              </div>
+              <div className="review-row">
                 <span>Output payload</span>
                 <strong>
                   {swapState.outputPayloadCommitment

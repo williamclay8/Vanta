@@ -1040,6 +1040,9 @@ export function SwapPage() {
         privacyFlow.runPrivateCoreSwapTransition(currentPrivateCoreSwapCandidate.transition, {
           executionBasisLabel: "Current held note + live quote",
           executionPrimaryNote: currentPrivateCoreSwapPathNote,
+          livePathStatusLabel: currentPrivateCoreSwapPathStatusLabel,
+          livePathPrimaryNote: currentPrivateCoreSwapPathNote,
+          livePathPrimaryBlocker: currentPrivateCoreSwapPathPrimaryBlocker,
         });
       }
 
@@ -1639,6 +1642,10 @@ export function SwapPage() {
                   <strong>{privateCoreSwapState.executionBasisLabel}</strong>
                 </div>
                 <div className="preview-card">
+                  <span>Live path status</span>
+                  <strong>{privateCoreSwapState.livePathStatusLabel}</strong>
+                </div>
+                <div className="preview-card">
                   <span>Swap boundary</span>
                   <strong>{privateCoreSwapState.boundaryStatusLabel}</strong>
                 </div>
@@ -1653,6 +1660,17 @@ export function SwapPage() {
               <p className="shield-helper shield-helper--meta">
                 Swap execution note: {privateCoreSwapState.executionPrimaryNote}
               </p>
+              <p className="shield-helper shield-helper--meta">
+                Swap live path: {privateCoreSwapState.livePathStatusLabel}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Live path note: {privateCoreSwapState.livePathPrimaryNote}
+              </p>
+              {privateCoreSwapState.livePathPrimaryBlocker && (
+                <p className="shield-helper shield-helper--meta">
+                  Live path blocker: {privateCoreSwapState.livePathPrimaryBlocker}
+                </p>
+              )}
               <p className="shield-helper shield-helper--meta">
                 Output recovery: {privateCoreSwapState.outputRecoveryStatus}
               </p>

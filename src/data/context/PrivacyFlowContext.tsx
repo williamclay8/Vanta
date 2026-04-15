@@ -269,6 +269,9 @@ type PrivacyFlowContextValue = {
     options?: {
       executionBasisLabel?: string;
       executionPrimaryNote?: string;
+      livePathStatusLabel?: string;
+      livePathPrimaryNote?: string;
+      livePathPrimaryBlocker?: string | null;
     },
   ) => {
     nextHoldState: VantaPrivateCoreHoldState | null;
@@ -376,6 +379,9 @@ export type VantaPrivateCoreSwapState = {
   outputAmount: string;
   executionBasisLabel: string;
   executionPrimaryNote: string;
+  livePathStatusLabel: string;
+  livePathPrimaryNote: string;
+  livePathPrimaryBlocker: string | null;
   resultingRoot: string | null;
   resultingRootStatusLabel: string;
   resultingRootPrimaryNote: string;
@@ -1407,6 +1413,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       options?: {
         executionBasisLabel?: string;
         executionPrimaryNote?: string;
+        livePathStatusLabel?: string;
+        livePathPrimaryNote?: string;
+        livePathPrimaryBlocker?: string | null;
       },
     ) => {
       const result = privateCoreLedger.swap(transition);
@@ -1438,6 +1447,11 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         executionPrimaryNote:
           options?.executionPrimaryNote ??
           "A private-core swap transition was applied locally and is waiting for the next operator summary refresh.",
+        livePathStatusLabel: options?.livePathStatusLabel ?? "Locally applied transition",
+        livePathPrimaryNote:
+          options?.livePathPrimaryNote ??
+          "The swap transition was applied locally from the currently selected execution path and is waiting for the next operator summary refresh.",
+        livePathPrimaryBlocker: options?.livePathPrimaryBlocker ?? null,
         resultingRoot: result.resultingRoot,
         resultingRootStatusLabel: "Swap root pending operator summary",
         resultingRootPrimaryNote:
@@ -3029,6 +3043,10 @@ function summarizePrivateCoreOperatorSwapState(args: {
     executionBasisLabel: "Operator summary-backed swap state",
     executionPrimaryNote:
       "This swap handoff is being reconstructed from persisted operator summary state rather than a newly applied local current-note path.",
+    livePathStatusLabel: "Operator summary-backed state",
+    livePathPrimaryNote:
+      "The original current-note swap preparation state is not persisted, so this handoff is being reconstructed from operator summary state.",
+    livePathPrimaryBlocker: null,
     resultingRoot: args.latestSwap.resultingRoot,
     resultingRootStatusLabel: args.resultingRootStatusLabel ?? "Swap root status unavailable",
     resultingRootPrimaryNote:
