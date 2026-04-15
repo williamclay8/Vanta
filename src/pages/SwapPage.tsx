@@ -708,12 +708,50 @@ export function SwapPage() {
       : null) ??
     swapZkDiagnostics[0] ??
     null;
+  const currentPrivateCoreSwapPathNote = useMemo(() => {
+    if (!privacyFlow.privateCoreHoldState) {
+      return "No current private-core held note is available yet.";
+    }
+
+    if (!quote) {
+      return "No live quote is available yet for the current private-core swap path.";
+    }
+
+    if (Date.now() > quote.quoteExpiresAt) {
+      return "The latest live quote expired, so the swap proof actions are using fixture fallback.";
+    }
+
+    const heldNote = privacyFlow.privateCoreHoldState.heldNote;
+
+    if (
+      heldNote.note.assetId !==
+      "0x7675736400000000000000000000000000000000000000000000000000000000"
+    ) {
+      return "The current private-core held note is not a VUSD input note, so the swap proof actions are using fixture fallback.";
+    }
+
+    try {
+      const expectedInputAmount = decimalAmountToBaseUnits(quote.inputAmount, 6);
+
+      if (heldNote.note.amount !== expectedInputAmount) {
+        return "The current private-core held note amount does not match the live quote input amount, so the swap proof actions are using fixture fallback.";
+      }
+    } catch {
+      return "The live quote amount could not be converted into the private-core swap lane, so the swap proof actions are using fixture fallback.";
+    }
+
+    return "The current private-core held note and live quote align, so the swap proof actions are using the real current-note path.";
+  }, [privacyFlow.privateCoreHoldState, quote]);
   const currentPrivateCoreSwapCandidate = useMemo(() => {
     if (!privacyFlow.privateCoreHoldState || !quote) {
       return null;
     }
 
     try {
+      if (Date.now() > quote.quoteExpiresAt) {
+        return null;
+      }
+
       const heldNote = privacyFlow.privateCoreHoldState.heldNote;
       const expectedInputAmount = decimalAmountToBaseUnits(quote.inputAmount, 6);
 
@@ -1890,6 +1928,10 @@ export function SwapPage() {
                       ? "Current held note + live quote"
                       : "Deterministic fixture fallback"}
                   </strong>
+                </div>
+                <div className="review-row">
+                  <span>Swap proof path note</span>
+                  <strong>{currentPrivateCoreSwapPathNote}</strong>
                 </div>
               </div>
               <div className="status-actions">
