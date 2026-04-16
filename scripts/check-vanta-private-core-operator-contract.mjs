@@ -108,9 +108,14 @@ try {
     contractState.parsed?.supportedSendV1Decision !== "accepted-narrow-v1-path" ||
     typeof contractState.parsed?.supportedSendV1DecisionNote !== "string" ||
     contractState.parsed?.supportedUnshieldLaneVersion !== 1 ||
+    contractState.parsed?.supportedUnshieldLaneKind !== "single-note-proof-backed-consume" ||
+    contractState.parsed?.supportedUnshieldLaneStatus !== "supported" ||
     contractState.parsed?.supportedUnshieldV1Decision !== "accepted-narrow-v1-path" ||
     typeof contractState.parsed?.supportedUnshieldV1DecisionNote !== "string" ||
     contractState.parsed?.supportedReleaseLaneVersion !== 1 ||
+    contractState.parsed?.supportedReleaseLaneKind !==
+      "proof-backed-consume-latest-registered-root" ||
+    contractState.parsed?.supportedReleaseLaneStatus !== "supported" ||
     contractState.parsed?.supportedSwapLaneVersion !== 1 ||
     contractState.parsed?.supportedSwapLaneKind !== "single-input-vusd-to-shielded-sol" ||
     contractState.parsed?.supportedSwapLaneStatus !== "supported" ||
@@ -136,6 +141,7 @@ try {
       "latest-registered-root-with-linked-registration-proof" ||
     contractState.parsed?.supportedSendOutputRegistrationPolicy !==
       "resulting-root-must-register-as-recipient-or-change-output" ||
+    contractState.parsed?.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     contractState.parsed?.supportedProofSystem !== "noir-acir-ultrahonk-bbjs" ||
     contractState.parsed?.supportedUnshieldCircuit !== "vanta_private_core_single_note_unshield" ||
     contractState.parsed?.supportedSendCircuit !== "vanta_private_core_single_note_send" ||
@@ -143,6 +149,7 @@ try {
     contractState.parsed?.supportedSendMerkleDepth !== 3 ||
     contractState.parsed?.supportedReleaseV1Decision !== "accepted-narrow-v1-path" ||
     typeof contractState.parsed?.supportedReleaseV1DecisionNote !== "string" ||
+    contractState.parsed?.supportedReleaseRootPolicy !== "latest-registered-root" ||
     contractState.parsed?.supportedReleaseExecutionModel !== "operator-recorded-devnet-release" ||
     contractState.parsed?.supportedReleaseAtomicityModel !==
       "operator-local-atomic-consume-and-release-record" ||
@@ -270,10 +277,18 @@ try {
     !contractOutput.includes("Supported send v1 decision: accepted-narrow-v1-path") ||
     !contractOutput.includes("Supported unshield v1 decision: accepted-narrow-v1-path") ||
     !contractOutput.includes(
+      "Supported unshield lane kind: single-note-proof-backed-consume",
+    ) ||
+    !contractOutput.includes("Supported unshield lane status: supported") ||
+    !contractOutput.includes(
       "Supported root provenance: Shield input / send recipient output / send change output / swap output",
     ) ||
     !contractOutput.includes("Supported send root basis: Client-declared") ||
     !contractOutput.includes("Supported release v1 decision: accepted-narrow-v1-path") ||
+    !contractOutput.includes(
+      "Supported release lane kind: proof-backed-consume-latest-registered-root",
+    ) ||
+    !contractOutput.includes("Supported release lane status: supported") ||
     !contractOutput.includes("Supported swap lane version: 1") ||
     !contractOutput.includes("Supported swap lane kind: single-input-vusd-to-shielded-sol") ||
     !contractOutput.includes("Supported swap lane status: supported") ||
@@ -289,6 +304,12 @@ try {
     ) ||
     !contractOutput.includes(
       "Supported send input-root policy: Latest registered root with linked registration proof",
+    ) ||
+    !contractOutput.includes(
+      "Supported recipient model: hashed-reference-to-owner-key",
+    ) ||
+    !contractOutput.includes(
+      "Supported release root policy: latest-registered-root",
     ) ||
     !contractOutput.includes(
       "Supported release execution: operator-recorded-devnet-release",
