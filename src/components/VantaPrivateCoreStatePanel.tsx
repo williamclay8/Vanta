@@ -71,6 +71,8 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSupportedSwapLaneVersion?: number | null;
   operatorSupportedSwapV1Decision?: string | null;
   operatorSupportedSwapV1DecisionNote?: string | null;
+  operatorSupportedSwapV1Role?: string | null;
+  operatorSupportedSwapV1RoleNote?: string | null;
   operatorSupportedSwapVenue?: string | null;
   operatorSupportedSwapOutputModel?: string | null;
   operatorSupportedSwapResultingRootBasis?: string | null;
@@ -80,6 +82,10 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSupportedFlowNote?: string | null;
   operatorSupportedFlowStatus?: string | null;
   operatorSupportedFlowVersion?: number | null;
+  operatorSupportedZkV1ScopeDecision?: string | null;
+  operatorSupportedZkV1ScopeNote?: string | null;
+  operatorSupportedZkV1RequiredLanes?: string | null;
+  operatorSupportedZkV1RequiredLanesNote?: string | null;
   operatorSupportedAssetSymbol?: string | null;
   operatorSupportedEnvironment?: string | null;
   operatorSupportedNoteSchema?: string | null;
@@ -324,6 +330,8 @@ export function VantaPrivateCoreStatePanel({
   operatorSupportedSwapLaneVersion = null,
   operatorSupportedSwapV1Decision = null,
   operatorSupportedSwapV1DecisionNote = null,
+  operatorSupportedSwapV1Role = null,
+  operatorSupportedSwapV1RoleNote = null,
   operatorSupportedSwapVenue = null,
   operatorSupportedSwapOutputModel = null,
   operatorSupportedSwapResultingRootBasis = null,
@@ -333,6 +341,10 @@ export function VantaPrivateCoreStatePanel({
   operatorSupportedFlowNote = null,
   operatorSupportedFlowStatus = null,
   operatorSupportedFlowVersion = null,
+  operatorSupportedZkV1ScopeDecision = null,
+  operatorSupportedZkV1ScopeNote = null,
+  operatorSupportedZkV1RequiredLanes = null,
+  operatorSupportedZkV1RequiredLanesNote = null,
   operatorSupportedAssetSymbol = null,
   operatorSupportedEnvironment = null,
   operatorSupportedNoteSchema = null,
@@ -932,6 +944,15 @@ export function VantaPrivateCoreStatePanel({
               </strong>
             </div>
             <div className="review-row">
+              <span>Swap v1 role</span>
+              <strong>
+                {operatorSupportedSwapV1Role ===
+                "adjacent-supported-not-required-for-finish-line"
+                  ? "Adjacent support, not finish-line required"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
               <span>Supported flow</span>
               <strong>
                 {operatorSupportedFlowKind === "shield-hold-send-unshield-replay-guard"
@@ -942,6 +963,22 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Supported flow status</span>
               <strong>{operatorSupportedFlowStatus ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>zk v1 scope</span>
+              <strong>
+                {operatorSupportedZkV1ScopeDecision === "accepted-narrow-private-core-v1-scope"
+                  ? "Accepted narrow private-core v1 scope"
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>zk v1 required lanes</span>
+              <strong>
+                {operatorSupportedZkV1RequiredLanes === "send|unshield|release"
+                  ? "Send / unshield / release"
+                  : "Unavailable"}
+              </strong>
             </div>
             <div className="review-row">
               <span>Supported asset</span>
@@ -1178,8 +1215,20 @@ export function VantaPrivateCoreStatePanel({
               <strong>{operatorSupportedSwapV1DecisionNote ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
+              <span>Swap v1 role note</span>
+              <strong>{operatorSupportedSwapV1RoleNote ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
               <span>Supported flow note</span>
               <strong>{operatorSupportedFlowNote ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>zk v1 scope note</span>
+              <strong>{operatorSupportedZkV1ScopeNote ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>zk v1 required-lanes note</span>
+              <strong>{operatorSupportedZkV1RequiredLanesNote ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Operator owner auth</span>

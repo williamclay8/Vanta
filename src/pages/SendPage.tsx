@@ -233,6 +233,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorSupportedSwapLaneVersion,
     privateCoreOperatorSupportedSwapV1Decision,
     privateCoreOperatorSupportedSwapV1DecisionNote,
+    privateCoreOperatorSupportedSwapV1Role,
+    privateCoreOperatorSupportedSwapV1RoleNote,
     privateCoreOperatorSupportedSwapVenue,
     privateCoreOperatorSupportedSwapOutputModel,
     privateCoreOperatorSupportedSwapResultingRootBasis,
@@ -244,6 +246,10 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorSupportedFlowNote,
     privateCoreOperatorSupportedFlowStatus,
     privateCoreOperatorSupportedFlowVersion,
+    privateCoreOperatorSupportedZkV1ScopeDecision,
+    privateCoreOperatorSupportedZkV1ScopeNote,
+    privateCoreOperatorSupportedZkV1RequiredLanes,
+    privateCoreOperatorSupportedZkV1RequiredLanesNote,
     privateCoreOperatorSupportedAssetSymbol,
     privateCoreOperatorSupportedEnvironment,
     privateCoreOperatorSupportedNoteSchema,
@@ -1785,6 +1791,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         operatorSupportedSwapLaneVersion={privateCoreOperatorSupportedSwapLaneVersion}
         operatorSupportedSwapV1Decision={privateCoreOperatorSupportedSwapV1Decision}
         operatorSupportedSwapV1DecisionNote={privateCoreOperatorSupportedSwapV1DecisionNote}
+        operatorSupportedSwapV1Role={privateCoreOperatorSupportedSwapV1Role}
+        operatorSupportedSwapV1RoleNote={privateCoreOperatorSupportedSwapV1RoleNote}
         operatorSupportedSwapVenue={privateCoreOperatorSupportedSwapVenue}
         operatorSupportedSwapOutputModel={privateCoreOperatorSupportedSwapOutputModel}
         operatorSupportedSwapResultingRootBasis={privateCoreOperatorSupportedSwapResultingRootBasis}
@@ -1800,6 +1808,10 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         operatorSupportedFlowNote={privateCoreOperatorSupportedFlowNote}
         operatorSupportedFlowStatus={privateCoreOperatorSupportedFlowStatus}
         operatorSupportedFlowVersion={privateCoreOperatorSupportedFlowVersion}
+        operatorSupportedZkV1ScopeDecision={privateCoreOperatorSupportedZkV1ScopeDecision}
+        operatorSupportedZkV1ScopeNote={privateCoreOperatorSupportedZkV1ScopeNote}
+        operatorSupportedZkV1RequiredLanes={privateCoreOperatorSupportedZkV1RequiredLanes}
+        operatorSupportedZkV1RequiredLanesNote={privateCoreOperatorSupportedZkV1RequiredLanesNote}
         operatorSupportedAssetSymbol={privateCoreOperatorSupportedAssetSymbol}
         operatorSupportedEnvironment={privateCoreOperatorSupportedEnvironment}
         operatorSupportedNoteSchema={privateCoreOperatorSupportedNoteSchema}

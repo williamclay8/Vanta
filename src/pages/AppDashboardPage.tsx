@@ -84,6 +84,8 @@ export function AppDashboardPage() {
     privateCoreOperatorSupportedSwapLaneVersion,
     privateCoreOperatorSupportedSwapV1Decision,
     privateCoreOperatorSupportedSwapV1DecisionNote,
+    privateCoreOperatorSupportedSwapV1Role,
+    privateCoreOperatorSupportedSwapV1RoleNote,
     privateCoreOperatorSupportedSwapVenue,
     privateCoreOperatorSupportedSwapOutputModel,
     privateCoreOperatorSupportedSwapResultingRootBasis,
@@ -95,6 +97,10 @@ export function AppDashboardPage() {
     privateCoreOperatorSupportedFlowNote,
     privateCoreOperatorSupportedFlowStatus,
     privateCoreOperatorSupportedFlowVersion,
+    privateCoreOperatorSupportedZkV1ScopeDecision,
+    privateCoreOperatorSupportedZkV1ScopeNote,
+    privateCoreOperatorSupportedZkV1RequiredLanes,
+    privateCoreOperatorSupportedZkV1RequiredLanesNote,
     privateCoreOperatorSupportedAssetSymbol,
     privateCoreOperatorSupportedEnvironment,
     privateCoreOperatorSupportedNoteSchema,
@@ -353,6 +359,8 @@ export function AppDashboardPage() {
           operatorSupportedSwapLaneVersion={privateCoreOperatorSupportedSwapLaneVersion}
           operatorSupportedSwapV1Decision={privateCoreOperatorSupportedSwapV1Decision}
           operatorSupportedSwapV1DecisionNote={privateCoreOperatorSupportedSwapV1DecisionNote}
+          operatorSupportedSwapV1Role={privateCoreOperatorSupportedSwapV1Role}
+          operatorSupportedSwapV1RoleNote={privateCoreOperatorSupportedSwapV1RoleNote}
           operatorSupportedSwapVenue={privateCoreOperatorSupportedSwapVenue}
           operatorSupportedSwapOutputModel={privateCoreOperatorSupportedSwapOutputModel}
           operatorSupportedSwapResultingRootBasis={privateCoreOperatorSupportedSwapResultingRootBasis}
@@ -368,6 +376,10 @@ export function AppDashboardPage() {
           operatorSupportedFlowNote={privateCoreOperatorSupportedFlowNote}
           operatorSupportedFlowStatus={privateCoreOperatorSupportedFlowStatus}
           operatorSupportedFlowVersion={privateCoreOperatorSupportedFlowVersion}
+          operatorSupportedZkV1ScopeDecision={privateCoreOperatorSupportedZkV1ScopeDecision}
+          operatorSupportedZkV1ScopeNote={privateCoreOperatorSupportedZkV1ScopeNote}
+          operatorSupportedZkV1RequiredLanes={privateCoreOperatorSupportedZkV1RequiredLanes}
+          operatorSupportedZkV1RequiredLanesNote={privateCoreOperatorSupportedZkV1RequiredLanesNote}
           operatorSupportedAssetSymbol={privateCoreOperatorSupportedAssetSymbol}
           operatorSupportedEnvironment={privateCoreOperatorSupportedEnvironment}
           operatorSupportedNoteSchema={privateCoreOperatorSupportedNoteSchema}

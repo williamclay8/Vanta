@@ -2107,6 +2107,8 @@ export function SwapPage() {
         operatorSupportedSwapLaneVersion={privacyFlow.privateCoreOperatorSupportedSwapLaneVersion}
         operatorSupportedSwapV1Decision={privacyFlow.privateCoreOperatorSupportedSwapV1Decision}
         operatorSupportedSwapV1DecisionNote={privacyFlow.privateCoreOperatorSupportedSwapV1DecisionNote}
+        operatorSupportedSwapV1Role={privacyFlow.privateCoreOperatorSupportedSwapV1Role}
+        operatorSupportedSwapV1RoleNote={privacyFlow.privateCoreOperatorSupportedSwapV1RoleNote}
         operatorSupportedSwapVenue={privacyFlow.privateCoreOperatorSupportedSwapVenue}
         operatorSupportedSwapOutputModel={privacyFlow.privateCoreOperatorSupportedSwapOutputModel}
         operatorSupportedSwapResultingRootBasis={privacyFlow.privateCoreOperatorSupportedSwapResultingRootBasis}
@@ -2116,6 +2118,10 @@ export function SwapPage() {
         operatorSupportedFlowNote={privacyFlow.privateCoreOperatorSupportedFlowNote}
         operatorSupportedFlowStatus={privacyFlow.privateCoreOperatorSupportedFlowStatus}
         operatorSupportedFlowVersion={privacyFlow.privateCoreOperatorSupportedFlowVersion}
+        operatorSupportedZkV1ScopeDecision={privacyFlow.privateCoreOperatorSupportedZkV1ScopeDecision}
+        operatorSupportedZkV1ScopeNote={privacyFlow.privateCoreOperatorSupportedZkV1ScopeNote}
+        operatorSupportedZkV1RequiredLanes={privacyFlow.privateCoreOperatorSupportedZkV1RequiredLanes}
+        operatorSupportedZkV1RequiredLanesNote={privacyFlow.privateCoreOperatorSupportedZkV1RequiredLanesNote}
         operatorSupportedAssetSymbol={privacyFlow.privateCoreOperatorSupportedAssetSymbol}
         operatorSupportedEnvironment={privacyFlow.privateCoreOperatorSupportedEnvironment}
         operatorSupportedNoteSchema={privacyFlow.privateCoreOperatorSupportedNoteSchema}

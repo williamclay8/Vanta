@@ -171,6 +171,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorSupportedSwapLaneVersion: number | null;
   privateCoreOperatorSupportedSwapV1Decision: string | null;
   privateCoreOperatorSupportedSwapV1DecisionNote: string | null;
+  privateCoreOperatorSupportedSwapV1Role: string | null;
+  privateCoreOperatorSupportedSwapV1RoleNote: string | null;
   privateCoreOperatorSupportedSwapVenue: string | null;
   privateCoreOperatorSupportedSwapOutputModel: string | null;
   privateCoreOperatorSupportedSwapResultingRootBasis: string | null;
@@ -180,6 +182,10 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorSupportedFlowNote: string | null;
   privateCoreOperatorSupportedFlowStatus: string | null;
   privateCoreOperatorSupportedFlowVersion: number | null;
+  privateCoreOperatorSupportedZkV1ScopeDecision: string | null;
+  privateCoreOperatorSupportedZkV1ScopeNote: string | null;
+  privateCoreOperatorSupportedZkV1RequiredLanes: string | null;
+  privateCoreOperatorSupportedZkV1RequiredLanesNote: string | null;
   privateCoreOperatorSupportedAssetSymbol: string | null;
   privateCoreOperatorSupportedEnvironment: string | null;
   privateCoreOperatorSupportedNoteSchema: string | null;
@@ -630,6 +636,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     privateCoreOperatorSupportedSwapV1DecisionNote,
     setPrivateCoreOperatorSupportedSwapV1DecisionNote,
   ] = useState<string | null>(null);
+  const [privateCoreOperatorSupportedSwapV1Role, setPrivateCoreOperatorSupportedSwapV1Role] =
+    useState<string | null>(null);
+  const [
+    privateCoreOperatorSupportedSwapV1RoleNote,
+    setPrivateCoreOperatorSupportedSwapV1RoleNote,
+  ] = useState<string | null>(null);
   const [privateCoreOperatorSupportedSwapVenue, setPrivateCoreOperatorSupportedSwapVenue] =
     useState<string | null>(null);
   const [privateCoreOperatorSupportedSwapOutputModel, setPrivateCoreOperatorSupportedSwapOutputModel] =
@@ -654,6 +666,20 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<string | null>(null);
   const [privateCoreOperatorSupportedFlowVersion, setPrivateCoreOperatorSupportedFlowVersion] =
     useState<number | null>(null);
+  const [
+    privateCoreOperatorSupportedZkV1ScopeDecision,
+    setPrivateCoreOperatorSupportedZkV1ScopeDecision,
+  ] = useState<string | null>(null);
+  const [privateCoreOperatorSupportedZkV1ScopeNote, setPrivateCoreOperatorSupportedZkV1ScopeNote] =
+    useState<string | null>(null);
+  const [
+    privateCoreOperatorSupportedZkV1RequiredLanes,
+    setPrivateCoreOperatorSupportedZkV1RequiredLanes,
+  ] = useState<string | null>(null);
+  const [
+    privateCoreOperatorSupportedZkV1RequiredLanesNote,
+    setPrivateCoreOperatorSupportedZkV1RequiredLanesNote,
+  ] = useState<string | null>(null);
   const [privateCoreOperatorSupportedAssetSymbol, setPrivateCoreOperatorSupportedAssetSymbol] =
     useState<string | null>(null);
   const [privateCoreOperatorSupportedEnvironment, setPrivateCoreOperatorSupportedEnvironment] =
@@ -820,6 +846,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSupportedSwapLaneVersion,
       setPrivateCoreOperatorSupportedSwapV1Decision,
       setPrivateCoreOperatorSupportedSwapV1DecisionNote,
+      setPrivateCoreOperatorSupportedSwapV1Role,
+      setPrivateCoreOperatorSupportedSwapV1RoleNote,
       setPrivateCoreOperatorSupportedSwapVenue,
       setPrivateCoreOperatorSupportedSwapOutputModel,
       setPrivateCoreOperatorSupportedSwapResultingRootBasis,
@@ -829,6 +857,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSupportedFlowNote,
       setPrivateCoreOperatorSupportedFlowStatus,
       setPrivateCoreOperatorSupportedFlowVersion,
+      setPrivateCoreOperatorSupportedZkV1ScopeDecision,
+      setPrivateCoreOperatorSupportedZkV1ScopeNote,
+      setPrivateCoreOperatorSupportedZkV1RequiredLanes,
+      setPrivateCoreOperatorSupportedZkV1RequiredLanesNote,
       setPrivateCoreOperatorSupportedAssetSymbol,
       setPrivateCoreOperatorSupportedEnvironment,
       setPrivateCoreOperatorSupportedNoteSchema,
@@ -2112,6 +2144,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedSwapLaneVersion,
       privateCoreOperatorSupportedSwapV1Decision,
       privateCoreOperatorSupportedSwapV1DecisionNote,
+      privateCoreOperatorSupportedSwapV1Role,
+      privateCoreOperatorSupportedSwapV1RoleNote,
       privateCoreOperatorSupportedSwapVenue,
       privateCoreOperatorSupportedSwapOutputModel,
       privateCoreOperatorSupportedSwapResultingRootBasis,
@@ -2121,6 +2155,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedFlowNote,
       privateCoreOperatorSupportedFlowStatus,
       privateCoreOperatorSupportedFlowVersion,
+      privateCoreOperatorSupportedZkV1ScopeDecision,
+      privateCoreOperatorSupportedZkV1ScopeNote,
+      privateCoreOperatorSupportedZkV1RequiredLanes,
+      privateCoreOperatorSupportedZkV1RequiredLanesNote,
       privateCoreOperatorSupportedAssetSymbol,
       privateCoreOperatorSupportedEnvironment,
       privateCoreOperatorSupportedNoteSchema,
@@ -2289,6 +2327,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedSwapLaneVersion,
       privateCoreOperatorSupportedSwapV1Decision,
       privateCoreOperatorSupportedSwapV1DecisionNote,
+      privateCoreOperatorSupportedSwapV1Role,
+      privateCoreOperatorSupportedSwapV1RoleNote,
       privateCoreOperatorSupportedSwapVenue,
       privateCoreOperatorSupportedSwapOutputModel,
       privateCoreOperatorSupportedSwapResultingRootBasis,
@@ -2298,6 +2338,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedFlowNote,
       privateCoreOperatorSupportedFlowStatus,
       privateCoreOperatorSupportedFlowVersion,
+      privateCoreOperatorSupportedZkV1ScopeDecision,
+      privateCoreOperatorSupportedZkV1ScopeNote,
+      privateCoreOperatorSupportedZkV1RequiredLanes,
+      privateCoreOperatorSupportedZkV1RequiredLanesNote,
       privateCoreOperatorSupportedAssetSymbol,
       privateCoreOperatorSupportedEnvironment,
       privateCoreOperatorSupportedNoteSchema,
@@ -3161,6 +3205,8 @@ function applyPrivateCoreOperatorContractState(args: {
   setPrivateCoreOperatorSupportedSwapLaneVersion: (value: number | null) => void;
   setPrivateCoreOperatorSupportedSwapV1Decision: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSwapV1DecisionNote: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedSwapV1Role: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedSwapV1RoleNote: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSwapVenue: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSwapOutputModel: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSwapResultingRootBasis: (value: string | null) => void;
@@ -3170,6 +3216,10 @@ function applyPrivateCoreOperatorContractState(args: {
   setPrivateCoreOperatorSupportedFlowNote: (value: string | null) => void;
   setPrivateCoreOperatorSupportedFlowStatus: (value: string | null) => void;
   setPrivateCoreOperatorSupportedFlowVersion: (value: number | null) => void;
+  setPrivateCoreOperatorSupportedZkV1ScopeDecision: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedZkV1ScopeNote: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedZkV1RequiredLanes: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedZkV1RequiredLanesNote: (value: string | null) => void;
   setPrivateCoreOperatorSupportedAssetSymbol: (value: string | null) => void;
   setPrivateCoreOperatorSupportedEnvironment: (value: string | null) => void;
   setPrivateCoreOperatorSupportedNoteSchema: (value: string | null) => void;
@@ -3252,6 +3302,10 @@ function applyPrivateCoreOperatorContractState(args: {
   args.setPrivateCoreOperatorSupportedSwapV1DecisionNote(
     args.contractState.supportedSwapV1DecisionNote,
   );
+  args.setPrivateCoreOperatorSupportedSwapV1Role(args.contractState.supportedSwapV1Role);
+  args.setPrivateCoreOperatorSupportedSwapV1RoleNote(
+    args.contractState.supportedSwapV1RoleNote,
+  );
   args.setPrivateCoreOperatorSupportedSwapVenue(args.contractState.supportedSwapVenue);
   args.setPrivateCoreOperatorSupportedSwapOutputModel(
     args.contractState.supportedSwapOutputModel,
@@ -3269,6 +3323,16 @@ function applyPrivateCoreOperatorContractState(args: {
   args.setPrivateCoreOperatorSupportedFlowNote(args.contractState.supportedFlowNote);
   args.setPrivateCoreOperatorSupportedFlowStatus(args.contractState.supportedFlowStatus);
   args.setPrivateCoreOperatorSupportedFlowVersion(args.contractState.supportedFlowVersion);
+  args.setPrivateCoreOperatorSupportedZkV1ScopeDecision(
+    args.contractState.supportedZkV1ScopeDecision,
+  );
+  args.setPrivateCoreOperatorSupportedZkV1ScopeNote(args.contractState.supportedZkV1ScopeNote);
+  args.setPrivateCoreOperatorSupportedZkV1RequiredLanes(
+    args.contractState.supportedZkV1RequiredLanes,
+  );
+  args.setPrivateCoreOperatorSupportedZkV1RequiredLanesNote(
+    args.contractState.supportedZkV1RequiredLanesNote,
+  );
   args.setPrivateCoreOperatorSupportedAssetSymbol(args.contractState.supportedAssetSymbol);
   args.setPrivateCoreOperatorSupportedEnvironment(args.contractState.supportedEnvironment);
   args.setPrivateCoreOperatorSupportedNoteSchema(args.contractState.supportedNoteSchema);
