@@ -503,6 +503,7 @@ try {
   });
   if (
     !shippingStatusOutput.includes("Summary version: 38") ||
+    !shippingStatusOutput.includes("Summary generated:") ||
     !shippingStatusOutput.includes("Shipping status: Required lanes mismatch") ||
     !shippingStatusOutput.includes(
       "Shipping note: No private send transition is available for boundary checks yet.",

@@ -7,6 +7,7 @@ try {
 
   printLine("Operator", baseUrl);
   printLine("Summary version", String(summary.summaryVersion ?? "unknown"));
+  printLine("Summary generated", summary.generatedAt ?? "Unavailable");
   printLine("Shipping status", humanizeShippingStatus(summary.zkV1ShippingStatus));
   printLine("Shipping note", summary.zkV1ShippingNote ?? "Unavailable");
   printLine("Finish line status", humanizeFinishLineStatus(summary.zkV1FinishLineStatus));

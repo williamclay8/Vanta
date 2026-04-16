@@ -627,6 +627,7 @@ try {
   });
   if (
     !shippingStatusOutput.includes("Summary version: 38") ||
+    !shippingStatusOutput.includes("Summary generated:") ||
     !shippingStatusOutput.includes("Shipping status: Required lanes mismatch") ||
     !shippingStatusOutput.includes(
       "Shipping note: Latest send resulting root still needs operator registration before downstream continuity is established.",

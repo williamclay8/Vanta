@@ -525,6 +525,7 @@ try {
   });
   if (
     !shippingStatusOutput.includes("Summary version: 38") ||
+    !shippingStatusOutput.includes("Summary generated:") ||
     !shippingStatusOutput.includes("Shipping status: Ready narrow v1") ||
     !shippingStatusOutput.includes(
       "Shipping note: Minimum zk v1 required lanes are coherent and the operator boundary remains contract-coherent enough to ship the frozen narrow lane.",
