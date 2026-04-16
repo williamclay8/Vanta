@@ -678,6 +678,71 @@ try {
     );
   }
   printStatus("operator restart shipping-status json: PASS");
+
+  let blockedShippingCheckJson = null;
+  try {
+    execFileSync(
+      "npm",
+      ["run", "--silent", "private-core:shipping-check-json", "--", "--base-url", baseUrl],
+      {
+        cwd: repoRoot,
+        encoding: "utf8",
+        stdio: "pipe",
+      },
+    );
+  } catch (error) {
+    blockedShippingCheckJson = error;
+  }
+  const blockedShippingCheckJsonOutput =
+    blockedShippingCheckJson &&
+    typeof blockedShippingCheckJson === "object" &&
+    "stderr" in blockedShippingCheckJson &&
+    typeof blockedShippingCheckJson.stderr === "string"
+      ? blockedShippingCheckJson.stderr
+      : "";
+  const blockedShippingCheckJsonStart = blockedShippingCheckJsonOutput.indexOf("{");
+  const blockedShippingCheckJsonEnd = blockedShippingCheckJsonOutput.lastIndexOf("}");
+  if (
+    !blockedShippingCheckJson ||
+    blockedShippingCheckJsonStart === -1 ||
+    blockedShippingCheckJsonEnd === -1 ||
+    !blockedShippingCheckJsonOutput.includes("Shipping status: Required lanes mismatch") ||
+    !blockedShippingCheckJsonOutput.includes(
+      "Shipping note: Latest send resulting root still needs operator registration before downstream continuity is established.",
+    )
+  ) {
+    throw new Error(
+      blockedShippingCheckJsonOutput ||
+        "operator restart shipping-check-json did not fail with structured output",
+    );
+  }
+  const blockedShippingCheckJsonSurface = JSON.parse(
+    blockedShippingCheckJsonOutput.slice(
+      blockedShippingCheckJsonStart,
+      blockedShippingCheckJsonEnd + 1,
+    ),
+  );
+  if (
+    blockedShippingCheckJsonSurface.summaryStateVersion !== 1 ||
+    blockedShippingCheckJsonSurface.mirroredContractVersion !== 14 ||
+    blockedShippingCheckJsonSurface.summaryVersion !== 38 ||
+    typeof blockedShippingCheckJsonSurface.summaryGenerated !== "number" ||
+    blockedShippingCheckJsonSurface.shippingStatusRaw !== "required-lanes-mismatch" ||
+    blockedShippingCheckJsonSurface.finishLineStatusRaw !== "coherent-minimum-v1-lane" ||
+    blockedShippingCheckJsonSurface.requiredLanesStatusRaw !== "send-lane-mismatch" ||
+    blockedShippingCheckJsonSurface.releaseBoundaryStatusRaw !== "release-recorded" ||
+    blockedShippingCheckJsonSurface.contractMirrorStatusRaw !== "mirrors-contract" ||
+    blockedShippingCheckJsonSurface.boundaryStatusRaw !== "coherent"
+  ) {
+    throw new Error(
+      `Unexpected operator restart shipping-check-json output\n${JSON.stringify(
+        blockedShippingCheckJsonSurface,
+        null,
+        2,
+      )}`,
+    );
+  }
+  printStatus("operator restart shipping-check-json surface: PASS");
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   console.error(message);
