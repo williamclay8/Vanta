@@ -534,6 +534,8 @@ try {
   const operatorStatusJson = JSON.parse(operatorStatusJsonOutput);
   if (
     operatorStatusJson.operator !== baseUrl ||
+    operatorStatusJson.snapshotVersion !== 1 ||
+    operatorStatusJson.snapshotKind !== "contract-status-shipping-bundle" ||
     operatorStatusJson.summary?.stateVersion !== 1 ||
     operatorStatusJson.summary?.contractVersion !== 17 ||
     operatorStatusJson.summary?.summaryVersion !== 41 ||

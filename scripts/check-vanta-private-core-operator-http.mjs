@@ -1203,6 +1203,8 @@ try {
     !operatorStatusOutput.includes(
       "Supported swap output registration: Resulting root must register as swap output",
     ) ||
+    !operatorStatusOutput.includes("Snapshot version: 1") ||
+    !operatorStatusOutput.includes("Snapshot kind: contract-status-shipping-bundle") ||
     !operatorStatusOutput.includes("Supported release execution: Operator-recorded devnet release") ||
     !operatorStatusOutput.includes(
       "Supported release atomicity: Operator-local atomic consume + release record",
@@ -1262,6 +1264,8 @@ try {
   const operatorStatusJson = JSON.parse(operatorStatusJsonOutput);
   if (
     operatorStatusJson.operator !== baseUrl ||
+    operatorStatusJson.snapshotVersion !== 1 ||
+    operatorStatusJson.snapshotKind !== "contract-status-shipping-bundle" ||
     operatorStatusJson.summary?.stateVersion !== 1 ||
     operatorStatusJson.summary?.contractVersion !== 17 ||
     operatorStatusJson.summary?.summaryVersion !== 41 ||

@@ -12,6 +12,8 @@ try {
       JSON.stringify(
         {
           operator: baseUrl,
+          snapshotVersion: snapshot?.snapshotVersion ?? null,
+          snapshotKind: snapshot?.snapshotKind ?? null,
           summary,
           shippingDecision,
         },
@@ -23,6 +25,8 @@ try {
   }
 
   printLine("Operator", baseUrl);
+  printLine("Snapshot version", String(snapshot?.snapshotVersion ?? "unknown"));
+  printLine("Snapshot kind", snapshot?.snapshotKind ?? "Unavailable");
   printLine("Summary state version", String(summary.stateVersion ?? "unknown"));
   printLine("Mirrored contract version", String(summary.contractVersion ?? "unknown"));
   printLine("Summary version", String(summary.summaryVersion ?? "unknown"));
