@@ -395,8 +395,8 @@ try {
   });
   const expectedStatusLines = [
     "Summary state version: 1",
-    "Mirrored contract version: 11",
-    "Summary version: 31",
+    "Mirrored contract version: 12",
+    "Summary version: 32",
     "Summary generated:",
     "Supported send lane version: 1",
     "Supported send lane kind: Single input / recipient / optional change",
@@ -411,6 +411,8 @@ try {
     "Supported flow kind: Shield / hold / send / unshield / replay guard",
     "Supported flow status: Supported",
     "Supported flow note: Current narrow zk v1 product flow is shield, hold, private send, unshield, and replay guard on the resulting consume path.",
+    "Supported zk v1 scope decision: accepted-narrow-private-core-v1-scope",
+    "Supported zk v1 scope note: Current zk v1 finish line is the narrow private-core lane frozen in this repo, not the broader long-term privacy product surface.",
     "Supported asset: VUSD",
     "Supported environment: solana-devnet",
     "Supported proof system: Noir ACIR / UltraHonk / bb.js",

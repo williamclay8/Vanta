@@ -107,6 +107,11 @@ try {
   printLine("Supported flow kind", humanizeSupportedFlowKind(summary.supportedFlowKind));
   printLine("Supported flow status", humanizeSupportedFlowStatus(summary.supportedFlowStatus));
   printLine("Supported flow note", summary.supportedFlowNote ?? "Unavailable");
+  printLine(
+    "Supported zk v1 scope decision",
+    summary.supportedZkV1ScopeDecision ?? "Unavailable",
+  );
+  printLine("Supported zk v1 scope note", summary.supportedZkV1ScopeNote ?? "Unavailable");
   printLine("Supported asset", summary.supportedAssetSymbol ?? "Unavailable");
   printLine("Supported environment", summary.supportedEnvironment ?? "Unavailable");
   printLine(

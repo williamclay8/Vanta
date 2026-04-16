@@ -187,6 +187,10 @@ const PRIVATE_CORE_SUPPORTED_FLOW_KIND = "shield-hold-send-unshield-replay-guard
 const PRIVATE_CORE_SUPPORTED_FLOW_STATUS = "supported";
 const PRIVATE_CORE_SUPPORTED_FLOW_NOTE =
   "Current narrow zk v1 product flow is shield, hold, private send, unshield, and replay guard on the resulting consume path.";
+const PRIVATE_CORE_SUPPORTED_ZK_V1_SCOPE_DECISION =
+  "accepted-narrow-private-core-v1-scope";
+const PRIVATE_CORE_SUPPORTED_ZK_V1_SCOPE_NOTE =
+  "Current zk v1 finish line is the narrow private-core lane frozen in this repo, not the broader long-term privacy product surface.";
 const PRIVATE_CORE_SUPPORTED_ASSET_SYMBOL = "VUSD";
 const PRIVATE_CORE_SUPPORTED_ENVIRONMENT = "solana-devnet";
 const PRIVATE_CORE_SUPPORTED_RECIPIENT_MODEL = "hashed-reference-to-owner-key";
@@ -1938,8 +1942,8 @@ function buildPrivateCoreSummaryState() {
 function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
-    contractVersion: 11,
-    summaryVersion: 31,
+    contractVersion: 12,
+    summaryVersion: 32,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
@@ -1970,6 +1974,8 @@ function buildPrivateCoreContractState() {
     supportedFlowKind: PRIVATE_CORE_SUPPORTED_FLOW_KIND,
     supportedFlowStatus: PRIVATE_CORE_SUPPORTED_FLOW_STATUS,
     supportedFlowNote: PRIVATE_CORE_SUPPORTED_FLOW_NOTE,
+    supportedZkV1ScopeDecision: PRIVATE_CORE_SUPPORTED_ZK_V1_SCOPE_DECISION,
+    supportedZkV1ScopeNote: PRIVATE_CORE_SUPPORTED_ZK_V1_SCOPE_NOTE,
     supportedAssetSymbol: PRIVATE_CORE_SUPPORTED_ASSET_SYMBOL,
     supportedEnvironment: PRIVATE_CORE_SUPPORTED_ENVIRONMENT,
     supportedNoteSchema: PRIVATE_CORE_SUPPORTED_NOTE_SCHEMA,
@@ -2042,6 +2048,8 @@ function summarizePrivateCoreContractMirrorStatus(args) {
     "supportedFlowKind",
     "supportedFlowStatus",
     "supportedFlowNote",
+    "supportedZkV1ScopeDecision",
+    "supportedZkV1ScopeNote",
     "supportedAssetSymbol",
     "supportedEnvironment",
     "supportedNoteSchema",

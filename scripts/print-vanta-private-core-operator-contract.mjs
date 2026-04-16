@@ -96,6 +96,8 @@ try {
   printLine("Supported flow kind", contract.supportedFlowKind ?? "Unavailable");
   printLine("Supported flow status", contract.supportedFlowStatus ?? "Unavailable");
   printLine("Supported flow note", contract.supportedFlowNote ?? "Unavailable");
+  printLine("Supported zk v1 scope decision", contract.supportedZkV1ScopeDecision ?? "Unavailable");
+  printLine("Supported zk v1 scope note", contract.supportedZkV1ScopeNote ?? "Unavailable");
   printLine("Supported asset", contract.supportedAssetSymbol ?? "Unavailable");
   printLine("Supported environment", contract.supportedEnvironment ?? "Unavailable");
   printLine(

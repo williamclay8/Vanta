@@ -270,7 +270,7 @@ try {
   if (
     !summaryState.ok ||
     summaryState.parsed?.stateVersion !== 1 ||
-    summaryState.parsed?.summaryVersion !== 31 ||
+    summaryState.parsed?.summaryVersion !== 32 ||
     summaryState.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryState.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -299,6 +299,9 @@ try {
     summaryState.parsed?.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
     summaryState.parsed?.supportedFlowStatus !== "supported" ||
     typeof summaryState.parsed?.supportedFlowNote !== "string" ||
+    summaryState.parsed?.supportedZkV1ScopeDecision !==
+      "accepted-narrow-private-core-v1-scope" ||
+    typeof summaryState.parsed?.supportedZkV1ScopeNote !== "string" ||
     summaryState.parsed?.supportedAssetSymbol !== "VUSD" ||
     summaryState.parsed?.supportedEnvironment !== "solana-devnet" ||
     summaryState.parsed?.supportedNoteSchema !== "note-v0" ||

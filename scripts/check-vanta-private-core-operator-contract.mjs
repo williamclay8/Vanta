@@ -102,8 +102,8 @@ try {
   if (
     !contractState.ok ||
     contractState.parsed?.stateVersion !== 1 ||
-    contractState.parsed?.contractVersion !== 11 ||
-    contractState.parsed?.summaryVersion !== 31 ||
+    contractState.parsed?.contractVersion !== 12 ||
+    contractState.parsed?.summaryVersion !== 32 ||
     contractState.parsed?.supportedSendLaneVersion !== 1 ||
     contractState.parsed?.supportedSendV1Decision !== "accepted-narrow-v1-path" ||
     typeof contractState.parsed?.supportedSendV1DecisionNote !== "string" ||
@@ -130,6 +130,9 @@ try {
     contractState.parsed?.supportedSwapOutputRegistrationPolicy !==
       "resulting-root-must-register-as-swap-output" ||
     contractState.parsed?.supportedFlowVersion !== 1 ||
+    contractState.parsed?.supportedZkV1ScopeDecision !==
+      "accepted-narrow-private-core-v1-scope" ||
+    typeof contractState.parsed?.supportedZkV1ScopeNote !== "string" ||
     contractState.parsed?.supportedAssetSymbol !== "VUSD" ||
     contractState.parsed?.supportedEnvironment !== "solana-devnet" ||
     contractState.parsed?.supportedNoteSchema !== "note-v0" ||
@@ -271,8 +274,8 @@ try {
   });
   if (
     !contractOutput.includes("Contract state version: 1") ||
-    !contractOutput.includes("Contract version: 11") ||
-    !contractOutput.includes("Summary compatibility: 31") ||
+    !contractOutput.includes("Contract version: 12") ||
+    !contractOutput.includes("Summary compatibility: 32") ||
     !contractOutput.includes("Supported note schema: NoteV0 / v0") ||
     !contractOutput.includes("Supported send v1 decision: accepted-narrow-v1-path") ||
     !contractOutput.includes("Supported unshield v1 decision: accepted-narrow-v1-path") ||
@@ -293,6 +296,12 @@ try {
     !contractOutput.includes("Supported swap lane kind: single-input-vusd-to-shielded-sol") ||
     !contractOutput.includes("Supported swap lane status: supported") ||
     !contractOutput.includes("Supported swap v1 decision: accepted-narrow-v1-path") ||
+    !contractOutput.includes(
+      "Supported zk v1 scope decision: accepted-narrow-private-core-v1-scope",
+    ) ||
+    !contractOutput.includes(
+      "Supported zk v1 scope note: Current zk v1 finish line is the narrow private-core lane frozen in this repo, not the broader long-term privacy product surface.",
+    ) ||
     !contractOutput.includes("Supported swap venue: meteora-dlmm-devnet") ||
     !contractOutput.includes("Supported swap output model: shielded-sol-output-note") ||
     !contractOutput.includes("Supported swap root basis: Client-declared") ||

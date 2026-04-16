@@ -273,7 +273,7 @@ try {
     preRestartSends.parsed.records.length < 1 ||
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.stateVersion !== 1 ||
-    preRestartSummary.parsed?.summaryVersion !== 31 ||
+    preRestartSummary.parsed?.summaryVersion !== 32 ||
     preRestartSummary.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     preRestartSummary.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -307,6 +307,9 @@ try {
     preRestartSummary.parsed?.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
     preRestartSummary.parsed?.supportedFlowStatus !== "supported" ||
     typeof preRestartSummary.parsed?.supportedFlowNote !== "string" ||
+    preRestartSummary.parsed?.supportedZkV1ScopeDecision !==
+      "accepted-narrow-private-core-v1-scope" ||
+    typeof preRestartSummary.parsed?.supportedZkV1ScopeNote !== "string" ||
     preRestartSummary.parsed?.supportedAssetSymbol !== "VUSD" ||
     preRestartSummary.parsed?.supportedEnvironment !== "solana-devnet" ||
     preRestartSummary.parsed?.supportedNoteSchema !== "note-v0" ||
@@ -373,7 +376,7 @@ try {
   if (
     !postRestartSummary.ok ||
     postRestartSummary.parsed?.stateVersion !== 1 ||
-    postRestartSummary.parsed?.summaryVersion !== 31 ||
+    postRestartSummary.parsed?.summaryVersion !== 32 ||
     postRestartSummary.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     postRestartSummary.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -407,6 +410,9 @@ try {
     postRestartSummary.parsed?.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
     postRestartSummary.parsed?.supportedFlowStatus !== "supported" ||
     typeof postRestartSummary.parsed?.supportedFlowNote !== "string" ||
+    postRestartSummary.parsed?.supportedZkV1ScopeDecision !==
+      "accepted-narrow-private-core-v1-scope" ||
+    typeof postRestartSummary.parsed?.supportedZkV1ScopeNote !== "string" ||
     postRestartSummary.parsed?.supportedAssetSymbol !== "VUSD" ||
     postRestartSummary.parsed?.supportedEnvironment !== "solana-devnet" ||
     postRestartSummary.parsed?.supportedNoteSchema !== "note-v0" ||
@@ -505,8 +511,14 @@ try {
     stdio: "pipe",
   });
   if (
-    !operatorStatusOutput.includes("Summary version: 31") ||
-    !operatorStatusOutput.includes("Mirrored contract version: 11") ||
+    !operatorStatusOutput.includes("Summary version: 32") ||
+    !operatorStatusOutput.includes("Mirrored contract version: 12") ||
+    !operatorStatusOutput.includes(
+      "Supported zk v1 scope decision: accepted-narrow-private-core-v1-scope",
+    ) ||
+    !operatorStatusOutput.includes(
+      "Supported zk v1 scope note: Current zk v1 finish line is the narrow private-core lane frozen in this repo, not the broader long-term privacy product surface.",
+    ) ||
     !operatorStatusOutput.includes("Supported send v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported unshield v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported swap lane version: 1") ||

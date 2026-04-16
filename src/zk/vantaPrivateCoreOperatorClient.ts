@@ -385,6 +385,8 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedFlowNote: string;
   supportedFlowStatus: "supported";
   supportedFlowVersion: number;
+  supportedZkV1ScopeDecision: "accepted-narrow-private-core-v1-scope";
+  supportedZkV1ScopeNote: string;
   supportedAssetSymbol: "VUSD";
   supportedEnvironment: "solana-devnet";
   supportedNoteSchema: "note-v0";
@@ -492,6 +494,8 @@ export type VantaPrivateCoreOperatorContractStateResponse = {
   supportedFlowKind: "shield-hold-send-unshield-replay-guard";
   supportedFlowStatus: "supported";
   supportedFlowNote: string;
+  supportedZkV1ScopeDecision: "accepted-narrow-private-core-v1-scope";
+  supportedZkV1ScopeNote: string;
   supportedAssetSymbol: "VUSD";
   supportedEnvironment: "solana-devnet";
   supportedNoteSchema: "note-v0";
@@ -1437,6 +1441,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedFlowNote?: unknown;
     supportedFlowStatus?: unknown;
     supportedFlowVersion?: unknown;
+    supportedZkV1ScopeDecision?: unknown;
+    supportedZkV1ScopeNote?: unknown;
     supportedAssetSymbol?: unknown;
     supportedEnvironment?: unknown;
     supportedNoteSchema?: unknown;
@@ -1508,8 +1514,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 11 ||
-    parsed.summaryVersion !== 31 ||
+    parsed.contractVersion !== 12 ||
+    parsed.summaryVersion !== 32 ||
     !isContractMirrorStatus(parsed.contractMirrorStatus) ||
     typeof parsed.contractMirrorNote !== "string" ||
     !isBoundaryStatus(parsed.boundaryStatus) ||
@@ -1578,6 +1584,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     parsed.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
     parsed.supportedFlowStatus !== "supported" ||
     typeof parsed.supportedFlowNote !== "string" ||
+    parsed.supportedZkV1ScopeDecision !== "accepted-narrow-private-core-v1-scope" ||
+    typeof parsed.supportedZkV1ScopeNote !== "string" ||
     parsed.supportedAssetSymbol !== "VUSD" ||
     parsed.supportedEnvironment !== "solana-devnet" ||
     parsed.supportedNoteSchema !== "note-v0" ||
@@ -1682,8 +1690,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   return {
     stateVersion: 1,
-    contractVersion: 11,
-    summaryVersion: 31,
+    contractVersion: 12,
+    summaryVersion: 32,
     contractMirrorStatus: parsed.contractMirrorStatus,
     contractMirrorNote: parsed.contractMirrorNote,
     boundaryStatus: parsed.boundaryStatus,
@@ -1722,6 +1730,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedFlowKind: "shield-hold-send-unshield-replay-guard",
     supportedFlowStatus: "supported",
     supportedFlowNote: parsed.supportedFlowNote,
+    supportedZkV1ScopeDecision: "accepted-narrow-private-core-v1-scope",
+    supportedZkV1ScopeNote: parsed.supportedZkV1ScopeNote,
     supportedAssetSymbol: "VUSD",
     supportedEnvironment: "solana-devnet",
     supportedNoteSchema: "note-v0",
@@ -1878,6 +1888,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedFlowKind?: unknown;
     supportedFlowStatus?: unknown;
     supportedFlowNote?: unknown;
+    supportedZkV1ScopeDecision?: unknown;
+    supportedZkV1ScopeNote?: unknown;
     supportedAssetSymbol?: unknown;
     supportedEnvironment?: unknown;
     supportedNoteSchema?: unknown;
@@ -1915,8 +1927,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 11 ||
-    parsed.summaryVersion !== 31 ||
+    parsed.contractVersion !== 12 ||
+    parsed.summaryVersion !== 32 ||
     parsed.supportedSendLaneVersion !== 1 ||
     parsed.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     parsed.supportedSendLaneStatus !== "supported" ||
@@ -1947,6 +1959,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     parsed.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
     parsed.supportedFlowStatus !== "supported" ||
     typeof parsed.supportedFlowNote !== "string" ||
+    parsed.supportedZkV1ScopeDecision !== "accepted-narrow-private-core-v1-scope" ||
+    typeof parsed.supportedZkV1ScopeNote !== "string" ||
     parsed.supportedAssetSymbol !== "VUSD" ||
     parsed.supportedEnvironment !== "solana-devnet" ||
     parsed.supportedNoteSchema !== "note-v0" ||
@@ -1991,8 +2005,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
 
   return {
     stateVersion: 1,
-    contractVersion: 11,
-    summaryVersion: 31,
+    contractVersion: 12,
+    summaryVersion: 32,
     supportedSendLaneVersion: 1,
     supportedSendLaneKind: "single-input-single-recipient-optional-change",
     supportedSendLaneStatus: "supported",
@@ -2023,6 +2037,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedFlowKind: "shield-hold-send-unshield-replay-guard",
     supportedFlowStatus: "supported",
     supportedFlowNote: parsed.supportedFlowNote,
+    supportedZkV1ScopeDecision: "accepted-narrow-private-core-v1-scope",
+    supportedZkV1ScopeNote: parsed.supportedZkV1ScopeNote,
     supportedAssetSymbol: "VUSD",
     supportedEnvironment: "solana-devnet",
     supportedNoteSchema: "note-v0",
