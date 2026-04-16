@@ -42,6 +42,7 @@ import {
 } from "@/zk/vantaPrivateCoreUnshieldProof";
 import {
   fetchVantaPrivateCoreOperatorContract,
+  fetchVantaPrivateCoreOperatorShippingDecision,
   fetchVantaPrivateCoreOperatorSummary,
   registerVantaPrivateCoreOperatorRoot,
   requestVantaPrivateCoreOperatorConsume,
@@ -602,6 +603,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<string | null>(null);
   const [privateCoreOperatorRawZkV1ShippingStatus, setPrivateCoreOperatorRawZkV1ShippingStatus] =
     useState<string | null>(null);
+  const [privateCoreOperatorRawShippingDecisionNote, setPrivateCoreOperatorRawShippingDecisionNote] =
+    useState<string | null>(null);
+  const [privateCoreOperatorRawShippingDecisionStatus, setPrivateCoreOperatorRawShippingDecisionStatus] =
+    useState<string | null>(null);
   const [privateCoreOperatorRawZkV1FinishLineNote, setPrivateCoreOperatorRawZkV1FinishLineNote] =
     useState<string | null>(null);
   const [
@@ -849,9 +854,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   const [recentShield, setRecentShield] = useState<RecentShieldContext | null>(null);
 
   const refreshPrivateCoreOperatorSummary = useCallback(async () => {
-    const [contractState, summaryState] = await Promise.all([
+    const [contractState, summaryState, shippingDecisionState] = await Promise.all([
       fetchVantaPrivateCoreOperatorContract(),
       fetchVantaPrivateCoreOperatorSummary(),
+      fetchVantaPrivateCoreOperatorShippingDecision(),
     ]);
     applyPrivateCoreOperatorContractState({
       contractState,
@@ -990,6 +996,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSwaps,
       setPrivateCoreOperatorSwapProofs,
     });
+    setPrivateCoreOperatorRawShippingDecisionNote(shippingDecisionState.decisionNote);
+    setPrivateCoreOperatorRawShippingDecisionStatus(shippingDecisionState.decisionStatus);
     setPrivateCoreOperatorConsumeError(null);
     setPrivateCoreOperatorProofError(null);
     setPrivateCoreOperatorReleaseError(null);
@@ -2127,6 +2135,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         });
       const privateCoreOperatorZkV1ShippingSummary =
         summarizePrivateCoreOperatorZkV1ShippingStatus({
+          shippingDecisionNote: privateCoreOperatorRawShippingDecisionNote,
+          shippingDecisionStatus: privateCoreOperatorRawShippingDecisionStatus,
           shippingNote: privateCoreOperatorRawZkV1ShippingNote,
           shippingStatus: privateCoreOperatorRawZkV1ShippingStatus,
         });
@@ -2186,6 +2196,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorRawReleaseBoundaryStatus,
       privateCoreOperatorRawRequiredLanesNote,
       privateCoreOperatorRawRequiredLanesStatus,
+      privateCoreOperatorRawShippingDecisionNote,
+      privateCoreOperatorRawShippingDecisionStatus,
       privateCoreOperatorRawZkV1ShippingNote,
       privateCoreOperatorRawZkV1ShippingStatus,
       privateCoreOperatorRawZkV1FinishLineNote,
@@ -2894,9 +2906,31 @@ function summarizePrivateCoreOperatorRequiredLanesStatus(args: {
 }
 
 function summarizePrivateCoreOperatorZkV1ShippingStatus(args: {
+  shippingDecisionNote: string | null;
+  shippingDecisionStatus: string | null;
   shippingNote: string | null;
   shippingStatus: string | null;
 }) {
+  if (args.shippingDecisionStatus === "ready-to-ship") {
+    return {
+      primaryNote:
+        args.shippingDecisionNote ??
+        args.shippingNote ??
+        "Frozen narrow zk v1 lane is coherent enough to ship at the current operator boundary.",
+      statusLabel: "Ready to ship",
+    };
+  }
+
+  if (args.shippingDecisionStatus === "blocked") {
+    return {
+      primaryNote:
+        args.shippingDecisionNote ??
+        args.shippingNote ??
+        "The canonical operator shipping decision is currently blocked by a live lane mismatch.",
+      statusLabel: "Blocked",
+    };
+  }
+
   if (args.shippingStatus === "ready-narrow-v1") {
     return {
       primaryNote:
@@ -2943,8 +2977,8 @@ function summarizePrivateCoreOperatorZkV1ShippingStatus(args: {
   }
 
   return {
-    primaryNote: "No zk v1 shipping summary has been observed yet.",
-    statusLabel: "Awaiting shipping state",
+    primaryNote: "No canonical operator shipping decision has been observed yet.",
+    statusLabel: "Awaiting shipping decision",
   };
 }
 

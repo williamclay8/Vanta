@@ -866,7 +866,7 @@ export function VantaPrivateCoreStatePanel({
               <strong>{operatorRequiredLanesStatusLabel ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
-              <span>zk v1 shipping status</span>
+              <span>Shipping decision</span>
               <strong>{operatorZkV1ShippingStatusLabel ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
@@ -1187,7 +1187,7 @@ export function VantaPrivateCoreStatePanel({
               <strong>{operatorRequiredLanesPrimaryNote ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
-              <span>zk v1 shipping note</span>
+              <span>Shipping decision note</span>
               <strong>{operatorZkV1ShippingPrimaryNote ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
