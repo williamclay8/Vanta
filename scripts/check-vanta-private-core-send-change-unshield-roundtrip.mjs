@@ -476,6 +476,13 @@ try {
   }
   printStatus("private-core send-change->unshield operator-status: PASS");
 
+  execFileSync("node", ["scripts/print-vanta-private-core-shipping-status.mjs", "--base-url", baseUrl, "--check-ready"], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  printStatus("private-core send-change->unshield shipping-check: PASS");
+
   const replay = await requestJson(baseUrl, "/private-core/unshield-consume", {
     body: JSON.stringify({
       sourceArtifacts: changeSourceArtifacts,
