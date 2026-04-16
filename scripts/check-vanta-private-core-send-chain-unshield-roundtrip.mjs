@@ -425,10 +425,15 @@ try {
     "Proof/consume link: linked",
     "Proof/release link: linked",
     "Send boundary status: Downstream released",
+    "Send resulting root note: Latest private send resulting root has already been released downstream.",
     "Send resulting root registration basis: Send recipient output",
+    "Send continuity note: Latest send resulting root has already been released downstream.",
+    "Send boundary note: Latest send resulting root has already been released downstream.",
     "Send resulting root proof link: linked",
     "Contract mirror status: Summary mirrors frozen contract",
+    "Contract mirror note: Operator summary mirrors the frozen private-core contract across all supported static fields.",
     "Boundary status: Operator boundary coherent",
+    "Boundary note: Current root, consume, release, and linked proofs agree.",
   ];
   const missingStatusLines = expectedStatusLines.filter(
     (line) => !operatorStatusOutput.includes(line),

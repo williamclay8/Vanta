@@ -411,10 +411,15 @@ try {
     "Proof/consume link: linked",
     "Proof/release link: linked",
     "Swap boundary status: Released downstream",
+    "Swap resulting root note: Latest private swap resulting root has already been released downstream.",
     "Swap resulting root registration basis: Swap output",
+    "Swap continuity note: Latest swap resulting root has already been released downstream.",
+    "Swap boundary note: Latest swap resulting root has already been released downstream.",
     "Swap resulting root proof link: linked",
     "Contract mirror status: Summary mirrors frozen contract",
+    "Contract mirror note: Operator summary mirrors the frozen private-core contract across all supported static fields.",
     "Boundary status: Operator boundary coherent",
+    "Boundary note: Current root, consume, release, and linked proofs agree.",
   ];
   const missingStatusLines = expectedStatusLines.filter(
     (line) => !operatorStatusOutput.includes(line),
