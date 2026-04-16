@@ -220,7 +220,7 @@ try {
   if (
     !initialSummaryState.ok ||
     initialSummaryState.parsed?.stateVersion !== 1 ||
-    initialSummaryState.parsed?.summaryVersion !== 37 ||
+    initialSummaryState.parsed?.summaryVersion !== 38 ||
     initialSummaryState.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     initialSummaryState.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -920,7 +920,7 @@ try {
   if (
     !summaryStateAfterConsume.ok ||
     summaryStateAfterConsume.parsed?.stateVersion !== 1 ||
-    summaryStateAfterConsume.parsed?.summaryVersion !== 37 ||
+    summaryStateAfterConsume.parsed?.summaryVersion !== 38 ||
     summaryStateAfterConsume.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterConsume.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -1037,7 +1037,7 @@ try {
   });
   if (
     !summaryStateAfterRelease.ok ||
-    summaryStateAfterRelease.parsed?.summaryVersion !== 37 ||
+    summaryStateAfterRelease.parsed?.summaryVersion !== 38 ||
     summaryStateAfterRelease.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterRelease.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -1141,10 +1141,14 @@ try {
   if (
     !operatorStatusOutput.includes("Summary state version: 1") ||
     !operatorStatusOutput.includes("Mirrored contract version: 14") ||
-    !operatorStatusOutput.includes("Summary version: 37") ||
+    !operatorStatusOutput.includes("Summary version: 38") ||
     !operatorStatusOutput.includes("Required lanes status: Send lane mismatch") ||
     !operatorStatusOutput.includes(
       "Required lanes note: No private send transition is available for boundary checks yet.",
+    ) ||
+    !operatorStatusOutput.includes("zk v1 shipping status: Required lanes mismatch") ||
+    !operatorStatusOutput.includes(
+      "zk v1 shipping note: No private send transition is available for boundary checks yet.",
     ) ||
     !operatorStatusOutput.includes("zk v1 finish line status: Coherent minimum v1 lane") ||
     !operatorStatusOutput.includes(

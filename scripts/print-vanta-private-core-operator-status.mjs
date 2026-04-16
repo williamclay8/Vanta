@@ -14,6 +14,11 @@ try {
   );
   printLine("Required lanes note", summary.requiredLanesNote ?? "Unavailable");
   printLine(
+    "zk v1 shipping status",
+    humanizeZkV1ShippingStatus(summary.zkV1ShippingStatus),
+  );
+  printLine("zk v1 shipping note", summary.zkV1ShippingNote ?? "Unavailable");
+  printLine(
     "zk v1 finish line status",
     humanizeZkV1FinishLineStatus(summary.zkV1FinishLineStatus),
   );
@@ -546,6 +551,23 @@ function humanizeRequiredLanesStatus(value) {
       return "Release lane mismatch";
     case "finish-line-mismatch":
       return "Finish-line mismatch";
+    default:
+      return "Unknown";
+  }
+}
+
+function humanizeZkV1ShippingStatus(value) {
+  switch (value) {
+    case "ready-narrow-v1":
+      return "Ready narrow v1";
+    case "required-lanes-mismatch":
+      return "Required lanes mismatch";
+    case "release-boundary-mismatch":
+      return "Release-boundary mismatch";
+    case "contract-mismatch":
+      return "Contract mismatch";
+    case "boundary-mismatch":
+      return "Boundary mismatch";
     default:
       return "Unknown";
   }

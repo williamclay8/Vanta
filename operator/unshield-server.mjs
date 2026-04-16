@@ -1967,6 +1967,16 @@ function buildPrivateCoreSummaryState() {
     zkV1FinishLineNote: zkV1FinishLineStatus.note,
     zkV1FinishLineStatus: zkV1FinishLineStatus.status,
   });
+  const zkV1ShippingStatus = summarizePrivateCoreZkV1ShippingStatus({
+    boundaryNote: boundaryStatus.note,
+    boundaryStatus: boundaryStatus.status,
+    contractMirrorNote: contractMirrorStatus.note,
+    contractMirrorStatus: contractMirrorStatus.status,
+    releaseBoundaryNote: releaseBoundaryStatus.note,
+    releaseBoundaryStatus: releaseBoundaryStatus.status,
+    requiredLanesNote: requiredLanesStatus.note,
+    requiredLanesStatus: requiredLanesStatus.status,
+  });
 
   return {
     ...summaryState,
@@ -1976,6 +1986,8 @@ function buildPrivateCoreSummaryState() {
     requiredLanesNote: requiredLanesStatus.note,
     releaseBoundaryStatus: releaseBoundaryStatus.status,
     releaseBoundaryNote: releaseBoundaryStatus.note,
+    zkV1ShippingStatus: zkV1ShippingStatus.status,
+    zkV1ShippingNote: zkV1ShippingStatus.note,
     zkV1FinishLineStatus: zkV1FinishLineStatus.status,
     zkV1FinishLineNote: zkV1FinishLineStatus.note,
     generatedAt: Date.now(),
@@ -1986,7 +1998,7 @@ function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
     contractVersion: 14,
-    summaryVersion: 37,
+    summaryVersion: 38,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
@@ -2302,6 +2314,41 @@ function summarizePrivateCoreRequiredLanesStatus(args) {
   return {
     status: "coherent-required-lanes",
     note: "Minimum zk v1 required lanes are coherent: send boundary is healthy, release boundary is recorded, and the finish line remains coherent.",
+  };
+}
+
+function summarizePrivateCoreZkV1ShippingStatus(args) {
+  if (args.contractMirrorStatus !== "mirrors-contract") {
+    return {
+      status: "contract-mismatch",
+      note: args.contractMirrorNote,
+    };
+  }
+
+  if (args.boundaryStatus !== "coherent") {
+    return {
+      status: "boundary-mismatch",
+      note: args.boundaryNote,
+    };
+  }
+
+  if (args.releaseBoundaryStatus !== "release-recorded") {
+    return {
+      status: "release-boundary-mismatch",
+      note: args.releaseBoundaryNote,
+    };
+  }
+
+  if (args.requiredLanesStatus !== "coherent-required-lanes") {
+    return {
+      status: "required-lanes-mismatch",
+      note: args.requiredLanesNote,
+    };
+  }
+
+  return {
+    status: "ready-narrow-v1",
+    note: "Minimum zk v1 required lanes are coherent and the operator boundary remains contract-coherent enough to ship the frozen narrow lane.",
   };
 }
 

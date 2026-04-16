@@ -2087,6 +2087,12 @@ export function SwapPage() {
         operatorRequiredLanesStatusLabel={
           privacyFlow.privateCoreOperatorRequiredLanesStatusLabel
         }
+        operatorZkV1ShippingPrimaryNote={
+          privacyFlow.privateCoreOperatorZkV1ShippingPrimaryNote
+        }
+        operatorZkV1ShippingStatusLabel={
+          privacyFlow.privateCoreOperatorZkV1ShippingStatusLabel
+        }
         operatorSendBoundaryPrimaryNote={privacyFlow.privateCoreOperatorSendBoundaryPrimaryNote}
         operatorSendBoundaryStatusLabel={privacyFlow.privateCoreOperatorSendBoundaryStatusLabel}
         operatorSendContinuityPrimaryNote={privacyFlow.privateCoreOperatorSendContinuityPrimaryNote}

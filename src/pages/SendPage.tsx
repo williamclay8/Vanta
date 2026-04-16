@@ -156,6 +156,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorReleaseBoundaryStatusLabel,
     privateCoreOperatorRequiredLanesPrimaryNote,
     privateCoreOperatorRequiredLanesStatusLabel,
+    privateCoreOperatorZkV1ShippingPrimaryNote,
+    privateCoreOperatorZkV1ShippingStatusLabel,
     privateCoreOperatorZkV1FinishLinePrimaryNote,
     privateCoreOperatorZkV1FinishLineStatusLabel,
     privateCoreOperatorSendBoundaryPrimaryNote,
@@ -1769,6 +1771,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         operatorReleaseBoundaryStatusLabel={privateCoreOperatorReleaseBoundaryStatusLabel}
         operatorRequiredLanesPrimaryNote={privateCoreOperatorRequiredLanesPrimaryNote}
         operatorRequiredLanesStatusLabel={privateCoreOperatorRequiredLanesStatusLabel}
+        operatorZkV1ShippingPrimaryNote={privateCoreOperatorZkV1ShippingPrimaryNote}
+        operatorZkV1ShippingStatusLabel={privateCoreOperatorZkV1ShippingStatusLabel}
         operatorSendBoundaryPrimaryNote={privateCoreOperatorSendBoundaryPrimaryNote}
         operatorSendBoundaryStatusLabel={privateCoreOperatorSendBoundaryStatusLabel}
         operatorSendContinuityPrimaryNote={privateCoreOperatorSendContinuityPrimaryNote}
