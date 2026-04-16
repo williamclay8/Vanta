@@ -378,6 +378,9 @@ try {
     stdio: "pipe",
   });
   const expectedStatusLines = [
+    "Summary state version: 1",
+    "Mirrored contract version: 11",
+    "Summary version: 31",
     "Current root:",
     "Current root proof:",
     "Current root linked proof:",
@@ -393,6 +396,7 @@ try {
     "Proof records: 3",
     "Latest send proof:",
     "Latest send proof action: send-proof",
+    "Latest send proof link:",
     "Send proof records: 1",
     "Latest send transition:",
     "Latest send linked proof:",
