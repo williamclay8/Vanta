@@ -19,6 +19,7 @@ Run these before a live demo:
 npm run build
 npm run private-core:demo-readiness
 npm run private-core:operator-status
+npm run private-core:operator-status-json
 npm run private-core:operator-contract-json
 npm run private-core:shipping-status
 npm run private-core:shipping-status-json

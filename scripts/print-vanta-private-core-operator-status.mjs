@@ -1,8 +1,25 @@
-const baseUrl = resolveBaseUrl(process.argv.slice(2));
+const args = process.argv.slice(2);
+const baseUrl = resolveBaseUrl(args);
+const jsonMode = args.includes("--json");
 
 try {
   const summary = await requestJson("/state/private-core-summary");
   const shippingDecision = await requestJson("/state/private-core-shipping-decision");
+
+  if (jsonMode) {
+    console.log(
+      JSON.stringify(
+        {
+          operator: baseUrl,
+          summary,
+          shippingDecision,
+        },
+        null,
+        2,
+      ),
+    );
+    process.exit(0);
+  }
 
   printLine("Operator", baseUrl);
   printLine("Summary state version", String(summary.stateVersion ?? "unknown"));

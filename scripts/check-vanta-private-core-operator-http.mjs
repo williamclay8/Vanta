@@ -1240,6 +1240,41 @@ try {
   }
   printStatus("operator http operator-status surface: PASS");
 
+  const operatorStatusJsonOutput = execFileSync("npm", [
+    "run",
+    "--silent",
+    "private-core:operator-status-json",
+    "--",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  const operatorStatusJson = JSON.parse(operatorStatusJsonOutput);
+  if (
+    operatorStatusJson.operator !== baseUrl ||
+    operatorStatusJson.summary?.stateVersion !== 1 ||
+    operatorStatusJson.summary?.contractVersion !== 15 ||
+    operatorStatusJson.summary?.summaryVersion !== 39 ||
+    operatorStatusJson.summary?.requiredLanesStatus !== "send-lane-mismatch" ||
+    operatorStatusJson.summary?.zkV1ShippingStatus !== "required-lanes-mismatch" ||
+    operatorStatusJson.summary?.releaseBoundaryStatus !== "release-recorded" ||
+    operatorStatusJson.summary?.contractMirrorStatus !== "mirrors-contract" ||
+    operatorStatusJson.summary?.boundaryStatus !== "coherent" ||
+    operatorStatusJson.shippingDecision?.decisionVersion !== 1 ||
+    operatorStatusJson.shippingDecision?.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
+    operatorStatusJson.shippingDecision?.decisionStatus !== "blocked" ||
+    operatorStatusJson.shippingDecision?.contractVersion !== 15 ||
+    operatorStatusJson.shippingDecision?.summaryVersion !== 39
+  ) {
+    throw new Error(
+      `Unexpected operator-status JSON output\n${JSON.stringify(operatorStatusJson, null, 2)}`,
+    );
+  }
+  printStatus("operator http operator-status json surface: PASS");
+
   const shippingStatusOutput = execFileSync("node", [
     "scripts/print-vanta-private-core-shipping-status.mjs",
     "--base-url",
