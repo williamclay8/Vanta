@@ -39,6 +39,8 @@ type VantaPrivateCoreStatePanelProps = {
   operatorBoundaryStatusLabel?: string | null;
   operatorContractMirrorPrimaryNote?: string | null;
   operatorContractMirrorStatusLabel?: string | null;
+  operatorReleaseBoundaryPrimaryNote?: string | null;
+  operatorReleaseBoundaryStatusLabel?: string | null;
   operatorZkV1FinishLinePrimaryNote?: string | null;
   operatorZkV1FinishLineStatusLabel?: string | null;
   operatorSendBoundaryPrimaryNote?: string | null;
@@ -300,6 +302,8 @@ export function VantaPrivateCoreStatePanel({
   operatorBoundaryStatusLabel = null,
   operatorContractMirrorPrimaryNote = null,
   operatorContractMirrorStatusLabel = null,
+  operatorReleaseBoundaryPrimaryNote = null,
+  operatorReleaseBoundaryStatusLabel = null,
   operatorZkV1FinishLinePrimaryNote = null,
   operatorZkV1FinishLineStatusLabel = null,
   operatorSendBoundaryPrimaryNote = null,
@@ -846,6 +850,10 @@ export function VantaPrivateCoreStatePanel({
               <strong>{operatorContractMirrorStatusLabel ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
+              <span>Release boundary status</span>
+              <strong>{operatorReleaseBoundaryStatusLabel ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
               <span>Send boundary status</span>
               <strong>{operatorSendBoundaryStatusLabel ?? "Unavailable"}</strong>
             </div>
@@ -1153,6 +1161,10 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Contract mirror note</span>
               <strong>{operatorContractMirrorPrimaryNote ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Release boundary note</span>
+              <strong>{operatorReleaseBoundaryPrimaryNote ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Send boundary note</span>

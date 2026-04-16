@@ -1937,6 +1937,16 @@ function buildPrivateCoreSummaryState() {
     contractState,
     summaryState,
   });
+  const releaseBoundaryStatus = summarizePrivateCoreReleaseBoundaryStatus({
+    boundaryNote: boundaryStatus.note,
+    boundaryStatus: boundaryStatus.status,
+    contractMirrorNote: contractMirrorStatus.note,
+    contractMirrorStatus: contractMirrorStatus.status,
+    latestConsume,
+    latestRelease,
+    latestReleaseProof,
+    proofReleaseLinkStatus,
+  });
   const zkV1FinishLineStatus = summarizePrivateCoreZkV1FinishLineStatus({
     boundaryNote: boundaryStatus.note,
     boundaryStatus: boundaryStatus.status,
@@ -1954,6 +1964,8 @@ function buildPrivateCoreSummaryState() {
     ...summaryState,
     contractMirrorStatus: contractMirrorStatus.status,
     contractMirrorNote: contractMirrorStatus.note,
+    releaseBoundaryStatus: releaseBoundaryStatus.status,
+    releaseBoundaryNote: releaseBoundaryStatus.note,
     zkV1FinishLineStatus: zkV1FinishLineStatus.status,
     zkV1FinishLineNote: zkV1FinishLineStatus.note,
     generatedAt: Date.now(),
@@ -1964,7 +1976,7 @@ function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
     contractVersion: 14,
-    summaryVersion: 35,
+    summaryVersion: 36,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
@@ -2180,6 +2192,72 @@ function summarizePrivateCoreZkV1FinishLineStatus(args) {
   return {
     status: "coherent-minimum-v1-lane",
     note: "Frozen minimum zk v1 send/unshield/release lane is coherent at the operator boundary.",
+  };
+}
+
+function summarizePrivateCoreReleaseBoundaryStatus(args) {
+  if (args.contractMirrorStatus !== "mirrors-contract") {
+    return {
+      status: "contract-mismatch",
+      note: args.contractMirrorNote,
+    };
+  }
+
+  if (args.boundaryStatus !== "coherent") {
+    return {
+      status: "boundary-mismatch",
+      note: args.boundaryNote,
+    };
+  }
+
+  if (!args.latestConsume && !args.latestRelease) {
+    return {
+      status: "unavailable",
+      note: "No proof-backed private-core release has been recorded yet.",
+    };
+  }
+
+  if (args.latestConsume && !args.latestRelease) {
+    return {
+      status: "consume-without-release",
+      note: "A private-core consume exists without a corresponding release record.",
+    };
+  }
+
+  if (!args.latestRelease) {
+    return {
+      status: "unavailable",
+      note: "No proof-backed private-core release has been recorded yet.",
+    };
+  }
+
+  if (args.proofReleaseLinkStatus !== "linked" || !args.latestReleaseProof) {
+    return {
+      status: "proof-unlinked",
+      note:
+        args.proofReleaseLinkStatus === "mismatch"
+          ? "Latest private-core release record does not match its linked proof."
+          : "Latest private-core release does not have a linked proof record yet.",
+    };
+  }
+
+  if (args.latestRelease.authorizationBasis !== PRIVATE_CORE_RELEASE_AUTHORIZATION_BASIS) {
+    return {
+      status: "authorization-mismatch",
+      note: "Latest private-core release authorization basis does not match the frozen proof-backed consume contract.",
+    };
+  }
+
+  if (args.latestRelease.rootPolicy !== PRIVATE_CORE_RELEASE_ROOT_POLICY) {
+    return {
+      status: "root-policy-mismatch",
+      note: "Latest private-core release root policy does not match the frozen latest-registered-root contract.",
+    };
+  }
+
+  return {
+    status: "release-recorded",
+    note: "Latest private-core release is recorded, proof-linked, and consistent with the frozen release contract.",
   };
 }
 

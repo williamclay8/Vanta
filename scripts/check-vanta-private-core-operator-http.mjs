@@ -220,7 +220,7 @@ try {
   if (
     !initialSummaryState.ok ||
     initialSummaryState.parsed?.stateVersion !== 1 ||
-    initialSummaryState.parsed?.summaryVersion !== 35 ||
+    initialSummaryState.parsed?.summaryVersion !== 36 ||
     initialSummaryState.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     initialSummaryState.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -920,7 +920,7 @@ try {
   if (
     !summaryStateAfterConsume.ok ||
     summaryStateAfterConsume.parsed?.stateVersion !== 1 ||
-    summaryStateAfterConsume.parsed?.summaryVersion !== 35 ||
+    summaryStateAfterConsume.parsed?.summaryVersion !== 36 ||
     summaryStateAfterConsume.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterConsume.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -1037,7 +1037,7 @@ try {
   });
   if (
     !summaryStateAfterRelease.ok ||
-    summaryStateAfterRelease.parsed?.summaryVersion !== 35 ||
+    summaryStateAfterRelease.parsed?.summaryVersion !== 36 ||
     summaryStateAfterRelease.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterRelease.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -1141,10 +1141,14 @@ try {
   if (
     !operatorStatusOutput.includes("Summary state version: 1") ||
     !operatorStatusOutput.includes("Mirrored contract version: 14") ||
-    !operatorStatusOutput.includes("Summary version: 35") ||
+    !operatorStatusOutput.includes("Summary version: 36") ||
     !operatorStatusOutput.includes("zk v1 finish line status: Coherent minimum v1 lane") ||
     !operatorStatusOutput.includes(
       "zk v1 finish line note: Frozen minimum zk v1 send/unshield/release lane is coherent at the operator boundary.",
+    ) ||
+    !operatorStatusOutput.includes("Release boundary status: Release recorded") ||
+    !operatorStatusOutput.includes(
+      "Release boundary note: Latest private-core release is recorded, proof-linked, and consistent with the frozen release contract.",
     ) ||
     !operatorStatusOutput.includes(
       "Supported swap v1 role: adjacent-supported-not-required-for-finish-line",

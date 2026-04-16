@@ -147,6 +147,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorRawSwapResultingRootStatus: string | null;
   privateCoreOperatorRawBoundaryNote: string | null;
   privateCoreOperatorRawBoundaryStatus: string | null;
+  privateCoreOperatorRawReleaseBoundaryNote: string | null;
+  privateCoreOperatorRawReleaseBoundaryStatus: string | null;
   privateCoreOperatorRawZkV1FinishLineNote: string | null;
   privateCoreOperatorRawZkV1FinishLineStatus: string | null;
   privateCoreOperatorSupportedSendLaneKind: string | null;
@@ -235,6 +237,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorBoundaryStatusLabel: string | null;
   privateCoreOperatorContractMirrorPrimaryNote: string | null;
   privateCoreOperatorContractMirrorStatusLabel: string | null;
+  privateCoreOperatorReleaseBoundaryPrimaryNote: string | null;
+  privateCoreOperatorReleaseBoundaryStatusLabel: string | null;
   privateCoreOperatorZkV1FinishLinePrimaryNote: string | null;
   privateCoreOperatorZkV1FinishLineStatusLabel: string | null;
   privateCoreOperatorSendBoundaryPrimaryNote: string | null;
@@ -576,6 +580,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<string | null>(null);
   const [privateCoreOperatorRawBoundaryStatus, setPrivateCoreOperatorRawBoundaryStatus] =
     useState<string | null>(null);
+  const [privateCoreOperatorRawReleaseBoundaryNote, setPrivateCoreOperatorRawReleaseBoundaryNote] =
+    useState<string | null>(null);
+  const [
+    privateCoreOperatorRawReleaseBoundaryStatus,
+    setPrivateCoreOperatorRawReleaseBoundaryStatus,
+  ] = useState<string | null>(null);
   const [privateCoreOperatorRawZkV1FinishLineNote, setPrivateCoreOperatorRawZkV1FinishLineNote] =
     useState<string | null>(null);
   const [
@@ -939,6 +949,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorRawSwapResultingRootStatus,
       setPrivateCoreOperatorRawBoundaryNote,
       setPrivateCoreOperatorRawBoundaryStatus,
+      setPrivateCoreOperatorRawReleaseBoundaryNote,
+      setPrivateCoreOperatorRawReleaseBoundaryStatus,
       setPrivateCoreOperatorRawContractMirrorNote,
       setPrivateCoreOperatorRawContractMirrorStatus,
       setPrivateCoreOperatorRawZkV1FinishLineNote,
@@ -2083,6 +2095,11 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
           contractMirrorNote: privateCoreOperatorRawContractMirrorNote,
           contractMirrorStatus: privateCoreOperatorRawContractMirrorStatus,
         });
+      const privateCoreOperatorReleaseBoundarySummary =
+        summarizePrivateCoreOperatorReleaseBoundaryStatus({
+          releaseBoundaryNote: privateCoreOperatorRawReleaseBoundaryNote,
+          releaseBoundaryStatus: privateCoreOperatorRawReleaseBoundaryStatus,
+        });
       const privateCoreOperatorZkV1FinishLineSummary =
         summarizePrivateCoreOperatorZkV1FinishLineStatus({
           finishLineNote: privateCoreOperatorRawZkV1FinishLineNote,
@@ -2135,6 +2152,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorRawSwapResultingRootStatus,
       privateCoreOperatorRawBoundaryNote,
       privateCoreOperatorRawBoundaryStatus,
+      privateCoreOperatorRawReleaseBoundaryNote,
+      privateCoreOperatorRawReleaseBoundaryStatus,
       privateCoreOperatorRawZkV1FinishLineNote,
       privateCoreOperatorRawZkV1FinishLineStatus,
       privateCoreOperatorRawContractMirrorNote,
@@ -2227,6 +2246,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         privateCoreOperatorContractMirrorSummary.primaryNote,
       privateCoreOperatorContractMirrorStatusLabel:
         privateCoreOperatorContractMirrorSummary.statusLabel,
+      privateCoreOperatorReleaseBoundaryPrimaryNote:
+        privateCoreOperatorReleaseBoundarySummary.primaryNote,
+      privateCoreOperatorReleaseBoundaryStatusLabel:
+        privateCoreOperatorReleaseBoundarySummary.statusLabel,
       privateCoreOperatorZkV1FinishLinePrimaryNote:
         privateCoreOperatorZkV1FinishLineSummary.primaryNote,
       privateCoreOperatorZkV1FinishLineStatusLabel:
@@ -2322,6 +2345,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorRawSendResultingRootStatus,
       privateCoreOperatorRawBoundaryNote,
       privateCoreOperatorRawBoundaryStatus,
+      privateCoreOperatorRawReleaseBoundaryNote,
+      privateCoreOperatorRawReleaseBoundaryStatus,
       privateCoreOperatorRawZkV1FinishLineNote,
       privateCoreOperatorRawZkV1FinishLineStatus,
       privateCoreOperatorRawContractMirrorNote,
@@ -2636,6 +2661,79 @@ function summarizePrivateCoreOperatorContractMirrorStatus(args: {
   return {
     primaryNote: "No operator contract mirror status has been observed yet.",
     statusLabel: "Awaiting contract mirror state",
+  };
+}
+
+function summarizePrivateCoreOperatorReleaseBoundaryStatus(args: {
+  releaseBoundaryNote: string | null;
+  releaseBoundaryStatus: string | null;
+}) {
+  if (args.releaseBoundaryStatus === "release-recorded") {
+    return {
+      primaryNote:
+        args.releaseBoundaryNote ??
+        "Latest private-core release is recorded, proof-linked, and consistent with the frozen release contract.",
+      statusLabel: "Release recorded",
+    };
+  }
+
+  if (args.releaseBoundaryStatus === "consume-without-release") {
+    return {
+      primaryNote:
+        args.releaseBoundaryNote ??
+        "A private-core consume exists without a corresponding release record.",
+      statusLabel: "Consume without release",
+    };
+  }
+
+  if (args.releaseBoundaryStatus === "proof-unlinked") {
+    return {
+      primaryNote:
+        args.releaseBoundaryNote ??
+        "Latest private-core release does not have a linked proof-consume basis yet.",
+      statusLabel: "Release proof unlinked",
+    };
+  }
+
+  if (args.releaseBoundaryStatus === "authorization-mismatch") {
+    return {
+      primaryNote:
+        args.releaseBoundaryNote ??
+        "Latest private-core release authorization basis does not match the frozen release contract.",
+      statusLabel: "Release auth mismatch",
+    };
+  }
+
+  if (args.releaseBoundaryStatus === "root-policy-mismatch") {
+    return {
+      primaryNote:
+        args.releaseBoundaryNote ??
+        "Latest private-core release root policy does not match the frozen release contract.",
+      statusLabel: "Release root-policy mismatch",
+    };
+  }
+
+  if (args.releaseBoundaryStatus === "contract-mismatch") {
+    return {
+      primaryNote:
+        args.releaseBoundaryNote ??
+        "Operator summary drifted from the frozen private-core contract.",
+      statusLabel: "Contract mismatch",
+    };
+  }
+
+  if (args.releaseBoundaryStatus === "boundary-mismatch") {
+    return {
+      primaryNote:
+        args.releaseBoundaryNote ??
+        "Current operator boundary is not coherent enough for the frozen release lane.",
+      statusLabel: "Boundary mismatch",
+    };
+  }
+
+  return {
+    primaryNote: "No private-core release-boundary summary has been observed yet.",
+    statusLabel: "Awaiting release state",
   };
 }
 
@@ -3527,6 +3625,8 @@ function applyPrivateCoreOperatorSummaryState(args: {
   setPrivateCoreOperatorRawSwapResultingRootStatus: (value: string | null) => void;
   setPrivateCoreOperatorRawBoundaryNote: (value: string | null) => void;
   setPrivateCoreOperatorRawBoundaryStatus: (value: string | null) => void;
+  setPrivateCoreOperatorRawReleaseBoundaryNote: (value: string | null) => void;
+  setPrivateCoreOperatorRawReleaseBoundaryStatus: (value: string | null) => void;
   setPrivateCoreOperatorRawContractMirrorNote: (value: string | null) => void;
   setPrivateCoreOperatorRawContractMirrorStatus: (value: string | null) => void;
   setPrivateCoreOperatorRawZkV1FinishLineNote: (value: string | null) => void;
@@ -3597,6 +3697,8 @@ function applyPrivateCoreOperatorSummaryState(args: {
   args.setPrivateCoreOperatorRawContractMirrorStatus(args.summaryState.contractMirrorStatus);
   args.setPrivateCoreOperatorRawBoundaryNote(args.summaryState.boundaryNote);
   args.setPrivateCoreOperatorRawBoundaryStatus(args.summaryState.boundaryStatus);
+  args.setPrivateCoreOperatorRawReleaseBoundaryNote(args.summaryState.releaseBoundaryNote);
+  args.setPrivateCoreOperatorRawReleaseBoundaryStatus(args.summaryState.releaseBoundaryStatus);
   args.setPrivateCoreOperatorRawZkV1FinishLineNote(args.summaryState.zkV1FinishLineNote);
   args.setPrivateCoreOperatorRawZkV1FinishLineStatus(args.summaryState.zkV1FinishLineStatus);
   args.setPrivateCoreOperatorRoots(args.summaryState.rootRecords);

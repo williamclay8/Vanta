@@ -13,6 +13,11 @@ try {
     humanizeZkV1FinishLineStatus(summary.zkV1FinishLineStatus),
   );
   printLine("zk v1 finish line note", summary.zkV1FinishLineNote ?? "Unavailable");
+  printLine(
+    "Release boundary status",
+    humanizeReleaseBoundaryStatus(summary.releaseBoundaryStatus),
+  );
+  printLine("Release boundary note", summary.releaseBoundaryNote ?? "Unavailable");
   printLine("Supported send lane version", String(summary.supportedSendLaneVersion ?? "unknown"));
   printLine("Supported send lane kind", humanizeSupportedSendLaneKind(summary.supportedSendLaneKind));
   printLine("Supported send lane status", humanizeSupportedSendLaneStatus(summary.supportedSendLaneStatus));
@@ -498,6 +503,31 @@ function humanizeZkV1FinishLineStatus(value) {
     return "Boundary mismatch";
   }
 
+  return "Unavailable";
+}
+
+function humanizeReleaseBoundaryStatus(value) {
+  if (value === "release-recorded") {
+    return "Release recorded";
+  }
+  if (value === "consume-without-release") {
+    return "Consume without release";
+  }
+  if (value === "proof-unlinked") {
+    return "Release proof unlinked";
+  }
+  if (value === "authorization-mismatch") {
+    return "Release auth mismatch";
+  }
+  if (value === "root-policy-mismatch") {
+    return "Release root-policy mismatch";
+  }
+  if (value === "contract-mismatch") {
+    return "Contract mismatch";
+  }
+  if (value === "boundary-mismatch") {
+    return "Boundary mismatch";
+  }
   return "Unavailable";
 }
 

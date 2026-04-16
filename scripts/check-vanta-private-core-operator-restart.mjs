@@ -273,7 +273,7 @@ try {
     preRestartSends.parsed.records.length < 1 ||
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.stateVersion !== 1 ||
-    preRestartSummary.parsed?.summaryVersion !== 35 ||
+    preRestartSummary.parsed?.summaryVersion !== 36 ||
     preRestartSummary.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     preRestartSummary.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -381,7 +381,7 @@ try {
   if (
     !postRestartSummary.ok ||
     postRestartSummary.parsed?.stateVersion !== 1 ||
-    postRestartSummary.parsed?.summaryVersion !== 35 ||
+    postRestartSummary.parsed?.summaryVersion !== 36 ||
     postRestartSummary.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     postRestartSummary.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -521,11 +521,15 @@ try {
     stdio: "pipe",
   });
   if (
-    !operatorStatusOutput.includes("Summary version: 35") ||
+    !operatorStatusOutput.includes("Summary version: 36") ||
     !operatorStatusOutput.includes("Mirrored contract version: 14") ||
     !operatorStatusOutput.includes("zk v1 finish line status: Coherent minimum v1 lane") ||
     !operatorStatusOutput.includes(
       "zk v1 finish line note: Frozen minimum zk v1 send/unshield/release lane is coherent at the operator boundary.",
+    ) ||
+    !operatorStatusOutput.includes("Release boundary status: Release recorded") ||
+    !operatorStatusOutput.includes(
+      "Release boundary note: Latest private-core release is recorded, proof-linked, and consistent with the frozen release contract.",
     ) ||
     !operatorStatusOutput.includes(
       "Supported swap v1 role: adjacent-supported-not-required-for-finish-line",

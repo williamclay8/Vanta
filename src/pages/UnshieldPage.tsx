@@ -116,6 +116,8 @@ export function UnshieldPage() {
     privateCoreOperatorBoundaryStatusLabel,
     privateCoreOperatorContractMirrorPrimaryNote,
     privateCoreOperatorContractMirrorStatusLabel,
+    privateCoreOperatorReleaseBoundaryPrimaryNote,
+    privateCoreOperatorReleaseBoundaryStatusLabel,
     privateCoreOperatorZkV1FinishLinePrimaryNote,
     privateCoreOperatorZkV1FinishLineStatusLabel,
     privateCoreOperatorSendBoundaryPrimaryNote,
@@ -1001,6 +1003,8 @@ export function UnshieldPage() {
           operatorBoundaryStatusLabel={privateCoreOperatorBoundaryStatusLabel}
           operatorContractMirrorPrimaryNote={privateCoreOperatorContractMirrorPrimaryNote}
           operatorContractMirrorStatusLabel={privateCoreOperatorContractMirrorStatusLabel}
+          operatorReleaseBoundaryPrimaryNote={privateCoreOperatorReleaseBoundaryPrimaryNote}
+          operatorReleaseBoundaryStatusLabel={privateCoreOperatorReleaseBoundaryStatusLabel}
           operatorSendBoundaryPrimaryNote={privateCoreOperatorSendBoundaryPrimaryNote}
           operatorSendBoundaryStatusLabel={privateCoreOperatorSendBoundaryStatusLabel}
           operatorSendContinuityPrimaryNote={privateCoreOperatorSendContinuityPrimaryNote}

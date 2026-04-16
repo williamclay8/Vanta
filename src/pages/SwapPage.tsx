@@ -2075,6 +2075,12 @@ export function SwapPage() {
         operatorBoundaryStatusLabel={privacyFlow.privateCoreOperatorBoundaryStatusLabel}
         operatorContractMirrorPrimaryNote={privacyFlow.privateCoreOperatorContractMirrorPrimaryNote}
         operatorContractMirrorStatusLabel={privacyFlow.privateCoreOperatorContractMirrorStatusLabel}
+        operatorReleaseBoundaryPrimaryNote={
+          privacyFlow.privateCoreOperatorReleaseBoundaryPrimaryNote
+        }
+        operatorReleaseBoundaryStatusLabel={
+          privacyFlow.privateCoreOperatorReleaseBoundaryStatusLabel
+        }
         operatorSendBoundaryPrimaryNote={privacyFlow.privateCoreOperatorSendBoundaryPrimaryNote}
         operatorSendBoundaryStatusLabel={privacyFlow.privateCoreOperatorSendBoundaryStatusLabel}
         operatorSendContinuityPrimaryNote={privacyFlow.privateCoreOperatorSendContinuityPrimaryNote}

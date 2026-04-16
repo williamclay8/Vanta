@@ -412,10 +412,12 @@ try {
   const expectedStatusLines = [
     "Summary state version: 1",
     "Mirrored contract version: 14",
-    "Summary version: 35",
+    "Summary version: 36",
     "Summary generated:",
     "zk v1 finish line status: Coherent minimum v1 lane",
     "zk v1 finish line note: Frozen minimum zk v1 send/unshield/release lane is coherent at the operator boundary.",
+    "Release boundary status: Release recorded",
+    "Release boundary note: Latest private-core release is recorded, proof-linked, and consistent with the frozen release contract.",
     "Supported send lane version: 1",
     "Supported send lane kind: Single input / recipient / optional change",
     "Supported send lane status: Supported",
