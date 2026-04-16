@@ -80,6 +80,7 @@ The operator-status command gives a quick summary snapshot of:
 - proof/release link status
 
 The shipping-status command gives the shortest operator-backed summary of:
+- which summary-state version and mirrored contract version you are looking at
 - when the current operator summary snapshot was generated
 - whether the frozen narrow zk-v1 lane is `Ready narrow v1`
 - whether the frozen minimum finish line is still coherent

@@ -6,6 +6,8 @@ try {
   const summary = await requestJson("/state/private-core-summary");
 
   printLine("Operator", baseUrl);
+  printLine("Summary state version", String(summary.stateVersion ?? "unknown"));
+  printLine("Mirrored contract version", String(summary.contractVersion ?? "unknown"));
   printLine("Summary version", String(summary.summaryVersion ?? "unknown"));
   printLine("Summary generated", summary.generatedAt ?? "Unavailable");
   printLine("Shipping status", humanizeShippingStatus(summary.zkV1ShippingStatus));

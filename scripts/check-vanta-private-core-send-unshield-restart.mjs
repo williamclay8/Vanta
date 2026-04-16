@@ -525,6 +525,8 @@ try {
     stdio: "pipe",
   });
   if (
+    !shippingStatusOutput.includes("Summary state version: 1") ||
+    !shippingStatusOutput.includes("Mirrored contract version: 14") ||
     !shippingStatusOutput.includes("Summary version: 38") ||
     !shippingStatusOutput.includes("Summary generated:") ||
     !shippingStatusOutput.includes("Shipping status: Ready narrow v1") ||
