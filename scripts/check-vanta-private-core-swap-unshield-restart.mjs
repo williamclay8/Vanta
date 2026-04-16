@@ -399,6 +399,8 @@ try {
     "Latest swap execution venue: Unavailable",
     "Latest swap quote reference: Unavailable",
     "Latest release:",
+    "Release destination: 0x99999999...999999",
+    "Released value: 1250000000 / 0xbbbbbbbb...bbbbbb",
     "Proof/swap link: linked",
     "Proof/consume link: linked",
     "Proof/release link: linked",

@@ -419,6 +419,8 @@ try {
     "Latest send transition:",
     "Latest send linked proof:",
     "Latest release:",
+    "Release destination: 0x99999999...999999",
+    "Released value: 13000000 / 0xaaaaaaaa...aaaaaa",
     "Proof/send link: linked",
     "Proof/consume link: linked",
     "Proof/release link: linked",
