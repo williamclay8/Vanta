@@ -311,6 +311,13 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (request.method === "GET" && request.url === "/state/private-core-shipping-decision") {
+    writeCorsHeaders(response);
+    response.writeHead(200, { "Content-Type": "application/json" });
+    response.end(JSON.stringify(buildPrivateCoreShippingDecisionState()));
+    return;
+  }
+
   if (request.method === "GET" && request.url === "/state/private-core-contract") {
     writeCorsHeaders(response);
     response.writeHead(200, { "Content-Type": "application/json" });
@@ -1991,6 +1998,35 @@ function buildPrivateCoreSummaryState() {
     zkV1FinishLineStatus: zkV1FinishLineStatus.status,
     zkV1FinishLineNote: zkV1FinishLineStatus.note,
     generatedAt: Date.now(),
+  };
+}
+
+function buildPrivateCoreShippingDecisionState() {
+  const summaryState = buildPrivateCoreSummaryState();
+  const decisionStatus =
+    summaryState.zkV1ShippingStatus === "ready-narrow-v1" ? "ready-to-ship" : "blocked";
+
+  return {
+    stateVersion: 1,
+    decisionVersion: 1,
+    decisionKind: "narrow-private-core-zk-v1-shipping",
+    decisionStatus,
+    decisionNote: summaryState.zkV1ShippingNote,
+    contractVersion: summaryState.contractVersion,
+    summaryVersion: summaryState.summaryVersion,
+    generatedAt: summaryState.generatedAt,
+    shippingStatus: summaryState.zkV1ShippingStatus,
+    shippingNote: summaryState.zkV1ShippingNote,
+    finishLineStatus: summaryState.zkV1FinishLineStatus,
+    finishLineNote: summaryState.zkV1FinishLineNote,
+    requiredLanesStatus: summaryState.requiredLanesStatus,
+    requiredLanesNote: summaryState.requiredLanesNote,
+    releaseBoundaryStatus: summaryState.releaseBoundaryStatus,
+    releaseBoundaryNote: summaryState.releaseBoundaryNote,
+    contractMirrorStatus: summaryState.contractMirrorStatus,
+    contractMirrorNote: summaryState.contractMirrorNote,
+    boundaryStatus: summaryState.boundaryStatus,
+    boundaryNote: summaryState.boundaryNote,
   };
 }
 

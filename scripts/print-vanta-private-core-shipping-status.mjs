@@ -4,10 +4,10 @@ const checkReady = args.includes("--check-ready");
 const jsonMode = args.includes("--json");
 
 try {
-  const summary = await requestJson("/state/private-core-summary");
-  const surface = buildShippingSurface(summary);
+  const decision = await requestJson("/state/private-core-shipping-decision");
+  const surface = buildShippingSurface(decision);
 
-  if (checkReady && summary.zkV1ShippingStatus !== "ready-narrow-v1") {
+  if (checkReady && decision.decisionStatus !== "ready-to-ship") {
     if (jsonMode) {
       console.error(JSON.stringify(surface, null, 2));
     }
@@ -31,37 +31,46 @@ try {
   process.exitCode = 1;
 }
 
-function buildShippingSurface(summary) {
+function buildShippingSurface(decision) {
   return {
     operator: baseUrl,
-    summaryStateVersion: summary.stateVersion ?? null,
-    mirroredContractVersion: summary.contractVersion ?? null,
-    summaryVersion: summary.summaryVersion ?? null,
-    summaryGenerated: summary.generatedAt ?? null,
-    shippingStatusRaw: summary.zkV1ShippingStatus ?? null,
-    shippingStatus: humanizeShippingStatus(summary.zkV1ShippingStatus),
-    shippingNote: summary.zkV1ShippingNote ?? "Unavailable",
-    finishLineStatusRaw: summary.zkV1FinishLineStatus ?? null,
-    finishLineStatus: humanizeFinishLineStatus(summary.zkV1FinishLineStatus),
-    finishLineNote: summary.zkV1FinishLineNote ?? "Unavailable",
-    requiredLanesStatusRaw: summary.requiredLanesStatus ?? null,
-    requiredLanesStatus: humanizeRequiredLanesStatus(summary.requiredLanesStatus),
-    requiredLanesNote: summary.requiredLanesNote ?? "Unavailable",
-    releaseBoundaryStatusRaw: summary.releaseBoundaryStatus ?? null,
-    releaseBoundaryStatus: humanizeReleaseBoundaryStatus(summary.releaseBoundaryStatus),
-    releaseBoundaryNote: summary.releaseBoundaryNote ?? "Unavailable",
-    contractMirrorStatusRaw: summary.contractMirrorStatus ?? null,
-    contractMirrorStatus: humanizeContractMirrorStatus(summary.contractMirrorStatus),
-    contractMirrorNote: summary.contractMirrorNote ?? "Unavailable",
-    boundaryStatusRaw: summary.boundaryStatus ?? null,
-    boundaryStatus: humanizeBoundaryStatus(summary.boundaryStatus),
-    boundaryNote: summary.boundaryNote ?? "Unavailable",
+    summaryStateVersion: decision.stateVersion ?? null,
+    decisionVersion: decision.decisionVersion ?? null,
+    decisionKind: decision.decisionKind ?? null,
+    decisionStatusRaw: decision.decisionStatus ?? null,
+    decisionStatus: humanizeDecisionStatus(decision.decisionStatus),
+    decisionNote: decision.decisionNote ?? "Unavailable",
+    mirroredContractVersion: decision.contractVersion ?? null,
+    summaryVersion: decision.summaryVersion ?? null,
+    summaryGenerated: decision.generatedAt ?? null,
+    shippingStatusRaw: decision.shippingStatus ?? null,
+    shippingStatus: humanizeShippingStatus(decision.shippingStatus),
+    shippingNote: decision.shippingNote ?? "Unavailable",
+    finishLineStatusRaw: decision.finishLineStatus ?? null,
+    finishLineStatus: humanizeFinishLineStatus(decision.finishLineStatus),
+    finishLineNote: decision.finishLineNote ?? "Unavailable",
+    requiredLanesStatusRaw: decision.requiredLanesStatus ?? null,
+    requiredLanesStatus: humanizeRequiredLanesStatus(decision.requiredLanesStatus),
+    requiredLanesNote: decision.requiredLanesNote ?? "Unavailable",
+    releaseBoundaryStatusRaw: decision.releaseBoundaryStatus ?? null,
+    releaseBoundaryStatus: humanizeReleaseBoundaryStatus(decision.releaseBoundaryStatus),
+    releaseBoundaryNote: decision.releaseBoundaryNote ?? "Unavailable",
+    contractMirrorStatusRaw: decision.contractMirrorStatus ?? null,
+    contractMirrorStatus: humanizeContractMirrorStatus(decision.contractMirrorStatus),
+    contractMirrorNote: decision.contractMirrorNote ?? "Unavailable",
+    boundaryStatusRaw: decision.boundaryStatus ?? null,
+    boundaryStatus: humanizeBoundaryStatus(decision.boundaryStatus),
+    boundaryNote: decision.boundaryNote ?? "Unavailable",
   };
 }
 
 function printShippingSurface(surface) {
   printLine("Operator", surface.operator);
   printLine("Summary state version", String(surface.summaryStateVersion ?? "unknown"));
+  printLine("Decision version", String(surface.decisionVersion ?? "unknown"));
+  printLine("Decision kind", surface.decisionKind ?? "unknown");
+  printLine("Decision status", surface.decisionStatus);
+  printLine("Decision note", surface.decisionNote);
   printLine("Mirrored contract version", String(surface.mirroredContractVersion ?? "unknown"));
   printLine("Summary version", String(surface.summaryVersion ?? "unknown"));
   printLine("Summary generated", surface.summaryGenerated ?? "Unavailable");
@@ -77,6 +86,17 @@ function printShippingSurface(surface) {
   printLine("Contract mirror note", surface.contractMirrorNote);
   printLine("Boundary status", surface.boundaryStatus);
   printLine("Boundary note", surface.boundaryNote);
+}
+
+function humanizeDecisionStatus(value) {
+  switch (value) {
+    case "ready-to-ship":
+      return "Ready to ship";
+    case "blocked":
+      return "Blocked";
+    default:
+      return "Unknown";
+  }
 }
 
 function humanizeShippingStatus(value) {

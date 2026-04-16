@@ -537,6 +537,12 @@ try {
     blockedShippingJsonOutput.slice(blockedShippingJsonStart, blockedShippingJsonEnd + 1),
   );
   if (
+    blockedShippingJson.decisionVersion !== 1 ||
+    blockedShippingJson.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
+    blockedShippingJson.decisionStatusRaw !== "blocked" ||
+    blockedShippingJson.decisionStatus !== "Blocked" ||
+    blockedShippingJson.decisionNote !==
+      "No private send transition is available for boundary checks yet." ||
     blockedShippingJson.shippingStatusRaw !== "required-lanes-mismatch" ||
     blockedShippingJson.shippingStatus !== "Required lanes mismatch" ||
     blockedShippingJson.shippingNote !==

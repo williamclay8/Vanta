@@ -549,6 +549,12 @@ try {
   });
   const shippingStatusJson = JSON.parse(shippingStatusJsonOutput);
   if (
+    shippingStatusJson.decisionVersion !== 1 ||
+    shippingStatusJson.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
+    shippingStatusJson.decisionStatusRaw !== "ready-to-ship" ||
+    shippingStatusJson.decisionStatus !== "Ready to ship" ||
+    shippingStatusJson.decisionNote !==
+      "Minimum zk v1 required lanes are coherent and the operator boundary remains contract-coherent enough to ship the frozen narrow lane." ||
     shippingStatusJson.summaryStateVersion !== 1 ||
     shippingStatusJson.mirroredContractVersion !== 14 ||
     shippingStatusJson.summaryVersion !== 38 ||

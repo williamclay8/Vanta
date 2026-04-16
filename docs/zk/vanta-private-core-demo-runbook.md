@@ -82,6 +82,7 @@ The operator-status command gives a quick summary snapshot of:
 - proof/release link status
 
 The shipping-status command gives the shortest operator-backed summary of:
+- the canonical shipping decision version, kind, status, and note
 - which summary-state version and mirrored contract version you are looking at
 - when the current operator summary snapshot was generated
 - whether the frozen narrow zk-v1 lane is `Ready narrow v1`
@@ -93,6 +94,7 @@ The shipping-status command gives the shortest operator-backed summary of:
   - operator boundary
 
 Use `private-core:shipping-status-json` when a reviewer, shell script, or external tool needs the compact readiness surface as machine-readable JSON.
+That JSON now comes from the dedicated `/state/private-core-shipping-decision` endpoint rather than being reconstructed ad hoc from the larger summary payload. Treat that endpoint as the canonical operator-backed ship/no-ship contract for the frozen narrow private-core lane.
 
 Use `private-core:shipping-check-json` when that same tooling wants a strict machine-readable pass/fail gate for the frozen narrow lane instead of just a status snapshot.
 

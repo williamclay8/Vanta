@@ -659,6 +659,12 @@ try {
   });
   const shippingStatusJson = JSON.parse(shippingStatusJsonOutput);
   if (
+    shippingStatusJson.decisionVersion !== 1 ||
+    shippingStatusJson.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
+    shippingStatusJson.decisionStatusRaw !== "blocked" ||
+    shippingStatusJson.decisionStatus !== "Blocked" ||
+    shippingStatusJson.decisionNote !==
+      "Latest send resulting root still needs operator registration before downstream continuity is established." ||
     shippingStatusJson.summaryStateVersion !== 1 ||
     shippingStatusJson.mirroredContractVersion !== 14 ||
     shippingStatusJson.summaryVersion !== 38 ||
@@ -678,6 +684,34 @@ try {
     );
   }
   printStatus("operator restart shipping-status json: PASS");
+
+  const shippingDecisionState = await requestJson(baseUrl, "/state/private-core-shipping-decision", {
+    method: "GET",
+  });
+  if (
+    !shippingDecisionState.ok ||
+    shippingDecisionState.parsed?.stateVersion !== 1 ||
+    shippingDecisionState.parsed?.decisionVersion !== 1 ||
+    shippingDecisionState.parsed?.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
+    shippingDecisionState.parsed?.decisionStatus !== "blocked" ||
+    shippingDecisionState.parsed?.decisionNote !==
+      "Latest send resulting root still needs operator registration before downstream continuity is established." ||
+    shippingDecisionState.parsed?.contractVersion !== 14 ||
+    shippingDecisionState.parsed?.summaryVersion !== 38 ||
+    typeof shippingDecisionState.parsed?.generatedAt !== "number" ||
+    shippingDecisionState.parsed?.shippingStatus !== "required-lanes-mismatch" ||
+    shippingDecisionState.parsed?.finishLineStatus !== "coherent-minimum-v1-lane" ||
+    shippingDecisionState.parsed?.requiredLanesStatus !== "send-lane-mismatch" ||
+    shippingDecisionState.parsed?.releaseBoundaryStatus !== "release-recorded" ||
+    shippingDecisionState.parsed?.contractMirrorStatus !== "mirrors-contract" ||
+    shippingDecisionState.parsed?.boundaryStatus !== "coherent"
+  ) {
+    throw new Error(
+      shippingDecisionState.text ||
+        `Unexpected restart shipping-decision state\n${JSON.stringify(shippingDecisionState.parsed, null, 2)}`,
+    );
+  }
+  printStatus("operator restart shipping-decision state: PASS");
 
   let blockedShippingCheckJson = null;
   try {
@@ -723,6 +757,12 @@ try {
     ),
   );
   if (
+    blockedShippingCheckJsonSurface.decisionVersion !== 1 ||
+    blockedShippingCheckJsonSurface.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
+    blockedShippingCheckJsonSurface.decisionStatusRaw !== "blocked" ||
+    blockedShippingCheckJsonSurface.decisionStatus !== "Blocked" ||
+    blockedShippingCheckJsonSurface.decisionNote !==
+      "Latest send resulting root still needs operator registration before downstream continuity is established." ||
     blockedShippingCheckJsonSurface.summaryStateVersion !== 1 ||
     blockedShippingCheckJsonSurface.mirroredContractVersion !== 14 ||
     blockedShippingCheckJsonSurface.summaryVersion !== 38 ||
