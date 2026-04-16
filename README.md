@@ -262,6 +262,8 @@ These commands cover:
 
 `private-core:shipping-status` is the compact operator-backed answer to the narrow zk-v1 question: whether the frozen private-core lane is actually ship-ready right now, and if not, which live blocker is preventing that. It prints the current summary-state version, mirrored contract version, summary generation time, and `zkV1ShippingStatus` / `zkV1ShippingNote` plus the supporting finish-line, required-lanes, release-boundary, contract-mirror, and boundary summaries without the rest of the larger operator-status dump.
 
+`private-core:shipping-status-json` prints that same compact readiness surface as machine-readable JSON, including both raw enum values and humanized labels for shipping, finish-line, required-lanes, release-boundary, contract-mirror, and boundary state.
+
 `private-core:shipping-check` runs the same operator-backed shipping summary but exits non-zero unless the current summary says `Ready narrow v1`. On blocked paths it now fails with structured `Shipping status:` and `Shipping note:` stderr lines instead of a note-only message.
 
 The operator contract now freezes the narrow zk-v1 contract surface explicitly:

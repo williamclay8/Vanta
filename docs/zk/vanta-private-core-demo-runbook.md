@@ -20,6 +20,7 @@ npm run build
 npm run private-core:demo-readiness
 npm run private-core:operator-status
 npm run private-core:shipping-status
+npm run private-core:shipping-status-json
 ```
 
 Or use the single combined command:
@@ -89,6 +90,8 @@ The shipping-status command gives the shortest operator-backed summary of:
   - release boundary
   - contract mirror
   - operator boundary
+
+Use `private-core:shipping-status-json` when a reviewer, shell script, or external tool needs the same compact readiness surface as machine-readable JSON instead of terminal text.
 
 ## App demo path
 

@@ -555,6 +555,56 @@ try {
   }
   printStatus("private-core swap->unshield restart shipping-check: PASS");
 
+  let blockedShippingJsonCheck = null;
+  try {
+    execFileSync(
+      "node",
+      [
+        "scripts/print-vanta-private-core-shipping-status.mjs",
+        "--base-url",
+        baseUrl,
+        "--json",
+        "--check-ready",
+      ],
+      {
+        cwd: repoRoot,
+        encoding: "utf8",
+        stdio: "pipe",
+      },
+    );
+  } catch (error) {
+    blockedShippingJsonCheck = error;
+  }
+  const blockedShippingJsonOutput =
+    blockedShippingJsonCheck &&
+    typeof blockedShippingJsonCheck === "object" &&
+    "stderr" in blockedShippingJsonCheck &&
+    typeof blockedShippingJsonCheck.stderr === "string"
+      ? blockedShippingJsonCheck.stderr
+      : "";
+  const blockedShippingJsonStart = blockedShippingJsonOutput.indexOf("{");
+  const blockedShippingJsonEnd = blockedShippingJsonOutput.lastIndexOf("}");
+  if (!blockedShippingJsonCheck || blockedShippingJsonStart === -1 || blockedShippingJsonEnd === -1) {
+    throw new Error(
+      blockedShippingJsonOutput ||
+        "swap->unshield restart shipping-check json did not fail with structured output",
+    );
+  }
+  const blockedShippingJson = JSON.parse(
+    blockedShippingJsonOutput.slice(blockedShippingJsonStart, blockedShippingJsonEnd + 1),
+  );
+  if (
+    blockedShippingJson.shippingStatusRaw !== "required-lanes-mismatch" ||
+    blockedShippingJson.shippingStatus !== "Required lanes mismatch" ||
+    blockedShippingJson.shippingNote !==
+      "No private send transition is available for boundary checks yet."
+  ) {
+    throw new Error(
+      `Unexpected swap->unshield restart shipping-check json failure\n${JSON.stringify(blockedShippingJson, null, 2)}`,
+    );
+  }
+  printStatus("private-core swap->unshield restart shipping-check json: PASS");
+
   const replayResponse = await requestJson(baseUrl, "/private-core/unshield-consume", {
     body: JSON.stringify({
       sourceArtifacts: outputSourceArtifacts,

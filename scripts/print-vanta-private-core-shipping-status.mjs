@@ -1,47 +1,82 @@
 const args = process.argv.slice(2);
 const baseUrl = resolveBaseUrl(args);
 const checkReady = args.includes("--check-ready");
+const jsonMode = args.includes("--json");
 
 try {
   const summary = await requestJson("/state/private-core-summary");
-
-  printLine("Operator", baseUrl);
-  printLine("Summary state version", String(summary.stateVersion ?? "unknown"));
-  printLine("Mirrored contract version", String(summary.contractVersion ?? "unknown"));
-  printLine("Summary version", String(summary.summaryVersion ?? "unknown"));
-  printLine("Summary generated", summary.generatedAt ?? "Unavailable");
-  printLine("Shipping status", humanizeShippingStatus(summary.zkV1ShippingStatus));
-  printLine("Shipping note", summary.zkV1ShippingNote ?? "Unavailable");
-  printLine("Finish line status", humanizeFinishLineStatus(summary.zkV1FinishLineStatus));
-  printLine("Finish line note", summary.zkV1FinishLineNote ?? "Unavailable");
-  printLine("Required lanes status", humanizeRequiredLanesStatus(summary.requiredLanesStatus));
-  printLine("Required lanes note", summary.requiredLanesNote ?? "Unavailable");
-  printLine(
-    "Release boundary status",
-    humanizeReleaseBoundaryStatus(summary.releaseBoundaryStatus),
-  );
-  printLine("Release boundary note", summary.releaseBoundaryNote ?? "Unavailable");
-  printLine(
-    "Contract mirror status",
-    humanizeContractMirrorStatus(summary.contractMirrorStatus),
-  );
-  printLine("Contract mirror note", summary.contractMirrorNote ?? "Unavailable");
-  printLine("Boundary status", humanizeBoundaryStatus(summary.boundaryStatus));
-  printLine("Boundary note", summary.boundaryNote ?? "Unavailable");
+  const surface = buildShippingSurface(summary);
 
   if (checkReady && summary.zkV1ShippingStatus !== "ready-narrow-v1") {
+    if (jsonMode) {
+      console.error(JSON.stringify(surface, null, 2));
+    }
     throw new Error(
       [
-        `Shipping status: ${humanizeShippingStatus(summary.zkV1ShippingStatus)}`,
-        `Shipping note: ${summary.zkV1ShippingNote ?? "private-core narrow zk v1 lane is not ready"}`,
+        `Shipping status: ${surface.shippingStatus}`,
+        `Shipping note: ${surface.shippingNote}`,
       ].join("\n"),
     );
+  }
+
+  if (jsonMode) {
+    console.log(JSON.stringify(surface, null, 2));
+  } else {
+    printShippingSurface(surface);
   }
 } catch (error) {
   console.error(
     error instanceof Error ? error.message : "Failed to print private-core shipping status",
   );
   process.exitCode = 1;
+}
+
+function buildShippingSurface(summary) {
+  return {
+    operator: baseUrl,
+    summaryStateVersion: summary.stateVersion ?? null,
+    mirroredContractVersion: summary.contractVersion ?? null,
+    summaryVersion: summary.summaryVersion ?? null,
+    summaryGenerated: summary.generatedAt ?? null,
+    shippingStatusRaw: summary.zkV1ShippingStatus ?? null,
+    shippingStatus: humanizeShippingStatus(summary.zkV1ShippingStatus),
+    shippingNote: summary.zkV1ShippingNote ?? "Unavailable",
+    finishLineStatusRaw: summary.zkV1FinishLineStatus ?? null,
+    finishLineStatus: humanizeFinishLineStatus(summary.zkV1FinishLineStatus),
+    finishLineNote: summary.zkV1FinishLineNote ?? "Unavailable",
+    requiredLanesStatusRaw: summary.requiredLanesStatus ?? null,
+    requiredLanesStatus: humanizeRequiredLanesStatus(summary.requiredLanesStatus),
+    requiredLanesNote: summary.requiredLanesNote ?? "Unavailable",
+    releaseBoundaryStatusRaw: summary.releaseBoundaryStatus ?? null,
+    releaseBoundaryStatus: humanizeReleaseBoundaryStatus(summary.releaseBoundaryStatus),
+    releaseBoundaryNote: summary.releaseBoundaryNote ?? "Unavailable",
+    contractMirrorStatusRaw: summary.contractMirrorStatus ?? null,
+    contractMirrorStatus: humanizeContractMirrorStatus(summary.contractMirrorStatus),
+    contractMirrorNote: summary.contractMirrorNote ?? "Unavailable",
+    boundaryStatusRaw: summary.boundaryStatus ?? null,
+    boundaryStatus: humanizeBoundaryStatus(summary.boundaryStatus),
+    boundaryNote: summary.boundaryNote ?? "Unavailable",
+  };
+}
+
+function printShippingSurface(surface) {
+  printLine("Operator", surface.operator);
+  printLine("Summary state version", String(surface.summaryStateVersion ?? "unknown"));
+  printLine("Mirrored contract version", String(surface.mirroredContractVersion ?? "unknown"));
+  printLine("Summary version", String(surface.summaryVersion ?? "unknown"));
+  printLine("Summary generated", surface.summaryGenerated ?? "Unavailable");
+  printLine("Shipping status", surface.shippingStatus);
+  printLine("Shipping note", surface.shippingNote);
+  printLine("Finish line status", surface.finishLineStatus);
+  printLine("Finish line note", surface.finishLineNote);
+  printLine("Required lanes status", surface.requiredLanesStatus);
+  printLine("Required lanes note", surface.requiredLanesNote);
+  printLine("Release boundary status", surface.releaseBoundaryStatus);
+  printLine("Release boundary note", surface.releaseBoundaryNote);
+  printLine("Contract mirror status", surface.contractMirrorStatus);
+  printLine("Contract mirror note", surface.contractMirrorNote);
+  printLine("Boundary status", surface.boundaryStatus);
+  printLine("Boundary note", surface.boundaryNote);
 }
 
 function humanizeShippingStatus(value) {

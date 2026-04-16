@@ -646,6 +646,38 @@ try {
     throw new Error(`Unexpected restart shipping-status output\n${shippingStatusOutput}`);
   }
   printStatus("operator restart shipping-status: PASS");
+
+  const shippingStatusJsonOutput = execFileSync("node", [
+    "scripts/print-vanta-private-core-shipping-status.mjs",
+    "--base-url",
+    baseUrl,
+    "--json",
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  const shippingStatusJson = JSON.parse(shippingStatusJsonOutput);
+  if (
+    shippingStatusJson.summaryStateVersion !== 1 ||
+    shippingStatusJson.mirroredContractVersion !== 14 ||
+    shippingStatusJson.summaryVersion !== 38 ||
+    typeof shippingStatusJson.summaryGenerated !== "number" ||
+    shippingStatusJson.shippingStatusRaw !== "required-lanes-mismatch" ||
+    shippingStatusJson.shippingStatus !== "Required lanes mismatch" ||
+    shippingStatusJson.shippingNote !==
+      "Latest send resulting root still needs operator registration before downstream continuity is established." ||
+    shippingStatusJson.finishLineStatusRaw !== "coherent-minimum-v1-lane" ||
+    shippingStatusJson.requiredLanesStatusRaw !== "send-lane-mismatch" ||
+    shippingStatusJson.releaseBoundaryStatusRaw !== "release-recorded" ||
+    shippingStatusJson.contractMirrorStatusRaw !== "mirrors-contract" ||
+    shippingStatusJson.boundaryStatusRaw !== "coherent"
+  ) {
+    throw new Error(
+      `Unexpected restart shipping-status JSON output\n${JSON.stringify(shippingStatusJson, null, 2)}`,
+    );
+  }
+  printStatus("operator restart shipping-status json: PASS");
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   console.error(message);

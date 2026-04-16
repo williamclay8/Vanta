@@ -250,6 +250,8 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   prints the current operator-side root, proof, send-proof, send-transition, consume, and release state when the operator server is running, including proof/send, proof/consume, proof/release, and root-registration proof linkage plus send resulting-root continuity status, resulting-root provenance, and the matched resulting-root record when available
 - `npm run private-core:shipping-status`
   prints the compact operator-backed shipping summary for the frozen narrow zk-v1 lane, including the summary-state version, mirrored contract version, current summary generation time, and the supporting finish-line, required-lanes, release-boundary, contract-mirror, and boundary summaries; `private-core:shipping-check` uses the same surface and now fails with structured shipping status/note lines on blocked paths
+- `npm run private-core:shipping-status-json`
+  prints that same compact readiness surface as JSON for automation and external tooling
 
 The current frozen operator-backed private-core contract now states the narrow accepted `v1` path explicitly:
 - `contractVersion = 11`

@@ -15,6 +15,7 @@
     "private-core:operator-contract": "node scripts/print-vanta-private-core-operator-contract.mjs",
     "private-core:operator-status": "node scripts/print-vanta-private-core-operator-status.mjs",
     "private-core:shipping-status": "node scripts/print-vanta-private-core-shipping-status.mjs",
+    "private-core:shipping-status-json": "node scripts/print-vanta-private-core-shipping-status.mjs --json",
     "private-core:shipping-check": "node scripts/print-vanta-private-core-shipping-status.mjs --check-ready",
     "private-core:fixture": "node scripts/write-vanta-private-core-unshield-fixture.mjs",
     "private-core:send-fixture": "node scripts/write-vanta-private-core-send-fixture.mjs",
