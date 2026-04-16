@@ -542,6 +542,10 @@ try {
       : "";
   if (
     !blockedShippingCheck ||
+    !blockedShippingOutput.includes("Shipping status: Required lanes mismatch") ||
+    !blockedShippingOutput.includes(
+      "Shipping note: No private send transition is available for boundary checks yet.",
+    ) ||
     !blockedShippingOutput.includes("No private send transition is available for boundary checks yet.")
   ) {
     throw new Error(

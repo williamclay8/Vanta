@@ -30,7 +30,12 @@ try {
   printLine("Boundary note", summary.boundaryNote ?? "Unavailable");
 
   if (checkReady && summary.zkV1ShippingStatus !== "ready-narrow-v1") {
-    throw new Error(summary.zkV1ShippingNote ?? "private-core narrow zk v1 lane is not ready");
+    throw new Error(
+      [
+        `Shipping status: ${humanizeShippingStatus(summary.zkV1ShippingStatus)}`,
+        `Shipping note: ${summary.zkV1ShippingNote ?? "private-core narrow zk v1 lane is not ready"}`,
+      ].join("\n"),
+    );
   }
 } catch (error) {
   console.error(
