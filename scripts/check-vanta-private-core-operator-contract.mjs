@@ -389,6 +389,39 @@ try {
     throw new Error(contractOutput || "operator contract script did not reflect the contract state");
   }
   printStatus("operator contract CLI: PASS");
+
+  const contractJsonOutput = execFileSync("npm", [
+    "run",
+    "--silent",
+    "private-core:operator-contract-json",
+    "--",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  const contractJson = JSON.parse(contractJsonOutput);
+  if (
+    contractJson.operator !== baseUrl ||
+    contractJson.stateVersion !== 1 ||
+    contractJson.contractVersion !== 15 ||
+    contractJson.summaryVersion !== 39 ||
+    contractJson.supportedSendLaneVersion !== 1 ||
+    contractJson.supportedUnshieldLaneVersion !== 1 ||
+    contractJson.supportedReleaseLaneVersion !== 1 ||
+    contractJson.supportedSwapLaneVersion !== 1 ||
+    contractJson.supportedShippingDecisionVersion !== 1 ||
+    contractJson.supportedShippingDecisionKind !== "narrow-private-core-zk-v1-shipping" ||
+    contractJson.supportedShippingDecisionNote !==
+      "Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane."
+  ) {
+    throw new Error(
+      `Unexpected operator contract JSON output\n${JSON.stringify(contractJson, null, 2)}`,
+    );
+  }
+  printStatus("operator contract json surface: PASS");
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   console.error(message);

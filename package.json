@@ -13,6 +13,7 @@
     "private-core:consume-check": "node scripts/check-vanta-private-core-operator-consume.mjs",
     "private-core:contract-smoke": "node scripts/check-vanta-private-core-operator-contract.mjs",
     "private-core:operator-contract": "node scripts/print-vanta-private-core-operator-contract.mjs",
+    "private-core:operator-contract-json": "node scripts/print-vanta-private-core-operator-contract.mjs --json",
     "private-core:operator-status": "node scripts/print-vanta-private-core-operator-status.mjs",
     "private-core:shipping-status": "node scripts/print-vanta-private-core-shipping-status.mjs",
     "private-core:shipping-status-json": "node scripts/print-vanta-private-core-shipping-status.mjs --json",

@@ -19,6 +19,7 @@ Run these before a live demo:
 npm run build
 npm run private-core:demo-readiness
 npm run private-core:operator-status
+npm run private-core:operator-contract-json
 npm run private-core:shipping-status
 npm run private-core:shipping-status-json
 npm run private-core:shipping-check-json
@@ -57,6 +58,7 @@ That confirms:
 - replay is still rejected after restart
 - local proof generation and verification still succeeds
 - the compact shipping summary still says whether the frozen narrow lane is actually ready or which live blocker is preventing that
+- the static operator contract is still available as machine-readable JSON, including the frozen shipping-decision contract surface
 
 The operator-status command gives a quick summary snapshot of:
 - the canonical shipping decision version, kind, status, and note

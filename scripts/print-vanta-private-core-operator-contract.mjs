@@ -1,7 +1,15 @@
-const baseUrl = resolveBaseUrl(process.argv.slice(2));
+const args = process.argv.slice(2);
+const baseUrl = resolveBaseUrl(args);
+const jsonMode = args.includes("--json");
 
 try {
   const contract = await requestJson("/state/private-core-contract");
+  const surface = buildContractSurface(contract);
+
+  if (jsonMode) {
+    console.log(JSON.stringify(surface, null, 2));
+    process.exit(0);
+  }
 
   printLine("Operator", baseUrl);
   printLine("Contract state version", String(contract.stateVersion ?? "unknown"));
@@ -218,6 +226,13 @@ try {
   const message = error instanceof Error ? error.message : String(error);
   console.error(`private-core operator contract: FAIL\n${message}`);
   process.exitCode = 1;
+}
+
+function buildContractSurface(contract) {
+  return {
+    operator: baseUrl,
+    ...contract,
+  };
 }
 
 function resolveBaseUrl(args) {
