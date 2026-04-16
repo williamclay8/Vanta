@@ -622,6 +622,33 @@ try {
   });
   printStatus("private-core send-change->unshield shipping-check: PASS");
 
+  const operatorSnapshotCheckJsonOutput = execFileSync("npm", [
+    "run",
+    "--silent",
+    "private-core:operator-snapshot-check-json",
+    "--",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  const operatorSnapshotCheckJson = JSON.parse(operatorSnapshotCheckJsonOutput);
+  if (
+    operatorSnapshotCheckJson.snapshotVersion !== 1 ||
+    operatorSnapshotCheckJson.snapshotKind !== "contract-status-shipping-bundle" ||
+    operatorSnapshotCheckJson.contract?.contractVersion !== 16 ||
+    operatorSnapshotCheckJson.contract?.summaryVersion !== 40 ||
+    operatorSnapshotCheckJson.shipping?.decisionStatusRaw !== "ready-to-ship" ||
+    operatorSnapshotCheckJson.shipping?.shippingStatusRaw !== "ready-narrow-v1"
+  ) {
+    throw new Error(
+      `Unexpected send-change->unshield operator-snapshot-check json output\n${JSON.stringify(operatorSnapshotCheckJson, null, 2)}`,
+    );
+  }
+  printStatus("private-core send-change->unshield operator-snapshot-check json: PASS");
+
   const replay = await requestJson(baseUrl, "/private-core/unshield-consume", {
     body: JSON.stringify({
       sourceArtifacts: changeSourceArtifacts,
