@@ -517,6 +517,30 @@ try {
   }
   printStatus("private-core send-change->unshield restart operator-status: PASS");
 
+  const shippingStatusOutput = execFileSync("node", [
+    "scripts/print-vanta-private-core-shipping-status.mjs",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  if (
+    !shippingStatusOutput.includes("Summary version: 38") ||
+    !shippingStatusOutput.includes("Shipping status: Ready narrow v1") ||
+    !shippingStatusOutput.includes(
+      "Shipping note: Minimum zk v1 required lanes are coherent and the operator boundary remains contract-coherent enough to ship the frozen narrow lane.",
+    ) ||
+    !shippingStatusOutput.includes("Required lanes status: Coherent required lanes") ||
+    !shippingStatusOutput.includes("Release boundary status: Release recorded") ||
+    !shippingStatusOutput.includes("Contract mirror status: Summary mirrors frozen contract") ||
+    !shippingStatusOutput.includes("Boundary status: Operator boundary coherent")
+  ) {
+    throw new Error(`Unexpected send-change->unshield restart shipping-status output\n${shippingStatusOutput}`);
+  }
+  printStatus("private-core send-change->unshield restart shipping-status: PASS");
+
   execFileSync("node", ["scripts/print-vanta-private-core-shipping-status.mjs", "--base-url", baseUrl, "--check-ready"], {
     cwd: repoRoot,
     encoding: "utf8",

@@ -492,6 +492,30 @@ try {
   }
   printStatus("private-core swap->unshield restart operator-status: PASS");
 
+  const shippingStatusOutput = execFileSync("node", [
+    "scripts/print-vanta-private-core-shipping-status.mjs",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  if (
+    !shippingStatusOutput.includes("Summary version: 38") ||
+    !shippingStatusOutput.includes("Shipping status: Required lanes mismatch") ||
+    !shippingStatusOutput.includes(
+      "Shipping note: No private send transition is available for boundary checks yet.",
+    ) ||
+    !shippingStatusOutput.includes("Required lanes status: Send lane mismatch") ||
+    !shippingStatusOutput.includes("Release boundary status: Release recorded") ||
+    !shippingStatusOutput.includes("Contract mirror status: Summary mirrors frozen contract") ||
+    !shippingStatusOutput.includes("Boundary status: Operator boundary coherent")
+  ) {
+    throw new Error(`Unexpected swap->unshield restart shipping-status output\n${shippingStatusOutput}`);
+  }
+  printStatus("private-core swap->unshield restart shipping-status: PASS");
+
   let blockedShippingCheck = null;
   try {
     execFileSync("node", ["scripts/print-vanta-private-core-shipping-status.mjs", "--base-url", baseUrl, "--check-ready"], {
