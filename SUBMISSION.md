@@ -249,11 +249,11 @@ The repo now includes concrete verification commands for the Vanta Private Core 
 - `npm run private-core:operator-contract-json`
   prints that same static operator-side contract as machine-readable JSON, including the frozen shipping-decision contract fields plus the dedicated operator-snapshot transport and endpoint path
 - `npm run private-core:operator-status`
-  prints the current operator-side root, proof, send-proof, send-transition, consume, and release state when the operator server is running, including proof/send, proof/consume, proof/release, and root-registration proof linkage plus send resulting-root continuity status, resulting-root provenance, and the matched resulting-root record when available; it now also prints the canonical shipping decision version/kind/status/note directly from `/state/private-core-shipping-decision`
+  prints the current operator-side root, proof, send-proof, send-transition, consume, and release state when the operator server is running, including proof/send, proof/consume, proof/release, and root-registration proof linkage plus send resulting-root continuity status, resulting-root provenance, and the matched resulting-root record when available; it now reads the bundled `/state/private-core-snapshot` artifact for the long-form summary + shipping decision block instead of reconstructing those from separate requests
 - `npm run private-core:operator-status-json`
   prints the live operator summary plus the canonical shipping decision as machine-readable JSON
 - `npm run private-core:operator-snapshot-json`
-  prints one bundled machine-readable operator snapshot from the dedicated `/state/private-core-snapshot` endpoint, containing the frozen contract, the live summary, and the canonical shipping decision together
+  prints one bundled machine-readable operator snapshot from the dedicated `/state/private-core-snapshot` endpoint, containing the frozen contract, the live summary, and the canonical shipping decision together; the shared app runtime now hydrates its operator contract/summary/shipping state from that same bundled endpoint
   prints one bundled machine-readable operator snapshot containing the frozen contract, the live summary, and the canonical shipping decision
 - `npm run private-core:operator-snapshot-check-json`
   runs the ready-gated form of that bundled snapshot; it succeeds only when the frozen narrow lane is ready and otherwise fails with the bundled snapshot JSON plus structured snapshot decision status/note stderr

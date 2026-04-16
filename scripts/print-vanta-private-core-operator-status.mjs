@@ -3,8 +3,9 @@ const baseUrl = resolveBaseUrl(args);
 const jsonMode = args.includes("--json");
 
 try {
-  const summary = await requestJson("/state/private-core-summary");
-  const shippingDecision = await requestJson("/state/private-core-shipping-decision");
+  const snapshot = await requestJson("/state/private-core-snapshot");
+  const summary = snapshot?.status?.summary ?? {};
+  const shippingDecision = snapshot?.status?.shippingDecision ?? {};
 
   if (jsonMode) {
     console.log(

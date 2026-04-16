@@ -41,9 +41,7 @@ import {
   type VantaPrivateCoreUnshieldProofBoundaryV0,
 } from "@/zk/vantaPrivateCoreUnshieldProof";
 import {
-  fetchVantaPrivateCoreOperatorContract,
-  fetchVantaPrivateCoreOperatorShippingDecision,
-  fetchVantaPrivateCoreOperatorSummary,
+  fetchVantaPrivateCoreOperatorSnapshot,
   registerVantaPrivateCoreOperatorRoot,
   requestVantaPrivateCoreOperatorConsume,
   requestVantaPrivateCoreOperatorProof,
@@ -860,11 +858,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   const [recentShield, setRecentShield] = useState<RecentShieldContext | null>(null);
 
   const refreshPrivateCoreOperatorSummary = useCallback(async () => {
-    const [contractState, summaryState, shippingDecisionState] = await Promise.all([
-      fetchVantaPrivateCoreOperatorContract(),
-      fetchVantaPrivateCoreOperatorSummary(),
-      fetchVantaPrivateCoreOperatorShippingDecision(),
-    ]);
+    const snapshotState = await fetchVantaPrivateCoreOperatorSnapshot();
+    const contractState = snapshotState.contract;
+    const summaryState = snapshotState.status.summary;
+    const shippingDecisionState = snapshotState.status.shippingDecision;
     applyPrivateCoreOperatorContractState({
       contractState,
       setPrivateCoreOperatorContractStateVersion,
@@ -1012,7 +1009,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     setPrivateCoreOperatorRootError(null);
     setPrivateCoreOperatorSendError(null);
     setPrivateCoreOperatorSendProofError(null);
-    setPrivateCoreOperatorSummaryUpdatedAt(summaryState.generatedAt);
+    setPrivateCoreOperatorSummaryUpdatedAt(snapshotState.shipping.summaryGenerated);
     return summaryState;
   }, []);
 

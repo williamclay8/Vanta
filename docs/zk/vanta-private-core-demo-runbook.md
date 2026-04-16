@@ -109,6 +109,8 @@ Use `private-core:operator-snapshot-json` when that tooling wants one bundled op
 - the live summary/status surface
 - the canonical shipping decision
 
+The shared app runtime now hydrates its operator contract, live summary, and shipping decision state from that same bundled snapshot endpoint, so the UI and the automation surface are aligned on one operator-owned artifact instead of rebuilding those slices independently.
+
 That bundled artifact is now itself part of the frozen operator contract:
 - `supportedOperatorSnapshotVersion = 1`
 - `supportedOperatorSnapshotKind = contract-status-shipping-bundle`
