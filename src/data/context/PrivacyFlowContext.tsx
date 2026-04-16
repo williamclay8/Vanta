@@ -272,6 +272,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorContractStateVersion: number | null;
   privateCoreOperatorContractVersion: number | null;
   privateCoreOperatorContractSummaryVersion: number | null;
+  privateCoreOperatorShippingDecisionVersion: number | null;
+  privateCoreOperatorShippingDecisionKind: string | null;
   privateCoreOperatorSummaryUpdatedAt: number | null;
   privateCoreUnshieldState: VantaPrivateCoreUnshieldState | null;
   recentShield: RecentShieldContext | null;
@@ -849,6 +851,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<number | null>(null);
   const [privateCoreOperatorContractSummaryVersion, setPrivateCoreOperatorContractSummaryVersion] =
     useState<number | null>(null);
+  const [privateCoreOperatorShippingDecisionVersion, setPrivateCoreOperatorShippingDecisionVersion] =
+    useState<number | null>(null);
+  const [privateCoreOperatorShippingDecisionKind, setPrivateCoreOperatorShippingDecisionKind] =
+    useState<string | null>(null);
   const [privateCoreOperatorSummaryUpdatedAt, setPrivateCoreOperatorSummaryUpdatedAt] =
     useState<number | null>(null);
   const [recentShield, setRecentShield] = useState<RecentShieldContext | null>(null);
@@ -996,6 +1002,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSwaps,
       setPrivateCoreOperatorSwapProofs,
     });
+    setPrivateCoreOperatorShippingDecisionVersion(shippingDecisionState.decisionVersion);
+    setPrivateCoreOperatorShippingDecisionKind(shippingDecisionState.decisionKind);
     setPrivateCoreOperatorRawShippingDecisionNote(shippingDecisionState.decisionNote);
     setPrivateCoreOperatorRawShippingDecisionStatus(shippingDecisionState.decisionStatus);
     setPrivateCoreOperatorConsumeError(null);
@@ -2346,6 +2354,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorContractStateVersion,
       privateCoreOperatorContractVersion,
       privateCoreOperatorContractSummaryVersion,
+      privateCoreOperatorShippingDecisionVersion,
+      privateCoreOperatorShippingDecisionKind,
       privateCoreOperatorSummaryUpdatedAt,
       privateCoreUnshieldState,
       recentShield,
@@ -2501,6 +2511,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorContractStateVersion,
       privateCoreOperatorContractVersion,
       privateCoreOperatorContractSummaryVersion,
+      privateCoreOperatorShippingDecisionVersion,
+      privateCoreOperatorShippingDecisionKind,
       privateCoreOperatorSummaryUpdatedAt,
       privateCoreRecentShield,
       privateCoreUnshieldState,

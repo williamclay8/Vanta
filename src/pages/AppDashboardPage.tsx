@@ -168,6 +168,8 @@ export function AppDashboardPage() {
     privateCoreOperatorContractStateVersion,
     privateCoreOperatorContractVersion,
     privateCoreOperatorContractSummaryVersion,
+    privateCoreOperatorShippingDecisionKind,
+    privateCoreOperatorShippingDecisionVersion,
     privateCoreOperatorSendError,
     privateCoreOperatorSends,
     privateCoreOperatorSendProofError,
@@ -483,6 +485,8 @@ export function AppDashboardPage() {
               operatorContractStateVersion={privateCoreOperatorContractStateVersion}
               operatorContractVersion={privateCoreOperatorContractVersion}
               operatorContractSummaryVersion={privateCoreOperatorContractSummaryVersion}
+              operatorShippingDecisionVersion={privateCoreOperatorShippingDecisionVersion}
+              operatorShippingDecisionKind={privateCoreOperatorShippingDecisionKind}
               operatorSendError={privateCoreOperatorSendError}
               operatorSends={privateCoreOperatorSends}
               operatorSendProofError={privateCoreOperatorSendProofError}

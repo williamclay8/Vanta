@@ -228,6 +228,8 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOperatorContractStateVersion,
     privateCoreOperatorContractVersion,
     privateCoreOperatorContractSummaryVersion,
+    privateCoreOperatorShippingDecisionKind,
+    privateCoreOperatorShippingDecisionVersion,
     privateCoreOperatorSendError,
     privateCoreOperatorSends,
     privateCoreOperatorSendProofError,
@@ -1315,6 +1317,8 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 operatorContractStateVersion={privateCoreOperatorContractStateVersion}
                 operatorContractVersion={privateCoreOperatorContractVersion}
                 operatorContractSummaryVersion={privateCoreOperatorContractSummaryVersion}
+                operatorShippingDecisionVersion={privateCoreOperatorShippingDecisionVersion}
+                operatorShippingDecisionKind={privateCoreOperatorShippingDecisionKind}
                 operatorSendError={privateCoreOperatorSendError}
                 operatorSends={privateCoreOperatorSends}
                 operatorSendProofError={privateCoreOperatorSendProofError}

@@ -212,6 +212,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorContractStateVersion,
     privateCoreOperatorContractVersion,
     privateCoreOperatorContractSummaryVersion,
+    privateCoreOperatorShippingDecisionKind,
+    privateCoreOperatorShippingDecisionVersion,
     privateCoreOperatorProofSendLinkStatus,
     privateCoreOperatorSendError,
     privateCoreOperatorSends,
@@ -1915,6 +1917,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         operatorContractStateVersion={privateCoreOperatorContractStateVersion}
         operatorContractVersion={privateCoreOperatorContractVersion}
         operatorContractSummaryVersion={privateCoreOperatorContractSummaryVersion}
+        operatorShippingDecisionVersion={privateCoreOperatorShippingDecisionVersion}
+        operatorShippingDecisionKind={privateCoreOperatorShippingDecisionKind}
         operatorSendError={privateCoreOperatorSendError}
         operatorSends={privateCoreOperatorSends}
         operatorSendProofError={privateCoreOperatorSendProofError}
