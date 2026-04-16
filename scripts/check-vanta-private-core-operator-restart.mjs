@@ -273,7 +273,7 @@ try {
     preRestartSends.parsed.records.length < 1 ||
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.stateVersion !== 1 ||
-    preRestartSummary.parsed?.summaryVersion !== 36 ||
+    preRestartSummary.parsed?.summaryVersion !== 37 ||
     preRestartSummary.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     preRestartSummary.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -381,7 +381,7 @@ try {
   if (
     !postRestartSummary.ok ||
     postRestartSummary.parsed?.stateVersion !== 1 ||
-    postRestartSummary.parsed?.summaryVersion !== 36 ||
+    postRestartSummary.parsed?.summaryVersion !== 37 ||
     postRestartSummary.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     postRestartSummary.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -521,7 +521,11 @@ try {
     stdio: "pipe",
   });
   if (
-    !operatorStatusOutput.includes("Summary version: 36") ||
+    !operatorStatusOutput.includes("Summary version: 37") ||
+    !operatorStatusOutput.includes("Required lanes status: Send lane mismatch") ||
+    !operatorStatusOutput.includes(
+      "Required lanes note: Latest send resulting root still needs operator registration before downstream continuity is established.",
+    ) ||
     !operatorStatusOutput.includes("Mirrored contract version: 14") ||
     !operatorStatusOutput.includes("zk v1 finish line status: Coherent minimum v1 lane") ||
     !operatorStatusOutput.includes(

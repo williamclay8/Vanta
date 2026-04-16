@@ -116,6 +116,8 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOperatorContractMirrorStatusLabel,
     privateCoreOperatorReleaseBoundaryPrimaryNote,
     privateCoreOperatorReleaseBoundaryStatusLabel,
+    privateCoreOperatorRequiredLanesPrimaryNote,
+    privateCoreOperatorRequiredLanesStatusLabel,
     privateCoreOperatorZkV1FinishLinePrimaryNote,
     privateCoreOperatorZkV1FinishLineStatusLabel,
     privateCoreOperatorSendBoundaryPrimaryNote,
@@ -1155,6 +1157,8 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 operatorContractMirrorStatusLabel={privateCoreOperatorContractMirrorStatusLabel}
                 operatorReleaseBoundaryPrimaryNote={privateCoreOperatorReleaseBoundaryPrimaryNote}
                 operatorReleaseBoundaryStatusLabel={privateCoreOperatorReleaseBoundaryStatusLabel}
+                operatorRequiredLanesPrimaryNote={privateCoreOperatorRequiredLanesPrimaryNote}
+                operatorRequiredLanesStatusLabel={privateCoreOperatorRequiredLanesStatusLabel}
                 operatorSendBoundaryPrimaryNote={privateCoreOperatorSendBoundaryPrimaryNote}
                 operatorSendBoundaryStatusLabel={privateCoreOperatorSendBoundaryStatusLabel}
                 operatorSendContinuityPrimaryNote={privateCoreOperatorSendContinuityPrimaryNote}

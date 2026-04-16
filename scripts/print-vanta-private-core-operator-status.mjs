@@ -9,6 +9,11 @@ try {
   printLine("Summary version", String(summary.summaryVersion ?? "unknown"));
   printLine("Summary generated", formatTimestamp(summary.generatedAt));
   printLine(
+    "Required lanes status",
+    humanizeRequiredLanesStatus(summary.requiredLanesStatus),
+  );
+  printLine("Required lanes note", summary.requiredLanesNote ?? "Unavailable");
+  printLine(
     "zk v1 finish line status",
     humanizeZkV1FinishLineStatus(summary.zkV1FinishLineStatus),
   );
@@ -529,6 +534,21 @@ function humanizeReleaseBoundaryStatus(value) {
     return "Boundary mismatch";
   }
   return "Unavailable";
+}
+
+function humanizeRequiredLanesStatus(value) {
+  switch (value) {
+    case "coherent-required-lanes":
+      return "Coherent required lanes";
+    case "send-lane-mismatch":
+      return "Send lane mismatch";
+    case "release-lane-mismatch":
+      return "Release lane mismatch";
+    case "finish-line-mismatch":
+      return "Finish-line mismatch";
+    default:
+      return "Unknown";
+  }
 }
 
 function humanizeContractMirrorStatus(value) {

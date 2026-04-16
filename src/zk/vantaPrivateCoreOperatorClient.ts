@@ -265,6 +265,12 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   contractVersion: number;
   contractMirrorNote: string;
   contractMirrorStatus: "mirrors-contract" | "contract-mismatch";
+  requiredLanesNote: string;
+  requiredLanesStatus:
+    | "coherent-required-lanes"
+    | "send-lane-mismatch"
+    | "release-lane-mismatch"
+    | "finish-line-mismatch";
   releaseBoundaryNote: string;
   releaseBoundaryStatus:
     | "unavailable"
@@ -590,6 +596,17 @@ function isReleaseBoundaryStatus(
     value === "release-recorded" ||
     value === "contract-mismatch" ||
     value === "boundary-mismatch"
+  );
+}
+
+function isRequiredLanesStatus(
+  value: unknown,
+): value is VantaPrivateCoreOperatorSummaryStateResponse["requiredLanesStatus"] {
+  return (
+    value === "coherent-required-lanes" ||
+    value === "send-lane-mismatch" ||
+    value === "release-lane-mismatch" ||
+    value === "finish-line-mismatch"
   );
 }
 
@@ -1441,6 +1458,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     summaryVersion?: unknown;
     contractMirrorStatus?: unknown;
     contractMirrorNote?: unknown;
+    requiredLanesStatus?: unknown;
+    requiredLanesNote?: unknown;
     releaseBoundaryStatus?: unknown;
     releaseBoundaryNote?: unknown;
     zkV1FinishLineStatus?: unknown;
@@ -1579,9 +1598,11 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
   if (
     parsed.stateVersion !== 1 ||
     parsed.contractVersion !== 14 ||
-    parsed.summaryVersion !== 36 ||
+    parsed.summaryVersion !== 37 ||
     !isContractMirrorStatus(parsed.contractMirrorStatus) ||
     typeof parsed.contractMirrorNote !== "string" ||
+    !isRequiredLanesStatus(parsed.requiredLanesStatus) ||
+    typeof parsed.requiredLanesNote !== "string" ||
     !isReleaseBoundaryStatus(parsed.releaseBoundaryStatus) ||
     typeof parsed.releaseBoundaryNote !== "string" ||
     !isZkV1FinishLineStatus(parsed.zkV1FinishLineStatus) ||
@@ -1763,9 +1784,11 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
   return {
     stateVersion: 1,
     contractVersion: 14,
-    summaryVersion: 36,
+    summaryVersion: 37,
     contractMirrorStatus: parsed.contractMirrorStatus,
     contractMirrorNote: parsed.contractMirrorNote,
+    requiredLanesStatus: parsed.requiredLanesStatus,
+    requiredLanesNote: parsed.requiredLanesNote,
     releaseBoundaryStatus: parsed.releaseBoundaryStatus,
     releaseBoundaryNote: parsed.releaseBoundaryNote,
     zkV1FinishLineStatus: parsed.zkV1FinishLineStatus,
@@ -2014,7 +2037,7 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
   if (
     parsed.stateVersion !== 1 ||
     parsed.contractVersion !== 14 ||
-    parsed.summaryVersion !== 36 ||
+    parsed.summaryVersion !== 37 ||
     !isZkV1FinishLineStatus(parsed.zkV1FinishLineStatus) ||
     typeof parsed.zkV1FinishLineNote !== "string" ||
     parsed.supportedSendLaneVersion !== 1 ||
@@ -2098,7 +2121,7 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
   return {
     stateVersion: 1,
     contractVersion: 14,
-    summaryVersion: 36,
+    summaryVersion: 37,
     supportedSendLaneVersion: 1,
     supportedSendLaneKind: "single-input-single-recipient-optional-change",
     supportedSendLaneStatus: "supported",

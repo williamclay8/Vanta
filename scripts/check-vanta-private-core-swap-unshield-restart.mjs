@@ -396,8 +396,10 @@ try {
   const expectedStatusLines = [
     "Summary state version: 1",
     "Mirrored contract version: 14",
-    "Summary version: 36",
+    "Summary version: 37",
     "Summary generated:",
+    "Required lanes status: Send lane mismatch",
+    "Required lanes note: No private send transition is available for boundary checks yet.",
     "zk v1 finish line status: Coherent minimum v1 lane",
     "zk v1 finish line note: Frozen minimum zk v1 send/unshield/release lane is coherent at the operator boundary.",
     "Release boundary status: Release recorded",

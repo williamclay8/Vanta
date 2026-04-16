@@ -56,6 +56,8 @@ export function AppDashboardPage() {
     privateCoreOperatorContractMirrorStatusLabel,
     privateCoreOperatorReleaseBoundaryPrimaryNote,
     privateCoreOperatorReleaseBoundaryStatusLabel,
+    privateCoreOperatorRequiredLanesPrimaryNote,
+    privateCoreOperatorRequiredLanesStatusLabel,
     privateCoreOperatorZkV1FinishLinePrimaryNote,
     privateCoreOperatorZkV1FinishLineStatusLabel,
     privateCoreOperatorSendBoundaryPrimaryNote,
@@ -333,6 +335,8 @@ export function AppDashboardPage() {
           operatorContractMirrorStatusLabel={privateCoreOperatorContractMirrorStatusLabel}
           operatorReleaseBoundaryPrimaryNote={privateCoreOperatorReleaseBoundaryPrimaryNote}
           operatorReleaseBoundaryStatusLabel={privateCoreOperatorReleaseBoundaryStatusLabel}
+          operatorRequiredLanesPrimaryNote={privateCoreOperatorRequiredLanesPrimaryNote}
+          operatorRequiredLanesStatusLabel={privateCoreOperatorRequiredLanesStatusLabel}
           operatorSendBoundaryPrimaryNote={privateCoreOperatorSendBoundaryPrimaryNote}
           operatorSendBoundaryStatusLabel={privateCoreOperatorSendBoundaryStatusLabel}
           operatorSendContinuityPrimaryNote={privateCoreOperatorSendContinuityPrimaryNote}

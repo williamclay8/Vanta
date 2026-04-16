@@ -1959,11 +1959,21 @@ function buildPrivateCoreSummaryState() {
     supportedZkV1RequiredLanes: contractState.supportedZkV1RequiredLanes,
     supportedZkV1ScopeDecision: contractState.supportedZkV1ScopeDecision,
   });
+  const requiredLanesStatus = summarizePrivateCoreRequiredLanesStatus({
+    releaseBoundaryNote: releaseBoundaryStatus.note,
+    releaseBoundaryStatus: releaseBoundaryStatus.status,
+    sendBoundaryNote: sendBoundaryStatus.note,
+    sendBoundaryStatus: sendBoundaryStatus.status,
+    zkV1FinishLineNote: zkV1FinishLineStatus.note,
+    zkV1FinishLineStatus: zkV1FinishLineStatus.status,
+  });
 
   return {
     ...summaryState,
     contractMirrorStatus: contractMirrorStatus.status,
     contractMirrorNote: contractMirrorStatus.note,
+    requiredLanesStatus: requiredLanesStatus.status,
+    requiredLanesNote: requiredLanesStatus.note,
     releaseBoundaryStatus: releaseBoundaryStatus.status,
     releaseBoundaryNote: releaseBoundaryStatus.note,
     zkV1FinishLineStatus: zkV1FinishLineStatus.status,
@@ -1976,7 +1986,7 @@ function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
     contractVersion: 14,
-    summaryVersion: 36,
+    summaryVersion: 37,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
@@ -2258,6 +2268,40 @@ function summarizePrivateCoreReleaseBoundaryStatus(args) {
   return {
     status: "release-recorded",
     note: "Latest private-core release is recorded, proof-linked, and consistent with the frozen release contract.",
+  };
+}
+
+function summarizePrivateCoreRequiredLanesStatus(args) {
+  if (args.zkV1FinishLineStatus !== "coherent-minimum-v1-lane") {
+    return {
+      status: "finish-line-mismatch",
+      note: args.zkV1FinishLineNote,
+    };
+  }
+
+  const sendHealthyStatuses = new Set([
+    "coherent-current-root",
+    "coherent-registered-stale",
+    "downstream-consumed",
+    "downstream-released",
+  ]);
+  if (!sendHealthyStatuses.has(args.sendBoundaryStatus)) {
+    return {
+      status: "send-lane-mismatch",
+      note: args.sendBoundaryNote,
+    };
+  }
+
+  if (args.releaseBoundaryStatus !== "release-recorded") {
+    return {
+      status: "release-lane-mismatch",
+      note: args.releaseBoundaryNote,
+    };
+  }
+
+  return {
+    status: "coherent-required-lanes",
+    note: "Minimum zk v1 required lanes are coherent: send boundary is healthy, release boundary is recorded, and the finish line remains coherent.",
   };
 }
 

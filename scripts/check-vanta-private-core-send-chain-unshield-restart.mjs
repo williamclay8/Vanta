@@ -454,8 +454,10 @@ try {
   const expectedStatusLines = [
     "Summary state version: 1",
     "Mirrored contract version: 14",
-    "Summary version: 36",
+    "Summary version: 37",
     "Summary generated:",
+    "Required lanes status: Coherent required lanes",
+    "Required lanes note: Minimum zk v1 required lanes are coherent: send boundary is healthy, release boundary is recorded, and the finish line remains coherent.",
     "zk v1 finish line status: Coherent minimum v1 lane",
     "zk v1 finish line note: Frozen minimum zk v1 send/unshield/release lane is coherent at the operator boundary.",
     "Release boundary status: Release recorded",

@@ -149,6 +149,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorRawBoundaryStatus: string | null;
   privateCoreOperatorRawReleaseBoundaryNote: string | null;
   privateCoreOperatorRawReleaseBoundaryStatus: string | null;
+  privateCoreOperatorRawRequiredLanesNote: string | null;
+  privateCoreOperatorRawRequiredLanesStatus: string | null;
   privateCoreOperatorRawZkV1FinishLineNote: string | null;
   privateCoreOperatorRawZkV1FinishLineStatus: string | null;
   privateCoreOperatorSupportedSendLaneKind: string | null;
@@ -239,6 +241,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorContractMirrorStatusLabel: string | null;
   privateCoreOperatorReleaseBoundaryPrimaryNote: string | null;
   privateCoreOperatorReleaseBoundaryStatusLabel: string | null;
+  privateCoreOperatorRequiredLanesPrimaryNote: string | null;
+  privateCoreOperatorRequiredLanesStatusLabel: string | null;
   privateCoreOperatorZkV1FinishLinePrimaryNote: string | null;
   privateCoreOperatorZkV1FinishLineStatusLabel: string | null;
   privateCoreOperatorSendBoundaryPrimaryNote: string | null;
@@ -586,6 +590,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     privateCoreOperatorRawReleaseBoundaryStatus,
     setPrivateCoreOperatorRawReleaseBoundaryStatus,
   ] = useState<string | null>(null);
+  const [privateCoreOperatorRawRequiredLanesNote, setPrivateCoreOperatorRawRequiredLanesNote] =
+    useState<string | null>(null);
+  const [privateCoreOperatorRawRequiredLanesStatus, setPrivateCoreOperatorRawRequiredLanesStatus] =
+    useState<string | null>(null);
   const [privateCoreOperatorRawZkV1FinishLineNote, setPrivateCoreOperatorRawZkV1FinishLineNote] =
     useState<string | null>(null);
   const [
@@ -951,6 +959,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorRawBoundaryStatus,
       setPrivateCoreOperatorRawReleaseBoundaryNote,
       setPrivateCoreOperatorRawReleaseBoundaryStatus,
+      setPrivateCoreOperatorRawRequiredLanesNote,
+      setPrivateCoreOperatorRawRequiredLanesStatus,
       setPrivateCoreOperatorRawContractMirrorNote,
       setPrivateCoreOperatorRawContractMirrorStatus,
       setPrivateCoreOperatorRawZkV1FinishLineNote,
@@ -2100,6 +2110,11 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
           releaseBoundaryNote: privateCoreOperatorRawReleaseBoundaryNote,
           releaseBoundaryStatus: privateCoreOperatorRawReleaseBoundaryStatus,
         });
+      const privateCoreOperatorRequiredLanesSummary =
+        summarizePrivateCoreOperatorRequiredLanesStatus({
+          requiredLanesNote: privateCoreOperatorRawRequiredLanesNote,
+          requiredLanesStatus: privateCoreOperatorRawRequiredLanesStatus,
+        });
       const privateCoreOperatorZkV1FinishLineSummary =
         summarizePrivateCoreOperatorZkV1FinishLineStatus({
           finishLineNote: privateCoreOperatorRawZkV1FinishLineNote,
@@ -2154,6 +2169,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorRawBoundaryStatus,
       privateCoreOperatorRawReleaseBoundaryNote,
       privateCoreOperatorRawReleaseBoundaryStatus,
+      privateCoreOperatorRawRequiredLanesNote,
+      privateCoreOperatorRawRequiredLanesStatus,
       privateCoreOperatorRawZkV1FinishLineNote,
       privateCoreOperatorRawZkV1FinishLineStatus,
       privateCoreOperatorRawContractMirrorNote,
@@ -2250,6 +2267,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         privateCoreOperatorReleaseBoundarySummary.primaryNote,
       privateCoreOperatorReleaseBoundaryStatusLabel:
         privateCoreOperatorReleaseBoundarySummary.statusLabel,
+      privateCoreOperatorRequiredLanesPrimaryNote:
+        privateCoreOperatorRequiredLanesSummary.primaryNote,
+      privateCoreOperatorRequiredLanesStatusLabel:
+        privateCoreOperatorRequiredLanesSummary.statusLabel,
       privateCoreOperatorZkV1FinishLinePrimaryNote:
         privateCoreOperatorZkV1FinishLineSummary.primaryNote,
       privateCoreOperatorZkV1FinishLineStatusLabel:
@@ -2347,6 +2368,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorRawBoundaryStatus,
       privateCoreOperatorRawReleaseBoundaryNote,
       privateCoreOperatorRawReleaseBoundaryStatus,
+      privateCoreOperatorRawRequiredLanesNote,
+      privateCoreOperatorRawRequiredLanesStatus,
       privateCoreOperatorRawZkV1FinishLineNote,
       privateCoreOperatorRawZkV1FinishLineStatus,
       privateCoreOperatorRawContractMirrorNote,
@@ -2798,6 +2821,52 @@ function summarizePrivateCoreOperatorZkV1FinishLineStatus(args: {
   return {
     primaryNote: "No zk v1 finish-line summary has been observed yet.",
     statusLabel: "Awaiting finish-line state",
+  };
+}
+
+function summarizePrivateCoreOperatorRequiredLanesStatus(args: {
+  requiredLanesNote: string | null;
+  requiredLanesStatus: string | null;
+}) {
+  if (args.requiredLanesStatus === "coherent-required-lanes") {
+    return {
+      primaryNote:
+        args.requiredLanesNote ??
+        "Minimum zk v1 required lanes are coherent at the operator boundary.",
+      statusLabel: "Coherent required lanes",
+    };
+  }
+
+  if (args.requiredLanesStatus === "send-lane-mismatch") {
+    return {
+      primaryNote:
+        args.requiredLanesNote ??
+        "Current send lane is not coherent enough for the minimum zk v1 finish line.",
+      statusLabel: "Send lane mismatch",
+    };
+  }
+
+  if (args.requiredLanesStatus === "release-lane-mismatch") {
+    return {
+      primaryNote:
+        args.requiredLanesNote ??
+        "Current release lane is not coherent enough for the minimum zk v1 finish line.",
+      statusLabel: "Release lane mismatch",
+    };
+  }
+
+  if (args.requiredLanesStatus === "finish-line-mismatch") {
+    return {
+      primaryNote:
+        args.requiredLanesNote ??
+        "Current finish-line state is not coherent enough for the minimum zk v1 lane set.",
+      statusLabel: "Finish-line mismatch",
+    };
+  };
+
+  return {
+    primaryNote: "No private-core required-lanes summary has been observed yet.",
+    statusLabel: "Awaiting required-lane state",
   };
 }
 
@@ -3627,6 +3696,8 @@ function applyPrivateCoreOperatorSummaryState(args: {
   setPrivateCoreOperatorRawBoundaryStatus: (value: string | null) => void;
   setPrivateCoreOperatorRawReleaseBoundaryNote: (value: string | null) => void;
   setPrivateCoreOperatorRawReleaseBoundaryStatus: (value: string | null) => void;
+  setPrivateCoreOperatorRawRequiredLanesNote: (value: string | null) => void;
+  setPrivateCoreOperatorRawRequiredLanesStatus: (value: string | null) => void;
   setPrivateCoreOperatorRawContractMirrorNote: (value: string | null) => void;
   setPrivateCoreOperatorRawContractMirrorStatus: (value: string | null) => void;
   setPrivateCoreOperatorRawZkV1FinishLineNote: (value: string | null) => void;
@@ -3699,6 +3770,8 @@ function applyPrivateCoreOperatorSummaryState(args: {
   args.setPrivateCoreOperatorRawBoundaryStatus(args.summaryState.boundaryStatus);
   args.setPrivateCoreOperatorRawReleaseBoundaryNote(args.summaryState.releaseBoundaryNote);
   args.setPrivateCoreOperatorRawReleaseBoundaryStatus(args.summaryState.releaseBoundaryStatus);
+  args.setPrivateCoreOperatorRawRequiredLanesNote(args.summaryState.requiredLanesNote);
+  args.setPrivateCoreOperatorRawRequiredLanesStatus(args.summaryState.requiredLanesStatus);
   args.setPrivateCoreOperatorRawZkV1FinishLineNote(args.summaryState.zkV1FinishLineNote);
   args.setPrivateCoreOperatorRawZkV1FinishLineStatus(args.summaryState.zkV1FinishLineStatus);
   args.setPrivateCoreOperatorRoots(args.summaryState.rootRecords);
