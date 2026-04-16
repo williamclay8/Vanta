@@ -147,6 +147,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorRawSwapResultingRootStatus: string | null;
   privateCoreOperatorRawBoundaryNote: string | null;
   privateCoreOperatorRawBoundaryStatus: string | null;
+  privateCoreOperatorRawZkV1FinishLineNote: string | null;
+  privateCoreOperatorRawZkV1FinishLineStatus: string | null;
   privateCoreOperatorSupportedSendLaneKind: string | null;
   privateCoreOperatorSupportedSendLaneNote: string | null;
   privateCoreOperatorSupportedSendLaneStatus: string | null;
@@ -233,6 +235,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorBoundaryStatusLabel: string | null;
   privateCoreOperatorContractMirrorPrimaryNote: string | null;
   privateCoreOperatorContractMirrorStatusLabel: string | null;
+  privateCoreOperatorZkV1FinishLinePrimaryNote: string | null;
+  privateCoreOperatorZkV1FinishLineStatusLabel: string | null;
   privateCoreOperatorSendBoundaryPrimaryNote: string | null;
   privateCoreOperatorSendBoundaryStatusLabel: string | null;
   privateCoreOperatorSendContinuityPrimaryNote: string | null;
@@ -572,6 +576,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<string | null>(null);
   const [privateCoreOperatorRawBoundaryStatus, setPrivateCoreOperatorRawBoundaryStatus] =
     useState<string | null>(null);
+  const [privateCoreOperatorRawZkV1FinishLineNote, setPrivateCoreOperatorRawZkV1FinishLineNote] =
+    useState<string | null>(null);
+  const [
+    privateCoreOperatorRawZkV1FinishLineStatus,
+    setPrivateCoreOperatorRawZkV1FinishLineStatus,
+  ] = useState<string | null>(null);
   const [privateCoreOperatorRawContractMirrorNote, setPrivateCoreOperatorRawContractMirrorNote] =
     useState<string | null>(null);
   const [privateCoreOperatorRawContractMirrorStatus, setPrivateCoreOperatorRawContractMirrorStatus] =
@@ -931,6 +941,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorRawBoundaryStatus,
       setPrivateCoreOperatorRawContractMirrorNote,
       setPrivateCoreOperatorRawContractMirrorStatus,
+      setPrivateCoreOperatorRawZkV1FinishLineNote,
+      setPrivateCoreOperatorRawZkV1FinishLineStatus,
       setPrivateCoreOperatorConsumes,
       setPrivateCoreOperatorProofConsumeLinkStatus,
       setPrivateCoreOperatorProofs,
@@ -2071,6 +2083,11 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
           contractMirrorNote: privateCoreOperatorRawContractMirrorNote,
           contractMirrorStatus: privateCoreOperatorRawContractMirrorStatus,
         });
+      const privateCoreOperatorZkV1FinishLineSummary =
+        summarizePrivateCoreOperatorZkV1FinishLineStatus({
+          finishLineNote: privateCoreOperatorRawZkV1FinishLineNote,
+          finishLineStatus: privateCoreOperatorRawZkV1FinishLineStatus,
+        });
       return {
       privateCoreOwner,
       privateCoreRecentShield,
@@ -2118,6 +2135,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorRawSwapResultingRootStatus,
       privateCoreOperatorRawBoundaryNote,
       privateCoreOperatorRawBoundaryStatus,
+      privateCoreOperatorRawZkV1FinishLineNote,
+      privateCoreOperatorRawZkV1FinishLineStatus,
       privateCoreOperatorRawContractMirrorNote,
       privateCoreOperatorRawContractMirrorStatus,
       privateCoreOperatorSupportedSendLaneKind,
@@ -2208,6 +2227,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         privateCoreOperatorContractMirrorSummary.primaryNote,
       privateCoreOperatorContractMirrorStatusLabel:
         privateCoreOperatorContractMirrorSummary.statusLabel,
+      privateCoreOperatorZkV1FinishLinePrimaryNote:
+        privateCoreOperatorZkV1FinishLineSummary.primaryNote,
+      privateCoreOperatorZkV1FinishLineStatusLabel:
+        privateCoreOperatorZkV1FinishLineSummary.statusLabel,
       privateCoreOperatorSendBoundaryPrimaryNote:
         privateCoreOperatorSendBoundarySummary.primaryNote,
       privateCoreOperatorSendBoundaryStatusLabel:
@@ -2299,6 +2322,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorRawSendResultingRootStatus,
       privateCoreOperatorRawBoundaryNote,
       privateCoreOperatorRawBoundaryStatus,
+      privateCoreOperatorRawZkV1FinishLineNote,
+      privateCoreOperatorRawZkV1FinishLineStatus,
       privateCoreOperatorRawContractMirrorNote,
       privateCoreOperatorRawContractMirrorStatus,
       privateCoreOperatorSendBoundarySummary,
@@ -2611,6 +2636,70 @@ function summarizePrivateCoreOperatorContractMirrorStatus(args: {
   return {
     primaryNote: "No operator contract mirror status has been observed yet.",
     statusLabel: "Awaiting contract mirror state",
+  };
+}
+
+function summarizePrivateCoreOperatorZkV1FinishLineStatus(args: {
+  finishLineNote: string | null;
+  finishLineStatus: string | null;
+}) {
+  if (args.finishLineStatus === "coherent-minimum-v1-lane") {
+    return {
+      primaryNote:
+        args.finishLineNote ??
+        "Frozen minimum zk v1 send/unshield/release lane is coherent at the operator boundary.",
+      statusLabel: "Coherent minimum v1 lane",
+    };
+  }
+
+  if (args.finishLineStatus === "scope-mismatch") {
+    return {
+      primaryNote: args.finishLineNote ?? "zk v1 scope decision does not match the frozen finish line.",
+      statusLabel: "Scope mismatch",
+    };
+  }
+
+  if (args.finishLineStatus === "required-lanes-mismatch") {
+    return {
+      primaryNote:
+        args.finishLineNote ?? "Required zk v1 lane set does not match the frozen send/unshield/release contract.",
+      statusLabel: "Required lanes mismatch",
+    };
+  }
+
+  if (args.finishLineStatus === "required-lane-decision-mismatch") {
+    return {
+      primaryNote:
+        args.finishLineNote ?? "One or more required zk v1 lanes are not marked as accepted narrow v1 paths.",
+      statusLabel: "Required lane decision mismatch",
+    };
+  }
+
+  if (args.finishLineStatus === "swap-role-mismatch") {
+    return {
+      primaryNote:
+        args.finishLineNote ?? "Constrained swap role does not match the frozen adjacent-support contract.",
+      statusLabel: "Swap role mismatch",
+    };
+  }
+
+  if (args.finishLineStatus === "contract-mismatch") {
+    return {
+      primaryNote: args.finishLineNote ?? "Operator summary drifted from the frozen private-core contract.",
+      statusLabel: "Contract mismatch",
+    };
+  }
+
+  if (args.finishLineStatus === "boundary-mismatch") {
+    return {
+      primaryNote: args.finishLineNote ?? "Current operator boundary is not coherent enough for the frozen minimum v1 lane.",
+      statusLabel: "Boundary mismatch",
+    };
+  }
+
+  return {
+    primaryNote: "No zk v1 finish-line summary has been observed yet.",
+    statusLabel: "Awaiting finish-line state",
   };
 }
 
@@ -3440,6 +3529,8 @@ function applyPrivateCoreOperatorSummaryState(args: {
   setPrivateCoreOperatorRawBoundaryStatus: (value: string | null) => void;
   setPrivateCoreOperatorRawContractMirrorNote: (value: string | null) => void;
   setPrivateCoreOperatorRawContractMirrorStatus: (value: string | null) => void;
+  setPrivateCoreOperatorRawZkV1FinishLineNote: (value: string | null) => void;
+  setPrivateCoreOperatorRawZkV1FinishLineStatus: (value: string | null) => void;
   setPrivateCoreOperatorConsumes: (value: VantaPrivateCoreOperatorConsumeRecord[]) => void;
   setPrivateCoreOperatorProofConsumeLinkStatus: (value: string | null) => void;
   setPrivateCoreOperatorProofs: (value: VantaPrivateCoreOperatorProofRecord[]) => void;
@@ -3506,6 +3597,8 @@ function applyPrivateCoreOperatorSummaryState(args: {
   args.setPrivateCoreOperatorRawContractMirrorStatus(args.summaryState.contractMirrorStatus);
   args.setPrivateCoreOperatorRawBoundaryNote(args.summaryState.boundaryNote);
   args.setPrivateCoreOperatorRawBoundaryStatus(args.summaryState.boundaryStatus);
+  args.setPrivateCoreOperatorRawZkV1FinishLineNote(args.summaryState.zkV1FinishLineNote);
+  args.setPrivateCoreOperatorRawZkV1FinishLineStatus(args.summaryState.zkV1FinishLineStatus);
   args.setPrivateCoreOperatorRoots(args.summaryState.rootRecords);
   args.setPrivateCoreOperatorProofs(args.summaryState.proofRecords);
   args.setPrivateCoreOperatorSends(args.summaryState.sendRecords);

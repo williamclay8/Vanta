@@ -103,7 +103,7 @@ try {
     !contractState.ok ||
     contractState.parsed?.stateVersion !== 1 ||
     contractState.parsed?.contractVersion !== 14 ||
-    contractState.parsed?.summaryVersion !== 34 ||
+    contractState.parsed?.summaryVersion !== 35 ||
     contractState.parsed?.supportedSendLaneVersion !== 1 ||
     contractState.parsed?.supportedSendV1Decision !== "accepted-narrow-v1-path" ||
     typeof contractState.parsed?.supportedSendV1DecisionNote !== "string" ||
@@ -286,7 +286,7 @@ try {
   if (
     !contractOutput.includes("Contract state version: 1") ||
     !contractOutput.includes("Contract version: 14") ||
-    !contractOutput.includes("Summary compatibility: 34") ||
+    !contractOutput.includes("Summary compatibility: 35") ||
     !contractOutput.includes("Supported note schema: NoteV0 / v0") ||
     !contractOutput.includes("Supported send v1 decision: accepted-narrow-v1-path") ||
     !contractOutput.includes("Supported unshield v1 decision: accepted-narrow-v1-path") ||

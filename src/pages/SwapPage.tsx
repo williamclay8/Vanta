@@ -2122,6 +2122,12 @@ export function SwapPage() {
         operatorSupportedZkV1ScopeNote={privacyFlow.privateCoreOperatorSupportedZkV1ScopeNote}
         operatorSupportedZkV1RequiredLanes={privacyFlow.privateCoreOperatorSupportedZkV1RequiredLanes}
         operatorSupportedZkV1RequiredLanesNote={privacyFlow.privateCoreOperatorSupportedZkV1RequiredLanesNote}
+        operatorZkV1FinishLineStatusLabel={
+          privacyFlow.privateCoreOperatorZkV1FinishLineStatusLabel
+        }
+        operatorZkV1FinishLinePrimaryNote={
+          privacyFlow.privateCoreOperatorZkV1FinishLinePrimaryNote
+        }
         operatorSupportedAssetSymbol={privacyFlow.privateCoreOperatorSupportedAssetSymbol}
         operatorSupportedEnvironment={privacyFlow.privateCoreOperatorSupportedEnvironment}
         operatorSupportedNoteSchema={privacyFlow.privateCoreOperatorSupportedNoteSchema}

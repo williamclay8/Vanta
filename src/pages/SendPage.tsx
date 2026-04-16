@@ -152,6 +152,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorBoundaryStatusLabel,
     privateCoreOperatorContractMirrorPrimaryNote,
     privateCoreOperatorContractMirrorStatusLabel,
+    privateCoreOperatorZkV1FinishLinePrimaryNote,
+    privateCoreOperatorZkV1FinishLineStatusLabel,
     privateCoreOperatorSendBoundaryPrimaryNote,
     privateCoreOperatorSendBoundaryStatusLabel,
     privateCoreOperatorSendContinuityPrimaryNote,
@@ -1812,6 +1814,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         operatorSupportedZkV1ScopeNote={privateCoreOperatorSupportedZkV1ScopeNote}
         operatorSupportedZkV1RequiredLanes={privateCoreOperatorSupportedZkV1RequiredLanes}
         operatorSupportedZkV1RequiredLanesNote={privateCoreOperatorSupportedZkV1RequiredLanesNote}
+        operatorZkV1FinishLineStatusLabel={privateCoreOperatorZkV1FinishLineStatusLabel}
+        operatorZkV1FinishLinePrimaryNote={privateCoreOperatorZkV1FinishLinePrimaryNote}
         operatorSupportedAssetSymbol={privateCoreOperatorSupportedAssetSymbol}
         operatorSupportedEnvironment={privateCoreOperatorSupportedEnvironment}
         operatorSupportedNoteSchema={privateCoreOperatorSupportedNoteSchema}

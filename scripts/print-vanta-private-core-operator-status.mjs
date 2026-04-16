@@ -8,6 +8,11 @@ try {
   printLine("Mirrored contract version", String(summary.contractVersion ?? "unknown"));
   printLine("Summary version", String(summary.summaryVersion ?? "unknown"));
   printLine("Summary generated", formatTimestamp(summary.generatedAt));
+  printLine(
+    "zk v1 finish line status",
+    humanizeZkV1FinishLineStatus(summary.zkV1FinishLineStatus),
+  );
+  printLine("zk v1 finish line note", summary.zkV1FinishLineNote ?? "Unavailable");
   printLine("Supported send lane version", String(summary.supportedSendLaneVersion ?? "unknown"));
   printLine("Supported send lane kind", humanizeSupportedSendLaneKind(summary.supportedSendLaneKind));
   printLine("Supported send lane status", humanizeSupportedSendLaneStatus(summary.supportedSendLaneStatus));
@@ -462,6 +467,38 @@ function humanizeBoundaryStatus(value) {
     default:
       return "Unavailable";
   }
+}
+
+function humanizeZkV1FinishLineStatus(value) {
+  if (value === "coherent-minimum-v1-lane") {
+    return "Coherent minimum v1 lane";
+  }
+
+  if (value === "scope-mismatch") {
+    return "Scope mismatch";
+  }
+
+  if (value === "required-lanes-mismatch") {
+    return "Required lanes mismatch";
+  }
+
+  if (value === "required-lane-decision-mismatch") {
+    return "Required lane decision mismatch";
+  }
+
+  if (value === "swap-role-mismatch") {
+    return "Swap role mismatch";
+  }
+
+  if (value === "contract-mismatch") {
+    return "Contract mismatch";
+  }
+
+  if (value === "boundary-mismatch") {
+    return "Boundary mismatch";
+  }
+
+  return "Unavailable";
 }
 
 function humanizeContractMirrorStatus(value) {

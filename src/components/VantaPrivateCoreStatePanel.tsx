@@ -39,6 +39,8 @@ type VantaPrivateCoreStatePanelProps = {
   operatorBoundaryStatusLabel?: string | null;
   operatorContractMirrorPrimaryNote?: string | null;
   operatorContractMirrorStatusLabel?: string | null;
+  operatorZkV1FinishLinePrimaryNote?: string | null;
+  operatorZkV1FinishLineStatusLabel?: string | null;
   operatorSendBoundaryPrimaryNote?: string | null;
   operatorSendBoundaryStatusLabel?: string | null;
   operatorSendContinuityPrimaryNote?: string | null;
@@ -298,6 +300,8 @@ export function VantaPrivateCoreStatePanel({
   operatorBoundaryStatusLabel = null,
   operatorContractMirrorPrimaryNote = null,
   operatorContractMirrorStatusLabel = null,
+  operatorZkV1FinishLinePrimaryNote = null,
+  operatorZkV1FinishLineStatusLabel = null,
   operatorSendBoundaryPrimaryNote = null,
   operatorSendBoundaryStatusLabel = null,
   operatorSendContinuityPrimaryNote = null,
@@ -981,6 +985,10 @@ export function VantaPrivateCoreStatePanel({
               </strong>
             </div>
             <div className="review-row">
+              <span>zk v1 finish-line status</span>
+              <strong>{operatorZkV1FinishLineStatusLabel ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
               <span>Supported asset</span>
               <strong>{operatorSupportedAssetSymbol ?? "Unavailable"}</strong>
             </div>
@@ -1229,6 +1237,10 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>zk v1 required-lanes note</span>
               <strong>{operatorSupportedZkV1RequiredLanesNote ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>zk v1 finish-line note</span>
+              <strong>{operatorZkV1FinishLinePrimaryNote ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Operator owner auth</span>

@@ -1937,11 +1937,25 @@ function buildPrivateCoreSummaryState() {
     contractState,
     summaryState,
   });
+  const zkV1FinishLineStatus = summarizePrivateCoreZkV1FinishLineStatus({
+    boundaryNote: boundaryStatus.note,
+    boundaryStatus: boundaryStatus.status,
+    contractMirrorNote: contractMirrorStatus.note,
+    contractMirrorStatus: contractMirrorStatus.status,
+    supportedReleaseV1Decision: contractState.supportedReleaseV1Decision,
+    supportedSendV1Decision: contractState.supportedSendV1Decision,
+    supportedSwapV1Role: contractState.supportedSwapV1Role,
+    supportedUnshieldV1Decision: contractState.supportedUnshieldV1Decision,
+    supportedZkV1RequiredLanes: contractState.supportedZkV1RequiredLanes,
+    supportedZkV1ScopeDecision: contractState.supportedZkV1ScopeDecision,
+  });
 
   return {
     ...summaryState,
     contractMirrorStatus: contractMirrorStatus.status,
     contractMirrorNote: contractMirrorStatus.note,
+    zkV1FinishLineStatus: zkV1FinishLineStatus.status,
+    zkV1FinishLineNote: zkV1FinishLineStatus.note,
     generatedAt: Date.now(),
   };
 }
@@ -1950,7 +1964,7 @@ function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
     contractVersion: 14,
-    summaryVersion: 34,
+    summaryVersion: 35,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
@@ -2113,6 +2127,59 @@ function summarizePrivateCoreContractMirrorStatus(args) {
   return {
     note: "Operator summary mirrors the frozen private-core contract across all supported static fields.",
     status: "mirrors-contract",
+  };
+}
+
+function summarizePrivateCoreZkV1FinishLineStatus(args) {
+  if (args.supportedZkV1ScopeDecision !== "accepted-narrow-private-core-v1-scope") {
+    return {
+      status: "scope-mismatch",
+      note: "zk v1 scope decision does not match the frozen narrow private-core finish line.",
+    };
+  }
+
+  if (args.supportedZkV1RequiredLanes !== "send|unshield|release") {
+    return {
+      status: "required-lanes-mismatch",
+      note: "Required zk v1 lane set does not match the frozen send/unshield/release contract.",
+    };
+  }
+
+  if (
+    args.supportedSendV1Decision !== "accepted-narrow-v1-path" ||
+    args.supportedUnshieldV1Decision !== "accepted-narrow-v1-path" ||
+    args.supportedReleaseV1Decision !== "accepted-narrow-v1-path"
+  ) {
+    return {
+      status: "required-lane-decision-mismatch",
+      note: "One or more required zk v1 lanes are not marked as accepted narrow v1 paths.",
+    };
+  }
+
+  if (args.supportedSwapV1Role !== "adjacent-supported-not-required-for-finish-line") {
+    return {
+      status: "swap-role-mismatch",
+      note: "Constrained swap role no longer matches the frozen adjacent-support contract.",
+    };
+  }
+
+  if (args.contractMirrorStatus !== "mirrors-contract") {
+    return {
+      status: "contract-mismatch",
+      note: args.contractMirrorNote,
+    };
+  }
+
+  if (args.boundaryStatus !== "coherent") {
+    return {
+      status: "boundary-mismatch",
+      note: args.boundaryNote,
+    };
+  }
+
+  return {
+    status: "coherent-minimum-v1-lane",
+    note: "Frozen minimum zk v1 send/unshield/release lane is coherent at the operator boundary.",
   };
 }
 

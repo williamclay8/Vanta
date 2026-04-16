@@ -265,6 +265,15 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   contractVersion: number;
   contractMirrorNote: string;
   contractMirrorStatus: "mirrors-contract" | "contract-mismatch";
+  zkV1FinishLineNote: string;
+  zkV1FinishLineStatus:
+    | "coherent-minimum-v1-lane"
+    | "scope-mismatch"
+    | "required-lanes-mismatch"
+    | "required-lane-decision-mismatch"
+    | "swap-role-mismatch"
+    | "contract-mismatch"
+    | "boundary-mismatch";
   boundaryNote: string;
   boundaryStatus:
     | "coherent"
@@ -543,6 +552,20 @@ export type VantaPrivateCoreOperatorContractStateResponse = {
 
 function isContractMirrorStatus(value: unknown): value is "mirrors-contract" | "contract-mismatch" {
   return value === "mirrors-contract" || value === "contract-mismatch";
+}
+
+function isZkV1FinishLineStatus(
+  value: unknown,
+): value is VantaPrivateCoreOperatorSummaryStateResponse["zkV1FinishLineStatus"] {
+  return (
+    value === "coherent-minimum-v1-lane" ||
+    value === "scope-mismatch" ||
+    value === "required-lanes-mismatch" ||
+    value === "required-lane-decision-mismatch" ||
+    value === "swap-role-mismatch" ||
+    value === "contract-mismatch" ||
+    value === "boundary-mismatch"
+  );
 }
 
 function isSendContinuityStatus(
@@ -1393,6 +1416,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     summaryVersion?: unknown;
     contractMirrorStatus?: unknown;
     contractMirrorNote?: unknown;
+    zkV1FinishLineStatus?: unknown;
+    zkV1FinishLineNote?: unknown;
     boundaryStatus?: unknown;
     boundaryNote?: unknown;
     sendBoundaryStatus?: unknown;
@@ -1527,9 +1552,11 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
   if (
     parsed.stateVersion !== 1 ||
     parsed.contractVersion !== 14 ||
-    parsed.summaryVersion !== 34 ||
+    parsed.summaryVersion !== 35 ||
     !isContractMirrorStatus(parsed.contractMirrorStatus) ||
     typeof parsed.contractMirrorNote !== "string" ||
+    !isZkV1FinishLineStatus(parsed.zkV1FinishLineStatus) ||
+    typeof parsed.zkV1FinishLineNote !== "string" ||
     !isBoundaryStatus(parsed.boundaryStatus) ||
     typeof parsed.boundaryNote !== "string" ||
     !isSendBoundaryStatus(parsed.sendBoundaryStatus) ||
@@ -1707,9 +1734,11 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
   return {
     stateVersion: 1,
     contractVersion: 14,
-    summaryVersion: 34,
+    summaryVersion: 35,
     contractMirrorStatus: parsed.contractMirrorStatus,
     contractMirrorNote: parsed.contractMirrorNote,
+    zkV1FinishLineStatus: parsed.zkV1FinishLineStatus,
+    zkV1FinishLineNote: parsed.zkV1FinishLineNote,
     boundaryStatus: parsed.boundaryStatus,
     boundaryNote: parsed.boundaryNote,
     sendBoundaryStatus: parsed.sendBoundaryStatus,
@@ -1878,6 +1907,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     stateVersion?: unknown;
     contractVersion?: unknown;
     summaryVersion?: unknown;
+    zkV1FinishLineStatus?: unknown;
+    zkV1FinishLineNote?: unknown;
     supportedSendLaneVersion?: unknown;
     supportedSendLaneKind?: unknown;
     supportedSendLaneStatus?: unknown;
@@ -1952,7 +1983,9 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
   if (
     parsed.stateVersion !== 1 ||
     parsed.contractVersion !== 14 ||
-    parsed.summaryVersion !== 34 ||
+    parsed.summaryVersion !== 35 ||
+    !isZkV1FinishLineStatus(parsed.zkV1FinishLineStatus) ||
+    typeof parsed.zkV1FinishLineNote !== "string" ||
     parsed.supportedSendLaneVersion !== 1 ||
     parsed.supportedSendLaneKind !== "single-input-single-recipient-optional-change" ||
     parsed.supportedSendLaneStatus !== "supported" ||
@@ -2034,7 +2067,7 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
   return {
     stateVersion: 1,
     contractVersion: 14,
-    summaryVersion: 34,
+    summaryVersion: 35,
     supportedSendLaneVersion: 1,
     supportedSendLaneKind: "single-input-single-recipient-optional-change",
     supportedSendLaneStatus: "supported",
