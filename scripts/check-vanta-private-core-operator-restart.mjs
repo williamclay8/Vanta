@@ -273,7 +273,7 @@ try {
     preRestartSends.parsed.records.length < 1 ||
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.stateVersion !== 1 ||
-    preRestartSummary.parsed?.summaryVersion !== 40 ||
+    preRestartSummary.parsed?.summaryVersion !== 41 ||
     preRestartSummary.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     preRestartSummary.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -381,7 +381,7 @@ try {
   if (
     !postRestartSummary.ok ||
     postRestartSummary.parsed?.stateVersion !== 1 ||
-    postRestartSummary.parsed?.summaryVersion !== 40 ||
+    postRestartSummary.parsed?.summaryVersion !== 41 ||
     postRestartSummary.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     postRestartSummary.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -521,7 +521,7 @@ try {
     stdio: "pipe",
   });
   if (
-    !operatorStatusOutput.includes("Summary version: 40") ||
+    !operatorStatusOutput.includes("Summary version: 41") ||
     !operatorStatusOutput.includes("Required lanes status: Send lane mismatch") ||
     !operatorStatusOutput.includes(
       "Required lanes note: Latest send resulting root still needs operator registration before downstream continuity is established.",
@@ -530,7 +530,7 @@ try {
     !operatorStatusOutput.includes(
       "zk v1 shipping note: Latest send resulting root still needs operator registration before downstream continuity is established.",
     ) ||
-    !operatorStatusOutput.includes("Mirrored contract version: 16") ||
+    !operatorStatusOutput.includes("Mirrored contract version: 17") ||
     !operatorStatusOutput.includes("zk v1 finish line status: Coherent minimum v1 lane") ||
     !operatorStatusOutput.includes(
       "zk v1 finish line note: Frozen minimum zk v1 send/unshield/release lane is coherent at the operator boundary.",
@@ -639,8 +639,8 @@ try {
   if (
     operatorStatusJson.operator !== baseUrl ||
     operatorStatusJson.summary?.stateVersion !== 1 ||
-    operatorStatusJson.summary?.contractVersion !== 16 ||
-    operatorStatusJson.summary?.summaryVersion !== 40 ||
+    operatorStatusJson.summary?.contractVersion !== 17 ||
+    operatorStatusJson.summary?.summaryVersion !== 41 ||
     operatorStatusJson.summary?.requiredLanesStatus !== "send-lane-mismatch" ||
     operatorStatusJson.summary?.zkV1ShippingStatus !== "required-lanes-mismatch" ||
     operatorStatusJson.summary?.releaseBoundaryStatus !== "release-recorded" ||
@@ -649,8 +649,8 @@ try {
     operatorStatusJson.shippingDecision?.decisionVersion !== 1 ||
     operatorStatusJson.shippingDecision?.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
     operatorStatusJson.shippingDecision?.decisionStatus !== "blocked" ||
-    operatorStatusJson.shippingDecision?.contractVersion !== 16 ||
-    operatorStatusJson.shippingDecision?.summaryVersion !== 40
+    operatorStatusJson.shippingDecision?.contractVersion !== 17 ||
+    operatorStatusJson.shippingDecision?.summaryVersion !== 41
   ) {
     throw new Error(
       `Unexpected operator-status JSON output after restart\n${JSON.stringify(operatorStatusJson, null, 2)}`,
@@ -669,8 +669,8 @@ try {
   });
   if (
     !shippingStatusOutput.includes("Summary state version: 1") ||
-    !shippingStatusOutput.includes("Mirrored contract version: 16") ||
-    !shippingStatusOutput.includes("Summary version: 40") ||
+    !shippingStatusOutput.includes("Mirrored contract version: 17") ||
+    !shippingStatusOutput.includes("Summary version: 41") ||
     !shippingStatusOutput.includes("Summary generated:") ||
     !shippingStatusOutput.includes("Shipping status: Required lanes mismatch") ||
     !shippingStatusOutput.includes(
@@ -731,8 +731,8 @@ try {
     shippingStatusJson.decisionNote !==
       "Latest send resulting root still needs operator registration before downstream continuity is established." ||
     shippingStatusJson.summaryStateVersion !== 1 ||
-    shippingStatusJson.mirroredContractVersion !== 16 ||
-    shippingStatusJson.summaryVersion !== 40 ||
+    shippingStatusJson.mirroredContractVersion !== 17 ||
+    shippingStatusJson.summaryVersion !== 41 ||
     typeof shippingStatusJson.summaryGenerated !== "number" ||
     shippingStatusJson.shippingStatusRaw !== "required-lanes-mismatch" ||
     shippingStatusJson.shippingStatus !== "Required lanes mismatch" ||
@@ -761,8 +761,8 @@ try {
     shippingDecisionState.parsed?.decisionStatus !== "blocked" ||
     shippingDecisionState.parsed?.decisionNote !==
       "Latest send resulting root still needs operator registration before downstream continuity is established." ||
-    shippingDecisionState.parsed?.contractVersion !== 16 ||
-    shippingDecisionState.parsed?.summaryVersion !== 40 ||
+    shippingDecisionState.parsed?.contractVersion !== 17 ||
+    shippingDecisionState.parsed?.summaryVersion !== 41 ||
     typeof shippingDecisionState.parsed?.generatedAt !== "number" ||
     shippingDecisionState.parsed?.shippingStatus !== "required-lanes-mismatch" ||
     shippingDecisionState.parsed?.finishLineStatus !== "coherent-minimum-v1-lane" ||
@@ -829,8 +829,8 @@ try {
     blockedShippingCheckJsonSurface.decisionNote !==
       "Latest send resulting root still needs operator registration before downstream continuity is established." ||
     blockedShippingCheckJsonSurface.summaryStateVersion !== 1 ||
-    blockedShippingCheckJsonSurface.mirroredContractVersion !== 16 ||
-    blockedShippingCheckJsonSurface.summaryVersion !== 40 ||
+    blockedShippingCheckJsonSurface.mirroredContractVersion !== 17 ||
+    blockedShippingCheckJsonSurface.summaryVersion !== 41 ||
     typeof blockedShippingCheckJsonSurface.summaryGenerated !== "number" ||
     blockedShippingCheckJsonSurface.shippingStatusRaw !== "required-lanes-mismatch" ||
     blockedShippingCheckJsonSurface.finishLineStatusRaw !== "coherent-minimum-v1-lane" ||
@@ -897,8 +897,8 @@ try {
   if (
     blockedOperatorSnapshotCheckJsonSurface.snapshotVersion !== 1 ||
     blockedOperatorSnapshotCheckJsonSurface.snapshotKind !== "contract-status-shipping-bundle" ||
-    blockedOperatorSnapshotCheckJsonSurface.contract?.contractVersion !== 16 ||
-    blockedOperatorSnapshotCheckJsonSurface.contract?.summaryVersion !== 40 ||
+    blockedOperatorSnapshotCheckJsonSurface.contract?.contractVersion !== 17 ||
+    blockedOperatorSnapshotCheckJsonSurface.contract?.summaryVersion !== 41 ||
     blockedOperatorSnapshotCheckJsonSurface.shipping?.decisionStatusRaw !== "blocked" ||
     blockedOperatorSnapshotCheckJsonSurface.shipping?.shippingStatusRaw !==
       "required-lanes-mismatch"
@@ -912,6 +912,34 @@ try {
     );
   }
   printStatus("operator restart operator-snapshot-check json: PASS");
+
+  const operatorSnapshotState = await requestJson(baseUrl, "/state/private-core-snapshot", {
+    method: "GET",
+  });
+  if (
+    !operatorSnapshotState.ok ||
+    operatorSnapshotState.parsed?.operator !== baseUrl ||
+    operatorSnapshotState.parsed?.snapshotVersion !== 1 ||
+    operatorSnapshotState.parsed?.snapshotKind !== "contract-status-shipping-bundle" ||
+    operatorSnapshotState.parsed?.contract?.contractVersion !== 17 ||
+    operatorSnapshotState.parsed?.contract?.summaryVersion !== 41 ||
+    operatorSnapshotState.parsed?.contract?.supportedOperatorSnapshotTransport !==
+      "dedicated-endpoint" ||
+    operatorSnapshotState.parsed?.contract?.supportedOperatorSnapshotEndpoint !==
+      "/state/private-core-snapshot" ||
+    operatorSnapshotState.parsed?.status?.summary?.contractVersion !== 17 ||
+    operatorSnapshotState.parsed?.status?.summary?.summaryVersion !== 41 ||
+    operatorSnapshotState.parsed?.status?.shippingDecision?.decisionVersion !== 1 ||
+    operatorSnapshotState.parsed?.shipping?.decisionVersion !== 1 ||
+    operatorSnapshotState.parsed?.shipping?.decisionKind !==
+      "narrow-private-core-zk-v1-shipping"
+  ) {
+    throw new Error(
+      operatorSnapshotState.text ||
+        "operator restart snapshot endpoint returned invalid data after restart",
+    );
+  }
+  printStatus("operator restart snapshot endpoint: PASS");
 
   const operatorSnapshotJsonOutput = execFileSync("npm", [
     "run",
@@ -930,14 +958,14 @@ try {
     operatorSnapshotJson.operator !== baseUrl ||
     operatorSnapshotJson.snapshotVersion !== 1 ||
     operatorSnapshotJson.snapshotKind !== "contract-status-shipping-bundle" ||
-    operatorSnapshotJson.contract?.contractVersion !== 16 ||
-    operatorSnapshotJson.contract?.summaryVersion !== 40 ||
+    operatorSnapshotJson.contract?.contractVersion !== 17 ||
+    operatorSnapshotJson.contract?.summaryVersion !== 41 ||
     operatorSnapshotJson.contract?.supportedOperatorSnapshotVersion !== 1 ||
     operatorSnapshotJson.contract?.supportedOperatorSnapshotKind !==
       "contract-status-shipping-bundle" ||
     operatorSnapshotJson.status?.summary?.stateVersion !== 1 ||
-    operatorSnapshotJson.status?.summary?.contractVersion !== 16 ||
-    operatorSnapshotJson.status?.summary?.summaryVersion !== 40 ||
+    operatorSnapshotJson.status?.summary?.contractVersion !== 17 ||
+    operatorSnapshotJson.status?.summary?.summaryVersion !== 41 ||
     operatorSnapshotJson.status?.summary?.supportedOperatorSnapshotVersion !== 1 ||
     operatorSnapshotJson.status?.summary?.supportedOperatorSnapshotKind !==
       "contract-status-shipping-bundle" ||

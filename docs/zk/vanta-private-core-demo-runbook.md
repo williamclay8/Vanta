@@ -104,7 +104,7 @@ That JSON now comes from the dedicated `/state/private-core-shipping-decision` e
 
 Use `private-core:shipping-check-json` when that same tooling wants a strict machine-readable pass/fail gate for the frozen narrow lane instead of just a status snapshot.
 
-Use `private-core:operator-snapshot-json` when that tooling wants one bundled operator-backed artifact containing:
+Use `private-core:operator-snapshot-json` when that tooling wants one bundled operator-backed artifact from the dedicated `/state/private-core-snapshot` endpoint containing:
 - the frozen contract
 - the live summary/status surface
 - the canonical shipping decision
@@ -112,6 +112,8 @@ Use `private-core:operator-snapshot-json` when that tooling wants one bundled op
 That bundled artifact is now itself part of the frozen operator contract:
 - `supportedOperatorSnapshotVersion = 1`
 - `supportedOperatorSnapshotKind = contract-status-shipping-bundle`
+- `supportedOperatorSnapshotTransport = dedicated-endpoint`
+- `supportedOperatorSnapshotEndpoint = /state/private-core-snapshot`
 
 Use `private-core:operator-snapshot-check-json` when that same tooling wants the full bundled operator artifact as a strict ready gate instead of only the compact shipping slice.
 

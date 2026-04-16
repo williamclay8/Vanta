@@ -130,6 +130,14 @@ try {
     "Supported operator snapshot note",
     contract.supportedOperatorSnapshotNote ?? "Unavailable",
   );
+  printLine(
+    "Supported operator snapshot transport",
+    contract.supportedOperatorSnapshotTransport ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator snapshot endpoint",
+    contract.supportedOperatorSnapshotEndpoint ?? "Unavailable",
+  );
   printLine("Supported zk v1 scope decision", contract.supportedZkV1ScopeDecision ?? "Unavailable");
   printLine("Supported zk v1 scope note", contract.supportedZkV1ScopeNote ?? "Unavailable");
   printLine(

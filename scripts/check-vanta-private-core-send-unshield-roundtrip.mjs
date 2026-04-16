@@ -417,8 +417,8 @@ try {
   });
   const expectedStatusLines = [
     "Summary state version: 1",
-    "Mirrored contract version: 16",
-    "Summary version: 40",
+    "Mirrored contract version: 17",
+    "Summary version: 41",
     "Summary generated:",
     "Shipping decision version: 1",
     "Shipping decision kind: narrow-private-core-zk-v1-shipping",
@@ -534,8 +534,8 @@ try {
   if (
     operatorStatusJson.operator !== baseUrl ||
     operatorStatusJson.summary?.stateVersion !== 1 ||
-    operatorStatusJson.summary?.contractVersion !== 16 ||
-    operatorStatusJson.summary?.summaryVersion !== 40 ||
+    operatorStatusJson.summary?.contractVersion !== 17 ||
+    operatorStatusJson.summary?.summaryVersion !== 41 ||
     operatorStatusJson.summary?.requiredLanesStatus !== "coherent-required-lanes" ||
     operatorStatusJson.summary?.zkV1ShippingStatus !== "ready-narrow-v1" ||
     operatorStatusJson.summary?.releaseBoundaryStatus !== "release-recorded" ||
@@ -543,8 +543,8 @@ try {
     operatorStatusJson.summary?.latestSend?.sendAmount !== "13000000" ||
     operatorStatusJson.summary?.latestRelease?.releasedAmount !== "13000000" ||
     operatorStatusJson.shippingDecision?.decisionStatus !== "ready-to-ship" ||
-    operatorStatusJson.shippingDecision?.contractVersion !== 16 ||
-    operatorStatusJson.shippingDecision?.summaryVersion !== 40
+    operatorStatusJson.shippingDecision?.contractVersion !== 17 ||
+    operatorStatusJson.shippingDecision?.summaryVersion !== 41
   ) {
     throw new Error(
       `Unexpected send->unshield operator-status JSON output\n${JSON.stringify(operatorStatusJson, null, 2)}`,
@@ -569,8 +569,8 @@ try {
     operatorSnapshotJson.operator !== baseUrl ||
     operatorSnapshotJson.snapshotVersion !== 1 ||
     operatorSnapshotJson.snapshotKind !== "contract-status-shipping-bundle" ||
-    operatorSnapshotJson.contract?.contractVersion !== 16 ||
-    operatorSnapshotJson.contract?.summaryVersion !== 40 ||
+    operatorSnapshotJson.contract?.contractVersion !== 17 ||
+    operatorSnapshotJson.contract?.summaryVersion !== 41 ||
     operatorSnapshotJson.status?.summary?.requiredLanesStatus !== "coherent-required-lanes" ||
     operatorSnapshotJson.status?.summary?.zkV1ShippingStatus !== "ready-narrow-v1" ||
     operatorSnapshotJson.status?.summary?.latestSend?.sendAmount !== "13000000" ||
@@ -595,8 +595,8 @@ try {
   });
   if (
     !shippingStatusOutput.includes("Summary state version: 1") ||
-    !shippingStatusOutput.includes("Mirrored contract version: 16") ||
-    !shippingStatusOutput.includes("Summary version: 40") ||
+    !shippingStatusOutput.includes("Mirrored contract version: 17") ||
+    !shippingStatusOutput.includes("Summary version: 41") ||
     !shippingStatusOutput.includes("Summary generated:") ||
     !shippingStatusOutput.includes("Shipping status: Ready narrow v1") ||
     !shippingStatusOutput.includes(
@@ -636,8 +636,8 @@ try {
     shippingStatusJson.decisionNote !==
       "Minimum zk v1 required lanes are coherent and the operator boundary remains contract-coherent enough to ship the frozen narrow lane." ||
     shippingStatusJson.summaryStateVersion !== 1 ||
-    shippingStatusJson.mirroredContractVersion !== 16 ||
-    shippingStatusJson.summaryVersion !== 40 ||
+    shippingStatusJson.mirroredContractVersion !== 17 ||
+    shippingStatusJson.summaryVersion !== 41 ||
     typeof shippingStatusJson.summaryGenerated !== "number" ||
     shippingStatusJson.shippingStatusRaw !== "ready-narrow-v1" ||
     shippingStatusJson.shippingStatus !== "Ready narrow v1" ||
@@ -676,8 +676,8 @@ try {
   if (
     operatorSnapshotCheckJson.snapshotVersion !== 1 ||
     operatorSnapshotCheckJson.snapshotKind !== "contract-status-shipping-bundle" ||
-    operatorSnapshotCheckJson.contract?.contractVersion !== 16 ||
-    operatorSnapshotCheckJson.contract?.summaryVersion !== 40 ||
+    operatorSnapshotCheckJson.contract?.contractVersion !== 17 ||
+    operatorSnapshotCheckJson.contract?.summaryVersion !== 41 ||
     operatorSnapshotCheckJson.shipping?.decisionStatusRaw !== "ready-to-ship" ||
     operatorSnapshotCheckJson.shipping?.shippingStatusRaw !== "ready-narrow-v1"
   ) {

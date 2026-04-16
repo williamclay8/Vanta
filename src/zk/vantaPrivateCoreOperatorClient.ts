@@ -267,8 +267,8 @@ export type VantaPrivateCoreOperatorShippingDecisionResponse = {
   decisionKind: "narrow-private-core-zk-v1-shipping";
   decisionStatus: "ready-to-ship" | "blocked";
   decisionNote: string;
-  contractVersion: 16;
-  summaryVersion: 40;
+  contractVersion: 17;
+  summaryVersion: 41;
   generatedAt: number;
   shippingStatus: VantaPrivateCoreOperatorSummaryStateResponse["zkV1ShippingStatus"];
   shippingNote: string;
@@ -448,6 +448,8 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedOperatorSnapshotVersion: 1;
   supportedOperatorSnapshotKind: "contract-status-shipping-bundle";
   supportedOperatorSnapshotNote: string;
+  supportedOperatorSnapshotTransport: "dedicated-endpoint";
+  supportedOperatorSnapshotEndpoint: "/state/private-core-snapshot";
   supportedZkV1ScopeDecision: "accepted-narrow-private-core-v1-scope";
   supportedZkV1ScopeNote: string;
   supportedZkV1RequiredLanes: "send|unshield|release";
@@ -567,6 +569,8 @@ export type VantaPrivateCoreOperatorContractStateResponse = {
   supportedOperatorSnapshotVersion: 1;
   supportedOperatorSnapshotKind: "contract-status-shipping-bundle";
   supportedOperatorSnapshotNote: string;
+  supportedOperatorSnapshotTransport: "dedicated-endpoint";
+  supportedOperatorSnapshotEndpoint: "/state/private-core-snapshot";
   supportedZkV1ScopeDecision: "accepted-narrow-private-core-v1-scope";
   supportedZkV1ScopeNote: string;
   supportedZkV1RequiredLanes: "send|unshield|release";
@@ -606,6 +610,50 @@ export type VantaPrivateCoreOperatorContractStateResponse = {
   nullifierKeyDecision: "accepted-v1-temporary-note-secret-key";
   nullifierKeyDecisionNote: string;
   provingHashLane: "poseidon-bn254-proving-lane-v0";
+};
+
+export type VantaPrivateCoreOperatorSnapshotStateResponse = {
+  operator: string;
+  snapshotVersion: 1;
+  snapshotKind: "contract-status-shipping-bundle";
+  contract: VantaPrivateCoreOperatorContractStateResponse & { operator: string };
+  status: {
+    operator: string;
+    summary: VantaPrivateCoreOperatorSummaryStateResponse;
+    shippingDecision: VantaPrivateCoreOperatorShippingDecisionResponse;
+  };
+  shipping: {
+    operator: string;
+    summaryStateVersion: 1;
+    decisionVersion: 1;
+    decisionKind: "narrow-private-core-zk-v1-shipping";
+    decisionStatusRaw: "ready-to-ship" | "blocked";
+    decisionStatus: string;
+    decisionNote: string;
+    mirroredContractVersion: 17;
+    summaryVersion: 41;
+    summaryGenerated: number;
+    shippingStatusRaw: VantaPrivateCoreOperatorSummaryStateResponse["zkV1ShippingStatus"];
+    shippingStatus: string;
+    shippingNote: string;
+    finishLineStatusRaw: VantaPrivateCoreOperatorSummaryStateResponse["zkV1FinishLineStatus"];
+    finishLineStatus: string;
+    finishLineNote: string;
+    requiredLanesStatusRaw: VantaPrivateCoreOperatorSummaryStateResponse["requiredLanesStatus"];
+    requiredLanesStatus: string;
+    requiredLanesNote: string;
+    releaseBoundaryStatusRaw:
+      VantaPrivateCoreOperatorSummaryStateResponse["releaseBoundaryStatus"];
+    releaseBoundaryStatus: string;
+    releaseBoundaryNote: string;
+    contractMirrorStatusRaw:
+      VantaPrivateCoreOperatorSummaryStateResponse["contractMirrorStatus"];
+    contractMirrorStatus: string;
+    contractMirrorNote: string;
+    boundaryStatusRaw: VantaPrivateCoreOperatorSummaryStateResponse["boundaryStatus"];
+    boundaryStatus: string;
+    boundaryNote: string;
+  };
 };
 
 function isContractMirrorStatus(value: unknown): value is "mirrors-contract" | "contract-mismatch" {
@@ -1468,6 +1516,10 @@ function getPrivateCoreContractStateUrl() {
   return new URL("/state/private-core-contract", liveShieldAsset.unshieldOperatorUrl).toString();
 }
 
+function getPrivateCoreSnapshotStateUrl() {
+  return new URL("/state/private-core-snapshot", liveShieldAsset.unshieldOperatorUrl).toString();
+}
+
 export async function fetchVantaPrivateCoreOperatorReleases(): Promise<
   VantaPrivateCoreOperatorReleaseStateResponse
 > {
@@ -1594,6 +1646,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedOperatorSnapshotVersion?: unknown;
     supportedOperatorSnapshotKind?: unknown;
     supportedOperatorSnapshotNote?: unknown;
+    supportedOperatorSnapshotTransport?: unknown;
+    supportedOperatorSnapshotEndpoint?: unknown;
     supportedZkV1ScopeDecision?: unknown;
     supportedZkV1ScopeNote?: unknown;
     supportedZkV1RequiredLanes?: unknown;
@@ -1669,8 +1723,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 16 ||
-    parsed.summaryVersion !== 40 ||
+    parsed.contractVersion !== 17 ||
+    parsed.summaryVersion !== 41 ||
     !isContractMirrorStatus(parsed.contractMirrorStatus) ||
     typeof parsed.contractMirrorNote !== "string" ||
     !isRequiredLanesStatus(parsed.requiredLanesStatus) ||
@@ -1755,6 +1809,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     parsed.supportedOperatorSnapshotVersion !== 1 ||
     parsed.supportedOperatorSnapshotKind !== "contract-status-shipping-bundle" ||
     typeof parsed.supportedOperatorSnapshotNote !== "string" ||
+    parsed.supportedOperatorSnapshotTransport !== "dedicated-endpoint" ||
+    parsed.supportedOperatorSnapshotEndpoint !== "/state/private-core-snapshot" ||
     parsed.supportedZkV1ScopeDecision !== "accepted-narrow-private-core-v1-scope" ||
     typeof parsed.supportedZkV1ScopeNote !== "string" ||
     parsed.supportedZkV1RequiredLanes !== "send|unshield|release" ||
@@ -1863,8 +1919,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   return {
     stateVersion: 1,
-    contractVersion: 16,
-    summaryVersion: 40,
+    contractVersion: 17,
+    summaryVersion: 41,
     contractMirrorStatus: parsed.contractMirrorStatus,
     contractMirrorNote: parsed.contractMirrorNote,
     requiredLanesStatus: parsed.requiredLanesStatus,
@@ -1919,6 +1975,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedOperatorSnapshotVersion: 1,
     supportedOperatorSnapshotKind: "contract-status-shipping-bundle",
     supportedOperatorSnapshotNote: parsed.supportedOperatorSnapshotNote,
+    supportedOperatorSnapshotTransport: "dedicated-endpoint",
+    supportedOperatorSnapshotEndpoint: "/state/private-core-snapshot",
     supportedZkV1ScopeDecision: "accepted-narrow-private-core-v1-scope",
     supportedZkV1ScopeNote: parsed.supportedZkV1ScopeNote,
     supportedZkV1RequiredLanes: "send|unshield|release",
@@ -2074,8 +2132,8 @@ export async function fetchVantaPrivateCoreOperatorShippingDecision(): Promise<
     parsed.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
     !isShippingDecisionStatus(parsed.decisionStatus) ||
     typeof parsed.decisionNote !== "string" ||
-    parsed.contractVersion !== 16 ||
-    parsed.summaryVersion !== 40 ||
+    parsed.contractVersion !== 17 ||
+    parsed.summaryVersion !== 41 ||
     typeof parsed.generatedAt !== "number" ||
     !isZkV1ShippingStatus(parsed.shippingStatus) ||
     typeof parsed.shippingNote !== "string" ||
@@ -2099,8 +2157,8 @@ export async function fetchVantaPrivateCoreOperatorShippingDecision(): Promise<
     decisionKind: "narrow-private-core-zk-v1-shipping",
     decisionStatus: parsed.decisionStatus,
     decisionNote: parsed.decisionNote,
-    contractVersion: 16,
-    summaryVersion: 40,
+    contractVersion: 17,
+    summaryVersion: 41,
     generatedAt: parsed.generatedAt,
     shippingStatus: parsed.shippingStatus,
     shippingNote: parsed.shippingNote,
@@ -2174,6 +2232,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedOperatorSnapshotVersion?: unknown;
     supportedOperatorSnapshotKind?: unknown;
     supportedOperatorSnapshotNote?: unknown;
+    supportedOperatorSnapshotTransport?: unknown;
+    supportedOperatorSnapshotEndpoint?: unknown;
     supportedZkV1ScopeDecision?: unknown;
     supportedZkV1ScopeNote?: unknown;
     supportedZkV1RequiredLanes?: unknown;
@@ -2215,8 +2275,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 16 ||
-    parsed.summaryVersion !== 40 ||
+    parsed.contractVersion !== 17 ||
+    parsed.summaryVersion !== 41 ||
     !isZkV1FinishLineStatus(parsed.zkV1FinishLineStatus) ||
     typeof parsed.zkV1FinishLineNote !== "string" ||
     parsed.supportedSendLaneVersion !== 1 ||
@@ -2257,6 +2317,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     parsed.supportedOperatorSnapshotVersion !== 1 ||
     parsed.supportedOperatorSnapshotKind !== "contract-status-shipping-bundle" ||
     typeof parsed.supportedOperatorSnapshotNote !== "string" ||
+    parsed.supportedOperatorSnapshotTransport !== "dedicated-endpoint" ||
+    parsed.supportedOperatorSnapshotEndpoint !== "/state/private-core-snapshot" ||
     parsed.supportedZkV1ScopeDecision !== "accepted-narrow-private-core-v1-scope" ||
     typeof parsed.supportedZkV1ScopeNote !== "string" ||
     parsed.supportedZkV1RequiredLanes !== "send|unshield|release" ||
@@ -2305,8 +2367,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
 
   return {
     stateVersion: 1,
-    contractVersion: 16,
-    summaryVersion: 40,
+    contractVersion: 17,
+    summaryVersion: 41,
     supportedSendLaneVersion: 1,
     supportedSendLaneKind: "single-input-single-recipient-optional-change",
     supportedSendLaneStatus: "supported",
@@ -2345,6 +2407,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedOperatorSnapshotVersion: 1,
     supportedOperatorSnapshotKind: "contract-status-shipping-bundle",
     supportedOperatorSnapshotNote: parsed.supportedOperatorSnapshotNote,
+    supportedOperatorSnapshotTransport: "dedicated-endpoint",
+    supportedOperatorSnapshotEndpoint: "/state/private-core-snapshot",
     supportedZkV1ScopeDecision: "accepted-narrow-private-core-v1-scope",
     supportedZkV1ScopeNote: parsed.supportedZkV1ScopeNote,
     supportedZkV1RequiredLanes: "send|unshield|release",
@@ -2387,6 +2451,158 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     nullifierKeyDecision: "accepted-v1-temporary-note-secret-key",
     nullifierKeyDecisionNote: parsed.nullifierKeyDecisionNote,
     provingHashLane: "poseidon-bn254-proving-lane-v0",
+  };
+}
+
+export async function fetchVantaPrivateCoreOperatorSnapshot(): Promise<
+  VantaPrivateCoreOperatorSnapshotStateResponse
+> {
+  const response = await fetch(getPrivateCoreSnapshotStateUrl(), {
+    method: "GET",
+    signal: AbortSignal.timeout(15_000),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "The private-core operator snapshot endpoint failed.");
+  }
+
+  const parsed = (await response.json()) as {
+    operator?: unknown;
+    snapshotVersion?: unknown;
+    snapshotKind?: unknown;
+    contract?: unknown;
+    status?: unknown;
+    shipping?: unknown;
+  };
+
+  if (
+    typeof parsed.operator !== "string" ||
+    parsed.snapshotVersion !== 1 ||
+    parsed.snapshotKind !== "contract-status-shipping-bundle" ||
+    !parsed.contract ||
+    typeof parsed.contract !== "object" ||
+    typeof (parsed.contract as { operator?: unknown }).operator !== "string" ||
+    !parsed.status ||
+    typeof parsed.status !== "object" ||
+    typeof (parsed.status as { operator?: unknown }).operator !== "string" ||
+    !parsed.shipping ||
+    typeof parsed.shipping !== "object"
+  ) {
+    throw new Error("The private-core operator snapshot endpoint returned invalid data.");
+  }
+
+  const contract = await fetchVantaPrivateCoreOperatorContract();
+  const summary = await fetchVantaPrivateCoreOperatorSummary();
+  const shippingDecision = await fetchVantaPrivateCoreOperatorShippingDecision();
+
+  const shipping = parsed.shipping as {
+    operator?: unknown;
+    summaryStateVersion?: unknown;
+    decisionVersion?: unknown;
+    decisionKind?: unknown;
+    decisionStatusRaw?: unknown;
+    decisionStatus?: unknown;
+    decisionNote?: unknown;
+    mirroredContractVersion?: unknown;
+    summaryVersion?: unknown;
+    summaryGenerated?: unknown;
+    shippingStatusRaw?: unknown;
+    shippingStatus?: unknown;
+    shippingNote?: unknown;
+    finishLineStatusRaw?: unknown;
+    finishLineStatus?: unknown;
+    finishLineNote?: unknown;
+    requiredLanesStatusRaw?: unknown;
+    requiredLanesStatus?: unknown;
+    requiredLanesNote?: unknown;
+    releaseBoundaryStatusRaw?: unknown;
+    releaseBoundaryStatus?: unknown;
+    releaseBoundaryNote?: unknown;
+    contractMirrorStatusRaw?: unknown;
+    contractMirrorStatus?: unknown;
+    contractMirrorNote?: unknown;
+    boundaryStatusRaw?: unknown;
+    boundaryStatus?: unknown;
+    boundaryNote?: unknown;
+  };
+
+  if (
+    typeof shipping.operator !== "string" ||
+    shipping.summaryStateVersion !== 1 ||
+    shipping.decisionVersion !== 1 ||
+    shipping.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
+    !isShippingDecisionStatus(shipping.decisionStatusRaw) ||
+    typeof shipping.decisionStatus !== "string" ||
+    typeof shipping.decisionNote !== "string" ||
+    shipping.mirroredContractVersion !== 17 ||
+    shipping.summaryVersion !== 41 ||
+    typeof shipping.summaryGenerated !== "number" ||
+    !isZkV1ShippingStatus(shipping.shippingStatusRaw) ||
+    typeof shipping.shippingStatus !== "string" ||
+    typeof shipping.shippingNote !== "string" ||
+    !isZkV1FinishLineStatus(shipping.finishLineStatusRaw) ||
+    typeof shipping.finishLineStatus !== "string" ||
+    typeof shipping.finishLineNote !== "string" ||
+    !isRequiredLanesStatus(shipping.requiredLanesStatusRaw) ||
+    typeof shipping.requiredLanesStatus !== "string" ||
+    typeof shipping.requiredLanesNote !== "string" ||
+    !isReleaseBoundaryStatus(shipping.releaseBoundaryStatusRaw) ||
+    typeof shipping.releaseBoundaryStatus !== "string" ||
+    typeof shipping.releaseBoundaryNote !== "string" ||
+    !isContractMirrorStatus(shipping.contractMirrorStatusRaw) ||
+    typeof shipping.contractMirrorStatus !== "string" ||
+    typeof shipping.contractMirrorNote !== "string" ||
+    !isBoundaryStatus(shipping.boundaryStatusRaw) ||
+    typeof shipping.boundaryStatus !== "string" ||
+    typeof shipping.boundaryNote !== "string"
+  ) {
+    throw new Error("The private-core operator snapshot endpoint returned invalid data.");
+  }
+
+  return {
+    operator: parsed.operator,
+    snapshotVersion: 1,
+    snapshotKind: "contract-status-shipping-bundle",
+    contract: {
+      operator: (parsed.contract as { operator: string }).operator,
+      ...contract,
+    },
+    status: {
+      operator: (parsed.status as { operator: string }).operator,
+      summary,
+      shippingDecision,
+    },
+    shipping: {
+      operator: shipping.operator,
+      summaryStateVersion: 1,
+      decisionVersion: 1,
+      decisionKind: "narrow-private-core-zk-v1-shipping",
+      decisionStatusRaw: shipping.decisionStatusRaw,
+      decisionStatus: shipping.decisionStatus,
+      decisionNote: shipping.decisionNote,
+      mirroredContractVersion: 17,
+      summaryVersion: 41,
+      summaryGenerated: shipping.summaryGenerated,
+      shippingStatusRaw: shipping.shippingStatusRaw,
+      shippingStatus: shipping.shippingStatus,
+      shippingNote: shipping.shippingNote,
+      finishLineStatusRaw: shipping.finishLineStatusRaw,
+      finishLineStatus: shipping.finishLineStatus,
+      finishLineNote: shipping.finishLineNote,
+      requiredLanesStatusRaw: shipping.requiredLanesStatusRaw,
+      requiredLanesStatus: shipping.requiredLanesStatus,
+      requiredLanesNote: shipping.requiredLanesNote,
+      releaseBoundaryStatusRaw: shipping.releaseBoundaryStatusRaw,
+      releaseBoundaryStatus: shipping.releaseBoundaryStatus,
+      releaseBoundaryNote: shipping.releaseBoundaryNote,
+      contractMirrorStatusRaw: shipping.contractMirrorStatusRaw,
+      contractMirrorStatus: shipping.contractMirrorStatus,
+      contractMirrorNote: shipping.contractMirrorNote,
+      boundaryStatusRaw: shipping.boundaryStatusRaw,
+      boundaryStatus: shipping.boundaryStatus,
+      boundaryNote: shipping.boundaryNote,
+    },
   };
 }
 

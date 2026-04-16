@@ -102,8 +102,8 @@ try {
   if (
     !contractState.ok ||
     contractState.parsed?.stateVersion !== 1 ||
-    contractState.parsed?.contractVersion !== 16 ||
-    contractState.parsed?.summaryVersion !== 40 ||
+    contractState.parsed?.contractVersion !== 17 ||
+    contractState.parsed?.summaryVersion !== 41 ||
     contractState.parsed?.supportedSendLaneVersion !== 1 ||
     contractState.parsed?.supportedSendV1Decision !== "accepted-narrow-v1-path" ||
     typeof contractState.parsed?.supportedSendV1DecisionNote !== "string" ||
@@ -140,6 +140,8 @@ try {
     contractState.parsed?.supportedOperatorSnapshotVersion !== 1 ||
     contractState.parsed?.supportedOperatorSnapshotKind !== "contract-status-shipping-bundle" ||
     typeof contractState.parsed?.supportedOperatorSnapshotNote !== "string" ||
+    contractState.parsed?.supportedOperatorSnapshotTransport !== "dedicated-endpoint" ||
+    contractState.parsed?.supportedOperatorSnapshotEndpoint !== "/state/private-core-snapshot" ||
     contractState.parsed?.supportedZkV1ScopeDecision !==
       "accepted-narrow-private-core-v1-scope" ||
     typeof contractState.parsed?.supportedZkV1ScopeNote !== "string" ||
@@ -298,8 +300,8 @@ try {
   });
   if (
     !contractOutput.includes("Contract state version: 1") ||
-    !contractOutput.includes("Contract version: 16") ||
-    !contractOutput.includes("Summary compatibility: 40") ||
+    !contractOutput.includes("Contract version: 17") ||
+    !contractOutput.includes("Summary compatibility: 41") ||
     !contractOutput.includes("Supported note schema: NoteV0 / v0") ||
     !contractOutput.includes("Supported send v1 decision: accepted-narrow-v1-path") ||
     !contractOutput.includes("Supported unshield v1 decision: accepted-narrow-v1-path") ||
@@ -397,6 +399,10 @@ try {
     ) ||
     !contractOutput.includes(
       "Supported send circuit: vanta_private_core_single_note_send @ depth 3",
+    ) ||
+    !contractOutput.includes("Supported operator snapshot transport: dedicated-endpoint") ||
+    !contractOutput.includes(
+      "Supported operator snapshot endpoint: /state/private-core-snapshot",
     )
   ) {
     throw new Error(contractOutput || "operator contract script did not reflect the contract state");
@@ -419,8 +425,8 @@ try {
   if (
     contractJson.operator !== baseUrl ||
     contractJson.stateVersion !== 1 ||
-    contractJson.contractVersion !== 16 ||
-    contractJson.summaryVersion !== 40 ||
+    contractJson.contractVersion !== 17 ||
+    contractJson.summaryVersion !== 41 ||
     contractJson.supportedSendLaneVersion !== 1 ||
     contractJson.supportedUnshieldLaneVersion !== 1 ||
     contractJson.supportedReleaseLaneVersion !== 1 ||
@@ -432,7 +438,9 @@ try {
     contractJson.supportedOperatorSnapshotVersion !== 1 ||
     contractJson.supportedOperatorSnapshotKind !== "contract-status-shipping-bundle" ||
     contractJson.supportedOperatorSnapshotNote !==
-      "Canonical bundled machine-readable operator artifact containing the frozen contract, live status summary, and canonical shipping decision surfaces together."
+      "Canonical bundled machine-readable operator artifact containing the frozen contract, live status summary, and canonical shipping decision surfaces together." ||
+    contractJson.supportedOperatorSnapshotTransport !== "dedicated-endpoint" ||
+    contractJson.supportedOperatorSnapshotEndpoint !== "/state/private-core-snapshot"
   ) {
     throw new Error(
       `Unexpected operator contract JSON output\n${JSON.stringify(contractJson, null, 2)}`,

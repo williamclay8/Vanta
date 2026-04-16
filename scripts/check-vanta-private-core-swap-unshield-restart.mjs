@@ -395,8 +395,8 @@ try {
   });
   const expectedStatusLines = [
     "Summary state version: 1",
-    "Mirrored contract version: 16",
-    "Summary version: 40",
+    "Mirrored contract version: 17",
+    "Summary version: 41",
     "Summary generated:",
     "Shipping decision version: 1",
     "Shipping decision kind: narrow-private-core-zk-v1-shipping",
@@ -512,8 +512,8 @@ try {
   if (
     operatorStatusJson.operator !== baseUrl ||
     operatorStatusJson.summary?.stateVersion !== 1 ||
-    operatorStatusJson.summary?.contractVersion !== 16 ||
-    operatorStatusJson.summary?.summaryVersion !== 40 ||
+    operatorStatusJson.summary?.contractVersion !== 17 ||
+    operatorStatusJson.summary?.summaryVersion !== 41 ||
     operatorStatusJson.summary?.requiredLanesStatus !== "send-lane-mismatch" ||
     operatorStatusJson.summary?.zkV1ShippingStatus !== "required-lanes-mismatch" ||
     operatorStatusJson.summary?.releaseBoundaryStatus !== "release-recorded" ||
@@ -521,8 +521,8 @@ try {
     operatorStatusJson.summary?.latestSwap?.outputAmount !== "1250000000" ||
     operatorStatusJson.summary?.latestRelease?.releasedAmount !== "1250000000" ||
     operatorStatusJson.shippingDecision?.decisionStatus !== "blocked" ||
-    operatorStatusJson.shippingDecision?.contractVersion !== 16 ||
-    operatorStatusJson.shippingDecision?.summaryVersion !== 40
+    operatorStatusJson.shippingDecision?.contractVersion !== 17 ||
+    operatorStatusJson.shippingDecision?.summaryVersion !== 41
   ) {
     throw new Error(
       `Unexpected swap->unshield restart operator-status JSON output\n${JSON.stringify(operatorStatusJson, null, 2)}`,
@@ -547,8 +547,8 @@ try {
     operatorSnapshotJson.operator !== baseUrl ||
     operatorSnapshotJson.snapshotVersion !== 1 ||
     operatorSnapshotJson.snapshotKind !== "contract-status-shipping-bundle" ||
-    operatorSnapshotJson.contract?.contractVersion !== 16 ||
-    operatorSnapshotJson.contract?.summaryVersion !== 40 ||
+    operatorSnapshotJson.contract?.contractVersion !== 17 ||
+    operatorSnapshotJson.contract?.summaryVersion !== 41 ||
     operatorSnapshotJson.status?.summary?.requiredLanesStatus !== "send-lane-mismatch" ||
     operatorSnapshotJson.status?.summary?.zkV1ShippingStatus !== "required-lanes-mismatch" ||
     operatorSnapshotJson.status?.summary?.latestSwap?.outputAmount !== "1250000000" ||
@@ -573,8 +573,8 @@ try {
   });
   if (
     !shippingStatusOutput.includes("Summary state version: 1") ||
-    !shippingStatusOutput.includes("Mirrored contract version: 16") ||
-    !shippingStatusOutput.includes("Summary version: 40") ||
+    !shippingStatusOutput.includes("Mirrored contract version: 17") ||
+    !shippingStatusOutput.includes("Summary version: 41") ||
     !shippingStatusOutput.includes("Summary generated:") ||
     !shippingStatusOutput.includes("Shipping status: Required lanes mismatch") ||
     !shippingStatusOutput.includes(
@@ -723,8 +723,8 @@ try {
   if (
     blockedOperatorSnapshotJson.snapshotVersion !== 1 ||
     blockedOperatorSnapshotJson.snapshotKind !== "contract-status-shipping-bundle" ||
-    blockedOperatorSnapshotJson.contract?.contractVersion !== 16 ||
-    blockedOperatorSnapshotJson.contract?.summaryVersion !== 40 ||
+    blockedOperatorSnapshotJson.contract?.contractVersion !== 17 ||
+    blockedOperatorSnapshotJson.contract?.summaryVersion !== 41 ||
     blockedOperatorSnapshotJson.shipping?.decisionStatusRaw !== "blocked" ||
     blockedOperatorSnapshotJson.shipping?.shippingStatusRaw !== "required-lanes-mismatch"
   ) {

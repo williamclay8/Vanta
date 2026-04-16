@@ -200,6 +200,8 @@ const PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_VERSION = 1;
 const PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_KIND = "contract-status-shipping-bundle";
 const PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_NOTE =
   "Canonical bundled machine-readable operator artifact containing the frozen contract, live status summary, and canonical shipping decision surfaces together.";
+const PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_TRANSPORT = "dedicated-endpoint";
+const PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_ENDPOINT = "/state/private-core-snapshot";
 const PRIVATE_CORE_SUPPORTED_ZK_V1_SCOPE_DECISION =
   "accepted-narrow-private-core-v1-scope";
 const PRIVATE_CORE_SUPPORTED_ZK_V1_SCOPE_NOTE =
@@ -324,6 +326,13 @@ const server = createServer(async (request, response) => {
     writeCorsHeaders(response);
     response.writeHead(200, { "Content-Type": "application/json" });
     response.end(JSON.stringify(buildPrivateCoreShippingDecisionState()));
+    return;
+  }
+
+  if (request.method === "GET" && request.url === "/state/private-core-snapshot") {
+    writeCorsHeaders(response);
+    response.writeHead(200, { "Content-Type": "application/json" });
+    response.end(JSON.stringify(buildPrivateCoreOperatorSnapshotState(request)));
     return;
   }
 
@@ -1742,6 +1751,15 @@ function writeCorsHeaders(response) {
   response.setHeader("Access-Control-Allow-Headers", "Content-Type");
 }
 
+function resolveRequestBaseUrl(request) {
+  const hostHeader = request.headers.host;
+  if (typeof hostHeader === "string" && hostHeader.length > 0) {
+    return `http://${hostHeader}`;
+  }
+
+  return "http://127.0.0.1:8789";
+}
+
 function buildPrivateCoreSummaryState() {
   const contractState = buildPrivateCoreContractState();
   const rootRecords = privateCoreRootStore.listRoots();
@@ -2039,11 +2057,180 @@ function buildPrivateCoreShippingDecisionState() {
   };
 }
 
+function humanizePrivateCoreDecisionStatus(value) {
+  switch (value) {
+    case "ready-to-ship":
+      return "Ready to ship";
+    case "blocked":
+      return "Blocked";
+    default:
+      return "Unknown";
+  }
+}
+
+function humanizePrivateCoreShippingStatus(value) {
+  switch (value) {
+    case "ready-narrow-v1":
+      return "Ready narrow v1";
+    case "required-lanes-mismatch":
+      return "Required lanes mismatch";
+    case "release-boundary-mismatch":
+      return "Release-boundary mismatch";
+    case "contract-mismatch":
+      return "Contract mismatch";
+    case "boundary-mismatch":
+      return "Boundary mismatch";
+    default:
+      return "Unknown";
+  }
+}
+
+function humanizePrivateCoreRequiredLanesStatus(value) {
+  switch (value) {
+    case "coherent-required-lanes":
+      return "Coherent required lanes";
+    case "send-lane-mismatch":
+      return "Send lane mismatch";
+    case "release-lane-mismatch":
+      return "Release lane mismatch";
+    case "finish-line-mismatch":
+      return "Finish-line mismatch";
+    default:
+      return "Unknown";
+  }
+}
+
+function humanizePrivateCoreFinishLineStatus(value) {
+  switch (value) {
+    case "coherent-minimum-v1-lane":
+      return "Coherent minimum v1 lane";
+    case "contract-mismatch":
+      return "Contract mismatch";
+    case "boundary-mismatch":
+      return "Boundary mismatch";
+    default:
+      return "Unknown";
+  }
+}
+
+function humanizePrivateCoreReleaseBoundaryStatus(value) {
+  switch (value) {
+    case "release-recorded":
+      return "Release recorded";
+    case "consume-without-release":
+      return "Consume without release";
+    case "proof-unlinked":
+      return "Proof unlinked";
+    case "authorization-mismatch":
+      return "Authorization mismatch";
+    case "root-policy-mismatch":
+      return "Root-policy mismatch";
+    case "contract-mismatch":
+      return "Contract mismatch";
+    case "boundary-mismatch":
+      return "Boundary mismatch";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizePrivateCoreContractMirrorStatus(value) {
+  switch (value) {
+    case "mirrors-contract":
+      return "Summary mirrors frozen contract";
+    case "contract-mismatch":
+      return "Contract mismatch";
+    default:
+      return "Unknown";
+  }
+}
+
+function humanizePrivateCoreBoundaryStatus(value) {
+  switch (value) {
+    case "coherent":
+      return "Operator boundary coherent";
+    case "awaiting-current-root":
+      return "Awaiting current root";
+    case "root-registration-unlinked":
+      return "Root registration unlinked";
+    case "send-root-registration-unlinked":
+      return "Send root registration unlinked";
+    case "send-root-output-mismatch":
+      return "Send root output mismatch";
+    case "proof-send-unlinked":
+      return "Proof/send unlinked";
+    case "proof-consume-unlinked":
+      return "Proof/consume unlinked";
+    case "proof-release-unlinked":
+      return "Proof/release unlinked";
+    default:
+      return "Unknown";
+  }
+}
+
+function buildPrivateCoreOperatorSnapshotState(request) {
+  const operator = resolveRequestBaseUrl(request);
+  const contract = buildPrivateCoreContractState();
+  const summary = buildPrivateCoreSummaryState();
+  const shippingDecision = buildPrivateCoreShippingDecisionState();
+
+  return {
+    operator,
+    snapshotVersion: 1,
+    snapshotKind: "contract-status-shipping-bundle",
+    contract: {
+      operator,
+      ...contract,
+    },
+    status: {
+      operator,
+      summary,
+      shippingDecision,
+    },
+    shipping: {
+      operator,
+      summaryStateVersion: shippingDecision.stateVersion,
+      decisionVersion: shippingDecision.decisionVersion,
+      decisionKind: shippingDecision.decisionKind,
+      decisionStatusRaw: shippingDecision.decisionStatus,
+      decisionStatus: humanizePrivateCoreDecisionStatus(shippingDecision.decisionStatus),
+      decisionNote: shippingDecision.decisionNote,
+      mirroredContractVersion: shippingDecision.contractVersion,
+      summaryVersion: shippingDecision.summaryVersion,
+      summaryGenerated: shippingDecision.generatedAt,
+      shippingStatusRaw: shippingDecision.shippingStatus,
+      shippingStatus: humanizePrivateCoreShippingStatus(shippingDecision.shippingStatus),
+      shippingNote: shippingDecision.shippingNote,
+      finishLineStatusRaw: shippingDecision.finishLineStatus,
+      finishLineStatus: humanizePrivateCoreFinishLineStatus(shippingDecision.finishLineStatus),
+      finishLineNote: shippingDecision.finishLineNote,
+      requiredLanesStatusRaw: shippingDecision.requiredLanesStatus,
+      requiredLanesStatus: humanizePrivateCoreRequiredLanesStatus(
+        shippingDecision.requiredLanesStatus,
+      ),
+      requiredLanesNote: shippingDecision.requiredLanesNote,
+      releaseBoundaryStatusRaw: shippingDecision.releaseBoundaryStatus,
+      releaseBoundaryStatus: humanizePrivateCoreReleaseBoundaryStatus(
+        shippingDecision.releaseBoundaryStatus,
+      ),
+      releaseBoundaryNote: shippingDecision.releaseBoundaryNote,
+      contractMirrorStatusRaw: shippingDecision.contractMirrorStatus,
+      contractMirrorStatus: humanizePrivateCoreContractMirrorStatus(
+        shippingDecision.contractMirrorStatus,
+      ),
+      contractMirrorNote: shippingDecision.contractMirrorNote,
+      boundaryStatusRaw: shippingDecision.boundaryStatus,
+      boundaryStatus: humanizePrivateCoreBoundaryStatus(shippingDecision.boundaryStatus),
+      boundaryNote: shippingDecision.boundaryNote,
+    },
+  };
+}
+
 function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
-    contractVersion: 16,
-    summaryVersion: 40,
+    contractVersion: 17,
+    summaryVersion: 41,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
@@ -2082,6 +2269,8 @@ function buildPrivateCoreContractState() {
     supportedOperatorSnapshotVersion: PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_VERSION,
     supportedOperatorSnapshotKind: PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_KIND,
     supportedOperatorSnapshotNote: PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_NOTE,
+    supportedOperatorSnapshotTransport: PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_TRANSPORT,
+    supportedOperatorSnapshotEndpoint: PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_ENDPOINT,
     supportedZkV1ScopeDecision: PRIVATE_CORE_SUPPORTED_ZK_V1_SCOPE_DECISION,
     supportedZkV1ScopeNote: PRIVATE_CORE_SUPPORTED_ZK_V1_SCOPE_NOTE,
     supportedZkV1RequiredLanes: PRIVATE_CORE_SUPPORTED_ZK_V1_REQUIRED_LANES,
@@ -2166,6 +2355,8 @@ function summarizePrivateCoreContractMirrorStatus(args) {
     "supportedOperatorSnapshotVersion",
     "supportedOperatorSnapshotKind",
     "supportedOperatorSnapshotNote",
+    "supportedOperatorSnapshotTransport",
+    "supportedOperatorSnapshotEndpoint",
     "supportedZkV1ScopeDecision",
     "supportedZkV1ScopeNote",
     "supportedZkV1RequiredLanes",
