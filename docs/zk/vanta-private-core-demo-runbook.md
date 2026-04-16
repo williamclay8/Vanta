@@ -108,6 +108,10 @@ Use `private-core:operator-snapshot-json` when that tooling wants one bundled op
 - the live summary/status surface
 - the canonical shipping decision
 
+That bundled artifact is now itself part of the frozen operator contract:
+- `supportedOperatorSnapshotVersion = 1`
+- `supportedOperatorSnapshotKind = contract-status-shipping-bundle`
+
 ## App demo path
 
 Use the current Vanta app and walk this sequence:

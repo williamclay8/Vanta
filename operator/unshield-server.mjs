@@ -196,6 +196,10 @@ const PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_KIND =
   "narrow-private-core-zk-v1-shipping";
 const PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_NOTE =
   "Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane.";
+const PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_VERSION = 1;
+const PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_KIND = "contract-status-shipping-bundle";
+const PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_NOTE =
+  "Canonical bundled machine-readable operator artifact containing the frozen contract, live status summary, and canonical shipping decision surfaces together.";
 const PRIVATE_CORE_SUPPORTED_ZK_V1_SCOPE_DECISION =
   "accepted-narrow-private-core-v1-scope";
 const PRIVATE_CORE_SUPPORTED_ZK_V1_SCOPE_NOTE =
@@ -2038,8 +2042,8 @@ function buildPrivateCoreShippingDecisionState() {
 function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
-    contractVersion: 15,
-    summaryVersion: 39,
+    contractVersion: 16,
+    summaryVersion: 40,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
@@ -2075,6 +2079,9 @@ function buildPrivateCoreContractState() {
     supportedShippingDecisionVersion: PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_VERSION,
     supportedShippingDecisionKind: PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_KIND,
     supportedShippingDecisionNote: PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_NOTE,
+    supportedOperatorSnapshotVersion: PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_VERSION,
+    supportedOperatorSnapshotKind: PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_KIND,
+    supportedOperatorSnapshotNote: PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_NOTE,
     supportedZkV1ScopeDecision: PRIVATE_CORE_SUPPORTED_ZK_V1_SCOPE_DECISION,
     supportedZkV1ScopeNote: PRIVATE_CORE_SUPPORTED_ZK_V1_SCOPE_NOTE,
     supportedZkV1RequiredLanes: PRIVATE_CORE_SUPPORTED_ZK_V1_REQUIRED_LANES,
@@ -2156,6 +2163,9 @@ function summarizePrivateCoreContractMirrorStatus(args) {
     "supportedShippingDecisionVersion",
     "supportedShippingDecisionKind",
     "supportedShippingDecisionNote",
+    "supportedOperatorSnapshotVersion",
+    "supportedOperatorSnapshotKind",
+    "supportedOperatorSnapshotNote",
     "supportedZkV1ScopeDecision",
     "supportedZkV1ScopeNote",
     "supportedZkV1RequiredLanes",

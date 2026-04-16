@@ -102,8 +102,8 @@ try {
   if (
     !contractState.ok ||
     contractState.parsed?.stateVersion !== 1 ||
-    contractState.parsed?.contractVersion !== 15 ||
-    contractState.parsed?.summaryVersion !== 39 ||
+    contractState.parsed?.contractVersion !== 16 ||
+    contractState.parsed?.summaryVersion !== 40 ||
     contractState.parsed?.supportedSendLaneVersion !== 1 ||
     contractState.parsed?.supportedSendV1Decision !== "accepted-narrow-v1-path" ||
     typeof contractState.parsed?.supportedSendV1DecisionNote !== "string" ||
@@ -137,6 +137,9 @@ try {
     contractState.parsed?.supportedShippingDecisionKind !==
       "narrow-private-core-zk-v1-shipping" ||
     typeof contractState.parsed?.supportedShippingDecisionNote !== "string" ||
+    contractState.parsed?.supportedOperatorSnapshotVersion !== 1 ||
+    contractState.parsed?.supportedOperatorSnapshotKind !== "contract-status-shipping-bundle" ||
+    typeof contractState.parsed?.supportedOperatorSnapshotNote !== "string" ||
     contractState.parsed?.supportedZkV1ScopeDecision !==
       "accepted-narrow-private-core-v1-scope" ||
     typeof contractState.parsed?.supportedZkV1ScopeNote !== "string" ||
@@ -219,6 +222,9 @@ try {
     "supportedShippingDecisionVersion",
     "supportedShippingDecisionKind",
     "supportedShippingDecisionNote",
+    "supportedOperatorSnapshotVersion",
+    "supportedOperatorSnapshotKind",
+    "supportedOperatorSnapshotNote",
     "supportedZkV1ScopeDecision",
     "supportedZkV1ScopeNote",
     "supportedZkV1RequiredLanes",
@@ -292,8 +298,8 @@ try {
   });
   if (
     !contractOutput.includes("Contract state version: 1") ||
-    !contractOutput.includes("Contract version: 15") ||
-    !contractOutput.includes("Summary compatibility: 39") ||
+    !contractOutput.includes("Contract version: 16") ||
+    !contractOutput.includes("Summary compatibility: 40") ||
     !contractOutput.includes("Supported note schema: NoteV0 / v0") ||
     !contractOutput.includes("Supported send v1 decision: accepted-narrow-v1-path") ||
     !contractOutput.includes("Supported unshield v1 decision: accepted-narrow-v1-path") ||
@@ -320,6 +326,13 @@ try {
     ) ||
     !contractOutput.includes(
       "Supported shipping decision note: Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane.",
+    ) ||
+    !contractOutput.includes("Supported operator snapshot version: 1") ||
+    !contractOutput.includes(
+      "Supported operator snapshot kind: contract-status-shipping-bundle",
+    ) ||
+    !contractOutput.includes(
+      "Supported operator snapshot note: Canonical bundled machine-readable operator artifact containing the frozen contract, live status summary, and canonical shipping decision surfaces together.",
     ) ||
     !contractOutput.includes(
       "Supported swap v1 role: adjacent-supported-not-required-for-finish-line",
@@ -406,8 +419,8 @@ try {
   if (
     contractJson.operator !== baseUrl ||
     contractJson.stateVersion !== 1 ||
-    contractJson.contractVersion !== 15 ||
-    contractJson.summaryVersion !== 39 ||
+    contractJson.contractVersion !== 16 ||
+    contractJson.summaryVersion !== 40 ||
     contractJson.supportedSendLaneVersion !== 1 ||
     contractJson.supportedUnshieldLaneVersion !== 1 ||
     contractJson.supportedReleaseLaneVersion !== 1 ||
@@ -415,7 +428,11 @@ try {
     contractJson.supportedShippingDecisionVersion !== 1 ||
     contractJson.supportedShippingDecisionKind !== "narrow-private-core-zk-v1-shipping" ||
     contractJson.supportedShippingDecisionNote !==
-      "Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane."
+      "Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane." ||
+    contractJson.supportedOperatorSnapshotVersion !== 1 ||
+    contractJson.supportedOperatorSnapshotKind !== "contract-status-shipping-bundle" ||
+    contractJson.supportedOperatorSnapshotNote !==
+      "Canonical bundled machine-readable operator artifact containing the frozen contract, live status summary, and canonical shipping decision surfaces together."
   ) {
     throw new Error(
       `Unexpected operator contract JSON output\n${JSON.stringify(contractJson, null, 2)}`,

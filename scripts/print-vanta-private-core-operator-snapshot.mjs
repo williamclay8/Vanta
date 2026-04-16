@@ -13,6 +13,7 @@ try {
       {
         operator: baseUrl,
         snapshotVersion: 1,
+        snapshotKind: "contract-status-shipping-bundle",
         contract: {
           operator: baseUrl,
           ...contract,

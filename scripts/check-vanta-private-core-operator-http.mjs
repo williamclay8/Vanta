@@ -220,7 +220,7 @@ try {
   if (
     !initialSummaryState.ok ||
     initialSummaryState.parsed?.stateVersion !== 1 ||
-    initialSummaryState.parsed?.summaryVersion !== 39 ||
+    initialSummaryState.parsed?.summaryVersion !== 40 ||
     initialSummaryState.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     initialSummaryState.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -920,7 +920,7 @@ try {
   if (
     !summaryStateAfterConsume.ok ||
     summaryStateAfterConsume.parsed?.stateVersion !== 1 ||
-    summaryStateAfterConsume.parsed?.summaryVersion !== 39 ||
+    summaryStateAfterConsume.parsed?.summaryVersion !== 40 ||
     summaryStateAfterConsume.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterConsume.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -1037,7 +1037,7 @@ try {
   });
   if (
     !summaryStateAfterRelease.ok ||
-    summaryStateAfterRelease.parsed?.summaryVersion !== 39 ||
+    summaryStateAfterRelease.parsed?.summaryVersion !== 40 ||
     summaryStateAfterRelease.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterRelease.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -1140,8 +1140,8 @@ try {
   });
   if (
     !operatorStatusOutput.includes("Summary state version: 1") ||
-    !operatorStatusOutput.includes("Mirrored contract version: 15") ||
-    !operatorStatusOutput.includes("Summary version: 39") ||
+    !operatorStatusOutput.includes("Mirrored contract version: 16") ||
+    !operatorStatusOutput.includes("Summary version: 40") ||
     !operatorStatusOutput.includes("Shipping decision version: 1") ||
     !operatorStatusOutput.includes("Shipping decision kind: narrow-private-core-zk-v1-shipping") ||
     !operatorStatusOutput.includes("Shipping decision status: Blocked") ||
@@ -1163,6 +1163,13 @@ try {
     !operatorStatusOutput.includes("Release boundary status: Release recorded") ||
     !operatorStatusOutput.includes(
       "Release boundary note: Latest private-core release is recorded, proof-linked, and consistent with the frozen release contract.",
+    ) ||
+    !operatorStatusOutput.includes("Supported operator snapshot version: 1") ||
+    !operatorStatusOutput.includes(
+      "Supported operator snapshot kind: contract-status-shipping-bundle",
+    ) ||
+    !operatorStatusOutput.includes(
+      "Supported operator snapshot note: Canonical bundled machine-readable operator artifact containing the frozen contract, live status summary, and canonical shipping decision surfaces together.",
     ) ||
     !operatorStatusOutput.includes(
       "Supported swap v1 role: adjacent-supported-not-required-for-finish-line",
@@ -1256,8 +1263,8 @@ try {
   if (
     operatorStatusJson.operator !== baseUrl ||
     operatorStatusJson.summary?.stateVersion !== 1 ||
-    operatorStatusJson.summary?.contractVersion !== 15 ||
-    operatorStatusJson.summary?.summaryVersion !== 39 ||
+    operatorStatusJson.summary?.contractVersion !== 16 ||
+    operatorStatusJson.summary?.summaryVersion !== 40 ||
     operatorStatusJson.summary?.requiredLanesStatus !== "send-lane-mismatch" ||
     operatorStatusJson.summary?.zkV1ShippingStatus !== "required-lanes-mismatch" ||
     operatorStatusJson.summary?.releaseBoundaryStatus !== "release-recorded" ||
@@ -1266,8 +1273,8 @@ try {
     operatorStatusJson.shippingDecision?.decisionVersion !== 1 ||
     operatorStatusJson.shippingDecision?.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
     operatorStatusJson.shippingDecision?.decisionStatus !== "blocked" ||
-    operatorStatusJson.shippingDecision?.contractVersion !== 15 ||
-    operatorStatusJson.shippingDecision?.summaryVersion !== 39
+    operatorStatusJson.shippingDecision?.contractVersion !== 16 ||
+    operatorStatusJson.shippingDecision?.summaryVersion !== 40
   ) {
     throw new Error(
       `Unexpected operator-status JSON output\n${JSON.stringify(operatorStatusJson, null, 2)}`,
@@ -1286,8 +1293,8 @@ try {
   });
   if (
     !shippingStatusOutput.includes("Summary state version: 1") ||
-    !shippingStatusOutput.includes("Mirrored contract version: 15") ||
-    !shippingStatusOutput.includes("Summary version: 39") ||
+    !shippingStatusOutput.includes("Mirrored contract version: 16") ||
+    !shippingStatusOutput.includes("Summary version: 40") ||
     !shippingStatusOutput.includes("Summary generated:") ||
     !shippingStatusOutput.includes("Shipping status: Required lanes mismatch") ||
     !shippingStatusOutput.includes(
@@ -1325,8 +1332,8 @@ try {
     shippingStatusJson.decisionNote !==
       "No private send transition is available for boundary checks yet." ||
     shippingStatusJson.summaryStateVersion !== 1 ||
-    shippingStatusJson.mirroredContractVersion !== 15 ||
-    shippingStatusJson.summaryVersion !== 39 ||
+    shippingStatusJson.mirroredContractVersion !== 16 ||
+    shippingStatusJson.summaryVersion !== 40 ||
     typeof shippingStatusJson.summaryGenerated !== "number" ||
     shippingStatusJson.shippingStatusRaw !== "required-lanes-mismatch" ||
     shippingStatusJson.shippingStatus !== "Required lanes mismatch" ||
@@ -1355,8 +1362,8 @@ try {
     shippingDecisionState.parsed?.decisionStatus !== "blocked" ||
     shippingDecisionState.parsed?.decisionNote !==
       "No private send transition is available for boundary checks yet." ||
-    shippingDecisionState.parsed?.contractVersion !== 15 ||
-    shippingDecisionState.parsed?.summaryVersion !== 39 ||
+    shippingDecisionState.parsed?.contractVersion !== 16 ||
+    shippingDecisionState.parsed?.summaryVersion !== 40 ||
     typeof shippingDecisionState.parsed?.generatedAt !== "number" ||
     shippingDecisionState.parsed?.shippingStatus !== "required-lanes-mismatch" ||
     shippingDecisionState.parsed?.finishLineStatus !== "coherent-minimum-v1-lane" ||
@@ -1423,8 +1430,8 @@ try {
     blockedShippingCheckJsonSurface.decisionNote !==
       "No private send transition is available for boundary checks yet." ||
     blockedShippingCheckJsonSurface.summaryStateVersion !== 1 ||
-    blockedShippingCheckJsonSurface.mirroredContractVersion !== 15 ||
-    blockedShippingCheckJsonSurface.summaryVersion !== 39 ||
+    blockedShippingCheckJsonSurface.mirroredContractVersion !== 16 ||
+    blockedShippingCheckJsonSurface.summaryVersion !== 40 ||
     typeof blockedShippingCheckJsonSurface.summaryGenerated !== "number" ||
     blockedShippingCheckJsonSurface.shippingStatusRaw !== "required-lanes-mismatch" ||
     blockedShippingCheckJsonSurface.finishLineStatusRaw !== "coherent-minimum-v1-lane" ||
@@ -1459,11 +1466,18 @@ try {
   if (
     operatorSnapshotJson.operator !== baseUrl ||
     operatorSnapshotJson.snapshotVersion !== 1 ||
-    operatorSnapshotJson.contract?.contractVersion !== 15 ||
-    operatorSnapshotJson.contract?.summaryVersion !== 39 ||
+    operatorSnapshotJson.snapshotKind !== "contract-status-shipping-bundle" ||
+    operatorSnapshotJson.contract?.contractVersion !== 16 ||
+    operatorSnapshotJson.contract?.summaryVersion !== 40 ||
+    operatorSnapshotJson.contract?.supportedOperatorSnapshotVersion !== 1 ||
+    operatorSnapshotJson.contract?.supportedOperatorSnapshotKind !==
+      "contract-status-shipping-bundle" ||
     operatorSnapshotJson.status?.summary?.stateVersion !== 1 ||
-    operatorSnapshotJson.status?.summary?.contractVersion !== 15 ||
-    operatorSnapshotJson.status?.summary?.summaryVersion !== 39 ||
+    operatorSnapshotJson.status?.summary?.contractVersion !== 16 ||
+    operatorSnapshotJson.status?.summary?.summaryVersion !== 40 ||
+    operatorSnapshotJson.status?.summary?.supportedOperatorSnapshotVersion !== 1 ||
+    operatorSnapshotJson.status?.summary?.supportedOperatorSnapshotKind !==
+      "contract-status-shipping-bundle" ||
     operatorSnapshotJson.status?.shippingDecision?.decisionVersion !== 1 ||
     operatorSnapshotJson.status?.shippingDecision?.decisionKind !==
       "narrow-private-core-zk-v1-shipping" ||

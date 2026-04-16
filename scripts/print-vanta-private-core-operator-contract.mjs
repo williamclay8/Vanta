@@ -118,6 +118,18 @@ try {
     "Supported shipping decision note",
     contract.supportedShippingDecisionNote ?? "Unavailable",
   );
+  printLine(
+    "Supported operator snapshot version",
+    String(contract.supportedOperatorSnapshotVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported operator snapshot kind",
+    contract.supportedOperatorSnapshotKind ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator snapshot note",
+    contract.supportedOperatorSnapshotNote ?? "Unavailable",
+  );
   printLine("Supported zk v1 scope decision", contract.supportedZkV1ScopeDecision ?? "Unavailable");
   printLine("Supported zk v1 scope note", contract.supportedZkV1ScopeNote ?? "Unavailable");
   printLine(

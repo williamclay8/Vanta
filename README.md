@@ -245,13 +245,14 @@ These commands cover:
 - operator contract and summary snapshot coherence across app, CLI, and regression surfaces
 - dedicated operator shipping decision endpoint and CLI/check surfaces
 - frozen operator contract surface:
-  - `contractVersion = 15`
-  - `summaryVersion = 39`
+  - `contractVersion = 16`
+  - `summaryVersion = 40`
   - `supportedSendV1Decision = accepted-narrow-v1-path`
   - `supportedUnshieldV1Decision = accepted-narrow-v1-path`
   - `supportedReleaseV1Decision = accepted-narrow-v1-path`
   - `supportedSwapV1Decision = accepted-narrow-v1-path`
   - `supportedShippingDecisionKind = narrow-private-core-zk-v1-shipping`
+  - `supportedOperatorSnapshotKind = contract-status-shipping-bundle`
   - `supportedSwapLaneKind = single-input-vusd-to-shielded-sol`
   - `supportedSwapVenue = meteora-dlmm-devnet`
 
@@ -261,13 +262,13 @@ These commands cover:
 
 `private-core:operator-contract` gives the static narrow zk-v1 contract the operator currently supports: send lane, unshield lane, release lane, swap lane, the canonical shipping-decision contract, supported flow, supported asset/environment, note contract, recipient/release-destination models, proof system, fixed circuit ids, fixed Merkle depth, owner-auth mode, nullifier-key mode, proving hash lane, root-registration provenance, send input-root policy, send output-registration policy, the current send resulting-root basis, and the currently supported constrained swap venue/output/root-policy model.
 
-`private-core:operator-contract-json` prints that same frozen operator contract as machine-readable JSON, including the static shipping-decision contract fields, so automation can pin the frozen support surface directly instead of scraping the long-form text output.
+`private-core:operator-contract-json` prints that same frozen operator contract as machine-readable JSON, including the static shipping-decision and bundled operator-snapshot contract fields, so automation can pin the frozen support surface directly instead of scraping the long-form text output.
 
 `private-core:operator-status` gives a quick readout of the current operator root, proof, send-proof, swap-proof, send-transition, swap-transition, consume, and release state when the operator server is running, including proof/send, proof/swap, proof/consume, proof/release, and root-registration proof linkage. It now also prints the canonical shipping decision block directly from `/state/private-core-shipping-decision`, so the long-form operator dump explicitly includes the decision version, kind, status, and note behind the current ship/no-ship answer. It also reports the supported send-lane version and identity carried by the operator summary, plus the latest send resulting-root continuity status and the concrete registered root record behind that resulting root when one exists, so you can see whether the newest private-send root is still unregistered, current, stale, or already consumed/released downstream. The current private-core release lane now also carries explicit release authorization, root-policy, execution, atomicity, and persistence fields, so the operator summary says not just that a release was recorded, but that it was authorized by `proof-backed-consume` under the `latest-registered-root` policy, executed as an operator-recorded devnet release, atomically recorded with consume state in the local operator lane, and persisted in the current JSON store. The send lane still requires the current input root to stay linked to its registration proof before the operator will accept a transition, the resulting root remains explicitly `client-declared` until later registration proves continuity, and registered roots now carry explicit provenance as `shield-input`, `send-recipient-output`, `send-change-output`, or `swap-output`. The constrained swap lane now also has a proof-backed transition seam that requires the current input root to be registered and latest before the operator will persist swap state, keeps the latest swap proof and latest swap transition in the canonical operator summary, now preserves the latest swap execution venue and quote reference across summary reloads and restart, and proves that summary-backed swap state survives operator restart, while the resulting swap root remains explicitly `client-declared` in the current narrow lane.
 
 `private-core:operator-status-json` prints the live operator summary plus the canonical shipping decision as machine-readable JSON, so automation can consume the full operator-backed state surface without scraping the long-form text dump.
 
-`private-core:operator-snapshot-json` prints one bundled machine-readable operator snapshot containing the frozen contract, the live summary/status surface, and the canonical shipping decision surface together, so external tooling can consume one coherent artifact instead of stitching together multiple commands.
+`private-core:operator-snapshot-json` prints one bundled machine-readable operator snapshot containing the frozen contract, the live summary/status surface, and the canonical shipping decision surface together, so external tooling can consume one coherent artifact instead of stitching together multiple commands. That bundled artifact is now also part of the frozen contract surface itself via `supportedOperatorSnapshotVersion = 1` and `supportedOperatorSnapshotKind = contract-status-shipping-bundle`.
 
 `private-core:shipping-status` is the compact operator-backed answer to the narrow zk-v1 question: whether the frozen private-core lane is actually ship-ready right now, and if not, which live blocker is preventing that. It now reads the dedicated `/state/private-core-shipping-decision` endpoint, which is the canonical ship/no-ship contract for the frozen narrow private-core lane, and prints the decision version/kind/status/note plus the current summary-state version, mirrored contract version, summary generation time, and the supporting shipping, finish-line, required-lanes, release-boundary, contract-mirror, and boundary summaries without the rest of the larger operator-status dump.
 
@@ -278,10 +279,12 @@ These commands cover:
 `private-core:shipping-check-json` is the machine-readable ready-gate form of that same command: it exits zero only for `Ready narrow v1`, prints the compact readiness JSON on success, and on blocked paths emits the JSON surface to stderr before the structured `Shipping status:` / `Shipping note:` lines.
 
 The operator contract now freezes the narrow zk-v1 contract surface explicitly:
-- `contractVersion = 15`
-- `summaryVersion = 39`
+- `contractVersion = 16`
+- `summaryVersion = 40`
 - `supportedShippingDecisionVersion = 1`
 - `supportedShippingDecisionKind = narrow-private-core-zk-v1-shipping`
+- `supportedOperatorSnapshotVersion = 1`
+- `supportedOperatorSnapshotKind = contract-status-shipping-bundle`
 - `supportedUnshieldLaneVersion = 1`
 - `supportedUnshieldLaneKind = single-note-proof-backed-consume`
 - `supportedUnshieldLaneStatus = supported`

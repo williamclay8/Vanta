@@ -262,10 +262,12 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   runs the machine-readable ready-gate form of the same compact shipping surface; it succeeds only when the frozen narrow lane is ready and otherwise fails with the JSON surface plus structured status/note stderr
 
 The current frozen operator-backed private-core contract now states the narrow accepted `v1` path explicitly:
-- `contractVersion = 15`
-- `summaryVersion = 39`
+- `contractVersion = 16`
+- `summaryVersion = 40`
 - `supportedShippingDecisionVersion = 1`
 - `supportedShippingDecisionKind = narrow-private-core-zk-v1-shipping`
+- `supportedOperatorSnapshotVersion = 1`
+- `supportedOperatorSnapshotKind = contract-status-shipping-bundle`
 - `supportedSendV1Decision = accepted-narrow-v1-path`
 - `supportedUnshieldV1Decision = accepted-narrow-v1-path`
 - `supportedReleaseV1Decision = accepted-narrow-v1-path`
@@ -385,8 +387,8 @@ npm run private-core:operator-status
 ```
 
 The contract readout gives the static narrow-zk-v1 support contract:
-- `contractVersion = 15`
-- `summaryVersion = 39`
+- `contractVersion = 16`
+- `summaryVersion = 40`
 - supported shipping-decision contract
 - supported send / unshield / release / swap lanes
 - supported product flow

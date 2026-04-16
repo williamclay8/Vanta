@@ -155,6 +155,18 @@ try {
   printLine("Supported flow status", humanizeSupportedFlowStatus(summary.supportedFlowStatus));
   printLine("Supported flow note", summary.supportedFlowNote ?? "Unavailable");
   printLine(
+    "Supported operator snapshot version",
+    String(summary.supportedOperatorSnapshotVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported operator snapshot kind",
+    summary.supportedOperatorSnapshotKind ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator snapshot note",
+    summary.supportedOperatorSnapshotNote ?? "Unavailable",
+  );
+  printLine(
     "Supported zk v1 scope decision",
     summary.supportedZkV1ScopeDecision ?? "Unavailable",
   );
