@@ -496,6 +496,40 @@ try {
   }
   printStatus("private-core swap->unshield restart operator-status: PASS");
 
+  const operatorStatusJsonOutput = execFileSync("npm", [
+    "run",
+    "--silent",
+    "private-core:operator-status-json",
+    "--",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  const operatorStatusJson = JSON.parse(operatorStatusJsonOutput);
+  if (
+    operatorStatusJson.operator !== baseUrl ||
+    operatorStatusJson.summary?.stateVersion !== 1 ||
+    operatorStatusJson.summary?.contractVersion !== 15 ||
+    operatorStatusJson.summary?.summaryVersion !== 39 ||
+    operatorStatusJson.summary?.requiredLanesStatus !== "send-lane-mismatch" ||
+    operatorStatusJson.summary?.zkV1ShippingStatus !== "required-lanes-mismatch" ||
+    operatorStatusJson.summary?.releaseBoundaryStatus !== "release-recorded" ||
+    operatorStatusJson.summary?.boundaryStatus !== "coherent" ||
+    operatorStatusJson.summary?.latestSwap?.outputAmount !== "1250000000" ||
+    operatorStatusJson.summary?.latestRelease?.releasedAmount !== "1250000000" ||
+    operatorStatusJson.shippingDecision?.decisionStatus !== "blocked" ||
+    operatorStatusJson.shippingDecision?.contractVersion !== 15 ||
+    operatorStatusJson.shippingDecision?.summaryVersion !== 39
+  ) {
+    throw new Error(
+      `Unexpected swap->unshield restart operator-status JSON output\n${JSON.stringify(operatorStatusJson, null, 2)}`,
+    );
+  }
+  printStatus("private-core swap->unshield restart operator-status json: PASS");
+
   const shippingStatusOutput = execFileSync("node", [
     "scripts/print-vanta-private-core-shipping-status.mjs",
     "--base-url",
