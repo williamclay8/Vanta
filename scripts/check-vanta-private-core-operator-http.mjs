@@ -220,7 +220,7 @@ try {
   if (
     !initialSummaryState.ok ||
     initialSummaryState.parsed?.stateVersion !== 1 ||
-    initialSummaryState.parsed?.summaryVersion !== 32 ||
+    initialSummaryState.parsed?.summaryVersion !== 33 ||
     initialSummaryState.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     initialSummaryState.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -247,6 +247,9 @@ try {
     typeof initialSummaryState.parsed?.supportedSwapLaneNote !== "string" ||
     initialSummaryState.parsed?.supportedSwapV1Decision !== "accepted-narrow-v1-path" ||
     typeof initialSummaryState.parsed?.supportedSwapV1DecisionNote !== "string" ||
+    initialSummaryState.parsed?.supportedSwapV1Role !==
+      "adjacent-supported-not-required-for-finish-line" ||
+    typeof initialSummaryState.parsed?.supportedSwapV1RoleNote !== "string" ||
     initialSummaryState.parsed?.supportedSwapVenue !== "meteora-dlmm-devnet" ||
     initialSummaryState.parsed?.supportedSwapOutputModel !== "shielded-sol-output-note" ||
     initialSummaryState.parsed?.supportedSwapResultingRootBasis !== "client-declared" ||
@@ -915,7 +918,7 @@ try {
   if (
     !summaryStateAfterConsume.ok ||
     summaryStateAfterConsume.parsed?.stateVersion !== 1 ||
-    summaryStateAfterConsume.parsed?.summaryVersion !== 32 ||
+    summaryStateAfterConsume.parsed?.summaryVersion !== 33 ||
     summaryStateAfterConsume.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterConsume.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -938,6 +941,9 @@ try {
     typeof summaryStateAfterConsume.parsed?.supportedSwapLaneNote !== "string" ||
     summaryStateAfterConsume.parsed?.supportedSwapV1Decision !== "accepted-narrow-v1-path" ||
     typeof summaryStateAfterConsume.parsed?.supportedSwapV1DecisionNote !== "string" ||
+    summaryStateAfterConsume.parsed?.supportedSwapV1Role !==
+      "adjacent-supported-not-required-for-finish-line" ||
+    typeof summaryStateAfterConsume.parsed?.supportedSwapV1RoleNote !== "string" ||
     summaryStateAfterConsume.parsed?.supportedSwapVenue !== "meteora-dlmm-devnet" ||
     summaryStateAfterConsume.parsed?.supportedSwapOutputModel !== "shielded-sol-output-note" ||
     summaryStateAfterConsume.parsed?.supportedSwapResultingRootBasis !== "client-declared" ||
@@ -1027,7 +1033,7 @@ try {
   });
   if (
     !summaryStateAfterRelease.ok ||
-    summaryStateAfterRelease.parsed?.summaryVersion !== 32 ||
+    summaryStateAfterRelease.parsed?.summaryVersion !== 33 ||
     summaryStateAfterRelease.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterRelease.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -1050,6 +1056,9 @@ try {
     typeof summaryStateAfterRelease.parsed?.supportedSwapLaneNote !== "string" ||
     summaryStateAfterRelease.parsed?.supportedSwapV1Decision !== "accepted-narrow-v1-path" ||
     typeof summaryStateAfterRelease.parsed?.supportedSwapV1DecisionNote !== "string" ||
+    summaryStateAfterRelease.parsed?.supportedSwapV1Role !==
+      "adjacent-supported-not-required-for-finish-line" ||
+    typeof summaryStateAfterRelease.parsed?.supportedSwapV1RoleNote !== "string" ||
     summaryStateAfterRelease.parsed?.supportedSwapVenue !== "meteora-dlmm-devnet" ||
     summaryStateAfterRelease.parsed?.supportedSwapOutputModel !== "shielded-sol-output-note" ||
     summaryStateAfterRelease.parsed?.supportedSwapResultingRootBasis !== "client-declared" ||
@@ -1125,8 +1134,14 @@ try {
   });
   if (
     !operatorStatusOutput.includes("Summary state version: 1") ||
-    !operatorStatusOutput.includes("Mirrored contract version: 12") ||
-    !operatorStatusOutput.includes("Summary version: 32") ||
+    !operatorStatusOutput.includes("Mirrored contract version: 13") ||
+    !operatorStatusOutput.includes("Summary version: 33") ||
+    !operatorStatusOutput.includes(
+      "Supported swap v1 role: adjacent-supported-not-required-for-finish-line",
+    ) ||
+    !operatorStatusOutput.includes(
+      "Supported swap v1 role note: Current constrained swap lane is supported operator-backed infrastructure in the repo, but it is not required for the minimum zk v1 finish line.",
+    ) ||
     !operatorStatusOutput.includes(
       "Supported zk v1 scope decision: accepted-narrow-private-core-v1-scope",
     ) ||

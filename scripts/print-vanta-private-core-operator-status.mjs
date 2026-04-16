@@ -80,6 +80,8 @@ try {
     "Supported swap v1 decision note",
     summary.supportedSwapV1DecisionNote ?? "Unavailable",
   );
+  printLine("Supported swap v1 role", summary.supportedSwapV1Role ?? "Unavailable");
+  printLine("Supported swap v1 role note", summary.supportedSwapV1RoleNote ?? "Unavailable");
   printLine("Supported swap venue", humanizeSupportedSwapVenue(summary.supportedSwapVenue));
   printLine(
     "Supported swap output model",

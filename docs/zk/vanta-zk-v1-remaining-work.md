@@ -88,6 +88,12 @@ What is still missing is the single sentence decision saying:
 - this narrow lane is the accepted shipping scope for `zk v1`
 - or this narrow lane is only a proving foundation and not the real `v1` finish line
 
+This is now frozen explicitly in the operator contract:
+- `supportedZkV1ScopeDecision = accepted-narrow-private-core-v1-scope`
+
+And the constrained swap ambiguity is now also frozen explicitly:
+- `supportedSwapV1Role = adjacent-supported-not-required-for-finish-line`
+
 ### 2. Finish verifier-side semantics into a release contract that is product-honest
 
 The circuit alone is still not the whole product.
@@ -187,7 +193,11 @@ That boundary is intentionally narrow:
 - one later proving lane to match it
 - one constrained swap proving boundary and first executable swap/operator lane for the current `VUSD -> shielded SOL` path
 
-Until that is frozen as the supported product lane, the current state is better described as:
+The repo now freezes the current swap-role answer explicitly:
+- constrained swap is supported infrastructure
+- constrained swap is not required for the minimum `zk v1` finish line
+
+Until the broader supported product lane is frozen, the current state is better described as:
 - a strong private-core with real unshield, send, and constrained swap lanes
 - not yet the complete `v1` privacy product
 
@@ -208,26 +218,24 @@ These look important, but not strictly blocking for the narrowest plausible `zk 
 
 If the goal is to get from `78/100` to a believable shipping `v1`, this is the best order now:
 
-1. Freeze the finish-line decision in writing.
-2. Turn the current release lane from “accepted narrow path” into a clearly defended shipping contract.
-3. Freeze off-circuit owner auth as shipping scope or replace it.
-4. Remove the last operator/product ambiguities around source-vs-proving truth.
-5. Freeze the exact supported product path:
+1. Turn the current release lane from “accepted narrow path” into a clearly defended shipping contract.
+2. Freeze off-circuit owner auth as shipping scope or replace it.
+3. Remove the last operator/product ambiguities around source-vs-proving truth.
+4. Freeze the exact supported product path:
    - shield
    - hold
    - send
    - unshield
    - replay guard
-6. Decide whether constrained swap is inside `v1` or support-only.
+5. Keep constrained swap explicitly support-only unless a later product decision promotes it.
 
 ## Suggested implementation order
 
 1. Keep the current unshield proof lane and operator seam green with `npm run private-core:verify`.
-2. Update the remaining-work / assumptions / submission docs so the finish-line decision is explicit.
-3. Finish the real release-side contract around the current operator-backed proof lane.
-4. Freeze the current send, unshield, and release lanes as the explicit supported `v1` product path.
-5. Make the owner-auth decision final instead of provisional.
-6. Re-evaluate the remaining source/proving split after the supported send/release path is frozen.
+2. Finish the real release-side contract around the current operator-backed proof lane.
+3. Freeze the current send, unshield, and release lanes as the explicit supported `v1` product path.
+4. Make the owner-auth decision final instead of provisional.
+5. Re-evaluate the remaining source/proving split after the supported send/release path is frozen.
 
 ## Honest summary
 

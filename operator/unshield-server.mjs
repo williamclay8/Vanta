@@ -175,6 +175,10 @@ const PRIVATE_CORE_SUPPORTED_SWAP_LANE_NOTE =
 const PRIVATE_CORE_SUPPORTED_SWAP_V1_DECISION = "accepted-narrow-v1-path";
 const PRIVATE_CORE_SUPPORTED_SWAP_V1_DECISION_NOTE =
   "Current constrained operator-backed VUSD to shielded SOL swap lane is accepted as the narrow zk v1 swap path on solana-devnet.";
+const PRIVATE_CORE_SUPPORTED_SWAP_V1_ROLE =
+  "adjacent-supported-not-required-for-finish-line";
+const PRIVATE_CORE_SUPPORTED_SWAP_V1_ROLE_NOTE =
+  "Current constrained swap lane is supported operator-backed infrastructure in the repo, but it is not required for the minimum zk v1 finish line.";
 const PRIVATE_CORE_SUPPORTED_SWAP_VENUE = "meteora-dlmm-devnet";
 const PRIVATE_CORE_SUPPORTED_SWAP_OUTPUT_MODEL = "shielded-sol-output-note";
 const PRIVATE_CORE_SUPPORTED_SWAP_RESULTING_ROOT_BASIS = "client-declared";
@@ -1942,8 +1946,8 @@ function buildPrivateCoreSummaryState() {
 function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
-    contractVersion: 12,
-    summaryVersion: 32,
+    contractVersion: 13,
+    summaryVersion: 33,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
@@ -1968,6 +1972,8 @@ function buildPrivateCoreContractState() {
     supportedSwapLaneNote: PRIVATE_CORE_SUPPORTED_SWAP_LANE_NOTE,
     supportedSwapV1Decision: PRIVATE_CORE_SUPPORTED_SWAP_V1_DECISION,
     supportedSwapV1DecisionNote: PRIVATE_CORE_SUPPORTED_SWAP_V1_DECISION_NOTE,
+    supportedSwapV1Role: PRIVATE_CORE_SUPPORTED_SWAP_V1_ROLE,
+    supportedSwapV1RoleNote: PRIVATE_CORE_SUPPORTED_SWAP_V1_ROLE_NOTE,
     supportedSwapVenue: PRIVATE_CORE_SUPPORTED_SWAP_VENUE,
     supportedSwapOutputModel: PRIVATE_CORE_SUPPORTED_SWAP_OUTPUT_MODEL,
     supportedFlowVersion: PRIVATE_CORE_SUPPORTED_FLOW_VERSION,
@@ -2042,6 +2048,8 @@ function summarizePrivateCoreContractMirrorStatus(args) {
     "supportedSwapLaneNote",
     "supportedSwapV1Decision",
     "supportedSwapV1DecisionNote",
+    "supportedSwapV1Role",
+    "supportedSwapV1RoleNote",
     "supportedSwapVenue",
     "supportedSwapOutputModel",
     "supportedFlowVersion",

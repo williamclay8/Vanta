@@ -67,6 +67,8 @@ try {
     "Supported swap v1 decision note",
     contract.supportedSwapV1DecisionNote ?? "Unavailable",
   );
+  printLine("Supported swap v1 role", contract.supportedSwapV1Role ?? "Unavailable");
+  printLine("Supported swap v1 role note", contract.supportedSwapV1RoleNote ?? "Unavailable");
   printLine("Supported swap venue", contract.supportedSwapVenue ?? "Unavailable");
   printLine(
     "Supported swap output model",

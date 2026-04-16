@@ -102,8 +102,8 @@ try {
   if (
     !contractState.ok ||
     contractState.parsed?.stateVersion !== 1 ||
-    contractState.parsed?.contractVersion !== 12 ||
-    contractState.parsed?.summaryVersion !== 32 ||
+    contractState.parsed?.contractVersion !== 13 ||
+    contractState.parsed?.summaryVersion !== 33 ||
     contractState.parsed?.supportedSendLaneVersion !== 1 ||
     contractState.parsed?.supportedSendV1Decision !== "accepted-narrow-v1-path" ||
     typeof contractState.parsed?.supportedSendV1DecisionNote !== "string" ||
@@ -122,6 +122,9 @@ try {
     typeof contractState.parsed?.supportedSwapLaneNote !== "string" ||
     contractState.parsed?.supportedSwapV1Decision !== "accepted-narrow-v1-path" ||
     typeof contractState.parsed?.supportedSwapV1DecisionNote !== "string" ||
+    contractState.parsed?.supportedSwapV1Role !==
+      "adjacent-supported-not-required-for-finish-line" ||
+    typeof contractState.parsed?.supportedSwapV1RoleNote !== "string" ||
     contractState.parsed?.supportedSwapVenue !== "meteora-dlmm-devnet" ||
     contractState.parsed?.supportedSwapOutputModel !== "shielded-sol-output-note" ||
     contractState.parsed?.supportedSwapResultingRootBasis !== "client-declared" ||
@@ -196,6 +199,8 @@ try {
     "supportedSwapLaneNote",
     "supportedSwapV1Decision",
     "supportedSwapV1DecisionNote",
+    "supportedSwapV1Role",
+    "supportedSwapV1RoleNote",
     "supportedSwapVenue",
     "supportedSwapOutputModel",
     "supportedSwapResultingRootBasis",
@@ -274,8 +279,8 @@ try {
   });
   if (
     !contractOutput.includes("Contract state version: 1") ||
-    !contractOutput.includes("Contract version: 12") ||
-    !contractOutput.includes("Summary compatibility: 32") ||
+    !contractOutput.includes("Contract version: 13") ||
+    !contractOutput.includes("Summary compatibility: 33") ||
     !contractOutput.includes("Supported note schema: NoteV0 / v0") ||
     !contractOutput.includes("Supported send v1 decision: accepted-narrow-v1-path") ||
     !contractOutput.includes("Supported unshield v1 decision: accepted-narrow-v1-path") ||
@@ -296,6 +301,12 @@ try {
     !contractOutput.includes("Supported swap lane kind: single-input-vusd-to-shielded-sol") ||
     !contractOutput.includes("Supported swap lane status: supported") ||
     !contractOutput.includes("Supported swap v1 decision: accepted-narrow-v1-path") ||
+    !contractOutput.includes(
+      "Supported swap v1 role: adjacent-supported-not-required-for-finish-line",
+    ) ||
+    !contractOutput.includes(
+      "Supported swap v1 role note: Current constrained swap lane is supported operator-backed infrastructure in the repo, but it is not required for the minimum zk v1 finish line.",
+    ) ||
     !contractOutput.includes(
       "Supported zk v1 scope decision: accepted-narrow-private-core-v1-scope",
     ) ||
