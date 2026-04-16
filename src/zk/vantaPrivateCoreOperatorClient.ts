@@ -267,8 +267,8 @@ export type VantaPrivateCoreOperatorShippingDecisionResponse = {
   decisionKind: "narrow-private-core-zk-v1-shipping";
   decisionStatus: "ready-to-ship" | "blocked";
   decisionNote: string;
-  contractVersion: 14;
-  summaryVersion: 38;
+  contractVersion: 15;
+  summaryVersion: 39;
   generatedAt: number;
   shippingStatus: VantaPrivateCoreOperatorSummaryStateResponse["zkV1ShippingStatus"];
   shippingNote: string;
@@ -442,6 +442,9 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedFlowNote: string;
   supportedFlowStatus: "supported";
   supportedFlowVersion: number;
+  supportedShippingDecisionVersion: 1;
+  supportedShippingDecisionKind: "narrow-private-core-zk-v1-shipping";
+  supportedShippingDecisionNote: string;
   supportedZkV1ScopeDecision: "accepted-narrow-private-core-v1-scope";
   supportedZkV1ScopeNote: string;
   supportedZkV1RequiredLanes: "send|unshield|release";
@@ -555,6 +558,9 @@ export type VantaPrivateCoreOperatorContractStateResponse = {
   supportedFlowKind: "shield-hold-send-unshield-replay-guard";
   supportedFlowStatus: "supported";
   supportedFlowNote: string;
+  supportedShippingDecisionVersion: 1;
+  supportedShippingDecisionKind: "narrow-private-core-zk-v1-shipping";
+  supportedShippingDecisionNote: string;
   supportedZkV1ScopeDecision: "accepted-narrow-private-core-v1-scope";
   supportedZkV1ScopeNote: string;
   supportedZkV1RequiredLanes: "send|unshield|release";
@@ -1576,6 +1582,9 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedFlowNote?: unknown;
     supportedFlowStatus?: unknown;
     supportedFlowVersion?: unknown;
+    supportedShippingDecisionVersion?: unknown;
+    supportedShippingDecisionKind?: unknown;
+    supportedShippingDecisionNote?: unknown;
     supportedZkV1ScopeDecision?: unknown;
     supportedZkV1ScopeNote?: unknown;
     supportedZkV1RequiredLanes?: unknown;
@@ -1651,8 +1660,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 14 ||
-    parsed.summaryVersion !== 38 ||
+    parsed.contractVersion !== 15 ||
+    parsed.summaryVersion !== 39 ||
     !isContractMirrorStatus(parsed.contractMirrorStatus) ||
     typeof parsed.contractMirrorNote !== "string" ||
     !isRequiredLanesStatus(parsed.requiredLanesStatus) ||
@@ -1731,6 +1740,9 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     parsed.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
     parsed.supportedFlowStatus !== "supported" ||
     typeof parsed.supportedFlowNote !== "string" ||
+    parsed.supportedShippingDecisionVersion !== 1 ||
+    parsed.supportedShippingDecisionKind !== "narrow-private-core-zk-v1-shipping" ||
+    typeof parsed.supportedShippingDecisionNote !== "string" ||
     parsed.supportedZkV1ScopeDecision !== "accepted-narrow-private-core-v1-scope" ||
     typeof parsed.supportedZkV1ScopeNote !== "string" ||
     parsed.supportedZkV1RequiredLanes !== "send|unshield|release" ||
@@ -1839,8 +1851,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   return {
     stateVersion: 1,
-    contractVersion: 14,
-    summaryVersion: 38,
+    contractVersion: 15,
+    summaryVersion: 39,
     contractMirrorStatus: parsed.contractMirrorStatus,
     contractMirrorNote: parsed.contractMirrorNote,
     requiredLanesStatus: parsed.requiredLanesStatus,
@@ -1889,6 +1901,9 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedFlowKind: "shield-hold-send-unshield-replay-guard",
     supportedFlowStatus: "supported",
     supportedFlowNote: parsed.supportedFlowNote,
+    supportedShippingDecisionVersion: 1,
+    supportedShippingDecisionKind: "narrow-private-core-zk-v1-shipping",
+    supportedShippingDecisionNote: parsed.supportedShippingDecisionNote,
     supportedZkV1ScopeDecision: "accepted-narrow-private-core-v1-scope",
     supportedZkV1ScopeNote: parsed.supportedZkV1ScopeNote,
     supportedZkV1RequiredLanes: "send|unshield|release",
@@ -2044,8 +2059,8 @@ export async function fetchVantaPrivateCoreOperatorShippingDecision(): Promise<
     parsed.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
     !isShippingDecisionStatus(parsed.decisionStatus) ||
     typeof parsed.decisionNote !== "string" ||
-    parsed.contractVersion !== 14 ||
-    parsed.summaryVersion !== 38 ||
+    parsed.contractVersion !== 15 ||
+    parsed.summaryVersion !== 39 ||
     typeof parsed.generatedAt !== "number" ||
     !isZkV1ShippingStatus(parsed.shippingStatus) ||
     typeof parsed.shippingNote !== "string" ||
@@ -2069,8 +2084,8 @@ export async function fetchVantaPrivateCoreOperatorShippingDecision(): Promise<
     decisionKind: "narrow-private-core-zk-v1-shipping",
     decisionStatus: parsed.decisionStatus,
     decisionNote: parsed.decisionNote,
-    contractVersion: 14,
-    summaryVersion: 38,
+    contractVersion: 15,
+    summaryVersion: 39,
     generatedAt: parsed.generatedAt,
     shippingStatus: parsed.shippingStatus,
     shippingNote: parsed.shippingNote,
@@ -2138,6 +2153,9 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedFlowKind?: unknown;
     supportedFlowStatus?: unknown;
     supportedFlowNote?: unknown;
+    supportedShippingDecisionVersion?: unknown;
+    supportedShippingDecisionKind?: unknown;
+    supportedShippingDecisionNote?: unknown;
     supportedZkV1ScopeDecision?: unknown;
     supportedZkV1ScopeNote?: unknown;
     supportedZkV1RequiredLanes?: unknown;
@@ -2179,8 +2197,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 14 ||
-    parsed.summaryVersion !== 38 ||
+    parsed.contractVersion !== 15 ||
+    parsed.summaryVersion !== 39 ||
     !isZkV1FinishLineStatus(parsed.zkV1FinishLineStatus) ||
     typeof parsed.zkV1FinishLineNote !== "string" ||
     parsed.supportedSendLaneVersion !== 1 ||
@@ -2215,6 +2233,9 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     parsed.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
     parsed.supportedFlowStatus !== "supported" ||
     typeof parsed.supportedFlowNote !== "string" ||
+    parsed.supportedShippingDecisionVersion !== 1 ||
+    parsed.supportedShippingDecisionKind !== "narrow-private-core-zk-v1-shipping" ||
+    typeof parsed.supportedShippingDecisionNote !== "string" ||
     parsed.supportedZkV1ScopeDecision !== "accepted-narrow-private-core-v1-scope" ||
     typeof parsed.supportedZkV1ScopeNote !== "string" ||
     parsed.supportedZkV1RequiredLanes !== "send|unshield|release" ||
@@ -2263,8 +2284,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
 
   return {
     stateVersion: 1,
-    contractVersion: 14,
-    summaryVersion: 38,
+    contractVersion: 15,
+    summaryVersion: 39,
     supportedSendLaneVersion: 1,
     supportedSendLaneKind: "single-input-single-recipient-optional-change",
     supportedSendLaneStatus: "supported",
@@ -2297,6 +2318,9 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedFlowKind: "shield-hold-send-unshield-replay-guard",
     supportedFlowStatus: "supported",
     supportedFlowNote: parsed.supportedFlowNote,
+    supportedShippingDecisionVersion: 1,
+    supportedShippingDecisionKind: "narrow-private-core-zk-v1-shipping",
+    supportedShippingDecisionNote: parsed.supportedShippingDecisionNote,
     supportedZkV1ScopeDecision: "accepted-narrow-private-core-v1-scope",
     supportedZkV1ScopeNote: parsed.supportedZkV1ScopeNote,
     supportedZkV1RequiredLanes: "send|unshield|release",

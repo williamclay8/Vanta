@@ -242,13 +242,15 @@ These commands cover:
 - proof-backed send-transition state persistence across restart
 - replay rejection after operator restart
 - operator contract and summary snapshot coherence across app, CLI, and regression surfaces
+- dedicated operator shipping decision endpoint and CLI/check surfaces
 - frozen operator contract surface:
-  - `contractVersion = 11`
-  - `summaryVersion = 31`
+  - `contractVersion = 15`
+  - `summaryVersion = 39`
   - `supportedSendV1Decision = accepted-narrow-v1-path`
   - `supportedUnshieldV1Decision = accepted-narrow-v1-path`
   - `supportedReleaseV1Decision = accepted-narrow-v1-path`
   - `supportedSwapV1Decision = accepted-narrow-v1-path`
+  - `supportedShippingDecisionKind = narrow-private-core-zk-v1-shipping`
   - `supportedSwapLaneKind = single-input-vusd-to-shielded-sol`
   - `supportedSwapVenue = meteora-dlmm-devnet`
 
@@ -256,7 +258,7 @@ These commands cover:
 
 `private-core:demo-preflight` combines the full verification pass with the current operator contract surface, the full operator status summary, and the compact shipping summary.
 
-`private-core:operator-contract` gives the static narrow zk-v1 contract the operator currently supports: send lane, unshield lane, release lane, swap lane, supported flow, supported asset/environment, note contract, recipient/release-destination models, proof system, fixed circuit ids, fixed Merkle depth, owner-auth mode, nullifier-key mode, proving hash lane, root-registration provenance, send input-root policy, send output-registration policy, the current send resulting-root basis, and the currently supported constrained swap venue/output/root-policy model.
+`private-core:operator-contract` gives the static narrow zk-v1 contract the operator currently supports: send lane, unshield lane, release lane, swap lane, the canonical shipping-decision contract, supported flow, supported asset/environment, note contract, recipient/release-destination models, proof system, fixed circuit ids, fixed Merkle depth, owner-auth mode, nullifier-key mode, proving hash lane, root-registration provenance, send input-root policy, send output-registration policy, the current send resulting-root basis, and the currently supported constrained swap venue/output/root-policy model.
 
 `private-core:operator-status` gives a quick readout of the current operator root, proof, send-proof, swap-proof, send-transition, swap-transition, consume, and release state when the operator server is running, including proof/send, proof/swap, proof/consume, proof/release, and root-registration proof linkage. It now also prints the canonical shipping decision block directly from `/state/private-core-shipping-decision`, so the long-form operator dump explicitly includes the decision version, kind, status, and note behind the current ship/no-ship answer. It also reports the supported send-lane version and identity carried by the operator summary, plus the latest send resulting-root continuity status and the concrete registered root record behind that resulting root when one exists, so you can see whether the newest private-send root is still unregistered, current, stale, or already consumed/released downstream. The current private-core release lane now also carries explicit release authorization, root-policy, execution, atomicity, and persistence fields, so the operator summary says not just that a release was recorded, but that it was authorized by `proof-backed-consume` under the `latest-registered-root` policy, executed as an operator-recorded devnet release, atomically recorded with consume state in the local operator lane, and persisted in the current JSON store. The send lane still requires the current input root to stay linked to its registration proof before the operator will accept a transition, the resulting root remains explicitly `client-declared` until later registration proves continuity, and registered roots now carry explicit provenance as `shield-input`, `send-recipient-output`, `send-change-output`, or `swap-output`. The constrained swap lane now also has a proof-backed transition seam that requires the current input root to be registered and latest before the operator will persist swap state, keeps the latest swap proof and latest swap transition in the canonical operator summary, now preserves the latest swap execution venue and quote reference across summary reloads and restart, and proves that summary-backed swap state survives operator restart, while the resulting swap root remains explicitly `client-declared` in the current narrow lane.
 
@@ -269,8 +271,10 @@ These commands cover:
 `private-core:shipping-check-json` is the machine-readable ready-gate form of that same command: it exits zero only for `Ready narrow v1`, prints the compact readiness JSON on success, and on blocked paths emits the JSON surface to stderr before the structured `Shipping status:` / `Shipping note:` lines.
 
 The operator contract now freezes the narrow zk-v1 contract surface explicitly:
-- `contractVersion = 11`
-- `summaryVersion = 31`
+- `contractVersion = 15`
+- `summaryVersion = 39`
+- `supportedShippingDecisionVersion = 1`
+- `supportedShippingDecisionKind = narrow-private-core-zk-v1-shipping`
 - `supportedUnshieldLaneVersion = 1`
 - `supportedUnshieldLaneKind = single-note-proof-backed-consume`
 - `supportedUnshieldLaneStatus = supported`

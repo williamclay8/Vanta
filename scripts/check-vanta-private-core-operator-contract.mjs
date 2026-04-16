@@ -102,8 +102,8 @@ try {
   if (
     !contractState.ok ||
     contractState.parsed?.stateVersion !== 1 ||
-    contractState.parsed?.contractVersion !== 14 ||
-    contractState.parsed?.summaryVersion !== 38 ||
+    contractState.parsed?.contractVersion !== 15 ||
+    contractState.parsed?.summaryVersion !== 39 ||
     contractState.parsed?.supportedSendLaneVersion !== 1 ||
     contractState.parsed?.supportedSendV1Decision !== "accepted-narrow-v1-path" ||
     typeof contractState.parsed?.supportedSendV1DecisionNote !== "string" ||
@@ -133,6 +133,10 @@ try {
     contractState.parsed?.supportedSwapOutputRegistrationPolicy !==
       "resulting-root-must-register-as-swap-output" ||
     contractState.parsed?.supportedFlowVersion !== 1 ||
+    contractState.parsed?.supportedShippingDecisionVersion !== 1 ||
+    contractState.parsed?.supportedShippingDecisionKind !==
+      "narrow-private-core-zk-v1-shipping" ||
+    typeof contractState.parsed?.supportedShippingDecisionNote !== "string" ||
     contractState.parsed?.supportedZkV1ScopeDecision !==
       "accepted-narrow-private-core-v1-scope" ||
     typeof contractState.parsed?.supportedZkV1ScopeNote !== "string" ||
@@ -212,6 +216,9 @@ try {
     "supportedFlowKind",
     "supportedFlowStatus",
     "supportedFlowNote",
+    "supportedShippingDecisionVersion",
+    "supportedShippingDecisionKind",
+    "supportedShippingDecisionNote",
     "supportedZkV1ScopeDecision",
     "supportedZkV1ScopeNote",
     "supportedZkV1RequiredLanes",
@@ -285,8 +292,8 @@ try {
   });
   if (
     !contractOutput.includes("Contract state version: 1") ||
-    !contractOutput.includes("Contract version: 14") ||
-    !contractOutput.includes("Summary compatibility: 38") ||
+    !contractOutput.includes("Contract version: 15") ||
+    !contractOutput.includes("Summary compatibility: 39") ||
     !contractOutput.includes("Supported note schema: NoteV0 / v0") ||
     !contractOutput.includes("Supported send v1 decision: accepted-narrow-v1-path") ||
     !contractOutput.includes("Supported unshield v1 decision: accepted-narrow-v1-path") ||
@@ -307,6 +314,13 @@ try {
     !contractOutput.includes("Supported swap lane kind: single-input-vusd-to-shielded-sol") ||
     !contractOutput.includes("Supported swap lane status: supported") ||
     !contractOutput.includes("Supported swap v1 decision: accepted-narrow-v1-path") ||
+    !contractOutput.includes("Supported shipping decision version: 1") ||
+    !contractOutput.includes(
+      "Supported shipping decision kind: narrow-private-core-zk-v1-shipping",
+    ) ||
+    !contractOutput.includes(
+      "Supported shipping decision note: Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane.",
+    ) ||
     !contractOutput.includes(
       "Supported swap v1 role: adjacent-supported-not-required-for-finish-line",
     ) ||

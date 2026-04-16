@@ -220,7 +220,7 @@ try {
   if (
     !initialSummaryState.ok ||
     initialSummaryState.parsed?.stateVersion !== 1 ||
-    initialSummaryState.parsed?.summaryVersion !== 38 ||
+    initialSummaryState.parsed?.summaryVersion !== 39 ||
     initialSummaryState.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     initialSummaryState.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -920,7 +920,7 @@ try {
   if (
     !summaryStateAfterConsume.ok ||
     summaryStateAfterConsume.parsed?.stateVersion !== 1 ||
-    summaryStateAfterConsume.parsed?.summaryVersion !== 38 ||
+    summaryStateAfterConsume.parsed?.summaryVersion !== 39 ||
     summaryStateAfterConsume.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterConsume.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -1037,7 +1037,7 @@ try {
   });
   if (
     !summaryStateAfterRelease.ok ||
-    summaryStateAfterRelease.parsed?.summaryVersion !== 38 ||
+    summaryStateAfterRelease.parsed?.summaryVersion !== 39 ||
     summaryStateAfterRelease.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterRelease.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -1140,8 +1140,8 @@ try {
   });
   if (
     !operatorStatusOutput.includes("Summary state version: 1") ||
-    !operatorStatusOutput.includes("Mirrored contract version: 14") ||
-    !operatorStatusOutput.includes("Summary version: 38") ||
+    !operatorStatusOutput.includes("Mirrored contract version: 15") ||
+    !operatorStatusOutput.includes("Summary version: 39") ||
     !operatorStatusOutput.includes("Shipping decision version: 1") ||
     !operatorStatusOutput.includes("Shipping decision kind: narrow-private-core-zk-v1-shipping") ||
     !operatorStatusOutput.includes("Shipping decision status: Blocked") ||
@@ -1251,8 +1251,8 @@ try {
   });
   if (
     !shippingStatusOutput.includes("Summary state version: 1") ||
-    !shippingStatusOutput.includes("Mirrored contract version: 14") ||
-    !shippingStatusOutput.includes("Summary version: 38") ||
+    !shippingStatusOutput.includes("Mirrored contract version: 15") ||
+    !shippingStatusOutput.includes("Summary version: 39") ||
     !shippingStatusOutput.includes("Summary generated:") ||
     !shippingStatusOutput.includes("Shipping status: Required lanes mismatch") ||
     !shippingStatusOutput.includes(
@@ -1290,8 +1290,8 @@ try {
     shippingStatusJson.decisionNote !==
       "No private send transition is available for boundary checks yet." ||
     shippingStatusJson.summaryStateVersion !== 1 ||
-    shippingStatusJson.mirroredContractVersion !== 14 ||
-    shippingStatusJson.summaryVersion !== 38 ||
+    shippingStatusJson.mirroredContractVersion !== 15 ||
+    shippingStatusJson.summaryVersion !== 39 ||
     typeof shippingStatusJson.summaryGenerated !== "number" ||
     shippingStatusJson.shippingStatusRaw !== "required-lanes-mismatch" ||
     shippingStatusJson.shippingStatus !== "Required lanes mismatch" ||
@@ -1320,8 +1320,8 @@ try {
     shippingDecisionState.parsed?.decisionStatus !== "blocked" ||
     shippingDecisionState.parsed?.decisionNote !==
       "No private send transition is available for boundary checks yet." ||
-    shippingDecisionState.parsed?.contractVersion !== 14 ||
-    shippingDecisionState.parsed?.summaryVersion !== 38 ||
+    shippingDecisionState.parsed?.contractVersion !== 15 ||
+    shippingDecisionState.parsed?.summaryVersion !== 39 ||
     typeof shippingDecisionState.parsed?.generatedAt !== "number" ||
     shippingDecisionState.parsed?.shippingStatus !== "required-lanes-mismatch" ||
     shippingDecisionState.parsed?.finishLineStatus !== "coherent-minimum-v1-lane" ||
@@ -1388,8 +1388,8 @@ try {
     blockedShippingCheckJsonSurface.decisionNote !==
       "No private send transition is available for boundary checks yet." ||
     blockedShippingCheckJsonSurface.summaryStateVersion !== 1 ||
-    blockedShippingCheckJsonSurface.mirroredContractVersion !== 14 ||
-    blockedShippingCheckJsonSurface.summaryVersion !== 38 ||
+    blockedShippingCheckJsonSurface.mirroredContractVersion !== 15 ||
+    blockedShippingCheckJsonSurface.summaryVersion !== 39 ||
     typeof blockedShippingCheckJsonSurface.summaryGenerated !== "number" ||
     blockedShippingCheckJsonSurface.shippingStatusRaw !== "required-lanes-mismatch" ||
     blockedShippingCheckJsonSurface.finishLineStatusRaw !== "coherent-minimum-v1-lane" ||

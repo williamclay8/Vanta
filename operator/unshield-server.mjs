@@ -191,6 +191,11 @@ const PRIVATE_CORE_SUPPORTED_FLOW_KIND = "shield-hold-send-unshield-replay-guard
 const PRIVATE_CORE_SUPPORTED_FLOW_STATUS = "supported";
 const PRIVATE_CORE_SUPPORTED_FLOW_NOTE =
   "Current narrow zk v1 product flow is shield, hold, private send, unshield, and replay guard on the resulting consume path.";
+const PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_VERSION = 1;
+const PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_KIND =
+  "narrow-private-core-zk-v1-shipping";
+const PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_NOTE =
+  "Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane.";
 const PRIVATE_CORE_SUPPORTED_ZK_V1_SCOPE_DECISION =
   "accepted-narrow-private-core-v1-scope";
 const PRIVATE_CORE_SUPPORTED_ZK_V1_SCOPE_NOTE =
@@ -2033,8 +2038,8 @@ function buildPrivateCoreShippingDecisionState() {
 function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
-    contractVersion: 14,
-    summaryVersion: 38,
+    contractVersion: 15,
+    summaryVersion: 39,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
@@ -2067,6 +2072,9 @@ function buildPrivateCoreContractState() {
     supportedFlowKind: PRIVATE_CORE_SUPPORTED_FLOW_KIND,
     supportedFlowStatus: PRIVATE_CORE_SUPPORTED_FLOW_STATUS,
     supportedFlowNote: PRIVATE_CORE_SUPPORTED_FLOW_NOTE,
+    supportedShippingDecisionVersion: PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_VERSION,
+    supportedShippingDecisionKind: PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_KIND,
+    supportedShippingDecisionNote: PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_NOTE,
     supportedZkV1ScopeDecision: PRIVATE_CORE_SUPPORTED_ZK_V1_SCOPE_DECISION,
     supportedZkV1ScopeNote: PRIVATE_CORE_SUPPORTED_ZK_V1_SCOPE_NOTE,
     supportedZkV1RequiredLanes: PRIVATE_CORE_SUPPORTED_ZK_V1_REQUIRED_LANES,
@@ -2145,6 +2153,9 @@ function summarizePrivateCoreContractMirrorStatus(args) {
     "supportedFlowKind",
     "supportedFlowStatus",
     "supportedFlowNote",
+    "supportedShippingDecisionVersion",
+    "supportedShippingDecisionKind",
+    "supportedShippingDecisionNote",
     "supportedZkV1ScopeDecision",
     "supportedZkV1ScopeNote",
     "supportedZkV1RequiredLanes",

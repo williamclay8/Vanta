@@ -346,8 +346,8 @@ try {
   });
   const expectedStatusLines = [
     "Summary state version: 1",
-    "Mirrored contract version: 14",
-    "Summary version: 38",
+    "Mirrored contract version: 15",
+    "Summary version: 39",
     "Summary generated:",
     "Shipping decision version: 1",
     "Shipping decision kind: narrow-private-core-zk-v1-shipping",
@@ -458,8 +458,8 @@ try {
   });
   if (
     !shippingStatusOutput.includes("Summary state version: 1") ||
-    !shippingStatusOutput.includes("Mirrored contract version: 14") ||
-    !shippingStatusOutput.includes("Summary version: 38") ||
+    !shippingStatusOutput.includes("Mirrored contract version: 15") ||
+    !shippingStatusOutput.includes("Summary version: 39") ||
     !shippingStatusOutput.includes("Summary generated:") ||
     !shippingStatusOutput.includes("Shipping status: Required lanes mismatch") ||
     !shippingStatusOutput.includes(

@@ -98,6 +98,18 @@ try {
   printLine("Supported flow kind", contract.supportedFlowKind ?? "Unavailable");
   printLine("Supported flow status", contract.supportedFlowStatus ?? "Unavailable");
   printLine("Supported flow note", contract.supportedFlowNote ?? "Unavailable");
+  printLine(
+    "Supported shipping decision version",
+    String(contract.supportedShippingDecisionVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported shipping decision kind",
+    contract.supportedShippingDecisionKind ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping decision note",
+    contract.supportedShippingDecisionNote ?? "Unavailable",
+  );
   printLine("Supported zk v1 scope decision", contract.supportedZkV1ScopeDecision ?? "Unavailable");
   printLine("Supported zk v1 scope note", contract.supportedZkV1ScopeNote ?? "Unavailable");
   printLine(

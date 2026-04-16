@@ -273,7 +273,7 @@ try {
     preRestartSends.parsed.records.length < 1 ||
     !preRestartSummary.ok ||
     preRestartSummary.parsed?.stateVersion !== 1 ||
-    preRestartSummary.parsed?.summaryVersion !== 38 ||
+    preRestartSummary.parsed?.summaryVersion !== 39 ||
     preRestartSummary.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     preRestartSummary.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -381,7 +381,7 @@ try {
   if (
     !postRestartSummary.ok ||
     postRestartSummary.parsed?.stateVersion !== 1 ||
-    postRestartSummary.parsed?.summaryVersion !== 38 ||
+    postRestartSummary.parsed?.summaryVersion !== 39 ||
     postRestartSummary.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     postRestartSummary.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -521,7 +521,7 @@ try {
     stdio: "pipe",
   });
   if (
-    !operatorStatusOutput.includes("Summary version: 38") ||
+    !operatorStatusOutput.includes("Summary version: 39") ||
     !operatorStatusOutput.includes("Required lanes status: Send lane mismatch") ||
     !operatorStatusOutput.includes(
       "Required lanes note: Latest send resulting root still needs operator registration before downstream continuity is established.",
@@ -530,7 +530,7 @@ try {
     !operatorStatusOutput.includes(
       "zk v1 shipping note: Latest send resulting root still needs operator registration before downstream continuity is established.",
     ) ||
-    !operatorStatusOutput.includes("Mirrored contract version: 14") ||
+    !operatorStatusOutput.includes("Mirrored contract version: 15") ||
     !operatorStatusOutput.includes("zk v1 finish line status: Coherent minimum v1 lane") ||
     !operatorStatusOutput.includes(
       "zk v1 finish line note: Frozen minimum zk v1 send/unshield/release lane is coherent at the operator boundary.",
@@ -627,8 +627,8 @@ try {
   });
   if (
     !shippingStatusOutput.includes("Summary state version: 1") ||
-    !shippingStatusOutput.includes("Mirrored contract version: 14") ||
-    !shippingStatusOutput.includes("Summary version: 38") ||
+    !shippingStatusOutput.includes("Mirrored contract version: 15") ||
+    !shippingStatusOutput.includes("Summary version: 39") ||
     !shippingStatusOutput.includes("Summary generated:") ||
     !shippingStatusOutput.includes("Shipping status: Required lanes mismatch") ||
     !shippingStatusOutput.includes(
@@ -689,8 +689,8 @@ try {
     shippingStatusJson.decisionNote !==
       "Latest send resulting root still needs operator registration before downstream continuity is established." ||
     shippingStatusJson.summaryStateVersion !== 1 ||
-    shippingStatusJson.mirroredContractVersion !== 14 ||
-    shippingStatusJson.summaryVersion !== 38 ||
+    shippingStatusJson.mirroredContractVersion !== 15 ||
+    shippingStatusJson.summaryVersion !== 39 ||
     typeof shippingStatusJson.summaryGenerated !== "number" ||
     shippingStatusJson.shippingStatusRaw !== "required-lanes-mismatch" ||
     shippingStatusJson.shippingStatus !== "Required lanes mismatch" ||
@@ -719,8 +719,8 @@ try {
     shippingDecisionState.parsed?.decisionStatus !== "blocked" ||
     shippingDecisionState.parsed?.decisionNote !==
       "Latest send resulting root still needs operator registration before downstream continuity is established." ||
-    shippingDecisionState.parsed?.contractVersion !== 14 ||
-    shippingDecisionState.parsed?.summaryVersion !== 38 ||
+    shippingDecisionState.parsed?.contractVersion !== 15 ||
+    shippingDecisionState.parsed?.summaryVersion !== 39 ||
     typeof shippingDecisionState.parsed?.generatedAt !== "number" ||
     shippingDecisionState.parsed?.shippingStatus !== "required-lanes-mismatch" ||
     shippingDecisionState.parsed?.finishLineStatus !== "coherent-minimum-v1-lane" ||
@@ -787,8 +787,8 @@ try {
     blockedShippingCheckJsonSurface.decisionNote !==
       "Latest send resulting root still needs operator registration before downstream continuity is established." ||
     blockedShippingCheckJsonSurface.summaryStateVersion !== 1 ||
-    blockedShippingCheckJsonSurface.mirroredContractVersion !== 14 ||
-    blockedShippingCheckJsonSurface.summaryVersion !== 38 ||
+    blockedShippingCheckJsonSurface.mirroredContractVersion !== 15 ||
+    blockedShippingCheckJsonSurface.summaryVersion !== 39 ||
     typeof blockedShippingCheckJsonSurface.summaryGenerated !== "number" ||
     blockedShippingCheckJsonSurface.shippingStatusRaw !== "required-lanes-mismatch" ||
     blockedShippingCheckJsonSurface.finishLineStatusRaw !== "coherent-minimum-v1-lane" ||

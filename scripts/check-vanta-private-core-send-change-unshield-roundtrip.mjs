@@ -379,8 +379,8 @@ try {
   });
   const expectedStatusLines = [
     "Summary state version: 1",
-    "Mirrored contract version: 14",
-    "Summary version: 38",
+    "Mirrored contract version: 15",
+    "Summary version: 39",
     "Summary generated:",
     "Shipping decision version: 1",
     "Shipping decision kind: narrow-private-core-zk-v1-shipping",
@@ -491,8 +491,8 @@ try {
   });
   if (
     !shippingStatusOutput.includes("Summary state version: 1") ||
-    !shippingStatusOutput.includes("Mirrored contract version: 14") ||
-    !shippingStatusOutput.includes("Summary version: 38") ||
+    !shippingStatusOutput.includes("Mirrored contract version: 15") ||
+    !shippingStatusOutput.includes("Summary version: 39") ||
     !shippingStatusOutput.includes("Summary generated:") ||
     !shippingStatusOutput.includes("Shipping status: Ready narrow v1") ||
     !shippingStatusOutput.includes(
@@ -532,8 +532,8 @@ try {
     shippingStatusJson.decisionNote !==
       "Minimum zk v1 required lanes are coherent and the operator boundary remains contract-coherent enough to ship the frozen narrow lane." ||
     shippingStatusJson.summaryStateVersion !== 1 ||
-    shippingStatusJson.mirroredContractVersion !== 14 ||
-    shippingStatusJson.summaryVersion !== 38 ||
+    shippingStatusJson.mirroredContractVersion !== 15 ||
+    shippingStatusJson.summaryVersion !== 39 ||
     typeof shippingStatusJson.summaryGenerated !== "number" ||
     shippingStatusJson.shippingStatusRaw !== "ready-narrow-v1" ||
     shippingStatusJson.shippingStatus !== "Ready narrow v1" ||
