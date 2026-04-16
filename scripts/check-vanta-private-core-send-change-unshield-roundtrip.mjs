@@ -381,6 +381,9 @@ try {
     "Latest send transition:",
     "Latest send linked proof:",
     "Latest release:",
+    "Latest release linked proof:",
+    "Release authorization: Proof-backed consume",
+    "Release root policy: Latest registered root",
     "Release destination: 0xaaaaaaaa...aaaaaa",
     "Released value: 20000000 / 0xaaaaaaaa...aaaaaa",
     "Proof/send link: linked",
@@ -389,6 +392,8 @@ try {
     "Send boundary status: Downstream released",
     "Send resulting root status: Released downstream",
     "Send resulting root registration: Linked to change output",
+    "Contract mirror status: Summary mirrors frozen contract",
+    "Boundary status: Operator boundary coherent",
   ];
   const missingStatusLines = expectedStatusLines.filter(
     (line) => !operatorStatusOutput.includes(line),
