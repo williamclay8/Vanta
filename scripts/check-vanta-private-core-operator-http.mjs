@@ -1442,6 +1442,41 @@ try {
     );
   }
   printStatus("operator http shipping-check-json surface: PASS");
+
+  const operatorSnapshotJsonOutput = execFileSync("npm", [
+    "run",
+    "--silent",
+    "private-core:operator-snapshot-json",
+    "--",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  const operatorSnapshotJson = JSON.parse(operatorSnapshotJsonOutput);
+  if (
+    operatorSnapshotJson.operator !== baseUrl ||
+    operatorSnapshotJson.snapshotVersion !== 1 ||
+    operatorSnapshotJson.contract?.contractVersion !== 15 ||
+    operatorSnapshotJson.contract?.summaryVersion !== 39 ||
+    operatorSnapshotJson.status?.summary?.stateVersion !== 1 ||
+    operatorSnapshotJson.status?.summary?.contractVersion !== 15 ||
+    operatorSnapshotJson.status?.summary?.summaryVersion !== 39 ||
+    operatorSnapshotJson.status?.shippingDecision?.decisionVersion !== 1 ||
+    operatorSnapshotJson.status?.shippingDecision?.decisionKind !==
+      "narrow-private-core-zk-v1-shipping" ||
+    operatorSnapshotJson.shipping?.decisionVersion !== 1 ||
+    operatorSnapshotJson.shipping?.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
+    operatorSnapshotJson.shipping?.decisionStatusRaw !== "blocked" ||
+    operatorSnapshotJson.shipping?.shippingStatusRaw !== "required-lanes-mismatch"
+  ) {
+    throw new Error(
+      `Unexpected operator snapshot JSON output\n${JSON.stringify(operatorSnapshotJson, null, 2)}`,
+    );
+  }
+  printStatus("operator http operator-snapshot json: PASS");
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   const operatorOutput = [stdout.trim(), stderr.trim()].filter(Boolean).join("\n");
