@@ -542,6 +542,37 @@ try {
   }
   printStatus("private-core send-chain->unshield operator-status json: PASS");
 
+  const operatorSnapshotJsonOutput = execFileSync("npm", [
+    "run",
+    "--silent",
+    "private-core:operator-snapshot-json",
+    "--",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  const operatorSnapshotJson = JSON.parse(operatorSnapshotJsonOutput);
+  if (
+    operatorSnapshotJson.operator !== baseUrl ||
+    operatorSnapshotJson.snapshotVersion !== 1 ||
+    operatorSnapshotJson.contract?.contractVersion !== 15 ||
+    operatorSnapshotJson.contract?.summaryVersion !== 39 ||
+    operatorSnapshotJson.status?.summary?.requiredLanesStatus !== "coherent-required-lanes" ||
+    operatorSnapshotJson.status?.summary?.zkV1ShippingStatus !== "ready-narrow-v1" ||
+    operatorSnapshotJson.status?.summary?.latestSend?.sendAmount !== "13000000" ||
+    operatorSnapshotJson.status?.summary?.latestRelease?.releasedAmount !== "13000000" ||
+    operatorSnapshotJson.shipping?.decisionStatusRaw !== "ready-to-ship" ||
+    operatorSnapshotJson.shipping?.shippingStatusRaw !== "ready-narrow-v1"
+  ) {
+    throw new Error(
+      `Unexpected send-chain->unshield operator snapshot JSON output\n${JSON.stringify(operatorSnapshotJson, null, 2)}`,
+    );
+  }
+  printStatus("private-core send-chain->unshield operator-snapshot json: PASS");
+
   const shippingStatusOutput = execFileSync("node", [
     "scripts/print-vanta-private-core-shipping-status.mjs",
     "--base-url",

@@ -530,6 +530,37 @@ try {
   }
   printStatus("private-core swap->unshield restart operator-status json: PASS");
 
+  const operatorSnapshotJsonOutput = execFileSync("npm", [
+    "run",
+    "--silent",
+    "private-core:operator-snapshot-json",
+    "--",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  const operatorSnapshotJson = JSON.parse(operatorSnapshotJsonOutput);
+  if (
+    operatorSnapshotJson.operator !== baseUrl ||
+    operatorSnapshotJson.snapshotVersion !== 1 ||
+    operatorSnapshotJson.contract?.contractVersion !== 15 ||
+    operatorSnapshotJson.contract?.summaryVersion !== 39 ||
+    operatorSnapshotJson.status?.summary?.requiredLanesStatus !== "send-lane-mismatch" ||
+    operatorSnapshotJson.status?.summary?.zkV1ShippingStatus !== "required-lanes-mismatch" ||
+    operatorSnapshotJson.status?.summary?.latestSwap?.outputAmount !== "1250000000" ||
+    operatorSnapshotJson.status?.summary?.latestRelease?.releasedAmount !== "1250000000" ||
+    operatorSnapshotJson.shipping?.decisionStatusRaw !== "blocked" ||
+    operatorSnapshotJson.shipping?.shippingStatusRaw !== "required-lanes-mismatch"
+  ) {
+    throw new Error(
+      `Unexpected swap->unshield restart operator snapshot JSON output\n${JSON.stringify(operatorSnapshotJson, null, 2)}`,
+    );
+  }
+  printStatus("private-core swap->unshield restart operator-snapshot json: PASS");
+
   const shippingStatusOutput = execFileSync("node", [
     "scripts/print-vanta-private-core-shipping-status.mjs",
     "--base-url",
