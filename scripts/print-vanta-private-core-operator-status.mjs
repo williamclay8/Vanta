@@ -2,12 +2,20 @@ const baseUrl = resolveBaseUrl(process.argv.slice(2));
 
 try {
   const summary = await requestJson("/state/private-core-summary");
+  const shippingDecision = await requestJson("/state/private-core-shipping-decision");
 
   printLine("Operator", baseUrl);
   printLine("Summary state version", String(summary.stateVersion ?? "unknown"));
   printLine("Mirrored contract version", String(summary.contractVersion ?? "unknown"));
   printLine("Summary version", String(summary.summaryVersion ?? "unknown"));
   printLine("Summary generated", formatTimestamp(summary.generatedAt));
+  printLine("Shipping decision version", String(shippingDecision.decisionVersion ?? "unknown"));
+  printLine("Shipping decision kind", shippingDecision.decisionKind ?? "Unavailable");
+  printLine(
+    "Shipping decision status",
+    humanizeShippingDecisionStatus(shippingDecision.decisionStatus),
+  );
+  printLine("Shipping decision note", shippingDecision.decisionNote ?? "Unavailable");
   printLine(
     "Required lanes status",
     humanizeRequiredLanesStatus(summary.requiredLanesStatus),
@@ -571,6 +579,18 @@ function humanizeZkV1ShippingStatus(value) {
     default:
       return "Unknown";
   }
+}
+
+function humanizeShippingDecisionStatus(value) {
+  if (value === "ready-to-ship") {
+    return "Ready to ship";
+  }
+
+  if (value === "blocked") {
+    return "Blocked";
+  }
+
+  return "Unavailable";
 }
 
 function humanizeContractMirrorStatus(value) {

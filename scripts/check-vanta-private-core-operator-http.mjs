@@ -1142,6 +1142,12 @@ try {
     !operatorStatusOutput.includes("Summary state version: 1") ||
     !operatorStatusOutput.includes("Mirrored contract version: 14") ||
     !operatorStatusOutput.includes("Summary version: 38") ||
+    !operatorStatusOutput.includes("Shipping decision version: 1") ||
+    !operatorStatusOutput.includes("Shipping decision kind: narrow-private-core-zk-v1-shipping") ||
+    !operatorStatusOutput.includes("Shipping decision status: Blocked") ||
+    !operatorStatusOutput.includes(
+      "Shipping decision note: No private send transition is available for boundary checks yet.",
+    ) ||
     !operatorStatusOutput.includes("Required lanes status: Send lane mismatch") ||
     !operatorStatusOutput.includes(
       "Required lanes note: No private send transition is available for boundary checks yet.",

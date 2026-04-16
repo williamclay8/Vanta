@@ -59,6 +59,7 @@ That confirms:
 - the compact shipping summary still says whether the frozen narrow lane is actually ready or which live blocker is preventing that
 
 The operator-status command gives a quick summary snapshot of:
+- the canonical shipping decision version, kind, status, and note
 - current registered root
 - supported send-lane version and identity
 - supported unshield-lane version and identity

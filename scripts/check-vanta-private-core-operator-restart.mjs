@@ -647,6 +647,29 @@ try {
   }
   printStatus("operator restart shipping-status: PASS");
 
+  const operatorShippingDecisionStatusOutput = execFileSync("node", [
+    "scripts/print-vanta-private-core-operator-status.mjs",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  if (
+    !operatorShippingDecisionStatusOutput.includes("Shipping decision version: 1") ||
+    !operatorShippingDecisionStatusOutput.includes("Shipping decision kind: narrow-private-core-zk-v1-shipping") ||
+    !operatorShippingDecisionStatusOutput.includes("Shipping decision status: Blocked") ||
+    !operatorShippingDecisionStatusOutput.includes(
+      "Shipping decision note: Latest send resulting root still needs operator registration before downstream continuity is established.",
+    )
+  ) {
+    throw new Error(
+      `Unexpected operator restart shipping-decision status output\n${operatorShippingDecisionStatusOutput}`,
+    );
+  }
+  printStatus("operator restart operator-status shipping decision: PASS");
+
   const shippingStatusJsonOutput = execFileSync("node", [
     "scripts/print-vanta-private-core-shipping-status.mjs",
     "--base-url",
