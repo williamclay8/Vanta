@@ -345,6 +345,9 @@ try {
     stdio: "pipe",
   });
   const expectedStatusLines = [
+    "Current root:",
+    "Current root registration: Swap output",
+    "Current root proof link: linked",
     "Latest swap transition:",
     "Latest swap linked proof:",
     "Latest swap execution venue: Unavailable",
@@ -359,6 +362,8 @@ try {
     "Proof/consume link: linked",
     "Proof/release link: linked",
     "Swap boundary status: Released downstream",
+    "Swap resulting root registration basis: Swap output",
+    "Swap resulting root proof link: linked",
     "Contract mirror status: Summary mirrors frozen contract",
     "Boundary status: Operator boundary coherent",
   ];

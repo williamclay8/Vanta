@@ -419,6 +419,9 @@ try {
     stdio: "pipe",
   });
   const expectedStatusLines = [
+    "Current root:",
+    "Current root registration: Send change output",
+    "Current root proof link: linked",
     "Latest send transition:",
     "Latest send linked proof:",
     "Latest release:",
@@ -433,6 +436,8 @@ try {
     "Send boundary status: Downstream released",
     "Send resulting root status: Released downstream",
     "Send resulting root registration: Linked to change output",
+    "Send resulting root registration basis: Send change output",
+    "Send resulting root proof link: linked",
     "Contract mirror status: Summary mirrors frozen contract",
     "Boundary status: Operator boundary coherent",
   ];
