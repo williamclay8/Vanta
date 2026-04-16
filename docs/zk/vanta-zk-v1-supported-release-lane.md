@@ -48,6 +48,7 @@ The supported release lane is currently expressed in operator/runtime terms as:
 - `supportedReleaseLaneKind = proof-backed-consume-latest-registered-root`
 - `supportedReleaseLaneStatus = supported`
 - `supportedReleaseV1Decision = accepted-narrow-v1-path`
+- `supportedZkV1RequiredLanes = send|unshield|release`
 - `supportedReleaseAuthorizationBasis = proof-backed-consume`
 - `supportedReleaseRootPolicy = latest-registered-root`
 - `supportedReleaseExecutionModel = operator-recorded-devnet-release`

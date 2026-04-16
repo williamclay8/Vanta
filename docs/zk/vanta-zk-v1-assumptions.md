@@ -162,6 +162,7 @@ The operator summary now already freezes the currently supported narrow private-
 - unshield lane
 - release lane
 - swap lane
+- minimum required `zk v1` lanes: `send|unshield|release`
 - owner auth mode
 - nullifier key mode
 - proving hash lane

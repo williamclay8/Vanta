@@ -220,7 +220,7 @@ try {
   if (
     !initialSummaryState.ok ||
     initialSummaryState.parsed?.stateVersion !== 1 ||
-    initialSummaryState.parsed?.summaryVersion !== 33 ||
+    initialSummaryState.parsed?.summaryVersion !== 34 ||
     initialSummaryState.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     initialSummaryState.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -264,6 +264,8 @@ try {
     initialSummaryState.parsed?.supportedZkV1ScopeDecision !==
       "accepted-narrow-private-core-v1-scope" ||
     typeof initialSummaryState.parsed?.supportedZkV1ScopeNote !== "string" ||
+    initialSummaryState.parsed?.supportedZkV1RequiredLanes !== "send|unshield|release" ||
+    typeof initialSummaryState.parsed?.supportedZkV1RequiredLanesNote !== "string" ||
     initialSummaryState.parsed?.supportedAssetSymbol !== "VUSD" ||
     initialSummaryState.parsed?.supportedEnvironment !== "solana-devnet" ||
     initialSummaryState.parsed?.supportedNoteSchema !== "note-v0" ||
@@ -918,7 +920,7 @@ try {
   if (
     !summaryStateAfterConsume.ok ||
     summaryStateAfterConsume.parsed?.stateVersion !== 1 ||
-    summaryStateAfterConsume.parsed?.summaryVersion !== 33 ||
+    summaryStateAfterConsume.parsed?.summaryVersion !== 34 ||
     summaryStateAfterConsume.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterConsume.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -958,6 +960,8 @@ try {
     summaryStateAfterConsume.parsed?.supportedZkV1ScopeDecision !==
       "accepted-narrow-private-core-v1-scope" ||
     typeof summaryStateAfterConsume.parsed?.supportedZkV1ScopeNote !== "string" ||
+    summaryStateAfterConsume.parsed?.supportedZkV1RequiredLanes !== "send|unshield|release" ||
+    typeof summaryStateAfterConsume.parsed?.supportedZkV1RequiredLanesNote !== "string" ||
     summaryStateAfterConsume.parsed?.supportedAssetSymbol !== "VUSD" ||
     summaryStateAfterConsume.parsed?.supportedEnvironment !== "solana-devnet" ||
     summaryStateAfterConsume.parsed?.supportedNoteSchema !== "note-v0" ||
@@ -1033,7 +1037,7 @@ try {
   });
   if (
     !summaryStateAfterRelease.ok ||
-    summaryStateAfterRelease.parsed?.summaryVersion !== 33 ||
+    summaryStateAfterRelease.parsed?.summaryVersion !== 34 ||
     summaryStateAfterRelease.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterRelease.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -1073,6 +1077,8 @@ try {
     summaryStateAfterRelease.parsed?.supportedZkV1ScopeDecision !==
       "accepted-narrow-private-core-v1-scope" ||
     typeof summaryStateAfterRelease.parsed?.supportedZkV1ScopeNote !== "string" ||
+    summaryStateAfterRelease.parsed?.supportedZkV1RequiredLanes !== "send|unshield|release" ||
+    typeof summaryStateAfterRelease.parsed?.supportedZkV1RequiredLanesNote !== "string" ||
     summaryStateAfterRelease.parsed?.supportedAssetSymbol !== "VUSD" ||
     summaryStateAfterRelease.parsed?.supportedEnvironment !== "solana-devnet" ||
     summaryStateAfterRelease.parsed?.supportedNoteSchema !== "note-v0" ||
@@ -1134,8 +1140,8 @@ try {
   });
   if (
     !operatorStatusOutput.includes("Summary state version: 1") ||
-    !operatorStatusOutput.includes("Mirrored contract version: 13") ||
-    !operatorStatusOutput.includes("Summary version: 33") ||
+    !operatorStatusOutput.includes("Mirrored contract version: 14") ||
+    !operatorStatusOutput.includes("Summary version: 34") ||
     !operatorStatusOutput.includes(
       "Supported swap v1 role: adjacent-supported-not-required-for-finish-line",
     ) ||
@@ -1147,6 +1153,10 @@ try {
     ) ||
     !operatorStatusOutput.includes(
       "Supported zk v1 scope note: Current zk v1 finish line is the narrow private-core lane frozen in this repo, not the broader long-term privacy product surface.",
+    ) ||
+    !operatorStatusOutput.includes("Supported zk v1 required lanes: send|unshield|release") ||
+    !operatorStatusOutput.includes(
+      "Supported zk v1 required lanes note: Minimum zk v1 finish line requires the narrow private-core send, unshield, and release lanes; constrained swap remains adjacent supported infrastructure.",
     ) ||
     !operatorStatusOutput.includes("Supported send v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported unshield v1 decision: Accepted narrow v1 path") ||

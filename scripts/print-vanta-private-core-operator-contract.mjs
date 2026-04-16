@@ -100,6 +100,14 @@ try {
   printLine("Supported flow note", contract.supportedFlowNote ?? "Unavailable");
   printLine("Supported zk v1 scope decision", contract.supportedZkV1ScopeDecision ?? "Unavailable");
   printLine("Supported zk v1 scope note", contract.supportedZkV1ScopeNote ?? "Unavailable");
+  printLine(
+    "Supported zk v1 required lanes",
+    contract.supportedZkV1RequiredLanes ?? "Unavailable",
+  );
+  printLine(
+    "Supported zk v1 required lanes note",
+    contract.supportedZkV1RequiredLanesNote ?? "Unavailable",
+  );
   printLine("Supported asset", contract.supportedAssetSymbol ?? "Unavailable");
   printLine("Supported environment", contract.supportedEnvironment ?? "Unavailable");
   printLine(

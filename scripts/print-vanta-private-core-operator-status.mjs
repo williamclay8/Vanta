@@ -114,6 +114,14 @@ try {
     summary.supportedZkV1ScopeDecision ?? "Unavailable",
   );
   printLine("Supported zk v1 scope note", summary.supportedZkV1ScopeNote ?? "Unavailable");
+  printLine(
+    "Supported zk v1 required lanes",
+    summary.supportedZkV1RequiredLanes ?? "Unavailable",
+  );
+  printLine(
+    "Supported zk v1 required lanes note",
+    summary.supportedZkV1RequiredLanesNote ?? "Unavailable",
+  );
   printLine("Supported asset", summary.supportedAssetSymbol ?? "Unavailable");
   printLine("Supported environment", summary.supportedEnvironment ?? "Unavailable");
   printLine(

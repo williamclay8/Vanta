@@ -90,6 +90,7 @@ What is still missing is the single sentence decision saying:
 
 This is now frozen explicitly in the operator contract:
 - `supportedZkV1ScopeDecision = accepted-narrow-private-core-v1-scope`
+- `supportedZkV1RequiredLanes = send|unshield|release`
 
 And the constrained swap ambiguity is now also frozen explicitly:
 - `supportedSwapV1Role = adjacent-supported-not-required-for-finish-line`

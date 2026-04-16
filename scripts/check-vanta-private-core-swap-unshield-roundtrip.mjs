@@ -346,8 +346,8 @@ try {
   });
   const expectedStatusLines = [
     "Summary state version: 1",
-    "Mirrored contract version: 13",
-    "Summary version: 33",
+    "Mirrored contract version: 14",
+    "Summary version: 34",
     "Summary generated:",
     "Supported send lane version: 1",
     "Supported send lane kind: Single input / recipient / optional change",
@@ -366,6 +366,8 @@ try {
     "Supported swap v1 role note: Current constrained swap lane is supported operator-backed infrastructure in the repo, but it is not required for the minimum zk v1 finish line.",
     "Supported zk v1 scope decision: accepted-narrow-private-core-v1-scope",
     "Supported zk v1 scope note: Current zk v1 finish line is the narrow private-core lane frozen in this repo, not the broader long-term privacy product surface.",
+    "Supported zk v1 required lanes: send|unshield|release",
+    "Supported zk v1 required lanes note: Minimum zk v1 finish line requires the narrow private-core send, unshield, and release lanes; constrained swap remains adjacent supported infrastructure.",
     "Supported asset: VUSD",
     "Supported environment: solana-devnet",
     "Supported proof system: Noir ACIR / UltraHonk / bb.js",

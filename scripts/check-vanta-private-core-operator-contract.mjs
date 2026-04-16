@@ -102,8 +102,8 @@ try {
   if (
     !contractState.ok ||
     contractState.parsed?.stateVersion !== 1 ||
-    contractState.parsed?.contractVersion !== 13 ||
-    contractState.parsed?.summaryVersion !== 33 ||
+    contractState.parsed?.contractVersion !== 14 ||
+    contractState.parsed?.summaryVersion !== 34 ||
     contractState.parsed?.supportedSendLaneVersion !== 1 ||
     contractState.parsed?.supportedSendV1Decision !== "accepted-narrow-v1-path" ||
     typeof contractState.parsed?.supportedSendV1DecisionNote !== "string" ||
@@ -136,6 +136,8 @@ try {
     contractState.parsed?.supportedZkV1ScopeDecision !==
       "accepted-narrow-private-core-v1-scope" ||
     typeof contractState.parsed?.supportedZkV1ScopeNote !== "string" ||
+    contractState.parsed?.supportedZkV1RequiredLanes !== "send|unshield|release" ||
+    typeof contractState.parsed?.supportedZkV1RequiredLanesNote !== "string" ||
     contractState.parsed?.supportedAssetSymbol !== "VUSD" ||
     contractState.parsed?.supportedEnvironment !== "solana-devnet" ||
     contractState.parsed?.supportedNoteSchema !== "note-v0" ||
@@ -210,6 +212,10 @@ try {
     "supportedFlowKind",
     "supportedFlowStatus",
     "supportedFlowNote",
+    "supportedZkV1ScopeDecision",
+    "supportedZkV1ScopeNote",
+    "supportedZkV1RequiredLanes",
+    "supportedZkV1RequiredLanesNote",
     "supportedAssetSymbol",
     "supportedEnvironment",
     "supportedNoteSchema",
@@ -279,8 +285,8 @@ try {
   });
   if (
     !contractOutput.includes("Contract state version: 1") ||
-    !contractOutput.includes("Contract version: 13") ||
-    !contractOutput.includes("Summary compatibility: 33") ||
+    !contractOutput.includes("Contract version: 14") ||
+    !contractOutput.includes("Summary compatibility: 34") ||
     !contractOutput.includes("Supported note schema: NoteV0 / v0") ||
     !contractOutput.includes("Supported send v1 decision: accepted-narrow-v1-path") ||
     !contractOutput.includes("Supported unshield v1 decision: accepted-narrow-v1-path") ||
@@ -312,6 +318,10 @@ try {
     ) ||
     !contractOutput.includes(
       "Supported zk v1 scope note: Current zk v1 finish line is the narrow private-core lane frozen in this repo, not the broader long-term privacy product surface.",
+    ) ||
+    !contractOutput.includes("Supported zk v1 required lanes: send|unshield|release") ||
+    !contractOutput.includes(
+      "Supported zk v1 required lanes note: Minimum zk v1 finish line requires the narrow private-core send, unshield, and release lanes; constrained swap remains adjacent supported infrastructure.",
     ) ||
     !contractOutput.includes("Supported swap venue: meteora-dlmm-devnet") ||
     !contractOutput.includes("Supported swap output model: shielded-sol-output-note") ||
