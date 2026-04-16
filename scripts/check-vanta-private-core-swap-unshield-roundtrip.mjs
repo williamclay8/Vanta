@@ -443,6 +443,33 @@ try {
   }
   printStatus("private-core swap->unshield operator-status: PASS");
 
+  let blockedShippingCheck = null;
+  try {
+    execFileSync("node", ["scripts/print-vanta-private-core-shipping-status.mjs", "--base-url", baseUrl, "--check-ready"], {
+      cwd: repoRoot,
+      encoding: "utf8",
+      stdio: "pipe",
+    });
+  } catch (error) {
+    blockedShippingCheck = error;
+  }
+  const blockedShippingOutput =
+    blockedShippingCheck &&
+    typeof blockedShippingCheck === "object" &&
+    "stderr" in blockedShippingCheck &&
+    typeof blockedShippingCheck.stderr === "string"
+      ? blockedShippingCheck.stderr
+      : "";
+  if (
+    !blockedShippingCheck ||
+    !blockedShippingOutput.includes("No private send transition is available for boundary checks yet.")
+  ) {
+    throw new Error(
+      blockedShippingOutput || "swap->unshield shipping-check did not fail with the expected blocker",
+    );
+  }
+  printStatus("private-core swap->unshield shipping-check: PASS");
+
   const replayResponse = await requestJson(baseUrl, "/private-core/unshield-consume", {
     body: JSON.stringify({
       sourceArtifacts: outputSourceArtifacts,
