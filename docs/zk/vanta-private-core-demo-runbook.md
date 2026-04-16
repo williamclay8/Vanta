@@ -21,6 +21,7 @@ npm run private-core:demo-readiness
 npm run private-core:operator-status
 npm run private-core:shipping-status
 npm run private-core:shipping-status-json
+npm run private-core:shipping-check-json
 ```
 
 Or use the single combined command:
@@ -91,7 +92,9 @@ The shipping-status command gives the shortest operator-backed summary of:
   - contract mirror
   - operator boundary
 
-Use `private-core:shipping-status-json` when a reviewer, shell script, or external tool needs the same compact readiness surface as machine-readable JSON instead of terminal text.
+Use `private-core:shipping-status-json` when a reviewer, shell script, or external tool needs the compact readiness surface as machine-readable JSON.
+
+Use `private-core:shipping-check-json` when that same tooling wants a strict machine-readable pass/fail gate for the frozen narrow lane instead of just a status snapshot.
 
 ## App demo path
 

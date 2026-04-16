@@ -558,14 +558,8 @@ try {
   let blockedShippingJsonCheck = null;
   try {
     execFileSync(
-      "node",
-      [
-        "scripts/print-vanta-private-core-shipping-status.mjs",
-        "--base-url",
-        baseUrl,
-        "--json",
-        "--check-ready",
-      ],
+      "npm",
+      ["run", "--silent", "private-core:shipping-check-json", "--", "--base-url", baseUrl],
       {
         cwd: repoRoot,
         encoding: "utf8",

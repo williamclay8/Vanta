@@ -577,11 +577,13 @@ try {
   }
   printStatus("private-core send-chain->unshield restart shipping-status: PASS");
 
-  const shippingStatusJsonOutput = execFileSync("node", [
-    "scripts/print-vanta-private-core-shipping-status.mjs",
+  const shippingStatusJsonOutput = execFileSync("npm", [
+    "run",
+    "--silent",
+    "private-core:shipping-check-json",
+    "--",
     "--base-url",
     baseUrl,
-    "--json",
   ], {
     cwd: repoRoot,
     encoding: "utf8",

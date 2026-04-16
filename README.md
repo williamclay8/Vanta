@@ -266,6 +266,8 @@ These commands cover:
 
 `private-core:shipping-check` runs the same operator-backed shipping summary but exits non-zero unless the current summary says `Ready narrow v1`. On blocked paths it now fails with structured `Shipping status:` and `Shipping note:` stderr lines instead of a note-only message.
 
+`private-core:shipping-check-json` is the machine-readable ready-gate form of that same command: it exits zero only for `Ready narrow v1`, prints the compact readiness JSON on success, and on blocked paths emits the JSON surface to stderr before the structured `Shipping status:` / `Shipping note:` lines.
+
 The operator contract now freezes the narrow zk-v1 contract surface explicitly:
 - `contractVersion = 11`
 - `summaryVersion = 31`
