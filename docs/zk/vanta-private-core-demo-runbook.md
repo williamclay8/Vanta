@@ -22,6 +22,7 @@ npm run private-core:operator-status
 npm run private-core:operator-status-json
 npm run private-core:operator-contract-json
 npm run private-core:operator-snapshot-json
+npm run private-core:operator-snapshot-check-json
 npm run private-core:shipping-status
 npm run private-core:shipping-status-json
 npm run private-core:shipping-check-json
@@ -111,6 +112,8 @@ Use `private-core:operator-snapshot-json` when that tooling wants one bundled op
 That bundled artifact is now itself part of the frozen operator contract:
 - `supportedOperatorSnapshotVersion = 1`
 - `supportedOperatorSnapshotKind = contract-status-shipping-bundle`
+
+Use `private-core:operator-snapshot-check-json` when that same tooling wants the full bundled operator artifact as a strict ready gate instead of only the compact shipping slice.
 
 ## App demo path
 

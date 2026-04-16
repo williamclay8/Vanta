@@ -849,6 +849,70 @@ try {
   }
   printStatus("operator restart shipping-check-json surface: PASS");
 
+  let blockedOperatorSnapshotCheckJson = null;
+  try {
+    execFileSync(
+      "npm",
+      ["run", "--silent", "private-core:operator-snapshot-check-json", "--", "--base-url", baseUrl],
+      {
+        cwd: repoRoot,
+        encoding: "utf8",
+        stdio: "pipe",
+      },
+    );
+  } catch (error) {
+    blockedOperatorSnapshotCheckJson = error;
+  }
+  const blockedOperatorSnapshotCheckJsonOutput =
+    blockedOperatorSnapshotCheckJson &&
+    typeof blockedOperatorSnapshotCheckJson === "object" &&
+    "stderr" in blockedOperatorSnapshotCheckJson &&
+    typeof blockedOperatorSnapshotCheckJson.stderr === "string"
+      ? blockedOperatorSnapshotCheckJson.stderr
+      : "";
+  const blockedOperatorSnapshotCheckJsonStart =
+    blockedOperatorSnapshotCheckJsonOutput.indexOf("{");
+  const blockedOperatorSnapshotCheckJsonEnd =
+    blockedOperatorSnapshotCheckJsonOutput.lastIndexOf("}");
+  if (
+    !blockedOperatorSnapshotCheckJson ||
+    blockedOperatorSnapshotCheckJsonStart === -1 ||
+    blockedOperatorSnapshotCheckJsonEnd === -1 ||
+    !blockedOperatorSnapshotCheckJsonOutput.includes("Snapshot decision status: Blocked") ||
+    !blockedOperatorSnapshotCheckJsonOutput.includes(
+      "Snapshot decision note: Latest send resulting root still needs operator registration before downstream continuity is established.",
+    )
+  ) {
+    throw new Error(
+      blockedOperatorSnapshotCheckJsonOutput ||
+        "operator restart operator-snapshot-check json did not fail with structured output",
+    );
+  }
+  const blockedOperatorSnapshotCheckJsonSurface = JSON.parse(
+    blockedOperatorSnapshotCheckJsonOutput.slice(
+      blockedOperatorSnapshotCheckJsonStart,
+      blockedOperatorSnapshotCheckJsonEnd + 1,
+    ),
+  );
+  if (
+    blockedOperatorSnapshotCheckJsonSurface.snapshotVersion !== 1 ||
+    blockedOperatorSnapshotCheckJsonSurface.snapshotKind !== "contract-status-shipping-bundle" ||
+    blockedOperatorSnapshotCheckJsonSurface.contract?.contractVersion !== 16 ||
+    blockedOperatorSnapshotCheckJsonSurface.contract?.summaryVersion !== 40 ||
+    blockedOperatorSnapshotCheckJsonSurface.shipping?.decisionStatusRaw !== "blocked" ||
+    blockedOperatorSnapshotCheckJsonSurface.shipping?.shippingStatusRaw !==
+      "required-lanes-mismatch"
+  ) {
+    throw new Error(
+      `Unexpected operator restart operator-snapshot-check json output\n${JSON.stringify(
+        blockedOperatorSnapshotCheckJsonSurface,
+        null,
+        2,
+      )}`,
+    );
+  }
+  printStatus("operator restart operator-snapshot-check json: PASS");
+
   const operatorSnapshotJsonOutput = execFileSync("npm", [
     "run",
     "--silent",

@@ -254,6 +254,8 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   prints the live operator summary plus the canonical shipping decision as machine-readable JSON
 - `npm run private-core:operator-snapshot-json`
   prints one bundled machine-readable operator snapshot containing the frozen contract, the live summary, and the canonical shipping decision
+- `npm run private-core:operator-snapshot-check-json`
+  runs the ready-gated form of that bundled snapshot; it succeeds only when the frozen narrow lane is ready and otherwise fails with the bundled snapshot JSON plus structured snapshot decision status/note stderr
 - `npm run private-core:shipping-status`
   prints the compact operator-backed shipping summary for the frozen narrow zk-v1 lane from the dedicated `/state/private-core-shipping-decision` endpoint, which now serves as the canonical ship/no-ship contract for that frozen lane, including the decision version/kind/status/note, summary-state version, mirrored contract version, current summary generation time, and the supporting finish-line, required-lanes, release-boundary, contract-mirror, and boundary summaries; `private-core:shipping-check` uses the same surface and now fails with structured shipping status/note lines on blocked paths
 - `npm run private-core:shipping-status-json`

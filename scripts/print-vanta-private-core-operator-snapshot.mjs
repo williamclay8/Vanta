@@ -1,5 +1,6 @@
 const args = process.argv.slice(2);
 const baseUrl = resolveBaseUrl(args);
+const checkReady = args.includes("--check-ready");
 
 try {
   const [contract, summary, shippingDecision] = await Promise.all([
@@ -8,26 +9,32 @@ try {
     requestJson("/state/private-core-shipping-decision"),
   ]);
 
+  const snapshot = {
+    operator: baseUrl,
+    snapshotVersion: 1,
+    snapshotKind: "contract-status-shipping-bundle",
+    contract: {
+      operator: baseUrl,
+      ...contract,
+    },
+    status: {
+      operator: baseUrl,
+      summary,
+      shippingDecision,
+    },
+    shipping: buildShippingSurface(shippingDecision),
+  };
+
+  if (checkReady && shippingDecision.decisionStatus !== "ready-to-ship") {
+    console.error(JSON.stringify(snapshot, null, 2));
+    console.error(`Snapshot decision status: ${snapshot.shipping.decisionStatus}`);
+    console.error(`Snapshot decision note: ${snapshot.shipping.decisionNote}`);
+    process.exitCode = 1;
+    process.exit(1);
+  }
+
   console.log(
-    JSON.stringify(
-      {
-        operator: baseUrl,
-        snapshotVersion: 1,
-        snapshotKind: "contract-status-shipping-bundle",
-        contract: {
-          operator: baseUrl,
-          ...contract,
-        },
-        status: {
-          operator: baseUrl,
-          summary,
-          shippingDecision,
-        },
-        shipping: buildShippingSurface(shippingDecision),
-      },
-      null,
-      2,
-    ),
+    JSON.stringify(snapshot, null, 2),
   );
 } catch (error) {
   console.error(

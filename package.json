@@ -17,6 +17,7 @@
     "private-core:operator-status": "node scripts/print-vanta-private-core-operator-status.mjs",
     "private-core:operator-status-json": "node scripts/print-vanta-private-core-operator-status.mjs --json",
     "private-core:operator-snapshot-json": "node scripts/print-vanta-private-core-operator-snapshot.mjs",
+    "private-core:operator-snapshot-check-json": "node scripts/print-vanta-private-core-operator-snapshot.mjs --check-ready",
     "private-core:shipping-status": "node scripts/print-vanta-private-core-shipping-status.mjs",
     "private-core:shipping-status-json": "node scripts/print-vanta-private-core-shipping-status.mjs --json",
     "private-core:shipping-check": "node scripts/print-vanta-private-core-shipping-status.mjs --check-ready",

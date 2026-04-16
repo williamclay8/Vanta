@@ -624,6 +624,65 @@ try {
   }
   printStatus("private-core swap->unshield shipping-check json: PASS");
 
+  let blockedOperatorSnapshotCheckJson = null;
+  try {
+    execFileSync(
+      "npm",
+      ["run", "--silent", "private-core:operator-snapshot-check-json", "--", "--base-url", baseUrl],
+      {
+        cwd: repoRoot,
+        encoding: "utf8",
+        stdio: "pipe",
+      },
+    );
+  } catch (error) {
+    blockedOperatorSnapshotCheckJson = error;
+  }
+  const blockedOperatorSnapshotCheckJsonOutput =
+    blockedOperatorSnapshotCheckJson &&
+    typeof blockedOperatorSnapshotCheckJson === "object" &&
+    "stderr" in blockedOperatorSnapshotCheckJson &&
+    typeof blockedOperatorSnapshotCheckJson.stderr === "string"
+      ? blockedOperatorSnapshotCheckJson.stderr
+      : "";
+  const blockedOperatorSnapshotCheckJsonStart =
+    blockedOperatorSnapshotCheckJsonOutput.indexOf("{");
+  const blockedOperatorSnapshotCheckJsonEnd =
+    blockedOperatorSnapshotCheckJsonOutput.lastIndexOf("}");
+  if (
+    !blockedOperatorSnapshotCheckJson ||
+    blockedOperatorSnapshotCheckJsonStart === -1 ||
+    blockedOperatorSnapshotCheckJsonEnd === -1 ||
+    !blockedOperatorSnapshotCheckJsonOutput.includes("Snapshot decision status: Blocked") ||
+    !blockedOperatorSnapshotCheckJsonOutput.includes(
+      "Snapshot decision note: No private send transition is available for boundary checks yet.",
+    )
+  ) {
+    throw new Error(
+      blockedOperatorSnapshotCheckJsonOutput ||
+        "swap->unshield operator-snapshot-check json did not fail with structured output",
+    );
+  }
+  const blockedOperatorSnapshotJson = JSON.parse(
+    blockedOperatorSnapshotCheckJsonOutput.slice(
+      blockedOperatorSnapshotCheckJsonStart,
+      blockedOperatorSnapshotCheckJsonEnd + 1,
+    ),
+  );
+  if (
+    blockedOperatorSnapshotJson.snapshotVersion !== 1 ||
+    blockedOperatorSnapshotJson.snapshotKind !== "contract-status-shipping-bundle" ||
+    blockedOperatorSnapshotJson.contract?.contractVersion !== 16 ||
+    blockedOperatorSnapshotJson.contract?.summaryVersion !== 40 ||
+    blockedOperatorSnapshotJson.shipping?.decisionStatusRaw !== "blocked" ||
+    blockedOperatorSnapshotJson.shipping?.shippingStatusRaw !== "required-lanes-mismatch"
+  ) {
+    throw new Error(
+      `Unexpected swap->unshield operator-snapshot-check json failure\n${JSON.stringify(blockedOperatorSnapshotJson, null, 2)}`,
+    );
+  }
+  printStatus("private-core swap->unshield operator-snapshot-check json: PASS");
+
   const replayResponse = await requestJson(baseUrl, "/private-core/unshield-consume", {
     body: JSON.stringify({
       sourceArtifacts: outputSourceArtifacts,

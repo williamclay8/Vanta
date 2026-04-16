@@ -196,6 +196,7 @@ npm run private-core:demo-preflight
 npm run private-core:operator-contract
 npm run private-core:operator-status
 npm run private-core:operator-snapshot-json
+npm run private-core:operator-snapshot-check-json
 npm run private-core:shipping-status
 npm run private-core:shipping-check
 ```
@@ -269,6 +270,8 @@ These commands cover:
 `private-core:operator-status-json` prints the live operator summary plus the canonical shipping decision as machine-readable JSON, so automation can consume the full operator-backed state surface without scraping the long-form text dump.
 
 `private-core:operator-snapshot-json` prints one bundled machine-readable operator snapshot containing the frozen contract, the live summary/status surface, and the canonical shipping decision surface together, so external tooling can consume one coherent artifact instead of stitching together multiple commands. That bundled artifact is now also part of the frozen contract surface itself via `supportedOperatorSnapshotVersion = 1` and `supportedOperatorSnapshotKind = contract-status-shipping-bundle`.
+
+`private-core:operator-snapshot-check-json` is the ready-gated form of that same bundled artifact: it exits zero only when the bundled snapshot says the frozen narrow lane is ready to ship, prints the bundled JSON on success, and on blocked paths emits the full snapshot JSON to stderr before structured `Snapshot decision status:` / `Snapshot decision note:` lines.
 
 `private-core:shipping-status` is the compact operator-backed answer to the narrow zk-v1 question: whether the frozen private-core lane is actually ship-ready right now, and if not, which live blocker is preventing that. It now reads the dedicated `/state/private-core-shipping-decision` endpoint, which is the canonical ship/no-ship contract for the frozen narrow private-core lane, and prints the decision version/kind/status/note plus the current summary-state version, mirrored contract version, summary generation time, and the supporting shipping, finish-line, required-lanes, release-boundary, contract-mirror, and boundary summaries without the rest of the larger operator-status dump.
 
