@@ -545,6 +545,36 @@ try {
   }
   printStatus("private-core send->unshield shipping-status: PASS");
 
+  const shippingStatusJsonOutput = execFileSync("node", [
+    "scripts/print-vanta-private-core-shipping-status.mjs",
+    "--base-url",
+    baseUrl,
+    "--json",
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  const shippingStatusJson = JSON.parse(shippingStatusJsonOutput);
+  if (
+    shippingStatusJson.summaryStateVersion !== 1 ||
+    shippingStatusJson.mirroredContractVersion !== 14 ||
+    shippingStatusJson.summaryVersion !== 38 ||
+    typeof shippingStatusJson.summaryGenerated !== "number" ||
+    shippingStatusJson.shippingStatusRaw !== "ready-narrow-v1" ||
+    shippingStatusJson.shippingStatus !== "Ready narrow v1" ||
+    shippingStatusJson.finishLineStatusRaw !== "coherent-minimum-v1-lane" ||
+    shippingStatusJson.requiredLanesStatusRaw !== "coherent-required-lanes" ||
+    shippingStatusJson.releaseBoundaryStatusRaw !== "release-recorded" ||
+    shippingStatusJson.contractMirrorStatusRaw !== "mirrors-contract" ||
+    shippingStatusJson.boundaryStatusRaw !== "coherent"
+  ) {
+    throw new Error(
+      `Unexpected send->unshield shipping-status JSON output\n${JSON.stringify(shippingStatusJson, null, 2)}`,
+    );
+  }
+  printStatus("private-core send->unshield shipping-status json: PASS");
+
   execFileSync("node", ["scripts/print-vanta-private-core-shipping-status.mjs", "--base-url", baseUrl, "--check-ready"], {
     cwd: repoRoot,
     encoding: "utf8",
