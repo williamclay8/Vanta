@@ -615,6 +615,30 @@ try {
     throw new Error(operatorStatusOutput || "operator restart status output did not reflect persisted state");
   }
   printStatus("operator restart operator-status: PASS");
+
+  const shippingStatusOutput = execFileSync("node", [
+    "scripts/print-vanta-private-core-shipping-status.mjs",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  if (
+    !shippingStatusOutput.includes("Summary version: 38") ||
+    !shippingStatusOutput.includes("Shipping status: Required lanes mismatch") ||
+    !shippingStatusOutput.includes(
+      "Shipping note: Latest send resulting root still needs operator registration before downstream continuity is established.",
+    ) ||
+    !shippingStatusOutput.includes("Required lanes status: Send lane mismatch") ||
+    !shippingStatusOutput.includes("Release boundary status: Release recorded") ||
+    !shippingStatusOutput.includes("Contract mirror status: Summary mirrors frozen contract") ||
+    !shippingStatusOutput.includes("Boundary status: Operator boundary coherent")
+  ) {
+    throw new Error(`Unexpected restart shipping-status output\n${shippingStatusOutput}`);
+  }
+  printStatus("operator restart shipping-status: PASS");
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   console.error(message);

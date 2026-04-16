@@ -243,11 +243,13 @@ The repo now includes concrete verification commands for the Vanta Private Core 
 - `npm run private-core:demo-readiness`
   aliases the same full verification pass with a more reviewer-friendly name
 - `npm run private-core:demo-preflight`
-  runs the full verification pass and then prints the current operator-side contract and status summaries
+  runs the full verification pass and then prints the current operator-side contract, status, and compact shipping summaries
 - `npm run private-core:operator-contract`
   prints the static operator-side private-core contract surface for the current narrow zk-v1 lane
 - `npm run private-core:operator-status`
   prints the current operator-side root, proof, send-proof, send-transition, consume, and release state when the operator server is running, including proof/send, proof/consume, proof/release, and root-registration proof linkage plus send resulting-root continuity status, resulting-root provenance, and the matched resulting-root record when available
+- `npm run private-core:shipping-status`
+  prints the compact operator-backed shipping summary for the frozen narrow zk-v1 lane
 
 The current frozen operator-backed private-core contract now states the narrow accepted `v1` path explicitly:
 - `contractVersion = 11`
@@ -447,10 +449,16 @@ The same operator contract now also versions the supported narrow unshield lane:
 - `supportedNullifierKeyMode = note-secret-temporary-v0-1`
 - `supportedProvingHashLane = poseidon-bn254-proving-lane-v0`
 
-If you want one demo-operator command that does both the full verification pass and the live operator summary, use:
+If you want one demo-operator command that does the full verification pass, prints the live operator summary, and then prints the compact shipping summary, use:
 
 ```bash
 npm run private-core:demo-preflight
+```
+
+If you want the shortest operator-backed answer to whether the frozen narrow lane is actually ship-ready right now, use:
+
+```bash
+npm run private-core:shipping-status
 ```
 
 ### Is shielding the same as hiding assets in a normal wallet?

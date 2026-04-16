@@ -19,6 +19,7 @@ Run these before a live demo:
 npm run build
 npm run private-core:demo-readiness
 npm run private-core:operator-status
+npm run private-core:shipping-status
 ```
 
 Or use the single combined command:
@@ -53,6 +54,7 @@ That confirms:
 - operator state survives a restart
 - replay is still rejected after restart
 - local proof generation and verification still succeeds
+- the compact shipping summary still says whether the frozen narrow lane is actually ready or which live blocker is preventing that
 
 The operator-status command gives a quick summary snapshot of:
 - current registered root
@@ -76,6 +78,14 @@ The operator-status command gives a quick summary snapshot of:
 - proof/send link status
 - proof/consume link status
 - proof/release link status
+
+The shipping-status command gives the shortest operator-backed summary of:
+- whether the frozen narrow zk-v1 lane is `Ready narrow v1`
+- or which current blocker is preventing that:
+  - required lanes
+  - release boundary
+  - contract mirror
+  - operator boundary
 
 ## App demo path
 

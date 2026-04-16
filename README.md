@@ -195,6 +195,8 @@ npm run private-core:demo-readiness
 npm run private-core:demo-preflight
 npm run private-core:operator-contract
 npm run private-core:operator-status
+npm run private-core:shipping-status
+npm run private-core:shipping-check
 ```
 
 These commands cover:
@@ -252,11 +254,15 @@ These commands cover:
 
 `private-core:demo-readiness` is the friendliest single entrypoint when you just want to know whether the current proof/demo lane is stage-ready.
 
-`private-core:demo-preflight` combines the full verification pass with both the current operator contract surface and the current operator status summary.
+`private-core:demo-preflight` combines the full verification pass with the current operator contract surface, the full operator status summary, and the compact shipping summary.
 
 `private-core:operator-contract` gives the static narrow zk-v1 contract the operator currently supports: send lane, unshield lane, release lane, swap lane, supported flow, supported asset/environment, note contract, recipient/release-destination models, proof system, fixed circuit ids, fixed Merkle depth, owner-auth mode, nullifier-key mode, proving hash lane, root-registration provenance, send input-root policy, send output-registration policy, the current send resulting-root basis, and the currently supported constrained swap venue/output/root-policy model.
 
 `private-core:operator-status` gives a quick readout of the current operator root, proof, send-proof, swap-proof, send-transition, swap-transition, consume, and release state when the operator server is running, including proof/send, proof/swap, proof/consume, proof/release, and root-registration proof linkage. It also reports the supported send-lane version and identity carried by the operator summary, plus the latest send resulting-root continuity status and the concrete registered root record behind that resulting root when one exists, so you can see whether the newest private-send root is still unregistered, current, stale, or already consumed/released downstream. The current private-core release lane now also carries explicit release authorization, root-policy, execution, atomicity, and persistence fields, so the operator summary says not just that a release was recorded, but that it was authorized by `proof-backed-consume` under the `latest-registered-root` policy, executed as an operator-recorded devnet release, atomically recorded with consume state in the local operator lane, and persisted in the current JSON store. The send lane still requires the current input root to stay linked to its registration proof before the operator will accept a transition, the resulting root remains explicitly `client-declared` until later registration proves continuity, and registered roots now carry explicit provenance as `shield-input`, `send-recipient-output`, `send-change-output`, or `swap-output`. The constrained swap lane now also has a proof-backed transition seam that requires the current input root to be registered and latest before the operator will persist swap state, keeps the latest swap proof and latest swap transition in the canonical operator summary, now preserves the latest swap execution venue and quote reference across summary reloads and restart, and proves that summary-backed swap state survives operator restart, while the resulting swap root remains explicitly `client-declared` in the current narrow lane.
+
+`private-core:shipping-status` is the compact operator-backed answer to the narrow zk-v1 question: whether the frozen private-core lane is actually ship-ready right now, and if not, which live blocker is preventing that. It prints the current `zkV1ShippingStatus` / `zkV1ShippingNote` plus the supporting required-lanes, release-boundary, contract-mirror, and boundary summaries without the rest of the larger operator-status dump.
+
+`private-core:shipping-check` runs the same operator-backed shipping summary but exits non-zero unless the current summary says `Ready narrow v1`.
 
 The operator contract now freezes the narrow zk-v1 contract surface explicitly:
 - `contractVersion = 11`
