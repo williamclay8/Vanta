@@ -458,6 +458,10 @@ try {
     !shippingStatusOutput.includes(
       "Shipping note: No private send transition is available for boundary checks yet.",
     ) ||
+    !shippingStatusOutput.includes("Finish line status: Coherent minimum v1 lane") ||
+    !shippingStatusOutput.includes(
+      "Finish line note: Frozen minimum zk v1 send/unshield/release lane is coherent at the operator boundary.",
+    ) ||
     !shippingStatusOutput.includes("Required lanes status: Send lane mismatch") ||
     !shippingStatusOutput.includes("Release boundary status: Release recorded") ||
     !shippingStatusOutput.includes("Contract mirror status: Summary mirrors frozen contract") ||

@@ -9,6 +9,8 @@ try {
   printLine("Summary version", String(summary.summaryVersion ?? "unknown"));
   printLine("Shipping status", humanizeShippingStatus(summary.zkV1ShippingStatus));
   printLine("Shipping note", summary.zkV1ShippingNote ?? "Unavailable");
+  printLine("Finish line status", humanizeFinishLineStatus(summary.zkV1FinishLineStatus));
+  printLine("Finish line note", summary.zkV1FinishLineNote ?? "Unavailable");
   printLine("Required lanes status", humanizeRequiredLanesStatus(summary.requiredLanesStatus));
   printLine("Required lanes note", summary.requiredLanesNote ?? "Unavailable");
   printLine(
@@ -61,6 +63,19 @@ function humanizeRequiredLanesStatus(value) {
       return "Release lane mismatch";
     case "finish-line-mismatch":
       return "Finish-line mismatch";
+    default:
+      return "Unknown";
+  }
+}
+
+function humanizeFinishLineStatus(value) {
+  switch (value) {
+    case "coherent-minimum-v1-lane":
+      return "Coherent minimum v1 lane";
+    case "contract-mismatch":
+      return "Contract mismatch";
+    case "boundary-mismatch":
+      return "Boundary mismatch";
     default:
       return "Unknown";
   }

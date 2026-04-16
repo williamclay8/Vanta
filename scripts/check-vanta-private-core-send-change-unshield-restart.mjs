@@ -532,6 +532,10 @@ try {
     !shippingStatusOutput.includes(
       "Shipping note: Minimum zk v1 required lanes are coherent and the operator boundary remains contract-coherent enough to ship the frozen narrow lane.",
     ) ||
+    !shippingStatusOutput.includes("Finish line status: Coherent minimum v1 lane") ||
+    !shippingStatusOutput.includes(
+      "Finish line note: Frozen minimum zk v1 send/unshield/release lane is coherent at the operator boundary.",
+    ) ||
     !shippingStatusOutput.includes("Required lanes status: Coherent required lanes") ||
     !shippingStatusOutput.includes("Release boundary status: Release recorded") ||
     !shippingStatusOutput.includes("Contract mirror status: Summary mirrors frozen contract") ||
