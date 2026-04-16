@@ -270,6 +270,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorContractStateVersion: number | null;
   privateCoreOperatorContractVersion: number | null;
   privateCoreOperatorContractSummaryVersion: number | null;
+  privateCoreOperatorSnapshotVersion: number | null;
+  privateCoreOperatorSnapshotKind: string | null;
   privateCoreOperatorShippingDecisionVersion: number | null;
   privateCoreOperatorShippingDecisionKind: string | null;
   privateCoreOperatorSummaryUpdatedAt: number | null;
@@ -849,6 +851,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<number | null>(null);
   const [privateCoreOperatorContractSummaryVersion, setPrivateCoreOperatorContractSummaryVersion] =
     useState<number | null>(null);
+  const [privateCoreOperatorSnapshotVersion, setPrivateCoreOperatorSnapshotVersion] =
+    useState<number | null>(null);
+  const [privateCoreOperatorSnapshotKind, setPrivateCoreOperatorSnapshotKind] =
+    useState<string | null>(null);
   const [privateCoreOperatorShippingDecisionVersion, setPrivateCoreOperatorShippingDecisionVersion] =
     useState<number | null>(null);
   const [privateCoreOperatorShippingDecisionKind, setPrivateCoreOperatorShippingDecisionKind] =
@@ -999,6 +1005,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSwaps,
       setPrivateCoreOperatorSwapProofs,
     });
+    setPrivateCoreOperatorSnapshotVersion(snapshotState.snapshotVersion);
+    setPrivateCoreOperatorSnapshotKind(snapshotState.snapshotKind);
     setPrivateCoreOperatorShippingDecisionVersion(shippingDecisionState.decisionVersion);
     setPrivateCoreOperatorShippingDecisionKind(shippingDecisionState.decisionKind);
     setPrivateCoreOperatorRawShippingDecisionNote(shippingDecisionState.decisionNote);
@@ -2351,6 +2359,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorContractStateVersion,
       privateCoreOperatorContractVersion,
       privateCoreOperatorContractSummaryVersion,
+      privateCoreOperatorSnapshotVersion,
+      privateCoreOperatorSnapshotKind,
       privateCoreOperatorShippingDecisionVersion,
       privateCoreOperatorShippingDecisionKind,
       privateCoreOperatorSummaryUpdatedAt,
@@ -2508,6 +2518,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorContractStateVersion,
       privateCoreOperatorContractVersion,
       privateCoreOperatorContractSummaryVersion,
+      privateCoreOperatorSnapshotVersion,
+      privateCoreOperatorSnapshotKind,
       privateCoreOperatorShippingDecisionVersion,
       privateCoreOperatorShippingDecisionKind,
       privateCoreOperatorSummaryUpdatedAt,

@@ -230,6 +230,8 @@ export function UnshieldPage() {
     privateCoreOperatorContractStateVersion,
     privateCoreOperatorContractVersion,
     privateCoreOperatorContractSummaryVersion,
+    privateCoreOperatorSnapshotKind,
+    privateCoreOperatorSnapshotVersion,
     privateCoreOperatorShippingDecisionKind,
     privateCoreOperatorShippingDecisionVersion,
     privateCoreOperatorSendError,
@@ -1157,6 +1159,8 @@ export function UnshieldPage() {
           operatorContractStateVersion={privateCoreOperatorContractStateVersion}
           operatorContractVersion={privateCoreOperatorContractVersion}
           operatorContractSummaryVersion={privateCoreOperatorContractSummaryVersion}
+          operatorSnapshotVersion={privateCoreOperatorSnapshotVersion}
+          operatorSnapshotKind={privateCoreOperatorSnapshotKind}
           operatorShippingDecisionVersion={privateCoreOperatorShippingDecisionVersion}
           operatorShippingDecisionKind={privateCoreOperatorShippingDecisionKind}
           operatorSendError={privateCoreOperatorSendError}
