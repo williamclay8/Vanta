@@ -253,9 +253,9 @@ The repo now includes concrete verification commands for the Vanta Private Core 
 - `npm run private-core:operator-status-json`
   prints the live operator summary plus the canonical shipping decision as machine-readable JSON
 - `npm run private-core:operator-status-check`
-  runs the ready-gated human-readable form of that long operator-status surface and fails with structured `Operator status decision status:` / `Operator status decision note:` lines on blocked paths
+  runs the ready-gated human-readable form of that long operator-status surface from the dedicated `/state/private-core-status-check` endpoint and fails with structured `Operator status decision status:` / `Operator status decision note:` lines on blocked paths
 - `npm run private-core:operator-status-check-json`
-  runs the ready-gated machine-readable form of that same long operator-status surface; it succeeds only when the frozen narrow lane is ready and otherwise fails with full operator-status JSON plus structured operator-status decision status/note stderr
+  runs the ready-gated machine-readable form of that same long operator-status surface from `/state/private-core-status-check`; it succeeds only when the frozen narrow lane is ready and otherwise fails with full operator-status JSON plus structured operator-status decision status/note stderr
 - `npm run private-core:operator-snapshot`
   prints the bundled operator snapshot as a human-readable contract + status + shipping artifact from the dedicated snapshot endpoint
 - `npm run private-core:operator-snapshot-json`

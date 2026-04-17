@@ -4,7 +4,10 @@ const checkReady = args.includes("--check-ready");
 const jsonMode = args.includes("--json");
 
 try {
-  const statusState = await requestJson("/state/private-core-status");
+  const rawStatusState = checkReady
+    ? await requestJson("/state/private-core-status-check")
+    : await requestJson("/state/private-core-status");
+  const statusState = checkReady ? rawStatusState?.status ?? {} : rawStatusState ?? {};
   const summary = statusState?.summary ?? {};
   const shippingDecision = statusState?.shippingDecision ?? {};
   const payload = {
@@ -19,16 +22,16 @@ try {
     shippingDecision,
   };
 
-  if (checkReady && shippingDecision?.decisionStatus !== "ready-to-ship") {
+  if (checkReady && rawStatusState?.decisionStatus !== "ready-to-ship") {
     if (jsonMode) {
       console.error(JSON.stringify(payload, null, 2));
     }
     throw new Error(
       [
         `Operator status decision status: ${humanizeShippingDecisionStatus(
-          shippingDecision?.decisionStatus,
+          rawStatusState?.decisionStatus,
         )}`,
-        `Operator status decision note: ${shippingDecision?.decisionNote ?? "Unavailable"}`,
+        `Operator status decision note: ${rawStatusState?.decisionNote ?? "Unavailable"}`,
       ].join("\n"),
     );
   }

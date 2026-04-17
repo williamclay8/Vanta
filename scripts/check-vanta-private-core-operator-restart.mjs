@@ -1068,6 +1068,26 @@ try {
   }
   printStatus("operator restart status endpoint: PASS");
 
+  const operatorStatusCheckState = await requestJson(baseUrl, "/state/private-core-status-check", {
+    method: "GET",
+  });
+  if (
+    !operatorStatusCheckState.ok ||
+    operatorStatusCheckState.parsed?.checkVersion !== 1 ||
+    operatorStatusCheckState.parsed?.checkKind !== "ready-gated-long-form-live-status" ||
+    operatorStatusCheckState.parsed?.decisionVersion !== 1 ||
+    operatorStatusCheckState.parsed?.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
+    operatorStatusCheckState.parsed?.decisionStatus !== "blocked" ||
+    operatorStatusCheckState.parsed?.status?.statusVersion !== 1 ||
+    operatorStatusCheckState.parsed?.status?.statusKind !== "long-form-live-status"
+  ) {
+    throw new Error(
+      operatorStatusCheckState.text ||
+        "operator restart status-check endpoint returned unexpected output",
+    );
+  }
+  printStatus("operator restart status-check endpoint: PASS");
+
   const operatorSnapshotState = await requestJson(baseUrl, "/state/private-core-snapshot", {
     method: "GET",
   });

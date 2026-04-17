@@ -210,6 +210,8 @@ const PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_GATE_VERSION = 1;
 const PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_GATE_KIND = "ready-gated-long-form-live-status";
 const PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_GATE_NOTE =
   "Long-form operator-status surface can act as a strict ready gate for the frozen narrow lane.";
+const PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_GATE_TRANSPORT = "dedicated-endpoint";
+const PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_GATE_ENDPOINT = "/state/private-core-status-check";
 const PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_TRANSPORT = "dedicated-endpoint";
 const PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_ENDPOINT = "/state/private-core-status";
 const PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_VERSION = 1;
@@ -350,6 +352,13 @@ const server = createServer(async (request, response) => {
     writeCorsHeaders(response);
     response.writeHead(200, { "Content-Type": "application/json" });
     response.end(JSON.stringify(buildPrivateCoreOperatorStatusState(request)));
+    return;
+  }
+
+  if (request.method === "GET" && request.url === "/state/private-core-status-check") {
+    writeCorsHeaders(response);
+    response.writeHead(200, { "Content-Type": "application/json" });
+    response.end(JSON.stringify(buildPrivateCoreOperatorStatusCheckState(request)));
     return;
   }
 
@@ -2274,6 +2283,22 @@ function buildPrivateCoreOperatorStatusState(request) {
   };
 }
 
+function buildPrivateCoreOperatorStatusCheckState(request) {
+  const status = buildPrivateCoreOperatorStatusState(request);
+  const shippingDecision = status.shippingDecision;
+
+  return {
+    operator: status.operator,
+    checkVersion: 1,
+    checkKind: "ready-gated-long-form-live-status",
+    decisionVersion: shippingDecision.decisionVersion,
+    decisionKind: shippingDecision.decisionKind,
+    decisionStatus: shippingDecision.decisionStatus,
+    decisionNote: shippingDecision.decisionNote,
+    status,
+  };
+}
+
 function buildPrivateCoreShippingArtifactState(request) {
   const snapshot = buildPrivateCoreOperatorSnapshotState(request);
   const shippingDecision = snapshot.status.shippingDecision;
@@ -2340,6 +2365,8 @@ function buildPrivateCoreContractState() {
     supportedOperatorStatusGateVersion: PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_GATE_VERSION,
     supportedOperatorStatusGateKind: PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_GATE_KIND,
     supportedOperatorStatusGateNote: PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_GATE_NOTE,
+    supportedOperatorStatusGateTransport: PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_GATE_TRANSPORT,
+    supportedOperatorStatusGateEndpoint: PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_GATE_ENDPOINT,
     supportedOperatorStatusTransport: PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_TRANSPORT,
     supportedOperatorStatusEndpoint: PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_ENDPOINT,
     supportedOperatorSnapshotVersion: PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_VERSION,

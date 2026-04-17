@@ -143,6 +143,14 @@ try {
     contract.supportedOperatorStatusGateNote ?? "Unavailable",
   );
   printLine(
+    "Supported operator status gate transport",
+    contract.supportedOperatorStatusGateTransport ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator status gate endpoint",
+    contract.supportedOperatorStatusGateEndpoint ?? "Unavailable",
+  );
+  printLine(
     "Supported operator status transport",
     contract.supportedOperatorStatusTransport ?? "Unavailable",
   );

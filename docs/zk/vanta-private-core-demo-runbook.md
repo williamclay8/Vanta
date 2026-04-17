@@ -112,9 +112,9 @@ That JSON now comes from the dedicated `/state/private-core-shipping-decision` e
 
 Use `private-core:shipping-check-json` when that same tooling wants a strict machine-readable pass/fail gate for the frozen narrow lane instead of just a status snapshot.
 
-Use `private-core:operator-status-check` when a human wants the full live operator-status surface itself to act as the strict ready gate instead of only the compact shipping slice.
+Use `private-core:operator-status-check` when a human wants the full live operator-status surface itself to act as the strict ready gate instead of only the compact shipping slice. It now reads the dedicated `/state/private-core-status-check` endpoint.
 
-Use `private-core:operator-status-check-json` when that same tooling wants the full live operator-status JSON as a strict machine-readable ready gate instead of only the compact shipping slice.
+Use `private-core:operator-status-check-json` when that same tooling wants the full live operator-status JSON as a strict machine-readable ready gate instead of only the compact shipping slice. It also reads `/state/private-core-status-check`.
 
 That long-form status surface is now itself frozen in the operator contract via:
 - `supportedOperatorStatusVersion = 1`

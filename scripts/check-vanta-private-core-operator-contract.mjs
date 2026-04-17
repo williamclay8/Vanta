@@ -144,6 +144,9 @@ try {
     contractState.parsed?.supportedOperatorStatusGateKind !==
       "ready-gated-long-form-live-status" ||
     typeof contractState.parsed?.supportedOperatorStatusGateNote !== "string" ||
+    contractState.parsed?.supportedOperatorStatusGateTransport !== "dedicated-endpoint" ||
+    contractState.parsed?.supportedOperatorStatusGateEndpoint !==
+      "/state/private-core-status-check" ||
     contractState.parsed?.supportedOperatorStatusTransport !== "dedicated-endpoint" ||
     contractState.parsed?.supportedOperatorStatusEndpoint !== "/state/private-core-status" ||
     contractState.parsed?.supportedOperatorSnapshotVersion !== 1 ||
@@ -348,6 +351,12 @@ try {
     !contractOutput.includes(
       "Supported operator status gate kind: ready-gated-long-form-live-status",
     ) ||
+    !contractOutput.includes(
+      "Supported operator status gate transport: dedicated-endpoint",
+    ) ||
+    !contractOutput.includes(
+      "Supported operator status gate endpoint: /state/private-core-status-check",
+    ) ||
     !contractOutput.includes("Supported operator status transport: dedicated-endpoint") ||
     !contractOutput.includes("Supported operator status endpoint: /state/private-core-status") ||
     !contractOutput.includes("Supported operator snapshot version: 1") ||
@@ -409,6 +418,8 @@ try {
     contractJson.supportedOperatorStatusGateKind !== "ready-gated-long-form-live-status" ||
     contractJson.supportedOperatorStatusGateNote !==
       "Long-form operator-status surface can act as a strict ready gate for the frozen narrow lane." ||
+    contractJson.supportedOperatorStatusGateTransport !== "dedicated-endpoint" ||
+    contractJson.supportedOperatorStatusGateEndpoint !== "/state/private-core-status-check" ||
     contractJson.supportedOperatorStatusTransport !== "dedicated-endpoint" ||
     contractJson.supportedOperatorStatusEndpoint !== "/state/private-core-status" ||
     contractJson.supportedOperatorSnapshotVersion !== 1 ||

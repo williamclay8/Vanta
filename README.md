@@ -277,9 +277,9 @@ These commands cover:
 
 `private-core:operator-status-json` prints the live operator summary plus the canonical shipping decision as machine-readable JSON, so automation can consume the full operator-backed state surface without scraping the long-form text dump.
 
-`private-core:operator-status-check` is the ready-gated human-readable form of that same long operator-status surface: it exits zero only when the live operator status says the frozen narrow lane is ready to ship, and on blocked paths fails with structured `Operator status decision status:` / `Operator status decision note:` lines.
+`private-core:operator-status-check` is the ready-gated human-readable form of that same long operator-status surface: it now reads the dedicated `/state/private-core-status-check` endpoint, exits zero only when the live operator status says the frozen narrow lane is ready to ship, and on blocked paths fails with structured `Operator status decision status:` / `Operator status decision note:` lines.
 
-`private-core:operator-status-check-json` is the ready-gated machine-readable form of that same long operator-status surface: it exits zero only when the live operator status says the frozen narrow lane is ready to ship, prints the full operator-status JSON on success, and on blocked paths emits the full operator-status JSON to stderr before structured `Operator status decision status:` / `Operator status decision note:` lines.
+`private-core:operator-status-check-json` is the ready-gated machine-readable form of that same long operator-status surface: it now reads the dedicated `/state/private-core-status-check` endpoint, exits zero only when the live operator status says the frozen narrow lane is ready to ship, prints the full operator-status JSON on success, and on blocked paths emits the full operator-status JSON to stderr before structured `Operator status decision status:` / `Operator status decision note:` lines.
 
 `private-core:operator-snapshot` prints that same bundled operator snapshot in a human-readable form, including the snapshot identity, dedicated transport/endpoint, contract version, summary version, decision status, and the supporting shipping / finish-line / required-lanes / release-boundary / contract-mirror / boundary summaries.
 
