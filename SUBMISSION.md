@@ -253,7 +253,7 @@ The repo now includes concrete verification commands for the Vanta Private Core 
 - `npm run private-core:operator-status-json`
   prints the live operator summary plus the canonical shipping decision as machine-readable JSON
 - `npm run private-core:operator-status-check`
-  runs the ready-gated human-readable form of that long operator-status surface from the dedicated `/state/private-core-status-check` endpoint and fails with structured `Operator status decision status:` / `Operator status decision note:` lines on blocked paths
+  runs the ready-gated human-readable form of that long operator-status surface from the dedicated `/state/private-core-status-check` endpoint and fails with structured `Operator status decision status:` / `Operator status decision note:` lines on blocked paths; the frozen contract now treats that gate as its own operator transport via `supportedOperatorStatusGateTransport = dedicated-endpoint` / `supportedOperatorStatusGateEndpoint = /state/private-core-status-check`
 - `npm run private-core:operator-status-check-json`
   runs the ready-gated machine-readable form of that same long operator-status surface from `/state/private-core-status-check`; it succeeds only when the frozen narrow lane is ready and otherwise fails with full operator-status JSON plus structured operator-status decision status/note stderr
 - `npm run private-core:operator-snapshot`
@@ -261,7 +261,7 @@ The repo now includes concrete verification commands for the Vanta Private Core 
 - `npm run private-core:operator-snapshot-json`
   prints one bundled machine-readable operator snapshot from the dedicated `/state/private-core-snapshot` endpoint, containing the frozen contract, the live summary, and the canonical shipping decision together; the shared app runtime now hydrates its operator contract/summary/shipping state from that same bundled endpoint
 - `npm run private-core:operator-snapshot-check`
-  runs the ready-gated human-readable form of that bundled snapshot and fails with structured `Snapshot decision status:` / `Snapshot decision note:` lines on blocked paths
+  runs the ready-gated human-readable form of that bundled snapshot and fails with structured `Snapshot decision status:` / `Snapshot decision note:` lines on blocked paths; the frozen contract now treats that bundled ready gate as its own operator transport via `supportedOperatorSnapshotGateTransport = dedicated-endpoint` / `supportedOperatorSnapshotGateEndpoint = /state/private-core-snapshot-check`
 - `npm run private-core:operator-snapshot-check-json`
   runs the ready-gated form of that bundled snapshot; it succeeds only when the frozen narrow lane is ready and otherwise fails with the bundled snapshot JSON plus structured snapshot decision status/note stderr
 - `npm run private-core:shipping-artifact`
@@ -269,11 +269,11 @@ The repo now includes concrete verification commands for the Vanta Private Core 
 - `npm run private-core:shipping-artifact-json`
   prints that same release-grade operator artifact as machine-readable JSON from the dedicated `/state/private-core-shipping-artifact` endpoint
 - `npm run private-core:shipping-artifact-check`
-  runs the ready-gated human-readable form of that release artifact and fails with structured `Artifact decision status:` / `Artifact decision note:` lines on blocked paths
+  runs the ready-gated human-readable form of that release artifact and fails with structured `Artifact decision status:` / `Artifact decision note:` lines on blocked paths; the frozen contract now carries that ready-gated release artifact transport explicitly via `supportedShippingArtifactGateTransport = dedicated-endpoint` / `supportedShippingArtifactGateEndpoint = /state/private-core-shipping-artifact-check`
 - `npm run private-core:shipping-artifact-check-json`
   runs the machine-readable ready-gated form of that release artifact; it succeeds only when the frozen narrow lane is ready and otherwise fails with the full artifact JSON plus structured artifact decision status/note stderr
 - `npm run private-core:shipping-status`
-  prints the compact operator-backed shipping summary for the frozen narrow zk-v1 lane from the dedicated `/state/private-core-shipping-decision` endpoint, which now serves as the canonical ship/no-ship contract for that frozen lane, including the decision version/kind/status/note, summary-state version, mirrored contract version, current summary generation time, and the supporting finish-line, required-lanes, release-boundary, contract-mirror, and boundary summaries; `private-core:shipping-check` uses the same surface and now fails with structured shipping status/note lines on blocked paths
+  prints the compact operator-backed shipping summary for the frozen narrow zk-v1 lane from the dedicated `/state/private-core-shipping-decision` endpoint, which now serves as the canonical ship/no-ship contract for that frozen lane, including the decision version/kind/status/note, summary-state version, mirrored contract version, current summary generation time, and the supporting finish-line, required-lanes, release-boundary, contract-mirror, and boundary summaries; `private-core:shipping-check` now reads the dedicated `/state/private-core-shipping-decision-check` gate endpoint directly and fails with structured shipping status/note lines on blocked paths
 - `npm run private-core:shipping-status-json`
   prints that same compact readiness surface as JSON for automation and external tooling, including the canonical decision fields
 - `npm run private-core:shipping-check-json`

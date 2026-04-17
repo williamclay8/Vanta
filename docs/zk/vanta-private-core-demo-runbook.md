@@ -121,6 +121,8 @@ That long-form status surface is now itself frozen in the operator contract via:
 - `supportedOperatorStatusKind = long-form-live-status`
 - `supportedOperatorStatusGateVersion = 1`
 - `supportedOperatorStatusGateKind = ready-gated-long-form-live-status`
+- `supportedOperatorStatusGateTransport = dedicated-endpoint`
+- `supportedOperatorStatusGateEndpoint = /state/private-core-status-check`
 - `supportedOperatorStatusTransport = dedicated-endpoint`
 - `supportedOperatorStatusEndpoint = /state/private-core-status`
 
@@ -136,6 +138,8 @@ The shared app runtime now hydrates its operator contract, live summary, and shi
 That bundled artifact is now itself part of the frozen operator contract:
 - `supportedOperatorSnapshotVersion = 1`
 - `supportedOperatorSnapshotKind = contract-status-shipping-bundle`
+- `supportedOperatorSnapshotGateTransport = dedicated-endpoint`
+- `supportedOperatorSnapshotGateEndpoint = /state/private-core-snapshot-check`
 - `supportedOperatorSnapshotTransport = dedicated-endpoint`
 - `supportedOperatorSnapshotEndpoint = /state/private-core-snapshot`
 
@@ -153,6 +157,8 @@ Use `private-core:shipping-artifact-json` when that tooling wants one canonical 
 That shipping artifact is now itself part of the frozen operator contract:
 - `supportedShippingArtifactVersion = 1`
 - `supportedShippingArtifactKind = shipping-decision-checked-snapshot-bundle`
+- `supportedShippingArtifactGateTransport = dedicated-endpoint`
+- `supportedShippingArtifactGateEndpoint = /state/private-core-shipping-artifact-check`
 - `supportedShippingArtifactTransport = dedicated-endpoint`
 - `supportedShippingArtifactEndpoint = /state/private-core-shipping-artifact`
 

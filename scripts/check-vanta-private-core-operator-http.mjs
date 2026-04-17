@@ -1221,9 +1221,23 @@ try {
     !operatorStatusOutput.includes("Status kind: long-form-live-status") ||
     !operatorStatusOutput.includes("Snapshot version: 1") ||
     !operatorStatusOutput.includes("Snapshot kind: contract-status-shipping-bundle") ||
+    !operatorStatusOutput.includes("Supported operator status gate transport: dedicated-endpoint") ||
+    !operatorStatusOutput.includes(
+      "Supported operator status gate endpoint: /state/private-core-status-check",
+    ) ||
     !operatorStatusOutput.includes("Supported operator status transport: dedicated-endpoint") ||
     !operatorStatusOutput.includes(
       "Supported operator status endpoint: /state/private-core-status",
+    ) ||
+    !operatorStatusOutput.includes("Supported operator snapshot gate version: 1") ||
+    !operatorStatusOutput.includes(
+      "Supported operator snapshot gate kind: ready-gated-contract-status-shipping-bundle",
+    ) ||
+    !operatorStatusOutput.includes(
+      "Supported operator snapshot gate transport: dedicated-endpoint",
+    ) ||
+    !operatorStatusOutput.includes(
+      "Supported operator snapshot gate endpoint: /state/private-core-snapshot-check",
     ) ||
     !operatorStatusOutput.includes("Supported operator snapshot transport: dedicated-endpoint") ||
     !operatorStatusOutput.includes(

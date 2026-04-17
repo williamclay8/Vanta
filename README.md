@@ -277,7 +277,7 @@ These commands cover:
 
 `private-core:operator-status-json` prints the live operator summary plus the canonical shipping decision as machine-readable JSON, so automation can consume the full operator-backed state surface without scraping the long-form text dump.
 
-`private-core:operator-status-check` is the ready-gated human-readable form of that same long operator-status surface: it now reads the dedicated `/state/private-core-status-check` endpoint, exits zero only when the live operator status says the frozen narrow lane is ready to ship, and on blocked paths fails with structured `Operator status decision status:` / `Operator status decision note:` lines.
+`private-core:operator-status-check` is the ready-gated human-readable form of that same long operator-status surface: it now reads the dedicated `/state/private-core-status-check` endpoint, exits zero only when the live operator status says the frozen narrow lane is ready to ship, and on blocked paths fails with structured `Operator status decision status:` / `Operator status decision note:` lines. The frozen contract now treats that gate as its own operator-owned transport via `supportedOperatorStatusGateTransport = dedicated-endpoint` and `supportedOperatorStatusGateEndpoint = /state/private-core-status-check`.
 
 `private-core:operator-status-check-json` is the ready-gated machine-readable form of that same long operator-status surface: it now reads the dedicated `/state/private-core-status-check` endpoint, exits zero only when the live operator status says the frozen narrow lane is ready to ship, prints the full operator-status JSON on success, and on blocked paths emits the full operator-status JSON to stderr before structured `Operator status decision status:` / `Operator status decision note:` lines.
 
@@ -285,7 +285,7 @@ These commands cover:
 
 `private-core:operator-snapshot-json` prints one bundled machine-readable operator snapshot from the dedicated `/state/private-core-snapshot` endpoint, containing the frozen contract, the live summary/status surface, and the canonical shipping decision surface together, so external tooling can consume one coherent artifact instead of stitching together multiple commands. The shared app runtime now also hydrates its operator contract, summary, and shipping decision state from that bundled snapshot endpoint rather than rebuilding the same bundle from three separate fetches. That bundled artifact is now also part of the frozen contract surface itself via `supportedOperatorSnapshotVersion = 1`, `supportedOperatorSnapshotKind = contract-status-shipping-bundle`, `supportedOperatorSnapshotTransport = dedicated-endpoint`, and `supportedOperatorSnapshotEndpoint = /state/private-core-snapshot`.
 
-`private-core:operator-snapshot-check` is the ready-gated human-readable form of that same bundled artifact: it exits zero only when the bundled snapshot says the frozen narrow lane is ready to ship, and on blocked paths fails with structured `Snapshot decision status:` / `Snapshot decision note:` lines.
+`private-core:operator-snapshot-check` is the ready-gated human-readable form of that same bundled artifact: it exits zero only when the bundled snapshot says the frozen narrow lane is ready to ship, and on blocked paths fails with structured `Snapshot decision status:` / `Snapshot decision note:` lines. The frozen contract now treats that bundled ready gate as its own operator transport too via `supportedOperatorSnapshotGateTransport = dedicated-endpoint` and `supportedOperatorSnapshotGateEndpoint = /state/private-core-snapshot-check`.
 
 `private-core:operator-snapshot-check-json` is the ready-gated machine-readable form of that same bundled artifact: it exits zero only when the bundled snapshot says the frozen narrow lane is ready to ship, prints the bundled JSON on success, and on blocked paths emits the full snapshot JSON to stderr before structured `Snapshot decision status:` / `Snapshot decision note:` lines.
 
@@ -293,7 +293,7 @@ These commands cover:
 
 `private-core:shipping-artifact-json` prints that same release-grade artifact as machine-readable JSON from the dedicated `/state/private-core-shipping-artifact` endpoint. It now gives automation one canonical operator-owned handoff object containing the shipping decision plus the bundled contract/status/shipping snapshot, rather than requiring tooling to join those surfaces itself.
 
-`private-core:shipping-artifact-check` is the ready-gated human-readable form of that artifact: it exits zero only when the artifact says the frozen narrow lane is ready to ship, and on blocked paths fails with structured `Artifact decision status:` / `Artifact decision note:` lines.
+`private-core:shipping-artifact-check` is the ready-gated human-readable form of that artifact: it exits zero only when the artifact says the frozen narrow lane is ready to ship, and on blocked paths fails with structured `Artifact decision status:` / `Artifact decision note:` lines. The frozen contract now carries that ready-gated release artifact transport explicitly via `supportedShippingArtifactGateTransport = dedicated-endpoint` and `supportedShippingArtifactGateEndpoint = /state/private-core-shipping-artifact-check`.
 
 `private-core:shipping-artifact-check-json` is the ready-gated machine-readable form of that artifact: it exits zero only when the artifact says the frozen narrow lane is ready to ship, prints the full artifact JSON on success, and on blocked paths emits the full artifact JSON to stderr before structured `Artifact decision status:` / `Artifact decision note:` lines.
 
@@ -301,7 +301,7 @@ These commands cover:
 
 `private-core:shipping-status-json` prints that same compact readiness surface as machine-readable JSON, including the canonical decision fields and both raw enum values and humanized labels for shipping, finish-line, required-lanes, release-boundary, contract-mirror, and boundary state.
 
-`private-core:shipping-check` runs the same operator-backed shipping summary but exits non-zero unless the current summary says `Ready narrow v1`. On blocked paths it now fails with structured `Shipping status:` and `Shipping note:` stderr lines instead of a note-only message.
+`private-core:shipping-check` runs the same operator-backed shipping summary but exits non-zero unless the current summary says `Ready narrow v1`. It now reads the dedicated `/state/private-core-shipping-decision-check` gate endpoint directly, and on blocked paths fails with structured `Shipping status:` and `Shipping note:` stderr lines instead of a note-only message.
 
 `private-core:shipping-check-json` is the machine-readable ready-gate form of that same command: it exits zero only for `Ready narrow v1`, prints the compact readiness JSON on success, and on blocked paths emits the JSON surface to stderr before the structured `Shipping status:` / `Shipping note:` lines.
 

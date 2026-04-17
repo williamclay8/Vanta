@@ -251,12 +251,40 @@ try {
     summary.supportedOperatorStatusGateNote ?? "Unavailable",
   );
   printLine(
+    "Supported operator status gate transport",
+    summary.supportedOperatorStatusGateTransport ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator status gate endpoint",
+    summary.supportedOperatorStatusGateEndpoint ?? "Unavailable",
+  );
+  printLine(
     "Supported operator status transport",
     summary.supportedOperatorStatusTransport ?? "Unavailable",
   );
   printLine(
     "Supported operator status endpoint",
     summary.supportedOperatorStatusEndpoint ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator snapshot gate version",
+    String(summary.supportedOperatorSnapshotGateVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported operator snapshot gate kind",
+    summary.supportedOperatorSnapshotGateKind ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator snapshot gate note",
+    summary.supportedOperatorSnapshotGateNote ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator snapshot gate transport",
+    summary.supportedOperatorSnapshotGateTransport ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator snapshot gate endpoint",
+    summary.supportedOperatorSnapshotGateEndpoint ?? "Unavailable",
   );
   printLine(
     "Supported operator snapshot version",
