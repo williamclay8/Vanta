@@ -834,6 +834,10 @@ try {
     blockedShippingArtifactJson.decisionStatus !== "blocked" ||
     blockedShippingArtifactJson.decisionNote !==
       "No private send transition is available for boundary checks yet." ||
+    blockedShippingArtifactJson.releaseCandidateId !== null ||
+    blockedShippingArtifactJson.releaseCandidateLineageStatus !== "unavailable" ||
+    blockedShippingArtifactJson.releaseCandidateLineageNote !==
+      "No private send release candidate is bound to the latest operator release path." ||
     blockedShippingArtifactJson.snapshotVersion !== 1 ||
     blockedShippingArtifactJson.snapshotKind !== "contract-status-shipping-bundle" ||
     blockedShippingArtifactJson.contractVersion !== 19 ||
@@ -960,6 +964,8 @@ try {
     shippingArtifactSurfaceJson.decisionVersion !== 1 ||
     shippingArtifactSurfaceJson.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
     shippingArtifactSurfaceJson.decisionStatus !== "blocked" ||
+    shippingArtifactSurfaceJson.releaseCandidateId !== null ||
+    shippingArtifactSurfaceJson.releaseCandidateLineageStatus !== "unavailable" ||
     shippingArtifactSurfaceJson.snapshotVersion !== 1 ||
     shippingArtifactSurfaceJson.snapshotKind !== "contract-status-shipping-bundle" ||
     shippingArtifactSurfaceJson.contractVersion !== 19 ||
@@ -1079,6 +1085,11 @@ try {
     ) ||
     !shippingArtifactSurfaceOutput.includes(
       `Latest released amount: ${shippingArtifactSurfaceJson.latestReleasedAmount ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactSurfaceOutput.includes("Release candidate: Unavailable") ||
+    !shippingArtifactSurfaceOutput.includes("Release candidate lineage: No candidate lineage") ||
+    !shippingArtifactSurfaceOutput.includes(
+      "Release candidate note: No private send release candidate is bound to the latest operator release path.",
     ) ||
     !shippingArtifactSurfaceOutput.includes("Snapshot transport: dedicated-endpoint") ||
     !shippingArtifactSurfaceOutput.includes("Snapshot endpoint: /state/private-core-snapshot") ||

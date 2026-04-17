@@ -775,6 +775,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
 
     try {
       const previewResult = previewPrivateCoreSendTransition(privateCoreSendPreview.transition);
+      const releaseCandidateId = ["private-core-release-candidate", crypto.randomUUID()].join(":");
 
       if (privateCoreHoldState) {
         await ensurePrivateCoreOperatorRootKnown({
@@ -791,10 +792,13 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       }
 
       const sendReceipt = await requestVantaPrivateCoreOperatorSendTransition({
+        releaseCandidateId,
         resultingRoot: previewResult.resultingRoot,
         witnessPackage: privateCoreSendPreview.boundary.noirWitnessPackage,
       });
-      runPrivateCoreSendTransition(privateCoreSendPreview.transition);
+      runPrivateCoreSendTransition(privateCoreSendPreview.transition, {
+        releaseCandidateId: sendReceipt.releaseCandidateId ?? releaseCandidateId,
+      });
       const summaryState = await refreshPrivateCoreOperatorSummary();
 
       setPrivateCoreSendExecution({

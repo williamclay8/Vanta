@@ -75,6 +75,10 @@ function normalizeSendRecord(record) {
     proofFieldCount: typeof record?.proofFieldCount === "number" ? record.proofFieldCount : 0,
     proofId: typeof record?.proofId === "string" ? record.proofId : "",
     publicInputCount: typeof record?.publicInputCount === "number" ? record.publicInputCount : 0,
+    releaseCandidateId:
+      typeof record?.releaseCandidateId === "string" && record.releaseCandidateId.length > 0
+        ? record.releaseCandidateId
+        : null,
     recipientCommitment: typeof record?.recipientCommitment === "string" ? record.recipientCommitment : "",
     resultingRoot:
       typeof record?.resultingRoot === "string" && record.resultingRoot.length > 0

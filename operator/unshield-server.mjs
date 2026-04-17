@@ -821,6 +821,7 @@ const server = createServer(async (request, response) => {
     try {
       const body = await readJsonBody(request);
       const witnessPackage = normalizeVantaPrivateCoreSendWitnessPackage(body?.witnessPackage);
+      const releaseCandidateId = normalizePrivateCoreReleaseCandidateId(body?.releaseCandidateId);
       const sourcePublicInputs = witnessPackage.sourcePublicInputs;
       const inputArtifacts = deriveVantaPrivateCoreSendInputArtifactsFromWitnessPackage(witnessPackage);
 
@@ -897,6 +898,7 @@ const server = createServer(async (request, response) => {
       const sendRecord = summarizePrivateCoreSendRecord({
         proofRecord,
         proofReceipt,
+        releaseCandidateId,
         resultingRoot,
         witnessPackage,
       });
@@ -910,6 +912,7 @@ const server = createServer(async (request, response) => {
           completedAt: sendRecord.completedAt,
           inputNullifier: sendRecord.inputNullifier,
           inputRoot: sendRecord.inputRoot,
+          releaseCandidateId: sendRecord.releaseCandidateId,
           recipientCommitment: sendRecord.recipientCommitment,
           resultingRootBasis: sendRecord.resultingRootBasis,
           resultingRoot: sendRecord.resultingRoot,
@@ -1003,6 +1006,7 @@ const server = createServer(async (request, response) => {
       const proofReceipt = await proveAndVerifyVantaPrivateCoreUnshield({
         witnessPackage: body.witnessPackage,
       });
+      const releaseCandidateId = normalizePrivateCoreReleaseCandidateId(body?.releaseCandidateId);
       const sourcePublicInputs = body?.witnessPackage?.sourcePublicInputs;
       const sourceArtifacts = body?.sourceArtifacts;
       const nullifier = sourcePublicInputs?.nullifier;
@@ -1097,6 +1101,7 @@ const server = createServer(async (request, response) => {
         proofFieldCount: proofReceipt.proofFieldCount,
         proofId: proofRecord.proofId,
         publicInputCount: proofReceipt.publicInputCount,
+        releaseCandidateId,
         releaseDestination: sourcePublicInputs.releaseDestination,
         root: sourcePublicInputs.stateRoot,
       };
@@ -1112,6 +1117,7 @@ const server = createServer(async (request, response) => {
         proofFieldCount: proofReceipt.proofFieldCount,
         proofId: proofRecord.proofId,
         publicInputCount: proofReceipt.publicInputCount,
+        releaseCandidateId,
         releaseDestination: sourcePublicInputs.releaseDestination,
         rootPolicy: PRIVATE_CORE_RELEASE_ROOT_POLICY,
         releasedAssetId: sourcePublicInputs.assetId,
@@ -1130,6 +1136,7 @@ const server = createServer(async (request, response) => {
           leafIndex: consumeRecord.leafIndex,
           proofId: proofRecord.proofId,
           authorizationBasis: PRIVATE_CORE_RELEASE_AUTHORIZATION_BASIS,
+          releaseCandidateId,
           releaseDestination: sourcePublicInputs.releaseDestination,
           releaseRecorded: true,
           releaseRequestId,
@@ -2386,6 +2393,12 @@ function buildPrivateCoreShippingArtifactState(request) {
   const snapshot = buildPrivateCoreOperatorSnapshotState(request);
   const shippingDecision = snapshot.status.shippingDecision;
   const summary = snapshot.status.summary;
+  const releaseCandidateLineage = summarizePrivateCoreReleaseCandidateLineage({
+    latestConsume: summary.latestConsume,
+    latestRelease: summary.latestRelease,
+    latestSend: summary.latestSend,
+    shippingDecisionStatus: shippingDecision.decisionStatus,
+  });
 
   return {
     operator: snapshot.operator,
@@ -2419,6 +2432,9 @@ function buildPrivateCoreShippingArtifactState(request) {
     latestReleaseDestination: summary.latestRelease?.releaseDestination ?? null,
     latestReleasedAssetId: summary.latestRelease?.releasedAssetId ?? null,
     latestReleasedAmount: summary.latestRelease?.releasedAmount ?? null,
+    releaseCandidateId: releaseCandidateLineage.releaseCandidateId,
+    releaseCandidateLineageStatus: releaseCandidateLineage.status,
+    releaseCandidateLineageNote: releaseCandidateLineage.note,
     snapshot,
   };
 }
@@ -3714,6 +3730,10 @@ function summarizePrivateCoreSendRecord(args) {
     proofFieldCount: args.proofReceipt.proofFieldCount,
     proofId: args.proofRecord.proofId,
     publicInputCount: args.proofReceipt.publicInputCount,
+    releaseCandidateId:
+      typeof args.releaseCandidateId === "string" && args.releaseCandidateId.length > 0
+        ? args.releaseCandidateId
+        : null,
     recipientCommitment: sourcePublicInputs.recipientCommitment,
     resultingRootBasis: "client-declared",
     resultingRoot: typeof args.resultingRoot === "string" ? args.resultingRoot : null,
@@ -3727,6 +3747,60 @@ function summarizePrivateCoreSendRecord(args) {
   };
 }
 
+function summarizePrivateCoreReleaseCandidateLineage(args) {
+  const releaseCandidateId =
+    args.latestRelease?.releaseCandidateId ??
+    args.latestConsume?.releaseCandidateId ??
+    args.latestSend?.releaseCandidateId ??
+    null;
+
+  if (!releaseCandidateId) {
+    return {
+      note: "No private send release candidate is bound to the latest operator release path.",
+      releaseCandidateId: null,
+      status: "unavailable",
+    };
+  }
+
+  if (args.latestSend?.releaseCandidateId !== releaseCandidateId) {
+    return {
+      note: "Latest operator send state does not match the release candidate bound to this release path.",
+      releaseCandidateId,
+      status: "send-mismatch",
+    };
+  }
+
+  if (args.latestConsume?.releaseCandidateId !== releaseCandidateId) {
+    return {
+      note: "Latest operator consume state does not match the release candidate bound to this release path.",
+      releaseCandidateId,
+      status: "consume-mismatch",
+    };
+  }
+
+  if (args.latestRelease?.releaseCandidateId !== releaseCandidateId) {
+    return {
+      note: "Latest operator release state does not match the release candidate bound to this release path.",
+      releaseCandidateId,
+      status: "release-mismatch",
+    };
+  }
+
+  if (args.shippingDecisionStatus === "ready-to-ship") {
+    return {
+      note: "Exact narrow private-core release candidate is coherent across send, consume, release, and shipping decision state.",
+      releaseCandidateId,
+      status: "ready",
+    };
+  }
+
+  return {
+    note: "Exact narrow private-core release candidate is coherent, but the shipping decision is still blocked on the current operator state.",
+    releaseCandidateId,
+    status: "blocked",
+  };
+}
+
 function normalizePrivateCoreHex32(value, label) {
   if (typeof value !== "string") {
     throw new Error(`${label} is missing.`);
@@ -3735,6 +3809,27 @@ function normalizePrivateCoreHex32(value, label) {
   const normalized = value.toLowerCase();
   if (!/^0x[0-9a-f]{64}$/.test(normalized)) {
     throw new Error(`${label} must be a canonical 32-byte hex value.`);
+  }
+
+  return normalized;
+}
+
+function normalizePrivateCoreReleaseCandidateId(value) {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  if (typeof value !== "string") {
+    throw new Error("Private-core release candidate id must be a string when provided.");
+  }
+
+  const normalized = value.trim();
+  if (normalized.length === 0) {
+    return null;
+  }
+
+  if (normalized.length > 256) {
+    throw new Error("Private-core release candidate id is too long.");
   }
 
   return normalized;

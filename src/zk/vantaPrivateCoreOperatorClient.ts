@@ -23,6 +23,7 @@ export type VantaPrivateCoreSendOperatorResponse = VantaPrivateCoreProofOperator
   inputNullifier: string;
   inputRoot: string;
   proofId: string;
+  releaseCandidateId: string | null;
   recipientCommitment: string;
   resultingRootBasis: "client-declared";
   resultingRoot: string | null;
@@ -37,6 +38,7 @@ export type VantaPrivateCoreConsumeOperatorResponse = VantaPrivateCoreProofOpera
   leafIndex: string | null;
   releaseDestination: string;
   proofId: string;
+  releaseCandidateId: string | null;
   releaseRecorded: boolean;
   releaseRequestId: string;
   rootPolicy: "latest-registered-root";
@@ -56,6 +58,7 @@ export type VantaPrivateCoreOperatorConsumeRecord = {
   proofFieldCount: number;
   proofId: string;
   publicInputCount: number;
+  releaseCandidateId: string | null;
   releaseDestination: string;
   root: string;
 };
@@ -196,6 +199,7 @@ export type VantaPrivateCoreOperatorSendRecord = {
   proofFieldCount: number;
   proofId: string;
   publicInputCount: number;
+  releaseCandidateId: string | null;
   recipientCommitment: string;
   resultingRootBasis: "client-declared";
   resultingRoot: string | null;
@@ -219,6 +223,7 @@ export type VantaPrivateCoreOperatorReleaseRecord = {
   proofFieldCount: number;
   proofId: string;
   publicInputCount: number;
+  releaseCandidateId: string | null;
   releaseDestination: string;
   rootPolicy: "latest-registered-root";
   releasedAssetId: string;
@@ -769,6 +774,15 @@ export type VantaPrivateCoreOperatorShippingArtifactResponse = {
   latestReleaseDestination: string | null;
   latestReleasedAssetId: string | null;
   latestReleasedAmount: string | null;
+  releaseCandidateId: string | null;
+  releaseCandidateLineageStatus:
+    | "ready"
+    | "blocked"
+    | "send-mismatch"
+    | "consume-mismatch"
+    | "release-mismatch"
+    | "unavailable";
+  releaseCandidateLineageNote: string;
   snapshot: VantaPrivateCoreOperatorSnapshotStateResponse;
 };
 
@@ -1514,11 +1528,13 @@ export async function requestVantaPrivateCoreOperatorSwapTransition(args: {
 }
 
 export async function requestVantaPrivateCoreOperatorSendTransition(args: {
+  releaseCandidateId?: string | null;
   witnessPackage: VantaPrivateCoreNoirSendWitnessPackageV0;
   resultingRoot: string;
 }): Promise<VantaPrivateCoreSendOperatorResponse> {
   const response = await fetch(getPrivateCoreSendTransitionOperatorUrl(), {
     body: JSON.stringify({
+      releaseCandidateId: args.releaseCandidateId ?? null,
       resultingRoot: args.resultingRoot,
       witnessPackage: args.witnessPackage,
     }),
@@ -1543,6 +1559,9 @@ export async function requestVantaPrivateCoreOperatorSendTransition(args: {
     typeof parsed.inputNullifier !== "string" ||
     typeof parsed.inputRoot !== "string" ||
     typeof parsed.proofId !== "string" ||
+    (parsed.releaseCandidateId !== null &&
+      parsed.releaseCandidateId !== undefined &&
+      typeof parsed.releaseCandidateId !== "string") ||
     typeof parsed.recipientCommitment !== "string" ||
     parsed.resultingRootBasis !== "client-declared" ||
     typeof parsed.sendAmount !== "string" ||
@@ -1564,6 +1583,8 @@ export async function requestVantaPrivateCoreOperatorSendTransition(args: {
     proofByteLength: parsed.proofByteLength ?? 0,
     proofFieldCount: parsed.proofFieldCount ?? 0,
     proofId: parsed.proofId,
+    releaseCandidateId:
+      typeof parsed.releaseCandidateId === "string" ? parsed.releaseCandidateId : null,
     publicInputCount: parsed.publicInputCount ?? 0,
     publicInputs: Array.isArray(parsed.publicInputs)
       ? parsed.publicInputs.filter((value): value is string => typeof value === "string")
@@ -1579,11 +1600,13 @@ export async function requestVantaPrivateCoreOperatorSendTransition(args: {
 }
 
 export async function requestVantaPrivateCoreOperatorConsume(args: {
+  releaseCandidateId?: string | null;
   sourceArtifacts: VantaPrivateCoreOperatorSourceArtifactBundleV0;
   witnessPackage: VantaPrivateCoreNoirUnshieldWitnessPackageV0;
 }): Promise<VantaPrivateCoreConsumeOperatorResponse> {
   const response = await fetch(getPrivateCoreConsumeOperatorUrl(), {
     body: JSON.stringify({
+      releaseCandidateId: args.releaseCandidateId ?? null,
       sourceArtifacts: args.sourceArtifacts,
       witnessPackage: args.witnessPackage,
     }),
@@ -1608,6 +1631,9 @@ export async function requestVantaPrivateCoreOperatorConsume(args: {
     parsed.authorizationBasis !== "proof-backed-consume" ||
     typeof parsed.releaseDestination !== "string" ||
     typeof parsed.proofId !== "string" ||
+    (parsed.releaseCandidateId !== null &&
+      parsed.releaseCandidateId !== undefined &&
+      typeof parsed.releaseCandidateId !== "string") ||
     parsed.releaseRecorded !== true ||
     typeof parsed.releaseRequestId !== "string" ||
     parsed.rootPolicy !== "latest-registered-root" ||
@@ -1636,6 +1662,8 @@ export async function requestVantaPrivateCoreOperatorConsume(args: {
     completedAt: parsed.completedAt,
     leafIndex: parsed.leafIndex ?? null,
     proofId: parsed.proofId,
+    releaseCandidateId:
+      typeof parsed.releaseCandidateId === "string" ? parsed.releaseCandidateId : null,
     releaseDestination: parsed.releaseDestination,
     releaseRecorded: true,
     releaseRequestId: parsed.releaseRequestId,
@@ -3273,6 +3301,9 @@ export async function fetchVantaPrivateCoreOperatorShippingArtifact(): Promise<
     latestReleaseDestination?: unknown;
     latestReleasedAssetId?: unknown;
     latestReleasedAmount?: unknown;
+    releaseCandidateId?: unknown;
+    releaseCandidateLineageStatus?: unknown;
+    releaseCandidateLineageNote?: unknown;
     snapshot?: unknown;
   };
 
@@ -3353,6 +3384,16 @@ export async function fetchVantaPrivateCoreOperatorShippingArtifact(): Promise<
     (parsed.latestReleasedAmount !== null &&
       parsed.latestReleasedAmount !== undefined &&
       typeof parsed.latestReleasedAmount !== "string") ||
+    (parsed.releaseCandidateId !== null &&
+      parsed.releaseCandidateId !== undefined &&
+      typeof parsed.releaseCandidateId !== "string") ||
+    (parsed.releaseCandidateLineageStatus !== "ready" &&
+      parsed.releaseCandidateLineageStatus !== "blocked" &&
+      parsed.releaseCandidateLineageStatus !== "send-mismatch" &&
+      parsed.releaseCandidateLineageStatus !== "consume-mismatch" &&
+      parsed.releaseCandidateLineageStatus !== "release-mismatch" &&
+      parsed.releaseCandidateLineageStatus !== "unavailable") ||
+    typeof parsed.releaseCandidateLineageNote !== "string" ||
     !parsed.snapshot ||
     typeof parsed.snapshot !== "object"
   ) {
@@ -3438,6 +3479,10 @@ export async function fetchVantaPrivateCoreOperatorShippingArtifact(): Promise<
       typeof parsed.latestReleasedAssetId === "string" ? parsed.latestReleasedAssetId : null,
     latestReleasedAmount:
       typeof parsed.latestReleasedAmount === "string" ? parsed.latestReleasedAmount : null,
+    releaseCandidateId:
+      typeof parsed.releaseCandidateId === "string" ? parsed.releaseCandidateId : null,
+    releaseCandidateLineageStatus: parsed.releaseCandidateLineageStatus,
+    releaseCandidateLineageNote: parsed.releaseCandidateLineageNote,
     snapshot,
   };
 }
@@ -3453,6 +3498,9 @@ function isConsumeRecord(value: unknown): value is VantaPrivateCoreOperatorConsu
     typeof (value as VantaPrivateCoreOperatorConsumeRecord).proofFieldCount === "number" &&
     typeof (value as VantaPrivateCoreOperatorConsumeRecord).proofId === "string" &&
     typeof (value as VantaPrivateCoreOperatorConsumeRecord).publicInputCount === "number" &&
+    (((value as VantaPrivateCoreOperatorConsumeRecord).releaseCandidateId === null ||
+      (value as VantaPrivateCoreOperatorConsumeRecord).releaseCandidateId === undefined) ||
+      typeof (value as VantaPrivateCoreOperatorConsumeRecord).releaseCandidateId === "string") &&
     typeof (value as VantaPrivateCoreOperatorConsumeRecord).releaseDestination === "string" &&
     typeof (value as VantaPrivateCoreOperatorConsumeRecord).root === "string"
   );
@@ -3598,6 +3646,9 @@ function isSendRecord(value: unknown): value is VantaPrivateCoreOperatorSendReco
     typeof (value as VantaPrivateCoreOperatorSendRecord).proofFieldCount === "number" &&
     typeof (value as VantaPrivateCoreOperatorSendRecord).proofId === "string" &&
     typeof (value as VantaPrivateCoreOperatorSendRecord).publicInputCount === "number" &&
+    (((value as VantaPrivateCoreOperatorSendRecord).releaseCandidateId === null ||
+      (value as VantaPrivateCoreOperatorSendRecord).releaseCandidateId === undefined) ||
+      typeof (value as VantaPrivateCoreOperatorSendRecord).releaseCandidateId === "string") &&
     typeof (value as VantaPrivateCoreOperatorSendRecord).recipientCommitment === "string" &&
     (value as VantaPrivateCoreOperatorSendRecord).resultingRootBasis === "client-declared" &&
     (((value as VantaPrivateCoreOperatorSendRecord).resultingRoot === null ||
@@ -3621,6 +3672,9 @@ function isReleaseRecord(value: unknown): value is VantaPrivateCoreOperatorRelea
     typeof (value as VantaPrivateCoreOperatorReleaseRecord).proofFieldCount === "number" &&
     typeof (value as VantaPrivateCoreOperatorReleaseRecord).proofId === "string" &&
     typeof (value as VantaPrivateCoreOperatorReleaseRecord).publicInputCount === "number" &&
+    (((value as VantaPrivateCoreOperatorReleaseRecord).releaseCandidateId === null ||
+      (value as VantaPrivateCoreOperatorReleaseRecord).releaseCandidateId === undefined) ||
+      typeof (value as VantaPrivateCoreOperatorReleaseRecord).releaseCandidateId === "string") &&
     typeof (value as VantaPrivateCoreOperatorReleaseRecord).releaseDestination === "string" &&
     (value as VantaPrivateCoreOperatorReleaseRecord).rootPolicy === "latest-registered-root" &&
     typeof (value as VantaPrivateCoreOperatorReleaseRecord).releasedAssetId === "string" &&

@@ -191,6 +191,7 @@ const fixtures = await loadFixtures();
 const witnessPackage = fixtures.unshield.validBoundary.noirWitnessPackage;
 const sourceArtifacts = fixtures.unshield.validSourceArtifacts;
 const sendWitnessPackage = fixtures.send.validBoundary.noirWitnessPackage;
+const releaseCandidateId = "private-core-release-candidate:operator-restart";
 mkdirSync(resolve(repoRoot, ".tmp"), { recursive: true });
 const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/private-core-operator-restart-server-"));
 const port = randomPort();
@@ -213,12 +214,13 @@ try {
   }
 
   const consumeResponse = await requestJson(baseUrl, "/private-core/unshield-consume", {
-    body: JSON.stringify({ sourceArtifacts, witnessPackage }),
+    body: JSON.stringify({ releaseCandidateId, sourceArtifacts, witnessPackage }),
     method: "POST",
   });
   if (
     !consumeResponse.ok ||
     consumeResponse.parsed?.verified !== true ||
+    consumeResponse.parsed?.releaseCandidateId !== releaseCandidateId ||
     typeof consumeResponse.parsed?.proofId !== "string" ||
     consumeResponse.parsed?.releaseRecorded !== true
   ) {
@@ -228,6 +230,7 @@ try {
 
   const sendTransitionResponse = await requestJson(baseUrl, "/private-core/send-transition", {
     body: JSON.stringify({
+      releaseCandidateId,
       resultingRoot: fixtures.send.validResultingRoot,
       witnessPackage: sendWitnessPackage,
     }),
@@ -236,6 +239,7 @@ try {
   if (
     !sendTransitionResponse.ok ||
     sendTransitionResponse.parsed?.verified !== true ||
+    sendTransitionResponse.parsed?.releaseCandidateId !== releaseCandidateId ||
     sendTransitionResponse.parsed?.sendRecorded !== true ||
     sendTransitionResponse.parsed?.circuit !== "vanta_private_core_single_note_send"
   ) {
@@ -1503,6 +1507,10 @@ try {
     blockedShippingArtifactCheckJsonSurface.decisionStatus !== "blocked" ||
     blockedShippingArtifactCheckJsonSurface.decisionNote !==
       "Latest send resulting root still needs operator registration before downstream continuity is established." ||
+    blockedShippingArtifactCheckJsonSurface.releaseCandidateId !== releaseCandidateId ||
+    blockedShippingArtifactCheckJsonSurface.releaseCandidateLineageStatus !== "blocked" ||
+    blockedShippingArtifactCheckJsonSurface.releaseCandidateLineageNote !==
+      "Exact narrow private-core release candidate is coherent, but the shipping decision is still blocked on the current operator state." ||
     blockedShippingArtifactCheckJsonSurface.snapshotVersion !== 1 ||
     blockedShippingArtifactCheckJsonSurface.snapshotKind !==
       "contract-status-shipping-bundle" ||
@@ -1553,6 +1561,8 @@ try {
     shippingArtifactJson.decisionVersion !== 1 ||
     shippingArtifactJson.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
     shippingArtifactJson.decisionStatus !== "blocked" ||
+    shippingArtifactJson.releaseCandidateId !== releaseCandidateId ||
+    shippingArtifactJson.releaseCandidateLineageStatus !== "blocked" ||
     shippingArtifactJson.snapshotVersion !== 1 ||
     shippingArtifactJson.snapshotKind !== "contract-status-shipping-bundle" ||
     shippingArtifactJson.contractVersion !== 19 ||
@@ -1646,6 +1656,11 @@ try {
     ) ||
     !shippingArtifactOutput.includes(
       `Latest released amount: ${shippingArtifactJson.latestReleasedAmount ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactOutput.includes(`Release candidate: ${releaseCandidateId}`) ||
+    !shippingArtifactOutput.includes("Release candidate lineage: Candidate lineage blocked") ||
+    !shippingArtifactOutput.includes(
+      "Release candidate note: Exact narrow private-core release candidate is coherent, but the shipping decision is still blocked on the current operator state.",
     ) ||
     !shippingArtifactOutput.includes("Contract version: 19") ||
     !shippingArtifactOutput.includes("Decision status: Blocked") ||

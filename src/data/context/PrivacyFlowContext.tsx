@@ -322,7 +322,12 @@ type PrivacyFlowContextValue = {
   refreshPrivateCoreOperatorSummary: () => Promise<VantaPrivateCoreOperatorSummaryStateResponse>;
   previewPrivateCoreSendTransition: (transition: SendTransitionV0) => SendResultV0;
   previewPrivateCoreSwapTransition: (transition: SwapTransitionV0) => SwapResultV0;
-  runPrivateCoreSendTransition: (transition: SendTransitionV0) => {
+  runPrivateCoreSendTransition: (
+    transition: SendTransitionV0,
+    options?: {
+      releaseCandidateId?: string | null;
+    },
+  ) => {
     nextHoldState: VantaPrivateCoreHoldState | null;
     nextShieldState: VantaPrivateCoreShieldState | null;
     result: SendResultV0;
@@ -422,6 +427,7 @@ export type VantaPrivateCoreHoldState = {
 };
 
 export type VantaPrivateCoreSendState = {
+  releaseCandidateId: string | null;
   recipientCommitment: string;
   recipientPayloadCommitment: string | null;
   recipientAmount: string;
@@ -463,6 +469,7 @@ export type VantaPrivateCoreSwapState = {
 };
 
 export type VantaPrivateCoreUnshieldState = {
+  releaseCandidateId: string | null;
   sourceNullifier: string | null;
   proofEnvelope: UnshieldProofEnvelopeV0 | null;
   proofBoundary: VantaPrivateCoreUnshieldProofBoundaryV0 | null;
@@ -1593,7 +1600,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   }, [buildPrivateCorePresentedState, privateCoreLedger, privateCoreOwner]);
 
   const runPrivateCoreSendTransition = useCallback(
-    (transition: SendTransitionV0) => {
+    (
+      transition: SendTransitionV0,
+      options?: {
+        releaseCandidateId?: string | null;
+      },
+    ) => {
       const result = privateCoreLedger.send(transition);
       const nextShieldState =
         result.change !== null
@@ -1623,6 +1635,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreRecentShield(nextPresentedState?.shieldState ?? null);
       setPrivateCoreHoldState(nextPresentedState?.holdState ?? null);
       setPrivateCoreLocalSendState({
+        releaseCandidateId: options?.releaseCandidateId ?? null,
         recipientCommitment: result.recipient.commitment.value,
         recipientPayloadCommitment: result.recipient.encryptedPayload.payloadCommitment,
         recipientAmount: result.recipient.note.amount.toString(10),
@@ -1742,8 +1755,14 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   );
 
   const runPrivateCoreUnshield = useCallback(async (): Promise<VantaPrivateCoreUnshieldState> => {
+    const releaseCandidateId =
+      privateCoreLocalSendState?.releaseCandidateId ??
+      privateCoreOperatorLatestSend?.releaseCandidateId ??
+      null;
+
     if (!privateCoreHoldState) {
       const nextState: VantaPrivateCoreUnshieldState = {
+        releaseCandidateId,
         sourceNullifier: null,
         proofEnvelope: null,
         proofBoundary: null,
@@ -1842,6 +1861,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sourceArtifacts: sourceHoldArtifacts,
       });
       operatorConsumeReceipt = await requestVantaPrivateCoreOperatorConsume({
+        releaseCandidateId,
         sourceArtifacts: sourceHoldArtifacts,
         witnessPackage: proofBoundary.noirWitnessPackage,
       });
@@ -1884,6 +1904,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         comparison: provingComparison,
       });
       const nextState: VantaPrivateCoreUnshieldState = {
+        releaseCandidateId: operatorConsumeReceipt.releaseCandidateId ?? releaseCandidateId,
         sourceNullifier: sourceUnshieldArtifacts.nullifier ?? result.nullifier.value,
         proofEnvelope,
         proofBoundary,
@@ -1973,6 +1994,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         comparison: provingComparison,
       });
       const nextState: VantaPrivateCoreUnshieldState = {
+        releaseCandidateId:
+          operatorConsumeReceipt?.releaseCandidateId ?? releaseCandidateId,
         sourceNullifier: proofEnvelope.publicInputs.nullifier,
         proofEnvelope,
         proofBoundary,
@@ -2046,12 +2069,20 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     ensurePrivateCoreOperatorRootKnown,
     privateCoreHoldState,
     privateCoreLedger,
+    privateCoreLocalSendState?.releaseCandidateId,
+    privateCoreOperatorLatestSend?.releaseCandidateId,
     privateCoreOwner.secretKey,
   ]);
 
   const runPrivateCoreReplayAttempt = useCallback(async (): Promise<VantaPrivateCoreUnshieldState> => {
+    const releaseCandidateId =
+      privateCoreLocalSendState?.releaseCandidateId ??
+      privateCoreOperatorLatestSend?.releaseCandidateId ??
+      null;
+
     if (!privateCoreHoldState) {
       const nextState: VantaPrivateCoreUnshieldState = {
+        releaseCandidateId,
         sourceNullifier: null,
         proofEnvelope: null,
         proofBoundary: null,
@@ -2153,6 +2184,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         witnessPackage: proofBoundary.noirWitnessPackage,
       });
       await requestVantaPrivateCoreOperatorConsume({
+        releaseCandidateId,
         sourceArtifacts: sourceHoldArtifacts,
         witnessPackage: proofBoundary.noirWitnessPackage,
       });
@@ -2181,6 +2213,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         comparison: provingComparison,
       });
       const nextState: VantaPrivateCoreUnshieldState = {
+        releaseCandidateId,
         sourceNullifier: proofEnvelope.publicInputs.nullifier,
         proofEnvelope,
         proofBoundary,
@@ -2254,6 +2287,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     ensurePrivateCoreOperatorRootKnown,
     privateCoreHoldState,
     privateCoreLedger,
+    privateCoreLocalSendState?.releaseCandidateId,
+    privateCoreOperatorLatestSend?.releaseCandidateId,
     privateCoreOwner.secretKey,
   ]);
 
@@ -3604,6 +3639,7 @@ function summarizePrivateCoreOperatorSendState(args: {
     args.latestConsume?.proofId === args.latestRelease?.proofId;
 
   return {
+    releaseCandidateId: args.latestSend.releaseCandidateId ?? null,
     recipientCommitment: args.latestSend.recipientCommitment,
     recipientPayloadCommitment: null,
     recipientAmount: args.latestSend.sendAmount,
@@ -4287,6 +4323,7 @@ function summarizePrivateCoreImmediateOperatorConsume(
     proofFieldCount: consumeReceipt.proofFieldCount,
     proofId: consumeReceipt.proofId,
     publicInputCount: consumeReceipt.publicInputCount,
+    releaseCandidateId: consumeReceipt.releaseCandidateId,
     releaseDestination: consumeReceipt.releaseDestination,
     root: consumeReceipt.root,
   };
@@ -4305,6 +4342,7 @@ function summarizePrivateCoreImmediateOperatorRelease(
     proofFieldCount: consumeReceipt.proofFieldCount,
     proofId: consumeReceipt.proofId,
     publicInputCount: consumeReceipt.publicInputCount,
+    releaseCandidateId: consumeReceipt.releaseCandidateId,
     releaseDestination: consumeReceipt.releaseDestination,
     rootPolicy: consumeReceipt.rootPolicy,
     releasedAssetId: consumeReceipt.releasedAssetId,

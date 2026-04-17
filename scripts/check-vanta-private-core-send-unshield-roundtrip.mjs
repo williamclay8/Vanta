@@ -174,6 +174,7 @@ const sender = owners[2];
 const recipient = owners[4];
 const releaseDestination =
   "0x9999999999999999999999999999999999999999999999999999999999999999";
+const releaseCandidateId = "private-core-release-candidate:send-unshield-roundtrip";
 const ledger = new privateCore.VantaPrivateCoreLedger();
 
 const shields = entries.map((entry, index) =>
@@ -278,6 +279,7 @@ try {
 
   const sendTransitionResponse = await requestJson(baseUrl, "/private-core/send-transition", {
     body: JSON.stringify({
+      releaseCandidateId,
       resultingRoot: previewResult.resultingRoot,
       witnessPackage: sendBoundary.noirWitnessPackage,
     }),
@@ -287,6 +289,7 @@ try {
     !sendTransitionResponse.ok ||
     sendTransitionResponse.parsed?.verified !== true ||
     sendTransitionResponse.parsed?.sendRecorded !== true ||
+    sendTransitionResponse.parsed?.releaseCandidateId !== releaseCandidateId ||
     sendTransitionResponse.parsed?.resultingRootBasis !== "client-declared" ||
     typeof sendTransitionResponse.parsed?.proofId !== "string"
   ) {
@@ -361,6 +364,7 @@ try {
 
   const consumeResponse = await requestJson(baseUrl, "/private-core/unshield-consume", {
     body: JSON.stringify({
+      releaseCandidateId,
       sourceArtifacts: recipientSourceArtifacts,
       witnessPackage: recipientUnshieldBoundary.noirWitnessPackage,
     }),
@@ -369,6 +373,7 @@ try {
   if (
     !consumeResponse.ok ||
     consumeResponse.parsed?.verified !== true ||
+    consumeResponse.parsed?.releaseCandidateId !== releaseCandidateId ||
     consumeResponse.parsed?.releaseRecorded !== true ||
     consumeResponse.parsed?.releasedAmount !== "13000000" ||
     consumeResponse.parsed?.releaseDestination !== releaseDestination
@@ -914,6 +919,10 @@ try {
       shippingArtifactJson.snapshot?.status?.summary?.latestRelease?.releasedAssetId ||
     shippingArtifactJson.latestReleasedAmount !==
       shippingArtifactJson.snapshot?.status?.summary?.latestRelease?.releasedAmount ||
+    shippingArtifactJson.releaseCandidateId !== releaseCandidateId ||
+    shippingArtifactJson.releaseCandidateLineageStatus !== "ready" ||
+    shippingArtifactJson.releaseCandidateLineageNote !==
+      "Exact narrow private-core release candidate is coherent across send, consume, release, and shipping decision state." ||
     shippingArtifactJson.snapshot?.shipping?.shippingStatusRaw !== "ready-narrow-v1"
   ) {
     throw new Error(
@@ -1004,6 +1013,11 @@ try {
     !shippingArtifactOutput.includes(
       `Latest released amount: ${shippingArtifactJson.latestReleasedAmount ?? "Unavailable"}`,
     ) ||
+    !shippingArtifactOutput.includes(`Release candidate: ${releaseCandidateId}`) ||
+    !shippingArtifactOutput.includes("Release candidate lineage: Candidate lineage ready") ||
+    !shippingArtifactOutput.includes(
+      "Release candidate note: Exact narrow private-core release candidate is coherent across send, consume, release, and shipping decision state.",
+    ) ||
     !shippingArtifactOutput.includes("Snapshot transport: dedicated-endpoint") ||
     !shippingArtifactOutput.includes("Snapshot endpoint: /state/private-core-snapshot") ||
     !shippingArtifactOutput.includes("Shipping artifact transport: dedicated-endpoint") ||
@@ -1067,6 +1081,8 @@ try {
     shippingArtifactSurfaceJson.decisionVersion !== 1 ||
     shippingArtifactSurfaceJson.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
     shippingArtifactSurfaceJson.decisionStatus !== "ready-to-ship" ||
+    shippingArtifactSurfaceJson.releaseCandidateId !== releaseCandidateId ||
+    shippingArtifactSurfaceJson.releaseCandidateLineageStatus !== "ready" ||
     shippingArtifactSurfaceJson.snapshotVersion !== 1 ||
     shippingArtifactSurfaceJson.snapshotKind !== "contract-status-shipping-bundle" ||
     shippingArtifactSurfaceJson.contractVersion !== 19 ||
@@ -1105,6 +1121,11 @@ try {
     !shippingArtifactSurfaceOutput.includes("Snapshot kind: contract-status-shipping-bundle") ||
     !shippingArtifactSurfaceOutput.includes("Contract version: 19") ||
     !shippingArtifactSurfaceOutput.includes("Summary version: 43") ||
+    !shippingArtifactSurfaceOutput.includes(`Release candidate: ${releaseCandidateId}`) ||
+    !shippingArtifactSurfaceOutput.includes("Release candidate lineage: Candidate lineage ready") ||
+    !shippingArtifactSurfaceOutput.includes(
+      "Release candidate note: Exact narrow private-core release candidate is coherent across send, consume, release, and shipping decision state.",
+    ) ||
     !shippingArtifactSurfaceOutput.includes("Snapshot transport: dedicated-endpoint") ||
     !shippingArtifactSurfaceOutput.includes("Snapshot endpoint: /state/private-core-snapshot") ||
     !shippingArtifactSurfaceOutput.includes("Shipping artifact transport: dedicated-endpoint") ||

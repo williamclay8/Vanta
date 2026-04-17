@@ -74,6 +74,12 @@ function buildArtifactSurface(artifact) {
     latestReleaseDestination: artifact?.latestReleaseDestination ?? null,
     latestReleasedAssetId: artifact?.latestReleasedAssetId ?? null,
     latestReleasedAmount: artifact?.latestReleasedAmount ?? null,
+    releaseCandidateId: artifact?.releaseCandidateId ?? null,
+    releaseCandidateLineageStatusRaw: artifact?.releaseCandidateLineageStatus ?? null,
+    releaseCandidateLineageStatus: humanizeReleaseCandidateLineageStatus(
+      artifact?.releaseCandidateLineageStatus,
+    ),
+    releaseCandidateLineageNote: artifact?.releaseCandidateLineageNote ?? "Unavailable",
     snapshotTransport: contract?.supportedOperatorSnapshotTransport ?? null,
     snapshotEndpoint: contract?.supportedOperatorSnapshotEndpoint ?? null,
     shippingArtifactTransport: contract?.supportedShippingArtifactTransport ?? null,
@@ -158,6 +164,9 @@ function printArtifactSurface(surface, writer = console.log) {
   );
   printLine("Latest released asset", surface.latestReleasedAssetId ?? "Unavailable", writer);
   printLine("Latest released amount", surface.latestReleasedAmount ?? "Unavailable", writer);
+  printLine("Release candidate", surface.releaseCandidateId ?? "Unavailable", writer);
+  printLine("Release candidate lineage", surface.releaseCandidateLineageStatus, writer);
+  printLine("Release candidate note", surface.releaseCandidateLineageNote, writer);
   printLine("Snapshot transport", surface.snapshotTransport ?? "Unavailable", writer);
   printLine("Snapshot endpoint", surface.snapshotEndpoint ?? "Unavailable", writer);
   printLine(
@@ -214,6 +223,25 @@ function humanizeShippingStatus(value) {
       return "Contract mismatch";
     case "boundary-mismatch":
       return "Boundary mismatch";
+    default:
+      return "Unknown";
+  }
+}
+
+function humanizeReleaseCandidateLineageStatus(value) {
+  switch (value) {
+    case "ready":
+      return "Candidate lineage ready";
+    case "blocked":
+      return "Candidate lineage blocked";
+    case "send-mismatch":
+      return "Candidate/send mismatch";
+    case "consume-mismatch":
+      return "Candidate/consume mismatch";
+    case "release-mismatch":
+      return "Candidate/release mismatch";
+    case "unavailable":
+      return "No candidate lineage";
     default:
       return "Unknown";
   }

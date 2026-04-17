@@ -1890,6 +1890,8 @@ try {
     shippingArtifactCheckState.parsed?.decisionKind !==
       "narrow-private-core-zk-v1-shipping" ||
     shippingArtifactCheckState.parsed?.decisionStatus !== "blocked" ||
+    shippingArtifactCheckState.parsed?.artifact?.releaseCandidateId !== null ||
+    shippingArtifactCheckState.parsed?.artifact?.releaseCandidateLineageStatus !== "unavailable" ||
     shippingArtifactCheckState.parsed?.artifact?.artifactVersion !== 1 ||
     shippingArtifactCheckState.parsed?.artifact?.artifactKind !==
       "shipping-decision-checked-snapshot-bundle"
@@ -2100,6 +2102,10 @@ try {
     blockedShippingArtifactCheckJsonSurface.decisionStatus !== "blocked" ||
     blockedShippingArtifactCheckJsonSurface.decisionNote !==
       "No private send transition is available for boundary checks yet." ||
+    blockedShippingArtifactCheckJsonSurface.releaseCandidateId !== null ||
+    blockedShippingArtifactCheckJsonSurface.releaseCandidateLineageStatus !== "unavailable" ||
+    blockedShippingArtifactCheckJsonSurface.releaseCandidateLineageNote !==
+      "No private send release candidate is bound to the latest operator release path." ||
     blockedShippingArtifactCheckJsonSurface.snapshotVersion !== 1 ||
     blockedShippingArtifactCheckJsonSurface.snapshotKind !==
       "contract-status-shipping-bundle" ||
@@ -2147,6 +2153,8 @@ try {
     shippingArtifactJson.decisionVersion !== 1 ||
     shippingArtifactJson.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
     shippingArtifactJson.decisionStatus !== "blocked" ||
+    shippingArtifactJson.releaseCandidateId !== null ||
+    shippingArtifactJson.releaseCandidateLineageStatus !== "unavailable" ||
     shippingArtifactJson.snapshotVersion !== 1 ||
     shippingArtifactJson.snapshotKind !== "contract-status-shipping-bundle" ||
     shippingArtifactJson.contractVersion !== 19 ||
@@ -2225,6 +2233,11 @@ try {
     ) ||
     !shippingArtifactOutput.includes(
       `Latest released amount: ${shippingArtifactJson.latestReleasedAmount ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactOutput.includes("Release candidate: Unavailable") ||
+    !shippingArtifactOutput.includes("Release candidate lineage: No candidate lineage") ||
+    !shippingArtifactOutput.includes(
+      "Release candidate note: No private send release candidate is bound to the latest operator release path.",
     ) ||
     !shippingArtifactOutput.includes("Contract version: 19") ||
     !shippingArtifactOutput.includes("Decision status: Blocked") ||
