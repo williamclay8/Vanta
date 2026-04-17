@@ -1183,7 +1183,16 @@ try {
       "Supported operator snapshot kind: contract-status-shipping-bundle",
     ) ||
     !operatorStatusOutput.includes(
+      "Supported shipping decision note: Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane.",
+    ) ||
+    !operatorStatusOutput.includes(
+      "Supported operator status note: Canonical long-form live operator-status surface composed from the bundled snapshot plus the dedicated shipping artifact.",
+    ) ||
+    !operatorStatusOutput.includes(
       "Supported operator snapshot note: Canonical bundled machine-readable operator artifact containing the frozen contract, live status summary, and canonical shipping decision surfaces together.",
+    ) ||
+    !operatorStatusOutput.includes(
+      "Supported shipping artifact note: Canonical release-grade machine-readable operator artifact containing the shipping decision plus the bundled contract, live status summary, and canonical shipping surfaces together.",
     ) ||
     !operatorStatusOutput.includes(
       "Supported swap v1 role: adjacent-supported-not-required-for-finish-line",
@@ -1340,6 +1349,14 @@ try {
     operatorStatusJson.summary?.releaseBoundaryStatus !== "release-recorded" ||
     operatorStatusJson.summary?.contractMirrorStatus !== "mirrors-contract" ||
     operatorStatusJson.summary?.boundaryStatus !== "coherent" ||
+    operatorStatusJson.summary?.supportedShippingDecisionNote !==
+      "Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane." ||
+    operatorStatusJson.summary?.supportedOperatorStatusNote !==
+      "Canonical long-form live operator-status surface composed from the bundled snapshot plus the dedicated shipping artifact." ||
+    operatorStatusJson.summary?.supportedOperatorSnapshotNote !==
+      "Canonical bundled machine-readable operator artifact containing the frozen contract, live status summary, and canonical shipping decision surfaces together." ||
+    operatorStatusJson.summary?.supportedShippingArtifactNote !==
+      "Canonical release-grade machine-readable operator artifact containing the shipping decision plus the bundled contract, live status summary, and canonical shipping surfaces together." ||
     operatorStatusJson.shippingDecision?.decisionVersion !== 1 ||
     operatorStatusJson.shippingDecision?.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
     operatorStatusJson.shippingDecision?.decisionStatus !== "blocked" ||
