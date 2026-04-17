@@ -263,6 +263,16 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOperatorSupportedShippingArtifactNote,
     privateCoreOperatorSupportedShippingArtifactTransport,
     privateCoreOperatorSupportedShippingArtifactEndpoint,
+    privateCoreOperatorSupportedReleaseCandidateVersion,
+    privateCoreOperatorSupportedReleaseCandidateKind,
+    privateCoreOperatorSupportedReleaseCandidateNote,
+    privateCoreOperatorSupportedReleaseCandidateGateVersion,
+    privateCoreOperatorSupportedReleaseCandidateGateKind,
+    privateCoreOperatorSupportedReleaseCandidateGateNote,
+    privateCoreOperatorSupportedReleaseCandidateGateTransport,
+    privateCoreOperatorSupportedReleaseCandidateGateEndpoint,
+    privateCoreOperatorSupportedReleaseCandidateTransport,
+    privateCoreOperatorSupportedReleaseCandidateEndpoint,
     privateCoreOperatorShippingArtifactKind,
     privateCoreOperatorShippingArtifactVersion,
     privateCoreOperatorShippingDecisionKind,
@@ -1426,6 +1436,36 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 }
                 operatorSupportedShippingArtifactTransport={privateCoreOperatorSupportedShippingArtifactTransport}
                 operatorSupportedShippingArtifactEndpoint={privateCoreOperatorSupportedShippingArtifactEndpoint}
+                operatorSupportedReleaseCandidateVersion={
+                  privateCoreOperatorSupportedReleaseCandidateVersion
+                }
+                operatorSupportedReleaseCandidateKind={
+                  privateCoreOperatorSupportedReleaseCandidateKind
+                }
+                operatorSupportedReleaseCandidateNote={
+                  privateCoreOperatorSupportedReleaseCandidateNote
+                }
+                operatorSupportedReleaseCandidateGateVersion={
+                  privateCoreOperatorSupportedReleaseCandidateGateVersion
+                }
+                operatorSupportedReleaseCandidateGateKind={
+                  privateCoreOperatorSupportedReleaseCandidateGateKind
+                }
+                operatorSupportedReleaseCandidateGateNote={
+                  privateCoreOperatorSupportedReleaseCandidateGateNote
+                }
+                operatorSupportedReleaseCandidateGateTransport={
+                  privateCoreOperatorSupportedReleaseCandidateGateTransport
+                }
+                operatorSupportedReleaseCandidateGateEndpoint={
+                  privateCoreOperatorSupportedReleaseCandidateGateEndpoint
+                }
+                operatorSupportedReleaseCandidateTransport={
+                  privateCoreOperatorSupportedReleaseCandidateTransport
+                }
+                operatorSupportedReleaseCandidateEndpoint={
+                  privateCoreOperatorSupportedReleaseCandidateEndpoint
+                }
                 operatorShippingArtifactVersion={privateCoreOperatorShippingArtifactVersion}
                 operatorShippingArtifactKind={privateCoreOperatorShippingArtifactKind}
                 operatorShippingDecisionVersion={privateCoreOperatorShippingDecisionVersion}

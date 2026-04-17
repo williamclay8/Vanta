@@ -2268,6 +2268,36 @@ export function SwapPage() {
         }
         operatorSupportedShippingArtifactTransport={privacyFlow.privateCoreOperatorSupportedShippingArtifactTransport}
         operatorSupportedShippingArtifactEndpoint={privacyFlow.privateCoreOperatorSupportedShippingArtifactEndpoint}
+        operatorSupportedReleaseCandidateVersion={
+          privacyFlow.privateCoreOperatorSupportedReleaseCandidateVersion
+        }
+        operatorSupportedReleaseCandidateKind={
+          privacyFlow.privateCoreOperatorSupportedReleaseCandidateKind
+        }
+        operatorSupportedReleaseCandidateNote={
+          privacyFlow.privateCoreOperatorSupportedReleaseCandidateNote
+        }
+        operatorSupportedReleaseCandidateGateVersion={
+          privacyFlow.privateCoreOperatorSupportedReleaseCandidateGateVersion
+        }
+        operatorSupportedReleaseCandidateGateKind={
+          privacyFlow.privateCoreOperatorSupportedReleaseCandidateGateKind
+        }
+        operatorSupportedReleaseCandidateGateNote={
+          privacyFlow.privateCoreOperatorSupportedReleaseCandidateGateNote
+        }
+        operatorSupportedReleaseCandidateGateTransport={
+          privacyFlow.privateCoreOperatorSupportedReleaseCandidateGateTransport
+        }
+        operatorSupportedReleaseCandidateGateEndpoint={
+          privacyFlow.privateCoreOperatorSupportedReleaseCandidateGateEndpoint
+        }
+        operatorSupportedReleaseCandidateTransport={
+          privacyFlow.privateCoreOperatorSupportedReleaseCandidateTransport
+        }
+        operatorSupportedReleaseCandidateEndpoint={
+          privacyFlow.privateCoreOperatorSupportedReleaseCandidateEndpoint
+        }
         operatorShippingArtifactVersion={privacyFlow.privateCoreOperatorShippingArtifactVersion}
         operatorShippingArtifactKind={privacyFlow.privateCoreOperatorShippingArtifactKind}
         operatorShippingDecisionVersion={privacyFlow.privateCoreOperatorShippingDecisionVersion}

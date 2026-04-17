@@ -174,6 +174,16 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSupportedShippingArtifactNote?: string | null;
   operatorSupportedShippingArtifactTransport?: string | null;
   operatorSupportedShippingArtifactEndpoint?: string | null;
+  operatorSupportedReleaseCandidateVersion?: number | null;
+  operatorSupportedReleaseCandidateKind?: string | null;
+  operatorSupportedReleaseCandidateNote?: string | null;
+  operatorSupportedReleaseCandidateGateVersion?: number | null;
+  operatorSupportedReleaseCandidateGateKind?: string | null;
+  operatorSupportedReleaseCandidateGateNote?: string | null;
+  operatorSupportedReleaseCandidateGateTransport?: string | null;
+  operatorSupportedReleaseCandidateGateEndpoint?: string | null;
+  operatorSupportedReleaseCandidateTransport?: string | null;
+  operatorSupportedReleaseCandidateEndpoint?: string | null;
   operatorShippingArtifactVersion?: number | null;
   operatorShippingArtifactKind?: string | null;
   operatorShippingDecisionVersion?: number | null;
@@ -481,6 +491,16 @@ export function VantaPrivateCoreStatePanel({
   operatorSupportedShippingArtifactNote = null,
   operatorSupportedShippingArtifactTransport = null,
   operatorSupportedShippingArtifactEndpoint = null,
+  operatorSupportedReleaseCandidateVersion = null,
+  operatorSupportedReleaseCandidateKind = null,
+  operatorSupportedReleaseCandidateNote = null,
+  operatorSupportedReleaseCandidateGateVersion = null,
+  operatorSupportedReleaseCandidateGateKind = null,
+  operatorSupportedReleaseCandidateGateNote = null,
+  operatorSupportedReleaseCandidateGateTransport = null,
+  operatorSupportedReleaseCandidateGateEndpoint = null,
+  operatorSupportedReleaseCandidateTransport = null,
+  operatorSupportedReleaseCandidateEndpoint = null,
   operatorShippingArtifactVersion = null,
   operatorShippingArtifactKind = null,
   operatorShippingDecisionVersion = null,
@@ -1044,6 +1064,46 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Shipping artifact endpoint</span>
               <strong>{operatorSupportedShippingArtifactEndpoint ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Release candidate identity</span>
+              <strong>
+                {operatorSupportedReleaseCandidateKind
+                  ? `v${String(operatorSupportedReleaseCandidateVersion ?? 1)} · ${operatorSupportedReleaseCandidateKind}`
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Release candidate note</span>
+              <strong>{operatorSupportedReleaseCandidateNote ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Release candidate transport</span>
+              <strong>{operatorSupportedReleaseCandidateTransport ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Release candidate gate identity</span>
+              <strong>
+                {operatorSupportedReleaseCandidateGateKind
+                  ? `v${String(operatorSupportedReleaseCandidateGateVersion ?? 1)} · ${operatorSupportedReleaseCandidateGateKind}`
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Release candidate gate note</span>
+              <strong>{operatorSupportedReleaseCandidateGateNote ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Release candidate gate transport</span>
+              <strong>{operatorSupportedReleaseCandidateGateTransport ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Release candidate gate endpoint</span>
+              <strong>{operatorSupportedReleaseCandidateGateEndpoint ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Release candidate endpoint</span>
+              <strong>{operatorSupportedReleaseCandidateEndpoint ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Shipping decision identity</span>

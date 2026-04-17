@@ -265,6 +265,16 @@ export function UnshieldPage() {
     privateCoreOperatorSupportedShippingArtifactNote,
     privateCoreOperatorSupportedShippingArtifactTransport,
     privateCoreOperatorSupportedShippingArtifactEndpoint,
+    privateCoreOperatorSupportedReleaseCandidateVersion,
+    privateCoreOperatorSupportedReleaseCandidateKind,
+    privateCoreOperatorSupportedReleaseCandidateNote,
+    privateCoreOperatorSupportedReleaseCandidateGateVersion,
+    privateCoreOperatorSupportedReleaseCandidateGateKind,
+    privateCoreOperatorSupportedReleaseCandidateGateNote,
+    privateCoreOperatorSupportedReleaseCandidateGateTransport,
+    privateCoreOperatorSupportedReleaseCandidateGateEndpoint,
+    privateCoreOperatorSupportedReleaseCandidateTransport,
+    privateCoreOperatorSupportedReleaseCandidateEndpoint,
     privateCoreOperatorShippingArtifactKind,
     privateCoreOperatorShippingArtifactVersion,
     privateCoreOperatorShippingDecisionKind,
@@ -1266,6 +1276,32 @@ export function UnshieldPage() {
           }
           operatorSupportedShippingArtifactTransport={privateCoreOperatorSupportedShippingArtifactTransport}
           operatorSupportedShippingArtifactEndpoint={privateCoreOperatorSupportedShippingArtifactEndpoint}
+          operatorSupportedReleaseCandidateVersion={
+            privateCoreOperatorSupportedReleaseCandidateVersion
+          }
+          operatorSupportedReleaseCandidateKind={privateCoreOperatorSupportedReleaseCandidateKind}
+          operatorSupportedReleaseCandidateNote={privateCoreOperatorSupportedReleaseCandidateNote}
+          operatorSupportedReleaseCandidateGateVersion={
+            privateCoreOperatorSupportedReleaseCandidateGateVersion
+          }
+          operatorSupportedReleaseCandidateGateKind={
+            privateCoreOperatorSupportedReleaseCandidateGateKind
+          }
+          operatorSupportedReleaseCandidateGateNote={
+            privateCoreOperatorSupportedReleaseCandidateGateNote
+          }
+          operatorSupportedReleaseCandidateGateTransport={
+            privateCoreOperatorSupportedReleaseCandidateGateTransport
+          }
+          operatorSupportedReleaseCandidateGateEndpoint={
+            privateCoreOperatorSupportedReleaseCandidateGateEndpoint
+          }
+          operatorSupportedReleaseCandidateTransport={
+            privateCoreOperatorSupportedReleaseCandidateTransport
+          }
+          operatorSupportedReleaseCandidateEndpoint={
+            privateCoreOperatorSupportedReleaseCandidateEndpoint
+          }
           operatorShippingArtifactVersion={privateCoreOperatorShippingArtifactVersion}
           operatorShippingArtifactKind={privateCoreOperatorShippingArtifactKind}
           operatorShippingDecisionVersion={privateCoreOperatorShippingDecisionVersion}
