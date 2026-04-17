@@ -411,8 +411,8 @@ try {
   });
   const expectedStatusLines = [
     "Summary state version: 1",
-    "Mirrored contract version: 19",
-    "Summary version: 43",
+    "Mirrored contract version: 20",
+    "Summary version: 44",
     "Summary generated:",
     "Shipping decision version: 1",
     "Shipping decision kind: narrow-private-core-zk-v1-shipping",
@@ -538,8 +538,8 @@ try {
     operatorStatusJson.shippingArtifactVersion !== 1 ||
     operatorStatusJson.shippingArtifactKind !== "shipping-decision-checked-snapshot-bundle" ||
     operatorStatusJson.summary?.stateVersion !== 1 ||
-    operatorStatusJson.summary?.contractVersion !== 19 ||
-    operatorStatusJson.summary?.summaryVersion !== 43 ||
+    operatorStatusJson.summary?.contractVersion !== 20 ||
+    operatorStatusJson.summary?.summaryVersion !== 44 ||
     operatorStatusJson.summary?.requiredLanesStatus !== "coherent-required-lanes" ||
     operatorStatusJson.summary?.zkV1ShippingStatus !== "ready-narrow-v1" ||
     operatorStatusJson.summary?.releaseBoundaryStatus !== "release-recorded" ||
@@ -563,8 +563,8 @@ try {
     operatorStatusJson.summary?.latestSend?.sendAmount !== "13000000" ||
     operatorStatusJson.summary?.latestRelease?.releasedAmount !== "13000000" ||
     operatorStatusJson.shippingDecision?.decisionStatus !== "ready-to-ship" ||
-    operatorStatusJson.shippingDecision?.contractVersion !== 19 ||
-    operatorStatusJson.shippingDecision?.summaryVersion !== 43
+    operatorStatusJson.shippingDecision?.contractVersion !== 20 ||
+    operatorStatusJson.shippingDecision?.summaryVersion !== 44
   ) {
     throw new Error(
       `Unexpected send-chain->unshield operator-status JSON output\n${JSON.stringify(operatorStatusJson, null, 2)}`,
@@ -589,8 +589,8 @@ try {
     operatorSnapshotJson.operator !== baseUrl ||
     operatorSnapshotJson.snapshotVersion !== 1 ||
     operatorSnapshotJson.snapshotKind !== "contract-status-shipping-bundle" ||
-    operatorSnapshotJson.contract?.contractVersion !== 19 ||
-    operatorSnapshotJson.contract?.summaryVersion !== 43 ||
+    operatorSnapshotJson.contract?.contractVersion !== 20 ||
+    operatorSnapshotJson.contract?.summaryVersion !== 44 ||
     operatorSnapshotJson.contract?.supportedShippingDecisionNote !==
       "Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane." ||
     operatorSnapshotJson.contract?.supportedOperatorStatusNote !==
@@ -640,8 +640,8 @@ try {
     !operatorSnapshotOutput.includes("Snapshot endpoint: /state/private-core-snapshot") ||
     !operatorSnapshotOutput.includes("Snapshot gate transport: dedicated-endpoint") ||
     !operatorSnapshotOutput.includes("Snapshot gate endpoint: /state/private-core-snapshot-check") ||
-    !operatorSnapshotOutput.includes("Contract version: 19") ||
-    !operatorSnapshotOutput.includes("Contract summary version: 43") ||
+    !operatorSnapshotOutput.includes("Contract version: 20") ||
+    !operatorSnapshotOutput.includes("Contract summary version: 44") ||
     !operatorSnapshotOutput.includes(
       "Supported shipping decision note: Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane.",
     ) ||
@@ -667,7 +667,7 @@ try {
       "Supported shipping artifact gate note: Release-grade shipping artifact surface can act as a strict ready gate for the frozen narrow lane.",
     ) ||
     !operatorSnapshotOutput.includes("Summary state version: 1") ||
-    !operatorSnapshotOutput.includes("Summary version: 43") ||
+    !operatorSnapshotOutput.includes("Summary version: 44") ||
     !operatorSnapshotOutput.includes("Summary generated:") ||
     !operatorSnapshotOutput.includes("Decision version: 1") ||
     !operatorSnapshotOutput.includes("Decision kind: narrow-private-core-zk-v1-shipping") ||
@@ -724,8 +724,8 @@ try {
     !shippingStatusOutput.includes(
       "Decision note: Minimum zk v1 required lanes are coherent and the operator boundary remains contract-coherent enough to ship the frozen narrow lane.",
     ) ||
-    !shippingStatusOutput.includes("Mirrored contract version: 19") ||
-    !shippingStatusOutput.includes("Summary version: 43") ||
+    !shippingStatusOutput.includes("Mirrored contract version: 20") ||
+    !shippingStatusOutput.includes("Summary version: 44") ||
     !shippingStatusOutput.includes("Summary generated:") ||
     !shippingStatusOutput.includes("Shipping status: Ready narrow v1") ||
     !shippingStatusOutput.includes(
@@ -777,8 +777,8 @@ try {
     shippingStatusJson.decisionNote !==
       "Minimum zk v1 required lanes are coherent and the operator boundary remains contract-coherent enough to ship the frozen narrow lane." ||
     shippingStatusJson.summaryStateVersion !== 1 ||
-    shippingStatusJson.mirroredContractVersion !== 19 ||
-    shippingStatusJson.summaryVersion !== 43 ||
+    shippingStatusJson.mirroredContractVersion !== 20 ||
+    shippingStatusJson.summaryVersion !== 44 ||
     typeof shippingStatusJson.summaryGenerated !== "number" ||
     shippingStatusJson.shippingStatusRaw !== "ready-narrow-v1" ||
     shippingStatusJson.shippingStatus !== "Ready narrow v1" ||
@@ -808,8 +808,8 @@ try {
     !shippingCheckOutput.includes(
       "Decision note: Minimum zk v1 required lanes are coherent and the operator boundary remains contract-coherent enough to ship the frozen narrow lane.",
     ) ||
-    !shippingCheckOutput.includes("Mirrored contract version: 19") ||
-    !shippingCheckOutput.includes("Summary version: 43") ||
+    !shippingCheckOutput.includes("Mirrored contract version: 20") ||
+    !shippingCheckOutput.includes("Summary version: 44") ||
     !shippingCheckOutput.includes("Summary generated:") ||
     !shippingCheckOutput.includes("Shipping status: Ready narrow v1") ||
     !shippingCheckOutput.includes(
@@ -865,8 +865,8 @@ try {
       "Minimum zk v1 required lanes are coherent and the operator boundary remains contract-coherent enough to ship the frozen narrow lane." ||
     shippingArtifactJson.snapshotVersion !== 1 ||
     shippingArtifactJson.snapshotKind !== "contract-status-shipping-bundle" ||
-    shippingArtifactJson.contractVersion !== 19 ||
-    shippingArtifactJson.summaryVersion !== 43 ||
+    shippingArtifactJson.contractVersion !== 20 ||
+    shippingArtifactJson.summaryVersion !== 44 ||
     shippingArtifactJson.snapshot?.shipping?.shippingStatusRaw !== "ready-narrow-v1"
   ) {
     throw new Error(
@@ -899,8 +899,8 @@ try {
     ) ||
     !shippingArtifactOutput.includes("Snapshot version: 1") ||
     !shippingArtifactOutput.includes("Snapshot kind: contract-status-shipping-bundle") ||
-    !shippingArtifactOutput.includes("Contract version: 19") ||
-    !shippingArtifactOutput.includes("Summary version: 43") ||
+    !shippingArtifactOutput.includes("Contract version: 20") ||
+    !shippingArtifactOutput.includes("Summary version: 44") ||
     !shippingArtifactOutput.includes("Snapshot transport: dedicated-endpoint") ||
     !shippingArtifactOutput.includes("Snapshot endpoint: /state/private-core-snapshot") ||
     !shippingArtifactOutput.includes("Shipping artifact transport: dedicated-endpoint") ||
@@ -966,8 +966,8 @@ try {
     shippingArtifactSurfaceJson.decisionStatus !== "ready-to-ship" ||
     shippingArtifactSurfaceJson.snapshotVersion !== 1 ||
     shippingArtifactSurfaceJson.snapshotKind !== "contract-status-shipping-bundle" ||
-    shippingArtifactSurfaceJson.contractVersion !== 19 ||
-    shippingArtifactSurfaceJson.summaryVersion !== 43 ||
+    shippingArtifactSurfaceJson.contractVersion !== 20 ||
+    shippingArtifactSurfaceJson.summaryVersion !== 44 ||
     shippingArtifactSurfaceJson.snapshot?.shipping?.shippingStatusRaw !== "ready-narrow-v1"
   ) {
     throw new Error(
@@ -1000,8 +1000,8 @@ try {
     ) ||
     !shippingArtifactSurfaceOutput.includes("Snapshot version: 1") ||
     !shippingArtifactSurfaceOutput.includes("Snapshot kind: contract-status-shipping-bundle") ||
-    !shippingArtifactSurfaceOutput.includes("Contract version: 19") ||
-    !shippingArtifactSurfaceOutput.includes("Summary version: 43") ||
+    !shippingArtifactSurfaceOutput.includes("Contract version: 20") ||
+    !shippingArtifactSurfaceOutput.includes("Summary version: 44") ||
     !shippingArtifactSurfaceOutput.includes("Snapshot transport: dedicated-endpoint") ||
     !shippingArtifactSurfaceOutput.includes("Snapshot endpoint: /state/private-core-snapshot") ||
     !shippingArtifactSurfaceOutput.includes("Shipping artifact transport: dedicated-endpoint") ||
@@ -1061,8 +1061,8 @@ try {
   if (
     operatorSnapshotCheckJson.snapshotVersion !== 1 ||
     operatorSnapshotCheckJson.snapshotKind !== "contract-status-shipping-bundle" ||
-    operatorSnapshotCheckJson.contract?.contractVersion !== 19 ||
-    operatorSnapshotCheckJson.contract?.summaryVersion !== 43 ||
+    operatorSnapshotCheckJson.contract?.contractVersion !== 20 ||
+    operatorSnapshotCheckJson.contract?.summaryVersion !== 44 ||
     operatorSnapshotCheckJson.contract?.supportedShippingDecisionNote !==
       "Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane." ||
     operatorSnapshotCheckJson.contract?.supportedOperatorStatusNote !==
@@ -1106,8 +1106,8 @@ try {
     operatorStatusCheckJson.snapshotKind !== "contract-status-shipping-bundle" ||
     operatorStatusCheckJson.shippingArtifactVersion !== 1 ||
     operatorStatusCheckJson.shippingArtifactKind !== "shipping-decision-checked-snapshot-bundle" ||
-    operatorStatusCheckJson.summary?.contractVersion !== 19 ||
-    operatorStatusCheckJson.summary?.summaryVersion !== 43 ||
+    operatorStatusCheckJson.summary?.contractVersion !== 20 ||
+    operatorStatusCheckJson.summary?.summaryVersion !== 44 ||
     operatorStatusCheckJson.summary?.supportedShippingDecisionNote !==
       "Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane." ||
     operatorStatusCheckJson.summary?.supportedOperatorStatusNote !==

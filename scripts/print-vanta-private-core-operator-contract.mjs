@@ -266,6 +266,46 @@ try {
     "Supported shipping artifact endpoint",
     contract.supportedShippingArtifactEndpoint ?? "Unavailable",
   );
+  printLine(
+    "Supported release candidate version",
+    String(contract.supportedReleaseCandidateVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported release candidate kind",
+    contract.supportedReleaseCandidateKind ?? "Unavailable",
+  );
+  printLine(
+    "Supported release candidate note",
+    contract.supportedReleaseCandidateNote ?? "Unavailable",
+  );
+  printLine(
+    "Supported release candidate gate version",
+    String(contract.supportedReleaseCandidateGateVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported release candidate gate kind",
+    contract.supportedReleaseCandidateGateKind ?? "Unavailable",
+  );
+  printLine(
+    "Supported release candidate gate note",
+    contract.supportedReleaseCandidateGateNote ?? "Unavailable",
+  );
+  printLine(
+    "Supported release candidate gate transport",
+    contract.supportedReleaseCandidateGateTransport ?? "Unavailable",
+  );
+  printLine(
+    "Supported release candidate gate endpoint",
+    contract.supportedReleaseCandidateGateEndpoint ?? "Unavailable",
+  );
+  printLine(
+    "Supported release candidate transport",
+    contract.supportedReleaseCandidateTransport ?? "Unavailable",
+  );
+  printLine(
+    "Supported release candidate endpoint",
+    contract.supportedReleaseCandidateEndpoint ?? "Unavailable",
+  );
   printLine("Supported zk v1 scope decision", contract.supportedZkV1ScopeDecision ?? "Unavailable");
   printLine("Supported zk v1 scope note", contract.supportedZkV1ScopeNote ?? "Unavailable");
   printLine(

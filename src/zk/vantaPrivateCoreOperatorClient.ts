@@ -272,8 +272,8 @@ export type VantaPrivateCoreOperatorShippingDecisionResponse = {
   decisionKind: "narrow-private-core-zk-v1-shipping";
   decisionStatus: "ready-to-ship" | "blocked";
   decisionNote: string;
-  contractVersion: 19;
-  summaryVersion: 43;
+  contractVersion: 20;
+  summaryVersion: 44;
   generatedAt: number;
   shippingStatus: VantaPrivateCoreOperatorSummaryStateResponse["zkV1ShippingStatus"];
   shippingNote: string;
@@ -487,6 +487,16 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedShippingArtifactGateEndpoint: "/state/private-core-shipping-artifact-check";
   supportedShippingArtifactTransport: "dedicated-endpoint";
   supportedShippingArtifactEndpoint: "/state/private-core-shipping-artifact";
+  supportedReleaseCandidateVersion: 1;
+  supportedReleaseCandidateKind: "exact-run-send-consume-release-candidate";
+  supportedReleaseCandidateNote: string;
+  supportedReleaseCandidateGateVersion: 1;
+  supportedReleaseCandidateGateKind: "ready-gated-exact-run-send-consume-release-candidate";
+  supportedReleaseCandidateGateNote: string;
+  supportedReleaseCandidateGateTransport: "dedicated-endpoint";
+  supportedReleaseCandidateGateEndpoint: "/state/private-core-release-candidate-check";
+  supportedReleaseCandidateTransport: "dedicated-endpoint";
+  supportedReleaseCandidateEndpoint: "/state/private-core-release-candidate";
   supportedZkV1ScopeDecision: "accepted-narrow-private-core-v1-scope";
   supportedZkV1ScopeNote: string;
   supportedZkV1RequiredLanes: "send|unshield|release";
@@ -640,6 +650,16 @@ export type VantaPrivateCoreOperatorContractStateResponse = {
   supportedShippingArtifactGateEndpoint: "/state/private-core-shipping-artifact-check";
   supportedShippingArtifactTransport: "dedicated-endpoint";
   supportedShippingArtifactEndpoint: "/state/private-core-shipping-artifact";
+  supportedReleaseCandidateVersion: 1;
+  supportedReleaseCandidateKind: "exact-run-send-consume-release-candidate";
+  supportedReleaseCandidateNote: string;
+  supportedReleaseCandidateGateVersion: 1;
+  supportedReleaseCandidateGateKind: "ready-gated-exact-run-send-consume-release-candidate";
+  supportedReleaseCandidateGateNote: string;
+  supportedReleaseCandidateGateTransport: "dedicated-endpoint";
+  supportedReleaseCandidateGateEndpoint: "/state/private-core-release-candidate-check";
+  supportedReleaseCandidateTransport: "dedicated-endpoint";
+  supportedReleaseCandidateEndpoint: "/state/private-core-release-candidate";
   supportedZkV1ScopeDecision: "accepted-narrow-private-core-v1-scope";
   supportedZkV1ScopeNote: string;
   supportedZkV1RequiredLanes: "send|unshield|release";
@@ -699,8 +719,8 @@ export type VantaPrivateCoreOperatorSnapshotStateResponse = {
     decisionStatusRaw: "ready-to-ship" | "blocked";
     decisionStatus: string;
     decisionNote: string;
-    mirroredContractVersion: 19;
-    summaryVersion: 43;
+    mirroredContractVersion: 20;
+    summaryVersion: 44;
     summaryGenerated: number;
     shippingStatusRaw: VantaPrivateCoreOperatorSummaryStateResponse["zkV1ShippingStatus"];
     shippingStatus: string;
@@ -747,8 +767,8 @@ export type VantaPrivateCoreOperatorShippingArtifactResponse = {
   decisionNote: string;
   snapshotVersion: 1;
   snapshotKind: "contract-status-shipping-bundle";
-  contractVersion: 19;
-  summaryVersion: 43;
+  contractVersion: 20;
+  summaryVersion: 44;
   currentRoot: string | null;
   currentRootRegistrationBasis:
     | "shield-input"
@@ -819,6 +839,16 @@ function parsePrivateCoreOperatorContractState(
     supportedShippingArtifactGateEndpoint?: unknown;
     supportedShippingArtifactTransport?: unknown;
     supportedShippingArtifactEndpoint?: unknown;
+    supportedReleaseCandidateVersion?: unknown;
+    supportedReleaseCandidateKind?: unknown;
+    supportedReleaseCandidateNote?: unknown;
+    supportedReleaseCandidateGateVersion?: unknown;
+    supportedReleaseCandidateGateKind?: unknown;
+    supportedReleaseCandidateGateNote?: unknown;
+    supportedReleaseCandidateGateTransport?: unknown;
+    supportedReleaseCandidateGateEndpoint?: unknown;
+    supportedReleaseCandidateTransport?: unknown;
+    supportedReleaseCandidateEndpoint?: unknown;
   };
 
   if (
@@ -826,8 +856,8 @@ function parsePrivateCoreOperatorContractState(
     parsed === null ||
     typeof parsed.operator !== "string" ||
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 19 ||
-    parsed.summaryVersion !== 43 ||
+    parsed.contractVersion !== 20 ||
+    parsed.summaryVersion !== 44 ||
     parsed.supportedOperatorSnapshotVersion !== 1 ||
     parsed.supportedOperatorSnapshotKind !== "contract-status-shipping-bundle" ||
     parsed.supportedOperatorSnapshotGateVersion !== 1 ||
@@ -853,7 +883,19 @@ function parsePrivateCoreOperatorContractState(
     parsed.supportedShippingArtifactGateEndpoint !==
       "/state/private-core-shipping-artifact-check" ||
     parsed.supportedShippingArtifactTransport !== "dedicated-endpoint" ||
-    parsed.supportedShippingArtifactEndpoint !== "/state/private-core-shipping-artifact"
+    parsed.supportedShippingArtifactEndpoint !== "/state/private-core-shipping-artifact" ||
+    typeof parsed.supportedReleaseCandidateNote !== "string" ||
+    parsed.supportedReleaseCandidateVersion !== 1 ||
+    parsed.supportedReleaseCandidateKind !== "exact-run-send-consume-release-candidate" ||
+    typeof parsed.supportedReleaseCandidateGateNote !== "string" ||
+    parsed.supportedReleaseCandidateGateVersion !== 1 ||
+    parsed.supportedReleaseCandidateGateKind !==
+      "ready-gated-exact-run-send-consume-release-candidate" ||
+    parsed.supportedReleaseCandidateGateTransport !== "dedicated-endpoint" ||
+    parsed.supportedReleaseCandidateGateEndpoint !==
+      "/state/private-core-release-candidate-check" ||
+    parsed.supportedReleaseCandidateTransport !== "dedicated-endpoint" ||
+    parsed.supportedReleaseCandidateEndpoint !== "/state/private-core-release-candidate"
   ) {
     throw new Error(errorMessage);
   }
@@ -899,14 +941,24 @@ function parsePrivateCoreOperatorSummaryState(
     supportedShippingArtifactGateEndpoint?: unknown;
     supportedShippingArtifactTransport?: unknown;
     supportedShippingArtifactEndpoint?: unknown;
+    supportedReleaseCandidateVersion?: unknown;
+    supportedReleaseCandidateKind?: unknown;
+    supportedReleaseCandidateNote?: unknown;
+    supportedReleaseCandidateGateVersion?: unknown;
+    supportedReleaseCandidateGateKind?: unknown;
+    supportedReleaseCandidateGateNote?: unknown;
+    supportedReleaseCandidateGateTransport?: unknown;
+    supportedReleaseCandidateGateEndpoint?: unknown;
+    supportedReleaseCandidateTransport?: unknown;
+    supportedReleaseCandidateEndpoint?: unknown;
   };
 
   if (
     typeof parsed !== "object" ||
     parsed === null ||
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 19 ||
-    parsed.summaryVersion !== 43 ||
+    parsed.contractVersion !== 20 ||
+    parsed.summaryVersion !== 44 ||
     typeof parsed.generatedAt !== "number" ||
     !isRequiredLanesStatus(parsed.requiredLanesStatus) ||
     !isZkV1ShippingStatus(parsed.zkV1ShippingStatus) ||
@@ -938,7 +990,19 @@ function parsePrivateCoreOperatorSummaryState(
     parsed.supportedShippingArtifactGateEndpoint !==
       "/state/private-core-shipping-artifact-check" ||
     parsed.supportedShippingArtifactTransport !== "dedicated-endpoint" ||
-    parsed.supportedShippingArtifactEndpoint !== "/state/private-core-shipping-artifact"
+    parsed.supportedShippingArtifactEndpoint !== "/state/private-core-shipping-artifact" ||
+    typeof parsed.supportedReleaseCandidateNote !== "string" ||
+    parsed.supportedReleaseCandidateVersion !== 1 ||
+    parsed.supportedReleaseCandidateKind !== "exact-run-send-consume-release-candidate" ||
+    typeof parsed.supportedReleaseCandidateGateNote !== "string" ||
+    parsed.supportedReleaseCandidateGateVersion !== 1 ||
+    parsed.supportedReleaseCandidateGateKind !==
+      "ready-gated-exact-run-send-consume-release-candidate" ||
+    parsed.supportedReleaseCandidateGateTransport !== "dedicated-endpoint" ||
+    parsed.supportedReleaseCandidateGateEndpoint !==
+      "/state/private-core-release-candidate-check" ||
+    parsed.supportedReleaseCandidateTransport !== "dedicated-endpoint" ||
+    parsed.supportedReleaseCandidateEndpoint !== "/state/private-core-release-candidate"
   ) {
     throw new Error(errorMessage);
   }
@@ -981,8 +1045,8 @@ function parsePrivateCoreOperatorShippingDecisionState(
     parsed.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
     !isShippingDecisionStatus(parsed.decisionStatus) ||
     typeof parsed.decisionNote !== "string" ||
-    parsed.contractVersion !== 19 ||
-    parsed.summaryVersion !== 43 ||
+    parsed.contractVersion !== 20 ||
+    parsed.summaryVersion !== 44 ||
     typeof parsed.generatedAt !== "number" ||
     !isZkV1ShippingStatus(parsed.shippingStatus) ||
     typeof parsed.shippingNote !== "string" ||
@@ -1081,8 +1145,8 @@ function parsePrivateCoreOperatorSnapshotPayload(
     !isShippingDecisionStatus(shipping.decisionStatusRaw) ||
     typeof shipping.decisionStatus !== "string" ||
     typeof shipping.decisionNote !== "string" ||
-    shipping.mirroredContractVersion !== 19 ||
-    shipping.summaryVersion !== 43 ||
+    shipping.mirroredContractVersion !== 20 ||
+    shipping.summaryVersion !== 44 ||
     typeof shipping.summaryGenerated !== "number" ||
     !isZkV1ShippingStatus(shipping.shippingStatusRaw) ||
     typeof shipping.shippingStatus !== "string" ||
@@ -1130,8 +1194,8 @@ function parsePrivateCoreOperatorSnapshotPayload(
       decisionStatusRaw: shipping.decisionStatusRaw,
       decisionStatus: shipping.decisionStatus,
       decisionNote: shipping.decisionNote,
-      mirroredContractVersion: 19,
-      summaryVersion: 43,
+      mirroredContractVersion: 20,
+      summaryVersion: 44,
       summaryGenerated: shipping.summaryGenerated,
       shippingStatusRaw: shipping.shippingStatusRaw,
       shippingStatus: shipping.shippingStatus,
@@ -2201,6 +2265,16 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedShippingArtifactGateEndpoint?: unknown;
     supportedShippingArtifactTransport?: unknown;
     supportedShippingArtifactEndpoint?: unknown;
+    supportedReleaseCandidateVersion?: unknown;
+    supportedReleaseCandidateKind?: unknown;
+    supportedReleaseCandidateNote?: unknown;
+    supportedReleaseCandidateGateVersion?: unknown;
+    supportedReleaseCandidateGateKind?: unknown;
+    supportedReleaseCandidateGateNote?: unknown;
+    supportedReleaseCandidateGateTransport?: unknown;
+    supportedReleaseCandidateGateEndpoint?: unknown;
+    supportedReleaseCandidateTransport?: unknown;
+    supportedReleaseCandidateEndpoint?: unknown;
     supportedZkV1ScopeDecision?: unknown;
     supportedZkV1ScopeNote?: unknown;
     supportedZkV1RequiredLanes?: unknown;
@@ -2276,8 +2350,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 19 ||
-    parsed.summaryVersion !== 43 ||
+    parsed.contractVersion !== 20 ||
+    parsed.summaryVersion !== 44 ||
     !isContractMirrorStatus(parsed.contractMirrorStatus) ||
     typeof parsed.contractMirrorNote !== "string" ||
     !isRequiredLanesStatus(parsed.requiredLanesStatus) ||
@@ -2401,6 +2475,18 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
       "/state/private-core-shipping-artifact-check" ||
     parsed.supportedShippingArtifactTransport !== "dedicated-endpoint" ||
     parsed.supportedShippingArtifactEndpoint !== "/state/private-core-shipping-artifact" ||
+    parsed.supportedReleaseCandidateVersion !== 1 ||
+    parsed.supportedReleaseCandidateKind !== "exact-run-send-consume-release-candidate" ||
+    typeof parsed.supportedReleaseCandidateNote !== "string" ||
+    parsed.supportedReleaseCandidateGateVersion !== 1 ||
+    parsed.supportedReleaseCandidateGateKind !==
+      "ready-gated-exact-run-send-consume-release-candidate" ||
+    typeof parsed.supportedReleaseCandidateGateNote !== "string" ||
+    parsed.supportedReleaseCandidateGateTransport !== "dedicated-endpoint" ||
+    parsed.supportedReleaseCandidateGateEndpoint !==
+      "/state/private-core-release-candidate-check" ||
+    parsed.supportedReleaseCandidateTransport !== "dedicated-endpoint" ||
+    parsed.supportedReleaseCandidateEndpoint !== "/state/private-core-release-candidate" ||
     parsed.supportedZkV1ScopeDecision !== "accepted-narrow-private-core-v1-scope" ||
     typeof parsed.supportedZkV1ScopeNote !== "string" ||
     parsed.supportedZkV1RequiredLanes !== "send|unshield|release" ||
@@ -2509,8 +2595,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   return {
     stateVersion: 1,
-    contractVersion: 19,
-    summaryVersion: 43,
+    contractVersion: 20,
+    summaryVersion: 44,
     contractMirrorStatus: parsed.contractMirrorStatus,
     contractMirrorNote: parsed.contractMirrorNote,
     requiredLanesStatus: parsed.requiredLanesStatus,
@@ -2599,6 +2685,16 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedShippingArtifactGateEndpoint: "/state/private-core-shipping-artifact-check",
     supportedShippingArtifactTransport: "dedicated-endpoint",
     supportedShippingArtifactEndpoint: "/state/private-core-shipping-artifact",
+    supportedReleaseCandidateVersion: 1,
+    supportedReleaseCandidateKind: "exact-run-send-consume-release-candidate",
+    supportedReleaseCandidateNote: parsed.supportedReleaseCandidateNote,
+    supportedReleaseCandidateGateVersion: 1,
+    supportedReleaseCandidateGateKind: "ready-gated-exact-run-send-consume-release-candidate",
+    supportedReleaseCandidateGateNote: parsed.supportedReleaseCandidateGateNote,
+    supportedReleaseCandidateGateTransport: "dedicated-endpoint",
+    supportedReleaseCandidateGateEndpoint: "/state/private-core-release-candidate-check",
+    supportedReleaseCandidateTransport: "dedicated-endpoint",
+    supportedReleaseCandidateEndpoint: "/state/private-core-release-candidate",
     supportedZkV1ScopeDecision: "accepted-narrow-private-core-v1-scope",
     supportedZkV1ScopeNote: parsed.supportedZkV1ScopeNote,
     supportedZkV1RequiredLanes: "send|unshield|release",
@@ -2754,8 +2850,8 @@ export async function fetchVantaPrivateCoreOperatorShippingDecision(): Promise<
     parsed.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
     !isShippingDecisionStatus(parsed.decisionStatus) ||
     typeof parsed.decisionNote !== "string" ||
-    parsed.contractVersion !== 19 ||
-    parsed.summaryVersion !== 43 ||
+    parsed.contractVersion !== 20 ||
+    parsed.summaryVersion !== 44 ||
     typeof parsed.generatedAt !== "number" ||
     !isZkV1ShippingStatus(parsed.shippingStatus) ||
     typeof parsed.shippingNote !== "string" ||
@@ -2779,8 +2875,8 @@ export async function fetchVantaPrivateCoreOperatorShippingDecision(): Promise<
     decisionKind: "narrow-private-core-zk-v1-shipping",
     decisionStatus: parsed.decisionStatus,
     decisionNote: parsed.decisionNote,
-    contractVersion: 19,
-    summaryVersion: 43,
+    contractVersion: 20,
+    summaryVersion: 44,
     generatedAt: parsed.generatedAt,
     shippingStatus: parsed.shippingStatus,
     shippingNote: parsed.shippingNote,
@@ -2888,6 +2984,16 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedShippingArtifactGateEndpoint?: unknown;
     supportedShippingArtifactTransport?: unknown;
     supportedShippingArtifactEndpoint?: unknown;
+    supportedReleaseCandidateVersion?: unknown;
+    supportedReleaseCandidateKind?: unknown;
+    supportedReleaseCandidateNote?: unknown;
+    supportedReleaseCandidateGateVersion?: unknown;
+    supportedReleaseCandidateGateKind?: unknown;
+    supportedReleaseCandidateGateNote?: unknown;
+    supportedReleaseCandidateGateTransport?: unknown;
+    supportedReleaseCandidateGateEndpoint?: unknown;
+    supportedReleaseCandidateTransport?: unknown;
+    supportedReleaseCandidateEndpoint?: unknown;
     supportedZkV1ScopeDecision?: unknown;
     supportedZkV1ScopeNote?: unknown;
     supportedZkV1RequiredLanes?: unknown;
@@ -2929,8 +3035,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 19 ||
-    parsed.summaryVersion !== 43 ||
+    parsed.contractVersion !== 20 ||
+    parsed.summaryVersion !== 44 ||
     !isZkV1FinishLineStatus(parsed.zkV1FinishLineStatus) ||
     typeof parsed.zkV1FinishLineNote !== "string" ||
     parsed.supportedSendLaneVersion !== 1 ||
@@ -3010,6 +3116,18 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
       "/state/private-core-shipping-artifact-check" ||
     parsed.supportedShippingArtifactTransport !== "dedicated-endpoint" ||
     parsed.supportedShippingArtifactEndpoint !== "/state/private-core-shipping-artifact" ||
+    parsed.supportedReleaseCandidateVersion !== 1 ||
+    parsed.supportedReleaseCandidateKind !== "exact-run-send-consume-release-candidate" ||
+    typeof parsed.supportedReleaseCandidateNote !== "string" ||
+    parsed.supportedReleaseCandidateGateVersion !== 1 ||
+    parsed.supportedReleaseCandidateGateKind !==
+      "ready-gated-exact-run-send-consume-release-candidate" ||
+    typeof parsed.supportedReleaseCandidateGateNote !== "string" ||
+    parsed.supportedReleaseCandidateGateTransport !== "dedicated-endpoint" ||
+    parsed.supportedReleaseCandidateGateEndpoint !==
+      "/state/private-core-release-candidate-check" ||
+    parsed.supportedReleaseCandidateTransport !== "dedicated-endpoint" ||
+    parsed.supportedReleaseCandidateEndpoint !== "/state/private-core-release-candidate" ||
     parsed.supportedZkV1ScopeDecision !== "accepted-narrow-private-core-v1-scope" ||
     typeof parsed.supportedZkV1ScopeNote !== "string" ||
     parsed.supportedZkV1RequiredLanes !== "send|unshield|release" ||
@@ -3058,8 +3176,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
 
   return {
     stateVersion: 1,
-    contractVersion: 19,
-    summaryVersion: 43,
+    contractVersion: 20,
+    summaryVersion: 44,
     supportedSendLaneVersion: 1,
     supportedSendLaneKind: "single-input-single-recipient-optional-change",
     supportedSendLaneStatus: "supported",
@@ -3132,6 +3250,16 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedShippingArtifactGateEndpoint: "/state/private-core-shipping-artifact-check",
     supportedShippingArtifactTransport: "dedicated-endpoint",
     supportedShippingArtifactEndpoint: "/state/private-core-shipping-artifact",
+    supportedReleaseCandidateVersion: 1,
+    supportedReleaseCandidateKind: "exact-run-send-consume-release-candidate",
+    supportedReleaseCandidateNote: parsed.supportedReleaseCandidateNote,
+    supportedReleaseCandidateGateVersion: 1,
+    supportedReleaseCandidateGateKind: "ready-gated-exact-run-send-consume-release-candidate",
+    supportedReleaseCandidateGateNote: parsed.supportedReleaseCandidateGateNote,
+    supportedReleaseCandidateGateTransport: "dedicated-endpoint",
+    supportedReleaseCandidateGateEndpoint: "/state/private-core-release-candidate-check",
+    supportedReleaseCandidateTransport: "dedicated-endpoint",
+    supportedReleaseCandidateEndpoint: "/state/private-core-release-candidate",
     supportedZkV1ScopeDecision: "accepted-narrow-private-core-v1-scope",
     supportedZkV1ScopeNote: parsed.supportedZkV1ScopeNote,
     supportedZkV1RequiredLanes: "send|unshield|release",
@@ -3317,8 +3445,8 @@ export async function fetchVantaPrivateCoreOperatorShippingArtifact(): Promise<
     typeof parsed.decisionNote !== "string" ||
     parsed.snapshotVersion !== 1 ||
     parsed.snapshotKind !== "contract-status-shipping-bundle" ||
-    parsed.contractVersion !== 19 ||
-    parsed.summaryVersion !== 43 ||
+    parsed.contractVersion !== 20 ||
+    parsed.summaryVersion !== 44 ||
     (parsed.currentRoot !== null &&
       parsed.currentRoot !== undefined &&
       typeof parsed.currentRoot !== "string") ||
@@ -3425,8 +3553,8 @@ export async function fetchVantaPrivateCoreOperatorShippingArtifact(): Promise<
     decisionNote: parsed.decisionNote,
     snapshotVersion: 1,
     snapshotKind: "contract-status-shipping-bundle",
-    contractVersion: 19,
-    summaryVersion: 43,
+    contractVersion: 20,
+    summaryVersion: 44,
     currentRoot: typeof parsed.currentRoot === "string" ? parsed.currentRoot : null,
     currentRootRegistrationBasis:
       parsed.currentRootRegistrationBasis === "shield-input" ||

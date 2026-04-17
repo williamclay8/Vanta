@@ -102,8 +102,8 @@ try {
   if (
     !contractState.ok ||
     contractState.parsed?.stateVersion !== 1 ||
-    contractState.parsed?.contractVersion !== 19 ||
-    contractState.parsed?.summaryVersion !== 43 ||
+    contractState.parsed?.contractVersion !== 20 ||
+    contractState.parsed?.summaryVersion !== 44 ||
     contractState.parsed?.supportedSendLaneVersion !== 1 ||
     contractState.parsed?.supportedSendV1Decision !== "accepted-narrow-v1-path" ||
     typeof contractState.parsed?.supportedSendV1DecisionNote !== "string" ||
@@ -359,8 +359,8 @@ try {
   });
   if (
     !contractOutput.includes("Contract state version: 1") ||
-    !contractOutput.includes("Contract version: 19") ||
-    !contractOutput.includes("Summary compatibility: 43") ||
+    !contractOutput.includes("Contract version: 20") ||
+    !contractOutput.includes("Summary compatibility: 44") ||
     !contractOutput.includes("Supported note schema: NoteV0 / v0") ||
     !contractOutput.includes("Supported send lane version: 1") ||
     !contractOutput.includes("Supported unshield lane version: 1") ||
@@ -437,6 +437,28 @@ try {
     ) ||
     !contractOutput.includes(
       "Supported shipping artifact endpoint: /state/private-core-shipping-artifact",
+    ) ||
+    !contractOutput.includes("Supported release candidate version: 1") ||
+    !contractOutput.includes(
+      "Supported release candidate kind: exact-run-send-consume-release-candidate",
+    ) ||
+    !contractOutput.includes(
+      "Supported release candidate gate version: 1",
+    ) ||
+    !contractOutput.includes(
+      "Supported release candidate gate kind: ready-gated-exact-run-send-consume-release-candidate",
+    ) ||
+    !contractOutput.includes(
+      "Supported release candidate gate transport: dedicated-endpoint",
+    ) ||
+    !contractOutput.includes(
+      "Supported release candidate gate endpoint: /state/private-core-release-candidate-check",
+    ) ||
+    !contractOutput.includes(
+      "Supported release candidate transport: dedicated-endpoint",
+    ) ||
+    !contractOutput.includes(
+      "Supported release candidate endpoint: /state/private-core-release-candidate",
     )
   ) {
     throw new Error(contractOutput || "operator contract script did not reflect the contract state");
@@ -459,8 +481,8 @@ try {
   if (
     contractJson.operator !== baseUrl ||
     contractJson.stateVersion !== 1 ||
-    contractJson.contractVersion !== 19 ||
-    contractJson.summaryVersion !== 43 ||
+    contractJson.contractVersion !== 20 ||
+    contractJson.summaryVersion !== 44 ||
     contractJson.supportedSendLaneVersion !== 1 ||
     contractJson.supportedUnshieldLaneVersion !== 1 ||
     contractJson.supportedReleaseLaneVersion !== 1 ||
@@ -519,7 +541,22 @@ try {
     contractJson.supportedShippingArtifactGateEndpoint !==
       "/state/private-core-shipping-artifact-check" ||
     contractJson.supportedShippingArtifactTransport !== "dedicated-endpoint" ||
-    contractJson.supportedShippingArtifactEndpoint !== "/state/private-core-shipping-artifact"
+    contractJson.supportedShippingArtifactEndpoint !== "/state/private-core-shipping-artifact" ||
+    contractJson.supportedReleaseCandidateVersion !== 1 ||
+    contractJson.supportedReleaseCandidateKind !==
+      "exact-run-send-consume-release-candidate" ||
+    contractJson.supportedReleaseCandidateNote !==
+      "Canonical exact-run machine-readable operator artifact binding one narrow private-core release candidate to send, consume, release, and bundled snapshot lineage." ||
+    contractJson.supportedReleaseCandidateGateVersion !== 1 ||
+    contractJson.supportedReleaseCandidateGateKind !==
+      "ready-gated-exact-run-send-consume-release-candidate" ||
+    contractJson.supportedReleaseCandidateGateNote !==
+      "Exact-run release-candidate surface can act as a strict ready gate for the frozen narrow lane." ||
+    contractJson.supportedReleaseCandidateGateTransport !== "dedicated-endpoint" ||
+    contractJson.supportedReleaseCandidateGateEndpoint !==
+      "/state/private-core-release-candidate-check" ||
+    contractJson.supportedReleaseCandidateTransport !== "dedicated-endpoint" ||
+    contractJson.supportedReleaseCandidateEndpoint !== "/state/private-core-release-candidate"
   ) {
     throw new Error(
       `Unexpected operator contract JSON output\n${JSON.stringify(contractJson, null, 2)}`,

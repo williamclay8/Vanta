@@ -247,6 +247,22 @@ const PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_GATE_ENDPOINT =
   "/state/private-core-shipping-artifact-check";
 const PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_TRANSPORT = "dedicated-endpoint";
 const PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_ENDPOINT = "/state/private-core-shipping-artifact";
+const PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_VERSION = 1;
+const PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_KIND =
+  "exact-run-send-consume-release-candidate";
+const PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_NOTE =
+  "Canonical exact-run machine-readable operator artifact binding one narrow private-core release candidate to send, consume, release, and bundled snapshot lineage.";
+const PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_GATE_VERSION = 1;
+const PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_GATE_KIND =
+  "ready-gated-exact-run-send-consume-release-candidate";
+const PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_GATE_NOTE =
+  "Exact-run release-candidate surface can act as a strict ready gate for the frozen narrow lane.";
+const PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_GATE_TRANSPORT = "dedicated-endpoint";
+const PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_GATE_ENDPOINT =
+  "/state/private-core-release-candidate-check";
+const PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_TRANSPORT = "dedicated-endpoint";
+const PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_ENDPOINT =
+  "/state/private-core-release-candidate";
 const PRIVATE_CORE_SUPPORTED_ZK_V1_SCOPE_DECISION =
   "accepted-narrow-private-core-v1-scope";
 const PRIVATE_CORE_SUPPORTED_ZK_V1_SCOPE_NOTE =
@@ -2535,8 +2551,8 @@ function buildPrivateCoreReleaseCandidateCheckState(request) {
 function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
-    contractVersion: 19,
-    summaryVersion: 43,
+    contractVersion: 20,
+    summaryVersion: 44,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
@@ -2614,6 +2630,18 @@ function buildPrivateCoreContractState() {
       PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_GATE_ENDPOINT,
     supportedShippingArtifactTransport: PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_TRANSPORT,
     supportedShippingArtifactEndpoint: PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_ENDPOINT,
+    supportedReleaseCandidateVersion: PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_VERSION,
+    supportedReleaseCandidateKind: PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_KIND,
+    supportedReleaseCandidateNote: PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_NOTE,
+    supportedReleaseCandidateGateVersion: PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_GATE_VERSION,
+    supportedReleaseCandidateGateKind: PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_GATE_KIND,
+    supportedReleaseCandidateGateNote: PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_GATE_NOTE,
+    supportedReleaseCandidateGateTransport:
+      PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_GATE_TRANSPORT,
+    supportedReleaseCandidateGateEndpoint:
+      PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_GATE_ENDPOINT,
+    supportedReleaseCandidateTransport: PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_TRANSPORT,
+    supportedReleaseCandidateEndpoint: PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_ENDPOINT,
     supportedZkV1ScopeDecision: PRIVATE_CORE_SUPPORTED_ZK_V1_SCOPE_DECISION,
     supportedZkV1ScopeNote: PRIVATE_CORE_SUPPORTED_ZK_V1_SCOPE_NOTE,
     supportedZkV1RequiredLanes: PRIVATE_CORE_SUPPORTED_ZK_V1_REQUIRED_LANES,
@@ -2730,6 +2758,16 @@ function summarizePrivateCoreContractMirrorStatus(args) {
     "supportedShippingArtifactGateEndpoint",
     "supportedShippingArtifactTransport",
     "supportedShippingArtifactEndpoint",
+    "supportedReleaseCandidateVersion",
+    "supportedReleaseCandidateKind",
+    "supportedReleaseCandidateNote",
+    "supportedReleaseCandidateGateVersion",
+    "supportedReleaseCandidateGateKind",
+    "supportedReleaseCandidateGateNote",
+    "supportedReleaseCandidateGateTransport",
+    "supportedReleaseCandidateGateEndpoint",
+    "supportedReleaseCandidateTransport",
+    "supportedReleaseCandidateEndpoint",
     "supportedZkV1ScopeDecision",
     "supportedZkV1ScopeNote",
     "supportedZkV1RequiredLanes",

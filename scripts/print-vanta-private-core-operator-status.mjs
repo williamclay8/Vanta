@@ -836,6 +836,46 @@ function printStatusSurface(
     "Supported shipping artifact endpoint",
     summary.supportedShippingArtifactEndpoint ?? "Unavailable",
   );
+  printLine(
+    "Supported release candidate version",
+    String(summary.supportedReleaseCandidateVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported release candidate kind",
+    summary.supportedReleaseCandidateKind ?? "Unavailable",
+  );
+  printLine(
+    "Supported release candidate note",
+    summary.supportedReleaseCandidateNote ?? "Unavailable",
+  );
+  printLine(
+    "Supported release candidate gate version",
+    String(summary.supportedReleaseCandidateGateVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported release candidate gate kind",
+    summary.supportedReleaseCandidateGateKind ?? "Unavailable",
+  );
+  printLine(
+    "Supported release candidate gate note",
+    summary.supportedReleaseCandidateGateNote ?? "Unavailable",
+  );
+  printLine(
+    "Supported release candidate gate transport",
+    summary.supportedReleaseCandidateGateTransport ?? "Unavailable",
+  );
+  printLine(
+    "Supported release candidate gate endpoint",
+    summary.supportedReleaseCandidateGateEndpoint ?? "Unavailable",
+  );
+  printLine(
+    "Supported release candidate transport",
+    summary.supportedReleaseCandidateTransport ?? "Unavailable",
+  );
+  printLine(
+    "Supported release candidate endpoint",
+    summary.supportedReleaseCandidateEndpoint ?? "Unavailable",
+  );
 }
 
 function abbreviate(value) {

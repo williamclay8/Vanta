@@ -181,6 +181,14 @@ Use `private-core:release-candidate-json` when that tooling wants one machine-re
 - the release lineage
 - the bound bundled snapshot identity
 
+That exact-run candidate is now itself part of the frozen operator contract:
+- `supportedReleaseCandidateVersion = 1`
+- `supportedReleaseCandidateKind = exact-run-send-consume-release-candidate`
+- `supportedReleaseCandidateGateTransport = dedicated-endpoint`
+- `supportedReleaseCandidateGateEndpoint = /state/private-core-release-candidate-check`
+- `supportedReleaseCandidateTransport = dedicated-endpoint`
+- `supportedReleaseCandidateEndpoint = /state/private-core-release-candidate`
+
 Use `private-core:release-candidate-check` when a human wants that exact-run candidate itself to act as a strict ready gate.
 
 Use `private-core:release-candidate-check-json` when that same tooling wants the full exact-run candidate as a strict machine-readable ready gate.
