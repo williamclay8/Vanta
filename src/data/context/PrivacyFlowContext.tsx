@@ -278,6 +278,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorSnapshotKind: string | null;
   privateCoreOperatorSupportedStatusTransport: string | null;
   privateCoreOperatorSupportedStatusEndpoint: string | null;
+  privateCoreOperatorSupportedStatusGateTransport: string | null;
+  privateCoreOperatorSupportedStatusGateEndpoint: string | null;
   privateCoreOperatorSupportedSnapshotTransport: string | null;
   privateCoreOperatorSupportedSnapshotEndpoint: string | null;
   privateCoreOperatorSupportedShippingArtifactTransport: string | null;
@@ -875,6 +877,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<string | null>(null);
   const [privateCoreOperatorSupportedStatusEndpoint, setPrivateCoreOperatorSupportedStatusEndpoint] =
     useState<string | null>(null);
+  const [privateCoreOperatorSupportedStatusGateTransport, setPrivateCoreOperatorSupportedStatusGateTransport] =
+    useState<string | null>(null);
+  const [privateCoreOperatorSupportedStatusGateEndpoint, setPrivateCoreOperatorSupportedStatusGateEndpoint] =
+    useState<string | null>(null);
   const [privateCoreOperatorSupportedSnapshotTransport, setPrivateCoreOperatorSupportedSnapshotTransport] =
     useState<string | null>(null);
   const [privateCoreOperatorSupportedSnapshotEndpoint, setPrivateCoreOperatorSupportedSnapshotEndpoint] =
@@ -960,6 +966,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSupportedSendOutputRegistrationPolicy,
       setPrivateCoreOperatorSupportedStatusTransport,
       setPrivateCoreOperatorSupportedStatusEndpoint,
+      setPrivateCoreOperatorSupportedStatusGateTransport,
+      setPrivateCoreOperatorSupportedStatusGateEndpoint,
       setPrivateCoreOperatorSupportedSnapshotTransport,
       setPrivateCoreOperatorSupportedSnapshotEndpoint,
       setPrivateCoreOperatorSupportedShippingArtifactTransport,
@@ -2411,6 +2419,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSnapshotKind,
       privateCoreOperatorSupportedStatusTransport,
       privateCoreOperatorSupportedStatusEndpoint,
+      privateCoreOperatorSupportedStatusGateTransport,
+      privateCoreOperatorSupportedStatusGateEndpoint,
       privateCoreOperatorSupportedSnapshotTransport,
       privateCoreOperatorSupportedSnapshotEndpoint,
       privateCoreOperatorSupportedShippingArtifactTransport,
@@ -2582,6 +2592,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSnapshotKind,
       privateCoreOperatorSupportedStatusTransport,
       privateCoreOperatorSupportedStatusEndpoint,
+      privateCoreOperatorSupportedStatusGateTransport,
+      privateCoreOperatorSupportedStatusGateEndpoint,
       privateCoreOperatorSupportedSnapshotTransport,
       privateCoreOperatorSupportedSnapshotEndpoint,
       privateCoreOperatorSupportedShippingArtifactTransport,
@@ -3687,6 +3699,8 @@ function applyPrivateCoreOperatorContractState(args: {
   setPrivateCoreOperatorSupportedSendOutputRegistrationPolicy: (value: string | null) => void;
   setPrivateCoreOperatorSupportedStatusTransport: (value: string | null) => void;
   setPrivateCoreOperatorSupportedStatusEndpoint: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedStatusGateTransport: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedStatusGateEndpoint: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSnapshotTransport: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSnapshotEndpoint: (value: string | null) => void;
   setPrivateCoreOperatorSupportedShippingArtifactTransport: (value: string | null) => void;
@@ -3817,6 +3831,12 @@ function applyPrivateCoreOperatorContractState(args: {
   );
   args.setPrivateCoreOperatorSupportedStatusEndpoint(
     args.contractState.supportedOperatorStatusEndpoint,
+  );
+  args.setPrivateCoreOperatorSupportedStatusGateTransport(
+    args.contractState.supportedOperatorStatusGateTransport,
+  );
+  args.setPrivateCoreOperatorSupportedStatusGateEndpoint(
+    args.contractState.supportedOperatorStatusGateEndpoint,
   );
   args.setPrivateCoreOperatorSupportedSnapshotTransport(
     args.contractState.supportedOperatorSnapshotTransport,

@@ -451,6 +451,8 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedOperatorStatusGateVersion: 1;
   supportedOperatorStatusGateKind: "ready-gated-long-form-live-status";
   supportedOperatorStatusGateNote: string;
+  supportedOperatorStatusGateTransport: "dedicated-endpoint";
+  supportedOperatorStatusGateEndpoint: "/state/private-core-status-check";
   supportedOperatorStatusTransport: "dedicated-endpoint";
   supportedOperatorStatusEndpoint: "/state/private-core-status";
   supportedOperatorSnapshotVersion: 1;
@@ -585,6 +587,8 @@ export type VantaPrivateCoreOperatorContractStateResponse = {
   supportedOperatorStatusGateVersion: 1;
   supportedOperatorStatusGateKind: "ready-gated-long-form-live-status";
   supportedOperatorStatusGateNote: string;
+  supportedOperatorStatusGateTransport: "dedicated-endpoint";
+  supportedOperatorStatusGateEndpoint: "/state/private-core-status-check";
   supportedOperatorStatusTransport: "dedicated-endpoint";
   supportedOperatorStatusEndpoint: "/state/private-core-status";
   supportedOperatorSnapshotVersion: 1;
@@ -726,6 +730,8 @@ function parsePrivateCoreOperatorContractState(
     supportedOperatorStatusKind?: unknown;
     supportedOperatorStatusGateVersion?: unknown;
     supportedOperatorStatusGateKind?: unknown;
+    supportedOperatorStatusGateTransport?: unknown;
+    supportedOperatorStatusGateEndpoint?: unknown;
     supportedOperatorStatusTransport?: unknown;
     supportedOperatorStatusEndpoint?: unknown;
     supportedShippingArtifactVersion?: unknown;
@@ -749,6 +755,8 @@ function parsePrivateCoreOperatorContractState(
     parsed.supportedOperatorStatusKind !== "long-form-live-status" ||
     parsed.supportedOperatorStatusGateVersion !== 1 ||
     parsed.supportedOperatorStatusGateKind !== "ready-gated-long-form-live-status" ||
+    parsed.supportedOperatorStatusGateTransport !== "dedicated-endpoint" ||
+    parsed.supportedOperatorStatusGateEndpoint !== "/state/private-core-status-check" ||
     parsed.supportedOperatorStatusTransport !== "dedicated-endpoint" ||
     parsed.supportedOperatorStatusEndpoint !== "/state/private-core-status" ||
     parsed.supportedShippingArtifactVersion !== 1 ||
@@ -784,6 +792,8 @@ function parsePrivateCoreOperatorSummaryState(
     supportedOperatorStatusKind?: unknown;
     supportedOperatorStatusGateVersion?: unknown;
     supportedOperatorStatusGateKind?: unknown;
+    supportedOperatorStatusGateTransport?: unknown;
+    supportedOperatorStatusGateEndpoint?: unknown;
     supportedOperatorStatusTransport?: unknown;
     supportedOperatorStatusEndpoint?: unknown;
     supportedShippingArtifactVersion?: unknown;
@@ -812,6 +822,8 @@ function parsePrivateCoreOperatorSummaryState(
     parsed.supportedOperatorStatusKind !== "long-form-live-status" ||
     parsed.supportedOperatorStatusGateVersion !== 1 ||
     parsed.supportedOperatorStatusGateKind !== "ready-gated-long-form-live-status" ||
+    parsed.supportedOperatorStatusGateTransport !== "dedicated-endpoint" ||
+    parsed.supportedOperatorStatusGateEndpoint !== "/state/private-core-status-check" ||
     parsed.supportedOperatorStatusTransport !== "dedicated-endpoint" ||
     parsed.supportedOperatorStatusEndpoint !== "/state/private-core-status" ||
     parsed.supportedShippingArtifactVersion !== 1 ||
@@ -2035,6 +2047,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedOperatorStatusGateVersion?: unknown;
     supportedOperatorStatusGateKind?: unknown;
     supportedOperatorStatusGateNote?: unknown;
+    supportedOperatorStatusGateTransport?: unknown;
+    supportedOperatorStatusGateEndpoint?: unknown;
     supportedOperatorStatusTransport?: unknown;
     supportedOperatorStatusEndpoint?: unknown;
     supportedOperatorSnapshotVersion?: unknown;
@@ -2211,6 +2225,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     parsed.supportedOperatorStatusGateVersion !== 1 ||
     parsed.supportedOperatorStatusGateKind !== "ready-gated-long-form-live-status" ||
     typeof parsed.supportedOperatorStatusGateNote !== "string" ||
+    parsed.supportedOperatorStatusGateTransport !== "dedicated-endpoint" ||
+    parsed.supportedOperatorStatusGateEndpoint !== "/state/private-core-status-check" ||
     parsed.supportedOperatorStatusTransport !== "dedicated-endpoint" ||
     parsed.supportedOperatorStatusEndpoint !== "/state/private-core-status" ||
     parsed.supportedOperatorSnapshotVersion !== 1 ||
@@ -2390,6 +2406,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedOperatorStatusGateVersion: 1,
     supportedOperatorStatusGateKind: "ready-gated-long-form-live-status",
     supportedOperatorStatusGateNote: parsed.supportedOperatorStatusGateNote,
+    supportedOperatorStatusGateTransport: "dedicated-endpoint",
+    supportedOperatorStatusGateEndpoint: "/state/private-core-status-check",
     supportedOperatorStatusTransport: "dedicated-endpoint",
     supportedOperatorStatusEndpoint: "/state/private-core-status",
     supportedOperatorSnapshotVersion: 1,
@@ -2660,6 +2678,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedOperatorStatusGateVersion?: unknown;
     supportedOperatorStatusGateKind?: unknown;
     supportedOperatorStatusGateNote?: unknown;
+    supportedOperatorStatusGateTransport?: unknown;
+    supportedOperatorStatusGateEndpoint?: unknown;
     supportedOperatorStatusTransport?: unknown;
     supportedOperatorStatusEndpoint?: unknown;
     supportedOperatorSnapshotVersion?: unknown;
@@ -2758,6 +2778,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     parsed.supportedOperatorStatusGateVersion !== 1 ||
     parsed.supportedOperatorStatusGateKind !== "ready-gated-long-form-live-status" ||
     typeof parsed.supportedOperatorStatusGateNote !== "string" ||
+    parsed.supportedOperatorStatusGateTransport !== "dedicated-endpoint" ||
+    parsed.supportedOperatorStatusGateEndpoint !== "/state/private-core-status-check" ||
     parsed.supportedOperatorStatusTransport !== "dedicated-endpoint" ||
     parsed.supportedOperatorStatusEndpoint !== "/state/private-core-status" ||
     parsed.supportedOperatorSnapshotVersion !== 1 ||
@@ -2861,6 +2883,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedOperatorStatusGateVersion: 1,
     supportedOperatorStatusGateKind: "ready-gated-long-form-live-status",
     supportedOperatorStatusGateNote: parsed.supportedOperatorStatusGateNote,
+    supportedOperatorStatusGateTransport: "dedicated-endpoint",
+    supportedOperatorStatusGateEndpoint: "/state/private-core-status-check",
     supportedOperatorStatusTransport: "dedicated-endpoint",
     supportedOperatorStatusEndpoint: "/state/private-core-status",
     supportedOperatorSnapshotVersion: 1,
