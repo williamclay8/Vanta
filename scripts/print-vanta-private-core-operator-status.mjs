@@ -1,5 +1,6 @@
 const args = process.argv.slice(2);
 const baseUrl = resolveBaseUrl(args);
+const checkReady = args.includes("--check-ready");
 const jsonMode = args.includes("--json");
 
 try {
@@ -9,23 +10,32 @@ try {
   ]);
   const summary = snapshot?.status?.summary ?? {};
   const shippingDecision = snapshot?.status?.shippingDecision ?? {};
+  const payload = {
+    operator: baseUrl,
+    snapshotVersion: snapshot?.snapshotVersion ?? null,
+    snapshotKind: snapshot?.snapshotKind ?? null,
+    shippingArtifactVersion: shippingArtifact?.artifactVersion ?? null,
+    shippingArtifactKind: shippingArtifact?.artifactKind ?? null,
+    summary,
+    shippingDecision,
+  };
+
+  if (checkReady && shippingDecision?.decisionStatus !== "ready-to-ship") {
+    if (jsonMode) {
+      console.error(JSON.stringify(payload, null, 2));
+    }
+    throw new Error(
+      [
+        `Operator status decision status: ${humanizeShippingDecisionStatus(
+          shippingDecision?.decisionStatus,
+        )}`,
+        `Operator status decision note: ${shippingDecision?.decisionNote ?? "Unavailable"}`,
+      ].join("\n"),
+    );
+  }
 
   if (jsonMode) {
-    console.log(
-      JSON.stringify(
-        {
-          operator: baseUrl,
-          snapshotVersion: snapshot?.snapshotVersion ?? null,
-          snapshotKind: snapshot?.snapshotKind ?? null,
-          shippingArtifactVersion: shippingArtifact?.artifactVersion ?? null,
-          shippingArtifactKind: shippingArtifact?.artifactKind ?? null,
-          summary,
-          shippingDecision,
-        },
-        null,
-        2,
-      ),
-    );
+    console.log(JSON.stringify(payload, null, 2));
     process.exit(0);
   }
 

@@ -16,6 +16,8 @@
     "private-core:operator-contract-json": "node scripts/print-vanta-private-core-operator-contract.mjs --json",
     "private-core:operator-status": "node scripts/print-vanta-private-core-operator-status.mjs",
     "private-core:operator-status-json": "node scripts/print-vanta-private-core-operator-status.mjs --json",
+    "private-core:operator-status-check": "node scripts/print-vanta-private-core-operator-status.mjs --check-ready",
+    "private-core:operator-status-check-json": "node scripts/print-vanta-private-core-operator-status.mjs --json --check-ready",
     "private-core:operator-snapshot": "node scripts/print-vanta-private-core-operator-snapshot.mjs",
     "private-core:operator-snapshot-json": "node scripts/print-vanta-private-core-operator-snapshot.mjs --json",
     "private-core:operator-snapshot-check": "node scripts/print-vanta-private-core-operator-snapshot.mjs --check-ready",

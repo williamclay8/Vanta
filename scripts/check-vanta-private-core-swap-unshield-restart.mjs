@@ -925,6 +925,72 @@ try {
   }
   printStatus("private-core swap->unshield restart operator-snapshot-check json: PASS");
 
+  let blockedOperatorStatusCheckJson = null;
+  try {
+    execFileSync(
+      "npm",
+      ["run", "--silent", "private-core:operator-status-check-json", "--", "--base-url", baseUrl],
+      {
+        cwd: repoRoot,
+        encoding: "utf8",
+        stdio: "pipe",
+      },
+    );
+  } catch (error) {
+    blockedOperatorStatusCheckJson = error;
+  }
+  const blockedOperatorStatusCheckJsonOutput =
+    blockedOperatorStatusCheckJson &&
+    typeof blockedOperatorStatusCheckJson === "object" &&
+    "stderr" in blockedOperatorStatusCheckJson &&
+    typeof blockedOperatorStatusCheckJson.stderr === "string"
+      ? blockedOperatorStatusCheckJson.stderr
+      : "";
+  const blockedOperatorStatusCheckJsonStart = blockedOperatorStatusCheckJsonOutput.indexOf("{");
+  const blockedOperatorStatusCheckJsonEnd = blockedOperatorStatusCheckJsonOutput.lastIndexOf("}");
+  if (
+    !blockedOperatorStatusCheckJson ||
+    blockedOperatorStatusCheckJsonStart === -1 ||
+    blockedOperatorStatusCheckJsonEnd === -1
+  ) {
+    throw new Error(
+      blockedOperatorStatusCheckJsonOutput ||
+        "swap->unshield restart operator-status-check json did not fail with structured output",
+    );
+  }
+  const blockedOperatorStatusCheckJsonPayload = JSON.parse(
+    blockedOperatorStatusCheckJsonOutput.slice(
+      blockedOperatorStatusCheckJsonStart,
+      blockedOperatorStatusCheckJsonEnd + 1,
+    ),
+  );
+  if (
+    blockedOperatorStatusCheckJsonPayload.snapshotVersion !== 1 ||
+    blockedOperatorStatusCheckJsonPayload.snapshotKind !== "contract-status-shipping-bundle" ||
+    blockedOperatorStatusCheckJsonPayload.shippingArtifactVersion !== 1 ||
+    blockedOperatorStatusCheckJsonPayload.shippingArtifactKind !==
+      "shipping-decision-checked-snapshot-bundle" ||
+    blockedOperatorStatusCheckJsonPayload.summary?.contractVersion !== 18 ||
+    blockedOperatorStatusCheckJsonPayload.summary?.summaryVersion !== 42 ||
+    blockedOperatorStatusCheckJsonPayload.shippingDecision?.decisionStatus !== "blocked"
+  ) {
+    throw new Error(
+      `Unexpected swap->unshield restart operator-status-check json output\n${JSON.stringify(blockedOperatorStatusCheckJsonPayload, null, 2)}`,
+    );
+  }
+  if (
+    !blockedOperatorStatusCheckJsonOutput.includes("Operator status decision status: Blocked") ||
+    !blockedOperatorStatusCheckJsonOutput.includes(
+      "Operator status decision note: No private send transition is available for boundary checks yet.",
+    )
+  ) {
+    throw new Error(
+      blockedOperatorStatusCheckJsonOutput ||
+        "swap->unshield restart operator-status-check json did not fail with the expected blocker",
+    );
+  }
+  printStatus("private-core swap->unshield restart operator-status-check json: PASS");
+
   let blockedOperatorSnapshotCheck = null;
   try {
     execFileSync(

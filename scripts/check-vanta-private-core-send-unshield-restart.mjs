@@ -835,6 +835,34 @@ try {
   }
   printStatus("private-core send->unshield restart operator-snapshot-check json: PASS");
 
+  const operatorStatusCheckJsonOutput = execFileSync("npm", [
+    "run",
+    "--silent",
+    "private-core:operator-status-check-json",
+    "--",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  const operatorStatusCheckJson = JSON.parse(operatorStatusCheckJsonOutput);
+  if (
+    operatorStatusCheckJson.snapshotVersion !== 1 ||
+    operatorStatusCheckJson.snapshotKind !== "contract-status-shipping-bundle" ||
+    operatorStatusCheckJson.shippingArtifactVersion !== 1 ||
+    operatorStatusCheckJson.shippingArtifactKind !== "shipping-decision-checked-snapshot-bundle" ||
+    operatorStatusCheckJson.summary?.contractVersion !== 18 ||
+    operatorStatusCheckJson.summary?.summaryVersion !== 42 ||
+    operatorStatusCheckJson.shippingDecision?.decisionStatus !== "ready-to-ship"
+  ) {
+    throw new Error(
+      `Unexpected send->unshield restart operator-status-check json output\n${JSON.stringify(operatorStatusCheckJson, null, 2)}`,
+    );
+  }
+  printStatus("private-core send->unshield restart operator-status-check json: PASS");
+
   execFileSync("npm", [
     "run",
     "--silent",

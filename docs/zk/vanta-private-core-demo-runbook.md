@@ -20,6 +20,8 @@ npm run build
 npm run private-core:demo-readiness
 npm run private-core:operator-status
 npm run private-core:operator-status-json
+npm run private-core:operator-status-check
+npm run private-core:operator-status-check-json
 npm run private-core:operator-contract-json
 npm run private-core:operator-snapshot
 npm run private-core:operator-snapshot-json
@@ -109,6 +111,10 @@ Use `private-core:shipping-status-json` when a reviewer, shell script, or extern
 That JSON now comes from the dedicated `/state/private-core-shipping-decision` endpoint rather than being reconstructed ad hoc from the larger summary payload. Treat that endpoint as the canonical operator-backed ship/no-ship contract for the frozen narrow private-core lane.
 
 Use `private-core:shipping-check-json` when that same tooling wants a strict machine-readable pass/fail gate for the frozen narrow lane instead of just a status snapshot.
+
+Use `private-core:operator-status-check` when a human wants the full live operator-status surface itself to act as the strict ready gate instead of only the compact shipping slice.
+
+Use `private-core:operator-status-check-json` when that same tooling wants the full live operator-status JSON as a strict machine-readable ready gate instead of only the compact shipping slice.
 
 Use `private-core:operator-snapshot` when a human operator wants that same bundled artifact in readable form instead of raw JSON.
 
