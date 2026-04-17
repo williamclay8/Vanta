@@ -548,10 +548,15 @@ try {
     stdio: "pipe",
   });
   if (
+    !operatorSnapshotOutput.includes(`Operator: ${baseUrl}`) ||
     !operatorSnapshotOutput.includes("Snapshot version: 1") ||
     !operatorSnapshotOutput.includes("Snapshot kind: contract-status-shipping-bundle") ||
     !operatorSnapshotOutput.includes("Snapshot transport: dedicated-endpoint") ||
     !operatorSnapshotOutput.includes("Snapshot endpoint: /state/private-core-snapshot") ||
+    !operatorSnapshotOutput.includes("Snapshot gate transport: dedicated-endpoint") ||
+    !operatorSnapshotOutput.includes("Snapshot gate endpoint: /state/private-core-snapshot-check") ||
+    !operatorSnapshotOutput.includes("Contract version: 19") ||
+    !operatorSnapshotOutput.includes("Contract summary version: 43") ||
     !operatorSnapshotOutput.includes(
       "Supported shipping decision note: Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane.",
     ) ||
@@ -576,8 +581,39 @@ try {
     !operatorSnapshotOutput.includes(
       "Supported shipping artifact gate note: Release-grade shipping artifact surface can act as a strict ready gate for the frozen narrow lane.",
     ) ||
+    !operatorSnapshotOutput.includes("Summary state version: 1") ||
+    !operatorSnapshotOutput.includes("Summary version: 43") ||
+    !operatorSnapshotOutput.includes("Summary generated:") ||
+    !operatorSnapshotOutput.includes("Decision version: 1") ||
+    !operatorSnapshotOutput.includes("Decision kind: narrow-private-core-zk-v1-shipping") ||
     !operatorSnapshotOutput.includes("Decision status: Blocked") ||
-    !operatorSnapshotOutput.includes("Shipping status: Required lanes mismatch")
+    !operatorSnapshotOutput.includes(
+      "Decision note: No private send transition is available for boundary checks yet.",
+    ) ||
+    !operatorSnapshotOutput.includes("Shipping status: Required lanes mismatch") ||
+    !operatorSnapshotOutput.includes(
+      "Shipping note: No private send transition is available for boundary checks yet.",
+    ) ||
+    !operatorSnapshotOutput.includes("Finish line status: Coherent minimum v1 lane") ||
+    !operatorSnapshotOutput.includes(
+      "Finish line note: Frozen minimum zk v1 send/unshield/release lane is coherent at the operator boundary.",
+    ) ||
+    !operatorSnapshotOutput.includes("Required lanes status: Send lane mismatch") ||
+    !operatorSnapshotOutput.includes(
+      "Required lanes note: No private send transition is available for boundary checks yet.",
+    ) ||
+    !operatorSnapshotOutput.includes("Release boundary status: Release recorded") ||
+    !operatorSnapshotOutput.includes(
+      "Release boundary note: Latest private-core release is recorded, proof-linked, and consistent with the frozen release contract.",
+    ) ||
+    !operatorSnapshotOutput.includes("Contract mirror status: Summary mirrors frozen contract") ||
+    !operatorSnapshotOutput.includes(
+      "Contract mirror note: Operator summary mirrors the frozen private-core contract across all supported static fields.",
+    ) ||
+    !operatorSnapshotOutput.includes("Boundary status: Operator boundary coherent") ||
+    !operatorSnapshotOutput.includes(
+      "Boundary note: Current root, consume, release, and linked proofs agree.",
+    )
   ) {
     throw new Error(
       `Unexpected swap->unshield operator snapshot output\n${operatorSnapshotOutput}`,
