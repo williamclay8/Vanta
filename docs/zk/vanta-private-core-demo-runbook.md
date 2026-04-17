@@ -121,6 +121,8 @@ That long-form status surface is now itself frozen in the operator contract via:
 - `supportedOperatorStatusKind = long-form-live-status`
 - `supportedOperatorStatusGateVersion = 1`
 - `supportedOperatorStatusGateKind = ready-gated-long-form-live-status`
+- `supportedOperatorStatusTransport = dedicated-endpoint`
+- `supportedOperatorStatusEndpoint = /state/private-core-status`
 
 Use `private-core:operator-snapshot` when a human operator wants that same bundled artifact in readable form instead of raw JSON.
 

@@ -453,8 +453,8 @@ try {
   });
   const expectedStatusLines = [
     "Summary state version: 1",
-    "Mirrored contract version: 18",
-    "Summary version: 42",
+    "Mirrored contract version: 19",
+    "Summary version: 43",
     "Summary generated:",
     "Shipping decision version: 1",
     "Shipping decision kind: narrow-private-core-zk-v1-shipping",
@@ -572,8 +572,8 @@ try {
     operatorStatusJson.shippingArtifactVersion !== 1 ||
     operatorStatusJson.shippingArtifactKind !== "shipping-decision-checked-snapshot-bundle" ||
     operatorStatusJson.summary?.stateVersion !== 1 ||
-    operatorStatusJson.summary?.contractVersion !== 18 ||
-    operatorStatusJson.summary?.summaryVersion !== 42 ||
+    operatorStatusJson.summary?.contractVersion !== 19 ||
+    operatorStatusJson.summary?.summaryVersion !== 43 ||
     operatorStatusJson.summary?.requiredLanesStatus !== "coherent-required-lanes" ||
     operatorStatusJson.summary?.zkV1ShippingStatus !== "ready-narrow-v1" ||
     operatorStatusJson.summary?.releaseBoundaryStatus !== "release-recorded" ||
@@ -581,8 +581,8 @@ try {
     operatorStatusJson.summary?.latestSend?.sendAmount !== "13000000" ||
     operatorStatusJson.summary?.latestRelease?.releasedAmount !== "13000000" ||
     operatorStatusJson.shippingDecision?.decisionStatus !== "ready-to-ship" ||
-    operatorStatusJson.shippingDecision?.contractVersion !== 18 ||
-    operatorStatusJson.shippingDecision?.summaryVersion !== 42
+    operatorStatusJson.shippingDecision?.contractVersion !== 19 ||
+    operatorStatusJson.shippingDecision?.summaryVersion !== 43
   ) {
     throw new Error(
       `Unexpected send-chain->unshield restart operator-status JSON output\n${JSON.stringify(operatorStatusJson, null, 2)}`,
@@ -607,8 +607,8 @@ try {
     operatorSnapshotJson.operator !== baseUrl ||
     operatorSnapshotJson.snapshotVersion !== 1 ||
     operatorSnapshotJson.snapshotKind !== "contract-status-shipping-bundle" ||
-    operatorSnapshotJson.contract?.contractVersion !== 18 ||
-    operatorSnapshotJson.contract?.summaryVersion !== 42 ||
+    operatorSnapshotJson.contract?.contractVersion !== 19 ||
+    operatorSnapshotJson.contract?.summaryVersion !== 43 ||
     operatorSnapshotJson.status?.summary?.requiredLanesStatus !== "coherent-required-lanes" ||
     operatorSnapshotJson.status?.summary?.zkV1ShippingStatus !== "ready-narrow-v1" ||
     operatorSnapshotJson.status?.summary?.latestSend?.sendAmount !== "13000000" ||
@@ -659,8 +659,8 @@ try {
   });
   if (
     !shippingStatusOutput.includes("Summary state version: 1") ||
-    !shippingStatusOutput.includes("Mirrored contract version: 18") ||
-    !shippingStatusOutput.includes("Summary version: 42") ||
+    !shippingStatusOutput.includes("Mirrored contract version: 19") ||
+    !shippingStatusOutput.includes("Summary version: 43") ||
     !shippingStatusOutput.includes("Summary generated:") ||
     !shippingStatusOutput.includes("Shipping status: Ready narrow v1") ||
     !shippingStatusOutput.includes(
@@ -700,8 +700,8 @@ try {
     shippingStatusJson.decisionNote !==
       "Minimum zk v1 required lanes are coherent and the operator boundary remains contract-coherent enough to ship the frozen narrow lane." ||
     shippingStatusJson.summaryStateVersion !== 1 ||
-    shippingStatusJson.mirroredContractVersion !== 18 ||
-    shippingStatusJson.summaryVersion !== 42 ||
+    shippingStatusJson.mirroredContractVersion !== 19 ||
+    shippingStatusJson.summaryVersion !== 43 ||
     typeof shippingStatusJson.summaryGenerated !== "number" ||
     shippingStatusJson.shippingStatusRaw !== "ready-narrow-v1" ||
     shippingStatusJson.shippingStatus !== "Ready narrow v1" ||
@@ -747,8 +747,8 @@ try {
       "Minimum zk v1 required lanes are coherent and the operator boundary remains contract-coherent enough to ship the frozen narrow lane." ||
     shippingArtifactJson.snapshotVersion !== 1 ||
     shippingArtifactJson.snapshotKind !== "contract-status-shipping-bundle" ||
-    shippingArtifactJson.contractVersion !== 18 ||
-    shippingArtifactJson.summaryVersion !== 42 ||
+    shippingArtifactJson.contractVersion !== 19 ||
+    shippingArtifactJson.summaryVersion !== 43 ||
     shippingArtifactJson.snapshot?.shipping?.shippingStatusRaw !== "ready-narrow-v1"
   ) {
     throw new Error(
@@ -804,8 +804,8 @@ try {
     shippingArtifactSurfaceJson.decisionStatus !== "ready-to-ship" ||
     shippingArtifactSurfaceJson.snapshotVersion !== 1 ||
     shippingArtifactSurfaceJson.snapshotKind !== "contract-status-shipping-bundle" ||
-    shippingArtifactSurfaceJson.contractVersion !== 18 ||
-    shippingArtifactSurfaceJson.summaryVersion !== 42 ||
+    shippingArtifactSurfaceJson.contractVersion !== 19 ||
+    shippingArtifactSurfaceJson.summaryVersion !== 43 ||
     shippingArtifactSurfaceJson.snapshot?.shipping?.shippingStatusRaw !== "ready-narrow-v1"
   ) {
     throw new Error(
@@ -855,8 +855,8 @@ try {
   if (
     operatorSnapshotCheckJson.snapshotVersion !== 1 ||
     operatorSnapshotCheckJson.snapshotKind !== "contract-status-shipping-bundle" ||
-    operatorSnapshotCheckJson.contract?.contractVersion !== 18 ||
-    operatorSnapshotCheckJson.contract?.summaryVersion !== 42 ||
+    operatorSnapshotCheckJson.contract?.contractVersion !== 19 ||
+    operatorSnapshotCheckJson.contract?.summaryVersion !== 43 ||
     operatorSnapshotCheckJson.shipping?.decisionStatusRaw !== "ready-to-ship" ||
     operatorSnapshotCheckJson.shipping?.shippingStatusRaw !== "ready-narrow-v1"
   ) {
@@ -884,8 +884,8 @@ try {
     operatorStatusCheckJson.snapshotKind !== "contract-status-shipping-bundle" ||
     operatorStatusCheckJson.shippingArtifactVersion !== 1 ||
     operatorStatusCheckJson.shippingArtifactKind !== "shipping-decision-checked-snapshot-bundle" ||
-    operatorStatusCheckJson.summary?.contractVersion !== 18 ||
-    operatorStatusCheckJson.summary?.summaryVersion !== 42 ||
+    operatorStatusCheckJson.summary?.contractVersion !== 19 ||
+    operatorStatusCheckJson.summary?.summaryVersion !== 43 ||
     operatorStatusCheckJson.shippingDecision?.decisionStatus !== "ready-to-ship"
   ) {
     throw new Error(

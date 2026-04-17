@@ -220,7 +220,7 @@ try {
   if (
     !initialSummaryState.ok ||
     initialSummaryState.parsed?.stateVersion !== 1 ||
-    initialSummaryState.parsed?.summaryVersion !== 42 ||
+    initialSummaryState.parsed?.summaryVersion !== 43 ||
     initialSummaryState.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     initialSummaryState.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -920,7 +920,7 @@ try {
   if (
     !summaryStateAfterConsume.ok ||
     summaryStateAfterConsume.parsed?.stateVersion !== 1 ||
-    summaryStateAfterConsume.parsed?.summaryVersion !== 42 ||
+    summaryStateAfterConsume.parsed?.summaryVersion !== 43 ||
     summaryStateAfterConsume.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterConsume.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -1037,7 +1037,7 @@ try {
   });
   if (
     !summaryStateAfterRelease.ok ||
-    summaryStateAfterRelease.parsed?.summaryVersion !== 42 ||
+    summaryStateAfterRelease.parsed?.summaryVersion !== 43 ||
     summaryStateAfterRelease.parsed?.contractMirrorStatus !== "mirrors-contract" ||
     summaryStateAfterRelease.parsed?.contractMirrorNote !==
       "Operator summary mirrors the frozen private-core contract across all supported static fields." ||
@@ -1140,8 +1140,8 @@ try {
   });
   if (
     !operatorStatusOutput.includes("Summary state version: 1") ||
-    !operatorStatusOutput.includes("Mirrored contract version: 18") ||
-    !operatorStatusOutput.includes("Summary version: 42") ||
+    !operatorStatusOutput.includes("Mirrored contract version: 19") ||
+    !operatorStatusOutput.includes("Summary version: 43") ||
     !operatorStatusOutput.includes("Shipping decision version: 1") ||
     !operatorStatusOutput.includes("Shipping decision kind: narrow-private-core-zk-v1-shipping") ||
     !operatorStatusOutput.includes("Shipping decision status: Blocked") ||
@@ -1203,8 +1203,14 @@ try {
     !operatorStatusOutput.includes(
       "Supported swap output registration: Resulting root must register as swap output",
     ) ||
+    !operatorStatusOutput.includes("Status version: 1") ||
+    !operatorStatusOutput.includes("Status kind: long-form-live-status") ||
     !operatorStatusOutput.includes("Snapshot version: 1") ||
     !operatorStatusOutput.includes("Snapshot kind: contract-status-shipping-bundle") ||
+    !operatorStatusOutput.includes("Supported operator status transport: dedicated-endpoint") ||
+    !operatorStatusOutput.includes(
+      "Supported operator status endpoint: /state/private-core-status",
+    ) ||
     !operatorStatusOutput.includes("Supported operator snapshot transport: dedicated-endpoint") ||
     !operatorStatusOutput.includes(
       "Supported operator snapshot endpoint: /state/private-core-snapshot",
@@ -1282,13 +1288,15 @@ try {
   const operatorStatusJson = JSON.parse(operatorStatusJsonOutput);
   if (
     operatorStatusJson.operator !== baseUrl ||
+    operatorStatusJson.statusVersion !== 1 ||
+    operatorStatusJson.statusKind !== "long-form-live-status" ||
     operatorStatusJson.snapshotVersion !== 1 ||
     operatorStatusJson.snapshotKind !== "contract-status-shipping-bundle" ||
     operatorStatusJson.shippingArtifactVersion !== 1 ||
     operatorStatusJson.shippingArtifactKind !== "shipping-decision-checked-snapshot-bundle" ||
     operatorStatusJson.summary?.stateVersion !== 1 ||
-    operatorStatusJson.summary?.contractVersion !== 18 ||
-    operatorStatusJson.summary?.summaryVersion !== 42 ||
+    operatorStatusJson.summary?.contractVersion !== 19 ||
+    operatorStatusJson.summary?.summaryVersion !== 43 ||
     operatorStatusJson.summary?.requiredLanesStatus !== "send-lane-mismatch" ||
     operatorStatusJson.summary?.zkV1ShippingStatus !== "required-lanes-mismatch" ||
     operatorStatusJson.summary?.releaseBoundaryStatus !== "release-recorded" ||
@@ -1297,8 +1305,8 @@ try {
     operatorStatusJson.shippingDecision?.decisionVersion !== 1 ||
     operatorStatusJson.shippingDecision?.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
     operatorStatusJson.shippingDecision?.decisionStatus !== "blocked" ||
-    operatorStatusJson.shippingDecision?.contractVersion !== 18 ||
-    operatorStatusJson.shippingDecision?.summaryVersion !== 42
+    operatorStatusJson.shippingDecision?.contractVersion !== 19 ||
+    operatorStatusJson.shippingDecision?.summaryVersion !== 43
   ) {
     throw new Error(
       `Unexpected operator-status JSON output\n${JSON.stringify(operatorStatusJson, null, 2)}`,
@@ -1346,13 +1354,15 @@ try {
     ),
   );
   if (
+    blockedOperatorStatusCheckJsonPayload.statusVersion !== 1 ||
+    blockedOperatorStatusCheckJsonPayload.statusKind !== "long-form-live-status" ||
     blockedOperatorStatusCheckJsonPayload.snapshotVersion !== 1 ||
     blockedOperatorStatusCheckJsonPayload.snapshotKind !== "contract-status-shipping-bundle" ||
     blockedOperatorStatusCheckJsonPayload.shippingArtifactVersion !== 1 ||
     blockedOperatorStatusCheckJsonPayload.shippingArtifactKind !==
       "shipping-decision-checked-snapshot-bundle" ||
-    blockedOperatorStatusCheckJsonPayload.summary?.contractVersion !== 18 ||
-    blockedOperatorStatusCheckJsonPayload.summary?.summaryVersion !== 42 ||
+    blockedOperatorStatusCheckJsonPayload.summary?.contractVersion !== 19 ||
+    blockedOperatorStatusCheckJsonPayload.summary?.summaryVersion !== 43 ||
     blockedOperatorStatusCheckJsonPayload.shippingDecision?.decisionStatus !== "blocked"
   ) {
     throw new Error(
@@ -1418,8 +1428,8 @@ try {
   });
   if (
     !shippingStatusOutput.includes("Summary state version: 1") ||
-    !shippingStatusOutput.includes("Mirrored contract version: 18") ||
-    !shippingStatusOutput.includes("Summary version: 42") ||
+    !shippingStatusOutput.includes("Mirrored contract version: 19") ||
+    !shippingStatusOutput.includes("Summary version: 43") ||
     !shippingStatusOutput.includes("Summary generated:") ||
     !shippingStatusOutput.includes("Shipping status: Required lanes mismatch") ||
     !shippingStatusOutput.includes(
@@ -1457,8 +1467,8 @@ try {
     shippingStatusJson.decisionNote !==
       "No private send transition is available for boundary checks yet." ||
     shippingStatusJson.summaryStateVersion !== 1 ||
-    shippingStatusJson.mirroredContractVersion !== 18 ||
-    shippingStatusJson.summaryVersion !== 42 ||
+    shippingStatusJson.mirroredContractVersion !== 19 ||
+    shippingStatusJson.summaryVersion !== 43 ||
     typeof shippingStatusJson.summaryGenerated !== "number" ||
     shippingStatusJson.shippingStatusRaw !== "required-lanes-mismatch" ||
     shippingStatusJson.shippingStatus !== "Required lanes mismatch" ||
@@ -1487,8 +1497,8 @@ try {
     shippingDecisionState.parsed?.decisionStatus !== "blocked" ||
     shippingDecisionState.parsed?.decisionNote !==
       "No private send transition is available for boundary checks yet." ||
-    shippingDecisionState.parsed?.contractVersion !== 18 ||
-    shippingDecisionState.parsed?.summaryVersion !== 42 ||
+    shippingDecisionState.parsed?.contractVersion !== 19 ||
+    shippingDecisionState.parsed?.summaryVersion !== 43 ||
     typeof shippingDecisionState.parsed?.generatedAt !== "number" ||
     shippingDecisionState.parsed?.shippingStatus !== "required-lanes-mismatch" ||
     shippingDecisionState.parsed?.finishLineStatus !== "coherent-minimum-v1-lane" ||
@@ -1555,8 +1565,8 @@ try {
     blockedShippingCheckJsonSurface.decisionNote !==
       "No private send transition is available for boundary checks yet." ||
     blockedShippingCheckJsonSurface.summaryStateVersion !== 1 ||
-    blockedShippingCheckJsonSurface.mirroredContractVersion !== 18 ||
-    blockedShippingCheckJsonSurface.summaryVersion !== 42 ||
+    blockedShippingCheckJsonSurface.mirroredContractVersion !== 19 ||
+    blockedShippingCheckJsonSurface.summaryVersion !== 43 ||
     typeof blockedShippingCheckJsonSurface.summaryGenerated !== "number" ||
     blockedShippingCheckJsonSurface.shippingStatusRaw !== "required-lanes-mismatch" ||
     blockedShippingCheckJsonSurface.finishLineStatusRaw !== "coherent-minimum-v1-lane" ||
@@ -1623,8 +1633,8 @@ try {
   if (
     blockedOperatorSnapshotCheckJsonSurface.snapshotVersion !== 1 ||
     blockedOperatorSnapshotCheckJsonSurface.snapshotKind !== "contract-status-shipping-bundle" ||
-    blockedOperatorSnapshotCheckJsonSurface.contract?.contractVersion !== 18 ||
-    blockedOperatorSnapshotCheckJsonSurface.contract?.summaryVersion !== 42 ||
+    blockedOperatorSnapshotCheckJsonSurface.contract?.contractVersion !== 19 ||
+    blockedOperatorSnapshotCheckJsonSurface.contract?.summaryVersion !== 43 ||
     blockedOperatorSnapshotCheckJsonSurface.shipping?.decisionStatusRaw !== "blocked" ||
     blockedOperatorSnapshotCheckJsonSurface.shipping?.shippingStatusRaw !==
       "required-lanes-mismatch"
@@ -1639,6 +1649,26 @@ try {
   }
   printStatus("operator http operator-snapshot-check json: PASS");
 
+  const operatorStatusState = await requestJson(baseUrl, "/state/private-core-status", {
+    method: "GET",
+  });
+  if (
+    !operatorStatusState.ok ||
+    operatorStatusState.parsed?.statusVersion !== 1 ||
+    operatorStatusState.parsed?.statusKind !== "long-form-live-status" ||
+    operatorStatusState.parsed?.snapshotVersion !== 1 ||
+    operatorStatusState.parsed?.snapshotKind !== "contract-status-shipping-bundle" ||
+    operatorStatusState.parsed?.shippingArtifactVersion !== 1 ||
+    operatorStatusState.parsed?.shippingArtifactKind !== "shipping-decision-checked-snapshot-bundle" ||
+    operatorStatusState.parsed?.summary?.contractVersion !== 19 ||
+    operatorStatusState.parsed?.summary?.summaryVersion !== 43 ||
+    operatorStatusState.parsed?.shippingDecision?.contractVersion !== 19 ||
+    operatorStatusState.parsed?.shippingDecision?.summaryVersion !== 43
+  ) {
+    throw new Error(operatorStatusState.text || "operator status endpoint returned unexpected output");
+  }
+  printStatus("operator http status endpoint: PASS");
+
   const operatorSnapshotState = await requestJson(baseUrl, "/state/private-core-snapshot", {
     method: "GET",
   });
@@ -1647,14 +1677,14 @@ try {
     operatorSnapshotState.parsed?.operator !== baseUrl ||
     operatorSnapshotState.parsed?.snapshotVersion !== 1 ||
     operatorSnapshotState.parsed?.snapshotKind !== "contract-status-shipping-bundle" ||
-    operatorSnapshotState.parsed?.contract?.contractVersion !== 18 ||
-    operatorSnapshotState.parsed?.contract?.summaryVersion !== 42 ||
+    operatorSnapshotState.parsed?.contract?.contractVersion !== 19 ||
+    operatorSnapshotState.parsed?.contract?.summaryVersion !== 43 ||
     operatorSnapshotState.parsed?.contract?.supportedOperatorSnapshotTransport !==
       "dedicated-endpoint" ||
     operatorSnapshotState.parsed?.contract?.supportedOperatorSnapshotEndpoint !==
       "/state/private-core-snapshot" ||
-    operatorSnapshotState.parsed?.status?.summary?.contractVersion !== 18 ||
-    operatorSnapshotState.parsed?.status?.summary?.summaryVersion !== 42 ||
+    operatorSnapshotState.parsed?.status?.summary?.contractVersion !== 19 ||
+    operatorSnapshotState.parsed?.status?.summary?.summaryVersion !== 43 ||
     operatorSnapshotState.parsed?.status?.shippingDecision?.decisionVersion !== 1 ||
     operatorSnapshotState.parsed?.shipping?.decisionVersion !== 1 ||
     operatorSnapshotState.parsed?.shipping?.decisionKind !==
@@ -1683,14 +1713,14 @@ try {
     operatorSnapshotJson.operator !== baseUrl ||
     operatorSnapshotJson.snapshotVersion !== 1 ||
     operatorSnapshotJson.snapshotKind !== "contract-status-shipping-bundle" ||
-    operatorSnapshotJson.contract?.contractVersion !== 18 ||
-    operatorSnapshotJson.contract?.summaryVersion !== 42 ||
+    operatorSnapshotJson.contract?.contractVersion !== 19 ||
+    operatorSnapshotJson.contract?.summaryVersion !== 43 ||
     operatorSnapshotJson.contract?.supportedOperatorSnapshotVersion !== 1 ||
     operatorSnapshotJson.contract?.supportedOperatorSnapshotKind !==
       "contract-status-shipping-bundle" ||
     operatorSnapshotJson.status?.summary?.stateVersion !== 1 ||
-    operatorSnapshotJson.status?.summary?.contractVersion !== 18 ||
-    operatorSnapshotJson.status?.summary?.summaryVersion !== 42 ||
+    operatorSnapshotJson.status?.summary?.contractVersion !== 19 ||
+    operatorSnapshotJson.status?.summary?.summaryVersion !== 43 ||
     operatorSnapshotJson.status?.summary?.supportedOperatorSnapshotVersion !== 1 ||
     operatorSnapshotJson.status?.summary?.supportedOperatorSnapshotKind !==
       "contract-status-shipping-bundle" ||
@@ -1725,7 +1755,7 @@ try {
     !operatorSnapshotOutput.includes("Snapshot kind: contract-status-shipping-bundle") ||
     !operatorSnapshotOutput.includes("Snapshot transport: dedicated-endpoint") ||
     !operatorSnapshotOutput.includes("Snapshot endpoint: /state/private-core-snapshot") ||
-    !operatorSnapshotOutput.includes("Contract version: 18") ||
+    !operatorSnapshotOutput.includes("Contract version: 19") ||
     !operatorSnapshotOutput.includes("Decision status: Blocked") ||
     !operatorSnapshotOutput.includes("Shipping status: Required lanes mismatch")
   ) {
@@ -1793,8 +1823,8 @@ try {
     blockedShippingArtifactCheckJsonSurface.snapshotVersion !== 1 ||
     blockedShippingArtifactCheckJsonSurface.snapshotKind !==
       "contract-status-shipping-bundle" ||
-    blockedShippingArtifactCheckJsonSurface.contractVersion !== 18 ||
-    blockedShippingArtifactCheckJsonSurface.summaryVersion !== 42 ||
+    blockedShippingArtifactCheckJsonSurface.contractVersion !== 19 ||
+    blockedShippingArtifactCheckJsonSurface.summaryVersion !== 43 ||
     blockedShippingArtifactCheckJsonSurface.snapshot?.shipping?.shippingStatusRaw !==
       "required-lanes-mismatch"
   ) {
@@ -1830,8 +1860,8 @@ try {
     shippingArtifactJson.decisionStatus !== "blocked" ||
     shippingArtifactJson.snapshotVersion !== 1 ||
     shippingArtifactJson.snapshotKind !== "contract-status-shipping-bundle" ||
-    shippingArtifactJson.contractVersion !== 18 ||
-    shippingArtifactJson.summaryVersion !== 42 ||
+    shippingArtifactJson.contractVersion !== 19 ||
+    shippingArtifactJson.summaryVersion !== 43 ||
     shippingArtifactJson.snapshot?.contract?.supportedShippingArtifactVersion !== 1 ||
     shippingArtifactJson.snapshot?.contract?.supportedShippingArtifactTransport !==
       "dedicated-endpoint" ||
@@ -1870,7 +1900,7 @@ try {
     !shippingArtifactOutput.includes(
       "Shipping artifact endpoint: /state/private-core-shipping-artifact",
     ) ||
-    !shippingArtifactOutput.includes("Contract version: 18") ||
+    !shippingArtifactOutput.includes("Contract version: 19") ||
     !shippingArtifactOutput.includes("Decision status: Blocked") ||
     !shippingArtifactOutput.includes("Shipping status: Required lanes mismatch")
   ) {

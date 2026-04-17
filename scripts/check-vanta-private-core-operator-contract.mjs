@@ -102,8 +102,8 @@ try {
   if (
     !contractState.ok ||
     contractState.parsed?.stateVersion !== 1 ||
-    contractState.parsed?.contractVersion !== 18 ||
-    contractState.parsed?.summaryVersion !== 42 ||
+    contractState.parsed?.contractVersion !== 19 ||
+    contractState.parsed?.summaryVersion !== 43 ||
     contractState.parsed?.supportedSendLaneVersion !== 1 ||
     contractState.parsed?.supportedSendV1Decision !== "accepted-narrow-v1-path" ||
     typeof contractState.parsed?.supportedSendV1DecisionNote !== "string" ||
@@ -144,6 +144,8 @@ try {
     contractState.parsed?.supportedOperatorStatusGateKind !==
       "ready-gated-long-form-live-status" ||
     typeof contractState.parsed?.supportedOperatorStatusGateNote !== "string" ||
+    contractState.parsed?.supportedOperatorStatusTransport !== "dedicated-endpoint" ||
+    contractState.parsed?.supportedOperatorStatusEndpoint !== "/state/private-core-status" ||
     contractState.parsed?.supportedOperatorSnapshotVersion !== 1 ||
     contractState.parsed?.supportedOperatorSnapshotKind !== "contract-status-shipping-bundle" ||
     typeof contractState.parsed?.supportedOperatorSnapshotNote !== "string" ||
@@ -244,6 +246,8 @@ try {
     "supportedOperatorStatusGateVersion",
     "supportedOperatorStatusGateKind",
     "supportedOperatorStatusGateNote",
+    "supportedOperatorStatusTransport",
+    "supportedOperatorStatusEndpoint",
     "supportedOperatorSnapshotVersion",
     "supportedOperatorSnapshotKind",
     "supportedOperatorSnapshotNote",
@@ -327,8 +331,8 @@ try {
   });
   if (
     !contractOutput.includes("Contract state version: 1") ||
-    !contractOutput.includes("Contract version: 18") ||
-    !contractOutput.includes("Summary compatibility: 42") ||
+    !contractOutput.includes("Contract version: 19") ||
+    !contractOutput.includes("Summary compatibility: 43") ||
     !contractOutput.includes("Supported note schema: NoteV0 / v0") ||
     !contractOutput.includes("Supported send lane version: 1") ||
     !contractOutput.includes("Supported unshield lane version: 1") ||
@@ -344,6 +348,8 @@ try {
     !contractOutput.includes(
       "Supported operator status gate kind: ready-gated-long-form-live-status",
     ) ||
+    !contractOutput.includes("Supported operator status transport: dedicated-endpoint") ||
+    !contractOutput.includes("Supported operator status endpoint: /state/private-core-status") ||
     !contractOutput.includes("Supported operator snapshot version: 1") ||
     !contractOutput.includes(
       "Supported operator snapshot kind: contract-status-shipping-bundle",
@@ -385,8 +391,8 @@ try {
   if (
     contractJson.operator !== baseUrl ||
     contractJson.stateVersion !== 1 ||
-    contractJson.contractVersion !== 18 ||
-    contractJson.summaryVersion !== 42 ||
+    contractJson.contractVersion !== 19 ||
+    contractJson.summaryVersion !== 43 ||
     contractJson.supportedSendLaneVersion !== 1 ||
     contractJson.supportedUnshieldLaneVersion !== 1 ||
     contractJson.supportedReleaseLaneVersion !== 1 ||
@@ -403,6 +409,8 @@ try {
     contractJson.supportedOperatorStatusGateKind !== "ready-gated-long-form-live-status" ||
     contractJson.supportedOperatorStatusGateNote !==
       "Long-form operator-status surface can act as a strict ready gate for the frozen narrow lane." ||
+    contractJson.supportedOperatorStatusTransport !== "dedicated-endpoint" ||
+    contractJson.supportedOperatorStatusEndpoint !== "/state/private-core-status" ||
     contractJson.supportedOperatorSnapshotVersion !== 1 ||
     contractJson.supportedOperatorSnapshotKind !== "contract-status-shipping-bundle" ||
     contractJson.supportedOperatorSnapshotNote !==

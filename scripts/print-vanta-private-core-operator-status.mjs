@@ -4,18 +4,17 @@ const checkReady = args.includes("--check-ready");
 const jsonMode = args.includes("--json");
 
 try {
-  const [snapshot, shippingArtifact] = await Promise.all([
-    requestJson("/state/private-core-snapshot"),
-    requestJson("/state/private-core-shipping-artifact"),
-  ]);
-  const summary = snapshot?.status?.summary ?? {};
-  const shippingDecision = snapshot?.status?.shippingDecision ?? {};
+  const statusState = await requestJson("/state/private-core-status");
+  const summary = statusState?.summary ?? {};
+  const shippingDecision = statusState?.shippingDecision ?? {};
   const payload = {
     operator: baseUrl,
-    snapshotVersion: snapshot?.snapshotVersion ?? null,
-    snapshotKind: snapshot?.snapshotKind ?? null,
-    shippingArtifactVersion: shippingArtifact?.artifactVersion ?? null,
-    shippingArtifactKind: shippingArtifact?.artifactKind ?? null,
+    statusVersion: statusState?.statusVersion ?? null,
+    statusKind: statusState?.statusKind ?? null,
+    snapshotVersion: statusState?.snapshotVersion ?? null,
+    snapshotKind: statusState?.snapshotKind ?? null,
+    shippingArtifactVersion: statusState?.shippingArtifactVersion ?? null,
+    shippingArtifactKind: statusState?.shippingArtifactKind ?? null,
     summary,
     shippingDecision,
   };
@@ -40,15 +39,17 @@ try {
   }
 
   printLine("Operator", baseUrl);
-  printLine("Snapshot version", String(snapshot?.snapshotVersion ?? "unknown"));
-  printLine("Snapshot kind", snapshot?.snapshotKind ?? "Unavailable");
+  printLine("Status version", String(statusState?.statusVersion ?? "unknown"));
+  printLine("Status kind", statusState?.statusKind ?? "Unavailable");
+  printLine("Snapshot version", String(statusState?.snapshotVersion ?? "unknown"));
+  printLine("Snapshot kind", statusState?.snapshotKind ?? "Unavailable");
   printLine(
     "Shipping artifact version",
-    String(shippingArtifact?.artifactVersion ?? "unknown"),
+    String(statusState?.shippingArtifactVersion ?? "unknown"),
   );
   printLine(
     "Shipping artifact kind",
-    shippingArtifact?.artifactKind ?? "Unavailable",
+    statusState?.shippingArtifactKind ?? "Unavailable",
   );
   printLine("Summary state version", String(summary.stateVersion ?? "unknown"));
   printLine("Mirrored contract version", String(summary.contractVersion ?? "unknown"));
@@ -205,6 +206,14 @@ try {
   printLine(
     "Supported operator status gate note",
     summary.supportedOperatorStatusGateNote ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator status transport",
+    summary.supportedOperatorStatusTransport ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator status endpoint",
+    summary.supportedOperatorStatusEndpoint ?? "Unavailable",
   );
   printLine(
     "Supported operator snapshot version",

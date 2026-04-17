@@ -143,6 +143,14 @@ try {
     contract.supportedOperatorStatusGateNote ?? "Unavailable",
   );
   printLine(
+    "Supported operator status transport",
+    contract.supportedOperatorStatusTransport ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator status endpoint",
+    contract.supportedOperatorStatusEndpoint ?? "Unavailable",
+  );
+  printLine(
     "Supported operator snapshot version",
     String(contract.supportedOperatorSnapshotVersion ?? "unknown"),
   );
