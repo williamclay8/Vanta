@@ -1205,6 +1205,10 @@ try {
     ) ||
     !operatorStatusOutput.includes("Snapshot version: 1") ||
     !operatorStatusOutput.includes("Snapshot kind: contract-status-shipping-bundle") ||
+    !operatorStatusOutput.includes("Supported operator snapshot transport: dedicated-endpoint") ||
+    !operatorStatusOutput.includes(
+      "Supported operator snapshot endpoint: /state/private-core-snapshot",
+    ) ||
     !operatorStatusOutput.includes("Supported release execution: Operator-recorded devnet release") ||
     !operatorStatusOutput.includes(
       "Supported release atomicity: Operator-local atomic consume + release record",

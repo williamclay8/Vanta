@@ -272,6 +272,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorContractSummaryVersion: number | null;
   privateCoreOperatorSnapshotVersion: number | null;
   privateCoreOperatorSnapshotKind: string | null;
+  privateCoreOperatorSupportedSnapshotTransport: string | null;
+  privateCoreOperatorSupportedSnapshotEndpoint: string | null;
   privateCoreOperatorShippingDecisionVersion: number | null;
   privateCoreOperatorShippingDecisionKind: string | null;
   privateCoreOperatorSummaryUpdatedAt: number | null;
@@ -855,6 +857,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<number | null>(null);
   const [privateCoreOperatorSnapshotKind, setPrivateCoreOperatorSnapshotKind] =
     useState<string | null>(null);
+  const [privateCoreOperatorSupportedSnapshotTransport, setPrivateCoreOperatorSupportedSnapshotTransport] =
+    useState<string | null>(null);
+  const [privateCoreOperatorSupportedSnapshotEndpoint, setPrivateCoreOperatorSupportedSnapshotEndpoint] =
+    useState<string | null>(null);
   const [privateCoreOperatorShippingDecisionVersion, setPrivateCoreOperatorShippingDecisionVersion] =
     useState<number | null>(null);
   const [privateCoreOperatorShippingDecisionKind, setPrivateCoreOperatorShippingDecisionKind] =
@@ -920,6 +926,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSupportedSendResultingRootBasis,
       setPrivateCoreOperatorSupportedSendInputRootPolicy,
       setPrivateCoreOperatorSupportedSendOutputRegistrationPolicy,
+      setPrivateCoreOperatorSupportedSnapshotTransport,
+      setPrivateCoreOperatorSupportedSnapshotEndpoint,
       setPrivateCoreOperatorSupportedRecipientModel,
       setPrivateCoreOperatorSupportedReleaseDestinationModel,
       setPrivateCoreOperatorSupportedProofSystem,
@@ -2361,6 +2369,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorContractSummaryVersion,
       privateCoreOperatorSnapshotVersion,
       privateCoreOperatorSnapshotKind,
+      privateCoreOperatorSupportedSnapshotTransport,
+      privateCoreOperatorSupportedSnapshotEndpoint,
       privateCoreOperatorShippingDecisionVersion,
       privateCoreOperatorShippingDecisionKind,
       privateCoreOperatorSummaryUpdatedAt,
@@ -2520,6 +2530,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorContractSummaryVersion,
       privateCoreOperatorSnapshotVersion,
       privateCoreOperatorSnapshotKind,
+      privateCoreOperatorSupportedSnapshotTransport,
+      privateCoreOperatorSupportedSnapshotEndpoint,
       privateCoreOperatorShippingDecisionVersion,
       privateCoreOperatorShippingDecisionKind,
       privateCoreOperatorSummaryUpdatedAt,
@@ -3617,6 +3629,8 @@ function applyPrivateCoreOperatorContractState(args: {
   setPrivateCoreOperatorSupportedSendResultingRootBasis: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSendInputRootPolicy: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSendOutputRegistrationPolicy: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedSnapshotTransport: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedSnapshotEndpoint: (value: string | null) => void;
   setPrivateCoreOperatorSupportedRecipientModel: (value: string | null) => void;
   setPrivateCoreOperatorSupportedReleaseDestinationModel: (value: string | null) => void;
   setPrivateCoreOperatorSupportedProofSystem: (value: string | null) => void;
@@ -3737,6 +3751,12 @@ function applyPrivateCoreOperatorContractState(args: {
   );
   args.setPrivateCoreOperatorSupportedSendOutputRegistrationPolicy(
     args.contractState.supportedSendOutputRegistrationPolicy,
+  );
+  args.setPrivateCoreOperatorSupportedSnapshotTransport(
+    args.contractState.supportedOperatorSnapshotTransport,
+  );
+  args.setPrivateCoreOperatorSupportedSnapshotEndpoint(
+    args.contractState.supportedOperatorSnapshotEndpoint,
   );
   args.setPrivateCoreOperatorSupportedRecipientModel(args.contractState.supportedRecipientModel);
   args.setPrivateCoreOperatorSupportedReleaseDestinationModel(

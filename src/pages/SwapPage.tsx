@@ -2193,6 +2193,8 @@ export function SwapPage() {
         operatorContractSummaryVersion={privacyFlow.privateCoreOperatorContractSummaryVersion}
         operatorSnapshotVersion={privacyFlow.privateCoreOperatorSnapshotVersion}
         operatorSnapshotKind={privacyFlow.privateCoreOperatorSnapshotKind}
+        operatorSupportedSnapshotTransport={privacyFlow.privateCoreOperatorSupportedSnapshotTransport}
+        operatorSupportedSnapshotEndpoint={privacyFlow.privateCoreOperatorSupportedSnapshotEndpoint}
         operatorShippingDecisionVersion={privacyFlow.privateCoreOperatorShippingDecisionVersion}
         operatorShippingDecisionKind={privacyFlow.privateCoreOperatorShippingDecisionKind}
         operatorSendResultingRootLinkedProof={privacyFlow.privateCoreOperatorSendResultingRootLinkedProof}

@@ -172,6 +172,14 @@ try {
     summary.supportedOperatorSnapshotNote ?? "Unavailable",
   );
   printLine(
+    "Supported operator snapshot transport",
+    summary.supportedOperatorSnapshotTransport ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator snapshot endpoint",
+    summary.supportedOperatorSnapshotEndpoint ?? "Unavailable",
+  );
+  printLine(
     "Supported zk v1 scope decision",
     summary.supportedZkV1ScopeDecision ?? "Unavailable",
   );

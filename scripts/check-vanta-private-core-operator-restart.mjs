@@ -590,6 +590,10 @@ try {
     ) ||
     !operatorStatusOutput.includes("Snapshot version: 1") ||
     !operatorStatusOutput.includes("Snapshot kind: contract-status-shipping-bundle") ||
+    !operatorStatusOutput.includes("Supported operator snapshot transport: dedicated-endpoint") ||
+    !operatorStatusOutput.includes(
+      "Supported operator snapshot endpoint: /state/private-core-snapshot",
+    ) ||
     !operatorStatusOutput.includes("Supported release persistence: JSON store v1") ||
     !operatorStatusOutput.includes(
       "Owner authorization decision: Accepted v1 off-circuit precheck",
