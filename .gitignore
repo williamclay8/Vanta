@@ -11,3 +11,5 @@ operator/.vanta-sol-unshield-records.json
 operator/.vanta-private-core-*.json
 zk/noir/**/target/
 .tmp/
+.vscode/
+AGENTS.md
