@@ -195,7 +195,9 @@ npm run private-core:demo-readiness
 npm run private-core:demo-preflight
 npm run private-core:operator-contract
 npm run private-core:operator-status
+npm run private-core:operator-snapshot
 npm run private-core:operator-snapshot-json
+npm run private-core:operator-snapshot-check
 npm run private-core:operator-snapshot-check-json
 npm run private-core:shipping-status
 npm run private-core:shipping-check
@@ -259,7 +261,7 @@ These commands cover:
 
 `private-core:demo-readiness` is the friendliest single entrypoint when you just want to know whether the current proof/demo lane is stage-ready.
 
-`private-core:demo-preflight` combines the full verification pass with the current operator contract surface, the full operator status summary, and the compact shipping summary.
+`private-core:demo-preflight` combines the full verification pass with the current operator contract surface, the full operator status summary, the compact shipping summary, and the human-readable bundled snapshot.
 
 `private-core:operator-contract` gives the static narrow zk-v1 contract the operator currently supports: send lane, unshield lane, release lane, swap lane, the canonical shipping-decision contract, supported flow, supported asset/environment, note contract, recipient/release-destination models, proof system, fixed circuit ids, fixed Merkle depth, owner-auth mode, nullifier-key mode, proving hash lane, root-registration provenance, send input-root policy, send output-registration policy, the current send resulting-root basis, and the currently supported constrained swap venue/output/root-policy model.
 
@@ -269,9 +271,13 @@ These commands cover:
 
 `private-core:operator-status-json` prints the live operator summary plus the canonical shipping decision as machine-readable JSON, so automation can consume the full operator-backed state surface without scraping the long-form text dump.
 
+`private-core:operator-snapshot` prints that same bundled operator snapshot in a human-readable form, including the snapshot identity, dedicated transport/endpoint, contract version, summary version, decision status, and the supporting shipping / finish-line / required-lanes / release-boundary / contract-mirror / boundary summaries.
+
 `private-core:operator-snapshot-json` prints one bundled machine-readable operator snapshot from the dedicated `/state/private-core-snapshot` endpoint, containing the frozen contract, the live summary/status surface, and the canonical shipping decision surface together, so external tooling can consume one coherent artifact instead of stitching together multiple commands. The shared app runtime now also hydrates its operator contract, summary, and shipping decision state from that bundled snapshot endpoint rather than rebuilding the same bundle from three separate fetches. That bundled artifact is now also part of the frozen contract surface itself via `supportedOperatorSnapshotVersion = 1`, `supportedOperatorSnapshotKind = contract-status-shipping-bundle`, `supportedOperatorSnapshotTransport = dedicated-endpoint`, and `supportedOperatorSnapshotEndpoint = /state/private-core-snapshot`.
 
-`private-core:operator-snapshot-check-json` is the ready-gated form of that same bundled artifact: it exits zero only when the bundled snapshot says the frozen narrow lane is ready to ship, prints the bundled JSON on success, and on blocked paths emits the full snapshot JSON to stderr before structured `Snapshot decision status:` / `Snapshot decision note:` lines.
+`private-core:operator-snapshot-check` is the ready-gated human-readable form of that same bundled artifact: it exits zero only when the bundled snapshot says the frozen narrow lane is ready to ship, and on blocked paths fails with structured `Snapshot decision status:` / `Snapshot decision note:` lines.
+
+`private-core:operator-snapshot-check-json` is the ready-gated machine-readable form of that same bundled artifact: it exits zero only when the bundled snapshot says the frozen narrow lane is ready to ship, prints the bundled JSON on success, and on blocked paths emits the full snapshot JSON to stderr before structured `Snapshot decision status:` / `Snapshot decision note:` lines.
 
 `private-core:shipping-status` is the compact operator-backed answer to the narrow zk-v1 question: whether the frozen private-core lane is actually ship-ready right now, and if not, which live blocker is preventing that. It now reads the dedicated `/state/private-core-shipping-decision` endpoint, which is the canonical ship/no-ship contract for the frozen narrow private-core lane, and prints the decision version/kind/status/note plus the current summary-state version, mirrored contract version, summary generation time, and the supporting shipping, finish-line, required-lanes, release-boundary, contract-mirror, and boundary summaries without the rest of the larger operator-status dump.
 

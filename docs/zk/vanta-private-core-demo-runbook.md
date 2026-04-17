@@ -21,7 +21,9 @@ npm run private-core:demo-readiness
 npm run private-core:operator-status
 npm run private-core:operator-status-json
 npm run private-core:operator-contract-json
+npm run private-core:operator-snapshot
 npm run private-core:operator-snapshot-json
+npm run private-core:operator-snapshot-check
 npm run private-core:operator-snapshot-check-json
 npm run private-core:shipping-status
 npm run private-core:shipping-status-json
@@ -104,6 +106,8 @@ That JSON now comes from the dedicated `/state/private-core-shipping-decision` e
 
 Use `private-core:shipping-check-json` when that same tooling wants a strict machine-readable pass/fail gate for the frozen narrow lane instead of just a status snapshot.
 
+Use `private-core:operator-snapshot` when a human operator wants that same bundled artifact in readable form instead of raw JSON.
+
 Use `private-core:operator-snapshot-json` when that tooling wants one bundled operator-backed artifact from the dedicated `/state/private-core-snapshot` endpoint containing:
 - the frozen contract
 - the live summary/status surface
@@ -116,6 +120,8 @@ That bundled artifact is now itself part of the frozen operator contract:
 - `supportedOperatorSnapshotKind = contract-status-shipping-bundle`
 - `supportedOperatorSnapshotTransport = dedicated-endpoint`
 - `supportedOperatorSnapshotEndpoint = /state/private-core-snapshot`
+
+Use `private-core:operator-snapshot-check` when a human wants the bundled snapshot itself to act as the strict ready gate instead of only the compact shipping slice.
 
 Use `private-core:operator-snapshot-check-json` when that same tooling wants the full bundled operator artifact as a strict ready gate instead of only the compact shipping slice.
 

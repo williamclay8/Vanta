@@ -1590,6 +1590,33 @@ try {
     );
   }
   printStatus("operator http operator-snapshot json: PASS");
+
+  const operatorSnapshotOutput = execFileSync("npm", [
+    "run",
+    "--silent",
+    "private-core:operator-snapshot",
+    "--",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  if (
+    !operatorSnapshotOutput.includes("Snapshot version: 1") ||
+    !operatorSnapshotOutput.includes("Snapshot kind: contract-status-shipping-bundle") ||
+    !operatorSnapshotOutput.includes("Snapshot transport: dedicated-endpoint") ||
+    !operatorSnapshotOutput.includes("Snapshot endpoint: /state/private-core-snapshot") ||
+    !operatorSnapshotOutput.includes("Contract version: 17") ||
+    !operatorSnapshotOutput.includes("Decision status: Blocked") ||
+    !operatorSnapshotOutput.includes("Shipping status: Required lanes mismatch")
+  ) {
+    throw new Error(
+      operatorSnapshotOutput || "operator http operator-snapshot surface returned unexpected output",
+    );
+  }
+  printStatus("operator http operator-snapshot surface: PASS");
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   const operatorOutput = [stdout.trim(), stderr.trim()].filter(Boolean).join("\n");
