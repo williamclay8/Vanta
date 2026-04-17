@@ -753,6 +753,64 @@ try {
   }
   printStatus("private-core swap->unshield shipping-artifact-check: PASS");
 
+  const shippingArtifactSurfaceJsonOutput = execFileSync("npm", [
+    "run",
+    "--silent",
+    "private-core:shipping-artifact-json",
+    "--",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  const shippingArtifactSurfaceJson = JSON.parse(shippingArtifactSurfaceJsonOutput);
+  if (
+    shippingArtifactSurfaceJson.operator !== baseUrl ||
+    shippingArtifactSurfaceJson.artifactVersion !== 1 ||
+    shippingArtifactSurfaceJson.artifactKind !== "shipping-decision-checked-snapshot-bundle" ||
+    shippingArtifactSurfaceJson.decisionVersion !== 1 ||
+    shippingArtifactSurfaceJson.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
+    shippingArtifactSurfaceJson.decisionStatus !== "blocked" ||
+    shippingArtifactSurfaceJson.snapshotVersion !== 1 ||
+    shippingArtifactSurfaceJson.snapshotKind !== "contract-status-shipping-bundle" ||
+    shippingArtifactSurfaceJson.contractVersion !== 18 ||
+    shippingArtifactSurfaceJson.summaryVersion !== 42 ||
+    shippingArtifactSurfaceJson.snapshot?.shipping?.shippingStatusRaw !==
+      "required-lanes-mismatch"
+  ) {
+    throw new Error(
+      `Unexpected swap->unshield shipping-artifact json output\n${JSON.stringify(shippingArtifactSurfaceJson, null, 2)}`,
+    );
+  }
+  printStatus("private-core swap->unshield shipping-artifact json: PASS");
+
+  const shippingArtifactSurfaceOutput = execFileSync("npm", [
+    "run",
+    "--silent",
+    "private-core:shipping-artifact",
+    "--",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  if (
+    !shippingArtifactSurfaceOutput.includes("Artifact version: 1") ||
+    !shippingArtifactSurfaceOutput.includes("Artifact kind: shipping-decision-checked-snapshot-bundle") ||
+    !shippingArtifactSurfaceOutput.includes("Decision status: Blocked") ||
+    !shippingArtifactSurfaceOutput.includes("Shipping status: Required lanes mismatch")
+  ) {
+    throw new Error(
+      shippingArtifactSurfaceOutput ||
+        "swap->unshield shipping-artifact returned unexpected output",
+    );
+  }
+  printStatus("private-core swap->unshield shipping-artifact: PASS");
+
   let blockedOperatorSnapshotCheckJson = null;
   try {
     execFileSync(
