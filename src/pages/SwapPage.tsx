@@ -2209,6 +2209,18 @@ export function SwapPage() {
         operatorSupportedSnapshotGateEndpoint={
           privacyFlow.privateCoreOperatorSupportedSnapshotGateEndpoint
         }
+        operatorSupportedShippingDecisionGateTransport={
+          privacyFlow.privateCoreOperatorSupportedShippingDecisionGateTransport
+        }
+        operatorSupportedShippingDecisionGateEndpoint={
+          privacyFlow.privateCoreOperatorSupportedShippingDecisionGateEndpoint
+        }
+        operatorSupportedShippingDecisionTransport={
+          privacyFlow.privateCoreOperatorSupportedShippingDecisionTransport
+        }
+        operatorSupportedShippingDecisionEndpoint={
+          privacyFlow.privateCoreOperatorSupportedShippingDecisionEndpoint
+        }
         operatorSupportedShippingArtifactGateTransport={
           privacyFlow.privateCoreOperatorSupportedShippingArtifactGateTransport
         }

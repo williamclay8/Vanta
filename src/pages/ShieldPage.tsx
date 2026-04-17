@@ -238,6 +238,10 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOperatorSupportedStatusGateEndpoint,
     privateCoreOperatorSupportedSnapshotGateTransport,
     privateCoreOperatorSupportedSnapshotGateEndpoint,
+    privateCoreOperatorSupportedShippingDecisionGateTransport,
+    privateCoreOperatorSupportedShippingDecisionGateEndpoint,
+    privateCoreOperatorSupportedShippingDecisionTransport,
+    privateCoreOperatorSupportedShippingDecisionEndpoint,
     privateCoreOperatorSupportedShippingArtifactGateTransport,
     privateCoreOperatorSupportedShippingArtifactGateEndpoint,
     privateCoreOperatorSupportedSnapshotTransport,
@@ -1352,6 +1356,18 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 }
                 operatorSupportedSnapshotGateEndpoint={
                   privateCoreOperatorSupportedSnapshotGateEndpoint
+                }
+                operatorSupportedShippingDecisionGateTransport={
+                  privateCoreOperatorSupportedShippingDecisionGateTransport
+                }
+                operatorSupportedShippingDecisionGateEndpoint={
+                  privateCoreOperatorSupportedShippingDecisionGateEndpoint
+                }
+                operatorSupportedShippingDecisionTransport={
+                  privateCoreOperatorSupportedShippingDecisionTransport
+                }
+                operatorSupportedShippingDecisionEndpoint={
+                  privateCoreOperatorSupportedShippingDecisionEndpoint
                 }
                 operatorSupportedShippingArtifactGateTransport={
                   privateCoreOperatorSupportedShippingArtifactGateTransport

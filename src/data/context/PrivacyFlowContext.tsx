@@ -282,6 +282,10 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorSupportedStatusGateEndpoint: string | null;
   privateCoreOperatorSupportedSnapshotGateTransport: string | null;
   privateCoreOperatorSupportedSnapshotGateEndpoint: string | null;
+  privateCoreOperatorSupportedShippingDecisionGateTransport: string | null;
+  privateCoreOperatorSupportedShippingDecisionGateEndpoint: string | null;
+  privateCoreOperatorSupportedShippingDecisionTransport: string | null;
+  privateCoreOperatorSupportedShippingDecisionEndpoint: string | null;
   privateCoreOperatorSupportedShippingArtifactGateTransport: string | null;
   privateCoreOperatorSupportedShippingArtifactGateEndpoint: string | null;
   privateCoreOperatorSupportedSnapshotTransport: string | null;
@@ -889,6 +893,14 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<string | null>(null);
   const [privateCoreOperatorSupportedSnapshotGateEndpoint, setPrivateCoreOperatorSupportedSnapshotGateEndpoint] =
     useState<string | null>(null);
+  const [privateCoreOperatorSupportedShippingDecisionGateTransport, setPrivateCoreOperatorSupportedShippingDecisionGateTransport] =
+    useState<string | null>(null);
+  const [privateCoreOperatorSupportedShippingDecisionGateEndpoint, setPrivateCoreOperatorSupportedShippingDecisionGateEndpoint] =
+    useState<string | null>(null);
+  const [privateCoreOperatorSupportedShippingDecisionTransport, setPrivateCoreOperatorSupportedShippingDecisionTransport] =
+    useState<string | null>(null);
+  const [privateCoreOperatorSupportedShippingDecisionEndpoint, setPrivateCoreOperatorSupportedShippingDecisionEndpoint] =
+    useState<string | null>(null);
   const [privateCoreOperatorSupportedShippingArtifactGateTransport, setPrivateCoreOperatorSupportedShippingArtifactGateTransport] =
     useState<string | null>(null);
   const [privateCoreOperatorSupportedShippingArtifactGateEndpoint, setPrivateCoreOperatorSupportedShippingArtifactGateEndpoint] =
@@ -982,6 +994,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSupportedStatusGateEndpoint,
       setPrivateCoreOperatorSupportedSnapshotGateTransport,
       setPrivateCoreOperatorSupportedSnapshotGateEndpoint,
+      setPrivateCoreOperatorSupportedShippingDecisionGateTransport,
+      setPrivateCoreOperatorSupportedShippingDecisionGateEndpoint,
+      setPrivateCoreOperatorSupportedShippingDecisionTransport,
+      setPrivateCoreOperatorSupportedShippingDecisionEndpoint,
       setPrivateCoreOperatorSupportedShippingArtifactGateTransport,
       setPrivateCoreOperatorSupportedShippingArtifactGateEndpoint,
       setPrivateCoreOperatorSupportedSnapshotTransport,
@@ -2439,6 +2455,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedStatusGateEndpoint,
       privateCoreOperatorSupportedSnapshotGateTransport,
       privateCoreOperatorSupportedSnapshotGateEndpoint,
+      privateCoreOperatorSupportedShippingDecisionGateTransport,
+      privateCoreOperatorSupportedShippingDecisionGateEndpoint,
+      privateCoreOperatorSupportedShippingDecisionTransport,
+      privateCoreOperatorSupportedShippingDecisionEndpoint,
       privateCoreOperatorSupportedShippingArtifactGateTransport,
       privateCoreOperatorSupportedShippingArtifactGateEndpoint,
       privateCoreOperatorSupportedSnapshotTransport,
@@ -2616,6 +2636,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedStatusGateEndpoint,
       privateCoreOperatorSupportedSnapshotGateTransport,
       privateCoreOperatorSupportedSnapshotGateEndpoint,
+      privateCoreOperatorSupportedShippingDecisionGateTransport,
+      privateCoreOperatorSupportedShippingDecisionGateEndpoint,
+      privateCoreOperatorSupportedShippingDecisionTransport,
+      privateCoreOperatorSupportedShippingDecisionEndpoint,
       privateCoreOperatorSupportedShippingArtifactGateTransport,
       privateCoreOperatorSupportedShippingArtifactGateEndpoint,
       privateCoreOperatorSupportedSnapshotTransport,
@@ -3727,6 +3751,10 @@ function applyPrivateCoreOperatorContractState(args: {
   setPrivateCoreOperatorSupportedStatusGateEndpoint: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSnapshotGateTransport: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSnapshotGateEndpoint: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedShippingDecisionGateTransport: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedShippingDecisionGateEndpoint: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedShippingDecisionTransport: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedShippingDecisionEndpoint: (value: string | null) => void;
   setPrivateCoreOperatorSupportedShippingArtifactGateTransport: (value: string | null) => void;
   setPrivateCoreOperatorSupportedShippingArtifactGateEndpoint: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSnapshotTransport: (value: string | null) => void;
@@ -3871,6 +3899,18 @@ function applyPrivateCoreOperatorContractState(args: {
   );
   args.setPrivateCoreOperatorSupportedSnapshotGateEndpoint(
     args.contractState.supportedOperatorSnapshotGateEndpoint,
+  );
+  args.setPrivateCoreOperatorSupportedShippingDecisionGateTransport(
+    args.contractState.supportedShippingDecisionGateTransport,
+  );
+  args.setPrivateCoreOperatorSupportedShippingDecisionGateEndpoint(
+    args.contractState.supportedShippingDecisionGateEndpoint,
+  );
+  args.setPrivateCoreOperatorSupportedShippingDecisionTransport(
+    args.contractState.supportedShippingDecisionTransport,
+  );
+  args.setPrivateCoreOperatorSupportedShippingDecisionEndpoint(
+    args.contractState.supportedShippingDecisionEndpoint,
   );
   args.setPrivateCoreOperatorSupportedShippingArtifactGateTransport(
     args.contractState.supportedShippingArtifactGateTransport,

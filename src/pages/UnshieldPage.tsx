@@ -240,6 +240,10 @@ export function UnshieldPage() {
     privateCoreOperatorSupportedStatusGateEndpoint,
     privateCoreOperatorSupportedSnapshotGateTransport,
     privateCoreOperatorSupportedSnapshotGateEndpoint,
+    privateCoreOperatorSupportedShippingDecisionGateTransport,
+    privateCoreOperatorSupportedShippingDecisionGateEndpoint,
+    privateCoreOperatorSupportedShippingDecisionTransport,
+    privateCoreOperatorSupportedShippingDecisionEndpoint,
     privateCoreOperatorSupportedShippingArtifactGateTransport,
     privateCoreOperatorSupportedShippingArtifactGateEndpoint,
     privateCoreOperatorSupportedSnapshotTransport,
@@ -1192,6 +1196,18 @@ export function UnshieldPage() {
           }
           operatorSupportedSnapshotGateEndpoint={
             privateCoreOperatorSupportedSnapshotGateEndpoint
+          }
+          operatorSupportedShippingDecisionGateTransport={
+            privateCoreOperatorSupportedShippingDecisionGateTransport
+          }
+          operatorSupportedShippingDecisionGateEndpoint={
+            privateCoreOperatorSupportedShippingDecisionGateEndpoint
+          }
+          operatorSupportedShippingDecisionTransport={
+            privateCoreOperatorSupportedShippingDecisionTransport
+          }
+          operatorSupportedShippingDecisionEndpoint={
+            privateCoreOperatorSupportedShippingDecisionEndpoint
           }
           operatorSupportedShippingArtifactGateTransport={
             privateCoreOperatorSupportedShippingArtifactGateTransport

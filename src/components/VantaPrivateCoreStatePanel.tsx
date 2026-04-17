@@ -149,6 +149,10 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSupportedStatusGateEndpoint?: string | null;
   operatorSupportedSnapshotGateTransport?: string | null;
   operatorSupportedSnapshotGateEndpoint?: string | null;
+  operatorSupportedShippingDecisionGateTransport?: string | null;
+  operatorSupportedShippingDecisionGateEndpoint?: string | null;
+  operatorSupportedShippingDecisionTransport?: string | null;
+  operatorSupportedShippingDecisionEndpoint?: string | null;
   operatorSupportedShippingArtifactGateTransport?: string | null;
   operatorSupportedShippingArtifactGateEndpoint?: string | null;
   operatorSupportedSnapshotTransport?: string | null;
@@ -436,6 +440,10 @@ export function VantaPrivateCoreStatePanel({
   operatorSupportedStatusGateEndpoint = null,
   operatorSupportedSnapshotGateTransport = null,
   operatorSupportedSnapshotGateEndpoint = null,
+  operatorSupportedShippingDecisionGateTransport = null,
+  operatorSupportedShippingDecisionGateEndpoint = null,
+  operatorSupportedShippingDecisionTransport = null,
+  operatorSupportedShippingDecisionEndpoint = null,
   operatorSupportedShippingArtifactGateTransport = null,
   operatorSupportedShippingArtifactGateEndpoint = null,
   operatorSupportedSnapshotTransport = null,
@@ -964,6 +972,22 @@ export function VantaPrivateCoreStatePanel({
                   ? `v${String(operatorShippingDecisionVersion ?? 1)} · ${operatorShippingDecisionKind}`
                   : "Unavailable"}
               </strong>
+            </div>
+            <div className="review-row">
+              <span>Shipping decision transport</span>
+              <strong>{operatorSupportedShippingDecisionTransport ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Shipping decision gate transport</span>
+              <strong>{operatorSupportedShippingDecisionGateTransport ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Shipping decision gate endpoint</span>
+              <strong>{operatorSupportedShippingDecisionGateEndpoint ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Shipping decision endpoint</span>
+              <strong>{operatorSupportedShippingDecisionEndpoint ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Operator contract source</span>
