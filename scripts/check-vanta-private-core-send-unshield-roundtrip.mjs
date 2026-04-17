@@ -1169,6 +1169,62 @@ try {
   }
   printStatus("private-core send->unshield shipping-artifact: PASS");
 
+  const releaseCandidateJsonOutput = execFileSync("npm", [
+    "run",
+    "--silent",
+    "private-core:release-candidate-check-json",
+    "--",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  const releaseCandidateJson = JSON.parse(releaseCandidateJsonOutput);
+  if (
+    releaseCandidateJson.candidateVersion !== 1 ||
+    releaseCandidateJson.candidateKind !== "private-core-send-consume-release-candidate" ||
+    releaseCandidateJson.releaseCandidateId !== releaseCandidateId ||
+    releaseCandidateJson.lineageStatus !== "ready" ||
+    releaseCandidateJson.sendId !== shippingArtifactSurfaceJson.latestSendId ||
+    releaseCandidateJson.releaseRequestId !== shippingArtifactSurfaceJson.latestReleaseRequestId ||
+    releaseCandidateJson.releasedAmount !== shippingArtifactSurfaceJson.latestReleasedAmount
+  ) {
+    throw new Error(
+      `Unexpected send->unshield release-candidate json output\n${JSON.stringify(releaseCandidateJson, null, 2)}`,
+    );
+  }
+  printStatus("private-core send->unshield release-candidate json: PASS");
+
+  const releaseCandidateOutput = execFileSync("npm", [
+    "run",
+    "--silent",
+    "private-core:release-candidate-check",
+    "--",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  if (
+    !releaseCandidateOutput.includes(`Release candidate: ${releaseCandidateId}`) ||
+    !releaseCandidateOutput.includes("Lineage status: Candidate lineage ready") ||
+    !releaseCandidateOutput.includes(
+      `Send: ${shippingArtifactSurfaceJson.latestSendId ?? "Unavailable"}`,
+    ) ||
+    !releaseCandidateOutput.includes(
+      `Release request: ${shippingArtifactSurfaceJson.latestReleaseRequestId ?? "Unavailable"}`,
+    )
+  ) {
+    throw new Error(
+      releaseCandidateOutput || "send->unshield release-candidate returned unexpected output",
+    );
+  }
+  printStatus("private-core send->unshield release-candidate: PASS");
+
   const operatorSnapshotCheckJsonOutput = execFileSync("npm", [
     "run",
     "--silent",

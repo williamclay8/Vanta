@@ -205,6 +205,10 @@ npm run private-core:shipping-artifact
 npm run private-core:shipping-artifact-json
 npm run private-core:shipping-artifact-check
 npm run private-core:shipping-artifact-check-json
+npm run private-core:release-candidate
+npm run private-core:release-candidate-json
+npm run private-core:release-candidate-check
+npm run private-core:release-candidate-check-json
 npm run private-core:shipping-status
 npm run private-core:shipping-check
 ```
@@ -296,6 +300,14 @@ These commands cover:
 `private-core:shipping-artifact-check` is the ready-gated human-readable form of that artifact: it exits zero only when the artifact says the frozen narrow lane is ready to ship, and on blocked paths fails with structured `Artifact decision status:` / `Artifact decision note:` lines. The frozen contract now carries that ready-gated release artifact transport explicitly via `supportedShippingArtifactGateTransport = dedicated-endpoint` and `supportedShippingArtifactGateEndpoint = /state/private-core-shipping-artifact-check`.
 
 `private-core:shipping-artifact-check-json` is the ready-gated machine-readable form of that artifact: it exits zero only when the artifact says the frozen narrow lane is ready to ship, prints the full artifact JSON on success, and on blocked paths emits the full artifact JSON to stderr before structured `Artifact decision status:` / `Artifact decision note:` lines.
+
+`private-core:release-candidate` prints the exact narrow private-core send -> consume -> release candidate from the dedicated `/state/private-core-release-candidate` endpoint in human-readable form. It is the first operator-owned surface that binds one concrete `releaseCandidateId` to the current send, consume, and release lineage instead of only describing the latest operator state generically.
+
+`private-core:release-candidate-json` prints that same exact-run candidate as machine-readable JSON from the dedicated `/state/private-core-release-candidate` endpoint so tooling can pin the concrete candidate id and lineage directly.
+
+`private-core:release-candidate-check` is the ready-gated human-readable form of that exact-run candidate: it exits zero only when the exact candidate is coherent and ready for the frozen narrow lane, and on blocked paths fails with structured `Release candidate decision status:` / `Release candidate decision note:` lines.
+
+`private-core:release-candidate-check-json` is the ready-gated machine-readable form of that same exact-run candidate: it exits zero only when the candidate is coherent and ready, prints the candidate JSON on success, and on blocked paths emits the full candidate JSON to stderr before structured `Release candidate decision status:` / `Release candidate decision note:` lines.
 
 `private-core:shipping-status` is the compact operator-backed answer to the narrow zk-v1 question: whether the frozen private-core lane is actually ship-ready right now, and if not, which live blocker is preventing that. It now reads the dedicated `/state/private-core-shipping-decision` endpoint, which is the canonical ship/no-ship contract for the frozen narrow private-core lane, and prints the decision version/kind/status/note plus the current summary-state version, mirrored contract version, summary generation time, and the supporting shipping, finish-line, required-lanes, release-boundary, contract-mirror, and boundary summaries without the rest of the larger operator-status dump.
 

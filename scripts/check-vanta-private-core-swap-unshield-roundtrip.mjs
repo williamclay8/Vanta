@@ -1134,6 +1134,61 @@ try {
   }
   printStatus("private-core swap->unshield shipping-artifact: PASS");
 
+  let blockedReleaseCandidateCheckJson = null;
+  try {
+    execFileSync(
+      "npm",
+      ["run", "--silent", "private-core:release-candidate-check-json", "--", "--base-url", baseUrl],
+      {
+        cwd: repoRoot,
+        encoding: "utf8",
+        stdio: "pipe",
+      },
+    );
+  } catch (error) {
+    blockedReleaseCandidateCheckJson = error;
+  }
+  const blockedReleaseCandidateCheckJsonOutput =
+    blockedReleaseCandidateCheckJson &&
+    typeof blockedReleaseCandidateCheckJson === "object" &&
+    "stderr" in blockedReleaseCandidateCheckJson &&
+    typeof blockedReleaseCandidateCheckJson.stderr === "string"
+      ? blockedReleaseCandidateCheckJson.stderr
+      : "";
+  const blockedReleaseCandidateJsonStart = blockedReleaseCandidateCheckJsonOutput.indexOf("{");
+  const blockedReleaseCandidateJsonEnd = blockedReleaseCandidateCheckJsonOutput.lastIndexOf("}");
+  if (
+    !blockedReleaseCandidateCheckJson ||
+    blockedReleaseCandidateJsonStart === -1 ||
+    blockedReleaseCandidateJsonEnd === -1 ||
+    !blockedReleaseCandidateCheckJsonOutput.includes("Release candidate decision status: Blocked") ||
+    !blockedReleaseCandidateCheckJsonOutput.includes(
+      "Release candidate decision note: No private send release candidate is bound to the latest operator release path.",
+    )
+  ) {
+    throw new Error(
+      blockedReleaseCandidateCheckJsonOutput ||
+        "swap->unshield release-candidate-check-json did not fail with structured output",
+    );
+  }
+  const blockedReleaseCandidateJson = JSON.parse(
+    blockedReleaseCandidateCheckJsonOutput.slice(
+      blockedReleaseCandidateJsonStart,
+      blockedReleaseCandidateJsonEnd + 1,
+    ),
+  );
+  if (
+    blockedReleaseCandidateJson.candidateVersion !== 1 ||
+    blockedReleaseCandidateJson.candidateKind !== "private-core-send-consume-release-candidate" ||
+    blockedReleaseCandidateJson.releaseCandidateId !== null ||
+    blockedReleaseCandidateJson.lineageStatus !== "unavailable"
+  ) {
+    throw new Error(
+      `Unexpected swap->unshield release-candidate json output\n${JSON.stringify(blockedReleaseCandidateJson, null, 2)}`,
+    );
+  }
+  printStatus("private-core swap->unshield release-candidate json: PASS");
+
   let blockedOperatorSnapshotCheckJson = null;
   try {
     execFileSync(

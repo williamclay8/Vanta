@@ -272,6 +272,14 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   runs the ready-gated human-readable form of that release artifact and fails with structured `Artifact decision status:` / `Artifact decision note:` lines on blocked paths; the frozen contract now carries that ready-gated release artifact transport explicitly via `supportedShippingArtifactGateTransport = dedicated-endpoint` / `supportedShippingArtifactGateEndpoint = /state/private-core-shipping-artifact-check`
 - `npm run private-core:shipping-artifact-check-json`
   runs the machine-readable ready-gated form of that release artifact; it succeeds only when the frozen narrow lane is ready and otherwise fails with the full artifact JSON plus structured artifact decision status/note stderr
+- `npm run private-core:release-candidate`
+  prints the exact narrow private-core send -> consume -> release candidate from the dedicated `/state/private-core-release-candidate` endpoint, including the bound `releaseCandidateId`, send lineage, consume lineage, release lineage, and the bundled snapshot identity behind that exact run
+- `npm run private-core:release-candidate-json`
+  prints that same exact-run candidate as machine-readable JSON from `/state/private-core-release-candidate`
+- `npm run private-core:release-candidate-check`
+  runs the ready-gated human-readable form of that exact-run candidate and fails with structured `Release candidate decision status:` / `Release candidate decision note:` lines on blocked paths
+- `npm run private-core:release-candidate-check-json`
+  runs the machine-readable ready-gated form of that same exact-run candidate; it succeeds only when the exact candidate is coherent and otherwise fails with the full candidate JSON plus structured release-candidate decision status/note stderr
 - `npm run private-core:shipping-status`
   prints the compact operator-backed shipping summary for the frozen narrow zk-v1 lane from the dedicated `/state/private-core-shipping-decision` endpoint, which now serves as the canonical ship/no-ship contract for that frozen lane, including the decision version/kind/status/note, summary-state version, mirrored contract version, current summary generation time, and the supporting finish-line, required-lanes, release-boundary, contract-mirror, and boundary summaries; `private-core:shipping-check` now reads the dedicated `/state/private-core-shipping-decision-check` gate endpoint directly and fails with structured shipping status/note lines on blocked paths
 - `npm run private-core:shipping-status-json`

@@ -419,6 +419,23 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (request.method === "GET" && request.url === "/state/private-core-release-candidate") {
+    writeCorsHeaders(response);
+    response.writeHead(200, { "Content-Type": "application/json" });
+    response.end(JSON.stringify(buildPrivateCoreReleaseCandidateState(request)));
+    return;
+  }
+
+  if (
+    request.method === "GET" &&
+    request.url === "/state/private-core-release-candidate-check"
+  ) {
+    writeCorsHeaders(response);
+    response.writeHead(200, { "Content-Type": "application/json" });
+    response.end(JSON.stringify(buildPrivateCoreReleaseCandidateCheckState(request)));
+    return;
+  }
+
   if (
     request.method === "GET" &&
     request.url === "/state/private-core-shipping-artifact-check"
@@ -2451,6 +2468,67 @@ function buildPrivateCoreShippingArtifactCheckState(request) {
     decisionStatus: artifact.decisionStatus,
     decisionNote: artifact.decisionNote,
     artifact,
+  };
+}
+
+function buildPrivateCoreReleaseCandidateState(request) {
+  const artifact = buildPrivateCoreShippingArtifactState(request);
+
+  return {
+    operator: artifact.operator,
+    candidateVersion: 1,
+    candidateKind: "private-core-send-consume-release-candidate",
+    decisionVersion: artifact.decisionVersion,
+    decisionKind: artifact.decisionKind,
+    decisionStatus: artifact.decisionStatus,
+    decisionNote: artifact.decisionNote,
+    contractVersion: artifact.contractVersion,
+    summaryVersion: artifact.summaryVersion,
+    artifactVersion: artifact.artifactVersion,
+    artifactKind: artifact.artifactKind,
+    releaseCandidateId: artifact.releaseCandidateId,
+    lineageStatus: artifact.releaseCandidateLineageStatus,
+    lineageNote: artifact.releaseCandidateLineageNote,
+    sendId: artifact.latestSendId,
+    sendProofId: artifact.latestSendProofId,
+    sendLinkedProofId: artifact.latestSendLinkedProofId,
+    sendRecordProofId: artifact.latestSendRecordProofId,
+    sendResultingRoot: artifact.latestSendResultingRoot,
+    consumeRecordProofId: artifact.latestConsumeRecordProofId,
+    consumeLinkedProofId: artifact.latestConsumeLinkedProofId,
+    consumeRoot: artifact.latestConsumeRoot,
+    releaseRecordProofId: artifact.latestReleaseRecordProofId,
+    releaseLinkedProofId: artifact.latestReleaseLinkedProofId,
+    releaseRequestId: artifact.latestReleaseRequestId,
+    releaseRoot: artifact.latestReleaseRoot,
+    releaseDestination: artifact.latestReleaseDestination,
+    releasedAssetId: artifact.latestReleasedAssetId,
+    releasedAmount: artifact.latestReleasedAmount,
+    snapshotVersion: artifact.snapshotVersion,
+    snapshotKind: artifact.snapshotKind,
+  };
+}
+
+function buildPrivateCoreReleaseCandidateCheckState(request) {
+  const candidate = buildPrivateCoreReleaseCandidateState(request);
+  const decisionStatus =
+    candidate.decisionStatus === "ready-to-ship" && candidate.lineageStatus === "ready"
+      ? "ready"
+      : "blocked";
+  const decisionNote =
+    decisionStatus === "ready"
+      ? "Exact private-core release candidate is ready for the frozen narrow zk v1 lane."
+      : candidate.lineageStatus !== "ready"
+        ? candidate.lineageNote
+        : candidate.decisionNote;
+
+  return {
+    operator: candidate.operator,
+    checkVersion: 1,
+    checkKind: "ready-gated-private-core-release-candidate",
+    decisionStatus,
+    decisionNote,
+    candidate,
   };
 }
 

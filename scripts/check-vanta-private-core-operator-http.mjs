@@ -1903,6 +1903,49 @@ try {
   }
   printStatus("operator http shipping-artifact-check endpoint: PASS");
 
+  const releaseCandidateState = await requestJson(
+    baseUrl,
+    "/state/private-core-release-candidate",
+    {
+      method: "GET",
+    },
+  );
+  if (
+    !releaseCandidateState.ok ||
+    releaseCandidateState.parsed?.candidateVersion !== 1 ||
+    releaseCandidateState.parsed?.candidateKind !==
+      "private-core-send-consume-release-candidate" ||
+    releaseCandidateState.parsed?.releaseCandidateId !== null ||
+    releaseCandidateState.parsed?.lineageStatus !== "unavailable"
+  ) {
+    throw new Error(
+      releaseCandidateState.text || "release-candidate endpoint returned unexpected output",
+    );
+  }
+  printStatus("operator http release-candidate endpoint: PASS");
+
+  const releaseCandidateCheckState = await requestJson(
+    baseUrl,
+    "/state/private-core-release-candidate-check",
+    {
+      method: "GET",
+    },
+  );
+  if (
+    !releaseCandidateCheckState.ok ||
+    releaseCandidateCheckState.parsed?.checkVersion !== 1 ||
+    releaseCandidateCheckState.parsed?.checkKind !==
+      "ready-gated-private-core-release-candidate" ||
+    releaseCandidateCheckState.parsed?.decisionStatus !== "blocked" ||
+    releaseCandidateCheckState.parsed?.candidate?.lineageStatus !== "unavailable"
+  ) {
+    throw new Error(
+      releaseCandidateCheckState.text ||
+        "release-candidate-check endpoint returned unexpected output",
+    );
+  }
+  printStatus("operator http release-candidate-check endpoint: PASS");
+
   const operatorSnapshotJsonOutput = execFileSync("npm", [
     "run",
     "--silent",

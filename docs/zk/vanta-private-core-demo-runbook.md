@@ -31,6 +31,10 @@ npm run private-core:shipping-artifact
 npm run private-core:shipping-artifact-json
 npm run private-core:shipping-artifact-check
 npm run private-core:shipping-artifact-check-json
+npm run private-core:release-candidate
+npm run private-core:release-candidate-json
+npm run private-core:release-candidate-check
+npm run private-core:release-candidate-check-json
 npm run private-core:shipping-status
 npm run private-core:shipping-status-json
 npm run private-core:shipping-check-json
@@ -167,6 +171,19 @@ That shipping artifact is now itself part of the frozen operator contract:
 Use `private-core:shipping-artifact-check` when a human wants that release-grade operator artifact itself to act as the strict ready gate.
 
 Use `private-core:shipping-artifact-check-json` when that same tooling wants the full release-grade operator artifact as a strict machine-readable ready gate.
+
+Use `private-core:release-candidate` when a human wants the exact narrow private-core send -> consume -> release candidate in readable form instead of only the broader shipping artifact or bundled snapshot.
+
+Use `private-core:release-candidate-json` when that tooling wants one machine-readable exact-run candidate from the dedicated `/state/private-core-release-candidate` endpoint containing:
+- the exact `releaseCandidateId`
+- the send lineage
+- the consume lineage
+- the release lineage
+- the bound bundled snapshot identity
+
+Use `private-core:release-candidate-check` when a human wants that exact-run candidate itself to act as a strict ready gate.
+
+Use `private-core:release-candidate-check-json` when that same tooling wants the full exact-run candidate as a strict machine-readable ready gate.
 
 ## App demo path
 

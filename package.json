@@ -26,6 +26,10 @@
     "private-core:shipping-artifact-json": "node scripts/print-vanta-private-core-shipping-artifact.mjs --json",
     "private-core:shipping-artifact-check": "node scripts/print-vanta-private-core-shipping-artifact.mjs --check-ready",
     "private-core:shipping-artifact-check-json": "node scripts/print-vanta-private-core-shipping-artifact.mjs --json --check-ready",
+    "private-core:release-candidate": "node scripts/print-vanta-private-core-release-candidate.mjs",
+    "private-core:release-candidate-json": "node scripts/print-vanta-private-core-release-candidate.mjs --json",
+    "private-core:release-candidate-check": "node scripts/print-vanta-private-core-release-candidate.mjs --check-ready",
+    "private-core:release-candidate-check-json": "node scripts/print-vanta-private-core-release-candidate.mjs --json --check-ready",
     "private-core:shipping-status": "node scripts/print-vanta-private-core-shipping-status.mjs",
     "private-core:shipping-status-json": "node scripts/print-vanta-private-core-shipping-status.mjs --json",
     "private-core:shipping-check": "node scripts/print-vanta-private-core-shipping-status.mjs --check-ready",
@@ -64,7 +68,7 @@
     "private-core:prove": "node scripts/prove-vanta-private-core-unshield.mjs",
     "private-core:verify": "npm run build && npm run private-core:check && npm run private-core:send-check && npm run private-core:swap-check && npm run private-core:send-apply-check && npm run private-core:swap-apply-check && npm run private-core:send-continuity-check && npm run private-core:send-recipient-check && npm run private-core:send-chain-check && npm run private-core:send-roundtrip-check && npm run private-core:send-unshield-roundtrip-check && npm run private-core:send-change-unshield-check && npm run private-core:send-chain-unshield-check && npm run private-core:swap-boundary-check && npm run private-core:swap-live-path-check && npm run private-core:swap-unshield-roundtrip-check && npm run private-core:consume-check && npm run private-core:contract-smoke && npm run private-core:http-smoke && npm run private-core:send-http-smoke && npm run private-core:swap-http-smoke && npm run private-core:swap-transition-http-smoke && npm run private-core:send-chain-http-smoke && npm run private-core:restart-check && npm run private-core:swap-restart-check && npm run private-core:swap-unshield-restart-check && npm run private-core:send-chain-restart-check && npm run private-core:send-unshield-restart-check && npm run private-core:send-change-unshield-restart-check && npm run private-core:send-chain-unshield-restart-check && npm run private-core:prove && npm run private-core:send-prove && npm run private-core:swap-prove",
     "private-core:demo-readiness": "npm run private-core:verify",
-    "private-core:demo-preflight": "npm run private-core:demo-readiness && npm run private-core:operator-contract && npm run private-core:operator-status && npm run private-core:shipping-status && npm run private-core:operator-snapshot && npm run private-core:shipping-artifact",
+    "private-core:demo-preflight": "npm run private-core:demo-readiness && npm run private-core:operator-contract && npm run private-core:operator-status && npm run private-core:shipping-status && npm run private-core:operator-snapshot && npm run private-core:shipping-artifact && npm run private-core:release-candidate",
     "preview": "vite preview"
   },
   "dependencies": {
