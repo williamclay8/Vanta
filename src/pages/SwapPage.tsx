@@ -2199,6 +2199,8 @@ export function SwapPage() {
         operatorSupportedStatusEndpoint={privacyFlow.privateCoreOperatorSupportedStatusEndpoint}
         operatorSupportedSnapshotTransport={privacyFlow.privateCoreOperatorSupportedSnapshotTransport}
         operatorSupportedSnapshotEndpoint={privacyFlow.privateCoreOperatorSupportedSnapshotEndpoint}
+        operatorSupportedShippingArtifactTransport={privacyFlow.privateCoreOperatorSupportedShippingArtifactTransport}
+        operatorSupportedShippingArtifactEndpoint={privacyFlow.privateCoreOperatorSupportedShippingArtifactEndpoint}
         operatorShippingArtifactVersion={privacyFlow.privateCoreOperatorShippingArtifactVersion}
         operatorShippingArtifactKind={privacyFlow.privateCoreOperatorShippingArtifactKind}
         operatorShippingDecisionVersion={privacyFlow.privateCoreOperatorShippingDecisionVersion}

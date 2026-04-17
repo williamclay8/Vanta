@@ -176,6 +176,8 @@ export function AppDashboardPage() {
     privateCoreOperatorSupportedStatusEndpoint,
     privateCoreOperatorSupportedSnapshotTransport,
     privateCoreOperatorSupportedSnapshotEndpoint,
+    privateCoreOperatorSupportedShippingArtifactTransport,
+    privateCoreOperatorSupportedShippingArtifactEndpoint,
     privateCoreOperatorShippingArtifactKind,
     privateCoreOperatorShippingArtifactVersion,
     privateCoreOperatorShippingDecisionKind,
@@ -503,6 +505,8 @@ export function AppDashboardPage() {
               operatorSupportedStatusEndpoint={privateCoreOperatorSupportedStatusEndpoint}
               operatorSupportedSnapshotTransport={privateCoreOperatorSupportedSnapshotTransport}
               operatorSupportedSnapshotEndpoint={privateCoreOperatorSupportedSnapshotEndpoint}
+              operatorSupportedShippingArtifactTransport={privateCoreOperatorSupportedShippingArtifactTransport}
+              operatorSupportedShippingArtifactEndpoint={privateCoreOperatorSupportedShippingArtifactEndpoint}
               operatorShippingArtifactVersion={privateCoreOperatorShippingArtifactVersion}
               operatorShippingArtifactKind={privateCoreOperatorShippingArtifactKind}
               operatorShippingDecisionVersion={privateCoreOperatorShippingDecisionVersion}

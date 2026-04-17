@@ -280,6 +280,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorSupportedStatusEndpoint: string | null;
   privateCoreOperatorSupportedSnapshotTransport: string | null;
   privateCoreOperatorSupportedSnapshotEndpoint: string | null;
+  privateCoreOperatorSupportedShippingArtifactTransport: string | null;
+  privateCoreOperatorSupportedShippingArtifactEndpoint: string | null;
   privateCoreOperatorShippingArtifactVersion: number | null;
   privateCoreOperatorShippingArtifactKind: string | null;
   privateCoreOperatorShippingDecisionVersion: number | null;
@@ -877,6 +879,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<string | null>(null);
   const [privateCoreOperatorSupportedSnapshotEndpoint, setPrivateCoreOperatorSupportedSnapshotEndpoint] =
     useState<string | null>(null);
+  const [privateCoreOperatorSupportedShippingArtifactTransport, setPrivateCoreOperatorSupportedShippingArtifactTransport] =
+    useState<string | null>(null);
+  const [privateCoreOperatorSupportedShippingArtifactEndpoint, setPrivateCoreOperatorSupportedShippingArtifactEndpoint] =
+    useState<string | null>(null);
   const [privateCoreOperatorShippingArtifactVersion, setPrivateCoreOperatorShippingArtifactVersion] =
     useState<number | null>(null);
   const [privateCoreOperatorShippingArtifactKind, setPrivateCoreOperatorShippingArtifactKind] =
@@ -956,6 +962,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSupportedStatusEndpoint,
       setPrivateCoreOperatorSupportedSnapshotTransport,
       setPrivateCoreOperatorSupportedSnapshotEndpoint,
+      setPrivateCoreOperatorSupportedShippingArtifactTransport,
+      setPrivateCoreOperatorSupportedShippingArtifactEndpoint,
       setPrivateCoreOperatorSupportedRecipientModel,
       setPrivateCoreOperatorSupportedReleaseDestinationModel,
       setPrivateCoreOperatorSupportedProofSystem,
@@ -2405,6 +2413,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedStatusEndpoint,
       privateCoreOperatorSupportedSnapshotTransport,
       privateCoreOperatorSupportedSnapshotEndpoint,
+      privateCoreOperatorSupportedShippingArtifactTransport,
+      privateCoreOperatorSupportedShippingArtifactEndpoint,
       privateCoreOperatorShippingArtifactVersion,
       privateCoreOperatorShippingArtifactKind,
       privateCoreOperatorShippingDecisionVersion,
@@ -2574,6 +2584,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedStatusEndpoint,
       privateCoreOperatorSupportedSnapshotTransport,
       privateCoreOperatorSupportedSnapshotEndpoint,
+      privateCoreOperatorSupportedShippingArtifactTransport,
+      privateCoreOperatorSupportedShippingArtifactEndpoint,
       privateCoreOperatorShippingArtifactVersion,
       privateCoreOperatorShippingArtifactKind,
       privateCoreOperatorShippingDecisionVersion,
@@ -3677,6 +3689,8 @@ function applyPrivateCoreOperatorContractState(args: {
   setPrivateCoreOperatorSupportedStatusEndpoint: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSnapshotTransport: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSnapshotEndpoint: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedShippingArtifactTransport: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedShippingArtifactEndpoint: (value: string | null) => void;
   setPrivateCoreOperatorSupportedRecipientModel: (value: string | null) => void;
   setPrivateCoreOperatorSupportedReleaseDestinationModel: (value: string | null) => void;
   setPrivateCoreOperatorSupportedProofSystem: (value: string | null) => void;
@@ -3809,6 +3823,12 @@ function applyPrivateCoreOperatorContractState(args: {
   );
   args.setPrivateCoreOperatorSupportedSnapshotEndpoint(
     args.contractState.supportedOperatorSnapshotEndpoint,
+  );
+  args.setPrivateCoreOperatorSupportedShippingArtifactTransport(
+    args.contractState.supportedShippingArtifactTransport,
+  );
+  args.setPrivateCoreOperatorSupportedShippingArtifactEndpoint(
+    args.contractState.supportedShippingArtifactEndpoint,
   );
   args.setPrivateCoreOperatorSupportedRecipientModel(args.contractState.supportedRecipientModel);
   args.setPrivateCoreOperatorSupportedReleaseDestinationModel(

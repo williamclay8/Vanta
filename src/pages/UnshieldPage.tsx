@@ -238,6 +238,8 @@ export function UnshieldPage() {
     privateCoreOperatorSupportedStatusEndpoint,
     privateCoreOperatorSupportedSnapshotTransport,
     privateCoreOperatorSupportedSnapshotEndpoint,
+    privateCoreOperatorSupportedShippingArtifactTransport,
+    privateCoreOperatorSupportedShippingArtifactEndpoint,
     privateCoreOperatorShippingArtifactKind,
     privateCoreOperatorShippingArtifactVersion,
     privateCoreOperatorShippingDecisionKind,
@@ -1175,6 +1177,8 @@ export function UnshieldPage() {
           operatorSupportedStatusEndpoint={privateCoreOperatorSupportedStatusEndpoint}
           operatorSupportedSnapshotTransport={privateCoreOperatorSupportedSnapshotTransport}
           operatorSupportedSnapshotEndpoint={privateCoreOperatorSupportedSnapshotEndpoint}
+          operatorSupportedShippingArtifactTransport={privateCoreOperatorSupportedShippingArtifactTransport}
+          operatorSupportedShippingArtifactEndpoint={privateCoreOperatorSupportedShippingArtifactEndpoint}
           operatorShippingArtifactVersion={privateCoreOperatorShippingArtifactVersion}
           operatorShippingArtifactKind={privateCoreOperatorShippingArtifactKind}
           operatorShippingDecisionVersion={privateCoreOperatorShippingDecisionVersion}
