@@ -119,6 +119,30 @@ try {
     contract.supportedShippingDecisionNote ?? "Unavailable",
   );
   printLine(
+    "Supported operator status version",
+    String(contract.supportedOperatorStatusVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported operator status kind",
+    contract.supportedOperatorStatusKind ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator status note",
+    contract.supportedOperatorStatusNote ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator status gate version",
+    String(contract.supportedOperatorStatusGateVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported operator status gate kind",
+    contract.supportedOperatorStatusGateKind ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator status gate note",
+    contract.supportedOperatorStatusGateNote ?? "Unavailable",
+  );
+  printLine(
     "Supported operator snapshot version",
     String(contract.supportedOperatorSnapshotVersion ?? "unknown"),
   );

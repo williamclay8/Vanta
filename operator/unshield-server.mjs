@@ -202,6 +202,14 @@ const PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_NOTE =
   "Canonical bundled machine-readable operator artifact containing the frozen contract, live status summary, and canonical shipping decision surfaces together.";
 const PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_TRANSPORT = "dedicated-endpoint";
 const PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_ENDPOINT = "/state/private-core-snapshot";
+const PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_VERSION = 1;
+const PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_KIND = "long-form-live-status";
+const PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_NOTE =
+  "Canonical long-form live operator-status surface composed from the bundled snapshot plus the dedicated shipping artifact.";
+const PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_GATE_VERSION = 1;
+const PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_GATE_KIND = "ready-gated-long-form-live-status";
+const PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_GATE_NOTE =
+  "Long-form operator-status surface can act as a strict ready gate for the frozen narrow lane.";
 const PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_VERSION = 1;
 const PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_KIND =
   "shipping-decision-checked-snapshot-bundle";
@@ -2300,6 +2308,12 @@ function buildPrivateCoreContractState() {
     supportedShippingDecisionVersion: PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_VERSION,
     supportedShippingDecisionKind: PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_KIND,
     supportedShippingDecisionNote: PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_NOTE,
+    supportedOperatorStatusVersion: PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_VERSION,
+    supportedOperatorStatusKind: PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_KIND,
+    supportedOperatorStatusNote: PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_NOTE,
+    supportedOperatorStatusGateVersion: PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_GATE_VERSION,
+    supportedOperatorStatusGateKind: PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_GATE_KIND,
+    supportedOperatorStatusGateNote: PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_GATE_NOTE,
     supportedOperatorSnapshotVersion: PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_VERSION,
     supportedOperatorSnapshotKind: PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_KIND,
     supportedOperatorSnapshotNote: PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_NOTE,
@@ -2391,6 +2405,12 @@ function summarizePrivateCoreContractMirrorStatus(args) {
     "supportedShippingDecisionVersion",
     "supportedShippingDecisionKind",
     "supportedShippingDecisionNote",
+    "supportedOperatorStatusVersion",
+    "supportedOperatorStatusKind",
+    "supportedOperatorStatusNote",
+    "supportedOperatorStatusGateVersion",
+    "supportedOperatorStatusGateKind",
+    "supportedOperatorStatusGateNote",
     "supportedOperatorSnapshotVersion",
     "supportedOperatorSnapshotKind",
     "supportedOperatorSnapshotNote",

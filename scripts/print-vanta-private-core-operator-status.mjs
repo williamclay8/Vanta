@@ -183,6 +183,30 @@ try {
   printLine("Supported flow status", humanizeSupportedFlowStatus(summary.supportedFlowStatus));
   printLine("Supported flow note", summary.supportedFlowNote ?? "Unavailable");
   printLine(
+    "Supported operator status version",
+    String(summary.supportedOperatorStatusVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported operator status kind",
+    summary.supportedOperatorStatusKind ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator status note",
+    summary.supportedOperatorStatusNote ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator status gate version",
+    String(summary.supportedOperatorStatusGateVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported operator status gate kind",
+    summary.supportedOperatorStatusGateKind ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator status gate note",
+    summary.supportedOperatorStatusGateNote ?? "Unavailable",
+  );
+  printLine(
     "Supported operator snapshot version",
     String(summary.supportedOperatorSnapshotVersion ?? "unknown"),
   );

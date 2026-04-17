@@ -137,6 +137,13 @@ try {
     contractState.parsed?.supportedShippingDecisionKind !==
       "narrow-private-core-zk-v1-shipping" ||
     typeof contractState.parsed?.supportedShippingDecisionNote !== "string" ||
+    contractState.parsed?.supportedOperatorStatusVersion !== 1 ||
+    contractState.parsed?.supportedOperatorStatusKind !== "long-form-live-status" ||
+    typeof contractState.parsed?.supportedOperatorStatusNote !== "string" ||
+    contractState.parsed?.supportedOperatorStatusGateVersion !== 1 ||
+    contractState.parsed?.supportedOperatorStatusGateKind !==
+      "ready-gated-long-form-live-status" ||
+    typeof contractState.parsed?.supportedOperatorStatusGateNote !== "string" ||
     contractState.parsed?.supportedOperatorSnapshotVersion !== 1 ||
     contractState.parsed?.supportedOperatorSnapshotKind !== "contract-status-shipping-bundle" ||
     typeof contractState.parsed?.supportedOperatorSnapshotNote !== "string" ||
@@ -231,6 +238,12 @@ try {
     "supportedShippingDecisionVersion",
     "supportedShippingDecisionKind",
     "supportedShippingDecisionNote",
+    "supportedOperatorStatusVersion",
+    "supportedOperatorStatusKind",
+    "supportedOperatorStatusNote",
+    "supportedOperatorStatusGateVersion",
+    "supportedOperatorStatusGateKind",
+    "supportedOperatorStatusGateNote",
     "supportedOperatorSnapshotVersion",
     "supportedOperatorSnapshotKind",
     "supportedOperatorSnapshotNote",
@@ -325,6 +338,12 @@ try {
     !contractOutput.includes(
       "Supported shipping decision kind: narrow-private-core-zk-v1-shipping",
     ) ||
+    !contractOutput.includes("Supported operator status version: 1") ||
+    !contractOutput.includes("Supported operator status kind: long-form-live-status") ||
+    !contractOutput.includes("Supported operator status gate version: 1") ||
+    !contractOutput.includes(
+      "Supported operator status gate kind: ready-gated-long-form-live-status",
+    ) ||
     !contractOutput.includes("Supported operator snapshot version: 1") ||
     !contractOutput.includes(
       "Supported operator snapshot kind: contract-status-shipping-bundle",
@@ -376,6 +395,14 @@ try {
     contractJson.supportedShippingDecisionKind !== "narrow-private-core-zk-v1-shipping" ||
     contractJson.supportedShippingDecisionNote !==
       "Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane." ||
+    contractJson.supportedOperatorStatusVersion !== 1 ||
+    contractJson.supportedOperatorStatusKind !== "long-form-live-status" ||
+    contractJson.supportedOperatorStatusNote !==
+      "Canonical long-form live operator-status surface composed from the bundled snapshot plus the dedicated shipping artifact." ||
+    contractJson.supportedOperatorStatusGateVersion !== 1 ||
+    contractJson.supportedOperatorStatusGateKind !== "ready-gated-long-form-live-status" ||
+    contractJson.supportedOperatorStatusGateNote !==
+      "Long-form operator-status surface can act as a strict ready gate for the frozen narrow lane." ||
     contractJson.supportedOperatorSnapshotVersion !== 1 ||
     contractJson.supportedOperatorSnapshotKind !== "contract-status-shipping-bundle" ||
     contractJson.supportedOperatorSnapshotNote !==

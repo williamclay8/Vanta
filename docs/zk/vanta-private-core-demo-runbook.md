@@ -116,6 +116,12 @@ Use `private-core:operator-status-check` when a human wants the full live operat
 
 Use `private-core:operator-status-check-json` when that same tooling wants the full live operator-status JSON as a strict machine-readable ready gate instead of only the compact shipping slice.
 
+That long-form status surface is now itself frozen in the operator contract via:
+- `supportedOperatorStatusVersion = 1`
+- `supportedOperatorStatusKind = long-form-live-status`
+- `supportedOperatorStatusGateVersion = 1`
+- `supportedOperatorStatusGateKind = ready-gated-long-form-live-status`
+
 Use `private-core:operator-snapshot` when a human operator wants that same bundled artifact in readable form instead of raw JSON.
 
 Use `private-core:operator-snapshot-json` when that tooling wants one bundled operator-backed artifact from the dedicated `/state/private-core-snapshot` endpoint containing:
