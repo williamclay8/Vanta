@@ -13,6 +13,8 @@ try {
   if (checkReady && surface.decisionStatusRaw !== "ready-to-ship") {
     if (jsonMode) {
       console.error(JSON.stringify(snapshot, null, 2));
+    } else {
+      printSnapshotSurface(surface, console.error);
     }
     throw new Error(
       [
@@ -108,58 +110,63 @@ function buildSnapshotSurface(snapshot) {
   };
 }
 
-function printSnapshotSurface(surface) {
-  printLine("Operator", surface.operator);
-  printLine("Snapshot version", String(surface.snapshotVersion ?? "unknown"));
-  printLine("Snapshot kind", surface.snapshotKind ?? "Unavailable");
-  printLine("Snapshot transport", surface.snapshotTransport ?? "Unavailable");
-  printLine("Snapshot endpoint", surface.snapshotEndpoint ?? "Unavailable");
-  printLine("Snapshot gate transport", surface.snapshotGateTransport ?? "Unavailable");
-  printLine("Snapshot gate endpoint", surface.snapshotGateEndpoint ?? "Unavailable");
-  printLine("Contract version", String(surface.contractVersion ?? "unknown"));
+function printSnapshotSurface(surface, writer = console.log) {
+  printLine("Operator", surface.operator, writer);
+  printLine("Snapshot version", String(surface.snapshotVersion ?? "unknown"), writer);
+  printLine("Snapshot kind", surface.snapshotKind ?? "Unavailable", writer);
+  printLine("Snapshot transport", surface.snapshotTransport ?? "Unavailable", writer);
+  printLine("Snapshot endpoint", surface.snapshotEndpoint ?? "Unavailable", writer);
+  printLine("Snapshot gate transport", surface.snapshotGateTransport ?? "Unavailable", writer);
+  printLine("Snapshot gate endpoint", surface.snapshotGateEndpoint ?? "Unavailable", writer);
+  printLine("Contract version", String(surface.contractVersion ?? "unknown"), writer);
   printLine(
     "Contract summary version",
     String(surface.contractSummaryVersion ?? "unknown"),
+    writer,
   );
-  printLine("Supported shipping decision note", surface.shippingDecisionNote ?? "Unavailable");
+  printLine("Supported shipping decision note", surface.shippingDecisionNote ?? "Unavailable", writer);
   printLine(
     "Supported shipping decision gate note",
     surface.shippingDecisionGateNote ?? "Unavailable",
+    writer,
   );
-  printLine("Supported operator status note", surface.operatorStatusNote ?? "Unavailable");
+  printLine("Supported operator status note", surface.operatorStatusNote ?? "Unavailable", writer);
   printLine(
     "Supported operator status gate note",
     surface.operatorStatusGateNote ?? "Unavailable",
+    writer,
   );
-  printLine("Supported operator snapshot note", surface.operatorSnapshotNote ?? "Unavailable");
+  printLine("Supported operator snapshot note", surface.operatorSnapshotNote ?? "Unavailable", writer);
   printLine(
     "Supported operator snapshot gate note",
     surface.operatorSnapshotGateNote ?? "Unavailable",
+    writer,
   );
-  printLine("Supported shipping artifact note", surface.shippingArtifactNote ?? "Unavailable");
+  printLine("Supported shipping artifact note", surface.shippingArtifactNote ?? "Unavailable", writer);
   printLine(
     "Supported shipping artifact gate note",
     surface.shippingArtifactGateNote ?? "Unavailable",
+    writer,
   );
-  printLine("Summary state version", String(surface.summaryStateVersion ?? "unknown"));
-  printLine("Summary version", String(surface.summaryVersion ?? "unknown"));
-  printLine("Summary generated", surface.summaryGenerated ?? "Unavailable");
-  printLine("Decision version", String(surface.decisionVersion ?? "unknown"));
-  printLine("Decision kind", surface.decisionKind ?? "Unavailable");
-  printLine("Decision status", surface.decisionStatus);
-  printLine("Decision note", surface.decisionNote);
-  printLine("Shipping status", surface.shippingStatus);
-  printLine("Shipping note", surface.shippingNote);
-  printLine("Finish line status", surface.finishLineStatus);
-  printLine("Finish line note", surface.finishLineNote);
-  printLine("Required lanes status", surface.requiredLanesStatus);
-  printLine("Required lanes note", surface.requiredLanesNote);
-  printLine("Release boundary status", surface.releaseBoundaryStatus);
-  printLine("Release boundary note", surface.releaseBoundaryNote);
-  printLine("Contract mirror status", surface.contractMirrorStatus);
-  printLine("Contract mirror note", surface.contractMirrorNote);
-  printLine("Boundary status", surface.boundaryStatus);
-  printLine("Boundary note", surface.boundaryNote);
+  printLine("Summary state version", String(surface.summaryStateVersion ?? "unknown"), writer);
+  printLine("Summary version", String(surface.summaryVersion ?? "unknown"), writer);
+  printLine("Summary generated", surface.summaryGenerated ?? "Unavailable", writer);
+  printLine("Decision version", String(surface.decisionVersion ?? "unknown"), writer);
+  printLine("Decision kind", surface.decisionKind ?? "Unavailable", writer);
+  printLine("Decision status", surface.decisionStatus, writer);
+  printLine("Decision note", surface.decisionNote, writer);
+  printLine("Shipping status", surface.shippingStatus, writer);
+  printLine("Shipping note", surface.shippingNote, writer);
+  printLine("Finish line status", surface.finishLineStatus, writer);
+  printLine("Finish line note", surface.finishLineNote, writer);
+  printLine("Required lanes status", surface.requiredLanesStatus, writer);
+  printLine("Required lanes note", surface.requiredLanesNote, writer);
+  printLine("Release boundary status", surface.releaseBoundaryStatus, writer);
+  printLine("Release boundary note", surface.releaseBoundaryNote, writer);
+  printLine("Contract mirror status", surface.contractMirrorStatus, writer);
+  printLine("Contract mirror note", surface.contractMirrorNote, writer);
+  printLine("Boundary status", surface.boundaryStatus, writer);
+  printLine("Boundary note", surface.boundaryNote, writer);
 }
 
 function humanizeDecisionStatus(value) {
@@ -281,8 +288,8 @@ function humanizeBoundaryStatus(value) {
   }
 }
 
-function printLine(label, value) {
-  console.log(`${label}: ${value}`);
+function printLine(label, value, writer = console.log) {
+  writer(`${label}: ${value}`);
 }
 
 async function requestJson(path) {
