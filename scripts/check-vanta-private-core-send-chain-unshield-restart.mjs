@@ -5,6 +5,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "..");
+const releaseCandidateId = "private-core-release-candidate:send-chain-unshield-restart";
 
 function printStatus(message) {
   console.log(message);
@@ -335,6 +336,7 @@ try {
 
   const secondTransitionResponse = await requestJson(baseUrl, "/private-core/send-transition", {
     body: JSON.stringify({
+      releaseCandidateId,
       resultingRoot: secondPreviewResult.resultingRoot,
       witnessPackage: secondBoundary.noirWitnessPackage,
     }),
@@ -1086,6 +1088,115 @@ try {
     );
   }
   printStatus("private-core send-chain->unshield restart shipping-artifact: PASS");
+
+  let blockedReleaseCandidateCheckJson = null;
+  try {
+    execFileSync("npm", [
+      "run",
+      "--silent",
+      "private-core:release-candidate-check-json",
+      "--",
+      "--base-url",
+      baseUrl,
+    ], {
+      cwd: repoRoot,
+      encoding: "utf8",
+      stdio: "pipe",
+    });
+  } catch (error) {
+    blockedReleaseCandidateCheckJson = error;
+  }
+  const blockedReleaseCandidateCheckJsonOutput =
+    blockedReleaseCandidateCheckJson &&
+    typeof blockedReleaseCandidateCheckJson === "object" &&
+    "stderr" in blockedReleaseCandidateCheckJson &&
+    typeof blockedReleaseCandidateCheckJson.stderr === "string"
+      ? blockedReleaseCandidateCheckJson.stderr
+      : "";
+  const blockedReleaseCandidateJsonStart =
+    blockedReleaseCandidateCheckJsonOutput.indexOf("{");
+  const blockedReleaseCandidateJsonEnd =
+    blockedReleaseCandidateCheckJsonOutput.lastIndexOf("}");
+  if (
+    blockedReleaseCandidateJsonStart === -1 ||
+    blockedReleaseCandidateJsonEnd === -1 ||
+    !blockedReleaseCandidateCheckJsonOutput.includes(
+      "Release candidate decision status: Blocked",
+    ) ||
+    !blockedReleaseCandidateCheckJsonOutput.includes(
+      "Release candidate decision note: Latest operator consume state does not match the release candidate bound to this release path.",
+    )
+  ) {
+    throw new Error(
+      blockedReleaseCandidateCheckJsonOutput ||
+        "send-chain->unshield restart release-candidate-check-json did not fail with structured output",
+    );
+  }
+  const releaseCandidateJson = JSON.parse(
+    blockedReleaseCandidateCheckJsonOutput.slice(
+      blockedReleaseCandidateJsonStart,
+      blockedReleaseCandidateJsonEnd + 1,
+    ),
+  );
+  if (
+    releaseCandidateJson.candidateVersion !== 1 ||
+    releaseCandidateJson.candidateKind !== "private-core-send-consume-release-candidate" ||
+    releaseCandidateJson.releaseCandidateId !== releaseCandidateId ||
+    releaseCandidateJson.lineageStatus !== "consume-mismatch" ||
+    releaseCandidateJson.sendId !== shippingArtifactJson.latestSendId ||
+    releaseCandidateJson.releaseRequestId !== shippingArtifactJson.latestReleaseRequestId ||
+    releaseCandidateJson.releasedAmount !== shippingArtifactJson.latestReleasedAmount
+  ) {
+    throw new Error(
+      `Unexpected send-chain->unshield restart release-candidate json output\n${JSON.stringify(releaseCandidateJson, null, 2)}`,
+    );
+  }
+  printStatus("private-core send-chain->unshield restart release-candidate json: PASS");
+
+  let blockedReleaseCandidateCheck = null;
+  try {
+    execFileSync("npm", [
+      "run",
+      "--silent",
+      "private-core:release-candidate-check",
+      "--",
+      "--base-url",
+      baseUrl,
+    ], {
+      cwd: repoRoot,
+      encoding: "utf8",
+      stdio: "pipe",
+    });
+  } catch (error) {
+    blockedReleaseCandidateCheck = error;
+  }
+  const releaseCandidateOutput =
+    blockedReleaseCandidateCheck &&
+    typeof blockedReleaseCandidateCheck === "object" &&
+    "stderr" in blockedReleaseCandidateCheck &&
+    typeof blockedReleaseCandidateCheck.stderr === "string"
+      ? blockedReleaseCandidateCheck.stderr
+      : "";
+  if (
+    !releaseCandidateOutput.includes(`Release candidate: ${releaseCandidateId}`) ||
+    !releaseCandidateOutput.includes("Lineage status: Candidate/consume mismatch") ||
+    !releaseCandidateOutput.includes(`Send: ${shippingArtifactJson.latestSendId ?? "Unavailable"}`) ||
+    !releaseCandidateOutput.includes(
+      `Release request: ${shippingArtifactJson.latestReleaseRequestId ?? "Unavailable"}`,
+    ) ||
+    !releaseCandidateOutput.includes(
+      "Release candidate decision status: Blocked",
+    ) ||
+    !releaseCandidateOutput.includes(
+      "Release candidate decision note: Latest operator consume state does not match the release candidate bound to this release path.",
+    )
+  ) {
+    throw new Error(
+      releaseCandidateOutput ||
+        "send-chain->unshield restart release-candidate returned unexpected output",
+    );
+  }
+  printStatus("private-core send-chain->unshield restart release-candidate: PASS");
 
   const operatorSnapshotCheckJsonOutput = execFileSync("npm", [
     "run",
