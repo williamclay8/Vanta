@@ -42,6 +42,7 @@ import {
 } from "@/zk/vantaPrivateCoreUnshieldProof";
 import {
   fetchVantaPrivateCoreOperatorSnapshot,
+  fetchVantaPrivateCoreOperatorShippingArtifact,
   registerVantaPrivateCoreOperatorRoot,
   requestVantaPrivateCoreOperatorConsume,
   requestVantaPrivateCoreOperatorProof,
@@ -274,6 +275,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorSnapshotKind: string | null;
   privateCoreOperatorSupportedSnapshotTransport: string | null;
   privateCoreOperatorSupportedSnapshotEndpoint: string | null;
+  privateCoreOperatorShippingArtifactVersion: number | null;
+  privateCoreOperatorShippingArtifactKind: string | null;
   privateCoreOperatorShippingDecisionVersion: number | null;
   privateCoreOperatorShippingDecisionKind: string | null;
   privateCoreOperatorSummaryUpdatedAt: number | null;
@@ -861,6 +864,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<string | null>(null);
   const [privateCoreOperatorSupportedSnapshotEndpoint, setPrivateCoreOperatorSupportedSnapshotEndpoint] =
     useState<string | null>(null);
+  const [privateCoreOperatorShippingArtifactVersion, setPrivateCoreOperatorShippingArtifactVersion] =
+    useState<number | null>(null);
+  const [privateCoreOperatorShippingArtifactKind, setPrivateCoreOperatorShippingArtifactKind] =
+    useState<string | null>(null);
   const [privateCoreOperatorShippingDecisionVersion, setPrivateCoreOperatorShippingDecisionVersion] =
     useState<number | null>(null);
   const [privateCoreOperatorShippingDecisionKind, setPrivateCoreOperatorShippingDecisionKind] =
@@ -870,7 +877,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   const [recentShield, setRecentShield] = useState<RecentShieldContext | null>(null);
 
   const refreshPrivateCoreOperatorSummary = useCallback(async () => {
-    const snapshotState = await fetchVantaPrivateCoreOperatorSnapshot();
+    const [snapshotState, shippingArtifactState] = await Promise.all([
+      fetchVantaPrivateCoreOperatorSnapshot(),
+      fetchVantaPrivateCoreOperatorShippingArtifact(),
+    ]);
     const contractState = snapshotState.contract;
     const summaryState = snapshotState.status.summary;
     const shippingDecisionState = snapshotState.status.shippingDecision;
@@ -1015,6 +1025,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     });
     setPrivateCoreOperatorSnapshotVersion(snapshotState.snapshotVersion);
     setPrivateCoreOperatorSnapshotKind(snapshotState.snapshotKind);
+    setPrivateCoreOperatorShippingArtifactVersion(shippingArtifactState.artifactVersion);
+    setPrivateCoreOperatorShippingArtifactKind(shippingArtifactState.artifactKind);
     setPrivateCoreOperatorShippingDecisionVersion(shippingDecisionState.decisionVersion);
     setPrivateCoreOperatorShippingDecisionKind(shippingDecisionState.decisionKind);
     setPrivateCoreOperatorRawShippingDecisionNote(shippingDecisionState.decisionNote);
@@ -2371,6 +2383,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSnapshotKind,
       privateCoreOperatorSupportedSnapshotTransport,
       privateCoreOperatorSupportedSnapshotEndpoint,
+      privateCoreOperatorShippingArtifactVersion,
+      privateCoreOperatorShippingArtifactKind,
       privateCoreOperatorShippingDecisionVersion,
       privateCoreOperatorShippingDecisionKind,
       privateCoreOperatorSummaryUpdatedAt,
@@ -2532,6 +2546,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSnapshotKind,
       privateCoreOperatorSupportedSnapshotTransport,
       privateCoreOperatorSupportedSnapshotEndpoint,
+      privateCoreOperatorShippingArtifactVersion,
+      privateCoreOperatorShippingArtifactKind,
       privateCoreOperatorShippingDecisionVersion,
       privateCoreOperatorShippingDecisionKind,
       privateCoreOperatorSummaryUpdatedAt,

@@ -143,6 +143,8 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSnapshotKind?: string | null;
   operatorSupportedSnapshotTransport?: string | null;
   operatorSupportedSnapshotEndpoint?: string | null;
+  operatorShippingArtifactVersion?: number | null;
+  operatorShippingArtifactKind?: string | null;
   operatorShippingDecisionVersion?: number | null;
   operatorShippingDecisionKind?: string | null;
   operatorSendResultingRootLinkedProof?: VantaPrivateCoreOperatorProofRecord | null;
@@ -416,6 +418,8 @@ export function VantaPrivateCoreStatePanel({
   operatorSnapshotKind = null,
   operatorSupportedSnapshotTransport = null,
   operatorSupportedSnapshotEndpoint = null,
+  operatorShippingArtifactVersion = null,
+  operatorShippingArtifactKind = null,
   operatorShippingDecisionVersion = null,
   operatorShippingDecisionKind = null,
   operatorSendResultingRootLinkedProof = null,
@@ -872,6 +876,14 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Operator snapshot endpoint</span>
               <strong>{operatorSupportedSnapshotEndpoint ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Shipping artifact identity</span>
+              <strong>
+                {operatorShippingArtifactKind
+                  ? `v${String(operatorShippingArtifactVersion ?? 1)} · ${operatorShippingArtifactKind}`
+                  : "Unavailable"}
+              </strong>
             </div>
             <div className="review-row">
               <span>Shipping decision identity</span>

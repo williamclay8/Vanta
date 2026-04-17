@@ -232,6 +232,8 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOperatorSnapshotVersion,
     privateCoreOperatorSupportedSnapshotTransport,
     privateCoreOperatorSupportedSnapshotEndpoint,
+    privateCoreOperatorShippingArtifactKind,
+    privateCoreOperatorShippingArtifactVersion,
     privateCoreOperatorShippingDecisionKind,
     privateCoreOperatorShippingDecisionVersion,
     privateCoreOperatorSendError,
@@ -1325,6 +1327,8 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 operatorSnapshotKind={privateCoreOperatorSnapshotKind}
                 operatorSupportedSnapshotTransport={privateCoreOperatorSupportedSnapshotTransport}
                 operatorSupportedSnapshotEndpoint={privateCoreOperatorSupportedSnapshotEndpoint}
+                operatorShippingArtifactVersion={privateCoreOperatorShippingArtifactVersion}
+                operatorShippingArtifactKind={privateCoreOperatorShippingArtifactKind}
                 operatorShippingDecisionVersion={privateCoreOperatorShippingDecisionVersion}
                 operatorShippingDecisionKind={privateCoreOperatorShippingDecisionKind}
                 operatorSendError={privateCoreOperatorSendError}

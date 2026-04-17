@@ -216,6 +216,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorSnapshotVersion,
     privateCoreOperatorSupportedSnapshotTransport,
     privateCoreOperatorSupportedSnapshotEndpoint,
+    privateCoreOperatorShippingArtifactKind,
+    privateCoreOperatorShippingArtifactVersion,
     privateCoreOperatorShippingDecisionKind,
     privateCoreOperatorShippingDecisionVersion,
     privateCoreOperatorProofSendLinkStatus,
@@ -1925,6 +1927,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         operatorSnapshotKind={privateCoreOperatorSnapshotKind}
         operatorSupportedSnapshotTransport={privateCoreOperatorSupportedSnapshotTransport}
         operatorSupportedSnapshotEndpoint={privateCoreOperatorSupportedSnapshotEndpoint}
+        operatorShippingArtifactVersion={privateCoreOperatorShippingArtifactVersion}
+        operatorShippingArtifactKind={privateCoreOperatorShippingArtifactKind}
         operatorShippingDecisionVersion={privateCoreOperatorShippingDecisionVersion}
         operatorShippingDecisionKind={privateCoreOperatorShippingDecisionKind}
         operatorSendError={privateCoreOperatorSendError}
