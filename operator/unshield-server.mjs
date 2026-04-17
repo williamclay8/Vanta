@@ -200,6 +200,13 @@ const PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_VERSION = 1;
 const PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_KIND = "contract-status-shipping-bundle";
 const PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_NOTE =
   "Canonical bundled machine-readable operator artifact containing the frozen contract, live status summary, and canonical shipping decision surfaces together.";
+const PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_GATE_VERSION = 1;
+const PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_GATE_KIND =
+  "ready-gated-contract-status-shipping-bundle";
+const PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_GATE_NOTE =
+  "Bundled operator snapshot surface can act as a strict ready gate for the frozen narrow lane.";
+const PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_GATE_TRANSPORT = "dedicated-endpoint";
+const PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_GATE_ENDPOINT = "/state/private-core-snapshot-check";
 const PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_TRANSPORT = "dedicated-endpoint";
 const PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_ENDPOINT = "/state/private-core-snapshot";
 const PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_VERSION = 1;
@@ -366,6 +373,13 @@ const server = createServer(async (request, response) => {
     writeCorsHeaders(response);
     response.writeHead(200, { "Content-Type": "application/json" });
     response.end(JSON.stringify(buildPrivateCoreOperatorSnapshotState(request)));
+    return;
+  }
+
+  if (request.method === "GET" && request.url === "/state/private-core-snapshot-check") {
+    writeCorsHeaders(response);
+    response.writeHead(200, { "Content-Type": "application/json" });
+    response.end(JSON.stringify(buildPrivateCoreOperatorSnapshotCheckState(request)));
     return;
   }
 
@@ -2266,6 +2280,22 @@ function buildPrivateCoreOperatorSnapshotState(request) {
   };
 }
 
+function buildPrivateCoreOperatorSnapshotCheckState(request) {
+  const snapshot = buildPrivateCoreOperatorSnapshotState(request);
+  const shippingDecision = snapshot.status.shippingDecision;
+
+  return {
+    operator: snapshot.operator,
+    checkVersion: 1,
+    checkKind: "ready-gated-contract-status-shipping-bundle",
+    decisionVersion: shippingDecision.decisionVersion,
+    decisionKind: shippingDecision.decisionKind,
+    decisionStatus: shippingDecision.decisionStatus,
+    decisionNote: shippingDecision.decisionNote,
+    snapshot,
+  };
+}
+
 function buildPrivateCoreOperatorStatusState(request) {
   const snapshot = buildPrivateCoreOperatorSnapshotState(request);
   const shippingArtifact = buildPrivateCoreShippingArtifactState(request);
@@ -2372,6 +2402,12 @@ function buildPrivateCoreContractState() {
     supportedOperatorSnapshotVersion: PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_VERSION,
     supportedOperatorSnapshotKind: PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_KIND,
     supportedOperatorSnapshotNote: PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_NOTE,
+    supportedOperatorSnapshotGateVersion: PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_GATE_VERSION,
+    supportedOperatorSnapshotGateKind: PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_GATE_KIND,
+    supportedOperatorSnapshotGateNote: PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_GATE_NOTE,
+    supportedOperatorSnapshotGateTransport:
+      PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_GATE_TRANSPORT,
+    supportedOperatorSnapshotGateEndpoint: PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_GATE_ENDPOINT,
     supportedOperatorSnapshotTransport: PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_TRANSPORT,
     supportedOperatorSnapshotEndpoint: PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_ENDPOINT,
     supportedShippingArtifactVersion: PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_VERSION,
@@ -2471,6 +2507,11 @@ function summarizePrivateCoreContractMirrorStatus(args) {
     "supportedOperatorSnapshotVersion",
     "supportedOperatorSnapshotKind",
     "supportedOperatorSnapshotNote",
+    "supportedOperatorSnapshotGateVersion",
+    "supportedOperatorSnapshotGateKind",
+    "supportedOperatorSnapshotGateNote",
+    "supportedOperatorSnapshotGateTransport",
+    "supportedOperatorSnapshotGateEndpoint",
     "supportedOperatorSnapshotTransport",
     "supportedOperatorSnapshotEndpoint",
     "supportedShippingArtifactVersion",

@@ -458,6 +458,11 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedOperatorSnapshotVersion: 1;
   supportedOperatorSnapshotKind: "contract-status-shipping-bundle";
   supportedOperatorSnapshotNote: string;
+  supportedOperatorSnapshotGateVersion: 1;
+  supportedOperatorSnapshotGateKind: "ready-gated-contract-status-shipping-bundle";
+  supportedOperatorSnapshotGateNote: string;
+  supportedOperatorSnapshotGateTransport: "dedicated-endpoint";
+  supportedOperatorSnapshotGateEndpoint: "/state/private-core-snapshot-check";
   supportedOperatorSnapshotTransport: "dedicated-endpoint";
   supportedOperatorSnapshotEndpoint: "/state/private-core-snapshot";
   supportedShippingArtifactVersion: 1;
@@ -594,6 +599,11 @@ export type VantaPrivateCoreOperatorContractStateResponse = {
   supportedOperatorSnapshotVersion: 1;
   supportedOperatorSnapshotKind: "contract-status-shipping-bundle";
   supportedOperatorSnapshotNote: string;
+  supportedOperatorSnapshotGateVersion: 1;
+  supportedOperatorSnapshotGateKind: "ready-gated-contract-status-shipping-bundle";
+  supportedOperatorSnapshotGateNote: string;
+  supportedOperatorSnapshotGateTransport: "dedicated-endpoint";
+  supportedOperatorSnapshotGateEndpoint: "/state/private-core-snapshot-check";
   supportedOperatorSnapshotTransport: "dedicated-endpoint";
   supportedOperatorSnapshotEndpoint: "/state/private-core-snapshot";
   supportedShippingArtifactVersion: 1;
@@ -724,6 +734,10 @@ function parsePrivateCoreOperatorContractState(
     summaryVersion?: unknown;
     supportedOperatorSnapshotVersion?: unknown;
     supportedOperatorSnapshotKind?: unknown;
+    supportedOperatorSnapshotGateVersion?: unknown;
+    supportedOperatorSnapshotGateKind?: unknown;
+    supportedOperatorSnapshotGateTransport?: unknown;
+    supportedOperatorSnapshotGateEndpoint?: unknown;
     supportedOperatorSnapshotTransport?: unknown;
     supportedOperatorSnapshotEndpoint?: unknown;
     supportedOperatorStatusVersion?: unknown;
@@ -749,6 +763,10 @@ function parsePrivateCoreOperatorContractState(
     parsed.summaryVersion !== 43 ||
     parsed.supportedOperatorSnapshotVersion !== 1 ||
     parsed.supportedOperatorSnapshotKind !== "contract-status-shipping-bundle" ||
+    parsed.supportedOperatorSnapshotGateVersion !== 1 ||
+    parsed.supportedOperatorSnapshotGateKind !== "ready-gated-contract-status-shipping-bundle" ||
+    parsed.supportedOperatorSnapshotGateTransport !== "dedicated-endpoint" ||
+    parsed.supportedOperatorSnapshotGateEndpoint !== "/state/private-core-snapshot-check" ||
     parsed.supportedOperatorSnapshotTransport !== "dedicated-endpoint" ||
     parsed.supportedOperatorSnapshotEndpoint !== "/state/private-core-snapshot" ||
     parsed.supportedOperatorStatusVersion !== 1 ||
@@ -786,6 +804,10 @@ function parsePrivateCoreOperatorSummaryState(
     boundaryStatus?: unknown;
     supportedOperatorSnapshotVersion?: unknown;
     supportedOperatorSnapshotKind?: unknown;
+    supportedOperatorSnapshotGateVersion?: unknown;
+    supportedOperatorSnapshotGateKind?: unknown;
+    supportedOperatorSnapshotGateTransport?: unknown;
+    supportedOperatorSnapshotGateEndpoint?: unknown;
     supportedOperatorSnapshotTransport?: unknown;
     supportedOperatorSnapshotEndpoint?: unknown;
     supportedOperatorStatusVersion?: unknown;
@@ -816,6 +838,10 @@ function parsePrivateCoreOperatorSummaryState(
     !isBoundaryStatus(parsed.boundaryStatus) ||
     parsed.supportedOperatorSnapshotVersion !== 1 ||
     parsed.supportedOperatorSnapshotKind !== "contract-status-shipping-bundle" ||
+    parsed.supportedOperatorSnapshotGateVersion !== 1 ||
+    parsed.supportedOperatorSnapshotGateKind !== "ready-gated-contract-status-shipping-bundle" ||
+    parsed.supportedOperatorSnapshotGateTransport !== "dedicated-endpoint" ||
+    parsed.supportedOperatorSnapshotGateEndpoint !== "/state/private-core-snapshot-check" ||
     parsed.supportedOperatorSnapshotTransport !== "dedicated-endpoint" ||
     parsed.supportedOperatorSnapshotEndpoint !== "/state/private-core-snapshot" ||
     parsed.supportedOperatorStatusVersion !== 1 ||
@@ -2054,6 +2080,11 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedOperatorSnapshotVersion?: unknown;
     supportedOperatorSnapshotKind?: unknown;
     supportedOperatorSnapshotNote?: unknown;
+    supportedOperatorSnapshotGateVersion?: unknown;
+    supportedOperatorSnapshotGateKind?: unknown;
+    supportedOperatorSnapshotGateNote?: unknown;
+    supportedOperatorSnapshotGateTransport?: unknown;
+    supportedOperatorSnapshotGateEndpoint?: unknown;
     supportedOperatorSnapshotTransport?: unknown;
     supportedOperatorSnapshotEndpoint?: unknown;
     supportedShippingArtifactVersion?: unknown;
@@ -2232,6 +2263,12 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     parsed.supportedOperatorSnapshotVersion !== 1 ||
     parsed.supportedOperatorSnapshotKind !== "contract-status-shipping-bundle" ||
     typeof parsed.supportedOperatorSnapshotNote !== "string" ||
+    parsed.supportedOperatorSnapshotGateVersion !== 1 ||
+    parsed.supportedOperatorSnapshotGateKind !==
+      "ready-gated-contract-status-shipping-bundle" ||
+    typeof parsed.supportedOperatorSnapshotGateNote !== "string" ||
+    parsed.supportedOperatorSnapshotGateTransport !== "dedicated-endpoint" ||
+    parsed.supportedOperatorSnapshotGateEndpoint !== "/state/private-core-snapshot-check" ||
     parsed.supportedOperatorSnapshotTransport !== "dedicated-endpoint" ||
     parsed.supportedOperatorSnapshotEndpoint !== "/state/private-core-snapshot" ||
     parsed.supportedShippingArtifactVersion !== 1 ||
@@ -2413,6 +2450,11 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedOperatorSnapshotVersion: 1,
     supportedOperatorSnapshotKind: "contract-status-shipping-bundle",
     supportedOperatorSnapshotNote: parsed.supportedOperatorSnapshotNote,
+    supportedOperatorSnapshotGateVersion: 1,
+    supportedOperatorSnapshotGateKind: "ready-gated-contract-status-shipping-bundle",
+    supportedOperatorSnapshotGateNote: parsed.supportedOperatorSnapshotGateNote,
+    supportedOperatorSnapshotGateTransport: "dedicated-endpoint",
+    supportedOperatorSnapshotGateEndpoint: "/state/private-core-snapshot-check",
     supportedOperatorSnapshotTransport: "dedicated-endpoint",
     supportedOperatorSnapshotEndpoint: "/state/private-core-snapshot",
     supportedShippingArtifactVersion: 1,
@@ -2685,6 +2727,11 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedOperatorSnapshotVersion?: unknown;
     supportedOperatorSnapshotKind?: unknown;
     supportedOperatorSnapshotNote?: unknown;
+    supportedOperatorSnapshotGateVersion?: unknown;
+    supportedOperatorSnapshotGateKind?: unknown;
+    supportedOperatorSnapshotGateNote?: unknown;
+    supportedOperatorSnapshotGateTransport?: unknown;
+    supportedOperatorSnapshotGateEndpoint?: unknown;
     supportedOperatorSnapshotTransport?: unknown;
     supportedOperatorSnapshotEndpoint?: unknown;
     supportedShippingArtifactVersion?: unknown;
@@ -2785,6 +2832,12 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     parsed.supportedOperatorSnapshotVersion !== 1 ||
     parsed.supportedOperatorSnapshotKind !== "contract-status-shipping-bundle" ||
     typeof parsed.supportedOperatorSnapshotNote !== "string" ||
+    parsed.supportedOperatorSnapshotGateVersion !== 1 ||
+    parsed.supportedOperatorSnapshotGateKind !==
+      "ready-gated-contract-status-shipping-bundle" ||
+    typeof parsed.supportedOperatorSnapshotGateNote !== "string" ||
+    parsed.supportedOperatorSnapshotGateTransport !== "dedicated-endpoint" ||
+    parsed.supportedOperatorSnapshotGateEndpoint !== "/state/private-core-snapshot-check" ||
     parsed.supportedOperatorSnapshotTransport !== "dedicated-endpoint" ||
     parsed.supportedOperatorSnapshotEndpoint !== "/state/private-core-snapshot" ||
     parsed.supportedShippingArtifactVersion !== 1 ||
@@ -2890,6 +2943,11 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedOperatorSnapshotVersion: 1,
     supportedOperatorSnapshotKind: "contract-status-shipping-bundle",
     supportedOperatorSnapshotNote: parsed.supportedOperatorSnapshotNote,
+    supportedOperatorSnapshotGateVersion: 1,
+    supportedOperatorSnapshotGateKind: "ready-gated-contract-status-shipping-bundle",
+    supportedOperatorSnapshotGateNote: parsed.supportedOperatorSnapshotGateNote,
+    supportedOperatorSnapshotGateTransport: "dedicated-endpoint",
+    supportedOperatorSnapshotGateEndpoint: "/state/private-core-snapshot-check",
     supportedOperatorSnapshotTransport: "dedicated-endpoint",
     supportedOperatorSnapshotEndpoint: "/state/private-core-snapshot",
     supportedShippingArtifactVersion: 1,

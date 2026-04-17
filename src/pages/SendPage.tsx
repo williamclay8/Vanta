@@ -220,6 +220,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorSupportedStatusEndpoint,
     privateCoreOperatorSupportedStatusGateTransport,
     privateCoreOperatorSupportedStatusGateEndpoint,
+    privateCoreOperatorSupportedSnapshotGateTransport,
+    privateCoreOperatorSupportedSnapshotGateEndpoint,
     privateCoreOperatorSupportedSnapshotTransport,
     privateCoreOperatorSupportedSnapshotEndpoint,
     privateCoreOperatorSupportedShippingArtifactTransport,
@@ -1939,6 +1941,12 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         operatorSupportedStatusEndpoint={privateCoreOperatorSupportedStatusEndpoint}
         operatorSupportedStatusGateTransport={privateCoreOperatorSupportedStatusGateTransport}
         operatorSupportedStatusGateEndpoint={privateCoreOperatorSupportedStatusGateEndpoint}
+        operatorSupportedSnapshotGateTransport={
+          privateCoreOperatorSupportedSnapshotGateTransport
+        }
+        operatorSupportedSnapshotGateEndpoint={
+          privateCoreOperatorSupportedSnapshotGateEndpoint
+        }
         operatorSupportedSnapshotTransport={privateCoreOperatorSupportedSnapshotTransport}
         operatorSupportedSnapshotEndpoint={privateCoreOperatorSupportedSnapshotEndpoint}
         operatorSupportedShippingArtifactTransport={privateCoreOperatorSupportedShippingArtifactTransport}

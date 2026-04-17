@@ -236,6 +236,8 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOperatorSupportedStatusEndpoint,
     privateCoreOperatorSupportedStatusGateTransport,
     privateCoreOperatorSupportedStatusGateEndpoint,
+    privateCoreOperatorSupportedSnapshotGateTransport,
+    privateCoreOperatorSupportedSnapshotGateEndpoint,
     privateCoreOperatorSupportedSnapshotTransport,
     privateCoreOperatorSupportedSnapshotEndpoint,
     privateCoreOperatorSupportedShippingArtifactTransport,
@@ -1342,6 +1344,12 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 }
                 operatorSupportedStatusGateEndpoint={
                   privateCoreOperatorSupportedStatusGateEndpoint
+                }
+                operatorSupportedSnapshotGateTransport={
+                  privateCoreOperatorSupportedSnapshotGateTransport
+                }
+                operatorSupportedSnapshotGateEndpoint={
+                  privateCoreOperatorSupportedSnapshotGateEndpoint
                 }
                 operatorSupportedSnapshotTransport={privateCoreOperatorSupportedSnapshotTransport}
                 operatorSupportedSnapshotEndpoint={privateCoreOperatorSupportedSnapshotEndpoint}

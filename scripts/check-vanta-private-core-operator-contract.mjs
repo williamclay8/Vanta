@@ -152,6 +152,13 @@ try {
     contractState.parsed?.supportedOperatorSnapshotVersion !== 1 ||
     contractState.parsed?.supportedOperatorSnapshotKind !== "contract-status-shipping-bundle" ||
     typeof contractState.parsed?.supportedOperatorSnapshotNote !== "string" ||
+    contractState.parsed?.supportedOperatorSnapshotGateVersion !== 1 ||
+    contractState.parsed?.supportedOperatorSnapshotGateKind !==
+      "ready-gated-contract-status-shipping-bundle" ||
+    typeof contractState.parsed?.supportedOperatorSnapshotGateNote !== "string" ||
+    contractState.parsed?.supportedOperatorSnapshotGateTransport !== "dedicated-endpoint" ||
+    contractState.parsed?.supportedOperatorSnapshotGateEndpoint !==
+      "/state/private-core-snapshot-check" ||
     contractState.parsed?.supportedOperatorSnapshotTransport !== "dedicated-endpoint" ||
     contractState.parsed?.supportedOperatorSnapshotEndpoint !== "/state/private-core-snapshot" ||
     contractState.parsed?.supportedShippingArtifactVersion !== 1 ||
@@ -363,6 +370,16 @@ try {
     !contractOutput.includes(
       "Supported operator snapshot kind: contract-status-shipping-bundle",
     ) ||
+    !contractOutput.includes("Supported operator snapshot gate version: 1") ||
+    !contractOutput.includes(
+      "Supported operator snapshot gate kind: ready-gated-contract-status-shipping-bundle",
+    ) ||
+    !contractOutput.includes(
+      "Supported operator snapshot gate transport: dedicated-endpoint",
+    ) ||
+    !contractOutput.includes(
+      "Supported operator snapshot gate endpoint: /state/private-core-snapshot-check",
+    ) ||
     !contractOutput.includes("Supported zk v1 required lanes: send|unshield|release") ||
     !contractOutput.includes("Supported proof system: Noir ACIR / UltraHonk / bb.js") ||
     !contractOutput.includes("Supported operator snapshot transport: dedicated-endpoint") ||
@@ -426,6 +443,13 @@ try {
     contractJson.supportedOperatorSnapshotKind !== "contract-status-shipping-bundle" ||
     contractJson.supportedOperatorSnapshotNote !==
       "Canonical bundled machine-readable operator artifact containing the frozen contract, live status summary, and canonical shipping decision surfaces together." ||
+    contractJson.supportedOperatorSnapshotGateVersion !== 1 ||
+    contractJson.supportedOperatorSnapshotGateKind !==
+      "ready-gated-contract-status-shipping-bundle" ||
+    contractJson.supportedOperatorSnapshotGateNote !==
+      "Bundled operator snapshot surface can act as a strict ready gate for the frozen narrow lane." ||
+    contractJson.supportedOperatorSnapshotGateTransport !== "dedicated-endpoint" ||
+    contractJson.supportedOperatorSnapshotGateEndpoint !== "/state/private-core-snapshot-check" ||
     contractJson.supportedOperatorSnapshotTransport !== "dedicated-endpoint" ||
     contractJson.supportedOperatorSnapshotEndpoint !== "/state/private-core-snapshot" ||
     contractJson.supportedShippingArtifactVersion !== 1 ||

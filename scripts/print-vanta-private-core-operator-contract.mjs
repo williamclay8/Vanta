@@ -171,6 +171,26 @@ try {
     contract.supportedOperatorSnapshotNote ?? "Unavailable",
   );
   printLine(
+    "Supported operator snapshot gate version",
+    String(contract.supportedOperatorSnapshotGateVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported operator snapshot gate kind",
+    contract.supportedOperatorSnapshotGateKind ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator snapshot gate note",
+    contract.supportedOperatorSnapshotGateNote ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator snapshot gate transport",
+    contract.supportedOperatorSnapshotGateTransport ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator snapshot gate endpoint",
+    contract.supportedOperatorSnapshotGateEndpoint ?? "Unavailable",
+  );
+  printLine(
     "Supported operator snapshot transport",
     contract.supportedOperatorSnapshotTransport ?? "Unavailable",
   );

@@ -4,7 +4,10 @@ const checkReady = args.includes("--check-ready");
 const jsonMode = args.includes("--json");
 
 try {
-  const snapshot = await requestJson("/state/private-core-snapshot");
+  const rawSnapshot = checkReady
+    ? await requestJson("/state/private-core-snapshot-check")
+    : await requestJson("/state/private-core-snapshot");
+  const snapshot = checkReady ? rawSnapshot?.snapshot ?? {} : rawSnapshot;
   const surface = buildSnapshotSurface(snapshot);
 
   if (checkReady && surface.decisionStatusRaw !== "ready-to-ship") {
@@ -45,6 +48,8 @@ function buildSnapshotSurface(snapshot) {
     contractSummaryVersion: contract.summaryVersion ?? null,
     snapshotTransport: contract.supportedOperatorSnapshotTransport ?? null,
     snapshotEndpoint: contract.supportedOperatorSnapshotEndpoint ?? null,
+    snapshotGateTransport: contract.supportedOperatorSnapshotGateTransport ?? null,
+    snapshotGateEndpoint: contract.supportedOperatorSnapshotGateEndpoint ?? null,
     summaryStateVersion: summary.stateVersion ?? null,
     summaryVersion: summary.summaryVersion ?? null,
     summaryGenerated: summary.generatedAt ?? null,
@@ -101,6 +106,8 @@ function printSnapshotSurface(surface) {
   printLine("Snapshot kind", surface.snapshotKind ?? "Unavailable");
   printLine("Snapshot transport", surface.snapshotTransport ?? "Unavailable");
   printLine("Snapshot endpoint", surface.snapshotEndpoint ?? "Unavailable");
+  printLine("Snapshot gate transport", surface.snapshotGateTransport ?? "Unavailable");
+  printLine("Snapshot gate endpoint", surface.snapshotGateEndpoint ?? "Unavailable");
   printLine("Contract version", String(surface.contractVersion ?? "unknown"));
   printLine(
     "Contract summary version",

@@ -147,6 +147,8 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSupportedStatusEndpoint?: string | null;
   operatorSupportedStatusGateTransport?: string | null;
   operatorSupportedStatusGateEndpoint?: string | null;
+  operatorSupportedSnapshotGateTransport?: string | null;
+  operatorSupportedSnapshotGateEndpoint?: string | null;
   operatorSupportedSnapshotTransport?: string | null;
   operatorSupportedSnapshotEndpoint?: string | null;
   operatorSupportedShippingArtifactTransport?: string | null;
@@ -430,6 +432,8 @@ export function VantaPrivateCoreStatePanel({
   operatorSupportedStatusEndpoint = null,
   operatorSupportedStatusGateTransport = null,
   operatorSupportedStatusGateEndpoint = null,
+  operatorSupportedSnapshotGateTransport = null,
+  operatorSupportedSnapshotGateEndpoint = null,
   operatorSupportedSnapshotTransport = null,
   operatorSupportedSnapshotEndpoint = null,
   operatorSupportedShippingArtifactTransport = null,
@@ -912,6 +916,14 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Operator snapshot transport</span>
               <strong>{operatorSupportedSnapshotTransport ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Operator snapshot gate transport</span>
+              <strong>{operatorSupportedSnapshotGateTransport ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Operator snapshot gate endpoint</span>
+              <strong>{operatorSupportedSnapshotGateEndpoint ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Operator snapshot endpoint</span>

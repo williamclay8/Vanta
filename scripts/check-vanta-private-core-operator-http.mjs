@@ -1716,6 +1716,32 @@ try {
   }
   printStatus("operator http snapshot endpoint: PASS");
 
+  const operatorSnapshotCheckState = await requestJson(
+    baseUrl,
+    "/state/private-core-snapshot-check",
+    {
+      method: "GET",
+    },
+  );
+  if (
+    !operatorSnapshotCheckState.ok ||
+    operatorSnapshotCheckState.parsed?.checkVersion !== 1 ||
+    operatorSnapshotCheckState.parsed?.checkKind !==
+      "ready-gated-contract-status-shipping-bundle" ||
+    operatorSnapshotCheckState.parsed?.decisionVersion !== 1 ||
+    operatorSnapshotCheckState.parsed?.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
+    operatorSnapshotCheckState.parsed?.decisionStatus !== "blocked" ||
+    operatorSnapshotCheckState.parsed?.snapshot?.snapshotVersion !== 1 ||
+    operatorSnapshotCheckState.parsed?.snapshot?.snapshotKind !==
+      "contract-status-shipping-bundle"
+  ) {
+    throw new Error(
+      operatorSnapshotCheckState.text ||
+        "operator snapshot-check endpoint returned unexpected output",
+    );
+  }
+  printStatus("operator http snapshot-check endpoint: PASS");
+
   const operatorSnapshotJsonOutput = execFileSync("npm", [
     "run",
     "--silent",
