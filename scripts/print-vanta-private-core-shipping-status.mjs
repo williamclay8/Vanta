@@ -12,6 +12,8 @@ try {
   if (checkReady && decision.decisionStatus !== "ready-to-ship") {
     if (jsonMode) {
       console.error(JSON.stringify(surface, null, 2));
+    } else {
+      printShippingSurface(surface, console.error);
     }
     throw new Error(
       [
@@ -66,28 +68,28 @@ function buildShippingSurface(decision) {
   };
 }
 
-function printShippingSurface(surface) {
-  printLine("Operator", surface.operator);
-  printLine("Summary state version", String(surface.summaryStateVersion ?? "unknown"));
-  printLine("Decision version", String(surface.decisionVersion ?? "unknown"));
-  printLine("Decision kind", surface.decisionKind ?? "unknown");
-  printLine("Decision status", surface.decisionStatus);
-  printLine("Decision note", surface.decisionNote);
-  printLine("Mirrored contract version", String(surface.mirroredContractVersion ?? "unknown"));
-  printLine("Summary version", String(surface.summaryVersion ?? "unknown"));
-  printLine("Summary generated", surface.summaryGenerated ?? "Unavailable");
-  printLine("Shipping status", surface.shippingStatus);
-  printLine("Shipping note", surface.shippingNote);
-  printLine("Finish line status", surface.finishLineStatus);
-  printLine("Finish line note", surface.finishLineNote);
-  printLine("Required lanes status", surface.requiredLanesStatus);
-  printLine("Required lanes note", surface.requiredLanesNote);
-  printLine("Release boundary status", surface.releaseBoundaryStatus);
-  printLine("Release boundary note", surface.releaseBoundaryNote);
-  printLine("Contract mirror status", surface.contractMirrorStatus);
-  printLine("Contract mirror note", surface.contractMirrorNote);
-  printLine("Boundary status", surface.boundaryStatus);
-  printLine("Boundary note", surface.boundaryNote);
+function printShippingSurface(surface, writer = console.log) {
+  printLine("Operator", surface.operator, writer);
+  printLine("Summary state version", String(surface.summaryStateVersion ?? "unknown"), writer);
+  printLine("Decision version", String(surface.decisionVersion ?? "unknown"), writer);
+  printLine("Decision kind", surface.decisionKind ?? "unknown", writer);
+  printLine("Decision status", surface.decisionStatus, writer);
+  printLine("Decision note", surface.decisionNote, writer);
+  printLine("Mirrored contract version", String(surface.mirroredContractVersion ?? "unknown"), writer);
+  printLine("Summary version", String(surface.summaryVersion ?? "unknown"), writer);
+  printLine("Summary generated", surface.summaryGenerated ?? "Unavailable", writer);
+  printLine("Shipping status", surface.shippingStatus, writer);
+  printLine("Shipping note", surface.shippingNote, writer);
+  printLine("Finish line status", surface.finishLineStatus, writer);
+  printLine("Finish line note", surface.finishLineNote, writer);
+  printLine("Required lanes status", surface.requiredLanesStatus, writer);
+  printLine("Required lanes note", surface.requiredLanesNote, writer);
+  printLine("Release boundary status", surface.releaseBoundaryStatus, writer);
+  printLine("Release boundary note", surface.releaseBoundaryNote, writer);
+  printLine("Contract mirror status", surface.contractMirrorStatus, writer);
+  printLine("Contract mirror note", surface.contractMirrorNote, writer);
+  printLine("Boundary status", surface.boundaryStatus, writer);
+  printLine("Boundary note", surface.boundaryNote, writer);
 }
 
 function humanizeDecisionStatus(value) {
@@ -201,8 +203,8 @@ function humanizeBoundaryStatus(value) {
   }
 }
 
-function printLine(label, value) {
-  console.log(`${label}: ${value}`);
+function printLine(label, value, writer = console.log) {
+  writer(`${label}: ${value}`);
 }
 
 async function requestJson(path) {

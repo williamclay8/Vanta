@@ -13,6 +13,8 @@ try {
   if (checkReady && surface.decisionStatusRaw !== "ready-to-ship") {
     if (jsonMode) {
       console.error(JSON.stringify(artifact, null, 2));
+    } else {
+      printArtifactSurface(surface, console.error);
     }
     throw new Error(
       [
@@ -80,46 +82,49 @@ function buildArtifactSurface(artifact) {
   };
 }
 
-function printArtifactSurface(surface) {
-  printLine("Operator", surface.operator);
-  printLine("Artifact version", String(surface.artifactVersion ?? "unknown"));
-  printLine("Artifact kind", surface.artifactKind ?? "Unavailable");
-  printLine("Decision version", String(surface.decisionVersion ?? "unknown"));
-  printLine("Decision kind", surface.decisionKind ?? "Unavailable");
-  printLine("Decision status", surface.decisionStatus);
-  printLine("Decision note", surface.decisionNote);
-  printLine("Snapshot version", String(surface.snapshotVersion ?? "unknown"));
-  printLine("Snapshot kind", surface.snapshotKind ?? "Unavailable");
-  printLine("Contract version", String(surface.contractVersion ?? "unknown"));
-  printLine("Summary version", String(surface.summaryVersion ?? "unknown"));
-  printLine("Snapshot transport", surface.snapshotTransport ?? "Unavailable");
-  printLine("Snapshot endpoint", surface.snapshotEndpoint ?? "Unavailable");
+function printArtifactSurface(surface, writer = console.log) {
+  printLine("Operator", surface.operator, writer);
+  printLine("Artifact version", String(surface.artifactVersion ?? "unknown"), writer);
+  printLine("Artifact kind", surface.artifactKind ?? "Unavailable", writer);
+  printLine("Decision version", String(surface.decisionVersion ?? "unknown"), writer);
+  printLine("Decision kind", surface.decisionKind ?? "Unavailable", writer);
+  printLine("Decision status", surface.decisionStatus, writer);
+  printLine("Decision note", surface.decisionNote, writer);
+  printLine("Snapshot version", String(surface.snapshotVersion ?? "unknown"), writer);
+  printLine("Snapshot kind", surface.snapshotKind ?? "Unavailable", writer);
+  printLine("Contract version", String(surface.contractVersion ?? "unknown"), writer);
+  printLine("Summary version", String(surface.summaryVersion ?? "unknown"), writer);
+  printLine("Snapshot transport", surface.snapshotTransport ?? "Unavailable", writer);
+  printLine("Snapshot endpoint", surface.snapshotEndpoint ?? "Unavailable", writer);
   printLine(
     "Shipping artifact transport",
     surface.shippingArtifactTransport ?? "Unavailable",
+    writer,
   );
-  printLine("Shipping artifact endpoint", surface.shippingArtifactEndpoint ?? "Unavailable");
+  printLine("Shipping artifact endpoint", surface.shippingArtifactEndpoint ?? "Unavailable", writer);
   printLine(
     "Shipping artifact gate transport",
     surface.shippingArtifactGateTransport ?? "Unavailable",
+    writer,
   );
   printLine(
     "Shipping artifact gate endpoint",
     surface.shippingArtifactGateEndpoint ?? "Unavailable",
+    writer,
   );
-  printLine("Summary generated", surface.summaryGenerated ?? "Unavailable");
-  printLine("Shipping status", surface.shippingStatus);
-  printLine("Shipping note", surface.shippingNote);
-  printLine("Finish line status", surface.finishLineStatus);
-  printLine("Finish line note", surface.finishLineNote);
-  printLine("Required lanes status", surface.requiredLanesStatus);
-  printLine("Required lanes note", surface.requiredLanesNote);
-  printLine("Release boundary status", surface.releaseBoundaryStatus);
-  printLine("Release boundary note", surface.releaseBoundaryNote);
-  printLine("Contract mirror status", surface.contractMirrorStatus);
-  printLine("Contract mirror note", surface.contractMirrorNote);
-  printLine("Boundary status", surface.boundaryStatus);
-  printLine("Boundary note", surface.boundaryNote);
+  printLine("Summary generated", surface.summaryGenerated ?? "Unavailable", writer);
+  printLine("Shipping status", surface.shippingStatus, writer);
+  printLine("Shipping note", surface.shippingNote, writer);
+  printLine("Finish line status", surface.finishLineStatus, writer);
+  printLine("Finish line note", surface.finishLineNote, writer);
+  printLine("Required lanes status", surface.requiredLanesStatus, writer);
+  printLine("Required lanes note", surface.requiredLanesNote, writer);
+  printLine("Release boundary status", surface.releaseBoundaryStatus, writer);
+  printLine("Release boundary note", surface.releaseBoundaryNote, writer);
+  printLine("Contract mirror status", surface.contractMirrorStatus, writer);
+  printLine("Contract mirror note", surface.contractMirrorNote, writer);
+  printLine("Boundary status", surface.boundaryStatus, writer);
+  printLine("Boundary note", surface.boundaryNote, writer);
 }
 
 function humanizeDecisionStatus(value) {
@@ -233,8 +238,8 @@ function humanizeBoundaryStatus(value) {
   }
 }
 
-function printLine(label, value) {
-  console.log(`${label}: ${value}`);
+function printLine(label, value, writer = console.log) {
+  writer(`${label}: ${value}`);
 }
 
 async function requestJson(path) {
