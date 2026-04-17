@@ -932,6 +932,22 @@ try {
     blockedOperatorSnapshotJson.snapshotKind !== "contract-status-shipping-bundle" ||
     blockedOperatorSnapshotJson.contract?.contractVersion !== 19 ||
     blockedOperatorSnapshotJson.contract?.summaryVersion !== 43 ||
+    blockedOperatorSnapshotJson.contract?.supportedShippingDecisionNote !==
+      "Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane." ||
+    blockedOperatorSnapshotJson.contract?.supportedOperatorStatusNote !==
+      "Canonical long-form live operator-status surface composed from the bundled snapshot plus the dedicated shipping artifact." ||
+    blockedOperatorSnapshotJson.contract?.supportedOperatorSnapshotNote !==
+      "Canonical bundled machine-readable operator artifact containing the frozen contract, live status summary, and canonical shipping decision surfaces together." ||
+    blockedOperatorSnapshotJson.contract?.supportedShippingArtifactNote !==
+      "Canonical release-grade machine-readable operator artifact containing the shipping decision plus the bundled contract, live status summary, and canonical shipping surfaces together." ||
+    blockedOperatorSnapshotJson.contract?.supportedShippingDecisionGateNote !==
+      "Compact shipping decision surface can act as a strict ready gate for the frozen narrow lane." ||
+    blockedOperatorSnapshotJson.contract?.supportedOperatorStatusGateNote !==
+      "Long-form operator-status surface can act as a strict ready gate for the frozen narrow lane." ||
+    blockedOperatorSnapshotJson.contract?.supportedOperatorSnapshotGateNote !==
+      "Bundled operator snapshot surface can act as a strict ready gate for the frozen narrow lane." ||
+    blockedOperatorSnapshotJson.contract?.supportedShippingArtifactGateNote !==
+      "Release-grade shipping artifact surface can act as a strict ready gate for the frozen narrow lane." ||
     blockedOperatorSnapshotJson.shipping?.decisionStatusRaw !== "blocked" ||
     blockedOperatorSnapshotJson.shipping?.shippingStatusRaw !== "required-lanes-mismatch"
   ) {
