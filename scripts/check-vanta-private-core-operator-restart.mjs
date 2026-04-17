@@ -1298,6 +1298,22 @@ try {
     operatorSnapshotJson.snapshotKind !== "contract-status-shipping-bundle" ||
     operatorSnapshotJson.contract?.contractVersion !== 19 ||
     operatorSnapshotJson.contract?.summaryVersion !== 43 ||
+    operatorSnapshotJson.contract?.supportedShippingDecisionNote !==
+      "Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane." ||
+    operatorSnapshotJson.contract?.supportedOperatorStatusNote !==
+      "Canonical long-form live operator-status surface composed from the bundled snapshot plus the dedicated shipping artifact." ||
+    operatorSnapshotJson.contract?.supportedOperatorSnapshotNote !==
+      "Canonical bundled machine-readable operator artifact containing the frozen contract, live status summary, and canonical shipping decision surfaces together." ||
+    operatorSnapshotJson.contract?.supportedShippingArtifactNote !==
+      "Canonical release-grade machine-readable operator artifact containing the shipping decision plus the bundled contract, live status summary, and canonical shipping surfaces together." ||
+    operatorSnapshotJson.contract?.supportedShippingDecisionGateNote !==
+      "Compact shipping decision surface can act as a strict ready gate for the frozen narrow lane." ||
+    operatorSnapshotJson.contract?.supportedOperatorStatusGateNote !==
+      "Long-form operator-status surface can act as a strict ready gate for the frozen narrow lane." ||
+    operatorSnapshotJson.contract?.supportedOperatorSnapshotGateNote !==
+      "Bundled operator snapshot surface can act as a strict ready gate for the frozen narrow lane." ||
+    operatorSnapshotJson.contract?.supportedShippingArtifactGateNote !==
+      "Release-grade shipping artifact surface can act as a strict ready gate for the frozen narrow lane." ||
     operatorSnapshotJson.contract?.supportedOperatorSnapshotVersion !== 1 ||
     operatorSnapshotJson.contract?.supportedOperatorSnapshotKind !==
       "contract-status-shipping-bundle" ||
