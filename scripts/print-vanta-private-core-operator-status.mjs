@@ -25,6 +25,68 @@ try {
   if (checkReady && rawStatusState?.decisionStatus !== "ready-to-ship") {
     if (jsonMode) {
       console.error(JSON.stringify(payload, null, 2));
+    } else {
+      printStatusSurface(baseUrl, statusState, summary, shippingDecision, console.error);
+      printLine(
+        "Supported shipping decision note",
+        summary.supportedShippingDecisionNote ?? "Unavailable",
+        console.error,
+      );
+      printLine(
+        "Supported operator status note",
+        summary.supportedOperatorStatusNote ?? "Unavailable",
+        console.error,
+      );
+      printLine(
+        "Supported operator snapshot gate version",
+        String(summary.supportedOperatorSnapshotGateVersion ?? "unknown"),
+        console.error,
+      );
+      printLine(
+        "Supported shipping decision gate note",
+        summary.supportedShippingDecisionGateNote ?? "Unavailable",
+        console.error,
+      );
+      printLine(
+        "Supported operator status gate note",
+        summary.supportedOperatorStatusGateNote ?? "Unavailable",
+        console.error,
+      );
+      printLine(
+        "Supported operator snapshot gate kind",
+        summary.supportedOperatorSnapshotGateKind ?? "Unavailable",
+        console.error,
+      );
+      printLine(
+        "Supported operator snapshot gate note",
+        summary.supportedOperatorSnapshotGateNote ?? "Unavailable",
+        console.error,
+      );
+      printLine(
+        "Supported operator snapshot note",
+        summary.supportedOperatorSnapshotNote ?? "Unavailable",
+        console.error,
+      );
+      printLine(
+        "Supported shipping artifact gate version",
+        String(summary.supportedShippingArtifactGateVersion ?? "unknown"),
+        console.error,
+      );
+      printLine(
+        "Supported shipping artifact gate kind",
+        summary.supportedShippingArtifactGateKind ?? "Unavailable",
+        console.error,
+      );
+      printLine(
+        "Supported shipping artifact gate note",
+        summary.supportedShippingArtifactGateNote ?? "Unavailable",
+        console.error,
+      );
+      printLine(
+        "Supported shipping artifact note",
+        summary.supportedShippingArtifactNote ?? "Unavailable",
+        console.error,
+      );
     }
     throw new Error(
       [
@@ -41,223 +103,7 @@ try {
     process.exit(0);
   }
 
-  printLine("Operator", baseUrl);
-  printLine("Status version", String(statusState?.statusVersion ?? "unknown"));
-  printLine("Status kind", statusState?.statusKind ?? "Unavailable");
-  printLine("Snapshot version", String(statusState?.snapshotVersion ?? "unknown"));
-  printLine("Snapshot kind", statusState?.snapshotKind ?? "Unavailable");
-  printLine(
-    "Shipping artifact version",
-    String(statusState?.shippingArtifactVersion ?? "unknown"),
-  );
-  printLine(
-    "Shipping artifact kind",
-    statusState?.shippingArtifactKind ?? "Unavailable",
-  );
-  printLine("Summary state version", String(summary.stateVersion ?? "unknown"));
-  printLine("Mirrored contract version", String(summary.contractVersion ?? "unknown"));
-  printLine("Summary version", String(summary.summaryVersion ?? "unknown"));
-  printLine("Summary generated", formatTimestamp(summary.generatedAt));
-  printLine("Shipping decision version", String(shippingDecision.decisionVersion ?? "unknown"));
-  printLine("Shipping decision kind", shippingDecision.decisionKind ?? "Unavailable");
-  printLine(
-    "Shipping decision status",
-    humanizeShippingDecisionStatus(shippingDecision.decisionStatus),
-  );
-  printLine("Shipping decision note", shippingDecision.decisionNote ?? "Unavailable");
-  printLine(
-    "Required lanes status",
-    humanizeRequiredLanesStatus(summary.requiredLanesStatus),
-  );
-  printLine("Required lanes note", summary.requiredLanesNote ?? "Unavailable");
-  printLine(
-    "zk v1 shipping status",
-    humanizeZkV1ShippingStatus(summary.zkV1ShippingStatus),
-  );
-  printLine("zk v1 shipping note", summary.zkV1ShippingNote ?? "Unavailable");
-  printLine(
-    "zk v1 finish line status",
-    humanizeZkV1FinishLineStatus(summary.zkV1FinishLineStatus),
-  );
-  printLine("zk v1 finish line note", summary.zkV1FinishLineNote ?? "Unavailable");
-  printLine(
-    "Release boundary status",
-    humanizeReleaseBoundaryStatus(summary.releaseBoundaryStatus),
-  );
-  printLine("Release boundary note", summary.releaseBoundaryNote ?? "Unavailable");
-  printLine("Supported send lane version", String(summary.supportedSendLaneVersion ?? "unknown"));
-  printLine("Supported send lane kind", humanizeSupportedSendLaneKind(summary.supportedSendLaneKind));
-  printLine("Supported send lane status", humanizeSupportedSendLaneStatus(summary.supportedSendLaneStatus));
-  printLine("Supported send lane note", summary.supportedSendLaneNote ?? "Unavailable");
-  printLine(
-    "Supported send v1 decision",
-    humanizeSupportedV1Decision(summary.supportedSendV1Decision),
-  );
-  printLine(
-    "Supported send v1 decision note",
-    summary.supportedSendV1DecisionNote ?? "Unavailable",
-  );
-  printLine("Supported unshield lane version", String(summary.supportedUnshieldLaneVersion ?? "unknown"));
-  printLine(
-    "Supported unshield lane kind",
-    humanizeSupportedUnshieldLaneKind(summary.supportedUnshieldLaneKind),
-  );
-  printLine(
-    "Supported unshield lane status",
-    humanizeSupportedUnshieldLaneStatus(summary.supportedUnshieldLaneStatus),
-  );
-  printLine("Supported unshield lane note", summary.supportedUnshieldLaneNote ?? "Unavailable");
-  printLine(
-    "Supported unshield v1 decision",
-    humanizeSupportedV1Decision(summary.supportedUnshieldV1Decision),
-  );
-  printLine(
-    "Supported unshield v1 decision note",
-    summary.supportedUnshieldV1DecisionNote ?? "Unavailable",
-  );
-  printLine(
-    "Supported release lane version",
-    String(summary.supportedReleaseLaneVersion ?? "unknown"),
-  );
-  printLine(
-    "Supported release lane kind",
-    humanizeSupportedReleaseLaneKind(summary.supportedReleaseLaneKind),
-  );
-  printLine(
-    "Supported release lane status",
-    humanizeSupportedReleaseLaneStatus(summary.supportedReleaseLaneStatus),
-  );
-  printLine("Supported release lane note", summary.supportedReleaseLaneNote ?? "Unavailable");
-  printLine(
-    "Supported release v1 decision",
-    humanizeSupportedV1Decision(summary.supportedReleaseV1Decision),
-  );
-  printLine(
-    "Supported release v1 decision note",
-    summary.supportedReleaseV1DecisionNote ?? "Unavailable",
-  );
-  printLine(
-    "Supported swap lane version",
-    String(summary.supportedSwapLaneVersion ?? "unknown"),
-  );
-  printLine(
-    "Supported swap lane kind",
-    humanizeSupportedSwapLaneKind(summary.supportedSwapLaneKind),
-  );
-  printLine(
-    "Supported swap lane status",
-    humanizeSupportedSwapLaneStatus(summary.supportedSwapLaneStatus),
-  );
-  printLine("Supported swap lane note", summary.supportedSwapLaneNote ?? "Unavailable");
-  printLine(
-    "Supported swap v1 decision",
-    humanizeSupportedV1Decision(summary.supportedSwapV1Decision),
-  );
-  printLine(
-    "Supported swap v1 decision note",
-    summary.supportedSwapV1DecisionNote ?? "Unavailable",
-  );
-  printLine("Supported swap v1 role", summary.supportedSwapV1Role ?? "Unavailable");
-  printLine("Supported swap v1 role note", summary.supportedSwapV1RoleNote ?? "Unavailable");
-  printLine("Supported swap venue", humanizeSupportedSwapVenue(summary.supportedSwapVenue));
-  printLine(
-    "Supported swap output model",
-    humanizeSupportedSwapOutputModel(summary.supportedSwapOutputModel),
-  );
-  printLine(
-    "Supported swap root basis",
-    summary.supportedSwapResultingRootBasis === "client-declared" ? "Client-declared" : "Unavailable",
-  );
-  printLine(
-    "Supported swap input-root policy",
-    summary.supportedSwapInputRootPolicy ===
-      "latest-registered-root-with-linked-registration-proof"
-      ? "Latest registered root with linked registration proof"
-      : "Unavailable",
-  );
-  printLine(
-    "Supported swap output registration",
-    summary.supportedSwapOutputRegistrationPolicy ===
-      "resulting-root-must-register-as-swap-output"
-      ? "Resulting root must register as swap output"
-      : "Unavailable",
-  );
-  printLine("Supported flow version", String(summary.supportedFlowVersion ?? "unknown"));
-  printLine("Supported flow kind", humanizeSupportedFlowKind(summary.supportedFlowKind));
-  printLine("Supported flow status", humanizeSupportedFlowStatus(summary.supportedFlowStatus));
-  printLine("Supported flow note", summary.supportedFlowNote ?? "Unavailable");
-  printLine(
-    "Supported shipping decision version",
-    String(summary.supportedShippingDecisionVersion ?? "unknown"),
-  );
-  printLine(
-    "Supported shipping decision kind",
-    summary.supportedShippingDecisionKind ?? "Unavailable",
-  );
-  printLine(
-    "Supported shipping decision note",
-    summary.supportedShippingDecisionNote ?? "Unavailable",
-  );
-  printLine(
-    "Supported shipping decision gate version",
-    String(summary.supportedShippingDecisionGateVersion ?? "unknown"),
-  );
-  printLine(
-    "Supported shipping decision gate kind",
-    summary.supportedShippingDecisionGateKind ?? "Unavailable",
-  );
-  printLine(
-    "Supported shipping decision gate note",
-    summary.supportedShippingDecisionGateNote ?? "Unavailable",
-  );
-  printLine(
-    "Supported shipping decision gate transport",
-    summary.supportedShippingDecisionGateTransport ?? "Unavailable",
-  );
-  printLine(
-    "Supported shipping decision gate endpoint",
-    summary.supportedShippingDecisionGateEndpoint ?? "Unavailable",
-  );
-  printLine(
-    "Supported shipping decision transport",
-    summary.supportedShippingDecisionTransport ?? "Unavailable",
-  );
-  printLine(
-    "Supported shipping decision endpoint",
-    summary.supportedShippingDecisionEndpoint ?? "Unavailable",
-  );
-  printLine(
-    "Supported operator status version",
-    String(summary.supportedOperatorStatusVersion ?? "unknown"),
-  );
-  printLine(
-    "Supported operator status kind",
-    summary.supportedOperatorStatusKind ?? "Unavailable",
-  );
-  printLine(
-    "Supported operator status note",
-    summary.supportedOperatorStatusNote ?? "Unavailable",
-  );
-  printLine(
-    "Supported operator status gate version",
-    String(summary.supportedOperatorStatusGateVersion ?? "unknown"),
-  );
-  printLine(
-    "Supported operator status gate kind",
-    summary.supportedOperatorStatusGateKind ?? "Unavailable",
-  );
-  printLine(
-    "Supported operator status gate note",
-    summary.supportedOperatorStatusGateNote ?? "Unavailable",
-  );
-  printLine(
-    "Supported operator status gate transport",
-    summary.supportedOperatorStatusGateTransport ?? "Unavailable",
-  );
-  printLine(
-    "Supported operator status gate endpoint",
-    summary.supportedOperatorStatusGateEndpoint ?? "Unavailable",
-  );
+  printStatusSurface(baseUrl, statusState, summary, shippingDecision);
   printLine(
     "Supported operator status transport",
     summary.supportedOperatorStatusTransport ?? "Unavailable",
@@ -654,6 +500,344 @@ async function requestJson(path) {
   return response.json();
 }
 
+function printStatusSurface(
+  baseUrl,
+  statusState,
+  summary,
+  shippingDecision,
+  writer = console.log,
+) {
+  printLine("Operator", baseUrl, writer);
+  printLine("Status version", String(statusState?.statusVersion ?? "unknown"), writer);
+  printLine("Status kind", statusState?.statusKind ?? "Unavailable", writer);
+  printLine("Snapshot version", String(statusState?.snapshotVersion ?? "unknown"), writer);
+  printLine("Snapshot kind", statusState?.snapshotKind ?? "Unavailable", writer);
+  printLine(
+    "Shipping artifact version",
+    String(statusState?.shippingArtifactVersion ?? "unknown"),
+    writer,
+  );
+  printLine(
+    "Shipping artifact kind",
+    statusState?.shippingArtifactKind ?? "Unavailable",
+    writer,
+  );
+  printLine("Summary state version", String(summary.stateVersion ?? "unknown"), writer);
+  printLine("Mirrored contract version", String(summary.contractVersion ?? "unknown"), writer);
+  printLine("Summary version", String(summary.summaryVersion ?? "unknown"), writer);
+  printLine("Summary generated", formatTimestamp(summary.generatedAt), writer);
+  printLine("Shipping decision version", String(shippingDecision.decisionVersion ?? "unknown"), writer);
+  printLine("Shipping decision kind", shippingDecision.decisionKind ?? "Unavailable", writer);
+  printLine(
+    "Shipping decision status",
+    humanizeShippingDecisionStatus(shippingDecision.decisionStatus),
+    writer,
+  );
+  printLine("Shipping decision note", shippingDecision.decisionNote ?? "Unavailable", writer);
+  printLine(
+    "Required lanes status",
+    humanizeRequiredLanesStatus(summary.requiredLanesStatus),
+    writer,
+  );
+  printLine("Required lanes note", summary.requiredLanesNote ?? "Unavailable", writer);
+  printLine(
+    "zk v1 shipping status",
+    humanizeZkV1ShippingStatus(summary.zkV1ShippingStatus),
+    writer,
+  );
+  printLine("zk v1 shipping note", summary.zkV1ShippingNote ?? "Unavailable", writer);
+  printLine(
+    "zk v1 finish line status",
+    humanizeZkV1FinishLineStatus(summary.zkV1FinishLineStatus),
+    writer,
+  );
+  printLine("zk v1 finish line note", summary.zkV1FinishLineNote ?? "Unavailable", writer);
+  printLine(
+    "Release boundary status",
+    humanizeReleaseBoundaryStatus(summary.releaseBoundaryStatus),
+    writer,
+  );
+  printLine("Release boundary note", summary.releaseBoundaryNote ?? "Unavailable", writer);
+  printLine("Supported send lane version", String(summary.supportedSendLaneVersion ?? "unknown"), writer);
+  printLine("Supported send lane kind", humanizeSupportedSendLaneKind(summary.supportedSendLaneKind), writer);
+  printLine("Supported send lane status", humanizeSupportedSendLaneStatus(summary.supportedSendLaneStatus), writer);
+  printLine("Supported send lane note", summary.supportedSendLaneNote ?? "Unavailable", writer);
+  printLine(
+    "Supported send v1 decision",
+    humanizeSupportedV1Decision(summary.supportedSendV1Decision),
+    writer,
+  );
+  printLine(
+    "Supported send v1 decision note",
+    summary.supportedSendV1DecisionNote ?? "Unavailable",
+    writer,
+  );
+  printLine("Supported unshield lane version", String(summary.supportedUnshieldLaneVersion ?? "unknown"), writer);
+  printLine(
+    "Supported unshield lane kind",
+    humanizeSupportedUnshieldLaneKind(summary.supportedUnshieldLaneKind),
+    writer,
+  );
+  printLine(
+    "Supported unshield lane status",
+    humanizeSupportedUnshieldLaneStatus(summary.supportedUnshieldLaneStatus),
+    writer,
+  );
+  printLine("Supported unshield lane note", summary.supportedUnshieldLaneNote ?? "Unavailable", writer);
+  printLine(
+    "Supported unshield v1 decision",
+    humanizeSupportedV1Decision(summary.supportedUnshieldV1Decision),
+    writer,
+  );
+  printLine(
+    "Supported unshield v1 decision note",
+    summary.supportedUnshieldV1DecisionNote ?? "Unavailable",
+    writer,
+  );
+  printLine(
+    "Supported release lane version",
+    String(summary.supportedReleaseLaneVersion ?? "unknown"),
+    writer,
+  );
+  printLine(
+    "Supported release lane kind",
+    humanizeSupportedReleaseLaneKind(summary.supportedReleaseLaneKind),
+    writer,
+  );
+  printLine(
+    "Supported release lane status",
+    humanizeSupportedReleaseLaneStatus(summary.supportedReleaseLaneStatus),
+    writer,
+  );
+  printLine("Supported release lane note", summary.supportedReleaseLaneNote ?? "Unavailable", writer);
+  printLine(
+    "Supported release v1 decision",
+    humanizeSupportedV1Decision(summary.supportedReleaseV1Decision),
+    writer,
+  );
+  printLine(
+    "Supported release v1 decision note",
+    summary.supportedReleaseV1DecisionNote ?? "Unavailable",
+    writer,
+  );
+  printLine(
+    "Supported swap lane version",
+    String(summary.supportedSwapLaneVersion ?? "unknown"),
+    writer,
+  );
+  printLine(
+    "Supported swap lane kind",
+    humanizeSupportedSwapLaneKind(summary.supportedSwapLaneKind),
+    writer,
+  );
+  printLine(
+    "Supported swap lane status",
+    humanizeSupportedSwapLaneStatus(summary.supportedSwapLaneStatus),
+    writer,
+  );
+  printLine("Supported swap lane note", summary.supportedSwapLaneNote ?? "Unavailable", writer);
+  printLine(
+    "Supported swap v1 decision",
+    humanizeSupportedV1Decision(summary.supportedSwapV1Decision),
+    writer,
+  );
+  printLine(
+    "Supported swap v1 decision note",
+    summary.supportedSwapV1DecisionNote ?? "Unavailable",
+    writer,
+  );
+  printLine("Supported swap v1 role", summary.supportedSwapV1Role ?? "Unavailable", writer);
+  printLine("Supported swap v1 role note", summary.supportedSwapV1RoleNote ?? "Unavailable", writer);
+  printLine("Supported swap venue", humanizeSupportedSwapVenue(summary.supportedSwapVenue), writer);
+  printLine(
+    "Supported swap output model",
+    humanizeSupportedSwapOutputModel(summary.supportedSwapOutputModel),
+    writer,
+  );
+  printLine(
+    "Supported swap root basis",
+    summary.supportedSwapResultingRootBasis === "client-declared" ? "Client-declared" : "Unavailable",
+  );
+  printLine(
+    "Supported swap input-root policy",
+    summary.supportedSwapInputRootPolicy ===
+      "latest-registered-root-with-linked-registration-proof"
+      ? "Latest registered root with linked registration proof"
+      : "Unavailable",
+  );
+  printLine(
+    "Supported swap output registration",
+    summary.supportedSwapOutputRegistrationPolicy ===
+      "resulting-root-must-register-as-swap-output"
+      ? "Resulting root must register as swap output"
+      : "Unavailable",
+  );
+  printLine("Supported flow version", String(summary.supportedFlowVersion ?? "unknown"));
+  printLine("Supported flow kind", humanizeSupportedFlowKind(summary.supportedFlowKind));
+  printLine("Supported flow status", humanizeSupportedFlowStatus(summary.supportedFlowStatus));
+  printLine("Supported flow note", summary.supportedFlowNote ?? "Unavailable");
+  printLine(
+    "Supported shipping decision version",
+    String(summary.supportedShippingDecisionVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported shipping decision kind",
+    summary.supportedShippingDecisionKind ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping decision note",
+    summary.supportedShippingDecisionNote ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping decision gate version",
+    String(summary.supportedShippingDecisionGateVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported shipping decision gate kind",
+    summary.supportedShippingDecisionGateKind ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping decision gate note",
+    summary.supportedShippingDecisionGateNote ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping decision gate transport",
+    summary.supportedShippingDecisionGateTransport ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping decision gate endpoint",
+    summary.supportedShippingDecisionGateEndpoint ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping decision transport",
+    summary.supportedShippingDecisionTransport ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping decision endpoint",
+    summary.supportedShippingDecisionEndpoint ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator status version",
+    String(summary.supportedOperatorStatusVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported operator status kind",
+    summary.supportedOperatorStatusKind ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator status note",
+    summary.supportedOperatorStatusNote ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator status gate version",
+    String(summary.supportedOperatorStatusGateVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported operator status gate kind",
+    summary.supportedOperatorStatusGateKind ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator status gate note",
+    summary.supportedOperatorStatusGateNote ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator status gate transport",
+    summary.supportedOperatorStatusGateTransport ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator status gate endpoint",
+    summary.supportedOperatorStatusGateEndpoint ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator status transport",
+    summary.supportedOperatorStatusTransport ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator status endpoint",
+    summary.supportedOperatorStatusEndpoint ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator snapshot version",
+    String(summary.supportedOperatorSnapshotVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported operator snapshot kind",
+    summary.supportedOperatorSnapshotKind ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator snapshot note",
+    summary.supportedOperatorSnapshotNote ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator snapshot gate version",
+    String(summary.supportedOperatorSnapshotGateVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported operator snapshot gate kind",
+    summary.supportedOperatorSnapshotGateKind ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator snapshot gate note",
+    summary.supportedOperatorSnapshotGateNote ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator snapshot gate transport",
+    summary.supportedOperatorSnapshotGateTransport ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator snapshot gate endpoint",
+    summary.supportedOperatorSnapshotGateEndpoint ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator snapshot transport",
+    summary.supportedOperatorSnapshotTransport ?? "Unavailable",
+  );
+  printLine(
+    "Supported operator snapshot endpoint",
+    summary.supportedOperatorSnapshotEndpoint ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping artifact version",
+    String(summary.supportedShippingArtifactVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported shipping artifact kind",
+    summary.supportedShippingArtifactKind ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping artifact note",
+    summary.supportedShippingArtifactNote ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping artifact gate version",
+    String(summary.supportedShippingArtifactGateVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported shipping artifact gate kind",
+    summary.supportedShippingArtifactGateKind ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping artifact gate note",
+    summary.supportedShippingArtifactGateNote ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping artifact gate transport",
+    summary.supportedShippingArtifactGateTransport ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping artifact gate endpoint",
+    summary.supportedShippingArtifactGateEndpoint ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping artifact transport",
+    summary.supportedShippingArtifactTransport ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping artifact endpoint",
+    summary.supportedShippingArtifactEndpoint ?? "Unavailable",
+  );
+}
+
 function abbreviate(value) {
   if (typeof value !== "string" || value.length === 0) {
     return "Unavailable";
@@ -662,8 +846,8 @@ function abbreviate(value) {
   return `${value.slice(0, 10)}...${value.slice(-6)}`;
 }
 
-function printLine(label, value) {
-  console.log(`${label}: ${value}`);
+function printLine(label, value, writer = console.log) {
+  writer(`${label}: ${value}`);
 }
 
 function formatTimestamp(value) {
