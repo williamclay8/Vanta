@@ -137,6 +137,17 @@ try {
     contractState.parsed?.supportedShippingDecisionKind !==
       "narrow-private-core-zk-v1-shipping" ||
     typeof contractState.parsed?.supportedShippingDecisionNote !== "string" ||
+    contractState.parsed?.supportedShippingDecisionGateVersion !== 1 ||
+    contractState.parsed?.supportedShippingDecisionGateKind !==
+      "ready-gated-narrow-private-core-zk-v1-shipping" ||
+    typeof contractState.parsed?.supportedShippingDecisionGateNote !== "string" ||
+    contractState.parsed?.supportedShippingDecisionGateTransport !==
+      "dedicated-endpoint" ||
+    contractState.parsed?.supportedShippingDecisionGateEndpoint !==
+      "/state/private-core-shipping-decision-check" ||
+    contractState.parsed?.supportedShippingDecisionTransport !== "dedicated-endpoint" ||
+    contractState.parsed?.supportedShippingDecisionEndpoint !==
+      "/state/private-core-shipping-decision" ||
     contractState.parsed?.supportedOperatorStatusVersion !== 1 ||
     contractState.parsed?.supportedOperatorStatusKind !== "long-form-live-status" ||
     typeof contractState.parsed?.supportedOperatorStatusNote !== "string" ||
@@ -387,6 +398,20 @@ try {
     !contractOutput.includes(
       "Supported operator snapshot gate endpoint: /state/private-core-snapshot-check",
     ) ||
+    !contractOutput.includes("Supported shipping decision gate version: 1") ||
+    !contractOutput.includes(
+      "Supported shipping decision gate kind: ready-gated-narrow-private-core-zk-v1-shipping",
+    ) ||
+    !contractOutput.includes(
+      "Supported shipping decision gate transport: dedicated-endpoint",
+    ) ||
+    !contractOutput.includes(
+      "Supported shipping decision gate endpoint: /state/private-core-shipping-decision-check",
+    ) ||
+    !contractOutput.includes("Supported shipping decision transport: dedicated-endpoint") ||
+    !contractOutput.includes(
+      "Supported shipping decision endpoint: /state/private-core-shipping-decision",
+    ) ||
     !contractOutput.includes("Supported zk v1 required lanes: send|unshield|release") ||
     !contractOutput.includes("Supported proof system: Noir ACIR / UltraHonk / bb.js") ||
     !contractOutput.includes("Supported operator snapshot transport: dedicated-endpoint") ||
@@ -444,6 +469,17 @@ try {
     contractJson.supportedShippingDecisionKind !== "narrow-private-core-zk-v1-shipping" ||
     contractJson.supportedShippingDecisionNote !==
       "Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane." ||
+    contractJson.supportedShippingDecisionGateVersion !== 1 ||
+    contractJson.supportedShippingDecisionGateKind !==
+      "ready-gated-narrow-private-core-zk-v1-shipping" ||
+    contractJson.supportedShippingDecisionGateNote !==
+      "Compact shipping decision surface can act as a strict ready gate for the frozen narrow lane." ||
+    contractJson.supportedShippingDecisionGateTransport !== "dedicated-endpoint" ||
+    contractJson.supportedShippingDecisionGateEndpoint !==
+      "/state/private-core-shipping-decision-check" ||
+    contractJson.supportedShippingDecisionTransport !== "dedicated-endpoint" ||
+    contractJson.supportedShippingDecisionEndpoint !==
+      "/state/private-core-shipping-decision" ||
     contractJson.supportedOperatorStatusVersion !== 1 ||
     contractJson.supportedOperatorStatusKind !== "long-form-live-status" ||
     contractJson.supportedOperatorStatusNote !==

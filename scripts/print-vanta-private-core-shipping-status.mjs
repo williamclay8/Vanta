@@ -4,7 +4,9 @@ const checkReady = args.includes("--check-ready");
 const jsonMode = args.includes("--json");
 
 try {
-  const decision = await requestJson("/state/private-core-shipping-decision");
+  const decision = checkReady
+    ? (await requestJson("/state/private-core-shipping-decision-check"))?.decision ?? {}
+    : await requestJson("/state/private-core-shipping-decision");
   const surface = buildShippingSurface(decision);
 
   if (checkReady && decision.decisionStatus !== "ready-to-ship") {

@@ -119,6 +119,34 @@ try {
     contract.supportedShippingDecisionNote ?? "Unavailable",
   );
   printLine(
+    "Supported shipping decision gate version",
+    String(contract.supportedShippingDecisionGateVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported shipping decision gate kind",
+    contract.supportedShippingDecisionGateKind ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping decision gate note",
+    contract.supportedShippingDecisionGateNote ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping decision gate transport",
+    contract.supportedShippingDecisionGateTransport ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping decision gate endpoint",
+    contract.supportedShippingDecisionGateEndpoint ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping decision transport",
+    contract.supportedShippingDecisionTransport ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping decision endpoint",
+    contract.supportedShippingDecisionEndpoint ?? "Unavailable",
+  );
+  printLine(
     "Supported operator status version",
     String(contract.supportedOperatorStatusVersion ?? "unknown"),
   );

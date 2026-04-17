@@ -187,6 +187,46 @@ try {
   printLine("Supported flow status", humanizeSupportedFlowStatus(summary.supportedFlowStatus));
   printLine("Supported flow note", summary.supportedFlowNote ?? "Unavailable");
   printLine(
+    "Supported shipping decision version",
+    String(summary.supportedShippingDecisionVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported shipping decision kind",
+    summary.supportedShippingDecisionKind ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping decision note",
+    summary.supportedShippingDecisionNote ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping decision gate version",
+    String(summary.supportedShippingDecisionGateVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported shipping decision gate kind",
+    summary.supportedShippingDecisionGateKind ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping decision gate note",
+    summary.supportedShippingDecisionGateNote ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping decision gate transport",
+    summary.supportedShippingDecisionGateTransport ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping decision gate endpoint",
+    summary.supportedShippingDecisionGateEndpoint ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping decision transport",
+    summary.supportedShippingDecisionTransport ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping decision endpoint",
+    summary.supportedShippingDecisionEndpoint ?? "Unavailable",
+  );
+  printLine(
     "Supported operator status version",
     String(summary.supportedOperatorStatusVersion ?? "unknown"),
   );

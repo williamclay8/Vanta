@@ -196,6 +196,17 @@ const PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_KIND =
   "narrow-private-core-zk-v1-shipping";
 const PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_NOTE =
   "Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane.";
+const PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_GATE_VERSION = 1;
+const PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_GATE_KIND =
+  "ready-gated-narrow-private-core-zk-v1-shipping";
+const PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_GATE_NOTE =
+  "Compact shipping decision surface can act as a strict ready gate for the frozen narrow lane.";
+const PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_GATE_TRANSPORT = "dedicated-endpoint";
+const PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_GATE_ENDPOINT =
+  "/state/private-core-shipping-decision-check";
+const PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_TRANSPORT = "dedicated-endpoint";
+const PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_ENDPOINT =
+  "/state/private-core-shipping-decision";
 const PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_VERSION = 1;
 const PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_KIND = "contract-status-shipping-bundle";
 const PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_NOTE =
@@ -360,6 +371,16 @@ const server = createServer(async (request, response) => {
     writeCorsHeaders(response);
     response.writeHead(200, { "Content-Type": "application/json" });
     response.end(JSON.stringify(buildPrivateCoreShippingDecisionState()));
+    return;
+  }
+
+  if (
+    request.method === "GET" &&
+    request.url === "/state/private-core-shipping-decision-check"
+  ) {
+    writeCorsHeaders(response);
+    response.writeHead(200, { "Content-Type": "application/json" });
+    response.end(JSON.stringify(buildPrivateCoreShippingDecisionCheckState()));
     return;
   }
 
@@ -2129,6 +2150,20 @@ function buildPrivateCoreShippingDecisionState() {
   };
 }
 
+function buildPrivateCoreShippingDecisionCheckState() {
+  const decision = buildPrivateCoreShippingDecisionState();
+
+  return {
+    checkVersion: 1,
+    checkKind: "ready-gated-narrow-private-core-zk-v1-shipping",
+    decisionVersion: decision.decisionVersion,
+    decisionKind: decision.decisionKind,
+    decisionStatus: decision.decisionStatus,
+    decisionNote: decision.decisionNote,
+    decision,
+  };
+}
+
 function humanizePrivateCoreDecisionStatus(value) {
   switch (value) {
     case "ready-to-ship":
@@ -2422,6 +2457,15 @@ function buildPrivateCoreContractState() {
     supportedShippingDecisionVersion: PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_VERSION,
     supportedShippingDecisionKind: PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_KIND,
     supportedShippingDecisionNote: PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_NOTE,
+    supportedShippingDecisionGateVersion: PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_GATE_VERSION,
+    supportedShippingDecisionGateKind: PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_GATE_KIND,
+    supportedShippingDecisionGateNote: PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_GATE_NOTE,
+    supportedShippingDecisionGateTransport:
+      PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_GATE_TRANSPORT,
+    supportedShippingDecisionGateEndpoint:
+      PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_GATE_ENDPOINT,
+    supportedShippingDecisionTransport: PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_TRANSPORT,
+    supportedShippingDecisionEndpoint: PRIVATE_CORE_SUPPORTED_SHIPPING_DECISION_ENDPOINT,
     supportedOperatorStatusVersion: PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_VERSION,
     supportedOperatorStatusKind: PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_KIND,
     supportedOperatorStatusNote: PRIVATE_CORE_SUPPORTED_OPERATOR_STATUS_NOTE,
@@ -2536,6 +2580,13 @@ function summarizePrivateCoreContractMirrorStatus(args) {
     "supportedShippingDecisionVersion",
     "supportedShippingDecisionKind",
     "supportedShippingDecisionNote",
+    "supportedShippingDecisionGateVersion",
+    "supportedShippingDecisionGateKind",
+    "supportedShippingDecisionGateNote",
+    "supportedShippingDecisionGateTransport",
+    "supportedShippingDecisionGateEndpoint",
+    "supportedShippingDecisionTransport",
+    "supportedShippingDecisionEndpoint",
     "supportedOperatorStatusVersion",
     "supportedOperatorStatusKind",
     "supportedOperatorStatusNote",

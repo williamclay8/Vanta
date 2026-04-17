@@ -1148,6 +1148,20 @@ try {
     !operatorStatusOutput.includes(
       "Shipping decision note: No private send transition is available for boundary checks yet.",
     ) ||
+    !operatorStatusOutput.includes("Supported shipping decision gate version: 1") ||
+    !operatorStatusOutput.includes(
+      "Supported shipping decision gate kind: ready-gated-narrow-private-core-zk-v1-shipping",
+    ) ||
+    !operatorStatusOutput.includes(
+      "Supported shipping decision gate transport: dedicated-endpoint",
+    ) ||
+    !operatorStatusOutput.includes(
+      "Supported shipping decision gate endpoint: /state/private-core-shipping-decision-check",
+    ) ||
+    !operatorStatusOutput.includes("Supported shipping decision transport: dedicated-endpoint") ||
+    !operatorStatusOutput.includes(
+      "Supported shipping decision endpoint: /state/private-core-shipping-decision",
+    ) ||
     !operatorStatusOutput.includes("Required lanes status: Send lane mismatch") ||
     !operatorStatusOutput.includes(
       "Required lanes note: No private send transition is available for boundary checks yet.",
@@ -1523,6 +1537,31 @@ try {
     );
   }
   printStatus("operator http shipping-decision state: PASS");
+
+  const shippingDecisionCheckState = await requestJson(
+    baseUrl,
+    "/state/private-core-shipping-decision-check",
+    {
+      method: "GET",
+    },
+  );
+  if (
+    !shippingDecisionCheckState.ok ||
+    shippingDecisionCheckState.parsed?.checkVersion !== 1 ||
+    shippingDecisionCheckState.parsed?.checkKind !==
+      "ready-gated-narrow-private-core-zk-v1-shipping" ||
+    shippingDecisionCheckState.parsed?.decisionVersion !== 1 ||
+    shippingDecisionCheckState.parsed?.decisionKind !==
+      "narrow-private-core-zk-v1-shipping" ||
+    shippingDecisionCheckState.parsed?.decisionStatus !== "blocked" ||
+    shippingDecisionCheckState.parsed?.decision?.decisionVersion !== 1
+  ) {
+    throw new Error(
+      shippingDecisionCheckState.text ||
+        "shipping-decision-check endpoint returned unexpected output",
+    );
+  }
+  printStatus("operator http shipping-decision-check endpoint: PASS");
 
   let blockedShippingCheckJson = null;
   try {

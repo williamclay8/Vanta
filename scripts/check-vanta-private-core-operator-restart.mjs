@@ -847,6 +847,22 @@ try {
     !operatorShippingDecisionStatusOutput.includes("Shipping decision version: 1") ||
     !operatorShippingDecisionStatusOutput.includes("Shipping decision kind: narrow-private-core-zk-v1-shipping") ||
     !operatorShippingDecisionStatusOutput.includes("Shipping decision status: Blocked") ||
+    !operatorShippingDecisionStatusOutput.includes("Supported shipping decision gate version: 1") ||
+    !operatorShippingDecisionStatusOutput.includes(
+      "Supported shipping decision gate kind: ready-gated-narrow-private-core-zk-v1-shipping",
+    ) ||
+    !operatorShippingDecisionStatusOutput.includes(
+      "Supported shipping decision gate transport: dedicated-endpoint",
+    ) ||
+    !operatorShippingDecisionStatusOutput.includes(
+      "Supported shipping decision gate endpoint: /state/private-core-shipping-decision-check",
+    ) ||
+    !operatorShippingDecisionStatusOutput.includes(
+      "Supported shipping decision transport: dedicated-endpoint",
+    ) ||
+    !operatorShippingDecisionStatusOutput.includes(
+      "Supported shipping decision endpoint: /state/private-core-shipping-decision",
+    ) ||
     !operatorShippingDecisionStatusOutput.includes(
       "Shipping decision note: Latest send resulting root still needs operator registration before downstream continuity is established.",
     )
@@ -922,6 +938,31 @@ try {
     );
   }
   printStatus("operator restart shipping-decision state: PASS");
+
+  const shippingDecisionCheckState = await requestJson(
+    baseUrl,
+    "/state/private-core-shipping-decision-check",
+    {
+      method: "GET",
+    },
+  );
+  if (
+    !shippingDecisionCheckState.ok ||
+    shippingDecisionCheckState.parsed?.checkVersion !== 1 ||
+    shippingDecisionCheckState.parsed?.checkKind !==
+      "ready-gated-narrow-private-core-zk-v1-shipping" ||
+    shippingDecisionCheckState.parsed?.decisionVersion !== 1 ||
+    shippingDecisionCheckState.parsed?.decisionKind !==
+      "narrow-private-core-zk-v1-shipping" ||
+    shippingDecisionCheckState.parsed?.decisionStatus !== "blocked" ||
+    shippingDecisionCheckState.parsed?.decision?.decisionVersion !== 1
+  ) {
+    throw new Error(
+      shippingDecisionCheckState.text ||
+        "operator restart shipping-decision-check endpoint returned unexpected output",
+    );
+  }
+  printStatus("operator restart shipping-decision-check endpoint: PASS");
 
   let blockedShippingCheckJson = null;
   try {
