@@ -460,6 +460,8 @@ try {
     "Owner authorization mode: X25519 secret prechecked off-circuit",
     "Nullifier key mode: Note secret as nullifier key v0",
     "Proving hash lane: poseidon-bn254-proving-lane-v0",
+    "Shipping artifact version: 1",
+    "Shipping artifact kind: shipping-decision-checked-snapshot-bundle",
     "Current root:",
     "Current root proof:",
     "Current root linked proof:",
@@ -538,6 +540,8 @@ try {
     operatorStatusJson.operator !== baseUrl ||
     operatorStatusJson.snapshotVersion !== 1 ||
     operatorStatusJson.snapshotKind !== "contract-status-shipping-bundle" ||
+    operatorStatusJson.shippingArtifactVersion !== 1 ||
+    operatorStatusJson.shippingArtifactKind !== "shipping-decision-checked-snapshot-bundle" ||
     operatorStatusJson.summary?.stateVersion !== 1 ||
     operatorStatusJson.summary?.contractVersion !== 18 ||
     operatorStatusJson.summary?.summaryVersion !== 42 ||

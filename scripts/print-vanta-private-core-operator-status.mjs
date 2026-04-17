@@ -3,7 +3,10 @@ const baseUrl = resolveBaseUrl(args);
 const jsonMode = args.includes("--json");
 
 try {
-  const snapshot = await requestJson("/state/private-core-snapshot");
+  const [snapshot, shippingArtifact] = await Promise.all([
+    requestJson("/state/private-core-snapshot"),
+    requestJson("/state/private-core-shipping-artifact"),
+  ]);
   const summary = snapshot?.status?.summary ?? {};
   const shippingDecision = snapshot?.status?.shippingDecision ?? {};
 
@@ -14,6 +17,8 @@ try {
           operator: baseUrl,
           snapshotVersion: snapshot?.snapshotVersion ?? null,
           snapshotKind: snapshot?.snapshotKind ?? null,
+          shippingArtifactVersion: shippingArtifact?.artifactVersion ?? null,
+          shippingArtifactKind: shippingArtifact?.artifactKind ?? null,
           summary,
           shippingDecision,
         },
@@ -27,6 +32,14 @@ try {
   printLine("Operator", baseUrl);
   printLine("Snapshot version", String(snapshot?.snapshotVersion ?? "unknown"));
   printLine("Snapshot kind", snapshot?.snapshotKind ?? "Unavailable");
+  printLine(
+    "Shipping artifact version",
+    String(shippingArtifact?.artifactVersion ?? "unknown"),
+  );
+  printLine(
+    "Shipping artifact kind",
+    shippingArtifact?.artifactKind ?? "Unavailable",
+  );
   printLine("Summary state version", String(summary.stateVersion ?? "unknown"));
   printLine("Mirrored contract version", String(summary.contractVersion ?? "unknown"));
   printLine("Summary version", String(summary.summaryVersion ?? "unknown"));

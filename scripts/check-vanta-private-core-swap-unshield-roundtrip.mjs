@@ -436,6 +436,8 @@ try {
     "Contract mirror note: Operator summary mirrors the frozen private-core contract across all supported static fields.",
     "Boundary status: Operator boundary coherent",
     "Boundary note: Current root, consume, release, and linked proofs agree.",
+    "Shipping artifact version: 1",
+    "Shipping artifact kind: shipping-decision-checked-snapshot-bundle",
   ];
   const missingStatusLines = expectedStatusLines.filter(
     (line) => !operatorStatusOutput.includes(line),
@@ -464,6 +466,8 @@ try {
     operatorStatusJson.operator !== baseUrl ||
     operatorStatusJson.snapshotVersion !== 1 ||
     operatorStatusJson.snapshotKind !== "contract-status-shipping-bundle" ||
+    operatorStatusJson.shippingArtifactVersion !== 1 ||
+    operatorStatusJson.shippingArtifactKind !== "shipping-decision-checked-snapshot-bundle" ||
     operatorStatusJson.summary?.stateVersion !== 1 ||
     operatorStatusJson.summary?.contractVersion !== 18 ||
     operatorStatusJson.summary?.summaryVersion !== 42 ||

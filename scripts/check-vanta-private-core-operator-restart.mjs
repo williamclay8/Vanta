@@ -627,6 +627,10 @@ try {
     !operatorStatusOutput.includes("Latest send resulting root:") ||
     !operatorStatusOutput.includes("Latest swap execution venue: Unavailable") ||
     !operatorStatusOutput.includes("Latest swap quote reference: Unavailable") ||
+    !operatorStatusOutput.includes("Shipping artifact version: 1") ||
+    !operatorStatusOutput.includes(
+      "Shipping artifact kind: shipping-decision-checked-snapshot-bundle",
+    ) ||
     !operatorStatusOutput.includes("Send continuity status: Awaiting registration") ||
     !operatorStatusOutput.includes("Send boundary status: Awaiting registration") ||
     !operatorStatusOutput.includes("Proof/send link: linked") ||
@@ -656,6 +660,8 @@ try {
     operatorStatusJson.operator !== baseUrl ||
     operatorStatusJson.snapshotVersion !== 1 ||
     operatorStatusJson.snapshotKind !== "contract-status-shipping-bundle" ||
+    operatorStatusJson.shippingArtifactVersion !== 1 ||
+    operatorStatusJson.shippingArtifactKind !== "shipping-decision-checked-snapshot-bundle" ||
     operatorStatusJson.summary?.stateVersion !== 1 ||
     operatorStatusJson.summary?.contractVersion !== 18 ||
     operatorStatusJson.summary?.summaryVersion !== 42 ||

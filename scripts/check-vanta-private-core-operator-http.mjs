@@ -1254,6 +1254,10 @@ try {
     !operatorStatusOutput.includes("Proof/release link: linked") ||
     !operatorStatusOutput.includes("Latest swap execution venue: Unavailable") ||
     !operatorStatusOutput.includes("Latest swap quote reference: Unavailable") ||
+    !operatorStatusOutput.includes("Shipping artifact version: 1") ||
+    !operatorStatusOutput.includes(
+      "Shipping artifact kind: shipping-decision-checked-snapshot-bundle",
+    ) ||
     !operatorStatusOutput.includes("Send continuity status: Unavailable") ||
     !operatorStatusOutput.includes("Send boundary status: Unavailable") ||
     !operatorStatusOutput.includes("Contract mirror status: Summary mirrors frozen contract") ||
@@ -1280,6 +1284,8 @@ try {
     operatorStatusJson.operator !== baseUrl ||
     operatorStatusJson.snapshotVersion !== 1 ||
     operatorStatusJson.snapshotKind !== "contract-status-shipping-bundle" ||
+    operatorStatusJson.shippingArtifactVersion !== 1 ||
+    operatorStatusJson.shippingArtifactKind !== "shipping-decision-checked-snapshot-bundle" ||
     operatorStatusJson.summary?.stateVersion !== 1 ||
     operatorStatusJson.summary?.contractVersion !== 18 ||
     operatorStatusJson.summary?.summaryVersion !== 42 ||
