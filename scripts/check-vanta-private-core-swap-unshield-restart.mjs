@@ -684,11 +684,41 @@ try {
       : "";
   if (
     !blockedShippingCheck ||
+    !blockedShippingOutput.includes(`Operator: ${baseUrl}`) ||
+    !blockedShippingOutput.includes("Summary state version: 1") ||
+    !blockedShippingOutput.includes("Decision version: 1") ||
+    !blockedShippingOutput.includes("Decision kind: narrow-private-core-zk-v1-shipping") ||
+    !blockedShippingOutput.includes("Decision status: Blocked") ||
+    !blockedShippingOutput.includes(
+      "Decision note: No private send transition is available for boundary checks yet.",
+    ) ||
+    !blockedShippingOutput.includes("Mirrored contract version: 19") ||
+    !blockedShippingOutput.includes("Summary version: 43") ||
+    !blockedShippingOutput.includes("Summary generated:") ||
     !blockedShippingOutput.includes("Shipping status: Required lanes mismatch") ||
     !blockedShippingOutput.includes(
       "Shipping note: No private send transition is available for boundary checks yet.",
     ) ||
-    !blockedShippingOutput.includes("No private send transition is available for boundary checks yet.")
+    !blockedShippingOutput.includes("Finish line status: Coherent minimum v1 lane") ||
+    !blockedShippingOutput.includes(
+      "Finish line note: Frozen minimum zk v1 send/unshield/release lane is coherent at the operator boundary.",
+    ) ||
+    !blockedShippingOutput.includes("Required lanes status: Send lane mismatch") ||
+    !blockedShippingOutput.includes(
+      "Required lanes note: No private send transition is available for boundary checks yet.",
+    ) ||
+    !blockedShippingOutput.includes("Release boundary status: Release recorded") ||
+    !blockedShippingOutput.includes(
+      "Release boundary note: Latest private-core release is recorded, proof-linked, and consistent with the frozen release contract.",
+    ) ||
+    !blockedShippingOutput.includes("Contract mirror status: Summary mirrors frozen contract") ||
+    !blockedShippingOutput.includes(
+      "Contract mirror note: Operator summary mirrors the frozen private-core contract across all supported static fields.",
+    ) ||
+    !blockedShippingOutput.includes("Boundary status: Operator boundary coherent") ||
+    !blockedShippingOutput.includes(
+      "Boundary note: Current root, consume, release, and linked proofs agree.",
+    )
   ) {
     throw new Error(
       blockedShippingOutput ||
@@ -836,9 +866,67 @@ try {
       : "";
   if (
     !blockedShippingArtifactCheck ||
+    !blockedShippingArtifactCheckOutput.includes(`Operator: ${baseUrl}`) ||
+    !blockedShippingArtifactCheckOutput.includes("Artifact version: 1") ||
+    !blockedShippingArtifactCheckOutput.includes(
+      "Artifact kind: shipping-decision-checked-snapshot-bundle",
+    ) ||
+    !blockedShippingArtifactCheckOutput.includes("Decision version: 1") ||
+    !blockedShippingArtifactCheckOutput.includes(
+      "Decision kind: narrow-private-core-zk-v1-shipping",
+    ) ||
     !blockedShippingArtifactCheckOutput.includes("Artifact decision status: Blocked") ||
     !blockedShippingArtifactCheckOutput.includes(
       "Artifact decision note: No private send transition is available for boundary checks yet.",
+    ) ||
+    !blockedShippingArtifactCheckOutput.includes("Snapshot version: 1") ||
+    !blockedShippingArtifactCheckOutput.includes(
+      "Snapshot kind: contract-status-shipping-bundle",
+    ) ||
+    !blockedShippingArtifactCheckOutput.includes("Contract version: 19") ||
+    !blockedShippingArtifactCheckOutput.includes("Summary version: 43") ||
+    !blockedShippingArtifactCheckOutput.includes("Snapshot transport: dedicated-endpoint") ||
+    !blockedShippingArtifactCheckOutput.includes(
+      "Snapshot endpoint: /state/private-core-snapshot",
+    ) ||
+    !blockedShippingArtifactCheckOutput.includes(
+      "Shipping artifact transport: dedicated-endpoint",
+    ) ||
+    !blockedShippingArtifactCheckOutput.includes(
+      "Shipping artifact endpoint: /state/private-core-shipping-artifact",
+    ) ||
+    !blockedShippingArtifactCheckOutput.includes(
+      "Shipping artifact gate transport: dedicated-endpoint",
+    ) ||
+    !blockedShippingArtifactCheckOutput.includes(
+      "Shipping artifact gate endpoint: /state/private-core-shipping-artifact-check",
+    ) ||
+    !blockedShippingArtifactCheckOutput.includes("Summary generated:") ||
+    !blockedShippingArtifactCheckOutput.includes("Shipping status: Required lanes mismatch") ||
+    !blockedShippingArtifactCheckOutput.includes(
+      "Shipping note: No private send transition is available for boundary checks yet.",
+    ) ||
+    !blockedShippingArtifactCheckOutput.includes("Finish line status: Coherent minimum v1 lane") ||
+    !blockedShippingArtifactCheckOutput.includes(
+      "Finish line note: Frozen minimum zk v1 send/unshield/release lane is coherent at the operator boundary.",
+    ) ||
+    !blockedShippingArtifactCheckOutput.includes("Required lanes status: Send lane mismatch") ||
+    !blockedShippingArtifactCheckOutput.includes(
+      "Required lanes note: No private send transition is available for boundary checks yet.",
+    ) ||
+    !blockedShippingArtifactCheckOutput.includes("Release boundary status: Release recorded") ||
+    !blockedShippingArtifactCheckOutput.includes(
+      "Release boundary note: Latest private-core release is recorded, proof-linked, and consistent with the frozen release contract.",
+    ) ||
+    !blockedShippingArtifactCheckOutput.includes(
+      "Contract mirror status: Summary mirrors frozen contract",
+    ) ||
+    !blockedShippingArtifactCheckOutput.includes(
+      "Contract mirror note: Operator summary mirrors the frozen private-core contract across all supported static fields.",
+    ) ||
+    !blockedShippingArtifactCheckOutput.includes("Boundary status: Operator boundary coherent") ||
+    !blockedShippingArtifactCheckOutput.includes(
+      "Boundary note: Current root, consume, release, and linked proofs agree.",
     )
   ) {
     throw new Error(
