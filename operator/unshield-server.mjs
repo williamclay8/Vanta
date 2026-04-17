@@ -2385,6 +2385,7 @@ function buildPrivateCoreOperatorStatusCheckState(request) {
 function buildPrivateCoreShippingArtifactState(request) {
   const snapshot = buildPrivateCoreOperatorSnapshotState(request);
   const shippingDecision = snapshot.status.shippingDecision;
+  const summary = snapshot.status.summary;
 
   return {
     operator: snapshot.operator,
@@ -2398,6 +2399,26 @@ function buildPrivateCoreShippingArtifactState(request) {
     snapshotKind: snapshot.snapshotKind,
     contractVersion: shippingDecision.contractVersion,
     summaryVersion: shippingDecision.summaryVersion,
+    currentRoot: summary.currentRoot ?? null,
+    currentRootRegistrationBasis: summary.currentRecord?.registrationBasis ?? null,
+    currentRootProofId: summary.currentRecord?.proofId ?? null,
+    latestProofId: summary.latestProof?.proofId ?? null,
+    latestProofAction: summary.latestProof?.action ?? null,
+    latestSendProofId: summary.latestSendProof?.proofId ?? null,
+    latestSendLinkedProofId: summary.latestSendLinkedProof?.proofId ?? null,
+    latestSendId: summary.latestSend?.sendId ?? null,
+    latestSendRecordProofId: summary.latestSend?.proofId ?? null,
+    latestSendResultingRoot: summary.latestSend?.resultingRoot ?? null,
+    latestConsumeRecordProofId: summary.latestConsume?.proofId ?? null,
+    latestConsumeLinkedProofId: summary.latestConsumeProof?.proofId ?? null,
+    latestConsumeRoot: summary.latestConsume?.root ?? null,
+    latestReleaseRecordProofId: summary.latestRelease?.proofId ?? null,
+    latestReleaseLinkedProofId: summary.latestReleaseProof?.proofId ?? null,
+    latestReleaseRequestId: summary.latestRelease?.requestId ?? null,
+    latestReleaseRoot: summary.latestRelease?.root ?? null,
+    latestReleaseDestination: summary.latestRelease?.releaseDestination ?? null,
+    latestReleasedAssetId: summary.latestRelease?.releasedAssetId ?? null,
+    latestReleasedAmount: summary.latestRelease?.releasedAmount ?? null,
     snapshot,
   };
 }

@@ -744,6 +744,31 @@ export type VantaPrivateCoreOperatorShippingArtifactResponse = {
   snapshotKind: "contract-status-shipping-bundle";
   contractVersion: 19;
   summaryVersion: 43;
+  currentRoot: string | null;
+  currentRootRegistrationBasis:
+    | "shield-input"
+    | "send-recipient-output"
+    | "send-change-output"
+    | "swap-output"
+    | null;
+  currentRootProofId: string | null;
+  latestProofId: string | null;
+  latestProofAction: "consume" | "proof-only" | "register-root" | null;
+  latestSendProofId: string | null;
+  latestSendLinkedProofId: string | null;
+  latestSendId: string | null;
+  latestSendRecordProofId: string | null;
+  latestSendResultingRoot: string | null;
+  latestConsumeRecordProofId: string | null;
+  latestConsumeLinkedProofId: string | null;
+  latestConsumeRoot: string | null;
+  latestReleaseRecordProofId: string | null;
+  latestReleaseLinkedProofId: string | null;
+  latestReleaseRequestId: string | null;
+  latestReleaseRoot: string | null;
+  latestReleaseDestination: string | null;
+  latestReleasedAssetId: string | null;
+  latestReleasedAmount: string | null;
   snapshot: VantaPrivateCoreOperatorSnapshotStateResponse;
 };
 
@@ -3228,6 +3253,26 @@ export async function fetchVantaPrivateCoreOperatorShippingArtifact(): Promise<
     snapshotKind?: unknown;
     contractVersion?: unknown;
     summaryVersion?: unknown;
+    currentRoot?: unknown;
+    currentRootRegistrationBasis?: unknown;
+    currentRootProofId?: unknown;
+    latestProofId?: unknown;
+    latestProofAction?: unknown;
+    latestSendProofId?: unknown;
+    latestSendLinkedProofId?: unknown;
+    latestSendId?: unknown;
+    latestSendRecordProofId?: unknown;
+    latestSendResultingRoot?: unknown;
+    latestConsumeRecordProofId?: unknown;
+    latestConsumeLinkedProofId?: unknown;
+    latestConsumeRoot?: unknown;
+    latestReleaseRecordProofId?: unknown;
+    latestReleaseLinkedProofId?: unknown;
+    latestReleaseRequestId?: unknown;
+    latestReleaseRoot?: unknown;
+    latestReleaseDestination?: unknown;
+    latestReleasedAssetId?: unknown;
+    latestReleasedAmount?: unknown;
     snapshot?: unknown;
   };
 
@@ -3243,6 +3288,71 @@ export async function fetchVantaPrivateCoreOperatorShippingArtifact(): Promise<
     parsed.snapshotKind !== "contract-status-shipping-bundle" ||
     parsed.contractVersion !== 19 ||
     parsed.summaryVersion !== 43 ||
+    (parsed.currentRoot !== null &&
+      parsed.currentRoot !== undefined &&
+      typeof parsed.currentRoot !== "string") ||
+    (parsed.currentRootRegistrationBasis !== null &&
+      parsed.currentRootRegistrationBasis !== undefined &&
+      parsed.currentRootRegistrationBasis !== "shield-input" &&
+      parsed.currentRootRegistrationBasis !== "send-recipient-output" &&
+      parsed.currentRootRegistrationBasis !== "send-change-output" &&
+      parsed.currentRootRegistrationBasis !== "swap-output") ||
+    (parsed.currentRootProofId !== null &&
+      parsed.currentRootProofId !== undefined &&
+      typeof parsed.currentRootProofId !== "string") ||
+    (parsed.latestProofId !== null &&
+      parsed.latestProofId !== undefined &&
+      typeof parsed.latestProofId !== "string") ||
+    (parsed.latestProofAction !== null &&
+      parsed.latestProofAction !== undefined &&
+      parsed.latestProofAction !== "consume" &&
+      parsed.latestProofAction !== "proof-only" &&
+      parsed.latestProofAction !== "register-root") ||
+    (parsed.latestSendProofId !== null &&
+      parsed.latestSendProofId !== undefined &&
+      typeof parsed.latestSendProofId !== "string") ||
+    (parsed.latestSendLinkedProofId !== null &&
+      parsed.latestSendLinkedProofId !== undefined &&
+      typeof parsed.latestSendLinkedProofId !== "string") ||
+    (parsed.latestSendId !== null &&
+      parsed.latestSendId !== undefined &&
+      typeof parsed.latestSendId !== "string") ||
+    (parsed.latestSendRecordProofId !== null &&
+      parsed.latestSendRecordProofId !== undefined &&
+      typeof parsed.latestSendRecordProofId !== "string") ||
+    (parsed.latestSendResultingRoot !== null &&
+      parsed.latestSendResultingRoot !== undefined &&
+      typeof parsed.latestSendResultingRoot !== "string") ||
+    (parsed.latestConsumeRecordProofId !== null &&
+      parsed.latestConsumeRecordProofId !== undefined &&
+      typeof parsed.latestConsumeRecordProofId !== "string") ||
+    (parsed.latestConsumeLinkedProofId !== null &&
+      parsed.latestConsumeLinkedProofId !== undefined &&
+      typeof parsed.latestConsumeLinkedProofId !== "string") ||
+    (parsed.latestConsumeRoot !== null &&
+      parsed.latestConsumeRoot !== undefined &&
+      typeof parsed.latestConsumeRoot !== "string") ||
+    (parsed.latestReleaseRecordProofId !== null &&
+      parsed.latestReleaseRecordProofId !== undefined &&
+      typeof parsed.latestReleaseRecordProofId !== "string") ||
+    (parsed.latestReleaseLinkedProofId !== null &&
+      parsed.latestReleaseLinkedProofId !== undefined &&
+      typeof parsed.latestReleaseLinkedProofId !== "string") ||
+    (parsed.latestReleaseRequestId !== null &&
+      parsed.latestReleaseRequestId !== undefined &&
+      typeof parsed.latestReleaseRequestId !== "string") ||
+    (parsed.latestReleaseRoot !== null &&
+      parsed.latestReleaseRoot !== undefined &&
+      typeof parsed.latestReleaseRoot !== "string") ||
+    (parsed.latestReleaseDestination !== null &&
+      parsed.latestReleaseDestination !== undefined &&
+      typeof parsed.latestReleaseDestination !== "string") ||
+    (parsed.latestReleasedAssetId !== null &&
+      parsed.latestReleasedAssetId !== undefined &&
+      typeof parsed.latestReleasedAssetId !== "string") ||
+    (parsed.latestReleasedAmount !== null &&
+      parsed.latestReleasedAmount !== undefined &&
+      typeof parsed.latestReleasedAmount !== "string") ||
     !parsed.snapshot ||
     typeof parsed.snapshot !== "object"
   ) {
@@ -3276,6 +3386,58 @@ export async function fetchVantaPrivateCoreOperatorShippingArtifact(): Promise<
     snapshotKind: "contract-status-shipping-bundle",
     contractVersion: 19,
     summaryVersion: 43,
+    currentRoot: typeof parsed.currentRoot === "string" ? parsed.currentRoot : null,
+    currentRootRegistrationBasis:
+      parsed.currentRootRegistrationBasis === "shield-input" ||
+      parsed.currentRootRegistrationBasis === "send-recipient-output" ||
+      parsed.currentRootRegistrationBasis === "send-change-output" ||
+      parsed.currentRootRegistrationBasis === "swap-output"
+        ? parsed.currentRootRegistrationBasis
+        : null,
+    currentRootProofId: typeof parsed.currentRootProofId === "string" ? parsed.currentRootProofId : null,
+    latestProofId: typeof parsed.latestProofId === "string" ? parsed.latestProofId : null,
+    latestProofAction:
+      parsed.latestProofAction === "consume" ||
+      parsed.latestProofAction === "proof-only" ||
+      parsed.latestProofAction === "register-root"
+        ? parsed.latestProofAction
+        : null,
+    latestSendProofId: typeof parsed.latestSendProofId === "string" ? parsed.latestSendProofId : null,
+    latestSendLinkedProofId:
+      typeof parsed.latestSendLinkedProofId === "string" ? parsed.latestSendLinkedProofId : null,
+    latestSendId: typeof parsed.latestSendId === "string" ? parsed.latestSendId : null,
+    latestSendRecordProofId:
+      typeof parsed.latestSendRecordProofId === "string" ? parsed.latestSendRecordProofId : null,
+    latestSendResultingRoot:
+      typeof parsed.latestSendResultingRoot === "string" ? parsed.latestSendResultingRoot : null,
+    latestConsumeRecordProofId:
+      typeof parsed.latestConsumeRecordProofId === "string"
+        ? parsed.latestConsumeRecordProofId
+        : null,
+    latestConsumeLinkedProofId:
+      typeof parsed.latestConsumeLinkedProofId === "string"
+        ? parsed.latestConsumeLinkedProofId
+        : null,
+    latestConsumeRoot: typeof parsed.latestConsumeRoot === "string" ? parsed.latestConsumeRoot : null,
+    latestReleaseRecordProofId:
+      typeof parsed.latestReleaseRecordProofId === "string"
+        ? parsed.latestReleaseRecordProofId
+        : null,
+    latestReleaseLinkedProofId:
+      typeof parsed.latestReleaseLinkedProofId === "string"
+        ? parsed.latestReleaseLinkedProofId
+        : null,
+    latestReleaseRequestId:
+      typeof parsed.latestReleaseRequestId === "string" ? parsed.latestReleaseRequestId : null,
+    latestReleaseRoot: typeof parsed.latestReleaseRoot === "string" ? parsed.latestReleaseRoot : null,
+    latestReleaseDestination:
+      typeof parsed.latestReleaseDestination === "string"
+        ? parsed.latestReleaseDestination
+        : null,
+    latestReleasedAssetId:
+      typeof parsed.latestReleasedAssetId === "string" ? parsed.latestReleasedAssetId : null,
+    latestReleasedAmount:
+      typeof parsed.latestReleasedAmount === "string" ? parsed.latestReleasedAmount : null,
     snapshot,
   };
 }

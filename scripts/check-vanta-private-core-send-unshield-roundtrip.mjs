@@ -875,6 +875,45 @@ try {
     shippingArtifactJson.snapshotKind !== "contract-status-shipping-bundle" ||
     shippingArtifactJson.contractVersion !== 19 ||
     shippingArtifactJson.summaryVersion !== 43 ||
+    shippingArtifactJson.currentRoot !== shippingArtifactJson.snapshot?.status?.summary?.currentRoot ||
+    shippingArtifactJson.currentRootRegistrationBasis !==
+      shippingArtifactJson.snapshot?.status?.summary?.currentRecord?.registrationBasis ||
+    shippingArtifactJson.currentRootProofId !==
+      shippingArtifactJson.snapshot?.status?.summary?.currentRecord?.proofId ||
+    shippingArtifactJson.latestProofId !==
+      shippingArtifactJson.snapshot?.status?.summary?.latestProof?.proofId ||
+    shippingArtifactJson.latestProofAction !==
+      shippingArtifactJson.snapshot?.status?.summary?.latestProof?.action ||
+    shippingArtifactJson.latestSendProofId !==
+      shippingArtifactJson.snapshot?.status?.summary?.latestSendProof?.proofId ||
+    shippingArtifactJson.latestSendLinkedProofId !==
+      shippingArtifactJson.snapshot?.status?.summary?.latestSendLinkedProof?.proofId ||
+    shippingArtifactJson.latestSendId !==
+      shippingArtifactJson.snapshot?.status?.summary?.latestSend?.sendId ||
+    shippingArtifactJson.latestSendRecordProofId !==
+      shippingArtifactJson.snapshot?.status?.summary?.latestSend?.proofId ||
+    shippingArtifactJson.latestSendResultingRoot !==
+      shippingArtifactJson.snapshot?.status?.summary?.latestSend?.resultingRoot ||
+    shippingArtifactJson.latestConsumeRecordProofId !==
+      shippingArtifactJson.snapshot?.status?.summary?.latestConsume?.proofId ||
+    shippingArtifactJson.latestConsumeLinkedProofId !==
+      shippingArtifactJson.snapshot?.status?.summary?.latestConsumeProof?.proofId ||
+    shippingArtifactJson.latestConsumeRoot !==
+      shippingArtifactJson.snapshot?.status?.summary?.latestConsume?.root ||
+    shippingArtifactJson.latestReleaseRecordProofId !==
+      shippingArtifactJson.snapshot?.status?.summary?.latestRelease?.proofId ||
+    shippingArtifactJson.latestReleaseLinkedProofId !==
+      shippingArtifactJson.snapshot?.status?.summary?.latestReleaseProof?.proofId ||
+    shippingArtifactJson.latestReleaseRequestId !==
+      shippingArtifactJson.snapshot?.status?.summary?.latestRelease?.requestId ||
+    shippingArtifactJson.latestReleaseRoot !==
+      shippingArtifactJson.snapshot?.status?.summary?.latestRelease?.root ||
+    shippingArtifactJson.latestReleaseDestination !==
+      shippingArtifactJson.snapshot?.status?.summary?.latestRelease?.releaseDestination ||
+    shippingArtifactJson.latestReleasedAssetId !==
+      shippingArtifactJson.snapshot?.status?.summary?.latestRelease?.releasedAssetId ||
+    shippingArtifactJson.latestReleasedAmount !==
+      shippingArtifactJson.snapshot?.status?.summary?.latestRelease?.releasedAmount ||
     shippingArtifactJson.snapshot?.shipping?.shippingStatusRaw !== "ready-narrow-v1"
   ) {
     throw new Error(
@@ -909,6 +948,62 @@ try {
     !shippingArtifactOutput.includes("Snapshot kind: contract-status-shipping-bundle") ||
     !shippingArtifactOutput.includes("Contract version: 19") ||
     !shippingArtifactOutput.includes("Summary version: 43") ||
+    !shippingArtifactOutput.includes(
+      `Current root: ${shippingArtifactJson.currentRoot ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactOutput.includes("Current root registration: Send recipient output") ||
+    !shippingArtifactOutput.includes(
+      `Current root proof: ${shippingArtifactJson.currentRootProofId ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactOutput.includes(
+      `Latest proof: ${shippingArtifactJson.latestProofId ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactOutput.includes("Latest proof action: Consume") ||
+    !shippingArtifactOutput.includes(
+      `Latest send proof: ${shippingArtifactJson.latestSendProofId ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactOutput.includes(
+      `Latest send linked proof: ${shippingArtifactJson.latestSendLinkedProofId ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactOutput.includes(
+      `Latest send: ${shippingArtifactJson.latestSendId ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactOutput.includes(
+      `Latest send record proof: ${shippingArtifactJson.latestSendRecordProofId ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactOutput.includes(
+      `Latest send resulting root: ${shippingArtifactJson.latestSendResultingRoot ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactOutput.includes(
+      `Latest consume record proof: ${shippingArtifactJson.latestConsumeRecordProofId ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactOutput.includes(
+      `Latest consume linked proof: ${shippingArtifactJson.latestConsumeLinkedProofId ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactOutput.includes(
+      `Latest consume root: ${shippingArtifactJson.latestConsumeRoot ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactOutput.includes(
+      `Latest release record proof: ${shippingArtifactJson.latestReleaseRecordProofId ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactOutput.includes(
+      `Latest release linked proof: ${shippingArtifactJson.latestReleaseLinkedProofId ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactOutput.includes(
+      `Latest release request: ${shippingArtifactJson.latestReleaseRequestId ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactOutput.includes(
+      `Latest release root: ${shippingArtifactJson.latestReleaseRoot ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactOutput.includes(
+      `Latest release destination: ${shippingArtifactJson.latestReleaseDestination ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactOutput.includes(
+      `Latest released asset: ${shippingArtifactJson.latestReleasedAssetId ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactOutput.includes(
+      `Latest released amount: ${shippingArtifactJson.latestReleasedAmount ?? "Unavailable"}`,
+    ) ||
     !shippingArtifactOutput.includes("Snapshot transport: dedicated-endpoint") ||
     !shippingArtifactOutput.includes("Snapshot endpoint: /state/private-core-snapshot") ||
     !shippingArtifactOutput.includes("Shipping artifact transport: dedicated-endpoint") ||

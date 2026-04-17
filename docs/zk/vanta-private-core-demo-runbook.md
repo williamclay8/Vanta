@@ -151,6 +151,8 @@ Use `private-core:shipping-artifact` when a human wants the release-grade operat
 
 Use `private-core:shipping-artifact-json` when that tooling wants one canonical release-grade operator artifact from the dedicated `/state/private-core-shipping-artifact` endpoint containing:
 - the shipping decision identity and current decision
+- the current registered root lineage
+- the latest proof / send / consume / release lineage
 - the bundled snapshot identity
 - the bundled contract / live summary / canonical shipping snapshot
 

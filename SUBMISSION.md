@@ -265,7 +265,7 @@ The repo now includes concrete verification commands for the Vanta Private Core 
 - `npm run private-core:operator-snapshot-check-json`
   runs the ready-gated form of that bundled snapshot; it succeeds only when the frozen narrow lane is ready and otherwise fails with the bundled snapshot JSON plus structured snapshot decision status/note stderr
 - `npm run private-core:shipping-artifact`
-  prints the release-grade human-readable operator artifact from the dedicated `/state/private-core-shipping-artifact` endpoint, including the shipping decision plus the bundled contract/status/shipping snapshot in one handoff surface
+  prints the release-grade human-readable operator artifact from the dedicated `/state/private-core-shipping-artifact` endpoint, including the shipping decision, current-root lineage, latest proof/send/consume/release lineage, and the bundled contract/status/shipping snapshot in one handoff surface
 - `npm run private-core:shipping-artifact-json`
   prints that same release-grade operator artifact as machine-readable JSON from the dedicated `/state/private-core-shipping-artifact` endpoint
 - `npm run private-core:shipping-artifact-check`

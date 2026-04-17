@@ -964,6 +964,41 @@ try {
     shippingArtifactSurfaceJson.snapshotKind !== "contract-status-shipping-bundle" ||
     shippingArtifactSurfaceJson.contractVersion !== 19 ||
     shippingArtifactSurfaceJson.summaryVersion !== 43 ||
+    shippingArtifactSurfaceJson.currentRoot !==
+      shippingArtifactSurfaceJson.snapshot?.status?.summary?.currentRoot ||
+    shippingArtifactSurfaceJson.currentRootRegistrationBasis !==
+      shippingArtifactSurfaceJson.snapshot?.status?.summary?.currentRecord?.registrationBasis ||
+    shippingArtifactSurfaceJson.currentRootProofId !==
+      shippingArtifactSurfaceJson.snapshot?.status?.summary?.currentRecord?.proofId ||
+    shippingArtifactSurfaceJson.latestProofId !==
+      shippingArtifactSurfaceJson.snapshot?.status?.summary?.latestProof?.proofId ||
+    shippingArtifactSurfaceJson.latestProofAction !==
+      shippingArtifactSurfaceJson.snapshot?.status?.summary?.latestProof?.action ||
+    shippingArtifactSurfaceJson.latestSendProofId !== null ||
+    shippingArtifactSurfaceJson.latestSendLinkedProofId !== null ||
+    shippingArtifactSurfaceJson.latestSendId !== null ||
+    shippingArtifactSurfaceJson.latestSendRecordProofId !== null ||
+    shippingArtifactSurfaceJson.latestSendResultingRoot !== null ||
+    shippingArtifactSurfaceJson.latestConsumeRecordProofId !==
+      shippingArtifactSurfaceJson.snapshot?.status?.summary?.latestConsume?.proofId ||
+    shippingArtifactSurfaceJson.latestConsumeLinkedProofId !==
+      shippingArtifactSurfaceJson.snapshot?.status?.summary?.latestConsumeProof?.proofId ||
+    shippingArtifactSurfaceJson.latestConsumeRoot !==
+      shippingArtifactSurfaceJson.snapshot?.status?.summary?.latestConsume?.root ||
+    shippingArtifactSurfaceJson.latestReleaseRecordProofId !==
+      shippingArtifactSurfaceJson.snapshot?.status?.summary?.latestRelease?.proofId ||
+    shippingArtifactSurfaceJson.latestReleaseLinkedProofId !==
+      shippingArtifactSurfaceJson.snapshot?.status?.summary?.latestReleaseProof?.proofId ||
+    shippingArtifactSurfaceJson.latestReleaseRequestId !==
+      shippingArtifactSurfaceJson.snapshot?.status?.summary?.latestRelease?.requestId ||
+    shippingArtifactSurfaceJson.latestReleaseRoot !==
+      shippingArtifactSurfaceJson.snapshot?.status?.summary?.latestRelease?.root ||
+    shippingArtifactSurfaceJson.latestReleaseDestination !==
+      shippingArtifactSurfaceJson.snapshot?.status?.summary?.latestRelease?.releaseDestination ||
+    shippingArtifactSurfaceJson.latestReleasedAssetId !==
+      shippingArtifactSurfaceJson.snapshot?.status?.summary?.latestRelease?.releasedAssetId ||
+    shippingArtifactSurfaceJson.latestReleasedAmount !==
+      shippingArtifactSurfaceJson.snapshot?.status?.summary?.latestRelease?.releasedAmount ||
     shippingArtifactSurfaceJson.snapshot?.shipping?.shippingStatusRaw !==
       "required-lanes-mismatch"
   ) {
@@ -999,6 +1034,52 @@ try {
     !shippingArtifactSurfaceOutput.includes("Snapshot kind: contract-status-shipping-bundle") ||
     !shippingArtifactSurfaceOutput.includes("Contract version: 19") ||
     !shippingArtifactSurfaceOutput.includes("Summary version: 43") ||
+    !shippingArtifactSurfaceOutput.includes(
+      `Current root: ${shippingArtifactSurfaceJson.currentRoot ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactSurfaceOutput.includes("Current root registration: Swap output") ||
+    !shippingArtifactSurfaceOutput.includes(
+      `Current root proof: ${shippingArtifactSurfaceJson.currentRootProofId ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactSurfaceOutput.includes(
+      `Latest proof: ${shippingArtifactSurfaceJson.latestProofId ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactSurfaceOutput.includes("Latest proof action: Consume") ||
+    !shippingArtifactSurfaceOutput.includes("Latest send proof: Unavailable") ||
+    !shippingArtifactSurfaceOutput.includes("Latest send linked proof: Unavailable") ||
+    !shippingArtifactSurfaceOutput.includes("Latest send: Unavailable") ||
+    !shippingArtifactSurfaceOutput.includes("Latest send record proof: Unavailable") ||
+    !shippingArtifactSurfaceOutput.includes("Latest send resulting root: Unavailable") ||
+    !shippingArtifactSurfaceOutput.includes(
+      `Latest consume record proof: ${shippingArtifactSurfaceJson.latestConsumeRecordProofId ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactSurfaceOutput.includes(
+      `Latest consume linked proof: ${shippingArtifactSurfaceJson.latestConsumeLinkedProofId ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactSurfaceOutput.includes(
+      `Latest consume root: ${shippingArtifactSurfaceJson.latestConsumeRoot ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactSurfaceOutput.includes(
+      `Latest release record proof: ${shippingArtifactSurfaceJson.latestReleaseRecordProofId ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactSurfaceOutput.includes(
+      `Latest release linked proof: ${shippingArtifactSurfaceJson.latestReleaseLinkedProofId ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactSurfaceOutput.includes(
+      `Latest release request: ${shippingArtifactSurfaceJson.latestReleaseRequestId ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactSurfaceOutput.includes(
+      `Latest release root: ${shippingArtifactSurfaceJson.latestReleaseRoot ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactSurfaceOutput.includes(
+      `Latest release destination: ${shippingArtifactSurfaceJson.latestReleaseDestination ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactSurfaceOutput.includes(
+      `Latest released asset: ${shippingArtifactSurfaceJson.latestReleasedAssetId ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactSurfaceOutput.includes(
+      `Latest released amount: ${shippingArtifactSurfaceJson.latestReleasedAmount ?? "Unavailable"}`,
+    ) ||
     !shippingArtifactSurfaceOutput.includes("Snapshot transport: dedicated-endpoint") ||
     !shippingArtifactSurfaceOutput.includes("Snapshot endpoint: /state/private-core-snapshot") ||
     !shippingArtifactSurfaceOutput.includes("Shipping artifact transport: dedicated-endpoint") ||

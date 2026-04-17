@@ -54,6 +54,26 @@ function buildArtifactSurface(artifact) {
     snapshotKind: artifact?.snapshotKind ?? null,
     contractVersion: artifact?.contractVersion ?? null,
     summaryVersion: artifact?.summaryVersion ?? null,
+    currentRoot: artifact?.currentRoot ?? null,
+    currentRootRegistrationBasis: artifact?.currentRootRegistrationBasis ?? null,
+    currentRootProofId: artifact?.currentRootProofId ?? null,
+    latestProofId: artifact?.latestProofId ?? null,
+    latestProofAction: artifact?.latestProofAction ?? null,
+    latestSendProofId: artifact?.latestSendProofId ?? null,
+    latestSendLinkedProofId: artifact?.latestSendLinkedProofId ?? null,
+    latestSendId: artifact?.latestSendId ?? null,
+    latestSendRecordProofId: artifact?.latestSendRecordProofId ?? null,
+    latestSendResultingRoot: artifact?.latestSendResultingRoot ?? null,
+    latestConsumeRecordProofId: artifact?.latestConsumeRecordProofId ?? null,
+    latestConsumeLinkedProofId: artifact?.latestConsumeLinkedProofId ?? null,
+    latestConsumeRoot: artifact?.latestConsumeRoot ?? null,
+    latestReleaseRecordProofId: artifact?.latestReleaseRecordProofId ?? null,
+    latestReleaseLinkedProofId: artifact?.latestReleaseLinkedProofId ?? null,
+    latestReleaseRequestId: artifact?.latestReleaseRequestId ?? null,
+    latestReleaseRoot: artifact?.latestReleaseRoot ?? null,
+    latestReleaseDestination: artifact?.latestReleaseDestination ?? null,
+    latestReleasedAssetId: artifact?.latestReleasedAssetId ?? null,
+    latestReleasedAmount: artifact?.latestReleasedAmount ?? null,
     snapshotTransport: contract?.supportedOperatorSnapshotTransport ?? null,
     snapshotEndpoint: contract?.supportedOperatorSnapshotEndpoint ?? null,
     shippingArtifactTransport: contract?.supportedShippingArtifactTransport ?? null,
@@ -94,6 +114,50 @@ function printArtifactSurface(surface, writer = console.log) {
   printLine("Snapshot kind", surface.snapshotKind ?? "Unavailable", writer);
   printLine("Contract version", String(surface.contractVersion ?? "unknown"), writer);
   printLine("Summary version", String(surface.summaryVersion ?? "unknown"), writer);
+  printLine("Current root", surface.currentRoot ?? "Unavailable", writer);
+  printLine(
+    "Current root registration",
+    humanizeRootRegistrationBasis(surface.currentRootRegistrationBasis),
+    writer,
+  );
+  printLine("Current root proof", surface.currentRootProofId ?? "Unavailable", writer);
+  printLine("Latest proof", surface.latestProofId ?? "Unavailable", writer);
+  printLine("Latest proof action", humanizeProofAction(surface.latestProofAction), writer);
+  printLine("Latest send proof", surface.latestSendProofId ?? "Unavailable", writer);
+  printLine("Latest send linked proof", surface.latestSendLinkedProofId ?? "Unavailable", writer);
+  printLine("Latest send", surface.latestSendId ?? "Unavailable", writer);
+  printLine("Latest send record proof", surface.latestSendRecordProofId ?? "Unavailable", writer);
+  printLine("Latest send resulting root", surface.latestSendResultingRoot ?? "Unavailable", writer);
+  printLine(
+    "Latest consume record proof",
+    surface.latestConsumeRecordProofId ?? "Unavailable",
+    writer,
+  );
+  printLine(
+    "Latest consume linked proof",
+    surface.latestConsumeLinkedProofId ?? "Unavailable",
+    writer,
+  );
+  printLine("Latest consume root", surface.latestConsumeRoot ?? "Unavailable", writer);
+  printLine(
+    "Latest release record proof",
+    surface.latestReleaseRecordProofId ?? "Unavailable",
+    writer,
+  );
+  printLine(
+    "Latest release linked proof",
+    surface.latestReleaseLinkedProofId ?? "Unavailable",
+    writer,
+  );
+  printLine("Latest release request", surface.latestReleaseRequestId ?? "Unavailable", writer);
+  printLine("Latest release root", surface.latestReleaseRoot ?? "Unavailable", writer);
+  printLine(
+    "Latest release destination",
+    surface.latestReleaseDestination ?? "Unavailable",
+    writer,
+  );
+  printLine("Latest released asset", surface.latestReleasedAssetId ?? "Unavailable", writer);
+  printLine("Latest released amount", surface.latestReleasedAmount ?? "Unavailable", writer);
   printLine("Snapshot transport", surface.snapshotTransport ?? "Unavailable", writer);
   printLine("Snapshot endpoint", surface.snapshotEndpoint ?? "Unavailable", writer);
   printLine(
@@ -235,6 +299,34 @@ function humanizeBoundaryStatus(value) {
       return "Proof/release unlinked";
     default:
       return "Unknown";
+  }
+}
+
+function humanizeRootRegistrationBasis(value) {
+  switch (value) {
+    case "shield-input":
+      return "Shield input";
+    case "send-recipient-output":
+      return "Send recipient output";
+    case "send-change-output":
+      return "Send change output";
+    case "swap-output":
+      return "Swap output";
+    default:
+      return "Unavailable";
+  }
+}
+
+function humanizeProofAction(value) {
+  switch (value) {
+    case "consume":
+      return "Consume";
+    case "proof-only":
+      return "Proof only";
+    case "register-root":
+      return "Register root";
+    default:
+      return "Unavailable";
   }
 }
 

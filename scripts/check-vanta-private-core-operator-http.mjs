@@ -2105,6 +2105,15 @@ try {
       "contract-status-shipping-bundle" ||
     blockedShippingArtifactCheckJsonSurface.contractVersion !== 19 ||
     blockedShippingArtifactCheckJsonSurface.summaryVersion !== 43 ||
+    blockedShippingArtifactCheckJsonSurface.currentRoot !==
+      blockedShippingArtifactCheckJsonSurface.snapshot?.status?.summary?.currentRoot ||
+    blockedShippingArtifactCheckJsonSurface.currentRootRegistrationBasis !==
+      blockedShippingArtifactCheckJsonSurface.snapshot?.status?.summary?.currentRecord?.registrationBasis ||
+    blockedShippingArtifactCheckJsonSurface.currentRootProofId !==
+      blockedShippingArtifactCheckJsonSurface.snapshot?.status?.summary?.currentRecord?.proofId ||
+    blockedShippingArtifactCheckJsonSurface.latestSendId !== null ||
+    blockedShippingArtifactCheckJsonSurface.latestReleaseRequestId !==
+      blockedShippingArtifactCheckJsonSurface.snapshot?.status?.summary?.latestRelease?.requestId ||
     blockedShippingArtifactCheckJsonSurface.snapshot?.shipping?.shippingStatusRaw !==
       "required-lanes-mismatch"
   ) {
@@ -2142,6 +2151,22 @@ try {
     shippingArtifactJson.snapshotKind !== "contract-status-shipping-bundle" ||
     shippingArtifactJson.contractVersion !== 19 ||
     shippingArtifactJson.summaryVersion !== 43 ||
+    shippingArtifactJson.currentRoot !== shippingArtifactJson.snapshot?.status?.summary?.currentRoot ||
+    shippingArtifactJson.currentRootRegistrationBasis !==
+      shippingArtifactJson.snapshot?.status?.summary?.currentRecord?.registrationBasis ||
+    shippingArtifactJson.currentRootProofId !==
+      shippingArtifactJson.snapshot?.status?.summary?.currentRecord?.proofId ||
+    shippingArtifactJson.latestSendId !== null ||
+    shippingArtifactJson.latestSendProofId !== null ||
+    shippingArtifactJson.latestSendLinkedProofId !== null ||
+    shippingArtifactJson.latestSendRecordProofId !== null ||
+    shippingArtifactJson.latestSendResultingRoot !== null ||
+    shippingArtifactJson.latestReleaseRequestId !==
+      shippingArtifactJson.snapshot?.status?.summary?.latestRelease?.requestId ||
+    shippingArtifactJson.latestReleaseDestination !==
+      shippingArtifactJson.snapshot?.status?.summary?.latestRelease?.releaseDestination ||
+    shippingArtifactJson.latestReleasedAmount !==
+      shippingArtifactJson.snapshot?.status?.summary?.latestRelease?.releasedAmount ||
     shippingArtifactJson.snapshot?.contract?.supportedShippingArtifactVersion !== 1 ||
     shippingArtifactJson.snapshot?.contract?.supportedShippingArtifactTransport !==
       "dedicated-endpoint" ||
@@ -2179,6 +2204,27 @@ try {
     !shippingArtifactOutput.includes("Shipping artifact transport: dedicated-endpoint") ||
     !shippingArtifactOutput.includes(
       "Shipping artifact endpoint: /state/private-core-shipping-artifact",
+    ) ||
+    !shippingArtifactOutput.includes(
+      `Current root: ${shippingArtifactJson.currentRoot ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactOutput.includes("Current root registration: Shield input") ||
+    !shippingArtifactOutput.includes(
+      `Current root proof: ${shippingArtifactJson.currentRootProofId ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactOutput.includes("Latest send: Unavailable") ||
+    !shippingArtifactOutput.includes("Latest send proof: Unavailable") ||
+    !shippingArtifactOutput.includes("Latest send linked proof: Unavailable") ||
+    !shippingArtifactOutput.includes("Latest send record proof: Unavailable") ||
+    !shippingArtifactOutput.includes("Latest send resulting root: Unavailable") ||
+    !shippingArtifactOutput.includes(
+      `Latest release request: ${shippingArtifactJson.latestReleaseRequestId ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactOutput.includes(
+      `Latest release destination: ${shippingArtifactJson.latestReleaseDestination ?? "Unavailable"}`,
+    ) ||
+    !shippingArtifactOutput.includes(
+      `Latest released amount: ${shippingArtifactJson.latestReleasedAmount ?? "Unavailable"}`,
     ) ||
     !shippingArtifactOutput.includes("Contract version: 19") ||
     !shippingArtifactOutput.includes("Decision status: Blocked") ||
