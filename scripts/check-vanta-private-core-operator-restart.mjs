@@ -604,6 +604,16 @@ try {
     !operatorStatusOutput.includes(
       "Supported shipping artifact kind: shipping-decision-checked-snapshot-bundle",
     ) ||
+    !operatorStatusOutput.includes("Supported shipping artifact gate version: 1") ||
+    !operatorStatusOutput.includes(
+      "Supported shipping artifact gate kind: ready-gated-shipping-decision-checked-snapshot-bundle",
+    ) ||
+    !operatorStatusOutput.includes(
+      "Supported shipping artifact gate transport: dedicated-endpoint",
+    ) ||
+    !operatorStatusOutput.includes(
+      "Supported shipping artifact gate endpoint: /state/private-core-shipping-artifact-check",
+    ) ||
     !operatorStatusOutput.includes(
       "Supported shipping artifact transport: dedicated-endpoint",
     ) ||

@@ -251,6 +251,26 @@ try {
     summary.supportedShippingArtifactNote ?? "Unavailable",
   );
   printLine(
+    "Supported shipping artifact gate version",
+    String(summary.supportedShippingArtifactGateVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported shipping artifact gate kind",
+    summary.supportedShippingArtifactGateKind ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping artifact gate note",
+    summary.supportedShippingArtifactGateNote ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping artifact gate transport",
+    summary.supportedShippingArtifactGateTransport ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping artifact gate endpoint",
+    summary.supportedShippingArtifactGateEndpoint ?? "Unavailable",
+  );
+  printLine(
     "Supported shipping artifact transport",
     summary.supportedShippingArtifactTransport ?? "Unavailable",
   );
