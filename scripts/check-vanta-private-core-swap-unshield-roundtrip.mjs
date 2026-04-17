@@ -351,6 +351,7 @@ try {
     "Summary generated:",
     "Shipping decision version: 1",
     "Shipping decision kind: narrow-private-core-zk-v1-shipping",
+    "Supported shipping decision note: Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane.",
     "Shipping decision status: Blocked",
     "Shipping decision note: No private send transition is available for boundary checks yet.",
     "Required lanes status: Send lane mismatch",
@@ -383,6 +384,9 @@ try {
     "Supported asset: VUSD",
     "Supported environment: solana-devnet",
     "Supported proof system: Noir ACIR / UltraHonk / bb.js",
+    "Supported operator status note: Canonical long-form live operator-status surface composed from the bundled snapshot plus the dedicated shipping artifact.",
+    "Supported operator snapshot note: Canonical bundled machine-readable operator artifact containing the frozen contract, live status summary, and canonical shipping decision surfaces together.",
+    "Supported shipping artifact note: Canonical release-grade machine-readable operator artifact containing the shipping decision plus the bundled contract, live status summary, and canonical shipping surfaces together.",
     "Owner authorization mode: X25519 secret prechecked off-circuit",
     "Nullifier key mode: Note secret as nullifier key v0",
     "Proving hash lane: poseidon-bn254-proving-lane-v0",
@@ -475,6 +479,14 @@ try {
     operatorStatusJson.summary?.zkV1ShippingStatus !== "required-lanes-mismatch" ||
     operatorStatusJson.summary?.releaseBoundaryStatus !== "release-recorded" ||
     operatorStatusJson.summary?.boundaryStatus !== "coherent" ||
+    operatorStatusJson.summary?.supportedShippingDecisionNote !==
+      "Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane." ||
+    operatorStatusJson.summary?.supportedOperatorStatusNote !==
+      "Canonical long-form live operator-status surface composed from the bundled snapshot plus the dedicated shipping artifact." ||
+    operatorStatusJson.summary?.supportedOperatorSnapshotNote !==
+      "Canonical bundled machine-readable operator artifact containing the frozen contract, live status summary, and canonical shipping decision surfaces together." ||
+    operatorStatusJson.summary?.supportedShippingArtifactNote !==
+      "Canonical release-grade machine-readable operator artifact containing the shipping decision plus the bundled contract, live status summary, and canonical shipping surfaces together." ||
     operatorStatusJson.summary?.latestSwap?.outputAmount !== "1250000000" ||
     operatorStatusJson.summary?.latestRelease?.releasedAmount !== "1250000000" ||
     operatorStatusJson.shippingDecision?.decisionStatus !== "blocked" ||
