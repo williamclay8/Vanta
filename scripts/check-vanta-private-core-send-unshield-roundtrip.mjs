@@ -972,7 +972,7 @@ try {
   });
   printStatus("private-core send->unshield operator-status-check: PASS");
 
-  execFileSync("npm", [
+  const operatorSnapshotCheckOutput = execFileSync("npm", [
     "run",
     "--silent",
     "private-core:operator-snapshot-check",
@@ -984,6 +984,36 @@ try {
     encoding: "utf8",
     stdio: "pipe",
   });
+  if (
+    !operatorSnapshotCheckOutput.includes(
+      "Supported shipping decision note: Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane.",
+    ) ||
+    !operatorSnapshotCheckOutput.includes(
+      "Supported operator status note: Canonical long-form live operator-status surface composed from the bundled snapshot plus the dedicated shipping artifact.",
+    ) ||
+    !operatorSnapshotCheckOutput.includes(
+      "Supported operator snapshot note: Canonical bundled machine-readable operator artifact containing the frozen contract, live status summary, and canonical shipping decision surfaces together.",
+    ) ||
+    !operatorSnapshotCheckOutput.includes(
+      "Supported shipping artifact note: Canonical release-grade machine-readable operator artifact containing the shipping decision plus the bundled contract, live status summary, and canonical shipping surfaces together.",
+    ) ||
+    !operatorSnapshotCheckOutput.includes(
+      "Supported shipping decision gate note: Compact shipping decision surface can act as a strict ready gate for the frozen narrow lane.",
+    ) ||
+    !operatorSnapshotCheckOutput.includes(
+      "Supported operator status gate note: Long-form operator-status surface can act as a strict ready gate for the frozen narrow lane.",
+    ) ||
+    !operatorSnapshotCheckOutput.includes(
+      "Supported operator snapshot gate note: Bundled operator snapshot surface can act as a strict ready gate for the frozen narrow lane.",
+    ) ||
+    !operatorSnapshotCheckOutput.includes(
+      "Supported shipping artifact gate note: Release-grade shipping artifact surface can act as a strict ready gate for the frozen narrow lane.",
+    )
+  ) {
+    throw new Error(
+      `Unexpected send->unshield operator-snapshot-check output\n${operatorSnapshotCheckOutput}`,
+    );
+  }
   printStatus("private-core send->unshield operator-snapshot-check: PASS");
 
   const replay = await requestJson(baseUrl, "/private-core/unshield-consume", {
