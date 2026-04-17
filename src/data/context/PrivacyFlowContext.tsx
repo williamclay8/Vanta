@@ -41,6 +41,7 @@ import {
   type VantaPrivateCoreUnshieldProofBoundaryV0,
 } from "@/zk/vantaPrivateCoreUnshieldProof";
 import {
+  fetchVantaPrivateCoreOperatorStatus,
   fetchVantaPrivateCoreOperatorSnapshot,
   fetchVantaPrivateCoreOperatorShippingArtifact,
   registerVantaPrivateCoreOperatorRoot,
@@ -271,8 +272,12 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorContractStateVersion: number | null;
   privateCoreOperatorContractVersion: number | null;
   privateCoreOperatorContractSummaryVersion: number | null;
+  privateCoreOperatorStatusVersion: number | null;
+  privateCoreOperatorStatusKind: string | null;
   privateCoreOperatorSnapshotVersion: number | null;
   privateCoreOperatorSnapshotKind: string | null;
+  privateCoreOperatorSupportedStatusTransport: string | null;
+  privateCoreOperatorSupportedStatusEndpoint: string | null;
   privateCoreOperatorSupportedSnapshotTransport: string | null;
   privateCoreOperatorSupportedSnapshotEndpoint: string | null;
   privateCoreOperatorShippingArtifactVersion: number | null;
@@ -856,9 +861,17 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<number | null>(null);
   const [privateCoreOperatorContractSummaryVersion, setPrivateCoreOperatorContractSummaryVersion] =
     useState<number | null>(null);
+  const [privateCoreOperatorStatusVersion, setPrivateCoreOperatorStatusVersion] =
+    useState<number | null>(null);
+  const [privateCoreOperatorStatusKind, setPrivateCoreOperatorStatusKind] =
+    useState<string | null>(null);
   const [privateCoreOperatorSnapshotVersion, setPrivateCoreOperatorSnapshotVersion] =
     useState<number | null>(null);
   const [privateCoreOperatorSnapshotKind, setPrivateCoreOperatorSnapshotKind] =
+    useState<string | null>(null);
+  const [privateCoreOperatorSupportedStatusTransport, setPrivateCoreOperatorSupportedStatusTransport] =
+    useState<string | null>(null);
+  const [privateCoreOperatorSupportedStatusEndpoint, setPrivateCoreOperatorSupportedStatusEndpoint] =
     useState<string | null>(null);
   const [privateCoreOperatorSupportedSnapshotTransport, setPrivateCoreOperatorSupportedSnapshotTransport] =
     useState<string | null>(null);
@@ -877,13 +890,16 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   const [recentShield, setRecentShield] = useState<RecentShieldContext | null>(null);
 
   const refreshPrivateCoreOperatorSummary = useCallback(async () => {
-    const [snapshotState, shippingArtifactState] = await Promise.all([
+    const [statusState, snapshotState, shippingArtifactState] = await Promise.all([
+      fetchVantaPrivateCoreOperatorStatus(),
       fetchVantaPrivateCoreOperatorSnapshot(),
       fetchVantaPrivateCoreOperatorShippingArtifact(),
     ]);
     const contractState = snapshotState.contract;
-    const summaryState = snapshotState.status.summary;
-    const shippingDecisionState = snapshotState.status.shippingDecision;
+    const summaryState = statusState.summary;
+    const shippingDecisionState = statusState.shippingDecision;
+    setPrivateCoreOperatorStatusVersion(statusState.statusVersion);
+    setPrivateCoreOperatorStatusKind(statusState.statusKind);
     applyPrivateCoreOperatorContractState({
       contractState,
       setPrivateCoreOperatorContractStateVersion,
@@ -936,6 +952,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSupportedSendResultingRootBasis,
       setPrivateCoreOperatorSupportedSendInputRootPolicy,
       setPrivateCoreOperatorSupportedSendOutputRegistrationPolicy,
+      setPrivateCoreOperatorSupportedStatusTransport,
+      setPrivateCoreOperatorSupportedStatusEndpoint,
       setPrivateCoreOperatorSupportedSnapshotTransport,
       setPrivateCoreOperatorSupportedSnapshotEndpoint,
       setPrivateCoreOperatorSupportedRecipientModel,
@@ -2379,8 +2397,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorContractStateVersion,
       privateCoreOperatorContractVersion,
       privateCoreOperatorContractSummaryVersion,
+      privateCoreOperatorStatusVersion,
+      privateCoreOperatorStatusKind,
       privateCoreOperatorSnapshotVersion,
       privateCoreOperatorSnapshotKind,
+      privateCoreOperatorSupportedStatusTransport,
+      privateCoreOperatorSupportedStatusEndpoint,
       privateCoreOperatorSupportedSnapshotTransport,
       privateCoreOperatorSupportedSnapshotEndpoint,
       privateCoreOperatorShippingArtifactVersion,
@@ -2531,6 +2553,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorContractStateVersion,
       privateCoreOperatorContractVersion,
       privateCoreOperatorContractSummaryVersion,
+      privateCoreOperatorStatusVersion,
+      privateCoreOperatorStatusKind,
       privateCoreOperatorReleases,
       privateCoreOperatorRoots,
       privateCoreOperatorSendError,
@@ -2542,8 +2566,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorContractStateVersion,
       privateCoreOperatorContractVersion,
       privateCoreOperatorContractSummaryVersion,
+      privateCoreOperatorStatusVersion,
+      privateCoreOperatorStatusKind,
       privateCoreOperatorSnapshotVersion,
       privateCoreOperatorSnapshotKind,
+      privateCoreOperatorSupportedStatusTransport,
+      privateCoreOperatorSupportedStatusEndpoint,
       privateCoreOperatorSupportedSnapshotTransport,
       privateCoreOperatorSupportedSnapshotEndpoint,
       privateCoreOperatorShippingArtifactVersion,
@@ -3645,6 +3673,8 @@ function applyPrivateCoreOperatorContractState(args: {
   setPrivateCoreOperatorSupportedSendResultingRootBasis: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSendInputRootPolicy: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSendOutputRegistrationPolicy: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedStatusTransport: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedStatusEndpoint: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSnapshotTransport: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSnapshotEndpoint: (value: string | null) => void;
   setPrivateCoreOperatorSupportedRecipientModel: (value: string | null) => void;
@@ -3767,6 +3797,12 @@ function applyPrivateCoreOperatorContractState(args: {
   );
   args.setPrivateCoreOperatorSupportedSendOutputRegistrationPolicy(
     args.contractState.supportedSendOutputRegistrationPolicy,
+  );
+  args.setPrivateCoreOperatorSupportedStatusTransport(
+    args.contractState.supportedOperatorStatusTransport,
+  );
+  args.setPrivateCoreOperatorSupportedStatusEndpoint(
+    args.contractState.supportedOperatorStatusEndpoint,
   );
   args.setPrivateCoreOperatorSupportedSnapshotTransport(
     args.contractState.supportedOperatorSnapshotTransport,

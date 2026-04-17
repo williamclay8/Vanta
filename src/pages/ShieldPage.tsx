@@ -228,8 +228,12 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOperatorContractStateVersion,
     privateCoreOperatorContractVersion,
     privateCoreOperatorContractSummaryVersion,
+    privateCoreOperatorStatusKind,
+    privateCoreOperatorStatusVersion,
     privateCoreOperatorSnapshotKind,
     privateCoreOperatorSnapshotVersion,
+    privateCoreOperatorSupportedStatusTransport,
+    privateCoreOperatorSupportedStatusEndpoint,
     privateCoreOperatorSupportedSnapshotTransport,
     privateCoreOperatorSupportedSnapshotEndpoint,
     privateCoreOperatorShippingArtifactKind,
@@ -1323,8 +1327,12 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 operatorContractStateVersion={privateCoreOperatorContractStateVersion}
                 operatorContractVersion={privateCoreOperatorContractVersion}
                 operatorContractSummaryVersion={privateCoreOperatorContractSummaryVersion}
+                operatorStatusVersion={privateCoreOperatorStatusVersion}
+                operatorStatusKind={privateCoreOperatorStatusKind}
                 operatorSnapshotVersion={privateCoreOperatorSnapshotVersion}
                 operatorSnapshotKind={privateCoreOperatorSnapshotKind}
+                operatorSupportedStatusTransport={privateCoreOperatorSupportedStatusTransport}
+                operatorSupportedStatusEndpoint={privateCoreOperatorSupportedStatusEndpoint}
                 operatorSupportedSnapshotTransport={privateCoreOperatorSupportedSnapshotTransport}
                 operatorSupportedSnapshotEndpoint={privateCoreOperatorSupportedSnapshotEndpoint}
                 operatorShippingArtifactVersion={privateCoreOperatorShippingArtifactVersion}

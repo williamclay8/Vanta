@@ -230,8 +230,12 @@ export function UnshieldPage() {
     privateCoreOperatorContractStateVersion,
     privateCoreOperatorContractVersion,
     privateCoreOperatorContractSummaryVersion,
+    privateCoreOperatorStatusKind,
+    privateCoreOperatorStatusVersion,
     privateCoreOperatorSnapshotKind,
     privateCoreOperatorSnapshotVersion,
+    privateCoreOperatorSupportedStatusTransport,
+    privateCoreOperatorSupportedStatusEndpoint,
     privateCoreOperatorSupportedSnapshotTransport,
     privateCoreOperatorSupportedSnapshotEndpoint,
     privateCoreOperatorShippingArtifactKind,
@@ -1163,8 +1167,12 @@ export function UnshieldPage() {
           operatorContractStateVersion={privateCoreOperatorContractStateVersion}
           operatorContractVersion={privateCoreOperatorContractVersion}
           operatorContractSummaryVersion={privateCoreOperatorContractSummaryVersion}
+          operatorStatusVersion={privateCoreOperatorStatusVersion}
+          operatorStatusKind={privateCoreOperatorStatusKind}
           operatorSnapshotVersion={privateCoreOperatorSnapshotVersion}
           operatorSnapshotKind={privateCoreOperatorSnapshotKind}
+          operatorSupportedStatusTransport={privateCoreOperatorSupportedStatusTransport}
+          operatorSupportedStatusEndpoint={privateCoreOperatorSupportedStatusEndpoint}
           operatorSupportedSnapshotTransport={privateCoreOperatorSupportedSnapshotTransport}
           operatorSupportedSnapshotEndpoint={privateCoreOperatorSupportedSnapshotEndpoint}
           operatorShippingArtifactVersion={privateCoreOperatorShippingArtifactVersion}

@@ -139,8 +139,12 @@ type VantaPrivateCoreStatePanelProps = {
   operatorContractStateVersion?: number | null;
   operatorContractVersion?: number | null;
   operatorContractSummaryVersion?: number | null;
+  operatorStatusVersion?: number | null;
+  operatorStatusKind?: string | null;
   operatorSnapshotVersion?: number | null;
   operatorSnapshotKind?: string | null;
+  operatorSupportedStatusTransport?: string | null;
+  operatorSupportedStatusEndpoint?: string | null;
   operatorSupportedSnapshotTransport?: string | null;
   operatorSupportedSnapshotEndpoint?: string | null;
   operatorShippingArtifactVersion?: number | null;
@@ -414,8 +418,12 @@ export function VantaPrivateCoreStatePanel({
   operatorContractStateVersion = null,
   operatorContractVersion = null,
   operatorContractSummaryVersion = null,
+  operatorStatusVersion = null,
+  operatorStatusKind = null,
   operatorSnapshotVersion = null,
   operatorSnapshotKind = null,
+  operatorSupportedStatusTransport = null,
+  operatorSupportedStatusEndpoint = null,
   operatorSupportedSnapshotTransport = null,
   operatorSupportedSnapshotEndpoint = null,
   operatorShippingArtifactVersion = null,
@@ -860,6 +868,22 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Operator summary refresh</span>
               <strong>{formatOperatorSummaryFreshness(operatorSummaryUpdatedAt)}</strong>
+            </div>
+            <div className="review-row">
+              <span>Operator status identity</span>
+              <strong>
+                {operatorStatusKind
+                  ? `v${String(operatorStatusVersion ?? 1)} · ${operatorStatusKind}`
+                  : "Unavailable"}
+              </strong>
+            </div>
+            <div className="review-row">
+              <span>Operator status transport</span>
+              <strong>{operatorSupportedStatusTransport ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Operator status endpoint</span>
+              <strong>{operatorSupportedStatusEndpoint ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Operator snapshot identity</span>
