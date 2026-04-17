@@ -1953,6 +1953,30 @@ try {
     !operatorSnapshotOutput.includes("Snapshot transport: dedicated-endpoint") ||
     !operatorSnapshotOutput.includes("Snapshot endpoint: /state/private-core-snapshot") ||
     !operatorSnapshotOutput.includes("Contract version: 19") ||
+    !operatorSnapshotOutput.includes(
+      "Supported shipping decision note: Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane.",
+    ) ||
+    !operatorSnapshotOutput.includes(
+      "Supported operator status note: Canonical long-form live operator-status surface composed from the bundled snapshot plus the dedicated shipping artifact.",
+    ) ||
+    !operatorSnapshotOutput.includes(
+      "Supported operator snapshot note: Canonical bundled machine-readable operator artifact containing the frozen contract, live status summary, and canonical shipping decision surfaces together.",
+    ) ||
+    !operatorSnapshotOutput.includes(
+      "Supported shipping artifact note: Canonical release-grade machine-readable operator artifact containing the shipping decision plus the bundled contract, live status summary, and canonical shipping surfaces together.",
+    ) ||
+    !operatorSnapshotOutput.includes(
+      "Supported shipping decision gate note: Compact shipping decision surface can act as a strict ready gate for the frozen narrow lane.",
+    ) ||
+    !operatorSnapshotOutput.includes(
+      "Supported operator status gate note: Long-form operator-status surface can act as a strict ready gate for the frozen narrow lane.",
+    ) ||
+    !operatorSnapshotOutput.includes(
+      "Supported operator snapshot gate note: Bundled operator snapshot surface can act as a strict ready gate for the frozen narrow lane.",
+    ) ||
+    !operatorSnapshotOutput.includes(
+      "Supported shipping artifact gate note: Release-grade shipping artifact surface can act as a strict ready gate for the frozen narrow lane.",
+    ) ||
     !operatorSnapshotOutput.includes("Decision status: Blocked") ||
     !operatorSnapshotOutput.includes("Shipping status: Required lanes mismatch")
   ) {

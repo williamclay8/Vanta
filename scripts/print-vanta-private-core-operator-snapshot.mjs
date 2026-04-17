@@ -46,6 +46,14 @@ function buildSnapshotSurface(snapshot) {
     snapshotKind: snapshot?.snapshotKind ?? null,
     contractVersion: contract.contractVersion ?? null,
     contractSummaryVersion: contract.summaryVersion ?? null,
+    shippingDecisionNote: contract.supportedShippingDecisionNote ?? null,
+    shippingDecisionGateNote: contract.supportedShippingDecisionGateNote ?? null,
+    operatorStatusNote: contract.supportedOperatorStatusNote ?? null,
+    operatorStatusGateNote: contract.supportedOperatorStatusGateNote ?? null,
+    operatorSnapshotNote: contract.supportedOperatorSnapshotNote ?? null,
+    operatorSnapshotGateNote: contract.supportedOperatorSnapshotGateNote ?? null,
+    shippingArtifactNote: contract.supportedShippingArtifactNote ?? null,
+    shippingArtifactGateNote: contract.supportedShippingArtifactGateNote ?? null,
     snapshotTransport: contract.supportedOperatorSnapshotTransport ?? null,
     snapshotEndpoint: contract.supportedOperatorSnapshotEndpoint ?? null,
     snapshotGateTransport: contract.supportedOperatorSnapshotGateTransport ?? null,
@@ -112,6 +120,26 @@ function printSnapshotSurface(surface) {
   printLine(
     "Contract summary version",
     String(surface.contractSummaryVersion ?? "unknown"),
+  );
+  printLine("Supported shipping decision note", surface.shippingDecisionNote ?? "Unavailable");
+  printLine(
+    "Supported shipping decision gate note",
+    surface.shippingDecisionGateNote ?? "Unavailable",
+  );
+  printLine("Supported operator status note", surface.operatorStatusNote ?? "Unavailable");
+  printLine(
+    "Supported operator status gate note",
+    surface.operatorStatusGateNote ?? "Unavailable",
+  );
+  printLine("Supported operator snapshot note", surface.operatorSnapshotNote ?? "Unavailable");
+  printLine(
+    "Supported operator snapshot gate note",
+    surface.operatorSnapshotGateNote ?? "Unavailable",
+  );
+  printLine("Supported shipping artifact note", surface.shippingArtifactNote ?? "Unavailable");
+  printLine(
+    "Supported shipping artifact gate note",
+    surface.shippingArtifactGateNote ?? "Unavailable",
   );
   printLine("Summary state version", String(surface.summaryStateVersion ?? "unknown"));
   printLine("Summary version", String(surface.summaryVersion ?? "unknown"));
