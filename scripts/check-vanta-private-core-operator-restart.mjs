@@ -788,6 +788,14 @@ try {
       "Canonical bundled machine-readable operator artifact containing the frozen contract, live status summary, and canonical shipping decision surfaces together." ||
     blockedOperatorStatusCheckJsonPayload.summary?.supportedShippingArtifactNote !==
       "Canonical release-grade machine-readable operator artifact containing the shipping decision plus the bundled contract, live status summary, and canonical shipping surfaces together." ||
+    blockedOperatorStatusCheckJsonPayload.summary?.supportedShippingDecisionGateNote !==
+      "Compact shipping decision surface can act as a strict ready gate for the frozen narrow lane." ||
+    blockedOperatorStatusCheckJsonPayload.summary?.supportedOperatorStatusGateNote !==
+      "Long-form operator-status surface can act as a strict ready gate for the frozen narrow lane." ||
+    blockedOperatorStatusCheckJsonPayload.summary?.supportedOperatorSnapshotGateNote !==
+      "Bundled operator snapshot surface can act as a strict ready gate for the frozen narrow lane." ||
+    blockedOperatorStatusCheckJsonPayload.summary?.supportedShippingArtifactGateNote !==
+      "Release-grade shipping artifact surface can act as a strict ready gate for the frozen narrow lane." ||
     blockedOperatorStatusCheckJsonPayload.shippingDecision?.decisionStatus !== "blocked"
   ) {
     throw new Error(

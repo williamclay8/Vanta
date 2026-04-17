@@ -548,6 +548,14 @@ try {
       "Canonical bundled machine-readable operator artifact containing the frozen contract, live status summary, and canonical shipping decision surfaces together." ||
     operatorStatusJson.summary?.supportedShippingArtifactNote !==
       "Canonical release-grade machine-readable operator artifact containing the shipping decision plus the bundled contract, live status summary, and canonical shipping surfaces together." ||
+    operatorStatusJson.summary?.supportedShippingDecisionGateNote !==
+      "Compact shipping decision surface can act as a strict ready gate for the frozen narrow lane." ||
+    operatorStatusJson.summary?.supportedOperatorStatusGateNote !==
+      "Long-form operator-status surface can act as a strict ready gate for the frozen narrow lane." ||
+    operatorStatusJson.summary?.supportedOperatorSnapshotGateNote !==
+      "Bundled operator snapshot surface can act as a strict ready gate for the frozen narrow lane." ||
+    operatorStatusJson.summary?.supportedShippingArtifactGateNote !==
+      "Release-grade shipping artifact surface can act as a strict ready gate for the frozen narrow lane." ||
     operatorStatusJson.summary?.latestSend?.sendAmount !== "13000000" ||
     operatorStatusJson.summary?.latestRelease?.releasedAmount !== "13000000" ||
     operatorStatusJson.shippingDecision?.decisionStatus !== "ready-to-ship" ||
@@ -864,6 +872,14 @@ try {
       "Canonical bundled machine-readable operator artifact containing the frozen contract, live status summary, and canonical shipping decision surfaces together." ||
     operatorStatusCheckJson.summary?.supportedShippingArtifactNote !==
       "Canonical release-grade machine-readable operator artifact containing the shipping decision plus the bundled contract, live status summary, and canonical shipping surfaces together." ||
+    operatorStatusCheckJson.summary?.supportedShippingDecisionGateNote !==
+      "Compact shipping decision surface can act as a strict ready gate for the frozen narrow lane." ||
+    operatorStatusCheckJson.summary?.supportedOperatorStatusGateNote !==
+      "Long-form operator-status surface can act as a strict ready gate for the frozen narrow lane." ||
+    operatorStatusCheckJson.summary?.supportedOperatorSnapshotGateNote !==
+      "Bundled operator snapshot surface can act as a strict ready gate for the frozen narrow lane." ||
+    operatorStatusCheckJson.summary?.supportedShippingArtifactGateNote !==
+      "Release-grade shipping artifact surface can act as a strict ready gate for the frozen narrow lane." ||
     operatorStatusCheckJson.shippingDecision?.decisionStatus !== "ready-to-ship"
   ) {
     throw new Error(
