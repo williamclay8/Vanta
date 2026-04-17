@@ -589,6 +589,32 @@ try {
   }
   printStatus("private-core send-change->unshield restart operator-snapshot json: PASS");
 
+  const operatorSnapshotOutput = execFileSync("npm", [
+    "run",
+    "--silent",
+    "private-core:operator-snapshot",
+    "--",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  if (
+    !operatorSnapshotOutput.includes("Snapshot version: 1") ||
+    !operatorSnapshotOutput.includes("Snapshot kind: contract-status-shipping-bundle") ||
+    !operatorSnapshotOutput.includes("Snapshot transport: dedicated-endpoint") ||
+    !operatorSnapshotOutput.includes("Snapshot endpoint: /state/private-core-snapshot") ||
+    !operatorSnapshotOutput.includes("Decision status: Ready to ship") ||
+    !operatorSnapshotOutput.includes("Shipping status: Ready narrow v1")
+  ) {
+    throw new Error(
+      `Unexpected send-change->unshield restart operator snapshot output\n${operatorSnapshotOutput}`,
+    );
+  }
+  printStatus("private-core send-change->unshield restart operator-snapshot: PASS");
+
   const shippingStatusOutput = execFileSync("node", [
     "scripts/print-vanta-private-core-shipping-status.mjs",
     "--base-url",
@@ -691,6 +717,20 @@ try {
     );
   }
   printStatus("private-core send-change->unshield restart operator-snapshot-check json: PASS");
+
+  execFileSync("npm", [
+    "run",
+    "--silent",
+    "private-core:operator-snapshot-check",
+    "--",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  printStatus("private-core send-change->unshield restart operator-snapshot-check: PASS");
 
   const replay = await requestJson(baseUrl, "/private-core/unshield-consume", {
     body: JSON.stringify({

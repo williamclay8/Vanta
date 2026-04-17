@@ -515,6 +515,32 @@ try {
   }
   printStatus("private-core swap->unshield operator-snapshot json: PASS");
 
+  const operatorSnapshotOutput = execFileSync("npm", [
+    "run",
+    "--silent",
+    "private-core:operator-snapshot",
+    "--",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  if (
+    !operatorSnapshotOutput.includes("Snapshot version: 1") ||
+    !operatorSnapshotOutput.includes("Snapshot kind: contract-status-shipping-bundle") ||
+    !operatorSnapshotOutput.includes("Snapshot transport: dedicated-endpoint") ||
+    !operatorSnapshotOutput.includes("Snapshot endpoint: /state/private-core-snapshot") ||
+    !operatorSnapshotOutput.includes("Decision status: Blocked") ||
+    !operatorSnapshotOutput.includes("Shipping status: Required lanes mismatch")
+  ) {
+    throw new Error(
+      `Unexpected swap->unshield operator snapshot output\n${operatorSnapshotOutput}`,
+    );
+  }
+  printStatus("private-core swap->unshield operator-snapshot: PASS");
+
   const shippingStatusOutput = execFileSync("node", [
     "scripts/print-vanta-private-core-shipping-status.mjs",
     "--base-url",
@@ -684,6 +710,41 @@ try {
     );
   }
   printStatus("private-core swap->unshield operator-snapshot-check json: PASS");
+
+  let blockedOperatorSnapshotCheck = null;
+  try {
+    execFileSync(
+      "npm",
+      ["run", "--silent", "private-core:operator-snapshot-check", "--", "--base-url", baseUrl],
+      {
+        cwd: repoRoot,
+        encoding: "utf8",
+        stdio: "pipe",
+      },
+    );
+  } catch (error) {
+    blockedOperatorSnapshotCheck = error;
+  }
+  const blockedOperatorSnapshotCheckOutput =
+    blockedOperatorSnapshotCheck &&
+    typeof blockedOperatorSnapshotCheck === "object" &&
+    "stderr" in blockedOperatorSnapshotCheck &&
+    typeof blockedOperatorSnapshotCheck.stderr === "string"
+      ? blockedOperatorSnapshotCheck.stderr
+      : "";
+  if (
+    !blockedOperatorSnapshotCheck ||
+    !blockedOperatorSnapshotCheckOutput.includes("Snapshot decision status: Blocked") ||
+    !blockedOperatorSnapshotCheckOutput.includes(
+      "Snapshot decision note: No private send transition is available for boundary checks yet.",
+    )
+  ) {
+    throw new Error(
+      blockedOperatorSnapshotCheckOutput ||
+        "swap->unshield operator-snapshot-check did not fail with the expected blocker",
+    );
+  }
+  printStatus("private-core swap->unshield operator-snapshot-check: PASS");
 
   const replayResponse = await requestJson(baseUrl, "/private-core/unshield-consume", {
     body: JSON.stringify({
