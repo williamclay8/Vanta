@@ -180,6 +180,26 @@ try {
     summary.supportedOperatorSnapshotEndpoint ?? "Unavailable",
   );
   printLine(
+    "Supported shipping artifact version",
+    String(summary.supportedShippingArtifactVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported shipping artifact kind",
+    summary.supportedShippingArtifactKind ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping artifact note",
+    summary.supportedShippingArtifactNote ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping artifact transport",
+    summary.supportedShippingArtifactTransport ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping artifact endpoint",
+    summary.supportedShippingArtifactEndpoint ?? "Unavailable",
+  );
+  printLine(
     "Supported zk v1 scope decision",
     summary.supportedZkV1ScopeDecision ?? "Unavailable",
   );

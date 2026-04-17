@@ -138,6 +138,26 @@ try {
     "Supported operator snapshot endpoint",
     contract.supportedOperatorSnapshotEndpoint ?? "Unavailable",
   );
+  printLine(
+    "Supported shipping artifact version",
+    String(contract.supportedShippingArtifactVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported shipping artifact kind",
+    contract.supportedShippingArtifactKind ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping artifact note",
+    contract.supportedShippingArtifactNote ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping artifact transport",
+    contract.supportedShippingArtifactTransport ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping artifact endpoint",
+    contract.supportedShippingArtifactEndpoint ?? "Unavailable",
+  );
   printLine("Supported zk v1 scope decision", contract.supportedZkV1ScopeDecision ?? "Unavailable");
   printLine("Supported zk v1 scope note", contract.supportedZkV1ScopeNote ?? "Unavailable");
   printLine(

@@ -202,6 +202,13 @@ const PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_NOTE =
   "Canonical bundled machine-readable operator artifact containing the frozen contract, live status summary, and canonical shipping decision surfaces together.";
 const PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_TRANSPORT = "dedicated-endpoint";
 const PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_ENDPOINT = "/state/private-core-snapshot";
+const PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_VERSION = 1;
+const PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_KIND =
+  "shipping-decision-checked-snapshot-bundle";
+const PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_NOTE =
+  "Canonical release-grade machine-readable operator artifact containing the shipping decision plus the bundled contract, live status summary, and canonical shipping surfaces together.";
+const PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_TRANSPORT = "dedicated-endpoint";
+const PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_ENDPOINT = "/state/private-core-shipping-artifact";
 const PRIVATE_CORE_SUPPORTED_ZK_V1_SCOPE_DECISION =
   "accepted-narrow-private-core-v1-scope";
 const PRIVATE_CORE_SUPPORTED_ZK_V1_SCOPE_NOTE =
@@ -333,6 +340,13 @@ const server = createServer(async (request, response) => {
     writeCorsHeaders(response);
     response.writeHead(200, { "Content-Type": "application/json" });
     response.end(JSON.stringify(buildPrivateCoreOperatorSnapshotState(request)));
+    return;
+  }
+
+  if (request.method === "GET" && request.url === "/state/private-core-shipping-artifact") {
+    writeCorsHeaders(response);
+    response.writeHead(200, { "Content-Type": "application/json" });
+    response.end(JSON.stringify(buildPrivateCoreShippingArtifactState(request)));
     return;
   }
 
@@ -2226,11 +2240,31 @@ function buildPrivateCoreOperatorSnapshotState(request) {
   };
 }
 
+function buildPrivateCoreShippingArtifactState(request) {
+  const snapshot = buildPrivateCoreOperatorSnapshotState(request);
+  const shippingDecision = snapshot.status.shippingDecision;
+
+  return {
+    operator: snapshot.operator,
+    artifactVersion: 1,
+    artifactKind: "shipping-decision-checked-snapshot-bundle",
+    decisionVersion: shippingDecision.decisionVersion,
+    decisionKind: shippingDecision.decisionKind,
+    decisionStatus: shippingDecision.decisionStatus,
+    decisionNote: shippingDecision.decisionNote,
+    snapshotVersion: snapshot.snapshotVersion,
+    snapshotKind: snapshot.snapshotKind,
+    contractVersion: shippingDecision.contractVersion,
+    summaryVersion: shippingDecision.summaryVersion,
+    snapshot,
+  };
+}
+
 function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
-    contractVersion: 17,
-    summaryVersion: 41,
+    contractVersion: 18,
+    summaryVersion: 42,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
@@ -2271,6 +2305,11 @@ function buildPrivateCoreContractState() {
     supportedOperatorSnapshotNote: PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_NOTE,
     supportedOperatorSnapshotTransport: PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_TRANSPORT,
     supportedOperatorSnapshotEndpoint: PRIVATE_CORE_SUPPORTED_OPERATOR_SNAPSHOT_ENDPOINT,
+    supportedShippingArtifactVersion: PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_VERSION,
+    supportedShippingArtifactKind: PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_KIND,
+    supportedShippingArtifactNote: PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_NOTE,
+    supportedShippingArtifactTransport: PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_TRANSPORT,
+    supportedShippingArtifactEndpoint: PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_ENDPOINT,
     supportedZkV1ScopeDecision: PRIVATE_CORE_SUPPORTED_ZK_V1_SCOPE_DECISION,
     supportedZkV1ScopeNote: PRIVATE_CORE_SUPPORTED_ZK_V1_SCOPE_NOTE,
     supportedZkV1RequiredLanes: PRIVATE_CORE_SUPPORTED_ZK_V1_REQUIRED_LANES,
@@ -2357,6 +2396,11 @@ function summarizePrivateCoreContractMirrorStatus(args) {
     "supportedOperatorSnapshotNote",
     "supportedOperatorSnapshotTransport",
     "supportedOperatorSnapshotEndpoint",
+    "supportedShippingArtifactVersion",
+    "supportedShippingArtifactKind",
+    "supportedShippingArtifactNote",
+    "supportedShippingArtifactTransport",
+    "supportedShippingArtifactEndpoint",
     "supportedZkV1ScopeDecision",
     "supportedZkV1ScopeNote",
     "supportedZkV1RequiredLanes",

@@ -346,8 +346,8 @@ try {
   });
   const expectedStatusLines = [
     "Summary state version: 1",
-    "Mirrored contract version: 17",
-    "Summary version: 41",
+    "Mirrored contract version: 18",
+    "Summary version: 42",
     "Summary generated:",
     "Shipping decision version: 1",
     "Shipping decision kind: narrow-private-core-zk-v1-shipping",
@@ -465,8 +465,8 @@ try {
     operatorStatusJson.snapshotVersion !== 1 ||
     operatorStatusJson.snapshotKind !== "contract-status-shipping-bundle" ||
     operatorStatusJson.summary?.stateVersion !== 1 ||
-    operatorStatusJson.summary?.contractVersion !== 17 ||
-    operatorStatusJson.summary?.summaryVersion !== 41 ||
+    operatorStatusJson.summary?.contractVersion !== 18 ||
+    operatorStatusJson.summary?.summaryVersion !== 42 ||
     operatorStatusJson.summary?.requiredLanesStatus !== "send-lane-mismatch" ||
     operatorStatusJson.summary?.zkV1ShippingStatus !== "required-lanes-mismatch" ||
     operatorStatusJson.summary?.releaseBoundaryStatus !== "release-recorded" ||
@@ -474,8 +474,8 @@ try {
     operatorStatusJson.summary?.latestSwap?.outputAmount !== "1250000000" ||
     operatorStatusJson.summary?.latestRelease?.releasedAmount !== "1250000000" ||
     operatorStatusJson.shippingDecision?.decisionStatus !== "blocked" ||
-    operatorStatusJson.shippingDecision?.contractVersion !== 17 ||
-    operatorStatusJson.shippingDecision?.summaryVersion !== 41
+    operatorStatusJson.shippingDecision?.contractVersion !== 18 ||
+    operatorStatusJson.shippingDecision?.summaryVersion !== 42
   ) {
     throw new Error(
       `Unexpected swap->unshield operator-status JSON output\n${JSON.stringify(operatorStatusJson, null, 2)}`,
@@ -500,8 +500,8 @@ try {
     operatorSnapshotJson.operator !== baseUrl ||
     operatorSnapshotJson.snapshotVersion !== 1 ||
     operatorSnapshotJson.snapshotKind !== "contract-status-shipping-bundle" ||
-    operatorSnapshotJson.contract?.contractVersion !== 17 ||
-    operatorSnapshotJson.contract?.summaryVersion !== 41 ||
+    operatorSnapshotJson.contract?.contractVersion !== 18 ||
+    operatorSnapshotJson.contract?.summaryVersion !== 42 ||
     operatorSnapshotJson.status?.summary?.requiredLanesStatus !== "send-lane-mismatch" ||
     operatorSnapshotJson.status?.summary?.zkV1ShippingStatus !== "required-lanes-mismatch" ||
     operatorSnapshotJson.status?.summary?.latestSwap?.outputAmount !== "1250000000" ||
@@ -552,8 +552,8 @@ try {
   });
   if (
     !shippingStatusOutput.includes("Summary state version: 1") ||
-    !shippingStatusOutput.includes("Mirrored contract version: 17") ||
-    !shippingStatusOutput.includes("Summary version: 41") ||
+    !shippingStatusOutput.includes("Mirrored contract version: 18") ||
+    !shippingStatusOutput.includes("Summary version: 42") ||
     !shippingStatusOutput.includes("Summary generated:") ||
     !shippingStatusOutput.includes("Shipping status: Required lanes mismatch") ||
     !shippingStatusOutput.includes(
@@ -652,6 +652,107 @@ try {
   }
   printStatus("private-core swap->unshield shipping-check json: PASS");
 
+  let blockedShippingArtifactCheckJson = null;
+  try {
+    execFileSync(
+      "npm",
+      ["run", "--silent", "private-core:shipping-artifact-check-json", "--", "--base-url", baseUrl],
+      {
+        cwd: repoRoot,
+        encoding: "utf8",
+        stdio: "pipe",
+      },
+    );
+  } catch (error) {
+    blockedShippingArtifactCheckJson = error;
+  }
+  const blockedShippingArtifactCheckJsonOutput =
+    blockedShippingArtifactCheckJson &&
+    typeof blockedShippingArtifactCheckJson === "object" &&
+    "stderr" in blockedShippingArtifactCheckJson &&
+    typeof blockedShippingArtifactCheckJson.stderr === "string"
+      ? blockedShippingArtifactCheckJson.stderr
+      : "";
+  const blockedShippingArtifactCheckJsonStart =
+    blockedShippingArtifactCheckJsonOutput.indexOf("{");
+  const blockedShippingArtifactCheckJsonEnd =
+    blockedShippingArtifactCheckJsonOutput.lastIndexOf("}");
+  if (
+    !blockedShippingArtifactCheckJson ||
+    blockedShippingArtifactCheckJsonStart === -1 ||
+    blockedShippingArtifactCheckJsonEnd === -1 ||
+    !blockedShippingArtifactCheckJsonOutput.includes("Artifact decision status: Blocked") ||
+    !blockedShippingArtifactCheckJsonOutput.includes(
+      "Artifact decision note: No private send transition is available for boundary checks yet.",
+    )
+  ) {
+    throw new Error(
+      blockedShippingArtifactCheckJsonOutput ||
+        "swap->unshield shipping-artifact-check json did not fail with structured output",
+    );
+  }
+  const blockedShippingArtifactJson = JSON.parse(
+    blockedShippingArtifactCheckJsonOutput.slice(
+      blockedShippingArtifactCheckJsonStart,
+      blockedShippingArtifactCheckJsonEnd + 1,
+    ),
+  );
+  if (
+    blockedShippingArtifactJson.artifactVersion !== 1 ||
+    blockedShippingArtifactJson.artifactKind !== "shipping-decision-checked-snapshot-bundle" ||
+    blockedShippingArtifactJson.decisionVersion !== 1 ||
+    blockedShippingArtifactJson.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
+    blockedShippingArtifactJson.decisionStatus !== "blocked" ||
+    blockedShippingArtifactJson.decisionNote !==
+      "No private send transition is available for boundary checks yet." ||
+    blockedShippingArtifactJson.snapshotVersion !== 1 ||
+    blockedShippingArtifactJson.snapshotKind !== "contract-status-shipping-bundle" ||
+    blockedShippingArtifactJson.contractVersion !== 18 ||
+    blockedShippingArtifactJson.summaryVersion !== 42 ||
+    blockedShippingArtifactJson.snapshot?.shipping?.shippingStatusRaw !==
+      "required-lanes-mismatch"
+  ) {
+    throw new Error(
+      `Unexpected swap->unshield shipping-artifact-check json failure\n${JSON.stringify(blockedShippingArtifactJson, null, 2)}`,
+    );
+  }
+  printStatus("private-core swap->unshield shipping-artifact-check json: PASS");
+
+  let blockedShippingArtifactCheck = null;
+  try {
+    execFileSync(
+      "npm",
+      ["run", "--silent", "private-core:shipping-artifact-check", "--", "--base-url", baseUrl],
+      {
+        cwd: repoRoot,
+        encoding: "utf8",
+        stdio: "pipe",
+      },
+    );
+  } catch (error) {
+    blockedShippingArtifactCheck = error;
+  }
+  const blockedShippingArtifactCheckOutput =
+    blockedShippingArtifactCheck &&
+    typeof blockedShippingArtifactCheck === "object" &&
+    "stderr" in blockedShippingArtifactCheck &&
+    typeof blockedShippingArtifactCheck.stderr === "string"
+      ? blockedShippingArtifactCheck.stderr
+      : "";
+  if (
+    !blockedShippingArtifactCheck ||
+    !blockedShippingArtifactCheckOutput.includes("Artifact decision status: Blocked") ||
+    !blockedShippingArtifactCheckOutput.includes(
+      "Artifact decision note: No private send transition is available for boundary checks yet.",
+    )
+  ) {
+    throw new Error(
+      blockedShippingArtifactCheckOutput ||
+        "swap->unshield shipping-artifact-check did not fail with the expected blocker",
+    );
+  }
+  printStatus("private-core swap->unshield shipping-artifact-check: PASS");
+
   let blockedOperatorSnapshotCheckJson = null;
   try {
     execFileSync(
@@ -700,8 +801,8 @@ try {
   if (
     blockedOperatorSnapshotJson.snapshotVersion !== 1 ||
     blockedOperatorSnapshotJson.snapshotKind !== "contract-status-shipping-bundle" ||
-    blockedOperatorSnapshotJson.contract?.contractVersion !== 17 ||
-    blockedOperatorSnapshotJson.contract?.summaryVersion !== 41 ||
+    blockedOperatorSnapshotJson.contract?.contractVersion !== 18 ||
+    blockedOperatorSnapshotJson.contract?.summaryVersion !== 42 ||
     blockedOperatorSnapshotJson.shipping?.decisionStatusRaw !== "blocked" ||
     blockedOperatorSnapshotJson.shipping?.shippingStatusRaw !== "required-lanes-mismatch"
   ) {

@@ -25,6 +25,10 @@ npm run private-core:operator-snapshot
 npm run private-core:operator-snapshot-json
 npm run private-core:operator-snapshot-check
 npm run private-core:operator-snapshot-check-json
+npm run private-core:shipping-artifact
+npm run private-core:shipping-artifact-json
+npm run private-core:shipping-artifact-check
+npm run private-core:shipping-artifact-check-json
 npm run private-core:shipping-status
 npm run private-core:shipping-status-json
 npm run private-core:shipping-check-json
@@ -63,7 +67,7 @@ That confirms:
 - replay is still rejected after restart
 - local proof generation and verification still succeeds
 - the compact shipping summary still says whether the frozen narrow lane is actually ready or which live blocker is preventing that
-- the static operator contract is still available as machine-readable JSON, including the frozen shipping-decision contract surface
+- the static operator contract is still available as machine-readable JSON, including the frozen shipping-decision and shipping-artifact contract surfaces
 
 The operator-status command gives a quick summary snapshot of:
 - the canonical shipping decision version, kind, status, and note
@@ -124,6 +128,23 @@ That bundled artifact is now itself part of the frozen operator contract:
 Use `private-core:operator-snapshot-check` when a human wants the bundled snapshot itself to act as the strict ready gate instead of only the compact shipping slice.
 
 Use `private-core:operator-snapshot-check-json` when that same tooling wants the full bundled operator artifact as a strict ready gate instead of only the compact shipping slice.
+
+Use `private-core:shipping-artifact` when a human wants the release-grade operator artifact itself in readable form instead of only the bundled snapshot or only the compact shipping slice.
+
+Use `private-core:shipping-artifact-json` when that tooling wants one canonical release-grade operator artifact from the dedicated `/state/private-core-shipping-artifact` endpoint containing:
+- the shipping decision identity and current decision
+- the bundled snapshot identity
+- the bundled contract / live summary / canonical shipping snapshot
+
+That shipping artifact is now itself part of the frozen operator contract:
+- `supportedShippingArtifactVersion = 1`
+- `supportedShippingArtifactKind = shipping-decision-checked-snapshot-bundle`
+- `supportedShippingArtifactTransport = dedicated-endpoint`
+- `supportedShippingArtifactEndpoint = /state/private-core-shipping-artifact`
+
+Use `private-core:shipping-artifact-check` when a human wants that release-grade operator artifact itself to act as the strict ready gate.
+
+Use `private-core:shipping-artifact-check-json` when that same tooling wants the full release-grade operator artifact as a strict machine-readable ready gate.
 
 ## App demo path
 

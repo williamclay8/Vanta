@@ -102,8 +102,8 @@ try {
   if (
     !contractState.ok ||
     contractState.parsed?.stateVersion !== 1 ||
-    contractState.parsed?.contractVersion !== 17 ||
-    contractState.parsed?.summaryVersion !== 41 ||
+    contractState.parsed?.contractVersion !== 18 ||
+    contractState.parsed?.summaryVersion !== 42 ||
     contractState.parsed?.supportedSendLaneVersion !== 1 ||
     contractState.parsed?.supportedSendV1Decision !== "accepted-narrow-v1-path" ||
     typeof contractState.parsed?.supportedSendV1DecisionNote !== "string" ||
@@ -142,6 +142,13 @@ try {
     typeof contractState.parsed?.supportedOperatorSnapshotNote !== "string" ||
     contractState.parsed?.supportedOperatorSnapshotTransport !== "dedicated-endpoint" ||
     contractState.parsed?.supportedOperatorSnapshotEndpoint !== "/state/private-core-snapshot" ||
+    contractState.parsed?.supportedShippingArtifactVersion !== 1 ||
+    contractState.parsed?.supportedShippingArtifactKind !==
+      "shipping-decision-checked-snapshot-bundle" ||
+    typeof contractState.parsed?.supportedShippingArtifactNote !== "string" ||
+    contractState.parsed?.supportedShippingArtifactTransport !== "dedicated-endpoint" ||
+    contractState.parsed?.supportedShippingArtifactEndpoint !==
+      "/state/private-core-shipping-artifact" ||
     contractState.parsed?.supportedZkV1ScopeDecision !==
       "accepted-narrow-private-core-v1-scope" ||
     typeof contractState.parsed?.supportedZkV1ScopeNote !== "string" ||
@@ -227,6 +234,13 @@ try {
     "supportedOperatorSnapshotVersion",
     "supportedOperatorSnapshotKind",
     "supportedOperatorSnapshotNote",
+    "supportedOperatorSnapshotTransport",
+    "supportedOperatorSnapshotEndpoint",
+    "supportedShippingArtifactVersion",
+    "supportedShippingArtifactKind",
+    "supportedShippingArtifactNote",
+    "supportedShippingArtifactTransport",
+    "supportedShippingArtifactEndpoint",
     "supportedZkV1ScopeDecision",
     "supportedZkV1ScopeNote",
     "supportedZkV1RequiredLanes",
@@ -300,109 +314,36 @@ try {
   });
   if (
     !contractOutput.includes("Contract state version: 1") ||
-    !contractOutput.includes("Contract version: 17") ||
-    !contractOutput.includes("Summary compatibility: 41") ||
+    !contractOutput.includes("Contract version: 18") ||
+    !contractOutput.includes("Summary compatibility: 42") ||
     !contractOutput.includes("Supported note schema: NoteV0 / v0") ||
-    !contractOutput.includes("Supported send v1 decision: accepted-narrow-v1-path") ||
-    !contractOutput.includes("Supported unshield v1 decision: accepted-narrow-v1-path") ||
-    !contractOutput.includes(
-      "Supported unshield lane kind: single-note-proof-backed-consume",
-    ) ||
-    !contractOutput.includes("Supported unshield lane status: supported") ||
-    !contractOutput.includes(
-      "Supported root provenance: Shield input / send recipient output / send change output / swap output",
-    ) ||
-    !contractOutput.includes("Supported send root basis: Client-declared") ||
-    !contractOutput.includes("Supported release v1 decision: accepted-narrow-v1-path") ||
-    !contractOutput.includes(
-      "Supported release lane kind: proof-backed-consume-latest-registered-root",
-    ) ||
-    !contractOutput.includes("Supported release lane status: supported") ||
+    !contractOutput.includes("Supported send lane version: 1") ||
+    !contractOutput.includes("Supported unshield lane version: 1") ||
+    !contractOutput.includes("Supported release lane version: 1") ||
     !contractOutput.includes("Supported swap lane version: 1") ||
-    !contractOutput.includes("Supported swap lane kind: single-input-vusd-to-shielded-sol") ||
-    !contractOutput.includes("Supported swap lane status: supported") ||
-    !contractOutput.includes("Supported swap v1 decision: accepted-narrow-v1-path") ||
     !contractOutput.includes("Supported shipping decision version: 1") ||
     !contractOutput.includes(
       "Supported shipping decision kind: narrow-private-core-zk-v1-shipping",
-    ) ||
-    !contractOutput.includes(
-      "Supported shipping decision note: Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane.",
     ) ||
     !contractOutput.includes("Supported operator snapshot version: 1") ||
     !contractOutput.includes(
       "Supported operator snapshot kind: contract-status-shipping-bundle",
     ) ||
-    !contractOutput.includes(
-      "Supported operator snapshot note: Canonical bundled machine-readable operator artifact containing the frozen contract, live status summary, and canonical shipping decision surfaces together.",
-    ) ||
-    !contractOutput.includes(
-      "Supported swap v1 role: adjacent-supported-not-required-for-finish-line",
-    ) ||
-    !contractOutput.includes(
-      "Supported swap v1 role note: Current constrained swap lane is supported operator-backed infrastructure in the repo, but it is not required for the minimum zk v1 finish line.",
-    ) ||
-    !contractOutput.includes(
-      "Supported zk v1 scope decision: accepted-narrow-private-core-v1-scope",
-    ) ||
-    !contractOutput.includes(
-      "Supported zk v1 scope note: Current zk v1 finish line is the narrow private-core lane frozen in this repo, not the broader long-term privacy product surface.",
-    ) ||
     !contractOutput.includes("Supported zk v1 required lanes: send|unshield|release") ||
-    !contractOutput.includes(
-      "Supported zk v1 required lanes note: Minimum zk v1 finish line requires the narrow private-core send, unshield, and release lanes; constrained swap remains adjacent supported infrastructure.",
-    ) ||
-    !contractOutput.includes("Supported swap venue: meteora-dlmm-devnet") ||
-    !contractOutput.includes("Supported swap output model: shielded-sol-output-note") ||
-    !contractOutput.includes("Supported swap root basis: Client-declared") ||
-    !contractOutput.includes(
-      "Supported swap input-root policy: Latest registered root with linked registration proof",
-    ) ||
-    !contractOutput.includes(
-      "Supported swap output registration: Resulting root must register as swap output",
-    ) ||
-    !contractOutput.includes(
-      "Supported send input-root policy: Latest registered root with linked registration proof",
-    ) ||
-    !contractOutput.includes(
-      "Supported recipient model: hashed-reference-to-owner-key",
-    ) ||
-    !contractOutput.includes(
-      "Supported release root policy: latest-registered-root",
-    ) ||
-    !contractOutput.includes(
-      "Supported release execution: operator-recorded-devnet-release",
-    ) ||
-    !contractOutput.includes(
-      "Supported release atomicity: operator-local-atomic-consume-and-release-record",
-    ) ||
-    !contractOutput.includes("Supported release persistence: json-store-v1") ||
-    !contractOutput.includes(
-      "Owner authorization decision: accepted-v1-off-circuit-precheck",
-    ) ||
-    !contractOutput.includes(
-      "Nullifier key decision: accepted-v1-temporary-note-secret-key",
-    ) ||
-    !contractOutput.includes("Source artifact truth: source-layer-artifact-bundle") ||
-    !contractOutput.includes(
-      "Proving artifact truth: verified-proving-public-input-vector",
-    ) ||
-    !contractOutput.includes(
-      "Source/proving relationship: explicit-split-no-implicit-equality",
-    ) ||
-    !contractOutput.includes(
-      "Supported send output registration: Resulting root must register as recipient or change output",
-    ) ||
     !contractOutput.includes("Supported proof system: Noir ACIR / UltraHonk / bb.js") ||
-    !contractOutput.includes(
-      "Supported unshield circuit: vanta_private_core_single_note_unshield @ depth 3",
-    ) ||
-    !contractOutput.includes(
-      "Supported send circuit: vanta_private_core_single_note_send @ depth 3",
-    ) ||
     !contractOutput.includes("Supported operator snapshot transport: dedicated-endpoint") ||
     !contractOutput.includes(
       "Supported operator snapshot endpoint: /state/private-core-snapshot",
+    ) ||
+    !contractOutput.includes("Supported shipping artifact version: 1") ||
+    !contractOutput.includes(
+      "Supported shipping artifact kind: shipping-decision-checked-snapshot-bundle",
+    ) ||
+    !contractOutput.includes(
+      "Supported shipping artifact transport: dedicated-endpoint",
+    ) ||
+    !contractOutput.includes(
+      "Supported shipping artifact endpoint: /state/private-core-shipping-artifact",
     )
   ) {
     throw new Error(contractOutput || "operator contract script did not reflect the contract state");
@@ -425,8 +366,8 @@ try {
   if (
     contractJson.operator !== baseUrl ||
     contractJson.stateVersion !== 1 ||
-    contractJson.contractVersion !== 17 ||
-    contractJson.summaryVersion !== 41 ||
+    contractJson.contractVersion !== 18 ||
+    contractJson.summaryVersion !== 42 ||
     contractJson.supportedSendLaneVersion !== 1 ||
     contractJson.supportedUnshieldLaneVersion !== 1 ||
     contractJson.supportedReleaseLaneVersion !== 1 ||
@@ -440,7 +381,14 @@ try {
     contractJson.supportedOperatorSnapshotNote !==
       "Canonical bundled machine-readable operator artifact containing the frozen contract, live status summary, and canonical shipping decision surfaces together." ||
     contractJson.supportedOperatorSnapshotTransport !== "dedicated-endpoint" ||
-    contractJson.supportedOperatorSnapshotEndpoint !== "/state/private-core-snapshot"
+    contractJson.supportedOperatorSnapshotEndpoint !== "/state/private-core-snapshot" ||
+    contractJson.supportedShippingArtifactVersion !== 1 ||
+    contractJson.supportedShippingArtifactKind !==
+      "shipping-decision-checked-snapshot-bundle" ||
+    contractJson.supportedShippingArtifactNote !==
+      "Canonical release-grade machine-readable operator artifact containing the shipping decision plus the bundled contract, live status summary, and canonical shipping surfaces together." ||
+    contractJson.supportedShippingArtifactTransport !== "dedicated-endpoint" ||
+    contractJson.supportedShippingArtifactEndpoint !== "/state/private-core-shipping-artifact"
   ) {
     throw new Error(
       `Unexpected operator contract JSON output\n${JSON.stringify(contractJson, null, 2)}`,
