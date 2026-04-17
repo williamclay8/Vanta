@@ -1142,6 +1142,33 @@ try {
   }
   printStatus("operator restart snapshot-check endpoint: PASS");
 
+  const shippingArtifactCheckState = await requestJson(
+    baseUrl,
+    "/state/private-core-shipping-artifact-check",
+    {
+      method: "GET",
+    },
+  );
+  if (
+    !shippingArtifactCheckState.ok ||
+    shippingArtifactCheckState.parsed?.checkVersion !== 1 ||
+    shippingArtifactCheckState.parsed?.checkKind !==
+      "ready-gated-shipping-decision-checked-snapshot-bundle" ||
+    shippingArtifactCheckState.parsed?.decisionVersion !== 1 ||
+    shippingArtifactCheckState.parsed?.decisionKind !==
+      "narrow-private-core-zk-v1-shipping" ||
+    shippingArtifactCheckState.parsed?.decisionStatus !== "blocked" ||
+    shippingArtifactCheckState.parsed?.artifact?.artifactVersion !== 1 ||
+    shippingArtifactCheckState.parsed?.artifact?.artifactKind !==
+      "shipping-decision-checked-snapshot-bundle"
+  ) {
+    throw new Error(
+      shippingArtifactCheckState.text ||
+        "operator restart shipping-artifact-check endpoint returned unexpected output",
+    );
+  }
+  printStatus("operator restart shipping-artifact-check endpoint: PASS");
+
   const operatorSnapshotJsonOutput = execFileSync("npm", [
     "run",
     "--silent",

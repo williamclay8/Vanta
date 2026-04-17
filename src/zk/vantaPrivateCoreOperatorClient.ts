@@ -468,6 +468,11 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedShippingArtifactVersion: 1;
   supportedShippingArtifactKind: "shipping-decision-checked-snapshot-bundle";
   supportedShippingArtifactNote: string;
+  supportedShippingArtifactGateVersion: 1;
+  supportedShippingArtifactGateKind: "ready-gated-shipping-decision-checked-snapshot-bundle";
+  supportedShippingArtifactGateNote: string;
+  supportedShippingArtifactGateTransport: "dedicated-endpoint";
+  supportedShippingArtifactGateEndpoint: "/state/private-core-shipping-artifact-check";
   supportedShippingArtifactTransport: "dedicated-endpoint";
   supportedShippingArtifactEndpoint: "/state/private-core-shipping-artifact";
   supportedZkV1ScopeDecision: "accepted-narrow-private-core-v1-scope";
@@ -609,6 +614,11 @@ export type VantaPrivateCoreOperatorContractStateResponse = {
   supportedShippingArtifactVersion: 1;
   supportedShippingArtifactKind: "shipping-decision-checked-snapshot-bundle";
   supportedShippingArtifactNote: string;
+  supportedShippingArtifactGateVersion: 1;
+  supportedShippingArtifactGateKind: "ready-gated-shipping-decision-checked-snapshot-bundle";
+  supportedShippingArtifactGateNote: string;
+  supportedShippingArtifactGateTransport: "dedicated-endpoint";
+  supportedShippingArtifactGateEndpoint: "/state/private-core-shipping-artifact-check";
   supportedShippingArtifactTransport: "dedicated-endpoint";
   supportedShippingArtifactEndpoint: "/state/private-core-shipping-artifact";
   supportedZkV1ScopeDecision: "accepted-narrow-private-core-v1-scope";
@@ -750,6 +760,10 @@ function parsePrivateCoreOperatorContractState(
     supportedOperatorStatusEndpoint?: unknown;
     supportedShippingArtifactVersion?: unknown;
     supportedShippingArtifactKind?: unknown;
+    supportedShippingArtifactGateVersion?: unknown;
+    supportedShippingArtifactGateKind?: unknown;
+    supportedShippingArtifactGateTransport?: unknown;
+    supportedShippingArtifactGateEndpoint?: unknown;
     supportedShippingArtifactTransport?: unknown;
     supportedShippingArtifactEndpoint?: unknown;
   };
@@ -779,6 +793,12 @@ function parsePrivateCoreOperatorContractState(
     parsed.supportedOperatorStatusEndpoint !== "/state/private-core-status" ||
     parsed.supportedShippingArtifactVersion !== 1 ||
     parsed.supportedShippingArtifactKind !== "shipping-decision-checked-snapshot-bundle" ||
+    parsed.supportedShippingArtifactGateVersion !== 1 ||
+    parsed.supportedShippingArtifactGateKind !==
+      "ready-gated-shipping-decision-checked-snapshot-bundle" ||
+    parsed.supportedShippingArtifactGateTransport !== "dedicated-endpoint" ||
+    parsed.supportedShippingArtifactGateEndpoint !==
+      "/state/private-core-shipping-artifact-check" ||
     parsed.supportedShippingArtifactTransport !== "dedicated-endpoint" ||
     parsed.supportedShippingArtifactEndpoint !== "/state/private-core-shipping-artifact"
   ) {
@@ -820,6 +840,10 @@ function parsePrivateCoreOperatorSummaryState(
     supportedOperatorStatusEndpoint?: unknown;
     supportedShippingArtifactVersion?: unknown;
     supportedShippingArtifactKind?: unknown;
+    supportedShippingArtifactGateVersion?: unknown;
+    supportedShippingArtifactGateKind?: unknown;
+    supportedShippingArtifactGateTransport?: unknown;
+    supportedShippingArtifactGateEndpoint?: unknown;
     supportedShippingArtifactTransport?: unknown;
     supportedShippingArtifactEndpoint?: unknown;
   };
@@ -854,6 +878,12 @@ function parsePrivateCoreOperatorSummaryState(
     parsed.supportedOperatorStatusEndpoint !== "/state/private-core-status" ||
     parsed.supportedShippingArtifactVersion !== 1 ||
     parsed.supportedShippingArtifactKind !== "shipping-decision-checked-snapshot-bundle" ||
+    parsed.supportedShippingArtifactGateVersion !== 1 ||
+    parsed.supportedShippingArtifactGateKind !==
+      "ready-gated-shipping-decision-checked-snapshot-bundle" ||
+    parsed.supportedShippingArtifactGateTransport !== "dedicated-endpoint" ||
+    parsed.supportedShippingArtifactGateEndpoint !==
+      "/state/private-core-shipping-artifact-check" ||
     parsed.supportedShippingArtifactTransport !== "dedicated-endpoint" ||
     parsed.supportedShippingArtifactEndpoint !== "/state/private-core-shipping-artifact"
   ) {
@@ -2090,6 +2120,11 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedShippingArtifactVersion?: unknown;
     supportedShippingArtifactKind?: unknown;
     supportedShippingArtifactNote?: unknown;
+    supportedShippingArtifactGateVersion?: unknown;
+    supportedShippingArtifactGateKind?: unknown;
+    supportedShippingArtifactGateNote?: unknown;
+    supportedShippingArtifactGateTransport?: unknown;
+    supportedShippingArtifactGateEndpoint?: unknown;
     supportedShippingArtifactTransport?: unknown;
     supportedShippingArtifactEndpoint?: unknown;
     supportedZkV1ScopeDecision?: unknown;
@@ -2274,6 +2309,13 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     parsed.supportedShippingArtifactVersion !== 1 ||
     parsed.supportedShippingArtifactKind !== "shipping-decision-checked-snapshot-bundle" ||
     typeof parsed.supportedShippingArtifactNote !== "string" ||
+    parsed.supportedShippingArtifactGateVersion !== 1 ||
+    parsed.supportedShippingArtifactGateKind !==
+      "ready-gated-shipping-decision-checked-snapshot-bundle" ||
+    typeof parsed.supportedShippingArtifactGateNote !== "string" ||
+    parsed.supportedShippingArtifactGateTransport !== "dedicated-endpoint" ||
+    parsed.supportedShippingArtifactGateEndpoint !==
+      "/state/private-core-shipping-artifact-check" ||
     parsed.supportedShippingArtifactTransport !== "dedicated-endpoint" ||
     parsed.supportedShippingArtifactEndpoint !== "/state/private-core-shipping-artifact" ||
     parsed.supportedZkV1ScopeDecision !== "accepted-narrow-private-core-v1-scope" ||
@@ -2460,6 +2502,11 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedShippingArtifactVersion: 1,
     supportedShippingArtifactKind: "shipping-decision-checked-snapshot-bundle",
     supportedShippingArtifactNote: parsed.supportedShippingArtifactNote,
+    supportedShippingArtifactGateVersion: 1,
+    supportedShippingArtifactGateKind: "ready-gated-shipping-decision-checked-snapshot-bundle",
+    supportedShippingArtifactGateNote: parsed.supportedShippingArtifactGateNote,
+    supportedShippingArtifactGateTransport: "dedicated-endpoint",
+    supportedShippingArtifactGateEndpoint: "/state/private-core-shipping-artifact-check",
     supportedShippingArtifactTransport: "dedicated-endpoint",
     supportedShippingArtifactEndpoint: "/state/private-core-shipping-artifact",
     supportedZkV1ScopeDecision: "accepted-narrow-private-core-v1-scope",
@@ -2737,6 +2784,11 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedShippingArtifactVersion?: unknown;
     supportedShippingArtifactKind?: unknown;
     supportedShippingArtifactNote?: unknown;
+    supportedShippingArtifactGateVersion?: unknown;
+    supportedShippingArtifactGateKind?: unknown;
+    supportedShippingArtifactGateNote?: unknown;
+    supportedShippingArtifactGateTransport?: unknown;
+    supportedShippingArtifactGateEndpoint?: unknown;
     supportedShippingArtifactTransport?: unknown;
     supportedShippingArtifactEndpoint?: unknown;
     supportedZkV1ScopeDecision?: unknown;
@@ -2843,6 +2895,13 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     parsed.supportedShippingArtifactVersion !== 1 ||
     parsed.supportedShippingArtifactKind !== "shipping-decision-checked-snapshot-bundle" ||
     typeof parsed.supportedShippingArtifactNote !== "string" ||
+    parsed.supportedShippingArtifactGateVersion !== 1 ||
+    parsed.supportedShippingArtifactGateKind !==
+      "ready-gated-shipping-decision-checked-snapshot-bundle" ||
+    typeof parsed.supportedShippingArtifactGateNote !== "string" ||
+    parsed.supportedShippingArtifactGateTransport !== "dedicated-endpoint" ||
+    parsed.supportedShippingArtifactGateEndpoint !==
+      "/state/private-core-shipping-artifact-check" ||
     parsed.supportedShippingArtifactTransport !== "dedicated-endpoint" ||
     parsed.supportedShippingArtifactEndpoint !== "/state/private-core-shipping-artifact" ||
     parsed.supportedZkV1ScopeDecision !== "accepted-narrow-private-core-v1-scope" ||
@@ -2953,6 +3012,11 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedShippingArtifactVersion: 1,
     supportedShippingArtifactKind: "shipping-decision-checked-snapshot-bundle",
     supportedShippingArtifactNote: parsed.supportedShippingArtifactNote,
+    supportedShippingArtifactGateVersion: 1,
+    supportedShippingArtifactGateKind: "ready-gated-shipping-decision-checked-snapshot-bundle",
+    supportedShippingArtifactGateNote: parsed.supportedShippingArtifactGateNote,
+    supportedShippingArtifactGateTransport: "dedicated-endpoint",
+    supportedShippingArtifactGateEndpoint: "/state/private-core-shipping-artifact-check",
     supportedShippingArtifactTransport: "dedicated-endpoint",
     supportedShippingArtifactEndpoint: "/state/private-core-shipping-artifact",
     supportedZkV1ScopeDecision: "accepted-narrow-private-core-v1-scope",

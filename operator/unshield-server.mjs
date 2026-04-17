@@ -226,6 +226,14 @@ const PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_KIND =
   "shipping-decision-checked-snapshot-bundle";
 const PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_NOTE =
   "Canonical release-grade machine-readable operator artifact containing the shipping decision plus the bundled contract, live status summary, and canonical shipping surfaces together.";
+const PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_GATE_VERSION = 1;
+const PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_GATE_KIND =
+  "ready-gated-shipping-decision-checked-snapshot-bundle";
+const PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_GATE_NOTE =
+  "Release-grade shipping artifact surface can act as a strict ready gate for the frozen narrow lane.";
+const PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_GATE_TRANSPORT = "dedicated-endpoint";
+const PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_GATE_ENDPOINT =
+  "/state/private-core-shipping-artifact-check";
 const PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_TRANSPORT = "dedicated-endpoint";
 const PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_ENDPOINT = "/state/private-core-shipping-artifact";
 const PRIVATE_CORE_SUPPORTED_ZK_V1_SCOPE_DECISION =
@@ -387,6 +395,16 @@ const server = createServer(async (request, response) => {
     writeCorsHeaders(response);
     response.writeHead(200, { "Content-Type": "application/json" });
     response.end(JSON.stringify(buildPrivateCoreShippingArtifactState(request)));
+    return;
+  }
+
+  if (
+    request.method === "GET" &&
+    request.url === "/state/private-core-shipping-artifact-check"
+  ) {
+    writeCorsHeaders(response);
+    response.writeHead(200, { "Content-Type": "application/json" });
+    response.end(JSON.stringify(buildPrivateCoreShippingArtifactCheckState(request)));
     return;
   }
 
@@ -2349,6 +2367,21 @@ function buildPrivateCoreShippingArtifactState(request) {
   };
 }
 
+function buildPrivateCoreShippingArtifactCheckState(request) {
+  const artifact = buildPrivateCoreShippingArtifactState(request);
+
+  return {
+    operator: artifact.operator,
+    checkVersion: 1,
+    checkKind: "ready-gated-shipping-decision-checked-snapshot-bundle",
+    decisionVersion: artifact.decisionVersion,
+    decisionKind: artifact.decisionKind,
+    decisionStatus: artifact.decisionStatus,
+    decisionNote: artifact.decisionNote,
+    artifact,
+  };
+}
+
 function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
@@ -2413,6 +2446,13 @@ function buildPrivateCoreContractState() {
     supportedShippingArtifactVersion: PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_VERSION,
     supportedShippingArtifactKind: PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_KIND,
     supportedShippingArtifactNote: PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_NOTE,
+    supportedShippingArtifactGateVersion: PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_GATE_VERSION,
+    supportedShippingArtifactGateKind: PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_GATE_KIND,
+    supportedShippingArtifactGateNote: PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_GATE_NOTE,
+    supportedShippingArtifactGateTransport:
+      PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_GATE_TRANSPORT,
+    supportedShippingArtifactGateEndpoint:
+      PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_GATE_ENDPOINT,
     supportedShippingArtifactTransport: PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_TRANSPORT,
     supportedShippingArtifactEndpoint: PRIVATE_CORE_SUPPORTED_SHIPPING_ARTIFACT_ENDPOINT,
     supportedZkV1ScopeDecision: PRIVATE_CORE_SUPPORTED_ZK_V1_SCOPE_DECISION,
@@ -2517,6 +2557,11 @@ function summarizePrivateCoreContractMirrorStatus(args) {
     "supportedShippingArtifactVersion",
     "supportedShippingArtifactKind",
     "supportedShippingArtifactNote",
+    "supportedShippingArtifactGateVersion",
+    "supportedShippingArtifactGateKind",
+    "supportedShippingArtifactGateNote",
+    "supportedShippingArtifactGateTransport",
+    "supportedShippingArtifactGateEndpoint",
     "supportedShippingArtifactTransport",
     "supportedShippingArtifactEndpoint",
     "supportedZkV1ScopeDecision",

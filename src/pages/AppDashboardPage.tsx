@@ -178,6 +178,8 @@ export function AppDashboardPage() {
     privateCoreOperatorSupportedStatusGateEndpoint,
     privateCoreOperatorSupportedSnapshotGateTransport,
     privateCoreOperatorSupportedSnapshotGateEndpoint,
+    privateCoreOperatorSupportedShippingArtifactGateTransport,
+    privateCoreOperatorSupportedShippingArtifactGateEndpoint,
     privateCoreOperatorSupportedSnapshotTransport,
     privateCoreOperatorSupportedSnapshotEndpoint,
     privateCoreOperatorSupportedShippingArtifactTransport,
@@ -518,6 +520,12 @@ export function AppDashboardPage() {
               }
               operatorSupportedSnapshotGateEndpoint={
                 privateCoreOperatorSupportedSnapshotGateEndpoint
+              }
+              operatorSupportedShippingArtifactGateTransport={
+                privateCoreOperatorSupportedShippingArtifactGateTransport
+              }
+              operatorSupportedShippingArtifactGateEndpoint={
+                privateCoreOperatorSupportedShippingArtifactGateEndpoint
               }
               operatorSupportedSnapshotTransport={privateCoreOperatorSupportedSnapshotTransport}
               operatorSupportedSnapshotEndpoint={privateCoreOperatorSupportedSnapshotEndpoint}

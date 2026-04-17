@@ -211,6 +211,26 @@ try {
     contract.supportedShippingArtifactNote ?? "Unavailable",
   );
   printLine(
+    "Supported shipping artifact gate version",
+    String(contract.supportedShippingArtifactGateVersion ?? "unknown"),
+  );
+  printLine(
+    "Supported shipping artifact gate kind",
+    contract.supportedShippingArtifactGateKind ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping artifact gate note",
+    contract.supportedShippingArtifactGateNote ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping artifact gate transport",
+    contract.supportedShippingArtifactGateTransport ?? "Unavailable",
+  );
+  printLine(
+    "Supported shipping artifact gate endpoint",
+    contract.supportedShippingArtifactGateEndpoint ?? "Unavailable",
+  );
+  printLine(
     "Supported shipping artifact transport",
     contract.supportedShippingArtifactTransport ?? "Unavailable",
   );

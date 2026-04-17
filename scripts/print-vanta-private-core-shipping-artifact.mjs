@@ -4,7 +4,10 @@ const checkReady = args.includes("--check-ready");
 const jsonMode = args.includes("--json");
 
 try {
-  const artifact = await requestJson("/state/private-core-shipping-artifact");
+  const rawArtifact = checkReady
+    ? await requestJson("/state/private-core-shipping-artifact-check")
+    : await requestJson("/state/private-core-shipping-artifact");
+  const artifact = checkReady ? rawArtifact?.artifact ?? {} : rawArtifact;
   const surface = buildArtifactSurface(artifact);
 
   if (checkReady && surface.decisionStatusRaw !== "ready-to-ship") {
@@ -53,6 +56,8 @@ function buildArtifactSurface(artifact) {
     snapshotEndpoint: contract?.supportedOperatorSnapshotEndpoint ?? null,
     shippingArtifactTransport: contract?.supportedShippingArtifactTransport ?? null,
     shippingArtifactEndpoint: contract?.supportedShippingArtifactEndpoint ?? null,
+    shippingArtifactGateTransport: contract?.supportedShippingArtifactGateTransport ?? null,
+    shippingArtifactGateEndpoint: contract?.supportedShippingArtifactGateEndpoint ?? null,
     summaryGenerated: shipping?.summaryGenerated ?? null,
     shippingStatusRaw: shipping?.shippingStatusRaw ?? null,
     shippingStatus: humanizeShippingStatus(shipping?.shippingStatusRaw),
@@ -94,6 +99,14 @@ function printArtifactSurface(surface) {
     surface.shippingArtifactTransport ?? "Unavailable",
   );
   printLine("Shipping artifact endpoint", surface.shippingArtifactEndpoint ?? "Unavailable");
+  printLine(
+    "Shipping artifact gate transport",
+    surface.shippingArtifactGateTransport ?? "Unavailable",
+  );
+  printLine(
+    "Shipping artifact gate endpoint",
+    surface.shippingArtifactGateEndpoint ?? "Unavailable",
+  );
   printLine("Summary generated", surface.summaryGenerated ?? "Unavailable");
   printLine("Shipping status", surface.shippingStatus);
   printLine("Shipping note", surface.shippingNote);

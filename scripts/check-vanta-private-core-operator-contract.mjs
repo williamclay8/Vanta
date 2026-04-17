@@ -165,6 +165,13 @@ try {
     contractState.parsed?.supportedShippingArtifactKind !==
       "shipping-decision-checked-snapshot-bundle" ||
     typeof contractState.parsed?.supportedShippingArtifactNote !== "string" ||
+    contractState.parsed?.supportedShippingArtifactGateVersion !== 1 ||
+    contractState.parsed?.supportedShippingArtifactGateKind !==
+      "ready-gated-shipping-decision-checked-snapshot-bundle" ||
+    typeof contractState.parsed?.supportedShippingArtifactGateNote !== "string" ||
+    contractState.parsed?.supportedShippingArtifactGateTransport !== "dedicated-endpoint" ||
+    contractState.parsed?.supportedShippingArtifactGateEndpoint !==
+      "/state/private-core-shipping-artifact-check" ||
     contractState.parsed?.supportedShippingArtifactTransport !== "dedicated-endpoint" ||
     contractState.parsed?.supportedShippingArtifactEndpoint !==
       "/state/private-core-shipping-artifact" ||
@@ -390,6 +397,16 @@ try {
     !contractOutput.includes(
       "Supported shipping artifact kind: shipping-decision-checked-snapshot-bundle",
     ) ||
+    !contractOutput.includes("Supported shipping artifact gate version: 1") ||
+    !contractOutput.includes(
+      "Supported shipping artifact gate kind: ready-gated-shipping-decision-checked-snapshot-bundle",
+    ) ||
+    !contractOutput.includes(
+      "Supported shipping artifact gate transport: dedicated-endpoint",
+    ) ||
+    !contractOutput.includes(
+      "Supported shipping artifact gate endpoint: /state/private-core-shipping-artifact-check",
+    ) ||
     !contractOutput.includes(
       "Supported shipping artifact transport: dedicated-endpoint",
     ) ||
@@ -457,6 +474,14 @@ try {
       "shipping-decision-checked-snapshot-bundle" ||
     contractJson.supportedShippingArtifactNote !==
       "Canonical release-grade machine-readable operator artifact containing the shipping decision plus the bundled contract, live status summary, and canonical shipping surfaces together." ||
+    contractJson.supportedShippingArtifactGateVersion !== 1 ||
+    contractJson.supportedShippingArtifactGateKind !==
+      "ready-gated-shipping-decision-checked-snapshot-bundle" ||
+    contractJson.supportedShippingArtifactGateNote !==
+      "Release-grade shipping artifact surface can act as a strict ready gate for the frozen narrow lane." ||
+    contractJson.supportedShippingArtifactGateTransport !== "dedicated-endpoint" ||
+    contractJson.supportedShippingArtifactGateEndpoint !==
+      "/state/private-core-shipping-artifact-check" ||
     contractJson.supportedShippingArtifactTransport !== "dedicated-endpoint" ||
     contractJson.supportedShippingArtifactEndpoint !== "/state/private-core-shipping-artifact"
   ) {

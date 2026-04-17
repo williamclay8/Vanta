@@ -149,6 +149,8 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSupportedStatusGateEndpoint?: string | null;
   operatorSupportedSnapshotGateTransport?: string | null;
   operatorSupportedSnapshotGateEndpoint?: string | null;
+  operatorSupportedShippingArtifactGateTransport?: string | null;
+  operatorSupportedShippingArtifactGateEndpoint?: string | null;
   operatorSupportedSnapshotTransport?: string | null;
   operatorSupportedSnapshotEndpoint?: string | null;
   operatorSupportedShippingArtifactTransport?: string | null;
@@ -434,6 +436,8 @@ export function VantaPrivateCoreStatePanel({
   operatorSupportedStatusGateEndpoint = null,
   operatorSupportedSnapshotGateTransport = null,
   operatorSupportedSnapshotGateEndpoint = null,
+  operatorSupportedShippingArtifactGateTransport = null,
+  operatorSupportedShippingArtifactGateEndpoint = null,
   operatorSupportedSnapshotTransport = null,
   operatorSupportedSnapshotEndpoint = null,
   operatorSupportedShippingArtifactTransport = null,
@@ -940,6 +944,14 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Shipping artifact transport</span>
               <strong>{operatorSupportedShippingArtifactTransport ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Shipping artifact gate transport</span>
+              <strong>{operatorSupportedShippingArtifactGateTransport ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Shipping artifact gate endpoint</span>
+              <strong>{operatorSupportedShippingArtifactGateEndpoint ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Shipping artifact endpoint</span>
