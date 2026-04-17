@@ -176,20 +176,24 @@ export function AppDashboardPage() {
     privateCoreOperatorSupportedStatusEndpoint,
     privateCoreOperatorSupportedStatusGateVersion,
     privateCoreOperatorSupportedStatusGateKind,
+    privateCoreOperatorSupportedStatusGateNote,
     privateCoreOperatorSupportedStatusGateTransport,
     privateCoreOperatorSupportedStatusGateEndpoint,
     privateCoreOperatorSupportedSnapshotGateVersion,
     privateCoreOperatorSupportedSnapshotGateKind,
+    privateCoreOperatorSupportedSnapshotGateNote,
     privateCoreOperatorSupportedSnapshotGateTransport,
     privateCoreOperatorSupportedSnapshotGateEndpoint,
     privateCoreOperatorSupportedShippingDecisionGateVersion,
     privateCoreOperatorSupportedShippingDecisionGateKind,
+    privateCoreOperatorSupportedShippingDecisionGateNote,
     privateCoreOperatorSupportedShippingDecisionGateTransport,
     privateCoreOperatorSupportedShippingDecisionGateEndpoint,
     privateCoreOperatorSupportedShippingDecisionTransport,
     privateCoreOperatorSupportedShippingDecisionEndpoint,
     privateCoreOperatorSupportedShippingArtifactGateVersion,
     privateCoreOperatorSupportedShippingArtifactGateKind,
+    privateCoreOperatorSupportedShippingArtifactGateNote,
     privateCoreOperatorSupportedShippingArtifactGateTransport,
     privateCoreOperatorSupportedShippingArtifactGateEndpoint,
     privateCoreOperatorSupportedSnapshotTransport,
@@ -523,6 +527,7 @@ export function AppDashboardPage() {
               operatorSupportedStatusEndpoint={privateCoreOperatorSupportedStatusEndpoint}
               operatorSupportedStatusGateVersion={privateCoreOperatorSupportedStatusGateVersion}
               operatorSupportedStatusGateKind={privateCoreOperatorSupportedStatusGateKind}
+              operatorSupportedStatusGateNote={privateCoreOperatorSupportedStatusGateNote}
               operatorSupportedStatusGateTransport={
                 privateCoreOperatorSupportedStatusGateTransport
               }
@@ -531,6 +536,7 @@ export function AppDashboardPage() {
               }
               operatorSupportedSnapshotGateVersion={privateCoreOperatorSupportedSnapshotGateVersion}
               operatorSupportedSnapshotGateKind={privateCoreOperatorSupportedSnapshotGateKind}
+              operatorSupportedSnapshotGateNote={privateCoreOperatorSupportedSnapshotGateNote}
               operatorSupportedSnapshotGateTransport={
                 privateCoreOperatorSupportedSnapshotGateTransport
               }
@@ -542,6 +548,9 @@ export function AppDashboardPage() {
               }
               operatorSupportedShippingDecisionGateKind={
                 privateCoreOperatorSupportedShippingDecisionGateKind
+              }
+              operatorSupportedShippingDecisionGateNote={
+                privateCoreOperatorSupportedShippingDecisionGateNote
               }
               operatorSupportedShippingDecisionGateTransport={
                 privateCoreOperatorSupportedShippingDecisionGateTransport
@@ -560,6 +569,9 @@ export function AppDashboardPage() {
               }
               operatorSupportedShippingArtifactGateKind={
                 privateCoreOperatorSupportedShippingArtifactGateKind
+              }
+              operatorSupportedShippingArtifactGateNote={
+                privateCoreOperatorSupportedShippingArtifactGateNote
               }
               operatorSupportedShippingArtifactGateTransport={
                 privateCoreOperatorSupportedShippingArtifactGateTransport

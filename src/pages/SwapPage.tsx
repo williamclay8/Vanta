@@ -2201,6 +2201,7 @@ export function SwapPage() {
           privacyFlow.privateCoreOperatorSupportedStatusGateVersion
         }
         operatorSupportedStatusGateKind={privacyFlow.privateCoreOperatorSupportedStatusGateKind}
+        operatorSupportedStatusGateNote={privacyFlow.privateCoreOperatorSupportedStatusGateNote}
         operatorSupportedStatusGateTransport={
           privacyFlow.privateCoreOperatorSupportedStatusGateTransport
         }
@@ -2213,6 +2214,9 @@ export function SwapPage() {
         operatorSupportedSnapshotGateKind={
           privacyFlow.privateCoreOperatorSupportedSnapshotGateKind
         }
+        operatorSupportedSnapshotGateNote={
+          privacyFlow.privateCoreOperatorSupportedSnapshotGateNote
+        }
         operatorSupportedSnapshotGateTransport={
           privacyFlow.privateCoreOperatorSupportedSnapshotGateTransport
         }
@@ -2224,6 +2228,9 @@ export function SwapPage() {
         }
         operatorSupportedShippingDecisionGateKind={
           privacyFlow.privateCoreOperatorSupportedShippingDecisionGateKind
+        }
+        operatorSupportedShippingDecisionGateNote={
+          privacyFlow.privateCoreOperatorSupportedShippingDecisionGateNote
         }
         operatorSupportedShippingDecisionGateTransport={
           privacyFlow.privateCoreOperatorSupportedShippingDecisionGateTransport
@@ -2242,6 +2249,9 @@ export function SwapPage() {
         }
         operatorSupportedShippingArtifactGateKind={
           privacyFlow.privateCoreOperatorSupportedShippingArtifactGateKind
+        }
+        operatorSupportedShippingArtifactGateNote={
+          privacyFlow.privateCoreOperatorSupportedShippingArtifactGateNote
         }
         operatorSupportedShippingArtifactGateTransport={
           privacyFlow.privateCoreOperatorSupportedShippingArtifactGateTransport

@@ -447,6 +447,7 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedShippingDecisionNote: string;
   supportedShippingDecisionGateVersion: 1;
   supportedShippingDecisionGateKind: "ready-gated-narrow-private-core-zk-v1-shipping";
+  supportedShippingDecisionGateNote: string;
   supportedShippingDecisionGateTransport: "dedicated-endpoint";
   supportedShippingDecisionGateEndpoint: "/state/private-core-shipping-decision-check";
   supportedShippingDecisionTransport: "dedicated-endpoint";
@@ -599,6 +600,7 @@ export type VantaPrivateCoreOperatorContractStateResponse = {
   supportedShippingDecisionNote: string;
   supportedShippingDecisionGateVersion: 1;
   supportedShippingDecisionGateKind: "ready-gated-narrow-private-core-zk-v1-shipping";
+  supportedShippingDecisionGateNote: string;
   supportedShippingDecisionGateTransport: "dedicated-endpoint";
   supportedShippingDecisionGateEndpoint: "/state/private-core-shipping-decision-check";
   supportedShippingDecisionTransport: "dedicated-endpoint";
@@ -2108,6 +2110,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedFlowVersion?: unknown;
     supportedShippingDecisionVersion?: unknown;
     supportedShippingDecisionKind?: unknown;
+    supportedShippingDecisionGateNote?: unknown;
     supportedShippingDecisionGateVersion?: unknown;
     supportedShippingDecisionGateKind?: unknown;
     supportedShippingDecisionGateTransport?: unknown;
@@ -2302,6 +2305,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     typeof parsed.supportedFlowNote !== "string" ||
     parsed.supportedShippingDecisionVersion !== 1 ||
     parsed.supportedShippingDecisionKind !== "narrow-private-core-zk-v1-shipping" ||
+    typeof parsed.supportedShippingDecisionGateNote !== "string" ||
     parsed.supportedShippingDecisionGateVersion !== 1 ||
     parsed.supportedShippingDecisionGateKind !==
       "ready-gated-narrow-private-core-zk-v1-shipping" ||
@@ -2505,6 +2509,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedShippingDecisionVersion: 1,
     supportedShippingDecisionKind: "narrow-private-core-zk-v1-shipping",
     supportedShippingDecisionNote: parsed.supportedShippingDecisionNote,
+    supportedShippingDecisionGateNote: parsed.supportedShippingDecisionGateNote,
     supportedShippingDecisionGateVersion: 1,
     supportedShippingDecisionGateKind: "ready-gated-narrow-private-core-zk-v1-shipping",
     supportedShippingDecisionGateTransport: "dedicated-endpoint",
@@ -2792,6 +2797,7 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedFlowNote?: unknown;
     supportedShippingDecisionVersion?: unknown;
     supportedShippingDecisionKind?: unknown;
+    supportedShippingDecisionGateNote?: unknown;
     supportedShippingDecisionGateVersion?: unknown;
     supportedShippingDecisionGateKind?: unknown;
     supportedShippingDecisionGateTransport?: unknown;
@@ -2908,6 +2914,7 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     typeof parsed.supportedFlowNote !== "string" ||
     parsed.supportedShippingDecisionVersion !== 1 ||
     parsed.supportedShippingDecisionKind !== "narrow-private-core-zk-v1-shipping" ||
+    typeof parsed.supportedShippingDecisionGateNote !== "string" ||
     parsed.supportedShippingDecisionGateVersion !== 1 ||
     parsed.supportedShippingDecisionGateKind !==
       "ready-gated-narrow-private-core-zk-v1-shipping" ||
@@ -3035,6 +3042,7 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedShippingDecisionVersion: 1,
     supportedShippingDecisionKind: "narrow-private-core-zk-v1-shipping",
     supportedShippingDecisionNote: parsed.supportedShippingDecisionNote,
+    supportedShippingDecisionGateNote: parsed.supportedShippingDecisionGateNote,
     supportedShippingDecisionGateVersion: 1,
     supportedShippingDecisionGateKind: "ready-gated-narrow-private-core-zk-v1-shipping",
     supportedShippingDecisionGateTransport: "dedicated-endpoint",
