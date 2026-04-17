@@ -748,6 +748,41 @@ try {
   }
   printStatus("operator restart operator-status-check json: PASS");
 
+  let blockedOperatorStatusCheck = null;
+  try {
+    execFileSync(
+      "npm",
+      ["run", "--silent", "private-core:operator-status-check", "--", "--base-url", baseUrl],
+      {
+        cwd: repoRoot,
+        encoding: "utf8",
+        stdio: "pipe",
+      },
+    );
+  } catch (error) {
+    blockedOperatorStatusCheck = error;
+  }
+  const blockedOperatorStatusCheckOutput =
+    blockedOperatorStatusCheck &&
+    typeof blockedOperatorStatusCheck === "object" &&
+    "stderr" in blockedOperatorStatusCheck &&
+    typeof blockedOperatorStatusCheck.stderr === "string"
+      ? blockedOperatorStatusCheck.stderr
+      : "";
+  if (
+    !blockedOperatorStatusCheck ||
+    !blockedOperatorStatusCheckOutput.includes("Operator status decision status: Blocked") ||
+    !blockedOperatorStatusCheckOutput.includes(
+      "Operator status decision note: Latest send resulting root still needs operator registration before downstream continuity is established.",
+    )
+  ) {
+    throw new Error(
+      blockedOperatorStatusCheckOutput ||
+        "operator restart operator-status-check did not fail with the expected blocker",
+    );
+  }
+  printStatus("operator restart operator-status-check: PASS");
+
   const shippingStatusOutput = execFileSync("node", [
     "scripts/print-vanta-private-core-shipping-status.mjs",
     "--base-url",

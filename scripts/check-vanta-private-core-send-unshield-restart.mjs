@@ -866,6 +866,20 @@ try {
   execFileSync("npm", [
     "run",
     "--silent",
+    "private-core:operator-status-check",
+    "--",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  printStatus("private-core send->unshield restart operator-status-check: PASS");
+
+  execFileSync("npm", [
+    "run",
+    "--silent",
     "private-core:operator-snapshot-check",
     "--",
     "--base-url",

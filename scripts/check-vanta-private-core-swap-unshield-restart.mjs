@@ -991,6 +991,41 @@ try {
   }
   printStatus("private-core swap->unshield restart operator-status-check json: PASS");
 
+  let blockedOperatorStatusCheck = null;
+  try {
+    execFileSync(
+      "npm",
+      ["run", "--silent", "private-core:operator-status-check", "--", "--base-url", baseUrl],
+      {
+        cwd: repoRoot,
+        encoding: "utf8",
+        stdio: "pipe",
+      },
+    );
+  } catch (error) {
+    blockedOperatorStatusCheck = error;
+  }
+  const blockedOperatorStatusCheckOutput =
+    blockedOperatorStatusCheck &&
+    typeof blockedOperatorStatusCheck === "object" &&
+    "stderr" in blockedOperatorStatusCheck &&
+    typeof blockedOperatorStatusCheck.stderr === "string"
+      ? blockedOperatorStatusCheck.stderr
+      : "";
+  if (
+    !blockedOperatorStatusCheck ||
+    !blockedOperatorStatusCheckOutput.includes("Operator status decision status: Blocked") ||
+    !blockedOperatorStatusCheckOutput.includes(
+      "Operator status decision note: No private send transition is available for boundary checks yet.",
+    )
+  ) {
+    throw new Error(
+      blockedOperatorStatusCheckOutput ||
+        "swap->unshield restart operator-status-check did not fail with the expected blocker",
+    );
+  }
+  printStatus("private-core swap->unshield restart operator-status-check: PASS");
+
   let blockedOperatorSnapshotCheck = null;
   try {
     execFileSync(
