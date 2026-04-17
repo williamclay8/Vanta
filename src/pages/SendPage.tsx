@@ -216,6 +216,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorStatusVersion,
     privateCoreOperatorSnapshotKind,
     privateCoreOperatorSnapshotVersion,
+    privateCoreOperatorSupportedStatusNote,
     privateCoreOperatorSupportedStatusTransport,
     privateCoreOperatorSupportedStatusEndpoint,
     privateCoreOperatorSupportedStatusGateVersion,
@@ -240,14 +241,17 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorSupportedShippingArtifactGateNote,
     privateCoreOperatorSupportedShippingArtifactGateTransport,
     privateCoreOperatorSupportedShippingArtifactGateEndpoint,
+    privateCoreOperatorSupportedSnapshotNote,
     privateCoreOperatorSupportedSnapshotTransport,
     privateCoreOperatorSupportedSnapshotEndpoint,
+    privateCoreOperatorSupportedShippingArtifactNote,
     privateCoreOperatorSupportedShippingArtifactTransport,
     privateCoreOperatorSupportedShippingArtifactEndpoint,
     privateCoreOperatorShippingArtifactKind,
     privateCoreOperatorShippingArtifactVersion,
     privateCoreOperatorShippingDecisionKind,
     privateCoreOperatorShippingDecisionVersion,
+    privateCoreOperatorSupportedShippingDecisionNote,
     privateCoreOperatorProofSendLinkStatus,
     privateCoreOperatorSendError,
     privateCoreOperatorSends,
@@ -1955,6 +1959,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         operatorStatusKind={privateCoreOperatorStatusKind}
         operatorSnapshotVersion={privateCoreOperatorSnapshotVersion}
         operatorSnapshotKind={privateCoreOperatorSnapshotKind}
+        operatorSupportedStatusNote={privateCoreOperatorSupportedStatusNote}
         operatorSupportedStatusTransport={privateCoreOperatorSupportedStatusTransport}
         operatorSupportedStatusEndpoint={privateCoreOperatorSupportedStatusEndpoint}
         operatorSupportedStatusGateVersion={privateCoreOperatorSupportedStatusGateVersion}
@@ -2007,14 +2012,21 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         operatorSupportedShippingArtifactGateEndpoint={
           privateCoreOperatorSupportedShippingArtifactGateEndpoint
         }
+        operatorSupportedSnapshotNote={privateCoreOperatorSupportedSnapshotNote}
         operatorSupportedSnapshotTransport={privateCoreOperatorSupportedSnapshotTransport}
         operatorSupportedSnapshotEndpoint={privateCoreOperatorSupportedSnapshotEndpoint}
+        operatorSupportedShippingArtifactNote={
+          privateCoreOperatorSupportedShippingArtifactNote
+        }
         operatorSupportedShippingArtifactTransport={privateCoreOperatorSupportedShippingArtifactTransport}
         operatorSupportedShippingArtifactEndpoint={privateCoreOperatorSupportedShippingArtifactEndpoint}
         operatorShippingArtifactVersion={privateCoreOperatorShippingArtifactVersion}
         operatorShippingArtifactKind={privateCoreOperatorShippingArtifactKind}
         operatorShippingDecisionVersion={privateCoreOperatorShippingDecisionVersion}
         operatorShippingDecisionKind={privateCoreOperatorShippingDecisionKind}
+        operatorSupportedShippingDecisionNote={
+          privateCoreOperatorSupportedShippingDecisionNote
+        }
         operatorSendError={privateCoreOperatorSendError}
         operatorSends={privateCoreOperatorSends}
         operatorSendProofError={privateCoreOperatorSendProofError}

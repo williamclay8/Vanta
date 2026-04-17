@@ -172,6 +172,7 @@ export function AppDashboardPage() {
     privateCoreOperatorStatusVersion,
     privateCoreOperatorSnapshotKind,
     privateCoreOperatorSnapshotVersion,
+    privateCoreOperatorSupportedStatusNote,
     privateCoreOperatorSupportedStatusTransport,
     privateCoreOperatorSupportedStatusEndpoint,
     privateCoreOperatorSupportedStatusGateVersion,
@@ -196,14 +197,17 @@ export function AppDashboardPage() {
     privateCoreOperatorSupportedShippingArtifactGateNote,
     privateCoreOperatorSupportedShippingArtifactGateTransport,
     privateCoreOperatorSupportedShippingArtifactGateEndpoint,
+    privateCoreOperatorSupportedSnapshotNote,
     privateCoreOperatorSupportedSnapshotTransport,
     privateCoreOperatorSupportedSnapshotEndpoint,
+    privateCoreOperatorSupportedShippingArtifactNote,
     privateCoreOperatorSupportedShippingArtifactTransport,
     privateCoreOperatorSupportedShippingArtifactEndpoint,
     privateCoreOperatorShippingArtifactKind,
     privateCoreOperatorShippingArtifactVersion,
     privateCoreOperatorShippingDecisionKind,
     privateCoreOperatorShippingDecisionVersion,
+    privateCoreOperatorSupportedShippingDecisionNote,
     privateCoreOperatorSendError,
     privateCoreOperatorSends,
     privateCoreOperatorSendProofError,
@@ -523,6 +527,7 @@ export function AppDashboardPage() {
               operatorStatusKind={privateCoreOperatorStatusKind}
               operatorSnapshotVersion={privateCoreOperatorSnapshotVersion}
               operatorSnapshotKind={privateCoreOperatorSnapshotKind}
+              operatorSupportedStatusNote={privateCoreOperatorSupportedStatusNote}
               operatorSupportedStatusTransport={privateCoreOperatorSupportedStatusTransport}
               operatorSupportedStatusEndpoint={privateCoreOperatorSupportedStatusEndpoint}
               operatorSupportedStatusGateVersion={privateCoreOperatorSupportedStatusGateVersion}
@@ -579,14 +584,21 @@ export function AppDashboardPage() {
               operatorSupportedShippingArtifactGateEndpoint={
                 privateCoreOperatorSupportedShippingArtifactGateEndpoint
               }
+              operatorSupportedSnapshotNote={privateCoreOperatorSupportedSnapshotNote}
               operatorSupportedSnapshotTransport={privateCoreOperatorSupportedSnapshotTransport}
               operatorSupportedSnapshotEndpoint={privateCoreOperatorSupportedSnapshotEndpoint}
+              operatorSupportedShippingArtifactNote={
+                privateCoreOperatorSupportedShippingArtifactNote
+              }
               operatorSupportedShippingArtifactTransport={privateCoreOperatorSupportedShippingArtifactTransport}
               operatorSupportedShippingArtifactEndpoint={privateCoreOperatorSupportedShippingArtifactEndpoint}
               operatorShippingArtifactVersion={privateCoreOperatorShippingArtifactVersion}
               operatorShippingArtifactKind={privateCoreOperatorShippingArtifactKind}
               operatorShippingDecisionVersion={privateCoreOperatorShippingDecisionVersion}
               operatorShippingDecisionKind={privateCoreOperatorShippingDecisionKind}
+              operatorSupportedShippingDecisionNote={
+                privateCoreOperatorSupportedShippingDecisionNote
+              }
               operatorSendError={privateCoreOperatorSendError}
               operatorSends={privateCoreOperatorSends}
               operatorSendProofError={privateCoreOperatorSendProofError}

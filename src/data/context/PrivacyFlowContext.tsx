@@ -276,6 +276,7 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorStatusKind: string | null;
   privateCoreOperatorSnapshotVersion: number | null;
   privateCoreOperatorSnapshotKind: string | null;
+  privateCoreOperatorSupportedStatusNote: string | null;
   privateCoreOperatorSupportedStatusTransport: string | null;
   privateCoreOperatorSupportedStatusEndpoint: string | null;
   privateCoreOperatorSupportedStatusGateVersion: number | null;
@@ -300,14 +301,17 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorSupportedShippingArtifactGateNote: string | null;
   privateCoreOperatorSupportedShippingArtifactGateTransport: string | null;
   privateCoreOperatorSupportedShippingArtifactGateEndpoint: string | null;
+  privateCoreOperatorSupportedSnapshotNote: string | null;
   privateCoreOperatorSupportedSnapshotTransport: string | null;
   privateCoreOperatorSupportedSnapshotEndpoint: string | null;
+  privateCoreOperatorSupportedShippingArtifactNote: string | null;
   privateCoreOperatorSupportedShippingArtifactTransport: string | null;
   privateCoreOperatorSupportedShippingArtifactEndpoint: string | null;
   privateCoreOperatorShippingArtifactVersion: number | null;
   privateCoreOperatorShippingArtifactKind: string | null;
   privateCoreOperatorShippingDecisionVersion: number | null;
   privateCoreOperatorShippingDecisionKind: string | null;
+  privateCoreOperatorSupportedShippingDecisionNote: string | null;
   privateCoreOperatorSummaryUpdatedAt: number | null;
   privateCoreUnshieldState: VantaPrivateCoreUnshieldState | null;
   recentShield: RecentShieldContext | null;
@@ -893,6 +897,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<number | null>(null);
   const [privateCoreOperatorSnapshotKind, setPrivateCoreOperatorSnapshotKind] =
     useState<string | null>(null);
+  const [privateCoreOperatorSupportedStatusNote, setPrivateCoreOperatorSupportedStatusNote] =
+    useState<string | null>(null);
   const [privateCoreOperatorSupportedStatusTransport, setPrivateCoreOperatorSupportedStatusTransport] =
     useState<string | null>(null);
   const [privateCoreOperatorSupportedStatusEndpoint, setPrivateCoreOperatorSupportedStatusEndpoint] =
@@ -941,9 +947,13 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<string | null>(null);
   const [privateCoreOperatorSupportedShippingArtifactGateEndpoint, setPrivateCoreOperatorSupportedShippingArtifactGateEndpoint] =
     useState<string | null>(null);
+  const [privateCoreOperatorSupportedSnapshotNote, setPrivateCoreOperatorSupportedSnapshotNote] =
+    useState<string | null>(null);
   const [privateCoreOperatorSupportedSnapshotTransport, setPrivateCoreOperatorSupportedSnapshotTransport] =
     useState<string | null>(null);
   const [privateCoreOperatorSupportedSnapshotEndpoint, setPrivateCoreOperatorSupportedSnapshotEndpoint] =
+    useState<string | null>(null);
+  const [privateCoreOperatorSupportedShippingArtifactNote, setPrivateCoreOperatorSupportedShippingArtifactNote] =
     useState<string | null>(null);
   const [privateCoreOperatorSupportedShippingArtifactTransport, setPrivateCoreOperatorSupportedShippingArtifactTransport] =
     useState<string | null>(null);
@@ -956,6 +966,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   const [privateCoreOperatorShippingDecisionVersion, setPrivateCoreOperatorShippingDecisionVersion] =
     useState<number | null>(null);
   const [privateCoreOperatorShippingDecisionKind, setPrivateCoreOperatorShippingDecisionKind] =
+    useState<string | null>(null);
+  const [privateCoreOperatorSupportedShippingDecisionNote, setPrivateCoreOperatorSupportedShippingDecisionNote] =
     useState<string | null>(null);
   const [privateCoreOperatorSummaryUpdatedAt, setPrivateCoreOperatorSummaryUpdatedAt] =
     useState<number | null>(null);
@@ -1024,6 +1036,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSupportedSendResultingRootBasis,
       setPrivateCoreOperatorSupportedSendInputRootPolicy,
       setPrivateCoreOperatorSupportedSendOutputRegistrationPolicy,
+      setPrivateCoreOperatorSupportedStatusNote,
       setPrivateCoreOperatorSupportedStatusTransport,
       setPrivateCoreOperatorSupportedStatusEndpoint,
       setPrivateCoreOperatorSupportedStatusGateVersion,
@@ -1048,8 +1061,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSupportedShippingArtifactGateNote,
       setPrivateCoreOperatorSupportedShippingArtifactGateTransport,
       setPrivateCoreOperatorSupportedShippingArtifactGateEndpoint,
+      setPrivateCoreOperatorSupportedSnapshotNote,
       setPrivateCoreOperatorSupportedSnapshotTransport,
       setPrivateCoreOperatorSupportedSnapshotEndpoint,
+      setPrivateCoreOperatorSupportedShippingArtifactNote,
       setPrivateCoreOperatorSupportedShippingArtifactTransport,
       setPrivateCoreOperatorSupportedShippingArtifactEndpoint,
       setPrivateCoreOperatorSupportedRecipientModel,
@@ -1064,6 +1079,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSupportedReleaseExecutionModel,
       setPrivateCoreOperatorSupportedReleaseAtomicityModel,
       setPrivateCoreOperatorSupportedReleasePersistenceModel,
+      setPrivateCoreOperatorSupportedShippingDecisionNote,
       setPrivateCoreOperatorOwnerAuthorizationMode,
       setPrivateCoreOperatorOwnerAuthorizationDecision,
       setPrivateCoreOperatorOwnerAuthorizationDecisionNote,
@@ -2497,6 +2513,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorStatusKind,
       privateCoreOperatorSnapshotVersion,
       privateCoreOperatorSnapshotKind,
+      privateCoreOperatorSupportedStatusNote,
       privateCoreOperatorSupportedStatusTransport,
       privateCoreOperatorSupportedStatusEndpoint,
       privateCoreOperatorSupportedStatusGateVersion,
@@ -2521,14 +2538,17 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedShippingArtifactGateNote,
       privateCoreOperatorSupportedShippingArtifactGateTransport,
       privateCoreOperatorSupportedShippingArtifactGateEndpoint,
+      privateCoreOperatorSupportedSnapshotNote,
       privateCoreOperatorSupportedSnapshotTransport,
       privateCoreOperatorSupportedSnapshotEndpoint,
+      privateCoreOperatorSupportedShippingArtifactNote,
       privateCoreOperatorSupportedShippingArtifactTransport,
       privateCoreOperatorSupportedShippingArtifactEndpoint,
       privateCoreOperatorShippingArtifactVersion,
       privateCoreOperatorShippingArtifactKind,
       privateCoreOperatorShippingDecisionVersion,
       privateCoreOperatorShippingDecisionKind,
+      privateCoreOperatorSupportedShippingDecisionNote,
       privateCoreOperatorSummaryUpdatedAt,
       privateCoreUnshieldState,
       recentShield,
@@ -2690,6 +2710,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorStatusKind,
       privateCoreOperatorSnapshotVersion,
       privateCoreOperatorSnapshotKind,
+      privateCoreOperatorSupportedStatusNote,
       privateCoreOperatorSupportedStatusTransport,
       privateCoreOperatorSupportedStatusEndpoint,
       privateCoreOperatorSupportedStatusGateVersion,
@@ -2714,14 +2735,17 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedShippingArtifactGateNote,
       privateCoreOperatorSupportedShippingArtifactGateTransport,
       privateCoreOperatorSupportedShippingArtifactGateEndpoint,
+      privateCoreOperatorSupportedSnapshotNote,
       privateCoreOperatorSupportedSnapshotTransport,
       privateCoreOperatorSupportedSnapshotEndpoint,
+      privateCoreOperatorSupportedShippingArtifactNote,
       privateCoreOperatorSupportedShippingArtifactTransport,
       privateCoreOperatorSupportedShippingArtifactEndpoint,
       privateCoreOperatorShippingArtifactVersion,
       privateCoreOperatorShippingArtifactKind,
       privateCoreOperatorShippingDecisionVersion,
       privateCoreOperatorShippingDecisionKind,
+      privateCoreOperatorSupportedShippingDecisionNote,
       privateCoreOperatorSummaryUpdatedAt,
       privateCoreRecentShield,
       privateCoreUnshieldState,
@@ -3817,6 +3841,7 @@ function applyPrivateCoreOperatorContractState(args: {
   setPrivateCoreOperatorSupportedSendResultingRootBasis: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSendInputRootPolicy: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSendOutputRegistrationPolicy: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedStatusNote: (value: string | null) => void;
   setPrivateCoreOperatorSupportedStatusTransport: (value: string | null) => void;
   setPrivateCoreOperatorSupportedStatusEndpoint: (value: string | null) => void;
   setPrivateCoreOperatorSupportedStatusGateVersion: (value: number | null) => void;
@@ -3841,8 +3866,10 @@ function applyPrivateCoreOperatorContractState(args: {
   setPrivateCoreOperatorSupportedShippingArtifactGateNote: (value: string | null) => void;
   setPrivateCoreOperatorSupportedShippingArtifactGateTransport: (value: string | null) => void;
   setPrivateCoreOperatorSupportedShippingArtifactGateEndpoint: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedSnapshotNote: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSnapshotTransport: (value: string | null) => void;
   setPrivateCoreOperatorSupportedSnapshotEndpoint: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedShippingArtifactNote: (value: string | null) => void;
   setPrivateCoreOperatorSupportedShippingArtifactTransport: (value: string | null) => void;
   setPrivateCoreOperatorSupportedShippingArtifactEndpoint: (value: string | null) => void;
   setPrivateCoreOperatorSupportedRecipientModel: (value: string | null) => void;
@@ -3857,6 +3884,7 @@ function applyPrivateCoreOperatorContractState(args: {
   setPrivateCoreOperatorSupportedReleaseExecutionModel: (value: string | null) => void;
   setPrivateCoreOperatorSupportedReleaseAtomicityModel: (value: string | null) => void;
   setPrivateCoreOperatorSupportedReleasePersistenceModel: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedShippingDecisionNote: (value: string | null) => void;
   setPrivateCoreOperatorOwnerAuthorizationMode: (value: string | null) => void;
   setPrivateCoreOperatorOwnerAuthorizationDecision: (value: string | null) => void;
   setPrivateCoreOperatorOwnerAuthorizationDecisionNote: (value: string | null) => void;
@@ -3966,6 +3994,7 @@ function applyPrivateCoreOperatorContractState(args: {
   args.setPrivateCoreOperatorSupportedSendOutputRegistrationPolicy(
     args.contractState.supportedSendOutputRegistrationPolicy,
   );
+  args.setPrivateCoreOperatorSupportedStatusNote(args.contractState.supportedOperatorStatusNote);
   args.setPrivateCoreOperatorSupportedStatusTransport(
     args.contractState.supportedOperatorStatusTransport,
   );
@@ -4038,6 +4067,9 @@ function applyPrivateCoreOperatorContractState(args: {
   args.setPrivateCoreOperatorSupportedShippingArtifactGateEndpoint(
     args.contractState.supportedShippingArtifactGateEndpoint,
   );
+  args.setPrivateCoreOperatorSupportedSnapshotNote(
+    args.contractState.supportedOperatorSnapshotNote,
+  );
   args.setPrivateCoreOperatorSupportedSnapshotTransport(
     args.contractState.supportedOperatorSnapshotTransport,
   );
@@ -4046,6 +4078,9 @@ function applyPrivateCoreOperatorContractState(args: {
   );
   args.setPrivateCoreOperatorSupportedShippingArtifactTransport(
     args.contractState.supportedShippingArtifactTransport,
+  );
+  args.setPrivateCoreOperatorSupportedShippingArtifactNote(
+    args.contractState.supportedShippingArtifactNote,
   );
   args.setPrivateCoreOperatorSupportedShippingArtifactEndpoint(
     args.contractState.supportedShippingArtifactEndpoint,
@@ -4077,6 +4112,9 @@ function applyPrivateCoreOperatorContractState(args: {
   );
   args.setPrivateCoreOperatorSupportedReleasePersistenceModel(
     args.contractState.supportedReleasePersistenceModel,
+  );
+  args.setPrivateCoreOperatorSupportedShippingDecisionNote(
+    args.contractState.supportedShippingDecisionNote,
   );
   args.setPrivateCoreOperatorOwnerAuthorizationMode(args.contractState.ownerAuthorizationMode);
   args.setPrivateCoreOperatorOwnerAuthorizationDecision(

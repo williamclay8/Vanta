@@ -2195,6 +2195,7 @@ export function SwapPage() {
         operatorStatusKind={privacyFlow.privateCoreOperatorStatusKind}
         operatorSnapshotVersion={privacyFlow.privateCoreOperatorSnapshotVersion}
         operatorSnapshotKind={privacyFlow.privateCoreOperatorSnapshotKind}
+        operatorSupportedStatusNote={privacyFlow.privateCoreOperatorSupportedStatusNote}
         operatorSupportedStatusTransport={privacyFlow.privateCoreOperatorSupportedStatusTransport}
         operatorSupportedStatusEndpoint={privacyFlow.privateCoreOperatorSupportedStatusEndpoint}
         operatorSupportedStatusGateVersion={
@@ -2259,14 +2260,21 @@ export function SwapPage() {
         operatorSupportedShippingArtifactGateEndpoint={
           privacyFlow.privateCoreOperatorSupportedShippingArtifactGateEndpoint
         }
+        operatorSupportedSnapshotNote={privacyFlow.privateCoreOperatorSupportedSnapshotNote}
         operatorSupportedSnapshotTransport={privacyFlow.privateCoreOperatorSupportedSnapshotTransport}
         operatorSupportedSnapshotEndpoint={privacyFlow.privateCoreOperatorSupportedSnapshotEndpoint}
+        operatorSupportedShippingArtifactNote={
+          privacyFlow.privateCoreOperatorSupportedShippingArtifactNote
+        }
         operatorSupportedShippingArtifactTransport={privacyFlow.privateCoreOperatorSupportedShippingArtifactTransport}
         operatorSupportedShippingArtifactEndpoint={privacyFlow.privateCoreOperatorSupportedShippingArtifactEndpoint}
         operatorShippingArtifactVersion={privacyFlow.privateCoreOperatorShippingArtifactVersion}
         operatorShippingArtifactKind={privacyFlow.privateCoreOperatorShippingArtifactKind}
         operatorShippingDecisionVersion={privacyFlow.privateCoreOperatorShippingDecisionVersion}
         operatorShippingDecisionKind={privacyFlow.privateCoreOperatorShippingDecisionKind}
+        operatorSupportedShippingDecisionNote={
+          privacyFlow.privateCoreOperatorSupportedShippingDecisionNote
+        }
         operatorSendResultingRootLinkedProof={privacyFlow.privateCoreOperatorSendResultingRootLinkedProof}
         operatorSendResultingRootRecord={privacyFlow.privateCoreOperatorSendResultingRootRecord}
         operatorSendResultingRootPrimaryNote={privacyFlow.privateCoreOperatorSendResultingRootPrimaryNote}
