@@ -102,8 +102,8 @@ try {
   if (
     !contractState.ok ||
     contractState.parsed?.stateVersion !== 1 ||
-    contractState.parsed?.contractVersion !== 20 ||
-    contractState.parsed?.summaryVersion !== 44 ||
+    contractState.parsed?.contractVersion !== 21 ||
+    contractState.parsed?.summaryVersion !== 45 ||
     contractState.parsed?.supportedSendLaneVersion !== 1 ||
     contractState.parsed?.supportedSendV1Decision !== "accepted-narrow-v1-path" ||
     typeof contractState.parsed?.supportedSendV1DecisionNote !== "string" ||
@@ -359,8 +359,8 @@ try {
   });
   if (
     !contractOutput.includes("Contract state version: 1") ||
-    !contractOutput.includes("Contract version: 20") ||
-    !contractOutput.includes("Summary compatibility: 44") ||
+    !contractOutput.includes("Contract version: 21") ||
+    !contractOutput.includes("Summary compatibility: 45") ||
     !contractOutput.includes("Supported note schema: NoteV0 / v0") ||
     !contractOutput.includes("Supported send lane version: 1") ||
     !contractOutput.includes("Supported unshield lane version: 1") ||
@@ -443,6 +443,12 @@ try {
       "Supported release candidate kind: exact-run-send-consume-release-candidate",
     ) ||
     !contractOutput.includes(
+      "Supported release candidate scope: primary-send-unshield-only",
+    ) ||
+    !contractOutput.includes(
+      "Supported release candidate scope note: Exact-run release-candidate lineage is canonical only for the primary private send to downstream unshield path; downstream send-change and send-chain release variants remain valid release paths but are outside this exact candidate contract.",
+    ) ||
+    !contractOutput.includes(
       "Supported release candidate gate version: 1",
     ) ||
     !contractOutput.includes(
@@ -481,8 +487,8 @@ try {
   if (
     contractJson.operator !== baseUrl ||
     contractJson.stateVersion !== 1 ||
-    contractJson.contractVersion !== 20 ||
-    contractJson.summaryVersion !== 44 ||
+    contractJson.contractVersion !== 21 ||
+    contractJson.summaryVersion !== 45 ||
     contractJson.supportedSendLaneVersion !== 1 ||
     contractJson.supportedUnshieldLaneVersion !== 1 ||
     contractJson.supportedReleaseLaneVersion !== 1 ||
@@ -547,6 +553,9 @@ try {
       "exact-run-send-consume-release-candidate" ||
     contractJson.supportedReleaseCandidateNote !==
       "Canonical exact-run machine-readable operator artifact binding one narrow private-core release candidate to send, consume, release, and bundled snapshot lineage." ||
+    contractJson.supportedReleaseCandidateScope !== "primary-send-unshield-only" ||
+    contractJson.supportedReleaseCandidateScopeNote !==
+      "Exact-run release-candidate lineage is canonical only for the primary private send to downstream unshield path; downstream send-change and send-chain release variants remain valid release paths but are outside this exact candidate contract." ||
     contractJson.supportedReleaseCandidateGateVersion !== 1 ||
     contractJson.supportedReleaseCandidateGateKind !==
       "ready-gated-exact-run-send-consume-release-candidate" ||

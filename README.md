@@ -258,8 +258,8 @@ These commands cover:
 - operator contract and summary snapshot coherence across app, CLI, and regression surfaces
 - dedicated operator shipping decision endpoint and CLI/check surfaces
 - frozen operator contract surface:
-  - `contractVersion = 20`
-  - `summaryVersion = 44`
+  - `contractVersion = 21`
+  - `summaryVersion = 45`
   - `supportedSendV1Decision = accepted-narrow-v1-path`
   - `supportedUnshieldV1Decision = accepted-narrow-v1-path`
   - `supportedReleaseV1Decision = accepted-narrow-v1-path`
@@ -301,7 +301,7 @@ These commands cover:
 
 `private-core:shipping-artifact-check-json` is the ready-gated machine-readable form of that artifact: it exits zero only when the artifact says the frozen narrow lane is ready to ship, prints the full artifact JSON on success, and on blocked paths emits the full artifact JSON to stderr before structured `Artifact decision status:` / `Artifact decision note:` lines.
 
-`private-core:release-candidate` prints the exact narrow private-core send -> consume -> release candidate from the dedicated `/state/private-core-release-candidate` endpoint in human-readable form. It is the first operator-owned surface that binds one concrete `releaseCandidateId` to the current send, consume, and release lineage instead of only describing the latest operator state generically, and that exact-run candidate surface is now frozen into the operator contract as its own artifact family.
+`private-core:release-candidate` prints the exact narrow private-core send -> consume -> release candidate from the dedicated `/state/private-core-release-candidate` endpoint in human-readable form. It is the first operator-owned surface that binds one concrete `releaseCandidateId` to the current send, consume, and release lineage instead of only describing the latest operator state generically, and that exact-run candidate surface is now frozen into the operator contract as its own artifact family. The frozen contract also states that this exact-run candidate is canonical only for the primary `send -> unshield` path; `send-change` and `send-chain` downstream release variants remain valid release paths but are outside the exact candidate lineage contract.
 
 `private-core:release-candidate-json` prints that same exact-run candidate as machine-readable JSON from the dedicated `/state/private-core-release-candidate` endpoint so tooling can pin the concrete candidate id and lineage directly.
 

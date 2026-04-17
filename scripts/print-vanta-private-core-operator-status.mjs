@@ -849,6 +849,14 @@ function printStatusSurface(
     summary.supportedReleaseCandidateNote ?? "Unavailable",
   );
   printLine(
+    "Supported release candidate scope",
+    summary.supportedReleaseCandidateScope ?? "Unavailable",
+  );
+  printLine(
+    "Supported release candidate scope note",
+    summary.supportedReleaseCandidateScopeNote ?? "Unavailable",
+  );
+  printLine(
     "Supported release candidate gate version",
     String(summary.supportedReleaseCandidateGateVersion ?? "unknown"),
   );

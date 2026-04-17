@@ -252,6 +252,10 @@ const PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_KIND =
   "exact-run-send-consume-release-candidate";
 const PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_NOTE =
   "Canonical exact-run machine-readable operator artifact binding one narrow private-core release candidate to send, consume, release, and bundled snapshot lineage.";
+const PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_SCOPE =
+  "primary-send-unshield-only";
+const PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_SCOPE_NOTE =
+  "Exact-run release-candidate lineage is canonical only for the primary private send to downstream unshield path; downstream send-change and send-chain release variants remain valid release paths but are outside this exact candidate contract.";
 const PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_GATE_VERSION = 1;
 const PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_GATE_KIND =
   "ready-gated-exact-run-send-consume-release-candidate";
@@ -2551,8 +2555,8 @@ function buildPrivateCoreReleaseCandidateCheckState(request) {
 function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
-    contractVersion: 20,
-    summaryVersion: 44,
+    contractVersion: 21,
+    summaryVersion: 45,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
@@ -2633,6 +2637,8 @@ function buildPrivateCoreContractState() {
     supportedReleaseCandidateVersion: PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_VERSION,
     supportedReleaseCandidateKind: PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_KIND,
     supportedReleaseCandidateNote: PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_NOTE,
+    supportedReleaseCandidateScope: PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_SCOPE,
+    supportedReleaseCandidateScopeNote: PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_SCOPE_NOTE,
     supportedReleaseCandidateGateVersion: PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_GATE_VERSION,
     supportedReleaseCandidateGateKind: PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_GATE_KIND,
     supportedReleaseCandidateGateNote: PRIVATE_CORE_SUPPORTED_RELEASE_CANDIDATE_GATE_NOTE,

@@ -273,7 +273,7 @@ The repo now includes concrete verification commands for the Vanta Private Core 
 - `npm run private-core:shipping-artifact-check-json`
   runs the machine-readable ready-gated form of that release artifact; it succeeds only when the frozen narrow lane is ready and otherwise fails with the full artifact JSON plus structured artifact decision status/note stderr
 - `npm run private-core:release-candidate`
-  prints the exact narrow private-core send -> consume -> release candidate from the dedicated `/state/private-core-release-candidate` endpoint, including the bound `releaseCandidateId`, send lineage, consume lineage, release lineage, and the bundled snapshot identity behind that exact run
+  prints the exact narrow private-core send -> consume -> release candidate from the dedicated `/state/private-core-release-candidate` endpoint, including the bound `releaseCandidateId`, send lineage, consume lineage, release lineage, and the bundled snapshot identity behind that exact run. The frozen contract now also states that this exact-run candidate is canonical only for the primary `send -> unshield` path; `send-change` and `send-chain` downstream release variants remain valid release paths but sit outside the exact candidate lineage contract.
 - `npm run private-core:release-candidate-json`
   prints that same exact-run candidate as machine-readable JSON from `/state/private-core-release-candidate`
 - `npm run private-core:release-candidate-check`
@@ -288,8 +288,8 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   runs the machine-readable ready-gate form of the same compact shipping surface; it succeeds only when the frozen narrow lane is ready and otherwise fails with the JSON surface plus structured status/note stderr
 
 The current frozen operator-backed private-core contract now states the narrow accepted `v1` path explicitly:
-- `contractVersion = 20`
-- `summaryVersion = 44`
+- `contractVersion = 21`
+- `summaryVersion = 45`
 - `supportedShippingDecisionVersion = 1`
 - `supportedShippingDecisionKind = narrow-private-core-zk-v1-shipping`
 - `supportedOperatorSnapshotVersion = 1`
@@ -298,6 +298,7 @@ The current frozen operator-backed private-core contract now states the narrow a
 - `supportedOperatorSnapshotEndpoint = /state/private-core-snapshot`
 - `supportedReleaseCandidateVersion = 1`
 - `supportedReleaseCandidateKind = exact-run-send-consume-release-candidate`
+- `supportedReleaseCandidateScope = primary-send-unshield-only`
 - `supportedSendV1Decision = accepted-narrow-v1-path`
 - `supportedUnshieldV1Decision = accepted-narrow-v1-path`
 - `supportedReleaseV1Decision = accepted-narrow-v1-path`

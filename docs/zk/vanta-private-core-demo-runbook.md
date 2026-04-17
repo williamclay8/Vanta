@@ -181,9 +181,12 @@ Use `private-core:release-candidate-json` when that tooling wants one machine-re
 - the release lineage
 - the bound bundled snapshot identity
 
+That exact-run candidate is canonical only for the primary `send -> unshield` path; `send-change` and `send-chain` downstream release variants remain valid release paths, but their exact candidate surface now honestly reports blocked `consume-mismatch` lineage instead of pretending they share the same exact-run contract.
+
 That exact-run candidate is now itself part of the frozen operator contract:
 - `supportedReleaseCandidateVersion = 1`
 - `supportedReleaseCandidateKind = exact-run-send-consume-release-candidate`
+- `supportedReleaseCandidateScope = primary-send-unshield-only`
 - `supportedReleaseCandidateGateTransport = dedicated-endpoint`
 - `supportedReleaseCandidateGateEndpoint = /state/private-core-release-candidate-check`
 - `supportedReleaseCandidateTransport = dedicated-endpoint`

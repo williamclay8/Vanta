@@ -279,6 +279,14 @@ try {
     contract.supportedReleaseCandidateNote ?? "Unavailable",
   );
   printLine(
+    "Supported release candidate scope",
+    contract.supportedReleaseCandidateScope ?? "Unavailable",
+  );
+  printLine(
+    "Supported release candidate scope note",
+    contract.supportedReleaseCandidateScopeNote ?? "Unavailable",
+  );
+  printLine(
     "Supported release candidate gate version",
     String(contract.supportedReleaseCandidateGateVersion ?? "unknown"),
   );
