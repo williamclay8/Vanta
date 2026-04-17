@@ -2197,17 +2197,33 @@ export function SwapPage() {
         operatorSnapshotKind={privacyFlow.privateCoreOperatorSnapshotKind}
         operatorSupportedStatusTransport={privacyFlow.privateCoreOperatorSupportedStatusTransport}
         operatorSupportedStatusEndpoint={privacyFlow.privateCoreOperatorSupportedStatusEndpoint}
+        operatorSupportedStatusGateVersion={
+          privacyFlow.privateCoreOperatorSupportedStatusGateVersion
+        }
+        operatorSupportedStatusGateKind={privacyFlow.privateCoreOperatorSupportedStatusGateKind}
         operatorSupportedStatusGateTransport={
           privacyFlow.privateCoreOperatorSupportedStatusGateTransport
         }
         operatorSupportedStatusGateEndpoint={
           privacyFlow.privateCoreOperatorSupportedStatusGateEndpoint
         }
+        operatorSupportedSnapshotGateVersion={
+          privacyFlow.privateCoreOperatorSupportedSnapshotGateVersion
+        }
+        operatorSupportedSnapshotGateKind={
+          privacyFlow.privateCoreOperatorSupportedSnapshotGateKind
+        }
         operatorSupportedSnapshotGateTransport={
           privacyFlow.privateCoreOperatorSupportedSnapshotGateTransport
         }
         operatorSupportedSnapshotGateEndpoint={
           privacyFlow.privateCoreOperatorSupportedSnapshotGateEndpoint
+        }
+        operatorSupportedShippingDecisionGateVersion={
+          privacyFlow.privateCoreOperatorSupportedShippingDecisionGateVersion
+        }
+        operatorSupportedShippingDecisionGateKind={
+          privacyFlow.privateCoreOperatorSupportedShippingDecisionGateKind
         }
         operatorSupportedShippingDecisionGateTransport={
           privacyFlow.privateCoreOperatorSupportedShippingDecisionGateTransport
@@ -2220,6 +2236,12 @@ export function SwapPage() {
         }
         operatorSupportedShippingDecisionEndpoint={
           privacyFlow.privateCoreOperatorSupportedShippingDecisionEndpoint
+        }
+        operatorSupportedShippingArtifactGateVersion={
+          privacyFlow.privateCoreOperatorSupportedShippingArtifactGateVersion
+        }
+        operatorSupportedShippingArtifactGateKind={
+          privacyFlow.privateCoreOperatorSupportedShippingArtifactGateKind
         }
         operatorSupportedShippingArtifactGateTransport={
           privacyFlow.privateCoreOperatorSupportedShippingArtifactGateTransport

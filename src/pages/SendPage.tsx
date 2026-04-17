@@ -218,14 +218,22 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorSnapshotVersion,
     privateCoreOperatorSupportedStatusTransport,
     privateCoreOperatorSupportedStatusEndpoint,
+    privateCoreOperatorSupportedStatusGateVersion,
+    privateCoreOperatorSupportedStatusGateKind,
     privateCoreOperatorSupportedStatusGateTransport,
     privateCoreOperatorSupportedStatusGateEndpoint,
+    privateCoreOperatorSupportedSnapshotGateVersion,
+    privateCoreOperatorSupportedSnapshotGateKind,
     privateCoreOperatorSupportedSnapshotGateTransport,
     privateCoreOperatorSupportedSnapshotGateEndpoint,
+    privateCoreOperatorSupportedShippingDecisionGateVersion,
+    privateCoreOperatorSupportedShippingDecisionGateKind,
     privateCoreOperatorSupportedShippingDecisionGateTransport,
     privateCoreOperatorSupportedShippingDecisionGateEndpoint,
     privateCoreOperatorSupportedShippingDecisionTransport,
     privateCoreOperatorSupportedShippingDecisionEndpoint,
+    privateCoreOperatorSupportedShippingArtifactGateVersion,
+    privateCoreOperatorSupportedShippingArtifactGateKind,
     privateCoreOperatorSupportedShippingArtifactGateTransport,
     privateCoreOperatorSupportedShippingArtifactGateEndpoint,
     privateCoreOperatorSupportedSnapshotTransport,
@@ -1945,13 +1953,23 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         operatorSnapshotKind={privateCoreOperatorSnapshotKind}
         operatorSupportedStatusTransport={privateCoreOperatorSupportedStatusTransport}
         operatorSupportedStatusEndpoint={privateCoreOperatorSupportedStatusEndpoint}
+        operatorSupportedStatusGateVersion={privateCoreOperatorSupportedStatusGateVersion}
+        operatorSupportedStatusGateKind={privateCoreOperatorSupportedStatusGateKind}
         operatorSupportedStatusGateTransport={privateCoreOperatorSupportedStatusGateTransport}
         operatorSupportedStatusGateEndpoint={privateCoreOperatorSupportedStatusGateEndpoint}
+        operatorSupportedSnapshotGateVersion={privateCoreOperatorSupportedSnapshotGateVersion}
+        operatorSupportedSnapshotGateKind={privateCoreOperatorSupportedSnapshotGateKind}
         operatorSupportedSnapshotGateTransport={
           privateCoreOperatorSupportedSnapshotGateTransport
         }
         operatorSupportedSnapshotGateEndpoint={
           privateCoreOperatorSupportedSnapshotGateEndpoint
+        }
+        operatorSupportedShippingDecisionGateVersion={
+          privateCoreOperatorSupportedShippingDecisionGateVersion
+        }
+        operatorSupportedShippingDecisionGateKind={
+          privateCoreOperatorSupportedShippingDecisionGateKind
         }
         operatorSupportedShippingDecisionGateTransport={
           privateCoreOperatorSupportedShippingDecisionGateTransport
@@ -1964,6 +1982,12 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         }
         operatorSupportedShippingDecisionEndpoint={
           privateCoreOperatorSupportedShippingDecisionEndpoint
+        }
+        operatorSupportedShippingArtifactGateVersion={
+          privateCoreOperatorSupportedShippingArtifactGateVersion
+        }
+        operatorSupportedShippingArtifactGateKind={
+          privateCoreOperatorSupportedShippingArtifactGateKind
         }
         operatorSupportedShippingArtifactGateTransport={
           privateCoreOperatorSupportedShippingArtifactGateTransport
