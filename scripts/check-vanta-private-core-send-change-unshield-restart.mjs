@@ -869,6 +869,14 @@ try {
     operatorStatusCheckJson.shippingArtifactKind !== "shipping-decision-checked-snapshot-bundle" ||
     operatorStatusCheckJson.summary?.contractVersion !== 19 ||
     operatorStatusCheckJson.summary?.summaryVersion !== 43 ||
+    operatorStatusCheckJson.summary?.supportedShippingDecisionNote !==
+      "Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane." ||
+    operatorStatusCheckJson.summary?.supportedOperatorStatusNote !==
+      "Canonical long-form live operator-status surface composed from the bundled snapshot plus the dedicated shipping artifact." ||
+    operatorStatusCheckJson.summary?.supportedOperatorSnapshotNote !==
+      "Canonical bundled machine-readable operator artifact containing the frozen contract, live status summary, and canonical shipping decision surfaces together." ||
+    operatorStatusCheckJson.summary?.supportedShippingArtifactNote !==
+      "Canonical release-grade machine-readable operator artifact containing the shipping decision plus the bundled contract, live status summary, and canonical shipping surfaces together." ||
     operatorStatusCheckJson.shippingDecision?.decisionStatus !== "ready-to-ship"
   ) {
     throw new Error(

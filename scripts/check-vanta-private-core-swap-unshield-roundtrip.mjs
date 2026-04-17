@@ -933,6 +933,14 @@ try {
       "shipping-decision-checked-snapshot-bundle" ||
     blockedOperatorStatusCheckJsonPayload.summary?.contractVersion !== 19 ||
     blockedOperatorStatusCheckJsonPayload.summary?.summaryVersion !== 43 ||
+    blockedOperatorStatusCheckJsonPayload.summary?.supportedShippingDecisionNote !==
+      "Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane." ||
+    blockedOperatorStatusCheckJsonPayload.summary?.supportedOperatorStatusNote !==
+      "Canonical long-form live operator-status surface composed from the bundled snapshot plus the dedicated shipping artifact." ||
+    blockedOperatorStatusCheckJsonPayload.summary?.supportedOperatorSnapshotNote !==
+      "Canonical bundled machine-readable operator artifact containing the frozen contract, live status summary, and canonical shipping decision surfaces together." ||
+    blockedOperatorStatusCheckJsonPayload.summary?.supportedShippingArtifactNote !==
+      "Canonical release-grade machine-readable operator artifact containing the shipping decision plus the bundled contract, live status summary, and canonical shipping surfaces together." ||
     blockedOperatorStatusCheckJsonPayload.shippingDecision?.decisionStatus !== "blocked"
   ) {
     throw new Error(
