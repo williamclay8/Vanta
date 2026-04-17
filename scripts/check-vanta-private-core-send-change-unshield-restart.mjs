@@ -752,11 +752,52 @@ try {
   }
   printStatus("private-core send-change->unshield restart shipping-status json: PASS");
 
-  execFileSync("node", ["scripts/print-vanta-private-core-shipping-status.mjs", "--base-url", baseUrl, "--check-ready"], {
+  const shippingCheckOutput = execFileSync("node", ["scripts/print-vanta-private-core-shipping-status.mjs", "--base-url", baseUrl, "--check-ready"], {
     cwd: repoRoot,
     encoding: "utf8",
     stdio: "pipe",
   });
+  if (
+    !shippingCheckOutput.includes(`Operator: ${baseUrl}`) ||
+    !shippingCheckOutput.includes("Summary state version: 1") ||
+    !shippingCheckOutput.includes("Decision version: 1") ||
+    !shippingCheckOutput.includes("Decision kind: narrow-private-core-zk-v1-shipping") ||
+    !shippingCheckOutput.includes("Decision status: Ready to ship") ||
+    !shippingCheckOutput.includes(
+      "Decision note: Minimum zk v1 required lanes are coherent and the operator boundary remains contract-coherent enough to ship the frozen narrow lane.",
+    ) ||
+    !shippingCheckOutput.includes("Mirrored contract version: 19") ||
+    !shippingCheckOutput.includes("Summary version: 43") ||
+    !shippingCheckOutput.includes("Summary generated:") ||
+    !shippingCheckOutput.includes("Shipping status: Ready narrow v1") ||
+    !shippingCheckOutput.includes(
+      "Shipping note: Minimum zk v1 required lanes are coherent and the operator boundary remains contract-coherent enough to ship the frozen narrow lane.",
+    ) ||
+    !shippingCheckOutput.includes("Finish line status: Coherent minimum v1 lane") ||
+    !shippingCheckOutput.includes(
+      "Finish line note: Frozen minimum zk v1 send/unshield/release lane is coherent at the operator boundary.",
+    ) ||
+    !shippingCheckOutput.includes("Required lanes status: Coherent required lanes") ||
+    !shippingCheckOutput.includes(
+      "Required lanes note: Minimum zk v1 required lanes are coherent: send boundary is healthy, release boundary is recorded, and the finish line remains coherent.",
+    ) ||
+    !shippingCheckOutput.includes("Release boundary status: Release recorded") ||
+    !shippingCheckOutput.includes(
+      "Release boundary note: Latest private-core release is recorded, proof-linked, and consistent with the frozen release contract.",
+    ) ||
+    !shippingCheckOutput.includes("Contract mirror status: Summary mirrors frozen contract") ||
+    !shippingCheckOutput.includes(
+      "Contract mirror note: Operator summary mirrors the frozen private-core contract across all supported static fields.",
+    ) ||
+    !shippingCheckOutput.includes("Boundary status: Operator boundary coherent") ||
+    !shippingCheckOutput.includes(
+      "Boundary note: Current root, consume, release, and linked proofs agree.",
+    )
+  ) {
+    throw new Error(
+      `Unexpected send-change->unshield restart shipping-check output\n${shippingCheckOutput}`,
+    );
+  }
   printStatus("private-core send-change->unshield restart shipping-check: PASS");
 
   const shippingArtifactJsonOutput = execFileSync("npm", [
@@ -805,10 +846,54 @@ try {
     stdio: "pipe",
   });
   if (
+    !shippingArtifactOutput.includes(`Operator: ${baseUrl}`) ||
     !shippingArtifactOutput.includes("Artifact version: 1") ||
     !shippingArtifactOutput.includes("Artifact kind: shipping-decision-checked-snapshot-bundle") ||
+    !shippingArtifactOutput.includes("Decision version: 1") ||
+    !shippingArtifactOutput.includes("Decision kind: narrow-private-core-zk-v1-shipping") ||
     !shippingArtifactOutput.includes("Decision status: Ready to ship") ||
-    !shippingArtifactOutput.includes("Shipping status: Ready narrow v1")
+    !shippingArtifactOutput.includes(
+      "Decision note: Minimum zk v1 required lanes are coherent and the operator boundary remains contract-coherent enough to ship the frozen narrow lane.",
+    ) ||
+    !shippingArtifactOutput.includes("Snapshot version: 1") ||
+    !shippingArtifactOutput.includes("Snapshot kind: contract-status-shipping-bundle") ||
+    !shippingArtifactOutput.includes("Contract version: 19") ||
+    !shippingArtifactOutput.includes("Summary version: 43") ||
+    !shippingArtifactOutput.includes("Snapshot transport: dedicated-endpoint") ||
+    !shippingArtifactOutput.includes("Snapshot endpoint: /state/private-core-snapshot") ||
+    !shippingArtifactOutput.includes("Shipping artifact transport: dedicated-endpoint") ||
+    !shippingArtifactOutput.includes(
+      "Shipping artifact endpoint: /state/private-core-shipping-artifact",
+    ) ||
+    !shippingArtifactOutput.includes("Shipping artifact gate transport: dedicated-endpoint") ||
+    !shippingArtifactOutput.includes(
+      "Shipping artifact gate endpoint: /state/private-core-shipping-artifact-check",
+    ) ||
+    !shippingArtifactOutput.includes("Summary generated:") ||
+    !shippingArtifactOutput.includes("Shipping status: Ready narrow v1") ||
+    !shippingArtifactOutput.includes(
+      "Shipping note: Minimum zk v1 required lanes are coherent and the operator boundary remains contract-coherent enough to ship the frozen narrow lane.",
+    ) ||
+    !shippingArtifactOutput.includes("Finish line status: Coherent minimum v1 lane") ||
+    !shippingArtifactOutput.includes(
+      "Finish line note: Frozen minimum zk v1 send/unshield/release lane is coherent at the operator boundary.",
+    ) ||
+    !shippingArtifactOutput.includes("Required lanes status: Coherent required lanes") ||
+    !shippingArtifactOutput.includes(
+      "Required lanes note: Minimum zk v1 required lanes are coherent: send boundary is healthy, release boundary is recorded, and the finish line remains coherent.",
+    ) ||
+    !shippingArtifactOutput.includes("Release boundary status: Release recorded") ||
+    !shippingArtifactOutput.includes(
+      "Release boundary note: Latest private-core release is recorded, proof-linked, and consistent with the frozen release contract.",
+    ) ||
+    !shippingArtifactOutput.includes("Contract mirror status: Summary mirrors frozen contract") ||
+    !shippingArtifactOutput.includes(
+      "Contract mirror note: Operator summary mirrors the frozen private-core contract across all supported static fields.",
+    ) ||
+    !shippingArtifactOutput.includes("Boundary status: Operator boundary coherent") ||
+    !shippingArtifactOutput.includes(
+      "Boundary note: Current root, consume, release, and linked proofs agree.",
+    )
   ) {
     throw new Error(
       shippingArtifactOutput ||
