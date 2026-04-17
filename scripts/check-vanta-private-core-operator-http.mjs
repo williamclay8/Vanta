@@ -1195,6 +1195,18 @@ try {
       "Supported shipping artifact note: Canonical release-grade machine-readable operator artifact containing the shipping decision plus the bundled contract, live status summary, and canonical shipping surfaces together.",
     ) ||
     !operatorStatusOutput.includes(
+      "Supported shipping decision gate note: Compact shipping decision surface can act as a strict ready gate for the frozen narrow lane.",
+    ) ||
+    !operatorStatusOutput.includes(
+      "Supported operator status gate note: Long-form operator-status surface can act as a strict ready gate for the frozen narrow lane.",
+    ) ||
+    !operatorStatusOutput.includes(
+      "Supported operator snapshot gate note: Bundled operator snapshot surface can act as a strict ready gate for the frozen narrow lane.",
+    ) ||
+    !operatorStatusOutput.includes(
+      "Supported shipping artifact gate note: Release-grade shipping artifact surface can act as a strict ready gate for the frozen narrow lane.",
+    ) ||
+    !operatorStatusOutput.includes(
       "Supported swap v1 role: adjacent-supported-not-required-for-finish-line",
     ) ||
     !operatorStatusOutput.includes(
