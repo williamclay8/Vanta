@@ -364,6 +364,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
   const [status, setStatus] = useState<
     "idle" | "review" | "awaiting_confirmation" | "sending" | "settling" | "complete" | "failed"
   >("idle");
+  const [releaseHandoffRefreshPending, setReleaseHandoffRefreshPending] = useState(false);
   const [flowError, setFlowError] = useState<string | null>(null);
   const [lastRecipient, setLastRecipient] = useState<string | null>(null);
   const [lastSentAmount, setLastSentAmount] = useState<number | null>(null);
@@ -1609,6 +1610,12 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                     {privateCoreReleaseHandoffState?.handoffStatusLabel ?? "Unavailable"}
                   </strong>
                 </div>
+                <div className="preview-card">
+                  <span>Release package</span>
+                  <strong>
+                    {privateCoreReleaseHandoffState?.packageStatusLabel ?? "Unavailable"}
+                  </strong>
+                </div>
               </div>
               <p className="shield-helper shield-helper--meta">
                 Latest send proof:{" "}
@@ -1677,6 +1684,18 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 Next handoff action: {privateCoreReleaseHandoffState?.nextActionLabel ?? "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
+                Release package: {privateCoreReleaseHandoffState?.packageStatusLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Package note: {privateCoreReleaseHandoffState?.packagePrimaryNote ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Artifact identity: {privateCoreReleaseHandoffState?.artifactIdentityLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Decision identity: {privateCoreReleaseHandoffState?.decisionIdentityLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
                 Recipient recovery: Recipient can recover the sent note privately with the matched
                 private key.
               </p>
@@ -1691,6 +1710,19 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 >
                   {privateCoreReleaseHandoffState?.nextActionLabel ?? "Unshield Residual Note"}
                 </Link>
+                <button
+                  className="button button-ghost"
+                  type="button"
+                  onClick={() => {
+                    setReleaseHandoffRefreshPending(true);
+                    void refreshPrivateCoreOperatorSummary().finally(() => {
+                      setReleaseHandoffRefreshPending(false);
+                    });
+                  }}
+                  disabled={releaseHandoffRefreshPending}
+                >
+                  {releaseHandoffRefreshPending ? "Refreshing handoff" : "Refresh release handoff"}
+                </button>
                 <button
                   className="button button-ghost"
                   type="button"
@@ -1765,6 +1797,12 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                     {privateCoreReleaseHandoffState?.handoffStatusLabel ?? "Unavailable"}
                   </strong>
                 </div>
+                <div className="preview-card">
+                  <span>Release package</span>
+                  <strong>
+                    {privateCoreReleaseHandoffState?.packageStatusLabel ?? "Unavailable"}
+                  </strong>
+                </div>
               </div>
               <p className="shield-helper shield-helper--meta">
                 Recipient recovery: {privateCoreSendState.recipientRecoveryStatus}
@@ -1819,6 +1857,18 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               </p>
               <p className="shield-helper shield-helper--meta">
                 Next handoff action: {privateCoreReleaseHandoffState?.nextActionLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Release package: {privateCoreReleaseHandoffState?.packageStatusLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Package note: {privateCoreReleaseHandoffState?.packagePrimaryNote ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Artifact identity: {privateCoreReleaseHandoffState?.artifactIdentityLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Decision identity: {privateCoreReleaseHandoffState?.decisionIdentityLabel ?? "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
                 Send root record: {abbreviate(privateCoreOperatorSendResultingRootRecord?.root) ?? "Unavailable"}

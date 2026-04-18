@@ -202,6 +202,8 @@ Inside the app, the same primary `send -> unshield` lane is now surfaced as a fi
 - ship
 - handoff status
 - next recommended action
+- release package status
+- release package identity
 
 ## App demo path
 

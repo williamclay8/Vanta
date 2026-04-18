@@ -296,6 +296,7 @@ export function UnshieldPage() {
     privateCoreSendState,
     privateCoreSwapState,
     privateCoreUnshieldState,
+    refreshPrivateCoreOperatorSummary,
     runPrivateCoreReplayAttempt,
     runPrivateCoreUnshield,
   } = usePrivacyFlow();
@@ -318,6 +319,7 @@ export function UnshieldPage() {
   const [flowError, setFlowError] = useState<string | null>(null);
   const [pendingSpentMarker, setPendingSpentMarker] = useState<PendingSpentMarker | null>(null);
   const [pendingUnshieldBridge, setPendingUnshieldBridge] = useState<PendingUnshieldBridge | null>(null);
+  const [releaseHandoffRefreshPending, setReleaseHandoffRefreshPending] = useState(false);
   const [unshieldBridgeError, setUnshieldBridgeError] = useState<string | null>(null);
   const [operatorAuthorizationStarted, setOperatorAuthorizationStarted] = useState(false);
   const [operatorReleaseSignature, setOperatorReleaseSignature] = useState<string | null>(null);
@@ -1064,6 +1066,16 @@ export function UnshieldPage() {
                 ? `${privateCoreReleaseHandoffState.handoffStatusLabel} · ${privateCoreReleaseHandoffState.handoffPrimaryNote}`
                 : privateCoreSendCompleted
                   ? "Awaiting release handoff summary"
+                  : "Available after primary private send"}
+            </strong>
+          </div>
+          <div className="review-row">
+            <span>9. Release package</span>
+            <strong>
+              {privateCoreReleaseHandoffState
+                ? `${privateCoreReleaseHandoffState.packageStatusLabel} · ${privateCoreReleaseHandoffState.packagePrimaryNote}`
+                : privateCoreSendCompleted
+                  ? "Awaiting release package summary"
                   : "Available after primary private send"}
             </strong>
           </div>
@@ -1966,6 +1978,12 @@ export function UnshieldPage() {
                     {privateCoreReleaseHandoffState?.handoffStatusLabel ?? "Unavailable"}
                   </strong>
                 </div>
+                <div className="preview-card">
+                  <span>Release package</span>
+                  <strong>
+                    {privateCoreReleaseHandoffState?.packageStatusLabel ?? "Unavailable"}
+                  </strong>
+                </div>
               </div>
               <div className="review-list">
                 <div className="review-row">
@@ -2016,6 +2034,37 @@ export function UnshieldPage() {
                   <span>Handoff note</span>
                   <strong>{privateCoreReleaseHandoffState?.handoffPrimaryNote ?? "Unavailable"}</strong>
                 </div>
+                <div className="review-row">
+                  <span>Release package</span>
+                  <strong>{privateCoreReleaseHandoffState?.packageStatusLabel ?? "Unavailable"}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Package note</span>
+                  <strong>{privateCoreReleaseHandoffState?.packagePrimaryNote ?? "Unavailable"}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Artifact identity</span>
+                  <strong>{privateCoreReleaseHandoffState?.artifactIdentityLabel ?? "Unavailable"}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Decision identity</span>
+                  <strong>{privateCoreReleaseHandoffState?.decisionIdentityLabel ?? "Unavailable"}</strong>
+                </div>
+              </div>
+              <div className="status-actions" style={{ marginTop: 16 }}>
+                <button
+                  className="button button-ghost"
+                  type="button"
+                  onClick={() => {
+                    setReleaseHandoffRefreshPending(true);
+                    void refreshPrivateCoreOperatorSummary().finally(() => {
+                      setReleaseHandoffRefreshPending(false);
+                    });
+                  }}
+                  disabled={releaseHandoffRefreshPending}
+                >
+                  {releaseHandoffRefreshPending ? "Refreshing handoff" : "Refresh release handoff"}
+                </button>
               </div>
               {lastTransitionSignature && (
                 <p className="shield-helper shield-helper--meta">

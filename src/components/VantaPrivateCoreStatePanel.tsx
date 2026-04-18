@@ -993,6 +993,14 @@ export function VantaPrivateCoreStatePanel({
                 <strong>{releaseHandoffState.nextActionLabel}</strong>
               </div>
               <div className="review-row">
+                <span>Release package</span>
+                <strong>{releaseHandoffState.packageStatusLabel}</strong>
+              </div>
+              <div className="review-row">
+                <span>Package note</span>
+                <strong>{releaseHandoffState.packagePrimaryNote}</strong>
+              </div>
+              <div className="review-row">
                 <span>Prepare</span>
                 <strong>{releaseHandoffState.prepareStatusLabel}</strong>
               </div>
@@ -1007,6 +1015,14 @@ export function VantaPrivateCoreStatePanel({
               <div className="review-row">
                 <span>Artifact decision</span>
                 <strong>{releaseHandoffState.artifactDecisionStatusLabel}</strong>
+              </div>
+              <div className="review-row">
+                <span>Artifact identity</span>
+                <strong>{releaseHandoffState.artifactIdentityLabel}</strong>
+              </div>
+              <div className="review-row">
+                <span>Decision identity</span>
+                <strong>{releaseHandoffState.decisionIdentityLabel}</strong>
               </div>
               <div className="review-row">
                 <span>Artifact note</span>

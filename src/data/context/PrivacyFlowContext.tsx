@@ -504,6 +504,10 @@ export type VantaPrivateCoreReleaseHandoffState = {
   handoffPrimaryNote: string;
   nextActionLabel: string;
   nextActionHref: string | null;
+  packageStatusLabel: string;
+  packagePrimaryNote: string;
+  artifactIdentityLabel: string;
+  decisionIdentityLabel: string;
   artifactDecisionStatusLabel: string;
   artifactDecisionPrimaryNote: string;
   prepareStatusLabel: string;
@@ -1439,8 +1443,13 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       summarizePrivateCoreReleaseHandoffState({
         candidate: privateCoreOperatorReleaseCandidate,
         workflow: privateCoreReleaseWorkflowState,
+        shippingArtifact: privateCoreOperatorShippingArtifact,
       }),
-    [privateCoreOperatorReleaseCandidate, privateCoreReleaseWorkflowState],
+    [
+      privateCoreOperatorReleaseCandidate,
+      privateCoreReleaseWorkflowState,
+      privateCoreOperatorShippingArtifact,
+    ],
   );
 
   const privateCoreSwapState = useMemo(
@@ -4062,15 +4071,18 @@ function summarizePrivateCoreReleaseWorkflowState(args: {
 function summarizePrivateCoreReleaseHandoffState(args: {
   candidate: VantaPrivateCoreOperatorReleaseCandidateResponse | null;
   workflow: VantaPrivateCoreReleaseWorkflowState | null;
+  shippingArtifact: VantaPrivateCoreOperatorShippingArtifactResponse | null;
 }): VantaPrivateCoreReleaseHandoffState | null {
   const candidate = args.candidate;
   const workflow = args.workflow;
+  const shippingArtifact = args.shippingArtifact;
 
-  if (!candidate && !workflow) {
+  if (!candidate && !workflow && !shippingArtifact) {
     return null;
   }
 
-  const releaseCandidateId = workflow?.releaseCandidateId ?? candidate?.releaseCandidateId ?? null;
+  const releaseCandidateId =
+    workflow?.releaseCandidateId ?? candidate?.releaseCandidateId ?? shippingArtifact?.releaseCandidateId ?? null;
   const prepareStatusLabel = workflow?.prepareStatusLabel ?? "Awaiting primary send";
   const checkStatusLabel = workflow?.checkStatusLabel ?? "Awaiting candidate";
   const shipStatusLabel = workflow?.shipStatusLabel ?? "Awaiting shipping artifact";
@@ -4078,6 +4090,12 @@ function summarizePrivateCoreReleaseHandoffState(args: {
   const artifactDecisionPrimaryNote =
     workflow?.shipPrimaryNote ??
     "The exact release handoff is waiting for the operator-backed shipping artifact.";
+  const artifactIdentityLabel = shippingArtifact
+    ? `Artifact v${String(shippingArtifact.artifactVersion)} · ${shippingArtifact.artifactKind}`
+    : "Awaiting shipping artifact";
+  const decisionIdentityLabel = shippingArtifact
+    ? `Decision v${String(shippingArtifact.decisionVersion)} · ${shippingArtifact.decisionKind}`
+    : "Awaiting shipping decision";
 
   if (shipStatusLabel === "Shipping artifact ready") {
     return {
@@ -4087,6 +4105,11 @@ function summarizePrivateCoreReleaseHandoffState(args: {
         "The canonical primary send-to-unshield lane has a checked exact candidate and a release-grade shipping artifact ready for handoff.",
       nextActionLabel: "Review shipping artifact",
       nextActionHref: null,
+      packageStatusLabel: "Release package ready",
+      packagePrimaryNote:
+        "The exact release candidate, checked shipping decision, and release-grade shipping artifact are packaged together for final review.",
+      artifactIdentityLabel,
+      decisionIdentityLabel,
       artifactDecisionStatusLabel,
       artifactDecisionPrimaryNote,
       prepareStatusLabel,
@@ -4105,6 +4128,11 @@ function summarizePrivateCoreReleaseHandoffState(args: {
         "Start with the canonical primary private send to create the exact release candidate for the narrow zk v1 lane.",
       nextActionLabel: "Run primary private send",
       nextActionHref: "/app/send",
+      packageStatusLabel: "Release package unavailable",
+      packagePrimaryNote:
+        "The final release handoff package does not exist until the canonical primary private send creates an exact candidate.",
+      artifactIdentityLabel,
+      decisionIdentityLabel,
       artifactDecisionStatusLabel,
       artifactDecisionPrimaryNote,
       prepareStatusLabel,
@@ -4123,6 +4151,11 @@ function summarizePrivateCoreReleaseHandoffState(args: {
         "The primary downstream release is recorded, but the release-grade shipping artifact is not ready yet.",
       nextActionLabel: "Refresh release handoff",
       nextActionHref: null,
+      packageStatusLabel: "Release package pending",
+      packagePrimaryNote:
+        "The downstream release exists, but the final handoff package is still waiting on a coherent shipping artifact.",
+      artifactIdentityLabel,
+      decisionIdentityLabel,
       artifactDecisionStatusLabel,
       artifactDecisionPrimaryNote,
       prepareStatusLabel,
@@ -4141,6 +4174,11 @@ function summarizePrivateCoreReleaseHandoffState(args: {
         "The exact release candidate is prepared from the primary private send, but the downstream unshield must complete before the handoff can be release-ready.",
       nextActionLabel: "Complete primary unshield",
       nextActionHref: "/app/unshield",
+      packageStatusLabel: "Release package pending",
+      packagePrimaryNote:
+        "The release handoff package cannot be assembled until the primary downstream unshield completes.",
+      artifactIdentityLabel,
+      decisionIdentityLabel,
       artifactDecisionStatusLabel,
       artifactDecisionPrimaryNote,
       prepareStatusLabel,
@@ -4159,6 +4197,11 @@ function summarizePrivateCoreReleaseHandoffState(args: {
       "The exact release handoff is blocked and needs the canonical primary lane to become coherent again.",
     nextActionLabel: "Review exact candidate blockers",
     nextActionHref: "/app/unshield",
+    packageStatusLabel: "Release package blocked",
+    packagePrimaryNote:
+      "The exact release handoff package is blocked because the canonical primary lane is not yet coherent.",
+    artifactIdentityLabel,
+    decisionIdentityLabel,
     artifactDecisionStatusLabel,
     artifactDecisionPrimaryNote,
     prepareStatusLabel,

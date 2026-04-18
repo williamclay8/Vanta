@@ -315,6 +315,8 @@ The app now also treats the canonical primary `send -> unshield` lane as an expl
 - ship
 - handoff status
 - next recommended action
+- release package status
+- release package identity
 
 `private-core:shipping-status` is the compact operator-backed answer to the narrow zk-v1 question: whether the frozen private-core lane is actually ship-ready right now, and if not, which live blocker is preventing that. It now reads the dedicated `/state/private-core-shipping-decision` endpoint, which is the canonical ship/no-ship contract for the frozen narrow private-core lane, and prints the decision version/kind/status/note plus the current summary-state version, mirrored contract version, summary generation time, and the supporting shipping, finish-line, required-lanes, release-boundary, contract-mirror, and boundary summaries without the rest of the larger operator-status dump.
 
