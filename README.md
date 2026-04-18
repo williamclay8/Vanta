@@ -331,6 +331,13 @@ These commands cover:
 
 `private-core:demo-preflight` now self-hosts a temporary local operator when no `--base-url` or `VANTA_PRIVATE_CORE_OPERATOR_BASE_URL` is provided. That makes the full reviewer/demo preflight turnkey again: it runs the canonical verifier, boots an isolated operator, and prints the frozen contract, long-form status, compact shipping, bundled snapshot, shipping artifact, exact release-candidate, release package, and final release-readiness surfaces against that temporary operator instead of failing on a missing live server.
 
+The current repo truth should now be read this way:
+- the narrow private-core `zk v1` lane is the accepted shipping definition of `zk v1`
+- the broader Vanta privacy/product vision is still larger than that shipped narrow lane
+
+The canonical decision note is:
+- [docs/zk/vanta-zk-v1-shipping-decision.md](docs/zk/vanta-zk-v1-shipping-decision.md)
+
 The app now also treats the canonical primary `send -> unshield` lane as an explicit release handoff workflow instead of only as operator diagnostics. Shared runtime state derives a first-class exact release handoff from the release-candidate plus shipping-artifact surfaces, and the primary `Send` and `Unshield` pages now show:
 - prepare
 - check

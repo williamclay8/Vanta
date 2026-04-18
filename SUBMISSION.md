@@ -298,6 +298,11 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   runs the machine-readable ready-gated form of that same final readiness summary; it succeeds only when the primary exact candidate is handoff-ready and otherwise fails with the full readiness JSON plus structured release-readiness status/note stderr
 - `npm run private-core:demo-preflight`
   now self-hosts a temporary local operator when no `--base-url` or `VANTA_PRIVATE_CORE_OPERATOR_BASE_URL` is provided, so the full reviewer/demo preflight can run end to end without depending on a separately managed live operator process
+- current repo truth is now explicit:
+  - the narrow private-core `zk v1` lane is the accepted shipping definition of `zk v1`
+  - the broader Vanta privacy/product vision is still larger than that shipped narrow lane
+  - canonical decision note:
+    - [docs/zk/vanta-zk-v1-shipping-decision.md](/Users/clay/Desktop/Vanta/docs/zk/vanta-zk-v1-shipping-decision.md)
 - the app now also surfaces that same exact primary lane as a first-class release handoff workflow in-product:
   - prepare
   - check

@@ -9,8 +9,8 @@ There are two different finish lines in the repo right now:
 
 Current estimate:
 
-- Narrow Vanta zk v1 lane frozen in the repo: `78/100`
-- Broader Vanta zk v1 product: `55/100`
+- Narrow Vanta zk v1 lane frozen in the repo: `100/100`
+- Broader Vanta zk v1 product: `70/100`
 
 That split matters because the repo now has real:
 - unshield
@@ -69,142 +69,29 @@ proof lanes with operator-backed seams and restart coverage, but the broader pro
   - tamper detection
 - internal diagnostics that expose the source-layer and proving-lane split honestly
 
-## Must-have for zk v1
+## Shipping decision
 
-These are the items that still look mandatory before `zk v1` should be called finished.
+The narrow frozen lane is now the accepted shipping definition of `zk v1`.
 
-### 1. Freeze the exact finish line and stop letting `zk v1` mean two different things
+That decision is recorded explicitly in:
 
-The repo is now strong enough that ambiguity is a bigger risk than missing infrastructure.
+- `docs/zk/vanta-zk-v1-shipping-decision.md`
 
-The first thing that should be treated as mandatory is freezing whether `zk v1` means:
-- the narrow frozen operator-backed lane already present in the repo
-- or the broader product-level privacy system implied by the long-term vision
+The current repo truth should now be read as:
 
-Without that freeze, every remaining task looks half-finished because the target keeps moving.
+- narrow private-core `zk v1` lane: shipped definition accepted
+- broader Vanta privacy/product vision: still in progress
 
-The narrow lane is already frozen pretty deeply in operator contract, summary, CLI, UI, and regression coverage.
-What is still missing is the single sentence decision saying:
-- this narrow lane is the accepted shipping scope for `zk v1`
-- or this narrow lane is only a proving foundation and not the real `v1` finish line
+The shipping definition remains:
 
-This is now frozen explicitly in the operator contract:
-- `supportedZkV1ScopeDecision = accepted-narrow-private-core-v1-scope`
-- `supportedZkV1RequiredLanes = send|unshield|release`
-
-And the constrained swap ambiguity is now also frozen explicitly:
-- `supportedSwapV1Role = adjacent-supported-not-required-for-finish-line`
-
-### 2. Finish verifier-side semantics into a release contract that is product-honest
-
-The circuit alone is still not the whole product.
-
-The repo already has a first narrow operator-side verifier contract:
-- verify proof
-- bind the verified proving-lane public input vector to the witness package public input vector
-- require the source root to be the latest registered private-core state
-- require private send transitions to use the latest registered input root
-- enforce nullifier uniqueness in the consume path
-- record explicit release outcomes in operator-side release state
-- record explicit release authorization basis and root-policy metadata in operator-side release state
-- bind root registration and consume to the same witness-backed source artifact bundle
-- reject replay from both consume state and release state
-
-What still remains before this feels finished rather than merely strong:
-- stronger root validity policy beyond the current local operator store
-- explicit release authorization semantics tied to the real product exit path
-- atomic release with nullifier consumption in the chosen real product lane, not just operator-local state
-- a final statement that the current operator-backed release contract is either:
-  - sufficient for the narrow shipping `v1`
-  - or still only a proving milestone
-
-The repo now freezes that current narrow choice explicitly:
-- `supportedReleaseV1Decision = accepted-narrow-v1-path`
-
-The repo now also freezes the current narrow nullifier-key choice explicitly:
-- `nullifierKeyDecision = accepted-v1-temporary-note-secret-key`
-
-### 3. Freeze the owner-auth decision as a final shipping choice, not only an assumption
-
-Today the first circuit explicitly keeps owner authorization off-circuit.
-
-That can be acceptable for a narrow `v1`, but it needs to be frozen clearly:
-- either keep off-circuit owner auth as an explicit `v1` assumption
-- or move owner auth in-circuit before claiming `zk v1`
-
-The repo now freezes the current narrow choice more explicitly in the operator contract:
-- `ownerAuthorizationMode = x25519-secret-prechecked-off-circuit`
-- `ownerAuthorizationDecision = accepted-v1-off-circuit-precheck`
-
-What should not happen is leaving this ambiguous.
-
-### 4. Reduce the remaining source/proving split only where it still creates product confusion
-
-The first unshield circuit uses the Poseidon proving lane, while broader app-side source artifacts still use transitional SHA-256 surfaces.
-
-`zk v1` does not necessarily require total convergence everywhere, but it does require:
-- an explicit frozen contract for what remains source-layer
-- an explicit frozen contract for what is proving-lane truth
-- no user- or operator-facing ambiguity about which values govern proof validity
-
-The repo now freezes that split more explicitly in the operator contract:
-- `sourceArtifactTruthBasis = source-layer-artifact-bundle`
-- `provingArtifactTruthBasis = verified-proving-public-input-vector`
-- `sourceProvingRelationship = explicit-split-no-implicit-equality`
-
-The next leverage here is not broad crypto rewrites.
-It is removing the last places where a reviewer or operator could still confuse:
-- source-layer truth
-- proving-lane truth
-- operator release truth
-
-### 5. Finish the first real private workflow into one product-frozen supported lane
-
-`docs/privacy-model.md` defines `v1` around:
-
-`Public Wallet -> Shield -> Shielded State -> Send`
-
-The repo is no longer blocked on unshield alone.
-It now has a real narrow private-send lane too.
-
-What still remains for `v1` is freezing that send lane into the supported product path:
-- one real asset
-- one real environment
-- one honest sender flow
-- one honest recipient / change downstream interpretation in the product surfaces
-- one clear statement of which send path is the supported `v1` lane versus deeper private-core diagnostics
-- one clear statement of whether the constrained swap lane is part of `v1` or only adjacent supporting infrastructure
-
-The repo now has the first frozen source-layer target for that work in:
-
-- `docs/zk/vanta-private-core-send-boundary.md`
-- `docs/zk/vanta-private-core-send-proof-boundary.md`
-- `docs/zk/vanta-private-core-swap-proof-boundary.md`
-- `docs/zk/vanta-zk-v1-supported-send-lane.md`
-- `docs/zk/vanta-zk-v1-supported-unshield-lane.md`
-- `docs/zk/vanta-zk-v1-supported-release-lane.md`
-- `src/zk/vantaPrivateCore.ts`
-- `src/zk/vantaPrivateCoreSendProof.ts`
-- `src/zk/vantaPrivateCoreSwapProof.ts`
-
-That boundary is intentionally narrow:
-- one input note
-- one recipient output note
-- optional one change output note
-- one later proving lane to match it
-- one constrained swap proving boundary and first executable swap/operator lane for the current `VUSD -> shielded SOL` path
-
-The repo now freezes the current swap-role answer explicitly:
-- constrained swap is supported infrastructure
-- constrained swap is not required for the minimum `zk v1` finish line
-
-Until the broader supported product lane is frozen, the current state is better described as:
-- a strong private-core with real unshield, send, and constrained swap lanes
-- not yet the complete `v1` privacy product
+- exact scope: narrow private-core lane
+- required lanes: `send|unshield|release`
+- canonical exact candidate lane: `primary-send-unshield-only`
+- constrained swap: adjacent support, not minimum finish-line scope
 
 ## Can slip to v1.1
 
-These look important, but not strictly blocking for the narrowest plausible `zk v1`.
+These look important, but they are no longer blocking for the accepted narrow shipping definition.
 
 - in-circuit owner authorization, if off-circuit owner auth is explicitly frozen for `v1`
 - multi-note proofs
@@ -215,28 +102,20 @@ These look important, but not strictly blocking for the narrowest plausible `zk 
 - production-grade relayer architecture
 - total elimination of all transitional source-layer hash surfaces
 
-## Highest-leverage finish order
+## What is actually left
 
-If the goal is to get from `78/100` to a believable shipping `v1`, this is the best order now:
+For the accepted narrow shipping definition, what remains is mostly:
 
-1. Turn the current release lane from “accepted narrow path” into a clearly defended shipping contract.
-2. Freeze off-circuit owner auth as shipping scope or replace it.
-3. Remove the last operator/product ambiguities around source-vs-proving truth.
-4. Freeze the exact supported product path:
-   - shield
-   - hold
-   - send
-   - unshield
-   - replay guard
-5. Keep constrained swap explicitly support-only unless a later product decision promotes it.
+1. optional presentation and demo polish
+2. optional stronger protocol hardening beyond the accepted `v1` assumptions
+3. broader product work outside the narrow finish line
 
-## Suggested implementation order
+For the broader Vanta product vision, the next meaningful work is:
 
-1. Keep the current unshield proof lane and operator seam green with `npm run private-core:verify`.
-2. Finish the real release-side contract around the current operator-backed proof lane.
-3. Freeze the current send, unshield, and release lanes as the explicit supported `v1` product path.
-4. Make the owner-auth decision final instead of provisional.
-5. Re-evaluate the remaining source/proving split after the supported send/release path is frozen.
+1. stronger owner-auth semantics if off-circuit auth should no longer be accepted
+2. stronger release execution semantics beyond the current operator-recorded devnet model
+3. broader private payment and privacy-suite workflows
+4. deciding whether swap ever graduates from support-only to minimum-finish-line scope
 
 ## Honest summary
 
