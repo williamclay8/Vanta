@@ -268,6 +268,8 @@ export function UnshieldPage() {
     privateCoreOperatorSupportedReleaseCandidateVersion,
     privateCoreOperatorSupportedReleaseCandidateKind,
     privateCoreOperatorSupportedReleaseCandidateNote,
+    privateCoreOperatorSupportedReleaseCandidateScope,
+    privateCoreOperatorSupportedReleaseCandidateScopeNote,
     privateCoreOperatorSupportedReleaseCandidateGateVersion,
     privateCoreOperatorSupportedReleaseCandidateGateKind,
     privateCoreOperatorSupportedReleaseCandidateGateNote,

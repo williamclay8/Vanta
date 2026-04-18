@@ -206,6 +206,8 @@ export function AppDashboardPage() {
     privateCoreOperatorSupportedReleaseCandidateVersion,
     privateCoreOperatorSupportedReleaseCandidateKind,
     privateCoreOperatorSupportedReleaseCandidateNote,
+    privateCoreOperatorSupportedReleaseCandidateScope,
+    privateCoreOperatorSupportedReleaseCandidateScopeNote,
     privateCoreOperatorSupportedReleaseCandidateGateVersion,
     privateCoreOperatorSupportedReleaseCandidateGateKind,
     privateCoreOperatorSupportedReleaseCandidateGateNote,
@@ -610,6 +612,12 @@ export function AppDashboardPage() {
               }
               operatorSupportedReleaseCandidateNote={
                 privateCoreOperatorSupportedReleaseCandidateNote
+              }
+              operatorSupportedReleaseCandidateScope={
+                privateCoreOperatorSupportedReleaseCandidateScope
+              }
+              operatorSupportedReleaseCandidateScopeNote={
+                privateCoreOperatorSupportedReleaseCandidateScopeNote
               }
               operatorSupportedReleaseCandidateGateVersion={
                 privateCoreOperatorSupportedReleaseCandidateGateVersion

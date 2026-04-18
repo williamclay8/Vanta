@@ -310,6 +310,8 @@ type PrivacyFlowContextValue = {
   privateCoreOperatorSupportedReleaseCandidateVersion: number | null;
   privateCoreOperatorSupportedReleaseCandidateKind: string | null;
   privateCoreOperatorSupportedReleaseCandidateNote: string | null;
+  privateCoreOperatorSupportedReleaseCandidateScope: string | null;
+  privateCoreOperatorSupportedReleaseCandidateScopeNote: string | null;
   privateCoreOperatorSupportedReleaseCandidateGateVersion: number | null;
   privateCoreOperatorSupportedReleaseCandidateGateKind: string | null;
   privateCoreOperatorSupportedReleaseCandidateGateNote: string | null;
@@ -982,6 +984,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<string | null>(null);
   const [privateCoreOperatorSupportedReleaseCandidateNote, setPrivateCoreOperatorSupportedReleaseCandidateNote] =
     useState<string | null>(null);
+  const [privateCoreOperatorSupportedReleaseCandidateScope, setPrivateCoreOperatorSupportedReleaseCandidateScope] =
+    useState<string | null>(null);
+  const [privateCoreOperatorSupportedReleaseCandidateScopeNote, setPrivateCoreOperatorSupportedReleaseCandidateScopeNote] =
+    useState<string | null>(null);
   const [privateCoreOperatorSupportedReleaseCandidateGateVersion, setPrivateCoreOperatorSupportedReleaseCandidateGateVersion] =
     useState<number | null>(null);
   const [privateCoreOperatorSupportedReleaseCandidateGateKind, setPrivateCoreOperatorSupportedReleaseCandidateGateKind] =
@@ -1107,6 +1113,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       setPrivateCoreOperatorSupportedReleaseCandidateVersion,
       setPrivateCoreOperatorSupportedReleaseCandidateKind,
       setPrivateCoreOperatorSupportedReleaseCandidateNote,
+      setPrivateCoreOperatorSupportedReleaseCandidateScope,
+      setPrivateCoreOperatorSupportedReleaseCandidateScopeNote,
       setPrivateCoreOperatorSupportedReleaseCandidateGateVersion,
       setPrivateCoreOperatorSupportedReleaseCandidateGateKind,
       setPrivateCoreOperatorSupportedReleaseCandidateGateNote,
@@ -2622,6 +2630,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedReleaseCandidateVersion,
       privateCoreOperatorSupportedReleaseCandidateKind,
       privateCoreOperatorSupportedReleaseCandidateNote,
+      privateCoreOperatorSupportedReleaseCandidateScope,
+      privateCoreOperatorSupportedReleaseCandidateScopeNote,
       privateCoreOperatorSupportedReleaseCandidateGateVersion,
       privateCoreOperatorSupportedReleaseCandidateGateKind,
       privateCoreOperatorSupportedReleaseCandidateGateNote,
@@ -2829,6 +2839,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSupportedReleaseCandidateVersion,
       privateCoreOperatorSupportedReleaseCandidateKind,
       privateCoreOperatorSupportedReleaseCandidateNote,
+      privateCoreOperatorSupportedReleaseCandidateScope,
+      privateCoreOperatorSupportedReleaseCandidateScopeNote,
       privateCoreOperatorSupportedReleaseCandidateGateVersion,
       privateCoreOperatorSupportedReleaseCandidateGateKind,
       privateCoreOperatorSupportedReleaseCandidateGateNote,
@@ -3971,6 +3983,8 @@ function applyPrivateCoreOperatorContractState(args: {
   setPrivateCoreOperatorSupportedReleaseCandidateVersion: (value: number | null) => void;
   setPrivateCoreOperatorSupportedReleaseCandidateKind: (value: string | null) => void;
   setPrivateCoreOperatorSupportedReleaseCandidateNote: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedReleaseCandidateScope: (value: string | null) => void;
+  setPrivateCoreOperatorSupportedReleaseCandidateScopeNote: (value: string | null) => void;
   setPrivateCoreOperatorSupportedReleaseCandidateGateVersion: (value: number | null) => void;
   setPrivateCoreOperatorSupportedReleaseCandidateGateKind: (value: string | null) => void;
   setPrivateCoreOperatorSupportedReleaseCandidateGateNote: (value: string | null) => void;
@@ -4199,6 +4213,12 @@ function applyPrivateCoreOperatorContractState(args: {
   );
   args.setPrivateCoreOperatorSupportedReleaseCandidateNote(
     args.contractState.supportedReleaseCandidateNote,
+  );
+  args.setPrivateCoreOperatorSupportedReleaseCandidateScope(
+    args.contractState.supportedReleaseCandidateScope,
+  );
+  args.setPrivateCoreOperatorSupportedReleaseCandidateScopeNote(
+    args.contractState.supportedReleaseCandidateScopeNote,
   );
   args.setPrivateCoreOperatorSupportedReleaseCandidateGateVersion(
     args.contractState.supportedReleaseCandidateGateVersion,

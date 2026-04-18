@@ -266,6 +266,8 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreOperatorSupportedReleaseCandidateVersion,
     privateCoreOperatorSupportedReleaseCandidateKind,
     privateCoreOperatorSupportedReleaseCandidateNote,
+    privateCoreOperatorSupportedReleaseCandidateScope,
+    privateCoreOperatorSupportedReleaseCandidateScopeNote,
     privateCoreOperatorSupportedReleaseCandidateGateVersion,
     privateCoreOperatorSupportedReleaseCandidateGateKind,
     privateCoreOperatorSupportedReleaseCandidateGateNote,

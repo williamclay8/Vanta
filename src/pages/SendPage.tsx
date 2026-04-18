@@ -250,6 +250,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorSupportedReleaseCandidateVersion,
     privateCoreOperatorSupportedReleaseCandidateKind,
     privateCoreOperatorSupportedReleaseCandidateNote,
+    privateCoreOperatorSupportedReleaseCandidateScope,
+    privateCoreOperatorSupportedReleaseCandidateScopeNote,
     privateCoreOperatorSupportedReleaseCandidateGateVersion,
     privateCoreOperatorSupportedReleaseCandidateGateKind,
     privateCoreOperatorSupportedReleaseCandidateGateNote,

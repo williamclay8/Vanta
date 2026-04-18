@@ -177,6 +177,8 @@ type VantaPrivateCoreStatePanelProps = {
   operatorSupportedReleaseCandidateVersion?: number | null;
   operatorSupportedReleaseCandidateKind?: string | null;
   operatorSupportedReleaseCandidateNote?: string | null;
+  operatorSupportedReleaseCandidateScope?: string | null;
+  operatorSupportedReleaseCandidateScopeNote?: string | null;
   operatorSupportedReleaseCandidateGateVersion?: number | null;
   operatorSupportedReleaseCandidateGateKind?: string | null;
   operatorSupportedReleaseCandidateGateNote?: string | null;
@@ -494,6 +496,8 @@ export function VantaPrivateCoreStatePanel({
   operatorSupportedReleaseCandidateVersion = null,
   operatorSupportedReleaseCandidateKind = null,
   operatorSupportedReleaseCandidateNote = null,
+  operatorSupportedReleaseCandidateScope = null,
+  operatorSupportedReleaseCandidateScopeNote = null,
   operatorSupportedReleaseCandidateGateVersion = null,
   operatorSupportedReleaseCandidateGateKind = null,
   operatorSupportedReleaseCandidateGateNote = null,
@@ -1076,6 +1080,14 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Release candidate note</span>
               <strong>{operatorSupportedReleaseCandidateNote ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Release candidate scope</span>
+              <strong>{operatorSupportedReleaseCandidateScope ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Release candidate scope note</span>
+              <strong>{operatorSupportedReleaseCandidateScopeNote ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
               <span>Release candidate transport</span>
