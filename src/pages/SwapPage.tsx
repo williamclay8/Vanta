@@ -1122,18 +1122,16 @@ export function SwapPage() {
           <span className="eyebrow">Live</span>
           <h2>Swap v2</h2>
           <p>
-            Transform one spendable shielded `VUSD` note into one new shielded `SOL`
-            output state inside Vanta. Expected output is now informed by one
-            constrained Meteora devnet venue context, not a detached internal rate.
+            Transform one shielded `VUSD` note into one new shielded `SOL`
+            note inside Vanta, using the constrained live venue path.
           </p>
         </div>
 
         <div className="module-state">
           <strong>Workflow role</strong>
           <p>
-            Swap extends the live lifecycle beyond movement and exit. It proves that
-            Vanta can support asset transformation inside shielded state while staying
-            narrow: one pair, one note in, one note out, one venue family, one operator path.
+            Swap proves asset transformation can stay inside shielded state
+            while the scope remains narrow: one pair, one note in, one note out.
           </p>
         </div>
       </div>
@@ -1160,10 +1158,8 @@ export function SwapPage() {
           <span>Constrained live pair</span>
           <h3>`VUSD` into `SOL`, entirely inside Vanta.</h3>
           <p>
-            The selected input must be one currently spendable shielded `VUSD` note.
-            Swap v2 fully consumes that note, records one swap transition, and resolves
-            one new shielded `SOL` output note without exiting to Public Wallet, while
-            grounding expected output in Meteora DLMM devnet pool context.
+            The selected input must be one spendable shielded `VUSD` note.
+            Vanta consumes it, records the swap, and resolves one new shielded `SOL` output.
           </p>
         </div>
         <div className="send-context-banner__meta">
@@ -2051,6 +2047,7 @@ export function SwapPage() {
       </div>
 
       <VantaPrivateCoreStatePanel
+        compact
         holdState={privacyFlow.privateCoreHoldState}
         releaseCandidateState={privacyFlow.privateCoreReleaseCandidateState}
         releaseHandoffState={privacyFlow.privateCoreReleaseHandoffState}

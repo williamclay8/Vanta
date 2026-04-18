@@ -909,18 +909,16 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           <span className="eyebrow">{dashboard ? "Dashboard / Send" : "Live"}</span>
           <h2>Private Send</h2>
           <p>
-            Use shielded balances to execute the first constrained real Send
-            transition inside Vanta. This milestone now supports one-note sends
-            with one optional residual change note for `VUSD`.
+            Move shielded balance without returning to public wallet flow. The
+            live lane supports one `VUSD` note in, one send out, and optional change.
           </p>
         </div>
 
         <div className="module-state">
           <strong>Workflow role</strong>
           <p>
-            Private Send is the first workflow unlocked by shielded state. For
-            `VUSD`, Send now consumes one spendable note, records the sent
-            amount, and preserves leftover value as a new shielded note.
+            Send is the first private action unlocked by Shield. One spendable
+            note is consumed, the recipient amount is recorded, and leftover value can remain private.
           </p>
         </div>
       </div>
@@ -942,9 +940,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
             <span>Ready to Send</span>
             <h3>You just shielded {formatBalance(recentShield.amount, recentShield.asset)}.</h3>
             <p>
-              Shielded balance is now available for private send inside the
-              Vanta privacy layer. In the current constrained model, one note
-              can be partially spent and any residual value stays shielded.
+              That balance is now ready for the private send lane. In the
+              current model, one note can be partially spent and any remainder stays shielded.
             </p>
           </div>
           <div className="send-context-banner__meta">
@@ -958,8 +955,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
             <span>No recent Shield context</span>
             <h3>Send now supports constrained change-note handling for `VUSD`.</h3>
             <p>
-              Begin at Shield or use one of the currently spendable `VUSD`
-              notes below to execute the first residual-value send transition.
+              Start at Shield or use one of the spendable `VUSD` notes below.
             </p>
           </div>
           <Link className="button button-ghost" to="/app/shield">
@@ -1053,9 +1049,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 )}
               </div>
               <p className="shield-helper">
-                The current constrained model supports one input note at a time.
-                If you send less than the note amount, the remainder becomes a
-                new shielded change note.
+                One input note at a time. If you send less than the note amount,
+                the remainder becomes a new private change note.
               </p>
             </div>
 
@@ -1074,8 +1069,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 />
               </div>
               <p className="shield-helper">
-                Provide a constrained v1 recipient reference for the first real
-                Send transition.
+                Enter the recipient reference for the current v1 send lane.
               </p>
             </div>
 
@@ -2179,6 +2173,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       </div>
 
       <VantaPrivateCoreStatePanel
+        compact
         holdState={privateCoreHoldState}
         releaseCandidateState={privateCoreReleaseCandidateState}
         releaseHandoffState={privateCoreReleaseHandoffState}

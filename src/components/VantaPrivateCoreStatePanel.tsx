@@ -574,6 +574,62 @@ export function VantaPrivateCoreStatePanel({
     latestOperatorRelease,
     unshieldState,
   });
+  const panelHighlights = [
+    releasePackageState
+      ? {
+          accent: true,
+          eyebrow: "Release package",
+          title: releasePackageState.packageStatusLabel,
+          note: releasePackageState.packagePrimaryNote,
+          meta: releasePackageState.artifactIdentityLabel,
+        }
+      : null,
+    releaseHandoffState
+      ? {
+          accent: false,
+          eyebrow: "Release handoff",
+          title: releaseHandoffState.handoffStatusLabel,
+          note: releaseHandoffState.handoffPrimaryNote,
+          meta: releaseHandoffState.nextActionLabel,
+        }
+      : null,
+    releaseCandidateState
+      ? {
+          accent: false,
+          eyebrow: "Exact candidate",
+          title: releaseCandidateState.lifecycleStatusLabel,
+          note: releaseCandidateState.lifecyclePrimaryNote,
+          meta: releaseCandidateState.lineageStatusLabel,
+        }
+      : null,
+    sendState
+      ? {
+          accent: false,
+          eyebrow: "Private send",
+          title: sendState.resultingRootStatusLabel ?? "Resulting root live",
+          note: sendState.resultingRootPrimaryNote ?? sendState.residualStateStatus,
+          meta: sendState.recipientRecoveryStatus,
+        }
+      : null,
+    swapState
+      ? {
+          accent: false,
+          eyebrow: "Private swap",
+          title: swapState.boundaryStatusLabel ?? "Swap boundary live",
+          note:
+            swapState.boundaryPrimaryNote ??
+            swapState.resultingRootPrimaryNote ??
+            swapState.outputUnshieldStatus,
+          meta: swapState.continuityStatusLabel ?? swapState.outputRecoveryStatus,
+        }
+      : null,
+  ].filter(Boolean) as Array<{
+    accent: boolean;
+    eyebrow: string;
+    title: string;
+    note: string;
+    meta: string;
+  }>;
 
   return (
     <div className="note-state-panel vanta-private-core-state-panel">
@@ -640,70 +696,28 @@ export function VantaPrivateCoreStatePanel({
         </div>
       </div>
 
-      {compact &&
-      (swapState ||
-        latestOperatorSwap ||
-        operatorSwapBoundaryStatusLabel ||
-        operatorSwapContinuityStatusLabel ||
-        operatorSwapResultingRootStatusLabel) ? (
-        <div className="note-state-list">
-          <div className="note-state-row">
-            <div className="note-state-row__header">
-              <div>
-                <strong>
-                  {swapState
-                    ? formatAssetAmount(swapState.outputAssetId, swapState.outputAmount)
-                    : latestOperatorSwap?.outputAmount
-                      ? `${latestOperatorSwap.outputAmount} SOL`
-                    : "Latest swap output"}
-                </strong>
-                <span>
-                  {swapState?.outputCommitment
-                    ? abbreviate(swapState.outputCommitment)
-                    : latestOperatorSwap?.swapId
-                    ? abbreviate(latestOperatorSwap.swapId)
-                    : "No swap transition recorded"}
-                </span>
-              </div>
-              <div className="note-state-chips">
-                <span className="note-state-chip">
-                  {swapState?.boundaryStatusLabel ??
-                    operatorSwapBoundaryStatusLabel ??
-                    "Swap boundary unavailable"}
-                </span>
-                <span className="note-state-chip">
-                  {swapState?.continuityStatusLabel ??
-                    operatorSwapContinuityStatusLabel ??
-                    "No swap continuity observed"}
-                </span>
-              </div>
-            </div>
-            <div className="note-state-row__meta">
-              <span>
-                Swap root{" "}
-                {swapState?.resultingRoot
-                  ? abbreviate(swapState.resultingRoot)
-                  : latestOperatorSwap?.resultingRoot
-                    ? abbreviate(latestOperatorSwap.resultingRoot)
-                  : "Unavailable"}
-              </span>
-              <span>
-                {swapState?.resultingRootStatusLabel ??
-                  operatorSwapResultingRootStatusLabel ??
-                  "Swap root unavailable"}
-              </span>
-              <span>
-                {swapState?.livePathPrimaryNote ??
-                  swapState?.boundaryPrimaryNote ??
-                  swapState?.resultingRootPrimaryNote ??
-                  operatorSwapBoundaryPrimaryNote ??
-                  "No swap boundary note yet"}
-              </span>
-            </div>
-          </div>
+      {panelHighlights.length ? (
+        <div className="vanta-private-core-state-panel__highlights">
+          {panelHighlights.map((highlight) => (
+            <article
+              key={`${highlight.eyebrow}-${highlight.title}`}
+              className={
+                highlight.accent
+                  ? "vanta-private-core-state-panel__highlight vanta-private-core-state-panel__highlight--accent"
+                  : "vanta-private-core-state-panel__highlight"
+              }
+            >
+              <span>{highlight.eyebrow}</span>
+              <strong>{highlight.title}</strong>
+              <p>{highlight.note}</p>
+              <small>{highlight.meta}</small>
+            </article>
+          ))}
         </div>
       ) : null}
 
+      {!compact ? (
+        <>
       {swapState ? (
         <div className="note-state-list">
           <div className="note-state-row">
@@ -830,24 +844,18 @@ export function VantaPrivateCoreStatePanel({
                 <strong>{releaseCandidateState.lifecyclePrimaryNote}</strong>
               </div>
               <div className="review-row">
-                <span>Send stage</span>
-                <strong>{releaseCandidateState.sendLifecycleStatus}</strong>
-              </div>
-              <div className="review-row">
-                <span>Consume stage</span>
-                <strong>{releaseCandidateState.consumeLifecycleStatus}</strong>
-              </div>
-              <div className="review-row">
-                <span>Release stage</span>
-                <strong>{releaseCandidateState.releaseLifecycleStatus}</strong>
-              </div>
-              <div className="review-row">
-                <span>Decision note</span>
-                <strong>{releaseCandidateState.decisionPrimaryNote}</strong>
-              </div>
-              <div className="review-row">
                 <span>Lineage note</span>
                 <strong>{releaseCandidateState.lineagePrimaryNote}</strong>
+              </div>
+              <div className="review-row">
+                <span>Stages</span>
+                <strong>
+                  {[
+                    releaseCandidateState.sendLifecycleStatus,
+                    releaseCandidateState.consumeLifecycleStatus,
+                    releaseCandidateState.releaseLifecycleStatus,
+                  ].join(" / ")}
+                </strong>
               </div>
               <div className="review-row">
                 <span>Send record</span>
@@ -874,12 +882,12 @@ export function VantaPrivateCoreStatePanel({
                 </strong>
               </div>
               <div className="review-row">
-                <span>Released amount</span>
-                <strong>{releaseCandidateState.releasedAmount ?? "Awaiting release"}</strong>
-              </div>
-              <div className="review-row">
-                <span>Observation mode</span>
-                <strong>{releaseCandidateState.observationMode}</strong>
+                <span>Release outcome</span>
+                <strong>
+                  {releaseCandidateState.releaseRequestId
+                    ? `${abbreviate(releaseCandidateState.releaseRequestId)} · ${releaseCandidateState.releasedAmount ?? "Pending"}`
+                    : "Awaiting release"}
+                </strong>
               </div>
             </div>
           </div>
@@ -925,36 +933,24 @@ export function VantaPrivateCoreStatePanel({
                 <strong>{releaseWorkflowState.artifactStatusLabel}</strong>
               </div>
               <div className="review-row">
-                <span>Prepare note</span>
-                <strong>{releaseWorkflowState.preparePrimaryNote}</strong>
-              </div>
-              <div className="review-row">
-                <span>Check note</span>
-                <strong>{releaseWorkflowState.checkPrimaryNote}</strong>
-              </div>
-              <div className="review-row">
                 <span>Ship note</span>
                 <strong>{releaseWorkflowState.shipPrimaryNote}</strong>
+              </div>
+              <div className="review-row">
+                <span>Workflow note</span>
+                <strong>{releaseWorkflowState.checkPrimaryNote}</strong>
               </div>
               <div className="review-row">
                 <span>Artifact note</span>
                 <strong>{releaseWorkflowState.artifactPrimaryNote}</strong>
               </div>
               <div className="review-row">
-                <span>Release request</span>
+                <span>Release outcome</span>
                 <strong>
                   {releaseWorkflowState.releaseRequestId
-                    ? abbreviate(releaseWorkflowState.releaseRequestId)
+                    ? `${abbreviate(releaseWorkflowState.releaseRequestId)} · ${releaseWorkflowState.releasedAmount ?? "Pending"}`
                     : "Awaiting release"}
                 </strong>
-              </div>
-              <div className="review-row">
-                <span>Released amount</span>
-                <strong>{releaseWorkflowState.releasedAmount ?? "Awaiting release"}</strong>
-              </div>
-              <div className="review-row">
-                <span>Observation mode</span>
-                <strong>{releaseWorkflowState.observationMode}</strong>
               </div>
             </div>
           </div>
@@ -1004,18 +1000,6 @@ export function VantaPrivateCoreStatePanel({
                 <strong>{releaseHandoffState.packagePrimaryNote}</strong>
               </div>
               <div className="review-row">
-                <span>Prepare</span>
-                <strong>{releaseHandoffState.prepareStatusLabel}</strong>
-              </div>
-              <div className="review-row">
-                <span>Check</span>
-                <strong>{releaseHandoffState.checkStatusLabel}</strong>
-              </div>
-              <div className="review-row">
-                <span>Ship</span>
-                <strong>{releaseHandoffState.shipStatusLabel}</strong>
-              </div>
-              <div className="review-row">
                 <span>Artifact decision</span>
                 <strong>{releaseHandoffState.artifactDecisionStatusLabel}</strong>
               </div>
@@ -1024,16 +1008,18 @@ export function VantaPrivateCoreStatePanel({
                 <strong>{releaseHandoffState.artifactIdentityLabel}</strong>
               </div>
               <div className="review-row">
-                <span>Decision identity</span>
-                <strong>{releaseHandoffState.decisionIdentityLabel}</strong>
-              </div>
-              <div className="review-row">
                 <span>Artifact note</span>
                 <strong>{releaseHandoffState.artifactDecisionPrimaryNote}</strong>
               </div>
               <div className="review-row">
-                <span>Observation mode</span>
-                <strong>{releaseHandoffState.observationMode}</strong>
+                <span>Workflow progression</span>
+                <strong>
+                  {[
+                    releaseHandoffState.prepareStatusLabel,
+                    releaseHandoffState.checkStatusLabel,
+                    releaseHandoffState.shipStatusLabel,
+                  ].join(" / ")}
+                </strong>
               </div>
             </div>
           </div>
@@ -1061,10 +1047,6 @@ export function VantaPrivateCoreStatePanel({
             </div>
             <div className="review-grid">
               <div className="review-row">
-                <span>Package identity</span>
-                <strong>{releasePackageState.packageIdentityLabel}</strong>
-              </div>
-              <div className="review-row">
                 <span>Package</span>
                 <strong>{releasePackageState.packageStatusLabel}</strong>
               </div>
@@ -1087,14 +1069,6 @@ export function VantaPrivateCoreStatePanel({
               <div className="review-row">
                 <span>Decision identity</span>
                 <strong>{releasePackageState.decisionIdentityLabel}</strong>
-              </div>
-              <div className="review-row">
-                <span>Contract identity</span>
-                <strong>{releasePackageState.contractIdentityLabel}</strong>
-              </div>
-              <div className="review-row">
-                <span>Snapshot identity</span>
-                <strong>{releasePackageState.snapshotIdentityLabel}</strong>
               </div>
               <div className="review-row">
                 <span>Summary generated</span>
@@ -1123,14 +1097,6 @@ export function VantaPrivateCoreStatePanel({
               <div className="review-row">
                 <span>Review command</span>
                 <strong>npm run private-core:release-readiness</strong>
-              </div>
-              <div className="review-row">
-                <span>Gate command</span>
-                <strong>npm run private-core:release-readiness-check</strong>
-              </div>
-              <div className="review-row">
-                <span>Observation mode</span>
-                <strong>{releasePackageState.observationMode}</strong>
               </div>
             </div>
           </div>
@@ -1190,20 +1156,16 @@ export function VantaPrivateCoreStatePanel({
                 </strong>
               </div>
               <div className="review-row">
-                <span>Resulting root record</span>
+                <span>Recipient unshield</span>
+                <strong>{sendState.recipientUnshieldStatus}</strong>
+              </div>
+              <div className="review-row">
+                <span>Root record</span>
                 <strong>
                   {operatorSendResultingRootRecord?.root
                     ? abbreviate(operatorSendResultingRootRecord.root)
                     : "Unavailable"}
                 </strong>
-              </div>
-              <div className="review-row">
-                <span>Recipient unshield</span>
-                <strong>{sendState.recipientUnshieldStatus}</strong>
-              </div>
-              <div className="review-row">
-                <span>Observation mode</span>
-                <strong>{sendState.observationMode}</strong>
               </div>
             </div>
           </div>
@@ -2787,6 +2749,8 @@ export function VantaPrivateCoreStatePanel({
           </div>
         </details>
       )}
+        </>
+      ) : null}
     </div>
   );
 }

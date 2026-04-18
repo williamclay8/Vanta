@@ -585,7 +585,7 @@ input {
 
 .position-summary__header h2 {
   margin: 10px 0 0;
-  font-family: "Space Grotesk", sans-serif;
+  font-family: "Syne", sans-serif;
   font-size: clamp(1.3rem, 2.5vw, 1.8rem);
   letter-spacing: -0.03em;
 }
@@ -620,7 +620,7 @@ input {
 .position-summary__latest strong {
   display: block;
   margin-top: 12px;
-  font-family: "Space Grotesk", sans-serif;
+  font-family: "Syne", sans-serif;
   font-size: 1.24rem;
 }
 
@@ -667,7 +667,7 @@ input {
 
 .next-step-guidance h2 {
   margin: 6px 0 4px;
-  font-family: "Space Grotesk", sans-serif;
+  font-family: "Syne", sans-serif;
   font-size: clamp(1rem, 1.8vw, 1.25rem);
   letter-spacing: -0.03em;
 }
@@ -709,7 +709,7 @@ input {
 .dashboard-focus-card h2,
 .dashboard-release-card h3 {
   margin: 10px 0 12px;
-  font-family: "Space Grotesk", sans-serif;
+  font-family: "Syne", sans-serif;
   letter-spacing: -0.04em;
 }
 
@@ -769,7 +769,7 @@ input {
 .dashboard-focus-card__stats strong {
   display: block;
   margin-top: 10px;
-  font-family: "Space Grotesk", sans-serif;
+  font-family: "Syne", sans-serif;
   font-size: 1.5rem;
 }
 
@@ -805,7 +805,7 @@ input {
 
 .dashboard-action-card--minimal h3 {
   margin: 0;
-  font-family: "Space Grotesk", sans-serif;
+  font-family: "Syne", sans-serif;
 }
 
 .dashboard-hero,
@@ -833,7 +833,7 @@ input {
 
 .dashboard-hero h2 {
   margin: 12px 0 14px;
-  font-family: "Space Grotesk", sans-serif;
+  font-family: "Syne", sans-serif;
   font-size: clamp(1.9rem, 3.5vw, 2.8rem);
   letter-spacing: -0.04em;
   line-height: 0.98;
@@ -871,7 +871,7 @@ input {
 .dashboard-hero__meta strong {
   display: block;
   margin: 10px 0 8px;
-  font-family: "Space Grotesk", sans-serif;
+  font-family: "Syne", sans-serif;
   font-size: 1.35rem;
 }
 
@@ -896,7 +896,7 @@ input {
 
 .dashboard-release-review h3 {
   margin: 10px 0 12px;
-  font-family: "Space Grotesk", sans-serif;
+  font-family: "Syne", sans-serif;
   font-size: 1.4rem;
 }
 
@@ -928,7 +928,7 @@ input {
 .dashboard-release-review__meta strong {
   display: block;
   margin: 10px 0 8px;
-  font-family: "Space Grotesk", sans-serif;
+  font-family: "Syne", sans-serif;
   font-size: 1.25rem;
 }
 
@@ -979,7 +979,7 @@ input {
 
 .dashboard-action-card h3 {
   margin: 0;
-  font-family: "Space Grotesk", sans-serif;
+  font-family: "Syne", sans-serif;
   font-size: 1.35rem;
 }
 
@@ -1015,6 +1015,19 @@ input {
     linear-gradient(160deg, rgba(0, 229, 200, 0.05), rgba(255, 255, 255, 0.01)),
     rgba(8, 13, 20, 0.92);
   box-shadow: var(--shadow);
+  overflow: hidden;
+  position: relative;
+}
+
+.module-page__hero::after {
+  content: "";
+  position: absolute;
+  inset: auto -8% -30% auto;
+  width: 320px;
+  height: 320px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(0, 229, 200, 0.12), transparent 72%);
+  pointer-events: none;
 }
 
 .module-state {
@@ -1139,12 +1152,13 @@ input {
 
 .send-context-banner h3 {
   margin: 10px 0 12px;
-  font-family: "Space Grotesk", sans-serif;
+  font-family: "Syne", sans-serif;
 }
 
 .send-context-banner p {
   color: var(--muted);
   line-height: 1.6;
+  max-width: 58ch;
 }
 
 .send-context-banner--quiet {
@@ -1162,7 +1176,7 @@ input {
 
 .send-context-banner__meta strong {
   display: block;
-  font-family: "Space Grotesk", sans-serif;
+  font-family: "Syne", sans-serif;
   font-size: 1.4rem;
 }
 
@@ -1271,7 +1285,7 @@ input {
 .state-panel strong,
 .status-panel strong {
   margin: 10px 0 0;
-  font-family: "Space Grotesk", sans-serif;
+  font-family: "Syne", sans-serif;
 }
 
 .shield-card__header small {
@@ -1372,7 +1386,7 @@ input {
 
 .asset-row strong {
   display: block;
-  font-family: "Space Grotesk", sans-serif;
+  font-family: "Syne", sans-serif;
   font-size: 1rem;
 }
 
@@ -1419,7 +1433,7 @@ input {
   background: transparent;
   color: var(--text);
   font-size: clamp(1.2rem, 3vw, 2rem);
-  font-family: "Space Grotesk", sans-serif;
+  font-family: "Syne", sans-serif;
 }
 
 .shield-helper {
@@ -1468,7 +1482,7 @@ input {
 .preview-card strong {
   display: block;
   margin-top: 12px;
-  font-family: "Space Grotesk", sans-serif;
+  font-family: "Syne", sans-serif;
   font-size: 1.2rem;
 }
 
@@ -1488,7 +1502,7 @@ input {
 
 .shield-banner strong {
   display: block;
-  font-family: "Space Grotesk", sans-serif;
+  font-family: "Syne", sans-serif;
 }
 
 .shield-banner p {
@@ -1505,6 +1519,47 @@ input {
   display: grid;
   gap: 16px;
   margin-top: 24px;
+}
+
+.vanta-private-core-state-panel__highlights {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.vanta-private-core-state-panel__highlight {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(0, 229, 200, 0.1);
+  background: rgba(0, 229, 200, 0.03);
+}
+
+.vanta-private-core-state-panel__highlight--accent {
+  background:
+    linear-gradient(160deg, rgba(0, 229, 200, 0.08), rgba(255, 255, 255, 0.01)),
+    rgba(8, 13, 20, 0.92);
+}
+
+.vanta-private-core-state-panel__highlight span,
+.vanta-private-core-state-panel__highlight small {
+  color: var(--muted-strong);
+  font-size: 0.74rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.vanta-private-core-state-panel__highlight strong {
+  font-family: "Syne", sans-serif;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.vanta-private-core-state-panel__highlight p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
 }
 
 .lifecycle-timeline {
@@ -1579,7 +1634,7 @@ input {
 .lifecycle-entry__header strong,
 .lifecycle-entry__amount strong {
   display: block;
-  font-family: "Space Grotesk", sans-serif;
+  font-family: "Syne", sans-serif;
 }
 
 .lifecycle-entry__header span,
@@ -1618,10 +1673,12 @@ input {
 .note-state-row {
   display: grid;
   gap: 12px;
-  padding: 16px;
-  border-radius: 20px;
+  padding: 18px;
+  border-radius: 22px;
   border: 1px solid rgba(0, 229, 200, 0.1);
-  background: rgba(0, 229, 200, 0.025);
+  background:
+    linear-gradient(160deg, rgba(0, 229, 200, 0.04), rgba(255, 255, 255, 0.01)),
+    rgba(8, 13, 20, 0.9);
 }
 
 .note-state-row--sol {
@@ -1638,7 +1695,7 @@ input {
 
 .note-state-row__header strong {
   display: block;
-  font-family: "Space Grotesk", sans-serif;
+  font-family: "Syne", sans-serif;
 }
 
 .note-state-row__header span {
@@ -1670,8 +1727,8 @@ input {
   min-height: 30px;
   padding: 0 10px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(0, 229, 200, 0.12);
+  background: rgba(0, 229, 200, 0.04);
   color: var(--muted-strong);
   font-size: 0.76rem;
   letter-spacing: 0.08em;
@@ -1684,7 +1741,7 @@ input {
 }
 
 .note-state-chip--consumed {
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.05);
 }
 
@@ -1720,7 +1777,7 @@ input {
 }
 
 .review-row strong {
-  font-family: "Space Grotesk", sans-serif;
+  font-family: "Syne", sans-serif;
 }
 
 .progress-rail {

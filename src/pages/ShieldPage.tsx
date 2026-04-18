@@ -691,19 +691,16 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
           <span className="eyebrow">{dashboard ? "Dashboard / Shield" : "Live / MVP"}</span>
           <h2>Shield Assets</h2>
           <p>
-            Move supported Solana assets out of transparent wallet flows and
-            into the Vanta privacy layer. Shielded state becomes the foundation
-            for private actions beginning with send.
+            Move supported Solana assets out of public wallet flow and into the
+            private layer. Shield is where the Vanta lane begins.
           </p>
         </div>
 
         <div className="module-state">
-          <strong>Plain-English explanation</strong>
+          <strong>What this page does</strong>
           <p>
-            Shielding in Vanta means moving supported assets out of Public
-            Wallet state and into a dedicated privacy-preserving layer. For the
-            first live milestone, the supported devnet token now uses a real
-            wallet-signed deposit path into Vanta&apos;s controlled shield vault.
+            A real devnet wallet signs the deposit. Vanta records the shielded
+            state and turns that balance into something private send can use.
           </p>
         </div>
       </div>
@@ -712,9 +709,8 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
         <div>
           <span>Wallet state</span>
           <p>
-            Public Wallet is grounded in a real Solana wallet connection on
-            {` ${clusterLabel}`}. The live token path now performs a real
-            devnet transfer before Vanta credits shielded state in-app.
+            Public Wallet is live on {clusterLabel}. The first token path makes
+            a real devnet transfer before Vanta credits private balance.
           </p>
         </div>
         <div className="shield-scenario-pills">
@@ -746,8 +742,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                   : "Connect wallet"}
               </strong>
               <p>
-                Source balance from the connected wallet for the first live
-                supported devnet token.
+                Live source balance from the connected wallet.
               </p>
             </div>
 
@@ -759,8 +754,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
               <span>Shielded State</span>
               <strong>{formatBalance(shieldedBalance, selectedAsset)}</strong>
               <p>
-                Vanta-recognized shielded balance resolved from confirmed
-                onchain shield notes for the first devnet milestone.
+                Shielded balance recognized by Vanta after confirmed shield notes.
               </p>
             </div>
           </div>
@@ -1193,6 +1187,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 </p>
               )}
               <VantaPrivateCoreStatePanel
+                compact
                 holdState={privateCoreHoldState}
                 releaseCandidateState={privateCoreReleaseCandidateState}
                 releaseHandoffState={privateCoreReleaseHandoffState}

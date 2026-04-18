@@ -1024,18 +1024,16 @@ export function UnshieldPage() {
           <span className="eyebrow">Live</span>
           <h2>Unshield</h2>
           <p>
-            Return one constrained internal state back to Public Wallet. Vanta now
-            supports both `VUSD` note exit and the first shielded `SOL` exit lane
-            created by Swap.
+            Return one constrained private state back to public wallet flow.
+            Vanta supports both `VUSD` exit and the first shielded `SOL` exit lane.
           </p>
         </div>
 
         <div className="module-state">
           <strong>Workflow role</strong>
           <p>
-            Unshield closes lanes cleanly. For `VUSD`, it returns a spendable shielded
-            note to Public Wallet. For `SOL`, it consumes one shielded swap-output note
-            and releases public-wallet SOL through a separate operator-backed path.
+            Unshield closes the lane cleanly. `VUSD` returns to public wallet
+            flow, and `SOL` exits through the operator-backed swap release path.
           </p>
         </div>
       </div>
@@ -1074,8 +1072,8 @@ export function UnshieldPage() {
         </div>
 
         <p className="shield-review-note">
-          This lane uses the Vanta Private Core for note recovery, witness state, nullifier derivation,
-          one-time consume, and replay rejection while the existing live unshield path remains intact.
+          This lane uses Vanta Private Core for note recovery, witness state,
+          one-time consume, and replay rejection before value returns to public flow.
         </p>
 
         <div className="review-list" style={{ marginBottom: 16 }}>
@@ -1138,6 +1136,7 @@ export function UnshieldPage() {
         </div>
 
         <VantaPrivateCoreStatePanel
+          compact
           holdState={privateCoreHoldState}
           releaseCandidateState={privateCoreReleaseCandidateState}
           releaseHandoffState={privateCoreReleaseHandoffState}
