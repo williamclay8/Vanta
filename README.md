@@ -309,6 +309,13 @@ These commands cover:
 
 `private-core:release-candidate-check-json` is the ready-gated machine-readable form of that same exact-run candidate: it exits zero only when the candidate is coherent and ready, prints the candidate JSON on success, and on blocked paths emits the full candidate JSON to stderr before structured `Release candidate decision status:` / `Release candidate decision note:` lines.
 
+The app now also treats the canonical primary `send -> unshield` lane as an explicit release handoff workflow instead of only as operator diagnostics. Shared runtime state derives a first-class exact release handoff from the release-candidate plus shipping-artifact surfaces, and the primary `Send` and `Unshield` pages now show:
+- prepare
+- check
+- ship
+- handoff status
+- next recommended action
+
 `private-core:shipping-status` is the compact operator-backed answer to the narrow zk-v1 question: whether the frozen private-core lane is actually ship-ready right now, and if not, which live blocker is preventing that. It now reads the dedicated `/state/private-core-shipping-decision` endpoint, which is the canonical ship/no-ship contract for the frozen narrow private-core lane, and prints the decision version/kind/status/note plus the current summary-state version, mirrored contract version, summary generation time, and the supporting shipping, finish-line, required-lanes, release-boundary, contract-mirror, and boundary summaries without the rest of the larger operator-status dump.
 
 `private-core:shipping-status-json` prints that same compact readiness surface as machine-readable JSON, including the canonical decision fields and both raw enum values and humanized labels for shipping, finish-line, required-lanes, release-boundary, contract-mirror, and boundary state.

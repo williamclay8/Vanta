@@ -34,6 +34,7 @@ export function AppDashboardPage() {
   const {
     privateCoreHoldState,
     privateCoreReleaseCandidateState,
+    privateCoreReleaseHandoffState,
     privateCoreReleaseWorkflowState,
     privateCoreSendState,
     privateCoreSwapState,
@@ -369,6 +370,7 @@ export function AppDashboardPage() {
               compact
               holdState={privateCoreHoldState}
               releaseCandidateState={privateCoreReleaseCandidateState}
+              releaseHandoffState={privateCoreReleaseHandoffState}
               releaseWorkflowState={privateCoreReleaseWorkflowState}
               sendState={privateCoreSendState}
               swapState={privateCoreSwapState}

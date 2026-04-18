@@ -340,6 +340,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreRecentShield,
     recentShield,
     privateCoreReleaseCandidateState,
+    privateCoreReleaseHandoffState,
     privateCoreReleaseWorkflowState,
     privateCoreSendState,
     privateCoreSwapState,
@@ -1602,6 +1603,12 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                     {privateCoreReleaseWorkflowState?.shipStatusLabel ?? "Unavailable"}
                   </strong>
                 </div>
+                <div className="preview-card">
+                  <span>Release handoff</span>
+                  <strong>
+                    {privateCoreReleaseHandoffState?.handoffStatusLabel ?? "Unavailable"}
+                  </strong>
+                </div>
               </div>
               <p className="shield-helper shield-helper--meta">
                 Latest send proof:{" "}
@@ -1661,6 +1668,15 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 Workflow note: {privateCoreReleaseWorkflowState?.shipPrimaryNote ?? "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
+                Handoff: {privateCoreReleaseHandoffState?.handoffStatusLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Handoff note: {privateCoreReleaseHandoffState?.handoffPrimaryNote ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Next handoff action: {privateCoreReleaseHandoffState?.nextActionLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
                 Recipient recovery: Recipient can recover the sent note privately with the matched
                 private key.
               </p>
@@ -1669,8 +1685,11 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 {privateCoreHoldState?.witnessAvailable ? "Yes" : "Awaiting refreshed hold state"}
               </p>
               <div className="status-actions">
-                <Link className="button button-primary" to="/app/unshield">
-                  Unshield Residual Note
+                <Link
+                  className="button button-primary"
+                  to={privateCoreReleaseHandoffState?.nextActionHref ?? "/app/unshield"}
+                >
+                  {privateCoreReleaseHandoffState?.nextActionLabel ?? "Unshield Residual Note"}
                 </Link>
                 <button
                   className="button button-ghost"
@@ -1740,6 +1759,12 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                     {privateCoreReleaseWorkflowState?.shipStatusLabel ?? "Unavailable"}
                   </strong>
                 </div>
+                <div className="preview-card">
+                  <span>Release handoff</span>
+                  <strong>
+                    {privateCoreReleaseHandoffState?.handoffStatusLabel ?? "Unavailable"}
+                  </strong>
+                </div>
               </div>
               <p className="shield-helper shield-helper--meta">
                 Recipient recovery: {privateCoreSendState.recipientRecoveryStatus}
@@ -1785,6 +1810,15 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               </p>
               <p className="shield-helper shield-helper--meta">
                 Workflow note: {privateCoreReleaseWorkflowState?.checkPrimaryNote ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Handoff: {privateCoreReleaseHandoffState?.handoffStatusLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Handoff note: {privateCoreReleaseHandoffState?.handoffPrimaryNote ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Next handoff action: {privateCoreReleaseHandoffState?.nextActionLabel ?? "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
                 Send root record: {abbreviate(privateCoreOperatorSendResultingRootRecord?.root) ?? "Unavailable"}
@@ -1871,6 +1905,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       <VantaPrivateCoreStatePanel
         holdState={privateCoreHoldState}
         releaseCandidateState={privateCoreReleaseCandidateState}
+        releaseHandoffState={privateCoreReleaseHandoffState}
         releaseWorkflowState={privateCoreReleaseWorkflowState}
         sendState={privateCoreSendState}
         swapState={privateCoreSwapState}

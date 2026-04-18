@@ -1,6 +1,7 @@
 import type {
   VantaPrivateCoreHoldState,
   VantaPrivateCoreReleaseCandidateState,
+  VantaPrivateCoreReleaseHandoffState,
   VantaPrivateCoreReleaseWorkflowState,
   VantaPrivateCoreSendState,
   VantaPrivateCoreShieldState,
@@ -22,6 +23,7 @@ type VantaPrivateCoreStatePanelProps = {
   holdState: VantaPrivateCoreHoldState | null;
   releaseCandidateState?: VantaPrivateCoreReleaseCandidateState | null;
   releaseWorkflowState?: VantaPrivateCoreReleaseWorkflowState | null;
+  releaseHandoffState?: VantaPrivateCoreReleaseHandoffState | null;
   sendState?: VantaPrivateCoreSendState | null;
   swapState?: VantaPrivateCoreSwapState | null;
   operatorCurrentRoot?: string | null;
@@ -343,6 +345,7 @@ export function VantaPrivateCoreStatePanel({
   holdState,
   releaseCandidateState = null,
   releaseWorkflowState = null,
+  releaseHandoffState = null,
   sendState = null,
   swapState = null,
   operatorCurrentRoot = null,
@@ -949,6 +952,69 @@ export function VantaPrivateCoreStatePanel({
               <div className="review-row">
                 <span>Observation mode</span>
                 <strong>{releaseWorkflowState.observationMode}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {releaseHandoffState ? (
+        <div className="note-state-list">
+          <div className="note-state-row">
+            <div className="note-state-row__header">
+              <div>
+                <strong>{releaseHandoffState.noteSummary}</strong>
+                <span>
+                  {releaseHandoffState.releaseCandidateId
+                    ? abbreviate(releaseHandoffState.releaseCandidateId)
+                    : "No exact candidate id"}
+                </span>
+              </div>
+              <div className="note-state-chips">
+                <span className="note-state-chip note-state-chip--spendable">
+                  {releaseHandoffState.handoffStatusLabel}
+                </span>
+                <span className="note-state-chip">
+                  {releaseHandoffState.artifactDecisionStatusLabel}
+                </span>
+              </div>
+            </div>
+            <div className="review-grid">
+              <div className="review-row">
+                <span>Handoff</span>
+                <strong>{releaseHandoffState.handoffStatusLabel}</strong>
+              </div>
+              <div className="review-row">
+                <span>Handoff note</span>
+                <strong>{releaseHandoffState.handoffPrimaryNote}</strong>
+              </div>
+              <div className="review-row">
+                <span>Next action</span>
+                <strong>{releaseHandoffState.nextActionLabel}</strong>
+              </div>
+              <div className="review-row">
+                <span>Prepare</span>
+                <strong>{releaseHandoffState.prepareStatusLabel}</strong>
+              </div>
+              <div className="review-row">
+                <span>Check</span>
+                <strong>{releaseHandoffState.checkStatusLabel}</strong>
+              </div>
+              <div className="review-row">
+                <span>Ship</span>
+                <strong>{releaseHandoffState.shipStatusLabel}</strong>
+              </div>
+              <div className="review-row">
+                <span>Artifact decision</span>
+                <strong>{releaseHandoffState.artifactDecisionStatusLabel}</strong>
+              </div>
+              <div className="review-row">
+                <span>Artifact note</span>
+                <strong>{releaseHandoffState.artifactDecisionPrimaryNote}</strong>
+              </div>
+              <div className="review-row">
+                <span>Observation mode</span>
+                <strong>{releaseHandoffState.observationMode}</strong>
               </div>
             </div>
           </div>

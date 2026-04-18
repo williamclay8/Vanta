@@ -291,6 +291,7 @@ export function UnshieldPage() {
     privateCoreOperatorSummaryUpdatedAt,
     privateCoreRecentShield,
     privateCoreReleaseCandidateState,
+    privateCoreReleaseHandoffState,
     privateCoreReleaseWorkflowState,
     privateCoreSendState,
     privateCoreSwapState,
@@ -1056,11 +1057,22 @@ export function UnshieldPage() {
                   : "Available after primary private send"}
             </strong>
           </div>
+          <div className="review-row">
+            <span>8. Release handoff</span>
+            <strong>
+              {privateCoreReleaseHandoffState
+                ? `${privateCoreReleaseHandoffState.handoffStatusLabel} · ${privateCoreReleaseHandoffState.handoffPrimaryNote}`
+                : privateCoreSendCompleted
+                  ? "Awaiting release handoff summary"
+                  : "Available after primary private send"}
+            </strong>
+          </div>
         </div>
 
         <VantaPrivateCoreStatePanel
           holdState={privateCoreHoldState}
           releaseCandidateState={privateCoreReleaseCandidateState}
+          releaseHandoffState={privateCoreReleaseHandoffState}
           releaseWorkflowState={privateCoreReleaseWorkflowState}
           sendState={privateCoreSendState}
           swapState={privateCoreSwapState}
@@ -1948,6 +1960,12 @@ export function UnshieldPage() {
                     {privateCoreReleaseWorkflowState?.shipStatusLabel ?? "Unavailable"}
                   </strong>
                 </div>
+                <div className="preview-card">
+                  <span>Release handoff</span>
+                  <strong>
+                    {privateCoreReleaseHandoffState?.handoffStatusLabel ?? "Unavailable"}
+                  </strong>
+                </div>
               </div>
               <div className="review-list">
                 <div className="review-row">
@@ -1985,6 +2003,18 @@ export function UnshieldPage() {
                 <div className="review-row">
                   <span>Workflow note</span>
                   <strong>{privateCoreReleaseWorkflowState?.shipPrimaryNote ?? "Unavailable"}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Handoff</span>
+                  <strong>{privateCoreReleaseHandoffState?.handoffStatusLabel ?? "Unavailable"}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Next handoff action</span>
+                  <strong>{privateCoreReleaseHandoffState?.nextActionLabel ?? "Unavailable"}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Handoff note</span>
+                  <strong>{privateCoreReleaseHandoffState?.handoffPrimaryNote ?? "Unavailable"}</strong>
                 </div>
               </div>
               {lastTransitionSignature && (

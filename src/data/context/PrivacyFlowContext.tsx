@@ -113,6 +113,7 @@ type PrivacyFlowContextValue = {
   privateCoreSendState: VantaPrivateCoreSendState | null;
   privateCoreReleaseCandidateState: VantaPrivateCoreReleaseCandidateState | null;
   privateCoreReleaseWorkflowState: VantaPrivateCoreReleaseWorkflowState | null;
+  privateCoreReleaseHandoffState: VantaPrivateCoreReleaseHandoffState | null;
   privateCoreSwapState: VantaPrivateCoreSwapState | null;
   privateCoreOperatorConsumes: VantaPrivateCoreOperatorConsumeRecord[];
   privateCoreOperatorConsumeError: string | null;
@@ -493,6 +494,21 @@ export type VantaPrivateCoreReleaseWorkflowState = {
   artifactPrimaryNote: string;
   releaseRequestId: string | null;
   releasedAmount: string | null;
+  noteSummary: string;
+  observationMode: string;
+};
+
+export type VantaPrivateCoreReleaseHandoffState = {
+  releaseCandidateId: string | null;
+  handoffStatusLabel: string;
+  handoffPrimaryNote: string;
+  nextActionLabel: string;
+  nextActionHref: string | null;
+  artifactDecisionStatusLabel: string;
+  artifactDecisionPrimaryNote: string;
+  prepareStatusLabel: string;
+  checkStatusLabel: string;
+  shipStatusLabel: string;
   noteSummary: string;
   observationMode: string;
 };
@@ -1416,6 +1432,15 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorReleaseCandidateCheck,
       privateCoreOperatorShippingArtifact,
     ],
+  );
+
+  const privateCoreReleaseHandoffState = useMemo(
+    () =>
+      summarizePrivateCoreReleaseHandoffState({
+        candidate: privateCoreOperatorReleaseCandidate,
+        workflow: privateCoreReleaseWorkflowState,
+      }),
+    [privateCoreOperatorReleaseCandidate, privateCoreReleaseWorkflowState],
   );
 
   const privateCoreSwapState = useMemo(
@@ -2480,6 +2505,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreSendState,
       privateCoreReleaseCandidateState,
       privateCoreReleaseWorkflowState,
+      privateCoreReleaseHandoffState,
       privateCoreSwapState,
       privateCoreOperatorConsumes,
       privateCoreOperatorConsumeError,
@@ -2752,6 +2778,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreSendState,
       privateCoreReleaseCandidateState,
       privateCoreReleaseWorkflowState,
+      privateCoreReleaseHandoffState,
       privateCoreSwapState,
       privateCoreOperatorConsumeError,
       privateCoreOperatorConsumes,
@@ -4029,6 +4056,116 @@ function summarizePrivateCoreReleaseWorkflowState(args: {
       ? `${releasedAmountLabel} release workflow`
       : "Exact release workflow",
     observationMode: "Operator release workflow summary",
+  };
+}
+
+function summarizePrivateCoreReleaseHandoffState(args: {
+  candidate: VantaPrivateCoreOperatorReleaseCandidateResponse | null;
+  workflow: VantaPrivateCoreReleaseWorkflowState | null;
+}): VantaPrivateCoreReleaseHandoffState | null {
+  const candidate = args.candidate;
+  const workflow = args.workflow;
+
+  if (!candidate && !workflow) {
+    return null;
+  }
+
+  const releaseCandidateId = workflow?.releaseCandidateId ?? candidate?.releaseCandidateId ?? null;
+  const prepareStatusLabel = workflow?.prepareStatusLabel ?? "Awaiting primary send";
+  const checkStatusLabel = workflow?.checkStatusLabel ?? "Awaiting candidate";
+  const shipStatusLabel = workflow?.shipStatusLabel ?? "Awaiting shipping artifact";
+  const artifactDecisionStatusLabel = shipStatusLabel;
+  const artifactDecisionPrimaryNote =
+    workflow?.shipPrimaryNote ??
+    "The exact release handoff is waiting for the operator-backed shipping artifact.";
+
+  if (shipStatusLabel === "Shipping artifact ready") {
+    return {
+      releaseCandidateId,
+      handoffStatusLabel: "Ready for release handoff",
+      handoffPrimaryNote:
+        "The canonical primary send-to-unshield lane has a checked exact candidate and a release-grade shipping artifact ready for handoff.",
+      nextActionLabel: "Review shipping artifact",
+      nextActionHref: null,
+      artifactDecisionStatusLabel,
+      artifactDecisionPrimaryNote,
+      prepareStatusLabel,
+      checkStatusLabel,
+      shipStatusLabel,
+      noteSummary: "Exact release handoff",
+      observationMode: "Product release handoff summary",
+    };
+  }
+
+  if (prepareStatusLabel === "Awaiting primary send") {
+    return {
+      releaseCandidateId,
+      handoffStatusLabel: "Awaiting primary send",
+      handoffPrimaryNote:
+        "Start with the canonical primary private send to create the exact release candidate for the narrow zk v1 lane.",
+      nextActionLabel: "Run primary private send",
+      nextActionHref: "/app/send",
+      artifactDecisionStatusLabel,
+      artifactDecisionPrimaryNote,
+      prepareStatusLabel,
+      checkStatusLabel,
+      shipStatusLabel,
+      noteSummary: "Exact release handoff",
+      observationMode: "Product release handoff summary",
+    };
+  }
+
+  if (candidate?.releaseRequestId) {
+    return {
+      releaseCandidateId,
+      handoffStatusLabel: "Awaiting shipping artifact",
+      handoffPrimaryNote:
+        "The primary downstream release is recorded, but the release-grade shipping artifact is not ready yet.",
+      nextActionLabel: "Refresh release handoff",
+      nextActionHref: null,
+      artifactDecisionStatusLabel,
+      artifactDecisionPrimaryNote,
+      prepareStatusLabel,
+      checkStatusLabel,
+      shipStatusLabel,
+      noteSummary: "Exact release handoff",
+      observationMode: "Product release handoff summary",
+    };
+  }
+
+  if (candidate?.sendId) {
+    return {
+      releaseCandidateId,
+      handoffStatusLabel: "Awaiting primary unshield",
+      handoffPrimaryNote:
+        "The exact release candidate is prepared from the primary private send, but the downstream unshield must complete before the handoff can be release-ready.",
+      nextActionLabel: "Complete primary unshield",
+      nextActionHref: "/app/unshield",
+      artifactDecisionStatusLabel,
+      artifactDecisionPrimaryNote,
+      prepareStatusLabel,
+      checkStatusLabel,
+      shipStatusLabel,
+      noteSummary: "Exact release handoff",
+      observationMode: "Product release handoff summary",
+    };
+  }
+
+  return {
+    releaseCandidateId,
+    handoffStatusLabel: "Handoff blocked",
+    handoffPrimaryNote:
+      workflow?.checkPrimaryNote ??
+      "The exact release handoff is blocked and needs the canonical primary lane to become coherent again.",
+    nextActionLabel: "Review exact candidate blockers",
+    nextActionHref: "/app/unshield",
+    artifactDecisionStatusLabel,
+    artifactDecisionPrimaryNote,
+    prepareStatusLabel,
+    checkStatusLabel,
+    shipStatusLabel,
+    noteSummary: "Exact release handoff",
+    observationMode: "Product release handoff summary",
   };
 }
 

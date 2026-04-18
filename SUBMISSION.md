@@ -280,6 +280,12 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   runs the ready-gated human-readable form of that exact-run candidate and fails with structured `Release candidate decision status:` / `Release candidate decision note:` lines on blocked paths
 - `npm run private-core:release-candidate-check-json`
   runs the machine-readable ready-gated form of that same exact-run candidate; it succeeds only when the exact candidate is coherent and otherwise fails with the full candidate JSON plus structured release-candidate decision status/note stderr
+- the app now also surfaces that same exact primary lane as a first-class release handoff workflow in-product:
+  - prepare
+  - check
+  - ship
+  - handoff status
+  - next recommended action
 - `npm run private-core:shipping-status`
   prints the compact operator-backed shipping summary for the frozen narrow zk-v1 lane from the dedicated `/state/private-core-shipping-decision` endpoint, which now serves as the canonical ship/no-ship contract for that frozen lane, including the decision version/kind/status/note, summary-state version, mirrored contract version, current summary generation time, and the supporting finish-line, required-lanes, release-boundary, contract-mirror, and boundary summaries; `private-core:shipping-check` now reads the dedicated `/state/private-core-shipping-decision-check` gate endpoint directly and fails with structured shipping status/note lines on blocked paths
 - `npm run private-core:shipping-status-json`

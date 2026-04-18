@@ -196,6 +196,13 @@ Use `private-core:release-candidate-check` when a human wants that exact-run can
 
 Use `private-core:release-candidate-check-json` when that same tooling wants the full exact-run candidate as a strict machine-readable ready gate.
 
+Inside the app, the same primary `send -> unshield` lane is now surfaced as a first-class exact release handoff workflow. The shared runtime and primary Send/Unshield product cards now show:
+- prepare
+- check
+- ship
+- handoff status
+- next recommended action
+
 ## App demo path
 
 Use the current Vanta app and walk this sequence:
