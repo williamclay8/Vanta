@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePanel";
 import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
@@ -14,8 +14,6 @@ const NoteStatePanel = lazy(() =>
   import("@/components/NoteStatePanel").then((m) => ({ default: m.NoteStatePanel })),
 );
 import { useWalletState } from "@/data/context/WalletContext";
-import { useVantaNextStepGuidance } from "@/solana/useVantaNextStepGuidance";
-import { useVantaPositionSummary } from "@/solana/useVantaPositionSummary";
 import { useVantaShieldState } from "@/solana/useVantaShieldState";
 
 type DashboardActionCard = {
@@ -28,9 +26,11 @@ type DashboardActionCard = {
 };
 
 export function AppDashboardPage() {
-  const summary = useVantaPositionSummary();
-  const guidance = useVantaNextStepGuidance();
   const { account } = useVantaShieldState();
+  const {
+    clusterLabel,
+    walletConnected,
+  } = useWalletState();
   const {
     privateCoreHoldState,
     privateCoreReleaseCandidateState,
@@ -234,7 +234,120 @@ export function AppDashboardPage() {
     privateCoreRecentShield,
     privateCoreUnshieldState,
   } = usePrivacyFlow();
-  const { walletConnected } = useWalletState();
+
+  const summary = useMemo(() => {
+    const shieldedBalance = account?.balance ?? 0;
+    const shieldedSolBalance = account?.shieldedSolBalance ?? 0;
+    const spendableNoteCount = account?.spendableShieldNotes.length ?? 0;
+    const swapCount = account?.swapNotes.length ?? 0;
+    const latestActivity = account?.lifecycleActivities[0] ?? null;
+
+    let statusLabel = "Connect a wallet to enter the live VUSD path.";
+
+    if (walletConnected && shieldedSolBalance > 0) {
+      statusLabel =
+        "Shielded SOL output is now present inside Vanta and can use the constrained SOL unshield lane.";
+    } else if (walletConnected && spendableNoteCount > 0) {
+      statusLabel = "Spendable shielded value is available for Send, Swap, or Unshield.";
+    } else if (walletConnected && shieldedBalance > 0) {
+      statusLabel =
+        "Shielded VUSD is present, but no spendable note is currently available.";
+    } else if (walletConnected) {
+      statusLabel = "No live VUSD is currently available in Public Wallet.";
+    }
+
+    return {
+      latestActionLabel: latestActivity
+        ? latestActivity.amountLabel
+          ? `${latestActivity.title} ${latestActivity.amountLabel}`
+          : `${latestActivity.title} ${latestActivity.amount.toFixed(2)} VUSD`
+        : "No resolved lifecycle activity yet",
+      latestActionTimestamp: latestActivity?.createdAt ?? null,
+      liveAsset: "VUSD" as const,
+      networkLabel: clusterLabel,
+      publicBalance: 0,
+      shieldedBalance,
+      shieldedSolBalance,
+      spendableNoteCount,
+      statusLabel,
+      swapCount,
+      walletConnected,
+    };
+  }, [account, clusterLabel, walletConnected]);
+
+  const guidance = useMemo(() => {
+    const latestActivity = account?.lifecycleActivities[0] ?? null;
+
+    if (!summary.walletConnected) {
+      return {
+        ctaHref: null,
+        ctaLabel: null,
+        emphasisLabel: "Wallet connection required",
+        message: "Connect a wallet to begin the live constrained VUSD lifecycle.",
+      };
+    }
+
+    if (summary.spendableNoteCount > 0 && latestActivity?.type === "shield") {
+      return {
+        ctaHref: "/app/swap",
+        ctaLabel: "Open Swap",
+        emphasisLabel: "Spendable note ready",
+        message: "Shielded VUSD is available from the latest Shield action and can continue into Send, Swap, or Unshield.",
+      };
+    }
+
+    if (summary.spendableNoteCount > 0 && latestActivity?.type === "change_note_created") {
+      return {
+        ctaHref: "/app/swap",
+        ctaLabel: "Open Swap",
+        emphasisLabel: "Change note ready",
+        message: "Residual shielded value remains available. It can be sent again, swapped into SOL, or returned to Public Wallet.",
+      };
+    }
+
+    if (latestActivity?.type === "swap") {
+      return {
+        ctaHref: "/app/unshield",
+        ctaLabel: "Open Unshield",
+        emphasisLabel: "Shielded SOL resolved",
+        message: "The first constrained swap path completed inside Vanta. Shielded SOL output is now present and can be returned to Public Wallet through the new SOL unshield lane.",
+      };
+    }
+
+    if (latestActivity?.type === "sol_unshield") {
+      return {
+        ctaHref: "/app/shield",
+        ctaLabel: "Shield again",
+        emphasisLabel: "SOL lane completed",
+        message: "A shielded SOL note has been authenticated, consumed, and returned to Public Wallet through the constrained operator-backed exit path.",
+      };
+    }
+
+    if (summary.spendableNoteCount > 0) {
+      return {
+        ctaHref: "/app/swap",
+        ctaLabel: "Open Swap",
+        emphasisLabel: "Next constrained action available",
+        message: "Spendable VUSD is live in shielded state and can continue through Send, Swap, or Unshield.",
+      };
+    }
+
+    if (summary.shieldedBalance > 0) {
+      return {
+        ctaHref: "/app/unshield",
+        ctaLabel: "Open Unshield",
+        emphasisLabel: "Shielded state present",
+        message: "Shielded VUSD is present, but there is no currently spendable note to move forward from this state.",
+      };
+    }
+
+    return {
+      ctaHref: "/app/shield",
+      ctaLabel: "Open Shield",
+      emphasisLabel: "Awaiting live VUSD",
+      message: "No constrained VUSD action is available yet. Public Wallet needs live VUSD to begin the loop.",
+    };
+  }, [account?.lifecycleActivities, summary]);
 
   const actions: DashboardActionCard[] = [
     {

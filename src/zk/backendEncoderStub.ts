@@ -2246,12 +2246,12 @@ export type BackendSpecificEncoderFieldMaterializationDownstreamPreEncodingPlann
     handoffVersion: 2;
     encoderId: string;
     encoderLabel: string;
-    fieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSnapshotKind:
-      BackendSpecificEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreeze["snapshotKind"];
-    fieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSnapshotVersion:
-      BackendSpecificEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreeze["snapshotVersion"];
-    fieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerStatus:
-      BackendSpecificEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerStatus;
+    fieldMaterializationDownstreamPreEncodingPlanningConsumerSnapshotKind:
+      BackendSpecificEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreeze["snapshotKind"];
+    fieldMaterializationDownstreamPreEncodingPlanningConsumerSnapshotVersion:
+      BackendSpecificEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreeze["snapshotVersion"];
+    fieldMaterializationDownstreamPreEncodingPlanningConsumerStatus:
+      BackendSpecificEncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerStatus;
     status: BackendSpecificEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffStatus;
     proceedable: boolean;
     dispatchFootprintSummary: string;
@@ -2267,12 +2267,12 @@ export type BackendSpecificEncoderFieldMaterializationDownstreamPreEncodingPlann
       BackendSpecificEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoff["handoffVersion"];
     encoderId: string;
     encoderLabel: string;
-    fieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSnapshotKind:
-      BackendSpecificEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoff["fieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSnapshotKind"];
-    fieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSnapshotVersion:
-      BackendSpecificEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoff["fieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSnapshotVersion"];
-    fieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerStatus:
-      BackendSpecificEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoff["fieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerStatus"];
+    fieldMaterializationDownstreamPreEncodingPlanningConsumerSnapshotKind:
+      BackendSpecificEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoff["fieldMaterializationDownstreamPreEncodingPlanningConsumerSnapshotKind"];
+    fieldMaterializationDownstreamPreEncodingPlanningConsumerSnapshotVersion:
+      BackendSpecificEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoff["fieldMaterializationDownstreamPreEncodingPlanningConsumerSnapshotVersion"];
+    fieldMaterializationDownstreamPreEncodingPlanningConsumerStatus:
+      BackendSpecificEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoff["fieldMaterializationDownstreamPreEncodingPlanningConsumerStatus"];
     status:
       BackendSpecificEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoff["status"];
     proceedable: boolean;
@@ -2785,12 +2785,12 @@ export type BackendSpecificEncoderFieldMaterializationNextDownstreamPlanningBoun
     handoffVersion: 1;
     encoderId: string;
     encoderLabel: string;
-    fieldMaterializationNextDownstreamPlanningConsumerSnapshotKind:
-      BackendSpecificEncoderFieldMaterializationNextDownstreamPlanningConsumerFreeze["snapshotKind"];
-    fieldMaterializationNextDownstreamPlanningConsumerSnapshotVersion:
-      BackendSpecificEncoderFieldMaterializationNextDownstreamPlanningConsumerFreeze["snapshotVersion"];
-    fieldMaterializationNextDownstreamPlanningConsumerStatus:
-      BackendSpecificEncoderFieldMaterializationNextDownstreamPlanningConsumerStatus;
+    fieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSnapshotKind:
+      BackendSpecificEncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreeze["snapshotKind"];
+    fieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSnapshotVersion:
+      BackendSpecificEncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreeze["snapshotVersion"];
+    fieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffStatus:
+      BackendSpecificEncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffStatus;
     status: BackendSpecificEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffStatus;
     proceedable: boolean;
     dispatchFootprintSummary: string;
@@ -2806,12 +2806,12 @@ export type BackendSpecificEncoderFieldMaterializationNextDownstreamPlanningBoun
       BackendSpecificEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoff["handoffVersion"];
     encoderId: string;
     encoderLabel: string;
-    fieldMaterializationNextDownstreamPlanningConsumerSnapshotKind:
-      BackendSpecificEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoff["fieldMaterializationNextDownstreamPlanningConsumerSnapshotKind"];
-    fieldMaterializationNextDownstreamPlanningConsumerSnapshotVersion:
-      BackendSpecificEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoff["fieldMaterializationNextDownstreamPlanningConsumerSnapshotVersion"];
-    fieldMaterializationNextDownstreamPlanningConsumerStatus:
-      BackendSpecificEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoff["fieldMaterializationNextDownstreamPlanningConsumerStatus"];
+    fieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSnapshotKind:
+      BackendSpecificEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoff["fieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSnapshotKind"];
+    fieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSnapshotVersion:
+      BackendSpecificEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoff["fieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSnapshotVersion"];
+    fieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffStatus:
+      BackendSpecificEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoff["fieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffStatus"];
     status:
       BackendSpecificEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoff["status"];
     proceedable: boolean;
@@ -11063,19 +11063,19 @@ export function inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEnco
   payload: CanonicalCircuitInputAdapterPayloadFreeze,
 ): BackendSpecificEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoff {
   const freeze =
-    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreezeForFrozenPayload(
+    inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEncodingPlanningConsumerFreezeForFrozenPayload(
       payload,
     );
   const snapshot =
-    readFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreezeSnapshot(
+    readFieldMaterializationDownstreamPreEncodingPlanningConsumerFreezeSnapshot(
       freeze,
     );
   const status =
     snapshot.status ===
-    "field-materialization-downstream-pre-encoding-planning-boundary-consumer-ready"
+    "field-materialization-downstream-pre-encoding-planning-consumer-ready"
       ? "field-materialization-downstream-pre-encoding-planning-boundary-handoff-ready"
       : snapshot.status ===
-            "field-materialization-downstream-pre-encoding-planning-boundary-consumer-blocked"
+            "field-materialization-downstream-pre-encoding-planning-consumer-blocked"
         ? "field-materialization-downstream-pre-encoding-planning-boundary-handoff-blocked"
         : "field-materialization-downstream-pre-encoding-planning-boundary-handoff-not-issued";
 
@@ -11085,11 +11085,11 @@ export function inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEnco
     handoffVersion: 2,
     encoderId: snapshot.encoderId,
     encoderLabel: snapshot.encoderLabel,
-    fieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSnapshotKind:
+    fieldMaterializationDownstreamPreEncodingPlanningConsumerSnapshotKind:
       snapshot.snapshotKind,
-    fieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSnapshotVersion:
+    fieldMaterializationDownstreamPreEncodingPlanningConsumerSnapshotVersion:
       snapshot.snapshotVersion,
-    fieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerStatus:
+    fieldMaterializationDownstreamPreEncodingPlanningConsumerStatus:
       snapshot.status,
     status,
     proceedable: snapshot.proceedable,
@@ -11123,12 +11123,12 @@ export function inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEnco
     handoffVersion: handoff.handoffVersion,
     encoderId: handoff.encoderId,
     encoderLabel: handoff.encoderLabel,
-    fieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSnapshotKind:
-      handoff.fieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSnapshotKind,
-    fieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSnapshotVersion:
-      handoff.fieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSnapshotVersion,
-    fieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerStatus:
-      handoff.fieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerStatus,
+    fieldMaterializationDownstreamPreEncodingPlanningConsumerSnapshotKind:
+      handoff.fieldMaterializationDownstreamPreEncodingPlanningConsumerSnapshotKind,
+    fieldMaterializationDownstreamPreEncodingPlanningConsumerSnapshotVersion:
+      handoff.fieldMaterializationDownstreamPreEncodingPlanningConsumerSnapshotVersion,
+    fieldMaterializationDownstreamPreEncodingPlanningConsumerStatus:
+      handoff.fieldMaterializationDownstreamPreEncodingPlanningConsumerStatus,
     status: handoff.status,
     proceedable: handoff.proceedable,
     dispatchFootprintSummary: handoff.dispatchFootprintSummary,
@@ -11179,16 +11179,16 @@ export function inspectGenericPhase1EncoderFieldMaterializationDownstreamPreEnco
     ["encoderId", handoff.encoderId],
     ["encoderLabel", handoff.encoderLabel],
     [
-      "fieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSnapshotKind",
-      handoff.fieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSnapshotKind,
+      "fieldMaterializationDownstreamPreEncodingPlanningConsumerSnapshotKind",
+      handoff.fieldMaterializationDownstreamPreEncodingPlanningConsumerSnapshotKind,
     ],
     [
-      "fieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSnapshotVersion",
-      handoff.fieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerSnapshotVersion,
+      "fieldMaterializationDownstreamPreEncodingPlanningConsumerSnapshotVersion",
+      handoff.fieldMaterializationDownstreamPreEncodingPlanningConsumerSnapshotVersion,
     ],
     [
-      "fieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerStatus",
-      handoff.fieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerStatus,
+      "fieldMaterializationDownstreamPreEncodingPlanningConsumerStatus",
+      handoff.fieldMaterializationDownstreamPreEncodingPlanningConsumerStatus,
     ],
     ["status", handoff.status],
     ["proceedable", handoff.proceedable],
@@ -11911,19 +11911,19 @@ export function inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPla
   payload: CanonicalCircuitInputAdapterPayloadFreeze,
 ): BackendSpecificEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoff {
   const freeze =
-    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPlanningConsumerFreezeForFrozenPayload(
+    inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreezeForFrozenPayload(
       payload,
     );
   const snapshot =
-    readFieldMaterializationNextDownstreamPlanningConsumerFreezeSnapshot(
+    readFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreezeSnapshot(
       freeze,
     );
   const status =
     snapshot.status ===
-    "field-materialization-next-downstream-planning-consumer-ready"
+    "field-materialization-next-downstream-pre-encoding-planning-consumer-handoff-ready"
       ? "field-materialization-next-downstream-planning-boundary-handoff-ready"
       : snapshot.status ===
-            "field-materialization-next-downstream-planning-consumer-blocked"
+            "field-materialization-next-downstream-pre-encoding-planning-consumer-handoff-blocked"
         ? "field-materialization-next-downstream-planning-boundary-handoff-blocked"
         : "field-materialization-next-downstream-planning-boundary-handoff-not-issued";
 
@@ -11933,11 +11933,11 @@ export function inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPla
     handoffVersion: 1,
     encoderId: snapshot.encoderId,
     encoderLabel: snapshot.encoderLabel,
-    fieldMaterializationNextDownstreamPlanningConsumerSnapshotKind:
+    fieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSnapshotKind:
       snapshot.snapshotKind,
-    fieldMaterializationNextDownstreamPlanningConsumerSnapshotVersion:
+    fieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSnapshotVersion:
       snapshot.snapshotVersion,
-    fieldMaterializationNextDownstreamPlanningConsumerStatus:
+    fieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffStatus:
       snapshot.status,
     status,
     proceedable: snapshot.proceedable,
@@ -11971,12 +11971,12 @@ export function inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPla
     handoffVersion: handoff.handoffVersion,
     encoderId: handoff.encoderId,
     encoderLabel: handoff.encoderLabel,
-    fieldMaterializationNextDownstreamPlanningConsumerSnapshotKind:
-      handoff.fieldMaterializationNextDownstreamPlanningConsumerSnapshotKind,
-    fieldMaterializationNextDownstreamPlanningConsumerSnapshotVersion:
-      handoff.fieldMaterializationNextDownstreamPlanningConsumerSnapshotVersion,
-    fieldMaterializationNextDownstreamPlanningConsumerStatus:
-      handoff.fieldMaterializationNextDownstreamPlanningConsumerStatus,
+    fieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSnapshotKind:
+      handoff.fieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSnapshotKind,
+    fieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSnapshotVersion:
+      handoff.fieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSnapshotVersion,
+    fieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffStatus:
+      handoff.fieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffStatus,
     status: handoff.status,
     proceedable: handoff.proceedable,
     dispatchFootprintSummary: handoff.dispatchFootprintSummary,
@@ -12027,16 +12027,16 @@ export function inspectGenericPhase1EncoderFieldMaterializationNextDownstreamPla
     ["encoderId", handoff.encoderId],
     ["encoderLabel", handoff.encoderLabel],
     [
-      "fieldMaterializationNextDownstreamPlanningConsumerSnapshotKind",
-      handoff.fieldMaterializationNextDownstreamPlanningConsumerSnapshotKind,
+      "fieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSnapshotKind",
+      handoff.fieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSnapshotKind,
     ],
     [
-      "fieldMaterializationNextDownstreamPlanningConsumerSnapshotVersion",
-      handoff.fieldMaterializationNextDownstreamPlanningConsumerSnapshotVersion,
+      "fieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSnapshotVersion",
+      handoff.fieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffSnapshotVersion,
     ],
     [
-      "fieldMaterializationNextDownstreamPlanningConsumerStatus",
-      handoff.fieldMaterializationNextDownstreamPlanningConsumerStatus,
+      "fieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffStatus",
+      handoff.fieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffStatus,
     ],
     ["status", handoff.status],
     ["proceedable", handoff.proceedable],
@@ -22156,7 +22156,7 @@ function summarizeFieldMaterializationDownstreamPreEncodingPlanningConsumer(
 
 function summarizeFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoff(
   status: BackendSpecificEncoderFieldMaterializationDownstreamPreEncodingPlanningBoundaryHandoffStatus,
-  snapshot: ParsedFieldMaterializationDownstreamPreEncodingPlanningBoundaryConsumerFreezeSnapshot,
+  snapshot: ParsedFieldMaterializationDownstreamPreEncodingPlanningConsumerFreezeSnapshot,
 ): string {
   const parts = [
     status,
@@ -22224,7 +22224,7 @@ function summarizeFieldMaterializationNextDownstreamPlanningBoundaryConsumer(
 
 function summarizeFieldMaterializationNextDownstreamPlanningBoundaryHandoff(
   status: BackendSpecificEncoderFieldMaterializationNextDownstreamPlanningBoundaryHandoffStatus,
-  snapshot: ParsedFieldMaterializationNextDownstreamPlanningConsumerFreezeSnapshot,
+  snapshot: ParsedFieldMaterializationNextDownstreamPreEncodingPlanningConsumerHandoffFreezeSnapshot,
 ): string {
   const parts = [
     status,
