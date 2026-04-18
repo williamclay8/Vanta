@@ -340,6 +340,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreRecentShield,
     recentShield,
     privateCoreReleaseCandidateState,
+    privateCoreReleaseWorkflowState,
     privateCoreSendState,
     privateCoreSwapState,
     privateCoreUnshieldState,
@@ -1595,6 +1596,12 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                     {privateCoreReleaseCandidateState?.lifecycleStatusLabel ?? "Unavailable"}
                   </strong>
                 </div>
+                <div className="preview-card">
+                  <span>Release workflow</span>
+                  <strong>
+                    {privateCoreReleaseWorkflowState?.shipStatusLabel ?? "Unavailable"}
+                  </strong>
+                </div>
               </div>
               <p className="shield-helper shield-helper--meta">
                 Latest send proof:{" "}
@@ -1639,6 +1646,19 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               <p className="shield-helper shield-helper--meta">
                 Candidate note:{" "}
                 {privateCoreReleaseCandidateState?.lifecyclePrimaryNote ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Workflow prepare:{" "}
+                {privateCoreReleaseWorkflowState?.prepareStatusLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Workflow check: {privateCoreReleaseWorkflowState?.checkStatusLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Workflow ship: {privateCoreReleaseWorkflowState?.shipStatusLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Workflow note: {privateCoreReleaseWorkflowState?.shipPrimaryNote ?? "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
                 Recipient recovery: Recipient can recover the sent note privately with the matched
@@ -1714,6 +1734,12 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                     {privateCoreReleaseCandidateState?.lifecycleStatusLabel ?? "Unavailable"}
                   </strong>
                 </div>
+                <div className="preview-card">
+                  <span>Release workflow</span>
+                  <strong>
+                    {privateCoreReleaseWorkflowState?.shipStatusLabel ?? "Unavailable"}
+                  </strong>
+                </div>
               </div>
               <p className="shield-helper shield-helper--meta">
                 Recipient recovery: {privateCoreSendState.recipientRecoveryStatus}
@@ -1746,6 +1772,19 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               <p className="shield-helper shield-helper--meta">
                 Candidate note:{" "}
                 {privateCoreReleaseCandidateState?.lifecyclePrimaryNote ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Workflow prepare:{" "}
+                {privateCoreReleaseWorkflowState?.prepareStatusLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Workflow check: {privateCoreReleaseWorkflowState?.checkStatusLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Workflow ship: {privateCoreReleaseWorkflowState?.shipStatusLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Workflow note: {privateCoreReleaseWorkflowState?.checkPrimaryNote ?? "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
                 Send root record: {abbreviate(privateCoreOperatorSendResultingRootRecord?.root) ?? "Unavailable"}
@@ -1832,6 +1871,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       <VantaPrivateCoreStatePanel
         holdState={privateCoreHoldState}
         releaseCandidateState={privateCoreReleaseCandidateState}
+        releaseWorkflowState={privateCoreReleaseWorkflowState}
         sendState={privateCoreSendState}
         swapState={privateCoreSwapState}
         operatorCurrentRoot={privateCoreOperatorCurrentRoot}

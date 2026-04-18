@@ -59,6 +59,7 @@ import {
   type VantaPrivateCoreOperatorRootRecord,
   type VantaPrivateCoreOperatorSendRecord,
   type VantaPrivateCoreOperatorSendProofRecord,
+  type VantaPrivateCoreOperatorShippingArtifactResponse,
   type VantaPrivateCoreOperatorSwapProofRecord,
   type VantaPrivateCoreOperatorSwapRecord,
   type VantaPrivateCoreOperatorSummaryStateResponse,
@@ -111,6 +112,7 @@ type PrivacyFlowContextValue = {
   privateCoreHoldState: VantaPrivateCoreHoldState | null;
   privateCoreSendState: VantaPrivateCoreSendState | null;
   privateCoreReleaseCandidateState: VantaPrivateCoreReleaseCandidateState | null;
+  privateCoreReleaseWorkflowState: VantaPrivateCoreReleaseWorkflowState | null;
   privateCoreSwapState: VantaPrivateCoreSwapState | null;
   privateCoreOperatorConsumes: VantaPrivateCoreOperatorConsumeRecord[];
   privateCoreOperatorConsumeError: string | null;
@@ -473,6 +475,22 @@ export type VantaPrivateCoreReleaseCandidateState = {
   releaseLifecycleStatus: string;
   sendId: string | null;
   consumeRoot: string | null;
+  releaseRequestId: string | null;
+  releasedAmount: string | null;
+  noteSummary: string;
+  observationMode: string;
+};
+
+export type VantaPrivateCoreReleaseWorkflowState = {
+  releaseCandidateId: string | null;
+  prepareStatusLabel: string;
+  preparePrimaryNote: string;
+  checkStatusLabel: string;
+  checkPrimaryNote: string;
+  shipStatusLabel: string;
+  shipPrimaryNote: string;
+  artifactStatusLabel: string;
+  artifactPrimaryNote: string;
   releaseRequestId: string | null;
   releasedAmount: string | null;
   noteSummary: string;
@@ -1038,6 +1056,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<VantaPrivateCoreOperatorReleaseCandidateResponse | null>(null);
   const [privateCoreOperatorReleaseCandidateCheck, setPrivateCoreOperatorReleaseCandidateCheck] =
     useState<VantaPrivateCoreOperatorReleaseCandidateCheckResponse | null>(null);
+  const [privateCoreOperatorShippingArtifact, setPrivateCoreOperatorShippingArtifact] =
+    useState<VantaPrivateCoreOperatorShippingArtifactResponse | null>(null);
   const [privateCoreOperatorSupportedShippingDecisionNote, setPrivateCoreOperatorSupportedShippingDecisionNote] =
     useState<string | null>(null);
   const [privateCoreOperatorSummaryUpdatedAt, setPrivateCoreOperatorSummaryUpdatedAt] =
@@ -1248,6 +1268,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     setPrivateCoreOperatorSnapshotKind(snapshotState.snapshotKind);
     setPrivateCoreOperatorShippingArtifactVersion(shippingArtifactState.artifactVersion);
     setPrivateCoreOperatorShippingArtifactKind(shippingArtifactState.artifactKind);
+    setPrivateCoreOperatorShippingArtifact(shippingArtifactState);
     setPrivateCoreOperatorShippingDecisionVersion(shippingDecisionState.decisionVersion);
     setPrivateCoreOperatorShippingDecisionKind(shippingDecisionState.decisionKind);
     setPrivateCoreOperatorReleaseCandidate(releaseCandidateState);
@@ -1381,6 +1402,20 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         candidateCheck: privateCoreOperatorReleaseCandidateCheck,
       }),
     [privateCoreOperatorReleaseCandidate, privateCoreOperatorReleaseCandidateCheck],
+  );
+
+  const privateCoreReleaseWorkflowState = useMemo(
+    () =>
+      summarizePrivateCoreReleaseWorkflowState({
+        candidate: privateCoreOperatorReleaseCandidate,
+        candidateCheck: privateCoreOperatorReleaseCandidateCheck,
+        shippingArtifact: privateCoreOperatorShippingArtifact,
+      }),
+    [
+      privateCoreOperatorReleaseCandidate,
+      privateCoreOperatorReleaseCandidateCheck,
+      privateCoreOperatorShippingArtifact,
+    ],
   );
 
   const privateCoreSwapState = useMemo(
@@ -2444,6 +2479,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreHoldState,
       privateCoreSendState,
       privateCoreReleaseCandidateState,
+      privateCoreReleaseWorkflowState,
       privateCoreSwapState,
       privateCoreOperatorConsumes,
       privateCoreOperatorConsumeError,
@@ -2715,6 +2751,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOwner,
       privateCoreSendState,
       privateCoreReleaseCandidateState,
+      privateCoreReleaseWorkflowState,
       privateCoreSwapState,
       privateCoreOperatorConsumeError,
       privateCoreOperatorConsumes,
@@ -3921,6 +3958,77 @@ function summarizePrivateCoreReleaseCandidateState(args: {
       ? `${releasedAmountLabel} exact candidate`
       : "Exact private-core release candidate",
     observationMode: "Operator release-candidate summary",
+  };
+}
+
+function summarizePrivateCoreReleaseWorkflowState(args: {
+  candidate: VantaPrivateCoreOperatorReleaseCandidateResponse | null;
+  candidateCheck: VantaPrivateCoreOperatorReleaseCandidateCheckResponse | null;
+  shippingArtifact: VantaPrivateCoreOperatorShippingArtifactResponse | null;
+}): VantaPrivateCoreReleaseWorkflowState | null {
+  const candidate = args.candidateCheck?.candidate ?? args.candidate;
+  const artifact = args.shippingArtifact;
+
+  if (!candidate && !artifact) {
+    return null;
+  }
+
+  const releaseCandidateId = candidate?.releaseCandidateId ?? artifact?.releaseCandidateId ?? null;
+  const prepareStatusLabel = candidate?.sendId ? "Candidate prepared" : "Awaiting primary send";
+  const preparePrimaryNote = candidate?.sendId
+    ? "The canonical primary private send created an exact release-candidate lineage."
+    : "Run the primary private send path to create the exact release candidate.";
+  const checkStatusLabel =
+    args.candidateCheck?.decisionStatus === "ready"
+      ? "Candidate check ready"
+      : args.candidateCheck?.decisionStatus === "blocked"
+        ? "Candidate check blocked"
+        : candidate
+          ? "Candidate check pending"
+          : "Awaiting candidate";
+  const checkPrimaryNote =
+    args.candidateCheck?.decisionNote ??
+    candidate?.lineageNote ??
+    "Exact release-candidate check is waiting for the canonical primary lane.";
+  const shipStatusLabel =
+    artifact?.decisionStatus === "ready-to-ship"
+      ? "Shipping artifact ready"
+      : artifact?.decisionStatus === "blocked"
+        ? "Shipping artifact blocked"
+        : "Awaiting shipping artifact";
+  const shipPrimaryNote =
+    artifact?.decisionNote ??
+    "The exact release-candidate shipping artifact is waiting for the frozen narrow lane to become ship-ready.";
+  const artifactStatusLabel = artifact
+    ? `Artifact v${String(artifact.artifactVersion)} · ${artifact.artifactKind}`
+    : "Awaiting artifact";
+  const artifactPrimaryNote = artifact
+    ? "The shipping artifact bundles the exact release-candidate lineage with the current operator snapshot."
+    : "No exact release-candidate shipping artifact has been observed yet.";
+  const releasedAmountLabel =
+    artifact?.latestReleasedAmount && artifact.latestReleasedAssetId
+      ? formatPrivateCoreAssetAmount(
+          artifact.latestReleasedAssetId,
+          BigInt(artifact.latestReleasedAmount),
+        )
+      : null;
+
+  return {
+    releaseCandidateId,
+    prepareStatusLabel,
+    preparePrimaryNote,
+    checkStatusLabel,
+    checkPrimaryNote,
+    shipStatusLabel,
+    shipPrimaryNote,
+    artifactStatusLabel,
+    artifactPrimaryNote,
+    releaseRequestId: artifact?.latestReleaseRequestId ?? candidate?.releaseRequestId ?? null,
+    releasedAmount: releasedAmountLabel,
+    noteSummary: releasedAmountLabel
+      ? `${releasedAmountLabel} release workflow`
+      : "Exact release workflow",
+    observationMode: "Operator release workflow summary",
   };
 }
 

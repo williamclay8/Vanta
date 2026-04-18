@@ -1,6 +1,7 @@
 import type {
   VantaPrivateCoreHoldState,
   VantaPrivateCoreReleaseCandidateState,
+  VantaPrivateCoreReleaseWorkflowState,
   VantaPrivateCoreSendState,
   VantaPrivateCoreShieldState,
   VantaPrivateCoreSwapState,
@@ -20,6 +21,7 @@ import type {
 type VantaPrivateCoreStatePanelProps = {
   holdState: VantaPrivateCoreHoldState | null;
   releaseCandidateState?: VantaPrivateCoreReleaseCandidateState | null;
+  releaseWorkflowState?: VantaPrivateCoreReleaseWorkflowState | null;
   sendState?: VantaPrivateCoreSendState | null;
   swapState?: VantaPrivateCoreSwapState | null;
   operatorCurrentRoot?: string | null;
@@ -340,6 +342,7 @@ function summarizeOperatorImmediateProofAlignment(args: {
 export function VantaPrivateCoreStatePanel({
   holdState,
   releaseCandidateState = null,
+  releaseWorkflowState = null,
   sendState = null,
   swapState = null,
   operatorCurrentRoot = null,
@@ -871,6 +874,81 @@ export function VantaPrivateCoreStatePanel({
               <div className="review-row">
                 <span>Observation mode</span>
                 <strong>{releaseCandidateState.observationMode}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {releaseWorkflowState ? (
+        <div className="note-state-list">
+          <div className="note-state-row">
+            <div className="note-state-row__header">
+              <div>
+                <strong>{releaseWorkflowState.noteSummary}</strong>
+                <span>
+                  {releaseWorkflowState.releaseCandidateId
+                    ? abbreviate(releaseWorkflowState.releaseCandidateId)
+                    : "No exact candidate id"}
+                </span>
+              </div>
+              <div className="note-state-chips">
+                <span className="note-state-chip note-state-chip--spendable">
+                  {releaseWorkflowState.shipStatusLabel}
+                </span>
+                <span className="note-state-chip">
+                  {releaseWorkflowState.checkStatusLabel}
+                </span>
+              </div>
+            </div>
+            <div className="review-grid">
+              <div className="review-row">
+                <span>Prepare</span>
+                <strong>{releaseWorkflowState.prepareStatusLabel}</strong>
+              </div>
+              <div className="review-row">
+                <span>Check</span>
+                <strong>{releaseWorkflowState.checkStatusLabel}</strong>
+              </div>
+              <div className="review-row">
+                <span>Ship</span>
+                <strong>{releaseWorkflowState.shipStatusLabel}</strong>
+              </div>
+              <div className="review-row">
+                <span>Artifact</span>
+                <strong>{releaseWorkflowState.artifactStatusLabel}</strong>
+              </div>
+              <div className="review-row">
+                <span>Prepare note</span>
+                <strong>{releaseWorkflowState.preparePrimaryNote}</strong>
+              </div>
+              <div className="review-row">
+                <span>Check note</span>
+                <strong>{releaseWorkflowState.checkPrimaryNote}</strong>
+              </div>
+              <div className="review-row">
+                <span>Ship note</span>
+                <strong>{releaseWorkflowState.shipPrimaryNote}</strong>
+              </div>
+              <div className="review-row">
+                <span>Artifact note</span>
+                <strong>{releaseWorkflowState.artifactPrimaryNote}</strong>
+              </div>
+              <div className="review-row">
+                <span>Release request</span>
+                <strong>
+                  {releaseWorkflowState.releaseRequestId
+                    ? abbreviate(releaseWorkflowState.releaseRequestId)
+                    : "Awaiting release"}
+                </strong>
+              </div>
+              <div className="review-row">
+                <span>Released amount</span>
+                <strong>{releaseWorkflowState.releasedAmount ?? "Awaiting release"}</strong>
+              </div>
+              <div className="review-row">
+                <span>Observation mode</span>
+                <strong>{releaseWorkflowState.observationMode}</strong>
               </div>
             </div>
           </div>

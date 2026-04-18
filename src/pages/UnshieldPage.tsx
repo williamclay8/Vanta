@@ -291,6 +291,7 @@ export function UnshieldPage() {
     privateCoreOperatorSummaryUpdatedAt,
     privateCoreRecentShield,
     privateCoreReleaseCandidateState,
+    privateCoreReleaseWorkflowState,
     privateCoreSendState,
     privateCoreSwapState,
     privateCoreUnshieldState,
@@ -1045,11 +1046,22 @@ export function UnshieldPage() {
                 : "Awaiting operator summary"}
             </strong>
           </div>
+          <div className="review-row">
+            <span>7. Release workflow</span>
+            <strong>
+              {privateCoreReleaseWorkflowState
+                ? `${privateCoreReleaseWorkflowState.shipStatusLabel} · ${privateCoreReleaseWorkflowState.shipPrimaryNote}`
+                : privateCoreSendCompleted
+                  ? "Awaiting release workflow summary"
+                  : "Available after primary private send"}
+            </strong>
+          </div>
         </div>
 
         <VantaPrivateCoreStatePanel
           holdState={privateCoreHoldState}
           releaseCandidateState={privateCoreReleaseCandidateState}
+          releaseWorkflowState={privateCoreReleaseWorkflowState}
           sendState={privateCoreSendState}
           swapState={privateCoreSwapState}
           operatorCurrentRoot={privateCoreOperatorCurrentRoot}
@@ -1923,6 +1935,20 @@ export function UnshieldPage() {
                   ? `${formatVusdAmount(lastCompletion.amount)} returned to Public Wallet and the source shielded VUSD note is no longer spendable.`
                   : `${formatSolAmount(lastCompletion.amount)} returned to Public Wallet and the source shielded SOL note is now consumed.`}
               </p>
+              <div className="preview-grid">
+                <div className="preview-card preview-card--accent">
+                  <span>Exact candidate</span>
+                  <strong>
+                    {privateCoreReleaseCandidateState?.lifecycleStatusLabel ?? "Unavailable"}
+                  </strong>
+                </div>
+                <div className="preview-card">
+                  <span>Release workflow</span>
+                  <strong>
+                    {privateCoreReleaseWorkflowState?.shipStatusLabel ?? "Unavailable"}
+                  </strong>
+                </div>
+              </div>
               <div className="review-list">
                 <div className="review-row">
                   <span>Transition note</span>
@@ -1935,6 +1961,30 @@ export function UnshieldPage() {
                 <div className="review-row">
                   <span>Operator release</span>
                   <strong>{operatorReleaseSignature ? abbreviate(operatorReleaseSignature) : "Pending"}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Workflow prepare</span>
+                  <strong>
+                    {privateCoreReleaseWorkflowState?.prepareStatusLabel ?? "Unavailable"}
+                  </strong>
+                </div>
+                <div className="review-row">
+                  <span>Workflow check</span>
+                  <strong>{privateCoreReleaseWorkflowState?.checkStatusLabel ?? "Unavailable"}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Workflow ship</span>
+                  <strong>{privateCoreReleaseWorkflowState?.shipStatusLabel ?? "Unavailable"}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Shipping artifact</span>
+                  <strong>
+                    {privateCoreReleaseWorkflowState?.artifactStatusLabel ?? "Unavailable"}
+                  </strong>
+                </div>
+                <div className="review-row">
+                  <span>Workflow note</span>
+                  <strong>{privateCoreReleaseWorkflowState?.shipPrimaryNote ?? "Unavailable"}</strong>
                 </div>
               </div>
               {lastTransitionSignature && (
