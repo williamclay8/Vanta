@@ -7,6 +7,7 @@ import {
   watchWalletStandardConnectors,
 } from "@solana/client";
 import App from "@/App";
+import "@/polyfills";
 import {
   createSolanaClient,
   discoverWalletConnectors,
