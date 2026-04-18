@@ -39,6 +39,10 @@ npm run private-core:release-package
 npm run private-core:release-package-json
 npm run private-core:release-package-check
 npm run private-core:release-package-check-json
+npm run private-core:release-readiness
+npm run private-core:release-readiness-json
+npm run private-core:release-readiness-check
+npm run private-core:release-readiness-check-json
 npm run private-core:shipping-status
 npm run private-core:shipping-status-json
 npm run private-core:shipping-check-json
@@ -49,6 +53,8 @@ Or use the single combined command:
 ```bash
 npm run private-core:demo-preflight
 ```
+
+When you do not provide `--base-url` (or `VANTA_PRIVATE_CORE_OPERATOR_BASE_URL`), `private-core:demo-preflight` now boots a temporary local operator automatically after the verifier pass and runs the full reviewer/demo surface against that isolated operator.
 
 That confirms:
 - the app builds
@@ -208,6 +214,14 @@ Use `private-core:release-package-check` when a human wants that release package
 
 Use `private-core:release-package-check-json` when that same tooling wants the full release package as a strict machine-readable ready gate.
 
+Use `private-core:release-readiness` when a reviewer wants one final human-readable release judgment for the canonical primary `send -> unshield` lane instead of manually reconciling the compact shipping decision, exact release-candidate, and operator-owned release package.
+
+Use `private-core:release-readiness-json` when that same reviewer tooling wants the final release judgment as machine-readable JSON.
+
+Use `private-core:release-readiness-check` when a human wants that same final release judgment itself to act as the strict ready gate for the canonical primary lane.
+
+Use `private-core:release-readiness-check-json` when that same tooling wants the full final release-readiness bundle as a strict machine-readable ready gate.
+
 Inside the app, the same primary `send -> unshield` lane is now surfaced as a first-class exact release handoff workflow. The shared runtime and primary Send/Unshield product cards now show:
 - prepare
 - check
@@ -224,6 +238,9 @@ Inside the app, that final operator-owned package is also reviewer-usable now:
   - `Download package summary`
   - `Download package JSON`
 - `Dashboard` shows a dedicated exact release review card for the canonical primary lane before the user drills into the release pages.
+- `Dashboard` and the shared private-core diagnostics now point directly at the canonical final reviewer commands:
+  - `npm run private-core:release-readiness`
+  - `npm run private-core:release-readiness-check`
 
 ## App demo path
 

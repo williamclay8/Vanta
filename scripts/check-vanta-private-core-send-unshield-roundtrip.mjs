@@ -1288,6 +1288,70 @@ try {
   }
   printStatus("private-core send->unshield release-package: PASS");
 
+  const releaseReadinessJsonOutput = execFileSync("npm", [
+    "run",
+    "--silent",
+    "private-core:release-readiness-check-json",
+    "--",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  const releaseReadinessJson = JSON.parse(releaseReadinessJsonOutput);
+  if (
+    releaseReadinessJson.readinessVersion !== 1 ||
+    releaseReadinessJson.readinessKind !== "primary-send-unshield-release-readiness" ||
+    releaseReadinessJson.readinessStatusRaw !== "ready" ||
+    releaseReadinessJson.releaseCandidateId !== releaseCandidateId ||
+    releaseReadinessJson.packageStatusRaw !== "ready" ||
+    releaseReadinessJson.shippingDecisionStatusRaw !== "ready-to-ship" ||
+    releaseReadinessJson.latestSend !== shippingArtifactSurfaceJson.latestSendId ||
+    releaseReadinessJson.latestReleaseRequest !== shippingArtifactSurfaceJson.latestReleaseRequestId
+  ) {
+    throw new Error(
+      `Unexpected send->unshield release-readiness json output\n${JSON.stringify(releaseReadinessJson, null, 2)}`,
+    );
+  }
+  printStatus("private-core send->unshield release-readiness json: PASS");
+
+  const releaseReadinessOutput = execFileSync("npm", [
+    "run",
+    "--silent",
+    "private-core:release-readiness-check",
+    "--",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  if (
+    !releaseReadinessOutput.includes("Readiness version: 1") ||
+    !releaseReadinessOutput.includes(
+      "Readiness kind: primary-send-unshield-release-readiness",
+    ) ||
+    !releaseReadinessOutput.includes("Readiness status: Ready") ||
+    !releaseReadinessOutput.includes(
+      "Readiness note: Primary send -> unshield release lane is coherent, package-ready, and reviewer-ready.",
+    ) ||
+    !releaseReadinessOutput.includes(
+      "Review command: npm run private-core:release-readiness",
+    ) ||
+    !releaseReadinessOutput.includes(
+      "Gate command: npm run private-core:release-readiness-check",
+    ) ||
+    !releaseReadinessOutput.includes(`Release candidate: ${releaseCandidateId}`)
+  ) {
+    throw new Error(
+      releaseReadinessOutput || "send->unshield release-readiness returned unexpected output",
+    );
+  }
+  printStatus("private-core send->unshield release-readiness: PASS");
+
   const operatorSnapshotCheckJsonOutput = execFileSync("npm", [
     "run",
     "--silent",

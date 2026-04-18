@@ -370,6 +370,7 @@ export function AppDashboardPage() {
     return {
       artifactIdentity:
         privateCoreReleasePackageState?.artifactIdentityLabel ?? "Awaiting shipping artifact",
+      gateCommand: "npm run private-core:release-readiness-check",
       lineage:
         privateCoreReleasePackageState?.lineageSummaryLabel ?? "Lineage unavailable",
       note: packageNote,
@@ -377,6 +378,7 @@ export function AppDashboardPage() {
         privateCoreReleasePackageState?.packageIdentityLabel ?? "Package identity unavailable",
       primaryHref,
       primaryLabel,
+      reviewCommand: "npm run private-core:release-readiness",
       status: packageStatus,
     };
   }, [privateCoreReleaseHandoffState, privateCoreReleasePackageState]);
@@ -484,6 +486,8 @@ export function AppDashboardPage() {
             <span>Package identity: {releaseReview.packageIdentity}</span>
             <span>Artifact identity: {releaseReview.artifactIdentity}</span>
             <span>Lineage: {releaseReview.lineage}</span>
+            <span>Review command: {releaseReview.reviewCommand}</span>
+            <span>Gate command: {releaseReview.gateCommand}</span>
           </div>
         </div>
 

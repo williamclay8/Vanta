@@ -288,6 +288,16 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   runs the ready-gated human-readable form of that release package and fails with structured `Release package decision status:` / `Release package decision note:` lines on blocked paths
 - `npm run private-core:release-package-check-json`
   runs the machine-readable ready-gated form of that same release package; it succeeds only when the primary exact candidate is coherent and otherwise fails with the full package JSON plus structured release-package decision status/note stderr
+- `npm run private-core:release-readiness`
+  prints the final reviewer-facing release-readiness summary for the canonical primary `send -> unshield` lane by bundling the compact shipping decision, exact release-candidate surface, and operator-owned release package into one final human-readable judgment
+- `npm run private-core:release-readiness-json`
+  prints that same final reviewer-facing readiness summary as machine-readable JSON
+- `npm run private-core:release-readiness-check`
+  runs the strict ready-gated human-readable form of that final readiness summary and fails with structured `Release readiness status:` / `Release readiness note:` lines on blocked paths
+- `npm run private-core:release-readiness-check-json`
+  runs the machine-readable ready-gated form of that same final readiness summary; it succeeds only when the primary exact candidate is handoff-ready and otherwise fails with the full readiness JSON plus structured release-readiness status/note stderr
+- `npm run private-core:demo-preflight`
+  now self-hosts a temporary local operator when no `--base-url` or `VANTA_PRIVATE_CORE_OPERATOR_BASE_URL` is provided, so the full reviewer/demo preflight can run end to end without depending on a separately managed live operator process
 - the app now also surfaces that same exact primary lane as a first-class release handoff workflow in-product:
   - prepare
   - check
@@ -303,6 +313,9 @@ The repo now includes concrete verification commands for the Vanta Private Core 
     - `Download package summary`
     - `Download package JSON`
   - `Dashboard` now shows a dedicated exact release review card for the canonical primary lane
+  - `Dashboard` and the shared private-core diagnostics now point directly at:
+    - `npm run private-core:release-readiness`
+    - `npm run private-core:release-readiness-check`
 - `npm run private-core:shipping-status`
   prints the compact operator-backed shipping summary for the frozen narrow zk-v1 lane from the dedicated `/state/private-core-shipping-decision` endpoint, which now serves as the canonical ship/no-ship contract for that frozen lane, including the decision version/kind/status/note, summary-state version, mirrored contract version, current summary generation time, and the supporting finish-line, required-lanes, release-boundary, contract-mirror, and boundary summaries; `private-core:shipping-check` now reads the dedicated `/state/private-core-shipping-decision-check` gate endpoint directly and fails with structured shipping status/note lines on blocked paths
 - `npm run private-core:shipping-status-json`

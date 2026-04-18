@@ -321,6 +321,16 @@ These commands cover:
 
 `private-core:release-package-check-json` is the machine-readable ready-gated form of that same release package: it exits zero only when the primary exact candidate is coherent, prints the release package JSON on success, and on blocked paths emits the full package JSON to stderr before structured release-package decision status/note lines.
 
+`private-core:release-readiness` is the final reviewer-facing release judgment for the canonical primary `send -> unshield` lane. It bundles the compact shipping decision, exact release-candidate surface, and operator-owned release package into one final human-readable readiness summary for the frozen narrow zk v1 finish line.
+
+`private-core:release-readiness-json` prints that same final reviewer-facing readiness summary as machine-readable JSON.
+
+`private-core:release-readiness-check` is the strict ready-gated human-readable form of that final readiness summary: it exits zero only when the primary exact candidate, shipping decision, and release package are all coherent enough for final handoff, and otherwise fails with structured `Release readiness status:` / `Release readiness note:` lines.
+
+`private-core:release-readiness-check-json` is the machine-readable ready-gated form of that same final readiness summary: it exits zero only when the primary exact candidate is handoff-ready and otherwise emits the full readiness JSON to stderr before structured release-readiness status/note lines.
+
+`private-core:demo-preflight` now self-hosts a temporary local operator when no `--base-url` or `VANTA_PRIVATE_CORE_OPERATOR_BASE_URL` is provided. That makes the full reviewer/demo preflight turnkey again: it runs the canonical verifier, boots an isolated operator, and prints the frozen contract, long-form status, compact shipping, bundled snapshot, shipping artifact, exact release-candidate, release package, and final release-readiness surfaces against that temporary operator instead of failing on a missing live server.
+
 The app now also treats the canonical primary `send -> unshield` lane as an explicit release handoff workflow instead of only as operator diagnostics. Shared runtime state derives a first-class exact release handoff from the release-candidate plus shipping-artifact surfaces, and the primary `Send` and `Unshield` pages now show:
 - prepare
 - check
@@ -337,6 +347,9 @@ The app now also treats that operator-owned release package as a true review art
   - `Download package summary`
   - `Download package JSON`
 - `Dashboard` now shows a first-class exact release review card so the final narrow-lane handoff status is visible before drilling into the primary flow pages.
+- `Dashboard` and the shared private-core diagnostics now point directly at the canonical final reviewer commands:
+  - `npm run private-core:release-readiness`
+  - `npm run private-core:release-readiness-check`
 
 `private-core:shipping-status` is the compact operator-backed answer to the narrow zk-v1 question: whether the frozen private-core lane is actually ship-ready right now, and if not, which live blocker is preventing that. It now reads the dedicated `/state/private-core-shipping-decision` endpoint, which is the canonical ship/no-ship contract for the frozen narrow private-core lane, and prints the decision version/kind/status/note plus the current summary-state version, mirrored contract version, summary generation time, and the supporting shipping, finish-line, required-lanes, release-boundary, contract-mirror, and boundary summaries without the rest of the larger operator-status dump.
 

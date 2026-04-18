@@ -1423,6 +1423,80 @@ try {
   }
   printStatus("operator restart release-package-check endpoint: PASS");
 
+  const releaseReadinessJsonOutput = execFileSync("npm", [
+    "run",
+    "--silent",
+    "private-core:release-readiness-json",
+    "--",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  const releaseReadinessJson = JSON.parse(releaseReadinessJsonOutput);
+  if (
+    releaseReadinessJson.readinessVersion !== 1 ||
+    releaseReadinessJson.readinessKind !== "primary-send-unshield-release-readiness" ||
+    releaseReadinessJson.readinessStatusRaw !== "blocked" ||
+    releaseReadinessJson.releaseCandidateId !== releaseCandidateId ||
+    releaseReadinessJson.packageStatusRaw !== "blocked" ||
+    releaseReadinessJson.shippingStatusRaw !== "required-lanes-mismatch"
+  ) {
+    throw new Error(
+      `Unexpected operator restart release-readiness json output\n${JSON.stringify(
+        releaseReadinessJson,
+        null,
+        2,
+      )}`,
+    );
+  }
+  printStatus("operator restart release-readiness json: PASS");
+
+  let blockedReleaseReadinessCheck = null;
+  try {
+    execFileSync(
+      "npm",
+      ["run", "--silent", "private-core:release-readiness-check", "--", "--base-url", baseUrl],
+      {
+        cwd: repoRoot,
+        encoding: "utf8",
+        stdio: "pipe",
+      },
+    );
+  } catch (error) {
+    blockedReleaseReadinessCheck = error;
+  }
+  const blockedReleaseReadinessCheckOutput =
+    blockedReleaseReadinessCheck &&
+    typeof blockedReleaseReadinessCheck === "object" &&
+    "stderr" in blockedReleaseReadinessCheck &&
+    typeof blockedReleaseReadinessCheck.stderr === "string"
+      ? blockedReleaseReadinessCheck.stderr
+      : "";
+  if (
+    !blockedReleaseReadinessCheck ||
+    !blockedReleaseReadinessCheckOutput.includes("Readiness version: 1") ||
+    !blockedReleaseReadinessCheckOutput.includes(
+      "Readiness kind: primary-send-unshield-release-readiness",
+    ) ||
+    !blockedReleaseReadinessCheckOutput.includes("Readiness status: Blocked") ||
+    !blockedReleaseReadinessCheckOutput.includes(
+      "Release readiness status: Blocked",
+    ) ||
+    !blockedReleaseReadinessCheckOutput.includes(
+      "Release readiness note: Exact narrow private-core release candidate is coherent, but the shipping decision is still blocked on the current operator state.",
+    ) ||
+    !blockedReleaseReadinessCheckOutput.includes(`Release candidate: ${releaseCandidateId}`)
+  ) {
+    throw new Error(
+      blockedReleaseReadinessCheckOutput ||
+        "operator restart release-readiness-check returned unexpected output",
+    );
+  }
+  printStatus("operator restart release-readiness: PASS");
+
   const operatorSnapshotJsonOutput = execFileSync("npm", [
     "run",
     "--silent",

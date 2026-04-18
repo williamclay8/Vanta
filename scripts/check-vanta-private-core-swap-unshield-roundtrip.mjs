@@ -1287,6 +1287,106 @@ try {
   }
   printStatus("private-core swap->unshield release-package: PASS");
 
+  let blockedReleaseReadinessCheckJson = null;
+  try {
+    execFileSync(
+      "npm",
+      ["run", "--silent", "private-core:release-readiness-check-json", "--", "--base-url", baseUrl],
+      {
+        cwd: repoRoot,
+        encoding: "utf8",
+        stdio: "pipe",
+      },
+    );
+  } catch (error) {
+    blockedReleaseReadinessCheckJson = error;
+  }
+  const blockedReleaseReadinessCheckJsonOutput =
+    blockedReleaseReadinessCheckJson &&
+    typeof blockedReleaseReadinessCheckJson === "object" &&
+    "stderr" in blockedReleaseReadinessCheckJson &&
+    typeof blockedReleaseReadinessCheckJson.stderr === "string"
+      ? blockedReleaseReadinessCheckJson.stderr
+      : "";
+  const blockedReleaseReadinessJsonStart = blockedReleaseReadinessCheckJsonOutput.indexOf("{");
+  const blockedReleaseReadinessJsonEnd = blockedReleaseReadinessCheckJsonOutput.lastIndexOf("}");
+  if (
+    !blockedReleaseReadinessCheckJson ||
+    blockedReleaseReadinessJsonStart === -1 ||
+    blockedReleaseReadinessJsonEnd === -1 ||
+    !blockedReleaseReadinessCheckJsonOutput.includes("Release readiness status: Blocked") ||
+    !blockedReleaseReadinessCheckJsonOutput.includes(
+      "Release readiness note: No private send release candidate is bound to the latest operator release path.",
+    )
+  ) {
+    throw new Error(
+      blockedReleaseReadinessCheckJsonOutput ||
+        "swap->unshield release-readiness-check-json did not fail with structured output",
+    );
+  }
+  const blockedReleaseReadinessJson = JSON.parse(
+    blockedReleaseReadinessCheckJsonOutput.slice(
+      blockedReleaseReadinessJsonStart,
+      blockedReleaseReadinessJsonEnd + 1,
+    ),
+  );
+  if (
+    blockedReleaseReadinessJson.readinessVersion !== 1 ||
+    blockedReleaseReadinessJson.readinessKind !== "primary-send-unshield-release-readiness" ||
+    blockedReleaseReadinessJson.readinessStatusRaw !== "blocked" ||
+    blockedReleaseReadinessJson.releaseCandidateId !== null ||
+    blockedReleaseReadinessJson.packageStatusRaw !== "blocked" ||
+    blockedReleaseReadinessJson.shippingStatusRaw !== "required-lanes-mismatch"
+  ) {
+    throw new Error(
+      `Unexpected swap->unshield release-readiness json output\n${JSON.stringify(blockedReleaseReadinessJson, null, 2)}`,
+    );
+  }
+  printStatus("private-core swap->unshield release-readiness json: PASS");
+
+  let blockedReleaseReadinessCheck = null;
+  try {
+    execFileSync(
+      "npm",
+      ["run", "--silent", "private-core:release-readiness-check", "--", "--base-url", baseUrl],
+      {
+        cwd: repoRoot,
+        encoding: "utf8",
+        stdio: "pipe",
+      },
+    );
+  } catch (error) {
+    blockedReleaseReadinessCheck = error;
+  }
+  const blockedReleaseReadinessCheckOutput =
+    blockedReleaseReadinessCheck &&
+    typeof blockedReleaseReadinessCheck === "object" &&
+    "stderr" in blockedReleaseReadinessCheck &&
+    typeof blockedReleaseReadinessCheck.stderr === "string"
+      ? blockedReleaseReadinessCheck.stderr
+      : "";
+  if (
+    !blockedReleaseReadinessCheck ||
+    !blockedReleaseReadinessCheckOutput.includes("Readiness version: 1") ||
+    !blockedReleaseReadinessCheckOutput.includes(
+      "Readiness kind: primary-send-unshield-release-readiness",
+    ) ||
+    !blockedReleaseReadinessCheckOutput.includes("Readiness status: Blocked") ||
+    !blockedReleaseReadinessCheckOutput.includes(
+      "Release readiness status: Blocked",
+    ) ||
+    !blockedReleaseReadinessCheckOutput.includes(
+      "Release readiness note: No private send release candidate is bound to the latest operator release path.",
+    ) ||
+    !blockedReleaseReadinessCheckOutput.includes("Release candidate: Unavailable")
+  ) {
+    throw new Error(
+      blockedReleaseReadinessCheckOutput ||
+        "swap->unshield release-readiness-check did not fail with the expected blocker",
+    );
+  }
+  printStatus("private-core swap->unshield release-readiness: PASS");
+
   let blockedOperatorSnapshotCheckJson = null;
   try {
     execFileSync(

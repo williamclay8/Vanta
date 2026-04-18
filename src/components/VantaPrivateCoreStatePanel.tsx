@@ -1121,6 +1121,14 @@ export function VantaPrivateCoreStatePanel({
                 <strong>{releasePackageState.lineageSummaryLabel}</strong>
               </div>
               <div className="review-row">
+                <span>Review command</span>
+                <strong>npm run private-core:release-readiness</strong>
+              </div>
+              <div className="review-row">
+                <span>Gate command</span>
+                <strong>npm run private-core:release-readiness-check</strong>
+              </div>
+              <div className="review-row">
                 <span>Observation mode</span>
                 <strong>{releasePackageState.observationMode}</strong>
               </div>
