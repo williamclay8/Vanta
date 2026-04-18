@@ -8,58 +8,57 @@ import {
 } from "@solana/web3.js";
 import { endpoint } from "@/solana/client";
 import { liveShieldAsset, liveSwapPair } from "@/solana/shieldConfig";
+import type { WalletPublicAsset } from "@/solana/useWalletPublicAssets";
 
-export type PublicSwapAssetKey = "VUSD" | "SOL";
 export type ShieldedSwapAssetKey = "VUSD" | "SOL";
-
-export type ExecutableSourceAsset = {
-  decimals: number;
-  kind: "native" | "spl";
-  label: string;
-  mintAddress: string;
-  symbol: PublicSwapAssetKey;
-};
 
 export type ExecutableShieldedAsset = {
   label: string;
   symbol: ShieldedSwapAssetKey;
 };
 
+type JupiterQuoteResponse = {
+  inputMint: string;
+  inAmount: string;
+  outputMint: string;
+  outAmount: string;
+  otherAmountThreshold: string;
+  priceImpactPct?: string;
+  routePlan?: unknown[];
+};
+
+type JupiterInstructionPayload = {
+  data: string;
+  programId: string;
+  accounts: Array<{
+    pubkey: string;
+    isSigner: boolean;
+    isWritable: boolean;
+  }>;
+};
+
 export type PublicToVusdQuote = {
   inputAmount: string;
-  inputAsset: PublicSwapAssetKey;
+  inputAssetLabel: string;
+  inputAssetSymbol: string;
   inputMint: string;
   minOutputAmount: string;
   outputAmount: string;
   outputAsset: "VUSD";
   outputMint: string;
-  venueFamily: "DLMM";
-  venueName: "Meteora";
+  venueFamily: "Aggregator" | "DLMM";
+  venueName: "Jupiter" | "Meteora";
   venueNetwork: "Devnet";
   venuePoolAddress: string;
   binArraysPubkey: string[];
+  jupiterQuoteResponse?: JupiterQuoteResponse;
 };
 
 const DEFAULT_VUSD_DECIMALS = 6;
-const DEFAULT_SOL_DECIMALS = 9;
 const DEFAULT_ALLOWED_SLIPPAGE_BPS = 50;
-
-const executableSourceAssets: ExecutableSourceAsset[] = [
-  {
-    decimals: DEFAULT_VUSD_DECIMALS,
-    kind: "spl",
-    label: "VUSD",
-    mintAddress: liveShieldAsset.mintAddress ?? "",
-    symbol: "VUSD",
-  },
-  {
-    decimals: DEFAULT_SOL_DECIMALS,
-    kind: "native",
-    label: "SOL",
-    mintAddress: liveSwapPair.solAssetId,
-    symbol: "SOL",
-  },
-];
+const DEFAULT_SOL_DECIMALS = 9;
+const JUPITER_QUOTE_URL = "https://api.jup.ag/swap/v1/quote";
+const JUPITER_SWAP_INSTRUCTIONS_URL = "https://api.jup.ag/swap/v1/swap-instructions";
 
 const executableShieldedAssets: ExecutableShieldedAsset[] = [
   {
@@ -127,100 +126,8 @@ function toAtomicAmount(value: string, decimals: number) {
   return new BN(`${wholePart}${scaledFraction}`.replace(/^0+(?=\d)/, "") || "0");
 }
 
-function getExecutableSourceAsset(symbol: PublicSwapAssetKey) {
-  const asset = executableSourceAssets.find((candidate) => candidate.symbol === symbol);
-
-  if (!asset) {
-    throw new Error("Unsupported public source asset.");
-  }
-
-  if (asset.symbol === "VUSD" && !asset.mintAddress) {
-    throw new Error("VUSD mint is not configured.");
-  }
-
-  return asset;
-}
-
-export function listExecutableSourceAssets() {
-  return executableSourceAssets.filter((asset) =>
-    asset.symbol === "SOL" ? true : Boolean(asset.mintAddress),
-  );
-}
-
-export function listExecutableShieldedAssets() {
-  return executableShieldedAssets;
-}
-
-export function formatAssetAmount(value: number, symbol: PublicSwapAssetKey | ShieldedSwapAssetKey) {
-  const decimals = symbol === "SOL" ? 4 : 2;
-
-  return `${value.toLocaleString(undefined, {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: symbol === "SOL" ? 6 : 2,
-  })} ${symbol}`;
-}
-
-export async function fetchPublicToVusdQuote(args: {
-  amount: string;
-  inputAsset: PublicSwapAssetKey;
-}) {
-  if (!liveShieldAsset.mintAddress) {
-    throw new Error("VUSD mint is not configured.");
-  }
-
-  if (args.inputAsset === "VUSD") {
-    return {
-      inputAmount: args.amount,
-      inputAsset: "VUSD",
-      inputMint: liveShieldAsset.mintAddress,
-      minOutputAmount: args.amount,
-      outputAmount: args.amount,
-      outputAsset: "VUSD",
-      outputMint: liveShieldAsset.mintAddress,
-      venueFamily: "DLMM" as const,
-      venueName: "Meteora" as const,
-      venueNetwork: "Devnet" as const,
-      venuePoolAddress: liveSwapPair.venuePoolAddress ?? "",
-      binArraysPubkey: [],
-    } satisfies PublicToVusdQuote;
-  }
-
-  const inputAsset = getExecutableSourceAsset(args.inputAsset);
-  const pool = await getDlmmPool();
-  const swapForY = pool.tokenX.publicKey.equals(new PublicKey(inputAsset.mintAddress))
-    ? pool.tokenY.publicKey.equals(new PublicKey(liveShieldAsset.mintAddress))
-    : false;
-  const reverseMatches =
-    pool.tokenY.publicKey.equals(new PublicKey(inputAsset.mintAddress)) &&
-    pool.tokenX.publicKey.equals(new PublicKey(liveShieldAsset.mintAddress));
-
-  if (!swapForY && !reverseMatches) {
-    throw new Error("The configured pool does not support this public route.");
-  }
-
-  const inAmount = toAtomicAmount(args.amount, inputAsset.decimals);
-  const binArrays = await pool.getBinArrayForSwap(swapForY || !reverseMatches);
-  const quote = await pool.swapQuote(
-    inAmount,
-    swapForY || !reverseMatches,
-    new BN(DEFAULT_ALLOWED_SLIPPAGE_BPS),
-    binArrays,
-  );
-
-  return {
-    inputAmount: args.amount,
-    inputAsset: args.inputAsset,
-    inputMint: inputAsset.mintAddress,
-    minOutputAmount: formatAtomicAmount(quote.minOutAmount, DEFAULT_VUSD_DECIMALS),
-    outputAmount: formatAtomicAmount(quote.outAmount, DEFAULT_VUSD_DECIMALS),
-    outputAsset: "VUSD",
-    outputMint: liveShieldAsset.mintAddress,
-    venueFamily: "DLMM" as const,
-    venueName: "Meteora" as const,
-    venueNetwork: "Devnet" as const,
-    venuePoolAddress: liveSwapPair.venuePoolAddress ?? "",
-    binArraysPubkey: quote.binArraysPubkey.map((pubkey) => pubkey.toBase58()),
-  } satisfies PublicToVusdQuote;
+function isCanonicalVusdAsset(asset: WalletPublicAsset) {
+  return Boolean(liveShieldAsset.mintAddress) && asset.mintAddress === liveShieldAsset.mintAddress;
 }
 
 function toInstructionInput(instruction: TransactionInstruction): TransactionInstructionInput {
@@ -240,29 +147,224 @@ function toInstructionInput(instruction: TransactionInstruction): TransactionIns
   };
 }
 
+function toJupiterInstructionInput(
+  instruction: JupiterInstructionPayload,
+): TransactionInstructionInput {
+  const binary = atob(instruction.data);
+  const data = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+
+  return {
+    accounts: instruction.accounts.map((account) => ({
+      address: toAddress(account.pubkey),
+      role: account.isWritable ? (account.isSigner ? 3 : 1) : account.isSigner ? 2 : 0,
+    })),
+    data,
+    programAddress: toAddress(instruction.programId),
+  };
+}
+
+function getJupiterHeaders() {
+  const apiKey = import.meta.env.VITE_JUPITER_API_KEY?.trim();
+  const headers: Record<string, string> = {};
+
+  if (apiKey) {
+    headers["x-api-key"] = apiKey;
+  }
+
+  return headers;
+}
+
+export function listExecutableShieldedAssets() {
+  return executableShieldedAssets;
+}
+
+export function formatAssetAmount(value: number, symbol: string) {
+  const decimals = symbol === "SOL" ? 4 : 2;
+
+  return `${value.toLocaleString(undefined, {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: symbol === "SOL" ? 6 : 2,
+  })} ${symbol}`;
+}
+
+export async function fetchPublicToVusdQuote(args: {
+  amount: string;
+  inputAsset: WalletPublicAsset;
+}) {
+  if (!liveShieldAsset.mintAddress) {
+    throw new Error("VUSD mint is not configured.");
+  }
+
+  if (isCanonicalVusdAsset(args.inputAsset)) {
+    return {
+      inputAmount: args.amount,
+      inputAssetLabel: args.inputAsset.label,
+      inputAssetSymbol: args.inputAsset.symbol,
+      inputMint: liveShieldAsset.mintAddress,
+      minOutputAmount: args.amount,
+      outputAmount: args.amount,
+      outputAsset: "VUSD",
+      outputMint: liveShieldAsset.mintAddress,
+      venueFamily: "DLMM" as const,
+      venueName: "Meteora" as const,
+      venueNetwork: "Devnet" as const,
+      venuePoolAddress: liveSwapPair.venuePoolAddress ?? "",
+      binArraysPubkey: [],
+    } satisfies PublicToVusdQuote;
+  }
+
+  if (args.inputAsset.symbol === "SOL" && liveSwapPair.venuePoolAddress) {
+    const pool = await getDlmmPool();
+    const swapForY = pool.tokenX.publicKey.equals(new PublicKey(args.inputAsset.mintAddress))
+      ? pool.tokenY.publicKey.equals(new PublicKey(liveShieldAsset.mintAddress))
+      : false;
+    const reverseMatches =
+      pool.tokenY.publicKey.equals(new PublicKey(args.inputAsset.mintAddress)) &&
+      pool.tokenX.publicKey.equals(new PublicKey(liveShieldAsset.mintAddress));
+
+    if (swapForY || reverseMatches) {
+      const inAmount = toAtomicAmount(args.amount, DEFAULT_SOL_DECIMALS);
+      const binArrays = await pool.getBinArrayForSwap(swapForY || !reverseMatches);
+      const quote = await pool.swapQuote(
+        inAmount,
+        swapForY || !reverseMatches,
+        new BN(DEFAULT_ALLOWED_SLIPPAGE_BPS),
+        binArrays,
+      );
+
+      return {
+        inputAmount: args.amount,
+        inputAssetLabel: args.inputAsset.label,
+        inputAssetSymbol: args.inputAsset.symbol,
+        inputMint: args.inputAsset.mintAddress,
+        minOutputAmount: formatAtomicAmount(quote.minOutAmount, DEFAULT_VUSD_DECIMALS),
+        outputAmount: formatAtomicAmount(quote.outAmount, DEFAULT_VUSD_DECIMALS),
+        outputAsset: "VUSD",
+        outputMint: liveShieldAsset.mintAddress,
+        venueFamily: "DLMM" as const,
+        venueName: "Meteora" as const,
+        venueNetwork: "Devnet" as const,
+        venuePoolAddress: liveSwapPair.venuePoolAddress ?? "",
+        binArraysPubkey: quote.binArraysPubkey.map((pubkey) => pubkey.toBase58()),
+      } satisfies PublicToVusdQuote;
+    }
+  }
+
+  const amountAtomic = toAtomicAmount(args.amount, args.inputAsset.decimals).toString(10);
+  const searchParams = new URLSearchParams({
+    inputMint: args.inputAsset.mintAddress,
+    outputMint: liveShieldAsset.mintAddress,
+    amount: amountAtomic,
+    slippageBps: String(DEFAULT_ALLOWED_SLIPPAGE_BPS),
+    restrictIntermediateTokens: "true",
+  });
+  const response = await fetch(`${JUPITER_QUOTE_URL}?${searchParams.toString()}`, {
+    headers: getJupiterHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Jupiter quote failed with status ${String(response.status)}.`);
+  }
+
+  const parsed = (await response.json()) as JupiterQuoteResponse;
+
+  if (
+    typeof parsed.outAmount !== "string" ||
+    typeof parsed.otherAmountThreshold !== "string" ||
+    typeof parsed.inputMint !== "string" ||
+    typeof parsed.outputMint !== "string"
+  ) {
+    throw new Error("Jupiter quote response was invalid.");
+  }
+
+  return {
+    inputAmount: args.amount,
+    inputAssetLabel: args.inputAsset.label,
+    inputAssetSymbol: args.inputAsset.symbol,
+    inputMint: args.inputAsset.mintAddress,
+    minOutputAmount: Number(parsed.otherAmountThreshold) > 0
+      ? (Number(parsed.otherAmountThreshold) / 10 ** DEFAULT_VUSD_DECIMALS).toFixed(6)
+      : "0",
+    outputAmount: (Number(parsed.outAmount) / 10 ** DEFAULT_VUSD_DECIMALS).toFixed(6),
+    outputAsset: "VUSD",
+    outputMint: liveShieldAsset.mintAddress,
+    venueFamily: "Aggregator" as const,
+    venueName: "Jupiter" as const,
+    venueNetwork: "Devnet" as const,
+    venuePoolAddress: "aggregated-route",
+    binArraysPubkey: [],
+    jupiterQuoteResponse: parsed,
+  } satisfies PublicToVusdQuote;
+}
+
 export async function buildPublicToVusdSwapInstructions(args: {
   quote: PublicToVusdQuote;
   userPublicKey: string;
 }) {
-  if (args.quote.inputAsset === "VUSD") {
-    throw new Error("A public swap transaction is not required for VUSD input.");
+  if (!liveShieldAsset.mintAddress) {
+    throw new Error("VUSD mint is not configured.");
   }
 
-  if (!liveSwapPair.venuePoolAddress || !liveShieldAsset.mintAddress) {
-    throw new Error("Live swap pair is not configured.");
+  if (args.quote.venueName === "Meteora") {
+    if (args.quote.inputAssetSymbol === "VUSD") {
+      throw new Error("A public swap transaction is not required for VUSD input.");
+    }
+
+    const pool = await getDlmmPool();
+    const inputDecimals = args.quote.inputAssetSymbol === "SOL" ? DEFAULT_SOL_DECIMALS : DEFAULT_VUSD_DECIMALS;
+    const user = new PublicKey(args.userPublicKey);
+    const transaction = await pool.swap({
+      binArraysPubkey: args.quote.binArraysPubkey.map((pubkey) => new PublicKey(pubkey)),
+      inAmount: toAtomicAmount(args.quote.inputAmount, inputDecimals),
+      inToken: new PublicKey(args.quote.inputMint),
+      lbPair: new PublicKey(liveSwapPair.venuePoolAddress!),
+      minOutAmount: toAtomicAmount(args.quote.minOutputAmount, DEFAULT_VUSD_DECIMALS),
+      outToken: new PublicKey(liveShieldAsset.mintAddress),
+      user,
+    });
+
+    return transaction.instructions.map(toInstructionInput);
   }
 
-  const pool = await getDlmmPool();
-  const inputAsset = getExecutableSourceAsset(args.quote.inputAsset);
-  const user = new PublicKey(args.userPublicKey);
-  const transaction = await pool.swap({
-    binArraysPubkey: args.quote.binArraysPubkey.map((pubkey) => new PublicKey(pubkey)),
-    inAmount: toAtomicAmount(args.quote.inputAmount, inputAsset.decimals),
-    inToken: new PublicKey(inputAsset.mintAddress),
-    lbPair: new PublicKey(liveSwapPair.venuePoolAddress),
-    minOutAmount: toAtomicAmount(args.quote.minOutputAmount, DEFAULT_VUSD_DECIMALS),
-    outToken: new PublicKey(liveShieldAsset.mintAddress),
-    user,
+  if (!args.quote.jupiterQuoteResponse) {
+    throw new Error("Jupiter route execution requires a Jupiter quote response.");
+  }
+
+  const response = await fetch(JUPITER_SWAP_INSTRUCTIONS_URL, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      ...getJupiterHeaders(),
+    },
+    body: JSON.stringify({
+      dynamicComputeUnitLimit: true,
+      quoteResponse: args.quote.jupiterQuoteResponse,
+      userPublicKey: args.userPublicKey,
+      wrapAndUnwrapSol: true,
+    }),
   });
-  return transaction.instructions.map(toInstructionInput);
+
+  if (!response.ok) {
+    throw new Error(`Jupiter instruction build failed with status ${String(response.status)}.`);
+  }
+
+  const parsed = (await response.json()) as {
+    cleanupInstruction?: JupiterInstructionPayload | null;
+    computeBudgetInstructions?: JupiterInstructionPayload[];
+    otherInstructions?: JupiterInstructionPayload[];
+    setupInstructions?: JupiterInstructionPayload[];
+    swapInstruction?: JupiterInstructionPayload | null;
+  };
+
+  if (!parsed.swapInstruction) {
+    throw new Error("Jupiter did not return a swap instruction.");
+  }
+
+  return [
+    ...(parsed.computeBudgetInstructions ?? []).map(toJupiterInstructionInput),
+    ...(parsed.setupInstructions ?? []).map(toJupiterInstructionInput),
+    ...(parsed.otherInstructions ?? []).map(toJupiterInstructionInput),
+    toJupiterInstructionInput(parsed.swapInstruction),
+    ...(parsed.cleanupInstruction ? [toJupiterInstructionInput(parsed.cleanupInstruction)] : []),
+  ];
 }
