@@ -677,6 +677,7 @@ input {
 
 .dashboard-hero,
 .dashboard-flow-strip,
+.dashboard-release-review,
 .dashboard-action-card,
 .dashboard-card {
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -746,6 +747,63 @@ input {
   gap: 12px;
   padding: 18px 22px;
   border-radius: 24px;
+}
+
+.dashboard-release-review {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px 24px;
+  border-radius: 26px;
+  background:
+    linear-gradient(160deg, rgba(125, 240, 203, 0.08), rgba(147, 180, 255, 0.06)),
+    var(--bg-elevated);
+}
+
+.dashboard-release-review h3 {
+  margin: 10px 0 12px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.4rem;
+}
+
+.dashboard-release-review__facts {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.dashboard-release-review__facts span,
+.dashboard-release-review__meta small {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-strong);
+}
+
+.dashboard-release-review__meta {
+  min-width: 300px;
+  padding: 18px 20px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.dashboard-release-review__meta strong {
+  display: block;
+  margin: 10px 0 8px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.25rem;
+}
+
+.dashboard-release-review__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
 }
 
 .dashboard-flow-strip__path {
@@ -1635,6 +1693,7 @@ input {
   .shield-scenario-bar,
   .send-context-banner,
   .dashboard-hero,
+  .dashboard-release-review,
   .dashboard-action-card__top,
   .position-summary__header,
   .position-summary__latest,

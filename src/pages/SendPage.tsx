@@ -367,7 +367,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
   >("idle");
   const [releaseHandoffRefreshPending, setReleaseHandoffRefreshPending] = useState(false);
   const [releasePackageExportStatus, setReleasePackageExportStatus] = useState<
-    "idle" | "summary" | "json" | "failed"
+    "idle" | "summary-copy" | "json-copy" | "summary-download" | "json-download" | "failed"
   >("idle");
   const [flowError, setFlowError] = useState<string | null>(null);
   const [lastRecipient, setLastRecipient] = useState<string | null>(null);
@@ -529,10 +529,43 @@ export function SendPage({ dashboard = false }: SendPageProps) {
             ? privateCoreReleasePackageState.exportJson
             : privateCoreReleasePackageState.exportText,
         );
-        setReleasePackageExportStatus(mode);
+        setReleasePackageExportStatus(mode === "json" ? "json-copy" : "summary-copy");
       } catch {
         setReleasePackageExportStatus("failed");
       }
+    },
+    [privateCoreReleasePackageState],
+  );
+
+  const downloadReleasePackageExport = useCallback(
+    (mode: "summary" | "json") => {
+      if (!privateCoreReleasePackageState) {
+        setReleasePackageExportStatus("failed");
+        return;
+      }
+
+      const blob = new Blob(
+        [
+          mode === "json"
+            ? privateCoreReleasePackageState.exportJson
+            : privateCoreReleasePackageState.exportText,
+        ],
+        {
+          type: mode === "json" ? "application/json" : "text/plain;charset=utf-8",
+        },
+      );
+      const objectUrl = window.URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = objectUrl;
+      anchor.download =
+        mode === "json"
+          ? privateCoreReleasePackageState.downloadJsonFilename
+          : privateCoreReleasePackageState.downloadSummaryFilename;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.URL.revokeObjectURL(objectUrl);
+      setReleasePackageExportStatus(mode === "json" ? "json-download" : "summary-download");
     },
     [privateCoreReleasePackageState],
   );
@@ -1791,7 +1824,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   }}
                   disabled={!privateCoreReleasePackageState}
                 >
-                  {releasePackageExportStatus === "summary"
+                  {releasePackageExportStatus === "summary-copy"
                     ? "Copied operator package summary"
                     : "Copy operator package summary"}
                 </button>
@@ -1803,9 +1836,33 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   }}
                   disabled={!privateCoreReleasePackageState}
                 >
-                  {releasePackageExportStatus === "json"
+                  {releasePackageExportStatus === "json-copy"
                     ? "Copied operator package JSON"
                     : "Copy operator package JSON"}
+                </button>
+                <button
+                  className="button button-ghost"
+                  type="button"
+                  onClick={() => {
+                    downloadReleasePackageExport("summary");
+                  }}
+                  disabled={!privateCoreReleasePackageState}
+                >
+                  {releasePackageExportStatus === "summary-download"
+                    ? "Downloaded package summary"
+                    : "Download package summary"}
+                </button>
+                <button
+                  className="button button-ghost"
+                  type="button"
+                  onClick={() => {
+                    downloadReleasePackageExport("json");
+                  }}
+                  disabled={!privateCoreReleasePackageState}
+                >
+                  {releasePackageExportStatus === "json-download"
+                    ? "Downloaded package JSON"
+                    : "Download package JSON"}
                 </button>
                 <button
                   className="button button-ghost"
@@ -2004,7 +2061,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   }}
                   disabled={!privateCoreReleasePackageState}
                 >
-                  {releasePackageExportStatus === "summary"
+                  {releasePackageExportStatus === "summary-copy"
                     ? "Copied operator package summary"
                     : "Copy operator package summary"}
                 </button>
@@ -2016,9 +2073,33 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   }}
                   disabled={!privateCoreReleasePackageState}
                 >
-                  {releasePackageExportStatus === "json"
+                  {releasePackageExportStatus === "json-copy"
                     ? "Copied operator package JSON"
                     : "Copy operator package JSON"}
+                </button>
+                <button
+                  className="button button-ghost"
+                  type="button"
+                  onClick={() => {
+                    downloadReleasePackageExport("summary");
+                  }}
+                  disabled={!privateCoreReleasePackageState}
+                >
+                  {releasePackageExportStatus === "summary-download"
+                    ? "Downloaded package summary"
+                    : "Download package summary"}
+                </button>
+                <button
+                  className="button button-ghost"
+                  type="button"
+                  onClick={() => {
+                    downloadReleasePackageExport("json");
+                  }}
+                  disabled={!privateCoreReleasePackageState}
+                >
+                  {releasePackageExportStatus === "json-download"
+                    ? "Downloaded package JSON"
+                    : "Download package JSON"}
                 </button>
               </div>
             </div>

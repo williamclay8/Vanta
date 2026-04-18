@@ -217,6 +217,14 @@ Inside the app, the same primary `send -> unshield` lane is now surfaced as a fi
 - release package status
 - release package identity
 
+Inside the app, that final operator-owned package is also reviewer-usable now:
+- `Send` and `Unshield` expose:
+  - `Copy operator package summary`
+  - `Copy operator package JSON`
+  - `Download package summary`
+  - `Download package JSON`
+- `Dashboard` shows a dedicated exact release review card for the canonical primary lane before the user drills into the release pages.
+
 ## App demo path
 
 Use the current Vanta app and walk this sequence:

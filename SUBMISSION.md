@@ -296,6 +296,13 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   - next recommended action
   - release package status
   - release package identity
+- the app now also treats that operator-owned package like a real reviewer handoff:
+  - `Send` and `Unshield` expose:
+    - `Copy operator package summary`
+    - `Copy operator package JSON`
+    - `Download package summary`
+    - `Download package JSON`
+  - `Dashboard` now shows a dedicated exact release review card for the canonical primary lane
 - `npm run private-core:shipping-status`
   prints the compact operator-backed shipping summary for the frozen narrow zk-v1 lane from the dedicated `/state/private-core-shipping-decision` endpoint, which now serves as the canonical ship/no-ship contract for that frozen lane, including the decision version/kind/status/note, summary-state version, mirrored contract version, current summary generation time, and the supporting finish-line, required-lanes, release-boundary, contract-mirror, and boundary summaries; `private-core:shipping-check` now reads the dedicated `/state/private-core-shipping-decision-check` gate endpoint directly and fails with structured shipping status/note lines on blocked paths
 - `npm run private-core:shipping-status-json`

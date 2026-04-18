@@ -349,6 +349,38 @@ export function AppDashboardPage() {
     };
   }, [account?.lifecycleActivities, summary]);
 
+  const releaseReview = useMemo(() => {
+    const packageStatus =
+      privateCoreReleasePackageState?.packageStatusLabel ??
+      privateCoreReleaseHandoffState?.handoffStatusLabel ??
+      "Exact release package unavailable";
+    const packageNote =
+      privateCoreReleasePackageState?.packagePrimaryNote ??
+      privateCoreReleaseHandoffState?.handoffPrimaryNote ??
+      "The canonical primary send -> unshield lane has not assembled its final release package yet.";
+    const primaryHref =
+      privateCoreReleasePackageState?.packageStatusLabel === "Release package ready"
+        ? "/app/unshield"
+        : privateCoreReleaseHandoffState?.nextActionHref ?? "/app/send";
+    const primaryLabel =
+      privateCoreReleasePackageState?.packageStatusLabel === "Release package ready"
+        ? "Review release package"
+        : privateCoreReleaseHandoffState?.nextActionLabel ?? "Open primary release lane";
+
+    return {
+      artifactIdentity:
+        privateCoreReleasePackageState?.artifactIdentityLabel ?? "Awaiting shipping artifact",
+      lineage:
+        privateCoreReleasePackageState?.lineageSummaryLabel ?? "Lineage unavailable",
+      note: packageNote,
+      packageIdentity:
+        privateCoreReleasePackageState?.packageIdentityLabel ?? "Package identity unavailable",
+      primaryHref,
+      primaryLabel,
+      status: packageStatus,
+    };
+  }, [privateCoreReleaseHandoffState, privateCoreReleasePackageState]);
+
   const actions: DashboardActionCard[] = [
     {
       badge:
@@ -441,6 +473,36 @@ export function AppDashboardPage() {
           ].map((step) => <span key={step}>{step}</span>)}
         </div>
         <p>{guidance.message}</p>
+      </div>
+
+      <div className="dashboard-release-review">
+        <div>
+          <span className="eyebrow">Exact Release Review</span>
+          <h3>Canonical narrow zk v1 handoff package</h3>
+          <p>{releaseReview.note}</p>
+          <div className="dashboard-release-review__facts">
+            <span>Package identity: {releaseReview.packageIdentity}</span>
+            <span>Artifact identity: {releaseReview.artifactIdentity}</span>
+            <span>Lineage: {releaseReview.lineage}</span>
+          </div>
+        </div>
+
+        <div className="dashboard-release-review__meta">
+          <small>Current package status</small>
+          <strong>{releaseReview.status}</strong>
+          <p>
+            The primary `send -&gt; unshield` path is the exact release-candidate lane that
+            determines whether the narrow zk v1 package is ready for handoff.
+          </p>
+          <div className="dashboard-release-review__actions">
+            <Link className="button button-primary" to={releaseReview.primaryHref}>
+              {releaseReview.primaryLabel}
+            </Link>
+            <Link className="button button-ghost" to="/app/unshield">
+              Open release handoff
+            </Link>
+          </div>
+        </div>
       </div>
 
       <div className="dashboard-actions">

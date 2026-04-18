@@ -548,6 +548,9 @@ export type VantaPrivateCoreReleasePackageState = {
   latestReleaseLabel: string;
   lineageSummaryLabel: string;
   reviewSummary: string;
+  downloadBaseName: string;
+  downloadSummaryFilename: string;
+  downloadJsonFilename: string;
   exportText: string;
   exportJson: string;
   observationMode: string;
@@ -4341,6 +4344,11 @@ function summarizePrivateCoreReleasePackageState(args: {
         `Release ${abbreviatePrivateCoreValue(releasePackage.latestReleaseRequestId) ?? "Unavailable"}`,
       ].join(" · ")
     : "Lineage unavailable";
+  const downloadBaseName = [
+    "vanta-private-core-release-package",
+    releaseCandidateId ? releaseCandidateId.slice(0, 12) : "pending",
+    generatedAt ? String(generatedAt) : "undated",
+  ].join("-");
 
   const exportPayload = {
     releaseCandidateId,
@@ -4410,6 +4418,9 @@ function summarizePrivateCoreReleasePackageState(args: {
     latestReleaseLabel,
     lineageSummaryLabel,
     reviewSummary: `${packageStatusLabel} · ${artifactIdentityLabel} · ${lineageSummaryLabel}`,
+    downloadBaseName,
+    downloadSummaryFilename: `${downloadBaseName}.txt`,
+    downloadJsonFilename: `${downloadBaseName}.json`,
     exportText,
     exportJson: JSON.stringify(exportPayload, null, 2),
     observationMode: "Operator-owned release package",
