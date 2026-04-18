@@ -1405,29 +1405,34 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                       Max
                     </button>
                   </div>
-
-                  <div className="send-asset-field">
-                    <select
-                      aria-label="Asset"
-                      value={selectedAsset}
-                      onChange={(event) => {
-                        setSelectedAsset(event.target.value as PrivacyAssetKey);
-                        setStatus("idle");
-                        setFlowError(null);
-                      }}
-                    >
-                      <option value="VUSD">VUSD</option>
-                      <option value="USDC" disabled>
-                        USDC
-                      </option>
-                      <option value="JTO" disabled>
-                        JTO
-                      </option>
-                      <option value="BONK" disabled>
-                        BONK
-                      </option>
-                    </select>
-                  </div>
+                </div>
+                <div className="swap-choice-row" role="group" aria-label="Send asset">
+                  {(["VUSD", "USDC", "JTO", "BONK"] as PrivacyAssetKey[]).map((asset) => {
+                    const disabled = asset !== "VUSD";
+                    const active = asset === selectedAsset;
+                    return (
+                      <button
+                        key={asset}
+                        className={
+                          disabled
+                            ? "swap-choice-chip swap-choice-chip--disabled"
+                            : active
+                              ? "swap-choice-chip swap-choice-chip--active"
+                              : "swap-choice-chip"
+                        }
+                        type="button"
+                        aria-pressed={active}
+                        disabled={disabled}
+                        onClick={() => {
+                          setSelectedAsset(asset);
+                          setStatus("idle");
+                          setFlowError(null);
+                        }}
+                      >
+                        {asset}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

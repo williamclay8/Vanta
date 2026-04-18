@@ -1720,6 +1720,15 @@ input {
   box-shadow: 0 12px 28px rgba(0, 229, 200, 0.08);
 }
 
+.swap-choice-chip--disabled,
+.swap-choice-chip:disabled {
+  opacity: 0.38;
+  color: var(--muted);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 .asset-list {
   display: grid;
   gap: 12px;

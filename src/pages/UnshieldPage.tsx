@@ -1710,21 +1710,26 @@ export function UnshieldPage() {
                       : formatSolAmount(selectedAmount)}
                   </div>
                 </div>
-                <div className="send-entry-grid">
-                  <div className="send-asset-field">
-                    <select
-                      aria-label="Unshield asset"
-                      value={selectedLane}
-                      onChange={(event) => {
-                        setSelectedLane(event.target.value as UnshieldLane);
+                <div className="swap-choice-row" role="group" aria-label="Unshield asset">
+                  {(["VUSD", "SOL"] as UnshieldLane[]).map((lane) => (
+                    <button
+                      key={lane}
+                      className={
+                        lane === selectedLane
+                          ? "swap-choice-chip swap-choice-chip--active"
+                          : "swap-choice-chip"
+                      }
+                      type="button"
+                      aria-pressed={lane === selectedLane}
+                      onClick={() => {
+                        setSelectedLane(lane);
                         setStatus("idle");
                         setFlowError(null);
                       }}
                     >
-                      <option value="VUSD">VUSD</option>
-                      <option value="SOL">SOL</option>
-                    </select>
-                  </div>
+                      {lane}
+                    </button>
+                  ))}
                 </div>
               </div>
 
