@@ -97,13 +97,22 @@ function abbreviate(value: string) {
 function formatUnshieldNoteOption(args: {
   amount: number;
   asset: UnshieldLane;
-  noteId: string;
+  primaryLabel?: string;
   secondaryLabel?: string;
 }) {
   const amountLabel =
     args.asset === "VUSD" ? formatVusdAmount(args.amount) : formatSolAmount(args.amount);
-  const detailLabel = args.secondaryLabel ? ` · ${args.secondaryLabel}` : "";
-  return `${amountLabel} · ${abbreviate(args.noteId)}${detailLabel}`;
+  const parts = [amountLabel];
+
+  if (args.primaryLabel) {
+    parts.push(args.primaryLabel);
+  }
+
+  if (args.secondaryLabel) {
+    parts.push(args.secondaryLabel);
+  }
+
+  return parts.join(" · ");
 }
 
 export function UnshieldPage() {
@@ -417,9 +426,6 @@ export function UnshieldPage() {
   const selectedAmount = selectedLane === "VUSD"
     ? selectedVusdNote?.amount ?? 0
     : selectedSolNote?.amount ?? 0;
-  const selectedNoteLabel = selectedLane === "VUSD"
-    ? (selectedVusdNote ? abbreviate(selectedVusdNote.noteId) : "None selected")
-    : (selectedSolNote ? abbreviate(selectedSolNote.noteId) : "None selected");
   const canUseLane =
     selectedLane === "VUSD"
       ? Boolean(selectedVusdNote)
@@ -1777,8 +1783,7 @@ export function UnshieldPage() {
                             {formatUnshieldNoteOption({
                               amount: note.amount,
                               asset: "VUSD",
-                              noteId: note.noteId,
-                              secondaryLabel: note.origin === "change" ? "Residual" : "Deposit",
+                              primaryLabel: note.origin === "change" ? "Change note" : "Deposit note",
                             })}
                           </option>
                         ))
@@ -1788,8 +1793,8 @@ export function UnshieldPage() {
                             {formatUnshieldNoteOption({
                               amount: note.amount,
                               asset: "SOL",
-                              noteId: note.noteId,
-                              secondaryLabel: `Swap ${abbreviate(note.sourceSwapNoteId)}`,
+                              primaryLabel: "Swap output note",
+                              secondaryLabel: note.sourceSwapNoteId ? "Recovered from swap" : undefined,
                             })}
                           </option>
                         ))
