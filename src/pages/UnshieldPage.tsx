@@ -1018,7 +1018,7 @@ export function UnshieldPage() {
   }
 
   return (
-    <section className="send-page">
+    <section className="send-page unshield-page">
       <div className="module-page__hero send-page__hero">
         <div>
           <span className="eyebrow">Live</span>
@@ -1682,10 +1682,10 @@ export function UnshieldPage() {
         <article className="send-card send-card--workspace">
           <div className="shield-card__header">
             <div>
-              <span>Return to Public Wallet</span>
-              <h3>Choose the constrained exit lane</h3>
+              <span>Unshield</span>
+              <h3>Return one note to Public Wallet</h3>
             </div>
-            <small>One note at a time, full consumption only</small>
+            <small>One note, one destination, one action</small>
           </div>
 
           <div className="asset-list">
@@ -1793,20 +1793,8 @@ export function UnshieldPage() {
                 )}
               </div>
               <p className="shield-helper">{validationMessage}</p>
-            </div>
-
-            <div className="preview-grid">
-              <div className="preview-card preview-card--accent">
-                <span>Selected exit amount</span>
-                <strong>
-                  {selectedLane === "VUSD"
-                    ? formatVusdAmount(selectedAmount)
-                    : formatSolAmount(selectedAmount)}
-                </strong>
-              </div>
-              <div className="preview-card">
-                <span>Destination</span>
-                <strong>{walletAddressShort ?? "Connect wallet"}</strong>
+              <div className="send-balance-line shield-helper shield-helper--meta">
+                Destination: {walletAddressShort ?? "Connect wallet"}
               </div>
             </div>
 
@@ -1847,17 +1835,6 @@ export function UnshieldPage() {
             )}
 
             <div className="shield-form__actions">
-              <button
-                className="button button-ghost"
-                type="button"
-                onClick={() => {
-                  setStatus("review");
-                  setFlowError(null);
-                }}
-                disabled={!isReady || status === "recording_transition" || status === "finalizing_state"}
-              >
-                Review unshield
-              </button>
               <button
                 className="button button-primary"
                 type="button"

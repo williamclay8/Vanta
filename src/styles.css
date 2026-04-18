@@ -2144,32 +2144,43 @@ input {
 }
 
 .shield-page,
-.send-page {
+.send-page,
+.unshield-page {
   max-width: 760px;
   margin: 0 auto;
 }
 
 .shield-page .module-page__hero,
-.send-page .module-page__hero {
+.send-page .module-page__hero,
+.unshield-page .module-page__hero {
   grid-template-columns: 1fr;
 }
 
 .shield-page .module-state,
-.send-page .module-state {
+.send-page .module-state,
+.unshield-page .module-state {
   max-width: none;
 }
 
 .shield-page .shield-layout,
-.send-page .send-layout {
+.send-page .send-layout,
+.unshield-page .send-layout {
   grid-template-columns: 1fr;
 }
 
 .shield-page .shield-scenario-bar,
 .send-page .send-flow-indicator,
+.unshield-page .send-flow-indicator,
 .send-page .send-context-banner,
 .send-page > .vanta-private-core-state-panel,
 .send-page > article.send-card:first-of-type,
 .send-page > .note-state-panel {
+  display: none;
+}
+
+.unshield-page > article.send-card:first-of-type,
+.unshield-page > .vanta-private-core-state-panel,
+.unshield-page > .note-state-panel {
   display: none;
 }
 
@@ -2191,6 +2202,14 @@ input {
   display: none;
 }
 
+.unshield-page > .send-layout > .send-card:nth-of-type(2) {
+  display: none;
+}
+
+.unshield-page .preview-grid {
+  display: none;
+}
+
 .send-page > .send-layout > .send-card:nth-of-type(2) {
   margin-top: 16px;
 }
@@ -2208,24 +2227,29 @@ input {
 
 .shield-page .shield-form__actions,
 .send-page .shield-form__actions,
-.send-page .status-actions {
+.send-page .status-actions,
+.unshield-page .shield-form__actions,
+.unshield-page .status-actions {
   justify-content: flex-start;
 }
 
 .shield-page .asset-list,
-.send-page .asset-list {
+.send-page .asset-list,
+.unshield-page .asset-list {
   gap: 10px;
 }
 
 .shield-page .preview-grid,
 .send-page .preview-grid,
+.unshield-page .preview-grid,
 .shield-page .success-metrics,
 .send-page .success-metrics {
   grid-template-columns: 1fr 1fr;
 }
 
 .shield-page .shield-card__header small,
-.send-page .shield-card__header small {
+.send-page .shield-card__header small,
+.unshield-page .shield-card__header small {
   display: none;
 }
 
@@ -2250,6 +2274,7 @@ input {
 .app-content:has(.send-page) > .app-topbar,
 .shield-page .module-page__hero,
 .send-page .module-page__hero,
+.unshield-page .module-page__hero,
 .shield-page .shield-card__header p,
 .send-page .send-card__header p {
   display: none;
