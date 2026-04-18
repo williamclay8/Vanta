@@ -1378,45 +1378,62 @@ export function SwapPage() {
                     Max
                   </button>
                 </div>
-
-                <select
-                  aria-label="From asset"
-                  className="send-inline-select"
-                  value={selectedSourceAsset}
-                  onChange={(event) => {
-                    setSelectedSourceAsset(event.target.value as PublicSwapAssetKey);
-                    setStatus("idle");
-                    setFlowError(null);
-                    setQuote(null);
-                    setPublicRouteQuote(null);
-                    setQuoteError(null);
-                  }}
-                >
-                  {executableSourceAssets.map((asset) => (
-                    <option key={asset.symbol} value={asset.symbol}>
-                      {asset.label}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  aria-label="To shielded asset"
-                  className="send-inline-select"
-                  value={selectedTargetAsset}
-                  onChange={(event) => {
-                    setSelectedTargetAsset(event.target.value as ShieldedSwapAssetKey);
-                    setStatus("idle");
-                    setFlowError(null);
-                    setQuote(null);
-                    setPublicRouteQuote(null);
-                    setQuoteError(null);
-                  }}
-                >
-                  {executableShieldedAssets.map((asset) => (
-                    <option key={asset.symbol} value={asset.symbol}>
-                      {asset.label}
-                    </option>
-                  ))}
-                </select>
+              </div>
+              <div className="swap-choice-grid" aria-label="Swap route">
+                <div className="swap-choice-group" role="group" aria-label="From asset">
+                  <span>From</span>
+                  <div className="swap-choice-row">
+                    {executableSourceAssets.map((asset) => (
+                      <button
+                        key={asset.symbol}
+                        className={
+                          asset.symbol === selectedSourceAsset
+                            ? "swap-choice-chip swap-choice-chip--active"
+                            : "swap-choice-chip"
+                        }
+                        type="button"
+                        aria-pressed={asset.symbol === selectedSourceAsset}
+                        onClick={() => {
+                          setSelectedSourceAsset(asset.symbol);
+                          setStatus("idle");
+                          setFlowError(null);
+                          setQuote(null);
+                          setPublicRouteQuote(null);
+                          setQuoteError(null);
+                        }}
+                      >
+                        {asset.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="swap-choice-group" role="group" aria-label="To shielded asset">
+                  <span>To</span>
+                  <div className="swap-choice-row">
+                    {executableShieldedAssets.map((asset) => (
+                      <button
+                        key={asset.symbol}
+                        className={
+                          asset.symbol === selectedTargetAsset
+                            ? "swap-choice-chip swap-choice-chip--active"
+                            : "swap-choice-chip"
+                        }
+                        type="button"
+                        aria-pressed={asset.symbol === selectedTargetAsset}
+                        onClick={() => {
+                          setSelectedTargetAsset(asset.symbol);
+                          setStatus("idle");
+                          setFlowError(null);
+                          setQuote(null);
+                          setPublicRouteQuote(null);
+                          setQuoteError(null);
+                        }}
+                      >
+                        {asset.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
               <div className="send-balance-line shield-helper shield-helper--meta">
                 Balance: {formatAssetAmount(sourceBalance, selectedSourceAsset)}
