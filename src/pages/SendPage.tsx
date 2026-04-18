@@ -1275,6 +1275,13 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     selectedAsset === "VUSD" && isAmountValid && selectedSpendableNote
       ? Number(Math.max(selectedBalance - parsedAmount, 0).toFixed(6))
       : selectedBalance;
+  const sendHelperMessage = shieldStateError
+    ? shieldStateError
+    : isRealSendReady
+      ? "Ready to send from shielded state."
+      : isImplicitShieldSendReady
+        ? "Vanta will shield the exact amount first, then send."
+        : "Enter a valid amount and recipient.";
 
   return (
     <section className="send-page">
@@ -1344,246 +1351,122 @@ export function SendPage({ dashboard = false }: SendPageProps) {
             <div>
               <span>Private Send</span>
             </div>
-            <small>One input, one recipient, one action</small>
           </div>
 
-          <div className="shield-form">
-            <div className="shield-form__section">
-              <label>Send</label>
-              <div className="send-entry-grid">
+          <div className="shield-form swap-widget">
+            <div className="swap-module">
+              <div className="swap-module__field">
+                <div className="swap-module__label-row">
+                  <span>You send</span>
+                  <div className="send-balance-line shield-helper shield-helper--meta">
+                    Balance:{" "}
+                    {formatBalance(
+                      selectedAsset === "VUSD"
+                        ? publicBalance
+                        : fallbackShieldedBalances[selectedAsset],
+                      selectedAsset,
+                    )}
+                  </div>
+                </div>
+                <div className="send-entry-grid">
+                  <div className="amount-field">
+                    <input
+                      id="send-amount"
+                      inputMode="decimal"
+                      value={amount}
+                      onChange={(event) => {
+                        setAmount(event.target.value);
+                        setStatus("idle");
+                        setFlowError(null);
+                      }}
+                      placeholder="0.00"
+                      disabled={selectedAsset !== "VUSD"}
+                    />
+                    <button
+                      className="button button-ghost"
+                      type="button"
+                      disabled={
+                        selectedAsset !== "VUSD" || (!selectedSpendableNote && publicBalance <= 0)
+                      }
+                      onClick={() => {
+                        if (!selectedSpendableNote && publicBalance <= 0) {
+                          return;
+                        }
+
+                        setAmount(
+                          selectedSpendableNote
+                            ? selectedSpendableNote.amount.toFixed(2)
+                            : publicBalance.toFixed(2),
+                        );
+                        setStatus("idle");
+                        setFlowError(null);
+                      }}
+                    >
+                      Max
+                    </button>
+                  </div>
+
+                  <div className="send-asset-field">
+                    <select
+                      aria-label="Asset"
+                      value={selectedAsset}
+                      onChange={(event) => {
+                        setSelectedAsset(event.target.value as PrivacyAssetKey);
+                        setStatus("idle");
+                        setFlowError(null);
+                      }}
+                    >
+                      <option value="VUSD">VUSD</option>
+                      <option value="USDC" disabled>
+                        USDC
+                      </option>
+                      <option value="JTO" disabled>
+                        JTO
+                      </option>
+                      <option value="BONK" disabled>
+                        BONK
+                      </option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="swap-module__divider" aria-hidden="true" />
+
+              <div className="swap-module__field">
+                <div className="swap-module__label-row">
+                  <span>Recipient</span>
+                </div>
                 <div className="amount-field">
                   <input
-                    id="send-amount"
-                    inputMode="decimal"
-                    value={amount}
+                    id="send-recipient"
+                    value={recipient}
                     onChange={(event) => {
-                      setAmount(event.target.value);
+                      setRecipient(event.target.value);
                       setStatus("idle");
                       setFlowError(null);
                     }}
-                    placeholder="0.00"
-                    disabled={selectedAsset !== "VUSD"}
+                    placeholder="Destination wallet or recipient reference"
                   />
-                  <button
-                    className="button button-ghost"
-                    type="button"
-                    disabled={selectedAsset !== "VUSD" || (!selectedSpendableNote && publicBalance <= 0)}
-                    onClick={() => {
-                      if (!selectedSpendableNote && publicBalance <= 0) {
-                        return;
-                      }
-
-                      setAmount(
-                        selectedSpendableNote
-                          ? selectedSpendableNote.amount.toFixed(2)
-                          : publicBalance.toFixed(2),
-                      );
-                      setStatus("idle");
-                      setFlowError(null);
-                    }}
-                  >
-                    Max
-                  </button>
-                </div>
-
-                <div className="send-asset-field">
-                  <select
-                    aria-label="Asset"
-                    value={selectedAsset}
-                    onChange={(event) => {
-                      setSelectedAsset(event.target.value as PrivacyAssetKey);
-                      setStatus("idle");
-                      setFlowError(null);
-                    }}
-                  >
-                    <option value="VUSD">VUSD</option>
-                    <option value="USDC" disabled>
-                      USDC
-                    </option>
-                    <option value="JTO" disabled>
-                      JTO
-                    </option>
-                    <option value="BONK" disabled>
-                      BONK
-                    </option>
-                  </select>
                 </div>
               </div>
-              <div className="send-balance-line shield-helper shield-helper--meta">
-                Balance:{" "}
-                {formatBalance(
-                  selectedAsset === "VUSD" ? publicBalance : fallbackShieldedBalances[selectedAsset],
-                  selectedAsset,
-                )}
-              </div>
-            </div>
 
-            <div className="shield-form__section">
-              <label htmlFor="send-recipient">Recipient</label>
-              <div className="amount-field">
-                <input
-                  id="send-recipient"
-                  value={recipient}
-                  onChange={(event) => {
-                    setRecipient(event.target.value);
-                    setStatus("idle");
-                    setFlowError(null);
-                  }}
-                  placeholder="Destination wallet or recipient reference"
-                />
-              </div>
-            </div>
+              <p className="shield-helper">{sendHelperMessage}</p>
 
-            <div className="shield-form__section">
-              <label>Summary</label>
-              <p className="shield-helper">
-                {shieldStateError
-                  ? shieldStateError
-                  : isRealSendReady
-                    ? "This send will consume the selected note and, if any value remains, derive a new shielded change note."
-                    : isImplicitShieldSendReady
-                      ? "Vanta will create the required shielded note from public wallet balance and continue directly into private send."
-                      : "Enter a valid amount and recipient. Vanta will use an existing note when present or create one from public wallet balance when needed."}
-              </p>
-            </div>
-
-            <div className="shield-form__actions">
-              <button
-                className="button button-ghost"
-                type="button"
-                onClick={() => {
-                  setStatus("review");
-                  setFlowError(null);
-                }}
-                disabled={!isIntegratedSendReady || status === "sending" || status === "settling"}
-              >
-                Review send
-              </button>
-              <button
-                className="button button-primary"
-                type="button"
-                onClick={() => {
-                  void handleSend();
-                }}
-                disabled={!isIntegratedSendReady || status === "sending" || status === "settling"}
-              >
-                Private Send
-              </button>
-            </div>
-          </div>
-        </article>
-
-        <article className="send-card">
-          <div className="shield-card__header">
-            <div>
-              <span>Send context</span>
-              <h3>Change-note flow</h3>
-            </div>
-            <small>{recentShield ? "Connected flow" : "Standalone flow"}</small>
-          </div>
-
-          <div className="review-list">
-            <div className="review-row">
-              <span>Selected asset</span>
-              <strong>{selectedAsset}</strong>
-            </div>
-            <div className="review-row">
-              <span>Shielded balance</span>
-              <strong>{formatBalance(selectedBalance, selectedAsset)}</strong>
-            </div>
-            <div className="review-row">
-              <span>Spendable notes</span>
-              <strong>{selectedAsset === "VUSD" ? spendableNotes.length : 0}</strong>
-            </div>
-            <div className="review-row">
-              <span>Selected note</span>
-              <strong>
-                {selectedSpendableNote
-                  ? `${selectedSpendableNote.noteId.slice(0, 10)}...${selectedSpendableNote.noteId.slice(-6)}`
-                  : "None selected"}
-              </strong>
-            </div>
-            <div className="review-row">
-              <span>Send amount</span>
-              <strong>{formatBalance(parsedAmount || 0, "VUSD")}</strong>
-            </div>
-            <div className="review-row">
-              <span>Residual change</span>
-              <strong>{formatBalance(changeAmount, "VUSD")}</strong>
-            </div>
-            <div className="review-row">
-              <span>Recipient</span>
-              <strong>{recipient.trim() || "Not set"}</strong>
-            </div>
-            <div className="review-row">
-              <span>Recent activity</span>
-              <strong>
-                {recentShieldLabel ??
-                  (selectedBalance > 0
-                    ? "Vanta-recognized spendable state available"
-                    : "No spendable shielded state")}
-              </strong>
-            </div>
-            <div className="review-row">
-              <span>Spend model</span>
-              <strong>
-                {selectedAsset === "VUSD"
-                  ? "One input note plus explicit spent marker"
-                  : "Not live yet"}
-              </strong>
-            </div>
-            <div className="review-row">
-              <span>Note identity</span>
-              <strong>
-                {selectedAsset === "VUSD"
-                  ? "Deterministic Vanta note id"
-                  : "Not live yet"}
-              </strong>
-            </div>
-          </div>
-
-          <p className="shield-review-note">
-            Send now uses constrained note evolution for `VUSD`. One shield note
-            can be partially spent, any leftover value persists as a new
-            spendable shield note, and spentness is now finalized through a
-            separate Vanta spent marker. Multi-note composition and full
-            privacy semantics are still not live.
-          </p>
-
-          {selectedAsset === "VUSD" && (
-            <>
-              <NoteStatePanel
-                account={shieldAccount}
-                title="Resolved VUSD notes"
-              />
-              <LifecycleTimeline
-                account={shieldAccount}
-                title="VUSD lifecycle timeline"
-              />
-            </>
-          )}
-
-          {status === "review" && (
-            <div className="status-panel">
-              <span>Ready to Send</span>
-              <p>
-                Submit a constrained real Send transition that consumes the
-                selected `VUSD` note, writes send metadata, and then confirms
-                spentness through a separate marker.
-              </p>
-              <div className="status-actions">
+              <div className="shield-form__actions">
                 <button
                   className="button button-primary"
                   type="button"
                   onClick={() => {
                     void handleSend();
                   }}
+                  disabled={!isIntegratedSendReady || status === "sending" || status === "settling"}
                 >
-                  Confirm Send
+                  Private Send
                 </button>
               </div>
             </div>
-          )}
+          </div>
 
           {status === "awaiting_confirmation" && (
             <div className="status-panel">

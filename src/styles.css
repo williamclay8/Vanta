@@ -1867,6 +1867,20 @@ input {
   margin: 0;
 }
 
+.send-page .module-page__hero,
+.send-page .send-flow-indicator,
+.send-page .send-context-banner,
+.unshield-page .module-page__hero,
+.unshield-page .send-flow-indicator,
+.unshield-page .send-context-banner {
+  display: none;
+}
+
+.send-page .send-layout > .send-card:not(.send-card--workspace),
+.unshield-page .send-layout > .send-card:not(.send-card--workspace) {
+  display: none;
+}
+
 .swap-quote-line span {
   color: var(--muted-strong);
   font-family: "Space Mono", monospace;

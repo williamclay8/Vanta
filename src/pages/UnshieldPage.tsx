@@ -1695,224 +1695,123 @@ export function UnshieldPage() {
           <div className="shield-card__header">
             <div>
               <span>Unshield</span>
-              <h3>Return one note to Public Wallet</h3>
             </div>
-            <small>One note, one destination, one action</small>
           </div>
 
-          <div className="shield-form">
-            <div className="shield-form__section">
-              <label>Unshield</label>
-              <div className="send-entry-grid">
-                <div className="send-asset-field">
-                  <select
-                    aria-label="Unshield asset"
-                    value={selectedLane}
-                    onChange={(event) => {
-                      setSelectedLane(event.target.value as UnshieldLane);
-                      setStatus("idle");
-                      setFlowError(null);
-                    }}
-                  >
-                    <option value="VUSD">VUSD</option>
-                    <option value="SOL">SOL</option>
-                  </select>
+          <div className="shield-form swap-widget">
+            <div className="swap-module">
+              <div className="swap-module__field">
+                <div className="swap-module__label-row">
+                  <span>Asset</span>
+                  <div className="send-balance-line shield-helper shield-helper--meta">
+                    Exit amount:{" "}
+                    {selectedLane === "VUSD"
+                      ? formatVusdAmount(selectedAmount)
+                      : formatSolAmount(selectedAmount)}
+                  </div>
                 </div>
-                <div className="send-asset-field">
-                  <select
-                    aria-label="Eligible note"
-                    value={
-                      selectedLane === "VUSD" ? selectedVusdNoteId ?? "" : selectedSolNoteId ?? ""
-                    }
-                    onChange={(event) => {
-                      const nextValue = event.target.value || null;
-                      if (selectedLane === "VUSD") {
-                        setSelectedVusdNoteId(nextValue);
-                      } else {
-                        setSelectedSolNoteId(nextValue);
+                <div className="send-entry-grid">
+                  <div className="send-asset-field">
+                    <select
+                      aria-label="Unshield asset"
+                      value={selectedLane}
+                      onChange={(event) => {
+                        setSelectedLane(event.target.value as UnshieldLane);
+                        setStatus("idle");
+                        setFlowError(null);
+                      }}
+                    >
+                      <option value="VUSD">VUSD</option>
+                      <option value="SOL">SOL</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="swap-module__divider" aria-hidden="true" />
+
+              <div className="swap-module__field">
+                <div className="swap-module__label-row">
+                  <span>Eligible note</span>
+                  <div className="send-balance-line shield-helper shield-helper--meta">
+                    Destination: {walletAddressShort ?? "Connect wallet"}
+                  </div>
+                </div>
+                <div className="send-entry-grid">
+                  <div className="send-asset-field">
+                    <select
+                      aria-label="Eligible note"
+                      value={
+                        selectedLane === "VUSD" ? selectedVusdNoteId ?? "" : selectedSolNoteId ?? ""
                       }
-                      setStatus("idle");
-                      setFlowError(null);
-                    }}
-                    disabled={
-                      selectedLane === "VUSD"
-                        ? spendableVusdNotes.length === 0
-                        : spendableSolNotes.length === 0
-                    }
-                  >
-                    {(selectedLane === "VUSD" ? spendableVusdNotes : spendableSolNotes).length === 0 ? (
-                      <option value="">
-                        {selectedLane === "VUSD"
-                          ? "No spendable VUSD notes"
-                          : "No shielded SOL notes"}
-                      </option>
-                    ) : selectedLane === "VUSD" ? (
-                      spendableVusdNotes.map((note) => (
-                        <option key={note.noteId} value={note.noteId}>
-                          {formatUnshieldNoteOption({
-                            amount: note.amount,
-                            asset: "VUSD",
-                            noteId: note.noteId,
-                            secondaryLabel: note.origin === "change" ? "Residual" : "Deposit",
-                          })}
+                      onChange={(event) => {
+                        const nextValue = event.target.value || null;
+                        if (selectedLane === "VUSD") {
+                          setSelectedVusdNoteId(nextValue);
+                        } else {
+                          setSelectedSolNoteId(nextValue);
+                        }
+                        setStatus("idle");
+                        setFlowError(null);
+                      }}
+                      disabled={
+                        selectedLane === "VUSD"
+                          ? spendableVusdNotes.length === 0
+                          : spendableSolNotes.length === 0
+                      }
+                    >
+                      {(selectedLane === "VUSD" ? spendableVusdNotes : spendableSolNotes).length === 0 ? (
+                        <option value="">
+                          {selectedLane === "VUSD"
+                            ? "No spendable VUSD notes"
+                            : "No shielded SOL notes"}
                         </option>
-                      ))
-                    ) : (
-                      spendableSolNotes.map((note) => (
-                        <option key={note.noteId} value={note.noteId}>
-                          {formatUnshieldNoteOption({
-                            amount: note.amount,
-                            asset: "SOL",
-                            noteId: note.noteId,
-                            secondaryLabel: `Swap ${abbreviate(note.sourceSwapNoteId)}`,
-                          })}
-                        </option>
-                      ))
-                    )}
-                  </select>
+                      ) : selectedLane === "VUSD" ? (
+                        spendableVusdNotes.map((note) => (
+                          <option key={note.noteId} value={note.noteId}>
+                            {formatUnshieldNoteOption({
+                              amount: note.amount,
+                              asset: "VUSD",
+                              noteId: note.noteId,
+                              secondaryLabel: note.origin === "change" ? "Residual" : "Deposit",
+                            })}
+                          </option>
+                        ))
+                      ) : (
+                        spendableSolNotes.map((note) => (
+                          <option key={note.noteId} value={note.noteId}>
+                            {formatUnshieldNoteOption({
+                              amount: note.amount,
+                              asset: "SOL",
+                              noteId: note.noteId,
+                              secondaryLabel: `Swap ${abbreviate(note.sourceSwapNoteId)}`,
+                            })}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                  </div>
                 </div>
               </div>
+
               <p className="shield-helper">{validationMessage}</p>
-              <div className="send-balance-line shield-helper shield-helper--meta">
-                Exit amount:{" "}
-                {selectedLane === "VUSD"
-                  ? formatVusdAmount(selectedAmount)
-                  : formatSolAmount(selectedAmount)}
-              </div>
-              <div className="send-balance-line shield-helper shield-helper--meta">
-                Destination: {walletAddressShort ?? "Connect wallet"}
-              </div>
-            </div>
 
-            {selectedLane === "VUSD" && (
-              <div className="preview-grid">
-                <div className="preview-card">
-                  <span>Current Public Wallet VUSD</span>
-                  <strong>{formatVusdAmount(Number(supportedToken.balance?.uiAmount ?? "0"))}</strong>
-                </div>
-                <div className="preview-card">
-                  <span>Remaining shielded VUSD</span>
-                  <strong>
-                    {formatVusdAmount(
-                      Number(Math.max((shieldAccount?.balance ?? 0) - selectedAmount, 0).toFixed(6)),
-                    )}
-                  </strong>
-                </div>
-              </div>
-            )}
-
-            {selectedLane === "SOL" && (
-              <div className="preview-grid">
-                <div className="preview-card">
-                  <span>Current shielded SOL</span>
-                  <strong>{formatSolAmount(shieldAccount?.shieldedSolBalance ?? 0)}</strong>
-                </div>
-                <div className="preview-card">
-                  <span>Remaining shielded SOL</span>
-                  <strong>
-                    {formatSolAmount(
-                      Number(
-                        Math.max((shieldAccount?.shieldedSolBalance ?? 0) - selectedAmount, 0).toFixed(9),
-                      ),
-                    )}
-                  </strong>
-                </div>
-              </div>
-            )}
-
-            <div className="shield-form__actions">
-              <button
-                className="button button-primary"
-                type="button"
-                onClick={() => {
-                  void handleUnshield();
-                }}
-                disabled={!isReady || status === "recording_transition" || status === "finalizing_state"}
-              >
-                {selectedLane === "VUSD" ? "Return VUSD to Public Wallet" : "Return SOL to Public Wallet"}
-              </button>
-            </div>
-          </div>
-        </article>
-
-        <article className="send-card">
-          <div className="shield-card__header">
-            <div>
-              <span>Unshield context</span>
-              <h3>{selectedLane === "VUSD" ? "VUSD exit lane" : "Shielded SOL exit lane"}</h3>
-            </div>
-            <small>{walletAddressShort ?? "No wallet connected"}</small>
-          </div>
-
-          <div className="review-list">
-            <div className="review-row">
-              <span>Selected lane</span>
-              <strong>{selectedLane === "VUSD" ? "Unshield VUSD" : "Unshield SOL"}</strong>
-            </div>
-            <div className="review-row">
-              <span>Selected note</span>
-              <strong>{selectedNoteLabel}</strong>
-            </div>
-            <div className="review-row">
-              <span>Exit amount</span>
-              <strong>
-                {selectedLane === "VUSD"
-                  ? formatVusdAmount(selectedAmount)
-                  : formatSolAmount(selectedAmount)}
-              </strong>
-            </div>
-            <div className="review-row">
-              <span>Destination wallet</span>
-              <strong>{walletAddressShort ?? "Connect wallet"}</strong>
-            </div>
-            <div className="review-row">
-              <span>Execution model</span>
-              <strong>Authenticated operator-backed devnet exit</strong>
-            </div>
-            <div className="review-row">
-              <span>Consumption model</span>
-              <strong>Full note consumption with explicit spent marker</strong>
-            </div>
-            <div className="review-row">
-              <span>Lane posture</span>
-              <strong>
-                {selectedLane === "VUSD"
-                  ? "Existing VUSD exit path"
-                  : "First constrained shielded SOL exit path"}
-              </strong>
-            </div>
-          </div>
-
-          <p className="shield-review-note">
-            Unshield remains intentionally narrow. It supports one note at a time,
-            uses wallet-authenticated operator execution, and finalizes consumption
-            only after the matching exit release is accepted.
-          </p>
-
-          <NoteStatePanel account={shieldAccount} title="Resolved note state" />
-          <LifecycleTimeline account={shieldAccount} title="Constrained lifecycle timeline" />
-
-          {status === "review" && (
-            <div className="status-panel">
-              <span>Ready to unshield</span>
-              <p>
-                {selectedLane === "VUSD"
-                  ? "Confirm the constrained VUSD exit for one spendable note."
-                  : "Confirm the constrained shielded SOL exit for one swap-created note."}
-              </p>
-              <div className="status-actions">
+              <div className="shield-form__actions">
                 <button
                   className="button button-primary"
                   type="button"
                   onClick={() => {
                     void handleUnshield();
                   }}
+                  disabled={!isReady || status === "recording_transition" || status === "finalizing_state"}
                 >
-                  Confirm {selectedLane === "VUSD" ? "VUSD" : "SOL"} Unshield
+                  {selectedLane === "VUSD"
+                    ? "Return VUSD to Public Wallet"
+                    : "Return SOL to Public Wallet"}
                 </button>
               </div>
             </div>
-          )}
+          </div>
 
           {status === "awaiting_confirmation" && (
             <div className="status-panel">
