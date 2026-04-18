@@ -1336,49 +1336,56 @@ export function SwapPage() {
             <div>
               <span>Private Swap</span>
             </div>
-            <small>One input, one destination, one action</small>
           </div>
 
-          <div className="shield-form">
-            <div className="shield-form__section">
-              <label>Swap</label>
-              <div className="send-entry-grid swap-entry-grid">
-                <div className="amount-field">
-                  <input
-                    id="swap-amount"
-                    inputMode="decimal"
-                    value={amount}
-                    onChange={(event) => {
-                      setAmount(event.target.value);
-                      setStatus("idle");
-                      setFlowError(null);
-                      setQuote(null);
-                      setPublicRouteQuote(null);
-                      setQuoteError(null);
-                    }}
-                    placeholder="0.00"
-                  />
-                  <button
-                    className="button button-ghost"
-                    type="button"
-                    disabled={maxAvailableAmount <= 0}
-                    onClick={() => {
-                      if (maxAvailableAmount <= 0) {
-                        return;
-                      }
+          <div className="shield-form swap-widget">
+            <div className="swap-module">
+              <div className="swap-module__field">
+                <div className="swap-module__label-row">
+                  <span>You send</span>
+                  <div className="send-balance-line shield-helper shield-helper--meta">
+                    Balance: {formatAssetAmount(sourceBalance, selectedSourceAsset)}
+                  </div>
+                </div>
+                <div className="send-entry-grid swap-entry-grid">
+                  <div className="amount-field">
+                    <input
+                      id="swap-amount"
+                      inputMode="decimal"
+                      value={amount}
+                      onChange={(event) => {
+                        setAmount(event.target.value);
+                        setStatus("idle");
+                        setFlowError(null);
+                        setQuote(null);
+                        setPublicRouteQuote(null);
+                        setQuoteError(null);
+                      }}
+                      placeholder="0.00"
+                    />
+                    <button
+                      className="button button-ghost"
+                      type="button"
+                      disabled={maxAvailableAmount <= 0}
+                      onClick={() => {
+                        if (maxAvailableAmount <= 0) {
+                          return;
+                        }
 
-                      setAmount(maxAvailableAmount.toFixed(2));
-                      setStatus("idle");
-                      setFlowError(null);
-                      setQuote(null);
-                      setPublicRouteQuote(null);
-                      setQuoteError(null);
-                    }}
-                  >
-                    Max
-                  </button>
+                        setAmount(maxAvailableAmount.toFixed(2));
+                        setStatus("idle");
+                        setFlowError(null);
+                        setQuote(null);
+                        setPublicRouteQuote(null);
+                        setQuoteError(null);
+                      }}
+                    >
+                      Max
+                    </button>
+                  </div>
                 </div>
               </div>
+
               <div className="swap-choice-grid" aria-label="Swap route">
                 <div className="swap-choice-group" role="group" aria-label="From asset">
                   <span>From</span>
@@ -1435,43 +1442,44 @@ export function SwapPage() {
                   </div>
                 </div>
               </div>
-              <div className="send-balance-line shield-helper shield-helper--meta">
-                Balance: {formatAssetAmount(sourceBalance, selectedSourceAsset)}
+
+              <div className="swap-module__divider" aria-hidden="true" />
+
+              <div className="swap-module__field">
+                <div className="swap-module__label-row">
+                  <span>You receive</span>
+                </div>
+                <div className="swap-quote-line">
+                  <strong>
+                    {status === "quoting"
+                      ? "Loading quote..."
+                      : formatAssetAmount(expectedOutputAmount, selectedTargetAsset)}
+                  </strong>
+                  <span>{selectedTargetAsset === "SOL" ? "Shielded SOL" : "Shielded VUSD"}</span>
+                </div>
               </div>
-            </div>
 
-            <div className="shield-form__section">
-              <label>Receive</label>
-              <div className="swap-quote-line">
-                <strong>
-                  {status === "quoting"
-                    ? "Loading quote..."
-                    : formatAssetAmount(expectedOutputAmount, selectedTargetAsset)}
-                </strong>
-                <span>{selectedTargetAsset === "SOL" ? "Shielded SOL" : "Shielded VUSD"}</span>
+              <p className="shield-helper shield-helper--meta">{routeLabel}</p>
+              <p className="shield-helper">{validationMessage}</p>
+
+              <div className="shield-form__actions">
+                <button
+                  className="button button-primary"
+                  type="button"
+                  onClick={() => {
+                    void handleSwap();
+                  }}
+                  disabled={
+                    !isReady ||
+                    status === "routing_public_swap" ||
+                    status === "recording_transition" ||
+                    status === "authorizing_operator" ||
+                    status === "finalizing_state"
+                  }
+                >
+                  {selectedTargetAsset === "SOL" ? "Swap to shielded SOL" : "Swap to shielded VUSD"}
+                </button>
               </div>
-            </div>
-
-            <p className="shield-helper shield-helper--meta">{routeLabel}</p>
-            <p className="shield-helper">{validationMessage}</p>
-
-            <div className="shield-form__actions">
-              <button
-                className="button button-primary"
-                type="button"
-                onClick={() => {
-                  void handleSwap();
-                }}
-                disabled={
-                  !isReady ||
-                  status === "routing_public_swap" ||
-                  status === "recording_transition" ||
-                  status === "authorizing_operator" ||
-                  status === "finalizing_state"
-                }
-              >
-                {selectedTargetAsset === "SOL" ? "Swap to shielded SOL" : "Swap to shielded VUSD"}
-              </button>
             </div>
 
             {(status === "awaiting_confirmation" ||
