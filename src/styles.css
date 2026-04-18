@@ -2028,6 +2028,80 @@ input {
   display: none;
 }
 
+.app-shell:has(.shield-page),
+.app-shell:has(.send-page) {
+  grid-template-columns: 108px minmax(0, 1fr);
+  gap: 20px;
+}
+
+.app-shell:has(.shield-page) .app-sidebar,
+.app-shell:has(.send-page) .app-sidebar {
+  gap: 14px;
+  justify-content: flex-start;
+  padding: 14px 10px;
+}
+
+.app-shell:has(.shield-page) .app-sidebar__brand,
+.app-shell:has(.shield-page) .app-sidebar__status,
+.app-shell:has(.send-page) .app-sidebar__brand,
+.app-shell:has(.send-page) .app-sidebar__status,
+.app-content:has(.shield-page) > .app-topbar,
+.app-content:has(.send-page) > .app-topbar,
+.shield-page .module-page__hero,
+.send-page .module-page__hero,
+.shield-page .shield-card__header p,
+.send-page .send-card__header p {
+  display: none;
+}
+
+.app-shell:has(.shield-page) .app-sidebar__nav,
+.app-shell:has(.send-page) .app-sidebar__nav {
+  gap: 8px;
+}
+
+.app-shell:has(.shield-page) .app-link,
+.app-shell:has(.send-page) .app-link {
+  min-height: 56px;
+  padding: 10px 8px;
+  justify-content: center;
+  text-align: center;
+}
+
+.app-shell:has(.shield-page) .app-link small,
+.app-shell:has(.send-page) .app-link small {
+  display: none;
+}
+
+.app-shell:has(.shield-page) .app-link span,
+.app-shell:has(.send-page) .app-link span {
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1.25;
+}
+
+.app-content:has(.shield-page),
+.app-content:has(.send-page) {
+  padding-top: 0;
+}
+
+.shield-page,
+.send-page {
+  padding-top: 0;
+}
+
+.shield-page .shield-layout > .shield-card:nth-of-type(1),
+.send-page > .send-layout > .send-card:nth-of-type(1) {
+  margin-top: 0;
+}
+
+.shield-page .shield-card p,
+.send-page .send-card p,
+.shield-page .status-panel p,
+.send-page .status-panel p {
+  display: none;
+}
+
 .note-state-chip--change {
   border-color: rgba(147, 180, 255, 0.28);
   background: rgba(147, 180, 255, 0.1);
