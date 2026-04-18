@@ -1343,7 +1343,6 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           <div className="shield-card__header">
             <div>
               <span>Private Send</span>
-              <h3>Send privately</h3>
             </div>
             <small>One input, one recipient, one action</small>
           </div>
@@ -1409,6 +1408,13 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                     </option>
                   </select>
                 </div>
+              </div>
+              <div className="send-balance-line shield-helper shield-helper--meta">
+                Balance:{" "}
+                {formatBalance(
+                  selectedAsset === "VUSD" ? publicBalance : fallbackShieldedBalances[selectedAsset],
+                  selectedAsset,
+                )}
               </div>
             </div>
 

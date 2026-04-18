@@ -1703,6 +1703,11 @@ input {
   pointer-events: none;
 }
 
+.send-balance-line {
+  display: block;
+  margin-top: -4px;
+}
+
 .amount-field input {
   width: 100%;
   border: 0;
