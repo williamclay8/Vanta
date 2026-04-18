@@ -209,6 +209,10 @@ npm run private-core:release-candidate
 npm run private-core:release-candidate-json
 npm run private-core:release-candidate-check
 npm run private-core:release-candidate-check-json
+npm run private-core:release-package
+npm run private-core:release-package-json
+npm run private-core:release-package-check
+npm run private-core:release-package-check-json
 npm run private-core:shipping-status
 npm run private-core:shipping-check
 ```
@@ -308,6 +312,14 @@ These commands cover:
 `private-core:release-candidate-check` is the ready-gated human-readable form of that exact-run candidate: it exits zero only when the exact candidate is coherent and ready for the frozen narrow lane, and on blocked paths fails with structured `Release candidate decision status:` / `Release candidate decision note:` lines.
 
 `private-core:release-candidate-check-json` is the ready-gated machine-readable form of that same exact-run candidate: it exits zero only when the candidate is coherent and ready, prints the candidate JSON on success, and on blocked paths emits the full candidate JSON to stderr before structured `Release candidate decision status:` / `Release candidate decision note:` lines.
+
+`private-core:release-package` prints the final operator-owned downloadable release package from the dedicated `/state/private-core-release-package` endpoint. It packages the exact candidate id, shipping decision identity, current root, and latest proof/send/consume/release lineage into one review-ready artifact for the canonical primary `send -> unshield` lane.
+
+`private-core:release-package-json` prints that same release package as machine-readable JSON from `/state/private-core-release-package`.
+
+`private-core:release-package-check` is the ready-gated human-readable form of that release package: it exits zero only when the primary exact candidate is coherent and otherwise fails with structured `Release package decision status:` / `Release package decision note:` lines.
+
+`private-core:release-package-check-json` is the machine-readable ready-gated form of that same release package: it exits zero only when the primary exact candidate is coherent, prints the release package JSON on success, and on blocked paths emits the full package JSON to stderr before structured release-package decision status/note lines.
 
 The app now also treats the canonical primary `send -> unshield` lane as an explicit release handoff workflow instead of only as operator diagnostics. Shared runtime state derives a first-class exact release handoff from the release-candidate plus shipping-artifact surfaces, and the primary `Send` and `Unshield` pages now show:
 - prepare

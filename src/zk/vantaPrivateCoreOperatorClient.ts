@@ -859,6 +859,70 @@ export type VantaPrivateCoreOperatorReleaseCandidateCheckResponse = {
   candidate: VantaPrivateCoreOperatorReleaseCandidateResponse;
 };
 
+export type VantaPrivateCoreOperatorReleasePackageResponse = {
+  operator: string;
+  packageVersion: 1;
+  packageKind: "downloadable-exact-run-release-package";
+  packageStatus: "ready" | "blocked";
+  packageNote: string;
+  decisionVersion: 1;
+  decisionKind: "narrow-private-core-zk-v1-shipping";
+  decisionStatus: "ready-to-ship" | "blocked";
+  decisionNote: string;
+  artifactVersion: 1;
+  artifactKind: "shipping-decision-checked-snapshot-bundle";
+  candidateVersion: 1;
+  candidateKind: "private-core-send-consume-release-candidate";
+  releaseCandidateId: string | null;
+  releaseCandidateLineageStatus:
+    | "ready"
+    | "blocked"
+    | "send-mismatch"
+    | "consume-mismatch"
+    | "release-mismatch"
+    | "unavailable";
+  releaseCandidateLineageNote: string;
+  contractVersion: 21;
+  summaryVersion: 45;
+  snapshotVersion: 1;
+  snapshotKind: "contract-status-shipping-bundle";
+  summaryGenerated: number | null;
+  currentRoot: string | null;
+  currentRootRegistrationBasis:
+    | "shield-input"
+    | "send-recipient-output"
+    | "send-change-output"
+    | "swap-output"
+    | null;
+  currentRootProofId: string | null;
+  latestProofId: string | null;
+  latestProofAction: "consume" | "proof-only" | "register-root" | null;
+  latestSendProofId: string | null;
+  latestSendLinkedProofId: string | null;
+  latestSendId: string | null;
+  latestSendRecordProofId: string | null;
+  latestSendResultingRoot: string | null;
+  latestConsumeRecordProofId: string | null;
+  latestConsumeLinkedProofId: string | null;
+  latestConsumeRoot: string | null;
+  latestReleaseRecordProofId: string | null;
+  latestReleaseLinkedProofId: string | null;
+  latestReleaseRequestId: string | null;
+  latestReleaseRoot: string | null;
+  latestReleaseDestination: string | null;
+  latestReleasedAssetId: string | null;
+  latestReleasedAmount: string | null;
+};
+
+export type VantaPrivateCoreOperatorReleasePackageCheckResponse = {
+  operator: string;
+  checkVersion: 1;
+  checkKind: "ready-gated-downloadable-exact-run-release-package";
+  decisionStatus: "ready" | "blocked";
+  decisionNote: string;
+  releasePackage: VantaPrivateCoreOperatorReleasePackageResponse;
+};
+
 function parsePrivateCoreOperatorContractState(
   value: unknown,
   errorMessage: string,
@@ -2173,6 +2237,17 @@ function getPrivateCoreReleaseCandidateUrl() {
 function getPrivateCoreReleaseCandidateCheckUrl() {
   return new URL(
     "/state/private-core-release-candidate-check",
+    liveShieldAsset.unshieldOperatorUrl,
+  ).toString();
+}
+
+function getPrivateCoreReleasePackageUrl() {
+  return new URL("/state/private-core-release-package", liveShieldAsset.unshieldOperatorUrl).toString();
+}
+
+function getPrivateCoreReleasePackageCheckUrl() {
+  return new URL(
+    "/state/private-core-release-package-check",
     liveShieldAsset.unshieldOperatorUrl,
   ).toString();
 }
@@ -3983,6 +4058,251 @@ async function parseReleaseCandidateFromUnknown(
     releasedAmount: typeof parsed.releasedAmount === "string" ? parsed.releasedAmount : null,
     snapshotVersion: 1,
     snapshotKind: "contract-status-shipping-bundle",
+  };
+}
+
+export async function fetchVantaPrivateCoreOperatorReleasePackage(): Promise<
+  VantaPrivateCoreOperatorReleasePackageResponse
+> {
+  const response = await fetch(getPrivateCoreReleasePackageUrl(), {
+    method: "GET",
+    signal: AbortSignal.timeout(15_000),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "The private-core release package endpoint failed.");
+  }
+
+  return parseReleasePackageFromUnknown(
+    await response.json(),
+    "The private-core release package endpoint returned invalid data.",
+  );
+}
+
+export async function fetchVantaPrivateCoreOperatorReleasePackageCheck(): Promise<
+  VantaPrivateCoreOperatorReleasePackageCheckResponse
+> {
+  const response = await fetch(getPrivateCoreReleasePackageCheckUrl(), {
+    method: "GET",
+    signal: AbortSignal.timeout(15_000),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "The private-core release package gate endpoint failed.");
+  }
+
+  const parsed = (await response.json()) as {
+    operator?: unknown;
+    checkVersion?: unknown;
+    checkKind?: unknown;
+    decisionStatus?: unknown;
+    decisionNote?: unknown;
+    releasePackage?: unknown;
+  };
+
+  if (
+    typeof parsed.operator !== "string" ||
+    parsed.checkVersion !== 1 ||
+    parsed.checkKind !== "ready-gated-downloadable-exact-run-release-package" ||
+    (parsed.decisionStatus !== "ready" && parsed.decisionStatus !== "blocked") ||
+    typeof parsed.decisionNote !== "string" ||
+    !parsed.releasePackage ||
+    typeof parsed.releasePackage !== "object"
+  ) {
+    throw new Error("The private-core release package gate endpoint returned invalid data.");
+  }
+
+  return {
+    operator: parsed.operator,
+    checkVersion: 1,
+    checkKind: "ready-gated-downloadable-exact-run-release-package",
+    decisionStatus: parsed.decisionStatus,
+    decisionNote: parsed.decisionNote,
+    releasePackage: await parseReleasePackageFromUnknown(
+      parsed.releasePackage,
+      "The private-core release package gate endpoint returned invalid data.",
+    ),
+  };
+}
+
+async function parseReleasePackageFromUnknown(
+  value: unknown,
+  errorMessage: string,
+): Promise<VantaPrivateCoreOperatorReleasePackageResponse> {
+  const parsed = value as Record<string, unknown>;
+
+  if (
+    typeof parsed.operator !== "string" ||
+    parsed.packageVersion !== 1 ||
+    parsed.packageKind !== "downloadable-exact-run-release-package" ||
+    (parsed.packageStatus !== "ready" && parsed.packageStatus !== "blocked") ||
+    typeof parsed.packageNote !== "string" ||
+    parsed.decisionVersion !== 1 ||
+    parsed.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
+    !isShippingDecisionStatus(parsed.decisionStatus) ||
+    typeof parsed.decisionNote !== "string" ||
+    parsed.artifactVersion !== 1 ||
+    parsed.artifactKind !== "shipping-decision-checked-snapshot-bundle" ||
+    parsed.candidateVersion !== 1 ||
+    parsed.candidateKind !== "private-core-send-consume-release-candidate" ||
+    (parsed.releaseCandidateId !== null &&
+      parsed.releaseCandidateId !== undefined &&
+      typeof parsed.releaseCandidateId !== "string") ||
+    !isReleaseCandidateLineageStatus(parsed.releaseCandidateLineageStatus) ||
+    typeof parsed.releaseCandidateLineageNote !== "string" ||
+    parsed.contractVersion !== 21 ||
+    parsed.summaryVersion !== 45 ||
+    parsed.snapshotVersion !== 1 ||
+    parsed.snapshotKind !== "contract-status-shipping-bundle" ||
+    (parsed.summaryGenerated !== null &&
+      parsed.summaryGenerated !== undefined &&
+      typeof parsed.summaryGenerated !== "number") ||
+    (parsed.currentRoot !== null &&
+      parsed.currentRoot !== undefined &&
+      typeof parsed.currentRoot !== "string") ||
+    (parsed.currentRootRegistrationBasis !== null &&
+      parsed.currentRootRegistrationBasis !== undefined &&
+      parsed.currentRootRegistrationBasis !== "shield-input" &&
+      parsed.currentRootRegistrationBasis !== "send-recipient-output" &&
+      parsed.currentRootRegistrationBasis !== "send-change-output" &&
+      parsed.currentRootRegistrationBasis !== "swap-output") ||
+    (parsed.currentRootProofId !== null &&
+      parsed.currentRootProofId !== undefined &&
+      typeof parsed.currentRootProofId !== "string") ||
+    (parsed.latestProofId !== null &&
+      parsed.latestProofId !== undefined &&
+      typeof parsed.latestProofId !== "string") ||
+    (parsed.latestProofAction !== null &&
+      parsed.latestProofAction !== undefined &&
+      parsed.latestProofAction !== "consume" &&
+      parsed.latestProofAction !== "proof-only" &&
+      parsed.latestProofAction !== "register-root") ||
+    (parsed.latestSendProofId !== null &&
+      parsed.latestSendProofId !== undefined &&
+      typeof parsed.latestSendProofId !== "string") ||
+    (parsed.latestSendLinkedProofId !== null &&
+      parsed.latestSendLinkedProofId !== undefined &&
+      typeof parsed.latestSendLinkedProofId !== "string") ||
+    (parsed.latestSendId !== null &&
+      parsed.latestSendId !== undefined &&
+      typeof parsed.latestSendId !== "string") ||
+    (parsed.latestSendRecordProofId !== null &&
+      parsed.latestSendRecordProofId !== undefined &&
+      typeof parsed.latestSendRecordProofId !== "string") ||
+    (parsed.latestSendResultingRoot !== null &&
+      parsed.latestSendResultingRoot !== undefined &&
+      typeof parsed.latestSendResultingRoot !== "string") ||
+    (parsed.latestConsumeRecordProofId !== null &&
+      parsed.latestConsumeRecordProofId !== undefined &&
+      typeof parsed.latestConsumeRecordProofId !== "string") ||
+    (parsed.latestConsumeLinkedProofId !== null &&
+      parsed.latestConsumeLinkedProofId !== undefined &&
+      typeof parsed.latestConsumeLinkedProofId !== "string") ||
+    (parsed.latestConsumeRoot !== null &&
+      parsed.latestConsumeRoot !== undefined &&
+      typeof parsed.latestConsumeRoot !== "string") ||
+    (parsed.latestReleaseRecordProofId !== null &&
+      parsed.latestReleaseRecordProofId !== undefined &&
+      typeof parsed.latestReleaseRecordProofId !== "string") ||
+    (parsed.latestReleaseLinkedProofId !== null &&
+      parsed.latestReleaseLinkedProofId !== undefined &&
+      typeof parsed.latestReleaseLinkedProofId !== "string") ||
+    (parsed.latestReleaseRequestId !== null &&
+      parsed.latestReleaseRequestId !== undefined &&
+      typeof parsed.latestReleaseRequestId !== "string") ||
+    (parsed.latestReleaseRoot !== null &&
+      parsed.latestReleaseRoot !== undefined &&
+      typeof parsed.latestReleaseRoot !== "string") ||
+    (parsed.latestReleaseDestination !== null &&
+      parsed.latestReleaseDestination !== undefined &&
+      typeof parsed.latestReleaseDestination !== "string") ||
+    (parsed.latestReleasedAssetId !== null &&
+      parsed.latestReleasedAssetId !== undefined &&
+      typeof parsed.latestReleasedAssetId !== "string") ||
+    (parsed.latestReleasedAmount !== null &&
+      parsed.latestReleasedAmount !== undefined &&
+      typeof parsed.latestReleasedAmount !== "string")
+  ) {
+    throw new Error(errorMessage);
+  }
+
+  return {
+    operator: parsed.operator,
+    packageVersion: 1,
+    packageKind: "downloadable-exact-run-release-package",
+    packageStatus: parsed.packageStatus,
+    packageNote: parsed.packageNote,
+    decisionVersion: 1,
+    decisionKind: "narrow-private-core-zk-v1-shipping",
+    decisionStatus: parsed.decisionStatus,
+    decisionNote: parsed.decisionNote,
+    artifactVersion: 1,
+    artifactKind: "shipping-decision-checked-snapshot-bundle",
+    candidateVersion: 1,
+    candidateKind: "private-core-send-consume-release-candidate",
+    releaseCandidateId:
+      typeof parsed.releaseCandidateId === "string" ? parsed.releaseCandidateId : null,
+    releaseCandidateLineageStatus: parsed.releaseCandidateLineageStatus,
+    releaseCandidateLineageNote: parsed.releaseCandidateLineageNote,
+    contractVersion: 21,
+    summaryVersion: 45,
+    snapshotVersion: 1,
+    snapshotKind: "contract-status-shipping-bundle",
+    summaryGenerated: typeof parsed.summaryGenerated === "number" ? parsed.summaryGenerated : null,
+    currentRoot: typeof parsed.currentRoot === "string" ? parsed.currentRoot : null,
+    currentRootRegistrationBasis:
+      parsed.currentRootRegistrationBasis === "shield-input" ||
+      parsed.currentRootRegistrationBasis === "send-recipient-output" ||
+      parsed.currentRootRegistrationBasis === "send-change-output" ||
+      parsed.currentRootRegistrationBasis === "swap-output"
+        ? parsed.currentRootRegistrationBasis
+        : null,
+    currentRootProofId: typeof parsed.currentRootProofId === "string" ? parsed.currentRootProofId : null,
+    latestProofId: typeof parsed.latestProofId === "string" ? parsed.latestProofId : null,
+    latestProofAction:
+      parsed.latestProofAction === "consume" ||
+      parsed.latestProofAction === "proof-only" ||
+      parsed.latestProofAction === "register-root"
+        ? parsed.latestProofAction
+        : null,
+    latestSendProofId: typeof parsed.latestSendProofId === "string" ? parsed.latestSendProofId : null,
+    latestSendLinkedProofId:
+      typeof parsed.latestSendLinkedProofId === "string" ? parsed.latestSendLinkedProofId : null,
+    latestSendId: typeof parsed.latestSendId === "string" ? parsed.latestSendId : null,
+    latestSendRecordProofId:
+      typeof parsed.latestSendRecordProofId === "string" ? parsed.latestSendRecordProofId : null,
+    latestSendResultingRoot:
+      typeof parsed.latestSendResultingRoot === "string" ? parsed.latestSendResultingRoot : null,
+    latestConsumeRecordProofId:
+      typeof parsed.latestConsumeRecordProofId === "string"
+        ? parsed.latestConsumeRecordProofId
+        : null,
+    latestConsumeLinkedProofId:
+      typeof parsed.latestConsumeLinkedProofId === "string"
+        ? parsed.latestConsumeLinkedProofId
+        : null,
+    latestConsumeRoot: typeof parsed.latestConsumeRoot === "string" ? parsed.latestConsumeRoot : null,
+    latestReleaseRecordProofId:
+      typeof parsed.latestReleaseRecordProofId === "string"
+        ? parsed.latestReleaseRecordProofId
+        : null,
+    latestReleaseLinkedProofId:
+      typeof parsed.latestReleaseLinkedProofId === "string"
+        ? parsed.latestReleaseLinkedProofId
+        : null,
+    latestReleaseRequestId:
+      typeof parsed.latestReleaseRequestId === "string" ? parsed.latestReleaseRequestId : null,
+    latestReleaseRoot: typeof parsed.latestReleaseRoot === "string" ? parsed.latestReleaseRoot : null,
+    latestReleaseDestination:
+      typeof parsed.latestReleaseDestination === "string"
+        ? parsed.latestReleaseDestination
+        : null,
+    latestReleasedAssetId:
+      typeof parsed.latestReleasedAssetId === "string" ? parsed.latestReleasedAssetId : null,
+    latestReleasedAmount:
+      typeof parsed.latestReleasedAmount === "string" ? parsed.latestReleasedAmount : null,
   };
 }
 

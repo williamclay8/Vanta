@@ -1380,6 +1380,49 @@ try {
   }
   printStatus("operator restart release-candidate-check endpoint: PASS");
 
+  const releasePackageState = await requestJson(
+    baseUrl,
+    "/state/private-core-release-package",
+    {
+      method: "GET",
+    },
+  );
+  if (
+    !releasePackageState.ok ||
+    releasePackageState.parsed?.packageVersion !== 1 ||
+    releasePackageState.parsed?.packageKind !== "downloadable-exact-run-release-package" ||
+    releasePackageState.parsed?.packageStatus !== "blocked" ||
+    releasePackageState.parsed?.releaseCandidateId !== releaseCandidateId ||
+    releasePackageState.parsed?.releaseCandidateLineageStatus !== "blocked"
+  ) {
+    throw new Error(
+      releasePackageState.text || "operator restart release-package endpoint returned unexpected output",
+    );
+  }
+  printStatus("operator restart release-package endpoint: PASS");
+
+  const releasePackageCheckState = await requestJson(
+    baseUrl,
+    "/state/private-core-release-package-check",
+    {
+      method: "GET",
+    },
+  );
+  if (
+    !releasePackageCheckState.ok ||
+    releasePackageCheckState.parsed?.checkVersion !== 1 ||
+    releasePackageCheckState.parsed?.checkKind !==
+      "ready-gated-downloadable-exact-run-release-package" ||
+    releasePackageCheckState.parsed?.decisionStatus !== "blocked" ||
+    releasePackageCheckState.parsed?.releasePackage?.releaseCandidateId !== releaseCandidateId
+  ) {
+    throw new Error(
+      releasePackageCheckState.text ||
+        "operator restart release-package-check endpoint returned unexpected output",
+    );
+  }
+  printStatus("operator restart release-package-check endpoint: PASS");
+
   const operatorSnapshotJsonOutput = execFileSync("npm", [
     "run",
     "--silent",

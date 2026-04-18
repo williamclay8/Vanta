@@ -280,6 +280,14 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   runs the ready-gated human-readable form of that exact-run candidate and fails with structured `Release candidate decision status:` / `Release candidate decision note:` lines on blocked paths
 - `npm run private-core:release-candidate-check-json`
   runs the machine-readable ready-gated form of that same exact-run candidate; it succeeds only when the exact candidate is coherent and otherwise fails with the full candidate JSON plus structured release-candidate decision status/note stderr
+- `npm run private-core:release-package`
+  prints the final operator-owned downloadable release package from the dedicated `/state/private-core-release-package` endpoint, including the exact candidate id, shipping decision identity, current root, and the latest proof/send/consume/release lineage for the canonical primary `send -> unshield` lane
+- `npm run private-core:release-package-json`
+  prints that same release package as machine-readable JSON from `/state/private-core-release-package`
+- `npm run private-core:release-package-check`
+  runs the ready-gated human-readable form of that release package and fails with structured `Release package decision status:` / `Release package decision note:` lines on blocked paths
+- `npm run private-core:release-package-check-json`
+  runs the machine-readable ready-gated form of that same release package; it succeeds only when the primary exact candidate is coherent and otherwise fails with the full package JSON plus structured release-package decision status/note stderr
 - the app now also surfaces that same exact primary lane as a first-class release handoff workflow in-product:
   - prepare
   - check

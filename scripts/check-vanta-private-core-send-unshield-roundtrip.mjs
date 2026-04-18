@@ -1225,6 +1225,69 @@ try {
   }
   printStatus("private-core send->unshield release-candidate: PASS");
 
+  const releasePackageJsonOutput = execFileSync("npm", [
+    "run",
+    "--silent",
+    "private-core:release-package-check-json",
+    "--",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  const releasePackageJson = JSON.parse(releasePackageJsonOutput);
+  if (
+    releasePackageJson.packageVersion !== 1 ||
+    releasePackageJson.packageKind !== "downloadable-exact-run-release-package" ||
+    releasePackageJson.packageStatus !== "ready" ||
+    releasePackageJson.releaseCandidateId !== releaseCandidateId ||
+    releasePackageJson.releaseCandidateLineageStatus !== "ready" ||
+    releasePackageJson.latestSendId !== shippingArtifactSurfaceJson.latestSendId ||
+    releasePackageJson.latestReleaseRequestId !== shippingArtifactSurfaceJson.latestReleaseRequestId ||
+    releasePackageJson.latestReleasedAmount !== shippingArtifactSurfaceJson.latestReleasedAmount
+  ) {
+    throw new Error(
+      `Unexpected send->unshield release-package json output\n${JSON.stringify(releasePackageJson, null, 2)}`,
+    );
+  }
+  printStatus("private-core send->unshield release-package json: PASS");
+
+  const releasePackageOutput = execFileSync("npm", [
+    "run",
+    "--silent",
+    "private-core:release-package-check",
+    "--",
+    "--base-url",
+    baseUrl,
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  if (
+    !releasePackageOutput.includes("Package version: 1") ||
+    !releasePackageOutput.includes("Package kind: downloadable-exact-run-release-package") ||
+    !releasePackageOutput.includes("Package status: Ready") ||
+    !releasePackageOutput.includes(
+      "Package note: Primary exact private-core release package is ready for review and handoff.",
+    ) ||
+    !releasePackageOutput.includes(`Release candidate: ${releaseCandidateId}`) ||
+    !releasePackageOutput.includes("Release candidate lineage: Candidate lineage ready") ||
+    !releasePackageOutput.includes(
+      `Latest send: ${shippingArtifactSurfaceJson.latestSendId ?? "Unavailable"}`,
+    ) ||
+    !releasePackageOutput.includes(
+      `Latest release request: ${shippingArtifactSurfaceJson.latestReleaseRequestId ?? "Unavailable"}`,
+    )
+  ) {
+    throw new Error(
+      releasePackageOutput || "send->unshield release-package returned unexpected output",
+    );
+  }
+  printStatus("private-core send->unshield release-package: PASS");
+
   const operatorSnapshotCheckJsonOutput = execFileSync("npm", [
     "run",
     "--silent",

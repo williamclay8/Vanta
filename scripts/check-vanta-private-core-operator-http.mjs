@@ -1976,6 +1976,49 @@ try {
   }
   printStatus("operator http release-candidate-check endpoint: PASS");
 
+  const releasePackageState = await requestJson(
+    baseUrl,
+    "/state/private-core-release-package",
+    {
+      method: "GET",
+    },
+  );
+  if (
+    !releasePackageState.ok ||
+    releasePackageState.parsed?.packageVersion !== 1 ||
+    releasePackageState.parsed?.packageKind !== "downloadable-exact-run-release-package" ||
+    releasePackageState.parsed?.packageStatus !== "blocked" ||
+    releasePackageState.parsed?.releaseCandidateId !== null ||
+    releasePackageState.parsed?.releaseCandidateLineageStatus !== "unavailable"
+  ) {
+    throw new Error(
+      releasePackageState.text || "release-package endpoint returned unexpected output",
+    );
+  }
+  printStatus("operator http release-package endpoint: PASS");
+
+  const releasePackageCheckState = await requestJson(
+    baseUrl,
+    "/state/private-core-release-package-check",
+    {
+      method: "GET",
+    },
+  );
+  if (
+    !releasePackageCheckState.ok ||
+    releasePackageCheckState.parsed?.checkVersion !== 1 ||
+    releasePackageCheckState.parsed?.checkKind !==
+      "ready-gated-downloadable-exact-run-release-package" ||
+    releasePackageCheckState.parsed?.decisionStatus !== "blocked" ||
+    releasePackageCheckState.parsed?.releasePackage?.packageStatus !== "blocked"
+  ) {
+    throw new Error(
+      releasePackageCheckState.text ||
+        "release-package-check endpoint returned unexpected output",
+    );
+  }
+  printStatus("operator http release-package-check endpoint: PASS");
+
   const operatorSnapshotJsonOutput = execFileSync("npm", [
     "run",
     "--silent",

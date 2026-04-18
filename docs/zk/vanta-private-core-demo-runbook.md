@@ -35,6 +35,10 @@ npm run private-core:release-candidate
 npm run private-core:release-candidate-json
 npm run private-core:release-candidate-check
 npm run private-core:release-candidate-check-json
+npm run private-core:release-package
+npm run private-core:release-package-json
+npm run private-core:release-package-check
+npm run private-core:release-package-check-json
 npm run private-core:shipping-status
 npm run private-core:shipping-status-json
 npm run private-core:shipping-check-json
@@ -195,6 +199,14 @@ That exact-run candidate is now itself part of the frozen operator contract:
 Use `private-core:release-candidate-check` when a human wants that exact-run candidate itself to act as a strict ready gate.
 
 Use `private-core:release-candidate-check-json` when that same tooling wants the full exact-run candidate as a strict machine-readable ready gate.
+
+Use `private-core:release-package` when a human wants the final operator-owned downloadable release package for the canonical primary `send -> unshield` lane in readable form.
+
+Use `private-core:release-package-json` when that tooling wants that same package as machine-readable JSON from the dedicated `/state/private-core-release-package` endpoint.
+
+Use `private-core:release-package-check` when a human wants that release package itself to act as a strict ready gate.
+
+Use `private-core:release-package-check-json` when that same tooling wants the full release package as a strict machine-readable ready gate.
 
 Inside the app, the same primary `send -> unshield` lane is now surfaced as a first-class exact release handoff workflow. The shared runtime and primary Send/Unshield product cards now show:
 - prepare

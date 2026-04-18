@@ -1189,6 +1189,104 @@ try {
   }
   printStatus("private-core swap->unshield release-candidate json: PASS");
 
+  let blockedReleasePackageCheckJson = null;
+  try {
+    execFileSync(
+      "npm",
+      ["run", "--silent", "private-core:release-package-check-json", "--", "--base-url", baseUrl],
+      {
+        cwd: repoRoot,
+        encoding: "utf8",
+        stdio: "pipe",
+      },
+    );
+  } catch (error) {
+    blockedReleasePackageCheckJson = error;
+  }
+  const blockedReleasePackageCheckJsonOutput =
+    blockedReleasePackageCheckJson &&
+    typeof blockedReleasePackageCheckJson === "object" &&
+    "stderr" in blockedReleasePackageCheckJson &&
+    typeof blockedReleasePackageCheckJson.stderr === "string"
+      ? blockedReleasePackageCheckJson.stderr
+      : "";
+  const blockedReleasePackageJsonStart = blockedReleasePackageCheckJsonOutput.indexOf("{");
+  const blockedReleasePackageJsonEnd = blockedReleasePackageCheckJsonOutput.lastIndexOf("}");
+  if (
+    !blockedReleasePackageCheckJson ||
+    blockedReleasePackageJsonStart === -1 ||
+    blockedReleasePackageJsonEnd === -1 ||
+    !blockedReleasePackageCheckJsonOutput.includes("Release package decision status: Blocked") ||
+    !blockedReleasePackageCheckJsonOutput.includes(
+      "Release package decision note: No private send release candidate is bound to the latest operator release path.",
+    )
+  ) {
+    throw new Error(
+      blockedReleasePackageCheckJsonOutput ||
+        "swap->unshield release-package-check-json did not fail with structured output",
+    );
+  }
+  const blockedReleasePackageJson = JSON.parse(
+    blockedReleasePackageCheckJsonOutput.slice(
+      blockedReleasePackageJsonStart,
+      blockedReleasePackageJsonEnd + 1,
+    ),
+  );
+  if (
+    blockedReleasePackageJson.packageVersion !== 1 ||
+    blockedReleasePackageJson.packageKind !== "downloadable-exact-run-release-package" ||
+    blockedReleasePackageJson.packageStatus !== "blocked" ||
+    blockedReleasePackageJson.releaseCandidateId !== null ||
+    blockedReleasePackageJson.releaseCandidateLineageStatus !== "unavailable"
+  ) {
+    throw new Error(
+      `Unexpected swap->unshield release-package json output\n${JSON.stringify(blockedReleasePackageJson, null, 2)}`,
+    );
+  }
+  printStatus("private-core swap->unshield release-package json: PASS");
+
+  let blockedReleasePackageCheck = null;
+  try {
+    execFileSync(
+      "npm",
+      ["run", "--silent", "private-core:release-package-check", "--", "--base-url", baseUrl],
+      {
+        cwd: repoRoot,
+        encoding: "utf8",
+        stdio: "pipe",
+      },
+    );
+  } catch (error) {
+    blockedReleasePackageCheck = error;
+  }
+  const blockedReleasePackageCheckOutput =
+    blockedReleasePackageCheck &&
+    typeof blockedReleasePackageCheck === "object" &&
+    "stderr" in blockedReleasePackageCheck &&
+    typeof blockedReleasePackageCheck.stderr === "string"
+      ? blockedReleasePackageCheck.stderr
+      : "";
+  if (
+    !blockedReleasePackageCheck ||
+    !blockedReleasePackageCheckOutput.includes("Package version: 1") ||
+    !blockedReleasePackageCheckOutput.includes("Package kind: downloadable-exact-run-release-package") ||
+    !blockedReleasePackageCheckOutput.includes("Package status: Blocked") ||
+    !blockedReleasePackageCheckOutput.includes(
+      "Release package decision status: Blocked",
+    ) ||
+    !blockedReleasePackageCheckOutput.includes(
+      "Release package decision note: No private send release candidate is bound to the latest operator release path.",
+    ) ||
+    !blockedReleasePackageCheckOutput.includes("Release candidate: Unavailable") ||
+    !blockedReleasePackageCheckOutput.includes("Release candidate lineage: No candidate lineage")
+  ) {
+    throw new Error(
+      blockedReleasePackageCheckOutput ||
+        "swap->unshield release-package-check did not fail with the expected blocker",
+    );
+  }
+  printStatus("private-core swap->unshield release-package: PASS");
+
   let blockedOperatorSnapshotCheckJson = null;
   try {
     execFileSync(

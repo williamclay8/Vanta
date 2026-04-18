@@ -446,6 +446,13 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (request.method === "GET" && request.url === "/state/private-core-release-package") {
+    writeCorsHeaders(response);
+    response.writeHead(200, { "Content-Type": "application/json" });
+    response.end(JSON.stringify(buildPrivateCoreReleasePackageState(request)));
+    return;
+  }
+
   if (
     request.method === "GET" &&
     request.url === "/state/private-core-release-candidate-check"
@@ -453,6 +460,16 @@ const server = createServer(async (request, response) => {
     writeCorsHeaders(response);
     response.writeHead(200, { "Content-Type": "application/json" });
     response.end(JSON.stringify(buildPrivateCoreReleaseCandidateCheckState(request)));
+    return;
+  }
+
+  if (
+    request.method === "GET" &&
+    request.url === "/state/private-core-release-package-check"
+  ) {
+    writeCorsHeaders(response);
+    response.writeHead(200, { "Content-Type": "application/json" });
+    response.end(JSON.stringify(buildPrivateCoreReleasePackageCheckState(request)));
     return;
   }
 
@@ -2549,6 +2566,80 @@ function buildPrivateCoreReleaseCandidateCheckState(request) {
     decisionStatus,
     decisionNote,
     candidate,
+  };
+}
+
+function buildPrivateCoreReleasePackageState(request) {
+  const artifact = buildPrivateCoreShippingArtifactState(request);
+  const candidate = buildPrivateCoreReleaseCandidateState(request);
+  const packageStatus =
+    artifact.decisionStatus === "ready-to-ship" && candidate.lineageStatus === "ready"
+      ? "ready"
+      : "blocked";
+  const packageNote =
+    packageStatus === "ready"
+      ? "Primary exact private-core release package is ready for review and handoff."
+      : candidate.lineageStatus !== "ready"
+        ? candidate.lineageNote
+        : artifact.decisionNote;
+
+  return {
+    operator: artifact.operator,
+    packageVersion: 1,
+    packageKind: "downloadable-exact-run-release-package",
+    packageStatus,
+    packageNote,
+    decisionVersion: artifact.decisionVersion,
+    decisionKind: artifact.decisionKind,
+    decisionStatus: artifact.decisionStatus,
+    decisionNote: artifact.decisionNote,
+    artifactVersion: artifact.artifactVersion,
+    artifactKind: artifact.artifactKind,
+    candidateVersion: candidate.candidateVersion,
+    candidateKind: candidate.candidateKind,
+    releaseCandidateId: candidate.releaseCandidateId,
+    releaseCandidateLineageStatus: candidate.lineageStatus,
+    releaseCandidateLineageNote: candidate.lineageNote,
+    contractVersion: artifact.contractVersion,
+    summaryVersion: artifact.summaryVersion,
+    snapshotVersion: artifact.snapshotVersion,
+    snapshotKind: artifact.snapshotKind,
+    summaryGenerated: artifact.snapshot?.shipping?.summaryGenerated ?? null,
+    currentRoot: artifact.currentRoot,
+    currentRootRegistrationBasis: artifact.currentRootRegistrationBasis,
+    currentRootProofId: artifact.currentRootProofId,
+    latestProofId: artifact.latestProofId,
+    latestProofAction: artifact.latestProofAction,
+    latestSendProofId: artifact.latestSendProofId,
+    latestSendLinkedProofId: artifact.latestSendLinkedProofId,
+    latestSendId: artifact.latestSendId,
+    latestSendRecordProofId: artifact.latestSendRecordProofId,
+    latestSendResultingRoot: artifact.latestSendResultingRoot,
+    latestConsumeRecordProofId: artifact.latestConsumeRecordProofId,
+    latestConsumeLinkedProofId: artifact.latestConsumeLinkedProofId,
+    latestConsumeRoot: artifact.latestConsumeRoot,
+    latestReleaseRecordProofId: artifact.latestReleaseRecordProofId,
+    latestReleaseLinkedProofId: artifact.latestReleaseLinkedProofId,
+    latestReleaseRequestId: artifact.latestReleaseRequestId,
+    latestReleaseRoot: artifact.latestReleaseRoot,
+    latestReleaseDestination: artifact.latestReleaseDestination,
+    latestReleasedAssetId: artifact.latestReleasedAssetId,
+    latestReleasedAmount: artifact.latestReleasedAmount,
+    shippingArtifact: artifact,
+    releaseCandidate: candidate,
+  };
+}
+
+function buildPrivateCoreReleasePackageCheckState(request) {
+  const releasePackage = buildPrivateCoreReleasePackageState(request);
+
+  return {
+    operator: releasePackage.operator,
+    checkVersion: 1,
+    checkKind: "ready-gated-downloadable-exact-run-release-package",
+    decisionStatus: releasePackage.packageStatus,
+    decisionNote: releasePackage.packageNote,
+    releasePackage,
   };
 }
 
