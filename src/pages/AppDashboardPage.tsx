@@ -35,6 +35,7 @@ export function AppDashboardPage() {
     privateCoreHoldState,
     privateCoreReleaseCandidateState,
     privateCoreReleaseHandoffState,
+    privateCoreReleasePackageState,
     privateCoreReleaseWorkflowState,
     privateCoreSendState,
     privateCoreSwapState,
@@ -371,6 +372,7 @@ export function AppDashboardPage() {
               holdState={privateCoreHoldState}
               releaseCandidateState={privateCoreReleaseCandidateState}
               releaseHandoffState={privateCoreReleaseHandoffState}
+              releasePackageState={privateCoreReleasePackageState}
               releaseWorkflowState={privateCoreReleaseWorkflowState}
               sendState={privateCoreSendState}
               swapState={privateCoreSwapState}

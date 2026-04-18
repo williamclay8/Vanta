@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   useSendTransaction,
@@ -292,6 +292,7 @@ export function UnshieldPage() {
     privateCoreRecentShield,
     privateCoreReleaseCandidateState,
     privateCoreReleaseHandoffState,
+    privateCoreReleasePackageState,
     privateCoreReleaseWorkflowState,
     privateCoreSendState,
     privateCoreSwapState,
@@ -320,6 +321,9 @@ export function UnshieldPage() {
   const [pendingSpentMarker, setPendingSpentMarker] = useState<PendingSpentMarker | null>(null);
   const [pendingUnshieldBridge, setPendingUnshieldBridge] = useState<PendingUnshieldBridge | null>(null);
   const [releaseHandoffRefreshPending, setReleaseHandoffRefreshPending] = useState(false);
+  const [releasePackageExportStatus, setReleasePackageExportStatus] = useState<
+    "idle" | "summary" | "json" | "failed"
+  >("idle");
   const [unshieldBridgeError, setUnshieldBridgeError] = useState<string | null>(null);
   const [operatorAuthorizationStarted, setOperatorAuthorizationStarted] = useState(false);
   const [operatorReleaseSignature, setOperatorReleaseSignature] = useState<string | null>(null);
@@ -421,6 +425,26 @@ export function UnshieldPage() {
     privateCoreOperatorLatestConsume ?? privateCoreOperatorConsumes[0] ?? null;
   const latestPrivateCoreOperatorRelease =
     privateCoreOperatorLatestRelease ?? privateCoreOperatorReleases[0] ?? null;
+  const copyReleasePackageExport = useCallback(
+    async (mode: "summary" | "json") => {
+      if (!privateCoreReleasePackageState) {
+        setReleasePackageExportStatus("failed");
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(
+          mode === "json"
+            ? privateCoreReleasePackageState.exportJson
+            : privateCoreReleasePackageState.exportText,
+        );
+        setReleasePackageExportStatus(mode);
+      } catch {
+        setReleasePackageExportStatus("failed");
+      }
+    },
+    [privateCoreReleasePackageState],
+  );
   const privateCoreSendCompleted = Boolean(
     privateCoreSendState || privateCoreOperatorLatestSend || privateCoreOperatorLatestSendProof,
   );
@@ -1085,6 +1109,7 @@ export function UnshieldPage() {
           holdState={privateCoreHoldState}
           releaseCandidateState={privateCoreReleaseCandidateState}
           releaseHandoffState={privateCoreReleaseHandoffState}
+          releasePackageState={privateCoreReleasePackageState}
           releaseWorkflowState={privateCoreReleaseWorkflowState}
           sendState={privateCoreSendState}
           swapState={privateCoreSwapState}
@@ -1981,7 +2006,9 @@ export function UnshieldPage() {
                 <div className="preview-card">
                   <span>Release package</span>
                   <strong>
-                    {privateCoreReleaseHandoffState?.packageStatusLabel ?? "Unavailable"}
+                    {privateCoreReleasePackageState?.packageStatusLabel ??
+                      privateCoreReleaseHandoffState?.packageStatusLabel ??
+                      "Unavailable"}
                   </strong>
                 </div>
               </div>
@@ -2036,19 +2063,47 @@ export function UnshieldPage() {
                 </div>
                 <div className="review-row">
                   <span>Release package</span>
-                  <strong>{privateCoreReleaseHandoffState?.packageStatusLabel ?? "Unavailable"}</strong>
+                  <strong>
+                    {privateCoreReleasePackageState?.packageStatusLabel ??
+                      privateCoreReleaseHandoffState?.packageStatusLabel ??
+                      "Unavailable"}
+                  </strong>
                 </div>
                 <div className="review-row">
                   <span>Package note</span>
-                  <strong>{privateCoreReleaseHandoffState?.packagePrimaryNote ?? "Unavailable"}</strong>
+                  <strong>
+                    {privateCoreReleasePackageState?.packagePrimaryNote ??
+                      privateCoreReleaseHandoffState?.packagePrimaryNote ??
+                      "Unavailable"}
+                  </strong>
                 </div>
                 <div className="review-row">
                   <span>Artifact identity</span>
-                  <strong>{privateCoreReleaseHandoffState?.artifactIdentityLabel ?? "Unavailable"}</strong>
+                  <strong>
+                    {privateCoreReleasePackageState?.artifactIdentityLabel ??
+                      privateCoreReleaseHandoffState?.artifactIdentityLabel ??
+                      "Unavailable"}
+                  </strong>
                 </div>
                 <div className="review-row">
                   <span>Decision identity</span>
-                  <strong>{privateCoreReleaseHandoffState?.decisionIdentityLabel ?? "Unavailable"}</strong>
+                  <strong>
+                    {privateCoreReleasePackageState?.decisionIdentityLabel ??
+                      privateCoreReleaseHandoffState?.decisionIdentityLabel ??
+                      "Unavailable"}
+                  </strong>
+                </div>
+                <div className="review-row">
+                  <span>Contract identity</span>
+                  <strong>{privateCoreReleasePackageState?.contractIdentityLabel ?? "Unavailable"}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Snapshot identity</span>
+                  <strong>{privateCoreReleasePackageState?.snapshotIdentityLabel ?? "Unavailable"}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Summary generated</span>
+                  <strong>{privateCoreReleasePackageState?.summaryGeneratedLabel ?? "Unavailable"}</strong>
                 </div>
               </div>
               <div className="status-actions" style={{ marginTop: 16 }}>
@@ -2064,6 +2119,30 @@ export function UnshieldPage() {
                   disabled={releaseHandoffRefreshPending}
                 >
                   {releaseHandoffRefreshPending ? "Refreshing handoff" : "Refresh release handoff"}
+                </button>
+                <button
+                  className="button button-ghost"
+                  type="button"
+                  onClick={() => {
+                    void copyReleasePackageExport("summary");
+                  }}
+                  disabled={!privateCoreReleasePackageState}
+                >
+                  {releasePackageExportStatus === "summary"
+                    ? "Copied package summary"
+                    : "Copy package summary"}
+                </button>
+                <button
+                  className="button button-ghost"
+                  type="button"
+                  onClick={() => {
+                    void copyReleasePackageExport("json");
+                  }}
+                  disabled={!privateCoreReleasePackageState}
+                >
+                  {releasePackageExportStatus === "json"
+                    ? "Copied package JSON"
+                    : "Copy package JSON"}
                 </button>
               </div>
               {lastTransitionSignature && (

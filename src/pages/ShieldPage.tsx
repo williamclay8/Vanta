@@ -290,6 +290,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     privateCoreRecentShield,
     privateCoreReleaseCandidateState,
     privateCoreReleaseHandoffState,
+    privateCoreReleasePackageState,
     privateCoreReleaseWorkflowState,
     privateCoreSendState,
     privateCoreSwapState,
@@ -1195,6 +1196,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 holdState={privateCoreHoldState}
                 releaseCandidateState={privateCoreReleaseCandidateState}
                 releaseHandoffState={privateCoreReleaseHandoffState}
+                releasePackageState={privateCoreReleasePackageState}
                 releaseWorkflowState={privateCoreReleaseWorkflowState}
                 sendState={privateCoreSendState}
                 swapState={privateCoreSwapState}

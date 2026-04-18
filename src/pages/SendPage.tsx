@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { sha256 } from "@noble/hashes/sha2";
 import { useSendTransaction } from "@solana/react-hooks";
@@ -341,6 +341,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     recentShield,
     privateCoreReleaseCandidateState,
     privateCoreReleaseHandoffState,
+    privateCoreReleasePackageState,
     privateCoreReleaseWorkflowState,
     privateCoreSendState,
     privateCoreSwapState,
@@ -365,6 +366,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     "idle" | "review" | "awaiting_confirmation" | "sending" | "settling" | "complete" | "failed"
   >("idle");
   const [releaseHandoffRefreshPending, setReleaseHandoffRefreshPending] = useState(false);
+  const [releasePackageExportStatus, setReleasePackageExportStatus] = useState<
+    "idle" | "summary" | "json" | "failed"
+  >("idle");
   const [flowError, setFlowError] = useState<string | null>(null);
   const [lastRecipient, setLastRecipient] = useState<string | null>(null);
   const [lastSentAmount, setLastSentAmount] = useState<number | null>(null);
@@ -511,6 +515,27 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     recentShield &&
     `${formatBalance(recentShield.amount, recentShield.asset)} shielded`;
   const sendZkDiagnostics = listCanonicalSendDiagnosticsSummaries().slice(0, 5);
+
+  const copyReleasePackageExport = useCallback(
+    async (mode: "summary" | "json") => {
+      if (!privateCoreReleasePackageState) {
+        setReleasePackageExportStatus("failed");
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(
+          mode === "json"
+            ? privateCoreReleasePackageState.exportJson
+            : privateCoreReleasePackageState.exportText,
+        );
+        setReleasePackageExportStatus(mode);
+      } catch {
+        setReleasePackageExportStatus("failed");
+      }
+    },
+    [privateCoreReleasePackageState],
+  );
 
   useEffect(() => {
     setPrivateCoreSendExecution({
@@ -1613,7 +1638,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 <div className="preview-card">
                   <span>Release package</span>
                   <strong>
-                    {privateCoreReleaseHandoffState?.packageStatusLabel ?? "Unavailable"}
+                    {privateCoreReleasePackageState?.packageStatusLabel ??
+                      privateCoreReleaseHandoffState?.packageStatusLabel ??
+                      "Unavailable"}
                   </strong>
                 </div>
               </div>
@@ -1684,16 +1711,37 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 Next handoff action: {privateCoreReleaseHandoffState?.nextActionLabel ?? "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
-                Release package: {privateCoreReleaseHandoffState?.packageStatusLabel ?? "Unavailable"}
+                Release package:{" "}
+                {privateCoreReleasePackageState?.packageStatusLabel ??
+                  privateCoreReleaseHandoffState?.packageStatusLabel ??
+                  "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
-                Package note: {privateCoreReleaseHandoffState?.packagePrimaryNote ?? "Unavailable"}
+                Package note:{" "}
+                {privateCoreReleasePackageState?.packagePrimaryNote ??
+                  privateCoreReleaseHandoffState?.packagePrimaryNote ??
+                  "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
-                Artifact identity: {privateCoreReleaseHandoffState?.artifactIdentityLabel ?? "Unavailable"}
+                Artifact identity:{" "}
+                {privateCoreReleasePackageState?.artifactIdentityLabel ??
+                  privateCoreReleaseHandoffState?.artifactIdentityLabel ??
+                  "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
-                Decision identity: {privateCoreReleaseHandoffState?.decisionIdentityLabel ?? "Unavailable"}
+                Decision identity:{" "}
+                {privateCoreReleasePackageState?.decisionIdentityLabel ??
+                  privateCoreReleaseHandoffState?.decisionIdentityLabel ??
+                  "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Contract identity: {privateCoreReleasePackageState?.contractIdentityLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Snapshot identity: {privateCoreReleasePackageState?.snapshotIdentityLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Summary generated: {privateCoreReleasePackageState?.summaryGeneratedLabel ?? "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
                 Recipient recovery: Recipient can recover the sent note privately with the matched
@@ -1722,6 +1770,30 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   disabled={releaseHandoffRefreshPending}
                 >
                   {releaseHandoffRefreshPending ? "Refreshing handoff" : "Refresh release handoff"}
+                </button>
+                <button
+                  className="button button-ghost"
+                  type="button"
+                  onClick={() => {
+                    void copyReleasePackageExport("summary");
+                  }}
+                  disabled={!privateCoreReleasePackageState}
+                >
+                  {releasePackageExportStatus === "summary"
+                    ? "Copied package summary"
+                    : "Copy package summary"}
+                </button>
+                <button
+                  className="button button-ghost"
+                  type="button"
+                  onClick={() => {
+                    void copyReleasePackageExport("json");
+                  }}
+                  disabled={!privateCoreReleasePackageState}
+                >
+                  {releasePackageExportStatus === "json"
+                    ? "Copied package JSON"
+                    : "Copy package JSON"}
                 </button>
                 <button
                   className="button button-ghost"
@@ -1800,7 +1872,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 <div className="preview-card">
                   <span>Release package</span>
                   <strong>
-                    {privateCoreReleaseHandoffState?.packageStatusLabel ?? "Unavailable"}
+                    {privateCoreReleasePackageState?.packageStatusLabel ??
+                      privateCoreReleaseHandoffState?.packageStatusLabel ??
+                      "Unavailable"}
                   </strong>
                 </div>
               </div>
@@ -1859,16 +1933,37 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 Next handoff action: {privateCoreReleaseHandoffState?.nextActionLabel ?? "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
-                Release package: {privateCoreReleaseHandoffState?.packageStatusLabel ?? "Unavailable"}
+                Release package:{" "}
+                {privateCoreReleasePackageState?.packageStatusLabel ??
+                  privateCoreReleaseHandoffState?.packageStatusLabel ??
+                  "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
-                Package note: {privateCoreReleaseHandoffState?.packagePrimaryNote ?? "Unavailable"}
+                Package note:{" "}
+                {privateCoreReleasePackageState?.packagePrimaryNote ??
+                  privateCoreReleaseHandoffState?.packagePrimaryNote ??
+                  "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
-                Artifact identity: {privateCoreReleaseHandoffState?.artifactIdentityLabel ?? "Unavailable"}
+                Artifact identity:{" "}
+                {privateCoreReleasePackageState?.artifactIdentityLabel ??
+                  privateCoreReleaseHandoffState?.artifactIdentityLabel ??
+                  "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
-                Decision identity: {privateCoreReleaseHandoffState?.decisionIdentityLabel ?? "Unavailable"}
+                Decision identity:{" "}
+                {privateCoreReleasePackageState?.decisionIdentityLabel ??
+                  privateCoreReleaseHandoffState?.decisionIdentityLabel ??
+                  "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Contract identity: {privateCoreReleasePackageState?.contractIdentityLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Snapshot identity: {privateCoreReleasePackageState?.snapshotIdentityLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Summary generated: {privateCoreReleasePackageState?.summaryGeneratedLabel ?? "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
                 Send root record: {abbreviate(privateCoreOperatorSendResultingRootRecord?.root) ?? "Unavailable"}
@@ -1876,6 +1971,32 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               <p className="shield-helper shield-helper--meta">
                 Residual state: {privateCoreSendState.residualStateStatus}
               </p>
+              <div className="status-actions">
+                <button
+                  className="button button-ghost"
+                  type="button"
+                  onClick={() => {
+                    void copyReleasePackageExport("summary");
+                  }}
+                  disabled={!privateCoreReleasePackageState}
+                >
+                  {releasePackageExportStatus === "summary"
+                    ? "Copied package summary"
+                    : "Copy package summary"}
+                </button>
+                <button
+                  className="button button-ghost"
+                  type="button"
+                  onClick={() => {
+                    void copyReleasePackageExport("json");
+                  }}
+                  disabled={!privateCoreReleasePackageState}
+                >
+                  {releasePackageExportStatus === "json"
+                    ? "Copied package JSON"
+                    : "Copy package JSON"}
+                </button>
+              </div>
             </div>
           )}
 
@@ -1956,6 +2077,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         holdState={privateCoreHoldState}
         releaseCandidateState={privateCoreReleaseCandidateState}
         releaseHandoffState={privateCoreReleaseHandoffState}
+        releasePackageState={privateCoreReleasePackageState}
         releaseWorkflowState={privateCoreReleaseWorkflowState}
         sendState={privateCoreSendState}
         swapState={privateCoreSwapState}

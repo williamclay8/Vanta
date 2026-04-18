@@ -2054,6 +2054,7 @@ export function SwapPage() {
         holdState={privacyFlow.privateCoreHoldState}
         releaseCandidateState={privacyFlow.privateCoreReleaseCandidateState}
         releaseHandoffState={privacyFlow.privateCoreReleaseHandoffState}
+        releasePackageState={privacyFlow.privateCoreReleasePackageState}
         releaseWorkflowState={privacyFlow.privateCoreReleaseWorkflowState}
         shieldState={privacyFlow.privateCoreRecentShield}
         sendState={privacyFlow.privateCoreSendState}

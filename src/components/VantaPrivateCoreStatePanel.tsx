@@ -2,6 +2,7 @@ import type {
   VantaPrivateCoreHoldState,
   VantaPrivateCoreReleaseCandidateState,
   VantaPrivateCoreReleaseHandoffState,
+  VantaPrivateCoreReleasePackageState,
   VantaPrivateCoreReleaseWorkflowState,
   VantaPrivateCoreSendState,
   VantaPrivateCoreShieldState,
@@ -24,6 +25,7 @@ type VantaPrivateCoreStatePanelProps = {
   releaseCandidateState?: VantaPrivateCoreReleaseCandidateState | null;
   releaseWorkflowState?: VantaPrivateCoreReleaseWorkflowState | null;
   releaseHandoffState?: VantaPrivateCoreReleaseHandoffState | null;
+  releasePackageState?: VantaPrivateCoreReleasePackageState | null;
   sendState?: VantaPrivateCoreSendState | null;
   swapState?: VantaPrivateCoreSwapState | null;
   operatorCurrentRoot?: string | null;
@@ -346,6 +348,7 @@ export function VantaPrivateCoreStatePanel({
   releaseCandidateState = null,
   releaseWorkflowState = null,
   releaseHandoffState = null,
+  releasePackageState = null,
   sendState = null,
   swapState = null,
   operatorCurrentRoot = null,
@@ -1031,6 +1034,79 @@ export function VantaPrivateCoreStatePanel({
               <div className="review-row">
                 <span>Observation mode</span>
                 <strong>{releaseHandoffState.observationMode}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {releasePackageState ? (
+        <div className="note-state-list">
+          <div className="note-state-row">
+            <div className="note-state-row__header">
+              <div>
+                <strong>Exact release package</strong>
+                <span>
+                  {releasePackageState.releaseCandidateId
+                    ? abbreviate(releasePackageState.releaseCandidateId)
+                    : "No exact candidate id"}
+                </span>
+              </div>
+              <div className="note-state-chips">
+                <span className="note-state-chip note-state-chip--spendable">
+                  {releasePackageState.packageStatusLabel}
+                </span>
+                <span className="note-state-chip">{releasePackageState.artifactIdentityLabel}</span>
+              </div>
+            </div>
+            <div className="review-grid">
+              <div className="review-row">
+                <span>Package</span>
+                <strong>{releasePackageState.packageStatusLabel}</strong>
+              </div>
+              <div className="review-row">
+                <span>Package note</span>
+                <strong>{releasePackageState.packagePrimaryNote}</strong>
+              </div>
+              <div className="review-row">
+                <span>Artifact identity</span>
+                <strong>{releasePackageState.artifactIdentityLabel}</strong>
+              </div>
+              <div className="review-row">
+                <span>Decision identity</span>
+                <strong>{releasePackageState.decisionIdentityLabel}</strong>
+              </div>
+              <div className="review-row">
+                <span>Contract identity</span>
+                <strong>{releasePackageState.contractIdentityLabel}</strong>
+              </div>
+              <div className="review-row">
+                <span>Snapshot identity</span>
+                <strong>{releasePackageState.snapshotIdentityLabel}</strong>
+              </div>
+              <div className="review-row">
+                <span>Summary generated</span>
+                <strong>{releasePackageState.summaryGeneratedLabel}</strong>
+              </div>
+              <div className="review-row">
+                <span>Current root</span>
+                <strong>{abbreviate(releasePackageState.currentRootLabel) ?? releasePackageState.currentRootLabel}</strong>
+              </div>
+              <div className="review-row">
+                <span>Latest proof</span>
+                <strong>{abbreviate(releasePackageState.latestProofLabel) ?? releasePackageState.latestProofLabel}</strong>
+              </div>
+              <div className="review-row">
+                <span>Latest send</span>
+                <strong>{abbreviate(releasePackageState.latestSendLabel) ?? releasePackageState.latestSendLabel}</strong>
+              </div>
+              <div className="review-row">
+                <span>Latest release request</span>
+                <strong>{abbreviate(releasePackageState.latestReleaseLabel) ?? releasePackageState.latestReleaseLabel}</strong>
+              </div>
+              <div className="review-row">
+                <span>Observation mode</span>
+                <strong>{releasePackageState.observationMode}</strong>
               </div>
             </div>
           </div>
