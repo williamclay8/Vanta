@@ -1441,28 +1441,6 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               </p>
             </div>
 
-            <div className="preview-grid">
-              <div className="preview-card preview-card--accent">
-                <span>Selected note amount</span>
-                <strong>{formatBalance(maxNoteAmount, selectedAsset)}</strong>
-              </div>
-              <div className="preview-card">
-                <span>Residual change note</span>
-                <strong>{formatBalance(changeAmount, selectedAsset)}</strong>
-              </div>
-            </div>
-
-            <div className="preview-grid">
-              <div className="preview-card">
-                <span>Available shielded balance</span>
-                <strong>{formatBalance(selectedBalance, selectedAsset)}</strong>
-              </div>
-              <div className="preview-card">
-                <span>Post-send shielded balance</span>
-                <strong>{formatBalance(projectedRemainingBalance, selectedAsset)}</strong>
-              </div>
-            </div>
-
             <div className="shield-form__actions">
               <button
                 className="button button-ghost"
