@@ -1343,93 +1343,73 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           <div className="shield-card__header">
             <div>
               <span>Private Send</span>
-              <h3>Evolve shielded notes</h3>
+              <h3>Send privately</h3>
             </div>
-            <small>One input note, one send, one optional change note</small>
-          </div>
-
-          <div className="asset-list">
-            {(["VUSD"] as PrivacyAssetKey[]).map((asset) => (
-              <button
-                key={asset}
-                type="button"
-                className={selectedAsset === asset ? "asset-row asset-row--active" : "asset-row"}
-                onClick={() => {
-                  setSelectedAsset(asset);
-                  setStatus("idle");
-                  setFlowError(null);
-                }}
-              >
-                <div>
-                  <strong>{assetNames[asset]}</strong>
-                  <span>{asset}</span>
-                </div>
-                <div className="asset-row__meta">
-                  <small>
-                    {formatBalance(
-                      asset === "VUSD"
-                        ? shieldAccount?.balance ?? fallbackShieldedBalances[asset]
-                        : fallbackShieldedBalances[asset],
-                      asset,
-                    )}
-                  </small>
-                  <em>{asset === "VUSD" ? "Live send path" : "Not live yet"}</em>
-                </div>
-              </button>
-            ))}
+            <small>One input, one recipient, one action</small>
           </div>
 
           <div className="shield-form">
             <div className="shield-form__section">
-              <label>Spendable notes</label>
-              <div className="asset-list">
-                {selectedAsset !== "VUSD" ? (
-                  <div className="preview-card">
-                    <span>Unsupported asset</span>
-                    <strong>Send not live yet</strong>
-                  </div>
-                ) : spendableNotes.length === 0 ? (
-                  <div className="preview-card">
-                    <span>{walletConnected ? "Available to send" : "Connect wallet"}</span>
-                    <strong>
-                      {walletConnected
-                        ? formatBalance(publicBalance, "VUSD")
-                        : "Connect wallet"}
-                    </strong>
-                  </div>
-                ) : (
-                  spendableNotes.map((note) => (
-                    <button
-                      key={note.stateSignature}
-                      type="button"
-                      className={
-                        selectedNoteId === note.noteId
-                          ? "asset-row asset-row--active"
-                          : "asset-row"
+              <label>Send</label>
+              <div className="send-entry-grid">
+                <div className="amount-field">
+                  <input
+                    id="send-amount"
+                    inputMode="decimal"
+                    value={amount}
+                    onChange={(event) => {
+                      setAmount(event.target.value);
+                      setStatus("idle");
+                      setFlowError(null);
+                    }}
+                    placeholder="0.00"
+                    disabled={selectedAsset !== "VUSD"}
+                  />
+                  <button
+                    className="button button-ghost"
+                    type="button"
+                    disabled={selectedAsset !== "VUSD" || (!selectedSpendableNote && publicBalance <= 0)}
+                    onClick={() => {
+                      if (!selectedSpendableNote && publicBalance <= 0) {
+                        return;
                       }
-                      onClick={() => {
-                        setSelectedNoteId(note.noteId);
-                        setAmount(note.amount.toFixed(2));
-                        setStatus("idle");
-                        setFlowError(null);
-                      }}
-                    >
-                      <div>
-                        <strong>{formatBalance(note.amount, "VUSD")}</strong>
-                        <span>{`${note.noteId.slice(0, 10)}...${note.noteId.slice(-6)}`}</span>
-                      </div>
-                      <div className="asset-row__meta">
-                        <small>{note.origin === "change" ? "Residual note" : "Deposit note"}</small>
-                        <em>Spendable note</em>
-                      </div>
-                    </button>
-                  ))
-                )}
+
+                      setAmount(
+                        selectedSpendableNote
+                          ? selectedSpendableNote.amount.toFixed(2)
+                          : publicBalance.toFixed(2),
+                      );
+                      setStatus("idle");
+                      setFlowError(null);
+                    }}
+                  >
+                    Max
+                  </button>
+                </div>
+
+                <div className="send-asset-field">
+                  <select
+                    aria-label="Asset"
+                    value={selectedAsset}
+                    onChange={(event) => {
+                      setSelectedAsset(event.target.value as PrivacyAssetKey);
+                      setStatus("idle");
+                      setFlowError(null);
+                    }}
+                  >
+                    <option value="VUSD">VUSD</option>
+                    <option value="USDC" disabled>
+                      USDC
+                    </option>
+                    <option value="JTO" disabled>
+                      JTO
+                    </option>
+                    <option value="BONK" disabled>
+                      BONK
+                    </option>
+                  </select>
+                </div>
               </div>
-              <p className="shield-helper">
-                One input note at a time. If you send less than the note amount,
-                the remainder becomes a new private change note.
-              </p>
             </div>
 
             <div className="shield-form__section">
@@ -1446,47 +1426,10 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   placeholder="Destination wallet or recipient reference"
                 />
               </div>
-              <p className="shield-helper">
-                Enter the recipient reference for the current v1 send lane.
-              </p>
             </div>
 
             <div className="shield-form__section">
-              <label htmlFor="send-amount">Send amount</label>
-              <div className="amount-field">
-                <input
-                  id="send-amount"
-                  inputMode="decimal"
-                  value={amount}
-                  onChange={(event) => {
-                    setAmount(event.target.value);
-                    setStatus("idle");
-                    setFlowError(null);
-                  }}
-                  placeholder="0.00"
-                  disabled={selectedAsset !== "VUSD"}
-                />
-                <button
-                  className="button button-ghost"
-                  type="button"
-                  disabled={selectedAsset !== "VUSD" || (!selectedSpendableNote && publicBalance <= 0)}
-                  onClick={() => {
-                    if (!selectedSpendableNote && publicBalance <= 0) {
-                      return;
-                    }
-
-                    setAmount(
-                      selectedSpendableNote
-                        ? selectedSpendableNote.amount.toFixed(2)
-                        : publicBalance.toFixed(2),
-                    );
-                    setStatus("idle");
-                    setFlowError(null);
-                  }}
-                >
-                  Max
-                </button>
-              </div>
+              <label>Summary</label>
               <p className="shield-helper">
                 {shieldStateError
                   ? shieldStateError

@@ -1594,6 +1594,12 @@ input {
   gap: 12px;
 }
 
+.send-entry-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px;
+  gap: 12px;
+}
+
 .asset-list {
   display: grid;
   gap: 12px;
@@ -1663,6 +1669,38 @@ input {
   gap: 12px;
   padding: 10px;
   border-radius: 20px;
+}
+
+.send-asset-field {
+  border: 1px solid rgba(0, 229, 200, 0.1);
+  background: rgba(0, 229, 200, 0.025);
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  padding: 0 14px;
+}
+
+.send-asset-field select {
+  width: 100%;
+  min-height: 62px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-family: "Syne", sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  appearance: none;
+}
+
+.send-asset-field::after {
+  content: "▾";
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted-strong);
+  pointer-events: none;
 }
 
 .amount-field input {
