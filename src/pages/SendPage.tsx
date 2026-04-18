@@ -339,6 +339,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOwner,
     privateCoreRecentShield,
     recentShield,
+    privateCoreReleaseCandidateState,
     privateCoreSendState,
     privateCoreSwapState,
     privateCoreUnshieldState,
@@ -1802,6 +1803,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
 
       <VantaPrivateCoreStatePanel
         holdState={privateCoreHoldState}
+        releaseCandidateState={privateCoreReleaseCandidateState}
         sendState={privateCoreSendState}
         swapState={privateCoreSwapState}
         operatorCurrentRoot={privateCoreOperatorCurrentRoot}

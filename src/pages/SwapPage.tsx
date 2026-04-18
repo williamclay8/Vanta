@@ -2052,6 +2052,7 @@ export function SwapPage() {
 
       <VantaPrivateCoreStatePanel
         holdState={privacyFlow.privateCoreHoldState}
+        releaseCandidateState={privacyFlow.privateCoreReleaseCandidateState}
         shieldState={privacyFlow.privateCoreRecentShield}
         sendState={privacyFlow.privateCoreSendState}
         swapState={privacyFlow.privateCoreSwapState}

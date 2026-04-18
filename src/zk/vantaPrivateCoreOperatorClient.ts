@@ -810,6 +810,55 @@ export type VantaPrivateCoreOperatorShippingArtifactResponse = {
   snapshot: VantaPrivateCoreOperatorSnapshotStateResponse;
 };
 
+export type VantaPrivateCoreOperatorReleaseCandidateResponse = {
+  operator: string;
+  candidateVersion: 1;
+  candidateKind: "private-core-send-consume-release-candidate";
+  decisionVersion: 1;
+  decisionKind: "narrow-private-core-zk-v1-shipping";
+  decisionStatus: "ready-to-ship" | "blocked";
+  decisionNote: string;
+  contractVersion: 21;
+  summaryVersion: 45;
+  artifactVersion: 1;
+  artifactKind: "shipping-decision-checked-snapshot-bundle";
+  releaseCandidateId: string | null;
+  lineageStatus:
+    | "ready"
+    | "blocked"
+    | "send-mismatch"
+    | "consume-mismatch"
+    | "release-mismatch"
+    | "unavailable";
+  lineageNote: string;
+  sendId: string | null;
+  sendProofId: string | null;
+  sendLinkedProofId: string | null;
+  sendRecordProofId: string | null;
+  sendResultingRoot: string | null;
+  consumeRecordProofId: string | null;
+  consumeLinkedProofId: string | null;
+  consumeRoot: string | null;
+  releaseRecordProofId: string | null;
+  releaseLinkedProofId: string | null;
+  releaseRequestId: string | null;
+  releaseRoot: string | null;
+  releaseDestination: string | null;
+  releasedAssetId: string | null;
+  releasedAmount: string | null;
+  snapshotVersion: 1;
+  snapshotKind: "contract-status-shipping-bundle";
+};
+
+export type VantaPrivateCoreOperatorReleaseCandidateCheckResponse = {
+  operator: string;
+  checkVersion: 1;
+  checkKind: "ready-gated-private-core-release-candidate";
+  decisionStatus: "ready" | "blocked";
+  decisionNote: string;
+  candidate: VantaPrivateCoreOperatorReleaseCandidateResponse;
+};
+
 function parsePrivateCoreOperatorContractState(
   value: unknown,
   errorMessage: string,
@@ -2115,6 +2164,17 @@ function getPrivateCoreSnapshotStateUrl() {
 
 function getPrivateCoreShippingArtifactUrl() {
   return new URL("/state/private-core-shipping-artifact", liveShieldAsset.unshieldOperatorUrl).toString();
+}
+
+function getPrivateCoreReleaseCandidateUrl() {
+  return new URL("/state/private-core-release-candidate", liveShieldAsset.unshieldOperatorUrl).toString();
+}
+
+function getPrivateCoreReleaseCandidateCheckUrl() {
+  return new URL(
+    "/state/private-core-release-candidate-check",
+    liveShieldAsset.unshieldOperatorUrl,
+  ).toString();
 }
 
 export async function fetchVantaPrivateCoreOperatorReleases(): Promise<
@@ -3636,6 +3696,293 @@ export async function fetchVantaPrivateCoreOperatorShippingArtifact(): Promise<
     releaseCandidateLineageStatus: parsed.releaseCandidateLineageStatus,
     releaseCandidateLineageNote: parsed.releaseCandidateLineageNote,
     snapshot,
+  };
+}
+
+function isReleaseCandidateLineageStatus(
+  value: unknown,
+): value is VantaPrivateCoreOperatorReleaseCandidateResponse["lineageStatus"] {
+  return (
+    value === "ready" ||
+    value === "blocked" ||
+    value === "send-mismatch" ||
+    value === "consume-mismatch" ||
+    value === "release-mismatch" ||
+    value === "unavailable"
+  );
+}
+
+export async function fetchVantaPrivateCoreOperatorReleaseCandidate(): Promise<
+  VantaPrivateCoreOperatorReleaseCandidateResponse
+> {
+  const response = await fetch(getPrivateCoreReleaseCandidateUrl(), {
+    method: "GET",
+    signal: AbortSignal.timeout(15_000),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "The private-core release candidate endpoint failed.");
+  }
+
+  const parsed = (await response.json()) as {
+    operator?: unknown;
+    candidateVersion?: unknown;
+    candidateKind?: unknown;
+    decisionVersion?: unknown;
+    decisionKind?: unknown;
+    decisionStatus?: unknown;
+    decisionNote?: unknown;
+    contractVersion?: unknown;
+    summaryVersion?: unknown;
+    artifactVersion?: unknown;
+    artifactKind?: unknown;
+    releaseCandidateId?: unknown;
+    lineageStatus?: unknown;
+    lineageNote?: unknown;
+    sendId?: unknown;
+    sendProofId?: unknown;
+    sendLinkedProofId?: unknown;
+    sendRecordProofId?: unknown;
+    sendResultingRoot?: unknown;
+    consumeRecordProofId?: unknown;
+    consumeLinkedProofId?: unknown;
+    consumeRoot?: unknown;
+    releaseRecordProofId?: unknown;
+    releaseLinkedProofId?: unknown;
+    releaseRequestId?: unknown;
+    releaseRoot?: unknown;
+    releaseDestination?: unknown;
+    releasedAssetId?: unknown;
+    releasedAmount?: unknown;
+    snapshotVersion?: unknown;
+    snapshotKind?: unknown;
+  };
+
+  if (
+    typeof parsed.operator !== "string" ||
+    parsed.candidateVersion !== 1 ||
+    parsed.candidateKind !== "private-core-send-consume-release-candidate" ||
+    parsed.decisionVersion !== 1 ||
+    parsed.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
+    !isShippingDecisionStatus(parsed.decisionStatus) ||
+    typeof parsed.decisionNote !== "string" ||
+    parsed.contractVersion !== 21 ||
+    parsed.summaryVersion !== 45 ||
+    parsed.artifactVersion !== 1 ||
+    parsed.artifactKind !== "shipping-decision-checked-snapshot-bundle" ||
+    (parsed.releaseCandidateId !== null &&
+      parsed.releaseCandidateId !== undefined &&
+      typeof parsed.releaseCandidateId !== "string") ||
+    !isReleaseCandidateLineageStatus(parsed.lineageStatus) ||
+    typeof parsed.lineageNote !== "string" ||
+    (parsed.sendId !== null && parsed.sendId !== undefined && typeof parsed.sendId !== "string") ||
+    (parsed.sendProofId !== null &&
+      parsed.sendProofId !== undefined &&
+      typeof parsed.sendProofId !== "string") ||
+    (parsed.sendLinkedProofId !== null &&
+      parsed.sendLinkedProofId !== undefined &&
+      typeof parsed.sendLinkedProofId !== "string") ||
+    (parsed.sendRecordProofId !== null &&
+      parsed.sendRecordProofId !== undefined &&
+      typeof parsed.sendRecordProofId !== "string") ||
+    (parsed.sendResultingRoot !== null &&
+      parsed.sendResultingRoot !== undefined &&
+      typeof parsed.sendResultingRoot !== "string") ||
+    (parsed.consumeRecordProofId !== null &&
+      parsed.consumeRecordProofId !== undefined &&
+      typeof parsed.consumeRecordProofId !== "string") ||
+    (parsed.consumeLinkedProofId !== null &&
+      parsed.consumeLinkedProofId !== undefined &&
+      typeof parsed.consumeLinkedProofId !== "string") ||
+    (parsed.consumeRoot !== null &&
+      parsed.consumeRoot !== undefined &&
+      typeof parsed.consumeRoot !== "string") ||
+    (parsed.releaseRecordProofId !== null &&
+      parsed.releaseRecordProofId !== undefined &&
+      typeof parsed.releaseRecordProofId !== "string") ||
+    (parsed.releaseLinkedProofId !== null &&
+      parsed.releaseLinkedProofId !== undefined &&
+      typeof parsed.releaseLinkedProofId !== "string") ||
+    (parsed.releaseRequestId !== null &&
+      parsed.releaseRequestId !== undefined &&
+      typeof parsed.releaseRequestId !== "string") ||
+    (parsed.releaseRoot !== null &&
+      parsed.releaseRoot !== undefined &&
+      typeof parsed.releaseRoot !== "string") ||
+    (parsed.releaseDestination !== null &&
+      parsed.releaseDestination !== undefined &&
+      typeof parsed.releaseDestination !== "string") ||
+    (parsed.releasedAssetId !== null &&
+      parsed.releasedAssetId !== undefined &&
+      typeof parsed.releasedAssetId !== "string") ||
+    (parsed.releasedAmount !== null &&
+      parsed.releasedAmount !== undefined &&
+      typeof parsed.releasedAmount !== "string") ||
+    parsed.snapshotVersion !== 1 ||
+    parsed.snapshotKind !== "contract-status-shipping-bundle"
+  ) {
+    throw new Error("The private-core release candidate endpoint returned invalid data.");
+  }
+
+  return {
+    operator: parsed.operator,
+    candidateVersion: 1,
+    candidateKind: "private-core-send-consume-release-candidate",
+    decisionVersion: 1,
+    decisionKind: "narrow-private-core-zk-v1-shipping",
+    decisionStatus: parsed.decisionStatus,
+    decisionNote: parsed.decisionNote,
+    contractVersion: 21,
+    summaryVersion: 45,
+    artifactVersion: 1,
+    artifactKind: "shipping-decision-checked-snapshot-bundle",
+    releaseCandidateId:
+      typeof parsed.releaseCandidateId === "string" ? parsed.releaseCandidateId : null,
+    lineageStatus: parsed.lineageStatus,
+    lineageNote: parsed.lineageNote,
+    sendId: typeof parsed.sendId === "string" ? parsed.sendId : null,
+    sendProofId: typeof parsed.sendProofId === "string" ? parsed.sendProofId : null,
+    sendLinkedProofId:
+      typeof parsed.sendLinkedProofId === "string" ? parsed.sendLinkedProofId : null,
+    sendRecordProofId:
+      typeof parsed.sendRecordProofId === "string" ? parsed.sendRecordProofId : null,
+    sendResultingRoot:
+      typeof parsed.sendResultingRoot === "string" ? parsed.sendResultingRoot : null,
+    consumeRecordProofId:
+      typeof parsed.consumeRecordProofId === "string" ? parsed.consumeRecordProofId : null,
+    consumeLinkedProofId:
+      typeof parsed.consumeLinkedProofId === "string" ? parsed.consumeLinkedProofId : null,
+    consumeRoot: typeof parsed.consumeRoot === "string" ? parsed.consumeRoot : null,
+    releaseRecordProofId:
+      typeof parsed.releaseRecordProofId === "string" ? parsed.releaseRecordProofId : null,
+    releaseLinkedProofId:
+      typeof parsed.releaseLinkedProofId === "string" ? parsed.releaseLinkedProofId : null,
+    releaseRequestId:
+      typeof parsed.releaseRequestId === "string" ? parsed.releaseRequestId : null,
+    releaseRoot: typeof parsed.releaseRoot === "string" ? parsed.releaseRoot : null,
+    releaseDestination:
+      typeof parsed.releaseDestination === "string" ? parsed.releaseDestination : null,
+    releasedAssetId:
+      typeof parsed.releasedAssetId === "string" ? parsed.releasedAssetId : null,
+    releasedAmount: typeof parsed.releasedAmount === "string" ? parsed.releasedAmount : null,
+    snapshotVersion: 1,
+    snapshotKind: "contract-status-shipping-bundle",
+  };
+}
+
+export async function fetchVantaPrivateCoreOperatorReleaseCandidateCheck(): Promise<
+  VantaPrivateCoreOperatorReleaseCandidateCheckResponse
+> {
+  const response = await fetch(getPrivateCoreReleaseCandidateCheckUrl(), {
+    method: "GET",
+    signal: AbortSignal.timeout(15_000),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "The private-core release candidate gate endpoint failed.");
+  }
+
+  const parsed = (await response.json()) as {
+    operator?: unknown;
+    checkVersion?: unknown;
+    checkKind?: unknown;
+    decisionStatus?: unknown;
+    decisionNote?: unknown;
+    candidate?: unknown;
+  };
+
+  if (
+    typeof parsed.operator !== "string" ||
+    parsed.checkVersion !== 1 ||
+    parsed.checkKind !== "ready-gated-private-core-release-candidate" ||
+    (parsed.decisionStatus !== "ready" && parsed.decisionStatus !== "blocked") ||
+    typeof parsed.decisionNote !== "string" ||
+    !parsed.candidate ||
+    typeof parsed.candidate !== "object"
+  ) {
+    throw new Error("The private-core release candidate gate endpoint returned invalid data.");
+  }
+
+  return {
+    operator: parsed.operator,
+    checkVersion: 1,
+    checkKind: "ready-gated-private-core-release-candidate",
+    decisionStatus: parsed.decisionStatus,
+    decisionNote: parsed.decisionNote,
+    candidate: await parseReleaseCandidateFromUnknown(parsed.candidate),
+  };
+}
+
+async function parseReleaseCandidateFromUnknown(
+  value: unknown,
+): Promise<VantaPrivateCoreOperatorReleaseCandidateResponse> {
+  const parsed = value as Record<string, unknown>;
+
+  if (
+    typeof parsed.operator !== "string" ||
+    parsed.candidateVersion !== 1 ||
+    parsed.candidateKind !== "private-core-send-consume-release-candidate" ||
+    parsed.decisionVersion !== 1 ||
+    parsed.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
+    !isShippingDecisionStatus(parsed.decisionStatus) ||
+    typeof parsed.decisionNote !== "string" ||
+    parsed.contractVersion !== 21 ||
+    parsed.summaryVersion !== 45 ||
+    parsed.artifactVersion !== 1 ||
+    parsed.artifactKind !== "shipping-decision-checked-snapshot-bundle" ||
+    !isReleaseCandidateLineageStatus(parsed.lineageStatus) ||
+    typeof parsed.lineageNote !== "string" ||
+    parsed.snapshotVersion !== 1 ||
+    parsed.snapshotKind !== "contract-status-shipping-bundle"
+  ) {
+    throw new Error("The private-core release candidate gate endpoint returned invalid data.");
+  }
+
+  return {
+    operator: parsed.operator,
+    candidateVersion: 1,
+    candidateKind: "private-core-send-consume-release-candidate",
+    decisionVersion: 1,
+    decisionKind: "narrow-private-core-zk-v1-shipping",
+    decisionStatus: parsed.decisionStatus,
+    decisionNote: parsed.decisionNote,
+    contractVersion: 21,
+    summaryVersion: 45,
+    artifactVersion: 1,
+    artifactKind: "shipping-decision-checked-snapshot-bundle",
+    releaseCandidateId:
+      typeof parsed.releaseCandidateId === "string" ? parsed.releaseCandidateId : null,
+    lineageStatus: parsed.lineageStatus,
+    lineageNote: parsed.lineageNote,
+    sendId: typeof parsed.sendId === "string" ? parsed.sendId : null,
+    sendProofId: typeof parsed.sendProofId === "string" ? parsed.sendProofId : null,
+    sendLinkedProofId:
+      typeof parsed.sendLinkedProofId === "string" ? parsed.sendLinkedProofId : null,
+    sendRecordProofId:
+      typeof parsed.sendRecordProofId === "string" ? parsed.sendRecordProofId : null,
+    sendResultingRoot:
+      typeof parsed.sendResultingRoot === "string" ? parsed.sendResultingRoot : null,
+    consumeRecordProofId:
+      typeof parsed.consumeRecordProofId === "string" ? parsed.consumeRecordProofId : null,
+    consumeLinkedProofId:
+      typeof parsed.consumeLinkedProofId === "string" ? parsed.consumeLinkedProofId : null,
+    consumeRoot: typeof parsed.consumeRoot === "string" ? parsed.consumeRoot : null,
+    releaseRecordProofId:
+      typeof parsed.releaseRecordProofId === "string" ? parsed.releaseRecordProofId : null,
+    releaseLinkedProofId:
+      typeof parsed.releaseLinkedProofId === "string" ? parsed.releaseLinkedProofId : null,
+    releaseRequestId:
+      typeof parsed.releaseRequestId === "string" ? parsed.releaseRequestId : null,
+    releaseRoot: typeof parsed.releaseRoot === "string" ? parsed.releaseRoot : null,
+    releaseDestination:
+      typeof parsed.releaseDestination === "string" ? parsed.releaseDestination : null,
+    releasedAssetId:
+      typeof parsed.releasedAssetId === "string" ? parsed.releasedAssetId : null,
+    releasedAmount: typeof parsed.releasedAmount === "string" ? parsed.releasedAmount : null,
+    snapshotVersion: 1,
+    snapshotKind: "contract-status-shipping-bundle",
   };
 }
 

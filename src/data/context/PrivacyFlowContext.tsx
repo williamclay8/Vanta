@@ -43,6 +43,8 @@ import {
 import {
   fetchVantaPrivateCoreOperatorStatus,
   fetchVantaPrivateCoreOperatorSnapshot,
+  fetchVantaPrivateCoreOperatorReleaseCandidate,
+  fetchVantaPrivateCoreOperatorReleaseCandidateCheck,
   fetchVantaPrivateCoreOperatorShippingArtifact,
   registerVantaPrivateCoreOperatorRoot,
   requestVantaPrivateCoreOperatorConsume,
@@ -51,6 +53,8 @@ import {
   type VantaPrivateCoreOperatorContractStateResponse,
   type VantaPrivateCoreOperatorConsumeRecord,
   type VantaPrivateCoreOperatorProofRecord,
+  type VantaPrivateCoreOperatorReleaseCandidateCheckResponse,
+  type VantaPrivateCoreOperatorReleaseCandidateResponse,
   type VantaPrivateCoreOperatorReleaseRecord,
   type VantaPrivateCoreOperatorRootRecord,
   type VantaPrivateCoreOperatorSendRecord,
@@ -106,6 +110,7 @@ type PrivacyFlowContextValue = {
   privateCoreRecentShield: VantaPrivateCoreShieldState | null;
   privateCoreHoldState: VantaPrivateCoreHoldState | null;
   privateCoreSendState: VantaPrivateCoreSendState | null;
+  privateCoreReleaseCandidateState: VantaPrivateCoreReleaseCandidateState | null;
   privateCoreSwapState: VantaPrivateCoreSwapState | null;
   privateCoreOperatorConsumes: VantaPrivateCoreOperatorConsumeRecord[];
   privateCoreOperatorConsumeError: string | null;
@@ -451,6 +456,25 @@ export type VantaPrivateCoreSendState = {
   recipientRecoveryStatus: string;
   recipientUnshieldStatus: string;
   residualStateStatus: string;
+  noteSummary: string;
+  observationMode: string;
+};
+
+export type VantaPrivateCoreReleaseCandidateState = {
+  releaseCandidateId: string | null;
+  lifecycleStatusLabel: string;
+  lifecyclePrimaryNote: string;
+  decisionStatusLabel: string;
+  decisionPrimaryNote: string;
+  lineageStatusLabel: string;
+  lineagePrimaryNote: string;
+  sendLifecycleStatus: string;
+  consumeLifecycleStatus: string;
+  releaseLifecycleStatus: string;
+  sendId: string | null;
+  consumeRoot: string | null;
+  releaseRequestId: string | null;
+  releasedAmount: string | null;
   noteSummary: string;
   observationMode: string;
 };
@@ -1010,6 +1034,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<number | null>(null);
   const [privateCoreOperatorShippingDecisionKind, setPrivateCoreOperatorShippingDecisionKind] =
     useState<string | null>(null);
+  const [privateCoreOperatorReleaseCandidate, setPrivateCoreOperatorReleaseCandidate] =
+    useState<VantaPrivateCoreOperatorReleaseCandidateResponse | null>(null);
+  const [privateCoreOperatorReleaseCandidateCheck, setPrivateCoreOperatorReleaseCandidateCheck] =
+    useState<VantaPrivateCoreOperatorReleaseCandidateCheckResponse | null>(null);
   const [privateCoreOperatorSupportedShippingDecisionNote, setPrivateCoreOperatorSupportedShippingDecisionNote] =
     useState<string | null>(null);
   const [privateCoreOperatorSummaryUpdatedAt, setPrivateCoreOperatorSummaryUpdatedAt] =
@@ -1017,10 +1045,18 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   const [recentShield, setRecentShield] = useState<RecentShieldContext | null>(null);
 
   const refreshPrivateCoreOperatorSummary = useCallback(async () => {
-    const [statusState, snapshotState, shippingArtifactState] = await Promise.all([
+    const [
+      statusState,
+      snapshotState,
+      shippingArtifactState,
+      releaseCandidateState,
+      releaseCandidateCheckState,
+    ] = await Promise.all([
       fetchVantaPrivateCoreOperatorStatus(),
       fetchVantaPrivateCoreOperatorSnapshot(),
       fetchVantaPrivateCoreOperatorShippingArtifact(),
+      fetchVantaPrivateCoreOperatorReleaseCandidate(),
+      fetchVantaPrivateCoreOperatorReleaseCandidateCheck(),
     ]);
     const contractState = snapshotState.contract;
     const summaryState = statusState.summary;
@@ -1214,6 +1250,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     setPrivateCoreOperatorShippingArtifactKind(shippingArtifactState.artifactKind);
     setPrivateCoreOperatorShippingDecisionVersion(shippingDecisionState.decisionVersion);
     setPrivateCoreOperatorShippingDecisionKind(shippingDecisionState.decisionKind);
+    setPrivateCoreOperatorReleaseCandidate(releaseCandidateState);
+    setPrivateCoreOperatorReleaseCandidateCheck(releaseCandidateCheckState);
     setPrivateCoreOperatorRawShippingDecisionNote(shippingDecisionState.decisionNote);
     setPrivateCoreOperatorRawShippingDecisionStatus(shippingDecisionState.decisionStatus);
     setPrivateCoreOperatorConsumeError(null);
@@ -1334,6 +1372,15 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreOperatorSendResultingRootSummary.primaryNote,
       privateCoreOperatorSendResultingRootSummary.statusLabel,
     ],
+  );
+
+  const privateCoreReleaseCandidateState = useMemo(
+    () =>
+      summarizePrivateCoreReleaseCandidateState({
+        candidate: privateCoreOperatorReleaseCandidate,
+        candidateCheck: privateCoreOperatorReleaseCandidateCheck,
+      }),
+    [privateCoreOperatorReleaseCandidate, privateCoreOperatorReleaseCandidateCheck],
   );
 
   const privateCoreSwapState = useMemo(
@@ -2396,6 +2443,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreRecentShield,
       privateCoreHoldState,
       privateCoreSendState,
+      privateCoreReleaseCandidateState,
       privateCoreSwapState,
       privateCoreOperatorConsumes,
       privateCoreOperatorConsumeError,
@@ -2666,6 +2714,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       privateCoreHoldState,
       privateCoreOwner,
       privateCoreSendState,
+      privateCoreReleaseCandidateState,
       privateCoreSwapState,
       privateCoreOperatorConsumeError,
       privateCoreOperatorConsumes,
@@ -3784,6 +3833,95 @@ function mergePrivateCoreSendStateWithOperatorDownstream(args: {
   }
 
   return withOperatorRootStatus;
+}
+
+function summarizePrivateCoreReleaseCandidateState(args: {
+  candidate: VantaPrivateCoreOperatorReleaseCandidateResponse | null;
+  candidateCheck: VantaPrivateCoreOperatorReleaseCandidateCheckResponse | null;
+}): VantaPrivateCoreReleaseCandidateState | null {
+  const candidate = args.candidateCheck?.candidate ?? args.candidate;
+
+  if (!candidate) {
+    return null;
+  }
+
+  const decisionStatusLabel =
+    args.candidateCheck?.decisionStatus === "ready"
+      ? "Exact candidate ready"
+      : args.candidateCheck?.decisionStatus === "blocked"
+        ? "Exact candidate blocked"
+        : candidate.decisionStatus === "ready-to-ship"
+          ? "Shipping decision ready"
+          : "Shipping decision blocked";
+  const decisionPrimaryNote = args.candidateCheck?.decisionNote ?? candidate.decisionNote;
+
+  let lineageStatusLabel = "No candidate lineage";
+  if (candidate.lineageStatus === "ready") {
+    lineageStatusLabel = "Candidate lineage ready";
+  } else if (candidate.lineageStatus === "blocked") {
+    lineageStatusLabel = "Candidate lineage blocked";
+  } else if (candidate.lineageStatus === "send-mismatch") {
+    lineageStatusLabel = "Candidate/send mismatch";
+  } else if (candidate.lineageStatus === "consume-mismatch") {
+    lineageStatusLabel = "Candidate/consume mismatch";
+  } else if (candidate.lineageStatus === "release-mismatch") {
+    lineageStatusLabel = "Candidate/release mismatch";
+  }
+
+  const sendLifecycleStatus = candidate.sendId ? "Send recorded" : "Awaiting primary send";
+  const consumeLifecycleStatus =
+    candidate.consumeRecordProofId && candidate.consumeRoot
+      ? "Consume recorded"
+      : candidate.sendId
+        ? "Awaiting consume"
+        : "Awaiting primary send";
+  const releaseLifecycleStatus =
+    candidate.releaseRequestId && candidate.releaseRecordProofId
+      ? "Release recorded"
+      : candidate.consumeRecordProofId
+        ? "Awaiting release"
+        : candidate.sendId
+          ? "Awaiting consume"
+          : "Awaiting primary send";
+  const lifecycleStatusLabel =
+    args.candidateCheck?.decisionStatus === "ready"
+      ? "Primary exact candidate ready"
+      : candidate.releaseRequestId
+        ? "Primary exact candidate recorded"
+        : candidate.consumeRecordProofId
+          ? "Primary exact candidate mid-flight"
+          : candidate.sendId
+            ? "Primary exact candidate created"
+            : "Awaiting primary exact candidate";
+  const lifecyclePrimaryNote =
+    args.candidateCheck?.decisionStatus === "ready"
+      ? args.candidateCheck.decisionNote
+      : candidate.lineageNote;
+  const releasedAmountLabel =
+    candidate.releasedAmount && candidate.releasedAssetId
+      ? formatPrivateCoreAssetAmount(candidate.releasedAssetId, BigInt(candidate.releasedAmount))
+      : null;
+
+  return {
+    releaseCandidateId: candidate.releaseCandidateId,
+    lifecycleStatusLabel,
+    lifecyclePrimaryNote,
+    decisionStatusLabel,
+    decisionPrimaryNote,
+    lineageStatusLabel,
+    lineagePrimaryNote: candidate.lineageNote,
+    sendLifecycleStatus,
+    consumeLifecycleStatus,
+    releaseLifecycleStatus,
+    sendId: candidate.sendId,
+    consumeRoot: candidate.consumeRoot,
+    releaseRequestId: candidate.releaseRequestId,
+    releasedAmount: releasedAmountLabel,
+    noteSummary: releasedAmountLabel
+      ? `${releasedAmountLabel} exact candidate`
+      : "Exact private-core release candidate",
+    observationMode: "Operator release-candidate summary",
+  };
 }
 
 function summarizePrivateCoreOperatorSwapState(args: {

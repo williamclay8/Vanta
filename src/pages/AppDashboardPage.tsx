@@ -33,6 +33,7 @@ export function AppDashboardPage() {
   const { account } = useVantaShieldState();
   const {
     privateCoreHoldState,
+    privateCoreReleaseCandidateState,
     privateCoreSendState,
     privateCoreSwapState,
     privateCoreOperatorConsumeError,
@@ -366,6 +367,7 @@ export function AppDashboardPage() {
             <VantaPrivateCoreStatePanel
               compact
               holdState={privateCoreHoldState}
+              releaseCandidateState={privateCoreReleaseCandidateState}
               sendState={privateCoreSendState}
               swapState={privateCoreSwapState}
               operatorCurrentRoot={privateCoreOperatorCurrentRoot}

@@ -1,5 +1,6 @@
 import type {
   VantaPrivateCoreHoldState,
+  VantaPrivateCoreReleaseCandidateState,
   VantaPrivateCoreSendState,
   VantaPrivateCoreShieldState,
   VantaPrivateCoreSwapState,
@@ -18,6 +19,7 @@ import type {
 
 type VantaPrivateCoreStatePanelProps = {
   holdState: VantaPrivateCoreHoldState | null;
+  releaseCandidateState?: VantaPrivateCoreReleaseCandidateState | null;
   sendState?: VantaPrivateCoreSendState | null;
   swapState?: VantaPrivateCoreSwapState | null;
   operatorCurrentRoot?: string | null;
@@ -337,6 +339,7 @@ function summarizeOperatorImmediateProofAlignment(args: {
 
 export function VantaPrivateCoreStatePanel({
   holdState,
+  releaseCandidateState = null,
   sendState = null,
   swapState = null,
   operatorCurrentRoot = null,
@@ -783,6 +786,91 @@ export function VantaPrivateCoreStatePanel({
               <div className="review-row">
                 <span>Observation mode</span>
                 <strong>{swapState.observationMode}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {releaseCandidateState ? (
+        <div className="note-state-list">
+          <div className="note-state-row">
+            <div className="note-state-row__header">
+              <div>
+                <strong>{releaseCandidateState.noteSummary}</strong>
+                <span>
+                  {releaseCandidateState.releaseCandidateId
+                    ? abbreviate(releaseCandidateState.releaseCandidateId)
+                    : "No exact candidate id"}
+                </span>
+              </div>
+              <div className="note-state-chips">
+                <span className="note-state-chip note-state-chip--spendable">
+                  {releaseCandidateState.decisionStatusLabel}
+                </span>
+                <span className="note-state-chip">{releaseCandidateState.lineageStatusLabel}</span>
+              </div>
+            </div>
+            <div className="review-grid">
+              <div className="review-row">
+                <span>Lifecycle</span>
+                <strong>{releaseCandidateState.lifecycleStatusLabel}</strong>
+              </div>
+              <div className="review-row">
+                <span>Lifecycle note</span>
+                <strong>{releaseCandidateState.lifecyclePrimaryNote}</strong>
+              </div>
+              <div className="review-row">
+                <span>Send stage</span>
+                <strong>{releaseCandidateState.sendLifecycleStatus}</strong>
+              </div>
+              <div className="review-row">
+                <span>Consume stage</span>
+                <strong>{releaseCandidateState.consumeLifecycleStatus}</strong>
+              </div>
+              <div className="review-row">
+                <span>Release stage</span>
+                <strong>{releaseCandidateState.releaseLifecycleStatus}</strong>
+              </div>
+              <div className="review-row">
+                <span>Decision note</span>
+                <strong>{releaseCandidateState.decisionPrimaryNote}</strong>
+              </div>
+              <div className="review-row">
+                <span>Lineage note</span>
+                <strong>{releaseCandidateState.lineagePrimaryNote}</strong>
+              </div>
+              <div className="review-row">
+                <span>Send record</span>
+                <strong>
+                  {releaseCandidateState.sendId
+                    ? abbreviate(releaseCandidateState.sendId)
+                    : "Awaiting primary send"}
+                </strong>
+              </div>
+              <div className="review-row">
+                <span>Consume root</span>
+                <strong>
+                  {releaseCandidateState.consumeRoot
+                    ? abbreviate(releaseCandidateState.consumeRoot)
+                    : "Awaiting consume"}
+                </strong>
+              </div>
+              <div className="review-row">
+                <span>Release request</span>
+                <strong>
+                  {releaseCandidateState.releaseRequestId
+                    ? abbreviate(releaseCandidateState.releaseRequestId)
+                    : "Awaiting release"}
+                </strong>
+              </div>
+              <div className="review-row">
+                <span>Released amount</span>
+                <strong>{releaseCandidateState.releasedAmount ?? "Awaiting release"}</strong>
+              </div>
+              <div className="review-row">
+                <span>Observation mode</span>
+                <strong>{releaseCandidateState.observationMode}</strong>
               </div>
             </div>
           </div>
