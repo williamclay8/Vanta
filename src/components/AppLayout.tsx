@@ -107,16 +107,10 @@ export function AppLayout() {
         <div className="app-topbar">
           <div>
             <span>App shell</span>
-            <h1>Demoable Vanta workspace for Solana</h1>
+            <h1>Private-core workspace</h1>
             <p className="app-topbar__copy">
-              Shield is the first product action, Send is the first live
-              shielded workflow, and Unshield now completes the first
-              constrained exit back to Public Wallet state for `VUSD`. Swap
-              now adds the first constrained `VUSD` to `SOL` transformation
-              inside shielded state, and Unshield now also covers the first
-              constrained shielded `SOL` exit back to Public Wallet. Pay is
-              planned, and the broader Vanta network remains a future roadmap
-              direction.
+              Shield in, move privately, and review the current release-ready
+              lane.
             </p>
           </div>
           <a className="button button-ghost" href="/">

@@ -2,9 +2,8 @@ import { Link, NavLink } from "react-router-dom";
 import { BrandMark } from "@/components/BrandMark";
 
 const links = [
-  { label: "Thesis", href: "#thesis" },
+  { label: "Overview", href: "#overview" },
   { label: "Modules", href: "#modules" },
-  { label: "Privacy", href: "#privacy" },
   { label: "Roadmap", href: "#roadmap" },
 ];
 
@@ -15,7 +14,7 @@ export function TopNav() {
         <BrandMark />
         <div>
           <strong>Vanta</strong>
-          <span>Shield first. Move privately.</span>
+          <span>Private movement on Solana</span>
         </div>
       </Link>
 
@@ -29,7 +28,7 @@ export function TopNav() {
 
       <div className="nav-actions">
         <NavLink className="button button-ghost" to="/app">
-          Enter Shield
+          Open app
         </NavLink>
       </div>
     </header>
