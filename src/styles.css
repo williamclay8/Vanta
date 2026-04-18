@@ -36,6 +36,17 @@ body {
   color: var(--text);
 }
 
+.app-body {
+  cursor: none;
+}
+
+.app-body,
+.app-body a,
+.app-body button,
+.app-body input {
+  cursor: none;
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -172,6 +183,19 @@ input {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   border: none;
+  box-shadow: 0 0 0 1px rgba(0, 229, 200, 0.12), 0 12px 28px rgba(0, 229, 200, 0.18);
+  position: relative;
+  overflow: hidden;
+}
+
+.button-primary::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.18), transparent 30%);
+  opacity: 0.65;
+  pointer-events: none;
 }
 
 .button-ghost {
@@ -468,6 +492,86 @@ input {
   pointer-events: none;
 }
 
+.app-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-size: 240px 240px;
+  opacity: 0.035;
+  pointer-events: none;
+}
+
+.app-shell__grid,
+.app-shell__glow,
+.app-cursor,
+.app-cursor-ring {
+  position: absolute;
+  pointer-events: none;
+}
+
+.app-shell__grid {
+  inset: 0;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(0, 229, 200, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 229, 200, 0.05) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.92), transparent 92%);
+  opacity: 0.22;
+  animation: landing-grid-shift 20s linear infinite;
+}
+
+.app-shell__glow {
+  width: 640px;
+  height: 640px;
+  border-radius: 999px;
+  filter: blur(100px);
+  opacity: 0.38;
+  mix-blend-mode: screen;
+  animation: landing-breathe 6s ease-in-out infinite;
+  z-index: 0;
+}
+
+.app-shell__glow--left {
+  top: -180px;
+  left: -200px;
+  background: radial-gradient(circle, rgba(0, 229, 200, 0.18), transparent 68%);
+}
+
+.app-shell__glow--right {
+  right: -220px;
+  top: 28%;
+  background: radial-gradient(circle, rgba(0, 229, 200, 0.12), transparent 70%);
+  animation-delay: 1.8s;
+}
+
+.app-cursor,
+.app-cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+}
+
+.app-cursor {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #00e5c8;
+  box-shadow: 0 0 18px rgba(0, 229, 200, 0.75);
+}
+
+.app-cursor-ring {
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(0, 229, 200, 0.28);
+  border-radius: 999px;
+  box-shadow: 0 0 24px rgba(0, 229, 200, 0.08);
+  backdrop-filter: blur(2px);
+}
+
 .app-sidebar,
 .app-content {
   position: relative;
@@ -481,10 +585,11 @@ input {
   gap: 20px;
   padding: 18px;
   border-radius: 24px;
-  border: 1px solid var(--border);
-  background: rgba(8, 13, 20, 0.84);
-  backdrop-filter: blur(18px);
-  box-shadow: var(--shadow);
+  border: 1px solid rgba(0, 229, 200, 0.12);
+  background: rgba(8, 13, 20, 0.78);
+  backdrop-filter: blur(26px);
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
 }
 
 .app-sidebar__nav {
@@ -501,6 +606,13 @@ input {
   background: rgba(0, 229, 200, 0.02);
   border: 1px solid transparent;
   color: var(--muted-strong);
+  position: relative;
+  overflow: hidden;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease,
+    color 180ms ease;
 }
 
 .app-link--active {
@@ -508,6 +620,13 @@ input {
   background: rgba(0, 229, 200, 0.08);
   color: var(--text);
   box-shadow: inset 0 0 18px rgba(0, 229, 200, 0.04);
+}
+
+.app-link:hover {
+  transform: translateY(-1px);
+  border-color: rgba(0, 229, 200, 0.18);
+  background: rgba(0, 229, 200, 0.05);
+  color: var(--text);
 }
 
 .app-link small {
@@ -539,9 +658,11 @@ input {
   padding: 14px 16px;
   border-radius: 18px;
   border: 1px solid var(--border);
-  background: rgba(8, 13, 20, 0.84);
-  backdrop-filter: blur(18px);
-  box-shadow: var(--shadow);
+  background: rgba(8, 13, 20, 0.78);
+  backdrop-filter: blur(26px);
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.34);
+  overflow: hidden;
+  position: relative;
 }
 
 .app-topbar__copy {
@@ -699,6 +820,8 @@ input {
   background: rgba(8, 13, 20, 0.92);
   backdrop-filter: blur(20px);
   box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
 }
 
 .dashboard-focus-card {
@@ -817,6 +940,8 @@ input {
   background: rgba(8, 13, 20, 0.92);
   backdrop-filter: blur(20px);
   box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
 }
 
 .dashboard-hero {
@@ -1048,6 +1173,8 @@ input {
   border: 1px solid rgba(0, 229, 200, 0.1);
   background: rgba(8, 13, 20, 0.92);
   box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
 }
 
 .module-card--primary {
@@ -1090,6 +1217,8 @@ input {
   background: rgba(8, 13, 20, 0.92);
   backdrop-filter: blur(20px);
   box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
 }
 
 .send-flow-indicator {
@@ -1137,6 +1266,8 @@ input {
     linear-gradient(160deg, rgba(0, 229, 200, 0.08), rgba(255, 255, 255, 0.01)),
     rgba(8, 13, 20, 0.92);
   box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
 }
 
 .send-context-banner span,
@@ -1193,6 +1324,8 @@ input {
   box-shadow: var(--shadow);
   border-radius: 28px;
   padding: 24px;
+  position: relative;
+  overflow: hidden;
 }
 
 .send-card--workspace {
@@ -1251,6 +1384,8 @@ input {
   box-shadow: var(--shadow);
   border-radius: 28px;
   padding: 24px;
+  position: relative;
+  overflow: hidden;
 }
 
 .shield-card--workspace {
@@ -1309,6 +1444,8 @@ input {
 .amount-field {
   border: 1px solid rgba(0, 229, 200, 0.1);
   background: rgba(0, 229, 200, 0.025);
+  position: relative;
+  overflow: hidden;
 }
 
 .state-panel {
@@ -1377,6 +1514,8 @@ input {
     border-color 180ms ease,
     transform 180ms ease,
     background 180ms ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .asset-row:hover {
@@ -1467,6 +1606,8 @@ input {
   border-radius: 20px;
   border: 1px solid rgba(0, 229, 200, 0.1);
   background: rgba(0, 229, 200, 0.025);
+  position: relative;
+  overflow: hidden;
 }
 
 .preview-card span {
@@ -1519,6 +1660,14 @@ input {
   display: grid;
   gap: 16px;
   margin-top: 24px;
+  position: relative;
+  border: 1px solid rgba(0, 229, 200, 0.1);
+  background: rgba(8, 13, 20, 0.88);
+  backdrop-filter: blur(24px);
+  box-shadow: var(--shadow);
+  border-radius: 28px;
+  padding: 24px;
+  overflow: hidden;
 }
 
 .vanta-private-core-state-panel__highlights {
@@ -1534,6 +1683,8 @@ input {
   border-radius: 22px;
   border: 1px solid rgba(0, 229, 200, 0.1);
   background: rgba(0, 229, 200, 0.03);
+  position: relative;
+  overflow: hidden;
 }
 
 .vanta-private-core-state-panel__highlight--accent {
@@ -1586,6 +1737,8 @@ input {
   border: 1px solid rgba(0, 229, 200, 0.1);
   background:
     linear-gradient(160deg, rgba(0, 229, 200, 0.03), rgba(255, 255, 255, 0.01));
+  position: relative;
+  overflow: hidden;
 }
 
 .lifecycle-entry__icon {
@@ -1679,6 +1832,8 @@ input {
   background:
     linear-gradient(160deg, rgba(0, 229, 200, 0.04), rgba(255, 255, 255, 0.01)),
     rgba(8, 13, 20, 0.9);
+  position: relative;
+  overflow: hidden;
 }
 
 .note-state-row--sol {
@@ -1743,6 +1898,48 @@ input {
 .note-state-chip--consumed {
   border-color: rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.05);
+}
+
+.app-sidebar::before,
+.app-topbar::before,
+.dashboard-focus-card::before,
+.dashboard-release-card::before,
+.dashboard-action-card::before,
+.dashboard-card::before,
+.module-card::before,
+.send-card::before,
+.shield-card::before,
+.send-context-banner::before,
+.shield-scenario-bar::before,
+.note-state-panel::before,
+.vanta-private-core-state-panel__highlight::before,
+.note-state-row::before,
+.preview-card::before,
+.state-panel::before,
+.review-row::before,
+.asset-row::before,
+.lifecycle-entry::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 24%);
+  pointer-events: none;
+}
+
+.dashboard-action-card:hover,
+.module-card:hover,
+.send-card:hover,
+.shield-card:hover,
+.preview-card:hover,
+.state-panel:hover,
+.review-row:hover,
+.asset-row:hover,
+.lifecycle-entry:hover,
+.vanta-private-core-state-panel__highlight:hover {
+  transform: translateY(-2px);
+  border-color: rgba(0, 229, 200, 0.22);
+  box-shadow: 0 28px 64px rgba(0, 0, 0, 0.42);
 }
 
 .note-state-chip--change {
@@ -2758,6 +2955,18 @@ input {
 }
 
 @media (max-width: 720px) {
+  .app-body,
+  .app-body a,
+  .app-body button,
+  .app-body input {
+    cursor: auto;
+  }
+
+  .app-cursor,
+  .app-cursor-ring {
+    display: none;
+  }
+
   .landing-body,
   .landing-body a,
   .landing-body button,
