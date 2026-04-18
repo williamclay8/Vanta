@@ -2277,6 +2277,12 @@ export function SwapPage() {
         operatorSupportedReleaseCandidateNote={
           privacyFlow.privateCoreOperatorSupportedReleaseCandidateNote
         }
+        operatorSupportedReleaseCandidateScope={
+          privacyFlow.privateCoreOperatorSupportedReleaseCandidateScope
+        }
+        operatorSupportedReleaseCandidateScopeNote={
+          privacyFlow.privateCoreOperatorSupportedReleaseCandidateScopeNote
+        }
         operatorSupportedReleaseCandidateGateVersion={
           privacyFlow.privateCoreOperatorSupportedReleaseCandidateGateVersion
         }
