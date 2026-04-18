@@ -1150,16 +1150,10 @@ export function SwapPage() {
                   </button>
                 </div>
 
-                <div className="send-asset-field">
-                  <select aria-label="From asset" value="VUSD" disabled>
-                    <option value="VUSD">VUSD</option>
-                  </select>
-                </div>
-
-                <div className="send-asset-field">
-                  <select aria-label="To asset" value="shielded-sol" disabled>
-                    <option value="shielded-sol">Shielded SOL</option>
-                  </select>
+                <div className="swap-route-pill" aria-label="Swap route">
+                  <span>VUSD</span>
+                  <em>to</em>
+                  <strong>Shielded SOL</strong>
                 </div>
               </div>
               <div className="send-balance-line shield-helper shield-helper--meta">

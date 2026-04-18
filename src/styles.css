@@ -1601,7 +1601,7 @@ input {
 }
 
 .swap-entry-grid {
-  grid-template-columns: minmax(0, 1fr) 160px 190px;
+  grid-template-columns: minmax(0, 1fr) 220px;
 }
 
 .asset-list {
@@ -1722,6 +1722,35 @@ input {
   border-radius: 20px;
   border: 1px solid rgba(0, 229, 200, 0.1);
   background: rgba(0, 229, 200, 0.025);
+}
+
+.swap-route-pill {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 4px;
+  min-height: 62px;
+  padding: 10px 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 229, 200, 0.1);
+  background: rgba(0, 229, 200, 0.025);
+  text-align: center;
+}
+
+.swap-route-pill span,
+.swap-route-pill strong {
+  font-family: "Syne", sans-serif;
+  font-size: 0.98rem;
+  letter-spacing: 0.04em;
+}
+
+.swap-route-pill em {
+  font-style: normal;
+  color: var(--muted-strong);
+  font-family: "Space Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .swap-quote-line strong {
