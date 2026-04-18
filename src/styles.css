@@ -1501,6 +1501,10 @@ input {
   gap: 16px;
 }
 
+.send-card--workspace .shield-card__header {
+  margin-bottom: 2px;
+}
+
 .shield-card__header span,
 .state-panel span,
 .review-row span,
@@ -1514,6 +1518,13 @@ input {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted-strong);
+}
+
+.send-card--workspace .shield-card__header span {
+  color: var(--text);
+  font-family: "Syne", sans-serif;
+  font-size: 0.96rem;
+  letter-spacing: 0.08em;
 }
 
 .shield-card__header h3,
@@ -1619,7 +1630,7 @@ input {
     rgba(0, 0, 0, 0.18);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.03),
-    0 24px 60px rgba(0, 0, 0, 0.22);
+    0 18px 40px rgba(0, 0, 0, 0.18);
 }
 
 .swap-module__field {
@@ -1827,6 +1838,7 @@ input {
   background:
     linear-gradient(160deg, rgba(0, 229, 200, 0.08), rgba(255, 255, 255, 0.015)),
     rgba(0, 229, 200, 0.03);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
 }
 
 .swap-route-pill {
