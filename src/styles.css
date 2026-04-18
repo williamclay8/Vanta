@@ -1502,7 +1502,8 @@ input {
 }
 
 .send-card--workspace .shield-card__header {
-  margin-bottom: 2px;
+  margin-bottom: 0;
+  min-height: 24px;
 }
 
 .shield-card__header span,
@@ -1616,13 +1617,14 @@ input {
 }
 
 .swap-widget {
-  gap: 18px;
+  gap: 16px;
+  margin-top: 16px;
 }
 
 .swap-module {
   display: grid;
-  gap: 16px;
-  padding: 18px;
+  gap: 14px;
+  padding: 20px;
   border-radius: 28px;
   border: 1px solid rgba(0, 229, 200, 0.1);
   background:
@@ -1635,7 +1637,7 @@ input {
 
 .swap-module__field {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .swap-module__label-row {
@@ -1665,12 +1667,12 @@ input {
 
 .swap-choice-grid {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .swap-choice-group {
   display: grid;
-  gap: 8px;
+  gap: 7px;
 }
 
 .swap-choice-group > span {
@@ -1683,7 +1685,7 @@ input {
 .swap-choice-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
 }
 
 .swap-choice-chip {
@@ -1787,6 +1789,7 @@ input {
   gap: 12px;
   padding: 10px;
   border-radius: 20px;
+  min-height: 72px;
 }
 
 .send-asset-field {
@@ -1824,6 +1827,12 @@ input {
 .send-balance-line {
   display: block;
   margin-top: -4px;
+}
+
+.send-page .send-card--workspace,
+.swap-page .send-card--workspace,
+.unshield-page .send-card--workspace {
+  padding: 22px;
 }
 
 .swap-quote-line {
