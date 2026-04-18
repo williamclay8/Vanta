@@ -1589,6 +1589,12 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   <span>Downstream continuity</span>
                   <strong>{privateCoreOperatorSendContinuityStatusLabel ?? "Unavailable"}</strong>
                 </div>
+                <div className="preview-card">
+                  <span>Exact candidate</span>
+                  <strong>
+                    {privateCoreReleaseCandidateState?.lifecycleStatusLabel ?? "Unavailable"}
+                  </strong>
+                </div>
               </div>
               <p className="shield-helper shield-helper--meta">
                 Latest send proof:{" "}
@@ -1625,6 +1631,14 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               </p>
               <p className="shield-helper shield-helper--meta">
                 Continuity note: {privateCoreOperatorSendContinuityPrimaryNote ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Exact candidate:{" "}
+                {privateCoreReleaseCandidateState?.lifecycleStatusLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Candidate note:{" "}
+                {privateCoreReleaseCandidateState?.lifecyclePrimaryNote ?? "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
                 Recipient recovery: Recipient can recover the sent note privately with the matched
@@ -1694,6 +1708,12 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   <span>Downstream continuity</span>
                   <strong>{privateCoreOperatorSendContinuityStatusLabel ?? "Unavailable"}</strong>
                 </div>
+                <div className="preview-card">
+                  <span>Exact candidate</span>
+                  <strong>
+                    {privateCoreReleaseCandidateState?.lifecycleStatusLabel ?? "Unavailable"}
+                  </strong>
+                </div>
               </div>
               <p className="shield-helper shield-helper--meta">
                 Recipient recovery: {privateCoreSendState.recipientRecoveryStatus}
@@ -1718,6 +1738,14 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               </p>
               <p className="shield-helper shield-helper--meta">
                 Continuity note: {privateCoreOperatorSendContinuityPrimaryNote ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Exact candidate:{" "}
+                {privateCoreReleaseCandidateState?.lifecycleStatusLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Candidate note:{" "}
+                {privateCoreReleaseCandidateState?.lifecyclePrimaryNote ?? "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
                 Send root record: {abbreviate(privateCoreOperatorSendResultingRootRecord?.root) ?? "Unavailable"}

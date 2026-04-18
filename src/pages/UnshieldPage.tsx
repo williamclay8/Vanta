@@ -1028,7 +1028,17 @@ export function UnshieldPage() {
             </div>
           ))}
           <div className="review-row">
-            <span>5. Operator boundary</span>
+            <span>5. Exact release candidate</span>
+            <strong>
+              {privateCoreReleaseCandidateState
+                ? `${privateCoreReleaseCandidateState.lifecycleStatusLabel} · ${privateCoreReleaseCandidateState.lifecyclePrimaryNote}`
+                : privateCoreSendCompleted
+                  ? "Awaiting exact candidate summary"
+                  : "Available after primary private send"}
+            </strong>
+          </div>
+          <div className="review-row">
+            <span>6. Operator boundary</span>
             <strong>
               {privateCoreOperatorBoundaryStatusLabel
                 ? `${privateCoreOperatorBoundaryStatusLabel} · ${privateCoreOperatorBoundaryPrimaryNote ?? "No note"}`
