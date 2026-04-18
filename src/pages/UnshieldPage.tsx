@@ -94,6 +94,18 @@ function abbreviate(value: string) {
   return `${value.slice(0, 10)}...${value.slice(-6)}`;
 }
 
+function formatUnshieldNoteOption(args: {
+  amount: number;
+  asset: UnshieldLane;
+  noteId: string;
+  secondaryLabel?: string;
+}) {
+  const amountLabel =
+    args.asset === "VUSD" ? formatVusdAmount(args.amount) : formatSolAmount(args.amount);
+  const detailLabel = args.secondaryLabel ? ` · ${args.secondaryLabel}` : "";
+  return `${amountLabel} · ${abbreviate(args.noteId)}${detailLabel}`;
+}
+
 export function UnshieldPage() {
   const {
     privateCoreHoldState,
@@ -1688,111 +1700,85 @@ export function UnshieldPage() {
             <small>One note, one destination, one action</small>
           </div>
 
-          <div className="asset-list">
-            {(["VUSD", "SOL"] as UnshieldLane[]).map((asset) => {
-              const isSelected = selectedLane === asset;
-              const count =
-                asset === "VUSD" ? spendableVusdNotes.length : spendableSolNotes.length;
-              const amountLabel =
-                asset === "VUSD"
-                  ? formatVusdAmount(shieldAccount?.balance ?? 0)
-                  : formatSolAmount(shieldAccount?.shieldedSolBalance ?? 0);
-
-              return (
-                <button
-                  key={asset}
-                  type="button"
-                  className={isSelected ? "asset-row asset-row--active" : "asset-row"}
-                  onClick={() => {
-                    setSelectedLane(asset);
-                    setStatus("idle");
-                    setFlowError(null);
-                  }}
-                >
-                  <div>
-                    <strong>{asset === "VUSD" ? "Unshield VUSD" : "Unshield SOL"}</strong>
-                    <span>{asset === "VUSD" ? "Shielded note exit" : "Swap-output note exit"}</span>
-                  </div>
-                  <div className="asset-row__meta">
-                    <small>{amountLabel}</small>
-                    <em>{count} eligible note{count === 1 ? "" : "s"}</em>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
           <div className="shield-form">
             <div className="shield-form__section">
-              <label>{selectedLane === "VUSD" ? "Spendable VUSD notes" : "Shielded SOL notes"}</label>
-              <div className="asset-list">
-                {selectedLane === "VUSD" ? (
-                  spendableVusdNotes.length === 0 ? (
-                    <div className="preview-card">
-                      <span>No spendable VUSD notes</span>
-                      <strong>Shield VUSD first</strong>
-                    </div>
-                  ) : (
-                    spendableVusdNotes.map((note) => (
-                      <button
-                        key={note.noteId}
-                        type="button"
-                        className={
-                          selectedVusdNoteId === note.noteId
-                            ? "asset-row asset-row--active"
-                            : "asset-row"
-                        }
-                        onClick={() => {
-                          setSelectedVusdNoteId(note.noteId);
-                          setStatus("idle");
-                          setFlowError(null);
-                        }}
-                      >
-                        <div>
-                          <strong>{formatVusdAmount(note.amount)}</strong>
-                          <span>{abbreviate(note.noteId)}</span>
-                        </div>
-                        <div className="asset-row__meta">
-                          <small>{note.origin === "change" ? "Residual note" : "Deposit note"}</small>
-                          <em>Eligible exit</em>
-                        </div>
-                      </button>
-                    ))
-                  )
-                ) : spendableSolNotes.length === 0 ? (
-                  <div className="preview-card">
-                    <span>No shielded SOL notes</span>
-                    <strong>Swap VUSD into SOL first</strong>
-                  </div>
-                ) : (
-                  spendableSolNotes.map((note) => (
-                    <button
-                      key={note.noteId}
-                      type="button"
-                      className={
-                        selectedSolNoteId === note.noteId
-                          ? "asset-row asset-row--active"
-                          : "asset-row"
+              <label>Unshield</label>
+              <div className="send-entry-grid">
+                <div className="send-asset-field">
+                  <select
+                    aria-label="Unshield asset"
+                    value={selectedLane}
+                    onChange={(event) => {
+                      setSelectedLane(event.target.value as UnshieldLane);
+                      setStatus("idle");
+                      setFlowError(null);
+                    }}
+                  >
+                    <option value="VUSD">VUSD</option>
+                    <option value="SOL">SOL</option>
+                  </select>
+                </div>
+                <div className="send-asset-field">
+                  <select
+                    aria-label="Eligible note"
+                    value={
+                      selectedLane === "VUSD" ? selectedVusdNoteId ?? "" : selectedSolNoteId ?? ""
+                    }
+                    onChange={(event) => {
+                      const nextValue = event.target.value || null;
+                      if (selectedLane === "VUSD") {
+                        setSelectedVusdNoteId(nextValue);
+                      } else {
+                        setSelectedSolNoteId(nextValue);
                       }
-                      onClick={() => {
-                        setSelectedSolNoteId(note.noteId);
-                        setStatus("idle");
-                        setFlowError(null);
-                      }}
-                    >
-                      <div>
-                        <strong>{formatSolAmount(note.amount)}</strong>
-                        <span>{abbreviate(note.noteId)}</span>
-                      </div>
-                      <div className="asset-row__meta">
-                        <small>Swap output {abbreviate(note.sourceSwapNoteId)}</small>
-                        <em>Eligible exit</em>
-                      </div>
-                    </button>
-                  ))
-                )}
+                      setStatus("idle");
+                      setFlowError(null);
+                    }}
+                    disabled={
+                      selectedLane === "VUSD"
+                        ? spendableVusdNotes.length === 0
+                        : spendableSolNotes.length === 0
+                    }
+                  >
+                    {(selectedLane === "VUSD" ? spendableVusdNotes : spendableSolNotes).length === 0 ? (
+                      <option value="">
+                        {selectedLane === "VUSD"
+                          ? "No spendable VUSD notes"
+                          : "No shielded SOL notes"}
+                      </option>
+                    ) : selectedLane === "VUSD" ? (
+                      spendableVusdNotes.map((note) => (
+                        <option key={note.noteId} value={note.noteId}>
+                          {formatUnshieldNoteOption({
+                            amount: note.amount,
+                            asset: "VUSD",
+                            noteId: note.noteId,
+                            secondaryLabel: note.origin === "change" ? "Residual" : "Deposit",
+                          })}
+                        </option>
+                      ))
+                    ) : (
+                      spendableSolNotes.map((note) => (
+                        <option key={note.noteId} value={note.noteId}>
+                          {formatUnshieldNoteOption({
+                            amount: note.amount,
+                            asset: "SOL",
+                            noteId: note.noteId,
+                            secondaryLabel: `Swap ${abbreviate(note.sourceSwapNoteId)}`,
+                          })}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </div>
               </div>
               <p className="shield-helper">{validationMessage}</p>
+              <div className="send-balance-line shield-helper shield-helper--meta">
+                Exit amount:{" "}
+                {selectedLane === "VUSD"
+                  ? formatVusdAmount(selectedAmount)
+                  : formatSolAmount(selectedAmount)}
+              </div>
               <div className="send-balance-line shield-helper shield-helper--meta">
                 Destination: {walletAddressShort ?? "Connect wallet"}
               </div>
