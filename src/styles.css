@@ -1600,6 +1600,10 @@ input {
   gap: 12px;
 }
 
+.swap-entry-grid {
+  grid-template-columns: minmax(0, 1fr) 160px 190px;
+}
+
 .asset-list {
   display: grid;
   gap: 12px;
@@ -1706,6 +1710,31 @@ input {
 .send-balance-line {
   display: block;
   margin-top: -4px;
+}
+
+.swap-quote-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 62px;
+  padding: 18px 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 229, 200, 0.1);
+  background: rgba(0, 229, 200, 0.025);
+}
+
+.swap-quote-line strong {
+  font-family: "Syne", sans-serif;
+  font-size: clamp(1.2rem, 3vw, 2rem);
+}
+
+.swap-quote-line span {
+  color: var(--muted-strong);
+  font-family: "Space Mono", monospace;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .amount-field input {
