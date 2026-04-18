@@ -1,7 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { BrandMark } from "@/components/BrandMark";
-import { NextStepGuidance } from "@/components/NextStepGuidance";
-import { PositionSummary } from "@/components/PositionSummary";
 import { useWalletState } from "@/data/context/WalletContext";
 
 const appLinks = [
@@ -33,7 +31,7 @@ export function AppLayout() {
           <BrandMark />
           <div>
             <strong>Vanta Suite</strong>
-            <span>Privacy infrastructure for Solana</span>
+            <span>Private state for Solana</span>
           </div>
         </div>
 
@@ -54,16 +52,16 @@ export function AppLayout() {
         </nav>
 
         <div className="app-sidebar__status">
-          <p>Wallet boundary</p>
+          <p>Wallet</p>
           <strong>
             {walletConnected
               ? `Connected on ${clusterLabel}`
-              : "Connect a wallet to begin"}
+              : "Connect to begin"}
           </strong>
           <span>
             {walletConnected
-              ? `${walletAddressShort} is the current Public Wallet source for Shield.`
-              : "Shield now uses real wallet connection state as the source of Public Wallet."}
+              ? `${walletAddressShort} is the current public source for shield.`
+              : "The app uses real wallet connection state for shield."}
           </span>
           <div className="wallet-status-actions">
             {!walletReady && <small>Checking available wallets...</small>}
@@ -109,17 +107,12 @@ export function AppLayout() {
             <span>App shell</span>
             <h1>Private-core workspace</h1>
             <p className="app-topbar__copy">
-              Shield in, move privately, and review the current release-ready
-              lane.
+              Shield in. Move privately. Exit cleanly.
             </p>
           </div>
           <a className="button button-ghost" href="/">
             Back to site
           </a>
-        </div>
-        <div className="app-shell__overview">
-          <PositionSummary />
-          <NextStepGuidance />
         </div>
         <Outlet />
       </main>

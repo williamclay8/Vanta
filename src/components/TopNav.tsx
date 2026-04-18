@@ -4,7 +4,6 @@ import { BrandMark } from "@/components/BrandMark";
 const links = [
   { label: "Overview", href: "#overview" },
   { label: "Modules", href: "#modules" },
-  { label: "Roadmap", href: "#roadmap" },
 ];
 
 export function TopNav() {

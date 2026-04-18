@@ -3,7 +3,7 @@ import { FeatureCard } from "@/components/FeatureCard";
 import { HeroPanel } from "@/components/HeroPanel";
 import { SectionHeading } from "@/components/SectionHeading";
 import { TopNav } from "@/components/TopNav";
-import { capabilities, roadmap } from "@/data/site";
+import { capabilities } from "@/data/site";
 
 export function HomePage() {
   return (
@@ -26,7 +26,6 @@ export function HomePage() {
               <span>Live: Shield</span>
               <span>Live: Send</span>
               <span>Live: Unshield</span>
-              <span>Live: Swap</span>
             </div>
             <div className="hero-actions">
               <Link className="button button-primary" to="/app">
@@ -63,26 +62,8 @@ export function HomePage() {
           />
 
           <div className="feature-grid">
-            {capabilities.map((capability) => (
+            {capabilities.slice(0, 4).map((capability) => (
               <FeatureCard key={capability.title} {...capability} />
-            ))}
-          </div>
-        </section>
-
-        <section className="content-section" id="roadmap">
-          <SectionHeading
-            eyebrow="Roadmap"
-            title="Start narrow. Expand carefully."
-            description="One strong private-core lane first. Broader private money flows after that."
-          />
-
-          <div className="roadmap-list">
-            {roadmap.map((item) => (
-              <article key={item.phase} className="roadmap-card">
-                <span>{item.phase}</span>
-                <h3>{item.title}</h3>
-                <p>{item.description}</p>
-              </article>
             ))}
           </div>
         </section>
