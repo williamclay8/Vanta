@@ -45,6 +45,8 @@ import {
   fetchVantaPrivateCoreOperatorSnapshot,
   fetchVantaPrivateCoreOperatorReleaseCandidate,
   fetchVantaPrivateCoreOperatorReleaseCandidateCheck,
+  fetchVantaPrivateCoreOperatorReleasePackage,
+  fetchVantaPrivateCoreOperatorReleasePackageCheck,
   fetchVantaPrivateCoreOperatorShippingArtifact,
   registerVantaPrivateCoreOperatorRoot,
   requestVantaPrivateCoreOperatorConsume,
@@ -55,6 +57,8 @@ import {
   type VantaPrivateCoreOperatorProofRecord,
   type VantaPrivateCoreOperatorReleaseCandidateCheckResponse,
   type VantaPrivateCoreOperatorReleaseCandidateResponse,
+  type VantaPrivateCoreOperatorReleasePackageCheckResponse,
+  type VantaPrivateCoreOperatorReleasePackageResponse,
   type VantaPrivateCoreOperatorReleaseRecord,
   type VantaPrivateCoreOperatorRootRecord,
   type VantaPrivateCoreOperatorSendRecord,
@@ -87,6 +91,14 @@ function formatPrivateCoreAssetAmount(assetId: string, amount: bigint) {
   }
 
   return amount.toString(10);
+}
+
+function abbreviatePrivateCoreValue(value: string | null | undefined) {
+  if (!value) {
+    return null;
+  }
+
+  return `${value.slice(0, 10)}...${value.slice(-6)}`;
 }
 
 export type RecentShieldContext = {
@@ -520,8 +532,11 @@ export type VantaPrivateCoreReleaseHandoffState = {
 
 export type VantaPrivateCoreReleasePackageState = {
   releaseCandidateId: string | null;
+  packageIdentityLabel: string;
   packageStatusLabel: string;
   packagePrimaryNote: string;
+  gateStatusLabel: string;
+  gatePrimaryNote: string;
   artifactIdentityLabel: string;
   decisionIdentityLabel: string;
   contractIdentityLabel: string;
@@ -531,6 +546,7 @@ export type VantaPrivateCoreReleasePackageState = {
   latestProofLabel: string;
   latestSendLabel: string;
   latestReleaseLabel: string;
+  lineageSummaryLabel: string;
   reviewSummary: string;
   exportText: string;
   exportJson: string;
@@ -1096,6 +1112,10 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<VantaPrivateCoreOperatorReleaseCandidateResponse | null>(null);
   const [privateCoreOperatorReleaseCandidateCheck, setPrivateCoreOperatorReleaseCandidateCheck] =
     useState<VantaPrivateCoreOperatorReleaseCandidateCheckResponse | null>(null);
+  const [privateCoreOperatorReleasePackage, setPrivateCoreOperatorReleasePackage] =
+    useState<VantaPrivateCoreOperatorReleasePackageResponse | null>(null);
+  const [privateCoreOperatorReleasePackageCheck, setPrivateCoreOperatorReleasePackageCheck] =
+    useState<VantaPrivateCoreOperatorReleasePackageCheckResponse | null>(null);
   const [privateCoreOperatorShippingArtifact, setPrivateCoreOperatorShippingArtifact] =
     useState<VantaPrivateCoreOperatorShippingArtifactResponse | null>(null);
   const [privateCoreOperatorSupportedShippingDecisionNote, setPrivateCoreOperatorSupportedShippingDecisionNote] =
@@ -1111,12 +1131,16 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       shippingArtifactState,
       releaseCandidateState,
       releaseCandidateCheckState,
+      releasePackageState,
+      releasePackageCheckState,
     ] = await Promise.all([
       fetchVantaPrivateCoreOperatorStatus(),
       fetchVantaPrivateCoreOperatorSnapshot(),
       fetchVantaPrivateCoreOperatorShippingArtifact(),
       fetchVantaPrivateCoreOperatorReleaseCandidate(),
       fetchVantaPrivateCoreOperatorReleaseCandidateCheck(),
+      fetchVantaPrivateCoreOperatorReleasePackage(),
+      fetchVantaPrivateCoreOperatorReleasePackageCheck(),
     ]);
     const contractState = snapshotState.contract;
     const summaryState = statusState.summary;
@@ -1313,6 +1337,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     setPrivateCoreOperatorShippingDecisionKind(shippingDecisionState.decisionKind);
     setPrivateCoreOperatorReleaseCandidate(releaseCandidateState);
     setPrivateCoreOperatorReleaseCandidateCheck(releaseCandidateCheckState);
+    setPrivateCoreOperatorReleasePackage(releasePackageState);
+    setPrivateCoreOperatorReleasePackageCheck(releasePackageCheckState);
     setPrivateCoreOperatorRawShippingDecisionNote(shippingDecisionState.decisionNote);
     setPrivateCoreOperatorRawShippingDecisionStatus(shippingDecisionState.decisionStatus);
     setPrivateCoreOperatorConsumeError(null);
@@ -1475,10 +1501,15 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   const privateCoreReleasePackageState = useMemo(
     () =>
       summarizePrivateCoreReleasePackageState({
-        shippingArtifact: privateCoreOperatorShippingArtifact,
+        releasePackage: privateCoreOperatorReleasePackage,
+        releasePackageCheck: privateCoreOperatorReleasePackageCheck,
         handoff: privateCoreReleaseHandoffState,
       }),
-    [privateCoreOperatorShippingArtifact, privateCoreReleaseHandoffState],
+    [
+      privateCoreOperatorReleasePackage,
+      privateCoreOperatorReleasePackageCheck,
+      privateCoreReleaseHandoffState,
+    ],
   );
 
   const privateCoreSwapState = useMemo(
@@ -4244,30 +4275,52 @@ function summarizePrivateCoreReleaseHandoffState(args: {
 }
 
 function summarizePrivateCoreReleasePackageState(args: {
-  shippingArtifact: VantaPrivateCoreOperatorShippingArtifactResponse | null;
+  releasePackage: VantaPrivateCoreOperatorReleasePackageResponse | null;
+  releasePackageCheck: VantaPrivateCoreOperatorReleasePackageCheckResponse | null;
   handoff: VantaPrivateCoreReleaseHandoffState | null;
 }): VantaPrivateCoreReleasePackageState | null {
-  const shippingArtifact = args.shippingArtifact;
+  const releasePackage = args.releasePackage;
+  const releasePackageCheck = args.releasePackageCheck;
   const handoff = args.handoff;
 
-  if (!shippingArtifact && !handoff) {
+  if (!releasePackage && !handoff) {
     return null;
   }
 
-  const releaseCandidateId = handoff?.releaseCandidateId ?? shippingArtifact?.releaseCandidateId ?? null;
-  const packageStatusLabel = handoff?.packageStatusLabel ?? "Release package unavailable";
+  const releaseCandidateId = releasePackage?.releaseCandidateId ?? handoff?.releaseCandidateId ?? null;
+  const packageIdentityLabel = releasePackage
+    ? `Package v${String(releasePackage.packageVersion)} · ${releasePackage.packageKind}`
+    : "Package identity unavailable";
+  const packageStatusLabel =
+    releasePackage?.packageStatus === "ready"
+      ? "Release package ready"
+      : releasePackage?.packageStatus === "blocked"
+        ? "Release package blocked"
+        : handoff?.packageStatusLabel ?? "Release package unavailable";
   const packagePrimaryNote =
+    releasePackage?.packageNote ??
     handoff?.packagePrimaryNote ??
     "No release package is available because the canonical primary handoff is not yet assembled.";
-  const artifactIdentityLabel = handoff?.artifactIdentityLabel ?? "Awaiting shipping artifact";
-  const decisionIdentityLabel = handoff?.decisionIdentityLabel ?? "Awaiting shipping decision";
-  const contractIdentityLabel = shippingArtifact
-    ? `Contract v${String(shippingArtifact.contractVersion)} · Summary v${String(shippingArtifact.summaryVersion)}`
+  const gateStatusLabel =
+    releasePackageCheck?.decisionStatus === "ready"
+      ? "Package gate ready"
+      : releasePackageCheck?.decisionStatus === "blocked"
+        ? "Package gate blocked"
+        : packageStatusLabel;
+  const gatePrimaryNote = releasePackageCheck?.decisionNote ?? packagePrimaryNote;
+  const artifactIdentityLabel = releasePackage
+    ? `Artifact v${String(releasePackage.artifactVersion)} · ${releasePackage.artifactKind}`
+    : handoff?.artifactIdentityLabel ?? "Awaiting shipping artifact";
+  const decisionIdentityLabel = releasePackage
+    ? `Decision v${String(releasePackage.decisionVersion)} · ${releasePackage.decisionKind}`
+    : handoff?.decisionIdentityLabel ?? "Awaiting shipping decision";
+  const contractIdentityLabel = releasePackage
+    ? `Contract v${String(releasePackage.contractVersion)} · Summary v${String(releasePackage.summaryVersion)}`
     : "Contract identity unavailable";
-  const snapshotIdentityLabel = shippingArtifact
-    ? `Snapshot v${String(shippingArtifact.snapshotVersion)} · ${shippingArtifact.snapshotKind}`
+  const snapshotIdentityLabel = releasePackage
+    ? `Snapshot v${String(releasePackage.snapshotVersion)} · ${releasePackage.snapshotKind}`
     : "Snapshot identity unavailable";
-  const generatedAt = shippingArtifact?.snapshot.shipping.summaryGenerated ?? null;
+  const generatedAt = releasePackage?.summaryGenerated ?? null;
   const summaryGeneratedLabel = generatedAt
     ? new Date(generatedAt).toLocaleString([], {
         month: "short",
@@ -4277,39 +4330,55 @@ function summarizePrivateCoreReleasePackageState(args: {
         second: "2-digit",
       })
     : "Unavailable";
-  const currentRootLabel = shippingArtifact?.currentRoot ?? "Unavailable";
-  const latestProofLabel = shippingArtifact?.latestProofId ?? "Unavailable";
-  const latestSendLabel = shippingArtifact?.latestSendId ?? "Unavailable";
-  const latestReleaseLabel = shippingArtifact?.latestReleaseRequestId ?? "Unavailable";
+  const currentRootLabel = releasePackage?.currentRoot ?? "Unavailable";
+  const latestProofLabel = releasePackage?.latestProofId ?? "Unavailable";
+  const latestSendLabel = releasePackage?.latestSendId ?? "Unavailable";
+  const latestReleaseLabel = releasePackage?.latestReleaseRequestId ?? "Unavailable";
+  const lineageSummaryLabel = releasePackage
+    ? [
+        `Root ${abbreviatePrivateCoreValue(releasePackage.currentRoot) ?? "Unavailable"}`,
+        `Send ${abbreviatePrivateCoreValue(releasePackage.latestSendId) ?? "Unavailable"}`,
+        `Release ${abbreviatePrivateCoreValue(releasePackage.latestReleaseRequestId) ?? "Unavailable"}`,
+      ].join(" · ")
+    : "Lineage unavailable";
 
   const exportPayload = {
     releaseCandidateId,
+    packageIdentity: packageIdentityLabel,
     packageStatus: packageStatusLabel,
     packageNote: packagePrimaryNote,
+    packageGateStatus: gateStatusLabel,
+    packageGateNote: gatePrimaryNote,
     artifactIdentity: artifactIdentityLabel,
     decisionIdentity: decisionIdentityLabel,
     contractIdentity: contractIdentityLabel,
     snapshotIdentity: snapshotIdentityLabel,
     summaryGenerated: generatedAt,
-    currentRoot: shippingArtifact?.currentRoot ?? null,
-    currentRootRegistrationBasis: shippingArtifact?.currentRootRegistrationBasis ?? null,
-    currentRootProofId: shippingArtifact?.currentRootProofId ?? null,
-    latestProofId: shippingArtifact?.latestProofId ?? null,
-    latestProofAction: shippingArtifact?.latestProofAction ?? null,
-    latestSendId: shippingArtifact?.latestSendId ?? null,
-    latestSendProofId: shippingArtifact?.latestSendProofId ?? null,
-    latestConsumeRoot: shippingArtifact?.latestConsumeRoot ?? null,
-    latestReleaseRequestId: shippingArtifact?.latestReleaseRequestId ?? null,
-    latestReleaseRoot: shippingArtifact?.latestReleaseRoot ?? null,
-    latestReleaseDestination: shippingArtifact?.latestReleaseDestination ?? null,
-    latestReleasedAssetId: shippingArtifact?.latestReleasedAssetId ?? null,
-    latestReleasedAmount: shippingArtifact?.latestReleasedAmount ?? null,
-    observationMode: "Product release package summary",
+    currentRoot: releasePackage?.currentRoot ?? null,
+    currentRootRegistrationBasis: releasePackage?.currentRootRegistrationBasis ?? null,
+    currentRootProofId: releasePackage?.currentRootProofId ?? null,
+    latestProofId: releasePackage?.latestProofId ?? null,
+    latestProofAction: releasePackage?.latestProofAction ?? null,
+    latestSendId: releasePackage?.latestSendId ?? null,
+    latestSendProofId: releasePackage?.latestSendProofId ?? null,
+    latestSendLinkedProofId: releasePackage?.latestSendLinkedProofId ?? null,
+    latestSendResultingRoot: releasePackage?.latestSendResultingRoot ?? null,
+    latestConsumeRoot: releasePackage?.latestConsumeRoot ?? null,
+    latestReleaseRequestId: releasePackage?.latestReleaseRequestId ?? null,
+    latestReleaseRoot: releasePackage?.latestReleaseRoot ?? null,
+    latestReleaseDestination: releasePackage?.latestReleaseDestination ?? null,
+    latestReleasedAssetId: releasePackage?.latestReleasedAssetId ?? null,
+    latestReleasedAmount: releasePackage?.latestReleasedAmount ?? null,
+    lineageSummary: lineageSummaryLabel,
+    observationMode: "Operator-owned release package",
   };
 
   const exportText = [
+    `Release package identity: ${packageIdentityLabel}`,
     `Release package: ${packageStatusLabel}`,
     `Package note: ${packagePrimaryNote}`,
+    `Package gate: ${gateStatusLabel}`,
+    `Package gate note: ${gatePrimaryNote}`,
     `Release candidate id: ${releaseCandidateId ?? "Unavailable"}`,
     `Artifact identity: ${artifactIdentityLabel}`,
     `Decision identity: ${decisionIdentityLabel}`,
@@ -4320,12 +4389,16 @@ function summarizePrivateCoreReleasePackageState(args: {
     `Latest proof: ${latestProofLabel}`,
     `Latest send: ${latestSendLabel}`,
     `Latest release request: ${latestReleaseLabel}`,
+    `Lineage summary: ${lineageSummaryLabel}`,
   ].join("\n");
 
   return {
     releaseCandidateId,
+    packageIdentityLabel,
     packageStatusLabel,
     packagePrimaryNote,
+    gateStatusLabel,
+    gatePrimaryNote,
     artifactIdentityLabel,
     decisionIdentityLabel,
     contractIdentityLabel,
@@ -4335,10 +4408,11 @@ function summarizePrivateCoreReleasePackageState(args: {
     latestProofLabel,
     latestSendLabel,
     latestReleaseLabel,
-    reviewSummary: `${packageStatusLabel} · ${artifactIdentityLabel}`,
+    lineageSummaryLabel,
+    reviewSummary: `${packageStatusLabel} · ${artifactIdentityLabel} · ${lineageSummaryLabel}`,
     exportText,
     exportJson: JSON.stringify(exportPayload, null, 2),
-    observationMode: "Product release package summary",
+    observationMode: "Operator-owned release package",
   };
 }
 

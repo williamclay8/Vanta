@@ -1711,6 +1711,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 Next handoff action: {privateCoreReleaseHandoffState?.nextActionLabel ?? "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
+                Package identity: {privateCoreReleasePackageState?.packageIdentityLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
                 Release package:{" "}
                 {privateCoreReleasePackageState?.packageStatusLabel ??
                   privateCoreReleaseHandoffState?.packageStatusLabel ??
@@ -1721,6 +1724,12 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 {privateCoreReleasePackageState?.packagePrimaryNote ??
                   privateCoreReleaseHandoffState?.packagePrimaryNote ??
                   "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Package gate: {privateCoreReleasePackageState?.gateStatusLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Gate note: {privateCoreReleasePackageState?.gatePrimaryNote ?? "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
                 Artifact identity:{" "}
@@ -1742,6 +1751,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               </p>
               <p className="shield-helper shield-helper--meta">
                 Summary generated: {privateCoreReleasePackageState?.summaryGeneratedLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Package lineage: {privateCoreReleasePackageState?.lineageSummaryLabel ?? "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
                 Recipient recovery: Recipient can recover the sent note privately with the matched
@@ -1780,8 +1792,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   disabled={!privateCoreReleasePackageState}
                 >
                   {releasePackageExportStatus === "summary"
-                    ? "Copied package summary"
-                    : "Copy package summary"}
+                    ? "Copied operator package summary"
+                    : "Copy operator package summary"}
                 </button>
                 <button
                   className="button button-ghost"
@@ -1792,8 +1804,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   disabled={!privateCoreReleasePackageState}
                 >
                   {releasePackageExportStatus === "json"
-                    ? "Copied package JSON"
-                    : "Copy package JSON"}
+                    ? "Copied operator package JSON"
+                    : "Copy operator package JSON"}
                 </button>
                 <button
                   className="button button-ghost"
@@ -1933,6 +1945,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 Next handoff action: {privateCoreReleaseHandoffState?.nextActionLabel ?? "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
+                Package identity: {privateCoreReleasePackageState?.packageIdentityLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
                 Release package:{" "}
                 {privateCoreReleasePackageState?.packageStatusLabel ??
                   privateCoreReleaseHandoffState?.packageStatusLabel ??
@@ -1943,6 +1958,12 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 {privateCoreReleasePackageState?.packagePrimaryNote ??
                   privateCoreReleaseHandoffState?.packagePrimaryNote ??
                   "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Package gate: {privateCoreReleasePackageState?.gateStatusLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
+                Gate note: {privateCoreReleasePackageState?.gatePrimaryNote ?? "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
                 Artifact identity:{" "}
@@ -1966,6 +1987,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 Summary generated: {privateCoreReleasePackageState?.summaryGeneratedLabel ?? "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
+                Package lineage: {privateCoreReleasePackageState?.lineageSummaryLabel ?? "Unavailable"}
+              </p>
+              <p className="shield-helper shield-helper--meta">
                 Send root record: {abbreviate(privateCoreOperatorSendResultingRootRecord?.root) ?? "Unavailable"}
               </p>
               <p className="shield-helper shield-helper--meta">
@@ -1981,8 +2005,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   disabled={!privateCoreReleasePackageState}
                 >
                   {releasePackageExportStatus === "summary"
-                    ? "Copied package summary"
-                    : "Copy package summary"}
+                    ? "Copied operator package summary"
+                    : "Copy operator package summary"}
                 </button>
                 <button
                   className="button button-ghost"
@@ -1993,8 +2017,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   disabled={!privateCoreReleasePackageState}
                 >
                   {releasePackageExportStatus === "json"
-                    ? "Copied package JSON"
-                    : "Copy package JSON"}
+                    ? "Copied operator package JSON"
+                    : "Copy operator package JSON"}
                 </button>
               </div>
             </div>

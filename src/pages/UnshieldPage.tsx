@@ -2062,6 +2062,10 @@ export function UnshieldPage() {
                   <strong>{privateCoreReleaseHandoffState?.handoffPrimaryNote ?? "Unavailable"}</strong>
                 </div>
                 <div className="review-row">
+                  <span>Package identity</span>
+                  <strong>{privateCoreReleasePackageState?.packageIdentityLabel ?? "Unavailable"}</strong>
+                </div>
+                <div className="review-row">
                   <span>Release package</span>
                   <strong>
                     {privateCoreReleasePackageState?.packageStatusLabel ??
@@ -2076,6 +2080,14 @@ export function UnshieldPage() {
                       privateCoreReleaseHandoffState?.packagePrimaryNote ??
                       "Unavailable"}
                   </strong>
+                </div>
+                <div className="review-row">
+                  <span>Package gate</span>
+                  <strong>{privateCoreReleasePackageState?.gateStatusLabel ?? "Unavailable"}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Package gate note</span>
+                  <strong>{privateCoreReleasePackageState?.gatePrimaryNote ?? "Unavailable"}</strong>
                 </div>
                 <div className="review-row">
                   <span>Artifact identity</span>
@@ -2105,6 +2117,10 @@ export function UnshieldPage() {
                   <span>Summary generated</span>
                   <strong>{privateCoreReleasePackageState?.summaryGeneratedLabel ?? "Unavailable"}</strong>
                 </div>
+                <div className="review-row">
+                  <span>Package lineage</span>
+                  <strong>{privateCoreReleasePackageState?.lineageSummaryLabel ?? "Unavailable"}</strong>
+                </div>
               </div>
               <div className="status-actions" style={{ marginTop: 16 }}>
                 <button
@@ -2129,8 +2145,8 @@ export function UnshieldPage() {
                   disabled={!privateCoreReleasePackageState}
                 >
                   {releasePackageExportStatus === "summary"
-                    ? "Copied package summary"
-                    : "Copy package summary"}
+                    ? "Copied operator package summary"
+                    : "Copy operator package summary"}
                 </button>
                 <button
                   className="button button-ghost"
@@ -2141,8 +2157,8 @@ export function UnshieldPage() {
                   disabled={!privateCoreReleasePackageState}
                 >
                   {releasePackageExportStatus === "json"
-                    ? "Copied package JSON"
-                    : "Copy package JSON"}
+                    ? "Copied operator package JSON"
+                    : "Copy operator package JSON"}
                 </button>
               </div>
               {lastTransitionSignature && (

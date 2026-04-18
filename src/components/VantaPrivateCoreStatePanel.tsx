@@ -1061,12 +1061,24 @@ export function VantaPrivateCoreStatePanel({
             </div>
             <div className="review-grid">
               <div className="review-row">
+                <span>Package identity</span>
+                <strong>{releasePackageState.packageIdentityLabel}</strong>
+              </div>
+              <div className="review-row">
                 <span>Package</span>
                 <strong>{releasePackageState.packageStatusLabel}</strong>
               </div>
               <div className="review-row">
                 <span>Package note</span>
                 <strong>{releasePackageState.packagePrimaryNote}</strong>
+              </div>
+              <div className="review-row">
+                <span>Package gate</span>
+                <strong>{releasePackageState.gateStatusLabel}</strong>
+              </div>
+              <div className="review-row">
+                <span>Package gate note</span>
+                <strong>{releasePackageState.gatePrimaryNote}</strong>
               </div>
               <div className="review-row">
                 <span>Artifact identity</span>
@@ -1103,6 +1115,10 @@ export function VantaPrivateCoreStatePanel({
               <div className="review-row">
                 <span>Latest release request</span>
                 <strong>{abbreviate(releasePackageState.latestReleaseLabel) ?? releasePackageState.latestReleaseLabel}</strong>
+              </div>
+              <div className="review-row">
+                <span>Lineage summary</span>
+                <strong>{releasePackageState.lineageSummaryLabel}</strong>
               </div>
               <div className="review-row">
                 <span>Observation mode</span>
