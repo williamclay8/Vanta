@@ -1942,6 +1942,92 @@ input {
   box-shadow: 0 28px 64px rgba(0, 0, 0, 0.42);
 }
 
+.shield-page,
+.send-page {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.shield-page .module-page__hero,
+.send-page .module-page__hero {
+  grid-template-columns: 1fr;
+}
+
+.shield-page .module-state,
+.send-page .module-state {
+  max-width: none;
+}
+
+.shield-page .shield-layout,
+.send-page .send-layout {
+  grid-template-columns: 1fr;
+}
+
+.shield-page .shield-scenario-bar,
+.send-page .send-flow-indicator,
+.send-page .send-context-banner,
+.send-page > .vanta-private-core-state-panel,
+.send-page > article.send-card:first-of-type,
+.send-page > .note-state-panel {
+  display: none;
+}
+
+.shield-page .shield-layout > .shield-card:nth-of-type(2) .review-list,
+.shield-page .shield-layout > .shield-card:nth-of-type(2) .shield-review-note,
+.shield-page .shield-layout > .shield-card:nth-of-type(2) .note-state-panel,
+.shield-page .shield-layout > .shield-card:nth-of-type(2) .lifecycle-timeline,
+.shield-page .shield-layout > .shield-card:nth-of-type(2) .progress-rail,
+.shield-page .shield-layout > .shield-card:nth-of-type(2) details {
+  display: none;
+}
+
+.send-page > .send-layout > .send-card:nth-of-type(2) .review-list,
+.send-page > .send-layout > .send-card:nth-of-type(2) .shield-review-note,
+.send-page > .send-layout > .send-card:nth-of-type(2) .note-state-panel,
+.send-page > .send-layout > .send-card:nth-of-type(2) .lifecycle-timeline,
+.send-page > .send-layout > .send-card:nth-of-type(2) details,
+.send-page > .send-layout > .send-card:nth-of-type(3) {
+  display: none;
+}
+
+.send-page > .send-layout > .send-card:nth-of-type(2) {
+  margin-top: 16px;
+}
+
+.shield-page .shield-layout > .shield-card:nth-of-type(2):not(:has(.status-panel)),
+.send-page > .send-layout > .send-card:nth-of-type(2):not(:has(.status-panel)) {
+  display: none;
+}
+
+.shield-page .shield-form__actions:not(:has(.button-ghost + .button-ghost)) .button-ghost:first-child,
+.send-page .shield-form__actions:not(:has(.button-ghost + .button-ghost)) .button-ghost:first-child,
+.send-page .shield-form__actions .button-ghost + .button-ghost {
+  display: none;
+}
+
+.shield-page .shield-form__actions,
+.send-page .shield-form__actions,
+.send-page .status-actions {
+  justify-content: flex-start;
+}
+
+.shield-page .asset-list,
+.send-page .asset-list {
+  gap: 10px;
+}
+
+.shield-page .preview-grid,
+.send-page .preview-grid,
+.shield-page .success-metrics,
+.send-page .success-metrics {
+  grid-template-columns: 1fr 1fr;
+}
+
+.shield-page .shield-card__header small,
+.send-page .shield-card__header small {
+  display: none;
+}
+
 .note-state-chip--change {
   border-color: rgba(147, 180, 255, 0.28);
   background: rgba(147, 180, 255, 0.1);
