@@ -115,6 +115,20 @@ function createChangeNoteId(args) {
   });
 }
 
+function createRecipientSelfNoteId(args) {
+  return createDeterministicNoteId({
+    amount: args.amount,
+    asset: "VUSD",
+    createdAt: args.createdAt,
+    kind: "recipient_self",
+    mintAddress: args.mintAddress,
+    owner: args.owner,
+    parentNoteId: args.parentNoteId,
+    parentSendNoteId: args.parentSendNoteId,
+    vaultOwner: args.vaultOwner,
+  });
+}
+
 function createSolUnshieldNoteId(payload) {
   return createDeterministicNoteId({
     amount: payload.amount,
@@ -776,6 +790,7 @@ export async function fetchConstrainedOnchainUnshieldContext(args) {
   const consumedNoteIds = new Set();
   const consumedSolNoteIds = new Set();
   const changeNotesByParentSend = new Map();
+  const recipientSelfNotesByParentSend = new Map();
 
   const legacySpentMarkers = candidateSendNotes
     .filter(
@@ -883,6 +898,35 @@ export async function fetchConstrainedOnchainUnshieldContext(args) {
           allShieldNotesById.set(changeNote.noteId, changeNote);
         }
 
+        if (roundedSentAmount > 0 && transition.recipient === transition.owner) {
+          const recipientSelfNote = {
+            amount: roundedSentAmount,
+            asset: "VUSD",
+            createdAt: transition.createdAt,
+            depositSignature: transition.stateSignature,
+            kind: "shield",
+            mintAddress: transition.mintAddress,
+            noteId: createRecipientSelfNoteId({
+              amount: roundedSentAmount.toString(),
+              createdAt: transition.createdAt,
+              mintAddress: transition.mintAddress,
+              owner: transition.owner,
+              parentNoteId: marker.consumedNoteId,
+              parentSendNoteId: transition.noteId,
+              vaultOwner: transition.vaultOwner,
+            }),
+            origin: "recipient_self",
+            owner: transition.owner,
+            parentNoteId: marker.consumedNoteId,
+            parentSendNoteId: transition.noteId,
+            stateSignature: `${transition.stateSignature}:recipient-self`,
+            vaultOwner: transition.vaultOwner,
+          };
+
+          recipientSelfNotesByParentSend.set(transition.noteId, recipientSelfNote);
+          allShieldNotesById.set(recipientSelfNote.noteId, recipientSelfNote);
+        }
+
         return [marker];
       }
 
@@ -968,7 +1012,10 @@ export async function fetchConstrainedOnchainUnshieldContext(args) {
   const changeNotes = [...changeNotesByParentSend.values()].sort(
     (left, right) => left.createdAt - right.createdAt,
   );
-  const shieldNotes = [...depositShieldNotes, ...changeNotes].sort(
+  const recipientSelfNotes = [...recipientSelfNotesByParentSend.values()].sort(
+    (left, right) => left.createdAt - right.createdAt,
+  );
+  const shieldNotes = [...depositShieldNotes, ...changeNotes, ...recipientSelfNotes].sort(
     (left, right) => left.createdAt - right.createdAt,
   );
   const spendableShieldNotes = shieldNotes.filter((note) => !consumedNoteIds.has(note.noteId));

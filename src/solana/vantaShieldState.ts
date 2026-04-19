@@ -36,7 +36,7 @@ type BaseVantaNote = {
 export type VantaShieldNote = BaseVantaNote & {
   depositSignature: string;
   kind: "shield";
-  origin: "deposit" | "change" | "swap_output";
+  origin: "deposit" | "change" | "swap_output" | "recipient_self";
   parentNoteId?: string;
   parentSendNoteId?: string;
   parentSwapNoteId?: string;
@@ -526,6 +526,28 @@ function createChangeNoteId(args: {
   });
 }
 
+export function createRecipientSelfNoteId(args: {
+  amount: string;
+  createdAt: number;
+  mintAddress: string;
+  owner: string;
+  parentNoteId: string;
+  parentSendNoteId: string;
+  vaultOwner: string;
+}) {
+  return createDeterministicNoteId({
+    amount: args.amount,
+    asset: "VUSD",
+    createdAt: args.createdAt,
+    kind: "recipient_self",
+    mintAddress: args.mintAddress,
+    owner: args.owner,
+    parentNoteId: args.parentNoteId,
+    parentSendNoteId: args.parentSendNoteId,
+    vaultOwner: args.vaultOwner,
+  });
+}
+
 function createSpentMarkerId(
   payload: Omit<SpentMarkerMemoPayload, "kind" | "markerId">,
 ) {
@@ -566,6 +588,19 @@ export function createPreparedSendMemo(
   payload: Omit<SendMemoPayload, "kind" | "noteId" | "changeNoteId">,
 ) {
   const noteId = createSendNoteId(payload);
+  const recipientNoteId =
+    Number(payload.amount) > 0 && payload.recipient === payload.owner
+      ? createRecipientSelfNoteId({
+          amount: payload.amount,
+          createdAt: payload.createdAt,
+          mintAddress: payload.mintAddress,
+          owner: payload.owner,
+          parentNoteId:
+            payload.consumedNoteId ?? payload.consumedShieldStateSignature ?? "legacy",
+          parentSendNoteId: noteId,
+          vaultOwner: payload.vaultOwner,
+        })
+      : undefined;
   const changeNoteId =
     Number(payload.changeAmount) > 0
       ? createChangeNoteId({
@@ -589,6 +624,7 @@ export function createPreparedSendMemo(
       changeNoteId,
     } satisfies SendMemoPayload),
     noteId,
+    recipientNoteId,
   };
 }
 
@@ -1418,6 +1454,7 @@ export async function fetchVantaShieldAccountState(args: {
     Omit<VantaShieldedSolNote, "lifecycleStatus">
   >();
   const shieldTokenNotesBySwap = new Map<string, VantaShieldNote>();
+  const recipientSelfNotesByParentSend = new Map<string, VantaShieldNote>();
   const consumedSolNoteIds = new Set<string>();
 
   const shieldSpentMarkers = [...explicitSpentMarkers, ...legacySpentMarkers]
@@ -1502,6 +1539,38 @@ export async function fetchVantaShieldAccountState(args: {
 
         changeNotesByParentSend.set(sendTransition.noteId, changeNote);
         allShieldNotesById.set(changeNote.noteId, changeNote);
+
+        if (
+          roundedSentAmount > 0 &&
+          sendTransition.recipient === sendTransition.owner
+        ) {
+          const recipientSelfNote = {
+            amount: roundedSentAmount,
+            asset: accountAsset,
+            createdAt: sendTransition.createdAt,
+            depositSignature: sendTransition.stateSignature,
+            kind: "shield" as const,
+            mintAddress: sendTransition.mintAddress,
+            noteId: createRecipientSelfNoteId({
+              amount: roundedSentAmount.toString(),
+              createdAt: sendTransition.createdAt,
+              mintAddress: sendTransition.mintAddress,
+              owner: sendTransition.owner,
+              parentNoteId: marker.consumedNoteId,
+              parentSendNoteId: sendTransition.noteId,
+              vaultOwner: sendTransition.vaultOwner,
+            }),
+            origin: "recipient_self" as const,
+            owner: sendTransition.owner,
+            parentNoteId: marker.consumedNoteId,
+            parentSendNoteId: sendTransition.noteId,
+            stateSignature: `${sendTransition.stateSignature}:recipient-self`,
+            vaultOwner: sendTransition.vaultOwner,
+          } satisfies VantaShieldNote;
+
+          recipientSelfNotesByParentSend.set(sendTransition.noteId, recipientSelfNote);
+          allShieldNotesById.set(recipientSelfNote.noteId, recipientSelfNote);
+        }
 
         return [marker];
       }
@@ -1651,7 +1720,10 @@ export async function fetchVantaShieldAccountState(args: {
   const changeNotes = [...changeNotesByParentSend.values()].sort((left, right) => {
     return left.createdAt - right.createdAt;
   });
-  const shieldNotes = [...depositShieldNotes, ...changeNotes, ...swapOutputNotes].sort(
+  const recipientSelfNotes = [...recipientSelfNotesByParentSend.values()].sort(
+    (left, right) => left.createdAt - right.createdAt,
+  );
+  const shieldNotes = [...depositShieldNotes, ...changeNotes, ...recipientSelfNotes, ...swapOutputNotes].sort(
     (left, right) => {
       return left.createdAt - right.createdAt;
     },
