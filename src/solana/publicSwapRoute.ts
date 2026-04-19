@@ -173,6 +173,56 @@ function getJupiterHeaders() {
   return headers;
 }
 
+async function fetchJupiterQuote(args: {
+  amountAtomic: string;
+  inputMint: string;
+  outputMint: string;
+}) {
+  const routeVariants = [
+    { restrictIntermediateTokens: "true" },
+    { restrictIntermediateTokens: "false" },
+  ] as const;
+  let lastError: Error | null = null;
+
+  for (const variant of routeVariants) {
+    const searchParams = new URLSearchParams({
+      amount: args.amountAtomic,
+      inputMint: args.inputMint,
+      outputMint: args.outputMint,
+      slippageBps: String(DEFAULT_ALLOWED_SLIPPAGE_BPS),
+      restrictIntermediateTokens: variant.restrictIntermediateTokens,
+    });
+
+    try {
+      const response = await fetch(`${JUPITER_QUOTE_URL}?${searchParams.toString()}`, {
+        headers: getJupiterHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Jupiter quote failed with status ${String(response.status)}.`);
+      }
+
+      const parsed = (await response.json()) as JupiterQuoteResponse;
+
+      if (
+        typeof parsed.outAmount !== "string" ||
+        typeof parsed.otherAmountThreshold !== "string" ||
+        typeof parsed.inputMint !== "string" ||
+        typeof parsed.outputMint !== "string"
+      ) {
+        throw new Error("Jupiter quote response was invalid.");
+      }
+
+      return parsed;
+    } catch (error) {
+      lastError =
+        error instanceof Error ? error : new Error("Jupiter quote could not be loaded.");
+    }
+  }
+
+  throw lastError ?? new Error("Jupiter quote could not be loaded.");
+}
+
 export function listExecutableShieldedAssets() {
   return [
     ...listLiveShieldTokenAssets().map((asset) => ({
@@ -232,73 +282,53 @@ export async function fetchPublicToVusdQuote(args: {
     } satisfies PublicToVusdQuote;
   }
 
-  if (
-    args.inputAsset.symbol === "SOL" &&
-    outputShieldAsset.assetKey === "VUSD" &&
-    liveSwapPair.venuePoolAddress
-  ) {
-    const pool = await getDlmmPool();
-    const swapForY = pool.tokenX.publicKey.equals(new PublicKey(args.inputAsset.mintAddress))
-      ? pool.tokenY.publicKey.equals(new PublicKey(outputShieldAsset.mintAddress))
-      : false;
-    const reverseMatches =
-      pool.tokenY.publicKey.equals(new PublicKey(args.inputAsset.mintAddress)) &&
-      pool.tokenX.publicKey.equals(new PublicKey(outputShieldAsset.mintAddress));
+  if (args.inputAsset.symbol === "SOL" && outputShieldAsset.assetKey === "VUSD" && liveSwapPair.venuePoolAddress) {
+    try {
+      const pool = await getDlmmPool();
+      const swapForY = pool.tokenX.publicKey.equals(new PublicKey(args.inputAsset.mintAddress))
+        ? pool.tokenY.publicKey.equals(new PublicKey(outputShieldAsset.mintAddress))
+        : false;
+      const reverseMatches =
+        pool.tokenY.publicKey.equals(new PublicKey(args.inputAsset.mintAddress)) &&
+        pool.tokenX.publicKey.equals(new PublicKey(outputShieldAsset.mintAddress));
 
-    if (swapForY || reverseMatches) {
-      const inAmount = toAtomicAmount(args.amount, DEFAULT_SOL_DECIMALS);
-      const binArrays = await pool.getBinArrayForSwap(swapForY || !reverseMatches);
-      const quote = await pool.swapQuote(
-        inAmount,
-        swapForY || !reverseMatches,
-        new BN(DEFAULT_ALLOWED_SLIPPAGE_BPS),
-        binArrays,
-      );
+      if (swapForY || reverseMatches) {
+        const inAmount = toAtomicAmount(args.amount, DEFAULT_SOL_DECIMALS);
+        const binArrays = await pool.getBinArrayForSwap(swapForY || !reverseMatches);
+        const quote = await pool.swapQuote(
+          inAmount,
+          swapForY || !reverseMatches,
+          new BN(DEFAULT_ALLOWED_SLIPPAGE_BPS),
+          binArrays,
+        );
 
-      return {
-        inputAmount: args.amount,
-        inputAssetLabel: args.inputAsset.label,
-        inputAssetSymbol: args.inputAsset.symbol,
-        inputMint: args.inputAsset.mintAddress,
-        minOutputAmount: formatAtomicAmount(quote.minOutAmount, outputDecimals),
-        outputAmount: formatAtomicAmount(quote.outAmount, outputDecimals),
-        outputAsset: outputShieldAsset.assetKey,
-        outputMint: outputShieldAsset.mintAddress,
-        venueFamily: "DLMM" as const,
-        venueName: "Meteora" as const,
-        venueNetwork: "Devnet" as const,
-        venuePoolAddress: liveSwapPair.venuePoolAddress ?? "",
-        binArraysPubkey: quote.binArraysPubkey.map((pubkey) => pubkey.toBase58()),
-      } satisfies PublicToVusdQuote;
+        return {
+          inputAmount: args.amount,
+          inputAssetLabel: args.inputAsset.label,
+          inputAssetSymbol: args.inputAsset.symbol,
+          inputMint: args.inputAsset.mintAddress,
+          minOutputAmount: formatAtomicAmount(quote.minOutAmount, outputDecimals),
+          outputAmount: formatAtomicAmount(quote.outAmount, outputDecimals),
+          outputAsset: outputShieldAsset.assetKey,
+          outputMint: outputShieldAsset.mintAddress,
+          venueFamily: "DLMM" as const,
+          venueName: "Meteora" as const,
+          venueNetwork: "Devnet" as const,
+          venuePoolAddress: liveSwapPair.venuePoolAddress ?? "",
+          binArraysPubkey: quote.binArraysPubkey.map((pubkey) => pubkey.toBase58()),
+        } satisfies PublicToVusdQuote;
+      }
+    } catch {
+      // Fall through to Jupiter below so broader routes still work.
     }
   }
 
   const amountAtomic = toAtomicAmount(args.amount, args.inputAsset.decimals).toString(10);
-  const searchParams = new URLSearchParams({
+  const parsed = await fetchJupiterQuote({
+    amountAtomic,
     inputMint: args.inputAsset.mintAddress,
     outputMint: outputShieldAsset.mintAddress,
-    amount: amountAtomic,
-    slippageBps: String(DEFAULT_ALLOWED_SLIPPAGE_BPS),
-    restrictIntermediateTokens: "true",
   });
-  const response = await fetch(`${JUPITER_QUOTE_URL}?${searchParams.toString()}`, {
-    headers: getJupiterHeaders(),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Jupiter quote failed with status ${String(response.status)}.`);
-  }
-
-  const parsed = (await response.json()) as JupiterQuoteResponse;
-
-  if (
-    typeof parsed.outAmount !== "string" ||
-    typeof parsed.otherAmountThreshold !== "string" ||
-    typeof parsed.inputMint !== "string" ||
-    typeof parsed.outputMint !== "string"
-  ) {
-    throw new Error("Jupiter quote response was invalid.");
-  }
 
   return {
     inputAmount: args.amount,

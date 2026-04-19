@@ -342,12 +342,11 @@ export function UnshieldPage() {
   const [selectedLane, setSelectedLane] = useState<UnshieldLane>("VUSD");
   const [selectedShieldNoteIds, setSelectedShieldNoteIds] = useState<
     Record<LiveShieldTokenAssetKey, string | null>
-  >({
-    BONK: null,
-    JTO: null,
-    USDC: null,
-    VUSD: null,
-  });
+  >(() =>
+    Object.fromEntries(
+      ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS.map((assetKey) => [assetKey, null]),
+    ) as Record<LiveShieldTokenAssetKey, string | null>,
+  );
   const [selectedSolNoteId, setSelectedSolNoteId] = useState<string | null>(null);
   const [status, setStatus] = useState<UnshieldStatus>("idle");
   const [flowError, setFlowError] = useState<string | null>(null);

@@ -105,6 +105,10 @@ const assetNames: Record<PrivacyAssetKey, string> = {
   USDC: "USD Coin",
   JTO: "Jito",
   BONK: "Bonk",
+  JUP: "Jupiter",
+  PYUSD: "PayPal USD",
+  WIF: "dogwifhat",
+  KMNO: "Kamino",
 };
 
 const fallbackShieldedBalances: Record<PrivacyAssetKey, number> = {
@@ -112,6 +116,10 @@ const fallbackShieldedBalances: Record<PrivacyAssetKey, number> = {
   USDC: 2800,
   JTO: 180,
   BONK: 0,
+  JUP: 0,
+  PYUSD: 0,
+  WIF: 0,
+  KMNO: 0,
 };
 
 const DEFAULT_VUSD_DECIMALS = 6;
@@ -1407,7 +1415,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   </div>
                 </div>
                 <div className="swap-choice-row" role="group" aria-label="Send asset">
-                  {(["VUSD", "USDC", "JTO", "BONK"] as PrivacyAssetKey[]).map((asset) => {
+                  {(["VUSD", "USDC", "JTO", "BONK", "JUP", "PYUSD", "WIF", "KMNO"] as PrivacyAssetKey[]).map((asset) => {
                     const disabled = asset !== "VUSD";
                     const active = asset === selectedAsset;
                     return (

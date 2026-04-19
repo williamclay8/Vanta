@@ -10,6 +10,7 @@ import { usePrivacyFlow, type PrivacyAssetKey } from "@/data/context/PrivacyFlow
 import { useWalletState } from "@/data/context/WalletContext";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
 import {
+  getLiveShieldTokenAsset,
   getPrimaryLiveShieldTokenAsset,
   listLiveShieldTokenAssets,
   type LiveShieldTokenAssetKey,
@@ -44,11 +45,14 @@ type ShieldStatus =
   | "failed";
 
 function formatBalance(value: number, symbol: string) {
-  if (symbol === "USDC" || symbol === "VUSD") {
+  try {
+    const decimals = Math.min(getLiveShieldTokenAsset(symbol as LiveShieldTokenAssetKey).decimals, 6);
     return `${value.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+      minimumFractionDigits: Math.min(decimals, 2),
+      maximumFractionDigits: decimals,
     })} ${symbol}`;
+  } catch {
+    // fall through to generic formatting for non-registry symbols
   }
 
   return `${value.toLocaleString(undefined, {

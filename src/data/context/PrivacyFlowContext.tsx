@@ -70,7 +70,15 @@ import {
   type VantaPrivateCoreProofOperatorResponse,
 } from "@/zk/vantaPrivateCoreOperatorClient";
 
-export type PrivacyAssetKey = "VUSD" | "USDC" | "JTO" | "BONK";
+export type PrivacyAssetKey =
+  | "VUSD"
+  | "USDC"
+  | "JTO"
+  | "BONK"
+  | "JUP"
+  | "PYUSD"
+  | "WIF"
+  | "KMNO";
 
 const VANTA_PRIVATE_CORE_VUSD_ASSET_ID =
   "0x7675736400000000000000000000000000000000000000000000000000000000" as const;

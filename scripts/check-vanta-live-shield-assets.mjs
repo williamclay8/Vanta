@@ -57,6 +57,38 @@ const configuredAssets = [
       process.env.VITE_VANTA_DEVNET_BONK_NAME ?? "Bonk (Devnet Test)",
     decimals: Number(process.env.VITE_VANTA_DEVNET_BONK_DECIMALS ?? "5"),
   },
+  {
+    symbol: "JUP",
+    mintAddress:
+      process.env.VANTA_DEVNET_JUP_MINT ?? process.env.VITE_VANTA_DEVNET_JUP_MINT,
+    name:
+      process.env.VITE_VANTA_DEVNET_JUP_NAME ?? "Jupiter (Devnet Test)",
+    decimals: Number(process.env.VITE_VANTA_DEVNET_JUP_DECIMALS ?? "6"),
+  },
+  {
+    symbol: "PYUSD",
+    mintAddress:
+      process.env.VANTA_DEVNET_PYUSD_MINT ?? process.env.VITE_VANTA_DEVNET_PYUSD_MINT,
+    name:
+      process.env.VITE_VANTA_DEVNET_PYUSD_NAME ?? "PayPal USD (Devnet Test)",
+    decimals: Number(process.env.VITE_VANTA_DEVNET_PYUSD_DECIMALS ?? "6"),
+  },
+  {
+    symbol: "WIF",
+    mintAddress:
+      process.env.VANTA_DEVNET_WIF_MINT ?? process.env.VITE_VANTA_DEVNET_WIF_MINT,
+    name:
+      process.env.VITE_VANTA_DEVNET_WIF_NAME ?? "dogwifhat (Devnet Test)",
+    decimals: Number(process.env.VITE_VANTA_DEVNET_WIF_DECIMALS ?? "6"),
+  },
+  {
+    symbol: "KMNO",
+    mintAddress:
+      process.env.VANTA_DEVNET_KMNO_MINT ?? process.env.VITE_VANTA_DEVNET_KMNO_MINT,
+    name:
+      process.env.VITE_VANTA_DEVNET_KMNO_NAME ?? "Kamino (Devnet Test)",
+    decimals: Number(process.env.VITE_VANTA_DEVNET_KMNO_DECIMALS ?? "6"),
+  },
 ].filter((asset) => asset.mintAddress);
 
 if (configuredAssets.length === 0) {

@@ -29,6 +29,18 @@ const configuredJtoMintAddress = getOptionalEnvValue(
 const configuredBonkMintAddress = getOptionalEnvValue(
   import.meta.env.VITE_VANTA_DEVNET_BONK_MINT,
 );
+const configuredJupMintAddress = getOptionalEnvValue(
+  import.meta.env.VITE_VANTA_DEVNET_JUP_MINT,
+);
+const configuredPyusdMintAddress = getOptionalEnvValue(
+  import.meta.env.VITE_VANTA_DEVNET_PYUSD_MINT,
+);
+const configuredWifMintAddress = getOptionalEnvValue(
+  import.meta.env.VITE_VANTA_DEVNET_WIF_MINT,
+);
+const configuredKmnoMintAddress = getOptionalEnvValue(
+  import.meta.env.VITE_VANTA_DEVNET_KMNO_MINT,
+);
 const configuredVaultOwner = getOptionalEnvValue(
   import.meta.env.VITE_VANTA_DEVNET_VAULT_OWNER,
 );
@@ -45,7 +57,15 @@ const configuredMeteoraDlmmPoolAddress = getOptionalEnvValue(
   import.meta.env.VITE_VANTA_METEORA_DLMM_POOL_ADDRESS,
 );
 
-export type LiveShieldTokenAssetKey = "VUSD" | "USDC" | "JTO" | "BONK";
+export type LiveShieldTokenAssetKey =
+  | "VUSD"
+  | "USDC"
+  | "JTO"
+  | "BONK"
+  | "JUP"
+  | "PYUSD"
+  | "WIF"
+  | "KMNO";
 
 export type LiveShieldTokenAssetConfig = {
   assetKey: LiveShieldTokenAssetKey;
@@ -135,18 +155,70 @@ export const liveBonkShieldAsset: LiveShieldTokenAssetConfig = {
   }),
 };
 
+export const liveJupShieldAsset: LiveShieldTokenAssetConfig = {
+  ...createLiveShieldTokenAssetConfig({
+    assetKey: "JUP",
+    configuredMintAddress: configuredJupMintAddress,
+    decimals: getOptionalIntegerEnvValue(import.meta.env.VITE_VANTA_DEVNET_JUP_DECIMALS) ?? 6,
+    defaultName: "Jupiter",
+    nameEnvValue: import.meta.env.VITE_VANTA_DEVNET_JUP_NAME,
+    priority: 4,
+  }),
+};
+
+export const livePyusdShieldAsset: LiveShieldTokenAssetConfig = {
+  ...createLiveShieldTokenAssetConfig({
+    assetKey: "PYUSD",
+    configuredMintAddress: configuredPyusdMintAddress,
+    decimals: getOptionalIntegerEnvValue(import.meta.env.VITE_VANTA_DEVNET_PYUSD_DECIMALS) ?? 6,
+    defaultName: "PayPal USD",
+    nameEnvValue: import.meta.env.VITE_VANTA_DEVNET_PYUSD_NAME,
+    priority: 5,
+  }),
+};
+
+export const liveWifShieldAsset: LiveShieldTokenAssetConfig = {
+  ...createLiveShieldTokenAssetConfig({
+    assetKey: "WIF",
+    configuredMintAddress: configuredWifMintAddress,
+    decimals: getOptionalIntegerEnvValue(import.meta.env.VITE_VANTA_DEVNET_WIF_DECIMALS) ?? 6,
+    defaultName: "dogwifhat",
+    nameEnvValue: import.meta.env.VITE_VANTA_DEVNET_WIF_NAME,
+    priority: 6,
+  }),
+};
+
+export const liveKmnoShieldAsset: LiveShieldTokenAssetConfig = {
+  ...createLiveShieldTokenAssetConfig({
+    assetKey: "KMNO",
+    configuredMintAddress: configuredKmnoMintAddress,
+    decimals: getOptionalIntegerEnvValue(import.meta.env.VITE_VANTA_DEVNET_KMNO_DECIMALS) ?? 6,
+    defaultName: "Kamino",
+    nameEnvValue: import.meta.env.VITE_VANTA_DEVNET_KMNO_NAME,
+    priority: 7,
+  }),
+};
+
 export const ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS = [
   "VUSD",
   "USDC",
   "JTO",
   "BONK",
+  "JUP",
+  "PYUSD",
+  "WIF",
+  "KMNO",
 ] as const satisfies readonly LiveShieldTokenAssetKey[];
 
 const liveShieldTokenAssetMap: Record<LiveShieldTokenAssetKey, LiveShieldTokenAssetConfig> = {
   BONK: liveBonkShieldAsset,
   JTO: liveJtoShieldAsset,
+  JUP: liveJupShieldAsset,
+  KMNO: liveKmnoShieldAsset,
+  PYUSD: livePyusdShieldAsset,
   USDC: liveUsdcShieldAsset,
   VUSD: liveShieldAsset,
+  WIF: liveWifShieldAsset,
 };
 
 export function getLiveShieldTokenAsset(

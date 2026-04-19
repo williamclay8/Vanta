@@ -25,6 +25,10 @@ export function useVantaShieldAssetRegistryState() {
   const usdcAsset = getLiveShieldTokenAsset("USDC");
   const jtoAsset = getLiveShieldTokenAsset("JTO");
   const bonkAsset = getLiveShieldTokenAsset("BONK");
+  const jupAsset = getLiveShieldTokenAsset("JUP");
+  const pyusdAsset = getLiveShieldTokenAsset("PYUSD");
+  const wifAsset = getLiveShieldTokenAsset("WIF");
+  const kmnoAsset = getLiveShieldTokenAsset("KMNO");
 
   const vusdAccountState = useVantaShieldAssetState({
     includeLocallyReleasedSolNotes: true,
@@ -43,6 +47,22 @@ export function useVantaShieldAssetRegistryState() {
     mintAddress: bonkAsset.mintAddress,
     vaultOwner: bonkAsset.vaultOwner,
   });
+  const jupAccountState = useVantaShieldAssetState({
+    mintAddress: jupAsset.mintAddress,
+    vaultOwner: jupAsset.vaultOwner,
+  });
+  const pyusdAccountState = useVantaShieldAssetState({
+    mintAddress: pyusdAsset.mintAddress,
+    vaultOwner: pyusdAsset.vaultOwner,
+  });
+  const wifAccountState = useVantaShieldAssetState({
+    mintAddress: wifAsset.mintAddress,
+    vaultOwner: wifAsset.vaultOwner,
+  });
+  const kmnoAccountState = useVantaShieldAssetState({
+    mintAddress: kmnoAsset.mintAddress,
+    vaultOwner: kmnoAsset.vaultOwner,
+  });
 
   const vusdToken = useSplToken(vusdAsset.mintAddress ?? SHIELD_HOOK_FALLBACK_MINT, {
     config: { tokenProgram: "auto" },
@@ -54,6 +74,18 @@ export function useVantaShieldAssetRegistryState() {
     config: { tokenProgram: "auto" },
   });
   const bonkToken = useSplToken(bonkAsset.mintAddress ?? SHIELD_HOOK_FALLBACK_MINT, {
+    config: { tokenProgram: "auto" },
+  });
+  const jupToken = useSplToken(jupAsset.mintAddress ?? SHIELD_HOOK_FALLBACK_MINT, {
+    config: { tokenProgram: "auto" },
+  });
+  const pyusdToken = useSplToken(pyusdAsset.mintAddress ?? SHIELD_HOOK_FALLBACK_MINT, {
+    config: { tokenProgram: "auto" },
+  });
+  const wifToken = useSplToken(wifAsset.mintAddress ?? SHIELD_HOOK_FALLBACK_MINT, {
+    config: { tokenProgram: "auto" },
+  });
+  const kmnoToken = useSplToken(kmnoAsset.mintAddress ?? SHIELD_HOOK_FALLBACK_MINT, {
     config: { tokenProgram: "auto" },
   });
 
@@ -99,6 +131,46 @@ export function useVantaShieldAssetRegistryState() {
         refresh: bonkAccountState.refresh,
         token: bonkToken,
       },
+      {
+        account: jupAccountState.account,
+        asset: jupAsset,
+        error: jupAccountState.error,
+        isReady: jupAccountState.isReady,
+        isRefreshing: jupAccountState.isRefreshing,
+        publicBalance: Number(jupToken.balance?.uiAmount ?? "0"),
+        refresh: jupAccountState.refresh,
+        token: jupToken,
+      },
+      {
+        account: pyusdAccountState.account,
+        asset: pyusdAsset,
+        error: pyusdAccountState.error,
+        isReady: pyusdAccountState.isReady,
+        isRefreshing: pyusdAccountState.isRefreshing,
+        publicBalance: Number(pyusdToken.balance?.uiAmount ?? "0"),
+        refresh: pyusdAccountState.refresh,
+        token: pyusdToken,
+      },
+      {
+        account: wifAccountState.account,
+        asset: wifAsset,
+        error: wifAccountState.error,
+        isReady: wifAccountState.isReady,
+        isRefreshing: wifAccountState.isRefreshing,
+        publicBalance: Number(wifToken.balance?.uiAmount ?? "0"),
+        refresh: wifAccountState.refresh,
+        token: wifToken,
+      },
+      {
+        account: kmnoAccountState.account,
+        asset: kmnoAsset,
+        error: kmnoAccountState.error,
+        isReady: kmnoAccountState.isReady,
+        isRefreshing: kmnoAccountState.isRefreshing,
+        publicBalance: Number(kmnoToken.balance?.uiAmount ?? "0"),
+        refresh: kmnoAccountState.refresh,
+        token: kmnoToken,
+      },
     ] satisfies VantaShieldAssetRegistryEntry[];
 
     const byAssetKey = Object.fromEntries(
@@ -119,6 +191,27 @@ export function useVantaShieldAssetRegistryState() {
     bonkAccountState.refresh,
     bonkAsset,
     bonkToken,
+    jupAccountState.account,
+    jupAccountState.error,
+    jupAccountState.isReady,
+    jupAccountState.isRefreshing,
+    jupAccountState.refresh,
+    jupAsset,
+    jupToken,
+    kmnoAccountState.account,
+    kmnoAccountState.error,
+    kmnoAccountState.isReady,
+    kmnoAccountState.isRefreshing,
+    kmnoAccountState.refresh,
+    kmnoAsset,
+    kmnoToken,
+    pyusdAccountState.account,
+    pyusdAccountState.error,
+    pyusdAccountState.isReady,
+    pyusdAccountState.isRefreshing,
+    pyusdAccountState.refresh,
+    pyusdAsset,
+    pyusdToken,
     jtoAccountState.account,
     jtoAccountState.error,
     jtoAccountState.isReady,
@@ -140,5 +233,12 @@ export function useVantaShieldAssetRegistryState() {
     vusdAccountState.refresh,
     vusdAsset,
     vusdToken,
+    wifAccountState.account,
+    wifAccountState.error,
+    wifAccountState.isReady,
+    wifAccountState.isRefreshing,
+    wifAccountState.refresh,
+    wifAsset,
+    wifToken,
   ]);
 }
