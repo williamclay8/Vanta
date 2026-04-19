@@ -2187,8 +2187,7 @@ export function UnshieldPage() {
                     Destination: {walletAddressShort ?? "Connect wallet"}
                   </div>
                 </div>
-                <div className="send-entry-grid">
-                  <div className="send-asset-field">
+                <div className="amount-field amount-field--solo">
                     <input
                       aria-label="Unshield amount"
                       inputMode="decimal"
@@ -2206,7 +2205,6 @@ export function UnshieldPage() {
                           : formatEditableAmount(selectedFullAmount, selectedLaneDecimals)
                       }
                     />
-                  </div>
                 </div>
               </div>
 

@@ -1801,6 +1801,12 @@ input {
   min-height: 72px;
 }
 
+.amount-field--solo {
+  border: 1px solid rgba(0, 229, 200, 0.1);
+  background: rgba(0, 229, 200, 0.025);
+  padding: 0 18px;
+}
+
 .send-asset-field {
   border: 1px solid rgba(0, 229, 200, 0.1);
   background: rgba(0, 229, 200, 0.025);
@@ -1929,6 +1935,10 @@ input {
   color: var(--text);
   font-size: clamp(1.2rem, 3vw, 2rem);
   font-family: "Syne", sans-serif;
+}
+
+.amount-field--solo input {
+  min-height: 62px;
 }
 
 .amount-field input.input-compact {
