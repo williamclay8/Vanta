@@ -130,29 +130,6 @@ function formatUnshieldAmount(value: number, asset: UnshieldLane) {
     : formatShieldTokenAmount(value, asset);
 }
 
-function formatUnshieldNoteOption(args: {
-  amount: number;
-  asset: UnshieldLane;
-  primaryLabel?: string;
-  secondaryLabel?: string;
-}) {
-  const amountLabel =
-    args.asset === "SOL"
-      ? formatSolAmount(args.amount)
-      : formatShieldTokenAmount(args.amount, args.asset);
-  const parts = [amountLabel];
-
-  if (args.primaryLabel) {
-    parts.push(args.primaryLabel);
-  }
-
-  if (args.secondaryLabel) {
-    parts.push(args.secondaryLabel);
-  }
-
-  return parts.join(" · ");
-}
-
 function formatEditableAmount(value: number, decimals: number) {
   return value
     .toFixed(decimals)
@@ -174,6 +151,18 @@ function parseEditableAmount(value: string) {
 
 function amountsRoughlyMatch(left: number, right: number) {
   return Math.abs(left - right) <= 0.000001;
+}
+
+function chooseBestSpendableNote<T extends { amount: number; createdAt: number }>(
+  notes: readonly T[],
+) {
+  return [...notes].sort((left, right) => {
+    if (right.amount !== left.amount) {
+      return right.amount - left.amount;
+    }
+
+    return right.createdAt - left.createdAt;
+  })[0] ?? null;
 }
 
 export function UnshieldPage() {
@@ -389,14 +378,6 @@ export function UnshieldPage() {
   const shieldRegistry = useVantaShieldAssetRegistryState();
   const vusdShieldEntry = shieldRegistry.byAssetKey.VUSD;
   const [selectedLane, setSelectedLane] = useState<UnshieldLane>("VUSD");
-  const [selectedShieldNoteIds, setSelectedShieldNoteIds] = useState<
-    Record<LiveShieldTokenAssetKey, string | null>
-  >(() =>
-    Object.fromEntries(
-      ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS.map((assetKey) => [assetKey, null]),
-    ) as Record<LiveShieldTokenAssetKey, string | null>,
-  );
-  const [selectedSolNoteId, setSelectedSolNoteId] = useState<string | null>(null);
   const [requestedAmountInput, setRequestedAmountInput] = useState("");
   const [status, setStatus] = useState<UnshieldStatus>("idle");
   const [flowError, setFlowError] = useState<string | null>(null);
@@ -468,47 +449,6 @@ export function UnshieldPage() {
   const spendableSolNotes = vusdShieldEntry.account?.spendableShieldedSolNotes ?? [];
 
   useEffect(() => {
-    setSelectedShieldNoteIds((current) => {
-      let changed = false;
-      const next = { ...current };
-
-      for (const assetKey of ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS) {
-        const notes = spendableShieldNotesByLane[assetKey];
-        const currentValue = current[assetKey];
-
-        if (!notes.length) {
-          if (currentValue !== null) {
-            next[assetKey] = null;
-            changed = true;
-          }
-          continue;
-        }
-
-        if (!currentValue || !notes.some((note) => note.noteId === currentValue)) {
-          next[assetKey] = notes[0].noteId;
-          changed = true;
-        }
-      }
-
-      return changed ? next : current;
-    });
-  }, [spendableShieldNotesByLane]);
-
-  useEffect(() => {
-    if (!spendableSolNotes.length) {
-      setSelectedSolNoteId(null);
-      return;
-    }
-
-    if (
-      !selectedSolNoteId ||
-      !spendableSolNotes.some((note) => note.noteId === selectedSolNoteId)
-    ) {
-      setSelectedSolNoteId(spendableSolNotes[0].noteId);
-    }
-  }, [selectedSolNoteId, spendableSolNotes]);
-
-  useEffect(() => {
     const availableLanes = [
       ...ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS.map((assetKey) =>
         spendableShieldNotesByLane[assetKey].length > 0 ? assetKey : null,
@@ -528,9 +468,10 @@ export function UnshieldPage() {
     spendableShieldNotesByLane,
     spendableSolNotes.length,
   ]);
-  const selectedSolNote = useMemo(() => {
-    return spendableSolNotes.find((note) => note.noteId === selectedSolNoteId) ?? null;
-  }, [selectedSolNoteId, spendableSolNotes]);
+  const selectedSolNote = useMemo(
+    () => chooseBestSpendableNote(spendableSolNotes),
+    [spendableSolNotes],
+  );
 
   const selectedShieldAsset = selectedLane === "SOL" ? null : getLiveShieldTokenAsset(selectedLane);
   const selectedShieldEntry = selectedLane === "SOL" ? null : shieldRegistry.byAssetKey[selectedLane];
@@ -538,9 +479,7 @@ export function UnshieldPage() {
   const selectedShieldNote =
     selectedLane === "SOL"
       ? null
-      : spendableShieldNotesByLane[selectedLane].find(
-          (note) => note.noteId === selectedShieldNoteIds[selectedLane],
-        ) ?? null;
+      : chooseBestSpendableNote(spendableShieldNotesByLane[selectedLane]);
   useEffect(() => {
     if (selectedLane === "SOL") {
       setRequestedAmountInput(
@@ -904,7 +843,7 @@ export function UnshieldPage() {
 
         if (!exactChildNote) {
           throw new Error(
-            "Vanta split the selected note, but the exact child note could not be recovered for unshield.",
+            "Vanta split the protected balance, but the exact child amount could not be recovered for return.",
           );
         }
 
@@ -1500,10 +1439,10 @@ export function UnshieldPage() {
 
   let validationMessage =
     selectedLane === "SOL"
-      ? "Unshield SOL returns one full shielded SOL note created by Swap back to Public Wallet through the constrained operator path."
+      ? "Return shielded SOL to your public wallet through the constrained operator path."
       : selectedLane === "VUSD" && requiresExactSplit
-        ? "Vanta will split the selected VUSD note privately, keep the remainder shielded, and unshield only the requested amount."
-        : `Unshield ${selectedLane} returns one spendable shielded ${selectedLane} note to Public Wallet through the constrained operator path.`
+        ? "Vanta will split your protected VUSD balance privately, keep the remainder shielded, and return only the requested amount."
+        : `Return shielded ${selectedLane} to your public wallet through the constrained operator path.`
 
   if (!walletConnected) {
     validationMessage = "Connect a wallet to use Public Wallet as the exit destination.";
@@ -1520,9 +1459,9 @@ export function UnshieldPage() {
   } else if (!walletSession?.signMessage) {
     validationMessage = "The connected wallet must support message signing to authorize Unshield.";
   } else if (selectedLane !== "SOL" && !selectedShieldNote) {
-    validationMessage = `No spendable ${selectedLane} note is currently available for unshield.`;
+    validationMessage = `No shielded ${selectedLane} balance is currently available to return.`;
   } else if (selectedLane === "SOL" && !selectedSolNote) {
-    validationMessage = "No shielded SOL note is currently available for the SOL exit lane.";
+    validationMessage = "No shielded SOL balance is currently available to return.";
   } else if (selectedLane === "VUSD" && requestedAmountNumeric === null) {
     validationMessage = "Enter a valid VUSD amount to unshield.";
   } else if (
@@ -1536,7 +1475,7 @@ export function UnshieldPage() {
     requestedAmountNumeric !== null &&
     requestedAmountNumeric > selectedFullAmount
   ) {
-    validationMessage = "Unshield amount cannot exceed the selected note balance.";
+    validationMessage = "Unshield amount cannot exceed the available shielded balance.";
   }
 
   return (
@@ -2214,7 +2153,7 @@ export function UnshieldPage() {
                 <div className="swap-module__label-row">
                   <span>Asset</span>
                   <div className="send-balance-line shield-helper shield-helper--meta">
-                    Exit amount: {formatUnshieldAmount(selectedAmount, selectedLane)}
+                    Available: {formatUnshieldAmount(selectedFullAmount, selectedLane)}
                   </div>
                 </div>
                 <div className="swap-choice-row" role="group" aria-label="Unshield asset">
@@ -2247,86 +2186,9 @@ export function UnshieldPage() {
 
               <div className="swap-module__field">
                 <div className="swap-module__label-row">
-                  <span>Eligible note</span>
-                  <div className="send-balance-line shield-helper shield-helper--meta">
-                    Destination: {walletAddressShort ?? "Connect wallet"}
-                  </div>
-                </div>
-                <div className="send-entry-grid">
-                  <div className="send-asset-field">
-                    <select
-                      aria-label="Eligible note"
-                      value={
-                        selectedLane === "SOL"
-                          ? selectedSolNoteId ?? ""
-                          : selectedShieldNoteIds[selectedLane] ?? ""
-                      }
-                      onChange={(event) => {
-                        const nextValue = event.target.value || null;
-                        if (selectedLane === "SOL") {
-                          setSelectedSolNoteId(nextValue);
-                        } else {
-                          setSelectedShieldNoteIds((current) => ({
-                            ...current,
-                            [selectedLane]: nextValue,
-                          }));
-                        }
-                        setStatus("idle");
-                        setFlowError(null);
-                      }}
-                      disabled={
-                        selectedLane === "SOL"
-                          ? spendableSolNotes.length === 0
-                          : spendableShieldNotesByLane[selectedLane].length === 0
-                      }
-                    >
-                      {(selectedLane === "SOL"
-                        ? spendableSolNotes
-                        : spendableShieldNotesByLane[selectedLane]).length === 0 ? (
-                        <option value="">
-                          {selectedLane === "SOL"
-                            ? "No shielded SOL notes"
-                            : `No spendable ${selectedLane} notes`}
-                        </option>
-                      ) : selectedLane !== "SOL" ? (
-                        spendableShieldNotesByLane[selectedLane].map((note) => (
-                          <option key={note.noteId} value={note.noteId}>
-                            {formatUnshieldNoteOption({
-                              amount: note.amount,
-                              asset: selectedLane,
-                              primaryLabel:
-                                note.origin === "change"
-                                  ? "Change note"
-                                  : note.origin === "recipient_self"
-                                    ? "Private send note"
-                                  : note.origin === "swap_output"
-                                    ? "Swap output note"
-                                    : "Deposit note",
-                            })}
-                          </option>
-                        ))
-                      ) : (
-                        spendableSolNotes.map((note) => (
-                          <option key={note.noteId} value={note.noteId}>
-                            {formatUnshieldNoteOption({
-                              amount: note.amount,
-                              asset: "SOL",
-                              primaryLabel: "Swap output note",
-                              secondaryLabel: note.sourceSwapNoteId ? "Recovered from swap" : undefined,
-                            })}
-                          </option>
-                        ))
-                      )}
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <div className="swap-module__field">
-                <div className="swap-module__label-row">
                   <span>Amount</span>
                   <div className="send-balance-line shield-helper shield-helper--meta">
-                    Max: {formatUnshieldAmount(selectedFullAmount, selectedLane)}
+                    Destination: {walletAddressShort ?? "Connect wallet"}
                   </div>
                 </div>
                 <div className="send-entry-grid">
@@ -2383,7 +2245,7 @@ export function UnshieldPage() {
               <p>
                 {requiresExactSplit
                   ? "Approve the private split so Vanta can isolate the exact VUSD amount first."
-                  : "Approve the constrained unshield transition for the selected note."}
+                  : "Approve the constrained unshield transition to return the selected asset."}
               </p>
               <div className="status-bar">
                 <div className="status-bar__fill" />
@@ -2404,7 +2266,7 @@ export function UnshieldPage() {
           {status === "recording_transition" && (
             <div className="status-panel status-panel--processing">
               <span>Recording unshield transition</span>
-              <p>Submitting the selected Vanta unshield transition on devnet.</p>
+              <p>Submitting the Vanta unshield transition on devnet.</p>
               {transitionProgressLabel && (
                 <p className="shield-helper shield-helper--meta">{transitionProgressLabel}</p>
               )}
@@ -2429,7 +2291,7 @@ export function UnshieldPage() {
               <span>Authorizing operator release</span>
               <p>
                 Sending the wallet-authenticated {selectedLane} unshield intent to the
-                constrained operator so it can verify and release the selected note.
+                constrained operator so it can verify and release the selected asset.
               </p>
               <div className="status-bar">
                 <div className="status-bar__fill" />
