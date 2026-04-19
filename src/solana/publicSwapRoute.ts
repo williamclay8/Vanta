@@ -8,9 +8,9 @@ import {
 } from "@solana/web3.js";
 import { endpoint } from "@/solana/client";
 import {
+  ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS,
   getLiveShieldTokenAsset,
   listLiveShieldTokenAssets,
-  liveShieldAsset,
   liveSwapPair,
   type LiveShieldTokenAssetConfig,
   type LiveShieldTokenAssetKey,
@@ -61,7 +61,6 @@ export type PublicToVusdQuote = {
   jupiterQuoteResponse?: JupiterQuoteResponse;
 };
 
-const DEFAULT_VUSD_DECIMALS = 6;
 const DEFAULT_ALLOWED_SLIPPAGE_BPS = 50;
 const DEFAULT_SOL_DECIMALS = 9;
 const JUPITER_QUOTE_URL = "https://api.jup.ag/swap/v1/quote";
@@ -122,16 +121,12 @@ function toAtomicAmount(value: string, decimals: number) {
   return new BN(`${wholePart}${scaledFraction}`.replace(/^0+(?=\d)/, "") || "0");
 }
 
-function isCanonicalVusdAsset(asset: WalletPublicAsset) {
-  return Boolean(liveShieldAsset.mintAddress) && asset.mintAddress === liveShieldAsset.mintAddress;
-}
-
 function getShieldRouteAsset(asset: ShieldedSwapAssetKey): LiveShieldTokenAssetConfig {
   return getLiveShieldTokenAsset(asset === "SOL" ? "VUSD" : asset);
 }
 
 function getShieldRouteDecimals(asset: LiveShieldTokenAssetKey) {
-  return asset === "USDC" ? 6 : DEFAULT_VUSD_DECIMALS;
+  return getLiveShieldTokenAsset(asset).decimals;
 }
 
 function toInstructionInput(instruction: TransactionInstruction): TransactionInstructionInput {
@@ -192,11 +187,16 @@ export function listExecutableShieldedAssets() {
 }
 
 export function formatAssetAmount(value: number, symbol: string) {
-  const decimals = symbol === "SOL" ? 4 : 2;
+  const isKnownShieldToken = (ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS as readonly string[]).includes(symbol);
+  const tokenDecimals =
+    symbol === "SOL" || !isKnownShieldToken
+      ? null
+      : getLiveShieldTokenAsset(symbol as LiveShieldTokenAssetKey).decimals;
+  const decimals = symbol === "SOL" ? 4 : tokenDecimals ? Math.min(tokenDecimals, 4) : 2;
 
   return `${value.toLocaleString(undefined, {
     minimumFractionDigits: decimals,
-    maximumFractionDigits: symbol === "SOL" ? 6 : 2,
+    maximumFractionDigits: symbol === "SOL" ? 6 : tokenDecimals ? Math.min(tokenDecimals, 6) : 2,
   })} ${symbol}`;
 }
 
@@ -334,8 +334,7 @@ export async function buildPublicToVusdSwapInstructions(args: {
     }
 
     const pool = await getDlmmPool();
-    const inputDecimals =
-      args.quote.inputAssetSymbol === "SOL" ? DEFAULT_SOL_DECIMALS : DEFAULT_VUSD_DECIMALS;
+    const inputDecimals = DEFAULT_SOL_DECIMALS;
     const outputDecimals = getShieldRouteDecimals(args.quote.outputAsset);
     const user = new PublicKey(args.userPublicKey);
     const transaction = await pool.swap({

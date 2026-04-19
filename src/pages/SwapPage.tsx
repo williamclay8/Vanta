@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   useSendTransaction,
   useSolanaClient,
-  useSplToken,
   useWalletSession,
 } from "@solana/react-hooks";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
@@ -19,9 +18,7 @@ import { createSwapIntentPayload, signSwapIntent } from "@/solana/swapAuth";
 import {
   getLiveShieldTokenAsset,
   liveShieldAsset,
-  liveUsdcShieldAsset,
   liveSwapPair,
-  SHIELD_HOOK_FALLBACK_MINT,
   type LiveShieldTokenAssetKey,
 } from "@/solana/shieldConfig";
 import {
@@ -42,6 +39,7 @@ import {
 } from "@/solana/vantaShieldState";
 import { useWalletState } from "@/data/context/WalletContext";
 import { useWalletPublicAssets, type WalletPublicAsset } from "@/solana/useWalletPublicAssets";
+import { useVantaShieldAssetRegistryState } from "@/solana/useVantaShieldAssetRegistryState";
 import { recordCanonicalShieldFromLiveShield } from "@/zk/liveShieldBridge";
 import { recordCanonicalSwapFromLiveSwap } from "@/zk/liveSwapBridge";
 
@@ -148,18 +146,7 @@ export function SwapPage() {
     isRefreshing: shieldStateRefreshing,
     refresh: refreshShieldState,
   } = useVantaShieldState();
-  const supportedVusdToken = useSplToken(
-    liveShieldAsset.mintAddress ?? SHIELD_HOOK_FALLBACK_MINT,
-    {
-      config: { tokenProgram: "auto" },
-    },
-  );
-  const supportedUsdcToken = useSplToken(
-    liveUsdcShieldAsset.mintAddress ?? SHIELD_HOOK_FALLBACK_MINT,
-    {
-      config: { tokenProgram: "auto" },
-    },
-  );
+  const shieldRegistry = useVantaShieldAssetRegistryState();
   const executableShieldedAssets = useMemo(() => listExecutableShieldedAssets(), []);
   const [amount, setAmount] = useState("");
   const [selectedSourceAssetId, setSelectedSourceAssetId] = useState<string>("native:SOL");
@@ -210,20 +197,6 @@ export function SwapPage() {
     commitment: "confirmed",
     disabled: !swapTransaction.signature,
   });
-  const implicitShieldVusdTransferWait = useRealtimeSignatureProgress(
-    supportedVusdToken.sendSignature ?? undefined,
-    {
-      commitment: "confirmed",
-      disabled: !supportedVusdToken.sendSignature,
-    },
-  );
-  const implicitShieldUsdcTransferWait = useRealtimeSignatureProgress(
-    supportedUsdcToken.sendSignature ?? undefined,
-    {
-      commitment: "confirmed",
-      disabled: !supportedUsdcToken.sendSignature,
-    },
-  );
   const implicitShieldStateWait = useRealtimeSignatureProgress(
     implicitShieldStateTransaction.signature ?? undefined,
     {
@@ -292,19 +265,23 @@ export function SwapPage() {
   const selectedShieldAssetKey: LiveShieldTokenAssetKey =
     selectedTargetAsset === "SOL" ? "VUSD" : selectedTargetAsset;
   const selectedShieldAsset = getLiveShieldTokenAsset(selectedShieldAssetKey);
-  const selectedShieldToken =
-    selectedShieldAssetKey === "USDC" ? supportedUsdcToken : supportedVusdToken;
-  const pendingShieldToken =
-    pendingImplicitShieldSwap?.shieldAssetKey === "USDC" ? supportedUsdcToken : supportedVusdToken;
+  const selectedShieldToken = shieldRegistry.byAssetKey[selectedShieldAssetKey].token;
+  const pendingShieldToken = pendingImplicitShieldSwap
+    ? shieldRegistry.byAssetKey[pendingImplicitShieldSwap.shieldAssetKey].token
+    : selectedShieldToken;
   const pendingShieldAsset = pendingImplicitShieldSwap
     ? getLiveShieldTokenAsset(pendingImplicitShieldSwap.shieldAssetKey)
     : selectedShieldAsset;
-  const pendingPublicRouteShieldToken =
-    pendingPublicRoute?.shieldAssetKey === "USDC" ? supportedUsdcToken : supportedVusdToken;
-  const implicitShieldTransferWait =
-    pendingImplicitShieldSwap?.shieldAssetKey === "USDC"
-      ? implicitShieldUsdcTransferWait
-      : implicitShieldVusdTransferWait;
+  const pendingPublicRouteShieldToken = pendingPublicRoute
+    ? shieldRegistry.byAssetKey[pendingPublicRoute.shieldAssetKey].token
+    : selectedShieldToken;
+  const implicitShieldTransferWait = useRealtimeSignatureProgress(
+    pendingShieldToken.sendSignature ?? undefined,
+    {
+      commitment: "confirmed",
+      disabled: !pendingShieldToken.sendSignature,
+    },
+  );
   const sourceBalance = selectedSourceAsset?.balance ?? 0;
   const exactSpendableNote = useMemo(() => {
     if (
@@ -1280,14 +1257,15 @@ export function SwapPage() {
   }) {
     const nextShieldAsset = getLiveShieldTokenAsset(args.shieldAssetKey);
     const nextShieldToken =
-      args.shieldAssetKey === "USDC" ? supportedUsdcToken : supportedVusdToken;
+      shieldRegistry.byAssetKey[args.shieldAssetKey].token;
 
     if (!nextShieldAsset.vaultOwner) {
       throw new Error("Vanta shield vault is not configured.");
     }
 
-    supportedVusdToken.resetSend();
-    supportedUsdcToken.resetSend();
+    Object.values(shieldRegistry.byAssetKey).forEach((entry) => {
+      entry.token.resetSend();
+    });
     implicitShieldStateTransaction.reset();
     swapTransaction.reset();
     spentMarkerTransaction.reset();

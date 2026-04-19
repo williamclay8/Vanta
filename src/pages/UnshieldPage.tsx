@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   useSendTransaction,
-  useSplToken,
   useWalletSession,
 } from "@solana/react-hooks";
 import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePanel";
@@ -18,11 +17,9 @@ import {
 } from "@/solana/solUnshieldAuth";
 import { requestOperatorSolUnshield } from "@/solana/solUnshieldOperatorClient";
 import {
+  ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS,
   getLiveShieldTokenAsset,
-  liveShieldAsset,
   liveSwapPair,
-  liveUsdcShieldAsset,
-  SHIELD_HOOK_FALLBACK_MINT,
   type LiveShieldTokenAssetKey,
 } from "@/solana/shieldConfig";
 import {
@@ -30,8 +27,7 @@ import {
   signUnshieldIntent,
 } from "@/solana/unshieldAuth";
 import { requestOperatorUnshield } from "@/solana/unshieldOperatorClient";
-import { useVantaShieldAssetState } from "@/solana/useVantaShieldAssetState";
-import { useVantaShieldState } from "@/solana/useVantaShieldState";
+import { useVantaShieldAssetRegistryState } from "@/solana/useVantaShieldAssetRegistryState";
 import {
   createPreparedSolUnshieldMemo,
   createPreparedUnshieldMemo,
@@ -85,9 +81,10 @@ type PendingUnshieldBridge = {
 };
 
 function formatShieldTokenAmount(value: number, asset: LiveShieldTokenAssetKey) {
+  const decimals = Math.min(getLiveShieldTokenAsset(asset).decimals, 6);
   return `${value.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: Math.min(decimals, 2),
+    maximumFractionDigits: decimals,
   })} ${asset}`;
 }
 
@@ -340,32 +337,17 @@ export function UnshieldPage() {
   } = usePrivacyFlow();
   const { walletAddress, walletAddressShort, walletConnected } = useWalletState();
   const walletSession = useWalletSession();
-  const {
-    account: vusdShieldAccount,
-    error: vusdShieldStateError,
-    isRefreshing: vusdShieldStateRefreshing,
-    refresh: refreshVusdShieldState,
-  } = useVantaShieldState();
-  const {
-    account: usdcShieldAccount,
-    error: usdcShieldStateError,
-    isRefreshing: usdcShieldStateRefreshing,
-    refresh: refreshUsdcShieldState,
-  } = useVantaShieldAssetState({
-    mintAddress: liveUsdcShieldAsset.mintAddress,
-    vaultOwner: liveUsdcShieldAsset.vaultOwner,
-  });
-  const supportedVusdToken = useSplToken(
-    liveShieldAsset.mintAddress ?? SHIELD_HOOK_FALLBACK_MINT,
-    { config: { tokenProgram: "auto" } },
-  );
-  const supportedUsdcToken = useSplToken(
-    liveUsdcShieldAsset.mintAddress ?? SHIELD_HOOK_FALLBACK_MINT,
-    { config: { tokenProgram: "auto" } },
-  );
+  const shieldRegistry = useVantaShieldAssetRegistryState();
+  const vusdShieldEntry = shieldRegistry.byAssetKey.VUSD;
   const [selectedLane, setSelectedLane] = useState<UnshieldLane>("VUSD");
-  const [selectedVusdNoteId, setSelectedVusdNoteId] = useState<string | null>(null);
-  const [selectedUsdcNoteId, setSelectedUsdcNoteId] = useState<string | null>(null);
+  const [selectedShieldNoteIds, setSelectedShieldNoteIds] = useState<
+    Record<LiveShieldTokenAssetKey, string | null>
+  >({
+    BONK: null,
+    JTO: null,
+    USDC: null,
+    VUSD: null,
+  });
   const [selectedSolNoteId, setSelectedSolNoteId] = useState<string | null>(null);
   const [status, setStatus] = useState<UnshieldStatus>("idle");
   const [flowError, setFlowError] = useState<string | null>(null);
@@ -405,37 +387,44 @@ export function UnshieldPage() {
     },
   );
 
-  const spendableVusdNotes = vusdShieldAccount?.spendableShieldNotes ?? [];
-  const spendableUsdcNotes = usdcShieldAccount?.spendableShieldNotes ?? [];
-  const spendableSolNotes = vusdShieldAccount?.spendableShieldedSolNotes ?? [];
+  const spendableShieldNotesByLane = useMemo(
+    () =>
+      Object.fromEntries(
+        ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS.map((assetKey) => [
+          assetKey,
+          shieldRegistry.byAssetKey[assetKey].account?.spendableShieldNotes ?? [],
+        ]),
+      ) as Record<LiveShieldTokenAssetKey, NonNullable<typeof vusdShieldEntry.account>["spendableShieldNotes"]>,
+    [shieldRegistry.byAssetKey, vusdShieldEntry.account],
+  );
+  const spendableSolNotes = vusdShieldEntry.account?.spendableShieldedSolNotes ?? [];
 
   useEffect(() => {
-    if (!spendableVusdNotes.length) {
-      setSelectedVusdNoteId(null);
-      return;
-    }
+    setSelectedShieldNoteIds((current) => {
+      let changed = false;
+      const next = { ...current };
 
-    if (
-      !selectedVusdNoteId ||
-      !spendableVusdNotes.some((note) => note.noteId === selectedVusdNoteId)
-    ) {
-      setSelectedVusdNoteId(spendableVusdNotes[0].noteId);
-    }
-  }, [selectedVusdNoteId, spendableVusdNotes]);
+      for (const assetKey of ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS) {
+        const notes = spendableShieldNotesByLane[assetKey];
+        const currentValue = current[assetKey];
 
-  useEffect(() => {
-    if (!spendableUsdcNotes.length) {
-      setSelectedUsdcNoteId(null);
-      return;
-    }
+        if (!notes.length) {
+          if (currentValue !== null) {
+            next[assetKey] = null;
+            changed = true;
+          }
+          continue;
+        }
 
-    if (
-      !selectedUsdcNoteId ||
-      !spendableUsdcNotes.some((note) => note.noteId === selectedUsdcNoteId)
-    ) {
-      setSelectedUsdcNoteId(spendableUsdcNotes[0].noteId);
-    }
-  }, [selectedUsdcNoteId, spendableUsdcNotes]);
+        if (!currentValue || !notes.some((note) => note.noteId === currentValue)) {
+          next[assetKey] = notes[0].noteId;
+          changed = true;
+        }
+      }
+
+      return changed ? next : current;
+    });
+  }, [spendableShieldNotesByLane]);
 
   useEffect(() => {
     if (!spendableSolNotes.length) {
@@ -453,8 +442,9 @@ export function UnshieldPage() {
 
   useEffect(() => {
     const availableLanes = [
-      spendableVusdNotes.length > 0 ? "VUSD" : null,
-      spendableUsdcNotes.length > 0 ? "USDC" : null,
+      ...ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS.map((assetKey) =>
+        spendableShieldNotesByLane[assetKey].length > 0 ? assetKey : null,
+      ),
       spendableSolNotes.length > 0 ? "SOL" : null,
     ].filter(Boolean) as UnshieldLane[];
 
@@ -467,35 +457,22 @@ export function UnshieldPage() {
     }
   }, [
     selectedLane,
+    spendableShieldNotesByLane,
     spendableSolNotes.length,
-    spendableUsdcNotes.length,
-    spendableVusdNotes.length,
   ]);
-
-  const selectedVusdNote = useMemo(() => {
-    return spendableVusdNotes.find((note) => note.noteId === selectedVusdNoteId) ?? null;
-  }, [selectedVusdNoteId, spendableVusdNotes]);
-  const selectedUsdcNote = useMemo(() => {
-    return spendableUsdcNotes.find((note) => note.noteId === selectedUsdcNoteId) ?? null;
-  }, [selectedUsdcNoteId, spendableUsdcNotes]);
   const selectedSolNote = useMemo(() => {
     return spendableSolNotes.find((note) => note.noteId === selectedSolNoteId) ?? null;
   }, [selectedSolNoteId, spendableSolNotes]);
 
-  const selectedShieldAsset =
-    selectedLane === "SOL" ? null : getLiveShieldTokenAsset(selectedLane);
-  const selectedShieldAccount =
-    selectedLane === "VUSD"
-      ? vusdShieldAccount
-      : selectedLane === "USDC"
-        ? usdcShieldAccount
-        : null;
+  const selectedShieldAsset = selectedLane === "SOL" ? null : getLiveShieldTokenAsset(selectedLane);
+  const selectedShieldEntry = selectedLane === "SOL" ? null : shieldRegistry.byAssetKey[selectedLane];
+  const selectedShieldAccount = selectedShieldEntry?.account ?? null;
   const selectedShieldNote =
-    selectedLane === "VUSD"
-      ? selectedVusdNote
-      : selectedLane === "USDC"
-        ? selectedUsdcNote
-        : null;
+    selectedLane === "SOL"
+      ? null
+      : spendableShieldNotesByLane[selectedLane].find(
+          (note) => note.noteId === selectedShieldNoteIds[selectedLane],
+        ) ?? null;
   const selectedAmount =
     selectedLane === "SOL"
       ? selectedSolNote?.amount ?? 0
@@ -614,7 +591,7 @@ export function UnshieldPage() {
     Boolean(walletAddress) &&
     Boolean(walletSession?.signMessage) &&
     canUseLane &&
-    Boolean(liveShieldAsset.vaultOwner) &&
+    Boolean(vusdShieldEntry.asset.vaultOwner) &&
     (selectedLane === "SOL"
       ? Boolean(liveSwapPair.solUnshieldOperatorUrl)
       : Boolean(selectedShieldAsset?.mintAddress) && Boolean(selectedShieldAsset?.unshieldConfigured));
@@ -855,12 +832,10 @@ export function UnshieldPage() {
       return;
     }
 
-    const refreshTasks = [
-      refreshVusdShieldState(),
-      refreshUsdcShieldState(),
-      supportedVusdToken.refresh(),
-      supportedUsdcToken.refresh(),
-    ];
+    const refreshTasks = shieldRegistry.configuredEntries.flatMap((entry) => [
+      entry.refresh(),
+      entry.token.refresh(),
+    ]);
 
     void Promise.all(refreshTasks)
       .then(async () => {
@@ -922,12 +897,9 @@ export function UnshieldPage() {
     lastCompletion?.requestId,
     operatorReleaseSignature,
     pendingUnshieldBridge,
-    refreshUsdcShieldState,
-    refreshVusdShieldState,
+    shieldRegistry.configuredEntries,
     spentMarkerTransaction.signature,
     spentMarkerWait.waitStatus,
-    supportedUsdcToken,
-    supportedVusdToken,
     transitionTransaction.signature,
   ]);
 
@@ -944,9 +916,9 @@ export function UnshieldPage() {
   }, [spentMarkerTransaction.signature]);
 
   async function handleUnshield() {
-    const activeShieldAccount = selectedLane === "SOL" ? vusdShieldAccount : selectedShieldAccount;
+    const activeShieldAccount = selectedLane === "SOL" ? vusdShieldEntry.account : selectedShieldAccount;
 
-    if (!activeShieldAccount || !liveShieldAsset.vaultOwner) {
+    if (!activeShieldAccount || !vusdShieldEntry.asset.vaultOwner) {
       return;
     }
 
@@ -1111,22 +1083,19 @@ export function UnshieldPage() {
   if (!walletConnected) {
     validationMessage = "Connect a wallet to use Public Wallet as the exit destination.";
   } else if (
-    vusdShieldStateRefreshing ||
-    usdcShieldStateRefreshing ||
-    supportedVusdToken.isFetching ||
-    supportedUsdcToken.isFetching
+    shieldRegistry.configuredEntries.some(
+      (entry) => entry.isRefreshing || entry.token.isFetching,
+    )
   ) {
     validationMessage = "Refreshing wallet and Vanta state from devnet.";
-  } else if ((selectedLane === "VUSD" && vusdShieldStateError) || (selectedLane === "SOL" && vusdShieldStateError)) {
-    validationMessage = vusdShieldStateError;
-  } else if (selectedLane === "USDC" && usdcShieldStateError) {
-    validationMessage = usdcShieldStateError;
+  } else if (selectedLane === "SOL" && vusdShieldEntry.error) {
+    validationMessage = vusdShieldEntry.error;
+  } else if (selectedLane !== "SOL" && selectedShieldEntry?.error) {
+    validationMessage = selectedShieldEntry.error;
   } else if (!walletSession?.signMessage) {
     validationMessage = "The connected wallet must support message signing to authorize Unshield.";
-  } else if (selectedLane === "VUSD" && !selectedVusdNote) {
-    validationMessage = "No spendable VUSD note is currently available for unshield.";
-  } else if (selectedLane === "USDC" && !selectedUsdcNote) {
-    validationMessage = "No spendable USDC note is currently available for unshield.";
+  } else if (selectedLane !== "SOL" && !selectedShieldNote) {
+    validationMessage = `No spendable ${selectedLane} note is currently available for unshield.`;
   } else if (selectedLane === "SOL" && !selectedSolNote) {
     validationMessage = "No shielded SOL note is currently available for the SOL exit lane.";
   }
@@ -1810,7 +1779,10 @@ export function UnshieldPage() {
                   </div>
                 </div>
                 <div className="swap-choice-row" role="group" aria-label="Unshield asset">
-                  {(["VUSD", "USDC", "SOL"] as UnshieldLane[]).map((lane) => (
+                  {([
+                    ...shieldRegistry.configuredEntries.map((entry) => entry.asset.assetKey),
+                    "SOL",
+                  ] as UnshieldLane[]).map((lane) => (
                     <button
                       key={lane}
                       className={
@@ -1846,60 +1818,43 @@ export function UnshieldPage() {
                     <select
                       aria-label="Eligible note"
                       value={
-                        selectedLane === "VUSD"
-                          ? selectedVusdNoteId ?? ""
-                          : selectedLane === "USDC"
-                            ? selectedUsdcNoteId ?? ""
-                            : selectedSolNoteId ?? ""
+                        selectedLane === "SOL"
+                          ? selectedSolNoteId ?? ""
+                          : selectedShieldNoteIds[selectedLane] ?? ""
                       }
                       onChange={(event) => {
                         const nextValue = event.target.value || null;
-                        if (selectedLane === "VUSD") {
-                          setSelectedVusdNoteId(nextValue);
-                        } else if (selectedLane === "USDC") {
-                          setSelectedUsdcNoteId(nextValue);
-                        } else {
+                        if (selectedLane === "SOL") {
                           setSelectedSolNoteId(nextValue);
+                        } else {
+                          setSelectedShieldNoteIds((current) => ({
+                            ...current,
+                            [selectedLane]: nextValue,
+                          }));
                         }
                         setStatus("idle");
                         setFlowError(null);
                       }}
                       disabled={
-                        selectedLane === "VUSD"
-                          ? spendableVusdNotes.length === 0
-                          : selectedLane === "USDC"
-                            ? spendableUsdcNotes.length === 0
-                            : spendableSolNotes.length === 0
+                        selectedLane === "SOL"
+                          ? spendableSolNotes.length === 0
+                          : spendableShieldNotesByLane[selectedLane].length === 0
                       }
                     >
-                      {(selectedLane === "VUSD"
-                        ? spendableVusdNotes
-                        : selectedLane === "USDC"
-                          ? spendableUsdcNotes
-                          : spendableSolNotes).length === 0 ? (
+                      {(selectedLane === "SOL"
+                        ? spendableSolNotes
+                        : spendableShieldNotesByLane[selectedLane]).length === 0 ? (
                         <option value="">
-                          {selectedLane === "VUSD"
-                            ? "No spendable VUSD notes"
-                            : selectedLane === "USDC"
-                              ? "No spendable USDC notes"
-                              : "No shielded SOL notes"}
+                          {selectedLane === "SOL"
+                            ? "No shielded SOL notes"
+                            : `No spendable ${selectedLane} notes`}
                         </option>
-                      ) : selectedLane === "VUSD" ? (
-                        spendableVusdNotes.map((note) => (
+                      ) : selectedLane !== "SOL" ? (
+                        spendableShieldNotesByLane[selectedLane].map((note) => (
                           <option key={note.noteId} value={note.noteId}>
                             {formatUnshieldNoteOption({
                               amount: note.amount,
-                              asset: "VUSD",
-                              primaryLabel: note.origin === "change" ? "Change note" : "Deposit note",
-                            })}
-                          </option>
-                        ))
-                      ) : selectedLane === "USDC" ? (
-                        spendableUsdcNotes.map((note) => (
-                          <option key={note.noteId} value={note.noteId}>
-                            {formatUnshieldNoteOption({
-                              amount: note.amount,
-                              asset: "USDC",
+                              asset: selectedLane,
                               primaryLabel: note.origin === "change" ? "Change note" : "Deposit note",
                             })}
                           </option>

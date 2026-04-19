@@ -11,65 +11,76 @@ const outputPath = resolve(
 );
 const fixtureMode = process.argv[2] ?? "valid";
 
-if (fixtureMode !== "valid" && fixtureMode !== "invalid-direction") {
-  console.error(
-    'Expected fixture mode "valid" or "invalid-direction". Example: node scripts/write-vanta-private-core-swap-fixture.mjs invalid-direction',
-  );
-  process.exit(1);
+async function main() {
+  if (fixtureMode !== "valid" && fixtureMode !== "invalid-direction") {
+    throw new Error(
+      'Expected fixture mode "valid" or "invalid-direction". Example: node scripts/write-vanta-private-core-swap-fixture.mjs invalid-direction',
+    );
+  }
+
+  mkdirSync(resolve(repoRoot, ".tmp"), { recursive: true });
+  const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-private-core-swap-fixture-"));
+  const tempTsDir = join(tempRoot, "ts");
+  const tempJsDir = join(tempRoot, "js");
+
+  try {
+    const privateCoreSourcePath = resolve(repoRoot, "src/zk/vantaPrivateCore.ts");
+    const swapProofSourcePath = resolve(repoRoot, "src/zk/vantaPrivateCoreSwapProof.ts");
+    const privateCoreSource = readFileSync(privateCoreSourcePath, "utf8");
+    const swapProofSource = readFileSync(swapProofSourcePath, "utf8").replace(
+      /from "@\/zk\/vantaPrivateCore"/g,
+      'from "./vantaPrivateCore.js"',
+    );
+
+    mkdirSync(tempTsDir, { recursive: true });
+    writeFileSync(join(tempTsDir, "vantaPrivateCore.ts"), privateCoreSource);
+    writeFileSync(join(tempTsDir, "vantaPrivateCoreSwapProof.ts"), swapProofSource);
+
+    execFileSync(
+      resolve(repoRoot, "node_modules/.bin/tsc"),
+      [
+        join(tempTsDir, "vantaPrivateCore.ts"),
+        join(tempTsDir, "vantaPrivateCoreSwapProof.ts"),
+        "--target",
+        "ES2022",
+        "--module",
+        "ESNext",
+        "--moduleResolution",
+        "Bundler",
+        "--lib",
+        "ES2022,DOM",
+        "--skipLibCheck",
+        "--outDir",
+        tempJsDir,
+      ],
+      { cwd: repoRoot, stdio: "pipe" },
+    );
+
+    const compiledPath = join(tempJsDir, "vantaPrivateCoreSwapProof.js");
+    const compiledModule = await import(pathToFileURL(compiledPath).href);
+    const fixture = compiledModule.getVantaPrivateCoreFixedDepthSwapFixtureV0();
+    const witnessPackage =
+      fixtureMode === "invalid-direction"
+        ? fixture.invalidDirectionWitnessPackage
+        : fixture.validBoundary.noirWitnessPackage;
+    const toml = compiledModule.serializeVantaPrivateCoreNoirSwapWitnessPackageToToml(
+      witnessPackage,
+    );
+
+    mkdirSync(dirname(outputPath), { recursive: true });
+    writeFileSync(outputPath, `${toml}\n`);
+    console.log(`Wrote ${fixtureMode} fixture to ${outputPath}`);
+  } finally {
+    rmSync(tempRoot, { recursive: true, force: true });
+  }
 }
 
-mkdirSync(resolve(repoRoot, ".tmp"), { recursive: true });
-const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-private-core-swap-fixture-"));
-const tempTsDir = join(tempRoot, "ts");
-const tempJsDir = join(tempRoot, "js");
-
 try {
-  const privateCoreSourcePath = resolve(repoRoot, "src/zk/vantaPrivateCore.ts");
-  const swapProofSourcePath = resolve(repoRoot, "src/zk/vantaPrivateCoreSwapProof.ts");
-  const privateCoreSource = readFileSync(privateCoreSourcePath, "utf8");
-  const swapProofSource = readFileSync(swapProofSourcePath, "utf8").replace(
-    /from "@\/zk\/vantaPrivateCore"/g,
-    'from "./vantaPrivateCore.js"',
-  );
-
-  mkdirSync(tempTsDir, { recursive: true });
-  writeFileSync(join(tempTsDir, "vantaPrivateCore.ts"), privateCoreSource);
-  writeFileSync(join(tempTsDir, "vantaPrivateCoreSwapProof.ts"), swapProofSource);
-
-  execFileSync(
-    resolve(repoRoot, "node_modules/.bin/tsc"),
-    [
-      join(tempTsDir, "vantaPrivateCore.ts"),
-      join(tempTsDir, "vantaPrivateCoreSwapProof.ts"),
-      "--target",
-      "ES2022",
-      "--module",
-      "ESNext",
-      "--moduleResolution",
-      "Bundler",
-      "--lib",
-      "ES2022,DOM",
-      "--skipLibCheck",
-      "--outDir",
-      tempJsDir,
-    ],
-    { cwd: repoRoot, stdio: "pipe" },
-  );
-
-  const compiledPath = join(tempJsDir, "vantaPrivateCoreSwapProof.js");
-  const compiledModule = await import(pathToFileURL(compiledPath).href);
-  const fixture = compiledModule.getVantaPrivateCoreFixedDepthSwapFixtureV0();
-  const witnessPackage =
-    fixtureMode === "invalid-direction"
-      ? fixture.invalidDirectionWitnessPackage
-      : fixture.validBoundary.noirWitnessPackage;
-  const toml = compiledModule.serializeVantaPrivateCoreNoirSwapWitnessPackageToToml(
-    witnessPackage,
-  );
-
-  mkdirSync(dirname(outputPath), { recursive: true });
-  writeFileSync(outputPath, `${toml}\n`);
-  console.log(`Wrote ${fixtureMode} fixture to ${outputPath}`);
+  await main();
+} catch (error) {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error(message);
+  process.exitCode = 1;
 } finally {
-  rmSync(tempRoot, { recursive: true, force: true });
+  setImmediate(() => process.exit(process.exitCode ?? 0));
 }

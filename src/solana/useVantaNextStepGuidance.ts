@@ -1,7 +1,8 @@
 import { useMemo } from "react";
 import { useLocation } from "react-router-dom";
+import { getPrimaryLiveShieldTokenAsset } from "@/solana/shieldConfig";
+import { useVantaShieldAssetRegistryState } from "@/solana/useVantaShieldAssetRegistryState";
 import { useVantaPositionSummary } from "@/solana/useVantaPositionSummary";
-import { useVantaShieldState } from "@/solana/useVantaShieldState";
 
 export type VantaNextStepGuidance = {
   ctaHref: string | null;
@@ -13,7 +14,9 @@ export type VantaNextStepGuidance = {
 export function useVantaNextStepGuidance(): VantaNextStepGuidance {
   const location = useLocation();
   const summary = useVantaPositionSummary();
-  const { account } = useVantaShieldState();
+  const shieldRegistry = useVantaShieldAssetRegistryState();
+  const primaryAsset = getPrimaryLiveShieldTokenAsset();
+  const account = shieldRegistry.byAssetKey[primaryAsset.assetKey].account;
 
   return useMemo(() => {
     const latestActivity = account?.lifecycleActivities[0] ?? null;
@@ -27,7 +30,7 @@ export function useVantaNextStepGuidance(): VantaNextStepGuidance {
         ctaHref: null,
         ctaLabel: null,
         emphasisLabel: "Wallet connection required",
-        message: "Connect a wallet to begin the live constrained VUSD lifecycle.",
+        message: `Connect a wallet to begin the live constrained ${summary.liveAsset} lifecycle.`,
       };
     }
 
@@ -35,8 +38,8 @@ export function useVantaNextStepGuidance(): VantaNextStepGuidance {
       return {
         ctaHref: isShieldPage ? null : "/app/shield",
         ctaLabel: isShieldPage ? null : "Open Shield",
-        emphasisLabel: "Shield VUSD to begin",
-        message: "Public VUSD is available. Shield it into Vanta to create the first spendable note.",
+        emphasisLabel: `Shield ${summary.liveAsset} to begin`,
+        message: `Public ${summary.liveAsset} is available. Shield it into Vanta to create the first spendable note.`,
       };
     }
 
@@ -45,7 +48,7 @@ export function useVantaNextStepGuidance(): VantaNextStepGuidance {
         ctaHref: isSwapPage ? "/app/send" : "/app/swap",
         ctaLabel: isSwapPage ? "Open Send" : "Open Swap",
         emphasisLabel: "Spendable note ready",
-        message: "Shielded VUSD is available from the latest Shield action and can continue into Send, Swap, or Unshield.",
+        message: `Shielded ${summary.liveAsset} is available from the latest Shield action and can continue into Send, Swap, or Unshield.`,
       };
     }
 
@@ -81,7 +84,7 @@ export function useVantaNextStepGuidance(): VantaNextStepGuidance {
         ctaHref: isSwapPage ? "/app/unshield" : "/app/swap",
         ctaLabel: isSwapPage ? "Open Unshield" : "Open Swap",
         emphasisLabel: "Next constrained action available",
-        message: "Spendable VUSD is live in shielded state and can continue through Send, Swap, or Unshield.",
+        message: `Spendable ${summary.liveAsset} is live in shielded state and can continue through Send, Swap, or Unshield.`,
       };
     }
 
@@ -90,7 +93,7 @@ export function useVantaNextStepGuidance(): VantaNextStepGuidance {
         ctaHref: isShieldPage ? null : "/app/shield",
         ctaLabel: isShieldPage ? null : "Shield again",
         emphasisLabel: "Public wallet restored",
-        message: "VUSD has returned to Public Wallet. Shield can restart the constrained lifecycle when needed.",
+        message: `${summary.liveAsset} has returned to Public Wallet. Shield can restart the constrained lifecycle when needed.`,
       };
     }
 
@@ -99,15 +102,15 @@ export function useVantaNextStepGuidance(): VantaNextStepGuidance {
         ctaHref: isUnshieldPage ? null : "/app/unshield",
         ctaLabel: isUnshieldPage ? null : "Open Unshield",
         emphasisLabel: "Shielded state present",
-        message: "Shielded VUSD is present, but there is no currently spendable note to move forward from this state.",
+        message: `Shielded ${summary.liveAsset} is present, but there is no currently spendable note to move forward from this state.`,
       };
     }
 
     return {
       ctaHref: isShieldPage ? null : "/app/shield",
       ctaLabel: isShieldPage ? null : "Open Shield",
-      emphasisLabel: "Awaiting live VUSD",
-      message: "No constrained VUSD action is available yet. Public Wallet needs live VUSD to begin the loop.",
+      emphasisLabel: `Awaiting live ${summary.liveAsset}`,
+      message: `No constrained ${summary.liveAsset} action is available yet. Public Wallet needs live ${summary.liveAsset} to begin the loop.`,
     };
   }, [
     account?.lifecycleActivities,

@@ -20,14 +20,15 @@ import {
   createCanonicalLineageId,
   type CanonicalLifecycleRecordLinkage,
 } from "./canonicalLifecycleLinkage";
+import type { LiveShieldTokenAssetKey } from "@/solana/shieldConfig";
 
 const LIVE_SHIELD_RECORDS_STORAGE_KEY = "vanta.zk.phase1.live-shield-records.v1";
-const DEFAULT_VUSD_DECIMALS = 6;
+const DEFAULT_SHIELD_TOKEN_DECIMALS = 6;
 
 export type LiveShieldCanonicalizationInput = {
   amountDisplay: string;
   amountNumeric: number;
-  assetSymbol: "VUSD";
+  assetSymbol: LiveShieldTokenAssetKey;
   mintAddress: string;
   owner: string;
   stateSignature: string;
@@ -45,7 +46,7 @@ export type LiveShieldCanonicalRecord = {
   liveShield: {
     amountBaseUnits: string;
     amountDisplay: string;
-    assetSymbol: "VUSD";
+    assetSymbol: LiveShieldTokenAssetKey;
     depositSignature?: string;
     mintAddress: string;
     owner: string;
@@ -73,6 +74,7 @@ export type LiveShieldCanonicalDiagnosticsSummary = {
   insertionIndex: number;
   snapshotRoot: string;
   snapshotLeafCount: number;
+  assetSymbol: LiveShieldTokenAssetKey;
   assetId: string;
   amountBaseUnits: string;
   amountDisplay: string;
@@ -173,6 +175,7 @@ export function listCanonicalShieldDiagnosticsSummaries(): LiveShieldCanonicalDi
       insertionIndex: record.insertion.index,
       snapshotRoot: record.insertion.root,
       snapshotLeafCount: record.insertion.leafCount,
+      assetSymbol: record.liveShield.assetSymbol,
       assetId: record.canonicalNote.assetId,
       amountBaseUnits: record.canonicalNote.amount,
       amountDisplay: record.liveShield.amountDisplay,
@@ -276,7 +279,7 @@ function createCanonicalAssetId(mintAddress: string) {
 function resolveTokenDecimals(value: number | undefined) {
   return Number.isInteger(value) && value !== undefined && value >= 0
     ? value
-    : DEFAULT_VUSD_DECIMALS;
+    : DEFAULT_SHIELD_TOKEN_DECIMALS;
 }
 
 function decimalAmountToBaseUnits(value: string, decimals: number): bigint {

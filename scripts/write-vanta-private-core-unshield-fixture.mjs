@@ -11,91 +11,102 @@ const outputPath = resolve(
 );
 const fixtureMode = process.argv[2] ?? "valid";
 
-if (fixtureMode !== "valid" && fixtureMode !== "invalid-direction") {
-  console.error(
-    'Expected fixture mode "valid" or "invalid-direction". Example: node scripts/write-vanta-private-core-unshield-fixture.mjs invalid-direction',
-  );
-  process.exit(1);
-}
-
-mkdirSync(resolve(repoRoot, ".tmp"), { recursive: true });
-const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-private-core-fixture-"));
-const tempTsDir = join(tempRoot, "ts");
-const tempJsDir = join(tempRoot, "js");
-
-try {
-  const privateCoreSourcePath = resolve(repoRoot, "src/zk/vantaPrivateCore.ts");
-  const proofBoundarySourcePath = resolve(repoRoot, "src/zk/vantaPrivateCoreUnshieldProof.ts");
-  const privateCoreSource = readFileSync(privateCoreSourcePath, "utf8");
-  const proofBoundarySource = readFileSync(proofBoundarySourcePath, "utf8").replace(
-    /from "@\/zk\/vantaPrivateCore"/g,
-    'from "./vantaPrivateCore"',
-  );
-
-  mkdirSync(tempTsDir, { recursive: true });
-  writeFileSync(join(tempTsDir, "vantaPrivateCore.ts"), privateCoreSource);
-  writeFileSync(join(tempTsDir, "vantaPrivateCoreUnshieldProof.ts"), proofBoundarySource);
-
-  try {
-    execFileSync(
-      resolve(repoRoot, "node_modules/.bin/tsc"),
-      [
-        join(tempTsDir, "vantaPrivateCore.ts"),
-        join(tempTsDir, "vantaPrivateCoreUnshieldProof.ts"),
-        "--target",
-        "ES2022",
-        "--module",
-        "ESNext",
-        "--moduleResolution",
-        "Bundler",
-        "--lib",
-        "ES2022,DOM",
-        "--skipLibCheck",
-        "--outDir",
-        tempJsDir,
-      ],
-      { cwd: repoRoot, stdio: "pipe" },
+async function main() {
+  if (fixtureMode !== "valid" && fixtureMode !== "invalid-direction") {
+    throw new Error(
+      'Expected fixture mode "valid" or "invalid-direction". Example: node scripts/write-vanta-private-core-unshield-fixture.mjs invalid-direction',
     );
-  } catch (error) {
-    const stdout = String(error.stdout ?? "");
-    const stderr = String(error.stderr ?? "");
-    if (stdout) {
-      console.error(stdout);
-    }
-    if (stderr) {
-      console.error(stderr);
-    }
-    throw error;
   }
 
-  const compiledProofBoundaryPath = join(tempJsDir, "vantaPrivateCoreUnshieldProof.js");
-  const compiledProofBoundarySource = readFileSync(compiledProofBoundaryPath, "utf8").replace(
-    /from "\.\/vantaPrivateCore"/g,
-    'from "./vantaPrivateCore.js"',
-  );
-  writeFileSync(compiledProofBoundaryPath, compiledProofBoundarySource);
+  mkdirSync(resolve(repoRoot, ".tmp"), { recursive: true });
+  const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-private-core-fixture-"));
+  const tempTsDir = join(tempRoot, "ts");
+  const tempJsDir = join(tempRoot, "js");
 
-  const compiledModule = await import(pathToFileURL(compiledProofBoundaryPath).href);
-  const fixture = compiledModule.getVantaPrivateCoreFixedDepthUnshieldFixtureV0();
-  const witnessPackage =
-    fixtureMode === "invalid-direction"
-      ? {
-          ...fixture.validBoundary.noirWitnessPackage,
-          privateWitness: {
-            ...fixture.validBoundary.noirWitnessPackage.privateWitness,
-            membership_path_direction_bits:
-              fixture.validBoundary.noirWitnessPackage.privateWitness.membership_path_direction_bits.map(
-                (bit, index) => (index === 0 ? (bit === "1" ? "0" : "1") : bit),
-              ),
-          },
-        }
-      : fixture.validBoundary.noirWitnessPackage;
-  const toml = compiledModule.serializeVantaPrivateCoreNoirUnshieldWitnessPackageToToml(
-    witnessPackage,
-  );
+  try {
+    const privateCoreSourcePath = resolve(repoRoot, "src/zk/vantaPrivateCore.ts");
+    const proofBoundarySourcePath = resolve(repoRoot, "src/zk/vantaPrivateCoreUnshieldProof.ts");
+    const privateCoreSource = readFileSync(privateCoreSourcePath, "utf8");
+    const proofBoundarySource = readFileSync(proofBoundarySourcePath, "utf8").replace(
+      /from "@\/zk\/vantaPrivateCore"/g,
+      'from "./vantaPrivateCore"',
+    );
 
-  writeFileSync(outputPath, `${toml}\n`);
-  console.log(`Wrote ${fixtureMode} fixture to ${outputPath}`);
+    mkdirSync(tempTsDir, { recursive: true });
+    writeFileSync(join(tempTsDir, "vantaPrivateCore.ts"), privateCoreSource);
+    writeFileSync(join(tempTsDir, "vantaPrivateCoreUnshieldProof.ts"), proofBoundarySource);
+
+    try {
+      execFileSync(
+        resolve(repoRoot, "node_modules/.bin/tsc"),
+        [
+          join(tempTsDir, "vantaPrivateCore.ts"),
+          join(tempTsDir, "vantaPrivateCoreUnshieldProof.ts"),
+          "--target",
+          "ES2022",
+          "--module",
+          "ESNext",
+          "--moduleResolution",
+          "Bundler",
+          "--lib",
+          "ES2022,DOM",
+          "--skipLibCheck",
+          "--outDir",
+          tempJsDir,
+        ],
+        { cwd: repoRoot, stdio: "pipe" },
+      );
+    } catch (error) {
+      const stdout = String(error.stdout ?? "");
+      const stderr = String(error.stderr ?? "");
+      if (stdout) {
+        console.error(stdout);
+      }
+      if (stderr) {
+        console.error(stderr);
+      }
+      throw error;
+    }
+
+    const compiledProofBoundaryPath = join(tempJsDir, "vantaPrivateCoreUnshieldProof.js");
+    const compiledProofBoundarySource = readFileSync(compiledProofBoundaryPath, "utf8").replace(
+      /from "\.\/vantaPrivateCore"/g,
+      'from "./vantaPrivateCore.js"',
+    );
+    writeFileSync(compiledProofBoundaryPath, compiledProofBoundarySource);
+
+    const compiledModule = await import(pathToFileURL(compiledProofBoundaryPath).href);
+    const fixture = compiledModule.getVantaPrivateCoreFixedDepthUnshieldFixtureV0();
+    const witnessPackage =
+      fixtureMode === "invalid-direction"
+        ? {
+            ...fixture.validBoundary.noirWitnessPackage,
+            privateWitness: {
+              ...fixture.validBoundary.noirWitnessPackage.privateWitness,
+              membership_path_direction_bits:
+                fixture.validBoundary.noirWitnessPackage.privateWitness.membership_path_direction_bits.map(
+                  (bit, index) => (index === 0 ? (bit === "1" ? "0" : "1") : bit),
+                ),
+            },
+          }
+        : fixture.validBoundary.noirWitnessPackage;
+    const toml = compiledModule.serializeVantaPrivateCoreNoirUnshieldWitnessPackageToToml(
+      witnessPackage,
+    );
+
+    writeFileSync(outputPath, `${toml}\n`);
+    console.log(`Wrote ${fixtureMode} fixture to ${outputPath}`);
+  } finally {
+    rmSync(tempRoot, { recursive: true, force: true });
+  }
+}
+
+try {
+  await main();
+} catch (error) {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error(message);
+  process.exitCode = 1;
 } finally {
-  rmSync(tempRoot, { recursive: true, force: true });
+  setImmediate(() => process.exit(process.exitCode ?? 0));
 }

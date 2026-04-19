@@ -13,11 +13,14 @@ import {
   type CanonicalLifecycleLinkReference,
   type CanonicalLifecycleRecordLinkage,
 } from "./canonicalLifecycleLinkage";
+import type { LiveShieldTokenAssetKey } from "@/solana/shieldConfig";
 
 const LIVE_UNSHIELD_RECORDS_STORAGE_KEY = "vanta.zk.phase1.live-unshield-records.v1";
 
+type LiveUnshieldAsset = LiveShieldTokenAssetKey | "SOL";
+
 export type LiveUnshieldCanonicalizationInput = {
-  asset: "VUSD" | "USDC" | "SOL";
+  asset: LiveUnshieldAsset;
   assetId: string;
   amountDisplay: string;
   createdAt: number;
@@ -57,7 +60,7 @@ export type LiveUnshieldCanonicalRecord = {
   lifecycleLinkage?: CanonicalLifecycleRecordLinkage;
   liveUnshield: {
     amountDisplay: string;
-    asset: "VUSD" | "USDC" | "SOL";
+    asset: LiveUnshieldAsset;
     assetId: string;
     consumedNoteId: string;
     consumedStateSignature: string;
@@ -85,7 +88,7 @@ export type LiveUnshieldDiagnosticsSummary = {
   createdAt: number;
   lifecycleRecordId?: string;
   lineageId?: string;
-  asset: "VUSD" | "USDC" | "SOL";
+  asset: LiveUnshieldAsset;
   amountDisplay: string;
   consumedLiveNoteId: string;
   consumedCanonicalCommitment?: string;

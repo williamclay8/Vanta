@@ -3,8 +3,10 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { endpoint } from "@/solana/client";
 import {
+  getLiveShieldTokenAssetPriority,
   listLiveShieldTokenAssets,
   liveSwapPair,
+  type LiveShieldTokenAssetKey,
 } from "@/solana/shieldConfig";
 
 export type WalletPublicAsset = {
@@ -49,6 +51,18 @@ function getConnection() {
 
 function abbreviateMint(value: string) {
   return `${value.slice(0, 4)}...${value.slice(-4)}`;
+}
+
+function getAssetSortPriority(symbol: string) {
+  if (symbol === "SOL") {
+    return 100;
+  }
+
+  try {
+    return getLiveShieldTokenAssetPriority(symbol as LiveShieldTokenAssetKey);
+  } catch {
+    return 1000;
+  }
 }
 
 export function useWalletPublicAssets(args: {
@@ -126,8 +140,8 @@ export function useWalletPublicAssets(args: {
         }
 
         const nextAssets = [...aggregate.values()].sort((left, right) => {
-          const leftPriority = left.symbol === "VUSD" ? 0 : left.symbol === "SOL" ? 1 : 2;
-          const rightPriority = right.symbol === "VUSD" ? 0 : right.symbol === "SOL" ? 1 : 2;
+          const leftPriority = getAssetSortPriority(left.symbol);
+          const rightPriority = getAssetSortPriority(right.symbol);
 
           if (leftPriority !== rightPriority) {
             return leftPriority - rightPriority;

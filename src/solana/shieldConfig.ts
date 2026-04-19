@@ -6,11 +6,28 @@ function getOptionalEnvValue(value: string | undefined) {
   return trimmed ? trimmed : null;
 }
 
+function getOptionalIntegerEnvValue(value: string | undefined) {
+  const trimmed = value?.trim();
+
+  if (!trimmed) {
+    return null;
+  }
+
+  const parsed = Number(trimmed);
+  return Number.isInteger(parsed) && parsed >= 0 ? parsed : null;
+}
+
 const configuredMintAddress = getOptionalEnvValue(
   import.meta.env.VITE_VANTA_DEVNET_TOKEN_MINT,
 );
 const configuredUsdcMintAddress = getOptionalEnvValue(
   import.meta.env.VITE_VANTA_DEVNET_USDC_MINT,
+);
+const configuredJtoMintAddress = getOptionalEnvValue(
+  import.meta.env.VITE_VANTA_DEVNET_JTO_MINT,
+);
+const configuredBonkMintAddress = getOptionalEnvValue(
+  import.meta.env.VITE_VANTA_DEVNET_BONK_MINT,
 );
 const configuredVaultOwner = getOptionalEnvValue(
   import.meta.env.VITE_VANTA_DEVNET_VAULT_OWNER,
@@ -28,28 +45,56 @@ const configuredMeteoraDlmmPoolAddress = getOptionalEnvValue(
   import.meta.env.VITE_VANTA_METEORA_DLMM_POOL_ADDRESS,
 );
 
-export type LiveShieldTokenAssetKey = "VUSD" | "USDC";
+export type LiveShieldTokenAssetKey = "VUSD" | "USDC" | "JTO" | "BONK";
 
 export type LiveShieldTokenAssetConfig = {
   assetKey: LiveShieldTokenAssetKey;
   cluster: "Devnet";
   configured: boolean;
+  decimals: number;
   mintAddress: string | null;
   name: string;
+  priority: number;
   symbol: LiveShieldTokenAssetKey;
   unshieldConfigured: boolean;
   unshieldOperatorUrl: string;
   vaultOwner: string | null;
 };
 
+function createLiveShieldTokenAssetConfig(args: {
+  assetKey: LiveShieldTokenAssetKey;
+  configuredMintAddress: string | null;
+  decimals: number;
+  defaultName: string;
+  nameEnvValue?: string;
+  priority: number;
+}): LiveShieldTokenAssetConfig {
+  return {
+    assetKey: args.assetKey,
+    cluster: "Devnet",
+    configured: Boolean(args.configuredMintAddress && configuredVaultOwner),
+    decimals: args.decimals,
+    mintAddress: args.configuredMintAddress,
+    name: getOptionalEnvValue(args.nameEnvValue) ?? args.defaultName,
+    priority: args.priority,
+    symbol: args.assetKey,
+    unshieldConfigured: Boolean(args.configuredMintAddress && configuredVaultOwner),
+    unshieldOperatorUrl:
+      configuredUnshieldOperatorUrl ?? "http://127.0.0.1:8789/unshield",
+    vaultOwner: configuredVaultOwner,
+  };
+}
+
 export const liveShieldAsset = {
   assetKey: "VUSD" as const,
   cluster: "Devnet" as const,
   configured: Boolean(configuredMintAddress && configuredVaultOwner),
+  decimals: getOptionalIntegerEnvValue(import.meta.env.VITE_VANTA_DEVNET_TOKEN_DECIMALS) ?? 6,
   mintAddress: configuredMintAddress,
   name:
     getOptionalEnvValue(import.meta.env.VITE_VANTA_DEVNET_TOKEN_NAME) ??
     "Vanta Devnet Test Dollar",
+  priority: 0,
   symbol: "VUSD" as const,
   unshieldConfigured: Boolean(configuredMintAddress && configuredVaultOwner),
   unshieldOperatorUrl:
@@ -58,19 +103,48 @@ export const liveShieldAsset = {
 };
 
 export const liveUsdcShieldAsset: LiveShieldTokenAssetConfig = {
-  assetKey: "USDC",
-  cluster: "Devnet",
-  configured: Boolean(configuredUsdcMintAddress && configuredVaultOwner),
-  mintAddress: configuredUsdcMintAddress,
-  name: getOptionalEnvValue(import.meta.env.VITE_VANTA_DEVNET_USDC_NAME) ?? "USD Coin",
-  symbol: "USDC",
-  unshieldConfigured: Boolean(configuredUsdcMintAddress && configuredVaultOwner),
-  unshieldOperatorUrl:
-    configuredUnshieldOperatorUrl ?? "http://127.0.0.1:8789/unshield",
-  vaultOwner: configuredVaultOwner,
+  ...createLiveShieldTokenAssetConfig({
+    assetKey: "USDC",
+    configuredMintAddress: configuredUsdcMintAddress,
+    decimals: getOptionalIntegerEnvValue(import.meta.env.VITE_VANTA_DEVNET_USDC_DECIMALS) ?? 6,
+    defaultName: "USD Coin",
+    nameEnvValue: import.meta.env.VITE_VANTA_DEVNET_USDC_NAME,
+    priority: 1,
+  }),
 };
 
+export const liveJtoShieldAsset: LiveShieldTokenAssetConfig = {
+  ...createLiveShieldTokenAssetConfig({
+    assetKey: "JTO",
+    configuredMintAddress: configuredJtoMintAddress,
+    decimals: getOptionalIntegerEnvValue(import.meta.env.VITE_VANTA_DEVNET_JTO_DECIMALS) ?? 9,
+    defaultName: "Jito",
+    nameEnvValue: import.meta.env.VITE_VANTA_DEVNET_JTO_NAME,
+    priority: 2,
+  }),
+};
+
+export const liveBonkShieldAsset: LiveShieldTokenAssetConfig = {
+  ...createLiveShieldTokenAssetConfig({
+    assetKey: "BONK",
+    configuredMintAddress: configuredBonkMintAddress,
+    decimals: getOptionalIntegerEnvValue(import.meta.env.VITE_VANTA_DEVNET_BONK_DECIMALS) ?? 5,
+    defaultName: "Bonk",
+    nameEnvValue: import.meta.env.VITE_VANTA_DEVNET_BONK_NAME,
+    priority: 3,
+  }),
+};
+
+export const ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS = [
+  "VUSD",
+  "USDC",
+  "JTO",
+  "BONK",
+] as const satisfies readonly LiveShieldTokenAssetKey[];
+
 const liveShieldTokenAssetMap: Record<LiveShieldTokenAssetKey, LiveShieldTokenAssetConfig> = {
+  BONK: liveBonkShieldAsset,
+  JTO: liveJtoShieldAsset,
   USDC: liveUsdcShieldAsset,
   VUSD: liveShieldAsset,
 };
@@ -81,10 +155,37 @@ export function getLiveShieldTokenAsset(
   return liveShieldTokenAssetMap[assetKey];
 }
 
-export function listLiveShieldTokenAssets() {
-  return (Object.values(liveShieldTokenAssetMap) as LiveShieldTokenAssetConfig[]).filter(
-    (asset) => asset.configured && asset.mintAddress,
+export function getLiveShieldTokenAssetByMint(mintAddress: string | null | undefined) {
+  if (!mintAddress) {
+    return null;
+  }
+
+  return (
+    listAllLiveShieldTokenAssets().find((asset) => asset.mintAddress === mintAddress) ?? null
   );
+}
+
+export function listAllLiveShieldTokenAssets() {
+  return ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS.map((assetKey) => getLiveShieldTokenAsset(assetKey));
+}
+
+export function listLiveShieldTokenAssets(args?: { configuredOnly?: boolean }) {
+  const configuredOnly = args?.configuredOnly ?? true;
+  const assets = listAllLiveShieldTokenAssets().sort((left, right) => left.priority - right.priority);
+
+  if (!configuredOnly) {
+    return assets;
+  }
+
+  return assets.filter((asset) => asset.configured && asset.mintAddress);
+}
+
+export function getPrimaryLiveShieldTokenAsset() {
+  return listLiveShieldTokenAssets()[0] ?? liveShieldAsset;
+}
+
+export function getLiveShieldTokenAssetPriority(assetKey: LiveShieldTokenAssetKey) {
+  return getLiveShieldTokenAsset(assetKey).priority;
 }
 
 export const liveSwapPair = {

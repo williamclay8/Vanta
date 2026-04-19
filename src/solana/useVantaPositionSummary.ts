@@ -1,14 +1,13 @@
 import { useMemo } from "react";
-import { useSplToken } from "@solana/react-hooks";
 import { useWalletState } from "@/data/context/WalletContext";
-import { liveShieldAsset, SHIELD_HOOK_FALLBACK_MINT } from "@/solana/shieldConfig";
-import { useVantaShieldState } from "@/solana/useVantaShieldState";
+import { getPrimaryLiveShieldTokenAsset } from "@/solana/shieldConfig";
+import { useVantaShieldAssetRegistryState } from "@/solana/useVantaShieldAssetRegistryState";
 
 export type VantaPositionSummary = {
   assetLabel: string;
   latestActionLabel: string;
   latestActionTimestamp: number | null;
-  liveAsset: "VUSD";
+  liveAsset: string;
   networkLabel: string;
   publicBalance: number;
   shieldedBalance: number;
@@ -21,47 +20,45 @@ export type VantaPositionSummary = {
 
 export function useVantaPositionSummary(): VantaPositionSummary {
   const { clusterLabel, walletConnected } = useWalletState();
-  const { account } = useVantaShieldState();
-  const supportedToken = useSplToken(
-    liveShieldAsset.mintAddress ?? SHIELD_HOOK_FALLBACK_MINT,
-    { config: { tokenProgram: "auto" } },
-  );
+  const shieldRegistry = useVantaShieldAssetRegistryState();
+  const primaryAsset = getPrimaryLiveShieldTokenAsset();
+  const primaryEntry = shieldRegistry.byAssetKey[primaryAsset.assetKey];
 
   return useMemo(() => {
-    const publicBalance = Number(supportedToken.balance?.uiAmount ?? "0");
+    const account = primaryEntry.account;
+    const publicBalance = primaryEntry.publicBalance;
     const shieldedBalance = account?.balance ?? 0;
     const shieldedSolBalance = account?.shieldedSolBalance ?? 0;
     const spendableNoteCount = account?.spendableShieldNotes.length ?? 0;
     const swapCount = account?.swapNotes.length ?? 0;
     const latestActivity = account?.lifecycleActivities[0] ?? null;
 
-    let statusLabel = "Connect a wallet to enter the live VUSD path.";
+    let statusLabel = `Connect a wallet to enter the live ${primaryAsset.symbol} path.`;
 
-    if (walletConnected && !liveShieldAsset.configured) {
-      statusLabel = "Live VUSD path needs local mint and vault configuration.";
+    if (walletConnected && !primaryAsset.configured) {
+      statusLabel = `Live ${primaryAsset.symbol} path needs local mint and vault configuration.`;
     } else if (walletConnected && shieldedSolBalance > 0) {
       statusLabel =
         "Shielded SOL output is now present inside Vanta and can use the constrained SOL unshield lane.";
     } else if (walletConnected && spendableNoteCount > 0) {
       statusLabel = "Spendable shielded value is available for Send, Swap, or Unshield.";
     } else if (walletConnected && shieldedBalance > 0) {
-      statusLabel =
-        "Shielded VUSD is present, but no spendable note is currently available.";
+      statusLabel = `Shielded ${primaryAsset.symbol} is present, but no spendable note is currently available.`;
     } else if (walletConnected && publicBalance > 0) {
-      statusLabel = "Public VUSD is available to Shield into Vanta.";
+      statusLabel = `Public ${primaryAsset.symbol} is available to Shield into Vanta.`;
     } else if (walletConnected) {
-      statusLabel = "No live VUSD is currently available in Public Wallet.";
+      statusLabel = `No live ${primaryAsset.symbol} is currently available in Public Wallet.`;
     }
 
     return {
-      assetLabel: liveShieldAsset.name,
+      assetLabel: primaryAsset.name,
       latestActionLabel: latestActivity
         ? latestActivity.amountLabel
           ? `${latestActivity.title} ${latestActivity.amountLabel}`
-          : `${latestActivity.title} ${latestActivity.amount.toFixed(2)} VUSD`
+          : `${latestActivity.title} ${latestActivity.amount.toFixed(2)} ${primaryAsset.symbol}`
         : "No resolved lifecycle activity yet",
       latestActionTimestamp: latestActivity?.createdAt ?? null,
-      liveAsset: liveShieldAsset.symbol,
+      liveAsset: primaryAsset.symbol,
       networkLabel: clusterLabel,
       publicBalance,
       shieldedBalance,
@@ -71,10 +68,5 @@ export function useVantaPositionSummary(): VantaPositionSummary {
       swapCount,
       walletConnected,
     } satisfies VantaPositionSummary;
-  }, [
-    account,
-    clusterLabel,
-    supportedToken.balance?.uiAmount,
-    walletConnected,
-  ]);
+  }, [clusterLabel, primaryAsset, primaryEntry, walletConnected]);
 }

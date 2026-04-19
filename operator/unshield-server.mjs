@@ -87,6 +87,10 @@ const mintAddress =
   process.env.VANTA_DEVNET_TOKEN_MINT ?? process.env.VITE_VANTA_DEVNET_TOKEN_MINT;
 const usdcMintAddress =
   process.env.VANTA_DEVNET_USDC_MINT ?? process.env.VITE_VANTA_DEVNET_USDC_MINT;
+const jtoMintAddress =
+  process.env.VANTA_DEVNET_JTO_MINT ?? process.env.VITE_VANTA_DEVNET_JTO_MINT;
+const bonkMintAddress =
+  process.env.VANTA_DEVNET_BONK_MINT ?? process.env.VITE_VANTA_DEVNET_BONK_MINT;
 const vaultOwner =
   process.env.VANTA_DEVNET_VAULT_OWNER ?? process.env.VITE_VANTA_DEVNET_VAULT_OWNER;
 
@@ -97,7 +101,7 @@ if (!mintAddress || !vaultOwner) {
 }
 
 const supportedTokenMintAddresses = new Set(
-  [mintAddress, usdcMintAddress].filter(
+  [mintAddress, usdcMintAddress, jtoMintAddress, bonkMintAddress].filter(
     (value) => typeof value === "string" && value.length > 0,
   ),
 );

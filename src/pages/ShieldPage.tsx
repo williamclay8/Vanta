@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   useSendTransaction,
-  useSplToken,
 } from "@solana/react-hooks";
 import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePanel";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
@@ -11,11 +10,12 @@ import { usePrivacyFlow, type PrivacyAssetKey } from "@/data/context/PrivacyFlow
 import { useWalletState } from "@/data/context/WalletContext";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
 import {
-  SHIELD_HOOK_FALLBACK_MINT,
-  liveShieldAsset,
+  getPrimaryLiveShieldTokenAsset,
+  listLiveShieldTokenAssets,
+  type LiveShieldTokenAssetKey,
 } from "@/solana/shieldConfig";
 import { useRealtimeSignatureProgress } from "@/solana/useRealtimeSignatureProgress";
-import { useVantaShieldState } from "@/solana/useVantaShieldState";
+import { useVantaShieldAssetRegistryState } from "@/solana/useVantaShieldAssetRegistryState";
 import { createShieldMemoInstruction } from "@/solana/vantaShieldState";
 import {
   listCanonicalShieldDiagnosticsSummaries,
@@ -27,7 +27,7 @@ type ShieldPageProps = {
 };
 
 type AssetConfig = {
-  symbol: PrivacyAssetKey;
+  symbol: LiveShieldTokenAssetKey;
   name: string;
   live: boolean;
   supported: boolean;
@@ -43,31 +43,7 @@ type ShieldStatus =
   | "complete"
   | "failed";
 
-const assetCatalog: AssetConfig[] = [
-  {
-    symbol: liveShieldAsset.assetKey,
-    name: liveShieldAsset.name,
-    live: liveShieldAsset.configured,
-    supported: true,
-    statusLabel: liveShieldAsset.configured ? "Live on devnet" : "Needs config",
-  },
-  {
-    symbol: "USDC",
-    name: "USD Coin",
-    live: false,
-    supported: false,
-    statusLabel: "Planned",
-  },
-  {
-    symbol: "JTO",
-    name: "Jito",
-    live: false,
-    supported: false,
-    statusLabel: "Planned",
-  },
-];
-
-function formatBalance(value: number, symbol: PrivacyAssetKey) {
+function formatBalance(value: number, symbol: string) {
   if (symbol === "USDC" || symbol === "VUSD") {
     return `${value.toLocaleString(undefined, {
       minimumFractionDigits: 2,
@@ -309,7 +285,10 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     walletConnected,
     walletReady,
   } = useWalletState();
-  const [selectedAsset, setSelectedAsset] = useState<PrivacyAssetKey>("VUSD");
+  const primaryShieldAsset = getPrimaryLiveShieldTokenAsset();
+  const [selectedAsset, setSelectedAsset] = useState<LiveShieldTokenAssetKey>(
+    primaryShieldAsset.assetKey,
+  );
   const [amount, setAmount] = useState("0.25");
   const [status, setStatus] = useState<ShieldStatus>("idle");
   const [flowError, setFlowError] = useState<string | null>(null);
@@ -318,13 +297,27 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
   const [pendingDepositSignature, setPendingDepositSignature] = useState<string | null>(null);
   const recordedStateSignatureRef = useRef<string | null>(null);
 
-  const selectedConfig = assetCatalog.find((asset) => asset.symbol === selectedAsset)!;
-  const supportedToken = useSplToken(
-    liveShieldAsset.mintAddress ?? SHIELD_HOOK_FALLBACK_MINT,
-    {
-      config: { tokenProgram: "auto" },
-    },
+  const shieldAssetRegistry = useVantaShieldAssetRegistryState();
+  const assetCatalog = useMemo<AssetConfig[]>(
+    () =>
+      shieldAssetRegistry.entries.map((entry) => ({
+        symbol: entry.asset.assetKey,
+        name: entry.asset.name,
+        live: entry.asset.configured,
+        supported: true,
+        statusLabel: entry.asset.configured ? "Live on devnet" : "Needs config",
+      })),
+    [shieldAssetRegistry.entries],
   );
+  const selectedConfig = assetCatalog.find((asset) => asset.symbol === selectedAsset) ?? assetCatalog[0]!;
+  const selectedRegistryEntry = shieldAssetRegistry.byAssetKey[selectedConfig.symbol];
+  const supportedToken = selectedRegistryEntry.token;
+  const shieldAccount = selectedRegistryEntry.account;
+  const shieldStateError = selectedRegistryEntry.error;
+  const shieldStateReady = selectedRegistryEntry.isReady;
+  const shieldStateRefreshing = selectedRegistryEntry.isRefreshing;
+  const refreshShieldState = selectedRegistryEntry.refresh;
+  const selectedShieldAsset = selectedRegistryEntry.asset;
   const signatureWait = useRealtimeSignatureProgress(supportedToken.sendSignature ?? undefined, {
     commitment: "confirmed",
     disabled: !supportedToken.sendSignature,
@@ -337,24 +330,10 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
       disabled: !stateTransaction.signature,
     },
   );
-  const {
-    account: shieldAccount,
-    error: shieldStateError,
-    isReady: shieldStateReady,
-    isRefreshing: shieldStateRefreshing,
-    refresh: refreshShieldState,
-  } = useVantaShieldState();
-
   const parsedAmount = Number(amount);
   const hasSupportedAssets = assetCatalog.some((asset) => asset.live && asset.supported);
-  const publicBalance =
-    selectedAsset === liveShieldAsset.assetKey
-      ? Number(supportedToken.balance?.uiAmount ?? "0")
-      : 0;
-  const shieldedBalance =
-    selectedAsset === liveShieldAsset.assetKey
-      ? shieldAccount?.balance ?? 0
-      : 0;
+  const publicBalance = selectedRegistryEntry?.publicBalance ?? 0;
+  const shieldedBalance = shieldAccount?.balance ?? 0;
   const depositProgressLabel = signatureWait.detailLabel;
   const stateProgressLabel = stateSignatureWait.detailLabel;
   const hasPublicBalance = publicBalance > 0;
@@ -414,8 +393,8 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
       signatureWait.waitStatus !== "success" ||
       pendingShieldAmount === null ||
       !pendingDepositSignature ||
-      !liveShieldAsset.mintAddress ||
-      !liveShieldAsset.vaultOwner ||
+      !selectedShieldAsset.mintAddress ||
+      !selectedShieldAsset.vaultOwner ||
       !walletAddressShort
     ) {
       return;
@@ -430,8 +409,8 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     if (!owner) {
       return;
     }
-    const mintAddress = liveShieldAsset.mintAddress;
-    const vaultOwner = liveShieldAsset.vaultOwner;
+    const mintAddress = selectedShieldAsset.mintAddress;
+    const vaultOwner = selectedShieldAsset.vaultOwner;
 
     if (!mintAddress || !vaultOwner) {
       return;
@@ -451,7 +430,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
           ...priorityFeeInstructions,
           createShieldMemoInstruction({
             amount,
-            asset: "VUSD",
+            asset: selectedShieldAsset.assetKey,
             createdAt: Date.now(),
             depositSignature: pendingDepositSignature,
             mintAddress,
@@ -473,6 +452,9 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     amount,
     pendingDepositSignature,
     pendingShieldAmount,
+    selectedShieldAsset.assetKey,
+    selectedShieldAsset.mintAddress,
+    selectedShieldAsset.vaultOwner,
     signatureWait.waitStatus,
     stateTransaction,
     supportedToken.owner,
@@ -505,10 +487,10 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     }
 
     recordedStateSignatureRef.current = stateTransaction.signature;
-    const mintAddress = liveShieldAsset.mintAddress;
+    const mintAddress = selectedShieldAsset.mintAddress;
     const owner = supportedToken.owner;
     const stateSignature = stateTransaction.signature;
-    const vaultOwner = liveShieldAsset.vaultOwner;
+    const vaultOwner = selectedShieldAsset.vaultOwner;
 
     if (!mintAddress || !owner || !stateSignature || !vaultOwner) {
       setStatus("failed");
@@ -524,7 +506,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
         const zkRecord = await recordCanonicalShieldFromLiveShield({
           amountDisplay: pendingShieldAmountDisplay,
           amountNumeric: pendingShieldAmount,
-          assetSymbol: "VUSD",
+          assetSymbol: selectedShieldAsset.assetKey,
           createdAt: Date.now(),
           depositSignature: pendingDepositSignature ?? undefined,
           mintAddress,
@@ -533,28 +515,35 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
           tokenDecimals: readTokenDecimals(supportedToken.balance),
           vaultOwner,
         });
-        const privateCoreShield = runPrivateCoreShield({
-          amountDisplay: pendingShieldAmountDisplay,
-          asset: "VUSD",
-        });
+        const privateCoreShield =
+          selectedShieldAsset.assetKey === "VUSD"
+            ? runPrivateCoreShield({
+                amountDisplay: pendingShieldAmountDisplay,
+                asset: "VUSD",
+              })
+            : null;
         const nextBalance = Number(
           ((shieldAccount?.balance ?? 0) + pendingShieldAmount).toFixed(6),
         );
         setRecentShield({
           amount: pendingShieldAmount,
-          asset: "VUSD",
+          asset: selectedShieldAsset.assetKey as PrivacyAssetKey,
           depositSignature: pendingDepositSignature ?? undefined,
           resultingShieldedBalance: nextBalance,
           settlement: "confirmed_deposit",
           signature: stateTransaction.signature ?? undefined,
           source: "shield",
           timestamp: Date.now(),
-          zkBridge: {
-            commitment: privateCoreShield.sourceNoteCommitment || zkRecord.artifacts.commitment.value,
-            insertionIndex: zkRecord.insertion.index,
-            root: privateCoreShield.sourceMerkleRoot || zkRecord.insertion.root,
-            source: "canonical_note_v1",
-          },
+          zkBridge:
+            selectedShieldAsset.assetKey === "VUSD"
+              ? {
+                  commitment:
+                    privateCoreShield?.sourceNoteCommitment || zkRecord.artifacts.commitment.value,
+                  insertionIndex: zkRecord.insertion.index,
+                  root: privateCoreShield?.sourceMerkleRoot || zkRecord.insertion.root,
+                  source: "canonical_note_v1",
+                }
+              : undefined,
         });
         setPendingShieldAmount(null);
         setPendingShieldAmountDisplay(null);
@@ -581,6 +570,9 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     pendingShieldAmountDisplay,
     refreshShieldState,
     runPrivateCoreShield,
+    selectedShieldAsset.assetKey,
+    selectedShieldAsset.mintAddress,
+    selectedShieldAsset.vaultOwner,
     setRecentShield,
     shieldAccount?.balance,
     stateSignatureWait.waitStatus,
@@ -599,8 +591,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
   async function handleShield() {
     if (
       !isAmountValid ||
-      !liveShieldAsset.vaultOwner ||
-      selectedAsset !== liveShieldAsset.assetKey
+      !selectedShieldAsset.vaultOwner
     ) {
       return;
     }
@@ -617,7 +608,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     try {
       await supportedToken.send({
         amount,
-        destinationOwner: liveShieldAsset.vaultOwner,
+        destinationOwner: selectedShieldAsset.vaultOwner,
       });
     } catch (error) {
       setPendingShieldAmount(null);
@@ -802,7 +793,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 {assetCatalog.map((asset) => {
                   const isActive = asset.symbol === selectedAsset;
                   const assetPublicBalance =
-                    asset.symbol === liveShieldAsset.assetKey ? publicBalance : 0;
+                    shieldAssetRegistry.byAssetKey[asset.symbol].publicBalance;
 
                   return (
                     <button
@@ -902,7 +893,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
               </div>
 
               <p className="shield-helper">{validationMessage}</p>
-              {liveShieldAsset.configured && walletConnected && (
+              {selectedShieldAsset.configured && walletConnected && (
                 <p className="shield-helper shield-helper--meta">
                   Supported token ATA: {supportedToken.balance?.ataAddress?.toString() ?? "Loading..."}
                 </p>
@@ -1000,10 +991,10 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
               <span>Next available action</span>
               <strong>Available for Private Send</strong>
             </div>
-            {liveShieldAsset.vaultOwner && (
+            {selectedShieldAsset.vaultOwner && (
               <div className="review-row">
                 <span>Shield vault owner</span>
-                <strong>{abbreviate(liveShieldAsset.vaultOwner)}</strong>
+                <strong>{abbreviate(selectedShieldAsset.vaultOwner)}</strong>
               </div>
             )}
           </div>
@@ -1513,7 +1504,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                           Asset ID: {record.assetId}
                         </p>
                         <p className="shield-helper shield-helper--meta">
-                          Amount: {record.amountDisplay} VUSD ({record.amountBaseUnits} base units)
+                          Amount: {record.amountDisplay} {record.assetSymbol} ({record.amountBaseUnits} base units)
                         </p>
                         <p className="shield-helper shield-helper--meta">
                           Owner: {abbreviate(record.ownerPublicKey) ?? record.ownerPublicKey}

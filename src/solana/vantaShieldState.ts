@@ -4,6 +4,7 @@ import {
   type TransactionInstructionInput,
 } from "@solana/client";
 import {
+  getLiveShieldTokenAsset,
   liveShieldAsset,
   liveUsdcShieldAsset,
   type LiveShieldTokenAssetKey,
@@ -366,7 +367,7 @@ function resolveShieldTokenAssetFromMint(mintAddress: string): VantaShieldTokenA
 }
 
 function formatShieldTokenAmount(asset: VantaShieldTokenAsset, amount: number) {
-  const decimals = asset === "USDC" ? 2 : 2;
+  const decimals = Math.min(getLiveShieldTokenAsset(asset).decimals, 4);
   return `${amount.toFixed(decimals)} ${asset}`;
 }
 
