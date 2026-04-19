@@ -10,7 +10,6 @@ import {
   type PublicToVusdQuote,
 } from "@/solana/publicSwapRoute";
 import {
-  getPrimaryLiveShieldTokenAsset,
   type LiveShieldTokenAssetKey,
 } from "@/solana/shieldConfig";
 import { useRealtimeSignatureProgress } from "@/solana/useRealtimeSignatureProgress";
@@ -65,10 +64,6 @@ export function ShieldPage(_props: ShieldPageProps) {
   const { recentShield, runPrivateCoreShield, setRecentShield } = usePrivacyFlow();
   const { solBalance, walletAddress, walletConnected } = useWalletState();
   const shieldRegistry = useVantaShieldAssetRegistryState();
-  const primaryShieldAsset = getPrimaryLiveShieldTokenAsset();
-  const [selectedTargetAsset, setSelectedTargetAsset] = useState<LiveShieldTokenAssetKey>(
-    primaryShieldAsset.assetKey,
-  );
   const [selectedSourceAssetId, setSelectedSourceAssetId] = useState("native:SOL");
   const [amount, setAmount] = useState("0.25");
   const [status, setStatus] = useState<ShieldStatus>("idle");
@@ -86,29 +81,6 @@ export function ShieldPage(_props: ShieldPageProps) {
       ),
     [shieldRegistry.configuredEntries],
   );
-
-  useEffect(() => {
-    if (!executableShieldTargets.length) {
-      return;
-    }
-
-    if (!executableShieldTargets.some((entry) => entry.asset.assetKey === selectedTargetAsset)) {
-      setSelectedTargetAsset(executableShieldTargets[0]!.asset.assetKey);
-    }
-  }, [executableShieldTargets, selectedTargetAsset]);
-
-  const selectedRegistryEntry =
-    shieldRegistry.byAssetKey[selectedTargetAsset] ?? executableShieldTargets[0] ?? null;
-  const selectedShieldAsset = selectedRegistryEntry?.asset ?? null;
-  const shieldAccount = selectedRegistryEntry?.account ?? null;
-  const shieldStateError = selectedRegistryEntry?.error ?? null;
-  const shieldStateReady = selectedRegistryEntry?.isReady ?? false;
-  const shieldStateRefreshing = selectedRegistryEntry?.isRefreshing ?? false;
-  const refreshShieldState = selectedRegistryEntry?.refresh ?? (async () => {});
-  const supportedToken = selectedRegistryEntry?.token ?? null;
-  const publicBalance = selectedRegistryEntry?.publicBalance ?? 0;
-  const shieldedBalance = shieldAccount?.balance ?? 0;
-
   const {
     assets: executableSourceAssets,
     error: publicAssetsError,
@@ -135,6 +107,34 @@ export function ShieldPage(_props: ShieldPageProps) {
       setSelectedSourceAssetId(executableSourceAssets[0].id);
     }
   }, [executableSourceAssets, selectedSourceAsset]);
+
+  const selectedRegistryEntry = useMemo(() => {
+    if (!executableShieldTargets.length) {
+      return null;
+    }
+
+    if (!selectedSourceAsset) {
+      return executableShieldTargets[0] ?? null;
+    }
+
+    const directMatch =
+      executableShieldTargets.find(
+        (entry) =>
+          entry.asset.mintAddress === selectedSourceAsset.mintAddress ||
+          entry.asset.assetKey === selectedSourceAsset.symbol,
+      ) ?? null;
+
+    return directMatch ?? executableShieldTargets[0] ?? null;
+  }, [executableShieldTargets, selectedSourceAsset]);
+  const selectedShieldAsset = selectedRegistryEntry?.asset ?? null;
+  const shieldAccount = selectedRegistryEntry?.account ?? null;
+  const shieldStateError = selectedRegistryEntry?.error ?? null;
+  const shieldStateReady = selectedRegistryEntry?.isReady ?? false;
+  const shieldStateRefreshing = selectedRegistryEntry?.isRefreshing ?? false;
+  const refreshShieldState = selectedRegistryEntry?.refresh ?? (async () => {});
+  const supportedToken = selectedRegistryEntry?.token ?? null;
+  const publicBalance = selectedRegistryEntry?.publicBalance ?? 0;
+  const shieldedBalance = shieldAccount?.balance ?? 0;
 
   const publicRouteTransaction = useSendTransaction();
   const publicRouteWait = useRealtimeSignatureProgress(
@@ -641,53 +641,31 @@ export function ShieldPage(_props: ShieldPageProps) {
                 </div>
               </div>
 
-              <div className="swap-choice-grid" aria-label="Shield route">
-                <div className="swap-choice-group" role="group" aria-label="From asset">
-                  <span>From</span>
-                  <div className="send-asset-field">
-                    <select
-                      aria-label="From asset"
-                      value={sourceSelectValue}
-                      disabled={sourceSelectDisabled}
-                      onChange={(event) => {
-                        setSelectedSourceAssetId(event.target.value);
-                        setStatus("idle");
-                        setRecentShield(null);
-                        setFlowError(null);
-                      }}
-                    >
-                      {executableSourceAssets.length === 0 && (
-                        <option value="">{sourcePlaceholderLabel}</option>
-                      )}
-                      {executableSourceAssets.map((asset) => (
-                        <option key={asset.id} value={asset.id}>
-                          {asset.symbol}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+              <div className="swap-module__field">
+                <div className="swap-module__label-row">
+                  <span>Asset</span>
                 </div>
-
-                <div className="swap-choice-group" role="group" aria-label="To shielded asset">
-                  <span>To</span>
-                  <div className="send-asset-field">
-                    <select
-                      aria-label="To shielded asset"
-                      value={selectedTargetAsset}
-                      onChange={(event) => {
-                        setSelectedTargetAsset(event.target.value as LiveShieldTokenAssetKey);
-                        setStatus("idle");
-                        setRecentShield(null);
-                        setFlowError(null);
-                      }}
-                    >
-                      {executableShieldTargets.map((entry) => (
-                        <option key={entry.asset.assetKey} value={entry.asset.assetKey}>
-                          {`Shielded ${entry.asset.assetKey}`}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                <div className="send-asset-field">
+                  <select
+                    aria-label="From asset"
+                    value={sourceSelectValue}
+                    disabled={sourceSelectDisabled}
+                    onChange={(event) => {
+                      setSelectedSourceAssetId(event.target.value);
+                      setStatus("idle");
+                      setRecentShield(null);
+                      setFlowError(null);
+                    }}
+                  >
+                    {executableSourceAssets.length === 0 && (
+                      <option value="">{sourcePlaceholderLabel}</option>
+                    )}
+                    {executableSourceAssets.map((asset) => (
+                      <option key={asset.id} value={asset.id}>
+                        {asset.symbol}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -695,7 +673,7 @@ export function ShieldPage(_props: ShieldPageProps) {
 
               <div className="swap-module__field">
                 <div className="swap-module__label-row">
-                  <span>You receive</span>
+                  <span>Shielded state</span>
                   <div className="send-balance-line shield-helper shield-helper--meta">
                     Shielded balance: {selectedShieldAsset ? formatAssetAmount(shieldedBalance, selectedShieldAsset.assetKey) : "Unavailable"}
                   </div>
@@ -723,7 +701,7 @@ export function ShieldPage(_props: ShieldPageProps) {
                     status === "entering_shielded_state"
                   }
                 >
-                  {selectedShieldAsset ? `Shield to ${selectedShieldAsset.assetKey}` : "Shield asset"}
+                  Shield asset
                 </button>
               </div>
             </div>
