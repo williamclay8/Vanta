@@ -1854,7 +1854,12 @@ export function UnshieldPage() {
                             {formatUnshieldNoteOption({
                               amount: note.amount,
                               asset: selectedLane,
-                              primaryLabel: note.origin === "change" ? "Change note" : "Deposit note",
+                              primaryLabel:
+                                note.origin === "change"
+                                  ? "Change note"
+                                  : note.origin === "swap_output"
+                                    ? "Swap output note"
+                                    : "Deposit note",
                             })}
                           </option>
                         ))

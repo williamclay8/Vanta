@@ -36,9 +36,10 @@ type BaseVantaNote = {
 export type VantaShieldNote = BaseVantaNote & {
   depositSignature: string;
   kind: "shield";
-  origin: "deposit" | "change";
+  origin: "deposit" | "change" | "swap_output";
   parentNoteId?: string;
   parentSendNoteId?: string;
+  parentSwapNoteId?: string;
 };
 
 export type VantaSendNote = BaseVantaNote & {
@@ -63,7 +64,7 @@ export type VantaSwapNote = {
   kind: "swap";
   noteId: string;
   outputAmount: number;
-  outputAsset: "SOL";
+  outputAsset: VantaShieldTokenAsset | "SOL";
   outputNoteId: string;
   owner: string;
   quoteExpiresAt?: number;
@@ -137,6 +138,7 @@ export type VantaNoteLifecycleStatus = "spendable" | "consumed";
 
 export type VantaAppNoteState = {
   amount: number;
+  asset: VantaShieldTokenAsset;
   consumedByTransitionId?: string;
   consumedByTransitionKind?: VantaTransitionKind;
   createdAt: number;
@@ -144,7 +146,7 @@ export type VantaAppNoteState = {
   noteId: string;
   parentNoteId?: string;
   parentSendNoteId?: string;
-  sourceType: "deposit" | "change_derived";
+  sourceType: "deposit" | "change_derived" | "swap_derived";
   spentMarkerId?: string;
   stateSignature: string;
 };
@@ -152,6 +154,7 @@ export type VantaAppNoteState = {
 export type VantaNoteStatusSummary = {
   changeDerived: number;
   consumed: number;
+  swapDerived: number;
   spendable: number;
   total: number;
 };
@@ -160,6 +163,7 @@ export type VantaLifecycleActivityType =
   | "shield"
   | "send"
   | "change_note_created"
+  | "swap_output_created"
   | "unshield"
   | "swap"
   | "sol_unshield";
@@ -264,7 +268,7 @@ type SwapMemoPayload = {
   mintAddress: string;
   noteId?: string;
   outputAmount: string;
-  outputAsset: "SOL";
+  outputAsset: VantaShieldTokenAsset | "SOL";
   outputNoteId?: string;
   owner: string;
   quoteExpiresAt?: number;
@@ -287,7 +291,7 @@ type SwapMemoWirePayload = {
   ma: string;
   ni: string;
   oa: string;
-  oi: "SOL";
+  oi: VantaShieldTokenAsset | "SOL";
   on: string;
   ow: string;
   qe?: number;
@@ -370,6 +374,14 @@ function resolveShieldTokenAssetFromMint(mintAddress: string): VantaShieldTokenA
 function formatShieldTokenAmount(asset: VantaShieldTokenAsset, amount: number) {
   const decimals = Math.min(getLiveShieldTokenAsset(asset).decimals, 4);
   return `${amount.toFixed(decimals)} ${asset}`;
+}
+
+function getShieldAssetAmountDecimals(asset: VantaShieldTokenAsset | "SOL") {
+  if (asset === "SOL") {
+    return 9;
+  }
+
+  return getLiveShieldTokenAsset(asset).decimals;
 }
 
 function createDeterministicNoteId(parts: Record<string, string | number>) {
@@ -477,12 +489,13 @@ function createSolUnshieldNoteId(
 
 function createSwapOutputNoteId(args: {
   createdAt: number;
+  outputAsset: VantaShieldTokenAsset | "SOL";
   outputAmount: string;
   owner: string;
   sourceSwapNoteId: string;
 }) {
   return createDeterministicNoteId({
-    asset: "SOL",
+    asset: args.outputAsset,
     createdAt: args.createdAt,
     kind: "swap_output",
     outputAmount: args.outputAmount,
@@ -600,6 +613,7 @@ export function createPreparedSwapMemo(
   const noteId = createSwapNoteId(payload);
   const outputNoteId = createSwapOutputNoteId({
     createdAt: payload.createdAt,
+    outputAsset: payload.outputAsset,
     outputAmount: payload.outputAmount,
     owner: payload.owner,
     sourceSwapNoteId: noteId,
@@ -1027,10 +1041,13 @@ function parseSwapMemo(
     const venueNetwork = parsed.venueNetwork ?? parsed.vw;
     const venuePoolAddress = parsed.venuePoolAddress ?? parsed.vp;
 
+    const isSupportedOutputAsset =
+      outputAsset === "SOL" || isShieldTokenAsset(outputAsset);
+
     if (
       kind !== "swap" ||
       inputAsset !== "VUSD" ||
-      outputAsset !== "SOL" ||
+      !isSupportedOutputAsset ||
       typeof owner !== "string" ||
       typeof mintAddress !== "string" ||
       typeof vaultOwner !== "string" ||
@@ -1065,7 +1082,7 @@ function parseSwapMemo(
       kind: "swap",
       noteId: typeof noteId === "string" ? noteId : undefined,
       outputAmount: parsedOutputAmount,
-      outputAsset: "SOL",
+      outputAsset,
       outputNoteId: typeof outputNoteId === "string" ? outputNoteId : undefined,
       owner,
       quoteExpiresAt:
@@ -1280,7 +1297,9 @@ export async function fetchVantaShieldAccountState(args: {
     }
 
     const roundedInputAmount = Number(note.inputAmount.toFixed(6));
-    const roundedOutputAmount = Number(note.outputAmount.toFixed(9));
+    const roundedOutputAmount = Number(
+      note.outputAmount.toFixed(getShieldAssetAmountDecimals(note.outputAsset)),
+    );
     const finalizedNoteId =
       note.noteId ??
       createSwapNoteId({
@@ -1290,7 +1309,7 @@ export async function fetchVantaShieldAccountState(args: {
         inputAsset: "VUSD",
         mintAddress: args.mintAddress,
         outputAmount: roundedOutputAmount.toString(),
-        outputAsset: "SOL",
+        outputAsset: note.outputAsset,
         owner: note.owner,
         quoteId: note.quoteId,
         vaultOwner: note.vaultOwner,
@@ -1299,6 +1318,7 @@ export async function fetchVantaShieldAccountState(args: {
       note.outputNoteId ??
       createSwapOutputNoteId({
         createdAt: note.createdAt,
+        outputAsset: note.outputAsset,
         outputAmount: roundedOutputAmount.toString(),
         owner: note.owner,
         sourceSwapNoteId: finalizedNoteId,
@@ -1397,6 +1417,7 @@ export async function fetchVantaShieldAccountState(args: {
     string,
     Omit<VantaShieldedSolNote, "lifecycleStatus">
   >();
+  const shieldTokenNotesBySwap = new Map<string, VantaShieldNote>();
   const consumedSolNoteIds = new Set<string>();
 
   const shieldSpentMarkers = [...explicitSpentMarkers, ...legacySpentMarkers]
@@ -1506,15 +1527,42 @@ export async function fetchVantaShieldAccountState(args: {
       }
 
       consumedNoteIds.add(marker.consumedNoteId);
-      shieldedSolNotesBySwap.set(swapTransition.noteId, {
-        amount: Number(swapTransition.outputAmount.toFixed(9)),
-        asset: "SOL",
-        createdAt: swapTransition.createdAt,
-        noteId: swapTransition.outputNoteId,
-        owner: swapTransition.owner,
-        sourceSwapNoteId: swapTransition.noteId,
-        stateSignature: `${swapTransition.stateSignature}:sol-output`,
-      });
+      const roundedSwapOutputAmount = Number(
+        swapTransition.outputAmount.toFixed(
+          getShieldAssetAmountDecimals(swapTransition.outputAsset),
+        ),
+      );
+
+      if (swapTransition.outputAsset === "SOL") {
+        shieldedSolNotesBySwap.set(swapTransition.noteId, {
+          amount: roundedSwapOutputAmount,
+          asset: "SOL",
+          createdAt: swapTransition.createdAt,
+          noteId: swapTransition.outputNoteId,
+          owner: swapTransition.owner,
+          sourceSwapNoteId: swapTransition.noteId,
+          stateSignature: `${swapTransition.stateSignature}:sol-output`,
+        });
+      } else if (swapTransition.outputAsset === accountAsset) {
+        const swapOutputNote = {
+          amount: roundedSwapOutputAmount,
+          asset: accountAsset,
+          createdAt: swapTransition.createdAt,
+          depositSignature: swapTransition.stateSignature,
+          kind: "shield" as const,
+          mintAddress: args.mintAddress,
+          noteId: swapTransition.outputNoteId,
+          origin: "swap_output" as const,
+          owner: swapTransition.owner,
+          parentNoteId: marker.consumedNoteId,
+          parentSwapNoteId: swapTransition.noteId,
+          stateSignature: `${swapTransition.stateSignature}:swap-output`,
+          vaultOwner: args.vaultOwner,
+        } satisfies VantaShieldNote;
+
+        shieldTokenNotesBySwap.set(swapTransition.noteId, swapOutputNote);
+        allShieldNotesById.set(swapOutputNote.noteId, swapOutputNote);
+      }
 
       return [marker];
     });
@@ -1541,6 +1589,10 @@ export async function fetchVantaShieldAccountState(args: {
   const baseShieldedSolNotes = validSwapNotes
     .map((note) => shieldedSolNotesBySwap.get(note.noteId))
     .filter((note): note is NonNullable<typeof note> => note !== undefined);
+  const swapOutputNotes = validSwapNotes
+    .map((note) => shieldTokenNotesBySwap.get(note.noteId))
+    .filter((note): note is NonNullable<typeof note> => note !== undefined)
+    .sort((left, right) => left.createdAt - right.createdAt);
 
   const solSpentMarkers = explicitSpentMarkers
     .filter((marker) => marker.asset === "SOL")
@@ -1599,9 +1651,11 @@ export async function fetchVantaShieldAccountState(args: {
   const changeNotes = [...changeNotesByParentSend.values()].sort((left, right) => {
     return left.createdAt - right.createdAt;
   });
-  const shieldNotes = [...depositShieldNotes, ...changeNotes].sort((left, right) => {
-    return left.createdAt - right.createdAt;
-  });
+  const shieldNotes = [...depositShieldNotes, ...changeNotes, ...swapOutputNotes].sort(
+    (left, right) => {
+      return left.createdAt - right.createdAt;
+    },
+  );
   const spentShieldNotes = shieldNotes.filter((note) => {
     return consumedNoteIds.has(note.noteId);
   });
@@ -1659,6 +1713,7 @@ export async function fetchVantaShieldAccountState(args: {
 
       return {
         amount: note.amount,
+        asset: note.asset,
         consumedByTransitionId: consumingTransition?.noteId,
         consumedByTransitionKind: consumingTransition?.kind,
         createdAt: note.createdAt,
@@ -1666,7 +1721,12 @@ export async function fetchVantaShieldAccountState(args: {
         noteId: note.noteId,
         parentNoteId: note.parentNoteId,
         parentSendNoteId: note.parentSendNoteId,
-        sourceType: note.origin === "change" ? "change_derived" : "deposit",
+        sourceType:
+          note.origin === "change"
+            ? "change_derived"
+            : note.origin === "swap_output"
+              ? "swap_derived"
+              : "deposit",
         spentMarkerId: spentMarker?.markerId,
         stateSignature: note.stateSignature,
       } satisfies VantaAppNoteState;
@@ -1674,6 +1734,7 @@ export async function fetchVantaShieldAccountState(args: {
   const noteStatusSummary = {
     changeDerived: noteStates.filter((note) => note.sourceType === "change_derived").length,
     consumed: noteStates.filter((note) => note.lifecycleStatus === "consumed").length,
+    swapDerived: noteStates.filter((note) => note.sourceType === "swap_derived").length,
     spendable: noteStates.filter((note) => note.lifecycleStatus === "spendable").length,
     total: noteStates.length,
   } satisfies VantaNoteStatusSummary;
@@ -1688,6 +1749,7 @@ export async function fetchVantaShieldAccountState(args: {
     sendNotes: validSendNotes,
     shieldNotes,
     solUnshieldNotes: validSolUnshieldNotes,
+    swapOutputNotes,
     swapNotes: validSwapNotes,
     unshieldNotes: validUnshieldNotes,
   });
@@ -1726,6 +1788,7 @@ function deriveLifecycleActivities(args: {
   sendNotes: VantaSendNote[];
   shieldNotes: VantaShieldNote[];
   solUnshieldNotes: VantaSolUnshieldNote[];
+  swapOutputNotes: VantaShieldNote[];
   swapNotes: VantaSwapNote[];
   unshieldNotes: VantaUnshieldNote[];
 }) {
@@ -1776,17 +1839,36 @@ function deriveLifecycleActivities(args: {
     } satisfies VantaLifecycleActivity;
   });
 
+  const swapOutputActivities = args.swapOutputNotes.map((note) => {
+    return {
+      amount: note.amount,
+      amountLabel: formatShieldTokenAmount(note.asset, note.amount),
+      createdAt: note.createdAt,
+      description: `Created a new spendable ${note.asset} swap output note inside shielded state.`,
+      noteId: note.noteId,
+      sourceState: "Shielded State",
+      targetState: "Shielded State",
+      title: "Swap Output Created",
+      type: "swap_output_created",
+      impact: "shielded_to_shielded",
+    } satisfies VantaLifecycleActivity;
+  });
+
   const swapActivities = args.swapNotes.map((note) => {
     const venueSuffix =
       note.venueName && note.venueFamily
         ? ` via ${note.venueName} ${note.venueFamily} on devnet.`
         : ".";
+    const outputLabel =
+      note.outputAsset === "SOL"
+        ? `${note.outputAmount.toFixed(4)} SOL`
+        : formatShieldTokenAmount(note.outputAsset, note.outputAmount);
 
     return {
       amount: note.inputAmount,
-      amountLabel: `${note.inputAmount.toFixed(2)} VUSD -> ${note.outputAmount.toFixed(4)} SOL`,
+      amountLabel: `${note.inputAmount.toFixed(2)} VUSD -> ${outputLabel}`,
       createdAt: note.createdAt,
-      description: `Swapped ${note.inputAmount.toFixed(2)} VUSD into ${note.outputAmount.toFixed(4)} SOL inside Vanta's constrained shielded lifecycle${venueSuffix}`,
+      description: `Swapped ${note.inputAmount.toFixed(2)} VUSD into ${outputLabel} inside Vanta's constrained shielded lifecycle${venueSuffix}`,
       noteId: note.noteId,
       sourceState: "Shielded State",
       targetState: "Shielded State",
@@ -1829,6 +1911,7 @@ function deriveLifecycleActivities(args: {
     ...shieldActivities,
     ...sendActivities,
     ...changeActivities,
+    ...swapOutputActivities,
     ...swapActivities,
     ...unshieldActivities,
     ...solUnshieldActivities,

@@ -1,3 +1,7 @@
+import {
+  getLiveShieldTokenAsset,
+  type LiveShieldTokenAssetKey,
+} from "@/solana/shieldConfig";
 import type { VantaShieldAccountState } from "@/solana/vantaShieldState";
 
 type NoteStatePanelProps = {
@@ -11,11 +15,12 @@ function abbreviate(value: string) {
   return `${value.slice(0, 10)}...${value.slice(-6)}`;
 }
 
-function formatAmount(value: number) {
+function formatAmount(value: number, asset: LiveShieldTokenAssetKey) {
+  const decimals = Math.min(getLiveShieldTokenAsset(asset).decimals, 4);
   return `${value.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })} VUSD`;
+    minimumFractionDigits: Math.min(decimals, 2),
+    maximumFractionDigits: decimals,
+  })} ${asset}`;
 }
 
 function formatSolAmount(value: number) {
@@ -48,12 +53,12 @@ export function NoteStatePanel({
             <span>Shielded note state</span>
             <h3>{title}</h3>
           </div>
-          <small>VUSD notes + SOL outputs</small>
+          <small>Shield notes + SOL outputs</small>
         </div>
         <p className="shield-review-note">
-          Connect a wallet and enter the live VUSD path to resolve current
-          spendable, consumed, and change-derived notes, plus any shielded SOL
-          outputs created by Swap.
+          Connect a wallet and enter a live shielded lane to resolve current
+          spendable, consumed, change-derived, and swap-derived notes, plus any
+          shielded SOL outputs created by Swap.
         </p>
       </div>
     );
@@ -87,8 +92,12 @@ export function NoteStatePanel({
           <strong>{account.noteStatusSummary.changeDerived}</strong>
         </div>
         <div className="preview-card">
+          <span>Swap-derived</span>
+          <strong>{account.noteStatusSummary.swapDerived}</strong>
+        </div>
+        <div className="preview-card">
           <span>Shielded balance</span>
-          <strong>{formatAmount(account.balance)}</strong>
+          <strong>{formatAmount(account.balance, account.asset)}</strong>
         </div>
         <div className="preview-card">
           <span>Shielded SOL</span>
@@ -101,7 +110,7 @@ export function NoteStatePanel({
           <div key={note.noteId} className="note-state-row">
             <div className="note-state-row__header">
               <div>
-                <strong>{formatAmount(note.amount)}</strong>
+                <strong>{formatAmount(note.amount, note.asset)}</strong>
                 <span>{abbreviate(note.noteId)}</span>
               </div>
               <div className="note-state-chips">
@@ -117,6 +126,11 @@ export function NoteStatePanel({
                 {note.sourceType === "change_derived" && (
                   <span className="note-state-chip note-state-chip--change">
                     Change-derived
+                  </span>
+                )}
+                {note.sourceType === "swap_derived" && (
+                  <span className="note-state-chip note-state-chip--change">
+                    Swap-derived
                   </span>
                 )}
               </div>
@@ -174,8 +188,8 @@ export function NoteStatePanel({
       {!compact && (
         <p className="shield-review-note">
           This view reflects Vanta&apos;s current constrained resolver:
-          `VUSD` note identity, spendability, and change lineage, plus the
-          first recognized shielded `SOL` outputs created by Swap. It is a
+          shield-note identity, spendability, change lineage, swap-derived
+          token outputs, and shielded `SOL` outputs created by Swap. It is a
           product-facing protocol summary, not a full explorer.
         </p>
       )}

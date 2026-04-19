@@ -46,6 +46,8 @@ function getActivityToneClass(activity: VantaLifecycleActivity) {
       return "lifecycle-entry__icon lifecycle-entry__icon--send";
     case "change_note_created":
       return "lifecycle-entry__icon lifecycle-entry__icon--change";
+    case "swap_output_created":
+      return "lifecycle-entry__icon lifecycle-entry__icon--swap";
     case "unshield":
       return "lifecycle-entry__icon lifecycle-entry__icon--unshield";
     case "swap":
@@ -69,10 +71,10 @@ export function LifecycleTimeline({
             <span>Lifecycle history</span>
             <h3>{title}</h3>
           </div>
-          <small>VUSD + shielded SOL</small>
+          <small>Shielded tokens + shielded SOL</small>
         </div>
         <p className="shield-review-note">
-          Shield, Send, Swap, change-note evolution, and Unshield will appear
+          Shield, Send, Swap, swap-output creation, and Unshield will appear
           here as a readable lifecycle once the constrained live path has
           activity to resolve.
         </p>
@@ -108,7 +110,7 @@ export function LifecycleTimeline({
       {activities.length === 0 ? (
         <p className="shield-review-note">
           No constrained lifecycle activity has been resolved yet. Start with
-          Shield to make the current VUSD path legible over time.
+          Shield to make the current shielded path legible over time.
         </p>
       ) : (
         <div className="lifecycle-list">
