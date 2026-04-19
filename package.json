@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "check:swap-lane": "node scripts/check-meteora-swap-lane.mjs",
+    "shield-assets:check": "node scripts/check-vanta-live-shield-assets.mjs",
     "operator:unshield": "node operator/unshield-server.mjs",
     "provision:dlmm": "node scripts/provision-vusd-sol-dlmm-devnet.cjs",
     "private-core:check": "node scripts/check-vanta-private-core-unshield-circuit.mjs",

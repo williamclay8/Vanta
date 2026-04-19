@@ -136,6 +136,10 @@ function toVusdBaseUnits(value: number) {
   return Math.round(value * 1_000_000);
 }
 
+function isDirectShieldTarget(asset: ShieldedSwapAssetKey): asset is LiveShieldTokenAssetKey {
+  return asset !== "SOL";
+}
+
 export function SwapPage() {
   const client = useSolanaClient();
   const { solBalance, walletAddress, walletConnected } = useWalletState();
@@ -353,7 +357,7 @@ export function SwapPage() {
     setQuoteError(null);
 
     const loadQuote = async () => {
-      if (isCanonicalVusdSource && selectedTargetAsset === "VUSD") {
+      if (isCanonicalVusdSource && isDirectShieldTarget(selectedTargetAsset)) {
         setPublicRouteQuote(null);
         setQuote(null);
         return;
@@ -724,26 +728,20 @@ export function SwapPage() {
           );
         }
 
-        if (pendingImplicitShieldSwap.shieldAssetKey === "VUSD") {
-          await refreshShieldState();
-          await recordCanonicalShieldFromLiveShield({
-            amountDisplay: pendingImplicitShieldSwap.amountDisplay,
-            amountNumeric: pendingImplicitShieldSwap.amountNumeric,
-            assetSymbol: "VUSD",
-            createdAt: pendingImplicitShieldSwap.createdAt,
-            depositSignature: pendingImplicitShieldSwap.depositSignature,
-            mintAddress: pendingShieldAsset.mintAddress!,
-            owner: pendingShieldToken.owner!,
-            stateSignature: shieldStateSignature,
-            tokenDecimals: readTokenDecimals(pendingShieldToken.balance),
-            vaultOwner: pendingShieldAsset.vaultOwner!,
-          });
-        }
+        await recordCanonicalShieldFromLiveShield({
+          amountDisplay: pendingImplicitShieldSwap.amountDisplay,
+          amountNumeric: pendingImplicitShieldSwap.amountNumeric,
+          assetSymbol: pendingImplicitShieldSwap.shieldAssetKey,
+          createdAt: pendingImplicitShieldSwap.createdAt,
+          depositSignature: pendingImplicitShieldSwap.depositSignature,
+          mintAddress: pendingShieldAsset.mintAddress!,
+          owner: pendingShieldToken.owner!,
+          stateSignature: shieldStateSignature,
+          tokenDecimals: readTokenDecimals(pendingShieldToken.balance),
+          vaultOwner: pendingShieldAsset.vaultOwner!,
+        });
 
-        if (
-          pendingImplicitShieldSwap.targetShieldedAsset === "VUSD" ||
-          pendingImplicitShieldSwap.targetShieldedAsset === "USDC"
-        ) {
+        if (isDirectShieldTarget(pendingImplicitShieldSwap.targetShieldedAsset)) {
           if (pendingImplicitShieldSwap.shieldAssetKey === "VUSD") {
             await refreshShieldState();
           }
@@ -1071,8 +1069,13 @@ export function SwapPage() {
       return "Enter a valid amount to continue.";
     }
 
-    if (isCanonicalVusdSource && selectedTargetAsset === "VUSD") {
-      return "Vanta will shield VUSD automatically.";
+    if (
+      selectedSourceAsset?.mintAddress &&
+      selectedShieldAsset.mintAddress &&
+      selectedSourceAsset.mintAddress === selectedShieldAsset.mintAddress &&
+      isDirectShieldTarget(selectedTargetAsset)
+    ) {
+      return `Vanta will shield ${selectedTargetAsset} automatically.`;
     }
 
     if (isCanonicalVusdSource && selectedTargetAsset === "SOL" && canUseExistingNote) {
@@ -1083,7 +1086,7 @@ export function SwapPage() {
       return "Vanta will shield VUSD automatically, then swap into shielded SOL.";
     }
 
-    if (selectedTargetAsset === "VUSD" || selectedTargetAsset === "USDC") {
+    if (isDirectShieldTarget(selectedTargetAsset)) {
       return `Vanta will route ${selectedSourceAsset?.symbol ?? "this asset"} into ${selectedTargetAsset}, then shield it automatically.`;
     }
 

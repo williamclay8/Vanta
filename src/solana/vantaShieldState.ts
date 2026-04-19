@@ -4,9 +4,8 @@ import {
   type TransactionInstructionInput,
 } from "@solana/client";
 import {
+  ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS,
   getLiveShieldTokenAsset,
-  liveShieldAsset,
-  liveUsdcShieldAsset,
   type LiveShieldTokenAssetKey,
 } from "@/solana/shieldConfig";
 
@@ -351,16 +350,18 @@ function hashString(input: string) {
 }
 
 function isShieldTokenAsset(value: unknown): value is VantaShieldTokenAsset {
-  return value === "VUSD" || value === "USDC";
+  return (
+    typeof value === "string" &&
+    (ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS as readonly string[]).includes(value)
+  );
 }
 
 function resolveShieldTokenAssetFromMint(mintAddress: string): VantaShieldTokenAsset | null {
-  if (mintAddress === liveShieldAsset.mintAddress) {
-    return "VUSD";
-  }
-
-  if (mintAddress === liveUsdcShieldAsset.mintAddress) {
-    return "USDC";
+  for (const assetKey of ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS) {
+    const asset = getLiveShieldTokenAsset(assetKey);
+    if (asset.mintAddress === mintAddress) {
+      return asset.assetKey;
+    }
   }
 
   return null;
