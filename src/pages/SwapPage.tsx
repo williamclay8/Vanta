@@ -1397,6 +1397,22 @@ export function SwapPage() {
     validationMessage = quoteError ?? "The current quote is not available yet.";
   }
 
+  const sourceSelectValue = selectedSourceAsset?.id ?? "";
+  const sourceSelectDisabled =
+    !walletConnected || publicAssetsLoading || executableSourceAssets.length === 0;
+  const sourceBalanceLabel = selectedSourceAsset
+    ? formatAssetAmount(sourceBalance, selectedSourceAsset.symbol)
+    : walletConnected
+      ? "Unavailable"
+      : "Connect wallet";
+  const sourcePlaceholderLabel = !walletConnected
+    ? "Connect wallet"
+    : publicAssetsLoading
+      ? "Loading assets..."
+      : publicAssetsError
+        ? "Asset load failed"
+        : "No wallet assets available";
+
   return (
     <section className="send-page swap-page">
       <div className="send-layout">
@@ -1413,7 +1429,7 @@ export function SwapPage() {
                 <div className="swap-module__label-row">
                   <span>You send</span>
                   <div className="send-balance-line shield-helper shield-helper--meta">
-                    Balance: {formatAssetAmount(sourceBalance, selectedSourceAsset?.symbol ?? "VUSD")}
+                    Balance: {sourceBalanceLabel}
                   </div>
                 </div>
                 <div className="send-entry-grid swap-entry-grid">
@@ -1461,7 +1477,8 @@ export function SwapPage() {
                   <div className="send-asset-field">
                     <select
                       aria-label="From asset"
-                      value={selectedSourceAssetId}
+                      value={sourceSelectValue}
+                      disabled={sourceSelectDisabled}
                       onChange={(event) => {
                         setSelectedSourceAssetId(event.target.value);
                         setStatus("idle");
@@ -1471,6 +1488,9 @@ export function SwapPage() {
                         setQuoteError(null);
                       }}
                     >
+                      {executableSourceAssets.length === 0 && (
+                        <option value="">{sourcePlaceholderLabel}</option>
+                      )}
                       {executableSourceAssets.map((asset) => (
                         <option key={asset.id} value={asset.id}>
                           {asset.symbol}
