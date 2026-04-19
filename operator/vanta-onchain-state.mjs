@@ -1002,7 +1002,7 @@ export async function fetchConstrainedOnchainUnshieldContext(args) {
 
 // The local operator only needs a narrow subset of the app resolver:
 // enough to confirm that the referenced unshield transition exists and
-// targets a currently eligible note under the constrained VUSD model.
+// targets a currently eligible note under the configured shield-token model.
 export function assertEligibleUnshieldTransition(args) {
   const transition = args.context.candidateUnshieldNotes.find(
     (note) => note.noteId === args.transitionNoteId,
@@ -1028,11 +1028,11 @@ export function assertEligibleUnshieldTransition(args) {
   );
 
   if (!consumedNote) {
-    throw new Error("Referenced VUSD note is not currently eligible for unshield release.");
+    throw new Error("Referenced shield note is not currently eligible for unshield release.");
   }
 
   if (!amountsMatch(Number(consumedNote.amount.toFixed(6)), Number(args.amount))) {
-    throw new Error("Referenced VUSD note amount does not match the requested unshield amount.");
+    throw new Error("Referenced shield note amount does not match the requested unshield amount.");
   }
 
   const competingTransitions = [

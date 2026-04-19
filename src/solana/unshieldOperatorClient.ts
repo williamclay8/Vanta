@@ -1,4 +1,3 @@
-import { liveShieldAsset } from "@/solana/shieldConfig";
 import type { SignedUnshieldIntent } from "@/solana/unshieldAuth";
 
 type UnshieldOperatorResponse = {
@@ -8,8 +7,9 @@ type UnshieldOperatorResponse = {
 
 export async function requestOperatorUnshield(
   payload: SignedUnshieldIntent,
+  operatorUrl: string,
 ): Promise<UnshieldOperatorResponse> {
-  const response = await fetch(liveShieldAsset.unshieldOperatorUrl, {
+  const response = await fetch(operatorUrl, {
     body: JSON.stringify(payload),
     headers: {
       "Content-Type": "application/json",

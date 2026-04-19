@@ -2,7 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { endpoint } from "@/solana/client";
-import { liveShieldAsset, liveSwapPair } from "@/solana/shieldConfig";
+import {
+  listLiveShieldTokenAssets,
+  liveSwapPair,
+} from "@/solana/shieldConfig";
 
 export type WalletPublicAsset = {
   balance: number;
@@ -23,10 +26,14 @@ const KNOWN_ASSET_LABELS: Record<string, { label: string; symbol: string }> = {
   },
 };
 
-if (liveShieldAsset.mintAddress) {
-  KNOWN_ASSET_LABELS[liveShieldAsset.mintAddress] = {
-    label: liveShieldAsset.name,
-    symbol: liveShieldAsset.symbol,
+for (const asset of listLiveShieldTokenAssets()) {
+  if (!asset.mintAddress) {
+    continue;
+  }
+
+  KNOWN_ASSET_LABELS[asset.mintAddress] = {
+    label: asset.name,
+    symbol: asset.symbol,
   };
 }
 

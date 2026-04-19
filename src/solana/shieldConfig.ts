@@ -9,6 +9,9 @@ function getOptionalEnvValue(value: string | undefined) {
 const configuredMintAddress = getOptionalEnvValue(
   import.meta.env.VITE_VANTA_DEVNET_TOKEN_MINT,
 );
+const configuredUsdcMintAddress = getOptionalEnvValue(
+  import.meta.env.VITE_VANTA_DEVNET_USDC_MINT,
+);
 const configuredVaultOwner = getOptionalEnvValue(
   import.meta.env.VITE_VANTA_DEVNET_VAULT_OWNER,
 );
@@ -25,6 +28,20 @@ const configuredMeteoraDlmmPoolAddress = getOptionalEnvValue(
   import.meta.env.VITE_VANTA_METEORA_DLMM_POOL_ADDRESS,
 );
 
+export type LiveShieldTokenAssetKey = "VUSD" | "USDC";
+
+export type LiveShieldTokenAssetConfig = {
+  assetKey: LiveShieldTokenAssetKey;
+  cluster: "Devnet";
+  configured: boolean;
+  mintAddress: string | null;
+  name: string;
+  symbol: LiveShieldTokenAssetKey;
+  unshieldConfigured: boolean;
+  unshieldOperatorUrl: string;
+  vaultOwner: string | null;
+};
+
 export const liveShieldAsset = {
   assetKey: "VUSD" as const,
   cluster: "Devnet" as const,
@@ -39,6 +56,36 @@ export const liveShieldAsset = {
     configuredUnshieldOperatorUrl ?? "http://127.0.0.1:8789/unshield",
   vaultOwner: configuredVaultOwner,
 };
+
+export const liveUsdcShieldAsset: LiveShieldTokenAssetConfig = {
+  assetKey: "USDC",
+  cluster: "Devnet",
+  configured: Boolean(configuredUsdcMintAddress && configuredVaultOwner),
+  mintAddress: configuredUsdcMintAddress,
+  name: getOptionalEnvValue(import.meta.env.VITE_VANTA_DEVNET_USDC_NAME) ?? "USD Coin",
+  symbol: "USDC",
+  unshieldConfigured: Boolean(configuredUsdcMintAddress && configuredVaultOwner),
+  unshieldOperatorUrl:
+    configuredUnshieldOperatorUrl ?? "http://127.0.0.1:8789/unshield",
+  vaultOwner: configuredVaultOwner,
+};
+
+const liveShieldTokenAssetMap: Record<LiveShieldTokenAssetKey, LiveShieldTokenAssetConfig> = {
+  USDC: liveUsdcShieldAsset,
+  VUSD: liveShieldAsset,
+};
+
+export function getLiveShieldTokenAsset(
+  assetKey: LiveShieldTokenAssetKey,
+): LiveShieldTokenAssetConfig {
+  return liveShieldTokenAssetMap[assetKey];
+}
+
+export function listLiveShieldTokenAssets() {
+  return (Object.values(liveShieldTokenAssetMap) as LiveShieldTokenAssetConfig[]).filter(
+    (asset) => asset.configured && asset.mintAddress,
+  );
+}
 
 export const liveSwapPair = {
   cluster: "Devnet" as const,

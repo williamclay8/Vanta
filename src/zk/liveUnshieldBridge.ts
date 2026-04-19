@@ -17,7 +17,7 @@ import {
 const LIVE_UNSHIELD_RECORDS_STORAGE_KEY = "vanta.zk.phase1.live-unshield-records.v1";
 
 export type LiveUnshieldCanonicalizationInput = {
-  asset: "VUSD" | "SOL";
+  asset: "VUSD" | "USDC" | "SOL";
   assetId: string;
   amountDisplay: string;
   createdAt: number;
@@ -57,7 +57,7 @@ export type LiveUnshieldCanonicalRecord = {
   lifecycleLinkage?: CanonicalLifecycleRecordLinkage;
   liveUnshield: {
     amountDisplay: string;
-    asset: "VUSD" | "SOL";
+    asset: "VUSD" | "USDC" | "SOL";
     assetId: string;
     consumedNoteId: string;
     consumedStateSignature: string;
@@ -85,7 +85,7 @@ export type LiveUnshieldDiagnosticsSummary = {
   createdAt: number;
   lifecycleRecordId?: string;
   lineageId?: string;
-  asset: "VUSD" | "SOL";
+  asset: "VUSD" | "USDC" | "SOL";
   amountDisplay: string;
   consumedLiveNoteId: string;
   consumedCanonicalCommitment?: string;

@@ -7,10 +7,17 @@ import {
   type TransactionInstruction,
 } from "@solana/web3.js";
 import { endpoint } from "@/solana/client";
-import { liveShieldAsset, liveSwapPair } from "@/solana/shieldConfig";
+import {
+  getLiveShieldTokenAsset,
+  listLiveShieldTokenAssets,
+  liveShieldAsset,
+  liveSwapPair,
+  type LiveShieldTokenAssetConfig,
+  type LiveShieldTokenAssetKey,
+} from "@/solana/shieldConfig";
 import type { WalletPublicAsset } from "@/solana/useWalletPublicAssets";
 
-export type ShieldedSwapAssetKey = "VUSD" | "SOL";
+export type ShieldedSwapAssetKey = LiveShieldTokenAssetKey | "SOL";
 
 export type ExecutableShieldedAsset = {
   label: string;
@@ -44,7 +51,7 @@ export type PublicToVusdQuote = {
   inputMint: string;
   minOutputAmount: string;
   outputAmount: string;
-  outputAsset: "VUSD";
+  outputAsset: LiveShieldTokenAssetKey;
   outputMint: string;
   venueFamily: "Aggregator" | "DLMM";
   venueName: "Jupiter" | "Meteora";
@@ -59,17 +66,6 @@ const DEFAULT_ALLOWED_SLIPPAGE_BPS = 50;
 const DEFAULT_SOL_DECIMALS = 9;
 const JUPITER_QUOTE_URL = "https://api.jup.ag/swap/v1/quote";
 const JUPITER_SWAP_INSTRUCTIONS_URL = "https://api.jup.ag/swap/v1/swap-instructions";
-
-const executableShieldedAssets: ExecutableShieldedAsset[] = [
-  {
-    label: "Shielded VUSD",
-    symbol: "VUSD",
-  },
-  {
-    label: "Shielded SOL",
-    symbol: "SOL",
-  },
-];
 
 let cachedConnection: Connection | null = null;
 let cachedPool: Awaited<ReturnType<typeof DLMM.create>> | null = null;
@@ -130,6 +126,14 @@ function isCanonicalVusdAsset(asset: WalletPublicAsset) {
   return Boolean(liveShieldAsset.mintAddress) && asset.mintAddress === liveShieldAsset.mintAddress;
 }
 
+function getShieldRouteAsset(asset: ShieldedSwapAssetKey): LiveShieldTokenAssetConfig {
+  return getLiveShieldTokenAsset(asset === "SOL" ? "VUSD" : asset);
+}
+
+function getShieldRouteDecimals(asset: LiveShieldTokenAssetKey) {
+  return asset === "USDC" ? 6 : DEFAULT_VUSD_DECIMALS;
+}
+
 function toInstructionInput(instruction: TransactionInstruction): TransactionInstructionInput {
   return {
     accounts: instruction.keys.map((account) => ({
@@ -175,7 +179,16 @@ function getJupiterHeaders() {
 }
 
 export function listExecutableShieldedAssets() {
-  return executableShieldedAssets;
+  return [
+    ...listLiveShieldTokenAssets().map((asset) => ({
+      label: `Shielded ${asset.symbol}`,
+      symbol: asset.symbol,
+    })),
+    {
+      label: "Shielded SOL",
+      symbol: "SOL" as const,
+    },
+  ];
 }
 
 export function formatAssetAmount(value: number, symbol: string) {
@@ -190,21 +203,27 @@ export function formatAssetAmount(value: number, symbol: string) {
 export async function fetchPublicToVusdQuote(args: {
   amount: string;
   inputAsset: WalletPublicAsset;
+  outputAsset: ShieldedSwapAssetKey;
 }) {
-  if (!liveShieldAsset.mintAddress) {
-    throw new Error("VUSD mint is not configured.");
+  const outputShieldAsset = getShieldRouteAsset(args.outputAsset);
+
+  if (!outputShieldAsset.mintAddress) {
+    throw new Error(`Shield target ${args.outputAsset} is not configured.`);
   }
 
-  if (isCanonicalVusdAsset(args.inputAsset)) {
+  const outputDecimals = getShieldRouteDecimals(outputShieldAsset.assetKey);
+  const isCanonicalShieldInput = args.inputAsset.mintAddress === outputShieldAsset.mintAddress;
+
+  if (isCanonicalShieldInput) {
     return {
       inputAmount: args.amount,
       inputAssetLabel: args.inputAsset.label,
       inputAssetSymbol: args.inputAsset.symbol,
-      inputMint: liveShieldAsset.mintAddress,
+      inputMint: outputShieldAsset.mintAddress,
       minOutputAmount: args.amount,
       outputAmount: args.amount,
-      outputAsset: "VUSD",
-      outputMint: liveShieldAsset.mintAddress,
+      outputAsset: outputShieldAsset.assetKey,
+      outputMint: outputShieldAsset.mintAddress,
       venueFamily: "DLMM" as const,
       venueName: "Meteora" as const,
       venueNetwork: "Devnet" as const,
@@ -213,14 +232,18 @@ export async function fetchPublicToVusdQuote(args: {
     } satisfies PublicToVusdQuote;
   }
 
-  if (args.inputAsset.symbol === "SOL" && liveSwapPair.venuePoolAddress) {
+  if (
+    args.inputAsset.symbol === "SOL" &&
+    outputShieldAsset.assetKey === "VUSD" &&
+    liveSwapPair.venuePoolAddress
+  ) {
     const pool = await getDlmmPool();
     const swapForY = pool.tokenX.publicKey.equals(new PublicKey(args.inputAsset.mintAddress))
-      ? pool.tokenY.publicKey.equals(new PublicKey(liveShieldAsset.mintAddress))
+      ? pool.tokenY.publicKey.equals(new PublicKey(outputShieldAsset.mintAddress))
       : false;
     const reverseMatches =
       pool.tokenY.publicKey.equals(new PublicKey(args.inputAsset.mintAddress)) &&
-      pool.tokenX.publicKey.equals(new PublicKey(liveShieldAsset.mintAddress));
+      pool.tokenX.publicKey.equals(new PublicKey(outputShieldAsset.mintAddress));
 
     if (swapForY || reverseMatches) {
       const inAmount = toAtomicAmount(args.amount, DEFAULT_SOL_DECIMALS);
@@ -237,10 +260,10 @@ export async function fetchPublicToVusdQuote(args: {
         inputAssetLabel: args.inputAsset.label,
         inputAssetSymbol: args.inputAsset.symbol,
         inputMint: args.inputAsset.mintAddress,
-        minOutputAmount: formatAtomicAmount(quote.minOutAmount, DEFAULT_VUSD_DECIMALS),
-        outputAmount: formatAtomicAmount(quote.outAmount, DEFAULT_VUSD_DECIMALS),
-        outputAsset: "VUSD",
-        outputMint: liveShieldAsset.mintAddress,
+        minOutputAmount: formatAtomicAmount(quote.minOutAmount, outputDecimals),
+        outputAmount: formatAtomicAmount(quote.outAmount, outputDecimals),
+        outputAsset: outputShieldAsset.assetKey,
+        outputMint: outputShieldAsset.mintAddress,
         venueFamily: "DLMM" as const,
         venueName: "Meteora" as const,
         venueNetwork: "Devnet" as const,
@@ -253,7 +276,7 @@ export async function fetchPublicToVusdQuote(args: {
   const amountAtomic = toAtomicAmount(args.amount, args.inputAsset.decimals).toString(10);
   const searchParams = new URLSearchParams({
     inputMint: args.inputAsset.mintAddress,
-    outputMint: liveShieldAsset.mintAddress,
+    outputMint: outputShieldAsset.mintAddress,
     amount: amountAtomic,
     slippageBps: String(DEFAULT_ALLOWED_SLIPPAGE_BPS),
     restrictIntermediateTokens: "true",
@@ -283,11 +306,11 @@ export async function fetchPublicToVusdQuote(args: {
     inputAssetSymbol: args.inputAsset.symbol,
     inputMint: args.inputAsset.mintAddress,
     minOutputAmount: Number(parsed.otherAmountThreshold) > 0
-      ? (Number(parsed.otherAmountThreshold) / 10 ** DEFAULT_VUSD_DECIMALS).toFixed(6)
+      ? (Number(parsed.otherAmountThreshold) / 10 ** outputDecimals).toFixed(outputDecimals)
       : "0",
-    outputAmount: (Number(parsed.outAmount) / 10 ** DEFAULT_VUSD_DECIMALS).toFixed(6),
-    outputAsset: "VUSD",
-    outputMint: liveShieldAsset.mintAddress,
+    outputAmount: (Number(parsed.outAmount) / 10 ** outputDecimals).toFixed(outputDecimals),
+    outputAsset: outputShieldAsset.assetKey,
+    outputMint: outputShieldAsset.mintAddress,
     venueFamily: "Aggregator" as const,
     venueName: "Jupiter" as const,
     venueNetwork: "Devnet" as const,
@@ -301,25 +324,27 @@ export async function buildPublicToVusdSwapInstructions(args: {
   quote: PublicToVusdQuote;
   userPublicKey: string;
 }) {
-  if (!liveShieldAsset.mintAddress) {
-    throw new Error("VUSD mint is not configured.");
+  if (!args.quote.outputMint) {
+    throw new Error("Shield target mint is not configured.");
   }
 
   if (args.quote.venueName === "Meteora") {
-    if (args.quote.inputAssetSymbol === "VUSD") {
+    if (args.quote.inputMint === args.quote.outputMint) {
       throw new Error("A public swap transaction is not required for VUSD input.");
     }
 
     const pool = await getDlmmPool();
-    const inputDecimals = args.quote.inputAssetSymbol === "SOL" ? DEFAULT_SOL_DECIMALS : DEFAULT_VUSD_DECIMALS;
+    const inputDecimals =
+      args.quote.inputAssetSymbol === "SOL" ? DEFAULT_SOL_DECIMALS : DEFAULT_VUSD_DECIMALS;
+    const outputDecimals = getShieldRouteDecimals(args.quote.outputAsset);
     const user = new PublicKey(args.userPublicKey);
     const transaction = await pool.swap({
       binArraysPubkey: args.quote.binArraysPubkey.map((pubkey) => new PublicKey(pubkey)),
       inAmount: toAtomicAmount(args.quote.inputAmount, inputDecimals),
       inToken: new PublicKey(args.quote.inputMint),
       lbPair: new PublicKey(liveSwapPair.venuePoolAddress!),
-      minOutAmount: toAtomicAmount(args.quote.minOutputAmount, DEFAULT_VUSD_DECIMALS),
-      outToken: new PublicKey(liveShieldAsset.mintAddress),
+      minOutAmount: toAtomicAmount(args.quote.minOutputAmount, outputDecimals),
+      outToken: new PublicKey(args.quote.outputMint),
       user,
     });
 

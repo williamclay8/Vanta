@@ -85,6 +85,8 @@ const websocketEndpoint =
   endpoint.replace("https://", "wss://").replace("http://", "ws://");
 const mintAddress =
   process.env.VANTA_DEVNET_TOKEN_MINT ?? process.env.VITE_VANTA_DEVNET_TOKEN_MINT;
+const usdcMintAddress =
+  process.env.VANTA_DEVNET_USDC_MINT ?? process.env.VITE_VANTA_DEVNET_USDC_MINT;
 const vaultOwner =
   process.env.VANTA_DEVNET_VAULT_OWNER ?? process.env.VITE_VANTA_DEVNET_VAULT_OWNER;
 
@@ -93,6 +95,12 @@ if (!mintAddress || !vaultOwner) {
     "Unshield operator requires VANTA_DEVNET_TOKEN_MINT and VANTA_DEVNET_VAULT_OWNER.",
   );
 }
+
+const supportedTokenMintAddresses = new Set(
+  [mintAddress, usdcMintAddress].filter(
+    (value) => typeof value === "string" && value.length > 0,
+  ),
+);
 
 const client = createClient({
   endpoint,
@@ -1494,7 +1502,7 @@ const server = createServer(async (request, response) => {
     if (
       intent.owner !== intent.requester ||
       intent.destinationOwner !== intent.requester ||
-      intent.mintAddress !== mintAddress ||
+      !supportedTokenMintAddresses.has(intent.mintAddress) ||
       intent.vaultOwner !== vaultOwner ||
       !Number.isFinite(parsedAmount) ||
       parsedAmount <= 0
@@ -1537,7 +1545,7 @@ const server = createServer(async (request, response) => {
       amount: intent.amount,
       client,
       destinationOwner: intent.destinationOwner,
-      mintAddress,
+      mintAddress: intent.mintAddress,
       noteId: intent.noteId,
       owner: intent.owner,
       transitionNoteId: intent.transitionNoteId,
@@ -1559,7 +1567,7 @@ const server = createServer(async (request, response) => {
     try {
       signature = await client.helpers
         .splToken({
-          mint: mintAddress,
+          mint: intent.mintAddress,
           tokenProgram: "auto",
         })
         .sendTransfer({
@@ -1580,7 +1588,7 @@ const server = createServer(async (request, response) => {
       completedAt: Date.now(),
       consumedNoteId: intent.noteId,
       destinationOwner: intent.destinationOwner,
-      mintAddress,
+      mintAddress: intent.mintAddress,
       owner: intent.owner,
       releaseSignature: signature.toString(),
       requestId: intent.requestId,

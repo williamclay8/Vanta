@@ -3,6 +3,11 @@ import {
   type SolanaClient,
   type TransactionInstructionInput,
 } from "@solana/client";
+import {
+  liveShieldAsset,
+  liveUsdcShieldAsset,
+  type LiveShieldTokenAssetKey,
+} from "@/solana/shieldConfig";
 
 export const VANTA_SHIELD_MEMO_PROGRAM =
   "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
@@ -15,9 +20,11 @@ const VANTA_SPENT_MARKER_MEMO_PREFIX = "vanta:spent-marker:v1:";
 export const VANTA_NATIVE_SOL_ASSET_ID =
   "So11111111111111111111111111111111111111112";
 
+export type VantaShieldTokenAsset = LiveShieldTokenAssetKey;
+
 type BaseVantaNote = {
   amount: number;
-  asset: "VUSD";
+  asset: VantaShieldTokenAsset;
   createdAt: number;
   mintAddress: string;
   noteId: string;
@@ -105,7 +112,7 @@ export type VantaTransitionKind =
   | VantaSolUnshieldNote["kind"];
 
 export type VantaSpentMarker = {
-  asset: "VUSD" | "SOL";
+  asset: VantaShieldTokenAsset | "SOL";
   assetId: string;
   consumedNoteId: string;
   createdAt: number;
@@ -180,7 +187,7 @@ export type VantaLifecycleActivity = {
 export type VantaShieldAccountState = {
   accountId: string;
   activity: VantaShieldActivity[];
-  asset: "VUSD";
+  asset: VantaShieldTokenAsset;
   balance: number;
   changeNotes: VantaShieldNote[];
   lifecycleActivities: VantaLifecycleActivity[];
@@ -207,7 +214,7 @@ export type VantaShieldAccountState = {
 
 type ShieldMemoPayload = {
   amount: string;
-  asset: "VUSD";
+  asset: VantaShieldTokenAsset;
   createdAt: number;
   depositSignature: string;
   kind: "shield";
@@ -235,7 +242,7 @@ type SendMemoPayload = {
 
 type UnshieldMemoPayload = {
   amount: string;
-  asset: "VUSD";
+  asset: VantaShieldTokenAsset;
   consumedNoteId?: string;
   consumedShieldStateSignature?: string;
   createdAt: number;
@@ -307,7 +314,7 @@ type SolUnshieldMemoPayload = {
 };
 
 type SpentMarkerMemoPayload = {
-  asset: "VUSD" | "SOL";
+  asset: VantaShieldTokenAsset | "SOL";
   assetId?: string;
   consumedNoteId: string;
   createdAt: number;
@@ -340,6 +347,27 @@ function hashString(input: string) {
   }
 
   return hash.toString(16).padStart(16, "0");
+}
+
+function isShieldTokenAsset(value: unknown): value is VantaShieldTokenAsset {
+  return value === "VUSD" || value === "USDC";
+}
+
+function resolveShieldTokenAssetFromMint(mintAddress: string): VantaShieldTokenAsset | null {
+  if (mintAddress === liveShieldAsset.mintAddress) {
+    return "VUSD";
+  }
+
+  if (mintAddress === liveUsdcShieldAsset.mintAddress) {
+    return "USDC";
+  }
+
+  return null;
+}
+
+function formatShieldTokenAmount(asset: VantaShieldTokenAsset, amount: number) {
+  const decimals = asset === "USDC" ? 2 : 2;
+  return `${amount.toFixed(decimals)} ${asset}`;
 }
 
 function createDeterministicNoteId(parts: Record<string, string | number>) {
@@ -647,7 +675,7 @@ function parseShieldMemo(
 
     if (
       parsed.kind !== "shield" ||
-      parsed.asset !== "VUSD" ||
+      !isShieldTokenAsset(parsed.asset) ||
       typeof parsed.owner !== "string" ||
       typeof parsed.mintAddress !== "string" ||
       typeof parsed.vaultOwner !== "string" ||
@@ -669,7 +697,7 @@ function parseShieldMemo(
         ? parsed.noteId
         : createShieldNoteId({
             amount: parsed.amount,
-            asset: "VUSD",
+            asset: parsed.asset,
             createdAt: parsed.createdAt,
             depositSignature: parsed.depositSignature,
             mintAddress: parsed.mintAddress,
@@ -679,7 +707,7 @@ function parseShieldMemo(
 
     return {
       amount: parsedAmount,
-      asset: "VUSD",
+      asset: parsed.asset,
       createdAt: parsed.createdAt,
       depositSignature: parsed.depositSignature,
       kind: "shield",
@@ -788,7 +816,7 @@ function parseSpentMarkerMemo(
 
     if (
       parsed.kind !== "spent_marker" ||
-      (parsed.asset !== "VUSD" && parsed.asset !== "SOL") ||
+      (!isShieldTokenAsset(parsed.asset) && parsed.asset !== "SOL") ||
       typeof parsed.owner !== "string" ||
       typeof parsed.vaultOwner !== "string" ||
       typeof parsed.consumedNoteId !== "string" ||
@@ -918,7 +946,7 @@ function parseUnshieldMemo(
 
     if (
       parsed.kind !== "unshield" ||
-      parsed.asset !== "VUSD" ||
+      !isShieldTokenAsset(parsed.asset) ||
       typeof parsed.owner !== "string" ||
       typeof parsed.mintAddress !== "string" ||
       typeof parsed.vaultOwner !== "string" ||
@@ -937,7 +965,7 @@ function parseUnshieldMemo(
 
     return {
       amount: parsedAmount,
-      asset: "VUSD",
+      asset: parsed.asset,
       consumedNoteId:
         typeof parsed.consumedNoteId === "string" ? parsed.consumedNoteId : undefined,
       consumedShieldStateSignature:
@@ -1070,6 +1098,7 @@ export async function fetchVantaShieldAccountState(args: {
   owner: string;
   vaultOwner: string;
 }) {
+  const accountAsset = resolveShieldTokenAssetFromMint(args.mintAddress) ?? "VUSD";
   const ownerAddress = toAddress(args.owner);
   const signatures = await args.client.runtime.rpc
     .getSignaturesForAddress(ownerAddress, {
@@ -1214,7 +1243,7 @@ export async function fetchVantaShieldAccountState(args: {
       note.noteId ??
       createUnshieldNoteId({
         amount: roundedAmount.toString(),
-        asset: "VUSD",
+        asset: note.asset,
         consumedNoteId: resolvedConsumedNoteId,
         createdAt: note.createdAt,
         destinationOwner: note.destinationOwner,
@@ -1369,7 +1398,7 @@ export async function fetchVantaShieldAccountState(args: {
   const consumedSolNoteIds = new Set<string>();
 
   const shieldSpentMarkers = [...explicitSpentMarkers, ...legacySpentMarkers]
-    .filter((marker) => marker.asset === "VUSD")
+    .filter((marker) => marker.asset !== "SOL")
     .sort((left, right) => left.createdAt - right.createdAt)
     .flatMap((marker) => {
       const transition =
@@ -1434,7 +1463,7 @@ export async function fetchVantaShieldAccountState(args: {
 
         const changeNote = {
           amount: roundedChangeAmount,
-          asset: "VUSD" as const,
+          asset: accountAsset,
           createdAt: sendTransition.createdAt,
           depositSignature: sendTransition.stateSignature,
           kind: "shield" as const,
@@ -1664,7 +1693,7 @@ export async function fetchVantaShieldAccountState(args: {
   return {
     accountId: getShieldAccountId(args.owner, args.mintAddress),
     activity,
-    asset: "VUSD",
+    asset: accountAsset,
     balance,
     changeNotes,
     lifecycleActivities,
@@ -1704,7 +1733,7 @@ function deriveLifecycleActivities(args: {
       return {
         amount: note.amount,
         createdAt: note.createdAt,
-        description: `Moved ${note.amount.toFixed(2)} VUSD out of Public Wallet and into Vanta's shielded state.`,
+        description: `Moved ${formatShieldTokenAmount(note.asset, note.amount)} out of Public Wallet and into Vanta's shielded state.`,
         noteId: note.noteId,
         sourceState: "Public Wallet",
         targetState: "Shielded State",
@@ -1769,7 +1798,7 @@ function deriveLifecycleActivities(args: {
     return {
       amount: note.amount,
       createdAt: note.createdAt,
-      description: `Returned ${note.amount.toFixed(2)} VUSD from shielded state back into Public Wallet through the constrained operator path.`,
+      description: `Returned ${formatShieldTokenAmount(note.asset, note.amount)} from shielded state back into Public Wallet through the operator release path.`,
       noteId: note.noteId,
       sourceState: "Shielded State",
       targetState: "Public Wallet",
