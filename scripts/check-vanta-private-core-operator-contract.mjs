@@ -102,8 +102,8 @@ try {
   if (
     !contractState.ok ||
     contractState.parsed?.stateVersion !== 1 ||
-    contractState.parsed?.contractVersion !== 21 ||
-    contractState.parsed?.summaryVersion !== 45 ||
+    contractState.parsed?.contractVersion !== 22 ||
+    contractState.parsed?.summaryVersion !== 46 ||
     contractState.parsed?.supportedSendLaneVersion !== 1 ||
     contractState.parsed?.supportedSendV1Decision !== "accepted-narrow-v1-path" ||
     typeof contractState.parsed?.supportedSendV1DecisionNote !== "string" ||
@@ -117,7 +117,7 @@ try {
       "proof-backed-consume-latest-registered-root" ||
     contractState.parsed?.supportedReleaseLaneStatus !== "supported" ||
     contractState.parsed?.supportedSwapLaneVersion !== 1 ||
-    contractState.parsed?.supportedSwapLaneKind !== "single-input-vusd-to-shielded-sol" ||
+    contractState.parsed?.supportedSwapLaneKind !== "single-input-vusd-to-allowlisted-shielded-output" ||
     contractState.parsed?.supportedSwapLaneStatus !== "supported" ||
     typeof contractState.parsed?.supportedSwapLaneNote !== "string" ||
     contractState.parsed?.supportedSwapV1Decision !== "accepted-narrow-v1-path" ||
@@ -125,8 +125,8 @@ try {
     contractState.parsed?.supportedSwapV1Role !==
       "adjacent-supported-not-required-for-finish-line" ||
     typeof contractState.parsed?.supportedSwapV1RoleNote !== "string" ||
-    contractState.parsed?.supportedSwapVenue !== "meteora-dlmm-devnet" ||
-    contractState.parsed?.supportedSwapOutputModel !== "shielded-sol-output-note" ||
+    contractState.parsed?.supportedSwapVenue !== "meteora-dlmm-devnet-and-operator-token-output" ||
+    contractState.parsed?.supportedSwapOutputModel !== "allowlisted-shielded-output-note" ||
     contractState.parsed?.supportedSwapResultingRootBasis !== "client-declared" ||
     contractState.parsed?.supportedSwapInputRootPolicy !==
       "latest-registered-root-with-linked-registration-proof" ||
@@ -359,8 +359,8 @@ try {
   });
   if (
     !contractOutput.includes("Contract state version: 1") ||
-    !contractOutput.includes("Contract version: 21") ||
-    !contractOutput.includes("Summary compatibility: 45") ||
+    !contractOutput.includes("Contract version: 22") ||
+    !contractOutput.includes("Summary compatibility: 46") ||
     !contractOutput.includes("Supported note schema: NoteV0 / v0") ||
     !contractOutput.includes("Supported send lane version: 1") ||
     !contractOutput.includes("Supported unshield lane version: 1") ||
@@ -487,8 +487,8 @@ try {
   if (
     contractJson.operator !== baseUrl ||
     contractJson.stateVersion !== 1 ||
-    contractJson.contractVersion !== 21 ||
-    contractJson.summaryVersion !== 45 ||
+    contractJson.contractVersion !== 22 ||
+    contractJson.summaryVersion !== 46 ||
     contractJson.supportedSendLaneVersion !== 1 ||
     contractJson.supportedUnshieldLaneVersion !== 1 ||
     contractJson.supportedReleaseLaneVersion !== 1 ||

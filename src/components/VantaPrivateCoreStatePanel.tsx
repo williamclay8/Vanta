@@ -243,6 +243,14 @@ function formatAmount(baseUnits: string) {
 
 function formatAssetAmount(assetId: string | null | undefined, baseUnits: string) {
   if (
+    assetId === "0x7573646300000000000000000000000000000000000000000000000000000000"
+  ) {
+    const raw = baseUnits.padStart(7, "0");
+    const whole = raw.slice(0, -6);
+    const fraction = raw.slice(-6).replace(/0+$/, "");
+    return `${whole}${fraction ? `.${fraction}` : ""} USDC`;
+  }
+  if (
     assetId === "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
   ) {
     const raw = baseUnits.padStart(10, "0");
@@ -1534,8 +1542,9 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Supported swap lane</span>
               <strong>
-                {operatorSupportedSwapLaneKind === "single-input-vusd-to-shielded-sol"
-                  ? `v${String(operatorSupportedSwapLaneVersion ?? 1)} · Single input VUSD to shielded SOL`
+                {operatorSupportedSwapLaneKind ===
+                "single-input-vusd-to-allowlisted-shielded-output"
+                  ? `v${String(operatorSupportedSwapLaneVersion ?? 1)} · Single input VUSD to allowlisted shielded output`
                   : "Unavailable"}
               </strong>
             </div>
@@ -1546,16 +1555,17 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Supported swap venue</span>
               <strong>
-                {operatorSupportedSwapVenue === "meteora-dlmm-devnet"
-                  ? "Meteora DLMM devnet"
+                {operatorSupportedSwapVenue ===
+                "meteora-dlmm-devnet-and-operator-token-output"
+                  ? "Meteora DLMM devnet + operator token output"
                   : "Unavailable"}
               </strong>
             </div>
             <div className="review-row">
               <span>Supported swap output</span>
               <strong>
-                {operatorSupportedSwapOutputModel === "shielded-sol-output-note"
-                  ? "Shielded SOL output note"
+                {operatorSupportedSwapOutputModel === "allowlisted-shielded-output-note"
+                  ? "Allowlisted shielded output note"
                   : "Unavailable"}
               </strong>
             </div>

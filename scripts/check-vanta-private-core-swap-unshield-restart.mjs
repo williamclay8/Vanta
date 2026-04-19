@@ -195,7 +195,7 @@ const entries = [
   { secretKey: "0x5050505050505050505050505050505050505050505050505050505050505050", amount: 55_000_000n },
 ];
 const inputAssetId = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-const outputAssetId = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+const outputAssetId = "0x7573646300000000000000000000000000000000000000000000000000000000";
 const owners = entries.map((entry) => privateCore.createVantaPrivateCoreOwnerKeypair(entry.secretKey));
 const sender = owners[2];
 const recipient = privateCore.createVantaPrivateCoreOwnerKeypair(
@@ -227,7 +227,7 @@ const heldInput = ledger.hold({
 const transition = privateCore.buildVantaPrivateCoreSwapTransition({
   input: heldInput,
   outputAssetId,
-  outputAmount: 1_250_000_000n,
+  outputAmount: 1_250_000n,
   recipientOwnerPublicKey: recipient.publicKey,
   outputNoteNonce: "0x6161616161616161616161616161616161616161616161616161616161616161",
   outputNoteSecret: "0x7171717171717171717171717171717171717171717171717171717171717171",
@@ -395,8 +395,8 @@ try {
   });
   const expectedStatusLines = [
     "Summary state version: 1",
-    "Mirrored contract version: 21",
-    "Summary version: 45",
+    "Mirrored contract version: 22",
+    "Summary version: 46",
     "Summary generated:",
     "Shipping decision version: 1",
     "Shipping decision kind: narrow-private-core-zk-v1-shipping",
@@ -418,8 +418,8 @@ try {
     "Supported unshield lane version: 1",
     "Supported unshield lane note: Current narrow zk v1 unshield lane is supported for one note consume with proof-backed release recording.",
     "Supported release lane note: Current narrow zk v1 release lane is supported for proof-backed consume-authorized release under the latest registered root policy.",
-    "Supported swap lane note: Current constrained swap lane supports one VUSD input note into one shielded SOL output through an operator-backed Meteora-aware quote and execution path.",
-    "Supported swap venue: Meteora DLMM devnet",
+    "Supported swap lane note: Current constrained swap lane supports one VUSD input note into one allowlisted shielded output note through operator-backed execution, including Meteora-aware shielded SOL and direct shielded token output lanes.",
+    "Supported swap venue: Meteora DLMM devnet + operator token output",
     "Supported flow version: 1",
     "Supported flow kind: Shield / hold / send / unshield / replay guard",
     "Supported flow status: Supported",
@@ -464,7 +464,7 @@ try {
     "Latest swap linked proof:",
     "Latest swap execution venue: Unavailable",
     "Latest swap quote reference: Unavailable",
-    "Latest swap output: 1250000000 / 0xbbbbbbbb...bbbbbb",
+    "Latest swap output: 1250000 / 0x75736463...000000",
     "Latest swap resulting-root basis: client-declared",
     "Latest swap resulting root:",
     "Latest release:",
@@ -473,7 +473,7 @@ try {
     "Release authorization: Proof-backed consume",
     "Release root policy: Latest registered root",
     "Release destination: 0x99999999...999999",
-    "Released value: 1250000000 / 0xbbbbbbbb...bbbbbb",
+    "Released value: 1250000 / 0x75736463...000000",
     "Release records: 1",
     "Proof/swap link: linked",
     "Proof/consume link: linked",
@@ -526,8 +526,8 @@ try {
     operatorStatusJson.shippingArtifactVersion !== 1 ||
     operatorStatusJson.shippingArtifactKind !== "shipping-decision-checked-snapshot-bundle" ||
     operatorStatusJson.summary?.stateVersion !== 1 ||
-    operatorStatusJson.summary?.contractVersion !== 21 ||
-    operatorStatusJson.summary?.summaryVersion !== 45 ||
+    operatorStatusJson.summary?.contractVersion !== 22 ||
+    operatorStatusJson.summary?.summaryVersion !== 46 ||
     operatorStatusJson.summary?.requiredLanesStatus !== "send-lane-mismatch" ||
     operatorStatusJson.summary?.zkV1ShippingStatus !== "required-lanes-mismatch" ||
     operatorStatusJson.summary?.releaseBoundaryStatus !== "release-recorded" ||
@@ -540,11 +540,11 @@ try {
       "Canonical bundled machine-readable operator artifact containing the frozen contract, live status summary, and canonical shipping decision surfaces together." ||
     operatorStatusJson.summary?.supportedShippingArtifactNote !==
       "Canonical release-grade machine-readable operator artifact containing the shipping decision plus the bundled contract, live status summary, and canonical shipping surfaces together." ||
-    operatorStatusJson.summary?.latestSwap?.outputAmount !== "1250000000" ||
-    operatorStatusJson.summary?.latestRelease?.releasedAmount !== "1250000000" ||
+    operatorStatusJson.summary?.latestSwap?.outputAmount !== "1250000" ||
+    operatorStatusJson.summary?.latestRelease?.releasedAmount !== "1250000" ||
     operatorStatusJson.shippingDecision?.decisionStatus !== "blocked" ||
-    operatorStatusJson.shippingDecision?.contractVersion !== 21 ||
-    operatorStatusJson.shippingDecision?.summaryVersion !== 45
+    operatorStatusJson.shippingDecision?.contractVersion !== 22 ||
+    operatorStatusJson.shippingDecision?.summaryVersion !== 46
   ) {
     throw new Error(
       `Unexpected swap->unshield restart operator-status JSON output\n${JSON.stringify(operatorStatusJson, null, 2)}`,
@@ -569,12 +569,12 @@ try {
     operatorSnapshotJson.operator !== baseUrl ||
     operatorSnapshotJson.snapshotVersion !== 1 ||
     operatorSnapshotJson.snapshotKind !== "contract-status-shipping-bundle" ||
-    operatorSnapshotJson.contract?.contractVersion !== 21 ||
-    operatorSnapshotJson.contract?.summaryVersion !== 45 ||
+    operatorSnapshotJson.contract?.contractVersion !== 22 ||
+    operatorSnapshotJson.contract?.summaryVersion !== 46 ||
     operatorSnapshotJson.status?.summary?.requiredLanesStatus !== "send-lane-mismatch" ||
     operatorSnapshotJson.status?.summary?.zkV1ShippingStatus !== "required-lanes-mismatch" ||
-    operatorSnapshotJson.status?.summary?.latestSwap?.outputAmount !== "1250000000" ||
-    operatorSnapshotJson.status?.summary?.latestRelease?.releasedAmount !== "1250000000" ||
+    operatorSnapshotJson.status?.summary?.latestSwap?.outputAmount !== "1250000" ||
+    operatorSnapshotJson.status?.summary?.latestRelease?.releasedAmount !== "1250000" ||
     operatorSnapshotJson.shipping?.decisionStatusRaw !== "blocked" ||
     operatorSnapshotJson.shipping?.shippingStatusRaw !== "required-lanes-mismatch"
   ) {
@@ -604,8 +604,8 @@ try {
     !operatorSnapshotOutput.includes("Snapshot endpoint: /state/private-core-snapshot") ||
     !operatorSnapshotOutput.includes("Snapshot gate transport: dedicated-endpoint") ||
     !operatorSnapshotOutput.includes("Snapshot gate endpoint: /state/private-core-snapshot-check") ||
-    !operatorSnapshotOutput.includes("Contract version: 21") ||
-    !operatorSnapshotOutput.includes("Contract summary version: 45") ||
+    !operatorSnapshotOutput.includes("Contract version: 22") ||
+    !operatorSnapshotOutput.includes("Contract summary version: 46") ||
     !operatorSnapshotOutput.includes(
       "Supported shipping decision note: Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane.",
     ) ||
@@ -631,7 +631,7 @@ try {
       "Supported shipping artifact gate note: Release-grade shipping artifact surface can act as a strict ready gate for the frozen narrow lane.",
     ) ||
     !operatorSnapshotOutput.includes("Summary state version: 1") ||
-    !operatorSnapshotOutput.includes("Summary version: 45") ||
+    !operatorSnapshotOutput.includes("Summary version: 46") ||
     !operatorSnapshotOutput.includes("Summary generated:") ||
     !operatorSnapshotOutput.includes("Decision version: 1") ||
     !operatorSnapshotOutput.includes("Decision kind: narrow-private-core-zk-v1-shipping") ||
@@ -688,8 +688,8 @@ try {
     !shippingStatusOutput.includes(
       "Decision note: No private send transition is available for boundary checks yet.",
     ) ||
-    !shippingStatusOutput.includes("Mirrored contract version: 21") ||
-    !shippingStatusOutput.includes("Summary version: 45") ||
+    !shippingStatusOutput.includes("Mirrored contract version: 22") ||
+    !shippingStatusOutput.includes("Summary version: 46") ||
     !shippingStatusOutput.includes("Summary generated:") ||
     !shippingStatusOutput.includes("Shipping status: Required lanes mismatch") ||
     !shippingStatusOutput.includes(
@@ -747,8 +747,8 @@ try {
     !blockedShippingOutput.includes(
       "Decision note: No private send transition is available for boundary checks yet.",
     ) ||
-    !blockedShippingOutput.includes("Mirrored contract version: 21") ||
-    !blockedShippingOutput.includes("Summary version: 45") ||
+    !blockedShippingOutput.includes("Mirrored contract version: 22") ||
+    !blockedShippingOutput.includes("Summary version: 46") ||
     !blockedShippingOutput.includes("Summary generated:") ||
     !blockedShippingOutput.includes("Shipping status: Required lanes mismatch") ||
     !blockedShippingOutput.includes(
@@ -887,8 +887,8 @@ try {
       "No private send transition is available for boundary checks yet." ||
     blockedShippingArtifactJson.snapshotVersion !== 1 ||
     blockedShippingArtifactJson.snapshotKind !== "contract-status-shipping-bundle" ||
-    blockedShippingArtifactJson.contractVersion !== 21 ||
-    blockedShippingArtifactJson.summaryVersion !== 45 ||
+    blockedShippingArtifactJson.contractVersion !== 22 ||
+    blockedShippingArtifactJson.summaryVersion !== 46 ||
     blockedShippingArtifactJson.snapshot?.shipping?.shippingStatusRaw !==
       "required-lanes-mismatch"
   ) {
@@ -938,8 +938,8 @@ try {
     !blockedShippingArtifactCheckOutput.includes(
       "Snapshot kind: contract-status-shipping-bundle",
     ) ||
-    !blockedShippingArtifactCheckOutput.includes("Contract version: 21") ||
-    !blockedShippingArtifactCheckOutput.includes("Summary version: 45") ||
+    !blockedShippingArtifactCheckOutput.includes("Contract version: 22") ||
+    !blockedShippingArtifactCheckOutput.includes("Summary version: 46") ||
     !blockedShippingArtifactCheckOutput.includes("Snapshot transport: dedicated-endpoint") ||
     !blockedShippingArtifactCheckOutput.includes(
       "Snapshot endpoint: /state/private-core-snapshot",
@@ -1013,8 +1013,8 @@ try {
     shippingArtifactSurfaceJson.decisionStatus !== "blocked" ||
     shippingArtifactSurfaceJson.snapshotVersion !== 1 ||
     shippingArtifactSurfaceJson.snapshotKind !== "contract-status-shipping-bundle" ||
-    shippingArtifactSurfaceJson.contractVersion !== 21 ||
-    shippingArtifactSurfaceJson.summaryVersion !== 45 ||
+    shippingArtifactSurfaceJson.contractVersion !== 22 ||
+    shippingArtifactSurfaceJson.summaryVersion !== 46 ||
     shippingArtifactSurfaceJson.snapshot?.shipping?.shippingStatusRaw !==
       "required-lanes-mismatch"
   ) {
@@ -1048,8 +1048,8 @@ try {
     ) ||
     !shippingArtifactSurfaceOutput.includes("Snapshot version: 1") ||
     !shippingArtifactSurfaceOutput.includes("Snapshot kind: contract-status-shipping-bundle") ||
-    !shippingArtifactSurfaceOutput.includes("Contract version: 21") ||
-    !shippingArtifactSurfaceOutput.includes("Summary version: 45") ||
+    !shippingArtifactSurfaceOutput.includes("Contract version: 22") ||
+    !shippingArtifactSurfaceOutput.includes("Summary version: 46") ||
     !shippingArtifactSurfaceOutput.includes("Snapshot transport: dedicated-endpoint") ||
     !shippingArtifactSurfaceOutput.includes("Snapshot endpoint: /state/private-core-snapshot") ||
     !shippingArtifactSurfaceOutput.includes("Shipping artifact transport: dedicated-endpoint") ||
@@ -1141,8 +1141,8 @@ try {
   if (
     blockedOperatorSnapshotJson.snapshotVersion !== 1 ||
     blockedOperatorSnapshotJson.snapshotKind !== "contract-status-shipping-bundle" ||
-    blockedOperatorSnapshotJson.contract?.contractVersion !== 21 ||
-    blockedOperatorSnapshotJson.contract?.summaryVersion !== 45 ||
+    blockedOperatorSnapshotJson.contract?.contractVersion !== 22 ||
+    blockedOperatorSnapshotJson.contract?.summaryVersion !== 46 ||
     blockedOperatorSnapshotJson.contract?.supportedShippingDecisionNote !==
       "Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane." ||
     blockedOperatorSnapshotJson.contract?.supportedOperatorStatusNote !==
@@ -1213,8 +1213,8 @@ try {
     blockedOperatorStatusCheckJsonPayload.shippingArtifactVersion !== 1 ||
     blockedOperatorStatusCheckJsonPayload.shippingArtifactKind !==
       "shipping-decision-checked-snapshot-bundle" ||
-    blockedOperatorStatusCheckJsonPayload.summary?.contractVersion !== 21 ||
-    blockedOperatorStatusCheckJsonPayload.summary?.summaryVersion !== 45 ||
+    blockedOperatorStatusCheckJsonPayload.summary?.contractVersion !== 22 ||
+    blockedOperatorStatusCheckJsonPayload.summary?.summaryVersion !== 46 ||
     blockedOperatorStatusCheckJsonPayload.summary?.supportedShippingDecisionNote !==
       "Canonical operator ship/no-ship decision surface for the frozen narrow private-core zk v1 lane." ||
     blockedOperatorStatusCheckJsonPayload.summary?.supportedOperatorStatusNote !==

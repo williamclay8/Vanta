@@ -272,8 +272,8 @@ export type VantaPrivateCoreOperatorShippingDecisionResponse = {
   decisionKind: "narrow-private-core-zk-v1-shipping";
   decisionStatus: "ready-to-ship" | "blocked";
   decisionNote: string;
-  contractVersion: 21;
-  summaryVersion: 45;
+  contractVersion: 22;
+  summaryVersion: 46;
   generatedAt: number;
   shippingStatus: VantaPrivateCoreOperatorSummaryStateResponse["zkV1ShippingStatus"];
   shippingNote: string;
@@ -434,15 +434,15 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedReleaseV1Decision: "accepted-narrow-v1-path";
   supportedReleaseV1DecisionNote: string;
   supportedSwapLaneVersion: number;
-  supportedSwapLaneKind: "single-input-vusd-to-shielded-sol";
+  supportedSwapLaneKind: "single-input-vusd-to-allowlisted-shielded-output";
   supportedSwapLaneStatus: "supported";
   supportedSwapLaneNote: string;
   supportedSwapV1Decision: "accepted-narrow-v1-path";
   supportedSwapV1DecisionNote: string;
   supportedSwapV1Role: "adjacent-supported-not-required-for-finish-line";
   supportedSwapV1RoleNote: string;
-  supportedSwapVenue: "meteora-dlmm-devnet";
-  supportedSwapOutputModel: "shielded-sol-output-note";
+  supportedSwapVenue: "meteora-dlmm-devnet-and-operator-token-output";
+  supportedSwapOutputModel: "allowlisted-shielded-output-note";
   supportedFlowKind: "shield-hold-send-unshield-replay-guard";
   supportedFlowNote: string;
   supportedFlowStatus: "supported";
@@ -599,15 +599,15 @@ export type VantaPrivateCoreOperatorContractStateResponse = {
   supportedReleaseV1Decision: "accepted-narrow-v1-path";
   supportedReleaseV1DecisionNote: string;
   supportedSwapLaneVersion: number;
-  supportedSwapLaneKind: "single-input-vusd-to-shielded-sol";
+  supportedSwapLaneKind: "single-input-vusd-to-allowlisted-shielded-output";
   supportedSwapLaneStatus: "supported";
   supportedSwapLaneNote: string;
   supportedSwapV1Decision: "accepted-narrow-v1-path";
   supportedSwapV1DecisionNote: string;
   supportedSwapV1Role: "adjacent-supported-not-required-for-finish-line";
   supportedSwapV1RoleNote: string;
-  supportedSwapVenue: "meteora-dlmm-devnet";
-  supportedSwapOutputModel: "shielded-sol-output-note";
+  supportedSwapVenue: "meteora-dlmm-devnet-and-operator-token-output";
+  supportedSwapOutputModel: "allowlisted-shielded-output-note";
   supportedFlowVersion: number;
   supportedFlowKind: "shield-hold-send-unshield-replay-guard";
   supportedFlowStatus: "supported";
@@ -723,8 +723,8 @@ export type VantaPrivateCoreOperatorSnapshotStateResponse = {
     decisionStatusRaw: "ready-to-ship" | "blocked";
     decisionStatus: string;
     decisionNote: string;
-    mirroredContractVersion: 21;
-    summaryVersion: 45;
+    mirroredContractVersion: 22;
+    summaryVersion: 46;
     summaryGenerated: number;
     shippingStatusRaw: VantaPrivateCoreOperatorSummaryStateResponse["zkV1ShippingStatus"];
     shippingStatus: string;
@@ -771,8 +771,8 @@ export type VantaPrivateCoreOperatorShippingArtifactResponse = {
   decisionNote: string;
   snapshotVersion: 1;
   snapshotKind: "contract-status-shipping-bundle";
-  contractVersion: 21;
-  summaryVersion: 45;
+  contractVersion: 22;
+  summaryVersion: 46;
   currentRoot: string | null;
   currentRootRegistrationBasis:
     | "shield-input"
@@ -818,8 +818,8 @@ export type VantaPrivateCoreOperatorReleaseCandidateResponse = {
   decisionKind: "narrow-private-core-zk-v1-shipping";
   decisionStatus: "ready-to-ship" | "blocked";
   decisionNote: string;
-  contractVersion: 21;
-  summaryVersion: 45;
+  contractVersion: 22;
+  summaryVersion: 46;
   artifactVersion: 1;
   artifactKind: "shipping-decision-checked-snapshot-bundle";
   releaseCandidateId: string | null;
@@ -882,8 +882,8 @@ export type VantaPrivateCoreOperatorReleasePackageResponse = {
     | "release-mismatch"
     | "unavailable";
   releaseCandidateLineageNote: string;
-  contractVersion: 21;
-  summaryVersion: 45;
+  contractVersion: 22;
+  summaryVersion: 46;
   snapshotVersion: 1;
   snapshotKind: "contract-status-shipping-bundle";
   summaryGenerated: number | null;
@@ -975,8 +975,8 @@ function parsePrivateCoreOperatorContractState(
     parsed === null ||
     typeof parsed.operator !== "string" ||
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 21 ||
-    parsed.summaryVersion !== 45 ||
+    parsed.contractVersion !== 22 ||
+    parsed.summaryVersion !== 46 ||
     parsed.supportedOperatorSnapshotVersion !== 1 ||
     parsed.supportedOperatorSnapshotKind !== "contract-status-shipping-bundle" ||
     parsed.supportedOperatorSnapshotGateVersion !== 1 ||
@@ -1080,8 +1080,8 @@ function parsePrivateCoreOperatorSummaryState(
     typeof parsed !== "object" ||
     parsed === null ||
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 21 ||
-    parsed.summaryVersion !== 45 ||
+    parsed.contractVersion !== 22 ||
+    parsed.summaryVersion !== 46 ||
     typeof parsed.generatedAt !== "number" ||
     !isRequiredLanesStatus(parsed.requiredLanesStatus) ||
     !isZkV1ShippingStatus(parsed.zkV1ShippingStatus) ||
@@ -1170,8 +1170,8 @@ function parsePrivateCoreOperatorShippingDecisionState(
     parsed.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
     !isShippingDecisionStatus(parsed.decisionStatus) ||
     typeof parsed.decisionNote !== "string" ||
-    parsed.contractVersion !== 21 ||
-    parsed.summaryVersion !== 45 ||
+    parsed.contractVersion !== 22 ||
+    parsed.summaryVersion !== 46 ||
     typeof parsed.generatedAt !== "number" ||
     !isZkV1ShippingStatus(parsed.shippingStatus) ||
     typeof parsed.shippingNote !== "string" ||
@@ -1271,7 +1271,7 @@ function parsePrivateCoreOperatorSnapshotPayload(
     typeof shipping.decisionStatus !== "string" ||
     typeof shipping.decisionNote !== "string" ||
     shipping.mirroredContractVersion !== 20 ||
-    shipping.summaryVersion !== 45 ||
+    shipping.summaryVersion !== 46 ||
     typeof shipping.summaryGenerated !== "number" ||
     !isZkV1ShippingStatus(shipping.shippingStatusRaw) ||
     typeof shipping.shippingStatus !== "string" ||
@@ -1319,8 +1319,8 @@ function parsePrivateCoreOperatorSnapshotPayload(
       decisionStatusRaw: shipping.decisionStatusRaw,
       decisionStatus: shipping.decisionStatus,
       decisionNote: shipping.decisionNote,
-      mirroredContractVersion: 21,
-      summaryVersion: 45,
+      mirroredContractVersion: 22,
+      summaryVersion: 46,
       summaryGenerated: shipping.summaryGenerated,
       shippingStatusRaw: shipping.shippingStatusRaw,
       shippingStatus: shipping.shippingStatus,
@@ -2499,8 +2499,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 21 ||
-    parsed.summaryVersion !== 45 ||
+    parsed.contractVersion !== 22 ||
+    parsed.summaryVersion !== 46 ||
     !isContractMirrorStatus(parsed.contractMirrorStatus) ||
     typeof parsed.contractMirrorNote !== "string" ||
     !isRequiredLanesStatus(parsed.requiredLanesStatus) ||
@@ -2566,15 +2566,15 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     parsed.supportedReleaseV1Decision !== "accepted-narrow-v1-path" ||
     typeof parsed.supportedReleaseV1DecisionNote !== "string" ||
     parsed.supportedSwapLaneVersion !== 1 ||
-    parsed.supportedSwapLaneKind !== "single-input-vusd-to-shielded-sol" ||
+    parsed.supportedSwapLaneKind !== "single-input-vusd-to-allowlisted-shielded-output" ||
     parsed.supportedSwapLaneStatus !== "supported" ||
     typeof parsed.supportedSwapLaneNote !== "string" ||
     parsed.supportedSwapV1Decision !== "accepted-narrow-v1-path" ||
     typeof parsed.supportedSwapV1DecisionNote !== "string" ||
     parsed.supportedSwapV1Role !== "adjacent-supported-not-required-for-finish-line" ||
     typeof parsed.supportedSwapV1RoleNote !== "string" ||
-    parsed.supportedSwapVenue !== "meteora-dlmm-devnet" ||
-    parsed.supportedSwapOutputModel !== "shielded-sol-output-note" ||
+    parsed.supportedSwapVenue !== "meteora-dlmm-devnet-and-operator-token-output" ||
+    parsed.supportedSwapOutputModel !== "allowlisted-shielded-output-note" ||
     parsed.supportedFlowVersion !== 1 ||
     parsed.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
     parsed.supportedFlowStatus !== "supported" ||
@@ -2746,8 +2746,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   return {
     stateVersion: 1,
-    contractVersion: 21,
-    summaryVersion: 45,
+    contractVersion: 22,
+    summaryVersion: 46,
     contractMirrorStatus: parsed.contractMirrorStatus,
     contractMirrorNote: parsed.contractMirrorNote,
     requiredLanesStatus: parsed.requiredLanesStatus,
@@ -2783,15 +2783,15 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedReleaseV1Decision: "accepted-narrow-v1-path",
     supportedReleaseV1DecisionNote: parsed.supportedReleaseV1DecisionNote,
     supportedSwapLaneVersion: 1,
-    supportedSwapLaneKind: "single-input-vusd-to-shielded-sol",
+    supportedSwapLaneKind: "single-input-vusd-to-allowlisted-shielded-output",
     supportedSwapLaneStatus: "supported",
     supportedSwapLaneNote: parsed.supportedSwapLaneNote,
     supportedSwapV1Decision: "accepted-narrow-v1-path",
     supportedSwapV1DecisionNote: parsed.supportedSwapV1DecisionNote,
     supportedSwapV1Role: "adjacent-supported-not-required-for-finish-line",
     supportedSwapV1RoleNote: parsed.supportedSwapV1RoleNote,
-    supportedSwapVenue: "meteora-dlmm-devnet",
-    supportedSwapOutputModel: "shielded-sol-output-note",
+    supportedSwapVenue: "meteora-dlmm-devnet-and-operator-token-output",
+    supportedSwapOutputModel: "allowlisted-shielded-output-note",
     supportedFlowVersion: 1,
     supportedFlowKind: "shield-hold-send-unshield-replay-guard",
     supportedFlowStatus: "supported",
@@ -3003,8 +3003,8 @@ export async function fetchVantaPrivateCoreOperatorShippingDecision(): Promise<
     parsed.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
     !isShippingDecisionStatus(parsed.decisionStatus) ||
     typeof parsed.decisionNote !== "string" ||
-    parsed.contractVersion !== 21 ||
-    parsed.summaryVersion !== 45 ||
+    parsed.contractVersion !== 22 ||
+    parsed.summaryVersion !== 46 ||
     typeof parsed.generatedAt !== "number" ||
     !isZkV1ShippingStatus(parsed.shippingStatus) ||
     typeof parsed.shippingNote !== "string" ||
@@ -3028,8 +3028,8 @@ export async function fetchVantaPrivateCoreOperatorShippingDecision(): Promise<
     decisionKind: "narrow-private-core-zk-v1-shipping",
     decisionStatus: parsed.decisionStatus,
     decisionNote: parsed.decisionNote,
-    contractVersion: 21,
-    summaryVersion: 45,
+    contractVersion: 22,
+    summaryVersion: 46,
     generatedAt: parsed.generatedAt,
     shippingStatus: parsed.shippingStatus,
     shippingNote: parsed.shippingNote,
@@ -3190,8 +3190,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 21 ||
-    parsed.summaryVersion !== 45 ||
+    parsed.contractVersion !== 22 ||
+    parsed.summaryVersion !== 46 ||
     !isZkV1FinishLineStatus(parsed.zkV1FinishLineStatus) ||
     typeof parsed.zkV1FinishLineNote !== "string" ||
     parsed.supportedSendLaneVersion !== 1 ||
@@ -3213,15 +3213,15 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     parsed.supportedReleaseV1Decision !== "accepted-narrow-v1-path" ||
     typeof parsed.supportedReleaseV1DecisionNote !== "string" ||
     parsed.supportedSwapLaneVersion !== 1 ||
-    parsed.supportedSwapLaneKind !== "single-input-vusd-to-shielded-sol" ||
+    parsed.supportedSwapLaneKind !== "single-input-vusd-to-allowlisted-shielded-output" ||
     parsed.supportedSwapLaneStatus !== "supported" ||
     typeof parsed.supportedSwapLaneNote !== "string" ||
     parsed.supportedSwapV1Decision !== "accepted-narrow-v1-path" ||
     typeof parsed.supportedSwapV1DecisionNote !== "string" ||
     parsed.supportedSwapV1Role !== "adjacent-supported-not-required-for-finish-line" ||
     typeof parsed.supportedSwapV1RoleNote !== "string" ||
-    parsed.supportedSwapVenue !== "meteora-dlmm-devnet" ||
-    parsed.supportedSwapOutputModel !== "shielded-sol-output-note" ||
+    parsed.supportedSwapVenue !== "meteora-dlmm-devnet-and-operator-token-output" ||
+    parsed.supportedSwapOutputModel !== "allowlisted-shielded-output-note" ||
     parsed.supportedFlowVersion !== 1 ||
     parsed.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
     parsed.supportedFlowStatus !== "supported" ||
@@ -3333,8 +3333,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
 
   return {
     stateVersion: 1,
-    contractVersion: 21,
-    summaryVersion: 45,
+    contractVersion: 22,
+    summaryVersion: 46,
     supportedSendLaneVersion: 1,
     supportedSendLaneKind: "single-input-single-recipient-optional-change",
     supportedSendLaneStatus: "supported",
@@ -3354,15 +3354,15 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedReleaseV1Decision: "accepted-narrow-v1-path",
     supportedReleaseV1DecisionNote: parsed.supportedReleaseV1DecisionNote,
     supportedSwapLaneVersion: 1,
-    supportedSwapLaneKind: "single-input-vusd-to-shielded-sol",
+    supportedSwapLaneKind: "single-input-vusd-to-allowlisted-shielded-output",
     supportedSwapLaneStatus: "supported",
     supportedSwapLaneNote: parsed.supportedSwapLaneNote,
     supportedSwapV1Decision: "accepted-narrow-v1-path",
     supportedSwapV1DecisionNote: parsed.supportedSwapV1DecisionNote,
     supportedSwapV1Role: "adjacent-supported-not-required-for-finish-line",
     supportedSwapV1RoleNote: parsed.supportedSwapV1RoleNote,
-    supportedSwapVenue: "meteora-dlmm-devnet",
-    supportedSwapOutputModel: "shielded-sol-output-note",
+    supportedSwapVenue: "meteora-dlmm-devnet-and-operator-token-output",
+    supportedSwapOutputModel: "allowlisted-shielded-output-note",
     supportedFlowVersion: 1,
     supportedFlowKind: "shield-hold-send-unshield-replay-guard",
     supportedFlowStatus: "supported",
@@ -3604,8 +3604,8 @@ export async function fetchVantaPrivateCoreOperatorShippingArtifact(): Promise<
     typeof parsed.decisionNote !== "string" ||
     parsed.snapshotVersion !== 1 ||
     parsed.snapshotKind !== "contract-status-shipping-bundle" ||
-    parsed.contractVersion !== 21 ||
-    parsed.summaryVersion !== 45 ||
+    parsed.contractVersion !== 22 ||
+    parsed.summaryVersion !== 46 ||
     (parsed.currentRoot !== null &&
       parsed.currentRoot !== undefined &&
       typeof parsed.currentRoot !== "string") ||
@@ -3712,8 +3712,8 @@ export async function fetchVantaPrivateCoreOperatorShippingArtifact(): Promise<
     decisionNote: parsed.decisionNote,
     snapshotVersion: 1,
     snapshotKind: "contract-status-shipping-bundle",
-    contractVersion: 21,
-    summaryVersion: 45,
+    contractVersion: 22,
+    summaryVersion: 46,
     currentRoot: typeof parsed.currentRoot === "string" ? parsed.currentRoot : null,
     currentRootRegistrationBasis:
       parsed.currentRootRegistrationBasis === "shield-input" ||
@@ -3842,8 +3842,8 @@ export async function fetchVantaPrivateCoreOperatorReleaseCandidate(): Promise<
     parsed.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
     !isShippingDecisionStatus(parsed.decisionStatus) ||
     typeof parsed.decisionNote !== "string" ||
-    parsed.contractVersion !== 21 ||
-    parsed.summaryVersion !== 45 ||
+    parsed.contractVersion !== 22 ||
+    parsed.summaryVersion !== 46 ||
     parsed.artifactVersion !== 1 ||
     parsed.artifactKind !== "shipping-decision-checked-snapshot-bundle" ||
     (parsed.releaseCandidateId !== null &&
@@ -3908,8 +3908,8 @@ export async function fetchVantaPrivateCoreOperatorReleaseCandidate(): Promise<
     decisionKind: "narrow-private-core-zk-v1-shipping",
     decisionStatus: parsed.decisionStatus,
     decisionNote: parsed.decisionNote,
-    contractVersion: 21,
-    summaryVersion: 45,
+    contractVersion: 22,
+    summaryVersion: 46,
     artifactVersion: 1,
     artifactKind: "shipping-decision-checked-snapshot-bundle",
     releaseCandidateId:
@@ -4003,8 +4003,8 @@ async function parseReleaseCandidateFromUnknown(
     parsed.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
     !isShippingDecisionStatus(parsed.decisionStatus) ||
     typeof parsed.decisionNote !== "string" ||
-    parsed.contractVersion !== 21 ||
-    parsed.summaryVersion !== 45 ||
+    parsed.contractVersion !== 22 ||
+    parsed.summaryVersion !== 46 ||
     parsed.artifactVersion !== 1 ||
     parsed.artifactKind !== "shipping-decision-checked-snapshot-bundle" ||
     !isReleaseCandidateLineageStatus(parsed.lineageStatus) ||
@@ -4023,8 +4023,8 @@ async function parseReleaseCandidateFromUnknown(
     decisionKind: "narrow-private-core-zk-v1-shipping",
     decisionStatus: parsed.decisionStatus,
     decisionNote: parsed.decisionNote,
-    contractVersion: 21,
-    summaryVersion: 45,
+    contractVersion: 22,
+    summaryVersion: 46,
     artifactVersion: 1,
     artifactKind: "shipping-decision-checked-snapshot-bundle",
     releaseCandidateId:
@@ -4152,8 +4152,8 @@ async function parseReleasePackageFromUnknown(
       typeof parsed.releaseCandidateId !== "string") ||
     !isReleaseCandidateLineageStatus(parsed.releaseCandidateLineageStatus) ||
     typeof parsed.releaseCandidateLineageNote !== "string" ||
-    parsed.contractVersion !== 21 ||
-    parsed.summaryVersion !== 45 ||
+    parsed.contractVersion !== 22 ||
+    parsed.summaryVersion !== 46 ||
     parsed.snapshotVersion !== 1 ||
     parsed.snapshotKind !== "contract-status-shipping-bundle" ||
     (parsed.summaryGenerated !== null &&
@@ -4246,8 +4246,8 @@ async function parseReleasePackageFromUnknown(
       typeof parsed.releaseCandidateId === "string" ? parsed.releaseCandidateId : null,
     releaseCandidateLineageStatus: parsed.releaseCandidateLineageStatus,
     releaseCandidateLineageNote: parsed.releaseCandidateLineageNote,
-    contractVersion: 21,
-    summaryVersion: 45,
+    contractVersion: 22,
+    summaryVersion: 46,
     snapshotVersion: 1,
     snapshotKind: "contract-status-shipping-bundle",
     summaryGenerated: typeof parsed.summaryGenerated === "number" ? parsed.summaryGenerated : null,

@@ -180,19 +180,21 @@ const PRIVATE_CORE_SUPPORTED_RELEASE_V1_DECISION = "accepted-narrow-v1-path";
 const PRIVATE_CORE_SUPPORTED_RELEASE_V1_DECISION_NOTE =
   "Current operator-backed proof-backed release lane is accepted as the narrow zk v1 release path for VUSD on solana-devnet.";
 const PRIVATE_CORE_SUPPORTED_SWAP_LANE_VERSION = 1;
-const PRIVATE_CORE_SUPPORTED_SWAP_LANE_KIND = "single-input-vusd-to-shielded-sol";
+const PRIVATE_CORE_SUPPORTED_SWAP_LANE_KIND =
+  "single-input-vusd-to-allowlisted-shielded-output";
 const PRIVATE_CORE_SUPPORTED_SWAP_LANE_STATUS = "supported";
 const PRIVATE_CORE_SUPPORTED_SWAP_LANE_NOTE =
-  "Current constrained swap lane supports one VUSD input note into one shielded SOL output through an operator-backed Meteora-aware quote and execution path.";
+  "Current constrained swap lane supports one VUSD input note into one allowlisted shielded output note through operator-backed execution, including Meteora-aware shielded SOL and direct shielded token output lanes.";
 const PRIVATE_CORE_SUPPORTED_SWAP_V1_DECISION = "accepted-narrow-v1-path";
 const PRIVATE_CORE_SUPPORTED_SWAP_V1_DECISION_NOTE =
-  "Current constrained operator-backed VUSD to shielded SOL swap lane is accepted as the narrow zk v1 swap path on solana-devnet.";
+  "Current constrained operator-backed VUSD swap lane is accepted as the narrow zk v1 swap path on solana-devnet for shielded SOL and allowlisted shielded token outputs.";
 const PRIVATE_CORE_SUPPORTED_SWAP_V1_ROLE =
   "adjacent-supported-not-required-for-finish-line";
 const PRIVATE_CORE_SUPPORTED_SWAP_V1_ROLE_NOTE =
   "Current constrained swap lane is supported operator-backed infrastructure in the repo, but it is not required for the minimum zk v1 finish line.";
-const PRIVATE_CORE_SUPPORTED_SWAP_VENUE = "meteora-dlmm-devnet";
-const PRIVATE_CORE_SUPPORTED_SWAP_OUTPUT_MODEL = "shielded-sol-output-note";
+const PRIVATE_CORE_SUPPORTED_SWAP_VENUE =
+  "meteora-dlmm-devnet-and-operator-token-output";
+const PRIVATE_CORE_SUPPORTED_SWAP_OUTPUT_MODEL = "allowlisted-shielded-output-note";
 const PRIVATE_CORE_SUPPORTED_SWAP_RESULTING_ROOT_BASIS = "client-declared";
 const PRIVATE_CORE_SUPPORTED_SWAP_INPUT_ROOT_POLICY =
   "latest-registered-root-with-linked-registration-proof";
@@ -2658,8 +2660,8 @@ function buildPrivateCoreReleasePackageCheckState(request) {
 function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
-    contractVersion: 21,
-    summaryVersion: 45,
+    contractVersion: 22,
+    summaryVersion: 46,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,

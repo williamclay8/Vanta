@@ -1290,8 +1290,8 @@ function humanizeSupportedReleaseLaneStatus(value) {
 
 function humanizeSupportedSwapLaneKind(value) {
   switch (value) {
-    case "single-input-vusd-to-shielded-sol":
-      return "Single input VUSD to shielded SOL";
+    case "single-input-vusd-to-allowlisted-shielded-output":
+      return "Single input VUSD to allowlisted shielded output";
     default:
       return "Unavailable";
   }
@@ -1308,8 +1308,8 @@ function humanizeSupportedSwapLaneStatus(value) {
 
 function humanizeSupportedSwapVenue(value) {
   switch (value) {
-    case "meteora-dlmm-devnet":
-      return "Meteora DLMM devnet";
+    case "meteora-dlmm-devnet-and-operator-token-output":
+      return "Meteora DLMM devnet + operator token output";
     default:
       return "Unavailable";
   }
@@ -1317,8 +1317,8 @@ function humanizeSupportedSwapVenue(value) {
 
 function humanizeSupportedSwapOutputModel(value) {
   switch (value) {
-    case "shielded-sol-output-note":
-      return "Shielded SOL output note";
+    case "allowlisted-shielded-output-note":
+      return "Allowlisted shielded output note";
     default:
       return "Unavailable";
   }

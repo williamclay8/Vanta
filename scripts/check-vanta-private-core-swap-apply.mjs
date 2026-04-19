@@ -77,8 +77,8 @@ const recipient = privateCore.createVantaPrivateCoreOwnerKeypair(
   });
   const transition = privateCore.buildVantaPrivateCoreSwapTransition({
     input: held,
-    outputAmount: 1_650_000_000n,
-    outputAssetId: "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    outputAmount: 1_650_000n,
+    outputAssetId: "0x7573646300000000000000000000000000000000000000000000000000000000",
     outputBlinding: "0x7070707070707070707070707070707070707070707070707070707070707070",
     outputDerivationTag:
       "0x8080808080808080808080808080808080808080808080808080808080808080",
@@ -103,13 +103,13 @@ const recipient = privateCore.createVantaPrivateCoreOwnerKeypair(
   if (result.output.note.assetId !== transition.output.note.assetId) {
     throw new Error("swap output asset id mismatch");
   }
-  if (result.output.note.amount !== 1_650_000_000n) {
+  if (result.output.note.amount !== 1_650_000n) {
     throw new Error("swap output amount mismatch");
   }
   if (recoveredOutput.note.assetId !== transition.output.note.assetId) {
     throw new Error("swap output note could not be recovered by recipient");
   }
-  if (recoveredOutput.note.amount !== 1_650_000_000n) {
+  if (recoveredOutput.note.amount !== 1_650_000n) {
     throw new Error("swap recovered output amount mismatch");
   }
   if (recoveredOutput.witness.root !== result.resultingRoot || ledger.getRoot() !== result.resultingRoot) {
