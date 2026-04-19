@@ -1821,6 +1821,8 @@ input {
   font-size: 1rem;
   letter-spacing: 0.04em;
   appearance: none;
+  padding-right: 32px;
+  cursor: pointer;
 }
 
 .send-asset-field::after {
@@ -1927,6 +1929,12 @@ input {
   color: var(--text);
   font-size: clamp(1.2rem, 3vw, 2rem);
   font-family: "Syne", sans-serif;
+}
+
+.amount-field input.input-compact {
+  font-size: 0.98rem;
+  font-family: "Space Mono", monospace;
+  letter-spacing: 0.01em;
 }
 
 .shield-helper {

@@ -1458,56 +1458,48 @@ export function SwapPage() {
               <div className="swap-choice-grid" aria-label="Swap route">
                 <div className="swap-choice-group" role="group" aria-label="From asset">
                   <span>From</span>
-                  <div className="swap-choice-row">
-                    {executableSourceAssets.map((asset) => (
-                      <button
-                        key={asset.id}
-                        className={
-                          asset.id === selectedSourceAssetId
-                            ? "swap-choice-chip swap-choice-chip--active"
-                            : "swap-choice-chip"
-                        }
-                        type="button"
-                        aria-pressed={asset.id === selectedSourceAssetId}
-                        onClick={() => {
-                          setSelectedSourceAssetId(asset.id);
-                          setStatus("idle");
-                          setFlowError(null);
-                          setQuote(null);
-                          setPublicRouteQuote(null);
-                          setQuoteError(null);
-                        }}
-                      >
-                        {asset.symbol}
-                      </button>
-                    ))}
+                  <div className="send-asset-field">
+                    <select
+                      aria-label="From asset"
+                      value={selectedSourceAssetId}
+                      onChange={(event) => {
+                        setSelectedSourceAssetId(event.target.value);
+                        setStatus("idle");
+                        setFlowError(null);
+                        setQuote(null);
+                        setPublicRouteQuote(null);
+                        setQuoteError(null);
+                      }}
+                    >
+                      {executableSourceAssets.map((asset) => (
+                        <option key={asset.id} value={asset.id}>
+                          {asset.symbol}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
                 <div className="swap-choice-group" role="group" aria-label="To shielded asset">
                   <span>To</span>
-                  <div className="swap-choice-row">
-                    {executableShieldedAssets.map((asset) => (
-                      <button
-                        key={asset.symbol}
-                        className={
-                          asset.symbol === selectedTargetAsset
-                            ? "swap-choice-chip swap-choice-chip--active"
-                            : "swap-choice-chip"
-                        }
-                        type="button"
-                        aria-pressed={asset.symbol === selectedTargetAsset}
-                        onClick={() => {
-                          setSelectedTargetAsset(asset.symbol);
-                          setStatus("idle");
-                          setFlowError(null);
-                          setQuote(null);
-                          setPublicRouteQuote(null);
-                          setQuoteError(null);
-                        }}
-                      >
-                        {asset.label}
-                      </button>
-                    ))}
+                  <div className="send-asset-field">
+                    <select
+                      aria-label="To shielded asset"
+                      value={selectedTargetAsset}
+                      onChange={(event) => {
+                        setSelectedTargetAsset(event.target.value as ShieldedSwapAssetKey);
+                        setStatus("idle");
+                        setFlowError(null);
+                        setQuote(null);
+                        setPublicRouteQuote(null);
+                        setQuoteError(null);
+                      }}
+                    >
+                      {executableShieldedAssets.map((asset) => (
+                        <option key={asset.symbol} value={asset.symbol}>
+                          {asset.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               </div>

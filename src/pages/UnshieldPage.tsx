@@ -2156,29 +2156,25 @@ export function UnshieldPage() {
                     Available: {formatUnshieldAmount(selectedFullAmount, selectedLane)}
                   </div>
                 </div>
-                <div className="swap-choice-row" role="group" aria-label="Unshield asset">
-                  {([
-                    ...shieldRegistry.configuredEntries.map((entry) => entry.asset.assetKey),
-                    "SOL",
-                  ] as UnshieldLane[]).map((lane) => (
-                    <button
-                      key={lane}
-                      className={
-                        lane === selectedLane
-                          ? "swap-choice-chip swap-choice-chip--active"
-                          : "swap-choice-chip"
-                      }
-                      type="button"
-                      aria-pressed={lane === selectedLane}
-                      onClick={() => {
-                        setSelectedLane(lane);
-                        setStatus("idle");
-                        setFlowError(null);
-                      }}
-                    >
-                      {lane}
-                    </button>
-                  ))}
+                <div className="send-asset-field">
+                  <select
+                    aria-label="Unshield asset"
+                    value={selectedLane}
+                    onChange={(event) => {
+                      setSelectedLane(event.target.value as UnshieldLane);
+                      setStatus("idle");
+                      setFlowError(null);
+                    }}
+                  >
+                    {([
+                      ...shieldRegistry.configuredEntries.map((entry) => entry.asset.assetKey),
+                      "SOL",
+                    ] as UnshieldLane[]).map((lane) => (
+                      <option key={lane} value={lane}>
+                        {lane}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 

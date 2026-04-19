@@ -1413,34 +1413,23 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                       Max
                     </button>
                   </div>
-                </div>
-                <div className="swap-choice-row" role="group" aria-label="Send asset">
-                  {(["VUSD", "USDC", "JTO", "BONK", "JUP", "PYUSD", "WIF", "KMNO"] as PrivacyAssetKey[]).map((asset) => {
-                    const disabled = asset !== "VUSD";
-                    const active = asset === selectedAsset;
-                    return (
-                      <button
-                        key={asset}
-                        className={
-                          disabled
-                            ? "swap-choice-chip swap-choice-chip--disabled"
-                            : active
-                              ? "swap-choice-chip swap-choice-chip--active"
-                              : "swap-choice-chip"
-                        }
-                        type="button"
-                        aria-pressed={active}
-                        disabled={disabled}
-                        onClick={() => {
-                          setSelectedAsset(asset);
-                          setStatus("idle");
-                          setFlowError(null);
-                        }}
-                      >
-                        {asset}
-                      </button>
-                    );
-                  })}
+              </div>
+                <div className="send-asset-field">
+                  <select
+                    aria-label="Send asset"
+                    value={selectedAsset}
+                    onChange={(event) => {
+                      setSelectedAsset(event.target.value as PrivacyAssetKey);
+                      setStatus("idle");
+                      setFlowError(null);
+                    }}
+                  >
+                    {(["VUSD", "USDC", "JTO", "BONK", "JUP", "PYUSD", "WIF", "KMNO"] as PrivacyAssetKey[]).map((asset) => (
+                      <option key={asset} value={asset} disabled={asset !== "VUSD"}>
+                        {asset !== "VUSD" ? `${asset} — coming soon` : asset}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -1448,18 +1437,19 @@ export function SendPage({ dashboard = false }: SendPageProps) {
 
               <div className="swap-module__field">
                 <div className="swap-module__label-row">
-                  <span>Recipient</span>
+                  <span>Destination address</span>
                 </div>
                 <div className="amount-field">
                   <input
                     id="send-recipient"
+                    className="input-compact"
                     value={recipient}
                     onChange={(event) => {
                       setRecipient(event.target.value);
                       setStatus("idle");
                       setFlowError(null);
                     }}
-                    placeholder="Destination wallet or recipient reference"
+                    placeholder="Destination address"
                   />
                 </div>
               </div>
