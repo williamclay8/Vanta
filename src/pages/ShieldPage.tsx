@@ -1,331 +1,149 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
-import {
-  useSendTransaction,
-} from "@solana/react-hooks";
-import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePanel";
-import { LifecycleTimeline } from "@/components/LifecycleTimeline";
-import { NoteStatePanel } from "@/components/NoteStatePanel";
-import { usePrivacyFlow, type PrivacyAssetKey } from "@/data/context/PrivacyFlowContext";
+import { useSendTransaction } from "@solana/react-hooks";
+import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
 import { useWalletState } from "@/data/context/WalletContext";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
 import {
-  getLiveShieldTokenAsset,
+  buildPublicToVusdSwapInstructions,
+  fetchPublicToVusdQuote,
+  formatAssetAmount,
+  type PublicToVusdQuote,
+} from "@/solana/publicSwapRoute";
+import {
   getPrimaryLiveShieldTokenAsset,
-  listLiveShieldTokenAssets,
   type LiveShieldTokenAssetKey,
 } from "@/solana/shieldConfig";
 import { useRealtimeSignatureProgress } from "@/solana/useRealtimeSignatureProgress";
+import { useWalletPublicAssets } from "@/solana/useWalletPublicAssets";
 import { useVantaShieldAssetRegistryState } from "@/solana/useVantaShieldAssetRegistryState";
 import { createShieldMemoInstruction } from "@/solana/vantaShieldState";
-import {
-  listCanonicalShieldDiagnosticsSummaries,
-  recordCanonicalShieldFromLiveShield,
-} from "@/zk/liveShieldBridge";
+import { recordCanonicalShieldFromLiveShield } from "@/zk/liveShieldBridge";
 
 type ShieldPageProps = {
   dashboard?: boolean;
 };
 
-type AssetConfig = {
-  symbol: LiveShieldTokenAssetKey;
-  name: string;
-  live: boolean;
-  supported: boolean;
-  statusLabel: string;
-};
-
 type ShieldStatus =
   | "idle"
-  | "review"
   | "awaiting_wallet_confirmation"
+  | "routing_public_swap"
   | "shielding_in_progress"
   | "entering_shielded_state"
   | "complete"
   | "failed";
 
-function formatBalance(value: number, symbol: string) {
-  try {
-    const decimals = Math.min(getLiveShieldTokenAsset(symbol as LiveShieldTokenAssetKey).decimals, 6);
-    return `${value.toLocaleString(undefined, {
-      minimumFractionDigits: Math.min(decimals, 2),
-      maximumFractionDigits: decimals,
-    })} ${symbol}`;
-  } catch {
-    // fall through to generic formatting for non-registry symbols
-  }
-
-  return `${value.toLocaleString(undefined, {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 3,
-  })} ${symbol}`;
-}
+type PendingPublicRoute = {
+  previousTargetBalance: number;
+  quote: PublicToVusdQuote;
+  targetAssetKey: LiveShieldTokenAssetKey;
+};
 
 function toErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
 }
 
-function abbreviate(value: string | null) {
-  if (!value) {
-    return null;
+function readTokenDecimals(balance: unknown) {
+  if (typeof balance !== "object" || balance === null) {
+    return undefined;
   }
 
-  return `${value.slice(0, 4)}...${value.slice(-4)}`;
+  const candidate = (balance as { decimals?: unknown }).decimals;
+  return typeof candidate === "number" && Number.isInteger(candidate) && candidate >= 0
+    ? candidate
+    : undefined;
 }
 
-export function ShieldPage({ dashboard = false }: ShieldPageProps) {
-  const {
-    privateCoreHoldState,
-    privateCoreOwner,
-    privateCoreOperatorCurrentRoot,
-    privateCoreOperatorLatestConsume,
-    privateCoreOperatorLatestConsumeProof,
-    privateCoreOperatorLatestProof,
-    privateCoreOperatorLatestRoot,
-    privateCoreOperatorLatestRelease,
-    privateCoreOperatorLatestReleaseProof,
-    privateCoreOperatorLatestSendProof,
-    privateCoreOperatorLatestSendLinkedProof,
-    privateCoreOperatorLatestSend,
-    privateCoreOperatorLatestSwapProof,
-    privateCoreOperatorLatestSwapLinkedProof,
-    privateCoreOperatorLatestSwap,
-    privateCoreOperatorBoundaryPrimaryNote,
-    privateCoreOperatorBoundaryStatusLabel,
-    privateCoreOperatorContractMirrorPrimaryNote,
-    privateCoreOperatorContractMirrorStatusLabel,
-    privateCoreOperatorReleaseBoundaryPrimaryNote,
-    privateCoreOperatorReleaseBoundaryStatusLabel,
-    privateCoreOperatorRequiredLanesPrimaryNote,
-    privateCoreOperatorRequiredLanesStatusLabel,
-    privateCoreOperatorZkV1ShippingPrimaryNote,
-    privateCoreOperatorZkV1ShippingStatusLabel,
-    privateCoreOperatorZkV1FinishLinePrimaryNote,
-    privateCoreOperatorZkV1FinishLineStatusLabel,
-    privateCoreOperatorSendBoundaryPrimaryNote,
-    privateCoreOperatorSendBoundaryStatusLabel,
-    privateCoreOperatorSendContinuityPrimaryNote,
-    privateCoreOperatorSendContinuityStatusLabel,
-    privateCoreOperatorSwapBoundaryPrimaryNote,
-    privateCoreOperatorSwapBoundaryStatusLabel,
-    privateCoreOperatorSwapContinuityPrimaryNote,
-    privateCoreOperatorSwapContinuityStatusLabel,
-    privateCoreOperatorSupportedSendLaneKind,
-    privateCoreOperatorSupportedSendLaneNote,
-    privateCoreOperatorSupportedSendLaneStatus,
-    privateCoreOperatorSupportedSendLaneVersion,
-    privateCoreOperatorSupportedSendV1Decision,
-    privateCoreOperatorSupportedSendV1DecisionNote,
-    privateCoreOperatorSupportedUnshieldLaneKind,
-    privateCoreOperatorSupportedUnshieldLaneNote,
-    privateCoreOperatorSupportedUnshieldLaneStatus,
-    privateCoreOperatorSupportedUnshieldLaneVersion,
-    privateCoreOperatorSupportedUnshieldV1Decision,
-    privateCoreOperatorSupportedUnshieldV1DecisionNote,
-    privateCoreOperatorSupportedReleaseLaneKind,
-    privateCoreOperatorSupportedReleaseLaneNote,
-    privateCoreOperatorSupportedReleaseLaneStatus,
-    privateCoreOperatorSupportedReleaseLaneVersion,
-    privateCoreOperatorSupportedSwapLaneKind,
-    privateCoreOperatorSupportedSwapLaneNote,
-    privateCoreOperatorSupportedSwapLaneStatus,
-    privateCoreOperatorSupportedSwapLaneVersion,
-    privateCoreOperatorSupportedSwapV1Decision,
-    privateCoreOperatorSupportedSwapV1DecisionNote,
-    privateCoreOperatorSupportedSwapV1Role,
-    privateCoreOperatorSupportedSwapV1RoleNote,
-    privateCoreOperatorSupportedSwapVenue,
-    privateCoreOperatorSupportedSwapOutputModel,
-    privateCoreOperatorSupportedSwapResultingRootBasis,
-    privateCoreOperatorSupportedSwapInputRootPolicy,
-    privateCoreOperatorSupportedSwapOutputRegistrationPolicy,
-    privateCoreOperatorSupportedReleaseV1Decision,
-    privateCoreOperatorSupportedReleaseV1DecisionNote,
-    privateCoreOperatorSupportedFlowKind,
-    privateCoreOperatorSupportedFlowNote,
-    privateCoreOperatorSupportedFlowStatus,
-    privateCoreOperatorSupportedFlowVersion,
-    privateCoreOperatorSupportedZkV1ScopeDecision,
-    privateCoreOperatorSupportedZkV1ScopeNote,
-    privateCoreOperatorSupportedZkV1RequiredLanes,
-    privateCoreOperatorSupportedZkV1RequiredLanesNote,
-    privateCoreOperatorSupportedAssetSymbol,
-    privateCoreOperatorSupportedEnvironment,
-    privateCoreOperatorSupportedNoteSchema,
-    privateCoreOperatorSupportedNoteVersion,
-    privateCoreOperatorSupportedRootRegistrationProvenance,
-    privateCoreOperatorSupportedSendResultingRootBasis,
-    privateCoreOperatorSupportedSendInputRootPolicy,
-    privateCoreOperatorSupportedSendOutputRegistrationPolicy,
-    privateCoreOperatorSupportedRecipientModel,
-    privateCoreOperatorSupportedReleaseDestinationModel,
-    privateCoreOperatorSupportedProofSystem,
-    privateCoreOperatorSupportedUnshieldCircuit,
-    privateCoreOperatorSupportedSendCircuit,
-    privateCoreOperatorSupportedUnshieldMerkleDepth,
-    privateCoreOperatorSupportedSendMerkleDepth,
-    privateCoreOperatorSupportedReleaseAuthorizationBasis,
-    privateCoreOperatorSupportedReleaseRootPolicy,
-    privateCoreOperatorSupportedReleaseExecutionModel,
-    privateCoreOperatorSupportedReleaseAtomicityModel,
-    privateCoreOperatorSupportedReleasePersistenceModel,
-    privateCoreOperatorOwnerAuthorizationMode,
-    privateCoreOperatorOwnerAuthorizationDecision,
-    privateCoreOperatorOwnerAuthorizationDecisionNote,
-    privateCoreOperatorSourceArtifactTruthBasis,
-    privateCoreOperatorProvingArtifactTruthBasis,
-    privateCoreOperatorSourceProvingRelationship,
-    privateCoreOperatorNullifierKeyMode,
-    privateCoreOperatorProvingHashLane,
-    privateCoreOperatorCurrentRootLinkedProof,
-    privateCoreOperatorCurrentRootProofLinkStatus,
-    privateCoreOperatorSendResultingRootLinkedProof,
-    privateCoreOperatorSendResultingRootRecord,
-    privateCoreOperatorSendResultingRootPrimaryNote,
-    privateCoreOperatorSendResultingRootRegistrationPrimaryNote,
-    privateCoreOperatorSendResultingRootRegistrationStatusLabel,
-    privateCoreOperatorSendResultingRootProofLinkStatus,
-    privateCoreOperatorSendResultingRootStatusLabel,
-    privateCoreOperatorSwapResultingRootLinkedProof,
-    privateCoreOperatorSwapResultingRootRecord,
-    privateCoreOperatorSwapResultingRootPrimaryNote,
-    privateCoreOperatorSwapResultingRootRegistrationPrimaryNote,
-    privateCoreOperatorSwapResultingRootRegistrationStatusLabel,
-    privateCoreOperatorSwapResultingRootProofLinkStatus,
-    privateCoreOperatorSwapResultingRootStatusLabel,
-    privateCoreOperatorProofConsumeLinkStatus,
-    privateCoreOperatorProofError,
-    privateCoreOperatorProofs,
-    privateCoreOperatorProofSendLinkStatus,
-    privateCoreOperatorProofSwapLinkStatus,
-    privateCoreOperatorProofReleaseLinkStatus,
-    privateCoreOperatorReleaseError,
-    privateCoreOperatorReleases,
-    privateCoreOperatorRootError,
-    privateCoreOperatorRootCurrentnessLabel,
-    privateCoreOperatorRootRegistrationStatus,
-    privateCoreOperatorRoots,
-    privateCoreOperatorContractStateVersion,
-    privateCoreOperatorContractVersion,
-    privateCoreOperatorContractSummaryVersion,
-    privateCoreOperatorStatusKind,
-    privateCoreOperatorStatusVersion,
-    privateCoreOperatorSnapshotKind,
-    privateCoreOperatorSnapshotVersion,
-    privateCoreOperatorSupportedStatusNote,
-    privateCoreOperatorSupportedStatusTransport,
-    privateCoreOperatorSupportedStatusEndpoint,
-    privateCoreOperatorSupportedStatusGateVersion,
-    privateCoreOperatorSupportedStatusGateKind,
-    privateCoreOperatorSupportedStatusGateNote,
-    privateCoreOperatorSupportedStatusGateTransport,
-    privateCoreOperatorSupportedStatusGateEndpoint,
-    privateCoreOperatorSupportedSnapshotGateVersion,
-    privateCoreOperatorSupportedSnapshotGateKind,
-    privateCoreOperatorSupportedSnapshotGateNote,
-    privateCoreOperatorSupportedSnapshotGateTransport,
-    privateCoreOperatorSupportedSnapshotGateEndpoint,
-    privateCoreOperatorSupportedShippingDecisionGateVersion,
-    privateCoreOperatorSupportedShippingDecisionGateKind,
-    privateCoreOperatorSupportedShippingDecisionGateNote,
-    privateCoreOperatorSupportedShippingDecisionGateTransport,
-    privateCoreOperatorSupportedShippingDecisionGateEndpoint,
-    privateCoreOperatorSupportedShippingDecisionTransport,
-    privateCoreOperatorSupportedShippingDecisionEndpoint,
-    privateCoreOperatorSupportedShippingArtifactGateVersion,
-    privateCoreOperatorSupportedShippingArtifactGateKind,
-    privateCoreOperatorSupportedShippingArtifactGateNote,
-    privateCoreOperatorSupportedShippingArtifactGateTransport,
-    privateCoreOperatorSupportedShippingArtifactGateEndpoint,
-    privateCoreOperatorSupportedSnapshotNote,
-    privateCoreOperatorSupportedSnapshotTransport,
-    privateCoreOperatorSupportedSnapshotEndpoint,
-    privateCoreOperatorSupportedShippingArtifactNote,
-    privateCoreOperatorSupportedShippingArtifactTransport,
-    privateCoreOperatorSupportedShippingArtifactEndpoint,
-    privateCoreOperatorSupportedReleaseCandidateVersion,
-    privateCoreOperatorSupportedReleaseCandidateKind,
-    privateCoreOperatorSupportedReleaseCandidateNote,
-    privateCoreOperatorSupportedReleaseCandidateScope,
-    privateCoreOperatorSupportedReleaseCandidateScopeNote,
-    privateCoreOperatorSupportedReleaseCandidateGateVersion,
-    privateCoreOperatorSupportedReleaseCandidateGateKind,
-    privateCoreOperatorSupportedReleaseCandidateGateNote,
-    privateCoreOperatorSupportedReleaseCandidateGateTransport,
-    privateCoreOperatorSupportedReleaseCandidateGateEndpoint,
-    privateCoreOperatorSupportedReleaseCandidateTransport,
-    privateCoreOperatorSupportedReleaseCandidateEndpoint,
-    privateCoreOperatorShippingArtifactKind,
-    privateCoreOperatorShippingArtifactVersion,
-    privateCoreOperatorShippingDecisionKind,
-    privateCoreOperatorShippingDecisionVersion,
-    privateCoreOperatorSupportedShippingDecisionNote,
-    privateCoreOperatorSendError,
-    privateCoreOperatorSends,
-    privateCoreOperatorSendProofError,
-    privateCoreOperatorSendProofs,
-    privateCoreOperatorSwaps,
-    privateCoreOperatorSwapProofs,
-    privateCoreOperatorSummaryUpdatedAt,
-    privateCoreRecentShield,
-    privateCoreReleaseCandidateState,
-    privateCoreReleaseHandoffState,
-    privateCoreReleasePackageState,
-    privateCoreReleaseWorkflowState,
-    privateCoreSendState,
-    privateCoreSwapState,
-    privateCoreUnshieldState,
-    recentShield,
-    runPrivateCoreShield,
-    setRecentShield,
-  } = usePrivacyFlow();
-  const {
-    clusterLabel,
-    connectWallet,
-    currentConnectorName,
-    disconnectWallet,
-    preferredWalletConnector,
-    walletAddressShort,
-    walletConnected,
-    walletReady,
-  } = useWalletState();
+function formatEditableAmount(value: number, decimals: number) {
+  return value
+    .toFixed(decimals)
+    .replace(/(\.\d*?[1-9])0+$/u, "$1")
+    .replace(/\.0+$/u, "")
+    .replace(/\.$/u, "");
+}
+
+export function ShieldPage(_props: ShieldPageProps) {
+  const { recentShield, runPrivateCoreShield, setRecentShield } = usePrivacyFlow();
+  const { solBalance, walletAddress, walletConnected } = useWalletState();
+  const shieldRegistry = useVantaShieldAssetRegistryState();
   const primaryShieldAsset = getPrimaryLiveShieldTokenAsset();
-  const [selectedAsset, setSelectedAsset] = useState<LiveShieldTokenAssetKey>(
+  const [selectedTargetAsset, setSelectedTargetAsset] = useState<LiveShieldTokenAssetKey>(
     primaryShieldAsset.assetKey,
   );
+  const [selectedSourceAssetId, setSelectedSourceAssetId] = useState("native:SOL");
   const [amount, setAmount] = useState("0.25");
   const [status, setStatus] = useState<ShieldStatus>("idle");
   const [flowError, setFlowError] = useState<string | null>(null);
   const [pendingShieldAmount, setPendingShieldAmount] = useState<number | null>(null);
   const [pendingShieldAmountDisplay, setPendingShieldAmountDisplay] = useState<string | null>(null);
   const [pendingDepositSignature, setPendingDepositSignature] = useState<string | null>(null);
+  const [pendingPublicRoute, setPendingPublicRoute] = useState<PendingPublicRoute | null>(null);
   const recordedStateSignatureRef = useRef<string | null>(null);
 
-  const shieldAssetRegistry = useVantaShieldAssetRegistryState();
-  const assetCatalog = useMemo<AssetConfig[]>(
+  const executableShieldTargets = useMemo(
     () =>
-      shieldAssetRegistry.entries.map((entry) => ({
-        symbol: entry.asset.assetKey,
-        name: entry.asset.name,
-        live: entry.asset.configured,
-        supported: true,
-        statusLabel: entry.asset.configured ? "Live on devnet" : "Needs config",
-      })),
-    [shieldAssetRegistry.entries],
+      shieldRegistry.configuredEntries.filter(
+        (entry) => entry.asset.configured && entry.asset.mintAddress && entry.asset.vaultOwner,
+      ),
+    [shieldRegistry.configuredEntries],
   );
-  const selectedConfig = assetCatalog.find((asset) => asset.symbol === selectedAsset) ?? assetCatalog[0]!;
-  const selectedRegistryEntry = shieldAssetRegistry.byAssetKey[selectedConfig.symbol];
-  const supportedToken = selectedRegistryEntry.token;
-  const shieldAccount = selectedRegistryEntry.account;
-  const shieldStateError = selectedRegistryEntry.error;
-  const shieldStateReady = selectedRegistryEntry.isReady;
-  const shieldStateRefreshing = selectedRegistryEntry.isRefreshing;
-  const refreshShieldState = selectedRegistryEntry.refresh;
-  const selectedShieldAsset = selectedRegistryEntry.asset;
-  const signatureWait = useRealtimeSignatureProgress(supportedToken.sendSignature ?? undefined, {
-    commitment: "confirmed",
-    disabled: !supportedToken.sendSignature,
+
+  useEffect(() => {
+    if (!executableShieldTargets.length) {
+      return;
+    }
+
+    if (!executableShieldTargets.some((entry) => entry.asset.assetKey === selectedTargetAsset)) {
+      setSelectedTargetAsset(executableShieldTargets[0]!.asset.assetKey);
+    }
+  }, [executableShieldTargets, selectedTargetAsset]);
+
+  const selectedRegistryEntry =
+    shieldRegistry.byAssetKey[selectedTargetAsset] ?? executableShieldTargets[0] ?? null;
+  const selectedShieldAsset = selectedRegistryEntry?.asset ?? null;
+  const shieldAccount = selectedRegistryEntry?.account ?? null;
+  const shieldStateError = selectedRegistryEntry?.error ?? null;
+  const shieldStateReady = selectedRegistryEntry?.isReady ?? false;
+  const shieldStateRefreshing = selectedRegistryEntry?.isRefreshing ?? false;
+  const refreshShieldState = selectedRegistryEntry?.refresh ?? (async () => {});
+  const supportedToken = selectedRegistryEntry?.token ?? null;
+  const publicBalance = selectedRegistryEntry?.publicBalance ?? 0;
+  const shieldedBalance = shieldAccount?.balance ?? 0;
+
+  const {
+    assets: executableSourceAssets,
+    error: publicAssetsError,
+    loading: publicAssetsLoading,
+  } = useWalletPublicAssets({
+    solBalance,
+    walletAddress,
   });
+
+  const selectedSourceAsset = useMemo(
+    () =>
+      executableSourceAssets.find((asset) => asset.id === selectedSourceAssetId) ??
+      executableSourceAssets[0] ??
+      null,
+    [executableSourceAssets, selectedSourceAssetId],
+  );
+
+  useEffect(() => {
+    if (selectedSourceAsset) {
+      return;
+    }
+
+    if (executableSourceAssets[0]) {
+      setSelectedSourceAssetId(executableSourceAssets[0].id);
+    }
+  }, [executableSourceAssets, selectedSourceAsset]);
+
+  const publicRouteTransaction = useSendTransaction();
+  const publicRouteWait = useRealtimeSignatureProgress(
+    publicRouteTransaction.signature ?? undefined,
+    {
+      commitment: "confirmed",
+      disabled: !publicRouteTransaction.signature,
+    },
+  );
   const stateTransaction = useSendTransaction();
   const stateSignatureWait = useRealtimeSignatureProgress(
     stateTransaction.signature ?? undefined,
@@ -334,22 +152,52 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
       disabled: !stateTransaction.signature,
     },
   );
+
   const parsedAmount = Number(amount);
-  const hasSupportedAssets = assetCatalog.some((asset) => asset.live && asset.supported);
-  const publicBalance = selectedRegistryEntry?.publicBalance ?? 0;
-  const shieldedBalance = shieldAccount?.balance ?? 0;
-  const depositProgressLabel = signatureWait.detailLabel;
+  const sourceBalance = selectedSourceAsset?.balance ?? 0;
+  const maxAvailableAmount = sourceBalance;
+  const routeProgressLabel = publicRouteWait.detailLabel;
   const stateProgressLabel = stateSignatureWait.detailLabel;
-  const hasPublicBalance = publicBalance > 0;
   const isAmountValid =
     walletConnected &&
-    selectedConfig.live &&
-    selectedConfig.supported &&
+    !!selectedShieldAsset?.mintAddress &&
+    !!selectedShieldAsset?.vaultOwner &&
+    !!selectedSourceAsset &&
     Number.isFinite(parsedAmount) &&
     parsedAmount > 0 &&
-    parsedAmount <= publicBalance;
+    parsedAmount <= sourceBalance;
+  const sourceSelectValue = selectedSourceAsset?.id ?? "";
+  const sourceSelectDisabled =
+    !walletConnected || publicAssetsLoading || executableSourceAssets.length === 0;
+  const sourcePlaceholderLabel = !walletConnected
+    ? "Connect wallet"
+    : publicAssetsLoading
+      ? "Loading assets..."
+      : publicAssetsError
+        ? "Asset load failed"
+        : "No wallet assets available";
+
+  async function beginShieldTransfer(amountDisplay: string, amountNumeric: number) {
+    if (!selectedShieldAsset?.vaultOwner || !supportedToken) {
+      throw new Error("Shield target is not configured.");
+    }
+
+    setPendingShieldAmount(amountNumeric);
+    setPendingShieldAmountDisplay(amountDisplay);
+    setPendingDepositSignature(null);
+    setStatus("awaiting_wallet_confirmation");
+
+    await supportedToken.send({
+      amount: amountDisplay,
+      destinationOwner: selectedShieldAsset.vaultOwner,
+    });
+  }
 
   useEffect(() => {
+    if (!supportedToken) {
+      return;
+    }
+
     if (supportedToken.sendStatus === "loading") {
       setStatus("shielding_in_progress");
       return;
@@ -360,11 +208,9 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
       setPendingShieldAmount(null);
       setPendingShieldAmountDisplay(null);
       setPendingDepositSignature(null);
+      setPendingPublicRoute(null);
       setFlowError(
-        toErrorMessage(
-          supportedToken.sendError,
-          "The devnet Shield transaction did not complete.",
-        ),
+        toErrorMessage(supportedToken.sendError, "The shield transfer could not be completed."),
       );
       return;
     }
@@ -373,96 +219,86 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
       setStatus("entering_shielded_state");
       setPendingDepositSignature(supportedToken.sendSignature);
     }
-  }, [supportedToken.sendError, supportedToken.sendSignature, supportedToken.sendStatus]);
+  }, [supportedToken]);
 
   useEffect(() => {
-    if (signatureWait.waitStatus !== "error") {
+    if (publicRouteTransaction.status === "loading") {
+      setStatus("routing_public_swap");
+      return;
+    }
+
+    if (publicRouteTransaction.status === "error") {
+      setStatus("failed");
+      setPendingPublicRoute(null);
+      setFlowError(
+        toErrorMessage(
+          publicRouteTransaction.error,
+          "The public route into the shield asset could not be submitted.",
+        ),
+      );
+    }
+  }, [publicRouteTransaction.error, publicRouteTransaction.status]);
+
+  useEffect(() => {
+    if (!pendingPublicRoute || publicRouteWait.waitStatus !== "error") {
       return;
     }
 
     setStatus("failed");
-    setPendingShieldAmount(null);
-    setPendingShieldAmountDisplay(null);
-    setPendingDepositSignature(null);
+    setPendingPublicRoute(null);
     setFlowError(
       toErrorMessage(
-        signatureWait.waitError,
-        "The devnet Shield transfer was submitted but not confirmed.",
+        publicRouteWait.waitError,
+        "The public route was submitted but not confirmed.",
       ),
     );
-  }, [signatureWait.waitError, signatureWait.waitStatus]);
+  }, [pendingPublicRoute, publicRouteWait.waitError, publicRouteWait.waitStatus]);
 
   useEffect(() => {
     if (
-      signatureWait.waitStatus !== "success" ||
-      pendingShieldAmount === null ||
-      !pendingDepositSignature ||
-      !selectedShieldAsset.mintAddress ||
-      !selectedShieldAsset.vaultOwner ||
-      !walletAddressShort
+      !pendingPublicRoute ||
+      publicRouteWait.waitStatus !== "success" ||
+      !supportedToken
     ) {
       return;
     }
 
-    if (stateTransaction.status === "loading" || stateTransaction.signature) {
-      return;
-    }
+    void supportedToken
+      .refresh()
+      .then(async (refreshedBalance) => {
+        const nextTargetBalance = Number(refreshedBalance?.uiAmount ?? "0");
+        const routedAmount = Number(
+          Math.max(nextTargetBalance - pendingPublicRoute.previousTargetBalance, 0).toFixed(6),
+        );
+        const resultingAmount =
+          routedAmount > 0 ? routedAmount : Number(pendingPublicRoute.quote.outputAmount);
 
-    const owner = supportedToken.owner;
+        if (!Number.isFinite(resultingAmount) || resultingAmount <= 0) {
+          throw new Error("The routed shield asset amount could not be determined.");
+        }
 
-    if (!owner) {
-      return;
-    }
-    const mintAddress = selectedShieldAsset.mintAddress;
-    const vaultOwner = selectedShieldAsset.vaultOwner;
-
-    if (!mintAddress || !vaultOwner) {
-      return;
-    }
-
-    void buildHeliusPriorityFeeInstructions({
-      accountKeys: [
-        mintAddress,
-        owner,
-        pendingDepositSignature,
-        vaultOwner,
-      ],
-      action: "shield_state",
-    }).then((priorityFeeInstructions) =>
-      stateTransaction.send({
-        instructions: [
-          ...priorityFeeInstructions,
-          createShieldMemoInstruction({
-            amount,
-            asset: selectedShieldAsset.assetKey,
-            createdAt: Date.now(),
-            depositSignature: pendingDepositSignature,
-            mintAddress,
-            owner,
-            vaultOwner,
-          }),
-        ],
-      }),
-    ).catch((error) => {
-      setStatus("failed");
-      setPendingShieldAmount(null);
-      setPendingShieldAmountDisplay(null);
-      setPendingDepositSignature(null);
-      setFlowError(
-        toErrorMessage(error, "The Vanta shield state note could not be recorded."),
-      );
-    });
+        setPendingPublicRoute(null);
+        await beginShieldTransfer(
+          formatEditableAmount(resultingAmount, selectedShieldAsset?.decimals ?? 6),
+          resultingAmount,
+        );
+      })
+      .catch((error) => {
+        setStatus("failed");
+        setPendingPublicRoute(null);
+        setFlowError(
+          toErrorMessage(
+            error,
+            "The routed balance could not be prepared for shielding.",
+          ),
+        );
+      });
   }, [
-    amount,
-    pendingDepositSignature,
-    pendingShieldAmount,
-    selectedShieldAsset.assetKey,
-    selectedShieldAsset.mintAddress,
-    selectedShieldAsset.vaultOwner,
-    signatureWait.waitStatus,
-    stateTransaction,
-    supportedToken.owner,
-    walletAddressShort,
+    beginShieldTransfer,
+    pendingPublicRoute,
+    publicRouteWait.waitStatus,
+    selectedShieldAsset?.decimals,
+    supportedToken,
   ]);
 
   useEffect(() => {
@@ -479,31 +315,106 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     );
   }, [stateSignatureWait.waitError, stateSignatureWait.waitStatus]);
 
+  const signatureWait = useRealtimeSignatureProgress(
+    supportedToken?.sendSignature ?? undefined,
+    {
+      commitment: "confirmed",
+      disabled: !supportedToken?.sendSignature,
+    },
+  );
+
+  useEffect(() => {
+    if (signatureWait.waitStatus !== "error") {
+      return;
+    }
+
+    setStatus("failed");
+    setPendingShieldAmount(null);
+    setPendingShieldAmountDisplay(null);
+    setPendingDepositSignature(null);
+    setFlowError(
+      toErrorMessage(
+        signatureWait.waitError,
+        "The shield transfer was submitted but not confirmed.",
+      ),
+    );
+  }, [signatureWait.waitError, signatureWait.waitStatus]);
+
+  useEffect(() => {
+    if (
+      signatureWait.waitStatus !== "success" ||
+      pendingShieldAmount === null ||
+      !pendingDepositSignature ||
+      !selectedShieldAsset?.mintAddress ||
+      !selectedShieldAsset.vaultOwner ||
+      !supportedToken?.owner
+    ) {
+      return;
+    }
+
+    if (stateTransaction.status === "loading" || stateTransaction.signature) {
+      return;
+    }
+
+    const mintAddress = selectedShieldAsset.mintAddress;
+    const owner = supportedToken.owner;
+    const vaultOwner = selectedShieldAsset.vaultOwner;
+
+    void buildHeliusPriorityFeeInstructions({
+      accountKeys: [mintAddress, owner, pendingDepositSignature, vaultOwner],
+      action: "shield_state",
+    })
+      .then((priorityFeeInstructions) =>
+        stateTransaction.send({
+          instructions: [
+            ...priorityFeeInstructions,
+            createShieldMemoInstruction({
+              amount: pendingShieldAmountDisplay ?? amount,
+              asset: selectedShieldAsset.assetKey,
+              createdAt: Date.now(),
+              depositSignature: pendingDepositSignature,
+              mintAddress,
+              owner,
+              vaultOwner,
+            }),
+          ],
+        }),
+      )
+      .catch((error) => {
+        setStatus("failed");
+        setPendingShieldAmount(null);
+        setPendingShieldAmountDisplay(null);
+        setPendingDepositSignature(null);
+        setFlowError(
+          toErrorMessage(error, "The Vanta shield state note could not be recorded."),
+        );
+      });
+  }, [
+    amount,
+    pendingDepositSignature,
+    pendingShieldAmount,
+    pendingShieldAmountDisplay,
+    selectedShieldAsset,
+    signatureWait.waitStatus,
+    stateTransaction,
+    supportedToken,
+  ]);
+
   useEffect(() => {
     if (
       stateSignatureWait.waitStatus !== "success" ||
       !stateTransaction.signature ||
       recordedStateSignatureRef.current === stateTransaction.signature ||
       pendingShieldAmount === null ||
-      !pendingShieldAmountDisplay
+      !pendingShieldAmountDisplay ||
+      !selectedShieldAsset?.mintAddress ||
+      !selectedShieldAsset.vaultOwner ||
+      !supportedToken?.owner
     ) {
       return;
     }
 
     recordedStateSignatureRef.current = stateTransaction.signature;
-    const mintAddress = selectedShieldAsset.mintAddress;
-    const owner = supportedToken.owner;
-    const stateSignature = stateTransaction.signature;
-    const vaultOwner = selectedShieldAsset.vaultOwner;
-
-    if (!mintAddress || !owner || !stateSignature || !vaultOwner) {
-      setStatus("failed");
-      setPendingShieldAmount(null);
-      setPendingShieldAmountDisplay(null);
-      setPendingDepositSignature(null);
-      setFlowError("Shield settled, but canonical zk inputs were incomplete.");
-      return;
-    }
 
     void refreshShieldState()
       .then(async () => {
@@ -513,12 +424,13 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
           assetSymbol: selectedShieldAsset.assetKey,
           createdAt: Date.now(),
           depositSignature: pendingDepositSignature ?? undefined,
-          mintAddress,
-          owner,
-          stateSignature,
+          mintAddress: selectedShieldAsset.mintAddress!,
+          owner: supportedToken.owner!,
+          stateSignature: stateTransaction.signature!,
           tokenDecimals: readTokenDecimals(supportedToken.balance),
-          vaultOwner,
+          vaultOwner: selectedShieldAsset.vaultOwner!,
         });
+
         const privateCoreShield =
           selectedShieldAsset.assetKey === "VUSD"
             ? runPrivateCoreShield({
@@ -526,12 +438,11 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 asset: "VUSD",
               })
             : null;
-        const nextBalance = Number(
-          ((shieldAccount?.balance ?? 0) + pendingShieldAmount).toFixed(6),
-        );
+        const nextBalance = Number(((shieldAccount?.balance ?? 0) + pendingShieldAmount).toFixed(6));
+
         setRecentShield({
           amount: pendingShieldAmount,
-          asset: selectedShieldAsset.assetKey as PrivacyAssetKey,
+          asset: selectedShieldAsset.assetKey,
           depositSignature: pendingDepositSignature ?? undefined,
           resultingShieldedBalance: nextBalance,
           settlement: "confirmed_deposit",
@@ -549,6 +460,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
                 }
               : undefined,
         });
+
         setPendingShieldAmount(null);
         setPendingShieldAmountDisplay(null);
         setPendingDepositSignature(null);
@@ -564,7 +476,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
         setFlowError(
           toErrorMessage(
             error,
-            "Shield deposit settled, but the canonical zk shield bridge could not be recorded.",
+            "Shield settled, but the canonical shield bridge could not be recorded.",
           ),
         );
       });
@@ -574,9 +486,7 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     pendingShieldAmountDisplay,
     refreshShieldState,
     runPrivateCoreShield,
-    selectedShieldAsset.assetKey,
-    selectedShieldAsset.mintAddress,
-    selectedShieldAsset.vaultOwner,
+    selectedShieldAsset,
     setRecentShield,
     shieldAccount?.balance,
     stateSignatureWait.waitStatus,
@@ -584,1000 +494,297 @@ export function ShieldPage({ dashboard = false }: ShieldPageProps) {
     supportedToken,
   ]);
 
-  const remainingPublicBalance =
-    isAmountValid && status !== "complete" ? publicBalance - parsedAmount : publicBalance;
-  const projectedShieldedBalance =
-    isAmountValid && status !== "complete"
-      ? shieldedBalance + parsedAmount
-      : shieldedBalance;
-  const zkDiagnostics = listCanonicalShieldDiagnosticsSummaries().slice(0, 5);
-
   async function handleShield() {
     if (
       !isAmountValid ||
-      !selectedShieldAsset.vaultOwner
+      !selectedSourceAsset ||
+      !selectedShieldAsset?.mintAddress ||
+      !selectedShieldAsset.vaultOwner ||
+      !supportedToken
     ) {
       return;
     }
 
     recordedStateSignatureRef.current = null;
+    publicRouteTransaction.reset();
     supportedToken.resetSend();
     stateTransaction.reset();
+    setRecentShield(null);
     setFlowError(null);
-    setPendingShieldAmount(parsedAmount);
-    setPendingShieldAmountDisplay(amount);
+    setPendingPublicRoute(null);
+    setPendingShieldAmount(null);
+    setPendingShieldAmountDisplay(null);
     setPendingDepositSignature(null);
-    setStatus("awaiting_wallet_confirmation");
 
     try {
-      await supportedToken.send({
+      if (selectedSourceAsset.mintAddress === selectedShieldAsset.mintAddress) {
+        await beginShieldTransfer(amount, parsedAmount);
+        return;
+      }
+
+      const quote = await fetchPublicToVusdQuote({
         amount,
-        destinationOwner: selectedShieldAsset.vaultOwner,
+        inputAsset: selectedSourceAsset,
+        outputAsset: selectedShieldAsset.assetKey,
       });
+      const instructions = await buildPublicToVusdSwapInstructions({
+        quote,
+        userPublicKey: walletAddress!,
+      });
+
+      setPendingPublicRoute({
+        previousTargetBalance: publicBalance,
+        quote,
+        targetAssetKey: selectedShieldAsset.assetKey,
+      });
+      setStatus("routing_public_swap");
+
+      await publicRouteTransaction.send({ instructions });
     } catch (error) {
-      setPendingShieldAmount(null);
-      setPendingShieldAmountDisplay(null);
       setStatus("failed");
       setFlowError(toErrorMessage(error, "Shield request was not approved."));
+      setPendingPublicRoute(null);
+      setPendingShieldAmount(null);
+      setPendingShieldAmountDisplay(null);
+      setPendingDepositSignature(null);
     }
   }
 
-  let validationMessage =
-    "This live path uses a real devnet token balance and a real wallet-signed transfer into the first constrained Vanta vault.";
+  let validationMessage = "Choose a source asset, enter an amount, and Vanta will shield it automatically.";
 
-  if (!walletReady) {
-    validationMessage = "Preparing wallet connection layer.";
-  } else if (!walletConnected) {
-    validationMessage = "Connect a wallet to use real Public Wallet state as the source for Shield.";
-  } else if (!hasSupportedAssets) {
-    validationMessage =
-      "Configure the first controlled devnet token mint and vault owner to activate the live Shield path.";
-  } else if (!selectedConfig.supported || !selectedConfig.live) {
-    validationMessage = "This asset is not yet wired to real wallet-backed Shield input.";
-  } else if (supportedToken.status === "loading" || supportedToken.isFetching) {
-    validationMessage = "Reading supported token balance from the connected wallet.";
-  } else if (supportedToken.status === "error") {
-    validationMessage = "The app could not read the supported token balance from devnet.";
+  if (!walletConnected) {
+    validationMessage = "Connect a wallet to shield assets.";
+  } else if (publicAssetsLoading) {
+    validationMessage = "Loading wallet assets.";
+  } else if (publicAssetsError) {
+    validationMessage = publicAssetsError;
+  } else if (!selectedSourceAsset) {
+    validationMessage = "No wallet assets are currently available to shield.";
+  } else if (!selectedShieldAsset?.mintAddress || !selectedShieldAsset.vaultOwner) {
+    validationMessage = "The selected shield target is not configured.";
+  } else if (supportedToken?.status === "loading" || supportedToken?.isFetching) {
+    validationMessage = "Refreshing the target shield asset balance.";
+  } else if (supportedToken?.status === "error") {
+    validationMessage = "The app could not read the target shield asset balance.";
   } else if (!shieldStateReady) {
-    validationMessage =
-      "The supported token deposit path is live, but the Vanta shield state layer is not fully configured yet.";
+    validationMessage = "The Vanta shield state layer is not fully configured for this target yet.";
   } else if (shieldStateRefreshing) {
-    validationMessage = "Refreshing Vanta-recognized shielded state from devnet.";
+    validationMessage = "Refreshing Vanta shielded state.";
   } else if (shieldStateError) {
     validationMessage = shieldStateError;
-  } else if (!hasPublicBalance) {
-    validationMessage =
-      "No supported shieldable balance is currently available in Public Wallet for the live devnet token.";
   } else if (amount.trim() === "") {
-    validationMessage = "Enter an amount to move into the Vanta privacy layer.";
+    validationMessage = "Enter an amount to shield.";
   } else if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
     validationMessage = "Enter a valid amount greater than zero.";
-  } else if (parsedAmount > publicBalance) {
-    validationMessage = "Amount exceeds the available Public Wallet balance.";
+  } else if (parsedAmount > sourceBalance) {
+    validationMessage = `Insufficient ${selectedSourceAsset.symbol} balance.`;
   }
 
-  const progressSteps = [
-    "Public Wallet",
-    "Awaiting wallet confirmation",
-    "Shielding in progress",
-    "Entering shielded state",
-    "Available for Private Send",
-  ];
-
-  const activeStepCount =
-    status === "idle"
-      ? 1
-      : status === "review"
-        ? 1
-        : status === "awaiting_wallet_confirmation"
-          ? 2
-          : status === "shielding_in_progress"
-            ? 3
-            : status === "entering_shielded_state"
-              ? 4
-              : status === "complete"
-                ? 5
-                : 2;
+  const routeLabel =
+    selectedSourceAsset && selectedShieldAsset
+      ? selectedSourceAsset.mintAddress === selectedShieldAsset.mintAddress
+        ? `Vanta will shield ${selectedShieldAsset.symbol} directly.`
+        : `Vanta will route ${selectedSourceAsset.symbol} into ${selectedShieldAsset.symbol}, then shield it automatically.`
+      : "Select a source asset to continue.";
 
   return (
-    <section className="shield-page">
-      <div className="module-page__hero shield-page__hero">
-        <div>
-          <span className="eyebrow">{dashboard ? "Dashboard / Shield" : "Live / MVP"}</span>
-          <h2>Shield Assets</h2>
-          <p>
-            Move supported Solana assets out of public wallet flow and into the
-            private layer. Shield is where the Vanta lane begins.
-          </p>
-        </div>
-
-        <div className="module-state">
-          <strong>What this page does</strong>
-          <p>
-            A real devnet wallet signs the deposit. Vanta records the shielded
-            state and turns that balance into something private send can use.
-          </p>
-        </div>
-      </div>
-
-      <div className="shield-scenario-bar">
-        <div>
-          <span>Wallet state</span>
-          <p>
-            Public Wallet is live on {clusterLabel}. The first token path makes
-            a real devnet transfer before Vanta credits private balance.
-          </p>
-        </div>
-        <div className="shield-scenario-pills">
-          <span className="scenario-pill scenario-pill--active">
-            {walletConnected ? walletAddressShort ?? "Connected" : "Disconnected"}
-          </span>
-          {currentConnectorName && <span className="scenario-pill">{currentConnectorName}</span>}
-        </div>
-      </div>
-
-      <div className="shield-layout">
-        <article className="shield-card shield-card--workspace">
+    <section className="send-page shield-page">
+      <div className="send-layout">
+        <article className="send-card send-card--workspace">
           <div className="shield-card__header">
             <div>
-              <span>Shield Assets</span>
-              <h3>Enter Privacy Layer</h3>
-            </div>
-            <small>Source: Public Wallet to Shielded State</small>
-          </div>
-
-          <div className="shield-state-grid">
-            <div className="state-panel">
-              <span>Public Wallet</span>
-              <strong>
-                {selectedConfig.live && walletConnected
-                  ? supportedToken.status === "loading" || supportedToken.isFetching
-                    ? "Loading..."
-                    : formatBalance(publicBalance, selectedAsset)
-                  : "Connect wallet"}
-              </strong>
-              <p>
-                Live source balance from the connected wallet.
-              </p>
-            </div>
-
-            <div className="state-arrow">
-              <span>Enter Privacy Layer</span>
-            </div>
-
-            <div className="state-panel state-panel--accent">
-              <span>Shielded State</span>
-              <strong>{formatBalance(shieldedBalance, selectedAsset)}</strong>
-              <p>
-                Shielded balance recognized by Vanta after confirmed shield notes.
-              </p>
+              <span>Shield</span>
             </div>
           </div>
 
-          {!walletConnected && (
-            <div className="shield-banner">
-              <strong>Wallet not connected</strong>
-              <p>
-                Connect a real Solana wallet to use actual Public Wallet state
-                as the source for Shield.
-              </p>
-              {walletReady && preferredWalletConnector ? (
-                <button
-                  className="button button-primary"
-                  type="button"
-                  onClick={() => {
-                    void connectWallet(preferredWalletConnector.id).catch(() => {});
-                  }}
-                >
-                  Connect {preferredWalletConnector.name}
-                </button>
-              ) : (
-                <button className="button button-ghost" type="button" disabled>
-                  {walletReady ? "No wallet connector detected" : "Preparing wallets..."}
-                </button>
-              )}
-            </div>
-          )}
-
-          {walletConnected && !hasSupportedAssets && (
-            <div className="shield-banner shield-banner--warning">
-              <strong>Live token path not configured</strong>
-              <p>
-                Wallet connection is real, but the first controlled devnet
-                token mint and Vanta vault owner still need to be configured in
-                local environment variables.
-              </p>
-            </div>
-          )}
-
-          <div className="shield-form">
-            <div className="shield-form__section">
-              <label>Supported assets</label>
-              <div className="asset-list">
-                {assetCatalog.map((asset) => {
-                  const isActive = asset.symbol === selectedAsset;
-                  const assetPublicBalance =
-                    shieldAssetRegistry.byAssetKey[asset.symbol].publicBalance;
-
-                  return (
+          <div className="shield-form swap-widget">
+            <div className="swap-module">
+              <div className="swap-module__field">
+                <div className="swap-module__label-row">
+                  <span>You send</span>
+                  <div className="send-balance-line shield-helper shield-helper--meta">
+                    Balance: {selectedSourceAsset ? formatAssetAmount(sourceBalance, selectedSourceAsset.symbol) : sourcePlaceholderLabel}
+                  </div>
+                </div>
+                <div className="send-entry-grid swap-entry-grid">
+                  <div className="amount-field">
+                    <input
+                      id="shield-amount"
+                      inputMode="decimal"
+                      value={amount}
+                      onChange={(event) => {
+                        setAmount(event.target.value);
+                        setStatus("idle");
+                        setRecentShield(null);
+                        setFlowError(null);
+                      }}
+                      placeholder="0.00"
+                    />
                     <button
-                      key={asset.symbol}
+                      className="button button-ghost"
                       type="button"
-                      className={isActive ? "asset-row asset-row--active" : "asset-row"}
+                      disabled={maxAvailableAmount <= 0}
                       onClick={() => {
-                        setSelectedAsset(asset.symbol);
+                        if (maxAvailableAmount <= 0) {
+                          return;
+                        }
+
+                        setAmount(formatEditableAmount(maxAvailableAmount, selectedSourceAsset?.decimals ?? 6));
                         setStatus("idle");
                         setRecentShield(null);
                         setFlowError(null);
                       }}
                     >
-                      <div>
-                        <strong>{asset.name}</strong>
-                        <span>{asset.symbol}</span>
-                      </div>
-                      <div className="asset-row__meta">
-                        <small>
-                          {asset.live && walletConnected
-                            ? formatBalance(assetPublicBalance, asset.symbol)
-                            : asset.live
-                              ? "Connect wallet"
-                              : "Planned"}
-                        </small>
-                        <em>{asset.statusLabel}</em>
-                      </div>
+                      Max
                     </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="shield-form__section">
-              <label htmlFor="shield-amount">Amount</label>
-              <div className="amount-field">
-                <input
-                  id="shield-amount"
-                  inputMode="decimal"
-                  value={amount}
-                  onChange={(event) => {
-                    setAmount(event.target.value);
-                    setStatus("idle");
-                    setRecentShield(null);
-                    setFlowError(null);
-                  }}
-                  placeholder="0.00"
-                  disabled={
-                    !walletConnected ||
-                    !selectedConfig.live ||
-                    !selectedConfig.supported ||
-                    !hasPublicBalance
-                  }
-                />
-                <button
-                  className="button button-ghost"
-                  type="button"
-                  onClick={() => {
-                    setAmount(publicBalance.toString());
-                    setStatus("idle");
-                    setRecentShield(null);
-                    setFlowError(null);
-                  }}
-                  disabled={
-                    !walletConnected ||
-                    !selectedConfig.live ||
-                    !selectedConfig.supported ||
-                    !hasPublicBalance
-                  }
-                >
-                  Max
-                </button>
+                  </div>
+                </div>
               </div>
 
-              <div className="percent-row">
-                {[25, 50, 75].map((percent) => (
-                  <button
-                    key={percent}
-                    type="button"
-                    className="percent-pill"
-                    disabled={
-                      !walletConnected ||
-                      !selectedConfig.live ||
-                      !selectedConfig.supported ||
-                      !hasPublicBalance
-                    }
-                    onClick={() => {
-                      setAmount(((publicBalance * percent) / 100).toFixed(3));
-                      setStatus("idle");
-                      setRecentShield(null);
-                      setFlowError(null);
-                    }}
-                  >
-                    {percent}%
-                  </button>
-                ))}
+              <div className="swap-choice-grid" aria-label="Shield route">
+                <div className="swap-choice-group" role="group" aria-label="From asset">
+                  <span>From</span>
+                  <div className="send-asset-field">
+                    <select
+                      aria-label="From asset"
+                      value={sourceSelectValue}
+                      disabled={sourceSelectDisabled}
+                      onChange={(event) => {
+                        setSelectedSourceAssetId(event.target.value);
+                        setStatus("idle");
+                        setRecentShield(null);
+                        setFlowError(null);
+                      }}
+                    >
+                      {executableSourceAssets.length === 0 && (
+                        <option value="">{sourcePlaceholderLabel}</option>
+                      )}
+                      {executableSourceAssets.map((asset) => (
+                        <option key={asset.id} value={asset.id}>
+                          {asset.symbol}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="swap-choice-group" role="group" aria-label="To shielded asset">
+                  <span>To</span>
+                  <div className="send-asset-field">
+                    <select
+                      aria-label="To shielded asset"
+                      value={selectedTargetAsset}
+                      onChange={(event) => {
+                        setSelectedTargetAsset(event.target.value as LiveShieldTokenAssetKey);
+                        setStatus("idle");
+                        setRecentShield(null);
+                        setFlowError(null);
+                      }}
+                    >
+                      {executableShieldTargets.map((entry) => (
+                        <option key={entry.asset.assetKey} value={entry.asset.assetKey}>
+                          {`Shielded ${entry.asset.assetKey}`}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               </div>
 
+              <div className="swap-module__divider" aria-hidden="true" />
+
+              <div className="swap-module__field">
+                <div className="swap-module__label-row">
+                  <span>You receive</span>
+                  <div className="send-balance-line shield-helper shield-helper--meta">
+                    Shielded balance: {selectedShieldAsset ? formatAssetAmount(shieldedBalance, selectedShieldAsset.assetKey) : "Unavailable"}
+                  </div>
+                </div>
+                <div className="swap-quote-line">
+                  <strong>{selectedShieldAsset ? `Shielded ${selectedShieldAsset.assetKey}` : "Shielded asset"}</strong>
+                  <span>{selectedShieldAsset?.name ?? "Target unavailable"}</span>
+                </div>
+              </div>
+
+              <p className="shield-helper shield-helper--meta">{routeLabel}</p>
               <p className="shield-helper">{validationMessage}</p>
-              {selectedShieldAsset.configured && walletConnected && (
-                <p className="shield-helper shield-helper--meta">
-                  Supported token ATA: {supportedToken.balance?.ataAddress?.toString() ?? "Loading..."}
-                </p>
-              )}
 
-              <div className="preview-grid">
-                <div className="preview-card">
-                  <span>Remaining Public Wallet</span>
-                  <strong>
-                    {walletConnected
-                      ? formatBalance(Math.max(remainingPublicBalance, 0), selectedAsset)
-                      : "--"}
-                  </strong>
-                </div>
-                <div className="preview-card preview-card--accent">
-                  <span>Resulting Shielded State</span>
-                  <strong>{formatBalance(projectedShieldedBalance, selectedAsset)}</strong>
-                </div>
-              </div>
-            </div>
-
-            <div className="shield-form__actions">
-              <button
-                className="button button-ghost"
-                type="button"
-                onClick={() => {
-                  setStatus("review");
-                  setRecentShield(null);
-                  setFlowError(null);
-                }}
-                disabled={
-                  !isAmountValid ||
-                  status === "awaiting_wallet_confirmation" ||
-                  status === "shielding_in_progress" ||
-                  status === "entering_shielded_state"
-                }
-              >
-                Review shield
-              </button>
-              <button
-                className="button button-primary"
-                type="button"
-                onClick={() => {
-                  setRecentShield(null);
-                  void handleShield();
-                }}
-                disabled={
-                  !isAmountValid ||
-                  status === "awaiting_wallet_confirmation" ||
-                  status === "shielding_in_progress" ||
-                  status === "entering_shielded_state"
-                }
-              >
-                Shield Assets
-              </button>
-            </div>
-          </div>
-        </article>
-
-        <article className="shield-card">
-          <div className="shield-card__header">
-            <div>
-              <span>Review panel</span>
-              <h3>Transition summary</h3>
-            </div>
-            <small>{status === "complete" ? "Completed" : "Real devnet token path"}</small>
-          </div>
-
-          <div className="review-list">
-            <div className="review-row">
-              <span>Wallet address</span>
-              <strong>{walletAddressShort ?? "Not connected"}</strong>
-            </div>
-            <div className="review-row">
-              <span>Selected asset</span>
-              <strong>{selectedConfig.symbol}</strong>
-            </div>
-            <div className="review-row">
-              <span>Source</span>
-              <strong>Public Wallet</strong>
-            </div>
-            <div className="review-row">
-              <span>Destination</span>
-              <strong>Shielded State / Vanta Privacy Layer</strong>
-            </div>
-            <div className="review-row">
-              <span>Live boundary</span>
-              <strong>
-                {selectedConfig.live
-                  ? "Real token deposit plus Vanta state note"
-                  : "Asset input not live yet"}
-              </strong>
-            </div>
-            <div className="review-row">
-              <span>Next available action</span>
-              <strong>Available for Private Send</strong>
-            </div>
-            {selectedShieldAsset.vaultOwner && (
-              <div className="review-row">
-                <span>Shield vault owner</span>
-                <strong>{abbreviate(selectedShieldAsset.vaultOwner)}</strong>
-              </div>
-            )}
-          </div>
-
-          <p className="shield-review-note">
-            After shielding, this balance becomes available for private
-            workflows inside Vanta. In this milestone, the supported token path
-            performs a real devnet deposit and then writes a minimal Vanta
-            state note onchain before the app resolves shielded balance.
-          </p>
-
-          {selectedAsset === "VUSD" && (
-            <>
-              <NoteStatePanel
-                account={shieldAccount}
-                title="Resolved VUSD notes"
-              />
-              <LifecycleTimeline
-                account={shieldAccount}
-                title="VUSD lifecycle timeline"
-              />
-            </>
-          )}
-
-          <div className="progress-rail">
-            {progressSteps.map((label, index) => (
-              <div
-                key={label}
-                className={
-                  index < activeStepCount
-                    ? "progress-step progress-step--active"
-                    : "progress-step"
-                }
-              >
-                <span>{label}</span>
-              </div>
-            ))}
-          </div>
-
-          {status === "review" && (
-            <div className="status-panel">
-              <span>Ready to shield</span>
-              <p>
-                Public Wallet context is live and the supported token path is
-                configured for a real devnet deposit into the Vanta privacy
-                layer and a matching Vanta state note.
-              </p>
-              <div className="status-actions">
+              <div className="shield-form__actions">
                 <button
                   className="button button-primary"
                   type="button"
                   onClick={() => {
                     void handleShield();
                   }}
+                  disabled={
+                    !isAmountValid ||
+                    status === "routing_public_swap" ||
+                    status === "shielding_in_progress" ||
+                    status === "entering_shielded_state"
+                  }
                 >
-                  Enter Privacy Layer
+                  {selectedShieldAsset ? `Shield to ${selectedShieldAsset.assetKey}` : "Shield asset"}
                 </button>
               </div>
             </div>
-          )}
 
-          {status === "awaiting_wallet_confirmation" && (
-            <div className="status-panel">
-              <span>Awaiting wallet confirmation</span>
-              <p>
-                Confirm the supported token transfer from Public Wallet into the
-                configured Vanta shield vault.
-              </p>
-              <div className="status-bar">
-                <div className="status-bar__fill" />
-              </div>
-            </div>
-          )}
-
-          {status === "shielding_in_progress" && (
-            <div className="status-panel status-panel--processing">
-              <span>Shielding in progress</span>
-              <p>Submitting the real devnet Shield transfer from Public Wallet.</p>
-              {depositProgressLabel && (
-                <p className="shield-helper shield-helper--meta">{depositProgressLabel}</p>
-              )}
-              <div className="status-bar">
-                <div className="status-bar__fill" />
-              </div>
-            </div>
-          )}
-
-          {status === "entering_shielded_state" && (
-            <div className="status-panel status-panel--processing">
-              <span>Entering shielded state</span>
-              <p>
-                Waiting for confirmed Vanta state settlement before crediting
-                Shielded State.
-              </p>
-              {stateProgressLabel && (
-                <p className="shield-helper shield-helper--meta">{stateProgressLabel}</p>
-              )}
-              <div className="status-bar">
-                <div className="status-bar__fill" />
-              </div>
-            </div>
-          )}
-
-          {status === "failed" && (
-            <div className="status-panel status-panel--failed">
-              <span>Shield failed</span>
-              <p>
-                Real wallet state remains connected, but the live devnet Shield
-                flow did not complete cleanly.
-              </p>
-              {flowError && <p className="shield-helper shield-helper--error">{flowError}</p>}
-              <button
-                className="button button-primary"
-                type="button"
-                onClick={() => {
-                  setFlowError(null);
-                  setStatus("review");
-                }}
+            {(status === "awaiting_wallet_confirmation" ||
+              status === "routing_public_swap" ||
+              status === "shielding_in_progress" ||
+              status === "entering_shielded_state" ||
+              status === "complete" ||
+              status === "failed") && (
+              <div
+                className={
+                  status === "complete"
+                    ? "status-panel status-panel--success"
+                    : status === "failed"
+                      ? "status-panel status-panel--error"
+                      : "status-panel status-panel--processing"
+                }
               >
-                Retry shield
-              </button>
-            </div>
-          )}
-
-          {status === "complete" && (
-            <div className="status-panel status-panel--success">
-              <span>Shield complete</span>
-              <p>
-                {recentShield
-                  ? `${formatBalance(recentShield.amount, recentShield.asset)} is now in shielded state and available for private workflows inside the Vanta layer.`
-                  : "The supported token deposit was confirmed and shielded state has been updated."}
-              </p>
-              <div className="success-metrics">
-                <div className="preview-card preview-card--accent">
-                  <span>Amount shielded</span>
-                  <strong>
-                    {formatBalance(recentShield?.amount ?? parsedAmount, selectedAsset)}
-                  </strong>
-                </div>
-                <div className="preview-card">
-                  <span>Resulting shielded balance</span>
-                  <strong>{formatBalance(shieldedBalance, selectedAsset)}</strong>
-                </div>
-              </div>
-              {privateCoreRecentShield && (
-                <div className="status-panel status-panel--processing" style={{ marginTop: 16 }}>
-                  <span>Private note created</span>
-                  <p>
-                    Your private balance is now shielded inside the Vanta Private Core v0.1 lane,
-                    with encrypted recovery material and Merkle-backed witness state ready for hold and unshield.
-                  </p>
-                  <div className="review-list" style={{ marginTop: 12 }}>
-                    <div className="review-row">
-                      <span>Private owner</span>
-                      <strong>{abbreviate(privateCoreOwner.publicKey) ?? privateCoreOwner.publicKey}</strong>
-                    </div>
-                    <div className="review-row">
-                      <span>Source note commitment</span>
-                      <strong>{abbreviate(privateCoreRecentShield.sourceNoteCommitment) ?? privateCoreRecentShield.sourceNoteCommitment}</strong>
-                    </div>
-                    <div className="review-row">
-                      <span>Source Merkle root</span>
-                      <strong>{abbreviate(privateCoreRecentShield.sourceMerkleRoot) ?? privateCoreRecentShield.sourceMerkleRoot}</strong>
-                    </div>
-                    <div className="review-row">
-                      <span>Encrypted payload</span>
-                      <strong>{privateCoreRecentShield.encryptedPayload ? "Present" : "Missing"}</strong>
-                    </div>
-                    {privateCoreHoldState && (
-                      <div className="review-row">
-                        <span>Proving preview lane</span>
-                        <strong>{privateCoreHoldState.provingPreviewHashLane}</strong>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-              {recentShield?.signature && (
-                <p className="shield-helper shield-helper--meta">
-                  Vanta state note: {`${recentShield.signature.slice(0, 8)}...${recentShield.signature.slice(-8)}`}
-                </p>
-              )}
-              <VantaPrivateCoreStatePanel
-                compact
-                holdState={privateCoreHoldState}
-                releaseCandidateState={privateCoreReleaseCandidateState}
-                releaseHandoffState={privateCoreReleaseHandoffState}
-                releasePackageState={privateCoreReleasePackageState}
-                releaseWorkflowState={privateCoreReleaseWorkflowState}
-                sendState={privateCoreSendState}
-                swapState={privateCoreSwapState}
-                operatorCurrentRoot={privateCoreOperatorCurrentRoot}
-                operatorLatestConsume={privateCoreOperatorLatestConsume}
-                operatorLatestConsumeProof={privateCoreOperatorLatestConsumeProof}
-                operatorLatestProof={privateCoreOperatorLatestProof}
-                operatorLatestRelease={privateCoreOperatorLatestRelease}
-                operatorLatestReleaseProof={privateCoreOperatorLatestReleaseProof}
-                operatorLatestRoot={privateCoreOperatorLatestRoot}
-                operatorLatestSend={privateCoreOperatorLatestSend}
-                operatorLatestSendLinkedProof={privateCoreOperatorLatestSendLinkedProof}
-                operatorLatestSendProof={privateCoreOperatorLatestSendProof}
-                operatorLatestSwap={privateCoreOperatorLatestSwap}
-                operatorLatestSwapLinkedProof={privateCoreOperatorLatestSwapLinkedProof}
-                operatorLatestSwapProof={privateCoreOperatorLatestSwapProof}
-                operatorBoundaryPrimaryNote={privateCoreOperatorBoundaryPrimaryNote}
-                operatorBoundaryStatusLabel={privateCoreOperatorBoundaryStatusLabel}
-                operatorContractMirrorPrimaryNote={privateCoreOperatorContractMirrorPrimaryNote}
-                operatorContractMirrorStatusLabel={privateCoreOperatorContractMirrorStatusLabel}
-                operatorReleaseBoundaryPrimaryNote={privateCoreOperatorReleaseBoundaryPrimaryNote}
-                operatorReleaseBoundaryStatusLabel={privateCoreOperatorReleaseBoundaryStatusLabel}
-                operatorRequiredLanesPrimaryNote={privateCoreOperatorRequiredLanesPrimaryNote}
-                operatorRequiredLanesStatusLabel={privateCoreOperatorRequiredLanesStatusLabel}
-                operatorZkV1ShippingPrimaryNote={privateCoreOperatorZkV1ShippingPrimaryNote}
-                operatorZkV1ShippingStatusLabel={privateCoreOperatorZkV1ShippingStatusLabel}
-                operatorSendBoundaryPrimaryNote={privateCoreOperatorSendBoundaryPrimaryNote}
-                operatorSendBoundaryStatusLabel={privateCoreOperatorSendBoundaryStatusLabel}
-                operatorSendContinuityPrimaryNote={privateCoreOperatorSendContinuityPrimaryNote}
-                operatorSendContinuityStatusLabel={privateCoreOperatorSendContinuityStatusLabel}
-                operatorSwapBoundaryPrimaryNote={privateCoreOperatorSwapBoundaryPrimaryNote}
-                operatorSwapBoundaryStatusLabel={privateCoreOperatorSwapBoundaryStatusLabel}
-                operatorSwapContinuityPrimaryNote={privateCoreOperatorSwapContinuityPrimaryNote}
-                operatorSwapContinuityStatusLabel={privateCoreOperatorSwapContinuityStatusLabel}
-                operatorSupportedSendLaneKind={privateCoreOperatorSupportedSendLaneKind}
-                operatorSupportedSendLaneNote={privateCoreOperatorSupportedSendLaneNote}
-                operatorSupportedSendLaneStatus={privateCoreOperatorSupportedSendLaneStatus}
-                operatorSupportedSendLaneVersion={privateCoreOperatorSupportedSendLaneVersion}
-                operatorSupportedSendV1Decision={privateCoreOperatorSupportedSendV1Decision}
-                operatorSupportedSendV1DecisionNote={privateCoreOperatorSupportedSendV1DecisionNote}
-                operatorSupportedUnshieldLaneKind={privateCoreOperatorSupportedUnshieldLaneKind}
-                operatorSupportedUnshieldLaneNote={privateCoreOperatorSupportedUnshieldLaneNote}
-                operatorSupportedUnshieldLaneStatus={privateCoreOperatorSupportedUnshieldLaneStatus}
-                operatorSupportedUnshieldLaneVersion={privateCoreOperatorSupportedUnshieldLaneVersion}
-                operatorSupportedUnshieldV1Decision={privateCoreOperatorSupportedUnshieldV1Decision}
-                operatorSupportedUnshieldV1DecisionNote={
-                  privateCoreOperatorSupportedUnshieldV1DecisionNote
-                }
-                operatorSupportedReleaseLaneKind={privateCoreOperatorSupportedReleaseLaneKind}
-                operatorSupportedReleaseLaneNote={privateCoreOperatorSupportedReleaseLaneNote}
-                operatorSupportedReleaseLaneStatus={privateCoreOperatorSupportedReleaseLaneStatus}
-                operatorSupportedReleaseLaneVersion={privateCoreOperatorSupportedReleaseLaneVersion}
-                operatorSupportedSwapLaneKind={privateCoreOperatorSupportedSwapLaneKind}
-                operatorSupportedSwapLaneNote={privateCoreOperatorSupportedSwapLaneNote}
-                operatorSupportedSwapLaneStatus={privateCoreOperatorSupportedSwapLaneStatus}
-                operatorSupportedSwapLaneVersion={privateCoreOperatorSupportedSwapLaneVersion}
-                operatorSupportedSwapV1Decision={privateCoreOperatorSupportedSwapV1Decision}
-                operatorSupportedSwapV1DecisionNote={
-                  privateCoreOperatorSupportedSwapV1DecisionNote
-                }
-                operatorSupportedSwapV1Role={privateCoreOperatorSupportedSwapV1Role}
-                operatorSupportedSwapV1RoleNote={privateCoreOperatorSupportedSwapV1RoleNote}
-                operatorSupportedSwapVenue={privateCoreOperatorSupportedSwapVenue}
-                operatorSupportedSwapOutputModel={privateCoreOperatorSupportedSwapOutputModel}
-                operatorSupportedSwapResultingRootBasis={privateCoreOperatorSupportedSwapResultingRootBasis}
-                operatorSupportedSwapInputRootPolicy={privateCoreOperatorSupportedSwapInputRootPolicy}
-                operatorSupportedSwapOutputRegistrationPolicy={
-                  privateCoreOperatorSupportedSwapOutputRegistrationPolicy
-                }
-                operatorSupportedReleaseV1Decision={privateCoreOperatorSupportedReleaseV1Decision}
-                operatorSupportedReleaseV1DecisionNote={
-                  privateCoreOperatorSupportedReleaseV1DecisionNote
-                }
-                operatorSupportedFlowKind={privateCoreOperatorSupportedFlowKind}
-                operatorSupportedFlowNote={privateCoreOperatorSupportedFlowNote}
-                operatorSupportedFlowStatus={privateCoreOperatorSupportedFlowStatus}
-                operatorSupportedFlowVersion={privateCoreOperatorSupportedFlowVersion}
-                operatorSupportedZkV1ScopeDecision={privateCoreOperatorSupportedZkV1ScopeDecision}
-                operatorSupportedZkV1ScopeNote={privateCoreOperatorSupportedZkV1ScopeNote}
-                operatorSupportedZkV1RequiredLanes={privateCoreOperatorSupportedZkV1RequiredLanes}
-                operatorSupportedZkV1RequiredLanesNote={
-                  privateCoreOperatorSupportedZkV1RequiredLanesNote
-                }
-                operatorZkV1FinishLineStatusLabel={
-                  privateCoreOperatorZkV1FinishLineStatusLabel
-                }
-                operatorZkV1FinishLinePrimaryNote={
-                  privateCoreOperatorZkV1FinishLinePrimaryNote
-                }
-                operatorSupportedAssetSymbol={privateCoreOperatorSupportedAssetSymbol}
-                operatorSupportedEnvironment={privateCoreOperatorSupportedEnvironment}
-                operatorSupportedNoteSchema={privateCoreOperatorSupportedNoteSchema}
-                operatorSupportedNoteVersion={privateCoreOperatorSupportedNoteVersion}
-                operatorSupportedRootRegistrationProvenance={
-                  privateCoreOperatorSupportedRootRegistrationProvenance
-                }
-                operatorSupportedSendResultingRootBasis={
-                  privateCoreOperatorSupportedSendResultingRootBasis
-                }
-                operatorSupportedSendInputRootPolicy={
-                  privateCoreOperatorSupportedSendInputRootPolicy
-                }
-                operatorSupportedSendOutputRegistrationPolicy={
-                  privateCoreOperatorSupportedSendOutputRegistrationPolicy
-                }
-                operatorSupportedRecipientModel={privateCoreOperatorSupportedRecipientModel}
-                operatorSupportedReleaseDestinationModel={
-                  privateCoreOperatorSupportedReleaseDestinationModel
-                }
-                operatorSupportedProofSystem={privateCoreOperatorSupportedProofSystem}
-                operatorSupportedUnshieldCircuit={privateCoreOperatorSupportedUnshieldCircuit}
-                operatorSupportedSendCircuit={privateCoreOperatorSupportedSendCircuit}
-                operatorSupportedUnshieldMerkleDepth={privateCoreOperatorSupportedUnshieldMerkleDepth}
-                operatorSupportedSendMerkleDepth={privateCoreOperatorSupportedSendMerkleDepth}
-                operatorSupportedReleaseAuthorizationBasis={
-                  privateCoreOperatorSupportedReleaseAuthorizationBasis
-                }
-                operatorSupportedReleaseRootPolicy={privateCoreOperatorSupportedReleaseRootPolicy}
-                operatorSupportedReleaseExecutionModel={
-                  privateCoreOperatorSupportedReleaseExecutionModel
-                }
-                operatorSupportedReleaseAtomicityModel={
-                  privateCoreOperatorSupportedReleaseAtomicityModel
-                }
-                operatorSupportedReleasePersistenceModel={
-                  privateCoreOperatorSupportedReleasePersistenceModel
-                }
-                operatorOwnerAuthorizationMode={privateCoreOperatorOwnerAuthorizationMode}
-                operatorOwnerAuthorizationDecision={privateCoreOperatorOwnerAuthorizationDecision}
-                operatorOwnerAuthorizationDecisionNote={
-                  privateCoreOperatorOwnerAuthorizationDecisionNote
-                }
-                operatorSourceArtifactTruthBasis={privateCoreOperatorSourceArtifactTruthBasis}
-                operatorProvingArtifactTruthBasis={privateCoreOperatorProvingArtifactTruthBasis}
-                operatorSourceProvingRelationship={privateCoreOperatorSourceProvingRelationship}
-                operatorNullifierKeyMode={privateCoreOperatorNullifierKeyMode}
-                operatorProvingHashLane={privateCoreOperatorProvingHashLane}
-                operatorCurrentRootLinkedProof={privateCoreOperatorCurrentRootLinkedProof}
-                operatorCurrentRootProofLinkStatus={privateCoreOperatorCurrentRootProofLinkStatus}
-                operatorSendResultingRootLinkedProof={privateCoreOperatorSendResultingRootLinkedProof}
-                operatorSendResultingRootRecord={privateCoreOperatorSendResultingRootRecord}
-                operatorSendResultingRootPrimaryNote={privateCoreOperatorSendResultingRootPrimaryNote}
-                operatorSendResultingRootRegistrationPrimaryNote={
-                  privateCoreOperatorSendResultingRootRegistrationPrimaryNote
-                }
-                operatorSendResultingRootRegistrationStatusLabel={
-                  privateCoreOperatorSendResultingRootRegistrationStatusLabel
-                }
-                operatorSendResultingRootProofLinkStatus={privateCoreOperatorSendResultingRootProofLinkStatus}
-                operatorSendResultingRootStatusLabel={privateCoreOperatorSendResultingRootStatusLabel}
-                operatorSwapResultingRootLinkedProof={privateCoreOperatorSwapResultingRootLinkedProof}
-                operatorSwapResultingRootRecord={privateCoreOperatorSwapResultingRootRecord}
-                operatorSwapResultingRootPrimaryNote={privateCoreOperatorSwapResultingRootPrimaryNote}
-                operatorSwapResultingRootRegistrationPrimaryNote={
-                  privateCoreOperatorSwapResultingRootRegistrationPrimaryNote
-                }
-                operatorSwapResultingRootRegistrationStatusLabel={
-                  privateCoreOperatorSwapResultingRootRegistrationStatusLabel
-                }
-                operatorSwapResultingRootProofLinkStatus={
-                  privateCoreOperatorSwapResultingRootProofLinkStatus
-                }
-                operatorSwapResultingRootStatusLabel={privateCoreOperatorSwapResultingRootStatusLabel}
-                operatorProofConsumeLinkStatus={privateCoreOperatorProofConsumeLinkStatus}
-                operatorProofError={privateCoreOperatorProofError}
-                operatorProofs={privateCoreOperatorProofs}
-                operatorProofSendLinkStatus={privateCoreOperatorProofSendLinkStatus}
-                operatorProofSwapLinkStatus={privateCoreOperatorProofSwapLinkStatus}
-                operatorProofReleaseLinkStatus={privateCoreOperatorProofReleaseLinkStatus}
-                operatorReleaseError={privateCoreOperatorReleaseError}
-                operatorReleases={privateCoreOperatorReleases}
-                operatorRootCurrentnessLabel={privateCoreOperatorRootCurrentnessLabel}
-                operatorRootError={privateCoreOperatorRootError}
-                operatorRootRegistrationStatus={privateCoreOperatorRootRegistrationStatus}
-                operatorRoots={privateCoreOperatorRoots}
-                operatorContractStateVersion={privateCoreOperatorContractStateVersion}
-                operatorContractVersion={privateCoreOperatorContractVersion}
-                operatorContractSummaryVersion={privateCoreOperatorContractSummaryVersion}
-                operatorStatusVersion={privateCoreOperatorStatusVersion}
-                operatorStatusKind={privateCoreOperatorStatusKind}
-                operatorSnapshotVersion={privateCoreOperatorSnapshotVersion}
-                operatorSnapshotKind={privateCoreOperatorSnapshotKind}
-                operatorSupportedStatusNote={privateCoreOperatorSupportedStatusNote}
-                operatorSupportedStatusTransport={privateCoreOperatorSupportedStatusTransport}
-                operatorSupportedStatusEndpoint={privateCoreOperatorSupportedStatusEndpoint}
-                operatorSupportedStatusGateVersion={privateCoreOperatorSupportedStatusGateVersion}
-                operatorSupportedStatusGateKind={privateCoreOperatorSupportedStatusGateKind}
-                operatorSupportedStatusGateNote={privateCoreOperatorSupportedStatusGateNote}
-                operatorSupportedStatusGateTransport={
-                  privateCoreOperatorSupportedStatusGateTransport
-                }
-                operatorSupportedStatusGateEndpoint={
-                  privateCoreOperatorSupportedStatusGateEndpoint
-                }
-                operatorSupportedSnapshotGateVersion={
-                  privateCoreOperatorSupportedSnapshotGateVersion
-                }
-                operatorSupportedSnapshotGateKind={privateCoreOperatorSupportedSnapshotGateKind}
-                operatorSupportedSnapshotGateNote={privateCoreOperatorSupportedSnapshotGateNote}
-                operatorSupportedSnapshotGateTransport={
-                  privateCoreOperatorSupportedSnapshotGateTransport
-                }
-                operatorSupportedSnapshotGateEndpoint={
-                  privateCoreOperatorSupportedSnapshotGateEndpoint
-                }
-                operatorSupportedShippingDecisionGateVersion={
-                  privateCoreOperatorSupportedShippingDecisionGateVersion
-                }
-                operatorSupportedShippingDecisionGateKind={
-                  privateCoreOperatorSupportedShippingDecisionGateKind
-                }
-                operatorSupportedShippingDecisionGateNote={
-                  privateCoreOperatorSupportedShippingDecisionGateNote
-                }
-                operatorSupportedShippingDecisionGateTransport={
-                  privateCoreOperatorSupportedShippingDecisionGateTransport
-                }
-                operatorSupportedShippingDecisionGateEndpoint={
-                  privateCoreOperatorSupportedShippingDecisionGateEndpoint
-                }
-                operatorSupportedShippingDecisionTransport={
-                  privateCoreOperatorSupportedShippingDecisionTransport
-                }
-                operatorSupportedShippingDecisionEndpoint={
-                  privateCoreOperatorSupportedShippingDecisionEndpoint
-                }
-                operatorSupportedShippingArtifactGateVersion={
-                  privateCoreOperatorSupportedShippingArtifactGateVersion
-                }
-                operatorSupportedShippingArtifactGateKind={
-                  privateCoreOperatorSupportedShippingArtifactGateKind
-                }
-                operatorSupportedShippingArtifactGateNote={
-                  privateCoreOperatorSupportedShippingArtifactGateNote
-                }
-                operatorSupportedShippingArtifactGateTransport={
-                  privateCoreOperatorSupportedShippingArtifactGateTransport
-                }
-                operatorSupportedShippingArtifactGateEndpoint={
-                  privateCoreOperatorSupportedShippingArtifactGateEndpoint
-                }
-                operatorSupportedSnapshotNote={privateCoreOperatorSupportedSnapshotNote}
-                operatorSupportedSnapshotTransport={privateCoreOperatorSupportedSnapshotTransport}
-                operatorSupportedSnapshotEndpoint={privateCoreOperatorSupportedSnapshotEndpoint}
-                operatorSupportedShippingArtifactNote={
-                  privateCoreOperatorSupportedShippingArtifactNote
-                }
-                operatorSupportedShippingArtifactTransport={privateCoreOperatorSupportedShippingArtifactTransport}
-                operatorSupportedShippingArtifactEndpoint={privateCoreOperatorSupportedShippingArtifactEndpoint}
-                operatorSupportedReleaseCandidateVersion={
-                  privateCoreOperatorSupportedReleaseCandidateVersion
-                }
-                operatorSupportedReleaseCandidateKind={
-                  privateCoreOperatorSupportedReleaseCandidateKind
-                }
-                operatorSupportedReleaseCandidateNote={
-                  privateCoreOperatorSupportedReleaseCandidateNote
-                }
-                operatorSupportedReleaseCandidateGateVersion={
-                  privateCoreOperatorSupportedReleaseCandidateGateVersion
-                }
-                operatorSupportedReleaseCandidateGateKind={
-                  privateCoreOperatorSupportedReleaseCandidateGateKind
-                }
-                operatorSupportedReleaseCandidateGateNote={
-                  privateCoreOperatorSupportedReleaseCandidateGateNote
-                }
-                operatorSupportedReleaseCandidateGateTransport={
-                  privateCoreOperatorSupportedReleaseCandidateGateTransport
-                }
-                operatorSupportedReleaseCandidateGateEndpoint={
-                  privateCoreOperatorSupportedReleaseCandidateGateEndpoint
-                }
-                operatorSupportedReleaseCandidateTransport={
-                  privateCoreOperatorSupportedReleaseCandidateTransport
-                }
-                operatorSupportedReleaseCandidateEndpoint={
-                  privateCoreOperatorSupportedReleaseCandidateEndpoint
-                }
-                operatorShippingArtifactVersion={privateCoreOperatorShippingArtifactVersion}
-                operatorShippingArtifactKind={privateCoreOperatorShippingArtifactKind}
-                operatorShippingDecisionVersion={privateCoreOperatorShippingDecisionVersion}
-                operatorShippingDecisionKind={privateCoreOperatorShippingDecisionKind}
-                operatorSupportedShippingDecisionNote={
-                  privateCoreOperatorSupportedShippingDecisionNote
-                }
-                operatorSendError={privateCoreOperatorSendError}
-                operatorSends={privateCoreOperatorSends}
-                operatorSendProofError={privateCoreOperatorSendProofError}
-                operatorSendProofs={privateCoreOperatorSendProofs}
-                operatorSwaps={privateCoreOperatorSwaps}
-                operatorSwapProofs={privateCoreOperatorSwapProofs}
-                operatorSummaryUpdatedAt={privateCoreOperatorSummaryUpdatedAt}
-                shieldState={privateCoreRecentShield}
-                title="Vanta Private Core hold state"
-                unshieldState={privateCoreUnshieldState}
-              />
-              <details className="shield-helper shield-helper--meta">
-                <summary>Internal zk diagnostics</summary>
+                <span>
+                  {status === "awaiting_wallet_confirmation"
+                    ? "Awaiting wallet confirmation"
+                    : status === "routing_public_swap"
+                      ? "Routing source asset"
+                      : status === "shielding_in_progress"
+                        ? "Shielding in progress"
+                        : status === "entering_shielded_state"
+                          ? "Entering shielded state"
+                          : status === "complete"
+                            ? "Shield complete"
+                            : "Shield failed"}
+                </span>
                 <p>
-                  Internal/debug only. Inspect the canonical note, commitment, and
-                  append-only shielded state record created from recent live shield actions.
+                  {status === "complete"
+                    ? recentShield
+                      ? `${formatAssetAmount(recentShield.amount, recentShield.asset)} is now available in shielded state.`
+                      : "The selected asset was shielded successfully."
+                    : status === "failed"
+                      ? flowError ?? "The shield action could not be completed."
+                      : status === "routing_public_swap"
+                        ? `Routing ${selectedSourceAsset?.symbol ?? "the source asset"} into ${selectedShieldAsset?.assetKey ?? "the selected shield asset"} before entering Vanta.`
+                        : status === "shielding_in_progress"
+                          ? "Submitting the shield transfer into the Vanta vault."
+                          : status === "entering_shielded_state"
+                            ? "Recording the Vanta shield state note."
+                            : "Approve the shield action in your wallet to continue."}
                 </p>
-                {zkDiagnostics.length === 0 ? (
-                  <p>No retained canonical shield records were found.</p>
-                ) : (
-                  <div className="success-metrics">
-                    {zkDiagnostics.map((record) => (
-                      <div key={record.recordId} className="preview-card">
-                        <span>
-                          Insert #{record.insertionIndex} · {new Date(record.createdAt).toLocaleTimeString()}
-                        </span>
-                        <strong>{abbreviate(record.commitment) ?? record.commitment}</strong>
-                        <small>Commitment</small>
-                        <p className="shield-helper shield-helper--meta">
-                          Root: {abbreviate(record.snapshotRoot) ?? record.snapshotRoot}
-                        </p>
-                        <p className="shield-helper shield-helper--meta">
-                          Asset ID: {record.assetId}
-                        </p>
-                        <p className="shield-helper shield-helper--meta">
-                          Amount: {record.amountDisplay} {record.assetSymbol} ({record.amountBaseUnits} base units)
-                        </p>
-                        <p className="shield-helper shield-helper--meta">
-                          Owner: {abbreviate(record.ownerPublicKey) ?? record.ownerPublicKey}
-                        </p>
-                        <p className="shield-helper shield-helper--meta">
-                          Hint: {record.creationHintSummary}
-                        </p>
-                        {record.depositSignature && (
-                          <p className="shield-helper shield-helper--meta">
-                            Deposit: {abbreviate(record.depositSignature) ?? record.depositSignature}
-                          </p>
-                        )}
-                        <p className="shield-helper shield-helper--meta">
-                          State note: {abbreviate(record.stateSignature) ?? record.stateSignature}
-                        </p>
-                        <p className="shield-helper shield-helper--meta">
-                          Snapshot leaves: {record.snapshotLeafCount}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
+                {routeProgressLabel && status === "routing_public_swap" && (
+                  <p className="shield-helper shield-helper--meta">{routeProgressLabel}</p>
                 )}
-              </details>
-              <div className="status-actions">
-                <Link className="button button-primary" to="/app/send">
-                  Continue to Send
-                </Link>
-                <button
-                  className="button button-ghost"
-                  type="button"
-                  onClick={() => {
-                    setAmount(selectedAsset === "VUSD" ? "0.25" : "0");
-                    setStatus("idle");
-                    setRecentShield(null);
-                    setFlowError(null);
-                  }}
-                >
-                  Shield More
-                </button>
-                <Link className="button button-ghost" to="/app/send">
-                  View Shielded Balance
-                </Link>
-                {walletConnected && (
-                  <button
-                    className="button button-ghost"
-                    type="button"
-                    onClick={() => {
-                      void disconnectWallet();
-                    }}
-                  >
-                    Disconnect wallet
-                  </button>
+                {signatureWait.detailLabel && status === "shielding_in_progress" && (
+                  <p className="shield-helper shield-helper--meta">{signatureWait.detailLabel}</p>
+                )}
+                {stateProgressLabel && status === "entering_shielded_state" && (
+                  <p className="shield-helper shield-helper--meta">{stateProgressLabel}</p>
                 )}
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </article>
       </div>
     </section>
   );
-}
-
-function readTokenDecimals(balance: unknown) {
-  if (typeof balance !== "object" || balance === null) {
-    return undefined;
-  }
-
-  const candidate = (balance as { decimals?: unknown }).decimals;
-  return typeof candidate === "number" && Number.isInteger(candidate) && candidate >= 0
-    ? candidate
-    : undefined;
 }
