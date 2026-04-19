@@ -4,6 +4,7 @@ import { BrandMark } from "@/components/BrandMark";
 import { useWalletState } from "@/data/context/WalletContext";
 
 const appLinks = [
+  { to: "/app/shield", label: "Shield", end: false },
   { to: "/app/send", label: "Send", end: false },
   { to: "/app/swap", label: "Swap", end: false },
   { to: "/app/unshield", label: "Unshield", end: false },
