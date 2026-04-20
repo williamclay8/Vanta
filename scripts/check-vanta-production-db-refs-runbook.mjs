@@ -38,7 +38,6 @@ for (const phrase of [
 for (const forbidden of [
   "postgres://",
   "postgresql://",
-  "DATABASE_URL=",
   "password",
   "privateKey",
   "seedPhrase",

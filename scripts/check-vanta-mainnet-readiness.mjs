@@ -90,6 +90,14 @@ assert.ok(
   "Missing production DB refs runbook command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:production-db-migration-harness-check"),
+  "Missing production DB migration harness check command.",
+);
+assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:production-db-migration-dry-run"),
+  "Missing production DB migration dry-run command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:backup-restore-check"),
   "Missing production backup/restore check command.",
 );

@@ -71,10 +71,40 @@ Required local checks:
 
 ```bash
 npm run mainnet:storage-migration-check
+npm run mainnet:production-db-migration-harness-check
+npm run mainnet:production-db-migration-dry-run
 npm run mainnet:backup-restore-check
 npm run mainnet:secret-handling-check
 npm run mainnet:preflight
 ```
+
+## Safe Migration Harness
+
+The checked harness is:
+
+```bash
+scripts/apply-vanta-production-postgres-migration.mjs
+```
+
+It runs in dry-run mode by default and refuses to print raw database URLs.
+
+Use this local preflight command before touching a database:
+
+```bash
+npm run mainnet:production-db-migration-dry-run
+```
+
+When the production database refs are present in Doppler, run the apply command through Doppler so the raw database URL never enters chat, git, or shell history:
+
+```bash
+doppler run --config prd --project vanta -- \
+  sh -lc 'export DATABASE_URL="$VANTA_PAY_DATABASE_URL"; \
+  VANTA_PRODUCTION_DB_TARGET=VANTA_PAY_DATABASE_URL_REF \
+  VANTA_ALLOW_PRODUCTION_DB_MIGRATION=true \
+  npm run mainnet:production-db-migration-apply'
+```
+
+For a role-specific database, keep the same command shape but set `DATABASE_URL` from the intended Doppler secret inside a controlled shell, and change `VANTA_PRODUCTION_DB_TARGET` to the reference name being migrated. For example, set it from `VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL` and use `VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL_REF` as the target ref. The database mutation is intentionally not part of `npm run mainnet:preflight`.
 
 ## Evidence To Capture
 

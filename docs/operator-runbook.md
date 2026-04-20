@@ -123,6 +123,9 @@ The production DB refs handoff is:
 ```text
 docs/production-db-refs-runbook.md
 npm run mainnet:production-db-refs-check
+npm run mainnet:production-db-migration-harness-check
+npm run mainnet:production-db-migration-dry-run
+npm run mainnet:production-db-migration-apply
 ```
 
 It lists the exact Doppler database secret names needed for Pay, Private Pool v2 operator storage, Private Pool v2 role-service storage, Strategy, and Operator control-plane storage. It is a setup guide, not evidence that production DB refs have been created.

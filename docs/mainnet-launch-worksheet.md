@@ -144,6 +144,7 @@ As of April 20, 2026:
 - Secret reference manifest: `ops/mainnet/secret-references.manifest.json` inventories Pay, Private Pool v2, Strategy, and Operator refs without secret values.
 - Production secret-manager template: `ops/mainnet/production-secret-manager.template.json` maps those refs to Doppler project/config names without secret values.
 - Production DB refs runbook: `docs/production-db-refs-runbook.md` lists the exact Render Postgres / Doppler database refs needed for Pay, Private Pool v2 operator, Private Pool v2 role services, Strategy, and Operator control-plane storage.
+- Production DB migration harness: `npm run mainnet:production-db-migration-dry-run` validates the checked migration plan without exposing database URLs; `npm run mainnet:production-db-migration-apply` is intentionally gated behind Doppler-provided `DATABASE_URL` and `VANTA_ALLOW_PRODUCTION_DB_MIGRATION=true`.
 - Doppler staging setup guide: `docs/doppler-staging-setup.md`.
 - Monitoring provider: Better Stack staging monitors created by operator report; production monitoring is not complete.
 - Staging monitoring manifest: `ops/mainnet/staging-monitoring.manifest.json` tracks public `/health` monitors only.
