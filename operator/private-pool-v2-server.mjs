@@ -10,7 +10,8 @@ import { createNullifierReplayGuard } from "../src/privacy/nullifierReplayGuard.
 import { createPrivatePoolV2ReceiptStore } from "./private-pool-v2-store.mjs";
 
 const repoRoot = resolve(import.meta.dirname, "..");
-const port = Number(process.env.VANTA_PRIVATE_POOL_V2_OPERATOR_PORT ?? "8797");
+const host = process.env.VANTA_PRIVATE_POOL_V2_OPERATOR_HOST ?? process.env.HOST ?? "0.0.0.0";
+const port = Number(process.env.PORT ?? process.env.VANTA_PRIVATE_POOL_V2_OPERATOR_PORT ?? "8797");
 const operatorAuthToken = process.env.VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN;
 const rateLimitPerMinute = Number(process.env.VANTA_PRIVATE_POOL_V2_RATE_LIMIT_PER_MINUTE ?? "600");
 const receiptStore = createPrivatePoolV2ReceiptStore({
@@ -1164,8 +1165,8 @@ const server = createServer(async (request, response) => {
   }
 });
 
-server.listen(port, "127.0.0.1", () => {
-  console.log(`Private Pool V2 operator listening on http://127.0.0.1:${port}`);
+server.listen(port, host, () => {
+  console.log(`Private Pool V2 operator listening on http://${host}:${port}`);
 });
 
 process.on("SIGTERM", () => {

@@ -7,7 +7,8 @@ import { createInMemoryRateLimiter } from "../src/ops/vantaRateLimit.mjs";
 import { createJsonSnapshotStore } from "../src/storage/vantaJsonSnapshotStore.mjs";
 
 const repoRoot = resolve(import.meta.dirname, "..");
-const port = Number(process.env.VANTA_PAY_OPERATOR_PORT ?? "8798");
+const host = process.env.VANTA_PAY_OPERATOR_HOST ?? process.env.HOST ?? "0.0.0.0";
+const port = Number(process.env.PORT ?? process.env.VANTA_PAY_OPERATOR_PORT ?? "8798");
 const rawSecretKey = process.env.VANTA_PAY_SECRET_KEY;
 const rawWebhookSecret = process.env.VANTA_PAY_WEBHOOK_SECRET;
 const secretKey = rawSecretKey ?? "sk_test_vanta";
@@ -636,8 +637,8 @@ const server = createServer(async (request, response) => {
   }
 });
 
-server.listen(port, "127.0.0.1", () => {
-  console.log(`Vanta Pay merchant API listening on http://127.0.0.1:${port}`);
+server.listen(port, host, () => {
+  console.log(`Vanta Pay merchant API listening on http://${host}:${port}`);
 });
 
 function shutdown() {
