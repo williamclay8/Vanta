@@ -44,7 +44,7 @@ The checked role storage seam is:
 npm run private-pool-v2:role-storage-check
 ```
 
-That check verifies the per-role snapshot boundary can select a `postgres-jsonb-snapshot-store` from `VANTA_PRIVATE_POOL_V2_DATABASE_URL`, rejects local JSON snapshot paths in production, and keeps `productionReady: false` until production database refs and restore evidence exist.
+That check verifies the per-role snapshot boundary can select a `postgres-jsonb-snapshot-store` from a role-specific database URL such as `VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL`, or the shared fallback `VANTA_PRIVATE_POOL_V2_DATABASE_URL`, rejects local JSON snapshot paths in production, and keeps `productionReady: false` until production database refs and restore evidence exist.
 
 When `NODE_ENV=production`, each role service refuses to boot unless its role auth token and a restart storage configuration are present. The checked guard exists to prevent accidental unauthenticated or stateless production service startup; managed production database refs remain the long-term target.
 
@@ -71,7 +71,8 @@ The production operator should receive these from Doppler or the approved produc
 - `VANTA_PRIVATE_POOL_V2_RELAYER_AUTH_TOKEN` from `VANTA_RELAYER_AUTH_TOKEN_REF`
 - `VANTA_PRIVATE_POOL_V2_VERIFIER_URL` from `VANTA_VERIFIER_URL_REF`
 - `VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN` from `VANTA_VERIFIER_AUTH_TOKEN_REF`
-- `VANTA_PRIVATE_POOL_V2_DATABASE_URL` from a production database ref, never from git or chat.
+- `VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL`, `VANTA_PRIVATE_POOL_V2_PROVER_DATABASE_URL`, `VANTA_PRIVATE_POOL_V2_RELAYER_DATABASE_URL`, and `VANTA_PRIVATE_POOL_V2_VERIFIER_DATABASE_URL` from production database refs, never from git or chat.
+- `VANTA_PRIVATE_POOL_V2_DATABASE_URL` from a production database ref for the operator shared settlement store, never from git or chat.
 
 ## Production smoke evidence
 

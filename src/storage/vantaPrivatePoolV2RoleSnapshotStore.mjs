@@ -8,6 +8,13 @@ const roleDefaults = {
   verifier: { acceptedProofs: [] },
 };
 
+const roleDatabaseEnv = {
+  indexer: "VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL",
+  prover: "VANTA_PRIVATE_POOL_V2_PROVER_DATABASE_URL",
+  relayer: "VANTA_PRIVATE_POOL_V2_RELAYER_DATABASE_URL",
+  verifier: "VANTA_PRIVATE_POOL_V2_VERIFIER_DATABASE_URL",
+};
+
 function assertKnownRole(role) {
   if (!Object.hasOwn(roleDefaults, role)) {
     throw new Error(`Unknown Private Pool v2 role ${role}.`);
@@ -16,7 +23,7 @@ function assertKnownRole(role) {
 
 export async function createPrivatePoolV2RoleSnapshotStore({
   client,
-  databaseUrl = process.env.VANTA_PRIVATE_POOL_V2_DATABASE_URL,
+  databaseUrl,
   role,
   runtimeEnvironment = process.env.NODE_ENV,
   stateVersion = 1,
@@ -26,11 +33,13 @@ export async function createPrivatePoolV2RoleSnapshotStore({
   assertKnownRole(role);
 
   const defaultSnapshot = roleDefaults[role];
+  const resolvedDatabaseUrl =
+    databaseUrl ?? process.env[roleDatabaseEnv[role]] ?? process.env.VANTA_PRIVATE_POOL_V2_DATABASE_URL;
 
-  if (databaseUrl) {
+  if (resolvedDatabaseUrl) {
     return await createPostgresSnapshotStore({
       client,
-      databaseUrl,
+      databaseUrl: resolvedDatabaseUrl,
       defaultSnapshot,
       stateVersion,
       storeKey: `vanta-private-pool-v2:${role}`,
@@ -49,4 +58,9 @@ export async function createPrivatePoolV2RoleSnapshotStore({
 export function privatePoolV2RoleDefaultSnapshot(role) {
   assertKnownRole(role);
   return structuredClone(roleDefaults[role]);
+}
+
+export function privatePoolV2RoleDatabaseEnv(role) {
+  assertKnownRole(role);
+  return roleDatabaseEnv[role];
 }

@@ -83,6 +83,38 @@ try {
     { publicInputCommitment: "0xabc", replayKey: "shield:0xabc" },
   ]);
 
+  const previousSharedDatabaseUrl = process.env.VANTA_PRIVATE_POOL_V2_DATABASE_URL;
+  const previousIndexerDatabaseUrl = process.env.VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL;
+  delete process.env.VANTA_PRIVATE_POOL_V2_DATABASE_URL;
+  process.env.VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL =
+    "postgresql://vanta.invalid/private-pool-v2-indexer";
+  try {
+    const roleSpecificStore = await createPrivatePoolV2RoleSnapshotStore({
+      client: createFakePostgresClient(),
+      role: "indexer",
+      runtimeEnvironment: "production",
+    });
+    assert.equal(roleSpecificStore.kind, "postgres-jsonb-snapshot-store");
+    await roleSpecificStore.save({
+      commitments: [{ assetId: "USDC", commitment: "0xrole", leafIndex: 0, merkleRoot: "0xroot", treeId: "0xtree" }],
+      nullifiers: [],
+    });
+    assert.deepEqual((await roleSpecificStore.load()).commitments, [
+      { assetId: "USDC", commitment: "0xrole", leafIndex: 0, merkleRoot: "0xroot", treeId: "0xtree" },
+    ]);
+  } finally {
+    if (previousSharedDatabaseUrl === undefined) {
+      delete process.env.VANTA_PRIVATE_POOL_V2_DATABASE_URL;
+    } else {
+      process.env.VANTA_PRIVATE_POOL_V2_DATABASE_URL = previousSharedDatabaseUrl;
+    }
+    if (previousIndexerDatabaseUrl === undefined) {
+      delete process.env.VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL;
+    } else {
+      process.env.VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL = previousIndexerDatabaseUrl;
+    }
+  }
+
   await assert.rejects(
     () =>
       createPrivatePoolV2RoleSnapshotStore({

@@ -107,6 +107,7 @@
       },
       "env": [
         { "name": "VANTA_PRIVATE_POOL_V2_PROVER_AUTH_TOKEN", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_PROVER_DATABASE_URL", "required": true },
         { "name": "VANTA_PRIVATE_POOL_V2_PROVER_ARTIFACT_PATH", "required": true },
         { "name": "VANTA_PRIVATE_POOL_V2_PROVER_WORKER_COUNT", "required": true },
         { "name": "VANTA_PRIVATE_POOL_V2_PROVER_KEYSET", "required": true }

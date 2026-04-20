@@ -34,6 +34,7 @@ const requiredPhrases = [
   "npm run mainnet:deployment-manifest-check",
   "npm run private-pool-v2:service-network-check",
   "npm run private-pool-v2:role-storage-check",
+  "VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL",
   "npm run wallet:signing-safety-check",
   "npm run wallet:transaction-safety-check",
   "npm run mainnet:secret-handling-check",

@@ -9,24 +9,28 @@ const textEncoder = new TextEncoder();
 
 const roleConfig = {
   indexer: {
+    databaseEnv: "VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL",
     defaultPort: 8801,
     service: "vanta-private-pool-v2-indexer",
     storeEnv: "VANTA_PRIVATE_POOL_V2_INDEXER_STORE_PATH",
     tokenEnv: "VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN",
   },
   prover: {
+    databaseEnv: "VANTA_PRIVATE_POOL_V2_PROVER_DATABASE_URL",
     defaultPort: 8802,
     service: "vanta-private-pool-v2-prover",
     storeEnv: "VANTA_PRIVATE_POOL_V2_PROVER_STORE_PATH",
     tokenEnv: "VANTA_PRIVATE_POOL_V2_PROVER_AUTH_TOKEN",
   },
   relayer: {
+    databaseEnv: "VANTA_PRIVATE_POOL_V2_RELAYER_DATABASE_URL",
     defaultPort: 8803,
     service: "vanta-private-pool-v2-relayer",
     storeEnv: "VANTA_PRIVATE_POOL_V2_RELAYER_STORE_PATH",
     tokenEnv: "VANTA_PRIVATE_POOL_V2_RELAYER_AUTH_TOKEN",
   },
   verifier: {
+    databaseEnv: "VANTA_PRIVATE_POOL_V2_VERIFIER_DATABASE_URL",
     defaultPort: 8804,
     service: "vanta-private-pool-v2-verifier",
     storeEnv: "VANTA_PRIVATE_POOL_V2_VERIFIER_STORE_PATH",
@@ -104,7 +108,8 @@ function toBigInt(value, fallback = 0n) {
 
 function basePayload(role) {
   const storePath = process.env[roleConfig[role].storeEnv];
-  const databaseUrl = process.env.VANTA_PRIVATE_POOL_V2_DATABASE_URL;
+  const databaseUrl =
+    process.env[roleConfig[role].databaseEnv] ?? process.env.VANTA_PRIVATE_POOL_V2_DATABASE_URL;
   return {
     mainnetReady: false,
     ok: true,
@@ -168,9 +173,13 @@ function assertProductionRoleConfig(role) {
     throw new Error(`Private Pool v2 ${role} production service requires ${tokenEnv}.`);
   }
 
-  if (!process.env[storeEnv] && !process.env.VANTA_PRIVATE_POOL_V2_DATABASE_URL) {
+  if (
+    !process.env[storeEnv] &&
+    !process.env[roleConfig[role].databaseEnv] &&
+    !process.env.VANTA_PRIVATE_POOL_V2_DATABASE_URL
+  ) {
     throw new Error(
-      `Private Pool v2 ${role} production service requires ${storeEnv} or VANTA_PRIVATE_POOL_V2_DATABASE_URL.`,
+      `Private Pool v2 ${role} production service requires ${storeEnv}, ${roleConfig[role].databaseEnv}, or VANTA_PRIVATE_POOL_V2_DATABASE_URL.`,
     );
   }
 }

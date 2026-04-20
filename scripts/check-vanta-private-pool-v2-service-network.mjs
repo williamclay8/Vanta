@@ -183,12 +183,18 @@ try {
       ["run", service.script, "--", "--port", String(basePort + 300 + index)],
       {
         cwd: repoRoot,
-        env: {
-          ...process.env,
-          NODE_ENV: "production",
-          VANTA_PRIVATE_POOL_V2_DATABASE_URL: "postgresql://vanta.invalid/private-pool-v2",
-          [service.tokenEnv]: authToken,
-        },
+    env: {
+      ...process.env,
+      NODE_ENV: "production",
+      [service.role === "indexer"
+        ? "VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL"
+        : service.role === "prover"
+          ? "VANTA_PRIVATE_POOL_V2_PROVER_DATABASE_URL"
+          : service.role === "relayer"
+            ? "VANTA_PRIVATE_POOL_V2_RELAYER_DATABASE_URL"
+            : "VANTA_PRIVATE_POOL_V2_VERIFIER_DATABASE_URL"]: `postgresql://vanta.invalid/private-pool-v2-${service.role}`,
+      [service.tokenEnv]: authToken,
+    },
         stdio: ["ignore", "pipe", "pipe"],
       },
     );

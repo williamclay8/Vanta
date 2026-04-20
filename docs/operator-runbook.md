@@ -231,7 +231,7 @@ The per-role production storage adapter check is:
 npm run private-pool-v2:role-storage-check
 ```
 
-It verifies the role snapshot boundary can use `VANTA_PRIVATE_POOL_V2_DATABASE_URL` as a `postgres-jsonb-snapshot-store` and refuses local JSON snapshot stores in production. This is a code-level contract, not production evidence that the external database refs, backup/restore drills, or audit gates are complete.
+It verifies the role snapshot boundary can use a role-specific database URL such as `VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL`, or the shared fallback `VANTA_PRIVATE_POOL_V2_DATABASE_URL`, as a `postgres-jsonb-snapshot-store` and refuses local JSON snapshot stores in production. This is a code-level contract, not production evidence that the external database refs, backup/restore drills, or audit gates are complete.
 
 When `NODE_ENV=production`, every role service refuses to boot without its role bearer token and restart storage configuration. This prevents accidental stateless or unauthenticated production startup, but does not replace the production database/restore evidence gate.
 
