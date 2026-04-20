@@ -376,6 +376,37 @@ npm run storage:adapter-check
 npm run nullifier:replay-guard-check
 ```
 
+## Production Backup/Restore Drill
+
+Do not treat the production storage gate as cleared until every store in `ops/mainnet/production-backup-restore.template.json` has references-only evidence for backup policy, point-in-time recovery, encrypted backup evidence, restore-drill evidence, restore runbook, access audit logs, and least-privilege database users.
+
+Safe evidence to record:
+
+- database reference name
+- backup policy reference
+- point-in-time recovery reference
+- restore-drill result reference
+- access audit log reference
+- least-privilege database user reference
+
+Never paste or commit:
+
+- raw database URLs
+- credential values
+- backup decryption material
+- provider API tokens
+- wallet keys
+- private user inputs
+
+Minimum restore-drill flow:
+
+1. Create a disposable restore target outside production.
+2. Restore from the most recent encrypted backup or point-in-time recovery target.
+3. Run schema and state readback checks against the restored target.
+4. Verify nullifier uniqueness, Pay idempotency keys, webhook retry state, strategy child-order uniqueness, and operator deployment locks survive restore.
+5. Destroy the disposable restore target after recording references-only evidence.
+6. Update `ops/mainnet/production-backup-restore.template.json` refs without adding secret material.
+
 ## Before Mainnet
 
 Do not move this runbook to mainnet operation until Vanta has:
