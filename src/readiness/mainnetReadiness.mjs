@@ -91,6 +91,7 @@ const requiredCommands = [
   "npm run storage:adapter-check",
   "npm run mainnet:abuse-observability-check",
   "npm run ops:rate-limit-check",
+  "npm run mainnet:production-service-setup-check",
   "npm run ops:safe-telemetry-check",
   "npm run mainnet:observability-sink-check",
   "npm run nullifier:replay-guard-check",

@@ -225,6 +225,18 @@ The references-only smoke target template is:
 ops/mainnet/private-pool-v2-production-smoke.template.json
 ```
 
+The production service setup guide is:
+
+```text
+docs/production-private-pool-v2-service-setup.md
+```
+
+It records the current Render inventory and the missing production indexer, prover, relayer, verifier, and operator services. Verify it with:
+
+```bash
+npm run mainnet:production-service-setup-check
+```
+
 To select deployed services in an approved non-mainnet or production-like environment, set:
 
 ```bash

@@ -6,15 +6,18 @@ const repoRoot = resolve(import.meta.dirname, "..");
 const packetPath = resolve(repoRoot, "ops/mainnet/external-gates.packet.json");
 const docsPath = resolve(repoRoot, "docs/mainnet-external-gates.md");
 const worksheetPath = resolve(repoRoot, "docs/mainnet-launch-worksheet.md");
+const productionServiceSetupPath = resolve(repoRoot, "docs/production-private-pool-v2-service-setup.md");
 const packagePath = resolve(repoRoot, "package.json");
 
 assert.ok(existsSync(packetPath), "Missing ops/mainnet/external-gates.packet.json.");
 assert.ok(existsSync(docsPath), "Missing docs/mainnet-external-gates.md.");
 assert.ok(existsSync(worksheetPath), "Missing docs/mainnet-launch-worksheet.md.");
+assert.ok(existsSync(productionServiceSetupPath), "Missing docs/production-private-pool-v2-service-setup.md.");
 
 const packet = JSON.parse(readFileSync(packetPath, "utf8"));
 const docs = readFileSync(docsPath, "utf8");
 const worksheet = readFileSync(worksheetPath, "utf8");
+const productionServiceSetup = readFileSync(productionServiceSetupPath, "utf8");
 const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
 
 assert.equal(packet.version, "vanta-mainnet-external-gates-packet-0.1");
@@ -199,6 +202,17 @@ for (const phrase of requiredWorksheetPhrases) {
   assert.ok(worksheet.includes(phrase), `docs/mainnet-launch-worksheet.md is missing required phrase: ${phrase}`);
 }
 
+for (const phrase of [
+  "# Production Private Pool v2 Service Setup",
+  "No production indexer, prover, relayer, verifier, or operator service is currently deployed",
+  "npm run mainnet:production-service-setup-check",
+]) {
+  assert.ok(
+    productionServiceSetup.includes(phrase),
+    `docs/production-private-pool-v2-service-setup.md is missing required phrase: ${phrase}`,
+  );
+}
+
 assert.equal(
   packageJson.scripts["mainnet:external-gates-check"],
   "node scripts/check-vanta-external-gates-packet.mjs",
@@ -208,6 +222,11 @@ assert.equal(
 assert.ok(
   packageJson.scripts["mainnet:preflight"].includes("npm run mainnet:external-gates-check"),
   "mainnet:preflight must include the external gates packet check.",
+);
+
+assert.ok(
+  packageJson.scripts["mainnet:preflight"].includes("npm run mainnet:production-service-setup-check"),
+  "mainnet:preflight must include the production service setup check.",
 );
 
 console.log("Vanta external gates packet check: PASS");

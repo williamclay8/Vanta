@@ -98,6 +98,14 @@ ops/mainnet/private-pool-v2-production-smoke.template.json
 
 It records references for deployed indexer, prover, relayer, verifier, and operator URLs, auth-token refs, and no-real-funds smoke evidence. It is not evidence that those services are deployed yet.
 
+The production service setup guide is:
+
+```text
+docs/production-private-pool-v2-service-setup.md
+```
+
+It records the current Render inventory, the missing production indexer/prover/relayer/verifier/operator services, the `VANTA_PRIVATE_POOL_V2_RUNTIME_MODE=remote-services` wiring, and the exact refs needed before production smoke evidence can be claimed.
+
 ### Production storage
 
 Purpose: move Pay, Private Pool v2, Strategy, and Operator state behind durable storage.

@@ -89,6 +89,10 @@ assert.ok(
 assert.ok(snapshot.requiredCommands.includes("npm run ops:rate-limit-check"), "Missing rate-limit check command.");
 assert.ok(snapshot.requiredCommands.includes("npm run ops:safe-telemetry-check"), "Missing safe telemetry check command.");
 assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:production-service-setup-check"),
+  "Missing production service setup check command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:observability-sink-check"),
   "Missing production observability sink check command.",
 );

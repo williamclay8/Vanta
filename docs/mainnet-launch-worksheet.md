@@ -154,6 +154,7 @@ As of April 20, 2026:
 - Nullifier/replay protection now has a Postgres-backed reservation adapter at `src/privacy/postgresNullifierReplayStore.mjs`; the production SQL includes context/request unique indexes, but the final deployed protocol enforcement layer and audit are still blocked.
 - Browser wallet-signing safety now has a devnet/local browser command: `npm run wallet:browser-signing-safety-check`.
 - Private Pool v2 production smoke template: `ops/mainnet/private-pool-v2-production-smoke.template.json` records no-real-funds smoke evidence refs for deployed indexer, prover, relayer, verifier, and operator services.
+- Private Pool v2 production service setup guide: `docs/production-private-pool-v2-service-setup.md` records the current Render inventory and confirms no production indexer, prover, relayer, verifier, or operator service is currently deployed.
 - Mainnet approval gates template: `ops/mainnet/mainnet-approval-gates.template.json` records refs for secret-manager-backed credentials, production smoke evidence, third-party audit, legal/compliance/custody review, and explicit mainnet-funds approval.
 - Security reviewer: not chosen.
 - Legal/compliance reviewer: not chosen.
