@@ -153,9 +153,11 @@ As of April 20, 2026:
 - Private Pool v2 deployed-service client boundary exists at `src/privacy/privatePoolV2RemoteServices.ts`; `npm run private-pool-v2:remote-services-check` verifies HTTPS clients for indexer, relayer, prover, verifier registry, and remote runtime assembly.
 - Nullifier/replay protection now has a Postgres-backed reservation adapter at `src/privacy/postgresNullifierReplayStore.mjs`; the production SQL includes context/request unique indexes, but the final deployed protocol enforcement layer and audit are still blocked.
 - Browser wallet-signing safety now has a devnet/local browser command: `npm run wallet:browser-signing-safety-check`.
+- Private Pool v2 production smoke template: `ops/mainnet/private-pool-v2-production-smoke.template.json` records no-real-funds smoke evidence refs for deployed indexer, prover, relayer, verifier, and operator services.
+- Mainnet approval gates template: `ops/mainnet/mainnet-approval-gates.template.json` records refs for secret-manager-backed credentials, production smoke evidence, third-party audit, legal/compliance/custody review, and explicit mainnet-funds approval.
 - Security reviewer: not chosen.
 - Legal/compliance reviewer: not chosen.
 - Target environment: staging first.
 - Mainnet funds: not approved.
 
-Next practical step: replace the staged/mock Private Pool v2 runtime with real deployed indexer, relayer, prover, verifier, and operator services from `ops/mainnet/private-pool-v2-services.manifest.json`, then create the production backup/PITR/restore-drill refs named by `ops/mainnet/production-backup-restore.template.json`. Audit/legal/custody and explicit mainnet approval gates still remain blocked.
+Next practical step: use `ops/mainnet/private-pool-v2-production-smoke.template.json` to create real deployed-service refs and no-real-funds smoke evidence for indexer, relayer, prover, verifier, and operator services. Then fill `ops/mainnet/mainnet-approval-gates.template.json` with external audit/legal/custody/mainnet-approval refs only. Do not paste credentials, legal text, audit exploit details, wallet keys, or signed transactions.

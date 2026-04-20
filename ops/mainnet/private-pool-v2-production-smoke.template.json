@@ -1,0 +1,132 @@
+{
+  "version": "vanta-private-pool-v2-production-smoke-template-0.1",
+  "mainnetReady": false,
+  "productionReady": false,
+  "runtimeMode": "remote-services",
+  "secretPolicy": "references-only-no-secret-values",
+  "summary": "References-only production smoke target template for replacing the local Private Pool v2 benchmark runtime with deployed indexer, prover, relayer, verifier, and operator services. Do not store raw URLs, bearer tokens, database URLs, RPC credentials, wallet keys, private keys, seed phrases, or customer private inputs here.",
+  "services": [
+    {
+      "id": "indexer",
+      "urlRef": "VANTA_INDEXER_URL_REF",
+      "authTokenRef": "VANTA_INDEXER_AUTH_TOKEN_REF",
+      "healthEndpoint": "/health",
+      "readinessEndpoint": "/v1/roots/latest",
+      "smokeTargetRef": "VANTA_INDEXER_SMOKE_TARGET_REF"
+    },
+    {
+      "id": "prover",
+      "urlRef": "VANTA_PROVER_URL_REF",
+      "authTokenRef": "VANTA_PROVER_AUTH_TOKEN_REF",
+      "healthEndpoint": "/health",
+      "readinessEndpoint": "/v1/proofs/health",
+      "smokeTargetRef": "VANTA_PROVER_SMOKE_TARGET_REF"
+    },
+    {
+      "id": "relayer",
+      "urlRef": "VANTA_RELAYER_URL_REF",
+      "authTokenRef": "VANTA_RELAYER_AUTH_TOKEN_REF",
+      "healthEndpoint": "/health",
+      "readinessEndpoint": "/v1/claims/quote",
+      "smokeTargetRef": "VANTA_RELAYER_SMOKE_TARGET_REF"
+    },
+    {
+      "id": "verifier",
+      "urlRef": "VANTA_VERIFIER_URL_REF",
+      "authTokenRef": "VANTA_VERIFIER_AUTH_TOKEN_REF",
+      "healthEndpoint": "/health",
+      "readinessEndpoint": "/v1/proofs/accept",
+      "smokeTargetRef": "VANTA_VERIFIER_SMOKE_TARGET_REF"
+    },
+    {
+      "id": "operator",
+      "urlRef": "VANTA_OPERATOR_URL_REF",
+      "authTokenRef": "VANTA_OPERATOR_AUTH_TOKEN_REF",
+      "healthEndpoint": "/health",
+      "readinessEndpoint": "/state/private-pool-v2-status",
+      "smokeTargetRef": "VANTA_OPERATOR_SMOKE_TARGET_REF"
+    }
+  ],
+  "operatorRuntimeEnvironment": [
+    {
+      "assignment": "VANTA_PRIVATE_POOL_V2_RUNTIME_MODE=remote-services",
+      "description": "Select deployed services instead of the local benchmark runtime."
+    },
+    {
+      "name": "VANTA_PRIVATE_POOL_V2_INDEXER_URL",
+      "ref": "VANTA_INDEXER_URL_REF"
+    },
+    {
+      "name": "VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN",
+      "ref": "VANTA_INDEXER_AUTH_TOKEN_REF"
+    },
+    {
+      "name": "VANTA_PRIVATE_POOL_V2_PROVER_URL",
+      "ref": "VANTA_PROVER_URL_REF"
+    },
+    {
+      "name": "VANTA_PRIVATE_POOL_V2_PROVER_AUTH_TOKEN",
+      "ref": "VANTA_PROVER_AUTH_TOKEN_REF"
+    },
+    {
+      "name": "VANTA_PRIVATE_POOL_V2_RELAYER_URL",
+      "ref": "VANTA_RELAYER_URL_REF"
+    },
+    {
+      "name": "VANTA_PRIVATE_POOL_V2_RELAYER_AUTH_TOKEN",
+      "ref": "VANTA_RELAYER_AUTH_TOKEN_REF"
+    },
+    {
+      "name": "VANTA_PRIVATE_POOL_V2_VERIFIER_URL",
+      "ref": "VANTA_VERIFIER_URL_REF"
+    },
+    {
+      "name": "VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN",
+      "ref": "VANTA_VERIFIER_AUTH_TOKEN_REF"
+    }
+  ],
+  "smokeTargets": [
+    {
+      "id": "service-health",
+      "description": "Every deployed service returns an authenticated or public health response according to its service policy.",
+      "requiredEvidenceRef": "VANTA_PRIVATE_POOL_V2_HEALTH_SMOKE_EVIDENCE_REF",
+      "realFundsAllowed": false,
+      "mainnetTransactionsAllowed": false
+    },
+    {
+      "id": "remote-runtime-readiness",
+      "description": "Operator status reports runtime.mode remote-services, durable storage configured, and productionReady false until external gates clear.",
+      "requiredEvidenceRef": "VANTA_PRIVATE_POOL_V2_REMOTE_RUNTIME_SMOKE_EVIDENCE_REF",
+      "realFundsAllowed": false,
+      "mainnetTransactionsAllowed": false
+    },
+    {
+      "id": "proof-roundtrip-simulation",
+      "description": "A no-real-funds proof request can be routed through deployed prover and verifier services with deterministic test inputs.",
+      "requiredEvidenceRef": "VANTA_PRIVATE_POOL_V2_PROOF_ROUNDTRIP_SMOKE_EVIDENCE_REF",
+      "realFundsAllowed": false,
+      "mainnetTransactionsAllowed": false
+    },
+    {
+      "id": "nullifier-replay-simulation",
+      "description": "A duplicate simulated claim nullifier is rejected across deployed service boundaries after restart-safe storage persistence.",
+      "requiredEvidenceRef": "VANTA_PRIVATE_POOL_V2_NULLIFIER_REPLAY_SMOKE_EVIDENCE_REF",
+      "realFundsAllowed": false,
+      "mainnetTransactionsAllowed": false
+    }
+  ],
+  "requiredVerificationCommands": [
+    "npm run private-pool-v2:remote-services-check",
+    "npm run private-pool-v2:verify",
+    "npm run mainnet:private-pool-v2-production-smoke-check",
+    "npm run mainnet:preflight"
+  ],
+  "remainingExternalBlockers": [
+    "real deployed service URLs",
+    "secret-manager-backed auth token values",
+    "production smoke evidence refs",
+    "independent security audit",
+    "legal/compliance/custody approval",
+    "explicit mainnet funds approval"
+  ]
+}

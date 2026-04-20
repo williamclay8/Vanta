@@ -19,10 +19,20 @@
     "VANTA_PRODUCTION_SECRET_MANAGER_TEMPLATE_REF",
     "VANTA_PRODUCTION_BACKUP_RESTORE_TEMPLATE_REF",
     "VANTA_PRODUCTION_OBSERVABILITY_TEMPLATE_REF",
+    "VANTA_PRIVATE_POOL_V2_PRODUCTION_SMOKE_TEMPLATE_REF",
+    "VANTA_MAINNET_APPROVAL_GATES_TEMPLATE_REF",
     "VANTA_PAY_DOPPLER_SERVICE_TOKEN_REF",
     "VANTA_PRIVATE_POOL_V2_DOPPLER_SERVICE_TOKEN_REF",
     "VANTA_STRATEGY_DOPPLER_SERVICE_TOKEN_REF",
     "VANTA_OPERATOR_DOPPLER_SERVICE_TOKEN_REF",
+    "VANTA_INDEXER_AUTH_TOKEN_REF",
+    "VANTA_PROVER_AUTH_TOKEN_REF",
+    "VANTA_RELAYER_AUTH_TOKEN_REF",
+    "VANTA_VERIFIER_AUTH_TOKEN_REF",
+    "VANTA_PRIVATE_POOL_V2_HEALTH_SMOKE_EVIDENCE_REF",
+    "VANTA_PRIVATE_POOL_V2_REMOTE_RUNTIME_SMOKE_EVIDENCE_REF",
+    "VANTA_PRIVATE_POOL_V2_PROOF_ROUNDTRIP_SMOKE_EVIDENCE_REF",
+    "VANTA_PRIVATE_POOL_V2_NULLIFIER_REPLAY_SMOKE_EVIDENCE_REF",
     "VANTA_PAY_SECRET_KEY_REF",
     "VANTA_PAY_WEBHOOK_SECRET_REF",
     "VANTA_PAY_DATABASE_URL_REF",
@@ -65,6 +75,7 @@
       "owner": "infrastructure-operator",
       "summary": "Deploy mainnet-compatible indexer, relayer, prover, verifier, and operator services with health and readiness endpoints.",
       "requiredEvidence": [
+        "ops/mainnet/private-pool-v2-production-smoke.template.json references-only remote service smoke targets",
         "non-secret service URL references for indexer, relayer, prover, verifier, and operator",
         "service-to-service auth reference names",
         "health endpoint evidence",
@@ -80,7 +91,8 @@
       "verificationCommands": [
         "npm run mainnet:service-contract-check",
         "npm run mainnet:service-topology-check",
-        "npm run mainnet:deployment-manifest-check"
+        "npm run mainnet:deployment-manifest-check",
+        "npm run mainnet:private-pool-v2-production-smoke-check"
       ],
       "approvalGate": "production service URLs and auth references are provided without secret values"
     },
@@ -175,6 +187,7 @@
       "owner": "independent-security-reviewer",
       "summary": "Complete independent review of circuits, proof boundaries, operators, browser flows, key management, custody assumptions, and deployment runbooks.",
       "requiredEvidence": [
+        "ops/mainnet/mainnet-approval-gates.template.json references-only audit approval refs",
         "audit scope agreement reference",
         "audit report reference",
         "critical/high findings disposition",
@@ -202,6 +215,7 @@
       "owner": "legal-compliance-custody-reviewer",
       "summary": "Complete legal, compliance, custody, sanctions, merchant-processing, and incident-response review before real user funds.",
       "requiredEvidence": [
+        "ops/mainnet/mainnet-approval-gates.template.json references-only legal, compliance, and custody refs",
         "legal review reference",
         "compliance review reference",
         "custody model decision reference",
@@ -225,6 +239,7 @@
       "owner": "human-launch-approver",
       "summary": "Keep real funds and mainnet transactions blocked until explicit human approval exists for a specific launch action.",
       "requiredEvidence": [
+        "ops/mainnet/mainnet-approval-gates.template.json references-only mainnet approval refs",
         "mainnet approval record reference",
         "approved wallet and fee-payer reference",
         "approved launch window",
@@ -239,6 +254,7 @@
       ],
       "verificationCommands": [
         "npm run mainnet:readiness-check",
+        "npm run mainnet:approval-gates-check",
         "npm run wallet:transaction-safety-check"
       ],
       "approvalGate": "explicit approval before mainnet funds is recorded for the exact action"

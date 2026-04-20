@@ -106,8 +106,16 @@ assert.ok(
   "Missing deployment manifest command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:private-pool-v2-production-smoke-check"),
+  "Missing Private Pool v2 production smoke template command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run wallet:signing-safety-check"),
   "Missing wallet signing safety command.",
+);
+assert.ok(
+  snapshot.requiredCommands.includes("npm run wallet:browser-signing-safety-check"),
+  "Missing browser-backed wallet signing safety command.",
 );
 assert.ok(
   snapshot.requiredCommands.includes("npm run wallet:transaction-safety-check"),
@@ -116,6 +124,10 @@ assert.ok(
 assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:secret-handling-check"),
   "Missing secret handling contract command.",
+);
+assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:approval-gates-check"),
+  "Missing approval gates command.",
 );
 assert.ok(snapshot.requiredCommands.includes("npm run audit:package-check"), "Missing audit package command.");
 assert.ok(snapshot.nextActions[0]?.includes("external gates packet"), "First next action should push toward external gates.");

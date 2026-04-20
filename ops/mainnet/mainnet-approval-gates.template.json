@@ -1,0 +1,113 @@
+{
+  "version": "vanta-mainnet-approval-gates-template-0.1",
+  "mainnetReady": false,
+  "productionReady": false,
+  "secretPolicy": "references-only-no-secret-values",
+  "realFundsPolicy": "explicit-human-approval-required",
+  "summary": "References-only packet for the external approvals Vanta needs before mainnet production. Store only document, dashboard, report, and approval references here. Do not store credentials, legal advice text, audit exploit details, wallet material, or customer data.",
+  "gates": [
+    {
+      "id": "secret-manager-backed-credentials",
+      "status": "blocked",
+      "owner": "security-operator",
+      "evidenceRefs": [
+        "VANTA_SECRET_MANAGER_REF",
+        "VANTA_SECRET_ACCESS_AUDIT_LOG_REF",
+        "VANTA_PAY_DOPPLER_SERVICE_TOKEN_REF",
+        "VANTA_PRIVATE_POOL_V2_DOPPLER_SERVICE_TOKEN_REF",
+        "VANTA_STRATEGY_DOPPLER_SERVICE_TOKEN_REF",
+        "VANTA_OPERATOR_DOPPLER_SERVICE_TOKEN_REF"
+      ],
+      "forbiddenValues": [
+        "raw service tokens",
+        "raw bearer tokens",
+        "raw database URLs",
+        "raw webhook secrets",
+        "private keys",
+        "seed phrases"
+      ]
+    },
+    {
+      "id": "private-pool-v2-production-smoke",
+      "status": "blocked",
+      "owner": "infrastructure-operator",
+      "evidenceRefs": [
+        "VANTA_PRIVATE_POOL_V2_HEALTH_SMOKE_EVIDENCE_REF",
+        "VANTA_PRIVATE_POOL_V2_REMOTE_RUNTIME_SMOKE_EVIDENCE_REF",
+        "VANTA_PRIVATE_POOL_V2_PROOF_ROUNDTRIP_SMOKE_EVIDENCE_REF",
+        "VANTA_PRIVATE_POOL_V2_NULLIFIER_REPLAY_SMOKE_EVIDENCE_REF"
+      ],
+      "forbiddenValues": [
+        "raw service URLs if they grant private access",
+        "auth token values",
+        "database credentials",
+        "RPC credentials",
+        "signed transactions"
+      ]
+    },
+    {
+      "id": "third-party-security-audit",
+      "status": "blocked",
+      "owner": "independent-security-reviewer",
+      "evidenceRefs": [
+        "VANTA_AUDIT_SCOPE_REF",
+        "VANTA_AUDIT_REPORT_REF",
+        "VANTA_AUDIT_FINDINGS_DISPOSITION_REF",
+        "VANTA_AUDIT_FIX_VERIFICATION_REF"
+      ],
+      "forbiddenValues": [
+        "under-NDA report contents unless cleared",
+        "private exploit details",
+        "auditor portal credentials",
+        "secrets used in audit environments"
+      ]
+    },
+    {
+      "id": "legal-compliance-custody",
+      "status": "blocked",
+      "owner": "legal-compliance-custody-reviewer",
+      "evidenceRefs": [
+        "VANTA_LEGAL_REVIEW_REF",
+        "VANTA_COMPLIANCE_REVIEW_REF",
+        "VANTA_CUSTODY_REVIEW_REF",
+        "VANTA_SANCTIONS_POLICY_REF",
+        "VANTA_MERCHANT_PROCESSING_POLICY_REF"
+      ],
+      "forbiddenValues": [
+        "privileged legal advice",
+        "customer personal data",
+        "merchant private financial data",
+        "sanctions screening exports",
+        "custody account credentials"
+      ]
+    },
+    {
+      "id": "explicit-mainnet-funds-approval",
+      "status": "blocked",
+      "owner": "human-launch-approver",
+      "requiresHumanApproval": true,
+      "mainnetTransactionsAllowedBeforeApproval": false,
+      "realFundsAllowedBeforeApproval": false,
+      "evidenceRefs": [
+        "VANTA_MAINNET_APPROVAL_RECORD_REF",
+        "VANTA_APPROVED_FEE_PAYER_REF",
+        "VANTA_APPROVED_LAUNCH_WINDOW_REF",
+        "VANTA_ROLLBACK_PLAN_REF",
+        "VANTA_STOP_LOSS_PLAN_REF"
+      ],
+      "forbiddenValues": [
+        "private wallet keys",
+        "seed phrases",
+        "keypair files",
+        "raw signing credentials",
+        "pre-signed transactions"
+      ]
+    }
+  ],
+  "requiredVerificationCommands": [
+    "npm run mainnet:approval-gates-check",
+    "npm run mainnet:external-gates-check",
+    "npm run mainnet:private-pool-v2-production-smoke-check",
+    "npm run mainnet:preflight"
+  ]
+}

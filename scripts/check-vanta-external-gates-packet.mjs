@@ -63,10 +63,20 @@ for (const requiredRef of [
   "VANTA_PRODUCTION_SECRET_MANAGER_TEMPLATE_REF",
   "VANTA_PRODUCTION_BACKUP_RESTORE_TEMPLATE_REF",
   "VANTA_PRODUCTION_OBSERVABILITY_TEMPLATE_REF",
+  "VANTA_PRIVATE_POOL_V2_PRODUCTION_SMOKE_TEMPLATE_REF",
+  "VANTA_MAINNET_APPROVAL_GATES_TEMPLATE_REF",
   "VANTA_PAY_DOPPLER_SERVICE_TOKEN_REF",
   "VANTA_PRIVATE_POOL_V2_DOPPLER_SERVICE_TOKEN_REF",
   "VANTA_STRATEGY_DOPPLER_SERVICE_TOKEN_REF",
   "VANTA_OPERATOR_DOPPLER_SERVICE_TOKEN_REF",
+  "VANTA_INDEXER_AUTH_TOKEN_REF",
+  "VANTA_PROVER_AUTH_TOKEN_REF",
+  "VANTA_RELAYER_AUTH_TOKEN_REF",
+  "VANTA_VERIFIER_AUTH_TOKEN_REF",
+  "VANTA_PRIVATE_POOL_V2_HEALTH_SMOKE_EVIDENCE_REF",
+  "VANTA_PRIVATE_POOL_V2_REMOTE_RUNTIME_SMOKE_EVIDENCE_REF",
+  "VANTA_PRIVATE_POOL_V2_PROOF_ROUNDTRIP_SMOKE_EVIDENCE_REF",
+  "VANTA_PRIVATE_POOL_V2_NULLIFIER_REPLAY_SMOKE_EVIDENCE_REF",
   "VANTA_AUDIT_REPORT_REF",
   "VANTA_LEGAL_REVIEW_REF",
 ]) {
@@ -77,6 +87,8 @@ for (const requiredTemplate of [
   "ops/mainnet/production-secret-manager.template.json",
   "ops/mainnet/production-backup-restore.template.json",
   "ops/mainnet/production-observability.template.json",
+  "ops/mainnet/private-pool-v2-production-smoke.template.json",
+  "ops/mainnet/mainnet-approval-gates.template.json",
 ]) {
   assert.ok(existsSync(resolve(repoRoot, requiredTemplate)), `Missing production infrastructure template: ${requiredTemplate}.`);
 }
@@ -103,6 +115,12 @@ assertGateIncludes("monitoring-incident-response", "requiredEvidence", "ops/main
 assertGateIncludes("monitoring-incident-response", "verificationCommands", "npm run ops:safe-telemetry-check");
 assertGateIncludes("monitoring-incident-response", "verificationCommands", "npm run mainnet:observability-sink-check");
 assertGateIncludes("wallet-signing-safety", "verificationCommands", "npm run wallet:browser-signing-safety-check");
+assertGateIncludes("deployed-services", "requiredEvidence", "ops/mainnet/private-pool-v2-production-smoke.template.json");
+assertGateIncludes("deployed-services", "verificationCommands", "npm run mainnet:private-pool-v2-production-smoke-check");
+assertGateIncludes("third-party-security-audit", "requiredEvidence", "ops/mainnet/mainnet-approval-gates.template.json");
+assertGateIncludes("legal-compliance-custody", "requiredEvidence", "ops/mainnet/mainnet-approval-gates.template.json");
+assertGateIncludes("mainnet-funds-approval", "requiredEvidence", "ops/mainnet/mainnet-approval-gates.template.json");
+assertGateIncludes("mainnet-funds-approval", "verificationCommands", "npm run mainnet:approval-gates-check");
 
 function scanForRawSecretKeys(value, path = "packet") {
   if (Array.isArray(value)) {

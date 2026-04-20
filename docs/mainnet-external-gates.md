@@ -87,7 +87,16 @@ Verification:
 npm run mainnet:service-contract-check
 npm run mainnet:service-topology-check
 npm run mainnet:deployment-manifest-check
+npm run mainnet:private-pool-v2-production-smoke-check
 ```
+
+The Private Pool v2 production smoke target template is:
+
+```text
+ops/mainnet/private-pool-v2-production-smoke.template.json
+```
+
+It records references for deployed indexer, prover, relayer, verifier, and operator URLs, auth-token refs, and no-real-funds smoke evidence. It is not evidence that those services are deployed yet.
 
 ### Production storage
 
@@ -161,6 +170,7 @@ Purpose: independent review of proof boundaries, operators, custody assumptions,
 
 Evidence needed:
 
+- `ops/mainnet/mainnet-approval-gates.template.json` audit evidence refs
 - `VANTA_AUDIT_REPORT_REF`
 - audit scope agreement reference
 - critical/high finding disposition
@@ -183,6 +193,7 @@ Purpose: review launch scope before real user funds, merchant processing, or cus
 
 Evidence needed:
 
+- `ops/mainnet/mainnet-approval-gates.template.json` legal/compliance/custody evidence refs
 - `VANTA_LEGAL_REVIEW_REF`
 - `VANTA_CUSTODY_REVIEW_REF`
 - compliance review reference
@@ -201,6 +212,7 @@ Purpose: keep real funds blocked until there is explicit approval for the exact 
 
 Evidence needed:
 
+- `ops/mainnet/mainnet-approval-gates.template.json` explicit mainnet approval evidence refs
 - `VANTA_MAINNET_APPROVAL_RECORD_REF`
 - approved launch window
 - approved wallet and fee-payer reference
@@ -211,8 +223,17 @@ Verification:
 
 ```bash
 npm run mainnet:readiness-check
+npm run mainnet:approval-gates-check
 npm run wallet:transaction-safety-check
 ```
+
+The approval gates template is:
+
+```text
+ops/mainnet/mainnet-approval-gates.template.json
+```
+
+It is references-only. Do not store legal advice text, under-NDA audit contents, wallet keys, pre-signed transactions, or credential values in this repo.
 
 ### Monitoring and incident response
 
@@ -233,6 +254,8 @@ Verification:
 ```bash
 npm run mainnet:abuse-observability-check
 npm run ops:rate-limit-check
+npm run ops:safe-telemetry-check
+npm run mainnet:observability-sink-check
 npm run operator:runbook-check
 ```
 

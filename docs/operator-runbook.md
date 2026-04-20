@@ -214,9 +214,16 @@ It defines HTTPS clients for the Private Pool v2 indexer, relayer, prover, verif
 
 ```bash
 npm run private-pool-v2:remote-services-check
+npm run mainnet:private-pool-v2-production-smoke-check
 ```
 
 This is the replacement seam for moving away from the local benchmark runtime once real deployed service URLs, mutual-auth credentials, production smoke targets, audit, and mainnet approval exist.
+
+The references-only smoke target template is:
+
+```text
+ops/mainnet/private-pool-v2-production-smoke.template.json
+```
 
 To select deployed services in an approved non-mainnet or production-like environment, set:
 
@@ -233,6 +240,20 @@ VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN=<secret-manager-value>
 ```
 
 Store the token values only in the secret manager or deployment environment, never in Git or chat.
+
+The external approval template is:
+
+```text
+ops/mainnet/mainnet-approval-gates.template.json
+```
+
+Verify it with:
+
+```bash
+npm run mainnet:approval-gates-check
+```
+
+It stores refs for secret-manager-backed credentials, production smoke evidence, third-party audit, legal/compliance/custody review, and explicit mainnet funds approval. It must never store legal advice text, under-NDA audit contents, exploit details, credential values, wallet keys, or signed transactions.
 
 ## Pay Operator
 
