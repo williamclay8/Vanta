@@ -4,9 +4,10 @@ import { join, resolve } from "node:path";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const packageJson = JSON.parse(readFileSync(resolve(repoRoot, "package.json"), "utf8"));
-const basePort = 9910 + Math.floor(Math.random() * 200);
+const basePort = 12_000 + Math.floor(Math.random() * 1_000);
 const authToken = "vanta-private-pool-v2-service-network-test-token";
 const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-private-pool-v2-service-network-"));
+const indexerStorePath = join(tempRoot, "indexer-state.json");
 
 const services = [
   {
@@ -116,6 +117,9 @@ try {
         ...process.env,
         [service.tokenEnv]: authToken,
         VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN: authToken,
+        ...(service.role === "indexer"
+          ? { VANTA_PRIVATE_POOL_V2_INDEXER_STORE_PATH: indexerStorePath }
+          : {}),
         VANTA_PRIVATE_POOL_V2_INDEXER_URL: serviceUrls.get("indexer") ?? "",
       },
       stdio: ["ignore", "pipe", "pipe"],
@@ -124,7 +128,7 @@ try {
     child.stderr.on("data", (chunk) => {
       stderr += chunk.toString("utf8");
     });
-    children.push({ child, stderr: () => stderr });
+    children.push({ child, role: service.role, stderr: () => stderr });
 
     const health = await waitForHealth(baseUrl);
     assert(health.parsed?.ok === true, `${service.role} health should report ok.`);
@@ -137,6 +141,16 @@ try {
       health.parsed?.mainnetReady === false,
       `${service.role} health must not claim mainnet readiness.`,
     );
+    if (service.role === "indexer") {
+      assert(
+        health.parsed?.storage?.durableStoreConfigured === true,
+        "Expected indexer service health to expose configured durable store.",
+      );
+      assert(
+        health.parsed?.storage?.productionReady === false,
+        "Expected indexer service storage to remain productionReady false.",
+      );
+    }
 
     const unauthenticated = await requestJson(baseUrl, service.readinessEndpoint);
     assert(
@@ -199,6 +213,40 @@ try {
   assert(
     indexedCommitments.parsed?.commitments?.length === 1,
     "Expected verifier-accepted shield proof to append through the indexer service.",
+  );
+
+  const runningIndexer = children.find((entry) => entry.role === "indexer");
+  assert(runningIndexer, "Expected running indexer process.");
+  await new Promise((resolvePromise) => {
+    runningIndexer.child.once("close", resolvePromise);
+    runningIndexer.child.kill("SIGTERM");
+  });
+
+  const restartedIndexer = spawn("npm", ["run", "private-pool-v2:indexer", "--", "--port", String(basePort)], {
+    cwd: repoRoot,
+    env: {
+      ...process.env,
+      VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN: authToken,
+      VANTA_PRIVATE_POOL_V2_INDEXER_STORE_PATH: indexerStorePath,
+    },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  let restartedIndexerStderr = "";
+  restartedIndexer.stderr.on("data", (chunk) => {
+    restartedIndexerStderr += chunk.toString("utf8");
+  });
+  children.push({ child: restartedIndexer, role: "indexer-restart", stderr: () => restartedIndexerStderr });
+  await waitForHealth(serviceUrls.get("indexer"));
+
+  const restoredCommitments = await requestJson(
+    serviceUrls.get("indexer"),
+    "/v1/commitments?treeId=vanta-service-network-test-tree",
+    { headers: { Authorization: `Bearer ${authToken}` } },
+  );
+  assert(restoredCommitments.ok, restoredCommitments.text || "Expected restored indexed commitments.");
+  assert(
+    restoredCommitments.parsed?.commitments?.length === 1,
+    "Expected indexer service to restore accepted commitments after restart.",
   );
 
   const replayReceipt = await requestJson(serviceUrls.get("verifier"), "/v1/proofs/accept", {

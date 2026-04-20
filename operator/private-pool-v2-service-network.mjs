@@ -1,4 +1,6 @@
 import { createServer } from "node:http";
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
 
@@ -105,6 +107,15 @@ function basePayload(role) {
     role,
     service: roleConfig[role].service,
     serviceNetworkReady: true,
+    storage: {
+      durableStoreConfigured:
+        role === "indexer" && Boolean(process.env.VANTA_PRIVATE_POOL_V2_INDEXER_STORE_PATH),
+      kind:
+        role === "indexer" && process.env.VANTA_PRIVATE_POOL_V2_INDEXER_STORE_PATH
+          ? "local-json-snapshot-store"
+          : "in-memory",
+      productionReady: false,
+    },
     version: serviceVersion,
     warnings: [
       "This service is a separated Private Pool v2 runtime surface, not audited production proving infrastructure.",
@@ -141,9 +152,64 @@ function requireAuth({ authToken, request, response, role }) {
   return true;
 }
 
-function createInMemoryIndexerState() {
-  const commitments = [];
-  const nullifiers = new Map();
+function readIndexerSnapshot(storePath) {
+  if (!storePath || !existsSync(storePath)) {
+    return { commitments: [], nullifiers: [] };
+  }
+
+  const parsed = JSON.parse(readFileSync(storePath, "utf8"));
+  return {
+    commitments: (parsed.commitments ?? []).map((record) => ({
+      assetId: String(record.assetId),
+      commitment: String(record.commitment),
+      leafIndex: Number(record.leafIndex),
+      merkleRoot: String(record.merkleRoot),
+      treeId: String(record.treeId),
+    })),
+    nullifiers: (parsed.nullifiers ?? []).map((record) => ({
+      nullifier: String(record.nullifier),
+      spentAtSlot:
+        record.spentAtSlot === null || record.spentAtSlot === undefined
+          ? null
+          : toBigInt(record.spentAtSlot),
+    })),
+  };
+}
+
+function writeIndexerSnapshot(storePath, snapshot) {
+  if (!storePath) {
+    return;
+  }
+
+  const resolvedStorePath = resolve(storePath);
+  mkdirSync(dirname(resolvedStorePath), { recursive: true });
+  const tempPath = `${resolvedStorePath}.${process.pid}.tmp`;
+  writeFileSync(
+    tempPath,
+    `${JSON.stringify(
+      {
+        ...normalizeForJson(snapshot),
+        stateVersion: 1,
+        updatedAt: new Date().toISOString(),
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  renameSync(tempPath, resolvedStorePath);
+}
+
+function createInMemoryIndexerState({ storePath } = {}) {
+  const snapshot = readIndexerSnapshot(storePath);
+  const commitments = [...snapshot.commitments];
+  const nullifiers = new Map(snapshot.nullifiers.map((record) => [record.nullifier, record]));
+
+  function save() {
+    writeIndexerSnapshot(storePath, {
+      commitments,
+      nullifiers: [...nullifiers.values()],
+    });
+  }
 
   function currentRoot(treeId) {
     const treeCommitments = commitments.filter((record) => record.treeId === treeId);
@@ -170,6 +236,7 @@ function createInMemoryIndexerState() {
         treeId,
       };
       commitments.push(record);
+      save();
       return record;
     },
     currentRoot,
@@ -193,6 +260,7 @@ function createInMemoryIndexerState() {
       }
       const record = { nullifier, spentAtSlot };
       nullifiers.set(nullifier, record);
+      save();
       return record;
     },
   };
@@ -295,8 +363,8 @@ async function mirrorAcceptedProofToIndexer(request) {
   return null;
 }
 
-function createServiceHandlers(role) {
-  const indexerState = createInMemoryIndexerState();
+function createServiceHandlers(role, { indexerStorePath } = {}) {
+  const indexerState = createInMemoryIndexerState({ storePath: indexerStorePath });
   const acceptedProofs = new Map();
 
   async function handleIndexer({ request, response }) {
@@ -502,7 +570,9 @@ export function startVantaPrivatePoolV2RoleService(role) {
   const host = process.env.HOST ?? "0.0.0.0";
   const port = parseCliPort(roleConfig[role].defaultPort);
   const authToken = process.env[roleConfig[role].tokenEnv];
-  const handleRoleRequest = createServiceHandlers(role);
+  const handleRoleRequest = createServiceHandlers(role, {
+    indexerStorePath: process.env.VANTA_PRIVATE_POOL_V2_INDEXER_STORE_PATH,
+  });
 
   const server = createServer(async (request, response) => {
     try {
