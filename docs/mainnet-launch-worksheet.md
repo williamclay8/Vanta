@@ -143,6 +143,7 @@ As of April 20, 2026:
 - Secret manager: Doppler created and selected as the production target; Render env vars are staging-only.
 - Secret reference manifest: `ops/mainnet/secret-references.manifest.json` inventories Pay, Private Pool v2, Strategy, and Operator refs without secret values.
 - Production secret-manager template: `ops/mainnet/production-secret-manager.template.json` maps those refs to Doppler project/config names without secret values.
+- Doppler staging setup guide: `docs/doppler-staging-setup.md`.
 - Monitoring provider: not production-selected.
 - Security reviewer: not chosen.
 - Legal/compliance reviewer: not chosen.

@@ -150,9 +150,21 @@ for (const secret of manifest.secrets) {
   assert.ok(mappedRefs.has(secret.ref), `Production secret manager template must map ${secret.ref}.`);
 }
 
+const requiredDopplerSecretNamesByRef = new Map([
+  ["VANTA_PAY_PRIVATE_POOL_OPERATOR_TOKEN_REF", "VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN"],
+  ["VANTA_PRIVATE_POOL_V2_OPERATOR_TOKEN_REF", "VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN"],
+]);
+
 for (const mapping of productionSecretManager.secretMappings) {
   assert.ok(allowedRefs.has(mapping.ref), `Production secret manager maps unknown ref: ${mapping.ref}`);
   assert.ok(mapping.dopplerSecretName, `${mapping.ref} must include Doppler secret name.`);
+  if (requiredDopplerSecretNamesByRef.has(mapping.ref)) {
+    assert.equal(
+      mapping.dopplerSecretName,
+      requiredDopplerSecretNamesByRef.get(mapping.ref),
+      `${mapping.ref} must map to the exact runtime env var name.`,
+    );
+  }
   assert.ok(mapping.owner, `${mapping.ref} must include owner.`);
   assert.ok(mapping.rotation?.cadenceDays > 0, `${mapping.ref} must include production rotation cadence.`);
   assert.ok(mapping.revocation?.runbookRef, `${mapping.ref} must include production revocation runbook.`);

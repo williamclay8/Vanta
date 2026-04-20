@@ -278,6 +278,14 @@ The template is references-only. It records the intended Doppler project/config 
 
 Before production, an operator still needs to create least-privilege Doppler service tokens outside git, verify Doppler access logs, and wire deployment services to read from Doppler rather than staging Render env vars.
 
+The beginner-safe staging Doppler guide is:
+
+```text
+docs/doppler-staging-setup.md
+```
+
+If the existing operator token cannot be found, create a new strong token and put the same value into `VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN` and `VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN`, then redeploy Pay and Private Pool v2 together.
+
 Secret handling is checked by:
 
 ```bash
