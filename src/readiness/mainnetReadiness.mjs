@@ -100,6 +100,7 @@ const requiredCommands = [
   "npm run nullifier:replay-guard-check",
   "npm run mainnet:deployment-manifest-check",
   "npm run mainnet:private-pool-v2-production-smoke-check",
+  "npm run private-pool-v2:role-storage-check",
   "npm run wallet:signing-safety-check",
   "npm run wallet:browser-signing-safety-check",
   "npm run wallet:transaction-safety-check",
@@ -118,7 +119,7 @@ const requiredCommands = [
 const nextActions = [
   "Fill the external gates packet with real deployed service refs, secret-manager refs, audit/legal/custody refs, and explicit mainnet approval artifacts without committing secrets.",
   "Replace templated Private Pool v2 service topology with real deployed service URLs, mutual-auth credentials, and production smoke targets.",
-  "Implement the production database adapters, migrations, backups, and restart/restore checks behind the checked storage contract.",
+  "Attach real production database refs to the checked Pay, Private Pool v2 role, Strategy, and Operator storage adapters, then capture backup/restore evidence.",
   "Create the actual Better Stack production log sources, metrics dashboards, alert policies, incident routing, and retention-policy refs named by the production observability template.",
   "Move nullifier replay guard persistence behind the production storage adapter and final deployed enforcement layer.",
   "Add a checked mainnet deployment runbook with rollback, monitoring, rate limits, and incident response.",

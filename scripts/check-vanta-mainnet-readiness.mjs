@@ -66,6 +66,10 @@ assert.ok(
   "Missing private-pool-v2 verification command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run private-pool-v2:role-storage-check"),
+  "Missing Private Pool v2 role storage verification command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:service-contract-check"),
   "Missing production service contract command.",
 );
