@@ -86,6 +86,10 @@ assert.ok(
   "Missing production storage migration command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:production-db-refs-check"),
+  "Missing production DB refs runbook command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:backup-restore-check"),
   "Missing production backup/restore check command.",
 );

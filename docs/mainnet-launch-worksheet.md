@@ -143,6 +143,7 @@ As of April 20, 2026:
 - Secret manager: Doppler staging completed by operator report; Doppler selected as the production target, but production integration is not complete.
 - Secret reference manifest: `ops/mainnet/secret-references.manifest.json` inventories Pay, Private Pool v2, Strategy, and Operator refs without secret values.
 - Production secret-manager template: `ops/mainnet/production-secret-manager.template.json` maps those refs to Doppler project/config names without secret values.
+- Production DB refs runbook: `docs/production-db-refs-runbook.md` lists the exact Render Postgres / Doppler database refs needed for Pay, Private Pool v2 operator, Private Pool v2 role services, Strategy, and Operator control-plane storage.
 - Doppler staging setup guide: `docs/doppler-staging-setup.md`.
 - Monitoring provider: Better Stack staging monitors created by operator report; production monitoring is not complete.
 - Staging monitoring manifest: `ops/mainnet/staging-monitoring.manifest.json` tracks public `/health` monitors only.

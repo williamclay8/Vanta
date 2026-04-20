@@ -76,6 +76,10 @@ for (const requiredRef of [
   "VANTA_PROVER_AUTH_TOKEN_REF",
   "VANTA_RELAYER_AUTH_TOKEN_REF",
   "VANTA_VERIFIER_AUTH_TOKEN_REF",
+  "VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL_REF",
+  "VANTA_PRIVATE_POOL_V2_PROVER_DATABASE_URL_REF",
+  "VANTA_PRIVATE_POOL_V2_RELAYER_DATABASE_URL_REF",
+  "VANTA_PRIVATE_POOL_V2_VERIFIER_DATABASE_URL_REF",
   "VANTA_PRIVATE_POOL_V2_HEALTH_SMOKE_EVIDENCE_REF",
   "VANTA_PRIVATE_POOL_V2_REMOTE_RUNTIME_SMOKE_EVIDENCE_REF",
   "VANTA_PRIVATE_POOL_V2_PROOF_ROUNDTRIP_SMOKE_EVIDENCE_REF",
@@ -111,6 +115,7 @@ function assertGateIncludes(gateId, field, expected) {
 }
 
 assertGateIncludes("production-storage", "requiredEvidence", "ops/mainnet/production-backup-restore.template.json");
+assertGateIncludes("production-storage", "requiredEvidence", "role-specific Private Pool v2 database refs");
 assertGateIncludes("production-storage", "verificationCommands", "npm run mainnet:backup-restore-check");
 assertGateIncludes("secret-manager", "requiredEvidence", "ops/mainnet/production-secret-manager.template.json");
 assertGateIncludes("secret-manager", "requiredEvidence", "Doppler service token reference names");

@@ -39,6 +39,10 @@
     "VANTA_PAY_PRIVATE_POOL_OPERATOR_TOKEN_REF",
     "VANTA_PRIVATE_POOL_V2_OPERATOR_TOKEN_REF",
     "VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF",
+    "VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL_REF",
+    "VANTA_PRIVATE_POOL_V2_PROVER_DATABASE_URL_REF",
+    "VANTA_PRIVATE_POOL_V2_RELAYER_DATABASE_URL_REF",
+    "VANTA_PRIVATE_POOL_V2_VERIFIER_DATABASE_URL_REF",
     "VANTA_PRIVATE_POOL_V2_PROVER_ARTIFACT_REF",
     "VANTA_PRIVATE_POOL_V2_RELAYER_FEE_WALLET_REF",
     "VANTA_STRATEGY_DATABASE_URL_REF",
@@ -104,6 +108,7 @@
       "summary": "Provision durable production storage, migrations, encrypted backups, restore drills, and least-privilege users.",
       "requiredEvidence": [
         "production database reference name",
+        "role-specific Private Pool v2 database refs for indexer, prover, relayer, and verifier",
         "ops/mainnet/production-backup-restore.template.json references-only recovery template",
         "migration application evidence",
         "point-in-time recovery evidence",

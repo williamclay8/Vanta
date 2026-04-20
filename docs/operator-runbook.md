@@ -118,6 +118,15 @@ ops/mainnet/production-backup-restore.template.json
 
 It records references for production database refs, backup policies, point-in-time recovery, encrypted backup evidence, restore drill evidence, restore runbooks, access audit logs, and least-privilege database users without storing raw database URLs, credential values, backup decryption material, provider API tokens, wallet keys, or private user inputs. It is a setup contract, not evidence that production backup/restore has already passed.
 
+The production DB refs handoff is:
+
+```text
+docs/production-db-refs-runbook.md
+npm run mainnet:production-db-refs-check
+```
+
+It lists the exact Doppler database secret names needed for Pay, Private Pool v2 operator storage, Private Pool v2 role-service storage, Strategy, and Operator control-plane storage. It is a setup guide, not evidence that production DB refs have been created.
+
 The checked baseline Postgres migration is:
 
 ```text

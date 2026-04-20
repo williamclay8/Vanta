@@ -44,6 +44,8 @@ const requiredPhrases = [
   "ops/mainnet/external-gates.packet.json",
   "src/readiness/productionStorageContract.mjs",
   "ops/mainnet/production-backup-restore.template.json",
+  "docs/production-db-refs-runbook.md",
+  "npm run mainnet:production-db-refs-check",
   "ops/storage/postgres/001_vanta_mainnet_storage.sql",
   "src/readiness/abuseObservabilityContract.mjs",
   "src/storage/vantaJsonSnapshotStore.mjs",
