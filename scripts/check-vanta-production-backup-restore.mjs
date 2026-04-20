@@ -36,6 +36,9 @@ for (const [storeId, databaseRef] of requiredStores) {
   assert.ok(store, `Missing backup/restore store entry: ${storeId}.`);
   assert.equal(store.databaseRef, databaseRef);
   assert.ok(store.backupPolicyRef, `${storeId} must declare a backup policy ref.`);
+  assert.ok(store.migrationAppliedRef, `${storeId} must declare a migration applied evidence ref.`);
+  assert.ok(store.migrationCommandRef, `${storeId} must declare a migration command ref.`);
+  assert.ok(store.schemaVersionRef, `${storeId} must declare a schema version evidence ref.`);
   assert.ok(store.pitrRef, `${storeId} must declare a PITR ref.`);
   assert.ok(store.encryptionRef, `${storeId} must declare an encryption ref.`);
   assert.ok(store.restoreDrillRef, `${storeId} must declare a restore drill ref.`);
