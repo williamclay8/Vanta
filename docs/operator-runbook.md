@@ -174,6 +174,7 @@ VANTA_PAY_OPERATOR_PORT=8798
 VANTA_PAY_SECRET_KEY=sk_test_vanta
 VANTA_PAY_WEBHOOK_SECRET=whsec_test_vanta
 VANTA_PAY_STORE_PATH=.vanta-pay-store.json
+VANTA_PAY_DATABASE_URL=
 VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_URL=http://127.0.0.1:8797
 VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN=
 ```
@@ -184,12 +185,15 @@ Production mode guardrails:
 NODE_ENV=production
 VANTA_PAY_SECRET_KEY=<live-secret-key>
 VANTA_PAY_WEBHOOK_SECRET=<live-webhook-secret>
-VANTA_PAY_STORE_PATH=<durable-store-path>
+VANTA_PAY_STORE_PATH=<durable-store-path-if-using-json-store>
+VANTA_PAY_DATABASE_URL=<postgres-url-if-using-managed-postgres>
 VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_URL=<private-pool-v2-url>
 VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN=<operator-token-if-required>
 ```
 
-When `NODE_ENV=production`, Pay refuses to boot without `VANTA_PAY_SECRET_KEY`, `VANTA_PAY_WEBHOOK_SECRET`, and `VANTA_PAY_STORE_PATH`.
+When `NODE_ENV=production`, Pay refuses to boot without `VANTA_PAY_SECRET_KEY`, `VANTA_PAY_WEBHOOK_SECRET`, and either `VANTA_PAY_STORE_PATH` or `VANTA_PAY_DATABASE_URL`.
+
+For free Render staging, prefer `VANTA_PAY_DATABASE_URL` from a free Render Postgres database because free web services cannot attach persistent disks and lose local filesystem writes on restart/redeploy. Treat free Render Postgres as staging-only because free databases expire.
 
 Production webhook delivery also requires HTTPS merchant endpoints.
 

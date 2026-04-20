@@ -5,12 +5,14 @@ import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { createInMemoryRateLimiter } from "../src/ops/vantaRateLimit.mjs";
 import { createJsonSnapshotStore } from "../src/storage/vantaJsonSnapshotStore.mjs";
+import { createPostgresSnapshotStore } from "../src/storage/vantaPostgresSnapshotStore.mjs";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const host = process.env.VANTA_PAY_OPERATOR_HOST ?? process.env.HOST ?? "0.0.0.0";
 const port = Number(process.env.PORT ?? process.env.VANTA_PAY_OPERATOR_PORT ?? "8798");
 const rawSecretKey = process.env.VANTA_PAY_SECRET_KEY;
 const rawWebhookSecret = process.env.VANTA_PAY_WEBHOOK_SECRET;
+const databaseUrl = process.env.VANTA_PAY_DATABASE_URL;
 const secretKey = rawSecretKey ?? "sk_test_vanta";
 const webhookSecret = rawWebhookSecret ?? "whsec_test_vanta";
 const privatePoolOperatorUrl = process.env.VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_URL;
@@ -61,8 +63,8 @@ function assertProductionSecrets() {
     throw new Error("Vanta Pay production mode requires VANTA_PAY_WEBHOOK_SECRET.");
   }
 
-  if (!storePath) {
-    throw new Error("Vanta Pay production mode requires VANTA_PAY_STORE_PATH.");
+  if (!storePath && !databaseUrl) {
+    throw new Error("Vanta Pay production mode requires VANTA_PAY_STORE_PATH or VANTA_PAY_DATABASE_URL.");
   }
 }
 
@@ -349,19 +351,28 @@ const {
 const { createVantaPayPrivateSettlementAdapter } = await import(
   pathToFileURL(join(tempJsDir, "pay/vantaPayPrivateSettlementAdapter.js")).href
 );
-const snapshotStore = createJsonSnapshotStore({
-  allowInProduction: process.env.NODE_ENV === "production",
-  path: storePath,
-  stateVersion: VANTA_PAY_STORE_SCHEMA_VERSION,
-});
-const runtime = createVantaPayRuntime({ snapshot: snapshotStore.load() });
+const defaultSnapshot = { stateVersion: VANTA_PAY_STORE_SCHEMA_VERSION };
+const snapshotStore = databaseUrl
+  ? await createPostgresSnapshotStore({
+      databaseUrl,
+      defaultSnapshot,
+      stateVersion: VANTA_PAY_STORE_SCHEMA_VERSION,
+      storeKey: "vanta-pay",
+    })
+  : createJsonSnapshotStore({
+      allowInProduction: process.env.NODE_ENV === "production",
+      defaultSnapshot,
+      path: storePath,
+      stateVersion: VANTA_PAY_STORE_SCHEMA_VERSION,
+    });
+const runtime = createVantaPayRuntime({ snapshot: await snapshotStore.load() });
 const settlementAdapter = createVantaPayPrivateSettlementAdapter({
   privatePoolOperatorAuthToken,
   privatePoolOperatorUrl,
 });
 
-function saveRuntimeSnapshot() {
-  snapshotStore.save(runtime.snapshot());
+async function saveRuntimeSnapshot() {
+  await snapshotStore.save(runtime.snapshot());
 }
 
 const server = createServer(async (request, response) => {
@@ -387,7 +398,7 @@ const server = createServer(async (request, response) => {
           browserCheckoutVerification: true,
           databaseAdapterSeam: true,
           hostedCheckoutSessions: true,
-          durableStoreConfigured: Boolean(storePath),
+          durableStoreConfigured: Boolean(storePath || databaseUrl),
           idempotency: {
             checkoutCompletion: true,
             checkoutSessions: true,
@@ -430,6 +441,12 @@ const server = createServer(async (request, response) => {
         ],
         object: "vanta_pay_operator_status",
         service: "vanta-pay",
+        storage: {
+          durableStoreConfigured: Boolean(storePath || databaseUrl),
+          kind: snapshotStore.kind,
+          path: snapshotStore.path,
+          productionReady: snapshotStore.productionReady,
+        },
         storeSchemaVersion: VANTA_PAY_STORE_SCHEMA_VERSION,
       });
       return;
@@ -438,7 +455,7 @@ const server = createServer(async (request, response) => {
     if (request.method === "POST" && url.pathname === "/v1/checkout/sessions") {
       const body = await readRequestBody(request);
       const session = runtime.createCheckoutSession(toSessionInput(body));
-      saveRuntimeSnapshot();
+      await saveRuntimeSnapshot();
       sendJson(response, 200, session);
       return;
     }
@@ -456,7 +473,7 @@ const server = createServer(async (request, response) => {
       const completion = runtime.completeCheckoutSession(session.id, {
         privateRailReceiptId: privateRailReceipt.id,
       });
-      saveRuntimeSnapshot();
+      await saveRuntimeSnapshot();
       sendJson(response, 200, completion);
       return;
     }
@@ -500,7 +517,7 @@ const server = createServer(async (request, response) => {
     if (request.method === "POST" && url.pathname === "/v1/refunds") {
       const body = await readRequestBody(request);
       const refund = runtime.createRefund(toRefundInput(body));
-      saveRuntimeSnapshot();
+      await saveRuntimeSnapshot();
       sendJson(response, 200, refund);
       return;
     }
@@ -547,7 +564,7 @@ const server = createServer(async (request, response) => {
         ...input,
         privateExitReceiptId: privateExitReceipt.id,
       });
-      saveRuntimeSnapshot();
+      await saveRuntimeSnapshot();
       sendJson(response, 200, withdrawal);
       return;
     }
@@ -565,7 +582,7 @@ const server = createServer(async (request, response) => {
     if (request.method === "POST" && url.pathname === "/v1/invoices") {
       const body = await readRequestBody(request);
       const invoice = runtime.createInvoice(toInvoiceInput(body));
-      saveRuntimeSnapshot();
+      await saveRuntimeSnapshot();
       sendJson(response, 200, invoice);
       return;
     }
@@ -578,7 +595,7 @@ const server = createServer(async (request, response) => {
     if (request.method === "POST" && url.pathname === "/v1/payment-links") {
       const body = await readRequestBody(request);
       const paymentLink = runtime.createPaymentLink(toPaymentLinkInput(body));
-      saveRuntimeSnapshot();
+      await saveRuntimeSnapshot();
       sendJson(response, 200, paymentLink);
       return;
     }
@@ -620,7 +637,7 @@ const server = createServer(async (request, response) => {
           };
         },
       });
-      saveRuntimeSnapshot();
+      await saveRuntimeSnapshot();
       sendJson(response, 200, { data: deliveries });
       return;
     }

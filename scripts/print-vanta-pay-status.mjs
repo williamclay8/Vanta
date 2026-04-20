@@ -3,7 +3,9 @@ const jsonMode = process.argv.includes("--json");
 const result = {
   capabilities: {
     browserCheckoutVerification: true,
-    durableStoreConfigured: Boolean(process.env.VANTA_PAY_STORE_PATH),
+    durableStoreConfigured: Boolean(
+      process.env.VANTA_PAY_STORE_PATH || process.env.VANTA_PAY_DATABASE_URL,
+    ),
     hostedCheckoutSessions: true,
     idempotency: {
       checkoutCompletion: true,
@@ -25,6 +27,13 @@ const result = {
   kind: "Vanta Pay status",
   ok: true,
   productionReady: false,
+  storage: {
+    kind: process.env.VANTA_PAY_DATABASE_URL
+      ? "postgres-jsonb-snapshot-store"
+      : process.env.VANTA_PAY_STORE_PATH
+        ? "local-json-snapshot-store"
+        : "disabled-snapshot-store",
+  },
   surfaces: {
     browserCheckout: "verified",
     merchantApi: "local-operator",
@@ -56,6 +65,7 @@ if (jsonMode) {
   console.log(
     `- productionGuards: durableStore=${String(result.capabilities.productionDurableStoreRequired)}, httpsWebhooks=${String(result.capabilities.productionHttpsWebhooks)}`,
   );
+  console.log(`- storage: ${result.storage.kind}`);
   for (const [surface, status] of Object.entries(result.surfaces)) {
     console.log(`- ${surface}: ${status}`);
   }
