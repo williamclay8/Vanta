@@ -12,6 +12,7 @@ export type VantaAbuseObservabilityContract = {
   globalRequirements: string[];
   mainnetReady: false;
   nextImplementationStep: string;
+  productionObservabilityTemplatePath: "ops/mainnet/production-observability.template.json";
   productionReady: false;
   requiredVerificationCommands: string[];
   safeTelemetryModulePath: "src/ops/vantaSafeTelemetry.mjs";

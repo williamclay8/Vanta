@@ -143,6 +143,7 @@ export function createVantaAbuseObservabilityContract() {
     version: "vanta-abuse-observability-contract-0.1",
     globalRequirements,
     mainnetReady: false,
+    productionObservabilityTemplatePath: "ops/mainnet/production-observability.template.json",
     safeTelemetryModulePath: "src/ops/vantaSafeTelemetry.mjs",
     nextImplementationStep:
       "Promote safe operator telemetry from stdout JSON into a production log sink, metrics, alert, and audit-event pipeline for Pay and Private Pool v2 first.",
@@ -150,6 +151,7 @@ export function createVantaAbuseObservabilityContract() {
     requiredVerificationCommands: [
       "npm run mainnet:abuse-observability-check",
       "npm run ops:safe-telemetry-check",
+      "npm run mainnet:observability-sink-check",
       "npm run mainnet:preflight",
       "npm run pay:verify",
       "npm run private-pool-v2:verify",

@@ -147,9 +147,10 @@ As of April 20, 2026:
 - Monitoring provider: Better Stack staging monitors created by operator report; production monitoring is not complete.
 - Staging monitoring manifest: `ops/mainnet/staging-monitoring.manifest.json` tracks public `/health` monitors only.
 - Operator telemetry: Pay and Private Pool v2 now emit privacy-safe stdout JSON through `src/ops/vantaSafeTelemetry.mjs`; production log sink, metrics, alert routing, audit retention, and incident workflow are not complete.
+- Production observability template: `ops/mainnet/production-observability.template.json` records references-only Better Stack log source, dashboard, alert-policy, incident-runbook, and retention-policy targets.
 - Security reviewer: not chosen.
 - Legal/compliance reviewer: not chosen.
 - Target environment: staging first.
 - Mainnet funds: not approved.
 
-Next practical step: connect the safe operator telemetry to a production log/metrics sink with incident routing, then verify Doppler access logs/export references. Audit/legal/custody and explicit mainnet approval gates still remain blocked.
+Next practical step: create the actual Better Stack production log sources, dashboards, alert policies, incident routing, and retention-policy refs named by `ops/mainnet/production-observability.template.json`, then verify Doppler access logs/export references. Audit/legal/custody and explicit mainnet approval gates still remain blocked.

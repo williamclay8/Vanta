@@ -5,6 +5,10 @@ import { createVantaAbuseObservabilityContract } from "../src/readiness/abuseObs
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const stagingMonitoringManifestPath = resolve(repoRoot, "ops/mainnet/staging-monitoring.manifest.json");
+const productionObservabilityTemplatePath = resolve(
+  repoRoot,
+  "ops/mainnet/production-observability.template.json",
+);
 const contract = createVantaAbuseObservabilityContract();
 
 assert.equal(contract.version, "vanta-abuse-observability-contract-0.1");
@@ -32,6 +36,11 @@ assert.equal(
   "src/ops/vantaSafeTelemetry.mjs",
   "Abuse/observability contract must point at the shared safe telemetry helper.",
 );
+assert.equal(
+  contract.productionObservabilityTemplatePath,
+  "ops/mainnet/production-observability.template.json",
+  "Abuse/observability contract must point at the production observability template.",
+);
 
 assert.ok(
   contract.requiredVerificationCommands.includes("npm run mainnet:abuse-observability-check"),
@@ -42,6 +51,10 @@ assert.ok(
   "Missing safe telemetry verification command.",
 );
 assert.ok(
+  contract.requiredVerificationCommands.includes("npm run mainnet:observability-sink-check"),
+  "Missing production observability sink verification command.",
+);
+assert.ok(
   contract.nextImplementationStep.includes("production log sink"),
   "Next implementation step should target the production log sink.",
 );
@@ -50,7 +63,14 @@ assert.ok(
   existsSync(stagingMonitoringManifestPath),
   "Missing ops/mainnet/staging-monitoring.manifest.json.",
 );
+assert.ok(
+  existsSync(productionObservabilityTemplatePath),
+  "Missing ops/mainnet/production-observability.template.json.",
+);
 const stagingMonitoringManifest = JSON.parse(readFileSync(stagingMonitoringManifestPath, "utf8"));
+const productionObservabilityTemplate = JSON.parse(
+  readFileSync(productionObservabilityTemplatePath, "utf8"),
+);
 
 assert.equal(stagingMonitoringManifest.version, "vanta-staging-monitoring-manifest-0.1");
 assert.equal(stagingMonitoringManifest.mainnetReady, false);
@@ -82,5 +102,12 @@ for (const forbidden of ["apiKey", "webhookUrl", "Authorization", "Bearer ", "ra
     `Monitoring manifest must not include secret-bearing field or value: ${forbidden}`,
   );
 }
+
+assert.equal(productionObservabilityTemplate.version, "vanta-production-observability-template-0.1");
+assert.equal(productionObservabilityTemplate.mainnetReady, false);
+assert.equal(productionObservabilityTemplate.productionReady, false);
+assert.equal(productionObservabilityTemplate.provider, "better-stack");
+assert.equal(productionObservabilityTemplate.secretPolicy, "references-only-no-provider-secrets");
+assert.equal(productionObservabilityTemplate.telemetrySource, "src/ops/vantaSafeTelemetry.mjs");
 
 console.log("Vanta abuse and observability contract check: PASS");

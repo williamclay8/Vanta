@@ -182,6 +182,7 @@ npm run storage:adapter-check
 npm run mainnet:abuse-observability-check
 npm run ops:rate-limit-check
 npm run ops:safe-telemetry-check
+npm run mainnet:observability-sink-check
 npm run nullifier:replay-guard-check
 npm run mainnet:deployment-manifest-check
 npm run wallet:signing-safety-check
@@ -319,6 +320,7 @@ npm run storage:adapter-check
 npm run mainnet:abuse-observability-check
 npm run ops:rate-limit-check
 npm run ops:safe-telemetry-check
+npm run mainnet:observability-sink-check
 npm run nullifier:replay-guard-check
 npm run mainnet:deployment-manifest-check
 npm run wallet:signing-safety-check
@@ -392,6 +394,7 @@ Current staging deployment refs:
 - Doppler is selected as the production secret-manager target in `ops/mainnet/production-secret-manager.template.json`; the template contains refs only and no secret values.
 - Better Stack staging monitors for Pay and Private Pool v2 public `/health` endpoints are recorded in `ops/mainnet/staging-monitoring.manifest.json`.
 - Pay and Private Pool v2 emit privacy-safe stdout JSON request telemetry through `src/ops/vantaSafeTelemetry.mjs`.
+- Production observability refs are templated in `ops/mainnet/production-observability.template.json` without provider tokens, webhook URLs, source tokens, or raw secrets.
 - These are staging refs only; they do not clear production secret-manager, monitoring, audit, legal, custody, or mainnet-funds gates.
 
 ## Vanta Pay merchant integration

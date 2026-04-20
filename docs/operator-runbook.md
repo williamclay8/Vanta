@@ -23,6 +23,7 @@ npm run storage:adapter-check
 npm run mainnet:abuse-observability-check
 npm run ops:rate-limit-check
 npm run ops:safe-telemetry-check
+npm run mainnet:observability-sink-check
 npm run nullifier:replay-guard-check
 npm run mainnet:deployment-manifest-check
 npm run wallet:signing-safety-check
@@ -51,6 +52,7 @@ npm run storage:adapter-check
 npm run mainnet:abuse-observability-check
 npm run ops:rate-limit-check
 npm run ops:safe-telemetry-check
+npm run mainnet:observability-sink-check
 npm run nullifier:replay-guard-check
 npm run mainnet:deployment-manifest-check
 npm run wallet:signing-safety-check
@@ -118,6 +120,14 @@ ops/mainnet/staging-monitoring.manifest.json
 ```
 
 It records Better Stack public `/health` uptime monitors for Pay and Private Pool v2. It must not contain Better Stack API keys, webhook URLs, alert-provider credentials, or authenticated status tokens. This is staging uptime evidence only, not production observability.
+
+The production observability template is:
+
+```text
+ops/mainnet/production-observability.template.json
+```
+
+It records references for Better Stack production log sources, metrics dashboards, alert policies, incident runbooks, and retention policies without storing provider tokens, webhook URLs, source tokens, raw database URLs, bearer tokens, or other secrets. It is a setup contract, not evidence that production observability is already live.
 
 Pay and Private Pool v2 also have a shared in-process rate-limit seam at:
 
