@@ -4,6 +4,12 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "nod
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { createInMemoryRateLimiter } from "../src/ops/vantaRateLimit.mjs";
+import {
+  createOperatorStartupTelemetryEvent,
+  createSafeTelemetryRequestContext,
+  observeSafeTelemetryResponse,
+  writeSafeTelemetryEvent,
+} from "../src/ops/vantaSafeTelemetry.mjs";
 import { createJsonSnapshotStore } from "../src/storage/vantaJsonSnapshotStore.mjs";
 import { createPostgresSnapshotStore } from "../src/storage/vantaPostgresSnapshotStore.mjs";
 
@@ -376,6 +382,15 @@ async function saveRuntimeSnapshot() {
 }
 
 const server = createServer(async (request, response) => {
+  const telemetryContext = createSafeTelemetryRequestContext({
+    request,
+    service: "vanta-pay",
+  });
+  observeSafeTelemetryResponse({
+    context: telemetryContext,
+    response,
+  });
+
   try {
     const url = new URL(request.url ?? "/", `http://${request.headers.host ?? "127.0.0.1"}`);
 
@@ -657,7 +672,12 @@ const server = createServer(async (request, response) => {
 });
 
 server.listen(port, host, () => {
-  console.log(`Vanta Pay merchant API listening on http://${host}:${port}`);
+  writeSafeTelemetryEvent(
+    createOperatorStartupTelemetryEvent({
+      service: "vanta-pay",
+      storageKind: snapshotStore.kind,
+    }),
+  );
 });
 
 function shutdown() {

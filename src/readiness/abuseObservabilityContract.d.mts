@@ -14,6 +14,7 @@ export type VantaAbuseObservabilityContract = {
   nextImplementationStep: string;
   productionReady: false;
   requiredVerificationCommands: string[];
+  safeTelemetryModulePath: "src/ops/vantaSafeTelemetry.mjs";
   surfaces: VantaAbuseObservabilitySurface[];
   version: "vanta-abuse-observability-contract-0.1";
 };

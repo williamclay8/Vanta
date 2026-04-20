@@ -27,14 +27,23 @@ assert.ok(contract.globalRequirements.includes("privacy-preserving-telemetry"), 
 assert.ok(contract.globalRequirements.includes("no-secret-logging"), "Missing no-secret logging requirement.");
 assert.ok(contract.globalRequirements.includes("operator-alert-routing"), "Missing alert routing requirement.");
 assert.ok(contract.globalRequirements.includes("abuse-response-runbook"), "Missing abuse-response runbook requirement.");
+assert.equal(
+  contract.safeTelemetryModulePath,
+  "src/ops/vantaSafeTelemetry.mjs",
+  "Abuse/observability contract must point at the shared safe telemetry helper.",
+);
 
 assert.ok(
   contract.requiredVerificationCommands.includes("npm run mainnet:abuse-observability-check"),
   "Missing abuse/observability verification command.",
 );
 assert.ok(
-  contract.nextImplementationStep.includes("middleware"),
-  "Next implementation step should target middleware.",
+  contract.requiredVerificationCommands.includes("npm run ops:safe-telemetry-check"),
+  "Missing safe telemetry verification command.",
+);
+assert.ok(
+  contract.nextImplementationStep.includes("production log sink"),
+  "Next implementation step should target the production log sink.",
 );
 
 assert.ok(

@@ -198,6 +198,7 @@ Staging deployment truth:
 - Secret refs are inventoried in `ops/mainnet/secret-references.manifest.json` with reference names only, including rotation, revocation, and access-log refs.
 - Doppler is selected as the production secret-manager target in `ops/mainnet/production-secret-manager.template.json`; this records mappings only and does not include secret values or service tokens.
 - Better Stack staging monitors for Pay and Private Pool v2 public `/health` endpoints are recorded in `ops/mainnet/staging-monitoring.manifest.json`.
+- Pay and Private Pool v2 emit privacy-safe stdout JSON request telemetry through `src/ops/vantaSafeTelemetry.mjs`; bodies, query values, raw IPs, auth headers, cookies, API keys, database URLs, tokens, private keys, seed phrases, and mnemonics are intentionally excluded.
 - This is staging-only. It is not a mainnet processor, audited settlement system, custody-safe service, or production privacy claim.
 
 The repo now includes an early **Vanta Strategy** verification lane:
@@ -232,7 +233,7 @@ The repo now includes a **mainnet readiness** gate:
 - `npm run storage:adapter-check`
   verifies the reusable snapshot-store adapter seam, including the Postgres JSONB snapshot store used by the Render Pay and Private Pool v2 staging services.
 - `npm run mainnet:preflight`
-  runs the current readiness, external-gates, service-contract, storage-contract, storage-migration, storage-adapter, abuse/observability, rate-limit, nullifier-replay, deployment-manifest, wallet-safety, transaction-safety, secret-handling, audit-package, security-limitations, and operator-runbook gates together.
+  runs the current readiness, external-gates, service-contract, storage-contract, storage-migration, storage-adapter, abuse/observability, rate-limit, safe-telemetry, nullifier-replay, deployment-manifest, wallet-safety, transaction-safety, secret-handling, audit-package, security-limitations, and operator-runbook gates together.
 
 This does not make Vanta mainnet-ready by itself. It makes the remaining blockers explicit, checked, and harder to accidentally bypass.
 

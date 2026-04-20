@@ -146,9 +146,10 @@ As of April 20, 2026:
 - Doppler staging setup guide: `docs/doppler-staging-setup.md`.
 - Monitoring provider: Better Stack staging monitors created by operator report; production monitoring is not complete.
 - Staging monitoring manifest: `ops/mainnet/staging-monitoring.manifest.json` tracks public `/health` monitors only.
+- Operator telemetry: Pay and Private Pool v2 now emit privacy-safe stdout JSON through `src/ops/vantaSafeTelemetry.mjs`; production log sink, metrics, alert routing, audit retention, and incident workflow are not complete.
 - Security reviewer: not chosen.
 - Legal/compliance reviewer: not chosen.
 - Target environment: staging first.
 - Mainnet funds: not approved.
 
-Next practical step: verify Doppler access logs/export references, then expand monitoring beyond public uptime into production metrics, structured logs, privacy-preserving telemetry, incident routing, and abuse response. Audit/legal/custody and explicit mainnet approval gates still remain blocked.
+Next practical step: connect the safe operator telemetry to a production log/metrics sink with incident routing, then verify Doppler access logs/export references. Audit/legal/custody and explicit mainnet approval gates still remain blocked.

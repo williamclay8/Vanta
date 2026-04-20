@@ -22,6 +22,7 @@ npm run mainnet:storage-migration-check
 npm run storage:adapter-check
 npm run mainnet:abuse-observability-check
 npm run ops:rate-limit-check
+npm run ops:safe-telemetry-check
 npm run nullifier:replay-guard-check
 npm run mainnet:deployment-manifest-check
 npm run wallet:signing-safety-check
@@ -49,6 +50,7 @@ npm run mainnet:storage-migration-check
 npm run storage:adapter-check
 npm run mainnet:abuse-observability-check
 npm run ops:rate-limit-check
+npm run ops:safe-telemetry-check
 npm run nullifier:replay-guard-check
 npm run mainnet:deployment-manifest-check
 npm run wallet:signing-safety-check
@@ -124,6 +126,14 @@ src/ops/vantaRateLimit.mjs
 ```
 
 The current limiter is intentionally marked `productionReady: false`; it provides a fail-closed operator control point but must be replaced or backed by distributed production rate limiting before mainnet.
+
+Pay and Private Pool v2 also emit shared privacy-safe JSON telemetry through:
+
+```text
+src/ops/vantaSafeTelemetry.mjs
+```
+
+The helper records startup and HTTP request envelopes with service name, method, path, status code, duration, request id, query-present flag, and a short hash of the remote address. It intentionally excludes request bodies, response bodies, query values, raw IP addresses, auth headers, cookies, API keys, database URLs, tokens, private keys, seed phrases, and mnemonic material. This stdout JSON is staging/operator evidence only; before mainnet it must be connected to a production log sink, metrics, alert routing, audit-event retention, and incident-response workflow.
 
 The reusable nullifier replay guard is:
 

@@ -6,6 +6,12 @@ import { pathToFileURL } from "node:url";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
 import { createInMemoryRateLimiter } from "../src/ops/vantaRateLimit.mjs";
+import {
+  createOperatorStartupTelemetryEvent,
+  createSafeTelemetryRequestContext,
+  observeSafeTelemetryResponse,
+  writeSafeTelemetryEvent,
+} from "../src/ops/vantaSafeTelemetry.mjs";
 import { createNullifierReplayGuard } from "../src/privacy/nullifierReplayGuard.mjs";
 import { createPostgresSnapshotStore } from "../src/storage/vantaPostgresSnapshotStore.mjs";
 import { createPrivatePoolV2ReceiptStore } from "./private-pool-v2-store.mjs";
@@ -1102,6 +1108,15 @@ async function proveAndAcceptProtocolSettlement(body) {
 }
 
 const server = createServer(async (request, response) => {
+  const telemetryContext = createSafeTelemetryRequestContext({
+    request,
+    service: "vanta-private-pool-v2",
+  });
+  observeSafeTelemetryResponse({
+    context: telemetryContext,
+    response,
+  });
+
   try {
     if (request.method === "GET" && request.url === "/health") {
       sendJson(response, 200, { ok: true });
@@ -1186,7 +1201,12 @@ const server = createServer(async (request, response) => {
 });
 
 server.listen(port, host, () => {
-  console.log(`Private Pool V2 operator listening on http://${host}:${port}`);
+  writeSafeTelemetryEvent(
+    createOperatorStartupTelemetryEvent({
+      service: "vanta-private-pool-v2",
+      storageKind: receiptStore.kind,
+    }),
+  );
 });
 
 async function closeOperator() {
