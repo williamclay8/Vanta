@@ -129,3 +129,22 @@ This is not Codex being timid. This is the line between building the system and 
 Fill only the provider/status note from the `What To Give Codex First` section. Use `not chosen` for anything unknown.
 
 Once that exists, Codex can generate the next concrete staging deployment checklist and keep building the non-secret pieces.
+
+## Current Staging Status
+
+As of April 20, 2026:
+
+- Infrastructure host: Render staging selected.
+- Pay staging service: `srv-d7j3ggqqqhas739for80`, `https://vanta-0wwi.onrender.com`.
+- Private Pool v2 staging service: `srv-d7j4aod7vvec73ahsqlg`, `https://vanta-staging-private-pool-v2.onrender.com`.
+- Database host: Render Postgres staging selected.
+- Pay storage: `postgres-jsonb-snapshot-store`.
+- Private Pool v2 storage: `postgres-jsonb-snapshot-store`.
+- Secret manager: not production-selected; Render env vars are staging-only.
+- Monitoring provider: not production-selected.
+- Security reviewer: not chosen.
+- Legal/compliance reviewer: not chosen.
+- Target environment: staging first.
+- Mainnet funds: not approved.
+
+Next practical step: choose production-grade secret management and monitoring, then convert staging refs into production refs only after audit/legal/custody and explicit mainnet approval gates are satisfied.

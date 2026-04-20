@@ -56,6 +56,8 @@ for (const requiredRef of [
   "VANTA_PROVER_URL_REF",
   "VANTA_VERIFIER_URL_REF",
   "VANTA_OPERATOR_URL_REF",
+  "VANTA_STAGING_PAY_URL_REF",
+  "VANTA_STAGING_PRIVATE_POOL_V2_URL_REF",
   "VANTA_SECRET_MANAGER_REF",
   "VANTA_PRODUCTION_DATABASE_REF",
   "VANTA_AUDIT_REPORT_REF",
@@ -84,6 +86,28 @@ function scanForRawSecretKeys(value, path = "packet") {
 }
 
 scanForRawSecretKeys(packet);
+
+assert.ok(packet.stagingEvidence, "External gates packet must include staging evidence.");
+assert.equal(packet.stagingEvidence.environment, "staging");
+assert.equal(packet.stagingEvidence.mainnetReady, false);
+assert.equal(packet.stagingEvidence.productionReady, false);
+assert.equal(packet.stagingEvidence.provider, "render");
+assert.ok(
+  Array.isArray(packet.stagingEvidence.services) && packet.stagingEvidence.services.length === 2,
+  "External gates packet must include Pay and Private Pool v2 staging services.",
+);
+
+for (const serviceId of ["pay", "private-pool-v2"]) {
+  const service = packet.stagingEvidence.services.find((candidate) => candidate.id === serviceId);
+  assert.ok(service, `Missing staging evidence service ${serviceId}.`);
+  assert.ok(service.serviceId.startsWith("srv-"), `${serviceId} staging evidence needs Render service id.`);
+  assert.ok(service.publicUrl.startsWith("https://"), `${serviceId} staging evidence needs HTTPS public URL.`);
+  assert.equal(service.healthEndpoint, "/health", `${serviceId} staging evidence must expose /health.`);
+  assert.ok(service.authSecretRef.endsWith("_REF"), `${serviceId} auth evidence must be a ref.`);
+  assert.ok(service.databaseSecretRef.endsWith("_REF"), `${serviceId} database evidence must be a ref.`);
+  assert.equal(service.storageKind, "postgres-jsonb-snapshot-store");
+  assert.equal(service.durableStoreConfigured, true);
+}
 
 const requiredDocPhrases = [
   "# Vanta Mainnet External Gates",

@@ -11,6 +11,8 @@
     "VANTA_PROVER_URL_REF",
     "VANTA_VERIFIER_URL_REF",
     "VANTA_OPERATOR_URL_REF",
+    "VANTA_STAGING_PAY_URL_REF",
+    "VANTA_STAGING_PRIVATE_POOL_V2_URL_REF",
     "VANTA_SECRET_MANAGER_REF",
     "VANTA_PRODUCTION_DATABASE_REF",
     "VANTA_AUDIT_REPORT_REF",
@@ -238,5 +240,44 @@
       ],
       "approvalGate": "operators can detect, triage, pause, and recover without logging secrets or private inputs"
     }
-  ]
+  ],
+  "stagingEvidence": {
+    "environment": "staging",
+    "mainnetReady": false,
+    "productionReady": false,
+    "provider": "render",
+    "services": [
+      {
+        "id": "pay",
+        "serviceId": "srv-d7j3ggqqqhas739for80",
+        "serviceName": "Vanta",
+        "urlRef": "VANTA_STAGING_PAY_URL_REF",
+        "publicUrl": "https://vanta-0wwi.onrender.com",
+        "healthEndpoint": "/health",
+        "readinessEndpoint": "/v1/status",
+        "authSecretRef": "VANTA_PAY_SECRET_KEY_REF",
+        "databaseSecretRef": "VANTA_PAY_DATABASE_URL_REF",
+        "storageKind": "postgres-jsonb-snapshot-store",
+        "durableStoreConfigured": true
+      },
+      {
+        "id": "private-pool-v2",
+        "serviceId": "srv-d7j4aod7vvec73ahsqlg",
+        "serviceName": "vanta-staging-private-pool-v2",
+        "urlRef": "VANTA_STAGING_PRIVATE_POOL_V2_URL_REF",
+        "publicUrl": "https://vanta-staging-private-pool-v2.onrender.com",
+        "healthEndpoint": "/health",
+        "readinessEndpoint": "/state/private-pool-v2-status",
+        "authSecretRef": "VANTA_PRIVATE_POOL_V2_OPERATOR_TOKEN_REF",
+        "databaseSecretRef": "VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF",
+        "storageKind": "postgres-jsonb-snapshot-store",
+        "durableStoreConfigured": true
+      }
+    ],
+    "limits": [
+      "Render free/staging services are not production infrastructure.",
+      "Render Postgres-backed JSONB snapshot storage is a staging durability milestone, not final production storage.",
+      "This does not clear audit, legal, custody, secret-manager, monitoring, or mainnet-funds gates."
+    ]
+  }
 }

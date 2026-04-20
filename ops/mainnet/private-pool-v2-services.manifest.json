@@ -4,6 +4,58 @@
   "mainnetReady": false,
   "productionReady": false,
   "secretPolicy": "names-only-no-secret-values",
+  "stagingDeployments": [
+    {
+      "id": "pay",
+      "provider": "render",
+      "environment": "staging",
+      "serviceId": "srv-d7j3ggqqqhas739for80",
+      "serviceName": "Vanta",
+      "url": "https://vanta-0wwi.onrender.com",
+      "repo": "https://github.com/williamclay8/Vanta",
+      "branch": "main",
+      "startCommand": "npm run pay:operator",
+      "healthChecks": ["/health"],
+      "readinessChecks": ["/v1/status"],
+      "auth": {
+        "kind": "bearer-token",
+        "secretRef": "VANTA_PAY_SECRET_KEY_REF"
+      },
+      "storage": {
+        "durableStoreConfigured": true,
+        "kind": "postgres-jsonb-snapshot-store",
+        "secretRef": "VANTA_PAY_DATABASE_URL_REF"
+      },
+      "privatePool": {
+        "operatorUrl": "https://vanta-staging-private-pool-v2.onrender.com",
+        "operatorTokenRef": "VANTA_PAY_PRIVATE_POOL_OPERATOR_TOKEN_REF"
+      },
+      "productionReady": false
+    },
+    {
+      "id": "private-pool-v2",
+      "provider": "render",
+      "environment": "staging",
+      "serviceId": "srv-d7j4aod7vvec73ahsqlg",
+      "serviceName": "vanta-staging-private-pool-v2",
+      "url": "https://vanta-staging-private-pool-v2.onrender.com",
+      "repo": "https://github.com/williamclay8/Vanta",
+      "branch": "main",
+      "startCommand": "npm run private-pool-v2:operator",
+      "healthChecks": ["/health"],
+      "readinessChecks": ["/state/private-pool-v2-status"],
+      "auth": {
+        "kind": "bearer-token",
+        "secretRef": "VANTA_PRIVATE_POOL_V2_OPERATOR_TOKEN_REF"
+      },
+      "storage": {
+        "durableStoreConfigured": true,
+        "kind": "postgres-jsonb-snapshot-store",
+        "secretRef": "VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF"
+      },
+      "productionReady": false
+    }
+  ],
   "services": [
     {
       "id": "indexer",

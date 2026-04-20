@@ -53,6 +53,16 @@ Safe launch handoff values are names, references, and non-secret public metadata
 
 If a value authenticates, decrypts, signs, spends, or grants access, do not put it in this repo and do not paste it into chat.
 
+## Current Staging Evidence
+
+The current checked packet includes non-secret Render staging references for:
+
+- Pay service `srv-d7j3ggqqqhas739for80` at `https://vanta-0wwi.onrender.com`
+- Private Pool v2 service `srv-d7j4aod7vvec73ahsqlg` at `https://vanta-staging-private-pool-v2.onrender.com`
+- `postgres-jsonb-snapshot-store` storage for both services through secret reference names, not raw database URLs
+
+This is staging evidence only. It does not clear production service, secret-manager, monitoring, audit, legal, custody, or mainnet-funds gates.
+
 ## External Gate Checklist
 
 ### Deployed services

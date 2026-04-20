@@ -14,8 +14,40 @@ assert.equal(manifest.mainnetReady, false);
 assert.equal(manifest.productionReady, false);
 assert.equal(manifest.network, "mainnet-beta");
 assert.equal(manifest.secretPolicy, "names-only-no-secret-values");
+assert.ok(
+  Array.isArray(manifest.stagingDeployments),
+  "Manifest must include secrets-safe staging deployment references.",
+);
+assert.equal(
+  manifest.stagingDeployments.length,
+  2,
+  "Manifest must describe Pay and Private Pool v2 staging deployments.",
+);
 assert.ok(Array.isArray(manifest.services), "Manifest services must be an array.");
 assert.equal(manifest.services.length, 5, "Manifest must describe all five production services.");
+
+for (const stagingId of ["pay", "private-pool-v2"]) {
+  const service = manifest.stagingDeployments.find((candidate) => candidate.id === stagingId);
+  assert.ok(service, `Missing staging deployment ${stagingId}.`);
+  assert.equal(service.provider, "render", `${stagingId} staging provider must be Render.`);
+  assert.equal(service.environment, "staging", `${stagingId} must be marked staging.`);
+  assert.equal(service.productionReady, false, `${stagingId} must not claim production readiness.`);
+  assert.ok(service.serviceId.startsWith("srv-"), `${stagingId} must include Render service id.`);
+  assert.ok(service.url.startsWith("https://"), `${stagingId} must include non-secret HTTPS URL.`);
+  assert.ok(service.healthChecks.includes("/health"), `${stagingId} must include health check.`);
+  assert.ok(service.auth?.secretRef?.endsWith("_REF"), `${stagingId} auth must use secret ref.`);
+  assert.ok(service.storage?.secretRef?.endsWith("_REF"), `${stagingId} storage must use secret ref.`);
+  assert.equal(
+    service.storage?.kind,
+    "postgres-jsonb-snapshot-store",
+    `${stagingId} staging storage must be Postgres JSONB snapshot store.`,
+  );
+  assert.equal(
+    service.storage?.durableStoreConfigured,
+    true,
+    `${stagingId} staging storage must be durable-store configured.`,
+  );
+}
 
 for (const serviceId of ["indexer", "relayer", "prover", "verifier", "operator"]) {
   const service = manifest.services.find((candidate) => candidate.id === serviceId);

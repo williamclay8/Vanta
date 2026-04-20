@@ -192,6 +192,9 @@ Staging deployment truth:
 - Pay uses Render Postgres through `VANTA_PAY_DATABASE_URL` and reports `storage.kind: postgres-jsonb-snapshot-store`.
 - Pay is wired to the staging Private Pool v2 operator at `https://vanta-staging-private-pool-v2.onrender.com`.
 - Authenticated Pay status reports `privatePoolOperatorConfigured: true` and `durableStoreConfigured: true`.
+- Private Pool v2 is deployed on Render at `https://vanta-staging-private-pool-v2.onrender.com`.
+- Private Pool v2 uses Render Postgres through `VANTA_PRIVATE_POOL_V2_DATABASE_URL` and reports `storage.kind: postgres-jsonb-snapshot-store`.
+- The secrets-safe staging refs are recorded in `ops/mainnet/private-pool-v2-services.manifest.json` and `ops/mainnet/external-gates.packet.json`.
 - This is staging-only. It is not a mainnet processor, audited settlement system, custody-safe service, or production privacy claim.
 
 The repo now includes an early **Vanta Strategy** verification lane:
@@ -222,7 +225,7 @@ The repo now includes a **mainnet readiness** gate:
 - `npm run mainnet:storage-contract-check`
   verifies the production storage contract for Pay, Private Pool v2, Strategy, and Operator state, including durable tables, unique indexes, forward-only migrations, point-in-time recovery, encrypted backups, restore drills, idempotent writes, replay-safe uniqueness, least-privilege database users, and no secret values in manifests.
 - `npm run storage:adapter-check`
-  verifies the reusable snapshot-store adapter seam, including the Postgres JSONB snapshot store used by the Render Pay staging service.
+  verifies the reusable snapshot-store adapter seam, including the Postgres JSONB snapshot store used by the Render Pay and Private Pool v2 staging services.
 - `npm run mainnet:preflight`
   runs the current readiness, external-gates, service-contract, storage-contract, storage-migration, storage-adapter, abuse/observability, rate-limit, nullifier-replay, deployment-manifest, wallet-safety, transaction-safety, secret-handling, audit-package, security-limitations, and operator-runbook gates together.
 

@@ -147,6 +147,7 @@ Important environment variables:
 VANTA_PRIVATE_POOL_V2_OPERATOR_PORT=8797
 VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN=
 VANTA_PRIVATE_POOL_V2_STORE_PATH=.vanta-private-pool-v2-receipts.json
+VANTA_PRIVATE_POOL_V2_DATABASE_URL=
 ```
 
 Production mode guardrails:
@@ -154,10 +155,13 @@ Production mode guardrails:
 ```bash
 NODE_ENV=production
 VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN=<operator-token>
-VANTA_PRIVATE_POOL_V2_STORE_PATH=<durable-store-path>
+VANTA_PRIVATE_POOL_V2_STORE_PATH=<durable-store-path-if-using-json-store>
+VANTA_PRIVATE_POOL_V2_DATABASE_URL=<postgres-url-if-using-managed-postgres>
 ```
 
-When `NODE_ENV=production`, the operator refuses to boot without both `VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN` and `VANTA_PRIVATE_POOL_V2_STORE_PATH`.
+When `NODE_ENV=production`, the operator refuses to boot without `VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN` and either `VANTA_PRIVATE_POOL_V2_STORE_PATH` or `VANTA_PRIVATE_POOL_V2_DATABASE_URL`.
+
+For free Render staging, prefer `VANTA_PRIVATE_POOL_V2_DATABASE_URL` from a free Render Postgres database because free web services cannot attach persistent disks and lose local filesystem writes on restart/redeploy. Treat free Render Postgres as staging-only because free databases expire.
 
 ## Pay Operator
 
@@ -196,6 +200,21 @@ When `NODE_ENV=production`, Pay refuses to boot without `VANTA_PAY_SECRET_KEY`, 
 For free Render staging, prefer `VANTA_PAY_DATABASE_URL` from a free Render Postgres database because free web services cannot attach persistent disks and lose local filesystem writes on restart/redeploy. Treat free Render Postgres as staging-only because free databases expire.
 
 Production webhook delivery also requires HTTPS merchant endpoints.
+
+## Render Staging References
+
+Current secrets-safe staging refs:
+
+- Pay Render service id: `srv-d7j3ggqqqhas739for80`
+- Pay URL: `https://vanta-0wwi.onrender.com`
+- Pay start command: `npm run pay:operator`
+- Pay storage: `postgres-jsonb-snapshot-store` through `VANTA_PAY_DATABASE_URL`
+- Private Pool v2 Render service id: `srv-d7j4aod7vvec73ahsqlg`
+- Private Pool v2 URL: `https://vanta-staging-private-pool-v2.onrender.com`
+- Private Pool v2 start command: `npm run private-pool-v2:operator`
+- Private Pool v2 storage: `postgres-jsonb-snapshot-store` through `VANTA_PRIVATE_POOL_V2_DATABASE_URL`
+
+These refs are staging evidence only. They do not clear production secret-manager, monitoring, audit, legal, custody, or mainnet-funds gates.
 
 ## Browser Client Operator Settings
 

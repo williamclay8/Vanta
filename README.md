@@ -345,6 +345,7 @@ npm run private-pool-v2:status-json
 npm run private-pool-v2:operator
 npm run private-pool-v2:http-smoke
 npm run private-pool-v2:protocol-client-check
+npm run private-pool-v2:postgres-store-check
 npm run private-pool-v2:restart-check
 npm run private-pool-v2:verify
 ```
@@ -363,7 +364,7 @@ These commands cover the current Vanta-owned Private Pool v2 benchmark lane:
 - human and JSON Private Pool v2 status surfaces showing indexer, prover, relayer, verifier-registry readiness, and `productionReady: false`
 - a local HTTP operator seam with status, receipt listing, proof submission, shield/claim receipt acceptance, and claim replay rejection
 - operator-owned settlement endpoints for Pay checkout/withdrawal and protocol Shield/Send/Swap/Unshield settlement receipts
-- optional bearer-token protection for the Private Pool v2 operator through `VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN`, plus production startup guards requiring it and `VANTA_PRIVATE_POOL_V2_STORE_PATH` when `NODE_ENV=production`
+- optional bearer-token protection for the Private Pool v2 operator through `VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN`, plus production startup guards requiring it and either `VANTA_PRIVATE_POOL_V2_STORE_PATH` or `VANTA_PRIVATE_POOL_V2_DATABASE_URL` when `NODE_ENV=production`
 - idempotent settlement endpoints that return existing Pay checkout or protocol settlement receipts for identical repeated settlement IDs, and reject conflicting replays with changed settlement inputs
 - explicit settlement request validation so missing checkout/session, asset, owner, destination, or settlement identifiers fail closed before proof state changes
 - typed shared settlement policy in `src/privacy/privatePoolV2SettlementPolicy.ts`, surfaced on the operator/status contract for validation, idempotency, conflict rejection, restart-safe settlement receipts, and production durable-store requirements
@@ -374,9 +375,18 @@ These commands cover the current Vanta-owned Private Pool v2 benchmark lane:
 - optional browser/app bearer-token header support through `VITE_VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN` for protected local operator environments
 - app context state for Private Pool v2 protocol settlement health without exposing protocol vocabulary to normal users
 - a durable local operator store with restart-safe shield/claim receipt restoration, Pay/protocol settlement receipt restoration, shield commitment-tree restoration, and post-restart claim replay rejection
+- optional Private Pool v2 Postgres JSONB snapshot persistence through `VANTA_PRIVATE_POOL_V2_DATABASE_URL`, verified by `npm run private-pool-v2:postgres-store-check`
 - a checked `SECURITY_LIMITATIONS.md` surface that prevents the local benchmark from being described as audited, trustless, or mainnet-production ready
 
 This is still a benchmark/private-pool-v2 construction lane, not a production deployed mixer. It exists to move Vanta from the Umbra comparison into a Vanta-owned privacy-core target with explicit replaceable seams.
+
+Current staging deployment refs:
+
+- Pay is deployed on Render as service `srv-d7j3ggqqqhas739for80` at `https://vanta-0wwi.onrender.com`.
+- Pay uses `postgres-jsonb-snapshot-store` through `VANTA_PAY_DATABASE_URL`.
+- Private Pool v2 is deployed on Render as service `srv-d7j4aod7vvec73ahsqlg` at `https://vanta-staging-private-pool-v2.onrender.com`.
+- Private Pool v2 uses `postgres-jsonb-snapshot-store` through `VANTA_PRIVATE_POOL_V2_DATABASE_URL`.
+- These are staging refs only; they do not clear production secret-manager, monitoring, audit, legal, custody, or mainnet-funds gates.
 
 ## Vanta Pay merchant integration
 
