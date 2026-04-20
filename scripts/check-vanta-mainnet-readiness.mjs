@@ -93,6 +93,10 @@ assert.ok(
   "Missing production service setup check command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run privacy-rail:contract-check"),
+  "Missing privacy rail contract command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:observability-sink-check"),
   "Missing production observability sink check command.",
 );

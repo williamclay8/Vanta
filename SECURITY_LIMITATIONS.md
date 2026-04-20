@@ -23,11 +23,14 @@ The strongest current private-settlement lane is the Vanta Private Pool v2 bench
 
 This is a useful production-shaped harness. It is not a deployed shared anonymity set.
 
+The checked privacy-rail contract is `docs/privacy-rail-contract.md` and `src/readiness/privacyRailContract.mjs`. Its current active rail is `alpha-public-warning`, which means Vanta must not claim meaningful privacy until Umbra mainnet evidence or Vanta Private Pool v2 production evidence is filled.
+
 ## Known limitations
 
 - No audit claim: Vanta has not received an independent third-party cryptographic, smart-contract, infrastructure, or application audit.
 - No custody claim: Vanta does not yet have production custody architecture, key-management policy, incident response, or legal review.
 - No anonymity-set claim: the current local Private Pool v2 lane does not provide a live mainnet anonymity set or production mixer privacy.
+- Render does not create privacy: paid hosting can improve uptime, but privacy requires a real selected rail with live mainnet evidence, relayer separation, nullifier/replay enforcement, safe logging, and reviewed limitations.
 - The current Private Pool v2 prover is still local benchmark infrastructure, even though the repo also includes Noir circuit checks and local proof generation.
 - The current operator uses local JSON persistence for benchmark receipts, not a production database, replicated log, or on-chain source of truth.
 - The current protocol settlement endpoint is a local operator seam, not a deployed Solana program enforcing append/nullifier rules.

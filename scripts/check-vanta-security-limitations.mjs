@@ -8,6 +8,8 @@ const requiredPhrases = [
   "# Vanta Security Limitations",
   "Not mainnet-production ready",
   "Current private-settlement truth",
+  "alpha-public-warning",
+  "Render does not create privacy",
   "Known limitations",
   "Operator and infrastructure risks",
   "User-facing language rule",
