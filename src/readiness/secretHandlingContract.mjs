@@ -93,10 +93,11 @@ const globalRequirements = [
 export function createVantaSecretHandlingContract() {
   return {
     version: "vanta-secret-handling-contract-0.1",
+    secretReferenceManifestPath: "ops/mainnet/secret-references.manifest.json",
     globalRequirements,
     mainnetReady: false,
     nextImplementationStep:
-      "Provision a real secret manager and replace production environment values with secret references only.",
+      "Provision a real production secret manager, map every manifest ref to that manager, and keep staging Render env vars as staging-only references.",
     privateKeyHandling: "never-request-store-or-load-private-keys",
     productionReady: false,
     requiredVerificationCommands: [

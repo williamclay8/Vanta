@@ -195,6 +195,7 @@ Staging deployment truth:
 - Private Pool v2 is deployed on Render at `https://vanta-staging-private-pool-v2.onrender.com`.
 - Private Pool v2 uses Render Postgres through `VANTA_PRIVATE_POOL_V2_DATABASE_URL` and reports `storage.kind: postgres-jsonb-snapshot-store`.
 - The secrets-safe staging refs are recorded in `ops/mainnet/private-pool-v2-services.manifest.json` and `ops/mainnet/external-gates.packet.json`.
+- Secret refs are inventoried in `ops/mainnet/secret-references.manifest.json` with reference names only, including rotation, revocation, and access-log refs.
 - This is staging-only. It is not a mainnet processor, audited settlement system, custody-safe service, or production privacy claim.
 
 The repo now includes an early **Vanta Strategy** verification lane:
@@ -220,6 +221,8 @@ The repo now includes a **mainnet readiness** gate:
   verifies Vanta remains truthfully blocked from mainnet while real private settlement, deployed services, nullifier enforcement, wallet safety, audits, key management, and legal/custody blockers remain.
 - `npm run mainnet:external-gates-check`
   verifies the secrets-safe external-gates packet and beginner-facing launch worksheet remain present.
+- `npm run mainnet:secret-handling-check`
+  verifies the secret-handling contract and references-only manifest for Pay, Private Pool v2, Strategy, and Operator scopes while keeping production secret management blocked.
 - `npm run mainnet:service-contract-check`
   verifies the required production service contracts for indexer, relayer, prover, verifier, and operator surfaces.
 - `npm run mainnet:storage-contract-check`

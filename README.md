@@ -386,6 +386,7 @@ Current staging deployment refs:
 - Pay uses `postgres-jsonb-snapshot-store` through `VANTA_PAY_DATABASE_URL`.
 - Private Pool v2 is deployed on Render as service `srv-d7j4aod7vvec73ahsqlg` at `https://vanta-staging-private-pool-v2.onrender.com`.
 - Private Pool v2 uses `postgres-jsonb-snapshot-store` through `VANTA_PRIVATE_POOL_V2_DATABASE_URL`.
+- Secret refs are inventoried in `ops/mainnet/secret-references.manifest.json` with reference names only.
 - These are staging refs only; they do not clear production secret-manager, monitoring, audit, legal, custody, or mainnet-funds gates.
 
 ## Vanta Pay merchant integration

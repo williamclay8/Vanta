@@ -258,7 +258,23 @@ The checked secret-handling contract is:
 src/readiness/secretHandlingContract.mjs
 ```
 
-It requires a production secret manager, least-privilege service identities, no secrets in the repo, no secrets in client bundles, names-only manifests, rotation runbooks, incident revocation, and audit logs for secret access. Vanta must never request, store, or load private keys, seed phrases, or keypair files.
+The checked secret-reference manifest is:
+
+```text
+ops/mainnet/secret-references.manifest.json
+```
+
+It stores reference names only. It must never contain raw secret values, raw database URLs, bearer tokens, webhook secrets, private keys, seed phrases, or wallet keypair files.
+
+Current staging refs use `render-env-var-staging` for the verified Render Pay and Private Pool v2 services. Production refs remain blocked behind `production-secret-manager-required` until a real secret manager, service identities, rotation runbook, revocation runbook, and access audit logs exist.
+
+Secret handling is checked by:
+
+```bash
+npm run mainnet:secret-handling-check
+```
+
+The contract requires a production secret manager, least-privilege service identities, no secrets in the repo, no secrets in client bundles, names-only manifests, rotation runbooks, incident revocation, and audit logs for secret access. Vanta must never request, store, or load private keys, seed phrases, or keypair files.
 
 ## Startup Order
 

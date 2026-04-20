@@ -53,9 +53,9 @@ const blockers = [
 
 const lanes = {
   pay: {
-    readiness: 55,
-    status: "local-merchant-harness",
-    truth: "Pay has local merchant API, signed webhooks, idempotency, restart persistence, and Private Pool v2-backed settlement receipts, but is not deployed.",
+    readiness: 62,
+    status: "staging-render-pay",
+    truth: "Pay has local merchant API coverage plus a Render staging deployment at https://vanta-0wwi.onrender.com with postgres-jsonb-snapshot-store persistence and Private Pool v2 operator wiring, but it is not a production processor, audited settlement system, or mainnet-ready service.",
   },
   privateCore: {
     readiness: 45,
@@ -63,9 +63,9 @@ const lanes = {
     truth: "Private Core has executable local proof lanes and operator checks, but remains intentionally narrow and not audited.",
   },
   privatePoolV2: {
-    readiness: 40,
-    status: "local-benchmark",
-    truth: "Private Pool v2 has local indexer/relayer/prover/verifier/operator seams, but no deployed shared anonymity set.",
+    readiness: 48,
+    status: "staging-render-postgres",
+    truth: "Private Pool v2 has local indexer/relayer/prover/verifier/operator seams plus a Render staging deployment at https://vanta-staging-private-pool-v2.onrender.com with postgres-jsonb-snapshot-store persistence, but it is still a benchmark rail and not a deployed shared anonymity set or audited mainnet privacy pool.",
   },
   protocolTabs: {
     readiness: 50,

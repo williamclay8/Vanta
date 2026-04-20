@@ -141,10 +141,11 @@ As of April 20, 2026:
 - Pay storage: `postgres-jsonb-snapshot-store`.
 - Private Pool v2 storage: `postgres-jsonb-snapshot-store`.
 - Secret manager: not production-selected; Render env vars are staging-only.
+- Secret reference manifest: `ops/mainnet/secret-references.manifest.json` inventories Pay, Private Pool v2, Strategy, and Operator refs without secret values.
 - Monitoring provider: not production-selected.
 - Security reviewer: not chosen.
 - Legal/compliance reviewer: not chosen.
 - Target environment: staging first.
 - Mainnet funds: not approved.
 
-Next practical step: choose production-grade secret management and monitoring, then convert staging refs into production refs only after audit/legal/custody and explicit mainnet approval gates are satisfied.
+Next practical step: choose production-grade secret management and monitoring, then map every manifest ref to a production secret manager only after audit/legal/custody and explicit mainnet approval gates are satisfied.

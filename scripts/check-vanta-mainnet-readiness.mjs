@@ -30,12 +30,24 @@ assert.ok(
   "Private Core should be represented as locally verified, not mainnet complete.",
 );
 assert.ok(
-  snapshot.lanes.privatePoolV2.status === "local-benchmark",
-  "Private Pool v2 should be represented as local benchmark infrastructure.",
+  snapshot.lanes.privatePoolV2.status === "staging-render-postgres",
+  "Private Pool v2 should be represented as staging Render/Postgres infrastructure.",
 );
 assert.ok(
-  snapshot.lanes.pay.status === "local-merchant-harness",
-  "Pay should be represented as a local merchant harness.",
+  snapshot.lanes.privatePoolV2.truth.includes("Render") &&
+    snapshot.lanes.privatePoolV2.truth.includes("postgres-jsonb-snapshot-store") &&
+    snapshot.lanes.privatePoolV2.truth.includes("not a deployed shared anonymity set"),
+  "Private Pool v2 truth must mention staging Render/Postgres and preserve non-production limits.",
+);
+assert.ok(
+  snapshot.lanes.pay.status === "staging-render-pay",
+  "Pay should be represented as a staging Render Pay deployment.",
+);
+assert.ok(
+  snapshot.lanes.pay.truth.includes("Render") &&
+    snapshot.lanes.pay.truth.includes("postgres-jsonb-snapshot-store") &&
+    snapshot.lanes.pay.truth.includes("not a production processor"),
+  "Pay truth must mention staging Render/Postgres and preserve non-production limits.",
 );
 assert.ok(
   snapshot.lanes.strategy.status === "local-planning-runtime",

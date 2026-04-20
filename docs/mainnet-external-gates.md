@@ -117,6 +117,8 @@ Evidence needed:
 
 - `VANTA_SECRET_MANAGER_REF`
 - service identity references
+- `ops/mainnet/secret-references.manifest.json` references-only inventory
+- service secret refs for Pay, Private Pool v2, Strategy, and Operator scopes
 - rotation runbook reference
 - incident revocation runbook reference
 - secret access audit log reference
@@ -126,6 +128,8 @@ Verification:
 ```bash
 npm run mainnet:secret-handling-check
 ```
+
+Current state: the checked manifest inventories staging Render env-var refs and production-blocked refs without storing values. It does not clear the production secret-manager gate.
 
 ### Wallet signing safety
 

@@ -75,6 +75,7 @@ Reviewers should inspect:
 - fail-closed request validation
 - production service contract and deployment manifest shape
 - external gates packet and references-only launch evidence model
+- checked `ops/mainnet/secret-references.manifest.json` reference inventory
 
 ## Browser and wallet review
 
@@ -98,6 +99,7 @@ Reviewers should inspect:
 - live mainnet submission gating
 - executable transaction safety summaries before wallet approval
 - secret-manager, rotation, least-privilege, and no-private-key handling boundaries
+- secret-reference manifest entries for owner, provider, environment, rotation, revocation, and access-log refs
 
 ## Custody and key-management review
 
@@ -121,10 +123,11 @@ No mainnet funds should be used with this repo today.
 
 Known blockers:
 
-- Private Pool v2 is a local benchmark, not a deployed shared anonymity set.
-- Pay is a local merchant harness, not a deployed payment processor.
+- Private Pool v2 is a Render staging operator with Postgres snapshot persistence, but not a deployed shared anonymity set or audited mainnet privacy pool.
+- Pay is a Render staging merchant API with Postgres snapshot persistence and Private Pool v2 operator wiring, but not a production payment processor.
 - Strategy is a local planning/runtime lane, not live autonomous execution.
 - The mainnet service manifest uses placeholders only and contains no real secrets.
+- The secret-reference manifest uses refs only and still requires a production secret manager before mainnet.
 - The external mainnet gates packet is blocked until real deployed-service, secret-manager, audit, legal/compliance/custody, monitoring, and explicit approval references exist.
 - Production database adapters, migrations, backup jobs, and restore drills are contracted but not wired.
 - Live mainnet submission remains disabled.
