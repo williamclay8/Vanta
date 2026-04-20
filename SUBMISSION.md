@@ -196,6 +196,7 @@ Staging deployment truth:
 - Private Pool v2 uses Render Postgres through `VANTA_PRIVATE_POOL_V2_DATABASE_URL` and reports `storage.kind: postgres-jsonb-snapshot-store`.
 - The secrets-safe staging refs are recorded in `ops/mainnet/private-pool-v2-services.manifest.json` and `ops/mainnet/external-gates.packet.json`.
 - Secret refs are inventoried in `ops/mainnet/secret-references.manifest.json` with reference names only, including rotation, revocation, and access-log refs.
+- Doppler is selected as the production secret-manager target in `ops/mainnet/production-secret-manager.template.json`; this records mappings only and does not include secret values or service tokens.
 - This is staging-only. It is not a mainnet processor, audited settlement system, custody-safe service, or production privacy claim.
 
 The repo now includes an early **Vanta Strategy** verification lane:

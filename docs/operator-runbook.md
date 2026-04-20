@@ -268,6 +268,16 @@ It stores reference names only. It must never contain raw secret values, raw dat
 
 Current staging refs use `render-env-var-staging` for the verified Render Pay and Private Pool v2 services. Production refs remain blocked behind `production-secret-manager-required` until a real secret manager, service identities, rotation runbook, revocation runbook, and access audit logs exist.
 
+Doppler has been selected as the production secret-manager target. The checked Doppler mapping template is:
+
+```text
+ops/mainnet/production-secret-manager.template.json
+```
+
+The template is references-only. It records the intended Doppler project/config refs, service identities, secret names, owners, rotation cadence, revocation runbook refs, and access-log refs. It must not contain Doppler service tokens or secret values.
+
+Before production, an operator still needs to create least-privilege Doppler service tokens outside git, verify Doppler access logs, and wire deployment services to read from Doppler rather than staging Render env vars.
+
 Secret handling is checked by:
 
 ```bash

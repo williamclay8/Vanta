@@ -140,12 +140,13 @@ As of April 20, 2026:
 - Database host: Render Postgres staging selected.
 - Pay storage: `postgres-jsonb-snapshot-store`.
 - Private Pool v2 storage: `postgres-jsonb-snapshot-store`.
-- Secret manager: not production-selected; Render env vars are staging-only.
+- Secret manager: Doppler created and selected as the production target; Render env vars are staging-only.
 - Secret reference manifest: `ops/mainnet/secret-references.manifest.json` inventories Pay, Private Pool v2, Strategy, and Operator refs without secret values.
+- Production secret-manager template: `ops/mainnet/production-secret-manager.template.json` maps those refs to Doppler project/config names without secret values.
 - Monitoring provider: not production-selected.
 - Security reviewer: not chosen.
 - Legal/compliance reviewer: not chosen.
 - Target environment: staging first.
 - Mainnet funds: not approved.
 
-Next practical step: choose production-grade secret management and monitoring, then map every manifest ref to a production secret manager only after audit/legal/custody and explicit mainnet approval gates are satisfied.
+Next practical step: create least-privilege Doppler service tokens outside git, connect staging/production services to Doppler by reference, verify access logs, then choose production monitoring. Audit/legal/custody and explicit mainnet approval gates still remain blocked.

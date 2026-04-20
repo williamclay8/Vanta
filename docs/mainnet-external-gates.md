@@ -116,8 +116,10 @@ Purpose: keep production credentials out of the repo and out of browser bundles.
 Evidence needed:
 
 - `VANTA_SECRET_MANAGER_REF`
+- Doppler project/config references
 - service identity references
 - `ops/mainnet/secret-references.manifest.json` references-only inventory
+- `ops/mainnet/production-secret-manager.template.json` Doppler mapping template
 - service secret refs for Pay, Private Pool v2, Strategy, and Operator scopes
 - rotation runbook reference
 - incident revocation runbook reference
@@ -129,7 +131,7 @@ Verification:
 npm run mainnet:secret-handling-check
 ```
 
-Current state: the checked manifest inventories staging Render env-var refs and production-blocked refs without storing values. It does not clear the production secret-manager gate.
+Current state: Doppler has been created and selected as the production secret-manager target. The checked manifest and Doppler template inventory refs only and store no secret values. This still does not clear the production secret-manager gate until service tokens, access logs, and production deployment wiring are externally verified.
 
 ### Wallet signing safety
 

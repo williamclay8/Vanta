@@ -5,6 +5,7 @@ import { createVantaSecretHandlingContract } from "../src/readiness/secretHandli
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const secretReferencesManifestPath = resolve(repoRoot, "ops/mainnet/secret-references.manifest.json");
+const productionSecretManagerTemplatePath = resolve(repoRoot, "ops/mainnet/production-secret-manager.template.json");
 const contract = createVantaSecretHandlingContract();
 
 assert.equal(contract.version, "vanta-secret-handling-contract-0.1");
@@ -119,6 +120,43 @@ for (const requiredRef of [
     manifest.secrets.some((secret) => secret.ref === requiredRef),
     `Missing required staging/production secret reference: ${requiredRef}`,
   );
+}
+
+assert.ok(
+  existsSync(productionSecretManagerTemplatePath),
+  "Missing ops/mainnet/production-secret-manager.template.json.",
+);
+const productionSecretManager = JSON.parse(readFileSync(productionSecretManagerTemplatePath, "utf8"));
+
+assert.equal(productionSecretManager.version, "vanta-production-secret-manager-template-0.1");
+assert.equal(productionSecretManager.provider, "doppler");
+assert.equal(productionSecretManager.secretPolicy, "references-only-no-secret-values");
+assert.equal(productionSecretManager.mainnetReady, false);
+assert.equal(productionSecretManager.productionReady, false);
+assert.equal(productionSecretManager.secretManagerRef, "VANTA_SECRET_MANAGER_REF");
+assert.ok(productionSecretManager.projectRef, "Production secret manager template must include Doppler project ref.");
+assert.ok(productionSecretManager.productionConfigRef, "Production secret manager template must include Doppler production config ref.");
+assert.ok(
+  Array.isArray(productionSecretManager.serviceIdentities) &&
+    productionSecretManager.serviceIdentities.length >= 2,
+  "Production secret manager template must include service identities.",
+);
+assert.ok(Array.isArray(productionSecretManager.secretMappings), "Production secret manager template must include mappings.");
+
+scanForRawSecretValues(productionSecretManager, "productionSecretManager");
+
+const mappedRefs = new Set(productionSecretManager.secretMappings.map((mapping) => mapping.ref));
+for (const secret of manifest.secrets) {
+  assert.ok(mappedRefs.has(secret.ref), `Production secret manager template must map ${secret.ref}.`);
+}
+
+for (const mapping of productionSecretManager.secretMappings) {
+  assert.ok(allowedRefs.has(mapping.ref), `Production secret manager maps unknown ref: ${mapping.ref}`);
+  assert.ok(mapping.dopplerSecretName, `${mapping.ref} must include Doppler secret name.`);
+  assert.ok(mapping.owner, `${mapping.ref} must include owner.`);
+  assert.ok(mapping.rotation?.cadenceDays > 0, `${mapping.ref} must include production rotation cadence.`);
+  assert.ok(mapping.revocation?.runbookRef, `${mapping.ref} must include production revocation runbook.`);
+  assert.ok(mapping.audit?.accessLogRef, `${mapping.ref} must include production access log ref.`);
 }
 
 console.log("Vanta secret handling contract check: PASS");
