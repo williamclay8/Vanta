@@ -16,6 +16,13 @@
     "VANTA_SECRET_MANAGER_REF",
     "VANTA_SECRET_ACCESS_AUDIT_LOG_REF",
     "VANTA_PRODUCTION_DATABASE_REF",
+    "VANTA_PRODUCTION_SECRET_MANAGER_TEMPLATE_REF",
+    "VANTA_PRODUCTION_BACKUP_RESTORE_TEMPLATE_REF",
+    "VANTA_PRODUCTION_OBSERVABILITY_TEMPLATE_REF",
+    "VANTA_PAY_DOPPLER_SERVICE_TOKEN_REF",
+    "VANTA_PRIVATE_POOL_V2_DOPPLER_SERVICE_TOKEN_REF",
+    "VANTA_STRATEGY_DOPPLER_SERVICE_TOKEN_REF",
+    "VANTA_OPERATOR_DOPPLER_SERVICE_TOKEN_REF",
     "VANTA_PAY_SECRET_KEY_REF",
     "VANTA_PAY_WEBHOOK_SECRET_REF",
     "VANTA_PAY_DATABASE_URL_REF",
@@ -85,6 +92,7 @@
       "summary": "Provision durable production storage, migrations, encrypted backups, restore drills, and least-privilege users.",
       "requiredEvidence": [
         "production database reference name",
+        "ops/mainnet/production-backup-restore.template.json references-only recovery template",
         "migration application evidence",
         "point-in-time recovery evidence",
         "encrypted backup policy",
@@ -100,6 +108,7 @@
       "verificationCommands": [
         "npm run mainnet:storage-contract-check",
         "npm run mainnet:storage-migration-check",
+        "npm run mainnet:backup-restore-check",
         "npm run storage:adapter-check"
       ],
       "approvalGate": "production database and backup refs exist and restore drill has passed"
@@ -113,6 +122,8 @@
       "requiredEvidence": [
         "secret manager reference name",
         "service identity references",
+        "ops/mainnet/production-secret-manager.template.json Doppler references-only mapping",
+        "Doppler service token reference names for Pay, Private Pool v2, Strategy, and Operator",
         "ops/mainnet/secret-references.manifest.json references-only inventory",
         "rotation runbook reference",
         "incident revocation runbook reference",
@@ -150,6 +161,7 @@
       ],
       "verificationCommands": [
         "npm run wallet:signing-safety-check",
+        "npm run wallet:browser-signing-safety-check",
         "npm run wallet:transaction-safety-check",
         "npm run protocol:browser-check",
         "npm run pay:browser-check"
@@ -239,6 +251,7 @@
       "summary": "Provision dashboards, alerts, privacy-preserving telemetry, audit logs, abuse controls, and incident-response ownership.",
       "requiredEvidence": [
         "monitoring dashboard reference",
+        "ops/mainnet/production-observability.template.json references-only observability template",
         "alert routing reference",
         "on-call owner reference",
         "incident runbook reference",
@@ -254,6 +267,8 @@
       "verificationCommands": [
         "npm run mainnet:abuse-observability-check",
         "npm run ops:rate-limit-check",
+        "npm run ops:safe-telemetry-check",
+        "npm run mainnet:observability-sink-check",
         "npm run operator:runbook-check"
       ],
       "approvalGate": "operators can detect, triage, pause, and recover without logging secrets or private inputs"

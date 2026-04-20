@@ -33,6 +33,20 @@ for (const storeId of requiredStores) {
   assert.ok(store.safetyRequirements.includes("replay-safe-uniqueness"), `${storeId} must require replay-safe uniqueness.`);
 }
 
+const privatePoolStore = contract.stores.find((candidate) => candidate.id === "privatePoolV2");
+assert.ok(
+  privatePoolStore.requiredIndexes.includes("pool_nullifiers.context,nullifier unique"),
+  "Private Pool v2 storage must require context-scoped nullifier uniqueness.",
+);
+assert.ok(
+  privatePoolStore.requiredIndexes.includes("pool_nullifiers.context,request_id unique"),
+  "Private Pool v2 storage must require context-scoped idempotent request uniqueness.",
+);
+assert.ok(
+  privatePoolStore.restoreChecks.includes("context-scoped-nullifier-replay-rejection"),
+  "Private Pool v2 restore checks must include context-scoped replay rejection.",
+);
+
 assert.ok(
   contract.globalRequirements.includes("point-in-time-recovery"),
   "Missing point-in-time recovery requirement.",

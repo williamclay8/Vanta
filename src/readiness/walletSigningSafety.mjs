@@ -14,6 +14,7 @@ export function createVantaWalletSigningSafetyPolicy() {
     neverStorePrivateKeys: true,
     releaseGateCommands: [
       "npm run wallet:signing-safety-check",
+      "npm run wallet:browser-signing-safety-check",
       "npm run mainnet:readiness-check",
       "npm run protocol:browser-check",
     ],

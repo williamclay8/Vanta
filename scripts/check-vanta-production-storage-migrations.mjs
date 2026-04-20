@@ -35,6 +35,8 @@ const requiredPhrases = [
   "CREATE TABLE IF NOT EXISTS operator_deployment_locks",
   "CREATE UNIQUE INDEX IF NOT EXISTS idx_pool_commitments_commitment",
   "CREATE UNIQUE INDEX IF NOT EXISTS idx_pool_nullifiers_nullifier",
+  "CREATE UNIQUE INDEX IF NOT EXISTS idx_pool_nullifiers_context_nullifier",
+  "CREATE UNIQUE INDEX IF NOT EXISTS idx_pool_nullifiers_context_request",
   "CREATE UNIQUE INDEX IF NOT EXISTS idx_pay_idempotency_keys_scope_key",
   "CREATE UNIQUE INDEX IF NOT EXISTS idx_pay_receipts_payment_id",
   "CREATE UNIQUE INDEX IF NOT EXISTS idx_strategy_child_orders_strategy_sequence",
@@ -59,6 +61,14 @@ for (const store of contract.stores) {
 assert.ok(
   /CREATE TABLE IF NOT EXISTS pool_nullifiers[\s\S]+nullifier TEXT NOT NULL/.test(source),
   "pool_nullifiers must store nullifier as non-null text.",
+);
+assert.ok(
+  /CREATE TABLE IF NOT EXISTS pool_nullifiers[\s\S]+context TEXT NOT NULL/.test(source),
+  "pool_nullifiers must store replay context as non-null text.",
+);
+assert.ok(
+  /CREATE TABLE IF NOT EXISTS pool_nullifiers[\s\S]+request_id TEXT NOT NULL/.test(source),
+  "pool_nullifiers must store idempotent request id as non-null text.",
 );
 assert.ok(
   /CREATE TABLE IF NOT EXISTS pay_webhook_deliveries[\s\S]+next_attempt_at TIMESTAMPTZ/.test(source),

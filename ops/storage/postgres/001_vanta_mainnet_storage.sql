@@ -148,9 +148,13 @@ CREATE TABLE IF NOT EXISTS pool_roots (
 -- pool-nullifier-schema
 CREATE TABLE IF NOT EXISTS pool_nullifiers (
   nullifier TEXT NOT NULL PRIMARY KEY,
+  context TEXT NOT NULL,
+  request_id TEXT NOT NULL,
   asset_id TEXT NOT NULL,
   spent_at_slot BIGINT,
   claim_receipt_id TEXT,
+  status TEXT NOT NULL DEFAULT 'reserved',
+  reserved_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -202,6 +206,10 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_pool_roots_root
   ON pool_roots (root);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_pool_nullifiers_nullifier
   ON pool_nullifiers (nullifier);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_pool_nullifiers_context_nullifier
+  ON pool_nullifiers (context, nullifier);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_pool_nullifiers_context_request
+  ON pool_nullifiers (context, request_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_pool_proof_requests_request_id
   ON pool_proof_requests (request_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_pool_settlement_submissions_submission_id

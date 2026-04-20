@@ -60,11 +60,49 @@ for (const requiredRef of [
   "VANTA_STAGING_PRIVATE_POOL_V2_URL_REF",
   "VANTA_SECRET_MANAGER_REF",
   "VANTA_PRODUCTION_DATABASE_REF",
+  "VANTA_PRODUCTION_SECRET_MANAGER_TEMPLATE_REF",
+  "VANTA_PRODUCTION_BACKUP_RESTORE_TEMPLATE_REF",
+  "VANTA_PRODUCTION_OBSERVABILITY_TEMPLATE_REF",
+  "VANTA_PAY_DOPPLER_SERVICE_TOKEN_REF",
+  "VANTA_PRIVATE_POOL_V2_DOPPLER_SERVICE_TOKEN_REF",
+  "VANTA_STRATEGY_DOPPLER_SERVICE_TOKEN_REF",
+  "VANTA_OPERATOR_DOPPLER_SERVICE_TOKEN_REF",
   "VANTA_AUDIT_REPORT_REF",
   "VANTA_LEGAL_REVIEW_REF",
 ]) {
   assert.ok(refs.includes(requiredRef), `Missing allowed external reference: ${requiredRef}.`);
 }
+
+for (const requiredTemplate of [
+  "ops/mainnet/production-secret-manager.template.json",
+  "ops/mainnet/production-backup-restore.template.json",
+  "ops/mainnet/production-observability.template.json",
+]) {
+  assert.ok(existsSync(resolve(repoRoot, requiredTemplate)), `Missing production infrastructure template: ${requiredTemplate}.`);
+}
+
+function gateById(gateId) {
+  return packet.gates.find((candidate) => candidate.id === gateId);
+}
+
+function assertGateIncludes(gateId, field, expected) {
+  const gate = gateById(gateId);
+  assert.ok(gate, `Missing gate ${gateId}.`);
+  assert.ok(Array.isArray(gate[field]), `${gateId}.${field} must be an array.`);
+  assert.ok(
+    gate[field].some((entry) => String(entry).includes(expected)),
+    `${gateId}.${field} must include ${expected}.`,
+  );
+}
+
+assertGateIncludes("production-storage", "requiredEvidence", "ops/mainnet/production-backup-restore.template.json");
+assertGateIncludes("production-storage", "verificationCommands", "npm run mainnet:backup-restore-check");
+assertGateIncludes("secret-manager", "requiredEvidence", "ops/mainnet/production-secret-manager.template.json");
+assertGateIncludes("secret-manager", "requiredEvidence", "Doppler service token reference names");
+assertGateIncludes("monitoring-incident-response", "requiredEvidence", "ops/mainnet/production-observability.template.json");
+assertGateIncludes("monitoring-incident-response", "verificationCommands", "npm run ops:safe-telemetry-check");
+assertGateIncludes("monitoring-incident-response", "verificationCommands", "npm run mainnet:observability-sink-check");
+assertGateIncludes("wallet-signing-safety", "verificationCommands", "npm run wallet:browser-signing-safety-check");
 
 function scanForRawSecretKeys(value, path = "packet") {
   if (Array.isArray(value)) {

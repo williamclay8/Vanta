@@ -13,6 +13,7 @@ import {
   writeSafeTelemetryEvent,
 } from "../src/ops/vantaSafeTelemetry.mjs";
 import { createNullifierReplayGuard } from "../src/privacy/nullifierReplayGuard.mjs";
+import { createPostgresNullifierReplayStoreFromDatabaseUrl } from "../src/privacy/postgresNullifierReplayStore.mjs";
 import { createPostgresSnapshotStore } from "../src/storage/vantaPostgresSnapshotStore.mjs";
 import { createPrivatePoolV2ReceiptStore } from "./private-pool-v2-store.mjs";
 
@@ -22,6 +23,7 @@ const port = Number(process.env.PORT ?? process.env.VANTA_PRIVATE_POOL_V2_OPERAT
 const operatorAuthToken = process.env.VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN;
 const rateLimitPerMinute = Number(process.env.VANTA_PRIVATE_POOL_V2_RATE_LIMIT_PER_MINUTE ?? "600");
 const databaseUrl = process.env.VANTA_PRIVATE_POOL_V2_DATABASE_URL;
+const runtimeMode = process.env.VANTA_PRIVATE_POOL_V2_RUNTIME_MODE ?? "local-benchmark";
 const tempParent = resolve(repoRoot, ".tmp");
 mkdirSync(tempParent, { recursive: true });
 const tempRoot = mkdtempSync(resolve(tempParent, "vanta-private-pool-v2-operator-"));
@@ -37,6 +39,7 @@ const sourceFiles = [
   "privatePoolV2LocalRelayer.ts",
   "privatePoolV2LocalVerifierRegistry.ts",
   "privatePoolV2MockRuntime.ts",
+  "privatePoolV2RemoteServices.ts",
   "privatePoolV2ProofRequests.ts",
   "privatePoolV2ShieldCapabilityAdapter.ts",
   "privatePoolV2SettlementPolicy.ts",
@@ -242,6 +245,13 @@ const { createVantaPrivatePoolV2MockRuntime } = await import(
   pathToFileURL(join(tempJsDir, "privatePoolV2MockRuntime.js")).href
 );
 const {
+  createVantaPrivatePoolV2RemoteIndexer,
+  createVantaPrivatePoolV2RemoteProver,
+  createVantaPrivatePoolV2RemoteRelayer,
+  createVantaPrivatePoolV2RemoteRuntime,
+  createVantaPrivatePoolV2RemoteVerifierRegistry,
+} = await import(pathToFileURL(join(tempJsDir, "privatePoolV2RemoteServices.js")).href);
+const {
   createVantaPrivatePoolV2ClaimProofRequest,
   createVantaPrivatePoolV2ShieldProofRequest,
 } = await import(pathToFileURL(join(tempJsDir, "privatePoolV2ProofRequests.js")).href);
@@ -251,21 +261,81 @@ const { createPrivatePoolV2ShieldProofRequestFromCapability } = await import(
 const { VANTA_PRIVATE_POOL_V2_SETTLEMENT_POLICY } = await import(
   pathToFileURL(join(tempJsDir, "privatePoolV2SettlementPolicy.js")).href
 );
+const { getVantaPrivatePoolV2CapabilityProfile } = await import(
+  pathToFileURL(join(tempJsDir, "privatePoolV2CapabilityProfile.js")).href
+);
 const persistedState = await receiptStore.load();
 const persistedCommitments = [...persistedState.commitments];
-const runtime = createVantaPrivatePoolV2MockRuntime({
-  commitments: persistedCommitments,
-  nullifiers: persistedState.nullifiers,
-  receipts: persistedState.receipts,
-});
-const nullifierReplayGuard = createNullifierReplayGuard({
-  initialRecords: (persistedState.nullifiers ?? []).map((record) => ({
-    context: "private-pool-v2-claim",
-    nullifier: record.nullifier,
-    recordedAt: new Date(Number(record.spentAtSlot ?? 0n)).toISOString(),
-    requestId: `restored:${record.nullifier}`,
-  })),
-});
+const runtimeProfile = getVantaPrivatePoolV2CapabilityProfile();
+
+function requireRuntimeEnv(name) {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`Private Pool v2 ${runtimeMode} runtime requires ${name}.`);
+  }
+
+  return value;
+}
+
+function createRuntime() {
+  if (runtimeMode === "remote-services") {
+    const indexer = createVantaPrivatePoolV2RemoteIndexer({
+      authToken: requireRuntimeEnv("VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN"),
+      baseUrl: requireRuntimeEnv("VANTA_PRIVATE_POOL_V2_INDEXER_URL"),
+    });
+    const prover = createVantaPrivatePoolV2RemoteProver({
+      authToken: requireRuntimeEnv("VANTA_PRIVATE_POOL_V2_PROVER_AUTH_TOKEN"),
+      baseUrl: requireRuntimeEnv("VANTA_PRIVATE_POOL_V2_PROVER_URL"),
+    });
+    const relayer = createVantaPrivatePoolV2RemoteRelayer({
+      authToken: requireRuntimeEnv("VANTA_PRIVATE_POOL_V2_RELAYER_AUTH_TOKEN"),
+      baseUrl: requireRuntimeEnv("VANTA_PRIVATE_POOL_V2_RELAYER_URL"),
+    });
+    const verifierRegistry = createVantaPrivatePoolV2RemoteVerifierRegistry({
+      authToken: requireRuntimeEnv("VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN"),
+      baseUrl: requireRuntimeEnv("VANTA_PRIVATE_POOL_V2_VERIFIER_URL"),
+    });
+
+    return createVantaPrivatePoolV2RemoteRuntime({
+      assets: runtimeProfile.assets,
+      indexer,
+      network: runtimeProfile.network,
+      prover,
+      relayer,
+      verifierRegistry,
+    });
+  }
+
+  if (runtimeMode !== "local-benchmark") {
+    throw new Error("Private Pool v2 runtime mode must be local-benchmark or remote-services.");
+  }
+
+  return createVantaPrivatePoolV2MockRuntime({
+    commitments: persistedCommitments,
+    nullifiers: persistedState.nullifiers,
+    receipts: persistedState.receipts,
+  });
+}
+
+const runtime = createRuntime();
+const restoredNullifierRecords = (persistedState.nullifiers ?? []).map((record) => ({
+  assetId: "restored-private-pool-v2-claim",
+  context: "private-pool-v2-claim",
+  nullifier: record.nullifier,
+  recordedAt: new Date(Number(record.spentAtSlot ?? 0n)).toISOString(),
+  requestId: `restored:${record.nullifier}`,
+  spentAtSlot: record.spentAtSlot,
+}));
+const nullifierReplayGuard = databaseUrl
+  ? await createPostgresNullifierReplayStoreFromDatabaseUrl({ databaseUrl })
+  : createNullifierReplayGuard({
+      initialRecords: restoredNullifierRecords,
+    });
+if (databaseUrl) {
+  for (const record of restoredNullifierRecords) {
+    await nullifierReplayGuard.reserve(record);
+  }
+}
 const paySettlementReceipts = [...(persistedState.paySettlements ?? [])];
 const protocolSettlementReceipts = [...(persistedState.protocolSettlements ?? [])];
 
@@ -698,7 +768,7 @@ async function persistReceipts(acceptedRequest) {
   });
 }
 
-function enforceClaimNullifierPreflight(request, requestId) {
+async function enforceClaimNullifierPreflight(request, requestId) {
   if (request.intent !== "claim") {
     return;
   }
@@ -708,7 +778,7 @@ function enforceClaimNullifierPreflight(request, requestId) {
     throw new Error("Claim proof requires a nullifier replay guard input.");
   }
 
-  const decision = nullifierReplayGuard.check({
+  const decision = await nullifierReplayGuard.check({
     context: "private-pool-v2-claim",
     nullifier,
     requestId,
@@ -719,7 +789,7 @@ function enforceClaimNullifierPreflight(request, requestId) {
   }
 }
 
-function reserveAcceptedClaimNullifier(request, requestId) {
+async function reserveAcceptedClaimNullifier(request, requestId) {
   if (request.intent !== "claim") {
     return null;
   }
@@ -729,15 +799,24 @@ function reserveAcceptedClaimNullifier(request, requestId) {
     throw new Error("Accepted claim proof requires a nullifier replay guard input.");
   }
 
-  return nullifierReplayGuard.reserve({
+  const assetId = request.assetId ?? readProofRequestInput(request, "asset-id:") ?? "unknown";
+  const decision = await nullifierReplayGuard.reserve({
+    assetId,
     context: "private-pool-v2-claim",
     nullifier,
     requestId,
   });
+
+  if (!decision.accepted) {
+    throw new Error(`Private-pool nullifier replay rejected: ${decision.reason}.`);
+  }
+
+  return decision;
 }
 
-function statusPayload() {
+async function statusPayload() {
   const readiness = runtime.readiness();
+  const guardedNullifiers = await nullifierReplayGuard.snapshot();
 
   return {
     contractVersion: runtime.contractVersion,
@@ -757,10 +836,17 @@ function statusPayload() {
       productionReady: receiptStore.productionReady,
       storePath: receiptStore.path,
     },
-    nullifierReplayGuard: {
-      guardedNullifierCount: nullifierReplayGuard.snapshot().length,
-      mode: "claim-preflight-and-accepted-reservation",
+    runtime: {
+      mode: runtimeMode,
       productionReady: false,
+    },
+    nullifierReplayGuard: {
+      guardedNullifierCount: guardedNullifiers.length,
+      mode: databaseUrl
+        ? "postgres-durable-claim-preflight-and-accepted-reservation"
+        : "claim-preflight-and-accepted-reservation",
+      productionReady: false,
+      storageMode: nullifierReplayGuard.storageMode,
     },
     trafficControls: {
       rateLimitPerMinute,
@@ -911,6 +997,10 @@ async function proveAndAcceptPayWithdrawalSettlement(body) {
     quote,
   });
   const proof = await runtime.prover.prove(request);
+  await reserveAcceptedClaimNullifier(
+    request,
+    hashHex("pay-withdrawal-claim", merchantId, destination, amount, asset, sourceCommitment.commitment),
+  );
   const proofReceipt = await runtime.verifierRegistry.acceptProof({ proof, request });
   await persistReceipts(request);
 
@@ -1057,6 +1147,10 @@ async function proveAndAcceptProtocolSettlement(body) {
   }
 
   const proof = await runtime.prover.prove(request);
+  await reserveAcceptedClaimNullifier(
+    request,
+    hashHex("protocol-claim", action, settlementId, destination, amount, asset),
+  );
   const proofReceipt = await runtime.verifierRegistry.acceptProof({ proof, request });
   await persistReceipts(request);
 
@@ -1132,7 +1226,7 @@ const server = createServer(async (request, response) => {
     }
 
     if (request.method === "GET" && request.url === "/state/private-pool-v2-status") {
-      sendJson(response, 200, statusPayload());
+      sendJson(response, 200, await statusPayload());
       return;
     }
 
@@ -1153,17 +1247,17 @@ const server = createServer(async (request, response) => {
       const body = await readRequestBody(request);
       const proofRequest = toProofRequest(body.request);
       const requestId = body.requestId ?? body.proof?.publicInputCommitment ?? proofRequest.publicInputs?.join("|");
-      enforceClaimNullifierPreflight(proofRequest, requestId);
+      await enforceClaimNullifierPreflight(proofRequest, requestId);
+      await reserveAcceptedClaimNullifier(proofRequest, requestId);
       const receipt = await runtime.verifierRegistry.acceptProof({
         proof: toProofResult(body.proof),
         request: proofRequest,
       });
-      reserveAcceptedClaimNullifier(proofRequest, requestId);
       await persistReceipts(proofRequest);
       sendJson(response, 200, {
         kind: "Private Pool V2 proof receipt",
         receipt,
-        status: statusPayload(),
+        status: await statusPayload(),
       });
       return;
     }

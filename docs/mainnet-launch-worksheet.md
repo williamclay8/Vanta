@@ -149,9 +149,13 @@ As of April 20, 2026:
 - Operator telemetry: Pay and Private Pool v2 now emit privacy-safe stdout JSON through `src/ops/vantaSafeTelemetry.mjs`; production log sink, metrics, alert routing, audit retention, and incident workflow are not complete.
 - Production observability template: `ops/mainnet/production-observability.template.json` records references-only Better Stack log source, dashboard, alert-policy, incident-runbook, and retention-policy targets.
 - Production backup/restore template: `ops/mainnet/production-backup-restore.template.json` records references-only database, backup policy, PITR, encrypted-backup, restore-drill, access-audit, and least-privilege user targets.
+- Production infrastructure references are now cross-linked in `ops/mainnet/external-gates.packet.json`; `npm run mainnet:external-gates-check` fails if the storage, secret-manager, observability, or browser wallet-signing references drift out of the packet.
+- Private Pool v2 deployed-service client boundary exists at `src/privacy/privatePoolV2RemoteServices.ts`; `npm run private-pool-v2:remote-services-check` verifies HTTPS clients for indexer, relayer, prover, verifier registry, and remote runtime assembly.
+- Nullifier/replay protection now has a Postgres-backed reservation adapter at `src/privacy/postgresNullifierReplayStore.mjs`; the production SQL includes context/request unique indexes, but the final deployed protocol enforcement layer and audit are still blocked.
+- Browser wallet-signing safety now has a devnet/local browser command: `npm run wallet:browser-signing-safety-check`.
 - Security reviewer: not chosen.
 - Legal/compliance reviewer: not chosen.
 - Target environment: staging first.
 - Mainnet funds: not approved.
 
-Next practical step: create the actual production database backup/PITR/restore-drill refs named by `ops/mainnet/production-backup-restore.template.json`, or return to Better Stack production observability refs later. Audit/legal/custody and explicit mainnet approval gates still remain blocked.
+Next practical step: replace the staged/mock Private Pool v2 runtime with real deployed indexer, relayer, prover, verifier, and operator services from `ops/mainnet/private-pool-v2-services.manifest.json`, then create the production backup/PITR/restore-drill refs named by `ops/mainnet/production-backup-restore.template.json`. Audit/legal/custody and explicit mainnet approval gates still remain blocked.

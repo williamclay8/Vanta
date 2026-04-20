@@ -149,6 +149,7 @@ Verification:
 
 ```bash
 npm run wallet:signing-safety-check
+npm run wallet:browser-signing-safety-check
 npm run wallet:transaction-safety-check
 npm run protocol:browser-check
 npm run pay:browser-check

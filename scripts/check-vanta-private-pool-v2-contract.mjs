@@ -33,6 +33,16 @@ const requiredFiles = [
     exports: ["createVantaPrivatePoolV2MockRuntime"],
   },
   {
+    path: "src/privacy/privatePoolV2RemoteServices.ts",
+    exports: [
+      "createVantaPrivatePoolV2RemoteIndexer",
+      "createVantaPrivatePoolV2RemoteProver",
+      "createVantaPrivatePoolV2RemoteRelayer",
+      "createVantaPrivatePoolV2RemoteRuntime",
+      "createVantaPrivatePoolV2RemoteVerifierRegistry",
+    ],
+  },
+  {
     path: "src/privacy/privatePoolV2LocalIndexer.ts",
     exports: [
       "VANTA_PRIVATE_POOL_V2_LOCAL_INDEXER_SCHEME",
@@ -162,6 +172,14 @@ const requiredTextFiles = [
     ],
   },
   {
+    path: "scripts/check-vanta-private-pool-v2-remote-services.mjs",
+    markers: [
+      "Vanta Private Pool v2 remote services check: PASS",
+      "createVantaPrivatePoolV2RemoteRuntime",
+      "https://indexer.example",
+    ],
+  },
+  {
     path: "scripts/check-vanta-private-pool-v2-shield-proof-request.mjs",
     markers: [
       "shield proof request public inputs: PASS",
@@ -211,6 +229,12 @@ const requiredTextFiles = [
     markers: [
       "VANTA_PRIVATE_POOL_V2_STORE_PATH",
       "VANTA_PRIVATE_POOL_V2_DATABASE_URL",
+      "VANTA_PRIVATE_POOL_V2_RUNTIME_MODE",
+      "remote-services",
+      "VANTA_PRIVATE_POOL_V2_INDEXER_URL",
+      "VANTA_PRIVATE_POOL_V2_PROVER_URL",
+      "VANTA_PRIVATE_POOL_V2_RELAYER_URL",
+      "VANTA_PRIVATE_POOL_V2_VERIFIER_URL",
       "settlementPolicy",
       "VANTA_PRIVATE_POOL_V2_SETTLEMENT_POLICY",
       "shieldRouteEvidence",

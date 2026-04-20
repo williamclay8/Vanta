@@ -159,15 +159,17 @@ The reusable nullifier replay guard is:
 
 ```text
 src/privacy/nullifierReplayGuard.mjs
+src/privacy/postgresNullifierReplayStore.mjs
 ```
 
-Private Pool v2 uses it for claim preflight and accepted-claim reservation in the local operator. It is intentionally marked `productionReady: false`; before mainnet it must move behind durable production storage and the final deployed protocol enforcement layer.
+Private Pool v2 uses the in-process guard for local claim preflight and accepted-claim reservation. When `VANTA_PRIVATE_POOL_V2_DATABASE_URL` is configured, the operator now prefers the Postgres nullifier replay store, which reserves nullifiers behind the checked `pool_nullifiers` unique indexes. It is still marked `productionReady: false` until the final deployed protocol enforcement layer, production database refs, backup/restore evidence, and audit gates are complete.
 
 For a faster focused check:
 
 ```bash
 npm run pay:merchant-api-check
 npm run private-pool-v2:http-smoke
+npm run nullifier:replay-guard-check
 npm run protocol:browser-check
 ```
 
@@ -186,6 +188,7 @@ VANTA_PRIVATE_POOL_V2_OPERATOR_PORT=8797
 VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN=
 VANTA_PRIVATE_POOL_V2_STORE_PATH=.vanta-private-pool-v2-receipts.json
 VANTA_PRIVATE_POOL_V2_DATABASE_URL=
+VANTA_PRIVATE_POOL_V2_RUNTIME_MODE=local-benchmark
 ```
 
 Production mode guardrails:
@@ -200,6 +203,36 @@ VANTA_PRIVATE_POOL_V2_DATABASE_URL=<postgres-url-if-using-managed-postgres>
 When `NODE_ENV=production`, the operator refuses to boot without `VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN` and either `VANTA_PRIVATE_POOL_V2_STORE_PATH` or `VANTA_PRIVATE_POOL_V2_DATABASE_URL`.
 
 For free Render staging, prefer `VANTA_PRIVATE_POOL_V2_DATABASE_URL` from a free Render Postgres database because free web services cannot attach persistent disks and lose local filesystem writes on restart/redeploy. Treat free Render Postgres as staging-only because free databases expire.
+
+The deployed-service client boundary is:
+
+```text
+src/privacy/privatePoolV2RemoteServices.ts
+```
+
+It defines HTTPS clients for the Private Pool v2 indexer, relayer, prover, verifier registry, and remote runtime assembly. Verify it with:
+
+```bash
+npm run private-pool-v2:remote-services-check
+```
+
+This is the replacement seam for moving away from the local benchmark runtime once real deployed service URLs, mutual-auth credentials, production smoke targets, audit, and mainnet approval exist.
+
+To select deployed services in an approved non-mainnet or production-like environment, set:
+
+```bash
+VANTA_PRIVATE_POOL_V2_RUNTIME_MODE=remote-services
+VANTA_PRIVATE_POOL_V2_INDEXER_URL=<https-indexer-url>
+VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN=<secret-manager-value>
+VANTA_PRIVATE_POOL_V2_PROVER_URL=<https-prover-url>
+VANTA_PRIVATE_POOL_V2_PROVER_AUTH_TOKEN=<secret-manager-value>
+VANTA_PRIVATE_POOL_V2_RELAYER_URL=<https-relayer-url>
+VANTA_PRIVATE_POOL_V2_RELAYER_AUTH_TOKEN=<secret-manager-value>
+VANTA_PRIVATE_POOL_V2_VERIFIER_URL=<https-verifier-url>
+VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN=<secret-manager-value>
+```
+
+Store the token values only in the secret manager or deployment environment, never in Git or chat.
 
 ## Pay Operator
 
@@ -287,6 +320,14 @@ src/wallet/transactionSafetySummary.mjs
 ```
 
 It requires cluster, fee payer, recipient, amount, asset, estimated fees, instructions, recent blockhash, simulation result, and explicit mainnet approval before a mainnet summary can be accepted for wallet approval.
+
+The browser-backed safe-environment signing gate is:
+
+```bash
+npm run wallet:browser-signing-safety-check
+```
+
+It starts the app with devnet configuration, verifies the Shield/Send browser surfaces do not expose mainnet submission or secret-key language, and verifies the Shield action does not advance into wallet-confirmation state when no wallet is connected.
 
 ## Secret Handling
 

@@ -21,5 +21,6 @@ assert.ok(policy.blockedActions.includes("mainnet-submit-without-explicit-approv
 assert.ok(policy.blockedActions.includes("private-key-or-seed-phrase-request"));
 assert.ok(policy.blockedActions.includes("blind-signing"));
 assert.ok(policy.releaseGateCommands.includes("npm run wallet:signing-safety-check"));
+assert.ok(policy.releaseGateCommands.includes("npm run wallet:browser-signing-safety-check"));
 
 console.log("Vanta wallet signing safety check: PASS");
