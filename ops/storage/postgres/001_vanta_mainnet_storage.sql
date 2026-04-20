@@ -198,6 +198,14 @@ CREATE TABLE IF NOT EXISTS pool_operator_events (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- pool-role-snapshot-schema
+CREATE TABLE IF NOT EXISTS vanta_private_pool_v2_role_snapshots (
+  store_key TEXT PRIMARY KEY,
+  snapshot JSONB NOT NULL,
+  state_version INTEGER NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE UNIQUE INDEX IF NOT EXISTS idx_pool_commitments_commitment
   ON pool_commitments (commitment);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_pool_commitments_tree_leaf
@@ -214,6 +222,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_pool_proof_requests_request_id
   ON pool_proof_requests (request_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_pool_settlement_submissions_submission_id
   ON pool_settlement_submissions (submission_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_private_pool_v2_role_snapshots_store_key
+  ON vanta_private_pool_v2_role_snapshots (store_key);
 
 -- strategy-parent-order-schema
 CREATE TABLE IF NOT EXISTS strategies (
