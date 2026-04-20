@@ -38,7 +38,15 @@ VANTA_PRIVATE_POOL_V2_VERIFIER_STORE_PATH=<local-json-snapshot-path>
 
 The service-network check verifies accepted commitments, proof artifacts, relayer quotes, and verifier receipts survive role-service restarts when these paths are configured. This is not production storage; production still needs managed durable database refs and restore evidence.
 
-When `NODE_ENV=production`, each role service refuses to boot unless its role auth token and local/staging store path are configured. The checked guard exists to prevent accidental unauthenticated or stateless production service startup; managed production database refs remain the long-term target.
+The checked role storage seam is:
+
+```bash
+npm run private-pool-v2:role-storage-check
+```
+
+That check verifies the per-role snapshot boundary can select a `postgres-jsonb-snapshot-store` from `VANTA_PRIVATE_POOL_V2_DATABASE_URL`, rejects local JSON snapshot paths in production, and keeps `productionReady: false` until production database refs and restore evidence exist.
+
+When `NODE_ENV=production`, each role service refuses to boot unless its role auth token and a restart storage configuration are present. The checked guard exists to prevent accidental unauthenticated or stateless production service startup; managed production database refs remain the long-term target.
 
 The checked deployment manifest is:
 
@@ -108,6 +116,7 @@ Run these after refs are updated:
 npm run mainnet:production-service-setup-check
 npm run mainnet:private-pool-v2-production-smoke-check
 npm run private-pool-v2:service-network-check
+npm run private-pool-v2:role-storage-check
 npm run mainnet:approval-gates-check
 npm run mainnet:preflight
 ```

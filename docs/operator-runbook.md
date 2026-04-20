@@ -201,6 +201,7 @@ npm run private-pool-v2:prover
 npm run private-pool-v2:relayer
 npm run private-pool-v2:verifier
 npm run private-pool-v2:service-network-check
+npm run private-pool-v2:role-storage-check
 ```
 
 These services expose the deployable remote-service contract for `remote-services` mode. They still report `productionReady: false` and `mainnetReady: false`; the current implementation is deterministic no-real-funds harness infrastructure until audited production proving, durable production storage, secret-manager-backed refs, production smoke evidence, and mainnet approvals exist.
@@ -224,7 +225,15 @@ VANTA_PRIVATE_POOL_V2_VERIFIER_STORE_PATH=<local-json-snapshot-path>
 
 `npm run private-pool-v2:service-network-check` verifies that accepted commitments, proof artifacts, relayer quotes, and verifier receipts survive role-service restarts through these paths. Treat this as local/staging evidence only; production still requires managed durable database storage and restore evidence.
 
-When `NODE_ENV=production`, every role service refuses to boot without its role bearer token and role store path. This prevents accidental stateless or unauthenticated production startup, but does not replace the production database/restore evidence gate.
+The per-role production storage adapter check is:
+
+```bash
+npm run private-pool-v2:role-storage-check
+```
+
+It verifies the role snapshot boundary can use `VANTA_PRIVATE_POOL_V2_DATABASE_URL` as a `postgres-jsonb-snapshot-store` and refuses local JSON snapshot stores in production. This is a code-level contract, not production evidence that the external database refs, backup/restore drills, or audit gates are complete.
+
+When `NODE_ENV=production`, every role service refuses to boot without its role bearer token and restart storage configuration. This prevents accidental stateless or unauthenticated production startup, but does not replace the production database/restore evidence gate.
 
 Important environment variables:
 

@@ -20,6 +20,8 @@ const requiredPhrases = [
   "No production indexer, prover, relayer, verifier, or operator service is currently deployed",
   "VANTA_PRIVATE_POOL_V2_RUNTIME_MODE=remote-services",
   "npm run private-pool-v2:service-network-check",
+  "npm run private-pool-v2:role-storage-check",
+  "postgres-jsonb-snapshot-store",
   "operator/private-pool-v2-service-network.mjs",
   "ops/mainnet/private-pool-v2-production-smoke.template.json",
   "ops/mainnet/mainnet-approval-gates.template.json",
@@ -57,6 +59,11 @@ assert.equal(
 assert.ok(
   packageJson.scripts["mainnet:preflight"].includes("npm run mainnet:production-service-setup-check"),
   "mainnet:preflight must include the production service setup doc check.",
+);
+
+assert.ok(
+  packageJson.scripts["mainnet:preflight"].includes("npm run private-pool-v2:role-storage-check"),
+  "mainnet:preflight must include the Private Pool v2 role storage check.",
 );
 
 console.log("Vanta production service setup doc check: PASS");

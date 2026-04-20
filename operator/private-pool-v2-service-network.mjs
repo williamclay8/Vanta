@@ -104,6 +104,7 @@ function toBigInt(value, fallback = 0n) {
 
 function basePayload(role) {
   const storePath = process.env[roleConfig[role].storeEnv];
+  const databaseUrl = process.env.VANTA_PRIVATE_POOL_V2_DATABASE_URL;
   return {
     mainnetReady: false,
     ok: true,
@@ -113,8 +114,12 @@ function basePayload(role) {
     service: roleConfig[role].service,
     serviceNetworkReady: true,
     storage: {
-      durableStoreConfigured: Boolean(storePath),
-      kind: storePath ? "local-json-snapshot-store" : "in-memory",
+      durableStoreConfigured: Boolean(databaseUrl || storePath),
+      kind: databaseUrl
+        ? "postgres-jsonb-snapshot-store"
+        : storePath
+          ? "local-json-snapshot-store"
+          : "in-memory",
       productionReady: false,
     },
     version: serviceVersion,
@@ -163,8 +168,10 @@ function assertProductionRoleConfig(role) {
     throw new Error(`Private Pool v2 ${role} production service requires ${tokenEnv}.`);
   }
 
-  if (!process.env[storeEnv]) {
-    throw new Error(`Private Pool v2 ${role} production service requires ${storeEnv}.`);
+  if (!process.env[storeEnv] && !process.env.VANTA_PRIVATE_POOL_V2_DATABASE_URL) {
+    throw new Error(
+      `Private Pool v2 ${role} production service requires ${storeEnv} or VANTA_PRIVATE_POOL_V2_DATABASE_URL.`,
+    );
   }
 }
 

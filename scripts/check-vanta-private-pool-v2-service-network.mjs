@@ -177,6 +177,39 @@ try {
       storelessStderr.includes(service.storeEnv),
       `Expected missing production store guard for ${service.role}.`,
     );
+
+    const databaseBackedProduction = spawn(
+      "npm",
+      ["run", service.script, "--", "--port", String(basePort + 300 + index)],
+      {
+        cwd: repoRoot,
+        env: {
+          ...process.env,
+          NODE_ENV: "production",
+          VANTA_PRIVATE_POOL_V2_DATABASE_URL: "postgresql://vanta.invalid/private-pool-v2",
+          [service.tokenEnv]: authToken,
+        },
+        stdio: ["ignore", "pipe", "pipe"],
+      },
+    );
+    let databaseBackedStderr = "";
+    databaseBackedProduction.stderr.on("data", (chunk) => {
+      databaseBackedStderr += chunk.toString("utf8");
+    });
+    children.push({
+      child: databaseBackedProduction,
+      role: `${service.role}-production-database-guard`,
+      stderr: () => databaseBackedStderr,
+    });
+    const databaseBackedHealth = await waitForHealth(`http://127.0.0.1:${basePort + 300 + index}`);
+    assert(
+      databaseBackedHealth.parsed?.storage?.kind === "postgres-jsonb-snapshot-store",
+      `Expected ${service.role} production database health to expose Postgres storage.`,
+    );
+    assert(
+      databaseBackedHealth.parsed?.storage?.durableStoreConfigured === true,
+      `Expected ${service.role} production database health to expose durable storage.`,
+    );
   }
   console.log("private-pool-v2 role production guards: PASS");
 
