@@ -148,9 +148,10 @@ As of April 20, 2026:
 - Staging monitoring manifest: `ops/mainnet/staging-monitoring.manifest.json` tracks public `/health` monitors only.
 - Operator telemetry: Pay and Private Pool v2 now emit privacy-safe stdout JSON through `src/ops/vantaSafeTelemetry.mjs`; production log sink, metrics, alert routing, audit retention, and incident workflow are not complete.
 - Production observability template: `ops/mainnet/production-observability.template.json` records references-only Better Stack log source, dashboard, alert-policy, incident-runbook, and retention-policy targets.
+- Production backup/restore template: `ops/mainnet/production-backup-restore.template.json` records references-only database, backup policy, PITR, encrypted-backup, restore-drill, access-audit, and least-privilege user targets.
 - Security reviewer: not chosen.
 - Legal/compliance reviewer: not chosen.
 - Target environment: staging first.
 - Mainnet funds: not approved.
 
-Next practical step: create the actual Better Stack production log sources, dashboards, alert policies, incident routing, and retention-policy refs named by `ops/mainnet/production-observability.template.json`, then verify Doppler access logs/export references. Audit/legal/custody and explicit mainnet approval gates still remain blocked.
+Next practical step: create the actual production database backup/PITR/restore-drill refs named by `ops/mainnet/production-backup-restore.template.json`, or return to Better Stack production observability refs later. Audit/legal/custody and explicit mainnet approval gates still remain blocked.

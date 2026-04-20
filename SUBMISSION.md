@@ -231,6 +231,8 @@ The repo now includes a **mainnet readiness** gate:
   verifies the required production service contracts for indexer, relayer, prover, verifier, and operator surfaces.
 - `npm run mainnet:storage-contract-check`
   verifies the production storage contract for Pay, Private Pool v2, Strategy, and Operator state, including durable tables, unique indexes, forward-only migrations, point-in-time recovery, encrypted backups, restore drills, idempotent writes, replay-safe uniqueness, least-privilege database users, and no secret values in manifests.
+- `npm run mainnet:backup-restore-check`
+  verifies the references-only production backup/restore template for database refs, backup policies, point-in-time recovery, encrypted backup evidence, restore drill evidence, restore runbooks, access audit logs, and least-privilege database users.
 - `npm run storage:adapter-check`
   verifies the reusable snapshot-store adapter seam, including the Postgres JSONB snapshot store used by the Render Pay and Private Pool v2 staging services.
 - `npm run mainnet:preflight`

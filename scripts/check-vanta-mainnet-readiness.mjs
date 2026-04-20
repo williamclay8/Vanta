@@ -77,6 +77,10 @@ assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:storage-migration-check"),
   "Missing production storage migration command.",
 );
+assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:backup-restore-check"),
+  "Missing production backup/restore check command.",
+);
 assert.ok(snapshot.requiredCommands.includes("npm run storage:adapter-check"), "Missing storage adapter command.");
 assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:abuse-observability-check"),
@@ -118,6 +122,10 @@ assert.ok(snapshot.nextActions[0]?.includes("external gates packet"), "First nex
 assert.ok(
   snapshot.nextActions.some((action) => action.includes("production log sources")),
   "Next actions must include production log source setup.",
+);
+assert.ok(
+  snapshot.nextActions.some((action) => action.includes("backup")),
+  "Next actions must include backup/restore evidence setup.",
 );
 
 console.log("Vanta mainnet readiness check: PASS");

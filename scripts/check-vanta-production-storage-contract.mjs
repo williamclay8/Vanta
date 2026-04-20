@@ -1,12 +1,24 @@
 import { strict as assert } from "node:assert";
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { createVantaProductionStorageContract } from "../src/readiness/productionStorageContract.mjs";
 
+const repoRoot = resolve(import.meta.dirname, "..");
+const backupRestoreTemplatePath = resolve(
+  repoRoot,
+  "ops/mainnet/production-backup-restore.template.json",
+);
 const contract = createVantaProductionStorageContract();
 
 assert.equal(contract.version, "vanta-production-storage-contract-0.1");
 assert.equal(contract.productionReady, false);
 assert.equal(contract.mainnetReady, false);
 assert.equal(contract.secretPolicy, "names-only-no-secret-values");
+assert.equal(
+  contract.backupRestoreTemplatePath,
+  "ops/mainnet/production-backup-restore.template.json",
+  "Storage contract must point at the production backup/restore template.",
+);
 
 const requiredStores = ["pay", "privatePoolV2", "strategy", "operator"];
 for (const storeId of requiredStores) {
@@ -35,8 +47,22 @@ assert.ok(
   "Missing storage contract verification command.",
 );
 assert.ok(
-  contract.nextImplementationStep.includes("database adapter"),
-  "Next implementation step should target database adapters.",
+  contract.requiredVerificationCommands.includes("npm run mainnet:backup-restore-check"),
+  "Missing backup/restore verification command.",
 );
+assert.ok(
+  contract.nextImplementationStep.includes("backup"),
+  "Next implementation step should target backup/restore evidence.",
+);
+assert.ok(
+  existsSync(backupRestoreTemplatePath),
+  "Missing ops/mainnet/production-backup-restore.template.json.",
+);
+
+const backupRestoreTemplate = JSON.parse(readFileSync(backupRestoreTemplatePath, "utf8"));
+assert.equal(backupRestoreTemplate.version, "vanta-production-backup-restore-template-0.1");
+assert.equal(backupRestoreTemplate.mainnetReady, false);
+assert.equal(backupRestoreTemplate.productionReady, false);
+assert.equal(backupRestoreTemplate.secretPolicy, "references-only-no-credentials");
 
 console.log("Vanta production storage contract check: PASS");

@@ -1,0 +1,100 @@
+{
+  "version": "vanta-production-backup-restore-template-0.1",
+  "mainnetReady": false,
+  "productionReady": false,
+  "storageProvider": "render-postgres-or-production-equivalent",
+  "secretPolicy": "references-only-no-credentials",
+  "summary": "References-only template for production database backup, PITR, restore-drill, encryption, access audit, and least-privilege database evidence. Do not store raw database URLs, credential values, backup decryption material, provider API tokens, wallet keys, or private user inputs here.",
+  "globalRequirements": [
+    "point-in-time-recovery",
+    "encrypted-backups",
+    "restore-drill-before-mainnet",
+    "least-privilege-db-users",
+    "backup-access-audit",
+    "no-raw-database-urls",
+    "no-backup-decryption-keys",
+    "restore-runbook-reviewed"
+  ],
+  "stores": [
+    {
+      "id": "pay",
+      "label": "Vanta Pay production storage",
+      "databaseRef": "vanta-pay-production-db-pending",
+      "backupPolicyRef": "backup-policy/vanta-pay-production-pending",
+      "pitrRef": "pitr/vanta-pay-production-pending",
+      "encryptionRef": "backup-encryption/vanta-pay-production-pending",
+      "restoreDrillRef": "restore-drill/vanta-pay-production-pending",
+      "restoreRunbookRef": "docs/operator-runbook.md#pay-operator",
+      "accessAuditLogRef": "db-access-audit/vanta-pay-production-pending",
+      "leastPrivilegeUserRef": "db-user/vanta-pay-operator-production-pending",
+      "blockedUntil": [
+        "production-database-created",
+        "pitr-enabled",
+        "encrypted-backups-enabled",
+        "restore-drill-passed",
+        "least-privilege-user-created",
+        "backup-access-audit-enabled"
+      ]
+    },
+    {
+      "id": "privatePoolV2",
+      "label": "Private Pool v2 production storage",
+      "databaseRef": "vanta-private-pool-v2-production-db-pending",
+      "backupPolicyRef": "backup-policy/vanta-private-pool-v2-production-pending",
+      "pitrRef": "pitr/vanta-private-pool-v2-production-pending",
+      "encryptionRef": "backup-encryption/vanta-private-pool-v2-production-pending",
+      "restoreDrillRef": "restore-drill/vanta-private-pool-v2-production-pending",
+      "restoreRunbookRef": "docs/operator-runbook.md#private-pool-v2-operator",
+      "accessAuditLogRef": "db-access-audit/vanta-private-pool-v2-production-pending",
+      "leastPrivilegeUserRef": "db-user/vanta-private-pool-v2-operator-production-pending",
+      "blockedUntil": [
+        "production-database-created",
+        "pitr-enabled",
+        "encrypted-backups-enabled",
+        "restore-drill-passed",
+        "least-privilege-user-created",
+        "backup-access-audit-enabled"
+      ]
+    },
+    {
+      "id": "strategy",
+      "label": "Vanta Strategy production storage",
+      "databaseRef": "vanta-strategy-production-db-pending",
+      "backupPolicyRef": "backup-policy/vanta-strategy-production-pending",
+      "pitrRef": "pitr/vanta-strategy-production-pending",
+      "encryptionRef": "backup-encryption/vanta-strategy-production-pending",
+      "restoreDrillRef": "restore-drill/vanta-strategy-production-pending",
+      "restoreRunbookRef": "docs/operator-runbook.md#readiness-truth",
+      "accessAuditLogRef": "db-access-audit/vanta-strategy-production-pending",
+      "leastPrivilegeUserRef": "db-user/vanta-strategy-operator-production-pending",
+      "blockedUntil": [
+        "production-database-created",
+        "pitr-enabled",
+        "encrypted-backups-enabled",
+        "restore-drill-passed",
+        "least-privilege-user-created",
+        "backup-access-audit-enabled"
+      ]
+    },
+    {
+      "id": "operator",
+      "label": "Vanta Operator control-plane production storage",
+      "databaseRef": "vanta-operator-production-db-pending",
+      "backupPolicyRef": "backup-policy/vanta-operator-production-pending",
+      "pitrRef": "pitr/vanta-operator-production-pending",
+      "encryptionRef": "backup-encryption/vanta-operator-production-pending",
+      "restoreDrillRef": "restore-drill/vanta-operator-production-pending",
+      "restoreRunbookRef": "docs/operator-runbook.md#readiness-truth",
+      "accessAuditLogRef": "db-access-audit/vanta-operator-production-pending",
+      "leastPrivilegeUserRef": "db-user/vanta-operator-production-pending",
+      "blockedUntil": [
+        "production-database-created",
+        "pitr-enabled",
+        "encrypted-backups-enabled",
+        "restore-drill-passed",
+        "least-privilege-user-created",
+        "backup-access-audit-enabled"
+      ]
+    }
+  ]
+}

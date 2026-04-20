@@ -87,6 +87,7 @@ const requiredCommands = [
   "npm run mainnet:service-topology-check",
   "npm run mainnet:storage-contract-check",
   "npm run mainnet:storage-migration-check",
+  "npm run mainnet:backup-restore-check",
   "npm run storage:adapter-check",
   "npm run mainnet:abuse-observability-check",
   "npm run ops:rate-limit-check",

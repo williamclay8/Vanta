@@ -122,14 +122,16 @@ const globalRequirements = [
 export function createVantaProductionStorageContract() {
   return {
     version: "vanta-production-storage-contract-0.1",
+    backupRestoreTemplatePath: "ops/mainnet/production-backup-restore.template.json",
     globalRequirements,
     mainnetReady: false,
     nextImplementationStep:
-      "Implement the database adapter seam and migration runner for Pay, Private Pool v2, Strategy, and Operator stores.",
+      "Create the actual production database backup, PITR, restore-drill, encryption, access-audit, and least-privilege user refs named by the backup/restore template.",
     productionReady: false,
     requiredVerificationCommands: [
       "npm run mainnet:storage-contract-check",
       "npm run mainnet:preflight",
+      "npm run mainnet:backup-restore-check",
       "npm run pay:verify",
       "npm run private-pool-v2:verify",
     ],

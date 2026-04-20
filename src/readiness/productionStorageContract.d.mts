@@ -10,6 +10,7 @@ export type VantaProductionStorageStore = {
 };
 
 export type VantaProductionStorageContract = {
+  backupRestoreTemplatePath: "ops/mainnet/production-backup-restore.template.json";
   globalRequirements: string[];
   mainnetReady: false;
   nextImplementationStep: string;

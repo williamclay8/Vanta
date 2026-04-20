@@ -19,6 +19,7 @@ npm run mainnet:external-gates-check
 npm run mainnet:service-contract-check
 npm run mainnet:storage-contract-check
 npm run mainnet:storage-migration-check
+npm run mainnet:backup-restore-check
 npm run storage:adapter-check
 npm run mainnet:abuse-observability-check
 npm run ops:rate-limit-check
@@ -48,6 +49,7 @@ npm run mainnet:external-gates-check
 npm run mainnet:service-contract-check
 npm run mainnet:storage-contract-check
 npm run mainnet:storage-migration-check
+npm run mainnet:backup-restore-check
 npm run storage:adapter-check
 npm run mainnet:abuse-observability-check
 npm run ops:rate-limit-check
@@ -96,6 +98,14 @@ src/readiness/productionStorageContract.mjs
 ```
 
 It requires durable database tables, unique indexes, forward-only migrations, point-in-time recovery, encrypted backups, restore drills, least-privilege users, and no secret values in manifests before any production storage claim.
+
+The production backup/restore template is:
+
+```text
+ops/mainnet/production-backup-restore.template.json
+```
+
+It records references for production database refs, backup policies, point-in-time recovery, encrypted backup evidence, restore drill evidence, restore runbooks, access audit logs, and least-privilege database users without storing raw database URLs, credential values, backup decryption material, provider API tokens, wallet keys, or private user inputs. It is a setup contract, not evidence that production backup/restore has already passed.
 
 The checked baseline Postgres migration is:
 
@@ -361,6 +371,7 @@ Before mainnet, Pay, Private Pool v2, Strategy, and Operator state must move beh
 ```bash
 npm run mainnet:storage-contract-check
 npm run mainnet:storage-migration-check
+npm run mainnet:backup-restore-check
 npm run storage:adapter-check
 npm run nullifier:replay-guard-check
 ```
