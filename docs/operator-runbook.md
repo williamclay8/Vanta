@@ -485,16 +485,24 @@ npm run protocol:browser-check
 
 ## Current Persistent State
 
-The current local operators use JSON-backed durable stores:
+The current local/staging operators can use JSON-backed durable stores:
 
 - Private Pool v2: `VANTA_PRIVATE_POOL_V2_STORE_PATH`
 - Pay: `VANTA_PAY_STORE_PATH`
+- Private Pool v2 role services: `VANTA_PRIVATE_POOL_V2_INDEXER_STORE_PATH`, `VANTA_PRIVATE_POOL_V2_PROVER_STORE_PATH`, `VANTA_PRIVATE_POOL_V2_RELAYER_STORE_PATH`, `VANTA_PRIVATE_POOL_V2_VERIFIER_STORE_PATH`
 
 These stores prove restart-safe local behavior in the verifier, but they are not a production database, replicated log, or on-chain source of truth.
 
-Pay and Private Pool v2 currently use the shared local JSON snapshot-store seam at `src/storage/vantaJsonSnapshotStore.mjs`. That seam is intentionally marked `productionReady: false`; it exists to make the future production database adapter swap explicit and testable.
+Pay, Private Pool v2, and the Private Pool v2 role services now use checked snapshot-store seams that can select `postgres-jsonb-snapshot-store` when database URL refs are configured. Local JSON remains supported for local/staging restart checks only, and every storage seam stays `productionReady: false` until real production database refs, backup/restore evidence, and approval gates exist.
 
-Before mainnet, Pay, Private Pool v2, Strategy, and Operator state must move behind the checked production storage contract and pass:
+The local JSON and Private Pool v2 role seams live at:
+
+```text
+src/storage/vantaJsonSnapshotStore.mjs
+src/storage/vantaPrivatePoolV2RoleSnapshotStore.mjs
+```
+
+Before mainnet, Pay, Private Pool v2, Strategy, and Operator state must be attached to production database refs behind the checked production storage contract and pass:
 
 ```bash
 npm run mainnet:storage-contract-check
@@ -502,6 +510,7 @@ npm run mainnet:storage-migration-check
 npm run mainnet:backup-restore-check
 npm run storage:adapter-check
 npm run nullifier:replay-guard-check
+npm run private-pool-v2:role-storage-check
 ```
 
 ## Production Backup/Restore Drill

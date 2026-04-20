@@ -47,6 +47,7 @@ const requiredPhrases = [
   "ops/storage/postgres/001_vanta_mainnet_storage.sql",
   "src/readiness/abuseObservabilityContract.mjs",
   "src/storage/vantaJsonSnapshotStore.mjs",
+  "src/storage/vantaPrivatePoolV2RoleSnapshotStore.mjs",
   "src/ops/vantaRateLimit.mjs",
   "src/privacy/nullifierReplayGuard.mjs",
   "src/wallet/transactionSafetySummary.mjs",
