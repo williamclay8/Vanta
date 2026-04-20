@@ -153,6 +153,21 @@ function requireAuth({ authToken, request, response, role }) {
   return true;
 }
 
+function assertProductionRoleConfig(role) {
+  if (process.env.NODE_ENV !== "production") {
+    return;
+  }
+
+  const { storeEnv, tokenEnv } = roleConfig[role];
+  if (!process.env[tokenEnv]) {
+    throw new Error(`Private Pool v2 ${role} production service requires ${tokenEnv}.`);
+  }
+
+  if (!process.env[storeEnv]) {
+    throw new Error(`Private Pool v2 ${role} production service requires ${storeEnv}.`);
+  }
+}
+
 function readSnapshot(storePath, defaultSnapshot) {
   if (!storePath || !existsSync(storePath)) {
     return defaultSnapshot;
@@ -687,6 +702,7 @@ export function startVantaPrivatePoolV2RoleService(role) {
   if (!roleConfig[role]) {
     throw new Error(`Unknown Private Pool v2 service role ${role}.`);
   }
+  assertProductionRoleConfig(role);
 
   const host = process.env.HOST ?? "0.0.0.0";
   const port = parseCliPort(roleConfig[role].defaultPort);

@@ -19,6 +19,7 @@ const services = [
     role: "indexer",
     script: "private-pool-v2:indexer",
     startFile: "operator/private-pool-v2-indexer-server.mjs",
+    storeEnv: "VANTA_PRIVATE_POOL_V2_INDEXER_STORE_PATH",
     tokenEnv: "VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN",
   },
   {
@@ -27,6 +28,7 @@ const services = [
     role: "prover",
     script: "private-pool-v2:prover",
     startFile: "operator/private-pool-v2-prover-server.mjs",
+    storeEnv: "VANTA_PRIVATE_POOL_V2_PROVER_STORE_PATH",
     tokenEnv: "VANTA_PRIVATE_POOL_V2_PROVER_AUTH_TOKEN",
   },
   {
@@ -35,6 +37,7 @@ const services = [
     role: "relayer",
     script: "private-pool-v2:relayer",
     startFile: "operator/private-pool-v2-relayer-server.mjs",
+    storeEnv: "VANTA_PRIVATE_POOL_V2_RELAYER_STORE_PATH",
     tokenEnv: "VANTA_PRIVATE_POOL_V2_RELAYER_AUTH_TOKEN",
   },
   {
@@ -43,6 +46,7 @@ const services = [
     role: "verifier",
     script: "private-pool-v2:verifier",
     startFile: "operator/private-pool-v2-verifier-server.mjs",
+    storeEnv: "VANTA_PRIVATE_POOL_V2_VERIFIER_STORE_PATH",
     tokenEnv: "VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN",
   },
 ];
@@ -55,6 +59,20 @@ function assert(condition, message) {
 
 function sleep(ms) {
   return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
+}
+
+async function waitForExit(child, timeoutMs = 1_500) {
+  if (child.exitCode !== null) {
+    return child.exitCode;
+  }
+
+  return await new Promise((resolvePromise) => {
+    const timer = setTimeout(() => resolvePromise(null), timeoutMs);
+    child.once("close", (code) => {
+      clearTimeout(timer);
+      resolvePromise(code);
+    });
+  });
 }
 
 async function requestJson(baseUrl, path, options = {}) {
@@ -110,6 +128,58 @@ const children = [];
 const serviceUrls = new Map();
 
 try {
+  for (const [index, service] of services.entries()) {
+    const insecureProduction = spawn("npm", ["run", service.script, "--", "--port", String(basePort + 100 + index)], {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        NODE_ENV: "production",
+      },
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    let insecureStderr = "";
+    insecureProduction.stderr.on("data", (chunk) => {
+      insecureStderr += chunk.toString("utf8");
+    });
+    const insecureExitCode = await waitForExit(insecureProduction);
+    if (insecureExitCode === null) {
+      insecureProduction.kill("SIGTERM");
+      throw new Error(`Expected insecure production ${service.role} service to exit.`);
+    }
+    assert(
+      insecureStderr.includes(service.tokenEnv),
+      `Expected missing production token guard for ${service.role}.`,
+    );
+
+    const storelessProduction = spawn(
+      "npm",
+      ["run", service.script, "--", "--port", String(basePort + 200 + index)],
+      {
+        cwd: repoRoot,
+        env: {
+          ...process.env,
+          NODE_ENV: "production",
+          [service.tokenEnv]: authToken,
+        },
+        stdio: ["ignore", "pipe", "pipe"],
+      },
+    );
+    let storelessStderr = "";
+    storelessProduction.stderr.on("data", (chunk) => {
+      storelessStderr += chunk.toString("utf8");
+    });
+    const storelessExitCode = await waitForExit(storelessProduction);
+    if (storelessExitCode === null) {
+      storelessProduction.kill("SIGTERM");
+      throw new Error(`Expected storeless production ${service.role} service to exit.`);
+    }
+    assert(
+      storelessStderr.includes(service.storeEnv),
+      `Expected missing production store guard for ${service.role}.`,
+    );
+  }
+  console.log("private-pool-v2 role production guards: PASS");
+
   for (const [index, service] of services.entries()) {
     const port = basePort + index;
     const baseUrl = `http://127.0.0.1:${port}`;

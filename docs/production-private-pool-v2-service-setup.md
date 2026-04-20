@@ -38,6 +38,8 @@ VANTA_PRIVATE_POOL_V2_VERIFIER_STORE_PATH=<local-json-snapshot-path>
 
 The service-network check verifies accepted commitments, proof artifacts, relayer quotes, and verifier receipts survive role-service restarts when these paths are configured. This is not production storage; production still needs managed durable database refs and restore evidence.
 
+When `NODE_ENV=production`, each role service refuses to boot unless its role auth token and local/staging store path are configured. The checked guard exists to prevent accidental unauthenticated or stateless production service startup; managed production database refs remain the long-term target.
+
 The checked deployment manifest is:
 
 ```text

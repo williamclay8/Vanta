@@ -224,6 +224,8 @@ VANTA_PRIVATE_POOL_V2_VERIFIER_STORE_PATH=<local-json-snapshot-path>
 
 `npm run private-pool-v2:service-network-check` verifies that accepted commitments, proof artifacts, relayer quotes, and verifier receipts survive role-service restarts through these paths. Treat this as local/staging evidence only; production still requires managed durable database storage and restore evidence.
 
+When `NODE_ENV=production`, every role service refuses to boot without its role bearer token and role store path. This prevents accidental stateless or unauthenticated production startup, but does not replace the production database/restore evidence gate.
+
 Important environment variables:
 
 ```bash
