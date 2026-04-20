@@ -1,0 +1,19 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema-jsonc.json",
+  "entry": [
+    "operator/*.mjs",
+    "scripts/*.{mjs,cjs}"
+  ],
+  "project": [
+    "src/**/*.{ts,tsx,d.ts,mjs}",
+    "operator/**/*.mjs",
+    "scripts/**/*.{mjs,cjs}"
+  ],
+  "paths": {
+    "@/*": ["src/*"]
+  },
+  "ignoreDependencies": [
+    "buffer",
+    "util"
+  ]
+}
