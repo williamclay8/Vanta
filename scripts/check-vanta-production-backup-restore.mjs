@@ -26,6 +26,7 @@ for (const requirement of [
 const requiredStores = new Map([
   ["pay", "vanta-pay-production-db-pending"],
   ["privatePoolV2", "vanta-private-pool-v2-production-db-pending"],
+  ["privatePoolV2Roles", "vanta-private-pool-v2-roles-production-db-pending"],
   ["strategy", "vanta-strategy-production-db-pending"],
   ["operator", "vanta-operator-production-db-pending"],
 ]);

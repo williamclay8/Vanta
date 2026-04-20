@@ -57,6 +57,29 @@
       ]
     },
     {
+      "id": "privatePoolV2Roles",
+      "label": "Private Pool v2 role-service production storage",
+      "databaseRef": "vanta-private-pool-v2-roles-production-db-pending",
+      "backupPolicyRef": "backup-policy/vanta-private-pool-v2-roles-production-pending",
+      "pitrRef": "pitr/vanta-private-pool-v2-roles-production-pending",
+      "encryptionRef": "backup-encryption/vanta-private-pool-v2-roles-production-pending",
+      "restoreDrillRef": "restore-drill/vanta-private-pool-v2-roles-production-pending",
+      "restoreRunbookRef": "docs/operator-runbook.md#private-pool-v2-operator",
+      "accessAuditLogRef": "db-access-audit/vanta-private-pool-v2-roles-production-pending",
+      "leastPrivilegeUserRef": "db-user/vanta-private-pool-v2-roles-production-pending",
+      "tables": [
+        "vanta_private_pool_v2_role_snapshots"
+      ],
+      "blockedUntil": [
+        "production-database-created",
+        "pitr-enabled",
+        "encrypted-backups-enabled",
+        "restore-drill-passed",
+        "least-privilege-user-created",
+        "backup-access-audit-enabled"
+      ]
+    },
+    {
       "id": "strategy",
       "label": "Vanta Strategy production storage",
       "databaseRef": "vanta-strategy-production-db-pending",
