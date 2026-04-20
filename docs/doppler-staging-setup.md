@@ -108,3 +108,17 @@ storage.kind: postgres-jsonb-snapshot-store
 Doppler staging setup does not make Vanta mainnet-ready.
 
 `mainnetReady` and `productionReady` remain `false` until production infrastructure, audit, legal/compliance/custody review, monitoring, and explicit mainnet-funds approval gates are complete.
+
+## Current staging status
+
+As of April 20, 2026, Clay reported Doppler staging setup complete.
+
+External verification confirms the Render staging services remain healthy:
+
+```text
+Pay /health: 200
+Private Pool v2 /health: 200
+Pay /v1/status: privatePoolOperatorConfigured true, durableStoreConfigured true, postgres-jsonb-snapshot-store
+```
+
+This is staging evidence only. It does not prove production Doppler service-token scope, access-log export, or mainnet readiness.
