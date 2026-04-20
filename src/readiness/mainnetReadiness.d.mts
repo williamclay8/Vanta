@@ -23,6 +23,7 @@ export type VantaMainnetReadinessSnapshot = {
   };
   mainnetReady: false;
   nextActions: string[];
+  privacyRail: import("./privacyRailContract.mjs").VantaPrivacyRailContract;
   productionReady: false;
   requiredCommands: string[];
   score: number;

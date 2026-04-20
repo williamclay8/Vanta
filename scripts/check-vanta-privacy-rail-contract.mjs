@@ -14,6 +14,8 @@ assert.ok(existsSync(docsPath), "Missing docs/privacy-rail-contract.md.");
 
 const { createVantaPrivacyRailContract } = await import(`file://${contractPath}`);
 const contract = createVantaPrivacyRailContract();
+const umbraSelected = createVantaPrivacyRailContract({ activeRailId: "umbra-mainnet" });
+const privatePoolSelected = createVantaPrivacyRailContract({ activeRailId: "vanta-private-pool-v2" });
 const docs = readFileSync(docsPath, "utf8");
 const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
 
@@ -23,6 +25,15 @@ assert.equal(contract.productionReady, false);
 assert.equal(contract.meaningfulPrivacyReady, false);
 assert.equal(contract.activeRailId, "alpha-public-warning");
 assert.ok(contract.userFacingRule.includes("Do not claim meaningful privacy"));
+assert.equal(umbraSelected.activeRailId, "umbra-mainnet");
+assert.equal(umbraSelected.activeRail.canClaimMeaningfulPrivacy, false);
+assert.equal(privatePoolSelected.activeRailId, "vanta-private-pool-v2");
+assert.equal(privatePoolSelected.activeRail.canClaimMeaningfulPrivacy, false);
+
+assert.throws(
+  () => createVantaPrivacyRailContract({ activeRailId: "unknown-rail" }),
+  /Unknown Vanta privacy rail/,
+);
 
 for (const railId of ["alpha-public-warning", "umbra-mainnet", "vanta-private-pool-v2"]) {
   const rail = contract.rails.find((candidate) => candidate.id === railId);

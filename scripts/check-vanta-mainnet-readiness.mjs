@@ -7,6 +7,10 @@ assert.equal(snapshot.version, "vanta-mainnet-readiness-0.1");
 assert.equal(snapshot.mainnetReady, false, "Vanta must not report mainnet readiness while blockers remain.");
 assert.equal(snapshot.productionReady, false, "Top-level productionReady must remain false before audit/mainnet gates.");
 assert.equal(snapshot.decision, "blocked");
+assert.equal(snapshot.privacyRail.activeRailId, "alpha-public-warning");
+assert.equal(snapshot.privacyRail.meaningfulPrivacyReady, false);
+assert.equal(snapshot.privacyRail.activeRail.canClaimMeaningfulPrivacy, false);
+assert.ok(snapshot.privacyRail.userFacingRule.includes("Do not claim meaningful privacy"));
 assert.ok(snapshot.score >= 0 && snapshot.score <= 100, "Readiness score must be a percentage.");
 assert.ok(snapshot.blockers.length >= 8, "Mainnet readiness must enumerate concrete blockers.");
 assert.ok(

@@ -1,3 +1,5 @@
+import { createVantaPrivacyRailContract } from "./privacyRailContract.mjs";
+
 const blockers = [
   {
     id: "real-mainnet-private-settlement",
@@ -128,6 +130,7 @@ export function createVantaMainnetReadinessSnapshot() {
   const score = Math.round(
     Object.values(lanes).reduce((sum, lane) => sum + lane.readiness, 0) / Object.keys(lanes).length,
   );
+  const privacyRail = createVantaPrivacyRailContract();
 
   return {
     version: "vanta-mainnet-readiness-0.1",
@@ -137,6 +140,7 @@ export function createVantaMainnetReadinessSnapshot() {
     lanes,
     mainnetReady: false,
     nextActions,
+    privacyRail,
     productionReady: false,
     requiredCommands,
     score,

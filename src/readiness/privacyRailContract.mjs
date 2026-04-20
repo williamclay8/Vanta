@@ -52,10 +52,18 @@ const rails = [
   },
 ];
 
-export function createVantaPrivacyRailContract() {
+export function createVantaPrivacyRailContract(options = {}) {
+  const activeRailId = options.activeRailId ?? "alpha-public-warning";
+  const activeRail = rails.find((rail) => rail.id === activeRailId);
+
+  if (!activeRail) {
+    throw new Error(`Unknown Vanta privacy rail: ${activeRailId}`);
+  }
+
   return {
     version: "vanta-privacy-rail-contract-0.1",
-    activeRailId: "alpha-public-warning",
+    activeRail,
+    activeRailId,
     mainnetReady: false,
     meaningfulPrivacyReady: false,
     productionReady: false,

@@ -11,6 +11,7 @@ export type VantaPrivacyRail = {
 
 export type VantaPrivacyRailContract = {
   version: "vanta-privacy-rail-contract-0.1";
+  activeRail: VantaPrivacyRail;
   activeRailId: VantaPrivacyRailId;
   mainnetReady: false;
   meaningfulPrivacyReady: false;
@@ -20,4 +21,6 @@ export type VantaPrivacyRailContract = {
   userFacingRule: string;
 };
 
-export function createVantaPrivacyRailContract(): VantaPrivacyRailContract;
+export function createVantaPrivacyRailContract(options?: {
+  activeRailId?: VantaPrivacyRailId | string;
+}): VantaPrivacyRailContract;
