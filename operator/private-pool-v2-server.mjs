@@ -17,7 +17,9 @@ const rateLimitPerMinute = Number(process.env.VANTA_PRIVATE_POOL_V2_RATE_LIMIT_P
 const receiptStore = createPrivatePoolV2ReceiptStore({
   path: process.env.VANTA_PRIVATE_POOL_V2_STORE_PATH,
 });
-const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-private-pool-v2-operator-"));
+const tempParent = resolve(repoRoot, ".tmp");
+mkdirSync(tempParent, { recursive: true });
+const tempRoot = mkdtempSync(resolve(tempParent, "vanta-private-pool-v2-operator-"));
 const tempTsDir = join(tempRoot, "ts");
 const tempJsDir = join(tempRoot, "js");
 const sourceFiles = [

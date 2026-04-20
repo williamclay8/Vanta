@@ -19,7 +19,9 @@ const rateLimitPerMinute = Number(process.env.VANTA_PAY_RATE_LIMIT_PER_MINUTE ??
 const storePath = process.env.VANTA_PAY_STORE_PATH
   ? resolve(process.env.VANTA_PAY_STORE_PATH)
   : null;
-const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-pay-operator-"));
+const tempParent = resolve(repoRoot, ".tmp");
+mkdirSync(tempParent, { recursive: true });
+const tempRoot = mkdtempSync(resolve(tempParent, "vanta-pay-operator-"));
 const tempTsDir = join(tempRoot, "ts");
 const tempJsDir = join(tempRoot, "js");
 const sourceFiles = [
