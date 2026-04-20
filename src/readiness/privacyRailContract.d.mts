@@ -21,6 +21,20 @@ export type VantaPrivacyRailContract = {
   userFacingRule: string;
 };
 
+export type VantaPrivacyClaimDecision = {
+  activeRailId: VantaPrivacyRailId;
+  allowed: boolean;
+  blockers: string[];
+  requestedClaim: string;
+  requiredEvidence: string[];
+  userFacingCopy: string;
+};
+
 export function createVantaPrivacyRailContract(options?: {
   activeRailId?: VantaPrivacyRailId | string;
 }): VantaPrivacyRailContract;
+
+export function createVantaPrivacyClaimDecision(options: {
+  activeRailId?: VantaPrivacyRailId | string;
+  requestedClaim: string;
+}): VantaPrivacyClaimDecision;

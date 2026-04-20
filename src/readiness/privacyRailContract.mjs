@@ -77,3 +77,21 @@ export function createVantaPrivacyRailContract(options = {}) {
       "Do not claim meaningful privacy unless the selected rail has live mainnet evidence, relayer separation, nullifier/replay enforcement, safe logging, and reviewed limitations.",
   };
 }
+
+export function createVantaPrivacyClaimDecision({ activeRailId, requestedClaim }) {
+  const contract = createVantaPrivacyRailContract({ activeRailId });
+  const allowed = contract.activeRail.canClaimMeaningfulPrivacy === true;
+  const alphaCopy =
+    "Vanta is running in experimental mainnet alpha mode. Do not treat this transaction as meaningfully private.";
+  const blockedCopy =
+    "This privacy rail is not ready to claim private transactions. Continue only with the documented limitations.";
+
+  return {
+    activeRailId: contract.activeRailId,
+    allowed,
+    blockers: allowed ? [] : contract.activeRail.blockers,
+    requestedClaim,
+    requiredEvidence: contract.activeRail.requiredEvidence,
+    userFacingCopy: contract.activeRailId === "alpha-public-warning" ? alphaCopy : blockedCopy,
+  };
+}

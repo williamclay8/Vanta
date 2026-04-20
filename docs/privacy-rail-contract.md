@@ -50,6 +50,8 @@ It cannot claim meaningful privacy until Vanta has refs for:
 
 Do not claim meaningful privacy unless the selected rail has live mainnet evidence, relayer separation, nullifier/replay enforcement, safe logging, and reviewed limitations.
 
+Use `createVantaPrivacyClaimDecision` before future UI/operator surfaces describe a transaction as private. The helper fails closed and returns user-safe copy plus the missing evidence for the selected rail.
+
 ## Verification
 
 Run:

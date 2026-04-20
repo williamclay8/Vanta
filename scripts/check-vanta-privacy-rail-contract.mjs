@@ -12,7 +12,7 @@ assert.ok(existsSync(contractPath), "Missing src/readiness/privacyRailContract.m
 assert.ok(existsSync(declarationPath), "Missing src/readiness/privacyRailContract.d.mts.");
 assert.ok(existsSync(docsPath), "Missing docs/privacy-rail-contract.md.");
 
-const { createVantaPrivacyRailContract } = await import(`file://${contractPath}`);
+const { createVantaPrivacyClaimDecision, createVantaPrivacyRailContract } = await import(`file://${contractPath}`);
 const contract = createVantaPrivacyRailContract();
 const umbraSelected = createVantaPrivacyRailContract({ activeRailId: "umbra-mainnet" });
 const privatePoolSelected = createVantaPrivacyRailContract({ activeRailId: "vanta-private-pool-v2" });
@@ -34,6 +34,22 @@ assert.throws(
   () => createVantaPrivacyRailContract({ activeRailId: "unknown-rail" }),
   /Unknown Vanta privacy rail/,
 );
+
+const alphaDecision = createVantaPrivacyClaimDecision({
+  activeRailId: "alpha-public-warning",
+  requestedClaim: "meaningful-private-transaction",
+});
+assert.equal(alphaDecision.allowed, false);
+assert.equal(alphaDecision.activeRailId, "alpha-public-warning");
+assert.ok(alphaDecision.userFacingCopy.includes("experimental"));
+assert.ok(alphaDecision.blockers.some((blocker) => blocker.includes("no real privacy rail selected")));
+
+const privatePoolDecision = createVantaPrivacyClaimDecision({
+  activeRailId: "vanta-private-pool-v2",
+  requestedClaim: "meaningful-private-transaction",
+});
+assert.equal(privatePoolDecision.allowed, false);
+assert.ok(privatePoolDecision.userFacingCopy.includes("not ready to claim private transactions"));
 
 for (const railId of ["alpha-public-warning", "umbra-mainnet", "vanta-private-pool-v2"]) {
   const rail = contract.rails.find((candidate) => candidate.id === railId);
