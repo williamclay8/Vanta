@@ -16,7 +16,7 @@ Vanta is a zk-powered privacy layer for Solana that lets users shield supported 
 
 Vanta is building a practical privacy layer for Solana. The project starts with the first complete Vanta loop: **Shield + Private Send**, allowing users to move supported assets out of transparent wallet flows and into a shielded state designed for more private activity. From that foundation, Vanta expands toward private swaps, private payments, and broader privacy-native workflows for users, traders, teams, builders, and commerce.
 
-Vanta currently supports a constrained real devnet lifecycle for one supported asset, VUSD, including wallet-connected Shield, note-based shielded state, constrained Send transitions, a constrained one-way `VUSD -> SOL` Meteora-backed swap lane, and operator-backed `VUSD` and `SOL` unshield with authenticated request intent and operator-side verification of referenced onchain transition state. The current implementation is intentionally narrow and does not yet provide final zk privacy semantics, but it is no longer only a front-end prototype.
+Vanta currently supports a constrained real devnet lifecycle for VUSD plus native SOL shield entry. VUSD remains the frozen private-core asset for the current send/proof lane, while native SOL now shields directly into shielded SOL state instead of being converted into VUSD first. The app also includes note-based shielded state, constrained Send transitions, a constrained one-way `VUSD -> SOL` Meteora-backed swap lane, and operator-backed `VUSD` and `SOL` unshield with authenticated request intent and operator-side verification of referenced onchain transition state. The current implementation is intentionally narrow and does not yet provide final zk privacy semantics, but it is no longer only a front-end prototype.
 
 The repo also now contains a standalone **Vanta Private Core** zk lane for the first real single-note unshield proof boundary, including a fixed-depth Noir circuit, local proof generation and verification, replay rejection, and an operator-backed proof/registration/consume path.
 
@@ -36,6 +36,8 @@ For the hackathon, Vanta is presented as a focused but ambitious privacy suite:
 - a clear roadmap from private transfer infrastructure to broader Solana commerce and ecosystem workflows
 
 Vanta is designed for users, traders, teams, builders, and eventually merchants who need more than speed and low fees; they need discretion.
+
+The app also now includes an early Strategy surface for whale-facing private execution: Stealth DCA and Private TWAP. This is currently a verified intent/planning, execution-preview, and local runtime layer, not live autonomous trading. It creates deterministic child-order plans with randomized sizing/cadence defaults, protected landing policy, funding-source handling, private-destination defaults, non-live Jupiter/Jito/private-settlement job envelopes, and idempotent strategy records so future adapters have typed boundaries instead of raw UI state.
 
 ---
 
@@ -84,13 +86,15 @@ The MVP is **Shield + Private Send**:
 
 ## Current implementation status
 
-Vanta currently supports a constrained real devnet lifecycle for one supported asset, `VUSD`.
+Vanta currently supports a constrained real devnet lifecycle for `VUSD` plus a direct native SOL shield-entry lane.
 
 ### Live now
 - real wallet connection
 - real public wallet balance detection for `VUSD`
+- real native SOL shield transfer into shielded SOL state, so SOL remains SOL when shielding
 - real shield deposits into a Vanta-controlled path
 - real onchain shield notes
+- real onchain native SOL shield-state notes
 - real onchain send notes
 - real constrained `VUSD -> SOL` Meteora devnet swap
 - real shielded `SOL` output notes
@@ -118,7 +122,7 @@ Vanta currently supports a constrained real devnet lifecycle for one supported a
 - no broad recipient-private send product semantics yet
 - no generalized multi-asset support yet
 - no symmetric two-way market proof yet
-- pay remains future work
+- Pay is implemented as a local merchant-product harness, but is not a deployed processor yet
 
 The current Unshield path is operator-backed and intentionally constrained, but it now requires authenticated wallet intent, verifies referenced onchain transition state before release, and persists completed release records to prevent duplicate execution across restarts.
 
@@ -151,7 +155,8 @@ Because send alone lacks a clean product foundation. Shield + Private Send forms
 ### Application
 - Shield as the primary entrypoint
 - Send as the first workflow unlocked by shielded state
-- Swap and Pay as future-facing modules
+- Swap as a constrained route today, and Pay as a local merchant-product harness backed by the shared private-settlement lane
+- Strategy as a minimal Stealth DCA / Private TWAP creation surface with a deterministic child-order planner
 - shared app-level continuity between Shield and Send
 - internal Vanta Private Core diagnostics and proof-boundary views for the first zk lane
 
@@ -161,6 +166,100 @@ Because send alone lacks a clean product foundation. Shield + Private Send forms
 ---
 
 ## Technical checkpoints
+
+The repo now includes a **Vanta Pay merchant integration** verification lane:
+
+- `npm run pay-tab:copy-check`
+  verifies the Pay tab uses commerce-first language and rejects banned merchant-flow protocol vocabulary.
+- `npm run pay:contract-check`
+  verifies the static Pay contract surface for runtime versioning, store schema versioning, status surfaces, checkout idempotency, checkout-completion retry idempotency, refund idempotency, withdrawal idempotency, merchant-visible refund amount tracking, refund API coverage, webhook timestamp-tolerance verification, production HTTPS webhook delivery guardrails, Private Pool v2 settlement auth-token forwarding, production secret guards, payment-link API coverage, and canonical `pay:verify` inclusion.
+- `npm run pay:status` / `npm run pay:status-json`
+  print human and machine-readable Pay status, including private-settlement, idempotency, webhook, durable-store, production-guard, browser-checkout, and `productionReady: false` fields.
+- `npm run pay:operator`
+  starts the local Vanta Pay merchant API operator.
+- `npm run pay:merchant-api-check`
+  verifies the typed Pay runtime and local merchant API for production secret and durable-store guards, production HTTPS webhook delivery guardrails, machine-readable operator status with durable-store configuration, idempotency, and production-guard capabilities, hosted checkout sessions, checkout idempotency and conflict rejection, checkout-completion retry idempotency, refund idempotency and conflict rejection, withdrawal idempotency and conflict rejection, fail-closed request validation, internal privacy routes, Private Pool v2-backed private-rail-gated payment completion through an auth-protected operator, payment/receipt detail lookup, receipt creation with audit-disclosure references, payment-link creation, refunds with balance adjustment and merchant-visible refunded amount tracking, webhook signing with timestamp-tolerance verification, webhook delivery/retry records, private-settlement-derived balances, private-exit-gated withdrawals, schema-versioned operator restart persistence, restart-safe refund/withdrawal idempotency retries, payment links, and invoices.
+- `npm run pay:browser-check`
+  starts the Vanta app locally and runs browser-backed assertions across the Pay landing, checkout, payment-link, and withdrawal screens, including a checkout assertion that the success receipt appears only after `Pay Privately` is clicked.
+- `npm run pay:verify`
+  runs the Pay status surfaces, copy check, merchant API check, browser-backed Pay check, security limitations check, and production app build.
+
+The Pay layer is designed as the merchant product surface: create a checkout session, render hosted or embedded checkout, and receive signed webhook events when paid. Completed Pay states now require private settlement receipts from `src/pay/vantaPayPrivateSettlementAdapter.ts`, which currently routes through the Vanta Private Pool v2 local proof/receipt runtime and can use the operator-owned `/private-pool-v2/pay-settlements` endpoint through `VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_URL`. Merchant copy remains commerce-first. It is still a local MVP harness, not a deployed processor.
+
+The repo now includes an early **Vanta Strategy** verification lane:
+
+- `npm run strategy:planner-check`
+  verifies deterministic Stealth DCA / Private TWAP planning, randomized child-order sizing, total-notional reconciliation, private-balance funding behavior, public-balance move-to-private behavior, RFQ allowance for Private TWAP, protected landing policy, and invalid-notional rejection.
+- `npm run strategy:execution-adapter-check`
+  verifies Strategy plans become non-live execution previews with private-funding preparation, Jupiter quote/build/submit job shape, Jito protected landing, private destination settlement, route-quality deferral, slippage skipping, and protected-landing downgrade/retry behavior.
+- `npm run strategy:runtime-check`
+  verifies local Strategy create/list/start/pause/cancel semantics, idempotent create retries, conflict rejection for mutated retries, runtime-backed execution previews, waiting status for poor-route deferral, and canceled-strategy start rejection.
+- `npm run strategy-tab:copy-check`
+  verifies the Strategy tab copy, `/app/strategy` route, central tab placement, and banned advanced/protocol vocabulary exclusions.
+- `npm run protocol:browser-check`
+  now includes browser-backed assertions across Shield, Send, Swap, Strategy, and Unshield action surfaces.
+
+The Strategy surface is an execution-console product layer today. It does not submit live Jupiter swaps, Jito bundles, or private-settlement transactions yet. The important progress is that Strategy intent now crosses typed planner, execution-preview, and local runtime boundaries before future adapters touch funds.
+
+The repo now includes a **mainnet readiness** gate:
+
+- `npm run mainnet:readiness` / `npm run mainnet:readiness-json`
+  prints human and machine-readable readiness status across Pay, Private Core, Private Pool v2, protocol tabs, and Strategy.
+- `npm run mainnet:readiness-check`
+  verifies Vanta remains truthfully blocked from mainnet while real private settlement, deployed services, nullifier enforcement, wallet safety, audits, key management, and legal/custody blockers remain.
+- `npm run mainnet:service-contract-check`
+  verifies the required production service contracts for indexer, relayer, prover, verifier, and operator surfaces.
+- `npm run mainnet:storage-contract-check`
+  verifies the production storage contract for Pay, Private Pool v2, Strategy, and Operator state, including durable tables, unique indexes, forward-only migrations, point-in-time recovery, encrypted backups, restore drills, idempotent writes, replay-safe uniqueness, least-privilege database users, and no secret values in manifests.
+- `npm run mainnet:storage-migration-check`
+  verifies the baseline Postgres migration at `ops/storage/postgres/001_vanta_mainnet_storage.sql` covers Pay, Private Pool v2, Strategy, and Operator tables, replay-safe nullifier uniqueness, Pay idempotency, webhook retry state, strategy child-order uniqueness, and operator deployment locks.
+- `npm run storage:adapter-check`
+  verifies the reusable local snapshot-store adapter seam that Pay and Private Pool v2 now use before a production database adapter is wired.
+- `npm run mainnet:abuse-observability-check`
+  verifies the production abuse and observability contract for Pay, Private Pool v2, Strategy, and Operator surfaces, including rate limits, structured JSON logs, privacy-preserving telemetry, no secret/private-input logging, metrics, alerts, audit events, operator alert routing, and an abuse-response runbook.
+- `npm run ops:rate-limit-check`
+  verifies the shared in-process rate-limit seam now attached to Pay and Private Pool v2. This is a local fail-closed control point, not the final distributed production limiter.
+- `npm run nullifier:replay-guard-check`
+  verifies the reusable nullifier replay guard now used by Private Pool v2 claim preflight and accepted-claim reservation. This is local operator enforcement and still needs durable production storage plus final deployed protocol enforcement before mainnet.
+- `npm run mainnet:deployment-manifest-check`
+  verifies the secrets-safe mainnet service manifest at `ops/mainnet/private-pool-v2-services.manifest.json`.
+- `npm run wallet:signing-safety-check`
+  verifies live mainnet submission remains disabled, simulation and transaction summaries are required before signatures, and private keys/seed phrases are never requested or stored.
+- `npm run wallet:transaction-safety-check`
+  verifies the executable transaction-safety summary boundary for future wallet signing paths, including simulation binding, required summary fields, fail-closed mainnet approval, and no blind signing.
+- `npm run mainnet:secret-handling-check`
+  verifies the secret-handling contract for Pay, Private Pool v2, Strategy, Operator, and wallet boundaries, including secret-manager requirements, least-privilege service identities, names-only manifests, rotation, incident revocation, audit logging, and no private-key/seed/keypair handling.
+- `npm run audit:package-check`
+  verifies the audit handoff package exists and covers circuit, operator, browser/wallet, custody/key-management, non-production boundaries, and required verification commands.
+- `npm run mainnet:preflight`
+  runs the readiness, service-contract, storage-contract, storage-migration, storage-adapter, abuse/observability, rate-limit, nullifier-replay, deployment-manifest, wallet-safety, transaction-safety, secret-handling, audit-package, security-limitations, and operator-runbook gates together.
+
+This does not make Vanta mainnet-ready by itself. It makes the remaining blockers explicit, checked, and harder to accidentally bypass.
+
+The repo now also includes an early **Vanta Private Pool v2 / Option B** verification lane for the Umbra-inspired, Vanta-owned privacy-core expansion:
+
+- `npm run private-pool-v2:contract-check`
+  verifies the typed benchmark contract, capability profile, mock runtime, local indexer, local relayer, local prover, shield proof request surface, Noir shield-entry circuit files, and local runtime smoke script are all present.
+- `npm run private-pool-v2:local-runtime-check`
+  exercises the local Option B runtime by appending a commitment, resolving a Merkle proof, proving and verifying shield/claim requests, rejecting a tampered proof, registering a nullifier, rejecting duplicate nullifiers, submitting a relayer claim, and rejecting relayer quote replay.
+- `npm run private-pool-v2:shield-circuit-check`
+  runs the first Noir-backed Private Pool v2 shield-entry circuit with valid, invalid public-binding, and invalid append-root fixtures.
+- `npm run private-pool-v2:claim-circuit-check`
+  runs the first Noir-backed Private Pool v2 claim/spend circuit with valid, invalid public-binding, and invalid nullifier fixtures.
+- `npm run private-pool-v2:shield-prove` / `npm run private-pool-v2:claim-prove`
+  generate and verify local Barretenberg UltraHonk proofs for the current shield and claim circuits.
+- `npm run private-pool-v2:status` / `npm run private-pool-v2:status-json`
+  print human and machine-readable Option B status, including indexer, prover, relayer, verifier-registry readiness, settlement policy, protocol action proof modes, and `productionReady: false`.
+- `npm run private-pool-v2:http-smoke`
+  starts the local Private Pool v2 operator, verifies production auth-token and durable-store guardrails plus optional bearer-token protection, verifies status and receipt endpoints, verifies the machine-readable settlement policy including production durable-store requirements, rejects malformed settlement requests, submits shield and claim proof payloads over HTTP, confirms both receipts, rejects duplicate claim replay, verifies Pay checkout/withdrawal settlement receipts with settlement fingerprints, verifies repeated Pay checkout/withdrawal/protocol settlement requests are idempotent, rejects conflicting settlement-ID replays with changed inputs, and verifies protocol Shield/Send/Swap/Unshield settlement receipts.
+- `npm run private-pool-v2:protocol-client-check`
+  verifies the typed browser/app client can fetch operator policy, fetch settlement status, submit a protocol Shield settlement, and read the resulting proof-backed settlement receipt from the operator status surface.
+- `npm run private-pool-v2:restart-check`
+  starts the local Private Pool v2 operator against a JSON store, submits shield and claim proof payloads plus Pay/protocol settlement receipts, verifies schema-v2 persistence of settlement policy and fingerprints, restarts the operator, verifies proof and settlement receipts are restored, proves the shield commitment tree resumes at the next leaf, and confirms the restarted operator still rejects duplicate claim replay.
+- `npm run private-pool-v2:verify`
+  runs the current end-to-end Option B benchmark gate across the contract, local runtime, proof requests, shield/claim circuits, proof generation, proof verification, status surfaces, HTTP operator smoke, typed protocol client check, restart smoke, security limitations check, and app build.
+
+This is not yet a production deployed mixer. It is the current Vanta-owned benchmark lane for building toward a broader shared private pool without hardwiring the product to one external SDK.
 
 The repo now includes concrete verification commands for the Vanta Private Core proof lane:
 
@@ -211,6 +310,8 @@ The repo now includes concrete verification commands for the Vanta Private Core 
 - `npm run private-core:send-chain-http-smoke`
   proves the operator can verify two private send transitions in sequence on evolving private state and keep the latest send summary linked coherently
 - the `Send` page now includes an app-path `Verify private send proof` action that exercises the same operator-backed send witness lane from the product UI
+- `npm run protocol:browser-check`
+  starts the Vanta app locally and runs browser-backed assertions across Shield, Send, Swap, Strategy, and Unshield action surfaces.
 - `npm run private-core:verify`
   runs the full stack:
   - app build
@@ -240,6 +341,7 @@ The repo now includes concrete verification commands for the Vanta Private Core 
   - real unshield proof generation and verification
   - real send proof generation and verification
   - real swap proof generation and verification
+  - browser-backed Shield, Send, Swap, and Unshield action-surface verification
 - `npm run private-core:demo-readiness`
   aliases the same full verification pass with a more reviewer-friendly name
 - `npm run private-core:demo-preflight`
@@ -400,13 +502,13 @@ The project is intentionally product-led:
 
 ## Demo script - 30 seconds
 
-Vanta is a zk-powered privacy layer for Solana that starts with the right first primitive: shielding. Today, Vanta already supports a constrained real devnet lifecycle for one supported asset, VUSD, where users can connect a wallet, Shield into Vanta’s note-based state, move value through constrained Send transitions, swap through a constrained one-way `VUSD -> SOL` lane, and Unshield both `VUSD` and shielded `SOL` back to Public Wallet through authenticated operator-backed flows. It is intentionally narrow, but it proves the core architecture is becoming real.
+Vanta is a zk-powered privacy layer for Solana that starts with the right first primitive: shielding. Today, Vanta already supports a constrained real devnet lifecycle where users can connect a wallet, Shield VUSD into Vanta’s note-based state, shield native SOL directly into shielded SOL state, move value through constrained Send transitions, swap through a constrained one-way `VUSD -> SOL` lane, and Unshield both `VUSD` and shielded `SOL` back to Public Wallet through authenticated operator-backed flows. It is intentionally narrow, but it proves the core architecture is becoming real.
 
 Alongside that, the repo now includes the first executable Vanta Private Core unshield circuit and operator-backed proof lane, so the zk boundary is no longer only hypothetical.
 
 ## Demo script - 60 seconds
 
-Solana is fast and accessible, but holding and moving assets on it is public by default. Vanta is our answer: a privacy layer for Solana that begins with shielding supported assets into a separate Vanta state system. Today, the project already supports a constrained real devnet lifecycle for one asset, VUSD: users can connect a wallet, Shield into Vanta, create and evolve note-based shielded state, execute constrained Send transitions, swap through a constrained one-way `VUSD -> SOL` Meteora-backed lane, and Unshield both `VUSD` and shielded `SOL` back to Public Wallet through authenticated operator-backed flows that verify the referenced onchain transition before release and persist completed release records across restarts. It is not yet the final zk privacy system, but it is no longer just a front-end concept - it is an early protocol loop with real state transitions and a meaningfully hardened operator boundary.
+Solana is fast and accessible, but holding and moving assets on it is public by default. Vanta is our answer: a privacy layer for Solana that begins with shielding supported assets into a separate Vanta state system. Today, the project already supports a constrained real devnet lifecycle for VUSD and direct native SOL shield entry: users can connect a wallet, Shield into Vanta, create and evolve note-based shielded state, execute constrained Send transitions, swap through a constrained one-way `VUSD -> SOL` Meteora-backed lane, and Unshield both `VUSD` and shielded `SOL` back to Public Wallet through authenticated operator-backed flows that verify the referenced onchain transition before release and persist completed release records across restarts. It is not yet the final zk privacy system, but it is no longer just a front-end concept - it is an early protocol loop with real state transitions and a meaningfully hardened operator boundary.
 
 The repo also now includes a standalone Vanta Private Core proof lane with a fixed-depth Noir single-note unshield circuit, local proof generation and verification, operator-backed consume and release checks, and replay rejection. That lane is still narrow, but it makes the first real zk boundary concrete today instead of leaving it as future architecture only.
 
@@ -416,7 +518,7 @@ The repo also now includes a standalone Vanta Private Core proof lane with a fix
 
 ### Does Vanta actually work today?
 
-Yes, in a constrained devnet form for one supported asset, VUSD. Users can connect a wallet, Shield the asset into Vanta’s note-based state, execute constrained Send transitions, swap through a constrained one-way `VUSD -> SOL` lane, and Unshield both `VUSD` and shielded `SOL` back to Public Wallet through authenticated operator-backed flows with onchain transition verification. The implementation is still early and does not yet provide final zk privacy semantics.
+Yes, in a constrained devnet form for VUSD plus direct native SOL shield entry. Users can connect a wallet, Shield VUSD into Vanta’s note-based state, shield native SOL directly into shielded SOL state, execute constrained Send transitions, swap through a constrained one-way `VUSD -> SOL` lane, and Unshield both `VUSD` and shielded `SOL` back to Public Wallet through authenticated operator-backed flows with onchain transition verification. The implementation is still early and does not yet provide final zk privacy semantics.
 
 Separately, the repo also contains a real standalone private-core proof lane for the first single-note unshield consume boundary.
 
@@ -562,7 +664,7 @@ Because send alone lacks a clean product foundation. Shield + Private Send forms
 
 ### What is live now versus roadmap?
 
-The current implementation supports a constrained real devnet lifecycle for `VUSD` with real wallet connection, real deposit-backed Shield, note-based state evolution through Send, a constrained one-way `VUSD -> SOL` swap lane, and constrained operator-backed `VUSD` and `SOL` unshield. Pay and broader generalization remain future work.
+The current implementation supports a constrained real devnet lifecycle for `VUSD` with real wallet connection, real deposit-backed Shield, note-based state evolution through Send, a constrained one-way `VUSD -> SOL` swap lane, direct native SOL shield entry into shielded SOL state, and constrained operator-backed `VUSD` and `SOL` unshield. Pay now exists as a local merchant-product harness with Private Pool v2-backed settlement receipts, signed webhooks, browser checks, and JSON persistence, but it is not a deployed payment processor yet. Broader generalization remains future work.
 
 The repo also includes the first Vanta Private Core proof lane with local proof generation, operator-backed verification, and replay rejection, but broader zk product completion remains future work.
 

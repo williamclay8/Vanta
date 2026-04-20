@@ -7,6 +7,8 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      buffer: "buffer/",
+      util: "util/",
     },
   },
   build: {
@@ -14,29 +16,47 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
+          const normalizedId = id.split(path.sep).join("/");
+
           if (id.includes("src/components/InternalCanonicalLifecyclePanel")) {
             return "canonical-lifecycle-panel";
           }
-          if (id.includes("@noble/") || id.includes("poseidon-lite")) {
-            return "vendor-private-core-crypto";
+          if (normalizedId.includes("node_modules/@noble/curves")) {
+            return "vendor-noble-curves";
+          }
+          if (normalizedId.includes("node_modules/@noble/ciphers")) {
+            return "vendor-noble-ciphers";
           }
           if (
-            id.includes("src/data/context/PrivacyFlowContext") ||
-            id.includes("src/zk/vantaPrivateCore") ||
-            id.includes("src/zk/vantaPrivateCoreUnshieldProof") ||
-            id.includes("src/zk/vantaPrivateCoreOperatorClient")
+            normalizedId.includes("node_modules/@noble/hashes") ||
+            normalizedId.includes("node_modules/poseidon-lite")
           ) {
+            return "vendor-private-core-hashes";
+          }
+          if (normalizedId.includes("src/data/context/PrivacyFlowContext")) {
             return "private-core-runtime";
           }
-          if (id.includes("react") || id.includes("react-router-dom")) {
-            return "vendor-react";
+          if (normalizedId.includes("src/zk/vantaPrivateCore")) {
+            return "private-core-runtime";
+          }
+          if (normalizedId.includes("node_modules/@solana/react-hooks")) {
+            return "vendor-solana-react";
           }
           if (
-            id.includes("@solana/") ||
-            id.includes("@coral-xyz/") ||
-            id.includes("@meteora-ag/")
+            normalizedId.includes("node_modules/react/") ||
+            normalizedId.includes("node_modules/react-dom/") ||
+            normalizedId.includes("node_modules/react-router-dom/")
           ) {
-            return "vendor-solana";
+            return "vendor-react";
+          }
+          if (normalizedId.includes("node_modules/@meteora-ag/")) {
+            return "vendor-meteora";
+          }
+          if (normalizedId.includes("node_modules/@coral-xyz/")) {
+            return "vendor-anchor";
+          }
+          if (normalizedId.includes("node_modules/@solana/")) {
+            return "vendor-solana-core";
           }
         },
       },

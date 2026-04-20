@@ -1,0 +1,242 @@
+{
+  "version": "vanta-mainnet-external-gates-packet-0.1",
+  "mainnetReady": false,
+  "productionReady": false,
+  "secretPolicy": "references-only-no-secret-values",
+  "realFundsPolicy": "explicit-human-approval-required",
+  "purpose": "Turn Vanta's external mainnet blockers into a secrets-safe launch handoff packet.",
+  "allowedReferenceNames": [
+    "VANTA_INDEXER_URL_REF",
+    "VANTA_RELAYER_URL_REF",
+    "VANTA_PROVER_URL_REF",
+    "VANTA_VERIFIER_URL_REF",
+    "VANTA_OPERATOR_URL_REF",
+    "VANTA_SECRET_MANAGER_REF",
+    "VANTA_PRODUCTION_DATABASE_REF",
+    "VANTA_AUDIT_REPORT_REF",
+    "VANTA_LEGAL_REVIEW_REF",
+    "VANTA_CUSTODY_REVIEW_REF",
+    "VANTA_MONITORING_DASHBOARD_REF",
+    "VANTA_INCIDENT_RUNBOOK_REF",
+    "VANTA_MAINNET_APPROVAL_RECORD_REF"
+  ],
+  "globalForbiddenInGit": [
+    "private keys",
+    "seed phrases",
+    "wallet keypair files",
+    "raw RPC credentials",
+    "raw database URLs",
+    "raw API tokens",
+    "raw webhook secrets",
+    "raw bearer tokens",
+    "customer private inputs"
+  ],
+  "gates": [
+    {
+      "id": "deployed-services",
+      "status": "not-provisioned",
+      "externalGate": true,
+      "owner": "infrastructure-operator",
+      "summary": "Deploy mainnet-compatible indexer, relayer, prover, verifier, and operator services with health and readiness endpoints.",
+      "requiredEvidence": [
+        "non-secret service URL references for indexer, relayer, prover, verifier, and operator",
+        "service-to-service auth reference names",
+        "health endpoint evidence",
+        "readiness endpoint evidence",
+        "rollback target reference"
+      ],
+      "forbiddenInGit": [
+        "operator tokens",
+        "service auth secrets",
+        "RPC auth values",
+        "deployment private keys"
+      ],
+      "verificationCommands": [
+        "npm run mainnet:service-contract-check",
+        "npm run mainnet:service-topology-check",
+        "npm run mainnet:deployment-manifest-check"
+      ],
+      "approvalGate": "production service URLs and auth references are provided without secret values"
+    },
+    {
+      "id": "production-storage",
+      "status": "not-provisioned",
+      "externalGate": true,
+      "owner": "database-operator",
+      "summary": "Provision durable production storage, migrations, encrypted backups, restore drills, and least-privilege users.",
+      "requiredEvidence": [
+        "production database reference name",
+        "migration application evidence",
+        "point-in-time recovery evidence",
+        "encrypted backup policy",
+        "restore drill result",
+        "least-privilege database role evidence"
+      ],
+      "forbiddenInGit": [
+        "raw database URLs",
+        "database passwords",
+        "backup decryption keys",
+        "replication secrets"
+      ],
+      "verificationCommands": [
+        "npm run mainnet:storage-contract-check",
+        "npm run mainnet:storage-migration-check",
+        "npm run storage:adapter-check"
+      ],
+      "approvalGate": "production database and backup refs exist and restore drill has passed"
+    },
+    {
+      "id": "secret-manager",
+      "status": "not-provisioned",
+      "externalGate": true,
+      "owner": "security-operator",
+      "summary": "Provision a production secret manager with least-privilege identities, rotation, revocation, and access audit logs.",
+      "requiredEvidence": [
+        "secret manager reference name",
+        "service identity references",
+        "rotation runbook reference",
+        "incident revocation runbook reference",
+        "access audit log reference"
+      ],
+      "forbiddenInGit": [
+        "private keys",
+        "seed phrases",
+        "raw service tokens",
+        "raw webhook secrets",
+        "raw API keys"
+      ],
+      "verificationCommands": [
+        "npm run mainnet:secret-handling-check"
+      ],
+      "approvalGate": "all production secrets are represented by refs, not values"
+    },
+    {
+      "id": "wallet-signing-safety",
+      "status": "blocked",
+      "externalGate": true,
+      "owner": "wallet-product-and-security",
+      "summary": "Complete browser-backed wallet signing review before any live transaction path requests real signatures.",
+      "requiredEvidence": [
+        "browser-backed simulation evidence",
+        "wallet approval summary screenshots or test artifacts",
+        "mainnet transaction gating evidence",
+        "blind-signing rejection evidence"
+      ],
+      "forbiddenInGit": [
+        "wallet private keys",
+        "seed phrases",
+        "keypair files",
+        "signed real-fund transactions"
+      ],
+      "verificationCommands": [
+        "npm run wallet:signing-safety-check",
+        "npm run wallet:transaction-safety-check",
+        "npm run protocol:browser-check",
+        "npm run pay:browser-check"
+      ],
+      "approvalGate": "wallet signing is simulated, summarized, and explicitly approved before any mainnet signature"
+    },
+    {
+      "id": "third-party-security-audit",
+      "status": "blocked",
+      "externalGate": true,
+      "owner": "independent-security-reviewer",
+      "summary": "Complete independent review of circuits, proof boundaries, operators, browser flows, key management, custody assumptions, and deployment runbooks.",
+      "requiredEvidence": [
+        "audit scope agreement reference",
+        "audit report reference",
+        "critical/high findings disposition",
+        "fix verification reference",
+        "final security review decision"
+      ],
+      "forbiddenInGit": [
+        "under-NDA report contents unless cleared",
+        "private exploit details without responsible disclosure controls",
+        "secrets used in audit environments"
+      ],
+      "verificationCommands": [
+        "npm run audit:package-check",
+        "npm run mainnet:preflight",
+        "npm run private-core:verify",
+        "npm run private-pool-v2:verify",
+        "npm run pay:verify"
+      ],
+      "approvalGate": "independent reviewer has signed off or all blocking findings are resolved"
+    },
+    {
+      "id": "legal-compliance-custody",
+      "status": "blocked",
+      "externalGate": true,
+      "owner": "legal-compliance-custody-reviewer",
+      "summary": "Complete legal, compliance, custody, sanctions, merchant-processing, and incident-response review before real user funds.",
+      "requiredEvidence": [
+        "legal review reference",
+        "compliance review reference",
+        "custody model decision reference",
+        "merchant-processing policy reference",
+        "jurisdiction and sanctions-screening decision reference"
+      ],
+      "forbiddenInGit": [
+        "customer personal data",
+        "merchant private financial data",
+        "privileged legal advice unless explicitly cleared"
+      ],
+      "verificationCommands": [
+        "npm run security:limitations-check"
+      ],
+      "approvalGate": "legal, compliance, and custody reviewers approve the intended launch scope"
+    },
+    {
+      "id": "mainnet-funds-approval",
+      "status": "blocked",
+      "externalGate": true,
+      "owner": "human-launch-approver",
+      "summary": "Keep real funds and mainnet transactions blocked until explicit human approval exists for a specific launch action.",
+      "requiredEvidence": [
+        "mainnet approval record reference",
+        "approved wallet and fee-payer reference",
+        "approved launch window",
+        "approved transaction or runbook step",
+        "rollback and stop-loss plan reference"
+      ],
+      "forbiddenInGit": [
+        "private wallet keys",
+        "seed phrases",
+        "keypair files",
+        "raw signing credentials"
+      ],
+      "verificationCommands": [
+        "npm run mainnet:readiness-check",
+        "npm run wallet:transaction-safety-check"
+      ],
+      "approvalGate": "explicit approval before mainnet funds is recorded for the exact action"
+    },
+    {
+      "id": "monitoring-incident-response",
+      "status": "not-provisioned",
+      "externalGate": true,
+      "owner": "site-reliability-and-security-operator",
+      "summary": "Provision dashboards, alerts, privacy-preserving telemetry, audit logs, abuse controls, and incident-response ownership.",
+      "requiredEvidence": [
+        "monitoring dashboard reference",
+        "alert routing reference",
+        "on-call owner reference",
+        "incident runbook reference",
+        "abuse response workflow reference",
+        "privacy-preserving telemetry review reference"
+      ],
+      "forbiddenInGit": [
+        "raw log ingestion keys",
+        "alerting provider API keys",
+        "customer private inputs",
+        "secret-bearing logs"
+      ],
+      "verificationCommands": [
+        "npm run mainnet:abuse-observability-check",
+        "npm run ops:rate-limit-check",
+        "npm run operator:runbook-check"
+      ],
+      "approvalGate": "operators can detect, triage, pause, and recover without logging secrets or private inputs"
+    }
+  ]
+}

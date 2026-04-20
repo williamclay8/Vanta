@@ -1,0 +1,116 @@
+{
+  "version": "vanta-mainnet-services-manifest-0.1",
+  "network": "mainnet-beta",
+  "mainnetReady": false,
+  "productionReady": false,
+  "secretPolicy": "names-only-no-secret-values",
+  "services": [
+    {
+      "id": "indexer",
+      "image": "${VANTA_INDEXER_IMAGE}",
+      "replicas": {
+        "minimum": 2,
+        "maximum": 6
+      },
+      "env": [
+        { "name": "VANTA_INDEXER_DATABASE_URL", "required": true },
+        { "name": "VANTA_INDEXER_AUTH_TOKEN", "required": true },
+        { "name": "VANTA_INDEXER_NETWORK", "required": true },
+        { "name": "VANTA_INDEXER_RPC_URL", "required": true }
+      ],
+      "healthChecks": ["/health", "/v1/commitments", "/v1/roots/latest"],
+      "persistence": {
+        "required": true,
+        "kind": "durable-database"
+      }
+    },
+    {
+      "id": "relayer",
+      "image": "${VANTA_RELAYER_IMAGE}",
+      "replicas": {
+        "minimum": 2,
+        "maximum": 6
+      },
+      "env": [
+        { "name": "VANTA_RELAYER_DATABASE_URL", "required": true },
+        { "name": "VANTA_RELAYER_AUTH_TOKEN", "required": true },
+        { "name": "VANTA_RELAYER_FEE_WALLET", "required": true },
+        { "name": "VANTA_RELAYER_RPC_URL", "required": true }
+      ],
+      "healthChecks": ["/health", "/v1/quotes", "/v1/submissions/health"],
+      "persistence": {
+        "required": true,
+        "kind": "durable-database"
+      }
+    },
+    {
+      "id": "prover",
+      "image": "${VANTA_PROVER_IMAGE}",
+      "replicas": {
+        "minimum": 2,
+        "maximum": 12
+      },
+      "env": [
+        { "name": "VANTA_PROVER_AUTH_TOKEN", "required": true },
+        { "name": "VANTA_PROVER_ARTIFACT_PATH", "required": true },
+        { "name": "VANTA_PROVER_WORKER_COUNT", "required": true },
+        { "name": "VANTA_PROVER_KEYSET", "required": true }
+      ],
+      "healthChecks": ["/health", "/v1/verifying-keys", "/v1/proofs/health"],
+      "persistence": {
+        "required": true,
+        "kind": "artifact-store-plus-job-log"
+      }
+    },
+    {
+      "id": "verifier",
+      "image": "${VANTA_VERIFIER_IMAGE}",
+      "replicas": {
+        "minimum": 2,
+        "maximum": 6
+      },
+      "env": [
+        { "name": "VANTA_VERIFIER_DATABASE_URL", "required": true },
+        { "name": "VANTA_VERIFIER_AUTH_TOKEN", "required": true },
+        { "name": "VANTA_VERIFIER_KEYSET", "required": true },
+        { "name": "VANTA_VERIFIER_NETWORK", "required": true }
+      ],
+      "healthChecks": ["/health", "/v1/receipts/health", "/v1/verify/health"],
+      "persistence": {
+        "required": true,
+        "kind": "durable-database"
+      }
+    },
+    {
+      "id": "operator",
+      "image": "${VANTA_OPERATOR_IMAGE}",
+      "replicas": {
+        "minimum": 2,
+        "maximum": 8
+      },
+      "env": [
+        { "name": "VANTA_OPERATOR_DATABASE_URL", "required": true },
+        { "name": "VANTA_OPERATOR_AUTH_TOKEN", "required": true },
+        { "name": "VANTA_OPERATOR_NETWORK", "required": true },
+        { "name": "VANTA_OPERATOR_PRIVATE_POOL_URL", "required": true }
+      ],
+      "healthChecks": ["/health", "/v1/status", "/private-pool-v2/status"],
+      "persistence": {
+        "required": true,
+        "kind": "durable-database"
+      }
+    }
+  ],
+  "releaseGates": [
+    "npm run mainnet:readiness-check",
+    "npm run mainnet:service-contract-check",
+    "npm run mainnet:deployment-manifest-check",
+    "npm run private-pool-v2:verify",
+    "npm run private-core:verify",
+    "npm run pay:verify"
+  ],
+  "rollback": {
+    "required": true,
+    "strategy": "blue-green-or-fast-revert-to-last-healthy-manifest"
+  }
+}

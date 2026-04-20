@@ -1,0 +1,139 @@
+const sharedSafetyRequirements = [
+  "idempotent-writes",
+  "replay-safe-uniqueness",
+  "transactional-state-transitions",
+  "append-only-audit-log",
+  "pii-minimization",
+  "operator-access-audit",
+];
+
+const stores = [
+  {
+    id: "pay",
+    label: "Vanta Pay Merchant Storage",
+    status: "not-wired",
+    requiredTables: [
+      "merchants",
+      "checkout_sessions",
+      "payments",
+      "receipts",
+      "withdrawals",
+      "webhook_endpoints",
+      "webhook_deliveries",
+      "idempotency_keys",
+    ],
+    requiredIndexes: [
+      "checkout_sessions.merchant_id,status,created_at",
+      "payments.merchant_id,status,created_at",
+      "receipts.payment_id unique",
+      "webhook_deliveries.event_id,endpoint_id unique",
+      "idempotency_keys.scope,key unique",
+    ],
+    requiredMigrations: ["pay-core-schema", "pay-webhook-delivery-schema", "pay-idempotency-schema"],
+    restoreChecks: ["payment-status-replay", "webhook-delivery-retry-resume", "receipt-lookup-after-restore"],
+    safetyRequirements: sharedSafetyRequirements,
+  },
+  {
+    id: "privatePoolV2",
+    label: "Private Pool v2 Storage",
+    status: "not-wired",
+    requiredTables: [
+      "pool_commitments",
+      "pool_roots",
+      "pool_nullifiers",
+      "proof_requests",
+      "proof_receipts",
+      "settlement_submissions",
+      "operator_events",
+    ],
+    requiredIndexes: [
+      "pool_commitments.commitment unique",
+      "pool_roots.root unique",
+      "pool_nullifiers.nullifier unique",
+      "proof_requests.request_id unique",
+      "settlement_submissions.submission_id unique",
+    ],
+    requiredMigrations: ["pool-commitment-tree-schema", "pool-nullifier-schema", "pool-proof-receipt-schema"],
+    restoreChecks: ["merkle-root-reconstruction", "nullifier-replay-rejection", "proof-receipt-idempotency"],
+    safetyRequirements: sharedSafetyRequirements,
+  },
+  {
+    id: "strategy",
+    label: "Strategy Execution Storage",
+    status: "not-wired",
+    requiredTables: [
+      "strategies",
+      "strategy_funding_events",
+      "strategy_child_orders",
+      "strategy_fills",
+      "strategy_execution_attempts",
+      "strategy_disclosures",
+    ],
+    requiredIndexes: [
+      "strategies.owner_public_key,status,created_at",
+      "strategy_child_orders.strategy_id,sequence unique",
+      "strategy_execution_attempts.child_order_id,attempt unique",
+      "strategy_fills.strategy_id,created_at",
+    ],
+    requiredMigrations: ["strategy-parent-order-schema", "strategy-child-order-schema", "strategy-fill-schema"],
+    restoreChecks: ["active-strategy-resume", "child-order-idempotency", "execution-history-reconstruction"],
+    safetyRequirements: sharedSafetyRequirements,
+  },
+  {
+    id: "operator",
+    label: "Operator Control Plane Storage",
+    status: "not-wired",
+    requiredTables: [
+      "service_instances",
+      "service_health_checks",
+      "release_versions",
+      "deployment_locks",
+      "incident_events",
+      "schema_versions",
+    ],
+    requiredIndexes: [
+      "service_instances.service_id,environment unique",
+      "service_health_checks.service_id,created_at",
+      "release_versions.version unique",
+      "deployment_locks.lock_name unique",
+      "schema_versions.store_id,version unique",
+    ],
+    requiredMigrations: ["operator-service-registry-schema", "operator-release-schema", "operator-incident-schema"],
+    restoreChecks: ["schema-version-readback", "deployment-lock-recovery", "service-health-history-retention"],
+    safetyRequirements: sharedSafetyRequirements,
+  },
+];
+
+const globalRequirements = [
+  "managed-postgres-or-equivalent",
+  "schema-version-table",
+  "forward-only-migrations",
+  "rollback-runbooks",
+  "point-in-time-recovery",
+  "encrypted-backups",
+  "restore-drill-before-mainnet",
+  "least-privilege-db-users",
+  "connection-pool-limits",
+  "pii-retention-policy",
+  "no-secret-values-in-manifests",
+  "local-json-store-disabled-in-production",
+];
+
+export function createVantaProductionStorageContract() {
+  return {
+    version: "vanta-production-storage-contract-0.1",
+    globalRequirements,
+    mainnetReady: false,
+    nextImplementationStep:
+      "Implement the database adapter seam and migration runner for Pay, Private Pool v2, Strategy, and Operator stores.",
+    productionReady: false,
+    requiredVerificationCommands: [
+      "npm run mainnet:storage-contract-check",
+      "npm run mainnet:preflight",
+      "npm run pay:verify",
+      "npm run private-pool-v2:verify",
+    ],
+    secretPolicy: "names-only-no-secret-values",
+    stores,
+  };
+}

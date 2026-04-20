@@ -1,16 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   useSendTransaction,
-  useSolanaClient,
   useWalletSession,
 } from "@solana/react-hooks";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
 import {
-  buildPublicToVusdSwapInstructions,
-  fetchPublicToVusdQuote,
   formatAssetAmount,
-  listExecutableShieldedAssets,
-  type PublicToVusdQuote,
   type ShieldedSwapAssetKey,
 } from "@/solana/publicSwapRoute";
 import { useRealtimeSignatureProgress } from "@/solana/useRealtimeSignatureProgress";
@@ -28,19 +23,19 @@ import {
   type SwapLaneHealth,
   type SwapQuote,
 } from "@/solana/swapOperatorClient";
+import {
+  getShieldedSwapPairCapability,
+  listShieldedSwapAssetOptions,
+} from "@/solana/shieldedSwapCapability";
+import { useVantaShieldAssetRegistryState } from "@/solana/useVantaShieldAssetRegistryState";
 import { useVantaShieldState } from "@/solana/useVantaShieldState";
 import {
-  createShieldMemoInstruction,
   createPreparedSwapMemo,
   createSpentMarkerInstruction,
-  fetchVantaShieldAccountState,
   type VantaShieldAccountState,
   type VantaShieldNote,
 } from "@/solana/vantaShieldState";
 import { useWalletState } from "@/data/context/WalletContext";
-import { useWalletPublicAssets, type WalletPublicAsset } from "@/solana/useWalletPublicAssets";
-import { useVantaShieldAssetRegistryState } from "@/solana/useVantaShieldAssetRegistryState";
-import { recordCanonicalShieldFromLiveShield } from "@/zk/liveShieldBridge";
 import { recordCanonicalSwapFromLiveSwap } from "@/zk/liveSwapBridge";
 
 type PendingSpentMarker = {
@@ -82,27 +77,10 @@ type PendingSwapBridge = {
   };
 };
 
-type PendingImplicitShieldSwap = {
-  amountDisplay: string;
-  amountNumeric: number;
-  createdAt: number;
-  depositSignature?: string;
-  shieldAssetKey: LiveShieldTokenAssetKey;
-  targetShieldedAsset: ShieldedSwapAssetKey;
-};
-
-type PendingPublicRoute = {
-  previousTargetBalance: number;
-  quote: PublicToVusdQuote;
-  shieldAssetKey: LiveShieldTokenAssetKey;
-  targetShieldedAsset: ShieldedSwapAssetKey;
-};
-
 type SwapStatus =
   | "idle"
   | "quoting"
   | "awaiting_confirmation"
-  | "routing_public_swap"
   | "recording_transition"
   | "authorizing_operator"
   | "finalizing_state"
@@ -121,28 +99,12 @@ function formatQuoteTimestamp(value: number | undefined) {
   });
 }
 
-function readTokenDecimals(balance: unknown) {
-  if (typeof balance !== "object" || balance === null) {
-    return undefined;
-  }
-
-  const candidate = (balance as { decimals?: unknown }).decimals;
-  return typeof candidate === "number" && Number.isInteger(candidate) && candidate >= 0
-    ? candidate
-    : undefined;
-}
-
 function toVusdBaseUnits(value: number) {
   return Math.round(value * 1_000_000);
 }
 
-function isDirectShieldTarget(asset: ShieldedSwapAssetKey): asset is LiveShieldTokenAssetKey {
-  return asset !== "SOL";
-}
-
 export function SwapPage() {
-  const client = useSolanaClient();
-  const { solBalance, walletAddress, walletConnected } = useWalletState();
+  const { walletAddress, walletConnected } = useWalletState();
   const walletSession = useWalletSession();
   const {
     account: shieldAccount,
@@ -150,24 +112,20 @@ export function SwapPage() {
     isRefreshing: shieldStateRefreshing,
     refresh: refreshShieldState,
   } = useVantaShieldState();
-  const shieldRegistry = useVantaShieldAssetRegistryState();
-  const executableShieldedAssets = useMemo(() => listExecutableShieldedAssets(), []);
+  const shieldAssetRegistry = useVantaShieldAssetRegistryState();
+  const shieldedSwapAssets = useMemo(() => listShieldedSwapAssetOptions(), []);
   const [amount, setAmount] = useState("");
-  const [selectedSourceAssetId, setSelectedSourceAssetId] = useState<string>("native:SOL");
+  const [selectedSourceAsset, setSelectedSourceAsset] = useState<ShieldedSwapAssetKey>("VUSD");
   const [selectedTargetAsset, setSelectedTargetAsset] = useState<ShieldedSwapAssetKey>("SOL");
   const [status, setStatus] = useState<SwapStatus>("idle");
   const [flowError, setFlowError] = useState<string | null>(null);
   const [quote, setQuote] = useState<SwapQuote | null>(null);
-  const [publicRouteQuote, setPublicRouteQuote] = useState<PublicToVusdQuote | null>(null);
   const [quoteError, setQuoteError] = useState<string | null>(null);
   const [laneHealth, setLaneHealth] = useState<SwapLaneHealth | null>(null);
   const [laneHealthError, setLaneHealthError] = useState<string | null>(null);
   const [quoteRefreshNonce, setQuoteRefreshNonce] = useState(0);
   const [pendingSpentMarker, setPendingSpentMarker] = useState<PendingSpentMarker | null>(null);
   const [pendingSwapBridge, setPendingSwapBridge] = useState<PendingSwapBridge | null>(null);
-  const [pendingPublicRoute, setPendingPublicRoute] = useState<PendingPublicRoute | null>(null);
-  const [pendingImplicitShieldSwap, setPendingImplicitShieldSwap] =
-    useState<PendingImplicitShieldSwap | null>(null);
   const [swapBridgeError, setSwapBridgeError] = useState<string | null>(null);
   const [operatorAuthorizationStarted, setOperatorAuthorizationStarted] = useState(false);
   const [optimisticallyConsumedNoteId, setOptimisticallyConsumedNoteId] = useState<string | null>(
@@ -187,27 +145,11 @@ export function SwapPage() {
     venueNetwork: "Devnet";
     venuePoolAddress: string;
   } | null>(null);
-  const publicRouteTransaction = useSendTransaction();
   const swapTransaction = useSendTransaction();
-  const implicitShieldStateTransaction = useSendTransaction();
-  const publicRouteWait = useRealtimeSignatureProgress(
-    publicRouteTransaction.signature ?? undefined,
-    {
-    commitment: "confirmed",
-      disabled: !publicRouteTransaction.signature,
-    },
-  );
   const swapWait = useRealtimeSignatureProgress(swapTransaction.signature ?? undefined, {
     commitment: "confirmed",
     disabled: !swapTransaction.signature,
   });
-  const implicitShieldStateWait = useRealtimeSignatureProgress(
-    implicitShieldStateTransaction.signature ?? undefined,
-    {
-      commitment: "confirmed",
-      disabled: !implicitShieldStateTransaction.signature,
-    },
-  );
   const spentMarkerTransaction = useSendTransaction();
   const spentMarkerWait = useRealtimeSignatureProgress(
     spentMarkerTransaction.signature ?? undefined,
@@ -217,80 +159,64 @@ export function SwapPage() {
     },
   );
 
+  const sourcePairCapability = useMemo(
+    () =>
+      getShieldedSwapPairCapability({
+        inputAsset: selectedSourceAsset,
+        outputAsset: selectedTargetAsset,
+      }),
+    [selectedSourceAsset, selectedTargetAsset],
+  );
+  const selectedTokenSourceEntry =
+    selectedSourceAsset === "SOL" ? null : shieldAssetRegistry.byAssetKey[selectedSourceAsset];
+  const selectedSourceAccount =
+    selectedSourceAsset === "SOL" ? shieldAccount : selectedTokenSourceEntry?.account ?? null;
+
   const spendableNotes = useMemo(() => {
-    const baseSpendableNotes = shieldAccount?.spendableShieldNotes ?? [];
+    const baseSpendableNotes =
+      selectedSourceAsset === "SOL"
+        ? shieldAccount?.spendableShieldedSolNotes ?? []
+        : selectedSourceAccount?.spendableShieldNotes ?? [];
 
     return baseSpendableNotes.filter((note) => {
       return note.noteId !== optimisticallyConsumedNoteId;
     });
-  }, [optimisticallyConsumedNoteId, shieldAccount?.spendableShieldNotes]);
-
-  const {
-    assets: executableSourceAssets,
-    error: publicAssetsError,
-    loading: publicAssetsLoading,
-  } = useWalletPublicAssets({
-    solBalance,
-    walletAddress,
-  });
-
-  const selectedSourceAsset = useMemo<WalletPublicAsset | null>(
-    () =>
-      executableSourceAssets.find((asset) => asset.id === selectedSourceAssetId) ??
-      executableSourceAssets[0] ??
-      null,
-    [executableSourceAssets, selectedSourceAssetId],
-  );
-
-  useEffect(() => {
-    if (!selectedSourceAsset && executableSourceAssets[0]) {
-      setSelectedSourceAssetId(executableSourceAssets[0].id);
-    }
-  }, [executableSourceAssets, selectedSourceAsset]);
+  }, [
+    optimisticallyConsumedNoteId,
+    selectedSourceAccount?.spendableShieldNotes,
+    selectedSourceAsset,
+    shieldAccount?.spendableShieldedSolNotes,
+  ]);
 
   useEffect(() => {
     if (!optimisticallyConsumedNoteId) {
       return;
     }
 
-    const baseSpendableNotes = shieldAccount?.spendableShieldNotes ?? [];
+    const baseSpendableNotes =
+      selectedSourceAsset === "SOL"
+        ? shieldAccount?.spendableShieldedSolNotes ?? []
+        : selectedSourceAccount?.spendableShieldNotes ?? [];
 
     if (!baseSpendableNotes.some((note) => note.noteId === optimisticallyConsumedNoteId)) {
       setOptimisticallyConsumedNoteId(null);
     }
-  }, [optimisticallyConsumedNoteId, shieldAccount?.spendableShieldNotes]);
+  }, [
+    optimisticallyConsumedNoteId,
+    selectedSourceAccount?.spendableShieldNotes,
+    selectedSourceAsset,
+    shieldAccount?.spendableShieldedSolNotes,
+  ]);
 
   const parsedAmount = Number(amount);
-  const isCanonicalVusdSource = Boolean(
-    selectedSourceAsset &&
-      liveShieldAsset.mintAddress &&
-      selectedSourceAsset.mintAddress === liveShieldAsset.mintAddress,
-  );
-  const selectedShieldAssetKey: LiveShieldTokenAssetKey =
-    selectedTargetAsset === "SOL" ? "VUSD" : selectedTargetAsset;
+  const selectedShieldAssetKey: LiveShieldTokenAssetKey = "VUSD";
   const selectedShieldAsset = getLiveShieldTokenAsset(selectedShieldAssetKey);
-  const selectedShieldToken = shieldRegistry.byAssetKey[selectedShieldAssetKey].token;
-  const pendingShieldToken = pendingImplicitShieldSwap
-    ? shieldRegistry.byAssetKey[pendingImplicitShieldSwap.shieldAssetKey].token
-    : selectedShieldToken;
-  const pendingShieldAsset = pendingImplicitShieldSwap
-    ? getLiveShieldTokenAsset(pendingImplicitShieldSwap.shieldAssetKey)
-    : selectedShieldAsset;
-  const pendingPublicRouteShieldToken = pendingPublicRoute
-    ? shieldRegistry.byAssetKey[pendingPublicRoute.shieldAssetKey].token
-    : selectedShieldToken;
-  const implicitShieldTransferWait = useRealtimeSignatureProgress(
-    pendingShieldToken.sendSignature ?? undefined,
-    {
-      commitment: "confirmed",
-      disabled: !pendingShieldToken.sendSignature,
-    },
-  );
-  const sourceBalance = selectedSourceAsset?.balance ?? 0;
+  const sourceBalance =
+    selectedSourceAsset === "SOL"
+      ? shieldAccount?.shieldedSolBalance ?? 0
+      : selectedSourceAccount?.balance ?? 0;
   const exactSpendableNote = useMemo(() => {
     if (
-      !isCanonicalVusdSource ||
-      selectedTargetAsset !== "SOL" ||
       !Number.isFinite(parsedAmount) ||
       parsedAmount <= 0
     ) {
@@ -301,10 +227,9 @@ export function SwapPage() {
     return (
       spendableNotes.find((note) => toVusdBaseUnits(note.amount) === targetAmount) ?? null
     );
-  }, [isCanonicalVusdSource, parsedAmount, selectedTargetAsset, spendableNotes]);
+  }, [parsedAmount, spendableNotes]);
   const maxAvailableAmount = sourceBalance;
-  const requiresPublicRoute = !isCanonicalVusdSource;
-  const requiresPrivateSwap = selectedTargetAsset === "SOL";
+  const requiresPrivateSwap = sourcePairCapability.status === "live";
 
   useEffect(() => {
     let cancelled = false;
@@ -339,12 +264,11 @@ export function SwapPage() {
   useEffect(() => {
     if (
       !walletConnected ||
-      !selectedSourceAsset ||
       !Number.isFinite(parsedAmount) ||
-      parsedAmount <= 0
+      parsedAmount <= 0 ||
+      sourcePairCapability.status !== "live"
     ) {
       setQuote(null);
-      setPublicRouteQuote(null);
       setQuoteError(null);
       if (status === "quoting") {
         setStatus("idle");
@@ -357,33 +281,7 @@ export function SwapPage() {
     setQuoteError(null);
 
     const loadQuote = async () => {
-      if (isCanonicalVusdSource && isDirectShieldTarget(selectedTargetAsset)) {
-        setPublicRouteQuote(null);
-        setQuote(null);
-        return;
-      }
-
-      const nextPublicRouteQuote = requiresPublicRoute
-        ? await fetchPublicToVusdQuote({
-            amount: parsedAmount.toString(),
-            inputAsset: selectedSourceAsset,
-            outputAsset: selectedTargetAsset,
-          })
-        : null;
-
-      if (controller.signal.aborted) {
-        return;
-      }
-
-      setPublicRouteQuote(nextPublicRouteQuote);
-
-      if (!requiresPrivateSwap) {
-        setQuote(null);
-        return;
-      }
-
-      const privateInputAmount = nextPublicRouteQuote?.outputAmount ?? parsedAmount.toString();
-      const nextQuote = await fetchSwapQuote(privateInputAmount);
+      const nextQuote = await fetchSwapQuote(parsedAmount.toString());
 
       if (controller.signal.aborted) {
         return;
@@ -404,7 +302,6 @@ export function SwapPage() {
         }
 
         setQuote(null);
-        setPublicRouteQuote(null);
         setQuoteError(
           error instanceof Error
             ? error.message
@@ -419,11 +316,7 @@ export function SwapPage() {
   }, [
     parsedAmount,
     quoteRefreshNonce,
-    requiresPrivateSwap,
-    requiresPublicRoute,
-    isCanonicalVusdSource,
-    selectedSourceAsset,
-    selectedTargetAsset,
+    sourcePairCapability.status,
     status,
     walletConnected,
   ]);
@@ -462,328 +355,6 @@ export function SwapPage() {
     setPendingSpentMarker(null);
     setPendingSwapBridge(null);
   }, [swapWait.waitError, swapWait.waitStatus]);
-
-  useEffect(() => {
-    if (!pendingPublicRoute) {
-      return;
-    }
-
-    if (publicRouteTransaction.status === "loading") {
-      setStatus("routing_public_swap");
-      return;
-    }
-
-    if (publicRouteTransaction.status === "error") {
-      setStatus("failed");
-      setPendingPublicRoute(null);
-      setFlowError(
-        publicRouteTransaction.error instanceof Error
-          ? publicRouteTransaction.error.message
-          : "The public route could not be submitted.",
-      );
-    }
-  }, [pendingPublicRoute, publicRouteTransaction.error, publicRouteTransaction.status]);
-
-  useEffect(() => {
-    if (!pendingPublicRoute || publicRouteWait.waitStatus !== "error") {
-      return;
-    }
-
-    setStatus("failed");
-    setPendingPublicRoute(null);
-    setFlowError(
-      publicRouteWait.waitError instanceof Error
-        ? publicRouteWait.waitError.message
-        : "The public route was submitted but not confirmed.",
-    );
-  }, [pendingPublicRoute, publicRouteWait.waitError, publicRouteWait.waitStatus]);
-
-  useEffect(() => {
-    if (
-      !pendingPublicRoute ||
-      publicRouteWait.waitStatus !== "success" ||
-      !liveShieldAsset.vaultOwner ||
-      pendingImplicitShieldSwap
-    ) {
-      return;
-    }
-
-    const continueFromPublicRoute = async () => {
-      try {
-        const refreshedBalance = await pendingPublicRouteShieldToken.refresh();
-        const nextTargetBalance = Number(refreshedBalance?.uiAmount ?? "0");
-        const routedAmount = Number(
-          Math.max(nextTargetBalance - pendingPublicRoute.previousTargetBalance, 0).toFixed(6),
-        );
-        const amountNumeric =
-          routedAmount > 0 ? routedAmount : Number(pendingPublicRoute.quote.outputAmount);
-
-        if (!Number.isFinite(amountNumeric) || amountNumeric <= 0) {
-          throw new Error("The public route completed, but Vanta could not resolve the routed VUSD.");
-        }
-
-        await startImplicitShield({
-          amountDisplay: amountNumeric.toFixed(6),
-          amountNumeric,
-          shieldAssetKey: pendingPublicRoute.shieldAssetKey,
-          targetShieldedAsset: pendingPublicRoute.targetShieldedAsset,
-        });
-        setPendingPublicRoute(null);
-      } catch (error) {
-        setStatus("failed");
-        setPendingPublicRoute(null);
-        setFlowError(
-          error instanceof Error
-            ? error.message
-            : "The public route completed, but Vanta could not continue into the shielded flow.",
-        );
-      }
-    };
-
-    void continueFromPublicRoute();
-  }, [
-    pendingImplicitShieldSwap,
-    pendingPublicRoute,
-    pendingPublicRouteShieldToken,
-    publicRouteWait.waitStatus,
-  ]);
-
-  useEffect(() => {
-    if (!pendingImplicitShieldSwap) {
-      return;
-    }
-
-    if (pendingShieldToken.sendStatus === "loading") {
-      setStatus("recording_transition");
-      return;
-    }
-
-    if (pendingShieldToken.sendStatus === "error") {
-      setStatus("failed");
-      setPendingImplicitShieldSwap(null);
-      setFlowError(
-        pendingShieldToken.sendError instanceof Error
-          ? pendingShieldToken.sendError.message
-          : "The implicit shield transfer was not approved.",
-      );
-      return;
-    }
-
-    if (pendingShieldToken.sendStatus === "success" && pendingShieldToken.sendSignature) {
-      setPendingImplicitShieldSwap((current) =>
-        current
-          ? {
-              ...current,
-              depositSignature: pendingShieldToken.sendSignature ?? current.depositSignature,
-            }
-          : current,
-      );
-    }
-  }, [
-    pendingImplicitShieldSwap,
-    pendingShieldToken.sendError,
-    pendingShieldToken.sendSignature,
-    pendingShieldToken.sendStatus,
-  ]);
-
-  useEffect(() => {
-    if (!pendingImplicitShieldSwap || implicitShieldTransferWait.waitStatus !== "error") {
-      return;
-    }
-
-    setStatus("failed");
-    setPendingImplicitShieldSwap(null);
-    setFlowError(
-      implicitShieldTransferWait.waitError instanceof Error
-        ? implicitShieldTransferWait.waitError.message
-        : "The implicit shield transfer was submitted but not confirmed.",
-    );
-  }, [
-    implicitShieldTransferWait.waitError,
-    implicitShieldTransferWait.waitStatus,
-    pendingImplicitShieldSwap,
-  ]);
-
-  useEffect(() => {
-    if (
-      !pendingImplicitShieldSwap ||
-      implicitShieldTransferWait.waitStatus !== "success" ||
-      !pendingImplicitShieldSwap.depositSignature ||
-      !pendingShieldAsset.mintAddress ||
-      !pendingShieldAsset.vaultOwner ||
-      !pendingShieldToken.owner
-    ) {
-      return;
-    }
-
-    if (
-      implicitShieldStateTransaction.status === "loading" ||
-      implicitShieldStateTransaction.signature
-    ) {
-      return;
-    }
-
-    const depositSignature = pendingImplicitShieldSwap.depositSignature;
-
-    if (!depositSignature) {
-      return;
-    }
-
-    void buildHeliusPriorityFeeInstructions({
-      accountKeys: [
-        pendingShieldAsset.mintAddress,
-        pendingShieldToken.owner,
-        depositSignature,
-        pendingShieldAsset.vaultOwner,
-      ],
-      action: "shield_state",
-    })
-      .then((priorityFeeInstructions) =>
-        implicitShieldStateTransaction.send({
-          instructions: [
-            ...priorityFeeInstructions,
-            createShieldMemoInstruction({
-              amount: pendingImplicitShieldSwap.amountDisplay,
-              asset: pendingImplicitShieldSwap.shieldAssetKey,
-              createdAt: pendingImplicitShieldSwap.createdAt,
-              depositSignature,
-              mintAddress: pendingShieldAsset.mintAddress!,
-              owner: pendingShieldToken.owner!,
-              vaultOwner: pendingShieldAsset.vaultOwner!,
-            }),
-          ],
-        }),
-      )
-      .catch((error) => {
-        setStatus("failed");
-        setPendingImplicitShieldSwap(null);
-        setFlowError(
-          error instanceof Error
-            ? error.message
-            : "The implicit shield state note could not be recorded.",
-        );
-      });
-  }, [
-    implicitShieldStateTransaction,
-    implicitShieldTransferWait.waitStatus,
-    pendingImplicitShieldSwap,
-    pendingShieldAsset.mintAddress,
-    pendingShieldAsset.vaultOwner,
-    pendingShieldToken.owner,
-  ]);
-
-  useEffect(() => {
-    if (!pendingImplicitShieldSwap || implicitShieldStateWait.waitStatus !== "error") {
-      return;
-    }
-
-    setStatus("failed");
-    setPendingImplicitShieldSwap(null);
-    setFlowError(
-      implicitShieldStateWait.waitError instanceof Error
-        ? implicitShieldStateWait.waitError.message
-        : "The implicit shield state note was submitted but not confirmed.",
-    );
-  }, [
-    implicitShieldStateWait.waitError,
-    implicitShieldStateWait.waitStatus,
-    pendingImplicitShieldSwap,
-  ]);
-
-  useEffect(() => {
-    if (
-      !pendingImplicitShieldSwap ||
-      implicitShieldStateWait.waitStatus !== "success" ||
-      !implicitShieldStateTransaction.signature ||
-      !pendingShieldAsset.mintAddress ||
-      !pendingShieldAsset.vaultOwner ||
-      !pendingShieldToken.owner ||
-      swapTransaction.status === "loading" ||
-      swapTransaction.signature
-    ) {
-      return;
-    }
-
-    const continueImplicitShieldFlow = async () => {
-      try {
-        const shieldStateSignature = implicitShieldStateTransaction.signature?.toString();
-
-        if (!shieldStateSignature) {
-          throw new Error("The implicit shield state signature was unavailable.");
-        }
-
-        const refreshedAccount = await fetchVantaShieldAccountState({
-          client,
-          mintAddress: pendingShieldAsset.mintAddress!,
-          owner: pendingShieldToken.owner!,
-          vaultOwner: pendingShieldAsset.vaultOwner!,
-        });
-        const freshlyShieldedNote = refreshedAccount.spendableShieldNotes.find(
-          (note) => note.stateSignature === shieldStateSignature,
-        );
-
-        if (!freshlyShieldedNote) {
-          throw new Error(
-            "The shielded note was created, but Vanta could not resolve it for the swap step.",
-          );
-        }
-
-        await recordCanonicalShieldFromLiveShield({
-          amountDisplay: pendingImplicitShieldSwap.amountDisplay,
-          amountNumeric: pendingImplicitShieldSwap.amountNumeric,
-          assetSymbol: pendingImplicitShieldSwap.shieldAssetKey,
-          createdAt: pendingImplicitShieldSwap.createdAt,
-          depositSignature: pendingImplicitShieldSwap.depositSignature,
-          mintAddress: pendingShieldAsset.mintAddress!,
-          owner: pendingShieldToken.owner!,
-          stateSignature: shieldStateSignature,
-          tokenDecimals: readTokenDecimals(pendingShieldToken.balance),
-          vaultOwner: pendingShieldAsset.vaultOwner!,
-        });
-
-        if (isDirectShieldTarget(pendingImplicitShieldSwap.targetShieldedAsset)) {
-          if (pendingImplicitShieldSwap.shieldAssetKey === "VUSD") {
-            await refreshShieldState();
-          }
-          setStatus("complete");
-          setFlowError(null);
-          setPendingImplicitShieldSwap(null);
-          return;
-        }
-
-        const freshQuote = await fetchSwapQuote(pendingImplicitShieldSwap.amountNumeric.toString());
-        setQuote(freshQuote);
-        await performLiveSwapFromNote({
-          note: freshlyShieldedNote,
-          shieldAccountState: refreshedAccount,
-          swapQuote: freshQuote,
-        });
-        setPendingImplicitShieldSwap(null);
-      } catch (error) {
-        setStatus("failed");
-        setPendingImplicitShieldSwap(null);
-        setFlowError(
-          error instanceof Error
-            ? error.message
-            : "Vanta could not finish the implicit shield before swapping.",
-        );
-      }
-    };
-
-    void continueImplicitShieldFlow();
-  }, [
-    client,
-    implicitShieldStateTransaction.signature,
-    implicitShieldStateWait.waitStatus,
-    pendingImplicitShieldSwap,
-    pendingShieldAsset.mintAddress,
-    pendingShieldAsset.vaultOwner,
-    pendingShieldToken.balance,
-    pendingShieldToken.owner,
-    refreshShieldState,
-    swapTransaction.signature,
-    swapTransaction.status,
-  ]);
 
   useEffect(() => {
     if (
@@ -1033,26 +604,14 @@ export function SwapPage() {
   ]);
 
   const expectedOutputAmount =
-    selectedTargetAsset === "SOL"
-      ? Number(quote?.outputAmount ?? "0")
-      : Number(publicRouteQuote?.outputAmount ?? (Number.isFinite(parsedAmount) ? parsedAmount : 0));
+    sourcePairCapability.status === "live" ? Number(quote?.outputAmount ?? "0") : 0;
   const isQuoteFresh = quote ? Date.now() <= quote.quoteExpiresAt : true;
   const isLaneHealthy = requiresPrivateSwap ? laneHealth?.status === "healthy" : true;
   const isAmountValid = Number.isFinite(parsedAmount) && parsedAmount > 0;
   const canUseExistingNote =
-    isCanonicalVusdSource &&
-    selectedTargetAsset === "SOL" &&
+    sourcePairCapability.status === "live" &&
     Boolean(exactSpendableNote);
-  const canImplicitShield =
-    walletConnected &&
-    isAmountValid &&
-    parsedAmount <= sourceBalance &&
-    Boolean(selectedShieldAsset.mintAddress) &&
-    Boolean(selectedShieldAsset.vaultOwner);
-  const hasRouteQuote =
-    selectedTargetAsset === "SOL"
-      ? Boolean(quote)
-      : !requiresPublicRoute || Boolean(publicRouteQuote);
+  const hasRouteQuote = sourcePairCapability.status === "live" && Boolean(quote);
   const isReady =
     walletConnected &&
     isAmountValid &&
@@ -1063,34 +622,21 @@ export function SwapPage() {
     Boolean(selectedShieldAsset.mintAddress) &&
     Boolean(selectedShieldAsset.vaultOwner) &&
     (!requiresPrivateSwap || liveSwapPair.configured) &&
-    canImplicitShield;
+    canUseExistingNote;
   const routeLabel = (() => {
+    if (sourcePairCapability.blockers.length > 0) {
+      return sourcePairCapability.blockers[0];
+    }
+
     if (!isAmountValid) {
       return "Enter a valid amount to continue.";
     }
 
-    if (
-      selectedSourceAsset?.mintAddress &&
-      selectedShieldAsset.mintAddress &&
-      selectedSourceAsset.mintAddress === selectedShieldAsset.mintAddress &&
-      isDirectShieldTarget(selectedTargetAsset)
-    ) {
-      return `Vanta will shield ${selectedTargetAsset} automatically.`;
-    }
-
-    if (isCanonicalVusdSource && selectedTargetAsset === "SOL" && canUseExistingNote) {
+    if (canUseExistingNote) {
       return "Using an existing shielded VUSD note before the private swap.";
     }
 
-    if (isCanonicalVusdSource && selectedTargetAsset === "SOL") {
-      return "Vanta will shield VUSD automatically, then swap into shielded SOL.";
-    }
-
-    if (isDirectShieldTarget(selectedTargetAsset)) {
-      return `Vanta will route ${selectedSourceAsset?.symbol ?? "this asset"} into ${selectedTargetAsset}, then shield it automatically.`;
-    }
-
-    return `Vanta will route ${selectedSourceAsset?.symbol ?? "this asset"} into VUSD, shield it automatically, then swap into shielded SOL.`;
+    return `Shield the exact ${selectedSourceAsset} amount first, then return here to swap.`;
   })();
 
   async function retainCanonicalSwapBridge(params: {
@@ -1252,57 +798,24 @@ export function SwapPage() {
     });
   }
 
-  async function startImplicitShield(args: {
-    amountDisplay: string;
-    amountNumeric: number;
-    shieldAssetKey: LiveShieldTokenAssetKey;
-    targetShieldedAsset: ShieldedSwapAssetKey;
-  }) {
-    const nextShieldAsset = getLiveShieldTokenAsset(args.shieldAssetKey);
-    const nextShieldToken =
-      shieldRegistry.byAssetKey[args.shieldAssetKey].token;
-
-    if (!nextShieldAsset.vaultOwner) {
-      throw new Error("Vanta shield vault is not configured.");
-    }
-
-    Object.values(shieldRegistry.byAssetKey).forEach((entry) => {
-      entry.token.resetSend();
-    });
-    implicitShieldStateTransaction.reset();
-    swapTransaction.reset();
-    spentMarkerTransaction.reset();
-    setPendingSpentMarker(null);
-    setPendingSwapBridge(null);
-    setFlowError(null);
-    setStatus("awaiting_confirmation");
-    setPendingImplicitShieldSwap({
-      amountDisplay: args.amountDisplay,
-      amountNumeric: args.amountNumeric,
-      createdAt: Date.now(),
-      shieldAssetKey: args.shieldAssetKey,
-      targetShieldedAsset: args.targetShieldedAsset,
-    });
-
-    await nextShieldToken.send({
-      amount: args.amountDisplay,
-      destinationOwner: nextShieldAsset.vaultOwner,
-    });
-  }
-
   async function handleSwap() {
-    if (!selectedShieldAsset.mintAddress || !selectedSourceAsset) {
+    if (!selectedShieldAsset.mintAddress) {
       return;
     }
 
-    if (canUseExistingNote && shieldAccount && selectedTargetAsset === "SOL") {
+    if (
+      canUseExistingNote &&
+      shieldAccount &&
+      exactSpendableNote &&
+      sourcePairCapability.executionMode === "operator-vusd-sol"
+    ) {
       const freshQuote =
         quote && isQuoteFresh ? quote : await fetchSwapQuote(parsedAmount.toString());
       setQuote(freshQuote);
 
       try {
         await performLiveSwapFromNote({
-          note: exactSpendableNote!,
+          note: exactSpendableNote as VantaShieldNote,
           shieldAccountState: shieldAccount,
           swapQuote: freshQuote,
         });
@@ -1314,67 +827,18 @@ export function SwapPage() {
       }
       return;
     }
-
-    if (!canImplicitShield) {
-      return;
-    }
-
-    try {
-      if (requiresPublicRoute) {
-        const freshPublicRouteQuote =
-          publicRouteQuote ??
-          (await fetchPublicToVusdQuote({
-            amount,
-            inputAsset: selectedSourceAsset,
-            outputAsset: selectedTargetAsset,
-          }));
-
-        setPublicRouteQuote(freshPublicRouteQuote);
-        setPendingPublicRoute({
-          previousTargetBalance: Number(selectedShieldToken.balance?.uiAmount ?? "0"),
-          quote: freshPublicRouteQuote,
-          shieldAssetKey: selectedShieldAssetKey,
-          targetShieldedAsset: selectedTargetAsset,
-        });
-        publicRouteTransaction.reset();
-        setStatus("awaiting_confirmation");
-        setFlowError(null);
-        const instructions = await buildPublicToVusdSwapInstructions({
-          quote: freshPublicRouteQuote,
-          userPublicKey: walletAddress!,
-        });
-        await publicRouteTransaction.send({
-          instructions,
-        });
-        return;
-      }
-
-      await startImplicitShield({
-        amountDisplay: amount,
-        amountNumeric: parsedAmount,
-        shieldAssetKey: selectedShieldAssetKey,
-        targetShieldedAsset: selectedTargetAsset,
-      });
-    } catch (error) {
-      setPendingPublicRoute(null);
-      setPendingImplicitShieldSwap(null);
-      setStatus("failed");
-      setFlowError(error instanceof Error ? error.message : "Swap request was not approved.");
-    }
   }
 
   let validationMessage = "Enter an amount to continue.";
 
   if (!walletConnected) {
     validationMessage = "Connect a wallet to swap.";
-  } else if (publicAssetsLoading) {
-    validationMessage = "Loading wallet assets.";
-  } else if (publicAssetsError) {
-    validationMessage = publicAssetsError;
-  } else if (!selectedSourceAsset) {
-    validationMessage = "No supported public wallet assets are available.";
+  } else if (sourcePairCapability.status !== "live") {
+    validationMessage =
+      sourcePairCapability.blockers[0] ??
+      "This shielded pair needs a private route adapter before it can execute.";
   } else if (!selectedShieldAsset.configured) {
-    validationMessage = `Shielded ${selectedTargetAsset} is not configured yet.`;
+    validationMessage = `Shielded ${selectedSourceAsset} is not configured yet.`;
   } else if (requiresPrivateSwap && !liveSwapPair.configured) {
     validationMessage = "Swap requires the live VUSD mint, vault, and local operator path.";
   } else if ((requiresPrivateSwap || selectedShieldAssetKey === "VUSD") && shieldStateRefreshing) {
@@ -1388,30 +852,21 @@ export function SwapPage() {
   } else if (requiresPrivateSwap && laneHealthError) {
     validationMessage = laneHealthError;
   } else if (!isAmountValid) {
-    validationMessage = `Enter a valid ${selectedSourceAsset.symbol} amount.`;
+    validationMessage = `Enter a valid shielded ${selectedSourceAsset} amount.`;
   } else if (parsedAmount > sourceBalance) {
-    validationMessage = `Insufficient ${selectedSourceAsset.symbol} balance.`;
+    validationMessage = `Insufficient shielded ${selectedSourceAsset} balance.`;
+  } else if (!exactSpendableNote) {
+    validationMessage = `Shield the exact ${selectedSourceAsset} amount first, then return here to swap.`;
   } else if (requiresPrivateSwap && quote && !isQuoteFresh) {
     validationMessage = "Refreshing the current quote will unlock this swap.";
   } else if (!hasRouteQuote && status !== "quoting") {
     validationMessage = quoteError ?? "The current quote is not available yet.";
   }
 
-  const sourceSelectValue = selectedSourceAsset?.id ?? "";
-  const sourceSelectDisabled =
-    !walletConnected || publicAssetsLoading || executableSourceAssets.length === 0;
-  const sourceBalanceLabel = selectedSourceAsset
-    ? formatAssetAmount(sourceBalance, selectedSourceAsset.symbol)
-    : walletConnected
-      ? "Unavailable"
-      : "Connect wallet";
-  const sourcePlaceholderLabel = !walletConnected
-    ? "Connect wallet"
-    : publicAssetsLoading
-      ? "Loading assets..."
-      : publicAssetsError
-        ? "Asset load failed"
-        : "No wallet assets available";
+  const sourceBalanceLabel = formatAssetAmount(
+    sourceBalance,
+    selectedSourceAsset,
+  );
 
   return (
     <section className="send-page swap-page">
@@ -1443,7 +898,6 @@ export function SwapPage() {
                         setStatus("idle");
                         setFlowError(null);
                         setQuote(null);
-                        setPublicRouteQuote(null);
                         setQuoteError(null);
                       }}
                       placeholder="0.00"
@@ -1461,7 +915,6 @@ export function SwapPage() {
                         setStatus("idle");
                         setFlowError(null);
                         setQuote(null);
-                        setPublicRouteQuote(null);
                         setQuoteError(null);
                       }}
                     >
@@ -1472,28 +925,23 @@ export function SwapPage() {
               </div>
 
               <div className="swap-choice-grid" aria-label="Swap route">
-                <div className="swap-choice-group" role="group" aria-label="From asset">
+                <div className="swap-choice-group" role="group" aria-label="From shielded asset">
                   <span>From</span>
                   <div className="send-asset-field">
                     <select
-                      aria-label="From asset"
-                      value={sourceSelectValue}
-                      disabled={sourceSelectDisabled}
+                      aria-label="From shielded asset"
+                      value={selectedSourceAsset}
                       onChange={(event) => {
-                        setSelectedSourceAssetId(event.target.value);
+                        setSelectedSourceAsset(event.target.value as ShieldedSwapAssetKey);
                         setStatus("idle");
                         setFlowError(null);
                         setQuote(null);
-                        setPublicRouteQuote(null);
                         setQuoteError(null);
                       }}
                     >
-                      {executableSourceAssets.length === 0 && (
-                        <option value="">{sourcePlaceholderLabel}</option>
-                      )}
-                      {executableSourceAssets.map((asset) => (
-                        <option key={asset.id} value={asset.id}>
-                          {asset.symbol}
+                      {shieldedSwapAssets.map((asset) => (
+                        <option key={asset.symbol} value={asset.symbol}>
+                          {asset.label}
                         </option>
                       ))}
                     </select>
@@ -1510,11 +958,10 @@ export function SwapPage() {
                         setStatus("idle");
                         setFlowError(null);
                         setQuote(null);
-                        setPublicRouteQuote(null);
                         setQuoteError(null);
                       }}
                     >
-                      {executableShieldedAssets.map((asset) => (
+                      {shieldedSwapAssets.map((asset) => (
                         <option key={asset.symbol} value={asset.symbol}>
                           {asset.label}
                         </option>
@@ -1552,7 +999,6 @@ export function SwapPage() {
                   }}
                   disabled={
                     !isReady ||
-                    status === "routing_public_swap" ||
                     status === "recording_transition" ||
                     status === "authorizing_operator" ||
                     status === "finalizing_state"
@@ -1564,7 +1010,6 @@ export function SwapPage() {
             </div>
 
             {(status === "awaiting_confirmation" ||
-              status === "routing_public_swap" ||
               status === "recording_transition" ||
               status === "authorizing_operator" ||
               status === "finalizing_state" ||
@@ -1582,8 +1027,6 @@ export function SwapPage() {
                 <span>
                   {status === "awaiting_confirmation"
                     ? "Awaiting wallet confirmation"
-                    : status === "routing_public_swap"
-                      ? "Routing public swap"
                     : status === "recording_transition"
                       ? "Recording swap transition"
                       : status === "authorizing_operator"
@@ -1598,26 +1041,21 @@ export function SwapPage() {
                   {status === "complete" && selectedTargetAsset === "SOL" && lastSwapSummary
                     ? `Swapped ${formatAssetAmount(lastSwapSummary.inputAmount, "VUSD")} into ${formatAssetAmount(lastSwapSummary.outputAmount, "SOL")}.`
                     : status === "complete"
-                      ? `Converted ${formatAssetAmount(parsedAmount, selectedSourceAsset?.symbol ?? "VUSD")} into shielded ${selectedTargetAsset}.`
+                      ? `Converted ${formatAssetAmount(parsedAmount, selectedSourceAsset)} into shielded ${selectedTargetAsset}.`
                     : status === "failed"
                       ? flowError ?? "The swap could not be completed."
-                      : status === "routing_public_swap"
-                        ? `Routing the public asset into ${selectedShieldAsset.symbol} before Vanta enters the shielded flow.`
                       : status === "authorizing_operator"
                         ? "Submitting the authenticated swap intent to the operator."
                       : status === "finalizing_state"
                           ? "Recording the spent marker and resolving the new shielded SOL note."
                           : "Approve the swap in your wallet to continue."}
                 </p>
-                {((quote && requiresPrivateSwap) || publicRouteQuote) &&
+                {quote &&
                   status !== "failed" &&
                   status !== "complete" && (
                   <p className="shield-helper shield-helper--meta">
-                    Quote from {requiresPrivateSwap && quote ? quote.venueName : publicRouteQuote?.venueName ?? "Jupiter"}{" "}
-                    {requiresPrivateSwap && quote ? quote.venueFamily : publicRouteQuote?.venueFamily ?? "Aggregator"} ·{" "}
-                    {formatQuoteTimestamp(
-                      requiresPrivateSwap && quote ? quote.quoteTimestamp : Date.now(),
-                    )}
+                    Quote from {quote.venueName} {quote.venueFamily} ·{" "}
+                    {formatQuoteTimestamp(quote.quoteTimestamp)}
                   </p>
                 )}
                 {swapBridgeError && status === "complete" && (

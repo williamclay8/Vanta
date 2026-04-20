@@ -130,6 +130,10 @@ function formatUnshieldAmount(value: number, asset: UnshieldLane) {
     : formatShieldTokenAmount(value, asset);
 }
 
+function formatShieldedLaneLabel(asset: UnshieldLane) {
+  return `Shielded ${asset}`;
+}
+
 function formatEditableAmount(value: number, decimals: number) {
   return value
     .toFixed(decimals)
@@ -481,21 +485,7 @@ export function UnshieldPage() {
       ? null
       : chooseBestSpendableNote(spendableShieldNotesByLane[selectedLane]);
   useEffect(() => {
-    if (selectedLane === "SOL") {
-      setRequestedAmountInput(
-        selectedSolNote ? formatEditableAmount(selectedSolNote.amount, 9) : "",
-      );
-      return;
-    }
-
-    setRequestedAmountInput(
-      selectedShieldNote
-        ? formatEditableAmount(
-            selectedShieldNote.amount,
-            getLiveShieldTokenAsset(selectedLane).decimals,
-          )
-        : "",
-    );
+    setRequestedAmountInput("");
   }, [selectedLane, selectedShieldNote, selectedSolNote]);
   const selectedFullAmount =
     selectedLane === "SOL"
@@ -2151,7 +2141,7 @@ export function UnshieldPage() {
             <div className="swap-module">
               <div className="swap-module__field">
                 <div className="swap-module__label-row">
-                  <span>Asset</span>
+                  <span>Shielded asset</span>
                   <div className="send-balance-line shield-helper shield-helper--meta">
                     Available: {formatUnshieldAmount(selectedFullAmount, selectedLane)}
                   </div>
@@ -2171,7 +2161,7 @@ export function UnshieldPage() {
                       "SOL",
                     ] as UnshieldLane[]).map((lane) => (
                       <option key={lane} value={lane}>
-                        {lane}
+                        {formatShieldedLaneLabel(lane)}
                       </option>
                     ))}
                   </select>
@@ -2225,9 +2215,7 @@ export function UnshieldPage() {
                     status === "finalizing_state"
                   }
                 >
-                  {selectedLane === "SOL"
-                    ? "Return SOL to Public Wallet"
-                    : `Return ${selectedLane} to Public Wallet`}
+                  Return {formatShieldedLaneLabel(selectedLane)} to Public Wallet
                 </button>
               </div>
             </div>

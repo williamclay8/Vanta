@@ -1,0 +1,35 @@
+export function createVantaWalletSigningSafetyPolicy() {
+  return {
+    version: "vanta-wallet-signing-safety-0.1",
+    blockedActions: [
+      "mainnet-submit-without-explicit-approval",
+      "private-key-or-seed-phrase-request",
+      "blind-signing",
+      "simulation-bypass",
+      "unsigned-transaction-mutation-after-summary",
+    ],
+    defaultCluster: "devnet-or-localnet",
+    liveMainnetSubmissionEnabled: false,
+    mainnetReady: false,
+    neverStorePrivateKeys: true,
+    releaseGateCommands: [
+      "npm run wallet:signing-safety-check",
+      "npm run mainnet:readiness-check",
+      "npm run protocol:browser-check",
+    ],
+    requiredSummaryFields: [
+      "cluster",
+      "feePayer",
+      "recipient",
+      "amount",
+      "asset",
+      "estimatedFees",
+      "instructions",
+      "recentBlockhash",
+      "simulationResult",
+    ],
+    requiresExplicitHumanApproval: true,
+    requiresSimulationBeforeSignature: true,
+    requiresTransactionSummaryBeforeSignature: true,
+  };
+}

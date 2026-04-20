@@ -16,6 +16,7 @@ const VANTA_SEND_MEMO_PREFIX = "vanta:send-note:v1:";
 const VANTA_UNSHIELD_MEMO_PREFIX = "vanta:unshield-note:v1:";
 const VANTA_SWAP_MEMO_PREFIX = "vanta:swap-note:v1:";
 const VANTA_SOL_UNSHIELD_MEMO_PREFIX = "vanta:sol-unshield-note:v1:";
+export const VANTA_NATIVE_SOL_SHIELD_MEMO_PREFIX = "vanta:native-sol-shield-note:v1:";
 const VANTA_SPENT_MARKER_MEMO_PREFIX = "vanta:spent-marker:v1:";
 export const VANTA_NATIVE_SOL_ASSET_ID =
   "So11111111111111111111111111111111111111112";
@@ -90,6 +91,7 @@ export type VantaShieldedSolNote = {
   sourceSwapNoteId: string;
   spentMarkerId?: string;
   stateSignature: string;
+  vaultOwner: string;
 };
 
 export type VantaSolUnshieldNote = {
@@ -317,6 +319,18 @@ type SolUnshieldMemoPayload = {
   vaultOwner: string;
 };
 
+type NativeSolShieldMemoPayload = {
+  amount: string;
+  asset: "SOL";
+  assetId: string;
+  createdAt: number;
+  depositSignature: string;
+  kind: "native_sol_shield";
+  noteId?: string;
+  owner: string;
+  vaultOwner: string;
+};
+
 type SpentMarkerMemoPayload = {
   asset: VantaShieldTokenAsset | "SOL";
   assetId?: string;
@@ -487,6 +501,21 @@ function createSolUnshieldNoteId(
   });
 }
 
+function createNativeSolShieldNoteId(
+  payload: Omit<NativeSolShieldMemoPayload, "kind" | "noteId">,
+) {
+  return createDeterministicNoteId({
+    amount: payload.amount,
+    asset: payload.asset,
+    assetId: payload.assetId,
+    createdAt: payload.createdAt,
+    depositSignature: payload.depositSignature,
+    kind: "native_sol_shield",
+    owner: payload.owner,
+    vaultOwner: payload.vaultOwner,
+  });
+}
+
 function createSwapOutputNoteId(args: {
   createdAt: number;
   outputAsset: VantaShieldTokenAsset | "SOL";
@@ -576,6 +605,20 @@ export function createShieldMemoInstruction(
     kind: "shield",
     noteId: createShieldNoteId(payload),
   } satisfies ShieldMemoPayload);
+}
+
+export function createNativeSolShieldMemoInstruction(
+  payload: Omit<NativeSolShieldMemoPayload, "kind" | "noteId" | "asset">,
+): TransactionInstructionInput {
+  return createMemoInstruction(VANTA_NATIVE_SOL_SHIELD_MEMO_PREFIX, {
+    ...payload,
+    asset: "SOL",
+    kind: "native_sol_shield",
+    noteId: createNativeSolShieldNoteId({
+      ...payload,
+      asset: "SOL",
+    }),
+  } satisfies NativeSolShieldMemoPayload);
 }
 
 export function createSendMemoInstruction(
@@ -767,6 +810,66 @@ function parseShieldMemo(
       noteId,
       origin: "deposit",
       owner: parsed.owner,
+      stateSignature,
+      vaultOwner: parsed.vaultOwner,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function parseNativeSolShieldMemo(
+  memo: string | null | undefined,
+  stateSignature: string,
+): Omit<VantaShieldedSolNote, "lifecycleStatus"> | null {
+  const memoPayload = extractMemoPayload(memo, VANTA_NATIVE_SOL_SHIELD_MEMO_PREFIX);
+
+  if (!memoPayload) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(memoPayload) as Partial<NativeSolShieldMemoPayload>;
+
+    if (
+      parsed.kind !== "native_sol_shield" ||
+      parsed.asset !== "SOL" ||
+      typeof parsed.assetId !== "string" ||
+      typeof parsed.owner !== "string" ||
+      typeof parsed.vaultOwner !== "string" ||
+      typeof parsed.depositSignature !== "string" ||
+      typeof parsed.amount !== "string" ||
+      typeof parsed.createdAt !== "number"
+    ) {
+      return null;
+    }
+
+    const parsedAmount = Number(parsed.amount);
+
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      return null;
+    }
+
+    const noteId =
+      typeof parsed.noteId === "string"
+        ? parsed.noteId
+        : createNativeSolShieldNoteId({
+            amount: parsed.amount,
+            asset: "SOL",
+            assetId: parsed.assetId,
+            createdAt: parsed.createdAt,
+            depositSignature: parsed.depositSignature,
+            owner: parsed.owner,
+            vaultOwner: parsed.vaultOwner,
+          });
+
+    return {
+      amount: parsedAmount,
+      asset: "SOL",
+      createdAt: parsed.createdAt,
+      noteId,
+      owner: parsed.owner,
+      sourceSwapNoteId: "native-sol-shield",
       stateSignature,
       vaultOwner: parsed.vaultOwner,
     };
@@ -1174,6 +1277,15 @@ export async function fetchVantaShieldAccountState(args: {
         note.mintAddress === args.mintAddress &&
         note.vaultOwner === args.vaultOwner
       );
+    })
+    .sort((left, right) => left.createdAt - right.createdAt);
+  const directShieldedSolNotes = signatures
+    .filter((item: (typeof signatures)[number]) => item.err === null)
+    .map((item: (typeof signatures)[number]) =>
+      parseNativeSolShieldMemo(item.memo, item.signature.toString()),
+    )
+    .filter((note: Omit<VantaShieldedSolNote, "lifecycleStatus"> | null): note is Omit<VantaShieldedSolNote, "lifecycleStatus"> => {
+      return note !== null && note.owner === args.owner && note.vaultOwner === args.vaultOwner;
     })
     .sort((left, right) => left.createdAt - right.createdAt);
 
@@ -1611,6 +1723,7 @@ export async function fetchVantaShieldAccountState(args: {
           owner: swapTransition.owner,
           sourceSwapNoteId: swapTransition.noteId,
           stateSignature: `${swapTransition.stateSignature}:sol-output`,
+          vaultOwner: swapTransition.vaultOwner,
         });
       } else if (swapTransition.outputAsset === accountAsset) {
         const swapOutputNote = {
@@ -1655,9 +1768,12 @@ export async function fetchVantaShieldAccountState(args: {
         marker.transitionKind === "swap" && marker.transitionNoteId === note.noteId,
     );
   });
-  const baseShieldedSolNotes = validSwapNotes
-    .map((note) => shieldedSolNotesBySwap.get(note.noteId))
-    .filter((note): note is NonNullable<typeof note> => note !== undefined);
+  const baseShieldedSolNotes = [
+    ...directShieldedSolNotes,
+    ...validSwapNotes
+      .map((note) => shieldedSolNotesBySwap.get(note.noteId))
+      .filter((note): note is NonNullable<typeof note> => note !== undefined),
+  ];
   const swapOutputNotes = validSwapNotes
     .map((note) => shieldTokenNotesBySwap.get(note.noteId))
     .filter((note): note is NonNullable<typeof note> => note !== undefined)

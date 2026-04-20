@@ -1,0 +1,157 @@
+const globalRequirements = [
+  "structured-json-logs",
+  "privacy-preserving-telemetry",
+  "no-secret-logging",
+  "no-private-input-logging",
+  "operator-alert-routing",
+  "abuse-response-runbook",
+  "dashboard-for-service-health",
+  "rate-limit-overrides-with-audit",
+  "retention-policy",
+  "incident-severity-labels",
+];
+
+const surfaces = [
+  {
+    id: "pay",
+    label: "Vanta Pay",
+    status: "not-wired",
+    rateLimits: [
+      "checkout-session-create-per-merchant",
+      "checkout-complete-per-session",
+      "webhook-endpoint-create-per-merchant",
+      "withdrawal-create-per-merchant",
+    ],
+    metrics: [
+      "checkout_session_created_total",
+      "payment_completed_total",
+      "payment_failed_total",
+      "webhook_delivery_attempt_total",
+      "withdrawal_failed_total",
+    ],
+    alerts: [
+      "payment_completion_error_rate_high",
+      "webhook_delivery_failures_high",
+      "withdrawal_failure_rate_high",
+      "merchant_auth_failures_high",
+    ],
+    auditEvents: [
+      "merchant_api_key_rejected",
+      "checkout_session_created",
+      "payment_completed",
+      "webhook_signature_verified",
+      "withdrawal_requested",
+    ],
+  },
+  {
+    id: "privatePoolV2",
+    label: "Private Pool v2",
+    status: "not-wired",
+    rateLimits: [
+      "proof-request-per-client",
+      "claim-submit-per-nullifier",
+      "settlement-submit-per-merchant",
+      "status-read-per-client",
+    ],
+    metrics: [
+      "commitment_appended_total",
+      "nullifier_seen_total",
+      "claim_replay_rejected_total",
+      "proof_request_failed_total",
+      "settlement_receipt_created_total",
+    ],
+    alerts: [
+      "claim_replay_attempts_high",
+      "proof_failure_rate_high",
+      "root_reconstruction_lag_high",
+      "operator_auth_failures_high",
+    ],
+    auditEvents: [
+      "commitment_appended",
+      "nullifier_rejected",
+      "proof_receipt_created",
+      "settlement_fingerprint_recorded",
+    ],
+  },
+  {
+    id: "strategy",
+    label: "Strategy",
+    status: "not-wired",
+    rateLimits: [
+      "strategy-create-per-wallet",
+      "strategy-start-per-wallet",
+      "child-order-submit-per-strategy",
+      "execution-preview-per-wallet",
+    ],
+    metrics: [
+      "strategy_created_total",
+      "strategy_started_total",
+      "child_order_skipped_total",
+      "protected_landing_downgrade_total",
+      "strategy_cancelled_total",
+    ],
+    alerts: [
+      "child_order_failure_rate_high",
+      "protected_landing_unavailable_high",
+      "slippage_skip_rate_high",
+      "strategy_runtime_resume_failed",
+    ],
+    auditEvents: [
+      "strategy_created",
+      "strategy_started",
+      "child_order_submitted",
+      "child_order_skipped",
+      "strategy_cancelled",
+    ],
+  },
+  {
+    id: "operator",
+    label: "Operator Control Plane",
+    status: "not-wired",
+    rateLimits: [
+      "service-status-read-per-client",
+      "admin-action-per-operator",
+      "deployment-lock-acquire-per-service",
+      "incident-event-write-per-service",
+    ],
+    metrics: [
+      "service_health_check_total",
+      "service_unhealthy_total",
+      "deployment_lock_conflict_total",
+      "incident_event_total",
+      "schema_migration_failed_total",
+    ],
+    alerts: [
+      "service_down",
+      "database_restore_check_failed",
+      "schema_migration_failed",
+      "deployment_lock_stale",
+      "secret_rotation_overdue",
+    ],
+    auditEvents: [
+      "operator_login_rejected",
+      "service_status_changed",
+      "deployment_lock_acquired",
+      "migration_started",
+      "incident_declared",
+    ],
+  },
+];
+
+export function createVantaAbuseObservabilityContract() {
+  return {
+    version: "vanta-abuse-observability-contract-0.1",
+    globalRequirements,
+    mainnetReady: false,
+    nextImplementationStep:
+      "Implement shared rate-limit, structured logging, metrics, alert, and audit-event middleware for Pay and Private Pool v2 first.",
+    productionReady: false,
+    requiredVerificationCommands: [
+      "npm run mainnet:abuse-observability-check",
+      "npm run mainnet:preflight",
+      "npm run pay:verify",
+      "npm run private-pool-v2:verify",
+    ],
+    surfaces,
+  };
+}

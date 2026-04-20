@@ -1,27 +1,21 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { sha256 } from "@noble/hashes/sha2";
-import { useSendTransaction, useSolanaClient, useSplToken } from "@solana/react-hooks";
+import { useSendTransaction } from "@solana/react-hooks";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
 import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePanel";
 import { usePrivacyFlow, type PrivacyAssetKey } from "@/data/context/PrivacyFlowContext";
-import { useWalletState } from "@/data/context/WalletContext";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
 import { useVantaShieldState } from "@/solana/useVantaShieldState";
 import { useRealtimeSignatureProgress } from "@/solana/useRealtimeSignatureProgress";
-import { liveShieldAsset, SHIELD_HOOK_FALLBACK_MINT } from "@/solana/shieldConfig";
+import { liveShieldAsset } from "@/solana/shieldConfig";
 import {
-  createShieldMemoInstruction,
   createPreparedSendMemo,
   createSpentMarkerInstruction,
-  fetchVantaShieldAccountState,
   type VantaShieldAccountState,
   type VantaShieldNote,
 } from "@/solana/vantaShieldState";
-import {
-  recordCanonicalShieldFromLiveShield,
-} from "@/zk/liveShieldBridge";
 import {
   listCanonicalSendDiagnosticsSummaries,
   recordCanonicalSendFromLiveSend,
@@ -91,15 +85,6 @@ type PrivateCoreSendExecutionState = {
   status: "idle" | "running" | "verified" | "failed";
 };
 
-type PendingImplicitShieldSend = {
-  amountDisplay: string;
-  amountNumeric: number;
-  createdAt: number;
-  depositSignature?: string;
-  recipient: string;
-  shieldStateSignature?: string;
-};
-
 const assetNames: Record<PrivacyAssetKey, string> = {
   VUSD: "Vanta Devnet Test Dollar",
   USDC: "USD Coin",
@@ -109,6 +94,7 @@ const assetNames: Record<PrivacyAssetKey, string> = {
   PYUSD: "PayPal USD",
   WIF: "dogwifhat",
   KMNO: "Kamino",
+  SOL: "Solana",
 };
 
 const fallbackShieldedBalances: Record<PrivacyAssetKey, number> = {
@@ -120,7 +106,23 @@ const fallbackShieldedBalances: Record<PrivacyAssetKey, number> = {
   PYUSD: 0,
   WIF: 0,
   KMNO: 0,
+  SOL: 0,
 };
+
+const sendShieldedAssetOptions: Array<{
+  asset: PrivacyAssetKey;
+  label: string;
+  disabled: boolean;
+}> = [
+  { asset: "VUSD", label: "Shielded VUSD", disabled: false },
+  { asset: "USDC", label: "Shielded USDC — coming soon", disabled: true },
+  { asset: "JTO", label: "Shielded JTO — coming soon", disabled: true },
+  { asset: "BONK", label: "Shielded BONK — coming soon", disabled: true },
+  { asset: "JUP", label: "Shielded JUP — coming soon", disabled: true },
+  { asset: "PYUSD", label: "Shielded PYUSD — coming soon", disabled: true },
+  { asset: "WIF", label: "Shielded WIF — coming soon", disabled: true },
+  { asset: "KMNO", label: "Shielded KMNO — coming soon", disabled: true },
+];
 
 const DEFAULT_VUSD_DECIMALS = 6;
 
@@ -136,6 +138,13 @@ function formatBalance(value: number, symbol: PrivacyAssetKey) {
     return `${value.toLocaleString(undefined, {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
+    })} ${symbol}`;
+  }
+
+  if (symbol === "SOL") {
+    return `${value.toLocaleString(undefined, {
+      minimumFractionDigits: 4,
+      maximumFractionDigits: 6,
     })} ${symbol}`;
   }
 
@@ -165,19 +174,7 @@ function formatOperatorSummaryFreshness(value: number | null) {
   });
 }
 
-function readTokenDecimals(balance: unknown) {
-  if (typeof balance !== "object" || balance === null) {
-    return undefined;
-  }
-
-  const candidate = (balance as { decimals?: unknown }).decimals;
-  return typeof candidate === "number" && Number.isInteger(candidate) && candidate >= 0
-    ? candidate
-    : undefined;
-}
-
 export function SendPage({ dashboard = false }: SendPageProps) {
-  const client = useSolanaClient();
   const {
     ensurePrivateCoreOperatorRootKnown,
     privateCoreHoldState,
@@ -385,24 +382,14 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreUnshieldState,
     previewPrivateCoreSendTransition,
     refreshPrivateCoreOperatorSummary,
-    runPrivateCoreShield,
     runPrivateCoreSendTransition,
-    setRecentShield,
   } = usePrivacyFlow();
-  const { walletConnected } = useWalletState();
   const {
     account: shieldAccount,
     error: shieldStateError,
-    isReady: shieldStateReady,
     isRefreshing: shieldStateRefreshing,
     refresh: refreshShieldState,
   } = useVantaShieldState();
-  const supportedToken = useSplToken(
-    liveShieldAsset.mintAddress ?? SHIELD_HOOK_FALLBACK_MINT,
-    {
-      config: { tokenProgram: "auto" },
-    },
-  );
   const [selectedAsset, setSelectedAsset] = useState<PrivacyAssetKey>(
     recentShield?.asset ?? "VUSD",
   );
@@ -422,8 +409,6 @@ export function SendPage({ dashboard = false }: SendPageProps) {
   const [lastChangeAmount, setLastChangeAmount] = useState<number | null>(null);
   const [pendingSpentMarker, setPendingSpentMarker] = useState<PendingSpentMarker | null>(null);
   const [pendingSendBridge, setPendingSendBridge] = useState<PendingSendBridge | null>(null);
-  const [pendingImplicitShieldSend, setPendingImplicitShieldSend] =
-    useState<PendingImplicitShieldSend | null>(null);
   const [privateCoreSendExecution, setPrivateCoreSendExecution] =
     useState<PrivateCoreSendExecutionState>({
       errorMessage: null,
@@ -435,25 +420,10 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       status: "idle",
     });
   const sendNoteTransaction = useSendTransaction();
-  const implicitShieldStateTransaction = useSendTransaction();
   const sendNoteWait = useRealtimeSignatureProgress(sendNoteTransaction.signature ?? undefined, {
     commitment: "confirmed",
     disabled: !sendNoteTransaction.signature,
   });
-  const implicitShieldTransferWait = useRealtimeSignatureProgress(
-    supportedToken.sendSignature ?? undefined,
-    {
-      commitment: "confirmed",
-      disabled: !supportedToken.sendSignature,
-    },
-  );
-  const implicitShieldStateWait = useRealtimeSignatureProgress(
-    implicitShieldStateTransaction.signature ?? undefined,
-    {
-      commitment: "confirmed",
-      disabled: !implicitShieldStateTransaction.signature,
-    },
-  );
   const spentMarkerTransaction = useSendTransaction();
   const spentMarkerWait = useRealtimeSignatureProgress(
     spentMarkerTransaction.signature ?? undefined,
@@ -484,7 +454,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     ) {
       const nextSelectedNote = spendableNotes[0];
       setSelectedNoteId(nextSelectedNote.noteId);
-      setAmount(nextSelectedNote.amount.toFixed(2));
+      setAmount("");
     }
   }, [selectedNoteId, spendableNotes]);
 
@@ -496,10 +466,6 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     selectedAsset === "VUSD"
       ? shieldAccount?.balance ?? fallbackShieldedBalances[selectedAsset]
       : fallbackShieldedBalances[selectedAsset];
-  const publicBalance =
-    selectedAsset === "VUSD"
-      ? Number(supportedToken.balance?.uiAmount ?? "0")
-      : 0;
   const parsedAmount = Number(amount);
   const maxNoteAmount = selectedSpendableNote?.amount ?? 0;
   const changeAmount =
@@ -518,18 +484,6 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     isAmountValid &&
     isRecipientValid &&
     Boolean(liveShieldAsset.mintAddress);
-  const isImplicitShieldSendReady =
-    selectedAsset === "VUSD" &&
-    !selectedSpendableNote &&
-    walletConnected &&
-    shieldStateReady &&
-    Number.isFinite(parsedAmount) &&
-    parsedAmount > 0 &&
-    parsedAmount <= publicBalance &&
-    isRecipientValid &&
-    Boolean(liveShieldAsset.mintAddress) &&
-    Boolean(liveShieldAsset.vaultOwner);
-  const isIntegratedSendReady = isRealSendReady || isImplicitShieldSendReady;
   const sendProgressLabel = sendNoteWait.detailLabel;
   const settleProgressLabel = spentMarkerWait.detailLabel;
   const privateCoreSendPreview = useMemo<PrivateCoreSendPreview | null>(() => {
@@ -681,148 +635,6 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     sendNoteTransaction.error,
     sendNoteTransaction.signature,
     sendNoteTransaction.status,
-  ]);
-
-  useEffect(() => {
-    if (!pendingImplicitShieldSend) {
-      return;
-    }
-
-    if (supportedToken.sendStatus === "loading") {
-      setStatus("sending");
-      return;
-    }
-
-    if (supportedToken.sendStatus === "error") {
-      setStatus("failed");
-      setPendingImplicitShieldSend(null);
-      setFlowError(
-        supportedToken.sendError instanceof Error
-          ? supportedToken.sendError.message
-          : "The implicit shield transfer was not approved.",
-      );
-      return;
-    }
-
-    if (supportedToken.sendStatus === "success" && supportedToken.sendSignature) {
-      setPendingImplicitShieldSend((current) =>
-        current
-          ? {
-              ...current,
-              depositSignature: supportedToken.sendSignature ?? current.depositSignature,
-            }
-          : current,
-      );
-    }
-  }, [
-    pendingImplicitShieldSend,
-    supportedToken.sendError,
-    supportedToken.sendSignature,
-    supportedToken.sendStatus,
-  ]);
-
-  useEffect(() => {
-    if (!pendingImplicitShieldSend || implicitShieldTransferWait.waitStatus !== "error") {
-      return;
-    }
-
-    setStatus("failed");
-    setPendingImplicitShieldSend(null);
-    setFlowError(
-      implicitShieldTransferWait.waitError instanceof Error
-        ? implicitShieldTransferWait.waitError.message
-        : "The implicit shield transfer was submitted but not confirmed.",
-    );
-  }, [
-    implicitShieldTransferWait.waitError,
-    implicitShieldTransferWait.waitStatus,
-    pendingImplicitShieldSend,
-  ]);
-
-  useEffect(() => {
-    if (
-      !pendingImplicitShieldSend ||
-      implicitShieldTransferWait.waitStatus !== "success" ||
-      !pendingImplicitShieldSend.depositSignature ||
-      !liveShieldAsset.mintAddress ||
-      !liveShieldAsset.vaultOwner ||
-      !supportedToken.owner
-    ) {
-      return;
-    }
-
-    if (
-      implicitShieldStateTransaction.status === "loading" ||
-      implicitShieldStateTransaction.signature
-    ) {
-      return;
-    }
-
-    const depositSignature = pendingImplicitShieldSend.depositSignature;
-
-    if (!depositSignature) {
-      return;
-    }
-
-    void buildHeliusPriorityFeeInstructions({
-      accountKeys: [
-        liveShieldAsset.mintAddress,
-        supportedToken.owner,
-        depositSignature,
-        liveShieldAsset.vaultOwner,
-      ],
-      action: "shield_state",
-    })
-      .then((priorityFeeInstructions) =>
-        implicitShieldStateTransaction.send({
-          instructions: [
-            ...priorityFeeInstructions,
-            createShieldMemoInstruction({
-              amount: pendingImplicitShieldSend.amountDisplay,
-              asset: "VUSD",
-              createdAt: pendingImplicitShieldSend.createdAt,
-              depositSignature,
-              mintAddress: liveShieldAsset.mintAddress!,
-              owner: supportedToken.owner!,
-              vaultOwner: liveShieldAsset.vaultOwner!,
-            }),
-          ],
-        }),
-      )
-      .catch((error) => {
-        setStatus("failed");
-        setPendingImplicitShieldSend(null);
-        setFlowError(
-          error instanceof Error
-            ? error.message
-            : "The implicit shield state note could not be recorded.",
-        );
-      });
-  }, [
-    implicitShieldStateTransaction,
-    implicitShieldTransferWait.waitStatus,
-    liveShieldAsset.mintAddress,
-    liveShieldAsset.vaultOwner,
-    pendingImplicitShieldSend,
-    supportedToken.owner,
-  ]);
-
-  useEffect(() => {
-    if (!pendingImplicitShieldSend || implicitShieldStateWait.waitStatus !== "error") {
-      return;
-    }
-
-    setStatus("failed");
-    setPendingImplicitShieldSend(null);
-    setFlowError(
-      implicitShieldStateWait.waitError instanceof Error
-        ? implicitShieldStateWait.waitError.message
-        : "The implicit shield state note was submitted but not confirmed.",
-    );
-  }, [
-    implicitShieldStateWait.waitError,
-    implicitShieldStateWait.waitStatus,
-    pendingImplicitShieldSend,
   ]);
 
   useEffect(() => {
@@ -978,116 +790,6 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     spentMarkerWait.waitStatus,
   ]);
 
-  useEffect(() => {
-    if (
-      !pendingImplicitShieldSend ||
-      implicitShieldStateWait.waitStatus !== "success" ||
-      !implicitShieldStateTransaction.signature ||
-      !liveShieldAsset.mintAddress ||
-      !liveShieldAsset.vaultOwner ||
-      !supportedToken.owner ||
-      sendNoteTransaction.status === "loading" ||
-      sendNoteTransaction.signature
-    ) {
-      return;
-    }
-
-    const runImplicitShieldSend = async () => {
-      try {
-        const shieldStateSignature = implicitShieldStateTransaction.signature?.toString();
-
-        if (!shieldStateSignature) {
-          throw new Error("The implicit shield state signature was unavailable.");
-        }
-
-        await refreshShieldState();
-
-        const refreshedAccount = await fetchVantaShieldAccountState({
-          client,
-          mintAddress: liveShieldAsset.mintAddress!,
-          owner: supportedToken.owner!,
-          vaultOwner: liveShieldAsset.vaultOwner!,
-        });
-        const freshlyShieldedNote = refreshedAccount.spendableShieldNotes.find(
-          (note) => note.stateSignature === shieldStateSignature,
-        );
-
-        if (!freshlyShieldedNote) {
-          throw new Error(
-            "The shielded note was created, but Vanta could not resolve it for the private send step.",
-          );
-        }
-
-        const zkRecord = await recordCanonicalShieldFromLiveShield({
-          amountDisplay: pendingImplicitShieldSend.amountDisplay,
-          amountNumeric: pendingImplicitShieldSend.amountNumeric,
-          assetSymbol: "VUSD",
-          createdAt: pendingImplicitShieldSend.createdAt,
-          depositSignature: pendingImplicitShieldSend.depositSignature,
-          mintAddress: liveShieldAsset.mintAddress!,
-          owner: supportedToken.owner!,
-          stateSignature: shieldStateSignature,
-          tokenDecimals: readTokenDecimals(supportedToken.balance),
-          vaultOwner: liveShieldAsset.vaultOwner!,
-        });
-        const privateCoreShield = runPrivateCoreShield({
-          amountDisplay: pendingImplicitShieldSend.amountDisplay,
-          asset: "VUSD",
-        });
-
-        setRecentShield({
-          amount: pendingImplicitShieldSend.amountNumeric,
-          asset: "VUSD",
-          depositSignature: pendingImplicitShieldSend.depositSignature,
-          resultingShieldedBalance: refreshedAccount.balance,
-          settlement: "confirmed_deposit",
-          signature: shieldStateSignature,
-          source: "shield",
-          timestamp: Date.now(),
-          zkBridge: {
-            commitment:
-              privateCoreShield.sourceNoteCommitment || zkRecord.artifacts.commitment.value,
-            insertionIndex: zkRecord.insertion.index,
-            root: privateCoreShield.sourceMerkleRoot || zkRecord.insertion.root,
-            source: "canonical_note_v1",
-          },
-        });
-
-        await performLiveSendFromNote({
-          amountNumeric: pendingImplicitShieldSend.amountNumeric,
-          note: freshlyShieldedNote,
-          recipientValue: pendingImplicitShieldSend.recipient,
-          shieldAccountState: refreshedAccount,
-        });
-        setPendingImplicitShieldSend(null);
-      } catch (error) {
-        setStatus("failed");
-        setPendingImplicitShieldSend(null);
-        setFlowError(
-          error instanceof Error
-            ? error.message
-            : "Vanta could not finish the implicit shield before sending privately.",
-        );
-      }
-    };
-
-    void runImplicitShieldSend();
-  }, [
-    client,
-    implicitShieldStateTransaction.signature,
-    implicitShieldStateWait.waitStatus,
-    liveShieldAsset.mintAddress,
-    liveShieldAsset.vaultOwner,
-    pendingImplicitShieldSend,
-    refreshShieldState,
-    runPrivateCoreShield,
-    sendNoteTransaction.signature,
-    sendNoteTransaction.status,
-    setRecentShield,
-    supportedToken.balance,
-    supportedToken.owner,
-  ]);
-
   async function performLiveSendFromNote(args: {
     amountNumeric: number;
     note: VantaShieldNote;
@@ -1180,38 +882,6 @@ export function SendPage({ dashboard = false }: SendPageProps) {
 
       return;
     }
-
-    if (!isImplicitShieldSendReady || !liveShieldAsset.vaultOwner) {
-      return;
-    }
-
-    supportedToken.resetSend();
-    implicitShieldStateTransaction.reset();
-    sendNoteTransaction.reset();
-    spentMarkerTransaction.reset();
-    setPendingSpentMarker(null);
-    setPendingSendBridge(null);
-    setFlowError(null);
-    setStatus("awaiting_confirmation");
-    setPendingImplicitShieldSend({
-      amountDisplay: amount,
-      amountNumeric: parsedAmount,
-      createdAt: Date.now(),
-      recipient: recipient.trim(),
-    });
-
-    try {
-      await supportedToken.send({
-        amount,
-        destinationOwner: liveShieldAsset.vaultOwner,
-      });
-    } catch (error) {
-      setPendingImplicitShieldSend(null);
-      setStatus("failed");
-      setFlowError(
-        error instanceof Error ? error.message : "Send request was not approved.",
-      );
-    }
   }
 
   async function handlePrivateCoreSendProof() {
@@ -1287,9 +957,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     ? shieldStateError
     : isRealSendReady
       ? "Ready to send from shielded state."
-      : isImplicitShieldSendReady
-        ? "Vanta will shield the exact amount first, then send."
-        : "Enter a valid amount and recipient.";
+      : !selectedSpendableNote
+        ? "Shield the asset first, then return here to send it."
+        : "Enter a valid amount and destination address.";
 
   return (
     <section className="send-page">
@@ -1367,13 +1037,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 <div className="swap-module__label-row">
                   <span>You send</span>
                   <div className="send-balance-line shield-helper shield-helper--meta">
-                    Balance:{" "}
-                    {formatBalance(
-                      selectedAsset === "VUSD"
-                        ? publicBalance
-                        : fallbackShieldedBalances[selectedAsset],
-                      selectedAsset,
-                    )}
+                    Shielded balance: {formatBalance(selectedBalance, selectedAsset)}
                   </div>
                 </div>
                 <div className="send-entry-grid">
@@ -1393,19 +1057,13 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                     <button
                       className="button button-ghost"
                       type="button"
-                      disabled={
-                        selectedAsset !== "VUSD" || (!selectedSpendableNote && publicBalance <= 0)
-                      }
+                      disabled={selectedAsset !== "VUSD" || !selectedSpendableNote}
                       onClick={() => {
-                        if (!selectedSpendableNote && publicBalance <= 0) {
+                        if (!selectedSpendableNote) {
                           return;
                         }
 
-                        setAmount(
-                          selectedSpendableNote
-                            ? selectedSpendableNote.amount.toFixed(2)
-                            : publicBalance.toFixed(2),
-                        );
+                        setAmount(selectedSpendableNote.amount.toFixed(2));
                         setStatus("idle");
                         setFlowError(null);
                       }}
@@ -1416,7 +1074,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               </div>
                 <div className="send-asset-field">
                   <select
-                    aria-label="Send asset"
+                    aria-label="Send shielded asset"
                     value={selectedAsset}
                     onChange={(event) => {
                       setSelectedAsset(event.target.value as PrivacyAssetKey);
@@ -1424,9 +1082,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                       setFlowError(null);
                     }}
                   >
-                    {(["VUSD", "USDC", "JTO", "BONK", "JUP", "PYUSD", "WIF", "KMNO"] as PrivacyAssetKey[]).map((asset) => (
-                      <option key={asset} value={asset} disabled={asset !== "VUSD"}>
-                        {asset !== "VUSD" ? `${asset} — coming soon` : asset}
+                    {sendShieldedAssetOptions.map(({ asset, disabled, label }) => (
+                      <option key={asset} value={asset} disabled={disabled}>
+                        {label}
                       </option>
                     ))}
                   </select>
@@ -1463,7 +1121,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   onClick={() => {
                     void handleSend();
                   }}
-                  disabled={!isIntegratedSendReady || status === "sending" || status === "settling"}
+                  disabled={!isRealSendReady || status === "sending" || status === "settling"}
                 >
                   Private Send
                 </button>

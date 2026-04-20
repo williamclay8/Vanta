@@ -7,6 +7,7 @@ const appLinks = [
   { to: "/app/shield", label: "Shield", end: false },
   { to: "/app/send", label: "Send", end: false },
   { to: "/app/swap", label: "Swap", end: false },
+  { to: "/app/strategy", label: "Strategy", end: false },
   { to: "/app/unshield", label: "Unshield", end: false },
   { to: "/app/pay", label: "Pay", end: false },
 ];

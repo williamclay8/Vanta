@@ -1,0 +1,159 @@
+const deploymentGuards = [
+  "no-secret-values-in-manifest",
+  "durable-store-required",
+  "auth-token-required",
+  "rate-limit-policy-required",
+  "structured-logging-required",
+  "metrics-and-alerts-required",
+];
+
+const services = [
+  {
+    id: "indexer",
+    label: "Private Pool v2 Indexer",
+    requiredSecrets: [
+      "VANTA_INDEXER_DATABASE_URL",
+      "VANTA_INDEXER_AUTH_TOKEN",
+      "VANTA_INDEXER_RPC_URL",
+    ],
+    requiredStorage: ["commitments", "merkle_roots", "nullifiers", "indexer_cursors"],
+    health: ["/health", "/v1/roots/latest"],
+    readiness: ["/v1/commitments", "/v1/nullifiers/:nullifier"],
+    deploymentGuards,
+  },
+  {
+    id: "relayer",
+    label: "Private Pool v2 Relayer",
+    requiredSecrets: [
+      "VANTA_RELAYER_DATABASE_URL",
+      "VANTA_RELAYER_AUTH_TOKEN",
+      "VANTA_RELAYER_FEE_WALLET",
+      "VANTA_RELAYER_RPC_URL",
+    ],
+    requiredStorage: ["claim_quotes", "claim_submissions", "relayer_idempotency_keys"],
+    health: ["/health", "/v1/submissions/health"],
+    readiness: ["/v1/quotes", "/v1/claims"],
+    deploymentGuards,
+  },
+  {
+    id: "prover",
+    label: "Private Pool v2 Prover",
+    requiredSecrets: [
+      "VANTA_PROVER_AUTH_TOKEN",
+      "VANTA_PROVER_ARTIFACT_PATH",
+      "VANTA_PROVER_KEYSET",
+    ],
+    requiredStorage: ["proof_jobs", "proof_artifacts", "verifying_key_snapshots"],
+    health: ["/health", "/v1/proofs/health"],
+    readiness: ["/v1/proofs/shield", "/v1/proofs/claim", "/v1/verifying-keys"],
+    deploymentGuards,
+  },
+  {
+    id: "verifier",
+    label: "Private Pool v2 Verifier Registry",
+    requiredSecrets: [
+      "VANTA_VERIFIER_DATABASE_URL",
+      "VANTA_VERIFIER_AUTH_TOKEN",
+      "VANTA_VERIFIER_KEYSET",
+    ],
+    requiredStorage: ["accepted_receipts", "verified_public_inputs", "claim_nullifiers"],
+    health: ["/health", "/v1/verify/health"],
+    readiness: ["/v1/verify/shield", "/v1/verify/claim", "/v1/receipts/:receiptId"],
+    deploymentGuards,
+  },
+  {
+    id: "operator",
+    label: "Vanta Operator Gateway",
+    requiredSecrets: [
+      "VANTA_OPERATOR_DATABASE_URL",
+      "VANTA_OPERATOR_AUTH_TOKEN",
+      "VANTA_OPERATOR_PRIVATE_POOL_URL",
+    ],
+    requiredStorage: ["pay_settlements", "protocol_settlements", "operator_idempotency_keys"],
+    health: ["/health", "/private-pool-v2/status"],
+    readiness: ["/v1/status", "/private-pool-v2/protocol-settlements", "/private-pool-v2/pay-settlements"],
+    deploymentGuards,
+  },
+];
+
+const serviceEdges = [
+  {
+    from: "operator",
+    to: "indexer",
+    purpose: "load commitment roots and verify settlement source state",
+    auth: "mutual-service-auth",
+    failurePolicy: "fail-closed",
+    requiredChecks: ["root-read-health", "commitment-lookup-health"],
+  },
+  {
+    from: "operator",
+    to: "prover",
+    purpose: "request shield, claim, send, swap, and settlement proofs",
+    auth: "mutual-service-auth",
+    failurePolicy: "fail-closed",
+    requiredChecks: ["proof-job-health", "verifying-key-match"],
+  },
+  {
+    from: "operator",
+    to: "verifier",
+    purpose: "accept proof receipts and enforce receipt idempotency",
+    auth: "mutual-service-auth",
+    failurePolicy: "fail-closed",
+    requiredChecks: ["proof-rejection-smoke", "receipt-idempotency-smoke"],
+  },
+  {
+    from: "operator",
+    to: "relayer",
+    purpose: "quote and submit private claim exits",
+    auth: "mutual-service-auth",
+    failurePolicy: "fail-closed",
+    requiredChecks: ["quote-expiry-smoke", "submission-idempotency-smoke"],
+  },
+  {
+    from: "verifier",
+    to: "indexer",
+    purpose: "confirm roots and nullifiers before accepting receipts",
+    auth: "mutual-service-auth",
+    failurePolicy: "fail-closed",
+    requiredChecks: ["root-currentness-smoke", "nullifier-replay-smoke"],
+  },
+  {
+    from: "relayer",
+    to: "indexer",
+    purpose: "load claim roots and reject stale or replayed exits",
+    auth: "mutual-service-auth",
+    failurePolicy: "fail-closed",
+    requiredChecks: ["claim-root-smoke", "claim-nullifier-smoke"],
+  },
+];
+
+export function createVantaProductionServiceTopology() {
+  return {
+    version: "vanta-production-service-topology-0.1",
+    network: "mainnet-beta",
+    blockers: [
+      "real-deployed-service-urls-required",
+      "production-secret-manager-required",
+      "third-party-security-review-required",
+      "mainnet-funds-approval-required",
+    ],
+    mainnetReady: false,
+    productionReady: false,
+    releaseGates: [
+      "all-service-edges-authenticated",
+      "all-service-health-surfaces-green",
+      "all-readiness-surfaces-green",
+      "all-durable-stores-restored-in-restart-check",
+      "all-nullifier-replay-checks-green",
+    ],
+    requiredVerificationCommands: [
+      "npm run mainnet:service-topology-check",
+      "npm run mainnet:service-contract-check",
+      "npm run mainnet:deployment-manifest-check",
+      "npm run storage:adapter-check",
+      "npm run nullifier:replay-guard-check",
+    ],
+    serviceEdges,
+    services,
+  };
+}

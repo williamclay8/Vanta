@@ -61,6 +61,13 @@ export type PublicToVusdQuote = {
   jupiterQuoteResponse?: JupiterQuoteResponse;
 };
 
+export type PublicShieldRouteEvidence = {
+  provider: "jupiter" | "meteora";
+  routeSignature: string;
+  targetAmount: string;
+  targetAsset: LiveShieldTokenAssetKey;
+};
+
 const DEFAULT_ALLOWED_SLIPPAGE_BPS = 50;
 const DEFAULT_SOL_DECIMALS = 9;
 const JUPITER_QUOTE_URL = "https://api.jup.ag/swap/v1/quote";
@@ -421,4 +428,27 @@ export async function buildPublicToVusdSwapInstructions(args: {
     toJupiterInstructionInput(parsed.swapInstruction),
     ...(parsed.cleanupInstruction ? [toJupiterInstructionInput(parsed.cleanupInstruction)] : []),
   ];
+}
+
+export function createPublicShieldRouteEvidence(args: {
+  quote: PublicToVusdQuote;
+  routeSignature: string;
+  targetAmount?: string | null;
+}): PublicShieldRouteEvidence {
+  const targetAmount = args.targetAmount?.trim() || args.quote.outputAmount;
+
+  if (!args.routeSignature.trim()) {
+    throw new Error("Shield route evidence requires a route signature.");
+  }
+
+  if (!targetAmount.trim()) {
+    throw new Error("Shield route evidence requires a target amount.");
+  }
+
+  return {
+    provider: args.quote.venueName === "Jupiter" ? "jupiter" : "meteora",
+    routeSignature: args.routeSignature,
+    targetAmount,
+    targetAsset: args.quote.outputAsset,
+  };
 }
