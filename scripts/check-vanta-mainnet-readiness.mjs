@@ -83,6 +83,11 @@ assert.ok(
   "Missing abuse/observability contract command.",
 );
 assert.ok(snapshot.requiredCommands.includes("npm run ops:rate-limit-check"), "Missing rate-limit check command.");
+assert.ok(snapshot.requiredCommands.includes("npm run ops:safe-telemetry-check"), "Missing safe telemetry check command.");
+assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:observability-sink-check"),
+  "Missing production observability sink check command.",
+);
 assert.ok(
   snapshot.requiredCommands.includes("npm run nullifier:replay-guard-check"),
   "Missing nullifier replay guard command.",
@@ -110,5 +115,9 @@ assert.ok(
 );
 assert.ok(snapshot.requiredCommands.includes("npm run audit:package-check"), "Missing audit package command.");
 assert.ok(snapshot.nextActions[0]?.includes("external gates packet"), "First next action should push toward external gates.");
+assert.ok(
+  snapshot.nextActions.some((action) => action.includes("production log sources")),
+  "Next actions must include production log source setup.",
+);
 
 console.log("Vanta mainnet readiness check: PASS");
