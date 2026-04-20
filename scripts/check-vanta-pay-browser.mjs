@@ -43,8 +43,8 @@ function runBrowserBatch() {
     {
       action: "assert",
       checks: [
-        { kind: "text_visible", text: "Pay Privately" },
-        { kind: "text_visible", text: "Private by default" },
+        { kind: "text_visible", text: "Pay with Vanta" },
+        { kind: "text_visible", text: "Privacy rail in review" },
         { kind: "selector_hidden", selector: ".pay-success-card" },
         { kind: "text_hidden", text: "Shield" },
         { kind: "text_hidden", text: "Unshield" },
@@ -110,7 +110,7 @@ function runCheckoutPreCompletionLeakCheck() {
   ).trim();
 
   if (output !== "false") {
-    throw new Error("Expected checkout success state to be absent before Pay Privately is clicked.");
+    throw new Error("Expected checkout success state to be absent before Pay with Vanta is clicked.");
   }
 }
 

@@ -13,8 +13,9 @@ const requiredCopy = [
   "Invoice",
   "Amount",
   "Asset",
-  "Pay Privately",
-  "Private by default",
+  "Pay with Vanta",
+  "Privacy rail in review",
+  "Receipt included",
 ];
 
 const bannedCopy = [
@@ -26,6 +27,8 @@ const bannedCopy = [
   "API-driven checkout",
   "Payments Dashboard",
   "Payments Landing Page",
+  "Pay Privately",
+  "Private by default",
   "Shield",
   "Unshield",
   "Note commitment",

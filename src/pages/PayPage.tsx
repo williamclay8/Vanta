@@ -133,7 +133,7 @@ function CheckoutView() {
           <PayField label="Name" placeholder="Your name" />
           <PayField label="Email" placeholder="you@example.com" type="email" />
           <PayButton onClick={() => setIsComplete(true)} variant="primary">
-            Pay Privately
+            Pay with Vanta
           </PayButton>
         </form>
         <details className="pay-other-options">
@@ -144,7 +144,7 @@ function CheckoutView() {
           </div>
         </details>
         <div className="pay-trust-line">
-          <span>Private by default</span>
+          <span>Privacy rail in review</span>
           <span>Receipt included</span>
         </div>
         {isComplete ? (
