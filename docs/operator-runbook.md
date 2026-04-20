@@ -213,13 +213,16 @@ VANTA_PRIVATE_POOL_V2_ALLOW_INSECURE_LOOPBACK_REMOTE_SERVICES=true
 
 Do not use that flag for production. Production remote services must stay HTTPS-only.
 
-The indexer service has a local/staging restart-safe snapshot path:
+The role services have local/staging restart-safe snapshot paths:
 
 ```bash
 VANTA_PRIVATE_POOL_V2_INDEXER_STORE_PATH=<local-json-snapshot-path>
+VANTA_PRIVATE_POOL_V2_PROVER_STORE_PATH=<local-json-snapshot-path>
+VANTA_PRIVATE_POOL_V2_RELAYER_STORE_PATH=<local-json-snapshot-path>
+VANTA_PRIVATE_POOL_V2_VERIFIER_STORE_PATH=<local-json-snapshot-path>
 ```
 
-`npm run private-pool-v2:service-network-check` verifies that an accepted commitment survives an indexer process restart through this path. Treat it as local/staging evidence only; production still requires managed durable database storage and restore evidence.
+`npm run private-pool-v2:service-network-check` verifies that accepted commitments, proof artifacts, relayer quotes, and verifier receipts survive role-service restarts through these paths. Treat this as local/staging evidence only; production still requires managed durable database storage and restore evidence.
 
 Important environment variables:
 

@@ -8,6 +8,9 @@ const basePort = 12_000 + Math.floor(Math.random() * 1_000);
 const authToken = "vanta-private-pool-v2-service-network-test-token";
 const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-private-pool-v2-service-network-"));
 const indexerStorePath = join(tempRoot, "indexer-state.json");
+const proverStorePath = join(tempRoot, "prover-state.json");
+const relayerStorePath = join(tempRoot, "relayer-state.json");
+const verifierStorePath = join(tempRoot, "verifier-state.json");
 
 const services = [
   {
@@ -116,9 +119,17 @@ try {
       env: {
         ...process.env,
         [service.tokenEnv]: authToken,
-        VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN: authToken,
         ...(service.role === "indexer"
           ? { VANTA_PRIVATE_POOL_V2_INDEXER_STORE_PATH: indexerStorePath }
+          : {}),
+        ...(service.role === "prover" ? { VANTA_PRIVATE_POOL_V2_PROVER_STORE_PATH: proverStorePath } : {}),
+        ...(service.role === "relayer" ? { VANTA_PRIVATE_POOL_V2_RELAYER_STORE_PATH: relayerStorePath } : {}),
+        ...(service.role === "verifier"
+          ? {
+              VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN: authToken,
+              VANTA_PRIVATE_POOL_V2_INDEXER_URL: serviceUrls.get("indexer") ?? "",
+              VANTA_PRIVATE_POOL_V2_VERIFIER_STORE_PATH: verifierStorePath,
+            }
           : {}),
         VANTA_PRIVATE_POOL_V2_INDEXER_URL: serviceUrls.get("indexer") ?? "",
       },
@@ -141,14 +152,14 @@ try {
       health.parsed?.mainnetReady === false,
       `${service.role} health must not claim mainnet readiness.`,
     );
-    if (service.role === "indexer") {
+    if (service.role !== "operator") {
       assert(
         health.parsed?.storage?.durableStoreConfigured === true,
-        "Expected indexer service health to expose configured durable store.",
+        `Expected ${service.role} service health to expose configured durable store.`,
       );
       assert(
         health.parsed?.storage?.productionReady === false,
-        "Expected indexer service storage to remain productionReady false.",
+        `Expected ${service.role} service storage to remain productionReady false.`,
       );
     }
 
@@ -196,6 +207,40 @@ try {
   });
   assert(proof.ok, proof.text || "Expected prover proof response.");
 
+  const runningProver = children.find((entry) => entry.role === "prover");
+  assert(runningProver, "Expected running prover process.");
+  await new Promise((resolvePromise) => {
+    runningProver.child.once("close", resolvePromise);
+    runningProver.child.kill("SIGTERM");
+  });
+
+  const restartedProver = spawn("npm", ["run", "private-pool-v2:prover", "--", "--port", String(basePort + 1)], {
+    cwd: repoRoot,
+    env: {
+      ...process.env,
+      VANTA_PRIVATE_POOL_V2_PROVER_AUTH_TOKEN: authToken,
+      VANTA_PRIVATE_POOL_V2_PROVER_STORE_PATH: proverStorePath,
+    },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  let restartedProverStderr = "";
+  restartedProver.stderr.on("data", (chunk) => {
+    restartedProverStderr += chunk.toString("utf8");
+  });
+  children.push({ child: restartedProver, role: "prover-restart", stderr: () => restartedProverStderr });
+  await waitForHealth(serviceUrls.get("prover"));
+
+  const restoredProof = await requestJson(
+    serviceUrls.get("prover"),
+    `/v1/proofs/${encodeURIComponent(proof.parsed.publicInputCommitment)}`,
+    { headers: { Authorization: `Bearer ${authToken}` } },
+  );
+  assert(restoredProof.ok, restoredProof.text || "Expected restored prover proof artifact.");
+  assert(
+    restoredProof.parsed?.proof?.publicInputCommitment === proof.parsed.publicInputCommitment,
+    "Expected prover service to restore proof artifacts after restart.",
+  );
+
   const receipt = await requestJson(serviceUrls.get("verifier"), "/v1/proofs/accept", {
     body: JSON.stringify({ proof: proof.parsed, request: shieldRequest }),
     headers: { Authorization: `Bearer ${authToken}` },
@@ -203,6 +248,31 @@ try {
   });
   assert(receipt.ok, receipt.text || "Expected verifier receipt.");
   assert(receipt.parsed?.intent === "shield", "Expected shield receipt intent.");
+
+  const runningVerifier = children.find((entry) => entry.role === "verifier");
+  assert(runningVerifier, "Expected running verifier process.");
+  await new Promise((resolvePromise) => {
+    runningVerifier.child.once("close", resolvePromise);
+    runningVerifier.child.kill("SIGTERM");
+  });
+
+  const restartedVerifier = spawn("npm", ["run", "private-pool-v2:verifier", "--", "--port", String(basePort + 3)], {
+    cwd: repoRoot,
+    env: {
+      ...process.env,
+      VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN: authToken,
+      VANTA_PRIVATE_POOL_V2_INDEXER_URL: serviceUrls.get("indexer"),
+      VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN: authToken,
+      VANTA_PRIVATE_POOL_V2_VERIFIER_STORE_PATH: verifierStorePath,
+    },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  let restartedVerifierStderr = "";
+  restartedVerifier.stderr.on("data", (chunk) => {
+    restartedVerifierStderr += chunk.toString("utf8");
+  });
+  children.push({ child: restartedVerifier, role: "verifier-restart", stderr: () => restartedVerifierStderr });
+  await waitForHealth(serviceUrls.get("verifier"));
 
   const indexedCommitments = await requestJson(
     serviceUrls.get("indexer"),
@@ -267,6 +337,39 @@ try {
   });
   assert(quote.ok, quote.text || "Expected relayer quote.");
   assert(String(quote.parsed?.relayerId ?? "").startsWith("vanta-service-relayer:"), "Expected relayer id.");
+
+  const runningRelayer = children.find((entry) => entry.role === "relayer");
+  assert(runningRelayer, "Expected running relayer process.");
+  await new Promise((resolvePromise) => {
+    runningRelayer.child.once("close", resolvePromise);
+    runningRelayer.child.kill("SIGTERM");
+  });
+
+  const restartedRelayer = spawn("npm", ["run", "private-pool-v2:relayer", "--", "--port", String(basePort + 2)], {
+    cwd: repoRoot,
+    env: {
+      ...process.env,
+      VANTA_PRIVATE_POOL_V2_RELAYER_AUTH_TOKEN: authToken,
+      VANTA_PRIVATE_POOL_V2_RELAYER_STORE_PATH: relayerStorePath,
+    },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  let restartedRelayerStderr = "";
+  restartedRelayer.stderr.on("data", (chunk) => {
+    restartedRelayerStderr += chunk.toString("utf8");
+  });
+  children.push({ child: restartedRelayer, role: "relayer-restart", stderr: () => restartedRelayerStderr });
+  await waitForHealth(serviceUrls.get("relayer"));
+
+  const submittedClaim = await requestJson(serviceUrls.get("relayer"), "/v1/claims/submit", {
+    body: JSON.stringify({
+      quote: quote.parsed,
+      serializedTransaction: "serialized-claim-service-network-test",
+    }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(submittedClaim.ok, submittedClaim.text || "Expected restored relayer quote to submit after restart.");
 
   console.log("private-pool-v2 proof roundtrip across services: PASS");
 

@@ -27,13 +27,16 @@ The current repo has the remote service client boundary at `src/privacy/privateP
 
 The same check also starts `npm run private-pool-v2:operator` with `VANTA_PRIVATE_POOL_V2_RUNTIME_MODE=remote-services` against the four local role services and completes a deterministic Pay settlement through that network. Local loopback smoke uses `VANTA_PRIVATE_POOL_V2_ALLOW_INSECURE_LOOPBACK_REMOTE_SERVICES=true`; do not set that flag outside localhost test/smoke contexts. Production remote services must use HTTPS URLs.
 
-For local/staging restart evidence, the indexer role can use:
+For local/staging restart evidence, the role services can use:
 
 ```bash
 VANTA_PRIVATE_POOL_V2_INDEXER_STORE_PATH=<local-json-snapshot-path>
+VANTA_PRIVATE_POOL_V2_PROVER_STORE_PATH=<local-json-snapshot-path>
+VANTA_PRIVATE_POOL_V2_RELAYER_STORE_PATH=<local-json-snapshot-path>
+VANTA_PRIVATE_POOL_V2_VERIFIER_STORE_PATH=<local-json-snapshot-path>
 ```
 
-The service-network check verifies accepted commitments survive an indexer restart when this path is configured. This is not production storage; production still needs managed durable database refs and restore evidence.
+The service-network check verifies accepted commitments, proof artifacts, relayer quotes, and verifier receipts survive role-service restarts when these paths are configured. This is not production storage; production still needs managed durable database refs and restore evidence.
 
 The checked deployment manifest is:
 

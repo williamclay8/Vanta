@@ -11,21 +11,25 @@ const roleConfig = {
   indexer: {
     defaultPort: 8801,
     service: "vanta-private-pool-v2-indexer",
+    storeEnv: "VANTA_PRIVATE_POOL_V2_INDEXER_STORE_PATH",
     tokenEnv: "VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN",
   },
   prover: {
     defaultPort: 8802,
     service: "vanta-private-pool-v2-prover",
+    storeEnv: "VANTA_PRIVATE_POOL_V2_PROVER_STORE_PATH",
     tokenEnv: "VANTA_PRIVATE_POOL_V2_PROVER_AUTH_TOKEN",
   },
   relayer: {
     defaultPort: 8803,
     service: "vanta-private-pool-v2-relayer",
+    storeEnv: "VANTA_PRIVATE_POOL_V2_RELAYER_STORE_PATH",
     tokenEnv: "VANTA_PRIVATE_POOL_V2_RELAYER_AUTH_TOKEN",
   },
   verifier: {
     defaultPort: 8804,
     service: "vanta-private-pool-v2-verifier",
+    storeEnv: "VANTA_PRIVATE_POOL_V2_VERIFIER_STORE_PATH",
     tokenEnv: "VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN",
   },
 };
@@ -99,6 +103,7 @@ function toBigInt(value, fallback = 0n) {
 }
 
 function basePayload(role) {
+  const storePath = process.env[roleConfig[role].storeEnv];
   return {
     mainnetReady: false,
     ok: true,
@@ -108,12 +113,8 @@ function basePayload(role) {
     service: roleConfig[role].service,
     serviceNetworkReady: true,
     storage: {
-      durableStoreConfigured:
-        role === "indexer" && Boolean(process.env.VANTA_PRIVATE_POOL_V2_INDEXER_STORE_PATH),
-      kind:
-        role === "indexer" && process.env.VANTA_PRIVATE_POOL_V2_INDEXER_STORE_PATH
-          ? "local-json-snapshot-store"
-          : "in-memory",
+      durableStoreConfigured: Boolean(storePath),
+      kind: storePath ? "local-json-snapshot-store" : "in-memory",
       productionReady: false,
     },
     version: serviceVersion,
@@ -152,31 +153,15 @@ function requireAuth({ authToken, request, response, role }) {
   return true;
 }
 
-function readIndexerSnapshot(storePath) {
+function readSnapshot(storePath, defaultSnapshot) {
   if (!storePath || !existsSync(storePath)) {
-    return { commitments: [], nullifiers: [] };
+    return defaultSnapshot;
   }
 
-  const parsed = JSON.parse(readFileSync(storePath, "utf8"));
-  return {
-    commitments: (parsed.commitments ?? []).map((record) => ({
-      assetId: String(record.assetId),
-      commitment: String(record.commitment),
-      leafIndex: Number(record.leafIndex),
-      merkleRoot: String(record.merkleRoot),
-      treeId: String(record.treeId),
-    })),
-    nullifiers: (parsed.nullifiers ?? []).map((record) => ({
-      nullifier: String(record.nullifier),
-      spentAtSlot:
-        record.spentAtSlot === null || record.spentAtSlot === undefined
-          ? null
-          : toBigInt(record.spentAtSlot),
-    })),
-  };
+  return JSON.parse(readFileSync(storePath, "utf8"));
 }
 
-function writeIndexerSnapshot(storePath, snapshot) {
+function writeSnapshot(storePath, snapshot) {
   if (!storePath) {
     return;
   }
@@ -197,6 +182,30 @@ function writeIndexerSnapshot(storePath, snapshot) {
     )}\n`,
   );
   renameSync(tempPath, resolvedStorePath);
+}
+
+function readIndexerSnapshot(storePath) {
+  const parsed = readSnapshot(storePath, { commitments: [], nullifiers: [] });
+  return {
+    commitments: (parsed.commitments ?? []).map((record) => ({
+      assetId: String(record.assetId),
+      commitment: String(record.commitment),
+      leafIndex: Number(record.leafIndex),
+      merkleRoot: String(record.merkleRoot),
+      treeId: String(record.treeId),
+    })),
+    nullifiers: (parsed.nullifiers ?? []).map((record) => ({
+      nullifier: String(record.nullifier),
+      spentAtSlot:
+        record.spentAtSlot === null || record.spentAtSlot === undefined
+          ? null
+          : toBigInt(record.spentAtSlot),
+    })),
+  };
+}
+
+function writeIndexerSnapshot(storePath, snapshot) {
+  writeSnapshot(storePath, snapshot);
 }
 
 function createInMemoryIndexerState({ storePath } = {}) {
@@ -276,6 +285,99 @@ function proofResultFor(request) {
     proofSystem: "mock",
     publicInputCommitment,
     verifyingKeyId: "vanta-private-pool-v2:service-network-verifying-key-0.1",
+  };
+}
+
+function createProverState({ storePath } = {}) {
+  const snapshot = readSnapshot(storePath, { proofs: [] });
+  const proofs = new Map((snapshot.proofs ?? []).map((proof) => [proof.publicInputCommitment, proof]));
+
+  function save() {
+    writeSnapshot(storePath, { proofs: [...proofs.values()] });
+  }
+
+  return {
+    get(publicInputCommitment) {
+      return proofs.get(publicInputCommitment) ?? null;
+    },
+    put(proof) {
+      proofs.set(proof.publicInputCommitment, proof);
+      save();
+      return proof;
+    },
+  };
+}
+
+function quoteKey(quote) {
+  return [
+    String(quote.relayerId),
+    String(quote.estimatedFeeBaseUnits),
+    String(quote.expiresAtSlot),
+  ].join(":");
+}
+
+function createRelayerState({ storePath } = {}) {
+  const snapshot = readSnapshot(storePath, { claims: [], quotes: [] });
+  const quotes = new Map((snapshot.quotes ?? []).map((quote) => [quoteKey(quote), quote]));
+  const claims = new Map((snapshot.claims ?? []).map((claim) => [quoteKey(claim.quote), claim]));
+
+  function save() {
+    writeSnapshot(storePath, {
+      claims: [...claims.values()],
+      quotes: [...quotes.values()],
+    });
+  }
+
+  return {
+    getQuote(quote) {
+      return quotes.get(quoteKey(quote)) ?? null;
+    },
+    putQuote(quote) {
+      quotes.set(quoteKey(quote), quote);
+      save();
+      return quote;
+    },
+    submitClaim({ quote, serializedTransaction }) {
+      const key = quoteKey(quote);
+      if (!quotes.has(key)) {
+        throw new Error(`Unknown relayer quote ${quote.relayerId}.`);
+      }
+      if (claims.has(key)) {
+        throw new Error(`Relayer quote ${quote.relayerId} has already been submitted.`);
+      }
+
+      const claim = {
+        quote,
+        relayerId: String(quote.relayerId),
+        serializedTransaction: String(serializedTransaction),
+        signature: hashHex(serviceVersion, "claim", key, String(serializedTransaction)),
+      };
+      claims.set(key, claim);
+      save();
+      return claim;
+    },
+  };
+}
+
+function createVerifierState({ storePath } = {}) {
+  const snapshot = readSnapshot(storePath, { acceptedProofs: [] });
+  const acceptedProofs = new Map(
+    (snapshot.acceptedProofs ?? []).map((receipt) => [receipt.replayKey, receipt]),
+  );
+
+  function save() {
+    writeSnapshot(storePath, { acceptedProofs: [...acceptedProofs.values()] });
+  }
+
+  return {
+    get(replayKey) {
+      return acceptedProofs.get(replayKey) ?? null;
+    },
+    put(receipt) {
+      acceptedProofs.set(receipt.replayKey, receipt);
+      save();
+      return receipt;
+    },
   };
 }
 
@@ -363,9 +465,16 @@ async function mirrorAcceptedProofToIndexer(request) {
   return null;
 }
 
-function createServiceHandlers(role, { indexerStorePath } = {}) {
+function createServiceHandlers(role, {
+  indexerStorePath,
+  proverStorePath,
+  relayerStorePath,
+  verifierStorePath,
+} = {}) {
   const indexerState = createInMemoryIndexerState({ storePath: indexerStorePath });
-  const acceptedProofs = new Map();
+  const proverState = createProverState({ storePath: proverStorePath });
+  const relayerState = createRelayerState({ storePath: relayerStorePath });
+  const verifierState = createVerifierState({ storePath: verifierStorePath });
 
   async function handleIndexer({ request, response }) {
     const url = new URL(request.url ?? "/", "http://127.0.0.1");
@@ -459,7 +568,22 @@ function createServiceHandlers(role, { indexerStorePath } = {}) {
       if (toBigInt(requestBody.amountBaseUnits) <= 0n) {
         throw new Error("Proof amount must be positive.");
       }
-      sendJson(response, 200, proofResultFor(requestBody));
+      sendJson(response, 200, proverState.put(proofResultFor(requestBody)));
+      return true;
+    }
+
+    if (request.method === "GET" && request.url?.startsWith("/v1/proofs/")) {
+      const url = new URL(request.url, "http://127.0.0.1");
+      const publicInputCommitment = decodeURIComponent(url.pathname.split("/")[3] ?? "");
+      const proof = proverState.get(publicInputCommitment);
+      if (!proof) {
+        sendJson(response, 404, { error: `Unknown proof ${publicInputCommitment}.`, ok: false });
+        return true;
+      }
+      sendJson(response, 200, {
+        ...basePayload(role),
+        proof,
+      });
       return true;
     }
 
@@ -497,20 +621,17 @@ function createServiceHandlers(role, { indexerStorePath } = {}) {
         String(body.destinationAddress),
         amountBaseUnits.toString(),
       ).slice(2, 18)}`;
-      sendJson(response, 200, {
+      sendJson(response, 200, relayerState.putQuote({
         estimatedFeeBaseUnits: (amountBaseUnits * 10n) / 10_000n,
         expiresAtSlot: 1_000_150n,
         relayerId,
-      });
+      }));
       return true;
     }
 
     if (request.method === "POST" && request.url === "/v1/claims/submit") {
       const body = await readRequestBody(request);
-      sendJson(response, 200, {
-        relayerId: String(body.quote?.relayerId ?? "vanta-service-relayer"),
-        signature: hashHex(serviceVersion, "claim", JSON.stringify(normalizeForJson(body))),
-      });
+      sendJson(response, 200, relayerState.submitClaim(body));
       return true;
     }
 
@@ -531,7 +652,7 @@ function createServiceHandlers(role, { indexerStorePath } = {}) {
       const requestBody = body.request;
       const proof = body.proof;
       const replayKey = replayKeyFor(requestBody);
-      if (acceptedProofs.has(replayKey)) {
+      if (verifierState.get(replayKey)) {
         throw new Error(`Private Pool v2 receipt ${replayKey} has already been accepted.`);
       }
       if (!proofMatches({ proof, request: requestBody })) {
@@ -546,7 +667,7 @@ function createServiceHandlers(role, { indexerStorePath } = {}) {
         recordedAtSlot: 1_000_000n,
         replayKey,
       };
-      acceptedProofs.set(replayKey, receipt);
+      verifierState.put(receipt);
       sendJson(response, 200, receipt);
       return true;
     }
@@ -572,6 +693,9 @@ export function startVantaPrivatePoolV2RoleService(role) {
   const authToken = process.env[roleConfig[role].tokenEnv];
   const handleRoleRequest = createServiceHandlers(role, {
     indexerStorePath: process.env.VANTA_PRIVATE_POOL_V2_INDEXER_STORE_PATH,
+    proverStorePath: process.env.VANTA_PRIVATE_POOL_V2_PROVER_STORE_PATH,
+    relayerStorePath: process.env.VANTA_PRIVATE_POOL_V2_RELAYER_STORE_PATH,
+    verifierStorePath: process.env.VANTA_PRIVATE_POOL_V2_VERIFIER_STORE_PATH,
   });
 
   const server = createServer(async (request, response) => {
