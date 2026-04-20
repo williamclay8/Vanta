@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 
-import { createPostgresSnapshotStore } from "../src/storage/vantaPostgresSnapshotStore.mjs";
+import {
+  createPostgresPoolOptions,
+  createPostgresSnapshotStore,
+} from "../src/storage/vantaPostgresSnapshotStore.mjs";
 
 function createFakePostgresClient() {
   const calls = [];
@@ -33,6 +36,14 @@ function createFakePostgresClient() {
 }
 
 const defaultSnapshot = { events: [], stateVersion: 1 };
+
+const poolOptions = createPostgresPoolOptions("postgresql://user:pass@example.invalid/vanta");
+assert.equal(poolOptions.connectionString, "postgresql://user:pass@example.invalid/vanta");
+assert.equal(poolOptions.max, 1);
+assert.equal(poolOptions.connectionTimeoutMillis, 5_000);
+assert.equal(poolOptions.idleTimeoutMillis, 10_000);
+assert.deepEqual(poolOptions.ssl, { rejectUnauthorized: false });
+
 const client = createFakePostgresClient();
 const store = await createPostgresSnapshotStore({
   client,

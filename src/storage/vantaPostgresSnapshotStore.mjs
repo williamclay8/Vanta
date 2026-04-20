@@ -30,17 +30,24 @@ function normalizeSnapshot(snapshot, stateVersion) {
 
 async function defaultClientFromDatabaseUrl(databaseUrl) {
   const { Pool } = await import("pg");
-  const pool = new Pool({
+  const pool = new Pool(createPostgresPoolOptions(databaseUrl));
+
+  return pool;
+}
+
+export function createPostgresPoolOptions(databaseUrl) {
+  return {
     connectionString: databaseUrl,
+    connectionTimeoutMillis: Number(process.env.VANTA_POSTGRES_CONNECTION_TIMEOUT_MS ?? "5000"),
+    idleTimeoutMillis: Number(process.env.VANTA_POSTGRES_IDLE_TIMEOUT_MS ?? "10000"),
+    max: Number(process.env.VANTA_POSTGRES_POOL_MAX ?? "1"),
     ssl:
       process.env.VANTA_POSTGRES_SSL === "disable"
         ? false
         : {
             rejectUnauthorized: false,
           },
-  });
-
-  return pool;
+  };
 }
 
 export async function createPostgresSnapshotStore({
