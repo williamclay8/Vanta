@@ -51,6 +51,47 @@ assert.equal(manifest.productionReady, false);
 assert.ok(Array.isArray(manifest.secrets), "Secret references manifest must include secrets array.");
 
 const allowedRefs = new Set(contract.scopes.flatMap((scope) => scope.allowedSecretRefs));
+const rawSecretValuePatterns = [
+  /postgres(?:ql)?:\/\//i,
+  /mysql:\/\//i,
+  /mongodb(?:\+srv)?:\/\//i,
+  /redis:\/\//i,
+  /sk_live_/i,
+  /sk_test_/i,
+  /whsec_/i,
+  /bearer\s+[a-z0-9._-]+/i,
+  /-----BEGIN [A-Z ]*PRIVATE KEY-----/,
+  /seed phrase/i,
+];
+
+function scanForRawSecretValues(value, path = "manifest") {
+  if (Array.isArray(value)) {
+    value.forEach((entry, index) => scanForRawSecretValues(entry, `${path}[${index}]`));
+    return;
+  }
+
+  if (value && typeof value === "object") {
+    for (const [key, entry] of Object.entries(value)) {
+      assert.ok(
+        !["value", "rawSecret", "privateKey", "seedPhrase", "keypair", "mnemonic"].includes(key),
+        `Secret references manifest must not contain raw secret key field ${path}.${key}.`,
+      );
+      scanForRawSecretValues(entry, `${path}.${key}`);
+    }
+    return;
+  }
+
+  if (typeof value !== "string") {
+    return;
+  }
+
+  for (const pattern of rawSecretValuePatterns) {
+    assert.ok(!pattern.test(value), `Secret references manifest contains raw-looking secret value at ${path}.`);
+  }
+}
+
+scanForRawSecretValues(manifest);
+
 for (const secret of manifest.secrets) {
   assert.ok(allowedRefs.has(secret.ref), `Secret ref is not allowed by contract: ${secret.ref}`);
   assert.ok(secret.ref.endsWith("_REF"), `Secret ref must be a reference name: ${secret.ref}`);
