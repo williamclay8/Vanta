@@ -62,6 +62,10 @@ assert.ok(
   "Template must include the remote services adapter check.",
 );
 assert.ok(
+  template.requiredVerificationCommands.includes("npm run private-pool-v2:service-network-check"),
+  "Template must include the service network check.",
+);
+assert.ok(
   template.requiredVerificationCommands.includes("npm run mainnet:private-pool-v2-production-smoke-check"),
   "Template must include its own check command.",
 );

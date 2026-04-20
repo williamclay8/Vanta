@@ -279,19 +279,25 @@ function requireRuntimeEnv(name) {
 
 function createRuntime() {
   if (runtimeMode === "remote-services") {
+    const allowInsecureLoopback =
+      process.env.VANTA_PRIVATE_POOL_V2_ALLOW_INSECURE_LOOPBACK_REMOTE_SERVICES === "true";
     const indexer = createVantaPrivatePoolV2RemoteIndexer({
+      allowInsecureLoopback,
       authToken: requireRuntimeEnv("VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN"),
       baseUrl: requireRuntimeEnv("VANTA_PRIVATE_POOL_V2_INDEXER_URL"),
     });
     const prover = createVantaPrivatePoolV2RemoteProver({
+      allowInsecureLoopback,
       authToken: requireRuntimeEnv("VANTA_PRIVATE_POOL_V2_PROVER_AUTH_TOKEN"),
       baseUrl: requireRuntimeEnv("VANTA_PRIVATE_POOL_V2_PROVER_URL"),
     });
     const relayer = createVantaPrivatePoolV2RemoteRelayer({
+      allowInsecureLoopback,
       authToken: requireRuntimeEnv("VANTA_PRIVATE_POOL_V2_RELAYER_AUTH_TOKEN"),
       baseUrl: requireRuntimeEnv("VANTA_PRIVATE_POOL_V2_RELAYER_URL"),
     });
     const verifierRegistry = createVantaPrivatePoolV2RemoteVerifierRegistry({
+      allowInsecureLoopback,
       authToken: requireRuntimeEnv("VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN"),
       baseUrl: requireRuntimeEnv("VANTA_PRIVATE_POOL_V2_VERIFIER_URL"),
     });

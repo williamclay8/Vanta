@@ -23,6 +23,7 @@ type FetchLike = (url: string, init?: RequestInit) => Promise<{
 }>;
 
 type RemoteServiceArgs = {
+  allowInsecureLoopback?: boolean;
   authToken: string;
   baseUrl: string;
   fetchImpl?: FetchLike;
@@ -36,9 +37,23 @@ function requireText(value: string, fieldName: string): string {
   return value.trim();
 }
 
-function normalizeBaseUrl(baseUrl: string): string {
+function isLoopbackHttpUrl(value: string) {
+  try {
+    const parsed = new URL(value);
+    return (
+      parsed.protocol === "http:" &&
+      (parsed.hostname === "127.0.0.1" || parsed.hostname === "localhost" || parsed.hostname === "::1")
+    );
+  } catch {
+    return false;
+  }
+}
+
+function normalizeBaseUrl(baseUrl: string, { allowInsecureLoopback = false }: {
+  allowInsecureLoopback?: boolean;
+} = {}): string {
   const normalized = requireText(baseUrl, "baseUrl").replace(/\/+$/, "");
-  if (!normalized.startsWith("https://")) {
+  if (!normalized.startsWith("https://") && !(allowInsecureLoopback && isLoopbackHttpUrl(normalized))) {
     throw new Error("Private Pool v2 remote services require HTTPS URLs.");
   }
 
@@ -94,8 +109,13 @@ function toProofResult(value: any): VantaPrivatePoolV2ProofResult {
   };
 }
 
-function createRemoteJsonClient({ authToken, baseUrl, fetchImpl = fetch }: RemoteServiceArgs) {
-  const resolvedBaseUrl = normalizeBaseUrl(baseUrl);
+function createRemoteJsonClient({
+  allowInsecureLoopback = false,
+  authToken,
+  baseUrl,
+  fetchImpl = fetch,
+}: RemoteServiceArgs) {
+  const resolvedBaseUrl = normalizeBaseUrl(baseUrl, { allowInsecureLoopback });
   const token = requireText(authToken, "authToken");
 
   async function request(path: string, init: RequestInit = {}) {

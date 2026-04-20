@@ -49,13 +49,74 @@ for (const stagingId of ["pay", "private-pool-v2"]) {
   );
 }
 
+const expectedStartCommands = {
+  indexer: "npm run private-pool-v2:indexer",
+  operator: "npm run private-pool-v2:operator",
+  prover: "npm run private-pool-v2:prover",
+  relayer: "npm run private-pool-v2:relayer",
+  verifier: "npm run private-pool-v2:verifier",
+};
+
+const expectedEnvNames = {
+  indexer: [
+    "VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN",
+    "VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL",
+    "VANTA_PRIVATE_POOL_V2_INDEXER_NETWORK",
+    "VANTA_PRIVATE_POOL_V2_INDEXER_RPC_URL",
+  ],
+  operator: [
+    "VANTA_PRIVATE_POOL_V2_DATABASE_URL",
+    "VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN",
+    "VANTA_PRIVATE_POOL_V2_INDEXER_URL",
+    "VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN",
+    "VANTA_PRIVATE_POOL_V2_PROVER_AUTH_TOKEN",
+    "VANTA_PRIVATE_POOL_V2_PROVER_URL",
+    "VANTA_PRIVATE_POOL_V2_RELAYER_AUTH_TOKEN",
+    "VANTA_PRIVATE_POOL_V2_RELAYER_URL",
+    "VANTA_PRIVATE_POOL_V2_RUNTIME_MODE",
+    "VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN",
+    "VANTA_PRIVATE_POOL_V2_VERIFIER_URL",
+  ],
+  prover: [
+    "VANTA_PRIVATE_POOL_V2_PROVER_ARTIFACT_PATH",
+    "VANTA_PRIVATE_POOL_V2_PROVER_AUTH_TOKEN",
+    "VANTA_PRIVATE_POOL_V2_PROVER_KEYSET",
+    "VANTA_PRIVATE_POOL_V2_PROVER_WORKER_COUNT",
+  ],
+  relayer: [
+    "VANTA_PRIVATE_POOL_V2_RELAYER_AUTH_TOKEN",
+    "VANTA_PRIVATE_POOL_V2_RELAYER_DATABASE_URL",
+    "VANTA_PRIVATE_POOL_V2_RELAYER_FEE_WALLET",
+    "VANTA_PRIVATE_POOL_V2_RELAYER_RPC_URL",
+  ],
+  verifier: [
+    "VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN",
+    "VANTA_PRIVATE_POOL_V2_INDEXER_URL",
+    "VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN",
+    "VANTA_PRIVATE_POOL_V2_VERIFIER_DATABASE_URL",
+    "VANTA_PRIVATE_POOL_V2_VERIFIER_KEYSET",
+    "VANTA_PRIVATE_POOL_V2_VERIFIER_NETWORK",
+  ],
+};
+
 for (const serviceId of ["indexer", "relayer", "prover", "verifier", "operator"]) {
   const service = manifest.services.find((candidate) => candidate.id === serviceId);
   assert.ok(service, `Missing manifest service ${serviceId}.`);
   assert.ok(service.image.includes("${"), `${serviceId} image must be templated, not hard-coded.`);
+  assert.equal(
+    service.startCommand,
+    expectedStartCommands[serviceId],
+    `${serviceId} must declare the checked repo start command.`,
+  );
   assert.ok(service.replicas.minimum >= 1, `${serviceId} must declare minimum replicas.`);
   assert.ok(service.env.every((entry) => !("value" in entry)), `${serviceId} env must not include secret values.`);
   assert.ok(service.env.some((entry) => entry.required === true), `${serviceId} must declare required env.`);
+  for (const envName of expectedEnvNames[serviceId]) {
+    assert.ok(
+      service.env.some((entry) => entry.name === envName && entry.required === true),
+      `${serviceId} must declare required env ${envName}.`,
+    );
+  }
   assert.ok(service.healthChecks.length > 0, `${serviceId} must declare health checks.`);
   assert.ok(service.persistence.required === true, `${serviceId} must require persistence.`);
 }

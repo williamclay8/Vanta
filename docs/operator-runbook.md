@@ -27,6 +27,7 @@ npm run ops:safe-telemetry-check
 npm run mainnet:observability-sink-check
 npm run nullifier:replay-guard-check
 npm run mainnet:deployment-manifest-check
+npm run private-pool-v2:service-network-check
 npm run wallet:signing-safety-check
 npm run wallet:transaction-safety-check
 npm run mainnet:secret-handling-check
@@ -70,6 +71,16 @@ ops/mainnet/private-pool-v2-services.manifest.json
 ```
 
 It intentionally stores environment variable names and image placeholders only. Do not put real secrets, RPC credentials, private keys, or wallet material in the manifest.
+
+The production service entries in that manifest must stay aligned with the checked service-network start commands:
+
+```bash
+npm run private-pool-v2:indexer
+npm run private-pool-v2:prover
+npm run private-pool-v2:relayer
+npm run private-pool-v2:verifier
+npm run private-pool-v2:operator
+```
 
 The external mainnet gates packet is:
 
@@ -169,6 +180,7 @@ For a faster focused check:
 ```bash
 npm run pay:merchant-api-check
 npm run private-pool-v2:http-smoke
+npm run private-pool-v2:service-network-check
 npm run nullifier:replay-guard-check
 npm run protocol:browser-check
 ```
@@ -180,6 +192,26 @@ Start the local Private Pool v2 operator:
 ```bash
 npm run private-pool-v2:operator
 ```
+
+Start the separated Private Pool v2 service-network entrypoints:
+
+```bash
+npm run private-pool-v2:indexer
+npm run private-pool-v2:prover
+npm run private-pool-v2:relayer
+npm run private-pool-v2:verifier
+npm run private-pool-v2:service-network-check
+```
+
+These services expose the deployable remote-service contract for `remote-services` mode. They still report `productionReady: false` and `mainnetReady: false`; the current implementation is deterministic no-real-funds harness infrastructure until audited production proving, durable production storage, secret-manager-backed refs, production smoke evidence, and mainnet approvals exist.
+
+`npm run private-pool-v2:service-network-check` also starts the operator in `remote-services` mode against the four local role services and routes a deterministic no-real-funds Pay settlement through the network. The local-only flag for this smoke is:
+
+```bash
+VANTA_PRIVATE_POOL_V2_ALLOW_INSECURE_LOOPBACK_REMOTE_SERVICES=true
+```
+
+Do not use that flag for production. Production remote services must stay HTTPS-only.
 
 Important environment variables:
 

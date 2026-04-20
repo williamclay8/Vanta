@@ -117,6 +117,7 @@
   ],
   "requiredVerificationCommands": [
     "npm run private-pool-v2:remote-services-check",
+    "npm run private-pool-v2:service-network-check",
     "npm run private-pool-v2:verify",
     "npm run mainnet:private-pool-v2-production-smoke-check",
     "npm run mainnet:preflight"

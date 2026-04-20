@@ -60,15 +60,16 @@
     {
       "id": "indexer",
       "image": "${VANTA_INDEXER_IMAGE}",
+      "startCommand": "npm run private-pool-v2:indexer",
       "replicas": {
         "minimum": 2,
         "maximum": 6
       },
       "env": [
-        { "name": "VANTA_INDEXER_DATABASE_URL", "required": true },
-        { "name": "VANTA_INDEXER_AUTH_TOKEN", "required": true },
-        { "name": "VANTA_INDEXER_NETWORK", "required": true },
-        { "name": "VANTA_INDEXER_RPC_URL", "required": true }
+        { "name": "VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_INDEXER_NETWORK", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_INDEXER_RPC_URL", "required": true }
       ],
       "healthChecks": ["/health", "/v1/commitments", "/v1/roots/latest"],
       "persistence": {
@@ -79,17 +80,18 @@
     {
       "id": "relayer",
       "image": "${VANTA_RELAYER_IMAGE}",
+      "startCommand": "npm run private-pool-v2:relayer",
       "replicas": {
         "minimum": 2,
         "maximum": 6
       },
       "env": [
-        { "name": "VANTA_RELAYER_DATABASE_URL", "required": true },
-        { "name": "VANTA_RELAYER_AUTH_TOKEN", "required": true },
-        { "name": "VANTA_RELAYER_FEE_WALLET", "required": true },
-        { "name": "VANTA_RELAYER_RPC_URL", "required": true }
+        { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_DATABASE_URL", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_AUTH_TOKEN", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_FEE_WALLET", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_RPC_URL", "required": true }
       ],
-      "healthChecks": ["/health", "/v1/quotes", "/v1/submissions/health"],
+      "healthChecks": ["/health", "/v1/claims/quote"],
       "persistence": {
         "required": true,
         "kind": "durable-database"
@@ -98,17 +100,18 @@
     {
       "id": "prover",
       "image": "${VANTA_PROVER_IMAGE}",
+      "startCommand": "npm run private-pool-v2:prover",
       "replicas": {
         "minimum": 2,
         "maximum": 12
       },
       "env": [
-        { "name": "VANTA_PROVER_AUTH_TOKEN", "required": true },
-        { "name": "VANTA_PROVER_ARTIFACT_PATH", "required": true },
-        { "name": "VANTA_PROVER_WORKER_COUNT", "required": true },
-        { "name": "VANTA_PROVER_KEYSET", "required": true }
+        { "name": "VANTA_PRIVATE_POOL_V2_PROVER_AUTH_TOKEN", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_PROVER_ARTIFACT_PATH", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_PROVER_WORKER_COUNT", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_PROVER_KEYSET", "required": true }
       ],
-      "healthChecks": ["/health", "/v1/verifying-keys", "/v1/proofs/health"],
+      "healthChecks": ["/health", "/v1/proofs/health"],
       "persistence": {
         "required": true,
         "kind": "artifact-store-plus-job-log"
@@ -117,17 +120,20 @@
     {
       "id": "verifier",
       "image": "${VANTA_VERIFIER_IMAGE}",
+      "startCommand": "npm run private-pool-v2:verifier",
       "replicas": {
         "minimum": 2,
         "maximum": 6
       },
       "env": [
-        { "name": "VANTA_VERIFIER_DATABASE_URL", "required": true },
-        { "name": "VANTA_VERIFIER_AUTH_TOKEN", "required": true },
-        { "name": "VANTA_VERIFIER_KEYSET", "required": true },
-        { "name": "VANTA_VERIFIER_NETWORK", "required": true }
+        { "name": "VANTA_PRIVATE_POOL_V2_VERIFIER_DATABASE_URL", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_VERIFIER_KEYSET", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_VERIFIER_NETWORK", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_INDEXER_URL", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN", "required": true }
       ],
-      "healthChecks": ["/health", "/v1/receipts/health", "/v1/verify/health"],
+      "healthChecks": ["/health", "/v1/proofs/accept"],
       "persistence": {
         "required": true,
         "kind": "durable-database"
@@ -136,17 +142,25 @@
     {
       "id": "operator",
       "image": "${VANTA_OPERATOR_IMAGE}",
+      "startCommand": "npm run private-pool-v2:operator",
       "replicas": {
         "minimum": 2,
         "maximum": 8
       },
       "env": [
-        { "name": "VANTA_OPERATOR_DATABASE_URL", "required": true },
-        { "name": "VANTA_OPERATOR_AUTH_TOKEN", "required": true },
-        { "name": "VANTA_OPERATOR_NETWORK", "required": true },
-        { "name": "VANTA_OPERATOR_PRIVATE_POOL_URL", "required": true }
+        { "name": "VANTA_PRIVATE_POOL_V2_DATABASE_URL", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_RUNTIME_MODE", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_INDEXER_URL", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_PROVER_URL", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_PROVER_AUTH_TOKEN", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_URL", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_AUTH_TOKEN", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_VERIFIER_URL", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN", "required": true }
       ],
-      "healthChecks": ["/health", "/v1/status", "/private-pool-v2/status"],
+      "healthChecks": ["/health", "/state/private-pool-v2-status"],
       "persistence": {
         "required": true,
         "kind": "durable-database"
@@ -158,6 +172,7 @@
     "npm run mainnet:service-contract-check",
     "npm run mainnet:deployment-manifest-check",
     "npm run mainnet:private-pool-v2-production-smoke-check",
+    "npm run private-pool-v2:service-network-check",
     "npm run mainnet:approval-gates-check",
     "npm run private-pool-v2:verify",
     "npm run private-core:verify",

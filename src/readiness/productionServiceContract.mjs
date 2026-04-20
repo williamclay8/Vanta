@@ -13,8 +13,12 @@ const services = [
     label: "Private Pool v2 Indexer",
     deploymentStatus: "not-deployed",
     requiredChecks: ["commitment-append-order", "merkle-root-reconstruction", "restart-restore"],
-    requiredEndpoints: ["/health", "/v1/commitments", "/v1/roots/:root", "/v1/nullifiers/:nullifier"],
-    requiredEnv: ["VANTA_INDEXER_DATABASE_URL", "VANTA_INDEXER_AUTH_TOKEN", "VANTA_INDEXER_NETWORK"],
+    requiredEndpoints: ["/health", "/v1/commitments", "/v1/roots/latest", "/v1/nullifiers/:nullifier"],
+    requiredEnv: [
+      "VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL",
+      "VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN",
+      "VANTA_PRIVATE_POOL_V2_INDEXER_NETWORK",
+    ],
     securityRequirements: commonSecurityRequirements,
   },
   {
@@ -22,8 +26,12 @@ const services = [
     label: "Private Pool v2 Relayer",
     deploymentStatus: "not-deployed",
     requiredChecks: ["quote-expiry", "quote-replay-rejection", "submission-idempotency"],
-    requiredEndpoints: ["/health", "/v1/quotes", "/v1/claims", "/v1/submissions/:submissionId"],
-    requiredEnv: ["VANTA_RELAYER_DATABASE_URL", "VANTA_RELAYER_AUTH_TOKEN", "VANTA_RELAYER_FEE_WALLET"],
+    requiredEndpoints: ["/health", "/v1/claims/quote", "/v1/claims/submit"],
+    requiredEnv: [
+      "VANTA_PRIVATE_POOL_V2_RELAYER_DATABASE_URL",
+      "VANTA_PRIVATE_POOL_V2_RELAYER_AUTH_TOKEN",
+      "VANTA_PRIVATE_POOL_V2_RELAYER_FEE_WALLET",
+    ],
     securityRequirements: commonSecurityRequirements,
   },
   {
@@ -31,8 +39,12 @@ const services = [
     label: "Private Pool v2 Prover",
     deploymentStatus: "not-deployed",
     requiredChecks: ["verifying-key-match", "public-input-binding", "proof-artifact-reproducibility"],
-    requiredEndpoints: ["/health", "/v1/proofs/shield", "/v1/proofs/claim", "/v1/verifying-keys"],
-    requiredEnv: ["VANTA_PROVER_AUTH_TOKEN", "VANTA_PROVER_ARTIFACT_PATH", "VANTA_PROVER_WORKER_COUNT"],
+    requiredEndpoints: ["/health", "/v1/proofs", "/v1/proofs/health", "/v1/proofs/verify"],
+    requiredEnv: [
+      "VANTA_PRIVATE_POOL_V2_PROVER_AUTH_TOKEN",
+      "VANTA_PRIVATE_POOL_V2_PROVER_ARTIFACT_PATH",
+      "VANTA_PRIVATE_POOL_V2_PROVER_WORKER_COUNT",
+    ],
     securityRequirements: commonSecurityRequirements,
   },
   {
@@ -40,8 +52,12 @@ const services = [
     label: "Private Pool v2 Verifier Registry",
     deploymentStatus: "not-deployed",
     requiredChecks: ["proof-rejection", "receipt-idempotency", "verifier-key-registry"],
-    requiredEndpoints: ["/health", "/v1/verify/shield", "/v1/verify/claim", "/v1/receipts/:receiptId"],
-    requiredEnv: ["VANTA_VERIFIER_DATABASE_URL", "VANTA_VERIFIER_AUTH_TOKEN", "VANTA_VERIFIER_KEYSET"],
+    requiredEndpoints: ["/health", "/v1/proofs/accept"],
+    requiredEnv: [
+      "VANTA_PRIVATE_POOL_V2_VERIFIER_DATABASE_URL",
+      "VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN",
+      "VANTA_PRIVATE_POOL_V2_VERIFIER_KEYSET",
+    ],
     securityRequirements: commonSecurityRequirements,
   },
   {
@@ -49,8 +65,12 @@ const services = [
     label: "Vanta Operator Gateway",
     deploymentStatus: "not-deployed",
     requiredChecks: ["service-auth", "settlement-idempotency", "conflicting-replay-rejection"],
-    requiredEndpoints: ["/health", "/v1/status", "/private-pool-v2/protocol-settlements", "/private-pool-v2/pay-settlements"],
-    requiredEnv: ["VANTA_OPERATOR_DATABASE_URL", "VANTA_OPERATOR_AUTH_TOKEN", "VANTA_OPERATOR_NETWORK"],
+    requiredEndpoints: ["/health", "/state/private-pool-v2-status", "/private-pool-v2/protocol-settlements", "/private-pool-v2/pay-settlements"],
+    requiredEnv: [
+      "VANTA_PRIVATE_POOL_V2_DATABASE_URL",
+      "VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN",
+      "VANTA_PRIVATE_POOL_V2_RUNTIME_MODE",
+    ],
     securityRequirements: commonSecurityRequirements,
   },
 ];
@@ -72,10 +92,11 @@ export function createVantaProductionServiceContract() {
     crossServiceRequirements,
     mainnetReady: false,
     nextImplementationStep:
-      "Create durable deployment manifests and smoke checks for the indexer, relayer, prover, verifier, and operator services.",
+      "Update durable deployment manifests, then deploy the checked indexer, relayer, prover, verifier, and operator service entrypoints with durable storage, secret-manager refs, and production smoke evidence.",
     productionReady: false,
     requiredVerificationCommands: [
       "npm run mainnet:service-contract-check",
+      "npm run private-pool-v2:service-network-check",
       "npm run mainnet:readiness-check",
       "npm run private-pool-v2:verify",
     ],

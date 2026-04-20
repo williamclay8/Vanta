@@ -19,6 +19,8 @@ const requiredPhrases = [
   "https://vanta-0wwi.onrender.com",
   "No production indexer, prover, relayer, verifier, or operator service is currently deployed",
   "VANTA_PRIVATE_POOL_V2_RUNTIME_MODE=remote-services",
+  "npm run private-pool-v2:service-network-check",
+  "operator/private-pool-v2-service-network.mjs",
   "ops/mainnet/private-pool-v2-production-smoke.template.json",
   "ops/mainnet/mainnet-approval-gates.template.json",
   "npm run mainnet:private-pool-v2-production-smoke-check",

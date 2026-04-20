@@ -32,6 +32,7 @@ const requiredPhrases = [
   "npm run ops:rate-limit-check",
   "npm run nullifier:replay-guard-check",
   "npm run mainnet:deployment-manifest-check",
+  "npm run private-pool-v2:service-network-check",
   "npm run wallet:signing-safety-check",
   "npm run wallet:transaction-safety-check",
   "npm run mainnet:secret-handling-check",
