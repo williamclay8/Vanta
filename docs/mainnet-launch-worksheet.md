@@ -144,10 +144,11 @@ As of April 20, 2026:
 - Secret reference manifest: `ops/mainnet/secret-references.manifest.json` inventories Pay, Private Pool v2, Strategy, and Operator refs without secret values.
 - Production secret-manager template: `ops/mainnet/production-secret-manager.template.json` maps those refs to Doppler project/config names without secret values.
 - Doppler staging setup guide: `docs/doppler-staging-setup.md`.
-- Monitoring provider: not production-selected.
+- Monitoring provider: Better Stack staging monitors created by operator report; production monitoring is not complete.
+- Staging monitoring manifest: `ops/mainnet/staging-monitoring.manifest.json` tracks public `/health` monitors only.
 - Security reviewer: not chosen.
 - Legal/compliance reviewer: not chosen.
 - Target environment: staging first.
 - Mainnet funds: not approved.
 
-Next practical step: verify Doppler access logs/export references and choose production monitoring. Audit/legal/custody and explicit mainnet approval gates still remain blocked.
+Next practical step: verify Doppler access logs/export references, then expand monitoring beyond public uptime into production metrics, structured logs, privacy-preserving telemetry, incident routing, and abuse response. Audit/legal/custody and explicit mainnet approval gates still remain blocked.

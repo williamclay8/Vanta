@@ -197,6 +197,7 @@ Staging deployment truth:
 - The secrets-safe staging refs are recorded in `ops/mainnet/private-pool-v2-services.manifest.json` and `ops/mainnet/external-gates.packet.json`.
 - Secret refs are inventoried in `ops/mainnet/secret-references.manifest.json` with reference names only, including rotation, revocation, and access-log refs.
 - Doppler is selected as the production secret-manager target in `ops/mainnet/production-secret-manager.template.json`; this records mappings only and does not include secret values or service tokens.
+- Better Stack staging monitors for Pay and Private Pool v2 public `/health` endpoints are recorded in `ops/mainnet/staging-monitoring.manifest.json`.
 - This is staging-only. It is not a mainnet processor, audited settlement system, custody-safe service, or production privacy claim.
 
 The repo now includes an early **Vanta Strategy** verification lane:

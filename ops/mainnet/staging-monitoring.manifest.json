@@ -1,0 +1,37 @@
+{
+  "version": "vanta-staging-monitoring-manifest-0.1",
+  "mainnetReady": false,
+  "productionReady": false,
+  "provider": "better-stack",
+  "secretPolicy": "public-health-checks-only-no-alert-secrets",
+  "alertContact": "email",
+  "status": "staging-monitors-created",
+  "monitors": [
+    {
+      "name": "Vanta Pay Staging",
+      "service": "pay",
+      "url": "https://vanta-0wwi.onrender.com/health",
+      "method": "GET",
+      "expectedStatus": 200,
+      "authRequired": false,
+      "publicHealthCheckOnly": true,
+      "providerEvidence": "operator-reported-better-stack-monitor-created"
+    },
+    {
+      "name": "Vanta Private Pool v2 Staging",
+      "service": "privatePoolV2",
+      "url": "https://vanta-staging-private-pool-v2.onrender.com/health",
+      "method": "GET",
+      "expectedStatus": 200,
+      "authRequired": false,
+      "publicHealthCheckOnly": true,
+      "providerEvidence": "operator-reported-better-stack-monitor-created"
+    }
+  ],
+  "limits": [
+    "These are staging uptime monitors only.",
+    "Authenticated status endpoints are not monitored by Better Stack yet.",
+    "No Better Stack API keys, webhook URLs, or alert-provider credentials are stored in this manifest.",
+    "Production metrics, structured logs, privacy-preserving telemetry, alert routing, and incident-response ownership remain blocked."
+  ]
+}

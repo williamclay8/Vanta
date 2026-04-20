@@ -60,6 +60,7 @@ The current checked packet includes non-secret Render staging references for:
 - Pay service `srv-d7j3ggqqqhas739for80` at `https://vanta-0wwi.onrender.com`
 - Private Pool v2 service `srv-d7j4aod7vvec73ahsqlg` at `https://vanta-staging-private-pool-v2.onrender.com`
 - `postgres-jsonb-snapshot-store` storage for both services through secret reference names, not raw database URLs
+- Better Stack staging monitors for both public `/health` endpoints, recorded in `ops/mainnet/staging-monitoring.manifest.json`
 
 This is staging evidence only. It does not clear production service, secret-manager, monitoring, audit, legal, custody, or mainnet-funds gates.
 
@@ -224,6 +225,7 @@ Evidence needed:
 - `VANTA_INCIDENT_RUNBOOK_REF`
 - abuse response workflow reference
 - privacy-preserving telemetry review reference
+- staging Better Stack monitor references from `ops/mainnet/staging-monitoring.manifest.json`
 
 Verification:
 

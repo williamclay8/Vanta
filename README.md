@@ -388,6 +388,7 @@ Current staging deployment refs:
 - Private Pool v2 uses `postgres-jsonb-snapshot-store` through `VANTA_PRIVATE_POOL_V2_DATABASE_URL`.
 - Secret refs are inventoried in `ops/mainnet/secret-references.manifest.json` with reference names only.
 - Doppler is selected as the production secret-manager target in `ops/mainnet/production-secret-manager.template.json`; the template contains refs only and no secret values.
+- Better Stack staging monitors for Pay and Private Pool v2 public `/health` endpoints are recorded in `ops/mainnet/staging-monitoring.manifest.json`.
 - These are staging refs only; they do not clear production secret-manager, monitoring, audit, legal, custody, or mainnet-funds gates.
 
 ## Vanta Pay merchant integration

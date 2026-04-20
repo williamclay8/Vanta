@@ -109,6 +109,14 @@ src/readiness/abuseObservabilityContract.mjs
 
 It requires production rate limits, structured JSON logs, privacy-preserving telemetry, no secret/private-input logging, metrics, alerts, audit events, operator alert routing, and an abuse-response runbook before any production operations claim.
 
+The current staging monitoring manifest is:
+
+```text
+ops/mainnet/staging-monitoring.manifest.json
+```
+
+It records Better Stack public `/health` uptime monitors for Pay and Private Pool v2. It must not contain Better Stack API keys, webhook URLs, alert-provider credentials, or authenticated status tokens. This is staging uptime evidence only, not production observability.
+
 Pay and Private Pool v2 also have a shared in-process rate-limit seam at:
 
 ```text
