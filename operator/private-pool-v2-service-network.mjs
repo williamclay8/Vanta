@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "
 import { dirname, resolve } from "node:path";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
+import { createPrivatePoolV2RoleSnapshotStore } from "../src/storage/vantaPrivatePoolV2RoleSnapshotStore.mjs";
 
 const serviceVersion = "vanta-private-pool-v2-service-network-0.1";
 const textEncoder = new TextEncoder();
@@ -216,7 +217,10 @@ function writeSnapshot(storePath, snapshot) {
 }
 
 function readIndexerSnapshot(storePath) {
-  const parsed = readSnapshot(storePath, { commitments: [], nullifiers: [] });
+  return readIndexerSnapshotFromParsed(readSnapshot(storePath, { commitments: [], nullifiers: [] }));
+}
+
+function readIndexerSnapshotFromParsed(parsed) {
   return {
     commitments: (parsed.commitments ?? []).map((record) => ({
       assetId: String(record.assetId),
@@ -239,19 +243,38 @@ function writeIndexerSnapshot(storePath, snapshot) {
   writeSnapshot(storePath, snapshot);
 }
 
-function createInMemoryIndexerState({ storePath } = {}) {
-  const snapshot = readIndexerSnapshot(storePath);
-  const commitments = [...snapshot.commitments];
-  const nullifiers = new Map(snapshot.nullifiers.map((record) => [record.nullifier, record]));
+function createIndexerState({ snapshotStore, storePath } = {}) {
+  let loaded = false;
+  let commitments = [];
+  let nullifiers = new Map();
 
-  function save() {
-    writeIndexerSnapshot(storePath, {
-      commitments,
-      nullifiers: [...nullifiers.values()],
-    });
+  async function ensureLoaded() {
+    if (loaded) {
+      return;
+    }
+
+    const snapshot = snapshotStore
+      ? readIndexerSnapshotFromParsed(await snapshotStore.load())
+      : readIndexerSnapshot(storePath);
+    commitments = [...snapshot.commitments];
+    nullifiers = new Map(snapshot.nullifiers.map((record) => [record.nullifier, record]));
+    loaded = true;
   }
 
-  function currentRoot(treeId) {
+  async function save() {
+    const snapshot = {
+      commitments,
+      nullifiers: [...nullifiers.values()],
+    };
+    if (snapshotStore) {
+      await snapshotStore.save(snapshot);
+      return;
+    }
+    writeIndexerSnapshot(storePath, snapshot);
+  }
+
+  async function currentRoot(treeId) {
+    await ensureLoaded();
     const treeCommitments = commitments.filter((record) => record.treeId === treeId);
     if (treeCommitments.length === 0) {
       return hashHex(serviceVersion, "empty-root", treeId);
@@ -266,7 +289,8 @@ function createInMemoryIndexerState({ storePath } = {}) {
   }
 
   return {
-    appendCommitment({ assetId, commitment, treeId }) {
+    async appendCommitment({ assetId, commitment, treeId }) {
+      await ensureLoaded();
       const leafIndex = commitments.filter((record) => record.treeId === treeId).length;
       const record = {
         assetId,
@@ -276,17 +300,20 @@ function createInMemoryIndexerState({ storePath } = {}) {
         treeId,
       };
       commitments.push(record);
-      save();
+      await save();
       return record;
     },
     currentRoot,
-    getCommitment(commitment) {
+    async getCommitment(commitment) {
+      await ensureLoaded();
       return commitments.find((record) => record.commitment === commitment) ?? null;
     },
-    getNullifier(nullifier) {
+    async getNullifier(nullifier) {
+      await ensureLoaded();
       return nullifiers.get(nullifier) ?? null;
     },
-    listCommitments({ assetId, fromLeafIndex = 0, treeId }) {
+    async listCommitments({ assetId, fromLeafIndex = 0, treeId }) {
+      await ensureLoaded();
       return commitments.filter(
         (record) =>
           record.treeId === treeId &&
@@ -294,13 +321,14 @@ function createInMemoryIndexerState({ storePath } = {}) {
           (!assetId || record.assetId === assetId),
       );
     },
-    registerNullifier({ nullifier, spentAtSlot = 1_000_000n }) {
+    async registerNullifier({ nullifier, spentAtSlot = 1_000_000n }) {
+      await ensureLoaded();
       if (nullifiers.has(nullifier)) {
         throw new Error(`Private-pool nullifier ${nullifier} is already registered.`);
       }
       const record = { nullifier, spentAtSlot };
       nullifiers.set(nullifier, record);
-      save();
+      await save();
       return record;
     },
   };
@@ -319,21 +347,40 @@ function proofResultFor(request) {
   };
 }
 
-function createProverState({ storePath } = {}) {
-  const snapshot = readSnapshot(storePath, { proofs: [] });
-  const proofs = new Map((snapshot.proofs ?? []).map((proof) => [proof.publicInputCommitment, proof]));
+function createProverState({ snapshotStore, storePath } = {}) {
+  let loaded = false;
+  let proofs = new Map();
 
-  function save() {
-    writeSnapshot(storePath, { proofs: [...proofs.values()] });
+  async function ensureLoaded() {
+    if (loaded) {
+      return;
+    }
+
+    const snapshot = snapshotStore
+      ? await snapshotStore.load()
+      : readSnapshot(storePath, { proofs: [] });
+    proofs = new Map((snapshot.proofs ?? []).map((proof) => [proof.publicInputCommitment, proof]));
+    loaded = true;
+  }
+
+  async function save() {
+    const snapshot = { proofs: [...proofs.values()] };
+    if (snapshotStore) {
+      await snapshotStore.save(snapshot);
+      return;
+    }
+    writeSnapshot(storePath, snapshot);
   }
 
   return {
-    get(publicInputCommitment) {
+    async get(publicInputCommitment) {
+      await ensureLoaded();
       return proofs.get(publicInputCommitment) ?? null;
     },
-    put(proof) {
+    async put(proof) {
+      await ensureLoaded();
       proofs.set(proof.publicInputCommitment, proof);
-      save();
+      await save();
       return proof;
     },
   };
@@ -347,28 +394,49 @@ function quoteKey(quote) {
   ].join(":");
 }
 
-function createRelayerState({ storePath } = {}) {
-  const snapshot = readSnapshot(storePath, { claims: [], quotes: [] });
-  const quotes = new Map((snapshot.quotes ?? []).map((quote) => [quoteKey(quote), quote]));
-  const claims = new Map((snapshot.claims ?? []).map((claim) => [quoteKey(claim.quote), claim]));
+function createRelayerState({ snapshotStore, storePath } = {}) {
+  let loaded = false;
+  let quotes = new Map();
+  let claims = new Map();
 
-  function save() {
-    writeSnapshot(storePath, {
+  async function ensureLoaded() {
+    if (loaded) {
+      return;
+    }
+
+    const snapshot = snapshotStore
+      ? await snapshotStore.load()
+      : readSnapshot(storePath, { claims: [], quotes: [] });
+    quotes = new Map((snapshot.quotes ?? []).map((quote) => [quoteKey(quote), quote]));
+    claims = new Map((snapshot.claims ?? []).map((claim) => [quoteKey(claim.quote), claim]));
+    loaded = true;
+  }
+
+  async function save() {
+    const snapshot = {
       claims: [...claims.values()],
       quotes: [...quotes.values()],
-    });
+    };
+    if (snapshotStore) {
+      await snapshotStore.save(snapshot);
+      return;
+    }
+    writeSnapshot(storePath, snapshot);
   }
 
   return {
-    getQuote(quote) {
+    async getQuote(quote) {
+      await ensureLoaded();
       return quotes.get(quoteKey(quote)) ?? null;
     },
-    putQuote(quote) {
+    async putQuote(quote) {
+      await ensureLoaded();
       quotes.set(quoteKey(quote), quote);
-      save();
+      await save();
       return quote;
     },
-    submitClaim({ quote, serializedTransaction }) {
+    async submitClaim({ quote, serializedTransaction }) {
+      await ensureLoaded();
       const key = quoteKey(quote);
       if (!quotes.has(key)) {
         throw new Error(`Unknown relayer quote ${quote.relayerId}.`);
@@ -384,29 +452,48 @@ function createRelayerState({ storePath } = {}) {
         signature: hashHex(serviceVersion, "claim", key, String(serializedTransaction)),
       };
       claims.set(key, claim);
-      save();
+      await save();
       return claim;
     },
   };
 }
 
-function createVerifierState({ storePath } = {}) {
-  const snapshot = readSnapshot(storePath, { acceptedProofs: [] });
-  const acceptedProofs = new Map(
-    (snapshot.acceptedProofs ?? []).map((receipt) => [receipt.replayKey, receipt]),
-  );
+function createVerifierState({ snapshotStore, storePath } = {}) {
+  let loaded = false;
+  let acceptedProofs = new Map();
 
-  function save() {
-    writeSnapshot(storePath, { acceptedProofs: [...acceptedProofs.values()] });
+  async function ensureLoaded() {
+    if (loaded) {
+      return;
+    }
+
+    const snapshot = snapshotStore
+      ? await snapshotStore.load()
+      : readSnapshot(storePath, { acceptedProofs: [] });
+    acceptedProofs = new Map(
+      (snapshot.acceptedProofs ?? []).map((receipt) => [receipt.replayKey, receipt]),
+    );
+    loaded = true;
+  }
+
+  async function save() {
+    const snapshot = { acceptedProofs: [...acceptedProofs.values()] };
+    if (snapshotStore) {
+      await snapshotStore.save(snapshot);
+      return;
+    }
+    writeSnapshot(storePath, snapshot);
   }
 
   return {
-    get(replayKey) {
+    async get(replayKey) {
+      await ensureLoaded();
       return acceptedProofs.get(replayKey) ?? null;
     },
-    put(receipt) {
+    async put(receipt) {
+      await ensureLoaded();
       acceptedProofs.set(receipt.replayKey, receipt);
-      save();
+      await save();
       return receipt;
     },
   };
@@ -496,16 +583,31 @@ async function mirrorAcceptedProofToIndexer(request) {
   return null;
 }
 
-function createServiceHandlers(role, {
+async function createRoleSnapshotStore(role, storePath) {
+  return await createPrivatePoolV2RoleSnapshotStore({
+    role,
+    storePath,
+    tableName: "vanta_private_pool_v2_role_snapshots",
+  });
+}
+
+async function createServiceHandlers(role, {
   indexerStorePath,
   proverStorePath,
   relayerStorePath,
   verifierStorePath,
 } = {}) {
-  const indexerState = createInMemoryIndexerState({ storePath: indexerStorePath });
-  const proverState = createProverState({ storePath: proverStorePath });
-  const relayerState = createRelayerState({ storePath: relayerStorePath });
-  const verifierState = createVerifierState({ storePath: verifierStorePath });
+  const [indexerSnapshotStore, proverSnapshotStore, relayerSnapshotStore, verifierSnapshotStore] =
+    await Promise.all([
+      createRoleSnapshotStore("indexer", indexerStorePath),
+      createRoleSnapshotStore("prover", proverStorePath),
+      createRoleSnapshotStore("relayer", relayerStorePath),
+      createRoleSnapshotStore("verifier", verifierStorePath),
+    ]);
+  const indexerState = createIndexerState({ snapshotStore: indexerSnapshotStore, storePath: indexerStorePath });
+  const proverState = createProverState({ snapshotStore: proverSnapshotStore, storePath: proverStorePath });
+  const relayerState = createRelayerState({ snapshotStore: relayerSnapshotStore, storePath: relayerStorePath });
+  const verifierState = createVerifierState({ snapshotStore: verifierSnapshotStore, storePath: verifierStorePath });
 
   async function handleIndexer({ request, response }) {
     const url = new URL(request.url ?? "/", "http://127.0.0.1");
@@ -514,7 +616,7 @@ function createServiceHandlers(role, {
       const treeId = url.searchParams.get("treeId") ?? "vanta-private-pool-v2-default-tree";
       sendJson(response, 200, {
         ...basePayload(role),
-        root: indexerState.currentRoot(treeId),
+        root: await indexerState.currentRoot(treeId),
         treeId,
       });
       return true;
@@ -524,7 +626,7 @@ function createServiceHandlers(role, {
       const treeId = url.searchParams.get("treeId") ?? "vanta-private-pool-v2-default-tree";
       sendJson(response, 200, {
         ...basePayload(role),
-        commitments: indexerState.listCommitments({
+        commitments: await indexerState.listCommitments({
           assetId: url.searchParams.get("assetId") ?? undefined,
           fromLeafIndex: Number(url.searchParams.get("fromLeafIndex") ?? "0"),
           treeId,
@@ -535,7 +637,7 @@ function createServiceHandlers(role, {
 
     if (request.method === "GET" && url.pathname.startsWith("/v1/commitments/")) {
       const commitment = decodeURIComponent(url.pathname.split("/")[3] ?? "");
-      const leaf = indexerState.getCommitment(commitment);
+      const leaf = await indexerState.getCommitment(commitment);
       if (!leaf) {
         sendJson(response, 404, { error: `Unknown private-pool commitment ${commitment}.`, ok: false });
         return true;
@@ -554,7 +656,7 @@ function createServiceHandlers(role, {
       const nullifier = decodeURIComponent(url.pathname.split("/")[3] ?? "");
       sendJson(response, 200, {
         ...basePayload(role),
-        nullifier: indexerState.getNullifier(nullifier),
+        nullifier: await indexerState.getNullifier(nullifier),
       });
       return true;
     }
@@ -563,7 +665,7 @@ function createServiceHandlers(role, {
       const body = await readRequestBody(request);
       sendJson(response, 200, {
         ...basePayload(role),
-        nullifier: indexerState.registerNullifier({
+        nullifier: await indexerState.registerNullifier({
           nullifier: String(body.nullifier),
           spentAtSlot: body.spentAtSlot === undefined ? 1_000_000n : toBigInt(body.spentAtSlot),
         }),
@@ -575,7 +677,7 @@ function createServiceHandlers(role, {
       const body = await readRequestBody(request);
       sendJson(response, 200, {
         ...basePayload(role),
-        commitment: indexerState.appendCommitment(body),
+        commitment: await indexerState.appendCommitment(body),
       });
       return true;
     }
@@ -599,14 +701,14 @@ function createServiceHandlers(role, {
       if (toBigInt(requestBody.amountBaseUnits) <= 0n) {
         throw new Error("Proof amount must be positive.");
       }
-      sendJson(response, 200, proverState.put(proofResultFor(requestBody)));
+      sendJson(response, 200, await proverState.put(proofResultFor(requestBody)));
       return true;
     }
 
     if (request.method === "GET" && request.url?.startsWith("/v1/proofs/")) {
       const url = new URL(request.url, "http://127.0.0.1");
       const publicInputCommitment = decodeURIComponent(url.pathname.split("/")[3] ?? "");
-      const proof = proverState.get(publicInputCommitment);
+      const proof = await proverState.get(publicInputCommitment);
       if (!proof) {
         sendJson(response, 404, { error: `Unknown proof ${publicInputCommitment}.`, ok: false });
         return true;
@@ -652,17 +754,21 @@ function createServiceHandlers(role, {
         String(body.destinationAddress),
         amountBaseUnits.toString(),
       ).slice(2, 18)}`;
-      sendJson(response, 200, relayerState.putQuote({
-        estimatedFeeBaseUnits: (amountBaseUnits * 10n) / 10_000n,
-        expiresAtSlot: 1_000_150n,
-        relayerId,
-      }));
+      sendJson(
+        response,
+        200,
+        await relayerState.putQuote({
+          estimatedFeeBaseUnits: (amountBaseUnits * 10n) / 10_000n,
+          expiresAtSlot: 1_000_150n,
+          relayerId,
+        }),
+      );
       return true;
     }
 
     if (request.method === "POST" && request.url === "/v1/claims/submit") {
       const body = await readRequestBody(request);
-      sendJson(response, 200, relayerState.submitClaim(body));
+      sendJson(response, 200, await relayerState.submitClaim(body));
       return true;
     }
 
@@ -683,7 +789,7 @@ function createServiceHandlers(role, {
       const requestBody = body.request;
       const proof = body.proof;
       const replayKey = replayKeyFor(requestBody);
-      if (verifierState.get(replayKey)) {
+      if (await verifierState.get(replayKey)) {
         throw new Error(`Private Pool v2 receipt ${replayKey} has already been accepted.`);
       }
       if (!proofMatches({ proof, request: requestBody })) {
@@ -698,7 +804,7 @@ function createServiceHandlers(role, {
         recordedAtSlot: 1_000_000n,
         replayKey,
       };
-      verifierState.put(receipt);
+      await verifierState.put(receipt);
       sendJson(response, 200, receipt);
       return true;
     }
@@ -714,7 +820,7 @@ function createServiceHandlers(role, {
   }[role];
 }
 
-export function startVantaPrivatePoolV2RoleService(role) {
+export async function startVantaPrivatePoolV2RoleService(role) {
   if (!roleConfig[role]) {
     throw new Error(`Unknown Private Pool v2 service role ${role}.`);
   }
@@ -723,7 +829,7 @@ export function startVantaPrivatePoolV2RoleService(role) {
   const host = process.env.HOST ?? "0.0.0.0";
   const port = parseCliPort(roleConfig[role].defaultPort);
   const authToken = process.env[roleConfig[role].tokenEnv];
-  const handleRoleRequest = createServiceHandlers(role, {
+  const handleRoleRequest = await createServiceHandlers(role, {
     indexerStorePath: process.env.VANTA_PRIVATE_POOL_V2_INDEXER_STORE_PATH,
     proverStorePath: process.env.VANTA_PRIVATE_POOL_V2_PROVER_STORE_PATH,
     relayerStorePath: process.env.VANTA_PRIVATE_POOL_V2_RELAYER_STORE_PATH,
