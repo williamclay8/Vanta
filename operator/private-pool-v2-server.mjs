@@ -7,6 +7,7 @@ import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
 import { createInMemoryRateLimiter } from "../src/ops/vantaRateLimit.mjs";
 import { createNullifierReplayGuard } from "../src/privacy/nullifierReplayGuard.mjs";
+import { createPostgresSnapshotStore } from "../src/storage/vantaPostgresSnapshotStore.mjs";
 import { createPrivatePoolV2ReceiptStore } from "./private-pool-v2-store.mjs";
 
 const repoRoot = resolve(import.meta.dirname, "..");
@@ -14,9 +15,7 @@ const host = process.env.VANTA_PRIVATE_POOL_V2_OPERATOR_HOST ?? process.env.HOST
 const port = Number(process.env.PORT ?? process.env.VANTA_PRIVATE_POOL_V2_OPERATOR_PORT ?? "8797");
 const operatorAuthToken = process.env.VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN;
 const rateLimitPerMinute = Number(process.env.VANTA_PRIVATE_POOL_V2_RATE_LIMIT_PER_MINUTE ?? "600");
-const receiptStore = createPrivatePoolV2ReceiptStore({
-  path: process.env.VANTA_PRIVATE_POOL_V2_STORE_PATH,
-});
+const databaseUrl = process.env.VANTA_PRIVATE_POOL_V2_DATABASE_URL;
 const tempParent = resolve(repoRoot, ".tmp");
 mkdirSync(tempParent, { recursive: true });
 const tempRoot = mkdtempSync(resolve(tempParent, "vanta-private-pool-v2-operator-"));
@@ -48,8 +47,10 @@ function assertProductionAuthToken() {
     );
   }
 
-  if (!process.env.VANTA_PRIVATE_POOL_V2_STORE_PATH) {
-    throw new Error("Private Pool v2 production mode requires VANTA_PRIVATE_POOL_V2_STORE_PATH.");
+  if (!process.env.VANTA_PRIVATE_POOL_V2_STORE_PATH && !databaseUrl) {
+    throw new Error(
+      "Private Pool v2 production mode requires VANTA_PRIVATE_POOL_V2_STORE_PATH or VANTA_PRIVATE_POOL_V2_DATABASE_URL.",
+    );
   }
 }
 
@@ -218,6 +219,19 @@ function compileRuntime() {
 
 compileRuntime();
 
+const receiptStore = databaseUrl
+  ? createPrivatePoolV2ReceiptStore({
+      snapshotStore: await createPostgresSnapshotStore({
+        databaseUrl,
+        defaultSnapshot: null,
+        stateVersion: 2,
+        storeKey: "vanta-private-pool-v2",
+      }),
+    })
+  : createPrivatePoolV2ReceiptStore({
+      path: process.env.VANTA_PRIVATE_POOL_V2_STORE_PATH,
+    });
+
 const { createVantaPrivatePoolV2MockRuntime } = await import(
   pathToFileURL(join(tempJsDir, "privatePoolV2MockRuntime.js")).href
 );
@@ -231,7 +245,7 @@ const { createPrivatePoolV2ShieldProofRequestFromCapability } = await import(
 const { VANTA_PRIVATE_POOL_V2_SETTLEMENT_POLICY } = await import(
   pathToFileURL(join(tempJsDir, "privatePoolV2SettlementPolicy.js")).href
 );
-const persistedState = receiptStore.load();
+const persistedState = await receiptStore.load();
 const persistedCommitments = [...persistedState.commitments];
 const runtime = createVantaPrivatePoolV2MockRuntime({
   commitments: persistedCommitments,
@@ -652,7 +666,7 @@ function nullifiersFromReceipts(receipts) {
     }));
 }
 
-function persistReceipts(acceptedRequest) {
+async function persistReceipts(acceptedRequest) {
   const receipts = runtime.verifierRegistry?.receipts ?? [];
   const acceptedCommitment = commitmentFromShieldRequest(acceptedRequest);
 
@@ -668,7 +682,7 @@ function persistReceipts(acceptedRequest) {
     persistedCommitments.push(acceptedCommitment);
   }
 
-  receiptStore.save({
+  await receiptStore.save({
     commitments: persistedCommitments,
     nullifiers: nullifiersFromReceipts(receipts),
     paySettlements: paySettlementReceipts,
@@ -730,7 +744,11 @@ function statusPayload() {
     receiptStorePath: receiptStore.path,
     settlementPolicy,
     storage: {
-      durableStoreConfigured: Boolean(process.env.VANTA_PRIVATE_POOL_V2_STORE_PATH),
+      durableStoreConfigured: Boolean(
+        process.env.VANTA_PRIVATE_POOL_V2_STORE_PATH || databaseUrl,
+      ),
+      kind: receiptStore.kind,
+      productionReady: receiptStore.productionReady,
       storePath: receiptStore.path,
     },
     nullifierReplayGuard: {
@@ -800,7 +818,7 @@ async function proveAndAcceptPayCheckoutSettlement(rawSession) {
   });
   const proof = await runtime.prover.prove(request);
   const proofReceipt = await runtime.verifierRegistry.acceptProof({ proof, request });
-  persistReceipts(request);
+  await persistReceipts(request);
 
   const privateRailReceipt = {
     amount,
@@ -829,7 +847,7 @@ async function proveAndAcceptPayCheckoutSettlement(rawSession) {
   };
 
   paySettlementReceipts.push(settlement);
-  persistReceipts(request);
+  await persistReceipts(request);
   return settlement;
 }
 
@@ -888,7 +906,7 @@ async function proveAndAcceptPayWithdrawalSettlement(body) {
   });
   const proof = await runtime.prover.prove(request);
   const proofReceipt = await runtime.verifierRegistry.acceptProof({ proof, request });
-  persistReceipts(request);
+  await persistReceipts(request);
 
   const privateExitReceipt = {
     amount,
@@ -908,7 +926,7 @@ async function proveAndAcceptPayWithdrawalSettlement(body) {
   };
 
   paySettlementReceipts.push(settlement);
-  persistReceipts(request);
+  await persistReceipts(request);
   return settlement;
 }
 
@@ -1034,7 +1052,7 @@ async function proveAndAcceptProtocolSettlement(body) {
 
   const proof = await runtime.prover.prove(request);
   const proofReceipt = await runtime.verifierRegistry.acceptProof({ proof, request });
-  persistReceipts(request);
+  await persistReceipts(request);
 
   const protocolSettlementReceipt = {
     action,
@@ -1079,7 +1097,7 @@ async function proveAndAcceptProtocolSettlement(body) {
   };
 
   protocolSettlementReceipts.push(settlement);
-  persistReceipts(request);
+  await persistReceipts(request);
   return settlement;
 }
 
@@ -1126,7 +1144,7 @@ const server = createServer(async (request, response) => {
         request: proofRequest,
       });
       reserveAcceptedClaimNullifier(proofRequest, requestId);
-      persistReceipts(proofRequest);
+      await persistReceipts(proofRequest);
       sendJson(response, 200, {
         kind: "Private Pool V2 proof receipt",
         receipt,
@@ -1171,16 +1189,23 @@ server.listen(port, host, () => {
   console.log(`Private Pool V2 operator listening on http://${host}:${port}`);
 });
 
-process.on("SIGTERM", () => {
-  server.close(() => {
+async function closeOperator() {
+  try {
+    await receiptStore.close();
+  } finally {
     rmSync(tempRoot, { recursive: true, force: true });
     process.exit(0);
+  }
+}
+
+process.on("SIGTERM", () => {
+  server.close(() => {
+    void closeOperator();
   });
 });
 
 process.on("SIGINT", () => {
   server.close(() => {
-    rmSync(tempRoot, { recursive: true, force: true });
-    process.exit(0);
+    void closeOperator();
   });
 });

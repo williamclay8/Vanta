@@ -85,19 +85,24 @@ function normalizeNullifier(record) {
 export function createPrivatePoolV2ReceiptStore({
   path = process.env.VANTA_PRIVATE_POOL_V2_STORE_PATH ??
     resolve(import.meta.dirname, ".vanta-private-pool-v2-receipts.json"),
+  snapshotStore,
 } = {}) {
   const storePath = resolve(path);
-  const snapshotStore = createJsonSnapshotStore({
-    allowInProduction: process.env.NODE_ENV === "production",
-    path: storePath,
-    stateVersion,
-  });
+  const resolvedSnapshotStore =
+    snapshotStore ??
+    createJsonSnapshotStore({
+      allowInProduction: process.env.NODE_ENV === "production",
+      path: storePath,
+      stateVersion,
+    });
 
   return {
-    path: storePath,
+    kind: resolvedSnapshotStore.kind ?? "json-snapshot-store",
+    path: resolvedSnapshotStore.path === undefined ? storePath : resolvedSnapshotStore.path,
+    productionReady: Boolean(resolvedSnapshotStore.productionReady),
 
-    load() {
-      const parsed = snapshotStore.load();
+    async load() {
+      const parsed = await resolvedSnapshotStore.load();
       if (!parsed) {
         return {
           commitments: [],
@@ -126,7 +131,14 @@ export function createPrivatePoolV2ReceiptStore({
       };
     },
 
-    save({ commitments, nullifiers, paySettlements, protocolSettlements, receipts, settlementPolicy }) {
+    async save({
+      commitments,
+      nullifiers,
+      paySettlements,
+      protocolSettlements,
+      receipts,
+      settlementPolicy,
+    }) {
       const payload = {
         commitments: (commitments ?? []).map(normalizeCommitment),
         nullifiers: (nullifiers ?? nullifiersFromReceipts(receipts ?? [])).map(
@@ -138,7 +150,13 @@ export function createPrivatePoolV2ReceiptStore({
         settlementPolicy: normalizeJsonValue(settlementPolicy ?? null),
         stateVersion,
       };
-      snapshotStore.save(payload);
+      await resolvedSnapshotStore.save(payload);
+    },
+
+    async close() {
+      if (typeof resolvedSnapshotStore.close === "function") {
+        await resolvedSnapshotStore.close();
+      }
     },
   };
 }

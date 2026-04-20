@@ -210,6 +210,7 @@ const requiredTextFiles = [
     path: "operator/private-pool-v2-server.mjs",
     markers: [
       "VANTA_PRIVATE_POOL_V2_STORE_PATH",
+      "VANTA_PRIVATE_POOL_V2_DATABASE_URL",
       "settlementPolicy",
       "VANTA_PRIVATE_POOL_V2_SETTLEMENT_POLICY",
       "shieldRouteEvidence",
@@ -228,6 +229,7 @@ const requiredTextFiles = [
       "createPrivatePoolV2ReceiptStore",
       "load",
       "save",
+      "snapshotStore",
       "stateVersion",
     ],
   },
@@ -237,6 +239,7 @@ const requiredTextFiles = [
       "VANTA_PRIVATE_POOL_V2_OPERATOR_PORT",
       "VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN",
       "VANTA_PRIVATE_POOL_V2_STORE_PATH",
+      "VANTA_PRIVATE_POOL_V2_DATABASE_URL",
       "VITE_VANTA_PRIVATE_POOL_V2_OPERATOR_URL",
       "VITE_VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN",
     ],
