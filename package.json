@@ -32,6 +32,7 @@
     "nullifier:replay-guard-check": "node scripts/check-vanta-nullifier-replay-guard.mjs && node scripts/check-vanta-postgres-nullifier-replay-store.mjs",
     "mainnet:deployment-manifest-check": "node scripts/check-vanta-mainnet-deployment-manifests.mjs",
     "mainnet:private-pool-v2-production-smoke-check": "node scripts/check-vanta-private-pool-v2-production-smoke-template.mjs",
+    "mainnet:private-pool-v2-production-smoke-live": "node scripts/run-vanta-private-pool-v2-production-smoke.mjs",
     "mainnet:production-service-setup-check": "node scripts/check-vanta-production-service-setup-doc.mjs",
     "privacy-rail:contract-check": "node scripts/check-vanta-privacy-rail-contract.mjs",
     "mainnet:approval-gates-check": "node scripts/check-vanta-mainnet-approval-gates.mjs",

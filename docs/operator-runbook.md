@@ -301,10 +301,17 @@ The production service setup guide is:
 docs/production-private-pool-v2-service-setup.md
 ```
 
-It records the current Render inventory and the missing production indexer, prover, relayer, verifier, and operator services. Verify it with:
+It records the current Render inventory and the deployed production indexer, prover, relayer, verifier, and operator services. Verify the references-only contract with:
 
 ```bash
 npm run mainnet:production-service-setup-check
+npm run mainnet:private-pool-v2-production-smoke-check
+```
+
+When the role-service URLs and auth tokens are present in the shell from the secret manager, run the live no-real-funds production smoke with:
+
+```bash
+npm run mainnet:private-pool-v2-production-smoke-live
 ```
 
 To select deployed services in an approved non-mainnet or production-like environment, set:

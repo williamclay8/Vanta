@@ -96,6 +96,14 @@ Fill it with refs only after the services exist. The required evidence refs are:
 
 The smoke path must use deterministic no-real-funds inputs. real funds are not approved, and mainnet transactions are not allowed before explicit approval.
 
+The live no-real-funds smoke runner is:
+
+```bash
+npm run mainnet:private-pool-v2-production-smoke-live
+```
+
+Run it only from a shell with secret-manager-provided role URLs and auth tokens. It requires `VANTA_PRIVATE_POOL_V2_{INDEXER,PROVER,RELAYER,VERIFIER,OPERATOR}_URL` and matching `_AUTH_TOKEN` values in the environment. The command prints sanitized JSON evidence only; it must not print bearer tokens, database URLs, wallet keys, private keys, or customer private inputs.
+
 ## Approval gates
 
 The canonical approval template is:
@@ -121,6 +129,7 @@ Run these after refs are updated:
 ```bash
 npm run mainnet:production-service-setup-check
 npm run mainnet:private-pool-v2-production-smoke-check
+npm run mainnet:private-pool-v2-production-smoke-live
 npm run private-pool-v2:service-network-check
 npm run private-pool-v2:role-storage-check
 npm run mainnet:approval-gates-check
