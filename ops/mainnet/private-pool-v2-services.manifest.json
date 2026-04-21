@@ -61,6 +61,36 @@
       "id": "indexer",
       "image": "${VANTA_INDEXER_IMAGE}",
       "startCommand": "npm run private-pool-v2:indexer",
+      "deployedService": {
+        "provider": "render",
+        "environment": "production",
+        "serviceId": "srv-d7jfqru7r5hc73b6oelg",
+        "serviceName": "vanta-prod-private-pool-v2-indexer",
+        "url": "https://vanta-prod-private-pool-v2-indexer.onrender.com",
+        "repo": "https://github.com/williamclay8/Vanta",
+        "branch": "main",
+        "commit": "1c92ba969b8bb145df3cd1a254ab54aa9ed3b911",
+        "buildCommand": "npm install; npm run build",
+        "buildEnvironment": {
+          "NPM_CONFIG_INCLUDE": "dev",
+          "NPM_CONFIG_PRODUCTION": "false"
+        },
+        "healthChecks": ["/health"],
+        "readinessChecks": ["/ready"],
+        "auth": {
+          "kind": "bearer-token",
+          "secretRef": "VANTA_INDEXER_AUTH_TOKEN_REF"
+        },
+        "storage": {
+          "durableStoreConfigured": true,
+          "kind": "postgres-jsonb-snapshot-store",
+          "secretRef": "VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL_REF"
+        },
+        "lastVerifiedAt": "2026-04-21T04:39:14Z",
+        "lastVerifiedHealthRef": "curl -fsS https://vanta-prod-private-pool-v2-indexer.onrender.com/health",
+        "productionReady": false,
+        "mainnetReady": false
+      },
       "replicas": {
         "minimum": 2,
         "maximum": 6

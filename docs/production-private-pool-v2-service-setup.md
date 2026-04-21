@@ -6,12 +6,13 @@ It does not make Vanta production-ready or mainnet-ready. It records what must e
 
 ## Current Render inventory
 
-As of April 20, 2026, Render has two Vanta web services:
+As of April 20, 2026, Render has two Vanta staging web services and one production Private Pool v2 role service:
 
 - Pay staging service: `Vanta`, `srv-d7j3ggqqqhas739for80`, `https://vanta-0wwi.onrender.com`, start command `npm run pay:operator`.
 - Private Pool v2 staging service: `vanta-staging-private-pool-v2`, `srv-d7j4aod7vvec73ahsqlg`, `https://vanta-staging-private-pool-v2.onrender.com`, start command `npm run private-pool-v2:operator`.
+- Production indexer service: `vanta-prod-private-pool-v2-indexer`, `srv-d7jfqru7r5hc73b6oelg`, `https://vanta-prod-private-pool-v2-indexer.onrender.com`, start command `npm run private-pool-v2:indexer`.
 
-No production indexer, prover, relayer, verifier, or operator service is currently deployed. The existing Render services are staging evidence only. Keep `mainnetReady: false` and `productionReady: false`.
+The production indexer service has live public health evidence and durable Postgres-backed role storage configured. It is not enough to make Vanta production-ready or mainnet-ready. Production prover, relayer, verifier, and operator services still need to be deployed, authenticated, smoke tested, and reviewed. Keep `mainnetReady: false` and `productionReady: false`.
 
 ## Production services to provision
 
@@ -130,7 +131,7 @@ Codex can keep building local contracts, docs, checks, runbooks, and safe smoke 
 
 Codex cannot honestly complete these without external evidence:
 
-- deployed production services
+- deployed production prover, relayer, verifier, and operator services
 - secret-manager values/refs created in the external provider
 - production smoke evidence from live services
 - third-party audit signoff

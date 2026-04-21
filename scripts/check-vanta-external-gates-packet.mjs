@@ -213,7 +213,9 @@ for (const phrase of requiredWorksheetPhrases) {
 
 for (const phrase of [
   "# Production Private Pool v2 Service Setup",
-  "No production indexer, prover, relayer, verifier, or operator service is currently deployed",
+  "vanta-prod-private-pool-v2-indexer",
+  "The production indexer service has live public health evidence",
+  "Production prover, relayer, verifier, and operator services still need to be deployed",
   "npm run mainnet:production-service-setup-check",
 ]) {
   assert.ok(
