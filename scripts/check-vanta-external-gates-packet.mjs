@@ -215,8 +215,9 @@ for (const phrase of [
   "# Production Private Pool v2 Service Setup",
   "vanta-prod-private-pool-v2-indexer",
   "vanta-prod-private-pool-v2-prover",
-  "The production indexer and prover services have live public health evidence",
-  "Production relayer, verifier, and operator services still need to be deployed",
+  "vanta-prod-private-pool-v2-relayer",
+  "The production indexer, prover, and relayer services have live public health evidence",
+  "Production verifier and operator services still need to be deployed",
   "npm run mainnet:production-service-setup-check",
 ]) {
   assert.ok(

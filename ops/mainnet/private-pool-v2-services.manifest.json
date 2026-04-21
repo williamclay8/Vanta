@@ -111,6 +111,40 @@
       "id": "relayer",
       "image": "${VANTA_RELAYER_IMAGE}",
       "startCommand": "npm run private-pool-v2:relayer",
+      "deployedService": {
+        "provider": "render",
+        "environment": "production",
+        "serviceId": "srv-d7jg9jrbc2fs73c161gg",
+        "serviceName": "vanta-prod-private-pool-v2-relayer",
+        "url": "https://vanta-prod-private-pool-v2-relayer.onrender.com",
+        "repo": "https://github.com/williamclay8/Vanta",
+        "branch": "main",
+        "commit": "97fc195254dc8a364074a2029030aeac8170e61f",
+        "buildCommand": "npm install; npm run build",
+        "buildEnvironment": {
+          "NPM_CONFIG_INCLUDE": "dev",
+          "NPM_CONFIG_PRODUCTION": "false"
+        },
+        "healthChecks": ["/health"],
+        "readinessChecks": ["/v1/claims/quote"],
+        "auth": {
+          "kind": "bearer-token",
+          "secretRef": "VANTA_RELAYER_AUTH_TOKEN_REF"
+        },
+        "storage": {
+          "durableStoreConfigured": true,
+          "kind": "postgres-jsonb-snapshot-store",
+          "secretRef": "VANTA_PRIVATE_POOL_V2_RELAYER_DATABASE_URL_REF"
+        },
+        "feeWallet": {
+          "kind": "public-solana-address-ref",
+          "secretRef": "VANTA_PRIVATE_POOL_V2_RELAYER_FEE_WALLET_REF"
+        },
+        "lastVerifiedAt": "2026-04-21T05:05:22Z",
+        "lastVerifiedHealthRef": "curl -fsS https://vanta-prod-private-pool-v2-relayer.onrender.com/health",
+        "productionReady": false,
+        "mainnetReady": false
+      },
       "replicas": {
         "minimum": 2,
         "maximum": 6
