@@ -1,0 +1,107 @@
+{
+  "version": "vanta-private-pool-v2-production-smoke-evidence-0.1",
+  "checkedAt": "2026-04-21T06:07:15.284Z",
+  "mainnetReady": false,
+  "productionReady": false,
+  "realFundsAllowed": false,
+  "runId": "prod-smoke-1776751635283-a9f9610b",
+  "services": [
+    {
+      "id": "indexer",
+      "urlRef": "VANTA_PRIVATE_POOL_V2_INDEXER_URL",
+      "health": {
+        "ok": true,
+        "status": 200
+      },
+      "readiness": {
+        "ok": true,
+        "productionReady": false,
+        "status": 200
+      }
+    },
+    {
+      "id": "prover",
+      "urlRef": "VANTA_PRIVATE_POOL_V2_PROVER_URL",
+      "health": {
+        "ok": true,
+        "status": 200
+      },
+      "readiness": {
+        "ok": true,
+        "productionReady": false,
+        "status": 200
+      }
+    },
+    {
+      "id": "relayer",
+      "urlRef": "VANTA_PRIVATE_POOL_V2_RELAYER_URL",
+      "health": {
+        "ok": true,
+        "status": 200
+      },
+      "readiness": {
+        "ok": true,
+        "productionReady": false,
+        "status": 200
+      }
+    },
+    {
+      "id": "verifier",
+      "urlRef": "VANTA_PRIVATE_POOL_V2_VERIFIER_URL",
+      "health": {
+        "ok": true,
+        "status": 200
+      },
+      "readiness": {
+        "ok": true,
+        "productionReady": false,
+        "status": 200
+      }
+    },
+    {
+      "id": "operator",
+      "urlRef": "VANTA_PRIVATE_POOL_V2_OPERATOR_URL",
+      "health": {
+        "ok": true,
+        "status": 200
+      },
+      "readiness": {
+        "ok": true,
+        "productionReady": false,
+        "status": 200
+      }
+    }
+  ],
+  "smokeTargets": [
+    {
+      "id": "service-health",
+      "status": "pass"
+    },
+    {
+      "id": "remote-runtime-readiness",
+      "status": "pass"
+    },
+    {
+      "id": "proof-roundtrip-simulation",
+      "proofCommitmentPrefix": "0x17a3cf90238f9bc0",
+      "receiptIdPrefix": "0x70d15d6303a2844c",
+      "status": "pass"
+    },
+    {
+      "id": "nullifier-replay-simulation",
+      "receiptIdPrefix": "0xccb4bd4a13a7e030",
+      "replayStatus": 400,
+      "status": "pass"
+    },
+    {
+      "id": "relayer-claim-submit-simulation",
+      "signaturePrefix": "0x1ed387d54a931687",
+      "status": "pass"
+    },
+    {
+      "id": "operator-pay-settlement-simulation",
+      "proofReceiptIdPrefix": "ppv2_2e68c6a25daf8",
+      "status": "pass"
+    }
+  ]
+}

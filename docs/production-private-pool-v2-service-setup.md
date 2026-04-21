@@ -16,7 +16,7 @@ As of April 20, 2026, Render has two Vanta staging web services and five product
 - Production verifier service: `vanta-prod-private-pool-v2-verifier`, `srv-d7jgf7n7f7vs73ebdu40`, `https://vanta-prod-private-pool-v2-verifier.onrender.com`, start command `npm run private-pool-v2:verifier`.
 - Production operator service: `vanta-prod-private-pool-v2-operator`, `srv-d7jgl3d8nd3s73a9efng`, `https://vanta-prod-private-pool-v2-operator.onrender.com`, start command `npm run private-pool-v2:operator`.
 
-The production indexer, prover, relayer, verifier, and operator services have live public health evidence and durable Postgres-backed role storage configured. This is not enough to make Vanta production-ready or mainnet-ready. The production network still needs authenticated no-real-funds smoke evidence, backup/restore evidence, audit, legal/custody review, and explicit mainnet funds approval. Keep `mainnetReady: false` and `productionReady: false`.
+The production indexer, prover, relayer, verifier, and operator services have live public health evidence, authenticated no-real-funds smoke evidence, and durable Postgres-backed role storage configured. This is not enough to make Vanta production-ready or mainnet-ready. The production network still needs backup/restore evidence, audit, legal/custody review, and explicit mainnet funds approval. Keep `mainnetReady: false` and `productionReady: false`.
 
 ## Production services to provision
 
@@ -104,6 +104,12 @@ npm run mainnet:private-pool-v2-production-smoke-live
 
 Run it only from a shell with secret-manager-provided role URLs and auth tokens. It requires `VANTA_PRIVATE_POOL_V2_{INDEXER,PROVER,RELAYER,VERIFIER,OPERATOR}_URL` and matching `_AUTH_TOKEN` values in the environment. The command prints sanitized JSON evidence only; it must not print bearer tokens, database URLs, wallet keys, private keys, or customer private inputs.
 
+The current sanitized production smoke evidence manifest is:
+
+```text
+ops/mainnet/private-pool-v2-production-smoke.evidence.json
+```
+
 ## Approval gates
 
 The canonical approval template is:
@@ -129,6 +135,7 @@ Run these after refs are updated:
 ```bash
 npm run mainnet:production-service-setup-check
 npm run mainnet:private-pool-v2-production-smoke-check
+npm run mainnet:production-smoke-evidence-check
 npm run mainnet:private-pool-v2-production-smoke-live
 npm run private-pool-v2:service-network-check
 npm run private-pool-v2:role-storage-check

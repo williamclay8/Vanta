@@ -52,5 +52,9 @@ assert.ok(
   packet.requiredVerificationCommands.includes("npm run mainnet:external-gates-check"),
   "Approval gates template must include external gates check.",
 );
+assert.ok(
+  packet.requiredVerificationCommands.includes("npm run mainnet:production-smoke-evidence-check"),
+  "Approval gates template must include production smoke evidence check.",
+);
 
 console.log("Vanta mainnet approval gates template check: PASS");

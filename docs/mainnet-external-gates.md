@@ -88,6 +88,7 @@ npm run mainnet:service-contract-check
 npm run mainnet:service-topology-check
 npm run mainnet:deployment-manifest-check
 npm run mainnet:private-pool-v2-production-smoke-check
+npm run mainnet:production-smoke-evidence-check
 ```
 
 The Private Pool v2 production smoke target template is:
@@ -96,7 +97,13 @@ The Private Pool v2 production smoke target template is:
 ops/mainnet/private-pool-v2-production-smoke.template.json
 ```
 
-It records references for deployed indexer, prover, relayer, verifier, and operator URLs, auth-token refs, and no-real-funds smoke evidence. It is not evidence that those services are deployed yet.
+It records references for deployed indexer, prover, relayer, verifier, and operator URLs, auth-token refs, and no-real-funds smoke evidence.
+
+The sanitized production smoke evidence manifest is:
+
+```text
+ops/mainnet/private-pool-v2-production-smoke.evidence.json
+```
 
 The production service setup guide is:
 
@@ -104,7 +111,7 @@ The production service setup guide is:
 docs/production-private-pool-v2-service-setup.md
 ```
 
-It records the current Render inventory, the missing production indexer/prover/relayer/verifier/operator services, the `VANTA_PRIVATE_POOL_V2_RUNTIME_MODE=remote-services` wiring, and the exact refs needed before production smoke evidence can be claimed.
+It records the current Render inventory, deployed production indexer/prover/relayer/verifier/operator services, the `VANTA_PRIVATE_POOL_V2_RUNTIME_MODE=remote-services` wiring, and the smoke evidence that has been captured. Vanta still remains blocked on backup/restore evidence, audit, legal/compliance/custody review, and explicit mainnet funds approval.
 
 ### Production storage
 

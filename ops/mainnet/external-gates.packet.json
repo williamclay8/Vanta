@@ -74,12 +74,13 @@
   "gates": [
     {
       "id": "deployed-services",
-      "status": "not-provisioned",
+      "status": "blocked",
       "externalGate": true,
       "owner": "infrastructure-operator",
-      "summary": "Deploy mainnet-compatible indexer, relayer, prover, verifier, and operator services with health and readiness endpoints.",
+      "summary": "Mainnet-compatible indexer, relayer, prover, verifier, and operator services are deployed with health, authenticated readiness, and no-real-funds production smoke evidence. The gate remains blocked until remaining external launch approvals clear.",
       "requiredEvidence": [
         "ops/mainnet/private-pool-v2-production-smoke.template.json references-only remote service smoke targets",
+        "ops/mainnet/private-pool-v2-production-smoke.evidence.json sanitized no-real-funds production smoke evidence",
         "non-secret service URL references for indexer, relayer, prover, verifier, and operator",
         "service-to-service auth reference names",
         "health endpoint evidence",
@@ -96,9 +97,10 @@
         "npm run mainnet:service-contract-check",
         "npm run mainnet:service-topology-check",
         "npm run mainnet:deployment-manifest-check",
-        "npm run mainnet:private-pool-v2-production-smoke-check"
+        "npm run mainnet:private-pool-v2-production-smoke-check",
+        "npm run mainnet:production-smoke-evidence-check"
       ],
-      "approvalGate": "production service URLs and auth references are provided without secret values"
+      "approvalGate": "remaining external launch approvals clear without secret values"
     },
     {
       "id": "production-storage",

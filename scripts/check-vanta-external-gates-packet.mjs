@@ -95,6 +95,7 @@ for (const requiredTemplate of [
   "ops/mainnet/production-backup-restore.template.json",
   "ops/mainnet/production-observability.template.json",
   "ops/mainnet/private-pool-v2-production-smoke.template.json",
+  "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
   "ops/mainnet/mainnet-approval-gates.template.json",
 ]) {
   assert.ok(existsSync(resolve(repoRoot, requiredTemplate)), `Missing production infrastructure template: ${requiredTemplate}.`);
@@ -128,7 +129,9 @@ assertGateIncludes("monitoring-incident-response", "verificationCommands", "npm 
 assertGateIncludes("monitoring-incident-response", "verificationCommands", "npm run mainnet:observability-sink-check");
 assertGateIncludes("wallet-signing-safety", "verificationCommands", "npm run wallet:browser-signing-safety-check");
 assertGateIncludes("deployed-services", "requiredEvidence", "ops/mainnet/private-pool-v2-production-smoke.template.json");
+assertGateIncludes("deployed-services", "requiredEvidence", "ops/mainnet/private-pool-v2-production-smoke.evidence.json");
 assertGateIncludes("deployed-services", "verificationCommands", "npm run mainnet:private-pool-v2-production-smoke-check");
+assertGateIncludes("deployed-services", "verificationCommands", "npm run mainnet:production-smoke-evidence-check");
 assertGateIncludes("third-party-security-audit", "requiredEvidence", "ops/mainnet/mainnet-approval-gates.template.json");
 assertGateIncludes("legal-compliance-custody", "requiredEvidence", "ops/mainnet/mainnet-approval-gates.template.json");
 assertGateIncludes("mainnet-funds-approval", "requiredEvidence", "ops/mainnet/mainnet-approval-gates.template.json");
@@ -218,8 +221,9 @@ for (const phrase of [
   "vanta-prod-private-pool-v2-relayer",
   "vanta-prod-private-pool-v2-verifier",
   "vanta-prod-private-pool-v2-operator",
-  "The production indexer, prover, relayer, verifier, and operator services have live public health evidence",
-  "The production network still needs authenticated no-real-funds smoke evidence",
+  "The production indexer, prover, relayer, verifier, and operator services have live public health evidence, authenticated no-real-funds smoke evidence",
+  "The production network still needs backup/restore evidence",
+  "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
   "npm run mainnet:production-service-setup-check",
 ]) {
   assert.ok(

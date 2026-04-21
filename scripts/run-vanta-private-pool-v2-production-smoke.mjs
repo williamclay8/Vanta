@@ -50,6 +50,27 @@ function readRequiredEnv(name) {
   return value;
 }
 
+function readRequiredServiceUrl(name) {
+  const value = readRequiredEnv(name);
+  let parsed;
+
+  try {
+    parsed = new URL(value);
+  } catch {
+    throw new Error(`${name} must be an HTTPS Render service URL, not a database URL or secret ref.`);
+  }
+
+  if (!["http:", "https:"].includes(parsed.protocol)) {
+    throw new Error(`${name} must be an HTTP(S) service URL. Check that it is not set to a Postgres DATABASE_URL.`);
+  }
+
+  if (parsed.username || parsed.password) {
+    throw new Error(`${name} must not include credentials. Use the public Render service URL and put auth in the matching _AUTH_TOKEN env var.`);
+  }
+
+  return value.replace(/\/+$/, "");
+}
+
 function serviceConfig() {
   return new Map(
     services.map((service) => [
@@ -57,7 +78,7 @@ function serviceConfig() {
       {
         ...service,
         authToken: readRequiredEnv(service.authTokenEnv),
-        url: readRequiredEnv(service.urlEnv).replace(/\/+$/, ""),
+        url: readRequiredServiceUrl(service.urlEnv),
       },
     ]),
   );
@@ -102,6 +123,19 @@ function assertOk(result, message) {
   assert.ok(result.ok, `${message} HTTP ${result.status}: ${result.text || result.statusText}`);
   assert.ok(result.parsed, `${message} should return JSON.`);
   return result.parsed;
+}
+
+function assertExpectedRole(payload, service) {
+  const expectedRole = service.id === "operator" ? undefined : service.id;
+  if (!expectedRole) {
+    return;
+  }
+
+  assert.equal(
+    payload.role,
+    expectedRole,
+    `${service.urlEnv} points at role ${payload.role ?? "unknown"}, expected ${expectedRole}. Check the ${service.id} service URL/token mapping.`,
+  );
 }
 
 function summarizeServiceResult({ health, readiness, service }) {
@@ -195,10 +229,12 @@ async function run() {
 
   for (const service of configs.values()) {
     const health = await requestJson(service, service.healthEndpoint, { token: null });
-    assertOk(health, `${service.id} public health`);
+    const healthPayload = assertOk(health, `${service.id} public health`);
+    assertExpectedRole(healthPayload, service);
 
     const readiness = await requestJson(service, service.readinessEndpoint);
     const readinessPayload = assertOk(readiness, `${service.id} authenticated readiness`);
+    assertExpectedRole(readinessPayload, service);
     assert.equal(readinessPayload.productionReady, false, `${service.id} must remain productionReady false.`);
 
     evidence.services.push(summarizeServiceResult({ health, readiness, service }));

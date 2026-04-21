@@ -35,7 +35,8 @@
         "VANTA_PRIVATE_POOL_V2_HEALTH_SMOKE_EVIDENCE_REF",
         "VANTA_PRIVATE_POOL_V2_REMOTE_RUNTIME_SMOKE_EVIDENCE_REF",
         "VANTA_PRIVATE_POOL_V2_PROOF_ROUNDTRIP_SMOKE_EVIDENCE_REF",
-        "VANTA_PRIVATE_POOL_V2_NULLIFIER_REPLAY_SMOKE_EVIDENCE_REF"
+        "VANTA_PRIVATE_POOL_V2_NULLIFIER_REPLAY_SMOKE_EVIDENCE_REF",
+        "VANTA_PRIVATE_POOL_V2_PRODUCTION_SMOKE_EVIDENCE_MANIFEST_REF"
       ],
       "forbiddenValues": [
         "raw service URLs if they grant private access",
@@ -108,6 +109,7 @@
     "npm run mainnet:approval-gates-check",
     "npm run mainnet:external-gates-check",
     "npm run mainnet:private-pool-v2-production-smoke-check",
+    "npm run mainnet:production-smoke-evidence-check",
     "npm run mainnet:preflight"
   ]
 }

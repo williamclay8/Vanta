@@ -314,6 +314,13 @@ When the role-service URLs and auth tokens are present in the shell from the sec
 npm run mainnet:private-pool-v2-production-smoke-live
 ```
 
+The sanitized production smoke evidence manifest is:
+
+```text
+ops/mainnet/private-pool-v2-production-smoke.evidence.json
+npm run mainnet:production-smoke-evidence-check
+```
+
 To select deployed services in an approved non-mainnet or production-like environment, set:
 
 ```bash
