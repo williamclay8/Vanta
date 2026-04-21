@@ -6,13 +6,14 @@ It does not make Vanta production-ready or mainnet-ready. It records what must e
 
 ## Current Render inventory
 
-As of April 20, 2026, Render has two Vanta staging web services and one production Private Pool v2 role service:
+As of April 20, 2026, Render has two Vanta staging web services and two production Private Pool v2 role services:
 
 - Pay staging service: `Vanta`, `srv-d7j3ggqqqhas739for80`, `https://vanta-0wwi.onrender.com`, start command `npm run pay:operator`.
 - Private Pool v2 staging service: `vanta-staging-private-pool-v2`, `srv-d7j4aod7vvec73ahsqlg`, `https://vanta-staging-private-pool-v2.onrender.com`, start command `npm run private-pool-v2:operator`.
 - Production indexer service: `vanta-prod-private-pool-v2-indexer`, `srv-d7jfqru7r5hc73b6oelg`, `https://vanta-prod-private-pool-v2-indexer.onrender.com`, start command `npm run private-pool-v2:indexer`.
+- Production prover service: `vanta-prod-private-pool-v2-prover`, `srv-d7jg4arbc2fs73c1449g`, `https://vanta-prod-private-pool-v2-prover.onrender.com`, start command `npm run private-pool-v2:prover`.
 
-The production indexer service has live public health evidence and durable Postgres-backed role storage configured. It is not enough to make Vanta production-ready or mainnet-ready. Production prover, relayer, verifier, and operator services still need to be deployed, authenticated, smoke tested, and reviewed. Keep `mainnetReady: false` and `productionReady: false`.
+The production indexer and prover services have live public health evidence and durable Postgres-backed role storage configured. This is not enough to make Vanta production-ready or mainnet-ready. Production relayer, verifier, and operator services still need to be deployed, authenticated, smoke tested, and reviewed. Keep `mainnetReady: false` and `productionReady: false`.
 
 ## Production services to provision
 
@@ -131,7 +132,7 @@ Codex can keep building local contracts, docs, checks, runbooks, and safe smoke 
 
 Codex cannot honestly complete these without external evidence:
 
-- deployed production prover, relayer, verifier, and operator services
+- deployed production relayer, verifier, and operator services
 - secret-manager values/refs created in the external provider
 - production smoke evidence from live services
 - third-party audit signoff

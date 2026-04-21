@@ -131,6 +131,40 @@
       "id": "prover",
       "image": "${VANTA_PROVER_IMAGE}",
       "startCommand": "npm run private-pool-v2:prover",
+      "deployedService": {
+        "provider": "render",
+        "environment": "production",
+        "serviceId": "srv-d7jg4arbc2fs73c1449g",
+        "serviceName": "vanta-prod-private-pool-v2-prover",
+        "url": "https://vanta-prod-private-pool-v2-prover.onrender.com",
+        "repo": "https://github.com/williamclay8/Vanta",
+        "branch": "main",
+        "commit": "e70e322941f139bcc4e80dcc401d9b6d5e8bbb67",
+        "buildCommand": "npm install; npm run build",
+        "buildEnvironment": {
+          "NPM_CONFIG_INCLUDE": "dev",
+          "NPM_CONFIG_PRODUCTION": "false"
+        },
+        "healthChecks": ["/health"],
+        "readinessChecks": ["/v1/proofs/health"],
+        "auth": {
+          "kind": "bearer-token",
+          "secretRef": "VANTA_PROVER_AUTH_TOKEN_REF"
+        },
+        "storage": {
+          "durableStoreConfigured": true,
+          "kind": "postgres-jsonb-snapshot-store",
+          "secretRef": "VANTA_PRIVATE_POOL_V2_PROVER_DATABASE_URL_REF"
+        },
+        "artifactStore": {
+          "kind": "postgres-jsonb-artifact-ref",
+          "secretRef": "VANTA_PRIVATE_POOL_V2_PROVER_ARTIFACT_REF"
+        },
+        "lastVerifiedAt": "2026-04-21T04:52:58Z",
+        "lastVerifiedHealthRef": "curl -fsS https://vanta-prod-private-pool-v2-prover.onrender.com/health",
+        "productionReady": false,
+        "mainnetReady": false
+      },
       "replicas": {
         "minimum": 2,
         "maximum": 12
