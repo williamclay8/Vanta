@@ -126,9 +126,11 @@ npm run mainnet:production-db-refs-check
 npm run mainnet:production-db-migration-harness-check
 npm run mainnet:production-db-migration-dry-run
 npm run mainnet:production-db-migration-apply
+ops/mainnet/production-migration-evidence.manifest.json
+npm run mainnet:production-migration-evidence-check
 ```
 
-It lists the exact Doppler database secret names needed for Pay, Private Pool v2 operator storage, Private Pool v2 role-service storage, Strategy, and Operator control-plane storage. It is a setup guide, not evidence that production DB refs have been created.
+It lists the exact Doppler database secret names needed for Pay, Private Pool v2 operator storage, Private Pool v2 role-service storage, Strategy, and Operator control-plane storage. The migration evidence manifest records operator-reported schema application refs for the eight production database targets without storing raw URLs. It is migration evidence only, not backup/restore, audit, legal/custody, or mainnet funds approval evidence.
 
 The checked baseline Postgres migration is:
 

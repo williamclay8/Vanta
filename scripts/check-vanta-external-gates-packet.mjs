@@ -115,10 +115,12 @@ function assertGateIncludes(gateId, field, expected) {
 }
 
 assertGateIncludes("production-storage", "requiredEvidence", "ops/mainnet/production-backup-restore.template.json");
+assertGateIncludes("production-storage", "requiredEvidence", "ops/mainnet/production-migration-evidence.manifest.json");
 assertGateIncludes("production-storage", "requiredEvidence", "role-specific Private Pool v2 database refs");
 assertGateIncludes("production-storage", "verificationCommands", "npm run mainnet:backup-restore-check");
 assertGateIncludes("production-storage", "verificationCommands", "npm run mainnet:production-db-migration-harness-check");
 assertGateIncludes("production-storage", "verificationCommands", "npm run mainnet:production-db-migration-dry-run");
+assertGateIncludes("production-storage", "verificationCommands", "npm run mainnet:production-migration-evidence-check");
 assertGateIncludes("secret-manager", "requiredEvidence", "ops/mainnet/production-secret-manager.template.json");
 assertGateIncludes("secret-manager", "requiredEvidence", "Doppler service token reference names");
 assertGateIncludes("monitoring-incident-response", "requiredEvidence", "ops/mainnet/production-observability.template.json");

@@ -93,6 +93,7 @@ const requiredCommands = [
   "npm run mainnet:production-db-refs-check",
   "npm run mainnet:production-db-migration-harness-check",
   "npm run mainnet:production-db-migration-dry-run",
+  "npm run mainnet:production-migration-evidence-check",
   "npm run storage:adapter-check",
   "npm run mainnet:abuse-observability-check",
   "npm run ops:rate-limit-check",

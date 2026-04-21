@@ -98,6 +98,10 @@ assert.ok(
   "Missing production DB migration dry-run command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:production-migration-evidence-check"),
+  "Missing production migration evidence command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:backup-restore-check"),
   "Missing production backup/restore check command.",
 );
