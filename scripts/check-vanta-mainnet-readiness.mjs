@@ -102,6 +102,10 @@ assert.ok(
   "Missing production migration evidence command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:staging-smoke-evidence-check"),
+  "Missing staging smoke evidence command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:backup-restore-check"),
   "Missing production backup/restore check command.",
 );

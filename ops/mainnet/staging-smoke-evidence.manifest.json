@@ -1,0 +1,46 @@
+{
+  "version": "vanta-staging-smoke-evidence-0.1",
+  "environment": "staging",
+  "mainnetReady": false,
+  "productionReady": false,
+  "secretPolicy": "public-health-checks-only-no-secrets",
+  "status": "operator-verified",
+  "verifiedAtUtc": "2026-04-21T03:56:00Z",
+  "services": [
+    {
+      "id": "pay",
+      "serviceId": "srv-d7j3ggqqqhas739for80",
+      "deployRef": "dep-d7jfa3r7uimc73a81610",
+      "commitRef": "58eca07d55a03f2050eb9c288f703d262288543e",
+      "healthUrl": "https://vanta-0wwi.onrender.com/health",
+      "expectedStatus": 200,
+      "result": "pass",
+      "evidenceRef": "VANTA_STAGING_PAY_HEALTH_SMOKE_EVIDENCE_REF",
+      "responseShape": {
+        "ok": true,
+        "service": "vanta-pay"
+      }
+    },
+    {
+      "id": "private-pool-v2",
+      "serviceId": "srv-d7j4aod7vvec73ahsqlg",
+      "deployRef": "dep-d7jfa3j7uimc73a815q0",
+      "commitRef": "58eca07d55a03f2050eb9c288f703d262288543e",
+      "healthUrl": "https://vanta-staging-private-pool-v2.onrender.com/health",
+      "expectedStatus": 200,
+      "result": "pass",
+      "evidenceRef": "VANTA_STAGING_PRIVATE_POOL_V2_HEALTH_SMOKE_EVIDENCE_REF",
+      "responseShape": {
+        "ok": true
+      }
+    }
+  ],
+  "limitations": [
+    "staging only",
+    "not production role-service smoke evidence",
+    "not mainnet funds approval",
+    "not backup restore evidence",
+    "not third-party audit evidence",
+    "not legal or custody approval"
+  ]
+}

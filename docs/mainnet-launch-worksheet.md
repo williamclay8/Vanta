@@ -146,6 +146,7 @@ As of April 20, 2026:
 - Production DB refs runbook: `docs/production-db-refs-runbook.md` lists the exact Render Postgres / Doppler database refs needed for Pay, Private Pool v2 operator, Private Pool v2 role services, Strategy, and Operator control-plane storage.
 - Production DB migration harness: `npm run mainnet:production-db-migration-dry-run` validates the checked migration plan without exposing database URLs; `npm run mainnet:production-db-migration-apply` is intentionally gated behind Doppler-provided `DATABASE_URL` and `VANTA_ALLOW_PRODUCTION_DB_MIGRATION=true`.
 - Production migration evidence: `ops/mainnet/production-migration-evidence.manifest.json` records operator-reported schema application refs for Pay, Private Pool v2, role services, Strategy, and Operator databases. This does not clear backup/restore, audit, legal/custody, or mainnet-funds gates.
+- Staging smoke evidence: `ops/mainnet/staging-smoke-evidence.manifest.json` records public `/health` checks for the current Render staging services. This does not clear production role-service smoke, audit, legal/custody, backup/restore, or mainnet-funds gates.
 - Doppler staging setup guide: `docs/doppler-staging-setup.md`.
 - Monitoring provider: Better Stack staging monitors created by operator report; production monitoring is not complete.
 - Staging monitoring manifest: `ops/mainnet/staging-monitoring.manifest.json` tracks public `/health` monitors only.

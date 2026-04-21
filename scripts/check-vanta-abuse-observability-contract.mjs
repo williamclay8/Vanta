@@ -5,6 +5,7 @@ import { createVantaAbuseObservabilityContract } from "../src/readiness/abuseObs
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const stagingMonitoringManifestPath = resolve(repoRoot, "ops/mainnet/staging-monitoring.manifest.json");
+const stagingSmokeEvidencePath = resolve(repoRoot, "ops/mainnet/staging-smoke-evidence.manifest.json");
 const productionObservabilityTemplatePath = resolve(
   repoRoot,
   "ops/mainnet/production-observability.template.json",
@@ -64,10 +65,15 @@ assert.ok(
   "Missing ops/mainnet/staging-monitoring.manifest.json.",
 );
 assert.ok(
+  existsSync(stagingSmokeEvidencePath),
+  "Missing ops/mainnet/staging-smoke-evidence.manifest.json.",
+);
+assert.ok(
   existsSync(productionObservabilityTemplatePath),
   "Missing ops/mainnet/production-observability.template.json.",
 );
 const stagingMonitoringManifest = JSON.parse(readFileSync(stagingMonitoringManifestPath, "utf8"));
+const stagingSmokeEvidence = JSON.parse(readFileSync(stagingSmokeEvidencePath, "utf8"));
 const productionObservabilityTemplate = JSON.parse(
   readFileSync(productionObservabilityTemplatePath, "utf8"),
 );
@@ -79,6 +85,14 @@ assert.equal(stagingMonitoringManifest.provider, "better-stack");
 assert.equal(stagingMonitoringManifest.secretPolicy, "public-health-checks-only-no-alert-secrets");
 assert.equal(stagingMonitoringManifest.alertContact, "email");
 assert.ok(Array.isArray(stagingMonitoringManifest.monitors), "Monitoring manifest must include monitors.");
+assert.equal(stagingSmokeEvidence.version, "vanta-staging-smoke-evidence-0.1");
+assert.equal(stagingSmokeEvidence.mainnetReady, false);
+assert.equal(stagingSmokeEvidence.productionReady, false);
+assert.equal(stagingSmokeEvidence.secretPolicy, "public-health-checks-only-no-secrets");
+assert.ok(
+  stagingSmokeEvidence.limitations.includes("not production role-service smoke evidence"),
+  "Staging smoke evidence must not claim production role-service smoke evidence.",
+);
 
 const requiredMonitors = new Map([
   ["Vanta Pay Staging", "https://vanta-0wwi.onrender.com/health"],

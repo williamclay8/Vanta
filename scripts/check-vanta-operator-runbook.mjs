@@ -51,6 +51,8 @@ const requiredPhrases = [
   "npm run mainnet:production-db-migration-apply",
   "ops/mainnet/production-migration-evidence.manifest.json",
   "npm run mainnet:production-migration-evidence-check",
+  "ops/mainnet/staging-smoke-evidence.manifest.json",
+  "npm run mainnet:staging-smoke-evidence-check",
   "ops/storage/postgres/001_vanta_mainnet_storage.sql",
   "src/readiness/abuseObservabilityContract.mjs",
   "src/storage/vantaJsonSnapshotStore.mjs",
