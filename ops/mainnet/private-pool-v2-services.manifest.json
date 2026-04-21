@@ -276,6 +276,43 @@
       "id": "operator",
       "image": "${VANTA_OPERATOR_IMAGE}",
       "startCommand": "npm run private-pool-v2:operator",
+      "deployedService": {
+        "provider": "render",
+        "environment": "production",
+        "serviceId": "srv-d7jgl3d8nd3s73a9efng",
+        "serviceName": "vanta-prod-private-pool-v2-operator",
+        "url": "https://vanta-prod-private-pool-v2-operator.onrender.com",
+        "repo": "https://github.com/williamclay8/Vanta",
+        "branch": "main",
+        "commit": "e6584a1dc6ca32b4857ff44dd0ded7289475de9a",
+        "buildCommand": "npm install; npm run build",
+        "buildEnvironment": {
+          "NPM_CONFIG_INCLUDE": "dev",
+          "NPM_CONFIG_PRODUCTION": "false"
+        },
+        "healthChecks": ["/health"],
+        "readinessChecks": ["/state/private-pool-v2-status"],
+        "auth": {
+          "kind": "bearer-token",
+          "secretRef": "VANTA_OPERATOR_AUTH_TOKEN_REF"
+        },
+        "storage": {
+          "durableStoreConfigured": true,
+          "kind": "postgres-jsonb-snapshot-store",
+          "secretRef": "VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF"
+        },
+        "runtimeMode": "remote-services",
+        "remoteServices": {
+          "indexerUrlRef": "VANTA_INDEXER_URL_REF",
+          "proverUrlRef": "VANTA_PROVER_URL_REF",
+          "relayerUrlRef": "VANTA_RELAYER_URL_REF",
+          "verifierUrlRef": "VANTA_VERIFIER_URL_REF"
+        },
+        "lastVerifiedAt": "2026-04-21T05:30:18Z",
+        "lastVerifiedHealthRef": "curl -fsS https://vanta-prod-private-pool-v2-operator.onrender.com/health",
+        "productionReady": false,
+        "mainnetReady": false
+      },
       "replicas": {
         "minimum": 2,
         "maximum": 8

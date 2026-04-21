@@ -6,7 +6,7 @@ It does not make Vanta production-ready or mainnet-ready. It records what must e
 
 ## Current Render inventory
 
-As of April 20, 2026, Render has two Vanta staging web services and four production Private Pool v2 role services:
+As of April 20, 2026, Render has two Vanta staging web services and five production Private Pool v2 role services:
 
 - Pay staging service: `Vanta`, `srv-d7j3ggqqqhas739for80`, `https://vanta-0wwi.onrender.com`, start command `npm run pay:operator`.
 - Private Pool v2 staging service: `vanta-staging-private-pool-v2`, `srv-d7j4aod7vvec73ahsqlg`, `https://vanta-staging-private-pool-v2.onrender.com`, start command `npm run private-pool-v2:operator`.
@@ -14,8 +14,9 @@ As of April 20, 2026, Render has two Vanta staging web services and four product
 - Production prover service: `vanta-prod-private-pool-v2-prover`, `srv-d7jg4arbc2fs73c1449g`, `https://vanta-prod-private-pool-v2-prover.onrender.com`, start command `npm run private-pool-v2:prover`.
 - Production relayer service: `vanta-prod-private-pool-v2-relayer`, `srv-d7jg9jrbc2fs73c161gg`, `https://vanta-prod-private-pool-v2-relayer.onrender.com`, start command `npm run private-pool-v2:relayer`.
 - Production verifier service: `vanta-prod-private-pool-v2-verifier`, `srv-d7jgf7n7f7vs73ebdu40`, `https://vanta-prod-private-pool-v2-verifier.onrender.com`, start command `npm run private-pool-v2:verifier`.
+- Production operator service: `vanta-prod-private-pool-v2-operator`, `srv-d7jgl3d8nd3s73a9efng`, `https://vanta-prod-private-pool-v2-operator.onrender.com`, start command `npm run private-pool-v2:operator`.
 
-The production indexer, prover, relayer, and verifier services have live public health evidence and durable Postgres-backed role storage configured. This is not enough to make Vanta production-ready or mainnet-ready. The production operator service still needs to be deployed, authenticated, smoke tested, and reviewed. Keep `mainnetReady: false` and `productionReady: false`.
+The production indexer, prover, relayer, verifier, and operator services have live public health evidence and durable Postgres-backed role storage configured. This is not enough to make Vanta production-ready or mainnet-ready. The production network still needs authenticated no-real-funds smoke evidence, backup/restore evidence, audit, legal/custody review, and explicit mainnet funds approval. Keep `mainnetReady: false` and `productionReady: false`.
 
 ## Production services to provision
 
@@ -134,7 +135,7 @@ Codex can keep building local contracts, docs, checks, runbooks, and safe smoke 
 
 Codex cannot honestly complete these without external evidence:
 
-- deployed production operator service
+- authenticated production no-real-funds smoke evidence
 - secret-manager values/refs created in the external provider
 - production smoke evidence from live services
 - third-party audit signoff
