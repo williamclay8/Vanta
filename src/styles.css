@@ -4106,6 +4106,29 @@ input {
     width: 100%;
   }
 
+  .app-header {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      "brand wallet"
+      "tabs tabs";
+    gap: 12px;
+  }
+
+  .app-header__brand {
+    grid-area: brand;
+  }
+
+  .app-header__tabs {
+    grid-area: tabs;
+  }
+
+  .app-header__wallet {
+    grid-area: wallet;
+    width: auto;
+    justify-self: end;
+    justify-content: flex-end;
+  }
+
   .nav-links {
     flex-wrap: wrap;
     gap: 14px;
@@ -4128,19 +4151,20 @@ input {
     min-width: 96px;
   }
 
-  .app-header__wallet,
   .app-header__account-trigger {
-    width: 100%;
+    width: auto;
   }
 
   .app-header__account-trigger {
-    align-items: center;
+    min-width: 108px;
+    align-items: flex-start;
+    padding-inline: 13px;
   }
 
   .wallet-picker {
-    left: 0;
+    left: auto;
     right: 0;
-    width: min(100%, calc(100vw - 32px));
+    width: min(340px, calc(100vw - 32px));
     max-height: min(620px, calc(100vh - 132px));
   }
 
