@@ -61,6 +61,16 @@ async function indexExists(client, indexName) {
   return result.rowCount === 1;
 }
 
+async function schemaVersionSnapshot(client) {
+  const result = await client.query(
+    `SELECT store_id, version, migration_name, checksum
+       FROM schema_versions
+      ORDER BY store_id, version`,
+  );
+
+  return result.rows;
+}
+
 async function runReadback() {
   requireSafeInput();
 
@@ -89,6 +99,22 @@ async function runReadback() {
           AND version = $2`,
       [targetRef, "001"],
     );
+
+    if (schemaVersion.rowCount !== 1) {
+      const availableSchemaVersions = await schemaVersionSnapshot(client);
+      console.error("Restore drill readback schema_versions mismatch.");
+      console.error(`Expected target ref: ${targetRef}`);
+      console.error(
+        `Available schema version refs: ${
+          availableSchemaVersions.length > 0
+            ? availableSchemaVersions
+                .map((row) => `${row.store_id}:${row.version}:${row.migration_name}`)
+                .join(", ")
+            : "none"
+        }`,
+      );
+      console.error("Safety: no raw database URLs, credentials, or bearer values were printed.");
+    }
 
     assert.equal(schemaVersion.rowCount, 1, `Missing restored schema_versions row for ${targetRef}.`);
     assert.equal(schemaVersion.rows[0].migration_name, "001_vanta_mainnet_storage.sql");
