@@ -4,7 +4,7 @@
   "mainnetReady": false,
   "productionReady": false,
   "realFundsAllowed": true,
-  "status": "bounded-real-funds-approval-recorded-with-accepted-risks",
+  "status": "bounded-real-funds-approval-recorded-with-operator-skipped-controls",
   "secretPolicy": "references-only-no-secret-values",
   "realFundsPolicy": "explicit-human-approval-required",
   "templateRef": "ops/mainnet/mainnet-approval-gates.template.json",
@@ -24,13 +24,13 @@
     },
     {
       "id": "backup-restore-evidence",
-      "status": "accepted-risk",
+      "status": "operator-skipped-control",
       "ref": "ops/mainnet/production-backup-restore.evidence.json",
       "verificationCommand": "npm run mainnet:backup-restore-evidence-check"
     },
     {
       "id": "restore-drill-evidence",
-      "status": "accepted-risk",
+      "status": "operator-skipped-control",
       "ref": "ops/mainnet/production-restore-drill.evidence.json",
       "verificationCommand": "npm run mainnet:production-restore-drill-evidence-check"
     },
@@ -50,7 +50,7 @@
   "gates": [
     {
       "id": "secret-manager-backed-credentials",
-      "status": "accepted-risk",
+      "status": "operator-skipped-control",
       "currentEvidenceStatus": "audit-rotation-evidence-skipped-by-operator",
       "requiresExternalApproval": true,
       "requiredRefs": [
@@ -80,8 +80,8 @@
     },
     {
       "id": "third-party-security-audit",
-      "status": "accepted-risk",
-      "currentEvidenceStatus": "skipped-by-operator-accepted-risk",
+      "status": "operator-skipped-control",
+      "currentEvidenceStatus": "skipped-by-operator",
       "requiresExternalApproval": true,
       "requiredRefs": [
         "VANTA_AUDIT_SCOPE_REF",
@@ -94,8 +94,8 @@
     },
     {
       "id": "legal-compliance-custody",
-      "status": "accepted-risk",
-      "currentEvidenceStatus": "skipped-by-operator-accepted-risk",
+      "status": "operator-skipped-control",
+      "currentEvidenceStatus": "skipped-by-operator",
       "requiresExternalApproval": true,
       "requiredRefs": [
         "VANTA_LEGAL_REVIEW_REF",
@@ -134,12 +134,12 @@
     }
   ],
   "limitations": [
-    "Third-party security audit was skipped by operator decision and accepted as launch risk; no audit approval has been recorded.",
-    "Legal, compliance, and custody review was skipped by operator decision and accepted as launch risk; no approval has been recorded.",
-    "Secret-manager audit and rotation evidence were skipped by operator decision and accepted as launch risk; no secret-handling maturity claim is made.",
+    "Third-party security audit was skipped by operator decision; no audit approval has been recorded.",
+    "Legal, compliance, and custody review was skipped by operator decision; no approval has been recorded.",
+    "Secret-manager audit and rotation evidence were skipped by operator decision; no secret-handling maturity claim is made.",
     "Explicit mainnet real-funds approval is recorded only for beta private-pool smoke with maximum 0.05 SOL at risk.",
-    "Provider backup policy, PITR, encrypted backup, backup access audit, and least-privilege restore-user evidence were intentionally skipped and accepted as launch risk.",
-    "Pay restore readback was intentionally skipped and accepted as launch risk.",
+    "Provider backup policy, PITR, encrypted backup, backup access audit, and least-privilege restore-user evidence were skipped by operator decision.",
+    "Pay restore readback was skipped by operator decision.",
     "No mainnet transactions or real funds are allowed outside the bounded approval recorded in this evidence file."
   ],
   "acceptedRisks": [

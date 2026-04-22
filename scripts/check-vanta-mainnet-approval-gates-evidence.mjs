@@ -18,7 +18,7 @@ assert.equal(evidence.version, "vanta-mainnet-approval-gates-evidence-0.1");
 assert.equal(evidence.mainnetReady, false);
 assert.equal(evidence.productionReady, false);
 assert.equal(evidence.realFundsAllowed, true);
-assert.equal(evidence.status, "bounded-real-funds-approval-recorded-with-accepted-risks");
+assert.equal(evidence.status, "bounded-real-funds-approval-recorded-with-operator-skipped-controls");
 assert.equal(evidence.secretPolicy, "references-only-no-secret-values");
 assert.equal(evidence.realFundsPolicy, "explicit-human-approval-required");
 assert.equal(evidence.templateRef, "ops/mainnet/mainnet-approval-gates.template.json");
@@ -35,10 +35,10 @@ const expectedGateIds = [
 assert.equal(evidence.gates.length, expectedGateIds.length, "Approval gates evidence must cover every gate.");
 
 const expectedGateStatuses = new Map([
-  ["secret-manager-backed-credentials", "accepted-risk"],
+  ["secret-manager-backed-credentials", "operator-skipped-control"],
   ["private-pool-v2-production-smoke", "evidence-recorded"],
-  ["third-party-security-audit", "accepted-risk"],
-  ["legal-compliance-custody", "accepted-risk"],
+  ["third-party-security-audit", "operator-skipped-control"],
+  ["legal-compliance-custody", "operator-skipped-control"],
   ["explicit-mainnet-funds-approval", "approved-bounded-action"],
 ]);
 
@@ -82,11 +82,11 @@ for (const externalGateId of [
       "audit-rotation-evidence-skipped-by-operator",
       "not-started",
       "blocked-external-review-required",
-      "skipped-by-operator-accepted-risk",
+      "skipped-by-operator",
     ].includes(gate.currentEvidenceStatus),
     `${externalGateId} must not imply approval.`,
   );
-  assert.ok(gate.operatorDecision, `${externalGateId} accepted-risk status must record operator decision.`);
+  assert.ok(gate.operatorDecision, `${externalGateId} skipped-control status must record operator decision.`);
 }
 
 const technicalRefs = new Set(evidence.currentTechnicalEvidence.map((entry) => entry.ref));
@@ -136,15 +136,15 @@ for (const forbidden of [
 
 assert.ok(
   evidence.limitations.some((limitation) => limitation.includes("no audit approval has been recorded")),
-  "Approval gates evidence must preserve audit accepted-risk truth.",
+  "Approval gates evidence must preserve audit skipped-control truth.",
 );
 assert.ok(
   evidence.limitations.some((limitation) => limitation.includes("no approval has been recorded")),
-  "Approval gates evidence must preserve legal/compliance/custody accepted-risk truth.",
+  "Approval gates evidence must preserve legal/compliance/custody skipped-control truth.",
 );
 assert.ok(
   evidence.limitations.some((limitation) => limitation.includes("Secret-manager audit and rotation evidence")),
-  "Approval gates evidence must preserve secret-manager accepted-risk truth.",
+  "Approval gates evidence must preserve secret-manager skipped-control truth.",
 );
 assert.ok(
   evidence.limitations.some((limitation) => limitation.includes("maximum 0.05 SOL at risk")),

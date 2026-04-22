@@ -11,15 +11,15 @@
   "knownSkippedGates": [
     {
       "id": "third-party-security-audit",
-      "status": "skipped-by-operator-accepted-risk",
-      "riskAcceptedBy": "operator",
+      "status": "skipped-by-operator",
+      "skippedBy": "operator",
       "decisionDate": "2026-04-22",
       "note": "No third-party audit approval exists."
     },
     {
       "id": "legal-compliance-custody",
-      "status": "skipped-by-operator-accepted-risk",
-      "riskAcceptedBy": "operator",
+      "status": "skipped-by-operator",
+      "skippedBy": "operator",
       "decisionDate": "2026-04-22",
       "note": "No legal, compliance, or custody approval exists."
     }

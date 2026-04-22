@@ -23,8 +23,8 @@ assert.ok(Date.parse(evidence.checkedAt), "Real-funds approval evidence must inc
 for (const gateId of ["third-party-security-audit", "legal-compliance-custody"]) {
   const gate = evidence.knownSkippedGates.find((candidate) => candidate.id === gateId);
   assert.ok(gate, `Missing skipped gate record for ${gateId}.`);
-  assert.equal(gate.status, "skipped-by-operator-accepted-risk");
-  assert.equal(gate.riskAcceptedBy, "operator");
+  assert.equal(gate.status, "skipped-by-operator");
+  assert.equal(gate.skippedBy, "operator");
   assert.ok(gate.note.includes("No "), `${gateId} skipped gate must preserve missing approval note.`);
 }
 
