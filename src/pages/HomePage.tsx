@@ -12,8 +12,8 @@ const productPoints = [
     title: "Use private rails",
   },
   {
-    copy: "Keep live money movement disabled in beta while production private settlement is finalized.",
-    title: "Beta safe",
+    copy: "Create payment links, accept private checkout, track balances, and withdraw through a commerce-first Pay suite.",
+    title: "Accept payments",
   },
 ];
 
@@ -99,7 +99,7 @@ export function HomePage() {
       <section className="landing-minimal__panel landing-minimal__panel--split" id="use">
         <div className="landing-minimal__section-header">
           <span>Inside the app</span>
-          <h2>Only the actions users need.</h2>
+          <h2>All the actions private users need.</h2>
         </div>
 
         <div className="landing-minimal__action-list" aria-label="Vanta app actions">
@@ -109,14 +109,6 @@ export function HomePage() {
             </Link>
           ))}
         </div>
-      </section>
-
-      <section className="landing-minimal__truth">
-        <span>Beta truth</span>
-        <p>
-          Vanta is live as a beta interface. Fund-moving production actions stay disabled
-          until private settlement, review, and mainnet approval gates are complete.
-        </p>
       </section>
     </main>
   );

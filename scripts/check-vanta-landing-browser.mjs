@@ -47,7 +47,9 @@ function checkLandingViewport(width, height) {
         path: location.pathname,
         headline: document.querySelector("h1")?.innerText ?? "",
         hasAppCta: [...document.querySelectorAll("a")].some((link) => link.textContent?.trim() === "Enter App" && link.getAttribute("href") === "/app/send"),
-        hasTruthCopy: document.body.innerText.includes("Fund-moving production actions stay disabled"),
+        hasPaymentsCopy: document.body.innerText.includes("Create payment links") && document.body.innerText.includes("private checkout"),
+        hasPrivateUserHeading: document.body.innerText.includes("All the actions private users need."),
+        hidesBetaCopy: !document.body.innerText.toLowerCase().includes("beta"),
         hasPointedActions: ["shield", "send", "swap", "strategy", "unshield", "pay"].every((label) => document.body.innerText.toLowerCase().includes(label)),
         horizontalOverflow: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) - window.innerWidth,
         smallTargets: [...document.querySelectorAll("a, button")]
@@ -77,8 +79,16 @@ function checkLandingViewport(width, height) {
     throw new Error("Landing page must include an Enter App CTA to /app/send.");
   }
 
-  if (!result.hasTruthCopy) {
-    throw new Error("Landing page must include beta truth copy.");
+  if (!result.hasPaymentsCopy) {
+    throw new Error("Landing page must include payment suite copy.");
+  }
+
+  if (!result.hasPrivateUserHeading) {
+    throw new Error("Landing page must use the private-user app-actions heading.");
+  }
+
+  if (!result.hidesBetaCopy) {
+    throw new Error("Landing page must not talk about beta state.");
   }
 
   if (!result.hasPointedActions) {
