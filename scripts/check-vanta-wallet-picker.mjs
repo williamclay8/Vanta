@@ -41,8 +41,8 @@ requireIncludes(
 );
 requireIncludes(
   appLayout,
-  "Wallet Standard",
-  "Wallet picker must describe wallet-standard discovery.",
+  "Wallet standard",
+  "Wallet picker must describe wallet-standard discovery with product-copy casing.",
 );
 requireIncludes(
   appLayout,
