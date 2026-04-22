@@ -15,22 +15,34 @@ if (jsonMode) {
   console.log(`- status: ${evidence.status}`);
   console.log(`- mainnetReady: ${String(evidence.mainnetReady)}`);
   console.log(`- productionReady: ${String(evidence.productionReady)}`);
-  console.log("- stores:");
+  console.log("");
+  console.log("Stores");
   for (const store of evidence.stores) {
-    const refs = store.databaseRefs.join(", ");
-    console.log(`  - ${store.id}: restore ${store.restoreReadbackStatus}, backups ${store.backupControlStatus}`);
-    console.log(`    refs: ${refs}`);
-    if (store.restoreDrillRef) {
-      console.log(`    restoreDrillRef: ${store.restoreDrillRef}`);
+    console.log(`- ${store.id}`);
+    console.log(`  restore: ${store.restoreReadbackStatus}`);
+    console.log(`  backups: ${store.backupControlStatus}`);
+    console.log("  refs:");
+    for (const ref of store.databaseRefs) {
+      console.log(`    - ${ref}`);
     }
-    console.log(`    blockedUntil: ${store.blockedUntil.join(", ")}`);
+    if (store.restoreDrillRef) {
+      console.log(`  restoreDrillRef: ${store.restoreDrillRef}`);
+    }
+    console.log("  blockedUntil:");
+    for (const blocker of store.blockedUntil) {
+      console.log(`    - ${blocker}`);
+    }
   }
-  console.log("- global evidence gates:");
+  console.log("");
+  console.log("Global Evidence Gates");
   for (const gate of evidence.globalEvidence) {
-    console.log(`  - ${gate.id}: ${gate.status} (${gate.requiredRefPattern})`);
+    console.log(`- ${gate.id}`);
+    console.log(`  status: ${gate.status}`);
+    console.log(`  ref: ${gate.requiredRefPattern}`);
   }
-  console.log("- next operator actions:");
-  for (const action of evidence.nextOperatorActions) {
-    console.log(`  - ${action}`);
+  console.log("");
+  console.log("Next Operator Actions");
+  for (const [index, action] of evidence.nextOperatorActions.entries()) {
+    console.log(`${index + 1}. ${action}`);
   }
 }
