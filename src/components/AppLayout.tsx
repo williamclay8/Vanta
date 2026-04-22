@@ -150,7 +150,7 @@ export function AppLayout() {
             ))}
           </nav>
           <span className="app-header__tabs-cue" aria-hidden="true">
-            Swipe
+            Swipe for more
           </span>
         </div>
 
