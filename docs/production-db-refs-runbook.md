@@ -117,6 +117,8 @@ ops/mainnet/production-restore-drill.evidence.json
 
 It records only reference names. A restored database being created is not enough by itself; the restored database must also pass readback before it can count as recovery evidence.
 
+The current evidence records operator/control-plane restore readback for `VANTA_OPERATOR_DATABASE_URL_REF`. It does not clear the separate Private Pool v2 core restore gate for `VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF`.
+
 Run this references-only evidence check:
 
 ```bash
@@ -127,7 +129,7 @@ To verify the restored Private Pool v2 operator database locally, set the restor
 
 ```bash
 DATABASE_URL="<restored-db-url-from-provider>" \
-VANTA_RESTORE_DRILL_TARGET_REF=VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF \
+VANTA_RESTORE_DRILL_TARGET_REF=VANTA_OPERATOR_DATABASE_URL_REF \
 npm run mainnet:production-restore-drill-readback
 ```
 

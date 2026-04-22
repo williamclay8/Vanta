@@ -18,16 +18,27 @@ assert.equal(evidence.secretPolicy, "references-only-no-credentials");
 assert.equal(evidence.status, "partial-operator-reported");
 assert.ok(Array.isArray(evidence.targets), "Restore drill evidence must include targets.");
 
-const privatePoolTarget = evidence.targets.find((candidate) => candidate.id === "privatePoolV2Operator");
-assert.ok(privatePoolTarget, "Restore drill evidence must include Private Pool v2 operator target.");
-assert.equal(privatePoolTarget.sourceDatabaseRef, "VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF");
+const operatorTarget = evidence.targets.find((candidate) => candidate.id === "operatorControlPlane");
+assert.ok(operatorTarget, "Restore drill evidence must include operator control-plane target.");
+assert.equal(operatorTarget.sourceDatabaseRef, "VANTA_OPERATOR_DATABASE_URL_REF");
 assert.ok(
-  privatePoolTarget.restoreDatabaseRef.startsWith("restore-drill/"),
+  operatorTarget.restoreDatabaseRef.startsWith("restore-drill/"),
   "Restore drill database evidence must be a reference, not a raw provider URL.",
 );
-assert.equal(privatePoolTarget.status, "restore-target-created-awaiting-readback");
-assert.equal(privatePoolTarget.readbackStatus, "pending");
-assert.equal(privatePoolTarget.readbackCommandRef, "npm run mainnet:production-restore-drill-readback");
+assert.equal(operatorTarget.status, "restore-readback-passed");
+assert.equal(operatorTarget.readbackStatus, "passed");
+assert.ok(Date.parse(operatorTarget.readbackAtUtc), "Operator restore target must record readbackAtUtc.");
+assert.equal(operatorTarget.readbackCommandRef, "npm run mainnet:production-restore-drill-readback");
+
+const privatePoolCoreTarget = evidence.targets.find((candidate) => candidate.id === "privatePoolV2Core");
+assert.ok(privatePoolCoreTarget, "Restore drill evidence must include Private Pool v2 core target.");
+assert.equal(privatePoolCoreTarget.sourceDatabaseRef, "VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF");
+assert.equal(privatePoolCoreTarget.status, "restore-target-not-recorded");
+assert.equal(privatePoolCoreTarget.readbackStatus, "pending");
+assert.ok(
+  privatePoolCoreTarget.restoreDatabaseRef.startsWith("restore-drill/"),
+  "Private Pool v2 core restore drill database evidence must be a reference.",
+);
 
 for (const requiredCheck of [
   "schema-version-readback",
@@ -37,28 +48,44 @@ for (const requiredCheck of [
   "operator-event-table-present",
 ]) {
   assert.ok(
-    privatePoolTarget.requiredReadbackChecks.includes(requiredCheck),
-    `Restore drill evidence missing readback check: ${requiredCheck}.`,
+    operatorTarget.requiredReadbackChecks.includes(requiredCheck),
+    `Operator restore drill evidence missing readback check: ${requiredCheck}.`,
+  );
+  assert.ok(
+    privatePoolCoreTarget.requiredReadbackChecks.includes(requiredCheck),
+    `Private Pool v2 core restore drill evidence missing readback check: ${requiredCheck}.`,
   );
 }
 
 for (const blocker of [
-  "readback-passed",
   "backup-policy-confirmed",
   "pitr-enabled",
   "encrypted-backups-enabled",
   "backup-access-audit-enabled",
   "least-privilege-restore-user-confirmed",
 ]) {
-  assert.ok(privatePoolTarget.blockedUntil.includes(blocker), `Restore drill evidence missing blocker: ${blocker}.`);
+  assert.ok(operatorTarget.blockedUntil.includes(blocker), `Operator restore drill evidence missing blocker: ${blocker}.`);
+  assert.ok(
+    privatePoolCoreTarget.blockedUntil.includes(blocker),
+    `Private Pool v2 core restore drill evidence missing blocker: ${blocker}.`,
+  );
 }
 
+assert.ok(
+  privatePoolCoreTarget.blockedUntil.includes("restore-target-created"),
+  "Private Pool v2 core restore drill must remain blocked on restore target creation.",
+);
+assert.ok(
+  privatePoolCoreTarget.blockedUntil.includes("readback-passed"),
+  "Private Pool v2 core restore drill must remain blocked on readback.",
+);
+
 for (const limitation of [
-  "operator-reported restore target creation only",
-  "readback has not been recorded in this evidence file",
+  "operator control-plane restore readback passed",
+  "Private Pool v2 core restore readback remains pending",
   "productionReady remains false",
   "mainnetReady remains false",
-  "not proof of successful recovery",
+  "not proof of complete production recovery",
 ]) {
   assert.ok(evidence.limitations.includes(limitation), `Restore drill evidence missing limitation: ${limitation}.`);
 }
