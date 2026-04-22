@@ -21,7 +21,7 @@ assert.ok(
   snapshot.blockers.some((blocker) => blocker.id === "no-mainnet-funds-without-explicit-approval"),
   "Missing mainnet funds approval blocker.",
 );
-const acceptedRiskIds = new Set((snapshot.acceptedRisks ?? []).map((risk) => risk.id));
+const operatorSkippedControlIds = new Set((snapshot.operatorSkippedControls ?? []).map((risk) => risk.id));
 for (const riskId of [
   "pay-restore-readback-skipped",
   "provider-backup-pitr-encryption-access-audit-least-privilege-skipped",
@@ -29,7 +29,7 @@ for (const riskId of [
   "third-party-security-audit-skipped",
   "legal-compliance-custody-skipped",
 ]) {
-  assert.ok(acceptedRiskIds.has(riskId), `Mainnet readiness missing accepted risk: ${riskId}.`);
+  assert.ok(operatorSkippedControlIds.has(riskId), `Mainnet readiness missing operator-skipped control: ${riskId}.`);
 }
 assert.ok(
   snapshot.blockers

@@ -142,30 +142,30 @@
     "Pay restore readback was skipped by operator decision.",
     "No mainnet transactions or real funds are allowed outside the bounded approval recorded in this evidence file."
   ],
-  "acceptedRisks": [
+  "operatorSkippedControls": [
     {
       "id": "pay-restore-readback-skipped",
-      "acceptedByRef": "Clay / founder direction / 2026-04-22",
+      "decidedByRef": "Clay / founder direction / 2026-04-22",
       "effect": "Removed from active blockers; not evidence that Pay restore readback passed."
     },
     {
       "id": "provider-backup-pitr-encryption-access-audit-least-privilege-skipped",
-      "acceptedByRef": "Clay / founder direction / 2026-04-22",
+      "decidedByRef": "Clay / founder direction / 2026-04-22",
       "effect": "Removed from active blockers; not evidence that provider backup controls exist."
     },
     {
       "id": "secret-manager-audit-rotation-evidence-skipped",
-      "acceptedByRef": "Clay / founder direction / 2026-04-22",
+      "decidedByRef": "Clay / founder direction / 2026-04-22",
       "effect": "Removed from active blockers; not evidence of secret-manager audit or rotation."
     },
     {
       "id": "third-party-security-audit-skipped",
-      "acceptedByRef": "Clay / founder direction / 2026-04-22",
+      "decidedByRef": "Clay / founder direction / 2026-04-22",
       "effect": "Removed from active blockers; not evidence of independent security review."
     },
     {
       "id": "legal-compliance-custody-skipped",
-      "acceptedByRef": "Clay / founder direction / 2026-04-22",
+      "decidedByRef": "Clay / founder direction / 2026-04-22",
       "effect": "Removed from active blockers; not legal, compliance, or custody approval."
     }
   ],

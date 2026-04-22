@@ -74,20 +74,20 @@ for (const [storeId, expectation] of requiredStores) {
   assert.equal(store.migrationStatus, expectation.migration ?? "applied-operator-reported");
   assert.equal(store.restoreReadbackStatus, expectation.readback, `${storeId} restore readback status drifted.`);
   assert.equal(store.backupControlStatus, "operator-skipped-control", `${storeId} backup controls must be tracked as operator-skipped controls.`);
-  assert.ok(Array.isArray(store.acceptedRisks), `${storeId} must list accepted backup/restore risks.`);
+  assert.ok(Array.isArray(store.operatorSkippedControls), `${storeId} must list operator-skipped backup/restore controls.`);
 
-  for (const acceptedRisk of [
+  for (const operatorSkippedControl of [
     "backup-policy-confirmed",
     "pitr-enabled",
     "encrypted-backups-enabled",
     "backup-access-audit-enabled",
     "least-privilege-restore-user-confirmed",
   ]) {
-    assert.ok(store.acceptedRisks.includes(acceptedRisk), `${storeId} missing accepted risk: ${acceptedRisk}.`);
+    assert.ok(store.operatorSkippedControls.includes(operatorSkippedControl), `${storeId} missing operator-skipped control: ${operatorSkippedControl}.`);
   }
 
   if (expectation.readback === "operator-skipped-control") {
-    assert.ok(store.acceptedRisks.includes("restore-readback-passed"), `${storeId} must track skipped restore readback.`);
+    assert.ok(store.operatorSkippedControls.includes("restore-readback-passed"), `${storeId} must track skipped restore readback.`);
   } else {
     assert.ok(store.restoreDrillRef?.startsWith("restore-drill/"), `${storeId} passed readback must cite restore drill ref.`);
   }

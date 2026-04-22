@@ -111,16 +111,16 @@ for (const blocker of [
   "backup-access-audit-enabled",
   "least-privilege-restore-user-confirmed",
 ]) {
-  assert.ok(operatorTarget.acceptedRisks.includes(blocker), `Operator restore drill evidence missing accepted risk: ${blocker}.`);
+  assert.ok(operatorTarget.operatorSkippedControls.includes(blocker), `Operator restore drill evidence missing operator-skipped control: ${blocker}.`);
   assert.ok(
-    privatePoolCoreTarget.acceptedRisks.includes(blocker),
-    `Private Pool v2 core restore drill evidence missing accepted risk: ${blocker}.`,
+    privatePoolCoreTarget.operatorSkippedControls.includes(blocker),
+    `Private Pool v2 core restore drill evidence missing operator-skipped control: ${blocker}.`,
   );
   assert.ok(
-    privatePoolRolesTarget.acceptedRisks.includes(blocker),
-    `Private Pool v2 roles restore drill evidence missing accepted risk: ${blocker}.`,
+    privatePoolRolesTarget.operatorSkippedControls.includes(blocker),
+    `Private Pool v2 roles restore drill evidence missing operator-skipped control: ${blocker}.`,
   );
-  assert.ok(strategyTarget.acceptedRisks.includes(blocker), `Strategy restore drill evidence missing accepted risk: ${blocker}.`);
+  assert.ok(strategyTarget.operatorSkippedControls.includes(blocker), `Strategy restore drill evidence missing operator-skipped control: ${blocker}.`);
 }
 
 for (const limitation of [

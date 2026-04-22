@@ -151,7 +151,7 @@ assert.ok(
   "Approval gates evidence must preserve bounded funds approval limit.",
 );
 
-const acceptedRiskIds = new Set((evidence.acceptedRisks ?? []).map((risk) => risk.id));
+const operatorSkippedControlIds = new Set((evidence.operatorSkippedControls ?? []).map((risk) => risk.id));
 for (const riskId of [
   "pay-restore-readback-skipped",
   "provider-backup-pitr-encryption-access-audit-least-privilege-skipped",
@@ -159,7 +159,7 @@ for (const riskId of [
   "third-party-security-audit-skipped",
   "legal-compliance-custody-skipped",
 ]) {
-  assert.ok(acceptedRiskIds.has(riskId), `Approval gates evidence missing accepted risk: ${riskId}.`);
+  assert.ok(operatorSkippedControlIds.has(riskId), `Approval gates evidence missing operator-skipped control: ${riskId}.`);
 }
 
 assert.equal(

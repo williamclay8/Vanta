@@ -38,7 +38,7 @@ const blockers = [
   },
 ];
 
-const acceptedRisks = [
+const operatorSkippedControls = [
   {
     id: "pay-restore-readback-skipped",
     severity: "high",
@@ -163,7 +163,7 @@ export function createVantaMainnetReadinessSnapshot() {
     blockers,
     decision: "blocked",
     generatedAt: new Date(0).toISOString(),
-    acceptedRisks,
+    operatorSkippedControls,
     lanes,
     mainnetReady: false,
     nextActions,

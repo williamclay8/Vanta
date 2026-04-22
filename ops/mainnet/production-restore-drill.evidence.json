@@ -25,7 +25,7 @@
         "settlement-table-present",
         "operator-event-table-present"
       ],
-      "acceptedRisks": [
+      "operatorSkippedControls": [
         "backup-policy-confirmed",
         "pitr-enabled",
         "encrypted-backups-enabled",
@@ -50,7 +50,7 @@
         "settlement-table-present",
         "operator-event-table-present"
       ],
-      "acceptedRisks": [
+      "operatorSkippedControls": [
         "backup-policy-confirmed",
         "pitr-enabled",
         "encrypted-backups-enabled",
@@ -82,7 +82,7 @@
         "role-snapshot-table-present",
         "role-snapshot-index-present"
       ],
-      "acceptedRisks": [
+      "operatorSkippedControls": [
         "backup-policy-confirmed",
         "pitr-enabled",
         "encrypted-backups-enabled",
@@ -107,7 +107,7 @@
         "settlement-table-present",
         "operator-event-table-present"
       ],
-      "acceptedRisks": [
+      "operatorSkippedControls": [
         "backup-policy-confirmed",
         "pitr-enabled",
         "encrypted-backups-enabled",
