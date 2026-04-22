@@ -52,8 +52,35 @@
     },
     {
       "service": "vanta-private-pool-v2",
-      "renderServiceRef": "srv-d7j4aod7vvec73ahsqlg",
-      "stagingUrlRef": "https://vanta-staging-private-pool-v2.onrender.com",
+      "renderServiceRef": "srv-d7jgl3d8nd3s73a9efng",
+      "productionUrlRef": "https://vanta-prod-private-pool-v2-operator.onrender.com",
+      "roleServiceRefs": [
+        {
+          "role": "indexer",
+          "renderServiceRef": "srv-d7jfqru7r5hc73b6oelg",
+          "productionUrlRef": "https://vanta-prod-private-pool-v2-indexer.onrender.com"
+        },
+        {
+          "role": "prover",
+          "renderServiceRef": "srv-d7jg4arbc2fs73c1449g",
+          "productionUrlRef": "https://vanta-prod-private-pool-v2-prover.onrender.com"
+        },
+        {
+          "role": "relayer",
+          "renderServiceRef": "srv-d7jg9jrbc2fs73c161gg",
+          "productionUrlRef": "https://vanta-prod-private-pool-v2-relayer.onrender.com"
+        },
+        {
+          "role": "verifier",
+          "renderServiceRef": "srv-d7jgf7n7f7vs73ebdu40",
+          "productionUrlRef": "https://vanta-prod-private-pool-v2-verifier.onrender.com"
+        },
+        {
+          "role": "operator",
+          "renderServiceRef": "srv-d7jgl3d8nd3s73a9efng",
+          "productionUrlRef": "https://vanta-prod-private-pool-v2-operator.onrender.com"
+        }
+      ],
       "logSourceRef": "provider-neutral-log-source/vanta-private-pool-v2-production-pending",
       "metricsDashboardRef": "provider-neutral-dashboard/vanta-private-pool-v2-production-pending",
       "alertPolicyRef": "provider-neutral-alert-policy/vanta-private-pool-v2-production-pending",

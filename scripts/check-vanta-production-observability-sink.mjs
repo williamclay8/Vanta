@@ -16,7 +16,7 @@ assert.ok(Array.isArray(manifest.services), "Production observability template m
 
 const requiredServices = new Map([
   ["vanta-pay", "srv-d7j3ggqqqhas739for80"],
-  ["vanta-private-pool-v2", "srv-d7j4aod7vvec73ahsqlg"],
+  ["vanta-private-pool-v2", "srv-d7jgl3d8nd3s73a9efng"],
   ["vanta-strategy", "production-service-ref-pending"],
   ["vanta-operator-control-plane", "production-service-ref-pending"],
 ]);
@@ -34,6 +34,24 @@ for (const [service, renderServiceRef] of requiredServices) {
   assert.ok(
     surface.operatorDecision?.includes("Better Stack production monitors skipped"),
     `${service} must record the operator decision to skip Better Stack production monitors.`,
+  );
+}
+
+const privatePoolSurface = manifest.services.find((candidate) => candidate.service === "vanta-private-pool-v2");
+const roleServiceRefs = privatePoolSurface.roleServiceRefs ?? [];
+for (const [role, renderServiceRef] of [
+  ["indexer", "srv-d7jfqru7r5hc73b6oelg"],
+  ["prover", "srv-d7jg4arbc2fs73c1449g"],
+  ["relayer", "srv-d7jg9jrbc2fs73c161gg"],
+  ["verifier", "srv-d7jgf7n7f7vs73ebdu40"],
+  ["operator", "srv-d7jgl3d8nd3s73a9efng"],
+]) {
+  const roleSurface = roleServiceRefs.find((candidate) => candidate.role === role);
+  assert.ok(roleSurface, `Missing Private Pool v2 production observability role ref: ${role}.`);
+  assert.equal(roleSurface.renderServiceRef, renderServiceRef);
+  assert.ok(
+    roleSurface.productionUrlRef?.startsWith("https://vanta-prod-private-pool-v2-"),
+    `${role} must include a production URL ref.`,
   );
 }
 
