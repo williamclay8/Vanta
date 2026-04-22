@@ -1,75 +1,74 @@
 {
-  "version": "vanta-private-pool-v2-production-smoke-evidence-0.1",
-  "checkedAt": "2026-04-21T06:07:15.284Z",
+  "checkedAt": "2026-04-22T17:48:25.221Z",
   "mainnetReady": false,
   "productionReady": false,
   "realFundsAllowed": false,
-  "runId": "prod-smoke-1776751635283-a9f9610b",
+  "runId": "prod-smoke-1776880105221-be9fa414",
   "services": [
     {
+      "health": {
+        "ok": true,
+        "status": 200
+      },
       "id": "indexer",
-      "urlRef": "VANTA_PRIVATE_POOL_V2_INDEXER_URL",
-      "health": {
-        "ok": true,
-        "status": 200
-      },
       "readiness": {
         "ok": true,
         "productionReady": false,
         "status": 200
-      }
+      },
+      "urlRef": "VANTA_PRIVATE_POOL_V2_INDEXER_URL"
     },
     {
+      "health": {
+        "ok": true,
+        "status": 200
+      },
       "id": "prover",
-      "urlRef": "VANTA_PRIVATE_POOL_V2_PROVER_URL",
-      "health": {
-        "ok": true,
-        "status": 200
-      },
       "readiness": {
         "ok": true,
         "productionReady": false,
         "status": 200
-      }
+      },
+      "urlRef": "VANTA_PRIVATE_POOL_V2_PROVER_URL"
     },
     {
+      "health": {
+        "ok": true,
+        "status": 200
+      },
       "id": "relayer",
-      "urlRef": "VANTA_PRIVATE_POOL_V2_RELAYER_URL",
-      "health": {
-        "ok": true,
-        "status": 200
-      },
       "readiness": {
         "ok": true,
         "productionReady": false,
         "status": 200
-      }
+      },
+      "urlRef": "VANTA_PRIVATE_POOL_V2_RELAYER_URL"
     },
     {
+      "health": {
+        "ok": true,
+        "status": 200
+      },
       "id": "verifier",
-      "urlRef": "VANTA_PRIVATE_POOL_V2_VERIFIER_URL",
-      "health": {
-        "ok": true,
-        "status": 200
-      },
       "readiness": {
         "ok": true,
         "productionReady": false,
         "status": 200
-      }
+      },
+      "urlRef": "VANTA_PRIVATE_POOL_V2_VERIFIER_URL"
     },
     {
-      "id": "operator",
-      "urlRef": "VANTA_PRIVATE_POOL_V2_OPERATOR_URL",
       "health": {
         "ok": true,
         "status": 200
       },
+      "id": "operator",
       "readiness": {
         "ok": true,
         "productionReady": false,
         "status": 200
-      }
+      },
+      "urlRef": "VANTA_PRIVATE_POOL_V2_OPERATOR_URL"
     }
   ],
   "smokeTargets": [
@@ -83,25 +82,26 @@
     },
     {
       "id": "proof-roundtrip-simulation",
-      "proofCommitmentPrefix": "0x17a3cf90238f9bc0",
-      "receiptIdPrefix": "0x70d15d6303a2844c",
+      "proofCommitmentPrefix": "0x430378d416c1ecfa",
+      "receiptIdPrefix": "0x7438c65974bae079",
       "status": "pass"
     },
     {
       "id": "nullifier-replay-simulation",
-      "receiptIdPrefix": "0xccb4bd4a13a7e030",
+      "receiptIdPrefix": "0x954f61178c8586ea",
       "replayStatus": 400,
       "status": "pass"
     },
     {
       "id": "relayer-claim-submit-simulation",
-      "signaturePrefix": "0x1ed387d54a931687",
+      "signaturePrefix": "0xaf085b564f1e5edf",
       "status": "pass"
     },
     {
       "id": "operator-pay-settlement-simulation",
-      "proofReceiptIdPrefix": "ppv2_2e68c6a25daf8",
+      "proofReceiptIdPrefix": "ppv2_58ffbeb7baf25",
       "status": "pass"
     }
-  ]
+  ],
+  "version": "vanta-private-pool-v2-production-smoke-evidence-0.1"
 }
