@@ -154,6 +154,14 @@ assert.ok(
   "Missing browser-backed wallet signing safety command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run wallet:fresh-wallet-check"),
+  "Missing fresh wallet mode safety command.",
+);
+assert.ok(
+  snapshot.requiredCommands.includes("npm run wallet:fresh-wallet-browser-check"),
+  "Missing browser-backed fresh wallet mode command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run wallet:transaction-safety-check"),
   "Missing transaction safety summary command.",
 );

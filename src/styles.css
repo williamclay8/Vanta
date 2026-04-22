@@ -763,6 +763,58 @@ input {
   gap: 8px;
 }
 
+.wallet-picker__fresh,
+.wallet-picker__fresh-result {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 229, 200, 0.14);
+  background:
+    linear-gradient(135deg, rgba(0, 229, 200, 0.1), rgba(120, 255, 214, 0.03)),
+    rgba(0, 0, 0, 0.16);
+}
+
+.wallet-picker__fresh {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+}
+
+.wallet-picker__fresh span,
+.wallet-picker__fresh-result span {
+  display: block;
+  color: var(--text);
+  font-weight: 800;
+}
+
+.wallet-picker__fresh small,
+.wallet-picker__fresh-result small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.wallet-picker__fresh button,
+.wallet-picker__fresh-result button {
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 229, 200, 0.18);
+  background: rgba(0, 229, 200, 0.08);
+  color: var(--text);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.wallet-picker__fresh-result {
+  border-color: rgba(124, 255, 214, 0.2);
+}
+
 .wallet-picker__option {
   display: flex;
   align-items: center;

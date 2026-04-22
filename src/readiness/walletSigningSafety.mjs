@@ -4,6 +4,7 @@ export function createVantaWalletSigningSafetyPolicy() {
     blockedActions: [
       "mainnet-submit-without-explicit-approval",
       "private-key-or-seed-phrase-request",
+      "fresh-wallet-server-storage",
       "blind-signing",
       "simulation-bypass",
       "unsigned-transaction-mutation-after-summary",
@@ -15,6 +16,8 @@ export function createVantaWalletSigningSafetyPolicy() {
     releaseGateCommands: [
       "npm run wallet:signing-safety-check",
       "npm run wallet:browser-signing-safety-check",
+      "npm run wallet:fresh-wallet-check",
+      "npm run wallet:fresh-wallet-browser-check",
       "npm run mainnet:readiness-check",
       "npm run protocol:browser-check",
     ],

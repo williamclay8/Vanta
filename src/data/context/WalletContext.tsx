@@ -2,11 +2,17 @@ import {
   createContext,
   useContext,
   useMemo,
+  useState,
   type ReactNode,
 } from "react";
 import { useBalance, useWalletConnection } from "@solana/react-hooks";
 import type { WalletConnector } from "@solana/client";
 import { solanaClusterLabel } from "@/solana/client";
+import {
+  createFreshWalletRecord,
+  exportFreshWalletRecoveryFile,
+  type FreshWalletRecord,
+} from "@/solana/freshWallet";
 
 type WalletContextValue = {
   walletAddress: string | null;
@@ -20,6 +26,13 @@ type WalletContextValue = {
   walletConnectors: readonly WalletConnector[];
   connectWallet: (connectorId: string) => Promise<void>;
   disconnectWallet: () => Promise<void>;
+  freshWalletAddress: string | null;
+  freshWalletAddressShort: string | null;
+  freshWalletCreatedAt: string | null;
+  freshWalletRecoveryFileName: string | null;
+  createFreshWallet: () => FreshWalletRecord;
+  downloadFreshWalletRecoveryFile: () => void;
+  clearFreshWallet: () => void;
   lamportsBalance: bigint | null;
   solBalance: number | null;
   balanceFetching: boolean;
@@ -73,6 +86,7 @@ function pickPreferredWalletConnector(connectors: readonly WalletConnector[]) {
 }
 
 export function WalletProvider({ children }: { children: ReactNode }) {
+  const [freshWallet, setFreshWallet] = useState<FreshWalletRecord | null>(null);
   const {
     connect,
     connected,
@@ -112,6 +126,23 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       disconnectWallet: async () => {
         await disconnect();
       },
+      freshWalletAddress: freshWallet?.publicAddress ?? null,
+      freshWalletAddressShort: freshWallet?.publicAddressShort ?? null,
+      freshWalletCreatedAt: freshWallet?.createdAt ?? null,
+      freshWalletRecoveryFileName: freshWallet?.recoveryFileName ?? null,
+      createFreshWallet: () => {
+        const nextFreshWallet = createFreshWalletRecord(solanaClusterLabel);
+        setFreshWallet(nextFreshWallet);
+        return nextFreshWallet;
+      },
+      downloadFreshWalletRecoveryFile: () => {
+        if (freshWallet) {
+          exportFreshWalletRecoveryFile(freshWallet);
+        }
+      },
+      clearFreshWallet: () => {
+        setFreshWallet(null);
+      },
       lamportsBalance: lamportsValue,
       solBalance,
       balanceFetching: balance.fetching,
@@ -126,6 +157,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       connectors,
       currentConnector?.name,
       disconnect,
+      freshWallet,
       isReady,
       lamportsValue,
       preferredWalletConnector,

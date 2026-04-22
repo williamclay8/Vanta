@@ -16,8 +16,12 @@ const appLinks = [
 export function AppLayout() {
   const {
     connectWallet,
+    createFreshWallet,
     currentConnectorName,
+    downloadFreshWalletRecoveryFile,
     disconnectWallet,
+    freshWalletAddressShort,
+    freshWalletRecoveryFileName,
     preferredWalletConnector,
     walletConnectors,
     walletAddressShort,
@@ -45,6 +49,10 @@ export function AppLayout() {
   const connectWithWallet = async (connectorId: string) => {
     await connectWallet(connectorId).catch(() => {});
     setWalletPickerOpen(false);
+  };
+
+  const generateFreshWallet = () => {
+    createFreshWallet();
   };
 
   useEffect(() => {
@@ -166,7 +174,13 @@ export function AppLayout() {
             </button>
           )}
           {walletReady && !walletConnected && !preferredWalletConnector && (
-            <span className="app-header__wallet-text">No wallet detected</span>
+            <button
+              className="button button-primary"
+              type="button"
+              onClick={openWalletPicker}
+            >
+              Create wallet
+            </button>
           )}
           {walletPickerOpen && (
             <div className="wallet-picker" role="dialog" aria-label="Connect wallet">
@@ -186,6 +200,26 @@ export function AppLayout() {
                 Wallet Standard discovery shows the Solana wallets available in this browser.
                 Use a fresh wallet for strongest privacy.
               </p>
+              <div className="wallet-picker__fresh">
+                <div>
+                  <span>Create fresh wallet</span>
+                  <small>
+                    Generated in this browser. Import it into Phantom or Solflare to sign live actions.
+                  </small>
+                </div>
+                <button type="button" onClick={generateFreshWallet}>
+                  Create
+                </button>
+              </div>
+              {freshWalletAddressShort && (
+                <div className="wallet-picker__fresh-result" role="status">
+                  <span>{freshWalletAddressShort}</span>
+                  <small>{freshWalletRecoveryFileName ?? "Recovery file ready"}</small>
+                  <button type="button" onClick={downloadFreshWalletRecoveryFile}>
+                    Download recovery file
+                  </button>
+                </div>
+              )}
               {sortedWalletConnectors.length > 0 ? (
                 <div className="wallet-picker__list">
                   {sortedWalletConnectors.map((connector) => (

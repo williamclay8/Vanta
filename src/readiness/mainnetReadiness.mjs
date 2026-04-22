@@ -108,6 +108,8 @@ const requiredCommands = [
   "npm run private-pool-v2:role-storage-check",
   "npm run wallet:signing-safety-check",
   "npm run wallet:browser-signing-safety-check",
+  "npm run wallet:fresh-wallet-check",
+  "npm run wallet:fresh-wallet-browser-check",
   "npm run wallet:transaction-safety-check",
   "npm run mainnet:secret-handling-check",
   "npm run mainnet:approval-gates-check",
