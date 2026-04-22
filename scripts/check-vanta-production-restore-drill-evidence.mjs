@@ -33,8 +33,9 @@ assert.equal(operatorTarget.readbackCommandRef, "npm run mainnet:production-rest
 const privatePoolCoreTarget = evidence.targets.find((candidate) => candidate.id === "privatePoolV2Core");
 assert.ok(privatePoolCoreTarget, "Restore drill evidence must include Private Pool v2 core target.");
 assert.equal(privatePoolCoreTarget.sourceDatabaseRef, "VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF");
-assert.equal(privatePoolCoreTarget.status, "restore-target-not-recorded");
-assert.equal(privatePoolCoreTarget.readbackStatus, "pending");
+assert.equal(privatePoolCoreTarget.status, "restore-readback-passed");
+assert.equal(privatePoolCoreTarget.readbackStatus, "passed");
+assert.ok(Date.parse(privatePoolCoreTarget.readbackAtUtc), "Private Pool v2 core restore target must record readbackAtUtc.");
 assert.ok(
   privatePoolCoreTarget.restoreDatabaseRef.startsWith("restore-drill/"),
   "Private Pool v2 core restore drill database evidence must be a reference.",
@@ -71,21 +72,12 @@ for (const blocker of [
   );
 }
 
-assert.ok(
-  privatePoolCoreTarget.blockedUntil.includes("restore-target-created"),
-  "Private Pool v2 core restore drill must remain blocked on restore target creation.",
-);
-assert.ok(
-  privatePoolCoreTarget.blockedUntil.includes("readback-passed"),
-  "Private Pool v2 core restore drill must remain blocked on readback.",
-);
-
 for (const limitation of [
   "operator control-plane restore readback passed",
-  "Private Pool v2 core restore readback remains pending",
+  "Private Pool v2 core restore readback passed",
   "productionReady remains false",
   "mainnetReady remains false",
-  "not proof of complete production recovery",
+  "backup policy, PITR, encryption, access audit, and least-privilege restore evidence remain pending",
 ]) {
   assert.ok(evidence.limitations.includes(limitation), `Restore drill evidence missing limitation: ${limitation}.`);
 }

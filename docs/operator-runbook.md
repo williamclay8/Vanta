@@ -127,7 +127,7 @@ npm run mainnet:production-restore-drill-evidence-check
 npm run mainnet:production-restore-drill-readback
 ```
 
-It records that the operator/control-plane restore target passed readback for `VANTA_OPERATOR_DATABASE_URL_REF`. It does not clear the separate Private Pool v2 core restore gate for `VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF`. Run readback with `DATABASE_URL` set in the local shell or secret-manager context only; never paste database URLs into chat, docs, git, screenshots, or issue trackers.
+It records that the operator/control-plane restore target passed readback for `VANTA_OPERATOR_DATABASE_URL_REF` and the Private Pool v2 core restore target passed readback for `VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF`. It does not clear backup policy, PITR, encrypted backup, access audit, or least-privilege restore gates. Run readback with `DATABASE_URL` set in the local shell or secret-manager context only; never paste database URLs into chat, docs, git, screenshots, or issue trackers.
 
 The production DB refs handoff is:
 
