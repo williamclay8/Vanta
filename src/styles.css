@@ -691,6 +691,7 @@ input {
 }
 
 .app-header__wallet {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
@@ -704,6 +705,101 @@ input {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   white-space: nowrap;
+}
+
+.wallet-picker {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  z-index: 20;
+  width: min(360px, calc(100vw - 36px));
+  padding: 14px;
+  border-radius: 22px;
+  background: rgba(8, 13, 20, 0.94);
+  box-shadow:
+    0 0 0 1px rgba(0, 229, 200, 0.14),
+    0 28px 70px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(28px);
+}
+
+.wallet-picker__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.wallet-picker__header span {
+  color: var(--text);
+  font-family: "Syne", sans-serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.wallet-picker__header button {
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 229, 200, 0.12);
+  color: var(--muted-strong);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.wallet-picker p,
+.wallet-picker__empty {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.wallet-picker__list {
+  display: grid;
+  gap: 8px;
+}
+
+.wallet-picker__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 229, 200, 0.1);
+  background: rgba(0, 229, 200, 0.04);
+  color: var(--text);
+  transition:
+    transform 180ms ease,
+    background 180ms ease,
+    border-color 180ms ease;
+}
+
+.wallet-picker__option:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(0, 229, 200, 0.24);
+  background: rgba(0, 229, 200, 0.08);
+}
+
+.wallet-picker__option:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.wallet-picker__option span {
+  font-weight: 700;
+}
+
+.wallet-picker__option small {
+  color: var(--muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .app-sidebar {

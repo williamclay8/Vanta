@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { BrandMark } from "@/components/BrandMark";
 import { isBetaMode } from "@/config/deploymentMode";
@@ -19,11 +19,33 @@ export function AppLayout() {
     currentConnectorName,
     disconnectWallet,
     preferredWalletConnector,
+    walletConnectors,
     walletAddressShort,
     walletConnected,
     walletConnecting,
     walletReady,
   } = useWalletState();
+  const [walletPickerOpen, setWalletPickerOpen] = useState(false);
+  const sortedWalletConnectors = useMemo(
+    () =>
+      [...walletConnectors].sort((left, right) => {
+        if (left.ready !== right.ready) {
+          return left.ready ? -1 : 1;
+        }
+
+        return left.name.localeCompare(right.name);
+      }),
+    [walletConnectors],
+  );
+
+  const openWalletPicker = () => {
+    setWalletPickerOpen((isOpen) => !isOpen);
+  };
+
+  const connectWithWallet = async (connectorId: string) => {
+    await connectWallet(connectorId).catch(() => {});
+    setWalletPickerOpen(false);
+  };
 
   useEffect(() => {
     document.body.classList.add("app-body");
@@ -112,6 +134,16 @@ export function AppLayout() {
               <span className="app-header__wallet-text">
                 {walletAddressShort ?? currentConnectorName ?? "Connected"}
               </span>
+              {sortedWalletConnectors.length > 0 && (
+                <button
+                  className="button button-ghost"
+                  type="button"
+                  onClick={openWalletPicker}
+                  disabled={walletConnecting}
+                >
+                  Connect another wallet
+                </button>
+              )}
               <button
                 className="button button-ghost"
                 type="button"
@@ -127,9 +159,7 @@ export function AppLayout() {
             <button
               className="button button-primary"
               type="button"
-              onClick={() => {
-                void connectWallet(preferredWalletConnector.id).catch(() => {});
-              }}
+              onClick={openWalletPicker}
               disabled={walletConnecting}
             >
               {walletConnecting ? "Connecting..." : "Connect wallet"}
@@ -137,6 +167,48 @@ export function AppLayout() {
           )}
           {walletReady && !walletConnected && !preferredWalletConnector && (
             <span className="app-header__wallet-text">No wallet detected</span>
+          )}
+          {walletPickerOpen && (
+            <div className="wallet-picker" role="dialog" aria-label="Connect wallet">
+              <div className="wallet-picker__header">
+                <span>Detected wallets</span>
+                <button
+                  type="button"
+                  aria-label="Close wallet picker"
+                  onClick={() => {
+                    setWalletPickerOpen(false);
+                  }}
+                >
+                  Close
+                </button>
+              </div>
+              <p>
+                Wallet Standard discovery shows the Solana wallets available in this browser.
+                Use a fresh wallet for strongest privacy.
+              </p>
+              {sortedWalletConnectors.length > 0 ? (
+                <div className="wallet-picker__list">
+                  {sortedWalletConnectors.map((connector) => (
+                    <button
+                      className="wallet-picker__option"
+                      disabled={walletConnecting || !connector.ready}
+                      key={connector.id}
+                      type="button"
+                      onClick={() => {
+                        void connectWithWallet(connector.id);
+                      }}
+                    >
+                      <span>{connector.name}</span>
+                      <small>{connector.ready ? "Available" : "Unavailable"}</small>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="wallet-picker__empty">
+                  Install a Solana Wallet Standard wallet, then refresh Vanta.
+                </div>
+              )}
+            </div>
           )}
         </div>
       </header>
