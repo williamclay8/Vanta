@@ -66,8 +66,8 @@ export function HomePage() {
           <span> everyday crypto actions.</span>
         </h1>
         <p>
-          Vanta helps users shield, send, swap, strategize, unshield, and accept payments
-          through a simpler privacy-first interface.
+          Vanta helps users keep all of their keep their money sovereign through a simpler
+          privacy-first interface.
         </p>
 
         <div className="landing-minimal__actions">
