@@ -19,6 +19,13 @@ assert.equal(evidence.status, "partial-readback-only");
 assert.equal(evidence.templateRef, "ops/mainnet/production-backup-restore.template.json");
 assert.equal(evidence.migrationEvidenceRef, "ops/mainnet/production-migration-evidence.manifest.json");
 assert.equal(evidence.restoreDrillEvidenceRef, "ops/mainnet/production-restore-drill.evidence.json");
+assert.equal(evidence.operatorDecision?.id, "skip-provider-backup-restore-controls-for-now");
+assert.ok(Date.parse(evidence.operatorDecision.decidedAtUtc), "Operator backup/restore decision must record decidedAtUtc.");
+assert.ok(
+  evidence.operatorDecision.effect.includes("productionReady") &&
+    evidence.operatorDecision.effect.includes("mainnetReady"),
+  "Operator backup/restore decision must state readiness impact.",
+);
 assert.ok(Array.isArray(evidence.globalEvidence), "Backup/restore evidence must include global evidence.");
 assert.ok(Array.isArray(evidence.stores), "Backup/restore evidence must include stores.");
 
@@ -85,12 +92,13 @@ for (const limitation of [
   "readback passed only for Private Pool v2 core and operator/control-plane storage",
   "Pay, role-service, and Strategy restore readbacks remain pending",
   "backup policy, PITR, encrypted backup, access audit, and least-privilege restore-user evidence remain pending",
+  "operator chose to skip provider backup/restore control collection for now",
 ]) {
   assert.ok(evidence.limitations.includes(limitation), `Backup/restore evidence missing limitation: ${limitation}.`);
 }
 
 for (const action of [
-  "enable or confirm provider backup policy refs for each production database",
+  "provider backup policy refs skipped by operator for now",
   "run restore readback for Pay, Private Pool v2 role-service storage, and Strategy",
 ]) {
   assert.ok(evidence.nextOperatorActions.includes(action), `Backup/restore evidence missing next action: ${action}.`);

@@ -159,6 +159,8 @@ It records the current truth in one place:
 
 This file is intentionally not a greenlight for mainnet. It is the checklist that prevents us from confusing partial restore proof with a complete production backup/restore program.
 
+Operator note: Clay chose to skip provider backup policy, PITR, encrypted backup, access-audit, and least-privilege restore-user evidence collection for now. These gates remain pending and continue to block `productionReady` and `mainnetReady`; the repo should not silently remove or mark them complete.
+
 ## Evidence To Capture
 
 For each database ref, capture reference-only evidence:

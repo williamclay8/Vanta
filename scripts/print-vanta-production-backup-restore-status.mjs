@@ -15,6 +15,10 @@ if (jsonMode) {
   console.log(`- status: ${evidence.status}`);
   console.log(`- mainnetReady: ${String(evidence.mainnetReady)}`);
   console.log(`- productionReady: ${String(evidence.productionReady)}`);
+  if (evidence.operatorDecision) {
+    console.log(`- operatorDecision: ${evidence.operatorDecision.id}`);
+    console.log(`- decisionEffect: ${evidence.operatorDecision.effect}`);
+  }
   console.log("");
   console.log("Stores");
   for (const store of evidence.stores) {

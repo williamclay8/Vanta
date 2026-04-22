@@ -5,6 +5,12 @@
   "secretPolicy": "references-only-no-credentials",
   "status": "partial-readback-only",
   "checkedAtUtc": "2026-04-22T18:45:00Z",
+  "operatorDecision": {
+    "id": "skip-provider-backup-restore-controls-for-now",
+    "decidedAtUtc": "2026-04-22T19:05:00Z",
+    "decision": "Operator chose to skip provider backup policy, PITR, encrypted backup, access-audit, and least-privilege restore-user evidence collection for now.",
+    "effect": "These gates remain pending and continue to block productionReady and mainnetReady."
+  },
   "templateRef": "ops/mainnet/production-backup-restore.template.json",
   "migrationEvidenceRef": "ops/mainnet/production-migration-evidence.manifest.json",
   "restoreDrillEvidenceRef": "ops/mainnet/production-restore-drill.evidence.json",
@@ -132,14 +138,15 @@
     "readback passed only for Private Pool v2 core and operator/control-plane storage",
     "Pay, role-service, and Strategy restore readbacks remain pending",
     "backup policy, PITR, encrypted backup, access audit, and least-privilege restore-user evidence remain pending",
+    "operator chose to skip provider backup/restore control collection for now",
     "no raw database URLs, credential values, bearer tokens, wallet keys, or backup decryption material are stored"
   ],
   "nextOperatorActions": [
-    "enable or confirm provider backup policy refs for each production database",
-    "enable or confirm PITR refs for each production database",
-    "record encrypted backup evidence refs for each production database",
-    "record backup/access audit refs for each production database",
-    "create or confirm least-privilege restore/operator database user refs",
+    "provider backup policy refs skipped by operator for now",
+    "PITR refs skipped by operator for now",
+    "encrypted backup evidence refs skipped by operator for now",
+    "backup/access audit refs skipped by operator for now",
+    "least-privilege restore/operator database user refs skipped by operator for now",
     "run restore readback for Pay, Private Pool v2 role-service storage, and Strategy"
   ]
 }
