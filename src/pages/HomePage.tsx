@@ -12,7 +12,7 @@ const productPoints = [
     title: "Use private rails",
   },
   {
-    copy: "Create payment links, accept private checkout, track balances, and withdraw through a commerce-first Pay suite.",
+    copy: "Create payment links, accept private checkout, track balances, and withdraw through a commerce-first payment suite.",
     title: "Accept payments",
   },
 ];
