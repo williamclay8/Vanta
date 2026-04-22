@@ -5,8 +5,8 @@
   "secretPolicy": "references-only-no-credentials",
   "status": "partial-operator-reported",
   "reportedBy": "operator-render-console",
-  "reportedAtUtc": "2026-04-22T18:42:16Z",
-  "summary": "References-only restore-drill evidence. This records operator/control-plane and Private Pool v2 core readback progress without storing raw database URLs, credentials, backup contents, provider tokens, wallet keys, or private user inputs.",
+  "reportedAtUtc": "2026-04-22T19:14:09Z",
+  "summary": "References-only restore-drill evidence. This records operator/control-plane, Private Pool v2 core, role-service, and Strategy readback progress without storing raw database URLs, credentials, backup contents, provider tokens, wallet keys, or private user inputs.",
   "targets": [
     {
       "id": "operatorControlPlane",
@@ -57,11 +57,71 @@
         "backup-access-audit-enabled",
         "least-privilege-restore-user-confirmed"
       ]
+    },
+    {
+      "id": "privatePoolV2Roles",
+      "sourceDatabaseRefs": [
+        "VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL_REF",
+        "VANTA_PRIVATE_POOL_V2_PROVER_DATABASE_URL_REF",
+        "VANTA_PRIVATE_POOL_V2_RELAYER_DATABASE_URL_REF",
+        "VANTA_PRIVATE_POOL_V2_VERIFIER_DATABASE_URL_REF"
+      ],
+      "restoreDatabaseRef": "restore-drill/render-private-pool-v2-roles-strategy-2026-04-22",
+      "status": "restore-readback-passed",
+      "createdAtUtc": "2026-04-22T19:14:09Z",
+      "readbackStatus": "passed",
+      "readbackAtUtc": "2026-04-22T19:14:09Z",
+      "readbackCommandRef": "Render MCP read-only Postgres schema_versions and table/index readback",
+      "requiredReadbackChecks": [
+        "schema-version-readback",
+        "private-pool-v2-role-target-refs-readback",
+        "private-pool-v2-core-tables-present",
+        "nullifier-unique-index-present",
+        "settlement-table-present",
+        "operator-event-table-present",
+        "role-snapshot-table-present",
+        "role-snapshot-index-present"
+      ],
+      "blockedUntil": [
+        "backup-policy-confirmed",
+        "pitr-enabled",
+        "encrypted-backups-enabled",
+        "backup-access-audit-enabled",
+        "least-privilege-restore-user-confirmed"
+      ]
+    },
+    {
+      "id": "strategy",
+      "sourceDatabaseRef": "VANTA_STRATEGY_DATABASE_URL_REF",
+      "restoreDatabaseRef": "restore-drill/render-private-pool-v2-roles-strategy-2026-04-22",
+      "status": "restore-readback-passed",
+      "createdAtUtc": "2026-04-22T19:14:09Z",
+      "readbackStatus": "passed",
+      "readbackAtUtc": "2026-04-22T19:14:09Z",
+      "readbackCommandRef": "Render MCP read-only Postgres schema_versions and table/index readback",
+      "requiredReadbackChecks": [
+        "schema-version-readback",
+        "strategy-target-ref-readback",
+        "private-pool-v2-core-tables-present",
+        "nullifier-unique-index-present",
+        "settlement-table-present",
+        "operator-event-table-present"
+      ],
+      "blockedUntil": [
+        "backup-policy-confirmed",
+        "pitr-enabled",
+        "encrypted-backups-enabled",
+        "backup-access-audit-enabled",
+        "least-privilege-restore-user-confirmed"
+      ]
     }
   ],
   "limitations": [
     "operator control-plane restore readback passed",
     "Private Pool v2 core restore readback passed",
+    "Private Pool v2 role-service restore readback passed",
+    "Strategy restore readback passed",
+    "Pay restore readback remains pending",
     "productionReady remains false",
     "mainnetReady remains false",
     "backup policy, PITR, encryption, access audit, and least-privilege restore evidence remain pending",

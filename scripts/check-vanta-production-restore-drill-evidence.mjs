@@ -41,6 +41,33 @@ assert.ok(
   "Private Pool v2 core restore drill database evidence must be a reference.",
 );
 
+const privatePoolRolesTarget = evidence.targets.find((candidate) => candidate.id === "privatePoolV2Roles");
+assert.ok(privatePoolRolesTarget, "Restore drill evidence must include Private Pool v2 role-service target.");
+assert.deepEqual(privatePoolRolesTarget.sourceDatabaseRefs, [
+  "VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL_REF",
+  "VANTA_PRIVATE_POOL_V2_PROVER_DATABASE_URL_REF",
+  "VANTA_PRIVATE_POOL_V2_RELAYER_DATABASE_URL_REF",
+  "VANTA_PRIVATE_POOL_V2_VERIFIER_DATABASE_URL_REF",
+]);
+assert.equal(privatePoolRolesTarget.status, "restore-readback-passed");
+assert.equal(privatePoolRolesTarget.readbackStatus, "passed");
+assert.ok(Date.parse(privatePoolRolesTarget.readbackAtUtc), "Private Pool v2 roles restore target must record readbackAtUtc.");
+assert.ok(
+  privatePoolRolesTarget.restoreDatabaseRef.startsWith("restore-drill/"),
+  "Private Pool v2 roles restore drill database evidence must be a reference.",
+);
+
+const strategyTarget = evidence.targets.find((candidate) => candidate.id === "strategy");
+assert.ok(strategyTarget, "Restore drill evidence must include Strategy target.");
+assert.equal(strategyTarget.sourceDatabaseRef, "VANTA_STRATEGY_DATABASE_URL_REF");
+assert.equal(strategyTarget.status, "restore-readback-passed");
+assert.equal(strategyTarget.readbackStatus, "passed");
+assert.ok(Date.parse(strategyTarget.readbackAtUtc), "Strategy restore target must record readbackAtUtc.");
+assert.ok(
+  strategyTarget.restoreDatabaseRef.startsWith("restore-drill/"),
+  "Strategy restore drill database evidence must be a reference.",
+);
+
 for (const requiredCheck of [
   "schema-version-readback",
   "private-pool-v2-core-tables-present",
@@ -58,6 +85,25 @@ for (const requiredCheck of [
   );
 }
 
+for (const requiredCheck of [
+  "schema-version-readback",
+  "private-pool-v2-role-target-refs-readback",
+  "role-snapshot-table-present",
+  "role-snapshot-index-present",
+]) {
+  assert.ok(
+    privatePoolRolesTarget.requiredReadbackChecks.includes(requiredCheck),
+    `Private Pool v2 roles restore drill evidence missing readback check: ${requiredCheck}.`,
+  );
+}
+
+for (const requiredCheck of ["schema-version-readback", "strategy-target-ref-readback"]) {
+  assert.ok(
+    strategyTarget.requiredReadbackChecks.includes(requiredCheck),
+    `Strategy restore drill evidence missing readback check: ${requiredCheck}.`,
+  );
+}
+
 for (const blocker of [
   "backup-policy-confirmed",
   "pitr-enabled",
@@ -70,11 +116,19 @@ for (const blocker of [
     privatePoolCoreTarget.blockedUntil.includes(blocker),
     `Private Pool v2 core restore drill evidence missing blocker: ${blocker}.`,
   );
+  assert.ok(
+    privatePoolRolesTarget.blockedUntil.includes(blocker),
+    `Private Pool v2 roles restore drill evidence missing blocker: ${blocker}.`,
+  );
+  assert.ok(strategyTarget.blockedUntil.includes(blocker), `Strategy restore drill evidence missing blocker: ${blocker}.`);
 }
 
 for (const limitation of [
   "operator control-plane restore readback passed",
   "Private Pool v2 core restore readback passed",
+  "Private Pool v2 role-service restore readback passed",
+  "Strategy restore readback passed",
+  "Pay restore readback remains pending",
   "productionReady remains false",
   "mainnetReady remains false",
   "backup policy, PITR, encryption, access audit, and least-privilege restore evidence remain pending",

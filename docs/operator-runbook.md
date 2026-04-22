@@ -129,7 +129,7 @@ npm run mainnet:backup-restore-status
 npm run mainnet:backup-restore-status-json
 ```
 
-It records that production migrations are operator-reported across the required database refs, and that restore readback has passed only for Private Pool v2 core and operator/control-plane storage. Pay, Private Pool v2 role-service storage, Strategy restore readback, backup policy, PITR, encrypted backup, access audit, and least-privilege restore-user evidence remain pending.
+It records that production migrations are operator-reported across the required database refs, and that restore readback has passed for Private Pool v2 core, Private Pool v2 role-service storage, Strategy, and operator/control-plane storage. Pay restore readback, backup policy, PITR, encrypted backup, access audit, and least-privilege restore-user evidence remain pending.
 
 The current restore drill evidence surface is:
 
@@ -139,7 +139,7 @@ npm run mainnet:production-restore-drill-evidence-check
 npm run mainnet:production-restore-drill-readback
 ```
 
-It records that the operator/control-plane restore target passed readback for `VANTA_OPERATOR_DATABASE_URL_REF` and the Private Pool v2 core restore target passed readback for `VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF`. It does not clear backup policy, PITR, encrypted backup, access audit, or least-privilege restore gates. Run readback with `DATABASE_URL` set in the local shell or secret-manager context only; never paste database URLs into chat, docs, git, screenshots, or issue trackers.
+It records that the operator/control-plane restore target passed readback for `VANTA_OPERATOR_DATABASE_URL_REF`, the Private Pool v2 core restore target passed readback for `VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF`, and the restored production copy has readback evidence for Private Pool v2 role-service storage and Strategy storage. It does not clear Pay readback, backup policy, PITR, encrypted backup, access audit, or least-privilege restore gates. Run readback with `DATABASE_URL` set in the local shell or secret-manager context only; never paste database URLs into chat, docs, git, screenshots, or issue trackers.
 
 The production DB refs handoff is:
 

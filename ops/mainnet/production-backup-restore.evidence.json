@@ -4,7 +4,7 @@
   "productionReady": false,
   "secretPolicy": "references-only-no-credentials",
   "status": "partial-readback-only",
-  "checkedAtUtc": "2026-04-22T18:45:00Z",
+  "checkedAtUtc": "2026-04-22T19:14:09Z",
   "operatorDecision": {
     "id": "skip-provider-backup-restore-controls-for-now",
     "decidedAtUtc": "2026-04-22T19:05:00Z",
@@ -14,7 +14,7 @@
   "templateRef": "ops/mainnet/production-backup-restore.template.json",
   "migrationEvidenceRef": "ops/mainnet/production-migration-evidence.manifest.json",
   "restoreDrillEvidenceRef": "ops/mainnet/production-restore-drill.evidence.json",
-  "summary": "Production schema migrations are operator-reported across the required database refs. Restore readback has passed for Private Pool v2 core and operator/control-plane storage only. This evidence does not clear backup policy, PITR, encrypted backup, access-audit, least-privilege, audit, legal/custody, or mainnet-funds gates.",
+  "summary": "Production schema migrations are operator-reported across the required database refs. Restore readback has passed for Private Pool v2 core, Private Pool v2 role-service storage, Strategy, and operator/control-plane storage. Pay restore readback remains pending. This evidence does not clear backup policy, PITR, encrypted backup, access-audit, least-privilege, audit, legal/custody, or mainnet-funds gates.",
   "globalEvidence": [
     {
       "id": "backup-policy-confirmed",
@@ -86,10 +86,10 @@
         "VANTA_PRIVATE_POOL_V2_VERIFIER_DATABASE_URL_REF"
       ],
       "migrationStatus": "applied-operator-reported",
-      "restoreReadbackStatus": "pending",
+      "restoreReadbackStatus": "passed",
+      "restoreDrillRef": "restore-drill/render-private-pool-v2-roles-strategy-2026-04-22-readback-passed",
       "backupControlStatus": "pending",
       "blockedUntil": [
-        "restore-readback-passed",
         "backup-policy-confirmed",
         "pitr-enabled",
         "encrypted-backups-enabled",
@@ -103,10 +103,10 @@
         "VANTA_STRATEGY_DATABASE_URL_REF"
       ],
       "migrationStatus": "applied-operator-reported",
-      "restoreReadbackStatus": "pending",
+      "restoreReadbackStatus": "passed",
+      "restoreDrillRef": "restore-drill/render-private-pool-v2-roles-strategy-2026-04-22-readback-passed",
       "backupControlStatus": "pending",
       "blockedUntil": [
-        "restore-readback-passed",
         "backup-policy-confirmed",
         "pitr-enabled",
         "encrypted-backups-enabled",
@@ -135,8 +135,8 @@
   "limitations": [
     "productionReady remains false",
     "mainnetReady remains false",
-    "readback passed only for Private Pool v2 core and operator/control-plane storage",
-    "Pay, role-service, and Strategy restore readbacks remain pending",
+    "readback passed for Private Pool v2 core, Private Pool v2 role-service storage, Strategy, and operator/control-plane storage",
+    "Pay restore readback remains pending",
     "backup policy, PITR, encrypted backup, access audit, and least-privilege restore-user evidence remain pending",
     "operator chose to skip provider backup/restore control collection for now",
     "no raw database URLs, credential values, bearer tokens, wallet keys, or backup decryption material are stored"
@@ -147,6 +147,6 @@
     "encrypted backup evidence refs skipped by operator for now",
     "backup/access audit refs skipped by operator for now",
     "least-privilege restore/operator database user refs skipped by operator for now",
-    "run restore readback for Pay, Private Pool v2 role-service storage, and Strategy"
+    "run restore readback for Pay"
   ]
 }

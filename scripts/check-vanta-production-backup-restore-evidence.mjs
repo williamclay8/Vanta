@@ -54,10 +54,10 @@ const requiredStores = new Map([
         "VANTA_PRIVATE_POOL_V2_RELAYER_DATABASE_URL_REF",
         "VANTA_PRIVATE_POOL_V2_VERIFIER_DATABASE_URL_REF",
       ],
-      readback: "pending",
+      readback: "passed",
     },
   ],
-  ["strategy", { refs: ["VANTA_STRATEGY_DATABASE_URL_REF"], readback: "pending" }],
+  ["strategy", { refs: ["VANTA_STRATEGY_DATABASE_URL_REF"], readback: "passed" }],
   ["operator", { refs: ["VANTA_OPERATOR_DATABASE_URL_REF"], readback: "passed" }],
 ]);
 
@@ -89,8 +89,8 @@ for (const [storeId, expectation] of requiredStores) {
 for (const limitation of [
   "productionReady remains false",
   "mainnetReady remains false",
-  "readback passed only for Private Pool v2 core and operator/control-plane storage",
-  "Pay, role-service, and Strategy restore readbacks remain pending",
+  "readback passed for Private Pool v2 core, Private Pool v2 role-service storage, Strategy, and operator/control-plane storage",
+  "Pay restore readback remains pending",
   "backup policy, PITR, encrypted backup, access audit, and least-privilege restore-user evidence remain pending",
   "operator chose to skip provider backup/restore control collection for now",
 ]) {
@@ -99,7 +99,7 @@ for (const limitation of [
 
 for (const action of [
   "provider backup policy refs skipped by operator for now",
-  "run restore readback for Pay, Private Pool v2 role-service storage, and Strategy",
+  "run restore readback for Pay",
 ]) {
   assert.ok(evidence.nextOperatorActions.includes(action), `Backup/restore evidence missing next action: ${action}.`);
 }
