@@ -661,6 +661,16 @@ input {
   justify-self: center;
 }
 
+.app-header__tabs-rail {
+  position: relative;
+  display: inline-flex;
+  justify-self: center;
+}
+
+.app-header__tabs-cue {
+  display: none;
+}
+
 .app-header__tab {
   min-width: 104px;
   min-height: 44px;
@@ -4118,8 +4128,46 @@ input {
     grid-area: brand;
   }
 
-  .app-header__tabs {
+  .app-header__tabs-rail {
     grid-area: tabs;
+    width: 100%;
+  }
+
+  .app-header__tabs-rail::after {
+    content: "";
+    position: absolute;
+    top: 5px;
+    right: 0;
+    bottom: 5px;
+    z-index: 2;
+    width: 58px;
+    pointer-events: none;
+    border-radius: 0 999px 999px 0;
+    background: linear-gradient(90deg, rgba(8, 13, 20, 0), rgba(8, 13, 20, 0.94) 72%);
+  }
+
+  .app-header__tabs-cue {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-family: "Syne", sans-serif;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+
+  .app-header__tabs-cue::after {
+    content: ">";
+    font-size: 0.72rem;
+    line-height: 1;
   }
 
   .app-header__wallet {

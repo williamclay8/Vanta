@@ -134,20 +134,25 @@ export function AppLayout() {
           <strong>Vanta</strong>
         </NavLink>
 
-        <nav className="app-header__tabs" aria-label="Primary">
-          {appLinks.map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              end={link.end}
-              className={({ isActive }) =>
-                isActive ? "app-header__tab app-header__tab--active" : "app-header__tab"
-              }
-            >
-              {link.label}
-            </NavLink>
-          ))}
-        </nav>
+        <div className="app-header__tabs-rail">
+          <nav className="app-header__tabs" aria-label="Primary">
+            {appLinks.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                end={link.end}
+                className={({ isActive }) =>
+                  isActive ? "app-header__tab app-header__tab--active" : "app-header__tab"
+                }
+              >
+                {link.label}
+              </NavLink>
+            ))}
+          </nav>
+          <span className="app-header__tabs-cue" aria-hidden="true">
+            Swipe
+          </span>
+        </div>
 
         <div className="app-header__wallet">
           <button
