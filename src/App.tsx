@@ -8,6 +8,7 @@ const PrivacyFlowProvider = lazy(() =>
   })),
 );
 const LaunchPage = lazy(() => import("@/pages/LaunchPage").then((m) => ({ default: m.LaunchPage })));
+const HomePage = lazy(() => import("@/pages/HomePage").then((m) => ({ default: m.HomePage })));
 const PayPage = lazy(() => import("@/pages/PayPage").then((m) => ({ default: m.PayPage })));
 const SendPage = lazy(() => import("@/pages/SendPage").then((m) => ({ default: m.SendPage })));
 const ShieldPage = lazy(() => import("@/pages/ShieldPage").then((m) => ({ default: m.ShieldPage })));
@@ -23,7 +24,7 @@ function App() {
       <Suspense fallback={<div className="app-shell">Loading…</div>}>
         <PrivacyFlowProvider>
           <Routes>
-            <Route path="/" element={<Navigate to="/app/send" replace />} />
+            <Route path="/" element={<HomePage />} />
             <Route path="/app" element={<AppLayout />}>
               <Route index element={<Navigate to="send" replace />} />
               <Route path="shield" element={<ShieldPage />} />
