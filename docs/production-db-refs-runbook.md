@@ -120,7 +120,7 @@ ops/mainnet/production-restore-drill.evidence.json
 
 It records only reference names. A restored database being created is not enough by itself; the restored database must also pass readback before it can count as recovery evidence.
 
-The current evidence records operator/control-plane restore readback for `VANTA_OPERATOR_DATABASE_URL_REF`, Private Pool v2 core restore readback for `VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF`, Private Pool v2 role-service storage readback, and Strategy storage readback. Pay restore readback, backup policy, PITR, encrypted backup, access audit, and least-privilege restore evidence were skipped by operator decision and are tracked as accepted launch risks, not completed controls.
+The current evidence records operator/control-plane restore readback for `VANTA_OPERATOR_DATABASE_URL_REF`, Private Pool v2 core restore readback for `VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF`, Private Pool v2 role-service storage readback, and Strategy storage readback. Pay restore readback, backup policy, PITR, encrypted backup, access audit, and least-privilege restore evidence were skipped by operator decision and are tracked as operator-skipped controls, not completed controls.
 
 Run this references-only evidence check:
 
@@ -156,12 +156,12 @@ It records the current truth in one place:
 - restore readback has passed for `VANTA_OPERATOR_DATABASE_URL_REF`
 - Private Pool v2 role-service storage restore readback has passed
 - Strategy restore readback has passed
-- Pay restore readback was skipped and accepted as launch risk
-- backup policy, PITR, encrypted backup, access audit, and least-privilege restore-user evidence were skipped and accepted as launch risk
+- Pay restore readback was skipped by operator decision
+- backup policy, PITR, encrypted backup, access audit, and least-privilege restore-user evidence were skipped by operator decision
 
 This file is intentionally not a greenlight for mainnet. It is the checklist that prevents us from confusing partial restore proof with a complete production backup/restore program.
 
-Operator note: Clay chose to skip Pay restore readback plus provider backup policy, PITR, encrypted backup, access-audit, and least-privilege restore-user evidence collection on April 22, 2026. These items are no longer active blockers, but the repo must keep them visible as accepted risks and must not mark them complete.
+Operator note: Clay chose to skip Pay restore readback plus provider backup policy, PITR, encrypted backup, access-audit, and least-privilege restore-user evidence collection on April 22, 2026. These items are no longer active blockers, but the repo must keep them visible as operator-skipped controls and must not mark them complete.
 
 ## Evidence To Capture
 

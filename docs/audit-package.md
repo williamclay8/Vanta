@@ -121,18 +121,18 @@ No audit claim is made today.
 
 No mainnet funds should be used with this repo today.
 
-Known accepted risks and blockers:
+Known beta limits and blockers:
 
 - Private Pool v2 is a Render staging operator with Postgres snapshot persistence, but not a deployed shared anonymity set or audited mainnet privacy pool.
 - Pay is a Render staging merchant API with Postgres snapshot persistence and Private Pool v2 operator wiring, but not a production payment processor.
 - Strategy is a local planning/runtime lane, not live autonomous execution.
 - The mainnet service manifest uses placeholders only and contains no real secrets.
-- Secret-manager audit/rotation evidence was skipped by operator decision and accepted as launch risk; this is not a secret-handling maturity claim.
-- Audit and legal/compliance/custody review were skipped by operator decision and accepted as launch risks; this is not audit, legal, compliance, or custody approval.
-- Pay restore readback plus provider backup/PITR/encryption/access-audit/least-privilege evidence were skipped by operator decision and accepted as launch risks.
-- Production database adapters, migrations, backup jobs, and restore drills have partial evidence and accepted risks, not full production recovery proof.
+- Secret-manager audit/rotation evidence was skipped by operator decision; this is not a secret-handling maturity claim.
+- Audit and legal/compliance/custody review were skipped by operator decision; this is not audit, legal, compliance, or custody approval.
+- Pay restore readback plus provider backup/PITR/encryption/access-audit/least-privilege evidence were skipped by operator decision.
+- Production database adapters, migrations, backup jobs, and restore drills have partial evidence and operator-skipped controls, not full production recovery proof.
 - Live mainnet submission remains disabled.
-- Legal, compliance, custody, and third-party security review remain incomplete and accepted as launch risks.
+- Legal, compliance, custody, and third-party security review remain incomplete.
 
 ## Required verification bundle
 

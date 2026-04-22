@@ -257,9 +257,9 @@ The current approval-gate evidence surface is:
 ops/mainnet/mainnet-approval-gates.evidence.json
 ```
 
-It records the difference between technical evidence already captured, accepted launch risks, and bounded approval. It is references-only and must remain `mainnetReady: false` and `productionReady: false`; `realFundsAllowed` is true only for the bounded beta private-pool smoke approval. Do not store legal advice text, under-NDA audit contents, wallet keys, pre-signed transactions, or credential values in this repo.
+It records the difference between technical evidence already captured, operator-skipped controls, and bounded approval. It is references-only and must remain `mainnetReady: false` and `productionReady: false`; `realFundsAllowed` is true only for the bounded beta private-pool smoke approval. Do not store legal advice text, under-NDA audit contents, wallet keys, pre-signed transactions, or credential values in this repo.
 
-Operator decision on April 22, 2026: third-party security audit, legal/compliance/custody review, secret-manager audit/rotation evidence, Pay restore readback, and provider backup/PITR/encryption/access-audit/least-privilege evidence were skipped and accepted as launch risks. This is not approval and not evidence that those controls passed.
+Operator decision on April 22, 2026: third-party security audit, legal/compliance/custody review, secret-manager audit/rotation evidence, Pay restore readback, and provider backup/PITR/encryption/access-audit/least-privilege evidence were skipped. This is not approval and not evidence that those controls passed.
 
 The real-funds approval packet is:
 
@@ -310,7 +310,7 @@ Do not provide raw token values, wallet material, database passwords, seed phras
 
 This packet is a launch checklist and evidence contract, not a production claim.
 
-Vanta remains not production-ready. The current packet records a bounded real-funds approval plus accepted risks for skipped audit, legal/compliance/custody, secret-manager audit/rotation, Pay restore readback, and provider backup controls.
+Vanta remains not production-ready. The current packet records a bounded real-funds approval plus operator-skipped audit, legal/compliance/custody, secret-manager audit/rotation, Pay restore readback, and provider backup controls.
 
 The current approval status lives in `ops/mainnet/mainnet-approval-gates.evidence.json`. It links completed technical evidence without turning that evidence into audit, legal, custody, backup, or unrestricted funds approval.
 

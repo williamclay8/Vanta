@@ -206,8 +206,8 @@ assert.ok(
   "Next actions must include provider-neutral production observability setup.",
 );
 assert.ok(
-  snapshot.nextActions.some((action) => action.includes("accepted launch risks")),
-  "Next actions must preserve accepted launch risk visibility.",
+  snapshot.nextActions.some((action) => action.includes("operator-skipped controls")),
+  "Next actions must preserve operator-skipped control visibility.",
 );
 
 console.log("Vanta mainnet readiness check: PASS");

@@ -42,27 +42,27 @@ const acceptedRisks = [
   {
     id: "pay-restore-readback-skipped",
     severity: "high",
-    summary: "Pay restore readback was skipped by operator decision and accepted as launch risk; this is not restore evidence.",
+    summary: "Pay restore readback was skipped by operator decision; this is not restore evidence.",
   },
   {
     id: "provider-backup-pitr-encryption-access-audit-least-privilege-skipped",
     severity: "high",
-    summary: "Provider backup/PITR/encryption/access-audit/least-privilege evidence was skipped by operator decision and accepted as launch risk.",
+    summary: "Provider backup/PITR/encryption/access-audit/least-privilege evidence was skipped by operator decision.",
   },
   {
     id: "secret-manager-audit-rotation-evidence-skipped",
     severity: "critical",
-    summary: "Secret-manager audit and rotation evidence was skipped by operator decision and accepted as launch risk; this is not a secret-handling maturity claim.",
+    summary: "Secret-manager audit and rotation evidence was skipped by operator decision; this is not a secret-handling maturity claim.",
   },
   {
     id: "third-party-security-audit-skipped",
     severity: "critical",
-    summary: "Third-party security audit was skipped by operator decision and accepted as launch risk; this is not an audit claim.",
+    summary: "Third-party security audit was skipped by operator decision; this is not an audit claim.",
   },
   {
     id: "legal-compliance-custody-skipped",
     severity: "high",
-    summary: "Legal, compliance, and custody review was skipped by operator decision and accepted as launch risk; this is not legal or custody approval.",
+    summary: "Legal, compliance, and custody review was skipped by operator decision; this is not legal or custody approval.",
   },
 ];
 
@@ -145,7 +145,7 @@ const requiredCommands = [
 const nextActions = [
   "Execute only the approved bounded beta mainnet private-pool smoke, or return the real-funds approval packet to pending before changing the action, launch window, fee payer, or maximum funds at risk.",
   "Keep Private Pool v2 production smoke evidence fresh and require a new bounded approval before expanding live mainnet actions.",
-  "Keep accepted launch risks visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
+  "Keep operator-skipped controls visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
   "Use provider-neutral production observability evidence, existing platform logs, or a future provider instead of Better Stack production monitors.",
   "Move nullifier replay guard persistence behind the production storage adapter and final deployed enforcement layer.",
   "Add a checked mainnet deployment runbook with rollback, monitoring, rate limits, and incident response.",
