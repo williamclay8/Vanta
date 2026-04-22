@@ -5308,13 +5308,43 @@ input {
   }
 
   .landing-minimal__actions {
+    align-items: center;
+    justify-content: stretch;
     gap: 10px;
     margin-top: 24px;
   }
 
   .landing-minimal__actions .landing-btn {
-    min-height: 48px;
+    min-height: 50px;
     padding: 0 18px;
+    border-radius: 999px;
+    text-align: center;
+  }
+
+  .landing-minimal__actions .landing-btn--primary {
+    box-shadow:
+      0 14px 44px rgba(0, 229, 200, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.26);
+  }
+
+  .landing-minimal__actions .landing-btn--ghost {
+    min-height: 42px;
+    width: auto;
+    padding: 0 10px;
+    border: 0;
+    background: transparent;
+    color: var(--landing-ice-dim);
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    box-shadow: none;
+  }
+
+  .landing-minimal__actions .landing-btn--ghost:hover {
+    background: transparent;
+  }
+
+  .landing-minimal__actions .landing-btn:active {
+    transform: scale(0.96);
   }
 
   .landing-minimal__panel {
