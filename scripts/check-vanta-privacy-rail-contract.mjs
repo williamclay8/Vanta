@@ -69,7 +69,7 @@ assert.ok(umbraRail.blockers.some((blocker) => blocker.includes("Umbra mainnet")
 
 const privatePoolRail = contract.rails.find((candidate) => candidate.id === "vanta-private-pool-v2");
 assert.ok(privatePoolRail.requiredEvidence.includes("VANTA_PRIVATE_POOL_V2_PRODUCTION_SMOKE_EVIDENCE_REF"));
-assert.ok(privatePoolRail.blockers.some((blocker) => blocker.includes("production indexer/prover/relayer/verifier/operator")));
+assert.ok(privatePoolRail.blockers.some((blocker) => blocker.includes("no-real-funds smoke evidence")));
 
 assert.ok(
   contract.requiredVerificationCommands.includes("npm run privacy-rail:contract-check"),

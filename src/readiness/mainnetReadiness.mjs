@@ -4,12 +4,12 @@ const blockers = [
   {
     id: "real-mainnet-private-settlement",
     severity: "critical",
-    summary: "Replace local Private Pool v2 benchmark settlement with deployed mainnet-compatible private settlement.",
+    summary: "Graduate the no-real-funds Private Pool v2 production smoke path into audited mainnet-compatible private settlement.",
   },
   {
     id: "deployed-indexer-relayer-prover-operator",
     severity: "critical",
-    summary: "Deploy durable indexer, relayer, prover, verifier, and operator services with production storage.",
+    summary: "Keep production indexer, relayer, prover, verifier, and operator services deployed with durable storage, fresh smoke evidence, observability, and backup/restore evidence.",
   },
   {
     id: "final-nullifier-replay-enforcement",
@@ -65,9 +65,9 @@ const lanes = {
     truth: "Private Core has executable local proof lanes and operator checks, but remains intentionally narrow and not audited.",
   },
   privatePoolV2: {
-    readiness: 48,
-    status: "staging-render-postgres",
-    truth: "Private Pool v2 has local indexer/relayer/prover/verifier/operator seams plus a Render staging deployment at https://vanta-staging-private-pool-v2.onrender.com with postgres-jsonb-snapshot-store persistence, but it is still a benchmark rail and not a deployed shared anonymity set or audited mainnet privacy pool.",
+    readiness: 58,
+    status: "production-smoke-render-postgres",
+    truth: "Private Pool v2 has local indexer/relayer/prover/verifier/operator seams, Render staging coverage, and fresh no-real-funds production smoke evidence across deployed Render indexer, prover, relayer, verifier, and operator services with postgres-jsonb-snapshot-store persistence. It is still not an audited shared anonymity set or mainnet privacy pool, and must not move real funds.",
   },
   protocolTabs: {
     readiness: 50,
@@ -125,7 +125,7 @@ const requiredCommands = [
 
 const nextActions = [
   "Fill the external gates packet with real deployed service refs, secret-manager refs, audit/legal/custody refs, and explicit mainnet approval artifacts without committing secrets.",
-  "Replace templated Private Pool v2 service topology with real deployed service URLs, mutual-auth credentials, and production smoke targets.",
+  "Keep Private Pool v2 production smoke evidence fresh while adding observability, backup/restore, audit, legal/custody, and explicit funds-approval evidence.",
   "Attach real production database refs to the checked Pay, Private Pool v2 role, Strategy, and Operator storage adapters, then capture backup/restore evidence.",
   "Create the actual Better Stack production log sources, metrics dashboards, alert policies, incident routing, and retention-policy refs named by the production observability template.",
   "Move nullifier replay guard persistence behind the production storage adapter and final deployed enforcement layer.",

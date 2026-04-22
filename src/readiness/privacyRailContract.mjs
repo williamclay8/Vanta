@@ -45,7 +45,7 @@ const rails = [
       "VANTA_PRIVATE_POOL_V2_NULLIFIER_ENFORCEMENT_REF",
     ],
     blockers: [
-      "production indexer/prover/relayer/verifier/operator services are not deployed",
+      "production services have only no-real-funds smoke evidence",
       "shared anonymity set is not proven",
       "third-party audit and nullifier enforcement evidence are not complete",
     ],

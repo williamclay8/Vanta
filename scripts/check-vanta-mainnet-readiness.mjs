@@ -34,14 +34,16 @@ assert.ok(
   "Private Core should be represented as locally verified, not mainnet complete.",
 );
 assert.ok(
-  snapshot.lanes.privatePoolV2.status === "staging-render-postgres",
-  "Private Pool v2 should be represented as staging Render/Postgres infrastructure.",
+  snapshot.lanes.privatePoolV2.status === "production-smoke-render-postgres",
+  "Private Pool v2 should be represented as production smoke Render/Postgres infrastructure.",
 );
 assert.ok(
   snapshot.lanes.privatePoolV2.truth.includes("Render") &&
     snapshot.lanes.privatePoolV2.truth.includes("postgres-jsonb-snapshot-store") &&
-    snapshot.lanes.privatePoolV2.truth.includes("not a deployed shared anonymity set"),
-  "Private Pool v2 truth must mention staging Render/Postgres and preserve non-production limits.",
+    snapshot.lanes.privatePoolV2.truth.includes("no-real-funds production smoke evidence") &&
+    snapshot.lanes.privatePoolV2.truth.includes("not an audited shared anonymity set") &&
+    snapshot.lanes.privatePoolV2.truth.includes("must not move real funds"),
+  "Private Pool v2 truth must mention production smoke Render/Postgres and preserve non-production limits.",
 );
 assert.ok(
   snapshot.lanes.pay.status === "staging-render-pay",
