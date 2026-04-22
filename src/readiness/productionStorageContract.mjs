@@ -141,6 +141,7 @@ export function createVantaProductionStorageContract() {
       "npm run mainnet:preflight",
       "npm run mainnet:backup-restore-check",
       "npm run mainnet:backup-restore-evidence-check",
+      "npm run mainnet:backup-restore-status",
       "npm run pay:verify",
       "npm run private-pool-v2:verify",
     ],

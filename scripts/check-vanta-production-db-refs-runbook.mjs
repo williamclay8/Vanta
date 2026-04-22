@@ -28,6 +28,8 @@ for (const phrase of [
   "npm run mainnet:storage-migration-check",
   "npm run mainnet:backup-restore-check",
   "npm run mainnet:backup-restore-evidence-check",
+  "npm run mainnet:backup-restore-status",
+  "npm run mainnet:backup-restore-status-json",
   "ops/mainnet/production-backup-restore.evidence.json",
   "ops/mainnet/production-restore-drill.evidence.json",
   "npm run mainnet:production-restore-drill-evidence-check",

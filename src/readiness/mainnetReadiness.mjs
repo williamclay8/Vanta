@@ -90,6 +90,8 @@ const requiredCommands = [
   "npm run mainnet:storage-contract-check",
   "npm run mainnet:storage-migration-check",
   "npm run mainnet:backup-restore-check",
+  "npm run mainnet:backup-restore-evidence-check",
+  "npm run mainnet:backup-restore-status",
   "npm run mainnet:production-db-refs-check",
   "npm run mainnet:production-db-migration-harness-check",
   "npm run mainnet:production-db-migration-dry-run",

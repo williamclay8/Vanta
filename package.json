@@ -19,6 +19,8 @@
     "mainnet:storage-migration-check": "node scripts/check-vanta-production-storage-migrations.mjs",
     "mainnet:backup-restore-check": "node scripts/check-vanta-production-backup-restore.mjs",
     "mainnet:backup-restore-evidence-check": "node scripts/check-vanta-production-backup-restore-evidence.mjs",
+    "mainnet:backup-restore-status": "node scripts/print-vanta-production-backup-restore-status.mjs",
+    "mainnet:backup-restore-status-json": "node scripts/print-vanta-production-backup-restore-status.mjs --json",
     "mainnet:production-restore-drill-evidence-check": "node scripts/check-vanta-production-restore-drill-evidence.mjs",
     "mainnet:production-restore-drill-readback": "node scripts/check-vanta-production-restore-drill-readback.mjs",
     "mainnet:production-db-refs-check": "node scripts/check-vanta-production-db-refs-runbook.mjs",

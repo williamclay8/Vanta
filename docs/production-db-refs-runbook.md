@@ -145,6 +145,8 @@ The current backup/restore evidence file is:
 ```bash
 ops/mainnet/production-backup-restore.evidence.json
 npm run mainnet:backup-restore-evidence-check
+npm run mainnet:backup-restore-status
+npm run mainnet:backup-restore-status-json
 ```
 
 It records the current truth in one place:

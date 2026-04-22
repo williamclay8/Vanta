@@ -46,6 +46,8 @@ const requiredPhrases = [
   "src/readiness/productionStorageContract.mjs",
   "ops/mainnet/production-backup-restore.template.json",
   "ops/mainnet/production-backup-restore.evidence.json",
+  "npm run mainnet:backup-restore-status",
+  "npm run mainnet:backup-restore-status-json",
   "ops/mainnet/production-restore-drill.evidence.json",
   "npm run mainnet:production-restore-drill-evidence-check",
   "npm run mainnet:production-restore-drill-readback",

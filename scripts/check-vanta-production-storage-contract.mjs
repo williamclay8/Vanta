@@ -78,6 +78,10 @@ assert.ok(
   "Missing backup/restore evidence verification command.",
 );
 assert.ok(
+  contract.requiredVerificationCommands.includes("npm run mainnet:backup-restore-status"),
+  "Missing backup/restore status command.",
+);
+assert.ok(
   contract.nextImplementationStep.includes("backup"),
   "Next implementation step should target backup/restore evidence.",
 );

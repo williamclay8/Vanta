@@ -117,6 +117,16 @@ assert.equal(
   "node scripts/check-vanta-production-backup-restore-evidence.mjs",
   "package.json must expose mainnet:backup-restore-evidence-check.",
 );
+assert.equal(
+  packageJson.scripts["mainnet:backup-restore-status"],
+  "node scripts/print-vanta-production-backup-restore-status.mjs",
+  "package.json must expose mainnet:backup-restore-status.",
+);
+assert.equal(
+  packageJson.scripts["mainnet:backup-restore-status-json"],
+  "node scripts/print-vanta-production-backup-restore-status.mjs --json",
+  "package.json must expose mainnet:backup-restore-status-json.",
+);
 assert.ok(
   packageJson.scripts["mainnet:preflight"].includes("npm run mainnet:backup-restore-evidence-check"),
   "mainnet:preflight must include backup/restore evidence check.",

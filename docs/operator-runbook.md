@@ -125,6 +125,8 @@ The current backup/restore evidence status is:
 ```text
 ops/mainnet/production-backup-restore.evidence.json
 npm run mainnet:backup-restore-evidence-check
+npm run mainnet:backup-restore-status
+npm run mainnet:backup-restore-status-json
 ```
 
 It records that production migrations are operator-reported across the required database refs, and that restore readback has passed only for Private Pool v2 core and operator/control-plane storage. Pay, Private Pool v2 role-service storage, Strategy restore readback, backup policy, PITR, encrypted backup, access audit, and least-privilege restore-user evidence remain pending.
