@@ -67,6 +67,12 @@ async function runReadback() {
   const client = new pg.Client({
     connectionString: databaseUrl,
     application_name: "vanta-production-restore-drill-readback",
+    ssl:
+      process.env.VANTA_POSTGRES_SSL === "disable"
+        ? false
+        : {
+            rejectUnauthorized: false,
+          },
   });
 
   await client.connect();
