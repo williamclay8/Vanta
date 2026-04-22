@@ -47,7 +47,6 @@ const requiredStores = new Map([
     "pay",
     {
       refs: ["VANTA_PAY_DATABASE_URL_REF"],
-      migration: "pending-production-readback",
       readback: "pending",
     },
   ],
@@ -96,7 +95,6 @@ for (const [storeId, expectation] of requiredStores) {
 for (const limitation of [
   "productionReady remains false",
   "mainnetReady remains false",
-  "Pay production migration remains pending production readback",
   "readback passed for Private Pool v2 core, Private Pool v2 role-service storage, Strategy, and operator/control-plane storage",
   "Pay restore readback remains pending",
   "backup policy, PITR, encrypted backup, access audit, and least-privilege restore-user evidence remain pending",
@@ -107,7 +105,6 @@ for (const limitation of [
 
 for (const action of [
   "provider backup policy refs skipped by operator for now",
-  "apply and read back Pay production migration",
   "run restore readback for Pay",
 ]) {
   assert.ok(evidence.nextOperatorActions.includes(action), `Backup/restore evidence missing next action: ${action}.`);

@@ -129,7 +129,7 @@ npm run mainnet:backup-restore-status
 npm run mainnet:backup-restore-status-json
 ```
 
-It records that production migrations are operator-reported/read back for Private Pool v2 core, Private Pool v2 role-service storage, Strategy, and operator/control-plane storage. Pay production migration/readback, backup policy, PITR, encrypted backup, access audit, and least-privilege restore-user evidence remain pending.
+It records that production migrations are operator-reported/read back for Pay, Private Pool v2 core, Private Pool v2 role-service storage, Strategy, and operator/control-plane storage. Pay restore readback, backup policy, PITR, encrypted backup, access audit, and least-privilege restore-user evidence remain pending.
 
 The current restore drill evidence surface is:
 
@@ -155,7 +155,7 @@ ops/mainnet/staging-smoke-evidence.manifest.json
 npm run mainnet:staging-smoke-evidence-check
 ```
 
-It lists the exact Doppler database secret names needed for Pay, Private Pool v2 operator storage, Private Pool v2 role-service storage, Strategy, and Operator control-plane storage. The migration evidence manifest records operator-reported/read-back schema application refs for the production database targets without storing raw URLs; Pay remains pending production readback until its schema row is observed on production storage. The staging smoke evidence manifest records public `/health` checks for the current Render staging services only. These are not backup/restore, audit, legal/custody, production role-service smoke, or mainnet funds approval evidence.
+It lists the exact Doppler database secret names needed for Pay, Private Pool v2 operator storage, Private Pool v2 role-service storage, Strategy, and Operator control-plane storage. The migration evidence manifest records operator-reported/read-back schema application refs for the production database targets without storing raw URLs. The staging smoke evidence manifest records public `/health` checks for the current Render staging services only. These are not backup/restore, audit, legal/custody, production role-service smoke, or mainnet funds approval evidence.
 
 The checked baseline Postgres migration is:
 

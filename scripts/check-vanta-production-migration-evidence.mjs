@@ -38,15 +38,14 @@ assert.equal(evidence.targets.length, requiredTargets.length);
 for (const targetRef of requiredTargets) {
   const target = evidence.targets.find((candidate) => candidate.targetRef === targetRef);
   assert.ok(target, `Missing production migration target evidence: ${targetRef}.`);
-  const expectedStatus =
-    targetRef === "VANTA_PAY_DATABASE_URL_REF" ? "pending-production-readback" : "applied-operator-reported";
-  assert.equal(target.status, expectedStatus);
+  assert.equal(target.status, "applied-operator-reported");
   if (targetRef === "VANTA_PAY_DATABASE_URL_REF") {
-    assert.ok(!target.appliedAtUtc, "Pay migration must not include appliedAtUtc until production readback exists.");
-    assert.ok(target.note?.includes("did not find"), "Pay migration evidence must explain pending readback.");
-  } else {
-    assert.ok(target.appliedAtUtc, `${targetRef} must include appliedAtUtc.`);
+    assert.ok(
+      target.readbackEvidenceRef?.includes("VANTA_PAY_DATABASE_URL_REF"),
+      "Pay migration evidence must cite readback evidence ref.",
+    );
   }
+  assert.ok(target.appliedAtUtc, `${targetRef} must include appliedAtUtc.`);
   assert.ok(target.schemaVersionRef?.includes(targetRef), `${targetRef} must include schema version ref.`);
   assert.equal(target.commandRef, "npm run mainnet:production-db-migration-apply");
 }
@@ -54,7 +53,6 @@ for (const targetRef of requiredTargets) {
 for (const phrase of [
   "productionReady remains false",
   "mainnetReady remains false",
-  "Pay production migration remains pending production readback",
   "operator-reported evidence",
   "not a backup restore drill",
 ]) {

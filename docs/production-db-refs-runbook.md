@@ -151,8 +151,7 @@ npm run mainnet:backup-restore-status-json
 
 It records the current truth in one place:
 
-- schema migrations are operator-reported/read back for Private Pool v2 core, Private Pool v2 role-service storage, Strategy, and operator/control-plane refs
-- Pay production migration remains pending production readback
+- schema migrations are operator-reported/read back for Pay, Private Pool v2 core, Private Pool v2 role-service storage, Strategy, and operator/control-plane refs
 - restore readback has passed for `VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF`
 - restore readback has passed for `VANTA_OPERATOR_DATABASE_URL_REF`
 - Private Pool v2 role-service storage restore readback has passed

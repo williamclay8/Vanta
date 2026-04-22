@@ -5,17 +5,18 @@
   "secretPolicy": "references-only-no-credentials",
   "status": "operator-reported",
   "reportedBy": "operator-render-shell",
-  "reportedAtUtc": "2026-04-21T03:51:37Z",
+  "reportedAtUtc": "2026-04-22T19:39:34Z",
   "migrationName": "001_vanta_mainnet_storage.sql",
   "migrationPath": "ops/storage/postgres/001_vanta_mainnet_storage.sql",
   "checksum": "98dd86ab93574d38770535efdd90e6ab1eb6e0359071191e26693f0ba6a5a3d3",
   "targets": [
     {
       "targetRef": "VANTA_PAY_DATABASE_URL_REF",
-      "status": "pending-production-readback",
-      "schemaVersionRef": "schema_versions/VANTA_PAY_DATABASE_URL_REF/001-pending",
+      "status": "applied-operator-reported",
+      "appliedAtUtc": "2026-04-22T19:39:08Z",
+      "schemaVersionRef": "schema_versions/VANTA_PAY_DATABASE_URL_REF/001",
       "commandRef": "npm run mainnet:production-db-migration-apply",
-      "note": "Render MCP read-only checks on 2026-04-22 did not find this schema_versions row in the inspected production databases or restored production copies."
+      "readbackEvidenceRef": "render-mcp/vanta-production-core-db/schema_versions/VANTA_PAY_DATABASE_URL_REF/001"
     },
     {
       "targetRef": "VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF",
@@ -71,7 +72,6 @@
     "operator-reported evidence",
     "productionReady remains false",
     "mainnetReady remains false",
-    "Pay production migration remains pending production readback",
     "not a backup restore drill",
     "not third-party audit evidence",
     "not legal or custody approval",
