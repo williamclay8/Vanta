@@ -191,8 +191,8 @@ export function AppLayout() {
                   </button>
                 </div>
                 <p>
-                  Wallet standard discovery shows the Solana wallets available in this browser.
-                  Use a fresh wallet for strongest privacy.
+                  Standard wallet discovery shows the Solana wallets available in this browser.
+                  Use a fresh wallet for the strongest privacy.
                 </p>
                 {walletConnected && (
                   <div className="wallet-picker__connected">
@@ -234,7 +234,7 @@ export function AppLayout() {
                     </div>
                   ) : (
                     <div className="wallet-picker__empty">
-                      Install a Solana wallet standard wallet, then refresh Vanta.
+                      Install a standard Solana wallet then refresh Vanta.
                     </div>
                   )}
                 </div>
