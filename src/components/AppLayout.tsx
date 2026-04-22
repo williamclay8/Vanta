@@ -41,6 +41,9 @@ export function AppLayout() {
     : preferredWalletConnector
       ? "Wallet"
       : "Fresh wallet";
+  const accountTriggerAccessibleLabel = walletConnected
+    ? `Open wallet menu for ${connectedWalletLabel}`
+    : "Open wallet menu to connect or create a fresh wallet";
   const sortedWalletConnectors = useMemo(
     () =>
       [...walletConnectors].sort((left, right) => {
@@ -152,7 +155,9 @@ export function AppLayout() {
             type="button"
             onClick={openWalletPicker}
             disabled={!walletReady || walletConnecting}
+            aria-haspopup="dialog"
             aria-expanded={walletPickerOpen}
+            aria-label={walletConnecting ? "Wallet connection in progress" : accountTriggerAccessibleLabel}
           >
             <span>{walletConnecting ? "Connecting" : accountTriggerLabel}</span>
             <small>{accountTriggerHint}</small>
