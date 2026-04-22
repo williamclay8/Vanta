@@ -32,17 +32,19 @@ function runFreshWalletBrowserBatch() {
       action: "assert",
       checks: [
         { kind: "url_contains", text: "/app/shield" },
-        { kind: "text_visible", text: "Create wallet" },
+        { kind: "text_visible", text: "Connect" },
         { kind: "text_hidden", text: "secretKey" },
         { kind: "text_hidden", text: "seed phrase" },
         { kind: "text_hidden", text: "private key" },
         { kind: "no_console_errors" },
       ],
     },
-    { action: "click", text: "Create wallet" },
+    { action: "click", text: "Connect" },
     {
       action: "assert",
       checks: [
+        { kind: "text_visible", text: "Wallet" },
+        { kind: "text_visible", text: "Detected wallets" },
         { kind: "text_visible", text: "Create fresh wallet" },
         { kind: "text_visible", text: "Generated in this browser" },
         { kind: "text_visible", text: "Import it into Phantom or Solflare to sign live actions" },

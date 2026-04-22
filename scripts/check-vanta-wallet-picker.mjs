@@ -46,14 +46,38 @@ requireIncludes(
 );
 requireIncludes(
   appLayout,
-  "Connect another wallet",
-  "Connected state must let users connect another wallet.",
+  "app-header__account-trigger",
+  "Header must use one compact account trigger instead of separate wallet action buttons.",
+);
+requireIncludes(
+  appLayout,
+  "Switch wallet",
+  "Connected wallet switching must live inside the account menu.",
+);
+requireIncludes(
+  appLayout,
+  "wallet-picker__scrim",
+  "Wallet menu must render a scrim layer so it sits above page cards.",
+);
+requireIncludes(
+  styles,
+  "z-index: 80",
+  "Wallet menu must layer above app cards with a high z-index.",
+);
+requireIncludes(
+  styles,
+  ".app-header__account-trigger",
+  "Compact account trigger styles must be present.",
 );
 requireIncludes(
   styles,
   ".wallet-picker",
   "Wallet picker styles must be present.",
 );
+
+if (appLayout.includes(">Connect another wallet<")) {
+  failures.push("Connected state must not render a separate header Connect another wallet button.");
+}
 
 for (const banned of ["Privy", "private key", "seed phrase"]) {
   if (appLayout.includes(banned)) {
