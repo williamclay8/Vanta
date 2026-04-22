@@ -408,6 +408,22 @@ npm run mainnet:approval-gates-evidence-check
 
 This file records which technical evidence has been captured without clearing external approvals. It must keep `mainnetReady: false`, `productionReady: false`, and `realFundsAllowed: false` until third-party audit, legal/compliance/custody review, provider backup controls, Pay restore readback, and explicit mainnet funds approval are actually complete.
 
+Operator decision on April 22, 2026: audit and legal/compliance/custody reviews were skipped. The status is `skipped-by-operator-not-cleared`, not approved.
+
+The real-funds approval packet is:
+
+```text
+ops/mainnet/mainnet-real-funds-approval.evidence.json
+```
+
+Verify it with:
+
+```bash
+npm run mainnet:real-funds-approval-check
+```
+
+This packet remains `realFundsAllowed: false` until it records one exact approved mainnet action, launch window ref, fee-payer ref, rollback ref, stop-loss ref, bounded funds-at-risk ref, and human approver ref. It must never include wallet keys, seed phrases, raw signing credentials, bearer tokens, raw database URLs, or signed transactions.
+
 ## Pay Operator
 
 Start the local Pay merchant API operator:

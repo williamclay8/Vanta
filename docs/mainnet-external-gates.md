@@ -241,6 +241,7 @@ npm run mainnet:readiness-check
 npm run mainnet:approval-gates-status
 npm run mainnet:approval-gates-check
 npm run mainnet:approval-gates-evidence-check
+npm run mainnet:real-funds-approval-check
 npm run wallet:transaction-safety-check
 ```
 
@@ -257,6 +258,16 @@ ops/mainnet/mainnet-approval-gates.evidence.json
 ```
 
 It records the difference between technical evidence already captured and approvals that are still blocked. It is references-only and must remain `mainnetReady: false`, `productionReady: false`, and `realFundsAllowed: false` until third-party audit, legal/compliance/custody review, and explicit mainnet funds approval are actually complete. Do not store legal advice text, under-NDA audit contents, wallet keys, pre-signed transactions, or credential values in this repo.
+
+Operator decision on April 22, 2026: audit and legal/compliance/custody reviews were skipped. This is recorded as `skipped-by-operator-not-cleared`, not as approval.
+
+The real-funds approval packet is:
+
+```text
+ops/mainnet/mainnet-real-funds-approval.evidence.json
+```
+
+It stays `realFundsAllowed: false` until it names one exact approved action, launch window ref, fee-payer ref, rollback ref, stop-loss ref, bounded funds-at-risk ref, and human approver ref. It must never contain private keys, seed phrases, signed transactions, bearer tokens, or raw database URLs.
 
 ### Monitoring and incident response
 

@@ -60,9 +60,14 @@ assert.equal(fundsGate.currentEvidenceStatus, "not-approved");
 for (const externalGateId of ["third-party-security-audit", "legal-compliance-custody"]) {
   const gate = evidence.gates.find((candidate) => candidate.id === externalGateId);
   assert.ok(
-    ["not-started", "blocked-external-review-required"].includes(gate.currentEvidenceStatus),
+    ["not-started", "blocked-external-review-required", "skipped-by-operator-not-cleared"].includes(
+      gate.currentEvidenceStatus,
+    ),
     `${externalGateId} must not imply approval.`,
   );
+  if (gate.currentEvidenceStatus === "skipped-by-operator-not-cleared") {
+    assert.ok(gate.operatorDecision, `${externalGateId} skipped status must record operator decision.`);
+  }
 }
 
 const technicalRefs = new Set(evidence.currentTechnicalEvidence.map((entry) => entry.ref));
@@ -111,11 +116,11 @@ for (const forbidden of [
 }
 
 assert.ok(
-  evidence.limitations.some((limitation) => limitation.includes("No third-party security audit approval")),
+  evidence.limitations.some((limitation) => limitation.includes("no audit approval has been recorded")),
   "Approval gates evidence must preserve audit blocker.",
 );
 assert.ok(
-  evidence.limitations.some((limitation) => limitation.includes("No legal, compliance, or custody approval")),
+  evidence.limitations.some((limitation) => limitation.includes("no approval has been recorded")),
   "Approval gates evidence must preserve legal/compliance/custody blocker.",
 );
 assert.ok(

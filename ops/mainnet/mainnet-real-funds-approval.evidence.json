@@ -1,0 +1,66 @@
+{
+  "version": "vanta-mainnet-real-funds-approval-evidence-0.1",
+  "checkedAt": "2026-04-22T00:00:00.000Z",
+  "mainnetReady": false,
+  "productionReady": false,
+  "realFundsAllowed": false,
+  "status": "pending-explicit-approval",
+  "secretPolicy": "references-only-no-secret-values",
+  "approvalPolicy": "exact-action-required-before-mainnet-funds",
+  "summary": "Refs-only real-funds approval packet for Vanta. This packet can be moved from pending to approved only for one exact, bounded mainnet action. It must not contain private keys, seed phrases, database URLs, bearer tokens, signed transactions, or customer data.",
+  "knownSkippedGates": [
+    {
+      "id": "third-party-security-audit",
+      "status": "skipped-by-operator-not-cleared",
+      "riskAcceptedBy": "operator",
+      "decisionDate": "2026-04-22",
+      "note": "No third-party audit approval exists."
+    },
+    {
+      "id": "legal-compliance-custody",
+      "status": "skipped-by-operator-not-cleared",
+      "riskAcceptedBy": "operator",
+      "decisionDate": "2026-04-22",
+      "note": "No legal, compliance, or custody approval exists."
+    }
+  ],
+  "approvalRecord": {
+    "status": "not-approved",
+    "approvalRecordRef": "VANTA_MAINNET_APPROVAL_RECORD_REF",
+    "approvedActionRef": "pending",
+    "approvedActionSummary": "pending",
+    "approvedEnvironment": "mainnet-beta",
+    "approvedFeePayerRef": "VANTA_APPROVED_FEE_PAYER_REF",
+    "approvedLaunchWindowRef": "VANTA_APPROVED_LAUNCH_WINDOW_REF",
+    "rollbackPlanRef": "VANTA_ROLLBACK_PLAN_REF",
+    "stopLossPlanRef": "VANTA_STOP_LOSS_PLAN_REF",
+    "maximumFundsAtRiskRef": "VANTA_MAX_FUNDS_AT_RISK_REF",
+    "approvedByRef": "VANTA_LAUNCH_APPROVER_REF"
+  },
+  "requiredBeforeApproval": [
+    "approvedActionSummary must name one exact action or transaction class",
+    "approvedActionRef must point to a runbook step, issue, or launch record",
+    "approvedFeePayerRef must be a reference name, not a private key",
+    "approvedLaunchWindowRef must identify the approved time window",
+    "rollbackPlanRef must identify the rollback plan",
+    "stopLossPlanRef must identify the stop-loss or emergency stop plan",
+    "maximumFundsAtRiskRef must identify the bounded funds-at-risk record",
+    "approvedByRef must identify the human approver record"
+  ],
+  "forbiddenValues": [
+    "private keys",
+    "seed phrases",
+    "keypair files",
+    "raw signing credentials",
+    "raw database URLs",
+    "raw bearer tokens",
+    "signed transactions",
+    "customer private inputs"
+  ],
+  "requiredVerificationCommands": [
+    "npm run mainnet:real-funds-approval-check",
+    "npm run mainnet:approval-gates-evidence-check",
+    "npm run wallet:transaction-safety-check",
+    "npm run mainnet:preflight"
+  ]
+}

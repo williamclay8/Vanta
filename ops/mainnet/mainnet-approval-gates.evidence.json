@@ -80,7 +80,7 @@
     {
       "id": "third-party-security-audit",
       "status": "blocked",
-      "currentEvidenceStatus": "not-started",
+      "currentEvidenceStatus": "skipped-by-operator-not-cleared",
       "requiresExternalApproval": true,
       "requiredRefs": [
         "VANTA_AUDIT_SCOPE_REF",
@@ -88,12 +88,13 @@
         "VANTA_AUDIT_FINDINGS_DISPOSITION_REF",
         "VANTA_AUDIT_FIX_VERIFICATION_REF"
       ],
-      "nextAction": "Engage an independent reviewer and record refs-only audit scope, report, findings disposition, and fix verification artifacts."
+      "operatorDecision": "Skipped by operator request on 2026-04-22. This does not clear the gate, does not create an audit claim, and does not make Vanta production-ready.",
+      "nextAction": "If this gate is later reopened, engage an independent reviewer and record refs-only audit scope, report, findings disposition, and fix verification artifacts."
     },
     {
       "id": "legal-compliance-custody",
       "status": "blocked",
-      "currentEvidenceStatus": "not-started",
+      "currentEvidenceStatus": "skipped-by-operator-not-cleared",
       "requiresExternalApproval": true,
       "requiredRefs": [
         "VANTA_LEGAL_REVIEW_REF",
@@ -102,7 +103,8 @@
         "VANTA_SANCTIONS_POLICY_REF",
         "VANTA_MERCHANT_PROCESSING_POLICY_REF"
       ],
-      "nextAction": "Engage legal/compliance/custody reviewers and record refs-only approval or blocker artifacts."
+      "operatorDecision": "Skipped by operator request on 2026-04-22. This does not clear the gate, does not create legal/compliance/custody approval, and does not make Vanta production-ready.",
+      "nextAction": "If this gate is later reopened, engage legal/compliance/custody reviewers and record refs-only approval or blocker artifacts."
     },
     {
       "id": "explicit-mainnet-funds-approval",
@@ -123,8 +125,8 @@
     }
   ],
   "limitations": [
-    "No third-party security audit approval has been recorded.",
-    "No legal, compliance, or custody approval has been recorded.",
+    "Third-party security audit was skipped by operator decision and no audit approval has been recorded.",
+    "Legal, compliance, and custody review was skipped by operator decision and no approval has been recorded.",
     "No explicit mainnet real-funds approval has been recorded.",
     "Provider backup policy, PITR, encrypted backup, backup access audit, and least-privilege restore-user evidence were intentionally skipped and remain blocking.",
     "Pay restore readback remains pending in backup/restore evidence.",

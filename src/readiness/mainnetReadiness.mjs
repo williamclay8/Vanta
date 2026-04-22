@@ -118,6 +118,7 @@ const requiredCommands = [
   "npm run mainnet:approval-gates-evidence-check",
   "npm run mainnet:approval-gates-status",
   "npm run mainnet:approval-gates-status-json",
+  "npm run mainnet:real-funds-approval-check",
   "npm run audit:package-check",
   "npm run security:limitations-check",
   "npm run operator:runbook-check",
@@ -129,7 +130,7 @@ const requiredCommands = [
 ];
 
 const nextActions = [
-  "Fill the checked approval-gates evidence file with real secret-manager, audit/legal/custody, and explicit mainnet approval refs without committing secrets or approval contents.",
+  "Fill the real-funds approval packet with one exact approved action, launch window ref, fee-payer ref, rollback ref, stop-loss ref, and bounded funds-at-risk ref before any real funds move.",
   "Keep Private Pool v2 production smoke evidence fresh while adding observability, backup/restore, audit, legal/custody, and explicit funds-approval evidence.",
   "Attach real production database refs to the checked Pay, Private Pool v2 role, Strategy, and Operator storage adapters, then capture backup/restore evidence.",
   "Use provider-neutral production observability evidence, existing platform logs, or a future provider instead of Better Stack production monitors.",

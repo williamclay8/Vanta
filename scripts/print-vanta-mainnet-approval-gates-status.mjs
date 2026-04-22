@@ -19,6 +19,7 @@ const status = {
     status: gate.status,
     currentEvidenceStatus: gate.currentEvidenceStatus,
     requiresExternalApproval: gate.requiresExternalApproval,
+    operatorDecision: gate.operatorDecision,
     nextAction: gate.nextAction,
   })),
   technicalEvidence: evidence.currentTechnicalEvidence.map((entry) => ({
@@ -44,6 +45,9 @@ if (jsonMode) {
   console.log("- gates:");
   for (const gate of status.gates) {
     console.log(`  - ${gate.id}: ${gate.status}, evidence ${gate.currentEvidenceStatus}`);
+    if (gate.operatorDecision) {
+      console.log(`    decision: ${gate.operatorDecision}`);
+    }
     console.log(`    next: ${gate.nextAction}`);
   }
   console.log("- technical evidence:");
