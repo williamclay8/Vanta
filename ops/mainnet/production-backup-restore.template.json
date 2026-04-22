@@ -49,7 +49,7 @@
       "backupPolicyRef": "backup-policy/vanta-private-pool-v2-production-pending",
       "pitrRef": "pitr/vanta-private-pool-v2-production-pending",
       "encryptionRef": "backup-encryption/vanta-private-pool-v2-production-pending",
-      "restoreDrillRef": "restore-drill/vanta-private-pool-v2-production-pending",
+      "restoreDrillRef": "restore-drill/render-private-pool-v2-operator-2026-04-22-created-awaiting-readback",
       "restoreRunbookRef": "docs/operator-runbook.md#private-pool-v2-operator",
       "accessAuditLogRef": "db-access-audit/vanta-private-pool-v2-production-pending",
       "leastPrivilegeUserRef": "db-user/vanta-private-pool-v2-operator-production-pending",

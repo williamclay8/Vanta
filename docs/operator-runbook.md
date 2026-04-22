@@ -114,9 +114,20 @@ The production backup/restore template is:
 
 ```text
 ops/mainnet/production-backup-restore.template.json
+npm run mainnet:backup-restore-check
 ```
 
 It records references for production database refs, backup policies, point-in-time recovery, encrypted backup evidence, restore drill evidence, restore runbooks, access audit logs, and least-privilege database users without storing raw database URLs, credential values, backup decryption material, provider API tokens, wallet keys, or private user inputs. It is a setup contract, not evidence that production backup/restore has already passed.
+
+The current restore drill evidence surface is:
+
+```text
+ops/mainnet/production-restore-drill.evidence.json
+npm run mainnet:production-restore-drill-evidence-check
+npm run mainnet:production-restore-drill-readback
+```
+
+It records that the Private Pool v2 operator restore target was created by reference only. It does not clear the restore gate until the restored database passes readback against the safe local command. Run readback with `DATABASE_URL` set in the local shell or secret-manager context only; never paste database URLs into chat, docs, git, screenshots, or issue trackers.
 
 The production DB refs handoff is:
 

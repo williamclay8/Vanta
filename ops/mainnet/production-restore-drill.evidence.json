@@ -1,0 +1,46 @@
+{
+  "version": "vanta-production-restore-drill-evidence-0.1",
+  "mainnetReady": false,
+  "productionReady": false,
+  "secretPolicy": "references-only-no-credentials",
+  "status": "partial-operator-reported",
+  "reportedBy": "operator-render-console",
+  "reportedAtUtc": "2026-04-22T17:55:00Z",
+  "summary": "References-only restore-drill evidence. This records that a safe restore target exists without storing raw database URLs, credentials, backup contents, provider tokens, wallet keys, or private user inputs.",
+  "targets": [
+    {
+      "id": "privatePoolV2Operator",
+      "sourceDatabaseRef": "VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF",
+      "restoreDatabaseRef": "restore-drill/render-private-pool-v2-operator-2026-04-22",
+      "status": "restore-target-created-awaiting-readback",
+      "createdAtUtc": "2026-04-22T17:55:00Z",
+      "readbackStatus": "pending",
+      "readbackCommandRef": "npm run mainnet:production-restore-drill-readback",
+      "requiredReadbackChecks": [
+        "schema-version-readback",
+        "private-pool-v2-core-tables-present",
+        "nullifier-unique-index-present",
+        "settlement-table-present",
+        "operator-event-table-present"
+      ],
+      "blockedUntil": [
+        "readback-passed",
+        "backup-policy-confirmed",
+        "pitr-enabled",
+        "encrypted-backups-enabled",
+        "backup-access-audit-enabled",
+        "least-privilege-restore-user-confirmed"
+      ]
+    }
+  ],
+  "limitations": [
+    "operator-reported restore target creation only",
+    "readback has not been recorded in this evidence file",
+    "productionReady remains false",
+    "mainnetReady remains false",
+    "not proof of successful recovery",
+    "not third-party audit evidence",
+    "not legal or custody approval",
+    "not mainnet funds approval"
+  ]
+}

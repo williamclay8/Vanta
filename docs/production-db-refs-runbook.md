@@ -74,6 +74,7 @@ npm run mainnet:storage-migration-check
 npm run mainnet:production-db-migration-harness-check
 npm run mainnet:production-db-migration-dry-run
 npm run mainnet:backup-restore-check
+npm run mainnet:production-restore-drill-evidence-check
 npm run mainnet:secret-handling-check
 npm run mainnet:preflight
 ```
@@ -105,6 +106,32 @@ doppler run --config prd --project vanta -- \
 ```
 
 For a role-specific database, keep the same command shape but set `DATABASE_URL` from the intended Doppler secret inside a controlled shell, and change `VANTA_PRODUCTION_DB_TARGET` to the reference name being migrated. For example, set it from `VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL` and use `VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL_REF` as the target ref. The database mutation is intentionally not part of `npm run mainnet:preflight`.
+
+## Restore Drill Evidence
+
+The restore drill evidence file is:
+
+```bash
+ops/mainnet/production-restore-drill.evidence.json
+```
+
+It records only reference names. A restored database being created is not enough by itself; the restored database must also pass readback before it can count as recovery evidence.
+
+Run this references-only evidence check:
+
+```bash
+npm run mainnet:production-restore-drill-evidence-check
+```
+
+To verify the restored Private Pool v2 operator database locally, set the restored database URL only in your terminal or secret manager, then run:
+
+```bash
+DATABASE_URL="<restored-db-url-from-provider>" \
+VANTA_RESTORE_DRILL_TARGET_REF=VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF \
+npm run mainnet:production-restore-drill-readback
+```
+
+Do not paste the restored database URL into chat, docs, git, screenshots, or issue trackers. The readback command refuses to print the URL and checks schema version, Private Pool v2 tables, and replay/settlement indexes.
 
 ## Evidence To Capture
 
