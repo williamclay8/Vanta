@@ -5355,3 +5355,9 @@ input {
     padding: 16px 2px 26px;
   }
 }
+
+@media (max-width: 900px) {
+  .landing-page--minimal .landing-minimal__actions {
+    display: none;
+  }
+}
