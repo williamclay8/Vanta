@@ -99,10 +99,18 @@ The smoke path must use deterministic no-real-funds inputs. real funds are not a
 The live no-real-funds smoke runner is:
 
 ```bash
+npm run mainnet:private-pool-v2-production-smoke-env
 npm run mainnet:private-pool-v2-production-smoke-live
 ```
 
-Run it only from a shell with secret-manager-provided role URLs and auth tokens. It requires `VANTA_PRIVATE_POOL_V2_{INDEXER,PROVER,RELAYER,VERIFIER,OPERATOR}_URL` and matching `_AUTH_TOKEN` values in the environment. The command prints sanitized JSON evidence only; it must not print bearer tokens, database URLs, wallet keys, private keys, or customer private inputs.
+To record fresh sanitized evidence after the live no-real-funds smoke passes, run:
+
+```bash
+npm run mainnet:private-pool-v2-production-smoke-write
+npm run mainnet:production-smoke-evidence-check
+```
+
+Run it only from a shell with secret-manager-provided role URLs and auth tokens. The precheck and live smoke runner use `VANTA_PRIVATE_POOL_V2_{INDEXER,PROVER,RELAYER,VERIFIER,OPERATOR}_URL` from the shell when present, then fall back to the checked production service URLs in `ops/mainnet/private-pool-v2-services.manifest.json`. Matching `_AUTH_TOKEN` values must still be present in the shell or secret-manager runtime. The precheck prints only set/missing status and URL hosts. The smoke command prints sanitized JSON evidence only; neither command may print bearer tokens, database URLs, wallet keys, private keys, or customer private inputs.
 
 The current sanitized production smoke evidence manifest is:
 

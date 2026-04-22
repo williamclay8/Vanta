@@ -1,5 +1,13 @@
 import { strict as assert } from "node:assert";
 import { randomUUID } from "node:crypto";
+import { readFileSync, writeFileSync } from "node:fs";
+
+const productionServicesManifestPath = new URL("../ops/mainnet/private-pool-v2-services.manifest.json", import.meta.url);
+const productionSmokeEvidencePath = new URL(
+  "../ops/mainnet/private-pool-v2-production-smoke.evidence.json",
+  import.meta.url,
+);
+const writeEvidence = process.argv.includes("--write-evidence");
 
 const services = [
   {
@@ -42,6 +50,15 @@ const services = [
 const requiredEnv = services.flatMap((service) => [service.urlEnv, service.authTokenEnv]);
 const forbiddenEvidenceFragments = ["Bearer ", "DATABASE_URL=", "privateKey", "seedPhrase", "mnemonic"];
 
+function productionServiceUrls() {
+  const manifest = JSON.parse(readFileSync(productionServicesManifestPath, "utf8"));
+  return new Map(
+    manifest.services
+      .filter((service) => service.deployedService?.environment === "production")
+      .map((service) => [service.id, service.deployedService.url]),
+  );
+}
+
 function readRequiredEnv(name) {
   const value = process.env[name]?.trim();
   if (!value) {
@@ -50,35 +67,41 @@ function readRequiredEnv(name) {
   return value;
 }
 
-function readRequiredServiceUrl(name) {
-  const value = readRequiredEnv(name);
+function readRequiredServiceUrl(service, manifestUrls) {
+  const value = process.env[service.urlEnv]?.trim() || manifestUrls.get(service.id);
+  if (!value) {
+    throw new Error(
+      `Missing required production smoke service URL ${service.urlEnv}. Set it in the shell or add the deployed service URL to ops/mainnet/private-pool-v2-services.manifest.json.`,
+    );
+  }
   let parsed;
 
   try {
     parsed = new URL(value);
   } catch {
-    throw new Error(`${name} must be an HTTPS Render service URL, not a database URL or secret ref.`);
+    throw new Error(`${service.urlEnv} must be an HTTPS Render service URL, not a database URL or secret ref.`);
   }
 
   if (!["http:", "https:"].includes(parsed.protocol)) {
-    throw new Error(`${name} must be an HTTP(S) service URL. Check that it is not set to a Postgres DATABASE_URL.`);
+    throw new Error(`${service.urlEnv} must be an HTTP(S) service URL. Check that it is not set to a Postgres DATABASE_URL.`);
   }
 
   if (parsed.username || parsed.password) {
-    throw new Error(`${name} must not include credentials. Use the public Render service URL and put auth in the matching _AUTH_TOKEN env var.`);
+    throw new Error(`${service.urlEnv} must not include credentials. Use the public Render service URL and put auth in the matching _AUTH_TOKEN env var.`);
   }
 
   return value.replace(/\/+$/, "");
 }
 
 function serviceConfig() {
+  const manifestUrls = productionServiceUrls();
   return new Map(
     services.map((service) => [
       service.id,
       {
         ...service,
         authToken: readRequiredEnv(service.authTokenEnv),
-        url: readRequiredServiceUrl(service.urlEnv),
+        url: readRequiredServiceUrl(service, manifestUrls),
       },
     ]),
   );
@@ -346,6 +369,10 @@ async function run() {
   }
 
   console.log(serializedEvidence);
+  if (writeEvidence) {
+    writeFileSync(productionSmokeEvidencePath, `${serializedEvidence}\n`);
+    console.error("Vanta Private Pool v2 production smoke evidence: WROTE ops/mainnet/private-pool-v2-production-smoke.evidence.json");
+  }
   console.error("Vanta Private Pool v2 production smoke: PASS");
 }
 

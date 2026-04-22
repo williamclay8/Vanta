@@ -113,6 +113,17 @@ async function waitForHealth(baseUrl) {
   throw new Error(`Private Pool v2 service did not become healthy at ${baseUrl}.`);
 }
 
+function serviceNetworkTestEnv(overrides = {}) {
+  return {
+    ...Object.fromEntries(
+      Object.entries(process.env).filter(
+        ([name]) => !name.startsWith("VANTA_PRIVATE_POOL_V2_") && name !== "NODE_ENV",
+      ),
+    ),
+    ...overrides,
+  };
+}
+
 for (const service of services) {
   assert(
     existsSync(resolve(repoRoot, service.startFile)),
@@ -131,10 +142,9 @@ try {
   for (const [index, service] of services.entries()) {
     const insecureProduction = spawn("npm", ["run", service.script, "--", "--port", String(basePort + 100 + index)], {
       cwd: repoRoot,
-      env: {
-        ...process.env,
+      env: serviceNetworkTestEnv({
         NODE_ENV: "production",
-      },
+      }),
       stdio: ["ignore", "pipe", "pipe"],
     });
     let insecureStderr = "";
@@ -156,11 +166,10 @@ try {
       ["run", service.script, "--", "--port", String(basePort + 200 + index)],
       {
         cwd: repoRoot,
-        env: {
-          ...process.env,
+        env: serviceNetworkTestEnv({
           NODE_ENV: "production",
           [service.tokenEnv]: authToken,
-        },
+        }),
         stdio: ["ignore", "pipe", "pipe"],
       },
     );
@@ -183,18 +192,17 @@ try {
       ["run", service.script, "--", "--port", String(basePort + 300 + index)],
       {
         cwd: repoRoot,
-    env: {
-      ...process.env,
-      NODE_ENV: "production",
-      [service.role === "indexer"
-        ? "VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL"
-        : service.role === "prover"
-          ? "VANTA_PRIVATE_POOL_V2_PROVER_DATABASE_URL"
-          : service.role === "relayer"
-            ? "VANTA_PRIVATE_POOL_V2_RELAYER_DATABASE_URL"
-            : "VANTA_PRIVATE_POOL_V2_VERIFIER_DATABASE_URL"]: `postgresql://vanta.invalid/private-pool-v2-${service.role}`,
-      [service.tokenEnv]: authToken,
-    },
+        env: serviceNetworkTestEnv({
+          NODE_ENV: "production",
+          [service.role === "indexer"
+            ? "VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL"
+            : service.role === "prover"
+              ? "VANTA_PRIVATE_POOL_V2_PROVER_DATABASE_URL"
+              : service.role === "relayer"
+                ? "VANTA_PRIVATE_POOL_V2_RELAYER_DATABASE_URL"
+                : "VANTA_PRIVATE_POOL_V2_VERIFIER_DATABASE_URL"]: `postgresql://vanta.invalid/private-pool-v2-${service.role}`,
+          [service.tokenEnv]: authToken,
+        }),
         stdio: ["ignore", "pipe", "pipe"],
       },
     );
@@ -225,8 +233,7 @@ try {
     serviceUrls.set(service.role, baseUrl);
     const child = spawn("npm", ["run", service.script, "--", "--port", String(port)], {
       cwd: repoRoot,
-      env: {
-        ...process.env,
+      env: serviceNetworkTestEnv({
         [service.tokenEnv]: authToken,
         ...(service.role === "indexer"
           ? { VANTA_PRIVATE_POOL_V2_INDEXER_STORE_PATH: indexerStorePath }
@@ -241,7 +248,7 @@ try {
             }
           : {}),
         VANTA_PRIVATE_POOL_V2_INDEXER_URL: serviceUrls.get("indexer") ?? "",
-      },
+      }),
       stdio: ["ignore", "pipe", "pipe"],
     });
     let stderr = "";
@@ -325,11 +332,10 @@ try {
 
   const restartedProver = spawn("npm", ["run", "private-pool-v2:prover", "--", "--port", String(basePort + 1)], {
     cwd: repoRoot,
-    env: {
-      ...process.env,
+    env: serviceNetworkTestEnv({
       VANTA_PRIVATE_POOL_V2_PROVER_AUTH_TOKEN: authToken,
       VANTA_PRIVATE_POOL_V2_PROVER_STORE_PATH: proverStorePath,
-    },
+    }),
     stdio: ["ignore", "pipe", "pipe"],
   });
   let restartedProverStderr = "";
@@ -367,13 +373,12 @@ try {
 
   const restartedVerifier = spawn("npm", ["run", "private-pool-v2:verifier", "--", "--port", String(basePort + 3)], {
     cwd: repoRoot,
-    env: {
-      ...process.env,
+    env: serviceNetworkTestEnv({
       VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN: authToken,
       VANTA_PRIVATE_POOL_V2_INDEXER_URL: serviceUrls.get("indexer"),
       VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN: authToken,
       VANTA_PRIVATE_POOL_V2_VERIFIER_STORE_PATH: verifierStorePath,
-    },
+    }),
     stdio: ["ignore", "pipe", "pipe"],
   });
   let restartedVerifierStderr = "";
@@ -403,11 +408,10 @@ try {
 
   const restartedIndexer = spawn("npm", ["run", "private-pool-v2:indexer", "--", "--port", String(basePort)], {
     cwd: repoRoot,
-    env: {
-      ...process.env,
+    env: serviceNetworkTestEnv({
       VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN: authToken,
       VANTA_PRIVATE_POOL_V2_INDEXER_STORE_PATH: indexerStorePath,
-    },
+    }),
     stdio: ["ignore", "pipe", "pipe"],
   });
   let restartedIndexerStderr = "";
@@ -456,11 +460,10 @@ try {
 
   const restartedRelayer = spawn("npm", ["run", "private-pool-v2:relayer", "--", "--port", String(basePort + 2)], {
     cwd: repoRoot,
-    env: {
-      ...process.env,
+    env: serviceNetworkTestEnv({
       VANTA_PRIVATE_POOL_V2_RELAYER_AUTH_TOKEN: authToken,
       VANTA_PRIVATE_POOL_V2_RELAYER_STORE_PATH: relayerStorePath,
-    },
+    }),
     stdio: ["ignore", "pipe", "pipe"],
   });
   let restartedRelayerStderr = "";
@@ -486,8 +489,7 @@ try {
   const operatorBaseUrl = `http://127.0.0.1:${operatorPort}`;
   const operator = spawn("npm", ["run", "private-pool-v2:operator"], {
     cwd: repoRoot,
-    env: {
-      ...process.env,
+    env: serviceNetworkTestEnv({
       VANTA_PRIVATE_POOL_V2_ALLOW_INSECURE_LOOPBACK_REMOTE_SERVICES: "true",
       VANTA_PRIVATE_POOL_V2_DATABASE_URL: "",
       VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN: authToken,
@@ -502,7 +504,7 @@ try {
       VANTA_PRIVATE_POOL_V2_STORE_PATH: join(tempRoot, "operator-remote-service-network.json"),
       VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN: authToken,
       VANTA_PRIVATE_POOL_V2_VERIFIER_URL: serviceUrls.get("verifier"),
-    },
+    }),
     stdio: ["ignore", "pipe", "pipe"],
   });
   let operatorStderr = "";

@@ -311,8 +311,26 @@ npm run mainnet:private-pool-v2-production-smoke-check
 When the role-service URLs and auth tokens are present in the shell from the secret manager, run the live no-real-funds production smoke with:
 
 ```bash
+npm run mainnet:private-pool-v2-production-smoke-env
 npm run mainnet:private-pool-v2-production-smoke-live
 ```
+
+To update the checked sanitized evidence file after a successful live no-real-funds smoke, run:
+
+```bash
+npm run mainnet:private-pool-v2-production-smoke-write
+npm run mainnet:production-smoke-evidence-check
+```
+
+The environment precheck prints only set/missing status and service URL hosts. It must be used instead of ad hoc shell loops so zsh/bash differences do not cause operator confusion and so auth token values are never printed.
+
+If the `VANTA_PRIVATE_POOL_V2_*_URL` values are not present in the shell, the precheck and live smoke runner use the checked production service URLs from:
+
+```text
+ops/mainnet/private-pool-v2-services.manifest.json
+```
+
+Auth token values still must come from the operator shell or secret manager and are never read from Git.
 
 The sanitized production smoke evidence manifest is:
 
