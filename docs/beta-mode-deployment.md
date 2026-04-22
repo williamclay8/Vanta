@@ -78,4 +78,4 @@ npm run build
 VITE_VANTA_DEPLOYMENT_MODE=production
 ```
 
-Production mode still does not make Vanta mainnet-ready by itself. Mainnet requires the remaining approval gates, audit/legal/custody review, backup/restore evidence, and explicit real-funds approval.
+Production mode still does not make Vanta production-ready by itself. The current mainnet-beta posture relies on bounded real-funds approval plus accepted launch risks for skipped audit/legal/custody review, secret-manager audit/rotation evidence, Pay restore readback, and provider backup/restore controls.

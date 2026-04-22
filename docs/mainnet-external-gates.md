@@ -257,9 +257,9 @@ The current approval-gate evidence surface is:
 ops/mainnet/mainnet-approval-gates.evidence.json
 ```
 
-It records the difference between technical evidence already captured and approvals that are still blocked. It is references-only and must remain `mainnetReady: false`, `productionReady: false`, and `realFundsAllowed: false` until third-party audit, legal/compliance/custody review, and explicit mainnet funds approval are actually complete. Do not store legal advice text, under-NDA audit contents, wallet keys, pre-signed transactions, or credential values in this repo.
+It records the difference between technical evidence already captured, accepted launch risks, and bounded approval. It is references-only and must remain `mainnetReady: false` and `productionReady: false`; `realFundsAllowed` is true only for the bounded beta private-pool smoke approval. Do not store legal advice text, under-NDA audit contents, wallet keys, pre-signed transactions, or credential values in this repo.
 
-Operator decision on April 22, 2026: audit and legal/compliance/custody reviews were skipped. This is recorded as `skipped-by-operator-not-cleared`, not as approval.
+Operator decision on April 22, 2026: third-party security audit, legal/compliance/custody review, secret-manager audit/rotation evidence, Pay restore readback, and provider backup/PITR/encryption/access-audit/least-privilege evidence were skipped and accepted as launch risks. This is not approval and not evidence that those controls passed.
 
 The real-funds approval packet is:
 
@@ -308,10 +308,10 @@ Do not provide raw token values, wallet material, database passwords, seed phras
 
 ## Current Truth
 
-This packet is intentionally blocked. It is a launch checklist and evidence contract, not a production claim.
+This packet is a launch checklist and evidence contract, not a production claim.
 
-Vanta remains not mainnet-ready until the packet is filled with real external evidence, the canonical checks pass, third-party security audit is complete, legal/compliance/custody review is complete, and a human explicitly approves any real mainnet funds movement.
+Vanta remains not production-ready. The current packet records a bounded real-funds approval plus accepted risks for skipped audit, legal/compliance/custody, secret-manager audit/rotation, Pay restore readback, and provider backup controls.
 
-The current approval status lives in `ops/mainnet/mainnet-approval-gates.evidence.json`. It links completed technical evidence without turning that evidence into audit, legal, custody, backup, or funds approval.
+The current approval status lives in `ops/mainnet/mainnet-approval-gates.evidence.json`. It links completed technical evidence without turning that evidence into audit, legal, custody, backup, or unrestricted funds approval.
 
 External reviewers must treat legal, compliance, and custody as a separate launch gate, not as an engineering-only checklist item.

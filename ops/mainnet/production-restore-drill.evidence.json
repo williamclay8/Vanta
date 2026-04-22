@@ -25,7 +25,7 @@
         "settlement-table-present",
         "operator-event-table-present"
       ],
-      "blockedUntil": [
+      "acceptedRisks": [
         "backup-policy-confirmed",
         "pitr-enabled",
         "encrypted-backups-enabled",
@@ -50,7 +50,7 @@
         "settlement-table-present",
         "operator-event-table-present"
       ],
-      "blockedUntil": [
+      "acceptedRisks": [
         "backup-policy-confirmed",
         "pitr-enabled",
         "encrypted-backups-enabled",
@@ -82,7 +82,7 @@
         "role-snapshot-table-present",
         "role-snapshot-index-present"
       ],
-      "blockedUntil": [
+      "acceptedRisks": [
         "backup-policy-confirmed",
         "pitr-enabled",
         "encrypted-backups-enabled",
@@ -107,7 +107,7 @@
         "settlement-table-present",
         "operator-event-table-present"
       ],
-      "blockedUntil": [
+      "acceptedRisks": [
         "backup-policy-confirmed",
         "pitr-enabled",
         "encrypted-backups-enabled",
@@ -121,10 +121,10 @@
     "Private Pool v2 core restore readback passed",
     "Private Pool v2 role-service restore readback passed",
     "Strategy restore readback passed",
-    "Pay restore readback remains pending",
+    "Pay restore readback was skipped and accepted as launch risk",
     "productionReady remains false",
     "mainnetReady remains false",
-    "backup policy, PITR, encryption, access audit, and least-privilege restore evidence remain pending",
+    "backup policy, PITR, encryption, access audit, and least-privilege restore evidence were skipped and accepted as launch risk",
     "not third-party audit evidence",
     "not legal or custody approval",
     "not mainnet funds approval"

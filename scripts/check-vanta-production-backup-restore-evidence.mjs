@@ -15,7 +15,7 @@ assert.equal(evidence.version, "vanta-production-backup-restore-evidence-0.1");
 assert.equal(evidence.mainnetReady, false);
 assert.equal(evidence.productionReady, false);
 assert.equal(evidence.secretPolicy, "references-only-no-credentials");
-assert.equal(evidence.status, "partial-readback-only");
+assert.equal(evidence.status, "readback-recorded-with-accepted-risks");
 assert.equal(evidence.templateRef, "ops/mainnet/production-backup-restore.template.json");
 assert.equal(evidence.migrationEvidenceRef, "ops/mainnet/production-migration-evidence.manifest.json");
 assert.equal(evidence.restoreDrillEvidenceRef, "ops/mainnet/production-restore-drill.evidence.json");
@@ -38,7 +38,7 @@ for (const id of [
 ]) {
   const gate = evidence.globalEvidence.find((candidate) => candidate.id === id);
   assert.ok(gate, `Missing backup/restore global evidence gate: ${id}.`);
-  assert.equal(gate.status, "pending", `${id} must stay pending until external provider evidence exists.`);
+  assert.equal(gate.status, "skipped-accepted-risk", `${id} must be tracked as accepted risk.`);
   assert.ok(gate.requiredRefPattern, `${id} must describe the reference pattern operators need to collect.`);
 }
 
@@ -47,7 +47,7 @@ const requiredStores = new Map([
     "pay",
     {
       refs: ["VANTA_PAY_DATABASE_URL_REF"],
-      readback: "pending",
+      readback: "skipped-accepted-risk",
     },
   ],
   ["privatePoolV2", { refs: ["VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF"], readback: "passed" }],
@@ -73,20 +73,21 @@ for (const [storeId, expectation] of requiredStores) {
   assert.deepEqual(store.databaseRefs, expectation.refs, `${storeId} database refs drifted.`);
   assert.equal(store.migrationStatus, expectation.migration ?? "applied-operator-reported");
   assert.equal(store.restoreReadbackStatus, expectation.readback, `${storeId} restore readback status drifted.`);
-  assert.equal(store.backupControlStatus, "pending", `${storeId} backup controls must remain pending until provider evidence exists.`);
+  assert.equal(store.backupControlStatus, "skipped-accepted-risk", `${storeId} backup controls must be tracked as accepted risk.`);
+  assert.ok(Array.isArray(store.acceptedRisks), `${storeId} must list accepted backup/restore risks.`);
 
-  for (const blocker of [
+  for (const acceptedRisk of [
     "backup-policy-confirmed",
     "pitr-enabled",
     "encrypted-backups-enabled",
     "backup-access-audit-enabled",
     "least-privilege-restore-user-confirmed",
   ]) {
-    assert.ok(store.blockedUntil.includes(blocker), `${storeId} missing blocker: ${blocker}.`);
+    assert.ok(store.acceptedRisks.includes(acceptedRisk), `${storeId} missing accepted risk: ${acceptedRisk}.`);
   }
 
-  if (expectation.readback === "pending") {
-    assert.ok(store.blockedUntil.includes("restore-readback-passed"), `${storeId} must block on restore readback.`);
+  if (expectation.readback === "skipped-accepted-risk") {
+    assert.ok(store.acceptedRisks.includes("restore-readback-passed"), `${storeId} must track skipped restore readback.`);
   } else {
     assert.ok(store.restoreDrillRef?.startsWith("restore-drill/"), `${storeId} passed readback must cite restore drill ref.`);
   }
@@ -96,16 +97,16 @@ for (const limitation of [
   "productionReady remains false",
   "mainnetReady remains false",
   "readback passed for Private Pool v2 core, Private Pool v2 role-service storage, Strategy, and operator/control-plane storage",
-  "Pay restore readback remains pending",
-  "backup policy, PITR, encrypted backup, access audit, and least-privilege restore-user evidence remain pending",
-  "operator chose to skip provider backup/restore control collection for now",
+  "Pay restore readback was skipped and accepted as launch risk",
+  "backup policy, PITR, encrypted backup, access audit, and least-privilege restore-user evidence were skipped and accepted as launch risk",
+  "operator chose to remove provider backup/restore control collection from active blockers",
 ]) {
   assert.ok(evidence.limitations.includes(limitation), `Backup/restore evidence missing limitation: ${limitation}.`);
 }
 
 for (const action of [
-  "provider backup policy refs skipped by operator for now",
-  "run restore readback for Pay",
+  "keep accepted backup/restore risks visible in launch docs",
+  "reopen Pay restore readback only if the launch scope changes",
 ]) {
   assert.ok(evidence.nextOperatorActions.includes(action), `Backup/restore evidence missing next action: ${action}.`);
 }

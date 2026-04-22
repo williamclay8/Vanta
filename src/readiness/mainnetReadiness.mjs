@@ -17,19 +17,9 @@ const blockers = [
     summary: "Move the reusable nullifier replay guard from local operator enforcement into the final deployed protocol enforcement layer.",
   },
   {
-    id: "secure-key-secret-handling",
-    severity: "critical",
-    summary: "Add production secret storage, key rotation, auth boundaries, and incident controls.",
-  },
-  {
     id: "wallet-backed-browser-signing-safety",
     severity: "critical",
     summary: "Require browser simulation and explicit wallet approval before any real transaction signature.",
-  },
-  {
-    id: "third-party-security-audit",
-    severity: "critical",
-    summary: "Complete independent review of circuits, operators, custody assumptions, and web app boundaries.",
   },
   {
     id: "mainnet-deployment-runbook",
@@ -42,14 +32,37 @@ const blockers = [
     summary: "Implement the checked abuse/observability contract with production rate limits, metrics, alerts, audit logs, and operator dashboards.",
   },
   {
-    id: "legal-compliance-custody-review",
-    severity: "high",
-    summary: "Complete legal, compliance, custody, and merchant-processing review before real funds.",
-  },
-  {
     id: "no-mainnet-funds-without-explicit-approval",
     severity: "critical",
     summary: "Allow only the bounded beta mainnet private-pool smoke approved in the real-funds packet; keep all other mainnet transactions and real-fund movement blocked.",
+  },
+];
+
+const acceptedRisks = [
+  {
+    id: "pay-restore-readback-skipped",
+    severity: "high",
+    summary: "Pay restore readback was skipped by operator decision and accepted as launch risk; this is not restore evidence.",
+  },
+  {
+    id: "provider-backup-pitr-encryption-access-audit-least-privilege-skipped",
+    severity: "high",
+    summary: "Provider backup/PITR/encryption/access-audit/least-privilege evidence was skipped by operator decision and accepted as launch risk.",
+  },
+  {
+    id: "secret-manager-audit-rotation-evidence-skipped",
+    severity: "critical",
+    summary: "Secret-manager audit and rotation evidence was skipped by operator decision and accepted as launch risk; this is not a secret-handling maturity claim.",
+  },
+  {
+    id: "third-party-security-audit-skipped",
+    severity: "critical",
+    summary: "Third-party security audit was skipped by operator decision and accepted as launch risk; this is not an audit claim.",
+  },
+  {
+    id: "legal-compliance-custody-skipped",
+    severity: "high",
+    summary: "Legal, compliance, and custody review was skipped by operator decision and accepted as launch risk; this is not legal or custody approval.",
   },
 ];
 
@@ -131,13 +144,12 @@ const requiredCommands = [
 
 const nextActions = [
   "Execute only the approved bounded beta mainnet private-pool smoke, or return the real-funds approval packet to pending before changing the action, launch window, fee payer, or maximum funds at risk.",
-  "Keep Private Pool v2 production smoke evidence fresh while adding observability, backup/restore, audit, legal/custody, and explicit funds-approval evidence.",
-  "Attach real production database refs to the checked Pay, Private Pool v2 role, Strategy, and Operator storage adapters, then capture backup/restore evidence.",
+  "Keep Private Pool v2 production smoke evidence fresh and require a new bounded approval before expanding live mainnet actions.",
+  "Keep accepted launch risks visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
   "Use provider-neutral production observability evidence, existing platform logs, or a future provider instead of Better Stack production monitors.",
   "Move nullifier replay guard persistence behind the production storage adapter and final deployed enforcement layer.",
   "Add a checked mainnet deployment runbook with rollback, monitoring, rate limits, and incident response.",
   "Add wallet-backed transaction simulation surfaces before any live signing path.",
-  "Prepare audit package for circuits, operators, browser flows, and custody assumptions.",
 ];
 
 export function createVantaMainnetReadinessSnapshot() {
@@ -151,6 +163,7 @@ export function createVantaMainnetReadinessSnapshot() {
     blockers,
     decision: "blocked",
     generatedAt: new Date(0).toISOString(),
+    acceptedRisks,
     lanes,
     mainnetReady: false,
     nextActions,

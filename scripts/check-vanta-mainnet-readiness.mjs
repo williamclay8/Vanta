@@ -12,23 +12,25 @@ assert.equal(snapshot.privacyRail.meaningfulPrivacyReady, false);
 assert.equal(snapshot.privacyRail.activeRail.canClaimMeaningfulPrivacy, false);
 assert.ok(snapshot.privacyRail.userFacingRule.includes("Do not claim meaningful privacy"));
 assert.ok(snapshot.score >= 0 && snapshot.score <= 100, "Readiness score must be a percentage.");
-assert.ok(snapshot.blockers.length >= 8, "Mainnet readiness must enumerate concrete blockers.");
+assert.ok(snapshot.blockers.length >= 6, "Mainnet readiness must enumerate concrete blockers.");
 assert.ok(
   snapshot.blockers.some((blocker) => blocker.id === "real-mainnet-private-settlement"),
   "Missing private-settlement blocker.",
 );
 assert.ok(
-  snapshot.blockers.some((blocker) => blocker.id === "third-party-security-audit"),
-  "Missing audit blocker.",
-);
-assert.ok(
-  snapshot.blockers.some((blocker) => blocker.id === "secure-key-secret-handling"),
-  "Missing key/secret blocker.",
-);
-assert.ok(
   snapshot.blockers.some((blocker) => blocker.id === "no-mainnet-funds-without-explicit-approval"),
   "Missing mainnet funds approval blocker.",
 );
+const acceptedRiskIds = new Set((snapshot.acceptedRisks ?? []).map((risk) => risk.id));
+for (const riskId of [
+  "pay-restore-readback-skipped",
+  "provider-backup-pitr-encryption-access-audit-least-privilege-skipped",
+  "secret-manager-audit-rotation-evidence-skipped",
+  "third-party-security-audit-skipped",
+  "legal-compliance-custody-skipped",
+]) {
+  assert.ok(acceptedRiskIds.has(riskId), `Mainnet readiness missing accepted risk: ${riskId}.`);
+}
 assert.ok(
   snapshot.blockers
     .find((blocker) => blocker.id === "no-mainnet-funds-without-explicit-approval")
@@ -204,8 +206,8 @@ assert.ok(
   "Next actions must include provider-neutral production observability setup.",
 );
 assert.ok(
-  snapshot.nextActions.some((action) => action.includes("backup")),
-  "Next actions must include backup/restore evidence setup.",
+  snapshot.nextActions.some((action) => action.includes("accepted launch risks")),
+  "Next actions must preserve accepted launch risk visibility.",
 );
 
 console.log("Vanta mainnet readiness check: PASS");

@@ -129,7 +129,7 @@ npm run mainnet:backup-restore-status
 npm run mainnet:backup-restore-status-json
 ```
 
-It records that production migrations are operator-reported/read back for Pay, Private Pool v2 core, Private Pool v2 role-service storage, Strategy, and operator/control-plane storage. Pay restore readback, backup policy, PITR, encrypted backup, access audit, and least-privilege restore-user evidence remain pending.
+It records that production migrations are operator-reported/read back for Pay, Private Pool v2 core, Private Pool v2 role-service storage, Strategy, and operator/control-plane storage. Pay restore readback, backup policy, PITR, encrypted backup, access audit, and least-privilege restore-user evidence were skipped by operator decision and are tracked as accepted launch risks.
 
 The current restore drill evidence surface is:
 
@@ -139,7 +139,7 @@ npm run mainnet:production-restore-drill-evidence-check
 npm run mainnet:production-restore-drill-readback
 ```
 
-It records that the operator/control-plane restore target passed readback for `VANTA_OPERATOR_DATABASE_URL_REF`, the Private Pool v2 core restore target passed readback for `VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF`, and the restored production copy has readback evidence for Private Pool v2 role-service storage and Strategy storage. It does not clear Pay readback, backup policy, PITR, encrypted backup, access audit, or least-privilege restore gates. Run readback with `DATABASE_URL` set in the local shell or secret-manager context only; never paste database URLs into chat, docs, git, screenshots, or issue trackers.
+It records that the operator/control-plane restore target passed readback for `VANTA_OPERATOR_DATABASE_URL_REF`, the Private Pool v2 core restore target passed readback for `VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF`, and the restored production copy has readback evidence for Private Pool v2 role-service storage and Strategy storage. Pay readback and provider backup controls are accepted launch risks, not completed evidence. Run readback with `DATABASE_URL` set in the local shell or secret-manager context only; never paste database URLs into chat, docs, git, screenshots, or issue trackers.
 
 The production DB refs handoff is:
 
@@ -406,9 +406,9 @@ npm run mainnet:approval-gates-status-json
 npm run mainnet:approval-gates-evidence-check
 ```
 
-This file records which technical evidence has been captured without clearing external approvals. It must keep `mainnetReady: false`, `productionReady: false`, and `realFundsAllowed: false` until third-party audit, legal/compliance/custody review, provider backup controls, Pay restore readback, and explicit mainnet funds approval are actually complete.
+This file records which technical evidence has been captured, which risks were accepted, and which bounded real-funds action is approved. It must keep `mainnetReady: false` and `productionReady: false`; `realFundsAllowed` is true only for the bounded beta private-pool smoke approval.
 
-Operator decision on April 22, 2026: audit and legal/compliance/custody reviews were skipped. The status is `skipped-by-operator-not-cleared`, not approved.
+Operator decision on April 22, 2026: audit, legal/compliance/custody review, secret-manager audit/rotation evidence, Pay restore readback, and provider backup/PITR/encryption/access-audit/least-privilege evidence were skipped and accepted as launch risks. This is not approval and not evidence that those controls passed.
 
 The real-funds approval packet is:
 
@@ -535,7 +535,7 @@ ops/mainnet/secret-references.manifest.json
 
 It stores reference names only. It must never contain raw secret values, raw database URLs, bearer tokens, webhook secrets, private keys, seed phrases, or wallet keypair files.
 
-Current staging refs use `render-env-var-staging` for the verified Render Pay and Private Pool v2 services. Production refs remain blocked behind `production-secret-manager-required` until a real secret manager, service identities, rotation runbook, revocation runbook, and access audit logs exist.
+Current staging refs use `render-env-var-staging` for the verified Render Pay and Private Pool v2 services. Production secret-manager audit and rotation evidence were skipped by operator decision and accepted as launch risk; keep this visible and do not present it as a completed secret-handling maturity control.
 
 Doppler has been selected as the production secret-manager target. The checked Doppler mapping template is:
 
@@ -545,7 +545,7 @@ ops/mainnet/production-secret-manager.template.json
 
 The template is references-only. It records the intended Doppler project/config refs, service identities, secret names, owners, rotation cadence, revocation runbook refs, and access-log refs. It must not contain Doppler service tokens or secret values.
 
-Before production, an operator still needs to create least-privilege Doppler service tokens outside git, verify Doppler access logs, and wire deployment services to read from Doppler rather than staging Render env vars.
+Before claiming production secret-handling maturity, an operator still needs to create least-privilege Doppler service tokens outside git, verify Doppler access logs, and wire deployment services to read from Doppler rather than staging Render env vars.
 
 The beginner-safe staging Doppler guide is:
 

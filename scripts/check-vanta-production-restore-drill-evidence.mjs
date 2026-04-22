@@ -111,16 +111,16 @@ for (const blocker of [
   "backup-access-audit-enabled",
   "least-privilege-restore-user-confirmed",
 ]) {
-  assert.ok(operatorTarget.blockedUntil.includes(blocker), `Operator restore drill evidence missing blocker: ${blocker}.`);
+  assert.ok(operatorTarget.acceptedRisks.includes(blocker), `Operator restore drill evidence missing accepted risk: ${blocker}.`);
   assert.ok(
-    privatePoolCoreTarget.blockedUntil.includes(blocker),
-    `Private Pool v2 core restore drill evidence missing blocker: ${blocker}.`,
+    privatePoolCoreTarget.acceptedRisks.includes(blocker),
+    `Private Pool v2 core restore drill evidence missing accepted risk: ${blocker}.`,
   );
   assert.ok(
-    privatePoolRolesTarget.blockedUntil.includes(blocker),
-    `Private Pool v2 roles restore drill evidence missing blocker: ${blocker}.`,
+    privatePoolRolesTarget.acceptedRisks.includes(blocker),
+    `Private Pool v2 roles restore drill evidence missing accepted risk: ${blocker}.`,
   );
-  assert.ok(strategyTarget.blockedUntil.includes(blocker), `Strategy restore drill evidence missing blocker: ${blocker}.`);
+  assert.ok(strategyTarget.acceptedRisks.includes(blocker), `Strategy restore drill evidence missing accepted risk: ${blocker}.`);
 }
 
 for (const limitation of [
@@ -128,10 +128,10 @@ for (const limitation of [
   "Private Pool v2 core restore readback passed",
   "Private Pool v2 role-service restore readback passed",
   "Strategy restore readback passed",
-  "Pay restore readback remains pending",
+  "Pay restore readback was skipped and accepted as launch risk",
   "productionReady remains false",
   "mainnetReady remains false",
-  "backup policy, PITR, encryption, access audit, and least-privilege restore evidence remain pending",
+  "backup policy, PITR, encryption, access audit, and least-privilege restore evidence were skipped and accepted as launch risk",
 ]) {
   assert.ok(evidence.limitations.includes(limitation), `Restore drill evidence missing limitation: ${limitation}.`);
 }

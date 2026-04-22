@@ -4,7 +4,7 @@
   "mainnetReady": false,
   "productionReady": false,
   "realFundsAllowed": true,
-  "status": "bounded-real-funds-approval-recorded",
+  "status": "bounded-real-funds-approval-recorded-with-accepted-risks",
   "secretPolicy": "references-only-no-secret-values",
   "realFundsPolicy": "explicit-human-approval-required",
   "templateRef": "ops/mainnet/mainnet-approval-gates.template.json",
@@ -24,13 +24,13 @@
     },
     {
       "id": "backup-restore-evidence",
-      "status": "partial",
+      "status": "accepted-risk",
       "ref": "ops/mainnet/production-backup-restore.evidence.json",
       "verificationCommand": "npm run mainnet:backup-restore-evidence-check"
     },
     {
       "id": "restore-drill-evidence",
-      "status": "partial-pay-readback-pending",
+      "status": "accepted-risk",
       "ref": "ops/mainnet/production-restore-drill.evidence.json",
       "verificationCommand": "npm run mainnet:production-restore-drill-evidence-check"
     },
@@ -50,8 +50,8 @@
   "gates": [
     {
       "id": "secret-manager-backed-credentials",
-      "status": "blocked",
-      "currentEvidenceStatus": "partial-refs-recorded",
+      "status": "accepted-risk",
+      "currentEvidenceStatus": "audit-rotation-evidence-skipped-by-operator",
       "requiresExternalApproval": true,
       "requiredRefs": [
         "VANTA_SECRET_MANAGER_REF",
@@ -61,11 +61,12 @@
         "VANTA_STRATEGY_DOPPLER_SERVICE_TOKEN_REF",
         "VANTA_OPERATOR_DOPPLER_SERVICE_TOKEN_REF"
       ],
-      "nextAction": "Record refs-only production secret-manager access audit, rotation, and least-privilege service-token evidence."
+      "operatorDecision": "Skipped by operator request on 2026-04-22. This does not create a secret-manager audit, rotation, revocation, or least-privilege claim, and does not make Vanta production-ready.",
+      "nextAction": "Keep secret values out of git and client bundles; reopen this gate before claiming production secret handling maturity."
     },
     {
       "id": "private-pool-v2-production-smoke",
-      "status": "blocked",
+      "status": "evidence-recorded",
       "currentEvidenceStatus": "recorded-no-real-funds",
       "requiresExternalApproval": true,
       "requiredRefs": [
@@ -75,12 +76,12 @@
         "VANTA_PRIVATE_POOL_V2_NULLIFIER_REPLAY_SMOKE_EVIDENCE_REF",
         "VANTA_PRIVATE_POOL_V2_PRODUCTION_SMOKE_EVIDENCE_MANIFEST_REF"
       ],
-      "nextAction": "Keep no-real-funds production smoke fresh while audit, legal/custody, backup/restore, and explicit funds approvals remain blocked."
+      "nextAction": "Keep no-real-funds production smoke fresh and require a new bounded approval before changing action, window, fee payer, or funds at risk."
     },
     {
       "id": "third-party-security-audit",
-      "status": "blocked",
-      "currentEvidenceStatus": "skipped-by-operator-not-cleared",
+      "status": "accepted-risk",
+      "currentEvidenceStatus": "skipped-by-operator-accepted-risk",
       "requiresExternalApproval": true,
       "requiredRefs": [
         "VANTA_AUDIT_SCOPE_REF",
@@ -88,13 +89,13 @@
         "VANTA_AUDIT_FINDINGS_DISPOSITION_REF",
         "VANTA_AUDIT_FIX_VERIFICATION_REF"
       ],
-      "operatorDecision": "Skipped by operator request on 2026-04-22. This does not clear the gate, does not create an audit claim, and does not make Vanta production-ready.",
+      "operatorDecision": "Skipped by operator request on 2026-04-22. This does not create an audit claim, and does not make Vanta production-ready.",
       "nextAction": "If this gate is later reopened, engage an independent reviewer and record refs-only audit scope, report, findings disposition, and fix verification artifacts."
     },
     {
       "id": "legal-compliance-custody",
-      "status": "blocked",
-      "currentEvidenceStatus": "skipped-by-operator-not-cleared",
+      "status": "accepted-risk",
+      "currentEvidenceStatus": "skipped-by-operator-accepted-risk",
       "requiresExternalApproval": true,
       "requiredRefs": [
         "VANTA_LEGAL_REVIEW_REF",
@@ -103,7 +104,7 @@
         "VANTA_SANCTIONS_POLICY_REF",
         "VANTA_MERCHANT_PROCESSING_POLICY_REF"
       ],
-      "operatorDecision": "Skipped by operator request on 2026-04-22. This does not clear the gate, does not create legal/compliance/custody approval, and does not make Vanta production-ready.",
+      "operatorDecision": "Skipped by operator request on 2026-04-22. This does not create legal/compliance/custody approval, and does not make Vanta production-ready.",
       "nextAction": "If this gate is later reopened, engage legal/compliance/custody reviewers and record refs-only approval or blocker artifacts."
     },
     {
@@ -133,12 +134,40 @@
     }
   ],
   "limitations": [
-    "Third-party security audit was skipped by operator decision and no audit approval has been recorded.",
-    "Legal, compliance, and custody review was skipped by operator decision and no approval has been recorded.",
+    "Third-party security audit was skipped by operator decision and accepted as launch risk; no audit approval has been recorded.",
+    "Legal, compliance, and custody review was skipped by operator decision and accepted as launch risk; no approval has been recorded.",
+    "Secret-manager audit and rotation evidence were skipped by operator decision and accepted as launch risk; no secret-handling maturity claim is made.",
     "Explicit mainnet real-funds approval is recorded only for beta private-pool smoke with maximum 0.05 SOL at risk.",
-    "Provider backup policy, PITR, encrypted backup, backup access audit, and least-privilege restore-user evidence were intentionally skipped and remain blocking.",
-    "Pay restore readback remains pending in backup/restore evidence.",
+    "Provider backup policy, PITR, encrypted backup, backup access audit, and least-privilege restore-user evidence were intentionally skipped and accepted as launch risk.",
+    "Pay restore readback was intentionally skipped and accepted as launch risk.",
     "No mainnet transactions or real funds are allowed outside the bounded approval recorded in this evidence file."
+  ],
+  "acceptedRisks": [
+    {
+      "id": "pay-restore-readback-skipped",
+      "acceptedByRef": "Clay / founder direction / 2026-04-22",
+      "effect": "Removed from active blockers; not evidence that Pay restore readback passed."
+    },
+    {
+      "id": "provider-backup-pitr-encryption-access-audit-least-privilege-skipped",
+      "acceptedByRef": "Clay / founder direction / 2026-04-22",
+      "effect": "Removed from active blockers; not evidence that provider backup controls exist."
+    },
+    {
+      "id": "secret-manager-audit-rotation-evidence-skipped",
+      "acceptedByRef": "Clay / founder direction / 2026-04-22",
+      "effect": "Removed from active blockers; not evidence of secret-manager audit or rotation."
+    },
+    {
+      "id": "third-party-security-audit-skipped",
+      "acceptedByRef": "Clay / founder direction / 2026-04-22",
+      "effect": "Removed from active blockers; not evidence of independent security review."
+    },
+    {
+      "id": "legal-compliance-custody-skipped",
+      "acceptedByRef": "Clay / founder direction / 2026-04-22",
+      "effect": "Removed from active blockers; not legal, compliance, or custody approval."
+    }
   ],
   "requiredVerificationCommands": [
     "npm run mainnet:approval-gates-check",
