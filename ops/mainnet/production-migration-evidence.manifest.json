@@ -12,10 +12,10 @@
   "targets": [
     {
       "targetRef": "VANTA_PAY_DATABASE_URL_REF",
-      "status": "applied-operator-reported",
-      "appliedAtUtc": "2026-04-21T03:51:37Z",
-      "schemaVersionRef": "schema_versions/VANTA_PAY_DATABASE_URL_REF/001",
-      "commandRef": "npm run mainnet:production-db-migration-apply"
+      "status": "pending-production-readback",
+      "schemaVersionRef": "schema_versions/VANTA_PAY_DATABASE_URL_REF/001-pending",
+      "commandRef": "npm run mainnet:production-db-migration-apply",
+      "note": "Render MCP read-only checks on 2026-04-22 did not find this schema_versions row in the inspected production databases or restored production copies."
     },
     {
       "targetRef": "VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF",
@@ -71,6 +71,7 @@
     "operator-reported evidence",
     "productionReady remains false",
     "mainnetReady remains false",
+    "Pay production migration remains pending production readback",
     "not a backup restore drill",
     "not third-party audit evidence",
     "not legal or custody approval",

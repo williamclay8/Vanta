@@ -23,6 +23,7 @@ if (jsonMode) {
   console.log("Stores");
   for (const store of evidence.stores) {
     console.log(`- ${store.id}`);
+    console.log(`  migration: ${store.migrationStatus}`);
     console.log(`  restore: ${store.restoreReadbackStatus}`);
     console.log(`  backups: ${store.backupControlStatus}`);
     console.log("  refs:");

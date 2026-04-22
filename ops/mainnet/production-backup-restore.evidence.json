@@ -14,7 +14,7 @@
   "templateRef": "ops/mainnet/production-backup-restore.template.json",
   "migrationEvidenceRef": "ops/mainnet/production-migration-evidence.manifest.json",
   "restoreDrillEvidenceRef": "ops/mainnet/production-restore-drill.evidence.json",
-  "summary": "Production schema migrations are operator-reported across the required database refs. Restore readback has passed for Private Pool v2 core, Private Pool v2 role-service storage, Strategy, and operator/control-plane storage. Pay restore readback remains pending. This evidence does not clear backup policy, PITR, encrypted backup, access-audit, least-privilege, audit, legal/custody, or mainnet-funds gates.",
+  "summary": "Production schema migrations are operator-reported/read back for Private Pool v2 core, Private Pool v2 role-service storage, Strategy, and operator/control-plane storage. Pay production migration and restore readback remain pending. This evidence does not clear backup policy, PITR, encrypted backup, access-audit, least-privilege, audit, legal/custody, or mainnet-funds gates.",
   "globalEvidence": [
     {
       "id": "backup-policy-confirmed",
@@ -48,7 +48,7 @@
       "databaseRefs": [
         "VANTA_PAY_DATABASE_URL_REF"
       ],
-      "migrationStatus": "applied-operator-reported",
+      "migrationStatus": "pending-production-readback",
       "restoreReadbackStatus": "pending",
       "backupControlStatus": "pending",
       "blockedUntil": [
@@ -135,6 +135,7 @@
   "limitations": [
     "productionReady remains false",
     "mainnetReady remains false",
+    "Pay production migration remains pending production readback",
     "readback passed for Private Pool v2 core, Private Pool v2 role-service storage, Strategy, and operator/control-plane storage",
     "Pay restore readback remains pending",
     "backup policy, PITR, encrypted backup, access audit, and least-privilege restore-user evidence remain pending",
@@ -147,6 +148,7 @@
     "encrypted backup evidence refs skipped by operator for now",
     "backup/access audit refs skipped by operator for now",
     "least-privilege restore/operator database user refs skipped by operator for now",
+    "apply and read back Pay production migration",
     "run restore readback for Pay"
   ]
 }
