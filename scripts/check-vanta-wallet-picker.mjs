@@ -61,8 +61,13 @@ requireIncludes(
 );
 requireIncludes(
   styles,
-  "z-index: 80",
+  "z-index: 120",
   "Wallet menu must layer above app cards with a high z-index.",
+);
+requireIncludes(
+  styles,
+  ".app-header {\n  position: relative;\n  z-index: 90;",
+  "App header stacking context must sit above app content so the wallet menu cannot render behind cards.",
 );
 requireIncludes(
   styles,
