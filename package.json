@@ -45,6 +45,8 @@
     "privacy-rail:contract-check": "node scripts/check-vanta-privacy-rail-contract.mjs",
     "mainnet:approval-gates-check": "node scripts/check-vanta-mainnet-approval-gates.mjs",
     "mainnet:approval-gates-evidence-check": "node scripts/check-vanta-mainnet-approval-gates-evidence.mjs",
+    "mainnet:approval-gates-status": "node scripts/print-vanta-mainnet-approval-gates-status.mjs",
+    "mainnet:approval-gates-status-json": "node scripts/print-vanta-mainnet-approval-gates-status.mjs --json",
     "wallet:signing-safety-check": "node scripts/check-vanta-wallet-signing-safety.mjs",
     "wallet:browser-signing-safety-check": "node scripts/check-vanta-wallet-browser-signing-safety.mjs",
     "wallet:picker-check": "node scripts/check-vanta-wallet-picker.mjs",

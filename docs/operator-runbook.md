@@ -401,6 +401,8 @@ ops/mainnet/mainnet-approval-gates.evidence.json
 Verify it with:
 
 ```bash
+npm run mainnet:approval-gates-status
+npm run mainnet:approval-gates-status-json
 npm run mainnet:approval-gates-evidence-check
 ```
 

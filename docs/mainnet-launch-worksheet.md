@@ -166,6 +166,7 @@ As of April 20, 2026:
 - Private Pool v2 production service setup guide: `docs/production-private-pool-v2-service-setup.md` records the current Render inventory and deployed production indexer, prover, relayer, verifier, and operator services.
 - Mainnet approval gates template: `ops/mainnet/mainnet-approval-gates.template.json` records refs for secret-manager-backed credentials, production smoke evidence, third-party audit, legal/compliance/custody review, and explicit mainnet-funds approval.
 - Mainnet approval gates evidence: `ops/mainnet/mainnet-approval-gates.evidence.json` records the current launch-control truth: technical smoke/migration/partial restore evidence is linked, but audit, legal/compliance/custody, provider backup controls, Pay restore readback, and explicit mainnet funds approval are still blocked.
+- Mainnet approval gates status: `npm run mainnet:approval-gates-status` prints the current gate state without exposing secrets.
 - Security reviewer: not chosen.
 - Legal/compliance reviewer: not chosen.
 - Target environment: staging first.

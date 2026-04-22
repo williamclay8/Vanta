@@ -116,6 +116,8 @@ const requiredCommands = [
   "npm run mainnet:secret-handling-check",
   "npm run mainnet:approval-gates-check",
   "npm run mainnet:approval-gates-evidence-check",
+  "npm run mainnet:approval-gates-status",
+  "npm run mainnet:approval-gates-status-json",
   "npm run audit:package-check",
   "npm run security:limitations-check",
   "npm run operator:runbook-check",

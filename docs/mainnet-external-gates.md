@@ -238,6 +238,7 @@ Verification:
 
 ```bash
 npm run mainnet:readiness-check
+npm run mainnet:approval-gates-status
 npm run mainnet:approval-gates-check
 npm run mainnet:approval-gates-evidence-check
 npm run wallet:transaction-safety-check
