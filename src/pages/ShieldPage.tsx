@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSendTransaction } from "@solana/react-hooks";
+import { isBetaMode } from "@/config/deploymentMode";
 import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
 import { useWalletState } from "@/data/context/WalletContext";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
@@ -660,6 +661,10 @@ export function ShieldPage(_props: ShieldPageProps) {
   ]);
 
   async function handleShield() {
+    if (isBetaMode) {
+      return;
+    }
+
     if (
       !isAmountValid ||
       !selectedSourceAsset ||
@@ -727,6 +732,8 @@ export function ShieldPage(_props: ShieldPageProps) {
 
   if (!walletConnected) {
     validationMessage = "Connect a wallet to shield assets.";
+  } else if (isBetaMode) {
+    validationMessage = "Beta mode keeps shielding visible but prevents live transfers while production services are offline.";
   } else if (publicAssetsLoading) {
     validationMessage = "Loading wallet assets.";
   } else if (publicAssetsError) {
@@ -868,13 +875,14 @@ export function ShieldPage(_props: ShieldPageProps) {
                     void handleShield();
                   }}
                   disabled={
+                    isBetaMode ||
                     !isAmountValid ||
                     status === "routing_public_swap" ||
                     status === "shielding_in_progress" ||
                     status === "entering_shielded_state"
                   }
                 >
-                  Shield asset
+                  {isBetaMode ? "Beta mode" : "Shield asset"}
                 </button>
               </div>
             </div>

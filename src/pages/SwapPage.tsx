@@ -3,6 +3,7 @@ import {
   useSendTransaction,
   useWalletSession,
 } from "@solana/react-hooks";
+import { isBetaMode } from "@/config/deploymentMode";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
 import {
   formatAssetAmount,
@@ -799,6 +800,10 @@ export function SwapPage() {
   }
 
   async function handleSwap() {
+    if (isBetaMode) {
+      return;
+    }
+
     if (!selectedShieldAsset.mintAddress) {
       return;
     }
@@ -833,6 +838,8 @@ export function SwapPage() {
 
   if (!walletConnected) {
     validationMessage = "Connect a wallet to swap.";
+  } else if (isBetaMode) {
+    validationMessage = "Beta mode keeps Swap visible but prevents live route execution while production services are offline.";
   } else if (sourcePairCapability.status !== "live") {
     validationMessage =
       sourcePairCapability.blockers[0] ??
@@ -998,13 +1005,14 @@ export function SwapPage() {
                     void handleSwap();
                   }}
                   disabled={
+                    isBetaMode ||
                     !isReady ||
                     status === "recording_transition" ||
                     status === "authorizing_operator" ||
                     status === "finalizing_state"
                   }
                 >
-                  {`Swap to shielded ${selectedTargetAsset}`}
+                  {isBetaMode ? "Beta mode" : `Swap to shielded ${selectedTargetAsset}`}
                 </button>
               </div>
             </div>

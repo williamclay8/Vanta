@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { BrandMark } from "@/components/BrandMark";
+import { isBetaMode } from "@/config/deploymentMode";
 import { useWalletState } from "@/data/context/WalletContext";
 
 const appLinks = [
@@ -75,6 +76,13 @@ export function AppLayout() {
       <div className="app-shell__grid" aria-hidden="true" />
       <div className="app-shell__glow app-shell__glow--left" aria-hidden="true" />
       <div className="app-shell__glow app-shell__glow--right" aria-hidden="true" />
+
+      {isBetaMode && (
+        <div className="beta-mode-banner" role="status">
+          <strong>Vanta Beta</strong>
+          <span>No funds move in this mode. Live private settlement is offline until production services are resumed.</span>
+        </div>
+      )}
 
       <header className="app-header">
         <NavLink to="/app/send" className="app-header__brand" aria-label="Vanta">

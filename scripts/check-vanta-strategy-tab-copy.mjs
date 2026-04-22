@@ -24,9 +24,6 @@ const requiredCopy = [
   "Landing mode",
   "Destination",
   "Fund from",
-  "Active Strategies",
-  "Recent Fills",
-  "Private Holdings",
   "Execution preview",
   "Live submission off",
   "Jupiter",
@@ -37,6 +34,17 @@ const requiredCopy = [
 ];
 
 const bannedCopy = [
+  "$1.82M",
+  "$151.42",
+  "$8,400",
+  "1,284.22",
+  "418,900",
+  "Active Strategies",
+  "Recent Fills",
+  "Private Holdings",
+  "SOL Accumulate",
+  "JUP DCA",
+  "Treasury Hedge",
   "ETA",
   "confidential pending balance",
   "note commitment",

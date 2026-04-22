@@ -5,6 +5,7 @@ import {
   useSendTransaction,
   useWalletSession,
 } from "@solana/react-hooks";
+import { isBetaMode } from "@/config/deploymentMode";
 import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePanel";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
@@ -1313,6 +1314,10 @@ export function UnshieldPage() {
   }
 
   async function handleUnshield() {
+    if (isBetaMode) {
+      return;
+    }
+
     const activeShieldAccount = selectedLane === "SOL" ? vusdShieldEntry.account : selectedShieldAccount;
 
     if (!activeShieldAccount || !vusdShieldEntry.asset.vaultOwner) {
@@ -1436,6 +1441,8 @@ export function UnshieldPage() {
 
   if (!walletConnected) {
     validationMessage = "Connect a wallet to use Public Wallet as the exit destination.";
+  } else if (isBetaMode) {
+    validationMessage = "Beta mode keeps Unshield visible but prevents live withdrawals while production services are offline.";
   } else if (
     shieldRegistry.configuredEntries.some(
       (entry) => entry.isRefreshing || entry.token.isFetching,
@@ -2208,6 +2215,7 @@ export function UnshieldPage() {
                     void handleUnshield();
                   }}
                   disabled={
+                    isBetaMode ||
                     !isReady ||
                     status === "splitting_note" ||
                     status === "recording_transition" ||
@@ -2215,7 +2223,7 @@ export function UnshieldPage() {
                     status === "finalizing_state"
                   }
                 >
-                  Return {formatShieldedLaneLabel(selectedLane)} to Public Wallet
+                  {isBetaMode ? "Beta mode" : `Return ${formatShieldedLaneLabel(selectedLane)} to Public Wallet`}
                 </button>
               </div>
             </div>

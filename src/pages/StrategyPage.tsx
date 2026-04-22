@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { isBetaMode } from "@/config/deploymentMode";
 import { createStrategyExecutionPreview } from "@/strategy/strategyExecutionAdapter.mjs";
 import { createStrategyPlan, type VantaStrategyPlan } from "@/strategy/strategyPlanner.mjs";
 import { createVantaStrategyRuntime, type VantaStrategyRecord } from "@/strategy/strategyRuntime.mjs";
@@ -29,24 +30,6 @@ const urgencies = ["Low footprint", "Balanced", "Fastest completion"];
 const landingModes = ["Protected landing", "Bundle-preferred", "Standard"];
 const destinations = ["Private balance", "Public wallet", "Treasury vault"];
 const fundingSources = ["Private balance", "Public balance", "External wallet"];
-
-const activeStrategies = [
-  ["SOL Accumulate", "USDC -> SOL", "62%", "$151.42", "18h", "Running"],
-  ["JUP DCA", "USDC -> JUP", "34%", "$0.82", "3d", "Running"],
-  ["Treasury Hedge", "SOL -> USDC", "88%", "$151.90", "42m", "Paused"],
-] as const;
-
-const recentFills = [
-  ["12:42", "USDC -> SOL", "$8,400", "Protected", "$151.36"],
-  ["12:18", "USDC -> JUP", "$3,200", "Protected", "$0.81"],
-  ["11:55", "SOL -> USDC", "18.4 SOL", "Standard", "$152.02"],
-] as const;
-
-const holdings = [
-  ["SOL", "1,284.22", "$149.88", "+2.1%"],
-  ["JUP", "418,900", "$0.79", "+3.8%"],
-  ["USDC", "$842,500", "$1.00", "Flat"],
-] as const;
 
 const defaultForm: StrategyFormState = {
   asset: "SOL",
@@ -111,56 +94,6 @@ function StrategySelect({
         ))}
       </select>
     </label>
-  );
-}
-
-function StrategyMetric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="strategy-metric">
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  );
-}
-
-function StrategyTable({
-  columns,
-  rows,
-  statusColumn,
-}: {
-  columns: readonly string[];
-  rows: readonly (readonly string[])[];
-  statusColumn?: number;
-}) {
-  return (
-    <div className="strategy-table-wrap">
-      <table className="strategy-table">
-        <thead>
-          <tr>
-            {columns.map((column) => (
-              <th key={column}>{column}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.join("-")}>
-              {row.map((cell, index) => (
-                <td key={`${cell}-${index}`}>
-                  {index === statusColumn ? (
-                    <span className={`strategy-status strategy-status--${cell.toLowerCase()}`}>
-                      {cell}
-                    </span>
-                  ) : (
-                    cell
-                  )}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
   );
 }
 
@@ -229,18 +162,14 @@ export function StrategyPage() {
           <p>{modeCopy}</p>
         </header>
 
-        <div className="strategy-metrics" aria-label="Strategy summary">
-          <StrategyMetric label="Private buying power" value="$1.82M" />
-          <StrategyMetric label="Active strategies" value="3" />
-          <StrategyMetric label="Child orders" value={String(strategyPlan.childOrders.length)} />
-          <StrategyMetric label="Avg child size" value={formatCurrency(strategyPlan.averageChildSize)} />
-        </div>
-
         <div className="strategy-main">
           <form
             className="strategy-card strategy-card--primary"
             onSubmit={(event) => {
               event.preventDefault();
+              if (isBetaMode) {
+                return;
+              }
               setCreatedStrategy(
                 strategyRuntime.createStrategy({
                   clientRequestId: `strategy-${form.mode}-${strategyPair}-${form.totalSize}`,
@@ -397,103 +326,95 @@ export function StrategyPage() {
             </details>
 
             <div className="strategy-actions">
-              <button className="button button-primary strategy-primary-action" type="submit">
-                Create strategy
+              <button
+                className="button button-primary strategy-primary-action"
+                disabled={isBetaMode}
+                type="submit"
+              >
+                {isBetaMode ? "Beta mode" : "Create strategy"}
               </button>
               <span>
-                {strategyPair} · {form.landingMode} · destination: private
+                {isBetaMode
+                  ? "Beta mode keeps Strategy visible but prevents live execution while production services are offline."
+                  : `${strategyPair} · ${form.landingMode} · destination: private`}
               </span>
             </div>
 
-            {createdStrategy && (
-              <div className="strategy-success" role="status">
-                Strategy queued: {createdStrategy.plan.mode} · {createdStrategy.plan.pair} ·{" "}
-                {createdStrategy.status}
-              </div>
-            )}
           </form>
         </div>
 
         <div className="strategy-panels">
-          <section className="strategy-card">
+          <section className="strategy-card strategy-card--secondary">
             <div className="strategy-card__header">
               <div>
-                <span className="strategy-kicker">Console</span>
-                <h2>Active Strategies</h2>
+                <span className="strategy-kicker">Preview</span>
+                <h2>Execution preview</h2>
               </div>
             </div>
-            <StrategyTable
-              columns={["Name", "Pair", "Progress", "Avg price", "Remaining", "Status"]}
-              rows={activeStrategies}
-              statusColumn={5}
-            />
-          </section>
-
-          <details className="strategy-card strategy-details-card">
-            <summary>
-              <span className="strategy-kicker">Activity</span>
-              Strategy details
-            </summary>
             <div className="strategy-detail-grid">
+              <div className="strategy-funding-line">
+                <span>Pair</span>
+                <strong>{strategyPair}</strong>
+              </div>
+              <div className="strategy-funding-line">
+                <span>Amount</span>
+                <strong>{formatCurrency(parseTotalSize(form.totalSize))}</strong>
+              </div>
+              <div className="strategy-funding-line">
+                <span>Duration</span>
+                <strong>{effectiveTimeWindow}</strong>
+              </div>
+              <div className="strategy-funding-line">
+                <span>Child orders</span>
+                <strong>{String(strategyPlan.childOrders.length)}</strong>
+              </div>
+              <div className="strategy-funding-line">
+                <span>Average child size</span>
+                <strong>{formatCurrency(strategyPlan.averageChildSize)}</strong>
+              </div>
               <div className="strategy-funding-line">
                 <span>Funding</span>
                 <strong>{strategyPlan.fundingAction.replace(/-/gu, " ")}</strong>
               </div>
               <div className="strategy-funding-line">
                 <span>Route</span>
-                <strong>{firstExecutionJob?.route.engine ?? strategyPlan.routingPolicy.routeEngine}</strong>
+                <strong>{firstExecutionJob?.route.engine ?? strategyPlan.routingPolicy.routeEngine ?? "Jupiter"}</strong>
+              </div>
+              <div className="strategy-funding-line">
+                <span>Landing</span>
+                <strong>{firstExecutionJob?.landing.transport ?? "Jito"}</strong>
               </div>
               <div className="strategy-funding-line">
                 <span>Submit</span>
                 <strong>{executionPreview.liveSubmission ? "Live submission on" : "Live submission off"}</strong>
               </div>
-              <div className="strategy-funding-line">
-                <span>Child orders</span>
-                <strong>{String(strategyPlan.childOrders.length)}</strong>
-              </div>
             </div>
-          </details>
-
-          <section className="strategy-card strategy-card--secondary">
-            <div className="strategy-card__header">
-              <div>
-                <span className="strategy-kicker">Execution preview</span>
-                <h2>Recent Fills</h2>
-              </div>
-            </div>
-            <StrategyTable
-              columns={["Engine", "Landing", "Transport", "Fallback", "Safety"]}
-              rows={[
-                [
-                  firstExecutionJob?.route.engine ?? "Jupiter",
-                  firstExecutionJob?.landing.mode ?? "protected",
-                  firstExecutionJob?.landing.transport ?? "Jito",
-                  firstExecutionJob?.fallback.action ?? "execute",
-                  executionPreview.liveSubmission ? "Live submission on" : "Live submission off",
-                ],
-              ]}
-            />
           </section>
 
-          <section className="strategy-card strategy-card--secondary">
-            <div className="strategy-card__header">
-              <div>
-                <span className="strategy-kicker">Execution History</span>
-                <h2>Recent Fills</h2>
+          {createdStrategy ? (
+            <section className="strategy-card strategy-card--secondary" role="status">
+              <div className="strategy-card__header">
+                <div>
+                  <span className="strategy-kicker">Created</span>
+                  <h2>Strategy queued</h2>
+                </div>
               </div>
-            </div>
-            <StrategyTable columns={["Time", "Pair", "Filled", "Landing", "Price"]} rows={recentFills} />
-          </section>
-
-          <section className="strategy-card strategy-card--secondary">
-            <div className="strategy-card__header">
-              <div>
-                <span className="strategy-kicker">Destination</span>
-                <h2>Private Holdings</h2>
+              <div className="strategy-detail-grid">
+                <div className="strategy-funding-line">
+                  <span>Mode</span>
+                  <strong>{createdStrategy.plan.mode}</strong>
+                </div>
+                <div className="strategy-funding-line">
+                  <span>Pair</span>
+                  <strong>{createdStrategy.plan.pair}</strong>
+                </div>
+                <div className="strategy-funding-line">
+                  <span>Status</span>
+                  <strong>{createdStrategy.status}</strong>
+                </div>
               </div>
-            </div>
-            <StrategyTable columns={["Asset", "Balance", "Avg cost", "P/L"]} rows={holdings} />
-          </section>
+            </section>
+          ) : null}
         </div>
       </div>
     </section>

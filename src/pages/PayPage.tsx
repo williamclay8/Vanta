@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
+import { isBetaMode } from "@/config/deploymentMode";
 
 type PayView = "link" | "invoice" | "checkout" | "withdraw";
 
@@ -12,16 +13,19 @@ const payViews = [
 
 function PayButton({
   children,
+  disabled = false,
   onClick,
   variant = "secondary",
 }: {
   children: string;
+  disabled?: boolean;
   onClick?: () => void;
   variant?: "primary" | "secondary";
 }) {
   return (
     <button
       className={variant === "primary" ? "button button-primary" : "button button-ghost"}
+      disabled={disabled}
       onClick={onClick}
       type="button"
     >
@@ -32,26 +36,52 @@ function PayButton({
 
 function PayField({
   label,
+  onChange,
   placeholder,
   type = "text",
+  value,
 }: {
   label: string;
+  onChange?: (value: string) => void;
   placeholder: string;
   type?: string;
+  value?: string;
 }) {
   return (
     <label className="pay-field">
       <span>{label}</span>
-      <input placeholder={placeholder} type={type} />
+      <input
+        onChange={(event) => {
+          onChange?.(event.target.value);
+        }}
+        placeholder={placeholder}
+        type={type}
+        value={value}
+      />
     </label>
   );
 }
 
-function PaySelect({ label, options }: { label: string; options: readonly string[] }) {
+function PaySelect({
+  label,
+  onChange,
+  options,
+  value,
+}: {
+  label: string;
+  onChange?: (value: string) => void;
+  options: readonly string[];
+  value?: string;
+}) {
   return (
     <label className="pay-field pay-field--select">
       <span>{label}</span>
-      <select defaultValue={options[0]}>
+      <select
+        onChange={(event) => {
+          onChange?.(event.target.value);
+        }}
+        value={value ?? options[0]}
+      >
         {options.map((option) => (
           <option key={option}>{option}</option>
         ))}
@@ -81,60 +111,117 @@ function PayActionCard({
 }
 
 function PaymentLinkView() {
+  const [linkName, setLinkName] = useState("");
+  const [amount, setAmount] = useState("");
+  const [asset, setAsset] = useState("USDC");
+  const [redirectUrl, setRedirectUrl] = useState("");
+  const [created, setCreated] = useState(false);
+
   return (
     <PayActionCard eyebrow="Pay" title="Create payment link">
       <form className="pay-form pay-form--minimal">
-        <PayField label="Link name" placeholder="Design Retainer" />
-        <PayField label="Amount" placeholder="800.00" type="number" />
-        <PaySelect label="Asset" options={["USDC", "SOL", "USDT"]} />
-        <PayField label="Redirect URL" placeholder="https://merchant.com/thanks" />
-        <PayButton variant="primary">Create payment link</PayButton>
+        <PayField label="Link name" placeholder="Link name" value={linkName} onChange={setLinkName} />
+        <PayField label="Amount" placeholder="0.00" type="number" value={amount} onChange={setAmount} />
+        <PaySelect label="Asset" options={["USDC", "SOL", "USDT"]} value={asset} onChange={setAsset} />
+        <PayField
+          label="Redirect URL"
+          placeholder="https://merchant.com/thanks"
+          value={redirectUrl}
+          onChange={setRedirectUrl}
+        />
+        <PayButton
+          onClick={() => {
+            setCreated(true);
+          }}
+          disabled={isBetaMode}
+          variant="primary"
+        >
+          {isBetaMode ? "Beta mode" : "Create payment link"}
+        </PayButton>
       </form>
-      <div className="pay-result-line">
-        <span>Ready link</span>
-        <strong>vanta.link/design-retainer</strong>
-      </div>
+      {created ? (
+        <div className="pay-result-line">
+          <span>Payment link ready</span>
+          <strong>
+            {linkName || "Untitled link"} · {amount || "0.00"} {asset}
+          </strong>
+        </div>
+      ) : (
+        <div className="pay-result-line pay-result-line--muted">
+          <span>Status</span>
+          <strong>{isBetaMode ? "Beta mode prevents live link creation" : "No payment link created yet"}</strong>
+        </div>
+      )}
     </PayActionCard>
   );
 }
 
 function InvoiceView() {
+  const [customer, setCustomer] = useState("");
+  const [email, setEmail] = useState("");
+  const [amount, setAmount] = useState("");
+  const [asset, setAsset] = useState("USDC");
+  const [dueDate, setDueDate] = useState("");
+
   return (
     <PayActionCard eyebrow="Pay" title="Send invoice">
       <form className="pay-form pay-form--minimal">
-        <PayField label="Customer" placeholder="Harper Studio" />
-        <PayField label="Email" placeholder="billing@harper.co" type="email" />
-        <PayField label="Amount" placeholder="800.00" type="number" />
-        <PaySelect label="Asset" options={["USDC", "SOL", "USDT"]} />
-        <PayField label="Due date" placeholder="2026-05-01" type="date" />
-        <PayButton variant="primary">Send invoice</PayButton>
+        <PayField label="Customer" placeholder="Customer name" value={customer} onChange={setCustomer} />
+        <PayField label="Email" placeholder="customer@example.com" type="email" value={email} onChange={setEmail} />
+        <PayField label="Amount" placeholder="0.00" type="number" value={amount} onChange={setAmount} />
+        <PaySelect label="Asset" options={["USDC", "SOL", "USDT"]} value={asset} onChange={setAsset} />
+        <PayField label="Due date" placeholder="Due date" type="date" value={dueDate} onChange={setDueDate} />
+        <PayButton disabled={isBetaMode} variant="primary">
+          {isBetaMode ? "Beta mode" : "Send invoice"}
+        </PayButton>
       </form>
+      <div className="pay-result-line pay-result-line--muted">
+        <span>Invoice preview</span>
+        <strong>
+          {customer || "No customer"} · {amount || "0.00"} {asset}
+        </strong>
+      </div>
     </PayActionCard>
   );
 }
 
 function CheckoutView() {
   const [isComplete, setIsComplete] = useState(false);
+  const [merchant, setMerchant] = useState("");
+  const [description, setDescription] = useState("");
+  const [amount, setAmount] = useState("");
+  const [asset, setAsset] = useState("USDC");
 
   return (
     <div className="pay-view pay-view--checkout">
       <article className="pay-checkout-card">
         <header>
           <div className="pay-merchant-mark">V</div>
-          <span>Vanta Studio</span>
+          <span>{merchant || "Merchant"}</span>
         </header>
         <h2>Complete your payment</h2>
         <div className="pay-summary-box">
-          <span>Design Retainer</span>
-          <strong>$800.00</strong>
-          <small>USDC</small>
+          <span>{description || "Payment description"}</span>
+          <strong>
+            {amount || "0.00"} {asset}
+          </strong>
+          <small>Checkout preview</small>
         </div>
         <form className="pay-form pay-form--minimal">
+          <PayField label="Merchant" placeholder="Merchant name" value={merchant} onChange={setMerchant} />
+          <PayField
+            label="Description"
+            placeholder="Payment description"
+            value={description}
+            onChange={setDescription}
+          />
+          <PayField label="Amount" placeholder="0.00" type="number" value={amount} onChange={setAmount} />
+          <PaySelect label="Asset" options={["USDC", "SOL", "USDT"]} value={asset} onChange={setAsset} />
           <PayField label="Name" placeholder="Your name" />
           <PayField label="Email" placeholder="you@example.com" type="email" />
-          <PayButton onClick={() => setIsComplete(true)} variant="primary">
-            Pay with Vanta
-          </PayButton>
+        <PayButton disabled={isBetaMode} onClick={() => setIsComplete(true)} variant="primary">
+          {isBetaMode ? "Beta mode" : "Pay with Vanta"}
+        </PayButton>
         </form>
         <details className="pay-other-options">
           <summary>Other payment options</summary>
@@ -146,11 +233,14 @@ function CheckoutView() {
         <div className="pay-trust-line">
           <span>Privacy rail in review</span>
           <span>Receipt included</span>
+          {isBetaMode && <span>No funds move</span>}
         </div>
         {isComplete ? (
           <div className="pay-success-card">
-            <strong>Payment complete</strong>
-            <span>$800.00 · Vanta Studio · Receipt R-1052</span>
+            <strong>Checkout submitted</strong>
+            <span>
+              {amount || "0.00"} {asset} · {merchant || "Merchant"} · receipt pending
+            </span>
             <div className="pay-inline-actions">
               <PayButton>View Receipt</PayButton>
               <PayButton>Return to Merchant</PayButton>
@@ -163,18 +253,30 @@ function CheckoutView() {
 }
 
 function WithdrawView() {
+  const [asset, setAsset] = useState("USDC");
+  const [amount, setAmount] = useState("");
+  const [destinationType, setDestinationType] = useState("Wallet Address");
+  const [destination, setDestination] = useState("");
+
   return (
     <PayActionCard eyebrow="Pay" title="Withdraw">
       <form className="pay-form pay-form--minimal">
-        <PaySelect label="Asset" options={["USDC", "SOL", "USDT"]} />
-        <PayField label="Amount" placeholder="1200.00" type="number" />
-        <PaySelect label="Destination" options={["Wallet Address", "Treasury Address", "Settlement Account"]} />
-        <PayField label="Address" placeholder="Destination address" />
-        <PayButton variant="primary">Withdraw</PayButton>
+        <PaySelect label="Asset" options={["USDC", "SOL", "USDT"]} value={asset} onChange={setAsset} />
+        <PayField label="Amount" placeholder="0.00" type="number" value={amount} onChange={setAmount} />
+        <PaySelect
+          label="Destination"
+          options={["Wallet Address", "Treasury Address", "Settlement Account"]}
+          value={destinationType}
+          onChange={setDestinationType}
+        />
+        <PayField label="Address" placeholder="Destination address" value={destination} onChange={setDestination} />
+        <PayButton disabled={isBetaMode} variant="primary">
+          {isBetaMode ? "Beta mode" : "Withdraw"}
+        </PayButton>
       </form>
-      <div className="pay-result-line">
+      <div className="pay-result-line pay-result-line--muted">
         <span>Available</span>
-        <strong>$8,420.50</strong>
+        <strong>Balance unavailable until connected</strong>
       </div>
     </PayActionCard>
   );

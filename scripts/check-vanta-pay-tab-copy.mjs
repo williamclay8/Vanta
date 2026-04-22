@@ -19,6 +19,11 @@ const requiredCopy = [
 ];
 
 const bannedCopy = [
+  "$800.00",
+  "$8,420.50",
+  "R-1052",
+  "vanta.link/design-retainer",
+  "Vanta Studio",
   "Private payments with a familiar interface",
   "Pay Dashboard",
   "Install Vanta Pay",

@@ -600,6 +600,40 @@ input {
   box-shadow: 0 32px 80px rgba(0, 0, 0, 0.34);
 }
 
+.beta-mode-banner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: min(1180px, calc(100vw - 36px));
+  min-height: 40px;
+  margin: 0 auto 12px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(0, 229, 200, 0.09);
+  box-shadow:
+    0 0 0 1px rgba(0, 229, 200, 0.18),
+    0 18px 50px rgba(0, 0, 0, 0.28);
+  color: var(--muted-strong);
+  text-align: center;
+  text-wrap: balance;
+}
+
+.beta-mode-banner strong {
+  color: var(--accent);
+  font-family: "Syne", sans-serif;
+  font-size: 0.76rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.beta-mode-banner span {
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
 .app-header__brand {
   display: inline-flex;
   align-items: center;
@@ -3621,6 +3655,13 @@ input {
 
   .app-header {
     grid-template-columns: 1fr;
+  }
+
+  .beta-mode-banner {
+    align-items: flex-start;
+    flex-direction: column;
+    border-radius: 20px;
+    text-align: left;
   }
 
   .app-header__tabs {

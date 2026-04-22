@@ -51,6 +51,8 @@
     "pay:operator": "node operator/pay-server.mjs",
     "pay:merchant-api-check": "node scripts/check-vanta-pay-merchant-api.mjs",
     "pay:browser-check": "node scripts/check-vanta-pay-browser.mjs",
+    "beta-mode:check": "node scripts/check-vanta-beta-mode.mjs",
+    "render:production-services-suspend": "node scripts/suspend-vanta-render-production-services.mjs",
     "protocol:browser-check": "node scripts/check-vanta-protocol-browser.mjs",
     "protocol:amount-placeholders-check": "node scripts/check-vanta-protocol-amount-placeholders.mjs",
     "send:requires-shielded-state-check": "node scripts/check-vanta-send-requires-shielded-state.mjs",

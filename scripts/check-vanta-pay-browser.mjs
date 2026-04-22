@@ -33,6 +33,8 @@ function runBrowserBatch() {
       checks: [
         { kind: "url_contains", text: "/app/pay" },
         { kind: "text_visible", text: "Create payment link" },
+        { kind: "text_visible", text: "Vanta Beta" },
+        { kind: "text_visible", text: "No funds move in this mode" },
         { kind: "text_visible", text: "Payment Link" },
         { kind: "text_visible", text: "Invoice" },
         { kind: "no_console_errors" },
@@ -43,19 +45,21 @@ function runBrowserBatch() {
     {
       action: "assert",
       checks: [
-        { kind: "text_visible", text: "Pay with Vanta" },
+        { kind: "text_visible", text: "Beta mode" },
         { kind: "text_visible", text: "Privacy rail in review" },
+        { kind: "text_visible", text: "No funds move" },
         { kind: "selector_hidden", selector: ".pay-success-card" },
         { kind: "text_hidden", text: "Shield" },
         { kind: "text_hidden", text: "Unshield" },
       ],
     },
     { action: "click", selector: ".pay-checkout-card .button-primary" },
-    { action: "wait_for", condition: "text_visible", value: "Payment complete" },
+    { action: "wait_for", condition: "selector_hidden", value: ".pay-success-card" },
     {
       action: "assert",
       checks: [
-        { kind: "text_visible", text: "Receipt R-1052" },
+        { kind: "selector_hidden", selector: ".pay-success-card" },
+        { kind: "text_hidden", text: "Receipt R-1052" },
         { kind: "no_console_errors" },
       ],
     },

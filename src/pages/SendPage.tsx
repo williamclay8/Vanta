@@ -5,6 +5,7 @@ import { useSendTransaction } from "@solana/react-hooks";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
 import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePanel";
+import { isBetaMode } from "@/config/deploymentMode";
 import { usePrivacyFlow, type PrivacyAssetKey } from "@/data/context/PrivacyFlowContext";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
 import { useVantaShieldState } from "@/solana/useVantaShieldState";
@@ -863,6 +864,10 @@ export function SendPage({ dashboard = false }: SendPageProps) {
   }
 
   async function handleSend() {
+    if (isBetaMode) {
+      return;
+    }
+
     if (isRealSendReady && shieldAccount && selectedSpendableNote && liveShieldAsset.mintAddress) {
       try {
         await performLiveSendFromNote({
@@ -885,6 +890,10 @@ export function SendPage({ dashboard = false }: SendPageProps) {
   }
 
   async function handlePrivateCoreSendProof() {
+    if (isBetaMode) {
+      return;
+    }
+
     if (!privateCoreSendPreview) {
       return;
     }
@@ -955,7 +964,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       : selectedBalance;
   const sendHelperMessage = shieldStateError
     ? shieldStateError
-    : isRealSendReady
+    : isBetaMode
+      ? "Beta mode keeps private send visible but prevents live settlement while production services are offline."
+      : isRealSendReady
       ? "Ready to send from shielded state."
       : !selectedSpendableNote
         ? "Shield the asset first, then return here to send it."
@@ -1121,9 +1132,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   onClick={() => {
                     void handleSend();
                   }}
-                  disabled={!isRealSendReady || status === "sending" || status === "settling"}
+                  disabled={isBetaMode || !isRealSendReady || status === "sending" || status === "settling"}
                 >
-                  Private Send
+                  {isBetaMode ? "Beta mode" : "Private Send"}
                 </button>
               </div>
             </div>
@@ -1426,12 +1437,13 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 void handlePrivateCoreSendProof();
               }}
               disabled={
+                isBetaMode ||
                 !privateCoreSendPreview ||
                 privateCoreSendPreview.boundary.readiness !== "ready" ||
                 privateCoreSendExecution.status === "running"
               }
             >
-              Verify private send proof
+              {isBetaMode ? "Beta mode" : "Verify private send proof"}
             </button>
           </div>
 
