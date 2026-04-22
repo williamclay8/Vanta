@@ -635,6 +635,7 @@ input {
 }
 
 .app-header__brand {
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   gap: 12px;
@@ -840,7 +841,7 @@ input {
 }
 
 .wallet-picker__header button {
-  min-height: 32px;
+  min-height: 40px;
   padding: 0 10px;
   border-radius: 999px;
   border: 1px solid rgba(0, 229, 200, 0.12);
@@ -887,7 +888,7 @@ input {
 }
 
 .wallet-picker__connected button {
-  min-height: 36px;
+  min-height: 40px;
   padding: 0 12px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -956,7 +957,7 @@ input {
 
 .wallet-picker__fresh button,
 .wallet-picker__fresh-result button {
-  min-height: 36px;
+  min-height: 40px;
   padding: 0 12px;
   border-radius: 999px;
   border: 1px solid rgba(0, 229, 200, 0.18);
@@ -2286,6 +2287,9 @@ input {
 }
 
 .amount-field input {
+  min-width: 0;
+  min-height: 46px;
+  flex: 1 1 auto;
   width: 100%;
   border: 0;
   outline: none;
@@ -4105,6 +4109,44 @@ input {
   .nav-links {
     flex-wrap: wrap;
     gap: 14px;
+  }
+
+  .app-header__tabs {
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .app-header__tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .app-header__tab {
+    flex: 0 0 auto;
+    min-width: 96px;
+  }
+
+  .app-header__wallet,
+  .app-header__account-trigger {
+    width: 100%;
+  }
+
+  .app-header__account-trigger {
+    align-items: center;
+  }
+
+  .wallet-picker {
+    left: 0;
+    right: 0;
+    width: min(100%, calc(100vw - 32px));
+    max-height: min(620px, calc(100vh - 132px));
+  }
+
+  .send-entry-grid,
+  .swap-entry-grid {
+    grid-template-columns: 1fr;
   }
 
   .hero {
