@@ -79,6 +79,21 @@ requireIncludes(
   ".wallet-picker",
   "Wallet picker styles must be present.",
 );
+requireIncludes(
+  styles,
+  "max-height: min(620px, calc(100vh - 112px));",
+  "Wallet picker must stay within the viewport when many wallets are detected.",
+);
+requireIncludes(
+  styles,
+  "overflow-y: auto;",
+  "Wallet picker must scroll vertically when its contents exceed the viewport.",
+);
+requireIncludes(
+  styles,
+  "overscroll-behavior: contain;",
+  "Wallet picker scroll must be contained so the page behind it does not fight the menu.",
+);
 
 if (appLayout.includes(">Connect another wallet<")) {
   failures.push("Connected state must not render a separate header Connect another wallet button.");

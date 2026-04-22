@@ -778,8 +778,11 @@ input {
   right: 0;
   z-index: 120;
   width: min(340px, calc(100vw - 36px));
+  max-height: min(620px, calc(100vh - 112px));
   padding: 12px;
   border-radius: 24px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background:
     radial-gradient(circle at top right, rgba(0, 229, 200, 0.14), transparent 32%),
     rgba(6, 10, 16, 0.96);
@@ -790,6 +793,23 @@ input {
   backdrop-filter: blur(28px);
   animation: walletMenuIn 160ms cubic-bezier(0.2, 0, 0, 1);
   transform-origin: top right;
+  scrollbar-color: rgba(0, 229, 200, 0.36) rgba(255, 255, 255, 0.04);
+  scrollbar-width: thin;
+}
+
+.wallet-picker::-webkit-scrollbar {
+  width: 10px;
+}
+
+.wallet-picker::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 999px;
+}
+
+.wallet-picker::-webkit-scrollbar-thumb {
+  border: 3px solid rgba(6, 10, 16, 0.96);
+  border-radius: 999px;
+  background: rgba(0, 229, 200, 0.42);
 }
 
 @keyframes walletMenuIn {
