@@ -120,7 +120,7 @@ for (const forbidden of ["apiKey", "webhookUrl", "Authorization", "Bearer ", "ra
 assert.equal(productionObservabilityTemplate.version, "vanta-production-observability-template-0.1");
 assert.equal(productionObservabilityTemplate.mainnetReady, false);
 assert.equal(productionObservabilityTemplate.productionReady, false);
-assert.equal(productionObservabilityTemplate.provider, "better-stack");
+assert.equal(productionObservabilityTemplate.provider, "provider-neutral-skipped-by-operator");
 assert.equal(productionObservabilityTemplate.secretPolicy, "references-only-no-provider-secrets");
 assert.equal(productionObservabilityTemplate.telemetrySource, "src/ops/vantaSafeTelemetry.mjs");
 

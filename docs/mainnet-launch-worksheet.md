@@ -148,10 +148,10 @@ As of April 20, 2026:
 - Production migration evidence: `ops/mainnet/production-migration-evidence.manifest.json` records operator-reported schema application refs for Pay, Private Pool v2, role services, Strategy, and Operator databases. This does not clear backup/restore, audit, legal/custody, or mainnet-funds gates.
 - Staging smoke evidence: `ops/mainnet/staging-smoke-evidence.manifest.json` records public `/health` checks for the current Render staging services. This does not clear production role-service smoke, audit, legal/custody, backup/restore, or mainnet-funds gates.
 - Doppler staging setup guide: `docs/doppler-staging-setup.md`.
-- Monitoring provider: Better Stack staging monitors created by operator report; production monitoring is not complete.
+- Monitoring provider: Better Stack staging monitors created by operator report; Better Stack production monitors are intentionally skipped by operator decision.
 - Staging monitoring manifest: `ops/mainnet/staging-monitoring.manifest.json` tracks public `/health` monitors only.
 - Operator telemetry: Pay and Private Pool v2 now emit privacy-safe stdout JSON through `src/ops/vantaSafeTelemetry.mjs`; production log sink, metrics, alert routing, audit retention, and incident workflow are not complete.
-- Production observability template: `ops/mainnet/production-observability.template.json` records references-only Better Stack log source, dashboard, alert-policy, incident-runbook, and retention-policy targets.
+- Production observability template: `ops/mainnet/production-observability.template.json` records provider-neutral references-only log source, dashboard, alert-policy, incident-runbook, and retention-policy targets.
 - Production backup/restore template: `ops/mainnet/production-backup-restore.template.json` records references-only database, backup policy, PITR, encrypted-backup, restore-drill, access-audit, and least-privilege user targets.
 - Production infrastructure references are now cross-linked in `ops/mainnet/external-gates.packet.json`; `npm run mainnet:external-gates-check` fails if the storage, secret-manager, observability, or browser wallet-signing references drift out of the packet.
 - Private Pool v2 deployed-service client boundary exists at `src/privacy/privatePoolV2RemoteServices.ts`; `npm run private-pool-v2:remote-services-check` verifies HTTPS clients for indexer, relayer, prover, verifier registry, and remote runtime assembly.

@@ -127,7 +127,7 @@ const nextActions = [
   "Fill the external gates packet with real deployed service refs, secret-manager refs, audit/legal/custody refs, and explicit mainnet approval artifacts without committing secrets.",
   "Keep Private Pool v2 production smoke evidence fresh while adding observability, backup/restore, audit, legal/custody, and explicit funds-approval evidence.",
   "Attach real production database refs to the checked Pay, Private Pool v2 role, Strategy, and Operator storage adapters, then capture backup/restore evidence.",
-  "Create the actual Better Stack production log sources, metrics dashboards, alert policies, incident routing, and retention-policy refs named by the production observability template.",
+  "Use provider-neutral production observability evidence, existing platform logs, or a future provider instead of Better Stack production monitors.",
   "Move nullifier replay guard persistence behind the production storage adapter and final deployed enforcement layer.",
   "Add a checked mainnet deployment runbook with rollback, monitoring, rate limits, and incident response.",
   "Add wallet-backed transaction simulation surfaces before any live signing path.",

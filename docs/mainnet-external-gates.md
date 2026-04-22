@@ -263,6 +263,7 @@ Evidence needed:
 - abuse response workflow reference
 - privacy-preserving telemetry review reference
 - staging Better Stack monitor references from `ops/mainnet/staging-monitoring.manifest.json`
+- production Better Stack monitors are intentionally skipped by operator decision; use provider-neutral observability evidence instead
 
 Verification:
 

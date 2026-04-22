@@ -178,8 +178,8 @@ assert.ok(
 assert.ok(snapshot.requiredCommands.includes("npm run audit:package-check"), "Missing audit package command.");
 assert.ok(snapshot.nextActions[0]?.includes("external gates packet"), "First next action should push toward external gates.");
 assert.ok(
-  snapshot.nextActions.some((action) => action.includes("production log sources")),
-  "Next actions must include production log source setup.",
+  snapshot.nextActions.some((action) => action.includes("provider-neutral production observability")),
+  "Next actions must include provider-neutral production observability setup.",
 );
 assert.ok(
   snapshot.nextActions.some((action) => action.includes("backup")),
