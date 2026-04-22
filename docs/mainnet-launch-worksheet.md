@@ -165,9 +165,10 @@ As of April 20, 2026:
 - Private Pool v2 production smoke evidence: `ops/mainnet/private-pool-v2-production-smoke.evidence.json` records authenticated no-real-funds production smoke across deployed indexer, prover, relayer, verifier, and operator services.
 - Private Pool v2 production service setup guide: `docs/production-private-pool-v2-service-setup.md` records the current Render inventory and deployed production indexer, prover, relayer, verifier, and operator services.
 - Mainnet approval gates template: `ops/mainnet/mainnet-approval-gates.template.json` records refs for secret-manager-backed credentials, production smoke evidence, third-party audit, legal/compliance/custody review, and explicit mainnet-funds approval.
+- Mainnet approval gates evidence: `ops/mainnet/mainnet-approval-gates.evidence.json` records the current launch-control truth: technical smoke/migration/partial restore evidence is linked, but audit, legal/compliance/custody, provider backup controls, Pay restore readback, and explicit mainnet funds approval are still blocked.
 - Security reviewer: not chosen.
 - Legal/compliance reviewer: not chosen.
 - Target environment: staging first.
 - Mainnet funds: not approved.
 
-Next practical step: finish the pending Pay restore readback in `ops/mainnet/production-backup-restore.evidence.json`, then fill `ops/mainnet/mainnet-approval-gates.template.json` with external audit/legal/custody/mainnet-approval refs only. Provider backup/PITR/encryption/access-audit/least-privilege evidence collection is intentionally skipped for now and remains a production blocker. Do not paste credentials, legal text, audit exploit details, wallet keys, or signed transactions.
+Next practical step: move through `ops/mainnet/mainnet-approval-gates.evidence.json` and fill only refs for external audit, legal/compliance/custody, and explicit mainnet approval when those artifacts exist. Pay restore readback remains pending. Provider backup/PITR/encryption/access-audit/least-privilege evidence collection is intentionally skipped for now and remains a production blocker. Do not paste credentials, legal text, audit exploit details, wallet keys, or signed transactions.

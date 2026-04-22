@@ -49,6 +49,10 @@ assert.ok(
   "Approval gates template must include its own check command.",
 );
 assert.ok(
+  packet.requiredVerificationCommands.includes("npm run mainnet:approval-gates-evidence-check"),
+  "Approval gates template must include evidence check.",
+);
+assert.ok(
   packet.requiredVerificationCommands.includes("npm run mainnet:external-gates-check"),
   "Approval gates template must include external gates check.",
 );

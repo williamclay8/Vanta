@@ -175,8 +175,12 @@ assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:approval-gates-check"),
   "Missing approval gates command.",
 );
+assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:approval-gates-evidence-check"),
+  "Missing approval gates evidence command.",
+);
 assert.ok(snapshot.requiredCommands.includes("npm run audit:package-check"), "Missing audit package command.");
-assert.ok(snapshot.nextActions[0]?.includes("external gates packet"), "First next action should push toward external gates.");
+assert.ok(snapshot.nextActions[0]?.includes("approval-gates evidence file"), "First next action should push toward approval gates evidence.");
 assert.ok(
   snapshot.nextActions.some((action) => action.includes("provider-neutral production observability")),
   "Next actions must include provider-neutral production observability setup.",

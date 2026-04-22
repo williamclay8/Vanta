@@ -115,6 +115,7 @@ const requiredCommands = [
   "npm run wallet:transaction-safety-check",
   "npm run mainnet:secret-handling-check",
   "npm run mainnet:approval-gates-check",
+  "npm run mainnet:approval-gates-evidence-check",
   "npm run audit:package-check",
   "npm run security:limitations-check",
   "npm run operator:runbook-check",
@@ -126,7 +127,7 @@ const requiredCommands = [
 ];
 
 const nextActions = [
-  "Fill the external gates packet with real deployed service refs, secret-manager refs, audit/legal/custody refs, and explicit mainnet approval artifacts without committing secrets.",
+  "Fill the checked approval-gates evidence file with real secret-manager, audit/legal/custody, and explicit mainnet approval refs without committing secrets or approval contents.",
   "Keep Private Pool v2 production smoke evidence fresh while adding observability, backup/restore, audit, legal/custody, and explicit funds-approval evidence.",
   "Attach real production database refs to the checked Pay, Private Pool v2 role, Strategy, and Operator storage adapters, then capture backup/restore evidence.",
   "Use provider-neutral production observability evidence, existing platform logs, or a future provider instead of Better Stack production monitors.",

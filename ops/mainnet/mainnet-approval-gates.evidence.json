@@ -1,0 +1,142 @@
+{
+  "version": "vanta-mainnet-approval-gates-evidence-0.1",
+  "checkedAt": "2026-04-22T00:00:00.000Z",
+  "mainnetReady": false,
+  "productionReady": false,
+  "realFundsAllowed": false,
+  "status": "blocked-external-approvals",
+  "secretPolicy": "references-only-no-secret-values",
+  "realFundsPolicy": "explicit-human-approval-required",
+  "templateRef": "ops/mainnet/mainnet-approval-gates.template.json",
+  "summary": "Current approval-gate evidence status for Vanta mainnet launch. This file records refs and blocker state only. It does not store credentials, legal advice, audit report contents, exploit details, wallet material, transaction signatures, or customer data.",
+  "currentTechnicalEvidence": [
+    {
+      "id": "production-service-smoke",
+      "status": "recorded-no-real-funds",
+      "ref": "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
+      "verificationCommand": "npm run mainnet:production-smoke-evidence-check"
+    },
+    {
+      "id": "production-migration-evidence",
+      "status": "recorded-operator-reported-and-readback",
+      "ref": "ops/mainnet/production-migration-evidence.manifest.json",
+      "verificationCommand": "npm run mainnet:production-migration-evidence-check"
+    },
+    {
+      "id": "backup-restore-evidence",
+      "status": "partial",
+      "ref": "ops/mainnet/production-backup-restore.evidence.json",
+      "verificationCommand": "npm run mainnet:backup-restore-evidence-check"
+    },
+    {
+      "id": "restore-drill-evidence",
+      "status": "partial-pay-readback-pending",
+      "ref": "ops/mainnet/production-restore-drill.evidence.json",
+      "verificationCommand": "npm run mainnet:production-restore-drill-evidence-check"
+    },
+    {
+      "id": "secret-reference-inventory",
+      "status": "recorded-refs-only",
+      "ref": "ops/mainnet/secret-references.manifest.json",
+      "verificationCommand": "npm run mainnet:secret-handling-check"
+    },
+    {
+      "id": "security-limitations",
+      "status": "recorded",
+      "ref": "SECURITY_LIMITATIONS.md",
+      "verificationCommand": "npm run security:limitations-check"
+    }
+  ],
+  "gates": [
+    {
+      "id": "secret-manager-backed-credentials",
+      "status": "blocked",
+      "currentEvidenceStatus": "partial-refs-recorded",
+      "requiresExternalApproval": true,
+      "requiredRefs": [
+        "VANTA_SECRET_MANAGER_REF",
+        "VANTA_SECRET_ACCESS_AUDIT_LOG_REF",
+        "VANTA_PAY_DOPPLER_SERVICE_TOKEN_REF",
+        "VANTA_PRIVATE_POOL_V2_DOPPLER_SERVICE_TOKEN_REF",
+        "VANTA_STRATEGY_DOPPLER_SERVICE_TOKEN_REF",
+        "VANTA_OPERATOR_DOPPLER_SERVICE_TOKEN_REF"
+      ],
+      "nextAction": "Record refs-only production secret-manager access audit, rotation, and least-privilege service-token evidence."
+    },
+    {
+      "id": "private-pool-v2-production-smoke",
+      "status": "blocked",
+      "currentEvidenceStatus": "recorded-no-real-funds",
+      "requiresExternalApproval": true,
+      "requiredRefs": [
+        "VANTA_PRIVATE_POOL_V2_HEALTH_SMOKE_EVIDENCE_REF",
+        "VANTA_PRIVATE_POOL_V2_REMOTE_RUNTIME_SMOKE_EVIDENCE_REF",
+        "VANTA_PRIVATE_POOL_V2_PROOF_ROUNDTRIP_SMOKE_EVIDENCE_REF",
+        "VANTA_PRIVATE_POOL_V2_NULLIFIER_REPLAY_SMOKE_EVIDENCE_REF",
+        "VANTA_PRIVATE_POOL_V2_PRODUCTION_SMOKE_EVIDENCE_MANIFEST_REF"
+      ],
+      "nextAction": "Keep no-real-funds production smoke fresh while audit, legal/custody, backup/restore, and explicit funds approvals remain blocked."
+    },
+    {
+      "id": "third-party-security-audit",
+      "status": "blocked",
+      "currentEvidenceStatus": "not-started",
+      "requiresExternalApproval": true,
+      "requiredRefs": [
+        "VANTA_AUDIT_SCOPE_REF",
+        "VANTA_AUDIT_REPORT_REF",
+        "VANTA_AUDIT_FINDINGS_DISPOSITION_REF",
+        "VANTA_AUDIT_FIX_VERIFICATION_REF"
+      ],
+      "nextAction": "Engage an independent reviewer and record refs-only audit scope, report, findings disposition, and fix verification artifacts."
+    },
+    {
+      "id": "legal-compliance-custody",
+      "status": "blocked",
+      "currentEvidenceStatus": "not-started",
+      "requiresExternalApproval": true,
+      "requiredRefs": [
+        "VANTA_LEGAL_REVIEW_REF",
+        "VANTA_COMPLIANCE_REVIEW_REF",
+        "VANTA_CUSTODY_REVIEW_REF",
+        "VANTA_SANCTIONS_POLICY_REF",
+        "VANTA_MERCHANT_PROCESSING_POLICY_REF"
+      ],
+      "nextAction": "Engage legal/compliance/custody reviewers and record refs-only approval or blocker artifacts."
+    },
+    {
+      "id": "explicit-mainnet-funds-approval",
+      "status": "blocked",
+      "currentEvidenceStatus": "not-approved",
+      "requiresExternalApproval": true,
+      "requiresHumanApproval": true,
+      "mainnetTransactionsAllowedBeforeApproval": false,
+      "realFundsAllowedBeforeApproval": false,
+      "requiredRefs": [
+        "VANTA_MAINNET_APPROVAL_RECORD_REF",
+        "VANTA_APPROVED_FEE_PAYER_REF",
+        "VANTA_APPROVED_LAUNCH_WINDOW_REF",
+        "VANTA_ROLLBACK_PLAN_REF",
+        "VANTA_STOP_LOSS_PLAN_REF"
+      ],
+      "nextAction": "Record the exact human-approved mainnet action, launch window, fee-payer ref, rollback ref, and stop-loss ref before any real funds move."
+    }
+  ],
+  "limitations": [
+    "No third-party security audit approval has been recorded.",
+    "No legal, compliance, or custody approval has been recorded.",
+    "No explicit mainnet real-funds approval has been recorded.",
+    "Provider backup policy, PITR, encrypted backup, backup access audit, and least-privilege restore-user evidence were intentionally skipped and remain blocking.",
+    "Pay restore readback remains pending in backup/restore evidence.",
+    "No mainnet transactions or real funds are allowed from this evidence file."
+  ],
+  "requiredVerificationCommands": [
+    "npm run mainnet:approval-gates-check",
+    "npm run mainnet:approval-gates-evidence-check",
+    "npm run mainnet:external-gates-check",
+    "npm run mainnet:production-smoke-evidence-check",
+    "npm run mainnet:production-migration-evidence-check",
+    "npm run mainnet:backup-restore-evidence-check",
+    "npm run mainnet:preflight"
+  ]
+}

@@ -107,6 +107,7 @@
   ],
   "requiredVerificationCommands": [
     "npm run mainnet:approval-gates-check",
+    "npm run mainnet:approval-gates-evidence-check",
     "npm run mainnet:external-gates-check",
     "npm run mainnet:private-pool-v2-production-smoke-check",
     "npm run mainnet:production-smoke-evidence-check",

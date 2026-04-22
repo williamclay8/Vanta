@@ -392,6 +392,20 @@ npm run mainnet:approval-gates-check
 
 It stores refs for secret-manager-backed credentials, production smoke evidence, third-party audit, legal/compliance/custody review, and explicit mainnet funds approval. It must never store legal advice text, under-NDA audit contents, exploit details, credential values, wallet keys, or signed transactions.
 
+The current approval-gate evidence surface is:
+
+```text
+ops/mainnet/mainnet-approval-gates.evidence.json
+```
+
+Verify it with:
+
+```bash
+npm run mainnet:approval-gates-evidence-check
+```
+
+This file records which technical evidence has been captured without clearing external approvals. It must keep `mainnetReady: false`, `productionReady: false`, and `realFundsAllowed: false` until third-party audit, legal/compliance/custody review, provider backup controls, Pay restore readback, and explicit mainnet funds approval are actually complete.
+
 ## Pay Operator
 
 Start the local Pay merchant API operator:

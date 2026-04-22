@@ -239,6 +239,7 @@ Verification:
 ```bash
 npm run mainnet:readiness-check
 npm run mainnet:approval-gates-check
+npm run mainnet:approval-gates-evidence-check
 npm run wallet:transaction-safety-check
 ```
 
@@ -248,7 +249,13 @@ The approval gates template is:
 ops/mainnet/mainnet-approval-gates.template.json
 ```
 
-It is references-only. Do not store legal advice text, under-NDA audit contents, wallet keys, pre-signed transactions, or credential values in this repo.
+The current approval-gate evidence surface is:
+
+```text
+ops/mainnet/mainnet-approval-gates.evidence.json
+```
+
+It records the difference between technical evidence already captured and approvals that are still blocked. It is references-only and must remain `mainnetReady: false`, `productionReady: false`, and `realFundsAllowed: false` until third-party audit, legal/compliance/custody review, and explicit mainnet funds approval are actually complete. Do not store legal advice text, under-NDA audit contents, wallet keys, pre-signed transactions, or credential values in this repo.
 
 ### Monitoring and incident response
 
@@ -292,5 +299,7 @@ Do not provide raw token values, wallet material, database passwords, seed phras
 This packet is intentionally blocked. It is a launch checklist and evidence contract, not a production claim.
 
 Vanta remains not mainnet-ready until the packet is filled with real external evidence, the canonical checks pass, third-party security audit is complete, legal/compliance/custody review is complete, and a human explicitly approves any real mainnet funds movement.
+
+The current approval status lives in `ops/mainnet/mainnet-approval-gates.evidence.json`. It links completed technical evidence without turning that evidence into audit, legal, custody, backup, or funds approval.
 
 External reviewers must treat legal, compliance, and custody as a separate launch gate, not as an engineering-only checklist item.

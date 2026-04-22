@@ -21,6 +21,7 @@
     "VANTA_PRODUCTION_OBSERVABILITY_TEMPLATE_REF",
     "VANTA_PRIVATE_POOL_V2_PRODUCTION_SMOKE_TEMPLATE_REF",
     "VANTA_MAINNET_APPROVAL_GATES_TEMPLATE_REF",
+    "VANTA_MAINNET_APPROVAL_GATES_EVIDENCE_REF",
     "VANTA_PAY_DOPPLER_SERVICE_TOKEN_REF",
     "VANTA_PRIVATE_POOL_V2_DOPPLER_SERVICE_TOKEN_REF",
     "VANTA_STRATEGY_DOPPLER_SERVICE_TOKEN_REF",
@@ -199,6 +200,7 @@
       "summary": "Complete independent review of circuits, proof boundaries, operators, browser flows, key management, custody assumptions, and deployment runbooks.",
       "requiredEvidence": [
         "ops/mainnet/mainnet-approval-gates.template.json references-only audit approval refs",
+        "ops/mainnet/mainnet-approval-gates.evidence.json current blocked audit gate status",
         "audit scope agreement reference",
         "audit report reference",
         "critical/high findings disposition",
@@ -227,6 +229,7 @@
       "summary": "Complete legal, compliance, custody, sanctions, merchant-processing, and incident-response review before real user funds.",
       "requiredEvidence": [
         "ops/mainnet/mainnet-approval-gates.template.json references-only legal, compliance, and custody refs",
+        "ops/mainnet/mainnet-approval-gates.evidence.json current blocked legal/compliance/custody gate status",
         "legal review reference",
         "compliance review reference",
         "custody model decision reference",
@@ -251,6 +254,7 @@
       "summary": "Keep real funds and mainnet transactions blocked until explicit human approval exists for a specific launch action.",
       "requiredEvidence": [
         "ops/mainnet/mainnet-approval-gates.template.json references-only mainnet approval refs",
+        "ops/mainnet/mainnet-approval-gates.evidence.json current blocked mainnet funds status",
         "mainnet approval record reference",
         "approved wallet and fee-payer reference",
         "approved launch window",
