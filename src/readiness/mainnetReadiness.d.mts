@@ -10,6 +10,12 @@ export type VantaMainnetReadinessLane = {
   truth: string;
 };
 
+export type VantaMainnetOperatorSkippedControl = {
+  id: string;
+  severity: "critical" | "high";
+  summary: string;
+};
+
 export type VantaMainnetReadinessSnapshot = {
   blockers: VantaMainnetReadinessBlocker[];
   decision: "blocked";
@@ -23,6 +29,7 @@ export type VantaMainnetReadinessSnapshot = {
   };
   mainnetReady: false;
   nextActions: string[];
+  operatorSkippedControls: VantaMainnetOperatorSkippedControl[];
   privacyRail: import("./privacyRailContract.mjs").VantaPrivacyRailContract;
   productionReady: false;
   requiredCommands: string[];
