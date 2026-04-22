@@ -20,6 +20,7 @@ npm run mainnet:service-contract-check
 npm run mainnet:storage-contract-check
 npm run mainnet:storage-migration-check
 npm run mainnet:backup-restore-check
+npm run mainnet:backup-restore-evidence-check
 npm run storage:adapter-check
 npm run mainnet:abuse-observability-check
 npm run ops:rate-limit-check
@@ -118,6 +119,15 @@ npm run mainnet:backup-restore-check
 ```
 
 It records references for production database refs, backup policies, point-in-time recovery, encrypted backup evidence, restore drill evidence, restore runbooks, access audit logs, and least-privilege database users without storing raw database URLs, credential values, backup decryption material, provider API tokens, wallet keys, or private user inputs. It is a setup contract, not evidence that production backup/restore has already passed.
+
+The current backup/restore evidence status is:
+
+```text
+ops/mainnet/production-backup-restore.evidence.json
+npm run mainnet:backup-restore-evidence-check
+```
+
+It records that production migrations are operator-reported across the required database refs, and that restore readback has passed only for Private Pool v2 core and operator/control-plane storage. Pay, Private Pool v2 role-service storage, Strategy restore readback, backup policy, PITR, encrypted backup, access audit, and least-privilege restore-user evidence remain pending.
 
 The current restore drill evidence surface is:
 

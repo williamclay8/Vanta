@@ -1,0 +1,145 @@
+{
+  "version": "vanta-production-backup-restore-evidence-0.1",
+  "mainnetReady": false,
+  "productionReady": false,
+  "secretPolicy": "references-only-no-credentials",
+  "status": "partial-readback-only",
+  "checkedAtUtc": "2026-04-22T18:45:00Z",
+  "templateRef": "ops/mainnet/production-backup-restore.template.json",
+  "migrationEvidenceRef": "ops/mainnet/production-migration-evidence.manifest.json",
+  "restoreDrillEvidenceRef": "ops/mainnet/production-restore-drill.evidence.json",
+  "summary": "Production schema migrations are operator-reported across the required database refs. Restore readback has passed for Private Pool v2 core and operator/control-plane storage only. This evidence does not clear backup policy, PITR, encrypted backup, access-audit, least-privilege, audit, legal/custody, or mainnet-funds gates.",
+  "globalEvidence": [
+    {
+      "id": "backup-policy-confirmed",
+      "status": "pending",
+      "requiredRefPattern": "backup-policy/<provider-or-render-ref>"
+    },
+    {
+      "id": "pitr-enabled",
+      "status": "pending",
+      "requiredRefPattern": "pitr/<provider-or-render-ref>"
+    },
+    {
+      "id": "encrypted-backups-enabled",
+      "status": "pending",
+      "requiredRefPattern": "backup-encryption/<provider-or-render-ref>"
+    },
+    {
+      "id": "backup-access-audit-enabled",
+      "status": "pending",
+      "requiredRefPattern": "db-access-audit/<provider-or-render-ref>"
+    },
+    {
+      "id": "least-privilege-restore-user-confirmed",
+      "status": "pending",
+      "requiredRefPattern": "db-user/<least-privilege-ref>"
+    }
+  ],
+  "stores": [
+    {
+      "id": "pay",
+      "databaseRefs": [
+        "VANTA_PAY_DATABASE_URL_REF"
+      ],
+      "migrationStatus": "applied-operator-reported",
+      "restoreReadbackStatus": "pending",
+      "backupControlStatus": "pending",
+      "blockedUntil": [
+        "restore-readback-passed",
+        "backup-policy-confirmed",
+        "pitr-enabled",
+        "encrypted-backups-enabled",
+        "backup-access-audit-enabled",
+        "least-privilege-restore-user-confirmed"
+      ]
+    },
+    {
+      "id": "privatePoolV2",
+      "databaseRefs": [
+        "VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF"
+      ],
+      "migrationStatus": "applied-operator-reported",
+      "restoreReadbackStatus": "passed",
+      "restoreDrillRef": "restore-drill/vanta-private-pool-v2-core-2026-04-22-readback-passed",
+      "backupControlStatus": "pending",
+      "blockedUntil": [
+        "backup-policy-confirmed",
+        "pitr-enabled",
+        "encrypted-backups-enabled",
+        "backup-access-audit-enabled",
+        "least-privilege-restore-user-confirmed"
+      ]
+    },
+    {
+      "id": "privatePoolV2Roles",
+      "databaseRefs": [
+        "VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL_REF",
+        "VANTA_PRIVATE_POOL_V2_PROVER_DATABASE_URL_REF",
+        "VANTA_PRIVATE_POOL_V2_RELAYER_DATABASE_URL_REF",
+        "VANTA_PRIVATE_POOL_V2_VERIFIER_DATABASE_URL_REF"
+      ],
+      "migrationStatus": "applied-operator-reported",
+      "restoreReadbackStatus": "pending",
+      "backupControlStatus": "pending",
+      "blockedUntil": [
+        "restore-readback-passed",
+        "backup-policy-confirmed",
+        "pitr-enabled",
+        "encrypted-backups-enabled",
+        "backup-access-audit-enabled",
+        "least-privilege-restore-user-confirmed"
+      ]
+    },
+    {
+      "id": "strategy",
+      "databaseRefs": [
+        "VANTA_STRATEGY_DATABASE_URL_REF"
+      ],
+      "migrationStatus": "applied-operator-reported",
+      "restoreReadbackStatus": "pending",
+      "backupControlStatus": "pending",
+      "blockedUntil": [
+        "restore-readback-passed",
+        "backup-policy-confirmed",
+        "pitr-enabled",
+        "encrypted-backups-enabled",
+        "backup-access-audit-enabled",
+        "least-privilege-restore-user-confirmed"
+      ]
+    },
+    {
+      "id": "operator",
+      "databaseRefs": [
+        "VANTA_OPERATOR_DATABASE_URL_REF"
+      ],
+      "migrationStatus": "applied-operator-reported",
+      "restoreReadbackStatus": "passed",
+      "restoreDrillRef": "restore-drill/render-private-pool-v2-operator-2026-04-22-readback-passed",
+      "backupControlStatus": "pending",
+      "blockedUntil": [
+        "backup-policy-confirmed",
+        "pitr-enabled",
+        "encrypted-backups-enabled",
+        "backup-access-audit-enabled",
+        "least-privilege-restore-user-confirmed"
+      ]
+    }
+  ],
+  "limitations": [
+    "productionReady remains false",
+    "mainnetReady remains false",
+    "readback passed only for Private Pool v2 core and operator/control-plane storage",
+    "Pay, role-service, and Strategy restore readbacks remain pending",
+    "backup policy, PITR, encrypted backup, access audit, and least-privilege restore-user evidence remain pending",
+    "no raw database URLs, credential values, bearer tokens, wallet keys, or backup decryption material are stored"
+  ],
+  "nextOperatorActions": [
+    "enable or confirm provider backup policy refs for each production database",
+    "enable or confirm PITR refs for each production database",
+    "record encrypted backup evidence refs for each production database",
+    "record backup/access audit refs for each production database",
+    "create or confirm least-privilege restore/operator database user refs",
+    "run restore readback for Pay, Private Pool v2 role-service storage, and Strategy"
+  ]
+}

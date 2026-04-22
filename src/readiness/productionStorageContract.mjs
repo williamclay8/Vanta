@@ -129,6 +129,7 @@ const globalRequirements = [
 export function createVantaProductionStorageContract() {
   return {
     version: "vanta-production-storage-contract-0.1",
+    backupRestoreEvidencePath: "ops/mainnet/production-backup-restore.evidence.json",
     backupRestoreTemplatePath: "ops/mainnet/production-backup-restore.template.json",
     globalRequirements,
     mainnetReady: false,
@@ -139,6 +140,7 @@ export function createVantaProductionStorageContract() {
       "npm run mainnet:storage-contract-check",
       "npm run mainnet:preflight",
       "npm run mainnet:backup-restore-check",
+      "npm run mainnet:backup-restore-evidence-check",
       "npm run pay:verify",
       "npm run private-pool-v2:verify",
     ],

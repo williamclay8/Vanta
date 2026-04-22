@@ -74,6 +74,7 @@ npm run mainnet:storage-migration-check
 npm run mainnet:production-db-migration-harness-check
 npm run mainnet:production-db-migration-dry-run
 npm run mainnet:backup-restore-check
+npm run mainnet:backup-restore-evidence-check
 npm run mainnet:production-restore-drill-evidence-check
 npm run mainnet:secret-handling-check
 npm run mainnet:preflight
@@ -136,6 +137,25 @@ npm run mainnet:production-restore-drill-readback
 ```
 
 Do not paste the restored database URL into chat, docs, git, screenshots, or issue trackers. The readback command refuses to print the URL and checks schema version, Private Pool v2 tables, and replay/settlement indexes.
+
+## Backup/Restore Evidence Status
+
+The current backup/restore evidence file is:
+
+```bash
+ops/mainnet/production-backup-restore.evidence.json
+npm run mainnet:backup-restore-evidence-check
+```
+
+It records the current truth in one place:
+
+- schema migrations are operator-reported across the required production database refs
+- restore readback has passed for `VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF`
+- restore readback has passed for `VANTA_OPERATOR_DATABASE_URL_REF`
+- Pay, Private Pool v2 role-service storage, and Strategy restore readbacks remain pending
+- backup policy, PITR, encrypted backup, access audit, and least-privilege restore-user evidence remain pending
+
+This file is intentionally not a greenlight for mainnet. It is the checklist that prevents us from confusing partial restore proof with a complete production backup/restore program.
 
 ## Evidence To Capture
 

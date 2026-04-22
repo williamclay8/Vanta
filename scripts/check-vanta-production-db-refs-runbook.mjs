@@ -27,6 +27,8 @@ for (const phrase of [
   "ops/storage/postgres/001_vanta_mainnet_storage.sql",
   "npm run mainnet:storage-migration-check",
   "npm run mainnet:backup-restore-check",
+  "npm run mainnet:backup-restore-evidence-check",
+  "ops/mainnet/production-backup-restore.evidence.json",
   "ops/mainnet/production-restore-drill.evidence.json",
   "npm run mainnet:production-restore-drill-evidence-check",
   "npm run mainnet:production-restore-drill-readback",

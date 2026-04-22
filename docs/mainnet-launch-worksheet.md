@@ -153,6 +153,7 @@ As of April 20, 2026:
 - Operator telemetry: Pay and Private Pool v2 now emit privacy-safe stdout JSON through `src/ops/vantaSafeTelemetry.mjs`; production log sink, metrics, alert routing, audit retention, and incident workflow are not complete.
 - Production observability template: `ops/mainnet/production-observability.template.json` records provider-neutral references-only log source, dashboard, alert-policy, incident-runbook, and retention-policy targets.
 - Production backup/restore template: `ops/mainnet/production-backup-restore.template.json` records references-only database, backup policy, PITR, encrypted-backup, restore-drill, access-audit, and least-privilege user targets.
+- Production backup/restore evidence status: `ops/mainnet/production-backup-restore.evidence.json` records the current partial state: migrations are operator-reported, restore readback has passed for Private Pool v2 core and operator/control-plane storage, and Pay/role-service/Strategy readbacks plus backup policy, PITR, encryption, access audit, and least-privilege restore-user evidence remain pending.
 - Production restore-drill evidence: `ops/mainnet/production-restore-drill.evidence.json` records that the operator/control-plane restore database passed readback for `VANTA_OPERATOR_DATABASE_URL_REF` and the Private Pool v2 core database passed readback for `VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF`; backup policy, PITR, encryption, access-audit, and least-privilege restore evidence remain pending.
 - Production infrastructure references are now cross-linked in `ops/mainnet/external-gates.packet.json`; `npm run mainnet:external-gates-check` fails if the storage, secret-manager, observability, or browser wallet-signing references drift out of the packet.
 - Private Pool v2 deployed-service client boundary exists at `src/privacy/privatePoolV2RemoteServices.ts`; `npm run private-pool-v2:remote-services-check` verifies HTTPS clients for indexer, relayer, prover, verifier registry, and remote runtime assembly.
@@ -167,4 +168,4 @@ As of April 20, 2026:
 - Target environment: staging first.
 - Mainnet funds: not approved.
 
-Next practical step: complete backup/restore evidence and fill `ops/mainnet/mainnet-approval-gates.template.json` with external audit/legal/custody/mainnet-approval refs only. Do not paste credentials, legal text, audit exploit details, wallet keys, or signed transactions.
+Next practical step: finish the pending backup/restore evidence refs in `ops/mainnet/production-backup-restore.evidence.json`, then fill `ops/mainnet/mainnet-approval-gates.template.json` with external audit/legal/custody/mainnet-approval refs only. Do not paste credentials, legal text, audit exploit details, wallet keys, or signed transactions.

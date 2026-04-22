@@ -8,6 +8,10 @@ const backupRestoreTemplatePath = resolve(
   repoRoot,
   "ops/mainnet/production-backup-restore.template.json",
 );
+const backupRestoreEvidencePath = resolve(
+  repoRoot,
+  "ops/mainnet/production-backup-restore.evidence.json",
+);
 const contract = createVantaProductionStorageContract();
 
 assert.equal(contract.version, "vanta-production-storage-contract-0.1");
@@ -18,6 +22,11 @@ assert.equal(
   contract.backupRestoreTemplatePath,
   "ops/mainnet/production-backup-restore.template.json",
   "Storage contract must point at the production backup/restore template.",
+);
+assert.equal(
+  contract.backupRestoreEvidencePath,
+  "ops/mainnet/production-backup-restore.evidence.json",
+  "Storage contract must point at the production backup/restore evidence surface.",
 );
 
 const requiredStores = ["pay", "privatePoolV2", "strategy", "operator"];
@@ -65,6 +74,10 @@ assert.ok(
   "Missing backup/restore verification command.",
 );
 assert.ok(
+  contract.requiredVerificationCommands.includes("npm run mainnet:backup-restore-evidence-check"),
+  "Missing backup/restore evidence verification command.",
+);
+assert.ok(
   contract.nextImplementationStep.includes("backup"),
   "Next implementation step should target backup/restore evidence.",
 );
@@ -72,11 +85,21 @@ assert.ok(
   existsSync(backupRestoreTemplatePath),
   "Missing ops/mainnet/production-backup-restore.template.json.",
 );
+assert.ok(
+  existsSync(backupRestoreEvidencePath),
+  "Missing ops/mainnet/production-backup-restore.evidence.json.",
+);
 
 const backupRestoreTemplate = JSON.parse(readFileSync(backupRestoreTemplatePath, "utf8"));
 assert.equal(backupRestoreTemplate.version, "vanta-production-backup-restore-template-0.1");
 assert.equal(backupRestoreTemplate.mainnetReady, false);
 assert.equal(backupRestoreTemplate.productionReady, false);
 assert.equal(backupRestoreTemplate.secretPolicy, "references-only-no-credentials");
+
+const backupRestoreEvidence = JSON.parse(readFileSync(backupRestoreEvidencePath, "utf8"));
+assert.equal(backupRestoreEvidence.version, "vanta-production-backup-restore-evidence-0.1");
+assert.equal(backupRestoreEvidence.mainnetReady, false);
+assert.equal(backupRestoreEvidence.productionReady, false);
+assert.equal(backupRestoreEvidence.secretPolicy, "references-only-no-credentials");
 
 console.log("Vanta production storage contract check: PASS");
