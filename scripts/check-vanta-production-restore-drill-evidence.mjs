@@ -128,10 +128,10 @@ for (const limitation of [
   "Private Pool v2 core restore readback passed",
   "Private Pool v2 role-service restore readback passed",
   "Strategy restore readback passed",
-  "Pay restore readback was skipped and accepted as launch risk",
+  "Pay restore readback was skipped by operator decision",
   "productionReady remains false",
   "mainnetReady remains false",
-  "backup policy, PITR, encryption, access audit, and least-privilege restore evidence were skipped and accepted as launch risk",
+  "backup policy, PITR, encryption, access audit, and least-privilege restore evidence were skipped by operator decision",
 ]) {
   assert.ok(evidence.limitations.includes(limitation), `Restore drill evidence missing limitation: ${limitation}.`);
 }

@@ -33,9 +33,11 @@ if (jsonMode) {
     if (store.restoreDrillRef) {
       console.log(`  restoreDrillRef: ${store.restoreDrillRef}`);
     }
-    console.log("  blockedUntil:");
-    for (const blocker of store.blockedUntil) {
-      console.log(`    - ${blocker}`);
+    const pendingControls = store.blockedUntil ?? store.acceptedRisks ?? [];
+    const pendingControlLabel = store.blockedUntil ? "blockedUntil" : "operatorSkippedControls";
+    console.log(`  ${pendingControlLabel}:`);
+    for (const control of pendingControls) {
+      console.log(`    - ${control}`);
     }
   }
   console.log("");

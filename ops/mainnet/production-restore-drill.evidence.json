@@ -121,10 +121,10 @@
     "Private Pool v2 core restore readback passed",
     "Private Pool v2 role-service restore readback passed",
     "Strategy restore readback passed",
-    "Pay restore readback was skipped and accepted as launch risk",
+    "Pay restore readback was skipped by operator decision",
     "productionReady remains false",
     "mainnetReady remains false",
-    "backup policy, PITR, encryption, access audit, and least-privilege restore evidence were skipped and accepted as launch risk",
+    "backup policy, PITR, encryption, access audit, and least-privilege restore evidence were skipped by operator decision",
     "not third-party audit evidence",
     "not legal or custody approval",
     "not mainnet funds approval"

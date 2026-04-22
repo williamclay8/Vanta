@@ -3,42 +3,42 @@
   "mainnetReady": false,
   "productionReady": false,
   "secretPolicy": "references-only-no-credentials",
-  "status": "readback-recorded-with-accepted-risks",
+  "status": "readback-recorded-with-operator-skipped-controls",
   "checkedAtUtc": "2026-04-22T19:39:34Z",
   "operatorDecision": {
     "id": "skip-provider-backup-restore-controls-for-now",
     "decidedAtUtc": "2026-04-22T19:05:00Z",
     "decision": "Operator chose to skip Pay restore readback plus provider backup policy, PITR, encrypted backup, access-audit, and least-privilege restore-user evidence collection.",
-    "effect": "These items are removed from active blockers and tracked as accepted launch risks. They are not evidence that restore readback or provider backup controls passed. productionReady and mainnetReady remain false."
+    "effect": "These items are removed from active blockers and tracked as operator-skipped controls. They are not evidence that restore readback or provider backup controls passed. productionReady and mainnetReady remain false."
   },
   "templateRef": "ops/mainnet/production-backup-restore.template.json",
   "migrationEvidenceRef": "ops/mainnet/production-migration-evidence.manifest.json",
   "restoreDrillEvidenceRef": "ops/mainnet/production-restore-drill.evidence.json",
-  "summary": "Production schema migrations are operator-reported/read back for Pay, Private Pool v2 core, Private Pool v2 role-service storage, Strategy, and operator/control-plane storage. Pay restore readback and provider backup controls were intentionally skipped and accepted as launch risk. This evidence does not prove backup policy, PITR, encrypted backup, access-audit, least-privilege, audit, legal/custody, or unrestricted mainnet-funds readiness.",
+  "summary": "Production schema migrations are operator-reported/read back for Pay, Private Pool v2 core, Private Pool v2 role-service storage, Strategy, and operator/control-plane storage. Pay restore readback and provider backup controls were skipped by operator decision. This evidence does not prove backup policy, PITR, encrypted backup, access-audit, least-privilege, audit, legal/custody, or unrestricted mainnet-funds readiness.",
   "globalEvidence": [
     {
       "id": "backup-policy-confirmed",
-      "status": "skipped-accepted-risk",
+      "status": "operator-skipped-control",
       "requiredRefPattern": "backup-policy/<provider-or-render-ref>"
     },
     {
       "id": "pitr-enabled",
-      "status": "skipped-accepted-risk",
+      "status": "operator-skipped-control",
       "requiredRefPattern": "pitr/<provider-or-render-ref>"
     },
     {
       "id": "encrypted-backups-enabled",
-      "status": "skipped-accepted-risk",
+      "status": "operator-skipped-control",
       "requiredRefPattern": "backup-encryption/<provider-or-render-ref>"
     },
     {
       "id": "backup-access-audit-enabled",
-      "status": "skipped-accepted-risk",
+      "status": "operator-skipped-control",
       "requiredRefPattern": "db-access-audit/<provider-or-render-ref>"
     },
     {
       "id": "least-privilege-restore-user-confirmed",
-      "status": "skipped-accepted-risk",
+      "status": "operator-skipped-control",
       "requiredRefPattern": "db-user/<least-privilege-ref>"
     }
   ],
@@ -49,8 +49,8 @@
         "VANTA_PAY_DATABASE_URL_REF"
       ],
       "migrationStatus": "applied-operator-reported",
-      "restoreReadbackStatus": "skipped-accepted-risk",
-      "backupControlStatus": "skipped-accepted-risk",
+      "restoreReadbackStatus": "operator-skipped-control",
+      "backupControlStatus": "operator-skipped-control",
       "acceptedRisks": [
         "restore-readback-passed",
         "backup-policy-confirmed",
@@ -68,7 +68,7 @@
       "migrationStatus": "applied-operator-reported",
       "restoreReadbackStatus": "passed",
       "restoreDrillRef": "restore-drill/vanta-private-pool-v2-core-2026-04-22-readback-passed",
-      "backupControlStatus": "skipped-accepted-risk",
+      "backupControlStatus": "operator-skipped-control",
       "acceptedRisks": [
         "backup-policy-confirmed",
         "pitr-enabled",
@@ -88,7 +88,7 @@
       "migrationStatus": "applied-operator-reported",
       "restoreReadbackStatus": "passed",
       "restoreDrillRef": "restore-drill/render-private-pool-v2-roles-strategy-2026-04-22-readback-passed",
-      "backupControlStatus": "skipped-accepted-risk",
+      "backupControlStatus": "operator-skipped-control",
       "acceptedRisks": [
         "backup-policy-confirmed",
         "pitr-enabled",
@@ -105,7 +105,7 @@
       "migrationStatus": "applied-operator-reported",
       "restoreReadbackStatus": "passed",
       "restoreDrillRef": "restore-drill/render-private-pool-v2-roles-strategy-2026-04-22-readback-passed",
-      "backupControlStatus": "skipped-accepted-risk",
+      "backupControlStatus": "operator-skipped-control",
       "acceptedRisks": [
         "backup-policy-confirmed",
         "pitr-enabled",
@@ -122,7 +122,7 @@
       "migrationStatus": "applied-operator-reported",
       "restoreReadbackStatus": "passed",
       "restoreDrillRef": "restore-drill/render-private-pool-v2-operator-2026-04-22-readback-passed",
-      "backupControlStatus": "skipped-accepted-risk",
+      "backupControlStatus": "operator-skipped-control",
       "acceptedRisks": [
         "backup-policy-confirmed",
         "pitr-enabled",
@@ -136,13 +136,13 @@
     "productionReady remains false",
     "mainnetReady remains false",
     "readback passed for Private Pool v2 core, Private Pool v2 role-service storage, Strategy, and operator/control-plane storage",
-    "Pay restore readback was skipped and accepted as launch risk",
-    "backup policy, PITR, encrypted backup, access audit, and least-privilege restore-user evidence were skipped and accepted as launch risk",
+    "Pay restore readback was skipped by operator decision",
+    "backup policy, PITR, encrypted backup, access audit, and least-privilege restore-user evidence were skipped by operator decision",
     "operator chose to remove provider backup/restore control collection from active blockers",
     "no raw database URLs, credential values, bearer tokens, wallet keys, or backup decryption material are stored"
   ],
   "nextOperatorActions": [
-    "keep accepted backup/restore risks visible in launch docs",
+    "keep operator-skipped backup/restore controls visible in launch docs",
     "reopen Pay restore readback only if the launch scope changes",
     "reopen provider backup policy/PITR/encryption/access-audit/least-privilege evidence only if the launch scope changes"
   ]
