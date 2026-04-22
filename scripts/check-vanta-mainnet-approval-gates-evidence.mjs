@@ -17,8 +17,8 @@ const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
 assert.equal(evidence.version, "vanta-mainnet-approval-gates-evidence-0.1");
 assert.equal(evidence.mainnetReady, false);
 assert.equal(evidence.productionReady, false);
-assert.equal(evidence.realFundsAllowed, false);
-assert.equal(evidence.status, "blocked-external-approvals");
+assert.equal(evidence.realFundsAllowed, true);
+assert.equal(evidence.status, "bounded-real-funds-approval-recorded");
 assert.equal(evidence.secretPolicy, "references-only-no-secret-values");
 assert.equal(evidence.realFundsPolicy, "explicit-human-approval-required");
 assert.equal(evidence.templateRef, "ops/mainnet/mainnet-approval-gates.template.json");
@@ -39,7 +39,11 @@ for (const gateId of expectedGateIds) {
   const templateGate = template.gates.find((candidate) => candidate.id === gateId);
   assert.ok(gate, `Missing approval gate evidence for ${gateId}.`);
   assert.ok(templateGate, `Missing template gate for ${gateId}.`);
-  assert.equal(gate.status, "blocked", `${gateId} must remain blocked.`);
+  if (gateId === "explicit-mainnet-funds-approval") {
+    assert.equal(gate.status, "approved-bounded-action", `${gateId} must record bounded approval.`);
+  } else {
+    assert.equal(gate.status, "blocked", `${gateId} must remain blocked.`);
+  }
   assert.equal(gate.requiresExternalApproval, true, `${gateId} must require external approval.`);
   assert.ok(gate.currentEvidenceStatus, `${gateId} must record current evidence status.`);
   assert.ok(gate.nextAction, `${gateId} must record next action.`);
@@ -55,7 +59,13 @@ const fundsGate = evidence.gates.find((candidate) => candidate.id === "explicit-
 assert.equal(fundsGate.requiresHumanApproval, true);
 assert.equal(fundsGate.mainnetTransactionsAllowedBeforeApproval, false);
 assert.equal(fundsGate.realFundsAllowedBeforeApproval, false);
-assert.equal(fundsGate.currentEvidenceStatus, "not-approved");
+assert.equal(fundsGate.currentEvidenceStatus, "approved-beta-mainnet-private-pool-smoke");
+assert.equal(
+  fundsGate.approvedActionSummary,
+  "Enable beta mainnet private-pool smoke with maximum 0.05 SOL at risk",
+);
+assert.equal(fundsGate.approvedActionRef, "launch-runbook/vanta-mainnet-beta-001");
+assert.equal(fundsGate.maximumFundsAtRiskRef, "0.05 SOL");
 
 for (const externalGateId of ["third-party-security-audit", "legal-compliance-custody"]) {
   const gate = evidence.gates.find((candidate) => candidate.id === externalGateId);
@@ -124,8 +134,8 @@ assert.ok(
   "Approval gates evidence must preserve legal/compliance/custody blocker.",
 );
 assert.ok(
-  evidence.limitations.some((limitation) => limitation.includes("No explicit mainnet real-funds approval")),
-  "Approval gates evidence must preserve funds approval blocker.",
+  evidence.limitations.some((limitation) => limitation.includes("maximum 0.05 SOL at risk")),
+  "Approval gates evidence must preserve bounded funds approval limit.",
 );
 
 assert.equal(

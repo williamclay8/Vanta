@@ -49,7 +49,7 @@ const blockers = [
   {
     id: "no-mainnet-funds-without-explicit-approval",
     severity: "critical",
-    summary: "Keep all mainnet transactions and real-fund movement blocked without explicit human approval.",
+    summary: "Allow only the bounded beta mainnet private-pool smoke approved in the real-funds packet; keep all other mainnet transactions and real-fund movement blocked.",
   },
 ];
 
@@ -130,7 +130,7 @@ const requiredCommands = [
 ];
 
 const nextActions = [
-  "Fill the real-funds approval packet with one exact approved action, launch window ref, fee-payer ref, rollback ref, stop-loss ref, and bounded funds-at-risk ref before any real funds move.",
+  "Execute only the approved bounded beta mainnet private-pool smoke, or return the real-funds approval packet to pending before changing the action, launch window, fee payer, or maximum funds at risk.",
   "Keep Private Pool v2 production smoke evidence fresh while adding observability, backup/restore, audit, legal/custody, and explicit funds-approval evidence.",
   "Attach real production database refs to the checked Pay, Private Pool v2 role, Strategy, and Operator storage adapters, then capture backup/restore evidence.",
   "Use provider-neutral production observability evidence, existing platform logs, or a future provider instead of Better Stack production monitors.",

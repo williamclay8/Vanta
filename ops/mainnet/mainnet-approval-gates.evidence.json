@@ -3,8 +3,8 @@
   "checkedAt": "2026-04-22T00:00:00.000Z",
   "mainnetReady": false,
   "productionReady": false,
-  "realFundsAllowed": false,
-  "status": "blocked-external-approvals",
+  "realFundsAllowed": true,
+  "status": "bounded-real-funds-approval-recorded",
   "secretPolicy": "references-only-no-secret-values",
   "realFundsPolicy": "explicit-human-approval-required",
   "templateRef": "ops/mainnet/mainnet-approval-gates.template.json",
@@ -108,12 +108,20 @@
     },
     {
       "id": "explicit-mainnet-funds-approval",
-      "status": "blocked",
-      "currentEvidenceStatus": "not-approved",
+      "status": "approved-bounded-action",
+      "currentEvidenceStatus": "approved-beta-mainnet-private-pool-smoke",
       "requiresExternalApproval": true,
       "requiresHumanApproval": true,
       "mainnetTransactionsAllowedBeforeApproval": false,
       "realFundsAllowedBeforeApproval": false,
+      "approvedActionSummary": "Enable beta mainnet private-pool smoke with maximum 0.05 SOL at risk",
+      "approvedActionRef": "launch-runbook/vanta-mainnet-beta-001",
+      "approvedFeePayerRef": "wallet/public-fee-payer-vanta-beta",
+      "approvedLaunchWindowRef": "2026-04-22T14:30:00-15:30:00 America/Chicago",
+      "rollbackPlanRef": "runbook/disable-private-pool-v2-services-and-beta-actions",
+      "stopLossPlanRef": "max-0.05-sol-or-first-failed-settlement",
+      "maximumFundsAtRiskRef": "0.05 SOL",
+      "approvedByRef": "Clay / founder approval / 2026-04-22",
       "requiredRefs": [
         "VANTA_MAINNET_APPROVAL_RECORD_REF",
         "VANTA_APPROVED_FEE_PAYER_REF",
@@ -121,16 +129,16 @@
         "VANTA_ROLLBACK_PLAN_REF",
         "VANTA_STOP_LOSS_PLAN_REF"
       ],
-      "nextAction": "Record the exact human-approved mainnet action, launch window, fee-payer ref, rollback ref, and stop-loss ref before any real funds move."
+      "nextAction": "Execute only the approved bounded beta smoke or return this gate to blocked before changing action, window, fee payer, or funds at risk."
     }
   ],
   "limitations": [
     "Third-party security audit was skipped by operator decision and no audit approval has been recorded.",
     "Legal, compliance, and custody review was skipped by operator decision and no approval has been recorded.",
-    "No explicit mainnet real-funds approval has been recorded.",
+    "Explicit mainnet real-funds approval is recorded only for beta private-pool smoke with maximum 0.05 SOL at risk.",
     "Provider backup policy, PITR, encrypted backup, backup access audit, and least-privilege restore-user evidence were intentionally skipped and remain blocking.",
     "Pay restore readback remains pending in backup/restore evidence.",
-    "No mainnet transactions or real funds are allowed from this evidence file."
+    "No mainnet transactions or real funds are allowed outside the bounded approval recorded in this evidence file."
   ],
   "requiredVerificationCommands": [
     "npm run mainnet:approval-gates-check",

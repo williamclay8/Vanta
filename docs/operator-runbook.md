@@ -422,7 +422,7 @@ Verify it with:
 npm run mainnet:real-funds-approval-check
 ```
 
-This packet remains `realFundsAllowed: false` until it records one exact approved mainnet action, launch window ref, fee-payer ref, rollback ref, stop-loss ref, bounded funds-at-risk ref, and human approver ref. It must never include wallet keys, seed phrases, raw signing credentials, bearer tokens, raw database URLs, or signed transactions.
+This packet records bounded approval for the beta mainnet private-pool smoke with maximum `0.05 SOL` at risk during `2026-04-22T14:30:00-15:30:00 America/Chicago`, approved by Clay. It does not approve any other mainnet action and does not make Vanta production-ready. It must never include wallet keys, seed phrases, raw signing credentials, bearer tokens, raw database URLs, or signed transactions.
 
 ## Pay Operator
 

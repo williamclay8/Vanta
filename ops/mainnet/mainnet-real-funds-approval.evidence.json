@@ -3,8 +3,8 @@
   "checkedAt": "2026-04-22T00:00:00.000Z",
   "mainnetReady": false,
   "productionReady": false,
-  "realFundsAllowed": false,
-  "status": "pending-explicit-approval",
+  "realFundsAllowed": true,
+  "status": "approved-bounded-action",
   "secretPolicy": "references-only-no-secret-values",
   "approvalPolicy": "exact-action-required-before-mainnet-funds",
   "summary": "Refs-only real-funds approval packet for Vanta. This packet can be moved from pending to approved only for one exact, bounded mainnet action. It must not contain private keys, seed phrases, database URLs, bearer tokens, signed transactions, or customer data.",
@@ -25,17 +25,17 @@
     }
   ],
   "approvalRecord": {
-    "status": "not-approved",
+    "status": "approved",
     "approvalRecordRef": "VANTA_MAINNET_APPROVAL_RECORD_REF",
-    "approvedActionRef": "pending",
-    "approvedActionSummary": "pending",
+    "approvedActionRef": "launch-runbook/vanta-mainnet-beta-001",
+    "approvedActionSummary": "Enable beta mainnet private-pool smoke with maximum 0.05 SOL at risk",
     "approvedEnvironment": "mainnet-beta",
-    "approvedFeePayerRef": "VANTA_APPROVED_FEE_PAYER_REF",
-    "approvedLaunchWindowRef": "VANTA_APPROVED_LAUNCH_WINDOW_REF",
-    "rollbackPlanRef": "VANTA_ROLLBACK_PLAN_REF",
-    "stopLossPlanRef": "VANTA_STOP_LOSS_PLAN_REF",
-    "maximumFundsAtRiskRef": "VANTA_MAX_FUNDS_AT_RISK_REF",
-    "approvedByRef": "VANTA_LAUNCH_APPROVER_REF"
+    "approvedFeePayerRef": "wallet/public-fee-payer-vanta-beta",
+    "approvedLaunchWindowRef": "2026-04-22T14:30:00-15:30:00 America/Chicago",
+    "rollbackPlanRef": "runbook/disable-private-pool-v2-services-and-beta-actions",
+    "stopLossPlanRef": "max-0.05-sol-or-first-failed-settlement",
+    "maximumFundsAtRiskRef": "0.05 SOL",
+    "approvedByRef": "Clay / founder approval / 2026-04-22"
   },
   "requiredBeforeApproval": [
     "approvedActionSummary must name one exact action or transaction class",

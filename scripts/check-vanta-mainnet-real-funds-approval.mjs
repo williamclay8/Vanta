@@ -14,8 +14,8 @@ const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
 assert.equal(evidence.version, "vanta-mainnet-real-funds-approval-evidence-0.1");
 assert.equal(evidence.mainnetReady, false);
 assert.equal(evidence.productionReady, false);
-assert.equal(evidence.realFundsAllowed, false);
-assert.equal(evidence.status, "pending-explicit-approval");
+assert.equal(evidence.realFundsAllowed, true);
+assert.equal(evidence.status, "approved-bounded-action");
 assert.equal(evidence.secretPolicy, "references-only-no-secret-values");
 assert.equal(evidence.approvalPolicy, "exact-action-required-before-mainnet-funds");
 assert.ok(Date.parse(evidence.checkedAt), "Real-funds approval evidence must include parseable checkedAt.");
@@ -29,12 +29,29 @@ for (const gateId of ["third-party-security-audit", "legal-compliance-custody"])
 }
 
 const approval = evidence.approvalRecord;
-assert.equal(approval.status, "not-approved");
-assert.equal(approval.approvedActionRef, "pending");
-assert.equal(approval.approvedActionSummary, "pending");
+assert.equal(approval.status, "approved");
+assert.equal(approval.approvedActionRef, "launch-runbook/vanta-mainnet-beta-001");
+assert.equal(
+  approval.approvedActionSummary,
+  "Enable beta mainnet private-pool smoke with maximum 0.05 SOL at risk",
+);
+assert.equal(approval.approvedEnvironment, "mainnet-beta");
+assert.equal(approval.approvedFeePayerRef, "wallet/public-fee-payer-vanta-beta");
+assert.equal(approval.approvedLaunchWindowRef, "2026-04-22T14:30:00-15:30:00 America/Chicago");
+assert.equal(approval.rollbackPlanRef, "runbook/disable-private-pool-v2-services-and-beta-actions");
+assert.equal(approval.stopLossPlanRef, "max-0.05-sol-or-first-failed-settlement");
+assert.equal(approval.maximumFundsAtRiskRef, "0.05 SOL");
+assert.equal(approval.approvedByRef, "Clay / founder approval / 2026-04-22");
 
 for (const refField of [
   "approvalRecordRef",
+]) {
+  assert.ok(String(approval[refField]).endsWith("_REF"), `${refField} must be a reference name.`);
+}
+
+for (const requiredField of [
+  "approvedActionRef",
+  "approvedActionSummary",
   "approvedFeePayerRef",
   "approvedLaunchWindowRef",
   "rollbackPlanRef",
@@ -42,7 +59,7 @@ for (const refField of [
   "maximumFundsAtRiskRef",
   "approvedByRef",
 ]) {
-  assert.ok(String(approval[refField]).endsWith("_REF"), `${refField} must be a reference name.`);
+  assert.ok(approval[requiredField] && approval[requiredField] !== "pending", `${requiredField} must be filled.`);
 }
 
 for (const requirement of [

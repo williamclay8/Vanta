@@ -267,7 +267,7 @@ The real-funds approval packet is:
 ops/mainnet/mainnet-real-funds-approval.evidence.json
 ```
 
-It stays `realFundsAllowed: false` until it names one exact approved action, launch window ref, fee-payer ref, rollback ref, stop-loss ref, bounded funds-at-risk ref, and human approver ref. It must never contain private keys, seed phrases, signed transactions, bearer tokens, or raw database URLs.
+It now records bounded approval for one action: beta mainnet private-pool smoke with maximum `0.05 SOL` at risk during `2026-04-22T14:30:00-15:30:00 America/Chicago`, approved by Clay. This is not blanket production readiness and does not allow any other mainnet action. It must never contain private keys, seed phrases, signed transactions, bearer tokens, or raw database URLs.
 
 ### Monitoring and incident response
 

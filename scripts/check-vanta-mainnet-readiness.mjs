@@ -30,6 +30,12 @@ assert.ok(
   "Missing mainnet funds approval blocker.",
 );
 assert.ok(
+  snapshot.blockers
+    .find((blocker) => blocker.id === "no-mainnet-funds-without-explicit-approval")
+    ?.summary.includes("bounded beta mainnet private-pool smoke"),
+  "Funds blocker must preserve bounded approval language.",
+);
+assert.ok(
   snapshot.lanes.privateCore.status === "verified-local",
   "Private Core should be represented as locally verified, not mainnet complete.",
 );
@@ -192,7 +198,7 @@ assert.ok(
   "Missing real-funds approval command.",
 );
 assert.ok(snapshot.requiredCommands.includes("npm run audit:package-check"), "Missing audit package command.");
-assert.ok(snapshot.nextActions[0]?.includes("real-funds approval packet"), "First next action should push toward real-funds approval.");
+assert.ok(snapshot.nextActions[0]?.includes("approved bounded beta mainnet private-pool smoke"), "First next action should preserve bounded approval.");
 assert.ok(
   snapshot.nextActions.some((action) => action.includes("provider-neutral production observability")),
   "Next actions must include provider-neutral production observability setup.",
