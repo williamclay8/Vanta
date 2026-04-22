@@ -5303,49 +5303,7 @@ input {
   }
 
   .landing-minimal__actions {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 10px;
-    margin-top: 24px;
-    width: auto;
-  }
-
-  .landing-minimal__actions .landing-btn {
-    display: inline-flex;
-    width: auto;
-    min-width: 126px;
-    min-height: 44px;
-    align-items: center;
-    justify-content: center;
-    padding: 0 18px;
-    border-radius: 12px;
-    text-align: center;
-  }
-
-  .landing-minimal__actions .landing-btn--primary {
-    box-shadow:
-      0 14px 38px rgba(0, 229, 200, 0.18),
-      inset 0 1px 0 rgba(255, 255, 255, 0.26);
-  }
-
-  .landing-minimal__actions .landing-btn--ghost {
-    min-width: 116px;
-    min-height: 44px;
-    padding: 0 16px;
-    border: 1px solid var(--landing-border);
-    background: rgba(232, 250, 248, 0.02);
-    color: var(--landing-ice);
-    font-size: 0.68rem;
-    letter-spacing: 0.14em;
-  }
-
-  .landing-minimal__actions .landing-btn--ghost:hover {
-    background: rgba(0, 229, 200, 0.08);
-  }
-
-  .landing-minimal__actions .landing-btn:active {
-    transform: scale(0.96);
+    display: none;
   }
 
   .landing-minimal__panel {
