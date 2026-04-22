@@ -22,6 +22,8 @@ for (const phrase of [
   "DATABASE_URL",
   "ops/storage/postgres/001_vanta_mainnet_storage.sql",
   "schema_versions",
+  "VANTA_POSTGRES_SSL",
+  "rejectUnauthorized",
   "BEGIN",
   "COMMIT",
   "ROLLBACK",

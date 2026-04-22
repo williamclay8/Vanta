@@ -45,6 +45,12 @@ async function applyMigration() {
   const client = new pg.Client({
     connectionString: databaseUrl,
     application_name: "vanta-production-migration-harness",
+    ssl:
+      process.env.VANTA_POSTGRES_SSL === "disable"
+        ? false
+        : {
+            rejectUnauthorized: false,
+          },
   });
 
   await client.connect();

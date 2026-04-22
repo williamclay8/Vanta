@@ -107,6 +107,8 @@ doppler run --config prd --project vanta -- \
 
 For a role-specific database, keep the same command shape but set `DATABASE_URL` from the intended Doppler secret inside a controlled shell, and change `VANTA_PRODUCTION_DB_TARGET` to the reference name being migrated. For example, set it from `VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL` and use `VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL_REF` as the target ref. The database mutation is intentionally not part of `npm run mainnet:preflight`.
 
+The migration harness enables SSL/TLS by default for Render external Postgres URLs. Use `VANTA_POSTGRES_SSL=disable` only for local non-SSL test databases.
+
 ## Restore Drill Evidence
 
 The restore drill evidence file is:
