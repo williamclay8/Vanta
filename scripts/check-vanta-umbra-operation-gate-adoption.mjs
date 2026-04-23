@@ -10,7 +10,7 @@ for (const phrase of [
   "type UmbraWalletAdapterGate",
   "walletAdapterGate?: UmbraWalletAdapterGate",
   "createUmbraOperationWalletAdapterGate",
-  "resolveUmbraClient(args)",
+  "resolveUmbraOperationClient",
   "walletAdapterGate: args.walletAdapterGate",
   'intentKind: "message" | "transaction"',
   "messageIntentApproved: intentKind === \"message\"",

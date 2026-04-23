@@ -10,6 +10,9 @@ import type { UmbraRuntimeConfig } from "./umbraConfig";
 type OptionalUmbraClientArgs = {
   client?: UmbraClient;
   config?: UmbraRuntimeConfig;
+  humanApprovedOperationSummary?: boolean;
+  operationApprovalNow?: number;
+  operationApprovalSummary?: UmbraOperationApprovalSummary;
   walletAdapterGate?: UmbraWalletAdapterGate;
   walletSession?: WalletSession;
 };
@@ -87,6 +90,55 @@ function requireUmbraOperationTimestamp(value: unknown, fieldName: string) {
   }
 
   return Number(value);
+}
+
+function requireMatchingUmbraOperationApprovalSummary(
+  summary: UmbraOperationApprovalSummary | undefined,
+  {
+    amount,
+    asset,
+    destinationAddress,
+    mintAddress,
+    operationKind,
+    requester,
+  }: {
+    amount?: string;
+    asset?: string;
+    destinationAddress?: string;
+    mintAddress?: string;
+    operationKind: UmbraOperationKind;
+    requester: string;
+  },
+) {
+  if (!summary) {
+    throw new Error(`Vanta Umbra operation requires an approval summary for ${operationKind}.`);
+  }
+
+  if (summary.operationKind !== operationKind) {
+    throw new Error(`Vanta Umbra operation approval summary kind mismatch for ${operationKind}.`);
+  }
+
+  if (summary.requester !== requester) {
+    throw new Error("Vanta Umbra operation approval summary requester mismatch.");
+  }
+
+  if (amount !== undefined && summary.amount !== amount) {
+    throw new Error("Vanta Umbra operation approval summary amount mismatch.");
+  }
+
+  if (asset !== undefined && summary.asset !== asset) {
+    throw new Error("Vanta Umbra operation approval summary asset mismatch.");
+  }
+
+  if (destinationAddress !== undefined && summary.destinationAddress !== destinationAddress) {
+    throw new Error("Vanta Umbra operation approval summary destination mismatch.");
+  }
+
+  if (mintAddress !== undefined && summary.mintAddress !== mintAddress) {
+    throw new Error("Vanta Umbra operation approval summary mint mismatch.");
+  }
+
+  return summary;
 }
 
 export function createUmbraOperationApprovalSummary({
@@ -242,8 +294,47 @@ async function resolveUmbraClient(args: OptionalUmbraClientArgs) {
   });
 }
 
+async function resolveUmbraOperationClient(
+  args: OptionalUmbraClientArgs,
+  operation: {
+    amount?: string;
+    asset?: string;
+    destinationAddress?: string;
+    mintAddress?: string;
+    operationKind: UmbraOperationKind;
+  },
+) {
+  if (args.client) {
+    return args.client;
+  }
+
+  if (!args.walletSession) {
+    throw new Error("A connected wallet session is required for Umbra operations.");
+  }
+
+  const walletAdapterGate =
+    args.walletAdapterGate ??
+    createUmbraOperationWalletAdapterGateFromSummary({
+      connectedWalletAddress: args.walletSession.account.address,
+      humanApprovedSummary: args.humanApprovedOperationSummary === true,
+      now: args.operationApprovalNow,
+      privateKeyMaterialHandled: false,
+      summary: requireMatchingUmbraOperationApprovalSummary(args.operationApprovalSummary, {
+        ...operation,
+        requester: args.walletSession.account.address,
+      }),
+    });
+
+  return resolveUmbraClient({
+    ...args,
+    walletAdapterGate,
+  });
+}
+
 export async function registerUmbraUser(args: UmbraOperationBaseArgs) {
-  const client = await resolveUmbraClient(args);
+  const client = await resolveUmbraOperationClient(args, {
+    operationKind: "register-user",
+  });
   const sdk = await loadUmbraSdk();
   const register = sdk.getUserRegistrationFunction({ client });
 
@@ -258,7 +349,12 @@ export async function queryUmbraEncryptedBalances(
     mintAddresses: readonly string[];
   },
 ) {
-  const client = await resolveUmbraClient(args);
+  const client = await resolveUmbraOperationClient(args, {
+    asset: "Umbra private balance",
+    destinationAddress: "not applicable",
+    mintAddress: args.mintAddresses.join(","),
+    operationKind: "query-encrypted-balances",
+  });
   const sdk = await loadUmbraSdk();
   const query = sdk.getEncryptedBalanceQuerierFunction({ client });
 
@@ -272,7 +368,13 @@ export async function depositPublicBalanceToUmbraEncryptedBalance(
     mintAddress: string;
   },
 ) {
-  const client = await resolveUmbraClient(args);
+  const destinationAddress = args.destinationAddress ?? args.walletSession?.account.address;
+  const client = await resolveUmbraOperationClient(args, {
+    amount: args.amountBaseUnits.toString(),
+    destinationAddress,
+    mintAddress: args.mintAddress,
+    operationKind: "deposit-public-to-encrypted-balance",
+  });
   const sdk = await loadUmbraSdk();
   const deposit = sdk.getPublicBalanceToEncryptedBalanceDirectDepositorFunction({ client });
 
@@ -291,7 +393,13 @@ export async function withdrawUmbraEncryptedBalanceToPublicBalance(
     mintAddress: string;
   },
 ) {
-  const client = await resolveUmbraClient(args);
+  const destinationAddress = args.destinationAddress ?? args.walletSession?.account.address;
+  const client = await resolveUmbraOperationClient(args, {
+    amount: args.amountBaseUnits.toString(),
+    destinationAddress,
+    mintAddress: args.mintAddress,
+    operationKind: "withdraw-encrypted-to-public-balance",
+  });
   const sdk = await loadUmbraSdk();
   const withdraw = sdk.getEncryptedBalanceToPublicBalanceDirectWithdrawerFunction({
     client,
@@ -312,7 +420,12 @@ export async function scanUmbraClaimableUtxos(
     treeIndex: number;
   },
 ) {
-  const client = await resolveUmbraClient(args);
+  const client = await resolveUmbraOperationClient(args, {
+    asset: "Umbra private balance",
+    destinationAddress: "not applicable",
+    mintAddress: `tree:${args.treeIndex}`,
+    operationKind: "scan-claimable-utxos",
+  });
   const sdk = await loadUmbraSdk();
   const scan = sdk.getClaimableUtxoScannerFunction({ client });
 

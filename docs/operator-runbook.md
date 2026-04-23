@@ -626,6 +626,24 @@ scripts/check-vanta-umbra-operation-summary.mjs
 npm run umbra:operation-summary-check
 ```
 
+The Umbra operation client summary gate seam is:
+
+```text
+src/privacy/umbraOperations.ts
+```
+
+Each operation helper must resolve its Umbra wallet-session client through an operation-aware gate. If a caller does not provide an already-built adapter gate, the helper must require a matching `vanta-umbra-operation-approval-summary` and derive the gate from that summary before any Umbra SDK signing path can run.
+
+The Umbra operation client summary gate command is:
+
+```text
+scripts/check-vanta-umbra-operation-client-summary-gate.mjs
+```
+
+```bash
+npm run umbra:operation-client-summary-gate-check
+```
+
 The frozen live wallet send/sign inventory is:
 
 ```text
