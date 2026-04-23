@@ -90,6 +90,9 @@ function summarize(config, payload, status) {
     nullifierReplayGuardMode: payload.nullifierReplayGuard?.mode ?? null,
     nullifierReplayGuardStorageMode: payload.nullifierReplayGuard?.storageMode ?? null,
     nullifierReplayGuardProductionReady: payload.nullifierReplayGuard?.productionReady ?? false,
+    protocolEnforcementFinalLayerImplemented: payload.protocolEnforcement?.finalLayerImplemented ?? false,
+    protocolEnforcementFinalLayerProductionReady: payload.protocolEnforcement?.finalLayerProductionReady ?? false,
+    protocolEnforcementLayer: payload.protocolEnforcement?.layer ?? null,
     version: "vanta-production-nullifier-replay-status-0.1",
   };
 }
@@ -115,6 +118,21 @@ if (checkMode) {
     "postgres-unique-index",
     "Operator must expose Postgres unique-index replay storage mode.",
   );
+  assert.equal(
+    result.protocolEnforcementLayer,
+    "operator-claim-preflight-and-accepted-reservation-only",
+    "Operator must expose the current protocol enforcement layer truth.",
+  );
+  assert.equal(
+    result.protocolEnforcementFinalLayerImplemented,
+    false,
+    "Final protocol replay enforcement layer must remain incomplete.",
+  );
+  assert.equal(
+    result.protocolEnforcementFinalLayerProductionReady,
+    false,
+    "Final protocol replay enforcement layer must remain productionReady false.",
+  );
   assert.equal(result.operatorStatusProductionReady, false, "Operator status must remain productionReady false.");
 }
 
@@ -128,6 +146,8 @@ if (jsonMode || checkMode) {
   console.log(`- durableStoreConfigured: ${String(result.storageDurableStoreConfigured)}`);
   console.log(`- nullifierReplayGuardMode: ${result.nullifierReplayGuardMode}`);
   console.log(`- nullifierReplayGuardStorageMode: ${result.nullifierReplayGuardStorageMode}`);
+  console.log(`- protocolEnforcementLayer: ${result.protocolEnforcementLayer}`);
+  console.log(`- finalProtocolLayerImplemented: ${String(result.protocolEnforcementFinalLayerImplemented)}`);
   console.log(`- rateLimiter: ${result.rateLimiter}`);
   console.log(`- productionReady: ${String(result.productionReady)}`);
 }

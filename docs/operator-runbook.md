@@ -315,7 +315,7 @@ ops/mainnet/private-pool-v2-nullifier-replay.evidence.json
 npm run mainnet:nullifier-replay-evidence-check
 ```
 
-It records only the deployed operator replay mode, replay storage mode, durable-store status, and runtime mode. It does not claim the final protocol enforcement layer is complete.
+It records only the deployed operator replay mode, replay storage mode, durable-store status, runtime mode, and the explicit current protocol enforcement layer. The current checked layer is `operator-claim-preflight-and-accepted-reservation-only`, and the evidence keeps `finalLayerImplemented: false` and `finalLayerProductionReady: false` until replay enforcement moves beyond the operator-side reservation guard.
 
 For a faster focused check:
 

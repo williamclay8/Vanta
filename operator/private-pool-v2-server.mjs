@@ -854,6 +854,11 @@ async function statusPayload() {
       productionReady: false,
       storageMode: nullifierReplayGuard.storageMode,
     },
+    protocolEnforcement: {
+      finalLayerImplemented: false,
+      finalLayerProductionReady: false,
+      layer: "operator-claim-preflight-and-accepted-reservation-only",
+    },
     trafficControls: {
       rateLimitPerMinute,
       rateLimiter: "in-memory-per-process",

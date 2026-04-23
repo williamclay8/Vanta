@@ -75,7 +75,7 @@ const lanes = {
   privatePoolV2: {
     readiness: 58,
     status: "production-smoke-render-postgres",
-    truth: "Private Pool v2 has local indexer/relayer/prover/verifier/operator seams, Render staging coverage, fresh no-real-funds production smoke evidence across deployed Render indexer, prover, relayer, verifier, and operator services with postgres-jsonb-snapshot-store persistence, a production operator guard that requires Postgres-backed nullifier replay storage, and a sanitized production replay-status evidence surface proving the deployed operator exposes durable replay reservation mode. It is still not an audited shared anonymity set or mainnet privacy pool, and must not move real funds.",
+    truth: "Private Pool v2 has local indexer/relayer/prover/verifier/operator seams, Render staging coverage, fresh no-real-funds production smoke evidence across deployed Render indexer, prover, relayer, verifier, and operator services with postgres-jsonb-snapshot-store persistence, a production operator guard that requires Postgres-backed nullifier replay storage, and a sanitized production replay-status evidence surface proving the deployed operator exposes durable replay reservation mode while the current protocol enforcement layer remains operator-claim-preflight-and-accepted-reservation-only. It is still not an audited shared anonymity set or mainnet privacy pool, and must not move real funds.",
   },
   protocolTabs: {
     readiness: 50,

@@ -50,6 +50,21 @@ assert.equal(
   "Evidence must keep replay guard productionReady explicit.",
 );
 assert.equal(
+  evidence.protocolEnforcementLayer,
+  "operator-claim-preflight-and-accepted-reservation-only",
+  "Evidence must keep the current protocol enforcement layer explicit.",
+);
+assert.equal(
+  evidence.protocolEnforcementFinalLayerImplemented,
+  false,
+  "Evidence must keep final protocol enforcement implementation explicit.",
+);
+assert.equal(
+  evidence.protocolEnforcementFinalLayerProductionReady,
+  false,
+  "Evidence must keep final protocol enforcement productionReady explicit.",
+);
+assert.equal(
   typeof evidence.operatorStatusProductionReady,
   "boolean",
   "Evidence must keep operator status productionReady explicit.",
