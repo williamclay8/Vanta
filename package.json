@@ -161,6 +161,7 @@
     "private-core:release-readiness-check-json": "node scripts/print-vanta-private-core-release-readiness.mjs --json --check-ready",
     "private-core:shipping-status": "node scripts/print-vanta-private-core-shipping-status.mjs",
     "private-core:shipping-status-json": "node scripts/print-vanta-private-core-shipping-status.mjs --json",
+    "private-core:shipping-status-offline-check": "node scripts/check-vanta-private-core-shipping-status-offline.mjs",
     "private-core:shipping-check": "node scripts/print-vanta-private-core-shipping-status.mjs --check-ready",
     "private-core:shipping-check-json": "node scripts/print-vanta-private-core-shipping-status.mjs --json --check-ready",
     "private-core:fixture": "node scripts/write-vanta-private-core-unshield-fixture.mjs",

@@ -12,32 +12,37 @@ try {
   if (checkReady && decision.decisionStatus !== "ready-to-ship") {
     if (jsonMode) {
       console.error(JSON.stringify(surface, null, 2));
+      printShippingSurface(surface, console.error);
     } else {
       printShippingSurface(surface, console.error);
     }
-    throw new Error(
-      [
-        `Shipping status: ${surface.shippingStatus}`,
-        `Shipping note: ${surface.shippingNote}`,
-      ].join("\n"),
-    );
-  }
-
-  if (jsonMode) {
+    process.exitCode = 1;
+  } else if (jsonMode) {
     console.log(JSON.stringify(surface, null, 2));
   } else {
     printShippingSurface(surface);
   }
 } catch (error) {
-  console.error(
-    error instanceof Error ? error.message : "Failed to print private-core shipping status",
-  );
-  process.exitCode = 1;
+  const surface = buildShippingSurface(createUnreachableDecision(error));
+
+  if (jsonMode) {
+    const writer = checkReady ? console.error : console.log;
+    writer(JSON.stringify(surface, null, 2));
+  } else {
+    const writer = checkReady ? console.error : console.log;
+    printShippingSurface(surface, writer);
+  }
+
+  if (checkReady) {
+    process.exitCode = 1;
+  }
 }
 
 function buildShippingSurface(decision) {
   return {
     operator: baseUrl,
+    operatorError: decision.operatorError ?? null,
+    operatorReachable: decision.operatorReachable !== false,
     summaryStateVersion: decision.stateVersion ?? null,
     decisionVersion: decision.decisionVersion ?? null,
     decisionKind: decision.decisionKind ?? null,
@@ -98,6 +103,8 @@ function humanizeDecisionStatus(value) {
       return "Ready to ship";
     case "blocked":
       return "Blocked";
+    case "operator-unreachable":
+      return "Operator unreachable";
     default:
       return "Unknown";
   }
@@ -107,6 +114,8 @@ function humanizeShippingStatus(value) {
   switch (value) {
     case "ready-narrow-v1":
       return "Ready narrow v1";
+    case "operator-unreachable":
+      return "Operator unreachable";
     case "required-lanes-mismatch":
       return "Required lanes mismatch";
     case "release-boundary-mismatch":
@@ -124,6 +133,8 @@ function humanizeRequiredLanesStatus(value) {
   switch (value) {
     case "coherent-required-lanes":
       return "Coherent required lanes";
+    case "operator-unreachable":
+      return "Operator unreachable";
     case "send-lane-mismatch":
       return "Send lane mismatch";
     case "release-lane-mismatch":
@@ -139,6 +150,8 @@ function humanizeFinishLineStatus(value) {
   switch (value) {
     case "coherent-minimum-v1-lane":
       return "Coherent minimum v1 lane";
+    case "operator-unreachable":
+      return "Operator unreachable";
     case "contract-mismatch":
       return "Contract mismatch";
     case "boundary-mismatch":
@@ -152,6 +165,8 @@ function humanizeReleaseBoundaryStatus(value) {
   switch (value) {
     case "release-recorded":
       return "Release recorded";
+    case "operator-unreachable":
+      return "Operator unreachable";
     case "consume-without-release":
       return "Consume without release";
     case "proof-unlinked":
@@ -173,6 +188,8 @@ function humanizeContractMirrorStatus(value) {
   switch (value) {
     case "mirrors-contract":
       return "Summary mirrors frozen contract";
+    case "operator-unreachable":
+      return "Operator unreachable";
     case "contract-mismatch":
       return "Contract mismatch";
     default:
@@ -184,6 +201,8 @@ function humanizeBoundaryStatus(value) {
   switch (value) {
     case "coherent":
       return "Operator boundary coherent";
+    case "operator-unreachable":
+      return "Operator unreachable";
     case "awaiting-current-root":
       return "Awaiting current root";
     case "root-registration-unlinked":
@@ -205,6 +224,32 @@ function humanizeBoundaryStatus(value) {
 
 function printLine(label, value, writer = console.log) {
   writer(`${label}: ${value}`);
+}
+
+function createUnreachableDecision(error) {
+  const message =
+    error instanceof Error ? error.message : "Failed to print private-core shipping status";
+
+  return {
+    boundaryNote: "Unable to fetch private-core shipping decision from the operator.",
+    boundaryStatus: "operator-unreachable",
+    contractMirrorNote: "Unable to fetch private-core shipping decision from the operator.",
+    contractMirrorStatus: "operator-unreachable",
+    decisionKind: "private-core-shipping-status-unreachable",
+    decisionNote: "Start the private-core operator or pass --base-url for a reachable operator.",
+    decisionStatus: "operator-unreachable",
+    decisionVersion: 1,
+    finishLineNote: "Unable to fetch private-core shipping decision from the operator.",
+    finishLineStatus: "operator-unreachable",
+    operatorError: message,
+    operatorReachable: false,
+    requiredLanesNote: "Unable to fetch private-core shipping decision from the operator.",
+    requiredLanesStatus: "operator-unreachable",
+    releaseBoundaryNote: "Unable to fetch private-core shipping decision from the operator.",
+    releaseBoundaryStatus: "operator-unreachable",
+    shippingNote: "Operator status is unavailable; no shipping claim can be made.",
+    shippingStatus: "operator-unreachable",
+  };
 }
 
 async function requestJson(path) {

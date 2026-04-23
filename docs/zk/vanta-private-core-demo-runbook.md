@@ -122,6 +122,8 @@ The shipping-status command gives the shortest operator-backed summary of:
   - operator boundary
 
 Use `private-core:shipping-status-json` when a reviewer, shell script, or external tool needs the compact readiness surface as machine-readable JSON.
+
+If no operator is reachable, `private-core:shipping-status-json` prints a machine-readable `operatorReachable: false` surface instead of a raw fetch failure. Use this for status snapshots. The strict `private-core:shipping-check-json` command still fails when the operator is unreachable.
 That JSON now comes from the dedicated `/state/private-core-shipping-decision` endpoint rather than being reconstructed ad hoc from the larger summary payload. Treat that endpoint as the canonical operator-backed ship/no-ship contract for the frozen narrow private-core lane.
 
 Use `private-core:shipping-check-json` when that same tooling wants a strict machine-readable pass/fail gate for the frozen narrow lane instead of just a status snapshot.

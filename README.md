@@ -549,6 +549,8 @@ The app now also treats that operator-owned release package as a true review art
 
 `private-core:shipping-status-json` prints that same compact readiness surface as machine-readable JSON, including the canonical decision fields and both raw enum values and humanized labels for shipping, finish-line, required-lanes, release-boundary, contract-mirror, and boundary state.
 
+If no operator is reachable, `private-core:shipping-status-json` now prints a machine-readable `operatorReachable: false` surface instead of a raw fetch failure. The strict `private-core:shipping-check*` commands still fail when the operator is unreachable.
+
 `private-core:shipping-check` runs the same operator-backed shipping summary but exits non-zero unless the current summary says `Ready narrow v1`. It now reads the dedicated `/state/private-core-shipping-decision-check` gate endpoint directly, and on blocked paths fails with structured `Shipping status:` and `Shipping note:` stderr lines instead of a note-only message.
 
 `private-core:shipping-check-json` is the machine-readable ready-gate form of that same command: it exits zero only for `Ready narrow v1`, prints the compact readiness JSON on success, and on blocked paths emits the JSON surface to stderr before the structured `Shipping status:` / `Shipping note:` lines.
