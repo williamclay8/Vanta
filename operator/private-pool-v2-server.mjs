@@ -910,9 +910,10 @@ async function statusPayload() {
       productionReady: false,
     },
     protocolEnforcement: {
-      finalLayerImplemented: false,
+      finalLayerImplemented: true,
       finalLayerProductionReady: false,
-      layer: "operator-claim-preflight-and-accepted-reservation-only",
+      layer:
+        "operator-claim-preflight-plus-verifier-receipt-idempotency-plus-indexer-nullifier-registration",
     },
     trafficControls: {
       rateLimitPerMinute,

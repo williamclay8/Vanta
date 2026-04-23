@@ -523,6 +523,19 @@ try {
     remoteOperatorStatus.parsed?.runtime?.mode === "remote-services",
     "Expected operator to run against the remote service network.",
   );
+  assert(
+    remoteOperatorStatus.parsed?.protocolEnforcement?.layer ===
+      "operator-claim-preflight-plus-verifier-receipt-idempotency-plus-indexer-nullifier-registration",
+    "Expected remote operator status to expose the stronger protocol replay layer.",
+  );
+  assert(
+    remoteOperatorStatus.parsed?.protocolEnforcement?.finalLayerImplemented === true,
+    "Expected remote operator status to mark the final protocol replay layer implemented.",
+  );
+  assert(
+    remoteOperatorStatus.parsed?.protocolEnforcement?.finalLayerProductionReady === false,
+    "Expected remote operator status to keep the protocol replay layer productionReady false.",
+  );
 
   const remotePaySettlement = await requestJson(operatorBaseUrl, "/private-pool-v2/pay-settlements", {
     body: JSON.stringify({
