@@ -19,7 +19,9 @@ assert.equal(evidence.browserVerificationRef, "npm run wallet:browser-signing-sa
 assert.equal(evidence.signingSafetyPolicyRef, "npm run wallet:signing-safety-check");
 assert.equal(evidence.liveSendInventoryRef, "npm run wallet:live-send-inventory-check");
 assert.equal(evidence.liveMainnetSubmissionEnabled, false);
+assert.equal(evidence.browserVerificationMode, "local-dev-server-gsd-browser");
 assert.equal(evidence.browserVerificationCluster, "devnet-or-localnet");
+assert.deepEqual(evidence.browserVerifiedProtocolPages, ["Shield", "Send", "Swap", "Unshield"]);
 assert.equal(evidence.requiresExplicitHumanApproval, true);
 assert.equal(evidence.requiresSimulationBeforeSignature, true);
 assert.equal(evidence.requiresTransactionSummaryBeforeSignature, true);

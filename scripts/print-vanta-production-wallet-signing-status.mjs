@@ -33,6 +33,8 @@ function buildStatus() {
     blockedActions: policy.blockedActions,
     browserVerificationCluster: policy.defaultCluster,
     browserVerificationCommand: "npm run wallet:browser-signing-safety-check",
+    browserVerificationMode: "local-dev-server-gsd-browser",
+    browserVerifiedProtocolPages: ["Shield", "Send", "Swap", "Unshield"],
     checkedAt: new Date().toISOString(),
     liveMainnetSubmissionEnabled: policy.liveMainnetSubmissionEnabled,
     liveSendInventoryVersion: inventory.version,
@@ -70,6 +72,16 @@ if (checkMode) {
     "Wallet signatures must require a transaction summary first.",
   );
   assert.equal(result.browserVerificationCluster, "devnet-or-localnet", "Browser verification must stay off mainnet.");
+  assert.equal(
+    result.browserVerificationMode,
+    "local-dev-server-gsd-browser",
+    "Browser verification mode must remain local-dev-server-gsd-browser.",
+  );
+  assert.deepEqual(
+    result.browserVerifiedProtocolPages,
+    ["Shield", "Send", "Swap", "Unshield"],
+    "Browser verification must cover Shield, Send, Swap, and Unshield.",
+  );
   assert.deepEqual(
     result.protocolPagesCovered,
     ["Shield", "Send", "Swap", "Unshield"],
@@ -103,6 +115,7 @@ if (jsonMode || checkMode) {
   console.log("Vanta production wallet-signing status");
   console.log(`- protocolPagesCovered: ${result.protocolPagesCovered.join(", ")}`);
   console.log(`- protocolPagesWithSafeSendAdoption: ${result.protocolPagesWithSafeSendAdoption.join(", ")}`);
+  console.log(`- browserVerifiedProtocolPages: ${result.browserVerifiedProtocolPages.join(", ")}`);
   console.log(`- messageIntentPages: ${result.messageIntentPages.join(", ")}`);
   console.log(`- liveMainnetSubmissionEnabled: ${String(result.liveMainnetSubmissionEnabled)}`);
   console.log(`- browserVerificationCluster: ${result.browserVerificationCluster}`);

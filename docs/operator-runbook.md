@@ -1017,7 +1017,7 @@ The browser-backed safe-environment signing gate is:
 npm run wallet:browser-signing-safety-check
 ```
 
-It starts the app with devnet configuration, verifies the Shield/Send browser surfaces do not expose mainnet submission or secret-key language, and verifies the Shield action does not advance into wallet-confirmation state when no wallet is connected.
+It starts the app with devnet configuration, verifies the Shield, Send, Swap, and Unshield browser surfaces do not expose mainnet submission or secret-key language, and verifies the Shield, Swap, and Unshield actions do not advance into wallet-confirmation state when no wallet is connected.
 
 The sanitized production wallet-signing status surface is:
 
@@ -1025,7 +1025,7 @@ The sanitized production wallet-signing status surface is:
 scripts/print-vanta-production-wallet-signing-status.mjs
 ```
 
-It records the current protocol pages covered by the live wallet-signing boundary, the pages that have adopted safe-send, the pages still using typed message intents, and the Umbra adapter gate status. It is intentionally not a production browser-signing readiness claim; it freezes the current adopted boundary so readiness can fail loudly if the wallet lane drifts.
+It records the current protocol pages covered by the live wallet-signing boundary, the pages that have adopted safe-send, the pages verified by the browser-backed signing check, the pages still using typed message intents, and the Umbra adapter gate status. It is intentionally not a production browser-signing readiness claim; it freezes the current adopted boundary so readiness can fail loudly if the wallet lane drifts.
 
 The production wallet-signing status commands are:
 
