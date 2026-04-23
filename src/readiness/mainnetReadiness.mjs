@@ -14,7 +14,7 @@ const blockers = [
   {
     id: "final-nullifier-replay-enforcement",
     severity: "critical",
-    summary: "Keep the deployed Postgres-backed operator replay guard verified while carrying replay enforcement into the final protocol layer.",
+    summary: "Keep the deployed Postgres-backed operator replay guard, verified role-service replay barrier, and no-real-funds production smoke replay rejection fresh while carrying replay enforcement into the final protocol layer.",
   },
   {
     id: "wallet-backed-browser-signing-safety",
@@ -75,7 +75,7 @@ const lanes = {
   privatePoolV2: {
     readiness: 58,
     status: "production-smoke-render-postgres",
-    truth: "Private Pool v2 has local indexer/relayer/prover/verifier/operator seams, Render staging coverage, fresh no-real-funds production smoke evidence across deployed Render indexer, prover, relayer, verifier, and operator services with postgres-jsonb-snapshot-store persistence, a production operator guard that requires Postgres-backed nullifier replay storage, and a sanitized production replay-status evidence surface proving the deployed operator exposes durable replay reservation mode while the current protocol enforcement layer remains operator-claim-preflight-and-accepted-reservation-only. It is still not an audited shared anonymity set or mainnet privacy pool, and must not move real funds.",
+    truth: "Private Pool v2 has local indexer/relayer/prover/verifier/operator seams, Render staging coverage, fresh no-real-funds production smoke evidence across deployed Render indexer, prover, relayer, verifier, and operator services with postgres-jsonb-snapshot-store persistence, a production operator guard that requires Postgres-backed nullifier replay storage, a verified role-service replay barrier covering duplicate verifier receipt rejection and indexer nullifier registration, and a sanitized production replay-status evidence surface proving the deployed operator exposes durable replay reservation mode while the current protocol enforcement layer remains operator-claim-preflight-and-accepted-reservation-only. It is still not an audited shared anonymity set or mainnet privacy pool, and must not move real funds.",
   },
   protocolTabs: {
     readiness: 50,
@@ -178,7 +178,7 @@ const nextActions = [
   "Keep the service-deployment status/evidence surface and Private Pool v2 production smoke evidence fresh before expanding live mainnet actions.",
   "Keep operator-skipped controls visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
   "Keep the abuse/observability status/evidence surface fresh while using provider-neutral production observability evidence, existing platform logs, or a future provider instead of Better Stack production monitors.",
-  "Keep the deployed operator replay-status evidence fresh while carrying the Postgres-backed nullifier replay guard into the final protocol enforcement layer.",
+  "Keep the deployed operator replay-status evidence, role-service replay verification, and production smoke replay simulation fresh while carrying the Postgres-backed nullifier replay guard into the final protocol enforcement layer.",
   "Keep the wallet-signing status/evidence surface fresh while replacing every frozen live wallet send/sign call site with prepare, simulate, summary, wallet-backed gate validation, and wallet approval before expanding live signing paths.",
 ];
 

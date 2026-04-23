@@ -8,14 +8,21 @@
   "runtimeMode": "remote-services",
   "storageKind": "postgres-jsonb-snapshot-store",
   "storageDurableStoreConfigured": true,
+  "layeredReplayStatus": "operator-enforced-plus-role-network-verified-plus-production-smoke-simulated",
   "nullifierReplayGuardMode": "postgres-durable-claim-preflight-and-accepted-reservation",
   "nullifierReplayGuardStorageMode": "postgres-unique-index",
   "nullifierReplayGuardProductionReady": false,
+  "roleServiceNetworkReplayBarrier": "verifier-receipt-idempotency-and-indexer-nullifier-registration",
+  "roleServiceNetworkReplayRef": "npm run private-pool-v2:service-network-check",
+  "roleServiceNetworkReplayVerified": true,
+  "productionSmokeReplaySimulationRef": "ops/mainnet/private-pool-v2-production-smoke.evidence.json#nullifier-replay-simulation",
+  "productionSmokeReplaySimulationStatus": "pass",
+  "productionSmokeReplaySimulationHttpStatus": 400,
   "protocolEnforcementLayer": "operator-claim-preflight-and-accepted-reservation-only",
   "protocolEnforcementFinalLayerImplemented": false,
   "protocolEnforcementFinalLayerProductionReady": false,
   "operatorStatusProductionReady": false,
   "safety": "No auth token values, database URLs, bearer values, wallet keys, or signed transaction material are stored in this evidence file.",
-  "deploymentTruth": "Operator-side deployed nullifier replay enforcement can be recorded here without claiming the final protocol enforcement layer is complete.",
-  "nextOperatorAction": "Keep the authenticated production nullifier replay status command fresh while the final protocol enforcement layer remains explicitly incomplete."
+  "deploymentTruth": "This evidence records the deployed operator-side replay reservation barrier, the verified role-service duplicate receipt and nullifier barrier, and the no-real-funds production smoke replay rejection without claiming the final protocol enforcement layer is complete.",
+  "nextOperatorAction": "Keep the authenticated production nullifier replay status command, role-service replay verification, and production smoke replay simulation fresh while the final protocol enforcement layer remains explicitly incomplete."
 }

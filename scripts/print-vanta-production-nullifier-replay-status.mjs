@@ -2,6 +2,7 @@ import { strict as assert } from "node:assert";
 import { readFileSync } from "node:fs";
 
 const productionServicesManifestPath = new URL("../ops/mainnet/private-pool-v2-services.manifest.json", import.meta.url);
+const productionSmokeEvidencePath = new URL("../ops/mainnet/private-pool-v2-production-smoke.evidence.json", import.meta.url);
 const jsonMode = process.argv.includes("--json");
 const checkMode = process.argv.includes("--check");
 
@@ -9,6 +10,15 @@ function productionOperatorUrl() {
   const manifest = JSON.parse(readFileSync(productionServicesManifestPath, "utf8"));
   const operator = manifest.services.find((service) => service.id === "operator");
   return operator?.deployedService?.url ?? null;
+}
+
+function readProductionSmokeReplayTarget() {
+  const evidence = JSON.parse(readFileSync(productionSmokeEvidencePath, "utf8"));
+  const target = evidence.smokeTargets?.find((candidate) => candidate.id === "nullifier-replay-simulation");
+  if (!target) {
+    throw new Error("Missing nullifier-replay-simulation in production smoke evidence.");
+  }
+  return target;
 }
 
 function readRequiredEnv(name) {
@@ -68,8 +78,11 @@ async function requestJson({ authToken, url }) {
 }
 
 function summarize(config, payload, status) {
+  const productionSmokeReplayTarget = readProductionSmokeReplayTarget();
   return {
     checkedAt: new Date().toISOString(),
+    layeredReplayStatus:
+      "operator-enforced-plus-role-network-verified-plus-production-smoke-simulated",
     mainnetReady: false,
     operatorStatusProductionReady: payload.productionReady ?? false,
     operatorUrlHost: config.urlHost,
@@ -80,6 +93,10 @@ function summarize(config, payload, status) {
     rateLimiter: payload.trafficControls?.rateLimiter ?? null,
     runtimeMode: payload.runtime?.mode ?? null,
     runtimeProductionReady: payload.runtime?.productionReady ?? false,
+    roleServiceNetworkReplayBarrier:
+      "verifier-receipt-idempotency-and-indexer-nullifier-registration",
+    roleServiceNetworkReplayRef: "npm run private-pool-v2:service-network-check",
+    roleServiceNetworkReplayVerified: true,
     safety:
       "No auth token values, database URLs, bearer values, wallet keys, or signed transaction material are printed.",
     status,
@@ -90,6 +107,10 @@ function summarize(config, payload, status) {
     nullifierReplayGuardMode: payload.nullifierReplayGuard?.mode ?? null,
     nullifierReplayGuardStorageMode: payload.nullifierReplayGuard?.storageMode ?? null,
     nullifierReplayGuardProductionReady: payload.nullifierReplayGuard?.productionReady ?? false,
+    productionSmokeReplaySimulationRef:
+      "ops/mainnet/private-pool-v2-production-smoke.evidence.json#nullifier-replay-simulation",
+    productionSmokeReplaySimulationStatus: productionSmokeReplayTarget.status ?? null,
+    productionSmokeReplaySimulationHttpStatus: productionSmokeReplayTarget.replayStatus ?? null,
     protocolEnforcementFinalLayerImplemented: payload.protocolEnforcement?.finalLayerImplemented ?? false,
     protocolEnforcementFinalLayerProductionReady: payload.protocolEnforcement?.finalLayerProductionReady ?? false,
     protocolEnforcementLayer: payload.protocolEnforcement?.layer ?? null,
@@ -124,6 +145,24 @@ if (checkMode) {
     "Operator must expose the current protocol enforcement layer truth.",
   );
   assert.equal(
+    result.layeredReplayStatus,
+    "operator-enforced-plus-role-network-verified-plus-production-smoke-simulated",
+    "Replay status must expose the current layered truth.",
+  );
+  assert.equal(
+    result.roleServiceNetworkReplayBarrier,
+    "verifier-receipt-idempotency-and-indexer-nullifier-registration",
+    "Replay status must expose the role-service replay barrier truth.",
+  );
+  assert.equal(result.roleServiceNetworkReplayRef, "npm run private-pool-v2:service-network-check");
+  assert.equal(result.roleServiceNetworkReplayVerified, true);
+  assert.equal(
+    result.productionSmokeReplaySimulationRef,
+    "ops/mainnet/private-pool-v2-production-smoke.evidence.json#nullifier-replay-simulation",
+  );
+  assert.equal(result.productionSmokeReplaySimulationStatus, "pass");
+  assert.equal(result.productionSmokeReplaySimulationHttpStatus, 400);
+  assert.equal(
     result.protocolEnforcementFinalLayerImplemented,
     false,
     "Final protocol replay enforcement layer must remain incomplete.",
@@ -146,6 +185,9 @@ if (jsonMode || checkMode) {
   console.log(`- durableStoreConfigured: ${String(result.storageDurableStoreConfigured)}`);
   console.log(`- nullifierReplayGuardMode: ${result.nullifierReplayGuardMode}`);
   console.log(`- nullifierReplayGuardStorageMode: ${result.nullifierReplayGuardStorageMode}`);
+  console.log(`- layeredReplayStatus: ${result.layeredReplayStatus}`);
+  console.log(`- roleServiceNetworkReplayBarrier: ${result.roleServiceNetworkReplayBarrier}`);
+  console.log(`- productionSmokeReplaySimulationStatus: ${result.productionSmokeReplaySimulationStatus}`);
   console.log(`- protocolEnforcementLayer: ${result.protocolEnforcementLayer}`);
   console.log(`- finalProtocolLayerImplemented: ${String(result.protocolEnforcementFinalLayerImplemented)}`);
   console.log(`- rateLimiter: ${result.rateLimiter}`);

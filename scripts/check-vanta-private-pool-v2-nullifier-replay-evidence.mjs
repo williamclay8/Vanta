@@ -26,6 +26,12 @@ assert.ok(
   "Runtime mode must stay sanitized.",
 );
 assert.ok(
+  ["pending", "operator-enforced-plus-role-network-verified-plus-production-smoke-simulated"].includes(
+    evidence.layeredReplayStatus,
+  ),
+  "Layered replay status must stay sanitized.",
+);
+assert.ok(
   ["pending", "postgres-jsonb-snapshot-store"].includes(evidence.storageKind),
   "Storage kind must stay sanitized.",
 );
@@ -54,6 +60,20 @@ assert.equal(
   "operator-claim-preflight-and-accepted-reservation-only",
   "Evidence must keep the current protocol enforcement layer explicit.",
 );
+assert.equal(
+  evidence.roleServiceNetworkReplayBarrier,
+  "verifier-receipt-idempotency-and-indexer-nullifier-registration",
+  "Evidence must keep the role-service replay barrier explicit.",
+);
+assert.equal(evidence.roleServiceNetworkReplayRef, "npm run private-pool-v2:service-network-check");
+assert.equal(evidence.roleServiceNetworkReplayVerified, true);
+assert.equal(
+  evidence.productionSmokeReplaySimulationRef,
+  "ops/mainnet/private-pool-v2-production-smoke.evidence.json#nullifier-replay-simulation",
+  "Evidence must keep the production smoke replay reference explicit.",
+);
+assert.equal(evidence.productionSmokeReplaySimulationStatus, "pass");
+assert.equal(evidence.productionSmokeReplaySimulationHttpStatus, 400);
 assert.equal(
   evidence.protocolEnforcementFinalLayerImplemented,
   false,
