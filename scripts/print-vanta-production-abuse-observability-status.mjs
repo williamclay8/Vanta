@@ -1,6 +1,7 @@
 import { strict as assert } from "node:assert";
 import { createVantaAbuseObservabilityContract } from "../src/readiness/abuseObservabilityContract.mjs";
 import { createInMemoryRateLimiter } from "../src/ops/vantaRateLimit.mjs";
+import { createNoopOperatorEventSink } from "../src/ops/vantaOperatorEventSink.mjs";
 import { readFileSync } from "node:fs";
 
 const templatePath = new URL("../ops/mainnet/production-observability.template.json", import.meta.url);
@@ -10,6 +11,7 @@ const checkMode = process.argv.includes("--check");
 function buildStatus() {
   const contract = createVantaAbuseObservabilityContract();
   const limiter = createInMemoryRateLimiter();
+  const eventSink = createNoopOperatorEventSink();
   const template = JSON.parse(readFileSync(templatePath, "utf8"));
 
   return {
@@ -18,6 +20,9 @@ function buildStatus() {
     mainnetReady: false,
     nextImplementationStep: contract.nextImplementationStep,
     observabilityProvider: template.provider,
+    operatorEventSinkKind: eventSink.kind,
+    operatorEventSinkProductionReady: eventSink.productionReady,
+    operatorEventSinkSource: contract.operatorEventSinkModulePath,
     productionReady: false,
     rateLimiterKind: limiter.kind,
     rateLimiterProductionReady: limiter.productionReady,
@@ -58,9 +63,20 @@ if (checkMode) {
   assert.equal(result.rateLimiterKind, "in-memory-rate-limiter");
   assert.equal(result.rateLimiterProductionReady, false);
   assert.equal(result.safeTelemetrySource, "src/ops/vantaSafeTelemetry.mjs");
+  assert.equal(result.operatorEventSinkKind, "noop-operator-event-sink");
+  assert.equal(result.operatorEventSinkProductionReady, false);
+  assert.equal(result.operatorEventSinkSource, "src/ops/vantaOperatorEventSink.mjs");
   assert.equal(result.telemetrySource, "src/ops/vantaSafeTelemetry.mjs");
   for (const surface of result.surfaceStatuses) {
-    assert.equal(surface.status, "not-wired", `${surface.id} must remain explicit about not being fully wired.`);
+    if (surface.id === "pay" || surface.id === "privatePoolV2") {
+      assert.equal(
+        surface.status,
+        "privacy-safe-audit-sink-only",
+        `${surface.id} must expose the narrow audit-sink wiring truth.`,
+      );
+    } else {
+      assert.equal(surface.status, "not-wired", `${surface.id} must remain explicit about not being fully wired.`);
+    }
     assert.ok(surface.rateLimitCount > 0, `${surface.id} must keep rate-limit inventory.`);
     assert.ok(surface.metricCount > 0, `${surface.id} must keep metric inventory.`);
     assert.ok(surface.alertCount > 0, `${surface.id} must keep alert inventory.`);
@@ -73,6 +89,7 @@ if (jsonMode || checkMode) {
 } else {
   console.log("Vanta production abuse/observability status");
   console.log(`- observabilityProvider: ${result.observabilityProvider}`);
+  console.log(`- operatorEventSinkKind: ${result.operatorEventSinkKind}`);
   console.log(`- rateLimiterKind: ${result.rateLimiterKind}`);
   console.log(`- rateLimiterProductionReady: ${String(result.rateLimiterProductionReady)}`);
   console.log(`- safeTelemetrySource: ${result.safeTelemetrySource}`);

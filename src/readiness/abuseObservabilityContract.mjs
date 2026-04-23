@@ -15,7 +15,7 @@ const surfaces = [
   {
     id: "pay",
     label: "Vanta Pay",
-    status: "not-wired",
+    status: "privacy-safe-audit-sink-only",
     rateLimits: [
       "checkout-session-create-per-merchant",
       "checkout-complete-per-session",
@@ -46,7 +46,7 @@ const surfaces = [
   {
     id: "privatePoolV2",
     label: "Private Pool v2",
-    status: "not-wired",
+    status: "privacy-safe-audit-sink-only",
     rateLimits: [
       "proof-request-per-client",
       "claim-submit-per-nullifier",
@@ -143,14 +143,16 @@ export function createVantaAbuseObservabilityContract() {
     version: "vanta-abuse-observability-contract-0.1",
     globalRequirements,
     mainnetReady: false,
+    operatorEventSinkModulePath: "src/ops/vantaOperatorEventSink.mjs",
     productionObservabilityTemplatePath: "ops/mainnet/production-observability.template.json",
     safeTelemetryModulePath: "src/ops/vantaSafeTelemetry.mjs",
     nextImplementationStep:
-      "Promote safe operator telemetry from stdout JSON into a production log sink, metrics, alert, and audit-event pipeline for Pay and Private Pool v2 first.",
+      "Promote the Pay and Private Pool v2 privacy-safe audit-event sink plus safe stdout telemetry into a production log sink, metrics, alert, and incident pipeline.",
     productionReady: false,
     requiredVerificationCommands: [
       "npm run mainnet:abuse-observability-check",
       "npm run ops:safe-telemetry-check",
+      "npm run ops:operator-event-sink-check",
       "npm run mainnet:observability-sink-check",
       "npm run mainnet:preflight",
       "npm run pay:verify",

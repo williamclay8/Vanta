@@ -20,6 +20,9 @@ assert.equal(evidence.safeTelemetryRef, "npm run ops:safe-telemetry-check");
 assert.equal(evidence.rateLimitRef, "npm run ops:rate-limit-check");
 assert.equal(evidence.observabilitySinkRef, "npm run mainnet:observability-sink-check");
 assert.equal(evidence.observabilityProvider, "provider-neutral-skipped-by-operator");
+assert.equal(evidence.operatorEventSinkKind, "noop-operator-event-sink");
+assert.equal(evidence.operatorEventSinkProductionReady, false);
+assert.equal(evidence.operatorEventSinkSource, "src/ops/vantaOperatorEventSink.mjs");
 assert.equal(evidence.rateLimiterKind, "in-memory-rate-limiter");
 assert.equal(evidence.rateLimiterProductionReady, false);
 assert.equal(evidence.safeTelemetrySource, "src/ops/vantaSafeTelemetry.mjs");
@@ -28,7 +31,11 @@ assert.deepEqual(
   ["pay", "privatePoolV2", "strategy", "operator"],
 );
 for (const surface of evidence.surfaceStatuses) {
-  assert.equal(surface.status, "not-wired", `${surface.id} must remain explicit about not being fully wired.`);
+  if (surface.id === "pay" || surface.id === "privatePoolV2") {
+    assert.equal(surface.status, "privacy-safe-audit-sink-only", `${surface.id} must expose the audit sink boundary.`);
+  } else {
+    assert.equal(surface.status, "not-wired", `${surface.id} must remain explicit about not being fully wired.`);
+  }
 }
 assert.ok(
   evidence.safety.includes("No provider API keys"),
@@ -56,6 +63,11 @@ assert.equal(
   "package.json must expose mainnet:abuse-observability-status.",
 );
 assert.equal(
+  packageJson.scripts["ops:operator-event-sink-check"],
+  "node scripts/check-vanta-operator-event-sink.mjs",
+  "package.json must expose ops:operator-event-sink-check.",
+);
+assert.equal(
   packageJson.scripts["mainnet:abuse-observability-status-check"],
   "node scripts/print-vanta-production-abuse-observability-status.mjs --check",
   "package.json must expose mainnet:abuse-observability-status-check.",
@@ -68,6 +80,10 @@ assert.equal(
 assert.ok(
   packageJson.scripts["mainnet:preflight"].includes("npm run mainnet:abuse-observability-evidence-check"),
   "mainnet:preflight must include abuse/observability evidence check.",
+);
+assert.ok(
+  packageJson.scripts["mainnet:preflight"].includes("npm run ops:operator-event-sink-check"),
+  "mainnet:preflight must include operator event sink check.",
 );
 
 console.log("Vanta abuse/observability evidence check: PASS");

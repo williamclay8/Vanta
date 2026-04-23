@@ -20,7 +20,11 @@ const requiredSurfaces = ["pay", "privatePoolV2", "strategy", "operator"];
 for (const surfaceId of requiredSurfaces) {
   const surface = contract.surfaces.find((candidate) => candidate.id === surfaceId);
   assert.ok(surface, `Missing abuse/observability surface: ${surfaceId}.`);
-  assert.equal(surface.status, "not-wired");
+  if (surfaceId === "pay" || surfaceId === "privatePoolV2") {
+    assert.equal(surface.status, "privacy-safe-audit-sink-only");
+  } else {
+    assert.equal(surface.status, "not-wired");
+  }
   assert.ok(surface.rateLimits.length > 0, `${surfaceId} must declare rate limits.`);
   assert.ok(surface.metrics.length > 0, `${surfaceId} must declare metrics.`);
   assert.ok(surface.alerts.length > 0, `${surfaceId} must declare alerts.`);
@@ -38,6 +42,11 @@ assert.equal(
   "Abuse/observability contract must point at the shared safe telemetry helper.",
 );
 assert.equal(
+  contract.operatorEventSinkModulePath,
+  "src/ops/vantaOperatorEventSink.mjs",
+  "Abuse/observability contract must point at the operator event sink helper.",
+);
+assert.equal(
   contract.productionObservabilityTemplatePath,
   "ops/mainnet/production-observability.template.json",
   "Abuse/observability contract must point at the production observability template.",
@@ -50,6 +59,10 @@ assert.ok(
 assert.ok(
   contract.requiredVerificationCommands.includes("npm run ops:safe-telemetry-check"),
   "Missing safe telemetry verification command.",
+);
+assert.ok(
+  contract.requiredVerificationCommands.includes("npm run ops:operator-event-sink-check"),
+  "Missing operator event sink verification command.",
 );
 assert.ok(
   contract.requiredVerificationCommands.includes("npm run mainnet:observability-sink-check"),

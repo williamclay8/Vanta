@@ -5,13 +5,14 @@ export type VantaAbuseObservabilitySurface = {
   label: string;
   metrics: string[];
   rateLimits: string[];
-  status: "not-wired";
+  status: "not-wired" | "privacy-safe-audit-sink-only";
 };
 
 export type VantaAbuseObservabilityContract = {
   globalRequirements: string[];
   mainnetReady: false;
   nextImplementationStep: string;
+  operatorEventSinkModulePath: "src/ops/vantaOperatorEventSink.mjs";
   productionObservabilityTemplatePath: "ops/mainnet/production-observability.template.json";
   productionReady: false;
   requiredVerificationCommands: string[];

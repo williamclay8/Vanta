@@ -12,6 +12,10 @@ import {
   observeSafeTelemetryResponse,
   writeSafeTelemetryEvent,
 } from "../src/ops/vantaSafeTelemetry.mjs";
+import {
+  createNoopOperatorEventSink,
+  createPostgresOperatorEventSinkFromDatabaseUrl,
+} from "../src/ops/vantaOperatorEventSink.mjs";
 import { createNullifierReplayGuard } from "../src/privacy/nullifierReplayGuard.mjs";
 import { createPostgresNullifierReplayStoreFromDatabaseUrl } from "../src/privacy/postgresNullifierReplayStore.mjs";
 import { createPostgresSnapshotStore } from "../src/storage/vantaPostgresSnapshotStore.mjs";
@@ -126,12 +130,26 @@ function sendJson(response, status, payload) {
 }
 
 const rateLimiter = createInMemoryRateLimiter({ limit: rateLimitPerMinute });
+const operatorEventSink = databaseUrl
+  ? await createPostgresOperatorEventSinkFromDatabaseUrl({
+      databaseUrl,
+      service: "vanta-private-pool-v2",
+    })
+  : createNoopOperatorEventSink({ service: "vanta-private-pool-v2" });
+
+async function appendOperatorEvent(input) {
+  try {
+    await operatorEventSink.append(input);
+  } catch {
+    // Observability must never widen request failure scope.
+  }
+}
 
 function rateLimitKey(request) {
   return `${request.socket.remoteAddress ?? "unknown"}:${request.method}:${request.url ?? "/"}`;
 }
 
-function enforceRateLimit(request, response) {
+async function enforceRateLimit(request, response, telemetryContext) {
   if (request.method === "GET" && request.url === "/health") {
     return true;
   }
@@ -158,15 +176,39 @@ function enforceRateLimit(request, response) {
       2,
     )}\n`,
   );
+  await appendOperatorEvent({
+    eventRef: `${telemetryContext.requestId}:${telemetryContext.path}`,
+    eventType: "rate_limit_rejected",
+    payload: {
+      limit: decision.limit,
+      method: request.method,
+      path: telemetryContext.path,
+      remaining: decision.remaining,
+      requestId: telemetryContext.requestId,
+      service: "vanta-private-pool-v2",
+    },
+    severity: "warning",
+  });
   return false;
 }
 
-function requireAuth(request, response) {
+async function requireAuth(request, response, telemetryContext) {
   if (request.url === "/health" || !operatorAuthToken) {
     return true;
   }
 
   if (request.headers.authorization !== `Bearer ${operatorAuthToken}`) {
+    await appendOperatorEvent({
+      eventRef: `${telemetryContext.requestId}:${telemetryContext.path}`,
+      eventType: "auth_rejected",
+      payload: {
+        method: request.method,
+        path: telemetryContext.path,
+        requestId: telemetryContext.requestId,
+        service: "vanta-private-pool-v2",
+      },
+      severity: "warning",
+    });
     sendJson(response, 401, {
       error: "Missing or invalid Private Pool v2 operator token.",
       ok: false,
@@ -854,6 +896,10 @@ async function statusPayload() {
       productionReady: false,
       storageMode: nullifierReplayGuard.storageMode,
     },
+    observability: {
+      auditEventSinkKind: operatorEventSink.kind,
+      productionReady: false,
+    },
     protocolEnforcement: {
       finalLayerImplemented: false,
       finalLayerProductionReady: false,
@@ -1228,11 +1274,11 @@ const server = createServer(async (request, response) => {
       return;
     }
 
-    if (!enforceRateLimit(request, response)) {
+    if (!(await enforceRateLimit(request, response, telemetryContext))) {
       return;
     }
 
-    if (!requireAuth(request, response)) {
+    if (!(await requireAuth(request, response, telemetryContext))) {
       return;
     }
 
@@ -1312,6 +1358,17 @@ server.listen(port, host, () => {
       storageKind: receiptStore.kind,
     }),
   );
+  void appendOperatorEvent({
+    eventRef: `startup:${port}`,
+    eventType: "operator_started",
+    payload: {
+      rateLimiterKind: rateLimiter.kind,
+      runtimeMode,
+      service: "vanta-private-pool-v2",
+      storageKind: receiptStore.kind,
+    },
+    severity: "info",
+  });
 });
 
 async function closeOperator() {

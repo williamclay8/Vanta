@@ -253,7 +253,7 @@ The sanitized production abuse/observability status surface is:
 scripts/print-vanta-production-abuse-observability-status.mjs
 ```
 
-It records the current provider-neutral observability provider decision, the checked safe telemetry source, the current in-memory rate-limit seam, and the current status of the Pay, Private Pool v2, Strategy, and Operator observability surfaces. It is intentionally not a claim that production observability is live.
+It records the current provider-neutral observability provider decision, the checked safe telemetry source, the checked operator-event sink source, the current in-memory rate-limit seam, and the current status of the Pay, Private Pool v2, Strategy, and Operator observability surfaces. It is intentionally not a claim that production observability is live.
 
 The production abuse/observability status commands are:
 
@@ -291,6 +291,20 @@ src/ops/vantaSafeTelemetry.mjs
 ```
 
 The helper records startup and HTTP request envelopes with service name, method, path, status code, duration, request id, query-present flag, and a short hash of the remote address. It intentionally excludes request bodies, response bodies, query values, raw IP addresses, auth headers, cookies, API keys, database URLs, tokens, private keys, seed phrases, and mnemonic material. This stdout JSON is staging/operator evidence only; before mainnet it must be connected to a production log sink, metrics, alert routing, audit-event retention, and incident-response workflow.
+
+Pay and Private Pool v2 now also share a privacy-safe append-only operator event sink at:
+
+```text
+src/ops/vantaOperatorEventSink.mjs
+```
+
+Verify the sink contract with:
+
+```bash
+npm run ops:operator-event-sink-check
+```
+
+When a Postgres-backed operator database is configured, the sink records startup, auth rejection, and rate-limit rejection events into `pool_operator_events` with redacted payload fields. This is intentionally a narrow audit-event boundary only; it does not claim provider-backed dashboards, alert routing, incident workflow, or full production observability.
 
 The reusable nullifier replay guard is:
 

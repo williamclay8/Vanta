@@ -141,6 +141,10 @@ assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:abuse-observability-evidence-check"),
   "Missing abuse/observability evidence command.",
 );
+assert.ok(
+  snapshot.requiredCommands.includes("npm run ops:operator-event-sink-check"),
+  "Missing operator event sink command.",
+);
 assert.ok(snapshot.requiredCommands.includes("npm run ops:rate-limit-check"), "Missing rate-limit check command.");
 assert.ok(snapshot.requiredCommands.includes("npm run ops:safe-telemetry-check"), "Missing safe telemetry check command.");
 assert.ok(

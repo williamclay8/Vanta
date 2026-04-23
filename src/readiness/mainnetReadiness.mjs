@@ -112,6 +112,7 @@ const requiredCommands = [
   "npm run mainnet:abuse-observability-status",
   "npm run mainnet:abuse-observability-evidence-check",
   "npm run ops:rate-limit-check",
+  "npm run ops:operator-event-sink-check",
   "npm run mainnet:production-service-setup-check",
   "npm run mainnet:deployment-runbook-check",
   "npm run privacy-rail:contract-check",

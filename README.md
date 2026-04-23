@@ -465,6 +465,7 @@ Current staging deployment refs:
   It distinguishes `approval recorded` from `approval window active now` so historical beta approvals do not get mistaken for currently active live-action permission.
 - Better Stack staging monitors for Pay and Private Pool v2 public `/health` endpoints are recorded in `ops/mainnet/staging-monitoring.manifest.json`.
 - Pay and Private Pool v2 emit privacy-safe stdout JSON request telemetry through `src/ops/vantaSafeTelemetry.mjs`.
+- Pay and Private Pool v2 now also share a privacy-safe append-only operator event sink through `src/ops/vantaOperatorEventSink.mjs`, with startup, auth rejection, and rate-limit rejection events written to `pool_operator_events` whenever a Postgres-backed operator database is configured.
 - Production observability refs are templated in `ops/mainnet/production-observability.template.json` without provider tokens, webhook URLs, source tokens, or raw secrets.
 - These are staging refs only; they do not clear production secret-manager, monitoring, audit, legal, custody, or mainnet-funds gates.
 

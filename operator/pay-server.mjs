@@ -10,6 +10,10 @@ import {
   observeSafeTelemetryResponse,
   writeSafeTelemetryEvent,
 } from "../src/ops/vantaSafeTelemetry.mjs";
+import {
+  createNoopOperatorEventSink,
+  createPostgresOperatorEventSinkFromDatabaseUrl,
+} from "../src/ops/vantaOperatorEventSink.mjs";
 import { createJsonSnapshotStore } from "../src/storage/vantaJsonSnapshotStore.mjs";
 import { createPostgresSnapshotStore } from "../src/storage/vantaPostgresSnapshotStore.mjs";
 
@@ -169,12 +173,26 @@ function sendJson(response, status, payload) {
 }
 
 const rateLimiter = createInMemoryRateLimiter({ limit: rateLimitPerMinute });
+const operatorEventSink = databaseUrl
+  ? await createPostgresOperatorEventSinkFromDatabaseUrl({
+      databaseUrl,
+      service: "vanta-pay",
+    })
+  : createNoopOperatorEventSink({ service: "vanta-pay" });
+
+async function appendOperatorEvent(input) {
+  try {
+    await operatorEventSink.append(input);
+  } catch {
+    // Observability must never widen request failure scope.
+  }
+}
 
 function rateLimitKey(request, url) {
   return `${request.socket.remoteAddress ?? "unknown"}:${request.method}:${url.pathname}`;
 }
 
-function enforceRateLimit(request, response, url) {
+async function enforceRateLimit(request, response, url, telemetryContext) {
   if (url.pathname === "/health") {
     return true;
   }
@@ -201,6 +219,19 @@ function enforceRateLimit(request, response, url) {
       2,
     )}\n`,
   );
+  await appendOperatorEvent({
+    eventRef: `${telemetryContext.requestId}:${url.pathname}`,
+    eventType: "rate_limit_rejected",
+    payload: {
+      limit: decision.limit,
+      method: request.method,
+      path: url.pathname,
+      remaining: decision.remaining,
+      requestId: telemetryContext.requestId,
+      service: "vanta-pay",
+    },
+    severity: "warning",
+  });
   return false;
 }
 
@@ -211,13 +242,24 @@ function unauthorized(response) {
   });
 }
 
-function requireAuth(request, response) {
+async function requireAuth(request, response, telemetryContext) {
   if (request.url === "/health") {
     return true;
   }
 
   const authorization = request.headers.authorization ?? "";
   if (authorization !== `Bearer ${secretKey}`) {
+    await appendOperatorEvent({
+      eventRef: `${telemetryContext.requestId}:${telemetryContext.path}`,
+      eventType: "auth_rejected",
+      payload: {
+        method: request.method,
+        path: telemetryContext.path,
+        requestId: telemetryContext.requestId,
+        service: "vanta-pay",
+      },
+      severity: "warning",
+    });
     unauthorized(response);
     return false;
   }
@@ -402,11 +444,11 @@ const server = createServer(async (request, response) => {
   try {
     const url = new URL(request.url ?? "/", `http://${request.headers.host ?? "127.0.0.1"}`);
 
-    if (!enforceRateLimit(request, response, url)) {
+    if (!(await enforceRateLimit(request, response, url, telemetryContext))) {
       return;
     }
 
-    if (!requireAuth(request, response)) {
+    if (!(await requireAuth(request, response, telemetryContext))) {
       return;
     }
 
@@ -465,6 +507,7 @@ const server = createServer(async (request, response) => {
         object: "vanta_pay_operator_status",
         service: "vanta-pay",
         storage: {
+          auditEventSinkKind: operatorEventSink.kind,
           durableStoreConfigured: Boolean(storePath || databaseUrl),
           kind: snapshotStore.kind,
           path: snapshotStore.path,
@@ -686,6 +729,16 @@ server.listen(port, host, () => {
       storageKind: snapshotStore.kind,
     }),
   );
+  void appendOperatorEvent({
+    eventRef: `startup:${port}`,
+    eventType: "operator_started",
+    payload: {
+      rateLimiterKind: rateLimiter.kind,
+      service: "vanta-pay",
+      storageKind: snapshotStore.kind,
+    },
+    severity: "info",
+  });
 });
 
 function shutdown() {

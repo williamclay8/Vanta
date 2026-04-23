@@ -8,17 +8,20 @@
   "rateLimitRef": "npm run ops:rate-limit-check",
   "observabilitySinkRef": "npm run mainnet:observability-sink-check",
   "observabilityProvider": "provider-neutral-skipped-by-operator",
+  "operatorEventSinkKind": "noop-operator-event-sink",
+  "operatorEventSinkProductionReady": false,
+  "operatorEventSinkSource": "src/ops/vantaOperatorEventSink.mjs",
   "rateLimiterKind": "in-memory-rate-limiter",
   "rateLimiterProductionReady": false,
   "safeTelemetrySource": "src/ops/vantaSafeTelemetry.mjs",
   "surfaceStatuses": [
     {
       "id": "pay",
-      "status": "not-wired"
+      "status": "privacy-safe-audit-sink-only"
     },
     {
       "id": "privatePoolV2",
-      "status": "not-wired"
+      "status": "privacy-safe-audit-sink-only"
     },
     {
       "id": "strategy",
@@ -30,6 +33,6 @@
     }
   ],
   "safety": "No provider API keys, webhook URLs, source tokens, bearer values, wallet keys, signed transaction material, or database URLs are stored in this evidence file.",
-  "deploymentTruth": "This evidence proves the current provider-neutral observability contract, safe telemetry source, and rate-limit truth surfaces are recorded without claiming production observability is live.",
+  "deploymentTruth": "This evidence proves the current provider-neutral observability contract, safe telemetry source, narrow Pay and Private Pool v2 audit-event sink boundary, and rate-limit truth surfaces are recorded without claiming production observability is live.",
   "nextOperatorAction": "Keep the abuse/observability status and evidence commands fresh while provider-backed log sink, dashboards, alerts, retention, and incident workflow evidence remain pending."
 }
