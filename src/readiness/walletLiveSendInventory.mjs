@@ -43,7 +43,7 @@ export function createWalletLiveSendInventory() {
   return {
     mainnetReady: false,
     messageIntentPolicy: {
-      note: "Signed message intents are not transaction sends, but they still need typed summaries, nonce/expiration binding, and explicit wallet approval before live submission.",
+      note: "Signed message intents are not transaction sends, but they still need typed summaries, nonce/expiration binding, explicit wallet approval, and the shared message-intent safety boundary before live submission.",
       requiredSequence: MESSAGE_INTENT_SEQUENCE,
     },
     productionReady: false,
@@ -79,25 +79,23 @@ export function createWalletLiveSendInventory() {
         status: "safe-send-adopted",
       },
       {
-        currentCallSites: [
-          message("signSwapIntent(payload, walletSession.signMessage)", "swap intent signature"),
-        ],
+        currentCallSites: [],
         adoptedCallSites: [
+          message("signSwapIntent(payload, async (message) => {", "swap intent safety boundary"),
           tx("const spentMarkerTransaction = useVantaSafeSendTransaction();", "swap spent-marker reservation"),
           tx("const swapTransaction = useVantaSafeSendTransaction();", "shielded swap transition"),
         ],
         file: "src/pages/SwapPage.tsx",
         page: "Swap",
         replacement:
-          "Keep the signed swap intent visible for typed-intent hardening, and keep swap transition transactions behind the safe-send hook that prepares, simulates, summarizes, gates, and requests wallet approval.",
-        status: "partial-safe-send-adopted",
+          "Keep the signed swap intent behind the message-intent safety boundary, and keep swap transition transactions behind the safe-send hook that prepares, simulates, summarizes, gates, and requests wallet approval.",
+        status: "safe-send-adopted",
       },
       {
-        currentCallSites: [
-          message("signUnshieldIntent(", "SPL unshield intent signature"),
-          message("signSolUnshieldIntent(", "native SOL unshield intent signature"),
-        ],
+        currentCallSites: [],
         adoptedCallSites: [
+          message("signUnshieldIntent(unshieldPayload, async (message) => {", "SPL unshield intent safety boundary"),
+          message("signSolUnshieldIntent(solUnshieldPayload, async (message) => {", "native SOL unshield intent safety boundary"),
           tx("const splitSpentMarkerTransaction = useVantaSafeSendTransaction();", "partial unshield split spent-marker reservation"),
           tx("const spentMarkerTransaction = useVantaSafeSendTransaction();", "unshield spent-marker reservation"),
           tx("const transitionTransaction = useVantaSafeSendTransaction();", "unshield transition"),
@@ -106,8 +104,8 @@ export function createWalletLiveSendInventory() {
         file: "src/pages/UnshieldPage.tsx",
         page: "Unshield",
         replacement:
-          "Keep unshield signed intents visible for typed-intent hardening, and keep spent-marker, transition, and split transition transactions behind the safe-send hook that prepares, simulates, summarizes, gates, and requests wallet approval.",
-        status: "partial-safe-send-adopted",
+          "Keep unshield signed intents behind the message-intent safety boundary, and keep spent-marker, transition, and split transition transactions behind the safe-send hook that prepares, simulates, summarizes, gates, and requests wallet approval.",
+        status: "safe-send-adopted",
       },
       {
         currentCallSites: [

@@ -7,6 +7,14 @@ const source = readFileSync(unshieldPath, "utf8");
 
 assert.ok(source.includes("useVantaSafeSendTransaction"), "Unshield must import the Vanta safe-send hook.");
 assert.ok(!source.includes("useSendTransaction"), "Unshield must not use raw useSendTransaction for generic transactions.");
+assert.ok(
+  !source.includes("signUnshieldIntent(createUnshieldIntentPayload"),
+  "Unshield must not pass signMessage directly to the SPL unshield intent signer.",
+);
+assert.ok(
+  !source.includes("signSolUnshieldIntent(createSolUnshieldIntentPayload"),
+  "Unshield must not pass signMessage directly to the SOL unshield intent signer.",
+);
 
 for (const phrase of [
   "const transitionTransaction = useVantaSafeSendTransaction();",
@@ -21,8 +29,9 @@ for (const phrase of [
   "sol-unshield-spent-marker",
   "unshield-split-transition",
   "unshield-split-spent-marker",
-  "signUnshieldIntent(",
-  "signSolUnshieldIntent(",
+  "signUnshieldIntent(unshieldPayload, async (message) => {",
+  "signSolUnshieldIntent(solUnshieldPayload, async (message) => {",
+  "signWalletMessageIntentWithSafety",
 ]) {
   assert.ok(source.includes(phrase), `Unshield safe-send adoption missing phrase: ${phrase}`);
 }

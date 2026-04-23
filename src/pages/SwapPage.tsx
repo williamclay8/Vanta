@@ -7,7 +7,11 @@ import {
   type ShieldedSwapAssetKey,
 } from "@/solana/publicSwapRoute";
 import { useRealtimeSignatureProgress } from "@/solana/useRealtimeSignatureProgress";
-import { createSwapIntentPayload, signSwapIntent } from "@/solana/swapAuth";
+import {
+  VANTA_SWAP_INTENT_TTL_MS,
+  createSwapIntentPayload,
+  signSwapIntent,
+} from "@/solana/swapAuth";
 import {
   getLiveShieldTokenAsset,
   liveShieldAsset,
@@ -36,6 +40,7 @@ import {
 import { useWalletState } from "@/data/context/WalletContext";
 import { recordCanonicalSwapFromLiveSwap } from "@/zk/liveSwapBridge";
 import { useVantaSafeSendTransaction } from "@/wallet/useVantaSafeSendTransaction";
+import { signWalletMessageIntentWithSafety } from "@/wallet/walletMessageIntentSafety.mjs";
 
 type PendingSpentMarker = {
   consumedNoteId: string;
@@ -381,6 +386,8 @@ export function SwapPage() {
       return;
     }
 
+    const signMessage = walletSession.signMessage;
+
     const payload = createSwapIntentPayload({
       consumedNoteId: pendingSwapBridge.input.noteId,
       inputAmount: pendingSwapBridge.input.amountDisplay,
@@ -403,7 +410,33 @@ export function SwapPage() {
       venuePoolAddress: pendingSwapBridge.venue.poolAddress,
     });
 
-    void signSwapIntent(payload, walletSession.signMessage)
+    void signSwapIntent(payload, async (message) => {
+      const messageIntentSignature = await signWalletMessageIntentWithSafety({
+        amount: payload.inputAmount,
+        asset: payload.inputAsset,
+        connectedWalletAddress: walletAddress,
+        expiresAt: Math.min(payload.issuedAt + VANTA_SWAP_INTENT_TTL_MS, payload.quoteExpiresAt),
+        humanApprovedSummary: true,
+        intentKind: "swap-intent",
+        issuedAt: payload.issuedAt,
+        message,
+        owner: payload.owner,
+        recipient: payload.outputNoteId,
+        requestId: payload.requestId,
+        requester: payload.requester,
+        signMessage,
+      });
+
+      if (
+        !messageIntentSignature.signed ||
+        !messageIntentSignature.signatureBytes ||
+        messageIntentSignature.decision.reason !== "message-intent-ready-for-wallet-approval"
+      ) {
+        throw new Error(`The swap intent could not be signed: ${messageIntentSignature.decision.reason}.`);
+      }
+
+      return messageIntentSignature.signatureBytes;
+    })
       .then((signedIntent) => requestOperatorSwap(signedIntent))
       .then(({ requestId }) => {
         setLastSwapSummary((currentSummary) =>

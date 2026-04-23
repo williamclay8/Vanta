@@ -7,6 +7,10 @@ const source = readFileSync(swapPath, "utf8");
 
 assert.ok(source.includes("useVantaSafeSendTransaction"), "Swap must import the Vanta safe-send hook.");
 assert.ok(!source.includes("useSendTransaction"), "Swap must not use raw useSendTransaction for generic transactions.");
+assert.ok(
+  !source.includes("signSwapIntent(payload, walletSession.signMessage)"),
+  "Swap must not pass signMessage directly to the swap intent signer.",
+);
 
 for (const phrase of [
   "const swapTransaction = useVantaSafeSendTransaction();",
@@ -15,7 +19,8 @@ for (const phrase of [
   "transactionFingerprint",
   "swap-transition",
   "swap-spent-marker",
-  "signSwapIntent(payload, walletSession.signMessage)",
+  "signSwapIntent(payload, async (message) => {",
+  "signWalletMessageIntentWithSafety",
 ]) {
   assert.ok(source.includes(phrase), `Swap safe-send adoption missing phrase: ${phrase}`);
 }

@@ -190,6 +190,7 @@ npm run wallet:signing-safety-check
 npm run wallet:transaction-safety-check
 npm run wallet:backed-simulation-check
 npm run wallet:message-intent-safety-check
+npm run wallet:message-intent-adoption-check
 npm run wallet:live-send-inventory-check
 npm run wallet:safe-send-boundary-check
 npm run wallet:safe-send-hook-check
@@ -338,6 +339,7 @@ npm run wallet:signing-safety-check
 npm run wallet:transaction-safety-check
 npm run wallet:backed-simulation-check
 npm run wallet:message-intent-safety-check
+npm run wallet:message-intent-adoption-check
 npm run wallet:live-send-inventory-check
 npm run wallet:safe-send-boundary-check
 npm run wallet:safe-send-hook-check

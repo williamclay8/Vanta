@@ -13,6 +13,7 @@ import { useWalletState } from "@/data/context/WalletContext";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
 import { useRealtimeSignatureProgress } from "@/solana/useRealtimeSignatureProgress";
 import {
+  VANTA_SOL_UNSHIELD_INTENT_TTL_MS,
   createSolUnshieldIntentPayload,
   signSolUnshieldIntent,
 } from "@/solana/solUnshieldAuth";
@@ -24,6 +25,7 @@ import {
   type LiveShieldTokenAssetKey,
 } from "@/solana/shieldConfig";
 import {
+  VANTA_UNSHIELD_INTENT_TTL_MS,
   createUnshieldIntentPayload,
   signUnshieldIntent,
 } from "@/solana/unshieldAuth";
@@ -42,6 +44,7 @@ import {
   recordCanonicalUnshieldFromLiveUnshield,
 } from "@/zk/liveUnshieldBridge";
 import { useVantaSafeSendTransaction } from "@/wallet/useVantaSafeSendTransaction";
+import { signWalletMessageIntentWithSafety } from "@/wallet/walletMessageIntentSafety.mjs";
 
 type UnshieldLane = LiveShieldTokenAssetKey | "SOL";
 type UnshieldStatus =
@@ -899,23 +902,50 @@ export function UnshieldPage() {
     setOperatorAuthorizationStarted(true);
     setStatus("authorizing_operator");
 
+    const signMessage = walletSession.signMessage;
+
     if (pendingSpentMarker.asset !== "SOL") {
       const pendingTokenAsset = getLiveShieldTokenAsset(pendingSpentMarker.asset);
 
-      void signUnshieldIntent(
-        createUnshieldIntentPayload({
-          amount: pendingSpentMarker.amount,
-          destinationOwner: walletAddress,
-          mintAddress: pendingTokenAsset.mintAddress ?? "",
-          noteId: pendingSpentMarker.consumedNoteId,
-          owner: pendingSpentMarker.owner,
-          requester: walletAddress,
-          transitionNoteId: pendingSpentMarker.transitionNoteId,
-          transitionStateSignature: transitionTransaction.signature ?? undefined,
-          vaultOwner: pendingSpentMarker.vaultOwner,
-        }),
-        walletSession.signMessage,
-      )
+      const unshieldPayload = createUnshieldIntentPayload({
+        amount: pendingSpentMarker.amount,
+        destinationOwner: walletAddress,
+        mintAddress: pendingTokenAsset.mintAddress ?? "",
+        noteId: pendingSpentMarker.consumedNoteId,
+        owner: pendingSpentMarker.owner,
+        requester: walletAddress,
+        transitionNoteId: pendingSpentMarker.transitionNoteId,
+        transitionStateSignature: transitionTransaction.signature ?? undefined,
+        vaultOwner: pendingSpentMarker.vaultOwner,
+      });
+
+      void signUnshieldIntent(unshieldPayload, async (message) => {
+        const messageIntentSignature = await signWalletMessageIntentWithSafety({
+          amount: unshieldPayload.amount,
+          asset: pendingSpentMarker.asset,
+          connectedWalletAddress: walletAddress,
+          expiresAt: unshieldPayload.issuedAt + VANTA_UNSHIELD_INTENT_TTL_MS,
+          humanApprovedSummary: true,
+          intentKind: "unshield-intent",
+          issuedAt: unshieldPayload.issuedAt,
+          message,
+          owner: unshieldPayload.owner,
+          recipient: unshieldPayload.destinationOwner,
+          requestId: unshieldPayload.requestId,
+          requester: unshieldPayload.requester,
+          signMessage,
+        });
+
+        if (
+          !messageIntentSignature.signed ||
+          !messageIntentSignature.signatureBytes ||
+          messageIntentSignature.decision.reason !== "message-intent-ready-for-wallet-approval"
+        ) {
+          throw new Error(`The unshield intent could not be signed: ${messageIntentSignature.decision.reason}.`);
+        }
+
+        return messageIntentSignature.signatureBytes;
+      })
         .then((signedIntent) =>
           requestOperatorUnshield(signedIntent, pendingTokenAsset.unshieldOperatorUrl),
         )
@@ -983,20 +1013,45 @@ export function UnshieldPage() {
       return;
     }
 
-    void signSolUnshieldIntent(
-      createSolUnshieldIntentPayload({
-        amount: pendingSpentMarker.amount,
-        asset: "SOL",
-        assetId: liveSwapPair.solAssetId,
-        consumedNoteId: pendingSpentMarker.consumedNoteId,
-        destinationOwner: walletAddress,
-        owner: pendingSpentMarker.owner,
-        requester: walletAddress,
-        transitionNoteId: pendingSpentMarker.transitionNoteId,
-        vaultOwner: pendingSpentMarker.vaultOwner,
-      }),
-      walletSession.signMessage,
-    )
+    const solUnshieldPayload = createSolUnshieldIntentPayload({
+      amount: pendingSpentMarker.amount,
+      asset: "SOL",
+      assetId: liveSwapPair.solAssetId,
+      consumedNoteId: pendingSpentMarker.consumedNoteId,
+      destinationOwner: walletAddress,
+      owner: pendingSpentMarker.owner,
+      requester: walletAddress,
+      transitionNoteId: pendingSpentMarker.transitionNoteId,
+      vaultOwner: pendingSpentMarker.vaultOwner,
+    });
+
+    void signSolUnshieldIntent(solUnshieldPayload, async (message) => {
+      const messageIntentSignature = await signWalletMessageIntentWithSafety({
+        amount: solUnshieldPayload.amount,
+        asset: solUnshieldPayload.asset,
+        connectedWalletAddress: walletAddress,
+        expiresAt: solUnshieldPayload.issuedAt + VANTA_SOL_UNSHIELD_INTENT_TTL_MS,
+        humanApprovedSummary: true,
+        intentKind: "sol-unshield-intent",
+        issuedAt: solUnshieldPayload.issuedAt,
+        message,
+        owner: solUnshieldPayload.owner,
+        recipient: solUnshieldPayload.destinationOwner,
+        requestId: solUnshieldPayload.requestId,
+        requester: solUnshieldPayload.requester,
+        signMessage,
+      });
+
+      if (
+        !messageIntentSignature.signed ||
+        !messageIntentSignature.signatureBytes ||
+        messageIntentSignature.decision.reason !== "message-intent-ready-for-wallet-approval"
+      ) {
+        throw new Error(`The SOL unshield intent could not be signed: ${messageIntentSignature.decision.reason}.`);
+      }
+
+      return messageIntentSignature.signatureBytes;
+    })
       .then((signedIntent) => requestOperatorSolUnshield(signedIntent))
       .then(({ requestId, signature }) => {
         setOperatorReleaseSignature(signature);

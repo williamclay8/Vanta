@@ -185,6 +185,10 @@ assert.ok(
   "Missing wallet message-intent safety command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run wallet:message-intent-adoption-check"),
+  "Missing wallet message-intent adoption command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run wallet:live-send-inventory-check"),
   "Missing wallet live send inventory command.",
 );

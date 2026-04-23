@@ -67,38 +67,30 @@ assert.ok(
 assert.equal(sendSurface.currentCallSites.length, 0, "Send must not keep raw generic transaction sends pending.");
 
 const swapSurface = surfacesByPage.get("Swap");
-assert.equal(swapSurface.status, "partial-safe-send-adopted", "Swap must reflect partial safe-send adoption.");
+assert.equal(swapSurface.status, "safe-send-adopted", "Swap must reflect complete wallet-signing boundary adoption.");
 assert.ok(
-  swapSurface.adoptedCallSites?.length >= 2,
-  "Swap must list spent-marker and swap-transition transactions as safe-send adopted.",
+  swapSurface.adoptedCallSites?.length >= 3,
+  "Swap must list message-intent, spent-marker, and swap-transition paths as adopted.",
 );
-assert.deepEqual(
-  swapSurface.currentCallSites.map((callSite) => callSite.signatureKind),
-  ["message-intent-signature"],
-  "Swap must keep only the signed message intent pending in the live-send inventory.",
-);
+assert.equal(swapSurface.currentCallSites.length, 0, "Swap must not keep raw wallet signing pending.");
 
 const unshieldSurface = surfacesByPage.get("Unshield");
-assert.equal(unshieldSurface.status, "partial-safe-send-adopted", "Unshield must reflect partial safe-send adoption.");
+assert.equal(unshieldSurface.status, "safe-send-adopted", "Unshield must reflect complete wallet-signing boundary adoption.");
 assert.ok(
-  unshieldSurface.adoptedCallSites?.length >= 4,
-  "Unshield must list spent-marker, transition, and split transactions as safe-send adopted.",
+  unshieldSurface.adoptedCallSites?.length >= 6,
+  "Unshield must list message-intent, spent-marker, transition, and split paths as adopted.",
 );
-assert.deepEqual(
-  unshieldSurface.currentCallSites.map((callSite) => callSite.signatureKind),
-  ["message-intent-signature", "message-intent-signature"],
-  "Unshield must keep only signed message intents pending in the live-send inventory.",
-);
+assert.equal(unshieldSurface.currentCallSites.length, 0, "Unshield must not keep raw wallet signing pending.");
 
 const transactionCallSites = inventory.actionSurfaces.flatMap((surface) =>
   surface.currentCallSites.filter((callSite) => callSite.signatureKind === "transaction-signature"),
 );
-const messageIntentCallSites = inventory.actionSurfaces.flatMap((surface) =>
-  surface.currentCallSites.filter((callSite) => callSite.signatureKind === "message-intent-signature"),
+const adoptedMessageIntentCallSites = inventory.actionSurfaces.flatMap((surface) =>
+  (surface.adoptedCallSites ?? []).filter((callSite) => callSite.signatureKind === "message-intent-signature"),
 );
 
 assert.ok(transactionCallSites.length >= 1, "Expected frozen transaction send call sites.");
-assert.ok(messageIntentCallSites.length >= 3, "Expected frozen signed intent call sites.");
+assert.ok(adoptedMessageIntentCallSites.length >= 3, "Expected adopted signed intent safety boundaries.");
 assert.ok(
   inventory.messageIntentPolicy.requiredSequence.includes("typed-intent-summary") &&
     inventory.messageIntentPolicy.requiredSequence.includes("wallet-message-approval"),

@@ -33,6 +33,7 @@ npm run wallet:signing-safety-check
 npm run wallet:transaction-safety-check
 npm run wallet:backed-simulation-check
 npm run wallet:message-intent-safety-check
+npm run wallet:message-intent-adoption-check
 npm run wallet:live-send-inventory-check
 npm run wallet:safe-send-boundary-check
 npm run wallet:safe-send-hook-check
@@ -72,6 +73,7 @@ npm run wallet:signing-safety-check
 npm run wallet:transaction-safety-check
 npm run wallet:backed-simulation-check
 npm run wallet:message-intent-safety-check
+npm run wallet:message-intent-adoption-check
 npm run wallet:live-send-inventory-check
 npm run wallet:safe-send-boundary-check
 npm run wallet:safe-send-hook-check
@@ -556,13 +558,27 @@ The wallet message-intent safety command is:
 npm run wallet:message-intent-safety-check
 ```
 
+The checked page adoption seam for Swap and Unshield signed operator intents is:
+
+```text
+scripts/check-vanta-message-intent-adoption.mjs
+```
+
+It verifies that Swap, SPL Unshield, and SOL Unshield do not hand `signMessage` directly to operator intent signers. Those paths must route through `signWalletMessageIntentWithSafety`, bind a request id and expiry, check the connected wallet/requester, and require a wallet-approval-ready decision before returning signature bytes.
+
+The wallet message-intent adoption command is:
+
+```bash
+npm run wallet:message-intent-adoption-check
+```
+
 The frozen live wallet send/sign inventory is:
 
 ```text
 src/readiness/walletLiveSendInventory.mjs
 ```
 
-It records the current Shield, Send, Swap, Unshield, and Umbra adapter call sites that still require replacement with prepare, simulate, safety summary, wallet-backed gate validation, wallet approval, and prepared transaction submission. It also records Shield call sites that have adopted the safe-send hook so reviewers can see which live-send paths have moved. The inventory is deliberately not a readiness claim; it is a guardrail to keep every live signing path visible until replaced.
+It records the current Shield and Umbra adapter call sites that still require replacement with prepare, simulate, safety summary, wallet-backed gate validation, wallet approval, and prepared transaction submission or typed message-intent approval. It also records Shield, Send, Swap, and Unshield call sites that have adopted safe-send or message-intent safety boundaries so reviewers can see which live-signing paths have moved. The inventory is deliberately not a readiness claim; it is a guardrail to keep every live signing path visible until replaced.
 
 The live wallet send inventory command is:
 
@@ -632,7 +648,7 @@ The Swap safe-send adoption check is:
 scripts/check-vanta-swap-safe-send-adoption.mjs
 ```
 
-It verifies Swap no longer uses raw generic `useSendTransaction` sends for the swap transition or spent-marker transaction, while keeping the signed swap intent visible for separate typed-intent hardening.
+It verifies Swap no longer uses raw generic `useSendTransaction` sends for the swap transition or spent-marker transaction. The signed swap intent is checked separately by the wallet message-intent adoption command.
 
 The Swap safe-send adoption command is:
 
@@ -646,7 +662,7 @@ The Unshield safe-send adoption check is:
 scripts/check-vanta-unshield-safe-send-adoption.mjs
 ```
 
-It verifies Unshield no longer uses raw generic `useSendTransaction` sends for transition, spent-marker, split-transition, or split-spent-marker transactions, while keeping the signed unshield intents visible for separate typed-intent hardening.
+It verifies Unshield no longer uses raw generic `useSendTransaction` sends for transition, spent-marker, split-transition, or split-spent-marker transactions. The signed unshield intents are checked separately by the wallet message-intent adoption command.
 
 The Unshield safe-send adoption command is:
 
