@@ -33,6 +33,7 @@ npm run wallet:signing-safety-check
 npm run wallet:transaction-safety-check
 npm run wallet:live-send-inventory-check
 npm run wallet:safe-send-boundary-check
+npm run wallet:safe-send-hook-check
 npm run mainnet:secret-handling-check
 npm run audit:package-check
 ```
@@ -65,6 +66,7 @@ npm run wallet:signing-safety-check
 npm run wallet:transaction-safety-check
 npm run wallet:live-send-inventory-check
 npm run wallet:safe-send-boundary-check
+npm run wallet:safe-send-hook-check
 npm run mainnet:secret-handling-check
 npm run audit:package-check
 ```
@@ -554,6 +556,20 @@ The safe-send boundary command is:
 
 ```bash
 npm run wallet:safe-send-boundary-check
+```
+
+The browser/app hook adapter for the safe-send boundary is:
+
+```text
+src/wallet/useVantaSafeSendTransaction.ts
+```
+
+It uses the connected Solana wallet session, prepares through `client.transaction.prepare`, simulates the prepared wire transaction through RPC, and submits through `client.transaction.send` only after the shared safe-send boundary accepts.
+
+The safe-send hook command is:
+
+```bash
+npm run wallet:safe-send-hook-check
 ```
 
 The browser-backed safe-environment signing gate is:

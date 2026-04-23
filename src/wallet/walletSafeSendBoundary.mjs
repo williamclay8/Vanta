@@ -20,12 +20,27 @@ function requireText(value, label) {
   return value.trim();
 }
 
-function requireInstructions(value) {
+function requireTransactionInstructions(value) {
   if (!Array.isArray(value) || value.length === 0) {
     throw new Error("Vanta wallet safe send boundary requires instructions.");
   }
 
-  return value.map((instruction) => requireText(instruction, "instructions[]"));
+  return value;
+}
+
+function normalizeSummaryInstructions(input) {
+  const source = input.summaryInstructions ?? input.instructions;
+  if (!Array.isArray(source) || source.length === 0) {
+    throw new Error("Vanta wallet safe send boundary requires summaryInstructions.");
+  }
+
+  return source.map((instruction, index) => {
+    if (typeof instruction === "string") {
+      return requireText(instruction, "summaryInstructions[]");
+    }
+
+    return `instruction-${index + 1}`;
+  });
 }
 
 function normalizeBlockhash(prepared) {
@@ -54,9 +69,10 @@ export async function runWalletSafeSendBoundary(boundary, input) {
 
   const request = {
     feePayer: requireText(input.feePayer, "feePayer"),
-    instructions: requireInstructions(input.instructions),
+    instructions: requireTransactionInstructions(input.instructions),
     label: requireText(input.label, "label"),
   };
+  const summaryInstructions = normalizeSummaryInstructions(input);
   const prepared = await boundary.prepare(request);
   const simulationResult = await boundary.simulate(prepared);
   const recentBlockhash = normalizeBlockhash(prepared);
@@ -68,7 +84,7 @@ export async function runWalletSafeSendBoundary(boundary, input) {
     estimatedFees: input.estimatedFees,
     explicitMainnetApproval: input.explicitMainnetApproval,
     feePayer: request.feePayer,
-    instructions: request.instructions,
+    instructions: summaryInstructions,
     recentBlockhash,
     recipient: input.recipient,
     simulationResult,

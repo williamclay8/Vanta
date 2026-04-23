@@ -189,6 +189,10 @@ assert.ok(
   "Missing wallet safe send boundary command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run wallet:safe-send-hook-check"),
+  "Missing wallet safe send hook command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:secret-handling-check"),
   "Missing secret handling contract command.",
 );

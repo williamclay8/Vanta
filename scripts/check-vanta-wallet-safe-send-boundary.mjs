@@ -111,4 +111,55 @@ assert.equal(wrongWallet.status, "blocked");
 assert.equal(wrongWallet.reason, "wallet-fee-payer-mismatch");
 assert.equal(wrongWallet.signature, null);
 
+const objectInstructionCalls = [];
+const objectInstructionBoundary = createWalletSafeSendBoundary({
+  async prepare(request) {
+    objectInstructionCalls.push(["prepare-instruction-count", request.instructions.length]);
+    return {
+      feePayer: request.feePayer,
+      instructions: request.instructions,
+      lifetime: {
+        blockhash: "blockhash_object_instruction_001",
+      },
+    };
+  },
+  async simulate() {
+    return {
+      error: null,
+      logs: ["Program log: object instruction simulation ok"],
+      ok: true,
+    };
+  },
+  async sendPrepared() {
+    objectInstructionCalls.push(["sendPrepared", "called"]);
+    return "sig_object_instruction_001";
+  },
+});
+
+const objectInstructionResult = await runWalletSafeSendBoundary(objectInstructionBoundary, {
+  amount: "1",
+  asset: "VUSD",
+  cluster: "devnet",
+  connectedWalletAddress: "payer1111111111111111111111111111111111111",
+  estimatedFees: "0.000005 SOL",
+  feePayer: "payer1111111111111111111111111111111111111",
+  humanApprovedSummary: true,
+  instructions: [
+    {
+      programAddress: "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr",
+    },
+  ],
+  label: "safe-send-object-instruction",
+  recipient: "vantaPool111111111111111111111111111111111",
+  summaryInstructions: ["memo"],
+  transactionFingerprint: "txfp_safe_send_object_instruction_001",
+});
+
+assert.equal(objectInstructionResult.status, "submitted");
+assert.deepEqual(objectInstructionResult.summary.instructions, ["memo"]);
+assert.deepEqual(objectInstructionCalls, [
+  ["prepare-instruction-count", 1],
+  ["sendPrepared", "called"],
+]);
+
 console.log("Vanta wallet safe send boundary check: PASS");

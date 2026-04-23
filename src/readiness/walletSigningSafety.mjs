@@ -22,6 +22,7 @@ export function createVantaWalletSigningSafetyPolicy() {
       "npm run wallet:backed-simulation-check",
       "npm run wallet:live-send-inventory-check",
       "npm run wallet:safe-send-boundary-check",
+      "npm run wallet:safe-send-hook-check",
       "npm run mainnet:readiness-check",
       "npm run protocol:browser-check",
     ],

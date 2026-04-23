@@ -3,7 +3,7 @@ import type { VantaWalletBackedTransactionSimulationGate } from "./walletBackedT
 
 export type VantaWalletSafeSendPrepared = {
   feePayer: string;
-  instructions: readonly string[];
+  instructions: readonly unknown[];
   lifetime?: {
     blockhash?: string;
   };
@@ -15,7 +15,7 @@ export type VantaWalletSafeSendBoundary = {
   kind: "vanta-wallet-safe-send-boundary";
   prepare(request: {
     feePayer: string;
-    instructions: readonly string[];
+    instructions: readonly unknown[];
     label: string;
   }): Promise<VantaWalletSafeSendPrepared>;
   sendPrepared(prepared: VantaWalletSafeSendPrepared): Promise<string>;
@@ -36,9 +36,10 @@ export type VantaWalletSafeSendInput = {
   explicitMainnetApproval?: boolean;
   feePayer: string;
   humanApprovedSummary: boolean;
-  instructions: readonly string[];
+  instructions: readonly unknown[];
   label: string;
   recipient: string;
+  summaryInstructions?: readonly string[];
   transactionFingerprint: string;
 };
 
