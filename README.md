@@ -186,6 +186,7 @@ npm run ops:safe-telemetry-check
 npm run mainnet:observability-sink-check
 npm run nullifier:replay-guard-check
 npm run mainnet:deployment-manifest-check
+npm run mainnet:private-rail-route-status-check
 npm run wallet:signing-safety-check
 npm run wallet:transaction-safety-check
 npm run wallet:backed-simulation-check
@@ -403,6 +404,7 @@ These commands cover the current Vanta-owned Private Pool v2 benchmark lane:
 - typed indexer, relayer, prover, protocol, shield proof request, and claim proof request surfaces
 - a checked external-gates packet for deployed service refs, secret-manager refs, audit/legal/custody refs, monitoring refs, and explicit mainnet-funds approval refs without committing secrets
 - a checked production service topology for the indexer, relayer, prover, verifier, and operator service graph, including mutual-auth edges, fail-closed policies, required storage surfaces, health endpoints, and readiness endpoints
+- a checked production private-rail route-status contract that proves Pay and the production operator route through expected Private Pool v2 URL/token refs without committing token values
 - local append-only commitment indexing and Merkle proof lookup
 - local prover public-input commitment verification plus tamper rejection
 - local relayer claim submission plus replay rejection

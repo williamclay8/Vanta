@@ -125,6 +125,7 @@ for (const serviceId of ["indexer", "relayer", "prover", "verifier", "operator"]
 assert.ok(manifest.releaseGates.includes("npm run mainnet:readiness-check"));
 assert.ok(manifest.releaseGates.includes("npm run mainnet:service-contract-check"));
 assert.ok(manifest.releaseGates.includes("npm run mainnet:deployment-manifest-check"));
+assert.ok(manifest.releaseGates.includes("npm run mainnet:private-rail-route-status-check"));
 assert.ok(manifest.releaseGates.includes("npm run mainnet:private-pool-v2-production-smoke-check"));
 assert.ok(manifest.releaseGates.includes("npm run mainnet:approval-gates-check"));
 assert.ok(manifest.rollback.required, "Rollback plan must be required.");

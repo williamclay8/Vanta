@@ -33,6 +33,7 @@ const requiredPhrases = [
   "npm run ops:rate-limit-check",
   "npm run nullifier:replay-guard-check",
   "npm run mainnet:deployment-manifest-check",
+  "npm run mainnet:private-rail-route-status-check",
   "npm run private-pool-v2:service-network-check",
   "npm run private-pool-v2:role-storage-check",
   "VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL",

@@ -153,6 +153,10 @@ assert.ok(
   "Missing deployment manifest command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:private-rail-route-status-check"),
+  "Missing production private rail route-status command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:private-pool-v2-production-smoke-check"),
   "Missing Private Pool v2 production smoke template command.",
 );
