@@ -29,6 +29,8 @@ assert.equal(evidence.operatorEventSinkKind, "noop-operator-event-sink");
 assert.equal(evidence.operatorEventSinkProductionReady, false);
 assert.equal(evidence.operatorEventSinkSource, "src/ops/vantaOperatorEventSink.mjs");
 assert.equal(evidence.preferredProductionRateLimiterKind, "postgres-rate-limiter");
+assert.equal(evidence.privatePoolV2RateLimiterPreferredKind, "postgres-durable-shared-window");
+assert.equal(evidence.privatePoolV2RuntimeMatchesPreferredRateLimiter, false);
 assert.equal(evidence.privatePoolV2Runtime.auditEventSinkKind, "postgres-operator-event-sink");
 assert.equal(evidence.privatePoolV2Runtime.operatorUrlRef, "VANTA_PRIVATE_POOL_V2_OPERATOR_URL");
 assert.equal(evidence.privatePoolV2Runtime.rateLimitPerMinute, 600);
@@ -55,6 +57,10 @@ for (const surface of evidence.surfaceStatuses) {
 assert.ok(
   evidence.safety.includes("No provider API keys"),
   "Abuse/observability evidence must state the no-secret safety policy.",
+);
+assert.ok(
+  evidence.deploymentTruth.includes("in-memory per-process rate limiter"),
+  "Abuse/observability evidence must record deployed rate-limit drift explicitly.",
 );
 assert.ok(
   evidence.deploymentTruth.includes("Postgres-backed rate-limit implementation"),

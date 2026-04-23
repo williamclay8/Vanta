@@ -88,6 +88,7 @@ const result = {
   mainnetReady: false,
   payRuntimeRef: "not-configured-for-production-runtime-check",
   payRuntimeStatus: "staging-or-local-only",
+  privatePoolV2PreferredRateLimiter: "postgres-durable-shared-window",
   privatePoolV2Runtime: {
     auditEventSinkKind: operatorPayload.observability?.auditEventSinkKind ?? null,
     operatorUrlHost: operatorBaseUrl.host,
@@ -100,6 +101,8 @@ const result = {
     storageDurableStoreConfigured: operatorPayload.storage?.durableStoreConfigured ?? false,
     storageKind: operatorPayload.storage?.kind ?? null,
   },
+  privatePoolV2RuntimeMatchesPreferredRateLimiter:
+    (operatorPayload.trafficControls?.rateLimiter ?? null) === "postgres-durable-shared-window",
   privatePoolV2RuntimeRef:
     "doppler run --config prd --project vanta -- npm run mainnet:abuse-observability-runtime-status-check",
   productionReady: false,
@@ -116,6 +119,11 @@ if (checkMode) {
     ["in-memory-per-process", "postgres-durable-shared-window"].includes(result.privatePoolV2Runtime.rateLimiter),
     `Unexpected deployed Private Pool v2 rate limiter: ${result.privatePoolV2Runtime.rateLimiter}.`,
   );
+  assert.equal(result.privatePoolV2PreferredRateLimiter, "postgres-durable-shared-window");
+  assert.equal(
+    result.privatePoolV2RuntimeMatchesPreferredRateLimiter,
+    result.privatePoolV2Runtime.rateLimiter === "postgres-durable-shared-window",
+  );
   assert.equal(result.privatePoolV2Runtime.storageDurableStoreConfigured, true);
   assert.equal(result.privatePoolV2Runtime.storageKind, "postgres-jsonb-snapshot-store");
 }
@@ -128,5 +136,7 @@ if (jsonMode || checkMode) {
   console.log(`- privatePoolV2RuntimeMode: ${result.privatePoolV2Runtime.runtimeMode}`);
   console.log(`- privatePoolV2AuditEventSinkKind: ${result.privatePoolV2Runtime.auditEventSinkKind}`);
   console.log(`- privatePoolV2RateLimiter: ${result.privatePoolV2Runtime.rateLimiter}`);
+  console.log(`- privatePoolV2PreferredRateLimiter: ${result.privatePoolV2PreferredRateLimiter}`);
+  console.log(`- privatePoolV2RuntimeMatchesPreferredRateLimiter: ${String(result.privatePoolV2RuntimeMatchesPreferredRateLimiter)}`);
   console.log(`- privatePoolV2StorageKind: ${result.privatePoolV2Runtime.storageKind}`);
 }
