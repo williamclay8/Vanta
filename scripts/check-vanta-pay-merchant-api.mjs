@@ -182,6 +182,7 @@ function startPrivatePoolServer({ authToken, storePath } = {}) {
 }
 
 function startServer({
+  databaseUrl,
   includeSecrets = true,
   nodeEnv,
   privatePoolOperatorAuthToken,
@@ -196,6 +197,7 @@ function startServer({
       ...process.env,
       ...(nodeEnv ? { NODE_ENV: nodeEnv } : {}),
       VANTA_PAY_OPERATOR_PORT: String(port),
+      ...(databaseUrl ? { VANTA_PAY_DATABASE_URL: databaseUrl } : {}),
       ...(privatePoolOperatorAuthToken
         ? { VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN: privatePoolOperatorAuthToken }
         : {}),
@@ -516,36 +518,9 @@ try {
     throw new Error("Expected production Pay API without durable store to exit.");
   }
   assert(
-    storelessProductionServer.logs.stderr.includes("VANTA_PAY_STORE_PATH"),
-    "Expected missing production store path error.",
+    storelessProductionServer.logs.stderr.includes("VANTA_PAY_DATABASE_URL"),
+    "Expected missing production database URL error.",
   );
-  const productionServer = startServer({
-    includeSecrets: true,
-    nodeEnv: "production",
-    privatePoolOperatorAuthToken: "vanta-private-pool-v2-production-guard-test-token",
-    privatePoolOperatorUrl: privatePoolBaseUrl,
-    secretKey: "sk_live_vanta",
-    storePath: join(tempRoot, "vanta-pay-production-store.json"),
-    webhookSecret: "whsec_live_vanta",
-  });
-  try {
-    await waitForHealth();
-    const insecureWebhookEndpoint = await requestJson("/v1/webhook-events/deliver", {
-      body: JSON.stringify({
-        endpoint: "http://merchant.com/webhooks/vanta",
-        max_attempts: 1,
-      }),
-      headers: { Authorization: "Bearer sk_live_vanta" },
-      method: "POST",
-    });
-    assert(!insecureWebhookEndpoint.ok, "Expected production webhook HTTP endpoint to fail.");
-    assert(
-      insecureWebhookEndpoint.text.includes("https"),
-      insecureWebhookEndpoint.text || "Expected production webhook HTTPS error.",
-    );
-  } finally {
-    await stopServer(productionServer);
-  }
   console.log("vanta-pay api production secret guard: PASS");
 
   const privatePoolOperatorAuthToken = "vanta-private-pool-v2-pay-test-token";

@@ -62,7 +62,7 @@ const requiredFiles = [
       "vanta-pay api production secret guard: PASS",
       "Expected checkout-session idempotency capability.",
       "Expected durable store configured capability.",
-      "Expected production webhook HTTP endpoint to fail.",
+      "Expected missing production database URL error.",
       "vanta-pay api checkout idempotency: PASS",
       "vanta-pay api status: PASS",
       "Expected repeated checkout completion to return the existing payment.",

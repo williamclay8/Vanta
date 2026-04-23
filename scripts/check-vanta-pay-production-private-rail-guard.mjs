@@ -9,6 +9,8 @@ const readinessSource = readFileSync(resolve(repoRoot, "src/readiness/mainnetRea
 const runbookSource = readFileSync(resolve(repoRoot, "docs/operator-runbook.md"), "utf8");
 
 for (const phrase of [
+  "Vanta Pay production mode requires VANTA_PAY_DATABASE_URL for durable storage and rate limiting.",
+  "Vanta Pay production mode requires the Postgres-backed rate limiter.",
   "Vanta Pay production mode requires VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_URL.",
   "Vanta Pay production mode requires VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN.",
   "privatePoolOperatorUrl",

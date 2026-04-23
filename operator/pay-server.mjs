@@ -76,8 +76,8 @@ function assertProductionSecrets() {
     throw new Error("Vanta Pay production mode requires VANTA_PAY_WEBHOOK_SECRET.");
   }
 
-  if (!storePath && !databaseUrl) {
-    throw new Error("Vanta Pay production mode requires VANTA_PAY_STORE_PATH or VANTA_PAY_DATABASE_URL.");
+  if (!databaseUrl) {
+    throw new Error("Vanta Pay production mode requires VANTA_PAY_DATABASE_URL for durable storage and rate limiting.");
   }
 
   if (!privatePoolOperatorUrl) {
@@ -182,6 +182,10 @@ const rateLimiter = databaseUrl
       service: "vanta-pay",
     })
   : createInMemoryRateLimiter({ limit: rateLimitPerMinute });
+
+if (process.env.NODE_ENV === "production" && rateLimiter.kind !== "postgres-rate-limiter") {
+  throw new Error("Vanta Pay production mode requires the Postgres-backed rate limiter.");
+}
 const operatorEventSink = databaseUrl
   ? await createPostgresOperatorEventSinkFromDatabaseUrl({
       databaseUrl,

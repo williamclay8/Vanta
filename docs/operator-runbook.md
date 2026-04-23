@@ -614,13 +614,12 @@ Production mode guardrails:
 NODE_ENV=production
 VANTA_PAY_SECRET_KEY=<live-secret-key>
 VANTA_PAY_WEBHOOK_SECRET=<live-webhook-secret>
-VANTA_PAY_STORE_PATH=<durable-store-path-if-using-json-store>
 VANTA_PAY_DATABASE_URL=<postgres-url-if-using-managed-postgres>
 VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_URL=<private-pool-v2-url>
 VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN=<operator-token-required-in-production>
 ```
 
-When `NODE_ENV=production`, Pay refuses to boot without `VANTA_PAY_SECRET_KEY`, `VANTA_PAY_WEBHOOK_SECRET`, either `VANTA_PAY_STORE_PATH` or `VANTA_PAY_DATABASE_URL`, `VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_URL`, and `VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN`.
+When `NODE_ENV=production`, Pay refuses to boot without `VANTA_PAY_SECRET_KEY`, `VANTA_PAY_WEBHOOK_SECRET`, `VANTA_PAY_DATABASE_URL`, `VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_URL`, and `VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN`. File-backed JSON storage remains valid for local and staging-style checks, but production Pay must use the Postgres-backed storage and rate-limit path.
 
 The Pay production private-rail guard command is:
 
