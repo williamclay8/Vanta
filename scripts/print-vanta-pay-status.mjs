@@ -17,6 +17,7 @@ const result = {
     privateExitWithdrawalRequired: true,
     privatePoolOperatorConfigured: Boolean(process.env.VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_URL),
     privateRailCompletionRequired: true,
+    productionDatabaseRequired: true,
     productionDurableStoreRequired: true,
     productionHttpsWebhooks: true,
     requestValidation: "fail-closed",
@@ -63,7 +64,7 @@ if (jsonMode) {
     `- idempotency: checkoutSessions=${String(result.capabilities.idempotency.checkoutSessions)}, checkoutCompletion=${String(result.capabilities.idempotency.checkoutCompletion)}, refunds=${String(result.capabilities.idempotency.refunds)}, withdrawals=${String(result.capabilities.idempotency.withdrawals)}`,
   );
   console.log(
-    `- productionGuards: durableStore=${String(result.capabilities.productionDurableStoreRequired)}, httpsWebhooks=${String(result.capabilities.productionHttpsWebhooks)}`,
+    `- productionGuards: database=${String(result.capabilities.productionDatabaseRequired)}, durableStore=${String(result.capabilities.productionDurableStoreRequired)}, httpsWebhooks=${String(result.capabilities.productionHttpsWebhooks)}`,
   );
   console.log(`- storage: ${result.storage.kind}`);
   for (const [surface, status] of Object.entries(result.surfaces)) {

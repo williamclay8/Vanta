@@ -487,6 +487,7 @@ const server = createServer(async (request, response) => {
           privateExitWithdrawalRequired: true,
           privatePoolOperatorConfigured: Boolean(privatePoolOperatorUrl),
           privateRailCompletionRequired: true,
+          productionDatabaseRequired: true,
           productionDurableStoreRequired: true,
           productionHttpsWebhooks: true,
           rateLimits: rateLimiter.kind === "postgres-rate-limiter" ? "postgres-durable-shared-window" : "in-memory-per-process",

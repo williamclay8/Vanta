@@ -41,6 +41,7 @@ const requiredFiles = [
       "/v1/webhook-events/deliver",
       "production webhook delivery requires an https endpoint",
       "productionDurableStoreRequired",
+      "productionDatabaseRequired",
       "durableStoreConfigured",
       "createPostgresSnapshotStore",
       "productionHttpsWebhooks",

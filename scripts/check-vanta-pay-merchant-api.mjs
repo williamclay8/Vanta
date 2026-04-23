@@ -570,6 +570,10 @@ try {
       "Expected withdrawal idempotency capability.",
     );
     assert(
+      apiStatus.parsed?.capabilities?.productionDatabaseRequired === true,
+      "Expected production database requirement capability.",
+    );
+    assert(
       apiStatus.parsed?.capabilities?.productionDurableStoreRequired === true,
       "Expected production durable-store capability.",
     );
