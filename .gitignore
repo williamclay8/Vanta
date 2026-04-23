@@ -2,6 +2,7 @@
 .env.local
 .env.operator
 .env.operator.local
+.env.render.local
 node_modules/
 dist/
 *.tsbuildinfo
