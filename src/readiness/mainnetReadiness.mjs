@@ -132,6 +132,7 @@ const requiredCommands = [
   "npm run wallet:safe-send-hook-check",
   "npm run shield:safe-send-adoption-check",
   "npm run send:safe-send-adoption-check",
+  "npm run swap:safe-send-adoption-check",
   "npm run mainnet:secret-handling-check",
   "npm run mainnet:approval-gates-check",
   "npm run mainnet:approval-gates-evidence-check",

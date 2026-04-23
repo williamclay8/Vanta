@@ -66,6 +66,18 @@ assert.ok(
 );
 assert.equal(sendSurface.currentCallSites.length, 0, "Send must not keep raw generic transaction sends pending.");
 
+const swapSurface = surfacesByPage.get("Swap");
+assert.equal(swapSurface.status, "partial-safe-send-adopted", "Swap must reflect partial safe-send adoption.");
+assert.ok(
+  swapSurface.adoptedCallSites?.length >= 2,
+  "Swap must list spent-marker and swap-transition transactions as safe-send adopted.",
+);
+assert.deepEqual(
+  swapSurface.currentCallSites.map((callSite) => callSite.signatureKind),
+  ["message-intent-signature"],
+  "Swap must keep only the signed message intent pending in the live-send inventory.",
+);
+
 const transactionCallSites = inventory.actionSurfaces.flatMap((surface) =>
   surface.currentCallSites.filter((callSite) => callSite.signatureKind === "transaction-signature"),
 );
@@ -73,7 +85,7 @@ const messageIntentCallSites = inventory.actionSurfaces.flatMap((surface) =>
   surface.currentCallSites.filter((callSite) => callSite.signatureKind === "message-intent-signature"),
 );
 
-assert.ok(transactionCallSites.length >= 7, "Expected frozen transaction send call sites.");
+assert.ok(transactionCallSites.length >= 5, "Expected frozen transaction send call sites.");
 assert.ok(messageIntentCallSites.length >= 3, "Expected frozen signed intent call sites.");
 assert.ok(
   inventory.messageIntentPolicy.requiredSequence.includes("typed-intent-summary") &&

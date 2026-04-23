@@ -194,6 +194,7 @@ npm run wallet:safe-send-boundary-check
 npm run wallet:safe-send-hook-check
 npm run shield:safe-send-adoption-check
 npm run send:safe-send-adoption-check
+npm run swap:safe-send-adoption-check
 npm run mainnet:secret-handling-check
 npm run audit:package-check
 npm run private-core:check
@@ -339,6 +340,7 @@ npm run wallet:safe-send-boundary-check
 npm run wallet:safe-send-hook-check
 npm run shield:safe-send-adoption-check
 npm run send:safe-send-adoption-check
+npm run swap:safe-send-adoption-check
 npm run mainnet:secret-handling-check
 npm run audit:package-check
 npm run pay-tab:copy-check

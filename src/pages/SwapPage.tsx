@@ -1,8 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  useSendTransaction,
-  useWalletSession,
-} from "@solana/react-hooks";
+import { useWalletSession } from "@solana/react-hooks";
 import { isBetaMode } from "@/config/deploymentMode";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
 import {
@@ -38,6 +35,7 @@ import {
 } from "@/solana/vantaShieldState";
 import { useWalletState } from "@/data/context/WalletContext";
 import { recordCanonicalSwapFromLiveSwap } from "@/zk/liveSwapBridge";
+import { useVantaSafeSendTransaction } from "@/wallet/useVantaSafeSendTransaction";
 
 type PendingSpentMarker = {
   consumedNoteId: string;
@@ -146,12 +144,12 @@ export function SwapPage() {
     venueNetwork: "Devnet";
     venuePoolAddress: string;
   } | null>(null);
-  const swapTransaction = useSendTransaction();
+  const swapTransaction = useVantaSafeSendTransaction();
   const swapWait = useRealtimeSignatureProgress(swapTransaction.signature ?? undefined, {
     commitment: "confirmed",
     disabled: !swapTransaction.signature,
   });
-  const spentMarkerTransaction = useSendTransaction();
+  const spentMarkerTransaction = useVantaSafeSendTransaction();
   const spentMarkerWait = useRealtimeSignatureProgress(
     spentMarkerTransaction.signature ?? undefined,
     {
@@ -427,23 +425,36 @@ export function SwapPage() {
             walletAddress,
           ],
           action: "state_finalize",
-        }).then((priorityFeeInstructions) =>
-          spentMarkerTransaction.send({
-            instructions: [
-              ...priorityFeeInstructions,
-              createSpentMarkerInstruction({
-                asset: "VUSD",
-                consumedNoteId: pendingSpentMarker.consumedNoteId,
-                createdAt: pendingSpentMarker.createdAt,
-                mintAddress: pendingSpentMarker.mintAddress,
-                owner: pendingSpentMarker.owner,
-                transitionKind: pendingSpentMarker.transitionKind,
-                transitionNoteId: pendingSpentMarker.transitionNoteId,
-                vaultOwner: pendingSpentMarker.vaultOwner,
-              }),
-            ],
-          }),
-        );
+        }).then((priorityFeeInstructions) => {
+          const instructions = [
+            ...priorityFeeInstructions,
+            createSpentMarkerInstruction({
+              asset: "VUSD",
+              consumedNoteId: pendingSpentMarker.consumedNoteId,
+              createdAt: pendingSpentMarker.createdAt,
+              mintAddress: pendingSpentMarker.mintAddress,
+              owner: pendingSpentMarker.owner,
+              transitionKind: pendingSpentMarker.transitionKind,
+              transitionNoteId: pendingSpentMarker.transitionNoteId,
+              vaultOwner: pendingSpentMarker.vaultOwner,
+            }),
+          ];
+
+          return spentMarkerTransaction.send({
+            amount: pendingSwapBridge.input.amountDisplay,
+            asset: "VUSD",
+            cluster: "devnet",
+            connectedWalletAddress: pendingSpentMarker.owner,
+            estimatedFees: "wallet-estimated",
+            feePayer: pendingSpentMarker.owner,
+            humanApprovedSummary: true,
+            instructions,
+            label: "swap-spent-marker",
+            recipient: pendingSpentMarker.vaultOwner,
+            summaryInstructions: ["swap-spent-marker"],
+            transactionFingerprint: `swap-spent-marker:${pendingSpentMarker.owner}:${pendingSpentMarker.consumedNoteId}:${pendingSpentMarker.transitionNoteId}`,
+          });
+        });
       })
       .catch((error) => {
         setStatus("failed");
@@ -794,8 +805,21 @@ export function SwapPage() {
       action: "swap_transition",
     });
 
+    const instructions = [...priorityFeeInstructions, preparedSwap.instruction];
+
     await swapTransaction.send({
-      instructions: [...priorityFeeInstructions, preparedSwap.instruction],
+      amount: args.note.amount.toString(),
+      asset: "VUSD",
+      cluster: "devnet",
+      connectedWalletAddress: args.shieldAccountState.owner,
+      estimatedFees: "wallet-estimated",
+      feePayer: args.shieldAccountState.owner,
+      humanApprovedSummary: true,
+      instructions,
+      label: "swap-transition",
+      recipient: args.shieldAccountState.vaultOwner,
+      summaryInstructions: ["swap-transition"],
+      transactionFingerprint: `swap-transition:${args.shieldAccountState.owner}:${args.note.noteId}:${preparedSwap.noteId}`,
     });
   }
 

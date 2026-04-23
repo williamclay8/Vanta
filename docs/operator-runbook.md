@@ -36,6 +36,7 @@ npm run wallet:safe-send-boundary-check
 npm run wallet:safe-send-hook-check
 npm run shield:safe-send-adoption-check
 npm run send:safe-send-adoption-check
+npm run swap:safe-send-adoption-check
 npm run mainnet:secret-handling-check
 npm run audit:package-check
 ```
@@ -71,6 +72,7 @@ npm run wallet:safe-send-boundary-check
 npm run wallet:safe-send-hook-check
 npm run shield:safe-send-adoption-check
 npm run send:safe-send-adoption-check
+npm run swap:safe-send-adoption-check
 npm run mainnet:secret-handling-check
 npm run audit:package-check
 ```
@@ -602,6 +604,20 @@ The Send safe-send adoption command is:
 
 ```bash
 npm run send:safe-send-adoption-check
+```
+
+The Swap safe-send adoption check is:
+
+```text
+scripts/check-vanta-swap-safe-send-adoption.mjs
+```
+
+It verifies Swap no longer uses raw generic `useSendTransaction` sends for the swap transition or spent-marker transaction, while keeping the signed swap intent visible for separate typed-intent hardening.
+
+The Swap safe-send adoption command is:
+
+```bash
+npm run swap:safe-send-adoption-check
 ```
 
 The browser-backed safe-environment signing gate is:

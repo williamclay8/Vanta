@@ -201,6 +201,10 @@ assert.ok(
   "Missing Send safe-send adoption command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run swap:safe-send-adoption-check"),
+  "Missing Swap safe-send adoption command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:secret-handling-check"),
   "Missing secret handling contract command.",
 );

@@ -81,14 +81,16 @@ export function createWalletLiveSendInventory() {
       {
         currentCallSites: [
           message("signSwapIntent(payload, walletSession.signMessage)", "swap intent signature"),
-          tx("spentMarkerTransaction.send({", "swap spent-marker reservation"),
-          tx("swapTransaction.send({", "shielded swap transition"),
+        ],
+        adoptedCallSites: [
+          tx("const spentMarkerTransaction = useVantaSafeSendTransaction();", "swap spent-marker reservation"),
+          tx("const swapTransaction = useVantaSafeSendTransaction();", "shielded swap transition"),
         ],
         file: "src/pages/SwapPage.tsx",
         page: "Swap",
         replacement:
-          "Bind the signed swap intent to a typed intent summary, then prepare, simulate, summarize, and gate every swap transaction before wallet approval.",
-        status: "requires-wallet-backed-simulation-gate",
+          "Keep the signed swap intent visible for typed-intent hardening, and keep swap transition transactions behind the safe-send hook that prepares, simulates, summarizes, gates, and requests wallet approval.",
+        status: "partial-safe-send-adopted",
       },
       {
         currentCallSites: [
