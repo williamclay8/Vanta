@@ -205,6 +205,10 @@ assert.ok(
   "Missing Umbra operation client summary gate command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run umbra:operation-summary-builders-check"),
+  "Missing Umbra operation summary builders command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run wallet:live-send-inventory-check"),
   "Missing wallet live send inventory command.",
 );

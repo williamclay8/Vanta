@@ -644,6 +644,24 @@ scripts/check-vanta-umbra-operation-client-summary-gate.mjs
 npm run umbra:operation-client-summary-gate-check
 ```
 
+The Umbra operation summary builders are:
+
+```text
+src/privacy/umbraOperations.ts
+```
+
+UI and operator callers should use the operation-specific summary builders instead of hand-assembling summary fields. Those helpers keep approval summaries aligned with the operation client summary gate.
+
+The Umbra operation summary builders command is:
+
+```text
+scripts/check-vanta-umbra-operation-summary-builders.mjs
+```
+
+```bash
+npm run umbra:operation-summary-builders-check
+```
+
 The frozen live wallet send/sign inventory is:
 
 ```text

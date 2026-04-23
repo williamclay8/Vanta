@@ -187,6 +187,127 @@ export function createUmbraOperationApprovalSummary({
   };
 }
 
+function formatUmbraOperationBaseUnitAmount(value: bigint | number | string) {
+  return value.toString();
+}
+
+function formatUmbraQueryMintSummary(mintAddresses: readonly string[]) {
+  return mintAddresses.join(",");
+}
+
+export function createUmbraRegisterUserApprovalSummary({
+  expiresAt,
+  issuedAt,
+  requester,
+}: {
+  expiresAt: number;
+  issuedAt: number;
+  requester: string;
+}) {
+  return createUmbraOperationApprovalSummary({
+    expiresAt,
+    issuedAt,
+    operationKind: "register-user",
+    requester,
+  });
+}
+
+export function createUmbraEncryptedBalanceQueryApprovalSummary({
+  expiresAt,
+  issuedAt,
+  mintAddresses,
+  requester,
+}: {
+  expiresAt: number;
+  issuedAt: number;
+  mintAddresses: readonly string[];
+  requester: string;
+}) {
+  return createUmbraOperationApprovalSummary({
+    asset: "Umbra private balance",
+    destinationAddress: "not applicable",
+    expiresAt,
+    issuedAt,
+    mintAddress: formatUmbraQueryMintSummary(mintAddresses),
+    operationKind: "query-encrypted-balances",
+    requester,
+  });
+}
+
+export function createUmbraDepositApprovalSummary({
+  amountBaseUnits,
+  destinationAddress,
+  expiresAt,
+  issuedAt,
+  mintAddress,
+  requester,
+}: {
+  amountBaseUnits: bigint | number | string;
+  destinationAddress?: string;
+  expiresAt: number;
+  issuedAt: number;
+  mintAddress: string;
+  requester: string;
+}) {
+  return createUmbraOperationApprovalSummary({
+    amount: formatUmbraOperationBaseUnitAmount(amountBaseUnits),
+    destinationAddress: destinationAddress ?? requester,
+    expiresAt,
+    issuedAt,
+    mintAddress,
+    operationKind: "deposit-public-to-encrypted-balance",
+    requester,
+  });
+}
+
+export function createUmbraWithdrawApprovalSummary({
+  amountBaseUnits,
+  destinationAddress,
+  expiresAt,
+  issuedAt,
+  mintAddress,
+  requester,
+}: {
+  amountBaseUnits: bigint | number | string;
+  destinationAddress?: string;
+  expiresAt: number;
+  issuedAt: number;
+  mintAddress: string;
+  requester: string;
+}) {
+  return createUmbraOperationApprovalSummary({
+    amount: formatUmbraOperationBaseUnitAmount(amountBaseUnits),
+    destinationAddress: destinationAddress ?? requester,
+    expiresAt,
+    issuedAt,
+    mintAddress,
+    operationKind: "withdraw-encrypted-to-public-balance",
+    requester,
+  });
+}
+
+export function createUmbraClaimableUtxoScanApprovalSummary({
+  expiresAt,
+  issuedAt,
+  requester,
+  treeIndex,
+}: {
+  expiresAt: number;
+  issuedAt: number;
+  requester: string;
+  treeIndex: number;
+}) {
+  return createUmbraOperationApprovalSummary({
+    asset: "Umbra private balance",
+    destinationAddress: "not applicable",
+    expiresAt,
+    issuedAt,
+    mintAddress: `tree:${treeIndex}`,
+    operationKind: "scan-claimable-utxos",
+    requester,
+  });
+}
+
 export function validateUmbraOperationApprovalSummary(
   summary: UmbraOperationApprovalSummary,
   {
