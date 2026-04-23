@@ -33,10 +33,18 @@ assert.ok(contract.globalRequirements.includes("least-privilege-service-identiti
 assert.ok(contract.globalRequirements.includes("no-secrets-in-repo"), "Missing no-secrets-in-repo requirement.");
 assert.ok(contract.globalRequirements.includes("rotation-runbook-required"), "Missing rotation runbook requirement.");
 assert.ok(contract.globalRequirements.includes("incident-revocation-required"), "Missing incident revocation requirement.");
+assert.ok(
+  contract.globalRequirements.includes("tracked-repo-secret-exposure-scan-required"),
+  "Missing tracked repo secret exposure scan requirement.",
+);
 
 assert.ok(
   contract.requiredVerificationCommands.includes("npm run mainnet:secret-handling-check"),
   "Missing secret handling verification command.",
+);
+assert.ok(
+  contract.requiredVerificationCommands.includes("npm run mainnet:secret-exposure-check"),
+  "Missing secret exposure verification command.",
 );
 
 assert.ok(

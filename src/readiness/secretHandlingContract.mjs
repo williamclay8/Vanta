@@ -92,6 +92,7 @@ const globalRequirements = [
   "audit-log-secret-access",
   "break-glass-access-reviewed",
   "production-env-values-provisioned-outside-git",
+  "tracked-repo-secret-exposure-scan-required",
 ];
 
 export function createVantaSecretHandlingContract() {
@@ -106,6 +107,7 @@ export function createVantaSecretHandlingContract() {
     productionReady: false,
     requiredVerificationCommands: [
       "npm run mainnet:secret-handling-check",
+      "npm run mainnet:secret-exposure-check",
       "npm run mainnet:preflight",
       "npm run wallet:signing-safety-check",
     ],

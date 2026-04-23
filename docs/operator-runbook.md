@@ -559,9 +559,40 @@ Secret handling is checked by:
 
 ```bash
 npm run mainnet:secret-handling-check
+npm run mainnet:secret-exposure-check
 ```
 
-The contract requires a production secret manager, least-privilege service identities, no secrets in the repo, no secrets in client bundles, names-only manifests, rotation runbooks, incident revocation, and audit logs for secret access. Vanta must never request, store, or load private keys, seed phrases, or keypair files.
+The contract requires a production secret manager, least-privilege service identities, no secrets in the repo, no secrets in client bundles, names-only manifests, a tracked-repo secret exposure scan, rotation runbooks, incident revocation, and audit logs for secret access. Vanta must never request, store, or load private keys, seed phrases, or keypair files.
+
+The exposure check scans tracked repo files only. It intentionally does not scan ignored local env files such as `.env.local` and `.env.operator.local`, because those can contain local operator secrets. It must pass before committing docs, manifests, scripts, or evidence files that mention API keys, bearer tokens, database URLs, webhook secrets, or wallet material.
+
+If a Render API key, service auth token, database URL, webhook secret, or any other credential appears in chat, a screenshot, terminal history, logs, or another surface outside the secret manager:
+
+1. Revoke or rotate the value in the source provider first.
+2. Update the new value only in Doppler or the Render environment variable UI.
+3. Redeploy the affected Render service if the provider does not hot-reload environment variables.
+4. Run `npm run mainnet:private-pool-v2-production-smoke-env` to confirm status without printing values.
+5. Run `npm run mainnet:secret-exposure-check` before committing any follow-up docs or evidence.
+
+For Render API keys, create a new API key in the Render dashboard, update the local shell or secret manager reference, then delete the old key. Do not put `RENDER_API_KEY=<value>` into docs, Git, chat, screenshots, or shell snippets that will be shared.
+
+For Private Pool v2 role tokens, rotate all five role tokens together when practical:
+
+```text
+VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN
+VANTA_PRIVATE_POOL_V2_PROVER_AUTH_TOKEN
+VANTA_PRIVATE_POOL_V2_RELAYER_AUTH_TOKEN
+VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN
+VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN
+```
+
+Pay must also be able to reach the operator with:
+
+```text
+VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN
+```
+
+The Pay operator token and Private Pool v2 operator token should match only when Pay is intentionally allowed to call that operator. If either value is rotated, update Pay and the Private Pool v2 operator together, then run the production smoke env check and the no-real-funds smoke before relying on the route.
 
 ## Startup Order
 
