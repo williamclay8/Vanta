@@ -135,6 +135,7 @@ const requiredCommands = [
   "npm run umbra:operation-client-summary-gate-check",
   "npm run umbra:operation-summary-builders-check",
   "npm run umbra:operation-summary-display-check",
+  "npm run umbra:benchmark-approval-samples-check",
   "npm run wallet:live-send-inventory-check",
   "npm run wallet:safe-send-boundary-check",
   "npm run wallet:safe-send-hook-check",

@@ -213,6 +213,10 @@ assert.ok(
   "Missing Umbra operation summary display command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run umbra:benchmark-approval-samples-check"),
+  "Missing Umbra benchmark approval samples command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run wallet:live-send-inventory-check"),
   "Missing wallet live send inventory command.",
 );

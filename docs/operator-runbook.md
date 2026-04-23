@@ -680,6 +680,24 @@ scripts/check-vanta-umbra-operation-summary-display.mjs
 npm run umbra:operation-summary-display-check
 ```
 
+The Umbra benchmark approval samples are:
+
+```text
+src/privacy/umbraBenchmark.ts
+```
+
+The benchmark snapshot includes display-safe examples for private balance lookup, shield, withdraw, and claimable-funds scan approvals. These samples are review surfaces only; they do not enable signing or replace the short-lived operation approval gates.
+
+The Umbra benchmark approval samples command is:
+
+```text
+scripts/check-vanta-umbra-benchmark-approval-samples.mjs
+```
+
+```bash
+npm run umbra:benchmark-approval-samples-check
+```
+
 The frozen live wallet send/sign inventory is:
 
 ```text
