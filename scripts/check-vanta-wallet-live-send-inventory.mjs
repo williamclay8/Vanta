@@ -27,7 +27,7 @@ for (const page of ["Shield", "Send", "Swap", "Unshield"]) {
 
 for (const surface of inventory.actionSurfaces) {
   assert.ok(
-    ["requires-wallet-backed-simulation-gate", "partial-safe-send-adopted", "safe-send-adopted"].includes(surface.status),
+    ["requires-wallet-backed-simulation-gate", "safe-send-adopted"].includes(surface.status),
     `${surface.page} has unknown wallet-send adoption status: ${surface.status}`,
   );
   assert.ok(surface.file.startsWith("src/"), `${surface.page} inventory must use repo-relative source files.`);
@@ -47,15 +47,15 @@ for (const surface of inventory.actionSurfaces) {
 }
 
 const shieldSurface = surfacesByPage.get("Shield");
-assert.equal(shieldSurface.status, "partial-safe-send-adopted", "Shield must reflect partial safe-send adoption.");
+assert.equal(shieldSurface.status, "safe-send-adopted", "Shield must reflect safe-send adoption.");
 assert.ok(
-  shieldSurface.adoptedCallSites?.length >= 3,
-  "Shield must list native SOL, state, and public-route transactions as safe-send adopted.",
+  shieldSurface.adoptedCallSites?.length >= 4,
+  "Shield must list SPL, native SOL, state, and public-route transactions as safe-send adopted.",
 );
 assert.equal(
   shieldSurface.currentCallSites.length,
-  1,
-  "Shield must keep only the SPL token transfer call site in the pending live-send inventory.",
+  0,
+  "Shield must not keep raw transaction sends pending.",
 );
 
 const sendSurface = surfacesByPage.get("Send");
@@ -85,11 +85,15 @@ assert.equal(unshieldSurface.currentCallSites.length, 0, "Unshield must not keep
 const transactionCallSites = inventory.actionSurfaces.flatMap((surface) =>
   surface.currentCallSites.filter((callSite) => callSite.signatureKind === "transaction-signature"),
 );
+const adoptedTransactionCallSites = inventory.actionSurfaces.flatMap((surface) =>
+  (surface.adoptedCallSites ?? []).filter((callSite) => callSite.signatureKind === "transaction-signature"),
+);
 const adoptedMessageIntentCallSites = inventory.actionSurfaces.flatMap((surface) =>
   (surface.adoptedCallSites ?? []).filter((callSite) => callSite.signatureKind === "message-intent-signature"),
 );
 
-assert.ok(transactionCallSites.length >= 1, "Expected frozen transaction send call sites.");
+assert.equal(transactionCallSites.length, 0, "Protocol tabs must not keep raw transaction send call sites.");
+assert.ok(adoptedTransactionCallSites.length >= 12, "Expected adopted transaction safety boundaries.");
 assert.ok(adoptedMessageIntentCallSites.length >= 3, "Expected adopted signed intent safety boundaries.");
 assert.ok(
   inventory.messageIntentPolicy.requiredSequence.includes("typed-intent-summary") &&

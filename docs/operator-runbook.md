@@ -578,7 +578,7 @@ The frozen live wallet send/sign inventory is:
 src/readiness/walletLiveSendInventory.mjs
 ```
 
-It records the current Shield and Umbra adapter call sites that still require replacement with prepare, simulate, safety summary, wallet-backed gate validation, wallet approval, and prepared transaction submission or typed message-intent approval. It also records Shield, Send, Swap, and Unshield call sites that have adopted safe-send or message-intent safety boundaries so reviewers can see which live-signing paths have moved. The inventory is deliberately not a readiness claim; it is a guardrail to keep every live signing path visible until replaced.
+It records the current Umbra adapter call sites that still require replacement with prepare, simulate, safety summary, wallet-backed gate validation, wallet approval, and prepared transaction submission or typed message-intent approval. It also records Shield, Send, Swap, and Unshield call sites that have adopted safe-send or message-intent safety boundaries so reviewers can see which live-signing paths have moved. The inventory is deliberately not a readiness claim; it is a guardrail to keep every live signing path visible until replaced.
 
 The live wallet send inventory command is:
 
@@ -620,7 +620,7 @@ The Shield safe-send adoption check is:
 scripts/check-vanta-shield-safe-send-adoption.mjs
 ```
 
-It verifies Shield no longer uses raw generic `useSendTransaction` sends for native SOL, shield-state, or public-route transactions, and that those paths route through `useVantaSafeSendTransaction` with summary instructions and transaction fingerprints.
+It verifies Shield no longer uses raw generic `useSendTransaction` sends or the opaque SPL token `send` shortcut for SPL deposits, native SOL, shield-state, or public-route transactions, and that those paths route through `useVantaSafeSendTransaction` with summary instructions and transaction fingerprints.
 
 The Shield safe-send adoption command is:
 

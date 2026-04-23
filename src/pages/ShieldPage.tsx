@@ -19,6 +19,7 @@ import {
 } from "@/solana/shieldConfig";
 import { selectUniversalShieldTarget } from "@/solana/universalShieldTarget";
 import { useRealtimeSignatureProgress } from "@/solana/useRealtimeSignatureProgress";
+import { buildSplTokenShieldTransferInstructions } from "@/solana/splShieldTransfer";
 import { useWalletPublicAssets } from "@/solana/useWalletPublicAssets";
 import { useVantaShieldAssetRegistryState } from "@/solana/useVantaShieldAssetRegistryState";
 import {
@@ -167,6 +168,14 @@ export function ShieldPage(_props: ShieldPageProps) {
     : shieldedBalance;
 
   const publicRouteTransaction = useVantaSafeSendTransaction();
+  const splShieldTransferTransaction = useVantaSafeSendTransaction();
+  const splShieldTransferWait = useRealtimeSignatureProgress(
+    splShieldTransferTransaction.signature ?? undefined,
+    {
+      commitment: "confirmed",
+      disabled: !splShieldTransferTransaction.signature,
+    },
+  );
   const nativeSolShieldTransaction = useVantaSafeSendTransaction();
   const nativeSolShieldWait = useRealtimeSignatureProgress(
     nativeSolShieldTransaction.signature ?? undefined,
@@ -220,7 +229,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     amountNumeric: number,
     routeEvidence: PublicShieldRouteEvidence | null = null,
   ) {
-    if (!selectedShieldAsset?.vaultOwner || !supportedToken) {
+    if (!walletAddress || !selectedShieldAsset?.mintAddress || !selectedShieldAsset?.vaultOwner) {
       throw new Error("Shield target is not configured.");
     }
 
@@ -231,9 +240,30 @@ export function ShieldPage(_props: ShieldPageProps) {
     setPendingProtocolSettlement({ capability, routeEvidence });
     setStatus("awaiting_wallet_confirmation");
 
-    await supportedToken.send({
+    const instructions = await buildSplTokenShieldTransferInstructions({
       amount: amountDisplay,
-      destinationOwner: selectedShieldAsset.vaultOwner,
+      decimals: selectedShieldAsset.decimals,
+      mintAddress: selectedShieldAsset.mintAddress,
+      owner: walletAddress,
+      vaultOwner: selectedShieldAsset.vaultOwner,
+    });
+
+    await splShieldTransferTransaction.send({
+      amount: amountDisplay,
+      asset: selectedShieldAsset.assetKey,
+      cluster: "devnet",
+      connectedWalletAddress: walletAddress,
+      estimatedFees: "wallet-estimated",
+      feePayer: walletAddress,
+      humanApprovedSummary: true,
+      instructions,
+      label: "shield-spl-token-transfer",
+      recipient: selectedShieldAsset.vaultOwner,
+      summaryInstructions: [
+        "ensure-vault-associated-token-account",
+        "shield-spl-token-transfer",
+      ],
+      transactionFingerprint: `shield-spl-token-transfer:${walletAddress}:${selectedShieldAsset.mintAddress}:${selectedShieldAsset.vaultOwner}:${amountDisplay}`,
     });
   }
 
@@ -301,16 +331,12 @@ export function ShieldPage(_props: ShieldPageProps) {
   ]);
 
   useEffect(() => {
-    if (!supportedToken) {
-      return;
-    }
-
-    if (supportedToken.sendStatus === "loading") {
+    if (splShieldTransferTransaction.status === "loading") {
       setStatus("shielding_in_progress");
       return;
     }
 
-    if (supportedToken.sendStatus === "error") {
+    if (splShieldTransferTransaction.status === "error") {
       setStatus("failed");
       setPendingShieldAmount(null);
       setPendingShieldAmountDisplay(null);
@@ -318,16 +344,20 @@ export function ShieldPage(_props: ShieldPageProps) {
       setPendingShieldAsset(null);
       setPendingPublicRoute(null);
       setFlowError(
-        toErrorMessage(supportedToken.sendError, "The shield transfer could not be completed."),
+        toErrorMessage(splShieldTransferTransaction.error, "The shield transfer could not be completed."),
       );
       return;
     }
 
-    if (supportedToken.sendStatus === "success" && supportedToken.sendSignature) {
+    if (splShieldTransferTransaction.status === "success" && splShieldTransferTransaction.signature) {
       setStatus("entering_shielded_state");
-      setPendingDepositSignature(supportedToken.sendSignature);
+      setPendingDepositSignature(splShieldTransferTransaction.signature);
     }
-  }, [supportedToken]);
+  }, [
+    splShieldTransferTransaction.error,
+    splShieldTransferTransaction.signature,
+    splShieldTransferTransaction.status,
+  ]);
 
   useEffect(() => {
     if (publicRouteTransaction.status === "loading") {
@@ -429,14 +459,6 @@ export function ShieldPage(_props: ShieldPageProps) {
     );
   }, [stateSignatureWait.waitError, stateSignatureWait.waitStatus]);
 
-  const signatureWait = useRealtimeSignatureProgress(
-    supportedToken?.sendSignature ?? undefined,
-    {
-      commitment: "confirmed",
-      disabled: !supportedToken?.sendSignature,
-    },
-  );
-
   useEffect(() => {
     if (nativeSolShieldWait.waitStatus !== "error") {
       return;
@@ -457,7 +479,7 @@ export function ShieldPage(_props: ShieldPageProps) {
   }, [nativeSolShieldWait.waitError, nativeSolShieldWait.waitStatus]);
 
   useEffect(() => {
-    if (signatureWait.waitStatus !== "error") {
+    if (splShieldTransferWait.waitStatus !== "error") {
       return;
     }
 
@@ -468,17 +490,17 @@ export function ShieldPage(_props: ShieldPageProps) {
     setPendingShieldAsset(null);
     setFlowError(
       toErrorMessage(
-        signatureWait.waitError,
+        splShieldTransferWait.waitError,
         "The shield transfer was submitted but not confirmed.",
       ),
     );
-  }, [signatureWait.waitError, signatureWait.waitStatus]);
+  }, [splShieldTransferWait.waitError, splShieldTransferWait.waitStatus]);
 
   useEffect(() => {
     const depositConfirmed =
       pendingShieldAsset === "SOL"
         ? nativeSolShieldWait.waitStatus === "success"
-        : signatureWait.waitStatus === "success";
+        : splShieldTransferWait.waitStatus === "success";
 
     if (
       !depositConfirmed ||
@@ -561,7 +583,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     pendingShieldAmountDisplay,
     nativeSolShieldWait.waitStatus,
     selectedShieldAsset,
-    signatureWait.waitStatus,
+    splShieldTransferWait.waitStatus,
     stateTransaction,
     supportedToken,
     walletAddress,
@@ -703,6 +725,7 @@ export function ShieldPage(_props: ShieldPageProps) {
 
     recordedStateSignatureRef.current = null;
     publicRouteTransaction.reset();
+    splShieldTransferTransaction.reset();
     nativeSolShieldTransaction.reset();
     supportedToken.resetSend();
     stateTransaction.reset();
@@ -972,9 +995,9 @@ export function ShieldPage(_props: ShieldPageProps) {
                 {routeProgressLabel && status === "routing_public_swap" && (
                   <p className="shield-helper shield-helper--meta">{routeProgressLabel}</p>
                 )}
-                {(signatureWait.detailLabel || nativeSolShieldWait.detailLabel) && status === "shielding_in_progress" && (
+                {(splShieldTransferWait.detailLabel || nativeSolShieldWait.detailLabel) && status === "shielding_in_progress" && (
                   <p className="shield-helper shield-helper--meta">
-                    {pendingShieldAsset === "SOL" ? nativeSolShieldWait.detailLabel : signatureWait.detailLabel}
+                    {pendingShieldAsset === "SOL" ? nativeSolShieldWait.detailLabel : splShieldTransferWait.detailLabel}
                   </p>
                 )}
                 {stateProgressLabel && status === "entering_shielded_state" && (

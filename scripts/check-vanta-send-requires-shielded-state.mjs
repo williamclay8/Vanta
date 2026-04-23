@@ -24,7 +24,7 @@ const requiredMarkers = [
   'aria-label="Send shielded asset"',
   "Shield the asset first",
   "selectedSpendableNote",
-  "disabled={!isRealSendReady",
+  "disabled={isBetaMode || !isRealSendReady",
 ];
 
 const failures = [];

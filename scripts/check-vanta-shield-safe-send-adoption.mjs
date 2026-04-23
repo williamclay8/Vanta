@@ -10,15 +10,22 @@ assert.ok(!source.includes("useSendTransaction"), "Shield must not use raw useSe
 
 for (const phrase of [
   "const publicRouteTransaction = useVantaSafeSendTransaction();",
+  "const splShieldTransferTransaction = useVantaSafeSendTransaction();",
   "const nativeSolShieldTransaction = useVantaSafeSendTransaction();",
   "const stateTransaction = useVantaSafeSendTransaction();",
   "summaryInstructions",
   "transactionFingerprint",
+  "shield-spl-token-transfer",
   "shield-native-sol",
   "shield-state",
   "shield-public-route",
 ]) {
   assert.ok(source.includes(phrase), `Shield safe-send adoption missing phrase: ${phrase}`);
 }
+
+assert.ok(
+  !source.includes("supportedToken.send({"),
+  "Shield SPL token transfer must not bypass the Vanta safe-send boundary.",
+);
 
 console.log("Vanta Shield safe-send adoption check: PASS");
