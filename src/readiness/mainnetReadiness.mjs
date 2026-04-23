@@ -120,6 +120,7 @@ const requiredCommands = [
   "npm run nullifier:replay-guard-check",
   "npm run mainnet:deployment-manifest-check",
   "npm run mainnet:private-rail-route-status-check",
+  "npm run mainnet:private-rail-route-health",
   "npm run mainnet:private-pool-v2-production-smoke-check",
   "npm run private-pool-v2:role-storage-check",
   "npm run wallet:signing-safety-check",

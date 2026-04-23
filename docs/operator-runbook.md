@@ -348,10 +348,13 @@ It records the current Render inventory and the deployed production indexer, pro
 ```bash
 npm run mainnet:production-service-setup-check
 npm run mainnet:private-rail-route-status-check
+npm run mainnet:private-rail-route-health
 npm run mainnet:private-pool-v2-production-smoke-check
 ```
 
 The production private-rail route-status check verifies the checked service refs only. It proves Pay points at the Private Pool v2 operator ref, the production operator runs in `remote-services` mode with indexer/prover/relayer/verifier URL refs, and role auth-token refs are inventoried in the secret-reference manifest. It must not print bearer-token values, database URLs, wallet keys, or signed transaction material.
+
+The route-health command prints a sanitized live status report for the deployed route hosts. By default it is status-only. Use `npm run mainnet:private-rail-route-health-check` to require public `/health` success, and run `node scripts/print-vanta-production-private-rail-route-health.mjs --require-auth` from a secret-manager shell when you need authenticated readiness without submitting proofs or moving funds.
 
 When the role-service URLs and auth tokens are present in the shell from the secret manager, run the live no-real-funds production smoke with:
 
