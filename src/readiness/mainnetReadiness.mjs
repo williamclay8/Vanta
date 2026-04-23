@@ -139,6 +139,7 @@ const requiredCommands = [
   "npm run umbra:approval-review-page-check",
   "npm run umbra:approval-review-page-browser-check",
   "npm run umbra:shield-action-review-check",
+  "npm run umbra:unshield-action-review-check",
   "npm run wallet:live-send-inventory-check",
   "npm run wallet:safe-send-boundary-check",
   "npm run wallet:safe-send-hook-check",

@@ -744,6 +744,24 @@ scripts/check-vanta-umbra-shield-action-review.mjs
 npm run umbra:shield-action-review-check
 ```
 
+The Unshield Umbra action review seam is:
+
+```text
+src/privacy/umbraUnshieldActionReview.ts
+```
+
+Unshield now builds the same display-safe approval object before a shielded asset exit asks the wallet to approve. This does not enable an Umbra settlement path by itself; it keeps the Unshield lane aligned with the short-lived approval-summary gate.
+
+The Unshield Umbra action review command is:
+
+```text
+scripts/check-vanta-umbra-unshield-action-review.mjs
+```
+
+```bash
+npm run umbra:unshield-action-review-check
+```
+
 The frozen live wallet send/sign inventory is:
 
 ```text

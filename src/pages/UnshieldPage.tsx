@@ -43,6 +43,8 @@ import {
   listCanonicalUnshieldDiagnosticsSummaries,
   recordCanonicalUnshieldFromLiveUnshield,
 } from "@/zk/liveUnshieldBridge";
+import { createUmbraUnshieldActionApprovalReview } from "@/privacy/umbraUnshieldActionReview";
+import type { UmbraOperationApprovalDisplay } from "@/privacy/umbraOperations";
 import { useVantaSafeSendTransaction } from "@/wallet/useVantaSafeSendTransaction";
 import { signWalletMessageIntentWithSafety } from "@/wallet/walletMessageIntentSafety.mjs";
 
@@ -144,6 +146,20 @@ function formatEditableAmount(value: number, decimals: number) {
     .replace(/(\.\d*?[1-9])0+$/u, "$1")
     .replace(/\.0+$/u, "")
     .replace(/\.$/u, "");
+}
+
+function parseDecimalAmountToBaseUnits(amountDisplay: string, decimals: number) {
+  const normalized = amountDisplay.trim();
+
+  if (!/^\d+(\.\d+)?$/u.test(normalized)) {
+    throw new Error("Vanta Umbra unshield approval requires a decimal amount.");
+  }
+
+  const [wholePart, fractionalPart = ""] = normalized.split(".");
+  const wholeBaseUnits = BigInt(wholePart || "0") * 10n ** BigInt(decimals);
+  const fractionalBaseUnits = BigInt(fractionalPart.padEnd(decimals, "0").slice(0, decimals) || "0");
+
+  return wholeBaseUnits + fractionalBaseUnits;
 }
 
 function parseEditableAmount(value: string) {
@@ -393,6 +409,8 @@ export function UnshieldPage() {
   const [pendingSplitMarker, setPendingSplitMarker] = useState<PendingSplitMarker | null>(null);
   const [pendingSplitFollowup, setPendingSplitFollowup] = useState<PendingSplitFollowup | null>(null);
   const [pendingUnshieldBridge, setPendingUnshieldBridge] = useState<PendingUnshieldBridge | null>(null);
+  const [pendingUmbraApprovalDisplay, setPendingUmbraApprovalDisplay] =
+    useState<UmbraOperationApprovalDisplay | null>(null);
   const [releaseHandoffRefreshPending, setReleaseHandoffRefreshPending] = useState(false);
   const [releasePackageExportStatus, setReleasePackageExportStatus] = useState<
     "idle" | "summary-copy" | "json-copy" | "summary-download" | "json-download" | "failed"
@@ -1255,6 +1273,7 @@ export function UnshieldPage() {
     operatorAuthorizationLockRef.current = null;
     setPendingSpentMarker(null);
     setPendingUnshieldBridge(null);
+    setPendingUmbraApprovalDisplay(null);
   }
 
   async function beginTokenUnshieldFromNote(args: {
@@ -1269,15 +1288,30 @@ export function UnshieldPage() {
     }
 
     resetDirectUnshieldFlow();
-    setStatus("awaiting_confirmation");
 
     const createdAt = Date.now();
+    const destinationOwner = walletAddress ?? args.shieldAccount.owner;
+    const approvalIssuedAt = Date.now();
+    setPendingUmbraApprovalDisplay(
+      createUmbraUnshieldActionApprovalReview({
+        amountBaseUnits: parseDecimalAmountToBaseUnits(
+          formatEditableAmount(args.note.amount, args.shieldAsset.decimals),
+          args.shieldAsset.decimals,
+        ),
+        destinationAddress: destinationOwner,
+        expiresAt: approvalIssuedAt + 2 * 60 * 1000,
+        issuedAt: approvalIssuedAt,
+        mintAddress,
+        requester: walletAddress ?? args.shieldAccount.owner,
+      }),
+    );
+    setStatus("awaiting_confirmation");
     const prepared = createPreparedUnshieldMemo({
       amount: args.note.amount.toString(),
       asset: args.shieldAsset.assetKey,
       consumedNoteId: args.note.noteId,
       createdAt,
-      destinationOwner: walletAddress ?? args.shieldAccount.owner,
+      destinationOwner,
       mintAddress,
       owner: args.shieldAccount.owner,
       vaultOwner: args.shieldAccount.vaultOwner,
@@ -1303,7 +1337,7 @@ export function UnshieldPage() {
       asset: args.shieldAsset.assetKey,
       assetId: mintAddress,
       createdAt,
-      destinationOwner: walletAddress ?? args.shieldAccount.owner,
+      destinationOwner,
       mintAddress,
       owner: args.shieldAccount.owner,
       consumed: {
@@ -1355,16 +1389,28 @@ export function UnshieldPage() {
     shieldAccount: NonNullable<typeof vusdShieldEntry.account>;
   }) {
     resetDirectUnshieldFlow();
-    setStatus("awaiting_confirmation");
 
     const createdAt = Date.now();
+    const destinationOwner = walletAddress ?? args.shieldAccount.owner;
+    const approvalIssuedAt = Date.now();
+    setPendingUmbraApprovalDisplay(
+      createUmbraUnshieldActionApprovalReview({
+        amountBaseUnits: parseDecimalAmountToBaseUnits(formatEditableAmount(args.note.amount, 9), 9),
+        destinationAddress: destinationOwner,
+        expiresAt: approvalIssuedAt + 2 * 60 * 1000,
+        issuedAt: approvalIssuedAt,
+        mintAddress: liveSwapPair.solAssetId,
+        requester: walletAddress ?? args.shieldAccount.owner,
+      }),
+    );
+    setStatus("awaiting_confirmation");
     const prepared = createPreparedSolUnshieldMemo({
       amount: args.note.amount.toString(),
       asset: "SOL",
       assetId: liveSwapPair.solAssetId,
       consumedNoteId: args.note.noteId,
       createdAt,
-      destinationOwner: walletAddress ?? args.shieldAccount.owner,
+      destinationOwner,
       owner: args.shieldAccount.owner,
       vaultOwner: args.shieldAccount.vaultOwner,
     });
@@ -1386,7 +1432,7 @@ export function UnshieldPage() {
       asset: "SOL",
       assetId: liveSwapPair.solAssetId,
       createdAt,
-      destinationOwner: walletAddress ?? args.shieldAccount.owner,
+      destinationOwner,
       owner: args.shieldAccount.owner,
       consumed: {
         noteId: args.note.noteId,
@@ -1469,9 +1515,23 @@ export function UnshieldPage() {
           splitFollowupLaunchRef.current = null;
           setFlowError(null);
           setUnshieldBridgeError(null);
-          setStatus("awaiting_confirmation");
 
           const createdAt = Date.now();
+          const approvalIssuedAt = Date.now();
+          setPendingUmbraApprovalDisplay(
+            createUmbraUnshieldActionApprovalReview({
+              amountBaseUnits: parseDecimalAmountToBaseUnits(
+                formatEditableAmount(requestedAmountNumeric, selectedShieldAsset.decimals),
+                selectedShieldAsset.decimals,
+              ),
+              destinationAddress: walletAddress ?? activeShieldAccount.owner,
+              expiresAt: approvalIssuedAt + 2 * 60 * 1000,
+              issuedAt: approvalIssuedAt,
+              mintAddress: selectedShieldAsset.mintAddress,
+              requester: walletAddress ?? activeShieldAccount.owner,
+            }),
+          );
+          setStatus("awaiting_confirmation");
           const nextChangeAmount = Number(
             Math.max(selectedShieldNote.amount - requestedAmountNumeric, 0).toFixed(6),
           );
@@ -1558,6 +1618,7 @@ export function UnshieldPage() {
       setPendingSplitFollowup(null);
       setPendingSpentMarker(null);
       setPendingUnshieldBridge(null);
+      setPendingUmbraApprovalDisplay(null);
       setStatus("failed");
       setFlowError(
         error instanceof Error ? error.message : "Unshield request was not approved.",
@@ -2370,6 +2431,22 @@ export function UnshieldPage() {
                   ? "Approve the private split so Vanta can isolate the exact VUSD amount first."
                   : "Approve the constrained unshield transition to return the selected asset."}
               </p>
+              {pendingUmbraApprovalDisplay && (
+                <details className="shield-approval-review" aria-label="Wallet approval review">
+                  <summary>
+                    <span>Private rail approval</span>
+                    <strong>{pendingUmbraApprovalDisplay.walletPrompt}</strong>
+                  </summary>
+                  <div className="shield-approval-review__rows">
+                    {pendingUmbraApprovalDisplay.rows.slice(0, 4).map((row) => (
+                      <div key={row.label}>
+                        <span>{row.label}</span>
+                        <strong>{row.value}</strong>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              )}
               <div className="status-bar">
                 <div className="status-bar__fill" />
               </div>

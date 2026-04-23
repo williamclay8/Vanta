@@ -229,6 +229,10 @@ assert.ok(
   "Missing Umbra shield action review command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run umbra:unshield-action-review-check"),
+  "Missing Umbra unshield action review command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run wallet:live-send-inventory-check"),
   "Missing wallet live send inventory command.",
 );
