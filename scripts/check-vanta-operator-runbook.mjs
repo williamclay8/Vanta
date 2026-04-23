@@ -73,6 +73,8 @@ const requiredPhrases = [
   "npm run swap:safe-send-adoption-check",
   "npm run unshield:safe-send-adoption-check",
   "npm run mainnet:secret-handling-check",
+  "npm run mainnet:real-funds-approval-status",
+  "npm run mainnet:real-funds-approval-status-check",
   "npm run audit:package-check",
   "docs/audit-package.md",
   "docs/mainnet-external-gates.md",

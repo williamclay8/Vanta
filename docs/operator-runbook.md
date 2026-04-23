@@ -548,6 +548,15 @@ npm run mainnet:real-funds-approval-check
 
 This packet records bounded approval for the beta mainnet private-pool smoke with maximum `0.05 SOL` at risk during `2026-04-22T14:30:00-15:30:00 America/Chicago`, approved by Clay. It does not approve any other mainnet action and does not make Vanta production-ready. It must never include wallet keys, seed phrases, raw signing credentials, bearer tokens, raw database URLs, or signed transactions.
 
+The live real-funds approval status surface is:
+
+```bash
+npm run mainnet:real-funds-approval-status
+npm run mainnet:real-funds-approval-status-check
+```
+
+It evaluates the current bounded approval record against the approved launch window and prints whether live mainnet actions are allowed now. This keeps `approval recorded` separate from `approval window active` so expired windows do not get mistaken for current permission.
+
 ## Pay Operator
 
 Start the local Pay merchant API operator:

@@ -459,6 +459,10 @@ Current staging deployment refs:
 - The checked deployment and rollback handoff is `docs/mainnet-deployment-runbook.md`.
 - The deployed operator replay-status surface is `npm run mainnet:nullifier-replay-status` and the checked evidence file is `ops/mainnet/private-pool-v2-nullifier-replay.evidence.json`.
 - That replay evidence now freezes the current protocol enforcement truth as `operator-claim-preflight-and-accepted-reservation-only` with the final protocol layer still explicitly incomplete.
+- The bounded real-funds approval record now also has a live status surface:
+  - `npm run mainnet:real-funds-approval-status`
+  - `npm run mainnet:real-funds-approval-status-check`
+  It distinguishes `approval recorded` from `approval window active now` so historical beta approvals do not get mistaken for currently active live-action permission.
 - Better Stack staging monitors for Pay and Private Pool v2 public `/health` endpoints are recorded in `ops/mainnet/staging-monitoring.manifest.json`.
 - Pay and Private Pool v2 emit privacy-safe stdout JSON request telemetry through `src/ops/vantaSafeTelemetry.mjs`.
 - Production observability refs are templated in `ops/mainnet/production-observability.template.json` without provider tokens, webhook URLs, source tokens, or raw secrets.

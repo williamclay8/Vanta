@@ -160,6 +160,7 @@ const requiredCommands = [
   "npm run mainnet:approval-gates-status",
   "npm run mainnet:approval-gates-status-json",
   "npm run mainnet:real-funds-approval-check",
+  "npm run mainnet:real-funds-approval-status",
   "npm run pay:production-private-rail-guard-check",
   "npm run audit:package-check",
   "npm run security:limitations-check",
@@ -172,7 +173,7 @@ const requiredCommands = [
 ];
 
 const nextActions = [
-  "Execute only the approved bounded beta mainnet private-pool smoke, or return the real-funds approval packet to pending before changing the action, launch window, fee payer, or maximum funds at risk.",
+  "Execute only the approved bounded beta mainnet private-pool smoke while the approval window is active, or record a new bounded approval window before changing the action, launch window, fee payer, or maximum funds at risk.",
   "Keep the service-deployment status/evidence surface and Private Pool v2 production smoke evidence fresh before expanding live mainnet actions.",
   "Keep operator-skipped controls visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
   "Keep the abuse/observability status/evidence surface fresh while using provider-neutral production observability evidence, existing platform logs, or a future provider instead of Better Stack production monitors.",

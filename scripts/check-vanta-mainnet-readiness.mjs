@@ -336,8 +336,12 @@ assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:real-funds-approval-check"),
   "Missing real-funds approval command.",
 );
+assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:real-funds-approval-status"),
+  "Missing real-funds approval status command.",
+);
 assert.ok(snapshot.requiredCommands.includes("npm run audit:package-check"), "Missing audit package command.");
-assert.ok(snapshot.nextActions[0]?.includes("approved bounded beta mainnet private-pool smoke"), "First next action should preserve bounded approval.");
+assert.ok(snapshot.nextActions[0]?.includes("approval window"), "First next action should preserve the bounded approval window.");
 assert.ok(
   snapshot.nextActions.some((action) => action.includes("operator-skipped controls")),
   "Next actions must preserve operator-skipped control visibility.",

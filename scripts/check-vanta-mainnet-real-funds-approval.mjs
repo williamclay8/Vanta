@@ -107,9 +107,23 @@ assert.equal(
   "node scripts/check-vanta-mainnet-real-funds-approval.mjs",
   "package.json must expose mainnet:real-funds-approval-check.",
 );
+assert.equal(
+  packageJson.scripts["mainnet:real-funds-approval-status"],
+  "node scripts/print-vanta-mainnet-real-funds-approval-status.mjs",
+  "package.json must expose mainnet:real-funds-approval-status.",
+);
+assert.equal(
+  packageJson.scripts["mainnet:real-funds-approval-status-check"],
+  "node scripts/print-vanta-mainnet-real-funds-approval-status.mjs --check",
+  "package.json must expose mainnet:real-funds-approval-status-check.",
+);
 assert.ok(
   packageJson.scripts["mainnet:preflight"].includes("npm run mainnet:real-funds-approval-check"),
   "mainnet:preflight must include real-funds approval check.",
+);
+assert.ok(
+  packageJson.scripts["mainnet:preflight"].includes("npm run mainnet:real-funds-approval-status-check"),
+  "mainnet:preflight must include real-funds approval status check.",
 );
 
 console.log("Vanta mainnet real-funds approval check: PASS");
