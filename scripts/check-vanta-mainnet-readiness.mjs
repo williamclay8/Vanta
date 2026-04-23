@@ -147,6 +147,14 @@ assert.ok(
   snapshot.requiredCommands.includes("npm run nullifier:replay-guard-check"),
   "Missing nullifier replay guard command.",
 );
+assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:nullifier-replay-status"),
+  "Missing production nullifier replay status command.",
+);
+assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:nullifier-replay-evidence-check"),
+  "Missing production nullifier replay evidence command.",
+);
 assert.ok(snapshot.requiredCommands.includes("npm run mainnet:preflight"), "Missing mainnet preflight command.");
 assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:external-gates-check"),

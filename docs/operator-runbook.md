@@ -243,6 +243,22 @@ src/privacy/postgresNullifierReplayStore.mjs
 
 Private Pool v2 uses the in-process guard for local claim preflight and accepted-claim reservation. In production, the operator now refuses to boot unless `VANTA_PRIVATE_POOL_V2_DATABASE_URL` is configured, so claim preflight and accepted-claim reservation go through the Postgres nullifier replay store behind the checked `pool_nullifiers` unique indexes. It is still marked `productionReady: false` until the final deployed protocol enforcement layer, production database refs, backup/restore evidence, and audit gates are complete.
 
+The sanitized deployed replay-status surface is:
+
+```bash
+npm run mainnet:nullifier-replay-status
+npm run mainnet:nullifier-replay-status-check
+```
+
+The checked replay-evidence surface is:
+
+```text
+ops/mainnet/private-pool-v2-nullifier-replay.evidence.json
+npm run mainnet:nullifier-replay-evidence-check
+```
+
+It records only the deployed operator replay mode, replay storage mode, durable-store status, and runtime mode. It does not claim the final protocol enforcement layer is complete.
+
 For a faster focused check:
 
 ```bash

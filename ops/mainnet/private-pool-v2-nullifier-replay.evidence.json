@@ -1,0 +1,18 @@
+{
+  "version": "vanta-production-nullifier-replay-evidence-0.1",
+  "mainnetReady": false,
+  "productionReady": false,
+  "lastStatusRef": "doppler run --config prd --project vanta -- npm run mainnet:nullifier-replay-status-check",
+  "operatorUrlRef": "VANTA_PRIVATE_POOL_V2_OPERATOR_URL",
+  "storageRef": "VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF",
+  "runtimeMode": "remote-services",
+  "storageKind": "postgres-jsonb-snapshot-store",
+  "storageDurableStoreConfigured": true,
+  "nullifierReplayGuardMode": "postgres-durable-claim-preflight-and-accepted-reservation",
+  "nullifierReplayGuardStorageMode": "postgres-unique-index",
+  "nullifierReplayGuardProductionReady": false,
+  "operatorStatusProductionReady": false,
+  "safety": "No auth token values, database URLs, bearer values, wallet keys, or signed transaction material are stored in this evidence file.",
+  "deploymentTruth": "Operator-side deployed nullifier replay enforcement can be recorded here without claiming the final protocol enforcement layer is complete.",
+  "nextOperatorAction": "Keep the authenticated production nullifier replay status command fresh while the final protocol enforcement layer remains pending."
+}
