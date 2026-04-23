@@ -1,4 +1,6 @@
 import { strict as assert } from "node:assert";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import {
   createInMemoryRateLimiter,
   createPostgresRateLimiter,
@@ -13,12 +15,38 @@ const limiter = createInMemoryRateLimiter({
 
 let currentTime = 0;
 const catalog = createVantaRateLimiterCatalog();
+const repoRoot = resolve(import.meta.dirname, "..");
+const payServerSource = readFileSync(resolve(repoRoot, "operator/pay-server.mjs"), "utf8");
+const privatePoolOperatorSource = readFileSync(
+  resolve(repoRoot, "operator/private-pool-v2-server.mjs"),
+  "utf8",
+);
 
 assert.equal(limiter.kind, "in-memory-rate-limiter");
 assert.equal(limiter.productionReady, false);
 assert.deepEqual(catalog.availableKinds, ["in-memory-rate-limiter", "postgres-rate-limiter"]);
 assert.equal(catalog.defaultFallbackKind, "in-memory-rate-limiter");
 assert.equal(catalog.preferredProductionKind, "postgres-rate-limiter");
+assert.ok(
+  payServerSource.includes(
+    "Vanta Pay production mode requires VANTA_PAY_DATABASE_URL for durable storage and rate limiting.",
+  ),
+  "Pay production runtime must require VANTA_PAY_DATABASE_URL.",
+);
+assert.ok(
+  payServerSource.includes("Vanta Pay production mode requires the Postgres-backed rate limiter."),
+  "Pay production runtime must require the Postgres-backed rate limiter.",
+);
+assert.ok(
+  privatePoolOperatorSource.includes(
+    "Private Pool v2 production mode requires VANTA_PRIVATE_POOL_V2_DATABASE_URL for durable nullifier replay enforcement.",
+  ),
+  "Private Pool v2 operator production runtime must require VANTA_PRIVATE_POOL_V2_DATABASE_URL.",
+);
+assert.ok(
+  privatePoolOperatorSource.includes('"postgres-durable-shared-window"'),
+  "Private Pool v2 operator runtime must continue to expose the Postgres-backed rate limiter mode.",
+);
 
 assert.deepEqual(await limiter.check("merchant-a"), {
   allowed: true,
