@@ -1,9 +1,9 @@
 {
-  "checkedAt": "2026-04-23T04:46:33.231Z",
+  "checkedAt": "2026-04-23T10:28:35.565Z",
   "mainnetReady": false,
   "productionReady": false,
   "realFundsAllowed": false,
-  "runId": "prod-smoke-1776919593231-dceb8b48",
+  "runId": "prod-smoke-1776940115564-d1493a08",
   "services": [
     {
       "health": {
@@ -82,24 +82,24 @@
     },
     {
       "id": "proof-roundtrip-simulation",
-      "proofCommitmentPrefix": "0x2a04255d8f893f06",
-      "receiptIdPrefix": "0x600c4597a44e8bc5",
+      "proofCommitmentPrefix": "0x2665c641661cbb3b",
+      "receiptIdPrefix": "0x21692bc6e6d4ea2e",
       "status": "pass"
     },
     {
       "id": "nullifier-replay-simulation",
-      "receiptIdPrefix": "0x1954b593de726297",
+      "receiptIdPrefix": "0x358c74006ad810a2",
       "replayStatus": 400,
       "status": "pass"
     },
     {
       "id": "relayer-claim-submit-simulation",
-      "signaturePrefix": "0xe0f2cd6f524920fb",
+      "signaturePrefix": "0xef40c1b31aa3f467",
       "status": "pass"
     },
     {
       "id": "operator-pay-settlement-simulation",
-      "proofReceiptIdPrefix": "ppv2_2a78b06354585",
+      "proofReceiptIdPrefix": "ppv2_aa8c083f7b1be",
       "status": "pass"
     }
   ],
