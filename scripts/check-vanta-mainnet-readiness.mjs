@@ -161,6 +161,10 @@ assert.ok(
   "Missing production private rail route-health command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:private-rail-route-health-evidence-check"),
+  "Missing production private rail route-health evidence command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:private-pool-v2-production-smoke-check"),
   "Missing Private Pool v2 production smoke template command.",
 );

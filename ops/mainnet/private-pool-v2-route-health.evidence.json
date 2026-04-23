@@ -1,0 +1,47 @@
+{
+  "version": "vanta-production-private-rail-route-health-evidence-0.1",
+  "mainnetReady": false,
+  "productionReady": false,
+  "secretPolicy": "sanitized-no-secret-values",
+  "lastPublicHealthRef": "npm run mainnet:private-rail-route-health-check",
+  "lastAuthenticatedReadinessRef": "pending-secret-manager-shell-run",
+  "safety": "No auth token values, database URLs, bearer values, wallet keys, or signed transaction material are stored in this evidence file.",
+  "services": [
+    {
+      "id": "indexer",
+      "urlRef": "VANTA_PRIVATE_POOL_V2_INDEXER_URL",
+      "authTokenRef": "VANTA_INDEXER_AUTH_TOKEN_REF",
+      "publicHealth": "passed",
+      "authenticatedReadiness": "pending"
+    },
+    {
+      "id": "prover",
+      "urlRef": "VANTA_PRIVATE_POOL_V2_PROVER_URL",
+      "authTokenRef": "VANTA_PROVER_AUTH_TOKEN_REF",
+      "publicHealth": "passed",
+      "authenticatedReadiness": "pending"
+    },
+    {
+      "id": "relayer",
+      "urlRef": "VANTA_PRIVATE_POOL_V2_RELAYER_URL",
+      "authTokenRef": "VANTA_RELAYER_AUTH_TOKEN_REF",
+      "publicHealth": "passed",
+      "authenticatedReadiness": "pending"
+    },
+    {
+      "id": "verifier",
+      "urlRef": "VANTA_PRIVATE_POOL_V2_VERIFIER_URL",
+      "authTokenRef": "VANTA_VERIFIER_AUTH_TOKEN_REF",
+      "publicHealth": "passed",
+      "authenticatedReadiness": "pending"
+    },
+    {
+      "id": "operator",
+      "urlRef": "VANTA_PRIVATE_POOL_V2_OPERATOR_URL",
+      "authTokenRef": "VANTA_OPERATOR_AUTH_TOKEN_REF",
+      "publicHealth": "passed",
+      "authenticatedReadiness": "pending"
+    }
+  ],
+  "nextOperatorAction": "Run node scripts/print-vanta-production-private-rail-route-health.mjs --require-auth from a secret-manager shell and update only sanitized status fields."
+}

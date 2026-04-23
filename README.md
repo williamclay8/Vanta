@@ -188,6 +188,7 @@ npm run nullifier:replay-guard-check
 npm run mainnet:deployment-manifest-check
 npm run mainnet:private-rail-route-status-check
 npm run mainnet:private-rail-route-health
+npm run mainnet:private-rail-route-health-evidence-check
 npm run wallet:signing-safety-check
 npm run wallet:transaction-safety-check
 npm run wallet:backed-simulation-check
@@ -407,6 +408,7 @@ These commands cover the current Vanta-owned Private Pool v2 benchmark lane:
 - a checked production service topology for the indexer, relayer, prover, verifier, and operator service graph, including mutual-auth edges, fail-closed policies, required storage surfaces, health endpoints, and readiness endpoints
 - a checked production private-rail route-status contract that proves Pay and the production operator route through expected Private Pool v2 URL/token refs without committing token values
 - a sanitized production private-rail route-health status surface that can probe public health and optionally authenticated readiness without printing token values
+- a checked sanitized route-health evidence file for preserving public/authenticated route status without storing credentials
 - local append-only commitment indexing and Merkle proof lookup
 - local prover public-input commitment verification plus tamper rejection
 - local relayer claim submission plus replay rejection
