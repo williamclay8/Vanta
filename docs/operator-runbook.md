@@ -186,6 +186,35 @@ npm run mainnet:deployment-runbook-check
 
 It records the ordered deployment flow, rollback references, monitoring/incident-response expectations, rate-limit checks, and the bounded no-real-funds production smoke refresh path without storing secrets, signed transactions, or private user inputs.
 
+The sanitized production service-deployment status surface is:
+
+```text
+scripts/print-vanta-production-service-deployment-status.mjs
+```
+
+It records the deployed production role-service ids, deployed hosts, readiness/health surface counts, and durable-store flags without printing secrets or raw database URLs. It is intentionally not a production readiness claim.
+
+The production service-deployment status commands are:
+
+```bash
+npm run mainnet:service-deployment-status
+npm run mainnet:service-deployment-status-check
+```
+
+The sanitized production service-deployment evidence file is:
+
+```text
+ops/mainnet/service-deployment.evidence.json
+```
+
+It records only status-level deployment facts and refs to the service manifest, route-health evidence, service-network verification, and smoke evidence.
+
+The production service-deployment evidence command is:
+
+```bash
+npm run mainnet:service-deployment-evidence-check
+```
+
 The checked baseline Postgres migration is:
 
 ```text

@@ -1,0 +1,66 @@
+import { strict as assert } from "node:assert";
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+const repoRoot = resolve(import.meta.dirname, "..");
+const evidencePath = resolve(repoRoot, "ops/mainnet/service-deployment.evidence.json");
+const packagePath = resolve(repoRoot, "package.json");
+
+assert.ok(existsSync(evidencePath), "Missing ops/mainnet/service-deployment.evidence.json.");
+
+const evidence = JSON.parse(readFileSync(evidencePath, "utf8"));
+const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
+
+assert.equal(evidence.version, "vanta-production-service-deployment-evidence-0.1");
+assert.equal(evidence.mainnetReady, false);
+assert.equal(evidence.productionReady, false);
+assert.equal(evidence.lastStatusRef, "npm run mainnet:service-deployment-status-check");
+assert.equal(evidence.manifestRef, "ops/mainnet/private-pool-v2-services.manifest.json");
+assert.equal(evidence.serviceNetworkRef, "npm run private-pool-v2:service-network-check");
+assert.equal(evidence.productionSmokeEvidenceRef, "ops/mainnet/private-pool-v2-production-smoke.evidence.json");
+assert.equal(evidence.routeHealthEvidenceRef, "ops/mainnet/private-pool-v2-route-health.evidence.json");
+assert.equal(evidence.services.length, 5);
+for (const service of evidence.services) {
+  assert.equal(service.deploymentStatus, "deployed-render-production-not-ready");
+}
+assert.ok(
+  evidence.deploymentTruth.includes("deployed on Render"),
+  "Service deployment evidence must preserve the deployed Render truth.",
+);
+
+const serialized = JSON.stringify(evidence);
+for (const forbidden of [
+  "postgres://",
+  "postgresql://",
+  "Bearer ",
+  "DATABASE_URL=",
+  "privateKey",
+  "seedPhrase",
+  "mnemonic",
+  "sk_live_",
+  "whsec_",
+]) {
+  assert.ok(!serialized.includes(forbidden), `Service deployment evidence must not contain ${forbidden}.`);
+}
+
+assert.equal(
+  packageJson.scripts["mainnet:service-deployment-status"],
+  "node scripts/print-vanta-production-service-deployment-status.mjs",
+  "package.json must expose mainnet:service-deployment-status.",
+);
+assert.equal(
+  packageJson.scripts["mainnet:service-deployment-status-check"],
+  "node scripts/print-vanta-production-service-deployment-status.mjs --check",
+  "package.json must expose mainnet:service-deployment-status-check.",
+);
+assert.equal(
+  packageJson.scripts["mainnet:service-deployment-evidence-check"],
+  "node scripts/check-vanta-production-service-deployment-evidence.mjs",
+  "package.json must expose mainnet:service-deployment-evidence-check.",
+);
+assert.ok(
+  packageJson.scripts["mainnet:preflight"].includes("npm run mainnet:service-deployment-evidence-check"),
+  "mainnet:preflight must include service deployment evidence check.",
+);
+
+console.log("Vanta production service deployment evidence check: PASS");

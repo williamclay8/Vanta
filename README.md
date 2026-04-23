@@ -176,6 +176,8 @@ npm run mainnet:readiness-check
 npm run mainnet:external-gates-check
 npm run mainnet:service-contract-check
 npm run mainnet:service-topology-check
+npm run mainnet:service-deployment-status
+npm run mainnet:service-deployment-evidence-check
 npm run mainnet:storage-contract-check
 npm run mainnet:storage-migration-check
 npm run mainnet:backup-restore-check
@@ -344,6 +346,8 @@ npm run mainnet:preflight
 npm run mainnet:external-gates-check
 npm run mainnet:service-contract-check
 npm run mainnet:service-topology-check
+npm run mainnet:service-deployment-status
+npm run mainnet:service-deployment-evidence-check
 npm run mainnet:storage-contract-check
 npm run mainnet:storage-migration-check
 npm run mainnet:backup-restore-check

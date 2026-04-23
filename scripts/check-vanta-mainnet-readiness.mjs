@@ -89,6 +89,14 @@ assert.ok(
   "Missing production service topology command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:service-deployment-status"),
+  "Missing production service deployment status command.",
+);
+assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:service-deployment-evidence-check"),
+  "Missing production service deployment evidence command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:storage-contract-check"),
   "Missing production storage contract command.",
 );

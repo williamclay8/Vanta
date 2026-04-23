@@ -135,7 +135,7 @@ export function createVantaProductionServiceTopology() {
     version: "vanta-production-service-topology-0.1",
     network: "mainnet-beta",
     blockers: [
-      "real-deployed-service-urls-required",
+      "fresh-deployed-service-health-and-readiness-required",
       "production-secret-manager-required",
       "third-party-security-review-required",
       "mainnet-funds-approval-required",

@@ -61,8 +61,8 @@ assert.ok(
   "Topology release gates must require healthy service surfaces.",
 );
 assert.ok(
-  topology.blockers.includes("real-deployed-service-urls-required"),
-  "Topology must remain blocked until real deployed URLs exist.",
+  topology.blockers.includes("fresh-deployed-service-health-and-readiness-required"),
+  "Topology must keep deployed service health/readiness freshness explicit.",
 );
 
 console.log("Vanta production service topology check: PASS");

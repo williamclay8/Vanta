@@ -12,7 +12,7 @@ const requiredServices = ["indexer", "relayer", "prover", "verifier", "operator"
 for (const serviceId of requiredServices) {
   const service = contract.services.find((candidate) => candidate.id === serviceId);
   assert.ok(service, `Missing production service contract for ${serviceId}.`);
-  assert.equal(service.deploymentStatus, "not-deployed");
+  assert.equal(service.deploymentStatus, "deployed-render-production-not-ready");
   assert.ok(service.requiredEnv.length > 0, `${serviceId} must declare required environment variables.`);
   assert.ok(service.requiredEndpoints.length > 0, `${serviceId} must declare required endpoints.`);
   assert.ok(service.requiredChecks.length > 0, `${serviceId} must declare required checks.`);
@@ -33,8 +33,16 @@ assert.ok(
   "Missing service contract check command.",
 );
 assert.ok(
-  contract.nextImplementationStep.includes("durable deployment manifests"),
-  "Next implementation step should target deployment manifests.",
+  contract.nextImplementationStep.includes("deployed Render production role services"),
+  "Next implementation step should preserve the deployed production service truth.",
+);
+assert.ok(
+  contract.requiredVerificationCommands.includes("npm run mainnet:service-deployment-status"),
+  "Missing service deployment status command.",
+);
+assert.ok(
+  contract.requiredVerificationCommands.includes("npm run mainnet:service-deployment-evidence-check"),
+  "Missing service deployment evidence command.",
 );
 
 console.log("Vanta production service contract check: PASS");

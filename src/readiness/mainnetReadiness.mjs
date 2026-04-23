@@ -9,7 +9,7 @@ const blockers = [
   {
     id: "deployed-indexer-relayer-prover-operator",
     severity: "critical",
-    summary: "Keep production indexer, relayer, prover, verifier, and operator services deployed with durable storage, fresh smoke evidence, observability, and backup/restore evidence.",
+    summary: "Keep the service-deployment status/evidence surface fresh while production indexer, relayer, prover, verifier, and operator services stay deployed with durable storage, fresh smoke evidence, observability, and backup/restore evidence.",
   },
   {
     id: "final-nullifier-replay-enforcement",
@@ -95,6 +95,8 @@ const requiredCommands = [
   "npm run mainnet:external-gates-check",
   "npm run mainnet:service-contract-check",
   "npm run mainnet:service-topology-check",
+  "npm run mainnet:service-deployment-status",
+  "npm run mainnet:service-deployment-evidence-check",
   "npm run mainnet:storage-contract-check",
   "npm run mainnet:storage-migration-check",
   "npm run mainnet:backup-restore-check",
@@ -171,7 +173,7 @@ const requiredCommands = [
 
 const nextActions = [
   "Execute only the approved bounded beta mainnet private-pool smoke, or return the real-funds approval packet to pending before changing the action, launch window, fee payer, or maximum funds at risk.",
-  "Keep Private Pool v2 production smoke evidence fresh and require a new bounded approval before expanding live mainnet actions.",
+  "Keep the service-deployment status/evidence surface and Private Pool v2 production smoke evidence fresh before expanding live mainnet actions.",
   "Keep operator-skipped controls visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
   "Keep the abuse/observability status/evidence surface fresh while using provider-neutral production observability evidence, existing platform logs, or a future provider instead of Better Stack production monitors.",
   "Keep the deployed operator replay-status evidence fresh while carrying the Postgres-backed nullifier replay guard into the final protocol enforcement layer.",

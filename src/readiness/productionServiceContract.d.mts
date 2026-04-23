@@ -1,7 +1,7 @@
 export type VantaProductionServiceId = "indexer" | "relayer" | "prover" | "verifier" | "operator";
 
 export type VantaProductionServiceContractEntry = {
-  deploymentStatus: "not-deployed";
+  deploymentStatus: "deployed-render-production-not-ready";
   id: VantaProductionServiceId;
   label: string;
   requiredChecks: string[];
