@@ -20,6 +20,8 @@ for (const phrase of [
   "client.runtime.rpc.simulateTransaction",
   "client.transaction.send",
   "status: \"blocked\"",
+  "safeStatus",
+  "status === \"submitted\"",
   "simulationResult",
 ]) {
   assert.ok(source.includes(phrase), `Safe send hook missing required phrase: ${phrase}`);

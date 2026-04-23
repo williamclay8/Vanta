@@ -16,6 +16,7 @@ import type {
 } from "./walletSafeSendBoundary.mjs";
 
 type VantaSafeSendStatus = "idle" | "loading" | "submitted" | "blocked" | "error";
+type VantaSafeSendHookStatus = "idle" | "loading" | "success" | "error";
 
 type VantaSafeSendState = {
   error: unknown;
@@ -141,14 +142,21 @@ export function useVantaSafeSendTransaction() {
   const reset = useCallback(() => {
     setState(initialState);
   }, []);
+  const status: VantaSafeSendHookStatus =
+    state.status === "submitted"
+      ? "success"
+      : state.status === "blocked"
+        ? "error"
+        : state.status;
 
   return {
     error: state.error,
     isSending: state.status === "loading",
     reset,
     result: state.result,
+    safeStatus: state.status,
     send,
     signature: state.signature,
-    status: state.status,
+    status,
   };
 }
