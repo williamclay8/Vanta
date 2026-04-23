@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   useSolanaClient,
-  useSendTransaction,
   useWalletSession,
 } from "@solana/react-hooks";
 import { isBetaMode } from "@/config/deploymentMode";
@@ -42,6 +41,7 @@ import {
   listCanonicalUnshieldDiagnosticsSummaries,
   recordCanonicalUnshieldFromLiveUnshield,
 } from "@/zk/liveUnshieldBridge";
+import { useVantaSafeSendTransaction } from "@/wallet/useVantaSafeSendTransaction";
 
 type UnshieldLane = LiveShieldTokenAssetKey | "SOL";
 type UnshieldStatus =
@@ -408,7 +408,7 @@ export function UnshieldPage() {
   const [privateCoreActionPending, setPrivateCoreActionPending] = useState(false);
   const operatorAuthorizationLockRef = useRef<string | null>(null);
   const splitFollowupLaunchRef = useRef<string | null>(null);
-  const transitionTransaction = useSendTransaction();
+  const transitionTransaction = useVantaSafeSendTransaction();
   const transitionWait = useRealtimeSignatureProgress(
     transitionTransaction.signature ?? undefined,
     {
@@ -416,7 +416,7 @@ export function UnshieldPage() {
       disabled: !transitionTransaction.signature,
     },
   );
-  const spentMarkerTransaction = useSendTransaction();
+  const spentMarkerTransaction = useVantaSafeSendTransaction();
   const spentMarkerWait = useRealtimeSignatureProgress(
     spentMarkerTransaction.signature ?? undefined,
     {
@@ -424,7 +424,7 @@ export function UnshieldPage() {
       disabled: !spentMarkerTransaction.signature,
     },
   );
-  const splitTransitionTransaction = useSendTransaction();
+  const splitTransitionTransaction = useVantaSafeSendTransaction();
   const splitTransitionWait = useRealtimeSignatureProgress(
     splitTransitionTransaction.signature ?? undefined,
     {
@@ -432,7 +432,7 @@ export function UnshieldPage() {
       disabled: !splitTransitionTransaction.signature,
     },
   );
-  const splitSpentMarkerTransaction = useSendTransaction();
+  const splitSpentMarkerTransaction = useVantaSafeSendTransaction();
   const splitSpentMarkerWait = useRealtimeSignatureProgress(
     splitSpentMarkerTransaction.signature ?? undefined,
     {
@@ -727,23 +727,36 @@ export function UnshieldPage() {
       ],
       action: "state_finalize",
     })
-      .then((priorityFeeInstructions) =>
-        splitSpentMarkerTransaction.send({
-          instructions: [
-            ...priorityFeeInstructions,
-            createSpentMarkerInstruction({
-              asset: "VUSD",
-              consumedNoteId: pendingSplitMarker.consumedNoteId,
-              createdAt: pendingSplitMarker.createdAt,
-              mintAddress: pendingSplitMarker.mintAddress,
-              owner: pendingSplitMarker.owner,
-              transitionKind: "send",
-              transitionNoteId: pendingSplitMarker.transitionNoteId,
-              vaultOwner: pendingSplitMarker.vaultOwner,
-            }),
-          ],
-        }),
-      )
+      .then((priorityFeeInstructions) => {
+        const instructions = [
+          ...priorityFeeInstructions,
+          createSpentMarkerInstruction({
+            asset: "VUSD",
+            consumedNoteId: pendingSplitMarker.consumedNoteId,
+            createdAt: pendingSplitMarker.createdAt,
+            mintAddress: pendingSplitMarker.mintAddress,
+            owner: pendingSplitMarker.owner,
+            transitionKind: "send",
+            transitionNoteId: pendingSplitMarker.transitionNoteId,
+            vaultOwner: pendingSplitMarker.vaultOwner,
+          }),
+        ];
+
+        return splitSpentMarkerTransaction.send({
+          amount: pendingSplitMarker.amount,
+          asset: "VUSD",
+          cluster: "devnet",
+          connectedWalletAddress: pendingSplitMarker.owner,
+          estimatedFees: "wallet-estimated",
+          feePayer: pendingSplitMarker.owner,
+          humanApprovedSummary: true,
+          instructions,
+          label: "unshield-split-spent-marker",
+          recipient: pendingSplitMarker.vaultOwner,
+          summaryInstructions: ["unshield-split-spent-marker"],
+          transactionFingerprint: `unshield-split-spent-marker:${pendingSplitMarker.owner}:${pendingSplitMarker.consumedNoteId}:${pendingSplitMarker.transitionNoteId}`,
+        });
+      })
       .catch((error) => {
         setStatus("failed");
         setFlowError(
@@ -922,24 +935,37 @@ export function UnshieldPage() {
               walletAddress,
             ],
             action: "state_finalize",
-          }).then((priorityFeeInstructions) =>
-            spentMarkerTransaction.send({
-              instructions: [
-                ...priorityFeeInstructions,
-                createSpentMarkerInstruction({
-                  asset: pendingSpentMarker.asset,
-                  assetId: pendingTokenAsset.mintAddress ?? "",
-                  consumedNoteId: pendingSpentMarker.consumedNoteId,
-                  createdAt: pendingSpentMarker.createdAt,
-                  mintAddress: pendingTokenAsset.mintAddress ?? undefined,
-                  owner: pendingSpentMarker.owner,
-                  transitionKind: "unshield",
-                  transitionNoteId: pendingSpentMarker.transitionNoteId,
-                  vaultOwner: pendingSpentMarker.vaultOwner,
-                }),
-              ],
-            }),
-          );
+          }).then((priorityFeeInstructions) => {
+            const instructions = [
+              ...priorityFeeInstructions,
+              createSpentMarkerInstruction({
+                asset: pendingSpentMarker.asset,
+                assetId: pendingTokenAsset.mintAddress ?? "",
+                consumedNoteId: pendingSpentMarker.consumedNoteId,
+                createdAt: pendingSpentMarker.createdAt,
+                mintAddress: pendingTokenAsset.mintAddress ?? undefined,
+                owner: pendingSpentMarker.owner,
+                transitionKind: "unshield",
+                transitionNoteId: pendingSpentMarker.transitionNoteId,
+                vaultOwner: pendingSpentMarker.vaultOwner,
+              }),
+            ];
+
+            return spentMarkerTransaction.send({
+              amount: pendingSpentMarker.amount,
+              asset: pendingSpentMarker.asset,
+              cluster: "devnet",
+              connectedWalletAddress: pendingSpentMarker.owner,
+              estimatedFees: "wallet-estimated",
+              feePayer: pendingSpentMarker.owner,
+              humanApprovedSummary: true,
+              instructions,
+              label: "unshield-spent-marker",
+              recipient: pendingSpentMarker.vaultOwner,
+              summaryInstructions: ["unshield-spent-marker"],
+              transactionFingerprint: `unshield-spent-marker:${pendingSpentMarker.owner}:${pendingSpentMarker.consumedNoteId}:${pendingSpentMarker.transitionNoteId}`,
+            });
+          });
         })
         .catch((error) => {
           setStatus("failed");
@@ -988,23 +1014,36 @@ export function UnshieldPage() {
             walletAddress,
           ],
           action: "state_finalize",
-        }).then((priorityFeeInstructions) =>
-          spentMarkerTransaction.send({
-            instructions: [
-              ...priorityFeeInstructions,
-              createSpentMarkerInstruction({
-                asset: "SOL",
-                assetId: VANTA_NATIVE_SOL_ASSET_ID,
-                consumedNoteId: pendingSpentMarker.consumedNoteId,
-                createdAt: pendingSpentMarker.createdAt,
-                owner: pendingSpentMarker.owner,
-                transitionKind: "sol_unshield",
-                transitionNoteId: pendingSpentMarker.transitionNoteId,
-                vaultOwner: pendingSpentMarker.vaultOwner,
-              }),
-            ],
-          }),
-        );
+        }).then((priorityFeeInstructions) => {
+          const instructions = [
+            ...priorityFeeInstructions,
+            createSpentMarkerInstruction({
+              asset: "SOL",
+              assetId: VANTA_NATIVE_SOL_ASSET_ID,
+              consumedNoteId: pendingSpentMarker.consumedNoteId,
+              createdAt: pendingSpentMarker.createdAt,
+              owner: pendingSpentMarker.owner,
+              transitionKind: "sol_unshield",
+              transitionNoteId: pendingSpentMarker.transitionNoteId,
+              vaultOwner: pendingSpentMarker.vaultOwner,
+            }),
+          ];
+
+          return spentMarkerTransaction.send({
+            amount: pendingSpentMarker.amount,
+            asset: "SOL",
+            cluster: "devnet",
+            connectedWalletAddress: pendingSpentMarker.owner,
+            estimatedFees: "wallet-estimated",
+            feePayer: pendingSpentMarker.owner,
+            humanApprovedSummary: true,
+            instructions,
+            label: "sol-unshield-spent-marker",
+            recipient: pendingSpentMarker.vaultOwner,
+            summaryInstructions: ["sol-unshield-spent-marker"],
+            transactionFingerprint: `sol-unshield-spent-marker:${pendingSpentMarker.owner}:${pendingSpentMarker.consumedNoteId}:${pendingSpentMarker.transitionNoteId}`,
+          });
+        });
       })
       .catch((error) => {
         setStatus("failed");
@@ -1238,8 +1277,21 @@ export function UnshieldPage() {
       action: "unshield_transition",
     });
 
+    const instructions = [...priorityFeeInstructions, prepared.instruction];
+
     await transitionTransaction.send({
-      instructions: [...priorityFeeInstructions, prepared.instruction],
+      amount: args.note.amount.toString(),
+      asset: args.shieldAsset.assetKey,
+      cluster: "devnet",
+      connectedWalletAddress: args.shieldAccount.owner,
+      estimatedFees: "wallet-estimated",
+      feePayer: args.shieldAccount.owner,
+      humanApprovedSummary: true,
+      instructions,
+      label: "unshield-transition",
+      recipient: walletAddress ?? args.shieldAccount.owner,
+      summaryInstructions: ["unshield-transition"],
+      transactionFingerprint: `unshield-transition:${args.shieldAccount.owner}:${args.note.noteId}:${prepared.noteId}`,
     });
   }
 
@@ -1308,8 +1360,21 @@ export function UnshieldPage() {
       action: "sol_unshield_transition",
     });
 
+    const instructions = [...priorityFeeInstructions, prepared.instruction];
+
     await transitionTransaction.send({
-      instructions: [...priorityFeeInstructions, prepared.instruction],
+      amount: args.note.amount.toString(),
+      asset: "SOL",
+      cluster: "devnet",
+      connectedWalletAddress: args.shieldAccount.owner,
+      estimatedFees: "wallet-estimated",
+      feePayer: args.shieldAccount.owner,
+      humanApprovedSummary: true,
+      instructions,
+      label: "sol-unshield-transition",
+      recipient: walletAddress ?? args.shieldAccount.owner,
+      summaryInstructions: ["sol-unshield-transition"],
+      transactionFingerprint: `sol-unshield-transition:${args.shieldAccount.owner}:${args.note.noteId}:${prepared.noteId}`,
     });
   }
 
@@ -1399,8 +1464,21 @@ export function UnshieldPage() {
             action: "send_transition",
           });
 
+          const instructions = [...priorityFeeInstructions, preparedSplit.instruction];
+
           await splitTransitionTransaction.send({
-            instructions: [...priorityFeeInstructions, preparedSplit.instruction],
+            amount: requestedAmountNumeric.toString(),
+            asset: "VUSD",
+            cluster: "devnet",
+            connectedWalletAddress: activeShieldAccount.owner,
+            estimatedFees: "wallet-estimated",
+            feePayer: activeShieldAccount.owner,
+            humanApprovedSummary: true,
+            instructions,
+            label: "unshield-split-transition",
+            recipient: activeShieldAccount.owner,
+            summaryInstructions: ["unshield-split-transition"],
+            transactionFingerprint: `unshield-split-transition:${activeShieldAccount.owner}:${selectedShieldNote.noteId}:${preparedSplit.noteId}`,
           });
           return;
         }

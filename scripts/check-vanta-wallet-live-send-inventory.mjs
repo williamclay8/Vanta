@@ -78,6 +78,18 @@ assert.deepEqual(
   "Swap must keep only the signed message intent pending in the live-send inventory.",
 );
 
+const unshieldSurface = surfacesByPage.get("Unshield");
+assert.equal(unshieldSurface.status, "partial-safe-send-adopted", "Unshield must reflect partial safe-send adoption.");
+assert.ok(
+  unshieldSurface.adoptedCallSites?.length >= 4,
+  "Unshield must list spent-marker, transition, and split transactions as safe-send adopted.",
+);
+assert.deepEqual(
+  unshieldSurface.currentCallSites.map((callSite) => callSite.signatureKind),
+  ["message-intent-signature", "message-intent-signature"],
+  "Unshield must keep only signed message intents pending in the live-send inventory.",
+);
+
 const transactionCallSites = inventory.actionSurfaces.flatMap((surface) =>
   surface.currentCallSites.filter((callSite) => callSite.signatureKind === "transaction-signature"),
 );
@@ -85,7 +97,7 @@ const messageIntentCallSites = inventory.actionSurfaces.flatMap((surface) =>
   surface.currentCallSites.filter((callSite) => callSite.signatureKind === "message-intent-signature"),
 );
 
-assert.ok(transactionCallSites.length >= 5, "Expected frozen transaction send call sites.");
+assert.ok(transactionCallSites.length >= 1, "Expected frozen transaction send call sites.");
 assert.ok(messageIntentCallSites.length >= 3, "Expected frozen signed intent call sites.");
 assert.ok(
   inventory.messageIntentPolicy.requiredSequence.includes("typed-intent-summary") &&

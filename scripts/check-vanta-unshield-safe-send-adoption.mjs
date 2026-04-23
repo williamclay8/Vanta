@@ -1,0 +1,30 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { strict as assert } from "node:assert";
+
+const unshieldPath = resolve(import.meta.dirname, "../src/pages/UnshieldPage.tsx");
+const source = readFileSync(unshieldPath, "utf8");
+
+assert.ok(source.includes("useVantaSafeSendTransaction"), "Unshield must import the Vanta safe-send hook.");
+assert.ok(!source.includes("useSendTransaction"), "Unshield must not use raw useSendTransaction for generic transactions.");
+
+for (const phrase of [
+  "const transitionTransaction = useVantaSafeSendTransaction();",
+  "const spentMarkerTransaction = useVantaSafeSendTransaction();",
+  "const splitTransitionTransaction = useVantaSafeSendTransaction();",
+  "const splitSpentMarkerTransaction = useVantaSafeSendTransaction();",
+  "summaryInstructions",
+  "transactionFingerprint",
+  "unshield-transition",
+  "sol-unshield-transition",
+  "unshield-spent-marker",
+  "sol-unshield-spent-marker",
+  "unshield-split-transition",
+  "unshield-split-spent-marker",
+  "signUnshieldIntent(",
+  "signSolUnshieldIntent(",
+]) {
+  assert.ok(source.includes(phrase), `Unshield safe-send adoption missing phrase: ${phrase}`);
+}
+
+console.log("Vanta Unshield safe-send adoption check: PASS");

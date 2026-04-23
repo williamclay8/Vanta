@@ -94,18 +94,20 @@ export function createWalletLiveSendInventory() {
       },
       {
         currentCallSites: [
-          tx("splitSpentMarkerTransaction.send({", "partial unshield split spent-marker reservation"),
           message("signUnshieldIntent(", "SPL unshield intent signature"),
           message("signSolUnshieldIntent(", "native SOL unshield intent signature"),
-          tx("spentMarkerTransaction.send({", "unshield spent-marker reservation"),
-          tx("transitionTransaction.send({", "unshield transition"),
-          tx("splitTransitionTransaction.send({", "partial unshield split transition"),
+        ],
+        adoptedCallSites: [
+          tx("const splitSpentMarkerTransaction = useVantaSafeSendTransaction();", "partial unshield split spent-marker reservation"),
+          tx("const spentMarkerTransaction = useVantaSafeSendTransaction();", "unshield spent-marker reservation"),
+          tx("const transitionTransaction = useVantaSafeSendTransaction();", "unshield transition"),
+          tx("const splitTransitionTransaction = useVantaSafeSendTransaction();", "partial unshield split transition"),
         ],
         file: "src/pages/UnshieldPage.tsx",
         page: "Unshield",
         replacement:
-          "Bind unshield intents to typed summaries and route every spent-marker, transition, and split transition through simulate-first wallet-backed gate validation.",
-        status: "requires-wallet-backed-simulation-gate",
+          "Keep unshield signed intents visible for typed-intent hardening, and keep spent-marker, transition, and split transition transactions behind the safe-send hook that prepares, simulates, summarizes, gates, and requests wallet approval.",
+        status: "partial-safe-send-adopted",
       },
       {
         currentCallSites: [

@@ -37,6 +37,7 @@ npm run wallet:safe-send-hook-check
 npm run shield:safe-send-adoption-check
 npm run send:safe-send-adoption-check
 npm run swap:safe-send-adoption-check
+npm run unshield:safe-send-adoption-check
 npm run mainnet:secret-handling-check
 npm run audit:package-check
 ```
@@ -73,6 +74,7 @@ npm run wallet:safe-send-hook-check
 npm run shield:safe-send-adoption-check
 npm run send:safe-send-adoption-check
 npm run swap:safe-send-adoption-check
+npm run unshield:safe-send-adoption-check
 npm run mainnet:secret-handling-check
 npm run audit:package-check
 ```
@@ -618,6 +620,20 @@ The Swap safe-send adoption command is:
 
 ```bash
 npm run swap:safe-send-adoption-check
+```
+
+The Unshield safe-send adoption check is:
+
+```text
+scripts/check-vanta-unshield-safe-send-adoption.mjs
+```
+
+It verifies Unshield no longer uses raw generic `useSendTransaction` sends for transition, spent-marker, split-transition, or split-spent-marker transactions, while keeping the signed unshield intents visible for separate typed-intent hardening.
+
+The Unshield safe-send adoption command is:
+
+```bash
+npm run unshield:safe-send-adoption-check
 ```
 
 The browser-backed safe-environment signing gate is:
