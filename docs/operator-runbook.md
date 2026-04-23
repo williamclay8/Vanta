@@ -32,6 +32,7 @@ npm run private-pool-v2:service-network-check
 npm run wallet:signing-safety-check
 npm run wallet:transaction-safety-check
 npm run wallet:live-send-inventory-check
+npm run wallet:safe-send-boundary-check
 npm run mainnet:secret-handling-check
 npm run audit:package-check
 ```
@@ -63,6 +64,7 @@ npm run mainnet:deployment-manifest-check
 npm run wallet:signing-safety-check
 npm run wallet:transaction-safety-check
 npm run wallet:live-send-inventory-check
+npm run wallet:safe-send-boundary-check
 npm run mainnet:secret-handling-check
 npm run audit:package-check
 ```
@@ -538,6 +540,20 @@ The live wallet send inventory command is:
 
 ```bash
 npm run wallet:live-send-inventory-check
+```
+
+The pure safe-send boundary is:
+
+```text
+src/wallet/walletSafeSendBoundary.mjs
+```
+
+It is the checked prepare, simulate, transaction-summary, wallet-backed gate, and submit boundary for replacing raw transaction sends. It must block failed simulation, wallet/fee-payer mismatch, missing approval, and mutable-after-summary transactions before calling `sendPrepared`.
+
+The safe-send boundary command is:
+
+```bash
+npm run wallet:safe-send-boundary-check
 ```
 
 The browser-backed safe-environment signing gate is:

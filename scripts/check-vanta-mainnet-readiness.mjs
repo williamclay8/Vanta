@@ -185,6 +185,10 @@ assert.ok(
   "Missing wallet live send inventory command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run wallet:safe-send-boundary-check"),
+  "Missing wallet safe send boundary command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:secret-handling-check"),
   "Missing secret handling contract command.",
 );
