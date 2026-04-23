@@ -259,7 +259,7 @@ The sanitized deployed runtime abuse/observability status surface is:
 scripts/print-vanta-production-abuse-observability-runtime-status.mjs
 ```
 
-It records the current provider-neutral observability provider decision, the checked safe telemetry source, the checked operator-event sink source, the current in-memory rate-limit seam, and the current status of the Pay, Private Pool v2, Strategy, and Operator observability surfaces. It is intentionally not a claim that production observability is live.
+It records the current provider-neutral observability provider decision, the checked safe telemetry source, the checked operator-event sink source, the current rate-limit seam, the preferred Postgres-backed production limiter path, and the current status of the Pay, Private Pool v2, Strategy, and Operator observability surfaces. It is intentionally not a claim that production observability is live.
 
 The production abuse/observability status commands are:
 
@@ -293,13 +293,13 @@ The production abuse/observability evidence command is:
 npm run mainnet:abuse-observability-evidence-check
 ```
 
-Pay and Private Pool v2 also have a shared in-process rate-limit seam at:
+Pay and Private Pool v2 also have a shared rate-limit seam at:
 
 ```text
 src/ops/vantaRateLimit.mjs
 ```
 
-The current limiter is intentionally marked `productionReady: false`; it provides a fail-closed operator control point but must be replaced or backed by distributed production rate limiting before mainnet.
+The current fallback limiter is intentionally marked `productionReady: false`; it provides a fail-closed operator control point when no database is configured. The same module now also exposes a Postgres-backed durable shared-window limiter that the Pay and Private Pool v2 operator services prefer when their production database URL is configured. Production observability is still not complete until the deployed runtime, metrics, alerts, dashboards, retention, and incident workflow evidence are all fresh.
 
 Pay and Private Pool v2 also emit shared privacy-safe JSON telemetry through:
 

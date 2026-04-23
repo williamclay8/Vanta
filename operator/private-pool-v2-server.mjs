@@ -5,7 +5,10 @@ import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
-import { createInMemoryRateLimiter } from "../src/ops/vantaRateLimit.mjs";
+import {
+  createInMemoryRateLimiter,
+  createPostgresRateLimiterFromDatabaseUrl,
+} from "../src/ops/vantaRateLimit.mjs";
 import {
   createOperatorStartupTelemetryEvent,
   createSafeTelemetryRequestContext,
@@ -129,7 +132,13 @@ function sendJson(response, status, payload) {
   response.end(`${JSON.stringify(normalizeForJson(payload), null, 2)}\n`);
 }
 
-const rateLimiter = createInMemoryRateLimiter({ limit: rateLimitPerMinute });
+const rateLimiter = databaseUrl
+  ? await createPostgresRateLimiterFromDatabaseUrl({
+      databaseUrl,
+      limit: rateLimitPerMinute,
+      service: "vanta-private-pool-v2",
+    })
+  : createInMemoryRateLimiter({ limit: rateLimitPerMinute });
 const operatorEventSink = databaseUrl
   ? await createPostgresOperatorEventSinkFromDatabaseUrl({
       databaseUrl,
@@ -154,7 +163,7 @@ async function enforceRateLimit(request, response, telemetryContext) {
     return true;
   }
 
-  const decision = rateLimiter.check(rateLimitKey(request));
+  const decision = await rateLimiter.check(rateLimitKey(request));
   if (decision.allowed) {
     return true;
   }
@@ -907,7 +916,7 @@ async function statusPayload() {
     },
     trafficControls: {
       rateLimitPerMinute,
-      rateLimiter: "in-memory-per-process",
+      rateLimiter: rateLimiter.kind === "postgres-rate-limiter" ? "postgres-durable-shared-window" : "in-memory-per-process",
     },
     supportedAssets: runtime.assets.map((asset) => asset.symbol),
     surfaces: {

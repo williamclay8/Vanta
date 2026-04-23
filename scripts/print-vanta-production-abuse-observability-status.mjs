@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import { createVantaAbuseObservabilityContract } from "../src/readiness/abuseObservabilityContract.mjs";
-import { createInMemoryRateLimiter } from "../src/ops/vantaRateLimit.mjs";
+import { createInMemoryRateLimiter, createVantaRateLimiterCatalog } from "../src/ops/vantaRateLimit.mjs";
 import { createNoopOperatorEventSink } from "../src/ops/vantaOperatorEventSink.mjs";
 import { readFileSync } from "node:fs";
 
@@ -10,6 +10,7 @@ const checkMode = process.argv.includes("--check");
 
 function buildStatus() {
   const contract = createVantaAbuseObservabilityContract();
+  const rateLimiterCatalog = createVantaRateLimiterCatalog();
   const limiter = createInMemoryRateLimiter();
   const eventSink = createNoopOperatorEventSink();
   const template = JSON.parse(readFileSync(templatePath, "utf8"));
@@ -24,7 +25,10 @@ function buildStatus() {
     operatorEventSinkProductionReady: eventSink.productionReady,
     operatorEventSinkSource: contract.operatorEventSinkModulePath,
     productionReady: false,
+    preferredProductionRateLimiterKind: rateLimiterCatalog.preferredProductionKind,
+    rateLimiterAvailableKinds: rateLimiterCatalog.availableKinds,
     rateLimiterKind: limiter.kind,
+    rateLimiterModulePath: contract.rateLimiterModulePath,
     rateLimiterProductionReady: limiter.productionReady,
     safeTelemetrySource: contract.safeTelemetryModulePath,
     safety:
@@ -60,7 +64,10 @@ if (checkMode) {
   assert.equal(result.mainnetReady, false, "Abuse/observability status must not claim mainnet readiness.");
   assert.equal(result.productionReady, false, "Abuse/observability status must not claim production readiness.");
   assert.equal(result.observabilityProvider, "provider-neutral-skipped-by-operator");
+  assert.deepEqual(result.rateLimiterAvailableKinds, ["in-memory-rate-limiter", "postgres-rate-limiter"]);
   assert.equal(result.rateLimiterKind, "in-memory-rate-limiter");
+  assert.equal(result.preferredProductionRateLimiterKind, "postgres-rate-limiter");
+  assert.equal(result.rateLimiterModulePath, "src/ops/vantaRateLimit.mjs");
   assert.equal(result.rateLimiterProductionReady, false);
   assert.equal(result.safeTelemetrySource, "src/ops/vantaSafeTelemetry.mjs");
   assert.equal(result.operatorEventSinkKind, "noop-operator-event-sink");
@@ -90,6 +97,8 @@ if (jsonMode || checkMode) {
   console.log("Vanta production abuse/observability status");
   console.log(`- observabilityProvider: ${result.observabilityProvider}`);
   console.log(`- operatorEventSinkKind: ${result.operatorEventSinkKind}`);
+  console.log(`- rateLimiterAvailableKinds: ${result.rateLimiterAvailableKinds.join(", ")}`);
+  console.log(`- preferredProductionRateLimiterKind: ${result.preferredProductionRateLimiterKind}`);
   console.log(`- rateLimiterKind: ${result.rateLimiterKind}`);
   console.log(`- rateLimiterProductionReady: ${String(result.rateLimiterProductionReady)}`);
   console.log(`- safeTelemetrySource: ${result.safeTelemetrySource}`);

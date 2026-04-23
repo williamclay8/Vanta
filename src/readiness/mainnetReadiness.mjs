@@ -24,7 +24,7 @@ const blockers = [
   {
     id: "abuse-rate-limit-observability",
     severity: "high",
-    summary: "Keep the abuse/observability status/evidence surface fresh while implementing production rate limits, metrics, alerts, audit logs, and operator dashboards.",
+    summary: "Keep the abuse/observability status/evidence surface fresh while promoting the Postgres-backed production rate limiter and while implementing metrics, alerts, audit logs, and operator dashboards.",
   },
   {
     id: "no-mainnet-funds-without-explicit-approval",
@@ -177,7 +177,7 @@ const nextActions = [
   "Execute only the approved bounded beta mainnet private-pool smoke while the approval window is active, or record a new bounded approval window before changing the action, launch window, fee payer, or maximum funds at risk.",
   "Keep the service-deployment status/evidence surface and Private Pool v2 production smoke evidence fresh before expanding live mainnet actions.",
   "Keep operator-skipped controls visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
-  "Keep the abuse/observability status/evidence surface fresh while using provider-neutral production observability evidence, existing platform logs, or a future provider instead of Better Stack production monitors.",
+  "Keep the abuse/observability status/evidence surface fresh while promoting the Postgres-backed production rate limiter and while using provider-neutral production observability evidence, existing platform logs, or a future provider instead of Better Stack production monitors.",
   "Keep the deployed operator replay-status evidence, role-service replay verification, and production smoke replay simulation fresh while carrying the Postgres-backed nullifier replay guard into the final protocol enforcement layer.",
   "Keep the wallet-signing status/evidence surface fresh while replacing every frozen live wallet send/sign call site with prepare, simulate, summary, wallet-backed gate validation, and wallet approval before expanding live signing paths.",
 ];

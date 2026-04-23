@@ -112,7 +112,10 @@ if (checkMode) {
   assert.equal(result.payRuntimeStatus, "staging-or-local-only");
   assert.equal(result.privatePoolV2Runtime.runtimeMode, "remote-services");
   assert.equal(result.privatePoolV2Runtime.auditEventSinkKind, "postgres-operator-event-sink");
-  assert.equal(result.privatePoolV2Runtime.rateLimiter, "in-memory-per-process");
+  assert.ok(
+    ["in-memory-per-process", "postgres-durable-shared-window"].includes(result.privatePoolV2Runtime.rateLimiter),
+    `Unexpected deployed Private Pool v2 rate limiter: ${result.privatePoolV2Runtime.rateLimiter}.`,
+  );
   assert.equal(result.privatePoolV2Runtime.storageDurableStoreConfigured, true);
   assert.equal(result.privatePoolV2Runtime.storageKind, "postgres-jsonb-snapshot-store");
 }

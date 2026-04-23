@@ -3,7 +3,10 @@ import { createServer } from "node:http";
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { createInMemoryRateLimiter } from "../src/ops/vantaRateLimit.mjs";
+import {
+  createInMemoryRateLimiter,
+  createPostgresRateLimiterFromDatabaseUrl,
+} from "../src/ops/vantaRateLimit.mjs";
 import {
   createOperatorStartupTelemetryEvent,
   createSafeTelemetryRequestContext,
@@ -172,7 +175,13 @@ function sendJson(response, status, payload) {
   response.end(`${JSON.stringify(normalizeForJson(payload), null, 2)}\n`);
 }
 
-const rateLimiter = createInMemoryRateLimiter({ limit: rateLimitPerMinute });
+const rateLimiter = databaseUrl
+  ? await createPostgresRateLimiterFromDatabaseUrl({
+      databaseUrl,
+      limit: rateLimitPerMinute,
+      service: "vanta-pay",
+    })
+  : createInMemoryRateLimiter({ limit: rateLimitPerMinute });
 const operatorEventSink = databaseUrl
   ? await createPostgresOperatorEventSinkFromDatabaseUrl({
       databaseUrl,
@@ -197,7 +206,7 @@ async function enforceRateLimit(request, response, url, telemetryContext) {
     return true;
   }
 
-  const decision = rateLimiter.check(rateLimitKey(request, url));
+  const decision = await rateLimiter.check(rateLimitKey(request, url));
   if (decision.allowed) {
     return true;
   }
@@ -476,7 +485,7 @@ const server = createServer(async (request, response) => {
           privateRailCompletionRequired: true,
           productionDurableStoreRequired: true,
           productionHttpsWebhooks: true,
-          rateLimits: "in-memory-per-process",
+          rateLimits: rateLimiter.kind === "postgres-rate-limiter" ? "postgres-durable-shared-window" : "in-memory-per-process",
           requestValidation: "fail-closed",
           webhookDeliveryRetries: true,
           webhookSignatures: "t-v1-hmac-sha256",

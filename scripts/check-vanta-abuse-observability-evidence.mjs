@@ -28,6 +28,7 @@ assert.equal(evidence.observabilityProvider, "provider-neutral-skipped-by-operat
 assert.equal(evidence.operatorEventSinkKind, "noop-operator-event-sink");
 assert.equal(evidence.operatorEventSinkProductionReady, false);
 assert.equal(evidence.operatorEventSinkSource, "src/ops/vantaOperatorEventSink.mjs");
+assert.equal(evidence.preferredProductionRateLimiterKind, "postgres-rate-limiter");
 assert.equal(evidence.privatePoolV2Runtime.auditEventSinkKind, "postgres-operator-event-sink");
 assert.equal(evidence.privatePoolV2Runtime.operatorUrlRef, "VANTA_PRIVATE_POOL_V2_OPERATOR_URL");
 assert.equal(evidence.privatePoolV2Runtime.rateLimitPerMinute, 600);
@@ -35,7 +36,9 @@ assert.equal(evidence.privatePoolV2Runtime.rateLimiter, "in-memory-per-process")
 assert.equal(evidence.privatePoolV2Runtime.runtimeMode, "remote-services");
 assert.equal(evidence.privatePoolV2Runtime.storageDurableStoreConfigured, true);
 assert.equal(evidence.privatePoolV2Runtime.storageKind, "postgres-jsonb-snapshot-store");
+assert.deepEqual(evidence.rateLimiterAvailableKinds, ["in-memory-rate-limiter", "postgres-rate-limiter"]);
 assert.equal(evidence.rateLimiterKind, "in-memory-rate-limiter");
+assert.equal(evidence.rateLimiterModulePath, "src/ops/vantaRateLimit.mjs");
 assert.equal(evidence.rateLimiterProductionReady, false);
 assert.equal(evidence.safeTelemetrySource, "src/ops/vantaSafeTelemetry.mjs");
 assert.deepEqual(
@@ -52,6 +55,10 @@ for (const surface of evidence.surfaceStatuses) {
 assert.ok(
   evidence.safety.includes("No provider API keys"),
   "Abuse/observability evidence must state the no-secret safety policy.",
+);
+assert.ok(
+  evidence.deploymentTruth.includes("Postgres-backed rate-limit implementation"),
+  "Abuse/observability evidence must record the durable rate-limit path.",
 );
 
 const serialized = JSON.stringify(evidence);

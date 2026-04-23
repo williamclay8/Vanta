@@ -13,6 +13,7 @@
   "operatorEventSinkKind": "noop-operator-event-sink",
   "operatorEventSinkProductionReady": false,
   "operatorEventSinkSource": "src/ops/vantaOperatorEventSink.mjs",
+  "preferredProductionRateLimiterKind": "postgres-rate-limiter",
   "privatePoolV2Runtime": {
     "auditEventSinkKind": "postgres-operator-event-sink",
     "operatorUrlRef": "VANTA_PRIVATE_POOL_V2_OPERATOR_URL",
@@ -22,7 +23,12 @@
     "storageDurableStoreConfigured": true,
     "storageKind": "postgres-jsonb-snapshot-store"
   },
+  "rateLimiterAvailableKinds": [
+    "in-memory-rate-limiter",
+    "postgres-rate-limiter"
+  ],
   "rateLimiterKind": "in-memory-rate-limiter",
+  "rateLimiterModulePath": "src/ops/vantaRateLimit.mjs",
   "rateLimiterProductionReady": false,
   "safeTelemetrySource": "src/ops/vantaSafeTelemetry.mjs",
   "surfaceStatuses": [
@@ -44,6 +50,6 @@
     }
   ],
   "safety": "No provider API keys, webhook URLs, source tokens, bearer values, wallet keys, signed transaction material, or database URLs are stored in this evidence file.",
-  "deploymentTruth": "This evidence proves the current provider-neutral observability contract, safe telemetry source, narrow Pay audit-event sink boundary, and authenticated deployed Private Pool v2 operator audit-sink/rate-limit/storage truth without claiming production observability is live.",
-  "nextOperatorAction": "Keep the abuse/observability status, deployed runtime status, and evidence commands fresh while provider-backed log sink, dashboards, alerts, retention, and incident workflow evidence remain pending."
+  "deploymentTruth": "This evidence proves the current provider-neutral observability contract, safe telemetry source, narrow Pay audit-event sink boundary, the available Postgres-backed rate-limit implementation, and authenticated deployed Private Pool v2 operator audit-sink/rate-limit/storage truth without claiming production observability is live.",
+  "nextOperatorAction": "Keep the abuse/observability status, deployed runtime status, and evidence commands fresh while redeploying onto the Postgres-backed rate limiter and while provider-backed log sink, dashboards, alerts, retention, and incident workflow evidence remain pending."
 }

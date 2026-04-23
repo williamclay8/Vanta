@@ -146,8 +146,9 @@ export function createVantaAbuseObservabilityContract() {
     operatorEventSinkModulePath: "src/ops/vantaOperatorEventSink.mjs",
     productionObservabilityTemplatePath: "ops/mainnet/production-observability.template.json",
     safeTelemetryModulePath: "src/ops/vantaSafeTelemetry.mjs",
+    rateLimiterModulePath: "src/ops/vantaRateLimit.mjs",
     nextImplementationStep:
-      "Promote the Pay and Private Pool v2 privacy-safe audit-event sink plus safe stdout telemetry into a production log sink, metrics, alert, and incident pipeline.",
+      "Promote the Postgres-backed rate limiter plus privacy-safe audit-event sink and safe stdout telemetry into a production log sink, metrics, alert, and incident pipeline.",
     productionReady: false,
     requiredVerificationCommands: [
       "npm run mainnet:abuse-observability-check",
