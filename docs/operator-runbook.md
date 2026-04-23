@@ -212,7 +212,7 @@ src/privacy/nullifierReplayGuard.mjs
 src/privacy/postgresNullifierReplayStore.mjs
 ```
 
-Private Pool v2 uses the in-process guard for local claim preflight and accepted-claim reservation. When `VANTA_PRIVATE_POOL_V2_DATABASE_URL` is configured, the operator now prefers the Postgres nullifier replay store, which reserves nullifiers behind the checked `pool_nullifiers` unique indexes. It is still marked `productionReady: false` until the final deployed protocol enforcement layer, production database refs, backup/restore evidence, and audit gates are complete.
+Private Pool v2 uses the in-process guard for local claim preflight and accepted-claim reservation. In production, the operator now refuses to boot unless `VANTA_PRIVATE_POOL_V2_DATABASE_URL` is configured, so claim preflight and accepted-claim reservation go through the Postgres nullifier replay store behind the checked `pool_nullifiers` unique indexes. It is still marked `productionReady: false` until the final deployed protocol enforcement layer, production database refs, backup/restore evidence, and audit gates are complete.
 
 For a faster focused check:
 
@@ -289,11 +289,10 @@ Production mode guardrails:
 ```bash
 NODE_ENV=production
 VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN=<operator-token>
-VANTA_PRIVATE_POOL_V2_STORE_PATH=<durable-store-path-if-using-json-store>
-VANTA_PRIVATE_POOL_V2_DATABASE_URL=<postgres-url-if-using-managed-postgres>
+VANTA_PRIVATE_POOL_V2_DATABASE_URL=<postgres-url-from-secret-manager>
 ```
 
-When `NODE_ENV=production`, the operator refuses to boot without `VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN` and either `VANTA_PRIVATE_POOL_V2_STORE_PATH` or `VANTA_PRIVATE_POOL_V2_DATABASE_URL`.
+When `NODE_ENV=production`, the operator refuses to boot without `VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN` and `VANTA_PRIVATE_POOL_V2_DATABASE_URL`. File/JSON stores are allowed for local and staging-style checks, but production nullifier replay enforcement must use the Postgres-backed store.
 
 For free Render staging, prefer `VANTA_PRIVATE_POOL_V2_DATABASE_URL` from a free Render Postgres database because free web services cannot attach persistent disks and lose local filesystem writes on restart/redeploy. Treat free Render Postgres as staging-only because free databases expire.
 

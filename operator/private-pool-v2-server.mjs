@@ -56,9 +56,9 @@ function assertProductionAuthToken() {
     );
   }
 
-  if (!process.env.VANTA_PRIVATE_POOL_V2_STORE_PATH && !databaseUrl) {
+  if (!databaseUrl) {
     throw new Error(
-      "Private Pool v2 production mode requires VANTA_PRIVATE_POOL_V2_STORE_PATH or VANTA_PRIVATE_POOL_V2_DATABASE_URL.",
+      "Private Pool v2 production mode requires VANTA_PRIVATE_POOL_V2_DATABASE_URL for durable nullifier replay enforcement.",
     );
   }
 }

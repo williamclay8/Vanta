@@ -255,10 +255,36 @@ if (storelessProductionExitCode === null) {
   throw new Error("Expected production Private Pool V2 operator without durable store to exit.");
 }
 assert(
-  storelessProductionStderr.includes("VANTA_PRIVATE_POOL_V2_STORE_PATH"),
-  "Expected missing Private Pool V2 production store path error.",
+  storelessProductionStderr.includes("VANTA_PRIVATE_POOL_V2_DATABASE_URL"),
+  "Expected missing Private Pool V2 production database URL error.",
 );
-console.log("private-pool-v2 production store guard: PASS");
+console.log("private-pool-v2 production database guard: PASS");
+
+const fileOnlyProductionServer = spawn("node", ["operator/private-pool-v2-server.mjs"], {
+  cwd: repoRoot,
+  env: {
+    ...process.env,
+    NODE_ENV: "production",
+    VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN: "vanta-private-pool-v2-live-token",
+    VANTA_PRIVATE_POOL_V2_OPERATOR_PORT: String(port + 1_003),
+    VANTA_PRIVATE_POOL_V2_STORE_PATH: join(tempRoot, "file-only-production-store.json"),
+  },
+  stdio: ["ignore", "pipe", "pipe"],
+});
+let fileOnlyProductionStderr = "";
+fileOnlyProductionServer.stderr.on("data", (chunk) => {
+  fileOnlyProductionStderr += chunk.toString("utf8");
+});
+const fileOnlyProductionExitCode = await waitForExit(fileOnlyProductionServer);
+if (fileOnlyProductionExitCode === null) {
+  fileOnlyProductionServer.kill("SIGTERM");
+  throw new Error("Expected production Private Pool V2 operator with file-only store to exit.");
+}
+assert(
+  fileOnlyProductionStderr.includes("VANTA_PRIVATE_POOL_V2_DATABASE_URL"),
+  "Expected file-only Private Pool V2 production store to require a database URL.",
+);
+console.log("private-pool-v2 production file-store rejection: PASS");
 
 const authPort = port + 1_001;
 const authBaseUrl = `http://127.0.0.1:${authPort}`;
