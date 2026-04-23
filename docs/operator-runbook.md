@@ -590,6 +590,24 @@ scripts/check-vanta-umbra-wallet-adapter-gate.mjs
 npm run umbra:wallet-adapter-gate-check
 ```
 
+The Umbra operation gate adoption seam is:
+
+```text
+src/privacy/umbraOperations.ts
+```
+
+Operation helpers that create an Umbra wallet-session client must pass a typed adapter gate into `createUmbraClientFromWalletSession`. Callers can build the gate with `createUmbraOperationWalletAdapterGate` after showing an operation-specific human summary. The gate is intentionally short-lived and separates message approvals from transaction approvals.
+
+The Umbra operation gate adoption command is:
+
+```text
+scripts/check-vanta-umbra-operation-gate-adoption.mjs
+```
+
+```bash
+npm run umbra:operation-gate-adoption-check
+```
+
 The frozen live wallet send/sign inventory is:
 
 ```text

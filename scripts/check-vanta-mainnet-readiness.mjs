@@ -193,6 +193,10 @@ assert.ok(
   "Missing Umbra wallet adapter gate command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run umbra:operation-gate-adoption-check"),
+  "Missing Umbra operation gate adoption command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run wallet:live-send-inventory-check"),
   "Missing wallet live send inventory command.",
 );

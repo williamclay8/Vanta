@@ -3,18 +3,45 @@ import {
   createUmbraClientFromWalletSession,
   loadUmbraSdk,
   type UmbraClient,
+  type UmbraWalletAdapterGate,
 } from "./umbraClient";
 import type { UmbraRuntimeConfig } from "./umbraConfig";
 
 type OptionalUmbraClientArgs = {
   client?: UmbraClient;
   config?: UmbraRuntimeConfig;
+  walletAdapterGate?: UmbraWalletAdapterGate;
   walletSession?: WalletSession;
 };
 
 type UmbraOperationBaseArgs = OptionalUmbraClientArgs & {
   awaitCallback?: boolean;
 };
+
+export function createUmbraOperationWalletAdapterGate({
+  humanApprovedSummary,
+  intentKind,
+  now = Date.now(),
+  ttlMs = 2 * 60 * 1000,
+  walletSession,
+}: {
+  humanApprovedSummary: boolean;
+  intentKind: "message" | "transaction";
+  now?: number;
+  ttlMs?: number;
+  walletSession: WalletSession;
+}): UmbraWalletAdapterGate {
+  return {
+    connectedWalletAddress: walletSession.account.address,
+    expiresAt: now + ttlMs,
+    humanApprovedSummary,
+    issuedAt: now,
+    messageIntentApproved: intentKind === "message",
+    privateKeyMaterialHandled: false,
+    requester: walletSession.account.address,
+    transactionIntentApproved: intentKind === "transaction",
+  };
+}
 
 async function resolveUmbraClient(args: OptionalUmbraClientArgs) {
   if (args.client) {
@@ -27,6 +54,7 @@ async function resolveUmbraClient(args: OptionalUmbraClientArgs) {
 
   return createUmbraClientFromWalletSession({
     config: args.config,
+    walletAdapterGate: args.walletAdapterGate,
     walletSession: args.walletSession,
   });
 }

@@ -130,6 +130,7 @@ const requiredCommands = [
   "npm run wallet:message-intent-safety-check",
   "npm run wallet:message-intent-adoption-check",
   "npm run umbra:wallet-adapter-gate-check",
+  "npm run umbra:operation-gate-adoption-check",
   "npm run wallet:live-send-inventory-check",
   "npm run wallet:safe-send-boundary-check",
   "npm run wallet:safe-send-hook-check",
