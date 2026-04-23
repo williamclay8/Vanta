@@ -14,7 +14,7 @@ const blockers = [
   {
     id: "final-nullifier-replay-enforcement",
     severity: "critical",
-    summary: "Move the reusable nullifier replay guard from local operator enforcement into the final deployed protocol enforcement layer.",
+    summary: "Carry the Postgres-backed operator replay guard into the final deployed protocol enforcement layer.",
   },
   {
     id: "wallet-backed-browser-signing-safety",
@@ -80,7 +80,7 @@ const lanes = {
   privatePoolV2: {
     readiness: 58,
     status: "production-smoke-render-postgres",
-    truth: "Private Pool v2 has local indexer/relayer/prover/verifier/operator seams, Render staging coverage, and fresh no-real-funds production smoke evidence across deployed Render indexer, prover, relayer, verifier, and operator services with postgres-jsonb-snapshot-store persistence. It is still not an audited shared anonymity set or mainnet privacy pool, and must not move real funds.",
+    truth: "Private Pool v2 has local indexer/relayer/prover/verifier/operator seams, Render staging coverage, fresh no-real-funds production smoke evidence across deployed Render indexer, prover, relayer, verifier, and operator services with postgres-jsonb-snapshot-store persistence, and a production operator guard that requires Postgres-backed nullifier replay storage. It is still not an audited shared anonymity set or mainnet privacy pool, and must not move real funds.",
   },
   protocolTabs: {
     readiness: 50,
@@ -147,7 +147,7 @@ const nextActions = [
   "Keep Private Pool v2 production smoke evidence fresh and require a new bounded approval before expanding live mainnet actions.",
   "Keep operator-skipped controls visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
   "Use provider-neutral production observability evidence, existing platform logs, or a future provider instead of Better Stack production monitors.",
-  "Move nullifier replay guard persistence behind the production storage adapter and final deployed enforcement layer.",
+  "Carry the Postgres-backed nullifier replay guard into the final deployed protocol enforcement layer.",
   "Add a checked mainnet deployment runbook with rollback, monitoring, rate limits, and incident response.",
   "Add wallet-backed transaction simulation surfaces before any live signing path.",
 ];

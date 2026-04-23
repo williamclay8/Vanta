@@ -46,8 +46,9 @@ assert.ok(
   "Private Pool v2 should be represented as production smoke Render/Postgres infrastructure.",
 );
 assert.ok(
-  snapshot.lanes.privatePoolV2.truth.includes("Render") &&
+    snapshot.lanes.privatePoolV2.truth.includes("Render") &&
     snapshot.lanes.privatePoolV2.truth.includes("postgres-jsonb-snapshot-store") &&
+    snapshot.lanes.privatePoolV2.truth.includes("Postgres-backed nullifier replay storage") &&
     snapshot.lanes.privatePoolV2.truth.includes("no-real-funds production smoke evidence") &&
     snapshot.lanes.privatePoolV2.truth.includes("not an audited shared anonymity set") &&
     snapshot.lanes.privatePoolV2.truth.includes("must not move real funds"),
@@ -202,12 +203,16 @@ assert.ok(
 assert.ok(snapshot.requiredCommands.includes("npm run audit:package-check"), "Missing audit package command.");
 assert.ok(snapshot.nextActions[0]?.includes("approved bounded beta mainnet private-pool smoke"), "First next action should preserve bounded approval.");
 assert.ok(
-  snapshot.nextActions.some((action) => action.includes("provider-neutral production observability")),
-  "Next actions must include provider-neutral production observability setup.",
-);
-assert.ok(
   snapshot.nextActions.some((action) => action.includes("operator-skipped controls")),
   "Next actions must preserve operator-skipped control visibility.",
+);
+assert.ok(
+  snapshot.nextActions.some((action) => action.includes("Postgres-backed nullifier replay guard")),
+  "Next actions must point to final protocol-layer nullifier enforcement.",
+);
+assert.ok(
+  snapshot.nextActions.some((action) => action.includes("provider-neutral production observability")),
+  "Next actions must include provider-neutral production observability setup.",
 );
 
 console.log("Vanta mainnet readiness check: PASS");
