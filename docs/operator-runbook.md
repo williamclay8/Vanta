@@ -31,6 +31,8 @@ npm run mainnet:deployment-manifest-check
 npm run private-pool-v2:service-network-check
 npm run wallet:signing-safety-check
 npm run wallet:transaction-safety-check
+npm run wallet:backed-simulation-check
+npm run wallet:message-intent-safety-check
 npm run wallet:live-send-inventory-check
 npm run wallet:safe-send-boundary-check
 npm run wallet:safe-send-hook-check
@@ -68,6 +70,8 @@ npm run nullifier:replay-guard-check
 npm run mainnet:deployment-manifest-check
 npm run wallet:signing-safety-check
 npm run wallet:transaction-safety-check
+npm run wallet:backed-simulation-check
+npm run wallet:message-intent-safety-check
 npm run wallet:live-send-inventory-check
 npm run wallet:safe-send-boundary-check
 npm run wallet:safe-send-hook-check
@@ -536,6 +540,20 @@ The wallet-backed simulation gate command is:
 
 ```bash
 npm run wallet:backed-simulation-check
+```
+
+The executable wallet message-intent safety boundary is:
+
+```text
+src/wallet/walletMessageIntentSafety.mjs
+```
+
+It creates a typed summary for signed operator intents, requires a request id, issue and expiry timestamps, connected-wallet/requester alignment, no private-key material handling, and explicit human approval before calling `signMessage`.
+
+The wallet message-intent safety command is:
+
+```bash
+npm run wallet:message-intent-safety-check
 ```
 
 The frozen live wallet send/sign inventory is:
