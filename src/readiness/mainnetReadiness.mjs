@@ -24,7 +24,7 @@ const blockers = [
   {
     id: "abuse-rate-limit-observability",
     severity: "high",
-    summary: "Implement the checked abuse/observability contract with production rate limits, metrics, alerts, audit logs, and operator dashboards.",
+    summary: "Keep the abuse/observability status/evidence surface fresh while implementing production rate limits, metrics, alerts, audit logs, and operator dashboards.",
   },
   {
     id: "no-mainnet-funds-without-explicit-approval",
@@ -107,6 +107,8 @@ const requiredCommands = [
   "npm run mainnet:staging-smoke-evidence-check",
   "npm run storage:adapter-check",
   "npm run mainnet:abuse-observability-check",
+  "npm run mainnet:abuse-observability-status",
+  "npm run mainnet:abuse-observability-evidence-check",
   "npm run ops:rate-limit-check",
   "npm run mainnet:production-service-setup-check",
   "npm run mainnet:deployment-runbook-check",
@@ -171,7 +173,7 @@ const nextActions = [
   "Execute only the approved bounded beta mainnet private-pool smoke, or return the real-funds approval packet to pending before changing the action, launch window, fee payer, or maximum funds at risk.",
   "Keep Private Pool v2 production smoke evidence fresh and require a new bounded approval before expanding live mainnet actions.",
   "Keep operator-skipped controls visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
-  "Use provider-neutral production observability evidence, existing platform logs, or a future provider instead of Better Stack production monitors.",
+  "Keep the abuse/observability status/evidence surface fresh while using provider-neutral production observability evidence, existing platform logs, or a future provider instead of Better Stack production monitors.",
   "Keep the deployed operator replay-status evidence fresh while carrying the Postgres-backed nullifier replay guard into the final protocol enforcement layer.",
   "Keep the wallet-signing status/evidence surface fresh while replacing every frozen live wallet send/sign call site with prepare, simulate, summary, wallet-backed gate validation, and wallet approval before expanding live signing paths.",
 ];

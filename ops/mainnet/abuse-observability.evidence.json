@@ -1,0 +1,35 @@
+{
+  "version": "vanta-production-abuse-observability-evidence-0.1",
+  "mainnetReady": false,
+  "productionReady": false,
+  "lastStatusRef": "npm run mainnet:abuse-observability-status-check",
+  "contractRef": "npm run mainnet:abuse-observability-check",
+  "safeTelemetryRef": "npm run ops:safe-telemetry-check",
+  "rateLimitRef": "npm run ops:rate-limit-check",
+  "observabilitySinkRef": "npm run mainnet:observability-sink-check",
+  "observabilityProvider": "provider-neutral-skipped-by-operator",
+  "rateLimiterKind": "in-memory-rate-limiter",
+  "rateLimiterProductionReady": false,
+  "safeTelemetrySource": "src/ops/vantaSafeTelemetry.mjs",
+  "surfaceStatuses": [
+    {
+      "id": "pay",
+      "status": "not-wired"
+    },
+    {
+      "id": "privatePoolV2",
+      "status": "not-wired"
+    },
+    {
+      "id": "strategy",
+      "status": "not-wired"
+    },
+    {
+      "id": "operator",
+      "status": "not-wired"
+    }
+  ],
+  "safety": "No provider API keys, webhook URLs, source tokens, bearer values, wallet keys, signed transaction material, or database URLs are stored in this evidence file.",
+  "deploymentTruth": "This evidence proves the current provider-neutral observability contract, safe telemetry source, and rate-limit truth surfaces are recorded without claiming production observability is live.",
+  "nextOperatorAction": "Keep the abuse/observability status and evidence commands fresh while provider-backed log sink, dashboards, alerts, retention, and incident workflow evidence remain pending."
+}

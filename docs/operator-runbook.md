@@ -218,6 +218,35 @@ ops/mainnet/production-observability.template.json
 
 It records provider-neutral references for production log sources, metrics dashboards, alert policies, incident runbooks, and retention policies without storing provider tokens, webhook URLs, source tokens, raw database URLs, bearer tokens, or other secrets. Better Stack production monitors are intentionally skipped by operator decision. The template is a setup contract, not evidence that production observability is already live.
 
+The sanitized production abuse/observability status surface is:
+
+```text
+scripts/print-vanta-production-abuse-observability-status.mjs
+```
+
+It records the current provider-neutral observability provider decision, the checked safe telemetry source, the current in-memory rate-limit seam, and the current status of the Pay, Private Pool v2, Strategy, and Operator observability surfaces. It is intentionally not a claim that production observability is live.
+
+The production abuse/observability status commands are:
+
+```bash
+npm run mainnet:abuse-observability-status
+npm run mainnet:abuse-observability-status-check
+```
+
+The sanitized production abuse/observability evidence file is:
+
+```text
+ops/mainnet/abuse-observability.evidence.json
+```
+
+It records only status-level facts and command refs. No provider API keys, webhook URLs, source tokens, bearer values, wallet keys, signed transaction material, or database URLs may be stored in this evidence file.
+
+The production abuse/observability evidence command is:
+
+```bash
+npm run mainnet:abuse-observability-evidence-check
+```
+
 Pay and Private Pool v2 also have a shared in-process rate-limit seam at:
 
 ```text

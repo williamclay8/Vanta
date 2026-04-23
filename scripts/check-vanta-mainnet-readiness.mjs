@@ -125,6 +125,14 @@ assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:abuse-observability-check"),
   "Missing abuse/observability contract command.",
 );
+assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:abuse-observability-status"),
+  "Missing abuse/observability status command.",
+);
+assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:abuse-observability-evidence-check"),
+  "Missing abuse/observability evidence command.",
+);
 assert.ok(snapshot.requiredCommands.includes("npm run ops:rate-limit-check"), "Missing rate-limit check command.");
 assert.ok(snapshot.requiredCommands.includes("npm run ops:safe-telemetry-check"), "Missing safe telemetry check command.");
 assert.ok(
