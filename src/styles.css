@@ -3999,6 +3999,61 @@ input {
   gap: 12px;
 }
 
+.shield-approval-review {
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 18px;
+  background: rgba(0, 229, 200, 0.045);
+}
+
+.shield-approval-review summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.shield-approval-review summary::-webkit-details-marker {
+  display: none;
+}
+
+.shield-approval-review summary span,
+.shield-approval-review__rows span {
+  color: var(--muted-strong);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.shield-approval-review summary strong,
+.shield-approval-review__rows strong {
+  font-family: "Syne", sans-serif;
+  font-size: 0.9rem;
+  letter-spacing: -0.02em;
+}
+
+.shield-approval-review__rows {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.shield-approval-review__rows div {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.shield-approval-review__rows strong {
+  max-width: 62%;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
 .review-list {
   display: grid;
   gap: 12px;

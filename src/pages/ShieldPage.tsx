@@ -13,6 +13,8 @@ import {
   type PublicToVusdQuote,
 } from "@/solana/publicSwapRoute";
 import { requestVantaPrivatePoolV2ProtocolSettlement } from "@/privacy/privatePoolV2ProtocolSettlementClient";
+import { createUmbraShieldActionApprovalReview } from "@/privacy/umbraShieldActionReview";
+import type { UmbraOperationApprovalDisplay } from "@/privacy/umbraOperations";
 import { createShieldAssetCapability } from "@/solana/shieldAssetCapability";
 import {
   type LiveShieldTokenAssetKey,
@@ -77,6 +79,20 @@ function formatEditableAmount(value: number, decimals: number) {
     .replace(/\.$/u, "");
 }
 
+function parseDecimalAmountToBaseUnits(amountDisplay: string, decimals: number) {
+  const normalized = amountDisplay.trim();
+
+  if (!/^\d+(\.\d+)?$/u.test(normalized)) {
+    throw new Error("Vanta Umbra shield approval requires a decimal amount.");
+  }
+
+  const [wholePart, fractionalPart = ""] = normalized.split(".");
+  const wholeBaseUnits = BigInt(wholePart || "0") * 10n ** BigInt(decimals);
+  const fractionalBaseUnits = BigInt(fractionalPart.padEnd(decimals, "0").slice(0, decimals) || "0");
+
+  return wholeBaseUnits + fractionalBaseUnits;
+}
+
 export function ShieldPage(_props: ShieldPageProps) {
   const { recentShield, runPrivateCoreShield, setRecentShield } = usePrivacyFlow();
   const { solBalance, walletAddress, walletConnected } = useWalletState();
@@ -92,6 +108,8 @@ export function ShieldPage(_props: ShieldPageProps) {
   const [pendingPublicRoute, setPendingPublicRoute] = useState<PendingPublicRoute | null>(null);
   const [pendingProtocolSettlement, setPendingProtocolSettlement] =
     useState<PendingShieldProtocolSettlement | null>(null);
+  const [pendingUmbraApprovalDisplay, setPendingUmbraApprovalDisplay] =
+    useState<UmbraOperationApprovalDisplay | null>(null);
   const recordedStateSignatureRef = useRef<string | null>(null);
 
   const executableShieldTargets = useMemo(
@@ -238,6 +256,16 @@ export function ShieldPage(_props: ShieldPageProps) {
     setPendingDepositSignature(null);
     setPendingShieldAsset(selectedShieldAsset.assetKey);
     setPendingProtocolSettlement({ capability, routeEvidence });
+    const approvalIssuedAt = Date.now();
+    setPendingUmbraApprovalDisplay(
+      createUmbraShieldActionApprovalReview({
+        amountBaseUnits: parseDecimalAmountToBaseUnits(amountDisplay, selectedShieldAsset.decimals),
+        expiresAt: approvalIssuedAt + 2 * 60 * 1000,
+        issuedAt: approvalIssuedAt,
+        mintAddress: selectedShieldAsset.mintAddress,
+        requester: walletAddress,
+      }),
+    );
     setStatus("awaiting_wallet_confirmation");
 
     const instructions = await buildSplTokenShieldTransferInstructions({
@@ -268,7 +296,7 @@ export function ShieldPage(_props: ShieldPageProps) {
   }
 
   async function beginNativeSolShieldTransfer(amountDisplay: string, amountNumeric: number) {
-    if (!walletAddress || !selectedShieldAsset?.vaultOwner) {
+    if (!walletAddress || !selectedShieldAsset?.mintAddress || !selectedShieldAsset.vaultOwner) {
       throw new Error("Native SOL shield target is not configured.");
     }
 
@@ -277,6 +305,16 @@ export function ShieldPage(_props: ShieldPageProps) {
     setPendingDepositSignature(null);
     setPendingShieldAsset("SOL");
     setPendingProtocolSettlement({ capability, routeEvidence: null });
+    const approvalIssuedAt = Date.now();
+    setPendingUmbraApprovalDisplay(
+      createUmbraShieldActionApprovalReview({
+        amountBaseUnits: parseDecimalAmountToBaseUnits(amountDisplay, 9),
+        expiresAt: approvalIssuedAt + 2 * 60 * 1000,
+        issuedAt: approvalIssuedAt,
+        mintAddress: selectedShieldAsset.mintAddress,
+        requester: walletAddress,
+      }),
+    );
     setStatus("awaiting_wallet_confirmation");
 
     const instructions = buildNativeSolShieldTransferInstructions({
@@ -314,6 +352,7 @@ export function ShieldPage(_props: ShieldPageProps) {
       setPendingDepositSignature(null);
       setPendingShieldAsset(null);
       setPendingPublicRoute(null);
+      setPendingUmbraApprovalDisplay(null);
       setFlowError(
         toErrorMessage(nativeSolShieldTransaction.error, "The native SOL shield transfer could not be completed."),
       );
@@ -343,6 +382,7 @@ export function ShieldPage(_props: ShieldPageProps) {
       setPendingDepositSignature(null);
       setPendingShieldAsset(null);
       setPendingPublicRoute(null);
+      setPendingUmbraApprovalDisplay(null);
       setFlowError(
         toErrorMessage(splShieldTransferTransaction.error, "The shield transfer could not be completed."),
       );
@@ -470,6 +510,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     setPendingDepositSignature(null);
     setPendingShieldAsset(null);
     setPendingProtocolSettlement(null);
+    setPendingUmbraApprovalDisplay(null);
     setFlowError(
       toErrorMessage(
         nativeSolShieldWait.waitError,
@@ -571,6 +612,7 @@ export function ShieldPage(_props: ShieldPageProps) {
         setPendingShieldAmountDisplay(null);
         setPendingDepositSignature(null);
         setPendingShieldAsset(null);
+        setPendingUmbraApprovalDisplay(null);
         setFlowError(
           toErrorMessage(error, "The Vanta shield state note could not be recorded."),
         );
@@ -673,6 +715,7 @@ export function ShieldPage(_props: ShieldPageProps) {
         setPendingDepositSignature(null);
         setPendingShieldAsset(null);
         setPendingProtocolSettlement(null);
+        setPendingUmbraApprovalDisplay(null);
         setFlowError(null);
         setStatus("complete");
         void supportedToken?.refresh();
@@ -683,6 +726,7 @@ export function ShieldPage(_props: ShieldPageProps) {
         setPendingDepositSignature(null);
         setPendingShieldAsset(null);
         setPendingProtocolSettlement(null);
+        setPendingUmbraApprovalDisplay(null);
         setStatus("failed");
         setFlowError(
           toErrorMessage(
@@ -736,6 +780,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     setPendingShieldAmountDisplay(null);
     setPendingDepositSignature(null);
     setPendingShieldAsset(null);
+    setPendingUmbraApprovalDisplay(null);
 
     try {
       if (isNativeSolShield) {
@@ -787,6 +832,7 @@ export function ShieldPage(_props: ShieldPageProps) {
       setPendingShieldAmountDisplay(null);
       setPendingDepositSignature(null);
       setPendingShieldAsset(null);
+      setPendingUmbraApprovalDisplay(null);
     }
   }
 
@@ -992,6 +1038,22 @@ export function ShieldPage(_props: ShieldPageProps) {
                             ? "Recording the Vanta shield state note."
                             : "Approve the shield action in your wallet to continue."}
                 </p>
+                {pendingUmbraApprovalDisplay && status !== "complete" && status !== "failed" && (
+                  <details className="shield-approval-review" aria-label="Wallet approval review">
+                    <summary>
+                      <span>Private rail approval</span>
+                      <strong>{pendingUmbraApprovalDisplay.walletPrompt}</strong>
+                    </summary>
+                    <div className="shield-approval-review__rows">
+                      {pendingUmbraApprovalDisplay.rows.slice(0, 4).map((row) => (
+                        <div key={row.label}>
+                          <span>{row.label}</span>
+                          <strong>{row.value}</strong>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                )}
                 {routeProgressLabel && status === "routing_public_swap" && (
                   <p className="shield-helper shield-helper--meta">{routeProgressLabel}</p>
                 )}

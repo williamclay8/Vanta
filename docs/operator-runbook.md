@@ -726,6 +726,24 @@ scripts/check-vanta-umbra-approval-review-page-browser.mjs
 npm run umbra:approval-review-page-browser-check
 ```
 
+The Shield Umbra action review seam is:
+
+```text
+src/privacy/umbraShieldActionReview.ts
+```
+
+Shield now builds the same display-safe approval object before a shield action asks the wallet to approve. This does not enable an Umbra settlement path by itself; it keeps the Shield lane aligned with the short-lived approval-summary gate.
+
+The Shield Umbra action review command is:
+
+```text
+scripts/check-vanta-umbra-shield-action-review.mjs
+```
+
+```bash
+npm run umbra:shield-action-review-check
+```
+
 The frozen live wallet send/sign inventory is:
 
 ```text
