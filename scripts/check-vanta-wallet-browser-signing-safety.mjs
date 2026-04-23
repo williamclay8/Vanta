@@ -45,6 +45,16 @@ function runSafeBrowserSigningBatch() {
         { kind: "no_console_errors" },
       ],
     },
+    { action: "click", selector: ".app-header__account-trigger" },
+    {
+      action: "assert",
+      checks: [
+        { kind: "text_visible", text: "Simulation before signing" },
+        { kind: "text_visible", text: "Live actions are simulated before wallet approval." },
+        { kind: "no_console_errors" },
+      ],
+    },
+    { action: "click", selector: "button[aria-label='Close wallet picker']" },
     { action: "click", selector: ".shield-form__actions .button-primary" },
     {
       action: "assert",
@@ -100,6 +110,38 @@ function assertBrowserClusterGuard() {
   }
 }
 
+function assertWalletSimulationSurface() {
+  const browserProbe = `(async () => {
+    const button = document.querySelector(".app-header__account-trigger");
+    button?.click();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    return {
+      simulationTitleVisible: document.body.innerText.includes("Simulation before signing"),
+      simulationCopyVisible: document.body.innerText.includes("Live actions are simulated before wallet approval."),
+      secretCopyVisible:
+        document.body.innerText.includes("seed phrase") ||
+        document.body.innerText.includes("private key")
+    };
+  })()`;
+  const output = execFileSync(
+    "zsh",
+    [
+      "-lc",
+      [
+        `gsd-browser navigate ${shellQuote(`${baseUrl}/app/shield`)}`,
+        `gsd-browser wait-for --condition network_idle`,
+        `gsd-browser eval ${shellQuote(browserProbe)}`,
+      ].join(" >/dev/null && "),
+    ],
+    { encoding: "utf8" },
+  ).trim();
+  const result = JSON.parse(output);
+
+  if (!result.simulationTitleVisible || !result.simulationCopyVisible || result.secretCopyVisible) {
+    throw new Error(`Unexpected wallet simulation surface state: ${output}`);
+  }
+}
+
 const vite = spawn("npm", ["run", "dev", "--", "--host", "127.0.0.1", "--port", String(port), "--strictPort"], {
   env: {
     ...process.env,
@@ -120,6 +162,7 @@ vite.stderr.on("data", (chunk) => {
 try {
   await waitForVite();
   assertBrowserClusterGuard();
+  assertWalletSimulationSurface();
   runSafeBrowserSigningBatch();
   console.log("Vanta wallet browser signing safety check: PASS");
 } catch (error) {

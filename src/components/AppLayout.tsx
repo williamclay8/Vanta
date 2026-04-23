@@ -194,6 +194,10 @@ export function AppLayout() {
                   Standard wallet discovery shows the Solana wallets available in this browser.
                   Use a fresh wallet for the strongest privacy.
                 </p>
+                <div className="wallet-picker__safety" role="status">
+                  <span>Simulation before signing</span>
+                  <small>Live actions are simulated before wallet approval.</small>
+                </div>
                 {walletConnected && (
                   <div className="wallet-picker__connected">
                     <div>

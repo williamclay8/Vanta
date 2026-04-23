@@ -870,6 +870,29 @@ input {
   text-wrap: pretty;
 }
 
+.wallet-picker__safety {
+  display: grid;
+  gap: 3px;
+  margin-bottom: 12px;
+  padding: 10px;
+  border-radius: 16px;
+  background: rgba(0, 229, 200, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(0, 229, 200, 0.12);
+}
+
+.wallet-picker__safety span {
+  color: var(--text);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.wallet-picker__safety small {
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
 .wallet-picker__connected {
   display: grid;
   grid-template-columns: 1fr auto;
