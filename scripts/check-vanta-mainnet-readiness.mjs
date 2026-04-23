@@ -209,6 +209,10 @@ assert.ok(
   "Missing Umbra operation summary builders command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run umbra:operation-summary-display-check"),
+  "Missing Umbra operation summary display command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run wallet:live-send-inventory-check"),
   "Missing wallet live send inventory command.",
 );

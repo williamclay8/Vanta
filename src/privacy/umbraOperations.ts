@@ -51,6 +51,17 @@ export type UmbraOperationApprovalSummary = {
   version: "vanta-umbra-operation-approval-summary-0.1";
 };
 
+export type UmbraOperationApprovalDisplay = {
+  expiresAt: number;
+  rows: Array<{
+    label: string;
+    value: string;
+  }>;
+  signingMode: "Message approval" | "Transaction approval";
+  title: string;
+  walletPrompt: string;
+};
+
 export function createUmbraOperationWalletAdapterGate({
   humanApprovedSummary,
   intentKind,
@@ -306,6 +317,36 @@ export function createUmbraClaimableUtxoScanApprovalSummary({
     operationKind: "scan-claimable-utxos",
     requester,
   });
+}
+
+export function createUmbraOperationApprovalDisplay(
+  summary: UmbraOperationApprovalSummary,
+): UmbraOperationApprovalDisplay {
+  const titleByOperation = {
+    "deposit-public-to-encrypted-balance": "Shield into private balance",
+    "query-encrypted-balances": "Private balance lookup",
+    "register-user": "Private balance registration",
+    "scan-claimable-utxos": "Claimable private funds scan",
+    "withdraw-encrypted-to-public-balance": "Withdraw private balance",
+  } satisfies Record<UmbraOperationKind, string>;
+
+  const rows = [
+    { label: "Action", value: titleByOperation[summary.operationKind] },
+    { label: "Asset", value: summary.asset },
+    { label: "Amount", value: summary.amount },
+    { label: "Mint", value: summary.mintAddress },
+    { label: "Destination", value: summary.destinationAddress },
+    { label: "Wallet", value: summary.requester },
+  ];
+
+  return {
+    expiresAt: summary.expiresAt,
+    rows,
+    signingMode:
+      summary.intentKind === "transaction" ? "Transaction approval" : "Message approval",
+    title: titleByOperation[summary.operationKind],
+    walletPrompt: "Wallet approval",
+  };
 }
 
 export function validateUmbraOperationApprovalSummary(

@@ -662,6 +662,24 @@ scripts/check-vanta-umbra-operation-summary-builders.mjs
 npm run umbra:operation-summary-builders-check
 ```
 
+The Umbra operation approval display formatter is:
+
+```text
+src/privacy/umbraOperations.ts
+```
+
+It turns raw operation approval summaries into display-safe titles, rows, signing mode, and wallet prompt copy for user-facing review surfaces.
+
+The Umbra operation approval display command is:
+
+```text
+scripts/check-vanta-umbra-operation-summary-display.mjs
+```
+
+```bash
+npm run umbra:operation-summary-display-check
+```
+
 The frozen live wallet send/sign inventory is:
 
 ```text
