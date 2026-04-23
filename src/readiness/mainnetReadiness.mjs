@@ -22,11 +22,6 @@ const blockers = [
     summary: "Require browser simulation and explicit wallet approval before any real transaction signature.",
   },
   {
-    id: "mainnet-deployment-runbook",
-    severity: "high",
-    summary: "Publish checked deployment, rollback, monitoring, backup, and incident-response runbooks.",
-  },
-  {
     id: "abuse-rate-limit-observability",
     severity: "high",
     summary: "Implement the checked abuse/observability contract with production rate limits, metrics, alerts, audit logs, and operator dashboards.",
@@ -114,6 +109,7 @@ const requiredCommands = [
   "npm run mainnet:abuse-observability-check",
   "npm run ops:rate-limit-check",
   "npm run mainnet:production-service-setup-check",
+  "npm run mainnet:deployment-runbook-check",
   "npm run privacy-rail:contract-check",
   "npm run ops:safe-telemetry-check",
   "npm run mainnet:observability-sink-check",
@@ -173,7 +169,6 @@ const nextActions = [
   "Keep operator-skipped controls visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
   "Use provider-neutral production observability evidence, existing platform logs, or a future provider instead of Better Stack production monitors.",
   "Carry the Postgres-backed nullifier replay guard into the final deployed protocol enforcement layer.",
-  "Add a checked mainnet deployment runbook with rollback, monitoring, rate limits, and incident response.",
   "Replace every frozen live wallet send/sign call site with prepare, simulate, summary, wallet-backed gate validation, and wallet approval before expanding live signing paths.",
 ];
 

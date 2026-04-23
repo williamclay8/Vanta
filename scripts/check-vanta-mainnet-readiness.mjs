@@ -132,6 +132,10 @@ assert.ok(
   "Missing production service setup check command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:deployment-runbook-check"),
+  "Missing mainnet deployment runbook check command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run privacy-rail:contract-check"),
   "Missing privacy rail contract command.",
 );

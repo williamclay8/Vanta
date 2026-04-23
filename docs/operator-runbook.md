@@ -177,6 +177,15 @@ npm run mainnet:staging-smoke-evidence-check
 
 It lists the exact Doppler database secret names needed for Pay, Private Pool v2 operator storage, Private Pool v2 role-service storage, Strategy, and Operator control-plane storage. The migration evidence manifest records operator-reported/read-back schema application refs for the production database targets without storing raw URLs. The staging smoke evidence manifest records public `/health` checks for the current Render staging services only. These are not backup/restore, audit, legal/custody, production role-service smoke, or mainnet funds approval evidence.
 
+The checked deployment and rollback handoff is:
+
+```text
+docs/mainnet-deployment-runbook.md
+npm run mainnet:deployment-runbook-check
+```
+
+It records the ordered deployment flow, rollback references, monitoring/incident-response expectations, rate-limit checks, and the bounded no-real-funds production smoke refresh path without storing secrets, signed transactions, or private user inputs.
+
 The checked baseline Postgres migration is:
 
 ```text

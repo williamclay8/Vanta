@@ -82,6 +82,8 @@ const requiredPhrases = [
   "npm run mainnet:production-db-migration-apply",
   "ops/mainnet/production-migration-evidence.manifest.json",
   "npm run mainnet:production-migration-evidence-check",
+  "docs/mainnet-deployment-runbook.md",
+  "npm run mainnet:deployment-runbook-check",
   "ops/mainnet/staging-smoke-evidence.manifest.json",
   "npm run mainnet:staging-smoke-evidence-check",
   "ops/storage/postgres/001_vanta_mainnet_storage.sql",
