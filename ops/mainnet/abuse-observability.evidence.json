@@ -3,6 +3,8 @@
   "mainnetReady": false,
   "productionReady": false,
   "lastStatusRef": "npm run mainnet:abuse-observability-status-check",
+  "privatePoolV2RuntimeRef": "doppler run --config prd --project vanta -- npm run mainnet:abuse-observability-runtime-status-check",
+  "payRuntimeStatus": "staging-or-local-only",
   "contractRef": "npm run mainnet:abuse-observability-check",
   "safeTelemetryRef": "npm run ops:safe-telemetry-check",
   "rateLimitRef": "npm run ops:rate-limit-check",
@@ -11,6 +13,15 @@
   "operatorEventSinkKind": "noop-operator-event-sink",
   "operatorEventSinkProductionReady": false,
   "operatorEventSinkSource": "src/ops/vantaOperatorEventSink.mjs",
+  "privatePoolV2Runtime": {
+    "auditEventSinkKind": "postgres-operator-event-sink",
+    "operatorUrlRef": "VANTA_PRIVATE_POOL_V2_OPERATOR_URL",
+    "rateLimitPerMinute": 600,
+    "rateLimiter": "in-memory-per-process",
+    "runtimeMode": "remote-services",
+    "storageDurableStoreConfigured": true,
+    "storageKind": "postgres-jsonb-snapshot-store"
+  },
   "rateLimiterKind": "in-memory-rate-limiter",
   "rateLimiterProductionReady": false,
   "safeTelemetrySource": "src/ops/vantaSafeTelemetry.mjs",
@@ -33,6 +44,6 @@
     }
   ],
   "safety": "No provider API keys, webhook URLs, source tokens, bearer values, wallet keys, signed transaction material, or database URLs are stored in this evidence file.",
-  "deploymentTruth": "This evidence proves the current provider-neutral observability contract, safe telemetry source, narrow Pay and Private Pool v2 audit-event sink boundary, and rate-limit truth surfaces are recorded without claiming production observability is live.",
-  "nextOperatorAction": "Keep the abuse/observability status and evidence commands fresh while provider-backed log sink, dashboards, alerts, retention, and incident workflow evidence remain pending."
+  "deploymentTruth": "This evidence proves the current provider-neutral observability contract, safe telemetry source, narrow Pay audit-event sink boundary, and authenticated deployed Private Pool v2 operator audit-sink/rate-limit/storage truth without claiming production observability is live.",
+  "nextOperatorAction": "Keep the abuse/observability status, deployed runtime status, and evidence commands fresh while provider-backed log sink, dashboards, alerts, retention, and incident workflow evidence remain pending."
 }

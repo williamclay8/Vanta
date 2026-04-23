@@ -15,6 +15,11 @@ assert.equal(evidence.version, "vanta-production-abuse-observability-evidence-0.
 assert.equal(evidence.mainnetReady, false);
 assert.equal(evidence.productionReady, false);
 assert.equal(evidence.lastStatusRef, "npm run mainnet:abuse-observability-status-check");
+assert.equal(
+  evidence.privatePoolV2RuntimeRef,
+  "doppler run --config prd --project vanta -- npm run mainnet:abuse-observability-runtime-status-check",
+);
+assert.equal(evidence.payRuntimeStatus, "staging-or-local-only");
 assert.equal(evidence.contractRef, "npm run mainnet:abuse-observability-check");
 assert.equal(evidence.safeTelemetryRef, "npm run ops:safe-telemetry-check");
 assert.equal(evidence.rateLimitRef, "npm run ops:rate-limit-check");
@@ -23,6 +28,13 @@ assert.equal(evidence.observabilityProvider, "provider-neutral-skipped-by-operat
 assert.equal(evidence.operatorEventSinkKind, "noop-operator-event-sink");
 assert.equal(evidence.operatorEventSinkProductionReady, false);
 assert.equal(evidence.operatorEventSinkSource, "src/ops/vantaOperatorEventSink.mjs");
+assert.equal(evidence.privatePoolV2Runtime.auditEventSinkKind, "postgres-operator-event-sink");
+assert.equal(evidence.privatePoolV2Runtime.operatorUrlRef, "VANTA_PRIVATE_POOL_V2_OPERATOR_URL");
+assert.equal(evidence.privatePoolV2Runtime.rateLimitPerMinute, 600);
+assert.equal(evidence.privatePoolV2Runtime.rateLimiter, "in-memory-per-process");
+assert.equal(evidence.privatePoolV2Runtime.runtimeMode, "remote-services");
+assert.equal(evidence.privatePoolV2Runtime.storageDurableStoreConfigured, true);
+assert.equal(evidence.privatePoolV2Runtime.storageKind, "postgres-jsonb-snapshot-store");
 assert.equal(evidence.rateLimiterKind, "in-memory-rate-limiter");
 assert.equal(evidence.rateLimiterProductionReady, false);
 assert.equal(evidence.safeTelemetrySource, "src/ops/vantaSafeTelemetry.mjs");
@@ -71,6 +83,16 @@ assert.equal(
   packageJson.scripts["mainnet:abuse-observability-status-check"],
   "node scripts/print-vanta-production-abuse-observability-status.mjs --check",
   "package.json must expose mainnet:abuse-observability-status-check.",
+);
+assert.equal(
+  packageJson.scripts["mainnet:abuse-observability-runtime-status"],
+  "node scripts/print-vanta-production-abuse-observability-runtime-status.mjs",
+  "package.json must expose mainnet:abuse-observability-runtime-status.",
+);
+assert.equal(
+  packageJson.scripts["mainnet:abuse-observability-runtime-status-check"],
+  "node scripts/print-vanta-production-abuse-observability-runtime-status.mjs --check",
+  "package.json must expose mainnet:abuse-observability-runtime-status-check.",
 );
 assert.equal(
   packageJson.scripts["mainnet:abuse-observability-evidence-check"],

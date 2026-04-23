@@ -253,6 +253,12 @@ The sanitized production abuse/observability status surface is:
 scripts/print-vanta-production-abuse-observability-status.mjs
 ```
 
+The sanitized deployed runtime abuse/observability status surface is:
+
+```text
+scripts/print-vanta-production-abuse-observability-runtime-status.mjs
+```
+
 It records the current provider-neutral observability provider decision, the checked safe telemetry source, the checked operator-event sink source, the current in-memory rate-limit seam, and the current status of the Pay, Private Pool v2, Strategy, and Operator observability surfaces. It is intentionally not a claim that production observability is live.
 
 The production abuse/observability status commands are:
@@ -260,7 +266,18 @@ The production abuse/observability status commands are:
 ```bash
 npm run mainnet:abuse-observability-status
 npm run mainnet:abuse-observability-status-check
+npm run mainnet:abuse-observability-runtime-status
+npm run mainnet:abuse-observability-runtime-status-check
 ```
+
+The deployed runtime abuse/observability status command additionally records:
+
+- Pay remaining outside production runtime verification while it stays staging/local only
+- authenticated Private Pool v2 operator runtime truth for:
+  - audit-event sink kind
+  - rate limiter kind
+  - durable storage kind
+  - remote-services runtime mode
 
 The sanitized production abuse/observability evidence file is:
 
