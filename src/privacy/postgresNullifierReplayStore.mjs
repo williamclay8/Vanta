@@ -110,6 +110,26 @@ export function createPostgresNullifierReplayStore({ client, tableName = "pool_n
     return normalizeRow(result.rows[0]);
   }
 
+  async function updateAccepted({
+    claimReceiptId,
+    context,
+    nullifier,
+    requestId,
+  }) {
+    await ensureTable();
+    const result = await client.query(
+      `
+        UPDATE ${tableName}
+        SET claim_receipt_id = $4, status = 'accepted'
+        WHERE context = $1 AND nullifier = $2 AND request_id = $3
+        RETURNING context, nullifier, request_id, asset_id, spent_at_slot, claim_receipt_id, status
+      `,
+      [context, nullifier, requestId, claimReceiptId],
+    );
+
+    return normalizeRow(result.rows[0]);
+  }
+
   return {
     kind: "postgres-nullifier-replay-store",
     productionReady: false,
@@ -220,6 +240,36 @@ export function createPostgresNullifierReplayStore({ client, tableName = "pool_n
         existing: existingRequest,
         reason: "conflicting-durable-request-replay",
         replay: true,
+      };
+    },
+
+    async markAccepted({
+      claimReceiptId: rawClaimReceiptId,
+      context: rawContext,
+      nullifier: rawNullifier,
+      requestId: rawRequestId,
+    }) {
+      const claimReceiptId = requireText(rawClaimReceiptId, "claimReceiptId");
+      const context = requireText(rawContext, "context");
+      const nullifier = requireText(rawNullifier, "nullifier");
+      const requestId = requireText(rawRequestId, "requestId");
+      const updated = await updateAccepted({
+        claimReceiptId,
+        context,
+        nullifier,
+        requestId,
+      });
+
+      if (!updated) {
+        throw new Error(
+          `Vanta durable nullifier store cannot accept missing reservation for ${context}:${nullifier}.`,
+        );
+      }
+
+      return {
+        accepted: true,
+        reason: "durable-nullifier-acceptance-recorded",
+        record: updated,
       };
     },
 

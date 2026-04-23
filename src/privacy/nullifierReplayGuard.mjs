@@ -143,6 +143,42 @@ function createNullifierReplayGuardWithStorage({ initialRecords = [], now = () =
       };
     },
 
+    markAccepted({
+      claimReceiptId: rawClaimReceiptId,
+      context: rawContext,
+      nullifier: rawNullifier,
+      requestId: rawRequestId,
+    }) {
+      const claimReceiptId = requireText(rawClaimReceiptId, "claimReceiptId");
+      const context = requireText(rawContext, "context");
+      const nullifier = requireText(rawNullifier, "nullifier");
+      const requestId = requireText(rawRequestId, "requestId");
+      const key = replayKey({ context, nullifier });
+      const existing = records.get(key);
+
+      if (!existing) {
+        throw new Error(`Vanta nullifier replay guard cannot accept missing reservation for ${context}:${nullifier}.`);
+      }
+
+      if (existing.requestId !== requestId) {
+        throw new Error(`Vanta nullifier replay guard request mismatch for ${context}:${nullifier}.`);
+      }
+
+      const nextRecord = {
+        ...existing,
+        claimReceiptId,
+        status: "accepted",
+      };
+      records.set(key, nextRecord);
+      persist();
+
+      return {
+        accepted: true,
+        reason: "nullifier-acceptance-recorded",
+        record: nextRecord,
+      };
+    },
+
     snapshot() {
       return [...records.values()];
     },

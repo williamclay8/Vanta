@@ -358,6 +358,10 @@ try {
     "Expected operator status to expose configured durable storage.",
   );
   assert(
+    status.parsed?.nullifierReplayGuard?.acceptedNullifierCount === 0,
+    "Expected no accepted nullifiers before claim acceptance.",
+  );
+  assert(
     status.parsed?.settlementPolicy?.failClosedValidation === true,
     "Expected fail-closed settlement validation policy.",
   );
@@ -449,6 +453,18 @@ try {
   assert(claimReceipt.ok, claimReceipt.text || "Expected claim proof receipt.");
   assert(claimReceipt.parsed?.receipt?.intent === "claim", "Expected claim receipt intent.");
   console.log("private-pool-v2 http claim proof: PASS");
+
+  const acceptedStatus = await requestJson("/state/private-pool-v2-status");
+  assert(acceptedStatus.ok, acceptedStatus.text || "Expected operator status after claim acceptance.");
+  assert(
+    acceptedStatus.parsed?.nullifierReplayGuard?.acceptedNullifierCount === 1,
+    "Expected accepted nullifier count to reflect recorded claim receipt acceptance.",
+  );
+  assert(
+    acceptedStatus.parsed?.nullifierReplayGuard?.reservedNullifierCount === 0,
+    "Expected no pending reserved nullifiers after claim acceptance.",
+  );
+  console.log("private-pool-v2 http accepted nullifier status: PASS");
 
   const replay = await requestJson("/private-pool-v2/proofs", {
     body: encodePayload({ proof: fixture.claimProof, request: fixture.claimRequest }),

@@ -37,6 +37,24 @@ function createFakeClient() {
         return { rows: [row] };
       }
 
+      if (sql.includes("SET claim_receipt_id = $4, status = 'accepted'")) {
+        const [context, nullifier, requestId, claimReceiptId] = params;
+        const row = rows.find(
+          (candidate) =>
+            candidate.context === context &&
+            candidate.nullifier === nullifier &&
+            candidate.request_id === requestId,
+        );
+
+        if (!row) {
+          return { rows: [] };
+        }
+
+        row.claim_receipt_id = claimReceiptId;
+        row.status = "accepted";
+        return { rows: [row] };
+      }
+
       if (sql.includes("WHERE context = $1 AND nullifier = $2")) {
         const [context, nullifier] = params;
         return {
@@ -115,6 +133,21 @@ const preflight = await store.check({
 assert.equal(preflight.accepted, false);
 assert.equal(preflight.mutated, false);
 assert.equal(preflight.reason, "conflicting-durable-nullifier-replay");
-assert.equal((await store.snapshot()).length, 1);
+
+const accepted = await store.markAccepted({
+  claimReceiptId: "proof_receipt_001",
+  context: "private-pool-v2-claim",
+  nullifier: "nf_prod_001",
+  requestId: "claim_001",
+});
+assert.equal(accepted.accepted, true);
+assert.equal(accepted.reason, "durable-nullifier-acceptance-recorded");
+assert.equal(accepted.record.claimReceiptId, "proof_receipt_001");
+assert.equal(accepted.record.status, "accepted");
+
+const snapshot = await store.snapshot();
+assert.equal(snapshot.length, 1);
+assert.equal(snapshot[0].claimReceiptId, "proof_receipt_001");
+assert.equal(snapshot[0].status, "accepted");
 
 console.log("Vanta Postgres nullifier replay store check: PASS");

@@ -871,9 +871,29 @@ async function reserveAcceptedClaimNullifier(request, requestId) {
   return decision;
 }
 
+async function recordAcceptedClaimNullifier(request, requestId, claimReceiptId) {
+  if (request.intent !== "claim") {
+    return null;
+  }
+
+  const nullifier = readProofRequestInput(request, "nullifier:");
+  if (!nullifier) {
+    throw new Error("Accepted claim proof requires a nullifier replay guard input.");
+  }
+
+  return await nullifierReplayGuard.markAccepted({
+    claimReceiptId,
+    context: "private-pool-v2-claim",
+    nullifier,
+    requestId,
+  });
+}
+
 async function statusPayload() {
   const readiness = runtime.readiness();
   const guardedNullifiers = await nullifierReplayGuard.snapshot();
+  const acceptedGuardedNullifiers = guardedNullifiers.filter((record) => record.status === "accepted");
+  const reservedGuardedNullifiers = guardedNullifiers.filter((record) => record.status !== "accepted");
 
   return {
     contractVersion: runtime.contractVersion,
@@ -898,11 +918,13 @@ async function statusPayload() {
       productionReady: false,
     },
     nullifierReplayGuard: {
+      acceptedNullifierCount: acceptedGuardedNullifiers.length,
       guardedNullifierCount: guardedNullifiers.length,
       mode: databaseUrl
         ? "postgres-durable-claim-preflight-and-accepted-reservation"
         : "claim-preflight-and-accepted-reservation",
       productionReady: false,
+      reservedNullifierCount: reservedGuardedNullifiers.length,
       storageMode: nullifierReplayGuard.storageMode,
     },
     observability: {
@@ -1064,11 +1086,10 @@ async function proveAndAcceptPayWithdrawalSettlement(body) {
     quote,
   });
   const proof = await runtime.prover.prove(request);
-  await reserveAcceptedClaimNullifier(
-    request,
-    hashHex("pay-withdrawal-claim", merchantId, destination, amount, asset, sourceCommitment.commitment),
-  );
+  const requestId = hashHex("pay-withdrawal-claim", merchantId, destination, amount, asset, sourceCommitment.commitment);
+  await reserveAcceptedClaimNullifier(request, requestId);
   const proofReceipt = await runtime.verifierRegistry.acceptProof({ proof, request });
+  await recordAcceptedClaimNullifier(request, requestId, proofReceipt.receiptId);
   await persistReceipts(request);
 
   const privateExitReceipt = {
@@ -1214,11 +1235,10 @@ async function proveAndAcceptProtocolSettlement(body) {
   }
 
   const proof = await runtime.prover.prove(request);
-  await reserveAcceptedClaimNullifier(
-    request,
-    hashHex("protocol-claim", action, settlementId, destination, amount, asset),
-  );
+  const requestId = hashHex("protocol-claim", action, settlementId, destination, amount, asset);
+  await reserveAcceptedClaimNullifier(request, requestId);
   const proofReceipt = await runtime.verifierRegistry.acceptProof({ proof, request });
+  await recordAcceptedClaimNullifier(request, requestId, proofReceipt.receiptId);
   await persistReceipts(request);
 
   const protocolSettlementReceipt = {
@@ -1320,6 +1340,7 @@ const server = createServer(async (request, response) => {
         proof: toProofResult(body.proof),
         request: proofRequest,
       });
+      await recordAcceptedClaimNullifier(proofRequest, requestId, receipt.receiptId);
       await persistReceipts(proofRequest);
       sendJson(response, 200, {
         kind: "Private Pool V2 proof receipt",
