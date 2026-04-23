@@ -34,6 +34,7 @@ npm run wallet:transaction-safety-check
 npm run wallet:live-send-inventory-check
 npm run wallet:safe-send-boundary-check
 npm run wallet:safe-send-hook-check
+npm run shield:safe-send-adoption-check
 npm run mainnet:secret-handling-check
 npm run audit:package-check
 ```
@@ -67,6 +68,7 @@ npm run wallet:transaction-safety-check
 npm run wallet:live-send-inventory-check
 npm run wallet:safe-send-boundary-check
 npm run wallet:safe-send-hook-check
+npm run shield:safe-send-adoption-check
 npm run mainnet:secret-handling-check
 npm run audit:package-check
 ```
@@ -536,7 +538,7 @@ The frozen live wallet send/sign inventory is:
 src/readiness/walletLiveSendInventory.mjs
 ```
 
-It records the current Shield, Send, Swap, Unshield, and Umbra adapter call sites that still require replacement with prepare, simulate, safety summary, wallet-backed gate validation, wallet approval, and prepared transaction submission. The inventory is deliberately not a readiness claim; it is a guardrail to keep every live signing path visible until replaced.
+It records the current Shield, Send, Swap, Unshield, and Umbra adapter call sites that still require replacement with prepare, simulate, safety summary, wallet-backed gate validation, wallet approval, and prepared transaction submission. It also records Shield call sites that have adopted the safe-send hook so reviewers can see which live-send paths have moved. The inventory is deliberately not a readiness claim; it is a guardrail to keep every live signing path visible until replaced.
 
 The live wallet send inventory command is:
 
@@ -570,6 +572,20 @@ The safe-send hook command is:
 
 ```bash
 npm run wallet:safe-send-hook-check
+```
+
+The Shield safe-send adoption check is:
+
+```text
+scripts/check-vanta-shield-safe-send-adoption.mjs
+```
+
+It verifies Shield no longer uses raw generic `useSendTransaction` sends for native SOL, shield-state, or public-route transactions, and that those paths route through `useVantaSafeSendTransaction` with summary instructions and transaction fingerprints.
+
+The Shield safe-send adoption command is:
+
+```bash
+npm run shield:safe-send-adoption-check
 ```
 
 The browser-backed safe-environment signing gate is:

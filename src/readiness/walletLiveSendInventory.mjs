@@ -54,15 +54,17 @@ export function createWalletLiveSendInventory() {
       {
         currentCallSites: [
           tx("supportedToken.send({", "SPL token shield transfer"),
-          tx("nativeSolShieldTransaction.send({", "native SOL shield transfer"),
-          tx("stateTransaction.send({", "shield state transition"),
-          tx("publicRouteTransaction.send({ instructions })", "public shield route transfer"),
+        ],
+        adoptedCallSites: [
+          tx("const nativeSolShieldTransaction = useVantaSafeSendTransaction();", "native SOL shield transfer"),
+          tx("const stateTransaction = useVantaSafeSendTransaction();", "shield state transition"),
+          tx("const publicRouteTransaction = useVantaSafeSendTransaction();", "public shield route transfer"),
         ],
         file: "src/pages/ShieldPage.tsx",
         page: "Shield",
         replacement:
-          "Build a prepared transaction, simulate it, show the safety summary, validate the wallet-backed simulation gate, then request wallet approval.",
-        status: "requires-wallet-backed-simulation-gate",
+          "Keep the SPL token transfer call site visible, and keep native SOL, state, and public-route Shield transactions behind the safe-send hook that prepares, simulates, summarizes, gates, and requests wallet approval.",
+        status: "partial-safe-send-adopted",
       },
       {
         currentCallSites: [

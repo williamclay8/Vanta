@@ -193,6 +193,10 @@ assert.ok(
   "Missing wallet safe send hook command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run shield:safe-send-adoption-check"),
+  "Missing Shield safe-send adoption command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:secret-handling-check"),
   "Missing secret handling contract command.",
 );

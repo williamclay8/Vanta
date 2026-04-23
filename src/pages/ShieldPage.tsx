@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSendTransaction } from "@solana/react-hooks";
 import { isBetaMode } from "@/config/deploymentMode";
 import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
 import { useWalletState } from "@/data/context/WalletContext";
@@ -28,6 +27,7 @@ import {
   VANTA_NATIVE_SOL_ASSET_ID,
 } from "@/solana/vantaShieldState";
 import { recordCanonicalShieldFromLiveShield } from "@/zk/liveShieldBridge";
+import { useVantaSafeSendTransaction } from "@/wallet/useVantaSafeSendTransaction";
 
 type ShieldPageProps = {
   dashboard?: boolean;
@@ -166,8 +166,8 @@ export function ShieldPage(_props: ShieldPageProps) {
     ? shieldAccount?.shieldedSolBalance ?? 0
     : shieldedBalance;
 
-  const publicRouteTransaction = useSendTransaction();
-  const nativeSolShieldTransaction = useSendTransaction();
+  const publicRouteTransaction = useVantaSafeSendTransaction();
+  const nativeSolShieldTransaction = useVantaSafeSendTransaction();
   const nativeSolShieldWait = useRealtimeSignatureProgress(
     nativeSolShieldTransaction.signature ?? undefined,
     {
@@ -182,7 +182,7 @@ export function ShieldPage(_props: ShieldPageProps) {
       disabled: !publicRouteTransaction.signature,
     },
   );
-  const stateTransaction = useSendTransaction();
+  const stateTransaction = useVantaSafeSendTransaction();
   const stateSignatureWait = useRealtimeSignatureProgress(
     stateTransaction.signature ?? undefined,
     {
@@ -249,12 +249,25 @@ export function ShieldPage(_props: ShieldPageProps) {
     setPendingProtocolSettlement({ capability, routeEvidence: null });
     setStatus("awaiting_wallet_confirmation");
 
+    const instructions = buildNativeSolShieldTransferInstructions({
+      amount: amountDisplay,
+      owner: walletAddress,
+      vaultOwner: selectedShieldAsset.vaultOwner,
+    });
+
     await nativeSolShieldTransaction.send({
-      instructions: buildNativeSolShieldTransferInstructions({
-        amount: amountDisplay,
-        owner: walletAddress,
-        vaultOwner: selectedShieldAsset.vaultOwner,
-      }),
+      amount: amountDisplay,
+      asset: "SOL",
+      cluster: "devnet",
+      connectedWalletAddress: walletAddress,
+      estimatedFees: "wallet-estimated",
+      feePayer: walletAddress,
+      humanApprovedSummary: true,
+      instructions,
+      label: "shield-native-sol",
+      recipient: selectedShieldAsset.vaultOwner,
+      summaryInstructions: ["native-sol-shield-transfer"],
+      transactionFingerprint: `shield-native-sol:${walletAddress}:${selectedShieldAsset.vaultOwner}:${amountDisplay}`,
     });
   }
 
@@ -492,31 +505,44 @@ export function ShieldPage(_props: ShieldPageProps) {
       accountKeys: [mintAddress, owner, pendingDepositSignature, vaultOwner],
       action: "shield_state",
     })
-      .then((priorityFeeInstructions) =>
-        stateTransaction.send({
-          instructions: [
-            ...priorityFeeInstructions,
-            pendingShieldAsset === "SOL"
-              ? createNativeSolShieldMemoInstruction({
-                  amount: pendingShieldAmountDisplay ?? amount,
-                  assetId: VANTA_NATIVE_SOL_ASSET_ID,
-                  createdAt: Date.now(),
-                  depositSignature: pendingDepositSignature,
-                  owner,
-                  vaultOwner,
-                })
-              : createShieldMemoInstruction({
-                  amount: pendingShieldAmountDisplay ?? amount,
-                  asset: selectedShieldAsset.assetKey,
-                  createdAt: Date.now(),
-                  depositSignature: pendingDepositSignature,
-                  mintAddress,
-                  owner,
-                  vaultOwner,
-                }),
-          ],
-        }),
-      )
+      .then((priorityFeeInstructions) => {
+        const instructions = [
+          ...priorityFeeInstructions,
+          pendingShieldAsset === "SOL"
+            ? createNativeSolShieldMemoInstruction({
+                amount: pendingShieldAmountDisplay ?? amount,
+                assetId: VANTA_NATIVE_SOL_ASSET_ID,
+                createdAt: Date.now(),
+                depositSignature: pendingDepositSignature,
+                owner,
+                vaultOwner,
+              })
+            : createShieldMemoInstruction({
+                amount: pendingShieldAmountDisplay ?? amount,
+                asset: selectedShieldAsset.assetKey,
+                createdAt: Date.now(),
+                depositSignature: pendingDepositSignature,
+                mintAddress,
+                owner,
+                vaultOwner,
+              }),
+        ];
+
+        return stateTransaction.send({
+          amount: pendingShieldAmountDisplay ?? amount,
+          asset: selectedShieldAsset.assetKey,
+          cluster: "devnet",
+          connectedWalletAddress: walletAddress ?? owner,
+          estimatedFees: "wallet-estimated",
+          feePayer: walletAddress ?? owner,
+          humanApprovedSummary: true,
+          instructions,
+          label: "shield-state",
+          recipient: vaultOwner,
+          summaryInstructions: ["shield-state-memo"],
+          transactionFingerprint: `shield-state:${owner}:${vaultOwner}:${pendingDepositSignature}`,
+        });
+      })
       .catch((error) => {
         setStatus("failed");
         setPendingShieldAmount(null);
@@ -716,7 +742,20 @@ export function ShieldPage(_props: ShieldPageProps) {
       });
       setStatus("routing_public_swap");
 
-      await publicRouteTransaction.send({ instructions });
+      await publicRouteTransaction.send({
+        amount,
+        asset: selectedSourceAsset.symbol,
+        cluster: "devnet",
+        connectedWalletAddress: walletAddress!,
+        estimatedFees: "wallet-estimated",
+        feePayer: walletAddress!,
+        humanApprovedSummary: true,
+        instructions,
+        label: "shield-public-route",
+        recipient: selectedShieldAsset.vaultOwner,
+        summaryInstructions: ["shield-public-route-swap"],
+        transactionFingerprint: `shield-public-route:${walletAddress}:${selectedSourceAsset.id}:${selectedShieldAsset.assetKey}:${amount}`,
+      });
     } catch (error) {
       setStatus("failed");
       setFlowError(toErrorMessage(error, "Shield request was not approved."));
