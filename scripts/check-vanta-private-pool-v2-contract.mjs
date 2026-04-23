@@ -218,7 +218,9 @@ const requiredTextFiles = [
     path: "scripts/print-vanta-private-pool-v2-status.mjs",
     markers: [
       "Private Pool V2 status",
+      "nullifierReplayGuard",
       "protocolActionProofModes",
+      "receiptCount",
       "settlementPolicy",
       "verifierRegistry",
       "private-pool-v2:verify",
@@ -272,7 +274,7 @@ const requiredTextFiles = [
     path: "scripts/check-vanta-private-pool-v2-operator-http.mjs",
     markers: [
       "private-pool-v2 http status: PASS",
-      "private-pool-v2 production store guard: PASS",
+      "private-pool-v2 production database guard: PASS",
       "Expected operator status to be explicit about production readiness.",
       "Expected operator status to expose configured durable storage.",
       "Expected production durable-store settlement policy.",

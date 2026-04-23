@@ -79,17 +79,33 @@ try {
   const { VANTA_PRIVATE_POOL_V2_SETTLEMENT_POLICY } = await import(
     pathToFileURL(join(tempJsDir, "privatePoolV2SettlementPolicy.js")).href
   );
+  const { createNullifierReplayGuard } = await import(
+    pathToFileURL(resolve(repoRoot, "src/privacy/nullifierReplayGuard.mjs")).href
+  );
   const runtime = createVantaPrivatePoolV2MockRuntime();
   const readiness = runtime.readiness();
+  const nullifierReplayGuard = createNullifierReplayGuard();
+  const guardedNullifiers = nullifierReplayGuard.snapshot();
+  const acceptedGuardedNullifiers = guardedNullifiers.filter((record) => record.status === "accepted");
+  const reservedGuardedNullifiers = guardedNullifiers.filter((record) => record.status !== "accepted");
   const result = {
     contractVersion: runtime.contractVersion,
     kind: "Private Pool V2 status",
     network: runtime.network,
+    receiptCount: runtime.verifierRegistry?.receipts?.length ?? 0,
     ok: readiness.ready,
     productionReady: false,
     protocolActionProofModes,
     readiness,
     settlementPolicy: VANTA_PRIVATE_POOL_V2_SETTLEMENT_POLICY,
+    nullifierReplayGuard: {
+      acceptedNullifierCount: acceptedGuardedNullifiers.length,
+      guardedNullifierCount: guardedNullifiers.length,
+      mode: "claim-preflight-and-accepted-reservation",
+      productionReady: false,
+      reservedNullifierCount: reservedGuardedNullifiers.length,
+      storageMode: nullifierReplayGuard.storageMode,
+    },
     supportedAssets: runtime.assets.map((asset) => ({
       id: asset.id,
       mintAddress: asset.mintAddress,
@@ -123,9 +139,13 @@ try {
     console.log(`- network: ${result.network}`);
     console.log(`- ready: ${String(result.ok)}`);
     console.log(`- productionReady: ${String(result.productionReady)}`);
+    console.log(`- receiptCount: ${result.receiptCount}`);
     console.log(`- settlementPolicy: ${result.settlementPolicy.version}`);
     console.log(
       `- protocolActionProofModes: shield=${result.protocolActionProofModes.shield}, send=${result.protocolActionProofModes.send}, swap=${result.protocolActionProofModes.swap}, unshield=${result.protocolActionProofModes.unshield}`,
+    );
+    console.log(
+      `- nullifierReplayGuard: mode=${result.nullifierReplayGuard.mode}, storage=${result.nullifierReplayGuard.storageMode}, accepted=${result.nullifierReplayGuard.acceptedNullifierCount}, reserved=${result.nullifierReplayGuard.reservedNullifierCount}`,
     );
     console.log(`- assets: ${result.supportedAssets.map((asset) => asset.symbol).join(", ")}`);
     for (const [surface, status] of Object.entries(result.surfaces)) {
