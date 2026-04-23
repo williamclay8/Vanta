@@ -39,6 +39,7 @@
     "mainnet:private-rail-route-status-check": "node scripts/check-vanta-production-private-rail-route-status.mjs",
     "mainnet:private-rail-route-health": "node scripts/print-vanta-production-private-rail-route-health.mjs",
     "mainnet:private-rail-route-health-check": "node scripts/print-vanta-production-private-rail-route-health.mjs --check-public",
+    "mainnet:private-rail-route-health-auth": "node scripts/print-vanta-production-private-rail-route-health.mjs --require-auth",
     "mainnet:private-rail-route-health-evidence-check": "node scripts/check-vanta-private-pool-v2-route-health-evidence.mjs",
     "mainnet:private-pool-v2-production-smoke-check": "node scripts/check-vanta-private-pool-v2-production-smoke-template.mjs",
     "mainnet:private-pool-v2-production-smoke-env": "node scripts/check-vanta-private-pool-v2-production-smoke-env.mjs",

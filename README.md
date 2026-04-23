@@ -188,6 +188,7 @@ npm run nullifier:replay-guard-check
 npm run mainnet:deployment-manifest-check
 npm run mainnet:private-rail-route-status-check
 npm run mainnet:private-rail-route-health
+npm run mainnet:private-rail-route-health-auth
 npm run mainnet:private-rail-route-health-evidence-check
 npm run wallet:signing-safety-check
 npm run wallet:transaction-safety-check

@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 const manifestPath = new URL("../ops/mainnet/private-pool-v2-services.manifest.json", import.meta.url);
 const requireAuth = process.argv.includes("--require-auth");
 const checkPublic = process.argv.includes("--check-public") || requireAuth;
+const authShellCommand =
+  "doppler run --config prd --project vanta -- node scripts/print-vanta-production-private-rail-route-health.mjs --require-auth";
 
 const roleConfig = {
   indexer: {
@@ -173,15 +175,26 @@ async function run() {
   const authenticatedReadinessOk = services.every(
     (service) => service.authTokenStatus === "set" && service.readiness.ok,
   );
+  const missingAuthTokenEnvs = services
+    .filter((service) => service.authTokenStatus !== "set")
+    .map((service) => service.authTokenEnv);
   const ok = checkPublic ? publicHealthOk && (!requireAuth || authenticatedReadinessOk) : true;
 
   console.log(
     JSON.stringify(
       {
+        authenticatedReadinessCommand: authShellCommand,
         authenticatedReadinessOk,
         checkedAt: new Date().toISOString(),
         checkMode: requireAuth ? "require-auth" : checkPublic ? "check-public" : "status-only",
         mainnetReady: false,
+        missingAuthTokenEnvs,
+        nextAction:
+          missingAuthTokenEnvs.length > 0
+            ? `Load the production role auth tokens in a secret-manager shell and rerun: ${authShellCommand}`
+            : requireAuth
+              ? "Authenticated readiness was attempted."
+              : "Run the authenticated route-health command from a secret-manager shell when you want readiness validation.",
         ok,
         productionReady: false,
         publicHealthOk,
