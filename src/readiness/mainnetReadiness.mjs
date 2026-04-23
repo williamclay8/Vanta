@@ -127,6 +127,7 @@ const requiredCommands = [
   "npm run wallet:fresh-wallet-browser-check",
   "npm run wallet:transaction-safety-check",
   "npm run wallet:backed-simulation-check",
+  "npm run wallet:live-send-inventory-check",
   "npm run mainnet:secret-handling-check",
   "npm run mainnet:approval-gates-check",
   "npm run mainnet:approval-gates-evidence-check",
@@ -150,7 +151,7 @@ const nextActions = [
   "Use provider-neutral production observability evidence, existing platform logs, or a future provider instead of Better Stack production monitors.",
   "Carry the Postgres-backed nullifier replay guard into the final deployed protocol enforcement layer.",
   "Add a checked mainnet deployment runbook with rollback, monitoring, rate limits, and incident response.",
-  "Add wallet-backed transaction simulation surfaces before any live signing path.",
+  "Replace every frozen live wallet send/sign call site with prepare, simulate, summary, wallet-backed gate validation, and wallet approval before expanding live signing paths.",
 ];
 
 export function createVantaMainnetReadinessSnapshot() {

@@ -189,6 +189,7 @@ npm run mainnet:deployment-manifest-check
 npm run wallet:signing-safety-check
 npm run wallet:transaction-safety-check
 npm run wallet:backed-simulation-check
+npm run wallet:live-send-inventory-check
 npm run mainnet:secret-handling-check
 npm run audit:package-check
 npm run private-core:check
@@ -329,6 +330,7 @@ npm run mainnet:deployment-manifest-check
 npm run wallet:signing-safety-check
 npm run wallet:transaction-safety-check
 npm run wallet:backed-simulation-check
+npm run wallet:live-send-inventory-check
 npm run mainnet:secret-handling-check
 npm run audit:package-check
 npm run pay-tab:copy-check

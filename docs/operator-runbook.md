@@ -31,6 +31,7 @@ npm run mainnet:deployment-manifest-check
 npm run private-pool-v2:service-network-check
 npm run wallet:signing-safety-check
 npm run wallet:transaction-safety-check
+npm run wallet:live-send-inventory-check
 npm run mainnet:secret-handling-check
 npm run audit:package-check
 ```
@@ -61,6 +62,7 @@ npm run nullifier:replay-guard-check
 npm run mainnet:deployment-manifest-check
 npm run wallet:signing-safety-check
 npm run wallet:transaction-safety-check
+npm run wallet:live-send-inventory-check
 npm run mainnet:secret-handling-check
 npm run audit:package-check
 ```
@@ -522,6 +524,20 @@ The wallet-backed simulation gate command is:
 
 ```bash
 npm run wallet:backed-simulation-check
+```
+
+The frozen live wallet send/sign inventory is:
+
+```text
+src/readiness/walletLiveSendInventory.mjs
+```
+
+It records the current Shield, Send, Swap, Unshield, and Umbra adapter call sites that still require replacement with prepare, simulate, safety summary, wallet-backed gate validation, wallet approval, and prepared transaction submission. The inventory is deliberately not a readiness claim; it is a guardrail to keep every live signing path visible until replaced.
+
+The live wallet send inventory command is:
+
+```bash
+npm run wallet:live-send-inventory-check
 ```
 
 The browser-backed safe-environment signing gate is:

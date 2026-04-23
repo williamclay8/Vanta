@@ -181,6 +181,10 @@ assert.ok(
   "Missing wallet-backed transaction simulation command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run wallet:live-send-inventory-check"),
+  "Missing wallet live send inventory command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:secret-handling-check"),
   "Missing secret handling contract command.",
 );

@@ -1,0 +1,59 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { strict as assert } from "node:assert";
+import { createWalletLiveSendInventory } from "../src/readiness/walletLiveSendInventory.mjs";
+
+const repoRoot = resolve(import.meta.dirname, "..");
+const inventory = createWalletLiveSendInventory();
+
+assert.equal(inventory.version, "vanta-wallet-live-send-inventory-0.1");
+assert.equal(inventory.mainnetReady, false);
+assert.equal(inventory.productionReady, false);
+assert.equal(inventory.replacementRequired, true);
+assert.deepEqual(inventory.requiredReplacementSequence, [
+  "prepare-transaction",
+  "simulate-transaction",
+  "show-transaction-safety-summary",
+  "validate-wallet-backed-simulation-gate",
+  "request-wallet-approval",
+  "submit-prepared-transaction",
+]);
+assert.ok(inventory.actionSurfaces.length >= 4, "Expected protocol tab wallet action inventory.");
+
+const surfacesByPage = new Map(inventory.actionSurfaces.map((surface) => [surface.page, surface]));
+for (const page of ["Shield", "Send", "Swap", "Unshield"]) {
+  assert.ok(surfacesByPage.has(page), `Missing ${page} live-send inventory.`);
+}
+
+for (const surface of inventory.actionSurfaces) {
+  assert.equal(surface.status, "requires-wallet-backed-simulation-gate", `${surface.page} must stay marked pending.`);
+  assert.ok(surface.file.startsWith("src/"), `${surface.page} inventory must use repo-relative source files.`);
+  assert.ok(surface.currentCallSites.length > 0, `${surface.page} must list current call sites.`);
+  assert.ok(surface.replacement.includes("simulate"), `${surface.page} replacement guidance must include simulation.`);
+
+  const source = readFileSync(resolve(repoRoot, surface.file), "utf8");
+  for (const callSite of surface.currentCallSites) {
+    assert.ok(source.includes(callSite.snippet), `${surface.page} missing frozen call site: ${callSite.snippet}`);
+    assert.ok(
+      ["transaction-signature", "message-intent-signature", "wallet-adapter-boundary"].includes(callSite.signatureKind),
+      `${surface.page} call site has unknown signature kind: ${callSite.signatureKind}`,
+    );
+  }
+}
+
+const transactionCallSites = inventory.actionSurfaces.flatMap((surface) =>
+  surface.currentCallSites.filter((callSite) => callSite.signatureKind === "transaction-signature"),
+);
+const messageIntentCallSites = inventory.actionSurfaces.flatMap((surface) =>
+  surface.currentCallSites.filter((callSite) => callSite.signatureKind === "message-intent-signature"),
+);
+
+assert.ok(transactionCallSites.length >= 10, "Expected frozen transaction send call sites.");
+assert.ok(messageIntentCallSites.length >= 3, "Expected frozen signed intent call sites.");
+assert.ok(
+  inventory.messageIntentPolicy.requiredSequence.includes("typed-intent-summary") &&
+    inventory.messageIntentPolicy.requiredSequence.includes("wallet-message-approval"),
+  "Message-intent policy must require a typed summary and wallet approval.",
+);
+
+console.log("Vanta wallet live send inventory check: PASS");
