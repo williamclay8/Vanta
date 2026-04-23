@@ -19,7 +19,7 @@ const blockers = [
   {
     id: "wallet-backed-browser-signing-safety",
     severity: "critical",
-    summary: "Keep the wallet-signing status/evidence surface fresh while requiring browser simulation and explicit wallet approval before any real transaction signature.",
+    summary: "Keep the wallet-signing status/evidence surface fresh while Shield, Send, Swap, and Unshield remain frozen behind safe-send or typed message-intent boundaries, browser simulation, and explicit wallet approval before any real transaction signature.",
   },
   {
     id: "abuse-rate-limit-observability",
@@ -179,7 +179,7 @@ const nextActions = [
   "Keep operator-skipped controls visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
   "Keep the abuse/observability status/evidence surface fresh while the deployed Private Pool v2 operator still reports the in-memory per-process rate limiter instead of the preferred Postgres durable shared window, and while using provider-neutral production observability evidence, existing platform logs, or a future provider instead of Better Stack production monitors.",
   "Keep the deployed operator replay-status evidence, the Postgres-backed nullifier replay guard, role-service replay verification, and production smoke replay simulation fresh while carrying the Postgres-backed nullifier replay guard into the final protocol enforcement layer.",
-  "Keep the wallet-signing status/evidence surface fresh while replacing every frozen live wallet send/sign call site with prepare, simulate, summary, wallet-backed gate validation, and wallet approval before expanding live signing paths.",
+  "Keep the wallet-signing status/evidence surface, four-page browser verification, and live-send inventory commands fresh while production browser-backed signing evidence remains pending.",
 ];
 
 export function createVantaMainnetReadinessSnapshot() {
