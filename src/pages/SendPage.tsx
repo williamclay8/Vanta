@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { sha256 } from "@noble/hashes/sha2";
-import { useSendTransaction } from "@solana/react-hooks";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
 import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePanel";
@@ -35,6 +34,7 @@ import { buildVantaPrivateCoreUnshieldProofBoundary } from "@/zk/vantaPrivateCor
 import {
   requestVantaPrivateCoreOperatorSendTransition,
 } from "@/zk/vantaPrivateCoreOperatorClient";
+import { useVantaSafeSendTransaction } from "@/wallet/useVantaSafeSendTransaction";
 
 type SendPageProps = {
   dashboard?: boolean;
@@ -420,12 +420,12 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       proofPublicInputCount: null,
       status: "idle",
     });
-  const sendNoteTransaction = useSendTransaction();
+  const sendNoteTransaction = useVantaSafeSendTransaction();
   const sendNoteWait = useRealtimeSignatureProgress(sendNoteTransaction.signature ?? undefined, {
     commitment: "confirmed",
     disabled: !sendNoteTransaction.signature,
   });
-  const spentMarkerTransaction = useSendTransaction();
+  const spentMarkerTransaction = useVantaSafeSendTransaction();
   const spentMarkerWait = useRealtimeSignatureProgress(
     spentMarkerTransaction.signature ?? undefined,
     {
@@ -675,23 +675,36 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       ],
       action: "state_finalize",
     })
-      .then((priorityFeeInstructions) =>
-        spentMarkerTransaction.send({
-          instructions: [
-            ...priorityFeeInstructions,
-            createSpentMarkerInstruction({
-              asset: "VUSD",
-              consumedNoteId: pendingSpentMarker.consumedNoteId,
-              createdAt: pendingSpentMarker.createdAt,
-              mintAddress: pendingSpentMarker.mintAddress,
-              owner: pendingSpentMarker.owner,
-              transitionKind: pendingSpentMarker.transitionKind,
-              transitionNoteId: pendingSpentMarker.transitionNoteId,
-              vaultOwner: pendingSpentMarker.vaultOwner,
-            }),
-          ],
-        }),
-      )
+      .then((priorityFeeInstructions) => {
+        const instructions = [
+          ...priorityFeeInstructions,
+          createSpentMarkerInstruction({
+            asset: "VUSD",
+            consumedNoteId: pendingSpentMarker.consumedNoteId,
+            createdAt: pendingSpentMarker.createdAt,
+            mintAddress: pendingSpentMarker.mintAddress,
+            owner: pendingSpentMarker.owner,
+            transitionKind: pendingSpentMarker.transitionKind,
+            transitionNoteId: pendingSpentMarker.transitionNoteId,
+            vaultOwner: pendingSpentMarker.vaultOwner,
+          }),
+        ];
+
+        return spentMarkerTransaction.send({
+          amount: pendingSendBridge?.sentAmountDisplay ?? "0",
+          asset: "VUSD",
+          cluster: "devnet",
+          connectedWalletAddress: pendingSpentMarker.owner,
+          estimatedFees: "wallet-estimated",
+          feePayer: pendingSpentMarker.owner,
+          humanApprovedSummary: true,
+          instructions,
+          label: "send-spent-marker",
+          recipient: pendingSpentMarker.vaultOwner,
+          summaryInstructions: ["send-spent-marker"],
+          transactionFingerprint: `send-spent-marker:${pendingSpentMarker.owner}:${pendingSpentMarker.consumedNoteId}:${pendingSpentMarker.transitionNoteId}`,
+        });
+      })
       .catch((error) => {
         setStatus("failed");
         setPendingSendBridge(null);
@@ -703,6 +716,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       });
   }, [
     pendingSpentMarker,
+    pendingSendBridge?.sentAmountDisplay,
     sendNoteWait.waitStatus,
     spentMarkerTransaction,
     spentMarkerTransaction.signature,
@@ -858,8 +872,21 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       action: "send_transition",
     });
 
+    const instructions = [...priorityFeeInstructions, preparedSend.instruction];
+
     await sendNoteTransaction.send({
-      instructions: [...priorityFeeInstructions, preparedSend.instruction],
+      amount: args.amountNumeric.toString(),
+      asset: "VUSD",
+      cluster: "devnet",
+      connectedWalletAddress: args.shieldAccountState.owner,
+      estimatedFees: "wallet-estimated",
+      feePayer: args.shieldAccountState.owner,
+      humanApprovedSummary: true,
+      instructions,
+      label: "send-note-transition",
+      recipient: trimmedRecipient,
+      summaryInstructions: ["send-note-transition"],
+      transactionFingerprint: `send-note-transition:${args.shieldAccountState.owner}:${args.note.noteId}:${preparedSend.noteId}`,
     });
   }
 

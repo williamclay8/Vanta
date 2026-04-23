@@ -35,6 +35,7 @@ npm run wallet:live-send-inventory-check
 npm run wallet:safe-send-boundary-check
 npm run wallet:safe-send-hook-check
 npm run shield:safe-send-adoption-check
+npm run send:safe-send-adoption-check
 npm run mainnet:secret-handling-check
 npm run audit:package-check
 ```
@@ -69,6 +70,7 @@ npm run wallet:live-send-inventory-check
 npm run wallet:safe-send-boundary-check
 npm run wallet:safe-send-hook-check
 npm run shield:safe-send-adoption-check
+npm run send:safe-send-adoption-check
 npm run mainnet:secret-handling-check
 npm run audit:package-check
 ```
@@ -586,6 +588,20 @@ The Shield safe-send adoption command is:
 
 ```bash
 npm run shield:safe-send-adoption-check
+```
+
+The Send safe-send adoption check is:
+
+```text
+scripts/check-vanta-send-safe-send-adoption.mjs
+```
+
+It verifies Send no longer uses raw generic `useSendTransaction` sends for the send-note transition or spent-marker transaction, and that those paths route through `useVantaSafeSendTransaction` with summary instructions and transaction fingerprints.
+
+The Send safe-send adoption command is:
+
+```bash
+npm run send:safe-send-adoption-check
 ```
 
 The browser-backed safe-environment signing gate is:

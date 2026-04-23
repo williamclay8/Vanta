@@ -27,11 +27,13 @@ for (const page of ["Shield", "Send", "Swap", "Unshield"]) {
 
 for (const surface of inventory.actionSurfaces) {
   assert.ok(
-    ["requires-wallet-backed-simulation-gate", "partial-safe-send-adopted"].includes(surface.status),
+    ["requires-wallet-backed-simulation-gate", "partial-safe-send-adopted", "safe-send-adopted"].includes(surface.status),
     `${surface.page} has unknown wallet-send adoption status: ${surface.status}`,
   );
   assert.ok(surface.file.startsWith("src/"), `${surface.page} inventory must use repo-relative source files.`);
-  assert.ok(surface.currentCallSites.length > 0, `${surface.page} must list current call sites.`);
+  if (surface.status !== "safe-send-adopted") {
+    assert.ok(surface.currentCallSites.length > 0, `${surface.page} must list current call sites.`);
+  }
   assert.ok(surface.replacement.includes("simulate"), `${surface.page} replacement guidance must include simulation.`);
 
   const source = readFileSync(resolve(repoRoot, surface.file), "utf8");
@@ -55,6 +57,14 @@ assert.equal(
   1,
   "Shield must keep only the SPL token transfer call site in the pending live-send inventory.",
 );
+
+const sendSurface = surfacesByPage.get("Send");
+assert.equal(sendSurface.status, "safe-send-adopted", "Send must reflect safe-send adoption.");
+assert.ok(
+  sendSurface.adoptedCallSites?.length >= 2,
+  "Send must list spent-marker and send-note transactions as safe-send adopted.",
+);
+assert.equal(sendSurface.currentCallSites.length, 0, "Send must not keep raw generic transaction sends pending.");
 
 const transactionCallSites = inventory.actionSurfaces.flatMap((surface) =>
   surface.currentCallSites.filter((callSite) => callSite.signatureKind === "transaction-signature"),

@@ -197,6 +197,10 @@ assert.ok(
   "Missing Shield safe-send adoption command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run send:safe-send-adoption-check"),
+  "Missing Send safe-send adoption command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:secret-handling-check"),
   "Missing secret handling contract command.",
 );

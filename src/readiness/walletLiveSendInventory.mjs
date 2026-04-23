@@ -67,15 +67,16 @@ export function createWalletLiveSendInventory() {
         status: "partial-safe-send-adopted",
       },
       {
-        currentCallSites: [
-          tx("spentMarkerTransaction.send({", "send spent-marker reservation"),
-          tx("sendNoteTransaction.send({", "shielded send note transition"),
+        currentCallSites: [],
+        adoptedCallSites: [
+          tx("const spentMarkerTransaction = useVantaSafeSendTransaction();", "send spent-marker reservation"),
+          tx("const sendNoteTransaction = useVantaSafeSendTransaction();", "shielded send note transition"),
         ],
         file: "src/pages/SendPage.tsx",
         page: "Send",
         replacement:
-          "Prepare and simulate both spent-marker and send-note transactions before showing the user a safety summary and requesting wallet approval.",
-        status: "requires-wallet-backed-simulation-gate",
+          "Keep spent-marker and send-note transactions behind the safe-send hook that prepares, simulates, summarizes, gates, and requests wallet approval.",
+        status: "safe-send-adopted",
       },
       {
         currentCallSites: [
