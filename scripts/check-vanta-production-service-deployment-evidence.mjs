@@ -15,6 +15,11 @@ assert.equal(evidence.version, "vanta-production-service-deployment-evidence-0.1
 assert.equal(evidence.mainnetReady, false);
 assert.equal(evidence.productionReady, false);
 assert.equal(evidence.lastStatusRef, "npm run mainnet:service-deployment-status-check");
+assert.match(
+  evidence.routeHealthLastCheckedAt,
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/,
+  "Service deployment evidence must record a sanitized route-health check timestamp.",
+);
 assert.equal(evidence.manifestRef, "ops/mainnet/private-pool-v2-services.manifest.json");
 assert.equal(evidence.serviceNetworkRef, "npm run private-pool-v2:service-network-check");
 assert.equal(evidence.productionSmokeEvidenceRef, "ops/mainnet/private-pool-v2-production-smoke.evidence.json");

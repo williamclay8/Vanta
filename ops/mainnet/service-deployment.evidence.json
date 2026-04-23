@@ -3,6 +3,7 @@
   "mainnetReady": false,
   "productionReady": false,
   "lastStatusRef": "npm run mainnet:service-deployment-status-check",
+  "routeHealthLastCheckedAt": "2026-04-23T11:50:40.778Z",
   "manifestRef": "ops/mainnet/private-pool-v2-services.manifest.json",
   "serviceNetworkRef": "npm run private-pool-v2:service-network-check",
   "productionSmokeEvidenceRef": "ops/mainnet/private-pool-v2-production-smoke.evidence.json",

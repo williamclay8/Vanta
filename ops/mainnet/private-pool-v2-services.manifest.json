@@ -86,7 +86,7 @@
           "kind": "postgres-jsonb-snapshot-store",
           "secretRef": "VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL_REF"
         },
-        "lastVerifiedAt": "2026-04-21T04:39:14Z",
+        "lastVerifiedAt": "2026-04-23T11:50:40Z",
         "lastVerifiedHealthRef": "curl -fsS https://vanta-prod-private-pool-v2-indexer.onrender.com/health",
         "productionReady": false,
         "mainnetReady": false
@@ -140,7 +140,7 @@
           "kind": "public-solana-address-ref",
           "secretRef": "VANTA_PRIVATE_POOL_V2_RELAYER_FEE_WALLET_REF"
         },
-        "lastVerifiedAt": "2026-04-21T05:05:22Z",
+        "lastVerifiedAt": "2026-04-23T11:50:40Z",
         "lastVerifiedHealthRef": "curl -fsS https://vanta-prod-private-pool-v2-relayer.onrender.com/health",
         "productionReady": false,
         "mainnetReady": false
@@ -194,7 +194,7 @@
           "kind": "postgres-jsonb-artifact-ref",
           "secretRef": "VANTA_PRIVATE_POOL_V2_PROVER_ARTIFACT_REF"
         },
-        "lastVerifiedAt": "2026-04-21T04:52:58Z",
+        "lastVerifiedAt": "2026-04-23T11:50:40Z",
         "lastVerifiedHealthRef": "curl -fsS https://vanta-prod-private-pool-v2-prover.onrender.com/health",
         "productionReady": false,
         "mainnetReady": false
@@ -249,7 +249,7 @@
           "urlRef": "VANTA_INDEXER_URL_REF",
           "authTokenRef": "VANTA_INDEXER_AUTH_TOKEN_REF"
         },
-        "lastVerifiedAt": "2026-04-21T05:17:02Z",
+        "lastVerifiedAt": "2026-04-23T11:50:40Z",
         "lastVerifiedHealthRef": "curl -fsS https://vanta-prod-private-pool-v2-verifier.onrender.com/health",
         "productionReady": false,
         "mainnetReady": false
@@ -308,7 +308,7 @@
           "relayerUrlRef": "VANTA_RELAYER_URL_REF",
           "verifierUrlRef": "VANTA_VERIFIER_URL_REF"
         },
-        "lastVerifiedAt": "2026-04-21T05:30:18Z",
+        "lastVerifiedAt": "2026-04-23T11:50:40Z",
         "lastVerifiedHealthRef": "curl -fsS https://vanta-prod-private-pool-v2-operator.onrender.com/health",
         "productionReady": false,
         "mainnetReady": false
