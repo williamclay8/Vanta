@@ -10,6 +10,9 @@ const PrivacyFlowProvider = lazy(() =>
 const LaunchPage = lazy(() => import("@/pages/LaunchPage").then((m) => ({ default: m.LaunchPage })));
 const HomePage = lazy(() => import("@/pages/HomePage").then((m) => ({ default: m.HomePage })));
 const PayPage = lazy(() => import("@/pages/PayPage").then((m) => ({ default: m.PayPage })));
+const PrivacyReviewPage = lazy(() =>
+  import("@/pages/PrivacyReviewPage").then((m) => ({ default: m.PrivacyReviewPage })),
+);
 const SendPage = lazy(() => import("@/pages/SendPage").then((m) => ({ default: m.SendPage })));
 const ShieldPage = lazy(() => import("@/pages/ShieldPage").then((m) => ({ default: m.ShieldPage })));
 const StrategyPage = lazy(() =>
@@ -34,6 +37,7 @@ function App() {
               <Route path="unshield" element={<UnshieldPage />} />
               <Route path="pay" element={<PayPage />} />
               <Route path="launch" element={<LaunchPage />} />
+              <Route path="privacy-review" element={<PrivacyReviewPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/app/send" replace />} />
           </Routes>

@@ -698,6 +698,34 @@ scripts/check-vanta-umbra-benchmark-approval-samples.mjs
 npm run umbra:benchmark-approval-samples-check
 ```
 
+The Umbra approval review page is:
+
+```text
+src/pages/PrivacyReviewPage.tsx
+```
+
+It mounts the benchmark approval samples at `/app/privacy-review` as a non-executing review surface for operators and reviewers. It is deliberately outside the primary action tabs and repeats that the page does not enable signing.
+
+The Umbra approval review page command is:
+
+```text
+scripts/check-vanta-umbra-approval-review-page.mjs
+```
+
+```bash
+npm run umbra:approval-review-page-check
+```
+
+The browser-backed Umbra approval review page command is:
+
+```text
+scripts/check-vanta-umbra-approval-review-page-browser.mjs
+```
+
+```bash
+npm run umbra:approval-review-page-browser-check
+```
+
 The frozen live wallet send/sign inventory is:
 
 ```text

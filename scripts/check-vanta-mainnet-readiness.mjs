@@ -217,6 +217,14 @@ assert.ok(
   "Missing Umbra benchmark approval samples command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run umbra:approval-review-page-check"),
+  "Missing Umbra approval review page command.",
+);
+assert.ok(
+  snapshot.requiredCommands.includes("npm run umbra:approval-review-page-browser-check"),
+  "Missing Umbra approval review page browser command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run wallet:live-send-inventory-check"),
   "Missing wallet live send inventory command.",
 );
