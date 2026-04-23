@@ -55,6 +55,18 @@ assert.equal(
   "boolean",
   "Evidence must keep replay guard productionReady explicit.",
 );
+assert.ok(
+  evidence.nullifierReplayAcceptedCount === undefined ||
+    evidence.nullifierReplayAcceptedCount === "pending" ||
+    (Number.isInteger(evidence.nullifierReplayAcceptedCount) && evidence.nullifierReplayAcceptedCount >= 0),
+  "Evidence accepted replay count must stay sanitized when present.",
+);
+assert.ok(
+  evidence.nullifierReplayReservedCount === undefined ||
+    evidence.nullifierReplayReservedCount === "pending" ||
+    (Number.isInteger(evidence.nullifierReplayReservedCount) && evidence.nullifierReplayReservedCount >= 0),
+  "Evidence reserved replay count must stay sanitized when present.",
+);
 assert.equal(
   evidence.protocolEnforcementLayer,
   "operator-claim-preflight-and-accepted-reservation-only",

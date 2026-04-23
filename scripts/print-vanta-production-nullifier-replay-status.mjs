@@ -3,8 +3,11 @@ import { readFileSync } from "node:fs";
 
 const productionServicesManifestPath = new URL("../ops/mainnet/private-pool-v2-services.manifest.json", import.meta.url);
 const productionSmokeEvidencePath = new URL("../ops/mainnet/private-pool-v2-production-smoke.evidence.json", import.meta.url);
+const requireAuth = process.argv.includes("--require-auth") || process.argv.includes("--check");
 const jsonMode = process.argv.includes("--json");
 const checkMode = process.argv.includes("--check");
+const authShellCommand =
+  "doppler run --config prd --project vanta -- node scripts/print-vanta-production-nullifier-replay-status.mjs --require-auth";
 
 function productionOperatorUrl() {
   const manifest = JSON.parse(readFileSync(productionServicesManifestPath, "utf8"));
@@ -19,14 +22,6 @@ function readProductionSmokeReplayTarget() {
     throw new Error("Missing nullifier-replay-simulation in production smoke evidence.");
   }
   return target;
-}
-
-function readRequiredEnv(name) {
-  const value = process.env[name]?.trim();
-  if (!value) {
-    throw new Error(`Missing required environment variable ${name}.`);
-  }
-  return value;
 }
 
 function operatorConfig() {
@@ -44,7 +39,8 @@ function operatorConfig() {
   }
 
   return {
-    authToken: readRequiredEnv("VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN"),
+    authToken: process.env.VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN?.trim() ?? "",
+    authTokenEnv: "VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN",
     url: url.replace(/\/+$/, ""),
     urlHost: parsed.host,
     urlSource: process.env.VANTA_PRIVATE_POOL_V2_OPERATOR_URL?.trim() ? "env" : "manifest",
@@ -79,7 +75,19 @@ async function requestJson({ authToken, url }) {
 
 function summarize(config, payload, status) {
   const productionSmokeReplayTarget = readProductionSmokeReplayTarget();
+  const acceptedNullifierCount =
+    typeof payload.nullifierReplayGuard?.acceptedNullifierCount === "number"
+      ? payload.nullifierReplayGuard.acceptedNullifierCount
+      : "pending";
+  const reservedNullifierCount =
+    typeof payload.nullifierReplayGuard?.reservedNullifierCount === "number"
+      ? payload.nullifierReplayGuard.reservedNullifierCount
+      : "pending";
+
   return {
+    authenticatedStatusCommand: authShellCommand,
+    authTokenEnv: config.authTokenEnv,
+    authTokenStatus: config.authToken ? "set" : "missing",
     checkedAt: new Date().toISOString(),
     layeredReplayStatus:
       "operator-enforced-plus-role-network-verified-plus-production-smoke-simulated",
@@ -104,9 +112,11 @@ function summarize(config, payload, status) {
     storageKind: payload.storage?.kind ?? null,
     storageProductionReady: payload.storage?.productionReady ?? false,
     storageRef: "VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF",
+    nullifierReplayAcceptedCount: acceptedNullifierCount,
     nullifierReplayGuardMode: payload.nullifierReplayGuard?.mode ?? null,
     nullifierReplayGuardStorageMode: payload.nullifierReplayGuard?.storageMode ?? null,
     nullifierReplayGuardProductionReady: payload.nullifierReplayGuard?.productionReady ?? false,
+    nullifierReplayReservedCount: reservedNullifierCount,
     productionSmokeReplaySimulationRef:
       "ops/mainnet/private-pool-v2-production-smoke.evidence.json#nullifier-replay-simulation",
     productionSmokeReplaySimulationStatus: productionSmokeReplayTarget.status ?? null,
@@ -114,16 +124,75 @@ function summarize(config, payload, status) {
     protocolEnforcementFinalLayerImplemented: payload.protocolEnforcement?.finalLayerImplemented ?? false,
     protocolEnforcementFinalLayerProductionReady: payload.protocolEnforcement?.finalLayerProductionReady ?? false,
     protocolEnforcementLayer: payload.protocolEnforcement?.layer ?? null,
+    nextAction: config.authToken
+      ? requireAuth
+        ? "Authenticated production nullifier replay status was attempted."
+        : "Run the authenticated nullifier replay status command from a secret-manager shell when you need live operator status."
+      : `Load the production operator auth token in a secret-manager shell and rerun: ${authShellCommand}`,
     version: "vanta-production-nullifier-replay-status-0.1",
   };
 }
 
 const config = operatorConfig();
-const response = await requestJson(config);
-assert.ok(response.ok, `Operator nullifier replay status HTTP ${response.status}: ${response.text || response.statusText}`);
-assert.ok(response.parsed, "Operator nullifier replay status must return JSON.");
+const response = config.authToken
+  ? await requestJson(config)
+  : {
+      ok: false,
+      parsed: null,
+      skipped: true,
+      status: 0,
+      text: "",
+    };
 
-const result = summarize(config, response.parsed, response.status);
+if (requireAuth) {
+  assert.ok(config.authToken, `Missing required environment variable ${config.authTokenEnv}.`);
+  assert.ok(response.ok, `Operator nullifier replay status HTTP ${response.status}: ${response.text || response.statusText}`);
+  assert.ok(response.parsed, "Operator nullifier replay status must return JSON.");
+}
+
+const result = response.parsed
+  ? summarize(config, response.parsed, response.status)
+  : {
+      authenticatedStatusCommand: authShellCommand,
+      authTokenEnv: config.authTokenEnv,
+      authTokenStatus: config.authToken ? "set" : "missing",
+      checkedAt: new Date().toISOString(),
+      layeredReplayStatus: "pending-authenticated-operator-status",
+      mainnetReady: false,
+      nextAction: `Load the production operator auth token in a secret-manager shell and rerun: ${authShellCommand}`,
+      operatorStatusProductionReady: false,
+      operatorUrlHost: config.urlHost,
+      operatorUrlRef: "VANTA_PRIVATE_POOL_V2_OPERATOR_URL",
+      operatorUrlSource: config.urlSource,
+      productionReady: false,
+      productionSmokeReplaySimulationHttpStatus: null,
+      productionSmokeReplaySimulationRef:
+        "ops/mainnet/private-pool-v2-production-smoke.evidence.json#nullifier-replay-simulation",
+      productionSmokeReplaySimulationStatus: null,
+      protocolEnforcementFinalLayerImplemented: false,
+      protocolEnforcementFinalLayerProductionReady: false,
+      protocolEnforcementLayer: null,
+      rateLimitPerMinute: null,
+      rateLimiter: null,
+      roleServiceNetworkReplayBarrier: "verifier-receipt-idempotency-and-indexer-nullifier-registration",
+      roleServiceNetworkReplayRef: "npm run private-pool-v2:service-network-check",
+      roleServiceNetworkReplayVerified: true,
+      runtimeMode: null,
+      runtimeProductionReady: false,
+      safety:
+        "No auth token values, database URLs, bearer values, wallet keys, or signed transaction material are printed.",
+      status: response.status,
+      storageDurableStoreConfigured: false,
+      storageKind: null,
+      storageProductionReady: false,
+      storageRef: "VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF",
+      nullifierReplayAcceptedCount: "pending",
+      nullifierReplayGuardMode: null,
+      nullifierReplayGuardStorageMode: null,
+      nullifierReplayGuardProductionReady: false,
+      nullifierReplayReservedCount: "pending",
+      version: "vanta-production-nullifier-replay-status-0.1",
+    };
 
 if (checkMode) {
   assert.equal(result.runtimeMode, "remote-services", "Operator must run in remote-services mode.");
@@ -138,6 +207,16 @@ if (checkMode) {
     result.nullifierReplayGuardStorageMode,
     "postgres-unique-index",
     "Operator must expose Postgres unique-index replay storage mode.",
+  );
+  assert.ok(
+    result.nullifierReplayAcceptedCount === "pending" ||
+      (Number.isInteger(result.nullifierReplayAcceptedCount) && result.nullifierReplayAcceptedCount >= 0),
+    "Accepted replay count must stay sanitized.",
+  );
+  assert.ok(
+    result.nullifierReplayReservedCount === "pending" ||
+      (Number.isInteger(result.nullifierReplayReservedCount) && result.nullifierReplayReservedCount >= 0),
+    "Reserved replay count must stay sanitized.",
   );
   assert.equal(
     result.protocolEnforcementLayer,
@@ -185,6 +264,8 @@ if (jsonMode || checkMode) {
   console.log(`- durableStoreConfigured: ${String(result.storageDurableStoreConfigured)}`);
   console.log(`- nullifierReplayGuardMode: ${result.nullifierReplayGuardMode}`);
   console.log(`- nullifierReplayGuardStorageMode: ${result.nullifierReplayGuardStorageMode}`);
+  console.log(`- nullifierReplayAcceptedCount: ${String(result.nullifierReplayAcceptedCount)}`);
+  console.log(`- nullifierReplayReservedCount: ${String(result.nullifierReplayReservedCount)}`);
   console.log(`- layeredReplayStatus: ${result.layeredReplayStatus}`);
   console.log(`- roleServiceNetworkReplayBarrier: ${result.roleServiceNetworkReplayBarrier}`);
   console.log(`- productionSmokeReplaySimulationStatus: ${result.productionSmokeReplaySimulationStatus}`);

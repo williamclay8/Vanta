@@ -459,7 +459,7 @@ Current staging deployment refs:
 - Secret refs are inventoried in `ops/mainnet/secret-references.manifest.json` with reference names only.
 - Doppler is selected as the production secret-manager target in `ops/mainnet/production-secret-manager.template.json`; the template contains refs only and no secret values.
 - The checked deployment and rollback handoff is `docs/mainnet-deployment-runbook.md`.
-- The deployed operator replay-status surface is `npm run mainnet:nullifier-replay-status` and the checked evidence file is `ops/mainnet/private-pool-v2-nullifier-replay.evidence.json`.
+- The deployed operator replay-status surface is `npm run mainnet:nullifier-replay-status`. Run `npm run mainnet:nullifier-replay-status-auth` from a Doppler-backed shell when you want authenticated live operator status, and use `ops/mainnet/private-pool-v2-nullifier-replay.evidence.json` as the checked evidence file.
 - That replay evidence also keeps the layered truth explicit: deployed operator reservation, verified role-service duplicate receipt/nullifier rejection, and no-real-funds production smoke replay rejection.
 - That replay evidence now freezes the current protocol enforcement truth as `operator-claim-preflight-and-accepted-reservation-only` with the final protocol layer still explicitly incomplete.
 - The bounded real-funds approval record now also has a live status surface:

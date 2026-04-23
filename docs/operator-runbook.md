@@ -336,8 +336,11 @@ The sanitized deployed replay-status surface is:
 
 ```bash
 npm run mainnet:nullifier-replay-status
+npm run mainnet:nullifier-replay-status-auth
 npm run mainnet:nullifier-replay-status-check
 ```
+
+Run `npm run mainnet:nullifier-replay-status` for a sanitized status packet that stays operable outside a secret-manager shell. Use `npm run mainnet:nullifier-replay-status-auth` from a Doppler-backed shell when you want authenticated live operator replay status, and keep `npm run mainnet:nullifier-replay-status-check` as the checked production command.
 
 The checked replay-evidence surface is:
 

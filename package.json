@@ -52,6 +52,7 @@
     "mainnet:private-rail-route-health-auth": "node scripts/print-vanta-production-private-rail-route-health.mjs --require-auth",
     "mainnet:private-rail-route-health-evidence-check": "node scripts/check-vanta-private-pool-v2-route-health-evidence.mjs",
     "mainnet:nullifier-replay-status": "node scripts/print-vanta-production-nullifier-replay-status.mjs",
+    "mainnet:nullifier-replay-status-auth": "node scripts/print-vanta-production-nullifier-replay-status.mjs --require-auth",
     "mainnet:nullifier-replay-status-check": "node scripts/print-vanta-production-nullifier-replay-status.mjs --check",
     "mainnet:nullifier-replay-evidence-check": "node scripts/check-vanta-private-pool-v2-nullifier-replay-evidence.mjs",
     "mainnet:wallet-signing-status": "node scripts/print-vanta-production-wallet-signing-status.mjs",
