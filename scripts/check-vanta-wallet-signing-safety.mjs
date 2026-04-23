@@ -25,5 +25,7 @@ assert.ok(policy.releaseGateCommands.includes("npm run wallet:signing-safety-che
 assert.ok(policy.releaseGateCommands.includes("npm run wallet:browser-signing-safety-check"));
 assert.ok(policy.releaseGateCommands.includes("npm run wallet:fresh-wallet-check"));
 assert.ok(policy.releaseGateCommands.includes("npm run wallet:fresh-wallet-browser-check"));
+assert.ok(policy.releaseGateCommands.includes("npm run wallet:transaction-safety-check"));
+assert.ok(policy.releaseGateCommands.includes("npm run wallet:backed-simulation-check"));
 
 console.log("Vanta wallet signing safety check: PASS");

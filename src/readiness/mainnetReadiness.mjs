@@ -126,6 +126,7 @@ const requiredCommands = [
   "npm run wallet:fresh-wallet-check",
   "npm run wallet:fresh-wallet-browser-check",
   "npm run wallet:transaction-safety-check",
+  "npm run wallet:backed-simulation-check",
   "npm run mainnet:secret-handling-check",
   "npm run mainnet:approval-gates-check",
   "npm run mainnet:approval-gates-evidence-check",

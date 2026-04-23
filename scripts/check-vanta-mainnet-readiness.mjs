@@ -177,6 +177,10 @@ assert.ok(
   "Missing transaction safety summary command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run wallet:backed-simulation-check"),
+  "Missing wallet-backed transaction simulation command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:secret-handling-check"),
   "Missing secret handling contract command.",
 );

@@ -510,6 +510,20 @@ src/wallet/transactionSafetySummary.mjs
 
 It requires cluster, fee payer, recipient, amount, asset, estimated fees, instructions, recent blockhash, simulation result, and explicit mainnet approval before a mainnet summary can be accepted for wallet approval.
 
+The executable wallet-backed pre-signature gate is:
+
+```text
+src/wallet/walletBackedTransactionSimulation.mjs
+```
+
+It refuses wallet signature requests unless the connected wallet matches the fee payer, the transaction safety summary has a passing simulation result, the transaction fingerprint remains frozen after summary review, no private key material is handled, and the user has explicitly approved the shown summary.
+
+The wallet-backed simulation gate command is:
+
+```bash
+npm run wallet:backed-simulation-check
+```
+
 The browser-backed safe-environment signing gate is:
 
 ```bash
