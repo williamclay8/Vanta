@@ -19,7 +19,7 @@ const blockers = [
   {
     id: "wallet-backed-browser-signing-safety",
     severity: "critical",
-    summary: "Require browser simulation and explicit wallet approval before any real transaction signature.",
+    summary: "Keep the wallet-signing status/evidence surface fresh while requiring browser simulation and explicit wallet approval before any real transaction signature.",
   },
   {
     id: "abuse-rate-limit-observability",
@@ -80,7 +80,7 @@ const lanes = {
   protocolTabs: {
     readiness: 50,
     status: "browser-verified-local",
-    truth: "Shield, Send, Swap, Strategy, and Unshield have browser checks, but production wallet/funds safety is not complete.",
+    truth: "Shield, Send, Swap, Strategy, and Unshield have browser checks, and the protocol wallet-signing lane now has a sanitized production status/evidence surface proving Shield, Send, Swap, and Unshield live call sites stay behind safe-send or message-intent boundaries with the Umbra adapter fail-closed. It is still local/devnet browser verification, not a production browser-signing readiness claim.",
   },
   strategy: {
     readiness: 35,
@@ -123,6 +123,8 @@ const requiredCommands = [
   "npm run mainnet:private-pool-v2-production-smoke-check",
   "npm run private-pool-v2:role-storage-check",
   "npm run wallet:signing-safety-check",
+  "npm run mainnet:wallet-signing-status",
+  "npm run mainnet:wallet-signing-evidence-check",
   "npm run wallet:browser-signing-safety-check",
   "npm run wallet:fresh-wallet-check",
   "npm run wallet:fresh-wallet-browser-check",
@@ -171,7 +173,7 @@ const nextActions = [
   "Keep operator-skipped controls visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
   "Use provider-neutral production observability evidence, existing platform logs, or a future provider instead of Better Stack production monitors.",
   "Keep the deployed operator replay-status evidence fresh while carrying the Postgres-backed nullifier replay guard into the final protocol enforcement layer.",
-  "Replace every frozen live wallet send/sign call site with prepare, simulate, summary, wallet-backed gate validation, and wallet approval before expanding live signing paths.",
+  "Keep the wallet-signing status/evidence surface fresh while replacing every frozen live wallet send/sign call site with prepare, simulate, summary, wallet-backed gate validation, and wallet approval before expanding live signing paths.",
 ];
 
 export function createVantaMainnetReadinessSnapshot() {

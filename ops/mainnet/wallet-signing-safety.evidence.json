@@ -1,0 +1,28 @@
+{
+  "version": "vanta-production-wallet-signing-safety-evidence-0.1",
+  "mainnetReady": false,
+  "productionReady": false,
+  "lastStatusRef": "npm run mainnet:wallet-signing-status-check",
+  "browserVerificationRef": "npm run wallet:browser-signing-safety-check",
+  "signingSafetyPolicyRef": "npm run wallet:signing-safety-check",
+  "liveSendInventoryRef": "npm run wallet:live-send-inventory-check",
+  "liveMainnetSubmissionEnabled": false,
+  "browserVerificationCluster": "devnet-or-localnet",
+  "requiresExplicitHumanApproval": true,
+  "requiresSimulationBeforeSignature": true,
+  "requiresTransactionSummaryBeforeSignature": true,
+  "protocolPagesWithSafeSendAdoption": [
+    "Shield",
+    "Send",
+    "Swap",
+    "Unshield"
+  ],
+  "messageIntentPages": [
+    "Swap",
+    "Unshield"
+  ],
+  "umbraAdapterGateStatus": "wallet-adapter-gated",
+  "safety": "No wallet keys, seed phrases, signed transaction material, signed intent payloads, bearer values, or database URLs are stored in this evidence file.",
+  "deploymentTruth": "This evidence proves the current live wallet-signing paths are frozen behind checked local/browser safety boundaries and must still not be presented as a production browser-signing readiness claim.",
+  "nextOperatorAction": "Keep the wallet-signing status and browser verification commands fresh while production browser-backed signing evidence remains pending."
+}

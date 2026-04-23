@@ -185,6 +185,14 @@ assert.ok(
   "Missing wallet signing safety command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:wallet-signing-status"),
+  "Missing production wallet-signing status command.",
+);
+assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:wallet-signing-evidence-check"),
+  "Missing production wallet-signing evidence command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run wallet:browser-signing-safety-check"),
   "Missing browser-backed wallet signing safety command.",
 );

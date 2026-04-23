@@ -921,6 +921,35 @@ npm run wallet:browser-signing-safety-check
 
 It starts the app with devnet configuration, verifies the Shield/Send browser surfaces do not expose mainnet submission or secret-key language, and verifies the Shield action does not advance into wallet-confirmation state when no wallet is connected.
 
+The sanitized production wallet-signing status surface is:
+
+```text
+scripts/print-vanta-production-wallet-signing-status.mjs
+```
+
+It records the current protocol pages covered by the live wallet-signing boundary, the pages that have adopted safe-send, the pages still using typed message intents, and the Umbra adapter gate status. It is intentionally not a production browser-signing readiness claim; it freezes the current adopted boundary so readiness can fail loudly if the wallet lane drifts.
+
+The production wallet-signing status commands are:
+
+```bash
+npm run mainnet:wallet-signing-status
+npm run mainnet:wallet-signing-status-check
+```
+
+The sanitized production wallet-signing evidence file is:
+
+```text
+ops/mainnet/wallet-signing-safety.evidence.json
+```
+
+It records only status-level facts and command refs. No wallet keys, seed phrases, signed transaction material, signed intent payloads, bearer values, or database URLs may be stored in this evidence file.
+
+The production wallet-signing evidence command is:
+
+```bash
+npm run mainnet:wallet-signing-evidence-check
+```
+
 ## Secret Handling
 
 The checked secret-handling contract is:
