@@ -376,6 +376,7 @@ npm run pay:status
 npm run pay:status-json
 npm run pay:operator
 npm run pay:merchant-api-check
+npm run pay:production-private-rail-guard-check
 npm run pay:browser-check
 npm run protocol:browser-check
 npm run pay:verify
@@ -455,8 +456,8 @@ The current Pay layer covers:
 - idempotent checkout completion retries that return the existing payment and receipt without duplicating lifecycle events
 - internal privacy routes on checkout sessions
 - payment completion gated by a Private Pool v2-backed private-rail receipt from `src/pay/vantaPayPrivateSettlementAdapter.ts`
-- optional Private Pool v2 operator settlement via `VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_URL`
-- optional bearer-token forwarding to the Private Pool v2 operator via `VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN`
+- production startup guard requiring Private Pool v2 operator settlement via `VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_URL`
+- production startup guard requiring bearer-token forwarding to the Private Pool v2 operator via `VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN`
 - receipt creation with selective audit-disclosure references
 - balances derived only from privately settled payments
 - withdrawals gated by a Private Pool v2-backed private-exit receipt, with withdrawal idempotency keys for retry-safe settlement
@@ -471,7 +472,8 @@ The current Pay layer covers:
 - webhook signature verification with optional timestamp tolerance to reject stale signed payload replays
 - production webhook delivery guard requiring HTTPS merchant endpoints when `NODE_ENV=production`
 - schema-versioned optional JSON persistence for the local merchant operator via `VANTA_PAY_STORE_PATH`, including restart-safe refund and withdrawal idempotency evidence
-- production startup guard requiring explicit `VANTA_PAY_SECRET_KEY`, `VANTA_PAY_WEBHOOK_SECRET`, and `VANTA_PAY_STORE_PATH` when `NODE_ENV=production`
+- production private-rail guard through `npm run pay:production-private-rail-guard-check`
+- production startup guard requiring explicit `VANTA_PAY_SECRET_KEY`, `VANTA_PAY_WEBHOOK_SECRET`, durable storage, and Private Pool v2 operator URL/auth when `NODE_ENV=production`
 - browser-backed Pay checks for landing, checkout, payment-link, and withdrawal screens via `npm run pay:browser-check`, including a checkout assertion that completion is absent until `Pay Privately` is clicked
 
 This is still a local MVP harness, not a deployed payment processor. It gives Vanta Pay the Stripe-like integration shape: create session, render hosted or embedded checkout, receive webhook when paid. Internally, completed Pay states now require proof-accepted private settlement receipts so privacy is part of the state machine rather than only product copy. The current check starts the local Private Pool v2 operator and proves Pay settlement receipts are proved and accepted through the operator-owned `/private-pool-v2/pay-settlements` endpoint when the operator URL is configured.

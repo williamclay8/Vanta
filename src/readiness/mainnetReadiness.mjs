@@ -153,6 +153,7 @@ const requiredCommands = [
   "npm run mainnet:approval-gates-status",
   "npm run mainnet:approval-gates-status-json",
   "npm run mainnet:real-funds-approval-check",
+  "npm run pay:production-private-rail-guard-check",
   "npm run audit:package-check",
   "npm run security:limitations-check",
   "npm run operator:runbook-check",

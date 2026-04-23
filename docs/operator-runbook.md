@@ -472,10 +472,16 @@ VANTA_PAY_WEBHOOK_SECRET=<live-webhook-secret>
 VANTA_PAY_STORE_PATH=<durable-store-path-if-using-json-store>
 VANTA_PAY_DATABASE_URL=<postgres-url-if-using-managed-postgres>
 VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_URL=<private-pool-v2-url>
-VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN=<operator-token-if-required>
+VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN=<operator-token-required-in-production>
 ```
 
-When `NODE_ENV=production`, Pay refuses to boot without `VANTA_PAY_SECRET_KEY`, `VANTA_PAY_WEBHOOK_SECRET`, and either `VANTA_PAY_STORE_PATH` or `VANTA_PAY_DATABASE_URL`.
+When `NODE_ENV=production`, Pay refuses to boot without `VANTA_PAY_SECRET_KEY`, `VANTA_PAY_WEBHOOK_SECRET`, either `VANTA_PAY_STORE_PATH` or `VANTA_PAY_DATABASE_URL`, `VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_URL`, and `VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN`.
+
+The Pay production private-rail guard command is:
+
+```bash
+npm run pay:production-private-rail-guard-check
+```
 
 For free Render staging, prefer `VANTA_PAY_DATABASE_URL` from a free Render Postgres database because free web services cannot attach persistent disks and lose local filesystem writes on restart/redeploy. Treat free Render Postgres as staging-only because free databases expire.
 

@@ -522,6 +522,8 @@ try {
   const productionServer = startServer({
     includeSecrets: true,
     nodeEnv: "production",
+    privatePoolOperatorAuthToken: "vanta-private-pool-v2-production-guard-test-token",
+    privatePoolOperatorUrl: privatePoolBaseUrl,
     secretKey: "sk_live_vanta",
     storePath: join(tempRoot, "vanta-pay-production-store.json"),
     webhookSecret: "whsec_live_vanta",

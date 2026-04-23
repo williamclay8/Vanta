@@ -233,6 +233,10 @@ assert.ok(
   "Missing Umbra unshield action review command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run pay:production-private-rail-guard-check"),
+  "Missing Pay production private rail guard command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run wallet:live-send-inventory-check"),
   "Missing wallet live send inventory command.",
 );

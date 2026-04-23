@@ -72,6 +72,14 @@ function assertProductionSecrets() {
   if (!storePath && !databaseUrl) {
     throw new Error("Vanta Pay production mode requires VANTA_PAY_STORE_PATH or VANTA_PAY_DATABASE_URL.");
   }
+
+  if (!privatePoolOperatorUrl) {
+    throw new Error("Vanta Pay production mode requires VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_URL.");
+  }
+
+  if (!privatePoolOperatorAuthToken) {
+    throw new Error("Vanta Pay production mode requires VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN.");
+  }
 }
 
 assertProductionSecrets();

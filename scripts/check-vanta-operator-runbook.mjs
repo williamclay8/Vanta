@@ -125,6 +125,7 @@ const requiredPhrases = [
   "ops/mainnet/private-pool-v2-services.manifest.json",
   "Do not use browser-exposed operator tokens as production secrets.",
   "Do not paste secrets into chat",
+  "npm run pay:production-private-rail-guard-check",
   "npm run pay:verify",
   "npm run private-pool-v2:verify",
   "npm run private-core:verify",
