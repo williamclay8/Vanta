@@ -608,6 +608,24 @@ scripts/check-vanta-umbra-operation-gate-adoption.mjs
 npm run umbra:operation-gate-adoption-check
 ```
 
+The Umbra operation approval summary seam is:
+
+```text
+src/privacy/umbraOperations.ts
+```
+
+Before building an operation adapter gate, callers should create a `vanta-umbra-operation-approval-summary` with `createUmbraOperationApprovalSummary`, validate it with `validateUmbraOperationApprovalSummary`, then convert it into a gate with `createUmbraOperationWalletAdapterGateFromSummary`. The summary records the operation kind, requester, mint, amount, destination, expiry, and whether the wallet approval is message-only or transaction-signing.
+
+The Umbra operation summary command is:
+
+```text
+scripts/check-vanta-umbra-operation-summary.mjs
+```
+
+```bash
+npm run umbra:operation-summary-check
+```
+
 The frozen live wallet send/sign inventory is:
 
 ```text

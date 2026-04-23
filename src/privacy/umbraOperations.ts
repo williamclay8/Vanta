@@ -18,6 +18,36 @@ type UmbraOperationBaseArgs = OptionalUmbraClientArgs & {
   awaitCallback?: boolean;
 };
 
+export type UmbraOperationKind =
+  | "deposit-public-to-encrypted-balance"
+  | "query-encrypted-balances"
+  | "register-user"
+  | "scan-claimable-utxos"
+  | "withdraw-encrypted-to-public-balance";
+
+const UMBRA_TRANSACTION_OPERATION_KINDS = new Set<UmbraOperationKind>([
+  "deposit-public-to-encrypted-balance",
+  "register-user",
+  "withdraw-encrypted-to-public-balance",
+]);
+
+export type UmbraOperationApprovalSummary = {
+  amount: string;
+  asset: string;
+  destinationAddress: string;
+  expiresAt: number;
+  intentKind: "message" | "transaction";
+  issuedAt: number;
+  kind: "vanta-umbra-operation-approval-summary";
+  mintAddress: string;
+  operationKind: UmbraOperationKind;
+  requester: string;
+  requiresHumanApproval: true;
+  requiresWalletMessageApproval: boolean;
+  requiresWalletTransactionApproval: boolean;
+  version: "vanta-umbra-operation-approval-summary-0.1";
+};
+
 export function createUmbraOperationWalletAdapterGate({
   humanApprovedSummary,
   intentKind,
@@ -40,6 +70,159 @@ export function createUmbraOperationWalletAdapterGate({
     privateKeyMaterialHandled: false,
     requester: walletSession.account.address,
     transactionIntentApproved: intentKind === "transaction",
+  };
+}
+
+function requireUmbraOperationText(value: unknown, fieldName: string) {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new Error(`Vanta Umbra operation approval requires ${fieldName}.`);
+  }
+
+  return value.trim();
+}
+
+function requireUmbraOperationTimestamp(value: unknown, fieldName: string) {
+  if (!Number.isFinite(value)) {
+    throw new Error(`Vanta Umbra operation approval requires ${fieldName}.`);
+  }
+
+  return Number(value);
+}
+
+export function createUmbraOperationApprovalSummary({
+  amount = "not applicable",
+  asset = "Umbra private balance",
+  destinationAddress = "not applicable",
+  expiresAt,
+  issuedAt,
+  mintAddress = "not applicable",
+  operationKind,
+  requester,
+}: {
+  amount?: string;
+  asset?: string;
+  destinationAddress?: string;
+  expiresAt: number;
+  issuedAt: number;
+  mintAddress?: string;
+  operationKind: UmbraOperationKind;
+  requester: string;
+}): UmbraOperationApprovalSummary {
+  const normalizedOperationKind = requireUmbraOperationText(operationKind, "operationKind") as UmbraOperationKind;
+  const intentKind = UMBRA_TRANSACTION_OPERATION_KINDS.has(normalizedOperationKind) ? "transaction" : "message";
+  const normalizedIssuedAt = requireUmbraOperationTimestamp(issuedAt, "issuedAt");
+  const normalizedExpiresAt = requireUmbraOperationTimestamp(expiresAt, "expiresAt");
+
+  if (normalizedExpiresAt <= normalizedIssuedAt) {
+    throw new Error("Vanta Umbra operation approval requires expiresAt after issuedAt.");
+  }
+
+  return {
+    amount: requireUmbraOperationText(amount, "amount"),
+    asset: requireUmbraOperationText(asset, "asset"),
+    destinationAddress: requireUmbraOperationText(destinationAddress, "destinationAddress"),
+    expiresAt: normalizedExpiresAt,
+    intentKind,
+    issuedAt: normalizedIssuedAt,
+    kind: "vanta-umbra-operation-approval-summary",
+    mintAddress: requireUmbraOperationText(mintAddress, "mintAddress"),
+    operationKind: normalizedOperationKind,
+    requester: requireUmbraOperationText(requester, "requester"),
+    requiresHumanApproval: true,
+    requiresWalletMessageApproval: intentKind === "message",
+    requiresWalletTransactionApproval: intentKind === "transaction",
+    version: "vanta-umbra-operation-approval-summary-0.1",
+  };
+}
+
+export function validateUmbraOperationApprovalSummary(
+  summary: UmbraOperationApprovalSummary,
+  {
+    connectedWalletAddress,
+    humanApprovedSummary,
+    now = Date.now(),
+    privateKeyMaterialHandled = false,
+  }: {
+    connectedWalletAddress?: string;
+    humanApprovedSummary?: boolean;
+    now?: number;
+    privateKeyMaterialHandled?: boolean;
+  } = {},
+) {
+  if (summary?.kind !== "vanta-umbra-operation-approval-summary") {
+    return {
+      accepted: false,
+      reason: "invalid-umbra-operation-summary-kind",
+    };
+  }
+
+  if (summary.expiresAt <= now) {
+    return {
+      accepted: false,
+      reason: "umbra-operation-summary-expired",
+    };
+  }
+
+  if (connectedWalletAddress && connectedWalletAddress !== summary.requester) {
+    return {
+      accepted: false,
+      reason: "umbra-operation-wallet-mismatch",
+    };
+  }
+
+  if (privateKeyMaterialHandled) {
+    return {
+      accepted: false,
+      reason: "private-key-material-handled",
+    };
+  }
+
+  if (!humanApprovedSummary) {
+    return {
+      accepted: false,
+      reason: "human-approval-required",
+    };
+  }
+
+  return {
+    accepted: true,
+    reason: "umbra-operation-ready-for-wallet-approval",
+  };
+}
+
+export function createUmbraOperationWalletAdapterGateFromSummary({
+  connectedWalletAddress,
+  humanApprovedSummary,
+  now,
+  privateKeyMaterialHandled,
+  summary,
+}: {
+  connectedWalletAddress: string;
+  humanApprovedSummary: boolean;
+  now?: number;
+  privateKeyMaterialHandled?: boolean;
+  summary: UmbraOperationApprovalSummary;
+}): UmbraWalletAdapterGate {
+  const decision = validateUmbraOperationApprovalSummary(summary, {
+    connectedWalletAddress,
+    humanApprovedSummary,
+    now,
+    privateKeyMaterialHandled,
+  });
+
+  if (!decision.accepted) {
+    throw new Error(`Umbra operation approval blocked: ${decision.reason}.`);
+  }
+
+  return {
+    connectedWalletAddress,
+    expiresAt: summary.expiresAt,
+    humanApprovedSummary,
+    issuedAt: summary.issuedAt,
+    messageIntentApproved: summary.intentKind === "message",
+    privateKeyMaterialHandled,
+    requester: summary.requester,
+    transactionIntentApproved: summary.intentKind === "transaction",
   };
 }
 
