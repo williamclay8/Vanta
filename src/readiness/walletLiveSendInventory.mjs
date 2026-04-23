@@ -116,8 +116,8 @@ export function createWalletLiveSendInventory() {
         file: "src/privacy/umbraClient.ts",
         page: "Umbra adapter",
         replacement:
-          "Keep the adapter fail-closed behind a wallet adapter gate, then wire operation-specific summaries so callers pass only already summarized, simulated, and gate-accepted transactions or typed message intents.",
-        status: "wallet-adapter-gated",
+          "Keep the adapter fail-closed behind a summary-bound wallet adapter gate, so callers pass only already summarized, simulated, and gate-accepted transactions or typed message intents.",
+        status: "wallet-adapter-summary-bound",
       },
     ],
   };

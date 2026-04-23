@@ -54,6 +54,7 @@ function buildStatus() {
       "No wallet keys, seed phrases, signed transaction material, signed intent payloads, bearer values, or database URLs are printed.",
     surfaces,
     umbraAdapterGateStatus: walletAdapterSurface?.status ?? "missing",
+    umbraAdapterSummaryBindingRequired: walletAdapterSurface?.status === "wallet-adapter-summary-bound",
     version: "vanta-production-wallet-signing-status-0.1",
   };
 }
@@ -96,10 +97,19 @@ if (checkMode) {
     result.messageIntentPages.includes("Swap") && result.messageIntentPages.includes("Unshield"),
     "Swap and Unshield must remain on the message-intent safety path.",
   );
-  assert.equal(result.umbraAdapterGateStatus, "wallet-adapter-gated", "Umbra adapter must remain fail-closed.");
+  assert.equal(
+    result.umbraAdapterGateStatus,
+    "wallet-adapter-summary-bound",
+    "Umbra adapter must remain fail-closed behind a summary-bound gate.",
+  );
+  assert.equal(
+    result.umbraAdapterSummaryBindingRequired,
+    true,
+    "Umbra adapter must require typed summary binding before wallet signing.",
+  );
   for (const surface of result.surfaces) {
     assert.ok(
-      ["safe-send-adopted", "wallet-adapter-gated"].includes(surface.status),
+      ["safe-send-adopted", "wallet-adapter-summary-bound"].includes(surface.status),
       `Unexpected wallet-signing status for ${surface.page}: ${surface.status}.`,
     );
     if (surface.page !== "Umbra adapter") {
@@ -120,5 +130,6 @@ if (jsonMode || checkMode) {
   console.log(`- liveMainnetSubmissionEnabled: ${String(result.liveMainnetSubmissionEnabled)}`);
   console.log(`- browserVerificationCluster: ${result.browserVerificationCluster}`);
   console.log(`- umbraAdapterGateStatus: ${result.umbraAdapterGateStatus}`);
+  console.log(`- umbraAdapterSummaryBindingRequired: ${String(result.umbraAdapterSummaryBindingRequired)}`);
   console.log(`- productionReady: ${String(result.productionReady)}`);
 }

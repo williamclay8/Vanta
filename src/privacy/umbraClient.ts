@@ -27,8 +27,12 @@ export type UmbraWalletAdapterGate = {
   humanApprovedSummary: boolean;
   issuedAt: number;
   messageIntentApproved: boolean;
+  operationKind: string;
   privateKeyMaterialHandled?: boolean;
   requester: string;
+  summaryIntentKind: "message" | "transaction";
+  summaryKind: "vanta-umbra-operation-approval-summary";
+  summaryVersion: "vanta-umbra-operation-approval-summary-0.1";
   transactionIntentApproved: boolean;
 };
 
@@ -68,6 +72,34 @@ export function validateUmbraWalletAdapterGate(
     return {
       accepted: false,
       reason: "private-key-material-handled",
+    };
+  }
+
+  if (typeof gate.operationKind !== "string" || gate.operationKind.trim().length === 0) {
+    return {
+      accepted: false,
+      reason: "umbra-operation-kind-required",
+    };
+  }
+
+  if (gate.summaryKind !== "vanta-umbra-operation-approval-summary") {
+    return {
+      accepted: false,
+      reason: "umbra-operation-summary-binding-required",
+    };
+  }
+
+  if (gate.summaryVersion !== "vanta-umbra-operation-approval-summary-0.1") {
+    return {
+      accepted: false,
+      reason: "umbra-operation-summary-version-unsupported",
+    };
+  }
+
+  if (gate.summaryIntentKind !== intentKind) {
+    return {
+      accepted: false,
+      reason: "umbra-operation-summary-intent-mismatch",
     };
   }
 

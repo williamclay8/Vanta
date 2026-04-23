@@ -66,12 +66,14 @@ export function createUmbraOperationWalletAdapterGate({
   humanApprovedSummary,
   intentKind,
   now = Date.now(),
+  operationKind,
   ttlMs = 2 * 60 * 1000,
   walletSession,
 }: {
   humanApprovedSummary: boolean;
   intentKind: "message" | "transaction";
   now?: number;
+  operationKind: UmbraOperationKind;
   ttlMs?: number;
   walletSession: WalletSession;
 }): UmbraWalletAdapterGate {
@@ -81,8 +83,12 @@ export function createUmbraOperationWalletAdapterGate({
     humanApprovedSummary,
     issuedAt: now,
     messageIntentApproved: intentKind === "message",
+    operationKind,
     privateKeyMaterialHandled: false,
     requester: walletSession.account.address,
+    summaryIntentKind: intentKind,
+    summaryKind: "vanta-umbra-operation-approval-summary",
+    summaryVersion: "vanta-umbra-operation-approval-summary-0.1",
     transactionIntentApproved: intentKind === "transaction",
   };
 }
@@ -434,8 +440,12 @@ export function createUmbraOperationWalletAdapterGateFromSummary({
     humanApprovedSummary,
     issuedAt: summary.issuedAt,
     messageIntentApproved: summary.intentKind === "message",
+    operationKind: summary.operationKind,
     privateKeyMaterialHandled,
     requester: summary.requester,
+    summaryIntentKind: summary.intentKind,
+    summaryKind: summary.kind,
+    summaryVersion: summary.version,
     transactionIntentApproved: summary.intentKind === "transaction",
   };
 }

@@ -13,6 +13,14 @@ for (const phrase of [
   "umbra-message-intent-approved",
   "umbra-transaction-intent-approved",
   "wallet-requester-mismatch",
+  "operationKind: string",
+  'summaryKind: "vanta-umbra-operation-approval-summary"',
+  'summaryVersion: "vanta-umbra-operation-approval-summary-0.1"',
+  'summaryIntentKind: "message" | "transaction"',
+  "umbra-operation-kind-required",
+  "umbra-operation-summary-binding-required",
+  "umbra-operation-summary-version-unsupported",
+  "umbra-operation-summary-intent-mismatch",
 ]) {
   assert.ok(clientSource.includes(phrase), `Umbra wallet adapter gate missing phrase: ${phrase}`);
 }

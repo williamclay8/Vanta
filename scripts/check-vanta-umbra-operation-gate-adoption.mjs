@@ -13,7 +13,11 @@ for (const phrase of [
   "resolveUmbraOperationClient",
   "walletAdapterGate: args.walletAdapterGate",
   'intentKind: "message" | "transaction"',
+  "operationKind: UmbraOperationKind",
   "messageIntentApproved: intentKind === \"message\"",
+  "summaryIntentKind: intentKind",
+  "summaryKind: \"vanta-umbra-operation-approval-summary\"",
+  "summaryVersion: \"vanta-umbra-operation-approval-summary-0.1\"",
   "transactionIntentApproved: intentKind === \"transaction\"",
 ]) {
   assert.ok(operationsSource.includes(phrase), `Umbra operation gate adoption missing phrase: ${phrase}`);

@@ -27,7 +27,8 @@ assert.equal(evidence.requiresSimulationBeforeSignature, true);
 assert.equal(evidence.requiresTransactionSummaryBeforeSignature, true);
 assert.deepEqual(evidence.protocolPagesWithSafeSendAdoption, ["Shield", "Send", "Swap", "Unshield"]);
 assert.deepEqual(evidence.messageIntentPages, ["Swap", "Unshield"]);
-assert.equal(evidence.umbraAdapterGateStatus, "wallet-adapter-gated");
+assert.equal(evidence.umbraAdapterGateStatus, "wallet-adapter-summary-bound");
+assert.equal(evidence.umbraAdapterSummaryBindingRequired, true);
 assert.ok(
   evidence.safety.includes("No wallet keys"),
   "Wallet-signing safety evidence must state the no-secret safety policy.",

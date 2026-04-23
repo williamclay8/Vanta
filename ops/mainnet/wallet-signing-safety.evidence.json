@@ -28,8 +28,9 @@
     "Swap",
     "Unshield"
   ],
-  "umbraAdapterGateStatus": "wallet-adapter-gated",
+  "umbraAdapterGateStatus": "wallet-adapter-summary-bound",
+  "umbraAdapterSummaryBindingRequired": true,
   "safety": "No wallet keys, seed phrases, signed transaction material, signed intent payloads, bearer values, or database URLs are stored in this evidence file.",
-  "deploymentTruth": "This evidence proves the current live wallet-signing paths are frozen behind checked local/browser safety boundaries across Shield, Send, Swap, and Unshield and must still not be presented as a production browser-signing readiness claim.",
+  "deploymentTruth": "This evidence proves the current live wallet-signing paths are frozen behind checked local/browser safety boundaries across Shield, Send, Swap, and Unshield, and that the Umbra wallet adapter is fail-closed behind a summary-bound gate rather than a generic approval window. It must still not be presented as a production browser-signing readiness claim.",
   "nextOperatorAction": "Keep the wallet-signing status, four-page browser verification, and live-send inventory commands fresh while production browser-backed signing evidence remains pending."
 }
