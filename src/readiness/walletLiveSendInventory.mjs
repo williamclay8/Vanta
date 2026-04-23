@@ -107,15 +107,17 @@ export function createWalletLiveSendInventory() {
         status: "safe-send-adopted",
       },
       {
-        currentCallSites: [
-          adapter("walletSession.signMessage!", "Umbra message-sign adapter boundary"),
-          adapter("walletSession.signTransaction!", "Umbra transaction-sign adapter boundary"),
+        currentCallSites: [],
+        adoptedCallSites: [
+          adapter("validateUmbraWalletAdapterGate", "Umbra wallet adapter validation"),
+          adapter('requireUmbraWalletAdapterGate(walletAdapterGate, "message")', "Umbra message-sign adapter gate"),
+          adapter('requireUmbraWalletAdapterGate(walletAdapterGate, "transaction")', "Umbra transaction-sign adapter gate"),
         ],
         file: "src/privacy/umbraClient.ts",
         page: "Umbra adapter",
         replacement:
-          "Keep the adapter narrow: callers must pass only already summarized, simulated, and gate-accepted transactions or typed message intents.",
-        status: "requires-wallet-backed-simulation-gate",
+          "Keep the adapter fail-closed behind a wallet adapter gate, then wire operation-specific summaries so callers pass only already summarized, simulated, and gate-accepted transactions or typed message intents.",
+        status: "wallet-adapter-gated",
       },
     ],
   };

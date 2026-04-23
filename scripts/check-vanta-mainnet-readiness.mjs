@@ -189,6 +189,10 @@ assert.ok(
   "Missing wallet message-intent adoption command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run umbra:wallet-adapter-gate-check"),
+  "Missing Umbra wallet adapter gate command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run wallet:live-send-inventory-check"),
   "Missing wallet live send inventory command.",
 );

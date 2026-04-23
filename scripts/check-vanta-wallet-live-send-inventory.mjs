@@ -27,11 +27,11 @@ for (const page of ["Shield", "Send", "Swap", "Unshield"]) {
 
 for (const surface of inventory.actionSurfaces) {
   assert.ok(
-    ["requires-wallet-backed-simulation-gate", "safe-send-adopted"].includes(surface.status),
+    ["requires-wallet-backed-simulation-gate", "safe-send-adopted", "wallet-adapter-gated"].includes(surface.status),
     `${surface.page} has unknown wallet-send adoption status: ${surface.status}`,
   );
   assert.ok(surface.file.startsWith("src/"), `${surface.page} inventory must use repo-relative source files.`);
-  if (surface.status !== "safe-send-adopted") {
+  if (surface.status === "requires-wallet-backed-simulation-gate") {
     assert.ok(surface.currentCallSites.length > 0, `${surface.page} must list current call sites.`);
   }
   assert.ok(surface.replacement.includes("simulate"), `${surface.page} replacement guidance must include simulation.`);
@@ -81,6 +81,14 @@ assert.ok(
   "Unshield must list message-intent, spent-marker, transition, and split paths as adopted.",
 );
 assert.equal(unshieldSurface.currentCallSites.length, 0, "Unshield must not keep raw wallet signing pending.");
+
+const umbraSurface = surfacesByPage.get("Umbra adapter");
+assert.equal(umbraSurface.status, "wallet-adapter-gated", "Umbra adapter must be fail-closed by an adapter gate.");
+assert.equal(umbraSurface.currentCallSites.length, 0, "Umbra adapter must not expose raw wallet signing call sites.");
+assert.ok(
+  umbraSurface.adoptedCallSites?.length >= 3,
+  "Umbra adapter must list message, transaction, and validation gate call sites.",
+);
 
 const transactionCallSites = inventory.actionSurfaces.flatMap((surface) =>
   surface.currentCallSites.filter((callSite) => callSite.signatureKind === "transaction-signature"),

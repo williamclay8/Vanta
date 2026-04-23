@@ -572,13 +572,31 @@ The wallet message-intent adoption command is:
 npm run wallet:message-intent-adoption-check
 ```
 
+The Umbra wallet adapter gate is:
+
+```text
+src/privacy/umbraClient.ts
+```
+
+It keeps the external Umbra SDK signer fail-closed behind an explicit adapter gate before message or transaction signing. The gate requires issued and expiry timestamps, connected-wallet/requester alignment, no private-key material handling, explicit human approval, and separate message and transaction approval flags before the SDK can call the wallet signer.
+
+The Umbra wallet adapter gate command is:
+
+```text
+scripts/check-vanta-umbra-wallet-adapter-gate.mjs
+```
+
+```bash
+npm run umbra:wallet-adapter-gate-check
+```
+
 The frozen live wallet send/sign inventory is:
 
 ```text
 src/readiness/walletLiveSendInventory.mjs
 ```
 
-It records the current Umbra adapter call sites that still require replacement with prepare, simulate, safety summary, wallet-backed gate validation, wallet approval, and prepared transaction submission or typed message-intent approval. It also records Shield, Send, Swap, and Unshield call sites that have adopted safe-send or message-intent safety boundaries so reviewers can see which live-signing paths have moved. The inventory is deliberately not a readiness claim; it is a guardrail to keep every live signing path visible until replaced.
+It records Umbra adapter call sites that are now fail-closed behind the adapter gate and the Shield, Send, Swap, and Unshield call sites that have adopted safe-send or message-intent safety boundaries so reviewers can see which live-signing paths have moved. The inventory is deliberately not a readiness claim; it is a guardrail to keep every live signing path visible until replaced.
 
 The live wallet send inventory command is:
 
