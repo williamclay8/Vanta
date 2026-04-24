@@ -131,6 +131,18 @@ if (jsonMode) {
     `  - productionSmokeTargetsPassed: ${String(snapshot.productionServiceDeployment.productionSmokeTargetsPassed)}`,
   );
   console.log(
+    `  - observabilityControlsPending: ${String(snapshot.productionServiceDeployment.observabilityControlsPending)}`,
+  );
+  console.log(
+    `  - backupRestoreMaturityPending: ${String(snapshot.productionServiceDeployment.backupRestoreMaturityPending)}`,
+  );
+  console.log(
+    `  - realFundsReadinessPending: ${String(snapshot.productionServiceDeployment.realFundsReadinessPending)}`,
+  );
+  console.log(
+    `  - pendingProductionControls: ${snapshot.productionServiceDeployment.pendingProductionControls.join(", ")}`,
+  );
+  console.log(
     `  - services: ${snapshot.productionServiceDeployment.serviceDeploymentStatuses
       .map((service) => `${service.id}:${service.deploymentStatus}`)
       .join(", ")}`,

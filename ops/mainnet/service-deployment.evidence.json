@@ -11,6 +11,14 @@
   "productionSmokeEvidenceRef": "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
   "productionSmokeHealthPassed": true,
   "productionSmokeTargetsPassed": true,
+  "observabilityControlsPending": true,
+  "backupRestoreMaturityPending": true,
+  "realFundsReadinessPending": true,
+  "pendingProductionControls": [
+    "observability-controls",
+    "backup-restore-maturity",
+    "real-funds-readiness"
+  ],
   "routeHealthEvidenceRef": "ops/mainnet/private-pool-v2-route-health.evidence.json",
   "routeHealthPublicPassed": true,
   "routeHealthAuthenticatedPassed": true,
@@ -37,6 +45,6 @@
     }
   ],
   "safety": "No auth token values, database URLs, bearer values, wallet keys, or signed transaction material are stored in this evidence file.",
-  "deploymentTruth": "This evidence proves the five Private Pool v2 role services are deployed on Render with names-only manifest references, authenticated route-health is green, checked role-service replay barrier evidence is green, and no-real-funds production smoke is green, while observability and broader production-readiness controls still keep the services non-ready for production/mainnet claims.",
-  "nextOperatorAction": "Keep deployment status, route-health, checked role-service replay, and production smoke evidence fresh while observability, backup/restore maturity, and real-funds readiness remain pending."
+  "deploymentTruth": "This evidence proves the five Private Pool v2 role services are deployed on Render with names-only manifest references, authenticated route-health is green, checked role-service replay barrier evidence is green, and no-real-funds production smoke is green. The lane still remains non-ready because observability controls, backup/restore maturity, and real-funds readiness are all still pending.",
+  "nextOperatorAction": "Keep deployment status, route-health, checked role-service replay, and production smoke evidence fresh while observability controls, backup/restore maturity, and real-funds readiness remain pending."
 }

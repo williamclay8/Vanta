@@ -175,6 +175,14 @@ assert.equal(snapshot.productionServiceDeployment.routeHealthAuthenticatedPassed
 assert.equal(snapshot.productionServiceDeployment.roleServiceReplayVerified, true);
 assert.equal(snapshot.productionServiceDeployment.productionSmokeHealthPassed, true);
 assert.equal(snapshot.productionServiceDeployment.productionSmokeTargetsPassed, true);
+assert.equal(snapshot.productionServiceDeployment.observabilityControlsPending, true);
+assert.equal(snapshot.productionServiceDeployment.backupRestoreMaturityPending, true);
+assert.equal(snapshot.productionServiceDeployment.realFundsReadinessPending, true);
+assert.deepEqual(snapshot.productionServiceDeployment.pendingProductionControls, [
+  "observability-controls",
+  "backup-restore-maturity",
+  "real-funds-readiness",
+]);
 assert.equal(
   snapshot.productionServiceDeployment.routeHealthEvidenceRef,
   "ops/mainnet/private-pool-v2-route-health.evidence.json",

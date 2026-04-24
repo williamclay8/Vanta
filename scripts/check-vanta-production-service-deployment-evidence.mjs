@@ -30,6 +30,14 @@ assert.equal(evidence.roleServiceReplayVerified, true);
 assert.equal(evidence.productionSmokeEvidenceRef, "ops/mainnet/private-pool-v2-production-smoke.evidence.json");
 assert.equal(evidence.productionSmokeHealthPassed, true);
 assert.equal(evidence.productionSmokeTargetsPassed, true);
+assert.equal(evidence.observabilityControlsPending, true);
+assert.equal(evidence.backupRestoreMaturityPending, true);
+assert.equal(evidence.realFundsReadinessPending, true);
+assert.deepEqual(evidence.pendingProductionControls, [
+  "observability-controls",
+  "backup-restore-maturity",
+  "real-funds-readiness",
+]);
 assert.equal(evidence.routeHealthEvidenceRef, "ops/mainnet/private-pool-v2-route-health.evidence.json");
 assert.equal(evidence.routeHealthPublicPassed, true);
 assert.equal(evidence.routeHealthAuthenticatedPassed, true);
@@ -52,6 +60,10 @@ assert.ok(
 assert.ok(
   evidence.deploymentTruth.includes("no-real-funds production smoke is green"),
   "Service deployment evidence must preserve the green production-smoke truth.",
+);
+assert.ok(
+  evidence.deploymentTruth.includes("observability controls, backup/restore maturity, and real-funds readiness"),
+  "Service deployment evidence must preserve the exact remaining pending controls.",
 );
 
 const serialized = JSON.stringify(evidence);
