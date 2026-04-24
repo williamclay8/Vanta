@@ -23,28 +23,6 @@ export type VantaPayMerchantControlPlaneSectionState = "visible" | "empty" | "be
 
 export type VantaPayApprovalPhase = "preview" | "approve" | "execute" | "settle";
 
-export type VantaPayMerchantControlPlaneNextWindow = {
-  cadence: "daily";
-  targetTimeUtc: string;
-  timezone: "UTC";
-};
-
-export type VantaPayMerchantControlPlaneExportWindow = {
-  endUtc: string;
-  startUtc: string;
-  timezone: "UTC";
-};
-
-export type VantaPayMerchantControlPlaneState = {
-  approvalPhase: VantaPayApprovalPhase;
-  payoutQueue: {
-    nextWindow: VantaPayMerchantControlPlaneNextWindow;
-  };
-  reconciliation: {
-    exportWindow: VantaPayMerchantControlPlaneExportWindow;
-  };
-};
-
 export type VantaPayMerchantControlPlane = {
   merchantControlPlaneVersion: "vanta-pay-merchant-control-plane-0.1";
   approvalPhase: VantaPayApprovalPhase;
@@ -54,11 +32,11 @@ export type VantaPayMerchantControlPlane = {
   withdrawals: readonly VantaPayWithdrawal[];
   payoutQueue: {
     destination: string;
-    nextWindow: VantaPayMerchantControlPlaneNextWindow;
+    nextWindow: string;
     state: "merchant-visible";
   };
   reconciliation: {
-    exportWindow: VantaPayMerchantControlPlaneExportWindow;
+    exportWindow: string;
     recordsLabel: string;
     state: "merchant-visible";
   };
@@ -68,24 +46,6 @@ export type VantaPayMerchantControlPlane = {
     refunds: VantaPayMerchantControlPlaneSectionState;
     withdrawals: VantaPayMerchantControlPlaneSectionState;
     reconciliation: VantaPayMerchantControlPlaneSectionState;
-  };
-};
-
-export type VantaPayMerchantControlPlaneInput = {
-  balances: VantaPayBalances;
-  approvalPhase: VantaPayApprovalPhase;
-  receipts: readonly VantaPayReceipt[];
-  refunds: readonly VantaPayRefund[];
-  withdrawals: readonly VantaPayWithdrawal[];
-  payoutQueue: {
-    destination: string;
-    nextWindow: VantaPayMerchantControlPlaneNextWindow;
-    state: "merchant-visible";
-  };
-  reconciliation: {
-    exportWindow: VantaPayMerchantControlPlaneExportWindow;
-    recordsLabel?: string;
-    state: "merchant-visible";
   };
 };
 

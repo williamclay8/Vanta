@@ -12,10 +12,6 @@ import type {
   VantaPayInvoiceCreateInput,
   VantaPayLineItem,
   VantaPayMerchant,
-  VantaPayApprovalPhase,
-  VantaPayMerchantControlPlaneExportWindow,
-  VantaPayMerchantControlPlaneNextWindow,
-  VantaPayMerchantControlPlaneState,
   VantaPayPayment,
   VantaPayPaymentLink,
   VantaPayPaymentLinkCreateInput,
@@ -217,16 +213,42 @@ export function verifyVantaPayWebhookSignature({
 export type VantaPayRuntimeArgs = {
   checkoutBaseUrl?: string;
   merchantControlPlaneState?: {
-    approvalPhase?: VantaPayApprovalPhase;
+    approvalPhase?: "preview" | "approve" | "execute" | "settle";
     payoutQueue?: {
-      nextWindow?: VantaPayMerchantControlPlaneNextWindow;
+      nextWindow?: {
+        cadence: "daily";
+        targetTimeUtc: string;
+        timezone: "UTC";
+      };
     };
     reconciliation?: {
-      exportWindow?: VantaPayMerchantControlPlaneExportWindow;
+      exportWindow?: {
+        endUtc: string;
+        startUtc: string;
+        timezone: "UTC";
+      };
     };
   };
   now?: string;
   snapshot?: VantaPayRuntimeSnapshot;
+};
+
+type VantaPayRuntimeMerchantControlPlaneState = {
+  approvalPhase: "preview" | "approve" | "execute" | "settle";
+  payoutQueue: {
+    nextWindow: {
+      cadence: "daily";
+      targetTimeUtc: string;
+      timezone: "UTC";
+    };
+  };
+  reconciliation: {
+    exportWindow: {
+      endUtc: string;
+      startUtc: string;
+      timezone: "UTC";
+    };
+  };
 };
 
 function cloneBalances(balances: VantaPayBalances): VantaPayBalances {
@@ -249,9 +271,7 @@ function cloneWithdrawals(withdrawals: readonly VantaPayWithdrawal[]) {
   return withdrawals.map((withdrawal) => ({ ...withdrawal }));
 }
 
-function cloneMerchantControlPlaneState(
-  state: VantaPayMerchantControlPlaneState,
-): VantaPayMerchantControlPlaneState {
+function cloneMerchantControlPlaneState(state: VantaPayRuntimeMerchantControlPlaneState) {
   return {
     approvalPhase: state.approvalPhase,
     payoutQueue: {
@@ -290,7 +310,7 @@ export function createVantaPayRuntime({
     },
   } satisfies VantaPayMerchant;
 
-  const controlPlaneState = {
+  const controlPlaneState: VantaPayRuntimeMerchantControlPlaneState = {
     approvalPhase: merchantControlPlaneState?.approvalPhase ?? "preview",
     payoutQueue: {
       nextWindow: merchantControlPlaneState?.payoutQueue?.nextWindow ?? {
@@ -306,7 +326,7 @@ export function createVantaPayRuntime({
         timezone: "UTC",
       },
     },
-  } satisfies VantaPayMerchantControlPlaneState;
+  };
 
   const sessions = new Map<string, VantaPayCheckoutSession>();
   const payments = new Map<string, VantaPayPayment>();

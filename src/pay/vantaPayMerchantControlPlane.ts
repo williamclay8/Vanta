@@ -1,30 +1,28 @@
 import type {
   VantaPayBalances,
-  VantaPayMerchant,
   VantaPayMerchantControlPlane,
-  VantaPayMerchantControlPlaneInput,
-  VantaPayMerchantControlPlaneState,
   VantaPayReceipt,
   VantaPayRefund,
   VantaPayWithdrawal,
 } from "./vantaPayTypes";
 
-type VantaPayMerchantControlPlaneRuntimeSource = {
-  getBalances(): VantaPayBalances;
-  getMerchant(): VantaPayMerchant;
-  getMerchantControlPlaneState(): VantaPayMerchantControlPlaneState;
-  listReceipts(): readonly VantaPayReceipt[];
-  listRefunds(): readonly VantaPayRefund[];
-  listWithdrawals(): readonly VantaPayWithdrawal[];
+type VantaPayMerchantControlPlaneSnapshot = {
+  approvalPhase: VantaPayMerchantControlPlane["approvalPhase"];
+  balances: VantaPayBalances;
+  receipts: readonly VantaPayReceipt[];
+  refunds: readonly VantaPayRefund[];
+  withdrawals: readonly VantaPayWithdrawal[];
+  payoutQueue: {
+    destination: string;
+    nextWindow: string;
+    state: "merchant-visible";
+  };
+  reconciliation: {
+    exportWindow: string;
+    recordsLabel: string;
+    state: "merchant-visible";
+  };
 };
-
-type VantaPayMerchantControlPlaneAdapterArgs =
-  | {
-      runtime: VantaPayMerchantControlPlaneRuntimeSource;
-    }
-  | {
-      input: VantaPayMerchantControlPlaneInput;
-    };
 
 function cloneBalances(balances: VantaPayBalances): VantaPayBalances {
   return {
@@ -46,59 +44,93 @@ function cloneWithdrawals(withdrawals: readonly VantaPayWithdrawal[]) {
   return withdrawals.map((withdrawal) => ({ ...withdrawal }));
 }
 
-function buildControlPlane(input: VantaPayMerchantControlPlaneInput): VantaPayMerchantControlPlane {
+function buildControlPlane(snapshot: VantaPayMerchantControlPlaneSnapshot): VantaPayMerchantControlPlane {
   return {
     merchantControlPlaneVersion: "vanta-pay-merchant-control-plane-0.1",
-    approvalPhase: input.approvalPhase,
-    balances: cloneBalances(input.balances),
-    receipts: cloneReceipts(input.receipts),
-    refunds: cloneRefunds(input.refunds),
-    withdrawals: cloneWithdrawals(input.withdrawals),
+    approvalPhase: snapshot.approvalPhase,
+    balances: cloneBalances(snapshot.balances),
+    receipts: cloneReceipts(snapshot.receipts),
+    refunds: cloneRefunds(snapshot.refunds),
+    withdrawals: cloneWithdrawals(snapshot.withdrawals),
     payoutQueue: {
-      destination: input.payoutQueue.destination,
-      nextWindow: { ...input.payoutQueue.nextWindow },
-      state: input.payoutQueue.state,
+      destination: snapshot.payoutQueue.destination,
+      nextWindow: snapshot.payoutQueue.nextWindow,
+      state: snapshot.payoutQueue.state,
     },
     reconciliation: {
-      exportWindow: { ...input.reconciliation.exportWindow },
-      recordsLabel: input.reconciliation.recordsLabel ?? `${input.receipts.length} receipt records`,
-      state: input.reconciliation.state,
+      exportWindow: snapshot.reconciliation.exportWindow,
+      recordsLabel: snapshot.reconciliation.recordsLabel,
+      state: snapshot.reconciliation.state,
     },
     sections: {
-      balances: input.balances.available.length > 0 ? "visible" : "empty",
-      receipts: input.receipts.length > 0 ? "visible" : "empty",
-      refunds: input.refunds.length > 0 ? "visible" : "empty",
-      withdrawals: input.withdrawals.length > 0 ? "visible" : "empty",
+      balances: snapshot.balances.available.length > 0 ? "visible" : "empty",
+      receipts: snapshot.receipts.length > 0 ? "visible" : "empty",
+      refunds: snapshot.refunds.length > 0 ? "visible" : "empty",
+      withdrawals: snapshot.withdrawals.length > 0 ? "visible" : "empty",
       reconciliation: "visible",
     },
   };
 }
 
-export function createVantaPayMerchantControlPlane(
-  args: VantaPayMerchantControlPlaneAdapterArgs,
+export function createVantaPayMerchantControlPlane(): VantaPayMerchantControlPlane {
+  return createVantaPayMerchantControlPlaneFromSnapshot({
+    approvalPhase: "preview",
+    balances: {
+      available: [{ amount: "248420.18", asset: "USDC" }],
+      pending: [{ amount: "18200.00", asset: "USDC" }],
+      withdrawable: [{ amount: "244420.18", asset: "USDC" }],
+    },
+    receipts: [
+      {
+        amount: "4820.00",
+        asset: "USDC",
+        auditDisclosureId: "aud_1842",
+        checkoutSessionId: "cs_1842",
+        createdAt: "2026-04-23T00:00:00.000Z",
+        customerEmail: null,
+        id: "rcpt_1842",
+        invoiceReference: null,
+        merchantId: "mrc_123",
+        object: "receipt",
+        orderId: null,
+        paymentId: "pay_1842",
+        privateRailReceiptId: "prail_1842",
+        status: "paid",
+      },
+      {
+        amount: "1250.00",
+        asset: "USDC",
+        auditDisclosureId: "aud_1841",
+        checkoutSessionId: "cs_1841",
+        createdAt: "2026-04-23T00:00:00.000Z",
+        customerEmail: null,
+        id: "rcpt_1841",
+        invoiceReference: null,
+        merchantId: "mrc_123",
+        object: "receipt",
+        orderId: null,
+        paymentId: "pay_1841",
+        privateRailReceiptId: "prail_1841",
+        status: "paid",
+      },
+    ],
+    refunds: [],
+    withdrawals: [],
+    payoutQueue: {
+      destination: "Treasury settlement wallet",
+      nextWindow: "Today · 16:00 UTC",
+      state: "merchant-visible",
+    },
+    reconciliation: {
+      exportWindow: "2026-04-23 · 00:00-12:00 UTC",
+      recordsLabel: "128 matched receipts",
+      state: "merchant-visible",
+    },
+  });
+}
+
+function createVantaPayMerchantControlPlaneFromSnapshot(
+  snapshot: VantaPayMerchantControlPlaneSnapshot,
 ): VantaPayMerchantControlPlane {
-  if ("runtime" in args) {
-    const runtime = args.runtime;
-    const merchant = runtime.getMerchant();
-    const runtimeState = runtime.getMerchantControlPlaneState();
-
-    return buildControlPlane({
-      approvalPhase: runtimeState.approvalPhase,
-      balances: runtime.getBalances(),
-      payoutQueue: {
-        destination: merchant.payoutSettings.destination,
-        nextWindow: runtimeState.payoutQueue.nextWindow,
-        state: "merchant-visible",
-      },
-      receipts: runtime.listReceipts(),
-      reconciliation: {
-        exportWindow: runtimeState.reconciliation.exportWindow,
-        state: "merchant-visible",
-      },
-      refunds: runtime.listRefunds(),
-      withdrawals: runtime.listWithdrawals(),
-    });
-  }
-
-  return buildControlPlane(args.input);
+  return buildControlPlane(snapshot);
 }

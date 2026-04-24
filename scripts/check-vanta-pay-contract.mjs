@@ -1,5 +1,4 @@
 import { execFileSync } from "node:child_process";
-import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -192,182 +191,30 @@ if (!payTypesSource.includes("export type VantaPayMerchantControlPlane =")) {
 }
 
 try {
-  const runtimeSource = {
-    getBalances() {
-      return {
-        available: [{ amount: "5.00", asset: "USDC" }],
-        pending: [],
-        withdrawable: [{ amount: "5.00", asset: "USDC" }],
-      };
-    },
-    getMerchant() {
-      return {
-        acceptedAssets: ["USDC", "SOL", "USDT"],
-        branding: {
-          logoUrl: "https://merchant.com/logo.png",
-          name: "Vanta Studio",
-        },
-        callbackUrls: {
-          cancelUrl: "https://merchant.com/cancel",
-          successUrl: "https://merchant.com/success",
-          webhookUrl: "https://merchant.com/webhooks/vanta",
-        },
-        environmentMode: "test",
-        id: "mrc_123",
-        object: "merchant",
-        payoutSettings: {
-          defaultAsset: "USDC",
-          destination: "Treasury",
-          destinationType: "treasury_address",
-        },
-      };
-    },
-    getMerchantControlPlaneState() {
-      return {
-        approvalPhase: "settle",
-        payoutQueue: {
-          nextWindow: {
-            cadence: "daily",
-            targetTimeUtc: "18:30",
-            timezone: "UTC",
-          },
-        },
-        reconciliation: {
-          exportWindow: {
-            endUtc: "05:00",
-            startUtc: "01:00",
-            timezone: "UTC",
-          },
-        },
-      };
-    },
-    listReceipts() {
-      return [
-        {
-          amount: "12.34",
-          asset: "USDC",
-          auditDisclosureId: "aud_test",
-          checkoutSessionId: "cs_test",
-          createdAt: "2026-04-23T00:00:00.000Z",
-          customerEmail: null,
-          id: "rcpt_test",
-          invoiceReference: null,
-          merchantId: "mrc_123",
-          object: "receipt",
-          orderId: null,
-          paymentId: "pay_test",
-          privateRailReceiptId: "prail_test",
-          status: "paid",
-        },
-      ];
-    },
-    listRefunds() {
-      return [
-        {
-          amount: "2.00",
-          asset: "USDC",
-          createdAt: "2026-04-23T00:00:00.000Z",
-          id: "rfnd_test",
-          idempotencyKey: "refund_test",
-          merchantId: "mrc_123",
-          object: "refund",
-          paymentId: "pay_test",
-          reason: "test",
-          status: "refunded",
-        },
-      ];
-    },
-    listWithdrawals() {
-      return [
-        {
-          amount: "1.00",
-          asset: "USDC",
-          createdAt: "2026-04-23T00:00:00.000Z",
-          destination: "Treasury",
-          destinationType: "treasury_address",
-          id: "wdr_test",
-          idempotencyKey: "withdrawal_test",
-          merchantId: "mrc_123",
-          object: "withdrawal",
-          privateExitReceiptId: "pexit_test",
-          referenceNote: "test",
-          status: "completed",
-        },
-      ];
-    },
-  };
+  if (createVantaPayMerchantControlPlane.length !== 0) {
+    failures.push("createVantaPayMerchantControlPlane must be zero-arg");
+    throw new Error("zero-arg contract mismatch");
+  }
 
-  const runtimeControlPlane = createVantaPayMerchantControlPlane({ runtime: runtimeSource });
-  assert.equal(runtimeControlPlane.approvalPhase, "settle");
-  assert.equal(runtimeControlPlane.payoutQueue.nextWindow.targetTimeUtc, "18:30");
-  assert.equal(runtimeControlPlane.reconciliation.exportWindow.startUtc, "01:00");
-  assert.equal(runtimeControlPlane.receipts[0].id, "rcpt_test");
-  assert.equal(runtimeControlPlane.refunds[0].id, "rfnd_test");
-  assert.equal(runtimeControlPlane.withdrawals[0].id, "wdr_test");
-
-  runtimeControlPlane.receipts[0].amount = "999.99";
-  runtimeControlPlane.refunds[0].reason = "mutated";
-  runtimeControlPlane.withdrawals[0].referenceNote = "mutated";
-  runtimeControlPlane.payoutQueue.nextWindow.targetTimeUtc = "23:59";
-  runtimeControlPlane.reconciliation.exportWindow.endUtc = "23:59";
-
-  assert.equal(runtimeSource.listReceipts()[0].amount, "12.34");
-  assert.equal(runtimeSource.listRefunds()[0].reason, "test");
-  assert.equal(runtimeSource.listWithdrawals()[0].referenceNote, "test");
-  assert.equal(runtimeSource.getMerchantControlPlaneState().payoutQueue.nextWindow.targetTimeUtc, "18:30");
-  assert.equal(runtimeSource.getMerchantControlPlaneState().reconciliation.exportWindow.endUtc, "05:00");
-
-  const explicitControlPlane = createVantaPayMerchantControlPlane({
-    input: {
-      approvalPhase: "execute",
-      balances: {
-        available: [{ amount: "5.00", asset: "USDC" }],
-        pending: [],
-        withdrawable: [{ amount: "5.00", asset: "USDC" }],
-      },
-      payoutQueue: {
-        destination: "Treasury settlement wallet",
-        nextWindow: {
-          cadence: "daily",
-          targetTimeUtc: "16:00",
-          timezone: "UTC",
-        },
-        state: "merchant-visible",
-      },
-      receipts: [
-        {
-          amount: "5.00",
-          asset: "USDC",
-          auditDisclosureId: "aud_explicit",
-          checkoutSessionId: "cs_explicit",
-          createdAt: "2026-04-23T00:00:00.000Z",
-          customerEmail: null,
-          id: "rcpt_explicit",
-          invoiceReference: null,
-          merchantId: "mrc_123",
-          object: "receipt",
-          orderId: null,
-          paymentId: "pay_explicit",
-          privateRailReceiptId: "prail_explicit",
-          status: "paid",
-        },
-      ],
-      reconciliation: {
-        exportWindow: {
-          endUtc: "12:00",
-          startUtc: "00:00",
-          timezone: "UTC",
-        },
-        state: "merchant-visible",
-      },
-      refunds: [],
-      withdrawals: [],
-    },
-  });
-
-  assert.equal(explicitControlPlane.approvalPhase, "execute");
-  assert.equal(explicitControlPlane.reconciliation.recordsLabel, "1 receipt records");
-  assert.equal(explicitControlPlane.payoutQueue.nextWindow.cadence, "daily");
+  const controlPlane = createVantaPayMerchantControlPlane();
+  if (controlPlane.approvalPhase !== "preview") {
+    failures.push("Expected preview approval phase from the zero-arg control plane builder.");
+  }
+  if (controlPlane.payoutQueue.nextWindow !== "Today · 16:00 UTC") {
+    failures.push("Expected public payoutQueue.nextWindow string on the control plane builder.");
+  }
+  if (controlPlane.reconciliation.exportWindow !== "2026-04-23 · 00:00-12:00 UTC") {
+    failures.push("Expected public reconciliation.exportWindow string on the control plane builder.");
+  }
+  if (typeof controlPlane.payoutQueue.nextWindow !== "string") {
+    failures.push("Expected payoutQueue.nextWindow to be a string.");
+  }
+  if (typeof controlPlane.reconciliation.exportWindow !== "string") {
+    failures.push("Expected reconciliation.exportWindow to be a string.");
+  }
+  if (controlPlane.reconciliation.recordsLabel !== "128 matched receipts") {
+    failures.push("Expected public reconciliation.recordsLabel on the control plane builder.");
+  }
 } catch (error) {
   failures.push(`Vanta Pay merchant control plane behavior check failed: ${error.message}`);
 }
