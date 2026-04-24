@@ -30,18 +30,18 @@ for (const gateId of ["third-party-security-audit", "legal-compliance-custody"])
 
 const approval = evidence.approvalRecord;
 assert.equal(approval.status, "approved");
-assert.equal(approval.approvedActionRef, "launch-runbook/vanta-mainnet-beta-001");
-assert.equal(
-  approval.approvedActionSummary,
-  "Enable beta mainnet private-pool smoke with maximum 0.05 SOL at risk",
+assert.ok(approval.approvedActionRef && approval.approvedActionRef !== "pending");
+assert.ok(approval.approvedActionSummary && approval.approvedActionSummary !== "pending");
+assert.ok(["mainnet-beta", "mainnet"].includes(approval.approvedEnvironment));
+assert.ok(approval.approvedFeePayerRef && approval.approvedFeePayerRef !== "pending");
+assert.match(
+  approval.approvedLaunchWindowRef,
+  /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2})-(\d{2}:\d{2}:\d{2}) ([A-Za-z_]+\/[A-Za-z_]+)$/,
 );
-assert.equal(approval.approvedEnvironment, "mainnet-beta");
-assert.equal(approval.approvedFeePayerRef, "wallet/public-fee-payer-vanta-beta");
-assert.equal(approval.approvedLaunchWindowRef, "2026-04-22T14:30:00-15:30:00 America/Chicago");
-assert.equal(approval.rollbackPlanRef, "runbook/disable-private-pool-v2-services-and-beta-actions");
-assert.equal(approval.stopLossPlanRef, "max-0.05-sol-or-first-failed-settlement");
-assert.equal(approval.maximumFundsAtRiskRef, "0.05 SOL");
-assert.equal(approval.approvedByRef, "Clay / founder approval / 2026-04-22");
+assert.ok(approval.rollbackPlanRef && approval.rollbackPlanRef !== "pending");
+assert.ok(approval.stopLossPlanRef && approval.stopLossPlanRef !== "pending");
+assert.ok(approval.maximumFundsAtRiskRef && approval.maximumFundsAtRiskRef !== "pending");
+assert.ok(approval.approvedByRef && approval.approvedByRef !== "pending");
 
 for (const refField of [
   "approvalRecordRef",
@@ -124,6 +124,16 @@ assert.ok(
 assert.ok(
   packageJson.scripts["mainnet:preflight"].includes("npm run mainnet:real-funds-approval-status-check"),
   "mainnet:preflight must include real-funds approval status check.",
+);
+assert.equal(
+  packageJson.scripts["mainnet:real-funds-approval-preview"],
+  "node scripts/write-vanta-mainnet-real-funds-approval-evidence.mjs --dry-run",
+  "package.json must expose mainnet:real-funds-approval-preview.",
+);
+assert.equal(
+  packageJson.scripts["mainnet:real-funds-approval-write"],
+  "node scripts/write-vanta-mainnet-real-funds-approval-evidence.mjs --write",
+  "package.json must expose mainnet:real-funds-approval-write.",
 );
 
 console.log("Vanta mainnet real-funds approval check: PASS");

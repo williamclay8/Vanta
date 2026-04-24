@@ -472,6 +472,10 @@ Current staging deployment refs:
   - `npm run mainnet:real-funds-approval-status`
   - `npm run mainnet:real-funds-approval-status-check`
   It distinguishes `approval recorded` from `approval window active now` so historical beta approvals do not get mistaken for currently active live-action permission.
+- The bounded real-funds approval packet can now be refreshed through a refs-only writer instead of hand-editing JSON:
+  - preview: `npm run mainnet:real-funds-approval-preview`
+  - write: `npm run mainnet:real-funds-approval-write`
+  Set only refs-only shell values such as `VANTA_MAINNET_APPROVAL_ACTION_REF`, `VANTA_MAINNET_APPROVAL_ACTION_SUMMARY`, `VANTA_MAINNET_APPROVAL_LAUNCH_WINDOW_REF`, `VANTA_MAINNET_APPROVAL_FEE_PAYER_REF`, `VANTA_MAINNET_APPROVAL_ROLLBACK_PLAN_REF`, `VANTA_MAINNET_APPROVAL_STOP_LOSS_PLAN_REF`, `VANTA_MAINNET_APPROVAL_MAX_FUNDS_REF`, and `VANTA_MAINNET_APPROVAL_APPROVED_BY_REF`. The writer refuses secrets, database URLs, bearer values, and malformed launch-window refs.
 - Better Stack staging monitors for Pay and Private Pool v2 public `/health` endpoints are recorded in `ops/mainnet/staging-monitoring.manifest.json`.
 - Pay and Private Pool v2 emit privacy-safe stdout JSON request telemetry through `src/ops/vantaSafeTelemetry.mjs`.
 - Pay and Private Pool v2 now also share a privacy-safe append-only operator event sink through `src/ops/vantaOperatorEventSink.mjs`, with startup, auth rejection, and rate-limit rejection events written to `pool_operator_events` whenever a Postgres-backed operator database is configured.

@@ -63,13 +63,18 @@ const fundsGate = evidence.gates.find((candidate) => candidate.id === "explicit-
 assert.equal(fundsGate.requiresHumanApproval, true);
 assert.equal(fundsGate.mainnetTransactionsAllowedBeforeApproval, false);
 assert.equal(fundsGate.realFundsAllowedBeforeApproval, false);
-assert.equal(fundsGate.currentEvidenceStatus, "approved-beta-mainnet-private-pool-smoke");
-assert.equal(
-  fundsGate.approvedActionSummary,
-  "Enable beta mainnet private-pool smoke with maximum 0.05 SOL at risk",
+assert.equal(fundsGate.currentEvidenceStatus, "approved-bounded-mainnet-action");
+assert.ok(fundsGate.approvedActionSummary && fundsGate.approvedActionSummary !== "pending");
+assert.ok(fundsGate.approvedActionRef && fundsGate.approvedActionRef !== "pending");
+assert.ok(fundsGate.approvedFeePayerRef && fundsGate.approvedFeePayerRef !== "pending");
+assert.match(
+  fundsGate.approvedLaunchWindowRef,
+  /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2})-(\d{2}:\d{2}:\d{2}) ([A-Za-z_]+\/[A-Za-z_]+)$/,
 );
-assert.equal(fundsGate.approvedActionRef, "launch-runbook/vanta-mainnet-beta-001");
-assert.equal(fundsGate.maximumFundsAtRiskRef, "0.05 SOL");
+assert.ok(fundsGate.rollbackPlanRef && fundsGate.rollbackPlanRef !== "pending");
+assert.ok(fundsGate.stopLossPlanRef && fundsGate.stopLossPlanRef !== "pending");
+assert.ok(fundsGate.maximumFundsAtRiskRef && fundsGate.maximumFundsAtRiskRef !== "pending");
+assert.ok(fundsGate.approvedByRef && fundsGate.approvedByRef !== "pending");
 
 for (const externalGateId of [
   "secret-manager-backed-credentials",
@@ -147,8 +152,8 @@ assert.ok(
   "Approval gates evidence must preserve secret-manager skipped-control truth.",
 );
 assert.ok(
-  evidence.limitations.some((limitation) => limitation.includes("maximum 0.05 SOL at risk")),
-  "Approval gates evidence must preserve bounded funds approval limit.",
+  evidence.limitations.some((limitation) => limitation.startsWith("Explicit mainnet real-funds approval is recorded only for ")),
+  "Approval gates evidence must preserve bounded funds approval language.",
 );
 
 const operatorSkippedControlIds = new Set((evidence.operatorSkippedControls ?? []).map((risk) => risk.id));
@@ -166,6 +171,11 @@ assert.equal(
   packageJson.scripts["mainnet:approval-gates-evidence-check"],
   "node scripts/check-vanta-mainnet-approval-gates-evidence.mjs",
   "package.json must expose mainnet:approval-gates-evidence-check.",
+);
+assert.equal(
+  packageJson.scripts["mainnet:real-funds-approval-write"],
+  "node scripts/write-vanta-mainnet-real-funds-approval-evidence.mjs --write",
+  "package.json must expose mainnet:real-funds-approval-write.",
 );
 assert.ok(
   packageJson.scripts["mainnet:preflight"].includes("npm run mainnet:approval-gates-evidence-check"),

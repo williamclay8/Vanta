@@ -307,6 +307,33 @@ ops/mainnet/mainnet-real-funds-approval.evidence.json
 
 It now records bounded approval for one action: beta mainnet private-pool smoke with maximum `0.05 SOL` at risk during `2026-04-22T14:30:00-15:30:00 America/Chicago`, approved by Clay. That recorded window is now expired. This is not blanket production readiness and does not allow any other mainnet action. It must never contain private keys, seed phrases, signed transactions, bearer tokens, or raw database URLs.
 
+To refresh this packet safely, use the refs-only writer instead of editing JSON by hand:
+
+```bash
+npm run mainnet:real-funds-approval-preview
+npm run mainnet:real-funds-approval-write
+```
+
+Required shell refs:
+
+- `VANTA_MAINNET_APPROVAL_RECORD_REF`
+- `VANTA_MAINNET_APPROVAL_ACTION_REF`
+- `VANTA_MAINNET_APPROVAL_ACTION_SUMMARY`
+- `VANTA_MAINNET_APPROVAL_ENVIRONMENT`
+- `VANTA_MAINNET_APPROVAL_FEE_PAYER_REF`
+- `VANTA_MAINNET_APPROVAL_LAUNCH_WINDOW_REF`
+- `VANTA_MAINNET_APPROVAL_ROLLBACK_PLAN_REF`
+- `VANTA_MAINNET_APPROVAL_STOP_LOSS_PLAN_REF`
+- `VANTA_MAINNET_APPROVAL_MAX_FUNDS_REF`
+- `VANTA_MAINNET_APPROVAL_APPROVED_BY_REF`
+
+The writer updates both:
+
+- `ops/mainnet/mainnet-real-funds-approval.evidence.json`
+- `ops/mainnet/mainnet-approval-gates.evidence.json`
+
+It keeps the packet refs-only and refuses private keys, seed phrases, bearer values, raw database URLs, and malformed launch-window refs.
+
 ### Monitoring and incident response
 
 Purpose: make production operation observable without logging secrets or private inputs.

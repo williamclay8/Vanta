@@ -1,6 +1,6 @@
 {
   "version": "vanta-mainnet-approval-gates-evidence-0.1",
-  "checkedAt": "2026-04-22T00:00:00.000Z",
+  "checkedAt": "2026-04-24T03:14:03.149Z",
   "mainnetReady": false,
   "productionReady": false,
   "realFundsAllowed": true,
@@ -110,7 +110,7 @@
     {
       "id": "explicit-mainnet-funds-approval",
       "status": "approved-bounded-action",
-      "currentEvidenceStatus": "approved-beta-mainnet-private-pool-smoke",
+      "currentEvidenceStatus": "approved-bounded-mainnet-action",
       "requiresExternalApproval": true,
       "requiresHumanApproval": true,
       "mainnetTransactionsAllowedBeforeApproval": false,
@@ -130,14 +130,14 @@
         "VANTA_ROLLBACK_PLAN_REF",
         "VANTA_STOP_LOSS_PLAN_REF"
       ],
-      "nextAction": "Execute only the approved bounded beta smoke or return this gate to blocked before changing action, window, fee payer, or funds at risk."
+      "nextAction": "Execute only the approved bounded action or return this gate to blocked before changing action, window, fee payer, or funds at risk."
     }
   ],
   "limitations": [
     "Third-party security audit was skipped by operator decision; no audit approval has been recorded.",
     "Legal, compliance, and custody review was skipped by operator decision; no approval has been recorded.",
     "Secret-manager audit and rotation evidence were skipped by operator decision; no secret-handling maturity claim is made.",
-    "Explicit mainnet real-funds approval is recorded only for beta private-pool smoke with maximum 0.05 SOL at risk.",
+    "Explicit mainnet real-funds approval is recorded only for Enable beta mainnet private-pool smoke with maximum 0.05 SOL at risk.",
     "Provider backup policy, PITR, encrypted backup, backup access audit, and least-privilege restore-user evidence were skipped by operator decision.",
     "Pay restore readback was skipped by operator decision.",
     "No mainnet transactions or real funds are allowed outside the bounded approval recorded in this evidence file."
