@@ -96,6 +96,39 @@ for (const targetId of [
   assert.equal(smokeTargets.get(targetId)?.status, "pass", `Missing passing smoke target ${targetId}.`);
 }
 assert.equal(smokeTargets.get("nullifier-replay-simulation")?.replayStatus, 400);
+assert.equal(snapshot.productionServiceDeployment.checkedEvidenceRef, "ops/mainnet/service-deployment.evidence.json");
+assert.equal(snapshot.productionServiceDeployment.mainnetReady, false);
+assert.equal(snapshot.productionServiceDeployment.productionReady, false);
+assert.equal(snapshot.productionServiceDeployment.lastStatusRef, "npm run mainnet:service-deployment-status-check");
+assert.equal(
+  snapshot.productionServiceDeployment.manifestRef,
+  "ops/mainnet/private-pool-v2-services.manifest.json",
+);
+assert.equal(
+  snapshot.productionServiceDeployment.roleServiceReplayEvidenceRef,
+  "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
+);
+assert.equal(snapshot.productionServiceDeployment.roleServiceNetworkRef, "npm run private-pool-v2:service-network-check");
+assert.equal(
+  snapshot.productionServiceDeployment.productionSmokeEvidenceRef,
+  "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
+);
+assert.equal(
+  snapshot.productionServiceDeployment.routeHealthEvidenceRef,
+  "ops/mainnet/private-pool-v2-route-health.evidence.json",
+);
+assert.match(
+  snapshot.productionServiceDeployment.routeHealthLastCheckedAt,
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/,
+);
+assert.deepEqual(
+  snapshot.productionServiceDeployment.serviceDeploymentStatuses.map((service) => service.id),
+  ["indexer", "relayer", "prover", "verifier", "operator"],
+);
+for (const service of snapshot.productionServiceDeployment.serviceDeploymentStatuses) {
+  assert.equal(service.deploymentStatus, "deployed-render-production-not-ready");
+}
+assert.ok(snapshot.productionServiceDeployment.nextOperatorAction.includes("route-health evidence"));
 assert.ok(snapshot.score >= 0 && snapshot.score <= 100, "Readiness score must be a percentage.");
 assert.ok(snapshot.blockers.length >= 6, "Mainnet readiness must enumerate concrete blockers.");
 assert.ok(

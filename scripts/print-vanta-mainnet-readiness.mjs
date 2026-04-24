@@ -54,6 +54,14 @@ if (jsonMode) {
       )
       .join(", ")}`,
   );
+  console.log("- production service deployment:");
+  console.log(`  - manifestRef: ${snapshot.productionServiceDeployment.manifestRef}`);
+  console.log(`  - routeHealthLastCheckedAt: ${snapshot.productionServiceDeployment.routeHealthLastCheckedAt}`);
+  console.log(
+    `  - services: ${snapshot.productionServiceDeployment.serviceDeploymentStatuses
+      .map((service) => `${service.id}:${service.deploymentStatus}`)
+      .join(", ")}`,
+  );
   console.log("- lanes:");
   for (const [lane, state] of Object.entries(snapshot.lanes)) {
     console.log(`  - ${lane}: ${state.status} (${state.readiness}/100)`);

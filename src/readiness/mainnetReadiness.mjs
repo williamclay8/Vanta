@@ -4,6 +4,7 @@ import { createVantaNullifierReplayStatus } from "./nullifierReplayStatus.mjs";
 import { createVantaMainnetRealFundsApprovalStatus } from "./mainnetRealFundsApprovalStatus.mjs";
 import { createVantaWalletSigningStatus } from "./walletSigningStatus.mjs";
 import { createVantaPrivatePoolV2ProductionSmokeStatus } from "./privatePoolV2ProductionSmokeStatus.mjs";
+import { createVantaProductionServiceDeploymentStatus } from "./productionServiceDeploymentStatus.mjs";
 
 const blockers = [
   {
@@ -199,6 +200,7 @@ export function createVantaMainnetReadinessSnapshot() {
   const realFundsApproval = createVantaMainnetRealFundsApprovalStatus();
   const walletSigning = createVantaWalletSigningStatus();
   const privatePoolV2ProductionSmoke = createVantaPrivatePoolV2ProductionSmokeStatus();
+  const productionServiceDeployment = createVantaProductionServiceDeploymentStatus();
 
   return {
     version: "vanta-mainnet-readiness-0.1",
@@ -214,6 +216,7 @@ export function createVantaMainnetReadinessSnapshot() {
     privacyRail,
     privatePoolV2ProductionSmoke,
     productionReady: false,
+    productionServiceDeployment,
     realFundsApproval,
     requiredCommands,
     score,
