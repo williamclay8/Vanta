@@ -56,6 +56,13 @@ if (jsonMode) {
   console.log(`  - runtimeMode: ${snapshot.nullifierReplay.runtimeMode}`);
   console.log(`  - layeredStatus: ${snapshot.nullifierReplay.layeredReplayStatus}`);
   console.log(`  - guardMode: ${snapshot.nullifierReplay.nullifierReplayGuardMode}`);
+  console.log(`  - noRealFundsSmokeOnly: ${String(snapshot.nullifierReplay.noRealFundsSmokeOnly)}`);
+  console.log(
+    `  - auditedSharedAnonymitySetAvailable: ${String(snapshot.nullifierReplay.auditedSharedAnonymitySetAvailable)}`,
+  );
+  console.log(
+    `  - liveMainnetPrivateSettlementAvailable: ${String(snapshot.nullifierReplay.liveMainnetPrivateSettlementAvailable)}`,
+  );
   console.log(`  - protocolLayer: ${snapshot.nullifierReplay.protocolEnforcementLayer}`);
   console.log(
     `  - finalProtocolLayerImplemented: ${String(snapshot.nullifierReplay.protocolEnforcementFinalLayerImplemented)}`,

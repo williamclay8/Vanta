@@ -21,7 +21,7 @@ const blockers = [
   {
     id: "final-nullifier-replay-enforcement",
     severity: "critical",
-    summary: "Keep the deployed Postgres-backed operator replay guard, verified role-service replay barrier, and no-real-funds production smoke replay rejection fresh while broader production and audit gates still block calling the replay lane fully ready.",
+    summary: "Keep the deployed Postgres-backed operator replay guard, verified role-service replay barrier, and no-real-funds production smoke replay rejection fresh while no-real-funds smoke remains the only live settlement proof, audited shared-anonymity-set evidence remains unavailable, and live mainnet private settlement stays unavailable.",
   },
   {
     id: "wallet-backed-browser-signing-safety",
@@ -189,7 +189,7 @@ const nextActions = [
   "Keep the service-deployment packet, green route-health, green replay verification, and green no-real-funds production smoke evidence fresh while observability and backup/restore maturity remain incomplete.",
   "Keep operator-skipped controls visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
   "Keep the abuse/observability status/evidence surface fresh while provider-backed log sink, dashboards, alerts, retention, and incident workflow controls remain explicitly pending.",
-  "Keep the deployed operator replay-status evidence, the Postgres-backed nullifier replay guard, role-service replay verification, and production smoke replay simulation fresh while broader production and audit gates remain pending around the replay lane.",
+  "Keep the deployed operator replay-status evidence, the Postgres-backed nullifier replay guard, role-service replay verification, and production smoke replay simulation fresh while no-real-funds smoke remains the only live settlement proof, audited shared-anonymity-set evidence remains unavailable, and live mainnet private settlement stays unavailable.",
   "Keep the wallet-signing status/evidence surface, four-page local browser verification, and live-send inventory commands fresh while deployed production browser-backed signing evidence remains pending and live mainnet submission stays explicitly blocked.",
 ];
 

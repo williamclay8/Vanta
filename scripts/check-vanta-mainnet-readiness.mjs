@@ -30,6 +30,9 @@ assert.equal(
   snapshot.nullifierReplay.nullifierReplayGuardMode,
   "postgres-durable-claim-preflight-and-accepted-reservation",
 );
+assert.equal(snapshot.nullifierReplay.noRealFundsSmokeOnly, true);
+assert.equal(snapshot.nullifierReplay.auditedSharedAnonymitySetAvailable, false);
+assert.equal(snapshot.nullifierReplay.liveMainnetPrivateSettlementAvailable, false);
 assert.equal(
   snapshot.nullifierReplay.protocolEnforcementLayer,
   "operator-claim-preflight-plus-verifier-receipt-idempotency-plus-indexer-nullifier-registration",

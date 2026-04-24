@@ -6,8 +6,11 @@ export function createVantaNullifierReplayStatus() {
   const evidence = JSON.parse(readFileSync(evidencePath, "utf8"));
 
   return {
+    auditedSharedAnonymitySetAvailable: evidence.auditedSharedAnonymitySetAvailable,
     checkedEvidenceRef: "ops/mainnet/private-pool-v2-nullifier-replay.evidence.json",
     layeredReplayStatus: evidence.layeredReplayStatus,
+    liveMainnetPrivateSettlementAvailable: evidence.liveMainnetPrivateSettlementAvailable,
+    noRealFundsSmokeOnly: evidence.noRealFundsSmokeOnly,
     nullifierReplayGuardMode: evidence.nullifierReplayGuardMode,
     nullifierReplayGuardProductionReady: evidence.nullifierReplayGuardProductionReady,
     productionSmokeReplaySimulationStatus: evidence.productionSmokeReplaySimulationStatus,

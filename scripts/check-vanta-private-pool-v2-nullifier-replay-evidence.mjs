@@ -90,6 +90,9 @@ assert.equal(
 );
 assert.equal(evidence.productionSmokeReplaySimulationStatus, "pass");
 assert.equal(evidence.productionSmokeReplaySimulationHttpStatus, 400);
+assert.equal(evidence.noRealFundsSmokeOnly, true);
+assert.equal(evidence.auditedSharedAnonymitySetAvailable, false);
+assert.equal(evidence.liveMainnetPrivateSettlementAvailable, false);
 assert.equal(
   evidence.protocolEnforcementFinalLayerImplemented,
   true,
@@ -104,6 +107,14 @@ assert.equal(
   typeof evidence.operatorStatusProductionReady,
   "boolean",
   "Evidence must keep operator status productionReady explicit.",
+);
+assert.ok(
+  evidence.deploymentTruth.includes("no proven audited shared anonymity set"),
+  "Evidence must preserve the missing audited-anonymity-set truth.",
+);
+assert.ok(
+  evidence.deploymentTruth.includes("live mainnet private settlement is still unavailable"),
+  "Evidence must preserve the missing live private-settlement truth.",
 );
 
 const serialized = JSON.stringify(evidence);
