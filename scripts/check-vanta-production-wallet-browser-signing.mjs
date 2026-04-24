@@ -3,8 +3,6 @@ import { strict as assert } from "node:assert";
 
 const session = `vanta-prod-wallet-${Date.now()}`;
 const baseUrl = process.env.VANTA_PUBLIC_APP_URL?.trim() || "https://vantaprivacy.xyz";
-const offlineBanner = "No funds move in this mode. Live private settlement is offline until production services are resumed.";
-
 const routes = [
   { page: "Shield", path: "/app/shield", routeText: "SHIELD" },
   { page: "Send", path: "/app/send", routeText: "PRIVATE SEND" },
@@ -30,9 +28,9 @@ function probeRoute(route) {
       "--checks",
       JSON.stringify([
         { kind: "url_contains", text: route.path },
-        { kind: "text_visible", text: "VANTA BETA" },
-        { kind: "text_visible", text: offlineBanner },
         { kind: "text_visible", text: route.routeText },
+        { kind: "text_hidden", text: "VANTA BETA" },
+        { kind: "text_hidden", text: "No funds move in this mode. Live private settlement is offline until production services are resumed." },
         { kind: "no_console_errors" },
         { kind: "no_failed_requests" },
       ]),
@@ -44,7 +42,8 @@ function probeRoute(route) {
     const body = document.body.innerText;
     return {
       path: location.pathname,
-      betaBannerVisible: body.includes("VANTA BETA") && body.includes(${JSON.stringify(offlineBanner)}),
+      betaBannerVisible: body.includes("VANTA BETA"),
+      settlementOfflineVisible: body.includes("No funds move in this mode. Live private settlement is offline until production services are resumed."),
       betaModeVisible: body.includes("BETA MODE"),
       awaitingWalletVisible: body.includes("Awaiting wallet confirmation"),
       mainnetBetaVisible: body.includes("mainnet-beta"),
@@ -58,8 +57,9 @@ function probeRoute(route) {
   const result = JSON.parse(runBrowserCommand(["eval", probe]));
 
   assert.equal(result.path, route.path, `Unexpected path for ${route.page}.`);
-  assert.equal(result.betaBannerVisible, true, `${route.page} must still show the live beta-mode banner.`);
-  assert.equal(result.betaModeVisible, true, `${route.page} must still show the beta-mode footer label.`);
+  assert.equal(result.betaBannerVisible, false, `${route.page} must not show the live beta-mode banner.`);
+  assert.equal(result.settlementOfflineVisible, false, `${route.page} must not show the settlement-offline banner.`);
+  assert.equal(result.betaModeVisible, false, `${route.page} must not show the beta-mode footer label.`);
   assert.equal(result.awaitingWalletVisible, false, `${route.page} must not expose an awaiting-wallet state by default.`);
   assert.equal(result.mainnetBetaVisible, false, `${route.page} must not expose raw mainnet-beta cluster copy.`);
   assert.equal(result.privateKeyVisible, false, `${route.page} must not expose private-key copy.`);

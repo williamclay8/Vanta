@@ -23,15 +23,8 @@ assert.deepEqual(evidence.productionBrowserVerificationRequiredPages, ["Shield",
 assert.deepEqual(evidence.productionBrowserVerifiedPages, ["Shield", "Send", "Swap", "Unshield"]);
 assert.equal(evidence.productionBrowserVerificationCoversRequiredPages, true);
 assert.equal(evidence.productionBrowserVerificationAvailable, true);
-assert.equal(evidence.productionBrowserVerificationStatus, "recorded-beta-mode-blocked");
-assert.deepEqual(
-  evidence.productionWalletSigningBlockedBy,
-  [
-    "production-beta-mode-banner-visible",
-    "production-private-settlement-offline-banner-visible",
-    "live-mainnet-submission-explicitly-blocked",
-  ],
-);
+assert.equal(evidence.productionBrowserVerificationStatus, "repo-live-submission-mode-awaiting-public-redeploy");
+assert.deepEqual(evidence.productionWalletSigningBlockedBy, ["public-live-submission-redeploy-required"]);
 assert.equal(evidence.productionDeploymentModeBannerVisible, true);
 assert.equal(evidence.productionSettlementOfflineBannerVisible, true);
 assert.equal(evidence.signingSafetyPolicyRef, "npm run wallet:signing-safety-check");
@@ -57,16 +50,16 @@ assert.ok(
   "Wallet-signing evidence must preserve the non-production truth.",
 );
 assert.ok(
-  evidence.deploymentTruth.includes("live mainnet submission remains explicitly blocked"),
-  "Wallet-signing evidence must preserve the explicit mainnet-submission block truth.",
+  evidence.deploymentTruth.includes("repo now targets live-submission mode by default"),
+  "Wallet-signing evidence must preserve the repo-side live-submission posture truth.",
 );
 assert.ok(
-  evidence.deploymentTruth.includes("browser-backed verification is now recorded for Shield, Send, Swap, and Unshield"),
-  "Wallet-signing evidence must preserve the recorded deployed browser-proof scope.",
+  evidence.deploymentTruth.includes("local production browser verification remains green"),
+  "Wallet-signing evidence must preserve the local production browser-proof scope while the public redeploy is pending.",
 );
 assert.ok(
-  evidence.nextOperatorAction.includes("beta-mode and private-settlement-offline banners"),
-  "Wallet-signing evidence must preserve the live public deployment blocker.",
+  evidence.nextOperatorAction.includes("Redeploy the public app"),
+  "Wallet-signing evidence must preserve the public redeploy operator action truth.",
 );
 
 const serialized = JSON.stringify(evidence);

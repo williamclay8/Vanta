@@ -2,10 +2,10 @@
   "version": "vanta-production-observability-template-0.1",
   "mainnetReady": false,
   "productionReady": false,
-  "provider": "provider-neutral-skipped-by-operator",
+  "provider": "render-native-only-selected",
   "secretPolicy": "references-only-no-provider-secrets",
   "telemetrySource": "src/ops/vantaSafeTelemetry.mjs",
-  "summary": "References-only template for provider-neutral production observability. Better Stack production monitors are intentionally skipped by operator decision; Vanta still requires some equivalent evidence for log sink, metrics dashboards, alert policies, retention, and incident routing before production/mainnet readiness. Do not store provider source tokens, webhook URLs, API keys, raw database URLs, bearer tokens, wallet keys, or private user inputs here.",
+  "summary": "References-only template for Render-native production observability. Better Stack production monitors are intentionally skipped by operator decision; Vanta will rely on Render service logs, Render health/status surfaces, and explicit runbook evidence until stronger dashboards, alerts, retention, and incident routing refs are recorded. Do not store provider source tokens, webhook URLs, API keys, raw database URLs, bearer tokens, wallet keys, or private user inputs here.",
   "requiredAlerts": [
     "service_down",
     "5xx_rate_high",
@@ -35,11 +35,11 @@
       "service": "vanta-pay",
       "renderServiceRef": "srv-d7j3ggqqqhas739for80",
       "stagingUrlRef": "https://vanta-0wwi.onrender.com",
-      "logSourceRef": "provider-neutral-log-source/vanta-pay-production-pending",
-      "metricsDashboardRef": "provider-neutral-dashboard/vanta-pay-production-pending",
-      "alertPolicyRef": "provider-neutral-alert-policy/vanta-pay-production-pending",
+      "logSourceRef": "render-native-log-source/vanta-pay-production-pending",
+      "metricsDashboardRef": "render-native-dashboard/vanta-pay-production-pending",
+      "alertPolicyRef": "render-native-alert-policy/vanta-pay-production-pending",
       "incidentRunbookRef": "docs/operator-runbook.md#pay-operator",
-      "retentionPolicyRef": "provider-neutral-retention/vanta-pay-production-pending",
+      "retentionPolicyRef": "render-native-retention/vanta-pay-production-pending",
       "safeTelemetryRequired": true,
       "blockedUntil": [
         "production-log-source-created",
@@ -48,7 +48,7 @@
         "incident-runbook-exercised",
         "retention-policy-approved"
       ],
-      "operatorDecision": "Better Stack production monitors skipped; use existing platform logs, Render health/status surfaces, manual incident response, or a future observability provider before production readiness."
+      "operatorDecision": "Render-native only selected; use Render service logs, Render health/status surfaces, and manual incident response until stronger dashboard, alert, retention, and incident evidence is recorded."
     },
     {
       "service": "vanta-private-pool-v2",
@@ -81,11 +81,11 @@
           "productionUrlRef": "https://vanta-prod-private-pool-v2-operator.onrender.com"
         }
       ],
-      "logSourceRef": "provider-neutral-log-source/vanta-private-pool-v2-production-pending",
-      "metricsDashboardRef": "provider-neutral-dashboard/vanta-private-pool-v2-production-pending",
-      "alertPolicyRef": "provider-neutral-alert-policy/vanta-private-pool-v2-production-pending",
+      "logSourceRef": "render-native-log-source/vanta-private-pool-v2-production-pending",
+      "metricsDashboardRef": "render-native-dashboard/vanta-private-pool-v2-production-pending",
+      "alertPolicyRef": "render-native-alert-policy/vanta-private-pool-v2-production-pending",
       "incidentRunbookRef": "docs/operator-runbook.md#private-pool-v2-operator",
-      "retentionPolicyRef": "provider-neutral-retention/vanta-private-pool-v2-production-pending",
+      "retentionPolicyRef": "render-native-retention/vanta-private-pool-v2-production-pending",
       "safeTelemetryRequired": true,
       "blockedUntil": [
         "production-log-source-created",
@@ -94,17 +94,17 @@
         "incident-runbook-exercised",
         "retention-policy-approved"
       ],
-      "operatorDecision": "Better Stack production monitors skipped; use existing platform logs, Render health/status surfaces, manual incident response, or a future observability provider before production readiness."
+      "operatorDecision": "Render-native only selected; use Render service logs, Render health/status surfaces, and manual incident response until stronger dashboard, alert, retention, and incident evidence is recorded."
     },
     {
       "service": "vanta-strategy",
       "renderServiceRef": "production-service-ref-pending",
       "stagingUrlRef": "staging-service-url-pending",
-      "logSourceRef": "provider-neutral-log-source/vanta-strategy-production-pending",
-      "metricsDashboardRef": "provider-neutral-dashboard/vanta-strategy-production-pending",
-      "alertPolicyRef": "provider-neutral-alert-policy/vanta-strategy-production-pending",
+      "logSourceRef": "render-native-log-source/vanta-strategy-production-pending",
+      "metricsDashboardRef": "render-native-dashboard/vanta-strategy-production-pending",
+      "alertPolicyRef": "render-native-alert-policy/vanta-strategy-production-pending",
       "incidentRunbookRef": "docs/operator-runbook.md#readiness-truth",
-      "retentionPolicyRef": "provider-neutral-retention/vanta-strategy-production-pending",
+      "retentionPolicyRef": "render-native-retention/vanta-strategy-production-pending",
       "safeTelemetryRequired": true,
       "blockedUntil": [
         "production-service-created",
@@ -114,17 +114,17 @@
         "incident-runbook-exercised",
         "retention-policy-approved"
       ],
-      "operatorDecision": "Better Stack production monitors skipped; use existing platform logs, Render health/status surfaces, manual incident response, or a future observability provider before production readiness."
+      "operatorDecision": "Render-native only selected; use Render service logs, Render health/status surfaces, and manual incident response until stronger dashboard, alert, retention, and incident evidence is recorded."
     },
     {
       "service": "vanta-operator-control-plane",
       "renderServiceRef": "production-service-ref-pending",
       "stagingUrlRef": "staging-service-url-pending",
-      "logSourceRef": "provider-neutral-log-source/vanta-operator-control-plane-production-pending",
-      "metricsDashboardRef": "provider-neutral-dashboard/vanta-operator-control-plane-production-pending",
-      "alertPolicyRef": "provider-neutral-alert-policy/vanta-operator-control-plane-production-pending",
+      "logSourceRef": "render-native-log-source/vanta-operator-control-plane-production-pending",
+      "metricsDashboardRef": "render-native-dashboard/vanta-operator-control-plane-production-pending",
+      "alertPolicyRef": "render-native-alert-policy/vanta-operator-control-plane-production-pending",
       "incidentRunbookRef": "docs/operator-runbook.md#readiness-truth",
-      "retentionPolicyRef": "provider-neutral-retention/vanta-operator-control-plane-production-pending",
+      "retentionPolicyRef": "render-native-retention/vanta-operator-control-plane-production-pending",
       "safeTelemetryRequired": true,
       "blockedUntil": [
         "production-service-created",
@@ -134,7 +134,7 @@
         "incident-runbook-exercised",
         "retention-policy-approved"
       ],
-      "operatorDecision": "Better Stack production monitors skipped; use existing platform logs, Render health/status surfaces, manual incident response, or a future observability provider before production readiness."
+      "operatorDecision": "Render-native only selected; use Render service logs, Render health/status surfaces, and manual incident response until stronger dashboard, alert, retention, and incident evidence is recorded."
     }
   ]
 }

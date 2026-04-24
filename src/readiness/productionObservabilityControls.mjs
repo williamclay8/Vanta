@@ -5,7 +5,7 @@ const controlsPath = new URL("../../ops/mainnet/production-observability.control
 const controlKeyToPendingId = {
   alertPolicy: "alert-policies",
   incidentWorkflow: "incident-workflow",
-  logSink: "provider-backed-log-sink",
+  logSink: "render-native-log-sink",
   metricsDashboard: "metrics-dashboards",
   retentionPolicy: "retention-policy",
 };
@@ -20,7 +20,7 @@ export function createVantaProductionObservabilityControlsSummary() {
     return services.length > 0 && services.every((service) => completionStatuses.has(service.controls?.[controlKey]?.status));
   }
 
-  const providerBackedLogSinkAvailable = everyServiceHas("logSink");
+  const renderNativeLogSinkAvailable = everyServiceHas("logSink");
   const metricsDashboardsAvailable = everyServiceHas("metricsDashboard");
   const alertsConfigured = everyServiceHas("alertPolicy");
   const retentionPolicyConfigured = everyServiceHas("retentionPolicy");
@@ -37,7 +37,7 @@ export function createVantaProductionObservabilityControlsSummary() {
     incidentWorkflowReady,
     metricsDashboardsAvailable,
     pendingObservabilityControls,
-    providerBackedLogSinkAvailable,
+    renderNativeLogSinkAvailable,
     retentionPolicyConfigured,
   };
 }

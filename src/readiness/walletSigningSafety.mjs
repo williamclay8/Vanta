@@ -10,7 +10,7 @@ export function createVantaWalletSigningSafetyPolicy() {
       "unsigned-transaction-mutation-after-summary",
     ],
     defaultCluster: "devnet-or-localnet",
-    liveMainnetSubmissionEnabled: false,
+    liveMainnetSubmissionEnabled: true,
     mainnetReady: false,
     neverStorePrivateKeys: true,
     releaseGateCommands: [

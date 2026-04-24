@@ -16,22 +16,22 @@
       "controls": {
         "logSink": {
           "status": "pending",
-          "evidenceRef": "provider-neutral-log-source/vanta-pay-production-pending",
+          "evidenceRef": "render-native-log-source/vanta-pay-production-pending",
           "verificationRef": "npm run mainnet:observability-sink-check"
         },
         "metricsDashboard": {
           "status": "pending",
-          "evidenceRef": "provider-neutral-dashboard/vanta-pay-production-pending",
+          "evidenceRef": "render-native-dashboard/vanta-pay-production-pending",
           "verificationRef": "npm run mainnet:observability-sink-check"
         },
         "alertPolicy": {
           "status": "pending",
-          "evidenceRef": "provider-neutral-alert-policy/vanta-pay-production-pending",
+          "evidenceRef": "render-native-alert-policy/vanta-pay-production-pending",
           "verificationRef": "npm run mainnet:observability-sink-check"
         },
         "retentionPolicy": {
           "status": "pending",
-          "evidenceRef": "provider-neutral-retention/vanta-pay-production-pending",
+          "evidenceRef": "render-native-retention/vanta-pay-production-pending",
           "verificationRef": "npm run mainnet:observability-sink-check"
         },
         "incidentWorkflow": {
@@ -46,22 +46,22 @@
       "controls": {
         "logSink": {
           "status": "pending",
-          "evidenceRef": "provider-neutral-log-source/vanta-private-pool-v2-production-pending",
+          "evidenceRef": "render-native-log-source/vanta-private-pool-v2-production-pending",
           "verificationRef": "npm run mainnet:observability-sink-check"
         },
         "metricsDashboard": {
           "status": "pending",
-          "evidenceRef": "provider-neutral-dashboard/vanta-private-pool-v2-production-pending",
+          "evidenceRef": "render-native-dashboard/vanta-private-pool-v2-production-pending",
           "verificationRef": "npm run mainnet:observability-sink-check"
         },
         "alertPolicy": {
           "status": "pending",
-          "evidenceRef": "provider-neutral-alert-policy/vanta-private-pool-v2-production-pending",
+          "evidenceRef": "render-native-alert-policy/vanta-private-pool-v2-production-pending",
           "verificationRef": "npm run mainnet:observability-sink-check"
         },
         "retentionPolicy": {
           "status": "pending",
-          "evidenceRef": "provider-neutral-retention/vanta-private-pool-v2-production-pending",
+          "evidenceRef": "render-native-retention/vanta-private-pool-v2-production-pending",
           "verificationRef": "npm run mainnet:observability-sink-check"
         },
         "incidentWorkflow": {
@@ -76,22 +76,22 @@
       "controls": {
         "logSink": {
           "status": "pending",
-          "evidenceRef": "provider-neutral-log-source/vanta-strategy-production-pending",
+          "evidenceRef": "render-native-log-source/vanta-strategy-production-pending",
           "verificationRef": "npm run mainnet:observability-sink-check"
         },
         "metricsDashboard": {
           "status": "pending",
-          "evidenceRef": "provider-neutral-dashboard/vanta-strategy-production-pending",
+          "evidenceRef": "render-native-dashboard/vanta-strategy-production-pending",
           "verificationRef": "npm run mainnet:observability-sink-check"
         },
         "alertPolicy": {
           "status": "pending",
-          "evidenceRef": "provider-neutral-alert-policy/vanta-strategy-production-pending",
+          "evidenceRef": "render-native-alert-policy/vanta-strategy-production-pending",
           "verificationRef": "npm run mainnet:observability-sink-check"
         },
         "retentionPolicy": {
           "status": "pending",
-          "evidenceRef": "provider-neutral-retention/vanta-strategy-production-pending",
+          "evidenceRef": "render-native-retention/vanta-strategy-production-pending",
           "verificationRef": "npm run mainnet:observability-sink-check"
         },
         "incidentWorkflow": {
@@ -106,22 +106,22 @@
       "controls": {
         "logSink": {
           "status": "pending",
-          "evidenceRef": "provider-neutral-log-source/vanta-operator-control-plane-production-pending",
+          "evidenceRef": "render-native-log-source/vanta-operator-control-plane-production-pending",
           "verificationRef": "npm run mainnet:observability-sink-check"
         },
         "metricsDashboard": {
           "status": "pending",
-          "evidenceRef": "provider-neutral-dashboard/vanta-operator-control-plane-production-pending",
+          "evidenceRef": "render-native-dashboard/vanta-operator-control-plane-production-pending",
           "verificationRef": "npm run mainnet:observability-sink-check"
         },
         "alertPolicy": {
           "status": "pending",
-          "evidenceRef": "provider-neutral-alert-policy/vanta-operator-control-plane-production-pending",
+          "evidenceRef": "render-native-alert-policy/vanta-operator-control-plane-production-pending",
           "verificationRef": "npm run mainnet:observability-sink-check"
         },
         "retentionPolicy": {
           "status": "pending",
-          "evidenceRef": "provider-neutral-retention/vanta-operator-control-plane-production-pending",
+          "evidenceRef": "render-native-retention/vanta-operator-control-plane-production-pending",
           "verificationRef": "npm run mainnet:observability-sink-check"
         },
         "incidentWorkflow": {

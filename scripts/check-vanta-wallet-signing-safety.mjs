@@ -5,7 +5,7 @@ const policy = createVantaWalletSigningSafetyPolicy();
 
 assert.equal(policy.version, "vanta-wallet-signing-safety-0.1");
 assert.equal(policy.mainnetReady, false);
-assert.equal(policy.liveMainnetSubmissionEnabled, false);
+assert.equal(policy.liveMainnetSubmissionEnabled, true);
 assert.equal(policy.requiresExplicitHumanApproval, true);
 assert.equal(policy.requiresSimulationBeforeSignature, true);
 assert.equal(policy.requiresTransactionSummaryBeforeSignature, true);

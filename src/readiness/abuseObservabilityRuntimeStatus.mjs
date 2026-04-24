@@ -22,7 +22,7 @@ export function createVantaAbuseObservabilityRuntimeStatus() {
     privatePoolV2RuntimeMatchesPreferredRateLimiter: evidence.privatePoolV2RuntimeMatchesPreferredRateLimiter,
     privatePoolV2RuntimeMode: evidence.privatePoolV2Runtime?.runtimeMode ?? null,
     privatePoolV2StorageKind: evidence.privatePoolV2Runtime?.storageKind ?? null,
-    providerBackedLogSinkAvailable: controls.providerBackedLogSinkAvailable,
+    renderNativeLogSinkAvailable: controls.renderNativeLogSinkAvailable,
     retentionPolicyConfigured: controls.retentionPolicyConfigured,
     surfaceStatuses: evidence.surfaceStatuses,
     version: "vanta-production-abuse-observability-runtime-summary-0.1",

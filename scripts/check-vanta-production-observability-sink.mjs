@@ -9,7 +9,7 @@ const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
 assert.equal(manifest.version, "vanta-production-observability-template-0.1");
 assert.equal(manifest.mainnetReady, false);
 assert.equal(manifest.productionReady, false);
-assert.equal(manifest.provider, "provider-neutral-skipped-by-operator");
+assert.equal(manifest.provider, "render-native-only-selected");
 assert.equal(manifest.secretPolicy, "references-only-no-provider-secrets");
 assert.equal(manifest.telemetrySource, "src/ops/vantaSafeTelemetry.mjs");
 assert.ok(Array.isArray(manifest.services), "Production observability template must include services.");
@@ -32,8 +32,8 @@ for (const [service, renderServiceRef] of requiredServices) {
   assert.ok(surface.retentionPolicyRef, `${service} must declare a retention policy ref.`);
   assert.ok(surface.safeTelemetryRequired, `${service} must require safe telemetry.`);
   assert.ok(
-    surface.operatorDecision?.includes("Better Stack production monitors skipped"),
-    `${service} must record the operator decision to skip Better Stack production monitors.`,
+    surface.operatorDecision?.includes("Render-native only selected"),
+    `${service} must record the Render-native-only observability decision.`,
   );
 }
 

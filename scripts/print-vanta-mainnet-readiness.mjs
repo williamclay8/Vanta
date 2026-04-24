@@ -53,7 +53,7 @@ if (jsonMode) {
     `  - privatePoolV2MatchesPreferredRateLimiter: ${String(snapshot.abuseObservability.privatePoolV2RuntimeMatchesPreferredRateLimiter)}`,
   );
   console.log(
-    `  - providerBackedLogSinkAvailable: ${String(snapshot.abuseObservability.providerBackedLogSinkAvailable)}`,
+    `  - renderNativeLogSinkAvailable: ${String(snapshot.abuseObservability.renderNativeLogSinkAvailable)}`,
   );
   console.log(
     `  - metricsDashboardsAvailable: ${String(snapshot.abuseObservability.metricsDashboardsAvailable)}`,

@@ -28,7 +28,7 @@ assert.equal(evidence.contractRef, "npm run mainnet:abuse-observability-check");
 assert.equal(evidence.safeTelemetryRef, "npm run ops:safe-telemetry-check");
 assert.equal(evidence.rateLimitRef, "npm run ops:rate-limit-check");
 assert.equal(evidence.observabilitySinkRef, "npm run mainnet:observability-sink-check");
-assert.equal(evidence.observabilityProvider, "provider-neutral-skipped-by-operator");
+assert.equal(evidence.observabilityProvider, "render-native-only-selected");
 assert.equal(controls.version, "vanta-production-observability-controls-0.1");
 assert.equal(controls.mainnetReady, false);
 assert.equal(controls.productionReady, false);
@@ -59,13 +59,13 @@ for (const service of controls.services) {
 const isConfigured = (status) => status === "configured" || status === "verified";
 const everyServiceHas = (controlId) => controls.services.every((service) => isConfigured(service.controls[controlId].status));
 const derivedPendingObservabilityControls = [
-  ...(everyServiceHas("logSink") ? [] : ["provider-backed-log-sink"]),
+  ...(everyServiceHas("logSink") ? [] : ["render-native-log-sink"]),
   ...(everyServiceHas("metricsDashboard") ? [] : ["metrics-dashboards"]),
   ...(everyServiceHas("alertPolicy") ? [] : ["alert-policies"]),
   ...(everyServiceHas("retentionPolicy") ? [] : ["retention-policy"]),
   ...(everyServiceHas("incidentWorkflow") ? [] : ["incident-workflow"]),
 ];
-assert.equal(evidence.providerBackedLogSinkAvailable, everyServiceHas("logSink"));
+assert.equal(evidence.renderNativeLogSinkAvailable, everyServiceHas("logSink"));
 assert.equal(evidence.metricsDashboardsAvailable, everyServiceHas("metricsDashboard"));
 assert.equal(evidence.alertsConfigured, everyServiceHas("alertPolicy"));
 assert.equal(evidence.retentionPolicyConfigured, everyServiceHas("retentionPolicy"));
@@ -113,7 +113,7 @@ assert.ok(
   "Abuse/observability evidence must record the durable rate-limit path.",
 );
 assert.ok(
-  evidence.deploymentTruth.includes("provider-backed log sink, dashboards, alerts, retention, and incident workflow evidence are all still pending"),
+  evidence.deploymentTruth.includes("Render-native log sink, dashboards, alerts, retention, and incident workflow evidence are all still pending"),
   "Abuse/observability evidence must preserve the explicit pending-ops-controls truth.",
 );
 

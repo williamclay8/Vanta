@@ -150,12 +150,12 @@ if (checkMode) {
   assert.equal(
     result.productionDeploymentModeBannerVisible,
     launchPolicy.productionDeploymentModeBannerVisible,
-    "Wallet status must follow the checked live beta-mode banner truth.",
+    "Wallet status must follow the checked live deployment-mode banner truth.",
   );
   assert.equal(
     result.productionSettlementOfflineBannerVisible,
     launchPolicy.productionSettlementOfflineBannerVisible,
-    "Wallet status must follow the checked live private-settlement offline banner truth.",
+    "Wallet status must follow the checked live settlement banner truth.",
   );
   assert.equal(
     result.mainnetSubmissionExplicitlyBlocked,

@@ -69,8 +69,8 @@ assert.ok(
   "Missing production observability sink verification command.",
 );
 assert.ok(
-  contract.nextImplementationStep.includes("production log sink"),
-  "Next implementation step should target the production log sink.",
+  contract.nextImplementationStep.includes("Render-native log sink"),
+  "Next implementation step should target the Render-native log sink.",
 );
 
 assert.ok(
@@ -133,7 +133,7 @@ for (const forbidden of ["apiKey", "webhookUrl", "Authorization", "Bearer ", "ra
 assert.equal(productionObservabilityTemplate.version, "vanta-production-observability-template-0.1");
 assert.equal(productionObservabilityTemplate.mainnetReady, false);
 assert.equal(productionObservabilityTemplate.productionReady, false);
-assert.equal(productionObservabilityTemplate.provider, "provider-neutral-skipped-by-operator");
+assert.equal(productionObservabilityTemplate.provider, "render-native-only-selected");
 assert.equal(productionObservabilityTemplate.secretPolicy, "references-only-no-provider-secrets");
 assert.equal(productionObservabilityTemplate.telemetrySource, "src/ops/vantaSafeTelemetry.mjs");
 

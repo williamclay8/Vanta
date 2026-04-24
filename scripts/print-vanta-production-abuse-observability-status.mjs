@@ -24,7 +24,7 @@ function buildStatus() {
     mainnetReady: false,
     nextImplementationStep: contract.nextImplementationStep,
     observabilityProvider: template.provider,
-    providerBackedLogSinkAvailable: controls.providerBackedLogSinkAvailable,
+    renderNativeLogSinkAvailable: controls.renderNativeLogSinkAvailable,
     metricsDashboardsAvailable: controls.metricsDashboardsAvailable,
     alertsConfigured: controls.alertsConfigured,
     retentionPolicyConfigured: controls.retentionPolicyConfigured,
@@ -74,8 +74,8 @@ if (checkMode) {
   const controls = createVantaProductionObservabilityControlsSummary();
   assert.equal(result.mainnetReady, false, "Abuse/observability status must not claim mainnet readiness.");
   assert.equal(result.productionReady, false, "Abuse/observability status must not claim production readiness.");
-  assert.equal(result.observabilityProvider, "provider-neutral-skipped-by-operator");
-  assert.equal(result.providerBackedLogSinkAvailable, controls.providerBackedLogSinkAvailable);
+  assert.equal(result.observabilityProvider, "render-native-only-selected");
+  assert.equal(result.renderNativeLogSinkAvailable, controls.renderNativeLogSinkAvailable);
   assert.equal(result.metricsDashboardsAvailable, controls.metricsDashboardsAvailable);
   assert.equal(result.alertsConfigured, controls.alertsConfigured);
   assert.equal(result.retentionPolicyConfigured, controls.retentionPolicyConfigured);
@@ -120,7 +120,7 @@ if (jsonMode || checkMode) {
 } else {
   console.log("Vanta production abuse/observability status");
   console.log(`- observabilityProvider: ${result.observabilityProvider}`);
-  console.log(`- providerBackedLogSinkAvailable: ${String(result.providerBackedLogSinkAvailable)}`);
+  console.log(`- renderNativeLogSinkAvailable: ${String(result.renderNativeLogSinkAvailable)}`);
   console.log(`- metricsDashboardsAvailable: ${String(result.metricsDashboardsAvailable)}`);
   console.log(`- alertsConfigured: ${String(result.alertsConfigured)}`);
   console.log(`- retentionPolicyConfigured: ${String(result.retentionPolicyConfigured)}`);

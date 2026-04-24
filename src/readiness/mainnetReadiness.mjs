@@ -30,13 +30,13 @@ const blockerDefinitions = [
     id: "wallet-backed-browser-signing-safety",
     severity: "critical",
     buildSummary:
-      "Keep the wallet-signing status/evidence surface fresh while Shield, Send, Swap, and Unshield remain frozen behind safe-send or typed message-intent boundaries, local and deployed browser proof stay green, and the public app still exposes the checked blocker set: production-beta-mode-banner-visible, production-private-settlement-offline-banner-visible, live-mainnet-submission-explicitly-blocked.",
+      "Keep the wallet-signing status/evidence surface fresh while Shield, Send, Swap, and Unshield remain frozen behind safe-send or typed message-intent boundaries, the repo live-submission posture and local production browser proof stay green, and the public redeploy/browser refresh still needs to clear the remaining deployed beta/offline block before any real-funds mainnet action stays bounded by explicit approval.",
   },
   {
     id: "abuse-rate-limit-observability",
     severity: "high",
     buildSummary:
-      "Keep the abuse/observability status/evidence surface fresh while the checked pending controls remain provider-backed-log-sink, metrics-dashboards, alert-policies, retention-policy, and incident-workflow.",
+      "Keep the abuse/observability status/evidence surface fresh while the checked pending controls remain render-native-log-sink, metrics-dashboards, alert-policies, retention-policy, and incident-workflow.",
   },
   {
     id: "no-mainnet-funds-without-explicit-approval",
@@ -93,7 +93,7 @@ const lanes = {
   protocolTabs: {
     readiness: 50,
     status: "browser-verified-local",
-    truth: "Shield, Send, Swap, Strategy, and Unshield have browser checks, and the protocol wallet-signing lane now has a sanitized production status/evidence surface proving Shield, Send, Swap, and Unshield live call sites stay behind safe-send or message-intent boundaries with the Umbra adapter fail-closed behind a summary-bound approval gate while browser-backed signing verification explicitly covers Shield, Send, Swap, and Unshield on both the local/devnet lane and the deployed public app. It is still not production-ready because the live public app is still explicitly serving the beta-mode and private-settlement-offline banners while live mainnet submission remains blocked.",
+    truth: "Shield, Send, Swap, Strategy, and Unshield have browser checks, and the protocol wallet-signing lane now has a sanitized production status/evidence surface proving Shield, Send, Swap, and Unshield live call sites stay behind safe-send or message-intent boundaries with the Umbra adapter fail-closed behind a summary-bound approval gate while browser-backed signing verification explicitly covers Shield, Send, Swap, and Unshield on both the local/devnet lane and the deployed public app. It is still not production-ready because real-funds actions remain bounded by explicit approval and meaningful-privacy blockers remain unresolved.",
   },
   strategy: {
     readiness: 35,
@@ -225,7 +225,7 @@ export function createVantaMainnetReadinessSnapshot() {
     "Keep operator-skipped controls visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
     `Keep the abuse/observability status/evidence surface fresh while the checked pending controls remain ${abuseObservability.pendingObservabilityControls.join(", ")}.`,
     `Keep the deployed operator replay-status evidence, the Postgres-backed nullifier replay guard, role-service replay verification, and production smoke replay simulation fresh while the checked replay blockers remain ${nullifierReplay.productionReplayBlockedBy.join(", ")}.`,
-    `Keep the wallet-signing status/evidence surface, four-page local browser verification, deployed browser verification, and live-send inventory commands fresh while the checked public-app blocker set remains ${walletSigning.productionWalletSigningBlockedBy.join(", ")}.`,
+    `Keep the wallet-signing status/evidence surface, four-page local browser verification, deployed browser verification, and live-send inventory commands fresh while the repo live-submission posture is landed, the public app redeploy/browser refresh is still pending, and any real-funds action remains bounded by explicit approval.`,
   ];
 
   return {

@@ -23,8 +23,8 @@ assert.equal(snapshot.abuseObservability.privatePoolV2PreferredRateLimiterKind, 
 assert.equal(snapshot.abuseObservability.privatePoolV2RuntimeMatchesPreferredRateLimiter, true);
 assert.equal(snapshot.abuseObservability.checkedControlsRef, "ops/mainnet/production-observability.controls.json");
 assert.equal(
-  snapshot.abuseObservability.providerBackedLogSinkAvailable,
-  observabilityControls.providerBackedLogSinkAvailable,
+  snapshot.abuseObservability.renderNativeLogSinkAvailable,
+  observabilityControls.renderNativeLogSinkAvailable,
 );
 assert.equal(
   snapshot.abuseObservability.metricsDashboardsAvailable,
@@ -172,12 +172,12 @@ assert.ok(
 );
 assert.ok(
   snapshot.walletSigning.deploymentTruth.includes(
-    "browser-backed verification is now recorded for Shield, Send, Swap, and Unshield",
+    "local production browser verification remains green",
   ),
 );
-assert.ok(snapshot.walletSigning.deploymentTruth.includes("live mainnet submission remains explicitly blocked"));
-assert.ok(snapshot.walletSigning.nextOperatorAction.includes("wallet-signing status"));
-assert.ok(snapshot.walletSigning.nextOperatorAction.includes("beta-mode and private-settlement-offline banners"));
+assert.ok(snapshot.walletSigning.deploymentTruth.includes("repo now targets live-submission mode by default"));
+assert.ok(snapshot.walletSigning.nextOperatorAction.includes("rerun deployed browser verification"));
+assert.ok(snapshot.walletSigning.nextOperatorAction.includes("Redeploy the public app"));
 assert.equal(
   snapshot.privatePoolV2ProductionSmoke.checkedEvidenceRef,
   "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
@@ -638,7 +638,7 @@ assert.ok(
 assert.ok(
   snapshot.nextActions.some(
     (action) =>
-      action.includes("provider-backed-log-sink") &&
+      action.includes("render-native-log-sink") &&
       action.includes("metrics-dashboards") &&
       action.includes("incident-workflow"),
   ),
