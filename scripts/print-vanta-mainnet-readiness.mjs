@@ -17,6 +17,13 @@ if (jsonMode) {
   console.log(`  - window: ${snapshot.realFundsApproval.approvalWindowStatus}`);
   console.log(`  - allowedNow: ${String(snapshot.realFundsApproval.liveMainnetActionsAllowedNow)}`);
   console.log(`  - nextStep: ${snapshot.realFundsApproval.requiredNextStep}`);
+  console.log("- abuse / observability:");
+  console.log(`  - payRuntime: ${snapshot.abuseObservability.payRuntimeStatus}`);
+  console.log(`  - privatePoolV2RuntimeMode: ${snapshot.abuseObservability.privatePoolV2RuntimeMode}`);
+  console.log(`  - privatePoolV2RateLimiter: ${snapshot.abuseObservability.privatePoolV2RateLimiter}`);
+  console.log(
+    `  - privatePoolV2MatchesPreferredRateLimiter: ${String(snapshot.abuseObservability.privatePoolV2RuntimeMatchesPreferredRateLimiter)}`,
+  );
   console.log("- lanes:");
   for (const [lane, state] of Object.entries(snapshot.lanes)) {
     console.log(`  - ${lane}: ${state.status} (${state.readiness}/100)`);

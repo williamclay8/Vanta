@@ -1,4 +1,5 @@
 import { createVantaPrivacyRailContract } from "./privacyRailContract.mjs";
+import { createVantaAbuseObservabilityRuntimeStatus } from "./abuseObservabilityRuntimeStatus.mjs";
 import { createVantaMainnetRealFundsApprovalStatus } from "./mainnetRealFundsApprovalStatus.mjs";
 
 const blockers = [
@@ -189,6 +190,7 @@ export function createVantaMainnetReadinessSnapshot() {
   const score = Math.round(
     Object.values(lanes).reduce((sum, lane) => sum + lane.readiness, 0) / Object.keys(lanes).length,
   );
+  const abuseObservability = createVantaAbuseObservabilityRuntimeStatus();
   const privacyRail = createVantaPrivacyRailContract();
   const realFundsApproval = createVantaMainnetRealFundsApprovalStatus();
 
@@ -201,6 +203,7 @@ export function createVantaMainnetReadinessSnapshot() {
     lanes,
     mainnetReady: false,
     nextActions,
+    abuseObservability,
     privacyRail,
     productionReady: false,
     realFundsApproval,
