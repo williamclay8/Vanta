@@ -21,6 +21,7 @@ if (jsonMode) {
   console.log(`  - feePayerRef: ${snapshot.realFundsApproval.feePayerRef}`);
   console.log(`  - stopLossPlanRef: ${snapshot.realFundsApproval.stopLossPlanRef}`);
   console.log(`  - maximumFundsAtRiskRef: ${snapshot.realFundsApproval.maximumFundsAtRiskRef}`);
+  console.log(`  - mainnetFundsBlockedBy: ${snapshot.realFundsApproval.mainnetFundsBlockedBy.join(", ")}`);
   console.log(`  - nextStep: ${snapshot.realFundsApproval.requiredNextStep}`);
   console.log("- private settlement:");
   console.log(`  - rail: ${snapshot.privateSettlement.activePrivacyRailId}`);

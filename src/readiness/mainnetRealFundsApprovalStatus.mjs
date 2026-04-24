@@ -61,6 +61,10 @@ export function createVantaMainnetRealFundsApprovalStatus() {
     evidence.realFundsAllowed === true &&
     approval.status === "approved" &&
     approvalWindowStatus === "active";
+  const mainnetFundsBlockedBy = [
+    "all-other-mainnet-actions-blocked",
+    ...(approvalWindowStatus === "active" ? [] : [`bounded-approval-window-${approvalWindowStatus}`]),
+  ];
 
   return {
     approvalActionRef: approval.approvedActionRef,
@@ -78,6 +82,7 @@ export function createVantaMainnetRealFundsApprovalStatus() {
     launchWindowTimeZone: launchWindow.timeZone,
     liveMainnetActionsAllowedNow,
     mainnetReady: false,
+    mainnetFundsBlockedBy,
     maximumFundsAtRiskRef: approval.maximumFundsAtRiskRef,
     productionReady: false,
     realFundsApprovalRecorded: evidence.realFundsAllowed === true,

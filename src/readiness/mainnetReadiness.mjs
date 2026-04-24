@@ -38,7 +38,8 @@ const blockers = [
   {
     id: "no-mainnet-funds-without-explicit-approval",
     severity: "critical",
-    summary: "Allow only the bounded beta mainnet private-pool smoke approved in the real-funds packet; keep all other mainnet transactions and real-fund movement blocked.",
+    summary:
+      "Allow only the bounded beta mainnet private-pool smoke approved in the real-funds packet while the checked funds blockers remain all-other-mainnet-actions-blocked and bounded-approval-window-expired.",
   },
 ];
 
