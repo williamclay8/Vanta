@@ -7,39 +7,42 @@ import { createVantaWalletSigningStatus } from "./walletSigningStatus.mjs";
 import { createVantaPrivatePoolV2ProductionSmokeStatus } from "./privatePoolV2ProductionSmokeStatus.mjs";
 import { createVantaProductionServiceDeploymentStatus } from "./productionServiceDeploymentStatus.mjs";
 
-const blockers = [
+const blockerDefinitions = [
   {
     id: "real-mainnet-private-settlement",
     severity: "critical",
-    summary:
-      "Graduate the no-real-funds Private Pool v2 production smoke path into audited mainnet-compatible private settlement while the checked meaningful-privacy blockers remain no-proven-audited-shared-anonymity-set, no-live-mainnet-private-settlement-path, and no-active-bounded-real-funds-approval-window.",
+    buildSummary: (snapshot) =>
+      `Graduate the no-real-funds Private Pool v2 production smoke path into audited mainnet-compatible private settlement while the checked meaningful-privacy blockers remain ${snapshot.privateSettlement.meaningfulPrivacyBlockedBy.join(", ")}.`,
   },
   {
     id: "deployed-indexer-relayer-prover-operator",
     severity: "critical",
-    summary: "Keep the service-deployment status/evidence surface fresh while deployed production indexer, relayer, prover, verifier, and operator services continue to show green route-health, replay, and no-real-funds smoke evidence, and while the checked pending production controls remain observability-controls, backup-restore-maturity, and real-funds-readiness.",
+    buildSummary:
+      "Keep the service-deployment status/evidence surface fresh while deployed production indexer, relayer, prover, verifier, and operator services continue to show green route-health, replay, and no-real-funds smoke evidence, and while the checked pending production controls remain observability-controls, backup-restore-maturity, and real-funds-readiness.",
   },
   {
     id: "final-nullifier-replay-enforcement",
     severity: "critical",
-    summary:
+    buildSummary:
       "Keep the deployed Postgres-backed operator replay guard, verified role-service replay barrier, and no-real-funds production smoke replay rejection fresh while the checked replay blockers remain no-real-funds-smoke-only, no-proven-audited-shared-anonymity-set, and no-live-mainnet-private-settlement-path.",
   },
   {
     id: "wallet-backed-browser-signing-safety",
     severity: "critical",
-    summary: "Keep the wallet-signing status/evidence surface fresh while Shield, Send, Swap, and Unshield remain frozen behind safe-send or typed message-intent boundaries, local and deployed browser proof stay green, and the public app still exposes the checked blocker set: production-beta-mode-banner-visible, production-private-settlement-offline-banner-visible, live-mainnet-submission-explicitly-blocked.",
+    buildSummary:
+      "Keep the wallet-signing status/evidence surface fresh while Shield, Send, Swap, and Unshield remain frozen behind safe-send or typed message-intent boundaries, local and deployed browser proof stay green, and the public app still exposes the checked blocker set: production-beta-mode-banner-visible, production-private-settlement-offline-banner-visible, live-mainnet-submission-explicitly-blocked.",
   },
   {
     id: "abuse-rate-limit-observability",
     severity: "high",
-    summary: "Keep the abuse/observability status/evidence surface fresh while the checked pending controls remain provider-backed-log-sink, metrics-dashboards, alert-policies, retention-policy, and incident-workflow.",
+    buildSummary:
+      "Keep the abuse/observability status/evidence surface fresh while the checked pending controls remain provider-backed-log-sink, metrics-dashboards, alert-policies, retention-policy, and incident-workflow.",
   },
   {
     id: "no-mainnet-funds-without-explicit-approval",
     severity: "critical",
-    summary:
-      "Allow only the bounded beta mainnet private-pool smoke approved in the real-funds packet while the checked funds blockers remain all-other-mainnet-actions-blocked and bounded-approval-window-expired.",
+    buildSummary: (snapshot) =>
+      `Allow only the bounded beta mainnet private-pool smoke approved in the real-funds packet while the checked funds blockers remain ${snapshot.realFundsApproval.mainnetFundsBlockedBy.join(", ")}.`,
   },
 ];
 
@@ -200,6 +203,18 @@ export function createVantaMainnetReadinessSnapshot() {
   const walletSigning = createVantaWalletSigningStatus();
   const privatePoolV2ProductionSmoke = createVantaPrivatePoolV2ProductionSmokeStatus();
   const productionServiceDeployment = createVantaProductionServiceDeploymentStatus();
+  const blockers = blockerDefinitions.map((blocker) => ({
+    id: blocker.id,
+    severity: blocker.severity,
+    summary: typeof blocker.buildSummary === "function" ? blocker.buildSummary({
+      abuseObservability,
+      nullifierReplay,
+      privateSettlement,
+      productionServiceDeployment,
+      realFundsApproval,
+      walletSigning,
+    }) : blocker.buildSummary,
+  }));
   const nextActions = [
     realFundsApproval.liveMainnetActionsAllowedNow
       ? "Execute only the approved bounded beta mainnet private-pool smoke during the active approval window; record a new bounded approval packet before changing the action, launch window, fee payer, or maximum funds at risk."

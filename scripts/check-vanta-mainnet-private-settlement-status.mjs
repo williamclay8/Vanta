@@ -29,11 +29,12 @@ assert.equal(result.replayProtocolLayerImplemented, true);
 assert.equal(result.realFundsApprovalRecorded, true);
 assert.equal(result.realFundsAllowedNow, false);
 assert.equal(result.noRealFundsSmokeOnly, true);
-assert.deepEqual(result.meaningfulPrivacyBlockedBy, [
+const expectedMeaningfulPrivacyBlockedBy = [
   "no-proven-audited-shared-anonymity-set",
   "no-live-mainnet-private-settlement-path",
-  "no-active-bounded-real-funds-approval-window",
-]);
+  ...(result.boundedRealFundsApprovalWindowActive ? [] : ["no-active-bounded-real-funds-approval-window"]),
+];
+assert.deepEqual(result.meaningfulPrivacyBlockedBy, expectedMeaningfulPrivacyBlockedBy);
 assert.ok(
   ["scheduled", "active", "expired"].includes(result.realFundsApprovalWindowStatus),
   "Private settlement status must expose a bounded approval-window status.",
@@ -61,8 +62,10 @@ assert.ok(
   "Private settlement status must preserve the missing live-mainnet-settlement truth.",
 );
 assert.ok(
-  result.deploymentTruth.includes("no active bounded real-funds approval window"),
-  "Private settlement status must preserve the inactive bounded-approval-window truth.",
+  result.boundedRealFundsApprovalWindowActive
+    ? result.deploymentTruth.includes("current bounded real-funds approval window is active")
+    : result.deploymentTruth.includes("no active bounded real-funds approval window"),
+  "Private settlement status must preserve the current bounded-approval-window truth.",
 );
 
 assert.equal(
