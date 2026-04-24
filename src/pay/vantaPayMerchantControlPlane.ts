@@ -1,10 +1,42 @@
+// @ts-expect-error - Runtime source is imported directly by Node in the contract check.
+import { createVantaPayRuntime } from "./vantaPayRuntime.ts";
 import type {
   VantaPayBalances,
+  VantaPayMerchant,
   VantaPayMerchantControlPlane,
   VantaPayReceipt,
   VantaPayRefund,
   VantaPayWithdrawal,
 } from "./vantaPayTypes";
+
+type VantaPayMerchantControlPlaneRuntimeSource = {
+  getBalances(): VantaPayBalances;
+  getMerchant(): VantaPayMerchant;
+  getMerchantControlPlaneState(): VantaPayMerchantControlPlaneRuntimeState;
+  listReceipts(): readonly VantaPayReceipt[];
+  listRefunds(): readonly VantaPayRefund[];
+  listWithdrawals(): readonly VantaPayWithdrawal[];
+};
+
+type VantaPayMerchantControlPlaneRuntimeState = {
+  approvalPhase: VantaPayMerchantControlPlane["approvalPhase"];
+  payoutQueue: {
+    nextWindow: {
+      cadence: "daily";
+      label: string;
+      targetTimeUtc: string;
+      timezone: "UTC";
+    };
+  };
+  reconciliation: {
+    exportWindow: {
+      date: string;
+      endUtc: string;
+      startUtc: string;
+      timezone: "UTC";
+    };
+  };
+};
 
 type VantaPayMerchantControlPlaneSnapshot = {
   approvalPhase: VantaPayMerchantControlPlane["approvalPhase"];
@@ -44,6 +76,14 @@ function cloneWithdrawals(withdrawals: readonly VantaPayWithdrawal[]) {
   return withdrawals.map((withdrawal) => ({ ...withdrawal }));
 }
 
+function formatNextWindow(nextWindow: VantaPayMerchantControlPlaneRuntimeState["payoutQueue"]["nextWindow"]) {
+  return `${nextWindow.label} · ${nextWindow.targetTimeUtc} UTC`;
+}
+
+function formatExportWindow(exportWindow: VantaPayMerchantControlPlaneRuntimeState["reconciliation"]["exportWindow"]) {
+  return `${exportWindow.date} · ${exportWindow.startUtc}-${exportWindow.endUtc} UTC`;
+}
+
 function buildControlPlane(snapshot: VantaPayMerchantControlPlaneSnapshot): VantaPayMerchantControlPlane {
   return {
     merchantControlPlaneVersion: "vanta-pay-merchant-control-plane-0.1",
@@ -72,65 +112,35 @@ function buildControlPlane(snapshot: VantaPayMerchantControlPlaneSnapshot): Vant
   };
 }
 
-export function createVantaPayMerchantControlPlane(): VantaPayMerchantControlPlane {
-  return createVantaPayMerchantControlPlaneFromSnapshot({
-    approvalPhase: "preview",
-    balances: {
-      available: [{ amount: "248420.18", asset: "USDC" }],
-      pending: [{ amount: "18200.00", asset: "USDC" }],
-      withdrawable: [{ amount: "244420.18", asset: "USDC" }],
-    },
-    receipts: [
-      {
-        amount: "4820.00",
-        asset: "USDC",
-        auditDisclosureId: "aud_1842",
-        checkoutSessionId: "cs_1842",
-        createdAt: "2026-04-23T00:00:00.000Z",
-        customerEmail: null,
-        id: "rcpt_1842",
-        invoiceReference: null,
-        merchantId: "mrc_123",
-        object: "receipt",
-        orderId: null,
-        paymentId: "pay_1842",
-        privateRailReceiptId: "prail_1842",
-        status: "paid",
-      },
-      {
-        amount: "1250.00",
-        asset: "USDC",
-        auditDisclosureId: "aud_1841",
-        checkoutSessionId: "cs_1841",
-        createdAt: "2026-04-23T00:00:00.000Z",
-        customerEmail: null,
-        id: "rcpt_1841",
-        invoiceReference: null,
-        merchantId: "mrc_123",
-        object: "receipt",
-        orderId: null,
-        paymentId: "pay_1841",
-        privateRailReceiptId: "prail_1841",
-        status: "paid",
-      },
-    ],
-    refunds: [],
-    withdrawals: [],
+export function createVantaPayMerchantControlPlaneFromRuntime(
+  runtime: VantaPayMerchantControlPlaneRuntimeSource,
+): VantaPayMerchantControlPlane {
+  const merchant = runtime.getMerchant();
+  const controlPlaneState = runtime.getMerchantControlPlaneState();
+  const balances = runtime.getBalances();
+  const receipts = runtime.listReceipts();
+  const refunds = runtime.listRefunds();
+  const withdrawals = runtime.listWithdrawals();
+
+  return buildControlPlane({
+    approvalPhase: controlPlaneState.approvalPhase,
+    balances,
+    receipts,
+    refunds,
+    withdrawals,
     payoutQueue: {
-      destination: "Treasury settlement wallet",
-      nextWindow: "Today · 16:00 UTC",
+      destination: merchant.payoutSettings.destination,
+      nextWindow: formatNextWindow(controlPlaneState.payoutQueue.nextWindow),
       state: "merchant-visible",
     },
     reconciliation: {
-      exportWindow: "2026-04-23 · 00:00-12:00 UTC",
-      recordsLabel: "128 matched receipts",
+      exportWindow: formatExportWindow(controlPlaneState.reconciliation.exportWindow),
+      recordsLabel: `${receipts.length} receipt records`,
       state: "merchant-visible",
     },
   });
 }
 
-function createVantaPayMerchantControlPlaneFromSnapshot(
-  snapshot: VantaPayMerchantControlPlaneSnapshot,
-): VantaPayMerchantControlPlane {
-  return buildControlPlane(snapshot);
+export function createVantaPayMerchantControlPlane(): VantaPayMerchantControlPlane {
+  return createVantaPayMerchantControlPlaneFromRuntime(createVantaPayRuntime());
 }

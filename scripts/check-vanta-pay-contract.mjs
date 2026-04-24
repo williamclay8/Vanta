@@ -2,7 +2,10 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { createVantaPayMerchantControlPlane } from "../src/pay/vantaPayMerchantControlPlane.ts";
+import {
+  createVantaPayMerchantControlPlane,
+  createVantaPayMerchantControlPlaneFromRuntime,
+} from "../src/pay/vantaPayMerchantControlPlane.ts";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 
@@ -212,8 +215,128 @@ try {
   if (typeof controlPlane.reconciliation.exportWindow !== "string") {
     failures.push("Expected reconciliation.exportWindow to be a string.");
   }
-  if (controlPlane.reconciliation.recordsLabel !== "128 matched receipts") {
-    failures.push("Expected public reconciliation.recordsLabel on the control plane builder.");
+  if (controlPlane.reconciliation.recordsLabel !== "0 receipt records") {
+    failures.push("Expected reconciliation.recordsLabel to derive from the default runtime receipts.");
+  }
+
+  const runtimeControlPlane = createVantaPayMerchantControlPlaneFromRuntime({
+    getBalances() {
+      return {
+        available: [{ amount: "5.00", asset: "USDC" }],
+        pending: [],
+        withdrawable: [{ amount: "5.00", asset: "USDC" }],
+      };
+    },
+    getMerchant() {
+      return {
+        acceptedAssets: ["USDC", "SOL", "USDT"],
+        branding: {
+          logoUrl: "https://merchant.com/logo.png",
+          name: "Vanta Studio",
+        },
+        callbackUrls: {
+          cancelUrl: "https://merchant.com/cancel",
+          successUrl: "https://merchant.com/success",
+          webhookUrl: "https://merchant.com/webhooks/vanta",
+        },
+        environmentMode: "test",
+        id: "mrc_123",
+        object: "merchant",
+        payoutSettings: {
+          defaultAsset: "USDC",
+          destination: "Treasury",
+          destinationType: "treasury_address",
+        },
+      };
+    },
+    getMerchantControlPlaneState() {
+      return {
+        approvalPhase: "settle",
+        payoutQueue: {
+          nextWindow: {
+            cadence: "daily",
+            label: "Tomorrow",
+            targetTimeUtc: "18:30",
+            timezone: "UTC",
+          },
+        },
+        reconciliation: {
+          exportWindow: {
+            date: "2026-04-24",
+            endUtc: "05:00",
+            startUtc: "01:00",
+            timezone: "UTC",
+          },
+        },
+      };
+    },
+    listReceipts() {
+      return [
+        {
+          amount: "12.34",
+          asset: "USDC",
+          auditDisclosureId: "aud_test",
+          checkoutSessionId: "cs_test",
+          createdAt: "2026-04-23T00:00:00.000Z",
+          customerEmail: null,
+          id: "rcpt_test",
+          invoiceReference: null,
+          merchantId: "mrc_123",
+          object: "receipt",
+          orderId: null,
+          paymentId: "pay_test",
+          privateRailReceiptId: "prail_test",
+          status: "paid",
+        },
+      ];
+    },
+    listRefunds() {
+      return [
+        {
+          amount: "2.00",
+          asset: "USDC",
+          createdAt: "2026-04-23T00:00:00.000Z",
+          id: "rfnd_test",
+          idempotencyKey: "refund_test",
+          merchantId: "mrc_123",
+          object: "refund",
+          paymentId: "pay_test",
+          reason: "test",
+          status: "refunded",
+        },
+      ];
+    },
+    listWithdrawals() {
+      return [
+        {
+          amount: "1.00",
+          asset: "USDC",
+          createdAt: "2026-04-23T00:00:00.000Z",
+          destination: "Treasury",
+          destinationType: "treasury_address",
+          id: "wdr_test",
+          idempotencyKey: "withdrawal_test",
+          merchantId: "mrc_123",
+          object: "withdrawal",
+          privateExitReceiptId: "pexit_test",
+          referenceNote: "test",
+          status: "completed",
+        },
+      ];
+    },
+  });
+
+  if (runtimeControlPlane.approvalPhase !== "settle") {
+    failures.push("Expected runtime-derived approvalPhase from the control plane helper.");
+  }
+  if (runtimeControlPlane.payoutQueue.nextWindow !== "Tomorrow · 18:30 UTC") {
+    failures.push("Expected runtime-derived payoutQueue.nextWindow string from the control plane helper.");
+  }
+  if (runtimeControlPlane.reconciliation.exportWindow !== "2026-04-24 · 01:00-05:00 UTC") {
+    failures.push("Expected runtime-derived reconciliation.exportWindow string from the control plane helper.");
+  }
+  if (runtimeControlPlane.reconciliation.recordsLabel !== "1 receipt records") {
+    failures.push("Expected reconciliation.recordsLabel to derive from receipts.length.");
   }
 } catch (error) {
   failures.push(`Vanta Pay merchant control plane behavior check failed: ${error.message}`);

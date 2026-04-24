@@ -1,7 +1,8 @@
 import { hmac } from "@noble/hashes/hmac.js";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
-import { VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY } from "./vantaPayPrivateSettlementAdapter.js";
+// @ts-expect-error - Bundler resolution uses the sibling TypeScript source during app build.
+import { VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY } from "./vantaPayPrivateSettlementAdapter.ts";
 import type {
   VantaPayAsset,
   VantaPayBalances,
@@ -217,6 +218,7 @@ export type VantaPayRuntimeArgs = {
     payoutQueue?: {
       nextWindow?: {
         cadence: "daily";
+        label: string;
         targetTimeUtc: string;
         timezone: "UTC";
       };
@@ -224,6 +226,7 @@ export type VantaPayRuntimeArgs = {
     reconciliation?: {
       exportWindow?: {
         endUtc: string;
+        date: string;
         startUtc: string;
         timezone: "UTC";
       };
@@ -238,6 +241,7 @@ type VantaPayRuntimeMerchantControlPlaneState = {
   payoutQueue: {
     nextWindow: {
       cadence: "daily";
+      label: string;
       targetTimeUtc: string;
       timezone: "UTC";
     };
@@ -245,6 +249,7 @@ type VantaPayRuntimeMerchantControlPlaneState = {
   reconciliation: {
     exportWindow: {
       endUtc: string;
+      date: string;
       startUtc: string;
       timezone: "UTC";
     };
@@ -315,6 +320,7 @@ export function createVantaPayRuntime({
     payoutQueue: {
       nextWindow: merchantControlPlaneState?.payoutQueue?.nextWindow ?? {
         cadence: "daily",
+        label: "Today",
         targetTimeUtc: "16:00",
         timezone: "UTC",
       },
@@ -322,6 +328,7 @@ export function createVantaPayRuntime({
     reconciliation: {
       exportWindow: merchantControlPlaneState?.reconciliation?.exportWindow ?? {
         endUtc: "12:00",
+        date: "2026-04-23",
         startUtc: "00:00",
         timezone: "UTC",
       },

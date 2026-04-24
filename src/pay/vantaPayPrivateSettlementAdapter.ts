@@ -1,10 +1,5 @@
 import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
-import { createVantaPrivatePoolV2MockRuntime } from "../privacy/privatePoolV2MockRuntime";
-import {
-  createVantaPrivatePoolV2ClaimProofRequest,
-  createVantaPrivatePoolV2ShieldProofRequest,
-} from "../privacy/privatePoolV2ProofRequests";
 import type {
   VantaPrivatePoolV2Commitment,
   VantaPrivatePoolV2Protocol,
@@ -170,11 +165,32 @@ function requirePrivatePoolSurfaces(protocol: VantaPrivatePoolV2Protocol) {
   };
 }
 
+async function createDefaultPrivatePoolProtocol() {
+  // Lazily load the privacy mock runtime so importing the Pay runtime stays Node-safe.
+  // @ts-ignore - Bundler/runtime resolve the sibling TypeScript source.
+  const { createVantaPrivatePoolV2MockRuntime } = await import("../privacy/privatePoolV2MockRuntime.ts");
+  return createVantaPrivatePoolV2MockRuntime();
+}
+
+async function createVantaPrivatePoolV2ShieldProofRequest(args: unknown) {
+  // This helper intentionally loads the proof request factory only when settlement runs.
+  // @ts-ignore - Bundler/runtime resolve the sibling TypeScript source.
+  const { createVantaPrivatePoolV2ShieldProofRequest: buildShieldProofRequest } = await import("../privacy/privatePoolV2ProofRequests.ts");
+  return buildShieldProofRequest(args as never);
+}
+
+async function createVantaPrivatePoolV2ClaimProofRequest(args: unknown) {
+  // This helper intentionally loads the proof request factory only when settlement runs.
+  // @ts-ignore - Bundler/runtime resolve the sibling TypeScript source.
+  const { createVantaPrivatePoolV2ClaimProofRequest: buildClaimProofRequest } = await import("../privacy/privatePoolV2ProofRequests.ts");
+  return buildClaimProofRequest(args as never);
+}
+
 export function createVantaPayPrivateSettlementAdapter({
   now = defaultNow,
   privatePoolOperatorAuthToken,
   privatePoolOperatorUrl,
-  protocol = createVantaPrivatePoolV2MockRuntime(),
+  protocol,
   rail = "umbra",
 }: VantaPayPrivateSettlementAdapterArgs = {}) {
   async function settleThroughPrivatePoolOperator<T>(body: Record<string, unknown>) {
@@ -216,7 +232,8 @@ export function createVantaPayPrivateSettlementAdapter({
       return operatorSettlement.privateRailReceipt;
     }
 
-    const { indexer, prover, verifierRegistry } = requirePrivatePoolSurfaces(protocol);
+    const activeProtocol = protocol ?? (await createDefaultPrivatePoolProtocol());
+    const { indexer, prover, verifierRegistry } = requirePrivatePoolSurfaces(activeProtocol);
     const amountBaseUnits = amountToBaseUnits(session.amount, session.currency);
     const assetId = assetIdForAsset(session.currency);
     const treeId = treeIdForAsset(session.currency);
@@ -237,7 +254,7 @@ export function createVantaPayPrivateSettlementAdapter({
       treeId,
     };
     const merkleRoot = merkleRootFor(treeId, [...existingCommitments, leaf]);
-    const request = createVantaPrivatePoolV2ShieldProofRequest({
+    const request = await createVantaPrivatePoolV2ShieldProofRequest({
       amountBaseUnits,
       ownerCommitment: hashHex("merchant", session.merchantId),
       previousRoot: await indexer.getCurrentRoot(treeId),
@@ -285,7 +302,8 @@ export function createVantaPayPrivateSettlementAdapter({
       return operatorSettlement.privateExitReceipt;
     }
 
-    const { indexer, prover, relayer, verifierRegistry } = requirePrivatePoolSurfaces(protocol);
+    const activeProtocol = protocol ?? (await createDefaultPrivatePoolProtocol());
+    const { indexer, prover, relayer, verifierRegistry } = requirePrivatePoolSurfaces(activeProtocol);
     if (!relayer) {
       throw new Error("Private Pool v2 settlement requires a relayer for withdrawals.");
     }
@@ -313,7 +331,7 @@ export function createVantaPayPrivateSettlementAdapter({
       asset,
       sourceCommitment.commitment,
     );
-    const request = createVantaPrivatePoolV2ClaimProofRequest({
+    const request = await createVantaPrivatePoolV2ClaimProofRequest({
       amountBaseUnits: amountToBaseUnits(normalizedAmount, asset),
       destinationAddress: destination,
       merkleProof,
