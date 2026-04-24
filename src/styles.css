@@ -3172,6 +3172,10 @@ input {
   grid-column: 1 / -1;
 }
 
+.pay-field--wide {
+  grid-column: 1 / -1;
+}
+
 .pay-payment-card {
   display: grid;
   gap: 16px;
@@ -3319,6 +3323,17 @@ input {
   text-transform: uppercase;
 }
 
+.pay-path-steps span[data-state="active"] {
+  background: rgba(0, 229, 200, 0.16);
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1px rgba(0, 229, 200, 0.2);
+}
+
+.pay-path-steps span[data-state="locked"] {
+  background: rgba(255, 255, 255, 0.035);
+  color: rgba(236, 255, 252, 0.46);
+}
+
 .pay-section-mini-header {
   display: flex;
   align-items: end;
@@ -3340,6 +3355,7 @@ input {
   line-height: 1.5;
 }
 
+.pay-next-workspace,
 .pay-suite-workspace {
   display: grid;
   gap: 12px;
@@ -3375,10 +3391,22 @@ input {
     transform 180ms ease;
 }
 
+.pay-workflow-action:disabled {
+  cursor: not-allowed;
+  color: rgba(236, 255, 252, 0.38);
+  opacity: 0.72;
+}
+
 .pay-workflow-action:hover,
 .pay-workflow-action:focus-visible {
   background: rgba(0, 229, 200, 0.055);
   color: var(--accent);
+}
+
+.pay-workflow-action:disabled:hover,
+.pay-workflow-action:disabled:focus-visible {
+  background: transparent;
+  color: rgba(236, 255, 252, 0.38);
 }
 
 .pay-workflow-action:active {
@@ -3392,7 +3420,8 @@ input {
 
 .pay-workflow-action span,
 .pay-workflow-detail span,
-.pay-suite-plain-rows span {
+.pay-suite-plain-rows span,
+.pay-record-panel span {
   color: var(--muted-strong);
   font-size: 0.68rem;
   font-weight: 800;
@@ -3401,23 +3430,61 @@ input {
 }
 
 .pay-workflow-action strong,
-.pay-workflow-detail strong {
+.pay-workflow-detail strong,
+.pay-record-panel strong {
   color: var(--text);
   line-height: 1.3;
 }
 
 .pay-workflow-detail small,
-.pay-suite-plain-rows p {
+.pay-suite-plain-rows p,
+.pay-record-panel p {
   color: var(--muted);
   line-height: 1.45;
 }
 
-.pay-workflow-detail {
+.pay-workflow-detail,
+.pay-record-panel {
   display: grid;
   gap: 6px;
   padding: 12px 0;
   border-top: 1px solid rgba(0, 229, 200, 0.1);
   border-bottom: 1px solid rgba(0, 229, 200, 0.1);
+}
+
+.pay-record-panel > div:first-child {
+  display: grid;
+  gap: 5px;
+}
+
+.pay-record-list {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin: 6px 0 0;
+}
+
+.pay-record-list div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.pay-record-list dt {
+  color: var(--muted-strong);
+  font-size: 0.64rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.pay-record-list dd {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
 }
 
 .pay-suite-plain-rows {
@@ -3441,6 +3508,46 @@ input {
 .pay-workflow-detail {
   background: transparent;
   box-shadow: none;
+}
+
+.pay-mode-control {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 4px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.pay-mode-control button {
+  min-height: 42px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted-strong);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition:
+    background 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.pay-mode-control button:hover,
+.pay-mode-control button:focus-visible,
+.pay-mode-control button[aria-pressed="true"] {
+  background: rgba(0, 229, 200, 0.12);
+  color: var(--accent);
+}
+
+.pay-mode-control button:active {
+  transform: scale(0.97);
+}
+
+.pay-success-card--truth {
+  align-items: start;
 }
 
 .pay-field__error {
@@ -5400,6 +5507,8 @@ input {
 
   .pay-request-grid,
   .pay-path-steps,
+  .pay-record-list,
+  .pay-mode-control,
   .pay-suite-plain-rows p {
     grid-template-columns: 1fr;
   }

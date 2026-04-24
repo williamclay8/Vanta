@@ -108,7 +108,7 @@ export const VANTA_PAY_MERCHANT_COMMAND_CENTER = {
     {
       label: "Receipt preview",
       value: "Receipt path preview",
-      detail: "Receipt state stays visible before any live settlement claim.",
+      detail: "Receipt state stays visible before any settlement claim.",
       tone: "preview",
     },
     {
