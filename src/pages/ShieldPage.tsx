@@ -93,6 +93,18 @@ function parseDecimalAmountToBaseUnits(amountDisplay: string, decimals: number) 
   return wholeBaseUnits + fractionalBaseUnits;
 }
 
+function formatShieldSourceAssetOptionLabel(asset: {
+  label: string;
+  mintAddress: string;
+  symbol: string;
+}) {
+  if (asset.label === asset.symbol) {
+    return asset.symbol;
+  }
+
+  return `${asset.label} (${asset.symbol})`;
+}
+
 export function ShieldPage(_props: ShieldPageProps) {
   const { recentShield, runPrivateCoreShield, setRecentShield } = usePrivacyFlow();
   const { solBalance, walletAddress, walletConnected } = useWalletState();
@@ -836,7 +848,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     }
   }
 
-  let validationMessage = "Choose a source asset, enter an amount, and Vanta will shield it automatically.";
+  let validationMessage = "Choose an asset and amount. Vanta will show the route before you approve.";
 
   if (!walletConnected) {
     validationMessage = "Connect a wallet to shield assets.";
@@ -857,7 +869,7 @@ export function ShieldPage(_props: ShieldPageProps) {
   } else if (supportedToken?.status === "error") {
     validationMessage = "The app could not read the target shield asset balance.";
   } else if (!shieldStateReady) {
-    validationMessage = "The Vanta shield state layer is not fully configured for this target yet.";
+    validationMessage = "This shield route is not ready yet.";
   } else if (shieldStateRefreshing) {
     validationMessage = "Refreshing Vanta shielded state.";
   } else if (shieldStateError) {
@@ -876,9 +888,9 @@ export function ShieldPage(_props: ShieldPageProps) {
     <section className="send-page shield-page">
       <div className="module-page__hero send-page__hero product-intro">
         <div>
-          <span className="eyebrow product-intro__eyebrow">Shield</span>
+          <span className="eyebrow product-intro__eyebrow">Add privacy</span>
           <h2>Shield</h2>
-          <p>{routeLabel}</p>
+          <p>Shield an asset so you can send, swap, or hold it privately.</p>
         </div>
       </div>
 
@@ -886,7 +898,7 @@ export function ShieldPage(_props: ShieldPageProps) {
         <article className="send-card send-card--workspace">
           <div className="shield-card__header">
             <div>
-              <span>Shield</span>
+              <span>Choose what to shield</span>
             </div>
           </div>
 
@@ -894,7 +906,7 @@ export function ShieldPage(_props: ShieldPageProps) {
             <div className="swap-module">
               <div className="swap-module__field">
                 <div className="swap-module__label-row">
-                  <span>You send</span>
+                  <span>Amount</span>
                   <div className="send-balance-line shield-helper shield-helper--meta">
                     Balance: {selectedSourceAsset ? formatAssetAmount(sourceBalance, selectedSourceAsset.symbol) : sourcePlaceholderLabel}
                   </div>
@@ -936,7 +948,7 @@ export function ShieldPage(_props: ShieldPageProps) {
 
               <div className="swap-module__field">
                 <div className="swap-module__label-row">
-                  <span>Asset</span>
+                  <span>From</span>
                 </div>
                 <div className="send-asset-field">
                   <select
@@ -955,7 +967,7 @@ export function ShieldPage(_props: ShieldPageProps) {
                     )}
                     {executableSourceAssets.map((asset) => (
                       <option key={asset.id} value={asset.id}>
-                        {asset.symbol}
+                        {formatShieldSourceAssetOptionLabel(asset)}
                       </option>
                     ))}
                   </select>
@@ -966,7 +978,7 @@ export function ShieldPage(_props: ShieldPageProps) {
 
               <div className="swap-module__field">
                 <div className="swap-module__label-row">
-                  <span>Shielded state</span>
+                  <span>To</span>
                   <div className="send-balance-line shield-helper shield-helper--meta">
                     Shielded balance: {targetShieldSymbol ? formatAssetAmount(targetShieldedBalance, targetShieldSymbol) : "Unavailable"}
                   </div>
@@ -1022,11 +1034,11 @@ export function ShieldPage(_props: ShieldPageProps) {
                   {status === "awaiting_wallet_confirmation"
                     ? "Awaiting wallet confirmation"
                     : status === "routing_public_swap"
-                      ? "Routing source asset"
+                      ? "Preparing shield route"
                       : status === "shielding_in_progress"
                         ? "Shielding in progress"
                         : status === "entering_shielded_state"
-                          ? "Entering shielded state"
+                          ? "Adding to private balance"
                           : status === "complete"
                             ? "Shield complete"
                             : "Shield failed"}
@@ -1042,8 +1054,8 @@ export function ShieldPage(_props: ShieldPageProps) {
                         ? `Routing ${selectedSourceAsset?.symbol ?? "the source asset"} into ${targetShieldSymbol ?? "the selected shield asset"} before entering Vanta.`
                         : status === "shielding_in_progress"
                           ? "Submitting the shield transfer into the Vanta vault."
-                          : status === "entering_shielded_state"
-                            ? "Recording the Vanta shield state note."
+                        : status === "entering_shielded_state"
+                            ? "Adding this to your private balance."
                             : "Approve the shield action in your wallet to continue."}
                 </p>
                 {pendingUmbraApprovalDisplay && status !== "complete" && status !== "failed" && (

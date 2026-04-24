@@ -1,30 +1,33 @@
 # Pay Merchant Trust Surface
 
-Vanta Pay is the merchant-first control plane for private, policy-legible stablecoin settlement.
+Vanta Pay is the merchant side of Vanta.
 
-This page explains the current trust surface in simple terms:
+The simple version: merchants should not need to understand the privacy protocol before they can understand a payment. Pay turns the system into business tasks:
 
-- what Vanta keeps private
-- which payment steps are policy-bound
-- how refunds, withdrawals, and reconciliation remain merchant-visible
-- how the real Pay demo now frames the merchant control plane for design partners
-- what the live console cards expose today
-- which commands prove the current trust surface
+- create a link
+- send an invoice
+- preview checkout
+- approve execution
+- track settlement
+- handle refunds and withdrawals
+- keep receipts and reconciliation records
+
+The current Pay surface is a control plane for policy-legible stablecoin settlement previews. It is not a production payment processor.
 
 ## What stays private
 
-The payment flow is built to keep sensitive settlement mechanics inside the Pay control plane rather than exposing them as loose UI state or ad hoc merchant logic.
+The payment flow keeps sensitive settlement mechanics inside the Pay control plane instead of asking merchants to reason about protocol internals.
 
-That means the current surface is designed around:
+Today, that means:
 
-- private checkout handling
-- settlement receipts from the private settlement adapter
+- checkout preview handling
+- settlement receipts from the private settlement adapter when an operator rail is configured
 - simulation-bound approval before wallet action
 - typed status surfaces instead of implicit assumptions
 
 ## What stays legible
 
-The merchant-facing boundary is intentionally explicit. Merchants should be able to see the important payment lifecycle states without learning protocol internals.
+Merchants still need a clear business record. They should be able to see the important lifecycle states without learning words like note, nullifier, or proof.
 
 Current merchant-visible states include:
 
@@ -35,17 +38,20 @@ Current merchant-visible states include:
 
 The real Pay demo now shows:
 
+- the merchant control plane as the default `/app/pay` surface
+- a trust packet with `What is private`, `What is visible`, `Policy mode`, and `Approval boundary`
+- workflow entry points for creating links, sending invoices, previewing checkout, and withdrawing funds
 - merchant operations and approval boundary copy
 - refund / withdrawal / reconciliation detail states
-- settlement console cards for balances, payout queue, receipts, and reconciliation export
-  - those console records are currently a seeded demo snapshot from the local typed merchant summary, rendered on the real Pay page
+- runtime-backed empty-state console cards for balances, refund queue, withdrawal queue, and reconciliation export
+  - those console records currently reflect the fresh Pay runtime state rendered on the real Pay page
 - design-partner-facing settlement framing
 
 The design-partner layer currently uses this shared UI copy on the real Pay page:
 
 - eyebrow: `Design partner preview`
 - title: `Merchant pilot`
-- body: `Private settlement without protocol overhead.`
+- body: `Settlement control-plane preview without protocol overhead.`
 
 The approval packet keeps the action boundary fixed as:
 
@@ -53,6 +59,8 @@ The approval packet keeps the action boundary fixed as:
 - `approve`
 - `execute`
 - `settle`
+
+In one line: Pay should feel like a merchant dashboard, not a protocol console.
 
 ## What the commands prove
 

@@ -12,7 +12,7 @@ const productPoints = [
     title: "Use private rails",
   },
   {
-    copy: "Create payment links, accept private checkout, track balances, and withdraw through a commerce-first payment suite.",
+    copy: "Create payment links, preview checkout, track runtime balances, and inspect merchant settlement preview controls.",
     title: "Accept payments",
   },
   {
@@ -21,7 +21,14 @@ const productPoints = [
   },
 ];
 
-const appActions = ["Shield", "Send", "Swap", "Strategy", "Unshield", "Pay"];
+const appActions = [
+  { label: "Shield funds", path: "shield" },
+  { label: "Send from shielded state", path: "send" },
+  { label: "Swap from shielded state", path: "swap" },
+  { label: "Plan execution", path: "strategy" },
+  { label: "Unshield funds", path: "unshield" },
+  { label: "Collect payments", path: "pay" },
+];
 
 export function HomePage() {
   const [navScrolled, setNavScrolled] = useState(false);
@@ -55,8 +62,8 @@ export function HomePage() {
         </Link>
 
         <div className="landing-nav__links">
-          <a href="#what">What</a>
-          <a href="#use">Use</a>
+          <a href="#what">How it works</a>
+          <a href="#use">Open actions</a>
           <Link to="/docs">Docs</Link>
           <a href="https://x.com/vantaprivacy" target="_blank" rel="noreferrer">
             X
@@ -95,7 +102,7 @@ export function HomePage() {
       >
         <div className="landing-minimal__section-header">
           <span>What it does</span>
-          <h2>Private by default. Simple on the surface.</h2>
+          <h2>Shield first. Simple on the surface.</h2>
         </div>
 
         <div className="landing-minimal__points landing-minimal__points--features">
@@ -114,13 +121,13 @@ export function HomePage() {
       >
         <div className="landing-minimal__section-header">
           <span>Inside the app</span>
-          <h2>All the actions private users need.</h2>
+          <h2>The constrained actions Vanta can show honestly.</h2>
         </div>
 
         <div className="landing-minimal__action-list" aria-label="Vanta app actions">
           {appActions.map((action) => (
-            <Link key={action} to={`/app/${action.toLowerCase()}`}>
-              {action}
+            <Link key={action.path} to={`/app/${action.path}`}>
+              {action.label}
             </Link>
           ))}
         </div>

@@ -1,20 +1,20 @@
 # Vanta Audit Package
 
-This document is the starting audit handoff for Vanta. It is not an audit report and it does not make Vanta mainnet-ready.
+This document is the starting handoff for future reviewers.
+
+It is not an audit report. It does not make Vanta mainnet-ready.
+
+Plain-English goal: help a reviewer find the important proof, operator, wallet, Pay, storage, and readiness surfaces without reading the whole repo first.
 
 ## Scope
 
-Initial review scope should cover:
+Initial review should cover:
 
-- Vanta Private Core proof boundaries
-- Private Pool v2 benchmark contracts and local runtime seams
-- Pay private-settlement adapter and merchant API harness
-- Strategy planner, execution-preview, and local runtime boundaries
-- operator runbooks and mainnet-readiness gates
-- production storage contract, migration, backup, and restore requirements
-- abuse control, rate-limit, metrics, alert, and audit-event requirements
-- external mainnet gates packet for deployed services, secret-manager refs, audit/legal/custody refs, and explicit mainnet-funds approval
-- browser wallet and signing safety policy
+- Proofs: Vanta Private Core and Private Pool v2.
+- Pay: merchant API, checkout, approval packet, and private-settlement adapter.
+- Wallet safety: transaction summaries, simulation before signing, and no private-key handling.
+- Operators: runbooks, readiness gates, storage requirements, replay protection, and production blockers.
+- Production controls: database migrations, backup and restore, abuse controls, rate limits, metrics, alerts, audit events, secret-manager refs, and mainnet-funds approval gates.
 
 ## Out of scope
 
@@ -37,12 +37,11 @@ npm run private-pool-v2:verify
 
 Reviewers should inspect:
 
-- fixed-depth Vanta Private Core unshield, send, and swap lanes
-- Private Pool v2 shield and claim circuits
-- public input binding
-- nullifier construction and replay assumptions
-- fixture validity and invalid-fixture failure behavior
-- proof artifact reproducibility
+- whether public inputs bind to the thing being proved
+- whether nullifiers and replay checks prevent the same private state from being reused
+- whether valid fixtures pass and invalid fixtures fail
+- whether proof artifacts can be reproduced
+- whether the current fixed-depth and narrow-lane assumptions are explicit
 
 ## Operator review
 
@@ -64,18 +63,14 @@ npm run pay:verify
 
 Reviewers should inspect:
 
-- local operator authentication assumptions
-- durable-store requirements
-- idempotency and conflicting replay rejection
-- settlement receipt fingerprints
-- restart-safe local persistence
-- production database, migration, backup, and restore requirements
-- baseline Postgres migration coverage for Pay, Private Pool v2, Strategy, and Operator state
-- abuse controls, rate limits, privacy-preserving telemetry, alerts, and audit-event requirements
-- fail-closed request validation
-- production service contract and deployment manifest shape
-- external gates packet and references-only launch evidence model
-- checked `ops/mainnet/secret-references.manifest.json` reference inventory
+- who the operator is trusted to be today
+- what happens after restart
+- how duplicate or conflicting requests are rejected
+- what evidence is stored for settlement receipts
+- which production database, migration, backup, and restore requirements are still incomplete
+- whether abuse controls, rate limits, privacy-preserving telemetry, alerts, and audit events fail closed
+- whether the external mainnet gates packet and references-only launch evidence are still honest
+- whether `ops/mainnet/secret-references.manifest.json` names refs without storing secret values
 
 ## Browser and wallet review
 
@@ -86,20 +81,20 @@ npm run protocol:browser-check
 npm run pay:browser-check
 npm run wallet:signing-safety-check
 npm run wallet:transaction-safety-check
+npm run truth:transaction-check
+npm run mainnet:transaction-evidence-check
 npm run mainnet:secret-handling-check
 ```
 
 Reviewers should inspect:
 
-- wallet connection boundaries
-- transaction-summary requirements
-- simulation-before-signature requirements
-- absence of blind signing
-- absence of private-key, seed-phrase, or keypair-file handling
-- live mainnet submission gating
-- executable transaction safety summaries before wallet approval
-- secret-manager, rotation, least-privilege, and no-private-key handling boundaries
-- secret-reference manifest entries for owner, provider, environment, rotation, revocation, and access-log refs
+- whether the user sees a clear summary before signing
+- whether transactions simulate before signature
+- whether blind signing is avoided
+- whether the app avoids private keys, seed phrases, and keypair files
+- whether live mainnet submission stays behind explicit gates
+- whether Transaction Evidence v0.1 redacts private inputs and uses honest completion language
+- whether secret-manager and rotation refs exist without exposing secret values
 
 ## Custody and key-management review
 
@@ -107,13 +102,13 @@ Vanta needs a dedicated custody and key-management review before real funds.
 
 Reviewers should inspect:
 
-- secret storage requirements
-- key rotation expectations
-- no private-key, seed-phrase, or keypair-file handling
-- service-to-service authentication
-- operator token handling
-- relayer fee wallet assumptions
-- incident response requirements
+- where secrets would live
+- how keys would rotate
+- how service-to-service authentication works
+- how operator tokens are handled
+- how relayer fee wallets are controlled
+- what the incident response process is
+- whether the repo still avoids private-key, seed-phrase, and keypair-file handling
 
 ## Known non-production boundaries
 
@@ -131,7 +126,7 @@ Known beta limits and blockers:
 - Audit and legal/compliance/custody review were skipped by operator decision; this is not audit, legal, compliance, or custody approval.
 - Pay restore readback plus provider backup/PITR/encryption/access-audit/least-privilege evidence were skipped by operator decision.
 - Production database adapters, migrations, backup jobs, and restore drills have partial evidence and operator-skipped controls, not full production recovery proof.
-- Live mainnet submission remains disabled.
+- Live mainnet submission mode can be enabled in bounded operator windows, but real-funds actions remain explicitly approval-gated and still do not make Vanta mainnet-ready.
 - Legal, compliance, custody, and third-party security review remain incomplete.
 
 ## Required verification bundle

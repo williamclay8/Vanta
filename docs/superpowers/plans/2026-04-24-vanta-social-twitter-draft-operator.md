@@ -4,7 +4,7 @@
 
 **Goal:** Build a draft-only Vanta official-account social operator that produces source-backed local X/Twitter drafts for manual posting.
 
-**Architecture:** Add a safe `src/social/vantaSocialContext.mjs` allowlisted context loader, a versioned `src/social/vantaSocialVoice.mjs` brand/voice contract, a local `src/social/vantaSocialReviewQueue.mjs` review/edit/export/feedback/preference queue, and a pure `src/social/twitterDraftOperator.mjs` module for draft generation, validation, and artifact formatting. Add Node CLI/check scripts under `scripts/`, and expose npm commands for draft creation, review, editing, marking, export, feedback, preference profiling, and deterministic verification.
+**Architecture:** Add a safe `src/social/vantaSocialContext.mjs` allowlisted context loader, a versioned `src/social/vantaSocialVoice.mjs` brand/voice contract, a local `src/social/vantaSocialReviewQueue.mjs` review/edit/export/feedback/preference/next-step queue, and a pure `src/social/twitterDraftOperator.mjs` module for draft generation, validation, and artifact formatting. Add Node CLI/check scripts under `scripts/`, and expose npm commands for draft creation, review, editing, marking, export, feedback, preference profiling, next-step guidance, and deterministic verification.
 
 **Tech Stack:** Node ESM, npm scripts, plain `node:assert`, ignored `.tmp/social-drafts/` artifacts.
 
@@ -423,3 +423,52 @@ npm run build
 ```
 
 Expected: all pass, preference output stays local, and no X/Composio write path is introduced.
+
+### Task 11: Add One-Command Next Guidance And Stable Export File
+
+**Files:**
+- Modify: `src/social/vantaSocialReviewQueue.mjs`
+- Modify: `scripts/check-vanta-social-review-queue.mjs`
+- Modify: `scripts/export-approved-vanta-social-drafts.mjs`
+- Create: `scripts/print-vanta-social-next-step.mjs`
+- Modify: `package.json`
+
+- [ ] **Step 1: Extend the failing queue check**
+
+Update `scripts/check-vanta-social-review-queue.mjs` to require next-step output with latest batch, draft IDs, recommended draft, exact approve command, exact export command, and stable approved export path.
+
+- [ ] **Step 2: Run the check to verify it fails**
+
+Run: `npm run social:twitter-review-check`
+
+Expected: failure because next-step formatting is not available yet.
+
+- [ ] **Step 3: Implement next-step formatting**
+
+Update `src/social/vantaSocialReviewQueue.mjs` with `getDefaultVantaSocialApprovedExportPath` and `formatVantaSocialNextSteps`.
+
+- [ ] **Step 4: Write approved export file**
+
+Update `scripts/export-approved-vanta-social-drafts.mjs` so it writes `.tmp/social-drafts/approved-twitter-drafts.md` and still prints the export to terminal.
+
+- [ ] **Step 5: Add next-step CLI and script**
+
+Create `scripts/print-vanta-social-next-step.mjs` and add `social:twitter-next`.
+
+- [ ] **Step 6: Verify**
+
+Run:
+
+```bash
+npm run social:twitter-review-check
+npm run social:twitter-draft
+npm run social:twitter-next
+npm run social:twitter-export-approved
+npm run social:twitter-voice-check
+npm run social:twitter-context-check
+npm run social:twitter-draft-check
+npm run mainnet:secret-exposure-check
+npm run build
+```
+
+Expected: all pass, approved export writes `.tmp/social-drafts/approved-twitter-drafts.md`, and no X/Composio write path is introduced.

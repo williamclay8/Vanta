@@ -1,16 +1,28 @@
 # Vanta Security Limitations
 
-This page is the truthful security boundary for the current Vanta repo.
+This page says what Vanta is allowed to claim today.
+
+Plain-English summary:
+
+- Vanta has real local and devnet verification work.
+- Vanta is still a development system.
+- Vanta is not audited.
+- Vanta is not mainnet-production ready.
+- Vanta should not be used with real user funds unless a bounded operator approval explicitly allows that specific action.
 
 ## Not mainnet-production ready
 
-Vanta is not mainnet-production ready today. The current repo contains real verification lanes, executable proof circuits, operator smoke tests, browser checks, and persistent local operator harnesses, but it is still a development system.
+Vanta is not mainnet-production ready today.
+
+The current repo contains real verification lanes, executable proof circuits, operator smoke tests, browser checks, and persistent local operator harnesses. That is meaningful progress, but it is not the same as a finished private settlement network.
 
 Do not represent this repository as audited, trustless, custody-safe, or ready for real user funds.
 
 ## Current private-settlement truth
 
-The strongest current private-settlement lane is the Vanta Private Pool v2 benchmark path:
+The strongest current private-settlement lane is the Vanta Private Pool v2 benchmark path.
+
+In normal language, it proves that Vanta can exercise the shape of a private settlement system locally:
 
 - local append-only commitment indexing
 - local nullifier tracking
@@ -21,7 +33,7 @@ The strongest current private-settlement lane is the Vanta Private Pool v2 bench
 - restart-safe local JSON persistence for proof and settlement receipts
 - idempotent settlement IDs for repeated Pay checkout and protocol settlement requests
 
-This is a useful production-shaped harness. It is not a deployed shared anonymity set.
+This is a useful production-shaped harness. It is not a deployed shared anonymity set, not audited privacy, and not a final mainnet rail.
 
 The checked privacy-rail contract is `docs/privacy-rail-contract.md` and `src/readiness/privacyRailContract.mjs`. Its current active rail is `alpha-public-warning`, which means Vanta must not claim meaningful privacy until Umbra mainnet evidence or Vanta Private Pool v2 production evidence is filled.
 
@@ -41,7 +53,8 @@ The checked privacy-rail contract is `docs/privacy-rail-contract.md` and `src/re
 - Status surfaces report productionReady: false for local Pay and Private Pool v2 lanes, even when their local verification gates are passing.
 - Browser-exposed operator tokens are not production secrets: any `VITE_...` token bundled into the app is suitable only for local or controlled test environments, not as a mainnet operator access-control model.
 - Browser UX checks prove navigation and rendering behavior, not wallet security, relayer safety, or cryptographic privacy.
-- Live mainnet submission remains disabled.
+- Live mainnet submission mode can be enabled in bounded operator windows, but real-funds actions still require explicit approval and must not be presented as production-ready private settlement.
+- Transaction Evidence v0.1 is evidence of the current transaction or receipt trace only; it may include devnet signatures, local/operator receipt ids, and redacted linkage fields, but it does not prove mainnet finality, production settlement, or privacy guarantees. It must not store private inputs, secrets, seed phrases, raw customer data, signed transaction material, or credential-bearing URLs.
 - Never request, store, or handle private keys, seed phrases, or keypair files.
 - Future live transaction paths must simulate before signature, show a human-readable transaction summary, and require explicit human approval before requesting a wallet signature.
 - Future wallet signing paths must pass the executable transaction safety summary boundary before requesting approval.

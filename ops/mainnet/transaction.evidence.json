@@ -1,0 +1,161 @@
+{
+  "version": "vanta-transaction-evidence-0.1",
+  "packetKind": "point-in-time-transaction-evidence",
+  "evidencePacketId": "tx-evidence-2026-04-24T13-29-08-862Z",
+  "checkedAt": "2026-04-24T13:29:08.862Z",
+  "generatedBy": "scripts/write-vanta-transaction-evidence.mjs",
+  "pointInTime": true,
+  "mainnetReady": false,
+  "productionReady": false,
+  "realFundsMoved": false,
+  "productionSettlementClaimAllowed": false,
+  "canonicalCheckRef": "npm run mainnet:transaction-evidence-check",
+  "firstAdoptedFlow": "unshield",
+  "truthBoundary": "evidence-describes-current-implementation-not-production-settlement",
+  "flows": [
+    {
+      "flow": "shield",
+      "scope": "devnet-wallet-tx",
+      "wallet": {
+        "status": "signature-recorded-when-user-approves",
+        "signature": null,
+        "slot": null
+      },
+      "proof": {
+        "status": "not-applicable"
+      },
+      "operator": {
+        "status": "not-applicable"
+      },
+      "settlement": {
+        "status": "not-live-mainnet-settlement",
+        "liveMainnetFundsMoved": false
+      },
+      "reviewNotes": [
+        "Shield can submit wallet-backed devnet/local transactions when the user approves, but this artifact does not record a point-in-time signature."
+      ],
+      "observedAt": "2026-04-24T13:29:08.862Z"
+    },
+    {
+      "flow": "send",
+      "scope": "local-operator-harness",
+      "wallet": {
+        "status": "state-transition-or-memo-record",
+        "signature": null,
+        "slot": null
+      },
+      "proof": {
+        "status": "local-proof-lane"
+      },
+      "operator": {
+        "status": "local-record"
+      },
+      "settlement": {
+        "status": "not-live-mainnet-settlement",
+        "liveMainnetFundsMoved": false
+      },
+      "reviewNotes": [
+        "Send evidence currently describes shielded-state transition behavior, not a completed live private settlement."
+      ],
+      "observedAt": "2026-04-24T13:29:08.862Z"
+    },
+    {
+      "flow": "swap",
+      "scope": "local-operator-harness",
+      "wallet": {
+        "status": "state-transition-or-memo-record",
+        "signature": null,
+        "slot": null
+      },
+      "proof": {
+        "status": "local-proof-lane"
+      },
+      "operator": {
+        "status": "local-record"
+      },
+      "settlement": {
+        "status": "not-live-mainnet-settlement",
+        "liveMainnetFundsMoved": false
+      },
+      "reviewNotes": [
+        "Swap evidence currently describes shielded-state transition behavior, not a completed live private settlement."
+      ],
+      "observedAt": "2026-04-24T13:29:08.862Z"
+    },
+    {
+      "flow": "unshield",
+      "scope": "local-operator-harness",
+      "wallet": {
+        "status": "not-required-for-local-proof-record",
+        "signature": null,
+        "slot": null
+      },
+      "proof": {
+        "status": "verified",
+        "lane": "poseidon-bn254-proving-lane-v0",
+        "noteCommitmentBound": true,
+        "nullifierBound": true,
+        "rootBound": true
+      },
+      "operator": {
+        "status": "pending-or-recorded",
+        "releaseRecordKind": "proof-backed-release-record"
+      },
+      "settlement": {
+        "status": "not-live-mainnet-settlement",
+        "liveMainnetFundsMoved": false
+      },
+      "reviewNotes": [
+        "Unshield evidence attaches to the private-core consume/release boundary.",
+        "The Noir lane verifies note commitment, root, nullifier, release destination, asset, amount, and note version.",
+        "owner authorization remains off-circuit for v0.1.",
+        "This is a proof-backed release record, not a live mainnet settlement receipt."
+      ],
+      "observedAt": "2026-04-24T13:29:08.862Z",
+      "operatorTrace": {
+        "source": "artifact-fallback",
+        "proofId": null,
+        "releaseRequestId": null,
+        "redactedOperatorReceipt": null,
+        "transitionSignature": null,
+        "confirmationStatus": null,
+        "confirmationDetails": {
+          "confirmations": null,
+          "err": null,
+          "liveMainnetFundsMoved": false,
+          "observedAt": "2026-04-24T13:29:08.862Z",
+          "operatorReachable": false,
+          "signatureStatusSource": "none",
+          "slot": null,
+          "status": "not-confirmed"
+        }
+      }
+    },
+    {
+      "flow": "pay",
+      "scope": "preview",
+      "wallet": {
+        "status": "preview-only",
+        "signature": null,
+        "slot": null
+      },
+      "proof": {
+        "status": "not-applicable"
+      },
+      "operator": {
+        "status": "local-operator-harness-when-configured"
+      },
+      "settlement": {
+        "status": "preview-only",
+        "liveMainnetFundsMoved": false
+      },
+      "reviewNotes": [
+        "Pay evidence currently names approval and receipt trace preview surfaces unless a local/operator harness is configured."
+      ],
+      "observedAt": "2026-04-24T13:29:08.862Z"
+    }
+  ],
+  "safety": "This evidence file is refs-only. It must not store private inputs, seed phrases, signed transaction material, signed intent payloads, bearer values, database URLs, raw customer data, or credential-bearing URLs.",
+  "deploymentTruth": "Transaction Evidence v0.1 records the current devnet, local, preview, and operator-harness trace boundary. It does not prove mainnet finality, production settlement, audit approval, custody, or privacy guarantees.",
+  "nextOperatorAction": "Add point-in-time signature, slot, account-diff, proof, nullifier, root, and redacted operator receipt evidence when a flow moves from preview or local harness into a real settlement path."
+}

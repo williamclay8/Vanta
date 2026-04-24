@@ -42,7 +42,7 @@ assert.equal(shouldChargeVantaFee({ surface: "strategy", status: "completed" }),
 assert.equal(shouldChargeVantaFee({ surface: "dashboard", status: "read_only" }), false);
 
 assert.deepEqual(describePricingForSurface("pay"), {
-  feeLabel: "0.25% on successful settled payments",
+  feeLabel: "0.25% on verified supported payment actions after preview",
   passThroughLabel: "Network, off-ramp, and third-party execution costs stay separate.",
   shouldShowLiveFeeCopy: true,
 });

@@ -87,10 +87,10 @@ export function describePricingForSurface(surface: VantaPricedSurface): {
     Exclude<VantaPricedSurface, "strategy" | "dashboard">,
     string
   > = {
-    pay: "0.25% on successful settled payments",
+    pay: "0.25% on verified supported payment actions after preview",
     send: "0.25% on successful service-backed sends",
     shield: "0.25% on successful service-backed shield actions",
-    swap: "0.25% on completed swaps routed through Vanta",
+    swap: "0.25% on verified swaps routed through Vanta",
     unshield: "0.25% on successful exits when Vanta executes the release path",
   };
 

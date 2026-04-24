@@ -29,6 +29,10 @@ export function DocsPageTemplate({
           <p>{summary}</p>
         </div>
       </header>
+      <section className="docs-page__read-first" data-docs-read-first>
+        <span>Short version</span>
+        <p>{summary}</p>
+      </section>
       <div className="docs-page__body">{children}</div>
       {nextStep ? (
         <footer className="docs-page__next">

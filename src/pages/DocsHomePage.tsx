@@ -16,18 +16,38 @@ export function DocsHomePage() {
         <span className="docs-home__eyebrow product-intro__eyebrow">Vanta Docs</span>
         <h1 className="docs-home__title">Move, send, and pay with more privacy.</h1>
         <p className="docs-home__lede">
-          Vanta helps people move supported assets into private state, use private flows, and
-          understand the merchant-facing path without forcing them to think like protocol engineers
-          first.
+          Vanta is building a privacy layer for Solana. In everyday terms, it
+          helps supported assets leave a fully public wallet trail, pass through
+          supported private workflows, and come back out with clearer records
+          for people and merchants.
         </p>
         <div className="docs-home__hero-note">
           <strong>Start here if you want the product story first.</strong>
           <p>
-            The docs explain what Vanta can show honestly today, what is still
-            preview or demo-only, and how the crypto-native and merchant-facing
-            paths connect.
+            These docs separate the simple story from the technical machinery:
+            what Vanta does, what you can inspect today, what is still a
+            preview, and what must be finished before anyone should call it
+            production-ready.
           </p>
         </div>
+      </section>
+
+      <section className="docs-home__plain-strip" data-docs-plain-strip>
+        <article>
+          <span>1</span>
+          <strong>What is Vanta?</strong>
+          <p>A private workspace for supported Solana assets.</p>
+        </article>
+        <article>
+          <span>2</span>
+          <strong>What happens?</strong>
+          <p>Move in, use supported private actions, move back out.</p>
+        </article>
+        <article>
+          <span>3</span>
+          <strong>What is still true?</strong>
+          <p>Some flows are previews. Vanta is not production-ready yet.</p>
+        </article>
       </section>
 
       <section className="docs-home__paths" aria-label="Vanta docs paths">
@@ -40,8 +60,8 @@ export function DocsHomePage() {
           <span className="docs-path-card__label">{portalPage.title}</span>
           <strong>{portalPage.summary}</strong>
           <p>
-            Start with shielded-state entry, private movement, and the
-            crypto-native system model.
+            Start here to understand the basic path: put supported assets into
+            Vanta, use a supported private action, and take assets back out.
           </p>
         </Link>
         <Link className="docs-path-card docs-path-card--pay" to={payPage.slug}>
@@ -53,8 +73,8 @@ export function DocsHomePage() {
           <span className="docs-path-card__label">{payPage.title}</span>
           <strong>{payPage.summary}</strong>
           <p>
-            Follow the merchant-facing path, including today&apos;s preview
-            checkout and merchant control-plane surfaces.
+            Follow the business-facing path: checkout preview, settlement
+            visibility, refunds, withdrawals, and the limits that still matter.
           </p>
         </Link>
       </section>
@@ -70,23 +90,25 @@ export function DocsHomePage() {
           <article className="docs-home__connection-card">
             <h3>Vanta Portal is the crypto-native side.</h3>
             <p>
-              It begins at the privacy entry point: shield supported assets,
-              move through private-state flows, and exit when needed.
+              It is the wallet path. A user shields supported assets, uses the
+              private workflows Vanta supports today, and unshields when they
+              want to return to a public wallet.
             </p>
           </article>
           <article className="docs-home__connection-card">
             <h3>Vanta Pay is the merchant-facing direction.</h3>
             <p>
-              It builds on the same system, but frames it around checkout
-              preview, settlement visibility, withdrawals, and clear approval
-              boundaries.
+              It is the business path. A merchant needs plain records for
+              checkout, settlement, refunds, withdrawals, and receipts without
+              learning protocol internals first.
             </p>
           </article>
           <article className="docs-home__connection-card">
             <h3>Truth matters as much as polish.</h3>
             <p>
-              The docs separate live surfaces from preview and forward-looking
-              work so readers are not asked to infer trust from marketing copy.
+              These pages label live, preview, and future work directly. The
+              goal is to make the product understandable without making it sound
+              more finished than it is.
             </p>
           </article>
         </div>
@@ -103,24 +125,25 @@ export function DocsHomePage() {
           <article className="docs-home__truth-card">
             <h3>Portal</h3>
             <p>
-              The crypto-native path is the clearest way to understand Vanta:
-              enter private state, then work through constrained private flows
-              with explicit boundaries.
+              The current wallet story is narrow but concrete: enter Vanta,
+              move through supported private actions, and exit with clear
+              boundaries.
             </p>
           </article>
           <article className="docs-home__truth-card">
             <h3>Pay</h3>
             <p>
-              The merchant story remains forward-looking. Today&apos;s clearest
-              repo truth is preview checkout plus merchant control-plane
-              visibility, not a live payments network.
+              The merchant story is still forward-looking. Today it is a
+              control plane and preview surface, not a finished payments
+              network.
             </p>
           </article>
           <article className="docs-home__truth-card">
             <h3>Trust pages</h3>
             <p>
-              Shared pages cover approval boundaries, security limits, pricing
-              direction, and roadmap truth in one place.
+              The shared pages explain who approves what, what the security
+              limits are, how pricing is framed, and what remains on the
+              roadmap.
             </p>
           </article>
         </div>

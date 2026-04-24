@@ -2,156 +2,90 @@
 
 **Shield first. Move privately.**
 
-Vanta is a zk-powered privacy layer for Solana with two product surfaces today:
-- a consumer privacy app for moving supported assets out of public wallet flows and through narrow shielded workflows
-- a merchant-facing Pay control plane for private, policy-legible settlement demos and trust surfaces
+Vanta is a privacy product for Solana.
 
-Today, the app supports a constrained real devnet lifecycle for `VUSD` plus native SOL shield entry, note-based shielded state, constrained Send transitions, a constrained one-way `VUSD -> SOL` Meteora-backed swap lane, operator-backed `VUSD` and `SOL` unshield, an early Strategy planning surface, a merchant-demo Pay surface, and a standalone private-core proof lane. The implementation is intentionally narrow and still reports `productionReady: false`, but it is no longer only a front-end prototype.
+The simple version:
 
-The repo also now includes a standalone **Vanta Private Core** lane for the first shield-hold-unshield proof boundary:
-- canonical `NoteV0`
-- deterministic commitments, Merkle paths, nullifiers, and replay rejection
-- a fixed-depth Noir single-note unshield circuit
-- local proof generation and verification
-- operator-backed proof, root-registration, consume, and release-state checks
+- Normal Solana wallets are public.
+- Vanta lets supported assets move into a more private Vanta area.
+- From there, the app can support private actions like send, swap, and exit.
+- Vanta Pay turns the same idea into a merchant control plane for checkout, settlement status, refunds, withdrawals, and receipts.
+
+The honest status:
+
+- Some parts are real and verifiable today.
+- Some parts are still narrow demos or previews.
+- Vanta is not production-ready or mainnet-ready yet.
+- Do not use this repo as an audited payment processor, custody system, or final privacy network.
+
+If you only read one thing, read this mental model:
+
+```text
+Public Wallet -> Shield -> Private Vanta Area -> Send / Swap / Pay -> Unshield
+```
 
 ---
 
-## Current Product Shape
+## What Normal People Should Know
 
-The clearest way to understand Vanta today is as three connected layers:
+Vanta has two user-facing paths:
 
-1. the app users touch
-2. the merchant control plane partners can reason about
-3. the operator and proof surfaces reviewers can verify
+- **Vanta Portal** is for wallet users. It explains how assets enter Vanta, move through supported private actions, and leave again.
+- **Vanta Pay** is for merchants. It explains private settlement in business terms: checkout, balances, refunds, withdrawals, reconciliation, and receipts.
 
-Those layers are already visible in the repo and app:
-- `Shield`, `Send`, `Swap`, `Strategy`, `Unshield`, and `Pay` sit inside the real app shell
-- the wallet menu now includes a contextual, feature-flagged Peer desktop top-up recovery path for disconnected or unfunded users
-- `/app/pay` doubles as a design-partner-facing merchant settlement console with merchant operations, approval-boundary copy, refund / withdrawal / reconciliation detail states, seeded demo settlement cards for balances, payout queue, receipts, and reconciliation export from a local typed summary, and a shared `Merchant pilot` panel
-- the repo exposes canonical status and verification commands for Pay, Private Core, and mainnet-readiness truth surfaces
+The app also includes reviewer and operator surfaces. Those are for people checking whether the claims are true. They should not leak into normal user copy.
 
-## Product Vision
+## What Works Today
 
-Vanta's long-term product vision is to make private value movement on Solana feel like a product, not a cryptography demo.
+Today, Vanta is a constrained development system, not a finished network.
 
-## Launch pricing
+Working or inspectable today:
 
-Vanta's traction-stage pricing is simple:
+- wallet connection and public balance detection
+- shield flows for supported devnet assets
+- shielded state inside Vanta
+- constrained send, swap, and unshield paths
+- a merchant Pay demo at `/app/pay`
+- merchant operations, approval-boundary copy, refund / withdrawal / reconciliation detail states, and runtime-backed empty-state cards for balances, refund queue, withdrawal queue, and reconciliation export on the Pay surface
+- Pay with Vanta checkout and merchant preview flows
+- merchant lifecycle wording fixed as `preview -> approve -> execute -> settle`
+- proof and operator checks for the current narrow private-core lane
+- verification commands that keep the repo honest about what is still unfinished
+
+Still not live or final:
+
+- audited production privacy
+- broad multi-asset support
+- final proof and nullifier architecture
+- production Pay processor semantics
+- live autonomous Strategy execution
+- mainnet private settlement
+- production custody, compliance, and incident-response guarantees
+
+## Pricing
 
 - `0 monthly fee`
 - `0.25%` only when a supported action completes successfully
 - network, off-ramp, and third-party execution costs stay separate when they apply
 
-The path is:
-- start with shielded state as the honest privacy entrypoint
-- make the first useful workflow real with constrained private movement
-- turn merchant settlement into a policy-legible product surface instead of protocol theater
-- keep reviewer and operator trust machine-checkable through explicit commands and typed status artifacts
+Pricing only applies when Vanta is actually providing a supported completed action. Preview-only surfaces must not imply a fee is already active.
 
-That means the vision is bigger than today's narrow lanes, but today's app already shows the shape:
-- shielded consumer flows
-- merchant-facing private settlement control surfaces
-- proof and operator contracts that can be demonstrated live
+## Important Privacy Clarification
 
-## What is Vanta?
+Shielding does not make an ordinary wallet magically private.
 
-Solana made onchain activity fast, cheap, and accessible. It did not make it private.
+It means supported assets leave the normal public-wallet flow and enter Vanta's private flow. Privacy claims only start there, and only for the specific lanes Vanta currently supports.
 
-Wallet balances, transfers, counterparties, and behavioral patterns are easy to trace across transparent onchain systems. Vanta exists to close that gap.
+## Where To Start
 
-Rather than treating privacy as a one-off transaction feature, Vanta begins at the right entrypoint: **shielding**. Supported assets move from ordinary transparent wallet flows into the Vanta privacy layer, where they can be held in shielded state and used through private workflows.
+- Product docs: `/docs`
+- App shell: `/app`
+- Pay demo: `/app/pay`
+- Security limits: `SECURITY_LIMITATIONS.md`
+- Audit handoff: `docs/audit-package.md`
+- Operator runbook: `docs/operator-runbook.md`
 
-The first complete Vanta loop is:
-
-**Public Wallet -> Shield -> Shielded State -> Send / Swap -> Unshield**
-
-That foundation expands in two directions:
-- **Private Swap**
-- **Private Strategy**
-- **Private Pay / merchant settlement control plane**
-- broader privacy-native Solana workflows
-
-### Important clarification
-
-Shielding does **not** mean standard wallet balances magically become invisible. It means supported assets move out of ordinary transparent wallet flows and into a privacy-preserving Vanta layer designed for more private actions.
-
----
-
-## Current wedge
-
-The current product wedge is still centered on **Shield + Private Send**:
-- shield supported assets into the Vanta privacy layer
-- maintain shielded state
-- use shielded balance through the first private workflow: send
-
-That remains the cleanest explanation of the protocol core.
-
-But the app now also includes two adjacent demo-ready surfaces that matter for demo day:
-- a merchant-first Pay control plane that makes settlement, approval, refund, withdrawal, and reconciliation states legible
-- a reviewer-facing private-core proof lane with executable verification and shipping/status surfaces
-
-## What's live today
-
-Vanta currently supports a constrained real devnet lifecycle for `VUSD` plus a direct native SOL shield-entry lane.
-
-### Live now
-- real Solana wallet connection
-- real `VUSD` balance detection in public wallet state
-- contextual fresh-wallet and wallet-picker recovery surfaces
-- feature-flagged Peer desktop top-up recovery in the wallet picker for disconnected or effectively unfunded users
-- real native SOL shield transfer into shielded SOL state, so SOL remains SOL when shielding
-- real shield deposits into a Vanta-controlled devnet path
-- real onchain shield notes
-- real onchain native SOL shield-state notes
-- real onchain send notes
-- real constrained `VUSD -> SOL` Meteora devnet swap
-- real shielded `SOL` outputs resolved inside Vanta
-- operator-backed constrained unshield back to Public Wallet
-- operator-backed constrained SOL unshield back to Public Wallet
-- explicit note identity
-- explicit spent-marker semantics
-- derived change-note evolution
-- shielded balance resolved from the current spendable note set
-- authenticated Unshield intent tied to the connected wallet
-- operator-side verification of referenced onchain transition state before release
-- persistent completed release records across operator restarts
-- a connected Shield -> Swap -> Unshield flow grounded in Vanta-recognized state
-- a minimal Strategy tab for Stealth DCA and Private TWAP intent creation
-- deterministic Strategy planning for child-order count, randomized sizing/cadence, funding action, protected landing, and destination policy
-- a Strategy execution-adapter preview that turns plans into non-live Jupiter/Jito/private-settlement job envelopes
-- an in-memory Strategy runtime with idempotent create/list/start/pause/cancel semantics for local verification
-- a real `/app/pay` merchant demo surface with Payment Link, Invoice, Checkout, and Withdraw views
-- merchant operations, approval-boundary copy, refund / withdrawal / reconciliation detail states, and seeded demo settlement console cards for balances, payout queue, receipts, and reconciliation export on the Pay surface
-- merchant-visible settlement lifecycle language fixed as `preview -> approve -> execute -> settle`
-- merchant trust status and approval-packet verification surfaces through `npm run pay:merchant-trust-status` and `npm run pay:approval-packet-check`
-- Vanta Private Core shield -> hold -> unshield -> replay-rejection demo flow
-- first executable fixed-depth Noir unshield circuit for Vanta Private Core
-- local proof generation via `npm run private-core:prove`
-- full-stack private-core verification via `npm run private-core:verify`
-- operator-backed proof execution for the current narrow private-core consume lane
-- proof-backed private-core root registration
-- explicit narrow-v1 acceptance decisions for the current private-core:
-  - send lane
-  - unshield lane
-  - release lane
-
-### Not live yet
-- final zk proof system
-- final nullifier architecture
-- broader recipient-private send product semantics
-- generalized multi-asset support
-- live Strategy execution through Jupiter/Jito/private settlement adapters
-- production Pay processor semantics
-- mainnet private settlement
-- production-grade protocol guarantees
-- symmetric two-way market proof
-
-The current implementation should be understood as a constrained but real early protocol for one asset, not just a mock interface and not yet the final privacy system.
-
-The current private-core proof lane should be understood the same way: real and executable, but still intentionally narrow. It proves the first single-note unshield boundary and an operator-backed verifier path, not the full eventual Vanta privacy protocol.
-
-The current Pay surface should also be understood honestly: it is a merchant harness and demo control plane with real status, API, browser, and staging surfaces, not a production processor or mainnet-ready settlement network.
+The detailed command lists below are for engineers and reviewers.
 
 ---
 
@@ -234,10 +168,14 @@ npm run build
 npm run protocol:browser-check
 npm run pay:verify
 npm run private-core:demo-preflight
+npm run truth:transaction-check
+npm run mainnet:transaction-evidence-check
 npm run mainnet:readiness-check
 ```
 
-These five commands prove the current app compiles, the user-facing surfaces render, the Pay control plane stays aligned with its trust surfaces, the private-core proof lane is demo-ready, and the repo is still honest about not being production-ready yet.
+These commands prove the current app compiles, the user-facing surfaces render, the Pay control plane stays aligned with its trust surfaces, the private-core proof lane is demo-ready, transaction language is bounded by current implementation truth, and the repo is still honest about not being production-ready yet.
+
+`Transaction Evidence v0.1` is a reviewer-facing trace for current devnet, local, preview, and operator-harness flows. It can name transaction summaries, simulation/approval requirements, signatures or operator request ids when present, confirmation status when present, and proof/root/nullifier or settlement receipt linkage when present. It is not mainnet finality, audit approval, custody proof, live privacy proof, or production settlement.
 
 ## Private Core verification
 
@@ -567,7 +505,7 @@ The merchant trust surface is documented in `docs/pay-merchant-trust-surface.md`
 
 The current Pay layer covers:
 - commerce-only Pay tab copy with no protocol vocabulary in the merchant/buyer flow
-- the real `/app/pay` settlement console now doubles as the merchant demo/control plane, showing merchant operations, approval-boundary copy, refund / withdrawal / reconciliation detail states, settlement cards for balances, payout queue, receipts, and reconciliation export, and a shared design-partner preview panel
+- the real `/app/pay` settlement console now doubles as the merchant demo/control plane, showing merchant operations, approval-boundary copy, refund / withdrawal / reconciliation detail states, runtime-backed empty-state cards for balances, refund queue, withdrawal queue, and reconciliation export, and a shared design-partner preview panel
 - static Pay contract check through `npm run pay:contract-check`
 - human and JSON Pay status surfaces through `npm run pay:status` and `npm run pay:status-json`, including `productionReady: false`
 - merchant trust status through `npm run pay:merchant-trust-status` and `npm run pay:merchant-trust-status-check`, freezing `controlled-privacy` plus `legible-trust` as the current merchant-facing trust model
@@ -583,7 +521,7 @@ The current Pay layer covers:
   - `refundState = merchant-visible`
   - `withdrawalState = merchant-visible`
   - `reconciliationState = merchant-visible`
-- shared UI demo copy through `src/pay/vantaPayMerchantDemoContent.ts` for the real Pay page panel: `Design partner preview`, `Merchant pilot`, and `Private settlement without protocol overhead.`
+- shared UI demo copy through `src/pay/vantaPayMerchantDemoContent.ts` for the real Pay page panel: `Design partner preview`, `Merchant pilot`, and `Settlement control-plane preview without protocol overhead.`
 - production startup guard requiring Private Pool v2 operator settlement via `VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_URL`
 - production startup guard requiring bearer-token forwarding to the Private Pool v2 operator via `VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN`
 - receipt creation with selective audit-disclosure references

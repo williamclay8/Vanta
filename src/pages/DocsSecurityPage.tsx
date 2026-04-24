@@ -18,15 +18,14 @@ export function DocsSecurityPage() {
       <section className="docs-page-section">
         <h2>Privacy model</h2>
         <p>
-          Vanta&apos;s privacy model starts with shielding supported assets into a
-          separate private-state flow. It does not claim that an ordinary public
-          wallet balance becomes private on its own.
+          Vanta&apos;s privacy model starts with a simple rule: an ordinary public
+          wallet is still public. Privacy begins only when supported assets move
+          into Vanta&apos;s separate private flow.
         </p>
         <p>
-          From there, the security job is to keep the narrow product path
-          explicit: what is held in shielded state, what is operator-backed
-          today, what is verified by proof surfaces, and where the current
-          constraints still limit the system.
+          From there, the security job is to keep the current path honest: what
+          is held privately, what still needs operator support, what is checked
+          by proofs, and where the system is still limited.
         </p>
       </section>
 
@@ -37,9 +36,9 @@ export function DocsSecurityPage() {
             <span>1</span>
             <strong>Constrained lanes</strong>
             <p>
-              Today's product surface is intentionally narrow. A constrained
-              flow can still be real, but it is not the same as claiming broad
-              asset support or final privacy coverage.
+              Today&apos;s product surface is intentionally narrow. A narrow flow
+              can be real, but it is not the same as broad asset support or
+              final privacy coverage.
             </p>
           </article>
           <article className="docs-step-card">
@@ -47,18 +46,17 @@ export function DocsSecurityPage() {
             <strong>Operator-backed boundaries</strong>
             <p>
               Some release and settlement behavior still depends on operator
-              truth and typed approvals. The security story stays honest only if
-              those boundaries remain visible instead of being blurred into a
-              generic privacy promise.
+              checks and explicit approvals. The docs keep those boundaries
+              visible instead of turning them into a generic privacy promise.
             </p>
           </article>
           <article className="docs-step-card">
             <span>3</span>
             <strong>Readiness still in progress</strong>
             <p>
-              Vanta is still working toward audited proof boundaries, stronger
-              service persistence, secure secret handling, and the rest of the
-              production-readiness bar described in the repo mission.
+              Vanta still needs audited proof boundaries, durable services,
+              secure secret handling, and the rest of the production-readiness
+              bar described in the repo mission.
             </p>
           </article>
         </div>
@@ -67,9 +65,9 @@ export function DocsSecurityPage() {
       <section className="docs-page-section">
         <h2>Security disciplines that matter now</h2>
         <ul className="docs-bullet-list">
-          <li>Replay and nullifier discipline should stay explicit at the proof and operator boundary.</li>
-          <li>Approval fidelity matters: what the user sees before signing should match what the system is prepared to do.</li>
-          <li>User-facing trust paths should be browser-checked when the behavior matters, not only inferred from code.</li>
+          <li>Replay protection matters: the same private note should not be spendable twice.</li>
+          <li>Approval fidelity matters: what the user sees before signing should match what the system will do.</li>
+          <li>User-facing trust paths should be checked in a browser when behavior matters, not only inferred from code.</li>
         </ul>
       </section>
 
@@ -79,10 +77,9 @@ export function DocsSecurityPage() {
           <strong>Security copy should make the current limit obvious.</strong>
           <p>
             These docs do not present Vanta as production-ready, fully audited,
-            or final from a privacy perspective. Preview checkout and
-            control-plane visibility help explain the system, but they do not
-            turn it into a finished merchant network. The public copy should
-            stay honest about that.
+            or final from a privacy perspective. Preview checkout and merchant
+            dashboards help explain the system, but they do not turn it into a
+            finished payment network.
           </p>
         </div>
       </section>

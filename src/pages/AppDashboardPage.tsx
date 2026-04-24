@@ -38,7 +38,7 @@ export function AppDashboardPage() {
     : shieldedSolBalance > 0
       ? "A shielded SOL output is ready for the constrained exit lane."
       : spendableNoteCount > 0
-        ? "Private state is live and ready for send, swap, or unshield."
+        ? "Constrained shielded state is available; send, swap, and unshield still depend on current route and operator checks."
         : shieldedBalance > 0
           ? "Value is shielded, but there is no current spendable note."
           : "No live shielded position yet.";

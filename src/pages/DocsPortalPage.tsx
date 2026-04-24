@@ -18,14 +18,16 @@ export function DocsPortalPage() {
       <section className="docs-page-section">
         <h2>What Vanta Portal is</h2>
         <p>
-          Vanta Portal is the crypto-native side of Vanta. It explains how
-          supported assets move from a public wallet into private state before
-          users send, swap, or exit through the current narrow lanes.
+          Vanta Portal is the wallet side of the product. It shows how a user
+          can move supported assets out of an ordinary public wallet flow and
+          into Vanta&apos;s private area before using the private actions Vanta
+          supports today.
         </p>
         <p>
-          The key idea is simple: Vanta does not pretend a normal wallet balance
-          is private by default. Privacy begins when assets are shielded into
-          the supported private-state flow.
+          The plain version: a normal wallet is public. Vanta privacy starts
+          only after supported assets are shielded into Vanta. From there, the
+          app can support private send, swap, and exit paths as those lanes
+          become real.
         </p>
       </section>
 
@@ -35,22 +37,26 @@ export function DocsPortalPage() {
           <article className="docs-step-card">
             <span>1</span>
             <strong>Shield</strong>
-            <p>Move supported assets from a public wallet into private state.</p>
+            <p>
+              Move supported assets from a public wallet into Vanta&apos;s private
+              area. This is the privacy entry point.
+            </p>
           </article>
           <article className="docs-step-card">
             <span>2</span>
             <strong>Use private flows</strong>
             <p>
-              Send or swap from shielded state without exposing every product
-              step in the same way as a public account flow.
+              Use the private actions Vanta currently supports. The point is to
+              avoid turning every product step into an ordinary public account
+              trail.
             </p>
           </article>
           <article className="docs-step-card">
             <span>3</span>
             <strong>Unshield when needed</strong>
             <p>
-              Exit back to a public destination when the user wants to leave the
-              private-state side of the system.
+              Move assets back to a public destination when the user wants to
+              leave Vanta&apos;s private area.
             </p>
           </article>
         </div>
@@ -61,9 +67,9 @@ export function DocsPortalPage() {
         <div className="docs-callout">
           <strong>Portal is the clearest mental model for Vanta.</strong>
           <p>
-            It gives users a crypto-native explanation for privacy without
-            hiding the mechanics behind magical claims. Shielded state is the
-            starting point, not a detail buried in the footer.
+            It gives users a simple rule: public wallet first, shield into
+            Vanta for privacy, use supported private actions, then unshield back
+            out when needed. That is easier to trust than vague privacy claims.
           </p>
         </div>
       </section>
@@ -71,8 +77,8 @@ export function DocsPortalPage() {
       <section className="docs-page-section">
         <h2>Current status</h2>
         <ul className="docs-bullet-list">
-          <li>Portal is a preview-facing docs surface built around constrained product lanes.</li>
-          <li>Shield, send, swap, and unshield do not all share the same maturity or verification depth yet.</li>
+          <li>Portal explains real product lanes, but those lanes are still intentionally narrow.</li>
+          <li>Shield, send, swap, and unshield are not all equally mature yet.</li>
           <li>These docs do not claim production readiness, broad asset support, or final privacy guarantees.</li>
         </ul>
       </section>

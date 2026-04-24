@@ -54,10 +54,19 @@ function buildReleaseReadinessSurface(args) {
   const shippingReady = shippingDecision?.decisionStatus === "ready-to-ship";
   const candidateReady = args.candidateDecisionStatus === "ready";
   const packageReady = args.packageDecisionStatus === "ready";
-  const readinessStatusRaw = shippingReady && candidateReady && packageReady ? "ready" : "blocked";
+  const consistency = computeReleaseReadinessConsistency({
+    candidate,
+    releasePackage,
+    shippingDecision,
+  });
+  const consistencyReady = consistency.statusRaw === "matched";
+  const readinessStatusRaw =
+    shippingReady && candidateReady && packageReady && consistencyReady ? "ready" : "blocked";
   const readinessNote =
     readinessStatusRaw === "ready"
       ? "Primary send -> unshield release lane is coherent, package-ready, and reviewer-ready."
+      : consistency.statusRaw === "mismatch"
+        ? consistency.note
       : args.packageDecisionNote ??
         args.candidateDecisionNote ??
         shippingDecision?.decisionNote ??
@@ -79,6 +88,10 @@ function buildReleaseReadinessSurface(args) {
     shippingStatusRaw: shippingDecision?.shippingStatus ?? null,
     shippingStatus: humanizeShippingStatus(shippingDecision?.shippingStatus),
     shippingNote: shippingDecision?.shippingNote ?? "Unavailable",
+    consistencyStatusRaw: consistency.statusRaw,
+    consistencyStatus: humanizeConsistencyStatus(consistency.statusRaw),
+    consistencyNote: consistency.note,
+    consistencyMismatches: consistency.mismatches,
     releaseCandidateId: candidate?.releaseCandidateId ?? releasePackage?.releaseCandidateId ?? null,
     candidateDecisionStatusRaw: args.candidateDecisionStatus ?? null,
     candidateDecisionStatus: humanizeCheckStatus(args.candidateDecisionStatus),
@@ -137,6 +150,8 @@ function printReleaseReadinessSurface(surface, writer = console.log) {
   printLine("Shipping decision note", surface.shippingDecisionNote, writer);
   printLine("Shipping status", surface.shippingStatus, writer);
   printLine("Shipping note", surface.shippingNote, writer);
+  printLine("Consistency status", surface.consistencyStatus, writer);
+  printLine("Consistency note", surface.consistencyNote, writer);
   printLine("Release candidate", surface.releaseCandidateId ?? "Unavailable", writer);
   printLine("Candidate decision", surface.candidateDecisionStatus, writer);
   printLine("Candidate decision note", surface.candidateDecisionNote, writer);
@@ -166,6 +181,78 @@ function humanizeReadinessStatus(value) {
       return "Ready";
     case "blocked":
       return "Blocked";
+    default:
+      return "Unknown";
+  }
+}
+
+function computeReleaseReadinessConsistency(args) {
+  const candidate = args.candidate ?? {};
+  const releasePackage = args.releasePackage ?? {};
+  const shippingDecision = args.shippingDecision ?? {};
+  const comparisons = [
+    ["candidate.releaseCandidateId", candidate.releaseCandidateId, "releasePackage.releaseCandidateId", releasePackage.releaseCandidateId],
+    ["candidate.lineageStatus", candidate.lineageStatus, "releasePackage.releaseCandidateLineageStatus", releasePackage.releaseCandidateLineageStatus],
+    ["candidate.lineageNote", candidate.lineageNote, "releasePackage.releaseCandidateLineageNote", releasePackage.releaseCandidateLineageNote],
+    ["candidate.decisionVersion", candidate.decisionVersion, "releasePackage.decisionVersion", releasePackage.decisionVersion],
+    ["candidate.decisionKind", candidate.decisionKind, "releasePackage.decisionKind", releasePackage.decisionKind],
+    ["candidate.decisionStatus", candidate.decisionStatus, "releasePackage.decisionStatus", releasePackage.decisionStatus],
+    ["candidate.decisionNote", candidate.decisionNote, "releasePackage.decisionNote", releasePackage.decisionNote],
+    ["candidate.contractVersion", candidate.contractVersion, "releasePackage.contractVersion", releasePackage.contractVersion],
+    ["candidate.summaryVersion", candidate.summaryVersion, "releasePackage.summaryVersion", releasePackage.summaryVersion],
+    ["candidate.artifactVersion", candidate.artifactVersion, "releasePackage.artifactVersion", releasePackage.artifactVersion],
+    ["candidate.artifactKind", candidate.artifactKind, "releasePackage.artifactKind", releasePackage.artifactKind],
+    ["candidate.candidateVersion", candidate.candidateVersion, "releasePackage.candidateVersion", releasePackage.candidateVersion],
+    ["candidate.candidateKind", candidate.candidateKind, "releasePackage.candidateKind", releasePackage.candidateKind],
+    ["candidate.snapshotVersion", candidate.snapshotVersion, "releasePackage.snapshotVersion", releasePackage.snapshotVersion],
+    ["candidate.snapshotKind", candidate.snapshotKind, "releasePackage.snapshotKind", releasePackage.snapshotKind],
+    ["candidate.sendId", candidate.sendId, "releasePackage.latestSendId", releasePackage.latestSendId],
+    ["candidate.sendProofId", candidate.sendProofId, "releasePackage.latestSendProofId", releasePackage.latestSendProofId],
+    ["candidate.sendLinkedProofId", candidate.sendLinkedProofId, "releasePackage.latestSendLinkedProofId", releasePackage.latestSendLinkedProofId],
+    ["candidate.sendRecordProofId", candidate.sendRecordProofId, "releasePackage.latestSendRecordProofId", releasePackage.latestSendRecordProofId],
+    ["candidate.sendResultingRoot", candidate.sendResultingRoot, "releasePackage.latestSendResultingRoot", releasePackage.latestSendResultingRoot],
+    ["candidate.consumeRecordProofId", candidate.consumeRecordProofId, "releasePackage.latestConsumeRecordProofId", releasePackage.latestConsumeRecordProofId],
+    ["candidate.consumeLinkedProofId", candidate.consumeLinkedProofId, "releasePackage.latestConsumeLinkedProofId", releasePackage.latestConsumeLinkedProofId],
+    ["candidate.consumeRoot", candidate.consumeRoot, "releasePackage.latestConsumeRoot", releasePackage.latestConsumeRoot],
+    ["candidate.releaseRecordProofId", candidate.releaseRecordProofId, "releasePackage.latestReleaseRecordProofId", releasePackage.latestReleaseRecordProofId],
+    ["candidate.releaseLinkedProofId", candidate.releaseLinkedProofId, "releasePackage.latestReleaseLinkedProofId", releasePackage.latestReleaseLinkedProofId],
+    ["candidate.releaseRequestId", candidate.releaseRequestId, "releasePackage.latestReleaseRequestId", releasePackage.latestReleaseRequestId],
+    ["candidate.releaseRoot", candidate.releaseRoot, "releasePackage.latestReleaseRoot", releasePackage.latestReleaseRoot],
+    ["candidate.releaseDestination", candidate.releaseDestination, "releasePackage.latestReleaseDestination", releasePackage.latestReleaseDestination],
+    ["candidate.releasedAssetId", candidate.releasedAssetId, "releasePackage.latestReleasedAssetId", releasePackage.latestReleasedAssetId],
+    ["candidate.releasedAmount", candidate.releasedAmount, "releasePackage.latestReleasedAmount", releasePackage.latestReleasedAmount],
+    ["shippingDecision.decisionVersion", shippingDecision.decisionVersion, "releasePackage.decisionVersion", releasePackage.decisionVersion],
+    ["shippingDecision.decisionKind", shippingDecision.decisionKind, "releasePackage.decisionKind", releasePackage.decisionKind],
+    ["shippingDecision.decisionStatus", shippingDecision.decisionStatus, "releasePackage.decisionStatus", releasePackage.decisionStatus],
+    ["shippingDecision.decisionNote", shippingDecision.decisionNote, "releasePackage.decisionNote", releasePackage.decisionNote],
+    ["shippingDecision.contractVersion", shippingDecision.contractVersion, "releasePackage.contractVersion", releasePackage.contractVersion],
+    ["shippingDecision.summaryVersion", shippingDecision.summaryVersion, "releasePackage.summaryVersion", releasePackage.summaryVersion],
+  ];
+  const mismatches = comparisons
+    .filter(([, leftValue, , rightValue]) => leftValue !== rightValue)
+    .map(([leftPath, leftValue, rightPath, rightValue]) => ({
+      leftPath,
+      leftValue: leftValue ?? null,
+      rightPath,
+      rightValue: rightValue ?? null,
+    }));
+
+  return {
+    statusRaw: mismatches.length === 0 ? "matched" : "mismatch",
+    note:
+      mismatches.length === 0
+        ? "Release candidate, release package, and shipping decision surfaces agree across the ready-lane identity fields."
+        : `Release readiness consistency mismatch: ${mismatches.map((mismatch) => `${mismatch.leftPath} != ${mismatch.rightPath}`).join(", ")}.`,
+    mismatches,
+  };
+}
+
+function humanizeConsistencyStatus(value) {
+  switch (value) {
+    case "matched":
+      return "Matched";
+    case "mismatch":
+      return "Mismatch";
     default:
       return "Unknown";
   }

@@ -678,7 +678,7 @@ export function SwapPage() {
     }
 
     if (canUseExistingNote) {
-      return "Using an existing shielded VUSD note before the private swap.";
+      return "Ready to swap from shielded VUSD.";
     }
 
     return `Shield the exact ${selectedSourceAsset} amount first, then return here to swap.`;
@@ -904,7 +904,7 @@ export function SwapPage() {
   } else if (!selectedShieldAsset.configured) {
     validationMessage = `Shielded ${selectedSourceAsset} is not configured yet.`;
   } else if (requiresPrivateSwap && !liveSwapPair.configured) {
-    validationMessage = "Swap requires the live VUSD mint, vault, and local operator path.";
+    validationMessage = "This swap route is not ready yet.";
   } else if ((requiresPrivateSwap || selectedShieldAssetKey === "VUSD") && shieldStateRefreshing) {
     validationMessage = "Refreshing Vanta state.";
   } else if ((requiresPrivateSwap || selectedShieldAssetKey === "VUSD") && shieldStateError) {
@@ -936,9 +936,9 @@ export function SwapPage() {
     <section className="send-page swap-page">
       <div className="module-page__hero send-page__hero product-intro">
         <div>
-          <span className="eyebrow product-intro__eyebrow">Private Swap</span>
-          <h2>Private Swap</h2>
-          <p>{routeLabel}</p>
+          <span className="eyebrow product-intro__eyebrow">Trade shielded</span>
+          <h2>Swap</h2>
+          <p>Record a swap transition from shielded state.</p>
         </div>
       </div>
 
@@ -946,7 +946,7 @@ export function SwapPage() {
         <article className="send-card send-card--workspace">
           <div className="shield-card__header">
             <div>
-              <span>Private Swap</span>
+              <span>Choose trade</span>
             </div>
           </div>
 
@@ -956,7 +956,7 @@ export function SwapPage() {
                 <div className="swap-module__label-row">
                   <span>You send</span>
                   <div className="send-balance-line shield-helper shield-helper--meta">
-                    Balance: {sourceBalanceLabel}
+                    Shielded balance: {sourceBalanceLabel}
                   </div>
                 </div>
                 <div className="send-entry-grid swap-entry-grid">
@@ -1052,7 +1052,7 @@ export function SwapPage() {
                 <div className="swap-quote-line">
                   <strong>
                     {status === "quoting"
-                      ? "Loading quote..."
+                      ? "Getting best available quote..."
                       : formatAssetAmount(expectedOutputAmount, selectedTargetAsset)}
                   </strong>
                   <span>{`Shielded ${selectedTargetAsset}`}</span>
@@ -1077,7 +1077,7 @@ export function SwapPage() {
                     status === "finalizing_state"
                   }
                 >
-                  {isBetaMode ? "Beta mode" : `Swap to shielded ${selectedTargetAsset}`}
+                  {isBetaMode ? "Beta mode" : "Swap from shielded state"}
                 </button>
               </div>
             </div>
@@ -1101,9 +1101,9 @@ export function SwapPage() {
                   {status === "awaiting_confirmation"
                     ? "Awaiting wallet confirmation"
                     : status === "recording_transition"
-                      ? "Recording swap transition"
+                      ? "Starting private swap"
                       : status === "authorizing_operator"
-                        ? "Authorizing operator"
+                        ? "Authorizing swap"
                         : status === "finalizing_state"
                           ? "Finalizing shielded state"
                           : status === "complete"
@@ -1117,10 +1117,10 @@ export function SwapPage() {
                       ? `Converted ${formatAssetAmount(parsedAmount, selectedSourceAsset)} into shielded ${selectedTargetAsset}.`
                     : status === "failed"
                       ? flowError ?? "The swap could not be completed."
-                      : status === "authorizing_operator"
-                        ? "Submitting the authenticated swap intent to the operator."
+                    : status === "authorizing_operator"
+                        ? "Authorizing the swap route."
                       : status === "finalizing_state"
-                          ? "Recording the spent marker and resolving the new shielded SOL note."
+                          ? "Updating your private balance with the new shielded SOL."
                           : "Approve the swap in your wallet to continue."}
                 </p>
                 {quote &&

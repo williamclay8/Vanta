@@ -129,6 +129,8 @@ const result = {
   verificationCommands: [
     "pay:contract-check",
     "pay-tab:copy-check",
+    "pay:merchant-trust-status",
+    "pay:merchant-trust-status-json",
     "pay:merchant-trust-status-check",
     "pay:approval-packet-check",
     "pay:merchant-api-check",

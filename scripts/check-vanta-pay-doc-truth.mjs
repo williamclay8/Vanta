@@ -7,16 +7,19 @@ const docChecks = [
   {
     path: "docs/pay-merchant-trust-surface.md",
     required: [
-      "seeded demo snapshot",
+      "default `/app/pay` surface",
+      "a trust packet with `What is private`, `What is visible`, `Policy mode`, and `Approval boundary`",
+      "workflow entry points for creating links, sending invoices, previewing checkout, and withdrawing funds",
+      "fresh Pay runtime state",
       "merchant operations and approval boundary copy",
       "refund / withdrawal / reconciliation detail states",
-      "settlement console cards for balances, payout queue, receipts, and reconciliation export",
+      "runtime-backed empty-state console cards for balances, refund queue, withdrawal queue, and reconciliation export",
     ],
   },
   {
     path: "README.md",
     required: [
-      "seeded demo settlement cards for balances, payout queue, receipts, and reconciliation export from a local typed summary",
+      "runtime-backed empty-state cards for balances, refund queue, withdrawal queue, and reconciliation export",
       "preview -> approve -> execute -> settle",
       "Pay with Vanta",
       "0 monthly fee",
@@ -27,7 +30,7 @@ const docChecks = [
   {
     path: "SUBMISSION.md",
     required: [
-      "seeded demo settlement console cards for balances, payout queue, receipts, and reconciliation export from a local typed summary",
+      "runtime-backed empty-state console cards for balances, refund queue, withdrawal queue, and reconciliation export",
       "preview -> approve -> execute -> settle",
       "Merchant pilot",
       "0 monthly fee",

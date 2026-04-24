@@ -7,7 +7,16 @@ import {
 } from "@solana/client";
 import { AppLayout } from "@/components/AppLayout";
 import { PrivateVaultProvider } from "@/data/context/PrivateVaultContext";
+import { PrivacyFlowProvider } from "@/data/context/PrivacyFlowContext";
 import { WalletProvider } from "@/data/context/WalletContext";
+import { LaunchPage } from "@/pages/LaunchPage";
+import { PayPage } from "@/pages/PayPage";
+import { PrivacyReviewPage } from "@/pages/PrivacyReviewPage";
+import { SendPage } from "@/pages/SendPage";
+import { ShieldPage } from "@/pages/ShieldPage";
+import { StrategyPage } from "@/pages/StrategyPage";
+import { SwapPage } from "@/pages/SwapPage";
+import { UnshieldPage } from "@/pages/UnshieldPage";
 import {
   createSolanaClient,
   discoverWalletConnectors,
@@ -36,24 +45,7 @@ const DocsPricingPage = lazy(() =>
 const DocsRoadmapPage = lazy(() =>
   import("@/pages/DocsRoadmapPage").then((m) => ({ default: m.DocsRoadmapPage })),
 );
-const PrivacyFlowProvider = lazy(() =>
-  import("@/data/context/PrivacyFlowContext").then((m) => ({
-    default: m.PrivacyFlowProvider,
-  })),
-);
-const LaunchPage = lazy(() => import("@/pages/LaunchPage").then((m) => ({ default: m.LaunchPage })));
 const HomePage = lazy(() => import("@/pages/HomePage").then((m) => ({ default: m.HomePage })));
-const PayPage = lazy(() => import("@/pages/PayPage").then((m) => ({ default: m.PayPage })));
-const PrivacyReviewPage = lazy(() =>
-  import("@/pages/PrivacyReviewPage").then((m) => ({ default: m.PrivacyReviewPage })),
-);
-const SendPage = lazy(() => import("@/pages/SendPage").then((m) => ({ default: m.SendPage })));
-const ShieldPage = lazy(() => import("@/pages/ShieldPage").then((m) => ({ default: m.ShieldPage })));
-const StrategyPage = lazy(() =>
-  import("@/pages/StrategyPage").then((m) => ({ default: m.StrategyPage })),
-);
-const SwapPage = lazy(() => import("@/pages/SwapPage").then((m) => ({ default: m.SwapPage })));
-const UnshieldPage = lazy(() => import("@/pages/UnshieldPage").then((m) => ({ default: m.UnshieldPage })));
 
 function getConnectorSignature(connectors: readonly WalletConnector[]) {
   return connectors
@@ -124,7 +116,7 @@ function App() {
           <Route path="*" element={<Navigate to="/docs" replace />} />
         </Route>
         <Route path="/app" element={<ProductAppRoot />}>
-          <Route index element={<Navigate to="send" replace />} />
+          <Route index element={<Navigate to="shield" replace />} />
           <Route path="shield" element={<ShieldPage />} />
           <Route path="send" element={<SendPage />} />
           <Route path="swap" element={<SwapPage />} />
@@ -134,7 +126,7 @@ function App() {
           <Route path="launch" element={<LaunchPage />} />
           <Route path="privacy-review" element={<PrivacyReviewPage />} />
         </Route>
-        <Route path="*" element={<Navigate to="/app/send" replace />} />
+        <Route path="*" element={<Navigate to="/app/shield" replace />} />
       </Routes>
     </Suspense>
   );

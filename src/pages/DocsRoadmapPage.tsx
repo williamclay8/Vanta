@@ -19,17 +19,17 @@ export function DocsRoadmapPage() {
       <section className="docs-page-section">
         <h2>Merchant-first direction</h2>
         <p>
-          Vanta's roadmap is merchant-first in product language, even though
-          Portal remains the clearest way to understand how the system works.
-          Pay is the flagship direction because it turns private-state rails
-          into a simpler settlement story for merchants and partners.
+          Vanta&apos;s roadmap is merchant-first in product language, even though
+          Portal remains the easiest way to understand how the system works.
+          Pay is the flagship direction because merchants have a concrete
+          problem: they need private checkout and settlement to feel like normal
+          operations, not a protocol diagram.
         </p>
         <p>
-          That does not make Portal secondary or disposable. Portal is still
-          the foundation that explains where privacy begins and how the current
-          narrow lanes fit together. Today&apos;s repo truth is still a preview
-          checkout plus merchant control-plane visibility, not a live merchant
-          network.
+          That does not make Portal secondary. Portal explains where privacy
+          begins and how the current lanes fit together. Today&apos;s repo truth is
+          still preview checkout plus merchant control-plane visibility, not a
+          live merchant network.
         </p>
       </section>
 
@@ -39,14 +39,14 @@ export function DocsRoadmapPage() {
           <article className="docs-connection-card">
             <h3>Portal explains the model</h3>
             <p>
-              Shielded-state entry, private movement, and constrained exit paths
-              are the base system Vanta can explain honestly today.
+              Portal gives the simple system path: shield into Vanta, use a
+              supported private action, and unshield when needed.
             </p>
           </article>
           <article className="docs-connection-card">
             <h3>Pay packages the story</h3>
             <p>
-              Pay takes the same rails and frames them around merchant needs:
+              Pay takes the same system and frames it around business needs:
               approval, settlement visibility, payouts, and reconciliation.
             </p>
           </article>
@@ -54,8 +54,8 @@ export function DocsRoadmapPage() {
             <h3>Shared truth still governs both</h3>
             <p>
               Neither path should outrun the current operator, pricing, or
-              readiness truth. The roadmap only works if those surfaces stay in
-              sync.
+              readiness truth. The roadmap only works if those pages keep
+              telling the same story.
             </p>
           </article>
         </div>
@@ -82,6 +82,7 @@ export function DocsRoadmapPage() {
           <li>Do not imply a finished merchant network before the work exists.</li>
           <li>Keep Portal and Pay connected as one system, not two disconnected brands.</li>
           <li>Keep preview, demo, control-plane, constrained, and live surfaces clearly labeled as the roadmap evolves.</li>
+          <li>Use plain customer language first, then link to technical proof when readers need it.</li>
         </ul>
       </section>
     </DocsPageTemplate>

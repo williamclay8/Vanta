@@ -1305,6 +1305,7 @@ try {
     releaseReadinessJson.readinessVersion !== 1 ||
     releaseReadinessJson.readinessKind !== "primary-send-unshield-release-readiness" ||
     releaseReadinessJson.readinessStatusRaw !== "ready" ||
+    releaseReadinessJson.consistencyStatusRaw !== "matched" ||
     releaseReadinessJson.releaseCandidateId !== releaseCandidateId ||
     releaseReadinessJson.packageStatusRaw !== "ready" ||
     releaseReadinessJson.shippingDecisionStatusRaw !== "ready-to-ship" ||
@@ -1335,6 +1336,7 @@ try {
       "Readiness kind: primary-send-unshield-release-readiness",
     ) ||
     !releaseReadinessOutput.includes("Readiness status: Ready") ||
+    !releaseReadinessOutput.includes("Consistency status: Matched") ||
     !releaseReadinessOutput.includes(
       "Readiness note: Primary send -> unshield release lane is coherent, package-ready, and reviewer-ready.",
     ) ||

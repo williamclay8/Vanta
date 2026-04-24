@@ -194,6 +194,17 @@ export function createVantaPayPrivateSettlementAdapter({
   protocol,
   rail = "umbra",
 }: VantaPayPrivateSettlementAdapterArgs = {}) {
+  let defaultProtocol: Promise<VantaPrivatePoolV2Protocol> | null = null;
+
+  function getActiveProtocol() {
+    if (protocol) {
+      return Promise.resolve(protocol);
+    }
+
+    defaultProtocol ??= createDefaultPrivatePoolProtocol();
+    return defaultProtocol;
+  }
+
   async function settleThroughPrivatePoolOperator<T>(body: Record<string, unknown>) {
     if (!privatePoolOperatorUrl) {
       return null;
@@ -233,7 +244,7 @@ export function createVantaPayPrivateSettlementAdapter({
       return operatorSettlement.privateRailReceipt;
     }
 
-    const activeProtocol: VantaPrivatePoolV2Protocol = protocol ?? (await createDefaultPrivatePoolProtocol());
+    const activeProtocol = await getActiveProtocol();
     const { indexer, prover, verifierRegistry } = requirePrivatePoolSurfaces(activeProtocol);
     const amountBaseUnits = amountToBaseUnits(session.amount, session.currency);
     const assetId = assetIdForAsset(session.currency);
@@ -303,7 +314,7 @@ export function createVantaPayPrivateSettlementAdapter({
       return operatorSettlement.privateExitReceipt;
     }
 
-    const activeProtocol: VantaPrivatePoolV2Protocol = protocol ?? (await createDefaultPrivatePoolProtocol());
+    const activeProtocol = await getActiveProtocol();
     const { indexer, prover, relayer, verifierRegistry } = requirePrivatePoolSurfaces(activeProtocol);
     if (!relayer) {
       throw new Error("Private Pool v2 settlement requires a relayer for withdrawals.");

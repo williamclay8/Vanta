@@ -3,6 +3,10 @@ import { resolve } from "node:path";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const sendPageSource = readFileSync(resolve(repoRoot, "src/pages/SendPage.tsx"), "utf8");
+const sendCapabilitySource = readFileSync(
+  resolve(repoRoot, "src/solana/shieldedSendCapability.ts"),
+  "utf8",
+);
 const packageSource = readFileSync(resolve(repoRoot, "package.json"), "utf8");
 
 const forbiddenMarkers = [
@@ -14,17 +18,34 @@ const forbiddenMarkers = [
   "You send shielded",
   "Vanta will shield the exact amount first, then send.",
   "supportedToken.send({",
+  "coming soon",
+  "Coming soon",
+  "disabled={disabled}",
 ];
 
-const requiredMarkers = [
+const requiredPageMarkers = [
   "Shielded balance:",
   "<span>You send</span>",
-  "Shielded VUSD",
-  "Shielded USDC",
+  "listShieldedSendAssetOptions",
+  "getShieldedSendAssetCapability",
   'aria-label="Send shielded asset"',
   "Shield the asset first",
   "selectedSpendableNote",
+  "needs-private-send-adapter",
   "disabled={isBetaMode || !isRealSendReady",
+];
+
+const requiredCapabilityMarkers = [
+  "operator-vusd-send",
+  "needs-private-send-adapter",
+  "Shielded VUSD",
+  "Shielded USDC",
+  "Shielded JTO",
+  "Shielded BONK",
+  "Shielded JUP",
+  "Shielded PYUSD",
+  "Shielded WIF",
+  "Shielded KMNO",
 ];
 
 const failures = [];
@@ -35,9 +56,15 @@ for (const marker of forbiddenMarkers) {
   }
 }
 
-for (const marker of requiredMarkers) {
+for (const marker of requiredPageMarkers) {
   if (!sendPageSource.includes(marker)) {
     failures.push(`Send page missing shield-first marker: ${marker}`);
+  }
+}
+
+for (const marker of requiredCapabilityMarkers) {
+  if (!sendCapabilitySource.includes(marker)) {
+    failures.push(`shieldedSendCapability.ts missing marker: ${marker}`);
   }
 }
 

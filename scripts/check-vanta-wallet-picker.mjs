@@ -40,6 +40,26 @@ requireIncludes(
 );
 requireIncludes(
   appLayout,
+  "const [walletConnectionError, setWalletConnectionError]",
+  "Wallet picker must retain visible feedback when a wallet connection fails.",
+);
+requireIncludes(
+  appLayout,
+  "setWalletConnectionError(null);",
+  "Wallet picker must clear stale wallet connection errors before a new attempt.",
+);
+requireIncludes(
+  appLayout,
+  "Wallet connection failed.",
+  "Wallet picker must show a compact connection failure message instead of silently closing.",
+);
+requireIncludes(
+  appLayout,
+  "wallet-picker__connection-error",
+  "Wallet picker must render failed connection feedback in the menu.",
+);
+requireIncludes(
+  appLayout,
   "Use a fresh wallet for the strongest privacy.",
   "Wallet picker must tell users to use a fresh wallet for strongest privacy.",
 );
@@ -52,6 +72,11 @@ requireIncludes(
   appLayout,
   "Standard wallet discovery",
   "Wallet picker must describe wallet-standard discovery with product-copy casing.",
+);
+requireIncludes(
+  appLayout,
+  "Safari cannot connect Phantom directly.",
+  "Wallet picker must show Safari-safe wallet guidance that does not mislabel desktop Safari as mobile Safari.",
 );
 requireIncludes(
   appLayout,

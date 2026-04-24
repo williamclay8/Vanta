@@ -556,6 +556,10 @@ export function VantaPrivateCoreStatePanel({
   compact = false,
   title = "Vanta Private Core private state",
 }: VantaPrivateCoreStatePanelProps) {
+  if (compact) {
+    return null;
+  }
+
   const latestOperatorConsume = operatorLatestConsume ?? operatorConsumes[0] ?? null;
   const latestOperatorProof = operatorLatestProof ?? operatorProofs[0] ?? null;
   const latestOperatorRelease = operatorLatestRelease ?? operatorReleases[0] ?? null;

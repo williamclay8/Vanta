@@ -281,7 +281,7 @@ export function StrategyPage() {
       <div className="strategy-shell">
         <header className="strategy-header product-intro">
           <div className="strategy-header__copy">
-            <span className="strategy-kicker product-intro__eyebrow">Execution</span>
+            <span className="strategy-kicker product-intro__eyebrow">Plan trades</span>
             <h1 id="strategy-title">Strategy</h1>
             <p>{modeCopy}</p>
           </div>
@@ -326,7 +326,7 @@ export function StrategyPage() {
           >
             <div className="strategy-card__header">
               <div>
-                <span className="strategy-kicker">Strategy setup</span>
+                <span className="strategy-kicker">Build strategy</span>
                 <h2>{form.mode}</h2>
               </div>
               <div className="strategy-mode-toggle" aria-label="Strategy type">
@@ -412,7 +412,7 @@ export function StrategyPage() {
             ) : null}
 
             <details className="strategy-advanced">
-              <summary>Advanced settings</summary>
+              <summary>Tune execution</summary>
               <div className="strategy-form-grid strategy-form-grid--advanced">
                 <StrategySelect
                   label="Slice policy"
@@ -530,7 +530,7 @@ export function StrategyPage() {
           <section className="strategy-card strategy-card--secondary">
             <div className="strategy-card__header">
               <div>
-                <span className="strategy-kicker">Preview</span>
+                <span className="strategy-kicker">Before you run it</span>
                 <h2>Execution preview</h2>
               </div>
             </div>
@@ -568,7 +568,7 @@ export function StrategyPage() {
                 <strong>{firstExecutionJob?.landing.transport ?? "Jito"}</strong>
               </div>
               <div className="strategy-funding-line">
-                <span>Submit</span>
+                <span>Live execution</span>
                 <strong>{executionPreview?.liveSubmission ? "Live submission on" : "Live submission off"}</strong>
               </div>
             </div>
@@ -578,7 +578,7 @@ export function StrategyPage() {
             <section className="strategy-card strategy-card--secondary" role="status">
               <div className="strategy-card__header">
                 <div>
-                  <span className="strategy-kicker">{submittedResult.kicker}</span>
+                  <span className="strategy-kicker">Ready for your review</span>
                   <h2>{submittedResult.title}</h2>
                 </div>
               </div>

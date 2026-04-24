@@ -45,6 +45,7 @@ import {
 } from "@/zk/liveUnshieldBridge";
 import { createUmbraUnshieldActionApprovalReview } from "@/privacy/umbraUnshieldActionReview";
 import type { UmbraOperationApprovalDisplay } from "@/privacy/umbraOperations";
+import { createUnshieldTransactionEvidence } from "@/transactions/vantaTransactionEvidence";
 import { useVantaSafeSendTransaction } from "@/wallet/useVantaSafeSendTransaction";
 import { signWalletMessageIntentWithSafety } from "@/wallet/walletMessageIntentSafety.mjs";
 
@@ -543,6 +544,21 @@ export function UnshieldPage() {
     privateCoreOperatorLatestConsume ?? privateCoreOperatorConsumes[0] ?? null;
   const latestPrivateCoreOperatorRelease =
     privateCoreOperatorLatestRelease ?? privateCoreOperatorReleases[0] ?? null;
+  const currentUnshieldTransactionEvidence = useMemo(
+    () =>
+      createUnshieldTransactionEvidence({
+        latestProof: privateCoreOperatorLatestReleaseProof ?? privateCoreOperatorLatestProof,
+        latestRelease: latestPrivateCoreOperatorRelease,
+        transitionSignature: lastTransitionSignature,
+      }),
+    [
+      lastTransitionSignature,
+      latestPrivateCoreOperatorRelease,
+      privateCoreOperatorLatestProof,
+      privateCoreOperatorLatestReleaseProof,
+    ],
+  );
+  const showPrivateReleaseCard = false;
   const copyReleasePackageExport = useCallback(
     async (mode: "summary" | "json") => {
       if (!privateCoreReleasePackageState) {
@@ -612,7 +628,7 @@ export function UnshieldPage() {
         : "Awaiting recovered note",
     },
     {
-      label: "Send privately",
+      label: "Send from shielded state",
       status: privateCoreSendCompleted ? "done" : "pending",
       summary: privateCoreSendCompleted
         ? privateCoreSendState?.residualStateStatus ?? "Private send verified and applied"
@@ -1673,28 +1689,21 @@ export function UnshieldPage() {
     <section className="send-page unshield-page">
       <div className="module-page__hero send-page__hero product-intro">
         <div>
-          <span className="eyebrow product-intro__eyebrow">Live</span>
+          <span className="eyebrow product-intro__eyebrow">Move out</span>
           <h2>Unshield</h2>
-          <p>
-            Return one constrained private state back to public wallet flow.
-            Vanta supports both `VUSD` exit and the first shielded `SOL` exit lane.
-          </p>
+          <p>Move shielded funds back to your public wallet.</p>
         </div>
 
         <div className="module-state">
-          <strong>Workflow role</strong>
-          <p>
-            Unshield closes the lane cleanly. Shielded token notes return to public
-            wallet flow, and `SOL` exits through the operator-backed swap release path.
-          </p>
+          <strong>Public exit</strong>
+          <p>Use one shielded note and release funds once.</p>
         </div>
       </div>
 
       <div className="send-flow-indicator">
         {[
-          "Public Wallet",
           "Shield",
-          "Shielded State",
+          "Hold",
           `Unshield ${selectedLane}`,
         ].map((step, index, steps) => (
           <div
@@ -1710,11 +1719,12 @@ export function UnshieldPage() {
         ))}
       </div>
 
+      {showPrivateReleaseCard && (
       <article className="send-card" style={{ marginBottom: 24 }}>
         <div className="shield-card__header">
         <div>
-          <span>Vanta Private Core v0.1</span>
-          <h3>Private money demo lane</h3>
+          <span>Private release</span>
+          <h3>Unshield lane</h3>
         </div>
           <small>
             {privateCoreRecentShield
@@ -1724,8 +1734,8 @@ export function UnshieldPage() {
         </div>
 
         <p className="shield-review-note">
-          This lane uses Vanta Private Core for note recovery, witness state,
-          one-time consume, and replay rejection before value returns to public flow.
+          Recover the held private note, generate the release proof, and move value back to the
+          public balance once.
         </p>
 
         <div className="review-list" style={{ marginBottom: 16 }}>
@@ -2095,7 +2105,7 @@ export function UnshieldPage() {
               privateCoreUnshieldState?.consumeSucceeded === true
             }
           >
-            {privateCoreActionPending ? "Generating proof..." : "Unshield private core note"}
+            {privateCoreActionPending ? "Generating proof..." : "Unshield private note"}
           </button>
           <button
             className="button button-ghost"
@@ -2131,14 +2141,14 @@ export function UnshieldPage() {
                 ? "Private note consumed"
                 : privateCoreUnshieldState.replayRejected
                   ? "Replay rejected"
-                  : "Private core unshield status"}
+                  : "Unshield status"}
             </span>
             <p>
               {privateCoreUnshieldState.consumeSucceeded
                 ? "Funds unshielded successfully."
                 : privateCoreUnshieldState.replayRejected
                   ? privateCoreUnshieldState.errorMessage ?? "Replay was rejected."
-                  : privateCoreUnshieldState.errorMessage ?? "The private core lane is waiting for the next action."}
+                  : privateCoreUnshieldState.errorMessage ?? "Waiting for the next action."}
             </p>
             <div className="review-list" style={{ marginTop: 12 }}>
               <div className="review-row">
@@ -2329,6 +2339,7 @@ export function UnshieldPage() {
           </div>
         )}
       </article>
+      )}
 
       <div className="send-layout">
         <article className="send-card send-card--workspace">
@@ -2342,7 +2353,7 @@ export function UnshieldPage() {
             <div className="swap-module">
               <div className="swap-module__field">
                 <div className="swap-module__label-row">
-                  <span>Shielded asset</span>
+                  <span>Choose funds to unshield</span>
                   <div className="send-balance-line shield-helper shield-helper--meta">
                     Available: {formatUnshieldAmount(selectedFullAmount, selectedLane)}
                   </div>
@@ -2417,7 +2428,7 @@ export function UnshieldPage() {
                     status === "finalizing_state"
                   }
                 >
-                  {isBetaMode ? "Beta mode" : `Return ${formatShieldedLaneLabel(selectedLane)} to Public Wallet`}
+                  {isBetaMode ? "Beta mode" : "Move to public wallet"}
                 </button>
               </div>
             </div>
@@ -2455,8 +2466,8 @@ export function UnshieldPage() {
 
           {status === "splitting_note" && (
             <div className="status-panel status-panel--processing">
-              <span>Splitting note privately</span>
-              <p>Submitting the hidden private split that isolates the exact VUSD exit amount.</p>
+              <span>Preparing exact amount</span>
+              <p>Preparing the exact amount to move out.</p>
               <div className="status-bar">
                 <div className="status-bar__fill" />
               </div>
@@ -2466,7 +2477,7 @@ export function UnshieldPage() {
           {status === "recording_transition" && (
             <div className="status-panel status-panel--processing">
               <span>Recording unshield transition</span>
-              <p>Submitting the Vanta unshield transition on devnet.</p>
+              <p>Moving the selected shielded funds toward public release.</p>
               {transitionProgressLabel && (
                 <p className="shield-helper shield-helper--meta">{transitionProgressLabel}</p>
               )}
@@ -2488,11 +2499,8 @@ export function UnshieldPage() {
 
           {status === "authorizing_operator" && (
             <div className="status-panel status-panel--processing">
-              <span>Authorizing operator release</span>
-              <p>
-                Sending the wallet-authenticated {selectedLane} unshield intent to the
-                constrained operator so it can verify and release the selected asset.
-              </p>
+              <span>Authorizing public release</span>
+              <p>Approve the public release for this {selectedLane} exit.</p>
               <div className="status-bar">
                 <div className="status-bar__fill" />
               </div>
@@ -2514,18 +2522,26 @@ export function UnshieldPage() {
 
           {status === "failed" && (
             <div className="status-panel status-panel--warning">
-              <span>Unshield did not complete</span>
-              <p>{flowError ?? "The constrained exit flow encountered an issue."}</p>
+              <span>Funds were not moved</span>
+              <p>{flowError ?? "The exit did not complete. Try again."}</p>
             </div>
           )}
 
           {status === "complete" && lastCompletion && (
             <div className="status-panel status-panel--success">
-              <span>{`${lastCompletion.asset} unshield complete`}</span>
+              <span>
+                {operatorReleaseSignature
+                  ? `${lastCompletion.asset} unshield complete`
+                  : `${lastCompletion.asset} exit transition recorded`}
+              </span>
               <p>
-                {lastCompletion.asset === "SOL"
-                  ? `${formatSolAmount(lastCompletion.amount)} returned to Public Wallet and the source shielded SOL note is now consumed.`
-                  : `${formatShieldTokenAmount(lastCompletion.amount, lastCompletion.asset)} returned to Public Wallet and the source shielded ${lastCompletion.asset} note is no longer spendable.`}
+                {operatorReleaseSignature
+                  ? lastCompletion.asset === "SOL"
+                    ? `${formatSolAmount(lastCompletion.amount)} returned to Public Wallet and the source shielded SOL note is now consumed.`
+                    : `${formatShieldTokenAmount(lastCompletion.amount, lastCompletion.asset)} returned to Public Wallet and the source shielded ${lastCompletion.asset} note is no longer spendable.`
+                  : lastCompletion.asset === "SOL"
+                    ? `${formatSolAmount(lastCompletion.amount)} exit transition was recorded. Operator release is still pending.`
+                    : `${formatShieldTokenAmount(lastCompletion.amount, lastCompletion.asset)} exit transition was recorded. Operator release is still pending.`}
               </p>
               <div className="preview-grid">
                 <div className="preview-card preview-card--accent">
@@ -2567,6 +2583,20 @@ export function UnshieldPage() {
                 <div className="review-row">
                   <span>Operator release</span>
                   <strong>{operatorReleaseSignature ? abbreviate(operatorReleaseSignature) : "Pending"}</strong>
+                </div>
+                <div className="review-row">
+                  <span>Transaction evidence</span>
+                  <strong>
+                    {currentUnshieldTransactionEvidence.operator.status === "recorded"
+                      ? "Proof-backed release record"
+                      : currentUnshieldTransactionEvidence.wallet.status === "signature-recorded"
+                        ? "Transition signature captured"
+                        : "Pending operator release"}
+                  </strong>
+                </div>
+                <div className="review-row">
+                  <span>Settlement scope</span>
+                  <strong>{currentUnshieldTransactionEvidence.settlement.status}</strong>
                 </div>
                 <div className="review-row">
                   <span>Workflow prepare</span>

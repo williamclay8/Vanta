@@ -132,8 +132,8 @@ assert.match(
 );
 assert.match(
   payBrowserCheck,
-  /Private settlement without protocol overhead\./u,
-  "Pay browser check must enforce the canonical merchant body copy including punctuation.",
+  /Settlement control-plane preview without protocol overhead\./u,
+  "Pay browser check must enforce the canonical preview-qualified merchant body copy including punctuation.",
 );
 assert.match(
   payBrowserCheck,

@@ -10,44 +10,53 @@
 
 ## Short description
 
-Vanta is a zk-powered privacy layer for Solana that starts with shielded user flows and extends into a merchant-first private settlement control plane.
+Vanta is a privacy product for Solana. It helps supported assets move out of fully public wallet flows, use supported private actions, and return to a public wallet when needed.
 
 ## Medium description
 
-Vanta is building a practical privacy layer for Solana with three honest product surfaces today:
-- a shielded consumer app
-- a merchant-first Pay control plane
-- a reviewer-facing private-core proof lane
+Vanta starts with one simple idea: normal Solana wallet activity is public, so privacy needs a clear entry point.
 
-The core product loop is still **Shield + Private Send**: move supported assets out of transparent wallet flows and into a shielded state designed for more private activity. From that foundation, Vanta expands toward private swaps, merchant settlement, and broader privacy-native workflows for users, traders, teams, builders, and commerce.
+That entry point is **Shield**. A user moves supported assets into Vanta, uses supported private actions, then exits when they need to return to a public wallet.
 
-The current demo wedge is the merchant-first control plane for private, policy-legible stablecoin settlement. The real Pay demo now shows merchant operations, approval-boundary copy, merchant-visible settlement / refund / withdrawal / reconciliation states, seeded demo settlement console cards for balances, payout queue, receipts, and reconciliation export from a local typed summary, and a shared `Merchant pilot` panel that frames the surface as `Private settlement without protocol overhead.`
+The current demo has three parts:
 
-Underneath that, Vanta already supports a constrained real devnet lifecycle for `VUSD` plus native SOL shield entry. The app includes note-based shielded state, constrained Send transitions, a constrained one-way `VUSD -> SOL` Meteora-backed swap lane, operator-backed `VUSD` and `SOL` unshield with authenticated wallet intent and operator-side transition verification, an early Strategy planning surface, and a contextual Peer top-up recovery path in the wallet picker for disconnected or unfunded users.
+- a wallet app for Shield, Send, Swap, and Unshield
+- Vanta Pay, a merchant control plane for checkout, settlement status, refunds, withdrawals, and receipts
+- a reviewer-facing proof lane that shows the first private-core boundary is executable
 
-The repo also contains a standalone **Vanta Private Core** zk lane for the first real single-note unshield proof boundary, including a fixed-depth Noir circuit, local proof generation and verification, replay rejection, and an operator-backed proof / registration / consume path. The implementation is intentionally narrow and still not production-ready, but it is no longer only a front-end prototype.
+The Pay demo now opens on merchant operations instead of a raw checkout screen. It includes approval-boundary copy, merchant-visible settlement / refund / withdrawal / reconciliation states, runtime-backed empty-state console cards for balances, refund queue, withdrawal queue, and reconciliation export, plus a `Merchant pilot` panel.
+
+Vanta is intentionally honest about its status: it has real devnet and local verification lanes, but it is not production-ready, audited, or mainnet-ready yet.
 
 ## Full description
 
-Solana has become one of the most important execution layers in crypto, but one thing remains missing: practical privacy. Wallet balances, asset holdings, transfers, counterparties, and behavior patterns are easy to trace across transparent onchain systems.
+Solana is fast and cheap, but it is public by default. Wallet balances, transfers, counterparties, and behavior patterns are easy to trace.
 
 Vanta exists to close that gap.
 
-Rather than treating privacy as a single isolated transaction feature, Vanta starts at the right entrypoint: **shielding**. Users move supported assets from ordinary transparent wallet flows into a privacy-preserving Vanta layer, where those assets can be held in shielded state and used through private workflows. The first complete product loop is **Public Wallet -> Shield -> Shielded State -> Send / Swap -> Unshield**.
+Vanta starts with a product loop normal people can understand:
 
-For this hackathon, the strongest story is not "we have lots of features." It is:
-- a real shielded-state product loop on devnet
-- a merchant-first Pay control plane that keeps trust legible
-- a real proof lane that shows the zk boundary is executable, not hypothetical
+```text
+Public Wallet -> Shield -> Private Vanta Area -> Send / Swap -> Unshield
+```
+
+Shielding does not make a normal wallet magically private. It means supported assets leave the normal public-wallet flow and enter Vanta's private flow. From there, Vanta can support private actions with clearer boundaries.
+
+For this hackathon, the strongest story is not "Vanta has every privacy feature." It is:
+
+- the app has a real early shielded-state product loop
+- the Pay surface explains private settlement in plain merchant language
+- the proof lane shows the cryptographic boundary is executable, not only a slide
 
 The premium merchant wedge is already visible in the live demo:
-- private checkout
+
+- checkout preview
 - clear approval boundaries
 - merchant-visible settlement, refund, withdrawal, and reconciliation states
-- seeded demo settlement console cards for balances, payout queue, receipts, and reconciliation export
+- runtime-backed empty-state console cards for balances, refund queue, withdrawal queue, and reconciliation export
 - design-partner-facing merchant pilot framing on the real Pay surface
 
-Vanta is designed for users, traders, teams, builders, and eventually merchants who need more than speed and low fees; they need discretion. The app also now includes an early Strategy surface for Stealth DCA and Private TWAP planning, plus a contextual Peer desktop top-up recovery path that keeps funding inside the existing wallet picker instead of turning it into a separate product area.
+Vanta is designed for users, traders, teams, builders, and merchants who need more than speed and low fees. They need discretion, simple approvals, and records they can understand.
 
 ### Pricing
 

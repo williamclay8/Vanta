@@ -5,23 +5,23 @@ const repoRoot = resolve(import.meta.dirname, "..");
 const source = readFileSync(resolve(repoRoot, "src/pages/PayPage.tsx"), "utf8");
 
 const requiredPageCopy = [
-  "Create payment link",
+  "Merchant control plane",
+  "Create a shareable payment link",
   "Send invoice",
-  "Checkout",
-  "Withdraw",
-  "Payment Link",
-  "Invoice",
+  "Preview checkout",
+  "Withdraw funds",
+  "Create link",
   "Amount",
   "Asset",
   "Pay with Vanta",
   "Pricing",
   "No billing starts from checkout preview alone.",
-  "Privacy rail in review",
+  "Payment route preview",
   "Receipt path preview",
   "Merchant operations",
-  "Merchant control plane",
-  "Policy-legible settlement",
-  "Private checkout",
+  "Merchant balances and pending work",
+  "Policy-legible settlement preview",
+  "Checkout preview",
   "Approval boundary",
 ];
 

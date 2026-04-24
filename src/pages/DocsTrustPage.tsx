@@ -18,15 +18,15 @@ export function DocsTrustPage() {
       <section className="docs-page-section">
         <h2>Approval boundaries</h2>
         <p>
-          Vanta treats trust as something readers should be able to inspect.
-          When a step needs a user decision, operator review, or execution
-          approval, the product should say so plainly instead of hiding that
-          boundary behind marketing language.
+          Vanta treats trust as something people should be able to inspect, not
+          something they have to take on faith. If a step needs a user decision,
+          operator review, or execution approval, the product should say that in
+          plain language.
         </p>
         <p>
-          That is why the docs keep preview surfaces, design-partner flows, and
-          live execution paths labeled separately. The goal is not to make the
-          system sound effortless. The goal is to make responsibility legible.
+          That is why these docs keep preview surfaces, design-partner flows,
+          and live execution paths labeled separately. A reader should always be
+          able to tell who is responsible for the next step.
         </p>
       </section>
 
@@ -36,25 +36,23 @@ export function DocsTrustPage() {
           <article className="docs-connection-card">
             <h3>Readable execution state</h3>
             <p>
-              Users and reviewers should be able to tell when Vanta is showing a
-              live flow, a constrained operator-backed path, or a preview-only
-              surface.
+              Users and reviewers should be able to tell whether they are
+              seeing a live flow, a narrow operator-backed flow, or a preview.
             </p>
           </article>
           <article className="docs-connection-card">
             <h3>Explicit operator role</h3>
             <p>
-              Vanta does not pretend the operator disappears just because the UI
-              looks polished. If operator truth or operator release logic is
-              part of the current flow, the docs should keep that visible.
+              If the current system depends on an operator check or release
+              step, the docs should say so. A polished UI should not hide who is
+              doing the work.
             </p>
           </article>
           <article className="docs-connection-card">
             <h3>Shared product truth</h3>
             <p>
-              Docs copy, product UI, and reviewer-facing status surfaces should
-              all describe the same product state instead of drifting into
-              separate stories.
+              The docs, the app, and the reviewer commands should all describe
+              the same product state. No separate marketing story.
             </p>
           </article>
         </div>
@@ -64,15 +62,15 @@ export function DocsTrustPage() {
         <h2>Verification surfaces</h2>
         <p>
           Trust also depends on having concrete ways to check the story. Vanta
-          keeps reviewer-facing commands in the repo so people can inspect the
-          operator boundary instead of relying on a screenshot or summary alone.
+          keeps reviewer-facing commands in the repo so people can inspect what
+          the current system reports instead of relying on a screenshot.
         </p>
         <div className="docs-callout">
           <strong>Use the verification surfaces, not just the headline.</strong>
           <p>
             The private-core operator contract, status, snapshot, and shipping
-            commands are there to show what the repo can actually prove today.
-            They matter because Vanta is still narrowing the path to real
+            commands show what the repo can actually prove today. They matter
+            because Vanta is still moving from a narrow working path toward real
             readiness.
           </p>
         </div>
@@ -81,10 +79,10 @@ export function DocsTrustPage() {
       <section className="docs-page-section">
         <h2>What this page is claiming today</h2>
         <ul className="docs-bullet-list">
-          <li>Approval boundaries are part of the product contract, not a docs footnote.</li>
-          <li>Preview, demo, control-plane, and live surfaces should say what they are.</li>
+          <li>Approval boundaries are part of the product contract, not a footnote.</li>
+          <li>Preview, demo, control-plane, and live surfaces should be labeled clearly.</li>
           <li>Operator-backed truth still matters to the current narrow flows.</li>
-          <li>Verification commands are the right place to check current status.</li>
+          <li>Verification commands are the best place to check current status.</li>
         </ul>
       </section>
 
@@ -94,9 +92,9 @@ export function DocsTrustPage() {
           <strong>Trust comes from legibility, not overclaiming.</strong>
           <p>
             These docs do not claim that all Vanta surfaces are production-ready
-            or that normal wallet activity becomes private automatically.
-            Merchant preview, control-plane visibility, and live proof or
-            operator surfaces are not the same thing, and the docs keep those
+            or that normal wallet activity becomes private automatically. A
+            merchant preview, a control plane, a proof command, and a live
+            operator path are different things, and the docs keep those
             differences visible.
           </p>
         </div>

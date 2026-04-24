@@ -1,6 +1,10 @@
 import { execFileSync, spawn } from "node:child_process";
+import { rmSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
 const port = 5260 + Math.floor(Math.random() * 200);
 const baseUrl = `http://127.0.0.1:${port}`;
+const browserSession = `vanta-landing-check-${process.pid}-${Date.now()}`;
 
 function sleep(ms) {
   return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
@@ -23,13 +27,49 @@ async function waitForVite() {
   throw new Error("Vanta dev server did not become ready for landing browser verification.");
 }
 
-function runBrowserCommand(args, options = {}) {
-  const output = execFileSync("gsd-browser", args, {
-    encoding: "utf8",
-    stdio: options.stdio ?? "pipe",
-  });
+function cleanupBrowserLock() {
+  try {
+    execFileSync("pkill", ["-f", "Google Chrome for Testing"], {
+      stdio: "ignore",
+    });
+  } catch {
+    // Chrome may already be stopped.
+  }
 
-  return typeof output === "string" ? output.trim() : "";
+  try {
+    rmSync(path.join(os.tmpdir(), "chromiumoxide-runner"), {
+      force: true,
+      recursive: true,
+    });
+  } catch {
+    // The temp runner directory may already be gone.
+  }
+
+  try {
+    execFileSync("gsd-browser", ["daemon", "stop"], { stdio: "ignore" });
+  } catch {
+    // The daemon may already be stopped.
+  }
+}
+
+function runBrowserCommand(args, options = {}) {
+  const commandArgs = ["--session", browserSession, ...args];
+
+  try {
+    const output = execFileSync("gsd-browser", commandArgs, {
+      encoding: "utf8",
+      stdio: options.stdio ?? "pipe",
+    });
+
+    return typeof output === "string" ? output.trim() : "";
+  } catch (error) {
+    if (!options.retrying) {
+      cleanupBrowserLock();
+      return runBrowserCommand(args, { ...options, retrying: true });
+    }
+
+    throw error;
+  }
 }
 
 function checkLandingViewport(width, height) {
@@ -55,10 +95,12 @@ function checkLandingViewport(width, height) {
         hasDocsAndAppPrimaryPaths: ["/docs", "/app/send"].every((href) =>
           [...document.querySelectorAll("a")].some((link) => link.getAttribute("href") === href),
         ),
-        hasPaymentsCopy: document.body.innerText.includes("Create payment links") && document.body.innerText.includes("private checkout"),
-        hasPrivateUserHeading: document.body.innerText.includes("All the actions private users need."),
+        hasPaymentsCopy: document.body.innerText.includes("Create payment links") && document.body.innerText.includes("merchant settlement preview"),
+        hasShieldFirstHeading: document.body.innerText.includes("The constrained actions Vanta can show honestly."),
         hidesBetaCopy: !document.body.innerText.toLowerCase().includes("beta"),
-        hasPointedActions: ["shield", "send", "swap", "strategy", "unshield", "pay"].every((label) => document.body.innerText.toLowerCase().includes(label)),
+        hasPointedActions: ["shield", "send", "swap", "strategy", "unshield", "pay"].every((path) =>
+          [...document.querySelectorAll("a")].some((link) => link.getAttribute("href") === "/app/" + path),
+        ),
         horizontalOverflow: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) - window.innerWidth,
         smallTargets: [...document.querySelectorAll("a, button")]
           .filter((element) => {
@@ -103,8 +145,8 @@ function checkLandingViewport(width, height) {
     throw new Error("Landing page must include payment suite copy.");
   }
 
-  if (!result.hasPrivateUserHeading) {
-    throw new Error("Landing page must use the private-user app-actions heading.");
+  if (!result.hasShieldFirstHeading) {
+    throw new Error("Landing page must use the constrained-action app heading.");
   }
 
   if (!result.hidesBetaCopy) {

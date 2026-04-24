@@ -7,9 +7,14 @@ import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePa
 import { isBetaMode } from "@/config/deploymentMode";
 import { usePrivacyFlow, type PrivacyAssetKey } from "@/data/context/PrivacyFlowContext";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
+import {
+  getShieldedSendAssetCapability,
+  listShieldedSendAssetOptions,
+} from "@/solana/shieldedSendCapability";
 import { useVantaShieldState } from "@/solana/useVantaShieldState";
 import { useRealtimeSignatureProgress } from "@/solana/useRealtimeSignatureProgress";
-import { liveShieldAsset } from "@/solana/shieldConfig";
+import { liveShieldAsset, type LiveShieldTokenAssetKey } from "@/solana/shieldConfig";
+import { useVantaShieldAssetRegistryState } from "@/solana/useVantaShieldAssetRegistryState";
 import {
   createPreparedSendMemo,
   createSpentMarkerInstruction,
@@ -86,46 +91,11 @@ type PrivateCoreSendExecutionState = {
   status: "idle" | "running" | "verified" | "failed";
 };
 
-const assetNames: Record<PrivacyAssetKey, string> = {
-  VUSD: "Vanta Devnet Test Dollar",
-  USDC: "USD Coin",
-  JTO: "Jito",
-  BONK: "Bonk",
-  JUP: "Jupiter",
-  PYUSD: "PayPal USD",
-  WIF: "dogwifhat",
-  KMNO: "Kamino",
-  SOL: "Solana",
-};
-
-const fallbackShieldedBalances: Record<PrivacyAssetKey, number> = {
-  VUSD: 0,
-  USDC: 2800,
-  JTO: 180,
-  BONK: 0,
-  JUP: 0,
-  PYUSD: 0,
-  WIF: 0,
-  KMNO: 0,
-  SOL: 0,
-};
-
-const sendShieldedAssetOptions: Array<{
-  asset: PrivacyAssetKey;
-  label: string;
-  disabled: boolean;
-}> = [
-  { asset: "VUSD", label: "Shielded VUSD", disabled: false },
-  { asset: "USDC", label: "Shielded USDC — coming soon", disabled: true },
-  { asset: "JTO", label: "Shielded JTO — coming soon", disabled: true },
-  { asset: "BONK", label: "Shielded BONK — coming soon", disabled: true },
-  { asset: "JUP", label: "Shielded JUP — coming soon", disabled: true },
-  { asset: "PYUSD", label: "Shielded PYUSD — coming soon", disabled: true },
-  { asset: "WIF", label: "Shielded WIF — coming soon", disabled: true },
-  { asset: "KMNO", label: "Shielded KMNO — coming soon", disabled: true },
-];
-
 const DEFAULT_VUSD_DECIMALS = 6;
+
+function getInitialSendAsset(asset: PrivacyAssetKey | undefined): LiveShieldTokenAssetKey {
+  return asset && asset !== "SOL" ? asset : "VUSD";
+}
 
 function formatBalance(value: number, symbol: PrivacyAssetKey) {
   if (symbol === "USDC" || symbol === "VUSD") {
@@ -391,8 +361,10 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     isRefreshing: shieldStateRefreshing,
     refresh: refreshShieldState,
   } = useVantaShieldState();
-  const [selectedAsset, setSelectedAsset] = useState<PrivacyAssetKey>(
-    recentShield?.asset ?? "VUSD",
+  const shieldAssetRegistry = useVantaShieldAssetRegistryState();
+  const sendShieldedAssetOptions = useMemo(() => listShieldedSendAssetOptions(), []);
+  const [selectedAsset, setSelectedAsset] = useState<LiveShieldTokenAssetKey>(
+    getInitialSendAsset(recentShield?.asset),
   );
   const [recipient, setRecipient] = useState("");
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
@@ -434,13 +406,17 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     },
   );
 
-  const spendableNotes = useMemo(() => {
-    if (selectedAsset !== "VUSD") {
-      return [];
-    }
+  const selectedSendCapability = useMemo(
+    () => getShieldedSendAssetCapability(selectedAsset),
+    [selectedAsset],
+  );
+  const selectedShieldAssetEntry = shieldAssetRegistry.byAssetKey[selectedAsset];
+  const selectedShieldAccount =
+    selectedAsset === "VUSD" ? shieldAccount : selectedShieldAssetEntry?.account ?? null;
 
-    return shieldAccount?.spendableShieldNotes ?? [];
-  }, [selectedAsset, shieldAccount]);
+  const spendableNotes = useMemo(() => {
+    return selectedShieldAccount?.spendableShieldNotes ?? [];
+  }, [selectedShieldAccount]);
 
   useEffect(() => {
     if (!spendableNotes.length) {
@@ -463,10 +439,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     return spendableNotes.find((note) => note.noteId === selectedNoteId) ?? null;
   }, [selectedNoteId, spendableNotes]);
 
-  const selectedBalance =
-    selectedAsset === "VUSD"
-      ? shieldAccount?.balance ?? fallbackShieldedBalances[selectedAsset]
-      : fallbackShieldedBalances[selectedAsset];
+  const selectedBalance = selectedShieldAccount?.balance ?? 0;
   const parsedAmount = Number(amount);
   const maxNoteAmount = selectedSpendableNote?.amount ?? 0;
   const changeAmount =
@@ -480,7 +453,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     parsedAmount <= maxNoteAmount;
   const isRecipientValid = recipient.trim().length >= 8;
   const isRealSendReady =
-    selectedAsset === "VUSD" &&
+    selectedSendCapability.status === "live" &&
     Boolean(selectedSpendableNote) &&
     isAmountValid &&
     isRecipientValid &&
@@ -993,8 +966,11 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     ? shieldStateError
     : isBetaMode
       ? "Beta mode keeps private send visible but prevents live settlement while production services are offline."
+      : selectedSendCapability.executionMode === "needs-private-send-adapter"
+        ? selectedSendCapability.blockers[0] ??
+          "This shielded asset needs a private send adapter before it can execute."
       : isRealSendReady
-      ? "Ready to send from shielded state."
+      ? "Ready to record a shielded-state send transition."
       : !selectedSpendableNote
         ? "Shield the asset first, then return here to send it."
         : "Enter a valid amount and destination address.";
@@ -1003,28 +979,22 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     <section className="send-page">
       <div className="module-page__hero send-page__hero product-intro">
         <div>
-          <span className="eyebrow product-intro__eyebrow">{dashboard ? "Dashboard / Send" : "Live"}</span>
-          <h2>Private Send</h2>
-          <p>
-            Move shielded balance without returning to public wallet flow. The
-            live lane supports one `VUSD` note in, one send out, and optional change.
-          </p>
+          <span className="eyebrow product-intro__eyebrow">{dashboard ? "Dashboard" : "Send shielded"}</span>
+          <h2>Send</h2>
+          <p>Record a send transition from your shielded balance.</p>
         </div>
 
         <div className="module-state">
-          <strong>Workflow role</strong>
-          <p>
-            Send is the first private action unlocked by Shield. One spendable
-            note is consumed, the recipient amount is recorded, and leftover value can remain private.
-          </p>
+          <strong>Shielded balance</strong>
+          <p>Send part of your balance and keep any change shielded.</p>
         </div>
       </div>
 
       <div className="send-flow-indicator">
-        {["Public Wallet", "Shield", "Shielded State", "Send"].map((step, index) => (
+        {["Shield", "Send", "Hold change"].map((step, index) => (
           <div
             key={step}
-            className={index === 3 ? "send-flow-step send-flow-step--active" : "send-flow-step"}
+            className={index === 1 ? "send-flow-step send-flow-step--active" : "send-flow-step"}
           >
             <span>{step}</span>
           </div>
@@ -1034,12 +1004,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       {recentShield ? (
         <div className="send-context-banner">
           <div>
-            <span>Ready to Send</span>
-            <h3>You just shielded {formatBalance(recentShield.amount, recentShield.asset)}.</h3>
-            <p>
-              That balance is now ready for the private send lane. In the
-              current model, one note can be partially spent and any remainder stays shielded.
-            </p>
+            <span>Ready</span>
+            <h3>{formatBalance(recentShield.amount, recentShield.asset)} shielded.</h3>
+            <p>Send now or keep holding privately.</p>
           </div>
           <div className="send-context-banner__meta">
             <strong>{formatBalance(recentShield.resultingShieldedBalance, recentShield.asset)}</strong>
@@ -1049,14 +1016,12 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       ) : (
         <div className="send-context-banner send-context-banner--quiet">
           <div>
-            <span>No recent Shield context</span>
-            <h3>Send now supports constrained change-note handling for `VUSD`.</h3>
-            <p>
-              Start at Shield or use one of the spendable `VUSD` notes below.
-            </p>
+            <span>Start with Shield</span>
+            <h3>No shielded funds ready to send.</h3>
+            <p>Shield first, then send from the private balance.</p>
           </div>
           <Link className="button button-ghost" to="/app/shield">
-            Start at Shield
+            Shield funds first
           </Link>
         </div>
       )}
@@ -1065,7 +1030,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         <article className="send-card send-card--workspace">
           <div className="shield-card__header">
             <div>
-              <span>Private Send</span>
+              <span>Send</span>
             </div>
           </div>
 
@@ -1090,12 +1055,12 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                         setFlowError(null);
                       }}
                       placeholder="0.00"
-                      disabled={selectedAsset !== "VUSD"}
+                      disabled={selectedSendCapability.status !== "live"}
                     />
                     <button
                       className="button button-ghost"
                       type="button"
-                      disabled={selectedAsset !== "VUSD" || !selectedSpendableNote}
+                      disabled={selectedSendCapability.status !== "live" || !selectedSpendableNote}
                       onClick={() => {
                         if (!selectedSpendableNote) {
                           return;
@@ -1115,13 +1080,13 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                     aria-label="Send shielded asset"
                     value={selectedAsset}
                     onChange={(event) => {
-                      setSelectedAsset(event.target.value as PrivacyAssetKey);
+                      setSelectedAsset(event.target.value as LiveShieldTokenAssetKey);
                       setStatus("idle");
                       setFlowError(null);
                     }}
                   >
-                    {sendShieldedAssetOptions.map(({ asset, disabled, label }) => (
-                      <option key={asset} value={asset} disabled={disabled}>
+                    {sendShieldedAssetOptions.map(({ label, symbol }) => (
+                      <option key={symbol} value={symbol}>
                         {label}
                       </option>
                     ))}
@@ -1161,7 +1126,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   }}
                   disabled={isBetaMode || !isRealSendReady || status === "sending" || status === "settling"}
                 >
-                  {isBetaMode ? "Beta mode" : "Private Send"}
+                  {isBetaMode ? "Beta mode" : "Send from shielded state"}
                 </button>
               </div>
             </div>
@@ -1170,7 +1135,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           {status === "awaiting_confirmation" && (
             <div className="status-panel">
               <span>Awaiting wallet confirmation</span>
-              <p>Approve the constrained Vanta send note for the selected shield note.</p>
+              <p>Approve this private send in your wallet.</p>
               <div className="status-bar">
                 <div className="status-bar__fill" />
               </div>
@@ -1180,7 +1145,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           {status === "sending" && (
             <div className="status-panel status-panel--processing">
               <span>Send in progress</span>
-              <p>Submitting the Vanta send transition metadata on devnet.</p>
+              <p>Sending from your shielded balance.</p>
               {sendProgressLabel && (
                 <p className="shield-helper shield-helper--meta">{sendProgressLabel}</p>
               )}
@@ -1192,7 +1157,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
 
           {status === "settling" && (
             <div className="status-panel status-panel--processing">
-              <span>Updating shielded state</span>
+              <span>Updating your private balance</span>
               <p>
                 Confirming the spent marker and resolving the next spendable
                 note set, including any residual change note.
@@ -1209,10 +1174,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           {status === "failed" && (
             <div className="status-panel status-panel--failed">
               <span>Send failed</span>
-              <p>
-                Shielded state remains intact, but the constrained note
-                evolution transition did not complete.
-              </p>
+              <p>Your shielded balance was not changed. Try again.</p>
               {flowError && <p className="shield-helper shield-helper--error">{flowError}</p>}
               <button
                 className="button button-primary"
@@ -1349,10 +1311,10 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         <article className="send-card">
           <div className="shield-card__header">
             <div>
-              <span>Vanta Private Core</span>
-              <h3>Private send proof lane</h3>
+              <span>Private send</span>
+              <h3>Proof lane</h3>
             </div>
-            <small>Supported zk v1 send lane</small>
+            <small>Ready when a private note is held</small>
           </div>
 
           <div className="review-list">
@@ -1500,10 +1462,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
             <div className="status-panel status-panel--success">
               <span>Send proof verified</span>
               <p>
-                The operator verified the current private send witness package and recorded a
-                proof-backed send transition. The recipient now has a private note for the sent
-                value, and the shared private-core state advances to the residual change note so
-                the next hold or unshield step can continue from the updated private balance.
+                The operator verified the send proof and recorded the transition. The recipient now
+                has the sent private value, and the remaining private balance is ready for the next
+                hold or unshield step.
               </p>
               <div className="success-metrics">
                 <div className="preview-card preview-card--accent">

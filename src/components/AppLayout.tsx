@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { BrandMark } from "@/components/BrandMark";
+import {
+  createMobileWalletOpenLinks,
+  shouldShowMobileWalletPrompt,
+} from "@/components/MobileWalletOpenPrompt";
 import { isBetaMode } from "@/config/deploymentMode";
 import { useWalletState } from "@/data/context/WalletContext";
 import { getPeerOnrampAvailability } from "@/peer/peerConfig";
@@ -9,15 +13,22 @@ import type { PeerOnrampFulfillment, PeerOnrampLaunchState } from "@/peer/peerOn
 import { useWalletPublicAssets } from "@/solana/useWalletPublicAssets";
 
 const appLinks = [
-  { to: "/app/shield", label: "Shield", end: false },
-  { to: "/app/send", label: "Send", end: false },
-  { to: "/app/swap", label: "Swap", end: false },
-  { to: "/app/strategy", label: "Strategy", end: false },
-  { to: "/app/unshield", label: "Unshield", end: false },
-  { to: "/app/pay", label: "Pay", end: false },
+  { to: "/app/shield", label: "Shield", action: "Add funds", end: false },
+  { to: "/app/send", label: "Send", action: "Send shielded", end: false },
+  { to: "/app/swap", label: "Swap", action: "Trade shielded", end: false },
+  { to: "/app/strategy", label: "Strategy", action: "Plan trades", end: false },
+  { to: "/app/unshield", label: "Unshield", action: "Move out", end: false },
+  { to: "/app/pay", label: "Pay", action: "Get paid", end: false },
 ];
 
+type MobileWalletOpenLink = {
+  id: "phantom" | "solflare";
+  label: string;
+  href: string;
+};
+
 export function AppLayout() {
+  const location = useLocation();
   const {
     connectWallet,
     createFreshWallet,
@@ -48,7 +59,11 @@ export function AppLayout() {
   const [peerLaunchFulfillment, setPeerLaunchFulfillment] =
     useState<PeerOnrampFulfillment | null>(null);
   const [peerLaunchMessage, setPeerLaunchMessage] = useState<string | null>(null);
+  const [showMobileWalletPrompt, setShowMobileWalletPrompt] = useState(false);
+  const [mobileWalletOpenLinks, setMobileWalletOpenLinks] = useState<MobileWalletOpenLink[]>([]);
+  const [walletConnectionError, setWalletConnectionError] = useState<string | null>(null);
   const peerLaunchAttemptRef = useRef(0);
+  const tabRefs = useRef(new Map<string, HTMLAnchorElement>());
   const walletPickerOpenRef = useRef(walletPickerOpen);
   const connectedWalletLabel = walletAddressShort ?? currentConnectorName ?? "Connected";
   const accountTriggerLabel = !walletReady
@@ -116,8 +131,14 @@ export function AppLayout() {
   };
 
   const connectWithWallet = async (connectorId: string) => {
-    await connectWallet(connectorId).catch(() => {});
-    setWalletPickerOpen(false);
+    setWalletConnectionError(null);
+
+    try {
+      await connectWallet(connectorId);
+      setWalletPickerOpen(false);
+    } catch {
+      setWalletConnectionError("Wallet connection failed.");
+    }
   };
 
   const generateFreshWallet = () => {
@@ -174,6 +195,43 @@ export function AppLayout() {
 
   useEffect(() => {
     walletPickerOpenRef.current = walletPickerOpen;
+  }, [walletPickerOpen]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.scrollTo({ left: 0, top: 0, behavior: "auto" });
+
+    const activeTab = tabRefs.current.get(location.pathname);
+    if (!activeTab || !window.matchMedia("(max-width: 720px)").matches) {
+      return;
+    }
+
+    const tabs = activeTab.closest<HTMLElement>(".app-header__tabs");
+    if (!tabs) {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      const targetScrollLeft = activeTab.offsetLeft - (tabs.clientWidth - activeTab.offsetWidth) / 2;
+
+      tabs.scrollTo({
+        left: Math.max(targetScrollLeft, 0),
+        behavior: "auto",
+      });
+    });
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!walletPickerOpen) {
+      return;
+    }
+
+    const shouldShowPrompt = shouldShowMobileWalletPrompt();
+    setShowMobileWalletPrompt(shouldShowPrompt);
+    setMobileWalletOpenLinks(shouldShowPrompt ? createMobileWalletOpenLinks() : []);
   }, [walletPickerOpen]);
 
   useEffect(() => {
@@ -254,13 +312,22 @@ export function AppLayout() {
             {appLinks.map((link) => (
               <NavLink
                 key={link.to}
+                ref={(element) => {
+                  if (element) {
+                    tabRefs.current.set(link.to, element);
+                  } else {
+                    tabRefs.current.delete(link.to);
+                  }
+                }}
                 to={link.to}
                 end={link.end}
+                aria-label={`${link.label}: ${link.action}`}
                 className={({ isActive }) =>
                   isActive ? "app-header__tab app-header__tab--active" : "app-header__tab"
                 }
               >
-                {link.label}
+                <span>{link.label}</span>
+                <small>{link.action}</small>
               </NavLink>
             ))}
           </nav>
@@ -270,14 +337,11 @@ export function AppLayout() {
         </div>
 
         <div className="app-header__wallet">
-          <NavLink to="/docs" className="app-header__docs-link">
-            Docs
-          </NavLink>
           <button
             className="app-header__account-trigger"
             type="button"
             onClick={openWalletPicker}
-            disabled={!walletReady || walletConnecting}
+            disabled={walletConnecting}
             aria-haspopup="dialog"
             aria-expanded={walletPickerOpen}
             aria-label={walletConnecting ? "Wallet connection in progress" : accountTriggerAccessibleLabel}
@@ -312,10 +376,34 @@ export function AppLayout() {
                   Standard wallet discovery shows the Solana wallets available in this browser.
                   Use a fresh wallet for the strongest privacy.
                 </p>
+                {showMobileWalletPrompt && mobileWalletOpenLinks.length > 0 && (
+                  <div className="wallet-picker__mobile-wallet-prompt" role="status">
+                    <div>
+                      <span>Open Vanta in your wallet</span>
+                      <small>
+                        Safari cannot connect Phantom directly. Open this page in a wallet browser
+                        on mobile, or use a supported desktop browser with a wallet extension.
+                      </small>
+                    </div>
+                    <div className="wallet-picker__mobile-wallet-actions">
+                      {mobileWalletOpenLinks.map((link) => (
+                        <a data-wallet-open={link.id} href={link.href} key={link.id}>
+                          {link.label}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div className="wallet-picker__safety" role="status">
                   <span>Simulation before signing</span>
                   <small>Live actions are simulated before wallet approval.</small>
                 </div>
+                {walletConnectionError && (
+                  <div className="wallet-picker__connection-error" role="alert">
+                    <span>{walletConnectionError}</span>
+                    <small>Check that the wallet is unlocked and allowed to connect to Vanta.</small>
+                  </div>
+                )}
                 {showPeerFundingBlock && (
                   <div className="wallet-picker__section">
                     <span className="wallet-picker__section-label">Funding</span>
@@ -416,7 +504,7 @@ export function AppLayout() {
         </div>
       </header>
 
-      <main className="app-content app-content--minimal">
+      <main className="app-content app-content--minimal" data-route-path={location.pathname}>
         <Outlet />
       </main>
     </div>

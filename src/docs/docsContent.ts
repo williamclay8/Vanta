@@ -51,14 +51,14 @@ const docsSidebarGroupLabels: Record<DocsSidebarGroupId, string> = {
   "shared-truth": "Shared truth",
 };
 
-const docsPricingSummary = `Vanta's launch-stage pricing direction is simple: 0 monthly fee, ${VANTA_PRICING_CONTRACT.successFeeRateDisplay} only when a supported action completes successfully, and ${VANTA_PRICING_COPY.passThrough.toLowerCase()}`;
+const docsPricingSummary = `Vanta's launch-stage pricing is simple: no monthly fee, ${VANTA_PRICING_CONTRACT.successFeeRateDisplay} only after a supported action succeeds, and ${VANTA_PRICING_COPY.passThrough.toLowerCase()}`;
 
 export const docsPages: DocsPageMeta[] = [
   {
     slug: "/docs",
     title: "Vanta Docs",
     summary:
-      "A simple guide to Vanta's private-state system, product paths, and trust surfaces.",
+      "Start here for the plain-English version: what Vanta is, what works today, and what is still unfinished.",
     track: "shared",
     section: "home",
     badge: "design-partner-surface",
@@ -75,7 +75,7 @@ export const docsPages: DocsPageMeta[] = [
     slug: "/docs/portal",
     title: "Vanta Portal",
     summary:
-      "Enter private state, move through crypto-native flows, and understand how Vanta starts from shielded state instead of public balances.",
+      "Portal is the wallet side of Vanta: move supported assets into Vanta, use supported private actions, and move out again when needed.",
     track: "portal",
     section: "portal",
     badge: "preview",
@@ -93,7 +93,7 @@ export const docsPages: DocsPageMeta[] = [
     slug: "/docs/pay",
     title: "Vanta Pay",
     summary:
-      "The forward-looking merchant settlement direction, with today's demo and control-plane surfaces labeled clearly and honestly.",
+      "Pay is the merchant side of Vanta: checkout, settlement status, refunds, withdrawals, and receipts without protocol vocabulary.",
     track: "pay",
     section: "pay",
     badge: "forward-looking",
@@ -112,7 +112,7 @@ export const docsPages: DocsPageMeta[] = [
     slug: "/docs/trust",
     title: "Trust",
     summary:
-      "Trust in Vanta comes from clear approval boundaries, operator-visible truth, and verification surfaces that stay aligned with the product story.",
+      "Trust means the product says plainly what is live, what is a preview, who approves each step, and what commands prove it.",
     track: "shared",
     section: "trust",
     badge: "live-now",
@@ -130,7 +130,7 @@ export const docsPages: DocsPageMeta[] = [
     slug: "/docs/security",
     title: "Security",
     summary:
-      "Security explains the privacy model Vanta uses today, the limits that still matter, and why the product is not yet production-ready.",
+      "Security explains the current limits in normal language, including why Vanta is not production-ready yet.",
     track: "shared",
     section: "security",
     badge: "live-now",
@@ -165,7 +165,7 @@ export const docsPages: DocsPageMeta[] = [
     slug: "/docs/roadmap",
     title: "Roadmap",
     summary:
-      "The roadmap connects today's Portal foundations to the merchant-first Pay direction without pretending the final network already exists.",
+      "The roadmap shows how today's wallet and merchant previews can grow into the larger Vanta system without pretending it is finished.",
     track: "shared",
     section: "roadmap",
     badge: "forward-looking",

@@ -28,7 +28,7 @@ const KNOWN_ASSET_LABELS: Record<string, { label: string; symbol: string }> = {
   },
 };
 
-for (const asset of listLiveShieldTokenAssets()) {
+for (const asset of listLiveShieldTokenAssets({ configuredOnly: false })) {
   if (!asset.mintAddress) {
     continue;
   }

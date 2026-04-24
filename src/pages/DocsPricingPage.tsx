@@ -23,17 +23,18 @@ export function DocsPricingPage() {
         <h2>Launch-stage pricing direction</h2>
         <p>{VANTA_PRICING_COPY.headline}</p>
         <p>
-          This page describes Vanta&apos;s current docs and product pricing
-          direction. The goal is to stay simple and truthful while the product
-          remains narrow, not to imply broader live billing coverage than the
-          rest of the product story supports.
+          This page explains pricing in the same plain terms the product should
+          use with early users. Vanta is keeping the launch package narrow:
+          no monthly subscription, a success fee only when a supported action
+          actually works, and separate pass-through costs when outside services
+          are involved.
         </p>
       </section>
 
       <section className="docs-page-section">
         <h2>What the current contract includes</h2>
         <p>
-          Where Vanta shows a supported paid action, this is the pricing shape
+          When Vanta shows a supported paid action, this is the pricing shape
           the docs point to today.
         </p>
         <div className="docs-connection-grid">
@@ -61,7 +62,7 @@ export function DocsPricingPage() {
           <strong>{VANTA_PRICING_CONTRACT.successFeeRateDisplay} on success.</strong>
           <p>
             Vanta charges only when a supported action completes successfully.
-            Preview checkout, design-partner-only surfaces, and passive docs or
+            Preview checkout, design-partner-only surfaces, and passive
             dashboard reading do not start billing. Network, off-ramp, and
             third-party execution costs are shown separately when they apply.
           </p>
@@ -82,8 +83,8 @@ export function DocsPricingPage() {
               <span>{index + 1}</span>
               <strong>{label}</strong>
               <p>
-                Shown separately when the action requires it instead of being
-                folded into the Vanta fee or hidden inside vague pricing copy.
+                Shown separately when the action needs it, instead of being
+                hidden inside the Vanta fee.
               </p>
             </article>
           ))}
@@ -91,10 +92,9 @@ export function DocsPricingPage() {
         <div className="docs-callout docs-callout--warm">
           <strong>Pricing should stay aligned with product truth.</strong>
           <p>
-            The current launch-stage direction is intentionally narrow. It
-            should not be read as a promise that every future Vanta surface is
-            already billable, already live, or already part of a finished
-            merchant package.
+            The current launch-stage direction is intentionally narrow. It is
+            not a promise that every future Vanta surface is already billable,
+            live, or part of a finished merchant package.
           </p>
         </div>
       </section>

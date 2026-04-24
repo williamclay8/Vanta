@@ -47,7 +47,7 @@ export const VANTA_PRIVATE_CORE_DOMAIN_TAGS_V0 = {
   sendProofStatement: "vanta.private-core.send-proof-statement.v0",
 } as const;
 export const VANTA_PRIVATE_CORE_MERKLE_ODD_LEAF_PADDING_RULE_V0 = "duplicate-last" as const;
-export const VANTA_PRIVATE_CORE_PROOF_SYSTEM_V0 = "groth16-first" as const;
+export const VANTA_PRIVATE_CORE_PROOF_SYSTEM_V0 = "noir-acir-ultrahonk-bbjs" as const;
 
 export type Bytes32Hex = `0x${string}`;
 export type Bytes12Hex = `0x${string}`;

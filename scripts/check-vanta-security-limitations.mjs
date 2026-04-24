@@ -19,7 +19,8 @@ const requiredPhrases = [
   "No anonymity-set claim",
   "Status surfaces report productionReady: false",
   "Browser-exposed operator tokens are not production secrets",
-  "Live mainnet submission remains disabled",
+  "Live mainnet submission mode can be enabled in bounded operator windows",
+  "real-funds actions still require explicit approval",
   "Never request, store, or handle private keys, seed phrases, or keypair files",
 ];
 
