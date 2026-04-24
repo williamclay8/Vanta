@@ -13,6 +13,7 @@
   "nullifierReplayGuardStorageMode": "postgres-unique-index",
   "nullifierReplayGuardProductionReady": false,
   "roleServiceNetworkReplayBarrier": "verifier-receipt-idempotency-and-indexer-nullifier-registration",
+  "roleServiceReplayEvidenceRef": "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
   "roleServiceNetworkReplayRef": "npm run private-pool-v2:service-network-check",
   "roleServiceNetworkReplayVerified": true,
   "productionSmokeReplaySimulationRef": "ops/mainnet/private-pool-v2-production-smoke.evidence.json#nullifier-replay-simulation",
@@ -23,6 +24,6 @@
   "protocolEnforcementFinalLayerProductionReady": false,
   "operatorStatusProductionReady": false,
   "safety": "No auth token values, database URLs, bearer values, wallet keys, or signed transaction material are stored in this evidence file.",
-  "deploymentTruth": "This evidence records the deployed operator-side replay reservation barrier, the verified role-service duplicate receipt and nullifier barrier, and the no-real-funds production smoke replay rejection without claiming the final protocol enforcement layer is complete.",
-  "nextOperatorAction": "Keep the authenticated production nullifier replay status command, role-service replay verification, and production smoke replay simulation fresh while the final protocol enforcement layer remains explicitly incomplete."
+  "deploymentTruth": "This evidence records the deployed operator-side replay reservation barrier, the checked role-service replay packet covering duplicate verifier receipt rejection and indexer-backed nullifier registration, and the no-real-funds production smoke replay rejection without claiming the final protocol enforcement layer is complete.",
+  "nextOperatorAction": "Keep the authenticated production nullifier replay status command, the checked role-service replay packet, and the production smoke replay simulation fresh while the final protocol enforcement layer remains explicitly incomplete."
 }

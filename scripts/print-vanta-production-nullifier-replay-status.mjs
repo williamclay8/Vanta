@@ -103,6 +103,7 @@ function summarize(config, payload, status) {
     runtimeProductionReady: payload.runtime?.productionReady ?? false,
     roleServiceNetworkReplayBarrier:
       "verifier-receipt-idempotency-and-indexer-nullifier-registration",
+    roleServiceReplayEvidenceRef: "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
     roleServiceNetworkReplayRef: "npm run private-pool-v2:service-network-check",
     roleServiceNetworkReplayVerified: true,
     safety:
@@ -175,6 +176,7 @@ const result = response.parsed
       rateLimitPerMinute: null,
       rateLimiter: null,
       roleServiceNetworkReplayBarrier: "verifier-receipt-idempotency-and-indexer-nullifier-registration",
+      roleServiceReplayEvidenceRef: "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
       roleServiceNetworkReplayRef: "npm run private-pool-v2:service-network-check",
       roleServiceNetworkReplayVerified: true,
       runtimeMode: null,
@@ -232,6 +234,10 @@ if (checkMode) {
     result.roleServiceNetworkReplayBarrier,
     "verifier-receipt-idempotency-and-indexer-nullifier-registration",
     "Replay status must expose the role-service replay barrier truth.",
+  );
+  assert.equal(
+    result.roleServiceReplayEvidenceRef,
+    "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
   );
   assert.equal(result.roleServiceNetworkReplayRef, "npm run private-pool-v2:service-network-check");
   assert.equal(result.roleServiceNetworkReplayVerified, true);

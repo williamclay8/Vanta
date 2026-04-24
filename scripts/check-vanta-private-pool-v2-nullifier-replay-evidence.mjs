@@ -77,6 +77,10 @@ assert.equal(
   "verifier-receipt-idempotency-and-indexer-nullifier-registration",
   "Evidence must keep the role-service replay barrier explicit.",
 );
+assert.equal(
+  evidence.roleServiceReplayEvidenceRef,
+  "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
+);
 assert.equal(evidence.roleServiceNetworkReplayRef, "npm run private-pool-v2:service-network-check");
 assert.equal(evidence.roleServiceNetworkReplayVerified, true);
 assert.equal(
