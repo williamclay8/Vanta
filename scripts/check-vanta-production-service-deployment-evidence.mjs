@@ -43,7 +43,7 @@ assert.equal(evidence.routeHealthPublicPassed, true);
 assert.equal(evidence.routeHealthAuthenticatedPassed, true);
 assert.equal(evidence.services.length, 5);
 for (const service of evidence.services) {
-  assert.equal(service.deploymentStatus, "deployed-render-production-not-ready");
+  assert.equal(service.deploymentStatus, "deployed-render-verified-pending-controls");
 }
 assert.ok(
   evidence.deploymentTruth.includes("deployed on Render"),

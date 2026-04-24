@@ -11,7 +11,7 @@ const services = [
   {
     id: "indexer",
     label: "Private Pool v2 Indexer",
-    deploymentStatus: "deployed-render-production-not-ready",
+    deploymentStatus: "deployed-render-verified-pending-controls",
     requiredChecks: ["commitment-append-order", "merkle-root-reconstruction", "restart-restore"],
     requiredEndpoints: ["/health", "/v1/commitments", "/v1/roots/latest", "/v1/nullifiers/:nullifier"],
     requiredEnv: [
@@ -24,7 +24,7 @@ const services = [
   {
     id: "relayer",
     label: "Private Pool v2 Relayer",
-    deploymentStatus: "deployed-render-production-not-ready",
+    deploymentStatus: "deployed-render-verified-pending-controls",
     requiredChecks: ["quote-expiry", "quote-replay-rejection", "submission-idempotency"],
     requiredEndpoints: ["/health", "/v1/claims/quote", "/v1/claims/submit"],
     requiredEnv: [
@@ -37,7 +37,7 @@ const services = [
   {
     id: "prover",
     label: "Private Pool v2 Prover",
-    deploymentStatus: "deployed-render-production-not-ready",
+    deploymentStatus: "deployed-render-verified-pending-controls",
     requiredChecks: ["verifying-key-match", "public-input-binding", "proof-artifact-reproducibility"],
     requiredEndpoints: ["/health", "/v1/proofs", "/v1/proofs/health", "/v1/proofs/verify"],
     requiredEnv: [
@@ -50,7 +50,7 @@ const services = [
   {
     id: "verifier",
     label: "Private Pool v2 Verifier Registry",
-    deploymentStatus: "deployed-render-production-not-ready",
+    deploymentStatus: "deployed-render-verified-pending-controls",
     requiredChecks: ["proof-rejection", "receipt-idempotency", "verifier-key-registry"],
     requiredEndpoints: ["/health", "/v1/proofs/accept"],
     requiredEnv: [
@@ -63,7 +63,7 @@ const services = [
   {
     id: "operator",
     label: "Vanta Operator Gateway",
-    deploymentStatus: "deployed-render-production-not-ready",
+    deploymentStatus: "deployed-render-verified-pending-controls",
     requiredChecks: ["service-auth", "settlement-idempotency", "conflicting-replay-rejection"],
     requiredEndpoints: ["/health", "/state/private-pool-v2-status", "/private-pool-v2/protocol-settlements", "/private-pool-v2/pay-settlements"],
     requiredEnv: [

@@ -25,23 +25,23 @@
   "services": [
     {
       "id": "indexer",
-      "deploymentStatus": "deployed-render-production-not-ready"
+      "deploymentStatus": "deployed-render-verified-pending-controls"
     },
     {
       "id": "relayer",
-      "deploymentStatus": "deployed-render-production-not-ready"
+      "deploymentStatus": "deployed-render-verified-pending-controls"
     },
     {
       "id": "prover",
-      "deploymentStatus": "deployed-render-production-not-ready"
+      "deploymentStatus": "deployed-render-verified-pending-controls"
     },
     {
       "id": "verifier",
-      "deploymentStatus": "deployed-render-production-not-ready"
+      "deploymentStatus": "deployed-render-verified-pending-controls"
     },
     {
       "id": "operator",
-      "deploymentStatus": "deployed-render-production-not-ready"
+      "deploymentStatus": "deployed-render-verified-pending-controls"
     }
   ],
   "safety": "No auth token values, database URLs, bearer values, wallet keys, or signed transaction material are stored in this evidence file.",

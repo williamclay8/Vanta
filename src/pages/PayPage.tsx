@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
+import { VANTA_PAY_MERCHANT_DEMO_CONTENT } from "@/pay/vantaPayMerchantDemoContent";
 import { VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY } from "@/pay/vantaPayPrivateSettlementAdapter";
 
 type PayView = "link" | "invoice" | "checkout" | "withdraw";
@@ -11,6 +12,10 @@ const payViews = [
   { id: "checkout", label: "Checkout" },
   { id: "withdraw", label: "Withdraw" },
 ] satisfies readonly { id: PayView; label: string }[];
+
+function toSentenceCase(value: string) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
 
 function PayButton({
   children,
@@ -192,6 +197,23 @@ function CheckoutView() {
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [asset, setAsset] = useState("USDC");
+  const detailCards = [
+    {
+      title: "Refund review",
+      state: `${toSentenceCase(VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY.refundState)} refund state`,
+      description: "Receipt-linked refund controls stay inside the Pay rail.",
+    },
+    {
+      title: "Withdrawal review",
+      state: `${toSentenceCase(VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY.withdrawalState)} withdrawal state`,
+      description: "Destination and settlement state stay policy-bound before action.",
+    },
+    {
+      title: "Reconciliation snapshot",
+      state: `${toSentenceCase(VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY.reconciliationState)} reconciliation state`,
+      description: "Receipts, balances, and settlement state remain legible.",
+    },
+  ] as const;
 
   return (
     <div className="pay-view pay-view--checkout">
@@ -257,22 +279,19 @@ function CheckoutView() {
           </div>
         </section>
         <div className="pay-detail-grid">
-          <div className="pay-detail-card">
-            <span>Refund review</span>
-            <strong>Merchant-visible refund state</strong>
-            <small>Receipt-linked refund controls stay inside the Pay rail.</small>
-          </div>
-          <div className="pay-detail-card">
-            <span>Withdrawal review</span>
-            <strong>Merchant-visible withdrawal state</strong>
-            <small>Destination and settlement state stay policy-bound before action.</small>
-          </div>
-          <div className="pay-detail-card">
-            <span>Reconciliation snapshot</span>
-            <strong>Merchant-visible reconciliation state</strong>
-            <small>Receipts, balances, and settlement state remain legible.</small>
-          </div>
+          {detailCards.map((card) => (
+            <div className="pay-detail-card" key={card.title}>
+              <span>{card.title}</span>
+              <strong>{card.state}</strong>
+              <small>{card.description}</small>
+            </div>
+          ))}
         </div>
+        <aside className="pay-demo-card">
+          <span className="pay-kicker">{VANTA_PAY_MERCHANT_DEMO_CONTENT.eyebrow}</span>
+          <h3>{VANTA_PAY_MERCHANT_DEMO_CONTENT.title}</h3>
+          <p>{VANTA_PAY_MERCHANT_DEMO_CONTENT.body}</p>
+        </aside>
         <div className="pay-result-line pay-result-line--muted" role="status">
           <span>Settlement lifecycle</span>
           <strong>{VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY.lifecycleModel}</strong>

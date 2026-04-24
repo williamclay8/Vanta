@@ -200,7 +200,7 @@ assert.deepEqual(
   ["indexer", "relayer", "prover", "verifier", "operator"],
 );
 for (const service of snapshot.productionServiceDeployment.serviceDeploymentStatuses) {
-  assert.equal(service.deploymentStatus, "deployed-render-production-not-ready");
+  assert.equal(service.deploymentStatus, "deployed-render-verified-pending-controls");
 }
 assert.ok(snapshot.productionServiceDeployment.nextOperatorAction.includes("route-health"));
 assert.ok(snapshot.productionServiceDeployment.nextOperatorAction.includes("production smoke"));

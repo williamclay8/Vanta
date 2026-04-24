@@ -7,6 +7,7 @@ This page explains the current trust surface in simple terms:
 - what Vanta keeps private
 - which payment steps are policy-bound
 - how refunds, withdrawals, and reconciliation remain merchant-visible
+- how the real Pay demo now frames the merchant control plane for design partners
 - which commands prove the current trust surface
 
 ## What stays private
@@ -30,6 +31,19 @@ Current merchant-visible states include:
 - refund state
 - withdrawal state
 - reconciliation state
+
+The real Pay demo now shows:
+
+- merchant operations
+- approval boundary
+- refund / withdrawal / reconciliation detail states
+- design-partner-facing settlement framing
+
+The shared design-partner layer is currently:
+
+- eyebrow: `Design partner preview`
+- title: `Merchant pilot`
+- body: `Private settlement without protocol overhead.`
 
 The approval packet keeps the action boundary fixed as:
 

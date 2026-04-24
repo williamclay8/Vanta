@@ -12,7 +12,7 @@ const requiredServices = ["indexer", "relayer", "prover", "verifier", "operator"
 for (const serviceId of requiredServices) {
   const service = contract.services.find((candidate) => candidate.id === serviceId);
   assert.ok(service, `Missing production service contract for ${serviceId}.`);
-  assert.equal(service.deploymentStatus, "deployed-render-production-not-ready");
+  assert.equal(service.deploymentStatus, "deployed-render-verified-pending-controls");
   assert.ok(service.requiredEnv.length > 0, `${serviceId} must declare required environment variables.`);
   assert.ok(service.requiredEndpoints.length > 0, `${serviceId} must declare required endpoints.`);
   assert.ok(service.requiredChecks.length > 0, `${serviceId} must declare required checks.`);

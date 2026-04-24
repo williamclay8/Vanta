@@ -488,6 +488,7 @@ The merchant trust surface is documented in `docs/pay-merchant-trust-surface.md`
 
 The current Pay layer covers:
 - commerce-only Pay tab copy with no protocol vocabulary in the merchant/buyer flow
+- the real `/app/pay` checkout surface now doubles as the merchant demo/control plane, showing merchant operations, approval-boundary framing, refund / withdrawal / reconciliation detail states, and a shared design-partner preview panel
 - static Pay contract check through `npm run pay:contract-check`
 - human and JSON Pay status surfaces through `npm run pay:status` and `npm run pay:status-json`, including `productionReady: false`
 - merchant trust status through `npm run pay:merchant-trust-status` and `npm run pay:merchant-trust-status-check`, freezing `controlled-privacy` plus `legible-trust` as the current merchant-facing trust model
@@ -503,6 +504,7 @@ The current Pay layer covers:
   - `refundState = merchant-visible`
   - `withdrawalState = merchant-visible`
   - `reconciliationState = merchant-visible`
+- shared demo framing through `src/pay/vantaPayMerchantDemoContent.ts`, freezing `Design partner preview`, `Merchant pilot`, and `Private settlement without protocol overhead.` across the real Pay UI and supporting docs
 - production startup guard requiring Private Pool v2 operator settlement via `VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_URL`
 - production startup guard requiring bearer-token forwarding to the Private Pool v2 operator via `VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN`
 - receipt creation with selective audit-disclosure references
