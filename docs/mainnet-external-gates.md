@@ -189,20 +189,30 @@ Purpose: prevent blind signing and prevent accidental mainnet transactions.
 
 Evidence needed:
 
+- `ops/mainnet/wallet-signing-safety.evidence.json`
 - browser-backed simulation evidence
 - transaction-summary evidence
 - explicit approval evidence for any mainnet signature path
 - blind-signing rejection evidence
+- deployed production browser-backed verification evidence for:
+  - Shield
+  - Send
+  - Swap
+  - Unshield
 
 Verification:
 
 ```bash
+npm run mainnet:wallet-signing-status
+npm run mainnet:wallet-signing-evidence-check
 npm run wallet:signing-safety-check
 npm run wallet:browser-signing-safety-check
 npm run wallet:transaction-safety-check
 npm run protocol:browser-check
 npm run pay:browser-check
 ```
+
+Current checked truth: the local/browser wallet-signing boundary is green, live mainnet submission remains explicitly blocked, and the remaining missing proof is deployed production browser-backed verification for Shield, Send, Swap, and Unshield.
 
 ### Third-party security audit
 

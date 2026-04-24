@@ -176,12 +176,14 @@
       "status": "blocked",
       "externalGate": true,
       "owner": "wallet-product-and-security",
-      "summary": "Complete browser-backed wallet signing review before any live transaction path requests real signatures.",
+      "summary": "Keep wallet signing behind simulation, summary, and explicit approval while the deployed production app still has no recorded browser-backed verification for Shield, Send, Swap, or Unshield.",
       "requiredEvidence": [
+        "ops/mainnet/wallet-signing-safety.evidence.json checked wallet-signing evidence packet",
         "browser-backed simulation evidence",
         "wallet approval summary screenshots or test artifacts",
         "mainnet transaction gating evidence",
-        "blind-signing rejection evidence"
+        "blind-signing rejection evidence",
+        "deployed production browser-backed verification evidence for Shield, Send, Swap, and Unshield"
       ],
       "forbiddenInGit": [
         "wallet private keys",
@@ -190,13 +192,15 @@
         "signed real-fund transactions"
       ],
       "verificationCommands": [
+        "npm run mainnet:wallet-signing-status",
+        "npm run mainnet:wallet-signing-evidence-check",
         "npm run wallet:signing-safety-check",
         "npm run wallet:browser-signing-safety-check",
         "npm run wallet:transaction-safety-check",
         "npm run protocol:browser-check",
         "npm run pay:browser-check"
       ],
-      "approvalGate": "wallet signing is simulated, summarized, and explicitly approved before any mainnet signature"
+      "approvalGate": "wallet signing is simulated, summarized, and explicitly approved before any mainnet signature, and deployed production browser-backed verification exists for Shield, Send, Swap, and Unshield"
     },
     {
       "id": "third-party-security-audit",
