@@ -185,15 +185,6 @@ const requiredCommands = [
   "npm run build",
 ];
 
-const nextActions = [
-  "Execute only the approved bounded beta mainnet private-pool smoke while the approval window is active, or record a new bounded approval window before changing the action, launch window, fee payer, or maximum funds at risk.",
-  "Keep the service-deployment packet, green route-health, green replay verification, and green no-real-funds production smoke evidence fresh while observability and backup/restore maturity remain incomplete.",
-  "Keep operator-skipped controls visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
-  "Keep the abuse/observability status/evidence surface fresh while provider-backed log sink, dashboards, alerts, retention, and incident workflow controls remain explicitly pending.",
-  "Keep the deployed operator replay-status evidence, the Postgres-backed nullifier replay guard, role-service replay verification, and production smoke replay simulation fresh while no-real-funds smoke remains the only live settlement proof, audited shared-anonymity-set evidence remains unavailable, and live mainnet private settlement stays unavailable.",
-  "Keep the wallet-signing status/evidence surface, four-page local browser verification, deployed browser verification, and live-send inventory commands fresh while the public app still serves the beta-mode and private-settlement-offline banners and live mainnet submission stays explicitly blocked.",
-];
-
 export function createVantaMainnetReadinessSnapshot() {
   const score = Math.round(
     Object.values(lanes).reduce((sum, lane) => sum + lane.readiness, 0) / Object.keys(lanes).length,
@@ -206,6 +197,16 @@ export function createVantaMainnetReadinessSnapshot() {
   const walletSigning = createVantaWalletSigningStatus();
   const privatePoolV2ProductionSmoke = createVantaPrivatePoolV2ProductionSmokeStatus();
   const productionServiceDeployment = createVantaProductionServiceDeploymentStatus();
+  const nextActions = [
+    realFundsApproval.liveMainnetActionsAllowedNow
+      ? "Execute only the approved bounded beta mainnet private-pool smoke during the active approval window; record a new bounded approval packet before changing the action, launch window, fee payer, or maximum funds at risk."
+      : "Record a new bounded approval window before any live mainnet private-pool action or real-funds movement.",
+    "Keep the service-deployment packet, green route-health, green replay verification, and green no-real-funds production smoke evidence fresh while observability and backup/restore maturity remain incomplete.",
+    "Keep operator-skipped controls visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
+    "Keep the abuse/observability status/evidence surface fresh while provider-backed log sink, dashboards, alerts, retention, and incident workflow controls remain explicitly pending.",
+    "Keep the deployed operator replay-status evidence, the Postgres-backed nullifier replay guard, role-service replay verification, and production smoke replay simulation fresh while no-real-funds smoke remains the only live settlement proof, audited shared-anonymity-set evidence remains unavailable, and live mainnet private settlement stays unavailable.",
+    "Keep the wallet-signing status/evidence surface, four-page local browser verification, deployed browser verification, and live-send inventory commands fresh while the public app still serves the beta-mode and private-settlement-offline banners and live mainnet submission stays explicitly blocked.",
+  ];
 
   return {
     version: "vanta-mainnet-readiness-0.1",
