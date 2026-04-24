@@ -30,6 +30,13 @@ Production Private Pool v2 needs separate deployed services or externally manage
 
 The current repo has the remote service client boundary at `src/privacy/privatePoolV2RemoteServices.ts` and a checked role-service network at `operator/private-pool-v2-service-network.mjs`. `npm run private-pool-v2:service-network-check` verifies public health, bearer-authenticated readiness, a prover-to-verifier proof roundtrip, verifier-to-indexer commitment append, duplicate receipt rejection, and relayer quote generation using no-real-funds deterministic inputs. This proves the deployable service shape, not live production readiness.
 
+The same barrier is also frozen into a checked operator-facing packet:
+
+- `npm run mainnet:role-service-replay-status`
+- `npm run mainnet:role-service-replay-status-check`
+- `ops/mainnet/private-pool-v2-role-service-replay.evidence.json`
+- `npm run mainnet:role-service-replay-evidence-check`
+
 The same check also starts `npm run private-pool-v2:operator` with `VANTA_PRIVATE_POOL_V2_RUNTIME_MODE=remote-services` against the four local role services and completes a deterministic Pay settlement through that network. Local loopback smoke uses `VANTA_PRIVATE_POOL_V2_ALLOW_INSECURE_LOOPBACK_REMOTE_SERVICES=true`; do not set that flag outside localhost test/smoke contexts. Production remote services must use HTTPS URLs.
 
 For local/staging restart evidence, the role services can use:

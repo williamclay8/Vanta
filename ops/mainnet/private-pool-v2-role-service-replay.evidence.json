@@ -1,0 +1,19 @@
+{
+  "version": "vanta-production-role-service-replay-evidence-0.1",
+  "mainnetReady": false,
+  "productionReady": false,
+  "lastStatusRef": "npm run mainnet:role-service-replay-status-check",
+  "roleServiceNetworkRef": "npm run private-pool-v2:service-network-check",
+  "roleStorageRef": "npm run private-pool-v2:role-storage-check",
+  "serviceTopologyRef": "npm run mainnet:service-topology-check",
+  "serviceDeploymentEvidenceRef": "ops/mainnet/service-deployment.evidence.json",
+  "remoteRuntimeMode": "remote-services",
+  "barrierKind": "verifier-receipt-idempotency-and-indexer-nullifier-registration",
+  "localOnlyVerification": true,
+  "operatorRemoteServicesSettlementSmokeCovered": true,
+  "restartRestorationCoveredRoles": ["indexer", "prover", "relayer", "verifier"],
+  "verifierToIndexerRequiredChecks": ["root-currentness-smoke", "nullifier-replay-smoke"],
+  "safety": "No auth token values, database URLs, bearer values, wallet keys, or signed transaction material are stored in this evidence file.",
+  "deploymentTruth": "This evidence records the checked role-service replay barrier proven by the deterministic local/staging service-network harness: authenticated readiness, prover-to-verifier proof roundtrip, verifier-to-indexer commitment append, duplicate verifier receipts rejected, nullifier registration enforced through the indexer edge, restart-safe restoration across indexer/prover/relayer/verifier, and a no-real-funds operator remote-services settlement smoke. It is not live production settlement evidence.",
+  "nextOperatorAction": "Keep the role-service replay status and evidence fresh while the barrier remains proven through the deterministic service-network harness and while live production settlement evidence remains pending."
+}

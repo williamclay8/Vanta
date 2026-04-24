@@ -121,6 +121,8 @@ const requiredCommands = [
   "npm run nullifier:replay-guard-check",
   "npm run mainnet:nullifier-replay-status",
   "npm run mainnet:nullifier-replay-evidence-check",
+  "npm run mainnet:role-service-replay-status",
+  "npm run mainnet:role-service-replay-evidence-check",
   "npm run mainnet:deployment-manifest-check",
   "npm run mainnet:private-rail-route-status-check",
   "npm run mainnet:private-rail-route-health",

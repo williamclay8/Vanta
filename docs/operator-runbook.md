@@ -351,6 +351,20 @@ npm run mainnet:nullifier-replay-evidence-check
 
 It records the deployed operator replay mode, replay storage mode, durable-store status, runtime mode, the verified role-service replay barrier, the no-real-funds production smoke replay rejection, and the explicit current protocol enforcement layer. The current checked operator layer is `operator-claim-preflight-and-accepted-reservation-only`, and the evidence keeps `finalLayerImplemented: false` and `finalLayerProductionReady: false` until replay enforcement moves beyond the operator-side reservation guard.
 
+The checked role-service replay barrier surface is:
+
+```bash
+npm run mainnet:role-service-replay-status
+npm run mainnet:role-service-replay-status-check
+```
+
+```text
+ops/mainnet/private-pool-v2-role-service-replay.evidence.json
+npm run mainnet:role-service-replay-evidence-check
+```
+
+It records the deterministic local/staging barrier proven by `npm run private-pool-v2:service-network-check`: authenticated role-service readiness, prover-to-verifier proof roundtrip, verifier-to-indexer commitment append, duplicate verifier receipt rejection, nullifier registration through the verifier-to-indexer edge, restart restoration across indexer/prover/relayer/verifier, and a no-real-funds operator remote-services settlement smoke. It is an explicit role-service barrier packet, not live production settlement evidence.
+
 For a faster focused check:
 
 ```bash

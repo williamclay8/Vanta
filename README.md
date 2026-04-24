@@ -462,6 +462,10 @@ Current staging deployment refs:
 - The deployed operator replay-status surface is `npm run mainnet:nullifier-replay-status`. Run `npm run mainnet:nullifier-replay-status-auth` from a Doppler-backed shell when you want authenticated live operator status, and use `ops/mainnet/private-pool-v2-nullifier-replay.evidence.json` as the checked evidence file.
 - That replay evidence also keeps the layered truth explicit: deployed operator reservation, verified role-service duplicate receipt/nullifier rejection, and no-real-funds production smoke replay rejection.
 - That replay evidence now freezes the current protocol enforcement truth as `operator-claim-preflight-and-accepted-reservation-only` with the final protocol layer still explicitly incomplete.
+- The role-service replay barrier now also has its own checked surface:
+  - `npm run mainnet:role-service-replay-status`
+  - `npm run mainnet:role-service-replay-evidence-check`
+  - `ops/mainnet/private-pool-v2-role-service-replay.evidence.json`
 - The bounded real-funds approval record now also has a live status surface:
   - `npm run mainnet:real-funds-approval-status`
   - `npm run mainnet:real-funds-approval-status-check`

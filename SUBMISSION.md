@@ -202,6 +202,28 @@ Staging deployment truth:
 - Production observability refs are templated in `ops/mainnet/production-observability.template.json` without provider tokens, webhook URLs, source tokens, or raw secrets.
 - This is staging-only. It is not a mainnet processor, audited settlement system, custody-safe service, or production privacy claim.
 
+Production deployment truth:
+
+- The production Private Pool v2 role-service network is deployed on Render with separate indexer, prover, relayer, verifier, and operator services recorded in `ops/mainnet/private-pool-v2-services.manifest.json`.
+- The repo now carries a sanitized production route-health surface:
+  - `npm run mainnet:private-rail-route-health`
+  - `npm run mainnet:private-rail-route-health-auth`
+  - `npm run mainnet:private-rail-route-health-evidence-check`
+- The repo now carries a sanitized production nullifier-replay surface:
+  - `npm run mainnet:nullifier-replay-status`
+  - `npm run mainnet:nullifier-replay-status-auth`
+  - `npm run mainnet:nullifier-replay-evidence-check`
+- The repo now carries a sanitized production wallet-signing surface:
+  - `npm run mainnet:wallet-signing-status`
+  - `npm run mainnet:wallet-signing-evidence-check`
+- Fresh no-real-funds production smoke evidence is recorded in `ops/mainnet/private-pool-v2-production-smoke.evidence.json`.
+- Current production truth is intentionally narrow:
+  - the deployed operator exposes durable Postgres-backed replay reservation
+  - the verified role-service network rejects duplicate verifier receipts and conflicting nullifier registration
+  - real private mainnet settlement is still not complete
+  - the deployed operator still reports an in-memory per-process rate limiter instead of the preferred Postgres durable shared-window limiter
+  - `mainnetReady` and `productionReady` remain `false`
+
 The repo now includes an early **Vanta Strategy** verification lane:
 
 - `npm run strategy:planner-check`
@@ -222,7 +244,7 @@ The repo now includes a **mainnet readiness** gate:
 - `npm run mainnet:readiness` / `npm run mainnet:readiness-json`
   prints human and machine-readable readiness status across Pay, Private Core, Private Pool v2, protocol tabs, and Strategy.
 - `npm run mainnet:readiness-check`
-  verifies Vanta remains truthfully blocked from mainnet while real private settlement, deployed services, nullifier enforcement, wallet safety, audits, key management, and legal/custody blockers remain.
+  verifies Vanta remains truthfully blocked while real private settlement, deployed-service hardening, final replay enforcement, wallet-signing evidence, and other remaining operator gates remain.
 - `npm run mainnet:external-gates-check`
   verifies the secrets-safe external-gates packet and beginner-facing launch worksheet remain present.
 - `npm run mainnet:secret-handling-check`
