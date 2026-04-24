@@ -58,6 +58,31 @@ const requiredFiles = [
 
 const failures = [];
 
+function assertFileContains(path, markers) {
+  const absolutePath = resolve(repoRoot, path);
+  if (!existsSync(absolutePath)) {
+    failures.push(`Missing ${path}`);
+    return;
+  }
+
+  const source = readFileSync(absolutePath, "utf8");
+  for (const marker of markers) {
+    if (!source.includes(marker)) {
+      failures.push(`Missing marker ${marker} in ${path}`);
+    }
+  }
+}
+
+assertFileContains("src/pay/vantaPayMerchantCommandCenter.ts", [
+  "vanta-pay-merchant-command-center-0.1",
+  "Privacy readiness",
+  "Production privacy claims are not enabled yet.",
+  "No funds move in beta mode.",
+  "Operator status",
+  "Settlement queue",
+  "Reconciliation",
+]);
+
 for (const file of requiredFiles) {
   const absolutePath = resolve(repoRoot, file.path);
   if (!existsSync(absolutePath)) {

@@ -1,11 +1,22 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const repoRoot = resolve(import.meta.dirname, "..");
-const source = readFileSync(resolve(repoRoot, "src/pages/PayPage.tsx"), "utf8");
+const copySourcePaths = [
+  "src/pages/PayPage.tsx",
+  "src/pay/vantaPayMerchantCommandCenter.ts",
+];
+const source = copySourcePaths
+  .filter((path) => existsSync(resolve(repoRoot, path)))
+  .map((path) => readFileSync(resolve(repoRoot, path), "utf8"))
+  .join("\n");
 
 const requiredPageCopy = [
-  "Create payment",
+  "Merchant command center",
+  "Create a payment request",
+  "Trust rail",
+  "Operations",
+  "Production privacy claims are not enabled yet.",
   "Payment details",
   "What are you collecting for?",
   "Amount",
@@ -15,7 +26,6 @@ const requiredPageCopy = [
   "Pay with Vanta",
   "Payment route preview",
   "Receipt path preview",
-  "Fill in the payment details to preview the request.",
 ];
 
 const bannedCopy = [

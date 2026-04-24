@@ -59,16 +59,18 @@ export function DocsPayPage() {
         <div className="docs-callout docs-callout--warm">
           <strong>Pay is ambitious, but today&apos;s surface stays explicit.</strong>
           <p>
-            The current Pay experience opens on a simple payment-entry flow.
-            It lets people enter payment details, review the request, preview
-            the route and receipt path, and see the beta disabled state without
-            presenting Pay as a finished production payments network.
+            The current Pay experience opens as a Merchant Command Center
+            preview. It keeps payment creation first, then adds a trust rail and
+            read-only operations context for route preview, receipt preview,
+            privacy readiness, operator posture, settlement queue, and
+            reconciliation without presenting Pay as a finished production
+            payments network.
           </p>
         </div>
         <ul className="docs-bullet-list">
-          <li>The default `/app/pay` tab is the simple payment-entry surface today.</li>
+          <li>The default `/app/pay` tab is the Merchant Command Center preview today.</li>
           <li>Merchant API, refunds, withdrawals, and reconciliation stay in backend verification surfaces.</li>
-          <li>Route preview, receipt path preview, and beta state stay visible in the tab.</li>
+          <li>Route preview, receipt path preview, trust rail, privacy-readiness limitation, and beta state stay visible in the tab.</li>
           <li>The settlement story still depends on clear approval boundaries and operator-visible truth.</li>
         </ul>
       </section>
