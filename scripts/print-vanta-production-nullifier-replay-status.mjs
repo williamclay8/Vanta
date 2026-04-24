@@ -122,6 +122,11 @@ function summarize(config, payload, status) {
       "ops/mainnet/private-pool-v2-production-smoke.evidence.json#nullifier-replay-simulation",
     productionSmokeReplaySimulationStatus: productionSmokeReplayTarget.status ?? null,
     productionSmokeReplaySimulationHttpStatus: productionSmokeReplayTarget.replayStatus ?? null,
+    productionReplayBlockedBy: [
+      "no-real-funds-smoke-only",
+      "no-proven-audited-shared-anonymity-set",
+      "no-live-mainnet-private-settlement-path",
+    ],
     protocolEnforcementFinalLayerImplemented: payload.protocolEnforcement?.finalLayerImplemented ?? false,
     protocolEnforcementFinalLayerProductionReady: payload.protocolEnforcement?.finalLayerProductionReady ?? false,
     protocolEnforcementLayer: payload.protocolEnforcement?.layer ?? null,
@@ -170,6 +175,11 @@ const result = response.parsed
       productionSmokeReplaySimulationRef:
         "ops/mainnet/private-pool-v2-production-smoke.evidence.json#nullifier-replay-simulation",
       productionSmokeReplaySimulationStatus: null,
+      productionReplayBlockedBy: [
+        "no-real-funds-smoke-only",
+        "no-proven-audited-shared-anonymity-set",
+        "no-live-mainnet-private-settlement-path",
+      ],
       protocolEnforcementFinalLayerImplemented: false,
       protocolEnforcementFinalLayerProductionReady: false,
       protocolEnforcementLayer: null,
@@ -247,6 +257,11 @@ if (checkMode) {
   );
   assert.equal(result.productionSmokeReplaySimulationStatus, "pass");
   assert.equal(result.productionSmokeReplaySimulationHttpStatus, 400);
+  assert.deepEqual(result.productionReplayBlockedBy, [
+    "no-real-funds-smoke-only",
+    "no-proven-audited-shared-anonymity-set",
+    "no-live-mainnet-private-settlement-path",
+  ]);
   assert.equal(
     result.protocolEnforcementFinalLayerImplemented,
     true,
@@ -275,6 +290,7 @@ if (jsonMode || checkMode) {
   console.log(`- layeredReplayStatus: ${result.layeredReplayStatus}`);
   console.log(`- roleServiceNetworkReplayBarrier: ${result.roleServiceNetworkReplayBarrier}`);
   console.log(`- productionSmokeReplaySimulationStatus: ${result.productionSmokeReplaySimulationStatus}`);
+  console.log(`- productionReplayBlockedBy: ${result.productionReplayBlockedBy.join(", ")}`);
   console.log(`- protocolEnforcementLayer: ${result.protocolEnforcementLayer}`);
   console.log(`- finalProtocolLayerImplemented: ${String(result.protocolEnforcementFinalLayerImplemented)}`);
   console.log(`- rateLimiter: ${result.rateLimiter}`);

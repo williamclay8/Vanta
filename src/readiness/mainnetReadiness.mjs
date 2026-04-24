@@ -22,7 +22,8 @@ const blockers = [
   {
     id: "final-nullifier-replay-enforcement",
     severity: "critical",
-    summary: "Keep the deployed Postgres-backed operator replay guard, verified role-service replay barrier, and no-real-funds production smoke replay rejection fresh while no-real-funds smoke remains the only live settlement proof, audited shared-anonymity-set evidence remains unavailable, and live mainnet private settlement stays unavailable.",
+    summary:
+      "Keep the deployed Postgres-backed operator replay guard, verified role-service replay barrier, and no-real-funds production smoke replay rejection fresh while the checked replay blockers remain no-real-funds-smoke-only, no-proven-audited-shared-anonymity-set, and no-live-mainnet-private-settlement-path.",
   },
   {
     id: "wallet-backed-browser-signing-safety",
@@ -205,7 +206,7 @@ export function createVantaMainnetReadinessSnapshot() {
     `Keep the service-deployment packet, green route-health, green replay verification, and green no-real-funds production smoke evidence fresh while the checked pending production controls remain ${productionServiceDeployment.pendingProductionControls.join(", ")}.`,
     "Keep operator-skipped controls visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
     `Keep the abuse/observability status/evidence surface fresh while the checked pending controls remain ${abuseObservability.pendingObservabilityControls.join(", ")}.`,
-    "Keep the deployed operator replay-status evidence, the Postgres-backed nullifier replay guard, role-service replay verification, and production smoke replay simulation fresh while no-real-funds smoke remains the only live settlement proof, audited shared-anonymity-set evidence remains unavailable, and live mainnet private settlement stays unavailable.",
+    `Keep the deployed operator replay-status evidence, the Postgres-backed nullifier replay guard, role-service replay verification, and production smoke replay simulation fresh while the checked replay blockers remain ${nullifierReplay.productionReplayBlockedBy.join(", ")}.`,
     `Keep the wallet-signing status/evidence surface, four-page local browser verification, deployed browser verification, and live-send inventory commands fresh while the checked public-app blocker set remains ${walletSigning.productionWalletSigningBlockedBy.join(", ")}.`,
   ];
 

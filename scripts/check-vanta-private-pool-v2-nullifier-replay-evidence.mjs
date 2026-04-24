@@ -93,6 +93,11 @@ assert.equal(evidence.productionSmokeReplaySimulationHttpStatus, 400);
 assert.equal(evidence.noRealFundsSmokeOnly, true);
 assert.equal(evidence.auditedSharedAnonymitySetAvailable, false);
 assert.equal(evidence.liveMainnetPrivateSettlementAvailable, false);
+assert.deepEqual(evidence.productionReplayBlockedBy, [
+  "no-real-funds-smoke-only",
+  "no-proven-audited-shared-anonymity-set",
+  "no-live-mainnet-private-settlement-path",
+]);
 assert.equal(
   evidence.protocolEnforcementFinalLayerImplemented,
   true,

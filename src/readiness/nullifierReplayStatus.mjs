@@ -17,6 +17,7 @@ export function createVantaNullifierReplayStatus() {
     protocolEnforcementFinalLayerImplemented: evidence.protocolEnforcementFinalLayerImplemented,
     protocolEnforcementFinalLayerProductionReady: evidence.protocolEnforcementFinalLayerProductionReady,
     protocolEnforcementLayer: evidence.protocolEnforcementLayer,
+    productionReplayBlockedBy: evidence.productionReplayBlockedBy,
     roleServiceNetworkReplayBarrier: evidence.roleServiceNetworkReplayBarrier,
     roleServiceNetworkReplayVerified: evidence.roleServiceNetworkReplayVerified,
     runtimeMode: evidence.runtimeMode,

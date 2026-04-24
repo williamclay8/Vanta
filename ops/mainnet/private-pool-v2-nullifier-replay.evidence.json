@@ -22,6 +22,11 @@
   "noRealFundsSmokeOnly": true,
   "auditedSharedAnonymitySetAvailable": false,
   "liveMainnetPrivateSettlementAvailable": false,
+  "productionReplayBlockedBy": [
+    "no-real-funds-smoke-only",
+    "no-proven-audited-shared-anonymity-set",
+    "no-live-mainnet-private-settlement-path"
+  ],
   "protocolEnforcementLayer": "operator-claim-preflight-plus-verifier-receipt-idempotency-plus-indexer-nullifier-registration",
   "protocolEnforcementFinalLayerImplemented": true,
   "protocolEnforcementFinalLayerProductionReady": false,
