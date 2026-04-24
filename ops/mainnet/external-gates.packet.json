@@ -78,7 +78,7 @@
       "status": "blocked",
       "externalGate": true,
       "owner": "infrastructure-operator",
-      "summary": "Mainnet-compatible indexer, relayer, prover, verifier, and operator services are deployed with health, authenticated readiness, and no-real-funds production smoke evidence. The gate remains blocked until remaining external launch approvals clear.",
+      "summary": "Mainnet-compatible indexer, relayer, prover, verifier, and operator services are deployed with health, authenticated readiness, replay verification, and no-real-funds production smoke evidence. The gate remains blocked while observability controls, backup/restore maturity, and real-funds readiness are still pending.",
       "requiredEvidence": [
         "ops/mainnet/service-deployment.evidence.json checked deployment status packet",
         "ops/mainnet/private-pool-v2-route-health.evidence.json authenticated route-health evidence",
@@ -107,7 +107,7 @@
         "npm run mainnet:private-pool-v2-production-smoke-check",
         "npm run mainnet:production-smoke-evidence-check"
       ],
-      "approvalGate": "remaining external launch approvals clear without secret values"
+      "approvalGate": "observability controls, backup/restore maturity, and real-funds readiness are all externally cleared without secret values"
     },
     {
       "id": "production-storage",

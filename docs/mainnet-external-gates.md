@@ -136,7 +136,7 @@ The production service setup guide is:
 docs/production-private-pool-v2-service-setup.md
 ```
 
-It records the current Render inventory, deployed production indexer/prover/relayer/verifier/operator services, the `VANTA_PRIVATE_POOL_V2_RUNTIME_MODE=remote-services` wiring, and the smoke evidence that has been captured. Vanta still remains blocked on backup/restore evidence, audit, legal/compliance/custody review, and explicit mainnet funds approval.
+It records the current Render inventory, deployed production indexer/prover/relayer/verifier/operator services, the `VANTA_PRIVATE_POOL_V2_RUNTIME_MODE=remote-services` wiring, and the smoke evidence that has been captured. Vanta still remains blocked because observability controls, backup/restore maturity, and real-funds readiness are still pending, and separate audit and legal/compliance/custody gates also remain blocked.
 
 ### Production storage
 
