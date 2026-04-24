@@ -51,12 +51,18 @@ assert.ok(snapshot.realFundsApproval.stopLossPlanRef);
 assert.ok(snapshot.realFundsApproval.maximumFundsAtRiskRef);
 assert.ok(snapshot.realFundsApproval.approvedByRef);
 assert.equal(snapshot.realFundsApproval.liveMainnetActionsAllowedNow, false);
-assert.equal(snapshot.realFundsApproval.approvalWindowStatus, "expired");
+assert.ok(["scheduled", "active", "expired"].includes(snapshot.realFundsApproval.approvalWindowStatus));
 assert.deepEqual(snapshot.realFundsApproval.mainnetFundsBlockedBy, [
   "all-other-mainnet-actions-blocked",
-  "bounded-approval-window-expired",
+  ...(snapshot.realFundsApproval.approvalWindowStatus === "active"
+    ? []
+    : [`bounded-approval-window-${snapshot.realFundsApproval.approvalWindowStatus}`]),
 ]);
-assert.ok(snapshot.realFundsApproval.requiredNextStep.includes("Record a new bounded approval window"));
+assert.ok(
+  snapshot.realFundsApproval.approvalWindowStatus === "active"
+    ? snapshot.realFundsApproval.requiredNextStep.includes("Keep live actions inside")
+    : snapshot.realFundsApproval.requiredNextStep.includes("Record a new bounded approval window"),
+);
 assert.equal(snapshot.privateSettlement.activePrivacyRailId, "vanta-private-pool-v2");
 assert.equal(snapshot.privateSettlement.settlementReadiness, "no-real-funds-production-smoke-only");
 assert.equal(snapshot.privateSettlement.routeHealthPublicPassed, true);
@@ -228,7 +234,7 @@ for (const riskId of [
 assert.ok(
   snapshot.blockers
     .find((blocker) => blocker.id === "no-mainnet-funds-without-explicit-approval")
-    ?.summary.includes("bounded-approval-window-expired"),
+    ?.summary.includes(`bounded-approval-window-${snapshot.realFundsApproval.approvalWindowStatus}`),
   "Funds blocker must preserve bounded approval language.",
 );
 assert.ok(

@@ -15,7 +15,6 @@ if (checkMode) {
   assert.equal(result.meaningfulPrivacyReady, false);
   assert.equal(result.auditedSharedAnonymitySetAvailable, false);
   assert.equal(result.liveMainnetPrivateSettlementAvailable, false);
-  assert.equal(result.boundedRealFundsApprovalWindowActive, false);
   assert.equal(result.privacyClaimAllowed, false);
   assert.equal(result.privacyRailCanClaimMeaningfulPrivacy, false);
   assert.equal(result.settlementReadiness, "no-real-funds-production-smoke-only");
@@ -29,6 +28,11 @@ if (checkMode) {
   assert.ok(
     ["scheduled", "active", "expired"].includes(result.realFundsApprovalWindowStatus),
     "Private settlement status must expose a bounded approval-window status.",
+  );
+  assert.equal(
+    result.boundedRealFundsApprovalWindowActive,
+    result.realFundsApprovalWindowStatus === "active",
+    "boundedRealFundsApprovalWindowActive must mirror the live approval-window status.",
   );
   assert.equal(result.noRealFundsSmokeOnly, true);
 }
