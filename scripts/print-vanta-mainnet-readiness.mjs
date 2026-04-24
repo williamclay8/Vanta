@@ -44,6 +44,16 @@ if (jsonMode) {
   console.log(
     `  - liveMainnetSubmissionEnabled: ${String(snapshot.walletSigning.liveMainnetSubmissionEnabled)}`,
   );
+  console.log("- private pool v2 production smoke:");
+  console.log(`  - realFundsAllowed: ${String(snapshot.privatePoolV2ProductionSmoke.realFundsAllowed)}`);
+  console.log(`  - services: ${snapshot.privatePoolV2ProductionSmoke.serviceIds.join(", ")}`);
+  console.log(
+    `  - smokeTargets: ${snapshot.privatePoolV2ProductionSmoke.smokeTargetStatuses
+      .map((target) =>
+        target.replayStatus === null ? `${target.id}:${target.status}` : `${target.id}:${target.status}:${target.replayStatus}`,
+      )
+      .join(", ")}`,
+  );
   console.log("- lanes:");
   for (const [lane, state] of Object.entries(snapshot.lanes)) {
     console.log(`  - ${lane}: ${state.status} (${state.readiness}/100)`);

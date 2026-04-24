@@ -58,6 +58,44 @@ assert.ok(
   snapshot.walletSigning.deploymentTruth.includes("must still not be presented as a production browser-signing readiness claim"),
 );
 assert.ok(snapshot.walletSigning.nextOperatorAction.includes("wallet-signing status"));
+assert.equal(
+  snapshot.privatePoolV2ProductionSmoke.checkedEvidenceRef,
+  "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
+);
+assert.equal(snapshot.privatePoolV2ProductionSmoke.mainnetReady, false);
+assert.equal(snapshot.privatePoolV2ProductionSmoke.productionReady, false);
+assert.equal(snapshot.privatePoolV2ProductionSmoke.realFundsAllowed, false);
+assert.ok(String(snapshot.privatePoolV2ProductionSmoke.runId).startsWith("prod-smoke-"));
+assert.deepEqual(snapshot.privatePoolV2ProductionSmoke.serviceIds, [
+  "indexer",
+  "prover",
+  "relayer",
+  "verifier",
+  "operator",
+]);
+for (const service of snapshot.privatePoolV2ProductionSmoke.serviceReadinessStatuses) {
+  assert.equal(service.healthOk, true, `${service.id} production smoke health must stay green.`);
+  assert.equal(service.readinessOk, true, `${service.id} production smoke readiness must stay green.`);
+  assert.equal(
+    service.readinessProductionReady,
+    false,
+    `${service.id} production smoke must not overstate production readiness.`,
+  );
+}
+const smokeTargets = new Map(
+  snapshot.privatePoolV2ProductionSmoke.smokeTargetStatuses.map((target) => [target.id, target]),
+);
+for (const targetId of [
+  "service-health",
+  "remote-runtime-readiness",
+  "proof-roundtrip-simulation",
+  "nullifier-replay-simulation",
+  "relayer-claim-submit-simulation",
+  "operator-pay-settlement-simulation",
+]) {
+  assert.equal(smokeTargets.get(targetId)?.status, "pass", `Missing passing smoke target ${targetId}.`);
+}
+assert.equal(smokeTargets.get("nullifier-replay-simulation")?.replayStatus, 400);
 assert.ok(snapshot.score >= 0 && snapshot.score <= 100, "Readiness score must be a percentage.");
 assert.ok(snapshot.blockers.length >= 6, "Mainnet readiness must enumerate concrete blockers.");
 assert.ok(
