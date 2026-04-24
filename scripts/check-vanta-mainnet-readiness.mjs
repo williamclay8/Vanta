@@ -39,6 +39,17 @@ assert.equal(snapshot.nullifierReplay.protocolEnforcementFinalLayerProductionRea
 assert.equal(snapshot.nullifierReplay.roleServiceNetworkReplayVerified, true);
 assert.equal(snapshot.realFundsApproval.realFundsApprovalRecorded, true);
 assert.equal(snapshot.realFundsApproval.approvalRecordStatus, "approved");
+assert.equal(snapshot.realFundsApproval.approvalActionRef, "launch-runbook/vanta-mainnet-beta-001");
+assert.equal(
+  snapshot.realFundsApproval.approvalActionSummary,
+  "Enable beta mainnet private-pool smoke with maximum 0.05 SOL at risk",
+);
+assert.equal(snapshot.realFundsApproval.approvalEnvironment, "mainnet-beta");
+assert.equal(snapshot.realFundsApproval.feePayerRef, "wallet/public-fee-payer-vanta-beta");
+assert.equal(snapshot.realFundsApproval.rollbackPlanRef, "runbook/disable-private-pool-v2-services-and-beta-actions");
+assert.equal(snapshot.realFundsApproval.stopLossPlanRef, "max-0.05-sol-or-first-failed-settlement");
+assert.equal(snapshot.realFundsApproval.maximumFundsAtRiskRef, "0.05 SOL");
+assert.equal(snapshot.realFundsApproval.approvedByRef, "Clay / founder approval / 2026-04-22");
 assert.equal(snapshot.realFundsApproval.liveMainnetActionsAllowedNow, false);
 assert.equal(snapshot.realFundsApproval.approvalWindowStatus, "expired");
 assert.ok(snapshot.realFundsApproval.requiredNextStep.includes("Record a new bounded approval window"));

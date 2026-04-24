@@ -64,10 +64,15 @@ export function createVantaMainnetRealFundsApprovalStatus() {
 
   return {
     approvalActionRef: approval.approvedActionRef,
+    approvalActionSummary: approval.approvedActionSummary,
+    approvalEnvironment: approval.approvedEnvironment,
     approvalRecordStatus: approval.status,
     approvalWindowStatus,
+    approvalWindowRef: approval.approvedLaunchWindowRef,
+    approvedByRef: approval.approvedByRef,
     checkedAt: new Date().toISOString(),
     currentTimeZoneClock: nowKey,
+    feePayerRef: approval.approvedFeePayerRef,
     launchWindowEnd: launchWindow.endKey,
     launchWindowStart: launchWindow.startKey,
     launchWindowTimeZone: launchWindow.timeZone,
@@ -76,12 +81,14 @@ export function createVantaMainnetRealFundsApprovalStatus() {
     maximumFundsAtRiskRef: approval.maximumFundsAtRiskRef,
     productionReady: false,
     realFundsApprovalRecorded: evidence.realFundsAllowed === true,
+    rollbackPlanRef: approval.rollbackPlanRef,
     requiredNextStep:
       approvalWindowStatus === "active"
         ? "Keep live actions inside the exact approved bounded beta action."
         : "Record a new bounded approval window before any live mainnet action.",
     safety:
       "No wallet keys, signed transactions, bearer values, or raw database URLs are printed.",
+    stopLossPlanRef: approval.stopLossPlanRef,
     version: "vanta-mainnet-real-funds-approval-status-0.1",
   };
 }

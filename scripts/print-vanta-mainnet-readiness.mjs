@@ -14,8 +14,13 @@ if (jsonMode) {
   console.log(`- productionReady: ${String(snapshot.productionReady)}`);
   console.log("- real funds approval:");
   console.log(`  - record: ${snapshot.realFundsApproval.approvalRecordStatus}`);
+  console.log(`  - action: ${snapshot.realFundsApproval.approvalActionSummary}`);
   console.log(`  - window: ${snapshot.realFundsApproval.approvalWindowStatus}`);
+  console.log(`  - windowRef: ${snapshot.realFundsApproval.approvalWindowRef}`);
   console.log(`  - allowedNow: ${String(snapshot.realFundsApproval.liveMainnetActionsAllowedNow)}`);
+  console.log(`  - feePayerRef: ${snapshot.realFundsApproval.feePayerRef}`);
+  console.log(`  - stopLossPlanRef: ${snapshot.realFundsApproval.stopLossPlanRef}`);
+  console.log(`  - maximumFundsAtRiskRef: ${snapshot.realFundsApproval.maximumFundsAtRiskRef}`);
   console.log(`  - nextStep: ${snapshot.realFundsApproval.requiredNextStep}`);
   console.log("- private settlement:");
   console.log(`  - rail: ${snapshot.privateSettlement.activePrivacyRailId}`);
