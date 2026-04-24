@@ -176,7 +176,7 @@
       "status": "blocked",
       "externalGate": true,
       "owner": "wallet-product-and-security",
-      "summary": "Keep wallet signing behind simulation, summary, and explicit approval while the deployed production app still has no recorded browser-backed verification for Shield, Send, Swap, or Unshield.",
+      "summary": "Keep wallet signing behind simulation, summary, and explicit approval while the deployed production app now has browser-backed verification for Shield, Send, Swap, and Unshield but still serves the beta-mode and private-settlement-offline banners.",
       "requiredEvidence": [
         "ops/mainnet/wallet-signing-safety.evidence.json checked wallet-signing evidence packet",
         "browser-backed simulation evidence",
@@ -193,6 +193,7 @@
       ],
       "verificationCommands": [
         "npm run mainnet:wallet-signing-status",
+        "npm run mainnet:wallet-production-browser-check",
         "npm run mainnet:wallet-signing-evidence-check",
         "npm run wallet:signing-safety-check",
         "npm run wallet:browser-signing-safety-check",

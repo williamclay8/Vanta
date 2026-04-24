@@ -196,6 +196,7 @@ npm run mainnet:private-rail-route-health
 npm run mainnet:private-rail-route-health-auth
 npm run mainnet:private-rail-route-health-evidence-check
 npm run mainnet:wallet-signing-status
+npm run mainnet:wallet-production-browser-check
 npm run mainnet:wallet-signing-evidence-check
 npm run wallet:signing-safety-check
 npm run wallet:transaction-safety-check
@@ -363,6 +364,7 @@ npm run mainnet:observability-sink-check
 npm run nullifier:replay-guard-check
 npm run mainnet:deployment-manifest-check
 npm run mainnet:wallet-signing-status
+npm run mainnet:wallet-production-browser-check
 npm run mainnet:wallet-signing-evidence-check
 npm run wallet:signing-safety-check
 npm run wallet:transaction-safety-check

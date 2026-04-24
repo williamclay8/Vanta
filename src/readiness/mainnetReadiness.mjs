@@ -26,7 +26,7 @@ const blockers = [
   {
     id: "wallet-backed-browser-signing-safety",
     severity: "critical",
-    summary: "Keep the wallet-signing status/evidence surface fresh while Shield, Send, Swap, and Unshield remain frozen behind safe-send or typed message-intent boundaries, local browser proof stays green, the deployed production app still has no recorded browser-backed verification for Shield, Send, Swap, or Unshield, and live mainnet submission stays explicitly blocked.",
+    summary: "Keep the wallet-signing status/evidence surface fresh while Shield, Send, Swap, and Unshield remain frozen behind safe-send or typed message-intent boundaries, local and deployed browser proof stay green, the public app still serves the beta-mode and private-settlement-offline banners, and live mainnet submission stays explicitly blocked.",
   },
   {
     id: "abuse-rate-limit-observability",
@@ -87,7 +87,7 @@ const lanes = {
   protocolTabs: {
     readiness: 50,
     status: "browser-verified-local",
-    truth: "Shield, Send, Swap, Strategy, and Unshield have browser checks, and the protocol wallet-signing lane now has a sanitized production status/evidence surface proving Shield, Send, Swap, and Unshield live call sites stay behind safe-send or message-intent boundaries with the Umbra adapter fail-closed behind a summary-bound approval gate while browser-backed signing verification explicitly covers Shield, Send, Swap, and Unshield. It is still local/devnet browser verification, not a production browser-signing readiness claim.",
+    truth: "Shield, Send, Swap, Strategy, and Unshield have browser checks, and the protocol wallet-signing lane now has a sanitized production status/evidence surface proving Shield, Send, Swap, and Unshield live call sites stay behind safe-send or message-intent boundaries with the Umbra adapter fail-closed behind a summary-bound approval gate while browser-backed signing verification explicitly covers Shield, Send, Swap, and Unshield on both the local/devnet lane and the deployed public app. It is still not production-ready because the live public app is still explicitly serving the beta-mode and private-settlement-offline banners while live mainnet submission remains blocked.",
   },
   strategy: {
     readiness: 35,
@@ -138,6 +138,7 @@ const requiredCommands = [
   "npm run private-pool-v2:role-storage-check",
   "npm run wallet:signing-safety-check",
   "npm run mainnet:wallet-signing-status",
+  "npm run mainnet:wallet-production-browser-check",
   "npm run mainnet:wallet-signing-evidence-check",
   "npm run wallet:browser-signing-safety-check",
   "npm run wallet:fresh-wallet-check",
@@ -190,7 +191,7 @@ const nextActions = [
   "Keep operator-skipped controls visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
   "Keep the abuse/observability status/evidence surface fresh while provider-backed log sink, dashboards, alerts, retention, and incident workflow controls remain explicitly pending.",
   "Keep the deployed operator replay-status evidence, the Postgres-backed nullifier replay guard, role-service replay verification, and production smoke replay simulation fresh while no-real-funds smoke remains the only live settlement proof, audited shared-anonymity-set evidence remains unavailable, and live mainnet private settlement stays unavailable.",
-  "Keep the wallet-signing status/evidence surface, four-page local browser verification, and live-send inventory commands fresh while the deployed production app still has no recorded browser-backed verification for Shield, Send, Swap, or Unshield and live mainnet submission stays explicitly blocked.",
+  "Keep the wallet-signing status/evidence surface, four-page local browser verification, deployed browser verification, and live-send inventory commands fresh while the public app still serves the beta-mode and private-settlement-offline banners and live mainnet submission stays explicitly blocked.",
 ];
 
 export function createVantaMainnetReadinessSnapshot() {

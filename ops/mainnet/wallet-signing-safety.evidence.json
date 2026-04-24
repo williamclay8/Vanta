@@ -4,17 +4,26 @@
   "productionReady": false,
   "lastStatusRef": "npm run mainnet:wallet-signing-status-check",
   "browserVerificationRef": "npm run wallet:browser-signing-safety-check",
-  "localBrowserVerificationOnly": true,
+  "productionBrowserVerificationRef": "npm run mainnet:wallet-production-browser-check",
+  "productionBrowserVerificationUrl": "https://vantaprivacy.xyz",
+  "localBrowserVerificationOnly": false,
   "productionBrowserVerificationRequiredPages": [
     "Shield",
     "Send",
     "Swap",
     "Unshield"
   ],
-  "productionBrowserVerifiedPages": [],
-  "productionBrowserVerificationCoversRequiredPages": false,
-  "productionBrowserVerificationAvailable": false,
-  "productionBrowserVerificationStatus": "pending",
+  "productionBrowserVerifiedPages": [
+    "Shield",
+    "Send",
+    "Swap",
+    "Unshield"
+  ],
+  "productionBrowserVerificationCoversRequiredPages": true,
+  "productionBrowserVerificationAvailable": true,
+  "productionBrowserVerificationStatus": "recorded-beta-mode-blocked",
+  "productionDeploymentModeBannerVisible": true,
+  "productionSettlementOfflineBannerVisible": true,
   "signingSafetyPolicyRef": "npm run wallet:signing-safety-check",
   "liveSendInventoryRef": "npm run wallet:live-send-inventory-check",
   "liveMainnetSubmissionEnabled": false,
@@ -43,6 +52,6 @@
   "umbraAdapterGateStatus": "wallet-adapter-summary-bound",
   "umbraAdapterSummaryBindingRequired": true,
   "safety": "No wallet keys, seed phrases, signed transaction material, signed intent payloads, bearer values, or database URLs are stored in this evidence file.",
-  "deploymentTruth": "This evidence proves the current live wallet-signing paths are frozen behind checked local/browser safety boundaries across Shield, Send, Swap, and Unshield, that the Umbra wallet adapter is fail-closed behind a summary-bound gate rather than a generic approval window, and that all live mainnet submission remains explicitly blocked. It must still not be presented as a production browser-signing readiness claim until the deployed production app has browser-backed verification recorded for Shield, Send, Swap, and Unshield.",
-  "nextOperatorAction": "Keep the wallet-signing status, four-page local browser verification, and live-send inventory commands fresh while deployed production browser-backed signing evidence is still missing for Shield, Send, Swap, and Unshield and live mainnet submission stays blocked."
+  "deploymentTruth": "This evidence proves the current live wallet-signing paths are frozen behind checked local/browser safety boundaries across Shield, Send, Swap, and Unshield, that the Umbra wallet adapter is fail-closed behind a summary-bound gate rather than a generic approval window, that deployed production browser-backed verification is now recorded for Shield, Send, Swap, and Unshield at https://vantaprivacy.xyz, and that all live mainnet submission remains explicitly blocked. The lane still must not be presented as production-ready because the live public app is still explicitly serving the beta-mode banner and the private-settlement-offline banner.",
+  "nextOperatorAction": "Keep the wallet-signing status, local browser verification, live deployed browser verification, and live-send inventory commands fresh while the public app still serves the beta-mode and private-settlement-offline banners and live mainnet submission stays explicitly blocked."
 }

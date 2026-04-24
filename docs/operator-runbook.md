@@ -668,6 +668,14 @@ npm run pay:merchant-trust-status-check
 
 Those commands are part of the current Pay operator story alongside `npm run pay:approval-packet-check`, which verifies the merchant-facing approval boundary.
 
+The canonical Pay verification checkpoint is:
+
+```bash
+npm run pay:verify
+```
+
+It includes both `npm run pay:merchant-trust-status-check` and `npm run pay:approval-packet-check` so the merchant trust surface and approval packet contract stay wired into the same operator gate.
+
 For free Render staging, prefer `VANTA_PAY_DATABASE_URL` from a free Render Postgres database because free web services cannot attach persistent disks and lose local filesystem writes on restart/redeploy. Treat free Render Postgres as staging-only because free databases expire.
 
 Production webhook delivery also requires HTTPS merchant endpoints.
@@ -1059,13 +1067,21 @@ npm run wallet:browser-signing-safety-check
 
 It starts the app with devnet configuration, verifies the Shield, Send, Swap, and Unshield browser surfaces do not expose mainnet submission or secret-key language, and verifies the Shield, Swap, and Unshield actions do not advance into wallet-confirmation state when no wallet is connected.
 
+The deployed public-app browser-backed verification gate is:
+
+```bash
+npm run mainnet:wallet-production-browser-check
+```
+
+It probes `https://vantaprivacy.xyz` directly with `gsd-browser`, verifies Shield, Send, Swap, and Unshield all render on the live public app, and freezes the current deployment truth that the public site still shows the beta-mode and private-settlement-offline banners while live mainnet submission remains blocked.
+
 The sanitized production wallet-signing status surface is:
 
 ```text
 scripts/print-vanta-production-wallet-signing-status.mjs
 ```
 
-It records the current protocol pages covered by the live wallet-signing boundary, the pages that have adopted safe-send, the pages verified by the browser-backed signing check, the pages still using typed message intents, and the Umbra adapter gate status. It is intentionally not a production browser-signing readiness claim; it freezes the current adopted boundary so readiness can fail loudly if the wallet lane drifts.
+It records the current protocol pages covered by the live wallet-signing boundary, the pages that have adopted safe-send, the pages verified by the local and deployed browser-backed signing checks, the pages still using typed message intents, and the Umbra adapter gate status. It is intentionally not a production-ready claim; it freezes the current adopted boundary and the current live-site beta-mode truth so readiness can fail loudly if the wallet lane drifts.
 
 The production wallet-signing status commands are:
 

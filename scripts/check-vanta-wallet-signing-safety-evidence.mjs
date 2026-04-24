@@ -16,12 +16,16 @@ assert.equal(evidence.mainnetReady, false);
 assert.equal(evidence.productionReady, false);
 assert.equal(evidence.lastStatusRef, "npm run mainnet:wallet-signing-status-check");
 assert.equal(evidence.browserVerificationRef, "npm run wallet:browser-signing-safety-check");
-assert.equal(evidence.localBrowserVerificationOnly, true);
+assert.equal(evidence.productionBrowserVerificationRef, "npm run mainnet:wallet-production-browser-check");
+assert.equal(evidence.productionBrowserVerificationUrl, "https://vantaprivacy.xyz");
+assert.equal(evidence.localBrowserVerificationOnly, false);
 assert.deepEqual(evidence.productionBrowserVerificationRequiredPages, ["Shield", "Send", "Swap", "Unshield"]);
-assert.deepEqual(evidence.productionBrowserVerifiedPages, []);
-assert.equal(evidence.productionBrowserVerificationCoversRequiredPages, false);
-assert.equal(evidence.productionBrowserVerificationAvailable, false);
-assert.equal(evidence.productionBrowserVerificationStatus, "pending");
+assert.deepEqual(evidence.productionBrowserVerifiedPages, ["Shield", "Send", "Swap", "Unshield"]);
+assert.equal(evidence.productionBrowserVerificationCoversRequiredPages, true);
+assert.equal(evidence.productionBrowserVerificationAvailable, true);
+assert.equal(evidence.productionBrowserVerificationStatus, "recorded-beta-mode-blocked");
+assert.equal(evidence.productionDeploymentModeBannerVisible, true);
+assert.equal(evidence.productionSettlementOfflineBannerVisible, true);
 assert.equal(evidence.signingSafetyPolicyRef, "npm run wallet:signing-safety-check");
 assert.equal(evidence.liveSendInventoryRef, "npm run wallet:live-send-inventory-check");
 assert.equal(evidence.liveMainnetSubmissionEnabled, false);
@@ -41,7 +45,7 @@ assert.ok(
   "Wallet-signing safety evidence must state the no-secret safety policy.",
 );
 assert.ok(
-  evidence.deploymentTruth.includes("must still not be presented as a production browser-signing readiness claim"),
+  evidence.deploymentTruth.includes("must not be presented as production-ready"),
   "Wallet-signing evidence must preserve the non-production truth.",
 );
 assert.ok(
@@ -49,12 +53,12 @@ assert.ok(
   "Wallet-signing evidence must preserve the explicit mainnet-submission block truth.",
 );
 assert.ok(
-  evidence.deploymentTruth.includes("browser-backed verification recorded for Shield, Send, Swap, and Unshield"),
-  "Wallet-signing evidence must preserve the exact missing deployed browser-proof scope.",
+  evidence.deploymentTruth.includes("browser-backed verification is now recorded for Shield, Send, Swap, and Unshield"),
+  "Wallet-signing evidence must preserve the recorded deployed browser-proof scope.",
 );
 assert.ok(
-  evidence.nextOperatorAction.includes("missing for Shield, Send, Swap, and Unshield"),
-  "Wallet-signing evidence must preserve the exact pending production page set.",
+  evidence.nextOperatorAction.includes("beta-mode and private-settlement-offline banners"),
+  "Wallet-signing evidence must preserve the live public deployment blocker.",
 );
 
 const serialized = JSON.stringify(evidence);
@@ -83,6 +87,11 @@ assert.equal(
   "package.json must expose mainnet:wallet-signing-status-check.",
 );
 assert.equal(
+  packageJson.scripts["mainnet:wallet-production-browser-check"],
+  "node scripts/check-vanta-production-wallet-browser-signing.mjs",
+  "package.json must expose mainnet:wallet-production-browser-check.",
+);
+assert.equal(
   packageJson.scripts["mainnet:wallet-signing-evidence-check"],
   "node scripts/check-vanta-wallet-signing-safety-evidence.mjs",
   "package.json must expose mainnet:wallet-signing-evidence-check.",
@@ -90,6 +99,10 @@ assert.equal(
 assert.ok(
   packageJson.scripts["mainnet:preflight"].includes("npm run mainnet:wallet-signing-evidence-check"),
   "mainnet:preflight must include wallet-signing evidence check.",
+);
+assert.ok(
+  packageJson.scripts["mainnet:preflight"].includes("npm run mainnet:wallet-production-browser-check"),
+  "mainnet:preflight must include deployed wallet browser verification.",
 );
 
 console.log("Vanta wallet-signing safety evidence check: PASS");

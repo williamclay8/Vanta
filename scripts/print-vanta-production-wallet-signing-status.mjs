@@ -36,7 +36,7 @@ function buildStatus() {
     browserVerificationMode: "local-dev-server-gsd-browser",
     browserVerifiedProtocolPages: ["Shield", "Send", "Swap", "Unshield"],
     checkedAt: new Date().toISOString(),
-    localBrowserVerificationOnly: true,
+    localBrowserVerificationOnly: false,
     liveMainnetSubmissionEnabled: policy.liveMainnetSubmissionEnabled,
     liveSendInventoryVersion: inventory.version,
     mainnetReady: false,
@@ -45,11 +45,15 @@ function buildStatus() {
     messageIntentSequence: inventory.messageIntentPolicy.requiredSequence,
     policyVersion: policy.version,
     productionReady: false,
-    productionBrowserVerificationAvailable: false,
-    productionBrowserVerificationCoversRequiredPages: false,
+    productionBrowserVerificationAvailable: true,
+    productionBrowserVerificationCoversRequiredPages: true,
+    productionBrowserVerificationRef: "npm run mainnet:wallet-production-browser-check",
     productionBrowserVerificationRequiredPages: ["Shield", "Send", "Swap", "Unshield"],
-    productionBrowserVerificationStatus: "pending",
-    productionBrowserVerifiedPages: [],
+    productionBrowserVerificationStatus: "recorded-beta-mode-blocked",
+    productionBrowserVerificationUrl: "https://vantaprivacy.xyz",
+    productionBrowserVerifiedPages: ["Shield", "Send", "Swap", "Unshield"],
+    productionDeploymentModeBannerVisible: true,
+    productionSettlementOfflineBannerVisible: true,
     protocolPagesCovered: protocolPages.map((surface) => surface.page),
     protocolPagesWithSafeSendAdoption: adoptedProtocolPages.map((surface) => surface.page),
     replacementRequired: inventory.replacementRequired,
@@ -85,7 +89,11 @@ if (checkMode) {
     "local-dev-server-gsd-browser",
     "Browser verification mode must remain local-dev-server-gsd-browser.",
   );
-  assert.equal(result.localBrowserVerificationOnly, true, "Browser verification must remain local-only.");
+  assert.equal(
+    result.localBrowserVerificationOnly,
+    false,
+    "Wallet status must record both local and deployed browser verification surfaces.",
+  );
   assert.deepEqual(
     result.productionBrowserVerificationRequiredPages,
     ["Shield", "Send", "Swap", "Unshield"],
@@ -93,23 +101,43 @@ if (checkMode) {
   );
   assert.deepEqual(
     result.productionBrowserVerifiedPages,
-    [],
-    "Production browser verification must remain unrecorded for the deployed app.",
+    ["Shield", "Send", "Swap", "Unshield"],
+    "Production browser verification must keep the required four-page set explicit.",
   );
   assert.equal(
     result.productionBrowserVerificationCoversRequiredPages,
-    false,
-    "Production browser verification must not claim full required-page coverage yet.",
+    true,
+    "Production browser verification must keep full required-page coverage explicit.",
   );
   assert.equal(
     result.productionBrowserVerificationAvailable,
-    false,
-    "Production browser-backed verification must remain pending.",
+    true,
+    "Production browser-backed verification must stay recorded.",
   );
   assert.equal(
     result.productionBrowserVerificationStatus,
-    "pending",
-    "Production browser-backed verification status must remain pending.",
+    "recorded-beta-mode-blocked",
+    "Production browser-backed verification status must keep the live beta-mode truth explicit.",
+  );
+  assert.equal(
+    result.productionBrowserVerificationRef,
+    "npm run mainnet:wallet-production-browser-check",
+    "Wallet status must expose the deployed browser verification command.",
+  );
+  assert.equal(
+    result.productionBrowserVerificationUrl,
+    "https://vantaprivacy.xyz",
+    "Wallet status must expose the live public app URL.",
+  );
+  assert.equal(
+    result.productionDeploymentModeBannerVisible,
+    true,
+    "Wallet status must keep the live beta-mode banner explicit.",
+  );
+  assert.equal(
+    result.productionSettlementOfflineBannerVisible,
+    true,
+    "Wallet status must keep the live private-settlement offline banner explicit.",
   );
   assert.equal(
     result.mainnetSubmissionExplicitlyBlocked,
@@ -176,6 +204,11 @@ if (jsonMode || checkMode) {
     `- productionBrowserVerificationAvailable: ${String(result.productionBrowserVerificationAvailable)}`,
   );
   console.log(`- productionBrowserVerificationStatus: ${result.productionBrowserVerificationStatus}`);
+  console.log(`- productionBrowserVerificationUrl: ${result.productionBrowserVerificationUrl}`);
+  console.log(`- productionDeploymentModeBannerVisible: ${String(result.productionDeploymentModeBannerVisible)}`);
+  console.log(
+    `- productionSettlementOfflineBannerVisible: ${String(result.productionSettlementOfflineBannerVisible)}`,
+  );
   console.log(`- messageIntentPages: ${result.messageIntentPages.join(", ")}`);
   console.log(`- liveMainnetSubmissionEnabled: ${String(result.liveMainnetSubmissionEnabled)}`);
   console.log(`- mainnetSubmissionExplicitlyBlocked: ${String(result.mainnetSubmissionExplicitlyBlocked)}`);

@@ -84,12 +84,16 @@ assert.equal(snapshot.walletSigning.checkedEvidenceRef, "ops/mainnet/wallet-sign
 assert.equal(snapshot.walletSigning.mainnetReady, false);
 assert.equal(snapshot.walletSigning.productionReady, false);
 assert.equal(snapshot.walletSigning.liveMainnetSubmissionEnabled, false);
-assert.equal(snapshot.walletSigning.localBrowserVerificationOnly, true);
+assert.equal(snapshot.walletSigning.localBrowserVerificationOnly, false);
 assert.deepEqual(snapshot.walletSigning.productionBrowserVerificationRequiredPages, ["Shield", "Send", "Swap", "Unshield"]);
-assert.deepEqual(snapshot.walletSigning.productionBrowserVerifiedPages, []);
-assert.equal(snapshot.walletSigning.productionBrowserVerificationCoversRequiredPages, false);
-assert.equal(snapshot.walletSigning.productionBrowserVerificationAvailable, false);
-assert.equal(snapshot.walletSigning.productionBrowserVerificationStatus, "pending");
+assert.deepEqual(snapshot.walletSigning.productionBrowserVerifiedPages, ["Shield", "Send", "Swap", "Unshield"]);
+assert.equal(snapshot.walletSigning.productionBrowserVerificationCoversRequiredPages, true);
+assert.equal(snapshot.walletSigning.productionBrowserVerificationAvailable, true);
+assert.equal(snapshot.walletSigning.productionBrowserVerificationStatus, "recorded-beta-mode-blocked");
+assert.equal(snapshot.walletSigning.productionBrowserVerificationRef, "npm run mainnet:wallet-production-browser-check");
+assert.equal(snapshot.walletSigning.productionBrowserVerificationUrl, "https://vantaprivacy.xyz");
+assert.equal(snapshot.walletSigning.productionDeploymentModeBannerVisible, true);
+assert.equal(snapshot.walletSigning.productionSettlementOfflineBannerVisible, true);
 assert.equal(snapshot.walletSigning.mainnetSubmissionExplicitlyBlocked, true);
 assert.equal(snapshot.walletSigning.browserVerificationCluster, "devnet-or-localnet");
 assert.equal(snapshot.walletSigning.browserVerificationMode, "local-dev-server-gsd-browser");
@@ -105,16 +109,16 @@ assert.equal(snapshot.walletSigning.statusRef, "npm run mainnet:wallet-signing-s
 assert.equal(snapshot.walletSigning.signingSafetyPolicyRef, "npm run wallet:signing-safety-check");
 assert.equal(snapshot.walletSigning.liveSendInventoryRef, "npm run wallet:live-send-inventory-check");
 assert.ok(
-  snapshot.walletSigning.deploymentTruth.includes("must still not be presented as a production browser-signing readiness claim"),
+  snapshot.walletSigning.deploymentTruth.includes("must not be presented as production-ready"),
 );
 assert.ok(
   snapshot.walletSigning.deploymentTruth.includes(
-    "browser-backed verification recorded for Shield, Send, Swap, and Unshield",
+    "browser-backed verification is now recorded for Shield, Send, Swap, and Unshield",
   ),
 );
 assert.ok(snapshot.walletSigning.deploymentTruth.includes("live mainnet submission remains explicitly blocked"));
 assert.ok(snapshot.walletSigning.nextOperatorAction.includes("wallet-signing status"));
-assert.ok(snapshot.walletSigning.nextOperatorAction.includes("missing for Shield, Send, Swap, and Unshield"));
+assert.ok(snapshot.walletSigning.nextOperatorAction.includes("beta-mode and private-settlement-offline banners"));
 assert.equal(
   snapshot.privatePoolV2ProductionSmoke.checkedEvidenceRef,
   "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
@@ -396,6 +400,10 @@ assert.ok(
 assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:wallet-signing-status"),
   "Missing production wallet-signing status command.",
+);
+assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:wallet-production-browser-check"),
+  "Missing deployed production wallet browser verification command.",
 );
 assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:wallet-signing-evidence-check"),

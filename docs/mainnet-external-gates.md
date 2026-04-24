@@ -204,6 +204,7 @@ Verification:
 
 ```bash
 npm run mainnet:wallet-signing-status
+npm run mainnet:wallet-production-browser-check
 npm run mainnet:wallet-signing-evidence-check
 npm run wallet:signing-safety-check
 npm run wallet:browser-signing-safety-check
@@ -212,7 +213,7 @@ npm run protocol:browser-check
 npm run pay:browser-check
 ```
 
-Current checked truth: the local/browser wallet-signing boundary is green, live mainnet submission remains explicitly blocked, and the remaining missing proof is deployed production browser-backed verification for Shield, Send, Swap, and Unshield.
+Current checked truth: the local/browser wallet-signing boundary is green, deployed production browser-backed verification is now recorded for Shield, Send, Swap, and Unshield at `https://vantaprivacy.xyz`, live mainnet submission remains explicitly blocked, and the remaining blocker is that the public app still serves the beta-mode and private-settlement-offline banners.
 
 ### Third-party security audit
 

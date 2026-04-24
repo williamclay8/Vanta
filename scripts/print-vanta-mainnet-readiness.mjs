@@ -95,6 +95,13 @@ if (jsonMode) {
     `  - productionBrowserVerificationAvailable: ${String(snapshot.walletSigning.productionBrowserVerificationAvailable)}`,
   );
   console.log(`  - productionBrowserVerificationStatus: ${snapshot.walletSigning.productionBrowserVerificationStatus}`);
+  console.log(`  - productionBrowserVerificationUrl: ${snapshot.walletSigning.productionBrowserVerificationUrl}`);
+  console.log(
+    `  - productionDeploymentModeBannerVisible: ${String(snapshot.walletSigning.productionDeploymentModeBannerVisible)}`,
+  );
+  console.log(
+    `  - productionSettlementOfflineBannerVisible: ${String(snapshot.walletSigning.productionSettlementOfflineBannerVisible)}`,
+  );
   console.log(
     `  - protocolPagesWithSafeSendAdoption: ${snapshot.walletSigning.protocolPagesWithSafeSendAdoption.join(", ")}`,
   );
