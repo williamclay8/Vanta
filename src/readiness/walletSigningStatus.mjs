@@ -1,34 +1,36 @@
 import { readFileSync } from "node:fs";
+import { createVantaWalletSigningLaunchPolicy } from "./walletSigningLaunchPolicy.mjs";
 
 const evidencePath = new URL("../../ops/mainnet/wallet-signing-safety.evidence.json", import.meta.url);
 
 export function createVantaWalletSigningStatus() {
   const evidence = JSON.parse(readFileSync(evidencePath, "utf8"));
+  const launchPolicy = createVantaWalletSigningLaunchPolicy();
 
   return {
-    browserVerificationCluster: evidence.browserVerificationCluster,
-    browserVerificationMode: evidence.browserVerificationMode,
-    browserVerifiedProtocolPages: evidence.browserVerifiedProtocolPages,
-    checkedEvidenceRef: "ops/mainnet/wallet-signing-safety.evidence.json",
+    browserVerificationCluster: launchPolicy.browserVerificationCluster,
+    browserVerificationMode: launchPolicy.browserVerificationMode,
+    browserVerifiedProtocolPages: launchPolicy.browserVerifiedProtocolPages,
+    checkedEvidenceRef: launchPolicy.checkedEvidenceRef,
     deploymentTruth: evidence.deploymentTruth,
-    localBrowserVerificationOnly: evidence.localBrowserVerificationOnly,
-    liveMainnetSubmissionEnabled: evidence.liveMainnetSubmissionEnabled,
+    localBrowserVerificationOnly: launchPolicy.localBrowserVerificationOnly,
+    liveMainnetSubmissionEnabled: launchPolicy.liveMainnetSubmissionEnabled,
     liveSendInventoryRef: evidence.liveSendInventoryRef,
     mainnetReady: false,
-    mainnetSubmissionExplicitlyBlocked: evidence.mainnetSubmissionExplicitlyBlocked,
+    mainnetSubmissionExplicitlyBlocked: launchPolicy.mainnetSubmissionExplicitlyBlocked,
     messageIntentPages: evidence.messageIntentPages,
     nextOperatorAction: evidence.nextOperatorAction,
     productionReady: false,
-    productionBrowserVerificationAvailable: evidence.productionBrowserVerificationAvailable,
-    productionBrowserVerificationCoversRequiredPages: evidence.productionBrowserVerificationCoversRequiredPages,
-    productionBrowserVerificationRef: evidence.productionBrowserVerificationRef,
-    productionBrowserVerificationRequiredPages: evidence.productionBrowserVerificationRequiredPages,
-    productionBrowserVerificationStatus: evidence.productionBrowserVerificationStatus,
-    productionBrowserVerificationUrl: evidence.productionBrowserVerificationUrl,
-    productionBrowserVerifiedPages: evidence.productionBrowserVerifiedPages,
-    productionWalletSigningBlockedBy: evidence.productionWalletSigningBlockedBy,
-    productionDeploymentModeBannerVisible: evidence.productionDeploymentModeBannerVisible,
-    productionSettlementOfflineBannerVisible: evidence.productionSettlementOfflineBannerVisible,
+    productionBrowserVerificationAvailable: launchPolicy.productionBrowserVerificationAvailable,
+    productionBrowserVerificationCoversRequiredPages: launchPolicy.productionBrowserVerificationCoversRequiredPages,
+    productionBrowserVerificationRef: launchPolicy.productionBrowserVerificationRef,
+    productionBrowserVerificationRequiredPages: launchPolicy.productionBrowserVerificationRequiredPages,
+    productionBrowserVerificationStatus: launchPolicy.productionBrowserVerificationStatus,
+    productionBrowserVerificationUrl: launchPolicy.productionBrowserVerificationUrl,
+    productionBrowserVerifiedPages: launchPolicy.productionBrowserVerifiedPages,
+    productionWalletSigningBlockedBy: launchPolicy.productionWalletSigningBlockedBy,
+    productionDeploymentModeBannerVisible: launchPolicy.productionDeploymentModeBannerVisible,
+    productionSettlementOfflineBannerVisible: launchPolicy.productionSettlementOfflineBannerVisible,
     protocolPagesWithSafeSendAdoption: evidence.protocolPagesWithSafeSendAdoption,
     requiresExplicitHumanApproval: evidence.requiresExplicitHumanApproval,
     requiresSimulationBeforeSignature: evidence.requiresSimulationBeforeSignature,

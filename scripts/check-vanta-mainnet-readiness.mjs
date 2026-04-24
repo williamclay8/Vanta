@@ -2,12 +2,11 @@ import { strict as assert } from "node:assert";
 import { readFileSync } from "node:fs";
 import { createVantaMainnetReadinessSnapshot } from "../src/readiness/mainnetReadiness.mjs";
 import { createVantaProductionObservabilityControlsSummary } from "../src/readiness/productionObservabilityControls.mjs";
+import { createVantaWalletSigningLaunchPolicy } from "../src/readiness/walletSigningLaunchPolicy.mjs";
 
 const snapshot = createVantaMainnetReadinessSnapshot();
 const observabilityControls = createVantaProductionObservabilityControlsSummary();
-const walletSigningEvidence = JSON.parse(
-  readFileSync(new URL("../ops/mainnet/wallet-signing-safety.evidence.json", import.meta.url), "utf8"),
-);
+const walletSigningLaunchPolicy = createVantaWalletSigningLaunchPolicy();
 
 assert.equal(snapshot.version, "vanta-mainnet-readiness-0.1");
 assert.equal(snapshot.mainnetReady, false, "Vanta must not report mainnet readiness while blockers remain.");
@@ -110,52 +109,52 @@ assert.deepEqual(snapshot.privateSettlement.meaningfulPrivacyBlockedBy, [
 assert.equal(snapshot.walletSigning.checkedEvidenceRef, "ops/mainnet/wallet-signing-safety.evidence.json");
 assert.equal(snapshot.walletSigning.mainnetReady, false);
 assert.equal(snapshot.walletSigning.productionReady, false);
-assert.equal(snapshot.walletSigning.liveMainnetSubmissionEnabled, walletSigningEvidence.liveMainnetSubmissionEnabled);
-assert.equal(snapshot.walletSigning.localBrowserVerificationOnly, walletSigningEvidence.localBrowserVerificationOnly);
+assert.equal(snapshot.walletSigning.liveMainnetSubmissionEnabled, walletSigningLaunchPolicy.liveMainnetSubmissionEnabled);
+assert.equal(snapshot.walletSigning.localBrowserVerificationOnly, walletSigningLaunchPolicy.localBrowserVerificationOnly);
 assert.deepEqual(
   snapshot.walletSigning.productionBrowserVerificationRequiredPages,
-  walletSigningEvidence.productionBrowserVerificationRequiredPages,
+  walletSigningLaunchPolicy.productionBrowserVerificationRequiredPages,
 );
 assert.deepEqual(
   snapshot.walletSigning.productionBrowserVerifiedPages,
-  walletSigningEvidence.productionBrowserVerifiedPages,
+  walletSigningLaunchPolicy.productionBrowserVerifiedPages,
 );
 assert.equal(
   snapshot.walletSigning.productionBrowserVerificationCoversRequiredPages,
-  walletSigningEvidence.productionBrowserVerificationCoversRequiredPages,
+  walletSigningLaunchPolicy.productionBrowserVerificationCoversRequiredPages,
 );
 assert.equal(
   snapshot.walletSigning.productionBrowserVerificationAvailable,
-  walletSigningEvidence.productionBrowserVerificationAvailable,
+  walletSigningLaunchPolicy.productionBrowserVerificationAvailable,
 );
 assert.equal(
   snapshot.walletSigning.productionBrowserVerificationStatus,
-  walletSigningEvidence.productionBrowserVerificationStatus,
+  walletSigningLaunchPolicy.productionBrowserVerificationStatus,
 );
 assert.equal(
   snapshot.walletSigning.productionBrowserVerificationRef,
-  walletSigningEvidence.productionBrowserVerificationRef,
+  walletSigningLaunchPolicy.productionBrowserVerificationRef,
 );
 assert.equal(
   snapshot.walletSigning.productionBrowserVerificationUrl,
-  walletSigningEvidence.productionBrowserVerificationUrl,
+  walletSigningLaunchPolicy.productionBrowserVerificationUrl,
 );
-assert.deepEqual(snapshot.walletSigning.productionWalletSigningBlockedBy, walletSigningEvidence.productionWalletSigningBlockedBy);
+assert.deepEqual(snapshot.walletSigning.productionWalletSigningBlockedBy, walletSigningLaunchPolicy.productionWalletSigningBlockedBy);
 assert.equal(
   snapshot.walletSigning.productionDeploymentModeBannerVisible,
-  walletSigningEvidence.productionDeploymentModeBannerVisible,
+  walletSigningLaunchPolicy.productionDeploymentModeBannerVisible,
 );
 assert.equal(
   snapshot.walletSigning.productionSettlementOfflineBannerVisible,
-  walletSigningEvidence.productionSettlementOfflineBannerVisible,
+  walletSigningLaunchPolicy.productionSettlementOfflineBannerVisible,
 );
 assert.equal(
   snapshot.walletSigning.mainnetSubmissionExplicitlyBlocked,
-  walletSigningEvidence.mainnetSubmissionExplicitlyBlocked,
+  walletSigningLaunchPolicy.mainnetSubmissionExplicitlyBlocked,
 );
-assert.equal(snapshot.walletSigning.browserVerificationCluster, walletSigningEvidence.browserVerificationCluster);
-assert.equal(snapshot.walletSigning.browserVerificationMode, walletSigningEvidence.browserVerificationMode);
-assert.deepEqual(snapshot.walletSigning.browserVerifiedProtocolPages, walletSigningEvidence.browserVerifiedProtocolPages);
+assert.equal(snapshot.walletSigning.browserVerificationCluster, walletSigningLaunchPolicy.browserVerificationCluster);
+assert.equal(snapshot.walletSigning.browserVerificationMode, walletSigningLaunchPolicy.browserVerificationMode);
+assert.deepEqual(snapshot.walletSigning.browserVerifiedProtocolPages, walletSigningLaunchPolicy.browserVerifiedProtocolPages);
 assert.deepEqual(snapshot.walletSigning.protocolPagesWithSafeSendAdoption, ["Shield", "Send", "Swap", "Unshield"]);
 assert.deepEqual(snapshot.walletSigning.messageIntentPages, ["Swap", "Unshield"]);
 assert.equal(snapshot.walletSigning.requiresExplicitHumanApproval, true);
