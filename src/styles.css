@@ -4116,6 +4116,24 @@ input {
   line-height: 1.55;
 }
 
+.strategy-wallet-route {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(0, 229, 200, 0.055);
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.strategy-wallet-route strong {
+  color: var(--text);
+  font-family: "Space Mono", monospace;
+  font-size: 0.82rem;
+}
+
 .strategy-prerequisite-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -4140,6 +4158,12 @@ input {
 .strategy-prerequisite-item strong {
   font-family: "Space Mono", monospace;
   font-size: 0.88rem;
+}
+
+.strategy-prerequisite-item small {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
 }
 
 .strategy-blocking-list {

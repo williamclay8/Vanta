@@ -59,7 +59,7 @@ assert.deepEqual(
   {
     blockingIssues: [
       "Live execution is unavailable in this environment.",
-      "Deposit to your Vanta private balance before a live run.",
+      "Shield funds into your Vanta private balance before live execution.",
     ],
     ctaLabel: "Review strategy settings",
     destination: "Connected wallet",
@@ -97,7 +97,7 @@ assert.deepEqual(
     isBetaMode: false,
   }),
   {
-    blockingIssues: ["Connect the wallet this plan should use before a live run."],
+    blockingIssues: ["Connect a wallet so Vanta knows which public wallet this choice means."],
     ctaLabel: "Review strategy settings",
     destination: "Vanta private balance",
     fundingSource: strategyFundingSources[2],

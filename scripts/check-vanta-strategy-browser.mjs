@@ -153,6 +153,9 @@ try {
           },
           { kind: "text_visible", text: "Use funds from" },
           { kind: "text_visible", text: "Proceeds go to" },
+          { kind: "text_visible", text: "No wallet connected" },
+          { kind: "text_visible", text: "Uses shielded funds under Vanta private owner" },
+          { kind: "text_visible", text: "Keeps proceeds under Vanta private owner" },
           { kind: "text_visible", text: "Funding source" },
           { kind: "text_visible", text: "Proceeds destination" },
           {
@@ -188,6 +191,9 @@ try {
           },
           { kind: "text_visible", text: "Use funds from" },
           { kind: "text_visible", text: "Proceeds go to" },
+          { kind: "text_visible", text: "No wallet connected" },
+          { kind: "text_visible", text: "Uses shielded funds under Vanta private owner" },
+          { kind: "text_visible", text: "Keeps proceeds under Vanta private owner" },
           { kind: "text_visible", text: "Funding source" },
           { kind: "text_visible", text: "Proceeds destination" },
           {
@@ -202,7 +208,8 @@ try {
         action: "assert",
         checks: [
           { kind: "text_visible", text: "Review strategy settings" },
-          { kind: "text_visible", text: "Deposit to your Vanta private balance before a live run." },
+          { kind: "text_visible", text: "Shield funds into your Vanta private balance before live execution." },
+          { kind: "text_visible", text: "Connect a wallet to choose which public balance funds this strategy." },
           { kind: "text_hidden", text: "Live execution is unavailable in this environment." },
           {
             kind: "text_visible",
@@ -218,7 +225,7 @@ try {
           { kind: "text_hidden", text: "Strategy plan ready" },
           { kind: "text_hidden", text: "Ready for your review" },
           { kind: "text_hidden", text: "Execution preview" },
-          { kind: "text_visible", text: "Deposit to your Vanta private balance before a live run." },
+          { kind: "text_visible", text: "Shield funds into your Vanta private balance before live execution." },
           { kind: "text_hidden", text: "Strategy settings saved" },
           { kind: "no_console_errors" },
         ],
@@ -249,6 +256,7 @@ try {
           },
           { kind: "text_visible", text: "Use funds from" },
           { kind: "text_visible", text: "Proceeds go to" },
+          { kind: "text_visible", text: "No wallet connected" },
           { kind: "text_visible", text: "Funding source" },
           { kind: "text_visible", text: "Proceeds destination" },
           {
@@ -262,7 +270,7 @@ try {
       {
         action: "assert",
         checks: [
-          { kind: "text_visible", text: "Connect the wallet this plan should use before a live run." },
+          { kind: "text_visible", text: "Connect a wallet so Vanta knows which public wallet this choice means." },
           { kind: "text_hidden", text: "Live execution is unavailable in this environment." },
           { kind: "text_visible", text: "Review strategy settings" },
           { kind: "no_console_errors" },

@@ -1,9 +1,17 @@
 import { useMemo, useState } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
+import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
+import { useWalletState } from "@/data/context/WalletContext";
 import { describePricingForSurface } from "@/pricing/vantaPricing";
 import { createStrategyPlan, type VantaStrategyPlan } from "@/strategy/strategyPlanner.mjs";
 import {
   STRATEGY_CUSTOM_TIME_WINDOW,
+  STRATEGY_DESTINATION_CONNECTED_WALLET,
+  STRATEGY_DESTINATION_PRIVATE_BALANCE,
+  STRATEGY_DESTINATION_TREASURY_WALLET,
+  STRATEGY_FUNDING_SOURCE_CONNECTED_WALLET,
+  STRATEGY_FUNDING_SOURCE_PRIVATE_BALANCE,
+  STRATEGY_FUNDING_SOURCE_PUBLIC_BALANCE,
   createStrategyCapabilityState,
   createStrategyFormErrors,
   parseStrategyAmount,
@@ -48,13 +56,14 @@ const strategyReviewCta = "Review strategy settings";
 const strategyEnvironmentUnavailableCopy =
   "Live execution is unavailable in this environment.";
 const strategyPublicFundingCopy =
-  "Deposit to your Vanta private balance before a live run.";
+  "Shield funds into your Vanta private balance before live execution.";
 const strategyConnectedWalletCopy =
-  "Connect the wallet this plan should use before a live run.";
+  "Connect a wallet so Vanta knows which public wallet this choice means.";
 const strategySettingsActionHint =
   "Keep settings editable while live strategy execution remains unavailable.";
 const strategyRouteNote =
   "These choices shape a local plan only. No funds move and no trades are submitted from this screen.";
+const walletNotConnectedCopy = "No wallet connected";
 
 const defaultForm: StrategyFormState = {
   asset: "SOL",
@@ -74,6 +83,54 @@ const defaultForm: StrategyFormState = {
 
 function deriveStrategyPair(form: Pick<StrategyFormState, "asset" | "side">) {
   return form.side === "Sell" ? `${form.asset} -> USDC` : `USDC -> ${form.asset}`;
+}
+
+function abbreviatePrivateOwner(value: string) {
+  return `${value.slice(0, 10)}...${value.slice(-6)}`;
+}
+
+function describeFundingWallet(input: {
+  fundingSource: StrategyFundingSource;
+  privateOwnerShort: string;
+  walletAddressShort: string | null;
+  walletConnected: boolean;
+}) {
+  if (input.fundingSource === STRATEGY_FUNDING_SOURCE_PRIVATE_BALANCE) {
+    return `Uses shielded funds under Vanta private owner ${input.privateOwnerShort}.`;
+  }
+
+  if (input.fundingSource === STRATEGY_FUNDING_SOURCE_PUBLIC_BALANCE) {
+    return input.walletConnected && input.walletAddressShort
+      ? `Uses public funds from connected wallet ${input.walletAddressShort}; Vanta must shield them before live execution.`
+      : "Connect a wallet to choose which public balance funds this strategy.";
+  }
+
+  return input.walletConnected && input.walletAddressShort
+    ? `Uses connected wallet ${input.walletAddressShort}.`
+    : "Connect a wallet so Vanta knows which public wallet this choice means.";
+}
+
+function describeDestinationWallet(input: {
+  destination: StrategyDestination;
+  privateOwnerShort: string;
+  walletAddressShort: string | null;
+  walletConnected: boolean;
+}) {
+  if (input.destination === STRATEGY_DESTINATION_PRIVATE_BALANCE) {
+    return `Keeps proceeds under Vanta private owner ${input.privateOwnerShort}.`;
+  }
+
+  if (input.destination === STRATEGY_DESTINATION_CONNECTED_WALLET) {
+    return input.walletConnected && input.walletAddressShort
+      ? `Sends proceeds to connected wallet ${input.walletAddressShort}.`
+      : "Connect a wallet to choose where proceeds return.";
+  }
+
+  if (input.destination === STRATEGY_DESTINATION_TREASURY_WALLET) {
+    return "Uses the treasury wallet configured before a live run.";
+  }
+
+  return "";
 }
 
 function StrategySelect({
@@ -107,7 +164,10 @@ function StrategySelect({
 
 export function StrategyPage() {
   const [form, setForm] = useState<StrategyFormState>(defaultForm);
+  const { privateCoreOwner } = usePrivacyFlow();
+  const { walletAddressShort, walletConnected } = useWalletState();
   const strategyPair = deriveStrategyPair(form);
+  const privateOwnerShort = abbreviatePrivateOwner(privateCoreOwner.publicKey);
 
   const parsedAmount = useMemo(() => parseStrategyAmount(form.totalSize), [form.totalSize]);
   const parsedSlippage = useMemo(() => parseStrategySlippageBps(form.maxSlippage), [form.maxSlippage]);
@@ -166,16 +226,37 @@ export function StrategyPage() {
 
   const environmentBlockingIssues = isBetaMode ? [strategyEnvironmentUnavailableCopy] : [];
   const fundingBlockingIssues = useMemo(() => {
-    if (form.fundingSource === "Public wallet balance") {
+    if (form.fundingSource === STRATEGY_FUNDING_SOURCE_PUBLIC_BALANCE) {
       return [strategyPublicFundingCopy];
     }
 
-    if (form.fundingSource === "Connected wallet") {
+    if (form.fundingSource === STRATEGY_FUNDING_SOURCE_CONNECTED_WALLET) {
       return [strategyConnectedWalletCopy];
     }
 
     return [];
   }, [form.fundingSource]);
+  const connectedWalletCopy = walletConnected && walletAddressShort ? walletAddressShort : walletNotConnectedCopy;
+  const fundingWalletCopy = useMemo(
+    () =>
+      describeFundingWallet({
+        fundingSource: form.fundingSource,
+        privateOwnerShort,
+        walletAddressShort,
+        walletConnected,
+      }),
+    [form.fundingSource, privateOwnerShort, walletAddressShort, walletConnected],
+  );
+  const destinationWalletCopy = useMemo(
+    () =>
+      describeDestinationWallet({
+        destination: form.destination,
+        privateOwnerShort,
+        walletAddressShort,
+        walletConnected,
+      }),
+    [form.destination, privateOwnerShort, walletAddressShort, walletConnected],
+  );
   const strategyPrimaryActionLabel = isBetaMode ? "Beta mode" : strategyReviewCta;
   const strategyActionHint = isBetaMode
     ? "Beta mode keeps Strategy visible but prevents live execution while production services are offline."
@@ -377,14 +458,20 @@ export function StrategyPage() {
 
             <section className="strategy-prerequisites" aria-label="Strategy prerequisites">
               <p className="strategy-route-note">{strategyRouteNote}</p>
+              <div className="strategy-wallet-route" role="status">
+                <span>Connected wallet</span>
+                <strong>{connectedWalletCopy}</strong>
+              </div>
               <div className="strategy-prerequisite-grid">
                 <div className="strategy-prerequisite-item">
                   <span>Funding source</span>
                   <strong>{capabilityState.fundingSource}</strong>
+                  <small>{fundingWalletCopy}</small>
                 </div>
                 <div className="strategy-prerequisite-item">
                   <span>Proceeds destination</span>
                   <strong>{capabilityState.destination}</strong>
+                  <small>{destinationWalletCopy}</small>
                 </div>
               </div>
               {environmentBlockingIssues.length > 0 ? (

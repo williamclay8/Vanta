@@ -171,11 +171,11 @@ export function createStrategyCapabilityState(input: {
   }
 
   if (input.fundingSource === STRATEGY_FUNDING_SOURCE_PUBLIC_BALANCE) {
-    blockingIssues.push("Deposit to your Vanta private balance before a live run.");
+    blockingIssues.push("Shield funds into your Vanta private balance before live execution.");
   }
 
   if (input.fundingSource === STRATEGY_FUNDING_SOURCE_CONNECTED_WALLET) {
-    blockingIssues.push("Connect the wallet this plan should use before a live run.");
+    blockingIssues.push("Connect a wallet so Vanta knows which public wallet this choice means.");
   }
 
   const mode: StrategyCapabilityMode = input.isBetaMode || !livePrerequisitesMet ? "preview_only" : "eligible_to_create";
