@@ -4,14 +4,20 @@ import { VANTA_PAY_ASSET_SYMBOLS, type VantaPayAsset } from "@/pay/vantaPayAsset
 import { VANTA_PAY_MERCHANT_COMMAND_CENTER } from "@/pay/vantaPayMerchantCommandCenter";
 
 type CheckoutMode = "hosted" | "embedded" | "modal";
-type PreviewRequest = {
+type PayLifecyclePhase = "draft" | "checkout_created" | "settlement_complete";
+
+type TestCheckoutRecord = {
   amount: string;
   asset: VantaPayAsset;
-  checkoutPath: string;
+  auditDisclosureId?: string;
+  checkoutSessionId: string;
+  checkoutUrl: string;
+  clientToken: string;
   createdAt: string;
   customer: string;
-  receiptPath: string;
-  sessionId: string;
+  paymentId?: string;
+  privateRailReceiptId?: string;
+  receiptId?: string;
   title: string;
 };
 
@@ -113,7 +119,8 @@ export function PayPage() {
   const [asset, setAsset] = useState<VantaPayAsset>("USDC");
   const [customerEmail, setCustomerEmail] = useState("");
   const [checkoutMode, setCheckoutMode] = useState<CheckoutMode>("hosted");
-  const [previewRequest, setPreviewRequest] = useState<PreviewRequest | null>(null);
+  const [phase, setPhase] = useState<PayLifecyclePhase>("draft");
+  const [checkoutRecord, setCheckoutRecord] = useState<TestCheckoutRecord | null>(null);
   const [copied, setCopied] = useState(false);
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
 
@@ -136,15 +143,20 @@ export function PayPage() {
   const formHasErrors = Boolean(titleError || amountError || emailError);
   const visibleTitleError = hasAttemptedSubmit ? titleError : "";
   const visibleAmountError = hasAttemptedSubmit ? amountError : "";
-  const checkoutPath = title.trim()
+  const checkoutUrl = title.trim()
     ? `vanta.test/pay/${title.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`
     : "vanta.test/pay/new-request";
-  const createdRequest = previewRequest;
-  const currentSessionId = createdRequest?.sessionId ?? "Not created yet";
-  const currentReceiptPath = createdRequest?.receiptPath ?? "Receipt path preview pending";
-  const requestStatus = createdRequest ? "Preview ready" : "Draft";
+  const createdRecord = checkoutRecord;
+  const currentSessionId = createdRecord?.checkoutSessionId ?? "Not created yet";
+  const currentClientToken = createdRecord?.clientToken ?? "Not issued yet";
+  const requestStatus =
+    phase === "settlement_complete"
+      ? "Payment record completed"
+      : phase === "checkout_created"
+        ? "Checkout session created"
+        : "Draft";
 
-  function createPreviewRequest() {
+  function createCheckoutSession() {
     setHasAttemptedSubmit(true);
     setCopied(false);
 
@@ -160,25 +172,49 @@ export function PayPage() {
         .replace(/^-|-$/g, "") || "payment";
     const timestamp = Date.now().toString(36);
 
-    setPreviewRequest({
+    setPhase("checkout_created");
+    setCheckoutRecord({
       amount: amount.trim(),
       asset,
-      checkoutPath,
+      checkoutSessionId: `checkout_session_test_${slug}_${timestamp}`,
+      checkoutUrl,
+      clientToken: `client_token_test_${timestamp}`,
       createdAt: new Date().toLocaleString(),
       customer: customerLabel,
-      receiptPath: `receipt.preview/${slug}-${timestamp}`,
-      sessionId: `cs_test_${slug}_${timestamp}`,
       title: paymentLabel,
     });
   }
 
-  function copyTestLink() {
-    if (!createdRequest) {
-      createPreviewRequest();
+  function completeTestSettlement() {
+    if (!createdRecord || phase !== "checkout_created") {
       return;
     }
 
-    void navigator.clipboard?.writeText(createdRequest.checkoutPath);
+    const slug =
+      createdRecord.title
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "") || "payment";
+    const timestamp = Date.now().toString(36);
+
+    setCheckoutRecord({
+      ...createdRecord,
+      auditDisclosureId: `audit_disclosure_test_${slug}_${timestamp}`,
+      paymentId: `payment_test_${slug}_${timestamp}`,
+      privateRailReceiptId: `private_rail_test_${slug}_${timestamp}`,
+      receiptId: `receipt_test_${slug}_${timestamp}`,
+    });
+    setPhase("settlement_complete");
+  }
+
+  function copyTestLink() {
+    if (!createdRecord) {
+      createCheckoutSession();
+      return;
+    }
+
+    void navigator.clipboard?.writeText(createdRecord.checkoutUrl);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1800);
   }
@@ -188,15 +224,16 @@ export function PayPage() {
       <div className="pay-shell pay-shell--minimal">
         <header className="pay-topbar pay-topbar--minimal pay-page__hero product-intro">
           <div>
-            <span className="pay-kicker product-intro__eyebrow">Vanta Pay preview</span>
-            <h1 id="pay-title">Create a payment request</h1>
+            <span className="pay-kicker product-intro__eyebrow">Vanta Pay</span>
+            <h1 id="pay-title">Create checkout session</h1>
             <p>
-              Build a checkout preview, review the transaction, and copy a test link.
+              Test mode creates a checkout session, completes a guarded test settlement, and
+              shows the receipt-backed payment record.
             </p>
             <div className="pay-hero-badges" aria-label="Pay beta status">
-              <span>{isBetaMode ? "Beta preview" : "Preview mode"}</span>
-              <span>No funds move in beta mode</span>
-              <span>Production privacy claims are not enabled yet.</span>
+              <span>{isBetaMode ? "Test mode" : "Test harness"}</span>
+              <span>No production funds moved.</span>
+              <span>Production privacy claims remain locked.</span>
             </div>
           </div>
         </header>
@@ -266,13 +303,13 @@ export function PayPage() {
                   </label>
                   <PayButton
                     onClick={() => {
-                      createPreviewRequest();
+                      createCheckoutSession();
                     }}
                   >
-                    Create preview request
+                    Create checkout session
                   </PayButton>
                   <small className="pay-submit-note">
-                    Creates a local preview record only. Private rail receipt required before completion.
+                    Creates a test checkout session. Completion requires a confirmed private rail receipt.
                   </small>
                 </form>
               </section>
@@ -287,7 +324,7 @@ export function PayPage() {
                 <dl className="pay-request-meta">
                   <div>
                     <dt>Test link</dt>
-                    <dd>{checkoutPath}</dd>
+                    <dd>{createdRecord?.checkoutUrl ?? checkoutUrl}</dd>
                   </div>
                   <div>
                     <dt>Checkout type</dt>
@@ -298,12 +335,12 @@ export function PayPage() {
                     <dd>{requestStatus}</dd>
                   </div>
                   <div>
-                    <dt>Session</dt>
+                    <dt>Checkout session</dt>
                     <dd>{currentSessionId}</dd>
                   </div>
                   <div>
-                    <dt>Receipt path</dt>
-                    <dd>{currentReceiptPath}</dd>
+                    <dt>Client token</dt>
+                    <dd>{currentClientToken}</dd>
                   </div>
                 </dl>
               </aside>
@@ -315,23 +352,29 @@ export function PayPage() {
                 <strong>Approval, execution, and settlement are locked in beta.</strong>
               </div>
               <div className="pay-path-steps">
-                <span data-state={createdRequest ? "active" : "idle"}>Preview</span>
+                <span data-state={phase !== "draft" ? "active" : "idle"}>Preview</span>
                 <span data-state="locked">Approve</span>
                 <span data-state="locked">Execute</span>
-                <span data-state="locked">Settle</span>
+                <span data-state={phase === "settlement_complete" ? "active" : "locked"}>Settle</span>
               </div>
               <div className="pay-trust-line">
-                <span>Local operator preview</span>
+                <span>Local operator harness</span>
                 <span>Payment record</span>
-                <span>Receipt path preview</span>
-                <span>No funds move</span>
+                <span>Private rail receipt confirmed</span>
+                <span>No production funds moved.</span>
               </div>
             </section>
 
             <section className="pay-next-workspace" aria-label="Next actions">
               <div className="pay-section-mini-header">
                 <span className="pay-kicker">Next actions</span>
-                <strong>{createdRequest ? "Preview request created." : "Create a request to unlock the test link."}</strong>
+                <strong>
+                  {phase === "settlement_complete"
+                    ? "Payment record completed"
+                    : phase === "checkout_created"
+                      ? "Checkout session created"
+                      : "Create a checkout session to unlock the test link."}
+                </strong>
               </div>
 
               <div className="pay-primary-actions" aria-label="Primary payment actions">
@@ -344,16 +387,21 @@ export function PayPage() {
                 </button>
                 <button
                   className="pay-workflow-action"
-                  disabled={!createdRequest}
+                  disabled={!createdRecord}
                   type="button"
                 >
                   <span>Preview checkout</span>
                 </button>
                 <button
                   className="pay-workflow-action"
-                  disabled={!createdRequest}
+                  data-pay-action="complete-test-settlement"
+                  disabled={phase !== "checkout_created"}
+                  onClick={completeTestSettlement}
                   type="button"
                 >
+                  <span>Complete test settlement</span>
+                </button>
+                <button className="pay-workflow-action" disabled={phase !== "settlement_complete"} type="button">
                   <span>View receipt</span>
                 </button>
                 <button className="pay-workflow-action" disabled type="button">
@@ -367,42 +415,77 @@ export function PayPage() {
               <section className="pay-record-panel" aria-live="polite">
                 <div>
                   <span>Payment records</span>
-                  <strong>{createdRequest ? createdRequest.title : "No preview requests yet."}</strong>
+                  <strong>{createdRecord ? createdRecord.title : "No preview checkout created yet."}</strong>
                 </div>
-                {createdRequest ? (
+                {createdRecord ? (
                   <dl className="pay-record-list">
                     <div>
-                      <dt>Request</dt>
-                      <dd>{createdRequest.sessionId}</dd>
+                      <dt>Checkout session</dt>
+                      <dd>{createdRecord.checkoutSessionId}</dd>
                     </div>
                     <div>
-                      <dt>Customer</dt>
-                      <dd>{createdRequest.customer}</dd>
+                      <dt>Client token</dt>
+                      <dd>{createdRecord.clientToken}</dd>
                     </div>
                     <div>
                       <dt>Amount</dt>
                       <dd>
-                        {createdRequest.amount} {createdRequest.asset}
+                        {createdRecord.amount} {createdRecord.asset}
                       </dd>
                     </div>
                     <div>
                       <dt>Status</dt>
-                      <dd>Preview ready</dd>
+                      <dd>{requestStatus}</dd>
+                    </div>
+                    <div>
+                      <dt>Customer</dt>
+                      <dd>{createdRecord.customer}</dd>
+                    </div>
+                    {phase === "settlement_complete" ? (
+                      <>
+                        <div>
+                          <dt>Payment</dt>
+                          <dd>{createdRecord.paymentId}</dd>
+                        </div>
+                        <div>
+                          <dt>Receipt</dt>
+                          <dd>{createdRecord.receiptId}</dd>
+                        </div>
+                        <div>
+                          <dt>Private rail receipt</dt>
+                          <dd>{createdRecord.privateRailReceiptId}</dd>
+                        </div>
+                        <div>
+                          <dt>Audit disclosure</dt>
+                          <dd>{createdRecord.auditDisclosureId}</dd>
+                        </div>
+                      </>
+                    ) : null}
+                    <div>
+                      <dt>Rail</dt>
+                      <dd>
+                        {phase === "settlement_complete"
+                          ? "Private rail receipt confirmed"
+                          : "Private rail receipt pending"}
+                      </dd>
                     </div>
                     <div>
                       <dt>Created</dt>
-                      <dd>{createdRequest.createdAt}</dd>
+                      <dd>{createdRecord.createdAt}</dd>
                     </div>
                   </dl>
                 ) : (
                   <p>No preview checkout created yet.</p>
                 )}
+                {phase === "settlement_complete" ? (
+                  <p>No production funds moved. Production privacy claims remain locked.</p>
+                ) : null}
               </section>
 
               <div className="pay-suite-plain-rows" aria-label="More payment records">
                 <p>
                   <span>Payment links</span>
-                  Create a preview request, then copy its hosted test link.
+                  Create a checkout session, then copy its hosted test link.
                 </p>
                 <p>
                   <span>Invoices</span>
@@ -415,17 +498,16 @@ export function PayPage() {
                 </p>
                 <p>
                   <span>Trust rail</span>
-                  {VANTA_PAY_MERCHANT_COMMAND_CENTER.betaNotice} Production privacy claims are not
-                  enabled yet.
+                  {VANTA_PAY_MERCHANT_COMMAND_CENTER.betaNotice} Production privacy claims remain
+                  locked.
                 </p>
               </div>
             </section>
 
             <div className="pay-success-card pay-success-card--truth">
-              <strong>Vanta Pay is a preview.</strong>
+              <strong>Vanta Pay is in test mode.</strong>
               <span>
-                It is not a production payment processor, live mainnet settlement system, or final
-                privacy guarantee.
+                It is not a production payment processor, live mainnet settlement system, or final privacy guarantee. No production funds moved.
               </span>
             </div>
           </article>

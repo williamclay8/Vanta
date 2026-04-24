@@ -43,7 +43,7 @@ const requiredPageCopy = [
   "Execute",
   "Settle",
   "Approval, execution, and settlement are locked in beta.",
-  "Local operator preview",
+  "Local operator harness",
   "Payment record",
   "Next actions",
   "Copy test link",
@@ -61,7 +61,7 @@ const requiredPageCopy = [
   "Subscriptions",
   "Trust rail",
   "Operations",
-  "Vanta Pay is a preview.",
+  "Vanta Pay is in test mode.",
   "It is not a production payment processor",
   "privacy guarantee.",
 ];
