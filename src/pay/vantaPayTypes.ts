@@ -19,6 +19,36 @@ export type VantaPayMerchantTrustStatus = {
   productionReady: false;
 };
 
+export type VantaPayMerchantControlPlaneSectionState = "visible" | "empty" | "beta_blocked";
+
+export type VantaPayApprovalPhase = "preview" | "approve" | "execute" | "settle";
+
+export type VantaPayMerchantControlPlane = {
+  merchantControlPlaneVersion: "vanta-pay-merchant-control-plane-0.1";
+  approvalPhase: VantaPayApprovalPhase;
+  balances: VantaPayBalances;
+  receipts: readonly VantaPayReceipt[];
+  refunds: readonly VantaPayRefund[];
+  withdrawals: readonly VantaPayWithdrawal[];
+  payoutQueue: {
+    destination: string;
+    nextWindow: string;
+    state: "merchant-visible";
+  };
+  reconciliation: {
+    exportWindow: string;
+    recordsLabel: string;
+    state: "merchant-visible";
+  };
+  sections: {
+    balances: VantaPayMerchantControlPlaneSectionState;
+    receipts: VantaPayMerchantControlPlaneSectionState;
+    refunds: VantaPayMerchantControlPlaneSectionState;
+    withdrawals: VantaPayMerchantControlPlaneSectionState;
+    reconciliation: VantaPayMerchantControlPlaneSectionState;
+  };
+};
+
 export type VantaPayApprovalPacket = {
   version: "vanta-pay-approval-packet-0.1";
   phaseOrder: ["preview", "approve", "execute", "settle"];

@@ -8,8 +8,18 @@ const requiredFiles = [
   {
     path: "src/pay/vantaPayTypes.ts",
     markers: [
+      "VantaPayMerchantControlPlane",
       "VantaPayMerchantTrustStatus",
       "vanta-pay-merchant-trust-status-0.1",
+    ],
+  },
+  {
+    path: "src/pay/vantaPayMerchantControlPlane.ts",
+    markers: [
+      "createVantaPayMerchantControlPlane",
+      "merchantControlPlaneVersion",
+      "approvalPhase",
+      "reconciliation",
     ],
   },
   {
