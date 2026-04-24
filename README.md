@@ -70,6 +70,8 @@ Still not live or final:
 
 Pricing only applies when Vanta is actually providing a supported completed action. Preview-only surfaces must not imply a fee is already active.
 
+Net Vanta-collected fees are reserved for ecosystem growth, including supply buybacks, marketing, operator infrastructure, security, and product development. This excludes network, off-ramp, and third-party pass-through costs.
+
 ## Important Privacy Clarification
 
 Shielding does not make an ordinary wallet magically private.

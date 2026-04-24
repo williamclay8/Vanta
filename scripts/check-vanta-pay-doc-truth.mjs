@@ -7,10 +7,11 @@ const docChecks = [
   {
     path: "docs/pay-merchant-trust-surface.md",
     required: [
-      "the default `/app/pay` surface is now a Vanta Pay Suite preview",
+      "Current truth: `/app/pay` is a merchant preview, not a finished production",
       "`Payment details`, `What are you collecting for?`, `Amount`, `Asset`, `Customer email`, and `Review payment`",
-      "hosted checkout, embedded checkout, modal checkout, payment links, invoices, subscriptions, refunds, withdrawals, reconciliation, developer controls, API keys, and signed webhooks",
-      "payment route preview, receipt path preview, transaction evidence, and beta disabled state remain visible",
+      "subscriptions, refunds, withdrawals, reconciliation, developer controls",
+      "keys, and signed webhooks",
+      "Route preview, receipt path preview, transaction evidence, and beta disabled",
       "merchant API, status, approval packet, refunds, withdrawals, reconciliation, payment links, invoices, and webhook delivery still live in the Pay backend and verification commands",
     ],
   },
@@ -22,16 +23,18 @@ const docChecks = [
       "0 monthly fee",
       "0.25%` only when a supported action completes successfully",
       "network, off-ramp, and third-party execution costs stay separate when they apply",
+      "Net Vanta-collected fees are reserved for ecosystem growth, including supply buybacks, marketing, operator infrastructure, security, and product development.",
     ],
   },
   {
     path: "SUBMISSION.md",
     required: [
-      "The Pay demo now opens on a Vanta Pay Suite preview",
+      "The Pay demo focuses on a simple merchant question",
       "payment creation, checkout modes, payment links, invoices, subscriptions, refunds, withdrawals, reconciliation, developer controls, route preview, receipt preview, transaction evidence, and beta disabled state",
       "0 monthly fee",
       "0.25%` only when a supported action completes successfully",
       "utility-first",
+      "Net Vanta-collected fees are reserved for ecosystem growth, including supply buybacks, marketing, operator infrastructure, security, and product development.",
     ],
   },
 ];

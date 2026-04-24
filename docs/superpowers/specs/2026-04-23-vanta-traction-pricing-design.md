@@ -251,6 +251,8 @@ The buyback base should exclude:
 
 The product should preserve room for:
 
+- supply buybacks
+- marketing
 - security spending
 - support
 - growth
@@ -258,6 +260,10 @@ The product should preserve room for:
 - compliance and operational needs
 
 This keeps the token roadmap aligned with sustainability rather than performative price support.
+
+Public allocation phrasing should stay careful:
+
+`Net Vanta-collected fees are reserved for ecosystem growth, including supply buybacks, marketing, operator infrastructure, security, and product development. Pass-through costs are excluded from that base.`
 
 ## UX copy contract
 

@@ -68,6 +68,8 @@ Vanta is designed to be easy to try:
 
 The `$VANTA` roadmap remains utility-first rather than token-first.
 
+Net Vanta-collected fees are reserved for ecosystem growth, including supply buybacks, marketing, operator infrastructure, security, and product development. Pass-through costs are excluded from that base.
+
 The long-term vision is to make private value movement on Solana feel like a product, not a cryptography demo: user flows stay simple, merchant settlement stays policy-legible, and reviewer trust stays machine-checkable through explicit status and verification surfaces.
 
 ---
