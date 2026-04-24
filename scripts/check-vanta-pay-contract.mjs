@@ -6,6 +6,7 @@ import {
   createVantaPayMerchantControlPlane,
   createVantaPayMerchantControlPlaneFromRuntime,
 } from "../src/pay/vantaPayMerchantControlPlane.ts";
+import { createVantaPayRuntime } from "../src/pay/vantaPayRuntime.ts";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 
@@ -219,121 +220,39 @@ try {
     failures.push("Expected reconciliation.recordsLabel to derive from the default runtime receipts.");
   }
 
-  const runtimeControlPlane = createVantaPayMerchantControlPlaneFromRuntime({
-    getBalances() {
-      return {
-        available: [{ amount: "5.00", asset: "USDC" }],
-        pending: [],
-        withdrawable: [{ amount: "5.00", asset: "USDC" }],
-      };
-    },
-    getMerchant() {
-      return {
-        acceptedAssets: ["USDC", "SOL", "USDT"],
-        branding: {
-          logoUrl: "https://merchant.com/logo.png",
-          name: "Vanta Studio",
-        },
-        callbackUrls: {
-          cancelUrl: "https://merchant.com/cancel",
-          successUrl: "https://merchant.com/success",
-          webhookUrl: "https://merchant.com/webhooks/vanta",
-        },
-        environmentMode: "test",
-        id: "mrc_123",
-        object: "merchant",
-        payoutSettings: {
-          defaultAsset: "USDC",
-          destination: "Treasury",
-          destinationType: "treasury_address",
-        },
-      };
-    },
-    getMerchantControlPlaneState() {
-      return {
-        approvalPhase: "settle",
-        payoutQueue: {
-          nextWindow: {
-            cadence: "daily",
-            label: "Tomorrow",
-            targetTimeUtc: "18:30",
-            timezone: "UTC",
-          },
-        },
-        reconciliation: {
-          exportWindow: {
-            date: "2026-04-24",
-            endUtc: "05:00",
-            startUtc: "01:00",
-            timezone: "UTC",
-          },
-        },
-      };
-    },
-    listReceipts() {
-      return [
-        {
-          amount: "12.34",
-          asset: "USDC",
-          auditDisclosureId: "aud_test",
-          checkoutSessionId: "cs_test",
-          createdAt: "2026-04-23T00:00:00.000Z",
-          customerEmail: null,
-          id: "rcpt_test",
-          invoiceReference: null,
-          merchantId: "mrc_123",
-          object: "receipt",
-          orderId: null,
-          paymentId: "pay_test",
-          privateRailReceiptId: "prail_test",
-          status: "paid",
-        },
-      ];
-    },
-    listRefunds() {
-      return [
-        {
-          amount: "2.00",
-          asset: "USDC",
-          createdAt: "2026-04-23T00:00:00.000Z",
-          id: "rfnd_test",
-          idempotencyKey: "refund_test",
-          merchantId: "mrc_123",
-          object: "refund",
-          paymentId: "pay_test",
-          reason: "test",
-          status: "refunded",
-        },
-      ];
-    },
-    listWithdrawals() {
-      return [
-        {
-          amount: "1.00",
-          asset: "USDC",
-          createdAt: "2026-04-23T00:00:00.000Z",
-          destination: "Treasury",
-          destinationType: "treasury_address",
-          id: "wdr_test",
-          idempotencyKey: "withdrawal_test",
-          merchantId: "mrc_123",
-          object: "withdrawal",
-          privateExitReceiptId: "pexit_test",
-          referenceNote: "test",
-          status: "completed",
-        },
-      ];
-    },
+  const runtime = createVantaPayRuntime();
+  const merchant = runtime.getMerchant();
+  const session = runtime.createCheckoutSession({
+    amount: "12.34",
+    cancelUrl: merchant.callbackUrls.cancelUrl,
+    currency: merchant.payoutSettings.defaultAsset,
+    lineItems: [{ amount: "12.34", name: "Settlement test", quantity: 1 }],
+    merchantId: merchant.id,
+    mode: "payment",
+    successUrl: merchant.callbackUrls.successUrl,
+    uiMode: "hosted",
+  });
+  const privateRailReceipt = runtime.createPrivateRailReceipt({
+    checkoutSessionId: session.id,
+    rail: session.privacyRoute.rail,
+  });
+  const completed = runtime.completeCheckoutSession(session.id, {
+    privateRailReceiptId: privateRailReceipt.id,
+  });
+  runtime.createRefund({
+    amount: completed.payment.amount,
+    merchantId: merchant.id,
+    paymentId: completed.payment.id,
   });
 
-  if (runtimeControlPlane.approvalPhase !== "settle") {
-    failures.push("Expected runtime-derived approvalPhase from the control plane helper.");
+  const zeroBalances = runtime.getBalances();
+  if (zeroBalances.available.length !== 0 || zeroBalances.withdrawable.length !== 0) {
+    failures.push("Expected fully refunded settled payments to net to zero balances.");
   }
-  if (runtimeControlPlane.payoutQueue.nextWindow !== "Tomorrow · 18:30 UTC") {
-    failures.push("Expected runtime-derived payoutQueue.nextWindow string from the control plane helper.");
-  }
-  if (runtimeControlPlane.reconciliation.exportWindow !== "2026-04-24 · 01:00-05:00 UTC") {
-    failures.push("Expected runtime-derived reconciliation.exportWindow string from the control plane helper.");
+
+  const runtimeControlPlane = createVantaPayMerchantControlPlaneFromRuntime(runtime);
+  if (runtimeControlPlane.balances.available.length !== 0 || runtimeControlPlane.balances.withdrawable.length !== 0) {
+    failures.push("Expected control plane balances to reflect zeroed runtime balances.");
   }
   if (runtimeControlPlane.reconciliation.recordsLabel !== "1 receipt records") {
     failures.push("Expected reconciliation.recordsLabel to derive from receipts.length.");

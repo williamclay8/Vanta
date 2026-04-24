@@ -681,11 +681,7 @@ export function createVantaPayRuntime({
     const totals = new Map<VantaPayAsset, string>();
 
     for (const payment of payments.values()) {
-      if (
-        payment.status !== "completed" ||
-        payment.railStatus !== "settled" ||
-        !payment.privateRailReceiptId
-      ) {
+      if (payment.railStatus !== "settled" || !payment.privateRailReceiptId) {
         continue;
       }
 
