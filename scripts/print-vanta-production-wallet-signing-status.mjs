@@ -36,13 +36,17 @@ function buildStatus() {
     browserVerificationMode: "local-dev-server-gsd-browser",
     browserVerifiedProtocolPages: ["Shield", "Send", "Swap", "Unshield"],
     checkedAt: new Date().toISOString(),
+    localBrowserVerificationOnly: true,
     liveMainnetSubmissionEnabled: policy.liveMainnetSubmissionEnabled,
     liveSendInventoryVersion: inventory.version,
     mainnetReady: false,
+    mainnetSubmissionExplicitlyBlocked: policy.liveMainnetSubmissionEnabled === false,
     messageIntentPages: messageIntentPages.map((surface) => surface.page),
     messageIntentSequence: inventory.messageIntentPolicy.requiredSequence,
     policyVersion: policy.version,
     productionReady: false,
+    productionBrowserVerificationAvailable: false,
+    productionBrowserVerificationStatus: "pending",
     protocolPagesCovered: protocolPages.map((surface) => surface.page),
     protocolPagesWithSafeSendAdoption: adoptedProtocolPages.map((surface) => surface.page),
     replacementRequired: inventory.replacementRequired,
@@ -77,6 +81,22 @@ if (checkMode) {
     result.browserVerificationMode,
     "local-dev-server-gsd-browser",
     "Browser verification mode must remain local-dev-server-gsd-browser.",
+  );
+  assert.equal(result.localBrowserVerificationOnly, true, "Browser verification must remain local-only.");
+  assert.equal(
+    result.productionBrowserVerificationAvailable,
+    false,
+    "Production browser-backed verification must remain pending.",
+  );
+  assert.equal(
+    result.productionBrowserVerificationStatus,
+    "pending",
+    "Production browser-backed verification status must remain pending.",
+  );
+  assert.equal(
+    result.mainnetSubmissionExplicitlyBlocked,
+    true,
+    "Live mainnet submission must remain explicitly blocked.",
   );
   assert.deepEqual(
     result.browserVerifiedProtocolPages,
@@ -126,8 +146,14 @@ if (jsonMode || checkMode) {
   console.log(`- protocolPagesCovered: ${result.protocolPagesCovered.join(", ")}`);
   console.log(`- protocolPagesWithSafeSendAdoption: ${result.protocolPagesWithSafeSendAdoption.join(", ")}`);
   console.log(`- browserVerifiedProtocolPages: ${result.browserVerifiedProtocolPages.join(", ")}`);
+  console.log(`- localBrowserVerificationOnly: ${String(result.localBrowserVerificationOnly)}`);
+  console.log(
+    `- productionBrowserVerificationAvailable: ${String(result.productionBrowserVerificationAvailable)}`,
+  );
+  console.log(`- productionBrowserVerificationStatus: ${result.productionBrowserVerificationStatus}`);
   console.log(`- messageIntentPages: ${result.messageIntentPages.join(", ")}`);
   console.log(`- liveMainnetSubmissionEnabled: ${String(result.liveMainnetSubmissionEnabled)}`);
+  console.log(`- mainnetSubmissionExplicitlyBlocked: ${String(result.mainnetSubmissionExplicitlyBlocked)}`);
   console.log(`- browserVerificationCluster: ${result.browserVerificationCluster}`);
   console.log(`- umbraAdapterGateStatus: ${result.umbraAdapterGateStatus}`);
   console.log(`- umbraAdapterSummaryBindingRequired: ${String(result.umbraAdapterSummaryBindingRequired)}`);

@@ -48,6 +48,11 @@ if (jsonMode) {
   console.log(`  - cluster: ${snapshot.walletSigning.browserVerificationCluster}`);
   console.log(`  - mode: ${snapshot.walletSigning.browserVerificationMode}`);
   console.log(`  - browserVerifiedPages: ${snapshot.walletSigning.browserVerifiedProtocolPages.join(", ")}`);
+  console.log(`  - localBrowserVerificationOnly: ${String(snapshot.walletSigning.localBrowserVerificationOnly)}`);
+  console.log(
+    `  - productionBrowserVerificationAvailable: ${String(snapshot.walletSigning.productionBrowserVerificationAvailable)}`,
+  );
+  console.log(`  - productionBrowserVerificationStatus: ${snapshot.walletSigning.productionBrowserVerificationStatus}`);
   console.log(
     `  - protocolPagesWithSafeSendAdoption: ${snapshot.walletSigning.protocolPagesWithSafeSendAdoption.join(", ")}`,
   );
@@ -55,6 +60,9 @@ if (jsonMode) {
   console.log(`  - umbraAdapterGateStatus: ${snapshot.walletSigning.umbraAdapterGateStatus}`);
   console.log(
     `  - liveMainnetSubmissionEnabled: ${String(snapshot.walletSigning.liveMainnetSubmissionEnabled)}`,
+  );
+  console.log(
+    `  - mainnetSubmissionExplicitlyBlocked: ${String(snapshot.walletSigning.mainnetSubmissionExplicitlyBlocked)}`,
   );
   console.log("- private pool v2 production smoke:");
   console.log(`  - realFundsAllowed: ${String(snapshot.privatePoolV2ProductionSmoke.realFundsAllowed)}`);

@@ -16,9 +16,13 @@ assert.equal(evidence.mainnetReady, false);
 assert.equal(evidence.productionReady, false);
 assert.equal(evidence.lastStatusRef, "npm run mainnet:wallet-signing-status-check");
 assert.equal(evidence.browserVerificationRef, "npm run wallet:browser-signing-safety-check");
+assert.equal(evidence.localBrowserVerificationOnly, true);
+assert.equal(evidence.productionBrowserVerificationAvailable, false);
+assert.equal(evidence.productionBrowserVerificationStatus, "pending");
 assert.equal(evidence.signingSafetyPolicyRef, "npm run wallet:signing-safety-check");
 assert.equal(evidence.liveSendInventoryRef, "npm run wallet:live-send-inventory-check");
 assert.equal(evidence.liveMainnetSubmissionEnabled, false);
+assert.equal(evidence.mainnetSubmissionExplicitlyBlocked, true);
 assert.equal(evidence.browserVerificationMode, "local-dev-server-gsd-browser");
 assert.equal(evidence.browserVerificationCluster, "devnet-or-localnet");
 assert.deepEqual(evidence.browserVerifiedProtocolPages, ["Shield", "Send", "Swap", "Unshield"]);
@@ -36,6 +40,14 @@ assert.ok(
 assert.ok(
   evidence.deploymentTruth.includes("must still not be presented as a production browser-signing readiness claim"),
   "Wallet-signing evidence must preserve the non-production truth.",
+);
+assert.ok(
+  evidence.deploymentTruth.includes("live mainnet submission remains explicitly blocked"),
+  "Wallet-signing evidence must preserve the explicit mainnet-submission block truth.",
+);
+assert.ok(
+  evidence.deploymentTruth.includes("deployed production browser-backed verification exists"),
+  "Wallet-signing evidence must preserve the missing deployed browser-proof truth.",
 );
 
 const serialized = JSON.stringify(evidence);
