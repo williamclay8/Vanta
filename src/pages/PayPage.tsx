@@ -1,7 +1,10 @@
 import { useMemo, useState } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
 import { VANTA_PAY_ASSET_SYMBOLS, type VantaPayAsset } from "@/pay/vantaPayAssets";
-import { VANTA_PAY_MERCHANT_COMMAND_CENTER } from "@/pay/vantaPayMerchantCommandCenter";
+import {
+  VANTA_PAY_MERCHANT_COMMAND_CENTER,
+  type VantaPayCommandCenterItem,
+} from "@/pay/vantaPayMerchantCommandCenter";
 
 function PayButton({
   children,
@@ -95,6 +98,16 @@ function PaySelect({
   );
 }
 
+function PaySuiteCard({ item }: { item: VantaPayCommandCenterItem }) {
+  return (
+    <article className={`pay-command-card pay-command-card--${item.tone}`}>
+      <span>{item.label}</span>
+      <strong>{item.value}</strong>
+      <small>{item.detail}</small>
+    </article>
+  );
+}
+
 export function PayPage() {
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
@@ -128,10 +141,11 @@ export function PayPage() {
       <div className="pay-shell pay-shell--minimal">
         <header className="pay-topbar pay-topbar--minimal pay-page__hero product-intro">
           <div>
-            <span className="pay-kicker product-intro__eyebrow">Merchant command center</span>
+            <span className="pay-kicker product-intro__eyebrow">Vanta Pay Suite</span>
             <h1 id="pay-title">Create a payment request</h1>
             <p>
-              Create, preview, and verify a payment path without presenting Vanta Pay as a
+              Merchant command center for checkout, links, invoices, refunds, withdrawals,
+              reconciliation, and embed-ready developer controls without presenting Vanta Pay as a
               live production processor.
             </p>
           </div>
@@ -206,8 +220,45 @@ export function PayPage() {
               </div>
             </section>
 
+            <section className="pay-command-center__suite" aria-label="Suite mode">
+              <div className="pay-section-mini-header">
+                <span className="pay-kicker">Suite mode</span>
+                <strong>Hosted, embedded, or modal checkout</strong>
+              </div>
+              <div className="pay-command-card-grid pay-command-card-grid--three">
+                {VANTA_PAY_MERCHANT_COMMAND_CENTER.suiteModes.map((item) => (
+                  <PaySuiteCard item={item} key={item.label} />
+                ))}
+              </div>
+            </section>
+
+            <section className="pay-command-center__suite" aria-label="Payment suite workflows">
+              <div className="pay-section-mini-header">
+                <span className="pay-kicker">Payment suite</span>
+                <strong>Payment links, invoices, subscriptions, and post-payment work</strong>
+              </div>
+              <div className="pay-command-card-grid pay-command-card-grid--suite">
+                {VANTA_PAY_MERCHANT_COMMAND_CENTER.suiteWorkflows.map((item) => (
+                  <PaySuiteCard item={item} key={item.label} />
+                ))}
+              </div>
+            </section>
+
+            <section className="pay-command-center__suite" aria-label="Developer controls">
+              <div className="pay-section-mini-header">
+                <span className="pay-kicker">Developer controls</span>
+                <strong>Embeddable suite preview, API keys, and signed webhooks</strong>
+              </div>
+              <div className="pay-command-card-grid pay-command-card-grid--three">
+                {VANTA_PAY_MERCHANT_COMMAND_CENTER.developerControls.map((item) => (
+                  <PaySuiteCard item={item} key={item.label} />
+                ))}
+              </div>
+            </section>
+
             <div className="pay-trust-line">
               <span>Payment route preview</span>
+              <span>Transaction evidence</span>
               <span>Receipt path preview</span>
               {isBetaMode ? <span>No funds move</span> : null}
             </div>
@@ -219,14 +270,7 @@ export function PayPage() {
               </div>
               <div className="pay-command-card-grid">
                 {VANTA_PAY_MERCHANT_COMMAND_CENTER.trustRail.map((item) => (
-                  <article
-                    className={`pay-command-card pay-command-card--${item.tone}`}
-                    key={item.label}
-                  >
-                    <span>{item.label}</span>
-                    <strong>{item.value}</strong>
-                    <small>{item.detail}</small>
-                  </article>
+                  <PaySuiteCard item={item} key={item.label} />
                 ))}
               </div>
             </section>
@@ -238,14 +282,7 @@ export function PayPage() {
               </div>
               <div className="pay-command-card-grid">
                 {VANTA_PAY_MERCHANT_COMMAND_CENTER.operations.map((item) => (
-                  <article
-                    className={`pay-command-card pay-command-card--${item.tone}`}
-                    key={item.label}
-                  >
-                    <span>{item.label}</span>
-                    <strong>{item.value}</strong>
-                    <small>{item.detail}</small>
-                  </article>
+                  <PaySuiteCard item={item} key={item.label} />
                 ))}
               </div>
             </section>

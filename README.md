@@ -45,8 +45,8 @@ Working or inspectable today:
 - shield flows for supported devnet assets
 - shielded state inside Vanta
 - constrained send, swap, and unshield paths
-- a simple `/app/pay` payment-entry surface focused on payment description, amount, asset, customer email, review, route preview, receipt preview, and beta state, now presented inside the Merchant Command Center preview
-- the real `/app/pay` tab is a Merchant Command Center preview: payment creation first, with trust rail, beta/no-funds disclosure, privacy-readiness limitation, and read-only operations context
+- a `/app/pay` Vanta Pay Suite preview focused on payment creation, hosted/embedded/modal checkout modes, payment links, invoices, subscriptions, refunds, withdrawals, reconciliation, developer controls, route preview, receipt preview, transaction evidence, and beta state
+- the real `/app/pay` tab is a Merchant Command Center preview: payment creation first, with suite modes, trust rail, beta/no-funds disclosure, privacy-readiness limitation, and read-only operations context
 - Pay with Vanta checkout and merchant API preview flows
 - Pay status, approval, settlement, refund, withdrawal, reconciliation, and receipt contracts remain verifiable through commands
 - proof and operator checks for the current narrow private-core lane
@@ -505,7 +505,7 @@ The merchant trust surface is documented in `docs/pay-merchant-trust-surface.md`
 
 The current Pay layer covers:
 - commerce-only Pay tab copy with no protocol vocabulary in the merchant/buyer flow
-- the real `/app/pay` tab is a Merchant Command Center preview: payment creation first, with trust rail, beta/no-funds disclosure, privacy-readiness limitation, and read-only operations context
+- the real `/app/pay` tab is a Vanta Pay Suite preview: payment creation first, with hosted/embedded/modal checkout modes, payment links, invoices, subscriptions, refunds, withdrawals, reconciliation, developer controls, route preview, receipt preview, transaction evidence, trust rail, beta/no-funds disclosure, privacy-readiness limitation, and read-only operations context
 - static Pay contract check through `npm run pay:contract-check`
 - human and JSON Pay status surfaces through `npm run pay:status` and `npm run pay:status-json`, including `productionReady: false`
 - merchant trust status through `npm run pay:merchant-trust-status` and `npm run pay:merchant-trust-status-check`, freezing `controlled-privacy` plus `legible-trust` as the current merchant-facing trust model

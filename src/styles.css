@@ -3213,7 +3213,8 @@ input {
 }
 
 .pay-command-center__trust,
-.pay-command-center__operations {
+.pay-command-center__operations,
+.pay-command-center__suite {
   display: grid;
   gap: 0.85rem;
   margin-top: 1rem;

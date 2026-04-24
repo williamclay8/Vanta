@@ -9,6 +9,8 @@ const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-pay-api-"));
 const tempTsDir = join(tempRoot, "ts");
 const tempJsDir = join(tempRoot, "js");
 const sourceFiles = [
+  "tokens/vantaTokenCatalog.ts",
+  "pay/vantaPayAssets.ts",
   "pay/vantaPayTypes.ts",
   "pay/vantaPayRuntime.ts",
   "pay/vantaPayPrivateSettlementAdapter.ts",

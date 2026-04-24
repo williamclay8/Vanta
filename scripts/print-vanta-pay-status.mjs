@@ -29,6 +29,8 @@ async function loadPrivateSettlementSummary() {
   const tempTsDir = join(tempRoot, "ts");
   const tempJsDir = join(tempRoot, "js");
   const sourceFiles = [
+    "tokens/vantaTokenCatalog.ts",
+    "pay/vantaPayAssets.ts",
     "pay/vantaPayPrivateSettlementAdapter.ts",
     "pay/vantaPayTypes.ts",
     "privacy/privatePoolV2MockRuntime.ts",

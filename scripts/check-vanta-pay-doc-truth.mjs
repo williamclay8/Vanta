@@ -7,16 +7,17 @@ const docChecks = [
   {
     path: "docs/pay-merchant-trust-surface.md",
     required: [
-      "the default `/app/pay` surface is now a simple payment-entry flow",
+      "the default `/app/pay` surface is now a Vanta Pay Suite preview",
       "`Payment details`, `What are you collecting for?`, `Amount`, `Asset`, `Customer email`, and `Review payment`",
-      "payment route preview, receipt path preview, and beta disabled state remain visible",
-      "merchant API, status, approval packet, refunds, withdrawals, and reconciliation still live in the Pay backend and verification commands",
+      "hosted checkout, embedded checkout, modal checkout, payment links, invoices, subscriptions, refunds, withdrawals, reconciliation, developer controls, API keys, and signed webhooks",
+      "payment route preview, receipt path preview, transaction evidence, and beta disabled state remain visible",
+      "merchant API, status, approval packet, refunds, withdrawals, reconciliation, payment links, invoices, and webhook delivery still live in the Pay backend and verification commands",
     ],
   },
   {
     path: "README.md",
     required: [
-      "a simple `/app/pay` payment-entry surface focused on payment description, amount, asset, customer email, review, route preview, receipt preview, and beta state",
+      "a `/app/pay` Vanta Pay Suite preview focused on payment creation, hosted/embedded/modal checkout modes, payment links, invoices, subscriptions, refunds, withdrawals, reconciliation, developer controls, route preview, receipt preview, transaction evidence, and beta state",
       "Pay with Vanta",
       "0 monthly fee",
       "0.25%` only when a supported action completes successfully",
@@ -26,8 +27,8 @@ const docChecks = [
   {
     path: "SUBMISSION.md",
     required: [
-      "The Pay demo now opens on a simple payment-entry surface",
-      "payment description, amount, asset, customer email, review, route preview, receipt preview, and beta disabled state",
+      "The Pay demo now opens on a Vanta Pay Suite preview",
+      "payment creation, checkout modes, payment links, invoices, subscriptions, refunds, withdrawals, reconciliation, developer controls, route preview, receipt preview, transaction evidence, and beta disabled state",
       "0 monthly fee",
       "0.25%` only when a supported action completes successfully",
       "utility-first",
