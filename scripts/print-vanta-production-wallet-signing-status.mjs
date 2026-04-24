@@ -1,9 +1,11 @@
 import { strict as assert } from "node:assert";
+import { readFileSync } from "node:fs";
 import { createVantaWalletSigningSafetyPolicy } from "../src/readiness/walletSigningSafety.mjs";
 import { createWalletLiveSendInventory } from "../src/readiness/walletLiveSendInventory.mjs";
 
 const jsonMode = process.argv.includes("--json");
 const checkMode = process.argv.includes("--check");
+const walletSigningEvidencePath = new URL("../ops/mainnet/wallet-signing-safety.evidence.json", import.meta.url);
 
 function summarizeActionSurface(surface) {
   const adoptedCallSites = surface.adoptedCallSites ?? [];
@@ -23,16 +25,12 @@ function summarizeActionSurface(surface) {
 function buildStatus() {
   const policy = createVantaWalletSigningSafetyPolicy();
   const inventory = createWalletLiveSendInventory();
+  const evidence = JSON.parse(readFileSync(walletSigningEvidencePath, "utf8"));
   const surfaces = inventory.actionSurfaces.map(summarizeActionSurface);
   const protocolPages = surfaces.filter((surface) => ["Shield", "Send", "Swap", "Unshield"].includes(surface.page));
   const adoptedProtocolPages = protocolPages.filter((surface) => surface.status === "safe-send-adopted");
   const messageIntentPages = surfaces.filter((surface) => surface.signatureKinds.includes("message-intent-signature"));
   const walletAdapterSurface = surfaces.find((surface) => surface.page === "Umbra adapter") ?? null;
-  const productionWalletSigningBlockedBy = [
-    "production-beta-mode-banner-visible",
-    "production-private-settlement-offline-banner-visible",
-    "live-mainnet-submission-explicitly-blocked",
-  ];
 
   return {
     blockedActions: policy.blockedActions,
@@ -50,16 +48,16 @@ function buildStatus() {
     messageIntentSequence: inventory.messageIntentPolicy.requiredSequence,
     policyVersion: policy.version,
     productionReady: false,
-    productionBrowserVerificationAvailable: true,
-    productionBrowserVerificationCoversRequiredPages: true,
-    productionBrowserVerificationRef: "npm run mainnet:wallet-production-browser-check",
-    productionBrowserVerificationRequiredPages: ["Shield", "Send", "Swap", "Unshield"],
-    productionBrowserVerificationStatus: "recorded-beta-mode-blocked",
-    productionBrowserVerificationUrl: "https://vantaprivacy.xyz",
-    productionBrowserVerifiedPages: ["Shield", "Send", "Swap", "Unshield"],
-    productionWalletSigningBlockedBy,
-    productionDeploymentModeBannerVisible: true,
-    productionSettlementOfflineBannerVisible: true,
+    productionBrowserVerificationAvailable: evidence.productionBrowserVerificationAvailable,
+    productionBrowserVerificationCoversRequiredPages: evidence.productionBrowserVerificationCoversRequiredPages,
+    productionBrowserVerificationRef: evidence.productionBrowserVerificationRef,
+    productionBrowserVerificationRequiredPages: evidence.productionBrowserVerificationRequiredPages,
+    productionBrowserVerificationStatus: evidence.productionBrowserVerificationStatus,
+    productionBrowserVerificationUrl: evidence.productionBrowserVerificationUrl,
+    productionBrowserVerifiedPages: evidence.productionBrowserVerifiedPages,
+    productionWalletSigningBlockedBy: evidence.productionWalletSigningBlockedBy,
+    productionDeploymentModeBannerVisible: evidence.productionDeploymentModeBannerVisible,
+    productionSettlementOfflineBannerVisible: evidence.productionSettlementOfflineBannerVisible,
     protocolPagesCovered: protocolPages.map((surface) => surface.page),
     protocolPagesWithSafeSendAdoption: adoptedProtocolPages.map((surface) => surface.page),
     replacementRequired: inventory.replacementRequired,
@@ -70,6 +68,7 @@ function buildStatus() {
     safety:
       "No wallet keys, seed phrases, signed transaction material, signed intent payloads, bearer values, or database URLs are printed.",
     surfaces,
+    checkedEvidenceRef: "ops/mainnet/wallet-signing-safety.evidence.json",
     umbraAdapterGateStatus: walletAdapterSurface?.status ?? "missing",
     umbraAdapterSummaryBindingRequired: walletAdapterSurface?.status === "wallet-adapter-summary-bound",
     version: "vanta-production-wallet-signing-status-0.1",
