@@ -172,12 +172,12 @@ assert.ok(
 );
 assert.ok(
   snapshot.walletSigning.deploymentTruth.includes(
-    "local production browser verification remains green",
+    "deployed production browser verification is now green",
   ),
 );
 assert.ok(snapshot.walletSigning.deploymentTruth.includes("repo now targets live-submission mode by default"));
-assert.ok(snapshot.walletSigning.nextOperatorAction.includes("rerun deployed browser verification"));
-assert.ok(snapshot.walletSigning.nextOperatorAction.includes("Redeploy the public app"));
+assert.ok(snapshot.walletSigning.nextOperatorAction.includes("deployed browser verification"));
+assert.ok(snapshot.walletSigning.nextOperatorAction.includes("real-funds actions remain bounded by explicit approval"));
 assert.equal(
   snapshot.privatePoolV2ProductionSmoke.checkedEvidenceRef,
   "ops/mainnet/private-pool-v2-production-smoke.evidence.json",

@@ -30,7 +30,7 @@ const blockerDefinitions = [
     id: "wallet-backed-browser-signing-safety",
     severity: "critical",
     buildSummary:
-      "Keep the wallet-signing status/evidence surface fresh while Shield, Send, Swap, and Unshield remain frozen behind safe-send or typed message-intent boundaries, the repo live-submission posture and local production browser proof stay green, and the public redeploy/browser refresh still needs to clear the remaining deployed beta/offline block before any real-funds mainnet action stays bounded by explicit approval.",
+      "Keep the wallet-signing status/evidence surface fresh while Shield, Send, Swap, and Unshield remain frozen behind safe-send or typed message-intent boundaries, deployed production browser proof stays green, and any real-funds mainnet action remains bounded by explicit approval.",
   },
   {
     id: "abuse-rate-limit-observability",
@@ -42,7 +42,7 @@ const blockerDefinitions = [
     id: "no-mainnet-funds-without-explicit-approval",
     severity: "critical",
     buildSummary: (snapshot) =>
-      `Allow only the bounded beta mainnet private-pool smoke approved in the real-funds packet while the checked funds blockers remain ${snapshot.realFundsApproval.mainnetFundsBlockedBy.join(", ")}.`,
+      `Allow only the bounded live mainnet private-settlement smoke approved in the real-funds packet while the checked funds blockers remain ${snapshot.realFundsApproval.mainnetFundsBlockedBy.join(", ")}.`,
   },
 ];
 
@@ -225,7 +225,7 @@ export function createVantaMainnetReadinessSnapshot() {
     "Keep operator-skipped controls visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
     `Keep the abuse/observability status/evidence surface fresh while the checked pending controls remain ${abuseObservability.pendingObservabilityControls.join(", ")}.`,
     `Keep the deployed operator replay-status evidence, the Postgres-backed nullifier replay guard, role-service replay verification, and production smoke replay simulation fresh while the checked replay blockers remain ${nullifierReplay.productionReplayBlockedBy.join(", ")}.`,
-    `Keep the wallet-signing status/evidence surface, four-page local browser verification, deployed browser verification, and live-send inventory commands fresh while the repo live-submission posture is landed, the public app redeploy/browser refresh is still pending, and any real-funds action remains bounded by explicit approval.`,
+    `Keep the wallet-signing status/evidence surface, four-page local browser verification, deployed browser verification, and live-send inventory commands fresh while any real-funds action remains bounded by explicit approval.`,
   ];
 
   return {

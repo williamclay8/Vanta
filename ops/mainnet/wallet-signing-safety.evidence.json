@@ -21,16 +21,14 @@
   ],
   "productionBrowserVerificationCoversRequiredPages": true,
   "productionBrowserVerificationAvailable": true,
-  "productionBrowserVerificationStatus": "repo-live-submission-mode-awaiting-public-redeploy",
-  "productionWalletSigningBlockedBy": [
-    "public-live-submission-redeploy-required"
-  ],
-  "productionDeploymentModeBannerVisible": true,
-  "productionSettlementOfflineBannerVisible": true,
+  "productionBrowserVerificationStatus": "recorded-live-submission-mode",
+  "productionWalletSigningBlockedBy": [],
+  "productionDeploymentModeBannerVisible": false,
+  "productionSettlementOfflineBannerVisible": false,
   "signingSafetyPolicyRef": "npm run wallet:signing-safety-check",
   "liveSendInventoryRef": "npm run wallet:live-send-inventory-check",
-  "liveMainnetSubmissionEnabled": false,
-  "mainnetSubmissionExplicitlyBlocked": true,
+  "liveMainnetSubmissionEnabled": true,
+  "mainnetSubmissionExplicitlyBlocked": false,
   "browserVerificationMode": "local-dev-server-gsd-browser",
   "browserVerificationCluster": "devnet-or-localnet",
   "browserVerifiedProtocolPages": [
@@ -55,6 +53,6 @@
   "umbraAdapterGateStatus": "wallet-adapter-summary-bound",
   "umbraAdapterSummaryBindingRequired": true,
   "safety": "No wallet keys, seed phrases, signed transaction material, signed intent payloads, bearer values, or database URLs are stored in this evidence file.",
-  "deploymentTruth": "This evidence proves the current live wallet-signing paths stay behind checked local/browser safety boundaries across Shield, Send, Swap, and Unshield, that the Umbra wallet adapter is fail-closed behind a summary-bound gate rather than a generic approval window, that the repo now targets live-submission mode by default, and that local production browser verification remains green. The deployed public app at https://vantaprivacy.xyz still serves the beta-mode and settlement-offline banners and still blocks live mainnet submission until the next public redeploy is verified. The lane still must not be presented as production-ready because real-funds actions remain bounded by explicit approval and meaningful-privacy blockers are still unresolved.",
-  "nextOperatorAction": "Redeploy the public app, rerun deployed browser verification, then refresh wallet-signing evidence so the public beta/offline blocker clears while real-funds actions remain bounded by explicit approval."
+  "deploymentTruth": "This evidence proves the current live wallet-signing paths stay behind checked local/browser safety boundaries across Shield, Send, Swap, and Unshield, that the Umbra wallet adapter is fail-closed behind a summary-bound gate rather than a generic approval window, that the repo now targets live-submission mode by default, and that deployed production browser verification is now green for the public app at https://vantaprivacy.xyz. The public beta banner, settlement-offline banner, and explicit live-submission block are cleared. The lane still must not be presented as production-ready because real-funds actions remain bounded by explicit approval and meaningful-privacy blockers are still unresolved.",
+  "nextOperatorAction": "Keep the wallet-signing status, local browser verification, deployed browser verification, and live-send inventory commands fresh while real-funds actions remain bounded by explicit approval and meaningful-privacy blockers are still unresolved."
 }

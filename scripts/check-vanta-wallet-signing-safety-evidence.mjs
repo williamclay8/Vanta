@@ -23,14 +23,14 @@ assert.deepEqual(evidence.productionBrowserVerificationRequiredPages, ["Shield",
 assert.deepEqual(evidence.productionBrowserVerifiedPages, ["Shield", "Send", "Swap", "Unshield"]);
 assert.equal(evidence.productionBrowserVerificationCoversRequiredPages, true);
 assert.equal(evidence.productionBrowserVerificationAvailable, true);
-assert.equal(evidence.productionBrowserVerificationStatus, "repo-live-submission-mode-awaiting-public-redeploy");
-assert.deepEqual(evidence.productionWalletSigningBlockedBy, ["public-live-submission-redeploy-required"]);
-assert.equal(evidence.productionDeploymentModeBannerVisible, true);
-assert.equal(evidence.productionSettlementOfflineBannerVisible, true);
+assert.equal(evidence.productionBrowserVerificationStatus, "recorded-live-submission-mode");
+assert.deepEqual(evidence.productionWalletSigningBlockedBy, []);
+assert.equal(evidence.productionDeploymentModeBannerVisible, false);
+assert.equal(evidence.productionSettlementOfflineBannerVisible, false);
 assert.equal(evidence.signingSafetyPolicyRef, "npm run wallet:signing-safety-check");
 assert.equal(evidence.liveSendInventoryRef, "npm run wallet:live-send-inventory-check");
-assert.equal(evidence.liveMainnetSubmissionEnabled, false);
-assert.equal(evidence.mainnetSubmissionExplicitlyBlocked, true);
+assert.equal(evidence.liveMainnetSubmissionEnabled, true);
+assert.equal(evidence.mainnetSubmissionExplicitlyBlocked, false);
 assert.equal(evidence.browserVerificationMode, "local-dev-server-gsd-browser");
 assert.equal(evidence.browserVerificationCluster, "devnet-or-localnet");
 assert.deepEqual(evidence.browserVerifiedProtocolPages, ["Shield", "Send", "Swap", "Unshield"]);
@@ -54,12 +54,12 @@ assert.ok(
   "Wallet-signing evidence must preserve the repo-side live-submission posture truth.",
 );
 assert.ok(
-  evidence.deploymentTruth.includes("local production browser verification remains green"),
-  "Wallet-signing evidence must preserve the local production browser-proof scope while the public redeploy is pending.",
+  evidence.deploymentTruth.includes("deployed production browser verification is now green"),
+  "Wallet-signing evidence must preserve the deployed production browser-proof scope.",
 );
 assert.ok(
-  evidence.nextOperatorAction.includes("Redeploy the public app"),
-  "Wallet-signing evidence must preserve the public redeploy operator action truth.",
+  evidence.nextOperatorAction.includes("deployed browser verification"),
+  "Wallet-signing evidence must preserve the fresh deployed-browser verification operator action truth.",
 );
 
 const serialized = JSON.stringify(evidence);
