@@ -19,6 +19,12 @@ import type {
 
 export const VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION =
   "vanta-pay-private-settlement-adapter-0.1" as const;
+export const VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY = {
+  lifecycleModel: "preview-approve-execute-settle",
+  refundState: "merchant-visible",
+  withdrawalState: "merchant-visible",
+  reconciliationState: "merchant-visible",
+} as const;
 
 export type VantaPayPrivateSettlementAdapterArgs = {
   now?: string;
@@ -316,6 +322,7 @@ export function createVantaPayPrivateSettlementAdapter({
   }
 
   return {
+    privateSettlement: VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY,
     protocol,
     settleCheckoutSession,
     settleWithdrawal,

@@ -1,9 +1,26 @@
+import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 
 const requiredFiles = [
+  {
+    path: "src/pay/vantaPayTypes.ts",
+    markers: [
+      "VantaPayMerchantTrustStatus",
+      "vanta-pay-merchant-trust-status-0.1",
+    ],
+  },
+  {
+    path: "src/pay/vantaPayMerchantTrustStatus.ts",
+    markers: [
+      "getVantaPayMerchantTrustStatus",
+      "vanta-pay-merchant-trust-status-0.1",
+      "controlled-privacy",
+      "legible-trust",
+    ],
+  },
   {
     path: "src/pay/vantaPayRuntime.ts",
     markers: [
@@ -78,6 +95,44 @@ const requiredFiles = [
     ],
   },
   {
+    path: "scripts/print-vanta-pay-merchant-trust-status.mjs",
+    markers: [
+      "Vanta Pay Merchant Trust Status",
+      "vanta-pay-merchant-trust-status-0.1",
+      "controlled-privacy",
+      "legible-trust",
+    ],
+  },
+  {
+    path: "scripts/check-vanta-pay-merchant-trust-status.mjs",
+    markers: [
+      "vanta-pay merchant trust status check: PASS",
+      "pay:merchant-trust-status",
+      "vanta-pay-merchant-trust-status-0.1",
+    ],
+  },
+  {
+    path: "src/pay/vantaPayApprovalPacket.ts",
+    markers: [
+      "buildVantaPayApprovalPacket",
+      "vanta-pay-approval-packet-0.1",
+      "preview",
+      "approve",
+      "execute",
+      "settle",
+      "legible-trust",
+    ],
+  },
+  {
+    path: "scripts/check-vanta-pay-approval-packet.mjs",
+    markers: [
+      "Vanta Pay approval packet check: PASS",
+      "vanta-pay-approval-packet-0.1",
+      "walletApprovalRequired",
+      "simulationRequired",
+    ],
+  },
+  {
     path: "scripts/print-vanta-pay-status.mjs",
     markers: [
       "Vanta Pay status",
@@ -131,8 +186,43 @@ if (packageJson.scripts?.["pay:status-json"] !== "node scripts/print-vanta-pay-s
   failures.push("Missing package script pay:status-json");
 }
 
+if (packageJson.scripts?.["pay:merchant-trust-status"] !== "node scripts/print-vanta-pay-merchant-trust-status.mjs") {
+  failures.push("Missing package script pay:merchant-trust-status");
+}
+
+if (
+  packageJson.scripts?.["pay:merchant-trust-status-check"] !==
+  "node scripts/print-vanta-pay-merchant-trust-status.mjs --check"
+) {
+  failures.push("Missing package script pay:merchant-trust-status-check");
+}
+
+if (packageJson.scripts?.["pay:approval-packet-check"] !== "node scripts/check-vanta-pay-approval-packet.mjs") {
+  failures.push("Missing package script pay:approval-packet-check");
+}
+
 if (packageJson.scripts?.["pay:operator"] !== "node operator/pay-server.mjs") {
   failures.push("Missing package script pay:operator");
+}
+
+try {
+  execFileSync("node", ["scripts/check-vanta-pay-merchant-trust-status.mjs"], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+} catch (error) {
+  failures.push("scripts/check-vanta-pay-merchant-trust-status.mjs must execute successfully");
+}
+
+try {
+  execFileSync("node", ["scripts/check-vanta-pay-approval-packet.mjs"], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+} catch (error) {
+  failures.push("scripts/check-vanta-pay-approval-packet.mjs must execute successfully");
 }
 
 if (!String(packageJson.scripts?.["pay:verify"] ?? "").includes("pay:contract-check")) {
@@ -145,6 +235,14 @@ if (!String(packageJson.scripts?.["pay:verify"] ?? "").includes("pay:status")) {
 
 if (!String(packageJson.scripts?.["pay:verify"] ?? "").includes("pay:status-json")) {
   failures.push("pay:verify must include pay:status-json");
+}
+
+if (!String(packageJson.scripts?.["pay:verify"] ?? "").includes("pay:merchant-trust-status-check")) {
+  failures.push("pay:verify must include pay:merchant-trust-status-check");
+}
+
+if (!String(packageJson.scripts?.["pay:verify"] ?? "").includes("pay:approval-packet-check")) {
+  failures.push("pay:verify must include pay:approval-packet-check");
 }
 
 if (failures.length > 0) {

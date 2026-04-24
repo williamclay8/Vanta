@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
+import { VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY } from "@/pay/vantaPayPrivateSettlementAdapter";
 
 type PayView = "link" | "invoice" | "checkout" | "withdraw";
 
@@ -234,6 +235,18 @@ function CheckoutView() {
           <span>Privacy rail in review</span>
           <span>Receipt included</span>
           {isBetaMode && <span>No funds move</span>}
+        </div>
+        <div className="pay-result-line pay-result-line--muted" role="status">
+          <span>Settlement lifecycle</span>
+          <strong>{VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY.lifecycleModel}</strong>
+        </div>
+        <div className="pay-result-line pay-result-line--muted">
+          <span>Refunds: {VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY.refundState}</span>
+          <strong>Withdrawals: {VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY.withdrawalState}</strong>
+        </div>
+        <div className="pay-result-line pay-result-line--muted">
+          <span>Reconciliation: {VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY.reconciliationState}</span>
+          <strong>merchant-visible private settlement controls</strong>
         </div>
         {isComplete ? (
           <div className="pay-success-card">

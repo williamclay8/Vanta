@@ -334,6 +334,44 @@ try {
   console.log("vanta-pay private completion guard: PASS");
 
   const settlementAdapter = createVantaPayPrivateSettlementAdapter();
+  const status =
+    typeof runtime.getMerchantApiStatus === "function"
+      ? runtime.getMerchantApiStatus()
+      : { privateSettlement: runtime.privateSettlement ?? null };
+
+  assert(status.privateSettlement, "Merchant API status must expose privateSettlement summary.");
+  assert(
+    status.privateSettlement.lifecycleModel === "preview-approve-execute-settle",
+    "Merchant API must expose the payment lifecycle model.",
+  );
+  assert(
+    status.privateSettlement.refundState === "merchant-visible",
+    "Merchant API must expose merchant-visible refund state.",
+  );
+  assert(
+    status.privateSettlement.withdrawalState === "merchant-visible",
+    "Merchant API must expose merchant-visible withdrawal state.",
+  );
+  assert(
+    status.privateSettlement.reconciliationState === "merchant-visible",
+    "Merchant API must expose merchant-visible reconciliation state.",
+  );
+  assert(
+    settlementAdapter.privateSettlement?.lifecycleModel === "preview-approve-execute-settle",
+    "Private settlement adapter must expose the merchant lifecycle model.",
+  );
+  assert(
+    settlementAdapter.privateSettlement?.refundState === "merchant-visible",
+    "Private settlement adapter must expose merchant-visible refund state.",
+  );
+  assert(
+    settlementAdapter.privateSettlement?.withdrawalState === "merchant-visible",
+    "Private settlement adapter must expose merchant-visible withdrawal state.",
+  );
+  assert(
+    settlementAdapter.privateSettlement?.reconciliationState === "merchant-visible",
+    "Private settlement adapter must expose merchant-visible reconciliation state.",
+  );
   const privateRailReceipt = await settlementAdapter.settleCheckoutSession({
     session,
   });
@@ -584,6 +622,22 @@ try {
     assert(
       apiStatus.parsed?.capabilities?.productionHttpsWebhooks === true,
       "Expected production HTTPS webhook capability.",
+    );
+    assert(
+      apiStatus.parsed?.privateSettlement?.lifecycleModel === "preview-approve-execute-settle",
+      "Expected real Pay API status to expose the merchant settlement lifecycle model.",
+    );
+    assert(
+      apiStatus.parsed?.privateSettlement?.refundState === "merchant-visible",
+      "Expected real Pay API status to expose merchant-visible refund state.",
+    );
+    assert(
+      apiStatus.parsed?.privateSettlement?.withdrawalState === "merchant-visible",
+      "Expected real Pay API status to expose merchant-visible withdrawal state.",
+    );
+    assert(
+      apiStatus.parsed?.privateSettlement?.reconciliationState === "merchant-visible",
+      "Expected real Pay API status to expose merchant-visible reconciliation state.",
     );
     console.log("vanta-pay api status: PASS");
 

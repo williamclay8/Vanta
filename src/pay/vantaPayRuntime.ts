@@ -1,6 +1,7 @@
 import { hmac } from "@noble/hashes/hmac.js";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
+import { VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY } from "./vantaPayPrivateSettlementAdapter";
 import type {
   VantaPayAsset,
   VantaPayBalances,
@@ -829,9 +830,17 @@ export function createVantaPayRuntime({
     getMerchant() {
       return merchant;
     },
+    getMerchantApiStatus() {
+      return {
+        contractVersion: VANTA_PAY_CONTRACT_VERSION,
+        merchant,
+        privateSettlement: VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY,
+      };
+    },
     getPayment(id: string) {
       return payments.get(id) ?? null;
     },
+    privateSettlement: VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY,
     getReceipt(id: string) {
       return receipts.get(id) ?? null;
     },

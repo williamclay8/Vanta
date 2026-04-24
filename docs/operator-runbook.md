@@ -644,6 +644,30 @@ The Pay production private-rail guard command is:
 npm run pay:production-private-rail-guard-check
 ```
 
+The Pay approval packet freezes the payment approval boundary as:
+
+- `preview`
+- `approve`
+- `execute`
+- `settle`
+
+It is intentionally policy-legible and must remain simulation-bound before any wallet approval.
+
+Verify the packet contract with:
+
+```bash
+npm run pay:approval-packet-check
+```
+
+The merchant trust surface is documented in `docs/pay-merchant-trust-surface.md`. Use these commands to inspect and verify it:
+
+```bash
+npm run pay:merchant-trust-status
+npm run pay:merchant-trust-status-check
+```
+
+Those commands are part of the current Pay operator story alongside `npm run pay:approval-packet-check`, which verifies the merchant-facing approval boundary.
+
 For free Render staging, prefer `VANTA_PAY_DATABASE_URL` from a free Render Postgres database because free web services cannot attach persistent disks and lose local filesystem writes on restart/redeploy. Treat free Render Postgres as staging-only because free databases expire.
 
 Production webhook delivery also requires HTTPS merchant endpoints.

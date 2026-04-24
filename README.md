@@ -478,18 +478,29 @@ Current staging deployment refs:
 
 ## Vanta Pay merchant integration
 
-`npm run pay:verify` is the current Pay product gate. It checks the Pay status surfaces, Pay tab copy contract, the local merchant API, Private Pool v2-backed settlement receipts, signed webhook delivery, browser-backed Pay navigation, security limitations, and the production build.
+Vanta Pay is the merchant-first control plane for private, policy-legible stablecoin settlement.
+
+`npm run pay:verify` is the current Pay product gate. It checks the Pay status surfaces, merchant trust surface, payment approval packet, Pay tab copy contract, the local merchant API, Private Pool v2-backed settlement receipts, signed webhook delivery, browser-backed Pay navigation, security limitations, and the production build.
+
+The merchant trust surface is documented in `docs/pay-merchant-trust-surface.md`.
 
 The current Pay layer covers:
 - commerce-only Pay tab copy with no protocol vocabulary in the merchant/buyer flow
 - static Pay contract check through `npm run pay:contract-check`
 - human and JSON Pay status surfaces through `npm run pay:status` and `npm run pay:status-json`, including `productionReady: false`
+- merchant trust status through `npm run pay:merchant-trust-status` and `npm run pay:merchant-trust-status-check`, freezing `controlled-privacy` plus `legible-trust` as the current merchant-facing trust model
+- payment approval packet contract through `npm run pay:approval-packet-check`, freezing `preview -> approve -> execute -> settle` as the current Pay action boundary
 - local Pay merchant API operator entrypoint through `npm run pay:operator`
 - hosted checkout session creation with `client_token` and `checkout_url`
 - idempotency-key support for checkout session creation, including conflict rejection for mutated retry inputs
 - idempotent checkout completion retries that return the existing payment and receipt without duplicating lifecycle events
 - internal privacy routes on checkout sessions
 - payment completion gated by a Private Pool v2-backed private-rail receipt from `src/pay/vantaPayPrivateSettlementAdapter.ts`
+- merchant-visible settlement lifecycle state exposed consistently across the adapter, merchant API status, Pay status surface, and checkout UI:
+  - `lifecycleModel = preview-approve-execute-settle`
+  - `refundState = merchant-visible`
+  - `withdrawalState = merchant-visible`
+  - `reconciliationState = merchant-visible`
 - production startup guard requiring Private Pool v2 operator settlement via `VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_URL`
 - production startup guard requiring bearer-token forwarding to the Private Pool v2 operator via `VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN`
 - receipt creation with selective audit-disclosure references

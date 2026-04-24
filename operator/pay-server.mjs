@@ -519,6 +519,7 @@ const server = createServer(async (request, response) => {
           "GET /v1/webhook-deliveries",
         ],
         object: "vanta_pay_operator_status",
+        privateSettlement: runtime.getMerchantApiStatus().privateSettlement,
         service: "vanta-pay",
         storage: {
           auditEventSinkKind: operatorEventSink.kind,

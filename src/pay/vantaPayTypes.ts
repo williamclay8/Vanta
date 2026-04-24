@@ -8,6 +8,25 @@ export type VantaPayCheckoutSessionStatus = "open" | "completed" | "expired" | "
 
 export type VantaPayPrivacyRail = "umbra" | "private_pool_v2";
 
+export type VantaPayMerchantTrustStatus = {
+  version: "vanta-pay-merchant-trust-status-0.1";
+  checkoutSurface: "hosted-or-embedded";
+  settlementModel: "private-settlement-adapter";
+  refundSupport: "supported";
+  withdrawalSupport: "supported";
+  privacyMode: "controlled-privacy";
+  policyMode: "legible-trust";
+  productionReady: false;
+};
+
+export type VantaPayApprovalPacket = {
+  version: "vanta-pay-approval-packet-0.1";
+  phaseOrder: ["preview", "approve", "execute", "settle"];
+  policyMode: "legible-trust";
+  simulationRequired: true;
+  walletApprovalRequired: true;
+};
+
 export type VantaPayRailStatus = "not_started" | "pending" | "settled" | "failed";
 
 export type VantaPayPrivacyRoute = {

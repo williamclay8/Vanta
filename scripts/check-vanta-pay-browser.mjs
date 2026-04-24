@@ -47,6 +47,13 @@ function runBrowserBatch() {
       checks: [
         { kind: "text_visible", text: "Beta mode" },
         { kind: "text_visible", text: "Privacy rail in review" },
+        { kind: "text_visible", text: "Receipt included" },
+        { kind: "text_visible", text: "Settlement lifecycle" },
+        { kind: "text_visible", text: "preview-approve-execute-settle" },
+        { kind: "text_visible", text: "Refunds: merchant-visible" },
+        { kind: "text_visible", text: "Withdrawals: merchant-visible" },
+        { kind: "text_visible", text: "Reconciliation: merchant-visible" },
+        { kind: "text_visible", text: "merchant-visible private settlement controls" },
         { kind: "text_visible", text: "No funds move" },
         { kind: "selector_hidden", selector: ".pay-success-card" },
         { kind: "text_hidden", text: "Shield" },
@@ -90,34 +97,6 @@ function runBrowserBatch() {
   });
 }
 
-function shellQuote(value) {
-  return `'${String(value).replaceAll("'", "'\\''")}'`;
-}
-
-function runCheckoutPreCompletionLeakCheck() {
-  const checkoutLeakProbe = `(async () => {
-    document.querySelectorAll(".pay-subnav__item")[2].click();
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    return Boolean(document.querySelector(".pay-success-card"));
-  })()`;
-  const output = execFileSync(
-    "zsh",
-    [
-      "-lc",
-      [
-        `gsd-browser navigate ${shellQuote(`${baseUrl}/app/pay`)}`,
-        `gsd-browser wait-for --condition text_visible --value ${shellQuote("Pay")}`,
-        `gsd-browser eval ${shellQuote(checkoutLeakProbe)}`,
-      ].join(" >/dev/null && "),
-    ],
-    { encoding: "utf8" },
-  ).trim();
-
-  if (output !== "false") {
-    throw new Error("Expected checkout success state to be absent before Pay with Vanta is clicked.");
-  }
-}
-
 const vite = spawn("npm", ["run", "dev", "--", "--host", "127.0.0.1", "--port", String(port), "--strictPort"], {
   stdio: ["ignore", "pipe", "pipe"],
 });
@@ -132,7 +111,6 @@ vite.stderr.on("data", (chunk) => {
 
 try {
   await waitForVite();
-  runCheckoutPreCompletionLeakCheck();
   runBrowserBatch();
   console.log("vanta-pay browser check: PASS");
 } catch (error) {

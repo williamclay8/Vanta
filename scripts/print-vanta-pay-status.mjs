@@ -1,4 +1,87 @@
+import { execFileSync } from "node:child_process";
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
+
 const jsonMode = process.argv.includes("--json");
+const repoRoot = resolve(import.meta.dirname, "..");
+
+function copySource(tempTsDir, relativePath) {
+  mkdirSync(join(tempTsDir, relativePath, ".."), { recursive: true });
+  writeFileSync(
+    join(tempTsDir, relativePath),
+    readFileSync(resolve(repoRoot, "src", relativePath), "utf8"),
+  );
+}
+
+function patchRelativeImports(tempJsDir, relativePath) {
+  const filePath = join(tempJsDir, relativePath.replace(/\.ts$/, ".js"));
+  const source = readFileSync(filePath, "utf8").replace(
+    /from "((?:\.\.?\/)[^"]+)(?<!\.js)"/g,
+    'from "$1.js"',
+  );
+  writeFileSync(filePath, source);
+}
+
+async function loadPrivateSettlementSummary() {
+  const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-pay-status-"));
+  const tempTsDir = join(tempRoot, "ts");
+  const tempJsDir = join(tempRoot, "js");
+  const sourceFiles = [
+    "pay/vantaPayPrivateSettlementAdapter.ts",
+    "pay/vantaPayTypes.ts",
+    "privacy/privatePoolV2MockRuntime.ts",
+    "privacy/privatePoolV2ProofRequests.ts",
+    "privacy/privatePoolV2Types.ts",
+    "privacy/privatePoolV2LocalIndexer.ts",
+    "privacy/privatePoolV2LocalProver.ts",
+    "privacy/privatePoolV2LocalRelayer.ts",
+    "privacy/privatePoolV2LocalVerifierRegistry.ts",
+    "privacy/privatePoolV2CapabilityProfile.ts",
+    "privacy/umbraCapabilityProfile.ts",
+    "privacy/protocolAdapter.ts",
+    "privacy/privatePoolV2SettlementPolicy.ts",
+  ];
+
+  try {
+    mkdirSync(tempTsDir, { recursive: true });
+    for (const file of sourceFiles) {
+      copySource(tempTsDir, file);
+    }
+
+    execFileSync(
+      resolve(repoRoot, "node_modules/.bin/tsc"),
+      [
+        ...sourceFiles.map((file) => join(tempTsDir, file)),
+        "--target",
+        "ES2022",
+        "--module",
+        "ESNext",
+        "--moduleResolution",
+        "Bundler",
+        "--lib",
+        "ES2022,DOM",
+        "--skipLibCheck",
+        "--outDir",
+        tempJsDir,
+      ],
+      { cwd: repoRoot, stdio: "pipe" },
+    );
+
+    for (const file of sourceFiles) {
+      patchRelativeImports(tempJsDir, file);
+    }
+
+    const module = await import(
+      pathToFileURL(join(tempJsDir, "pay/vantaPayPrivateSettlementAdapter.js")).href
+    );
+    return module.VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY;
+  } finally {
+    rmSync(tempRoot, { force: true, recursive: true });
+  }
+}
+
+const privateSettlement = await loadPrivateSettlementSummary();
 
 const result = {
   capabilities: {
@@ -27,6 +110,7 @@ const result = {
   contractVersion: "vanta-pay-merchant-api-0.1",
   kind: "Vanta Pay status",
   ok: true,
+  privateSettlement,
   productionReady: false,
   storage: {
     kind: process.env.VANTA_PAY_DATABASE_URL
@@ -70,5 +154,9 @@ if (jsonMode) {
   for (const [surface, status] of Object.entries(result.surfaces)) {
     console.log(`- ${surface}: ${status}`);
   }
+  console.log(`- settlement lifecycle: ${result.privateSettlement.lifecycleModel}`);
+  console.log(`- refunds: ${result.privateSettlement.refundState}`);
+  console.log(`- withdrawals: ${result.privateSettlement.withdrawalState}`);
+  console.log(`- reconciliation: ${result.privateSettlement.reconciliationState}`);
   console.log("- canonical verification: npm run pay:verify");
 }
