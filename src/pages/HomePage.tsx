@@ -15,6 +15,10 @@ const productPoints = [
     copy: "Create payment links, accept private checkout, track balances, and withdraw through a commerce-first payment suite.",
     title: "Accept payments",
   },
+  {
+    copy: "Unshield supported balances and move funds back to public wallets only when you choose to exit.",
+    title: "Exit on your terms",
+  },
 ];
 
 const appActions = ["Shield", "Send", "Swap", "Strategy", "Unshield", "Pay"];
@@ -53,6 +57,10 @@ export function HomePage() {
         <div className="landing-nav__links">
           <a href="#what">What</a>
           <a href="#use">Use</a>
+          <Link to="/docs">Docs</Link>
+          <a href="https://x.com/vantaprivacy" target="_blank" rel="noreferrer">
+            X
+          </a>
           <Link className="landing-nav__cta" to="/app/send">
             Open App
           </Link>
@@ -80,15 +88,19 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="landing-minimal__panel" id="what" aria-label="What Vanta does">
+      <section
+        className="landing-minimal__panel landing-minimal__panel--narrative"
+        id="what"
+        aria-label="What Vanta does"
+      >
         <div className="landing-minimal__section-header">
           <span>What it does</span>
           <h2>Private by default. Simple on the surface.</h2>
         </div>
 
-        <div className="landing-minimal__points">
+        <div className="landing-minimal__points landing-minimal__points--features">
           {productPoints.map((point) => (
-            <article key={point.title} className="landing-minimal__point">
+            <article key={point.title} className="landing-minimal__point landing-minimal__point--feature">
               <strong>{point.title}</strong>
               <p>{point.copy}</p>
             </article>
@@ -96,7 +108,10 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="landing-minimal__panel landing-minimal__panel--split" id="use">
+      <section
+        className="landing-minimal__panel landing-minimal__panel--split landing-minimal__panel--actions"
+        id="use"
+      >
         <div className="landing-minimal__section-header">
           <span>Inside the app</span>
           <h2>All the actions private users need.</h2>

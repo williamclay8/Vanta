@@ -1,7 +1,9 @@
 import { execFileSync, spawn } from "node:child_process";
+import { VANTA_PRICING_COPY, describePricingForSurface } from "../src/pricing/vantaPricing.ts";
 
 const port = 4230 + Math.floor(Math.random() * 200);
 const baseUrl = `http://127.0.0.1:${port}`;
+const payPricing = describePricingForSurface("pay");
 
 function sleep(ms) {
   return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
@@ -62,6 +64,13 @@ function runBrowserBatch() {
         { kind: "text_visible", text: "Privacy rail in review" },
         { kind: "text_visible", text: "Receipt path preview" },
         { kind: "text_visible", text: "Pay with Vanta" },
+        { kind: "text_visible", text: "Design partner preview" },
+        { kind: "text_visible", text: "Merchant pilot" },
+        { kind: "text_visible", text: "Private settlement without protocol overhead." },
+        { kind: "text_visible", text: VANTA_PRICING_COPY.headline },
+        { kind: "text_visible", text: payPricing.passThroughLabel },
+        { kind: "text_visible", text: VANTA_PRICING_COPY.passThrough },
+        { kind: "text_visible", text: "No billing starts from checkout preview alone." },
         { kind: "text_visible", text: "Merchant operations" },
         { kind: "text_visible", text: "Policy-legible settlement" },
         { kind: "text_visible", text: "Private checkout" },
@@ -72,12 +81,16 @@ function runBrowserBatch() {
         { kind: "text_visible", text: "Refund queue" },
         { kind: "text_visible", text: "Withdrawal queue" },
         { kind: "text_visible", text: "Reconciliation export" },
+        { kind: "text_visible", text: "Settlement lifecycle" },
         { kind: "text_visible", text: "0 receipt records" },
         { kind: "text_visible", text: "Today · 16:00 UTC" },
         { kind: "text_visible", text: "2026-04-23 · 00:00-12:00 UTC" },
         { kind: "text_visible", text: "No available balances" },
         { kind: "text_visible", text: "No refunds queued" },
         { kind: "text_visible", text: "No withdrawals queued" },
+        { kind: "text_visible", text: "Refunds: merchant-visible" },
+        { kind: "text_visible", text: "Withdrawals: merchant-visible" },
+        { kind: "text_visible", text: "Reconciliation: merchant-visible" },
         { kind: "selector_visible", selector: '[data-pay-surface="merchant-control-plane"][data-approval-phase="preview"]' },
         { kind: "selector_visible", selector: '[data-control-plane-section="balances"]' },
         { kind: "selector_visible", selector: '[data-control-plane-section="refunds"]' },

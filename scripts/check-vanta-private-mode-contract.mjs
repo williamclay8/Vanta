@@ -12,6 +12,8 @@ const typesSource = read("src/privateVault/privateVaultTypes.ts");
 const cryptoSource = read("src/privateVault/privateVaultCrypto.ts");
 const storageSource = read("src/privateVault/privateVaultStorage.ts");
 const recoverySource = read("src/privateVault/privateVaultRecovery.ts");
+const contextSource = read("src/data/context/PrivateVaultContext.tsx");
+const mainSource = read("src/main.tsx");
 
 assert.match(typesSource, /export type PrivateVaultRecord = \{/u);
 assert.match(typesSource, /export type ActiveWalletTopology = \{/u);
@@ -39,6 +41,13 @@ assert.match(recoverySource, /export type PrivateVaultRecoveryFile/u);
 assert.match(recoverySource, /parsePrivateVaultRecoveryFile/u);
 assert.match(recoverySource, /isPrivateVaultRecoveryFile/u);
 assert.match(recoverySource, /export function createPrivateVaultRecoveryFile/u);
+assert.match(contextSource, /export function PrivateVaultProvider/u);
+assert.match(contextSource, /export function usePrivateVaultState/u);
+assert.match(contextSource, /enablePrivateMode/u);
+assert.match(contextSource, /createPrivateVault/u);
+assert.match(contextSource, /downloadPrivateVaultRecoveryFile/u);
+assert.match(contextSource, /activeWalletTopology/u);
+assert.match(mainSource, /<PrivateVaultProvider>/u);
 assert.doesNotMatch(storageSource, /window\.localStorage/u);
 
 console.log("vanta private mode contract check: PASS");

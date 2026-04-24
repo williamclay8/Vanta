@@ -8,6 +8,7 @@ This page explains the current trust surface in simple terms:
 - which payment steps are policy-bound
 - how refunds, withdrawals, and reconciliation remain merchant-visible
 - how the real Pay demo now frames the merchant control plane for design partners
+- what the live console cards expose today
 - which commands prove the current trust surface
 
 ## What stays private
@@ -34,12 +35,13 @@ Current merchant-visible states include:
 
 The real Pay demo now shows:
 
-- merchant operations
-- approval boundary
+- merchant operations and approval boundary copy
 - refund / withdrawal / reconciliation detail states
+- settlement console cards for balances, payout queue, receipts, and reconciliation export
+  - those console records are currently a seeded demo snapshot from the local typed merchant summary, rendered on the real Pay page
 - design-partner-facing settlement framing
 
-The shared design-partner layer is currently:
+The design-partner layer currently uses this shared UI copy on the real Pay page:
 
 - eyebrow: `Design partner preview`
 - title: `Merchant pilot`

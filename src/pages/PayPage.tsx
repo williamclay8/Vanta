@@ -3,6 +3,8 @@ import { useState } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
 import { buildVantaPayApprovalPacket } from "@/pay/vantaPayApprovalPacket";
 import { createVantaPayMerchantControlPlane } from "@/pay/vantaPayMerchantControlPlane";
+import { VANTA_PAY_MERCHANT_DEMO_CONTENT } from "@/pay/vantaPayMerchantDemoContent";
+import { VANTA_PRICING_COPY, describePricingForSurface } from "@/pricing/vantaPricing";
 
 type PayView = "link" | "invoice" | "checkout" | "withdraw";
 
@@ -195,6 +197,7 @@ function CheckoutView() {
   const [asset, setAsset] = useState("USDC");
   const controlPlane = createVantaPayMerchantControlPlane();
   const approvalBoundary = buildVantaPayApprovalPacket().phaseOrder.join(" -> ");
+  const payPricing = describePricingForSurface("pay");
   const hasAvailableBalances = controlPlane.balances.available.length > 0;
   const hasRefunds = controlPlane.refunds.length > 0;
   const hasWithdrawals = controlPlane.withdrawals.length > 0;
@@ -263,11 +266,10 @@ function CheckoutView() {
       >
         <section className="pay-merchant-ops" aria-label="Merchant operations">
           <div className="pay-merchant-ops__header">
-            <span className="pay-kicker">Merchant operations</span>
-            <h3>Policy-legible settlement</h3>
+            <span className="pay-kicker">{VANTA_PAY_MERCHANT_DEMO_CONTENT.eyebrow}</span>
+            <h3>{VANTA_PAY_MERCHANT_DEMO_CONTENT.title}</h3>
             <p className="pay-merchant-ops__note">
-              Runtime control plane preview, shown beside the buyer checkout so operators can inspect the same
-              payment flow without mixing it into the payer form.
+              {VANTA_PAY_MERCHANT_DEMO_CONTENT.body}
             </p>
           </div>
           <div className="pay-merchant-ops__grid">
@@ -361,19 +363,26 @@ function CheckoutView() {
           <strong>{approvalBoundary}</strong>
         </div>
         <div className="pay-result-line pay-result-line--muted">
-          <span>Refund queue</span>
+          <span>Refunds: merchant-visible</span>
           <strong>{hasRefunds ? `${controlPlane.refunds.length} refunds queued` : "No refunds queued"}</strong>
         </div>
         <div className="pay-result-line pay-result-line--muted">
-          <span>Withdrawal queue</span>
+          <span>Withdrawals: merchant-visible</span>
           <strong>
             {hasWithdrawals ? `${controlPlane.withdrawals.length} withdrawals queued` : "No withdrawals queued"}
           </strong>
         </div>
         <div className="pay-result-line pay-result-line--muted">
-          <span>Reconciliation</span>
+          <span>Reconciliation: merchant-visible</span>
           <strong>{controlPlane.reconciliation.state}</strong>
         </div>
+      </aside>
+      <aside className="pay-pricing-card" aria-label="Vanta pricing">
+        <span className="pay-kicker">Pricing</span>
+        <h3>{VANTA_PRICING_COPY.headline}</h3>
+        <p>{payPricing.passThroughLabel}</p>
+        <p>{VANTA_PRICING_COPY.passThrough}</p>
+        <small>No billing starts from checkout preview alone.</small>
       </aside>
     </div>
   );

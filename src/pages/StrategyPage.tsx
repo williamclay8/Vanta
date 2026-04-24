@@ -243,8 +243,10 @@ export function StrategyPage() {
 
     return [];
   }, [form.fundingSource]);
-  const strategyPrimaryActionLabel = strategyReviewCta;
-  const strategyActionHint = strategyPreviewActionHint;
+  const strategyPrimaryActionLabel = isBetaMode ? "Beta mode" : strategyReviewCta;
+  const strategyActionHint = isBetaMode
+    ? "Beta mode keeps Strategy visible but prevents live execution while production services are offline."
+    : strategyPreviewActionHint;
   const submittedResult = submittedPlan
     ? {
         kicker: "Ready to review",
@@ -510,7 +512,7 @@ export function StrategyPage() {
             <div className="strategy-actions">
               <button
                 className="button button-primary strategy-primary-action"
-                disabled={capabilityState.submitDisabled || strategyPlan === null}
+                disabled={isBetaMode || capabilityState.submitDisabled || strategyPlan === null}
                 type="submit"
               >
                 {strategyPrimaryActionLabel}

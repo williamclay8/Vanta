@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 const repoRoot = resolve(import.meta.dirname, "..");
 const source = readFileSync(resolve(repoRoot, "src/pages/PayPage.tsx"), "utf8");
 
-const requiredCopy = [
+const requiredPageCopy = [
   "Create payment link",
   "Send invoice",
   "Checkout",
@@ -14,11 +14,22 @@ const requiredCopy = [
   "Amount",
   "Asset",
   "Pay with Vanta",
+  "Pricing",
+  "No billing starts from checkout preview alone.",
   "Privacy rail in review",
-  "Receipt included",
+  "Receipt path preview",
+  "Merchant operations",
+  "Merchant control plane",
+  "Policy-legible settlement",
+  "Private checkout",
+  "Approval boundary",
 ];
 
 const bannedCopy = [
+  "monthly SaaS",
+  "Platform fee",
+  "All fees buy back the token",
+  "All fees go to VANTA",
   "$800.00",
   "$8,420.50",
   "R-1052",
@@ -46,7 +57,7 @@ const bannedCopy = [
 
 const failures = [];
 
-for (const text of requiredCopy) {
+for (const text of requiredPageCopy) {
   if (!source.includes(text)) {
     failures.push(`Missing Pay tab copy: ${text}`);
   }

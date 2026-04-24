@@ -1,6 +1,8 @@
 import { execFileSync, spawn } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readFileSync, rmSync } from "node:fs";
+import os from "node:os";
 import { resolve } from "node:path";
+import path from "node:path";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const appSource = readFileSync(resolve(repoRoot, "src/App.tsx"), "utf8");
@@ -97,6 +99,46 @@ function runBrowserCopyCheck() {
   });
 }
 
+function cleanupBrowserLock() {
+  try {
+    execFileSync("pkill", ["-f", "Google Chrome for Testing"], {
+      stdio: "ignore",
+    });
+  } catch {
+    // Chrome may already be stopped.
+  }
+
+  try {
+    rmSync(path.join(os.tmpdir(), "chromiumoxide-runner"), {
+      force: true,
+      recursive: true,
+    });
+  } catch {
+    // The temp runner directory may already be gone.
+  }
+
+  try {
+    execFileSync("gsd-browser", ["daemon", "stop"], { stdio: "ignore" });
+  } catch {
+    // The daemon may already be stopped.
+  }
+}
+
+function runBrowserCopyCheckWithRetry() {
+  try {
+    runBrowserCopyCheck();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+
+    if (!message.includes("daemon exited during startup")) {
+      throw error;
+    }
+
+    cleanupBrowserLock();
+    runBrowserCopyCheck();
+  }
+}
+
 const failures = [];
 
 if (!appSource.includes('path="strategy"')) {
@@ -159,7 +201,7 @@ vite.stderr.on("data", (chunk) => {
 
 try {
   await waitForVite();
-  runBrowserCopyCheck();
+  runBrowserCopyCheckWithRetry();
   console.log("Strategy tab copy check: PASS");
 } catch (error) {
   if (stdout) {

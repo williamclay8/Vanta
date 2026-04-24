@@ -583,6 +583,26 @@ input {
   z-index: 1;
 }
 
+[data-product-shell] {
+  position: relative;
+}
+
+[data-product-topbar] {
+  width: min(1180px, calc(100vw - 36px));
+  margin-inline: auto;
+  border-radius: 24px;
+  border: 1px solid rgba(0, 229, 200, 0.12);
+  background: rgba(8, 13, 20, 0.78);
+  backdrop-filter: blur(26px);
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.34);
+}
+
+[data-product-nav] {
+  border-radius: 999px;
+  border: 1px solid rgba(0, 229, 200, 0.08);
+  background: rgba(0, 229, 200, 0.03);
+}
+
 .app-header {
   position: relative;
   z-index: 90;
@@ -6092,18 +6112,24 @@ input {
 
 .docs-shell {
   min-height: 100vh;
-  padding: clamp(1rem, 3vw, 2rem);
+  padding: 18px 18px 40px;
   display: grid;
-  gap: 1.5rem;
-  align-content: start;
+  gap: 18px;
+  background:
+    radial-gradient(circle at 12% 40%, rgba(0, 229, 200, 0.08), transparent 26%),
+    radial-gradient(circle at 86% 24%, rgba(0, 229, 200, 0.05), transparent 22%),
+    linear-gradient(180deg, #020305 0%, #05080f 100%);
 }
 
 .docs-shell__topbar {
+  position: relative;
+  z-index: 10;
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 16px;
   align-items: center;
   justify-content: space-between;
+  padding: 10px 12px;
 }
 
 .docs-shell__topbar-actions {
@@ -6138,9 +6164,6 @@ input {
   gap: 0.55rem;
   align-items: center;
   padding: 0.35rem;
-  border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  background: rgba(8, 13, 20, 0.52);
   backdrop-filter: blur(18px);
 }
 
@@ -6148,31 +6171,36 @@ input {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 2.25rem;
-  padding: 0.45rem 0.9rem;
+  min-height: 44px;
+  padding: 0 18px;
   border-radius: 999px;
   border: 1px solid transparent;
   background: transparent;
-  color: rgba(226, 232, 240, 0.92);
+  color: var(--muted-strong);
   text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
   transition:
-    background-color 160ms ease,
-    border-color 160ms ease,
-    color 160ms ease,
-    transform 160ms ease;
+    color 180ms ease,
+    background 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease;
 }
 
 .docs-shell__nav-link:hover,
 .docs-shell__nav-link:focus-visible {
+  color: var(--text);
   transform: translateY(-1px);
-  background: rgba(15, 23, 42, 0.22);
-  border-color: rgba(148, 163, 184, 0.16);
+  background: rgba(0, 229, 200, 0.08);
+  border-color: rgba(0, 229, 200, 0.22);
 }
 
 .docs-shell__nav-link--active {
-  background: rgba(15, 118, 110, 0.22);
-  border-color: rgba(45, 212, 191, 0.34);
-  color: #ccfbf1;
+  color: #020305;
+  background: var(--accent);
+  box-shadow: 0 0 0 1px rgba(0, 229, 200, 0.12), 0 12px 28px rgba(0, 229, 200, 0.18);
 }
 
 .docs-shell__actions {
@@ -6181,36 +6209,33 @@ input {
 }
 
 .docs-shell__app-cta {
-  min-height: 2.5rem;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.55rem 1rem;
+  padding: 0 18px;
   border-radius: 999px;
-  color: #04110f;
-  background:
-    linear-gradient(135deg, rgba(153, 246, 228, 0.98), rgba(94, 234, 212, 0.92));
-  box-shadow:
-    0 0 0 1px rgba(153, 246, 228, 0.14),
-    0 14px 30px rgba(15, 118, 110, 0.2);
+  color: #020305;
+  background: var(--accent);
+  box-shadow: 0 0 0 1px rgba(0, 229, 200, 0.12), 0 12px 28px rgba(0, 229, 200, 0.18);
   font-size: 0.76rem;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.16em;
   text-decoration: none;
   text-transform: uppercase;
   transition:
-    transform 160ms ease,
-    box-shadow 160ms ease,
-    filter 160ms ease;
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    background 180ms ease;
 }
 
 .docs-shell__app-cta:hover,
 .docs-shell__app-cta:focus-visible {
   transform: translateY(-1px);
   box-shadow:
-    0 0 0 1px rgba(153, 246, 228, 0.18),
-    0 18px 36px rgba(15, 118, 110, 0.26);
-  filter: saturate(1.04);
+    0 0 0 1px rgba(0, 229, 200, 0.18),
+    0 18px 36px rgba(0, 229, 200, 0.24);
+  background: #3ff4da;
 }
 
 .docs-shell__app-cta:active {
@@ -6492,6 +6517,11 @@ span[data-docs-badge]::before {
     transform 180ms ease,
     border-color 180ms ease,
     box-shadow 180ms ease;
+}
+
+.docs-path-card__badge {
+  display: inline-flex;
+  width: fit-content;
 }
 
 .docs-path-card strong {

@@ -7,12 +7,15 @@ import {
 } from "react";
 import { useBalance, useWalletConnection } from "@solana/react-hooks";
 import type { WalletConnector } from "@solana/client";
+import type { ActiveWalletTopology } from "@/privateVault/privateVaultTypes";
 import { solanaClusterLabel } from "@/solana/client";
 import {
   createFreshWalletRecord,
   exportFreshWalletRecoveryFile,
   type FreshWalletRecord,
 } from "@/solana/freshWallet";
+
+export type ConnectedWalletTopologyState = ActiveWalletTopology["fundingWallet"];
 
 type WalletContextValue = {
   walletAddress: string | null;
@@ -26,6 +29,7 @@ type WalletContextValue = {
   walletConnectors: readonly WalletConnector[];
   connectWallet: (connectorId: string) => Promise<void>;
   disconnectWallet: () => Promise<void>;
+  connectedWalletTopology: ConnectedWalletTopologyState;
   freshWalletAddress: string | null;
   freshWalletAddressShort: string | null;
   freshWalletCreatedAt: string | null;
@@ -108,6 +112,14 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     () => pickPreferredWalletConnector(connectors),
     [connectors],
   );
+  const connectedWalletTopology = useMemo<ConnectedWalletTopologyState>(
+    () => ({
+      kind: "connected-wallet",
+      address,
+      connected,
+    }),
+    [address, connected],
+  );
 
   const value = useMemo(
     () => ({
@@ -120,6 +132,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       currentConnectorName: currentConnector?.name ?? null,
       preferredWalletConnector,
       walletConnectors: connectors,
+      connectedWalletTopology,
       connectWallet: async (connectorId: string) => {
         await connect(connectorId);
       },
@@ -152,6 +165,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       address,
       balance.fetching,
       connect,
+      connectedWalletTopology,
       connected,
       connecting,
       connectors,

@@ -10,11 +10,20 @@ function read(path) {
 const appLayout = read("src/components/AppLayout.tsx");
 const walletContext = read("src/data/context/WalletContext.tsx");
 const styles = read("src/styles.css");
+const mobileBrowserCheck = read("scripts/check-vanta-mobile-browser.mjs");
+const freshWalletBrowserCheck = read("scripts/check-vanta-fresh-wallet-browser.mjs");
+const payBrowserCheck = read("scripts/check-vanta-pay-browser.mjs");
 
 const failures = [];
 
 function requireIncludes(source, needle, message) {
   if (!source.includes(needle)) {
+    failures.push(message);
+  }
+}
+
+function requireMatches(source, pattern, message) {
+  if (!pattern.test(source)) {
     failures.push(message);
   }
 }
@@ -31,7 +40,7 @@ requireIncludes(
 );
 requireIncludes(
   appLayout,
-  "Use a fresh wallet for strongest privacy",
+  "Use a fresh wallet for the strongest privacy.",
   "Wallet picker must tell users to use a fresh wallet for strongest privacy.",
 );
 requireIncludes(
@@ -41,7 +50,7 @@ requireIncludes(
 );
 requireIncludes(
   appLayout,
-  "Wallet standard",
+  "Standard wallet discovery",
   "Wallet picker must describe wallet-standard discovery with product-copy casing.",
 );
 requireIncludes(
@@ -58,6 +67,92 @@ requireIncludes(
   appLayout,
   "wallet-picker__scrim",
   "Wallet menu must render a scrim layer so it sits above page cards.",
+);
+requireIncludes(
+  appLayout,
+  "No wallet funds detected",
+  "Wallet picker must explain when no usable wallet funds are detected.",
+);
+requireIncludes(
+  appLayout,
+  "Connect, create a fresh wallet, or top up with Peer on desktop.",
+  "Wallet picker must keep the canonical funding-recovery body copy.",
+);
+requireIncludes(
+  appLayout,
+  "Top up with Peer",
+  "Wallet picker must expose the contextual Peer top-up recovery action.",
+);
+requireIncludes(
+  appLayout,
+  "getPeerOnrampAvailability({",
+  "Task 3 must derive the funding gate from Peer onramp availability.",
+);
+requireIncludes(
+  appLayout,
+  'const peerFundingNeedsWallet = peerOnrampAvailability === "needs_wallet";',
+  "Task 3 must keep an explicit no-wallet funding branch.",
+);
+requireIncludes(
+  appLayout,
+  'const peerFundingNeedsTopUp =',
+  "Task 3 must keep an explicit available-without-usable-balance funding branch.",
+);
+requireIncludes(
+  appLayout,
+  'peerOnrampAvailability === "available" && !hasUsableBalance',
+  "Task 3 must only show the funding block for available wallets that still lack usable balance.",
+);
+requireIncludes(
+  appLayout,
+  "walletPublicAssetsError === null",
+  "Task 3 must fail closed when wallet public-asset state is unknown.",
+);
+requireIncludes(
+  appLayout,
+  "const peerLaunchDisabled =",
+  "Wallet picker must derive a dedicated Peer CTA disabled state.",
+);
+requireIncludes(
+  appLayout,
+  "disabled={peerLaunchDisabled}",
+  "Wallet picker must bind the Peer CTA disabled state to the derived launch guard.",
+);
+requireIncludes(
+  appLayout,
+  "onClick={handlePeerLaunch}",
+  "Wallet picker must route the Peer CTA through explicit launch handling.",
+);
+requireIncludes(
+  appLayout,
+  "const peerLaunchFeedback =",
+  "Wallet picker must derive compact Peer launch feedback for inline status rendering.",
+);
+for (const stagedMessage of [
+  "Opening Peer...",
+  "Install the Peer extension, then try again.",
+  "Connect Peer to this browser, then try again.",
+  "Peer opened. Complete the funding step there.",
+  "Peer intent submitted. Bridge transfer pending.",
+  "Peer intent submitted.",
+  "Peer could not open. Try again.",
+  "Track transfer",
+]) {
+  requireIncludes(
+    appLayout,
+    stagedMessage,
+    `Wallet picker must preserve the staged Peer funding message: ${stagedMessage}`,
+  );
+}
+requireIncludes(
+  appLayout,
+  '<span>Peer funding</span>',
+  "Wallet picker must label the inline Peer funding status surface.",
+);
+requireMatches(
+  appLayout,
+  /\{showPeerFundingBlock && \(\s*<div className="wallet-picker__section">[\s\S]*?No wallet funds detected[\s\S]*?Top up with Peer[\s\S]*?<\/div>\s*\)\}/u,
+  "Task 3 must render the Peer funding block only behind the showPeerFundingBlock conditional.",
 );
 requireIncludes(
   styles,
@@ -93,6 +188,46 @@ requireIncludes(
   styles,
   "overscroll-behavior: contain;",
   "Wallet picker scroll must be contained so the page behind it does not fight the menu.",
+);
+requireIncludes(
+  mobileBrowserCheck,
+  '{ kind: "text_hidden", text: "Top up with Peer" }',
+  "Mobile browser check must assert that Peer top-up stays hidden on unsupported mobile flows.",
+);
+requireIncludes(
+  mobileBrowserCheck,
+  '{ kind: "text_hidden", text: "No wallet funds detected" }',
+  "Mobile browser check must assert that Peer funding copy stays hidden on unsupported mobile flows.",
+);
+requireIncludes(
+  mobileBrowserCheck,
+  'VITE_VANTA_ENABLE_PEER_ONRAMP: "true"',
+  "Mobile browser check must enable the Peer feature so the mobile-hidden assertion exercises unsupported-surface gating.",
+);
+requireIncludes(
+  mobileBrowserCheck,
+  'VITE_VANTA_ENABLE_LIVE_PEER_FUNDING: "true"',
+  "Mobile browser check must allow live funding so the mobile-hidden assertion exercises unsupported-surface gating instead of beta suppression.",
+);
+requireIncludes(
+  freshWalletBrowserCheck,
+  'VITE_VANTA_DEPLOYMENT_MODE: "beta"',
+  "Fresh wallet browser check must run in beta mode to verify the default banner truth.",
+);
+requireIncludes(
+  freshWalletBrowserCheck,
+  '{ kind: "text_hidden", text: "Top up with Peer" }',
+  "Fresh wallet browser check must assert that Peer top-up stays hidden by default in beta mode.",
+);
+requireIncludes(
+  payBrowserCheck,
+  '{ kind: "text_hidden", text: "Top up with Peer" }',
+  "Pay browser check must assert that Peer top-up stays hidden by default in beta mode.",
+);
+requireIncludes(
+  payBrowserCheck,
+  ".app-header__account-trigger",
+  "Pay browser check must exercise the shared wallet menu surface after the wallet-picker Peer changes.",
 );
 
 if (appLayout.includes(">Connect another wallet<")) {

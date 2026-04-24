@@ -8,6 +8,10 @@ const result = JSON.parse(
 );
 
 assert.equal(result.version, "vanta-pay-merchant-trust-status-0.1");
+assert.equal(result.checkoutSurface, "hosted-or-embedded");
+assert.equal(result.settlementModel, "private-settlement-adapter");
+assert.equal(result.refundSupport, "supported");
+assert.equal(result.withdrawalSupport, "supported");
 assert.equal(result.privacyMode, "controlled-privacy");
 assert.equal(result.policyMode, "legible-trust");
 assert.equal(result.productionReady, false);

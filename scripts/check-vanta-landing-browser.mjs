@@ -1,5 +1,4 @@
 import { execFileSync, spawn } from "node:child_process";
-
 const port = 5260 + Math.floor(Math.random() * 200);
 const baseUrl = `http://127.0.0.1:${port}`;
 
@@ -47,6 +46,15 @@ function checkLandingViewport(width, height) {
         path: location.pathname,
         headline: document.querySelector("h1")?.innerText ?? "",
         hasAppCta: [...document.querySelectorAll("a")].some((link) => link.textContent?.trim() === "Enter App" && link.getAttribute("href") === "/app/send"),
+        hasSharedBrandWordmark: document.querySelector(".landing-nav__wordmark")?.textContent?.trim() === "VANTA",
+        hasSharedAtmosphere: Boolean(
+          document.querySelector(".landing-minimal__grid") &&
+            document.querySelector(".landing-minimal__glow--left") &&
+            document.querySelector(".landing-minimal__glow--right"),
+        ),
+        hasDocsAndAppPrimaryPaths: ["/docs", "/app/send"].every((href) =>
+          [...document.querySelectorAll("a")].some((link) => link.getAttribute("href") === href),
+        ),
         hasPaymentsCopy: document.body.innerText.includes("Create payment links") && document.body.innerText.includes("private checkout"),
         hasPrivateUserHeading: document.body.innerText.includes("All the actions private users need."),
         hidesBetaCopy: !document.body.innerText.toLowerCase().includes("beta"),
@@ -77,6 +85,18 @@ function checkLandingViewport(width, height) {
 
   if (!result.hasAppCta) {
     throw new Error("Landing page must include an Enter App CTA to /app/send.");
+  }
+
+  if (!result.hasSharedBrandWordmark) {
+    throw new Error("Landing page must keep the VANTA wordmark in the primary nav.");
+  }
+
+  if (!result.hasSharedAtmosphere) {
+    throw new Error("Landing page must keep the branded atmosphere grid and glow contract.");
+  }
+
+  if (!result.hasDocsAndAppPrimaryPaths) {
+    throw new Error("Landing page must keep direct paths into docs and the app.");
   }
 
   if (!result.hasPaymentsCopy) {

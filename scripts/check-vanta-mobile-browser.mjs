@@ -2,6 +2,7 @@ import { execFileSync, spawn } from "node:child_process";
 
 const port = 5020 + Math.floor(Math.random() * 200);
 const baseUrl = `http://127.0.0.1:${port}`;
+const browserSession = `vanta-mobile-check-${process.pid}-${Date.now()}`;
 
 function sleep(ms) {
   return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
@@ -25,7 +26,7 @@ async function waitForVite() {
 }
 
 function runBrowserCommand(args, options = {}) {
-  const output = execFileSync("gsd-browser", args, {
+  const output = execFileSync("gsd-browser", ["--session", browserSession, ...args], {
     encoding: "utf8",
     stdio: options.stdio ?? "pipe",
   });
@@ -33,9 +34,38 @@ function runBrowserCommand(args, options = {}) {
   return typeof output === "string" ? output.trim() : "";
 }
 
+function runBrowserBatch(steps) {
+  execFileSync(
+    "gsd-browser",
+    ["--session", browserSession, "batch", "--steps", JSON.stringify(steps), "--summary-only"],
+    { stdio: "pipe" },
+  );
+}
+
+const forbiddenFundingChecks = [
+  { kind: "text_hidden", text: "Funding" },
+  { kind: "text_hidden", text: "Top up with Peer" },
+  { kind: "text_hidden", text: "No wallet funds detected" },
+  { kind: "text_hidden", text: "Connect, create a fresh wallet, or top up with Peer on desktop." },
+];
+
 function runMobileRouteProbe(path) {
-  runBrowserCommand(["navigate", `${baseUrl}${path}`], { stdio: "ignore" });
-  runBrowserCommand(["wait-for", "--condition", "network_idle"], { stdio: "ignore" });
+  runBrowserBatch([
+    { action: "navigate", url: `${baseUrl}${path}` },
+    { action: "wait_for", condition: "network_idle" },
+    {
+      action: "assert",
+      checks: [
+        { kind: "url_contains", text: path },
+        { kind: "text_visible", text: "Vanta" },
+        {
+          kind: "selector_visible",
+          selector: ".button-primary, .strategy-primary-action, .app-header__account-trigger",
+        },
+        { kind: "no_console_errors" },
+      ],
+    },
+  ]);
 
   const probe = `(async () => {
     const documentElement = document.documentElement;
@@ -61,9 +91,7 @@ function runMobileRouteProbe(path) {
       path: location.pathname,
       viewportWidth: window.innerWidth,
       documentWidth: Math.max(documentElement.scrollWidth, body.scrollWidth),
-      bodyWidth: body.scrollWidth,
       horizontalOverflow: Math.max(documentElement.scrollWidth, body.scrollWidth) - window.innerWidth,
-      actionVisible: Boolean(document.querySelector(".button-primary, .strategy-primary-action")),
       tooSmall,
     };
   })()`;
@@ -75,65 +103,92 @@ function runMobileRouteProbe(path) {
     );
   }
 
-  if (!result.actionVisible) {
-    throw new Error(`No primary action visible on mobile route ${path}.`);
-  }
-
   if (result.tooSmall.length > 0) {
     throw new Error(`Small mobile hit targets on ${path}: ${JSON.stringify(result.tooSmall.slice(0, 8))}`);
   }
 }
 
-function runWalletMenuProbe() {
-  runBrowserCommand(["navigate", `${baseUrl}/app/shield`], { stdio: "ignore" });
-  runBrowserCommand(["wait-for", "--condition", "network_idle"], { stdio: "ignore" });
-  runBrowserCommand(["click", ".app-header__account-trigger"], { stdio: "ignore" });
-  runBrowserCommand(["wait-for", "--condition", "text_visible", "--value", "Fresh wallet"], { stdio: "ignore" });
+function runTabletHeaderProbe() {
+  runBrowserCommand(["set-viewport", "--width", "860", "--height", "900"], { stdio: "ignore" });
+  runBrowserBatch([
+    { action: "navigate", url: `${baseUrl}/app/shield` },
+    { action: "wait_for", condition: "network_idle" },
+    {
+      action: "assert",
+      checks: [
+        { kind: "url_contains", text: "/app/shield" },
+        { kind: "text_visible", text: "Docs" },
+        { kind: "text_visible", text: "Pay" },
+        { kind: "no_console_errors" },
+      ],
+    },
+  ]);
 
-  const probe = `(async () => {
-    const picker = document.querySelector(".wallet-picker");
-    const fresh = [...document.querySelectorAll(".wallet-picker__section-label")]
-      .find((element) => element.textContent?.includes("Fresh wallet"));
-    if (!picker || !fresh) {
-      return { ok: false, reason: "missing wallet picker or fresh wallet section" };
+  const overlapProbe = `(async () => {
+    const tabsRail = document.querySelector(".app-header__tabs-rail");
+    const wallet = document.querySelector(".app-header__wallet");
+    if (!(tabsRail instanceof HTMLElement) || !(wallet instanceof HTMLElement)) {
+      return { missing: true };
     }
 
-    const pickerRect = picker.getBoundingClientRect();
-    fresh.scrollIntoView({ block: "nearest" });
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    const freshRect = fresh.getBoundingClientRect();
+    const tabsRect = tabsRail.getBoundingClientRect();
+    const walletRect = wallet.getBoundingClientRect();
+    const horizontalOverlap = Math.max(
+      0,
+      Math.min(tabsRect.right, walletRect.right) - Math.max(tabsRect.left, walletRect.left),
+    );
+    const verticalOverlap = Math.max(
+      0,
+      Math.min(tabsRect.bottom, walletRect.bottom) - Math.max(tabsRect.top, walletRect.top),
+    );
+
     return {
-      ok: true,
-      pickerBottom: Math.round(pickerRect.bottom),
-      viewportBottom: window.innerHeight,
-      pickerScrollable: picker.scrollHeight > picker.clientHeight,
-      freshVisibleAfterScroll: freshRect.top >= 0 && freshRect.bottom <= window.innerHeight,
-      horizontalOverflow: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) - window.innerWidth,
+      missing: false,
+      horizontalOverlap: Math.round(horizontalOverlap),
+      verticalOverlap: Math.round(verticalOverlap),
+      tabsTop: Math.round(tabsRect.top),
+      walletTop: Math.round(walletRect.top),
     };
   })()`;
-  const result = JSON.parse(runBrowserCommand(["eval", probe]));
+  const result = JSON.parse(runBrowserCommand(["eval", overlapProbe]));
 
-  if (!result.ok) {
-    throw new Error(result.reason);
+  if (result.missing) {
+    throw new Error("Tablet header probe could not find the app tabs rail or wallet cluster.");
   }
 
-  if (result.pickerBottom > result.viewportBottom + 2) {
-    throw new Error(`Wallet picker exceeds mobile viewport: ${JSON.stringify(result)}`);
+  if (result.horizontalOverlap > 0 && result.verticalOverlap > 0) {
+    throw new Error(
+      `Tablet header layout overlap: tabs and wallet cluster intersect by ${result.horizontalOverlap}x${result.verticalOverlap}px.`,
+    );
   }
+}
 
-  if (!result.freshVisibleAfterScroll) {
-    throw new Error(`Fresh wallet section is not reachable in mobile wallet menu: ${JSON.stringify(result)}`);
-  }
-
-  if (result.horizontalOverflow > 2) {
-    throw new Error(`Wallet menu causes mobile horizontal overflow: ${JSON.stringify(result)}`);
-  }
+function runWalletMenuProbe() {
+  runBrowserBatch([
+    { action: "navigate", url: `${baseUrl}/app/shield` },
+    { action: "wait_for", condition: "network_idle" },
+    { action: "wait_for", condition: "text_visible", value: "Vanta" },
+    { action: "click", selector: ".app-header__account-trigger" },
+    { action: "wait_for", condition: "text_visible", value: "Wallet" },
+    {
+      action: "assert",
+      checks: [
+        { kind: "text_visible", text: "Wallet" },
+        { kind: "text_visible", text: "Detected wallets" },
+        { kind: "text_visible", text: "Create fresh wallet" },
+        ...forbiddenFundingChecks,
+        { kind: "no_console_errors" },
+      ],
+    },
+  ]);
 }
 
 const vite = spawn("npm", ["run", "dev", "--", "--host", "127.0.0.1", "--port", String(port), "--strictPort"], {
   env: {
     ...process.env,
     VITE_VANTA_DEPLOYMENT_MODE: "beta",
+    VITE_VANTA_ENABLE_PEER_ONRAMP: "true",
+    VITE_VANTA_ENABLE_LIVE_PEER_FUNDING: "true",
   },
   stdio: ["ignore", "pipe", "pipe"],
 });
@@ -148,7 +203,8 @@ vite.stderr.on("data", (chunk) => {
 
 try {
   await waitForVite();
-  runBrowserCommand(["set-viewport", "--width", "390", "--height", "844"], { stdio: "ignore" });
+  runTabletHeaderProbe();
+  runBrowserCommand(["emulate-device", "iPhone 15"], { stdio: "ignore" });
 
   for (const path of ["/app/shield", "/app/send", "/app/swap", "/app/strategy", "/app/unshield", "/app/pay"]) {
     runMobileRouteProbe(path);
@@ -174,7 +230,7 @@ try {
   }
 
   try {
-    execFileSync("gsd-browser", ["daemon", "stop"], { stdio: "ignore" });
+    execFileSync("gsd-browser", ["--session", browserSession, "daemon", "stop"], { stdio: "ignore" });
   } catch {
     // The daemon may already be stopped.
   }

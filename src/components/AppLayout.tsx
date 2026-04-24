@@ -1,8 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { BrandMark } from "@/components/BrandMark";
 import { isBetaMode } from "@/config/deploymentMode";
 import { useWalletState } from "@/data/context/WalletContext";
+import { getPeerOnrampAvailability } from "@/peer/peerConfig";
+import { launchPeerOnramp } from "@/peer/peerOnramp";
+import type { PeerOnrampFulfillment, PeerOnrampLaunchState } from "@/peer/peerOnrampTypes";
+import { useWalletPublicAssets } from "@/solana/useWalletPublicAssets";
 
 const appLinks = [
   { to: "/app/shield", label: "Shield", end: false },
@@ -24,12 +28,28 @@ export function AppLayout() {
     freshWalletRecoveryFileName,
     preferredWalletConnector,
     walletConnectors,
+    walletAddress,
     walletAddressShort,
     walletConnected,
     walletConnecting,
     walletReady,
+    solBalance,
   } = useWalletState();
   const [walletPickerOpen, setWalletPickerOpen] = useState(false);
+  const {
+    assets: walletPublicAssets,
+    error: walletPublicAssetsError,
+    loading: walletPublicAssetsLoading,
+  } = useWalletPublicAssets({
+    solBalance,
+    walletAddress,
+  });
+  const [peerLaunchState, setPeerLaunchState] = useState<PeerOnrampLaunchState>("idle");
+  const [peerLaunchFulfillment, setPeerLaunchFulfillment] =
+    useState<PeerOnrampFulfillment | null>(null);
+  const [peerLaunchMessage, setPeerLaunchMessage] = useState<string | null>(null);
+  const peerLaunchAttemptRef = useRef(0);
+  const walletPickerOpenRef = useRef(walletPickerOpen);
   const connectedWalletLabel = walletAddressShort ?? currentConnectorName ?? "Connected";
   const accountTriggerLabel = !walletReady
     ? "Checking"
@@ -55,6 +75,41 @@ export function AppLayout() {
       }),
     [walletConnectors],
   );
+  const peerOnrampAvailability = getPeerOnrampAvailability({
+    desktopSurface:
+      typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches,
+    walletAddress,
+  });
+  const hasUsableBalance = walletPublicAssets.length > 0;
+  const peerFundingNeedsWallet = peerOnrampAvailability === "needs_wallet";
+  const peerFundingNeedsTopUp =
+    peerOnrampAvailability === "available" && !hasUsableBalance;
+  const showPeerFundingBlock =
+    !walletPublicAssetsLoading &&
+    walletPublicAssetsError === null &&
+    (peerFundingNeedsWallet || peerFundingNeedsTopUp);
+  const peerLaunchDisabled =
+    walletConnecting ||
+    peerLaunchState === "launching" ||
+    !walletAddress ||
+    peerOnrampAvailability !== "available";
+  const peerLaunchFeedback =
+    peerLaunchMessage ??
+    (peerLaunchState === "launching"
+      ? "Opening Peer..."
+      : peerLaunchState === "install_required"
+        ? "Install the Peer extension, then try again."
+        : peerLaunchState === "connection_required"
+          ? "Connect Peer to this browser, then try again."
+          : peerLaunchState === "opened"
+            ? "Peer opened. Complete the funding step there."
+            : peerLaunchState === "fulfilled"
+              ? peerLaunchFulfillment?.bridgeStatus === "pending"
+                ? "Peer intent submitted. Bridge transfer pending."
+                : "Peer intent submitted."
+              : peerLaunchState === "error"
+                ? "Peer could not open. Try again."
+                : null);
 
   const openWalletPicker = () => {
     setWalletPickerOpen((isOpen) => !isOpen);
@@ -68,6 +123,66 @@ export function AppLayout() {
   const generateFreshWallet = () => {
     createFreshWallet();
   };
+
+  const resetPeerLaunchState = (message: string | null = null) => {
+    peerLaunchAttemptRef.current += 1;
+    setPeerLaunchFulfillment(null);
+    setPeerLaunchMessage(message);
+    setPeerLaunchState("idle");
+  };
+
+  const isCurrentPeerLaunchAttempt = (attemptId: number) =>
+    walletPickerOpenRef.current && peerLaunchAttemptRef.current === attemptId;
+
+  const handlePeerLaunch = async () => {
+    if (!walletAddress) {
+      resetPeerLaunchState("Connect a wallet first to use Peer.");
+      return;
+    }
+
+    setPeerLaunchFulfillment(null);
+    setPeerLaunchMessage(null);
+    setPeerLaunchState("launching");
+    const launchAttemptId = peerLaunchAttemptRef.current + 1;
+    peerLaunchAttemptRef.current = launchAttemptId;
+    let launchFulfilled = false;
+
+    try {
+      const result = await launchPeerOnramp({ recipientAddress: walletAddress }, (fulfillment) => {
+        if (!isCurrentPeerLaunchAttempt(launchAttemptId)) {
+          return;
+        }
+
+        launchFulfilled = true;
+        setPeerLaunchFulfillment(fulfillment);
+        setPeerLaunchState("fulfilled");
+      });
+
+      if (!isCurrentPeerLaunchAttempt(launchAttemptId) || launchFulfilled) {
+        return;
+      }
+
+      setPeerLaunchState(result);
+    } catch {
+      if (!isCurrentPeerLaunchAttempt(launchAttemptId)) {
+        return;
+      }
+
+      setPeerLaunchState("error");
+    }
+  };
+
+  useEffect(() => {
+    walletPickerOpenRef.current = walletPickerOpen;
+  }, [walletPickerOpen]);
+
+  useEffect(() => {
+    if (walletPickerOpen) {
+      return;
+    }
+
+    resetPeerLaunchState();
+  }, [walletPickerOpen]);
 
   useEffect(() => {
     document.body.classList.add("app-body");
@@ -114,7 +229,7 @@ export function AppLayout() {
   }, []);
 
   return (
-    <div className="app-shell app-shell--minimal">
+    <div className="app-shell app-shell--minimal" data-product-shell="app">
       <div className="app-cursor" id="appCursor" aria-hidden="true" />
       <div className="app-cursor-ring" id="appCursorRing" aria-hidden="true" />
       <div className="app-shell__grid" aria-hidden="true" />
@@ -128,14 +243,14 @@ export function AppLayout() {
         </div>
       )}
 
-      <header className="app-header">
-        <NavLink to="/app/send" className="app-header__brand" aria-label="Vanta">
+      <header className="app-header" data-product-topbar>
+        <NavLink to="/" className="app-header__brand" aria-label="Vanta home">
           <BrandMark />
           <strong>Vanta</strong>
         </NavLink>
 
         <div className="app-header__tabs-rail">
-          <nav className="app-header__tabs" aria-label="Primary">
+          <nav className="app-header__tabs" aria-label="Primary" data-product-nav>
             {appLinks.map((link) => (
               <NavLink
                 key={link.to}
@@ -155,6 +270,9 @@ export function AppLayout() {
         </div>
 
         <div className="app-header__wallet">
+          <NavLink to="/docs" className="app-header__docs-link">
+            Docs
+          </NavLink>
           <button
             className="app-header__account-trigger"
             type="button"
@@ -198,6 +316,33 @@ export function AppLayout() {
                   <span>Simulation before signing</span>
                   <small>Live actions are simulated before wallet approval.</small>
                 </div>
+                {showPeerFundingBlock && (
+                  <div className="wallet-picker__section">
+                    <span className="wallet-picker__section-label">Funding</span>
+                    <div className="wallet-picker__fresh" role="status">
+                      <div>
+                        <span>No wallet funds detected</span>
+                        <small>
+                          Connect, create a fresh wallet, or top up with Peer on desktop.
+                        </small>
+                      </div>
+                      <button type="button" disabled={peerLaunchDisabled} onClick={handlePeerLaunch}>
+                        Top up with Peer
+                      </button>
+                    </div>
+                    {peerLaunchFeedback && (
+                      <div className="wallet-picker__fresh-result" role="status">
+                        <span>Peer funding</span>
+                        <small>{peerLaunchFeedback}</small>
+                        {peerLaunchFulfillment?.trackingUrl && (
+                          <a href={peerLaunchFulfillment.trackingUrl} target="_blank" rel="noreferrer">
+                            Track transfer
+                          </a>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
                 {walletConnected && (
                   <div className="wallet-picker__connected">
                     <div>

@@ -32,6 +32,8 @@ function runFreshWalletBrowserBatch() {
       action: "assert",
       checks: [
         { kind: "url_contains", text: "/app/shield" },
+        { kind: "text_visible", text: "Vanta Beta" },
+        { kind: "text_visible", text: "No funds move in this mode" },
         { kind: "text_visible", text: "Connect" },
         { kind: "text_hidden", text: "secretKey" },
         { kind: "text_hidden", text: "seed phrase" },
@@ -45,6 +47,8 @@ function runFreshWalletBrowserBatch() {
       checks: [
         { kind: "text_visible", text: "Wallet" },
         { kind: "text_visible", text: "Detected wallets" },
+        { kind: "text_hidden", text: "Top up with Peer" },
+        { kind: "text_hidden", text: "No wallet funds detected" },
         { kind: "text_visible", text: "Create fresh wallet" },
         { kind: "text_visible", text: "Generated in this browser" },
         { kind: "text_visible", text: "Import it into Phantom or Solflare to sign live actions" },
@@ -72,6 +76,8 @@ function runFreshWalletBrowserBatch() {
 const vite = spawn("npm", ["run", "dev", "--", "--host", "127.0.0.1", "--port", String(port), "--strictPort"], {
   env: {
     ...process.env,
+    VITE_VANTA_DEPLOYMENT_MODE: "beta",
+    VITE_VANTA_ENABLE_PEER_ONRAMP: "true",
     VITE_SOLANA_CLUSTER: "devnet",
     VITE_SOLANA_RPC_URL: "https://api.devnet.solana.com",
   },
