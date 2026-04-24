@@ -11,6 +11,11 @@ assert.equal(snapshot.privacyRail.activeRailId, "alpha-public-warning");
 assert.equal(snapshot.privacyRail.meaningfulPrivacyReady, false);
 assert.equal(snapshot.privacyRail.activeRail.canClaimMeaningfulPrivacy, false);
 assert.ok(snapshot.privacyRail.userFacingRule.includes("Do not claim meaningful privacy"));
+assert.equal(snapshot.realFundsApproval.realFundsApprovalRecorded, true);
+assert.equal(snapshot.realFundsApproval.approvalRecordStatus, "approved");
+assert.equal(snapshot.realFundsApproval.liveMainnetActionsAllowedNow, false);
+assert.equal(snapshot.realFundsApproval.approvalWindowStatus, "expired");
+assert.ok(snapshot.realFundsApproval.requiredNextStep.includes("Record a new bounded approval window"));
 assert.ok(snapshot.score >= 0 && snapshot.score <= 100, "Readiness score must be a percentage.");
 assert.ok(snapshot.blockers.length >= 6, "Mainnet readiness must enumerate concrete blockers.");
 assert.ok(

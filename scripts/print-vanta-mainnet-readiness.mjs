@@ -12,6 +12,11 @@ if (jsonMode) {
   console.log(`- score: ${snapshot.score}/100`);
   console.log(`- mainnetReady: ${String(snapshot.mainnetReady)}`);
   console.log(`- productionReady: ${String(snapshot.productionReady)}`);
+  console.log("- real funds approval:");
+  console.log(`  - record: ${snapshot.realFundsApproval.approvalRecordStatus}`);
+  console.log(`  - window: ${snapshot.realFundsApproval.approvalWindowStatus}`);
+  console.log(`  - allowedNow: ${String(snapshot.realFundsApproval.liveMainnetActionsAllowedNow)}`);
+  console.log(`  - nextStep: ${snapshot.realFundsApproval.requiredNextStep}`);
   console.log("- lanes:");
   for (const [lane, state] of Object.entries(snapshot.lanes)) {
     console.log(`  - ${lane}: ${state.status} (${state.readiness}/100)`);
