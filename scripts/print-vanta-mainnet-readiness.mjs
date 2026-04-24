@@ -148,7 +148,18 @@ if (jsonMode) {
     `  - observabilityControlsPending: ${String(snapshot.productionServiceDeployment.observabilityControlsPending)}`,
   );
   console.log(
+    `  - backupRestoreControlMode: ${snapshot.productionServiceDeployment.backupRestoreControlMode}`,
+  );
+  console.log(
     `  - backupRestoreMaturityPending: ${String(snapshot.productionServiceDeployment.backupRestoreMaturityPending)}`,
+  );
+  console.log(
+    `  - backupRestoreEvidenceRef: ${snapshot.productionServiceDeployment.backupRestoreEvidenceRef}`,
+  );
+  console.log(
+    `  - restoreReadbackCoverage: ${Object.entries(snapshot.productionServiceDeployment.restoreReadbackCoverage)
+      .map(([storeId, status]) => `${storeId}:${status}`)
+      .join(", ")}`,
   );
   console.log(
     `  - realFundsReadinessPending: ${String(snapshot.productionServiceDeployment.realFundsReadinessPending)}`,

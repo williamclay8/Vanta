@@ -6,6 +6,8 @@ export function createVantaProductionServiceDeploymentStatus() {
   const evidence = JSON.parse(readFileSync(evidencePath, "utf8"));
 
   return {
+    backupRestoreControlMode: evidence.backupRestoreControlMode,
+    backupRestoreEvidenceRef: evidence.backupRestoreEvidenceRef,
     backupRestoreMaturityPending: evidence.backupRestoreMaturityPending,
     checkedEvidenceRef: "ops/mainnet/service-deployment.evidence.json",
     lastStatusRef: evidence.lastStatusRef,
@@ -19,6 +21,7 @@ export function createVantaProductionServiceDeploymentStatus() {
     productionSmokeHealthPassed: evidence.productionSmokeHealthPassed,
     productionSmokeTargetsPassed: evidence.productionSmokeTargetsPassed,
     realFundsReadinessPending: evidence.realFundsReadinessPending,
+    restoreReadbackCoverage: evidence.restoreReadbackCoverage,
     roleServiceNetworkRef: evidence.roleServiceNetworkRef,
     roleServiceReplayEvidenceRef: evidence.roleServiceReplayEvidenceRef,
     roleServiceReplayVerified: evidence.roleServiceReplayVerified,

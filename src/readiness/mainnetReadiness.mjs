@@ -18,7 +18,7 @@ const blockerDefinitions = [
     id: "deployed-indexer-relayer-prover-operator",
     severity: "critical",
     buildSummary:
-      "Keep the service-deployment status/evidence surface fresh while deployed production indexer, relayer, prover, verifier, and operator services continue to show green route-health, replay, and no-real-funds smoke evidence, and while the checked pending production controls remain observability-controls, backup-restore-maturity, and real-funds-readiness.",
+      "Keep the service-deployment status/evidence surface fresh while deployed production indexer, relayer, prover, verifier, and operator services continue to show green route-health, replay, and no-real-funds smoke evidence, while restore readback remains explicitly passed for Private Pool v2 core, role-service storage, Strategy, and operator storage, and while the checked pending production controls remain observability-controls and real-funds-readiness.",
   },
   {
     id: "final-nullifier-replay-enforcement",
@@ -219,7 +219,7 @@ export function createVantaMainnetReadinessSnapshot() {
     realFundsApproval.liveMainnetActionsAllowedNow
       ? "Execute only the approved bounded beta mainnet private-pool smoke during the active approval window; record a new bounded approval packet before changing the action, launch window, fee payer, or maximum funds at risk."
       : "Record a new bounded approval window before any live mainnet private-pool action or real-funds movement.",
-    `Keep the service-deployment packet, green route-health, green replay verification, and green no-real-funds production smoke evidence fresh while the checked pending production controls remain ${productionServiceDeployment.pendingProductionControls.join(", ")}.`,
+    `Keep the service-deployment packet, green route-health, green replay verification, green no-real-funds production smoke evidence, and the checked restore-readback coverage fresh while the checked pending production controls remain ${productionServiceDeployment.pendingProductionControls.join(", ")}.`,
     "Keep operator-skipped controls visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
     `Keep the abuse/observability status/evidence surface fresh while the checked pending controls remain ${abuseObservability.pendingObservabilityControls.join(", ")}.`,
     `Keep the deployed operator replay-status evidence, the Postgres-backed nullifier replay guard, role-service replay verification, and production smoke replay simulation fresh while the checked replay blockers remain ${nullifierReplay.productionReplayBlockedBy.join(", ")}.`,

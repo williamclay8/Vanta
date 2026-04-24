@@ -237,11 +237,25 @@ assert.equal(snapshot.productionServiceDeployment.roleServiceReplayVerified, tru
 assert.equal(snapshot.productionServiceDeployment.productionSmokeHealthPassed, true);
 assert.equal(snapshot.productionServiceDeployment.productionSmokeTargetsPassed, true);
 assert.equal(snapshot.productionServiceDeployment.observabilityControlsPending, true);
-assert.equal(snapshot.productionServiceDeployment.backupRestoreMaturityPending, true);
+assert.equal(snapshot.productionServiceDeployment.backupRestoreMaturityPending, false);
+assert.equal(
+  snapshot.productionServiceDeployment.backupRestoreControlMode,
+  "operator-skipped-controls-with-partial-readback-passed",
+);
+assert.equal(
+  snapshot.productionServiceDeployment.backupRestoreEvidenceRef,
+  "ops/mainnet/production-backup-restore.evidence.json",
+);
+assert.deepEqual(snapshot.productionServiceDeployment.restoreReadbackCoverage, {
+  pay: "operator-skipped-control",
+  privatePoolV2: "passed",
+  privatePoolV2Roles: "passed",
+  strategy: "passed",
+  operator: "passed",
+});
 assert.equal(snapshot.productionServiceDeployment.realFundsReadinessPending, true);
 assert.deepEqual(snapshot.productionServiceDeployment.pendingProductionControls, [
   "observability-controls",
-  "backup-restore-maturity",
   "real-funds-readiness",
 ]);
 assert.equal(

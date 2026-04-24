@@ -134,7 +134,7 @@ export function createVantaProductionStorageContract() {
     globalRequirements,
     mainnetReady: false,
     nextImplementationStep:
-      "Create the actual production database backup, PITR, restore-drill, encryption, access-audit, and least-privilege user refs named by the backup/restore template.",
+      "Keep the backup/restore template and evidence aligned with passed restore readbacks, and reopen Pay readback or provider backup controls only if launch scope changes.",
     productionReady: false,
     requiredVerificationCommands: [
       "npm run mainnet:storage-contract-check",

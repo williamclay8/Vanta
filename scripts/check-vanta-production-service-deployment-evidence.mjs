@@ -31,11 +31,19 @@ assert.equal(evidence.productionSmokeEvidenceRef, "ops/mainnet/private-pool-v2-p
 assert.equal(evidence.productionSmokeHealthPassed, true);
 assert.equal(evidence.productionSmokeTargetsPassed, true);
 assert.equal(evidence.observabilityControlsPending, true);
-assert.equal(evidence.backupRestoreMaturityPending, true);
+assert.equal(evidence.backupRestoreMaturityPending, false);
+assert.equal(evidence.backupRestoreControlMode, "operator-skipped-controls-with-partial-readback-passed");
+assert.equal(evidence.backupRestoreEvidenceRef, "ops/mainnet/production-backup-restore.evidence.json");
+assert.deepEqual(evidence.restoreReadbackCoverage, {
+  pay: "operator-skipped-control",
+  privatePoolV2: "passed",
+  privatePoolV2Roles: "passed",
+  strategy: "passed",
+  operator: "passed",
+});
 assert.equal(evidence.realFundsReadinessPending, true);
 assert.deepEqual(evidence.pendingProductionControls, [
   "observability-controls",
-  "backup-restore-maturity",
   "real-funds-readiness",
 ]);
 assert.equal(evidence.routeHealthEvidenceRef, "ops/mainnet/private-pool-v2-route-health.evidence.json");
@@ -62,7 +70,15 @@ assert.ok(
   "Service deployment evidence must preserve the green production-smoke truth.",
 );
 assert.ok(
-  evidence.deploymentTruth.includes("observability controls, backup/restore maturity, and real-funds readiness"),
+  evidence.deploymentTruth.includes("Restore readback is already recorded as passed"),
+  "Service deployment evidence must preserve the narrower backup/restore readback truth.",
+);
+assert.ok(
+  evidence.deploymentTruth.includes("Pay/provider backup controls remain explicitly operator-skipped"),
+  "Service deployment evidence must preserve the operator-skipped backup-control truth.",
+);
+assert.ok(
+  evidence.deploymentTruth.includes("observability controls and real-funds readiness"),
   "Service deployment evidence must preserve the exact remaining pending controls.",
 );
 

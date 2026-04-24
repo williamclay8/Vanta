@@ -27,10 +27,13 @@ function buildStatus() {
     manifestVersion: manifest.version,
     network: manifest.network,
     observabilityControlsPending: evidence.observabilityControlsPending,
+    backupRestoreControlMode: evidence.backupRestoreControlMode,
+    backupRestoreEvidenceRef: evidence.backupRestoreEvidenceRef,
     backupRestoreMaturityPending: evidence.backupRestoreMaturityPending,
     realFundsReadinessPending: evidence.realFundsReadinessPending,
     pendingProductionControls: evidence.pendingProductionControls,
     productionReady: false,
+    restoreReadbackCoverage: evidence.restoreReadbackCoverage,
     safety:
       "No auth token values, database URLs, bearer values, wallet keys, or signed transaction material are printed.",
     services,
@@ -47,13 +50,21 @@ if (checkMode) {
   assert.equal(result.mainnetReady, false);
   assert.equal(result.productionReady, false);
   assert.equal(result.observabilityControlsPending, true);
-  assert.equal(result.backupRestoreMaturityPending, true);
+  assert.equal(result.backupRestoreMaturityPending, false);
+  assert.equal(result.backupRestoreControlMode, "operator-skipped-controls-with-partial-readback-passed");
+  assert.equal(result.backupRestoreEvidenceRef, "ops/mainnet/production-backup-restore.evidence.json");
   assert.equal(result.realFundsReadinessPending, true);
   assert.deepEqual(result.pendingProductionControls, [
     "observability-controls",
-    "backup-restore-maturity",
     "real-funds-readiness",
   ]);
+  assert.deepEqual(result.restoreReadbackCoverage, {
+    pay: "operator-skipped-control",
+    privatePoolV2: "passed",
+    privatePoolV2Roles: "passed",
+    strategy: "passed",
+    operator: "passed",
+  });
   assert.deepEqual(result.stagingDeploymentIds, ["pay", "private-pool-v2"]);
   assert.equal(result.services.length, 5, "Expected all five production Private Pool v2 role services.");
   for (const service of result.services) {
@@ -74,7 +85,14 @@ if (jsonMode || checkMode) {
   console.log(`- network: ${result.network}`);
   console.log(`- services: ${result.services.map((service) => service.id).join(", ")}`);
   console.log(`- observabilityControlsPending: ${String(result.observabilityControlsPending)}`);
+  console.log(`- backupRestoreControlMode: ${result.backupRestoreControlMode}`);
   console.log(`- backupRestoreMaturityPending: ${String(result.backupRestoreMaturityPending)}`);
+  console.log(`- backupRestoreEvidenceRef: ${result.backupRestoreEvidenceRef}`);
+  console.log(
+    `- restoreReadbackCoverage: ${Object.entries(result.restoreReadbackCoverage)
+      .map(([storeId, status]) => `${storeId}:${status}`)
+      .join(", ")}`,
+  );
   console.log(`- realFundsReadinessPending: ${String(result.realFundsReadinessPending)}`);
   console.log(`- pendingProductionControls: ${result.pendingProductionControls.join(", ")}`);
   console.log(`- productionReady: ${String(result.productionReady)}`);
