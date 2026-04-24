@@ -1,7 +1,7 @@
 import { hmac } from "@noble/hashes/hmac.js";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
-import { VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY } from "./vantaPayPrivateSettlementAdapter";
+import { VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY } from "./vantaPayPrivateSettlementAdapter.js";
 import type {
   VantaPayAsset,
   VantaPayBalances,
@@ -12,6 +12,10 @@ import type {
   VantaPayInvoiceCreateInput,
   VantaPayLineItem,
   VantaPayMerchant,
+  VantaPayApprovalPhase,
+  VantaPayMerchantControlPlaneExportWindow,
+  VantaPayMerchantControlPlaneNextWindow,
+  VantaPayMerchantControlPlaneState,
   VantaPayPayment,
   VantaPayPaymentLink,
   VantaPayPaymentLinkCreateInput,
@@ -212,12 +216,56 @@ export function verifyVantaPayWebhookSignature({
 
 export type VantaPayRuntimeArgs = {
   checkoutBaseUrl?: string;
+  merchantControlPlaneState?: {
+    approvalPhase?: VantaPayApprovalPhase;
+    payoutQueue?: {
+      nextWindow?: VantaPayMerchantControlPlaneNextWindow;
+    };
+    reconciliation?: {
+      exportWindow?: VantaPayMerchantControlPlaneExportWindow;
+    };
+  };
   now?: string;
   snapshot?: VantaPayRuntimeSnapshot;
 };
 
+function cloneBalances(balances: VantaPayBalances): VantaPayBalances {
+  return {
+    available: balances.available.map((balance) => ({ ...balance })),
+    pending: balances.pending.map((balance) => ({ ...balance })),
+    withdrawable: balances.withdrawable.map((balance) => ({ ...balance })),
+  };
+}
+
+function cloneReceipts(receipts: readonly VantaPayReceipt[]) {
+  return receipts.map((receipt) => ({ ...receipt }));
+}
+
+function cloneRefunds(refunds: readonly VantaPayRefund[]) {
+  return refunds.map((refund) => ({ ...refund }));
+}
+
+function cloneWithdrawals(withdrawals: readonly VantaPayWithdrawal[]) {
+  return withdrawals.map((withdrawal) => ({ ...withdrawal }));
+}
+
+function cloneMerchantControlPlaneState(
+  state: VantaPayMerchantControlPlaneState,
+): VantaPayMerchantControlPlaneState {
+  return {
+    approvalPhase: state.approvalPhase,
+    payoutQueue: {
+      nextWindow: { ...state.payoutQueue.nextWindow },
+    },
+    reconciliation: {
+      exportWindow: { ...state.reconciliation.exportWindow },
+    },
+  };
+}
+
 export function createVantaPayRuntime({
   checkoutBaseUrl = "https://checkout.vantapay.com",
+  merchantControlPlaneState,
   now = defaultNow,
   snapshot,
 }: VantaPayRuntimeArgs = {}) {
@@ -241,6 +289,24 @@ export function createVantaPayRuntime({
       destinationType: "treasury_address",
     },
   } satisfies VantaPayMerchant;
+
+  const controlPlaneState = {
+    approvalPhase: merchantControlPlaneState?.approvalPhase ?? "preview",
+    payoutQueue: {
+      nextWindow: merchantControlPlaneState?.payoutQueue?.nextWindow ?? {
+        cadence: "daily",
+        targetTimeUtc: "16:00",
+        timezone: "UTC",
+      },
+    },
+    reconciliation: {
+      exportWindow: merchantControlPlaneState?.reconciliation?.exportWindow ?? {
+        endUtc: "12:00",
+        startUtc: "00:00",
+        timezone: "UTC",
+      },
+    },
+  } satisfies VantaPayMerchantControlPlaneState;
 
   const sessions = new Map<string, VantaPayCheckoutSession>();
   const payments = new Map<string, VantaPayPayment>();
@@ -628,11 +694,11 @@ export function createVantaPayRuntime({
       .filter(([asset, amount]) => parseAmountToBaseUnits(amount, asset) > 0n)
       .map(([asset, amount]) => ({ amount, asset }));
 
-    return {
+    return cloneBalances({
       available,
       pending: [],
       withdrawable: available,
-    };
+    });
   }
 
   function createRefund(input: VantaPayRefundCreateInput) {
@@ -922,6 +988,9 @@ export function createVantaPayRuntime({
         payoutSettings: { ...merchant.payoutSettings },
       } satisfies VantaPayMerchant;
     },
+    getMerchantControlPlaneState() {
+      return cloneMerchantControlPlaneState(controlPlaneState);
+    },
     getMerchantApiStatus() {
       return {
         contractVersion: VANTA_PAY_CONTRACT_VERSION,
@@ -947,10 +1016,10 @@ export function createVantaPayRuntime({
       return [...payments.values()];
     },
     listReceipts() {
-      return [...receipts.values()];
+      return cloneReceipts([...receipts.values()]);
     },
     listRefunds() {
-      return [...refunds.values()];
+      return cloneRefunds([...refunds.values()]);
     },
     listWebhookEvents() {
       return [...events];
@@ -959,7 +1028,7 @@ export function createVantaPayRuntime({
       return [...webhookDeliveries.values()];
     },
     listWithdrawals() {
-      return [...withdrawals.values()];
+      return cloneWithdrawals([...withdrawals.values()]);
     },
     registerPrivateExitReceipt,
     registerPrivateRailReceipt,
