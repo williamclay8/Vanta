@@ -2997,7 +2997,11 @@ input {
 }
 
 .pay-view--checkout {
-  justify-items: center;
+  width: min(1120px, 100%);
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 480px) minmax(0, 1fr);
+  align-items: start;
 }
 
 .pay-checkout-card {
@@ -3094,6 +3098,15 @@ input {
   font-size: 1.1rem;
 }
 
+.pay-merchant-ops__note {
+  max-width: 44ch;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.5;
+  text-wrap: balance;
+}
+
 .pay-merchant-ops__grid {
   display: grid;
   gap: 0.75rem;
@@ -3120,6 +3133,18 @@ input {
   font-family: "Syne", sans-serif;
   font-size: 0.95rem;
   line-height: 1.25;
+}
+
+.pay-control-plane {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1rem;
+}
+
+.pay-control-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 .pay-detail-grid {
@@ -3153,6 +3178,92 @@ input {
   color: var(--muted);
   font-size: 0.8rem;
   line-height: 1.45;
+}
+
+.pay-settlement-console {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1rem;
+}
+
+.pay-console-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.pay-console-card {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.pay-console-card > div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.pay-console-card span {
+  color: var(--muted-strong);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.pay-console-card strong {
+  font-family: "Syne", sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+
+.pay-console-card small {
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.pay-console-empty {
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.pay-merchant-console-panel {
+  display: grid;
+  gap: 1rem;
+  width: min(620px, 100%);
+  padding: 24px;
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.pay-demo-card {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 1rem;
+  padding: 1rem 1.05rem;
+  border: 1px solid rgba(0, 229, 200, 0.16);
+  border-radius: 20px;
+  background:
+    linear-gradient(135deg, rgba(0, 229, 200, 0.08), rgba(0, 229, 200, 0.02)),
+    rgba(255, 255, 255, 0.02);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.pay-demo-card h3 {
+  margin: 0;
+  font-family: "Syne", sans-serif;
+  font-size: 1.05rem;
+}
+
+.pay-demo-card p {
+  margin: 0;
+  color: var(--muted-strong);
+  line-height: 1.5;
 }
 
 .pay-success-card {
@@ -4486,10 +4597,21 @@ input {
 
   .pay-hero,
   .pay-panel,
+  .pay-merchant-console-panel,
   .pay-checkout-card,
   .pay-section-header {
     padding: 18px;
     border-radius: 22px;
+  }
+
+  .pay-view--checkout {
+    grid-template-columns: 1fr;
+    justify-items: stretch;
+  }
+
+  .pay-merchant-console-panel,
+  .pay-checkout-card {
+    width: 100%;
   }
 
   .pay-subnav__item {
@@ -5713,4 +5835,12 @@ input {
     margin-top: 14px;
     padding: 16px 2px 26px;
   }
+}
+.pay-page,
+.pay-page a,
+.pay-page button,
+.pay-page input,
+.pay-page select,
+.pay-page summary {
+  cursor: auto;
 }

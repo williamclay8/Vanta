@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
-import { VANTA_PAY_MERCHANT_DEMO_CONTENT } from "@/pay/vantaPayMerchantDemoContent";
-import { VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY } from "@/pay/vantaPayPrivateSettlementAdapter";
+import { buildVantaPayApprovalPacket } from "@/pay/vantaPayApprovalPacket";
+import { createVantaPayMerchantControlPlane } from "@/pay/vantaPayMerchantControlPlane";
 
 type PayView = "link" | "invoice" | "checkout" | "withdraw";
 
@@ -12,10 +12,6 @@ const payViews = [
   { id: "checkout", label: "Checkout" },
   { id: "withdraw", label: "Withdraw" },
 ] satisfies readonly { id: PayView; label: string }[];
-
-function toSentenceCase(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
 
 function PayButton({
   children,
@@ -197,23 +193,11 @@ function CheckoutView() {
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [asset, setAsset] = useState("USDC");
-  const detailCards = [
-    {
-      title: "Refund review",
-      state: `${toSentenceCase(VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY.refundState)} refund state`,
-      description: "Receipt-linked refund controls stay inside the Pay rail.",
-    },
-    {
-      title: "Withdrawal review",
-      state: `${toSentenceCase(VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY.withdrawalState)} withdrawal state`,
-      description: "Destination and settlement state stay policy-bound before action.",
-    },
-    {
-      title: "Reconciliation snapshot",
-      state: `${toSentenceCase(VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY.reconciliationState)} reconciliation state`,
-      description: "Receipts, balances, and settlement state remain legible.",
-    },
-  ] as const;
+  const controlPlane = createVantaPayMerchantControlPlane();
+  const approvalBoundary = buildVantaPayApprovalPacket().phaseOrder.join(" -> ");
+  const hasAvailableBalances = controlPlane.balances.available.length > 0;
+  const hasRefunds = controlPlane.refunds.length > 0;
+  const hasWithdrawals = controlPlane.withdrawals.length > 0;
 
   return (
     <div className="pay-view pay-view--checkout">
@@ -230,7 +214,7 @@ function CheckoutView() {
           </strong>
           <small>Checkout preview</small>
         </div>
-        <form className="pay-form pay-form--minimal">
+        <form aria-label="Checkout form" className="pay-form pay-form--minimal">
           <PayField label="Merchant" placeholder="Merchant name" value={merchant} onChange={setMerchant} />
           <PayField
             label="Description"
@@ -255,54 +239,8 @@ function CheckoutView() {
         </details>
         <div className="pay-trust-line">
           <span>Privacy rail in review</span>
-          <span>Receipt included</span>
+          <span>Receipt path preview</span>
           {isBetaMode && <span>No funds move</span>}
-        </div>
-        <section className="pay-merchant-ops" aria-label="Merchant operations">
-          <div className="pay-merchant-ops__header">
-            <span className="pay-kicker">Merchant operations</span>
-            <h3>Policy-legible settlement</h3>
-          </div>
-          <div className="pay-merchant-ops__grid">
-            <div className="pay-ops-card">
-              <span>Private checkout</span>
-              <strong>Merchant-facing payment intake</strong>
-            </div>
-            <div className="pay-ops-card">
-              <span>Approval boundary</span>
-              <strong>Preview - approve - execute - settle</strong>
-            </div>
-            <div className="pay-ops-card">
-              <span>Trust surface</span>
-              <strong>Controlled privacy + legible trust</strong>
-            </div>
-          </div>
-        </section>
-        <div className="pay-detail-grid">
-          {detailCards.map((card) => (
-            <div className="pay-detail-card" key={card.title}>
-              <span>{card.title}</span>
-              <strong>{card.state}</strong>
-              <small>{card.description}</small>
-            </div>
-          ))}
-        </div>
-        <aside className="pay-demo-card">
-          <span className="pay-kicker">{VANTA_PAY_MERCHANT_DEMO_CONTENT.eyebrow}</span>
-          <h3>{VANTA_PAY_MERCHANT_DEMO_CONTENT.title}</h3>
-          <p>{VANTA_PAY_MERCHANT_DEMO_CONTENT.body}</p>
-        </aside>
-        <div className="pay-result-line pay-result-line--muted" role="status">
-          <span>Settlement lifecycle</span>
-          <strong>{VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY.lifecycleModel}</strong>
-        </div>
-        <div className="pay-result-line pay-result-line--muted">
-          <span>Refunds: {VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY.refundState}</span>
-          <strong>Withdrawals: {VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY.withdrawalState}</strong>
-        </div>
-        <div className="pay-result-line pay-result-line--muted">
-          <span>Reconciliation: {VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY.reconciliationState}</span>
-          <strong>merchant-visible private settlement controls</strong>
         </div>
         {isComplete ? (
           <div className="pay-success-card">
@@ -317,6 +255,126 @@ function CheckoutView() {
           </div>
         ) : null}
       </article>
+      <aside
+        className="pay-merchant-console-panel"
+        aria-label="Merchant control plane"
+        data-approval-phase={controlPlane.approvalPhase}
+        data-pay-surface="merchant-control-plane"
+      >
+        <section className="pay-merchant-ops" aria-label="Merchant operations">
+          <div className="pay-merchant-ops__header">
+            <span className="pay-kicker">Merchant operations</span>
+            <h3>Policy-legible settlement</h3>
+            <p className="pay-merchant-ops__note">
+              Runtime control plane preview, shown beside the buyer checkout so operators can inspect the same
+              payment flow without mixing it into the payer form.
+            </p>
+          </div>
+          <div className="pay-merchant-ops__grid">
+            <div className="pay-ops-card">
+              <span>Private checkout</span>
+              <strong>Merchant-facing payment intake</strong>
+            </div>
+            <div className="pay-ops-card">
+              <span>Approval boundary</span>
+              <strong>{approvalBoundary}</strong>
+            </div>
+            <div className="pay-ops-card">
+              <span>Trust surface</span>
+              <strong>Controlled privacy + legible trust</strong>
+            </div>
+          </div>
+        </section>
+        <section className="pay-control-plane" aria-label="Merchant control plane">
+          <div className="pay-merchant-ops__header">
+            <span className="pay-kicker">Merchant control plane</span>
+            <h3>Runtime balances and queue state</h3>
+            <p className="pay-merchant-ops__note">
+              The surface is backed by the live merchant control-plane builder so balances, queue state, and export
+              windows stay in sync with runtime data.
+            </p>
+          </div>
+          <div className="pay-control-grid">
+            <article className="pay-console-card" data-control-plane-section="balances">
+              <span>Available balances</span>
+              {hasAvailableBalances ? (
+                controlPlane.balances.available.map((balance) => (
+                  <div
+                    data-balance-asset={balance.asset}
+                    data-balance-available={balance.amount}
+                    key={balance.asset}
+                  >
+                    <strong>{balance.asset}</strong>
+                    <small>{balance.amount} available</small>
+                  </div>
+                ))
+              ) : (
+                <div className="pay-console-empty">No available balances</div>
+              )}
+            </article>
+            <article className="pay-console-card" data-control-plane-section="refunds">
+              <span>Refund queue</span>
+              {hasRefunds ? (
+                controlPlane.refunds.map((refund) => (
+                  <div data-refund-id={refund.id} data-refund-status={refund.status} key={refund.id}>
+                    <strong>{refund.id}</strong>
+                    <small>
+                      {refund.amount} {refund.asset} · {refund.status}
+                    </small>
+                  </div>
+                ))
+              ) : (
+                <div className="pay-console-empty">No refunds queued</div>
+              )}
+            </article>
+          </div>
+          <div className="pay-control-grid">
+            <article className="pay-console-card" data-control-plane-section="withdrawals">
+              <span>Withdrawal queue</span>
+              {hasWithdrawals ? (
+                controlPlane.withdrawals.map((withdrawal) => (
+                  <div
+                    data-withdrawal-id={withdrawal.id}
+                    data-withdrawal-status={withdrawal.status}
+                    key={withdrawal.id}
+                  >
+                    <strong>{withdrawal.id}</strong>
+                    <small>
+                      {withdrawal.amount} {withdrawal.asset} · {withdrawal.status}
+                    </small>
+                  </div>
+                ))
+              ) : (
+                <div className="pay-console-empty">No withdrawals queued</div>
+              )}
+            </article>
+            <article className="pay-console-card" data-control-plane-section="reconciliation">
+              <span>Reconciliation export</span>
+              <strong data-console-field="reconciliation-records">{controlPlane.reconciliation.recordsLabel}</strong>
+              <small data-console-field="reconciliation-window">{controlPlane.reconciliation.exportWindow}</small>
+              <small data-console-field="reconciliation-state">{controlPlane.reconciliation.state}</small>
+            </article>
+          </div>
+        </section>
+        <div className="pay-result-line pay-result-line--muted" role="status">
+          <span>Settlement lifecycle</span>
+          <strong>{approvalBoundary}</strong>
+        </div>
+        <div className="pay-result-line pay-result-line--muted">
+          <span>Refund queue</span>
+          <strong>{hasRefunds ? `${controlPlane.refunds.length} refunds queued` : "No refunds queued"}</strong>
+        </div>
+        <div className="pay-result-line pay-result-line--muted">
+          <span>Withdrawal queue</span>
+          <strong>
+            {hasWithdrawals ? `${controlPlane.withdrawals.length} withdrawals queued` : "No withdrawals queued"}
+          </strong>
+        </div>
+        <div className="pay-result-line pay-result-line--muted">
+          <span>Reconciliation</span>
+          <strong>{controlPlane.reconciliation.state}</strong>
+        </div>
+      </aside>
     </div>
   );
 }
@@ -329,7 +387,7 @@ function WithdrawView() {
 
   return (
     <PayActionCard eyebrow="Pay" title="Withdraw">
-      <form className="pay-form pay-form--minimal">
+      <form aria-label="Withdraw form" className="pay-form pay-form--minimal">
         <PaySelect label="Asset" options={["USDC", "SOL", "USDT"]} value={asset} onChange={setAsset} />
         <PayField label="Amount" placeholder="0.00" type="number" value={amount} onChange={setAmount} />
         <PaySelect
