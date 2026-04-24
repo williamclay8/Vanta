@@ -172,10 +172,10 @@ assert.ok(
 );
 assert.ok(
   snapshot.walletSigning.deploymentTruth.includes(
-    "deployed production browser verification is now green",
+    "deployed production browser verification is green",
   ),
 );
-assert.ok(snapshot.walletSigning.deploymentTruth.includes("repo now targets live-submission mode by default"));
+assert.ok(snapshot.walletSigning.deploymentTruth.includes("repo targets live-submission mode by default"));
 assert.ok(snapshot.walletSigning.nextOperatorAction.includes("deployed browser verification"));
 assert.ok(snapshot.walletSigning.nextOperatorAction.includes("real-funds actions remain bounded by explicit approval"));
 assert.equal(
