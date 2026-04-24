@@ -261,10 +261,11 @@
       "status": "blocked",
       "externalGate": true,
       "owner": "human-launch-approver",
-      "summary": "Keep real funds and mainnet transactions blocked until explicit human approval exists for a specific launch action.",
+      "summary": "Keep real funds and mainnet transactions blocked outside the bounded beta private-pool smoke action; the recorded 0.05 SOL approval window is now expired.",
       "requiredEvidence": [
         "ops/mainnet/mainnet-approval-gates.template.json references-only mainnet approval refs",
         "ops/mainnet/mainnet-approval-gates.evidence.json current blocked mainnet funds status",
+        "ops/mainnet/mainnet-real-funds-approval.evidence.json checked bounded real-funds approval packet",
         "mainnet approval record reference",
         "approved wallet and fee-payer reference",
         "approved launch window",
@@ -280,9 +281,10 @@
       "verificationCommands": [
         "npm run mainnet:readiness-check",
         "npm run mainnet:approval-gates-check",
+        "npm run mainnet:real-funds-approval-status",
         "npm run wallet:transaction-safety-check"
       ],
-      "approvalGate": "explicit approval before mainnet funds is recorded for the exact action"
+      "approvalGate": "a live bounded approval window exists for the exact action, fee payer, and funds-at-risk cap"
     },
     {
       "id": "monitoring-incident-response",

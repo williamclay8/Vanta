@@ -263,6 +263,7 @@ Purpose: keep real funds blocked until there is explicit approval for the exact 
 Evidence needed:
 
 - `ops/mainnet/mainnet-approval-gates.template.json` explicit mainnet approval evidence refs
+- `ops/mainnet/mainnet-real-funds-approval.evidence.json` checked bounded real-funds approval packet
 - `VANTA_MAINNET_APPROVAL_RECORD_REF`
 - approved launch window
 - approved wallet and fee-payer reference
@@ -276,6 +277,7 @@ npm run mainnet:readiness-check
 npm run mainnet:approval-gates-status
 npm run mainnet:approval-gates-check
 npm run mainnet:approval-gates-evidence-check
+npm run mainnet:real-funds-approval-status
 npm run mainnet:real-funds-approval-check
 npm run wallet:transaction-safety-check
 ```
@@ -302,7 +304,7 @@ The real-funds approval packet is:
 ops/mainnet/mainnet-real-funds-approval.evidence.json
 ```
 
-It now records bounded approval for one action: beta mainnet private-pool smoke with maximum `0.05 SOL` at risk during `2026-04-22T14:30:00-15:30:00 America/Chicago`, approved by Clay. This is not blanket production readiness and does not allow any other mainnet action. It must never contain private keys, seed phrases, signed transactions, bearer tokens, or raw database URLs.
+It now records bounded approval for one action: beta mainnet private-pool smoke with maximum `0.05 SOL` at risk during `2026-04-22T14:30:00-15:30:00 America/Chicago`, approved by Clay. That recorded window is now expired. This is not blanket production readiness and does not allow any other mainnet action. It must never contain private keys, seed phrases, signed transactions, bearer tokens, or raw database URLs.
 
 ### Monitoring and incident response
 
