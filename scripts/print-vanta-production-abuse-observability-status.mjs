@@ -21,6 +21,11 @@ function buildStatus() {
     mainnetReady: false,
     nextImplementationStep: contract.nextImplementationStep,
     observabilityProvider: template.provider,
+    providerBackedLogSinkAvailable: false,
+    metricsDashboardsAvailable: false,
+    alertsConfigured: false,
+    retentionPolicyConfigured: false,
+    incidentWorkflowReady: false,
     operatorEventSinkKind: eventSink.kind,
     operatorEventSinkProductionReady: eventSink.productionReady,
     operatorEventSinkSource: contract.operatorEventSinkModulePath,
@@ -64,6 +69,11 @@ if (checkMode) {
   assert.equal(result.mainnetReady, false, "Abuse/observability status must not claim mainnet readiness.");
   assert.equal(result.productionReady, false, "Abuse/observability status must not claim production readiness.");
   assert.equal(result.observabilityProvider, "provider-neutral-skipped-by-operator");
+  assert.equal(result.providerBackedLogSinkAvailable, false);
+  assert.equal(result.metricsDashboardsAvailable, false);
+  assert.equal(result.alertsConfigured, false);
+  assert.equal(result.retentionPolicyConfigured, false);
+  assert.equal(result.incidentWorkflowReady, false);
   assert.deepEqual(result.rateLimiterAvailableKinds, ["in-memory-rate-limiter", "postgres-rate-limiter"]);
   assert.equal(result.rateLimiterKind, "in-memory-rate-limiter");
   assert.equal(result.preferredProductionRateLimiterKind, "postgres-rate-limiter");
@@ -96,6 +106,11 @@ if (jsonMode || checkMode) {
 } else {
   console.log("Vanta production abuse/observability status");
   console.log(`- observabilityProvider: ${result.observabilityProvider}`);
+  console.log(`- providerBackedLogSinkAvailable: ${String(result.providerBackedLogSinkAvailable)}`);
+  console.log(`- metricsDashboardsAvailable: ${String(result.metricsDashboardsAvailable)}`);
+  console.log(`- alertsConfigured: ${String(result.alertsConfigured)}`);
+  console.log(`- retentionPolicyConfigured: ${String(result.retentionPolicyConfigured)}`);
+  console.log(`- incidentWorkflowReady: ${String(result.incidentWorkflowReady)}`);
   console.log(`- operatorEventSinkKind: ${result.operatorEventSinkKind}`);
   console.log(`- rateLimiterAvailableKinds: ${result.rateLimiterAvailableKinds.join(", ")}`);
   console.log(`- preferredProductionRateLimiterKind: ${result.preferredProductionRateLimiterKind}`);

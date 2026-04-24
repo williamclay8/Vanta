@@ -36,6 +36,17 @@ if (jsonMode) {
   console.log(
     `  - privatePoolV2MatchesPreferredRateLimiter: ${String(snapshot.abuseObservability.privatePoolV2RuntimeMatchesPreferredRateLimiter)}`,
   );
+  console.log(
+    `  - providerBackedLogSinkAvailable: ${String(snapshot.abuseObservability.providerBackedLogSinkAvailable)}`,
+  );
+  console.log(
+    `  - metricsDashboardsAvailable: ${String(snapshot.abuseObservability.metricsDashboardsAvailable)}`,
+  );
+  console.log(`  - alertsConfigured: ${String(snapshot.abuseObservability.alertsConfigured)}`);
+  console.log(
+    `  - retentionPolicyConfigured: ${String(snapshot.abuseObservability.retentionPolicyConfigured)}`,
+  );
+  console.log(`  - incidentWorkflowReady: ${String(snapshot.abuseObservability.incidentWorkflowReady)}`);
   console.log("- nullifier / replay:");
   console.log(`  - runtimeMode: ${snapshot.nullifierReplay.runtimeMode}`);
   console.log(`  - layeredStatus: ${snapshot.nullifierReplay.layeredReplayStatus}`);

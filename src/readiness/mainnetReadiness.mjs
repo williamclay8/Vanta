@@ -31,7 +31,7 @@ const blockers = [
   {
     id: "abuse-rate-limit-observability",
     severity: "high",
-    summary: "Keep the abuse/observability status/evidence surface fresh while provider-backed log sink, metrics, alerts, retention, incident workflow, and operator dashboards remain incomplete.",
+    summary: "Keep the abuse/observability status/evidence surface fresh while provider-backed log sink, dashboards, alerts, retention, and incident workflow controls all remain explicitly pending.",
   },
   {
     id: "no-mainnet-funds-without-explicit-approval",
@@ -188,7 +188,7 @@ const nextActions = [
   "Execute only the approved bounded beta mainnet private-pool smoke while the approval window is active, or record a new bounded approval window before changing the action, launch window, fee payer, or maximum funds at risk.",
   "Keep the service-deployment packet, green route-health, green replay verification, and green no-real-funds production smoke evidence fresh while observability and backup/restore maturity remain incomplete.",
   "Keep operator-skipped controls visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
-  "Keep the abuse/observability status/evidence surface fresh while using provider-neutral production observability evidence, existing platform logs, or a future provider until dashboards, alerts, retention, and incident workflow evidence are complete.",
+  "Keep the abuse/observability status/evidence surface fresh while provider-backed log sink, dashboards, alerts, retention, and incident workflow controls remain explicitly pending.",
   "Keep the deployed operator replay-status evidence, the Postgres-backed nullifier replay guard, role-service replay verification, and production smoke replay simulation fresh while broader production and audit gates remain pending around the replay lane.",
   "Keep the wallet-signing status/evidence surface, four-page local browser verification, and live-send inventory commands fresh while deployed production browser-backed signing evidence remains pending and live mainnet submission stays explicitly blocked.",
 ];

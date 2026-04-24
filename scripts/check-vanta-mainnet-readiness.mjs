@@ -16,6 +16,11 @@ assert.equal(snapshot.abuseObservability.privatePoolV2RuntimeMode, "remote-servi
 assert.equal(snapshot.abuseObservability.privatePoolV2RateLimiter, "postgres-durable-shared-window");
 assert.equal(snapshot.abuseObservability.privatePoolV2PreferredRateLimiterKind, "postgres-durable-shared-window");
 assert.equal(snapshot.abuseObservability.privatePoolV2RuntimeMatchesPreferredRateLimiter, true);
+assert.equal(snapshot.abuseObservability.providerBackedLogSinkAvailable, false);
+assert.equal(snapshot.abuseObservability.metricsDashboardsAvailable, false);
+assert.equal(snapshot.abuseObservability.alertsConfigured, false);
+assert.equal(snapshot.abuseObservability.retentionPolicyConfigured, false);
+assert.equal(snapshot.abuseObservability.incidentWorkflowReady, false);
 assert.equal(snapshot.nullifierReplay.runtimeMode, "remote-services");
 assert.equal(
   snapshot.nullifierReplay.layeredReplayStatus,
@@ -508,8 +513,8 @@ assert.ok(
   "Next actions must point to final protocol-layer nullifier enforcement.",
 );
 assert.ok(
-  snapshot.nextActions.some((action) => action.includes("provider-neutral production observability")),
-  "Next actions must include provider-neutral production observability setup.",
+  snapshot.nextActions.some((action) => action.includes("provider-backed log sink")),
+  "Next actions must include the explicit pending observability controls.",
 );
 
 console.log("Vanta mainnet readiness check: PASS");

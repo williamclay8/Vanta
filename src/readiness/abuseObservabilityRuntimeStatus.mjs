@@ -7,6 +7,9 @@ export function createVantaAbuseObservabilityRuntimeStatus() {
 
   return {
     checkedEvidenceRef: "ops/mainnet/abuse-observability.evidence.json",
+    alertsConfigured: evidence.alertsConfigured,
+    incidentWorkflowReady: evidence.incidentWorkflowReady,
+    metricsDashboardsAvailable: evidence.metricsDashboardsAvailable,
     operatorEventSinkKind: evidence.operatorEventSinkKind,
     operatorEventSinkProductionReady: evidence.operatorEventSinkProductionReady,
     payRuntimeStatus: evidence.payRuntimeStatus,
@@ -15,6 +18,8 @@ export function createVantaAbuseObservabilityRuntimeStatus() {
     privatePoolV2RuntimeMatchesPreferredRateLimiter: evidence.privatePoolV2RuntimeMatchesPreferredRateLimiter,
     privatePoolV2RuntimeMode: evidence.privatePoolV2Runtime?.runtimeMode ?? null,
     privatePoolV2StorageKind: evidence.privatePoolV2Runtime?.storageKind ?? null,
+    providerBackedLogSinkAvailable: evidence.providerBackedLogSinkAvailable,
+    retentionPolicyConfigured: evidence.retentionPolicyConfigured,
     surfaceStatuses: evidence.surfaceStatuses,
     version: "vanta-production-abuse-observability-runtime-summary-0.1",
   };

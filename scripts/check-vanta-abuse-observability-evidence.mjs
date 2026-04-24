@@ -25,6 +25,11 @@ assert.equal(evidence.safeTelemetryRef, "npm run ops:safe-telemetry-check");
 assert.equal(evidence.rateLimitRef, "npm run ops:rate-limit-check");
 assert.equal(evidence.observabilitySinkRef, "npm run mainnet:observability-sink-check");
 assert.equal(evidence.observabilityProvider, "provider-neutral-skipped-by-operator");
+assert.equal(evidence.providerBackedLogSinkAvailable, false);
+assert.equal(evidence.metricsDashboardsAvailable, false);
+assert.equal(evidence.alertsConfigured, false);
+assert.equal(evidence.retentionPolicyConfigured, false);
+assert.equal(evidence.incidentWorkflowReady, false);
 assert.equal(evidence.operatorEventSinkKind, "noop-operator-event-sink");
 assert.equal(evidence.operatorEventSinkProductionReady, false);
 assert.equal(evidence.operatorEventSinkSource, "src/ops/vantaOperatorEventSink.mjs");
@@ -65,6 +70,10 @@ assert.ok(
 assert.ok(
   evidence.deploymentTruth.includes("Postgres-backed rate-limit implementation"),
   "Abuse/observability evidence must record the durable rate-limit path.",
+);
+assert.ok(
+  evidence.deploymentTruth.includes("provider-backed log sink, dashboards, alerts, retention, and incident workflow evidence are all still pending"),
+  "Abuse/observability evidence must preserve the explicit pending-ops-controls truth.",
 );
 
 const serialized = JSON.stringify(evidence);

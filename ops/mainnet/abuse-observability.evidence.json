@@ -10,6 +10,11 @@
   "rateLimitRef": "npm run ops:rate-limit-check",
   "observabilitySinkRef": "npm run mainnet:observability-sink-check",
   "observabilityProvider": "provider-neutral-skipped-by-operator",
+  "providerBackedLogSinkAvailable": false,
+  "metricsDashboardsAvailable": false,
+  "alertsConfigured": false,
+  "retentionPolicyConfigured": false,
+  "incidentWorkflowReady": false,
   "operatorEventSinkKind": "noop-operator-event-sink",
   "operatorEventSinkProductionReady": false,
   "operatorEventSinkSource": "src/ops/vantaOperatorEventSink.mjs",
@@ -52,6 +57,6 @@
     }
   ],
   "safety": "No provider API keys, webhook URLs, source tokens, bearer values, wallet keys, signed transaction material, or database URLs are stored in this evidence file.",
-  "deploymentTruth": "This evidence proves the current provider-neutral observability contract, safe telemetry source, narrow Pay audit-event sink boundary, the available Postgres-backed rate-limit implementation, and authenticated deployed Private Pool v2 operator audit-sink/rate-limit/storage truth. The deployed operator now reports the preferred Postgres durable shared-window rate limiter, but production observability remains explicitly incomplete while provider-backed log sink, dashboards, alerts, retention, and incident workflow evidence are still pending.",
-  "nextOperatorAction": "Keep the abuse/observability status, authenticated deployed runtime status, and evidence commands fresh while provider-backed log sink, dashboards, alerts, retention, and incident workflow evidence remain pending."
+  "deploymentTruth": "This evidence proves the current provider-neutral observability contract, safe telemetry source, narrow Pay audit-event sink boundary, the available Postgres-backed rate-limit implementation, and authenticated deployed Private Pool v2 operator audit-sink/rate-limit/storage truth. The deployed operator now reports the preferred Postgres durable shared-window rate limiter, but production observability remains explicitly incomplete because provider-backed log sink, dashboards, alerts, retention, and incident workflow evidence are all still pending.",
+  "nextOperatorAction": "Keep the abuse/observability status, authenticated deployed runtime status, and evidence commands fresh while provider-backed log sink, dashboards, alerts, retention, and incident workflow evidence all remain pending."
 }
