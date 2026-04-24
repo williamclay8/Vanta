@@ -912,7 +912,15 @@ export function createVantaPayRuntime({
       return sessions.get(id) ?? null;
     },
     getMerchant() {
-      return merchant;
+      return {
+        acceptedAssets: [...merchant.acceptedAssets],
+        branding: { ...merchant.branding },
+        callbackUrls: { ...merchant.callbackUrls },
+        environmentMode: merchant.environmentMode,
+        id: merchant.id,
+        object: merchant.object,
+        payoutSettings: { ...merchant.payoutSettings },
+      } satisfies VantaPayMerchant;
     },
     getMerchantApiStatus() {
       return {

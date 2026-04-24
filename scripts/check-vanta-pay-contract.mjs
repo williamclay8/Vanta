@@ -183,6 +183,11 @@ for (const file of requiredFiles) {
   }
 }
 
+const payTypesSource = readFileSync(resolve(repoRoot, "src/pay/vantaPayTypes.ts"), "utf8");
+if (!payTypesSource.includes("export type VantaPayMerchantControlPlane =")) {
+  failures.push("Missing VantaPayMerchantControlPlane type declaration in src/pay/vantaPayTypes.ts");
+}
+
 const packageJson = JSON.parse(readFileSync(resolve(repoRoot, "package.json"), "utf8"));
 if (packageJson.scripts?.["pay:contract-check"] !== "node scripts/check-vanta-pay-contract.mjs") {
   failures.push("Missing package script pay:contract-check");
