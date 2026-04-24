@@ -32,6 +32,18 @@ if (jsonMode) {
   console.log(
     `  - finalProtocolLayerImplemented: ${String(snapshot.nullifierReplay.protocolEnforcementFinalLayerImplemented)}`,
   );
+  console.log("- wallet signing:");
+  console.log(`  - cluster: ${snapshot.walletSigning.browserVerificationCluster}`);
+  console.log(`  - mode: ${snapshot.walletSigning.browserVerificationMode}`);
+  console.log(`  - browserVerifiedPages: ${snapshot.walletSigning.browserVerifiedProtocolPages.join(", ")}`);
+  console.log(
+    `  - protocolPagesWithSafeSendAdoption: ${snapshot.walletSigning.protocolPagesWithSafeSendAdoption.join(", ")}`,
+  );
+  console.log(`  - messageIntentPages: ${snapshot.walletSigning.messageIntentPages.join(", ")}`);
+  console.log(`  - umbraAdapterGateStatus: ${snapshot.walletSigning.umbraAdapterGateStatus}`);
+  console.log(
+    `  - liveMainnetSubmissionEnabled: ${String(snapshot.walletSigning.liveMainnetSubmissionEnabled)}`,
+  );
   console.log("- lanes:");
   for (const [lane, state] of Object.entries(snapshot.lanes)) {
     console.log(`  - ${lane}: ${state.status} (${state.readiness}/100)`);

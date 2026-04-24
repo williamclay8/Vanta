@@ -37,6 +37,27 @@ assert.equal(snapshot.realFundsApproval.approvalRecordStatus, "approved");
 assert.equal(snapshot.realFundsApproval.liveMainnetActionsAllowedNow, false);
 assert.equal(snapshot.realFundsApproval.approvalWindowStatus, "expired");
 assert.ok(snapshot.realFundsApproval.requiredNextStep.includes("Record a new bounded approval window"));
+assert.equal(snapshot.walletSigning.checkedEvidenceRef, "ops/mainnet/wallet-signing-safety.evidence.json");
+assert.equal(snapshot.walletSigning.mainnetReady, false);
+assert.equal(snapshot.walletSigning.productionReady, false);
+assert.equal(snapshot.walletSigning.liveMainnetSubmissionEnabled, false);
+assert.equal(snapshot.walletSigning.browserVerificationCluster, "devnet-or-localnet");
+assert.equal(snapshot.walletSigning.browserVerificationMode, "local-dev-server-gsd-browser");
+assert.deepEqual(snapshot.walletSigning.browserVerifiedProtocolPages, ["Shield", "Send", "Swap", "Unshield"]);
+assert.deepEqual(snapshot.walletSigning.protocolPagesWithSafeSendAdoption, ["Shield", "Send", "Swap", "Unshield"]);
+assert.deepEqual(snapshot.walletSigning.messageIntentPages, ["Swap", "Unshield"]);
+assert.equal(snapshot.walletSigning.requiresExplicitHumanApproval, true);
+assert.equal(snapshot.walletSigning.requiresSimulationBeforeSignature, true);
+assert.equal(snapshot.walletSigning.requiresTransactionSummaryBeforeSignature, true);
+assert.equal(snapshot.walletSigning.umbraAdapterGateStatus, "wallet-adapter-summary-bound");
+assert.equal(snapshot.walletSigning.umbraAdapterSummaryBindingRequired, true);
+assert.equal(snapshot.walletSigning.statusRef, "npm run mainnet:wallet-signing-status-check");
+assert.equal(snapshot.walletSigning.signingSafetyPolicyRef, "npm run wallet:signing-safety-check");
+assert.equal(snapshot.walletSigning.liveSendInventoryRef, "npm run wallet:live-send-inventory-check");
+assert.ok(
+  snapshot.walletSigning.deploymentTruth.includes("must still not be presented as a production browser-signing readiness claim"),
+);
+assert.ok(snapshot.walletSigning.nextOperatorAction.includes("wallet-signing status"));
 assert.ok(snapshot.score >= 0 && snapshot.score <= 100, "Readiness score must be a percentage.");
 assert.ok(snapshot.blockers.length >= 6, "Mainnet readiness must enumerate concrete blockers.");
 assert.ok(
