@@ -26,7 +26,7 @@ const blockers = [
   {
     id: "wallet-backed-browser-signing-safety",
     severity: "critical",
-    summary: "Keep the wallet-signing status/evidence surface fresh while Shield, Send, Swap, and Unshield remain frozen behind safe-send or typed message-intent boundaries, local browser proof stays green, deployed production browser-backed verification remains pending, and live mainnet submission stays explicitly blocked.",
+    summary: "Keep the wallet-signing status/evidence surface fresh while Shield, Send, Swap, and Unshield remain frozen behind safe-send or typed message-intent boundaries, local browser proof stays green, the deployed production app still has no recorded browser-backed verification for Shield, Send, Swap, or Unshield, and live mainnet submission stays explicitly blocked.",
   },
   {
     id: "abuse-rate-limit-observability",
@@ -190,7 +190,7 @@ const nextActions = [
   "Keep operator-skipped controls visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
   "Keep the abuse/observability status/evidence surface fresh while provider-backed log sink, dashboards, alerts, retention, and incident workflow controls remain explicitly pending.",
   "Keep the deployed operator replay-status evidence, the Postgres-backed nullifier replay guard, role-service replay verification, and production smoke replay simulation fresh while no-real-funds smoke remains the only live settlement proof, audited shared-anonymity-set evidence remains unavailable, and live mainnet private settlement stays unavailable.",
-  "Keep the wallet-signing status/evidence surface, four-page local browser verification, and live-send inventory commands fresh while deployed production browser-backed signing evidence remains pending and live mainnet submission stays explicitly blocked.",
+  "Keep the wallet-signing status/evidence surface, four-page local browser verification, and live-send inventory commands fresh while the deployed production app still has no recorded browser-backed verification for Shield, Send, Swap, or Unshield and live mainnet submission stays explicitly blocked.",
 ];
 
 export function createVantaMainnetReadinessSnapshot() {

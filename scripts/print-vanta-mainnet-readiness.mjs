@@ -73,6 +73,15 @@ if (jsonMode) {
   console.log(`  - browserVerifiedPages: ${snapshot.walletSigning.browserVerifiedProtocolPages.join(", ")}`);
   console.log(`  - localBrowserVerificationOnly: ${String(snapshot.walletSigning.localBrowserVerificationOnly)}`);
   console.log(
+    `  - productionBrowserVerificationRequiredPages: ${snapshot.walletSigning.productionBrowserVerificationRequiredPages.join(", ")}`,
+  );
+  console.log(
+    `  - productionBrowserVerifiedPages: ${snapshot.walletSigning.productionBrowserVerifiedPages.join(", ") || "none"}`,
+  );
+  console.log(
+    `  - productionBrowserVerificationCoversRequiredPages: ${String(snapshot.walletSigning.productionBrowserVerificationCoversRequiredPages)}`,
+  );
+  console.log(
     `  - productionBrowserVerificationAvailable: ${String(snapshot.walletSigning.productionBrowserVerificationAvailable)}`,
   );
   console.log(`  - productionBrowserVerificationStatus: ${snapshot.walletSigning.productionBrowserVerificationStatus}`);

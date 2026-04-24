@@ -17,6 +17,9 @@ assert.equal(evidence.productionReady, false);
 assert.equal(evidence.lastStatusRef, "npm run mainnet:wallet-signing-status-check");
 assert.equal(evidence.browserVerificationRef, "npm run wallet:browser-signing-safety-check");
 assert.equal(evidence.localBrowserVerificationOnly, true);
+assert.deepEqual(evidence.productionBrowserVerificationRequiredPages, ["Shield", "Send", "Swap", "Unshield"]);
+assert.deepEqual(evidence.productionBrowserVerifiedPages, []);
+assert.equal(evidence.productionBrowserVerificationCoversRequiredPages, false);
 assert.equal(evidence.productionBrowserVerificationAvailable, false);
 assert.equal(evidence.productionBrowserVerificationStatus, "pending");
 assert.equal(evidence.signingSafetyPolicyRef, "npm run wallet:signing-safety-check");
@@ -46,8 +49,12 @@ assert.ok(
   "Wallet-signing evidence must preserve the explicit mainnet-submission block truth.",
 );
 assert.ok(
-  evidence.deploymentTruth.includes("deployed production browser-backed verification exists"),
-  "Wallet-signing evidence must preserve the missing deployed browser-proof truth.",
+  evidence.deploymentTruth.includes("browser-backed verification recorded for Shield, Send, Swap, and Unshield"),
+  "Wallet-signing evidence must preserve the exact missing deployed browser-proof scope.",
+);
+assert.ok(
+  evidence.nextOperatorAction.includes("missing for Shield, Send, Swap, and Unshield"),
+  "Wallet-signing evidence must preserve the exact pending production page set.",
 );
 
 const serialized = JSON.stringify(evidence);

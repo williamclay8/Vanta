@@ -77,6 +77,9 @@ assert.equal(snapshot.walletSigning.mainnetReady, false);
 assert.equal(snapshot.walletSigning.productionReady, false);
 assert.equal(snapshot.walletSigning.liveMainnetSubmissionEnabled, false);
 assert.equal(snapshot.walletSigning.localBrowserVerificationOnly, true);
+assert.deepEqual(snapshot.walletSigning.productionBrowserVerificationRequiredPages, ["Shield", "Send", "Swap", "Unshield"]);
+assert.deepEqual(snapshot.walletSigning.productionBrowserVerifiedPages, []);
+assert.equal(snapshot.walletSigning.productionBrowserVerificationCoversRequiredPages, false);
 assert.equal(snapshot.walletSigning.productionBrowserVerificationAvailable, false);
 assert.equal(snapshot.walletSigning.productionBrowserVerificationStatus, "pending");
 assert.equal(snapshot.walletSigning.mainnetSubmissionExplicitlyBlocked, true);
@@ -96,8 +99,14 @@ assert.equal(snapshot.walletSigning.liveSendInventoryRef, "npm run wallet:live-s
 assert.ok(
   snapshot.walletSigning.deploymentTruth.includes("must still not be presented as a production browser-signing readiness claim"),
 );
+assert.ok(
+  snapshot.walletSigning.deploymentTruth.includes(
+    "browser-backed verification recorded for Shield, Send, Swap, and Unshield",
+  ),
+);
 assert.ok(snapshot.walletSigning.deploymentTruth.includes("live mainnet submission remains explicitly blocked"));
 assert.ok(snapshot.walletSigning.nextOperatorAction.includes("wallet-signing status"));
+assert.ok(snapshot.walletSigning.nextOperatorAction.includes("missing for Shield, Send, Swap, and Unshield"));
 assert.equal(
   snapshot.privatePoolV2ProductionSmoke.checkedEvidenceRef,
   "ops/mainnet/private-pool-v2-production-smoke.evidence.json",

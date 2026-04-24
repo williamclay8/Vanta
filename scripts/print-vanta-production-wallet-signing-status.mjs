@@ -46,7 +46,10 @@ function buildStatus() {
     policyVersion: policy.version,
     productionReady: false,
     productionBrowserVerificationAvailable: false,
+    productionBrowserVerificationCoversRequiredPages: false,
+    productionBrowserVerificationRequiredPages: ["Shield", "Send", "Swap", "Unshield"],
     productionBrowserVerificationStatus: "pending",
+    productionBrowserVerifiedPages: [],
     protocolPagesCovered: protocolPages.map((surface) => surface.page),
     protocolPagesWithSafeSendAdoption: adoptedProtocolPages.map((surface) => surface.page),
     replacementRequired: inventory.replacementRequired,
@@ -83,6 +86,21 @@ if (checkMode) {
     "Browser verification mode must remain local-dev-server-gsd-browser.",
   );
   assert.equal(result.localBrowserVerificationOnly, true, "Browser verification must remain local-only.");
+  assert.deepEqual(
+    result.productionBrowserVerificationRequiredPages,
+    ["Shield", "Send", "Swap", "Unshield"],
+    "Production browser verification must keep the required protocol page set explicit.",
+  );
+  assert.deepEqual(
+    result.productionBrowserVerifiedPages,
+    [],
+    "Production browser verification must remain unrecorded for the deployed app.",
+  );
+  assert.equal(
+    result.productionBrowserVerificationCoversRequiredPages,
+    false,
+    "Production browser verification must not claim full required-page coverage yet.",
+  );
   assert.equal(
     result.productionBrowserVerificationAvailable,
     false,
@@ -147,6 +165,13 @@ if (jsonMode || checkMode) {
   console.log(`- protocolPagesWithSafeSendAdoption: ${result.protocolPagesWithSafeSendAdoption.join(", ")}`);
   console.log(`- browserVerifiedProtocolPages: ${result.browserVerifiedProtocolPages.join(", ")}`);
   console.log(`- localBrowserVerificationOnly: ${String(result.localBrowserVerificationOnly)}`);
+  console.log(
+    `- productionBrowserVerificationRequiredPages: ${result.productionBrowserVerificationRequiredPages.join(", ")}`,
+  );
+  console.log(`- productionBrowserVerifiedPages: ${result.productionBrowserVerifiedPages.join(", ") || "none"}`);
+  console.log(
+    `- productionBrowserVerificationCoversRequiredPages: ${String(result.productionBrowserVerificationCoversRequiredPages)}`,
+  );
   console.log(
     `- productionBrowserVerificationAvailable: ${String(result.productionBrowserVerificationAvailable)}`,
   );

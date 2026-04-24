@@ -221,7 +221,7 @@ Production deployment truth:
   - the deployed operator exposes durable Postgres-backed replay reservation
   - the verified role-service network rejects duplicate verifier receipts and conflicting nullifier registration
   - real private mainnet settlement is still not complete
-  - the deployed operator still reports an in-memory per-process rate limiter instead of the preferred Postgres durable shared-window limiter
+  - the deployed operator now reports the preferred Postgres durable shared-window rate limiter
   - `mainnetReady` and `productionReady` remain `false`
 
 The repo now includes an early **Vanta Strategy** verification lane:
