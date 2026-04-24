@@ -36,7 +36,7 @@ const blockerDefinitions = [
     id: "abuse-rate-limit-observability",
     severity: "high",
     buildSummary:
-      "Keep the abuse/observability status/evidence surface fresh while the checked pending controls remain render-native-log-sink, metrics-dashboards, alert-policies, retention-policy, and incident-workflow.",
+      "Keep the abuse/observability status/evidence surface fresh while Pay and Private Pool v2 are the next services ready for Render-native observability wiring, while Strategy and operator control plane still lack production service refs, and while the checked pending controls remain render-native-log-sink, metrics-dashboards, alert-policies, retention-policy, and incident-workflow.",
   },
   {
     id: "no-mainnet-funds-without-explicit-approval",

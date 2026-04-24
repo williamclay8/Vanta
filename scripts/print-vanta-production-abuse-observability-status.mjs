@@ -30,6 +30,8 @@ function buildStatus() {
     retentionPolicyConfigured: controls.retentionPolicyConfigured,
     incidentWorkflowReady: controls.incidentWorkflowReady,
     pendingObservabilityControls: controls.pendingObservabilityControls,
+    servicesMissingProductionServiceRef: controls.servicesMissingProductionServiceRef,
+    servicesReadyForRenderObservabilityWiring: controls.servicesReadyForRenderObservabilityWiring,
     operatorEventSinkKind: eventSink.kind,
     operatorEventSinkProductionReady: eventSink.productionReady,
     operatorEventSinkSource: contract.operatorEventSinkModulePath,
@@ -44,6 +46,7 @@ function buildStatus() {
       "No provider API keys, webhook URLs, source tokens, bearer values, wallet keys, signed transaction material, or database URLs are printed.",
     services: template.services.map((service) => ({
       blockedUntil: service.blockedUntil,
+      configuredControlIds: controls.serviceStatuses.find((candidate) => candidate.service === service.service)?.configuredControlIds ?? [],
       controls: controls.controls.services.find((candidate) => candidate.service === service.service)?.controls ?? {},
       hasMetricsDashboardRef: Boolean(service.metricsDashboardRef),
       hasAlertPolicyRef: Boolean(service.alertPolicyRef),
@@ -51,6 +54,8 @@ function buildStatus() {
       hasLogSourceRef: Boolean(service.logSourceRef),
       hasRetentionPolicyRef: Boolean(service.retentionPolicyRef),
       operatorDecision: service.operatorDecision,
+      pendingControlIds: controls.serviceStatuses.find((candidate) => candidate.service === service.service)?.pendingControlIds ?? [],
+      productionServiceRefPending: controls.serviceStatuses.find((candidate) => candidate.service === service.service)?.productionServiceRefPending ?? false,
       renderServiceRef: service.renderServiceRef,
       safeTelemetryRequired: service.safeTelemetryRequired,
       service: service.service,
@@ -81,6 +86,8 @@ if (checkMode) {
   assert.equal(result.retentionPolicyConfigured, controls.retentionPolicyConfigured);
   assert.equal(result.incidentWorkflowReady, controls.incidentWorkflowReady);
   assert.deepEqual(result.pendingObservabilityControls, controls.pendingObservabilityControls);
+  assert.deepEqual(result.servicesMissingProductionServiceRef, controls.servicesMissingProductionServiceRef);
+  assert.deepEqual(result.servicesReadyForRenderObservabilityWiring, controls.servicesReadyForRenderObservabilityWiring);
   assert.equal(result.checkedControlsRef, "ops/mainnet/production-observability.controls.json");
   assert.deepEqual(result.rateLimiterAvailableKinds, ["in-memory-rate-limiter", "postgres-rate-limiter"]);
   assert.equal(result.rateLimiterKind, "in-memory-rate-limiter");
@@ -95,8 +102,13 @@ if (checkMode) {
   assert.equal(result.services.length, controls.controls.services.length);
   for (const service of result.services) {
     const expectedControls = controls.controls.services.find((candidate) => candidate.service === service.service)?.controls;
+    const expectedServiceStatus = controls.serviceStatuses.find((candidate) => candidate.service === service.service);
     assert.ok(expectedControls, `${service.service} must map to a controls entry.`);
+    assert.ok(expectedServiceStatus, `${service.service} must map to a derived service status.`);
     assert.deepEqual(service.controls, expectedControls);
+    assert.deepEqual(service.configuredControlIds, expectedServiceStatus.configuredControlIds);
+    assert.deepEqual(service.pendingControlIds, expectedServiceStatus.pendingControlIds);
+    assert.equal(service.productionServiceRefPending, expectedServiceStatus.productionServiceRefPending);
   }
   for (const surface of result.surfaceStatuses) {
     if (surface.id === "pay" || surface.id === "privatePoolV2") {
@@ -126,6 +138,8 @@ if (jsonMode || checkMode) {
   console.log(`- retentionPolicyConfigured: ${String(result.retentionPolicyConfigured)}`);
   console.log(`- incidentWorkflowReady: ${String(result.incidentWorkflowReady)}`);
   console.log(`- pendingObservabilityControls: ${result.pendingObservabilityControls.join(", ")}`);
+  console.log(`- servicesMissingProductionServiceRef: ${result.servicesMissingProductionServiceRef.join(", ") || "none"}`);
+  console.log(`- servicesReadyForRenderObservabilityWiring: ${result.servicesReadyForRenderObservabilityWiring.join(", ") || "none"}`);
   console.log(`- operatorEventSinkKind: ${result.operatorEventSinkKind}`);
   console.log(`- rateLimiterAvailableKinds: ${result.rateLimiterAvailableKinds.join(", ")}`);
   console.log(`- preferredProductionRateLimiterKind: ${result.preferredProductionRateLimiterKind}`);

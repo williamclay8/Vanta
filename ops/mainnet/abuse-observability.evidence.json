@@ -23,6 +23,14 @@
     "retention-policy",
     "incident-workflow"
   ],
+  "servicesMissingProductionServiceRef": [
+    "vanta-strategy",
+    "vanta-operator-control-plane"
+  ],
+  "servicesReadyForRenderObservabilityWiring": [
+    "vanta-pay",
+    "vanta-private-pool-v2"
+  ],
   "operatorEventSinkKind": "noop-operator-event-sink",
   "operatorEventSinkProductionReady": false,
   "operatorEventSinkSource": "src/ops/vantaOperatorEventSink.mjs",
@@ -65,6 +73,6 @@
     }
   ],
   "safety": "No provider API keys, webhook URLs, source tokens, bearer values, wallet keys, signed transaction material, or database URLs are stored in this evidence file.",
-  "deploymentTruth": "This evidence proves the current Render-native observability contract, safe telemetry source, narrow Pay audit-event sink boundary, the available Postgres-backed rate-limit implementation, and authenticated deployed Private Pool v2 operator audit-sink/rate-limit/storage truth. The deployed operator now reports the preferred Postgres durable shared-window rate limiter, but production observability remains explicitly incomplete because Render-native log sink, dashboards, alerts, retention, and incident workflow evidence are all still pending.",
-  "nextOperatorAction": "Keep the abuse/observability status, authenticated deployed runtime status, and evidence commands fresh while Render-native log sink, dashboards, alerts, retention, and incident workflow evidence all remain pending."
+  "deploymentTruth": "This evidence proves the current Render-native observability contract, safe telemetry source, narrow Pay audit-event sink boundary, the available Postgres-backed rate-limit implementation, and authenticated deployed Private Pool v2 operator audit-sink/rate-limit/storage truth. The deployed operator now reports the preferred Postgres durable shared-window rate limiter. Pay and Private Pool v2 already have production Render service refs and can be wired into Render-native logs, dashboards, alerts, retention, and incident workflow next; Strategy and operator control plane still lack production service refs. Production observability remains explicitly incomplete while those per-service controls are still pending.",
+  "nextOperatorAction": "Keep the abuse/observability status, authenticated deployed runtime status, and evidence commands fresh; wire Render-native log sink, dashboards, alerts, retention, and incident workflow first for vanta-pay and vanta-private-pool-v2, then record production service refs before attempting the same for vanta-strategy and vanta-operator-control-plane."
 }

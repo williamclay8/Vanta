@@ -71,6 +71,14 @@ assert.equal(evidence.alertsConfigured, everyServiceHas("alertPolicy"));
 assert.equal(evidence.retentionPolicyConfigured, everyServiceHas("retentionPolicy"));
 assert.equal(evidence.incidentWorkflowReady, everyServiceHas("incidentWorkflow"));
 assert.deepEqual(evidence.pendingObservabilityControls, derivedPendingObservabilityControls);
+assert.deepEqual(evidence.servicesMissingProductionServiceRef, [
+  "vanta-strategy",
+  "vanta-operator-control-plane",
+]);
+assert.deepEqual(evidence.servicesReadyForRenderObservabilityWiring, [
+  "vanta-pay",
+  "vanta-private-pool-v2",
+]);
 assert.equal(evidence.operatorEventSinkKind, "noop-operator-event-sink");
 assert.equal(evidence.operatorEventSinkProductionReady, false);
 assert.equal(evidence.operatorEventSinkSource, "src/ops/vantaOperatorEventSink.mjs");
@@ -113,8 +121,24 @@ assert.ok(
   "Abuse/observability evidence must record the durable rate-limit path.",
 );
 assert.ok(
-  evidence.deploymentTruth.includes("Render-native log sink, dashboards, alerts, retention, and incident workflow evidence are all still pending"),
-  "Abuse/observability evidence must preserve the explicit pending-ops-controls truth.",
+  evidence.deploymentTruth.includes("Pay and Private Pool v2 already have production Render service refs"),
+  "Abuse/observability evidence must preserve which services are ready for Render-native observability wiring now.",
+);
+assert.ok(
+  evidence.deploymentTruth.includes("Strategy and operator control plane still lack production service refs"),
+  "Abuse/observability evidence must preserve which services still lack production service refs.",
+);
+assert.ok(
+  evidence.deploymentTruth.includes("per-service controls are still pending"),
+  "Abuse/observability evidence must preserve the explicit per-service pending-ops-controls truth.",
+);
+assert.ok(
+  evidence.nextOperatorAction.includes("first for vanta-pay and vanta-private-pool-v2"),
+  "Abuse/observability evidence must preserve the per-service wiring order.",
+);
+assert.ok(
+  evidence.nextOperatorAction.includes("vanta-strategy and vanta-operator-control-plane"),
+  "Abuse/observability evidence must preserve the missing-service follow-up order.",
 );
 
 const serialized = JSON.stringify(evidence);
