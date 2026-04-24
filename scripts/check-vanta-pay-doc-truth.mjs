@@ -7,7 +7,9 @@ const docChecks = [
   {
     path: "docs/pay-merchant-trust-surface.md",
     required: [
-      "Current truth: `/app/pay` is a merchant preview, not a finished production",
+      "Current truth: `/app/pay` is a test-mode merchant checkout cockpit, not a finished production payments network.",
+      "show receipt-backed test payment records when the local/operator harness confirms a private rail receipt",
+      "Production privacy claims are not enabled yet. Test-mode completion is not the same as live mainnet private payment readiness.",
       "`Payment details`, `What are you collecting for?`, `Amount`, `Asset`, `Customer email`, and `Review payment`",
       "subscriptions, refunds, withdrawals, reconciliation, developer controls",
       "keys, and signed webhooks",

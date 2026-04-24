@@ -5,12 +5,9 @@ Vanta Pay is the merchant side of Vanta.
 The simple version: merchants and customers should not need to understand the
 privacy system before they can understand a payment.
 
-Current truth: `/app/pay` is a merchant preview, not a finished production
-payments network. It shows the work a business would expect around a payment:
-create and review a request, preview checkout, inspect records, understand
-refunds and withdrawals, and see the limits before anything sounds live.
+Current truth: `/app/pay` is a test-mode merchant checkout cockpit, not a finished production payments network. It should create and review checkout sessions, show receipt-backed test payment records when the local/operator harness confirms a private rail receipt, and keep production limits visible before anything sounds live.
 
-Production privacy claims are not enabled yet. The backend can require private rail receipts before payment completion, but that is not the same as live mainnet private payment readiness.
+Production privacy claims are not enabled yet. Test-mode completion is not the same as live mainnet private payment readiness.
 
 ## What stays private
 
