@@ -157,6 +157,18 @@ if (!pageSource.includes("strategyPricing.feeLabel") || !pageSource.includes("st
   failures.push("Strategy page must render the shared pricing fee and pass-through labels.");
 }
 
+if (!pageSource.includes('className="send-page strategy-page"')) {
+  failures.push("Strategy page must use the shared action-tab page shell classes.");
+}
+
+if (!pageSource.includes('className="module-page__hero send-page__hero strategy-header product-intro"')) {
+  failures.push("Strategy page hero must use the shared action-tab hero classes.");
+}
+
+if (!pageSource.includes('className="send-card send-card--workspace strategy-card strategy-card--primary"')) {
+  failures.push("Strategy page primary panel must use the shared action-tab workspace card classes.");
+}
+
 if (
   !stylesSource.includes(".app-shell:has(.strategy-page)") ||
   !stylesSource.includes(".app-content:has(.strategy-page)") ||
@@ -165,8 +177,12 @@ if (
   failures.push("Strategy page must participate in the shared app shell layout selectors.");
 }
 
-if (stylesSource.includes(".strategy-page {\n  padding: 22px 0 44px;\n}")) {
-  failures.push("Strategy page must not keep the bespoke standalone page padding contract.");
+if (!stylesSource.includes(".strategy-page {\n  padding: 12px 0 44px;\n}")) {
+  failures.push("Strategy page must share the action-tab top padding contract.");
+}
+
+if (!stylesSource.includes(".strategy-shell {\n  display: grid;\n  gap: 0;\n}")) {
+  failures.push("Strategy shell must not add an extra bespoke gap above the action-tab workspace.");
 }
 
 for (const text of bannedStrategyCopy) {

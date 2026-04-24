@@ -277,9 +277,9 @@ export function StrategyPage() {
   }, [form]);
 
   return (
-    <section className="strategy-page" aria-labelledby="strategy-title">
+    <section className="send-page strategy-page" aria-labelledby="strategy-title">
       <div className="strategy-shell">
-        <header className="strategy-header product-intro">
+        <header className="module-page__hero send-page__hero strategy-header product-intro">
           <div className="strategy-header__copy">
             <span className="strategy-kicker product-intro__eyebrow">Plan trades</span>
             <h1 id="strategy-title">Strategy</h1>
@@ -289,7 +289,7 @@ export function StrategyPage() {
 
         <div className="strategy-main">
           <form
-            className="strategy-card strategy-card--primary"
+            className="send-card send-card--workspace strategy-card strategy-card--primary"
             onSubmit={(event) => {
               event.preventDefault();
 

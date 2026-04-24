@@ -3750,12 +3750,12 @@ input {
 }
 
 .strategy-page {
-  padding: 0 0 44px;
+  padding: 12px 0 44px;
 }
 
 .strategy-shell {
   display: grid;
-  gap: 10px;
+  gap: 0;
 }
 
 .strategy-header:not(.product-intro),
@@ -3763,13 +3763,15 @@ input {
 .strategy-metric {
   border: 1px solid rgba(0, 229, 200, 0.11);
   background:
-    linear-gradient(180deg, rgba(0, 229, 200, 0.08), rgba(0, 229, 200, 0) 56px),
-    rgba(5, 8, 15, 0.96);
-  -webkit-backdrop-filter: blur(22px);
-  backdrop-filter: blur(22px);
+    linear-gradient(180deg, rgba(8, 13, 20, 0.84), rgba(5, 8, 15, 0.76)),
+    rgba(0, 0, 0, 0.18);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
   box-shadow:
     0 0 0 1px rgba(0, 229, 200, 0.02),
     0 24px 80px rgba(0, 0, 0, 0.28);
+  position: relative;
+  overflow: hidden;
 }
 
 .strategy-header:not(.product-intro) {
@@ -3782,6 +3784,8 @@ input {
   display: grid;
   gap: 10px;
   max-width: 720px;
+  justify-items: center;
+  text-align: center;
 }
 
 .strategy-header h1,
@@ -3847,14 +3851,13 @@ input {
 .strategy-main {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 10px;
   align-items: start;
 }
 
 .strategy-card {
   display: grid;
   gap: 12px;
-  padding: 16px;
+  padding: 18px;
   border-radius: 18px;
 }
 
@@ -3875,6 +3878,8 @@ input {
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
+  margin-bottom: 0;
+  min-height: 24px;
 }
 
 .strategy-mode-toggle {
@@ -4147,6 +4152,12 @@ input {
 
 .strategy-card--secondary {
   opacity: 0.88;
+}
+
+.strategy-page .strategy-card--secondary {
+  background:
+    linear-gradient(180deg, rgba(8, 13, 20, 0.84), rgba(5, 8, 15, 0.76)),
+    rgba(0, 0, 0, 0.18);
 }
 
 .strategy-table-wrap {
