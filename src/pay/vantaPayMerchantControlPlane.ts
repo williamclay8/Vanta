@@ -4,6 +4,7 @@ import type {
   VantaPayBalances,
   VantaPayMerchant,
   VantaPayMerchantControlPlane,
+  VantaPayMerchantControlPlaneRuntimeState,
   VantaPayReceipt,
   VantaPayRefund,
   VantaPayWithdrawal,
@@ -16,26 +17,6 @@ type VantaPayMerchantControlPlaneRuntimeSource = {
   listReceipts(): readonly VantaPayReceipt[];
   listRefunds(): readonly VantaPayRefund[];
   listWithdrawals(): readonly VantaPayWithdrawal[];
-};
-
-type VantaPayMerchantControlPlaneRuntimeState = {
-  approvalPhase: VantaPayMerchantControlPlane["approvalPhase"];
-  payoutQueue: {
-    nextWindow: {
-      cadence: "daily";
-      label: string;
-      targetTimeUtc: string;
-      timezone: "UTC";
-    };
-  };
-  reconciliation: {
-    exportWindow: {
-      date: string;
-      endUtc: string;
-      startUtc: string;
-      timezone: "UTC";
-    };
-  };
 };
 
 type VantaPayMerchantControlPlaneSnapshot = {
@@ -76,11 +57,15 @@ function cloneWithdrawals(withdrawals: readonly VantaPayWithdrawal[]) {
   return withdrawals.map((withdrawal) => ({ ...withdrawal }));
 }
 
-function formatNextWindow(nextWindow: VantaPayMerchantControlPlaneRuntimeState["payoutQueue"]["nextWindow"]) {
+export function formatVantaPayMerchantControlPlaneNextWindow(
+  nextWindow: VantaPayMerchantControlPlaneRuntimeState["payoutQueue"]["nextWindow"],
+) {
   return `${nextWindow.label} · ${nextWindow.targetTimeUtc} UTC`;
 }
 
-function formatExportWindow(exportWindow: VantaPayMerchantControlPlaneRuntimeState["reconciliation"]["exportWindow"]) {
+export function formatVantaPayMerchantControlPlaneExportWindow(
+  exportWindow: VantaPayMerchantControlPlaneRuntimeState["reconciliation"]["exportWindow"],
+) {
   return `${exportWindow.date} · ${exportWindow.startUtc}-${exportWindow.endUtc} UTC`;
 }
 
@@ -130,11 +115,13 @@ export function createVantaPayMerchantControlPlaneFromRuntime(
     withdrawals,
     payoutQueue: {
       destination: merchant.payoutSettings.destination,
-      nextWindow: formatNextWindow(controlPlaneState.payoutQueue.nextWindow),
+      nextWindow: formatVantaPayMerchantControlPlaneNextWindow(controlPlaneState.payoutQueue.nextWindow),
       state: "merchant-visible",
     },
     reconciliation: {
-      exportWindow: formatExportWindow(controlPlaneState.reconciliation.exportWindow),
+      exportWindow: formatVantaPayMerchantControlPlaneExportWindow(
+        controlPlaneState.reconciliation.exportWindow,
+      ),
       recordsLabel: `${receipts.length} receipt records`,
       state: "merchant-visible",
     },

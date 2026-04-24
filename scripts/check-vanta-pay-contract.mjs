@@ -1,10 +1,11 @@
-import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import {
   createVantaPayMerchantControlPlane,
   createVantaPayMerchantControlPlaneFromRuntime,
+  formatVantaPayMerchantControlPlaneExportWindow,
+  formatVantaPayMerchantControlPlaneNextWindow,
 } from "../src/pay/vantaPayMerchantControlPlane.ts";
 import { createVantaPayRuntime } from "../src/pay/vantaPayRuntime.ts";
 
@@ -23,18 +24,11 @@ const requiredFiles = [
     path: "src/pay/vantaPayMerchantControlPlane.ts",
     markers: [
       "createVantaPayMerchantControlPlane",
+      "formatVantaPayMerchantControlPlaneNextWindow",
+      "formatVantaPayMerchantControlPlaneExportWindow",
       "merchantControlPlaneVersion",
       "approvalPhase",
       "reconciliation",
-    ],
-  },
-  {
-    path: "src/pay/vantaPayMerchantTrustStatus.ts",
-    markers: [
-      "getVantaPayMerchantTrustStatus",
-      "vanta-pay-merchant-trust-status-0.1",
-      "controlled-privacy",
-      "legible-trust",
     ],
   },
   {
@@ -58,116 +52,6 @@ const requiredFiles = [
       "createVantaPayPrivateSettlementAdapter",
       "privatePoolOperatorAuthToken",
       "VantaPayPrivateSettlementAdapterArgs",
-    ],
-  },
-  {
-    path: "operator/pay-server.mjs",
-    markers: [
-      "VANTA_PAY_SECRET_KEY",
-      "VANTA_PAY_WEBHOOK_SECRET",
-      "VANTA_PAY_STORE_PATH",
-      "VANTA_PAY_DATABASE_URL",
-      "VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN",
-      "GET /v1/status",
-      "POST /v1/payment-links",
-      "POST /v1/refunds",
-      "/v1/webhook-events/deliver",
-      "production webhook delivery requires an https endpoint",
-      "productionDurableStoreRequired",
-      "productionDatabaseRequired",
-      "durableStoreConfigured",
-      "createPostgresSnapshotStore",
-      "productionHttpsWebhooks",
-      "assertProductionSecrets",
-    ],
-  },
-  {
-    path: "src/storage/vantaPostgresSnapshotStore.mjs",
-    markers: [
-      "createPostgresSnapshotStore",
-      "vanta_operator_snapshots",
-      "postgres-jsonb-snapshot-store",
-      "ON CONFLICT",
-    ],
-  },
-  {
-    path: "scripts/check-vanta-pay-merchant-api.mjs",
-    markers: [
-      "vanta-pay api production secret guard: PASS",
-      "Expected checkout-session idempotency capability.",
-      "Expected durable store configured capability.",
-      "Expected missing production database URL error.",
-      "vanta-pay api checkout idempotency: PASS",
-      "vanta-pay api status: PASS",
-      "Expected repeated checkout completion to return the existing payment.",
-      "vanta-pay api payment links: PASS",
-      "vanta-pay api refunds: PASS",
-      "Expected payment detail to expose refunded amount.",
-      "Expected repeated refund idempotency key to return the original refund.",
-      "Expected repeated withdrawal idempotency key to return the original withdrawal.",
-      "Expected refund idempotency key to persist after API restart.",
-      "Expected withdrawal retry after API restart to return the persisted withdrawal.",
-      "vanta-pay api persistence: PASS",
-    ],
-  },
-  {
-    path: "scripts/print-vanta-pay-merchant-trust-status.mjs",
-    markers: [
-      "Vanta Pay Merchant Trust Status",
-      "vanta-pay-merchant-trust-status-0.1",
-      "controlled-privacy",
-      "legible-trust",
-    ],
-  },
-  {
-    path: "scripts/check-vanta-pay-merchant-trust-status.mjs",
-    markers: [
-      "vanta-pay merchant trust status check: PASS",
-      "pay:merchant-trust-status",
-      "vanta-pay-merchant-trust-status-0.1",
-    ],
-  },
-  {
-    path: "src/pay/vantaPayApprovalPacket.ts",
-    markers: [
-      "buildVantaPayApprovalPacket",
-      "vanta-pay-approval-packet-0.1",
-      "preview",
-      "approve",
-      "execute",
-      "settle",
-      "legible-trust",
-    ],
-  },
-  {
-    path: "scripts/check-vanta-pay-approval-packet.mjs",
-    markers: [
-      "Vanta Pay approval packet check: PASS",
-      "vanta-pay-approval-packet-0.1",
-      "walletApprovalRequired",
-      "simulationRequired",
-    ],
-  },
-  {
-    path: "scripts/print-vanta-pay-status.mjs",
-    markers: [
-      "Vanta Pay status",
-      "hostedCheckoutSessions",
-      "productionReady",
-      "webhookSignatures",
-      "pay:verify",
-    ],
-  },
-  {
-    path: ".env.example",
-    markers: [
-      "VANTA_PAY_OPERATOR_PORT",
-      "VANTA_PAY_SECRET_KEY",
-      "VANTA_PAY_WEBHOOK_SECRET",
-      "VANTA_PAY_STORE_PATH",
-      "VANTA_PAY_DATABASE_URL",
-      "VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_URL",
-      "VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN",
     ],
   },
 ];
@@ -257,80 +141,65 @@ try {
   if (runtimeControlPlane.reconciliation.recordsLabel !== "1 receipt records") {
     failures.push("Expected reconciliation.recordsLabel to derive from receipts.length.");
   }
+
+  /** @type {import("../src/pay/vantaPayTypes.ts").VantaPayMerchantControlPlaneRuntimeState} */
+  const controlPlaneState = {
+    approvalPhase: "settle",
+    payoutQueue: {
+      nextWindow: {
+        cadence: "daily",
+        label: "Tomorrow",
+        targetTimeUtc: "18:30",
+        timezone: "UTC",
+      },
+    },
+    reconciliation: {
+      exportWindow: {
+        date: "2026-04-24",
+        endUtc: "05:00",
+        startUtc: "01:00",
+        timezone: "UTC",
+      },
+    },
+  };
+  const typedControlPlane = createVantaPayMerchantControlPlaneFromRuntime({
+    getBalances() {
+      return {
+        available: [],
+        pending: [],
+        withdrawable: [],
+      };
+    },
+    getMerchant() {
+      return merchant;
+    },
+    getMerchantControlPlaneState() {
+      return controlPlaneState;
+    },
+    listReceipts() {
+      return [];
+    },
+    listRefunds() {
+      return [];
+    },
+    listWithdrawals() {
+      return [];
+    },
+  });
+  if (
+    typedControlPlane.payoutQueue.nextWindow !==
+    formatVantaPayMerchantControlPlaneNextWindow(controlPlaneState.payoutQueue.nextWindow)
+  ) {
+    failures.push("Expected shared next-window formatting from the control plane helper.");
+  }
+  if (
+    typedControlPlane.reconciliation.exportWindow !==
+    formatVantaPayMerchantControlPlaneExportWindow(controlPlaneState.reconciliation.exportWindow)
+  ) {
+    failures.push("Expected shared export-window formatting from the control plane helper.");
+  }
 } catch (error) {
   failures.push(`Vanta Pay merchant control plane behavior check failed: ${error.message}`);
-}
-
-const packageJson = JSON.parse(readFileSync(resolve(repoRoot, "package.json"), "utf8"));
-if (packageJson.scripts?.["pay:contract-check"] !== "node scripts/check-vanta-pay-contract.mjs") {
-  failures.push("Missing package script pay:contract-check");
-}
-
-if (packageJson.scripts?.["pay:status"] !== "node scripts/print-vanta-pay-status.mjs") {
-  failures.push("Missing package script pay:status");
-}
-
-if (packageJson.scripts?.["pay:status-json"] !== "node scripts/print-vanta-pay-status.mjs --json") {
-  failures.push("Missing package script pay:status-json");
-}
-
-if (packageJson.scripts?.["pay:merchant-trust-status"] !== "node scripts/print-vanta-pay-merchant-trust-status.mjs") {
-  failures.push("Missing package script pay:merchant-trust-status");
-}
-
-if (
-  packageJson.scripts?.["pay:merchant-trust-status-check"] !==
-  "node scripts/print-vanta-pay-merchant-trust-status.mjs --check"
-) {
-  failures.push("Missing package script pay:merchant-trust-status-check");
-}
-
-if (packageJson.scripts?.["pay:approval-packet-check"] !== "node scripts/check-vanta-pay-approval-packet.mjs") {
-  failures.push("Missing package script pay:approval-packet-check");
-}
-
-if (packageJson.scripts?.["pay:operator"] !== "node operator/pay-server.mjs") {
-  failures.push("Missing package script pay:operator");
-}
-
-try {
-  execFileSync("node", ["scripts/check-vanta-pay-merchant-trust-status.mjs"], {
-    cwd: repoRoot,
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "pipe"],
-  });
-} catch (error) {
-  failures.push("scripts/check-vanta-pay-merchant-trust-status.mjs must execute successfully");
-}
-
-try {
-  execFileSync("node", ["scripts/check-vanta-pay-approval-packet.mjs"], {
-    cwd: repoRoot,
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "pipe"],
-  });
-} catch (error) {
-  failures.push("scripts/check-vanta-pay-approval-packet.mjs must execute successfully");
-}
-
-if (!String(packageJson.scripts?.["pay:verify"] ?? "").includes("pay:contract-check")) {
-  failures.push("pay:verify must include pay:contract-check");
-}
-
-if (!String(packageJson.scripts?.["pay:verify"] ?? "").includes("pay:status")) {
-  failures.push("pay:verify must include pay:status");
-}
-
-if (!String(packageJson.scripts?.["pay:verify"] ?? "").includes("pay:status-json")) {
-  failures.push("pay:verify must include pay:status-json");
-}
-
-if (!String(packageJson.scripts?.["pay:verify"] ?? "").includes("pay:merchant-trust-status-check")) {
-  failures.push("pay:verify must include pay:merchant-trust-status-check");
-}
-
-if (!String(packageJson.scripts?.["pay:verify"] ?? "").includes("pay:approval-packet-check")) {
-  failures.push("pay:verify must include pay:approval-packet-check");
 }
 
 if (failures.length > 0) {

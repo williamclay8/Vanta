@@ -23,6 +23,26 @@ export type VantaPayMerchantControlPlaneSectionState = "visible" | "empty" | "be
 
 export type VantaPayApprovalPhase = "preview" | "approve" | "execute" | "settle";
 
+export type VantaPayMerchantControlPlaneRuntimeState = {
+  approvalPhase: VantaPayApprovalPhase;
+  payoutQueue: {
+    nextWindow: {
+      cadence: "daily";
+      label: string;
+      targetTimeUtc: string;
+      timezone: "UTC";
+    };
+  };
+  reconciliation: {
+    exportWindow: {
+      date: string;
+      endUtc: string;
+      startUtc: string;
+      timezone: "UTC";
+    };
+  };
+};
+
 export type VantaPayMerchantControlPlane = {
   merchantControlPlaneVersion: "vanta-pay-merchant-control-plane-0.1";
   approvalPhase: VantaPayApprovalPhase;
