@@ -247,6 +247,14 @@ ops/mainnet/production-observability.template.json
 
 It records provider-neutral references for production log sources, metrics dashboards, alert policies, incident runbooks, and retention policies without storing provider tokens, webhook URLs, source tokens, raw database URLs, bearer tokens, or other secrets. Better Stack production monitors are intentionally skipped by operator decision. The template is a setup contract, not evidence that production observability is already live.
 
+The current Render-native wiring order is:
+
+- wire `vanta-pay` first
+- wire `vanta-private-pool-v2` second
+- create production services for `vanta-strategy` and `vanta-operator-control-plane` before treating them as observability-ready
+
+The checked status surface now preserves that split explicitly instead of flattening everything into one generic pending list.
+
 The sanitized production abuse/observability status surface is:
 
 ```text
@@ -260,6 +268,15 @@ scripts/print-vanta-production-abuse-observability-runtime-status.mjs
 ```
 
 It records the current provider-neutral observability provider decision, the checked safe telemetry source, the checked operator-event sink source, the current rate-limit seam, the preferred Postgres-backed production limiter path, and the current status of the Pay, Private Pool v2, Strategy, and Operator observability surfaces. It is intentionally not a claim that production observability is live.
+
+It now also records:
+
+- `servicesReadyForRenderObservabilityWiring`
+- `servicesMissingProductionServiceRef`
+- per-service `pendingControlIds`
+- per-service `productionServiceRefPending`
+
+Use that split to avoid trying to wire dashboards/alerts for services that do not yet have a real production Render service.
 
 The production abuse/observability status commands are:
 
@@ -292,6 +309,13 @@ The production abuse/observability evidence command is:
 ```bash
 npm run mainnet:abuse-observability-evidence-check
 ```
+
+For the current Render-native only decision, the next operator steps are:
+
+1. Create or confirm Render-native logs / dashboards / alerts / retention / incident workflow for `vanta-pay`
+2. Create or confirm the same controls for `vanta-private-pool-v2`
+3. Create production service refs for `vanta-strategy` and `vanta-operator-control-plane`
+4. Only then record equivalent observability refs for those last two services
 
 Pay and Private Pool v2 also have a shared rate-limit seam at:
 
