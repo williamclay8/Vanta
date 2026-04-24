@@ -14,7 +14,7 @@ import {
 } from "../src/strategy/strategyPageState.ts";
 
 assert.equal(STRATEGY_CUSTOM_TIME_WINDOW, "Custom");
-assert.deepEqual(strategyFundingSources, ["Private balance", "Public balance", "External wallet"]);
+assert.deepEqual(strategyFundingSources, ["Vanta private balance", "Public wallet balance", "Connected wallet"]);
 
 assert.equal(parseStrategyAmount("250000").value, 250000);
 assert.equal(parseStrategyAmount("").error, "Enter an amount to review this strategy.");
@@ -51,7 +51,7 @@ assert.deepEqual(
 
 assert.deepEqual(
   createStrategyCapabilityState({
-    destination: "Public wallet",
+    destination: "Connected wallet",
     fundingSource: strategyFundingSources[1],
     hasErrors: false,
     isBetaMode: true,
@@ -59,10 +59,10 @@ assert.deepEqual(
   {
     blockingIssues: [
       "Live execution is unavailable in this environment.",
-      "Move funds into your private balance before execution.",
+      "Deposit to your Vanta private balance before a live run.",
     ],
     ctaLabel: "Review strategy settings",
-    destination: "Public wallet",
+    destination: "Connected wallet",
     fundingSource: strategyFundingSources[1],
     livePrerequisitesMet: false,
     mode: "preview_only",
@@ -73,8 +73,8 @@ assert.deepEqual(
 
 assert.equal(
   createStrategyCapabilityState({
-    destination: "Treasury vault",
-    fundingSource: "Private balance",
+    destination: "Treasury wallet",
+    fundingSource: "Vanta private balance",
     hasErrors: true,
     isBetaMode: true,
   }).mode,
@@ -82,8 +82,8 @@ assert.equal(
 );
 assert.equal(
   createStrategyCapabilityState({
-    destination: "Treasury vault",
-    fundingSource: "Private balance",
+    destination: "Treasury wallet",
+    fundingSource: "Vanta private balance",
     hasErrors: true,
     isBetaMode: true,
   }).submitDisabled,
@@ -91,15 +91,15 @@ assert.equal(
 );
 assert.deepEqual(
   createStrategyCapabilityState({
-    destination: "Private balance",
+    destination: "Vanta private balance",
     fundingSource: strategyFundingSources[2],
     hasErrors: false,
     isBetaMode: false,
   }),
   {
-    blockingIssues: ["Connect and fund the required wallet before execution."],
+    blockingIssues: ["Connect the wallet this plan should use before a live run."],
     ctaLabel: "Review strategy settings",
-    destination: "Private balance",
+    destination: "Vanta private balance",
     fundingSource: strategyFundingSources[2],
     livePrerequisitesMet: false,
     mode: "preview_only",
@@ -109,15 +109,15 @@ assert.deepEqual(
 );
 assert.deepEqual(
   createStrategyCapabilityState({
-    destination: "Private balance",
+    destination: "Vanta private balance",
     fundingSource: strategyFundingSources[0],
     hasErrors: false,
     isBetaMode: false,
   }),
   {
     blockingIssues: [],
-    ctaLabel: "Schedule strategy",
-    destination: "Private balance",
+    ctaLabel: "Review strategy settings",
+    destination: "Vanta private balance",
     fundingSource: strategyFundingSources[0],
     livePrerequisitesMet: true,
     mode: "eligible_to_create",
@@ -133,14 +133,14 @@ assert.deepEqual(createStrategyResultState({ capabilityMode: "preview_only" }), 
 });
 assert.deepEqual(createStrategyResultState({ capabilityMode: "eligible_to_create" }), {
   kind: "scheduled_strategy",
-  summary: "Your strategy was scheduled locally and is ready for execution.",
-  title: "Strategy scheduled",
+  summary: "Your strategy settings were saved locally. Live trading still needs a separate launch flow.",
+  title: "Strategy settings saved",
 });
 
 const strategyRuntime = createVantaStrategyRuntime();
 const baseStrategyInput = {
-  destination: "Private balance",
-  fundingSource: "Private balance",
+  destination: "Vanta private balance",
+  fundingSource: "Vanta private balance",
   landingMode: "Protected landing",
   maxSlippageBps: 50,
   mode: "Private TWAP",
@@ -164,14 +164,14 @@ const baseRequestId = createStrategyClientRequestId(baseStrategyInput);
 const updatedRequestId = createStrategyClientRequestId(updatedStrategyInput);
 
 assert.notEqual(baseRequestId, updatedRequestId);
-assert.match(baseRequestId, /^strategy_v3_/u);
+assert.match(baseRequestId, /^strategy_v4_/u);
 assert.equal(
   baseRequestId,
-  'strategy_v3_{"destination":"Private balance","fundingSource":"Private balance","landingMode":"Protected landing","maxSlippageBps":50,"mode":"Private TWAP","pair":"USDC -> SOL","side":"Buy","slicePolicy":"Randomized sizing","timeWindow":"24 hours","timingPolicy":"Randomized cadence","totalNotional":250000,"urgency":"Low footprint"}',
+  'strategy_v4_{"destination":"Vanta private balance","fundingSource":"Vanta private balance","landingMode":"Protected landing","maxSlippageBps":50,"mode":"Private TWAP","pair":"USDC -> SOL","side":"Buy","slicePolicy":"Randomized sizing","timeWindow":"24 hours","timingPolicy":"Randomized cadence","totalNotional":250000,"urgency":"Low footprint"}',
 );
 assert.equal(
   updatedRequestId,
-  'strategy_v3_{"destination":"Private balance","fundingSource":"Private balance","landingMode":"Bundle-preferred","maxSlippageBps":50,"mode":"Private TWAP","pair":"USDC -> SOL","side":"Buy","slicePolicy":"Fixed count","timeWindow":"7 days","timingPolicy":"Evenly spaced","totalNotional":250000,"urgency":"Low footprint"}',
+  'strategy_v4_{"destination":"Vanta private balance","fundingSource":"Vanta private balance","landingMode":"Bundle-preferred","maxSlippageBps":50,"mode":"Private TWAP","pair":"USDC -> SOL","side":"Buy","slicePolicy":"Fixed count","timeWindow":"7 days","timingPolicy":"Evenly spaced","totalNotional":250000,"urgency":"Low footprint"}',
 );
 
 strategyRuntime.createStrategy({
@@ -191,7 +191,7 @@ assert.equal(
 );
 assert.equal(
   createStrategyCapabilityCopy({ capabilityMode: "eligible_to_create" }).actionHint,
-  "Review routing, funding, and landing behavior before you schedule live execution.",
+  "Review source, route, and proceeds destination before any live run.",
 );
 
 console.log("Vanta strategy page state check: PASS");

@@ -5,8 +5,8 @@ const runtime = createVantaStrategyRuntime();
 
 const input = {
   clientRequestId: "strategy-runtime-check-1",
-  destination: "Private balance",
-  fundingSource: "Private balance",
+  destination: "Vanta private balance",
+  fundingSource: "Vanta private balance",
   landingMode: "Protected landing",
   maxSlippageBps: 50,
   mode: "Stealth DCA",

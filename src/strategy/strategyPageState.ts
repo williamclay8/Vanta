@@ -9,22 +9,22 @@ type StrategyParsedDuration = {
 };
 
 export const STRATEGY_CUSTOM_TIME_WINDOW = "Custom";
-export const STRATEGY_FUNDING_SOURCE_PRIVATE_BALANCE = "Private balance";
-export const STRATEGY_FUNDING_SOURCE_PUBLIC_BALANCE = "Public balance";
-export const STRATEGY_FUNDING_SOURCE_EXTERNAL_WALLET = "External wallet";
-export const STRATEGY_DESTINATION_PRIVATE_BALANCE = "Private balance";
-export const STRATEGY_DESTINATION_PUBLIC_WALLET = "Public wallet";
-export const STRATEGY_DESTINATION_TREASURY_VAULT = "Treasury vault";
+export const STRATEGY_FUNDING_SOURCE_PRIVATE_BALANCE = "Vanta private balance";
+export const STRATEGY_FUNDING_SOURCE_PUBLIC_BALANCE = "Public wallet balance";
+export const STRATEGY_FUNDING_SOURCE_CONNECTED_WALLET = "Connected wallet";
+export const STRATEGY_DESTINATION_PRIVATE_BALANCE = "Vanta private balance";
+export const STRATEGY_DESTINATION_CONNECTED_WALLET = "Connected wallet";
+export const STRATEGY_DESTINATION_TREASURY_WALLET = "Treasury wallet";
 
 export const strategyFundingSources = [
   STRATEGY_FUNDING_SOURCE_PRIVATE_BALANCE,
   STRATEGY_FUNDING_SOURCE_PUBLIC_BALANCE,
-  STRATEGY_FUNDING_SOURCE_EXTERNAL_WALLET,
+  STRATEGY_FUNDING_SOURCE_CONNECTED_WALLET,
 ] as const;
 export const strategyDestinations = [
   STRATEGY_DESTINATION_PRIVATE_BALANCE,
-  STRATEGY_DESTINATION_PUBLIC_WALLET,
-  STRATEGY_DESTINATION_TREASURY_VAULT,
+  STRATEGY_DESTINATION_CONNECTED_WALLET,
+  STRATEGY_DESTINATION_TREASURY_WALLET,
 ] as const;
 export const strategyTimeWindows = ["6 hours", "24 hours", "7 days", STRATEGY_CUSTOM_TIME_WINDOW] as const;
 
@@ -70,14 +70,14 @@ export type StrategyResultState =
     }
   | {
       kind: "scheduled_strategy";
-      summary: "Your strategy was scheduled locally and is ready for execution.";
-      title: "Strategy scheduled";
+      summary: "Your strategy settings were saved locally. Live trading still needs a separate launch flow.";
+      title: "Strategy settings saved";
     };
 
 const amountError = "Enter an amount to review this strategy.";
 const slippageError = "Enter a valid max slippage percentage.";
 const customDurationError = "Use a duration like 12 hours or 3 days.";
-const strategyRequestIdVersion = "v3";
+const strategyRequestIdVersion = "v4";
 
 function stableJson(value: unknown): string {
   if (Array.isArray(value)) {
@@ -171,18 +171,18 @@ export function createStrategyCapabilityState(input: {
   }
 
   if (input.fundingSource === STRATEGY_FUNDING_SOURCE_PUBLIC_BALANCE) {
-    blockingIssues.push("Move funds into your private balance before execution.");
+    blockingIssues.push("Deposit to your Vanta private balance before a live run.");
   }
 
-  if (input.fundingSource === STRATEGY_FUNDING_SOURCE_EXTERNAL_WALLET) {
-    blockingIssues.push("Connect and fund the required wallet before execution.");
+  if (input.fundingSource === STRATEGY_FUNDING_SOURCE_CONNECTED_WALLET) {
+    blockingIssues.push("Connect the wallet this plan should use before a live run.");
   }
 
   const mode: StrategyCapabilityMode = input.isBetaMode || !livePrerequisitesMet ? "preview_only" : "eligible_to_create";
 
   return {
     blockingIssues,
-    ctaLabel: mode === "preview_only" ? "Review strategy settings" : "Schedule strategy",
+    ctaLabel: "Review strategy settings",
     destination: input.destination,
     fundingSource: input.fundingSource,
     livePrerequisitesMet,
@@ -219,7 +219,7 @@ export function createStrategyCapabilityCopy(input: {
   }
 
   return {
-    actionHint: "Review routing, funding, and landing behavior before you schedule live execution.",
+    actionHint: "Review source, route, and proceeds destination before any live run.",
   };
 }
 
@@ -236,7 +236,7 @@ export function createStrategyResultState(input: {
 
   return {
     kind: "scheduled_strategy",
-    summary: "Your strategy was scheduled locally and is ready for execution.",
-    title: "Strategy scheduled",
+    summary: "Your strategy settings were saved locally. Live trading still needs a separate launch flow.",
+    title: "Strategy settings saved",
   };
 }

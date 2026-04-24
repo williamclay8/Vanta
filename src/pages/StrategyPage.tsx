@@ -48,11 +48,13 @@ const strategyReviewCta = "Review strategy settings";
 const strategyEnvironmentUnavailableCopy =
   "Live execution is unavailable in this environment.";
 const strategyPublicFundingCopy =
-  "Move funds into your private balance before execution.";
-const strategyExternalWalletCopy =
-  "Connect and fund the required wallet before execution.";
+  "Deposit to your Vanta private balance before a live run.";
+const strategyConnectedWalletCopy =
+  "Connect the wallet this plan should use before a live run.";
 const strategySettingsActionHint =
   "Keep settings editable while live strategy execution remains unavailable.";
+const strategyRouteNote =
+  "These choices shape a local plan only. No funds move and no trades are submitted from this screen.";
 
 const defaultForm: StrategyFormState = {
   asset: "SOL",
@@ -164,12 +166,12 @@ export function StrategyPage() {
 
   const environmentBlockingIssues = isBetaMode ? [strategyEnvironmentUnavailableCopy] : [];
   const fundingBlockingIssues = useMemo(() => {
-    if (form.fundingSource === "Public balance") {
+    if (form.fundingSource === "Public wallet balance") {
       return [strategyPublicFundingCopy];
     }
 
-    if (form.fundingSource === "External wallet") {
-      return [strategyExternalWalletCopy];
+    if (form.fundingSource === "Connected wallet") {
+      return [strategyConnectedWalletCopy];
     }
 
     return [];
@@ -355,7 +357,7 @@ export function StrategyPage() {
                   }}
                 />
                 <StrategySelect
-                  label="Destination"
+                  label="Proceeds go to"
                   options={strategyDestinations}
                   value={form.destination}
                   onChange={(value) => {
@@ -363,7 +365,7 @@ export function StrategyPage() {
                   }}
                 />
                 <StrategySelect
-                  label="Fund from"
+                  label="Use funds from"
                   options={strategyFundingSources}
                   value={form.fundingSource}
                   onChange={(value) => {
@@ -374,13 +376,14 @@ export function StrategyPage() {
             </details>
 
             <section className="strategy-prerequisites" aria-label="Strategy prerequisites">
+              <p className="strategy-route-note">{strategyRouteNote}</p>
               <div className="strategy-prerequisite-grid">
                 <div className="strategy-prerequisite-item">
-                  <span>Fund from</span>
+                  <span>Funding source</span>
                   <strong>{capabilityState.fundingSource}</strong>
                 </div>
                 <div className="strategy-prerequisite-item">
-                  <span>Destination</span>
+                  <span>Proceeds destination</span>
                   <strong>{capabilityState.destination}</strong>
                 </div>
               </div>

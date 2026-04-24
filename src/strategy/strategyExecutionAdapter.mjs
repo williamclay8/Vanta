@@ -17,14 +17,14 @@ function createFundingStep(plan) {
 }
 
 function createDestinationSettlement(plan) {
-  if (plan.routingPolicy.destination === "Private balance") {
+  if (plan.routingPolicy.destination === "Vanta private balance") {
     return {
       kind: "settle-acquired-asset-private",
       status: "planned",
     };
   }
 
-  if (plan.routingPolicy.destination === "Treasury vault") {
+  if (plan.routingPolicy.destination === "Treasury wallet") {
     return {
       kind: "settle-acquired-asset-treasury",
       status: "planned",

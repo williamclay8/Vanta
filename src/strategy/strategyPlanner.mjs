@@ -1,7 +1,7 @@
 const FUNDING_ACTIONS = {
-  "External wallet": "connect-external-wallet",
-  "Private balance": "use-private-balance",
-  "Public balance": "move-to-private-before-execution",
+  "Connected wallet": "connect-wallet-before-live-run",
+  "Public wallet balance": "deposit-to-private-before-live-run",
+  "Vanta private balance": "use-private-balance",
 };
 
 const HOURS_BY_WINDOW = {
@@ -139,7 +139,7 @@ export function createStrategyPlan(input) {
     id: `strat_${hashSeed(`${input.seed}:${input.pair}:${input.totalNotional}`).toString(16)}`,
     averageChildSize: roundMoney(input.totalNotional / childOrders.length),
     childOrders,
-    fundingAction: FUNDING_ACTIONS[input.fundingSource] ?? "connect-external-wallet",
+    fundingAction: FUNDING_ACTIONS[input.fundingSource] ?? "connect-wallet-before-live-run",
     guardrails: {
       deferWhenRouteQualityTooPoor: true,
       maxSlippageBps: input.maxSlippageBps,

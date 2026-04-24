@@ -2,8 +2,8 @@ import { strict as assert } from "node:assert";
 import { createStrategyPlan } from "../src/strategy/strategyPlanner.mjs";
 
 const baseInput = {
-  destination: "Private balance",
-  fundingSource: "Private balance",
+  destination: "Vanta private balance",
+  fundingSource: "Vanta private balance",
   landingMode: "Protected landing",
   maxSlippageBps: 50,
   mode: "Stealth DCA",
@@ -22,7 +22,7 @@ const secondPlan = createStrategyPlan(baseInput);
 
 assert.deepEqual(firstPlan, secondPlan, "strategy plans must be deterministic for the same seed");
 assert.equal(firstPlan.routingPolicy.protectedLanding, true, "protected landing must stay enabled");
-assert.equal(firstPlan.routingPolicy.destination, "Private balance", "default destination should remain private");
+assert.equal(firstPlan.routingPolicy.destination, "Vanta private balance", "default destination should remain private");
 assert.equal(firstPlan.fundingAction, "use-private-balance", "private funding should not add extra steps");
 assert.ok(firstPlan.childOrders.length >= 6, "DCA should create multiple child orders");
 assert.ok(
@@ -38,12 +38,12 @@ assert.ok(
 
 const publicFundedPlan = createStrategyPlan({
   ...baseInput,
-  fundingSource: "Public balance",
+  fundingSource: "Public wallet balance",
 });
 assert.equal(
   publicFundedPlan.fundingAction,
-  "move-to-private-before-execution",
-  "public funding should be moved private before execution",
+  "deposit-to-private-before-live-run",
+  "public wallet funding should require a private-balance deposit before a live run",
 );
 
 const twapPlan = createStrategyPlan({

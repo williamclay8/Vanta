@@ -19,9 +19,17 @@ const visibleStrategyCopy = [
   "Private TWAP",
   "Review strategy settings",
   "Live execution is unavailable in this environment.",
-  "Move funds into your private balance before execution.",
-  "Connect and fund the required wallet before execution.",
-  "Private balance",
+  "Deposit to your Vanta private balance before a live run.",
+  "Connect the wallet this plan should use before a live run.",
+  "Vanta private balance",
+  "Public wallet balance",
+  "Connected wallet",
+  "Treasury wallet",
+  "Use funds from",
+  "Proceeds go to",
+  "Funding source",
+  "Proceeds destination",
+  "These choices shape a local plan only. No funds move and no trades are submitted from this screen.",
   "No fee while Strategy remains preview-only.",
   "If live execution ships later, external execution costs should stay separate.",
   "Keep settings editable while live strategy execution remains unavailable.",
@@ -29,10 +37,9 @@ const visibleStrategyCopy = [
 ];
 
 const bannedStrategyCopy = [
-  "Schedule strategy",
-  "Strategy scheduled",
-  "Your strategy was scheduled locally and is ready for execution.",
-  "Review routing, funding, and landing behavior before you schedule live execution.",
+  "Strategy settings saved",
+  "Your strategy settings were saved locally. Live trading still needs a separate launch flow.",
+  "Review source, route, and proceeds destination before any live run.",
   "$1.82M",
   "$151.42",
   "$8,400",
@@ -60,6 +67,12 @@ const bannedStrategyCopy = [
   "Strategy plan ready",
   "Ready for your review",
   "Preview routing, funding, and landing behavior while live strategy execution remains preview-only.",
+  "External wallet",
+  "Public balance",
+  "Treasury vault",
+  "Fund from",
+  "Connect and fund the required wallet before execution.",
+  "Move funds into your private balance before execution.",
 ];
 
 function sleep(ms) {

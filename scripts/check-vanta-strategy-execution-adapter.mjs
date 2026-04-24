@@ -3,8 +3,8 @@ import { createStrategyExecutionPreview } from "../src/strategy/strategyExecutio
 import { createStrategyPlan } from "../src/strategy/strategyPlanner.mjs";
 
 const basePlan = createStrategyPlan({
-  destination: "Private balance",
-  fundingSource: "Public balance",
+  destination: "Vanta private balance",
+  fundingSource: "Public wallet balance",
   landingMode: "Protected landing",
   maxSlippageBps: 50,
   mode: "Stealth DCA",
@@ -26,7 +26,7 @@ const preview = createStrategyExecutionPreview(basePlan, {
 
 assert.equal(preview.version, "vanta-strategy-execution-adapter-0.1");
 assert.equal(preview.liveSubmission, false, "strategy adapter must not live-submit in local preview mode");
-assert.equal(preview.fundingStep.kind, "move-to-private-before-execution");
+assert.equal(preview.fundingStep.kind, "deposit-to-private-before-live-run");
 assert.equal(preview.destinationSettlement.kind, "settle-acquired-asset-private");
 assert.equal(preview.childJobs.length, basePlan.childOrders.length);
 assert.equal(preview.childJobs[0].route.engine, "Jupiter");
