@@ -16,6 +16,22 @@ assert.equal(snapshot.abuseObservability.privatePoolV2RuntimeMode, "remote-servi
 assert.equal(snapshot.abuseObservability.privatePoolV2RateLimiter, "in-memory-per-process");
 assert.equal(snapshot.abuseObservability.privatePoolV2PreferredRateLimiterKind, "postgres-durable-shared-window");
 assert.equal(snapshot.abuseObservability.privatePoolV2RuntimeMatchesPreferredRateLimiter, false);
+assert.equal(snapshot.nullifierReplay.runtimeMode, "remote-services");
+assert.equal(
+  snapshot.nullifierReplay.layeredReplayStatus,
+  "operator-enforced-plus-role-network-verified-plus-production-smoke-simulated",
+);
+assert.equal(
+  snapshot.nullifierReplay.nullifierReplayGuardMode,
+  "postgres-durable-claim-preflight-and-accepted-reservation",
+);
+assert.equal(
+  snapshot.nullifierReplay.protocolEnforcementLayer,
+  "operator-claim-preflight-and-accepted-reservation-only",
+);
+assert.equal(snapshot.nullifierReplay.protocolEnforcementFinalLayerImplemented, false);
+assert.equal(snapshot.nullifierReplay.protocolEnforcementFinalLayerProductionReady, false);
+assert.equal(snapshot.nullifierReplay.roleServiceNetworkReplayVerified, true);
 assert.equal(snapshot.realFundsApproval.realFundsApprovalRecorded, true);
 assert.equal(snapshot.realFundsApproval.approvalRecordStatus, "approved");
 assert.equal(snapshot.realFundsApproval.liveMainnetActionsAllowedNow, false);

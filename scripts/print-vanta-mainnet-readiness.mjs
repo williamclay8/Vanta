@@ -24,6 +24,14 @@ if (jsonMode) {
   console.log(
     `  - privatePoolV2MatchesPreferredRateLimiter: ${String(snapshot.abuseObservability.privatePoolV2RuntimeMatchesPreferredRateLimiter)}`,
   );
+  console.log("- nullifier / replay:");
+  console.log(`  - runtimeMode: ${snapshot.nullifierReplay.runtimeMode}`);
+  console.log(`  - layeredStatus: ${snapshot.nullifierReplay.layeredReplayStatus}`);
+  console.log(`  - guardMode: ${snapshot.nullifierReplay.nullifierReplayGuardMode}`);
+  console.log(`  - protocolLayer: ${snapshot.nullifierReplay.protocolEnforcementLayer}`);
+  console.log(
+    `  - finalProtocolLayerImplemented: ${String(snapshot.nullifierReplay.protocolEnforcementFinalLayerImplemented)}`,
+  );
   console.log("- lanes:");
   for (const [lane, state] of Object.entries(snapshot.lanes)) {
     console.log(`  - ${lane}: ${state.status} (${state.readiness}/100)`);

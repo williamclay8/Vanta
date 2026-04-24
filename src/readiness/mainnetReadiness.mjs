@@ -1,5 +1,6 @@
 import { createVantaPrivacyRailContract } from "./privacyRailContract.mjs";
 import { createVantaAbuseObservabilityRuntimeStatus } from "./abuseObservabilityRuntimeStatus.mjs";
+import { createVantaNullifierReplayStatus } from "./nullifierReplayStatus.mjs";
 import { createVantaMainnetRealFundsApprovalStatus } from "./mainnetRealFundsApprovalStatus.mjs";
 
 const blockers = [
@@ -191,6 +192,7 @@ export function createVantaMainnetReadinessSnapshot() {
     Object.values(lanes).reduce((sum, lane) => sum + lane.readiness, 0) / Object.keys(lanes).length,
   );
   const abuseObservability = createVantaAbuseObservabilityRuntimeStatus();
+  const nullifierReplay = createVantaNullifierReplayStatus();
   const privacyRail = createVantaPrivacyRailContract();
   const realFundsApproval = createVantaMainnetRealFundsApprovalStatus();
 
@@ -204,6 +206,7 @@ export function createVantaMainnetReadinessSnapshot() {
     mainnetReady: false,
     nextActions,
     abuseObservability,
+    nullifierReplay,
     privacyRail,
     productionReady: false,
     realFundsApproval,
