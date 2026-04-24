@@ -1001,9 +1001,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
 
   return (
     <section className="send-page">
-      <div className="module-page__hero send-page__hero">
+      <div className="module-page__hero send-page__hero product-intro">
         <div>
-          <span className="eyebrow">{dashboard ? "Dashboard / Send" : "Live"}</span>
+          <span className="eyebrow product-intro__eyebrow">{dashboard ? "Dashboard / Send" : "Live"}</span>
           <h2>Private Send</h2>
           <p>
             Move shielded balance without returning to public wallet flow. The

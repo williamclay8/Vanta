@@ -1671,9 +1671,9 @@ export function UnshieldPage() {
 
   return (
     <section className="send-page unshield-page">
-      <div className="module-page__hero send-page__hero">
+      <div className="module-page__hero send-page__hero product-intro">
         <div>
-          <span className="eyebrow">Live</span>
+          <span className="eyebrow product-intro__eyebrow">Live</span>
           <h2>Unshield</h2>
           <p>
             Return one constrained private state back to public wallet flow.

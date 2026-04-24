@@ -424,10 +424,11 @@ export function PayPage() {
   return (
     <section className="pay-page pay-page--minimal" aria-labelledby="pay-title">
       <div className="pay-shell pay-shell--minimal">
-        <header className="pay-topbar pay-topbar--minimal">
+        <header className="pay-topbar pay-topbar--minimal pay-page__hero product-intro">
           <div>
-            <span className="pay-kicker">Vanta</span>
+            <span className="pay-kicker product-intro__eyebrow">Vanta</span>
             <h1 id="pay-title">Pay</h1>
+            <p>Payment links, invoices, checkout, and withdraw.</p>
           </div>
           <nav className="pay-subnav" aria-label="Pay actions">
             {payViews.map((item) => (

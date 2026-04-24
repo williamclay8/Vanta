@@ -5,6 +5,7 @@ import path from "node:path";
 
 const port = 5630 + Math.floor(Math.random() * 200);
 const baseUrl = `http://127.0.0.1:${port}`;
+const browserSession = `vanta-product-ui-check-${process.pid}-${Date.now()}`;
 
 function sleep(ms) {
   return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
@@ -86,16 +87,68 @@ function runBrowserBatch() {
       action: "assert",
       checks: [
         { kind: "selector_visible", selector: ".app-header" },
+        { kind: "selector_visible", selector: ".app-header__tabs[data-product-nav]" },
         { kind: "selector_visible", selector: ".app-sidebar" },
         { kind: "text_visible", text: "Send" },
         { kind: "no_console_errors" },
       ],
     },
+    { action: "click", selector: 'a[href="/app/shield"]' },
+    { action: "wait_for", condition: "network_idle" },
+    {
+      action: "assert",
+      checks: [
+        { kind: "url_contains", text: "/app/shield" },
+        { kind: "text_visible", text: "Shield" },
+        { kind: "no_console_errors" },
+      ],
+    },
+    { action: "click", selector: 'a[href="/app/swap"]' },
+    { action: "wait_for", condition: "network_idle" },
+    {
+      action: "assert",
+      checks: [
+        { kind: "url_contains", text: "/app/swap" },
+        { kind: "text_visible", text: "Private Swap" },
+        { kind: "no_console_errors" },
+      ],
+    },
+    { action: "click", selector: 'a[href="/app/strategy"]' },
+    { action: "wait_for", condition: "network_idle" },
+    {
+      action: "assert",
+      checks: [
+        { kind: "url_contains", text: "/app/strategy" },
+        { kind: "text_visible", text: "Strategy" },
+        { kind: "no_console_errors" },
+      ],
+    },
+    { action: "click", selector: 'a[href="/app/unshield"]' },
+    { action: "wait_for", condition: "network_idle" },
+    {
+      action: "assert",
+      checks: [
+        { kind: "url_contains", text: "/app/unshield" },
+        { kind: "text_visible", text: "Unshield" },
+        { kind: "no_console_errors" },
+      ],
+    },
+    { action: "click", selector: 'a[href="/app/pay"]' },
+    { action: "wait_for", condition: "network_idle" },
+    {
+      action: "assert",
+      checks: [
+        { kind: "url_contains", text: "/app/pay" },
+        { kind: "text_visible", text: "Pay" },
+        { kind: "no_console_errors" },
+      ],
+    },
   ];
 
-  execFileSync("gsd-browser", ["batch", "--steps", JSON.stringify(steps), "--summary-only"], {
+  execFileSync("gsd-browser", ["--session", browserSession, "batch", "--steps", JSON.stringify(steps), "--summary-only"], {
     stdio: "pipe",
   });
+
 }
 
 function runBrowserBatchWithRetry() {

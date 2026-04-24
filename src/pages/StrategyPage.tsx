@@ -279,9 +279,9 @@ export function StrategyPage() {
   return (
     <section className="strategy-page" aria-labelledby="strategy-title">
       <div className="strategy-shell">
-        <header className="strategy-header">
+        <header className="strategy-header product-intro">
           <div className="strategy-header__copy">
-            <span className="strategy-kicker">Execution</span>
+            <span className="strategy-kicker product-intro__eyebrow">Execution</span>
             <h1 id="strategy-title">Strategy</h1>
             <p>{modeCopy}</p>
           </div>

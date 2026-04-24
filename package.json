@@ -260,7 +260,20 @@
     "private-core:demo-preflight": "node scripts/run-vanta-private-core-demo-preflight.mjs",
     "preview": "vite preview",
     "shield:universal-target-check": "node scripts/check-vanta-universal-shield-target.mjs",
-    "shield:route-evidence-check": "node scripts/check-vanta-public-shield-route-evidence.mjs"
+    "shield:route-evidence-check": "node scripts/check-vanta-public-shield-route-evidence.mjs",
+    "social:twitter-draft": "node scripts/run-vanta-social-twitter-draft.mjs",
+    "social:twitter-draft-check": "node scripts/check-vanta-social-twitter-draft.mjs",
+    "social:twitter-context-check": "node scripts/check-vanta-social-twitter-context.mjs",
+    "social:twitter-voice-check": "node scripts/check-vanta-social-voice.mjs",
+    "social:twitter-review": "node scripts/print-vanta-social-review-queue.mjs",
+    "social:twitter-mark": "node scripts/mark-vanta-social-review-draft.mjs",
+    "social:twitter-edit": "node scripts/edit-vanta-social-review-draft.mjs",
+    "social:twitter-export-approved": "node scripts/export-approved-vanta-social-drafts.mjs",
+    "social:twitter-feedback": "node scripts/record-vanta-social-feedback.mjs",
+    "social:twitter-feedback-summary": "node scripts/print-vanta-social-feedback-summary.mjs",
+    "social:twitter-preferences": "node scripts/print-vanta-social-preference-profile.mjs",
+    "social:twitter-next": "node scripts/print-vanta-social-next-step.mjs",
+    "social:twitter-review-check": "node scripts/check-vanta-social-review-queue.mjs"
   },
   "dependencies": {
     "@aztec/bb.js": "^4.1.3",

@@ -934,6 +934,14 @@ export function SwapPage() {
 
   return (
     <section className="send-page swap-page">
+      <div className="module-page__hero send-page__hero product-intro">
+        <div>
+          <span className="eyebrow product-intro__eyebrow">Private Swap</span>
+          <h2>Private Swap</h2>
+          <p>{routeLabel}</p>
+        </div>
+      </div>
+
       <div className="send-layout">
         <article className="send-card send-card--workspace">
           <div className="shield-card__header">

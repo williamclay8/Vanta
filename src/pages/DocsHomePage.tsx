@@ -12,13 +12,13 @@ export function DocsHomePage() {
 
   return (
     <div className="docs-home">
-      <section className="docs-home__hero">
-        <span className="docs-home__eyebrow">Vanta Docs</span>
+      <section className="docs-home__hero product-intro">
+        <span className="docs-home__eyebrow product-intro__eyebrow">Vanta Docs</span>
         <h1 className="docs-home__title">Move, send, and pay with more privacy.</h1>
         <p className="docs-home__lede">
-          Vanta helps people move supported assets into private state, use
-          private flows, and understand the merchant-facing path without
-          forcing them to think like protocol engineers first.
+          Vanta helps people move supported assets into private state, use private flows, and
+          understand the merchant-facing path without forcing them to think like protocol engineers
+          first.
         </p>
         <div className="docs-home__hero-note">
           <strong>Start here if you want the product story first.</strong>

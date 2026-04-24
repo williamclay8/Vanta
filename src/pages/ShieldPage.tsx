@@ -874,6 +874,14 @@ export function ShieldPage(_props: ShieldPageProps) {
 
   return (
     <section className="send-page shield-page">
+      <div className="module-page__hero send-page__hero product-intro">
+        <div>
+          <span className="eyebrow product-intro__eyebrow">Shield</span>
+          <h2>Shield</h2>
+          <p>{routeLabel}</p>
+        </div>
+      </div>
+
       <div className="send-layout">
         <article className="send-card send-card--workspace">
           <div className="shield-card__header">
