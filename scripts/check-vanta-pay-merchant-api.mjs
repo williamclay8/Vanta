@@ -753,7 +753,13 @@ try {
       method: "POST",
     });
     assert(sessionResponse.ok, sessionResponse.text || "Expected session creation response.");
+    assert(sessionResponse.parsed?.object === "checkout_session", "Expected API checkout session object.");
     assert(sessionResponse.parsed?.id?.startsWith("vcs_"), "Expected API session id.");
+    assert(sessionResponse.parsed?.clientToken?.startsWith("vtok_"), "Expected API client token.");
+    assert(
+      sessionResponse.parsed?.checkoutUrl?.includes(`/cs/${sessionResponse.parsed.id}`),
+      "Expected API checkout URL to include the session id.",
+    );
     console.log("vanta-pay api checkout session: PASS");
 
     const completed = await requestJson(
@@ -765,6 +771,16 @@ try {
     assert(
       completed.parsed?.payment?.privateRailReceiptId?.startsWith("prail_"),
       "Expected API payment private rail receipt.",
+    );
+    assert(completed.parsed?.receipt?.id?.startsWith("rcpt_"), "Expected API receipt id.");
+    assert(completed.parsed?.receipt?.status === "paid", "Expected API receipt paid status.");
+    assert(
+      completed.parsed?.receipt?.privateRailReceiptId === completed.parsed?.payment?.privateRailReceiptId,
+      "Expected API receipt to reference the payment private rail receipt.",
+    );
+    assert(
+      completed.parsed?.receipt?.auditDisclosureId?.startsWith("aud_"),
+      "Expected API receipt audit disclosure id.",
     );
     const repeatedCompletion = await requestJson(
       `/v1/checkout/sessions/${sessionResponse.parsed.id}/complete`,

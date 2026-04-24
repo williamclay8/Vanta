@@ -85,6 +85,17 @@ async function loadPrivateSettlementSummary() {
 }
 
 const privateSettlement = await loadPrivateSettlementSummary();
+const productionDurableStoreConfigured = Boolean(process.env.VANTA_PAY_DATABASE_URL);
+const privatePoolOperatorConfigured = Boolean(process.env.VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_URL);
+const privatePoolOperatorAuthConfigured = Boolean(
+  process.env.VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN,
+);
+const productionLaunchApproved = process.env.VANTA_PAY_PRODUCTION_LAUNCH_APPROVED === "true";
+const payProductionReady =
+  productionDurableStoreConfigured &&
+  privatePoolOperatorConfigured &&
+  privatePoolOperatorAuthConfigured &&
+  productionLaunchApproved;
 
 const result = {
   capabilities: {
@@ -101,11 +112,14 @@ const result = {
     },
     paymentLinkCreation: true,
     privateExitWithdrawalRequired: true,
-    privatePoolOperatorConfigured: Boolean(process.env.VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_URL),
+    privatePoolOperatorAuthConfigured,
+    privatePoolOperatorConfigured,
     privateRailCompletionRequired: true,
     productionDatabaseRequired: true,
+    productionDurableStoreConfigured,
     productionDurableStoreRequired: true,
     productionHttpsWebhooks: true,
+    productionLaunchApproved,
     requestValidation: "fail-closed",
     webhookDeliveryRetries: true,
     webhookSignatures: "t-v1-hmac-sha256",
@@ -114,7 +128,7 @@ const result = {
   kind: "Vanta Pay status",
   ok: true,
   privateSettlement,
-  productionReady: false,
+  productionReady: payProductionReady,
   storage: {
     kind: process.env.VANTA_PAY_DATABASE_URL
       ? "postgres-jsonb-snapshot-store"

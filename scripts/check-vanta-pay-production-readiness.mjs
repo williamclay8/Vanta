@@ -43,7 +43,10 @@ assert.equal(status.mainnetReady, false);
 assert.equal(status.strictReadyGateCommand, "npm run pay:production-readiness-check");
 assert.equal(status.payStatus.productionReady, false);
 assert.equal(status.payStatus.capabilities.durableStoreConfigured, false);
+assert.equal(status.payStatus.capabilities.productionDurableStoreConfigured, false);
 assert.equal(status.payStatus.capabilities.privatePoolOperatorConfigured, false);
+assert.equal(status.payStatus.capabilities.privatePoolOperatorAuthConfigured, false);
+assert.equal(status.payStatus.capabilities.productionLaunchApproved, false);
 assert.equal(status.privateSettlement.liveMainnetPrivateSettlementAvailable, false);
 assert.equal(status.privateSettlement.productionReady, false);
 assert.equal(status.privateSettlement.privacyClaimAllowed, false);
@@ -54,6 +57,18 @@ assert.ok(
 assert.ok(
   status.blockers.includes("pay-private-pool-operator-not-configured"),
   "Pay production readiness must block on missing private-pool operator.",
+);
+assert.ok(
+  status.blockers.includes("pay-production-database-not-configured"),
+  "Pay production readiness must block on missing production database.",
+);
+assert.ok(
+  status.blockers.includes("pay-private-pool-operator-auth-not-configured"),
+  "Pay production readiness must block on missing private-pool operator auth.",
+);
+assert.ok(
+  status.blockers.includes("pay-production-launch-approval-not-recorded"),
+  "Pay production readiness must block on missing Pay production launch approval.",
 );
 assert.ok(
   status.blockers.includes("private-settlement-not-live-mainnet"),

@@ -21,9 +21,18 @@ function buildStatus() {
 
   const blockers = [
     ...(payStatus.capabilities?.durableStoreConfigured ? [] : ["pay-durable-store-not-configured"]),
+    ...(payStatus.capabilities?.productionDurableStoreConfigured
+      ? []
+      : ["pay-production-database-not-configured"]),
     ...(payStatus.capabilities?.privatePoolOperatorConfigured
       ? []
       : ["pay-private-pool-operator-not-configured"]),
+    ...(payStatus.capabilities?.privatePoolOperatorAuthConfigured
+      ? []
+      : ["pay-private-pool-operator-auth-not-configured"]),
+    ...(payStatus.capabilities?.productionLaunchApproved
+      ? []
+      : ["pay-production-launch-approval-not-recorded"]),
     ...(privateSettlement.liveMainnetPrivateSettlementAvailable
       ? []
       : ["private-settlement-not-live-mainnet"]),
@@ -77,8 +86,15 @@ if (jsonMode) {
   console.log(`- mainnetReady: ${String(status.mainnetReady)}`);
   console.log(`- durableStoreConfigured: ${String(status.payStatus.capabilities.durableStoreConfigured)}`);
   console.log(
+    `- productionDurableStoreConfigured: ${String(status.payStatus.capabilities.productionDurableStoreConfigured)}`,
+  );
+  console.log(
     `- privatePoolOperatorConfigured: ${String(status.payStatus.capabilities.privatePoolOperatorConfigured)}`,
   );
+  console.log(
+    `- privatePoolOperatorAuthConfigured: ${String(status.payStatus.capabilities.privatePoolOperatorAuthConfigured)}`,
+  );
+  console.log(`- productionLaunchApproved: ${String(status.payStatus.capabilities.productionLaunchApproved)}`);
   console.log(
     `- liveMainnetPrivateSettlementAvailable: ${String(status.privateSettlement.liveMainnetPrivateSettlementAvailable)}`,
   );

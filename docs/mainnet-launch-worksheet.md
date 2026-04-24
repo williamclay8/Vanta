@@ -174,3 +174,18 @@ As of April 20, 2026:
 - Mainnet funds: not approved.
 
 Next practical step: keep the live scope inside the bounded beta private-pool approval recorded in `ops/mainnet/mainnet-real-funds-approval.evidence.json`, or create a new approval before changing the action, launch window, fee payer, or funds at risk. Pay restore readback, provider backup/PITR/encryption/access-audit/least-privilege evidence, secret-manager audit/rotation evidence, audit, and legal/compliance/custody review are operator-skipped controls, not completed controls. Do not paste credentials, legal text, audit exploit details, wallet keys, or signed transactions.
+
+## Pay Production Release Checklist
+
+- [ ] Pay operator deployed with `NODE_ENV=production`.
+- [ ] Pay operator uses secret-manager refs for `VANTA_PAY_SECRET_KEY`, `VANTA_PAY_WEBHOOK_SECRET`, `VANTA_PAY_DATABASE_URL`, `VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_URL`, and `VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN`.
+- [ ] `npm run pay:status-json` reports `durableStoreConfigured: true`.
+- [ ] `npm run pay:status-json` reports `productionDurableStoreConfigured: true`.
+- [ ] `npm run pay:status-json` reports `privatePoolOperatorConfigured: true`.
+- [ ] `npm run pay:status-json` reports `privatePoolOperatorAuthConfigured: true`.
+- [ ] `npm run mainnet:private-settlement-status -- --json` reports `liveMainnetPrivateSettlementAvailable: true`.
+- [ ] `npm run mainnet:private-settlement-status -- --json` reports `privacyClaimAllowed: true`.
+- [ ] Active bounded real-funds approval exists for the exact Pay production action, not only a Private Pool smoke.
+- [ ] Third-party security audit evidence is recorded.
+- [ ] Legal/compliance/custody review is recorded.
+- [ ] Pay restore readback and provider backup controls are either completed evidence or explicitly recorded as accepted launch risk; accepted risk does not by itself make `productionReady` true.

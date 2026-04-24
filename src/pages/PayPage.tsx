@@ -25,17 +25,19 @@ function PayButton({
   children,
   disabled = false,
   onClick,
+  type = "button",
 }: {
   children: string;
   disabled?: boolean;
   onClick?: () => void;
+  type?: "button" | "submit";
 }) {
   return (
     <button
       className="button button-primary"
       disabled={disabled}
       onClick={onClick}
-      type="button"
+      type={type}
     >
       {children}
     </button>
@@ -124,6 +126,14 @@ export function PayPage() {
   const [copied, setCopied] = useState(false);
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
 
+  function resetLifecycleForEdit() {
+    if (checkoutRecord || phase !== "draft") {
+      setCheckoutRecord(null);
+      setPhase("draft");
+      setCopied(false);
+    }
+  }
+
   const paymentLabel = title.trim() || "Untitled payment";
   const amountLabel = useMemo(() => {
     const trimmedAmount = amount.trim();
@@ -156,14 +166,7 @@ export function PayPage() {
         ? "Checkout session created"
         : "Draft";
 
-  function createCheckoutSession() {
-    setHasAttemptedSubmit(true);
-    setCopied(false);
-
-    if (formHasErrors) {
-      return;
-    }
-
+  function buildCheckoutSessionRecord() {
     const slug =
       title
         .trim()
@@ -172,8 +175,7 @@ export function PayPage() {
         .replace(/^-|-$/g, "") || "payment";
     const timestamp = Date.now().toString(36);
 
-    setPhase("checkout_created");
-    setCheckoutRecord({
+    return {
       amount: amount.trim(),
       asset,
       checkoutSessionId: `checkout_session_test_${slug}_${timestamp}`,
@@ -182,7 +184,22 @@ export function PayPage() {
       createdAt: new Date().toLocaleString(),
       customer: customerLabel,
       title: paymentLabel,
-    });
+    } satisfies TestCheckoutRecord;
+  }
+
+  function createCheckoutSession() {
+    setHasAttemptedSubmit(true);
+    setCopied(false);
+
+    if (formHasErrors) {
+      return null;
+    }
+
+    const nextRecord = buildCheckoutSessionRecord();
+
+    setPhase("checkout_created");
+    setCheckoutRecord(nextRecord);
+    return nextRecord;
   }
 
   function completeTestSettlement() {
@@ -208,15 +225,19 @@ export function PayPage() {
     setPhase("settlement_complete");
   }
 
-  function copyTestLink() {
-    if (!createdRecord) {
-      createCheckoutSession();
+  async function copyTestLink() {
+    const record = createdRecord ?? createCheckoutSession();
+    if (!record) {
       return;
     }
 
-    void navigator.clipboard?.writeText(createdRecord.checkoutUrl);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1800);
+    try {
+      await navigator.clipboard?.writeText(record.checkoutUrl);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      setCopied(false);
+    }
   }
 
   return (
@@ -248,12 +269,22 @@ export function PayPage() {
                   <p>Create a test checkout session before any live approval or settlement.</p>
                 </header>
 
-                <form aria-label="Payment form" className="pay-form pay-form--minimal">
+                <form
+                  aria-label="Payment form"
+                  className="pay-form pay-form--minimal"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    createCheckoutSession();
+                  }}
+                >
                   <PayField
                     error={visibleTitleError}
                     label="Description"
                     name="payment-title"
-                    onChange={setTitle}
+                    onChange={(value) => {
+                      setTitle(value);
+                      resetLifecycleForEdit();
+                    }}
                     placeholder="Design retainer"
                     value={title}
                   />
@@ -261,7 +292,10 @@ export function PayPage() {
                     error={visibleAmountError}
                     label="Amount"
                     name="payment-amount"
-                    onChange={setAmount}
+                    onChange={(value) => {
+                      setAmount(value);
+                      resetLifecycleForEdit();
+                    }}
                     placeholder="0.00"
                     type="number"
                     value={amount}
@@ -277,7 +311,10 @@ export function PayPage() {
                     error={emailError}
                     label="Customer email"
                     name="customer-email"
-                    onChange={setCustomerEmail}
+                    onChange={(value) => {
+                      setCustomerEmail(value);
+                      resetLifecycleForEdit();
+                    }}
                     placeholder="customer@example.com"
                     type="email"
                     value={customerEmail}
@@ -293,7 +330,10 @@ export function PayPage() {
                         <button
                           aria-pressed={checkoutMode === value}
                           key={value}
-                          onClick={() => setCheckoutMode(value as CheckoutMode)}
+                          onClick={() => {
+                            setCheckoutMode(value as CheckoutMode);
+                            resetLifecycleForEdit();
+                          }}
                           type="button"
                         >
                           {label}
@@ -302,9 +342,7 @@ export function PayPage() {
                     </div>
                   </label>
                   <PayButton
-                    onClick={() => {
-                      createCheckoutSession();
-                    }}
+                    type="submit"
                   >
                     Create checkout session
                   </PayButton>
@@ -360,7 +398,11 @@ export function PayPage() {
               <div className="pay-trust-line">
                 <span>Local operator harness</span>
                 <span>Payment record</span>
-                <span>Private rail receipt confirmed</span>
+                <span>
+                  {phase === "settlement_complete"
+                    ? "Private rail receipt confirmed"
+                    : "Private rail receipt pending"}
+                </span>
                 <span>No production funds moved.</span>
               </div>
             </section>
@@ -415,7 +457,7 @@ export function PayPage() {
               <section className="pay-record-panel" aria-live="polite">
                 <div>
                   <span>Payment records</span>
-                  <strong>{createdRecord ? createdRecord.title : "No preview checkout created yet."}</strong>
+                  <strong>{createdRecord ? createdRecord.title : "No test checkout session created yet."}</strong>
                 </div>
                 {createdRecord ? (
                   <dl className="pay-record-list">
@@ -465,7 +507,7 @@ export function PayPage() {
                       <dt>Rail</dt>
                       <dd>
                         {phase === "settlement_complete"
-                          ? "Private rail receipt confirmed"
+                          ? "Private rail receipt confirmed by test harness"
                           : "Private rail receipt pending"}
                       </dd>
                     </div>
@@ -475,7 +517,7 @@ export function PayPage() {
                     </div>
                   </dl>
                 ) : (
-                  <p>No preview checkout created yet.</p>
+                  <p>No test checkout session created yet.</p>
                 )}
                 {phase === "settlement_complete" ? (
                   <p>No production funds moved. Production privacy claims remain locked.</p>
@@ -507,7 +549,8 @@ export function PayPage() {
             <div className="pay-success-card pay-success-card--truth">
               <strong>Vanta Pay is in test mode.</strong>
               <span>
-                It is not a production payment processor, live mainnet settlement system, or final privacy guarantee. No production funds moved.
+                It is not a production payment processor, live mainnet settlement system, or final
+                privacy guarantee. No production funds moved.
               </span>
             </div>
           </article>

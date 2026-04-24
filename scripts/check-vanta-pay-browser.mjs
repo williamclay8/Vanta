@@ -66,7 +66,7 @@ function runBrowserBatch() {
         { kind: "text_visible", text: "Prepare refund" },
         { kind: "text_visible", text: "Prepare withdrawal" },
         { kind: "text_visible", text: "Payment records" },
-        { kind: "text_visible", text: "No preview checkout created yet." },
+        { kind: "text_visible", text: "No test checkout session created yet." },
         { kind: "text_visible", text: "Payment links" },
         { kind: "text_visible", text: "Invoices" },
         { kind: "text_visible", text: "Operations" },

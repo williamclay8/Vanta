@@ -5,7 +5,7 @@ Vanta Pay is the merchant side of Vanta.
 The simple version: merchants and customers should not need to understand the
 privacy system before they can understand a payment.
 
-Current truth: `/app/pay` is a test-mode merchant checkout cockpit, not a finished production payments network. It should create and review checkout sessions, show receipt-backed test payment records when the local/operator harness confirms a private rail receipt, and keep production limits visible before anything sounds live.
+Current truth: `/app/pay` is a test-mode merchant checkout cockpit, not a finished production payments network. It should create and review checkout sessions, show receipt-backed test payment records when the local/operator harness records a private rail receipt, and keep production limits visible before anything sounds live.
 
 Production privacy claims are not enabled yet. Test-mode completion is not the same as live mainnet private payment readiness.
 
@@ -16,7 +16,8 @@ instead of asking merchants or customers to reason about protocol internals.
 
 Today, that means:
 
-- checkout preview handling
+- test-mode checkout session handling
+- receipt-backed test payment records from the local/operator harness
 - settlement receipts from the private settlement adapter when an operator rail is configured
 - simulation-bound approval before wallet action
 - typed status surfaces instead of implicit assumptions
@@ -26,16 +27,16 @@ Today, that means:
 The Pay tab should stay action-first. On `/app/pay`, the visible inputs and
 review fields are:
 
-- `Payment details`, `What are you collecting for?`, `Amount`, `Asset`, `Customer email`, and `Review payment`
+- `Payment details`, `Description`, `Amount`, `Asset`, `Customer email`, `Checkout type`, and `Review payment`
 
 The visible suite inventory can include checkout, payment links, invoices,
 subscriptions, refunds, withdrawals, reconciliation, developer controls, API
 keys, and signed webhooks, but the page should keep the payment request path
 first.
 
-Route preview, receipt path preview, transaction evidence, and beta disabled
-state remain visible alongside trust and privacy-readiness limits so the tab
-does not imply live funds.
+Checkout session, client token, receipt-backed test payment record, and locked
+production limits remain visible alongside trust and privacy-readiness limits so
+the tab does not imply live funds.
 
 The merchant API, status, approval packet, refunds, withdrawals, reconciliation, payment links, invoices, and webhook delivery still live in the Pay backend and verification commands. The default Pay tab may show read-only operations context, but it must not claim live production processing.
 
@@ -46,7 +47,7 @@ The approval packet keeps the action boundary fixed as:
 - `execute`
 - `settle`
 
-In one line: Pay should feel like a merchant tool for previewing private
+In one line: Pay should feel like a merchant tool for completing test-mode
 payment work, not a protocol console or production processor.
 
 ## What the commands prove

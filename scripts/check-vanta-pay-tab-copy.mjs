@@ -52,7 +52,7 @@ const requiredPageCopy = [
   "Prepare refund",
   "Prepare withdrawal",
   "Payment records",
-  "No preview checkout created yet.",
+  "No test checkout session created yet.",
   "Payment links",
   "Invoices",
   "Refunds",
