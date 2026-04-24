@@ -69,7 +69,7 @@ assert.ok(
 );
 assert.equal(
   evidence.protocolEnforcementLayer,
-  "operator-claim-preflight-and-accepted-reservation-only",
+  "operator-claim-preflight-plus-verifier-receipt-idempotency-plus-indexer-nullifier-registration",
   "Evidence must keep the current protocol enforcement layer explicit.",
 );
 assert.equal(
@@ -92,7 +92,7 @@ assert.equal(evidence.productionSmokeReplaySimulationStatus, "pass");
 assert.equal(evidence.productionSmokeReplaySimulationHttpStatus, 400);
 assert.equal(
   evidence.protocolEnforcementFinalLayerImplemented,
-  false,
+  true,
   "Evidence must keep final protocol enforcement implementation explicit.",
 );
 assert.equal(

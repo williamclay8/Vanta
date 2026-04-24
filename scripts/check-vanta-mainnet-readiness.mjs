@@ -27,9 +27,9 @@ assert.equal(
 );
 assert.equal(
   snapshot.nullifierReplay.protocolEnforcementLayer,
-  "operator-claim-preflight-and-accepted-reservation-only",
+  "operator-claim-preflight-plus-verifier-receipt-idempotency-plus-indexer-nullifier-registration",
 );
-assert.equal(snapshot.nullifierReplay.protocolEnforcementFinalLayerImplemented, false);
+assert.equal(snapshot.nullifierReplay.protocolEnforcementFinalLayerImplemented, true);
 assert.equal(snapshot.nullifierReplay.protocolEnforcementFinalLayerProductionReady, false);
 assert.equal(snapshot.nullifierReplay.roleServiceNetworkReplayVerified, true);
 assert.equal(snapshot.realFundsApproval.realFundsApprovalRecorded, true);
