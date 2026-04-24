@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 
 const productionServicesManifestPath = new URL("../ops/mainnet/private-pool-v2-services.manifest.json", import.meta.url);
 const productionSmokeEvidencePath = new URL("../ops/mainnet/private-pool-v2-production-smoke.evidence.json", import.meta.url);
+const nullifierReplayEvidencePath = new URL("../ops/mainnet/private-pool-v2-nullifier-replay.evidence.json", import.meta.url);
 const requireAuth = process.argv.includes("--require-auth") || process.argv.includes("--check");
 const jsonMode = process.argv.includes("--json");
 const checkMode = process.argv.includes("--check");
@@ -22,6 +23,10 @@ function readProductionSmokeReplayTarget() {
     throw new Error("Missing nullifier-replay-simulation in production smoke evidence.");
   }
   return target;
+}
+
+function readNullifierReplayEvidence() {
+  return JSON.parse(readFileSync(nullifierReplayEvidencePath, "utf8"));
 }
 
 function operatorConfig() {
@@ -75,6 +80,7 @@ async function requestJson({ authToken, url }) {
 
 function summarize(config, payload, status) {
   const productionSmokeReplayTarget = readProductionSmokeReplayTarget();
+  const replayEvidence = readNullifierReplayEvidence();
   const acceptedNullifierCount =
     typeof payload.nullifierReplayGuard?.acceptedNullifierCount === "number"
       ? payload.nullifierReplayGuard.acceptedNullifierCount
@@ -101,11 +107,10 @@ function summarize(config, payload, status) {
     rateLimiter: payload.trafficControls?.rateLimiter ?? null,
     runtimeMode: payload.runtime?.mode ?? null,
     runtimeProductionReady: payload.runtime?.productionReady ?? false,
-    roleServiceNetworkReplayBarrier:
-      "verifier-receipt-idempotency-and-indexer-nullifier-registration",
-    roleServiceReplayEvidenceRef: "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
-    roleServiceNetworkReplayRef: "npm run private-pool-v2:service-network-check",
-    roleServiceNetworkReplayVerified: true,
+    roleServiceNetworkReplayBarrier: replayEvidence.roleServiceNetworkReplayBarrier,
+    roleServiceReplayEvidenceRef: replayEvidence.roleServiceReplayEvidenceRef,
+    roleServiceNetworkReplayRef: replayEvidence.roleServiceNetworkReplayRef,
+    roleServiceNetworkReplayVerified: replayEvidence.roleServiceNetworkReplayVerified,
     safety:
       "No auth token values, database URLs, bearer values, wallet keys, or signed transaction material are printed.",
     status,
@@ -118,15 +123,10 @@ function summarize(config, payload, status) {
     nullifierReplayGuardStorageMode: payload.nullifierReplayGuard?.storageMode ?? null,
     nullifierReplayGuardProductionReady: payload.nullifierReplayGuard?.productionReady ?? false,
     nullifierReplayReservedCount: reservedNullifierCount,
-    productionSmokeReplaySimulationRef:
-      "ops/mainnet/private-pool-v2-production-smoke.evidence.json#nullifier-replay-simulation",
+    productionSmokeReplaySimulationRef: replayEvidence.productionSmokeReplaySimulationRef,
     productionSmokeReplaySimulationStatus: productionSmokeReplayTarget.status ?? null,
     productionSmokeReplaySimulationHttpStatus: productionSmokeReplayTarget.replayStatus ?? null,
-    productionReplayBlockedBy: [
-      "no-real-funds-smoke-only",
-      "no-proven-audited-shared-anonymity-set",
-      "no-live-mainnet-private-settlement-path",
-    ],
+    productionReplayBlockedBy: replayEvidence.productionReplayBlockedBy,
     protocolEnforcementFinalLayerImplemented: payload.protocolEnforcement?.finalLayerImplemented ?? false,
     protocolEnforcementFinalLayerProductionReady: payload.protocolEnforcement?.finalLayerProductionReady ?? false,
     protocolEnforcementLayer: payload.protocolEnforcement?.layer ?? null,
@@ -159,6 +159,7 @@ if (requireAuth) {
 const result = response.parsed
   ? summarize(config, response.parsed, response.status)
   : {
+      ...readNullifierReplayEvidence(),
       authenticatedStatusCommand: authShellCommand,
       authTokenEnv: config.authTokenEnv,
       authTokenStatus: config.authToken ? "set" : "missing",
@@ -172,23 +173,12 @@ const result = response.parsed
       operatorUrlSource: config.urlSource,
       productionReady: false,
       productionSmokeReplaySimulationHttpStatus: null,
-      productionSmokeReplaySimulationRef:
-        "ops/mainnet/private-pool-v2-production-smoke.evidence.json#nullifier-replay-simulation",
       productionSmokeReplaySimulationStatus: null,
-      productionReplayBlockedBy: [
-        "no-real-funds-smoke-only",
-        "no-proven-audited-shared-anonymity-set",
-        "no-live-mainnet-private-settlement-path",
-      ],
       protocolEnforcementFinalLayerImplemented: false,
       protocolEnforcementFinalLayerProductionReady: false,
       protocolEnforcementLayer: null,
       rateLimitPerMinute: null,
       rateLimiter: null,
-      roleServiceNetworkReplayBarrier: "verifier-receipt-idempotency-and-indexer-nullifier-registration",
-      roleServiceReplayEvidenceRef: "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
-      roleServiceNetworkReplayRef: "npm run private-pool-v2:service-network-check",
-      roleServiceNetworkReplayVerified: true,
       runtimeMode: null,
       runtimeProductionReady: false,
       safety:
