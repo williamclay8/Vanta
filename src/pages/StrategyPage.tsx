@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
 import { describePricingForSurface } from "@/pricing/vantaPricing";
-import { createStrategyExecutionPreview } from "@/strategy/strategyExecutionAdapter.mjs";
 import { createStrategyPlan, type VantaStrategyPlan } from "@/strategy/strategyPlanner.mjs";
 import { createVantaStrategyRuntime, type VantaStrategyRecord } from "@/strategy/strategyRuntime.mjs";
 import {
@@ -78,18 +77,6 @@ const defaultForm: StrategyFormState = {
 
 function deriveStrategyPair(form: Pick<StrategyFormState, "asset" | "side">) {
   return form.side === "Sell" ? `${form.asset} -> USDC` : `USDC -> ${form.asset}`;
-}
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("en-US", {
-    currency: "USD",
-    maximumFractionDigits: 0,
-    style: "currency",
-  }).format(value);
-}
-
-function formatPreviewCurrency(value: number | null) {
-  return value === null ? "--" : formatCurrency(value);
 }
 
 function StrategySelect({
@@ -183,19 +170,6 @@ export function StrategyPage() {
     });
   }, [effectiveTimeWindow, form, parsedAmount.value, parsedSlippage.value, strategyPair]);
 
-  const executionPreview = useMemo(
-    () =>
-      strategyPlan
-        ? createStrategyExecutionPreview(strategyPlan, {
-            currentSlippageBps: parsedSlippage.value ?? 0,
-            protectedLandingAvailable: true,
-            protectedLandingPolicy: "retry",
-            routeQuality: "healthy",
-          })
-        : null,
-    [parsedSlippage.value, strategyPlan],
-  );
-  const firstExecutionJob = executionPreview?.childJobs[0] ?? null;
   const strategyClientRequestId = useMemo(() => {
     if (parsedAmount.value === null || parsedSlippage.value === null || effectiveTimeWindow === null) {
       return null;
@@ -527,52 +501,6 @@ export function StrategyPage() {
             <strong>{strategyPricing.feeLabel}</strong>
             <span>{strategyPricing.passThroughLabel}</span>
           </div>
-          <section className="strategy-card strategy-card--secondary">
-            <div className="strategy-card__header">
-              <div>
-                <span className="strategy-kicker">Before you run it</span>
-                <h2>Execution preview</h2>
-              </div>
-            </div>
-            <div className="strategy-detail-grid">
-              <div className="strategy-funding-line">
-                <span>Pair</span>
-                <strong>{strategyPair}</strong>
-              </div>
-              <div className="strategy-funding-line">
-                <span>Amount</span>
-                <strong>{formatPreviewCurrency(parsedAmount.value)}</strong>
-              </div>
-              <div className="strategy-funding-line">
-                <span>Duration</span>
-                <strong>{effectiveTimeWindow ?? "--"}</strong>
-              </div>
-              <div className="strategy-funding-line">
-                <span>Child orders</span>
-                <strong>{strategyPlan ? String(strategyPlan.childOrders.length) : "--"}</strong>
-              </div>
-              <div className="strategy-funding-line">
-                <span>Average child size</span>
-                <strong>{strategyPlan ? formatCurrency(strategyPlan.averageChildSize) : "--"}</strong>
-              </div>
-              <div className="strategy-funding-line">
-                <span>Funding</span>
-                <strong>{strategyPlan ? strategyPlan.fundingAction.replace(/-/gu, " ") : "--"}</strong>
-              </div>
-              <div className="strategy-funding-line">
-                <span>Route</span>
-                <strong>{firstExecutionJob?.route.engine ?? strategyPlan?.routingPolicy.routeEngine ?? "Jupiter"}</strong>
-              </div>
-              <div className="strategy-funding-line">
-                <span>Landing</span>
-                <strong>{firstExecutionJob?.landing.transport ?? "Jito"}</strong>
-              </div>
-              <div className="strategy-funding-line">
-                <span>Live execution</span>
-                <strong>{executionPreview?.liveSubmission ? "Live submission on" : "Live submission off"}</strong>
-              </div>
-            </div>
-          </section>
 
           {submittedResult && submittedPlan ? (
             <section className="strategy-card strategy-card--secondary" role="status">

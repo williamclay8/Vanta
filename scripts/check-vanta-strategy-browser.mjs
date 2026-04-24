@@ -146,6 +146,7 @@ try {
             text: "If live execution ships later, external execution costs should stay separate.",
           },
           { kind: "text_hidden", text: "0.25% on successful strategy execution" },
+          { kind: "text_hidden", text: "Execution preview" },
           { kind: "text_hidden", text: "Schedule strategy" },
           {
             kind: "text_visible",
@@ -176,6 +177,7 @@ try {
             text: "If live execution ships later, external execution costs should stay separate.",
           },
           { kind: "text_hidden", text: "0.25% on successful strategy execution" },
+          { kind: "text_hidden", text: "Execution preview" },
           {
             kind: "text_visible",
             text: "Preview routing, funding, and landing behavior while live strategy execution remains preview-only.",
@@ -234,6 +236,7 @@ try {
             text: "If live execution ships later, external execution costs should stay separate.",
           },
           { kind: "text_hidden", text: "0.25% on successful strategy execution" },
+          { kind: "text_hidden", text: "Execution preview" },
           {
             kind: "text_visible",
             text: "Preview routing, funding, and landing behavior while live strategy execution remains preview-only.",

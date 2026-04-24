@@ -57,6 +57,7 @@ const bannedStrategyCopy = [
   "completely invisible whale buying",
   "Create strategy",
   "0.25% on successful strategy execution",
+  "Execution preview",
 ];
 
 function sleep(ms) {
