@@ -71,10 +71,15 @@ assert.ok(umbraRail.currentEvidenceRefs.includes("npm run mainnet:wallet-signing
 
 const privatePoolRail = contract.rails.find((candidate) => candidate.id === "vanta-private-pool-v2");
 assert.ok(privatePoolRail.requiredEvidence.includes("VANTA_PRIVATE_POOL_V2_PRODUCTION_SMOKE_EVIDENCE_REF"));
+assert.ok(privatePoolRail.requiredEvidence.includes("VANTA_PRIVATE_POOL_V2_ANONYMITY_SET_REF"));
+assert.ok(privatePoolRail.requiredEvidence.includes("VANTA_PRIVATE_POOL_V2_PRODUCTION_ANONYMITY_METRICS_REF"));
+assert.ok(privatePoolRail.blockers.includes("no-proven-audited-shared-anonymity-set"));
+assert.ok(privatePoolRail.blockers.includes("no-production-anonymity-set-metrics"));
 assert.ok(privatePoolRail.blockers.some((blocker) => blocker.includes("no-real-funds smoke evidence")));
 assert.ok(privatePoolRail.currentEvidenceRefs.includes("ops/mainnet/private-pool-v2-production-smoke.evidence.json"));
 assert.ok(privatePoolRail.currentEvidenceRefs.includes("ops/mainnet/private-pool-v2-nullifier-replay.evidence.json"));
 assert.ok(privatePoolRail.currentEvidenceRefs.includes("ops/mainnet/private-pool-v2-route-health.evidence.json"));
+assert.ok(privatePoolRail.currentEvidenceRefs.includes("npm run private-pool-v2:anonymity-set-readiness-check"));
 
 assert.ok(
   contract.requiredVerificationCommands.includes("npm run privacy-rail:contract-check"),
@@ -95,6 +100,10 @@ assert.ok(
 assert.ok(
   contract.requiredVerificationCommands.includes("npm run mainnet:production-smoke-evidence-check"),
   "Privacy rail contract must include production smoke evidence command.",
+);
+assert.ok(
+  contract.requiredVerificationCommands.includes("npm run private-pool-v2:anonymity-set-readiness-check"),
+  "Privacy rail contract must include anonymity-set readiness command.",
 );
 assert.ok(
   packageJson.scripts["privacy-rail:contract-check"] === "node scripts/check-vanta-privacy-rail-contract.mjs",

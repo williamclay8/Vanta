@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 
 import { createVantaMainnetRealFundsApprovalStatus } from "./mainnetRealFundsApprovalStatus.mjs";
+import { createVantaPrivatePoolV2AnonymitySetReadiness } from "./privatePoolV2AnonymitySetReadiness.mjs";
 import { createVantaPrivacyRailContract } from "./privacyRailContract.mjs";
 
 const productionSmokeEvidencePath = new URL("../../ops/mainnet/private-pool-v2-production-smoke.evidence.json", import.meta.url);
@@ -12,6 +13,7 @@ export function createVantaMainnetPrivateSettlementStatus() {
   const routeHealthEvidence = JSON.parse(readFileSync(routeHealthEvidencePath, "utf8"));
   const nullifierReplayEvidence = JSON.parse(readFileSync(nullifierReplayEvidencePath, "utf8"));
   const realFundsApproval = createVantaMainnetRealFundsApprovalStatus();
+  const anonymitySetReadiness = createVantaPrivatePoolV2AnonymitySetReadiness();
   const privacyRail = createVantaPrivacyRailContract({ activeRailId: "vanta-private-pool-v2" });
 
   const routeHealthPublicPassed = routeHealthEvidence.services.every((service) => service.publicHealth === "passed");
@@ -34,6 +36,7 @@ export function createVantaMainnetPrivateSettlementStatus() {
 
   return {
     activePrivacyRailId: privacyRail.activeRailId,
+    anonymitySetReadiness,
     auditedSharedAnonymitySetAvailable: false,
     boundedRealFundsApprovalWindowActive,
     checkedAt: new Date().toISOString(),
@@ -41,6 +44,8 @@ export function createVantaMainnetPrivateSettlementStatus() {
       "ops/mainnet/private-pool-v2-route-health.evidence.json",
       "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
       "ops/mainnet/private-pool-v2-nullifier-replay.evidence.json",
+      "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
+      "ops/mainnet/service-deployment.evidence.json",
       "ops/mainnet/mainnet-real-funds-approval.evidence.json",
     ],
     deploymentTruth: `Vanta Private Pool v2 currently has authenticated route-health across deployed production role services, no-real-funds production smoke coverage, and a deployed final replay protocol layer, but it still must not be presented as live mainnet private settlement because there is no proven audited shared anonymity set, no live mainnet private settlement path, and ${approvalWindowTruth}.`,
@@ -49,7 +54,9 @@ export function createVantaMainnetPrivateSettlementStatus() {
     liveMainnetPrivateSettlementAvailable: false,
     mainnetReady: false,
     meaningfulPrivacyReady: false,
-    meaningfulPrivacyBlockedBy,
+    meaningfulPrivacyBlockedBy: [
+      ...new Set([...anonymitySetReadiness.blockers, ...meaningfulPrivacyBlockedBy]),
+    ],
     noRealFundsSmokeOnly: productionSmokeEvidence.realFundsAllowed === false,
     privacyClaimAllowed: false,
     privacyRailCanClaimMeaningfulPrivacy: privacyRail.activeRail.canClaimMeaningfulPrivacy,

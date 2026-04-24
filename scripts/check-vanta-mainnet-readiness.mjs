@@ -97,6 +97,13 @@ assert.equal(snapshot.privateSettlement.privacyClaimAllowed, false);
 assert.equal(snapshot.privateSettlement.noRealFundsSmokeOnly, true);
 assert.equal(snapshot.privateSettlement.productionReady, false);
 assert.equal(snapshot.privateSettlement.mainnetReady, false);
+assert.equal(
+  snapshot.privateSettlement.anonymitySetReadiness?.version,
+  "vanta-private-pool-v2-anonymity-set-readiness-0.1",
+);
+assert.equal(snapshot.privateSettlement.anonymitySetReadiness?.anonymitySetReadiness, "blocked");
+assert.equal(snapshot.privateSettlement.anonymitySetReadiness?.minimumDistinctCommitments, 1024);
+assert.equal(snapshot.privateSettlement.anonymitySetReadiness?.liveMainnetPrivateSettlementAvailable, false);
 assert.ok(
   snapshot.privateSettlement.deploymentTruth.includes("must not be presented as live mainnet private settlement"),
 );
@@ -106,6 +113,8 @@ assert.equal(snapshot.privateSettlement.boundedRealFundsApprovalWindowActive, fa
 assert.deepEqual(snapshot.privateSettlement.meaningfulPrivacyBlockedBy, [
   "no-proven-audited-shared-anonymity-set",
   "no-live-mainnet-private-settlement-path",
+  "no-third-party-audit",
+  "no-production-anonymity-set-metrics",
   ...(snapshot.privateSettlement.boundedRealFundsApprovalWindowActive ? [] : ["no-active-bounded-real-funds-approval-window"]),
 ]);
 assert.equal(snapshot.walletSigning.checkedEvidenceRef, "ops/mainnet/wallet-signing-safety.evidence.json");

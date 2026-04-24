@@ -37,11 +37,9 @@ function patchRelativeImports(relativePath) {
 }
 
 function assertNoRawTerms(request, rawTerms) {
-  const serialized = JSON.stringify({
-    amountBaseUnits: request.amountBaseUnits.toString(),
-    assetId: request.assetId,
-    publicInputs: request.publicInputs,
-  });
+  const serialized = JSON.stringify(request, (_, value) =>
+    typeof value === "bigint" ? value.toString() : value,
+  );
 
   for (const term of rawTerms) {
     assert(!serialized.includes(term), `Hidden economics request leaked raw term: ${term}.`);

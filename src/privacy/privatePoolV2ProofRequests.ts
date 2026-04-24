@@ -242,11 +242,15 @@ export function createVantaPrivatePoolV2HiddenEconomicsProofRequest({
     throw new Error("Hidden economics proof request requires a nullifier or replay commitment.");
   }
 
-  if (!routeCommitment.trim()) {
-    throw new Error("Hidden economics proof request requires a route commitment.");
-  }
+	  if (!routeCommitment.trim()) {
+	    throw new Error("Hidden economics proof request requires a route commitment.");
+	  }
 
-  const resolvedEconomicsCommitment =
+	  if (economicsCommitment !== undefined && !economicsCommitment.trim()) {
+	    throw new Error("Hidden economics proof request economics commitment cannot be blank.");
+	  }
+
+	  const resolvedEconomicsCommitment =
     economicsCommitment ??
     hashParts(
       VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_PROOF_REQUEST_VERSION,

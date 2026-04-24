@@ -13,6 +13,12 @@ if (checkMode) {
   assert.equal(result.mainnetReady, false);
   assert.equal(result.productionReady, false);
   assert.equal(result.meaningfulPrivacyReady, false);
+  assert.equal(
+    result.anonymitySetReadiness?.version,
+    "vanta-private-pool-v2-anonymity-set-readiness-0.1",
+  );
+  assert.equal(result.anonymitySetReadiness?.anonymitySetReadiness, "blocked");
+  assert.equal(result.anonymitySetReadiness?.minimumDistinctCommitments, 1024);
   assert.equal(result.auditedSharedAnonymitySetAvailable, false);
   assert.equal(result.liveMainnetPrivateSettlementAvailable, false);
   assert.equal(result.privacyClaimAllowed, false);
@@ -53,6 +59,8 @@ if (jsonMode || checkMode) {
   console.log(`- realFundsApprovalWindowStatus: ${result.realFundsApprovalWindowStatus}`);
   console.log(`- boundedRealFundsApprovalWindowActive: ${String(result.boundedRealFundsApprovalWindowActive)}`);
   console.log(`- auditedSharedAnonymitySetAvailable: ${String(result.auditedSharedAnonymitySetAvailable)}`);
+  console.log(`- anonymitySetReadiness: ${result.anonymitySetReadiness.anonymitySetReadiness}`);
+  console.log(`- minimumDistinctCommitments: ${result.anonymitySetReadiness.minimumDistinctCommitments}`);
   console.log(
     `- liveMainnetPrivateSettlementAvailable: ${String(result.liveMainnetPrivateSettlementAvailable)}`,
   );

@@ -17,6 +17,7 @@ const requiredPhrases = [
   "No audit claim",
   "No custody claim",
   "No anonymity-set claim",
+  "Private Pool v2 anonymity-set readiness is now a checked fail-closed operator/readiness surface",
   "Status surfaces report productionReady: false",
   "Browser-exposed operator tokens are not production secrets",
   "Live mainnet submission mode can be enabled in bounded operator windows",

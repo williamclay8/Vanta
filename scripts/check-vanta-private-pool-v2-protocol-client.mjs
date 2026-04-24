@@ -141,6 +141,82 @@ try {
   const emptyStatus = await fetchVantaPrivatePoolV2ProtocolSettlementStatus({ authToken, baseUrl });
   assert(emptyStatus?.protocolSettlementCount === 0, "Expected empty protocol settlement status.");
 
+  const committedSendSettlement = await requestVantaPrivatePoolV2ProtocolSettlement({
+    action: "send",
+    authToken,
+    baseUrl,
+    economicsCommitment: "0xcommittedsend_economics",
+    economicsMode: "committed-economics",
+    nullifierOrReplayCommitment: "0xcommittedsend_replay",
+    outputCommitment: "0xcommittedsend_output",
+    ownerCommitment: "0xcommittedsend_owner",
+    routeCommitment: "0xcommittedsend_route",
+    settlementCommitment: "0xcommittedsend_settlement",
+    settlementId: "protocol-client-committed-send",
+  });
+  assert(
+    committedSendSettlement?.protocolSettlementReceipt?.economicsMode === "committed-economics",
+    "Expected committed Send settlement receipt to preserve committed economics mode.",
+  );
+  assert(
+    committedSendSettlement?.protocolSettlementReceipt?.economicsCommitment ===
+      "0xcommittedsend_economics",
+    "Expected committed Send settlement receipt to preserve economics commitment.",
+  );
+  assert(
+    committedSendSettlement?.protocolSettlementReceipt?.settlementCommitment ===
+      "0xcommittedsend_settlement",
+    "Expected committed Send settlement receipt to preserve settlement commitment.",
+  );
+  assert(
+    !("amount" in committedSendSettlement.protocolSettlementReceipt),
+    "Expected committed Send settlement receipt to redact raw amount.",
+  );
+  assert(
+    !("asset" in committedSendSettlement.protocolSettlementReceipt),
+    "Expected committed Send settlement receipt to redact raw asset.",
+  );
+  assert(
+    !("destination" in committedSendSettlement.protocolSettlementReceipt),
+    "Expected committed Send settlement receipt to redact raw destination.",
+  );
+
+  const committedSwapSettlement = await requestVantaPrivatePoolV2ProtocolSettlement({
+    action: "swap",
+    authToken,
+    baseUrl,
+    economicsCommitment: "0xcommittedswap_economics",
+    economicsMode: "committed-economics",
+    inputCommitment: "0xcommittedswap_input",
+    nullifierOrReplayCommitment: "0xcommittedswap_replay",
+    outputCommitment: "0xcommittedswap_output",
+    ownerCommitment: "0xcommittedswap_owner",
+    routeCommitment: "0xcommittedswap_route",
+    settlementCommitment: "0xcommittedswap_settlement",
+    settlementId: "protocol-client-committed-swap",
+  });
+  assert(
+    committedSwapSettlement?.protocolSettlementReceipt?.economicsMode === "committed-economics",
+    "Expected committed Swap settlement receipt to preserve committed economics mode.",
+  );
+  assert(
+    committedSwapSettlement?.protocolSettlementReceipt?.economicsCommitment ===
+      "0xcommittedswap_economics",
+    "Expected committed Swap settlement receipt to preserve economics commitment.",
+  );
+  assert(
+    !("amount" in committedSwapSettlement.protocolSettlementReceipt),
+    "Expected committed Swap settlement receipt to redact raw amount.",
+  );
+  assert(
+    !("asset" in committedSwapSettlement.protocolSettlementReceipt),
+    "Expected committed Swap settlement receipt to redact raw asset.",
+  );
+  assert(
+    !("destination" in committedSwapSettlement.protocolSettlementReceipt),
+    "Expected committed Swap settlement receipt to redact raw destination.",
+  );
+
   const settlementRequests = [
     {
       action: "shield",
@@ -283,19 +359,19 @@ try {
 
   const finalStatus = await fetchVantaPrivatePoolV2ProtocolSettlementStatus({ authToken, baseUrl });
   assert(
-    finalStatus?.protocolSettlementCount === settlementRequests.length,
+    finalStatus?.protocolSettlementCount === settlementRequests.length + 2,
     "Expected typed status to report every protocol settlement.",
   );
   assert(
-    finalStatus?.protocolSettlements?.length === settlementRequests.length,
+    finalStatus?.protocolSettlements?.length === settlementRequests.length + 2,
     "Expected typed status to include every protocol settlement.",
   );
   assert(
-    finalStatus?.receiptCount === settlementRequests.length,
+    finalStatus?.receiptCount === settlementRequests.length + 2,
     "Expected one accepted proof receipt per protocol settlement in typed status.",
   );
   assert(
-    finalStatus?.receipts?.length === settlementRequests.length,
+    finalStatus?.receipts?.length === settlementRequests.length + 2,
     "Expected typed status receipts to include every protocol proof receipt.",
   );
 
@@ -334,11 +410,52 @@ try {
       );
     }
   }
+  for (const committedSettlement of [committedSendSettlement, committedSwapSettlement]) {
+    const statusSettlement = finalStatus.protocolSettlements.find(
+      (settlement) =>
+        settlement.protocolSettlementReceipt?.settlementId ===
+        committedSettlement.protocolSettlementReceipt.settlementId,
+    );
+    assert(statusSettlement, "Expected typed status to include committed economics settlement.");
+    assert(
+      statusSettlement.protocolSettlementReceipt.economicsMode === "committed-economics",
+      "Expected typed status to preserve committed economics mode.",
+    );
+    assert(
+      !("amount" in statusSettlement.protocolSettlementReceipt),
+      "Expected typed status committed settlement to redact raw amount.",
+    );
+    assert(
+      !("asset" in statusSettlement.protocolSettlementReceipt),
+      "Expected typed status committed settlement to redact raw asset.",
+    );
+    assert(
+      !("destination" in statusSettlement.protocolSettlementReceipt),
+      "Expected typed status committed settlement to redact raw destination.",
+    );
+  }
 
   const finalOperatorStatus = await fetchVantaPrivatePoolV2OperatorStatus({ authToken, baseUrl });
   assert(
-    finalOperatorStatus?.receiptCount === settlementRequests.length,
+    finalOperatorStatus?.receiptCount === settlementRequests.length + 2,
     "Expected typed operator status to report every protocol proof receipt.",
+  );
+  assert(
+    finalOperatorStatus?.operatorEconomicsExposure?.committedSettlementCount === 2,
+    "Expected typed operator status to report committed economics settlement count.",
+  );
+  assert(
+    finalOperatorStatus?.operatorEconomicsExposure?.rawSettlementCount === settlementRequests.length,
+    "Expected typed operator status to report raw economics settlement count.",
+  );
+  assert(
+    finalOperatorStatus?.anonymitySetReadiness?.version ===
+      "vanta-private-pool-v2-anonymity-set-readiness-0.1",
+    "Expected typed operator status to expose anonymity-set readiness.",
+  );
+  assert(
+    finalOperatorStatus?.anonymitySetReadiness?.anonymitySetReadiness === "blocked",
+    "Expected typed operator status to keep anonymity-set readiness blocked.",
   );
   assert(
     finalOperatorStatus?.shadowCommitmentCount === 2,

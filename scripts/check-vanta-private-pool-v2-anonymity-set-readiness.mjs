@@ -1,0 +1,120 @@
+import { strict as assert } from "node:assert";
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+const repoRoot = resolve(import.meta.dirname, "..");
+const readinessPath = resolve(repoRoot, "src/readiness/privatePoolV2AnonymitySetReadiness.mjs");
+const packagePath = resolve(repoRoot, "package.json");
+
+assert.ok(existsSync(readinessPath), "Missing src/readiness/privatePoolV2AnonymitySetReadiness.mjs.");
+
+const { createVantaPrivatePoolV2AnonymitySetReadiness } = await import(`file://${readinessPath}`);
+const result = createVantaPrivatePoolV2AnonymitySetReadiness();
+const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
+
+assert.equal(result.version, "vanta-private-pool-v2-anonymity-set-readiness-0.1");
+assert.equal(result.railId, "vanta-private-pool-v2");
+assert.equal(result.mainnetReady, false);
+assert.equal(result.productionReady, false);
+assert.equal(result.meaningfulPrivacyReady, false);
+assert.equal(result.privacyClaimAllowed, false);
+assert.equal(result.auditedSharedAnonymitySetAvailable, false);
+assert.equal(result.liveAnonymitySetAvailable, false);
+assert.equal(result.liveMainnetPrivateSettlementAvailable, false);
+assert.equal(result.productionAnonymityMetricsAvailable, false);
+assert.equal(result.anonymitySetReadiness, "blocked");
+assert.equal(result.minimumDistinctCommitments, 1024);
+
+assert.deepEqual(result.assetCohortRules.required, [
+  "single asset cohort per pool",
+  "stable target pool mint per cohort",
+  "no cross-asset anonymity-set claims",
+  "cohort metrics must exclude test fixtures and no-real-funds smoke receipts",
+]);
+assert.deepEqual(result.relayerSeparation.requiredEvidenceRefs, [
+  "VANTA_PRIVATE_POOL_V2_RELAYER_SEPARATION_REF",
+  "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
+]);
+assert.deepEqual(result.nullifierUniqueness.requiredEvidenceRefs, [
+  "ops/mainnet/private-pool-v2-nullifier-replay.evidence.json",
+  "npm run mainnet:nullifier-replay-evidence-check",
+]);
+assert.deepEqual(result.safeLogging.required, [
+  "no auth tokens",
+  "no database URLs",
+  "no wallet keys",
+  "no signed transaction material",
+  "no customer private inputs",
+  "no raw hidden-economics terms in committed-economics receipts",
+]);
+
+for (const ref of [
+  "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
+  "ops/mainnet/private-pool-v2-nullifier-replay.evidence.json",
+  "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
+  "ops/mainnet/private-pool-v2-route-health.evidence.json",
+  "ops/mainnet/service-deployment.evidence.json",
+]) {
+  assert.ok(result.currentEvidenceRefs.includes(ref), `Missing current evidence ref: ${ref}`);
+}
+
+for (const ref of [
+  "VANTA_PRIVATE_POOL_V2_AUDIT_REF",
+  "VANTA_PRIVATE_POOL_V2_ANONYMITY_SET_REF",
+  "VANTA_PRIVATE_POOL_V2_PRODUCTION_ANONYMITY_METRICS_REF",
+  "VANTA_PRIVATE_POOL_V2_RELAYER_SEPARATION_REF",
+]) {
+  assert.ok(result.requiredEvidenceRefs.includes(ref), `Missing required evidence ref: ${ref}`);
+}
+
+for (const blocker of [
+  "no-proven-audited-shared-anonymity-set",
+  "no-live-mainnet-private-settlement-path",
+  "no-third-party-audit",
+  "no-production-anonymity-set-metrics",
+]) {
+  assert.ok(result.blockers.includes(blocker), `Missing blocker: ${blocker}`);
+}
+
+for (const nonClaim of [
+  "no anonymity guarantee",
+  "no audited hidden-economics privacy claim",
+  "no production mainnet privacy claim",
+  "no legal, compliance, custody, or security certification claim",
+]) {
+  assert.ok(result.nonClaims.includes(nonClaim), `Missing non-claim: ${nonClaim}`);
+}
+
+assert.ok(
+  result.userFacingRule.includes("Do not claim live anonymity"),
+  "Expected user-facing rule to block live anonymity claims.",
+);
+assert.equal(
+  packageJson.scripts["private-pool-v2:anonymity-set-readiness"],
+  "node scripts/print-vanta-private-pool-v2-anonymity-set-readiness.mjs",
+  "package.json must expose private-pool-v2:anonymity-set-readiness.",
+);
+assert.equal(
+  packageJson.scripts["private-pool-v2:anonymity-set-readiness-json"],
+  "node scripts/print-vanta-private-pool-v2-anonymity-set-readiness.mjs --json",
+  "package.json must expose private-pool-v2:anonymity-set-readiness-json.",
+);
+assert.equal(
+  packageJson.scripts["private-pool-v2:anonymity-set-readiness-check"],
+  "node scripts/check-vanta-private-pool-v2-anonymity-set-readiness.mjs",
+  "package.json must expose private-pool-v2:anonymity-set-readiness-check.",
+);
+assert.ok(
+  packageJson.scripts["private-pool-v2:verify"].includes(
+    "npm run private-pool-v2:anonymity-set-readiness-check",
+  ),
+  "private-pool-v2:verify must include anonymity-set readiness check.",
+);
+assert.ok(
+  packageJson.scripts["mainnet:preflight"].includes(
+    "npm run private-pool-v2:anonymity-set-readiness-check",
+  ),
+  "mainnet:preflight must include anonymity-set readiness check.",
+);
+
+console.log("Vanta Private Pool v2 anonymity-set readiness check: PASS");

@@ -42,9 +42,11 @@ The checked privacy-rail contract is `docs/privacy-rail-contract.md` and `src/re
 - No audit claim: Vanta has not received an independent third-party cryptographic, smart-contract, infrastructure, or application audit.
 - No custody claim: Vanta does not yet have production custody architecture, key-management policy, incident response, or legal review.
 - No anonymity-set claim: the current local Private Pool v2 lane does not provide a live mainnet anonymity set or production mixer privacy.
+- Private Pool v2 anonymity-set readiness is now a checked fail-closed operator/readiness surface. It remains blocked until Vanta has audited shared-anonymity-set evidence, production anonymity-set metrics, relayer-separation evidence, and reviewed limitations.
 - Render does not create privacy: paid hosting can improve uptime, but privacy requires a real selected rail with live mainnet evidence, relayer separation, nullifier/replay enforcement, safe logging, and reviewed limitations.
 - The current Private Pool v2 prover is still local benchmark infrastructure, even though the repo also includes Noir circuit checks and local proof generation.
 - Private Pool v2 shield/claim shadow commitments are deterministic SHA-256 audit handles over operator-visible terms. They make receipt comparison and future circuit plumbing easier, but they are not salted privacy commitments, do not hide economics from the operator, and must not be described as hidden-economic-terms privacy.
+- Private Pool v2 protocol Send/Swap can use committed-economics settlement requests and receipts in the local operator path. In that mode the operator request/receipt carries commitments instead of raw amount, asset, destination, or owner fields, but this is still a local benchmark boundary and not audited hidden-economic-terms privacy, relayer-separated production privacy, or a live anonymity set.
 - Private Core send, swap, and unshield proof ABIs now expose economic-terms hashes instead of raw proof-public asset/amount/destination terms where applicable, but the operator/request and exit-settlement layers still see those terms. This is hash-bound proof privacy, not hidden-economic-terms privacy.
 - The current operator uses local JSON persistence for benchmark receipts, not a production database, replicated log, or on-chain source of truth.
 - The current protocol settlement endpoint is a local operator seam, not a deployed Solana program enforcing append/nullifier rules.
@@ -111,6 +113,8 @@ It is fair to say:
 - Vanta has executable Noir-backed shield and claim circuit checks.
 - Vanta has local proof generation and proof verification commands.
 - Vanta has operator-owned Pay and protocol settlement receipt endpoints.
+- Vanta has local Private Pool v2 committed-economics protocol settlement coverage for Send/Swap receipts.
+- Vanta has a machine-readable Private Pool v2 anonymity-set readiness status that blocks live-anonymity and audited-privacy claims.
 - Vanta has restart-safe local persistence for proof and settlement receipts.
 - Vanta has verification commands that make current limitations visible.
 

@@ -618,7 +618,7 @@ try {
   );
   console.log("private-pool-v2 http pay settlement receipts: PASS");
 
-  for (const action of ["shield", "send", "swap", "unshield"]) {
+	  for (const action of ["shield", "send", "swap", "unshield"]) {
     const isShield = action === "shield";
     const protocolSettlement = await requestJson("/private-pool-v2/protocol-settlements", {
       body: JSON.stringify({
@@ -690,8 +690,51 @@ try {
         "Expected shield protocol receipt to preserve route evidence provider.",
       );
     }
-  }
-  const missingRouteEvidenceShieldSettlement = await requestJson("/private-pool-v2/protocol-settlements", {
+	  }
+	  for (const action of ["send", "swap"]) {
+	    const committedProtocolSettlement = await requestJson("/private-pool-v2/protocol-settlements", {
+	      body: JSON.stringify({
+	        action,
+	        economicsCommitment: `0xcommitted_${action}_economics`,
+	        economicsMode: "committed-economics",
+	        ...(action === "swap" ? { inputCommitment: "0xcommitted_swap_input" } : {}),
+	        nullifierOrReplayCommitment: `0xcommitted_${action}_replay`,
+	        outputCommitment: `0xcommitted_${action}_output`,
+	        ownerCommitment: `0xcommitted_${action}_owner`,
+	        routeCommitment: `0xcommitted_${action}_route`,
+	        settlementCommitment: `0xcommitted_${action}_settlement`,
+	        settlementId: `protocol-committed-${action}-settlement`,
+	      }),
+	      method: "POST",
+	    });
+	    assert(
+	      committedProtocolSettlement.ok,
+	      committedProtocolSettlement.text || `Expected committed ${action} protocol settlement.`,
+	    );
+	    assert(
+	      committedProtocolSettlement.parsed?.protocolSettlementReceipt?.economicsMode ===
+	        "committed-economics",
+	      `Expected committed ${action} receipt to preserve economics mode.`,
+	    );
+	    assert(
+	      committedProtocolSettlement.parsed?.protocolSettlementReceipt?.economicsCommitment ===
+	        `0xcommitted_${action}_economics`,
+	      `Expected committed ${action} receipt to preserve economics commitment.`,
+	    );
+	    assert(
+	      !("amount" in committedProtocolSettlement.parsed.protocolSettlementReceipt),
+	      `Expected committed ${action} receipt to redact raw amount.`,
+	    );
+	    assert(
+	      !("asset" in committedProtocolSettlement.parsed.protocolSettlementReceipt),
+	      `Expected committed ${action} receipt to redact raw asset.`,
+	    );
+	    assert(
+	      !("destination" in committedProtocolSettlement.parsed.protocolSettlementReceipt),
+	      `Expected committed ${action} receipt to redact raw destination.`,
+	    );
+	  }
+	  const missingRouteEvidenceShieldSettlement = await requestJson("/private-pool-v2/protocol-settlements", {
     body: JSON.stringify({
       action: "shield",
       amount: "5.00",
@@ -810,11 +853,26 @@ try {
     conflictingProtocolShieldSettlement.text || "Expected conflicting protocol settlement error.",
   );
   const protocolSettlementReceipts = await requestJson("/state/private-pool-v2-receipts");
-  assert(protocolSettlementReceipts.ok, protocolSettlementReceipts.text || "Expected protocol receipts.");
-  assert(protocolSettlementReceipts.parsed?.receiptCount === 8, "Expected no duplicate proof receipts.");
+	  assert(protocolSettlementReceipts.ok, protocolSettlementReceipts.text || "Expected protocol receipts.");
+	  assert(protocolSettlementReceipts.parsed?.receiptCount === 10, "Expected no duplicate proof receipts.");
+	  assert(
+	    protocolSettlementReceipts.parsed?.protocolSettlementCount === 6,
+	    "Expected six operator-owned protocol settlement receipts.",
+	  );
+  const operatorStatusAfterProtocolSettlements = await requestJson("/state/private-pool-v2-status");
   assert(
-    protocolSettlementReceipts.parsed?.protocolSettlementCount === 4,
-    "Expected four operator-owned protocol settlement receipts.",
+    operatorStatusAfterProtocolSettlements.ok,
+    operatorStatusAfterProtocolSettlements.text || "Expected Private Pool v2 operator status.",
+  );
+  assert(
+    operatorStatusAfterProtocolSettlements.parsed?.anonymitySetReadiness?.version ===
+      "vanta-private-pool-v2-anonymity-set-readiness-0.1",
+    "Expected operator status to expose anonymity-set readiness.",
+  );
+  assert(
+    operatorStatusAfterProtocolSettlements.parsed?.anonymitySetReadiness?.anonymitySetReadiness ===
+      "blocked",
+    "Expected operator status anonymity-set readiness to remain blocked.",
   );
   console.log("private-pool-v2 http protocol settlements: PASS");
 } catch (error) {

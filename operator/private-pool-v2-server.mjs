@@ -19,6 +19,7 @@ import {
   createNoopOperatorEventSink,
   createPostgresOperatorEventSinkFromDatabaseUrl,
 } from "../src/ops/vantaOperatorEventSink.mjs";
+import { createVantaPrivatePoolV2AnonymitySetReadiness } from "../src/readiness/privatePoolV2AnonymitySetReadiness.mjs";
 import { createNullifierReplayGuard } from "../src/privacy/nullifierReplayGuard.mjs";
 import { createPostgresNullifierReplayStoreFromDatabaseUrl } from "../src/privacy/postgresNullifierReplayStore.mjs";
 import { createPostgresSnapshotStore } from "../src/storage/vantaPostgresSnapshotStore.mjs";
@@ -500,14 +501,60 @@ function validatePayWithdrawalBody(body) {
 }
 
 function validateProtocolSettlementBody(body) {
+  const action = requireNonEmptyString(body.action, "action");
+  const settlementId = requireNonEmptyString(body.settlementId, "settlementId");
+  const economicsMode = body.economicsMode
+    ? requireNonEmptyString(body.economicsMode, "economicsMode")
+    : "raw-operator-visible";
+  if (economicsMode === "committed-economics") {
+    if (action !== "send" && action !== "swap") {
+      throw new Error("Committed economics protocol settlement only supports send and swap.");
+    }
+    for (const rawField of ["amount", "asset", "destination", "owner"]) {
+      if (body[rawField] !== undefined && body[rawField] !== null) {
+        throw new Error(`Committed economics protocol settlement rejects raw ${rawField}.`);
+      }
+    }
+    if (action === "swap") {
+      requireNonEmptyString(body.inputCommitment, "inputCommitment");
+    }
+
+    return {
+      action,
+      economicsCommitment: requireNonEmptyString(body.economicsCommitment, "economicsCommitment"),
+      economicsMode,
+      inputCommitment:
+        typeof body.inputCommitment === "string" && body.inputCommitment.trim().length > 0
+          ? body.inputCommitment
+          : undefined,
+      nullifierOrReplayCommitment: requireNonEmptyString(
+        body.nullifierOrReplayCommitment,
+        "nullifierOrReplayCommitment",
+      ),
+      outputCommitment:
+        typeof body.outputCommitment === "string" && body.outputCommitment.trim().length > 0
+          ? body.outputCommitment
+          : undefined,
+      ownerCommitment: requireNonEmptyString(body.ownerCommitment, "ownerCommitment"),
+      routeCommitment: requireNonEmptyString(body.routeCommitment, "routeCommitment"),
+      settlementCommitment: requireNonEmptyString(body.settlementCommitment, "settlementCommitment"),
+      settlementId,
+    };
+  }
+
+  if (economicsMode !== "raw-operator-visible") {
+    throw new Error(`Unknown protocol settlement economics mode ${economicsMode}.`);
+  }
+
   const asset = requireNonEmptyString(body.asset, "asset");
   return {
-    action: requireNonEmptyString(body.action, "action"),
+    action,
     amount: normalizeAmount(body.amount, asset),
     asset,
     destination: requireNonEmptyString(body.destination, "destination"),
+    economicsMode,
     owner: requireNonEmptyString(body.owner, "owner"),
-    settlementId: requireNonEmptyString(body.settlementId, "settlementId"),
+    settlementId,
     shieldCapability: normalizeProtocolShieldCapability(body.shieldCapability, body.asset),
     shieldRouteEvidence: normalizeProtocolShieldRouteEvidence(
       body.shieldRouteEvidence,
@@ -636,33 +683,70 @@ function protocolSettlementFingerprint({
   amount,
   asset,
   destination,
+  economicsCommitment,
+  economicsMode,
+  inputCommitment,
+  nullifierOrReplayCommitment,
+  outputCommitment,
   owner,
+  ownerCommitment,
+  routeCommitment,
   settlementId,
+  settlementCommitment,
   shieldCapability,
   shieldRouteEvidence,
 }) {
-  return hashHex(
-    "protocol-settlement",
-    action,
-    settlementId,
-    destination,
-    owner,
-    amount,
-    asset,
-    shieldCapability?.mode ?? "",
-    shieldCapability?.sourceAsset?.mintAddress ?? "",
-    shieldCapability?.targetShieldAsset?.assetKey ?? "",
-    shieldCapability?.targetShieldAsset?.mintAddress ?? "",
-    shieldRouteEvidence?.provider ?? "",
-    shieldRouteEvidence?.routeSignature ?? "",
-    shieldRouteEvidence?.targetAmount ?? "",
-    shieldRouteEvidence?.targetAsset ?? "",
-  );
-}
+  if ((economicsMode ?? "raw-operator-visible") === "raw-operator-visible") {
+    return hashHex(
+      "protocol-settlement",
+      action,
+      settlementId,
+      destination,
+      owner,
+      amount,
+      asset,
+      shieldCapability?.mode ?? "",
+      shieldCapability?.sourceAsset?.mintAddress ?? "",
+      shieldCapability?.targetShieldAsset?.assetKey ?? "",
+      shieldCapability?.targetShieldAsset?.mintAddress ?? "",
+      shieldRouteEvidence?.provider ?? "",
+      shieldRouteEvidence?.routeSignature ?? "",
+      shieldRouteEvidence?.targetAmount ?? "",
+      shieldRouteEvidence?.targetAsset ?? "",
+    );
+  }
+
+	  return hashHex(
+	    "protocol-settlement",
+	    action,
+	    settlementId,
+	    economicsMode,
+	    economicsCommitment,
+	    inputCommitment,
+	    nullifierOrReplayCommitment,
+	    outputCommitment,
+	    ownerCommitment,
+	    routeCommitment,
+	    settlementCommitment,
+	  );
+	}
 
 function assertProtocolReplayMatches(
   existingSettlement,
-  { destination, owner, shieldCapability, shieldRouteEvidence },
+  {
+    destination,
+    economicsCommitment,
+    economicsMode,
+    inputCommitment,
+    nullifierOrReplayCommitment,
+    outputCommitment,
+    owner,
+    ownerCommitment,
+    routeCommitment,
+    settlementCommitment,
+    shieldCapability,
+    shieldRouteEvidence,
+  },
   action,
   amount,
   asset,
@@ -681,6 +765,11 @@ function assertProtocolReplayMatches(
     `Protocol settlement ${settlementId} conflicts with an existing settlement asset.`,
   );
   assertMatches(
+    existingReceipt?.economicsMode ?? "raw-operator-visible",
+    economicsMode ?? "raw-operator-visible",
+    `Protocol settlement ${settlementId} conflicts with an existing settlement economics mode.`,
+  );
+  assertMatches(
     existingReceipt?.action,
     action,
     `Protocol settlement ${settlementId} conflicts with an existing settlement action.`,
@@ -697,8 +786,16 @@ function assertProtocolReplayMatches(
       amount,
       asset,
       destination,
+      economicsCommitment,
+      economicsMode,
+      inputCommitment,
+      nullifierOrReplayCommitment,
+      outputCommitment,
       owner,
+      ownerCommitment,
+      routeCommitment,
       settlementId,
+      settlementCommitment,
       shieldCapability,
       shieldRouteEvidence,
     }),
@@ -916,6 +1013,7 @@ async function recordAcceptedClaimNullifier(request, requestId, claimReceiptId) 
 }
 
 async function statusPayload() {
+  const anonymitySetReadiness = createVantaPrivatePoolV2AnonymitySetReadiness();
   const readiness = runtime.readiness();
   const receipts = runtime.verifierRegistry?.receipts ?? [];
   const shadowCommitments = shadowCommitmentsFromReceipts(receipts);
@@ -926,7 +1024,21 @@ async function statusPayload() {
   return {
     contractVersion: runtime.contractVersion,
     kind: "Private Pool V2 operator status",
+    anonymitySetReadiness,
     ok: readiness.ready,
+    operatorEconomicsExposure: {
+      committedSettlementCount: protocolSettlementReceipts.filter(
+        (settlement) =>
+          settlement.protocolSettlementReceipt?.economicsMode === "committed-economics",
+      ).length,
+      hiddenEconomicsActions: ["send", "swap"],
+      operatorStillSeesRawActions: ["shield", "unshield", "pay_checkout", "pay_withdrawal"],
+      rawSettlementCount: protocolSettlementReceipts.filter(
+        (settlement) =>
+          (settlement.protocolSettlementReceipt?.economicsMode ?? "raw-operator-visible") ===
+          "raw-operator-visible",
+      ).length,
+    },
     productionReady: false,
     protocolActionProofModes,
     readiness,
@@ -1156,12 +1268,19 @@ async function proveAndAcceptProtocolSettlement(body) {
     amount,
     asset,
     destination,
+    economicsCommitment,
+    economicsMode,
+    inputCommitment,
+    nullifierOrReplayCommitment,
+    outputCommitment,
     owner,
+    ownerCommitment,
+    routeCommitment,
     settlementId,
+    settlementCommitment,
     shieldCapability,
     shieldRouteEvidence,
-  } =
-    validateProtocolSettlementBody(body);
+  } = validateProtocolSettlementBody(body);
   const existingSettlement = protocolSettlementReceipts.find(
     (settlement) =>
       settlement.protocolSettlementReceipt?.action === action &&
@@ -1170,7 +1289,20 @@ async function proveAndAcceptProtocolSettlement(body) {
   if (existingSettlement) {
     assertProtocolReplayMatches(
       existingSettlement,
-      { destination, owner, shieldCapability, shieldRouteEvidence },
+      {
+        destination,
+        economicsCommitment,
+        economicsMode,
+        inputCommitment,
+        nullifierOrReplayCommitment,
+        outputCommitment,
+        owner,
+        ownerCommitment,
+        routeCommitment,
+        settlementCommitment,
+        shieldCapability,
+        shieldRouteEvidence,
+      },
       action,
       amount,
       asset,
@@ -1179,12 +1311,11 @@ async function proveAndAcceptProtocolSettlement(body) {
     return existingSettlement;
   }
 
-  const targetAsset = action === "shield" ? shieldCapability.targetShieldAsset.assetKey : asset;
-  const treeId = treeIdForAsset(targetAsset);
-  const assetId = assetIdForAsset(targetAsset);
   let request;
 
   if (action === "shield") {
+    const targetAsset = shieldCapability.targetShieldAsset.assetKey;
+    const treeId = treeIdForAsset(targetAsset);
     const existingCommitments = await runtime.indexer.listCommitments({ treeId });
     const leaf = {
       assetId: targetAsset,
@@ -1218,6 +1349,9 @@ async function proveAndAcceptProtocolSettlement(body) {
       },
     });
   } else if (action === "unshield") {
+    const targetAsset = asset;
+    const treeId = treeIdForAsset(targetAsset);
+    const assetId = assetIdForAsset(targetAsset);
     const commitments = [
       ...(await runtime.indexer.listCommitments({ assetId: asset, treeId })),
       ...(await runtime.indexer.listCommitments({ assetId, treeId })),
@@ -1248,14 +1382,27 @@ async function proveAndAcceptProtocolSettlement(body) {
       ownerCommitment: hashHex("owner", owner),
       quote,
     });
+  } else if ((action === "send" || action === "swap") && economicsMode === "committed-economics") {
+    request = createVantaPrivatePoolV2HiddenEconomicsProofRequest({
+      economicsCommitment,
+      inputCommitment,
+      intent: action === "send" ? "private-send" : "swap-to-shielded",
+      nullifierOrReplayCommitment,
+      outputCommitment,
+      ownerCommitment,
+      routeCommitment,
+      settlementCommitment,
+    });
   } else if (action === "send" || action === "swap") {
-    const settlementCommitment = hashHex(
+    const targetAsset = asset;
+    const assetId = assetIdForAsset(targetAsset);
+    const rawSettlementCommitment = hashHex(
       "protocol-hidden-economics-settlement",
       action,
       settlementId,
       owner,
     );
-    const routeCommitment = hashHex("route", action, settlementId, asset, amount);
+    const rawRouteCommitment = hashHex("route", action, settlementId, asset, amount);
     request = createVantaPrivatePoolV2HiddenEconomicsProofRequest({
       economicsCommitment: hashHex(
         "protocol-hidden-economics",
@@ -1274,15 +1421,24 @@ async function proveAndAcceptProtocolSettlement(body) {
       ),
       outputCommitment: hashHex("protocol-hidden-economics-output", action, settlementId, owner),
       ownerCommitment: hashHex("owner", owner),
-      routeCommitment,
-      settlementCommitment,
+      routeCommitment: rawRouteCommitment,
+      settlementCommitment: rawSettlementCommitment,
     });
   } else {
     throw new Error(`Unknown protocol settlement action ${action}.`);
   }
 
   const proof = await runtime.prover.prove(request);
-  const requestId = hashHex("protocol-claim", action, settlementId, destination, amount, asset);
+  const requestId =
+    economicsMode === "committed-economics"
+      ? hashHex(
+          "protocol-claim-committed-economics",
+          action,
+          settlementId,
+          settlementCommitment,
+          nullifierOrReplayCommitment,
+        )
+      : hashHex("protocol-claim", action, settlementId, destination, amount, asset);
   await reserveAcceptedClaimNullifier(request, requestId);
   const proofReceipt = await runtime.verifierRegistry.acceptProof({ proof, request });
   await recordAcceptedClaimNullifier(request, requestId, proofReceipt.receiptId);
@@ -1290,8 +1446,16 @@ async function proveAndAcceptProtocolSettlement(body) {
 
   const protocolSettlementReceipt = {
     action,
-    amount,
-    asset,
+    ...(economicsMode === "committed-economics"
+      ? {
+          economicsCommitment,
+          economicsMode,
+          settlementCommitment,
+        }
+      : {
+          amount,
+          asset,
+        }),
     id: hashId("proto", action, settlementId, proofReceipt.receiptId),
     object: "protocol_settlement_receipt",
     proofReceiptId: `ppv2_${proofReceipt.receiptId.slice(2, 26)}`,
@@ -1318,14 +1482,22 @@ async function proveAndAcceptProtocolSettlement(body) {
     kind: "protocol_settlement",
     proofReceipt,
     protocolSettlementReceipt,
-    settlementFingerprint: protocolSettlementFingerprint({
-      action,
-      amount,
-      asset,
-      destination,
-      owner,
-      settlementId,
-      shieldCapability,
+	    settlementFingerprint: protocolSettlementFingerprint({
+	      action,
+	      amount,
+	      asset,
+	      destination,
+	      economicsCommitment,
+	      economicsMode,
+	      inputCommitment,
+	      nullifierOrReplayCommitment,
+	      outputCommitment,
+	      owner,
+	      ownerCommitment,
+	      routeCommitment,
+	      settlementId,
+	      settlementCommitment,
+	      shieldCapability,
       shieldRouteEvidence,
     }),
   };

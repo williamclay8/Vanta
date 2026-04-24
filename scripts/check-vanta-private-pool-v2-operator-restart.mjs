@@ -9,6 +9,8 @@ import {
 } from "node:fs";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { sha256 } from "@noble/hashes/sha2.js";
+import { bytesToHex } from "@noble/hashes/utils.js";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-private-pool-v2-restart-"));
@@ -24,6 +26,7 @@ const sourceFiles = [
   "privatePoolV2LocalIndexer.ts",
   "privatePoolV2LocalProver.ts",
 ];
+const textEncoder = new TextEncoder();
 
 function assert(condition, message) {
   if (!condition) {
@@ -33,6 +36,10 @@ function assert(condition, message) {
 
 function sleep(ms) {
   return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
+}
+
+function hashHex(...parts) {
+  return `0x${bytesToHex(sha256(textEncoder.encode(parts.join("\u001f"))))}`;
 }
 
 async function requestJson(path, options = {}) {
@@ -299,6 +306,24 @@ try {
     writtenStore.protocolSettlements?.[0]?.settlementFingerprint?.startsWith("0x"),
     "Expected persisted protocol settlement fingerprint.",
   );
+  writtenStore.protocolSettlements[0].settlementFingerprint = hashHex(
+    "protocol-settlement",
+    "shield",
+    "protocol-restart-shield",
+    "restart-protocol-destination",
+    "restart-protocol-owner",
+    "7.00",
+    "USDC",
+    "direct-configured-token",
+    "USDC",
+    "USDC",
+    "USDC",
+    "",
+    "",
+    "",
+    "",
+  );
+  writeFileSync(storePath, JSON.stringify(writtenStore, null, 2));
   console.log("private-pool-v2 restart store write: PASS");
 
   await stopServer(server);
@@ -335,6 +360,23 @@ try {
     repeatedPayCheckoutSettlement.ok,
     repeatedPayCheckoutSettlement.text ||
       "Expected restored Pay checkout settlement to be idempotent.",
+  );
+
+  const repeatedProtocolShieldSettlement = await requestJson("/private-pool-v2/protocol-settlements", {
+    body: JSON.stringify({
+      action: "shield",
+      amount: "7.00",
+      asset: "USDC",
+      destination: "restart-protocol-destination",
+      owner: "restart-protocol-owner",
+      settlementId: "protocol-restart-shield",
+    }),
+    method: "POST",
+  });
+  assert(
+    repeatedProtocolShieldSettlement.ok,
+    repeatedProtocolShieldSettlement.text ||
+      "Expected restored legacy raw protocol settlement fingerprint to stay idempotent.",
   );
 
   const conflictingProtocolSettlement = await requestJson("/private-pool-v2/protocol-settlements", {

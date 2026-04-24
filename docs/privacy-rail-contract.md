@@ -25,7 +25,7 @@ Required stance:
 
 Current checked refs:
 
-- `docs/security-limitations.md`
+- `SECURITY_LIMITATIONS.md`
 - `npm run mainnet:readiness-check`
 - `npm run privacy-rail:contract-check`
 
@@ -56,16 +56,34 @@ circuit plumbing, but they do not satisfy the meaningful-privacy refs below and
 do not hide asset, amount, route, destination, relayer, or nullifier terms from
 the current operator.
 
+Current local protocol Send/Swap committed-economics settlement requests move
+raw amount, asset, destination, and owner fields out of the operator
+request/receipt shape when callers supply settlement, route, replay, owner, and
+economics commitments. This is a useful typed operator boundary, but it still
+does not satisfy the meaningful-privacy refs below and must not be described as
+audited production privacy or a live anonymity set.
+
+The checked Private Pool v2 anonymity-set readiness surface is fail-closed. It
+requires at least 1024 distinct production commitments per asset cohort, excludes
+test fixtures and no-real-funds smoke receipts from cohort metrics, and keeps
+live-anonymity, audited hidden-economics privacy, and production mainnet privacy
+claims blocked until the required evidence refs are filled and reviewed.
+
 It cannot claim meaningful privacy until Vanta has refs for:
 
 - `VANTA_PRIVATE_POOL_V2_PRODUCTION_SMOKE_EVIDENCE_REF`
 - `VANTA_PRIVATE_POOL_V2_AUDIT_REF`
 - `VANTA_PRIVATE_POOL_V2_ANONYMITY_SET_REF`
+- `VANTA_PRIVATE_POOL_V2_PRODUCTION_ANONYMITY_METRICS_REF`
 - `VANTA_PRIVATE_POOL_V2_RELAYER_SEPARATION_REF`
 - `VANTA_PRIVATE_POOL_V2_NULLIFIER_ENFORCEMENT_REF`
 
 Current checked refs:
 
+- `npm run private-pool-v2:hidden-economics-request-check`
+- `npm run private-pool-v2:anonymity-set-readiness-check`
+- `npm run private-pool-v2:protocol-client-check`
+- `npm run private-pool-v2:http-smoke`
 - `ops/mainnet/private-pool-v2-production-smoke.evidence.json`
 - `ops/mainnet/private-pool-v2-nullifier-replay.evidence.json`
 - `ops/mainnet/private-pool-v2-role-service-replay.evidence.json`

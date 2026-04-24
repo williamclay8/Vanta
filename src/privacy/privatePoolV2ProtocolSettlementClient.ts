@@ -28,23 +28,59 @@ export type VantaProtocolShieldRouteEvidence = {
   targetAsset: string;
 };
 
-export type VantaProtocolSettlementRequest = {
+export type VantaProtocolEconomicsMode = "raw-operator-visible" | "committed-economics";
+
+export type VantaCommittedEconomicsSettlementTerms = {
+  economicsCommitment: string;
+  inputCommitment?: string;
+  nullifierOrReplayCommitment: string;
+  outputCommitment?: string;
+  ownerCommitment: string;
+  routeCommitment: string;
+  settlementCommitment: string;
+};
+
+export type VantaRawProtocolSettlementRequest = {
   action: VantaProtocolSettlementAction;
   amount: string;
   asset: string;
   authToken?: string | null;
   baseUrl?: string | null;
   destination: string;
+  economicsCommitment?: never;
+  economicsMode?: "raw-operator-visible";
+  inputCommitment?: never;
+  nullifierOrReplayCommitment?: never;
+  outputCommitment?: never;
   owner: string;
+  ownerCommitment?: never;
+  routeCommitment?: never;
   settlementId: string;
+  settlementCommitment?: never;
   shieldCapability?: VantaProtocolShieldCapability | null;
   shieldRouteEvidence?: VantaProtocolShieldRouteEvidence | null;
 };
 
-export type VantaProtocolSettlementReceipt = {
+export type VantaCommittedEconomicsProtocolSettlementRequest = {
+  action: "send" | "swap";
+  amount?: never;
+  asset?: never;
+  authToken?: string | null;
+  baseUrl?: string | null;
+  destination?: never;
+  economicsMode: "committed-economics";
+  owner?: never;
+  settlementId: string;
+  shieldCapability?: never;
+  shieldRouteEvidence?: never;
+} & VantaCommittedEconomicsSettlementTerms;
+
+export type VantaProtocolSettlementRequest =
+  | VantaRawProtocolSettlementRequest
+  | VantaCommittedEconomicsProtocolSettlementRequest;
+
+export type VantaProtocolSettlementReceiptBase = {
   action: VantaProtocolSettlementAction;
-  amount: string;
-  asset: string;
   id: string;
   object: "protocol_settlement_receipt";
   proofReceiptId: string;
@@ -59,6 +95,25 @@ export type VantaProtocolSettlementReceipt = {
   targetAsset?: string;
   targetMintAddress?: string;
 };
+
+export type VantaRawProtocolSettlementReceipt = VantaProtocolSettlementReceiptBase & {
+  amount: string;
+  asset: string;
+  economicsMode?: "raw-operator-visible";
+};
+
+export type VantaCommittedEconomicsProtocolSettlementReceipt =
+  VantaProtocolSettlementReceiptBase & {
+    amount?: never;
+    asset?: never;
+    economicsCommitment: string;
+    economicsMode: "committed-economics";
+    settlementCommitment: string;
+  };
+
+export type VantaProtocolSettlementReceipt =
+  | VantaRawProtocolSettlementReceipt
+  | VantaCommittedEconomicsProtocolSettlementReceipt;
 
 export type VantaPrivatePoolV2ShadowCommitments = {
   economicsCommitment: string;
@@ -108,9 +163,27 @@ export type VantaPrivatePoolV2SettlementPolicy = {
 };
 
 export type VantaPrivatePoolV2OperatorStatus = {
+  anonymitySetReadiness?: {
+    anonymitySetReadiness: "blocked";
+    auditedSharedAnonymitySetAvailable: false;
+    liveAnonymitySetAvailable: false;
+    liveMainnetPrivateSettlementAvailable: false;
+    mainnetReady: false;
+    meaningfulPrivacyReady: false;
+    minimumDistinctCommitments: number;
+    privacyClaimAllowed: false;
+    productionReady: false;
+    version: "vanta-private-pool-v2-anonymity-set-readiness-0.1";
+  };
   contractVersion: string;
   kind: "Private Pool V2 operator status";
   ok: boolean;
+  operatorEconomicsExposure?: {
+    committedSettlementCount: number;
+    hiddenEconomicsActions: readonly VantaProtocolSettlementAction[];
+    operatorStillSeesRawActions: readonly string[];
+    rawSettlementCount: number;
+  };
   protocolActionProofModes: Record<VantaProtocolSettlementAction, string>;
   receiptCount: number;
   receiptStorePath: string;
@@ -149,7 +222,15 @@ export async function requestVantaPrivatePoolV2ProtocolSettlement({
   authToken,
   baseUrl = defaultPrivatePoolOperatorUrl(),
   destination,
+  economicsCommitment,
+  economicsMode,
+  inputCommitment,
+  nullifierOrReplayCommitment,
+  outputCommitment,
   owner,
+  ownerCommitment,
+  routeCommitment,
+  settlementCommitment,
   settlementId,
   shieldCapability,
   shieldRouteEvidence,
@@ -164,7 +245,15 @@ export async function requestVantaPrivatePoolV2ProtocolSettlement({
       amount,
       asset,
       destination,
+      ...(economicsMode ? { economicsMode } : {}),
+      ...(economicsCommitment ? { economicsCommitment } : {}),
+      ...(inputCommitment ? { inputCommitment } : {}),
+      ...(nullifierOrReplayCommitment ? { nullifierOrReplayCommitment } : {}),
+      ...(outputCommitment ? { outputCommitment } : {}),
       owner,
+      ...(ownerCommitment ? { ownerCommitment } : {}),
+      ...(routeCommitment ? { routeCommitment } : {}),
+      ...(settlementCommitment ? { settlementCommitment } : {}),
       settlementId,
       ...(shieldCapability ? { shieldCapability } : {}),
       ...(shieldRouteEvidence ? { shieldRouteEvidence } : {}),

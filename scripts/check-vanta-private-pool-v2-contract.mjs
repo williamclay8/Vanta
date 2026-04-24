@@ -76,13 +76,17 @@ const requiredFiles = [
   },
   {
     path: "src/privacy/privatePoolV2ProofRequests.ts",
-    exports: [
-      "VANTA_PRIVATE_POOL_V2_SHIELD_PROOF_REQUEST_VERSION",
-      "VANTA_PRIVATE_POOL_V2_CLAIM_PROOF_REQUEST_VERSION",
-      "createVantaPrivatePoolV2ShieldProofRequest",
-      "createVantaPrivatePoolV2ClaimProofRequest",
-    ],
-  },
+	    exports: [
+	      "VANTA_PRIVATE_POOL_V2_SHIELD_PROOF_REQUEST_VERSION",
+	      "VANTA_PRIVATE_POOL_V2_CLAIM_PROOF_REQUEST_VERSION",
+	      "VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_PROOF_REQUEST_VERSION",
+	      "VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID",
+	      "VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_AMOUNT_BASE_UNITS",
+	      "createVantaPrivatePoolV2ShieldProofRequest",
+	      "createVantaPrivatePoolV2ClaimProofRequest",
+	      "createVantaPrivatePoolV2HiddenEconomicsProofRequest",
+	    ],
+	  },
   {
     path: "src/privacy/privatePoolV2ShieldCapabilityAdapter.ts",
     exports: [
@@ -299,8 +303,9 @@ const requiredPackageScripts = [
   "private-pool-v2:local-relayer-check",
   "private-pool-v2:local-prover-check",
   "private-pool-v2:local-verifier-check",
-  "private-pool-v2:shield-proof-request-check",
-  "private-pool-v2:shield-capability-adapter-check",
+	  "private-pool-v2:shield-proof-request-check",
+	  "private-pool-v2:hidden-economics-request-check",
+	  "private-pool-v2:shield-capability-adapter-check",
   "private-pool-v2:shield-circuit-check",
   "private-pool-v2:local-runtime-check",
   "private-pool-v2:claim-proof-request-check",

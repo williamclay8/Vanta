@@ -12,6 +12,12 @@ const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
 
 assert.equal(result.version, "vanta-mainnet-private-settlement-status-0.1");
 assert.equal(result.activePrivacyRailId, "vanta-private-pool-v2");
+assert.equal(
+  result.anonymitySetReadiness?.version,
+  "vanta-private-pool-v2-anonymity-set-readiness-0.1",
+);
+assert.equal(result.anonymitySetReadiness?.anonymitySetReadiness, "blocked");
+assert.equal(result.anonymitySetReadiness?.minimumDistinctCommitments, 1024);
 assert.equal(result.mainnetReady, false);
 assert.equal(result.productionReady, false);
 assert.equal(result.meaningfulPrivacyReady, false);
@@ -32,9 +38,13 @@ assert.equal(result.noRealFundsSmokeOnly, true);
 const expectedMeaningfulPrivacyBlockedBy = [
   "no-proven-audited-shared-anonymity-set",
   "no-live-mainnet-private-settlement-path",
+  "no-third-party-audit",
+  "no-production-anonymity-set-metrics",
+  "no-proven-audited-shared-anonymity-set",
+  "no-live-mainnet-private-settlement-path",
   ...(result.boundedRealFundsApprovalWindowActive ? [] : ["no-active-bounded-real-funds-approval-window"]),
 ];
-assert.deepEqual(result.meaningfulPrivacyBlockedBy, expectedMeaningfulPrivacyBlockedBy);
+assert.deepEqual(result.meaningfulPrivacyBlockedBy, [...new Set(expectedMeaningfulPrivacyBlockedBy)]);
 assert.ok(
   ["scheduled", "active", "expired"].includes(result.realFundsApprovalWindowStatus),
   "Private settlement status must expose a bounded approval-window status.",
@@ -43,6 +53,8 @@ assert.deepEqual(result.checkedEvidenceRefs, [
   "ops/mainnet/private-pool-v2-route-health.evidence.json",
   "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
   "ops/mainnet/private-pool-v2-nullifier-replay.evidence.json",
+  "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
+  "ops/mainnet/service-deployment.evidence.json",
   "ops/mainnet/mainnet-real-funds-approval.evidence.json",
 ]);
 assert.ok(
@@ -82,6 +94,11 @@ assert.equal(
   packageJson.scripts["mainnet:private-settlement-check"],
   "node scripts/check-vanta-mainnet-private-settlement-status.mjs",
   "package.json must expose mainnet:private-settlement-check.",
+);
+assert.equal(
+  packageJson.scripts["private-pool-v2:anonymity-set-readiness-check"],
+  "node scripts/check-vanta-private-pool-v2-anonymity-set-readiness.mjs",
+  "package.json must expose private-pool-v2:anonymity-set-readiness-check.",
 );
 assert.ok(
   packageJson.scripts["mainnet:preflight"].includes("npm run mainnet:private-settlement-check"),

@@ -1,3 +1,7 @@
+import { createVantaPrivatePoolV2AnonymitySetReadiness } from "./privatePoolV2AnonymitySetReadiness.mjs";
+
+const privatePoolV2AnonymitySetReadiness = createVantaPrivatePoolV2AnonymitySetReadiness();
+
 const rails = [
   {
     id: "alpha-public-warning",
@@ -53,18 +57,23 @@ const rails = [
       "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
       "ops/mainnet/private-pool-v2-route-health.evidence.json",
       "ops/mainnet/service-deployment.evidence.json",
+      "npm run private-pool-v2:anonymity-set-readiness-check",
     ],
     requiredEvidence: [
-      "VANTA_PRIVATE_POOL_V2_PRODUCTION_SMOKE_EVIDENCE_REF",
-      "VANTA_PRIVATE_POOL_V2_AUDIT_REF",
-      "VANTA_PRIVATE_POOL_V2_ANONYMITY_SET_REF",
-      "VANTA_PRIVATE_POOL_V2_RELAYER_SEPARATION_REF",
-      "VANTA_PRIVATE_POOL_V2_NULLIFIER_ENFORCEMENT_REF",
+      ...new Set([
+        "VANTA_PRIVATE_POOL_V2_PRODUCTION_SMOKE_EVIDENCE_REF",
+        ...privatePoolV2AnonymitySetReadiness.requiredEvidenceRefs,
+        "VANTA_PRIVATE_POOL_V2_RELAYER_SEPARATION_REF",
+        "VANTA_PRIVATE_POOL_V2_NULLIFIER_ENFORCEMENT_REF",
+      ]),
     ],
     blockers: [
-      "production services have only no-real-funds smoke evidence",
-      "shared anonymity set is not proven",
-      "third-party audit and nullifier enforcement evidence are not complete",
+      ...new Set([
+        "production services have only no-real-funds smoke evidence",
+        ...privatePoolV2AnonymitySetReadiness.blockers,
+        "shared anonymity set is not proven",
+        "third-party audit and nullifier enforcement evidence are not complete",
+      ]),
     ],
   },
 ];
@@ -91,6 +100,7 @@ export function createVantaPrivacyRailContract(options = {}) {
       "npm run mainnet:nullifier-replay-evidence-check",
       "npm run mainnet:private-rail-route-health-evidence-check",
       "npm run mainnet:production-smoke-evidence-check",
+      "npm run private-pool-v2:anonymity-set-readiness-check",
       "npm run security:limitations-check",
       "npm run mainnet:preflight",
     ],
