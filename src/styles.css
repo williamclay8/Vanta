@@ -6953,15 +6953,15 @@ span[data-docs-badge]::before {
 
 .docs-home__plain-strip {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0;
   overflow: hidden;
-  border: 1px solid rgba(216, 253, 247, 0.9);
+  border: 1px solid rgba(15, 23, 42, 0.12);
   border-radius: 8px;
-  background: #ecfffb;
+  background: #ffffff;
   color: #07110f;
   box-shadow:
-    0 24px 54px rgba(0, 0, 0, 0.26),
+    0 18px 38px rgba(15, 23, 42, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
@@ -6976,7 +6976,14 @@ span[data-docs-badge]::before {
 }
 
 .docs-home__plain-strip span {
-  color: #006b5d;
+  display: grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  place-items: center;
+  border-radius: 999px;
+  background: #0f766e;
+  color: #ecfeff;
+  letter-spacing: 0;
 }
 
 .docs-home__plain-strip strong {
@@ -6987,7 +6994,7 @@ span[data-docs-badge]::before {
 
 .docs-home__plain-strip p {
   margin: 0;
-  color: rgba(6, 20, 18, 0.72);
+  color: rgba(15, 23, 42, 0.72);
   line-height: 1.55;
 }
 

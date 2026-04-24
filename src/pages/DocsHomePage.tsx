@@ -33,18 +33,23 @@ export function DocsHomePage() {
       <section className="docs-home__plain-strip" data-docs-plain-strip>
         <article>
           <span>1</span>
-          <strong>What is Vanta?</strong>
-          <p>A shield-first privacy app for supported Solana assets.</p>
+          <strong>Start public</strong>
+          <p>Your normal Solana wallet activity is visible onchain.</p>
         </article>
         <article>
           <span>2</span>
-          <strong>What happens?</strong>
-          <p>Shield assets, use private actions, then unshield when needed.</p>
+          <strong>Shield into Vanta</strong>
+          <p>Move supported assets into Vanta before private actions begin.</p>
         </article>
         <article>
           <span>3</span>
-          <strong>Why use it?</strong>
-          <p>Normal wallet activity is public. Vanta reduces that exposure.</p>
+          <strong>Use private actions</strong>
+          <p>Send, swap, or pay through the private flows Vanta supports.</p>
+        </article>
+        <article>
+          <span>4</span>
+          <strong>Return when needed</strong>
+          <p>Unshield back to a public wallet when you are ready to exit.</p>
         </article>
       </section>
 
