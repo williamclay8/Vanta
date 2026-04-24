@@ -165,24 +165,25 @@ function requirePrivatePoolSurfaces(protocol: VantaPrivatePoolV2Protocol) {
   };
 }
 
-async function createDefaultPrivatePoolProtocol() {
+async function createDefaultPrivatePoolProtocol(): Promise<VantaPrivatePoolV2Protocol> {
   // Lazily load the privacy mock runtime so importing the Pay runtime stays Node-safe.
-  // @ts-ignore - Bundler/runtime resolve the sibling TypeScript source.
-  const { createVantaPrivatePoolV2MockRuntime } = await import("../privacy/privatePoolV2MockRuntime.ts");
+  const { createVantaPrivatePoolV2MockRuntime } = await import("../privacy/privatePoolV2MockRuntime");
   return createVantaPrivatePoolV2MockRuntime();
 }
 
 async function createVantaPrivatePoolV2ShieldProofRequest(args: unknown) {
   // This helper intentionally loads the proof request factory only when settlement runs.
-  // @ts-ignore - Bundler/runtime resolve the sibling TypeScript source.
-  const { createVantaPrivatePoolV2ShieldProofRequest: buildShieldProofRequest } = await import("../privacy/privatePoolV2ProofRequests.ts");
+  const { createVantaPrivatePoolV2ShieldProofRequest: buildShieldProofRequest } = await import(
+    "../privacy/privatePoolV2ProofRequests"
+  );
   return buildShieldProofRequest(args as never);
 }
 
 async function createVantaPrivatePoolV2ClaimProofRequest(args: unknown) {
   // This helper intentionally loads the proof request factory only when settlement runs.
-  // @ts-ignore - Bundler/runtime resolve the sibling TypeScript source.
-  const { createVantaPrivatePoolV2ClaimProofRequest: buildClaimProofRequest } = await import("../privacy/privatePoolV2ProofRequests.ts");
+  const { createVantaPrivatePoolV2ClaimProofRequest: buildClaimProofRequest } = await import(
+    "../privacy/privatePoolV2ProofRequests"
+  );
   return buildClaimProofRequest(args as never);
 }
 
@@ -232,7 +233,7 @@ export function createVantaPayPrivateSettlementAdapter({
       return operatorSettlement.privateRailReceipt;
     }
 
-    const activeProtocol = protocol ?? (await createDefaultPrivatePoolProtocol());
+    const activeProtocol: VantaPrivatePoolV2Protocol = protocol ?? (await createDefaultPrivatePoolProtocol());
     const { indexer, prover, verifierRegistry } = requirePrivatePoolSurfaces(activeProtocol);
     const amountBaseUnits = amountToBaseUnits(session.amount, session.currency);
     const assetId = assetIdForAsset(session.currency);
@@ -302,7 +303,7 @@ export function createVantaPayPrivateSettlementAdapter({
       return operatorSettlement.privateExitReceipt;
     }
 
-    const activeProtocol = protocol ?? (await createDefaultPrivatePoolProtocol());
+    const activeProtocol: VantaPrivatePoolV2Protocol = protocol ?? (await createDefaultPrivatePoolProtocol());
     const { indexer, prover, relayer, verifierRegistry } = requirePrivatePoolSurfaces(activeProtocol);
     if (!relayer) {
       throw new Error("Private Pool v2 settlement requires a relayer for withdrawals.");
