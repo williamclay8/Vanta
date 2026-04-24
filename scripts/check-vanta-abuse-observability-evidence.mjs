@@ -17,7 +17,7 @@ assert.equal(evidence.productionReady, false);
 assert.equal(evidence.lastStatusRef, "npm run mainnet:abuse-observability-status-check");
 assert.equal(
   evidence.privatePoolV2RuntimeRef,
-  "doppler run --config prd --project vanta -- npm run mainnet:abuse-observability-runtime-status-check",
+  "doppler run --config prd --project vanta -- npm run mainnet:abuse-observability-runtime-status-auth",
 );
 assert.equal(evidence.payRuntimeStatus, "staging-or-local-only");
 assert.equal(evidence.contractRef, "npm run mainnet:abuse-observability-check");
@@ -106,6 +106,11 @@ assert.equal(
   packageJson.scripts["mainnet:abuse-observability-runtime-status-check"],
   "node scripts/print-vanta-production-abuse-observability-runtime-status.mjs --check",
   "package.json must expose mainnet:abuse-observability-runtime-status-check.",
+);
+assert.equal(
+  packageJson.scripts["mainnet:abuse-observability-runtime-status-auth"],
+  "node scripts/print-vanta-production-abuse-observability-runtime-status.mjs --require-auth",
+  "package.json must expose mainnet:abuse-observability-runtime-status-auth.",
 );
 assert.equal(
   packageJson.scripts["mainnet:abuse-observability-evidence-check"],

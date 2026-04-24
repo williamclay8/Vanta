@@ -3,7 +3,10 @@ import { readFileSync } from "node:fs";
 
 const manifestPath = new URL("../ops/mainnet/private-pool-v2-services.manifest.json", import.meta.url);
 const jsonMode = process.argv.includes("--json");
+const requireAuth = process.argv.includes("--require-auth") || process.argv.includes("--check");
 const checkMode = process.argv.includes("--check");
+const authShellCommand =
+  "doppler run --config prd --project vanta -- npm run mainnet:abuse-observability-runtime-status-auth";
 
 function readManifest() {
   return JSON.parse(readFileSync(manifestPath, "utf8"));
@@ -68,48 +71,93 @@ async function requestJson({ authToken, baseUrl, path }) {
 
 const operatorBaseUrl = resolveOperatorBaseUrl();
 const operatorAuthToken = envValue("VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN");
-assert.ok(operatorAuthToken, "Missing VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN.");
+const operatorResponse = operatorAuthToken
+  ? await requestJson({
+      authToken: operatorAuthToken,
+      baseUrl: operatorBaseUrl.value,
+      path: "/state/private-pool-v2-status",
+    })
+  : {
+      ok: false,
+      parsed: null,
+      skipped: true,
+      status: 0,
+      text: "",
+    };
 
-const operatorResponse = await requestJson({
-  authToken: operatorAuthToken,
-  baseUrl: operatorBaseUrl.value,
-  path: "/state/private-pool-v2-status",
-});
+if (requireAuth) {
+  assert.ok(operatorAuthToken, "Missing VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN.");
+  assert.ok(
+    operatorResponse.ok,
+    `Private Pool v2 operator abuse/observability status HTTP ${operatorResponse.status}: ${operatorResponse.text || operatorResponse.statusText}`,
+  );
+  assert.ok(operatorResponse.parsed, "Private Pool v2 operator abuse/observability status must return JSON.");
+}
 
-assert.ok(
-  operatorResponse.ok,
-  `Private Pool v2 operator abuse/observability status HTTP ${operatorResponse.status}: ${operatorResponse.text || operatorResponse.statusText}`,
-);
-assert.ok(operatorResponse.parsed, "Private Pool v2 operator abuse/observability status must return JSON.");
-
-const operatorPayload = operatorResponse.parsed;
-const result = {
-  checkedAt: new Date().toISOString(),
-  mainnetReady: false,
-  payRuntimeRef: "not-configured-for-production-runtime-check",
-  payRuntimeStatus: "staging-or-local-only",
-  privatePoolV2PreferredRateLimiter: "postgres-durable-shared-window",
-  privatePoolV2Runtime: {
-    auditEventSinkKind: operatorPayload.observability?.auditEventSinkKind ?? null,
-    operatorUrlHost: operatorBaseUrl.host,
-    operatorUrlRef: "VANTA_PRIVATE_POOL_V2_OPERATOR_URL",
-    operatorUrlSource: operatorBaseUrl.source,
-    rateLimitPerMinute: operatorPayload.trafficControls?.rateLimitPerMinute ?? null,
-    rateLimiter: operatorPayload.trafficControls?.rateLimiter ?? null,
-    runtimeMode: operatorPayload.runtime?.mode ?? null,
-    status: operatorResponse.status,
-    storageDurableStoreConfigured: operatorPayload.storage?.durableStoreConfigured ?? false,
-    storageKind: operatorPayload.storage?.kind ?? null,
-  },
-  privatePoolV2RuntimeMatchesPreferredRateLimiter:
-    (operatorPayload.trafficControls?.rateLimiter ?? null) === "postgres-durable-shared-window",
-  privatePoolV2RuntimeRef:
-    "doppler run --config prd --project vanta -- npm run mainnet:abuse-observability-runtime-status-check",
-  productionReady: false,
-  safety:
-    "No provider API keys, webhook URLs, source tokens, bearer values, wallet keys, signed transaction material, or database URLs are printed.",
-  version: "vanta-production-abuse-observability-runtime-status-0.1",
-};
+const result = operatorResponse.parsed
+  ? {
+      authenticatedStatusCommand: authShellCommand,
+      authTokenEnv: "VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN",
+      authTokenStatus: operatorAuthToken ? "set" : "missing",
+      checkedAt: new Date().toISOString(),
+      mainnetReady: false,
+      nextAction: requireAuth
+        ? "Authenticated abuse/observability runtime status was attempted."
+        : "Run the authenticated abuse/observability runtime status command from a secret-manager shell when you want live operator proof.",
+      payRuntimeRef: "not-configured-for-production-runtime-check",
+      payRuntimeStatus: "staging-or-local-only",
+      privatePoolV2PreferredRateLimiter: "postgres-durable-shared-window",
+      privatePoolV2Runtime: {
+        auditEventSinkKind: operatorResponse.parsed.observability?.auditEventSinkKind ?? null,
+        operatorUrlHost: operatorBaseUrl.host,
+        operatorUrlRef: "VANTA_PRIVATE_POOL_V2_OPERATOR_URL",
+        operatorUrlSource: operatorBaseUrl.source,
+        rateLimitPerMinute: operatorResponse.parsed.trafficControls?.rateLimitPerMinute ?? null,
+        rateLimiter: operatorResponse.parsed.trafficControls?.rateLimiter ?? null,
+        runtimeMode: operatorResponse.parsed.runtime?.mode ?? null,
+        status: operatorResponse.status,
+        storageDurableStoreConfigured: operatorResponse.parsed.storage?.durableStoreConfigured ?? false,
+        storageKind: operatorResponse.parsed.storage?.kind ?? null,
+      },
+      privatePoolV2RuntimeMatchesPreferredRateLimiter:
+        (operatorResponse.parsed.trafficControls?.rateLimiter ?? null) === "postgres-durable-shared-window",
+      privatePoolV2RuntimeRef: authShellCommand,
+      productionReady: false,
+      safety:
+        "No provider API keys, webhook URLs, source tokens, bearer values, wallet keys, signed transaction material, or database URLs are printed.",
+      status: operatorResponse.status,
+      version: "vanta-production-abuse-observability-runtime-status-0.1",
+    }
+  : {
+      authenticatedStatusCommand: authShellCommand,
+      authTokenEnv: "VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN",
+      authTokenStatus: operatorAuthToken ? "set" : "missing",
+      checkedAt: new Date().toISOString(),
+      mainnetReady: false,
+      nextAction: `Load the production operator auth token in a secret-manager shell and rerun: ${authShellCommand}`,
+      payRuntimeRef: "not-configured-for-production-runtime-check",
+      payRuntimeStatus: "staging-or-local-only",
+      privatePoolV2PreferredRateLimiter: "postgres-durable-shared-window",
+      privatePoolV2Runtime: {
+        auditEventSinkKind: null,
+        operatorUrlHost: operatorBaseUrl.host,
+        operatorUrlRef: "VANTA_PRIVATE_POOL_V2_OPERATOR_URL",
+        operatorUrlSource: operatorBaseUrl.source,
+        rateLimitPerMinute: null,
+        rateLimiter: null,
+        runtimeMode: null,
+        status: 0,
+        storageDurableStoreConfigured: false,
+        storageKind: null,
+      },
+      privatePoolV2RuntimeMatchesPreferredRateLimiter: false,
+      privatePoolV2RuntimeRef: authShellCommand,
+      productionReady: false,
+      safety:
+        "No provider API keys, webhook URLs, source tokens, bearer values, wallet keys, signed transaction material, or database URLs are printed.",
+      status: 0,
+      version: "vanta-production-abuse-observability-runtime-status-0.1",
+    };
 
 if (checkMode) {
   assert.equal(result.payRuntimeStatus, "staging-or-local-only");

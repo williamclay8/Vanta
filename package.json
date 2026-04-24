@@ -41,6 +41,7 @@
     "mainnet:abuse-observability-status": "node scripts/print-vanta-production-abuse-observability-status.mjs",
     "mainnet:abuse-observability-status-check": "node scripts/print-vanta-production-abuse-observability-status.mjs --check",
     "mainnet:abuse-observability-runtime-status": "node scripts/print-vanta-production-abuse-observability-runtime-status.mjs",
+    "mainnet:abuse-observability-runtime-status-auth": "node scripts/print-vanta-production-abuse-observability-runtime-status.mjs --require-auth",
     "mainnet:abuse-observability-runtime-status-check": "node scripts/print-vanta-production-abuse-observability-runtime-status.mjs --check",
     "mainnet:abuse-observability-evidence-check": "node scripts/check-vanta-abuse-observability-evidence.mjs",
     "nullifier:replay-guard-check": "node scripts/check-vanta-nullifier-replay-guard.mjs && node scripts/check-vanta-postgres-nullifier-replay-store.mjs",
