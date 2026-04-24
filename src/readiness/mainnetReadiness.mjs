@@ -11,12 +11,13 @@ const blockers = [
   {
     id: "real-mainnet-private-settlement",
     severity: "critical",
-    summary: "Graduate the no-real-funds Private Pool v2 production smoke path into audited mainnet-compatible private settlement.",
+    summary:
+      "Graduate the no-real-funds Private Pool v2 production smoke path into audited mainnet-compatible private settlement while the checked meaningful-privacy blockers remain no-proven-audited-shared-anonymity-set, no-live-mainnet-private-settlement-path, and no-active-bounded-real-funds-approval-window.",
   },
   {
     id: "deployed-indexer-relayer-prover-operator",
     severity: "critical",
-    summary: "Keep the service-deployment status/evidence surface fresh while deployed production indexer, relayer, prover, verifier, and operator services continue to show green route-health, replay, and no-real-funds smoke evidence, and while observability and backup/restore maturity remain incomplete.",
+    summary: "Keep the service-deployment status/evidence surface fresh while deployed production indexer, relayer, prover, verifier, and operator services continue to show green route-health, replay, and no-real-funds smoke evidence, and while the checked pending production controls remain observability-controls, backup-restore-maturity, and real-funds-readiness.",
   },
   {
     id: "final-nullifier-replay-enforcement",
@@ -201,7 +202,7 @@ export function createVantaMainnetReadinessSnapshot() {
     realFundsApproval.liveMainnetActionsAllowedNow
       ? "Execute only the approved bounded beta mainnet private-pool smoke during the active approval window; record a new bounded approval packet before changing the action, launch window, fee payer, or maximum funds at risk."
       : "Record a new bounded approval window before any live mainnet private-pool action or real-funds movement.",
-    "Keep the service-deployment packet, green route-health, green replay verification, and green no-real-funds production smoke evidence fresh while observability and backup/restore maturity remain incomplete.",
+    `Keep the service-deployment packet, green route-health, green replay verification, and green no-real-funds production smoke evidence fresh while the checked pending production controls remain ${productionServiceDeployment.pendingProductionControls.join(", ")}.`,
     "Keep operator-skipped controls visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
     `Keep the abuse/observability status/evidence surface fresh while the checked pending controls remain ${abuseObservability.pendingObservabilityControls.join(", ")}.`,
     "Keep the deployed operator replay-status evidence, the Postgres-backed nullifier replay guard, role-service replay verification, and production smoke replay simulation fresh while no-real-funds smoke remains the only live settlement proof, audited shared-anonymity-set evidence remains unavailable, and live mainnet private settlement stays unavailable.",
