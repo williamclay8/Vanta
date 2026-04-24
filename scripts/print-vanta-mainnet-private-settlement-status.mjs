@@ -13,6 +13,9 @@ if (checkMode) {
   assert.equal(result.mainnetReady, false);
   assert.equal(result.productionReady, false);
   assert.equal(result.meaningfulPrivacyReady, false);
+  assert.equal(result.auditedSharedAnonymitySetAvailable, false);
+  assert.equal(result.liveMainnetPrivateSettlementAvailable, false);
+  assert.equal(result.boundedRealFundsApprovalWindowActive, false);
   assert.equal(result.privacyClaimAllowed, false);
   assert.equal(result.privacyRailCanClaimMeaningfulPrivacy, false);
   assert.equal(result.settlementReadiness, "no-real-funds-production-smoke-only");
@@ -44,6 +47,12 @@ if (jsonMode || checkMode) {
   console.log(`- realFundsApprovalRecorded: ${String(result.realFundsApprovalRecorded)}`);
   console.log(`- realFundsAllowedNow: ${String(result.realFundsAllowedNow)}`);
   console.log(`- realFundsApprovalWindowStatus: ${result.realFundsApprovalWindowStatus}`);
+  console.log(`- boundedRealFundsApprovalWindowActive: ${String(result.boundedRealFundsApprovalWindowActive)}`);
+  console.log(`- auditedSharedAnonymitySetAvailable: ${String(result.auditedSharedAnonymitySetAvailable)}`);
+  console.log(
+    `- liveMainnetPrivateSettlementAvailable: ${String(result.liveMainnetPrivateSettlementAvailable)}`,
+  );
+  console.log(`- meaningfulPrivacyBlockedBy: ${result.meaningfulPrivacyBlockedBy.join(", ")}`);
   console.log(`- privacyClaimAllowed: ${String(result.privacyClaimAllowed)}`);
   console.log(`- productionReady: ${String(result.productionReady)}`);
 }

@@ -72,6 +72,14 @@ assert.equal(snapshot.privateSettlement.mainnetReady, false);
 assert.ok(
   snapshot.privateSettlement.deploymentTruth.includes("must not be presented as live mainnet private settlement"),
 );
+assert.equal(snapshot.privateSettlement.auditedSharedAnonymitySetAvailable, false);
+assert.equal(snapshot.privateSettlement.liveMainnetPrivateSettlementAvailable, false);
+assert.equal(snapshot.privateSettlement.boundedRealFundsApprovalWindowActive, false);
+assert.deepEqual(snapshot.privateSettlement.meaningfulPrivacyBlockedBy, [
+  "no-proven-audited-shared-anonymity-set",
+  "no-live-mainnet-private-settlement-path",
+  "no-active-bounded-real-funds-approval-window",
+]);
 assert.equal(snapshot.walletSigning.checkedEvidenceRef, "ops/mainnet/wallet-signing-safety.evidence.json");
 assert.equal(snapshot.walletSigning.mainnetReady, false);
 assert.equal(snapshot.walletSigning.productionReady, false);

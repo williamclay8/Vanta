@@ -33,6 +33,16 @@ if (jsonMode) {
   console.log(`  - productionSmokeTargetsPassed: ${String(snapshot.privateSettlement.productionSmokeTargetsPassed)}`);
   console.log(`  - replayProtocolLayerImplemented: ${String(snapshot.privateSettlement.replayProtocolLayerImplemented)}`);
   console.log(`  - realFundsAllowedNow: ${String(snapshot.privateSettlement.realFundsAllowedNow)}`);
+  console.log(
+    `  - boundedRealFundsApprovalWindowActive: ${String(snapshot.privateSettlement.boundedRealFundsApprovalWindowActive)}`,
+  );
+  console.log(
+    `  - auditedSharedAnonymitySetAvailable: ${String(snapshot.privateSettlement.auditedSharedAnonymitySetAvailable)}`,
+  );
+  console.log(
+    `  - liveMainnetPrivateSettlementAvailable: ${String(snapshot.privateSettlement.liveMainnetPrivateSettlementAvailable)}`,
+  );
+  console.log(`  - meaningfulPrivacyBlockedBy: ${snapshot.privateSettlement.meaningfulPrivacyBlockedBy.join(", ")}`);
   console.log(`  - privacyClaimAllowed: ${String(snapshot.privateSettlement.privacyClaimAllowed)}`);
   console.log("- abuse / observability:");
   console.log(`  - payRuntime: ${snapshot.abuseObservability.payRuntimeStatus}`);

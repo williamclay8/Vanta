@@ -25,6 +25,8 @@ export function createVantaMainnetPrivateSettlementStatus() {
 
   return {
     activePrivacyRailId: privacyRail.activeRailId,
+    auditedSharedAnonymitySetAvailable: false,
+    boundedRealFundsApprovalWindowActive: realFundsApproval.approvalWindowStatus === "active",
     checkedAt: new Date().toISOString(),
     checkedEvidenceRefs: [
       "ops/mainnet/private-pool-v2-route-health.evidence.json",
@@ -33,11 +35,17 @@ export function createVantaMainnetPrivateSettlementStatus() {
       "ops/mainnet/mainnet-real-funds-approval.evidence.json",
     ],
     deploymentTruth:
-      "Vanta Private Pool v2 currently has authenticated route-health across deployed production role services, no-real-funds production smoke coverage, and a deployed final replay protocol layer, but it still must not be presented as live mainnet private settlement.",
+      "Vanta Private Pool v2 currently has authenticated route-health across deployed production role services, no-real-funds production smoke coverage, and a deployed final replay protocol layer, but it still must not be presented as live mainnet private settlement because there is no proven audited shared anonymity set, no live mainnet private settlement path, and no active bounded real-funds approval window.",
     lastRouteHealthRef: routeHealthEvidence.lastAuthenticatedReadinessRef,
     lastSmokeRef: "npm run mainnet:private-pool-v2-production-smoke-check",
+    liveMainnetPrivateSettlementAvailable: false,
     mainnetReady: false,
     meaningfulPrivacyReady: false,
+    meaningfulPrivacyBlockedBy: [
+      "no-proven-audited-shared-anonymity-set",
+      "no-live-mainnet-private-settlement-path",
+      "no-active-bounded-real-funds-approval-window",
+    ],
     noRealFundsSmokeOnly: productionSmokeEvidence.realFundsAllowed === false,
     privacyClaimAllowed: false,
     privacyRailCanClaimMeaningfulPrivacy: privacyRail.activeRail.canClaimMeaningfulPrivacy,

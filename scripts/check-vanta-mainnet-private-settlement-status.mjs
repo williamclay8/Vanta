@@ -15,6 +15,9 @@ assert.equal(result.activePrivacyRailId, "vanta-private-pool-v2");
 assert.equal(result.mainnetReady, false);
 assert.equal(result.productionReady, false);
 assert.equal(result.meaningfulPrivacyReady, false);
+assert.equal(result.auditedSharedAnonymitySetAvailable, false);
+assert.equal(result.liveMainnetPrivateSettlementAvailable, false);
+assert.equal(result.boundedRealFundsApprovalWindowActive, false);
 assert.equal(result.privacyClaimAllowed, false);
 assert.equal(result.privacyRailCanClaimMeaningfulPrivacy, false);
 assert.equal(result.settlementReadiness, "no-real-funds-production-smoke-only");
@@ -26,6 +29,11 @@ assert.equal(result.replayProtocolLayerImplemented, true);
 assert.equal(result.realFundsApprovalRecorded, true);
 assert.equal(result.realFundsAllowedNow, false);
 assert.equal(result.noRealFundsSmokeOnly, true);
+assert.deepEqual(result.meaningfulPrivacyBlockedBy, [
+  "no-proven-audited-shared-anonymity-set",
+  "no-live-mainnet-private-settlement-path",
+  "no-active-bounded-real-funds-approval-window",
+]);
 assert.ok(
   ["scheduled", "active", "expired"].includes(result.realFundsApprovalWindowStatus),
   "Private settlement status must expose a bounded approval-window status.",
@@ -43,6 +51,18 @@ assert.ok(
 assert.ok(
   result.deploymentTruth.includes("must not be presented as live mainnet private settlement"),
   "Private settlement status must preserve the non-ready user-facing truth.",
+);
+assert.ok(
+  result.deploymentTruth.includes("no proven audited shared anonymity set"),
+  "Private settlement status must preserve the missing audited-anonymity-set truth.",
+);
+assert.ok(
+  result.deploymentTruth.includes("no live mainnet private settlement path"),
+  "Private settlement status must preserve the missing live-mainnet-settlement truth.",
+);
+assert.ok(
+  result.deploymentTruth.includes("no active bounded real-funds approval window"),
+  "Private settlement status must preserve the inactive bounded-approval-window truth.",
 );
 
 assert.equal(
