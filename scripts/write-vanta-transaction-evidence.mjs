@@ -86,7 +86,9 @@ async function fetchLivePrivateCoreOperatorTrace() {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 2_500);
   try {
+    const authToken = resolveOperatorAuthToken();
     const response = await fetch(new URL("/state/private-core-status", operatorBaseUrl), {
+      headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
       signal: controller.signal,
     });
     if (!response.ok) {
@@ -114,6 +116,13 @@ async function fetchLivePrivateCoreOperatorTrace() {
   } finally {
     clearTimeout(timeout);
   }
+}
+
+function resolveOperatorAuthToken() {
+  const envValue =
+    process.env.VANTA_PRIVATE_CORE_OPERATOR_AUTH_TOKEN ??
+    process.env.VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN;
+  return typeof envValue === "string" && envValue.trim() ? envValue.trim() : null;
 }
 
 function isObject(value) {

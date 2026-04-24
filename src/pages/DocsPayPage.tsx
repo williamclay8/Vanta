@@ -59,16 +59,16 @@ export function DocsPayPage() {
         <div className="docs-callout docs-callout--warm">
           <strong>Pay is ambitious, but today&apos;s surface stays explicit.</strong>
           <p>
-            The current Pay experience opens on the merchant control plane. The
-            checkout is still a design-partner preview inside that surface. It
-            helps people understand the settlement story, but it is not being
-            presented as a finished production payments network.
+            The current Pay experience opens on a simple payment-entry flow.
+            It lets people enter payment details, review the request, preview
+            the route and receipt path, and see the beta disabled state without
+            presenting Pay as a finished production payments network.
           </p>
         </div>
         <ul className="docs-bullet-list">
-          <li>Merchant operations are the main Pay frame today.</li>
-          <li>Checkout is one workflow inside the control plane, not the whole product.</li>
-          <li>The trust packet spells out what is private, what is visible, and who approves execution.</li>
+          <li>The default `/app/pay` tab is the simple payment-entry surface today.</li>
+          <li>Merchant API, refunds, withdrawals, and reconciliation stay in backend verification surfaces.</li>
+          <li>Route preview, receipt path preview, and beta state stay visible in the tab.</li>
           <li>The settlement story still depends on clear approval boundaries and operator-visible truth.</li>
         </ul>
       </section>

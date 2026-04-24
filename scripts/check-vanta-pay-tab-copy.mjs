@@ -13,14 +13,19 @@ const requiredPageCopy = [
   "Customer email",
   "Review payment",
   "Pay with Vanta",
-  "Pricing",
-  "No billing starts from checkout preview alone.",
   "Payment route preview",
   "Receipt path preview",
   "Fill in the payment details to preview the request.",
 ];
 
 const bannedCopy = [
+  "0 monthly fee",
+  "0.25%",
+  "Success fee",
+  "Monthly fee",
+  "Network fees",
+  "Off-ramp fees",
+  "No hidden platform fee",
   "monthly SaaS",
   "Platform fee",
   "All fees buy back the token",
@@ -66,6 +71,14 @@ const bannedCopy = [
   "Create a shareable payment link",
   "Send invoice",
   "Withdraw funds",
+  "Pricing",
+  "No billing starts from checkout preview alone.",
+];
+
+const bannedCopyPatterns = [
+  /\bfee(s)?\b/i,
+  /\bbilling\b/i,
+  /\bpricing\b/i,
 ];
 
 const failures = [];
@@ -79,6 +92,12 @@ for (const text of requiredPageCopy) {
 for (const text of bannedCopy) {
   if (source.includes(text)) {
     failures.push(`Banned Pay tab copy found: ${text}`);
+  }
+}
+
+for (const pattern of bannedCopyPatterns) {
+  if (pattern.test(source)) {
+    failures.push(`Banned Pay tab copy pattern found: ${pattern}`);
   }
 }
 

@@ -5,8 +5,8 @@ const session = `vanta-prod-wallet-${Date.now()}`;
 const baseUrl = process.env.VANTA_PUBLIC_APP_URL?.trim() || "https://vantaprivacy.xyz";
 const routes = [
   { page: "Shield", path: "/app/shield", routeText: "SHIELD" },
-  { page: "Send", path: "/app/send", routeText: "PRIVATE SEND" },
-  { page: "Swap", path: "/app/swap", routeText: "PRIVATE SWAP" },
+  { page: "Send", path: "/app/send", routeText: "SEND SHIELDED" },
+  { page: "Swap", path: "/app/swap", routeText: "TRADE SHIELDED" },
   { page: "Unshield", path: "/app/unshield", routeText: "UNSHIELD" },
 ];
 

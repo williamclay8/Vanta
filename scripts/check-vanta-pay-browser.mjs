@@ -2,11 +2,9 @@ import { execFileSync, spawn } from "node:child_process";
 import { rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { VANTA_PRICING_COPY, describePricingForSurface } from "../src/pricing/vantaPricing.ts";
 
 const port = 4230 + Math.floor(Math.random() * 200);
 const baseUrl = `http://127.0.0.1:${port}`;
-const payPricing = describePricingForSurface("pay");
 
 function sleep(ms) {
   return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
@@ -49,13 +47,16 @@ function runBrowserBatch() {
         { kind: "text_visible", text: "Receipt path preview" },
         { kind: "text_visible", text: "Vanta Beta" },
         { kind: "text_visible", text: "No funds move in this mode" },
-        { kind: "text_visible", text: VANTA_PRICING_COPY.headline },
-        { kind: "text_visible", text: payPricing.passThroughLabel },
-        { kind: "text_visible", text: VANTA_PRICING_COPY.passThrough },
-        { kind: "text_visible", text: "No billing starts from checkout preview alone." },
         { kind: "selector_visible", selector: 'form[aria-label="Payment form"]' },
         { kind: "selector_visible", selector: 'form[aria-label="Payment form"] .button-primary:disabled' },
+        { kind: "selector_hidden", selector: ".pay-pricing-card" },
         { kind: "selector_hidden", selector: '[data-pay-surface="merchant-control-plane"]' },
+        { kind: "text_hidden", text: "Pricing" },
+        { kind: "text_hidden", text: "fee" },
+        { kind: "text_hidden", text: "fees" },
+        { kind: "text_hidden", text: "0 monthly fee" },
+        { kind: "text_hidden", text: "0.25%" },
+        { kind: "text_hidden", text: "No billing starts from checkout preview alone." },
         { kind: "text_hidden", text: "Merchant settlement operations" },
         { kind: "text_hidden", text: "Merchant control plane" },
         { kind: "text_hidden", text: "Trust packet" },
@@ -88,10 +89,13 @@ function runBrowserBatch() {
         { kind: "text_visible", text: "Payment route preview" },
         { kind: "text_visible", text: "Receipt path preview" },
         { kind: "text_visible", text: "Pay with Vanta" },
-        { kind: "text_visible", text: VANTA_PRICING_COPY.headline },
-        { kind: "text_visible", text: payPricing.passThroughLabel },
-        { kind: "text_visible", text: VANTA_PRICING_COPY.passThrough },
-        { kind: "text_visible", text: "No billing starts from checkout preview alone." },
+        { kind: "selector_hidden", selector: ".pay-pricing-card" },
+        { kind: "text_hidden", text: "Pricing" },
+        { kind: "text_hidden", text: "fee" },
+        { kind: "text_hidden", text: "fees" },
+        { kind: "text_hidden", text: "0 monthly fee" },
+        { kind: "text_hidden", text: "0.25%" },
+        { kind: "text_hidden", text: "No billing starts from checkout preview alone." },
         { kind: "text_hidden", text: "Merchant operations" },
         { kind: "text_hidden", text: "Approval boundary" },
         { kind: "selector_visible", selector: ".pay-trust-line" },

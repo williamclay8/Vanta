@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
-import { VANTA_PRICING_COPY, describePricingForSurface } from "@/pricing/vantaPricing";
 
 function PayButton({
   children,
@@ -82,20 +81,6 @@ function PaySelect({
         ))}
       </select>
     </label>
-  );
-}
-
-function PayPricingCard() {
-  const payPricing = describePricingForSurface("pay");
-
-  return (
-    <aside className="pay-pricing-card" aria-label="Vanta pricing">
-      <span className="pay-kicker">Pricing</span>
-      <h3>{VANTA_PRICING_COPY.headline}</h3>
-      <p>{payPricing.passThroughLabel}</p>
-      <p>{VANTA_PRICING_COPY.passThrough}</p>
-      <small>No billing starts from checkout preview alone.</small>
-    </aside>
   );
 }
 
@@ -197,8 +182,6 @@ export function PayPage() {
               </div>
             ) : null}
           </article>
-
-          <PayPricingCard />
         </main>
       </div>
     </section>

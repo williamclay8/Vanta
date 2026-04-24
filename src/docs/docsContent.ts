@@ -1,8 +1,3 @@
-import {
-  VANTA_PRICING_CONTRACT,
-  VANTA_PRICING_COPY,
-} from "../pricing/vantaPricing";
-
 export type DocsTrack = "portal" | "pay" | "shared";
 
 export type DocsBadge =
@@ -17,7 +12,6 @@ export type DocsSection =
   | "pay"
   | "trust"
   | "security"
-  | "pricing"
   | "roadmap";
 
 export type DocsSidebarGroupId = "start-here" | "shared-truth";
@@ -50,8 +44,6 @@ const docsSidebarGroupLabels: Record<DocsSidebarGroupId, string> = {
   "start-here": "Start here",
   "shared-truth": "Shared truth",
 };
-
-const docsPricingSummary = `Vanta's launch-stage pricing is simple: no monthly fee, ${VANTA_PRICING_CONTRACT.successFeeRateDisplay} only after a supported action succeeds, and ${VANTA_PRICING_COPY.passThrough.toLowerCase()}`;
 
 export const docsPages: DocsPageMeta[] = [
   {
@@ -137,23 +129,6 @@ export const docsPages: DocsPageMeta[] = [
     navigation: {
       sidebarGroup: "shared-truth",
       topNavLabel: "Security",
-    },
-    nextStep: {
-      label: "See pricing direction",
-      href: "/docs/pricing",
-      description: "Understand how the launch package is framed for early users.",
-    },
-  },
-  {
-    slug: "/docs/pricing",
-    title: "Pricing",
-    summary: docsPricingSummary,
-    track: "shared",
-    section: "pricing",
-    badge: "design-partner-surface",
-    navigation: {
-      sidebarGroup: "shared-truth",
-      topNavLabel: "Pricing",
     },
     nextStep: {
       label: "See the shared roadmap",

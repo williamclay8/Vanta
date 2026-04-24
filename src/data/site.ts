@@ -60,12 +60,3 @@ export const roadmap = [
     description: "Broader privacy infrastructure.",
   },
 ];
-
-export const tractionPricing = {
-  headline: "0 monthly fee",
-  rate: "0.25% only when a supported action completes successfully.",
-  passThrough:
-    "Network, off-ramp, and third-party execution costs are shown separately when they apply.",
-  tokenRoadmap:
-    "$VANTA is utility-first. Any later buyback policy should use a defined share of Vanta-collected net transaction fees.",
-} as const;

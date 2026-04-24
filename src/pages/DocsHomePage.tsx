@@ -142,8 +142,7 @@ export function DocsHomePage() {
             <h3>Trust pages</h3>
             <p>
               The shared pages explain who approves what, what the security
-              limits are, how pricing is framed, and what remains on the
-              roadmap.
+              limits are, and what remains on the roadmap.
             </p>
           </article>
         </div>

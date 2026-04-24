@@ -27,7 +27,7 @@ review fields are:
 
 - `Payment details`, `What are you collecting for?`, `Amount`, `Asset`, `Customer email`, and `Review payment`
 
-The payment route preview, receipt path preview, beta disabled state, and pricing truth remain visible so the tab does not imply live funds or active billing.
+The payment route preview, receipt path preview, and beta disabled state remain visible so the tab does not imply live funds.
 
 The merchant API, status, approval packet, refunds, withdrawals, and reconciliation still live in the Pay backend and verification commands. They should not make the default Pay tab feel like an operations console.
 

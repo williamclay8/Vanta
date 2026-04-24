@@ -50,11 +50,11 @@ assert.ok(
   "Wallet-signing evidence must preserve the non-production truth.",
 );
 assert.ok(
-  evidence.deploymentTruth.includes("repo now targets live-submission mode by default"),
+  evidence.deploymentTruth.includes("repo targets live-submission mode by default"),
   "Wallet-signing evidence must preserve the repo-side live-submission posture truth.",
 );
 assert.ok(
-  evidence.deploymentTruth.includes("deployed production browser verification is now green"),
+  evidence.deploymentTruth.includes("deployed production browser verification is green"),
   "Wallet-signing evidence must preserve the deployed production browser-proof scope.",
 );
 assert.ok(

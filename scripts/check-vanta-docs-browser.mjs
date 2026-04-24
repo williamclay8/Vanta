@@ -2,10 +2,6 @@ import { execFileSync, spawn } from "node:child_process";
 import { rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import {
-  VANTA_PRICING_CONTRACT,
-  VANTA_PRICING_COPY,
-} from "../src/pricing/vantaPricing.ts";
 
 const port = 5530 + Math.floor(Math.random() * 200);
 const baseUrl = `http://127.0.0.1:${port}`;
@@ -14,7 +10,6 @@ const expectedPrimaryNavSections = [
   "pay",
   "trust",
   "security",
-  "pricing",
   "roadmap",
 ];
 
@@ -69,6 +64,8 @@ function runBrowserBatch() {
           kind: "selector_visible",
           selector: `[data-docs-topnav-link="${section}"]`,
         })),
+        { kind: "selector_hidden", selector: '[data-docs-topnav-link="pricing"]' },
+        { kind: "selector_hidden", selector: '[data-docs-sidebar-link="pricing"]' },
         { kind: "no_console_errors" },
       ],
     },
@@ -103,7 +100,13 @@ function runBrowserBatch() {
         { kind: "text_visible", text: "merchant control plane" },
         { kind: "text_visible", text: "Trust packet" },
         { kind: "text_visible", text: "what is private" },
-        { kind: "text_visible", text: "design-partner preview" },
+        { kind: "text_visible", text: "simple payment-entry flow" },
+        { kind: "selector_hidden", selector: '[data-docs-topnav-link="pricing"]' },
+        { kind: "selector_hidden", selector: '[data-docs-sidebar-link="pricing"]' },
+        { kind: "text_hidden", text: "0 monthly fee" },
+        { kind: "text_hidden", text: "0.25%" },
+        { kind: "text_hidden", text: "Success fee" },
+        { kind: "text_hidden", text: "Monthly fee" },
         { kind: "no_console_errors" },
       ],
     },
@@ -118,25 +121,6 @@ function runBrowserBatch() {
         { kind: "text_visible", text: "Trust" },
         { kind: "text_visible", text: "Trust comes from legibility, not overclaiming." },
         { kind: "text_visible", text: "Read the security limits" },
-        { kind: "no_console_errors" },
-      ],
-    },
-    { action: "click", selector: '[data-docs-topnav-link="pricing"]' },
-    { action: "wait_for", condition: "network_idle" },
-    {
-      action: "assert",
-      checks: [
-        { kind: "url_contains", text: "/docs/pricing" },
-        { kind: "selector_visible", selector: '[data-docs-badge="design-partner-surface"]' },
-        { kind: "text_visible", text: "Design-partner surface" },
-        { kind: "text_visible", text: "Pricing" },
-        { kind: "text_visible", text: VANTA_PRICING_COPY.headline },
-        {
-          kind: "text_visible",
-          text: `${VANTA_PRICING_CONTRACT.successFeeRateDisplay} on success.`,
-        },
-        { kind: "text_visible", text: VANTA_PRICING_COPY.passThrough },
-        { kind: "text_visible", text: "See the shared roadmap" },
         { kind: "no_console_errors" },
       ],
     },

@@ -9,14 +9,14 @@ const docChecks = [
     required: [
       "the default `/app/pay` surface is now a simple payment-entry flow",
       "`Payment details`, `What are you collecting for?`, `Amount`, `Asset`, `Customer email`, and `Review payment`",
-      "payment route preview, receipt path preview, beta disabled state, and pricing truth remain visible",
+      "payment route preview, receipt path preview, and beta disabled state remain visible",
       "merchant API, status, approval packet, refunds, withdrawals, and reconciliation still live in the Pay backend and verification commands",
     ],
   },
   {
     path: "README.md",
     required: [
-      "a simple `/app/pay` payment-entry surface focused on payment description, amount, asset, customer email, review, route preview, receipt preview, and pricing truth",
+      "a simple `/app/pay` payment-entry surface focused on payment description, amount, asset, customer email, review, route preview, receipt preview, and beta state",
       "Pay with Vanta",
       "0 monthly fee",
       "0.25%` only when a supported action completes successfully",
@@ -27,7 +27,7 @@ const docChecks = [
     path: "SUBMISSION.md",
     required: [
       "The Pay demo now opens on a simple payment-entry surface",
-      "payment description, amount, asset, customer email, review, route preview, receipt preview, beta disabled state, and pricing truth",
+      "payment description, amount, asset, customer email, review, route preview, receipt preview, and beta disabled state",
       "0 monthly fee",
       "0.25%` only when a supported action completes successfully",
       "utility-first",

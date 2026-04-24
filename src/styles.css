@@ -2621,8 +2621,7 @@ input {
 .pay-hero,
 .pay-panel,
 .pay-checkout-card,
-.pay-payment-card,
-.pay-pricing-card {
+.pay-payment-card {
   border: 1px solid rgba(0, 229, 200, 0.1);
   background: rgba(8, 13, 20, 0.9);
   -webkit-backdrop-filter: blur(22px);
@@ -2642,8 +2641,7 @@ input {
 .pay-topbar--minimal,
 .pay-minimal-stage,
 .pay-action-card,
-.pay-payment-card,
-.pay-pricing-card {
+.pay-payment-card {
   width: min(640px, 100%);
 }
 
@@ -3123,8 +3121,7 @@ input {
   text-align: center;
 }
 
-.pay-payment-card h2,
-.pay-pricing-card h3 {
+.pay-payment-card h2 {
   margin: 0;
   font-family: "Syne", sans-serif;
   letter-spacing: -0.035em;
@@ -3135,9 +3132,7 @@ input {
   font-size: clamp(1.75rem, 4vw, 2.5rem);
 }
 
-.pay-payment-card p,
-.pay-pricing-card p,
-.pay-pricing-card small {
+.pay-payment-card p {
   margin: 0;
   color: var(--muted);
   line-height: 1.55;
@@ -3173,13 +3168,6 @@ input {
   color: var(--muted-strong);
   font-size: 0.8rem;
   font-variant-numeric: tabular-nums;
-}
-
-.pay-pricing-card {
-  display: grid;
-  gap: 8px;
-  padding: 16px 18px;
-  border-radius: 18px;
 }
 
 .pay-field {
@@ -3447,10 +3435,6 @@ input {
 
 .pay-workflow-card:active {
   transform: scale(0.96);
-}
-
-.pay-view--control .pay-pricing-card {
-  grid-column: 1 / -1;
 }
 
 .pay-view--checkout {

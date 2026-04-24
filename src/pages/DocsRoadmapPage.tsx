@@ -53,9 +53,9 @@ export function DocsRoadmapPage() {
           <article className="docs-connection-card">
             <h3>Shared truth still governs both</h3>
             <p>
-              Neither path should outrun the current operator, pricing, or
-              readiness truth. The roadmap only works if those pages keep
-              telling the same story.
+              Neither path should outrun the current operator or readiness
+              truth. The roadmap only works if those pages keep telling the
+              same story.
             </p>
           </article>
         </div>

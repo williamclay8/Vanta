@@ -112,12 +112,7 @@ for (const page of ["shield", "send", "swap", "strategy", "unshield"]) {
   );
 }
 
-for (const needle of [
-  "Create payment link",
-  "Send invoice",
-  "Pay with Vanta",
-  "Withdraw",
-]) {
+for (const needle of ["Pay with Vanta"]) {
   if (!files.pay.includes(`isBetaMode ? "Beta mode"`)) {
     failures.push("Pay page primary actions must render beta-mode button copy.");
     break;

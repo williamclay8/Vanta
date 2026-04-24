@@ -24,7 +24,7 @@ The current demo has three parts:
 - Vanta Pay, a simple payment-entry surface backed by checkout, settlement status, refund, withdrawal, and receipt contracts
 - a reviewer-facing proof lane that shows the first private-core boundary is executable
 
-The Pay demo now opens on a simple payment-entry surface. It focuses on payment description, amount, asset, customer email, review, route preview, receipt preview, beta disabled state, and pricing truth while the deeper merchant API and settlement contracts remain verifiable behind the tab.
+The Pay demo now opens on a simple payment-entry surface. It focuses on payment description, amount, asset, customer email, review, route preview, receipt preview, and beta disabled state while the deeper merchant API and settlement contracts remain verifiable behind the tab.
 
 Vanta is intentionally honest about its status: it has real devnet and local verification lanes, but it is not production-ready, audited, or mainnet-ready yet.
 
@@ -257,7 +257,7 @@ The repo now includes a **Vanta Pay merchant integration** verification lane:
 
 The Pay layer is designed as the merchant product surface behind a simple payment-entry tab: create a checkout session, render hosted or embedded checkout, and receive signed webhook events when paid. Completed Pay states now require private settlement receipts from `src/pay/vantaPayPrivateSettlementAdapter.ts`, which can route through the Vanta Private Pool v2 operator-owned `/private-pool-v2/pay-settlements` endpoint through `VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_URL`. Merchant copy remains commerce-first.
 
-The real `/app/pay` demo surface is now intentionally narrow: payment description, amount, asset, customer email, review, route preview, receipt preview, beta disabled state, and pricing truth.
+The real `/app/pay` demo surface is now intentionally narrow: payment description, amount, asset, customer email, review, route preview, receipt preview, and beta disabled state.
 
 Staging deployment truth:
 
@@ -594,13 +594,13 @@ The project is intentionally product-led:
 
 ## Demo script - 30 seconds
 
-Vanta is a privacy layer for Solana that makes private value movement feel like a product instead of a cryptography demo. Today, the app already supports a constrained devnet shielded-state loop for `VUSD` and native SOL, and the real `/app/pay` surface now opens on a simple payment-entry flow with payment description, amount, asset, customer email, review, route preview, receipt preview, beta disabled state, and pricing truth. Underneath that, the repo includes a real Private Core proof lane, so the zk boundary is executable, not hypothetical.
+Vanta is a privacy layer for Solana that makes private value movement feel like a product instead of a cryptography demo. Today, the app already supports a constrained devnet shielded-state loop for `VUSD` and native SOL, and the real `/app/pay` surface now opens on a simple payment-entry flow with payment description, amount, asset, customer email, review, route preview, receipt preview, and beta disabled state. Underneath that, the repo includes a real Private Core proof lane, so the zk boundary is executable, not hypothetical.
 
 ## Demo script - 60 seconds
 
 Solana is fast and accessible, but it is transparent by default. Vanta is our answer: a privacy layer that starts with shielding, because shielded state is the cleanest entrypoint for useful private workflows. Today, Vanta already supports a constrained real devnet lifecycle for `VUSD` and direct native SOL shield entry: users can connect a wallet, shield into Vanta, evolve note-based state through Send and a constrained `VUSD -> SOL` swap lane, and unshield through authenticated operator-backed flows that verify the referenced transition before release and persist release records across restarts. The wallet picker also includes a contextual Peer top-up recovery path for disconnected or unfunded users.
 
-The demo wedge goes further than the wallet flow. The real `/app/pay` surface is now a simple payment-entry tab: payment description, amount, asset, customer email, review, route preview, receipt preview, beta disabled state, and pricing truth. That keeps the private-settlement story legible without turning the UI into an operations console.
+The demo wedge goes further than the wallet flow. The real `/app/pay` surface is now a simple payment-entry tab: payment description, amount, asset, customer email, review, route preview, receipt preview, and beta disabled state. That keeps the private-settlement story legible without turning the UI into an operations console.
 
 Underneath the product, the repo also includes a standalone Vanta Private Core proof lane with a fixed-depth Noir single-note unshield circuit, local proof generation and verification, operator-backed consume and release checks, and replay rejection. It is still narrow and still not production-ready, but it proves the first zk boundary is real today rather than just roadmap copy.
 

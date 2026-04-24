@@ -1097,7 +1097,7 @@ The deployed public-app browser-backed verification gate is:
 npm run mainnet:wallet-production-browser-check
 ```
 
-It probes `https://vantaprivacy.xyz` directly with `gsd-browser`, verifies Shield, Send, Swap, and Unshield all render on the live public app, and freezes the current deployment truth that the public site still shows the beta-mode and private-settlement-offline banners while live mainnet submission remains blocked.
+It probes `https://vantaprivacy.xyz` directly with `gsd-browser`, verifies Shield, Send, Swap, and Unshield all render on the live public app, and fails if the public site shows the beta-mode banner, private-settlement-offline banner, or `Beta mode` action copy.
 
 The sanitized production wallet-signing status surface is:
 
@@ -1105,7 +1105,7 @@ The sanitized production wallet-signing status surface is:
 scripts/print-vanta-production-wallet-signing-status.mjs
 ```
 
-It records the current protocol pages covered by the live wallet-signing boundary, the pages that have adopted safe-send, the pages verified by the local and deployed browser-backed signing checks, the pages still using typed message intents, and the Umbra adapter gate status. It is intentionally not a production-ready claim; it freezes the current adopted boundary and the current live-site beta-mode truth so readiness can fail loudly if the wallet lane drifts.
+It records the current protocol pages covered by the live wallet-signing boundary, the pages that have adopted safe-send, the pages verified by the local and deployed browser-backed signing checks, the pages still using typed message intents, and the Umbra adapter gate status. It is intentionally not a production-ready claim; it freezes the current adopted boundary and live deployment-mode truth so readiness can fail loudly if the wallet lane drifts.
 
 The production wallet-signing status commands are:
 

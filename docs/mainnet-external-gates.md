@@ -213,7 +213,7 @@ npm run protocol:browser-check
 npm run pay:browser-check
 ```
 
-Current checked truth: the local/browser wallet-signing boundary is green, deployed production browser-backed verification is now recorded for Shield, Send, Swap, and Unshield at `https://vantaprivacy.xyz`, live mainnet submission remains explicitly blocked, and the remaining blocker is that the public app still serves the beta-mode and private-settlement-offline banners.
+Current checked truth: the local/browser wallet-signing boundary is green, and deployed production browser-backed verification is green for Shield, Send, Swap, and Unshield at `https://vantaprivacy.xyz` after the Render static frontend was switched from `VITE_VANTA_DEPLOYMENT_MODE=beta` to `VITE_VANTA_DEPLOYMENT_MODE=production`. The public beta banner, private-settlement-offline banner, and `Beta mode` action copy are cleared. This does not make Vanta production-ready; real-funds actions remain bounded by explicit approval and meaningful-privacy blockers remain unresolved.
 
 ### Third-party security audit
 

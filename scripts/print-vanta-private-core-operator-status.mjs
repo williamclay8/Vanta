@@ -487,7 +487,9 @@ function readFlagValue(args, flag) {
 }
 
 async function requestJson(path) {
+  const authToken = resolveAuthToken();
   const response = await fetch(`${baseUrl}${path}`, {
+    headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
     method: "GET",
     signal: AbortSignal.timeout(10_000),
   });
@@ -498,6 +500,13 @@ async function requestJson(path) {
   }
 
   return response.json();
+}
+
+function resolveAuthToken() {
+  const envValue =
+    process.env.VANTA_PRIVATE_CORE_OPERATOR_AUTH_TOKEN ??
+    process.env.VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN;
+  return typeof envValue === "string" && envValue.trim() ? envValue.trim() : null;
 }
 
 function printStatusSurface(

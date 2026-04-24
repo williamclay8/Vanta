@@ -39,9 +39,6 @@ const DocsTrustPage = lazy(() =>
 const DocsSecurityPage = lazy(() =>
   import("@/pages/DocsSecurityPage").then((m) => ({ default: m.DocsSecurityPage })),
 );
-const DocsPricingPage = lazy(() =>
-  import("@/pages/DocsPricingPage").then((m) => ({ default: m.DocsPricingPage })),
-);
 const DocsRoadmapPage = lazy(() =>
   import("@/pages/DocsRoadmapPage").then((m) => ({ default: m.DocsRoadmapPage })),
 );
@@ -111,7 +108,6 @@ function App() {
           <Route path="pay" element={<DocsPayPage />} />
           <Route path="trust" element={<DocsTrustPage />} />
           <Route path="security" element={<DocsSecurityPage />} />
-          <Route path="pricing" element={<DocsPricingPage />} />
           <Route path="roadmap" element={<DocsRoadmapPage />} />
           <Route path="*" element={<Navigate to="/docs" replace />} />
         </Route>
