@@ -26,8 +26,13 @@ assert.equal(
   "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
 );
 assert.equal(evidence.roleServiceNetworkRef, "npm run private-pool-v2:service-network-check");
+assert.equal(evidence.roleServiceReplayVerified, true);
 assert.equal(evidence.productionSmokeEvidenceRef, "ops/mainnet/private-pool-v2-production-smoke.evidence.json");
+assert.equal(evidence.productionSmokeHealthPassed, true);
+assert.equal(evidence.productionSmokeTargetsPassed, true);
 assert.equal(evidence.routeHealthEvidenceRef, "ops/mainnet/private-pool-v2-route-health.evidence.json");
+assert.equal(evidence.routeHealthPublicPassed, true);
+assert.equal(evidence.routeHealthAuthenticatedPassed, true);
 assert.equal(evidence.services.length, 5);
 for (const service of evidence.services) {
   assert.equal(service.deploymentStatus, "deployed-render-production-not-ready");
@@ -37,8 +42,16 @@ assert.ok(
   "Service deployment evidence must preserve the deployed Render truth.",
 );
 assert.ok(
-  evidence.deploymentTruth.includes("checked role-service replay barrier evidence"),
+  evidence.deploymentTruth.includes("authenticated route-health is green"),
+  "Service deployment evidence must preserve the green route-health truth.",
+);
+assert.ok(
+  evidence.deploymentTruth.includes("checked role-service replay barrier evidence is green"),
   "Service deployment evidence must preserve the checked role-service replay barrier truth.",
+);
+assert.ok(
+  evidence.deploymentTruth.includes("no-real-funds production smoke is green"),
+  "Service deployment evidence must preserve the green production-smoke truth.",
 );
 
 const serialized = JSON.stringify(evidence);

@@ -16,7 +16,7 @@ const blockers = [
   {
     id: "deployed-indexer-relayer-prover-operator",
     severity: "critical",
-    summary: "Keep the service-deployment status/evidence surface fresh while production indexer, relayer, prover, verifier, and operator services stay deployed with durable storage, fresh smoke evidence, observability, and backup/restore evidence.",
+    summary: "Keep the service-deployment status/evidence surface fresh while deployed production indexer, relayer, prover, verifier, and operator services continue to show green route-health, replay, and no-real-funds smoke evidence, and while observability and backup/restore maturity remain incomplete.",
   },
   {
     id: "final-nullifier-replay-enforcement",
@@ -186,7 +186,7 @@ const requiredCommands = [
 
 const nextActions = [
   "Execute only the approved bounded beta mainnet private-pool smoke while the approval window is active, or record a new bounded approval window before changing the action, launch window, fee payer, or maximum funds at risk.",
-  "Keep the service-deployment status/evidence surface and Private Pool v2 production smoke evidence fresh before expanding live mainnet actions.",
+  "Keep the service-deployment packet, green route-health, green replay verification, and green no-real-funds production smoke evidence fresh while observability and backup/restore maturity remain incomplete.",
   "Keep operator-skipped controls visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
   "Keep the abuse/observability status/evidence surface fresh while using provider-neutral production observability evidence, existing platform logs, or a future provider until dashboards, alerts, retention, and incident workflow evidence are complete.",
   "Keep the deployed operator replay-status evidence, the Postgres-backed nullifier replay guard, role-service replay verification, and production smoke replay simulation fresh while broader production and audit gates remain pending around the replay lane.",

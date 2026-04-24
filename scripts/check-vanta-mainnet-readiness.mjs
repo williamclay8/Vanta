@@ -129,6 +129,11 @@ assert.equal(
   snapshot.productionServiceDeployment.productionSmokeEvidenceRef,
   "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
 );
+assert.equal(snapshot.productionServiceDeployment.routeHealthPublicPassed, true);
+assert.equal(snapshot.productionServiceDeployment.routeHealthAuthenticatedPassed, true);
+assert.equal(snapshot.productionServiceDeployment.roleServiceReplayVerified, true);
+assert.equal(snapshot.productionServiceDeployment.productionSmokeHealthPassed, true);
+assert.equal(snapshot.productionServiceDeployment.productionSmokeTargetsPassed, true);
 assert.equal(
   snapshot.productionServiceDeployment.routeHealthEvidenceRef,
   "ops/mainnet/private-pool-v2-route-health.evidence.json",
@@ -144,7 +149,8 @@ assert.deepEqual(
 for (const service of snapshot.productionServiceDeployment.serviceDeploymentStatuses) {
   assert.equal(service.deploymentStatus, "deployed-render-production-not-ready");
 }
-assert.ok(snapshot.productionServiceDeployment.nextOperatorAction.includes("route-health evidence"));
+assert.ok(snapshot.productionServiceDeployment.nextOperatorAction.includes("route-health"));
+assert.ok(snapshot.productionServiceDeployment.nextOperatorAction.includes("production smoke"));
 assert.ok(snapshot.score >= 0 && snapshot.score <= 100, "Readiness score must be a percentage.");
 assert.ok(snapshot.blockers.length >= 6, "Mainnet readiness must enumerate concrete blockers.");
 assert.ok(

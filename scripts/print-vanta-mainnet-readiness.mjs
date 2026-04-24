@@ -69,6 +69,17 @@ if (jsonMode) {
   console.log("- production service deployment:");
   console.log(`  - manifestRef: ${snapshot.productionServiceDeployment.manifestRef}`);
   console.log(`  - routeHealthLastCheckedAt: ${snapshot.productionServiceDeployment.routeHealthLastCheckedAt}`);
+  console.log(`  - routeHealthPublicPassed: ${String(snapshot.productionServiceDeployment.routeHealthPublicPassed)}`);
+  console.log(
+    `  - routeHealthAuthenticatedPassed: ${String(snapshot.productionServiceDeployment.routeHealthAuthenticatedPassed)}`,
+  );
+  console.log(`  - roleServiceReplayVerified: ${String(snapshot.productionServiceDeployment.roleServiceReplayVerified)}`);
+  console.log(
+    `  - productionSmokeHealthPassed: ${String(snapshot.productionServiceDeployment.productionSmokeHealthPassed)}`,
+  );
+  console.log(
+    `  - productionSmokeTargetsPassed: ${String(snapshot.productionServiceDeployment.productionSmokeTargetsPassed)}`,
+  );
   console.log(
     `  - services: ${snapshot.productionServiceDeployment.serviceDeploymentStatuses
       .map((service) => `${service.id}:${service.deploymentStatus}`)
