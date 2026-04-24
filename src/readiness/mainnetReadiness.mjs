@@ -31,7 +31,7 @@ const blockers = [
   {
     id: "abuse-rate-limit-observability",
     severity: "high",
-    summary: "Keep the abuse/observability status/evidence surface fresh while provider-backed log sink, dashboards, alerts, retention, and incident workflow controls all remain explicitly pending.",
+    summary: "Keep the abuse/observability status/evidence surface fresh while the checked pending controls remain provider-backed-log-sink, metrics-dashboards, alert-policies, retention-policy, and incident-workflow.",
   },
   {
     id: "no-mainnet-funds-without-explicit-approval",
@@ -203,7 +203,7 @@ export function createVantaMainnetReadinessSnapshot() {
       : "Record a new bounded approval window before any live mainnet private-pool action or real-funds movement.",
     "Keep the service-deployment packet, green route-health, green replay verification, and green no-real-funds production smoke evidence fresh while observability and backup/restore maturity remain incomplete.",
     "Keep operator-skipped controls visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
-    "Keep the abuse/observability status/evidence surface fresh while provider-backed log sink, dashboards, alerts, retention, and incident workflow controls remain explicitly pending.",
+    `Keep the abuse/observability status/evidence surface fresh while the checked pending controls remain ${abuseObservability.pendingObservabilityControls.join(", ")}.`,
     "Keep the deployed operator replay-status evidence, the Postgres-backed nullifier replay guard, role-service replay verification, and production smoke replay simulation fresh while no-real-funds smoke remains the only live settlement proof, audited shared-anonymity-set evidence remains unavailable, and live mainnet private settlement stays unavailable.",
     `Keep the wallet-signing status/evidence surface, four-page local browser verification, deployed browser verification, and live-send inventory commands fresh while the checked public-app blocker set remains ${walletSigning.productionWalletSigningBlockedBy.join(", ")}.`,
   ];

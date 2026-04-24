@@ -26,6 +26,13 @@ function buildStatus() {
     alertsConfigured: false,
     retentionPolicyConfigured: false,
     incidentWorkflowReady: false,
+    pendingObservabilityControls: [
+      "provider-backed-log-sink",
+      "metrics-dashboards",
+      "alert-policies",
+      "retention-policy",
+      "incident-workflow",
+    ],
     operatorEventSinkKind: eventSink.kind,
     operatorEventSinkProductionReady: eventSink.productionReady,
     operatorEventSinkSource: contract.operatorEventSinkModulePath,
@@ -74,6 +81,13 @@ if (checkMode) {
   assert.equal(result.alertsConfigured, false);
   assert.equal(result.retentionPolicyConfigured, false);
   assert.equal(result.incidentWorkflowReady, false);
+  assert.deepEqual(result.pendingObservabilityControls, [
+    "provider-backed-log-sink",
+    "metrics-dashboards",
+    "alert-policies",
+    "retention-policy",
+    "incident-workflow",
+  ]);
   assert.deepEqual(result.rateLimiterAvailableKinds, ["in-memory-rate-limiter", "postgres-rate-limiter"]);
   assert.equal(result.rateLimiterKind, "in-memory-rate-limiter");
   assert.equal(result.preferredProductionRateLimiterKind, "postgres-rate-limiter");
@@ -111,6 +125,7 @@ if (jsonMode || checkMode) {
   console.log(`- alertsConfigured: ${String(result.alertsConfigured)}`);
   console.log(`- retentionPolicyConfigured: ${String(result.retentionPolicyConfigured)}`);
   console.log(`- incidentWorkflowReady: ${String(result.incidentWorkflowReady)}`);
+  console.log(`- pendingObservabilityControls: ${result.pendingObservabilityControls.join(", ")}`);
   console.log(`- operatorEventSinkKind: ${result.operatorEventSinkKind}`);
   console.log(`- rateLimiterAvailableKinds: ${result.rateLimiterAvailableKinds.join(", ")}`);
   console.log(`- preferredProductionRateLimiterKind: ${result.preferredProductionRateLimiterKind}`);

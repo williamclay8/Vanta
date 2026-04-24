@@ -557,7 +557,12 @@ assert.ok(
   "Next actions must point to final protocol-layer nullifier enforcement.",
 );
 assert.ok(
-  snapshot.nextActions.some((action) => action.includes("provider-backed log sink")),
+  snapshot.nextActions.some(
+    (action) =>
+      action.includes("provider-backed-log-sink") &&
+      action.includes("metrics-dashboards") &&
+      action.includes("incident-workflow"),
+  ),
   "Next actions must include the explicit pending observability controls.",
 );
 

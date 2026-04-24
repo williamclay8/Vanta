@@ -12,6 +12,7 @@ export function createVantaAbuseObservabilityRuntimeStatus() {
     metricsDashboardsAvailable: evidence.metricsDashboardsAvailable,
     operatorEventSinkKind: evidence.operatorEventSinkKind,
     operatorEventSinkProductionReady: evidence.operatorEventSinkProductionReady,
+    pendingObservabilityControls: evidence.pendingObservabilityControls,
     payRuntimeStatus: evidence.payRuntimeStatus,
     privatePoolV2PreferredRateLimiterKind: evidence.privatePoolV2RateLimiterPreferredKind,
     privatePoolV2RateLimiter: evidence.privatePoolV2Runtime?.rateLimiter ?? null,

@@ -30,6 +30,13 @@ assert.equal(evidence.metricsDashboardsAvailable, false);
 assert.equal(evidence.alertsConfigured, false);
 assert.equal(evidence.retentionPolicyConfigured, false);
 assert.equal(evidence.incidentWorkflowReady, false);
+assert.deepEqual(evidence.pendingObservabilityControls, [
+  "provider-backed-log-sink",
+  "metrics-dashboards",
+  "alert-policies",
+  "retention-policy",
+  "incident-workflow",
+]);
 assert.equal(evidence.operatorEventSinkKind, "noop-operator-event-sink");
 assert.equal(evidence.operatorEventSinkProductionReady, false);
 assert.equal(evidence.operatorEventSinkSource, "src/ops/vantaOperatorEventSink.mjs");

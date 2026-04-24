@@ -62,6 +62,9 @@ if (jsonMode) {
     `  - retentionPolicyConfigured: ${String(snapshot.abuseObservability.retentionPolicyConfigured)}`,
   );
   console.log(`  - incidentWorkflowReady: ${String(snapshot.abuseObservability.incidentWorkflowReady)}`);
+  console.log(
+    `  - pendingObservabilityControls: ${snapshot.abuseObservability.pendingObservabilityControls.join(", ")}`,
+  );
   console.log("- nullifier / replay:");
   console.log(`  - runtimeMode: ${snapshot.nullifierReplay.runtimeMode}`);
   console.log(`  - layeredStatus: ${snapshot.nullifierReplay.layeredReplayStatus}`);

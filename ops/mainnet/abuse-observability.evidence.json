@@ -15,6 +15,13 @@
   "alertsConfigured": false,
   "retentionPolicyConfigured": false,
   "incidentWorkflowReady": false,
+  "pendingObservabilityControls": [
+    "provider-backed-log-sink",
+    "metrics-dashboards",
+    "alert-policies",
+    "retention-policy",
+    "incident-workflow"
+  ],
   "operatorEventSinkKind": "noop-operator-event-sink",
   "operatorEventSinkProductionReady": false,
   "operatorEventSinkSource": "src/ops/vantaOperatorEventSink.mjs",
