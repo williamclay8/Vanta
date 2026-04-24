@@ -1,6 +1,7 @@
 import { createVantaPrivacyRailContract } from "./privacyRailContract.mjs";
 import { createVantaAbuseObservabilityRuntimeStatus } from "./abuseObservabilityRuntimeStatus.mjs";
 import { createVantaNullifierReplayStatus } from "./nullifierReplayStatus.mjs";
+import { createVantaMainnetPrivateSettlementStatus } from "./mainnetPrivateSettlementStatus.mjs";
 import { createVantaMainnetRealFundsApprovalStatus } from "./mainnetRealFundsApprovalStatus.mjs";
 import { createVantaWalletSigningStatus } from "./walletSigningStatus.mjs";
 import { createVantaPrivatePoolV2ProductionSmokeStatus } from "./privatePoolV2ProductionSmokeStatus.mjs";
@@ -170,6 +171,8 @@ const requiredCommands = [
   "npm run mainnet:approval-gates-status-json",
   "npm run mainnet:real-funds-approval-check",
   "npm run mainnet:real-funds-approval-status",
+  "npm run mainnet:private-settlement-status",
+  "npm run mainnet:private-settlement-check",
   "npm run pay:production-private-rail-guard-check",
   "npm run audit:package-check",
   "npm run security:limitations-check",
@@ -198,6 +201,7 @@ export function createVantaMainnetReadinessSnapshot() {
   const nullifierReplay = createVantaNullifierReplayStatus();
   const privacyRail = createVantaPrivacyRailContract();
   const realFundsApproval = createVantaMainnetRealFundsApprovalStatus();
+  const privateSettlement = createVantaMainnetPrivateSettlementStatus();
   const walletSigning = createVantaWalletSigningStatus();
   const privatePoolV2ProductionSmoke = createVantaPrivatePoolV2ProductionSmokeStatus();
   const productionServiceDeployment = createVantaProductionServiceDeploymentStatus();
@@ -213,6 +217,7 @@ export function createVantaMainnetReadinessSnapshot() {
     nextActions,
     abuseObservability,
     nullifierReplay,
+    privateSettlement,
     privacyRail,
     privatePoolV2ProductionSmoke,
     productionReady: false,

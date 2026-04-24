@@ -37,6 +37,22 @@ assert.equal(snapshot.realFundsApproval.approvalRecordStatus, "approved");
 assert.equal(snapshot.realFundsApproval.liveMainnetActionsAllowedNow, false);
 assert.equal(snapshot.realFundsApproval.approvalWindowStatus, "expired");
 assert.ok(snapshot.realFundsApproval.requiredNextStep.includes("Record a new bounded approval window"));
+assert.equal(snapshot.privateSettlement.activePrivacyRailId, "vanta-private-pool-v2");
+assert.equal(snapshot.privateSettlement.settlementReadiness, "no-real-funds-production-smoke-only");
+assert.equal(snapshot.privateSettlement.routeHealthPublicPassed, true);
+assert.equal(snapshot.privateSettlement.routeHealthAuthenticatedPassed, true);
+assert.equal(snapshot.privateSettlement.productionSmokeHealthPassed, true);
+assert.equal(snapshot.privateSettlement.productionSmokeTargetsPassed, true);
+assert.equal(snapshot.privateSettlement.replayProtocolLayerImplemented, true);
+assert.equal(snapshot.privateSettlement.realFundsApprovalRecorded, true);
+assert.equal(snapshot.privateSettlement.realFundsAllowedNow, false);
+assert.equal(snapshot.privateSettlement.privacyClaimAllowed, false);
+assert.equal(snapshot.privateSettlement.noRealFundsSmokeOnly, true);
+assert.equal(snapshot.privateSettlement.productionReady, false);
+assert.equal(snapshot.privateSettlement.mainnetReady, false);
+assert.ok(
+  snapshot.privateSettlement.deploymentTruth.includes("must not be presented as live mainnet private settlement"),
+);
 assert.equal(snapshot.walletSigning.checkedEvidenceRef, "ops/mainnet/wallet-signing-safety.evidence.json");
 assert.equal(snapshot.walletSigning.mainnetReady, false);
 assert.equal(snapshot.walletSigning.productionReady, false);
@@ -461,6 +477,14 @@ assert.ok(
 assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:real-funds-approval-status"),
   "Missing real-funds approval status command.",
+);
+assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:private-settlement-status"),
+  "Missing private-settlement status command.",
+);
+assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:private-settlement-check"),
+  "Missing private-settlement check command.",
 );
 assert.ok(snapshot.requiredCommands.includes("npm run audit:package-check"), "Missing audit package command.");
 assert.ok(snapshot.nextActions[0]?.includes("approval window"), "First next action should preserve the bounded approval window.");

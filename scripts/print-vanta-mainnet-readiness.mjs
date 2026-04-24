@@ -17,6 +17,18 @@ if (jsonMode) {
   console.log(`  - window: ${snapshot.realFundsApproval.approvalWindowStatus}`);
   console.log(`  - allowedNow: ${String(snapshot.realFundsApproval.liveMainnetActionsAllowedNow)}`);
   console.log(`  - nextStep: ${snapshot.realFundsApproval.requiredNextStep}`);
+  console.log("- private settlement:");
+  console.log(`  - rail: ${snapshot.privateSettlement.activePrivacyRailId}`);
+  console.log(`  - settlementReadiness: ${snapshot.privateSettlement.settlementReadiness}`);
+  console.log(`  - routeHealthPublicPassed: ${String(snapshot.privateSettlement.routeHealthPublicPassed)}`);
+  console.log(
+    `  - routeHealthAuthenticatedPassed: ${String(snapshot.privateSettlement.routeHealthAuthenticatedPassed)}`,
+  );
+  console.log(`  - productionSmokeHealthPassed: ${String(snapshot.privateSettlement.productionSmokeHealthPassed)}`);
+  console.log(`  - productionSmokeTargetsPassed: ${String(snapshot.privateSettlement.productionSmokeTargetsPassed)}`);
+  console.log(`  - replayProtocolLayerImplemented: ${String(snapshot.privateSettlement.replayProtocolLayerImplemented)}`);
+  console.log(`  - realFundsAllowedNow: ${String(snapshot.privateSettlement.realFundsAllowedNow)}`);
+  console.log(`  - privacyClaimAllowed: ${String(snapshot.privateSettlement.privacyClaimAllowed)}`);
   console.log("- abuse / observability:");
   console.log(`  - payRuntime: ${snapshot.abuseObservability.payRuntimeStatus}`);
   console.log(`  - privatePoolV2RuntimeMode: ${snapshot.abuseObservability.privatePoolV2RuntimeMode}`);
