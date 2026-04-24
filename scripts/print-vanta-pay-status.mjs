@@ -16,10 +16,11 @@ function copySource(tempTsDir, relativePath) {
 
 function patchRelativeImports(tempJsDir, relativePath) {
   const filePath = join(tempJsDir, relativePath.replace(/\.ts$/, ".js"));
-  const source = readFileSync(filePath, "utf8").replace(
-    /from "((?:\.\.?\/)[^"]+)(?<!\.js)"/g,
-    'from "$1.js"',
-  );
+  const source = readFileSync(filePath, "utf8")
+    .replace(/from "((?:\.\.?\/)[^"]+)\.ts"/g, 'from "$1.js"')
+    .replace(/from "((?:\.\.?\/)[^"]+)(?<!\.js)"/g, 'from "$1.js"')
+    .replace(/import\(\s*"((?:\.\.?\/)[^"]+)\.ts"\s*\)/g, 'import("$1.js")')
+    .replace(/import\(\s*"((?:\.\.?\/)[^"]+)(?<!\.js)"\s*\)/g, 'import("$1.js")');
   writeFileSync(filePath, source);
 }
 
