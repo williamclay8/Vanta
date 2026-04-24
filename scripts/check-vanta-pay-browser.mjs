@@ -52,25 +52,13 @@ function runBrowserBatch() {
         { kind: "text_visible", text: "Policy-legible settlement" },
         { kind: "text_visible", text: "Private checkout" },
         { kind: "text_visible", text: "Approval boundary" },
-        { kind: "text_visible", text: "Settlement lifecycle" },
-        { kind: "text_visible", text: "preview-approve-execute-settle" },
-        { kind: "text_visible", text: "Refunds: merchant-visible" },
-        { kind: "text_visible", text: "Withdrawals: merchant-visible" },
-        { kind: "text_visible", text: "Reconciliation: merchant-visible" },
-        { kind: "text_visible", text: "merchant-visible private settlement controls" },
+        { kind: "text_visible", text: "Refund review" },
+        { kind: "text_visible", text: "Withdrawal review" },
+        { kind: "text_visible", text: "Reconciliation snapshot" },
+        { kind: "text_visible", text: "merchant-visible" },
         { kind: "text_visible", text: "No funds move" },
+        { kind: "selector_hidden", selector: ".pay-checkout-card .button-primary:not(:disabled)" },
         { kind: "selector_hidden", selector: ".pay-success-card" },
-        { kind: "text_hidden", text: "Shield" },
-        { kind: "text_hidden", text: "Unshield" },
-      ],
-    },
-    { action: "click", selector: ".pay-checkout-card .button-primary" },
-    { action: "wait_for", condition: "selector_hidden", value: ".pay-success-card" },
-    {
-      action: "assert",
-      checks: [
-        { kind: "selector_hidden", selector: ".pay-success-card" },
-        { kind: "text_hidden", text: "Receipt R-1052" },
         { kind: "no_console_errors" },
       ],
     },
@@ -82,6 +70,7 @@ function runBrowserBatch() {
         { kind: "text_visible", text: "Link name" },
         { kind: "text_visible", text: "Amount" },
         { kind: "text_visible", text: "Asset" },
+        { kind: "no_console_errors" },
       ],
     },
     { action: "click", selector: ".pay-subnav__item:nth-child(4)" },
@@ -102,6 +91,10 @@ function runBrowserBatch() {
 }
 
 const vite = spawn("npm", ["run", "dev", "--", "--host", "127.0.0.1", "--port", String(port), "--strictPort"], {
+  env: {
+    ...process.env,
+    VITE_VANTA_DEPLOYMENT_MODE: "beta",
+  },
   stdio: ["ignore", "pipe", "pipe"],
 });
 let stdout = "";

@@ -256,6 +256,23 @@ function CheckoutView() {
             </div>
           </div>
         </section>
+        <div className="pay-detail-grid">
+          <div className="pay-detail-card">
+            <span>Refund review</span>
+            <strong>Merchant-visible refund state</strong>
+            <small>Receipt-linked refund controls stay inside the Pay rail.</small>
+          </div>
+          <div className="pay-detail-card">
+            <span>Withdrawal review</span>
+            <strong>Merchant-visible withdrawal state</strong>
+            <small>Destination and settlement state stay policy-bound before action.</small>
+          </div>
+          <div className="pay-detail-card">
+            <span>Reconciliation snapshot</span>
+            <strong>Merchant-visible reconciliation state</strong>
+            <small>Receipts, balances, and settlement state remain legible.</small>
+          </div>
+        </div>
         <div className="pay-result-line pay-result-line--muted" role="status">
           <span>Settlement lifecycle</span>
           <strong>{VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY.lifecycleModel}</strong>
@@ -329,6 +346,7 @@ export function PayPage() {
           <nav className="pay-subnav" aria-label="Pay actions">
             {payViews.map((item) => (
               <button
+                aria-label={item.label}
                 className={view === item.id ? "pay-subnav__item pay-subnav__item--active" : "pay-subnav__item"}
                 key={item.id}
                 onClick={() => setView(item.id)}

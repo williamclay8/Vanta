@@ -3122,6 +3122,39 @@ input {
   line-height: 1.25;
 }
 
+.pay-detail-grid {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.pay-detail-card {
+  display: grid;
+  gap: 0.35rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.85rem 1rem;
+}
+
+.pay-detail-card span {
+  color: var(--muted-strong);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.pay-detail-card strong {
+  font-family: "Syne", sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+
+.pay-detail-card small {
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
 .pay-success-card {
   text-align: center;
 }
