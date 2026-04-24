@@ -236,6 +236,26 @@ function CheckoutView() {
           <span>Receipt included</span>
           {isBetaMode && <span>No funds move</span>}
         </div>
+        <section className="pay-merchant-ops" aria-label="Merchant operations">
+          <div className="pay-merchant-ops__header">
+            <span className="pay-kicker">Merchant operations</span>
+            <h3>Policy-legible settlement</h3>
+          </div>
+          <div className="pay-merchant-ops__grid">
+            <div className="pay-ops-card">
+              <span>Private checkout</span>
+              <strong>Merchant-facing payment intake</strong>
+            </div>
+            <div className="pay-ops-card">
+              <span>Approval boundary</span>
+              <strong>Preview - approve - execute - settle</strong>
+            </div>
+            <div className="pay-ops-card">
+              <span>Trust surface</span>
+              <strong>Controlled privacy + legible trust</strong>
+            </div>
+          </div>
+        </section>
         <div className="pay-result-line pay-result-line--muted" role="status">
           <span>Settlement lifecycle</span>
           <strong>{VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY.lifecycleModel}</strong>

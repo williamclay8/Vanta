@@ -3075,6 +3075,53 @@ input {
   font-size: 0.78rem;
 }
 
+.pay-merchant-ops {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.pay-merchant-ops__header {
+  display: grid;
+  gap: 0.35rem;
+  justify-items: center;
+  text-align: center;
+}
+
+.pay-merchant-ops__header h3 {
+  margin: 0;
+  font-family: "Syne", sans-serif;
+  font-size: 1.1rem;
+}
+
+.pay-merchant-ops__grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.pay-ops-card {
+  display: grid;
+  gap: 0.45rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  padding: 0.9rem 1rem;
+  background: rgba(0, 229, 200, 0.035);
+}
+
+.pay-ops-card span {
+  color: var(--muted-strong);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.pay-ops-card strong {
+  font-family: "Syne", sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+
 .pay-success-card {
   text-align: center;
 }

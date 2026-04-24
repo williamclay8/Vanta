@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { createServer } from "node:http";
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -348,6 +349,51 @@ function toWithdrawalInput(body) {
   };
 }
 
+function normalizeAmountForAsset(value, asset) {
+  const normalized = requireNonEmptyString(value, "amount");
+  if (!/^\d+(?:\.\d+)?$/.test(normalized)) {
+    throw new Error("Vanta Pay API amount must be a positive decimal string.");
+  }
+
+  const decimals = asset === "SOL" ? 9 : 6;
+  const [whole, fraction = ""] = normalized.split(".");
+  if (fraction.length > decimals) {
+    throw new Error(`Vanta Pay API amount exceeds supported ${asset} precision of ${decimals} decimals.`);
+  }
+
+  const baseUnits =
+    BigInt(whole) * 10n ** BigInt(decimals) + BigInt(fraction.padEnd(decimals, "0"));
+  if (baseUnits <= 0n) {
+    throw new Error("Vanta Pay API amount must be a positive decimal string.");
+  }
+
+  const scale = 10n ** BigInt(decimals);
+  const normalizedWhole = (baseUnits / scale).toString(10);
+  const normalizedFraction = (baseUnits % scale).toString(10).padStart(decimals, "0");
+  const trimmedFraction = normalizedFraction.replace(/0+$/, "");
+  const displayFraction =
+    trimmedFraction.length === 0
+      ? "00"
+      : trimmedFraction.padEnd(Math.max(trimmedFraction.length, 2), "0");
+  return `${normalizedWhole}.${displayFraction}`;
+}
+
+function deriveServerWithdrawalIdempotencyKey(input) {
+  return `widem_${createHash("sha256")
+    .update(
+      [
+        input.merchantId,
+        input.asset,
+        normalizeAmountForAsset(input.amount, input.asset),
+        input.destination,
+        input.destinationType,
+        input.referenceNote ?? "",
+      ].join("\u001f"),
+    )
+    .digest("hex")
+    .slice(0, 24)}`;
+}
+
 function toInvoiceInput(body) {
   return {
     asset: requireSupportedValue(body.asset, "asset", supportedAssets),
@@ -610,7 +656,12 @@ const server = createServer(async (request, response) => {
 
     if (request.method === "POST" && url.pathname === "/v1/withdrawals") {
       const body = await readRequestBody(request);
-      const input = toWithdrawalInput(body);
+      const rawInput = toWithdrawalInput(body);
+      const input = {
+        ...rawInput,
+        idempotencyKey:
+          rawInput.idempotencyKey ?? deriveServerWithdrawalIdempotencyKey(rawInput),
+      };
       if (input.idempotencyKey) {
         const existingWithdrawal = runtime.listWithdrawals().find(
           (withdrawal) =>
@@ -619,7 +670,7 @@ const server = createServer(async (request, response) => {
         );
         if (existingWithdrawal) {
           if (
-            existingWithdrawal.amount !== Number(input.amount).toFixed(2) ||
+            existingWithdrawal.amount !== normalizeAmountForAsset(input.amount, input.asset) ||
             existingWithdrawal.asset !== input.asset ||
             existingWithdrawal.destination !== input.destination ||
             existingWithdrawal.destinationType !== input.destinationType ||

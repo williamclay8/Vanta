@@ -7,6 +7,7 @@ import type {
   VantaPayBalances,
   VantaPayCheckoutSession,
   VantaPayCheckoutSessionCreateInput,
+  VantaPayDestinationType,
   VantaPayInvoice,
   VantaPayInvoiceCreateInput,
   VantaPayLineItem,
@@ -57,35 +58,71 @@ function addHours(iso: string, hours: number) {
   return new Date(new Date(iso).getTime() + hours * 60 * 60 * 1000).toISOString();
 }
 
-function normalizeAmount(value: string) {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed) || parsed <= 0) {
+function assetDecimals(asset: VantaPayAsset) {
+  return asset === "SOL" ? 9 : 6;
+}
+
+function parseAmountToBaseUnits(value: string, asset: VantaPayAsset) {
+  const normalized = value.trim();
+  if (!/^\d+(?:\.\d+)?$/.test(normalized)) {
     throw new Error("Amount must be a positive decimal string.");
   }
 
-  return parsed.toFixed(2);
+  const [whole, fraction = ""] = normalized.split(".");
+  const decimals = assetDecimals(asset);
+  if (fraction.length > decimals) {
+    throw new Error(`Amount exceeds supported ${asset} precision of ${decimals} decimals.`);
+  }
+
+  const baseUnits = BigInt(whole) * 10n ** BigInt(decimals) + BigInt(fraction.padEnd(decimals, "0"));
+  return baseUnits;
 }
 
-function addAmounts(left: string, right: string) {
-  return (Number(left) + Number(right)).toFixed(2);
+function formatAmountFromBaseUnits(baseUnits: bigint, asset: VantaPayAsset) {
+  const decimals = assetDecimals(asset);
+  const scale = 10n ** BigInt(decimals);
+  const whole = (baseUnits / scale).toString(10);
+  const fraction = (baseUnits % scale).toString(10).padStart(decimals, "0");
+  const minimumFractionDigits = Math.min(2, decimals);
+  const trimmedFraction = fraction.replace(/0+$/, "");
+  const displayFraction =
+    trimmedFraction.length === 0
+      ? "0".repeat(minimumFractionDigits)
+      : trimmedFraction.padEnd(Math.max(trimmedFraction.length, minimumFractionDigits), "0");
+  return `${whole}.${displayFraction}`;
 }
 
-function subtractAmounts(left: string, right: string) {
-  const next = Number(left) - Number(right);
-  if (next < -0.000001) {
+function normalizeAmount(value: string, asset: VantaPayAsset) {
+  const baseUnits = parseAmountToBaseUnits(value, asset);
+  if (baseUnits <= 0n) {
+    throw new Error("Amount must be a positive decimal string.");
+  }
+
+  return formatAmountFromBaseUnits(baseUnits, asset);
+}
+
+function addAmounts(left: string, right: string, asset: VantaPayAsset) {
+  return formatAmountFromBaseUnits(
+    parseAmountToBaseUnits(left, asset) + parseAmountToBaseUnits(right, asset),
+    asset,
+  );
+}
+
+function subtractAmounts(left: string, right: string, asset: VantaPayAsset) {
+  const next = parseAmountToBaseUnits(left, asset) - parseAmountToBaseUnits(right, asset);
+  if (next < 0n) {
     throw new Error("Withdrawal amount exceeds withdrawable balance.");
   }
 
-  return Math.max(0, next).toFixed(2);
+  return formatAmountFromBaseUnits(next, asset);
 }
 
-function lineItemTotal(lineItems: readonly VantaPayLineItem[]) {
-  return lineItems
-    .reduce((total, item) => {
-      const amount = Number(item.amount ?? item.unitAmount ?? "0");
-      return total + amount * item.quantity;
-    }, 0)
-    .toFixed(2);
+function lineItemTotal(lineItems: readonly VantaPayLineItem[], asset: VantaPayAsset) {
+  const total = lineItems.reduce((running, item) => {
+    const amount = parseAmountToBaseUnits(item.amount ?? item.unitAmount ?? "0", asset);
+    return running + amount * BigInt(item.quantity);
+  }, 0n);
+  return formatAmountFromBaseUnits(total, asset);
 }
 
 function stableLineItemFingerprint(lineItems: readonly VantaPayLineItem[]) {
@@ -112,6 +149,25 @@ function stableJson(value: unknown): string {
   }
 
   return JSON.stringify(value);
+}
+
+function deriveWithdrawalIdempotencyKey(input: {
+  amount: string;
+  asset: VantaPayAsset;
+  destination: string;
+  destinationType: VantaPayDestinationType;
+  merchantId: string;
+  referenceNote?: string | null;
+}) {
+  return hashId(
+    "widem",
+    input.merchantId,
+    input.asset,
+    input.amount,
+    input.destination,
+    input.destinationType,
+    input.referenceNote ?? "",
+  );
 }
 
 function signPayload(payload: string, secret: string, timestamp: number) {
@@ -259,7 +315,7 @@ export function createVantaPayRuntime({
   }
 
   function createCheckoutSession(input: VantaPayCheckoutSessionCreateInput) {
-    const amount = normalizeAmount(input.amount);
+    const amount = normalizeAmount(input.amount, input.currency);
     const idempotencyKey = input.idempotencyKey ?? null;
     if (idempotencyKey) {
       const existingSession = [...sessions.values()].find(
@@ -489,7 +545,7 @@ export function createVantaPayRuntime({
     const id = hashId("plink", input.merchantId, input.linkName, String(paymentLinks.size));
     const link = {
       allowVariableAmount: input.allowVariableAmount ?? false,
-      amount: normalizeAmount(input.amount),
+      amount: normalizeAmount(input.amount, input.asset),
       asset: input.asset,
       collectEmail: input.collectEmail ?? false,
       collectName: input.collectName ?? false,
@@ -521,7 +577,7 @@ export function createVantaPayRuntime({
       notes: input.notes ?? null,
       object: "invoice",
       status: "sent",
-      total: lineItemTotal(input.lineItems),
+      total: lineItemTotal(input.lineItems, input.asset),
     } satisfies VantaPayInvoice;
 
     invoices.set(invoice.id, invoice);
@@ -540,7 +596,10 @@ export function createVantaPayRuntime({
         continue;
       }
 
-      totals.set(payment.currency, addAmounts(totals.get(payment.currency) ?? "0.00", payment.amount));
+      totals.set(
+        payment.currency,
+        addAmounts(totals.get(payment.currency) ?? "0.00", payment.amount, payment.currency),
+      );
     }
 
     for (const withdrawal of withdrawals.values()) {
@@ -548,7 +607,10 @@ export function createVantaPayRuntime({
         continue;
       }
 
-      totals.set(withdrawal.asset, subtractAmounts(totals.get(withdrawal.asset) ?? "0.00", withdrawal.amount));
+      totals.set(
+        withdrawal.asset,
+        subtractAmounts(totals.get(withdrawal.asset) ?? "0.00", withdrawal.amount, withdrawal.asset),
+      );
     }
 
     for (const refund of refunds.values()) {
@@ -556,11 +618,14 @@ export function createVantaPayRuntime({
         continue;
       }
 
-      totals.set(refund.asset, subtractAmounts(totals.get(refund.asset) ?? "0.00", refund.amount));
+      totals.set(
+        refund.asset,
+        subtractAmounts(totals.get(refund.asset) ?? "0.00", refund.amount, refund.asset),
+      );
     }
 
     const available = [...totals.entries()]
-      .filter(([, amount]) => Number(amount) > 0)
+      .filter(([asset, amount]) => parseAmountToBaseUnits(amount, asset) > 0n)
       .map(([asset, amount]) => ({ amount, asset }));
 
     return {
@@ -580,7 +645,7 @@ export function createVantaPayRuntime({
       throw new Error("Only completed payments can be refunded.");
     }
 
-    const amount = normalizeAmount(input.amount);
+    const amount = normalizeAmount(input.amount, payment.currency);
     const idempotencyKey = input.idempotencyKey ?? null;
     if (idempotencyKey) {
       const existingRefund = [...refunds.values()].find(
@@ -603,9 +668,12 @@ export function createVantaPayRuntime({
 
     const existingRefundedAmount = [...refunds.values()]
       .filter((refund) => refund.paymentId === input.paymentId && refund.status === "refunded")
-      .reduce((total, refund) => addAmounts(total, refund.amount), "0.00");
-    const remainingAmount = subtractAmounts(payment.amount, existingRefundedAmount);
-    if (Number(amount) > Number(remainingAmount)) {
+      .reduce((total, refund) => addAmounts(total, refund.amount, payment.currency), "0.00");
+    const remainingAmount = subtractAmounts(payment.amount, existingRefundedAmount, payment.currency);
+    if (
+      parseAmountToBaseUnits(amount, payment.currency) >
+      parseAmountToBaseUnits(remainingAmount, payment.currency)
+    ) {
       throw new Error("Refund amount exceeds refundable payment balance.");
     }
 
@@ -623,20 +691,32 @@ export function createVantaPayRuntime({
     } satisfies VantaPayRefund;
 
     refunds.set(refund.id, refund);
-    const refundedAmount = addAmounts(existingRefundedAmount, amount);
+    const refundedAmount = addAmounts(existingRefundedAmount, amount, payment.currency);
     payments.set(payment.id, {
       ...payment,
       refundedAmount,
       status:
-        Number(refundedAmount) >= Number(payment.amount) ? "refunded" : payment.status,
+        parseAmountToBaseUnits(refundedAmount, payment.currency) >=
+          parseAmountToBaseUnits(payment.amount, payment.currency)
+          ? "refunded"
+          : payment.status,
     });
     recordEvent("payment.refunded", refund);
     return refund;
   }
 
   function createWithdrawal(input: VantaPayWithdrawalCreateInput) {
-    const amount = normalizeAmount(input.amount);
-    const idempotencyKey = input.idempotencyKey ?? null;
+    const amount = normalizeAmount(input.amount, input.asset);
+    const idempotencyKey =
+      input.idempotencyKey ??
+      deriveWithdrawalIdempotencyKey({
+        amount,
+        asset: input.asset,
+        destination: input.destination,
+        destinationType: input.destinationType,
+        merchantId: input.merchantId,
+        referenceNote: input.referenceNote ?? null,
+      });
     if (idempotencyKey) {
       const existingWithdrawal = [...withdrawals.values()].find(
         (withdrawal) =>
@@ -678,7 +758,10 @@ export function createVantaPayRuntime({
 
     const balances = getBalances();
     const balance = balances.withdrawable.find((candidate) => candidate.asset === input.asset);
-    if (!balance || Number(balance.amount) < Number(input.amount)) {
+    if (
+      !balance ||
+      parseAmountToBaseUnits(balance.amount, input.asset) < parseAmountToBaseUnits(amount, input.asset)
+    ) {
       throw new Error("Withdrawal amount exceeds withdrawable balance.");
     }
 
@@ -714,12 +797,13 @@ export function createVantaPayRuntime({
     destination: string;
     rail: VantaPayPrivacyRail;
   }) {
+    const normalizedAmount = normalizeAmount(amount, asset);
     const receipt = {
-      amount: normalizeAmount(amount),
+      amount: normalizedAmount,
       asset,
       createdAt: now,
       destination,
-      id: hashId("pexit", rail, asset, amount, destination, String(privateExitReceipts.size)),
+      id: hashId("pexit", rail, asset, normalizedAmount, destination, String(privateExitReceipts.size)),
       object: "private_exit_receipt",
       rail,
       status: "confirmed",

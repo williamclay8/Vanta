@@ -415,22 +415,38 @@ function hashId(prefix, ...parts) {
   return `${prefix}_${bytesToHex(sha256(textEncoder.encode(parts.join("\u001f")))).slice(0, 24)}`;
 }
 
-function normalizeAmount(value) {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed) || parsed <= 0) {
+function normalizeAmount(value, asset) {
+  const normalized = requireNonEmptyString(value, "amount");
+  if (!/^\d+(?:\.\d+)?$/.test(normalized)) {
     throw new Error("Settlement amount must be a positive decimal string.");
   }
 
-  return parsed.toFixed(2);
-}
+  const decimals = asset === "SOL" ? 9 : 6;
+  const [whole, fraction = ""] = normalized.split(".");
+  if (fraction.length > decimals) {
+    throw new Error(`Settlement amount exceeds supported ${asset} precision of ${decimals} decimals.`);
+  }
 
-function assetDecimals(asset) {
-  return asset === "SOL" ? 9 : 6;
+  const baseUnits =
+    BigInt(whole) * 10n ** BigInt(decimals) + BigInt(fraction.padEnd(decimals, "0"));
+  if (baseUnits <= 0n) {
+    throw new Error("Settlement amount must be a positive decimal string.");
+  }
+
+  const scale = 10n ** BigInt(decimals);
+  const normalizedWhole = (baseUnits / scale).toString(10);
+  const normalizedFraction = (baseUnits % scale).toString(10).padStart(decimals, "0");
+  const trimmedFraction = normalizedFraction.replace(/0+$/, "");
+  const displayFraction =
+    trimmedFraction.length === 0
+      ? "00"
+      : trimmedFraction.padEnd(Math.max(trimmedFraction.length, 2), "0");
+  return `${normalizedWhole}.${displayFraction}`;
 }
 
 function amountToBaseUnits(amount, asset) {
-  const [whole = "0", fraction = ""] = normalizeAmount(amount).split(".");
-  const decimals = assetDecimals(asset);
+  const [whole = "0", fraction = ""] = normalizeAmount(amount, asset).split(".");
+  const decimals = asset === "SOL" ? 9 : 6;
   const paddedFraction = fraction.padEnd(decimals, "0").slice(0, decimals);
   return BigInt(`${whole}${paddedFraction}`);
 }
@@ -462,29 +478,32 @@ function validatePayCheckoutSession(session) {
     throw new Error("Private Pool v2 Pay checkout settlement requires session.");
   }
 
+  const currency = requireNonEmptyString(session.currency, "session.currency");
   return {
-    amount: normalizeAmount(session.amount),
+    amount: normalizeAmount(session.amount, currency),
     clientToken: requireNonEmptyString(session.clientToken, "session.clientToken"),
-    currency: requireNonEmptyString(session.currency, "session.currency"),
+    currency,
     id: requireNonEmptyString(session.id, "session.id"),
     merchantId: requireNonEmptyString(session.merchantId, "session.merchantId"),
   };
 }
 
 function validatePayWithdrawalBody(body) {
+  const asset = requireNonEmptyString(body.asset, "asset");
   return {
-    amount: normalizeAmount(body.amount),
-    asset: requireNonEmptyString(body.asset, "asset"),
+    amount: normalizeAmount(body.amount, asset),
+    asset,
     destination: requireNonEmptyString(body.destination, "destination"),
     merchantId: requireNonEmptyString(body.merchantId, "merchantId"),
   };
 }
 
 function validateProtocolSettlementBody(body) {
+  const asset = requireNonEmptyString(body.asset, "asset");
   return {
     action: requireNonEmptyString(body.action, "action"),
-    amount: normalizeAmount(body.amount),
-    asset: requireNonEmptyString(body.asset, "asset"),
+    amount: normalizeAmount(body.amount, asset),
+    asset,
     destination: requireNonEmptyString(body.destination, "destination"),
     owner: requireNonEmptyString(body.owner, "owner"),
     settlementId: requireNonEmptyString(body.settlementId, "settlementId"),
@@ -574,7 +593,7 @@ function normalizeProtocolShieldRouteEvidence(rawEvidence, shieldCapability) {
       rawEvidence.routeSignature,
       "shieldRouteEvidence.routeSignature",
     ),
-    targetAmount: normalizeAmount(rawEvidence.targetAmount),
+    targetAmount: normalizeAmount(rawEvidence.targetAmount, targetAsset),
     targetAsset,
   };
 }

@@ -467,6 +467,27 @@ try {
 
   const balances = runtime.getBalances();
   assert(balances.available[0]?.amount === "125.00", "Expected available balance.");
+  const preciseCheckoutSession = runtime.createCheckoutSession({
+    amount: "1.234567",
+    cancelUrl: "https://merchant.example/cancel",
+    currency: "USDC",
+    lineItems: [{ amount: "1.234567", name: "Precise item", quantity: 1 }],
+    merchantId: "mrc_123",
+    mode: "payment",
+    successUrl: "https://merchant.example/success",
+    uiMode: "hosted",
+  });
+  assert(
+    preciseCheckoutSession.amount === "1.234567",
+    "Expected checkout session to preserve USDC precision.",
+  );
+  const precisePrivateRailReceipt = await settlementAdapter.settleCheckoutSession({
+    session: preciseCheckoutSession,
+  });
+  assert(
+    precisePrivateRailReceipt.amount === "1.234567",
+    "Expected private settlement adapter to preserve USDC precision.",
+  );
   try {
     runtime.createWithdrawal({
       amount: "25.00",
@@ -501,6 +522,18 @@ try {
   assert(
     withdrawal.privateExitReceiptId === privateExitReceipt.id,
     "Expected withdrawal to reference private exit receipt.",
+  );
+  const repeatedWithdrawal = runtime.createWithdrawal({
+    amount: "25.00",
+    asset: "USDC",
+    destination: "Treasury",
+    destinationType: "treasury_address",
+    merchantId: "mrc_123",
+    privateExitReceiptId: privateExitReceipt.id,
+  });
+  assert(
+    repeatedWithdrawal.id === withdrawal.id,
+    "Expected repeated withdrawal without client idempotency key to return the existing withdrawal.",
   );
   assert(runtime.getBalances().withdrawable[0]?.amount === "100.00", "Expected updated balance.");
   console.log("vanta-pay balances and withdrawals: PASS");
@@ -926,6 +959,43 @@ try {
     assert(
       repeatedApiWithdrawal.parsed?.id === apiWithdrawal.parsed.id,
       "Expected repeated withdrawal idempotency key to return the original withdrawal.",
+    );
+    const apiWithdrawalWithoutIdempotency = await requestJson("/v1/withdrawals", {
+      body: JSON.stringify({
+        amount: "10.000001",
+        asset: "USDC",
+        destination: "Treasury Precision",
+        destination_type: "treasury_address",
+        merchant_id: "mrc_123",
+      }),
+      method: "POST",
+    });
+    assert(
+      apiWithdrawalWithoutIdempotency.ok,
+      apiWithdrawalWithoutIdempotency.text || "Expected withdrawal without explicit idempotency key.",
+    );
+    const repeatedApiWithdrawalWithoutIdempotency = await requestJson("/v1/withdrawals", {
+      body: JSON.stringify({
+        amount: "10.000001",
+        asset: "USDC",
+        destination: "Treasury Precision",
+        destination_type: "treasury_address",
+        merchant_id: "mrc_123",
+      }),
+      method: "POST",
+    });
+    assert(
+      repeatedApiWithdrawalWithoutIdempotency.ok,
+      repeatedApiWithdrawalWithoutIdempotency.text || "Expected repeated withdrawal without explicit idempotency key.",
+    );
+    assert(
+      repeatedApiWithdrawalWithoutIdempotency.parsed?.id ===
+        apiWithdrawalWithoutIdempotency.parsed?.id,
+      "Expected repeated withdrawal without explicit idempotency key to return the original withdrawal.",
+    );
+    assert(
+      apiWithdrawalWithoutIdempotency.parsed?.amount === "10.000001",
+      "Expected API withdrawal to preserve USDC precision.",
     );
     const conflictingApiWithdrawal = await requestJson("/v1/withdrawals", {
       body: JSON.stringify({

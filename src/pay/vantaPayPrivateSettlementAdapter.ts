@@ -56,22 +56,37 @@ function hashId(prefix: string, ...parts: readonly string[]) {
   return `${prefix}_${bytesToHex(sha256(textEncoder.encode(parts.join("\u001f")))).slice(0, 24)}`;
 }
 
-function normalizeAmount(value: string) {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed) || parsed <= 0) {
+function normalizeAmount(value: string, asset: VantaPayAsset) {
+  const normalized = value.trim();
+  if (!/^\d+(?:\.\d+)?$/.test(normalized)) {
     throw new Error("Settlement amount must be a positive decimal string.");
   }
 
-  return parsed.toFixed(2);
-}
+  const decimals = asset === "SOL" ? 9 : 6;
+  const [whole, fraction = ""] = normalized.split(".");
+  if (fraction.length > decimals) {
+    throw new Error(`Settlement amount exceeds supported ${asset} precision of ${decimals} decimals.`);
+  }
 
-function assetDecimals(asset: VantaPayAsset) {
-  return asset === "SOL" ? 9 : 6;
+  const baseUnits = BigInt(whole) * 10n ** BigInt(decimals) + BigInt(fraction.padEnd(decimals, "0"));
+  if (baseUnits <= 0n) {
+    throw new Error("Settlement amount must be a positive decimal string.");
+  }
+
+  const scale = 10n ** BigInt(decimals);
+  const normalizedWhole = (baseUnits / scale).toString(10);
+  const normalizedFraction = (baseUnits % scale).toString(10).padStart(decimals, "0");
+  const trimmedFraction = normalizedFraction.replace(/0+$/, "");
+  const displayFraction =
+    trimmedFraction.length === 0
+      ? "00"
+      : trimmedFraction.padEnd(Math.max(trimmedFraction.length, 2), "0");
+  return `${normalizedWhole}.${displayFraction}`;
 }
 
 function amountToBaseUnits(amount: string, asset: VantaPayAsset) {
-  const [whole = "0", fraction = ""] = normalizeAmount(amount).split(".");
-  const decimals = assetDecimals(asset);
+  const [whole = "0", fraction = ""] = normalizeAmount(amount, asset).split(".");
+  const decimals = asset === "SOL" ? 9 : 6;
   const paddedFraction = fraction.padEnd(decimals, "0").slice(0, decimals);
   return BigInt(`${whole}${paddedFraction}`);
 }
@@ -275,7 +290,7 @@ export function createVantaPayPrivateSettlementAdapter({
       throw new Error("Private Pool v2 settlement requires a relayer for withdrawals.");
     }
 
-    const normalizedAmount = normalizeAmount(amount);
+    const normalizedAmount = normalizeAmount(amount, asset);
     const treeId = treeIdForAsset(asset);
     const commitments = await indexer.listCommitments({ assetId: assetIdForAsset(asset), treeId });
     const sourceCommitment = commitments[0];

@@ -128,6 +128,8 @@ const result = {
   verificationCommands: [
     "pay:contract-check",
     "pay-tab:copy-check",
+    "pay:merchant-trust-status-check",
+    "pay:approval-packet-check",
     "pay:merchant-api-check",
     "pay:browser-check",
     "pay:verify",
@@ -154,9 +156,13 @@ if (jsonMode) {
   for (const [surface, status] of Object.entries(result.surfaces)) {
     console.log(`- ${surface}: ${status}`);
   }
+  console.log("- merchant trust surface: npm run pay:merchant-trust-status");
+  console.log("- approval packet contract: npm run pay:approval-packet-check");
   console.log(`- settlement lifecycle: ${result.privateSettlement.lifecycleModel}`);
   console.log(`- refunds: ${result.privateSettlement.refundState}`);
   console.log(`- withdrawals: ${result.privateSettlement.withdrawalState}`);
   console.log(`- reconciliation: ${result.privateSettlement.reconciliationState}`);
-  console.log("- canonical verification: npm run pay:verify");
+  console.log(
+    "- canonical verification: npm run pay:verify (includes npm run pay:merchant-trust-status-check and npm run pay:approval-packet-check)",
+  );
 }
