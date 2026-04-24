@@ -33,7 +33,7 @@ function defaultIndexerEndpoint(network: VantaPrivacyNetwork) {
     return "https://utxo-indexer.api-devnet.umbraprivacy.com";
   }
 
-  return "http://127.0.0.1:8899";
+  return import.meta.env.DEV ? "http://127.0.0.1:8899" : "";
 }
 
 function defaultRelayerEndpoint(network: VantaPrivacyNetwork) {
@@ -45,7 +45,7 @@ function defaultRelayerEndpoint(network: VantaPrivacyNetwork) {
     return "https://relayer.api-devnet.umbraprivacy.com";
   }
 
-  return "http://127.0.0.1:8788";
+  return import.meta.env.DEV ? "http://127.0.0.1:8788" : "";
 }
 
 const network = normalizeUmbraNetwork(import.meta.env.VITE_UMBRA_NETWORK);
