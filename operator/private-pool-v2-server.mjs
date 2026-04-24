@@ -304,6 +304,7 @@ const {
 } = await import(pathToFileURL(join(tempJsDir, "privatePoolV2RemoteServices.js")).href);
 const {
   createVantaPrivatePoolV2ClaimProofRequest,
+  createVantaPrivatePoolV2HiddenEconomicsProofRequest,
   createVantaPrivatePoolV2ShieldProofRequest,
 } = await import(pathToFileURL(join(tempJsDir, "privatePoolV2ProofRequests.js")).href);
 const { createPrivatePoolV2ShieldProofRequestFromCapability } = await import(
@@ -818,6 +819,12 @@ function nullifiersFromReceipts(receipts) {
     }));
 }
 
+function shadowCommitmentsFromReceipts(receipts) {
+  return receipts
+    .map((receipt) => receipt.shadowCommitments)
+    .filter(Boolean);
+}
+
 async function persistReceipts(acceptedRequest) {
   const receipts = runtime.verifierRegistry?.receipts ?? [];
   const acceptedCommitment = commitmentFromShieldRequest(acceptedRequest);
@@ -910,6 +917,8 @@ async function recordAcceptedClaimNullifier(request, requestId, claimReceiptId) 
 
 async function statusPayload() {
   const readiness = runtime.readiness();
+  const receipts = runtime.verifierRegistry?.receipts ?? [];
+  const shadowCommitments = shadowCommitmentsFromReceipts(receipts);
   const guardedNullifiers = await nullifierReplayGuard.snapshot();
   const acceptedGuardedNullifiers = guardedNullifiers.filter((record) => record.status === "accepted");
   const reservedGuardedNullifiers = guardedNullifiers.filter((record) => record.status !== "accepted");
@@ -921,8 +930,12 @@ async function statusPayload() {
     productionReady: false,
     protocolActionProofModes,
     readiness,
-    receiptCount: runtime.verifierRegistry?.receipts?.length ?? 0,
+    receiptCount: receipts.length,
     receiptStorePath: receiptStore.path,
+    shadowCommitmentCount: shadowCommitments.length,
+    shadowCommitmentScheme:
+      shadowCommitments[0]?.scheme ??
+      "vanta-private-pool-v2-shadow-operator-visible-terms-sha256-0.1",
     settlementPolicy,
     storage: {
       durableStoreConfigured: Boolean(
@@ -1168,13 +1181,13 @@ async function proveAndAcceptProtocolSettlement(body) {
 
   const targetAsset = action === "shield" ? shieldCapability.targetShieldAsset.assetKey : asset;
   const treeId = treeIdForAsset(targetAsset);
-  const assetId = action === "shield" ? targetAsset : assetIdForAsset(targetAsset);
+  const assetId = assetIdForAsset(targetAsset);
   let request;
 
   if (action === "shield") {
     const existingCommitments = await runtime.indexer.listCommitments({ treeId });
     const leaf = {
-      assetId,
+      assetId: targetAsset,
       commitment: hashHex(
         VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
         "protocol-shield-output",
@@ -1205,7 +1218,10 @@ async function proveAndAcceptProtocolSettlement(body) {
       },
     });
   } else if (action === "unshield") {
-    const commitments = await runtime.indexer.listCommitments({ assetId, treeId });
+    const commitments = [
+      ...(await runtime.indexer.listCommitments({ assetId: asset, treeId })),
+      ...(await runtime.indexer.listCommitments({ assetId, treeId })),
+    ];
     const sourceCommitment = commitments[0];
     if (!sourceCommitment) {
       throw new Error(`No private settlement commitment available for ${asset}.`);
@@ -1233,22 +1249,34 @@ async function proveAndAcceptProtocolSettlement(body) {
       quote,
     });
   } else if (action === "send" || action === "swap") {
-    request = {
-      amountBaseUnits: amountToBaseUnits(amount, asset),
-      assetId,
+    const settlementCommitment = hashHex(
+      "protocol-hidden-economics-settlement",
+      action,
+      settlementId,
+      owner,
+    );
+    const routeCommitment = hashHex("route", action, settlementId, asset, amount);
+    request = createVantaPrivatePoolV2HiddenEconomicsProofRequest({
+      economicsCommitment: hashHex(
+        "protocol-hidden-economics",
+        action,
+        settlementId,
+        destination,
+        assetId,
+        amountToBaseUnits(amount, asset).toString(),
+      ),
       intent: action === "send" ? "private-send" : "swap-to-shielded",
-      publicInputs: [
-        "vanta-private-pool-v2-protocol-settlement-0.1:version",
-        `action:${action}`,
-        `settlement-id:${settlementId}`,
-        `asset:${asset}`,
-        `asset-id:${assetId}`,
-        `amount:${amountToBaseUnits(amount, asset).toString()}`,
-        `owner-commitment:${hashHex("owner", owner)}`,
-        `destination:${destination}`,
-        `route-commitment:${hashHex("route", action, settlementId, asset, amount)}`,
-      ],
-    };
+      nullifierOrReplayCommitment: hashHex(
+        "protocol-hidden-economics-replay",
+        action,
+        settlementId,
+        destination,
+      ),
+      outputCommitment: hashHex("protocol-hidden-economics-output", action, settlementId, owner),
+      ownerCommitment: hashHex("owner", owner),
+      routeCommitment,
+      settlementCommitment,
+    });
   } else {
     throw new Error(`Unknown protocol settlement action ${action}.`);
   }
@@ -1337,14 +1365,16 @@ const server = createServer(async (request, response) => {
     }
 
     if (request.method === "GET" && request.url === "/state/private-pool-v2-receipts") {
+      const receipts = runtime.verifierRegistry?.receipts ?? [];
       sendJson(response, 200, {
         kind: "Private Pool V2 receipts",
         paySettlementCount: paySettlementReceipts.length,
         paySettlements: paySettlementReceipts,
         protocolSettlementCount: protocolSettlementReceipts.length,
         protocolSettlements: protocolSettlementReceipts,
-        receipts: runtime.verifierRegistry?.receipts ?? [],
-        receiptCount: runtime.verifierRegistry?.receipts?.length ?? 0,
+        receipts,
+        receiptCount: receipts.length,
+        shadowCommitmentCount: shadowCommitmentsFromReceipts(receipts).length,
       });
       return;
     }

@@ -73,12 +73,12 @@ try {
 
   for (const tamperCase of [
     {
-      expectedMessage: "mismatched amount public inputs",
+      expectedMessage: "mismatched private amount inputs",
       label: "amount",
       mutate: () => ({ amount: "1" }),
     },
     {
-      expectedMessage: "mismatched release destination public inputs",
+      expectedMessage: "mismatched private release destination inputs",
       label: "release-destination",
       mutate: () => ({
         releaseDestination:
@@ -86,10 +86,22 @@ try {
       }),
     },
     {
-      expectedMessage: "mismatched asset public inputs",
+      expectedMessage: "mismatched private asset inputs",
       label: "asset",
       mutate: () => ({
         assetId: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      }),
+    },
+    {
+      expectedMessage: "mismatched unshield economic-terms hash",
+      label: "unshield-economic-terms-hash",
+      mutate: () => ({}),
+      mutateWitnessPackage: (candidate) => ({
+        ...candidate,
+        publicInputs: {
+          ...candidate.publicInputs,
+          unshield_economic_terms_hash: "1",
+        },
       }),
     },
     {
@@ -98,7 +110,7 @@ try {
       mutate: () => ({ noteVersion: 99 }),
     },
   ]) {
-    const tamperedWitnessPackage = {
+    const tamperedWitnessPackage = tamperCase.mutateWitnessPackage?.(witnessPackage) ?? {
       ...witnessPackage,
       sourcePublicInputs: {
         ...witnessPackage.sourcePublicInputs,

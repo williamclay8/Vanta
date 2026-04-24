@@ -60,8 +60,25 @@ export type VantaProtocolSettlementReceipt = {
   targetMintAddress?: string;
 };
 
+export type VantaPrivatePoolV2ShadowCommitments = {
+  economicsCommitment: string;
+  operatorVisibleTermsCommitment: string;
+  scheme: string;
+};
+
+export type VantaPrivatePoolV2ProofReceipt = {
+  assetId: string;
+  intent: "shield" | "private-send" | "swap-to-shielded" | "unshield" | "claim";
+  publicInputCommitment: string;
+  receiptId: string;
+  recordedAtSlot: string | number;
+  replayKey: string;
+  shadowCommitments?: VantaPrivatePoolV2ShadowCommitments;
+};
+
 export type VantaProtocolSettlementResponse = {
   kind: "protocol_settlement";
+  proofReceipt?: VantaPrivatePoolV2ProofReceipt;
   protocolSettlementReceipt: VantaProtocolSettlementReceipt;
 };
 
@@ -77,7 +94,8 @@ export type VantaPrivatePoolV2SettlementStatus = {
   protocolSettlementCount: number;
   protocolSettlements: VantaProtocolSettlementResponse[];
   receiptCount: number;
-  receipts: unknown[];
+  receipts: VantaPrivatePoolV2ProofReceipt[];
+  shadowCommitmentCount?: number;
 };
 
 export type VantaPrivatePoolV2SettlementPolicy = {
@@ -97,6 +115,8 @@ export type VantaPrivatePoolV2OperatorStatus = {
   receiptCount: number;
   receiptStorePath: string;
   settlementPolicy: VantaPrivatePoolV2SettlementPolicy;
+  shadowCommitmentCount?: number;
+  shadowCommitmentScheme?: string;
   supportedAssets: string[];
   surfaces: Record<string, string>;
 };

@@ -45,11 +45,20 @@ export type VantaPrivatePoolV2ProofIntent =
   | "unshield"
   | "claim";
 
+export type VantaPrivatePoolV2ShadowCommitments = {
+  economicsCommitment: string;
+  operatorVisibleTermsCommitment: string;
+  scheme: "vanta-private-pool-v2-shadow-operator-visible-terms-sha256-0.1";
+};
+
 export type VantaPrivatePoolV2ProofRequest = {
   amountBaseUnits: bigint;
   assetId: string;
+  circuitPublicInputs?: readonly string[];
   intent: VantaPrivatePoolV2ProofIntent;
+  operatorVisibleTerms?: readonly string[];
   publicInputs: readonly string[];
+  shadowCommitments?: VantaPrivatePoolV2ShadowCommitments;
 };
 
 export type VantaPrivatePoolV2ProofResult = {

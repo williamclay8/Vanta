@@ -145,15 +145,16 @@ export function createVantaPrivatePoolV2ClaimCircuitFixture({
           nullifier: witness.nullifier + 1n,
         }
       : witness;
+  const validPublicHash = computeVantaPrivatePoolV2ClaimPublicInputHash(circuitWitness);
   const proofRequest = createVantaPrivatePoolV2ClaimProofRequest({
     amountBaseUnits: witness.amount,
+    claimPublicInputHash: toCircuitString(validPublicHash),
     destinationAddress: toCircuitString(witness.destination),
     merkleProof: toMerkleProof(circuitWitness),
     nullifier: toCircuitString(circuitWitness.nullifier),
     ownerCommitment: toCircuitString(witness.owner_commitment),
     quote: toQuote(witness),
   });
-  const validPublicHash = computeVantaPrivatePoolV2ClaimPublicInputHash(circuitWitness);
 
   return {
     claimPublicInputHash: mode === "invalid-binding" ? validPublicHash + 1n : validPublicHash,

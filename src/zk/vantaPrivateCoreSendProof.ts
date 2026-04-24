@@ -133,17 +133,18 @@ export type VantaPrivateCoreNoirSendWitnessPackageV0 = {
     input_nullifier: FieldDecimalString;
     recipient_commitment: FieldDecimalString;
     change_commitment: FieldDecimalString;
+    send_economic_terms_hash: FieldDecimalString;
+    note_version: FieldDecimalString;
+    send_context_tag_hi?: FieldDecimalString;
+    send_context_tag_lo?: FieldDecimalString;
+  };
+  privateWitness: {
     asset_id_hi: FieldDecimalString;
     asset_id_lo: FieldDecimalString;
     send_amount_lo: FieldDecimalString;
     send_amount_hi: FieldDecimalString;
     change_amount_lo: FieldDecimalString;
     change_amount_hi: FieldDecimalString;
-    note_version: FieldDecimalString;
-    send_context_tag_hi?: FieldDecimalString;
-    send_context_tag_lo?: FieldDecimalString;
-  };
-  privateWitness: {
     input_note_type_code: FieldDecimalString;
     sender_public_key_hi: FieldDecimalString;
     sender_public_key_lo: FieldDecimalString;
@@ -353,14 +354,18 @@ export function createVantaPrivateCoreNoirSendWitnessPackage(args: {
   const changeCommitmentField = args.privateWitness.changeNoteFieldEncoding
     ? derivePoseidonNoteCommitmentField(args.privateWitness.changeNoteFieldEncoding)
     : "0";
+  const zeroAmount = encodeU128ToTwoU64Le(0n);
+  const sendEconomicTermsHashField = derivePoseidonSendEconomicTermsHashField({
+    assetId: assetEncoding,
+    sendAmount: args.privateWitness.recipientNoteFieldEncoding.amount,
+    changeAmount: args.privateWitness.changeNoteFieldEncoding?.amount ?? zeroAmount,
+    noteVersion: args.publicInputs.noteVersion,
+  });
   const sendContextField = derivePoseidonSendContextField({
     inputNullifierField,
     recipientCommitmentField,
     changeCommitmentField,
-    assetId: assetEncoding,
-    sendAmount: args.privateWitness.recipientNoteFieldEncoding.amount,
-    changeAmount:
-      args.privateWitness.changeNoteFieldEncoding?.amount ?? encodeU128ToTwoU64Le(0n),
+    sendEconomicTermsHashField,
     noteVersion: args.publicInputs.noteVersion,
   });
   const sendContextTagEncoding = encodeFieldToPublicPair(sendContextField);
@@ -377,19 +382,18 @@ export function createVantaPrivateCoreNoirSendWitnessPackage(args: {
       input_nullifier: inputNullifierField,
       recipient_commitment: recipientCommitmentField,
       change_commitment: changeCommitmentField,
-      asset_id_hi: assetEncoding.hi,
-      asset_id_lo: assetEncoding.lo,
-      send_amount_lo: args.privateWitness.recipientNoteFieldEncoding.amount.lo,
-      send_amount_hi: args.privateWitness.recipientNoteFieldEncoding.amount.hi,
-      change_amount_lo:
-        args.privateWitness.changeNoteFieldEncoding?.amount.lo ?? encodeU128ToTwoU64Le(0n).lo,
-      change_amount_hi:
-        args.privateWitness.changeNoteFieldEncoding?.amount.hi ?? encodeU128ToTwoU64Le(0n).hi,
+      send_economic_terms_hash: sendEconomicTermsHashField,
       note_version: String(args.publicInputs.noteVersion),
       send_context_tag_hi: sendContextTagEncoding.hi,
       send_context_tag_lo: sendContextTagEncoding.lo,
     },
     privateWitness: {
+      asset_id_hi: assetEncoding.hi,
+      asset_id_lo: assetEncoding.lo,
+      send_amount_lo: args.privateWitness.recipientNoteFieldEncoding.amount.lo,
+      send_amount_hi: args.privateWitness.recipientNoteFieldEncoding.amount.hi,
+      change_amount_lo: args.privateWitness.changeNoteFieldEncoding?.amount.lo ?? zeroAmount.lo,
+      change_amount_hi: args.privateWitness.changeNoteFieldEncoding?.amount.hi ?? zeroAmount.hi,
       input_note_type_code: args.privateWitness.inputNoteFieldEncoding.noteTypeCode,
       sender_public_key_hi: args.privateWitness.inputNoteFieldEncoding.ownerPublicKey.hi,
       sender_public_key_lo: args.privateWitness.inputNoteFieldEncoding.ownerPublicKey.lo,
@@ -475,15 +479,16 @@ export function serializeVantaPrivateCoreNoirSendWitnessPackageToToml(
     `input_nullifier = "${publicInputs.input_nullifier}"`,
     `recipient_commitment = "${publicInputs.recipient_commitment}"`,
     `change_commitment = "${publicInputs.change_commitment}"`,
-    `asset_id_hi = "${publicInputs.asset_id_hi}"`,
-    `asset_id_lo = "${publicInputs.asset_id_lo}"`,
-    `send_amount_lo = "${publicInputs.send_amount_lo}"`,
-    `send_amount_hi = "${publicInputs.send_amount_hi}"`,
-    `change_amount_lo = "${publicInputs.change_amount_lo}"`,
-    `change_amount_hi = "${publicInputs.change_amount_hi}"`,
+    `send_economic_terms_hash = "${publicInputs.send_economic_terms_hash}"`,
     `note_version = "${publicInputs.note_version}"`,
     `send_context_tag_hi = "${publicInputs.send_context_tag_hi ?? "0"}"`,
     `send_context_tag_lo = "${publicInputs.send_context_tag_lo ?? "0"}"`,
+    `asset_id_hi = "${privateWitness.asset_id_hi}"`,
+    `asset_id_lo = "${privateWitness.asset_id_lo}"`,
+    `send_amount_lo = "${privateWitness.send_amount_lo}"`,
+    `send_amount_hi = "${privateWitness.send_amount_hi}"`,
+    `change_amount_lo = "${privateWitness.change_amount_lo}"`,
+    `change_amount_hi = "${privateWitness.change_amount_hi}"`,
     `input_note_type_code = "${privateWitness.input_note_type_code}"`,
     `sender_public_key_hi = "${privateWitness.sender_public_key_hi}"`,
     `sender_public_key_lo = "${privateWitness.sender_public_key_lo}"`,
@@ -805,20 +810,34 @@ function derivePoseidonSendContextField(args: {
   inputNullifierField: FieldDecimalString;
   recipientCommitmentField: FieldDecimalString;
   changeCommitmentField: FieldDecimalString;
+  sendEconomicTermsHashField: FieldDecimalString;
+  noteVersion: number;
+}): FieldDecimalString {
+  return poseidon6([
+    BigInt(args.inputNullifierField),
+    BigInt(args.recipientCommitmentField),
+    BigInt(args.changeCommitmentField),
+    BigInt(args.sendEconomicTermsHashField),
+    BigInt(args.noteVersion),
+    0n,
+  ]).toString(10);
+}
+
+function derivePoseidonSendEconomicTermsHashField(args: {
   assetId: Bytes32EncodingV0;
   sendAmount: U128EncodingV0;
   changeAmount: U128EncodingV0;
   noteVersion: number;
 }): FieldDecimalString {
   return poseidon8([
-    BigInt(args.inputNullifierField),
-    BigInt(args.recipientCommitmentField),
-    BigInt(args.changeCommitmentField),
     BigInt(args.assetId.hi),
     BigInt(args.assetId.lo),
-    BigInt(args.sendAmount.lo) + BigInt(args.sendAmount.hi),
-    BigInt(args.changeAmount.lo) + BigInt(args.changeAmount.hi),
+    BigInt(args.sendAmount.lo),
+    BigInt(args.sendAmount.hi),
+    BigInt(args.changeAmount.lo),
+    BigInt(args.changeAmount.hi),
     BigInt(args.noteVersion),
+    0n,
   ]).toString(10);
 }
 

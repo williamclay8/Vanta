@@ -103,6 +103,20 @@ fn derive_send_context_tag(
     input_nullifier: Field,
     recipient_commitment: Field,
     change_commitment: Field,
+    send_economic_terms_hash: Field,
+    note_version: Field,
+) -> Field {
+    bn254::hash_6([
+        input_nullifier,
+        recipient_commitment,
+        change_commitment,
+        send_economic_terms_hash,
+        note_version,
+        0,
+    ])
+}
+
+fn derive_send_economic_terms_hash(
     asset_id_hi: Field,
     asset_id_lo: Field,
     send_amount_lo: Field,
@@ -112,14 +126,14 @@ fn derive_send_context_tag(
     note_version: Field,
 ) -> Field {
     bn254::hash_8([
-        input_nullifier,
-        recipient_commitment,
-        change_commitment,
         asset_id_hi,
         asset_id_lo,
-        send_amount_lo + send_amount_hi,
-        change_amount_lo + change_amount_hi,
+        send_amount_lo,
+        send_amount_hi,
+        change_amount_lo,
+        change_amount_hi,
         note_version,
+        0,
     ])
 }
 
@@ -154,15 +168,16 @@ fn main(
     input_nullifier: pub Field,
     recipient_commitment: pub Field,
     change_commitment: pub Field,
-    asset_id_hi: pub Field,
-    asset_id_lo: pub Field,
-    send_amount_lo: pub Field,
-    send_amount_hi: pub Field,
-    change_amount_lo: pub Field,
-    change_amount_hi: pub Field,
+    send_economic_terms_hash: pub Field,
     note_version: pub Field,
     send_context_tag_hi: pub Field,
     send_context_tag_lo: pub Field,
+    asset_id_hi: Field,
+    asset_id_lo: Field,
+    send_amount_lo: Field,
+    send_amount_hi: Field,
+    change_amount_lo: Field,
+    change_amount_hi: Field,
     input_note_type_code: Field,
     sender_public_key_hi: Field,
     sender_public_key_lo: Field,
@@ -206,6 +221,17 @@ fn main(
     assert(note_version == 0);
     assert(input_note_type_code == 0);
     assert(recipient_note_type_code == 0);
+
+    let computed_send_economic_terms_hash = derive_send_economic_terms_hash(
+        asset_id_hi,
+        asset_id_lo,
+        send_amount_lo,
+        send_amount_hi,
+        change_amount_lo,
+        change_amount_hi,
+        note_version,
+    );
+    assert(computed_send_economic_terms_hash == send_economic_terms_hash);
 
     let input_commitment = hash_note_commitment(
         note_version,
@@ -309,12 +335,7 @@ fn main(
         input_nullifier,
         recipient_commitment,
         change_commitment,
-        asset_id_hi,
-        asset_id_lo,
-        send_amount_lo,
-        send_amount_hi,
-        change_amount_lo,
-        change_amount_hi,
+        send_economic_terms_hash,
         note_version,
     );
     assert(computed_send_context_tag == send_context_tag_hi + send_context_tag_lo);

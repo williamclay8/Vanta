@@ -2613,16 +2613,8 @@ export function VantaPrivateCoreStatePanel({
               <strong>{unshieldState?.nullifierKeyMode ?? holdState?.nullifierKeyMode ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
-              <span>Release destination</span>
-              <strong>{abbreviate(unshieldState?.proofReleaseDestination ?? holdState?.proofReleaseDestination)}</strong>
-            </div>
-            <div className="review-row">
-              <span>Public asset</span>
-              <strong>{abbreviate(unshieldState?.proofAssetId ?? holdState?.proofAssetId)}</strong>
-            </div>
-            <div className="review-row">
-              <span>Public amount</span>
-              <strong>{unshieldState?.proofAmount ?? holdState?.proofAmount ?? "Unavailable"}</strong>
+              <span>Economic terms hash</span>
+              <strong>{abbreviate(unshieldState?.proofEconomicTermsHash ?? holdState?.proofEconomicTermsHash)}</strong>
             </div>
             <div className="review-row">
               <span>Public note version</span>

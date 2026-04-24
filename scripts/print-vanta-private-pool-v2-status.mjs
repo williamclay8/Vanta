@@ -18,6 +18,7 @@ const sourceFiles = [
   "privatePoolV2LocalRelayer.ts",
   "privatePoolV2LocalVerifierRegistry.ts",
   "privatePoolV2MockRuntime.ts",
+  "privatePoolV2ProofRequests.ts",
   "privatePoolV2SettlementPolicy.ts",
 ];
 const protocolActionProofModes = {

@@ -6,7 +6,9 @@ import type {
   VantaPrivatePoolV2ProofRequest,
   VantaPrivatePoolV2ProofResult,
   VantaPrivatePoolV2Prover,
+  VantaPrivatePoolV2ShadowCommitments,
 } from "./privatePoolV2Types";
+import { createVantaPrivatePoolV2ShadowCommitments } from "./privatePoolV2ProofRequests";
 
 export const VANTA_PRIVATE_POOL_V2_LOCAL_VERIFIER_REGISTRY_SCHEME =
   "sha256-private-pool-v2-local-verifier-registry-0.1" as const;
@@ -35,6 +37,7 @@ export type VantaPrivatePoolV2ProofReceipt = {
   receiptId: string;
   recordedAtSlot: bigint;
   replayKey: string;
+  shadowCommitments?: VantaPrivatePoolV2ShadowCommitments;
 };
 
 function hashParts(...parts: readonly string[]) {
@@ -77,6 +80,38 @@ function replayKeyForRequest(request: VantaPrivatePoolV2ProofRequest) {
   }
 
   return `${request.intent}:${request.publicInputs.join("|")}`;
+}
+
+function canonicalShadowCommitmentsForRequest(
+  request: VantaPrivatePoolV2ProofRequest,
+): VantaPrivatePoolV2ShadowCommitments | undefined {
+  if (
+    (request.intent !== "shield" && request.intent !== "claim") ||
+    !request.operatorVisibleTerms
+  ) {
+    return undefined;
+  }
+
+  return createVantaPrivatePoolV2ShadowCommitments({
+    intent: request.intent,
+    operatorVisibleTerms: request.operatorVisibleTerms,
+  });
+}
+
+function assertShadowCommitmentsMatchRequest(request: VantaPrivatePoolV2ProofRequest) {
+  const canonical = canonicalShadowCommitmentsForRequest(request);
+  if (!canonical) {
+    return undefined;
+  }
+
+  if (
+    request.shadowCommitments &&
+    JSON.stringify(request.shadowCommitments) !== JSON.stringify(canonical)
+  ) {
+    throw new Error("Private Pool v2 proof request shadow commitment does not match operator-visible terms.");
+  }
+
+  return canonical;
 }
 
 export class VantaPrivatePoolV2LocalVerifierRegistry {
@@ -123,6 +158,8 @@ export class VantaPrivatePoolV2LocalVerifierRegistry {
     if (this.#receipts.has(replayKey)) {
       throw new Error(`Private Pool v2 receipt ${replayKey} has already been accepted.`);
     }
+
+    const shadowCommitments = assertShadowCommitmentsMatchRequest(request);
 
     if (request.intent === "shield") {
       if (!this.#indexer.appendCommitment) {
@@ -189,6 +226,7 @@ export class VantaPrivatePoolV2LocalVerifierRegistry {
       ),
       recordedAtSlot: this.#currentSlot,
       replayKey,
+      ...(shadowCommitments ? { shadowCommitments } : {}),
     } satisfies VantaPrivatePoolV2ProofReceipt;
 
     this.#receipts.set(replayKey, receipt);

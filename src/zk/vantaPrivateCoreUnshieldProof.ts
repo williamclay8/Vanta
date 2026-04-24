@@ -127,17 +127,18 @@ export type VantaPrivateCoreNoirUnshieldWitnessPackageV0 = {
   publicInputs: {
     state_root: FieldDecimalString;
     nullifier: FieldDecimalString;
+    unshield_economic_terms_hash: FieldDecimalString;
+    note_version: FieldDecimalString;
+    consume_context_tag_hi?: FieldDecimalString;
+    consume_context_tag_lo?: FieldDecimalString;
+  };
+  privateWitness: {
     release_destination_hi: FieldDecimalString;
     release_destination_lo: FieldDecimalString;
     asset_id_hi: FieldDecimalString;
     asset_id_lo: FieldDecimalString;
     amount_lo: FieldDecimalString;
     amount_hi: FieldDecimalString;
-    note_version: FieldDecimalString;
-    consume_context_tag_hi?: FieldDecimalString;
-    consume_context_tag_lo?: FieldDecimalString;
-  };
-  privateWitness: {
     note_type_code: FieldDecimalString;
     owner_public_key_hi: FieldDecimalString;
     owner_public_key_lo: FieldDecimalString;
@@ -220,9 +221,7 @@ export type VantaPrivateCoreProofBoundaryConfigurationSummaryV0 = {
 };
 
 export type VantaPrivateCoreProofBoundaryPublicInputSummaryV0 = {
-  releaseDestination: Bytes32Hex;
-  assetId: Bytes32Hex;
-  amount: string;
+  economicTermsHash: FieldDecimalString;
   noteVersion: typeof VANTA_PRIVATE_CORE_NOTE_VERSION_V0;
 };
 
@@ -369,6 +368,12 @@ export function createVantaPrivateCoreNoirUnshieldWitnessPackage(args: {
     noteVersion: args.publicInputs.noteVersion,
     nullifierField,
   });
+  const unshieldEconomicTermsHashField = derivePoseidonUnshieldEconomicTermsHashField({
+    releaseDestination: releaseDestinationEncoding,
+    assetId: assetEncoding,
+    amount: args.privateWitness.noteFieldEncoding.amount,
+    noteVersion: args.publicInputs.noteVersion,
+  });
   // The current Noir circuit binds consume_context_tag as
   // `consume_context_tag_hi + consume_context_tag_lo`.
   // Keep the public ABI stable for now, but place the full additive proving-lane
@@ -385,17 +390,18 @@ export function createVantaPrivateCoreNoirUnshieldWitnessPackage(args: {
     publicInputs: {
       state_root: stateRootField,
       nullifier: nullifierField,
+      unshield_economic_terms_hash: unshieldEconomicTermsHashField,
+      note_version: String(args.publicInputs.noteVersion),
+      consume_context_tag_hi: consumeContextTagEncoding?.hi,
+      consume_context_tag_lo: consumeContextTagEncoding?.lo,
+    },
+    privateWitness: {
       release_destination_hi: releaseDestinationEncoding.hi,
       release_destination_lo: releaseDestinationEncoding.lo,
       asset_id_hi: assetEncoding.hi,
       asset_id_lo: assetEncoding.lo,
       amount_lo: args.privateWitness.noteFieldEncoding.amount.lo,
       amount_hi: args.privateWitness.noteFieldEncoding.amount.hi,
-      note_version: String(args.publicInputs.noteVersion),
-      consume_context_tag_hi: consumeContextTagEncoding?.hi,
-      consume_context_tag_lo: consumeContextTagEncoding?.lo,
-    },
-    privateWitness: {
       note_type_code: args.privateWitness.noteFieldEncoding.noteTypeCode,
       owner_public_key_hi: args.privateWitness.noteFieldEncoding.ownerPublicKey.hi,
       owner_public_key_lo: args.privateWitness.noteFieldEncoding.ownerPublicKey.lo,
@@ -512,9 +518,7 @@ export function summarizeVantaPrivateCoreProofBoundaryPublicInputs(
   boundary: VantaPrivateCoreUnshieldProofBoundaryV0,
 ): VantaPrivateCoreProofBoundaryPublicInputSummaryV0 {
   return {
-    releaseDestination: boundary.publicInputs.releaseDestination,
-    assetId: boundary.publicInputs.assetId,
-    amount: boundary.publicInputs.amount,
+    economicTermsHash: boundary.noirWitnessPackage.publicInputs.unshield_economic_terms_hash,
     noteVersion: boundary.publicInputs.noteVersion,
   };
 }
@@ -607,15 +611,16 @@ export function serializeVantaPrivateCoreNoirUnshieldWitnessPackageToToml(
   return [
     `state_root = "${publicInputs.state_root}"`,
     `nullifier = "${publicInputs.nullifier}"`,
-    `release_destination_hi = "${publicInputs.release_destination_hi}"`,
-    `release_destination_lo = "${publicInputs.release_destination_lo}"`,
-    `asset_id_hi = "${publicInputs.asset_id_hi}"`,
-    `asset_id_lo = "${publicInputs.asset_id_lo}"`,
-    `amount_lo = "${publicInputs.amount_lo}"`,
-    `amount_hi = "${publicInputs.amount_hi}"`,
+    `unshield_economic_terms_hash = "${publicInputs.unshield_economic_terms_hash}"`,
     `note_version = "${publicInputs.note_version}"`,
     `consume_context_tag_hi = "${publicInputs.consume_context_tag_hi ?? "0"}"`,
     `consume_context_tag_lo = "${publicInputs.consume_context_tag_lo ?? "0"}"`,
+    `release_destination_hi = "${privateWitness.release_destination_hi}"`,
+    `release_destination_lo = "${privateWitness.release_destination_lo}"`,
+    `asset_id_hi = "${privateWitness.asset_id_hi}"`,
+    `asset_id_lo = "${privateWitness.asset_id_lo}"`,
+    `amount_lo = "${privateWitness.amount_lo}"`,
+    `amount_hi = "${privateWitness.amount_hi}"`,
     `note_type_code = "${privateWitness.note_type_code}"`,
     `owner_public_key_hi = "${privateWitness.owner_public_key_hi}"`,
     `owner_public_key_lo = "${privateWitness.owner_public_key_lo}"`,
@@ -885,6 +890,24 @@ function derivePoseidonConsumeContextField(args: {
     BigInt(args.amount.hi),
     BigInt(args.noteVersion),
     BigInt(args.nullifierField),
+  ]).toString(10);
+}
+
+function derivePoseidonUnshieldEconomicTermsHashField(args: {
+  releaseDestination: Bytes32EncodingV0;
+  assetId: Bytes32EncodingV0;
+  amount: U128EncodingV0;
+  noteVersion: number;
+}): FieldDecimalString {
+  return poseidon8([
+    BigInt(args.releaseDestination.hi),
+    BigInt(args.releaseDestination.lo),
+    BigInt(args.assetId.hi),
+    BigInt(args.assetId.lo),
+    BigInt(args.amount.lo),
+    BigInt(args.amount.hi),
+    BigInt(args.noteVersion),
+    0n,
   ]).toString(10);
 }
 

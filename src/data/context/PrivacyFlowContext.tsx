@@ -535,9 +535,7 @@ export type VantaPrivateCoreHoldState = {
   proofMerkleDepth: number;
   ownerAuthorizationMode: string;
   nullifierKeyMode: string;
-  proofReleaseDestination: string;
-  proofAssetId: string;
-  proofAmount: string;
+  proofEconomicTermsHash: string;
   proofNoteVersion: number;
   proofNoteType: string;
   proofLeafIndex: number;
@@ -713,9 +711,7 @@ export type VantaPrivateCoreUnshieldState = {
   proofMerkleDepth: number | null;
   ownerAuthorizationMode: string | null;
   nullifierKeyMode: string | null;
-  proofReleaseDestination: string | null;
-  proofAssetId: string | null;
-  proofAmount: string | null;
+  proofEconomicTermsHash: string | null;
   proofNoteVersion: number | null;
   proofNoteType: string | null;
   proofLeafIndex: number | null;
@@ -1908,9 +1904,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofMerkleDepth: previewConfiguration.merkleDepth,
         ownerAuthorizationMode: previewConfiguration.ownerAuthorizationMode,
         nullifierKeyMode: previewConfiguration.nullifierKeyMode,
-        proofReleaseDestination: previewPublicInputs.releaseDestination,
-        proofAssetId: previewPublicInputs.assetId,
-        proofAmount: previewPublicInputs.amount,
+        proofEconomicTermsHash: previewPublicInputs.economicTermsHash,
         proofNoteVersion: previewPublicInputs.noteVersion,
         proofNoteType: previewWitness.noteType,
         proofLeafIndex: previewWitness.leafIndex,
@@ -2199,9 +2193,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofMerkleDepth: null,
         ownerAuthorizationMode: null,
         nullifierKeyMode: null,
-        proofReleaseDestination: null,
-        proofAssetId: null,
-        proofAmount: null,
+        proofEconomicTermsHash: null,
         proofNoteVersion: null,
         proofNoteType: null,
         proofLeafIndex: null,
@@ -2352,9 +2344,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofMerkleDepth: proofConfiguration.merkleDepth,
         ownerAuthorizationMode: proofConfiguration.ownerAuthorizationMode,
         nullifierKeyMode: proofConfiguration.nullifierKeyMode,
-        proofReleaseDestination: proofPublicInputs.releaseDestination,
-        proofAssetId: proofPublicInputs.assetId,
-        proofAmount: proofPublicInputs.amount,
+        proofEconomicTermsHash: proofPublicInputs.economicTermsHash,
         proofNoteVersion: proofPublicInputs.noteVersion,
         proofNoteType: proofWitness.noteType,
         proofLeafIndex: proofWitness.leafIndex,
@@ -2443,9 +2433,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofMerkleDepth: proofConfiguration.merkleDepth,
         ownerAuthorizationMode: proofConfiguration.ownerAuthorizationMode,
         nullifierKeyMode: proofConfiguration.nullifierKeyMode,
-        proofReleaseDestination: proofPublicInputs.releaseDestination,
-        proofAssetId: proofPublicInputs.assetId,
-        proofAmount: proofPublicInputs.amount,
+        proofEconomicTermsHash: proofPublicInputs.economicTermsHash,
         proofNoteVersion: proofPublicInputs.noteVersion,
         proofNoteType: proofWitness.noteType,
         proofLeafIndex: proofWitness.leafIndex,
@@ -2532,9 +2520,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofMerkleDepth: null,
         ownerAuthorizationMode: null,
         nullifierKeyMode: null,
-        proofReleaseDestination: null,
-        proofAssetId: null,
-        proofAmount: null,
+        proofEconomicTermsHash: null,
         proofNoteVersion: null,
         proofNoteType: null,
         proofLeafIndex: null,
@@ -2663,9 +2649,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         proofMerkleDepth: proofConfiguration.merkleDepth,
         ownerAuthorizationMode: proofConfiguration.ownerAuthorizationMode,
         nullifierKeyMode: proofConfiguration.nullifierKeyMode,
-        proofReleaseDestination: proofPublicInputs.releaseDestination,
-        proofAssetId: proofPublicInputs.assetId,
-        proofAmount: proofPublicInputs.amount,
+        proofEconomicTermsHash: proofPublicInputs.economicTermsHash,
         proofNoteVersion: proofPublicInputs.noteVersion,
         proofNoteType: proofWitness.noteType,
         proofLeafIndex: proofWitness.leafIndex,

@@ -97,6 +97,7 @@ try {
     ownerCommitment: "field:owner",
     previousRoot: "field:previous-root",
     routeCommitment: "field:route",
+    shieldPublicInputHash: "field:shield-public-input-hash",
     sourceMintAddress: "mint:public-usdc",
     targetAssetId: "USDC",
     targetMintAddress: "mint:shielded-usdc",
@@ -124,6 +125,63 @@ try {
   assert(
     JSON.stringify(request.publicInputs) === JSON.stringify(expectedPublicInputs),
     "Expected stable shield proof public-input ordering.",
+  );
+  assert(
+    JSON.stringify(request.operatorVisibleTerms) === JSON.stringify(expectedPublicInputs),
+    "Expected stable shield operator-visible terms.",
+  );
+  assert(
+    JSON.stringify(request.circuitPublicInputs) ===
+      JSON.stringify(["shield-public-input-hash:field:shield-public-input-hash"]),
+    "Expected shield circuit public inputs to be hash-only.",
+  );
+  assert(
+    request.shadowCommitments?.scheme ===
+      "vanta-private-pool-v2-shadow-operator-visible-terms-sha256-0.1",
+    "Expected shield shadow commitment scheme.",
+  );
+  assert(
+    request.shadowCommitments?.operatorVisibleTermsCommitment?.startsWith("0x"),
+    "Expected shield operator-visible terms shadow commitment.",
+  );
+  assert(
+    request.shadowCommitments?.operatorVisibleTermsCommitment ===
+      request.shadowCommitments?.economicsCommitment,
+    "Expected shield economics commitment to mirror operator-visible terms for the current shadow lane.",
+  );
+  const changedShieldRequest = createVantaPrivatePoolV2ShieldProofRequest({
+    amountBaseUnits: 1_000_001n,
+    ownerCommitment: "field:owner",
+    previousRoot: "field:previous-root",
+    routeCommitment: "field:route",
+    shieldPublicInputHash: "field:shield-public-input-hash",
+    sourceMintAddress: "mint:public-usdc",
+    targetAssetId: "USDC",
+    targetMintAddress: "mint:shielded-usdc",
+    treeCommitment,
+  });
+  assert(
+    changedShieldRequest.shadowCommitments?.operatorVisibleTermsCommitment !==
+      request.shadowCommitments?.operatorVisibleTermsCommitment,
+    "Expected shield shadow commitment to change when operator-visible economics change.",
+  );
+  assert(
+    !request.circuitPublicInputs.some((input) =>
+      [
+        "source-mint:",
+        "target-mint:",
+        "target-asset:",
+        "amount:",
+        "owner-commitment:",
+        "route-commitment:",
+        "tree-id:",
+        "leaf-index:",
+        "output-commitment:",
+        "previous-root:",
+        "output-root:",
+      ].some((prefix) => input.startsWith(prefix)),
+    ),
+    "Shield circuit public inputs must not expose raw request terms.",
   );
   console.log("shield proof request public inputs: PASS");
 
@@ -168,6 +226,7 @@ try {
   };
   const claimRequest = createVantaPrivatePoolV2ClaimProofRequest({
     amountBaseUnits: 1_000_000n,
+    claimPublicInputHash: "field:claim-public-input-hash",
     destinationAddress: "recipient-public-address",
     merkleProof,
     nullifier: "field:nullifier",
@@ -195,6 +254,58 @@ try {
   assert(
     JSON.stringify(claimRequest.publicInputs) === JSON.stringify(expectedClaimPublicInputs),
     "Expected stable claim proof public-input ordering.",
+  );
+  assert(
+    JSON.stringify(claimRequest.operatorVisibleTerms) ===
+      JSON.stringify(expectedClaimPublicInputs),
+    "Expected stable claim operator-visible terms.",
+  );
+  assert(
+    JSON.stringify(claimRequest.circuitPublicInputs) ===
+      JSON.stringify(["claim-public-input-hash:field:claim-public-input-hash"]),
+    "Expected claim circuit public inputs to be hash-only.",
+  );
+  assert(
+    claimRequest.shadowCommitments?.scheme ===
+      "vanta-private-pool-v2-shadow-operator-visible-terms-sha256-0.1",
+    "Expected claim shadow commitment scheme.",
+  );
+  assert(
+    claimRequest.shadowCommitments?.operatorVisibleTermsCommitment?.startsWith("0x"),
+    "Expected claim operator-visible terms shadow commitment.",
+  );
+  const changedClaimRequest = createVantaPrivatePoolV2ClaimProofRequest({
+    amountBaseUnits: 1_000_001n,
+    claimPublicInputHash: "field:claim-public-input-hash",
+    destinationAddress: "recipient-public-address",
+    merkleProof,
+    nullifier: "field:nullifier",
+    ownerCommitment: "field:owner",
+    quote,
+  });
+  assert(
+    changedClaimRequest.shadowCommitments?.operatorVisibleTermsCommitment !==
+      claimRequest.shadowCommitments?.operatorVisibleTermsCommitment,
+    "Expected claim shadow commitment to change when operator-visible economics change.",
+  );
+  assert(
+    !claimRequest.circuitPublicInputs.some((input) =>
+      [
+        "asset:",
+        "amount:",
+        "owner-commitment:",
+        "tree-id:",
+        "leaf-index:",
+        "input-commitment:",
+        "input-root:",
+        "nullifier:",
+        "destination:",
+        "relayer:",
+        "relayer-fee:",
+        "quote-expires-at-slot:",
+      ].some((prefix) => input.startsWith(prefix)),
+    ),
+    "Claim circuit public inputs must not expose raw request terms.",
   );
   console.log("claim proof request public inputs: PASS");
 

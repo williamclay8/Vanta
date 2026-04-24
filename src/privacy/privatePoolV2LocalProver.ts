@@ -23,11 +23,13 @@ function hashParts(...parts: readonly string[]) {
 }
 
 function serializeProofRequest(request: VantaPrivatePoolV2ProofRequest) {
+  const circuitPublicInputs = request.circuitPublicInputs ?? request.publicInputs;
+
   return JSON.stringify({
     amountBaseUnits: request.amountBaseUnits.toString(),
     assetId: request.assetId,
+    circuitPublicInputs: [...circuitPublicInputs],
     intent: request.intent,
-    publicInputs: [...request.publicInputs],
   });
 }
 
@@ -56,7 +58,7 @@ export class VantaPrivatePoolV2LocalProver implements VantaPrivatePoolV2Prover {
       throw new Error("Proof amount must be positive.");
     }
 
-    if (request.publicInputs.length === 0) {
+    if ((request.circuitPublicInputs ?? request.publicInputs).length === 0) {
       throw new Error("Proof request must bind at least one public input.");
     }
 

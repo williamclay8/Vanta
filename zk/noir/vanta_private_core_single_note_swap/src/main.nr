@@ -102,6 +102,21 @@ fn derive_nullifier(
 fn derive_swap_context_tag(
     input_nullifier: Field,
     output_commitment: Field,
+    swap_economic_terms_hash: Field,
+    input_note_version: Field,
+    output_note_version: Field,
+) -> Field {
+    bn254::hash_6([
+        input_nullifier,
+        output_commitment,
+        swap_economic_terms_hash,
+        input_note_version,
+        output_note_version,
+        0,
+    ])
+}
+
+fn derive_swap_economic_terms_hash(
     input_asset_id_hi: Field,
     input_asset_id_lo: Field,
     output_asset_id_hi: Field,
@@ -110,18 +125,16 @@ fn derive_swap_context_tag(
     input_amount_hi: Field,
     output_amount_lo: Field,
     output_amount_hi: Field,
-    input_note_version: Field,
-    output_note_version: Field,
 ) -> Field {
     bn254::hash_8([
-        input_nullifier,
-        output_commitment,
-        input_asset_id_hi + input_asset_id_lo,
-        output_asset_id_hi + output_asset_id_lo,
-        input_amount_lo + input_amount_hi,
-        output_amount_lo + output_amount_hi,
-        input_note_version,
-        output_note_version,
+        input_asset_id_hi,
+        input_asset_id_lo,
+        output_asset_id_hi,
+        output_asset_id_lo,
+        input_amount_lo,
+        input_amount_hi,
+        output_amount_lo,
+        output_amount_hi,
     ])
 }
 
@@ -129,18 +142,19 @@ fn main(
     state_root: pub Field,
     input_nullifier: pub Field,
     output_commitment: pub Field,
-    input_asset_id_hi: pub Field,
-    input_asset_id_lo: pub Field,
-    output_asset_id_hi: pub Field,
-    output_asset_id_lo: pub Field,
-    input_amount_lo: pub Field,
-    input_amount_hi: pub Field,
-    output_amount_lo: pub Field,
-    output_amount_hi: pub Field,
+    swap_economic_terms_hash: pub Field,
     input_note_version: pub Field,
     output_note_version: pub Field,
     swap_context_tag_hi: pub Field,
     swap_context_tag_lo: pub Field,
+    input_asset_id_hi: Field,
+    input_asset_id_lo: Field,
+    output_asset_id_hi: Field,
+    output_asset_id_lo: Field,
+    input_amount_lo: Field,
+    input_amount_hi: Field,
+    output_amount_lo: Field,
+    output_amount_hi: Field,
     input_note_type_code: Field,
     sender_public_key_hi: Field,
     sender_public_key_lo: Field,
@@ -176,6 +190,18 @@ fn main(
     assert(output_note_type_code == 0);
     let sender_secret_stub = sender_secret_key_hi + sender_secret_key_lo;
     assert(sender_secret_stub == sender_secret_key_hi + sender_secret_key_lo);
+
+    let computed_swap_economic_terms_hash = derive_swap_economic_terms_hash(
+        input_asset_id_hi,
+        input_asset_id_lo,
+        output_asset_id_hi,
+        output_asset_id_lo,
+        input_amount_lo,
+        input_amount_hi,
+        output_amount_lo,
+        output_amount_hi,
+    );
+    assert(computed_swap_economic_terms_hash == swap_economic_terms_hash);
 
     let input_commitment = hash_note_commitment(
         input_note_version,
@@ -242,14 +268,7 @@ fn main(
     let computed_swap_context_tag = derive_swap_context_tag(
         input_nullifier,
         output_commitment,
-        input_asset_id_hi,
-        input_asset_id_lo,
-        output_asset_id_hi,
-        output_asset_id_lo,
-        input_amount_lo,
-        input_amount_hi,
-        output_amount_lo,
-        output_amount_hi,
+        swap_economic_terms_hash,
         input_note_version,
         output_note_version,
     );

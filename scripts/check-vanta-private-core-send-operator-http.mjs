@@ -242,7 +242,7 @@ try {
     !proofResponse.ok ||
     proofResponse.parsed?.verified !== true ||
     proofResponse.parsed?.circuit !== "vanta_private_core_single_note_send" ||
-    proofResponse.parsed?.publicInputCount !== 13
+    proofResponse.parsed?.publicInputCount !== 8
   ) {
     throw new Error(proofResponse.text || "operator send proof endpoint failed");
   }

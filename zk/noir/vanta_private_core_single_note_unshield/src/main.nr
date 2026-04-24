@@ -121,18 +121,40 @@ fn derive_consume_context_tag(
     ])
 }
 
+fn derive_unshield_economic_terms_hash(
+    release_destination_hi: Field,
+    release_destination_lo: Field,
+    asset_id_hi: Field,
+    asset_id_lo: Field,
+    amount_lo: Field,
+    amount_hi: Field,
+    note_version: Field,
+) -> Field {
+    bn254::hash_8([
+        release_destination_hi,
+        release_destination_lo,
+        asset_id_hi,
+        asset_id_lo,
+        amount_lo,
+        amount_hi,
+        note_version,
+        0,
+    ])
+}
+
 fn main(
     state_root: pub Field,
     nullifier: pub Field,
-    release_destination_hi: pub Field,
-    release_destination_lo: pub Field,
-    asset_id_hi: pub Field,
-    asset_id_lo: pub Field,
-    amount_lo: pub Field,
-    amount_hi: pub Field,
+    unshield_economic_terms_hash: pub Field,
     note_version: pub Field,
     consume_context_tag_hi: pub Field,
     consume_context_tag_lo: pub Field,
+    release_destination_hi: Field,
+    release_destination_lo: Field,
+    asset_id_hi: Field,
+    asset_id_lo: Field,
+    amount_lo: Field,
+    amount_hi: Field,
     note_type_code: Field,
     owner_public_key_hi: Field,
     owner_public_key_lo: Field,
@@ -205,6 +227,17 @@ fn main(
         nullifier,
     );
     assert(computed_consume_context_tag == consume_context_tag_hi + consume_context_tag_lo);
+
+    let computed_unshield_economic_terms_hash = derive_unshield_economic_terms_hash(
+        release_destination_hi,
+        release_destination_lo,
+        asset_id_hi,
+        asset_id_lo,
+        amount_lo,
+        amount_hi,
+        note_version,
+    );
+    assert(computed_unshield_economic_terms_hash == unshield_economic_terms_hash);
 
     // v0.1 assumption: owner authorization remains prechecked off-circuit.
     // Keep the witness material live in the circuit surface for the later

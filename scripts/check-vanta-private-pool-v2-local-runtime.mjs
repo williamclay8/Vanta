@@ -165,6 +165,11 @@ try {
     request: proofRequest,
   });
   assert(shieldReceipt.intent === "shield", "Expected shield receipt.");
+  assert(
+    shieldReceipt.shadowCommitments?.operatorVisibleTermsCommitment ===
+      proofRequest.shadowCommitments?.operatorVisibleTermsCommitment,
+    "Expected shield receipt to persist shadow operator-visible terms commitment.",
+  );
   assert(verifierRegistry.receipts.length === 1, "Expected one verifier receipt.");
   const verifierCommitments = await verifierIndexer.listCommitments({
     assetId: "USDC",
@@ -177,6 +182,27 @@ try {
   );
   console.log("local verifier shield commitment append: PASS");
   console.log("local verifier shield receipt: PASS");
+
+  const tamperedShadowRequest = {
+    ...proofRequest,
+    shadowCommitments: {
+      ...proofRequest.shadowCommitments,
+      operatorVisibleTermsCommitment: "0xnot-the-canonical-shadow-commitment",
+    },
+  };
+  const tamperedShadowProof = await prover.prove(tamperedShadowRequest);
+  await expectRejection(
+    () =>
+      createVantaPrivatePoolV2LocalVerifierRegistry({
+        indexer: createVantaPrivatePoolV2LocalIndexer(),
+        prover,
+      }).acceptProof({
+        proof: tamperedShadowProof,
+        request: tamperedShadowRequest,
+      }),
+    "shadow commitment",
+  );
+  console.log("local verifier shadow commitment tamper rejection: PASS");
 
   const tamperedProof = {
     ...proof,
@@ -223,6 +249,11 @@ try {
     request: claimProofRequest,
   });
   assert(claimReceipt.intent === "claim", "Expected claim receipt.");
+  assert(
+    claimReceipt.shadowCommitments?.operatorVisibleTermsCommitment ===
+      claimProofRequest.shadowCommitments?.operatorVisibleTermsCommitment,
+    "Expected claim receipt to persist shadow operator-visible terms commitment.",
+  );
   assert(
     (await verifierIndexer.getNullifier("field:nullifier"))?.nullifier === "field:nullifier",
     "Expected verifier registry to register claim nullifier.",

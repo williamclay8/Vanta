@@ -369,12 +369,12 @@ try {
 
   for (const tamperCase of [
     {
-      expectedMessage: "mismatched amount public inputs",
+      expectedMessage: "mismatched private amount inputs",
       label: "amount",
       mutate: () => ({ amount: "1" }),
     },
     {
-      expectedMessage: "mismatched release destination public inputs",
+      expectedMessage: "mismatched private release destination inputs",
       label: "release-destination",
       mutate: () => ({
         releaseDestination:
@@ -382,7 +382,7 @@ try {
       }),
     },
     {
-      expectedMessage: "mismatched asset public inputs",
+      expectedMessage: "mismatched private asset inputs",
       label: "asset",
       mutate: () => ({
         assetId: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
@@ -418,12 +418,12 @@ try {
 
   for (const tamperCase of [
     {
-      expectedMessage: "mismatched amount public inputs",
+      expectedMessage: "mismatched private amount inputs",
       label: "amount",
       mutate: () => ({ amount: "1" }),
     },
     {
-      expectedMessage: "mismatched release destination public inputs",
+      expectedMessage: "mismatched private release destination inputs",
       label: "release-destination",
       mutate: () => ({
         releaseDestination:
@@ -431,7 +431,7 @@ try {
       }),
     },
     {
-      expectedMessage: "mismatched asset public inputs",
+      expectedMessage: "mismatched private asset inputs",
       label: "asset",
       mutate: () => ({
         assetId: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
@@ -670,12 +670,12 @@ try {
 
   for (const tamperCase of [
     {
-      expectedMessage: "mismatched amount public inputs",
+      expectedMessage: "mismatched private amount inputs",
       label: "amount",
       mutate: () => ({ amount: "1" }),
     },
     {
-      expectedMessage: "mismatched release destination public inputs",
+      expectedMessage: "mismatched private release destination inputs",
       label: "release-destination",
       mutate: () => ({
         releaseDestination:
@@ -683,7 +683,7 @@ try {
       }),
     },
     {
-      expectedMessage: "mismatched asset public inputs",
+      expectedMessage: "mismatched private asset inputs",
       label: "asset",
       mutate: () => ({
         assetId: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",

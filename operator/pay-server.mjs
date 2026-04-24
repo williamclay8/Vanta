@@ -41,6 +41,8 @@ const tempRoot = mkdtempSync(resolve(tempParent, "vanta-pay-operator-"));
 const tempTsDir = join(tempRoot, "ts");
 const tempJsDir = join(tempRoot, "js");
 const sourceFiles = [
+  "tokens/vantaTokenCatalog.ts",
+  "pay/vantaPayAssets.ts",
   "pay/vantaPayTypes.ts",
   "pay/vantaPayRuntime.ts",
   "pay/vantaPayPrivateSettlementAdapter.ts",
@@ -56,7 +58,6 @@ const sourceFiles = [
   "privacy/privatePoolV2ProofRequests.ts",
   "privacy/privatePoolV2SettlementPolicy.ts",
 ];
-const supportedAssets = new Set(["SOL", "USDC", "USDT"]);
 const supportedDestinationTypes = new Set([
   "settlement_account",
   "treasury_address",
@@ -356,7 +357,7 @@ function normalizeAmountForAsset(value, asset) {
     throw new Error("Vanta Pay API amount must be a positive decimal string.");
   }
 
-  const decimals = asset === "SOL" ? 9 : 6;
+  const decimals = getVantaPayAssetDecimals(asset);
   const [whole, fraction = ""] = normalized.split(".");
   if (fraction.length > decimals) {
     throw new Error(`Vanta Pay API amount exceeds supported ${asset} precision of ${decimals} decimals.`);
@@ -464,9 +465,13 @@ const {
   VANTA_PAY_STORE_SCHEMA_VERSION,
   createVantaPayRuntime,
 } = await import(pathToFileURL(join(tempJsDir, "pay/vantaPayRuntime.js")).href);
+const { VANTA_PAY_ASSET_SYMBOLS, getVantaPayAssetDecimals } = await import(
+  pathToFileURL(join(tempJsDir, "pay/vantaPayAssets.js")).href
+);
 const { createVantaPayPrivateSettlementAdapter } = await import(
   pathToFileURL(join(tempJsDir, "pay/vantaPayPrivateSettlementAdapter.js")).href
 );
+const supportedAssets = new Set(VANTA_PAY_ASSET_SYMBOLS);
 const defaultSnapshot = { stateVersion: VANTA_PAY_STORE_SCHEMA_VERSION };
 const snapshotStore = databaseUrl
   ? await createPostgresSnapshotStore({

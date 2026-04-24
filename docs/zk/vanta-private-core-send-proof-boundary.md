@@ -59,11 +59,15 @@ The current narrow send proving boundary binds:
 - `inputNullifier`
 - `recipientCommitment`
 - `changeCommitment`
-- `assetId`
-- `sendAmount`
-- `changeAmount`
+- `sendEconomicTermsHash`
 - `noteVersion`
 - optional `sendContextTag`
+
+The raw send asset, send amount, and change amount are no longer Noir-public
+inputs. They remain part of the source boundary and private witness material so
+the circuit can recompute and bind `sendEconomicTermsHash`. This is a
+proof-public privacy boundary only: current request/operator settlement layers
+still see the raw terms needed to execute and verify the local lane.
 
 ## Private-witness shape
 
@@ -75,6 +79,7 @@ The current private witness includes:
 - sender secret key witness
 - sender derived public key
 - nullifier key witness
+- send asset, send amount, and change amount field encodings
 - canonical recipient note and commitment
 - optional change note and commitment
 - fixed field encodings for input, recipient, and optional change notes

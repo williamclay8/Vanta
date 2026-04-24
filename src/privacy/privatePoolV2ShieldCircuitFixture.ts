@@ -112,17 +112,18 @@ export function createVantaPrivatePoolV2ShieldCircuitFixture({
           output_root: witness.output_root + 1n,
         }
       : witness;
+  const validPublicHash = computeVantaPrivatePoolV2ShieldPublicInputHash(circuitWitness);
   const proofRequest = createVantaPrivatePoolV2ShieldProofRequest({
     amountBaseUnits: witness.amount,
     ownerCommitment: toCircuitString(witness.owner_commitment),
     previousRoot: toCircuitString(witness.previous_root),
     routeCommitment: toCircuitString(witness.route_commitment),
+    shieldPublicInputHash: toCircuitString(validPublicHash),
     sourceMintAddress: toCircuitString(witness.source_mint),
     targetAssetId: toCircuitString(witness.target_asset_id),
     targetMintAddress: toCircuitString(witness.target_mint),
     treeCommitment: toTreeCommitment(circuitWitness),
   });
-  const validPublicHash = computeVantaPrivatePoolV2ShieldPublicInputHash(circuitWitness);
 
   return {
     proofRequest,

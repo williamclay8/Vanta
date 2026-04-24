@@ -1,6 +1,8 @@
-export type VantaPayEnvironmentMode = "test" | "live";
+import type { VantaPayAsset } from "./vantaPayAssets.ts";
 
-export type VantaPayAsset = "USDC" | "SOL" | "USDT";
+export type { VantaPayAsset };
+
+export type VantaPayEnvironmentMode = "test" | "live";
 
 export type VantaPayCheckoutUiMode = "hosted" | "embedded" | "modal";
 

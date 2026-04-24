@@ -123,6 +123,13 @@ export type VantaPrivateCoreNoirSwapWitnessPackageV0 = {
     state_root: FieldDecimalString;
     input_nullifier: FieldDecimalString;
     output_commitment: FieldDecimalString;
+    swap_economic_terms_hash: FieldDecimalString;
+    input_note_version: FieldDecimalString;
+    output_note_version: FieldDecimalString;
+    swap_context_tag_hi?: FieldDecimalString;
+    swap_context_tag_lo?: FieldDecimalString;
+  };
+  privateWitness: {
     input_asset_id_hi: FieldDecimalString;
     input_asset_id_lo: FieldDecimalString;
     output_asset_id_hi: FieldDecimalString;
@@ -131,12 +138,6 @@ export type VantaPrivateCoreNoirSwapWitnessPackageV0 = {
     input_amount_hi: FieldDecimalString;
     output_amount_lo: FieldDecimalString;
     output_amount_hi: FieldDecimalString;
-    input_note_version: FieldDecimalString;
-    output_note_version: FieldDecimalString;
-    swap_context_tag_hi?: FieldDecimalString;
-    swap_context_tag_lo?: FieldDecimalString;
-  };
-  privateWitness: {
     input_note_type_code: FieldDecimalString;
     sender_public_key_hi: FieldDecimalString;
     sender_public_key_lo: FieldDecimalString;
@@ -463,13 +464,16 @@ export function createVantaPrivateCoreNoirSwapWitnessPackage(args: {
   const outputCommitmentField = derivePoseidonNoteCommitmentField(
     args.privateWitness.outputNoteFieldEncoding,
   );
-  const swapContextField = derivePoseidonSwapContextField({
-    inputNullifierField,
-    outputCommitmentField,
+  const swapEconomicTermsHashField = derivePoseidonSwapEconomicTermsHashField({
     inputAssetId: inputAssetEncoding,
     outputAssetId: outputAssetEncoding,
     inputAmount: args.privateWitness.inputNoteFieldEncoding.amount,
     outputAmount: args.privateWitness.outputNoteFieldEncoding.amount,
+  });
+  const swapContextField = derivePoseidonSwapContextField({
+    inputNullifierField,
+    outputCommitmentField,
+    swapEconomicTermsHashField,
     inputNoteVersion: args.publicInputs.inputNoteVersion,
     outputNoteVersion: args.publicInputs.outputNoteVersion,
   });
@@ -486,6 +490,13 @@ export function createVantaPrivateCoreNoirSwapWitnessPackage(args: {
       state_root: stateRootField,
       input_nullifier: inputNullifierField,
       output_commitment: outputCommitmentField,
+      swap_economic_terms_hash: swapEconomicTermsHashField,
+      input_note_version: String(args.publicInputs.inputNoteVersion),
+      output_note_version: String(args.publicInputs.outputNoteVersion),
+      swap_context_tag_hi: swapContextTagEncoding.hi,
+      swap_context_tag_lo: swapContextTagEncoding.lo,
+    },
+    privateWitness: {
       input_asset_id_hi: inputAssetEncoding.hi,
       input_asset_id_lo: inputAssetEncoding.lo,
       output_asset_id_hi: outputAssetEncoding.hi,
@@ -494,12 +505,6 @@ export function createVantaPrivateCoreNoirSwapWitnessPackage(args: {
       input_amount_hi: args.privateWitness.inputNoteFieldEncoding.amount.hi,
       output_amount_lo: args.privateWitness.outputNoteFieldEncoding.amount.lo,
       output_amount_hi: args.privateWitness.outputNoteFieldEncoding.amount.hi,
-      input_note_version: String(args.publicInputs.inputNoteVersion),
-      output_note_version: String(args.publicInputs.outputNoteVersion),
-      swap_context_tag_hi: swapContextTagEncoding.hi,
-      swap_context_tag_lo: swapContextTagEncoding.lo,
-    },
-    privateWitness: {
       input_note_type_code: args.privateWitness.inputNoteFieldEncoding.noteTypeCode,
       sender_public_key_hi: args.privateWitness.inputNoteFieldEncoding.ownerPublicKey.hi,
       sender_public_key_lo: args.privateWitness.inputNoteFieldEncoding.ownerPublicKey.lo,
@@ -571,18 +576,19 @@ export function serializeVantaPrivateCoreNoirSwapWitnessPackageToToml(
     `state_root = "${publicInputs.state_root}"`,
     `input_nullifier = "${publicInputs.input_nullifier}"`,
     `output_commitment = "${publicInputs.output_commitment}"`,
-    `input_asset_id_hi = "${publicInputs.input_asset_id_hi}"`,
-    `input_asset_id_lo = "${publicInputs.input_asset_id_lo}"`,
-    `output_asset_id_hi = "${publicInputs.output_asset_id_hi}"`,
-    `output_asset_id_lo = "${publicInputs.output_asset_id_lo}"`,
-    `input_amount_lo = "${publicInputs.input_amount_lo}"`,
-    `input_amount_hi = "${publicInputs.input_amount_hi}"`,
-    `output_amount_lo = "${publicInputs.output_amount_lo}"`,
-    `output_amount_hi = "${publicInputs.output_amount_hi}"`,
+    `swap_economic_terms_hash = "${publicInputs.swap_economic_terms_hash}"`,
     `input_note_version = "${publicInputs.input_note_version}"`,
     `output_note_version = "${publicInputs.output_note_version}"`,
     `swap_context_tag_hi = "${publicInputs.swap_context_tag_hi ?? "0"}"`,
     `swap_context_tag_lo = "${publicInputs.swap_context_tag_lo ?? "0"}"`,
+    `input_asset_id_hi = "${privateWitness.input_asset_id_hi}"`,
+    `input_asset_id_lo = "${privateWitness.input_asset_id_lo}"`,
+    `output_asset_id_hi = "${privateWitness.output_asset_id_hi}"`,
+    `output_asset_id_lo = "${privateWitness.output_asset_id_lo}"`,
+    `input_amount_lo = "${privateWitness.input_amount_lo}"`,
+    `input_amount_hi = "${privateWitness.input_amount_hi}"`,
+    `output_amount_lo = "${privateWitness.output_amount_lo}"`,
+    `output_amount_hi = "${privateWitness.output_amount_hi}"`,
     `input_note_type_code = "${privateWitness.input_note_type_code}"`,
     `sender_public_key_hi = "${privateWitness.sender_public_key_hi}"`,
     `sender_public_key_lo = "${privateWitness.sender_public_key_lo}"`,
@@ -702,22 +708,35 @@ function encodeMerklePath(
 function derivePoseidonSwapContextField(args: {
   inputNullifierField: FieldDecimalString;
   outputCommitmentField: FieldDecimalString;
+  swapEconomicTermsHashField: FieldDecimalString;
+  inputNoteVersion: number;
+  outputNoteVersion: number;
+}): FieldDecimalString {
+  return poseidon6([
+    BigInt(args.inputNullifierField),
+    BigInt(args.outputCommitmentField),
+    BigInt(args.swapEconomicTermsHashField),
+    BigInt(args.inputNoteVersion),
+    BigInt(args.outputNoteVersion),
+    0n,
+  ]).toString(10);
+}
+
+function derivePoseidonSwapEconomicTermsHashField(args: {
   inputAssetId: { hi: FieldDecimalString; lo: FieldDecimalString };
   outputAssetId: { hi: FieldDecimalString; lo: FieldDecimalString };
   inputAmount: U128EncodingV0;
   outputAmount: U128EncodingV0;
-  inputNoteVersion: number;
-  outputNoteVersion: number;
 }): FieldDecimalString {
   return poseidon8ToString([
-    BigInt(args.inputNullifierField),
-    BigInt(args.outputCommitmentField),
-    BigInt(args.inputAssetId.hi) + BigInt(args.inputAssetId.lo),
-    BigInt(args.outputAssetId.hi) + BigInt(args.outputAssetId.lo),
-    BigInt(args.inputAmount.lo) + BigInt(args.inputAmount.hi),
-    BigInt(args.outputAmount.lo) + BigInt(args.outputAmount.hi),
-    BigInt(args.inputNoteVersion),
-    BigInt(args.outputNoteVersion),
+    BigInt(args.inputAssetId.hi),
+    BigInt(args.inputAssetId.lo),
+    BigInt(args.outputAssetId.hi),
+    BigInt(args.outputAssetId.lo),
+    BigInt(args.inputAmount.lo),
+    BigInt(args.inputAmount.hi),
+    BigInt(args.outputAmount.lo),
+    BigInt(args.outputAmount.hi),
   ]);
 }
 

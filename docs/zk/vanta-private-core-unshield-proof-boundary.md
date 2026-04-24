@@ -37,16 +37,14 @@ The first single-note unshield proof should establish:
 4. the Merkle path yields the public `state_root`
 5. the prover presents the owner-side authorization witness required for consume
 6. the derived nullifier matches the public nullifier
-7. the public `asset_id`, `amount`, `note_version`, and `release_destination` are correctly bound
+7. the public `unshield_economic_terms_hash` binds `release_destination`, `asset_id`, `amount`, and `note_version`
 8. the proof is specific to that consume action through `consume_context_tag`
 
 ## Public Inputs
 
 - `state_root`
 - `nullifier`
-- `release_destination`
-- `asset_id`
-- `amount`
+- `unshield_economic_terms_hash`
 - `note_version`
 - optional `consume_context_tag`
 
@@ -61,6 +59,7 @@ The first single-note unshield proof should establish:
 - derived owner public key
 - nullifier key witness
 - release destination witness copy
+- asset and amount witness copy
 - optional consume context tag witness copy
 - fixed witness encodings for note fields and Merkle path
 
@@ -123,10 +122,12 @@ It still lives alongside transitional app-side SHA-256 seams, but the Noir lane 
 - note field structure
 - fixed-depth Merkle witness structure
 - nullifier semantics
-- release-destination binding
+- release-destination, asset, and amount binding through `unshield_economic_terms_hash`
 - consume-context binding
 
 The app-side witness package continues to preserve the original source public inputs separately from the Noir proving-lane field values.
+
+As of 2026-04-24, Unshield matches Send and Swap's hash-bound proof posture: raw destination, asset, and amount are no longer Noir public inputs. They remain visible at the operator/request and exit-settlement layer, so this is not a `v2-hidden-economic-terms` claim.
 
 ## Recommended Next Implementation Step
 

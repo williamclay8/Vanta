@@ -44,6 +44,8 @@ The checked privacy-rail contract is `docs/privacy-rail-contract.md` and `src/re
 - No anonymity-set claim: the current local Private Pool v2 lane does not provide a live mainnet anonymity set or production mixer privacy.
 - Render does not create privacy: paid hosting can improve uptime, but privacy requires a real selected rail with live mainnet evidence, relayer separation, nullifier/replay enforcement, safe logging, and reviewed limitations.
 - The current Private Pool v2 prover is still local benchmark infrastructure, even though the repo also includes Noir circuit checks and local proof generation.
+- Private Pool v2 shield/claim shadow commitments are deterministic SHA-256 audit handles over operator-visible terms. They make receipt comparison and future circuit plumbing easier, but they are not salted privacy commitments, do not hide economics from the operator, and must not be described as hidden-economic-terms privacy.
+- Private Core send, swap, and unshield proof ABIs now expose economic-terms hashes instead of raw proof-public asset/amount/destination terms where applicable, but the operator/request and exit-settlement layers still see those terms. This is hash-bound proof privacy, not hidden-economic-terms privacy.
 - The current operator uses local JSON persistence for benchmark receipts, not a production database, replicated log, or on-chain source of truth.
 - The current protocol settlement endpoint is a local operator seam, not a deployed Solana program enforcing append/nullifier rules.
 - The current Pay product is a local merchant API and checkout harness, not a deployed payment processor.

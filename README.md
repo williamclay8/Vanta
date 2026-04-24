@@ -448,6 +448,7 @@ These commands cover the current Vanta-owned Private Pool v2 benchmark lane:
 - a local verifier/receipt registry that accepts verified shield/claim proofs, records receipts, registers claim nullifiers, and rejects replay
 - human and JSON Private Pool v2 status surfaces showing indexer, prover, relayer, verifier-registry readiness, and `productionReady: false`
 - a local HTTP operator seam with status, receipt listing, proof submission, shield/claim receipt acceptance, and claim replay rejection
+- deterministic shield/claim shadow commitments on proof receipts and status for reviewer/audit comparison; these are not salted privacy commitments and do not hide raw economics from the current operator
 - operator-owned settlement endpoints for Pay checkout/withdrawal and protocol Shield/Send/Swap/Unshield settlement receipts
 - optional bearer-token protection for the Private Pool v2 operator through `VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN`, plus production startup guards requiring it and either `VANTA_PRIVATE_POOL_V2_STORE_PATH` or `VANTA_PRIVATE_POOL_V2_DATABASE_URL` when `NODE_ENV=production`
 - idempotent settlement endpoints that return existing Pay checkout or protocol settlement receipts for identical repeated settlement IDs, and reject conflicting replays with changed settlement inputs

@@ -210,7 +210,7 @@ try {
     !proofResponse.ok ||
     proofResponse.parsed?.verified !== true ||
     proofResponse.parsed?.circuit !== "vanta_private_core_single_note_swap" ||
-    proofResponse.parsed?.publicInputCount !== 15
+    proofResponse.parsed?.publicInputCount !== 8
   ) {
     throw new Error(proofResponse.text || "operator swap proof endpoint failed");
   }

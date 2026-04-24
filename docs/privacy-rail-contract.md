@@ -50,6 +50,12 @@ Current checked refs:
 
 This rail is for Vanta-operated private settlement.
 
+Current local shield/claim shadow commitments are deterministic audit handles
+over operator-visible terms. They are useful for receipt comparison and future
+circuit plumbing, but they do not satisfy the meaningful-privacy refs below and
+do not hide asset, amount, route, destination, relayer, or nullifier terms from
+the current operator.
+
 It cannot claim meaningful privacy until Vanta has refs for:
 
 - `VANTA_PRIVATE_POOL_V2_PRODUCTION_SMOKE_EVIDENCE_REF`

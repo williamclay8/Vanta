@@ -27,6 +27,17 @@ Default priority:
 5. Every meaningful change must have a verification command.
 6. Every durable decision must be written to the Vanta Vault.
 
+Distribution strategy law:
+
+Vanta is not trying to win through abstract privacy claims. Vanta should win by making private settlement useful to counterparties.
+
+- Distribution Ethos: Vanta wins when privacy becomes useful to another party.
+- Receipt growth loop: private action -> trustworthy receipt -> counterparty verification -> invited use -> repeated private action.
+- Trust packet is the growth artifact.
+- Positioning: policy-safe private settlement for Solana stablecoin flows; beta today; proof-backed and operator-verifiable where implemented.
+- Primary early audience: crypto-native merchants, plus high-touch OTC and treasury design partners.
+- Avoid anonymous, untraceable, fully private, production-ready, mainnet-private, or trustless-privacy claims unless the exact claim has been verified by the matching production, audit, operator, and mainnet gates.
+
 Definition of done:
 
 Vanta is not production-ready until it has real mainnet-compatible private settlement, audited proof/circuit boundaries, persistent operator/indexer/relayer services, secure key/secret handling, replay/nullifier protection, browser-verified UX, production deployment docs, and a truthful security limitations page.

@@ -3,6 +3,8 @@ import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
 // @ts-expect-error - Bundler resolution uses the sibling TypeScript source during app build.
 import { VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY } from "./vantaPayPrivateSettlementAdapter.ts";
+// @ts-expect-error - Node-side Pay contract checks import sibling TypeScript sources directly.
+import { VANTA_PAY_ASSET_SYMBOLS, getVantaPayAssetDecimals } from "./vantaPayAssets.ts";
 import type {
   VantaPayAsset,
   VantaPayBalances,
@@ -61,7 +63,7 @@ function addHours(iso: string, hours: number) {
 }
 
 function assetDecimals(asset: VantaPayAsset) {
-  return asset === "SOL" ? 9 : 6;
+  return getVantaPayAssetDecimals(asset);
 }
 
 function parseAmountToBaseUnits(value: string, asset: VantaPayAsset) {
@@ -268,7 +270,7 @@ export function createVantaPayRuntime({
   snapshot,
 }: VantaPayRuntimeArgs = {}) {
   const merchant = {
-    acceptedAssets: ["USDC", "SOL", "USDT"],
+    acceptedAssets: [...VANTA_PAY_ASSET_SYMBOLS],
     branding: {
       logoUrl: "https://merchant.com/logo.png",
       name: "Vanta Studio",

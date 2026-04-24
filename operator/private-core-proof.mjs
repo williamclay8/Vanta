@@ -4,6 +4,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Barretenberg, UltraHonkBackend } from "@aztec/bb.js";
 import { sha256 } from "@noble/hashes/sha2.js";
+import { poseidon8 } from "poseidon-lite";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "..");
@@ -434,15 +435,16 @@ function serializeWitnessPackageToToml(witnessPackage) {
   return [
     `state_root = "${publicInputs.state_root}"`,
     `nullifier = "${publicInputs.nullifier}"`,
-    `release_destination_hi = "${publicInputs.release_destination_hi}"`,
-    `release_destination_lo = "${publicInputs.release_destination_lo}"`,
-    `asset_id_hi = "${publicInputs.asset_id_hi}"`,
-    `asset_id_lo = "${publicInputs.asset_id_lo}"`,
-    `amount_lo = "${publicInputs.amount_lo}"`,
-    `amount_hi = "${publicInputs.amount_hi}"`,
+    `unshield_economic_terms_hash = "${publicInputs.unshield_economic_terms_hash}"`,
     `note_version = "${publicInputs.note_version}"`,
     `consume_context_tag_hi = "${publicInputs.consume_context_tag_hi ?? "0"}"`,
     `consume_context_tag_lo = "${publicInputs.consume_context_tag_lo ?? "0"}"`,
+    `release_destination_hi = "${privateWitness.release_destination_hi}"`,
+    `release_destination_lo = "${privateWitness.release_destination_lo}"`,
+    `asset_id_hi = "${privateWitness.asset_id_hi}"`,
+    `asset_id_lo = "${privateWitness.asset_id_lo}"`,
+    `amount_lo = "${privateWitness.amount_lo}"`,
+    `amount_hi = "${privateWitness.amount_hi}"`,
     `note_type_code = "${privateWitness.note_type_code}"`,
     `owner_public_key_hi = "${privateWitness.owner_public_key_hi}"`,
     `owner_public_key_lo = "${privateWitness.owner_public_key_lo}"`,
@@ -472,15 +474,16 @@ function serializeSendWitnessPackageToToml(witnessPackage) {
     `input_nullifier = "${publicInputs.input_nullifier}"`,
     `recipient_commitment = "${publicInputs.recipient_commitment}"`,
     `change_commitment = "${publicInputs.change_commitment}"`,
-    `asset_id_hi = "${publicInputs.asset_id_hi}"`,
-    `asset_id_lo = "${publicInputs.asset_id_lo}"`,
-    `send_amount_lo = "${publicInputs.send_amount_lo}"`,
-    `send_amount_hi = "${publicInputs.send_amount_hi}"`,
-    `change_amount_lo = "${publicInputs.change_amount_lo}"`,
-    `change_amount_hi = "${publicInputs.change_amount_hi}"`,
+    `send_economic_terms_hash = "${publicInputs.send_economic_terms_hash}"`,
     `note_version = "${publicInputs.note_version}"`,
     `send_context_tag_hi = "${publicInputs.send_context_tag_hi ?? "0"}"`,
     `send_context_tag_lo = "${publicInputs.send_context_tag_lo ?? "0"}"`,
+    `asset_id_hi = "${privateWitness.asset_id_hi}"`,
+    `asset_id_lo = "${privateWitness.asset_id_lo}"`,
+    `send_amount_lo = "${privateWitness.send_amount_lo}"`,
+    `send_amount_hi = "${privateWitness.send_amount_hi}"`,
+    `change_amount_lo = "${privateWitness.change_amount_lo}"`,
+    `change_amount_hi = "${privateWitness.change_amount_hi}"`,
     `input_note_type_code = "${privateWitness.input_note_type_code}"`,
     `sender_public_key_hi = "${privateWitness.sender_public_key_hi}"`,
     `sender_public_key_lo = "${privateWitness.sender_public_key_lo}"`,
@@ -531,18 +534,19 @@ function serializeSwapWitnessPackageToToml(witnessPackage) {
     `state_root = "${publicInputs.state_root}"`,
     `input_nullifier = "${publicInputs.input_nullifier}"`,
     `output_commitment = "${publicInputs.output_commitment}"`,
-    `input_asset_id_hi = "${publicInputs.input_asset_id_hi}"`,
-    `input_asset_id_lo = "${publicInputs.input_asset_id_lo}"`,
-    `output_asset_id_hi = "${publicInputs.output_asset_id_hi}"`,
-    `output_asset_id_lo = "${publicInputs.output_asset_id_lo}"`,
-    `input_amount_lo = "${publicInputs.input_amount_lo}"`,
-    `input_amount_hi = "${publicInputs.input_amount_hi}"`,
-    `output_amount_lo = "${publicInputs.output_amount_lo}"`,
-    `output_amount_hi = "${publicInputs.output_amount_hi}"`,
+    `swap_economic_terms_hash = "${publicInputs.swap_economic_terms_hash}"`,
     `input_note_version = "${publicInputs.input_note_version}"`,
     `output_note_version = "${publicInputs.output_note_version}"`,
     `swap_context_tag_hi = "${publicInputs.swap_context_tag_hi ?? "0"}"`,
     `swap_context_tag_lo = "${publicInputs.swap_context_tag_lo ?? "0"}"`,
+    `input_asset_id_hi = "${privateWitness.input_asset_id_hi}"`,
+    `input_asset_id_lo = "${privateWitness.input_asset_id_lo}"`,
+    `output_asset_id_hi = "${privateWitness.output_asset_id_hi}"`,
+    `output_asset_id_lo = "${privateWitness.output_asset_id_lo}"`,
+    `input_amount_lo = "${privateWitness.input_amount_lo}"`,
+    `input_amount_hi = "${privateWitness.input_amount_hi}"`,
+    `output_amount_lo = "${privateWitness.output_amount_lo}"`,
+    `output_amount_hi = "${privateWitness.output_amount_hi}"`,
     `input_note_type_code = "${privateWitness.input_note_type_code}"`,
     `sender_public_key_hi = "${privateWitness.sender_public_key_hi}"`,
     `sender_public_key_lo = "${privateWitness.sender_public_key_lo}"`,
@@ -589,26 +593,41 @@ function assertWitnessPackagePublicInputConsistency(witnessPackage) {
   if (!sourcePublicInputs || typeof sourcePublicInputs !== "object") {
     throw new Error("Private-core witness package is missing source public inputs.");
   }
+  const privateWitness = witnessPackage.privateWitness;
 
   const decodedReleaseDestination = decodeBytes32FromTwoU128Be(
-    publicInputs.release_destination_hi,
-    publicInputs.release_destination_lo,
+    privateWitness.release_destination_hi,
+    privateWitness.release_destination_lo,
   );
   if (normalizeHex32(sourcePublicInputs.releaseDestination) !== decodedReleaseDestination) {
-    throw new Error("Private-core witness package has mismatched release destination public inputs.");
+    throw new Error("Private-core witness package has mismatched private release destination inputs.");
   }
 
   const decodedAssetId = decodeBytes32FromTwoU128Be(
-    publicInputs.asset_id_hi,
-    publicInputs.asset_id_lo,
+    privateWitness.asset_id_hi,
+    privateWitness.asset_id_lo,
   );
   if (normalizeHex32(sourcePublicInputs.assetId) !== decodedAssetId) {
-    throw new Error("Private-core witness package has mismatched asset public inputs.");
+    throw new Error("Private-core witness package has mismatched private asset inputs.");
   }
 
-  const decodedAmount = decodeU128FromTwoU64Le(publicInputs.amount_lo, publicInputs.amount_hi);
+  const decodedAmount = decodeU128FromTwoU64Le(privateWitness.amount_lo, privateWitness.amount_hi);
   if (String(sourcePublicInputs.amount) !== decodedAmount) {
-    throw new Error("Private-core witness package has mismatched amount public inputs.");
+    throw new Error("Private-core witness package has mismatched private amount inputs.");
+  }
+
+  const expectedEconomicTermsHash = poseidon8([
+    BigInt(privateWitness.release_destination_hi),
+    BigInt(privateWitness.release_destination_lo),
+    BigInt(privateWitness.asset_id_hi),
+    BigInt(privateWitness.asset_id_lo),
+    BigInt(privateWitness.amount_lo),
+    BigInt(privateWitness.amount_hi),
+    BigInt(publicInputs.note_version),
+    0n,
+  ]).toString(10);
+  if (String(publicInputs.unshield_economic_terms_hash) !== expectedEconomicTermsHash) {
+    throw new Error("Private-core witness package has mismatched unshield economic-terms hash.");
   }
 
   if (String(sourcePublicInputs.noteVersion) !== String(publicInputs.note_version)) {
@@ -619,33 +638,48 @@ function assertWitnessPackagePublicInputConsistency(witnessPackage) {
 function assertSendWitnessPackagePublicInputConsistency(witnessPackage) {
   const sourcePublicInputs = witnessPackage.sourcePublicInputs;
   const publicInputs = witnessPackage.publicInputs;
+  const privateWitness = witnessPackage.privateWitness;
 
   if (!sourcePublicInputs || typeof sourcePublicInputs !== "object") {
     throw new Error("Private-core send witness package is missing source public inputs.");
   }
 
   const decodedAssetId = decodeBytes32FromTwoU128Be(
-    publicInputs.asset_id_hi,
-    publicInputs.asset_id_lo,
+    privateWitness.asset_id_hi,
+    privateWitness.asset_id_lo,
   );
   if (normalizeHex32(sourcePublicInputs.assetId) !== decodedAssetId) {
-    throw new Error("Private-core send witness package has mismatched asset public inputs.");
+    throw new Error("Private-core send witness package has mismatched private asset inputs.");
   }
 
   const decodedSendAmount = decodeU128FromTwoU64Le(
-    publicInputs.send_amount_lo,
-    publicInputs.send_amount_hi,
+    privateWitness.send_amount_lo,
+    privateWitness.send_amount_hi,
   );
   if (String(sourcePublicInputs.sendAmount) !== decodedSendAmount) {
-    throw new Error("Private-core send witness package has mismatched send-amount public inputs.");
+    throw new Error("Private-core send witness package has mismatched private send-amount inputs.");
   }
 
   const decodedChangeAmount = decodeU128FromTwoU64Le(
-    publicInputs.change_amount_lo,
-    publicInputs.change_amount_hi,
+    privateWitness.change_amount_lo,
+    privateWitness.change_amount_hi,
   );
   if (String(sourcePublicInputs.changeAmount) !== decodedChangeAmount) {
-    throw new Error("Private-core send witness package has mismatched change-amount public inputs.");
+    throw new Error("Private-core send witness package has mismatched private change-amount inputs.");
+  }
+
+  const expectedEconomicTermsHash = poseidon8([
+    BigInt(privateWitness.asset_id_hi),
+    BigInt(privateWitness.asset_id_lo),
+    BigInt(privateWitness.send_amount_lo),
+    BigInt(privateWitness.send_amount_hi),
+    BigInt(privateWitness.change_amount_lo),
+    BigInt(privateWitness.change_amount_hi),
+    BigInt(publicInputs.note_version),
+    0n,
+  ]).toString(10);
+  if (String(publicInputs.send_economic_terms_hash) !== expectedEconomicTermsHash) {
+    throw new Error("Private-core send witness package has mismatched economic-terms hash.");
   }
 
   if (String(sourcePublicInputs.noteVersion) !== String(publicInputs.note_version)) {
@@ -656,41 +690,56 @@ function assertSendWitnessPackagePublicInputConsistency(witnessPackage) {
 function assertSwapWitnessPackagePublicInputConsistency(witnessPackage) {
   const sourcePublicInputs = witnessPackage.sourcePublicInputs;
   const publicInputs = witnessPackage.publicInputs;
+  const privateWitness = witnessPackage.privateWitness;
 
   if (!sourcePublicInputs || typeof sourcePublicInputs !== "object") {
     throw new Error("Private-core swap witness package is missing source public inputs.");
   }
 
   const decodedInputAssetId = decodeBytes32FromTwoU128Be(
-    publicInputs.input_asset_id_hi,
-    publicInputs.input_asset_id_lo,
+    privateWitness.input_asset_id_hi,
+    privateWitness.input_asset_id_lo,
   );
   if (normalizeHex32(sourcePublicInputs.inputAssetId) !== decodedInputAssetId) {
-    throw new Error("Private-core swap witness package has mismatched input-asset public inputs.");
+    throw new Error("Private-core swap witness package has mismatched private input-asset inputs.");
   }
 
   const decodedOutputAssetId = decodeBytes32FromTwoU128Be(
-    publicInputs.output_asset_id_hi,
-    publicInputs.output_asset_id_lo,
+    privateWitness.output_asset_id_hi,
+    privateWitness.output_asset_id_lo,
   );
   if (normalizeHex32(sourcePublicInputs.outputAssetId) !== decodedOutputAssetId) {
-    throw new Error("Private-core swap witness package has mismatched output-asset public inputs.");
+    throw new Error("Private-core swap witness package has mismatched private output-asset inputs.");
   }
 
   const decodedInputAmount = decodeU128FromTwoU64Le(
-    publicInputs.input_amount_lo,
-    publicInputs.input_amount_hi,
+    privateWitness.input_amount_lo,
+    privateWitness.input_amount_hi,
   );
   if (String(sourcePublicInputs.inputAmount) !== decodedInputAmount) {
-    throw new Error("Private-core swap witness package has mismatched input-amount public inputs.");
+    throw new Error("Private-core swap witness package has mismatched private input-amount inputs.");
   }
 
   const decodedOutputAmount = decodeU128FromTwoU64Le(
-    publicInputs.output_amount_lo,
-    publicInputs.output_amount_hi,
+    privateWitness.output_amount_lo,
+    privateWitness.output_amount_hi,
   );
   if (String(sourcePublicInputs.outputAmount) !== decodedOutputAmount) {
-    throw new Error("Private-core swap witness package has mismatched output-amount public inputs.");
+    throw new Error("Private-core swap witness package has mismatched private output-amount inputs.");
+  }
+
+  const expectedEconomicTermsHash = poseidon8([
+    BigInt(privateWitness.input_asset_id_hi),
+    BigInt(privateWitness.input_asset_id_lo),
+    BigInt(privateWitness.output_asset_id_hi),
+    BigInt(privateWitness.output_asset_id_lo),
+    BigInt(privateWitness.input_amount_lo),
+    BigInt(privateWitness.input_amount_hi),
+    BigInt(privateWitness.output_amount_lo),
+    BigInt(privateWitness.output_amount_hi),
+  ]).toString(10);
+  if (String(publicInputs.swap_economic_terms_hash) !== expectedEconomicTermsHash) {
+    throw new Error("Private-core swap witness package has mismatched economic-terms hash.");
   }
 
   if (String(sourcePublicInputs.inputNoteVersion) !== String(publicInputs.input_note_version)) {
@@ -708,12 +757,7 @@ function extractExpectedProofPublicInputs(witnessPackage) {
   return [
     publicInputs.state_root,
     publicInputs.nullifier,
-    publicInputs.release_destination_hi,
-    publicInputs.release_destination_lo,
-    publicInputs.asset_id_hi,
-    publicInputs.asset_id_lo,
-    publicInputs.amount_lo,
-    publicInputs.amount_hi,
+    publicInputs.unshield_economic_terms_hash,
     publicInputs.note_version,
     publicInputs.consume_context_tag_hi ?? "0",
     publicInputs.consume_context_tag_lo ?? "0",
@@ -728,12 +772,7 @@ function extractExpectedSendProofPublicInputs(witnessPackage) {
     publicInputs.input_nullifier,
     publicInputs.recipient_commitment,
     publicInputs.change_commitment,
-    publicInputs.asset_id_hi,
-    publicInputs.asset_id_lo,
-    publicInputs.send_amount_lo,
-    publicInputs.send_amount_hi,
-    publicInputs.change_amount_lo,
-    publicInputs.change_amount_hi,
+    publicInputs.send_economic_terms_hash,
     publicInputs.note_version,
     publicInputs.send_context_tag_hi ?? "0",
     publicInputs.send_context_tag_lo ?? "0",
@@ -747,14 +786,7 @@ function extractExpectedSwapProofPublicInputs(witnessPackage) {
     publicInputs.state_root,
     publicInputs.input_nullifier,
     publicInputs.output_commitment,
-    publicInputs.input_asset_id_hi,
-    publicInputs.input_asset_id_lo,
-    publicInputs.output_asset_id_hi,
-    publicInputs.output_asset_id_lo,
-    publicInputs.input_amount_lo,
-    publicInputs.input_amount_hi,
-    publicInputs.output_amount_lo,
-    publicInputs.output_amount_hi,
+    publicInputs.swap_economic_terms_hash,
     publicInputs.input_note_version,
     publicInputs.output_note_version,
     publicInputs.swap_context_tag_hi ?? "0",
@@ -822,23 +854,21 @@ function encodeFieldElement(value) {
 }
 
 function decodeVerifiedProofPublicInputs(publicInputs) {
-  if (!Array.isArray(publicInputs) || publicInputs.length !== 11) {
+  if (!Array.isArray(publicInputs) || publicInputs.length !== 6) {
     throw new Error("Operator-side proof output returned an unexpected public input shape.");
   }
 
   return {
     provingStateRoot: normalizeHex32(publicInputs[0]),
     provingNullifier: normalizeHex32(publicInputs[1]),
-    releaseDestination: decodeBytes32FromTwoFieldHexBe(publicInputs[2], publicInputs[3]),
-    assetId: decodeBytes32FromTwoFieldHexBe(publicInputs[4], publicInputs[5]),
-    amount: decodeU128FromTwoU64Le(publicInputs[6], publicInputs[7]),
-    noteVersion: Number(BigInt(publicInputs[8])),
-    provingConsumeContextTag: normalizeHex32(publicInputs[10]),
+    unshieldEconomicTermsHash: normalizeHex32(publicInputs[2]),
+    noteVersion: Number(BigInt(publicInputs[3])),
+    provingConsumeContextTag: normalizeHex32(publicInputs[5]),
   };
 }
 
 function decodeVerifiedSendProofPublicInputs(publicInputs) {
-  if (!Array.isArray(publicInputs) || publicInputs.length !== 13) {
+  if (!Array.isArray(publicInputs) || publicInputs.length !== 8) {
     throw new Error("Operator-side send proof output returned an unexpected public input shape.");
   }
 
@@ -847,16 +877,14 @@ function decodeVerifiedSendProofPublicInputs(publicInputs) {
     provingInputNullifier: normalizeHex32(publicInputs[1]),
     provingRecipientCommitment: normalizeHex32(publicInputs[2]),
     provingChangeCommitment: normalizeHex32(publicInputs[3]),
-    assetId: decodeBytes32FromTwoFieldHexBe(publicInputs[4], publicInputs[5]),
-    sendAmount: decodeU128FromTwoU64Le(publicInputs[6], publicInputs[7]),
-    changeAmount: decodeU128FromTwoU64Le(publicInputs[8], publicInputs[9]),
-    noteVersion: Number(BigInt(publicInputs[10])),
-    provingSendContextTag: normalizeHex32(publicInputs[12]),
+    sendEconomicTermsHash: normalizeHex32(publicInputs[4]),
+    noteVersion: Number(BigInt(publicInputs[5])),
+    provingSendContextTag: normalizeHex32(publicInputs[7]),
   };
 }
 
 function decodeVerifiedSwapProofPublicInputs(publicInputs) {
-  if (!Array.isArray(publicInputs) || publicInputs.length !== 15) {
+  if (!Array.isArray(publicInputs) || publicInputs.length !== 8) {
     throw new Error("Operator-side swap proof output returned an unexpected public input shape.");
   }
 
@@ -864,13 +892,10 @@ function decodeVerifiedSwapProofPublicInputs(publicInputs) {
     provingStateRoot: normalizeHex32(publicInputs[0]),
     provingInputNullifier: normalizeHex32(publicInputs[1]),
     provingOutputCommitment: normalizeHex32(publicInputs[2]),
-    inputAssetId: decodeBytes32FromTwoFieldHexBe(publicInputs[3], publicInputs[4]),
-    outputAssetId: decodeBytes32FromTwoFieldHexBe(publicInputs[5], publicInputs[6]),
-    inputAmount: decodeU128FromTwoU64Le(publicInputs[7], publicInputs[8]),
-    outputAmount: decodeU128FromTwoU64Le(publicInputs[9], publicInputs[10]),
-    inputNoteVersion: Number(BigInt(publicInputs[11])),
-    outputNoteVersion: Number(BigInt(publicInputs[12])),
-    provingSwapContextTag: normalizeHex32(publicInputs[14]),
+    swapEconomicTermsHash: normalizeHex32(publicInputs[3]),
+    inputNoteVersion: Number(BigInt(publicInputs[4])),
+    outputNoteVersion: Number(BigInt(publicInputs[5])),
+    provingSwapContextTag: normalizeHex32(publicInputs[7]),
   };
 }
 

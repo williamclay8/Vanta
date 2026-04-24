@@ -58,6 +58,22 @@ async function waitForHealth() {
   throw new Error("Private Pool V2 operator did not become healthy.");
 }
 
+async function assertRejects(operation, expectedMessage, message) {
+  try {
+    await operation();
+  } catch (error) {
+    assert(
+      error instanceof Error && error.message.includes(expectedMessage),
+      `${message} Expected error to include "${expectedMessage}", received "${
+        error instanceof Error ? error.message : String(error)
+      }".`,
+    );
+    return;
+  }
+
+  throw new Error(`${message} Expected request to be rejected.`);
+}
+
 function compileClient() {
   mkdirSync(tempTsDir, { recursive: true });
   writeFileSync(
@@ -125,41 +141,132 @@ try {
   const emptyStatus = await fetchVantaPrivatePoolV2ProtocolSettlementStatus({ authToken, baseUrl });
   assert(emptyStatus?.protocolSettlementCount === 0, "Expected empty protocol settlement status.");
 
-  const shieldSettlement = await requestVantaPrivatePoolV2ProtocolSettlement({
-    action: "shield",
-    amount: "12.00",
-    asset: "BONK",
-    authToken,
-    baseUrl,
-    destination: "protocol-client-destination",
-    owner: "protocol-client-owner",
-    settlementId: "protocol-client-shield",
-    shieldCapability: {
-      blockers: [],
-      mode: "route-to-configured-shield-token",
-      requiresPublicRoute: true,
-      sourceAsset: {
-        mintAddress: "mint:bonk",
-        symbol: "BONK",
+  const settlementRequests = [
+    {
+      action: "shield",
+      amount: "12.00",
+      asset: "BONK",
+      authToken,
+      baseUrl,
+      destination: "protocol-client-destination",
+      owner: "protocol-client-owner",
+      settlementId: "protocol-client-shield",
+      shieldCapability: {
+        blockers: [],
+        mode: "route-to-configured-shield-token",
+        requiresPublicRoute: true,
+        sourceAsset: {
+          mintAddress: "mint:bonk",
+          symbol: "BONK",
+        },
+        supportsDirectShield: false,
+        targetShieldAsset: {
+          assetKey: "USDC",
+          label: "Shielded USDC",
+          mintAddress: "mint:usdc",
+          name: "USD Coin",
+        },
       },
-      supportsDirectShield: false,
-      targetShieldAsset: {
-        assetKey: "USDC",
-        label: "Shielded USDC",
-        mintAddress: "mint:usdc",
-        name: "USD Coin",
+      shieldRouteEvidence: {
+        provider: "jupiter",
+        routeSignature: "typed-client-route-sig-bonk-to-usdc",
+        targetAmount: "12.00",
+        targetAsset: "USDC",
       },
     },
-    shieldRouteEvidence: {
-      provider: "jupiter",
-      routeSignature: "typed-client-route-sig-bonk-to-usdc",
-      targetAmount: "12.00",
-      targetAsset: "USDC",
+    {
+      action: "send",
+      amount: "4.00",
+      asset: "USDC",
+      authToken,
+      baseUrl,
+      destination: "protocol-client-send-destination",
+      owner: "protocol-client-owner",
+      settlementId: "protocol-client-send",
     },
-  });
-  assert(
-    shieldSettlement?.protocolSettlementReceipt?.proofReceiptId?.startsWith("ppv2_"),
-    "Expected typed protocol settlement client to return a ppv2 proof receipt.",
+    {
+      action: "swap",
+      amount: "5.00",
+      asset: "USDC",
+      authToken,
+      baseUrl,
+      destination: "protocol-client-swap-destination",
+      owner: "protocol-client-owner",
+      settlementId: "protocol-client-swap",
+    },
+    {
+      action: "unshield",
+      amount: "3.00",
+      asset: "USDC",
+      authToken,
+      baseUrl,
+      destination: "protocol-client-unshield-destination",
+      owner: "protocol-client-owner",
+      settlementId: "protocol-client-unshield",
+    },
+  ];
+  const settlements = [];
+
+  for (const settlementRequest of settlementRequests) {
+    const settlement = await requestVantaPrivatePoolV2ProtocolSettlement(settlementRequest);
+    assert(
+      settlement?.protocolSettlementReceipt?.proofReceiptId?.startsWith("ppv2_"),
+      `Expected ${settlementRequest.action} settlement to return a ppv2 proof receipt.`,
+    );
+    assert(
+      settlement?.protocolSettlementReceipt?.action === settlementRequest.action,
+      `Expected ${settlementRequest.action} settlement receipt to preserve action.`,
+    );
+    assert(
+      settlement?.protocolSettlementReceipt?.settlementId === settlementRequest.settlementId,
+      `Expected ${settlementRequest.action} settlement receipt to preserve settlement id.`,
+    );
+    assert(
+      settlement?.protocolSettlementReceipt?.status === "confirmed",
+      `Expected ${settlementRequest.action} settlement receipt to be confirmed.`,
+    );
+    assert(
+      settlement?.proofReceipt?.receiptId,
+      `Expected ${settlementRequest.action} settlement to include an operator proof receipt.`,
+    );
+    if (settlementRequest.action === "shield" || settlementRequest.action === "unshield") {
+      assert(
+        settlement?.proofReceipt?.shadowCommitments?.scheme ===
+          "vanta-private-pool-v2-shadow-operator-visible-terms-sha256-0.1",
+        `Expected ${settlementRequest.action} settlement proof receipt to include shadow commitment scheme.`,
+      );
+      assert(
+        settlement?.proofReceipt?.shadowCommitments?.operatorVisibleTermsCommitment?.startsWith("0x"),
+        `Expected ${settlementRequest.action} settlement proof receipt to include operator-visible terms shadow commitment.`,
+      );
+    }
+
+    const idempotentSettlement = await requestVantaPrivatePoolV2ProtocolSettlement(settlementRequest);
+    assert(
+      idempotentSettlement?.protocolSettlementReceipt?.id === settlement.protocolSettlementReceipt.id,
+      `Expected repeated ${settlementRequest.action} settlement to return the same receipt id.`,
+    );
+    assert(
+      idempotentSettlement?.protocolSettlementReceipt?.proofReceiptId ===
+        settlement.protocolSettlementReceipt.proofReceiptId,
+      `Expected repeated ${settlementRequest.action} settlement to return the same proof receipt id.`,
+    );
+
+    await assertRejects(
+      () =>
+        requestVantaPrivatePoolV2ProtocolSettlement({
+          ...settlementRequest,
+          amount: "99.00",
+        }),
+      "conflicts with an existing settlement amount",
+      `Expected conflicting ${settlementRequest.action} replay to be rejected.`,
+    );
+
+    settlements.push(settlement);
+  }
+
+  const shieldSettlement = settlements.find(
+    (settlement) => settlement.protocolSettlementReceipt.action === "shield",
   );
   assert(
     shieldSettlement?.protocolSettlementReceipt?.sourceAsset === "BONK",
@@ -175,11 +282,67 @@ try {
   );
 
   const finalStatus = await fetchVantaPrivatePoolV2ProtocolSettlementStatus({ authToken, baseUrl });
-  assert(finalStatus?.receiptCount === 1, "Expected one accepted proof receipt in typed status.");
   assert(
-    finalStatus?.protocolSettlements?.[0]?.protocolSettlementReceipt?.settlementId ===
-      "protocol-client-shield",
-    "Expected typed status to include the protocol settlement receipt.",
+    finalStatus?.protocolSettlementCount === settlementRequests.length,
+    "Expected typed status to report every protocol settlement.",
+  );
+  assert(
+    finalStatus?.protocolSettlements?.length === settlementRequests.length,
+    "Expected typed status to include every protocol settlement.",
+  );
+  assert(
+    finalStatus?.receiptCount === settlementRequests.length,
+    "Expected one accepted proof receipt per protocol settlement in typed status.",
+  );
+  assert(
+    finalStatus?.receipts?.length === settlementRequests.length,
+    "Expected typed status receipts to include every protocol proof receipt.",
+  );
+
+  const statusSettlementIds = new Set(
+    finalStatus.protocolSettlements.map(
+      (settlement) => settlement.protocolSettlementReceipt?.settlementId,
+    ),
+  );
+  const statusProofReceiptIds = new Set(
+    finalStatus.receipts.map((receipt) => `ppv2_${receipt.receiptId.slice(2, 26)}`),
+  );
+
+  for (const settlementRequest of settlementRequests) {
+    const settlement = settlements.find(
+      (candidate) =>
+        candidate.protocolSettlementReceipt.settlementId === settlementRequest.settlementId,
+    );
+    assert(
+      statusSettlementIds.has(settlementRequest.settlementId),
+      `Expected typed status to include ${settlementRequest.action} settlement.`,
+    );
+    assert(
+      statusProofReceiptIds.has(settlement.protocolSettlementReceipt.proofReceiptId),
+      `Expected typed status receipts to include ${settlementRequest.action} proof receipt.`,
+    );
+    if (settlementRequest.action === "shield" || settlementRequest.action === "unshield") {
+      const statusReceipt = finalStatus.receipts.find(
+        (receipt) =>
+          `ppv2_${receipt.receiptId.slice(2, 26)}` ===
+          settlement.protocolSettlementReceipt.proofReceiptId,
+      );
+      assert(
+        statusReceipt?.shadowCommitments?.operatorVisibleTermsCommitment ===
+          settlement.proofReceipt.shadowCommitments.operatorVisibleTermsCommitment,
+        `Expected typed status receipts to preserve ${settlementRequest.action} shadow commitment.`,
+      );
+    }
+  }
+
+  const finalOperatorStatus = await fetchVantaPrivatePoolV2OperatorStatus({ authToken, baseUrl });
+  assert(
+    finalOperatorStatus?.receiptCount === settlementRequests.length,
+    "Expected typed operator status to report every protocol proof receipt.",
+  );
+  assert(
+    finalOperatorStatus?.shadowCommitmentCount === 2,
+    "Expected typed operator status to report shield and claim shadow commitments.",
   );
 
   console.log("private-pool-v2 protocol settlement client: PASS");

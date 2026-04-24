@@ -61,13 +61,16 @@ The current narrow swap proving boundary binds:
 - `stateRoot`
 - `inputNullifier`
 - `outputCommitment`
-- `inputAssetId`
-- `outputAssetId`
-- `inputAmount`
-- `outputAmount`
+- `swapEconomicTermsHash`
 - `inputNoteVersion`
 - `outputNoteVersion`
 - optional `swapContextTag`
+
+The raw input asset, output asset, input amount, and output amount are no longer
+Noir-public inputs. They remain part of the source boundary and private witness
+material so the circuit can recompute and bind `swapEconomicTermsHash`. This is
+a proof-public privacy boundary only: current request/operator settlement layers
+still see the raw terms needed to execute and verify the local lane.
 
 ## Private-witness shape
 
@@ -79,6 +82,7 @@ The current private witness includes:
 - sender secret key witness
 - sender derived public key
 - nullifier key witness
+- input/output asset and amount field encodings
 - canonical output note and commitment
 - fixed field encodings for input and output notes
 - fixed-depth Merkle path encoding
