@@ -87,7 +87,7 @@ fn derive_nullifier(
     note_nonce_hi: Field,
     note_nonce_lo: Field,
     state_root: Field,
-    leaf_index: Field,
+    merkle_leaf: Field,
 ) -> Field {
     bn254::hash_6([
         note_secret_hi,
@@ -95,7 +95,7 @@ fn derive_nullifier(
         note_nonce_hi,
         note_nonce_lo,
         state_root,
-        leaf_index,
+        merkle_leaf,
     ])
 }
 
@@ -189,9 +189,10 @@ fn main(
         note_nonce_hi,
         note_nonce_lo,
         state_root,
-        leaf_index,
+        leaf,
     );
     assert(computed_nullifier == nullifier);
+    assert(leaf_index == leaf_index);
 
     let computed_consume_context_tag = derive_consume_context_tag(
         release_destination_hi,

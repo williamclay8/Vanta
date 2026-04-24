@@ -669,6 +669,8 @@ export function deriveVantaPrivateCoreNullifier(
     throw new VantaPrivateCoreError("Witness commitment does not match note commitment.");
   }
 
+  const leaf = deriveVantaPrivateCoreMerkleLeafHash(commitment.value);
+
   return {
     scheme: "sha256-nullifier-v0",
     value: sha256Hex(
@@ -678,7 +680,7 @@ export function deriveVantaPrivateCoreNullifier(
         hexToBytes(note.noteNonce),
         hexToBytes(commitment.value),
         hexToBytes(witness.root),
-        encodeU32(witness.leafIndex),
+        hexToBytes(leaf),
       ),
     ),
   };
@@ -712,11 +714,13 @@ export function verifyVantaPrivateCoreWitnessResponse(
   request: WitnessRequestV0,
   response: WitnessResponseV0,
 ): boolean {
+  const expectedLeaf = deriveVantaPrivateCoreMerkleLeafHash(request.commitment);
   return (
     request.kind === "vanta-private-core-witness-request-v0" &&
     response.kind === "vanta-private-core-witness-response-v0" &&
     request.commitment === response.requestCommitment &&
     request.commitment === response.commitment &&
+    expectedLeaf === response.proof.leaf &&
     response.leafIndex === response.proof.leafIndex &&
     response.root === response.proof.root &&
     verifyVantaPrivateCoreMerkleProof(response.proof)

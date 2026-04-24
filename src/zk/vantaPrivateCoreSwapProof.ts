@@ -458,7 +458,7 @@ export function createVantaPrivateCoreNoirSwapWitnessPackage(args: {
     args.privateWitness.inputNoteFieldEncoding.noteSecret,
     args.privateWitness.inputNoteFieldEncoding.noteNonce,
     stateRootField,
-    args.privateWitness.inputLeafIndex,
+    inputMerkleLeafField,
   );
   const outputCommitmentField = derivePoseidonNoteCommitmentField(
     args.privateWitness.outputNoteFieldEncoding,
@@ -775,7 +775,7 @@ function derivePoseidonNullifierField(
   noteSecret: Bytes32EncodingV0,
   noteNonce: Bytes32EncodingV0,
   stateRootField: FieldDecimalString,
-  leafIndex: number,
+  merkleLeafField: FieldDecimalString,
 ): FieldDecimalString {
   return poseidon6ToString([
     BigInt(noteSecret.hi),
@@ -783,7 +783,7 @@ function derivePoseidonNullifierField(
     BigInt(noteNonce.hi),
     BigInt(noteNonce.lo),
     BigInt(stateRootField),
-    BigInt(leafIndex),
+    BigInt(merkleLeafField),
   ]);
 }
 

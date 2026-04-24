@@ -162,4 +162,31 @@ assert.deepEqual(objectInstructionCalls, [
   ["sendPrepared", "called"],
 ]);
 
+try {
+  await runWalletSafeSendBoundary(objectInstructionBoundary, {
+    amount: "1",
+    asset: "VUSD",
+    cluster: "devnet",
+    connectedWalletAddress: "payer1111111111111111111111111111111111111",
+    estimatedFees: "0.000005 SOL",
+    feePayer: "payer1111111111111111111111111111111111111",
+    humanApprovedSummary: true,
+    instructions: [
+      {
+        programAddress: "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr",
+      },
+    ],
+    label: "safe-send-invalid-summary",
+    recipient: "vantaPool111111111111111111111111111111111",
+    summaryInstructions: [{}],
+    transactionFingerprint: "txfp_safe_send_invalid_summary_001",
+  });
+  throw new Error("Expected malformed summary instructions to fail.");
+} catch (error) {
+  assert(
+    String(error instanceof Error ? error.message : error).includes("summaryInstructions[]"),
+    "Expected malformed summary instructions to fail closed.",
+  );
+}
+
 console.log("Vanta wallet safe send boundary check: PASS");

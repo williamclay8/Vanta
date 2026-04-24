@@ -87,7 +87,7 @@ fn derive_nullifier(
     note_nonce_hi: Field,
     note_nonce_lo: Field,
     state_root: Field,
-    leaf_index: Field,
+    merkle_leaf: Field,
 ) -> Field {
     bn254::hash_6([
         note_secret_hi,
@@ -95,7 +95,7 @@ fn derive_nullifier(
         note_nonce_hi,
         note_nonce_lo,
         state_root,
-        leaf_index,
+        merkle_leaf,
     ])
 }
 
@@ -241,7 +241,7 @@ fn main(
         input_note_nonce_hi,
         input_note_nonce_lo,
         state_root,
-        input_leaf_index,
+        input_leaf,
     );
     assert(computed_input_nullifier == input_nullifier);
 

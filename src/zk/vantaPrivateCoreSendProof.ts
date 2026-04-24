@@ -345,7 +345,7 @@ export function createVantaPrivateCoreNoirSendWitnessPackage(args: {
     args.privateWitness.inputNoteFieldEncoding.noteSecret,
     args.privateWitness.inputNoteFieldEncoding.noteNonce,
     stateRootField,
-    args.privateWitness.inputLeafIndex,
+    inputMerkleLeafField,
   );
   const recipientCommitmentField = derivePoseidonNoteCommitmentField(
     args.privateWitness.recipientNoteFieldEncoding,
@@ -789,7 +789,7 @@ function derivePoseidonNullifierField(
   noteSecret: Bytes32EncodingV0,
   noteNonce: Bytes32EncodingV0,
   stateRoot: FieldDecimalString,
-  leafIndex: number,
+  merkleLeafField: FieldDecimalString,
 ): FieldDecimalString {
   return poseidon6([
     BigInt(noteSecret.hi),
@@ -797,7 +797,7 @@ function derivePoseidonNullifierField(
     BigInt(noteNonce.hi),
     BigInt(noteNonce.lo),
     BigInt(stateRoot),
-    BigInt(leafIndex),
+    BigInt(merkleLeafField),
   ]).toString(10);
 }
 

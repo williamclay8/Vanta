@@ -34,13 +34,7 @@ function normalizeSummaryInstructions(input) {
     throw new Error("Vanta wallet safe send boundary requires summaryInstructions.");
   }
 
-  return source.map((instruction, index) => {
-    if (typeof instruction === "string") {
-      return requireText(instruction, "summaryInstructions[]");
-    }
-
-    return `instruction-${index + 1}`;
-  });
+  return source.map((instruction) => requireText(instruction, "summaryInstructions[]"));
 }
 
 function normalizeBlockhash(prepared) {
