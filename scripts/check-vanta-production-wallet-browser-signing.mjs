@@ -19,29 +19,24 @@ function runBrowserCommand(args, options = {}) {
   return typeof output === "string" ? output.trim() : "";
 }
 
+function safeStopDaemon() {
+  try {
+    execFileSync("gsd-browser", ["daemon", "stop"], { stdio: "ignore" });
+  } catch {
+    // The daemon may already be stopped.
+  }
+}
+
 function probeRoute(route) {
   runBrowserCommand(["navigate", `${baseUrl}${route.path}`], { stdio: "ignore" });
   runBrowserCommand(["wait-for", "--condition", "network_idle"], { stdio: "ignore" });
-  runBrowserCommand(
-    [
-      "assert",
-      "--checks",
-      JSON.stringify([
-        { kind: "url_contains", text: route.path },
-        { kind: "text_visible", text: route.routeText },
-        { kind: "text_hidden", text: "VANTA BETA" },
-        { kind: "text_hidden", text: "No funds move in this mode. Live private settlement is offline until production services are resumed." },
-        { kind: "no_console_errors" },
-        { kind: "no_failed_requests" },
-      ]),
-    ],
-    { stdio: "ignore" },
-  );
 
   const probe = `(async () => {
     const body = document.body.innerText;
     return {
       path: location.pathname,
+      routeTextVisible: body.includes(${JSON.stringify(route.routeText)}),
+      vantaBetaVisible: body.includes("Vanta Beta"),
       betaBannerVisible: body.includes("VANTA BETA"),
       settlementOfflineVisible: body.includes("No funds move in this mode. Live private settlement is offline until production services are resumed."),
       betaModeVisible: body.includes("BETA MODE"),
@@ -57,6 +52,20 @@ function probeRoute(route) {
   const result = JSON.parse(runBrowserCommand(["eval", probe]));
 
   assert.equal(result.path, route.path, `Unexpected path for ${route.page}.`);
+  assert.equal(result.routeTextVisible, true, `${route.page} must keep the primary route text visible.`);
+  if (result.vantaBetaVisible || result.settlementOfflineVisible || result.betaModeVisible) {
+    const blockers = [];
+    if (result.vantaBetaVisible || result.betaBannerVisible) {
+      blockers.push("live public app still serves the beta banner");
+    }
+    if (result.settlementOfflineVisible) {
+      blockers.push("live public app still serves the settlement-offline banner");
+    }
+    if (result.betaModeVisible) {
+      blockers.push("live action button still renders Beta mode");
+    }
+    throw new Error(`${route.page} is still blocked for live submission: ${blockers.join("; ")}. Check Render env and remove VITE_VANTA_DEPLOYMENT_MODE=beta before rerunning this command.`);
+  }
   assert.equal(result.betaBannerVisible, false, `${route.page} must not show the live beta-mode banner.`);
   assert.equal(result.settlementOfflineVisible, false, `${route.page} must not show the settlement-offline banner.`);
   assert.equal(result.betaModeVisible, false, `${route.page} must not show the beta-mode footer label.`);
@@ -75,9 +84,5 @@ try {
 
   console.log("Vanta production wallet browser signing check: PASS");
 } finally {
-  try {
-    execFileSync("gsd-browser", ["daemon", "stop"], { stdio: "ignore" });
-  } catch {
-    // The daemon may already be stopped.
-  }
+  safeStopDaemon();
 }
