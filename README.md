@@ -2,14 +2,14 @@
 
 **Shield first. Move privately.**
 
-Vanta is a privacy product for Solana.
+Vanta is a shield-first privacy app for supported Solana assets.
 
 The simple version:
 
 - Normal Solana wallets are public.
 - Vanta lets supported assets move into a more private Vanta area.
 - From there, the app can support private actions like send, swap, and exit.
-- Vanta Pay turns the same idea into a Merchant Command Center preview backed by merchant API, settlement, receipt, and status checks.
+- Vanta Pay applies the same idea to merchants: create and review payment requests, inspect settlement records, and keep beta limits visible.
 
 The honest status:
 
@@ -495,7 +495,10 @@ Current staging deployment refs:
 
 ## Vanta Pay merchant integration
 
-Vanta Pay is the payment-entry surface for private, policy-legible stablecoin settlement.
+Vanta Pay is the merchant preview for private stablecoin checkout and settlement
+records. It helps a business understand payment requests, checkout, settlement
+status, refunds, withdrawals, receipts, and reconciliation without learning the
+privacy system first.
 
 `npm run pay:verify` is the current Pay product gate. It checks the Pay status surfaces, merchant trust surface, payment approval packet, Pay tab copy contract, the local merchant API, Private Pool v2-backed settlement receipts, signed webhook delivery, browser-backed Pay navigation, security limitations, and the production build.
 
@@ -505,7 +508,7 @@ The merchant trust surface is documented in `docs/pay-merchant-trust-surface.md`
 
 The current Pay layer covers:
 - commerce-only Pay tab copy with no protocol vocabulary in the merchant/buyer flow
-- the real `/app/pay` tab is a Vanta Pay Suite preview: payment creation first, with hosted/embedded/modal checkout modes, payment links, invoices, subscriptions, refunds, withdrawals, reconciliation, developer controls, route preview, receipt preview, transaction evidence, trust rail, beta/no-funds disclosure, privacy-readiness limitation, and read-only operations context
+- the real `/app/pay` tab is a merchant preview: payment creation first, then checkout modes, payment links, invoices, refunds, withdrawals, reconciliation, developer controls, route preview, receipt preview, transaction evidence, trust rail, beta/no-funds disclosure, privacy-readiness limitation, and read-only operations context
 - static Pay contract check through `npm run pay:contract-check`
 - human and JSON Pay status surfaces through `npm run pay:status` and `npm run pay:status-json`, including `productionReady: false`
 - merchant trust status through `npm run pay:merchant-trust-status` and `npm run pay:merchant-trust-status-check`, freezing `controlled-privacy` plus `legible-trust` as the current merchant-facing trust model
@@ -542,7 +545,17 @@ The current Pay layer covers:
 - production startup guard requiring explicit `VANTA_PAY_SECRET_KEY`, `VANTA_PAY_WEBHOOK_SECRET`, durable storage, and Private Pool v2 operator URL/auth when `NODE_ENV=production`
 - browser-backed Pay checks for landing, checkout, payment-link, and withdrawal screens via `npm run pay:browser-check`, including a checkout assertion that the `Pay with Vanta` CTA stays present-but-disabled in beta mode and completion remains absent
 
-This is still a local MVP harness, not a deployed payment processor. It gives Vanta Pay the Stripe-like integration shape: create session, render hosted or embedded checkout, receive webhook when paid. Internally, completed Pay states now require proof-accepted private settlement receipts so privacy is part of the state machine rather than only product copy. The current check starts the local Private Pool v2 operator and proves Pay settlement receipts are proved and accepted through the operator-owned `/private-pool-v2/pay-settlements` endpoint when the operator URL is configured.
+This is still a local MVP harness, not a deployed payment processor. It gives
+Vanta Pay the familiar integration shape: create a session, show checkout, and
+receive a webhook when a payment completes. Internally, completed Pay states
+now require private settlement receipts so privacy is part of the state machine
+rather than only product copy. The current check starts the local Private Pool
+v2 operator and proves Pay settlement receipts are accepted through the
+operator-owned `/private-pool-v2/pay-settlements` endpoint when the operator
+URL is configured.
+
+The commands below are reviewer and operator surfaces. They are intentionally
+detailed; normal users should not need them to understand what Vanta does.
 
 `private-core:demo-readiness` is the friendliest single entrypoint when you just want to know whether the current proof/demo lane is stage-ready.
 
@@ -552,7 +565,19 @@ This is still a local MVP harness, not a deployed payment processor. It gives Va
 
 `private-core:operator-contract-json` prints that same frozen operator contract as machine-readable JSON, including the static shipping-decision and bundled operator-snapshot contract fields, the dedicated snapshot transport, and the dedicated `/state/private-core-snapshot` endpoint path, so automation can pin the frozen support surface directly instead of scraping the long-form text output.
 
-`private-core:operator-status` gives a quick readout of the current operator root, proof, send-proof, swap-proof, send-transition, swap-transition, consume, and release state when the operator server is running, including proof/send, proof/swap, proof/consume, proof/release, and root-registration proof linkage. It now reads the dedicated `/state/private-core-status` surface instead of reconstructing the long-form status client-side from snapshot plus shipping artifact, so the CLI reflects one canonical operator-owned transport for the live status contract. It also reports the supported send-lane version and identity carried by the operator summary, plus the latest send resulting-root continuity status and the concrete registered root record behind that resulting root when one exists, so you can see whether the newest private-send root is still unregistered, current, stale, or already consumed/released downstream. The current private-core release lane now also carries explicit release authorization, root-policy, execution, atomicity, and persistence fields, so the operator summary says not just that a release was recorded, but that it was authorized by `proof-backed-consume` under the `latest-registered-root` policy, executed as an operator-recorded devnet release, atomically recorded with consume state in the local operator lane, and persisted in the current JSON store. The send lane still requires the current input root to stay linked to its registration proof before the operator will accept a transition, the resulting root remains explicitly `client-declared` until later registration proves continuity, and registered roots now carry explicit provenance as `shield-input`, `send-recipient-output`, `send-change-output`, or `swap-output`. The constrained swap lane now also has a proof-backed transition seam that requires the current input root to be registered and latest before the operator will persist swap state, keeps the latest swap proof and latest swap transition in the canonical operator summary, now preserves the latest swap execution venue and quote reference across summary reloads and restart, and proves that summary-backed swap state survives operator restart, while the resulting swap root remains explicitly `client-declared` in the current narrow lane. The frozen operator contract now explicitly covers this long-form status surface too via `supportedOperatorStatusVersion = 1`, `supportedOperatorStatusKind = long-form-live-status`, `supportedOperatorStatusGateVersion = 1`, `supportedOperatorStatusGateKind = ready-gated-long-form-live-status`, `supportedOperatorStatusTransport = dedicated-endpoint`, and `supportedOperatorStatusEndpoint = /state/private-core-status`.
+`private-core:operator-status` gives reviewers a live readout of what the
+current private-core operator can prove. In plain terms, it answers:
+
+- what private-core state the operator currently sees
+- whether the latest proof, send, swap, consume, and release records are linked
+- whether a root is current, stale, unregistered, consumed, or released
+- whether the release path was authorized and recorded in the local operator lane
+- whether the constrained send and swap lanes are still inside the narrow v1 rules
+
+The command reads the dedicated `/state/private-core-status` endpoint. The
+longer field names remain in the machine-readable output for automation, but
+the purpose is simple: help reviewers check the current demo lane without
+mistaking it for final production privacy.
 
 `private-core:operator-status-json` prints the live operator summary plus the canonical shipping decision as machine-readable JSON, so automation can consume the full operator-backed state surface without scraping the long-form text dump.
 
@@ -772,4 +797,4 @@ For the current private-core proof/demo lane runbook, see:
 
 If someone asks what Vanta is, the shortest correct answer is:
 
-> Vanta is a zk-powered privacy layer for Solana that lets users shield assets from public wallet flows and use them through private workflows beginning with send.
+> Vanta is a shield-first privacy app for Solana that lets users move supported assets out of public wallet flows and use them through private workflows beginning with send.

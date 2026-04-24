@@ -75,14 +75,14 @@ export function HomePage() {
       </nav>
 
       <section className="landing-minimal__hero">
-        <div className="landing-minimal__kicker">Private Solana suite</div>
+        <div className="landing-minimal__kicker">Shield-first Solana privacy</div>
         <h1>
-          Privacy rails for
-          <span> everyday crypto actions.</span>
+          Make supported Solana activity
+          <span> less public.</span>
         </h1>
         <p>
-          Vanta helps users keep their money sovereign through a simpler privacy-first
-          interface.
+          Vanta helps users move supported assets out of public wallet trails,
+          use supported private actions, and return to public wallets when needed.
         </p>
 
         <div className="landing-minimal__actions">

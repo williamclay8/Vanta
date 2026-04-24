@@ -12,17 +12,18 @@ export function DocsPayPage() {
     <DocsPageTemplate
       title={page.title}
       summary={page.summary}
+      readFirst="Vanta Pay is a merchant preview for private checkout and settlement records. It is not a live production payment processor yet."
       badge={page.badge}
       nextStep={page.nextStep}
     >
       <section className="docs-page-section">
         <h2>What Vanta Pay is</h2>
         <p>
-          Vanta Pay is the merchant-facing direction for the same privacy
-          system behind Portal. Instead of asking a business to learn the
-          protocol first, Pay turns the system into normal business tasks:
-          create a checkout, see settlement status, review balances, handle
-          refunds, prepare withdrawals, and keep receipts.
+          Vanta Pay applies the same shield-first idea to payments. Instead of
+          asking a business to understand privacy infrastructure, Pay starts
+          with normal merchant work: create a payment request, review checkout,
+          see settlement status, handle refunds and withdrawals, and keep
+          receipts.
         </p>
       </section>
 
@@ -30,25 +31,27 @@ export function DocsPayPage() {
         <h2>Why the product exists</h2>
         <div className="docs-connection-grid">
           <article className="docs-connection-card">
-            <h3>Merchant control plane</h3>
+            <h3>Payment work in one place</h3>
             <p>
-              A merchant needs one place to run the work: payment links,
-              invoices, checkout preview, balances, refunds, withdrawals, and
-              reconciliation.
+              A merchant should be able to create payment links, preview
+              checkout, review balances, handle refunds, prepare withdrawals,
+              and reconcile records without jumping between tools.
             </p>
           </article>
           <article className="docs-connection-card">
-            <h3>Trust packet</h3>
+            <h3>Clear payment records</h3>
             <p>
-              The Pay surface explains what is private, what remains visible,
-              who needs to approve the step, and what policy mode is being used.
+              The Pay surface should say what happened, what still needs
+              approval, what remains visible, and whether the payment is only a
+              preview.
             </p>
           </article>
           <article className="docs-connection-card">
-            <h3>Shared private rails</h3>
+            <h3>Same privacy model</h3>
             <p>
-              Pay is not a separate network. It is the business version of the
-              same shielded-state model Portal explains.
+              Pay is the business version of the same idea Portal explains:
+              move value into a more private flow, do useful work, and keep the
+              exit path understandable.
             </p>
           </article>
         </div>
@@ -57,21 +60,19 @@ export function DocsPayPage() {
       <section className="docs-page-section">
         <h2>Current status</h2>
         <div className="docs-callout docs-callout--warm">
-          <strong>Pay is ambitious, but today&apos;s surface stays explicit.</strong>
+          <strong>Today, Pay is a preview.</strong>
           <p>
-            The current Pay experience opens as a Vanta Pay Suite preview inside
-            the Merchant Command Center. It keeps payment creation first, then
-            adds hosted, embedded, and modal checkout modes; payment links;
-            invoices; subscriptions; refunds; withdrawals; reconciliation;
-            developer controls; trust rail; and read-only operations context
-            without presenting Pay as a finished production payments network.
+            You can use it to understand the merchant workflow: create and
+            review payment requests, preview checkout, inspect payment records,
+            and see the trust limits. It should not read as a finished payments
+            network or live processor.
           </p>
         </div>
         <ul className="docs-bullet-list">
-          <li>The default `/app/pay` tab is the Vanta Pay Suite preview today.</li>
-          <li>Merchant API, payment links, invoices, refunds, withdrawals, webhooks, and reconciliation stay in backend verification surfaces.</li>
-          <li>Route preview, receipt path preview, transaction evidence, trust rail, privacy-readiness limitation, and beta state stay visible in the tab.</li>
-          <li>The settlement story still depends on clear approval boundaries and operator-visible truth.</li>
+          <li>The default `/app/pay` tab is a merchant preview, not production payment infrastructure.</li>
+          <li>It shows the payment request path first, then supporting records like refunds, withdrawals, receipts, and reconciliation.</li>
+          <li>Beta, no-funds, privacy-readiness, route, receipt, and transaction-evidence limits stay visible.</li>
+          <li>The backend verification commands remain the place to inspect deeper merchant API and settlement behavior.</li>
         </ul>
       </section>
 
@@ -79,9 +80,9 @@ export function DocsPayPage() {
         <h2>How Pay connects back to Portal</h2>
         <p>
           Portal explains how assets enter Vanta&apos;s private area. Pay explains
-          how the same system can become useful for merchants once checkout,
-          approvals, operator checks, and settlement services are ready enough
-          to trust.
+          why that matters for commerce: merchants need checkout, approvals,
+          settlement status, refunds, withdrawals, receipts, and reconciliation
+          records they can understand.
         </p>
       </section>
     </DocsPageTemplate>

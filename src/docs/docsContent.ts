@@ -50,7 +50,7 @@ export const docsPages: DocsPageMeta[] = [
     slug: "/docs",
     title: "Vanta Docs",
     summary:
-      "Start here for the plain-English version: what Vanta is, what works today, and what is still unfinished.",
+      "Start here to understand what Vanta is, why it is useful, what works today, and what is still unfinished.",
     track: "shared",
     section: "home",
     badge: "design-partner-surface",
@@ -67,7 +67,7 @@ export const docsPages: DocsPageMeta[] = [
     slug: "/docs/portal",
     title: "Vanta Portal",
     summary:
-      "Portal is the wallet side of Vanta: move supported assets into Vanta, use supported private actions, and move out again when needed.",
+      "Portal is the wallet path: shield supported assets into Vanta, use supported private actions, and unshield when needed.",
     track: "portal",
     section: "portal",
     badge: "preview",
@@ -85,7 +85,7 @@ export const docsPages: DocsPageMeta[] = [
     slug: "/docs/pay",
     title: "Vanta Pay",
     summary:
-      "Pay is the merchant side of Vanta: checkout, settlement status, refunds, withdrawals, and receipts without protocol vocabulary.",
+      "Pay is the merchant preview: payment requests, checkout, settlement status, refunds, withdrawals, and receipts in plain business language.",
     track: "pay",
     section: "pay",
     badge: "forward-looking",

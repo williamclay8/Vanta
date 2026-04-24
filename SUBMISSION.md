@@ -10,7 +10,7 @@
 
 ## Short description
 
-Vanta is a privacy product for Solana. It helps supported assets move out of fully public wallet flows, use supported private actions, and return to a public wallet when needed.
+Vanta is a shield-first privacy app for supported Solana assets. It helps users move assets out of fully public wallet flows, use supported private actions, and return to a public wallet when needed.
 
 ## Medium description
 
@@ -21,10 +21,10 @@ That entry point is **Shield**. A user moves supported assets into Vanta, uses s
 The current demo has three parts:
 
 - a wallet app for Shield, Send, Swap, and Unshield
-- Vanta Pay, a Vanta Pay Suite preview backed by checkout, settlement status, payment link, invoice, refund, withdrawal, webhook, and receipt contracts
+- Vanta Pay, a merchant preview for checkout, settlement status, payment links, invoices, refunds, withdrawals, webhooks, and receipts
 - a reviewer-facing proof lane that shows the first private-core boundary is executable
 
-The Pay demo now opens on a Vanta Pay Suite preview. It focuses on payment creation, checkout modes, payment links, invoices, subscriptions, refunds, withdrawals, reconciliation, developer controls, route preview, receipt preview, transaction evidence, and beta disabled state while the deeper merchant API and settlement contracts remain verifiable behind the tab.
+The Pay demo focuses on a simple merchant question: can I create and review a payment request, see the records around it, and understand what is still a preview? Deeper merchant API and settlement contracts remain verifiable behind the tab.
 
 Vanta is intentionally honest about its status: it has real devnet and local verification lanes, but it is not production-ready, audited, or mainnet-ready yet.
 
@@ -45,7 +45,7 @@ Shielding does not make a normal wallet magically private. It means supported as
 For this hackathon, the strongest story is not "Vanta has every privacy feature." It is:
 
 - the app has a real early shielded-state product loop
-- the Pay surface explains private settlement in plain merchant language
+- the Pay surface explains private payment work in plain merchant language
 - the proof lane shows the cryptographic boundary is executable, not only a slide
 
 The premium merchant wedge is already visible in the live demo:
@@ -78,7 +78,7 @@ Solana is transparent by default. Holdings, transfers, counterparties, and behav
 
 ## Solution statement
 
-Vanta introduces a privacy-preserving layer for Solana that starts by letting users shield supported assets out of public wallet flows and into shielded state. From there, users can access private workflows beginning with send, while merchants get a separate control plane for private, policy-legible settlement without needing to understand the protocol internals.
+Vanta introduces a privacy-preserving layer for Solana that starts by letting users shield supported assets out of public wallet flows and into shielded state. From there, users can access private workflows beginning with send, while merchants get payment flows with clear records, approvals, and settlement status without needing to understand the protocol internals.
 
 ## Why now
 
@@ -92,7 +92,7 @@ This hackathon is the right environment to show Vanta's wedge clearly: a product
 
 ## Product thesis
 
-Vanta is a zk-powered privacy layer for Solana that pairs shielded user flows with a merchant-first private settlement control plane.
+Vanta is a privacy-first Solana app that pairs shielded user flows with merchant-facing private payment tools.
 
 ## Product truth
 
@@ -120,7 +120,7 @@ The MVP is **Shield + Private Send**:
 - use that state through the first private workflow: send
 
 For demo day, the product is bigger than that MVP wedge:
-- Pay shows the merchant settlement control plane
+- Pay shows merchant payment and settlement records
 - Private Core shows the first executable proof boundary
 
 ## Current implementation status
@@ -203,7 +203,7 @@ Because send alone lacks a clean product foundation. Shield + Private Send forms
 - Shield as the primary entrypoint
 - Send as the first workflow unlocked by shielded state
 - Swap as a constrained route today
-- Pay as a merchant-product harness and design-partner-facing settlement control plane backed by the shared private-settlement lane
+- Pay as a merchant-product harness and design-partner-facing payment record surface backed by the shared private-settlement lane
 - Strategy as a minimal Stealth DCA / Private TWAP creation surface with a deterministic child-order planner
 - contextual Peer top-up recovery inside the wallet picker instead of a separate funding page
 - shared app-level continuity between Shield and Send
@@ -255,9 +255,9 @@ The repo now includes a **Vanta Pay merchant integration** verification lane:
 - `npm run pay:verify`
   runs the Pay status surfaces, merchant trust status check, approval packet check, copy check, merchant API check, browser-backed Pay check, security limitations check, operator runbook check, and production app build.
 
-The Pay layer is designed as the merchant product surface behind a Vanta Pay Suite preview: create a checkout session, render hosted, embedded, or modal checkout, create payment links and invoices, preview subscriptions, handle refunds and withdrawals, reconcile records, and receive signed webhook events when paid. Completed Pay states now require private settlement receipts from `src/pay/vantaPayPrivateSettlementAdapter.ts`, which can route through the Vanta Private Pool v2 operator-owned `/private-pool-v2/pay-settlements` endpoint through `VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_URL`. Merchant copy remains commerce-first.
+The Pay layer is designed as the merchant product surface for private payment work: create a checkout session, render checkout, create payment links and invoices, preview subscriptions, handle refunds and withdrawals, reconcile records, and receive signed webhook events when paid. Completed Pay states now require private settlement receipts from `src/pay/vantaPayPrivateSettlementAdapter.ts`, which can route through the Vanta Private Pool v2 operator-owned `/private-pool-v2/pay-settlements` endpoint through `VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_URL`. Merchant copy remains commerce-first.
 
-The real `/app/pay` demo surface is now intentionally beta-framed: payment creation, checkout modes, payment links, invoices, subscriptions, refunds, withdrawals, reconciliation, developer controls, route preview, receipt preview, transaction evidence, and beta disabled state.
+The real `/app/pay` demo surface is intentionally beta-framed: payment creation first, then checkout modes, payment links, invoices, subscriptions, refunds, withdrawals, reconciliation, developer controls, route preview, receipt preview, transaction evidence, and beta disabled state.
 
 Staging deployment truth:
 
@@ -276,6 +276,10 @@ Staging deployment truth:
 - This is staging-only. It is not a mainnet processor, audited settlement system, custody-safe service, or production privacy claim.
 
 Production deployment truth:
+
+This section is for reviewers. These services and checks do not mean Vanta is
+production-ready; they record deployed infrastructure evidence while
+`mainnetReady` and `productionReady` remain `false`.
 
 - The production Private Pool v2 role-service network is deployed on Render with separate indexer, prover, relayer, verifier, and operator services recorded in `ops/mainnet/private-pool-v2-services.manifest.json`.
 - The repo now carries a sanitized production route-health surface:
@@ -766,7 +770,7 @@ No. Vanta is being built as a product-led privacy layer with a clear user journe
 
 ### Why is this relevant to Solana commerce?
 
-Commerce requires discretion. As Solana grows into a platform for payments, products, and real economic activity, privacy-preserving holding and transaction flows become more important. Vanta's merchant-first Pay control plane is the first concrete step toward making that privacy legible and usable for commerce operators instead of leaving it as protocol theory.
+Commerce requires discretion. As Solana grows into a platform for payments, products, and real economic activity, privacy-preserving holding and transaction flows become more important. Vanta Pay is the first concrete step toward making that privacy legible and usable for commerce operators instead of leaving it as protocol theory.
 
 ---
 
@@ -774,4 +778,4 @@ Commerce requires discretion. As Solana grows into a platform for payments, prod
 
 If someone asks what Vanta is, the shortest correct answer is:
 
-> Vanta is a zk-powered privacy layer for Solana that lets users shield assets from public wallet flows and use them through private workflows beginning with send.
+> Vanta is a shield-first privacy app for Solana that lets users move supported assets out of public wallet flows and use them through private workflows beginning with send.

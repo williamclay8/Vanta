@@ -12,6 +12,7 @@ export function DocsTrustPage() {
     <DocsPageTemplate
       title={page.title}
       summary={page.summary}
+      readFirst="Trust means a reader can tell what Vanta can do today, what is only a preview, and what still needs approval or verification."
       badge={page.badge}
       nextStep={page.nextStep}
     >
@@ -93,7 +94,7 @@ export function DocsTrustPage() {
           <p>
             These docs do not claim that all Vanta surfaces are production-ready
             or that normal wallet activity becomes private automatically. A
-            merchant preview, a control plane, a proof command, and a live
+            merchant preview, an operator surface, a proof command, and a live
             operator path are different things, and the docs keep those
             differences visible.
           </p>

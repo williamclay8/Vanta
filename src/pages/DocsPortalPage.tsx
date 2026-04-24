@@ -12,22 +12,21 @@ export function DocsPortalPage() {
     <DocsPageTemplate
       title={page.title}
       summary={page.summary}
+      readFirst="Vanta privacy starts when supported assets are shielded into Vanta. Before that, a normal Solana wallet is still public."
       badge={page.badge}
       nextStep={page.nextStep}
     >
       <section className="docs-page-section">
         <h2>What Vanta Portal is</h2>
         <p>
-          Vanta Portal is the wallet side of the product. It shows how a user
-          can move supported assets out of an ordinary public wallet flow and
-          into Vanta&apos;s private area before using the private actions Vanta
-          supports today.
+          Vanta Portal is the wallet side of the product. It helps a user move
+          supported assets out of a public wallet trail and into Vanta before
+          using supported private actions.
         </p>
         <p>
-          The plain version: a normal wallet is public. Vanta privacy starts
-          only after supported assets are shielded into Vanta. From there, the
-          app can support private send, swap, and exit paths as those lanes
-          become real.
+          The plain version: a normal wallet is public. Vanta starts after a
+          shield action. From there, the app can support private send, swap, and
+          exit paths as those lanes become real.
         </p>
       </section>
 
@@ -65,7 +64,7 @@ export function DocsPortalPage() {
       <section className="docs-page-section">
         <h2>Why it matters</h2>
         <div className="docs-callout">
-          <strong>Portal is the clearest mental model for Vanta.</strong>
+          <strong>Portal is useful because it gives privacy a clear start and end.</strong>
           <p>
             It gives users a simple rule: public wallet first, shield into
             Vanta for privacy, use supported private actions, then unshield back

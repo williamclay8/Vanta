@@ -8,6 +8,7 @@ type DocsNextStep = NonNullable<DocsPageMeta["nextStep"]>;
 type DocsPageTemplateProps = {
   title: string;
   summary: string;
+  readFirst?: string;
   badge?: DocsBadge;
   children: ReactNode;
   nextStep?: DocsNextStep;
@@ -16,6 +17,7 @@ type DocsPageTemplateProps = {
 export function DocsPageTemplate({
   title,
   summary,
+  readFirst,
   badge,
   children,
   nextStep,
@@ -30,8 +32,8 @@ export function DocsPageTemplate({
         </div>
       </header>
       <section className="docs-page__read-first" data-docs-read-first>
-        <span>Short version</span>
-        <p>{summary}</p>
+        <span>Start here</span>
+        <p>{readFirst ?? summary}</p>
       </section>
       <div className="docs-page__body">{children}</div>
       {nextStep ? (

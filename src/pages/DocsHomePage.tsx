@@ -14,20 +14,18 @@ export function DocsHomePage() {
     <div className="docs-home">
       <section className="docs-home__hero product-intro">
         <span className="docs-home__eyebrow product-intro__eyebrow">Vanta Docs</span>
-        <h1 className="docs-home__title">Move, send, and pay with more privacy.</h1>
+        <h1 className="docs-home__title">Vanta makes Solana activity less public.</h1>
         <p className="docs-home__lede">
-          Vanta is building a privacy layer for Solana. In everyday terms, it
-          helps supported assets leave a fully public wallet trail, pass through
-          supported private workflows, and come back out with clearer records
-          for people and merchants.
+          Solana wallets are easy to trace. Vanta gives privacy a clear
+          starting point: move supported assets into Vanta, use supported
+          private actions, and move back to a public wallet when you need to.
         </p>
         <div className="docs-home__hero-note">
-          <strong>Start here if you want the product story first.</strong>
+          <strong>The useful part is simple.</strong>
           <p>
-            These docs separate the simple story from the technical machinery:
-            what Vanta does, what you can inspect today, what is still a
-            preview, and what must be finished before anyone should call it
-            production-ready.
+            Vanta helps people and merchants reduce public wallet traceability
+            for supported flows. These docs explain that first, then label what
+            is live, what is a preview, and what is not production-ready yet.
           </p>
         </div>
       </section>
@@ -36,17 +34,17 @@ export function DocsHomePage() {
         <article>
           <span>1</span>
           <strong>What is Vanta?</strong>
-          <p>A private workspace for supported Solana assets.</p>
+          <p>A shield-first privacy app for supported Solana assets.</p>
         </article>
         <article>
           <span>2</span>
           <strong>What happens?</strong>
-          <p>Move in, use supported private actions, move back out.</p>
+          <p>Shield assets, use private actions, then unshield when needed.</p>
         </article>
         <article>
           <span>3</span>
-          <strong>What is still true?</strong>
-          <p>Some flows are previews. Vanta is not production-ready yet.</p>
+          <strong>Why use it?</strong>
+          <p>Normal wallet activity is public. Vanta reduces that exposure.</p>
         </article>
       </section>
 
@@ -60,8 +58,8 @@ export function DocsHomePage() {
           <span className="docs-path-card__label">{portalPage.title}</span>
           <strong>{portalPage.summary}</strong>
           <p>
-            Start here to understand the basic path: put supported assets into
-            Vanta, use a supported private action, and take assets back out.
+            Start here for the user path: shield supported assets, use a
+            private action, and return to a public wallet when you are done.
           </p>
         </Link>
         <Link className="docs-path-card docs-path-card--pay" to={payPage.slug}>
@@ -73,42 +71,40 @@ export function DocsHomePage() {
           <span className="docs-path-card__label">{payPage.title}</span>
           <strong>{payPage.summary}</strong>
           <p>
-            Follow the business-facing path: checkout preview, settlement
-            visibility, refunds, withdrawals, and the limits that still matter.
+            Follow the merchant path: create and review payment requests,
+            inspect records, and see what is still only a preview.
           </p>
         </Link>
       </section>
 
       <section className="docs-home__section">
         <div className="docs-home__section-heading">
-          <span>One system, two paths</span>
+          <span>Who it helps</span>
           <h2 className="docs-home__section-title">
-            Portal and Pay are two ways into the same privacy model.
+            The same privacy idea serves users and merchants.
           </h2>
         </div>
         <div className="docs-home__connection-grid">
           <article className="docs-home__connection-card">
-            <h3>Vanta Portal is the crypto-native side.</h3>
+            <h3>Wallet users</h3>
             <p>
-              It is the wallet path. A user shields supported assets, uses the
-              private workflows Vanta supports today, and unshields when they
-              want to return to a public wallet.
+              Use Vanta when you do not want every supported action to look
+              like a normal public wallet trail.
             </p>
           </article>
           <article className="docs-home__connection-card">
-            <h3>Vanta Pay is the merchant-facing direction.</h3>
+            <h3>Merchants</h3>
             <p>
-              It is the business path. A merchant needs plain records for
-              checkout, settlement, refunds, withdrawals, and receipts without
-              learning protocol internals first.
+              Preview private checkout and settlement records without making a
+              business learn crypto plumbing before it can understand a payment.
             </p>
           </article>
           <article className="docs-home__connection-card">
-            <h3>Truth matters as much as polish.</h3>
+            <h3>Reviewers</h3>
             <p>
-              These pages label live, preview, and future work directly. The
-              goal is to make the product understandable without making it sound
-              more finished than it is.
+              Check the claims through status pages and commands. The docs
+              separate working lanes from previews and unfinished production
+              work.
             </p>
           </article>
         </div>
@@ -118,7 +114,7 @@ export function DocsHomePage() {
         <div className="docs-home__section-heading">
           <span>Current product truth</span>
           <h2 className="docs-home__section-title">
-            The current docs separate active system truth from preview direction.
+            Vanta is real, constrained, and not production-ready.
           </h2>
         </div>
         <div className="docs-home__truth-grid">
@@ -134,7 +130,7 @@ export function DocsHomePage() {
             <h3>Pay</h3>
             <p>
               The merchant story is still forward-looking. Today it is a
-              control plane and preview surface, not a finished payments
+              preview for payment requests and records, not a finished payments
               network.
             </p>
           </article>
