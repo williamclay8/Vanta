@@ -34,16 +34,16 @@ function buildStatus() {
 
   return {
     blockedActions: policy.blockedActions,
-    browserVerificationCluster: policy.defaultCluster,
+    browserVerificationCluster: evidence.browserVerificationCluster,
     browserVerificationCommand: "npm run wallet:browser-signing-safety-check",
-    browserVerificationMode: "local-dev-server-gsd-browser",
-    browserVerifiedProtocolPages: ["Shield", "Send", "Swap", "Unshield"],
+    browserVerificationMode: evidence.browserVerificationMode,
+    browserVerifiedProtocolPages: evidence.browserVerifiedProtocolPages,
     checkedAt: new Date().toISOString(),
-    localBrowserVerificationOnly: false,
-    liveMainnetSubmissionEnabled: policy.liveMainnetSubmissionEnabled,
+    localBrowserVerificationOnly: evidence.localBrowserVerificationOnly,
+    liveMainnetSubmissionEnabled: evidence.liveMainnetSubmissionEnabled,
     liveSendInventoryVersion: inventory.version,
     mainnetReady: false,
-    mainnetSubmissionExplicitlyBlocked: policy.liveMainnetSubmissionEnabled === false,
+    mainnetSubmissionExplicitlyBlocked: evidence.mainnetSubmissionExplicitlyBlocked,
     messageIntentPages: messageIntentPages.map((surface) => surface.page),
     messageIntentSequence: inventory.messageIntentPolicy.requiredSequence,
     policyVersion: policy.version,
@@ -78,9 +78,14 @@ function buildStatus() {
 const result = buildStatus();
 
 if (checkMode) {
+  const evidence = JSON.parse(readFileSync(walletSigningEvidencePath, "utf8"));
   assert.equal(result.mainnetReady, false, "Wallet-signing status must not claim mainnet readiness.");
   assert.equal(result.productionReady, false, "Wallet-signing status must not claim production readiness.");
-  assert.equal(result.liveMainnetSubmissionEnabled, false, "Live mainnet submission must remain disabled.");
+  assert.equal(
+    result.liveMainnetSubmissionEnabled,
+    evidence.liveMainnetSubmissionEnabled,
+    "Wallet status must follow the checked live-mainnet submission truth.",
+  );
   assert.equal(result.requiresExplicitHumanApproval, true, "Wallet signatures must require explicit human approval.");
   assert.equal(result.requiresSimulationBeforeSignature, true, "Wallet signatures must require simulation first.");
   assert.equal(
@@ -88,80 +93,80 @@ if (checkMode) {
     true,
     "Wallet signatures must require a transaction summary first.",
   );
-  assert.equal(result.browserVerificationCluster, "devnet-or-localnet", "Browser verification must stay off mainnet.");
+  assert.equal(
+    result.browserVerificationCluster,
+    evidence.browserVerificationCluster,
+    "Wallet status must follow the checked browser verification cluster truth.",
+  );
   assert.equal(
     result.browserVerificationMode,
-    "local-dev-server-gsd-browser",
-    "Browser verification mode must remain local-dev-server-gsd-browser.",
+    evidence.browserVerificationMode,
+    "Wallet status must follow the checked browser verification mode.",
   );
   assert.equal(
     result.localBrowserVerificationOnly,
-    false,
-    "Wallet status must record both local and deployed browser verification surfaces.",
+    evidence.localBrowserVerificationOnly,
+    "Wallet status must follow the checked local/deployed browser verification truth.",
   );
   assert.deepEqual(
     result.productionBrowserVerificationRequiredPages,
-    ["Shield", "Send", "Swap", "Unshield"],
-    "Production browser verification must keep the required protocol page set explicit.",
+    evidence.productionBrowserVerificationRequiredPages,
+    "Wallet status must follow the checked production required protocol page set.",
   );
   assert.deepEqual(
     result.productionBrowserVerifiedPages,
-    ["Shield", "Send", "Swap", "Unshield"],
-    "Production browser verification must keep the required four-page set explicit.",
+    evidence.productionBrowserVerifiedPages,
+    "Wallet status must follow the checked production browser verified pages.",
   );
   assert.equal(
     result.productionBrowserVerificationCoversRequiredPages,
-    true,
-    "Production browser verification must keep full required-page coverage explicit.",
+    evidence.productionBrowserVerificationCoversRequiredPages,
+    "Wallet status must follow the checked production required-page coverage truth.",
   );
   assert.equal(
     result.productionBrowserVerificationAvailable,
-    true,
-    "Production browser-backed verification must stay recorded.",
+    evidence.productionBrowserVerificationAvailable,
+    "Wallet status must follow the checked production browser verification availability.",
   );
   assert.equal(
     result.productionBrowserVerificationStatus,
-    "recorded-beta-mode-blocked",
-    "Production browser-backed verification status must keep the live beta-mode truth explicit.",
+    evidence.productionBrowserVerificationStatus,
+    "Wallet status must follow the checked production browser verification status.",
   );
   assert.deepEqual(
     result.productionWalletSigningBlockedBy,
-    [
-      "production-beta-mode-banner-visible",
-      "production-private-settlement-offline-banner-visible",
-      "live-mainnet-submission-explicitly-blocked",
-    ],
-    "Wallet status must export the exact remaining public-app wallet-signing blockers.",
+    evidence.productionWalletSigningBlockedBy,
+    "Wallet status must follow the checked remaining public-app wallet-signing blockers.",
   );
   assert.equal(
     result.productionBrowserVerificationRef,
-    "npm run mainnet:wallet-production-browser-check",
-    "Wallet status must expose the deployed browser verification command.",
+    evidence.productionBrowserVerificationRef,
+    "Wallet status must follow the checked deployed browser verification command.",
   );
   assert.equal(
     result.productionBrowserVerificationUrl,
-    "https://vantaprivacy.xyz",
-    "Wallet status must expose the live public app URL.",
+    evidence.productionBrowserVerificationUrl,
+    "Wallet status must follow the checked live public app URL.",
   );
   assert.equal(
     result.productionDeploymentModeBannerVisible,
-    true,
-    "Wallet status must keep the live beta-mode banner explicit.",
+    evidence.productionDeploymentModeBannerVisible,
+    "Wallet status must follow the checked live beta-mode banner truth.",
   );
   assert.equal(
     result.productionSettlementOfflineBannerVisible,
-    true,
-    "Wallet status must keep the live private-settlement offline banner explicit.",
+    evidence.productionSettlementOfflineBannerVisible,
+    "Wallet status must follow the checked live private-settlement offline banner truth.",
   );
   assert.equal(
     result.mainnetSubmissionExplicitlyBlocked,
-    true,
-    "Live mainnet submission must remain explicitly blocked.",
+    evidence.mainnetSubmissionExplicitlyBlocked,
+    "Wallet status must follow the checked live mainnet submission block truth.",
   );
   assert.deepEqual(
     result.browserVerifiedProtocolPages,
-    ["Shield", "Send", "Swap", "Unshield"],
-    "Browser verification must cover Shield, Send, Swap, and Unshield.",
+    evidence.browserVerifiedProtocolPages,
+    "Wallet status must follow the checked browser verified protocol pages.",
   );
   assert.deepEqual(
     result.protocolPagesCovered,
