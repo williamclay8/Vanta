@@ -13,9 +13,9 @@ assert.equal(snapshot.privacyRail.activeRail.canClaimMeaningfulPrivacy, false);
 assert.ok(snapshot.privacyRail.userFacingRule.includes("Do not claim meaningful privacy"));
 assert.equal(snapshot.abuseObservability.payRuntimeStatus, "staging-or-local-only");
 assert.equal(snapshot.abuseObservability.privatePoolV2RuntimeMode, "remote-services");
-assert.equal(snapshot.abuseObservability.privatePoolV2RateLimiter, "in-memory-per-process");
+assert.equal(snapshot.abuseObservability.privatePoolV2RateLimiter, "postgres-durable-shared-window");
 assert.equal(snapshot.abuseObservability.privatePoolV2PreferredRateLimiterKind, "postgres-durable-shared-window");
-assert.equal(snapshot.abuseObservability.privatePoolV2RuntimeMatchesPreferredRateLimiter, false);
+assert.equal(snapshot.abuseObservability.privatePoolV2RuntimeMatchesPreferredRateLimiter, true);
 assert.equal(snapshot.nullifierReplay.runtimeMode, "remote-services");
 assert.equal(
   snapshot.nullifierReplay.layeredReplayStatus,

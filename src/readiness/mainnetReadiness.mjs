@@ -30,7 +30,7 @@ const blockers = [
   {
     id: "abuse-rate-limit-observability",
     severity: "high",
-    summary: "Keep the abuse/observability status/evidence surface fresh while the deployed Private Pool v2 operator still reports the in-memory per-process rate limiter instead of the preferred Postgres durable shared window, and while metrics, alerts, audit logs, and operator dashboards remain incomplete.",
+    summary: "Keep the abuse/observability status/evidence surface fresh while provider-backed log sink, metrics, alerts, retention, incident workflow, and operator dashboards remain incomplete.",
   },
   {
     id: "no-mainnet-funds-without-explicit-approval",
@@ -185,7 +185,7 @@ const nextActions = [
   "Execute only the approved bounded beta mainnet private-pool smoke while the approval window is active, or record a new bounded approval window before changing the action, launch window, fee payer, or maximum funds at risk.",
   "Keep the service-deployment status/evidence surface and Private Pool v2 production smoke evidence fresh before expanding live mainnet actions.",
   "Keep operator-skipped controls visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
-  "Keep the abuse/observability status/evidence surface fresh while the deployed Private Pool v2 operator still reports the in-memory per-process rate limiter instead of the preferred Postgres durable shared window, and while using provider-neutral production observability evidence, existing platform logs, or a future provider instead of Better Stack production monitors.",
+  "Keep the abuse/observability status/evidence surface fresh while using provider-neutral production observability evidence, existing platform logs, or a future provider until dashboards, alerts, retention, and incident workflow evidence are complete.",
   "Keep the deployed operator replay-status evidence, the Postgres-backed nullifier replay guard, role-service replay verification, and production smoke replay simulation fresh while carrying the Postgres-backed nullifier replay guard into the final protocol enforcement layer.",
   "Keep the wallet-signing status/evidence surface, four-page browser verification, and live-send inventory commands fresh while production browser-backed signing evidence remains pending.",
 ];

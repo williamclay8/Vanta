@@ -30,11 +30,11 @@ assert.equal(evidence.operatorEventSinkProductionReady, false);
 assert.equal(evidence.operatorEventSinkSource, "src/ops/vantaOperatorEventSink.mjs");
 assert.equal(evidence.preferredProductionRateLimiterKind, "postgres-rate-limiter");
 assert.equal(evidence.privatePoolV2RateLimiterPreferredKind, "postgres-durable-shared-window");
-assert.equal(evidence.privatePoolV2RuntimeMatchesPreferredRateLimiter, false);
+assert.equal(evidence.privatePoolV2RuntimeMatchesPreferredRateLimiter, true);
 assert.equal(evidence.privatePoolV2Runtime.auditEventSinkKind, "postgres-operator-event-sink");
 assert.equal(evidence.privatePoolV2Runtime.operatorUrlRef, "VANTA_PRIVATE_POOL_V2_OPERATOR_URL");
 assert.equal(evidence.privatePoolV2Runtime.rateLimitPerMinute, 600);
-assert.equal(evidence.privatePoolV2Runtime.rateLimiter, "in-memory-per-process");
+assert.equal(evidence.privatePoolV2Runtime.rateLimiter, "postgres-durable-shared-window");
 assert.equal(evidence.privatePoolV2Runtime.runtimeMode, "remote-services");
 assert.equal(evidence.privatePoolV2Runtime.storageDurableStoreConfigured, true);
 assert.equal(evidence.privatePoolV2Runtime.storageKind, "postgres-jsonb-snapshot-store");
@@ -59,8 +59,8 @@ assert.ok(
   "Abuse/observability evidence must state the no-secret safety policy.",
 );
 assert.ok(
-  evidence.deploymentTruth.includes("in-memory per-process rate limiter"),
-  "Abuse/observability evidence must record deployed rate-limit drift explicitly.",
+  evidence.deploymentTruth.includes("preferred Postgres durable shared-window rate limiter"),
+  "Abuse/observability evidence must record the deployed preferred rate limiter explicitly.",
 );
 assert.ok(
   evidence.deploymentTruth.includes("Postgres-backed rate-limit implementation"),

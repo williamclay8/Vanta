@@ -15,12 +15,12 @@
   "operatorEventSinkSource": "src/ops/vantaOperatorEventSink.mjs",
   "preferredProductionRateLimiterKind": "postgres-rate-limiter",
   "privatePoolV2RateLimiterPreferredKind": "postgres-durable-shared-window",
-  "privatePoolV2RuntimeMatchesPreferredRateLimiter": false,
+  "privatePoolV2RuntimeMatchesPreferredRateLimiter": true,
   "privatePoolV2Runtime": {
     "auditEventSinkKind": "postgres-operator-event-sink",
     "operatorUrlRef": "VANTA_PRIVATE_POOL_V2_OPERATOR_URL",
     "rateLimitPerMinute": 600,
-    "rateLimiter": "in-memory-per-process",
+    "rateLimiter": "postgres-durable-shared-window",
     "runtimeMode": "remote-services",
     "storageDurableStoreConfigured": true,
     "storageKind": "postgres-jsonb-snapshot-store"
@@ -52,6 +52,6 @@
     }
   ],
   "safety": "No provider API keys, webhook URLs, source tokens, bearer values, wallet keys, signed transaction material, or database URLs are stored in this evidence file.",
-  "deploymentTruth": "This evidence proves the current provider-neutral observability contract, safe telemetry source, narrow Pay audit-event sink boundary, the available Postgres-backed rate-limit implementation, and authenticated deployed Private Pool v2 operator audit-sink/rate-limit/storage truth. The deployed operator still reports the in-memory per-process rate limiter instead of the preferred Postgres durable shared window, so production observability remains explicitly incomplete.",
-  "nextOperatorAction": "Keep the abuse/observability status, deployed runtime status, and evidence commands fresh while redeploying the Private Pool v2 operator onto the Postgres-backed durable shared-window rate limiter and while provider-backed log sink, dashboards, alerts, retention, and incident workflow evidence remain pending."
+  "deploymentTruth": "This evidence proves the current provider-neutral observability contract, safe telemetry source, narrow Pay audit-event sink boundary, the available Postgres-backed rate-limit implementation, and authenticated deployed Private Pool v2 operator audit-sink/rate-limit/storage truth. The deployed operator now reports the preferred Postgres durable shared-window rate limiter, but production observability remains explicitly incomplete while provider-backed log sink, dashboards, alerts, retention, and incident workflow evidence are still pending.",
+  "nextOperatorAction": "Keep the abuse/observability status, authenticated deployed runtime status, and evidence commands fresh while provider-backed log sink, dashboards, alerts, retention, and incident workflow evidence remain pending."
 }
