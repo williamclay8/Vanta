@@ -5,24 +5,19 @@ const repoRoot = resolve(import.meta.dirname, "..");
 const source = readFileSync(resolve(repoRoot, "src/pages/PayPage.tsx"), "utf8");
 
 const requiredPageCopy = [
-  "Merchant control plane",
-  "Create a shareable payment link",
-  "Send invoice",
-  "Preview checkout",
-  "Withdraw funds",
-  "Create link",
+  "Create payment",
+  "Payment details",
+  "What are you collecting for?",
   "Amount",
   "Asset",
+  "Customer email",
+  "Review payment",
   "Pay with Vanta",
   "Pricing",
   "No billing starts from checkout preview alone.",
   "Payment route preview",
   "Receipt path preview",
-  "Merchant operations",
-  "Merchant balances and pending work",
-  "Policy-legible settlement preview",
-  "Checkout preview",
-  "Approval boundary",
+  "Fill in the payment details to preview the request.",
 ];
 
 const bannedCopy = [
@@ -53,6 +48,24 @@ const bannedCopy = [
   "Private state",
   "Obfuscation",
   "Confidential execution",
+  "Merchant settlement operations",
+  "Merchant control plane",
+  "Merchant operations",
+  "Merchant balances and pending work",
+  "Policy-legible settlement preview",
+  "Approval boundary",
+  "Trust packet",
+  "What is private",
+  "What is visible",
+  "Policy mode",
+  "Available balances",
+  "Refund queue",
+  "Withdrawal queue",
+  "Reconciliation export",
+  "Open workflow",
+  "Create a shareable payment link",
+  "Send invoice",
+  "Withdraw funds",
 ];
 
 const failures = [];

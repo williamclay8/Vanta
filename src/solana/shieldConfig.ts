@@ -57,6 +57,19 @@ const configuredMeteoraDlmmPoolAddress = getOptionalEnvValue(
   import.meta.env.VITE_VANTA_METEORA_DLMM_POOL_ADDRESS,
 );
 
+const allowLocalOperatorFallback = import.meta.env.DEV;
+const localUnshieldOperatorUrl = allowLocalOperatorFallback
+  ? "http://127.0.0.1:8789/unshield"
+  : "";
+const localSwapOperatorUrl = allowLocalOperatorFallback ? "http://127.0.0.1:8789/swap" : "";
+const localSolUnshieldOperatorUrl = allowLocalOperatorFallback
+  ? "http://127.0.0.1:8789/unshield/sol"
+  : "";
+const effectiveUnshieldOperatorUrl = configuredUnshieldOperatorUrl ?? localUnshieldOperatorUrl;
+const effectiveSwapOperatorUrl = configuredSwapOperatorUrl ?? localSwapOperatorUrl;
+const effectiveSolUnshieldOperatorUrl =
+  configuredSolUnshieldOperatorUrl ?? localSolUnshieldOperatorUrl;
+
 export type LiveShieldTokenAssetKey =
   | "VUSD"
   | "USDC"
@@ -98,9 +111,10 @@ function createLiveShieldTokenAssetConfig(args: {
     name: getOptionalEnvValue(args.nameEnvValue) ?? args.defaultName,
     priority: args.priority,
     symbol: args.assetKey,
-    unshieldConfigured: Boolean(args.configuredMintAddress && configuredVaultOwner),
-    unshieldOperatorUrl:
-      configuredUnshieldOperatorUrl ?? "http://127.0.0.1:8789/unshield",
+    unshieldConfigured: Boolean(
+      args.configuredMintAddress && configuredVaultOwner && effectiveUnshieldOperatorUrl,
+    ),
+    unshieldOperatorUrl: effectiveUnshieldOperatorUrl,
     vaultOwner: configuredVaultOwner,
   };
 }
@@ -116,9 +130,10 @@ export const liveShieldAsset = {
     "Vanta Devnet Test Dollar",
   priority: 0,
   symbol: "VUSD" as const,
-  unshieldConfigured: Boolean(configuredMintAddress && configuredVaultOwner),
-  unshieldOperatorUrl:
-    configuredUnshieldOperatorUrl ?? "http://127.0.0.1:8789/unshield",
+  unshieldConfigured: Boolean(
+    configuredMintAddress && configuredVaultOwner && effectiveUnshieldOperatorUrl,
+  ),
+  unshieldOperatorUrl: effectiveUnshieldOperatorUrl,
   vaultOwner: configuredVaultOwner,
 };
 
@@ -268,10 +283,9 @@ export const liveSwapPair = {
   outputMintAddress: SHIELD_HOOK_FALLBACK_MINT,
   outputName: "Solana" as const,
   outputSymbol: "SOL" as const,
-  operatorUrl: configuredSwapOperatorUrl ?? "http://127.0.0.1:8789/swap",
+  operatorUrl: effectiveSwapOperatorUrl,
   solAssetId: SHIELD_HOOK_FALLBACK_MINT,
-  solUnshieldOperatorUrl:
-    configuredSolUnshieldOperatorUrl ?? "http://127.0.0.1:8789/unshield/sol",
+  solUnshieldOperatorUrl: effectiveSolUnshieldOperatorUrl,
   venueFamily: "DLMM" as const,
   venueName: "Meteora" as const,
   venueNetwork: "Devnet" as const,

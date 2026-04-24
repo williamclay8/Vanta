@@ -9,7 +9,7 @@ The simple version:
 - Normal Solana wallets are public.
 - Vanta lets supported assets move into a more private Vanta area.
 - From there, the app can support private actions like send, swap, and exit.
-- Vanta Pay turns the same idea into a merchant control plane for checkout, settlement status, refunds, withdrawals, and receipts.
+- Vanta Pay turns the same idea into a simple payment-entry surface backed by merchant API, settlement, receipt, and status checks.
 
 The honest status:
 
@@ -31,7 +31,7 @@ Public Wallet -> Shield -> Private Vanta Area -> Send / Swap / Pay -> Unshield
 Vanta has two user-facing paths:
 
 - **Vanta Portal** is for wallet users. It explains how assets enter Vanta, move through supported private actions, and leave again.
-- **Vanta Pay** is for merchants. It explains private settlement in business terms: checkout, balances, refunds, withdrawals, reconciliation, and receipts.
+- **Vanta Pay** is for payments. The visible app tab stays focused on the few details needed to create and review a payment request, while the backend keeps merchant settlement, refund, withdrawal, reconciliation, and receipt contracts verifiable.
 
 The app also includes reviewer and operator surfaces. Those are for people checking whether the claims are true. They should not leak into normal user copy.
 
@@ -45,10 +45,9 @@ Working or inspectable today:
 - shield flows for supported devnet assets
 - shielded state inside Vanta
 - constrained send, swap, and unshield paths
-- a merchant Pay demo at `/app/pay`
-- merchant operations, approval-boundary copy, refund / withdrawal / reconciliation detail states, and runtime-backed empty-state cards for balances, refund queue, withdrawal queue, and reconciliation export on the Pay surface
-- Pay with Vanta checkout and merchant preview flows
-- merchant lifecycle wording fixed as `preview -> approve -> execute -> settle`
+- a simple `/app/pay` payment-entry surface focused on payment description, amount, asset, customer email, review, route preview, receipt preview, and pricing truth
+- Pay with Vanta checkout and merchant API preview flows
+- Pay status, approval, settlement, refund, withdrawal, reconciliation, and receipt contracts remain verifiable through commands
 - proof and operator checks for the current narrow private-core lane
 - verification commands that keep the repo honest about what is still unfinished
 
@@ -495,7 +494,7 @@ Current staging deployment refs:
 
 ## Vanta Pay merchant integration
 
-Vanta Pay is the merchant-first control plane for private, policy-legible stablecoin settlement.
+Vanta Pay is the payment-entry surface for private, policy-legible stablecoin settlement.
 
 `npm run pay:verify` is the current Pay product gate. It checks the Pay status surfaces, merchant trust surface, payment approval packet, Pay tab copy contract, the local merchant API, Private Pool v2-backed settlement receipts, signed webhook delivery, browser-backed Pay navigation, security limitations, and the production build.
 
@@ -505,7 +504,7 @@ The merchant trust surface is documented in `docs/pay-merchant-trust-surface.md`
 
 The current Pay layer covers:
 - commerce-only Pay tab copy with no protocol vocabulary in the merchant/buyer flow
-- the real `/app/pay` settlement console now doubles as the merchant demo/control plane, showing merchant operations, approval-boundary copy, refund / withdrawal / reconciliation detail states, runtime-backed empty-state cards for balances, refund queue, withdrawal queue, and reconciliation export, and a shared design-partner preview panel
+- the real `/app/pay` tab is now a minimal payment-entry surface for payment description, amount, asset, customer email, review, route preview, receipt preview, beta disabled state, and pricing truth
 - static Pay contract check through `npm run pay:contract-check`
 - human and JSON Pay status surfaces through `npm run pay:status` and `npm run pay:status-json`, including `productionReady: false`
 - merchant trust status through `npm run pay:merchant-trust-status` and `npm run pay:merchant-trust-status-check`, freezing `controlled-privacy` plus `legible-trust` as the current merchant-facing trust model

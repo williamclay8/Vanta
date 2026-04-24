@@ -2,21 +2,16 @@
 
 Vanta Pay is the merchant side of Vanta.
 
-The simple version: merchants should not need to understand the privacy protocol before they can understand a payment. Pay turns the system into business tasks:
+The simple version: merchants and customers should not need to understand the
+privacy protocol before they can understand a payment. Current truth: the default `/app/pay` surface is now a simple payment-entry flow, not a dashboard.
 
-- create a link
-- send an invoice
-- preview checkout
-- approve execution
-- track settlement
-- handle refunds and withdrawals
-- keep receipts and reconciliation records
-
-The current Pay surface is a control plane for policy-legible stablecoin settlement previews. It is not a production payment processor.
+The current Pay surface is a narrow preview for creating and reviewing one
+payment request. It is not a production payment processor.
 
 ## What stays private
 
-The payment flow keeps sensitive settlement mechanics inside the Pay control plane instead of asking merchants to reason about protocol internals.
+The payment flow keeps sensitive settlement mechanics inside the Pay backend
+instead of asking merchants or customers to reason about protocol internals.
 
 Today, that means:
 
@@ -27,31 +22,14 @@ Today, that means:
 
 ## What stays legible
 
-Merchants still need a clear business record. They should be able to see the important lifecycle states without learning words like note, nullifier, or proof.
+The Pay tab should stay action-first. On `/app/pay`, the visible inputs and
+review fields are:
 
-Current merchant-visible states include:
+- `Payment details`, `What are you collecting for?`, `Amount`, `Asset`, `Customer email`, and `Review payment`
 
-- settlement lifecycle
-- refund state
-- withdrawal state
-- reconciliation state
+The payment route preview, receipt path preview, beta disabled state, and pricing truth remain visible so the tab does not imply live funds or active billing.
 
-The real Pay demo now shows:
-
-- the merchant control plane as the default `/app/pay` surface
-- a trust packet with `What is private`, `What is visible`, `Policy mode`, and `Approval boundary`
-- workflow entry points for creating links, sending invoices, previewing checkout, and withdrawing funds
-- merchant operations and approval boundary copy
-- refund / withdrawal / reconciliation detail states
-- runtime-backed empty-state console cards for balances, refund queue, withdrawal queue, and reconciliation export
-  - those console records currently reflect the fresh Pay runtime state rendered on the real Pay page
-- design-partner-facing settlement framing
-
-The design-partner layer currently uses this shared UI copy on the real Pay page:
-
-- eyebrow: `Design partner preview`
-- title: `Merchant pilot`
-- body: `Settlement control-plane preview without protocol overhead.`
+The merchant API, status, approval packet, refunds, withdrawals, and reconciliation still live in the Pay backend and verification commands. They should not make the default Pay tab feel like an operations console.
 
 The approval packet keeps the action boundary fixed as:
 
@@ -60,7 +38,7 @@ The approval packet keeps the action boundary fixed as:
 - `execute`
 - `settle`
 
-In one line: Pay should feel like a merchant dashboard, not a protocol console.
+In one line: Pay should feel like a simple payment action, not a protocol console or merchant dashboard.
 
 ## What the commands prove
 

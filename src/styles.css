@@ -2620,7 +2620,9 @@ input {
 .pay-section-header,
 .pay-hero,
 .pay-panel,
-.pay-checkout-card {
+.pay-checkout-card,
+.pay-payment-card,
+.pay-pricing-card {
   border: 1px solid rgba(0, 229, 200, 0.1);
   background: rgba(8, 13, 20, 0.9);
   -webkit-backdrop-filter: blur(22px);
@@ -2639,7 +2641,9 @@ input {
 
 .pay-topbar--minimal,
 .pay-minimal-stage,
-.pay-action-card {
+.pay-action-card,
+.pay-payment-card,
+.pay-pricing-card {
   width: min(640px, 100%);
 }
 
@@ -2863,6 +2867,7 @@ input {
 
 .pay-minimal-stage {
   display: grid;
+  gap: 12px;
   justify-items: center;
 }
 
@@ -3103,6 +3108,78 @@ input {
 
 .pay-form--minimal .button {
   grid-column: 1 / -1;
+}
+
+.pay-payment-card {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 20px;
+}
+
+.pay-payment-card header {
+  display: grid;
+  gap: 6px;
+  text-align: center;
+}
+
+.pay-payment-card h2,
+.pay-pricing-card h3 {
+  margin: 0;
+  font-family: "Syne", sans-serif;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.pay-payment-card h2 {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+}
+
+.pay-payment-card p,
+.pay-pricing-card p,
+.pay-pricing-card small {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.pay-review-card {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(0, 229, 200, 0.035);
+}
+
+.pay-review-card strong {
+  font-family: "Syne", sans-serif;
+  font-size: 1.14rem;
+}
+
+.pay-review-card div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pay-review-card div span {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted-strong);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.pay-pricing-card {
+  display: grid;
+  gap: 8px;
+  padding: 16px 18px;
+  border-radius: 18px;
 }
 
 .pay-field {
