@@ -28,6 +28,11 @@ function buildStatus() {
   const adoptedProtocolPages = protocolPages.filter((surface) => surface.status === "safe-send-adopted");
   const messageIntentPages = surfaces.filter((surface) => surface.signatureKinds.includes("message-intent-signature"));
   const walletAdapterSurface = surfaces.find((surface) => surface.page === "Umbra adapter") ?? null;
+  const productionWalletSigningBlockedBy = [
+    "production-beta-mode-banner-visible",
+    "production-private-settlement-offline-banner-visible",
+    "live-mainnet-submission-explicitly-blocked",
+  ];
 
   return {
     blockedActions: policy.blockedActions,
@@ -52,6 +57,7 @@ function buildStatus() {
     productionBrowserVerificationStatus: "recorded-beta-mode-blocked",
     productionBrowserVerificationUrl: "https://vantaprivacy.xyz",
     productionBrowserVerifiedPages: ["Shield", "Send", "Swap", "Unshield"],
+    productionWalletSigningBlockedBy,
     productionDeploymentModeBannerVisible: true,
     productionSettlementOfflineBannerVisible: true,
     protocolPagesCovered: protocolPages.map((surface) => surface.page),
@@ -118,6 +124,15 @@ if (checkMode) {
     result.productionBrowserVerificationStatus,
     "recorded-beta-mode-blocked",
     "Production browser-backed verification status must keep the live beta-mode truth explicit.",
+  );
+  assert.deepEqual(
+    result.productionWalletSigningBlockedBy,
+    [
+      "production-beta-mode-banner-visible",
+      "production-private-settlement-offline-banner-visible",
+      "live-mainnet-submission-explicitly-blocked",
+    ],
+    "Wallet status must export the exact remaining public-app wallet-signing blockers.",
   );
   assert.equal(
     result.productionBrowserVerificationRef,
@@ -205,6 +220,7 @@ if (jsonMode || checkMode) {
   );
   console.log(`- productionBrowserVerificationStatus: ${result.productionBrowserVerificationStatus}`);
   console.log(`- productionBrowserVerificationUrl: ${result.productionBrowserVerificationUrl}`);
+  console.log(`- productionWalletSigningBlockedBy: ${result.productionWalletSigningBlockedBy.join(", ")}`);
   console.log(`- productionDeploymentModeBannerVisible: ${String(result.productionDeploymentModeBannerVisible)}`);
   console.log(
     `- productionSettlementOfflineBannerVisible: ${String(result.productionSettlementOfflineBannerVisible)}`,

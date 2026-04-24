@@ -97,6 +97,9 @@ if (jsonMode) {
   console.log(`  - productionBrowserVerificationStatus: ${snapshot.walletSigning.productionBrowserVerificationStatus}`);
   console.log(`  - productionBrowserVerificationUrl: ${snapshot.walletSigning.productionBrowserVerificationUrl}`);
   console.log(
+    `  - productionWalletSigningBlockedBy: ${snapshot.walletSigning.productionWalletSigningBlockedBy.join(", ")}`,
+  );
+  console.log(
     `  - productionDeploymentModeBannerVisible: ${String(snapshot.walletSigning.productionDeploymentModeBannerVisible)}`,
   );
   console.log(

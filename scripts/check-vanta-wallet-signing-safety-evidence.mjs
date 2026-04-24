@@ -24,6 +24,14 @@ assert.deepEqual(evidence.productionBrowserVerifiedPages, ["Shield", "Send", "Sw
 assert.equal(evidence.productionBrowserVerificationCoversRequiredPages, true);
 assert.equal(evidence.productionBrowserVerificationAvailable, true);
 assert.equal(evidence.productionBrowserVerificationStatus, "recorded-beta-mode-blocked");
+assert.deepEqual(
+  evidence.productionWalletSigningBlockedBy,
+  [
+    "production-beta-mode-banner-visible",
+    "production-private-settlement-offline-banner-visible",
+    "live-mainnet-submission-explicitly-blocked",
+  ],
+);
 assert.equal(evidence.productionDeploymentModeBannerVisible, true);
 assert.equal(evidence.productionSettlementOfflineBannerVisible, true);
 assert.equal(evidence.signingSafetyPolicyRef, "npm run wallet:signing-safety-check");

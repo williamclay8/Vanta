@@ -26,7 +26,7 @@ const blockers = [
   {
     id: "wallet-backed-browser-signing-safety",
     severity: "critical",
-    summary: "Keep the wallet-signing status/evidence surface fresh while Shield, Send, Swap, and Unshield remain frozen behind safe-send or typed message-intent boundaries, local and deployed browser proof stay green, the public app still serves the beta-mode and private-settlement-offline banners, and live mainnet submission stays explicitly blocked.",
+    summary: "Keep the wallet-signing status/evidence surface fresh while Shield, Send, Swap, and Unshield remain frozen behind safe-send or typed message-intent boundaries, local and deployed browser proof stay green, and the public app still exposes the checked blocker set: production-beta-mode-banner-visible, production-private-settlement-offline-banner-visible, live-mainnet-submission-explicitly-blocked.",
   },
   {
     id: "abuse-rate-limit-observability",
@@ -205,7 +205,7 @@ export function createVantaMainnetReadinessSnapshot() {
     "Keep operator-skipped controls visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
     "Keep the abuse/observability status/evidence surface fresh while provider-backed log sink, dashboards, alerts, retention, and incident workflow controls remain explicitly pending.",
     "Keep the deployed operator replay-status evidence, the Postgres-backed nullifier replay guard, role-service replay verification, and production smoke replay simulation fresh while no-real-funds smoke remains the only live settlement proof, audited shared-anonymity-set evidence remains unavailable, and live mainnet private settlement stays unavailable.",
-    "Keep the wallet-signing status/evidence surface, four-page local browser verification, deployed browser verification, and live-send inventory commands fresh while the public app still serves the beta-mode and private-settlement-offline banners and live mainnet submission stays explicitly blocked.",
+    `Keep the wallet-signing status/evidence surface, four-page local browser verification, deployed browser verification, and live-send inventory commands fresh while the checked public-app blocker set remains ${walletSigning.productionWalletSigningBlockedBy.join(", ")}.`,
   ];
 
   return {

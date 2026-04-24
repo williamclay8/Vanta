@@ -26,6 +26,7 @@ export function createVantaWalletSigningStatus() {
     productionBrowserVerificationStatus: evidence.productionBrowserVerificationStatus,
     productionBrowserVerificationUrl: evidence.productionBrowserVerificationUrl,
     productionBrowserVerifiedPages: evidence.productionBrowserVerifiedPages,
+    productionWalletSigningBlockedBy: evidence.productionWalletSigningBlockedBy,
     productionDeploymentModeBannerVisible: evidence.productionDeploymentModeBannerVisible,
     productionSettlementOfflineBannerVisible: evidence.productionSettlementOfflineBannerVisible,
     protocolPagesWithSafeSendAdoption: evidence.protocolPagesWithSafeSendAdoption,

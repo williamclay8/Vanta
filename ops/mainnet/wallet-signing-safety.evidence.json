@@ -22,6 +22,11 @@
   "productionBrowserVerificationCoversRequiredPages": true,
   "productionBrowserVerificationAvailable": true,
   "productionBrowserVerificationStatus": "recorded-beta-mode-blocked",
+  "productionWalletSigningBlockedBy": [
+    "production-beta-mode-banner-visible",
+    "production-private-settlement-offline-banner-visible",
+    "live-mainnet-submission-explicitly-blocked"
+  ],
   "productionDeploymentModeBannerVisible": true,
   "productionSettlementOfflineBannerVisible": true,
   "signingSafetyPolicyRef": "npm run wallet:signing-safety-check",
