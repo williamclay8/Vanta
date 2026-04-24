@@ -5,6 +5,7 @@ export type VantaPrivacyRail = {
   label: string;
   mode: "mainnet-alpha" | "external-privacy-rail" | "vanta-operated-private-pool";
   canClaimMeaningfulPrivacy: false;
+  currentEvidenceRefs: string[];
   requiredEvidence: string[];
   blockers: string[];
 };

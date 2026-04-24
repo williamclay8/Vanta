@@ -77,6 +77,10 @@ Evidence needed:
 - `VANTA_PROVER_URL_REF`
 - `VANTA_VERIFIER_URL_REF`
 - `VANTA_OPERATOR_URL_REF`
+- `ops/mainnet/service-deployment.evidence.json`
+- `ops/mainnet/private-pool-v2-route-health.evidence.json`
+- `ops/mainnet/private-pool-v2-role-service-replay.evidence.json`
+- `ops/mainnet/private-pool-v2-production-smoke.evidence.json`
 - service-to-service auth references
 - health/readiness endpoint evidence
 - rollback target reference
@@ -86,9 +90,30 @@ Verification:
 ```bash
 npm run mainnet:service-contract-check
 npm run mainnet:service-topology-check
+npm run mainnet:service-deployment-evidence-check
+npm run mainnet:private-rail-route-health-evidence-check
+npm run mainnet:role-service-replay-evidence-check
 npm run mainnet:deployment-manifest-check
 npm run mainnet:private-pool-v2-production-smoke-check
 npm run mainnet:production-smoke-evidence-check
+```
+
+The sanitized deployment status evidence manifest is:
+
+```text
+ops/mainnet/service-deployment.evidence.json
+```
+
+The sanitized authenticated route-health evidence manifest is:
+
+```text
+ops/mainnet/private-pool-v2-route-health.evidence.json
+```
+
+The checked role-service replay barrier evidence manifest is:
+
+```text
+ops/mainnet/private-pool-v2-role-service-replay.evidence.json
 ```
 
 The Private Pool v2 production smoke target template is:

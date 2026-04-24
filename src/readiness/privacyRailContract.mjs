@@ -4,6 +4,11 @@ const rails = [
     label: "Mainnet Alpha Warning Rail",
     mode: "mainnet-alpha",
     canClaimMeaningfulPrivacy: false,
+    currentEvidenceRefs: [
+      "docs/security-limitations.md",
+      "npm run mainnet:readiness-check",
+      "npm run privacy-rail:contract-check",
+    ],
     requiredEvidence: [
       "VANTA_MAINNET_ALPHA_WARNING_COPY_REF",
       "VANTA_WALLET_SELF_CUSTODY_APPROVAL_REF",
@@ -20,6 +25,11 @@ const rails = [
     label: "Umbra Mainnet Rail",
     mode: "external-privacy-rail",
     canClaimMeaningfulPrivacy: false,
+    currentEvidenceRefs: [
+      "npm run mainnet:wallet-signing-status",
+      "npm run mainnet:wallet-signing-evidence-check",
+      "docs/privacy-rail-contract.md",
+    ],
     requiredEvidence: [
       "VANTA_UMBRA_MAINNET_CAPABILITY_REF",
       "VANTA_UMBRA_SUPPORTED_ASSET_REF",
@@ -37,6 +47,13 @@ const rails = [
     label: "Vanta Private Pool v2 Rail",
     mode: "vanta-operated-private-pool",
     canClaimMeaningfulPrivacy: false,
+    currentEvidenceRefs: [
+      "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
+      "ops/mainnet/private-pool-v2-nullifier-replay.evidence.json",
+      "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
+      "ops/mainnet/private-pool-v2-route-health.evidence.json",
+      "ops/mainnet/service-deployment.evidence.json",
+    ],
     requiredEvidence: [
       "VANTA_PRIVATE_POOL_V2_PRODUCTION_SMOKE_EVIDENCE_REF",
       "VANTA_PRIVATE_POOL_V2_AUDIT_REF",
@@ -70,6 +87,10 @@ export function createVantaPrivacyRailContract(options = {}) {
     rails,
     requiredVerificationCommands: [
       "npm run privacy-rail:contract-check",
+      "npm run mainnet:wallet-signing-evidence-check",
+      "npm run mainnet:nullifier-replay-evidence-check",
+      "npm run mainnet:private-rail-route-health-evidence-check",
+      "npm run mainnet:production-smoke-evidence-check",
       "npm run security:limitations-check",
       "npm run mainnet:preflight",
     ],

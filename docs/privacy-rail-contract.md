@@ -23,6 +23,12 @@ Required stance:
 - require explicit wallet approval
 - avoid Pay/Strategy production claims
 
+Current checked refs:
+
+- `docs/security-limitations.md`
+- `npm run mainnet:readiness-check`
+- `npm run privacy-rail:contract-check`
+
 ### `umbra-mainnet`
 
 This rail is for an Umbra-backed mainnet integration if Vanta can prove the supported assets, wallet flows, mixer or encrypted-balance route, relayer assumptions, and limitations.
@@ -33,6 +39,12 @@ It cannot claim meaningful privacy until Vanta has refs for:
 - `VANTA_UMBRA_SUPPORTED_ASSET_REF`
 - `VANTA_UMBRA_WALLET_SIGNING_EVIDENCE_REF`
 - `VANTA_UMBRA_PRIVACY_LIMITATIONS_REF`
+
+Current checked refs:
+
+- `npm run mainnet:wallet-signing-status`
+- `npm run mainnet:wallet-signing-evidence-check`
+- `docs/privacy-rail-contract.md`
 
 ### `vanta-private-pool-v2`
 
@@ -46,6 +58,14 @@ It cannot claim meaningful privacy until Vanta has refs for:
 - `VANTA_PRIVATE_POOL_V2_RELAYER_SEPARATION_REF`
 - `VANTA_PRIVATE_POOL_V2_NULLIFIER_ENFORCEMENT_REF`
 
+Current checked refs:
+
+- `ops/mainnet/private-pool-v2-production-smoke.evidence.json`
+- `ops/mainnet/private-pool-v2-nullifier-replay.evidence.json`
+- `ops/mainnet/private-pool-v2-role-service-replay.evidence.json`
+- `ops/mainnet/private-pool-v2-route-health.evidence.json`
+- `ops/mainnet/service-deployment.evidence.json`
+
 ## User-Facing Rule
 
 Do not claim meaningful privacy unless the selected rail has live mainnet evidence, relayer separation, nullifier/replay enforcement, safe logging, and reviewed limitations.
@@ -58,5 +78,9 @@ Run:
 
 ```bash
 npm run privacy-rail:contract-check
+npm run mainnet:wallet-signing-evidence-check
+npm run mainnet:nullifier-replay-evidence-check
+npm run mainnet:private-rail-route-health-evidence-check
+npm run mainnet:production-smoke-evidence-check
 npm run mainnet:preflight
 ```

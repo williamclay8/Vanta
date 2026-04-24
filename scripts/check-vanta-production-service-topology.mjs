@@ -49,6 +49,18 @@ assert.ok(
   "Topology check command must be part of its own contract.",
 );
 assert.ok(
+  topology.requiredVerificationCommands.includes("npm run mainnet:role-service-replay-status"),
+  "Topology must include role-service replay status command.",
+);
+assert.ok(
+  topology.requiredVerificationCommands.includes("npm run mainnet:role-service-replay-evidence-check"),
+  "Topology must include role-service replay evidence command.",
+);
+assert.ok(
+  topology.requiredVerificationCommands.includes("npm run private-pool-v2:service-network-check"),
+  "Topology must preserve the underlying service-network harness command.",
+);
+assert.ok(
   topology.requiredVerificationCommands.includes("npm run mainnet:deployment-manifest-check"),
   "Topology must depend on deployment manifest checks.",
 );

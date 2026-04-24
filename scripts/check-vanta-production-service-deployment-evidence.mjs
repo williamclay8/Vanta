@@ -21,7 +21,11 @@ assert.match(
   "Service deployment evidence must record a sanitized route-health check timestamp.",
 );
 assert.equal(evidence.manifestRef, "ops/mainnet/private-pool-v2-services.manifest.json");
-assert.equal(evidence.serviceNetworkRef, "npm run private-pool-v2:service-network-check");
+assert.equal(
+  evidence.roleServiceReplayEvidenceRef,
+  "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
+);
+assert.equal(evidence.roleServiceNetworkRef, "npm run private-pool-v2:service-network-check");
 assert.equal(evidence.productionSmokeEvidenceRef, "ops/mainnet/private-pool-v2-production-smoke.evidence.json");
 assert.equal(evidence.routeHealthEvidenceRef, "ops/mainnet/private-pool-v2-route-health.evidence.json");
 assert.equal(evidence.services.length, 5);
@@ -31,6 +35,10 @@ for (const service of evidence.services) {
 assert.ok(
   evidence.deploymentTruth.includes("deployed on Render"),
   "Service deployment evidence must preserve the deployed Render truth.",
+);
+assert.ok(
+  evidence.deploymentTruth.includes("checked role-service replay barrier evidence"),
+  "Service deployment evidence must preserve the checked role-service replay barrier truth.",
 );
 
 const serialized = JSON.stringify(evidence);

@@ -54,6 +54,7 @@ assert.ok(privatePoolDecision.userFacingCopy.includes("not ready to claim privat
 for (const railId of ["alpha-public-warning", "umbra-mainnet", "vanta-private-pool-v2"]) {
   const rail = contract.rails.find((candidate) => candidate.id === railId);
   assert.ok(rail, `Missing privacy rail ${railId}.`);
+  assert.ok(Array.isArray(rail.currentEvidenceRefs) && rail.currentEvidenceRefs.length > 0, `${railId} needs current evidence refs.`);
   assert.ok(Array.isArray(rail.requiredEvidence) && rail.requiredEvidence.length > 0, `${railId} needs evidence.`);
   assert.ok(Array.isArray(rail.blockers) && rail.blockers.length > 0, `${railId} needs blockers.`);
   assert.equal(rail.canClaimMeaningfulPrivacy, false, `${railId} must not claim meaningful privacy yet.`);
@@ -66,14 +67,34 @@ assert.ok(alphaRail.blockers.some((blocker) => blocker.includes("no real privacy
 const umbraRail = contract.rails.find((candidate) => candidate.id === "umbra-mainnet");
 assert.ok(umbraRail.requiredEvidence.includes("VANTA_UMBRA_MAINNET_CAPABILITY_REF"));
 assert.ok(umbraRail.blockers.some((blocker) => blocker.includes("Umbra mainnet")));
+assert.ok(umbraRail.currentEvidenceRefs.includes("npm run mainnet:wallet-signing-status"));
 
 const privatePoolRail = contract.rails.find((candidate) => candidate.id === "vanta-private-pool-v2");
 assert.ok(privatePoolRail.requiredEvidence.includes("VANTA_PRIVATE_POOL_V2_PRODUCTION_SMOKE_EVIDENCE_REF"));
 assert.ok(privatePoolRail.blockers.some((blocker) => blocker.includes("no-real-funds smoke evidence")));
+assert.ok(privatePoolRail.currentEvidenceRefs.includes("ops/mainnet/private-pool-v2-production-smoke.evidence.json"));
+assert.ok(privatePoolRail.currentEvidenceRefs.includes("ops/mainnet/private-pool-v2-nullifier-replay.evidence.json"));
+assert.ok(privatePoolRail.currentEvidenceRefs.includes("ops/mainnet/private-pool-v2-route-health.evidence.json"));
 
 assert.ok(
   contract.requiredVerificationCommands.includes("npm run privacy-rail:contract-check"),
   "Privacy rail contract must include its check command.",
+);
+assert.ok(
+  contract.requiredVerificationCommands.includes("npm run mainnet:wallet-signing-evidence-check"),
+  "Privacy rail contract must include wallet-signing evidence command.",
+);
+assert.ok(
+  contract.requiredVerificationCommands.includes("npm run mainnet:nullifier-replay-evidence-check"),
+  "Privacy rail contract must include nullifier replay evidence command.",
+);
+assert.ok(
+  contract.requiredVerificationCommands.includes("npm run mainnet:private-rail-route-health-evidence-check"),
+  "Privacy rail contract must include route-health evidence command.",
+);
+assert.ok(
+  contract.requiredVerificationCommands.includes("npm run mainnet:production-smoke-evidence-check"),
+  "Privacy rail contract must include production smoke evidence command.",
 );
 assert.ok(
   packageJson.scripts["privacy-rail:contract-check"] === "node scripts/check-vanta-privacy-rail-contract.mjs",
@@ -91,6 +112,9 @@ for (const phrase of [
   "vanta-private-pool-v2",
   "Do not claim meaningful privacy",
   "Render does not create privacy",
+  "Current checked refs:",
+  "ops/mainnet/private-pool-v2-nullifier-replay.evidence.json",
+  "npm run mainnet:wallet-signing-evidence-check",
   "mainnetReady: false",
   "productionReady: false",
 ]) {

@@ -207,7 +207,7 @@ The sanitized production service-deployment evidence file is:
 ops/mainnet/service-deployment.evidence.json
 ```
 
-It records only status-level deployment facts and refs to the service manifest, route-health evidence, service-network verification, and smoke evidence.
+It records only status-level deployment facts and refs to the service manifest, route-health evidence, the checked role-service replay evidence, the underlying service-network harness, and smoke evidence.
 
 The production service-deployment evidence command is:
 

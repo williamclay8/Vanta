@@ -98,6 +98,8 @@ export function createVantaProductionServiceContract() {
       "npm run mainnet:service-contract-check",
       "npm run mainnet:service-deployment-status",
       "npm run mainnet:service-deployment-evidence-check",
+      "npm run mainnet:role-service-replay-status",
+      "npm run mainnet:role-service-replay-evidence-check",
       "npm run private-pool-v2:service-network-check",
       "npm run mainnet:readiness-check",
       "npm run private-pool-v2:verify",

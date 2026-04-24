@@ -44,5 +44,17 @@ assert.ok(
   contract.requiredVerificationCommands.includes("npm run mainnet:service-deployment-evidence-check"),
   "Missing service deployment evidence command.",
 );
+assert.ok(
+  contract.requiredVerificationCommands.includes("npm run mainnet:role-service-replay-status"),
+  "Missing role-service replay status command.",
+);
+assert.ok(
+  contract.requiredVerificationCommands.includes("npm run mainnet:role-service-replay-evidence-check"),
+  "Missing role-service replay evidence command.",
+);
+assert.ok(
+  contract.requiredVerificationCommands.includes("npm run private-pool-v2:service-network-check"),
+  "Missing underlying service-network harness command.",
+);
 
 console.log("Vanta production service contract check: PASS");

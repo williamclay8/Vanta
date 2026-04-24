@@ -151,6 +151,8 @@ export function createVantaProductionServiceTopology() {
     ],
     requiredVerificationCommands: [
       "npm run mainnet:service-topology-check",
+      "npm run mainnet:role-service-replay-status",
+      "npm run mainnet:role-service-replay-evidence-check",
       "npm run private-pool-v2:service-network-check",
       "npm run mainnet:service-contract-check",
       "npm run mainnet:deployment-manifest-check",

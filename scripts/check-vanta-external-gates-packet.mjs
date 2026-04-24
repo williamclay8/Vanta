@@ -132,6 +132,12 @@ assertGateIncludes("monitoring-incident-response", "verificationCommands", "npm 
 assertGateIncludes("wallet-signing-safety", "verificationCommands", "npm run wallet:browser-signing-safety-check");
 assertGateIncludes("deployed-services", "requiredEvidence", "ops/mainnet/private-pool-v2-production-smoke.template.json");
 assertGateIncludes("deployed-services", "requiredEvidence", "ops/mainnet/private-pool-v2-production-smoke.evidence.json");
+assertGateIncludes("deployed-services", "requiredEvidence", "ops/mainnet/service-deployment.evidence.json");
+assertGateIncludes("deployed-services", "requiredEvidence", "ops/mainnet/private-pool-v2-route-health.evidence.json");
+assertGateIncludes("deployed-services", "requiredEvidence", "ops/mainnet/private-pool-v2-role-service-replay.evidence.json");
+assertGateIncludes("deployed-services", "verificationCommands", "npm run mainnet:service-deployment-evidence-check");
+assertGateIncludes("deployed-services", "verificationCommands", "npm run mainnet:private-rail-route-health-evidence-check");
+assertGateIncludes("deployed-services", "verificationCommands", "npm run mainnet:role-service-replay-evidence-check");
 assertGateIncludes("deployed-services", "verificationCommands", "npm run mainnet:private-pool-v2-production-smoke-check");
 assertGateIncludes("deployed-services", "verificationCommands", "npm run mainnet:production-smoke-evidence-check");
 assertGateIncludes("third-party-security-audit", "requiredEvidence", "ops/mainnet/mainnet-approval-gates.template.json");
