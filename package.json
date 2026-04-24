@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "active-memory:check": "node scripts/check-vanta-active-memory-flow.mjs",
     "design:contract-check": "node scripts/check-vanta-design-contract.mjs",
     "truth:transaction-check": "node scripts/check-vanta-transaction-truth.mjs",
     "mainnet:transaction-evidence-check": "node scripts/check-vanta-transaction-evidence.mjs",
