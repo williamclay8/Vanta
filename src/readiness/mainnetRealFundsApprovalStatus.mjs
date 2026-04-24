@@ -89,8 +89,10 @@ export function createVantaMainnetRealFundsApprovalStatus() {
     rollbackPlanRef: approval.rollbackPlanRef,
     requiredNextStep:
       approvalWindowStatus === "active"
-        ? "Keep live actions inside the exact approved bounded beta action."
-        : "Record a new bounded approval window before any live mainnet action.",
+        ? "Keep live actions inside the exact approved bounded live action."
+        : approvalWindowStatus === "scheduled"
+          ? "Wait for the approved launch window to open before any live mainnet action."
+          : "Record a new bounded approval window before any live mainnet action.",
     safety:
       "No wallet keys, signed transactions, bearer values, or raw database URLs are printed.",
     stopLossPlanRef: approval.stopLossPlanRef,

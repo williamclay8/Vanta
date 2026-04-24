@@ -80,7 +80,9 @@ assert.deepEqual(snapshot.realFundsApproval.mainnetFundsBlockedBy, [
 assert.ok(
   snapshot.realFundsApproval.approvalWindowStatus === "active"
     ? snapshot.realFundsApproval.requiredNextStep.includes("Keep live actions inside")
-    : snapshot.realFundsApproval.requiredNextStep.includes("Record a new bounded approval window"),
+    : snapshot.realFundsApproval.approvalWindowStatus === "scheduled"
+      ? snapshot.realFundsApproval.requiredNextStep.includes("Wait for the approved launch window to open")
+      : snapshot.realFundsApproval.requiredNextStep.includes("Record a new bounded approval window"),
 );
 assert.equal(snapshot.privateSettlement.activePrivacyRailId, "vanta-private-pool-v2");
 assert.equal(snapshot.privateSettlement.settlementReadiness, "no-real-funds-production-smoke-only");
@@ -621,7 +623,10 @@ assert.ok(
   "Missing private-settlement check command.",
 );
 assert.ok(snapshot.requiredCommands.includes("npm run audit:package-check"), "Missing audit package command.");
-assert.ok(snapshot.nextActions[0]?.includes("approval window"), "First next action should preserve the bounded approval window.");
+assert.ok(
+  snapshot.nextActions[0]?.includes("approval window") || snapshot.nextActions[0]?.includes("launch window"),
+  "First next action should preserve the bounded approval window.",
+);
 assert.ok(
   snapshot.nextActions.some((action) => action.includes("operator-skipped controls")),
   "Next actions must preserve operator-skipped control visibility.",

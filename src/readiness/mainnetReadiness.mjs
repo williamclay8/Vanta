@@ -217,8 +217,10 @@ export function createVantaMainnetReadinessSnapshot() {
   }));
   const nextActions = [
     realFundsApproval.liveMainnetActionsAllowedNow
-      ? "Execute only the approved bounded beta mainnet private-pool smoke during the active approval window; record a new bounded approval packet before changing the action, launch window, fee payer, or maximum funds at risk."
-      : "Record a new bounded approval window before any live mainnet private-pool action or real-funds movement.",
+      ? "Execute only the approved bounded live mainnet private-settlement smoke during the active approval window; record a new bounded approval packet before changing the action, launch window, fee payer, or maximum funds at risk."
+      : realFundsApproval.approvalWindowStatus === "scheduled"
+        ? "Wait for the approved live mainnet launch window to open before attempting any real-funds action."
+        : "Record a new bounded approval window before any live mainnet private-pool action or real-funds movement.",
     `Keep the service-deployment packet, green route-health, green replay verification, green no-real-funds production smoke evidence, and the checked restore-readback coverage fresh while the checked pending production controls remain ${productionServiceDeployment.pendingProductionControls.join(", ")}.`,
     "Keep operator-skipped controls visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
     `Keep the abuse/observability status/evidence surface fresh while the checked pending controls remain ${abuseObservability.pendingObservabilityControls.join(", ")}.`,
