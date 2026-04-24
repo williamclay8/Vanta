@@ -291,14 +291,16 @@
       "status": "not-provisioned",
       "externalGate": true,
       "owner": "site-reliability-and-security-operator",
-      "summary": "Provision dashboards, alerts, privacy-preserving telemetry, audit logs, abuse controls, and incident-response ownership.",
+      "summary": "Keep production observability blocked while provider-backed log sink, dashboards, alerts, retention, and incident workflow controls are still pending.",
       "requiredEvidence": [
         "monitoring dashboard reference",
         "ops/mainnet/production-observability.template.json references-only observability template",
+        "provider-backed log sink reference",
         "alert routing reference",
         "on-call owner reference",
         "incident runbook reference",
         "abuse response workflow reference",
+        "retention policy reference",
         "privacy-preserving telemetry review reference"
       ],
       "forbiddenInGit": [
@@ -314,7 +316,7 @@
         "npm run mainnet:observability-sink-check",
         "npm run operator:runbook-check"
       ],
-      "approvalGate": "operators can detect, triage, pause, and recover without logging secrets or private inputs"
+      "approvalGate": "provider-backed log sink, dashboards, alerts, retention, and incident workflow are all externally verified without logging secrets or private inputs"
     }
   ],
   "stagingEvidence": {

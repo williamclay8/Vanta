@@ -313,10 +313,12 @@ Purpose: make production operation observable without logging secrets or private
 Evidence needed:
 
 - `VANTA_MONITORING_DASHBOARD_REF`
+- provider-backed log sink reference
 - alert routing reference
 - on-call owner reference
 - `VANTA_INCIDENT_RUNBOOK_REF`
 - abuse response workflow reference
+- retention policy reference
 - privacy-preserving telemetry review reference
 - staging Better Stack monitor references from `ops/mainnet/staging-monitoring.manifest.json`
 - production Better Stack monitors are intentionally skipped by operator decision; use provider-neutral observability evidence instead
@@ -330,6 +332,8 @@ npm run ops:safe-telemetry-check
 npm run mainnet:observability-sink-check
 npm run operator:runbook-check
 ```
+
+Current checked truth: the deployed operator already uses the preferred Postgres durable shared-window rate limiter, but provider-backed log sink, dashboards, alerts, retention, and incident workflow controls are all still pending.
 
 ## How To Hand This Back Safely
 
