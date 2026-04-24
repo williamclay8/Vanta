@@ -1,5 +1,6 @@
 import { strict as assert } from "node:assert";
 import { createVantaAbuseObservabilityContract } from "../src/readiness/abuseObservabilityContract.mjs";
+import { createVantaProductionObservabilityControlsSummary } from "../src/readiness/productionObservabilityControls.mjs";
 import { createInMemoryRateLimiter, createVantaRateLimiterCatalog } from "../src/ops/vantaRateLimit.mjs";
 import { createNoopOperatorEventSink } from "../src/ops/vantaOperatorEventSink.mjs";
 import { readFileSync } from "node:fs";
@@ -14,25 +15,21 @@ function buildStatus() {
   const limiter = createInMemoryRateLimiter();
   const eventSink = createNoopOperatorEventSink();
   const template = JSON.parse(readFileSync(templatePath, "utf8"));
+  const controls = createVantaProductionObservabilityControlsSummary();
 
   return {
     checkedAt: new Date().toISOString(),
+    checkedControlsRef: controls.checkedControlsRef,
     globalRequirements: contract.globalRequirements,
     mainnetReady: false,
     nextImplementationStep: contract.nextImplementationStep,
     observabilityProvider: template.provider,
-    providerBackedLogSinkAvailable: false,
-    metricsDashboardsAvailable: false,
-    alertsConfigured: false,
-    retentionPolicyConfigured: false,
-    incidentWorkflowReady: false,
-    pendingObservabilityControls: [
-      "provider-backed-log-sink",
-      "metrics-dashboards",
-      "alert-policies",
-      "retention-policy",
-      "incident-workflow",
-    ],
+    providerBackedLogSinkAvailable: controls.providerBackedLogSinkAvailable,
+    metricsDashboardsAvailable: controls.metricsDashboardsAvailable,
+    alertsConfigured: controls.alertsConfigured,
+    retentionPolicyConfigured: controls.retentionPolicyConfigured,
+    incidentWorkflowReady: controls.incidentWorkflowReady,
+    pendingObservabilityControls: controls.pendingObservabilityControls,
     operatorEventSinkKind: eventSink.kind,
     operatorEventSinkProductionReady: eventSink.productionReady,
     operatorEventSinkSource: contract.operatorEventSinkModulePath,
@@ -47,6 +44,7 @@ function buildStatus() {
       "No provider API keys, webhook URLs, source tokens, bearer values, wallet keys, signed transaction material, or database URLs are printed.",
     services: template.services.map((service) => ({
       blockedUntil: service.blockedUntil,
+      controls: controls.controls.services.find((candidate) => candidate.service === service.service)?.controls ?? {},
       hasMetricsDashboardRef: Boolean(service.metricsDashboardRef),
       hasAlertPolicyRef: Boolean(service.alertPolicyRef),
       hasIncidentRunbookRef: Boolean(service.incidentRunbookRef),
@@ -73,21 +71,17 @@ function buildStatus() {
 const result = buildStatus();
 
 if (checkMode) {
+  const controls = createVantaProductionObservabilityControlsSummary();
   assert.equal(result.mainnetReady, false, "Abuse/observability status must not claim mainnet readiness.");
   assert.equal(result.productionReady, false, "Abuse/observability status must not claim production readiness.");
   assert.equal(result.observabilityProvider, "provider-neutral-skipped-by-operator");
-  assert.equal(result.providerBackedLogSinkAvailable, false);
-  assert.equal(result.metricsDashboardsAvailable, false);
-  assert.equal(result.alertsConfigured, false);
-  assert.equal(result.retentionPolicyConfigured, false);
-  assert.equal(result.incidentWorkflowReady, false);
-  assert.deepEqual(result.pendingObservabilityControls, [
-    "provider-backed-log-sink",
-    "metrics-dashboards",
-    "alert-policies",
-    "retention-policy",
-    "incident-workflow",
-  ]);
+  assert.equal(result.providerBackedLogSinkAvailable, controls.providerBackedLogSinkAvailable);
+  assert.equal(result.metricsDashboardsAvailable, controls.metricsDashboardsAvailable);
+  assert.equal(result.alertsConfigured, controls.alertsConfigured);
+  assert.equal(result.retentionPolicyConfigured, controls.retentionPolicyConfigured);
+  assert.equal(result.incidentWorkflowReady, controls.incidentWorkflowReady);
+  assert.deepEqual(result.pendingObservabilityControls, controls.pendingObservabilityControls);
+  assert.equal(result.checkedControlsRef, "ops/mainnet/production-observability.controls.json");
   assert.deepEqual(result.rateLimiterAvailableKinds, ["in-memory-rate-limiter", "postgres-rate-limiter"]);
   assert.equal(result.rateLimiterKind, "in-memory-rate-limiter");
   assert.equal(result.preferredProductionRateLimiterKind, "postgres-rate-limiter");
@@ -98,6 +92,12 @@ if (checkMode) {
   assert.equal(result.operatorEventSinkProductionReady, false);
   assert.equal(result.operatorEventSinkSource, "src/ops/vantaOperatorEventSink.mjs");
   assert.equal(result.telemetrySource, "src/ops/vantaSafeTelemetry.mjs");
+  assert.equal(result.services.length, controls.controls.services.length);
+  for (const service of result.services) {
+    const expectedControls = controls.controls.services.find((candidate) => candidate.service === service.service)?.controls;
+    assert.ok(expectedControls, `${service.service} must map to a controls entry.`);
+    assert.deepEqual(service.controls, expectedControls);
+  }
   for (const surface of result.surfaceStatuses) {
     if (surface.id === "pay" || surface.id === "privatePoolV2") {
       assert.equal(

@@ -1,7 +1,9 @@
 import { strict as assert } from "node:assert";
 import { createVantaMainnetReadinessSnapshot } from "../src/readiness/mainnetReadiness.mjs";
+import { createVantaProductionObservabilityControlsSummary } from "../src/readiness/productionObservabilityControls.mjs";
 
 const snapshot = createVantaMainnetReadinessSnapshot();
+const observabilityControls = createVantaProductionObservabilityControlsSummary();
 
 assert.equal(snapshot.version, "vanta-mainnet-readiness-0.1");
 assert.equal(snapshot.mainnetReady, false, "Vanta must not report mainnet readiness while blockers remain.");
@@ -16,11 +18,25 @@ assert.equal(snapshot.abuseObservability.privatePoolV2RuntimeMode, "remote-servi
 assert.equal(snapshot.abuseObservability.privatePoolV2RateLimiter, "postgres-durable-shared-window");
 assert.equal(snapshot.abuseObservability.privatePoolV2PreferredRateLimiterKind, "postgres-durable-shared-window");
 assert.equal(snapshot.abuseObservability.privatePoolV2RuntimeMatchesPreferredRateLimiter, true);
-assert.equal(snapshot.abuseObservability.providerBackedLogSinkAvailable, false);
-assert.equal(snapshot.abuseObservability.metricsDashboardsAvailable, false);
-assert.equal(snapshot.abuseObservability.alertsConfigured, false);
-assert.equal(snapshot.abuseObservability.retentionPolicyConfigured, false);
-assert.equal(snapshot.abuseObservability.incidentWorkflowReady, false);
+assert.equal(snapshot.abuseObservability.checkedControlsRef, "ops/mainnet/production-observability.controls.json");
+assert.equal(
+  snapshot.abuseObservability.providerBackedLogSinkAvailable,
+  observabilityControls.providerBackedLogSinkAvailable,
+);
+assert.equal(
+  snapshot.abuseObservability.metricsDashboardsAvailable,
+  observabilityControls.metricsDashboardsAvailable,
+);
+assert.equal(snapshot.abuseObservability.alertsConfigured, observabilityControls.alertsConfigured);
+assert.equal(
+  snapshot.abuseObservability.retentionPolicyConfigured,
+  observabilityControls.retentionPolicyConfigured,
+);
+assert.equal(snapshot.abuseObservability.incidentWorkflowReady, observabilityControls.incidentWorkflowReady);
+assert.deepEqual(
+  snapshot.abuseObservability.pendingObservabilityControls,
+  observabilityControls.pendingObservabilityControls,
+);
 assert.equal(snapshot.nullifierReplay.runtimeMode, "remote-services");
 assert.equal(
   snapshot.nullifierReplay.layeredReplayStatus,

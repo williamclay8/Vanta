@@ -4,11 +4,14 @@ import { resolve } from "node:path";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const evidencePath = resolve(repoRoot, "ops/mainnet/abuse-observability.evidence.json");
+const controlsPath = resolve(repoRoot, "ops/mainnet/production-observability.controls.json");
 const packagePath = resolve(repoRoot, "package.json");
 
 assert.ok(existsSync(evidencePath), "Missing ops/mainnet/abuse-observability.evidence.json.");
+assert.ok(existsSync(controlsPath), "Missing ops/mainnet/production-observability.controls.json.");
 
 const evidence = JSON.parse(readFileSync(evidencePath, "utf8"));
+const controls = JSON.parse(readFileSync(controlsPath, "utf8"));
 const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
 
 assert.equal(evidence.version, "vanta-production-abuse-observability-evidence-0.1");
@@ -19,24 +22,55 @@ assert.equal(
   evidence.privatePoolV2RuntimeRef,
   "doppler run --config prd --project vanta -- npm run mainnet:abuse-observability-runtime-status-auth",
 );
+assert.equal(evidence.checkedControlsRef, "ops/mainnet/production-observability.controls.json");
 assert.equal(evidence.payRuntimeStatus, "staging-or-local-only");
 assert.equal(evidence.contractRef, "npm run mainnet:abuse-observability-check");
 assert.equal(evidence.safeTelemetryRef, "npm run ops:safe-telemetry-check");
 assert.equal(evidence.rateLimitRef, "npm run ops:rate-limit-check");
 assert.equal(evidence.observabilitySinkRef, "npm run mainnet:observability-sink-check");
 assert.equal(evidence.observabilityProvider, "provider-neutral-skipped-by-operator");
-assert.equal(evidence.providerBackedLogSinkAvailable, false);
-assert.equal(evidence.metricsDashboardsAvailable, false);
-assert.equal(evidence.alertsConfigured, false);
-assert.equal(evidence.retentionPolicyConfigured, false);
-assert.equal(evidence.incidentWorkflowReady, false);
-assert.deepEqual(evidence.pendingObservabilityControls, [
-  "provider-backed-log-sink",
-  "metrics-dashboards",
-  "alert-policies",
-  "retention-policy",
-  "incident-workflow",
+assert.equal(controls.version, "vanta-production-observability-controls-0.1");
+assert.equal(controls.mainnetReady, false);
+assert.equal(controls.productionReady, false);
+assert.equal(controls.templateRef, "ops/mainnet/production-observability.template.json");
+assert.deepEqual(controls.allowedStatuses, [
+  "pending",
+  "configured",
+  "verified",
+  "operator-skipped-control",
 ]);
+const allowedStatuses = new Set(controls.allowedStatuses);
+const controlIds = [
+  "logSink",
+  "metricsDashboard",
+  "alertPolicy",
+  "retentionPolicy",
+  "incidentWorkflow",
+];
+for (const service of controls.services) {
+  for (const controlId of controlIds) {
+    const control = service.controls?.[controlId];
+    assert.ok(control, `${service.service} must declare observability control ${controlId}.`);
+    assert.ok(allowedStatuses.has(control.status), `${service.service}/${controlId} must use an allowed status.`);
+    assert.ok(control.evidenceRef, `${service.service}/${controlId} must include an evidence ref.`);
+    assert.ok(control.verificationRef, `${service.service}/${controlId} must include a verification ref.`);
+  }
+}
+const isConfigured = (status) => status === "configured" || status === "verified";
+const everyServiceHas = (controlId) => controls.services.every((service) => isConfigured(service.controls[controlId].status));
+const derivedPendingObservabilityControls = [
+  ...(everyServiceHas("logSink") ? [] : ["provider-backed-log-sink"]),
+  ...(everyServiceHas("metricsDashboard") ? [] : ["metrics-dashboards"]),
+  ...(everyServiceHas("alertPolicy") ? [] : ["alert-policies"]),
+  ...(everyServiceHas("retentionPolicy") ? [] : ["retention-policy"]),
+  ...(everyServiceHas("incidentWorkflow") ? [] : ["incident-workflow"]),
+];
+assert.equal(evidence.providerBackedLogSinkAvailable, everyServiceHas("logSink"));
+assert.equal(evidence.metricsDashboardsAvailable, everyServiceHas("metricsDashboard"));
+assert.equal(evidence.alertsConfigured, everyServiceHas("alertPolicy"));
+assert.equal(evidence.retentionPolicyConfigured, everyServiceHas("retentionPolicy"));
+assert.equal(evidence.incidentWorkflowReady, everyServiceHas("incidentWorkflow"));
+assert.deepEqual(evidence.pendingObservabilityControls, derivedPendingObservabilityControls);
 assert.equal(evidence.operatorEventSinkKind, "noop-operator-event-sink");
 assert.equal(evidence.operatorEventSinkProductionReady, false);
 assert.equal(evidence.operatorEventSinkSource, "src/ops/vantaOperatorEventSink.mjs");
@@ -96,6 +130,20 @@ for (const forbidden of [
   "whsec_",
 ]) {
   assert.ok(!serialized.includes(forbidden), `Abuse/observability evidence must not contain ${forbidden}.`);
+}
+const controlsSerialized = JSON.stringify(controls);
+for (const forbidden of [
+  "postgres://",
+  "postgresql://",
+  "Bearer ",
+  "DATABASE_URL=",
+  "privateKey",
+  "seedPhrase",
+  "mnemonic",
+  "sk_live_",
+  "whsec_",
+]) {
+  assert.ok(!controlsSerialized.includes(forbidden), `Observability controls must not contain ${forbidden}.`);
 }
 
 assert.equal(

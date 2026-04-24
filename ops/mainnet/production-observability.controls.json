@@ -1,0 +1,144 @@
+{
+  "version": "vanta-production-observability-controls-0.1",
+  "mainnetReady": false,
+  "productionReady": false,
+  "templateRef": "ops/mainnet/production-observability.template.json",
+  "summary": "Refs-only per-service production observability control matrix for Vanta. This packet records the completion state of log sink, dashboards, alert policies, retention, and incident workflow controls without storing provider secrets, webhook URLs, or raw credentials.",
+  "allowedStatuses": [
+    "pending",
+    "configured",
+    "verified",
+    "operator-skipped-control"
+  ],
+  "services": [
+    {
+      "service": "vanta-pay",
+      "controls": {
+        "logSink": {
+          "status": "pending",
+          "evidenceRef": "provider-neutral-log-source/vanta-pay-production-pending",
+          "verificationRef": "npm run mainnet:observability-sink-check"
+        },
+        "metricsDashboard": {
+          "status": "pending",
+          "evidenceRef": "provider-neutral-dashboard/vanta-pay-production-pending",
+          "verificationRef": "npm run mainnet:observability-sink-check"
+        },
+        "alertPolicy": {
+          "status": "pending",
+          "evidenceRef": "provider-neutral-alert-policy/vanta-pay-production-pending",
+          "verificationRef": "npm run mainnet:observability-sink-check"
+        },
+        "retentionPolicy": {
+          "status": "pending",
+          "evidenceRef": "provider-neutral-retention/vanta-pay-production-pending",
+          "verificationRef": "npm run mainnet:observability-sink-check"
+        },
+        "incidentWorkflow": {
+          "status": "pending",
+          "evidenceRef": "docs/operator-runbook.md#pay-operator",
+          "verificationRef": "docs/operator-runbook.md#pay-operator"
+        }
+      }
+    },
+    {
+      "service": "vanta-private-pool-v2",
+      "controls": {
+        "logSink": {
+          "status": "pending",
+          "evidenceRef": "provider-neutral-log-source/vanta-private-pool-v2-production-pending",
+          "verificationRef": "npm run mainnet:observability-sink-check"
+        },
+        "metricsDashboard": {
+          "status": "pending",
+          "evidenceRef": "provider-neutral-dashboard/vanta-private-pool-v2-production-pending",
+          "verificationRef": "npm run mainnet:observability-sink-check"
+        },
+        "alertPolicy": {
+          "status": "pending",
+          "evidenceRef": "provider-neutral-alert-policy/vanta-private-pool-v2-production-pending",
+          "verificationRef": "npm run mainnet:observability-sink-check"
+        },
+        "retentionPolicy": {
+          "status": "pending",
+          "evidenceRef": "provider-neutral-retention/vanta-private-pool-v2-production-pending",
+          "verificationRef": "npm run mainnet:observability-sink-check"
+        },
+        "incidentWorkflow": {
+          "status": "pending",
+          "evidenceRef": "docs/operator-runbook.md#private-pool-v2-operator",
+          "verificationRef": "docs/operator-runbook.md#private-pool-v2-operator"
+        }
+      }
+    },
+    {
+      "service": "vanta-strategy",
+      "controls": {
+        "logSink": {
+          "status": "pending",
+          "evidenceRef": "provider-neutral-log-source/vanta-strategy-production-pending",
+          "verificationRef": "npm run mainnet:observability-sink-check"
+        },
+        "metricsDashboard": {
+          "status": "pending",
+          "evidenceRef": "provider-neutral-dashboard/vanta-strategy-production-pending",
+          "verificationRef": "npm run mainnet:observability-sink-check"
+        },
+        "alertPolicy": {
+          "status": "pending",
+          "evidenceRef": "provider-neutral-alert-policy/vanta-strategy-production-pending",
+          "verificationRef": "npm run mainnet:observability-sink-check"
+        },
+        "retentionPolicy": {
+          "status": "pending",
+          "evidenceRef": "provider-neutral-retention/vanta-strategy-production-pending",
+          "verificationRef": "npm run mainnet:observability-sink-check"
+        },
+        "incidentWorkflow": {
+          "status": "pending",
+          "evidenceRef": "docs/operator-runbook.md#readiness-truth",
+          "verificationRef": "docs/operator-runbook.md#readiness-truth"
+        }
+      }
+    },
+    {
+      "service": "vanta-operator-control-plane",
+      "controls": {
+        "logSink": {
+          "status": "pending",
+          "evidenceRef": "provider-neutral-log-source/vanta-operator-control-plane-production-pending",
+          "verificationRef": "npm run mainnet:observability-sink-check"
+        },
+        "metricsDashboard": {
+          "status": "pending",
+          "evidenceRef": "provider-neutral-dashboard/vanta-operator-control-plane-production-pending",
+          "verificationRef": "npm run mainnet:observability-sink-check"
+        },
+        "alertPolicy": {
+          "status": "pending",
+          "evidenceRef": "provider-neutral-alert-policy/vanta-operator-control-plane-production-pending",
+          "verificationRef": "npm run mainnet:observability-sink-check"
+        },
+        "retentionPolicy": {
+          "status": "pending",
+          "evidenceRef": "provider-neutral-retention/vanta-operator-control-plane-production-pending",
+          "verificationRef": "npm run mainnet:observability-sink-check"
+        },
+        "incidentWorkflow": {
+          "status": "pending",
+          "evidenceRef": "docs/operator-runbook.md#readiness-truth",
+          "verificationRef": "docs/operator-runbook.md#readiness-truth"
+        }
+      }
+    }
+  ],
+  "forbiddenValues": [
+    "provider source token",
+    "provider API key",
+    "provider webhook URL",
+    "raw database URL",
+    "bearer token",
+    "wallet key",
+    "seed phrase"
+  ]
+}

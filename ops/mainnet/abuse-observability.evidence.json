@@ -4,6 +4,7 @@
   "productionReady": false,
   "lastStatusRef": "npm run mainnet:abuse-observability-status-check",
   "privatePoolV2RuntimeRef": "doppler run --config prd --project vanta -- npm run mainnet:abuse-observability-runtime-status-auth",
+  "checkedControlsRef": "ops/mainnet/production-observability.controls.json",
   "payRuntimeStatus": "staging-or-local-only",
   "contractRef": "npm run mainnet:abuse-observability-check",
   "safeTelemetryRef": "npm run ops:safe-telemetry-check",
