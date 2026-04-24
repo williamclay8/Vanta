@@ -15,7 +15,7 @@ const requiredPageCopy = [
   "Vanta Pay Suite",
   "Merchant command center",
   "Create a payment request",
-  "Suite mode",
+  "Checkout preview",
   "Hosted checkout",
   "Embedded checkout",
   "Modal checkout",

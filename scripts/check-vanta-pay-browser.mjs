@@ -38,7 +38,7 @@ function runBrowserBatch() {
         { kind: "text_visible", text: "Vanta Pay Suite" },
         { kind: "text_visible", text: "Merchant command center" },
         { kind: "text_visible", text: "Create a payment request" },
-        { kind: "text_visible", text: "Suite mode" },
+        { kind: "text_visible", text: "Checkout preview" },
         { kind: "text_visible", text: "Hosted checkout" },
         { kind: "text_visible", text: "Embedded checkout" },
         { kind: "text_visible", text: "Modal checkout" },

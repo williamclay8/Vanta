@@ -2680,7 +2680,7 @@ input {
 .pay-minimal-stage,
 .pay-action-card,
 .pay-payment-card {
-  width: min(640px, 100%);
+  width: min(960px, 100%);
 }
 
 .privacy-review-page {
@@ -2809,18 +2809,40 @@ input {
 }
 
 .pay-page__hero {
-  width: min(640px, 100%);
+  width: min(960px, 100%);
 }
 
 .pay-page__hero.pay-topbar {
-  padding: 18px;
-  border-radius: 20px;
+  padding: 20px;
+  border-radius: 22px;
 }
 
 .pay-page__hero.pay-topbar h1 {
-  font-size: clamp(2.1rem, 5vw, 3.2rem);
+  font-size: clamp(2.3rem, 5vw, 3.9rem);
   line-height: 0.96;
   letter-spacing: -0.04em;
+}
+
+.pay-hero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.pay-hero-badges span {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(0, 229, 200, 0.055);
+  color: var(--muted-strong);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .pay-topbar h1,
@@ -3152,15 +3174,21 @@ input {
 
 .pay-payment-card {
   display: grid;
-  gap: 14px;
+  gap: 16px;
   padding: 18px;
-  border-radius: 20px;
+  border-radius: 22px;
+}
+
+.pay-payment-card--cockpit {
+  background:
+    linear-gradient(180deg, rgba(0, 229, 200, 0.06), rgba(0, 229, 200, 0) 72px),
+    rgba(8, 13, 20, 0.92);
 }
 
 .pay-payment-card header {
   display: grid;
   gap: 6px;
-  text-align: center;
+  text-align: left;
 }
 
 .pay-payment-card h2 {
@@ -3179,6 +3207,31 @@ input {
   color: var(--muted);
   line-height: 1.55;
   text-wrap: pretty;
+}
+
+.pay-request-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.58fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+.pay-request-builder,
+.pay-review-card--live,
+.pay-path-card {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.028);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.075);
+}
+
+.pay-review-card--live {
+  align-content: start;
+  background:
+    linear-gradient(180deg, rgba(0, 229, 200, 0.065), rgba(0, 0, 0, 0.02)),
+    rgba(0, 229, 200, 0.025);
 }
 
 .pay-review-card {
@@ -3212,12 +3265,58 @@ input {
   font-variant-numeric: tabular-nums;
 }
 
-.pay-command-center__trust,
-.pay-command-center__operations,
-.pay-command-center__suite {
+.pay-request-meta {
   display: grid;
-  gap: 0.85rem;
-  margin-top: 1rem;
+  gap: 8px;
+  margin: 4px 0 0;
+}
+
+.pay-request-meta div {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.14);
+}
+
+.pay-request-meta dt {
+  color: var(--muted-strong);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.pay-request-meta dd {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.86rem;
+  overflow-wrap: anywhere;
+}
+
+.pay-path-card {
+  background: rgba(0, 229, 200, 0.022);
+}
+
+.pay-path-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.pay-path-steps span {
+  position: relative;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  border-radius: 10px;
+  background: rgba(0, 229, 200, 0.055);
+  color: var(--muted-strong);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .pay-section-mini-header {
@@ -3235,45 +3334,113 @@ input {
   text-align: right;
 }
 
-.pay-command-card-grid {
-  display: grid;
-  gap: 0.75rem;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.pay-command-card {
-  display: grid;
-  gap: 0.4rem;
-  min-height: 132px;
-  padding: 0.9rem;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.035);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-}
-
-.pay-command-card span {
-  color: var(--muted-strong);
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.pay-command-card strong {
-  color: var(--text);
-  font-size: 0.95rem;
-  line-height: 1.35;
-}
-
-.pay-command-card small,
 .pay-submit-note,
 .pay-field__error {
   color: var(--muted);
   line-height: 1.5;
 }
 
-.pay-command-card--blocked {
-  background: rgba(255, 176, 97, 0.07);
-  box-shadow: inset 0 0 0 1px rgba(255, 176, 97, 0.2);
+.pay-suite-workspace {
+  display: grid;
+  gap: 12px;
+  padding: 6px 0 0;
+}
+
+.pay-primary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.14);
+}
+
+.pay-workflow-action {
+  min-height: 42px;
+  display: inline-flex;
+  flex: 1 1 132px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    background 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.pay-workflow-action:hover,
+.pay-workflow-action:focus-visible {
+  background: rgba(0, 229, 200, 0.055);
+  color: var(--accent);
+}
+
+.pay-workflow-action:active {
+  transform: scale(0.96);
+}
+
+.pay-workflow-action[aria-pressed="true"] {
+  background: rgba(0, 229, 200, 0.12);
+  color: var(--accent);
+}
+
+.pay-workflow-action span,
+.pay-workflow-detail span,
+.pay-suite-plain-rows span {
+  color: var(--muted-strong);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.pay-workflow-action strong,
+.pay-workflow-detail strong {
+  color: var(--text);
+  line-height: 1.3;
+}
+
+.pay-workflow-detail small,
+.pay-suite-plain-rows p {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.pay-workflow-detail {
+  display: grid;
+  gap: 6px;
+  padding: 12px 0;
+  border-top: 1px solid rgba(0, 229, 200, 0.1);
+  border-bottom: 1px solid rgba(0, 229, 200, 0.1);
+}
+
+.pay-suite-plain-rows {
+  display: grid;
+  gap: 0;
+}
+
+.pay-suite-plain-rows p {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 12px;
+  margin: 0;
+  padding: 11px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.075);
+}
+
+.pay-suite-plain-rows p:last-child {
+  border-bottom: 0;
+}
+
+.pay-workflow-detail {
+  background: transparent;
+  box-shadow: none;
 }
 
 .pay-field__error {
@@ -5231,7 +5398,9 @@ input {
     grid-template-columns: 1fr;
   }
 
-  .pay-command-card-grid {
+  .pay-request-grid,
+  .pay-path-steps,
+  .pay-suite-plain-rows p {
     grid-template-columns: 1fr;
   }
 
