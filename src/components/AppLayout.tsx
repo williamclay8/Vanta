@@ -60,6 +60,7 @@ export function AppLayout() {
     useState<PeerOnrampFulfillment | null>(null);
   const [peerLaunchMessage, setPeerLaunchMessage] = useState<string | null>(null);
   const [showMobileWalletPrompt, setShowMobileWalletPrompt] = useState(false);
+  const [showRouteWalletPrompt, setShowRouteWalletPrompt] = useState(false);
   const [mobileWalletOpenLinks, setMobileWalletOpenLinks] = useState<MobileWalletOpenLink[]>([]);
   const [walletConnectionError, setWalletConnectionError] = useState<string | null>(null);
   const peerLaunchAttemptRef = useRef(0);
@@ -202,6 +203,10 @@ export function AppLayout() {
       return;
     }
 
+    const shouldShowPrompt = shouldShowMobileWalletPrompt();
+    setShowRouteWalletPrompt(shouldShowPrompt);
+    setMobileWalletOpenLinks(shouldShowPrompt ? createMobileWalletOpenLinks() : []);
+
     window.scrollTo({ left: 0, top: 0, behavior: "auto" });
 
     const activeTab = tabRefs.current.get(location.pathname);
@@ -298,6 +303,25 @@ export function AppLayout() {
         <div className="beta-mode-banner" role="status">
           <strong>Vanta Beta</strong>
           <span>No funds move in this mode. Live private settlement is offline until production services are resumed.</span>
+        </div>
+      )}
+
+      {showRouteWalletPrompt && !walletPickerOpen && mobileWalletOpenLinks.length > 0 && (
+        <div className="mobile-wallet-open-prompt" role="status">
+          <div>
+            <span>Open Vanta in your wallet</span>
+            <small>
+              Safari cannot connect Phantom directly. Open this page in a wallet browser on
+              mobile, or use a supported desktop browser with a wallet extension.
+            </small>
+          </div>
+          <div className="wallet-picker__mobile-wallet-actions">
+            {mobileWalletOpenLinks.map((link) => (
+              <a data-wallet-open={link.id} href={link.href} key={link.id}>
+                {link.label}
+              </a>
+            ))}
+          </div>
         </div>
       )}
 

@@ -127,6 +127,73 @@ async function runRouteSmoke(sessionId, route, expectedText) {
   }
 }
 
+async function runWalletFallbackSmoke(sessionId) {
+  await navigate(sessionId, `${baseUrl}/app/send?mobile-wallet-prompt=1`);
+  await sleep(750);
+
+  const shellPrompt = await execute(
+    sessionId,
+    `return {
+      path: location.pathname,
+      search: location.search,
+      hasPrompt: document.querySelector(".mobile-wallet-open-prompt") instanceof HTMLElement,
+      promptText: document.querySelector(".mobile-wallet-open-prompt")?.textContent || "",
+      phantomHref: document.querySelector('.mobile-wallet-open-prompt a[data-wallet-open="phantom"]')?.href || null,
+      solflareHref: document.querySelector('.mobile-wallet-open-prompt a[data-wallet-open="solflare"]')?.href || null,
+    };`,
+  );
+
+  if (
+    shellPrompt.path !== "/app/send" ||
+    shellPrompt.search !== "?mobile-wallet-prompt=1" ||
+    !shellPrompt.hasPrompt ||
+    !shellPrompt.promptText.includes("Open Vanta in your wallet") ||
+    !shellPrompt.promptText.includes("Safari cannot connect Phantom directly.") ||
+    !shellPrompt.phantomHref?.startsWith("https://phantom.app/ul/browse/") ||
+    !shellPrompt.solflareHref?.startsWith("https://solflare.com/ul/v1/browse/")
+  ) {
+    throw new Error(`Safari wallet shell fallback is missing or malformed: ${JSON.stringify(shellPrompt)}`);
+  }
+
+  const clickResult = await execute(
+    sessionId,
+    `const trigger = document.querySelector(".app-header__account-trigger");
+    if (trigger instanceof HTMLElement) {
+      trigger.click();
+    }
+    return Boolean(trigger);`,
+  );
+
+  if (!clickResult) {
+    throw new Error("Safari wallet fallback could not find the account trigger.");
+  }
+
+  await sleep(350);
+
+  const pickerPrompt = await execute(
+    sessionId,
+    `return {
+      shellPromptVisible: document.querySelector(".mobile-wallet-open-prompt") instanceof HTMLElement,
+      hasPicker: document.querySelector(".wallet-picker") instanceof HTMLElement,
+      hasPickerPrompt: document.querySelector(".wallet-picker__mobile-wallet-prompt") instanceof HTMLElement,
+      pickerText: document.querySelector(".wallet-picker")?.textContent || "",
+      phantomHref: document.querySelector('.wallet-picker__mobile-wallet-prompt a[data-wallet-open="phantom"]')?.href || null,
+      solflareHref: document.querySelector('.wallet-picker__mobile-wallet-prompt a[data-wallet-open="solflare"]')?.href || null,
+    };`,
+  );
+
+  if (
+    pickerPrompt.shellPromptVisible ||
+    !pickerPrompt.hasPicker ||
+    !pickerPrompt.hasPickerPrompt ||
+    !pickerPrompt.pickerText.includes("Safari cannot connect Phantom directly.") ||
+    !pickerPrompt.phantomHref?.startsWith("https://phantom.app/ul/browse/") ||
+    !pickerPrompt.solflareHref?.startsWith("https://solflare.com/ul/v1/browse/")
+  ) {
+    throw new Error(`Safari wallet picker fallback is missing or malformed: ${JSON.stringify(pickerPrompt)}`);
+  }
+}
+
 function stopProcess(processRef) {
   if (!processRef || processRef.exitCode !== null) {
     return;
@@ -168,6 +235,7 @@ try {
   await runRouteSmoke(sessionId, "/app/send", "Send");
   await runRouteSmoke(sessionId, "/app/shield", "Shield");
   await runRouteSmoke(sessionId, "/docs", "Vanta Docs");
+  await runWalletFallbackSmoke(sessionId);
 
   console.log("vanta Safari browser check: PASS");
 } catch (error) {
