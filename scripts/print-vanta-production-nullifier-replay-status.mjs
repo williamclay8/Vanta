@@ -222,8 +222,8 @@ if (checkMode) {
   );
   assert.equal(
     result.protocolEnforcementLayer,
-    "operator-claim-preflight-and-accepted-reservation-only",
-    "Operator must expose the current protocol enforcement layer truth.",
+    "operator-claim-preflight-plus-verifier-receipt-idempotency-plus-indexer-nullifier-registration",
+    "Operator must expose the current layered protocol enforcement truth.",
   );
   assert.equal(
     result.layeredReplayStatus,
@@ -249,8 +249,8 @@ if (checkMode) {
   assert.equal(result.productionSmokeReplaySimulationHttpStatus, 400);
   assert.equal(
     result.protocolEnforcementFinalLayerImplemented,
-    false,
-    "Final protocol replay enforcement layer must remain incomplete.",
+    true,
+    "Final protocol replay enforcement layer must stay explicitly implemented.",
   );
   assert.equal(
     result.protocolEnforcementFinalLayerProductionReady,

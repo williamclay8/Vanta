@@ -349,7 +349,7 @@ ops/mainnet/private-pool-v2-nullifier-replay.evidence.json
 npm run mainnet:nullifier-replay-evidence-check
 ```
 
-It records the deployed operator replay mode, replay storage mode, durable-store status, runtime mode, the verified role-service replay barrier, the no-real-funds production smoke replay rejection, and the explicit current protocol enforcement layer. The current checked operator layer is `operator-claim-preflight-and-accepted-reservation-only`, and the evidence keeps `finalLayerImplemented: false` and `finalLayerProductionReady: false` until replay enforcement moves beyond the operator-side reservation guard.
+It records the deployed operator replay mode, replay storage mode, durable-store status, runtime mode, the verified role-service replay barrier, the no-real-funds production smoke replay rejection, and the explicit current protocol enforcement layer. The current checked layered protocol boundary is `operator-claim-preflight-plus-verifier-receipt-idempotency-plus-indexer-nullifier-registration`, and the evidence keeps `finalLayerImplemented: true` while `finalLayerProductionReady: false` until the missing live private-settlement conditions are cleared.
 
 The checked role-service replay barrier surface is:
 
