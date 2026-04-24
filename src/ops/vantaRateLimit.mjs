@@ -160,7 +160,6 @@ export function createPostgresRateLimiter({
           normalizedKey,
           new Date(bucketStart).toISOString(),
           new Date(resetAt).toISOString(),
-          limit,
         ],
       );
       const row = result.rows[0];

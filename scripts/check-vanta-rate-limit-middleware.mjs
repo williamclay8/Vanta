@@ -106,6 +106,7 @@ function createFakePostgresClient() {
       }
 
       if (sql.includes("INSERT INTO") && sql.includes("RETURNING hit_count, reset_at")) {
+        assert.equal(params.length, 4, "Postgres rate limiter insert must bind exactly four parameters.");
         const [service, bucketKey, bucketStartIso, resetIso] = params;
         const storageKey = `${service}:${bucketKey}:${bucketStartIso}`;
         const existing = buckets.get(storageKey);
