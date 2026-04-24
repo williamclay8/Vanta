@@ -17,15 +17,14 @@ const visibleStrategyCopy = [
   "Strategy",
   "Stealth DCA",
   "Private TWAP",
-  "Review strategy plan",
-  "Strategy plan ready",
+  "Review strategy settings",
   "Live execution is unavailable in this environment.",
   "Move funds into your private balance before execution.",
   "Connect and fund the required wallet before execution.",
   "Private balance",
   "No fee while Strategy remains preview-only.",
   "If live execution ships later, external execution costs should stay separate.",
-  "Preview routing, funding, and landing behavior while live strategy execution remains preview-only.",
+  "Keep settings editable while live strategy execution remains unavailable.",
   "reduced on-chain observability",
 ];
 
@@ -58,6 +57,9 @@ const bannedStrategyCopy = [
   "Create strategy",
   "0.25% on successful strategy execution",
   "Execution preview",
+  "Strategy plan ready",
+  "Ready for your review",
+  "Preview routing, funding, and landing behavior while live strategy execution remains preview-only.",
 ];
 
 function sleep(ms) {

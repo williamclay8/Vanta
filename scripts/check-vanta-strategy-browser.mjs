@@ -168,7 +168,7 @@ try {
         checks: [
           { kind: "url_contains", text: "/app/strategy" },
           { kind: "text_visible", text: "Strategy" },
-          { kind: "text_visible", text: "Review strategy plan" },
+          { kind: "text_visible", text: "Review strategy settings" },
           { kind: "text_hidden", text: "Schedule strategy" },
           { kind: "text_hidden", text: "Live execution is unavailable in this environment." },
           { kind: "text_visible", text: "No fee while Strategy remains preview-only." },
@@ -180,7 +180,7 @@ try {
           { kind: "text_hidden", text: "Execution preview" },
           {
             kind: "text_visible",
-            text: "Preview routing, funding, and landing behavior while live strategy execution remains preview-only.",
+            text: "Keep settings editable while live strategy execution remains unavailable.",
           },
           { kind: "text_visible", text: "Fund from" },
           { kind: "text_visible", text: "Destination" },
@@ -191,26 +191,23 @@ try {
       {
         action: "assert",
         checks: [
-          { kind: "text_visible", text: "Review strategy plan" },
+          { kind: "text_visible", text: "Review strategy settings" },
           { kind: "text_visible", text: "Move funds into your private balance before execution." },
           { kind: "text_hidden", text: "Live execution is unavailable in this environment." },
           {
             kind: "text_visible",
-            text: "Preview routing, funding, and landing behavior while live strategy execution remains preview-only.",
+            text: "Keep settings editable while live strategy execution remains unavailable.",
           },
           { kind: "no_console_errors" },
         ],
       },
       { action: "click", selector: ".strategy-primary-action" },
-      { action: "wait_for", condition: "text_visible", value: "Strategy plan ready" },
       {
         action: "assert",
         checks: [
-          { kind: "text_visible", text: "Strategy plan ready" },
-          {
-            kind: "text_visible",
-            text: "This plan was created locally for review while live strategy execution remains preview-only.",
-          },
+          { kind: "text_hidden", text: "Strategy plan ready" },
+          { kind: "text_hidden", text: "Ready for your review" },
+          { kind: "text_hidden", text: "Execution preview" },
           { kind: "text_visible", text: "Move funds into your private balance before execution." },
           { kind: "text_hidden", text: "Strategy scheduled" },
           { kind: "no_console_errors" },
@@ -227,7 +224,7 @@ try {
         checks: [
           { kind: "url_contains", text: "/app/strategy" },
           { kind: "text_visible", text: "Strategy" },
-          { kind: "text_visible", text: "Review strategy plan" },
+          { kind: "text_visible", text: "Review strategy settings" },
           { kind: "text_hidden", text: "Schedule strategy" },
           { kind: "text_hidden", text: "Live execution is unavailable in this environment." },
           { kind: "text_visible", text: "No fee while Strategy remains preview-only." },
@@ -239,7 +236,7 @@ try {
           { kind: "text_hidden", text: "Execution preview" },
           {
             kind: "text_visible",
-            text: "Preview routing, funding, and landing behavior while live strategy execution remains preview-only.",
+            text: "Keep settings editable while live strategy execution remains unavailable.",
           },
           { kind: "text_visible", text: "Fund from" },
           { kind: "text_visible", text: "Destination" },
@@ -252,7 +249,7 @@ try {
         checks: [
           { kind: "text_visible", text: "Connect and fund the required wallet before execution." },
           { kind: "text_hidden", text: "Live execution is unavailable in this environment." },
-          { kind: "text_visible", text: "Review strategy plan" },
+          { kind: "text_visible", text: "Review strategy settings" },
           { kind: "no_console_errors" },
         ],
       },
@@ -277,7 +274,7 @@ try {
       {
         action: "assert",
         checks: [
-          { kind: "text_visible", text: "Enter an amount to preview this strategy." },
+          { kind: "text_visible", text: "Enter an amount to review this strategy." },
           { kind: "selector_visible", selector: ".strategy-primary-action:disabled" },
           { kind: "selector_hidden", selector: ".strategy-primary-action:not(:disabled)" },
           { kind: "no_console_errors" },

@@ -17,7 +17,7 @@ assert.equal(STRATEGY_CUSTOM_TIME_WINDOW, "Custom");
 assert.deepEqual(strategyFundingSources, ["Private balance", "Public balance", "External wallet"]);
 
 assert.equal(parseStrategyAmount("250000").value, 250000);
-assert.equal(parseStrategyAmount("").error, "Enter an amount to preview this strategy.");
+assert.equal(parseStrategyAmount("").error, "Enter an amount to review this strategy.");
 assert.equal(parseStrategyAmount("").value, null);
 
 assert.equal(parseStrategySlippageBps("0.50%").value, 50);
@@ -43,7 +43,7 @@ assert.deepEqual(
     timeWindow: STRATEGY_CUSTOM_TIME_WINDOW,
   }),
   {
-    amount: "Enter an amount to preview this strategy.",
+    amount: "Enter an amount to review this strategy.",
     customTimeWindow: "Use a duration like 12 hours or 3 days.",
     maxSlippage: "Enter a valid max slippage percentage.",
   },
@@ -61,7 +61,7 @@ assert.deepEqual(
       "Live execution is unavailable in this environment.",
       "Move funds into your private balance before execution.",
     ],
-    ctaLabel: "Review strategy plan",
+    ctaLabel: "Review strategy settings",
     destination: "Public wallet",
     fundingSource: strategyFundingSources[1],
     livePrerequisitesMet: false,
@@ -98,7 +98,7 @@ assert.deepEqual(
   }),
   {
     blockingIssues: ["Connect and fund the required wallet before execution."],
-    ctaLabel: "Review strategy plan",
+    ctaLabel: "Review strategy settings",
     destination: "Private balance",
     fundingSource: strategyFundingSources[2],
     livePrerequisitesMet: false,
@@ -187,7 +187,7 @@ assert.doesNotThrow(() =>
 
 assert.equal(
   createStrategyCapabilityCopy({ capabilityMode: "preview_only" }).actionHint,
-  "Preview routing, funding, and landing behavior before any live execution is available.",
+  "Keep settings editable before any live execution is available.",
 );
 assert.equal(
   createStrategyCapabilityCopy({ capabilityMode: "eligible_to_create" }).actionHint,

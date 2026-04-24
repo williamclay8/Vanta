@@ -1,12 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
 import { describePricingForSurface } from "@/pricing/vantaPricing";
 import { createStrategyPlan, type VantaStrategyPlan } from "@/strategy/strategyPlanner.mjs";
-import { createVantaStrategyRuntime, type VantaStrategyRecord } from "@/strategy/strategyRuntime.mjs";
 import {
   STRATEGY_CUSTOM_TIME_WINDOW,
   createStrategyCapabilityState,
-  createStrategyClientRequestId,
   createStrategyFormErrors,
   parseStrategyAmount,
   parseStrategyCustomDuration,
@@ -46,18 +44,15 @@ const amountErrorId = "strategy-amount-error";
 const customDurationErrorId = "strategy-custom-duration-error";
 const maxSlippageErrorId = "strategy-max-slippage-error";
 const strategyPricing = describePricingForSurface("strategy");
-const strategyReviewCta = "Review strategy plan";
+const strategyReviewCta = "Review strategy settings";
 const strategyEnvironmentUnavailableCopy =
   "Live execution is unavailable in this environment.";
 const strategyPublicFundingCopy =
   "Move funds into your private balance before execution.";
 const strategyExternalWalletCopy =
   "Connect and fund the required wallet before execution.";
-const strategyPreviewActionHint =
-  "Preview routing, funding, and landing behavior while live strategy execution remains preview-only.";
-const strategyPreviewResultTitle = "Strategy plan ready";
-const strategyPreviewResultSummary =
-  "This plan was created locally for review while live strategy execution remains preview-only.";
+const strategySettingsActionHint =
+  "Keep settings editable while live strategy execution remains unavailable.";
 
 const defaultForm: StrategyFormState = {
   asset: "SOL",
@@ -110,9 +105,6 @@ function StrategySelect({
 
 export function StrategyPage() {
   const [form, setForm] = useState<StrategyFormState>(defaultForm);
-  const strategyRuntime = useMemo(() => createVantaStrategyRuntime(), []);
-  const [createdStrategy, setCreatedStrategy] = useState<VantaStrategyRecord | null>(null);
-  const [submittedPlan, setSubmittedPlan] = useState<VantaStrategyPlan | null>(null);
   const strategyPair = deriveStrategyPair(form);
 
   const parsedAmount = useMemo(() => parseStrategyAmount(form.totalSize), [form.totalSize]);
@@ -170,41 +162,6 @@ export function StrategyPage() {
     });
   }, [effectiveTimeWindow, form, parsedAmount.value, parsedSlippage.value, strategyPair]);
 
-  const strategyClientRequestId = useMemo(() => {
-    if (parsedAmount.value === null || parsedSlippage.value === null || effectiveTimeWindow === null) {
-      return null;
-    }
-
-    return createStrategyClientRequestId({
-      destination: form.destination,
-      fundingSource: form.fundingSource,
-      landingMode: form.landingMode,
-      maxSlippageBps: parsedSlippage.value,
-      mode: form.mode,
-      pair: strategyPair,
-      side: form.side,
-      slicePolicy: form.slicePolicy,
-      timeWindow: effectiveTimeWindow,
-      timingPolicy: form.timingPolicy,
-      totalNotional: parsedAmount.value,
-      urgency: form.urgency,
-    });
-  }, [
-    effectiveTimeWindow,
-    form.destination,
-    form.fundingSource,
-    form.landingMode,
-    form.mode,
-    form.side,
-    form.slicePolicy,
-    form.timingPolicy,
-    form.urgency,
-    parsedAmount.value,
-    parsedSlippage.value,
-    strategyPair,
-  ]);
-  const isStrategyPreviewOnly = !strategyPricing.shouldShowLiveFeeCopy;
-  const shouldStayPreviewOnly = isStrategyPreviewOnly || capabilityState.mode === "preview_only";
   const environmentBlockingIssues = isBetaMode ? [strategyEnvironmentUnavailableCopy] : [];
   const fundingBlockingIssues = useMemo(() => {
     if (form.fundingSource === "Public balance") {
@@ -220,16 +177,7 @@ export function StrategyPage() {
   const strategyPrimaryActionLabel = isBetaMode ? "Beta mode" : strategyReviewCta;
   const strategyActionHint = isBetaMode
     ? "Beta mode keeps Strategy visible but prevents live execution while production services are offline."
-    : strategyPreviewActionHint;
-  const submittedResult = submittedPlan
-    ? {
-        kicker: "Ready to review",
-        summary: strategyPreviewResultSummary,
-        title: strategyPreviewResultTitle,
-        status: "local review",
-      }
-    : null;
-
+    : strategySettingsActionHint;
   const modeCopy = useMemo(() => {
     if (form.mode === "Private TWAP") {
       return "Bounded randomization, protected routing, and tighter schedule control.";
@@ -244,11 +192,6 @@ export function StrategyPage() {
   ) => {
     setForm((current) => ({ ...current, [key]: value }));
   };
-
-  useEffect(() => {
-    setCreatedStrategy(null);
-    setSubmittedPlan(null);
-  }, [form]);
 
   return (
     <section className="send-page strategy-page" aria-labelledby="strategy-title">
@@ -270,32 +213,6 @@ export function StrategyPage() {
               if (!strategyPlan || capabilityState.submitDisabled) {
                 return;
               }
-
-              setSubmittedPlan(strategyPlan);
-
-              if (shouldStayPreviewOnly) {
-                setCreatedStrategy(null);
-                return;
-              }
-
-              setCreatedStrategy(
-                strategyRuntime.createStrategy({
-                  clientRequestId: strategyClientRequestId ?? "strategy-invalid-input",
-                  destination: form.destination,
-                  fundingSource: form.fundingSource,
-                  landingMode: form.landingMode,
-                  maxSlippageBps: parsedSlippage.value ?? 0,
-                  mode: form.mode,
-                  pair: strategyPair,
-                  seed: "vanta-strategy-ui",
-                  side: form.side,
-                  slicePolicy: form.slicePolicy,
-                  timingPolicy: form.timingPolicy,
-                  timeWindow: effectiveTimeWindow ?? defaultForm.customTimeWindow,
-                  totalNotional: parsedAmount.value ?? 0,
-                  urgency: form.urgency,
-                }),
-              );
             }}
           >
             <div className="strategy-card__header">
@@ -501,36 +418,6 @@ export function StrategyPage() {
             <strong>{strategyPricing.feeLabel}</strong>
             <span>{strategyPricing.passThroughLabel}</span>
           </div>
-
-          {submittedResult && submittedPlan ? (
-            <section className="strategy-card strategy-card--secondary" role="status">
-              <div className="strategy-card__header">
-                <div>
-                  <span className="strategy-kicker">Ready for your review</span>
-                  <h2>{submittedResult.title}</h2>
-                </div>
-              </div>
-              <p className="strategy-result-summary">{submittedResult.summary}</p>
-              <div className="strategy-detail-grid">
-                <div className="strategy-funding-line">
-                  <span>Mode</span>
-                  <strong>{submittedPlan.mode}</strong>
-                </div>
-                <div className="strategy-funding-line">
-                  <span>Pair</span>
-                  <strong>{submittedPlan.pair}</strong>
-                </div>
-                <div className="strategy-funding-line">
-                  <span>Destination</span>
-                  <strong>{submittedPlan.routingPolicy.destination}</strong>
-                </div>
-                <div className="strategy-funding-line">
-                  <span>Result</span>
-                  <strong>{submittedResult.status}</strong>
-                </div>
-              </div>
-            </section>
-          ) : null}
         </div>
       </div>
     </section>

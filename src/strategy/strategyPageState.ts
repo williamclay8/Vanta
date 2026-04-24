@@ -74,7 +74,7 @@ export type StrategyResultState =
       title: "Strategy scheduled";
     };
 
-const amountError = "Enter an amount to preview this strategy.";
+const amountError = "Enter an amount to review this strategy.";
 const slippageError = "Enter a valid max slippage percentage.";
 const customDurationError = "Use a duration like 12 hours or 3 days.";
 const strategyRequestIdVersion = "v3";
@@ -182,7 +182,7 @@ export function createStrategyCapabilityState(input: {
 
   return {
     blockingIssues,
-    ctaLabel: mode === "preview_only" ? "Review strategy plan" : "Schedule strategy",
+    ctaLabel: mode === "preview_only" ? "Review strategy settings" : "Schedule strategy",
     destination: input.destination,
     fundingSource: input.fundingSource,
     livePrerequisitesMet,
@@ -214,7 +214,7 @@ export function createStrategyCapabilityCopy(input: {
 }): StrategyCapabilityCopy {
   if (input.capabilityMode === "preview_only") {
     return {
-      actionHint: "Preview routing, funding, and landing behavior before any live execution is available.",
+      actionHint: "Keep settings editable before any live execution is available.",
     };
   }
 
