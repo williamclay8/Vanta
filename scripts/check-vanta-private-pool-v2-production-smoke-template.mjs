@@ -73,5 +73,9 @@ assert.ok(
   template.requiredVerificationCommands.includes("npm run mainnet:private-pool-v2-production-smoke-live"),
   "Template must include the live production smoke command.",
 );
+assert.ok(
+  template.smokeTargets.some((target) => target.id === "actual-private-spend-simulation"),
+  "Template must include actual-private spend production smoke target.",
+);
 
 console.log("Vanta Private Pool v2 production smoke template check: PASS");

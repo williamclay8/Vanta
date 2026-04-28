@@ -113,6 +113,13 @@
       "requiredEvidenceRef": "VANTA_PRIVATE_POOL_V2_NULLIFIER_REPLAY_SMOKE_EVIDENCE_REF",
       "realFundsAllowed": false,
       "mainnetTransactionsAllowed": false
+    },
+    {
+      "id": "actual-private-spend-simulation",
+      "description": "A no-real-funds actual-private spend proof request routes through deployed prover and verifier services using only pool, cohort, root, nullifier, output commitments, and context hash public terms.",
+      "requiredEvidenceRef": "VANTA_PRIVATE_POOL_V2_ACTUAL_PRIVATE_SPEND_SMOKE_EVIDENCE_REF",
+      "realFundsAllowed": false,
+      "mainnetTransactionsAllowed": false
     }
   ],
   "requiredVerificationCommands": [

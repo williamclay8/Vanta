@@ -34,6 +34,7 @@ for (const targetId of [
   "remote-runtime-readiness",
   "proof-roundtrip-simulation",
   "nullifier-replay-simulation",
+  "actual-private-spend-simulation",
   "relayer-claim-submit-simulation",
   "operator-raw-pay-settlement-rejection",
 ]) {
@@ -44,6 +45,14 @@ for (const targetId of [
 
 const replayTarget = evidence.smokeTargets.find((candidate) => candidate.id === "nullifier-replay-simulation");
 assert.equal(replayTarget.replayStatus, 400, "Nullifier replay smoke must record rejected duplicate status.");
+const actualPrivateTarget = evidence.smokeTargets.find(
+  (candidate) => candidate.id === "actual-private-spend-simulation",
+);
+assert.equal(
+  actualPrivateTarget.publicTranscript,
+  "pool-cohort-root-nullifier-output-context-only",
+  "Actual-private spend smoke must record source-state redaction.",
+);
 const rawPayTarget = evidence.smokeTargets.find(
   (candidate) => candidate.id === "operator-raw-pay-settlement-rejection",
 );

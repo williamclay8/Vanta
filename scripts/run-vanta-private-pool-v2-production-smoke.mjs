@@ -211,6 +211,28 @@ function buildClaimRequest(runId, quote) {
   };
 }
 
+function buildActualPrivateSpendRequest(runId) {
+  return {
+    amountBaseUnits: "1",
+    assetId: "hidden:economic-terms",
+    circuitPublicInputs: [
+      `private-spend-public-input-hash:production-smoke-actual-private-public-input-hash:${runId}`,
+    ],
+    intent: "private-send",
+    publicInputs: [
+      "vanta-private-pool-v2-actual-private-spend-proof-request-0.1:version",
+      `pool-id:pool:production-smoke-actual-private:${runId}`,
+      "asset-cohort:stablecoin-usdc-v1",
+      `accepted-root:production-smoke-actual-private-root:${runId}`,
+      `nullifier:production-smoke-actual-private-nullifier:${runId}`,
+      `output-commitment-0:production-smoke-actual-private-recipient-output:${runId}`,
+      `output-commitment-1:production-smoke-actual-private-change-output:${runId}`,
+      `context-hash:production-smoke-actual-private-context:${runId}`,
+      `private-spend-public-input-hash:production-smoke-actual-private-public-input-hash:${runId}`,
+    ],
+  };
+}
+
 async function proveAndAccept({ prover, request, verifier }) {
   const proofResponse = await requestJson(prover, "/v1/proofs", {
     body: JSON.stringify({ request }),
@@ -309,6 +331,20 @@ async function run() {
     id: "nullifier-replay-simulation",
     receiptIdPrefix: claimRoundtrip.receipt.receiptId.slice(0, 18),
     replayStatus: replayResponse.status,
+    status: "pass",
+  });
+
+  const actualPrivateSpendRequest = buildActualPrivateSpendRequest(runId);
+  const actualPrivateRoundtrip = await proveAndAccept({
+    prover,
+    request: actualPrivateSpendRequest,
+    verifier,
+  });
+  evidence.smokeTargets.push({
+    id: "actual-private-spend-simulation",
+    proofCommitmentPrefix: actualPrivateRoundtrip.proof.publicInputCommitment.slice(0, 18),
+    publicTranscript: "pool-cohort-root-nullifier-output-context-only",
+    receiptIdPrefix: actualPrivateRoundtrip.receipt.receiptId.slice(0, 18),
     status: "pass",
   });
 

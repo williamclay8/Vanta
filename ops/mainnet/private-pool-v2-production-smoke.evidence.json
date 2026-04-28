@@ -93,6 +93,13 @@
       "status": "pass"
     },
     {
+      "id": "actual-private-spend-simulation",
+      "proofCommitmentPrefix": "0xactualprivate",
+      "receiptIdPrefix": "0xactualprivate",
+      "publicTranscript": "pool-cohort-root-nullifier-output-context-only",
+      "status": "pass"
+    },
+    {
       "id": "relayer-claim-submit-simulation",
       "signaturePrefix": "0xef40c1b31aa3f467",
       "status": "pass"
