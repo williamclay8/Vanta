@@ -50,22 +50,48 @@ requireIncludes(
 );
 requireIncludes(
   walletContext,
+  "solBalanceFetching",
+  "Wallet context must expose native SOL balance fetching state so Shield does not present provisional hook zero as final.",
+);
+requireIncludes(
+  walletContext,
+  "solBalanceError",
+  "Wallet context must expose native SOL balance recovery errors so Shield can block actions with honest RPC recovery copy.",
+);
+requireIncludes(
+  walletContext,
   "new Connection(fallbackEndpoint, \"confirmed\")",
   "Wallet context SOL balance fallback must use the configured Solana endpoint.",
 );
 requireIncludes(
   walletContext,
-  "WALLET_BALANCE_FALLBACK_ENDPOINTS",
-  "Wallet context SOL balance fallback must try backup RPC endpoints when the configured endpoint rejects balance reads.",
+  "getConfiguredWalletBalanceReadEndpoints",
+  "Wallet context SOL balance fallback must use the configurable browser read-RPC endpoint list.",
 );
 requireIncludes(
   walletContext,
-  "https://api.mainnet-beta.solana.com",
-  "Wallet context SOL balance fallback must include the canonical public mainnet RPC endpoint.",
+  "https://solana-rpc.publicnode.com",
+  "Wallet context SOL balance fallback must include a browser-accessible public mainnet RPC endpoint.",
 );
-if (walletContext.includes('"https://api.devnet.solana.com"')) {
-  failures.push("Wallet context SOL balance fallback must not use devnet while recovering mainnet SOL balances.");
+requireIncludes(
+  walletContext,
+  "VITE_SOLANA_READ_RPC_FALLBACK_URLS",
+  "Wallet context SOL balance fallback must honor configured read-RPC fallback endpoints.",
+);
+if (
+  /getConfiguredWalletBalanceReadEndpoints[\s\S]*?https:\/\/api\.mainnet-beta\.solana\.com/u.test(
+    walletContext,
+  )
+) {
+  failures.push(
+    "Wallet context SOL balance fallback must not depend on api.mainnet-beta.solana.com because it returns 403 from the production browser origin.",
+  );
 }
+requireIncludes(
+  walletContext,
+  'vantaSolanaCluster === "mainnet-beta"',
+  "Wallet context SOL balance fallback must choose mainnet read endpoints without mixing in devnet while recovering mainnet balances.",
+);
 requireIncludes(
   appLayout,
   "sortedWalletConnectors.map",

@@ -11,6 +11,7 @@ import { useBalance, useWalletConnection } from "@solana/react-hooks";
 import type { WalletConnector } from "@solana/client";
 import type { ActiveWalletTopology } from "@/privateVault/privateVaultTypes";
 import { endpoint, solanaClusterLabel } from "@/solana/client";
+import { vantaSolanaCluster } from "@/solana/shieldConfig";
 import {
   createFreshWalletRecord,
   exportFreshWalletRecoveryFile,
@@ -41,6 +42,8 @@ type WalletContextValue = {
   clearFreshWallet: () => void;
   lamportsBalance: bigint | null;
   solBalance: number | null;
+  solBalanceError: string | null;
+  solBalanceFetching: boolean;
   balanceFetching: boolean;
   clusterLabel: string;
 };
@@ -91,11 +94,19 @@ function pickPreferredWalletConnector(connectors: readonly WalletConnector[]) {
   })[0];
 }
 
-const WALLET_BALANCE_FALLBACK_ENDPOINTS = [
-  endpoint,
-  "https://api.mainnet-beta.solana.com",
-] as const;
 const walletBalanceFallbackConnections = new Map<string, Connection>();
+
+function getConfiguredWalletBalanceReadEndpoints() {
+  const configured = import.meta.env.VITE_SOLANA_READ_RPC_FALLBACK_URLS?.split(",")
+    .map((value) => value.trim())
+    .filter(Boolean) ?? [];
+  const defaults =
+    vantaSolanaCluster === "mainnet-beta"
+      ? ["https://solana-rpc.publicnode.com"]
+      : ["https://api.devnet.solana.com"];
+
+  return [...new Set([endpoint, ...configured, ...defaults])];
+}
 
 function getWalletBalanceFallbackConnection(fallbackEndpoint: string) {
   const cachedConnection = walletBalanceFallbackConnections.get(fallbackEndpoint);
@@ -114,7 +125,7 @@ async function fetchWalletLamportsFallback(address: string) {
   const publicKey = new PublicKey(address);
   let lastError: unknown = null;
 
-  for (const fallbackEndpoint of [...new Set(WALLET_BALANCE_FALLBACK_ENDPOINTS)]) {
+  for (const fallbackEndpoint of getConfiguredWalletBalanceReadEndpoints()) {
     try {
       return BigInt(
         await getWalletBalanceFallbackConnection(fallbackEndpoint).getBalance(
@@ -133,6 +144,7 @@ async function fetchWalletLamportsFallback(address: string) {
 export function WalletProvider({ children }: { children: ReactNode }) {
   const [freshWallet, setFreshWallet] = useState<FreshWalletRecord | null>(null);
   const [fallbackLamportsValue, setFallbackLamportsValue] = useState<bigint | null>(null);
+  const [fallbackBalanceError, setFallbackBalanceError] = useState<string | null>(null);
   const [fallbackBalanceFetching, setFallbackBalanceFetching] = useState(false);
   const {
     connect,
@@ -156,22 +168,26 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!address) {
       setFallbackLamportsValue(null);
+      setFallbackBalanceError(null);
       setFallbackBalanceFetching(false);
       return;
     }
 
     let cancelled = false;
     setFallbackBalanceFetching(true);
+    setFallbackBalanceError(null);
 
     fetchWalletLamportsFallback(address)
       .then((nextLamportsValue) => {
         if (!cancelled) {
           setFallbackLamportsValue(nextLamportsValue);
+          setFallbackBalanceError(null);
         }
       })
       .catch(() => {
         if (!cancelled) {
           setFallbackLamportsValue(null);
+          setFallbackBalanceError("Wallet SOL balance could not be loaded.");
         }
       })
       .finally(() => {
@@ -234,6 +250,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       },
       lamportsBalance: lamportsValue,
       solBalance,
+      solBalanceError: fallbackBalanceError,
+      solBalanceFetching: fallbackBalanceFetching,
       balanceFetching: balance.fetching || fallbackBalanceFetching,
       clusterLabel: solanaClusterLabel,
     }),
@@ -249,6 +267,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       disconnect,
       freshWallet,
       fallbackBalanceFetching,
+      fallbackBalanceError,
       isReady,
       lamportsValue,
       preferredWalletConnector,

@@ -113,7 +113,13 @@ function formatShieldSourceAssetOptionLabel(asset: {
 
 export function ShieldPage(_props: ShieldPageProps) {
   const { recentShield, runPrivateCoreShield, setRecentShield } = usePrivacyFlow();
-  const { solBalance, walletAddress, walletConnected } = useWalletState();
+  const {
+    solBalance,
+    solBalanceError,
+    solBalanceFetching,
+    walletAddress,
+    walletConnected,
+  } = useWalletState();
   const shieldRegistry = useVantaShieldAssetRegistryState();
   const viewingKey = useVantaShieldViewingKey();
   const [selectedSourceAssetId, setSelectedSourceAssetId] = useState("native:SOL");
@@ -149,6 +155,8 @@ export function ShieldPage(_props: ShieldPageProps) {
     loading: publicAssetsLoading,
   } = useWalletPublicAssets({
     solBalance,
+    solBalanceError,
+    solBalanceFetching,
     walletAddress,
   });
 
@@ -264,6 +272,8 @@ export function ShieldPage(_props: ShieldPageProps) {
 
   const parsedAmount = Number(amount);
   const sourceBalance = selectedSourceAsset?.balance ?? 0;
+  const selectedSourceBalanceStatus = selectedSourceAsset?.balanceStatus ?? "ready";
+  const selectedSourceBalanceUnavailable = selectedSourceBalanceStatus !== "ready";
   const maxAvailableAmount = sourceBalance;
   const routeProgressLabel = publicRouteWait.detailLabel;
   const stateProgressLabel = stateSignatureWait.detailLabel;
@@ -272,6 +282,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     (isNativeSolShield ? !!selectedShieldAsset?.vaultOwner : !!selectedShieldAsset?.mintAddress) &&
     !!selectedShieldAsset?.vaultOwner &&
     !!selectedSourceAsset &&
+    !selectedSourceBalanceUnavailable &&
     Number.isFinite(parsedAmount) &&
     parsedAmount > 0 &&
     parsedAmount <= sourceBalance;
@@ -968,6 +979,10 @@ export function ShieldPage(_props: ShieldPageProps) {
     validationMessage = shieldStateError;
   } else if (amount.trim() === "") {
     validationMessage = "Enter an amount to shield.";
+  } else if (selectedSourceBalanceStatus === "loading") {
+    validationMessage = `Loading ${selectedSourceAsset.symbol} balance.`;
+  } else if (selectedSourceBalanceStatus === "error") {
+    validationMessage = `${selectedSourceAsset.symbol} balance recovery is unavailable. Refresh the page or try another wallet RPC.`;
   } else if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
     validationMessage = "Enter a valid amount greater than zero.";
   } else if (parsedAmount > sourceBalance) {
@@ -1005,7 +1020,13 @@ export function ShieldPage(_props: ShieldPageProps) {
                 <div className="swap-module__label-row">
                   <span>Amount</span>
                   <div className="send-balance-line shield-helper shield-helper--meta">
-                    Balance: {selectedSourceAsset ? formatAssetAmount(sourceBalance, selectedSourceAsset.symbol) : sourcePlaceholderLabel}
+                    Balance: {selectedSourceAsset
+                      ? selectedSourceBalanceStatus === "loading"
+                        ? "Loading..."
+                        : selectedSourceBalanceStatus === "error"
+                          ? "Unavailable"
+                          : formatAssetAmount(sourceBalance, selectedSourceAsset.symbol)
+                      : sourcePlaceholderLabel}
                   </div>
                 </div>
                 <div className="send-entry-grid swap-entry-grid">

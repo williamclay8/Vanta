@@ -34,8 +34,24 @@ if (!walletAssetsSource.includes("const hasConnectedWallet = Boolean(args.wallet
   failures.push("Wallet public assets must keep native SOL selectable for connected wallets even before balance recovery reports a positive value.");
 }
 
-if (!walletAssetsSource.includes("balance: Number(args.solBalance ?? 0)")) {
-  failures.push("Wallet public assets must surface native SOL with a numeric fallback balance so Shield can show insufficient-balance copy instead of hiding SOL.");
+if (!walletAssetsSource.includes("balanceStatus: nativeSolBalanceStatus")) {
+  failures.push("Wallet public assets must carry native SOL balance recovery status so Shield does not present provisional zero as final.");
+}
+
+if (!walletAssetsSource.includes("args.solBalanceFetching")) {
+  failures.push("Wallet public assets must receive native SOL balance fetching state from the wallet context.");
+}
+
+if (!walletAssetsSource.includes("args.solBalanceError")) {
+  failures.push("Wallet public assets must receive native SOL balance recovery errors from the wallet context.");
+}
+
+if (!shieldPageSource.includes("selectedSourceBalanceStatus")) {
+  failures.push("Shield page must inspect source balance recovery status before validating shield amounts.");
+}
+
+if (!shieldPageSource.includes("Loading...")) {
+  failures.push("Shield page must avoid showing provisional zero while native SOL balance recovery is loading.");
 }
 
 if (!walletAssetsSource.includes("getTokenMetadata")) {

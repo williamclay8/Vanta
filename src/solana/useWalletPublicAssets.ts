@@ -16,6 +16,7 @@ import {
 
 export type WalletPublicAsset = {
   balance: number;
+  balanceStatus?: "error" | "loading" | "ready";
   decimals: number;
   id: string;
   kind: "native" | "spl";
@@ -76,7 +77,7 @@ function getConfiguredWalletReadFallbackEndpoints() {
     .filter(Boolean) ?? [];
   const defaults =
     vantaSolanaCluster === "mainnet-beta"
-      ? ["https://public.rpc.solanavibestation.com"]
+      ? ["https://solana-rpc.publicnode.com"]
       : ["https://api.devnet.solana.com"];
 
   return [...new Set([...configured, ...defaults].filter((value) => value !== endpoint))];
@@ -279,6 +280,8 @@ async function getParsedTokenAccountsByOwnerWithFallback(owner: PublicKey) {
 
 export function useWalletPublicAssets(args: {
   solBalance: number | null;
+  solBalanceError?: string | null;
+  solBalanceFetching?: boolean;
   walletAddress: string | null;
 }) {
   const [splAssets, setSplAssets] = useState<WalletPublicAsset[]>([]);
@@ -402,8 +405,16 @@ export function useWalletPublicAssets(args: {
     const hasConnectedWallet = Boolean(args.walletAddress);
 
     if (hasConnectedWallet) {
+      const nativeSolBalanceStatus =
+        args.solBalanceError
+          ? "error"
+          : args.solBalanceFetching || args.solBalance === null
+            ? "loading"
+            : "ready";
+
       nextAssets.push({
         balance: Number(args.solBalance ?? 0),
+        balanceStatus: nativeSolBalanceStatus,
         decimals: 9,
         id: SOL_ID,
         kind: "native",
@@ -422,11 +433,17 @@ export function useWalletPublicAssets(args: {
     }
 
     return nextAssets;
-  }, [args.solBalance, args.walletAddress, splAssets]);
+  }, [
+    args.solBalance,
+    args.solBalanceError,
+    args.solBalanceFetching,
+    args.walletAddress,
+    splAssets,
+  ]);
 
   return {
     assets,
-    loading: splAssetsLoading,
-    error: splAssetsError,
+    loading: splAssetsLoading || Boolean(args.solBalanceFetching),
+    error: splAssetsError ?? args.solBalanceError ?? null,
   };
 }
