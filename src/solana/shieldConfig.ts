@@ -138,6 +138,10 @@ export type LiveShieldTokenAssetConfig = {
 
 const hasVaultOwnerPath = Boolean(configuredVaultOwner || configuredVaultDerivationProgramId);
 
+export function isNativeSolShieldConfigured() {
+  return Boolean(configuredVaultOwner);
+}
+
 function createLiveShieldTokenAssetConfig(args: {
   assetKey: LiveShieldTokenAssetKey;
   configuredMintAddress: string | null;

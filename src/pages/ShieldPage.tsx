@@ -269,7 +269,7 @@ export function ShieldPage(_props: ShieldPageProps) {
   const stateProgressLabel = stateSignatureWait.detailLabel;
   const isAmountValid =
     walletConnected &&
-    !!selectedShieldAsset?.mintAddress &&
+    (isNativeSolShield ? !!selectedShieldAsset?.vaultOwner : !!selectedShieldAsset?.mintAddress) &&
     !!selectedShieldAsset?.vaultOwner &&
     !!selectedSourceAsset &&
     Number.isFinite(parsedAmount) &&
@@ -341,7 +341,7 @@ export function ShieldPage(_props: ShieldPageProps) {
   }
 
   async function beginNativeSolShieldTransfer(amountDisplay: string, amountNumeric: number) {
-    if (!walletAddress || !selectedShieldAsset?.mintAddress || !selectedShieldAsset.vaultOwner) {
+    if (!walletAddress || !selectedSourceAsset?.mintAddress || !selectedShieldAsset?.vaultOwner) {
       throw new Error("Native SOL shield target is not configured.");
     }
 
@@ -356,7 +356,7 @@ export function ShieldPage(_props: ShieldPageProps) {
         amountBaseUnits: parseDecimalAmountToBaseUnits(amountDisplay, 9),
         expiresAt: approvalIssuedAt + 2 * 60 * 1000,
         issuedAt: approvalIssuedAt,
-        mintAddress: selectedShieldAsset.mintAddress,
+        mintAddress: selectedSourceAsset.mintAddress,
         requester: walletAddress,
       }),
     );
@@ -862,9 +862,8 @@ export function ShieldPage(_props: ShieldPageProps) {
     if (
       !isAmountValid ||
       !selectedSourceAsset ||
-      !selectedShieldAsset?.mintAddress ||
-      !selectedShieldAsset.vaultOwner ||
-      !supportedToken
+      !selectedShieldAsset?.vaultOwner ||
+      (!isNativeSolShield && (!selectedShieldAsset.mintAddress || !supportedToken))
     ) {
       return;
     }
@@ -873,7 +872,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     publicRouteTransaction.reset();
     splShieldTransferTransaction.reset();
     nativeSolShieldTransaction.reset();
-    supportedToken.resetSend();
+    supportedToken?.resetSend();
     stateTransaction.reset();
     setRecentShield(null);
     setFlowError(null);

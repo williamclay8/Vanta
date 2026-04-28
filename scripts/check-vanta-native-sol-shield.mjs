@@ -41,8 +41,26 @@ assert.ok(
   "Shield page must have a native SOL shield path.",
 );
 assert.ok(
+  shieldPageSource.includes("isNativeSolShield ? !!selectedShieldAsset?.vaultOwner"),
+  "Shield page amount validation must allow native SOL with a vault owner, without requiring a token target mint.",
+);
+assert.ok(
+  shieldPageSource.includes("!isNativeSolShield && (!selectedShieldAsset.mintAddress || !supportedToken)"),
+  "Shield page submit guard must allow native SOL without requiring an SPL target token handle.",
+);
+assert.ok(
   shieldPageSource.includes("Shielded SOL"),
   "Shield page must label SOL as Shielded SOL.",
+);
+
+const tokenAvailabilitySource = readFileSync(resolve("src/solana/tokenAvailability.ts"), "utf8");
+assert.ok(
+  tokenAvailabilitySource.includes("isNativeSolShieldConfigured"),
+  "Token availability must model native SOL Shield readiness separately from the VUSD/SOL swap pair.",
+);
+assert.ok(
+  !tokenAvailabilitySource.includes('if (symbol === "SOL") {\n    return liveSwapPair.configured;\n  }'),
+  "SOL Shield readiness must not depend on the old liveSwapPair VUSD/SOL configuration.",
 );
 
 console.log("Vanta native SOL shield check: PASS");
