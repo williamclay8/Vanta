@@ -45,11 +45,11 @@ assert.equal(status.payStatus.productionReady, false);
 assert.equal(status.payStatus.privateSettlement.checkoutProofBoundary, "hidden-economics-request");
 assert.equal(
   status.payStatus.privateSettlement.acceptedCheckoutSettlementBoundary,
-  "committed-economics-protocol-settlement",
+  "actual-private-spend-protocol-settlement",
 );
 assert.equal(
   status.payStatus.privateSettlement.checkoutSettlementRoute,
-  "committed-economics-protocol-settlement",
+  "actual-private-spend-protocol-settlement",
 );
 assert.equal(
   status.payStatus.privateSettlement.withdrawalProofBoundary,

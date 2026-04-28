@@ -183,6 +183,27 @@ function isStatefulPrivateSendRequest(request: VantaPrivatePoolV2ProofRequest) {
   );
 }
 
+function isActualPrivateSpendRequest(request: VantaPrivatePoolV2ProofRequest) {
+  return request.publicInputs.some((input) =>
+    input.startsWith("vanta-private-pool-v2-actual-private-spend-proof-request-0.1:version"),
+  );
+}
+
+function readActualPrivateSpendOutputCommitments(request: VantaPrivatePoolV2ProofRequest) {
+  const outputs = request.publicInputs.flatMap((input) => {
+    const match = input.match(/^output-commitment-(\d+):(.+)$/);
+    if (!match) {
+      return [];
+    }
+
+    return [{ index: Number(match[1]), commitment: match[2] }] as const;
+  });
+
+  return outputs
+    .sort((left, right) => left.index - right.index)
+    .map((output) => output.commitment);
+}
+
 function isStatefulSwapToShieldedRequest(request: VantaPrivatePoolV2ProofRequest) {
   return request.publicInputs.some((input) =>
     input.startsWith("vanta-private-pool-v2-swap-to-shielded-proof-request-0.1:version"),
@@ -344,6 +365,42 @@ export class VantaPrivatePoolV2LocalVerifierRegistry {
         recipientOutputRoot,
         spentAtSlot: this.#currentSlot,
       });
+    }
+
+    if (request.intent === "private-send" && isActualPrivateSpendRequest(request)) {
+      const nullifier = requirePublicInput(request, "nullifier:");
+      const poolId = requirePublicInput(request, "pool-id:");
+      const assetCohort = requirePublicInput(request, "asset-cohort:");
+      const outputCommitments = readActualPrivateSpendOutputCommitments(request);
+
+      if (outputCommitments.length === 0) {
+        throw new Error("Actual private spend proof receipt requires output commitments.");
+      }
+
+      if (await this.#indexer.getNullifier(nullifier)) {
+        throw new Error(`Private-pool nullifier ${nullifier} is already registered.`);
+      }
+
+      if (!this.#indexer.registerNullifier) {
+        throw new Error("Actual private spend proof receipt requires a nullifier registry.");
+      }
+
+      if (!this.#indexer.appendCommitment) {
+        throw new Error("Actual private spend proof receipt requires a commitment indexer.");
+      }
+
+      this.#indexer.registerNullifier({
+        nullifier,
+        spentAtSlot: this.#currentSlot,
+      });
+
+      for (const outputCommitment of outputCommitments) {
+        this.#indexer.appendCommitment({
+          assetId: assetCohort,
+          commitment: outputCommitment,
+          treeId: poolId,
+        });
+      }
     }
 
     if (request.intent === "swap-to-shielded" && isStatefulSwapToShieldedRequest(request)) {

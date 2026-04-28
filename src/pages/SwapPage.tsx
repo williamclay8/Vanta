@@ -47,7 +47,6 @@ import {
   type VantaShieldedSolNote,
 } from "@/solana/vantaShieldState";
 import { useWalletState } from "@/data/context/WalletContext";
-import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
 import { requestVantaPrivatePoolV2ProtocolSettlement } from "@/privacy/privatePoolV2ProtocolSettlementClient";
 import {
   createCommittedSwapSettlementTerms,
@@ -130,6 +129,12 @@ function toAssetBaseUnits(value: number, asset: ShieldedSwapAssetKey) {
   return Math.round(value * 10 ** getLiveShieldTokenAsset(asset).decimals);
 }
 
+function formatExactSwapInputAmount(value: number, asset: ShieldedSwapAssetKey) {
+  const decimals = asset === "SOL" ? 9 : getLiveShieldTokenAsset(asset).decimals;
+
+  return value.toFixed(decimals).replace(/\.?0+$/, "");
+}
+
 function isLiveShieldTokenAssetKey(asset: ShieldedSwapAssetKey): asset is LiveShieldTokenAssetKey {
   return asset !== "SOL";
 }
@@ -144,7 +149,6 @@ function formatReadyAssetOptionLabel(args: {
 }
 
 export function SwapPage() {
-  const { recentShield } = usePrivacyFlow();
   const { walletAddress, walletConnected } = useWalletState();
   const walletSession = useWalletSession();
   const {
@@ -219,19 +223,13 @@ export function SwapPage() {
   const shieldedSolSourceAccount = shieldedSolSourceEntry?.account ?? shieldAccount;
   const selectedSourceAccount =
     selectedSourceAsset === "SOL" ? shieldedSolSourceAccount : selectedTokenSourceEntry?.account ?? null;
-  const recentShieldedSolBalance =
-    recentShield?.asset === "SOL"
-      ? Math.max(recentShield.amount, recentShield.resultingShieldedBalance)
-      : 0;
-
   const getShieldedAssetBalance = useCallback((asset: ShieldedSwapAssetKey) => {
     if (asset === "SOL") {
-      return Math.max(shieldedSolSourceAccount?.shieldedSolBalance ?? 0, recentShieldedSolBalance);
+      return shieldedSolSourceAccount?.shieldedSolBalance ?? 0;
     }
 
     return shieldAssetRegistry.byAssetKey[asset]?.account?.balance ?? 0;
   }, [
-    recentShieldedSolBalance,
     shieldAssetRegistry.byAssetKey,
     shieldedSolSourceAccount?.shieldedSolBalance,
   ]);
@@ -356,7 +354,7 @@ export function SwapPage() {
   const selectedShieldAsset = getLiveShieldTokenAsset(selectedShieldAssetKey);
   const sourceBalance =
     selectedSourceAsset === "SOL"
-      ? Math.max(shieldedSolSourceAccount?.shieldedSolBalance ?? 0, recentShieldedSolBalance)
+      ? shieldedSolSourceAccount?.shieldedSolBalance ?? 0
       : selectedSourceAccount?.balance ?? 0;
   const exactSpendableNote = useMemo(() => {
     if (
@@ -373,7 +371,19 @@ export function SwapPage() {
       ) ?? null
     );
   }, [parsedAmount, selectedSourceAsset, spendableNotes]);
-  const maxAvailableAmount = sourceBalance;
+  const maxSwappableNote = useMemo(() => {
+    return spendableNotes.reduce<VantaShieldNote | VantaShieldedSolNote | null>(
+      (largestNote, note) => {
+        if (!largestNote || note.amount > largestNote.amount) {
+          return note;
+        }
+
+        return largestNote;
+      },
+      null,
+    );
+  }, [spendableNotes]);
+  const maxAvailableAmount = maxSwappableNote?.amount ?? 0;
   const requiresPrivateSwap = sourcePairCapability.status === "live";
 
   useEffect(() => {
@@ -1379,6 +1389,8 @@ export function SwapPage() {
     validationMessage = `Enter a valid shielded ${selectedSourceAsset} amount.`;
   } else if (parsedAmount > sourceBalance) {
     validationMessage = `Insufficient shielded ${selectedSourceAsset} balance.`;
+  } else if (spendableNotes.length === 0) {
+    validationMessage = `No spendable shielded ${selectedSourceAsset} note is ready yet. If you just shielded, refresh state and try again.`;
   } else if (!exactSpendableNote) {
     validationMessage = `Shield the exact ${selectedSourceAsset} amount first, then return here to swap.`;
   } else if (requiresPrivateSwap && quote && !isQuoteFresh) {
@@ -1448,7 +1460,7 @@ export function SwapPage() {
                           return;
                         }
 
-                        setAmount(maxAvailableAmount.toFixed(2));
+                        setAmount(formatExactSwapInputAmount(maxAvailableAmount, selectedSourceAsset));
                         setStatus("idle");
                         setFlowError(null);
                         setQuote(null);

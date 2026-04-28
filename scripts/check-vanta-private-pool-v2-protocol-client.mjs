@@ -213,6 +213,7 @@ try {
   const {
     VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_AMOUNT_BASE_UNITS,
     VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID,
+    createVantaPrivatePoolV2ActualPrivateSpendProofRequest,
     createVantaPrivatePoolV2SendProofRequest,
     createVantaPrivatePoolV2SwapToShieldedProofRequest,
   } = await import(pathToFileURL(join(tempJsDir, "privatePoolV2ProofRequests.js")).href);
@@ -314,42 +315,31 @@ try {
     committedSendChangeRecord,
   ]);
 
-  const committedSendProofRequest = createVantaPrivatePoolV2SendProofRequest({
-    assetIdCommitment: assetIdForAsset("USDC"),
-    changeLeafIndex: "2",
-    changeOutputCommitment: "0xcommittedsend_change_output",
-    changeOutputRoot: committedSendChangeRoot,
-    economicsCommitment: "0xcommittedsend_economics",
-    inputCommitment: committedSendInputCommitment,
-    inputRoot: committedSendInputRoot,
+  const committedSendProofRequest = createVantaPrivatePoolV2ActualPrivateSpendProofRequest({
+    acceptedRoot: committedSendInputRoot,
+    assetCohort: "stablecoin-usdc-v1",
+    contextHash: "0xcommittedsend_context",
     nullifier: "0xcommittedsend_replay",
-    ownerCommitment: "0xcommittedsend_owner",
-    recipientLeafIndex: "1",
-    recipientOutputCommitment: "0xcommittedsend_recipient_output",
-    recipientOutputRoot: committedSendRecipientRoot,
-    sendContextTag: "0xcommittedsend_context",
-    sendPublicInputHash: "0xcommittedsend_public_input_hash",
+    outputCommitments: ["0xcommittedsend_recipient_output", "0xcommittedsend_change_output"],
+    poolId: "pool:protocol-client-usdc:100",
+    privateSpendPublicInputHash: "0xcommittedsend_public_input_hash",
   });
   const committedSendSettlement = await requestVantaPrivatePoolV2ProtocolSettlement({
     action: "send",
-    assetIdCommitment: assetIdForAsset("USDC"),
+    acceptedRoot: committedSendInputRoot,
+    assetCohort: "stablecoin-usdc-v1",
     authToken,
     baseUrl,
-    changeLeafIndex: "2",
     changeOutputCommitment: "0xcommittedsend_change_output",
-    changeOutputRoot: committedSendChangeRoot,
     economicsCommitment: "0xcommittedsend_economics",
     economicsMode: "committed-economics",
-    inputCommitment: committedSendInputCommitment,
-    inputRoot: committedSendInputRoot,
     nullifierOrReplayCommitment: "0xcommittedsend_replay",
     outputCommitment: "0xcommittedsend_recipient_output",
-    outputLeafIndex: "1",
-    outputRoot: committedSendRecipientRoot,
     ownerCommitment: "0xcommittedsend_owner",
+    poolId: "pool:protocol-client-usdc:100",
+    privateSpendContextHash: "0xcommittedsend_context",
+    privateSpendPublicInputHash: "0xcommittedsend_public_input_hash",
     routeCommitment: "0xcommittedsend_route",
-    sendContextTag: "0xcommittedsend_context",
-    sendPublicInputHash: "0xcommittedsend_public_input_hash",
     settlementCommitment: "0xcommittedsend_settlement",
     settlementId: "protocol-client-committed-send",
   });
@@ -378,8 +368,11 @@ try {
   assert(
     !JSON.stringify(committedSendSettlement).includes("USDC") &&
       !JSON.stringify(committedSendSettlement).includes("1.00") &&
-      !JSON.stringify(committedSendSettlement).includes("recipient-public-address"),
-    "Expected committed Send settlement response to keep raw asset, amount, and destination redacted.",
+      !JSON.stringify(committedSendSettlement).includes("recipient-public-address") &&
+      !JSON.stringify(committedSendSettlement).includes(committedSendInputCommitment) &&
+      !JSON.stringify(committedSendSettlement).includes("inputRoot") &&
+      !JSON.stringify(committedSendSettlement).includes("outputLeafIndex"),
+    "Expected committed Send settlement response to keep raw asset, amount, destination, and source-state terms redacted.",
   );
 
   await assertRejects(
@@ -388,18 +381,12 @@ try {
         body: JSON.stringify({
           action: "send",
           assetIdCommitment: "0xrejectedsend_asset_id",
-          changeLeafIndex: "21",
           changeOutputCommitment: "0xrejectedsend_change_output",
-          changeOutputRoot: "0xrejectedsend_change_root",
           economicsCommitment: "0xrejectedsend_economics",
           economicsMode: "committed-economics",
-          inputCommitment: "0xrejectedsend_input",
-          inputRoot: "0xrejectedsend_input_root",
           nullifierOrReplayCommitment: "0xrejectedsend_replay",
           ownerCommitment: "0xrejectedsend_owner",
           outputCommitment: "0xrejectedsend_output",
-          outputLeafIndex: "21",
-          outputRoot: "0xrejectedsend_output_root",
           routeCommitment: "0xrejectedsend_route",
           settlementCommitment: "0xrejectedsend_settlement",
           settlementId: "protocol-client-rejected-committed-send",
@@ -414,8 +401,8 @@ try {
         throw new Error(rejected.parsed?.error ?? rejected.text);
       }
     },
-    "Private Pool v2 settlement requires",
-    "Expected committed Send settlement to require full stateful send terms.",
+    "Private Pool v2 settlement requires actual-private send fields or full stateful send terms",
+    "Expected committed Send settlement to require actual-private send fields when stateful terms are absent.",
   );
 
   await assertRejects(
@@ -490,22 +477,20 @@ try {
   const committedSwapOutputRecord = {
     assetId: "USDC",
     commitment: "0xcommittedswap_output",
-    leafIndex: 3,
+    leafIndex: 1,
     treeId: committedSendInputTreeId,
   };
   const committedSwapOutputRoot = currentRoot(committedSendInputTreeId, [
     committedSendInputRecord,
-    committedSendRecipientRecord,
-    committedSendChangeRecord,
     committedSwapOutputRecord,
   ]);
   const committedSwapProofRequest = createVantaPrivatePoolV2SwapToShieldedProofRequest({
     economicsCommitment: "0xcommittedswap_economics",
-    inputCommitment: "0xcommittedsend_recipient_output",
-    inputRoot: committedSendChangeRoot,
+    inputCommitment: committedSendInputCommitment,
+    inputRoot: committedSendInputRoot,
     nullifierOrReplayCommitment: "0xcommittedswap_replay",
     outputCommitment: "0xcommittedswap_output",
-    outputLeafIndex: "3",
+    outputLeafIndex: "1",
     outputRoot: committedSwapOutputRoot,
     ownerCommitment: "0xcommittedswap_owner",
     routeCommitment: "0xcommittedswap_route",
@@ -519,11 +504,11 @@ try {
     baseUrl,
     economicsCommitment: "0xcommittedswap_economics",
     economicsMode: "committed-economics",
-    inputCommitment: "0xcommittedsend_recipient_output",
-    inputRoot: committedSendChangeRoot,
+    inputCommitment: committedSendInputCommitment,
+    inputRoot: committedSendInputRoot,
     nullifierOrReplayCommitment: "0xcommittedswap_replay",
     outputCommitment: "0xcommittedswap_output",
-    outputLeafIndex: "3",
+    outputLeafIndex: "1",
     outputRoot: committedSwapOutputRoot,
     ownerCommitment: "0xcommittedswap_owner",
     routeCommitment: "0xcommittedswap_route",
@@ -609,7 +594,7 @@ try {
     economicsCommitment: "0xcommittedunshield_economics",
     economicsMode: "committed-economics",
     exitTermsCommitment: "0xcommittedunshield_exit_terms",
-    inputCommitment: "0xcommittedsend_change_output",
+    inputCommitment: "0xcommittedswap_output",
     inputRoot: committedSwapOutputRoot,
     nullifierOrReplayCommitment: "0xcommittedunshield_replay",
     ownerCommitment: "0xcommittedunshield_owner",

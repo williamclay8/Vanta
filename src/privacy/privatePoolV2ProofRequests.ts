@@ -26,6 +26,9 @@ export const VANTA_PRIVATE_POOL_V2_UNSHIELD_PROOF_REQUEST_VERSION =
 export const VANTA_PRIVATE_POOL_V2_SWAP_TO_SHIELDED_PROOF_REQUEST_VERSION =
   "vanta-private-pool-v2-swap-to-shielded-proof-request-0.1" as const;
 
+export const VANTA_PRIVATE_POOL_V2_ACTUAL_PRIVATE_SPEND_PROOF_REQUEST_VERSION =
+  "vanta-private-pool-v2-actual-private-spend-proof-request-0.1" as const;
+
 export const VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID =
   "hidden:economic-terms" as const;
 
@@ -115,6 +118,16 @@ export type VantaPrivatePoolV2SwapToShieldedProofRequestArgs = {
   settlementCommitment: string;
   swapContextTag: string;
   swapPublicInputHash?: string;
+};
+
+export type VantaPrivatePoolV2ActualPrivateSpendProofRequestArgs = {
+  acceptedRoot: string;
+  assetCohort: string;
+  contextHash: string;
+  nullifier: string;
+  outputCommitments: readonly string[];
+  poolId: string;
+  privateSpendPublicInputHash?: string;
 };
 
 function hashParts(...parts: readonly string[]) {
@@ -263,6 +276,76 @@ export function createVantaPrivatePoolV2ClaimProofRequest({
       : {}),
     intent: "claim",
     operatorVisibleTerms: publicInputs,
+    publicInputs,
+    shadowCommitments: createVantaPrivatePoolV2ShadowCommitments({
+      intent: "claim",
+      operatorVisibleTerms: publicInputs,
+    }),
+  };
+}
+
+export function createVantaPrivatePoolV2ActualPrivateSpendProofRequest({
+  acceptedRoot,
+  assetCohort,
+  contextHash,
+  nullifier,
+  outputCommitments,
+  poolId,
+  privateSpendPublicInputHash,
+}: VantaPrivatePoolV2ActualPrivateSpendProofRequestArgs): VantaPrivatePoolV2ProofRequest {
+  if (!poolId.trim()) {
+    throw new Error("Actual private spend proof requires a pool id.");
+  }
+
+  if (!assetCohort.trim()) {
+    throw new Error("Actual private spend proof requires an asset cohort.");
+  }
+
+  if (!acceptedRoot.trim()) {
+    throw new Error("Actual private spend proof requires an accepted root.");
+  }
+
+  if (!nullifier.trim()) {
+    throw new Error("Actual private spend proof requires a nullifier.");
+  }
+
+  if (!contextHash.trim()) {
+    throw new Error("Actual private spend proof requires a context hash.");
+  }
+
+  if (outputCommitments.length === 0 || outputCommitments.some((commitment) => !commitment.trim())) {
+    throw new Error("Actual private spend proof requires at least one output commitment.");
+  }
+
+  const resolvedPrivateSpendPublicInputHash =
+    privateSpendPublicInputHash ??
+    hashParts(
+      VANTA_PRIVATE_POOL_V2_ACTUAL_PRIVATE_SPEND_PROOF_REQUEST_VERSION,
+      poolId,
+      assetCohort,
+      acceptedRoot,
+      nullifier,
+      contextHash,
+      ...outputCommitments,
+    );
+  const publicInputs = [
+    `${VANTA_PRIVATE_POOL_V2_ACTUAL_PRIVATE_SPEND_PROOF_REQUEST_VERSION}:version`,
+    `pool-id:${poolId}`,
+    `asset-cohort:${assetCohort}`,
+    `accepted-root:${acceptedRoot}`,
+    `nullifier:${nullifier}`,
+    ...outputCommitments.map((commitment, index) => `output-commitment-${index}:${commitment}`),
+    `context-hash:${contextHash}`,
+    `private-spend-public-input-hash:${resolvedPrivateSpendPublicInputHash}`,
+  ] as const;
+
+  return {
+    amountBaseUnits: VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_AMOUNT_BASE_UNITS,
+    assetId: VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID,
+    circuitPublicInputs: [
+      `private-spend-public-input-hash:${resolvedPrivateSpendPublicInputHash}`,
+    ],
+    intent: "private-send",
     publicInputs,
     shadowCommitments: createVantaPrivatePoolV2ShadowCommitments({
       intent: "claim",

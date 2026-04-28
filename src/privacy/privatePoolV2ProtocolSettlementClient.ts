@@ -42,7 +42,9 @@ export type VantaProtocolShieldSettlementEvidence = {
 export type VantaProtocolEconomicsMode = "raw-operator-visible" | "committed-economics";
 
 export type VantaCommittedEconomicsSettlementTerms = {
+  acceptedRoot?: string;
   assetIdCommitment?: string;
+  assetCohort?: string;
   changeLeafIndex?: string;
   changeOutputCommitment?: string;
   changeOutputRoot?: string;
@@ -55,6 +57,9 @@ export type VantaCommittedEconomicsSettlementTerms = {
   outputLeafIndex?: string;
   outputRoot?: string;
   ownerCommitment: string;
+  poolId?: string;
+  privateSpendContextHash?: string;
+  privateSpendPublicInputHash?: string;
   routeCommitment: string;
   sendContextTag?: string;
   sendPublicInputHash?: string;
@@ -72,10 +77,12 @@ export type VantaRawProtocolSettlementRequest = {
   authToken?: string | null;
   baseUrl?: string | null;
   destination: string;
+  acceptedRoot?: never;
   economicsCommitment?: never;
   economicsMode?: "raw-operator-visible";
   exitTermsCommitment?: never;
   assetIdCommitment?: never;
+  assetCohort?: never;
   changeLeafIndex?: never;
   changeOutputCommitment?: never;
   changeOutputRoot?: never;
@@ -87,6 +94,9 @@ export type VantaRawProtocolSettlementRequest = {
   outputRoot?: never;
   owner: string;
   ownerCommitment?: never;
+  poolId?: never;
+  privateSpendContextHash?: never;
+  privateSpendPublicInputHash?: never;
   routeCommitment?: never;
   sendContextTag?: never;
   sendPublicInputHash?: never;
@@ -129,10 +139,22 @@ type VantaCommittedEconomicsSendSettlementTerms = VantaCommittedEconomicsSettlem
   sendPublicInputHash: string;
 };
 
+type VantaActualPrivateCommittedEconomicsSendSettlementTerms =
+  VantaCommittedEconomicsSettlementTerms & {
+    acceptedRoot: string;
+    assetCohort: string;
+    outputCommitment: string;
+    poolId: string;
+    privateSpendContextHash: string;
+  };
+
 export type VantaCommittedEconomicsProtocolSettlementRequest =
   | (VantaCommittedEconomicsProtocolSettlementRequestBase & {
       action: "send";
-    } & VantaCommittedEconomicsSendSettlementTerms)
+    } & (
+      | VantaCommittedEconomicsSendSettlementTerms
+      | VantaActualPrivateCommittedEconomicsSendSettlementTerms
+    ))
   | (VantaCommittedEconomicsProtocolSettlementRequestBase & {
       action: "shield" | "swap" | "unshield";
     } & VantaCommittedEconomicsSettlementTerms);
@@ -527,7 +549,9 @@ export function validateVantaPrivatePoolV2ProtocolSettlementResponse({
 export async function requestVantaPrivatePoolV2ProtocolSettlement({
   action,
   amount,
+  acceptedRoot,
   assetIdCommitment,
+  assetCohort,
   asset,
   authToken,
   baseUrl = defaultPrivatePoolOperatorUrl(),
@@ -546,6 +570,9 @@ export async function requestVantaPrivatePoolV2ProtocolSettlement({
   outputRoot,
   owner,
   ownerCommitment,
+  poolId,
+  privateSpendContextHash,
+  privateSpendPublicInputHash,
   routeCommitment,
   sendContextTag,
   sendPublicInputHash,
@@ -567,7 +594,9 @@ export async function requestVantaPrivatePoolV2ProtocolSettlement({
     body: JSON.stringify({
       action,
       amount,
+      ...(acceptedRoot ? { acceptedRoot } : {}),
       ...(assetIdCommitment ? { assetIdCommitment } : {}),
+      ...(assetCohort ? { assetCohort } : {}),
       asset,
       ...(changeLeafIndex ? { changeLeafIndex } : {}),
       ...(changeOutputCommitment ? { changeOutputCommitment } : {}),
@@ -584,6 +613,9 @@ export async function requestVantaPrivatePoolV2ProtocolSettlement({
       ...(outputRoot ? { outputRoot } : {}),
       owner,
       ...(ownerCommitment ? { ownerCommitment } : {}),
+      ...(poolId ? { poolId } : {}),
+      ...(privateSpendContextHash ? { privateSpendContextHash } : {}),
+      ...(privateSpendPublicInputHash ? { privateSpendPublicInputHash } : {}),
       ...(routeCommitment ? { routeCommitment } : {}),
       ...(sendContextTag ? { sendContextTag } : {}),
       ...(sendPublicInputHash ? { sendPublicInputHash } : {}),
@@ -613,7 +645,9 @@ export async function requestVantaPrivatePoolV2ProtocolSettlement({
     request: {
       action,
       amount,
+      acceptedRoot,
       assetIdCommitment,
+      assetCohort,
       asset,
       authToken,
       baseUrl,
@@ -632,6 +666,9 @@ export async function requestVantaPrivatePoolV2ProtocolSettlement({
       outputRoot,
       owner,
       ownerCommitment,
+      poolId,
+      privateSpendContextHash,
+      privateSpendPublicInputHash,
       routeCommitment,
       sendContextTag,
       sendPublicInputHash,

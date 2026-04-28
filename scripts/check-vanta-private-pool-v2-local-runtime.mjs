@@ -88,6 +88,7 @@ try {
   const [
     {
       createVantaPrivatePoolV2ClaimProofRequest,
+      createVantaPrivatePoolV2ActualPrivateSpendProofRequest,
       createVantaPrivatePoolV2SendProofRequest,
       createVantaPrivatePoolV2ShieldProofRequest,
       createVantaPrivatePoolV2SwapToShieldedProofRequest,
@@ -357,6 +358,79 @@ try {
     "Expected change output root to match verifier indexer root.",
   );
   console.log("local verifier private-send nullifier and output append: PASS");
+
+  const actualPrivateSpendRequest = createVantaPrivatePoolV2ActualPrivateSpendProofRequest({
+    acceptedRoot: "field:actual-private-accepted-root",
+    assetCohort: "USDC:100",
+    contextHash: "field:actual-private-context-hash",
+    nullifier: "field:actual-private-nullifier",
+    outputCommitments: [
+      "field:actual-private-merchant-output-commitment",
+      "field:actual-private-change-output-commitment",
+    ],
+    poolId: "pool:stablecoin-usdc-v1:100",
+    privateSpendPublicInputHash: "field:actual-private-public-input-hash",
+  });
+  const actualPrivateSpendJson = JSON.stringify(actualPrivateSpendRequest, (_, value) =>
+    typeof value === "bigint" ? value.toString() : value,
+  );
+  for (const forbidden of [
+    "input-commitment:",
+    "leaf-index:",
+    "destination:",
+    "amount:",
+    "raw-amount",
+  ]) {
+    assert(
+      !actualPrivateSpendJson.includes(forbidden),
+      `Actual private spend proof request leaked ${forbidden}.`,
+    );
+  }
+  const actualPrivateSpendProof = await prover.prove(actualPrivateSpendRequest);
+  assert(
+    await prover.verify({
+      proof: actualPrivateSpendProof,
+      request: actualPrivateSpendRequest,
+    }),
+    "Expected actual private spend proof to verify.",
+  );
+  const actualPrivateSpendIndexer = createVantaPrivatePoolV2LocalIndexer();
+  const actualPrivateSpendRegistry = createVantaPrivatePoolV2LocalVerifierRegistry({
+    indexer: actualPrivateSpendIndexer,
+    prover,
+  });
+  const actualPrivateSpendReceipt = await actualPrivateSpendRegistry.acceptProof({
+    proof: actualPrivateSpendProof,
+    request: actualPrivateSpendRequest,
+  });
+  assert(
+    actualPrivateSpendReceipt.replayKey === "private-send:field:actual-private-nullifier",
+    "Expected actual private spend receipt to use the nullifier replay key.",
+  );
+  assert(
+    (await actualPrivateSpendIndexer.getNullifier("field:actual-private-nullifier"))?.nullifier ===
+      "field:actual-private-nullifier",
+    "Expected actual private spend acceptance to register the nullifier.",
+  );
+  const actualPrivateSpendCommitments = await actualPrivateSpendIndexer.listCommitments({
+    assetId: "USDC:100",
+    treeId: "pool:stablecoin-usdc-v1:100",
+  });
+  assert(
+    actualPrivateSpendCommitments.length === 2,
+    "Expected actual private spend acceptance to append both output commitments.",
+  );
+  assert(
+    actualPrivateSpendCommitments[0]?.commitment ===
+      "field:actual-private-merchant-output-commitment",
+    "Expected first actual private spend output commitment to be appended from output-commitment-0.",
+  );
+  assert(
+    actualPrivateSpendCommitments[1]?.commitment ===
+      "field:actual-private-change-output-commitment",
+    "Expected second actual private spend output commitment to be appended from output-commitment-1.",
+  );
+  console.log("local verifier actual private spend nullifier and output append: PASS");
 
   await expectRejection(
     () =>

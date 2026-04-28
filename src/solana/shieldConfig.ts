@@ -13,8 +13,11 @@ export const vantaExplicitMainnetApproval = isMainnetCluster;
 const MAINNET_RECOGNIZED_MINTS = {
   BONK: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
   JTO: "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
+  JUP: "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  KMNO: "KMNo3nJsBXfcpJTVhZcXLW7RmTwTt4GVFE7suUBo9sS",
   PYUSD: "CXk2AMBfi3TwaEL2468s6zP8xq9NxTXjp9gjMgzeUynM",
   USDC: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  WIF: "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
 } as const;
 
 function getOptionalEnvValue(value: string | undefined) {
@@ -57,7 +60,7 @@ const configuredJupMintAddress = getOptionalEnvValue(
   isMainnetCluster
     ? import.meta.env.VITE_VANTA_MAINNET_JUP_MINT
     : import.meta.env.VITE_VANTA_DEVNET_JUP_MINT,
-);
+) ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.JUP : null);
 const configuredPyusdMintAddress = getOptionalEnvValue(
   isMainnetCluster
     ? import.meta.env.VITE_VANTA_MAINNET_PYUSD_MINT
@@ -67,12 +70,12 @@ const configuredWifMintAddress = getOptionalEnvValue(
   isMainnetCluster
     ? import.meta.env.VITE_VANTA_MAINNET_WIF_MINT
     : import.meta.env.VITE_VANTA_DEVNET_WIF_MINT,
-);
+) ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.WIF : null);
 const configuredKmnoMintAddress = getOptionalEnvValue(
   isMainnetCluster
     ? import.meta.env.VITE_VANTA_MAINNET_KMNO_MINT
     : import.meta.env.VITE_VANTA_DEVNET_KMNO_MINT,
-);
+) ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.KMNO : null);
 const configuredVaultOwner = getOptionalEnvValue(
   isMainnetCluster
     ? import.meta.env.VITE_VANTA_MAINNET_VAULT_OWNER

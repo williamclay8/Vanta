@@ -15,10 +15,10 @@ import type {
 export const VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION =
   "vanta-pay-private-settlement-adapter-0.1" as const;
 export const VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY = {
-  acceptedCheckoutSettlementBoundary: "committed-economics-protocol-settlement",
+  acceptedCheckoutSettlementBoundary: "actual-private-spend-protocol-settlement",
   acceptedCheckoutSettlementVerificationCommand: "npm run pay:committed-checkout-acceptance-check",
   checkoutProofBoundary: "hidden-economics-request",
-  checkoutSettlementRoute: "committed-economics-protocol-settlement",
+  checkoutSettlementRoute: "actual-private-spend-protocol-settlement",
   hiddenEconomicsProductionPrivacyClaimAllowed: false,
   lifecycleModel: "preview-approve-execute-settle",
   operatorSeesRawSettlementTerms: false,
@@ -54,25 +54,18 @@ export type VantaPaySettleWithdrawalArgs = {
 
 export type VantaPayCheckoutCommittedEconomicsSettlementRequest = {
   action: "send";
-  assetIdCommitment: string;
-  changeLeafIndex: string;
+  acceptedRoot: string;
+  assetCohort: string;
   changeOutputCommitment: string;
-  changeOutputRoot: string;
   economicsCommitment: string;
   economicsMode: "committed-economics";
-  inputCommitment: string;
-  inputRoot: string;
   nullifierOrReplayCommitment: string;
   outputCommitment: string;
-  outputLeafIndex: string;
-  outputRoot: string;
   ownerCommitment: string;
-  recipientLeafIndex: string;
-  recipientOutputCommitment: string;
-  recipientOutputRoot: string;
+  poolId: string;
+  privateSpendContextHash: string;
+  privateSpendPublicInputHash: string;
   routeCommitment: string;
-  sendContextTag: string;
-  sendPublicInputHash: string;
   settlementCommitment: string;
   settlementId: string;
 };
@@ -333,63 +326,43 @@ export async function createVantaPayCheckoutHiddenEconomicsProofRequest(
 export function createVantaPayCheckoutCommittedEconomicsSettlementRequest(
   session: VantaPayCheckoutSession,
 ): VantaPayCheckoutCommittedEconomicsSettlementRequest {
-  const assetIdCommitment = hashHex(
+  const poolId = hashHex(
     VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
-    "checkout-send-asset-id",
-    assetIdForAsset(session.currency),
+    "checkout-actual-private-pool",
+    hiddenEconomicsAssetId,
+  ).slice(0, 34);
+  const assetCohort = hashHex(
+    VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+    "checkout-actual-private-asset-cohort",
+    session.currency,
   );
-  const inputCommitment = hashHex(
+  const acceptedRoot = hashHex(
     VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
-    "checkout-send-input-note",
-    session.id,
-    session.clientToken,
+    "checkout-actual-private-accepted-root",
+    poolId,
+    assetCohort,
   );
   const nullifierOrReplayCommitment = hashHex(
     VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
-    "checkout-send-nullifier",
-    inputCommitment,
+    "checkout-actual-private-nullifier",
+    session.id,
     session.clientToken,
   );
-  const treeId = treeIdForAsset(hiddenEconomicsAssetId as VantaPayAsset);
-  const inputLeaf = {
-    assetId: hiddenEconomicsAssetId,
-    commitment: inputCommitment,
-    leafIndex: 0,
-    treeId,
-  };
-  const inputRoot = merkleRootFor(treeId, [inputLeaf]);
   const ownerCommitment = hashHex("merchant", session.merchantId);
   const recipientOutputCommitment = hashHex(
     VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
-    "checkout-send-recipient-output",
+    "checkout-actual-private-recipient-output",
     session.id,
     session.clientToken,
     session.amount,
     session.currency,
   );
-  const recipientLeafIndex = "1";
-  const recipientLeaf = {
-    assetId: hiddenEconomicsAssetId,
-    commitment: recipientOutputCommitment,
-    leafIndex: Number(recipientLeafIndex),
-    treeId,
-  };
-  const recipientOutputRoot = merkleRootFor(treeId, [inputLeaf, recipientLeaf]);
   const changeOutputCommitment = hashHex(
     VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
-    "checkout-send-change-output",
+    "checkout-actual-private-change-output",
     session.id,
-    inputCommitment,
     recipientOutputCommitment,
   );
-  const changeLeafIndex = "2";
-  const changeLeaf = {
-    assetId: hiddenEconomicsAssetId,
-    commitment: changeOutputCommitment,
-    leafIndex: Number(changeLeafIndex),
-    treeId,
-  };
-  const changeOutputRoot = merkleRootFor(treeId, [inputLeaf, recipientLeaf, changeLeaf]);
   const economicsCommitment = hashHex(
     VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
     "checkout-economics",
@@ -414,45 +387,39 @@ export function createVantaPayCheckoutCommittedEconomicsSettlementRequest(
     recipientOutputCommitment,
     changeOutputCommitment,
   );
-  const sendPublicInputHash = hashHex(
+  const privateSpendContextHash = hashHex(
     VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
-    "checkout-send-public-inputs",
-    inputRoot,
-    inputCommitment,
+    "checkout-actual-private-context",
+    routeCommitment,
+    ownerCommitment,
+    settlementCommitment,
+  );
+  const privateSpendPublicInputHash = hashHex(
+    VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+    "checkout-actual-private-public-inputs",
+    poolId,
+    assetCohort,
+    acceptedRoot,
     nullifierOrReplayCommitment,
     recipientOutputCommitment,
-    recipientLeafIndex,
-    recipientOutputRoot,
     changeOutputCommitment,
-    changeLeafIndex,
-    changeOutputRoot,
-    assetIdCommitment,
-    economicsCommitment,
-    ownerCommitment,
-    sendContextTag,
+    privateSpendContextHash,
   );
 
   return {
     action: "send",
-    assetIdCommitment,
-    changeLeafIndex,
+    acceptedRoot,
+    assetCohort,
     changeOutputCommitment,
-    changeOutputRoot,
     economicsCommitment,
     economicsMode: "committed-economics",
-    inputCommitment,
-    inputRoot,
     nullifierOrReplayCommitment,
     outputCommitment: recipientOutputCommitment,
-    outputLeafIndex: recipientLeafIndex,
-    outputRoot: recipientOutputRoot,
     ownerCommitment,
-    recipientLeafIndex,
-    recipientOutputCommitment,
-    recipientOutputRoot,
+    poolId,
+    privateSpendContextHash,
+    privateSpendPublicInputHash,
     routeCommitment,
-    sendContextTag,
-    sendPublicInputHash,
     settlementCommitment,
     settlementId: hashId("pay_checkout", session.id),
   };
@@ -608,17 +575,6 @@ export function createVantaPayPrivateSettlementAdapter({
     }
 
     const committedRequest = createVantaPayCheckoutCommittedEconomicsSettlementRequest(session);
-    await settleProtocolThroughPrivatePoolOperator<unknown>({
-      action: "shield",
-      economicsCommitment: committedRequest.economicsCommitment,
-      economicsMode: "committed-economics",
-      nullifierOrReplayCommitment: `${committedRequest.nullifierOrReplayCommitment}:seed`,
-      outputCommitment: committedRequest.inputCommitment,
-      ownerCommitment: committedRequest.ownerCommitment,
-      routeCommitment: committedRequest.routeCommitment,
-      settlementCommitment: `${committedRequest.settlementCommitment}:seed`,
-      settlementId: `${committedRequest.settlementId}_input`,
-    });
     const response = await fetch(`${privatePoolOperatorUrl}/private-pool-v2/protocol-settlements`, {
       body: JSON.stringify(committedRequest),
       headers: {

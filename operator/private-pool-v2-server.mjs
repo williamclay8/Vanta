@@ -309,6 +309,7 @@ const {
 } = await import(pathToFileURL(join(tempJsDir, "privatePoolV2RemoteServices.js")).href);
 const {
   createVantaPrivatePoolV2ClaimProofRequest,
+  createVantaPrivatePoolV2ActualPrivateSpendProofRequest,
   createVantaPrivatePoolV2HiddenEconomicsProofRequest,
   createVantaPrivatePoolV2SendProofRequest,
   createVantaPrivatePoolV2ShieldProofRequest,
@@ -411,7 +412,7 @@ const VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION =
 const VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID = "hidden:economic-terms";
 const settlementPolicy = VANTA_PRIVATE_POOL_V2_SETTLEMENT_POLICY;
 const protocolActionProofModes = {
-  send: "send_circuit_request",
+  send: "actual_private_spend_circuit_request",
   shield: "shield_circuit_request",
   swap: "swap_to_shielded_circuit_request",
   unshield: "committed_unshield_or_claim_circuit_request",
@@ -483,6 +484,35 @@ function requireNonEmptyString(value, fieldName) {
   return value;
 }
 
+function optionalNonEmptyString(value) {
+  return typeof value === "string" && value.trim().length > 0 ? value : undefined;
+}
+
+function hasActualPrivateSendFields(body) {
+  return Boolean(
+    optionalNonEmptyString(body.acceptedRoot) &&
+      optionalNonEmptyString(body.assetCohort) &&
+      optionalNonEmptyString(body.poolId) &&
+      optionalNonEmptyString(body.privateSpendContextHash) &&
+      optionalNonEmptyString(body.outputCommitment),
+  );
+}
+
+function hasStatefulSendFields(body) {
+  return Boolean(
+    optionalNonEmptyString(body.assetIdCommitment) &&
+      optionalNonEmptyString(body.changeLeafIndex) &&
+      optionalNonEmptyString(body.changeOutputCommitment) &&
+      optionalNonEmptyString(body.changeOutputRoot) &&
+      optionalNonEmptyString(body.inputRoot) &&
+      optionalNonEmptyString(body.inputCommitment) &&
+      optionalNonEmptyString(body.outputCommitment) &&
+      optionalNonEmptyString(body.outputLeafIndex) &&
+      optionalNonEmptyString(body.outputRoot) &&
+      optionalNonEmptyString(body.sendContextTag),
+  );
+}
+
 function validatePayCheckoutSession(session) {
   if (!session || typeof session !== "object") {
     throw new Error("Private Pool v2 Pay checkout settlement requires session.");
@@ -523,17 +553,10 @@ function validateProtocolSettlementBody(body) {
         throw new Error(`Committed economics protocol settlement rejects raw ${rawField}.`);
       }
     }
-    if (action === "send") {
-      requireNonEmptyString(body.assetIdCommitment, "assetIdCommitment");
-      requireNonEmptyString(body.changeLeafIndex, "changeLeafIndex");
-      requireNonEmptyString(body.changeOutputCommitment, "changeOutputCommitment");
-      requireNonEmptyString(body.changeOutputRoot, "changeOutputRoot");
-      requireNonEmptyString(body.inputRoot, "inputRoot");
-      requireNonEmptyString(body.inputCommitment, "inputCommitment");
-      requireNonEmptyString(body.outputCommitment, "outputCommitment");
-      requireNonEmptyString(body.outputLeafIndex, "outputLeafIndex");
-      requireNonEmptyString(body.outputRoot, "outputRoot");
-      requireNonEmptyString(body.sendContextTag, "sendContextTag");
+    if (action === "send" && !hasActualPrivateSendFields(body) && !hasStatefulSendFields(body)) {
+      throw new Error(
+        "Private Pool v2 settlement requires actual-private send fields or full stateful send terms.",
+      );
     }
     if (action === "swap") {
       requireNonEmptyString(body.inputRoot, "inputRoot");
@@ -552,10 +575,12 @@ function validateProtocolSettlementBody(body) {
 
     return {
       action,
+      acceptedRoot: optionalNonEmptyString(body.acceptedRoot),
       assetIdCommitment:
         typeof body.assetIdCommitment === "string" && body.assetIdCommitment.trim().length > 0
           ? body.assetIdCommitment
           : undefined,
+      assetCohort: optionalNonEmptyString(body.assetCohort),
       changeLeafIndex:
         typeof body.changeLeafIndex === "string" && body.changeLeafIndex.trim().length > 0
           ? body.changeLeafIndex
@@ -600,6 +625,9 @@ function validateProtocolSettlementBody(body) {
           ? body.outputRoot
           : undefined,
       ownerCommitment: requireNonEmptyString(body.ownerCommitment, "ownerCommitment"),
+      poolId: optionalNonEmptyString(body.poolId),
+      privateSpendContextHash: optionalNonEmptyString(body.privateSpendContextHash),
+      privateSpendPublicInputHash: optionalNonEmptyString(body.privateSpendPublicInputHash),
       routeCommitment: requireNonEmptyString(body.routeCommitment, "routeCommitment"),
       sendContextTag:
         typeof body.sendContextTag === "string" && body.sendContextTag.trim().length > 0
@@ -849,7 +877,9 @@ function assertPayCheckoutReplayMatches(existingSettlement, session, amount, ass
 function protocolSettlementFingerprint({
   action,
   amount,
+  acceptedRoot,
   assetIdCommitment,
+  assetCohort,
   asset,
   changeLeafIndex,
   changeOutputCommitment,
@@ -866,6 +896,9 @@ function protocolSettlementFingerprint({
   outputRoot,
   owner,
   ownerCommitment,
+  poolId,
+  privateSpendContextHash,
+  privateSpendPublicInputHash,
   routeCommitment,
   sendContextTag,
   sendPublicInputHash,
@@ -912,7 +945,9 @@ function protocolSettlementFingerprint({
 	    action,
 	    settlementId,
 	    economicsMode,
+	    acceptedRoot,
 	    assetIdCommitment,
+	    assetCohort,
 	    changeLeafIndex,
 	    changeOutputCommitment,
 	    changeOutputRoot,
@@ -925,6 +960,9 @@ function protocolSettlementFingerprint({
 	    outputLeafIndex,
 	    outputRoot,
 	    ownerCommitment,
+	    poolId,
+	    privateSpendContextHash,
+	    privateSpendPublicInputHash,
 	    routeCommitment,
 	    sendContextTag,
 	    sendPublicInputHash,
@@ -940,10 +978,12 @@ function assertProtocolReplayMatches(
   existingSettlement,
   {
     destination,
+    acceptedRoot,
     economicsCommitment,
     economicsMode,
     exitTermsCommitment,
     assetIdCommitment,
+    assetCohort,
     changeLeafIndex,
     changeOutputCommitment,
     changeOutputRoot,
@@ -953,9 +993,12 @@ function assertProtocolReplayMatches(
     outputCommitment,
     outputLeafIndex,
     outputRoot,
-    owner,
-    ownerCommitment,
-    routeCommitment,
+	    owner,
+	    ownerCommitment,
+	    poolId,
+	    privateSpendContextHash,
+	    privateSpendPublicInputHash,
+	    routeCommitment,
     sendContextTag,
     sendPublicInputHash,
     settlementCommitment,
@@ -1002,10 +1045,12 @@ function assertProtocolReplayMatches(
   assertMatches(
     existingSettlement.settlementFingerprint,
     protocolSettlementFingerprint({
-      action,
-      amount,
-      assetIdCommitment,
-      asset,
+	      action,
+	      amount,
+	      acceptedRoot,
+	      assetIdCommitment,
+	      assetCohort,
+	      asset,
       changeLeafIndex,
       changeOutputCommitment,
       changeOutputRoot,
@@ -1019,9 +1064,12 @@ function assertProtocolReplayMatches(
       outputCommitment,
       outputLeafIndex,
       outputRoot,
-      owner,
-      ownerCommitment,
-      routeCommitment,
+    owner,
+    ownerCommitment,
+    poolId,
+    privateSpendContextHash,
+    privateSpendPublicInputHash,
+    routeCommitment,
       sendContextTag,
       sendPublicInputHash,
       settlementId,
@@ -1617,7 +1665,9 @@ async function proveAndAcceptProtocolSettlement(body) {
   const {
     action,
     amount,
+    acceptedRoot,
     assetIdCommitment,
+    assetCohort,
     asset,
     changeLeafIndex,
     changeOutputCommitment,
@@ -1634,6 +1684,9 @@ async function proveAndAcceptProtocolSettlement(body) {
     outputRoot,
     owner,
     ownerCommitment,
+    poolId,
+    privateSpendContextHash,
+    privateSpendPublicInputHash,
     routeCommitment,
     sendContextTag,
     sendPublicInputHash,
@@ -1657,7 +1710,9 @@ async function proveAndAcceptProtocolSettlement(body) {
       existingSettlement,
       {
         destination,
+        acceptedRoot,
         assetIdCommitment,
+        assetCohort,
         changeLeafIndex,
         changeOutputCommitment,
         changeOutputRoot,
@@ -1672,6 +1727,9 @@ async function proveAndAcceptProtocolSettlement(body) {
         outputRoot,
         owner,
         ownerCommitment,
+        poolId,
+        privateSpendContextHash,
+        privateSpendPublicInputHash,
         routeCommitment,
         sendContextTag,
         sendPublicInputHash,
@@ -1811,22 +1869,38 @@ async function proveAndAcceptProtocolSettlement(body) {
       quote,
     });
   } else if (action === "send" && economicsMode === "committed-economics") {
-    request = createVantaPrivatePoolV2SendProofRequest({
-      assetIdCommitment,
-      changeLeafIndex,
-      ...(changeOutputCommitment ? { changeOutputCommitment } : {}),
-      changeOutputRoot,
-      economicsCommitment,
-      inputCommitment,
-      inputRoot,
-      nullifier: nullifierOrReplayCommitment,
-      ownerCommitment,
-      recipientLeafIndex: outputLeafIndex,
-      recipientOutputCommitment: outputCommitment,
-      recipientOutputRoot: outputRoot,
-      sendContextTag,
-      ...(sendPublicInputHash ? { sendPublicInputHash } : {}),
-    });
+    if (poolId && assetCohort && acceptedRoot && privateSpendContextHash) {
+      request = createVantaPrivatePoolV2ActualPrivateSpendProofRequest({
+        acceptedRoot,
+        assetCohort,
+        contextHash: privateSpendContextHash,
+        nullifier: nullifierOrReplayCommitment,
+        outputCommitments: [outputCommitment, changeOutputCommitment].filter(Boolean),
+        poolId,
+        ...(privateSpendPublicInputHash
+          ? { privateSpendPublicInputHash }
+          : sendPublicInputHash
+            ? { privateSpendPublicInputHash: sendPublicInputHash }
+            : {}),
+      });
+    } else {
+      request = createVantaPrivatePoolV2SendProofRequest({
+        assetIdCommitment,
+        changeLeafIndex,
+        ...(changeOutputCommitment ? { changeOutputCommitment } : {}),
+        changeOutputRoot,
+        economicsCommitment,
+        inputCommitment,
+        inputRoot,
+        nullifier: nullifierOrReplayCommitment,
+        ownerCommitment,
+        recipientLeafIndex: outputLeafIndex,
+        recipientOutputCommitment: outputCommitment,
+        recipientOutputRoot: outputRoot,
+        sendContextTag,
+        ...(sendPublicInputHash ? { sendPublicInputHash } : {}),
+      });
+    }
   } else if (action === "swap" && economicsMode === "committed-economics") {
     request = createVantaPrivatePoolV2SwapToShieldedProofRequest({
       economicsCommitment,
@@ -1965,9 +2039,11 @@ async function proveAndAcceptProtocolSettlement(body) {
     protocolSettlementReceipt,
 	    settlementFingerprint: protocolSettlementFingerprint({
 	      action,
-	      amount,
-	      assetIdCommitment,
-	      asset,
+      amount,
+      acceptedRoot,
+      assetIdCommitment,
+      assetCohort,
+      asset,
 	      changeLeafIndex,
 	      changeOutputCommitment,
 	      changeOutputRoot,
@@ -1981,9 +2057,12 @@ async function proveAndAcceptProtocolSettlement(body) {
 	      outputCommitment,
 	      outputLeafIndex,
 	      outputRoot,
-	      owner,
-	      ownerCommitment,
-	      routeCommitment,
+      owner,
+      ownerCommitment,
+      poolId,
+      privateSpendContextHash,
+      privateSpendPublicInputHash,
+      routeCommitment,
 	      sendContextTag,
 	      sendPublicInputHash,
 	      settlementId,

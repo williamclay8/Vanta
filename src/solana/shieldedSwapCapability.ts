@@ -1,14 +1,19 @@
 import {
   isNativeSolShieldConfigured,
-  listAllLiveShieldTokenAssets,
   liveSolToShieldedSwapRouteAdapter,
   liveSwapPair,
 } from "@/solana/shieldConfig";
 import type { ShieldedSwapAssetKey } from "@/solana/publicSwapRoute";
+import {
+  abbreviateMintAddress,
+  listMainnetSwapAssetCatalog,
+} from "@/solana/swapAssetCatalog";
 
 export type ShieldedSwapAssetOption = {
   configured: boolean;
   label: string;
+  mainnetMintAddress: string;
+  name: string;
   symbol: ShieldedSwapAssetKey;
 };
 
@@ -36,18 +41,18 @@ const SHIELDED_SWAP_ASSET_LABELS = {
 } as const satisfies Record<ShieldedSwapAssetKey, string>;
 
 export function listShieldedSwapAssetOptions(): ShieldedSwapAssetOption[] {
-  return [
-    ...listAllLiveShieldTokenAssets().map((asset) => ({
-      configured: asset.configured && Boolean(asset.mintAddress && asset.vaultOwner),
-      label: SHIELDED_SWAP_ASSET_LABELS[asset.symbol],
-      symbol: asset.symbol,
-    })),
-    {
-      configured: isNativeSolShieldConfigured(),
-      label: SHIELDED_SWAP_ASSET_LABELS.SOL,
-      symbol: "SOL" as const,
-    },
-  ];
+  return listMainnetSwapAssetCatalog().map((entry) => ({
+    configured:
+      entry.symbol === "SOL"
+        ? isNativeSolShieldConfigured()
+        : entry.configured,
+    label: `${SHIELDED_SWAP_ASSET_LABELS[entry.symbol]} (${abbreviateMintAddress(
+      entry.mainnetMintAddress,
+    )})`,
+    mainnetMintAddress: entry.mainnetMintAddress,
+    name: entry.name,
+    symbol: entry.symbol,
+  }));
 }
 
 export function getShieldedSwapPairCapability(args: {

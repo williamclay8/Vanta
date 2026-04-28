@@ -172,42 +172,36 @@ function assertNoRawTerms(label, value, rawTerms) {
 }
 
 async function assertCommittedCheckoutUsesSendProofBoundary({
-  createSendProofRequest,
+  createActualPrivateSpendProofRequest,
   createLocalProver,
   label,
   request,
   settlement,
 }) {
-  const expectedProofRequest = createSendProofRequest({
-    assetIdCommitment: request.assetIdCommitment,
-    changeLeafIndex: request.changeLeafIndex,
-    changeOutputCommitment: request.changeOutputCommitment,
-    changeOutputRoot: request.changeOutputRoot,
-    economicsCommitment: request.economicsCommitment,
-    inputCommitment: request.inputCommitment,
-    inputRoot: request.inputRoot,
+  const expectedProofRequest = createActualPrivateSpendProofRequest({
+    acceptedRoot: request.acceptedRoot,
+    assetCohort: request.assetCohort,
+    contextHash: request.privateSpendContextHash,
     nullifier: request.nullifierOrReplayCommitment,
-    ownerCommitment: request.ownerCommitment,
-    recipientLeafIndex: request.recipientLeafIndex,
-    recipientOutputCommitment: request.recipientOutputCommitment,
-    recipientOutputRoot: request.recipientOutputRoot,
-    sendContextTag: request.sendContextTag,
-    sendPublicInputHash: request.sendPublicInputHash,
+    outputCommitments: [request.outputCommitment, request.changeOutputCommitment],
+    poolId: request.poolId,
+    privateSpendPublicInputHash: request.privateSpendPublicInputHash,
   });
   const expectedProof = await createLocalProver().prove(expectedProofRequest);
 
   assert(
-    expectedProofRequest.publicInputs[0] === "vanta-private-pool-v2-send-proof-request-0.1:version",
-    `${label} must use the private-pool-v2 send proof request version.`,
+    expectedProofRequest.publicInputs[0] ===
+      "vanta-private-pool-v2-actual-private-spend-proof-request-0.1:version",
+    `${label} must use the actual-private spend proof request version.`,
   );
   assert(
     JSON.stringify(expectedProofRequest.circuitPublicInputs) ===
-      JSON.stringify([`send-public-input-hash:${request.sendPublicInputHash}`]),
-    `${label} must bind the send public input hash on the circuit-public lane.`,
+      JSON.stringify([`private-spend-public-input-hash:${request.privateSpendPublicInputHash}`]),
+    `${label} must bind the private spend public input hash on the circuit-public lane.`,
   );
   assert(
     settlement?.proofReceipt?.publicInputCommitment === expectedProof.publicInputCommitment,
-    `${label} proof receipt did not match the private-pool-v2 send proof request public inputs/circuit hash.`,
+    `${label} proof receipt did not match the actual-private spend proof request public inputs/circuit hash.`,
   );
   assert(
     settlement?.protocolSettlementReceipt?.proofReceiptPublicInputCommitment ===
@@ -254,7 +248,7 @@ try {
   const { createVantaPrivatePoolV2LocalProver } = await import(
     pathToFileURL(join(tempJsDir, "privacy/privatePoolV2LocalProver.js")).href
   );
-  const { createVantaPrivatePoolV2SendProofRequest } = await import(
+  const { createVantaPrivatePoolV2ActualPrivateSpendProofRequest } = await import(
     pathToFileURL(join(tempJsDir, "privacy/privatePoolV2ProofRequests.js")).href
   );
   const { createVantaPayRuntime } = await import(
@@ -293,23 +287,16 @@ try {
     assert(!(rawField in committedRequest), `Committed Pay checkout request must omit ${rawField}.`);
   }
   for (const boundaryField of [
-    "assetIdCommitment",
-    "changeLeafIndex",
+    "acceptedRoot",
+    "assetCohort",
     "changeOutputCommitment",
-    "changeOutputRoot",
-    "inputCommitment",
-    "inputRoot",
     "nullifierOrReplayCommitment",
     "outputCommitment",
-    "outputLeafIndex",
-    "outputRoot",
     "ownerCommitment",
-    "recipientLeafIndex",
-    "recipientOutputCommitment",
-    "recipientOutputRoot",
+    "poolId",
+    "privateSpendContextHash",
+    "privateSpendPublicInputHash",
     "routeCommitment",
-    "sendContextTag",
-    "sendPublicInputHash",
     "settlementCommitment",
   ]) {
     assert(
@@ -318,36 +305,47 @@ try {
       `Committed Pay checkout request must include ${boundaryField}.`,
     );
   }
-  const directSendProofRequest = createVantaPrivatePoolV2SendProofRequest({
-    assetIdCommitment: committedRequest.assetIdCommitment,
-    changeLeafIndex: committedRequest.changeLeafIndex,
-    changeOutputCommitment: committedRequest.changeOutputCommitment,
-    changeOutputRoot: committedRequest.changeOutputRoot,
-    economicsCommitment: committedRequest.economicsCommitment,
-    inputCommitment: committedRequest.inputCommitment,
-    inputRoot: committedRequest.inputRoot,
+  for (const forbiddenSourceStateField of [
+    "assetIdCommitment",
+    "changeLeafIndex",
+    "changeOutputRoot",
+    "inputCommitment",
+    "inputRoot",
+    "outputLeafIndex",
+    "outputRoot",
+    "recipientLeafIndex",
+    "recipientOutputCommitment",
+    "recipientOutputRoot",
+    "sendContextTag",
+    "sendPublicInputHash",
+  ]) {
+    assert(
+      !(forbiddenSourceStateField in committedRequest),
+      `Committed Pay checkout request must omit ${forbiddenSourceStateField}.`,
+    );
+  }
+  const directSendProofRequest = createVantaPrivatePoolV2ActualPrivateSpendProofRequest({
+    acceptedRoot: committedRequest.acceptedRoot,
+    assetCohort: committedRequest.assetCohort,
+    contextHash: committedRequest.privateSpendContextHash,
     nullifier: committedRequest.nullifierOrReplayCommitment,
-    ownerCommitment: committedRequest.ownerCommitment,
-    recipientLeafIndex: committedRequest.recipientLeafIndex,
-    recipientOutputCommitment: committedRequest.recipientOutputCommitment,
-    recipientOutputRoot: committedRequest.recipientOutputRoot,
-    sendContextTag: committedRequest.sendContextTag,
-    sendPublicInputHash: committedRequest.sendPublicInputHash,
+    outputCommitments: [committedRequest.outputCommitment, committedRequest.changeOutputCommitment],
+    poolId: committedRequest.poolId,
+    privateSpendPublicInputHash: committedRequest.privateSpendPublicInputHash,
   });
   assert(
-    committedRequest.outputCommitment === committedRequest.recipientOutputCommitment &&
-      committedRequest.outputLeafIndex === committedRequest.recipientLeafIndex &&
-      committedRequest.outputRoot === committedRequest.recipientOutputRoot,
-    "Committed Pay checkout request must keep operator output aliases aligned to recipient output fields.",
+    committedRequest.outputCommitment !== committedRequest.changeOutputCommitment,
+    "Committed Pay checkout request must keep recipient and change outputs distinct.",
   );
   assert(
-    directSendProofRequest.publicInputs[0] === "vanta-private-pool-v2-send-proof-request-0.1:version",
-    "Expected Pay committed checkout request to map to private-pool-v2 send proof request public inputs.",
+    directSendProofRequest.publicInputs[0] ===
+      "vanta-private-pool-v2-actual-private-spend-proof-request-0.1:version",
+    "Expected Pay committed checkout request to map to actual-private spend proof request public inputs.",
   );
   assert(
     JSON.stringify(directSendProofRequest.circuitPublicInputs) ===
-      JSON.stringify([`send-public-input-hash:${committedRequest.sendPublicInputHash}`]),
-    "Expected Pay committed checkout request to bind a private-pool-v2 send public input hash.",
+      JSON.stringify([`private-spend-public-input-hash:${committedRequest.privateSpendPublicInputHash}`]),
+    "Expected Pay committed checkout request to bind an actual-private public input hash.",
   );
   assertNoRawTerms("Pay committed checkout request", committedRequest, [
     "USDC",
@@ -361,8 +359,6 @@ try {
   console.log("vanta-pay committed checkout request redaction: PASS");
 
   await startOperator();
-  await seedCommittedCheckoutInput(committedRequest);
-
   const settlement = await requestJson("/private-pool-v2/protocol-settlements", {
     body: JSON.stringify(committedRequest),
     headers: { Authorization: `Bearer ${authToken}` },
@@ -381,8 +377,8 @@ try {
     "Expected committed Pay checkout proof receipt to use private-send intent.",
   );
   await assertCommittedCheckoutUsesSendProofBoundary({
+    createActualPrivateSpendProofRequest: createVantaPrivatePoolV2ActualPrivateSpendProofRequest,
     createLocalProver: createVantaPrivatePoolV2LocalProver,
-    createSendProofRequest: createVantaPrivatePoolV2SendProofRequest,
     label: "Pay committed checkout acceptance",
     request: committedRequest,
     settlement,
@@ -449,7 +445,6 @@ try {
     uiMode: "hosted",
   });
   const routedRequest = createVantaPayCheckoutCommittedEconomicsSettlementRequest(routedSession);
-  await seedCommittedCheckoutInput(routedRequest);
   const settlementAdapter = createVantaPayPrivateSettlementAdapter({
     privatePoolOperatorAuthToken: authToken,
     privatePoolOperatorUrl: baseUrl,
@@ -478,8 +473,8 @@ try {
     (record) => record.protocolSettlementReceipt?.settlementId === routedRequest.settlementId,
   );
   await assertCommittedCheckoutUsesSendProofBoundary({
+    createActualPrivateSpendProofRequest: createVantaPrivatePoolV2ActualPrivateSpendProofRequest,
     createLocalProver: createVantaPrivatePoolV2LocalProver,
-    createSendProofRequest: createVantaPrivatePoolV2SendProofRequest,
     label: "Routed committed Pay checkout",
     request: routedRequest,
     settlement: routedSettlement,

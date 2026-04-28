@@ -81,17 +81,18 @@ remain blocked until live mainnet settlement, audited anonymity-set evidence,
 relayer-separated production execution, durable production services, and the
 strict readiness gate are satisfied.
 
-Current local Private Pool v2 Send proof requests and the executable Send
-circuit fixture bind an input root, input commitment, nullifier,
-recipient/change commitments, recipient/change leaf indices, recipient/change
-output roots, asset commitment, economics commitment, owner commitment, and send
-context tag while using the hidden-economics asset/amount sentinels. Local
-verifier/indexer acceptance now rejects spent send nullifiers and applies the
-recipient/change output append atomically, and the separated role-service
-harness mirrors the same private-send nullifier/output transition with
-tampered-root rejection. This is still not a completed production private Send
-rail: live production transition evidence, recipient discovery, relayer
-separation, anonymity evidence, audit, and production evidence are still missing.
+Current actual-private Private Pool v2 Send proof requests bind a pool id, asset
+cohort, accepted root, nullifier, output commitments, context hash, and proof
+public-input hash while using hidden-economics asset/amount sentinels. The local
+verifier/indexer and separated role-service harness now accept that stricter
+request shape by registering the nullifier and appending output commitments
+without source wallet, merchant settlement address, raw amount, note secret,
+input commitment, input leaf index, deposit signature, plaintext memo, or
+same-fee-payer linkage. The older stateful Send request remains as a
+compatibility fallback, not the target privacy lane. This is still not a
+completed production private Send rail: live production transition evidence,
+recipient discovery, relayer separation, anonymity evidence, audit, and
+production evidence are still missing.
 
 Current local Private Pool v2 Swap proof requests, executable circuit fixture,
 committed protocol settlement path, and local verifier/indexer acceptance bind

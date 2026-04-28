@@ -680,6 +680,29 @@ function isStatefulPrivateSendRequest(request) {
   );
 }
 
+function isActualPrivateSpendRequest(request) {
+  return Boolean(
+    request?.intent === "private-send" &&
+      request?.publicInputs?.some((input) =>
+        String(input).startsWith("vanta-private-pool-v2-actual-private-spend-proof-request-0.1:version"),
+      ),
+  );
+}
+
+function readActualPrivateSpendOutputCommitments(request) {
+  return (request?.publicInputs ?? [])
+    .flatMap((input) => {
+      const match = String(input).match(/^output-commitment-(\d+):(.+)$/);
+      if (!match) {
+        return [];
+      }
+
+      return [{ index: Number(match[1]), commitment: match[2] }];
+    })
+    .sort((left, right) => left.index - right.index)
+    .map((output) => output.commitment);
+}
+
 async function postIndexerJson(path, body) {
   const baseUrl = process.env.VANTA_PRIVATE_POOL_V2_INDEXER_URL?.replace(/\/+$/, "");
   if (!baseUrl) {
@@ -731,6 +754,32 @@ async function mirrorAcceptedProofToIndexer(request) {
       recipientOutputRoot: requirePublicInput(request, "recipient-output-root:"),
       spentAtSlot: 1_000_000n,
     });
+  }
+
+  if (isActualPrivateSpendRequest(request)) {
+    const nullifier = requirePublicInput(request, "nullifier:");
+    const poolId = requirePublicInput(request, "pool-id:");
+    const assetCohort = requirePublicInput(request, "asset-cohort:");
+    const outputCommitments = readActualPrivateSpendOutputCommitments(request);
+
+    if (outputCommitments.length === 0) {
+      throw new Error("Actual private spend proof receipt requires output commitments.");
+    }
+
+    await postIndexerJson("/v1/nullifiers", {
+      nullifier,
+      spentAtSlot: 1_000_000n,
+    });
+
+    for (const outputCommitment of outputCommitments) {
+      await postIndexerJson("/v1/commitments", {
+        assetId: assetCohort,
+        commitment: outputCommitment,
+        treeId: poolId,
+      });
+    }
+
+    return { nullifier, outputCommitments };
   }
 
   return null;

@@ -695,6 +695,107 @@ try {
 
   console.log("private-pool-v2 service-network private-send transition: PASS");
 
+  const actualPrivateSpendRequest = {
+    amountBaseUnits: "1",
+    assetId: "hidden:economic-terms",
+    circuitPublicInputs: [
+      "private-spend-public-input-hash:field:service-network-actual-private-public-input-hash",
+    ],
+    intent: "private-send",
+    publicInputs: [
+      "vanta-private-pool-v2-actual-private-spend-proof-request-0.1:version",
+      "pool-id:pool:service-network-actual-private:100",
+      "asset-cohort:stablecoin-usdc-v1",
+      "accepted-root:field:service-network-actual-private-root",
+      "nullifier:field:service-network-actual-private-nullifier",
+      "output-commitment-0:field:service-network-actual-private-merchant-output",
+      "output-commitment-1:field:service-network-actual-private-change-output",
+      "context-hash:field:service-network-actual-private-context",
+      "private-spend-public-input-hash:field:service-network-actual-private-public-input-hash",
+    ],
+  };
+  const actualPrivateSpendSerialized = JSON.stringify(actualPrivateSpendRequest);
+  for (const forbidden of [
+    "input-commitment:",
+    "leaf-index:",
+    "destination:",
+    "amount:",
+    "source-wallet:",
+    "merchant-address:",
+    "deposit-signature:",
+  ]) {
+    assert(
+      !actualPrivateSpendSerialized.includes(forbidden),
+      `Actual private service-network request leaked ${forbidden}.`,
+    );
+  }
+  const actualPrivateSpendProof = await requestJson(serviceUrls.get("prover"), "/v1/proofs", {
+    body: JSON.stringify({ request: actualPrivateSpendRequest }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(
+    actualPrivateSpendProof.ok,
+    actualPrivateSpendProof.text || "Expected actual-private spend proof response.",
+  );
+  const actualPrivateSpendReceipt = await requestJson(serviceUrls.get("verifier"), "/v1/proofs/accept", {
+    body: JSON.stringify({
+      proof: actualPrivateSpendProof.parsed,
+      request: actualPrivateSpendRequest,
+    }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(
+    actualPrivateSpendReceipt.ok,
+    actualPrivateSpendReceipt.text || "Expected actual-private spend verifier receipt.",
+  );
+  assert(
+    actualPrivateSpendReceipt.parsed?.replayKey ===
+      "private-send:field:service-network-actual-private-nullifier",
+    "Expected actual-private spend receipt to replay-key by nullifier.",
+  );
+  const actualPrivateSpendNullifier = await requestJson(
+    serviceUrls.get("indexer"),
+    `/v1/nullifiers/${encodeURIComponent("field:service-network-actual-private-nullifier")}`,
+    { headers: { Authorization: `Bearer ${authToken}` } },
+  );
+  assert(
+    actualPrivateSpendNullifier.parsed?.nullifier?.nullifier ===
+      "field:service-network-actual-private-nullifier",
+    "Expected actual-private spend verifier acceptance to register the nullifier through the indexer service.",
+  );
+  const actualPrivateSpendCommitments = await requestJson(
+    serviceUrls.get("indexer"),
+    "/v1/commitments?treeId=pool:service-network-actual-private:100",
+    { headers: { Authorization: `Bearer ${authToken}` } },
+  );
+  assert(
+    actualPrivateSpendCommitments.parsed?.commitments?.length === 2,
+    "Expected actual-private spend verifier acceptance to append both output commitments.",
+  );
+  assert(
+    actualPrivateSpendCommitments.parsed.commitments[0]?.commitment ===
+      "field:service-network-actual-private-merchant-output",
+    "Expected actual-private spend merchant output commitment to be indexed.",
+  );
+  assert(
+    actualPrivateSpendCommitments.parsed.commitments[1]?.commitment ===
+      "field:service-network-actual-private-change-output",
+    "Expected actual-private spend change output commitment to be indexed.",
+  );
+  const actualPrivateSpendReplay = await requestJson(serviceUrls.get("verifier"), "/v1/proofs/accept", {
+    body: JSON.stringify({
+      proof: actualPrivateSpendProof.parsed,
+      request: actualPrivateSpendRequest,
+    }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(!actualPrivateSpendReplay.ok, "Expected duplicate actual-private spend receipt to be rejected.");
+
+  console.log("private-pool-v2 service-network actual-private spend transition: PASS");
+
   const replayReceipt = await requestJson(serviceUrls.get("verifier"), "/v1/proofs/accept", {
     body: JSON.stringify({ proof: proof.parsed, request: shieldRequest }),
     headers: { Authorization: `Bearer ${authToken}` },

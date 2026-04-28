@@ -383,12 +383,12 @@ try {
   );
   assert(
     status.privateSettlement.acceptedCheckoutSettlementBoundary ===
-      "committed-economics-protocol-settlement",
-    "Merchant API must expose the committed checkout acceptance boundary.",
+      "actual-private-spend-protocol-settlement",
+    "Merchant API must expose the actual-private checkout acceptance boundary.",
   );
   assert(
-    status.privateSettlement.checkoutSettlementRoute === "committed-economics-protocol-settlement",
-    "Merchant API must expose the committed live checkout settlement route.",
+    status.privateSettlement.checkoutSettlementRoute === "actual-private-spend-protocol-settlement",
+    "Merchant API must expose the actual-private live checkout settlement route.",
   );
   assert(
     status.privateSettlement.rawEconomicTermsInAcceptedCheckoutSettlement === false,

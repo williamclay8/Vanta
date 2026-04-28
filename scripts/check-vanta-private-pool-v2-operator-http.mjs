@@ -421,7 +421,7 @@ try {
     "Expected unshield protocol action proof mode.",
   );
   assert(
-    status.parsed?.protocolActionProofModes?.send === "send_circuit_request",
+    status.parsed?.protocolActionProofModes?.send === "actual_private_spend_circuit_request",
     "Expected send protocol action proof mode.",
   );
   assert(

@@ -22,7 +22,7 @@ const sourceFiles = [
   "privatePoolV2SettlementPolicy.ts",
 ];
 const protocolActionProofModes = {
-  send: "send_circuit_request",
+  send: "actual_private_spend_circuit_request",
   shield: "shield_circuit_request",
   swap: "swap_to_shielded_circuit_request",
   unshield: "committed_unshield_or_claim_circuit_request",
