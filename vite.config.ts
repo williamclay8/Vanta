@@ -39,6 +39,13 @@ export default defineConfig({
           if (normalizedId.includes("src/zk/vantaPrivateCore")) {
             return "private-core-runtime";
           }
+          if (
+            normalizedId.includes("node_modules/base64-js") ||
+            normalizedId.includes("node_modules/buffer") ||
+            normalizedId.includes("node_modules/ieee754")
+          ) {
+            return "vendor-node-polyfills";
+          }
           if (normalizedId.includes("node_modules/@solana/react-hooks")) {
             return "vendor-solana-react";
           }
