@@ -91,20 +91,44 @@ function pickPreferredWalletConnector(connectors: readonly WalletConnector[]) {
   })[0];
 }
 
-let walletBalanceFallbackConnection: Connection | null = null;
+const WALLET_BALANCE_FALLBACK_ENDPOINTS = [
+  endpoint,
+  "https://api.mainnet-beta.solana.com",
+  "https://api.devnet.solana.com",
+] as const;
+const walletBalanceFallbackConnections = new Map<string, Connection>();
 
-function getWalletBalanceFallbackConnection() {
-  if (!walletBalanceFallbackConnection) {
-    walletBalanceFallbackConnection = new Connection(endpoint, "confirmed");
+function getWalletBalanceFallbackConnection(fallbackEndpoint: string) {
+  const cachedConnection = walletBalanceFallbackConnections.get(fallbackEndpoint);
+
+  if (cachedConnection) {
+    return cachedConnection;
   }
 
-  return walletBalanceFallbackConnection;
+  const connection = new Connection(fallbackEndpoint, "confirmed");
+  walletBalanceFallbackConnections.set(fallbackEndpoint, connection);
+
+  return connection;
 }
 
 async function fetchWalletLamportsFallback(address: string) {
-  return BigInt(
-    await getWalletBalanceFallbackConnection().getBalance(new PublicKey(address), "confirmed"),
-  );
+  const publicKey = new PublicKey(address);
+  let lastError: unknown = null;
+
+  for (const fallbackEndpoint of [...new Set(WALLET_BALANCE_FALLBACK_ENDPOINTS)]) {
+    try {
+      return BigInt(
+        await getWalletBalanceFallbackConnection(fallbackEndpoint).getBalance(
+          publicKey,
+          "confirmed",
+        ),
+      );
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError ?? new Error("Wallet SOL balance could not be loaded.");
 }
 
 export function WalletProvider({ children }: { children: ReactNode }) {

@@ -45,8 +45,18 @@ requireIncludes(
 );
 requireIncludes(
   walletContext,
-  "new Connection(endpoint, \"confirmed\")",
+  "new Connection(fallbackEndpoint, \"confirmed\")",
   "Wallet context SOL balance fallback must use the configured Solana endpoint.",
+);
+requireIncludes(
+  walletContext,
+  "WALLET_BALANCE_FALLBACK_ENDPOINTS",
+  "Wallet context SOL balance fallback must try backup RPC endpoints when the configured endpoint rejects balance reads.",
+);
+requireIncludes(
+  walletContext,
+  "https://api.mainnet-beta.solana.com",
+  "Wallet context SOL balance fallback must include the canonical public mainnet RPC endpoint.",
 );
 requireIncludes(
   appLayout,
