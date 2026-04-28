@@ -111,6 +111,7 @@ const committedSettlementRequests = {
     {
       action: "send",
       economicsMode: "committed-economics",
+      quoteHandleCommitment: "0x3333333333333333333333333333333333333333333333333333333333333333",
       routeHandleCommitment: "0x1111111111111111111111111111111111111111111111111111111111111111",
       settlementId: "strategy-operator-runtime-check-send",
     },
@@ -118,6 +119,7 @@ const committedSettlementRequests = {
       action: "swap",
       economicsMode: "committed-economics",
       quoteHandleCommitment: "0x2222222222222222222222222222222222222222222222222222222222222222",
+      routeHandleCommitment: "0x4444444444444444444444444444444444444444444444444444444444444444",
       settlementId: "strategy-operator-runtime-check-swap",
     },
   ],
@@ -135,10 +137,21 @@ try {
 
   const initialStatus = await requestJson("/state/strategy-runtime-status");
   assert.equal(initialStatus.kind, "vanta-strategy-operator-runtime-status");
+  assert.equal(initialStatus.auditEventSink.kind, "noop-operator-event-sink");
+  assert.equal(initialStatus.auditEventSink.productionReady, false);
+  assert.equal(initialStatus.auditEventSink.service, "vanta-strategy");
   assert.equal(initialStatus.liveSubmission, false);
   assert.equal(initialStatus.readyForLivePrivateStrategyExecution, false);
   assert.equal(initialStatus.readiness.fullyPrivateStrategyClaimAllowed, false);
-  assert.ok(initialStatus.readiness.blockers.includes("route-quote-privacy"));
+  assert.equal(initialStatus.readiness.localCapabilities.routeQuotePrivacyEvidenceReady, true);
+  assert.equal(initialStatus.productionServiceReadiness.productionReady, false);
+  assert.equal(initialStatus.productionServiceReadiness.liveSubmissionAllowed, false);
+  assert.ok(
+    initialStatus.productionServiceReadiness.blockers.includes(
+      "missing-env-ref:VANTA_STRATEGY_DATABASE_URL_REF",
+    ),
+  );
+  assert.ok(initialStatus.readiness.blockers.includes("live-strategy-scheduler"));
 
   const strategy = await requestJson("/strategy/runtime/strategies", {
     body: strategyInput,
@@ -163,6 +176,7 @@ try {
   assert.equal(operatorRun.liveSubmission, false);
   assert.equal(operatorRun.operatorPlaintextStrategyShared, false);
   assert.equal(operatorRun.committedSettlementRequestCount, 2);
+  assert.equal(operatorRun.schedulerQueueStatus, "queued-local-preview");
 
   const replayedOperatorRun = await requestJson("/strategy/runtime/private-rail/operator-runs", {
     body: operatorRunInput,
@@ -173,6 +187,18 @@ try {
 
   const operatorRuns = await requestJson("/strategy/runtime/private-rail/operator-runs");
   assert.equal(operatorRuns.operatorRuns.length, 1);
+
+  const schedulerDrainPreview = await requestJson("/strategy/runtime/private-rail/scheduler/drain-preview", {
+    method: "POST",
+  });
+  assert.equal(schedulerDrainPreview.object, "strategy_private_rail_scheduler_drain_preview");
+  assert.equal(schedulerDrainPreview.liveSubmission, false);
+  assert.equal(schedulerDrainPreview.status, "blocked_before_live_submission");
+  assert.equal(schedulerDrainPreview.queueDepth, 1);
+  assert.deepEqual(schedulerDrainPreview.operatorRunIds, [operatorRun.id]);
+  assert.equal(schedulerDrainPreview.durableStorage.status, "local-in-memory-only");
+  assert.equal(schedulerDrainPreview.durableStorage.productionReady, false);
+  assert.equal(schedulerDrainPreview.drainPreview[0].wouldSubmitLive, false);
 
   const rejected = await requestJson("/strategy/runtime/private-rail/operator-runs", {
     body: {
@@ -194,9 +220,64 @@ try {
   });
   assert.match(rejected.error, /rejects raw amount/u);
 
+  const rejectedRawRoute = await requestJson("/strategy/runtime/private-rail/operator-runs", {
+    body: {
+      ...operatorRunInput,
+      committedSettlementRequests: {
+        ...committedSettlementRequests,
+        requests: [
+          {
+            action: "swap",
+            economicsMode: "committed-economics",
+            quoteHandleCommitment:
+              "0x5555555555555555555555555555555555555555555555555555555555555555",
+            route: "Jupiter",
+            routeHandleCommitment:
+              "0x6666666666666666666666666666666666666666666666666666666666666666",
+            settlementId: "raw-route-leak",
+          },
+        ],
+      },
+    },
+    expectedStatus: 400,
+    method: "POST",
+  });
+  assert.match(rejectedRawRoute.error, /rejects raw route/u);
+
+  const rejectedMalformedCommitment = await requestJson(
+    "/strategy/runtime/private-rail/operator-runs",
+    {
+      body: {
+        ...operatorRunInput,
+        committedSettlementRequests: {
+          ...committedSettlementRequests,
+          requests: [
+            {
+              action: "send",
+              economicsMode: "committed-economics",
+              quoteHandleCommitment:
+                "0x7777777777777777777777777777777777777777777777777777777777777777",
+              routeHandleCommitment: "not-a-commitment",
+              settlementId: "bad-route-commitment",
+            },
+          ],
+        },
+      },
+      expectedStatus: 400,
+      method: "POST",
+    },
+  );
+  assert.match(rejectedMalformedCommitment.error, /requires routeHandleCommitment/u);
+
   const finalStatus = await requestJson("/state/strategy-runtime-status");
   assert.equal(finalStatus.strategyCount, 1);
+  assert.equal(finalStatus.auditEventSink.kind, "noop-operator-event-sink");
   assert.equal(finalStatus.privateRailOperatorRunCount, 1);
+  assert.equal(finalStatus.scheduler.queueDepth, 1);
+  assert.equal(finalStatus.scheduler.liveSubmission, false);
+  assert.equal(finalStatus.durableStorage.status, "local-in-memory-only");
+  assert.equal(finalStatus.durableStorage.productionReady, false);
+  assert.equal(finalStatus.productionServiceReadiness.durableProductionServiceReady, false);
   assert.equal(finalStatus.readyForLivePrivateStrategyExecution, false);
 } finally {
   child.kill("SIGTERM");

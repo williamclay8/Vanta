@@ -67,6 +67,7 @@ export async function proveAndVerifyVantaPrivateCoreUnshield(args) {
         provingHashLane: witnessPackage.provingHashLane,
         proofByteLength: proofData.proof.length,
         proofFieldCount: Math.floor(proofData.proof.length / 32),
+        proofHex: Buffer.from(proofData.proof).toString("hex"),
         publicInputCount: proofData.publicInputs.length,
         publicInputs: proofData.publicInputs,
         verifiedPublicInputs: decodeVerifiedProofPublicInputs(proofData.publicInputs),
@@ -77,6 +78,56 @@ export async function proveAndVerifyVantaPrivateCoreUnshield(args) {
     }
   } finally {
     rmSync(tempRoot, { force: true, recursive: true });
+  }
+}
+
+export async function verifyVantaPrivateCoreUnshieldProofArtifact(args) {
+  const proofArtifact = normalizeVantaPrivateCoreUnshieldProofArtifact(args.proofArtifact);
+
+  runNargo(["compile"], canonicalCircuitDir);
+  const compiledProgram = JSON.parse(
+    readFileSync(
+      join(canonicalCircuitDir, "target", "vanta_private_core_single_note_unshield.json"),
+      "utf8",
+    ),
+  );
+
+  const api = await Barretenberg.new({ threads: 1 });
+  try {
+    const backend = new UltraHonkBackend(compiledProgram.bytecode, api);
+    const proofData = {
+      proof: Buffer.from(proofArtifact.proofHex, "hex"),
+      publicInputs: proofArtifact.publicInputs,
+    };
+    const verified = await backend.verifyProof(proofData);
+
+    if (!verified) {
+      throw new Error("Private-core proof artifact verification returned false.");
+    }
+
+    assertProofPublicInputsMatchWitnessPackage({
+      expectedPublicInputs: extractExpectedProofPublicInputs({
+        publicInputs: proofArtifact.circuitPublicInputs,
+      }),
+      proofPublicInputs: proofArtifact.publicInputs,
+    });
+
+    return {
+      backend: proofArtifact.backend,
+      circuit: proofArtifact.circuit,
+      proofVersion: proofArtifact.proofVersion,
+      provingHashLane: proofArtifact.provingHashLane,
+      proofByteLength: proofData.proof.length,
+      proofFieldCount: Math.floor(proofData.proof.length / 32),
+      proofHex: proofArtifact.proofHex,
+      publicInputCount: proofArtifact.publicInputs.length,
+      publicInputs: proofArtifact.publicInputs,
+      sourcePublicInputs: proofArtifact.sourcePublicInputs,
+      verifiedPublicInputs: decodeVerifiedProofPublicInputs(proofArtifact.publicInputs),
+      verified: true,
+    };
+  } finally {
+    await api.destroy();
   }
 }
 
@@ -239,6 +290,66 @@ export function normalizeVantaPrivateCoreWitnessPackage(input) {
   return witnessPackage;
 }
 
+export function normalizeVantaPrivateCoreUnshieldProofArtifact(input) {
+  if (!input || typeof input !== "object") {
+    throw new Error("Expected a private-core unshield proof artifact object.");
+  }
+
+  const proofArtifact = input;
+
+  if (proofArtifact.circuit !== "vanta_private_core_single_note_unshield") {
+    throw new Error("Unsupported private-core unshield proof artifact circuit.");
+  }
+
+  if (proofArtifact.backend !== "barretenberg-ultrahonk") {
+    throw new Error("Unsupported private-core unshield proof artifact backend.");
+  }
+
+  if (proofArtifact.provingHashLane !== "poseidon-bn254-proving-lane-v0") {
+    throw new Error("Unsupported private-core unshield proof artifact hash lane.");
+  }
+
+  if (!proofArtifact.sourcePublicInputs || typeof proofArtifact.sourcePublicInputs !== "object") {
+    throw new Error("Private-core unshield proof artifact is missing source public inputs.");
+  }
+
+  if (!Array.isArray(proofArtifact.publicInputs)) {
+    throw new Error("Private-core unshield proof artifact is missing ordered public inputs.");
+  }
+
+  if (!proofArtifact.circuitPublicInputs || typeof proofArtifact.circuitPublicInputs !== "object") {
+    throw new Error("Private-core unshield proof artifact is missing circuit public inputs.");
+  }
+
+  if (
+    typeof proofArtifact.proofHex !== "string" ||
+    !/^[0-9a-f]+$/i.test(proofArtifact.proofHex) ||
+    proofArtifact.proofHex.length % 2 !== 0
+  ) {
+    throw new Error("Private-core unshield proof artifact is missing canonical proof hex.");
+  }
+
+  const normalized = {
+    backend: proofArtifact.backend,
+    circuit: proofArtifact.circuit,
+    circuitPublicInputs: proofArtifact.circuitPublicInputs,
+    proofHex: proofArtifact.proofHex.toLowerCase(),
+    proofVersion: Number(proofArtifact.proofVersion),
+    provingHashLane: proofArtifact.provingHashLane,
+    publicInputs: proofArtifact.publicInputs.map((value) => String(value)),
+    sourcePublicInputs: proofArtifact.sourcePublicInputs,
+  };
+
+  assertProofPublicInputsMatchWitnessPackage({
+    expectedPublicInputs: extractExpectedProofPublicInputs({
+      publicInputs: normalized.circuitPublicInputs,
+    }),
+    proofPublicInputs: normalized.publicInputs,
+  });
+
+  return normalized;
+}
+
 export function normalizeVantaPrivateCoreSendWitnessPackage(input) {
   if (!input || typeof input !== "object") {
     throw new Error("Expected a private-core send witness package object.");
@@ -309,6 +420,31 @@ export function assertVantaPrivateCoreSourceArtifactConsistency(sourceArtifacts,
   }
 
   if (normalizeHex32(sourceArtifacts.witnessRoot) !== expectedWitnessRoot) {
+    throw new Error("Private-core source artifacts have a mismatched witness root.");
+  }
+}
+
+export function assertVantaPrivateCoreSourceArtifactShapeConsistency(
+  sourceArtifacts,
+  sourcePublicInputs,
+) {
+  if (!sourceArtifacts || typeof sourceArtifacts !== "object") {
+    throw new Error("Private-core source artifacts are required.");
+  }
+
+  if (typeof sourceArtifacts.noteCommitment !== "string") {
+    throw new Error("Private-core source artifacts are missing a note commitment.");
+  }
+
+  if (typeof sourceArtifacts.merkleLeaf !== "string") {
+    throw new Error("Private-core source artifacts are missing a Merkle leaf.");
+  }
+
+  if (typeof sourceArtifacts.witnessRoot !== "string") {
+    throw new Error("Private-core source artifacts are missing a witness root.");
+  }
+
+  if (normalizeHex32(sourceArtifacts.witnessRoot) !== normalizeHex32(sourcePublicInputs.stateRoot)) {
     throw new Error("Private-core source artifacts have a mismatched witness root.");
   }
 }

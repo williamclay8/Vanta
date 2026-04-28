@@ -13,6 +13,8 @@ export type StrategyPrivateRailTrustContract = {
   operatorPacketFields: readonly string[];
   redactedFields: readonly string[];
   readinessGateCommand: "npm run strategy:privacy-readiness-check";
+  routeQuotePrivacyEvidenceGateCommand: "npm run strategy:route-quote-privacy-check";
+  productionServiceReadinessGateCommand: "npm run strategy:production-service-readiness-check";
   verificationSurfaces: readonly string[];
 };
 
@@ -52,9 +54,13 @@ export function getStrategyPrivateRailTrustContract(): StrategyPrivateRailTrustC
       "rawSwapOutputAmount",
     ],
     readinessGateCommand: "npm run strategy:privacy-readiness-check",
+    routeQuotePrivacyEvidenceGateCommand: "npm run strategy:route-quote-privacy-check",
+    productionServiceReadinessGateCommand: "npm run strategy:production-service-readiness-check",
     verificationSurfaces: [
       "npm run strategy:private-rail-check",
       "npm run strategy:committed-settlement-check",
+      "npm run strategy:route-quote-privacy-check",
+      "npm run strategy:production-service-readiness-check",
       "npm run strategy:private-rail-trust-contract-check",
       "npm run strategy:privacy-readiness-check",
       "npm run strategy:operator-runtime-check",

@@ -22,6 +22,12 @@ for (const surfaceId of requiredSurfaces) {
   assert.ok(surface, `Missing abuse/observability surface: ${surfaceId}.`);
   if (surfaceId === "pay" || surfaceId === "privatePoolV2") {
     assert.equal(surface.status, "privacy-safe-audit-sink-only");
+  } else if (surfaceId === "strategy") {
+    assert.equal(surface.status, "local-safe-audit-sink-only");
+    assert.ok(
+      surface.auditEvents.includes("strategy_private_rail_operator_run_queued"),
+      "Strategy observability must include the private-rail operator queue audit event.",
+    );
   } else {
     assert.equal(surface.status, "not-wired");
   }

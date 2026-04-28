@@ -373,7 +373,7 @@ try {
     summary.parsed?.boundaryStatus !== "coherent" ||
     summary.parsed?.proofSendLinkStatus !== "linked" ||
     summary.parsed?.latestSend?.sendId !== secondTransitionResponse.parsed.sendId ||
-    summary.parsed?.latestSend?.resultingRootBasis !== "client-declared" ||
+    summary.parsed?.latestSend?.resultingRootBasis !== "proof-public-expected-root" ||
     summary.parsed?.latestSendLinkedProof?.proofId !== secondTransitionResponse.parsed.proofId
   ) {
     throw new Error(summary.text || "operator summary did not reflect chained private sends");

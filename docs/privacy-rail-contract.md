@@ -110,12 +110,17 @@ send/swap handoff from a scratch shield simulation and map that handoff into
 committed-economics Private Pool v2 Send and Swap request packets. Those packets
 carry roots, nullifiers, commitments, proof-public hashes, and context tags, not
 raw pair, total notional, child notional, schedule, private witness material, or
-ciphertexts. The local Strategy operator runtime can accept and queue those
-redacted packets while keeping `liveSubmission: false`; it also rejects raw
-amount/asset/destination/owner fields on the committed request path. This is
-still a local request/trust-packet boundary: Strategy does not yet submit live
-private execution, run a production scheduler, hide quote and route formation,
-prove an anonymity set, or satisfy audit/mainnet gates.
+ciphertexts. The checked route/quote evidence gate requires commitment-only
+route and quote handles on the local committed request shape. The local Strategy
+operator runtime can accept, queue, and drain-preview those redacted packets
+while keeping `liveSubmission: false`; it also rejects raw
+amount/asset/destination/owner/route/quote fields on the committed request path.
+The checked Strategy production-service readiness packet names the required
+production env refs, durable tables, scheduler replay evidence, telemetry,
+audit-event sink, and live-submission approval before live execution claims can
+move. This is still a local request/trust-packet boundary: Strategy does not yet
+submit live private execution, run a production scheduler, prove live venue
+route/quote privacy, prove an anonymity set, or satisfy audit/mainnet gates.
 
 Current local Private Pool v2 Unshield proof requests and committed protocol
 settlement acceptance bind an input root, input commitment, nullifier/replay
@@ -133,6 +138,13 @@ requires at least 1024 distinct production commitments per asset cohort, exclude
 test fixtures and no-real-funds smoke receipts from cohort metrics, and keeps
 live-anonymity, audited hidden-economics privacy, and production mainnet privacy
 claims blocked until the required evidence refs are filled and reviewed.
+
+The checked Shield privacy readiness surface is fail-closed. Local Shield can
+claim committed settlement packets, viewing-key encrypted memos, beta
+backup/restore custody, native/SPL entry support, route evidence, and decoy
+writes. It still cannot claim fully private, live private, production, or
+mainnet-ready Shield until production anonymity-set evidence, durable services,
+relayer separation, independent audit, live mainnet settlement, and production key-custody evidence are complete.
 
 It cannot claim meaningful privacy until Vanta has refs for:
 
@@ -153,10 +165,13 @@ Current checked refs:
 - `npm run private-pool-v2:swap-to-shielded-circuit-check`
 - `npm run private-pool-v2:swap-to-shielded-prove`
 - `npm run private-pool-v2:anonymity-set-readiness-check`
+- `npm run shield:privacy-readiness-check`
 - `npm run private-pool-v2:protocol-client-check`
 - `npm run private-pool-v2:http-smoke`
 - `npm run strategy:private-rail-check`
 - `npm run strategy:committed-settlement-check`
+- `npm run strategy:route-quote-privacy-check`
+- `npm run strategy:production-service-readiness-check`
 - `npm run strategy:operator-runtime-check`
 - `npm run strategy:privacy-readiness-check`
 - `ops/mainnet/private-pool-v2-production-smoke.evidence.json`

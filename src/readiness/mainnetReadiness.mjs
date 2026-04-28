@@ -96,9 +96,9 @@ const lanes = {
     truth: "Shield, Send, Swap, Strategy, and Unshield have browser checks, and the protocol wallet-signing lane now has a sanitized production status/evidence surface proving Shield, Send, Swap, and Unshield live call sites stay behind safe-send or message-intent boundaries with the Umbra adapter fail-closed behind a summary-bound approval gate while browser-backed signing verification explicitly covers Shield, Send, Swap, and Unshield on both the local/devnet lane and the deployed public app. It is still not production-ready because real-funds actions remain bounded by explicit approval and meaningful-privacy blockers remain unresolved.",
   },
   strategy: {
-    readiness: 35,
-    status: "local-planning-runtime",
-    truth: "Strategy has planner, execution preview, and local runtime, but no live Jupiter/Jito/private-settlement execution.",
+    readiness: 42,
+    status: "local-private-rail-operator-queue",
+    truth: "Strategy has planner, execution preview, local runtime, redacted private-rail handoff, committed-economics request packets, commitment-only route/quote request-shape evidence, fail-closed readiness, and a local operator queue/drain preview. It still has no live Jupiter/Jito/private-settlement execution, production scheduler, durable production service, live venue route/quote privacy, audit, anonymity evidence, or mainnet-ready settlement.",
   },
 };
 
@@ -130,6 +130,8 @@ const requiredCommands = [
   "npm run mainnet:deployment-runbook-check",
   "npm run privacy-rail:contract-check",
   "npm run private-pool-v2:anonymity-set-readiness-check",
+  "npm run shield:privacy-readiness-check",
+  "npm run shield:verify",
   "npm run ops:safe-telemetry-check",
   "npm run mainnet:observability-sink-check",
   "npm run nullifier:replay-guard-check",

@@ -58,14 +58,17 @@ import { createPrivateCoreSendStore } from "./private-core-send-store.mjs";
 import { createPrivateCoreSwapStore } from "./private-core-swap-store.mjs";
 import {
   assertVantaPrivateCoreSourceArtifactConsistency,
+  assertVantaPrivateCoreSourceArtifactShapeConsistency,
   deriveVantaPrivateCoreSendInputArtifactsFromWitnessPackage,
   deriveVantaPrivateCoreSwapInputArtifactsFromWitnessPackage,
+  normalizeVantaPrivateCoreUnshieldProofArtifact,
   normalizeVantaPrivateCoreSendWitnessPackage,
   normalizeVantaPrivateCoreSwapWitnessPackage,
   normalizeVantaPrivateCoreWitnessPackage,
   proveAndVerifyVantaPrivateCoreSend,
   proveAndVerifyVantaPrivateCoreSwap,
   proveAndVerifyVantaPrivateCoreUnshield,
+  verifyVantaPrivateCoreUnshieldProofArtifact,
 } from "./private-core-proof.mjs";
 import { createReleaseRecordStore } from "./release-record-store.mjs";
 
@@ -296,7 +299,7 @@ const PRIVATE_CORE_SUPPORTED_NOTE_SCHEMA = "note-v0";
 const PRIVATE_CORE_SUPPORTED_NOTE_VERSION = 0;
 const PRIVATE_CORE_SUPPORTED_ROOT_REGISTRATION_PROVENANCE =
   "shield-input|send-recipient-output|send-change-output|swap-output";
-const PRIVATE_CORE_SUPPORTED_SEND_RESULTING_ROOT_BASIS = "client-declared";
+const PRIVATE_CORE_SUPPORTED_SEND_RESULTING_ROOT_BASIS = "proof-public-expected-root";
 const PRIVATE_CORE_SUPPORTED_SEND_INPUT_ROOT_POLICY =
   "latest-registered-root-with-linked-registration-proof";
 const PRIVATE_CORE_SUPPORTED_SEND_OUTPUT_REGISTRATION_POLICY =
@@ -684,14 +687,12 @@ const server = createServer(async (request, response) => {
     try {
       const body = await readJsonBody(request);
       assertPrivateCoreWitnessMaterialPolicy(body);
-      const proofReceipt = await proveAndVerifyVantaPrivateCoreUnshield({
-        witnessPackage: body.witnessPackage,
-      });
+      const proofReceipt = await resolvePrivateCoreUnshieldProofReceipt(body);
       privateCoreProofStore.recordProof(
-        summarizePrivateCoreProofRecord({
+        summarizePrivateCoreProofRecordFromSourcePublicInputs({
           action: "proof-only",
           proofReceipt,
-          witnessPackage: body.witnessPackage,
+          sourcePublicInputs: getPrivateCoreUnshieldSourcePublicInputs(body),
         }),
       );
 
@@ -1015,11 +1016,8 @@ const server = createServer(async (request, response) => {
     try {
       const body = await readJsonBody(request);
       assertPrivateCoreWitnessMaterialPolicy(body);
-      const proofReceipt = await proveAndVerifyVantaPrivateCoreUnshield({
-        witnessPackage: body?.witnessPackage,
-      });
-      const witnessPackage = normalizeVantaPrivateCoreWitnessPackage(body?.witnessPackage);
-      const sourcePublicInputs = witnessPackage.sourcePublicInputs;
+      const proofReceipt = await resolvePrivateCoreUnshieldProofReceipt(body);
+      const sourcePublicInputs = getPrivateCoreUnshieldSourcePublicInputs(body);
       const sourceArtifacts = body?.sourceArtifacts;
       const root = sourcePublicInputs?.stateRoot;
 
@@ -1027,7 +1025,7 @@ const server = createServer(async (request, response) => {
         throw new Error("Private-core root registration request is missing a source root.");
       }
 
-      assertVantaPrivateCoreSourceArtifactConsistency(sourceArtifacts, witnessPackage);
+      assertPrivateCoreUnshieldSourceArtifactConsistency({ body, sourceArtifacts, sourcePublicInputs });
       const latestSend = privateCoreSendStore.getLatestSend();
       const latestSwap = privateCoreSwapStore.getLatestSwap();
       const rootRegistrationConsistency = assertPrivateCoreDownstreamRootRegistrationConsistency({
@@ -1036,10 +1034,10 @@ const server = createServer(async (request, response) => {
         root,
         sourceArtifacts,
       });
-      const proofRecord = summarizePrivateCoreProofRecord({
+      const proofRecord = summarizePrivateCoreProofRecordFromSourcePublicInputs({
         action: "register-root",
         proofReceipt,
-        witnessPackage,
+        sourcePublicInputs,
       });
       privateCoreProofStore.recordProof(proofRecord);
 
@@ -1080,11 +1078,9 @@ const server = createServer(async (request, response) => {
     try {
       const body = await readJsonBody(request);
       assertPrivateCoreWitnessMaterialPolicy(body);
-      const proofReceipt = await proveAndVerifyVantaPrivateCoreUnshield({
-        witnessPackage: body.witnessPackage,
-      });
+      const proofReceipt = await resolvePrivateCoreUnshieldProofReceipt(body);
       const releaseCandidateId = normalizePrivateCoreReleaseCandidateId(body?.releaseCandidateId);
-      const sourcePublicInputs = body?.witnessPackage?.sourcePublicInputs;
+      const sourcePublicInputs = getPrivateCoreUnshieldSourcePublicInputs(body);
       const sourceArtifacts = body?.sourceArtifacts;
       const nullifier = sourcePublicInputs?.nullifier;
 
@@ -1113,11 +1109,11 @@ const server = createServer(async (request, response) => {
         );
       }
 
-      assertVantaPrivateCoreSourceArtifactConsistency(sourceArtifacts, body?.witnessPackage);
-      const proofRecord = summarizePrivateCoreProofRecord({
+      assertPrivateCoreUnshieldSourceArtifactConsistency({ body, sourceArtifacts, sourcePublicInputs });
+      const proofRecord = summarizePrivateCoreProofRecordFromSourcePublicInputs({
         action: "consume",
         proofReceipt,
-        witnessPackage: body.witnessPackage,
+        sourcePublicInputs,
       });
       privateCoreProofStore.recordProof(proofRecord);
 
@@ -3826,7 +3822,15 @@ function summarizePrivateCoreProofReleaseLinkStatus(args) {
 
 function summarizePrivateCoreProofRecord(args) {
   const witnessPackage = normalizeVantaPrivateCoreWitnessPackage(args.witnessPackage);
-  const sourcePublicInputs = witnessPackage.sourcePublicInputs;
+  return summarizePrivateCoreProofRecordFromSourcePublicInputs({
+    action: args.action,
+    proofReceipt: args.proofReceipt,
+    sourcePublicInputs: witnessPackage.sourcePublicInputs,
+  });
+}
+
+function summarizePrivateCoreProofRecordFromSourcePublicInputs(args) {
+  const sourcePublicInputs = args.sourcePublicInputs;
   const completedAt = Date.now();
 
   return {
@@ -3973,7 +3977,7 @@ function summarizePrivateCoreSendRecord(args) {
         ? args.releaseCandidateId
         : null,
     recipientCommitment: sourcePublicInputs.recipientCommitment,
-    resultingRootBasis: "client-declared",
+    resultingRootBasis: "proof-public-expected-root",
     resultingRoot: typeof args.resultingRoot === "string" ? args.resultingRoot : null,
     sendAmount: sourcePublicInputs.sendAmount,
     sendId: [
@@ -4094,6 +4098,38 @@ function assertPrivateCoreWitnessMaterialPolicy(body) {
       "Private-core strict no-witness operator mode rejects witnessPackage.privateWitness.",
     );
   }
+}
+
+async function resolvePrivateCoreUnshieldProofReceipt(body) {
+  if (body?.proofArtifact) {
+    return verifyVantaPrivateCoreUnshieldProofArtifact({
+      proofArtifact: body.proofArtifact,
+    });
+  }
+
+  return proveAndVerifyVantaPrivateCoreUnshield({
+    witnessPackage: body?.witnessPackage,
+  });
+}
+
+function getPrivateCoreUnshieldSourcePublicInputs(body) {
+  if (body?.proofArtifact) {
+    return normalizeVantaPrivateCoreUnshieldProofArtifact(body.proofArtifact).sourcePublicInputs;
+  }
+
+  return normalizeVantaPrivateCoreWitnessPackage(body?.witnessPackage).sourcePublicInputs;
+}
+
+function assertPrivateCoreUnshieldSourceArtifactConsistency(args) {
+  if (args.body?.proofArtifact) {
+    assertVantaPrivateCoreSourceArtifactShapeConsistency(
+      args.sourceArtifacts,
+      args.sourcePublicInputs,
+    );
+    return;
+  }
+
+  assertVantaPrivateCoreSourceArtifactConsistency(args.sourceArtifacts, args.body?.witnessPackage);
 }
 
 function loadEnvFile(fileName) {

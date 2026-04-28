@@ -114,9 +114,23 @@ async function expectWitnessRejection(path, body) {
 
 const fixtureModuleUrl = compileFixtureModule();
 const { getVantaPrivateCoreFixedDepthUnshieldFixtureV0 } = await import(fixtureModuleUrl);
+const { proveAndVerifyVantaPrivateCoreUnshield } = await import(
+  pathToFileURL(resolve(repoRoot, "operator/private-core-proof.mjs")).href
+);
 const fixture = getVantaPrivateCoreFixedDepthUnshieldFixtureV0();
 const witnessPackage = fixture.validBoundary.noirWitnessPackage;
 const sourceArtifacts = fixture.validSourceArtifacts;
+const proofReceipt = await proveAndVerifyVantaPrivateCoreUnshield({ witnessPackage });
+const proofArtifact = {
+  backend: proofReceipt.backend,
+  circuitPublicInputs: witnessPackage.publicInputs,
+  circuit: proofReceipt.circuit,
+  proofHex: proofReceipt.proofHex,
+  proofVersion: proofReceipt.proofVersion,
+  provingHashLane: proofReceipt.provingHashLane,
+  publicInputs: proofReceipt.publicInputs,
+  sourcePublicInputs: witnessPackage.sourcePublicInputs,
+};
 
 const server = spawn("node", ["operator/unshield-server.mjs"], {
   cwd: repoRoot,
@@ -171,6 +185,38 @@ try {
     sourceArtifacts,
     witnessPackage,
   });
+
+  const proofOnlyResponse = await requestJson("/private-core/unshield-proof", { proofArtifact });
+  assert(
+    proofOnlyResponse.ok,
+    `/private-core/unshield-proof rejected verifier-only artifact: ${proofOnlyResponse.text}`,
+  );
+  printStatus("strict no-witness /private-core/unshield-proof artifact: PASS");
+
+  const rootResponse = await requestJson("/private-core/register-root", {
+    proofArtifact,
+    sourceArtifacts,
+  });
+  assert(
+    rootResponse.ok,
+    `/private-core/register-root rejected verifier-only artifact: ${rootResponse.text}`,
+  );
+  printStatus("strict no-witness /private-core/register-root artifact: PASS");
+
+  const consumeResponse = await requestJson("/private-core/unshield-consume", {
+    proofArtifact,
+    sourceArtifacts,
+  });
+  assert(
+    consumeResponse.ok,
+    `/private-core/unshield-consume rejected verifier-only artifact: ${consumeResponse.text}`,
+  );
+  const consumeBody = JSON.parse(consumeResponse.text);
+  assert(
+    consumeBody.releaseRecorded === true && consumeBody.verified === true,
+    "Expected verifier-only consume artifact to record a verified release.",
+  );
+  printStatus("strict no-witness /private-core/unshield-consume artifact: PASS");
 } finally {
   if (server.exitCode === null) {
     await new Promise((resolvePromise) => {

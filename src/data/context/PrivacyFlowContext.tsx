@@ -31,6 +31,10 @@ import {
   type UnshieldResultV0,
 } from "@/zk/vantaPrivateCore";
 import {
+  buildVantaPrivateCoreSendProofBoundary,
+  type VantaPrivateCoreSendProofBoundaryV0,
+} from "@/zk/vantaPrivateCoreSendProof";
+import {
   buildVantaPrivateCoreUnshieldProofBoundary,
   compareVantaPrivateCoreSourceAndProvingArtifacts,
   deriveVantaPrivateCoreProvingArtifactsFromBoundary,
@@ -187,6 +191,88 @@ function buildPrivateCoreUnshieldCommittedSettlement(args: {
       args.nullifier,
     ),
     unshieldPublicInputHash,
+  };
+}
+
+function buildPrivateCoreSendCommittedSettlement(args: {
+  proofBoundary: VantaPrivateCoreSendProofBoundaryV0;
+  result: SendResultV0;
+  ownerPublicKey: string;
+}) {
+  const { proofBoundary, result } = args;
+  const sourceInputs = proofBoundary.publicInputs;
+  const proofInputs = proofBoundary.noirWitnessPackage.publicInputs;
+  const inputCommitment = proofBoundary.privateWitness.inputNoteCommitment;
+  const changeCommitment = sourceInputs.changeCommitment ?? "0";
+  const changeLeafIndex =
+    result.change?.insertionIndex.toString(10) ??
+    (result.recipient.insertionIndex + 1).toString(10);
+  const changeOutputRoot = result.change?.root ?? result.recipient.root;
+  const economicsCommitment = hashPrivatePoolV2CommittedTerm(
+    "vanta.private-core.send.economics-commitment.v0",
+    sourceInputs.assetId,
+    sourceInputs.sendAmount,
+    sourceInputs.changeAmount,
+  );
+  const assetIdCommitment = hashPrivatePoolV2CommittedTerm(
+    "vanta.private-core.send.asset-id-commitment.v0",
+    sourceInputs.assetId,
+  );
+  const ownerCommitment = hashPrivatePoolV2CommittedTerm(
+    "vanta.private-core.send.owner-commitment.v0",
+    args.ownerPublicKey,
+  );
+  const routeCommitment = hashPrivatePoolV2CommittedTerm(
+    "vanta.private-core.send.route-commitment.v0",
+    sourceInputs.recipientCommitment,
+    sourceInputs.sendContextTag ?? "none",
+  );
+  const settlementCommitment = hashPrivatePoolV2CommittedTerm(
+    "vanta.private-core.send.settlement-commitment.v0",
+    inputCommitment,
+    sourceInputs.inputNullifier,
+    sourceInputs.recipientCommitment,
+    changeCommitment,
+    result.resultingRoot,
+  );
+  const sendPublicInputHash = hashPrivatePoolV2CommittedTerm(
+    "vanta.private-core.send.public-input-hash.v0",
+    proofInputs.state_root,
+    proofInputs.input_nullifier,
+    proofInputs.recipient_commitment,
+    proofInputs.change_commitment,
+    proofInputs.send_economic_terms_hash,
+    proofInputs.note_version,
+    proofInputs.send_context_tag_hi ?? "0",
+    proofInputs.send_context_tag_lo ?? "0",
+  );
+
+  return {
+    assetIdCommitment,
+    changeLeafIndex,
+    changeOutputCommitment: changeCommitment,
+    changeOutputRoot,
+    economicsCommitment,
+    economicsMode: "committed-economics" as const,
+    inputCommitment,
+    inputRoot: sourceInputs.stateRoot,
+    nullifierOrReplayCommitment: hashPrivatePoolV2CommittedTerm(
+      "vanta.private-core.send.nullifier-replay-commitment.v0",
+      sourceInputs.inputNullifier,
+    ),
+    outputCommitment: sourceInputs.recipientCommitment,
+    outputLeafIndex: result.recipient.insertionIndex.toString(10),
+    outputRoot: result.recipient.root,
+    ownerCommitment,
+    routeCommitment,
+    sendContextTag: sourceInputs.sendContextTag ?? hashPrivatePoolV2CommittedTerm(
+      "vanta.private-core.send.context-tag.v0",
+      inputCommitment,
+      sourceInputs.inputNullifier,
+      sourceInputs.recipientCommitment,
+    ),
+    sendPublicInputHash,
+    settlementCommitment,
   };
 }
 
@@ -2093,12 +2179,34 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       });
       setPrivateCoreLocalSwapState(null);
       setPrivateCoreUnshieldState(null);
+      const proofBoundary = buildVantaPrivateCoreSendProofBoundary({
+        transition,
+        senderSecretKey: privateCoreOwner.secretKey,
+      });
+      const committedSendSettlement = buildPrivateCoreSendCommittedSettlement({
+        proofBoundary,
+        result,
+        ownerPublicKey: privateCoreOwner.publicKey,
+      });
       void recordPrivatePoolV2ProtocolSettlement({
         action: "send",
-        amount: formatBaseUnits(result.recipient.note.amount, VANTA_PRIVATE_CORE_VUSD_DECIMALS),
-        asset: "VUSD",
-        destination: result.recipient.commitment.value,
-        owner: privateCoreOwner.publicKey,
+        assetIdCommitment: committedSendSettlement.assetIdCommitment,
+        changeLeafIndex: committedSendSettlement.changeLeafIndex,
+        changeOutputCommitment: committedSendSettlement.changeOutputCommitment,
+        changeOutputRoot: committedSendSettlement.changeOutputRoot,
+        economicsCommitment: committedSendSettlement.economicsCommitment,
+        economicsMode: "committed-economics",
+        inputCommitment: committedSendSettlement.inputCommitment,
+        inputRoot: committedSendSettlement.inputRoot,
+        nullifierOrReplayCommitment: committedSendSettlement.nullifierOrReplayCommitment,
+        outputCommitment: committedSendSettlement.outputCommitment,
+        outputLeafIndex: committedSendSettlement.outputLeafIndex,
+        outputRoot: committedSendSettlement.outputRoot,
+        ownerCommitment: committedSendSettlement.ownerCommitment,
+        routeCommitment: committedSendSettlement.routeCommitment,
+        sendContextTag: committedSendSettlement.sendContextTag,
+        sendPublicInputHash: committedSendSettlement.sendPublicInputHash,
+        settlementCommitment: committedSendSettlement.settlementCommitment,
         settlementId: result.resultingRoot,
       }).then(() => refreshPrivatePoolV2ProtocolSettlementStatus());
 

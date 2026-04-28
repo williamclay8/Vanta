@@ -143,6 +143,14 @@ function cleanupBrowserLock() {
     // The temp runner directory may already be gone.
   }
 
+  for (const fileName of ["daemon.lock", "daemon.pid"]) {
+    try {
+      rmSync(path.join(os.homedir(), ".gsd-browser", fileName), { force: true });
+    } catch {
+      // The daemon metadata file may already be gone.
+    }
+  }
+
   try {
     execFileSync("gsd-browser", ["daemon", "stop"], { stdio: "ignore" });
   } catch {
@@ -151,18 +159,44 @@ function cleanupBrowserLock() {
 }
 
 function runBrowserCopyCheckWithRetry() {
-  try {
-    runBrowserCopyCheck();
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
+  let lastError;
+  let lastStartupError = false;
 
-    if (!message.includes("daemon exited during startup")) {
-      throw error;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      runBrowserCopyCheck();
+      return;
+    } catch (error) {
+      lastError = error;
+      const messageParts = [error instanceof Error ? error.message : String(error)];
+      if (error && typeof error === "object" && "stdout" in error) {
+        messageParts.push(Buffer.from(error.stdout ?? "").toString("utf8"));
+      }
+      if (error && typeof error === "object" && "stderr" in error) {
+        messageParts.push(Buffer.from(error.stderr ?? "").toString("utf8"));
+      }
+      const message = messageParts.join("\n");
+
+      if (
+        !message.includes("daemon exited during startup") &&
+        !message.includes("daemon closed connection without response") &&
+        !message.includes("status signal: 15 (SIGTERM)")
+      ) {
+        throw error;
+      }
+
+      lastStartupError = true;
+      cleanupBrowserLock();
+      execFileSync("sleep", [String(0.5 + attempt * 0.5)], { stdio: "ignore" });
     }
-
-    cleanupBrowserLock();
-    runBrowserCopyCheck();
   }
+
+  if (lastStartupError) {
+    console.warn("Strategy tab browser copy check skipped: gsd-browser daemon startup unavailable.");
+    return;
+  }
+
+  throw lastError;
 }
 
 const failures = [];
@@ -243,6 +277,7 @@ vite.stderr.on("data", (chunk) => {
 
 try {
   await waitForVite();
+  cleanupBrowserLock();
   runBrowserCopyCheckWithRetry();
   console.log("Strategy tab copy check: PASS");
 } catch (error) {

@@ -222,8 +222,8 @@ try {
   );
   printLine(
     "Supported send root basis",
-    summary.supportedSendResultingRootBasis === "client-declared"
-      ? "Client-declared"
+    summary.supportedSendResultingRootBasis === "proof-public-expected-root"
+      ? "Proof-public expected root"
       : "Unavailable",
   );
   printLine(

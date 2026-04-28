@@ -34,11 +34,15 @@ const operatorRun = runtime.createPrivateRailOperatorRun({
       {
         action: "send",
         economicsMode: "committed-economics",
+        quoteHandleCommitment: "0x3333333333333333333333333333333333333333333333333333333333333333",
+        routeHandleCommitment: "0x1111111111111111111111111111111111111111111111111111111111111111",
         settlementId: "strategy-runtime-check-send",
       },
       {
         action: "swap",
         economicsMode: "committed-economics",
+        quoteHandleCommitment: "0x2222222222222222222222222222222222222222222222222222222222222222",
+        routeHandleCommitment: "0x4444444444444444444444444444444444444444444444444444444444444444",
         settlementId: "strategy-runtime-check-swap",
       },
     ],
@@ -69,12 +73,25 @@ assert.equal(operatorRun.status, "queued");
 assert.equal(operatorRun.liveSubmission, false);
 assert.equal(operatorRun.operatorPlaintextStrategyShared, false);
 assert.equal(operatorRun.committedSettlementRequestCount, 2);
+assert.equal(operatorRun.schedulerQueueStatus, "queued-local-preview");
 assert.deepEqual(operatorRun.blockers, [
   "live-strategy-scheduler-not-enabled",
-  "route-quote-privacy-not-production-proven",
+  "live-venue-route-quote-privacy-not-production-proven",
   "production-anonymity-set-not-proven",
   "audit-and-mainnet-gates-not-cleared",
 ]);
+
+const drainPreview = runtime.createPrivateRailSchedulerDrainPreview();
+assert.equal(drainPreview.object, "strategy_private_rail_scheduler_drain_preview");
+assert.equal(drainPreview.liveSubmission, false);
+assert.equal(drainPreview.status, "blocked_before_live_submission");
+assert.equal(drainPreview.queueDepth, 1);
+assert.deepEqual(drainPreview.operatorRunIds, [operatorRun.id]);
+assert.deepEqual(drainPreview.blockers, operatorRun.blockers);
+assert.equal(drainPreview.durableStorage.status, "local-in-memory-only");
+assert.equal(drainPreview.durableStorage.productionReady, false);
+assert.equal(drainPreview.drainPreview[0].wouldSubmitLive, false);
+assert.equal(drainPreview.drainPreview[0].operatorRunId, operatorRun.id);
 
 const replayedOperatorRun = runtime.createPrivateRailOperatorRun({
   committedSettlementRequests: operatorRun.committedSettlementRequests,

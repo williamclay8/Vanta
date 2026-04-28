@@ -117,6 +117,12 @@ if (checkMode) {
         "privacy-safe-audit-sink-only",
         `${surface.id} must expose the narrow audit-sink wiring truth.`,
       );
+    } else if (surface.id === "strategy") {
+      assert.equal(
+        surface.status,
+        "local-safe-audit-sink-only",
+        "Strategy must expose local safe audit-sink coverage without claiming production wiring.",
+      );
     } else {
       assert.equal(surface.status, "not-wired", `${surface.id} must remain explicit about not being fully wired.`);
     }

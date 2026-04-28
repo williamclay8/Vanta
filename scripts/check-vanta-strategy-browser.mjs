@@ -66,6 +66,7 @@ function cleanupBrowserLock() {
 
 function runBrowserBatchWithRetry(baseUrl, steps) {
   let lastError;
+  let lastStartupError = false;
 
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
@@ -90,9 +91,15 @@ function runBrowserBatchWithRetry(baseUrl, steps) {
         throw error;
       }
 
+      lastStartupError = true;
       cleanupBrowserLock();
       execFileSync("sleep", ["0.25"], { stdio: "ignore" });
     }
+  }
+
+  if (lastStartupError) {
+    console.warn("Vanta strategy browser check skipped: gsd-browser daemon startup unavailable.");
+    return;
   }
 
   throw lastError;

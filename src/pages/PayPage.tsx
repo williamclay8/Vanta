@@ -394,6 +394,7 @@ export function PayPage() {
               <div className="pay-trust-line">
                 <span>Local operator harness</span>
                 <span>Payment record</span>
+                <span>Transaction evidence</span>
                 <span>{phase === "settlement_complete" ? "Receipt packet ready" : "Receipt packet pending"}</span>
                 <span>
                   {phase === "settlement_complete"

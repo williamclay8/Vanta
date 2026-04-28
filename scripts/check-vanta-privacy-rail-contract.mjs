@@ -80,6 +80,7 @@ assert.ok(privatePoolRail.currentEvidenceRefs.includes("ops/mainnet/private-pool
 assert.ok(privatePoolRail.currentEvidenceRefs.includes("ops/mainnet/private-pool-v2-nullifier-replay.evidence.json"));
 assert.ok(privatePoolRail.currentEvidenceRefs.includes("ops/mainnet/private-pool-v2-route-health.evidence.json"));
 assert.ok(privatePoolRail.currentEvidenceRefs.includes("npm run private-pool-v2:anonymity-set-readiness-check"));
+assert.ok(privatePoolRail.currentEvidenceRefs.includes("npm run shield:privacy-readiness-check"));
 
 assert.ok(
   contract.requiredVerificationCommands.includes("npm run privacy-rail:contract-check"),
@@ -106,6 +107,10 @@ assert.ok(
   "Privacy rail contract must include anonymity-set readiness command.",
 );
 assert.ok(
+  contract.requiredVerificationCommands.includes("npm run shield:privacy-readiness-check"),
+  "Privacy rail contract must include Shield privacy readiness command.",
+);
+assert.ok(
   packageJson.scripts["privacy-rail:contract-check"] === "node scripts/check-vanta-privacy-rail-contract.mjs",
   "package.json must expose privacy-rail:contract-check.",
 );
@@ -127,6 +132,8 @@ for (const phrase of [
   "live venue privacy",
   "ops/mainnet/private-pool-v2-nullifier-replay.evidence.json",
   "npm run mainnet:wallet-signing-evidence-check",
+  "npm run shield:privacy-readiness-check",
+  "production key-custody evidence",
   "mainnetReady: false",
   "productionReady: false",
 ]) {

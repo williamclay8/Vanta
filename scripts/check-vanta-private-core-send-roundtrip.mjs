@@ -285,7 +285,7 @@ try {
     !transitionResponse.ok ||
     transitionResponse.parsed?.verified !== true ||
     transitionResponse.parsed?.sendRecorded !== true ||
-    transitionResponse.parsed?.resultingRootBasis !== "client-declared" ||
+    transitionResponse.parsed?.resultingRootBasis !== "proof-public-expected-root" ||
     typeof transitionResponse.parsed?.sendId !== "string" ||
     typeof transitionResponse.parsed?.proofId !== "string"
   ) {
@@ -299,7 +299,7 @@ try {
   if (
     !summaryState.ok ||
     summaryState.parsed?.latestSend?.sendId !== transitionResponse.parsed.sendId ||
-    summaryState.parsed?.latestSend?.resultingRootBasis !== "client-declared" ||
+    summaryState.parsed?.latestSend?.resultingRootBasis !== "proof-public-expected-root" ||
     summaryState.parsed?.latestSendProof?.proofId !== transitionResponse.parsed.proofId ||
     summaryState.parsed?.latestSendLinkedProof?.proofId !== transitionResponse.parsed.proofId ||
     summaryState.parsed?.boundaryStatus !== "coherent" ||

@@ -25,7 +25,7 @@ export type VantaPrivateCoreSendOperatorResponse = VantaPrivateCoreProofOperator
   proofId: string;
   releaseCandidateId: string | null;
   recipientCommitment: string;
-  resultingRootBasis: "client-declared";
+  resultingRootBasis: "proof-public-expected-root";
   resultingRoot: string | null;
   sendAmount: string;
   sendId: string;
@@ -201,7 +201,7 @@ export type VantaPrivateCoreOperatorSendRecord = {
   publicInputCount: number;
   releaseCandidateId: string | null;
   recipientCommitment: string;
-  resultingRootBasis: "client-declared";
+  resultingRootBasis: "proof-public-expected-root";
   resultingRoot: string | null;
   sendAmount: string;
   sendId: string;
@@ -509,7 +509,7 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedNoteVersion: number;
   supportedRootRegistrationProvenance:
     "shield-input|send-recipient-output|send-change-output|swap-output";
-  supportedSendResultingRootBasis: "client-declared";
+  supportedSendResultingRootBasis: "proof-public-expected-root";
   supportedSendInputRootPolicy: "latest-registered-root-with-linked-registration-proof";
   supportedSendOutputRegistrationPolicy:
     "resulting-root-must-register-as-recipient-or-change-output";
@@ -674,7 +674,7 @@ export type VantaPrivateCoreOperatorContractStateResponse = {
   supportedNoteVersion: number;
   supportedRootRegistrationProvenance:
     "shield-input|send-recipient-output|send-change-output|swap-output";
-  supportedSendResultingRootBasis: "client-declared";
+  supportedSendResultingRootBasis: "proof-public-expected-root";
   supportedSendInputRootPolicy: "latest-registered-root-with-linked-registration-proof";
   supportedSendOutputRegistrationPolicy:
     "resulting-root-must-register-as-recipient-or-change-output";
@@ -1752,7 +1752,7 @@ export async function requestVantaPrivateCoreOperatorSendTransition(args: {
       parsed.releaseCandidateId !== undefined &&
       typeof parsed.releaseCandidateId !== "string") ||
     typeof parsed.recipientCommitment !== "string" ||
-    parsed.resultingRootBasis !== "client-declared" ||
+    parsed.resultingRootBasis !== "proof-public-expected-root" ||
     typeof parsed.sendAmount !== "string" ||
     typeof parsed.sendId !== "string"
   ) {
@@ -1779,7 +1779,7 @@ export async function requestVantaPrivateCoreOperatorSendTransition(args: {
       ? parsed.publicInputs.filter((value): value is string => typeof value === "string")
       : [],
     recipientCommitment: parsed.recipientCommitment,
-    resultingRootBasis: parsed.resultingRootBasis === "client-declared" ? "client-declared" : "client-declared",
+    resultingRootBasis: "proof-public-expected-root",
     resultingRoot: typeof parsed.resultingRoot === "string" ? parsed.resultingRoot : null,
     sendAmount: parsed.sendAmount,
     sendId: parsed.sendId,
@@ -2648,7 +2648,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     parsed.supportedNoteVersion !== 0 ||
     parsed.supportedRootRegistrationProvenance !==
       "shield-input|send-recipient-output|send-change-output|swap-output" ||
-    parsed.supportedSendResultingRootBasis !== "client-declared" ||
+    parsed.supportedSendResultingRootBasis !== "proof-public-expected-root" ||
     parsed.supportedSendInputRootPolicy !==
       "latest-registered-root-with-linked-registration-proof" ||
     parsed.supportedSendOutputRegistrationPolicy !==
@@ -2858,7 +2858,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedNoteVersion: 0,
     supportedRootRegistrationProvenance:
       "shield-input|send-recipient-output|send-change-output|swap-output",
-    supportedSendResultingRootBasis: "client-declared",
+    supportedSendResultingRootBasis: "proof-public-expected-root",
     supportedSendInputRootPolicy:
       "latest-registered-root-with-linked-registration-proof",
     supportedSendOutputRegistrationPolicy:
@@ -3295,7 +3295,7 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     parsed.supportedNoteVersion !== 0 ||
     parsed.supportedRootRegistrationProvenance !==
       "shield-input|send-recipient-output|send-change-output|swap-output" ||
-    parsed.supportedSendResultingRootBasis !== "client-declared" ||
+    parsed.supportedSendResultingRootBasis !== "proof-public-expected-root" ||
     parsed.supportedSendInputRootPolicy !==
       "latest-registered-root-with-linked-registration-proof" ||
     parsed.supportedSendOutputRegistrationPolicy !==
@@ -3429,7 +3429,7 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedNoteVersion: 0,
     supportedRootRegistrationProvenance:
       "shield-input|send-recipient-output|send-change-output|swap-output",
-    supportedSendResultingRootBasis: "client-declared",
+    supportedSendResultingRootBasis: "proof-public-expected-root",
     supportedSendInputRootPolicy:
       "latest-registered-root-with-linked-registration-proof",
     supportedSendOutputRegistrationPolicy:
@@ -4469,7 +4469,8 @@ function isSendRecord(value: unknown): value is VantaPrivateCoreOperatorSendReco
       (value as VantaPrivateCoreOperatorSendRecord).releaseCandidateId === undefined) ||
       typeof (value as VantaPrivateCoreOperatorSendRecord).releaseCandidateId === "string") &&
     typeof (value as VantaPrivateCoreOperatorSendRecord).recipientCommitment === "string" &&
-    (value as VantaPrivateCoreOperatorSendRecord).resultingRootBasis === "client-declared" &&
+    (value as VantaPrivateCoreOperatorSendRecord).resultingRootBasis ===
+      "proof-public-expected-root" &&
     (((value as VantaPrivateCoreOperatorSendRecord).resultingRoot === null ||
       (value as VantaPrivateCoreOperatorSendRecord).resultingRoot === undefined) ||
       typeof (value as VantaPrivateCoreOperatorSendRecord).resultingRoot === "string") &&

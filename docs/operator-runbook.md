@@ -24,6 +24,7 @@ npm run mainnet:backup-restore-evidence-check
 npm run storage:adapter-check
 npm run mainnet:abuse-observability-check
 npm run ops:rate-limit-check
+npm run shield:privacy-readiness-check
 npm run ops:safe-telemetry-check
 npm run mainnet:observability-sink-check
 npm run nullifier:replay-guard-check
@@ -55,6 +56,7 @@ Run the relevant gate before claiming an operator surface is healthy:
 npm run pay:verify
 npm run private-pool-v2:verify
 npm run private-core:verify
+npm run shield:verify
 npm run mainnet:preflight
 npm run mainnet:readiness-check
 npm run mainnet:external-gates-check
@@ -65,6 +67,7 @@ npm run mainnet:backup-restore-check
 npm run storage:adapter-check
 npm run mainnet:abuse-observability-check
 npm run ops:rate-limit-check
+npm run shield:privacy-readiness-check
 npm run ops:safe-telemetry-check
 npm run mainnet:observability-sink-check
 npm run nullifier:replay-guard-check

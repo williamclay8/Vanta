@@ -18,6 +18,8 @@ const requiredPhrases = [
   "No custody claim",
   "No anonymity-set claim",
   "Private Pool v2 anonymity-set readiness is now a checked fail-closed operator/readiness surface",
+  "Shield privacy readiness is now a checked fail-closed surface at `npm run shield:privacy-readiness-check`",
+  "production key-custody evidence",
   "Private Pool v2 Swap now has a local proof-request boundary, executable circuit fixture/check, checked committed protocol settlement path, and checked local verifier/indexer atomic mutation",
   "This is not yet production private Swap because quote and route privacy before operator settlement, relayer separation, anonymity-set evidence, audit, production evidence, and live venue privacy remain blocked.",
   "Private Pool v2 Unshield now has a local proof-request boundary, committed-economics protocol/operator acceptance",

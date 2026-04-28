@@ -104,6 +104,10 @@ assert.deepEqual(
 for (const surface of evidence.surfaceStatuses) {
   if (surface.id === "pay" || surface.id === "privatePoolV2") {
     assert.equal(surface.status, "privacy-safe-audit-sink-only", `${surface.id} must expose the audit sink boundary.`);
+  } else if (surface.id === "strategy") {
+    assert.equal(surface.status, "local-safe-audit-sink-only", "Strategy must expose local safe audit-sink coverage.");
+    assert.equal(surface.auditEventSinkKind, "noop-operator-event-sink");
+    assert.equal(surface.productionReady, false);
   } else {
     assert.equal(surface.status, "not-wired", `${surface.id} must remain explicit about not being fully wired.`);
   }
@@ -125,8 +129,12 @@ assert.ok(
   "Abuse/observability evidence must preserve which services are ready for Render-native observability wiring now.",
 );
 assert.ok(
-  evidence.deploymentTruth.includes("Strategy and operator control plane still lack production service refs"),
-  "Abuse/observability evidence must preserve which services still lack production service refs.",
+  evidence.deploymentTruth.includes("Strategy local safe telemetry plus local no-op audit-sink queue coverage"),
+  "Abuse/observability evidence must preserve Strategy local audit-sink coverage.",
+);
+assert.ok(
+  evidence.deploymentTruth.includes("operator control plane still lacks a production service ref"),
+  "Abuse/observability evidence must preserve the remaining missing operator production service ref.",
 );
 assert.ok(
   evidence.deploymentTruth.includes("per-service controls are still pending"),

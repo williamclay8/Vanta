@@ -76,7 +76,7 @@ const surfaces = [
   {
     id: "strategy",
     label: "Strategy",
-    status: "not-wired",
+    status: "local-safe-audit-sink-only",
     rateLimits: [
       "strategy-create-per-wallet",
       "strategy-start-per-wallet",
@@ -102,6 +102,7 @@ const surfaces = [
       "child_order_submitted",
       "child_order_skipped",
       "strategy_cancelled",
+      "strategy_private_rail_operator_run_queued",
     ],
   },
   {

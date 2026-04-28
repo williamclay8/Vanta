@@ -325,7 +325,7 @@ try {
     preRestartSummary.parsed?.supportedNoteVersion !== 0 ||
     preRestartSummary.parsed?.supportedRootRegistrationProvenance !==
       "shield-input|send-recipient-output|send-change-output|swap-output" ||
-    preRestartSummary.parsed?.supportedSendResultingRootBasis !== "client-declared" ||
+    preRestartSummary.parsed?.supportedSendResultingRootBasis !== "proof-public-expected-root" ||
     preRestartSummary.parsed?.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     preRestartSummary.parsed?.supportedReleaseDestinationModel !==
       "32-byte-release-destination-field" ||
@@ -433,7 +433,7 @@ try {
     postRestartSummary.parsed?.supportedNoteVersion !== 0 ||
     postRestartSummary.parsed?.supportedRootRegistrationProvenance !==
       "shield-input|send-recipient-output|send-change-output|swap-output" ||
-    postRestartSummary.parsed?.supportedSendResultingRootBasis !== "client-declared" ||
+    postRestartSummary.parsed?.supportedSendResultingRootBasis !== "proof-public-expected-root" ||
     postRestartSummary.parsed?.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     postRestartSummary.parsed?.supportedReleaseDestinationModel !==
       "32-byte-release-destination-field" ||

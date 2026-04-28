@@ -16,8 +16,30 @@ export type VantaStrategyPrivateRailOperatorRun = {
   object: "strategy_private_rail_operator_run";
   operatorHandoff: unknown;
   operatorPlaintextStrategyShared: false;
+  schedulerQueueStatus: "queued-local-preview";
   status: "queued";
   strategyId: string;
+};
+
+export type VantaStrategyPrivateRailSchedulerDrainPreview = {
+  blockers: string[];
+  drainPreview: Array<{
+    blockedBy: string[];
+    committedSettlementRequestCount: number;
+    operatorRunId: string;
+    strategyId: string;
+    wouldSubmitLive: false;
+  }>;
+  durableStorage: {
+    evidenceRef: string;
+    productionReady: false;
+    status: "local-in-memory-only";
+  };
+  liveSubmission: false;
+  object: "strategy_private_rail_scheduler_drain_preview";
+  operatorRunIds: string[];
+  queueDepth: number;
+  status: "blocked_before_live_submission";
 };
 
 export type VantaStrategyRecord = {
@@ -33,6 +55,7 @@ export type VantaStrategyRecord = {
 
 export type VantaStrategyRuntime = {
   cancelStrategy(strategyId: string): VantaStrategyRecord;
+  createPrivateRailSchedulerDrainPreview(): VantaStrategyPrivateRailSchedulerDrainPreview;
   createPrivateRailOperatorRun(input: {
     committedSettlementRequests: unknown;
     operatorHandoff: unknown;

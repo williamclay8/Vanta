@@ -37,6 +37,7 @@ const requiredPhrases = [
   "npm run mainnet:abuse-observability-runtime-status-check",
   "npm run mainnet:abuse-observability-evidence-check",
   "npm run ops:rate-limit-check",
+  "npm run shield:privacy-readiness-check",
   "npm run ops:operator-event-sink-check",
   "npm run nullifier:replay-guard-check",
   "npm run mainnet:nullifier-replay-status",
@@ -161,6 +162,7 @@ const requiredPhrases = [
   "npm run pay:verify",
   "npm run private-pool-v2:verify",
   "npm run private-core:verify",
+  "npm run shield:verify",
 ];
 
 for (const phrase of requiredPhrases) {

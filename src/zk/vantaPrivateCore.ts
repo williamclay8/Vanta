@@ -234,6 +234,7 @@ export type SendAppliedOutputV0 = {
   commitment: NoteCommitmentV0;
   encryptedPayload: CiphertextPackageV0;
   insertionIndex: number;
+  root: Bytes32Hex;
 };
 
 export type SendResultV0 = {
@@ -1531,18 +1532,21 @@ export class VantaPrivateCoreLedger {
     }
 
     const recipientInsertionIndex = previewTree.insert(transition.recipient.commitment.value);
+    const recipientRoot = previewTree.getRoot();
     const changeInsertionIndex =
       transition.change !== null ? previewTree.insert(transition.change.commitment.value) : null;
+    const resultingRoot = previewTree.getRoot();
 
     return {
       inputNullifier,
       inputRoot: transition.input.witness.root,
-      resultingRoot: previewTree.getRoot(),
+      resultingRoot,
       recipient: {
         note: transition.recipient.note,
         commitment: transition.recipient.commitment,
         encryptedPayload: transition.recipient.encryptedPayload,
         insertionIndex: recipientInsertionIndex,
+        root: recipientRoot,
       },
       change:
         transition.change && changeInsertionIndex !== null
@@ -1551,6 +1555,7 @@ export class VantaPrivateCoreLedger {
               commitment: transition.change.commitment,
               encryptedPayload: transition.change.encryptedPayload,
               insertionIndex: changeInsertionIndex,
+              root: resultingRoot,
             }
           : null,
     };

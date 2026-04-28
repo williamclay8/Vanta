@@ -1,4 +1,7 @@
 import { execFileSync, spawn } from "node:child_process";
+import { rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const port = 4630 + Math.floor(Math.random() * 200);
 const baseUrl = `http://127.0.0.1:${port}`;
@@ -22,6 +25,21 @@ async function waitForVite() {
   }
 
   throw new Error("Vanta dev server did not become ready for wallet browser signing safety verification.");
+}
+
+function stopBrowserDaemon() {
+  try {
+    execFileSync("gsd-browser", ["daemon", "stop"], { stdio: "ignore" });
+  } catch {
+    // The daemon may already be stopped.
+  }
+
+  rmSync(join(tmpdir(), "chromiumoxide-runner"), {
+    force: true,
+    maxRetries: 3,
+    recursive: true,
+    retryDelay: 100,
+  });
 }
 
 function runSafeBrowserSigningBatch() {
@@ -152,6 +170,7 @@ vite.stderr.on("data", (chunk) => {
 
 try {
   await waitForVite();
+  stopBrowserDaemon();
   runSafeBrowserSigningBatch();
   console.log("Vanta wallet browser signing safety check: PASS");
 } catch (error) {
@@ -171,9 +190,5 @@ try {
     });
   }
 
-  try {
-    execFileSync("gsd-browser", ["daemon", "stop"], { stdio: "ignore" });
-  } catch {
-    // The daemon may already be stopped.
-  }
+  stopBrowserDaemon();
 }

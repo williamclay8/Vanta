@@ -1676,8 +1676,8 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Supported send root basis</span>
               <strong>
-                {operatorSupportedSendResultingRootBasis === "client-declared"
-                  ? "Client-declared"
+                {operatorSupportedSendResultingRootBasis === "proof-public-expected-root"
+                  ? "Proof-public expected root"
                   : "Unavailable"}
               </strong>
             </div>

@@ -1,6 +1,12 @@
 import { createServer } from "node:http";
 import { createVantaStrategyRuntime } from "../src/strategy/strategyRuntime.mjs";
 import { createStrategyPrivateRailPrivacyReadiness } from "../src/strategy/strategyPrivateRailReadiness.mjs";
+import { createStrategyProductionServiceReadiness } from "../src/strategy/strategyProductionServiceReadiness.mjs";
+import { createNoopOperatorEventSink } from "../src/ops/vantaOperatorEventSink.mjs";
+import {
+  createSafeTelemetryRequestContext,
+  observeSafeTelemetryResponse,
+} from "../src/ops/vantaSafeTelemetry.mjs";
 
 const host = process.env.VANTA_STRATEGY_OPERATOR_HOST ?? process.env.HOST ?? "127.0.0.1";
 const port = Number(process.env.PORT ?? process.env.VANTA_STRATEGY_OPERATOR_PORT ?? "8796");
@@ -26,6 +32,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 const runtime = createVantaStrategyRuntime();
+const auditEventSink = createNoopOperatorEventSink({ service: "vanta-strategy" });
 
 function normalizeForJson(value) {
   if (Array.isArray(value)) {
@@ -77,6 +84,10 @@ function requireAuth(request, response, url) {
 }
 
 function createStatusPayload() {
+  const productionServiceReadiness = createStrategyProductionServiceReadiness({
+    localOperatorQueueReady: true,
+    schedulerDrainPreviewReady: true,
+  });
   const readiness = createStrategyPrivateRailPrivacyReadiness({
     committedSettlementRequestReady: true,
     durableProductionServicesReady: false,
@@ -86,15 +97,28 @@ function createStatusPayload() {
     productionAnonymitySetReady: false,
     redactedHandoffReady: true,
     relayerSeparationReady: Boolean(privatePoolV2OperatorUrl && privatePoolV2OperatorAuthToken),
-    routeQuotePrivacyReady: false,
+    routeQuotePrivacyEvidenceReady: true,
   });
+  const schedulerDrainPreview = runtime.createPrivateRailSchedulerDrainPreview();
 
   return {
+    durableStorage: schedulerDrainPreview.durableStorage,
+    auditEventSink: {
+      kind: auditEventSink.kind,
+      productionReady: auditEventSink.productionReady,
+      service: auditEventSink.service,
+    },
     kind: "vanta-strategy-operator-runtime-status",
     liveSubmission: false,
     privatePoolV2OperatorConfigured: Boolean(privatePoolV2OperatorUrl),
     readyForLivePrivateStrategyExecution: false,
     readiness,
+    productionServiceReadiness,
+    scheduler: {
+      drainPreviewStatus: schedulerDrainPreview.status,
+      liveSubmission: false,
+      queueDepth: schedulerDrainPreview.queueDepth,
+    },
     strategyCount: runtime.listStrategies().length,
     privateRailOperatorRunCount: runtime.listPrivateRailOperatorRuns().length,
     version: runtime.version,
@@ -129,7 +153,18 @@ async function handleRequest(request, response) {
     }
 
     if (request.method === "POST" && url.pathname === "/strategy/runtime/strategies") {
-      sendJson(response, 201, runtime.createStrategy(await readRequestBody(request)));
+      const strategy = runtime.createStrategy(await readRequestBody(request));
+      await auditEventSink.append({
+        eventRef: strategy.id,
+        eventType: "strategy_created",
+        payload: {
+          liveSubmission: false,
+          status: strategy.status,
+          strategyId: strategy.id,
+        },
+        severity: "info",
+      });
+      sendJson(response, 201, strategy);
       return;
     }
 
@@ -164,7 +199,25 @@ async function handleRequest(request, response) {
     }
 
     if (request.method === "POST" && url.pathname === "/strategy/runtime/private-rail/operator-runs") {
-      sendJson(response, 202, runtime.createPrivateRailOperatorRun(await readRequestBody(request)));
+      const operatorRun = runtime.createPrivateRailOperatorRun(await readRequestBody(request));
+      await auditEventSink.append({
+        eventRef: operatorRun.id,
+        eventType: "strategy_private_rail_operator_run_queued",
+        payload: {
+          committedSettlementRequestCount: operatorRun.committedSettlementRequestCount,
+          liveSubmission: operatorRun.liveSubmission,
+          operatorPlaintextStrategyShared: operatorRun.operatorPlaintextStrategyShared,
+          operatorRunId: operatorRun.id,
+          status: operatorRun.status,
+        },
+        severity: "info",
+      });
+      sendJson(response, 202, operatorRun);
+      return;
+    }
+
+    if (request.method === "POST" && url.pathname === "/strategy/runtime/private-rail/scheduler/drain-preview") {
+      sendJson(response, 200, runtime.createPrivateRailSchedulerDrainPreview());
       return;
     }
 
@@ -178,6 +231,14 @@ async function handleRequest(request, response) {
 }
 
 const server = createServer((request, response) => {
+  const context = createSafeTelemetryRequestContext({
+    request,
+    service: "vanta-strategy",
+  });
+  observeSafeTelemetryResponse({
+    context,
+    response,
+  });
   void handleRequest(request, response);
 });
 

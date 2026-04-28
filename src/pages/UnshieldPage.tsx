@@ -2553,7 +2553,7 @@ export function UnshieldPage() {
               </p>
               <div className="preview-grid unshield-evidence-grid">
                 <div className="preview-card preview-card--accent">
-                  <span>Evidence</span>
+                  <span>Transaction evidence</span>
                   <strong>
                     {currentUnshieldTransactionEvidence.operator.status === "recorded"
                       ? "Proof-backed release record"

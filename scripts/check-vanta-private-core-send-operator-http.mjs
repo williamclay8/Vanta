@@ -313,7 +313,7 @@ try {
     summaryState.parsed?.supportedNoteVersion !== 0 ||
     summaryState.parsed?.supportedRootRegistrationProvenance !==
       "shield-input|send-recipient-output|send-change-output|swap-output" ||
-    summaryState.parsed?.supportedSendResultingRootBasis !== "client-declared" ||
+    summaryState.parsed?.supportedSendResultingRootBasis !== "proof-public-expected-root" ||
     summaryState.parsed?.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     summaryState.parsed?.supportedReleaseDestinationModel !==
       "32-byte-release-destination-field" ||
@@ -448,7 +448,7 @@ try {
     !transitionResponse.ok ||
     transitionResponse.parsed?.verified !== true ||
     transitionResponse.parsed?.sendRecorded !== true ||
-    transitionResponse.parsed?.resultingRootBasis !== "client-declared" ||
+    transitionResponse.parsed?.resultingRootBasis !== "proof-public-expected-root" ||
     typeof transitionResponse.parsed?.sendId !== "string" ||
     typeof transitionResponse.parsed?.proofId !== "string"
   ) {
@@ -463,7 +463,7 @@ try {
     !sendState.parsed?.latestSend ||
     sendState.parsed.latestSend?.sendId !== transitionResponse.parsed.sendId ||
     sendState.parsed.latestSend?.proofId !== transitionResponse.parsed.proofId ||
-    sendState.parsed.latestSend?.resultingRootBasis !== "client-declared" ||
+    sendState.parsed.latestSend?.resultingRootBasis !== "proof-public-expected-root" ||
     sendState.parsed.latestSend?.resultingRoot !== transitionResponse.parsed.resultingRoot ||
     !Array.isArray(sendState.parsed?.records) ||
     sendState.parsed.records.length !== 1
@@ -479,7 +479,7 @@ try {
     !summaryAfterTransition.ok ||
     summaryAfterTransition.parsed?.sendProofRecordCount !== 2 ||
     summaryAfterTransition.parsed?.sendRecordCount !== 1 ||
-    summaryAfterTransition.parsed?.latestSend?.resultingRootBasis !== "client-declared" ||
+    summaryAfterTransition.parsed?.latestSend?.resultingRootBasis !== "proof-public-expected-root" ||
     summaryAfterTransition.parsed?.boundaryStatus !== "coherent" ||
     summaryAfterTransition.parsed?.sendResultingRootRecord !== null ||
     summaryAfterTransition.parsed?.latestSend?.sendId !== transitionResponse.parsed.sendId ||

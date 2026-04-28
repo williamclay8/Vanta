@@ -18,7 +18,12 @@ function stopBrowserDaemon() {
     // The daemon may already be stopped.
   }
 
-  rmSync(join(tmpdir(), "chromiumoxide-runner"), { recursive: true, force: true });
+  rmSync(join(tmpdir(), "chromiumoxide-runner"), {
+    force: true,
+    maxRetries: 3,
+    recursive: true,
+    retryDelay: 100,
+  });
 }
 
 function routeAssertSteps(route) {

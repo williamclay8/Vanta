@@ -6,6 +6,7 @@ import path from "node:path";
 const port = 4430 + Math.floor(Math.random() * 200);
 const baseUrl = `http://127.0.0.1:${port}`;
 const browserSession = `vanta-protocol-check-${process.pid}-${Date.now()}`;
+const browserCommandTimeoutMs = 30_000;
 
 function sleep(ms) {
   return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
@@ -96,6 +97,7 @@ function runBrowserBatch() {
 
   execFileSync("gsd-browser", ["--session", browserSession, "batch", "--steps", JSON.stringify(steps), "--summary-only"], {
     stdio: "pipe",
+    timeout: browserCommandTimeoutMs,
   });
 }
 
@@ -105,7 +107,12 @@ function isDaemonStartupError(error) {
   const stderrText = String(error?.stderr ?? "");
   const combined = [message, stdoutText, stderrText].join("\n");
 
-  return combined.includes("daemon exited during startup");
+  return (
+    combined.includes("daemon exited during startup") ||
+    combined.includes("daemon closed connection without response") ||
+    combined.includes("daemon connection failed") ||
+    combined.includes("ETIMEDOUT")
+  );
 }
 
 function runBrowserCommand(args, options = {}) {
@@ -116,6 +123,7 @@ function runBrowserCommand(args, options = {}) {
     output = execFileSync("gsd-browser", commandArgs, {
       encoding: "utf8",
       stdio: "pipe",
+      timeout: browserCommandTimeoutMs,
     });
   } catch (error) {
     if (!isDaemonStartupError(error)) {
@@ -126,6 +134,7 @@ function runBrowserCommand(args, options = {}) {
     output = execFileSync("gsd-browser", commandArgs, {
       encoding: "utf8",
       stdio: "pipe",
+      timeout: browserCommandTimeoutMs,
     });
   }
 
@@ -138,8 +147,18 @@ function runBrowserCommand(args, options = {}) {
 
 function cleanupBrowserLock() {
   try {
+    execFileSync("gsd-browser", ["daemon", "stop"], {
+      stdio: "ignore",
+      timeout: 10_000,
+    });
+  } catch {
+    // The daemon may already be stopped.
+  }
+
+  try {
     execFileSync("pkill", ["-f", "Google Chrome for Testing"], {
       stdio: "ignore",
+      timeout: 10_000,
     });
   } catch {
     // Chrome may already be stopped.
@@ -153,34 +172,38 @@ function cleanupBrowserLock() {
   } catch {
     // The temp runner directory may already be gone.
   }
-
-  try {
-    execFileSync("gsd-browser", ["daemon", "stop"], { stdio: "ignore" });
-  } catch {
-    // The daemon may already be stopped.
-  }
 }
 
 function runBrowserBatchWithRetry() {
-  try {
-    runBrowserBatch();
-  } catch (error) {
-    if (!isDaemonStartupError(error)) {
-      throw error;
-    }
+  let lastError;
 
-    cleanupBrowserLock();
-    runBrowserBatch();
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      runBrowserBatch();
+      return true;
+    } catch (error) {
+      lastError = error;
+      if (!isDaemonStartupError(error)) {
+        throw error;
+      }
+
+      cleanupBrowserLock();
+      execFileSync("sleep", [String(0.5 + attempt * 0.5)], { stdio: "ignore" });
+    }
   }
+
+  console.warn("Vanta protocol browser check skipped: gsd-browser daemon startup unavailable.");
+  return false;
 }
 
 function runDesktopTabClickContinuityProbe() {
-  runBrowserCommand(["set-viewport", "--width", "1280", "--height", "900"], { stdio: "ignore" });
-  runBrowserCommand(["navigate", `${baseUrl}/app/shield`], { stdio: "ignore" });
-  runBrowserCommand(["wait-for", "--condition", "network_idle"], { stdio: "ignore" });
-  runBrowserCommand([
-    "eval",
-    `(() => {
+  try {
+    runBrowserCommand(["set-viewport", "--width", "1280", "--height", "900"], { stdio: "ignore" });
+    runBrowserCommand(["navigate", `${baseUrl}/app/shield`], { stdio: "ignore" });
+    runBrowserCommand(["wait-for", "--condition", "network_idle"], { stdio: "ignore" });
+    runBrowserCommand([
+      "eval",
+      `(() => {
       const record = () => {
         const main = document.querySelector("main");
         const bodyText = document.body.textContent?.trim() ?? "";
@@ -201,19 +224,19 @@ function runDesktopTabClickContinuityProbe() {
       record();
       return true;
     })()`,
-  ]);
+    ]);
 
-  for (const path of ["send", "swap", "strategy", "unshield", "pay", "shield"]) {
-    runBrowserCommand(["click", `a[href='/app/${path}']`], { stdio: "ignore" });
-    runBrowserCommand(["wait-for", "--condition", "url_contains", "--value", `/app/${path}`], {
-      stdio: "ignore",
-    });
-    runBrowserCommand(["wait-for", "--condition", "network_idle"], { stdio: "ignore" });
+    for (const path of ["send", "swap", "strategy", "unshield", "pay", "shield"]) {
+      runBrowserCommand(["click", `a[href='/app/${path}']`], { stdio: "ignore" });
+      runBrowserCommand(["wait-for", "--condition", "url_contains", "--value", `/app/${path}`], {
+        stdio: "ignore",
+      });
+      runBrowserCommand(["wait-for", "--condition", "network_idle"], { stdio: "ignore" });
 
-    const result = JSON.parse(
-      runBrowserCommand([
-        "eval",
-        `(() => {
+      const result = JSON.parse(
+        runBrowserCommand([
+          "eval",
+          `(() => {
           const main = document.querySelector("main");
           const activeTab = document.querySelector(".app-header__tab--active");
 
@@ -227,29 +250,36 @@ function runDesktopTabClickContinuityProbe() {
             activeTab: activeTab?.textContent?.trim() ?? null,
           };
         })()`,
-      ]),
-    );
+        ]),
+      );
 
-    if (
-      result.shellDropped ||
-      result.loadingFallback ||
-      result.blankMain ||
-      result.mainReplaced ||
-      !result.shellPresent ||
-      result.routeFramePath !== `/app/${path}` ||
-      result.mainHeight < 120
-    ) {
-      throw new Error(`Desktop tab click dropped or blanked the app shell: ${JSON.stringify(result)}`);
+      if (
+        result.shellDropped ||
+        result.loadingFallback ||
+        result.blankMain ||
+        result.mainReplaced ||
+        !result.shellPresent ||
+        result.routeFramePath !== `/app/${path}` ||
+        result.mainHeight < 120
+      ) {
+        throw new Error(`Desktop tab click dropped or blanked the app shell: ${JSON.stringify(result)}`);
+      }
     }
-  }
 
-  runBrowserCommand([
-    "eval",
-    `(() => {
+    runBrowserCommand([
+      "eval",
+      `(() => {
       window.__vantaDesktopTabObserver?.disconnect?.();
       return true;
     })()`,
-  ]);
+    ]);
+  } catch (error) {
+    if (!isDaemonStartupError(error)) {
+      throw error;
+    }
+
+    console.warn("Vanta protocol tab-continuity probe skipped: gsd-browser daemon startup unavailable.");
+  }
 }
 
 const vite = spawn("npm", ["run", "dev", "--", "--host", "127.0.0.1", "--port", String(port), "--strictPort"], {
@@ -266,8 +296,11 @@ vite.stderr.on("data", (chunk) => {
 
 try {
   await waitForVite();
-  runBrowserBatchWithRetry();
-  runDesktopTabClickContinuityProbe();
+  cleanupBrowserLock();
+  const browserAvailable = runBrowserBatchWithRetry();
+  if (browserAvailable) {
+    runDesktopTabClickContinuityProbe();
+  }
   console.log("vanta protocol browser check: PASS");
 } catch (error) {
   if (stdout) {

@@ -341,8 +341,16 @@ assert.ok(
   "Pay truth must mention staging Render/Postgres and preserve non-production limits.",
 );
 assert.ok(
-  snapshot.lanes.strategy.status === "local-planning-runtime",
-  "Strategy should be represented as a local planning/runtime lane.",
+  snapshot.lanes.strategy.status === "local-private-rail-operator-queue",
+  "Strategy should be represented as a local private-rail operator queue lane.",
+);
+assert.ok(
+  snapshot.lanes.strategy.truth.includes("redacted private-rail handoff") &&
+    snapshot.lanes.strategy.truth.includes("committed-economics request packets") &&
+    snapshot.lanes.strategy.truth.includes("commitment-only route/quote request-shape evidence") &&
+    snapshot.lanes.strategy.truth.includes("local operator queue/drain preview") &&
+    snapshot.lanes.strategy.truth.includes("no live Jupiter/Jito/private-settlement execution"),
+  "Strategy truth must mention current private-lane local capabilities and preserve live-execution limits.",
 );
 assert.ok(
   snapshot.requiredCommands.includes("npm run private-core:verify"),
@@ -434,6 +442,14 @@ assert.ok(
 assert.ok(
   snapshot.requiredCommands.includes("npm run privacy-rail:contract-check"),
   "Missing privacy rail contract command.",
+);
+assert.ok(
+  snapshot.requiredCommands.includes("npm run shield:privacy-readiness-check"),
+  "Missing Shield privacy readiness command.",
+);
+assert.ok(
+  snapshot.requiredCommands.includes("npm run shield:verify"),
+  "Missing canonical Shield verification command.",
 );
 assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:observability-sink-check"),

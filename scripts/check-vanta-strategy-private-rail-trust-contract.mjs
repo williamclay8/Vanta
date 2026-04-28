@@ -36,6 +36,8 @@ const contractSource = requireMarkers("src/strategy/strategyPrivateRailTrustCont
   "verificationSurfaces",
   "npm run strategy:private-rail-check",
   "npm run strategy:committed-settlement-check",
+  "npm run strategy:route-quote-privacy-check",
+  "npm run strategy:production-service-readiness-check",
   "npm run strategy:operator-runtime-check",
 ]);
 
@@ -78,12 +80,28 @@ if (!packageSource.includes('"strategy:committed-settlement-check"')) {
   failures.push("package.json must expose strategy:committed-settlement-check.");
 }
 
+if (!packageSource.includes('"strategy:route-quote-privacy-check"')) {
+  failures.push("package.json must expose strategy:route-quote-privacy-check.");
+}
+
+if (!packageSource.includes('"strategy:production-service-readiness-check"')) {
+  failures.push("package.json must expose strategy:production-service-readiness-check.");
+}
+
 if (!packageSource.includes('"strategy:operator-runtime-check"')) {
   failures.push("package.json must expose strategy:operator-runtime-check.");
 }
 
 if (!packageSource.includes("npm run strategy:committed-settlement-check")) {
   failures.push("strategy:verify must include strategy:committed-settlement-check.");
+}
+
+if (!packageSource.includes("npm run strategy:route-quote-privacy-check")) {
+  failures.push("strategy:verify must include strategy:route-quote-privacy-check.");
+}
+
+if (!packageSource.includes("npm run strategy:production-service-readiness-check")) {
+  failures.push("strategy:verify must include strategy:production-service-readiness-check.");
 }
 
 if (!packageSource.includes("npm run strategy:operator-runtime-check")) {

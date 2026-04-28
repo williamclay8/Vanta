@@ -129,14 +129,53 @@ function hashHex(...parts) {
   return `0x${createHash("sha256").update(parts.join("\u001f")).digest("hex")}`;
 }
 
-function serviceNetworkAppendRoot(treeId, leafIndex, commitment) {
+const localIndexerRootScheme = "vanta-private-pool-v2-local-indexer-0.1";
+
+function hashLeaf(record) {
   return hashHex(
-    "vanta-private-pool-v2-service-network-0.1",
-    "root",
-    treeId,
-    String(leafIndex),
-    commitment,
+    localIndexerRootScheme,
+    "leaf",
+    record.treeId,
+    String(record.leafIndex),
+    record.assetId,
+    record.commitment,
   );
+}
+
+function hashNode(treeId, depth, left, right) {
+  return hashHex(localIndexerRootScheme, "node", treeId, String(depth), left, right);
+}
+
+function emptyRoot(treeId) {
+  return hashHex(localIndexerRootScheme, "empty-root", treeId);
+}
+
+function serviceNetworkCurrentRoot(treeId, records) {
+  if (records.length === 0) {
+    return emptyRoot(treeId);
+  }
+
+  let current = records.map((record) => hashLeaf(record));
+  let depth = 0;
+
+  while (current.length > 1) {
+    const next = [];
+
+    for (let index = 0; index < current.length; index += 2) {
+      const left = current[index];
+      const right = current[index + 1] ?? left;
+      next.push(hashNode(treeId, depth, left, right));
+    }
+
+    current = next;
+    depth += 1;
+  }
+
+  return current[0] ?? emptyRoot(treeId);
+}
+
+function serviceNetworkAppendRoot(records, record) {
+  return serviceNetworkCurrentRoot(record.treeId, [...records, { ...record, merkleRoot: "" }]);
 }
 
 for (const service of services) {
@@ -448,6 +487,26 @@ try {
   );
 
   const sendInputCommitment = restoredCommitments.parsed.commitments[0];
+  const sendRecipientCommitment = {
+    assetId: sendInputCommitment.assetId,
+    commitment: "field:service-network-send-recipient-output",
+    leafIndex: 1,
+    treeId: sendInputCommitment.treeId,
+  };
+  const sendRecipientRoot = serviceNetworkAppendRoot(
+    restoredCommitments.parsed.commitments,
+    sendRecipientCommitment,
+  );
+  const sendChangeCommitment = {
+    assetId: sendInputCommitment.assetId,
+    commitment: "field:service-network-send-change-output",
+    leafIndex: 2,
+    treeId: sendInputCommitment.treeId,
+  };
+  const sendChangeRoot = serviceNetworkAppendRoot(
+    [...restoredCommitments.parsed.commitments, { ...sendRecipientCommitment, merkleRoot: sendRecipientRoot }],
+    sendChangeCommitment,
+  );
   const privateSendRequest = {
     amountBaseUnits: "1",
     assetId: "hidden:economic-terms",
@@ -460,18 +519,10 @@ try {
       "nullifier:field:service-network-send-nullifier",
       "recipient-output-commitment:field:service-network-send-recipient-output",
       "recipient-leaf-index:1",
-      `recipient-output-root:${serviceNetworkAppendRoot(
-        sendInputCommitment.treeId,
-        1,
-        "field:service-network-send-recipient-output",
-      )}`,
+      `recipient-output-root:${sendRecipientRoot}`,
       "change-output-commitment:field:service-network-send-change-output",
       "change-leaf-index:2",
-      `change-output-root:${serviceNetworkAppendRoot(
-        sendInputCommitment.treeId,
-        2,
-        "field:service-network-send-change-output",
-      )}`,
+      `change-output-root:${sendChangeRoot}`,
       "asset-id-commitment:field:service-network-send-asset",
       "economics-commitment:field:service-network-send-economics",
       "owner-commitment:field:service-network-send-owner",
@@ -523,6 +574,14 @@ try {
     privateSendCommitments.parsed.commitments[2]?.commitment === "field:service-network-send-change-output",
     "Expected private-send change output commitment to be indexed.",
   );
+  assert(
+    privateSendCommitments.parsed.commitments[1]?.merkleRoot === sendRecipientRoot,
+    "Expected private-send recipient output root to match the canonical service-network indexer root.",
+  );
+  assert(
+    privateSendCommitments.parsed.commitments[2]?.merkleRoot === sendChangeRoot,
+    "Expected private-send change output root to match the canonical service-network indexer root.",
+  );
   const privateSendReplay = await requestJson(serviceUrls.get("verifier"), "/v1/proofs/accept", {
     body: JSON.stringify({ proof: privateSendProof.parsed, request: privateSendRequest }),
     headers: { Authorization: `Bearer ${authToken}` },
@@ -559,6 +618,79 @@ try {
   assert(
     afterTamperCommitments.parsed?.commitments?.length === 3,
     "Expected rejected private-send transition not to append partial remote outputs.",
+  );
+
+  const staleInputCommitment = privateSendCommitments.parsed.commitments[0];
+  const staleRecipientCommitment = {
+    assetId: staleInputCommitment.assetId,
+    commitment: "field:service-network-stale-send-recipient-output",
+    leafIndex: 3,
+    treeId: staleInputCommitment.treeId,
+  };
+  const staleRecipientRoot = serviceNetworkAppendRoot(
+    privateSendCommitments.parsed.commitments,
+    staleRecipientCommitment,
+  );
+  const staleChangeCommitment = {
+    assetId: staleInputCommitment.assetId,
+    commitment: "field:service-network-stale-send-change-output",
+    leafIndex: 4,
+    treeId: staleInputCommitment.treeId,
+  };
+  const staleChangeRoot = serviceNetworkAppendRoot(
+    [...privateSendCommitments.parsed.commitments, { ...staleRecipientCommitment, merkleRoot: staleRecipientRoot }],
+    staleChangeCommitment,
+  );
+  const staleRootPrivateSendRequest = {
+    ...privateSendRequest,
+    publicInputs: privateSendRequest.publicInputs.map((input) => {
+      if (input.startsWith("nullifier:")) {
+        return "nullifier:field:service-network-stale-send-nullifier";
+      }
+      if (input.startsWith("input-root:")) {
+        return `input-root:${staleInputCommitment.merkleRoot}`;
+      }
+      if (input.startsWith("recipient-output-commitment:")) {
+        return `recipient-output-commitment:${staleRecipientCommitment.commitment}`;
+      }
+      if (input.startsWith("recipient-leaf-index:")) {
+        return "recipient-leaf-index:3";
+      }
+      if (input.startsWith("recipient-output-root:")) {
+        return `recipient-output-root:${staleRecipientRoot}`;
+      }
+      if (input.startsWith("change-output-commitment:")) {
+        return `change-output-commitment:${staleChangeCommitment.commitment}`;
+      }
+      if (input.startsWith("change-leaf-index:")) {
+        return "change-leaf-index:4";
+      }
+      if (input.startsWith("change-output-root:")) {
+        return `change-output-root:${staleChangeRoot}`;
+      }
+      return input;
+    }),
+  };
+  const staleRootPrivateSendProof = await requestJson(serviceUrls.get("prover"), "/v1/proofs", {
+    body: JSON.stringify({ request: staleRootPrivateSendRequest }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(
+    staleRootPrivateSendProof.ok,
+    staleRootPrivateSendProof.text || "Expected stale-root private-send proof response.",
+  );
+  const staleRootPrivateSendReceipt = await requestJson(serviceUrls.get("verifier"), "/v1/proofs/accept", {
+    body: JSON.stringify({
+      proof: staleRootPrivateSendProof.parsed,
+      request: staleRootPrivateSendRequest,
+    }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(
+    !staleRootPrivateSendReceipt.ok,
+    "Expected private-send proof with stale input root to be rejected.",
   );
 
   console.log("private-pool-v2 service-network private-send transition: PASS");

@@ -341,8 +341,8 @@ try {
   );
   printLine(
     "Supported send root basis",
-    contract.supportedSendResultingRootBasis === "client-declared"
-      ? "Client-declared"
+    contract.supportedSendResultingRootBasis === "proof-public-expected-root"
+      ? "Proof-public expected root"
       : "Unavailable",
   );
   printLine(

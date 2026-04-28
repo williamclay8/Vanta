@@ -491,7 +491,7 @@ try {
     "Send proof records: 1",
     "Latest send transition:",
     "Latest send linked proof:",
-    "Latest send resulting-root basis: client-declared",
+    "Latest send resulting-root basis: proof-public-expected-root",
     "Latest send resulting root:",
     "Latest release nullifier:",
     "Latest release proof:",

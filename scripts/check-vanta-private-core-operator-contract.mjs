@@ -197,7 +197,7 @@ try {
     contractState.parsed?.supportedNoteVersion !== 0 ||
     contractState.parsed?.supportedRootRegistrationProvenance !==
       "shield-input|send-recipient-output|send-change-output|swap-output" ||
-    contractState.parsed?.supportedSendResultingRootBasis !== "client-declared" ||
+    contractState.parsed?.supportedSendResultingRootBasis !== "proof-public-expected-root" ||
     contractState.parsed?.supportedSendInputRootPolicy !==
       "latest-registered-root-with-linked-registration-proof" ||
     contractState.parsed?.supportedSendOutputRegistrationPolicy !==

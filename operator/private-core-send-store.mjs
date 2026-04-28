@@ -84,7 +84,7 @@ function normalizeSendRecord(record) {
       typeof record?.resultingRoot === "string" && record.resultingRoot.length > 0
         ? record.resultingRoot
         : null,
-    resultingRootBasis: "client-declared",
+    resultingRootBasis: "proof-public-expected-root",
     sendAmount: typeof record?.sendAmount === "string" ? record.sendAmount : "0",
     sendId: typeof record?.sendId === "string" ? record.sendId : "",
   };

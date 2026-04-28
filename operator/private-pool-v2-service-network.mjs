@@ -43,6 +43,51 @@ function hashHex(...parts) {
   return `0x${bytesToHex(sha256(textEncoder.encode(parts.join("\u001f"))))}`;
 }
 
+const localIndexerRootScheme = "vanta-private-pool-v2-local-indexer-0.1";
+
+function hashLeaf(record) {
+  return hashHex(
+    localIndexerRootScheme,
+    "leaf",
+    record.treeId,
+    String(record.leafIndex),
+    record.assetId,
+    record.commitment,
+  );
+}
+
+function hashNode(treeId, depth, left, right) {
+  return hashHex(localIndexerRootScheme, "node", treeId, String(depth), left, right);
+}
+
+function emptyRoot(treeId) {
+  return hashHex(localIndexerRootScheme, "empty-root", treeId);
+}
+
+function currentMerkleRoot(treeId, records) {
+  if (records.length === 0) {
+    return emptyRoot(treeId);
+  }
+
+  let current = records.map((record) => hashLeaf(record));
+  let depth = 0;
+
+  while (current.length > 1) {
+    const next = [];
+
+    for (let index = 0; index < current.length; index += 2) {
+      const left = current[index];
+      const right = current[index + 1] ?? left;
+      next.push(hashNode(treeId, depth, left, right));
+    }
+
+    current = next;
+    depth += 1;
+  }
+
+  return current[0] ?? emptyRoot(treeId);
+}
+
 function normalizeForJson(value) {
   if (typeof value === "bigint") {
     return value.toString();
@@ -276,16 +321,7 @@ function createIndexerState({ snapshotStore, storePath } = {}) {
   async function currentRoot(treeId) {
     await ensureLoaded();
     const treeCommitments = commitments.filter((record) => record.treeId === treeId);
-    if (treeCommitments.length === 0) {
-      return hashHex(serviceVersion, "empty-root", treeId);
-    }
-
-    return hashHex(
-      serviceVersion,
-      "root",
-      treeId,
-      ...treeCommitments.map((record) => `${record.leafIndex}:${record.commitment}`),
-    );
+    return currentMerkleRoot(treeId, treeCommitments);
   }
 
   return {
@@ -310,11 +346,12 @@ function createIndexerState({ snapshotStore, storePath } = {}) {
       if (!inputRecord) {
         throw new Error(`Unknown private-pool commitment ${inputCommitment}.`);
       }
-      if (inputRecord.merkleRoot !== inputRoot) {
+      const treeCommitments = commitments.filter((record) => record.treeId === inputRecord.treeId);
+      const currentInputRoot = currentMerkleRoot(inputRecord.treeId, treeCommitments);
+      if (currentInputRoot !== inputRoot) {
         throw new Error("Private-send proof input root does not match indexer root.");
       }
 
-      const treeCommitments = commitments.filter((record) => record.treeId === inputRecord.treeId);
       if (treeCommitments.length !== recipientLeafIndex) {
         throw new Error(
           `Private-send recipient leaf index ${recipientLeafIndex} does not match next indexer leaf ${treeCommitments.length}.`,
@@ -324,35 +361,36 @@ function createIndexerState({ snapshotStore, storePath } = {}) {
         throw new Error("Private-send change leaf index must follow recipient leaf index.");
       }
 
-      const recipientCommitment = {
+      const recipientWithoutRoot = {
         assetId: inputRecord.assetId,
         commitment: recipientOutputCommitment,
         leafIndex: recipientLeafIndex,
-        merkleRoot: hashHex(
-          serviceVersion,
-          "root",
-          inputRecord.treeId,
-          String(recipientLeafIndex),
-          recipientOutputCommitment,
-        ),
         treeId: inputRecord.treeId,
+      };
+      const recipientCommitment = {
+        ...recipientWithoutRoot,
+        merkleRoot: currentMerkleRoot(inputRecord.treeId, [
+          ...treeCommitments,
+          { ...recipientWithoutRoot, merkleRoot: "" },
+        ]),
       };
       if (recipientCommitment.merkleRoot !== recipientOutputRoot) {
         throw new Error("Private-send recipient output root does not match indexer root.");
       }
 
-      const changeCommitment = {
+      const changeWithoutRoot = {
         assetId: inputRecord.assetId,
         commitment: changeOutputCommitment,
         leafIndex: changeLeafIndex,
-        merkleRoot: hashHex(
-          serviceVersion,
-          "root",
-          inputRecord.treeId,
-          String(changeLeafIndex),
-          changeOutputCommitment,
-        ),
         treeId: inputRecord.treeId,
+      };
+      const changeCommitment = {
+        ...changeWithoutRoot,
+        merkleRoot: currentMerkleRoot(inputRecord.treeId, [
+          ...treeCommitments,
+          recipientCommitment,
+          { ...changeWithoutRoot, merkleRoot: "" },
+        ]),
       };
       if (changeCommitment.merkleRoot !== changeOutputRoot) {
         throw new Error("Private-send change output root does not match indexer root.");
@@ -380,9 +418,9 @@ function createIndexerState({ snapshotStore, storePath } = {}) {
         assetId,
         commitment,
         leafIndex,
-        merkleRoot: hashHex(serviceVersion, "root", treeId, String(leafIndex), commitment),
         treeId,
       };
+      record.merkleRoot = currentMerkleRoot(treeId, [...commitments, record]);
       commitments.push(record);
       await save();
       return record;

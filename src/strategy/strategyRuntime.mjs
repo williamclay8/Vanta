@@ -2,6 +2,24 @@ import { createStrategyExecutionPreview } from "./strategyExecutionAdapter.mjs";
 import { createStrategyPlan } from "./strategyPlanner.mjs";
 
 const RUNTIME_VERSION = "vanta-strategy-runtime-0.1";
+const LOCAL_DURABLE_STORAGE_STATUS = {
+  evidenceRef: "local Strategy runtime Map state; replace with durable scheduler/storage service before live execution",
+  productionReady: false,
+  status: "local-in-memory-only",
+};
+const COMMITMENT_FIELD_PATTERN = /^0x[0-9a-f]{64}$/u;
+const RAW_COMMITTED_SETTLEMENT_FIELDS = [
+  "amount",
+  "asset",
+  "destination",
+  "owner",
+  "pair",
+  "quote",
+  "quoteHandle",
+  "route",
+  "routeHandle",
+  "venue",
+];
 
 function stableJson(value) {
   if (Array.isArray(value)) {
@@ -41,9 +59,27 @@ function resolveStatus(executionPreview) {
 
 function assertNoRawCommittedSettlementFields(committedSettlementRequests) {
   for (const request of committedSettlementRequests?.requests ?? []) {
-    for (const rawField of ["amount", "asset", "destination", "owner"]) {
+    for (const rawField of RAW_COMMITTED_SETTLEMENT_FIELDS) {
       if (rawField in request) {
         throw new Error(`Strategy private-rail operator run rejects raw ${rawField}.`);
+      }
+    }
+
+    if (request.action !== "send" && request.action !== "swap") {
+      throw new Error("Strategy private-rail operator run requires send/swap committed actions.");
+    }
+
+    if (request.economicsMode !== "committed-economics") {
+      throw new Error("Strategy private-rail operator run requires committed-economics requests.");
+    }
+
+    if (typeof request.settlementId !== "string" || request.settlementId.length === 0) {
+      throw new Error("Strategy private-rail operator run requires settlementId.");
+    }
+
+    for (const commitmentField of ["routeHandleCommitment", "quoteHandleCommitment"]) {
+      if (!COMMITMENT_FIELD_PATTERN.test(String(request[commitmentField] ?? ""))) {
+        throw new Error(`Strategy private-rail operator run requires ${commitmentField}.`);
       }
     }
   }
@@ -141,7 +177,7 @@ export function createVantaStrategyRuntime() {
       const record = {
         blockers: [
           "live-strategy-scheduler-not-enabled",
-          "route-quote-privacy-not-production-proven",
+          "live-venue-route-quote-privacy-not-production-proven",
           "production-anonymity-set-not-proven",
           "audit-and-mainnet-gates-not-cleared",
         ],
@@ -153,6 +189,7 @@ export function createVantaStrategyRuntime() {
         object: "strategy_private_rail_operator_run",
         operatorHandoff,
         operatorPlaintextStrategyShared: false,
+        schedulerQueueStatus: "queued-local-preview",
         status: "queued",
         strategyId: strategy.id,
       };
@@ -172,6 +209,28 @@ export function createVantaStrategyRuntime() {
 
     listPrivateRailOperatorRuns() {
       return Array.from(operatorRuns.values()).map((record) => cloneRecord(record));
+    },
+
+    createPrivateRailSchedulerDrainPreview() {
+      const queuedRuns = Array.from(operatorRuns.values()).filter((record) => record.status === "queued");
+      const blockers = Array.from(new Set(queuedRuns.flatMap((record) => record.blockers)));
+
+      return {
+        blockers,
+        drainPreview: queuedRuns.map((record) => ({
+          blockedBy: record.blockers,
+          committedSettlementRequestCount: record.committedSettlementRequestCount,
+          operatorRunId: record.id,
+          strategyId: record.strategyId,
+          wouldSubmitLive: false,
+        })),
+        durableStorage: cloneRecord(LOCAL_DURABLE_STORAGE_STATUS),
+        liveSubmission: false,
+        object: "strategy_private_rail_scheduler_drain_preview",
+        operatorRunIds: queuedRuns.map((record) => record.id),
+        queueDepth: queuedRuns.length,
+        status: "blocked_before_live_submission",
+      };
     },
 
     pauseStrategy(strategyId) {

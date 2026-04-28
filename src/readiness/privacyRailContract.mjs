@@ -58,6 +58,7 @@ const rails = [
       "ops/mainnet/private-pool-v2-route-health.evidence.json",
       "ops/mainnet/service-deployment.evidence.json",
       "npm run private-pool-v2:anonymity-set-readiness-check",
+      "npm run shield:privacy-readiness-check",
     ],
     requiredEvidence: [
       ...new Set([
@@ -101,6 +102,7 @@ export function createVantaPrivacyRailContract(options = {}) {
       "npm run mainnet:private-rail-route-health-evidence-check",
       "npm run mainnet:production-smoke-evidence-check",
       "npm run private-pool-v2:anonymity-set-readiness-check",
+      "npm run shield:privacy-readiness-check",
       "npm run security:limitations-check",
       "npm run mainnet:preflight",
     ],
