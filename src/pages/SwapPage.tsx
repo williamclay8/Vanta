@@ -218,16 +218,21 @@ export function SwapPage() {
     selectedSourceAsset === "SOL" ? null : shieldAssetRegistry.byAssetKey[selectedSourceAsset];
   const selectedTokenTargetEntry =
     selectedTargetAsset === "SOL" ? null : shieldAssetRegistry.byAssetKey[selectedTargetAsset];
+  const shieldedSolSourceEntry =
+    shieldAssetRegistry.entries.find((entry) => (entry.account?.shieldedSolBalance ?? 0) > 0) ??
+    shieldAssetRegistry.entries.find((entry) => (entry.account?.spendableShieldedSolNotes.length ?? 0) > 0) ??
+    null;
+  const shieldedSolSourceAccount = shieldedSolSourceEntry?.account ?? shieldAccount;
   const selectedSourceAccount =
-    selectedSourceAsset === "SOL" ? shieldAccount : selectedTokenSourceEntry?.account ?? null;
+    selectedSourceAsset === "SOL" ? shieldedSolSourceAccount : selectedTokenSourceEntry?.account ?? null;
 
   const getShieldedAssetBalance = useCallback((asset: ShieldedSwapAssetKey) => {
     if (asset === "SOL") {
-      return shieldAccount?.shieldedSolBalance ?? 0;
+      return shieldedSolSourceAccount?.shieldedSolBalance ?? 0;
     }
 
     return shieldAssetRegistry.byAssetKey[asset]?.account?.balance ?? 0;
-  }, [shieldAccount?.shieldedSolBalance, shieldAssetRegistry.byAssetKey]);
+  }, [shieldAssetRegistry.byAssetKey, shieldedSolSourceAccount?.shieldedSolBalance]);
 
   const readySourceAssetOptions = useMemo(
     () =>
@@ -254,7 +259,6 @@ export function SwapPage() {
           return left.index - right.index;
         }),
     [
-      shieldAccount?.shieldedSolBalance,
       getShieldedAssetBalance,
       shieldedSwapAssets,
     ],
@@ -304,7 +308,7 @@ export function SwapPage() {
   const spendableNotes = useMemo(() => {
     const baseSpendableNotes =
       selectedSourceAsset === "SOL"
-        ? shieldAccount?.spendableShieldedSolNotes ?? []
+        ? shieldedSolSourceAccount?.spendableShieldedSolNotes ?? []
         : selectedSourceAccount?.spendableShieldNotes ?? [];
 
     return baseSpendableNotes.filter((note) => {
@@ -314,7 +318,7 @@ export function SwapPage() {
     optimisticallyConsumedNoteId,
     selectedSourceAccount?.spendableShieldNotes,
     selectedSourceAsset,
-    shieldAccount?.spendableShieldedSolNotes,
+    shieldedSolSourceAccount?.spendableShieldedSolNotes,
   ]);
 
   useEffect(() => {
@@ -324,7 +328,7 @@ export function SwapPage() {
 
     const baseSpendableNotes =
       selectedSourceAsset === "SOL"
-        ? shieldAccount?.spendableShieldedSolNotes ?? []
+        ? shieldedSolSourceAccount?.spendableShieldedSolNotes ?? []
         : selectedSourceAccount?.spendableShieldNotes ?? [];
 
     if (!baseSpendableNotes.some((note) => note.noteId === optimisticallyConsumedNoteId)) {
@@ -334,7 +338,7 @@ export function SwapPage() {
     optimisticallyConsumedNoteId,
     selectedSourceAccount?.spendableShieldNotes,
     selectedSourceAsset,
-    shieldAccount?.spendableShieldedSolNotes,
+    shieldedSolSourceAccount?.spendableShieldedSolNotes,
   ]);
 
   const parsedAmount = Number(amount);
@@ -346,7 +350,7 @@ export function SwapPage() {
   const selectedShieldAsset = getLiveShieldTokenAsset(selectedShieldAssetKey);
   const sourceBalance =
     selectedSourceAsset === "SOL"
-      ? shieldAccount?.shieldedSolBalance ?? 0
+      ? shieldedSolSourceAccount?.shieldedSolBalance ?? 0
       : selectedSourceAccount?.balance ?? 0;
   const exactSpendableNote = useMemo(() => {
     if (
@@ -779,6 +783,7 @@ export function SwapPage() {
     const completedConsumedNoteId = pendingSpentMarker?.consumedNoteId ?? null;
 
     void refreshShieldState()
+      .then(() => shieldedSolSourceEntry?.refresh?.())
       .then(() => selectedTokenTargetEntry?.refresh?.())
       .then(async () => {
         if (swapTransaction.signature && pendingSwapBridge?.input.asset === "VUSD") {
@@ -810,6 +815,7 @@ export function SwapPage() {
     pendingSpentMarker,
     pendingSwapBridge,
     refreshShieldState,
+    shieldedSolSourceEntry,
     selectedTokenTargetEntry,
     spentMarkerTransaction.signature,
     spentMarkerWait.waitStatus,
@@ -823,6 +829,7 @@ export function SwapPage() {
 
     const refreshCurrentSwapState = async () => {
       await refreshShieldState();
+      await shieldedSolSourceEntry?.refresh?.();
       await selectedTokenTargetEntry?.refresh?.();
     };
 
@@ -839,12 +846,26 @@ export function SwapPage() {
     return () => {
       window.clearInterval(refreshInterval);
     };
-  }, [lastSwapSummary, pendingSpentMarker, refreshShieldState, selectedTokenTargetEntry, status]);
+  }, [
+    lastSwapSummary,
+    pendingSpentMarker,
+    refreshShieldState,
+    shieldedSolSourceEntry,
+    selectedTokenTargetEntry,
+    status,
+  ]);
 
   useEffect(() => {
+    const sourceResolutionAccount =
+      pendingSpentMarker && pendingSpentMarker.asset === "SOL"
+        ? shieldedSolSourceAccount
+        : shieldAccount;
+    const solResolutionAccount = shieldedSolSourceAccount ?? shieldAccount;
+
     if (
       status !== "finalizing_state" ||
-      !shieldAccount ||
+      !sourceResolutionAccount ||
+      !solResolutionAccount ||
       !pendingSpentMarker ||
       !lastSwapSummary
     ) {
@@ -853,15 +874,15 @@ export function SwapPage() {
 
     const inputResolved =
       pendingSpentMarker.asset === "SOL"
-        ? !shieldAccount.spendableShieldedSolNotes.some(
+        ? !sourceResolutionAccount.spendableShieldedSolNotes.some(
             (note) => note.noteId === pendingSpentMarker.consumedNoteId,
           )
-        : !shieldAccount.spendableShieldNotes.some(
+        : !sourceResolutionAccount.spendableShieldNotes.some(
             (note) => note.noteId === pendingSpentMarker.consumedNoteId,
           );
     const outputResolved =
       selectedTargetAsset === "SOL"
-        ? shieldAccount.shieldedSolNotes.some(
+        ? solResolutionAccount.shieldedSolNotes.some(
             (note) => note.noteId === lastSwapSummary.outputNoteId,
           )
         : Boolean(
@@ -896,6 +917,7 @@ export function SwapPage() {
     selectedTargetAsset,
     selectedTokenTargetEntry?.account?.shieldNotes,
     shieldAccount,
+    shieldedSolSourceAccount,
     spentMarkerTransaction.signature,
     status,
     swapTransaction.signature,
@@ -1267,7 +1289,7 @@ export function SwapPage() {
 
     if (
       canUseExistingNote &&
-      shieldAccount &&
+      selectedSourceAccount &&
       exactSpendableNote &&
       sourcePairCapability.executionMode === "operator-vusd-sol"
     ) {
@@ -1278,7 +1300,7 @@ export function SwapPage() {
       try {
         await performLiveSwapFromNote({
           note: exactSpendableNote as VantaShieldNote,
-          shieldAccountState: shieldAccount,
+          shieldAccountState: selectedSourceAccount,
           swapQuote: freshQuote,
         });
       } catch (error) {
@@ -1292,7 +1314,7 @@ export function SwapPage() {
 
     if (
       canUseExistingNote &&
-      shieldAccount &&
+      selectedSourceAccount &&
       exactSpendableNote &&
       sourcePairCapability.executionMode === "operator-sol-to-shielded" &&
       selectedSourceAsset === "SOL" &&
@@ -1310,7 +1332,7 @@ export function SwapPage() {
       try {
         await performLiveSolToShieldedSwapFromNote({
           note: exactSpendableNote as VantaShieldedSolNote,
-          shieldAccountState: shieldAccount,
+          shieldAccountState: selectedSourceAccount,
           swapQuote: freshQuote,
         });
       } catch (error) {
