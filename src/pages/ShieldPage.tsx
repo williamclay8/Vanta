@@ -1066,10 +1066,14 @@ export function ShieldPage(_props: ShieldPageProps) {
 
               <details className="shield-viewing-key-panel">
                 <summary>
-                  <span>Viewing key</span>
+                  <span>Balance recovery</span>
                   <strong>{viewingKey ? "Ready" : "Connect wallet"}</strong>
                 </summary>
                 <div className="shield-viewing-key-panel__body">
+                  <p className="shield-helper shield-helper--meta">
+                    Lets this browser recognize your shielded notes. Back it up if you use Vanta
+                    on another device.
+                  </p>
                   <div className="shield-viewing-key-panel__actions">
                     <button
                       className="button button-ghost"
@@ -1084,7 +1088,7 @@ export function ShieldPage(_props: ShieldPageProps) {
                         setViewingKeyCustodyStatus("exported");
                       }}
                     >
-                      Export
+                      Show backup
                     </button>
                     <button
                       className="button button-ghost"
@@ -1105,7 +1109,7 @@ export function ShieldPage(_props: ShieldPageProps) {
                         }
                       }}
                     >
-                      Import
+                      Restore backup
                     </button>
                     <button
                       className="button button-ghost"
@@ -1122,37 +1126,37 @@ export function ShieldPage(_props: ShieldPageProps) {
                         setViewingKeyCustodyStatus("reset");
                       }}
                     >
-                      Rotate
+                      Reset recovery key
                     </button>
                   </div>
                   <label className="shield-viewing-key-panel__field">
-                    <span>Backup</span>
+                    <span>Recovery backup</span>
                     <textarea
                       readOnly
                       value={viewingKeyBackupText}
-                      placeholder="Export to show the recovery key."
+                      placeholder="Show backup to reveal this browser's recovery key."
                     />
                   </label>
                   <label className="shield-viewing-key-panel__field">
-                    <span>Restore</span>
+                    <span>Restore on this browser</span>
                     <textarea
                       value={viewingKeyImportText}
                       onChange={(event) => {
                         setViewingKeyImportText(event.target.value);
                         setViewingKeyCustodyStatus("idle");
                       }}
-                      placeholder="Paste a Shield viewing key backup."
+                      placeholder="Paste a recovery backup from another browser."
                     />
                   </label>
                   {viewingKeyCustodyStatus !== "idle" && (
                     <p className="shield-helper shield-helper--meta">
                       {viewingKeyCustodyStatus === "exported"
-                        ? "Backup ready."
+                        ? "Backup shown. Store it somewhere private."
                         : viewingKeyCustodyStatus === "imported"
-                          ? "Viewing key restored."
+                          ? "Recovery key restored."
                           : viewingKeyCustodyStatus === "reset"
-                            ? "Viewing key rotated."
-                            : "Viewing key import failed."}
+                            ? "New recovery key created. Existing notes may need the old backup to appear."
+                            : "Could not restore that backup."}
                     </p>
                   )}
                 </div>
