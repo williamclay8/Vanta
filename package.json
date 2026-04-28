@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -194,7 +197,7 @@
     "shield:viewing-key-custody-check": "node scripts/check-vanta-shield-viewing-key-custody.mjs",
     "shield:decoy-batcher-check": "node scripts/check-vanta-shield-decoy-batcher.mjs",
     "shield:privacy-readiness-check": "node scripts/check-vanta-shield-privacy-readiness.mjs",
-    "shield:verify": "npm run shield:capability-check && npm run shield:universal-target-check && npm run shield:route-evidence-check && npm run shield:native-sol-check && npm run shield:committed-settlement-check && npm run shield:memo-encryption-check && npm run shield:viewing-key-ui-check && npm run shield:viewing-key-custody-check && npm run shield:decoy-batcher-check && npm run shield:privacy-readiness-check && npm run build",
+    "shield:verify": "npm run shield:asset-labels-check && npm run shield:capability-check && npm run shield:universal-target-check && npm run shield:route-evidence-check && npm run shield:native-sol-check && npm run shield:committed-settlement-check && npm run shield:memo-encryption-check && npm run shield:viewing-key-ui-check && npm run shield:viewing-key-custody-check && npm run shield:decoy-batcher-check && npm run shield:privacy-readiness-check && npm run build",
     "umbra:adapter-check": "node scripts/check-vanta-umbra-adapter.mjs",
     "umbra:adapter-check-json": "node scripts/check-vanta-umbra-adapter.mjs --json",
     "private-pool-v2:contract-check": "node scripts/check-vanta-private-pool-v2-contract.mjs",

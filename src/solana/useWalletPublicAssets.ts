@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Connection, PublicKey } from "@solana/web3.js";
-import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import {
+  getTokenMetadata,
+  TOKEN_2022_PROGRAM_ID,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
 import { endpoint } from "@/solana/client";
 import {
   getLiveShieldTokenAssetPriority,
@@ -20,6 +24,9 @@ export type WalletPublicAsset = {
 };
 
 const SOL_ID = "native:SOL";
+const METAPLEX_TOKEN_METADATA_PROGRAM_ID = new PublicKey(
+  "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s",
+);
 
 const KNOWN_ASSET_LABELS: Record<string, { label: string; symbol: string }> = {
   [liveSwapPair.solAssetId]: {
@@ -55,6 +62,142 @@ function abbreviateMint(value: string) {
 
 function formatUnknownWalletAssetLabel(mintAddress: string) {
   return `Unknown token (${abbreviateMint(mintAddress)})`;
+}
+
+function cleanTokenMetadataText(value: string | null | undefined) {
+  const cleaned = value?.replace(/\0/gu, "").trim();
+  return cleaned ? cleaned : null;
+}
+
+function createWalletTokenLabel(metadata: {
+  name?: string | null;
+  symbol?: string | null;
+}) {
+  const name = cleanTokenMetadataText(metadata.name);
+  const symbol = cleanTokenMetadataText(metadata.symbol);
+
+  if (name && symbol && name !== symbol) {
+    return { label: name, symbol };
+  }
+
+  if (symbol) {
+    return { label: symbol, symbol };
+  }
+
+  if (name) {
+    return { label: name, symbol: name };
+  }
+
+  return null;
+}
+
+function readMetaplexString(data: Buffer, offset: number) {
+  if (offset + 4 > data.length) {
+    return null;
+  }
+
+  const length = data.readUInt32LE(offset);
+  const start = offset + 4;
+  const end = start + length;
+
+  if (length > 256 || end > data.length) {
+    return null;
+  }
+
+  return {
+    nextOffset: end,
+    value: new TextDecoder().decode(data.subarray(start, end)),
+  };
+}
+
+function parseMetaplexTokenMetadata(data: Buffer) {
+  let offset = 1 + 32 + 32;
+  const name = readMetaplexString(data, offset);
+
+  if (!name) {
+    return null;
+  }
+
+  offset = name.nextOffset;
+  const symbol = readMetaplexString(data, offset);
+
+  if (!symbol) {
+    return null;
+  }
+
+  return createWalletTokenLabel({
+    name: name.value,
+    symbol: symbol.value,
+  });
+}
+
+async function resolveToken2022MetadataLabel(
+  connection: Connection,
+  mint: PublicKey,
+) {
+  try {
+    const metadata = await getTokenMetadata(
+      connection,
+      mint,
+      "confirmed",
+      TOKEN_2022_PROGRAM_ID,
+    );
+    return metadata
+      ? createWalletTokenLabel({
+          name: metadata.name,
+          symbol: metadata.symbol,
+        })
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+async function resolveMetaplexMetadataLabel(connection: Connection, mint: PublicKey) {
+  try {
+    const [metadataAddress] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("metadata"),
+        METAPLEX_TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+        mint.toBuffer(),
+      ],
+      METAPLEX_TOKEN_METADATA_PROGRAM_ID,
+    );
+    const account = await connection.getAccountInfo(metadataAddress, "confirmed");
+
+    return account?.data ? parseMetaplexTokenMetadata(account.data) : null;
+  } catch {
+    return null;
+  }
+}
+
+async function resolveWalletTokenMetadataLabels(
+  connection: Connection,
+  mintAddresses: readonly string[],
+) {
+  const entries = await Promise.all(
+    mintAddresses.map(async (mintAddress) => {
+      try {
+        const mint = new PublicKey(mintAddress);
+        const label =
+          (await resolveToken2022MetadataLabel(connection, mint)) ??
+          (await resolveMetaplexMetadataLabel(connection, mint));
+
+        return label ? [mintAddress, label] as const : null;
+      } catch {
+        return null;
+      }
+    }),
+  );
+
+  return new Map(
+    entries.filter(
+      (
+        entry,
+      ): entry is readonly [string, { label: string; symbol: string }] =>
+        Boolean(entry),
+    ),
+  );
 }
 
 function getAssetSortPriority(symbol: string) {
@@ -143,16 +286,34 @@ export function useWalletPublicAssets(args: {
           });
         }
 
-        const nextAssets = [...aggregate.values()].sort((left, right) => {
-          const leftPriority = getAssetSortPriority(left.symbol);
-          const rightPriority = getAssetSortPriority(right.symbol);
+        const unknownMintAddresses = [...aggregate.values()]
+          .filter((asset) => !KNOWN_ASSET_LABELS[asset.mintAddress])
+          .map((asset) => asset.mintAddress);
+        const metadataLabels = await resolveWalletTokenMetadataLabels(
+          connection,
+          unknownMintAddresses,
+        );
+        const nextAssets = [...aggregate.values()]
+          .map((asset) => {
+            const metadataLabel = metadataLabels.get(asset.mintAddress);
+            return metadataLabel
+              ? {
+                  ...asset,
+                  label: metadataLabel.label,
+                  symbol: metadataLabel.symbol,
+                }
+              : asset;
+          })
+          .sort((left, right) => {
+            const leftPriority = getAssetSortPriority(left.symbol);
+            const rightPriority = getAssetSortPriority(right.symbol);
 
-          if (leftPriority !== rightPriority) {
-            return leftPriority - rightPriority;
-          }
+            if (leftPriority !== rightPriority) {
+              return leftPriority - rightPriority;
+            }
 
-          return left.symbol.localeCompare(right.symbol);
-        });
+            return left.symbol.localeCompare(right.symbol);
+          });
 
         setSplAssets(nextAssets);
         setSplAssetsLoading(false);

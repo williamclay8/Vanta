@@ -18,6 +18,22 @@ if (!walletAssetsSource.includes("formatUnknownWalletAssetLabel")) {
   failures.push("Wallet public assets must format unknown SPL tokens with a clear unknown-token label.");
 }
 
+if (!walletAssetsSource.includes("resolveWalletTokenMetadataLabels")) {
+  failures.push("Wallet public assets must attempt on-chain metadata resolution before using the unknown-token fallback.");
+}
+
+if (!walletAssetsSource.includes("getTokenMetadata")) {
+  failures.push("Wallet public assets must read Token-2022 token metadata when available.");
+}
+
+if (!walletAssetsSource.includes("METAPLEX_TOKEN_METADATA_PROGRAM_ID")) {
+  failures.push("Wallet public assets must check legacy Metaplex token metadata for SPL mints.");
+}
+
+if (!walletAssetsSource.includes("PublicKey.findProgramAddressSync")) {
+  failures.push("Wallet public assets must derive the Metaplex metadata PDA from the mint address.");
+}
+
 if (walletAssetsSource.includes("label: known?.label ?? abbreviateMint(mintAddress)")) {
   failures.push("Unknown wallet token labels must not fall back to mint-only text.");
 }

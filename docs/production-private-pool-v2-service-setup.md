@@ -68,6 +68,8 @@ ops/mainnet/private-pool-v2-services.manifest.json
 
 It now records the repo start command for each production role and the `VANTA_PRIVATE_POOL_V2_*` environment names the operator/service network expects. It must stay names-only and refs-only; do not commit raw URLs, tokens, wallet material, database URLs, or provider credentials.
 
+Each production Private Pool v2 Render role service should use the checked Node version in `.node-version` and the deterministic build command recorded in the manifest: `npm ci && npm run build`. Keep the Render dashboard build command aligned for the indexer, prover, relayer, verifier, and operator services; the lockfile is part of the deployment contract.
+
 ## Secret refs
 
 Use secret-manager-backed refs only. Do not paste or commit values.
