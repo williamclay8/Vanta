@@ -64,6 +64,16 @@ function formatUnknownWalletAssetLabel(mintAddress: string) {
   return `Unknown token (${abbreviateMint(mintAddress)})`;
 }
 
+function formatWalletAssetLoadError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error ?? "");
+
+  if (message.includes("403") || message.toLowerCase().includes("access forbidden")) {
+    return "Wallet balance recovery is temporarily blocked by the Solana RPC endpoint.";
+  }
+
+  return "Wallet token balances could not be loaded.";
+}
+
 function cleanTokenMetadataText(value: string | null | undefined) {
   const cleaned = value?.replace(/\0/gu, "").trim();
   return cleaned ? cleaned : null;
@@ -324,11 +334,7 @@ export function useWalletPublicAssets(args: {
 
         setSplAssets([]);
         setSplAssetsLoading(false);
-        setSplAssetsError(
-          error instanceof Error
-            ? error.message
-            : "Wallet token balances could not be loaded.",
-        );
+        setSplAssetsError(formatWalletAssetLoadError(error));
       }
     };
 

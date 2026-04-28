@@ -262,7 +262,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     : publicAssetsLoading
       ? "Loading assets..."
       : publicAssetsError
-        ? "Asset load failed"
+        ? "Balance recovery unavailable"
         : "No wallet assets available";
 
   async function beginShieldTransfer(
@@ -927,7 +927,7 @@ export function ShieldPage(_props: ShieldPageProps) {
   } else if (publicAssetsLoading) {
     validationMessage = "Loading wallet assets.";
   } else if (publicAssetsError) {
-    validationMessage = publicAssetsError;
+    validationMessage = `${publicAssetsError} Refresh the page or try another wallet RPC.`;
   } else if (!selectedSourceAsset) {
     validationMessage = "No wallet assets are currently available to shield.";
   } else if (!selectedShieldAsset?.mintAddress || !selectedShieldAsset.vaultOwner) {
