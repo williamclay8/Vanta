@@ -35,6 +35,20 @@ assert.equal(result.routeHealthAuthenticatedPassed, true);
 assert.equal(result.productionSmokeHealthPassed, true);
 assert.equal(result.productionSmokeTargetsPassed, true);
 assert.equal(result.replayProtocolLayerImplemented, true);
+assert.deepEqual(result.actualPrivateMainnetEvidence, {
+  liveMainnetSettlementProven: false,
+  noRealFundsSmokeTargetPassed: true,
+  noRealFundsSmokeTranscript: "pool-cohort-root-nullifier-output-context-only",
+  requiredLiveEvidence: [
+    "bounded real-funds approval for the exact actual-private action",
+    "live mainnet deposit transaction into the shared cohort",
+    "live mainnet relayer-submitted private spend transaction",
+    "operator receipt binding accepted root, nullifier, output commitments, and proof public-input hash",
+    "post-settlement nullifier replay rejection against the live production store",
+    "reviewer packet proving no source wallet, merchant address, raw amount, input commitment, input leaf index, deposit signature, plaintext memo, or same-fee-payer linkage appears in the public spend transcript",
+  ],
+  status: "no-real-funds-smoke-only",
+});
 assert.equal(result.realFundsApprovalRecorded, true);
 assert.equal(result.realFundsAllowedNow, result.realFundsApprovalWindowStatus === "active");
 assert.equal(result.noRealFundsSmokeOnly, true);
@@ -46,6 +60,7 @@ const expectedMeaningfulPrivacyBlockedBy = [
   "no-production-relayer-separation-evidence",
   "no-proven-audited-shared-anonymity-set",
   "no-live-mainnet-private-settlement-path",
+  "no-live-actual-private-mainnet-settlement-evidence",
   ...(result.boundedRealFundsApprovalWindowActive ? [] : ["no-active-bounded-real-funds-approval-window"]),
 ];
 assert.deepEqual(result.meaningfulPrivacyBlockedBy, [...new Set(expectedMeaningfulPrivacyBlockedBy)]);

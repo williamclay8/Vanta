@@ -24,10 +24,14 @@ export function createVantaMainnetPrivateSettlementStatus() {
     (service) => service.health?.ok === true && service.readiness?.ok === true,
   );
   const productionSmokeTargetsPassed = productionSmokeEvidence.smokeTargets.every((target) => target.status === "pass");
+  const actualPrivateSmokeTarget = productionSmokeEvidence.smokeTargets.find(
+    (target) => target.id === "actual-private-spend-simulation",
+  );
   const boundedRealFundsApprovalWindowActive = realFundsApproval.approvalWindowStatus === "active";
   const meaningfulPrivacyBlockedBy = [
     "no-proven-audited-shared-anonymity-set",
     "no-live-mainnet-private-settlement-path",
+    "no-live-actual-private-mainnet-settlement-evidence",
     ...(boundedRealFundsApprovalWindowActive ? [] : ["no-active-bounded-real-funds-approval-window"]),
   ];
   const approvalWindowTruth = boundedRealFundsApprovalWindowActive
@@ -50,6 +54,20 @@ export function createVantaMainnetPrivateSettlementStatus() {
       "ops/mainnet/mainnet-real-funds-approval.evidence.json",
     ],
     deploymentTruth: `Vanta Private Pool v2 currently has authenticated route-health across deployed production role services, no-real-funds production smoke coverage, and a deployed final replay protocol layer, but it still must not be presented as live mainnet private settlement because there is no proven audited shared anonymity set, no live mainnet private settlement path, and ${approvalWindowTruth}.`,
+    actualPrivateMainnetEvidence: {
+      liveMainnetSettlementProven: false,
+      noRealFundsSmokeTargetPassed: actualPrivateSmokeTarget?.status === "pass",
+      noRealFundsSmokeTranscript: actualPrivateSmokeTarget?.publicTranscript ?? "missing",
+      requiredLiveEvidence: [
+        "bounded real-funds approval for the exact actual-private action",
+        "live mainnet deposit transaction into the shared cohort",
+        "live mainnet relayer-submitted private spend transaction",
+        "operator receipt binding accepted root, nullifier, output commitments, and proof public-input hash",
+        "post-settlement nullifier replay rejection against the live production store",
+        "reviewer packet proving no source wallet, merchant address, raw amount, input commitment, input leaf index, deposit signature, plaintext memo, or same-fee-payer linkage appears in the public spend transcript",
+      ],
+      status: "no-real-funds-smoke-only",
+    },
     lastRouteHealthRef: routeHealthEvidence.lastAuthenticatedReadinessRef,
     lastSmokeRef: "npm run mainnet:private-pool-v2-production-smoke-check",
     liveMainnetPrivateSettlementAvailable: false,
