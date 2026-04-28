@@ -94,7 +94,6 @@ function pickPreferredWalletConnector(connectors: readonly WalletConnector[]) {
 const WALLET_BALANCE_FALLBACK_ENDPOINTS = [
   endpoint,
   "https://api.mainnet-beta.solana.com",
-  "https://api.devnet.solana.com",
 ] as const;
 const walletBalanceFallbackConnections = new Map<string, Connection>();
 
@@ -150,18 +149,12 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const balance = useBalance(address ?? undefined);
   const hookLamportsValue =
     typeof balance.lamports === "bigint" ? balance.lamports : null;
-  const lamportsValue = hookLamportsValue ?? fallbackLamportsValue;
+  const lamportsValue = fallbackLamportsValue ?? hookLamportsValue;
   const solBalance =
     lamportsValue !== null ? Number(lamportsValue) / 1_000_000_000 : null;
 
   useEffect(() => {
     if (!address) {
-      setFallbackLamportsValue(null);
-      setFallbackBalanceFetching(false);
-      return;
-    }
-
-    if (hookLamportsValue !== null) {
       setFallbackLamportsValue(null);
       setFallbackBalanceFetching(false);
       return;

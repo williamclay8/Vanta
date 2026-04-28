@@ -45,6 +45,11 @@ requireIncludes(
 );
 requireIncludes(
   walletContext,
+  "const lamportsValue = fallbackLamportsValue ?? hookLamportsValue",
+  "Wallet context must prefer explicit RPC fallback lamports over hook lamports so a stale hook zero cannot mask the real SOL balance.",
+);
+requireIncludes(
+  walletContext,
   "new Connection(fallbackEndpoint, \"confirmed\")",
   "Wallet context SOL balance fallback must use the configured Solana endpoint.",
 );
@@ -58,6 +63,9 @@ requireIncludes(
   "https://api.mainnet-beta.solana.com",
   "Wallet context SOL balance fallback must include the canonical public mainnet RPC endpoint.",
 );
+if (walletContext.includes('"https://api.devnet.solana.com"')) {
+  failures.push("Wallet context SOL balance fallback must not use devnet while recovering mainnet SOL balances.");
+}
 requireIncludes(
   appLayout,
   "sortedWalletConnectors.map",
