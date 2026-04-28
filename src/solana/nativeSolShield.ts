@@ -1,10 +1,20 @@
 import { toAddress, type TransactionInstructionInput } from "@solana/client";
 import {
+  Connection,
   LAMPORTS_PER_SOL,
   PublicKey,
   SystemProgram,
   type TransactionInstruction,
 } from "@solana/web3.js";
+import { endpoint } from "@/solana/client";
+
+export type NativeSolShieldDepositCandidate = {
+  amount: number;
+  amountDisplay: string;
+  createdAt: number;
+  signature: string;
+  vaultOwner: string;
+};
 
 function toInstructionInput(instruction: TransactionInstruction): TransactionInstructionInput {
   return {
@@ -62,4 +72,96 @@ export function buildNativeSolShieldTransferInstructions(args: {
   });
 
   return [toInstructionInput(transferInstruction)];
+}
+
+function formatLamportsAsSol(lamports: number) {
+  const whole = Math.floor(lamports / LAMPORTS_PER_SOL);
+  const fractional = String(lamports % LAMPORTS_PER_SOL).padStart(9, "0");
+
+  return `${whole}.${fractional}`.replace(/(\.\d*?[1-9])0+$/u, "$1").replace(/\.0+$/u, "");
+}
+
+function readTransferLamports(instruction: unknown, owner: string, vaultOwner: string) {
+  if (typeof instruction !== "object" || instruction === null) {
+    return null;
+  }
+
+  const parsed = (instruction as { parsed?: unknown }).parsed;
+  if (typeof parsed !== "object" || parsed === null) {
+    return null;
+  }
+
+  const typedParsed = parsed as {
+    info?: {
+      destination?: unknown;
+      lamports?: unknown;
+      source?: unknown;
+    };
+    type?: unknown;
+  };
+
+  if (typedParsed.type !== "transfer") {
+    return null;
+  }
+
+  if (typedParsed.info?.source !== owner || typedParsed.info.destination !== vaultOwner) {
+    return null;
+  }
+
+  const lamports = Number(typedParsed.info.lamports);
+  return Number.isFinite(lamports) && lamports > 0 ? lamports : null;
+}
+
+export async function fetchNativeSolShieldDepositCandidates(args: {
+  existingDepositSignatures?: ReadonlySet<string>;
+  limit?: number;
+  owner: string;
+  vaultOwner: string;
+}) {
+  const ownerPublicKey = new PublicKey(args.owner);
+  const vaultOwner = new PublicKey(args.vaultOwner).toBase58();
+  const existingDepositSignatures = args.existingDepositSignatures ?? new Set<string>();
+  const connection = new Connection(endpoint, "confirmed");
+  const signatures = await connection.getSignaturesForAddress(ownerPublicKey, {
+    limit: args.limit ?? 30,
+  });
+  const candidateSignatures = signatures
+    .filter((signature) => signature.err === null && !existingDepositSignatures.has(signature.signature))
+    .map((signature) => signature.signature);
+
+  if (candidateSignatures.length === 0) {
+    return [];
+  }
+
+  const transactions = await connection.getParsedTransactions(candidateSignatures, {
+    commitment: "confirmed",
+    maxSupportedTransactionVersion: 0,
+  });
+
+  return transactions.flatMap((transaction, index): NativeSolShieldDepositCandidate[] => {
+    if (!transaction) {
+      return [];
+    }
+
+    const signature = candidateSignatures[index];
+    const transferLamports = transaction.transaction.message.instructions
+      .map((instruction) => readTransferLamports(instruction, args.owner, vaultOwner))
+      .find((lamports): lamports is number => typeof lamports === "number");
+
+    if (!transferLamports) {
+      return [];
+    }
+
+    const amountDisplay = formatLamportsAsSol(transferLamports);
+
+    return [
+      {
+        amount: transferLamports / LAMPORTS_PER_SOL,
+        amountDisplay,
+        createdAt: transaction.blockTime ? transaction.blockTime * 1000 : Date.now(),
+        signature,
+        vaultOwner,
+      },
+    ];
+  });
 }

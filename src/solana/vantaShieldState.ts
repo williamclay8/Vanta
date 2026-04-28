@@ -26,6 +26,8 @@ const VANTA_SOL_UNSHIELD_MEMO_PREFIX = "vanta:sol-unshield-note:v1:";
 export const VANTA_NATIVE_SOL_SHIELD_MEMO_PREFIX = "vanta:native-sol-shield-note:v1:";
 export const VANTA_SHIELD_MEMO_PREFIX_V2 = "vanta:shield-note:v2:";
 export const VANTA_NATIVE_SOL_SHIELD_MEMO_PREFIX_V2 = "vanta:native-sol-shield-note:v2:";
+export const VANTA_NATIVE_SOL_SAME_TRANSACTION_DEPOSIT_SIGNATURE =
+  "vanta-native-sol-same-transaction-deposit";
 const VANTA_SHIELD_MEMO_KEY_DOMAIN_V1 = "vanta-shield-memo-key:v1";
 const VANTA_SHIELD_MEMO_VERSION_BYTE = 0x01;
 const VANTA_SPENT_MARKER_MEMO_PREFIX = "vanta:spent-marker:v1:";
@@ -104,6 +106,7 @@ export type VantaShieldedSolNote = {
   consumedByTransitionId?: string;
   consumedByTransitionKind?: "swap" | "sol_unshield";
   createdAt: number;
+  depositSignature?: string;
   lifecycleStatus: VantaNoteLifecycleStatus;
   noteId: string;
   owner: string;
@@ -1100,6 +1103,10 @@ function nativeSolShieldNoteFromMemoPayload(
     return null;
   }
 
+  const depositSignature =
+    parsed.depositSignature === VANTA_NATIVE_SOL_SAME_TRANSACTION_DEPOSIT_SIGNATURE
+      ? stateSignature
+      : parsed.depositSignature;
   const noteId =
     typeof parsed.noteId === "string"
       ? parsed.noteId
@@ -1108,7 +1115,7 @@ function nativeSolShieldNoteFromMemoPayload(
           asset: "SOL",
           assetId: parsed.assetId,
           createdAt: parsed.createdAt,
-          depositSignature: parsed.depositSignature,
+          depositSignature,
           owner: parsed.owner,
           vaultOwner: parsed.vaultOwner,
         });
@@ -1117,6 +1124,7 @@ function nativeSolShieldNoteFromMemoPayload(
     amount: parsedAmount,
     asset: "SOL",
     createdAt: parsed.createdAt,
+    depositSignature,
     noteId,
     owner: parsed.owner,
     sourceSwapNoteId: "native-sol-shield",

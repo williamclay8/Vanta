@@ -34,6 +34,10 @@ assert.ok(
   shieldStateSource.includes("note.owner === args.owner && note.vaultOwner === args.vaultOwner"),
   "Direct native SOL shield notes must be scoped to the active owner and vault.",
 );
+assert.ok(
+  shieldStateSource.includes("depositSignature?: string"),
+  "Direct native SOL shield notes must retain the deposit signature for recovery de-duplication.",
+);
 
 const shieldPageSource = readFileSync(resolve("src/pages/ShieldPage.tsx"), "utf8");
 assert.ok(
@@ -51,6 +55,56 @@ assert.ok(
 assert.ok(
   shieldPageSource.includes("Shielded SOL"),
   "Shield page must label SOL as Shielded SOL.",
+);
+assert.ok(
+  shieldPageSource.includes("fetchNativeSolShieldDepositCandidates"),
+  "Shield page must check for recoverable native SOL vault deposits.",
+);
+assert.ok(
+  shieldPageSource.includes("beginNativeSolShieldDepositRecovery"),
+  "Shield page must let users record shield state for already-submitted native SOL vault deposits.",
+);
+assert.ok(
+  shieldPageSource.includes("Record shielded SOL"),
+  "Shield page must expose a recovery action for unrecorded native SOL vault deposits.",
+);
+assert.ok(
+  shieldPageSource.includes('asset: pendingShieldAsset === "SOL" ? "SOL" : selectedShieldAsset.assetKey'),
+  "Shield state safety summary must label native SOL recovery/state transactions as SOL.",
+);
+assert.ok(
+  shieldPageSource.includes("VANTA_NATIVE_SOL_SAME_TRANSACTION_DEPOSIT_SIGNATURE"),
+  "Native SOL Shield must bind the same transaction as both transfer and shield-state record.",
+);
+assert.ok(
+  shieldPageSource.includes('summaryInstructions: ["native-sol-shield-transfer", "shield-state-memo"]'),
+  "Native SOL Shield must submit transfer and shield-state memo in one wallet request.",
+);
+assert.ok(
+  shieldPageSource.includes('pendingShieldAsset === "SOL" && !pendingNativeSolDepositRecovery'),
+  "Native SOL Shield finalization must treat non-recovery SOL as a one-transaction shield path.",
+);
+assert.ok(
+  shieldPageSource.includes("nativeSolShieldBlockedByRecoverableDeposit"),
+  "Native SOL Shield must block new SOL transfers while an unrecovered vault deposit exists.",
+);
+assert.ok(
+  shieldPageSource.includes("Record it as shielded SOL before sending more."),
+  "Native SOL Shield must tell users to recover existing vault deposits before sending more SOL.",
+);
+
+const nativeSolShieldSource = readFileSync(resolve("src/solana/nativeSolShield.ts"), "utf8");
+assert.ok(
+  nativeSolShieldSource.includes("fetchNativeSolShieldDepositCandidates"),
+  "Native SOL shield helper must expose recoverable vault deposit discovery.",
+);
+assert.ok(
+  nativeSolShieldSource.includes("getParsedTransactions"),
+  "Native SOL deposit discovery must inspect parsed wallet transactions.",
+);
+assert.ok(
+  nativeSolShieldSource.includes("existingDepositSignatures"),
+  "Native SOL deposit discovery must de-duplicate already recorded deposit signatures.",
 );
 
 const tokenAvailabilitySource = readFileSync(resolve("src/solana/tokenAvailability.ts"), "utf8");
