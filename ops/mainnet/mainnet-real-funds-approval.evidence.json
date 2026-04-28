@@ -1,6 +1,6 @@
 {
   "version": "vanta-mainnet-real-funds-approval-evidence-0.1",
-  "checkedAt": "2026-04-28T14:19:27.539Z",
+  "checkedAt": "2026-04-28T14:25:40.408Z",
   "mainnetReady": false,
   "productionReady": false,
   "realFundsAllowed": true,
@@ -31,7 +31,7 @@
     "approvedActionSummary": "Bounded mainnet demo for Shield, Send, Swap, and Unshield with maximum 0.05 SOL at risk",
     "approvedEnvironment": "mainnet",
     "approvedFeePayerRef": "wallet/public-fee-payer-vanta-mainnet-demo",
-    "approvedLaunchWindowRef": "2026-04-28T10:00:00-12:00:00 America/Los_Angeles",
+    "approvedLaunchWindowRef": "2026-04-28T07:30:00-12:00:00 America/Los_Angeles",
     "rollbackPlanRef": "runbook/disable-private-pool-v2-services-and-live-actions",
     "stopLossPlanRef": "max-0.05-sol-or-first-failed-settlement",
     "maximumFundsAtRiskRef": "0.05 SOL",
