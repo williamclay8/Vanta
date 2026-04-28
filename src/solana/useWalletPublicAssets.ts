@@ -10,6 +10,7 @@ import {
   getLiveShieldTokenAssetPriority,
   listLiveShieldTokenAssets,
   liveSwapPair,
+  vantaSolanaCluster,
   type LiveShieldTokenAssetKey,
 } from "@/solana/shieldConfig";
 
@@ -47,6 +48,7 @@ for (const asset of listLiveShieldTokenAssets({ configuredOnly: false })) {
 }
 
 let cachedConnection: Connection | null = null;
+const cachedFallbackConnections = new Map<string, Connection>();
 
 function getConnection() {
   if (!cachedConnection) {
@@ -54,6 +56,30 @@ function getConnection() {
   }
 
   return cachedConnection;
+}
+
+function getFallbackConnection(fallbackEndpoint: string) {
+  const cached = cachedFallbackConnections.get(fallbackEndpoint);
+
+  if (cached) {
+    return cached;
+  }
+
+  const connection = new Connection(fallbackEndpoint, "confirmed");
+  cachedFallbackConnections.set(fallbackEndpoint, connection);
+  return connection;
+}
+
+function getConfiguredWalletReadFallbackEndpoints() {
+  const configured = import.meta.env.VITE_SOLANA_READ_RPC_FALLBACK_URLS?.split(",")
+    .map((value) => value.trim())
+    .filter(Boolean) ?? [];
+  const defaults =
+    vantaSolanaCluster === "mainnet-beta"
+      ? ["https://public.rpc.solanavibestation.com"]
+      : ["https://api.devnet.solana.com"];
+
+  return [...new Set([...configured, ...defaults].filter((value) => value !== endpoint))];
 }
 
 function abbreviateMint(value: string) {
@@ -222,6 +248,31 @@ function getAssetSortPriority(symbol: string) {
   }
 }
 
+async function getParsedTokenAccountsByOwnerWithFallback(owner: PublicKey) {
+  const connections = [
+    getConnection(),
+    ...getConfiguredWalletReadFallbackEndpoints().map((fallbackEndpoint) =>
+      getFallbackConnection(fallbackEndpoint),
+    ),
+  ];
+  let lastError: unknown = null;
+
+  for (const connection of connections) {
+    try {
+      const [legacyAccounts, token2022Accounts] = await Promise.all([
+        connection.getParsedTokenAccountsByOwner(owner, { programId: TOKEN_PROGRAM_ID }),
+        connection.getParsedTokenAccountsByOwner(owner, { programId: TOKEN_2022_PROGRAM_ID }),
+      ]);
+
+      return { connection, legacyAccounts, token2022Accounts };
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError ?? new Error("Wallet token balances could not be loaded.");
+}
+
 export function useWalletPublicAssets(args: {
   solBalance: number | null;
   walletAddress: string | null;
@@ -246,11 +297,8 @@ export function useWalletPublicAssets(args: {
       setSplAssetsError(null);
 
       try {
-        const connection = getConnection();
-        const [legacyAccounts, token2022Accounts] = await Promise.all([
-          connection.getParsedTokenAccountsByOwner(owner, { programId: TOKEN_PROGRAM_ID }),
-          connection.getParsedTokenAccountsByOwner(owner, { programId: TOKEN_2022_PROGRAM_ID }),
-        ]);
+        const { connection, legacyAccounts, token2022Accounts } =
+          await getParsedTokenAccountsByOwnerWithFallback(owner);
 
         if (cancelled) {
           return;
