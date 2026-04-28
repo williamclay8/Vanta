@@ -1,0 +1,52 @@
+{
+  "version": "vanta-production-key-custody-template-0.1",
+  "mainnetReady": false,
+  "productionReady": false,
+  "productionKeyCustodyReady": false,
+  "secretPolicy": "references-only-no-secret-values",
+  "purpose": "Refs-only packet for production Shield viewing-key, service-key, relayer-fee-wallet, and recovery custody controls. This template does not store keys and does not create a custody-safety claim.",
+  "requiredRefs": [
+    "VANTA_SHIELD_PRODUCTION_KEY_CUSTODY_REF",
+    "VANTA_SHIELD_VIEWING_KEY_BACKUP_POLICY_REF",
+    "VANTA_SHIELD_VIEWING_KEY_RECOVERY_POLICY_REF",
+    "VANTA_OPERATOR_KEY_ACCESS_POLICY_REF",
+    "VANTA_RELAYER_FEE_WALLET_CUSTODY_REF",
+    "VANTA_KEY_ROTATION_RUNBOOK_REF",
+    "VANTA_KEY_REVOCATION_RUNBOOK_REF",
+    "VANTA_KEY_ACCESS_AUDIT_LOG_REF",
+    "VANTA_CUSTODY_REVIEW_REF"
+  ],
+  "requiredControls": [
+    "no private keys, seed phrases, or keypair files in git or chat",
+    "least-privilege production service identities",
+    "documented backup and recovery policy for Shield viewing-key material",
+    "documented rotation and revocation workflow",
+    "access-audit log reference",
+    "custody reviewer decision reference"
+  ],
+  "currentStatus": {
+    "status": "not-started",
+    "shieldViewingKeyProductionCustodyRecorded": false,
+    "operatorKeyAccessPolicyRecorded": false,
+    "relayerFeeWalletCustodyRecorded": false,
+    "rotationRunbookRecorded": false,
+    "revocationRunbookRecorded": false,
+    "accessAuditLogRecorded": false,
+    "custodyReviewRecorded": false
+  },
+  "forbiddenInGit": [
+    "private keys",
+    "seed phrases",
+    "wallet keypair files",
+    "raw signing credentials",
+    "encrypted key backups",
+    "backup decryption material",
+    "raw service tokens"
+  ],
+  "productionBlockers": [
+    "No production Shield key-custody reference is recorded.",
+    "No production backup/recovery policy reference is recorded.",
+    "No production key access-audit reference is recorded.",
+    "No custody reviewer decision reference is recorded."
+  ]
+}

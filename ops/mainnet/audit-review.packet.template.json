@@ -1,0 +1,84 @@
+{
+  "version": "vanta-audit-review-packet-template-0.1",
+  "mainnetReady": false,
+  "productionReady": false,
+  "auditClaimAllowed": false,
+  "secretPolicy": "references-only-no-secret-values",
+  "purpose": "Refs-only intake packet for an independent Vanta security review. This template is not an audit report and does not create an audit claim.",
+  "scope": {
+    "circuitsAndProofs": [
+      "Vanta Private Core proof lanes",
+      "Private Pool v2 Shield, Send, Swap, Unshield, and Claim proof request boundaries",
+      "public input binding, nullifier, replay, and commitment checks"
+    ],
+    "operatorsAndServices": [
+      "Private Pool v2 indexer, prover, relayer, verifier, and operator services",
+      "operator runbooks, restart behavior, replay state, and event sinks",
+      "production storage, migration, backup/restore, and observability controls"
+    ],
+    "walletAndBrowser": [
+      "simulation before signature",
+      "transaction summaries and message intent boundaries",
+      "no private key, seed phrase, or keypair-file handling"
+    ],
+    "productSurfaces": [
+      "Shield",
+      "Send",
+      "Swap",
+      "Unshield",
+      "Pay",
+      "Strategy",
+      "public docs and security limitations"
+    ]
+  },
+  "requiredReviewerRefs": [
+    "VANTA_AUDIT_REVIEWER_REF",
+    "VANTA_AUDIT_SCOPE_REF",
+    "VANTA_AUDIT_REPORT_REF",
+    "VANTA_AUDIT_FINDINGS_DISPOSITION_REF",
+    "VANTA_AUDIT_FIX_VERIFICATION_REF",
+    "VANTA_AUDIT_FINAL_DECISION_REF"
+  ],
+  "requiredRepoCommands": [
+    "npm run mainnet:preflight",
+    "npm run private-core:verify",
+    "npm run private-pool-v2:verify",
+    "npm run shield:verify",
+    "npm run pay:verify",
+    "npm run audit:package-check",
+    "npm run truth:privacy-claim-gate"
+  ],
+  "requiredReviewerDecisions": [
+    "scope-accepted",
+    "critical-high-findings-disposition-complete",
+    "fix-verification-complete",
+    "final-launch-security-decision-recorded"
+  ],
+  "forbiddenInGit": [
+    "under-NDA report body unless explicitly cleared",
+    "private exploit details without disclosure controls",
+    "private keys",
+    "seed phrases",
+    "wallet keypair files",
+    "raw API tokens",
+    "raw database URLs",
+    "signed transactions",
+    "customer private inputs"
+  ],
+  "currentStatus": {
+    "status": "not-started",
+    "reviewerSelected": false,
+    "scopeAccepted": false,
+    "reportReceived": false,
+    "findingsDispositionComplete": false,
+    "fixVerificationComplete": false,
+    "finalDecisionRecorded": false
+  },
+  "productionBlockers": [
+    "No independent reviewer reference is recorded.",
+    "No audit scope agreement reference is recorded.",
+    "No audit report reference is recorded.",
+    "No findings disposition or fix verification reference is recorded.",
+    "No final security review decision is recorded."
+  ]
+}

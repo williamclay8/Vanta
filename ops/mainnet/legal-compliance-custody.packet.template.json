@@ -1,0 +1,59 @@
+{
+  "version": "vanta-legal-compliance-custody-packet-template-0.1",
+  "mainnetReady": false,
+  "productionReady": false,
+  "legalComplianceCustodyClaimAllowed": false,
+  "secretPolicy": "references-only-no-secret-values",
+  "purpose": "Refs-only intake packet for legal, compliance, custody, sanctions, merchant-processing, and incident-response review. This template is not legal advice and does not create approval.",
+  "requiredReviewerRefs": [
+    "VANTA_LEGAL_REVIEWER_REF",
+    "VANTA_COMPLIANCE_REVIEWER_REF",
+    "VANTA_CUSTODY_REVIEWER_REF",
+    "VANTA_LEGAL_REVIEW_REF",
+    "VANTA_COMPLIANCE_REVIEW_REF",
+    "VANTA_CUSTODY_REVIEW_REF",
+    "VANTA_SANCTIONS_POLICY_REF",
+    "VANTA_MERCHANT_PROCESSING_POLICY_REF",
+    "VANTA_INCIDENT_RESPONSE_REVIEW_REF",
+    "VANTA_LAUNCH_SCOPE_DECISION_REF"
+  ],
+  "reviewQuestions": [
+    "Which jurisdictions and user classes are in launch scope?",
+    "Does Vanta touch custody, money transmission, merchant processing, or sanctions-screening obligations?",
+    "Which flows are beta demos, which flows can handle real user funds, and which flows must remain disabled?",
+    "What user, merchant, and incident disclosures are required before launch?",
+    "What evidence may be public, and what must remain privileged or access-controlled?"
+  ],
+  "allowedLaunchDecisions": [
+    "blocked",
+    "approved-bounded-beta",
+    "approved-production-limited-scope",
+    "approved-production"
+  ],
+  "forbiddenInGit": [
+    "privileged legal advice unless explicitly cleared",
+    "customer personal data",
+    "merchant private financial data",
+    "sanctions-screening private data",
+    "private keys",
+    "seed phrases",
+    "raw credentials"
+  ],
+  "currentStatus": {
+    "status": "not-started",
+    "legalReviewRecorded": false,
+    "complianceReviewRecorded": false,
+    "custodyReviewRecorded": false,
+    "sanctionsPolicyRecorded": false,
+    "merchantProcessingPolicyRecorded": false,
+    "launchScopeDecisionRecorded": false
+  },
+  "productionBlockers": [
+    "No legal review reference is recorded.",
+    "No compliance review reference is recorded.",
+    "No custody model decision reference is recorded.",
+    "No sanctions policy reference is recorded.",
+    "No merchant-processing policy reference is recorded.",
+    "No launch-scope decision reference is recorded."
+  ]
+}

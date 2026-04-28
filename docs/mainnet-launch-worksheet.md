@@ -122,6 +122,14 @@ Codex cannot honestly clear these gates without external evidence:
 - legal/compliance/custody signoff
 - new explicit approval before any mainnet-funds action
 
+The current refs-only intake templates are:
+
+- `ops/mainnet/audit-review.packet.template.json`
+- `ops/mainnet/legal-compliance-custody.packet.template.json`
+- `ops/mainnet/production-key-custody.template.json`
+
+Use these to record references to real reviewer decisions, not raw reports, legal advice, private keys, signed transactions, or credentials.
+
 This is not Codex being timid. This is the line between building the system and claiming responsibility for real-world launch risk.
 
 ## Immediate Next Step

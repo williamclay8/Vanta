@@ -12,6 +12,10 @@ const source = readFileSync(auditPath, "utf8");
 const requiredPhrases = [
   "# Vanta Audit Package",
   "Scope",
+  "Intake Packets",
+  "ops/mainnet/audit-review.packet.template.json",
+  "ops/mainnet/legal-compliance-custody.packet.template.json",
+  "ops/mainnet/production-key-custody.template.json",
   "Out of scope",
   "Circuit review",
   "Operator review",
@@ -20,6 +24,7 @@ const requiredPhrases = [
   "Known non-production boundaries",
   "npm run mainnet:preflight",
   "npm run mainnet:external-gates-check",
+  "npm run mainnet:external-gates-production-claim-check",
   "npm run mainnet:storage-contract-check",
   "npm run mainnet:storage-migration-check",
   "npm run storage:adapter-check",

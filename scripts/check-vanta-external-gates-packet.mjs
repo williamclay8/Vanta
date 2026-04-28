@@ -7,12 +7,18 @@ const packetPath = resolve(repoRoot, "ops/mainnet/external-gates.packet.json");
 const docsPath = resolve(repoRoot, "docs/mainnet-external-gates.md");
 const worksheetPath = resolve(repoRoot, "docs/mainnet-launch-worksheet.md");
 const productionServiceSetupPath = resolve(repoRoot, "docs/production-private-pool-v2-service-setup.md");
+const auditPacketPath = resolve(repoRoot, "ops/mainnet/audit-review.packet.template.json");
+const legalPacketPath = resolve(repoRoot, "ops/mainnet/legal-compliance-custody.packet.template.json");
+const keyCustodyPacketPath = resolve(repoRoot, "ops/mainnet/production-key-custody.template.json");
 const packagePath = resolve(repoRoot, "package.json");
 
 assert.ok(existsSync(packetPath), "Missing ops/mainnet/external-gates.packet.json.");
 assert.ok(existsSync(docsPath), "Missing docs/mainnet-external-gates.md.");
 assert.ok(existsSync(worksheetPath), "Missing docs/mainnet-launch-worksheet.md.");
 assert.ok(existsSync(productionServiceSetupPath), "Missing docs/production-private-pool-v2-service-setup.md.");
+assert.ok(existsSync(auditPacketPath), "Missing ops/mainnet/audit-review.packet.template.json.");
+assert.ok(existsSync(legalPacketPath), "Missing ops/mainnet/legal-compliance-custody.packet.template.json.");
+assert.ok(existsSync(keyCustodyPacketPath), "Missing ops/mainnet/production-key-custody.template.json.");
 
 const packet = JSON.parse(readFileSync(packetPath, "utf8"));
 const docs = readFileSync(docsPath, "utf8");
@@ -33,6 +39,7 @@ const requiredGates = [
   "wallet-signing-safety",
   "third-party-security-audit",
   "legal-compliance-custody",
+  "production-key-custody",
   "mainnet-funds-approval",
   "monitoring-incident-response",
 ];
@@ -87,6 +94,10 @@ for (const requiredRef of [
   "VANTA_PRIVATE_POOL_V2_NULLIFIER_REPLAY_SMOKE_EVIDENCE_REF",
   "VANTA_AUDIT_REPORT_REF",
   "VANTA_LEGAL_REVIEW_REF",
+  "VANTA_SHIELD_PRODUCTION_KEY_CUSTODY_REF",
+  "VANTA_SHIELD_VIEWING_KEY_BACKUP_POLICY_REF",
+  "VANTA_SHIELD_VIEWING_KEY_RECOVERY_POLICY_REF",
+  "VANTA_KEY_ACCESS_AUDIT_LOG_REF",
 ]) {
   assert.ok(refs.includes(requiredRef), `Missing allowed external reference: ${requiredRef}.`);
 }
@@ -99,6 +110,9 @@ for (const requiredTemplate of [
   "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
   "ops/mainnet/mainnet-approval-gates.template.json",
   "ops/mainnet/mainnet-approval-gates.evidence.json",
+  "ops/mainnet/audit-review.packet.template.json",
+  "ops/mainnet/legal-compliance-custody.packet.template.json",
+  "ops/mainnet/production-key-custody.template.json",
 ]) {
   assert.ok(existsSync(resolve(repoRoot, requiredTemplate)), `Missing production infrastructure template: ${requiredTemplate}.`);
 }
@@ -142,8 +156,12 @@ assertGateIncludes("deployed-services", "verificationCommands", "npm run mainnet
 assertGateIncludes("deployed-services", "verificationCommands", "npm run mainnet:production-smoke-evidence-check");
 assertGateIncludes("third-party-security-audit", "requiredEvidence", "ops/mainnet/mainnet-approval-gates.template.json");
 assertGateIncludes("third-party-security-audit", "requiredEvidence", "ops/mainnet/mainnet-approval-gates.evidence.json");
+assertGateIncludes("third-party-security-audit", "requiredEvidence", "ops/mainnet/audit-review.packet.template.json");
 assertGateIncludes("legal-compliance-custody", "requiredEvidence", "ops/mainnet/mainnet-approval-gates.template.json");
 assertGateIncludes("legal-compliance-custody", "requiredEvidence", "ops/mainnet/mainnet-approval-gates.evidence.json");
+assertGateIncludes("legal-compliance-custody", "requiredEvidence", "ops/mainnet/legal-compliance-custody.packet.template.json");
+assertGateIncludes("production-key-custody", "requiredEvidence", "ops/mainnet/production-key-custody.template.json");
+assertGateIncludes("production-key-custody", "verificationCommands", "npm run mainnet:external-gates-production-claim-check");
 assertGateIncludes("mainnet-funds-approval", "requiredEvidence", "ops/mainnet/mainnet-approval-gates.template.json");
 assertGateIncludes("mainnet-funds-approval", "requiredEvidence", "ops/mainnet/mainnet-approval-gates.evidence.json");
 assertGateIncludes("mainnet-funds-approval", "verificationCommands", "npm run mainnet:approval-gates-check");
@@ -198,6 +216,10 @@ const requiredDocPhrases = [
   "third-party security audit",
   "legal, compliance, and custody",
   "explicit approval before mainnet funds",
+  "ops/mainnet/audit-review.packet.template.json",
+  "ops/mainnet/legal-compliance-custody.packet.template.json",
+  "ops/mainnet/production-key-custody.template.json",
+  "npm run mainnet:external-gates-production-claim-check",
   "ops/mainnet/external-gates.packet.json",
   "npm run mainnet:external-gates-check",
   "npm run mainnet:preflight",
@@ -219,6 +241,9 @@ const requiredWorksheetPhrases = [
   "What Not To Give Codex",
   "First Practical Path",
   "Not production-ready",
+  "ops/mainnet/audit-review.packet.template.json",
+  "ops/mainnet/legal-compliance-custody.packet.template.json",
+  "ops/mainnet/production-key-custody.template.json",
 ];
 
 for (const phrase of requiredWorksheetPhrases) {
@@ -252,6 +277,17 @@ assert.equal(
 assert.ok(
   packageJson.scripts["mainnet:preflight"].includes("npm run mainnet:external-gates-check"),
   "mainnet:preflight must include the external gates packet check.",
+);
+
+assert.equal(
+  packageJson.scripts["mainnet:external-gates-production-claim-check"],
+  "node scripts/check-vanta-external-gates-production-claim.mjs",
+  "package.json must expose mainnet:external-gates-production-claim-check.",
+);
+
+assert.ok(
+  packageJson.scripts["mainnet:preflight"].includes("npm run mainnet:external-gates-production-claim-check"),
+  "mainnet:preflight must include the external gates production claim check.",
 );
 
 assert.ok(

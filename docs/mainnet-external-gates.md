@@ -219,9 +219,16 @@ Current checked truth: the local/browser wallet-signing boundary is green, and d
 
 Purpose: independent review of proof boundaries, operators, custody assumptions, browser flows, and runbooks.
 
+Intake packet:
+
+```text
+ops/mainnet/audit-review.packet.template.json
+```
+
 Evidence needed:
 
 - `ops/mainnet/mainnet-approval-gates.template.json` audit evidence refs
+- `ops/mainnet/audit-review.packet.template.json` filled with refs-only reviewer, scope, report, findings disposition, fix verification, and final decision refs
 - `VANTA_AUDIT_REPORT_REF`
 - audit scope agreement reference
 - critical/high finding disposition
@@ -233,6 +240,7 @@ Verification:
 ```bash
 npm run audit:package-check
 npm run mainnet:preflight
+npm run mainnet:external-gates-production-claim-check
 npm run private-core:verify
 npm run private-pool-v2:verify
 npm run pay:verify
@@ -242,9 +250,16 @@ npm run pay:verify
 
 Purpose: review launch scope before real user funds, merchant processing, or custody-like flows.
 
+Intake packet:
+
+```text
+ops/mainnet/legal-compliance-custody.packet.template.json
+```
+
 Evidence needed:
 
 - `ops/mainnet/mainnet-approval-gates.template.json` legal/compliance/custody evidence refs
+- `ops/mainnet/legal-compliance-custody.packet.template.json` filled with refs-only legal, compliance, custody, sanctions, merchant-processing, incident-response, and launch-scope decision refs
 - `VANTA_LEGAL_REVIEW_REF`
 - `VANTA_CUSTODY_REVIEW_REF`
 - compliance review reference
@@ -255,6 +270,34 @@ Verification:
 
 ```bash
 npm run security:limitations-check
+npm run mainnet:external-gates-production-claim-check
+```
+
+### Production key custody
+
+Purpose: prove production Shield viewing-key, service-key, relayer-fee-wallet, and recovery controls without putting key material in the repo.
+
+Intake packet:
+
+```text
+ops/mainnet/production-key-custody.template.json
+```
+
+Evidence needed:
+
+- `VANTA_SHIELD_PRODUCTION_KEY_CUSTODY_REF`
+- Shield viewing-key backup and recovery policy refs
+- operator key access policy ref
+- relayer fee-wallet custody ref
+- key rotation and revocation runbook refs
+- key access-audit log ref
+- custody reviewer decision ref
+
+Verification:
+
+```bash
+npm run mainnet:external-gates-production-claim-check
+npm run shield:privacy-readiness-check
 ```
 
 ### Mainnet funds approval
@@ -362,6 +405,16 @@ npm run operator:runbook-check
 ```
 
 Current checked truth: the deployed operator already uses the preferred Postgres durable shared-window rate limiter, but provider-backed log sink, dashboards, alerts, retention, and incident workflow controls are all still pending.
+
+## Production Claim Gate
+
+The checked command:
+
+```bash
+npm run mainnet:external-gates-production-claim-check
+```
+
+keeps production and privacy claims blocked while the external packets remain unfilled. It currently reports `productionClaimAllowed: false` and names the remaining blockers: third-party audit, legal/compliance/custody, secret-manager audit/rotation, production key custody, production anonymity set, relayer separation, live mainnet settlement, and an active bounded real-funds approval window.
 
 ## How To Hand This Back Safely
 

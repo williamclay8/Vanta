@@ -16,6 +16,16 @@ Initial review should cover:
 - Operators: runbooks, readiness gates, storage requirements, replay protection, and production blockers.
 - Production controls: database migrations, backup and restore, abuse controls, rate limits, metrics, alerts, audit events, secret-manager refs, and mainnet-funds approval gates.
 
+## Intake Packets
+
+Refs-only packets for making the remaining external gates real:
+
+- `ops/mainnet/audit-review.packet.template.json`
+- `ops/mainnet/legal-compliance-custody.packet.template.json`
+- `ops/mainnet/production-key-custody.template.json`
+
+These are intake templates, not approvals. They must contain reference names and decisions only, never secrets, private keys, privileged legal text, under-NDA report bodies, signed transactions, or customer private inputs.
+
 ## Out of scope
 
 The current repo is not asking reviewers to sign off on:
@@ -136,6 +146,7 @@ Run this bundle before audit handoff:
 ```bash
 npm run mainnet:preflight
 npm run mainnet:external-gates-check
+npm run mainnet:external-gates-production-claim-check
 npm run private-core:verify
 npm run private-pool-v2:verify
 npm run pay:verify

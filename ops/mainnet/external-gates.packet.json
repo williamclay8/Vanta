@@ -57,6 +57,27 @@
     "VANTA_AUDIT_REPORT_REF",
     "VANTA_LEGAL_REVIEW_REF",
     "VANTA_CUSTODY_REVIEW_REF",
+    "VANTA_AUDIT_REVIEWER_REF",
+    "VANTA_AUDIT_SCOPE_REF",
+    "VANTA_AUDIT_FINDINGS_DISPOSITION_REF",
+    "VANTA_AUDIT_FIX_VERIFICATION_REF",
+    "VANTA_AUDIT_FINAL_DECISION_REF",
+    "VANTA_LEGAL_REVIEWER_REF",
+    "VANTA_COMPLIANCE_REVIEWER_REF",
+    "VANTA_CUSTODY_REVIEWER_REF",
+    "VANTA_COMPLIANCE_REVIEW_REF",
+    "VANTA_SANCTIONS_POLICY_REF",
+    "VANTA_MERCHANT_PROCESSING_POLICY_REF",
+    "VANTA_INCIDENT_RESPONSE_REVIEW_REF",
+    "VANTA_LAUNCH_SCOPE_DECISION_REF",
+    "VANTA_SHIELD_PRODUCTION_KEY_CUSTODY_REF",
+    "VANTA_SHIELD_VIEWING_KEY_BACKUP_POLICY_REF",
+    "VANTA_SHIELD_VIEWING_KEY_RECOVERY_POLICY_REF",
+    "VANTA_OPERATOR_KEY_ACCESS_POLICY_REF",
+    "VANTA_RELAYER_FEE_WALLET_CUSTODY_REF",
+    "VANTA_KEY_ROTATION_RUNBOOK_REF",
+    "VANTA_KEY_REVOCATION_RUNBOOK_REF",
+    "VANTA_KEY_ACCESS_AUDIT_LOG_REF",
     "VANTA_MONITORING_DASHBOARD_REF",
     "VANTA_INCIDENT_RUNBOOK_REF",
     "VANTA_MAINNET_APPROVAL_RECORD_REF"
@@ -212,6 +233,7 @@
       "requiredEvidence": [
         "ops/mainnet/mainnet-approval-gates.template.json references-only audit approval refs",
         "ops/mainnet/mainnet-approval-gates.evidence.json current blocked audit gate status",
+        "ops/mainnet/audit-review.packet.template.json refs-only audit intake packet",
         "audit scope agreement reference",
         "audit report reference",
         "critical/high findings disposition",
@@ -241,6 +263,7 @@
       "requiredEvidence": [
         "ops/mainnet/mainnet-approval-gates.template.json references-only legal, compliance, and custody refs",
         "ops/mainnet/mainnet-approval-gates.evidence.json current blocked legal/compliance/custody gate status",
+        "ops/mainnet/legal-compliance-custody.packet.template.json refs-only legal/compliance/custody intake packet",
         "legal review reference",
         "compliance review reference",
         "custody model decision reference",
@@ -256,6 +279,36 @@
         "npm run security:limitations-check"
       ],
       "approvalGate": "legal, compliance, and custody reviewers approve the intended launch scope"
+    },
+    {
+      "id": "production-key-custody",
+      "status": "not-provisioned",
+      "externalGate": true,
+      "owner": "custody-and-security-operator",
+      "summary": "Record production Shield viewing-key, service-key, relayer-fee-wallet, backup/recovery, rotation/revocation, and access-audit controls without storing key material.",
+      "requiredEvidence": [
+        "ops/mainnet/production-key-custody.template.json refs-only production key-custody packet",
+        "VANTA_SHIELD_PRODUCTION_KEY_CUSTODY_REF",
+        "Shield viewing-key backup and recovery policy refs",
+        "operator key access policy ref",
+        "relayer fee-wallet custody ref",
+        "key rotation and revocation runbook refs",
+        "key access-audit log ref",
+        "custody reviewer decision ref"
+      ],
+      "forbiddenInGit": [
+        "private keys",
+        "seed phrases",
+        "wallet keypair files",
+        "raw signing credentials",
+        "encrypted key backups",
+        "backup decryption material"
+      ],
+      "verificationCommands": [
+        "npm run mainnet:external-gates-production-claim-check",
+        "npm run shield:privacy-readiness-check"
+      ],
+      "approvalGate": "production key custody, recovery, rotation, revocation, and access-audit controls are externally verified"
     },
     {
       "id": "mainnet-funds-approval",
