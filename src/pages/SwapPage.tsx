@@ -140,15 +140,7 @@ function formatReadyAssetOptionLabel(args: {
   label: string;
   symbol: ShieldedSwapAssetKey;
 }) {
-  if (!args.configured) {
-    return `${args.label} - not configured`;
-  }
-
-  if (args.balance <= 0) {
-    return `${args.label} - no shielded notes`;
-  }
-
-  return `${args.label} - ${formatAssetAmount(args.balance, args.symbol)} ready`;
+  return args.label;
 }
 
 export function SwapPage() {
@@ -276,6 +268,10 @@ export function SwapPage() {
 
   const preferredReadySourceAsset = useMemo(
     () => readySourceAssetOptions.find((asset) => asset.ready) ?? null,
+    [readySourceAssetOptions],
+  );
+  const availableSourceAssetOptions = useMemo(
+    () => readySourceAssetOptions.filter((asset) => asset.ready),
     [readySourceAssetOptions],
   );
 
@@ -1471,7 +1467,12 @@ export function SwapPage() {
                   <div className="send-asset-field">
                     <select
                       aria-label="From shielded asset"
-                      value={selectedSourceAsset}
+                      value={
+                        availableSourceAssetOptions.some((asset) => asset.symbol === selectedSourceAsset)
+                          ? selectedSourceAsset
+                          : ""
+                      }
+                      disabled={availableSourceAssetOptions.length === 0}
                       onChange={(event) => {
                         setSelectedSourceAsset(event.target.value as ShieldedSwapAssetKey);
                         setStatus("idle");
@@ -1480,7 +1481,10 @@ export function SwapPage() {
                         setQuoteError(null);
                       }}
                     >
-                      {readySourceAssetOptions.map((asset) => (
+                      {availableSourceAssetOptions.length === 0 && (
+                        <option value="">No shielded assets ready</option>
+                      )}
+                      {availableSourceAssetOptions.map((asset) => (
                         <option key={asset.symbol} value={asset.symbol}>
                           {formatReadyAssetOptionLabel({
                             balance: asset.balance,
