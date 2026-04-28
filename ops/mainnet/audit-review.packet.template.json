@@ -9,6 +9,7 @@
     "circuitsAndProofs": [
       "Vanta Private Core proof lanes",
       "Private Pool v2 Shield, Send, Swap, Unshield, and Claim proof request boundaries",
+      "Actual-private spend transcript boundary: pool/cohort/root/nullifier/output/context public terms only",
       "public input binding, nullifier, replay, and commitment checks"
     ],
     "operatorsAndServices": [
@@ -41,6 +42,7 @@
   ],
   "requiredRepoCommands": [
     "npm run mainnet:preflight",
+    "npm run mainnet:actual-private-production-evidence-check",
     "npm run private-core:verify",
     "npm run private-pool-v2:verify",
     "npm run shield:verify",

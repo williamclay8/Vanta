@@ -11,6 +11,7 @@ Plain-English goal: help a reviewer find the important proof, operator, wallet, 
 Initial review should cover:
 
 - Proofs: Vanta Private Core and Private Pool v2.
+- Actual-private settlement: the Solscan-resistant Private Pool v2 spend lane, including pool/cohort/root/nullifier/output/context transcript boundaries.
 - Pay: merchant API, checkout, approval packet, and private-settlement adapter.
 - Wallet safety: transaction summaries, simulation before signing, and no private-key handling.
 - Operators: runbooks, readiness gates, storage requirements, replay protection, and production blockers.
@@ -48,6 +49,7 @@ npm run private-pool-v2:verify
 Reviewers should inspect:
 
 - whether public inputs bind to the thing being proved
+- whether actual-private spend public transcripts exclude source wallet, merchant settlement address, raw amount, note secret, input commitment, input leaf index, deposit signature, plaintext memo, and same-fee-payer linkage
 - whether nullifiers and replay checks prevent the same private state from being reused
 - whether valid fixtures pass and invalid fixtures fail
 - whether proof artifacts can be reproduced
@@ -145,6 +147,7 @@ Run this bundle before audit handoff:
 
 ```bash
 npm run mainnet:preflight
+npm run mainnet:actual-private-production-evidence-check
 npm run mainnet:external-gates-check
 npm run mainnet:external-gates-production-claim-check
 npm run private-core:verify
