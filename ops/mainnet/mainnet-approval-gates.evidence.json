@@ -1,6 +1,6 @@
 {
   "version": "vanta-mainnet-approval-gates-evidence-0.1",
-  "checkedAt": "2026-04-28T14:25:40.409Z",
+  "checkedAt": "2026-04-28T14:38:01.366Z",
   "mainnetReady": false,
   "productionReady": false,
   "realFundsAllowed": true,
@@ -115,13 +115,13 @@
       "requiresHumanApproval": true,
       "mainnetTransactionsAllowedBeforeApproval": false,
       "realFundsAllowedBeforeApproval": false,
-      "approvedActionSummary": "Bounded mainnet demo for Shield, Send, Swap, and Unshield with maximum 0.05 SOL at risk",
+      "approvedActionSummary": "Bounded mainnet demo for Shield, Send, Swap, and Unshield with maximum 1 SOL at risk",
       "approvedActionRef": "demo-day/vanta-mainnet-bounded-demo-2026-04-28",
       "approvedFeePayerRef": "wallet/public-fee-payer-vanta-mainnet-demo",
       "approvedLaunchWindowRef": "2026-04-28T07:30:00-12:00:00 America/Los_Angeles",
       "rollbackPlanRef": "runbook/disable-private-pool-v2-services-and-live-actions",
-      "stopLossPlanRef": "max-0.05-sol-or-first-failed-settlement",
-      "maximumFundsAtRiskRef": "0.05 SOL",
+      "stopLossPlanRef": "max-1-sol-or-first-failed-settlement",
+      "maximumFundsAtRiskRef": "1 SOL",
       "approvedByRef": "Clay/founder-approval/2026-04-28",
       "requiredRefs": [
         "VANTA_MAINNET_APPROVAL_RECORD_REF",
@@ -137,7 +137,7 @@
     "Third-party security audit was skipped by operator decision; no audit approval has been recorded.",
     "Legal, compliance, and custody review was skipped by operator decision; no approval has been recorded.",
     "Secret-manager audit and rotation evidence were skipped by operator decision; no secret-handling maturity claim is made.",
-    "Explicit mainnet real-funds approval is recorded only for Bounded mainnet demo for Shield, Send, Swap, and Unshield with maximum 0.05 SOL at risk.",
+    "Explicit mainnet real-funds approval is recorded only for Bounded mainnet demo for Shield, Send, Swap, and Unshield with maximum 1 SOL at risk.",
     "Provider backup policy, PITR, encrypted backup, backup access audit, and least-privilege restore-user evidence were skipped by operator decision.",
     "Pay restore readback was skipped by operator decision.",
     "No mainnet transactions or real funds are allowed outside the bounded approval recorded in this evidence file."

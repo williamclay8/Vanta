@@ -36,7 +36,7 @@ Avoid:
 
 - Approved action: bounded mainnet demo for Shield, Send, Swap, and Unshield.
 - Approved window: 2026-04-28 07:30-12:00 America/Los_Angeles.
-- Maximum funds at risk: 0.05 SOL.
+- Maximum funds at risk: 1 SOL.
 - Production role services passed authenticated readiness in the bounded demo run.
 - `npm run mainnet:preflight` passed before the demo approval update.
 - Vanta remains not production-ready and not fully private on mainnet.
@@ -183,7 +183,7 @@ Current demo truth:
 
 Vanta is in beta.
 
-Today I have a bounded mainnet demo window for Shield, Send, Swap, and Unshield, capped at 0.05 SOL.
+Today I have a bounded mainnet demo window for Shield, Send, Swap, and Unshield, capped at 1 SOL.
 
 Production role services are deployed and passed authenticated readiness.
 
@@ -248,7 +248,7 @@ Shield -> Send -> Swap -> Unshield.
 
 Vanta is building policy-safe private settlement for Solana stablecoin flows: private actions with proof-backed receipts and operator-verifiable status.
 
-Today is a bounded beta demo, capped at 0.05 SOL. Not production-ready privacy yet. The goal is simple: prove enough to transact without exposing everything.
+Today is a bounded beta demo, capped at 1 SOL. Not production-ready privacy yet. The goal is simple: prove enough to transact without exposing everything.
 
 ## Recording Checklist
 
@@ -258,5 +258,5 @@ Today is a bounded beta demo, capped at 0.05 SOL. Not production-ready privacy y
 - Keep wallet addresses, balances, and signatures cropped unless intentionally shown.
 - Burn captions into the video.
 - Stop recording if a wallet prompt shows unexpected destination, amount, or authority.
-- Do not approve anything outside the 0.05 SOL bounded demo.
+- Do not approve anything outside the 1 SOL bounded demo.
 
