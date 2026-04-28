@@ -4,6 +4,8 @@ const VERSION = "vanta-safe-telemetry-0.1";
 const REDACTED = "[redacted]";
 const secretKeyPattern =
   /(authorization|cookie|set-cookie|api[-_]?key|token|secret|password|private[-_]?key|seed[-_]?phrase|mnemonic|database[-_]?url|DATABASE_URL)/i;
+const privateLinkageKeyPattern =
+  /(source[-_]?wallet|source[-_]?funding[-_]?address|payer[-_]?source[-_]?wallet|merchant[-_]?settlement[-_]?address|destination[-_]?address|raw[-_]?amount|raw[-_]?asset|input[-_]?commitment|input[-_]?leaf[-_]?index|deposit[-_]?signature|plain[-_]?text[-_]?memo|signed[-_]?transaction|signing[-_]?material|viewing[-_]?key)/i;
 
 function sha256Short(value) {
   return `sha256:${createHash("sha256").update(String(value)).digest("hex").slice(0, 24)}`;
@@ -49,7 +51,9 @@ export function sanitizeTelemetryFields(value) {
   return Object.fromEntries(
     Object.entries(value).map(([key, nestedValue]) => [
       key,
-      secretKeyPattern.test(key) ? REDACTED : sanitizeTelemetryFields(nestedValue),
+      secretKeyPattern.test(key) || privateLinkageKeyPattern.test(key)
+        ? REDACTED
+        : sanitizeTelemetryFields(nestedValue),
     ]),
   );
 }

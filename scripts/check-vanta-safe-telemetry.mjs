@@ -72,17 +72,37 @@ assert.ok(!logs[0].includes("private body"), "response body must not be logged."
 const redacted = sanitizeTelemetryFields({
   authorization: "Bearer secret",
   databaseUrl: "postgres://secret",
+  destinationAddress: "merchant-public-destination",
+  inputCommitment: "0xinput",
+  inputLeafIndex: 18,
   nested: {
+    depositSignature: "0xdepositsig",
+    merchantSettlementAddress: "merchant-public-settlement-address",
     privateKey: "secret",
+    rawAmountBaseUnits: "100000000",
     safeValue: "visible",
+    sourceFundingAddress: "payer-public-funding-wallet",
   },
+  plaintextMemo: "settle merchant-public-settlement-address",
+  signedTransaction: "signed-tx-bytes",
   token: "secret",
+  viewingKey: "viewing-key",
 });
 assert.equal(redacted.authorization, "[redacted]");
 assert.equal(redacted.databaseUrl, "[redacted]");
+assert.equal(redacted.destinationAddress, "[redacted]");
+assert.equal(redacted.inputCommitment, "[redacted]");
+assert.equal(redacted.inputLeafIndex, "[redacted]");
+assert.equal(redacted.nested.depositSignature, "[redacted]");
+assert.equal(redacted.nested.merchantSettlementAddress, "[redacted]");
 assert.equal(redacted.nested.privateKey, "[redacted]");
+assert.equal(redacted.nested.rawAmountBaseUnits, "[redacted]");
 assert.equal(redacted.nested.safeValue, "visible");
+assert.equal(redacted.nested.sourceFundingAddress, "[redacted]");
+assert.equal(redacted.plaintextMemo, "[redacted]");
+assert.equal(redacted.signedTransaction, "[redacted]");
 assert.equal(redacted.token, "[redacted]");
+assert.equal(redacted.viewingKey, "[redacted]");
 
 const startup = createOperatorStartupTelemetryEvent({
   service: "vanta-private-pool-v2",
