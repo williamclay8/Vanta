@@ -83,11 +83,11 @@ export function getShieldedSwapPairCapability(args: {
       liveSolToShieldedSwapRouteAdapter.supportedOutputAssets.includes(args.outputAsset)
     ) {
       return {
-        blockers: ["Shielded SOL route adapter is configured, but execution is blocked until the UI submits and verifies the SOL-to-shielded settlement receipt."],
+        blockers: [],
         executionMode: "operator-sol-to-shielded",
         inputAsset: args.inputAsset,
         outputAsset: args.outputAsset,
-        status: "blocked",
+        status: "live",
       };
     }
 

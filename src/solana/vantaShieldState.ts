@@ -80,7 +80,7 @@ export type VantaSwapNote = {
   createdAt: number;
   consumedNoteId: string;
   inputAmount: number;
-  inputAsset: "VUSD";
+  inputAsset: VantaShieldTokenAsset | "SOL";
   kind: "swap";
   noteId: string;
   outputAmount: number;
@@ -92,9 +92,9 @@ export type VantaSwapNote = {
   quoteTimestamp?: number;
   stateSignature: string;
   vaultOwner: string;
-  venueFamily?: "DLMM";
-  venueName?: "Meteora";
-  venueNetwork?: "Devnet";
+  venueFamily?: "Aggregator" | "DLMM";
+  venueName?: string;
+  venueNetwork?: "Devnet" | "Mainnet";
   venuePoolAddress?: string;
 };
 
@@ -102,7 +102,7 @@ export type VantaShieldedSolNote = {
   amount: number;
   asset: "SOL";
   consumedByTransitionId?: string;
-  consumedByTransitionKind?: "sol_unshield";
+  consumedByTransitionKind?: "swap" | "sol_unshield";
   createdAt: number;
   lifecycleStatus: VantaNoteLifecycleStatus;
   noteId: string;
@@ -284,7 +284,7 @@ type SwapMemoPayload = {
   consumedShieldStateSignature?: string;
   createdAt: number;
   inputAmount: string;
-  inputAsset: "VUSD";
+  inputAsset: VantaShieldTokenAsset | "SOL";
   kind: "swap";
   mintAddress: string;
   noteId?: string;
@@ -296,9 +296,9 @@ type SwapMemoPayload = {
   quoteId?: string;
   quoteTimestamp?: number;
   vaultOwner: string;
-  venueFamily?: "DLMM";
-  venueName?: "Meteora";
-  venueNetwork?: "Devnet";
+  venueFamily?: "Aggregator" | "DLMM";
+  venueName?: string;
+  venueNetwork?: "Devnet" | "Mainnet";
   venuePoolAddress?: string;
 };
 
@@ -307,7 +307,7 @@ type SwapMemoWirePayload = {
   cn?: string;
   cs?: string;
   ia: string;
-  ii: "VUSD";
+  ii: VantaShieldTokenAsset | "SOL";
   k: "swap";
   ma: string;
   ni: string;
@@ -318,11 +318,11 @@ type SwapMemoWirePayload = {
   qe?: number;
   qi?: string;
   qt?: number;
-  vf?: "DLMM";
-  vn?: "Meteora";
+  vf?: "Aggregator" | "DLMM";
+  vn?: string;
   vo: string;
   vp?: string;
-  vw?: "Devnet";
+  vw?: "Devnet" | "Mainnet";
 };
 
 type SolUnshieldMemoPayload = {
@@ -1457,9 +1457,12 @@ function parseSwapMemo(
     const isSupportedOutputAsset =
       outputAsset === "SOL" || isShieldTokenAsset(outputAsset);
 
+    const isSupportedInputAsset =
+      inputAsset === "SOL" || isShieldTokenAsset(inputAsset);
+
     if (
       kind !== "swap" ||
-      inputAsset !== "VUSD" ||
+      !isSupportedInputAsset ||
       !isSupportedOutputAsset ||
       typeof owner !== "string" ||
       typeof mintAddress !== "string" ||
@@ -1491,7 +1494,7 @@ function parseSwapMemo(
           : undefined,
       createdAt,
       inputAmount: parsedInputAmount,
-      inputAsset: "VUSD",
+      inputAsset,
       kind: "swap",
       noteId: typeof noteId === "string" ? noteId : undefined,
       outputAmount: parsedOutputAmount,
@@ -1723,7 +1726,9 @@ export async function fetchVantaShieldAccountState(args: {
       return [];
     }
 
-    const roundedInputAmount = Number(note.inputAmount.toFixed(6));
+    const roundedInputAmount = Number(
+      note.inputAmount.toFixed(getShieldAssetAmountDecimals(note.inputAsset)),
+    );
     const roundedOutputAmount = Number(
       note.outputAmount.toFixed(getShieldAssetAmountDecimals(note.outputAsset)),
     );
@@ -1733,7 +1738,7 @@ export async function fetchVantaShieldAccountState(args: {
         consumedNoteId: resolvedConsumedNoteId,
         createdAt: note.createdAt,
         inputAmount: roundedInputAmount.toString(),
-        inputAsset: "VUSD",
+        inputAsset: note.inputAsset,
         mintAddress: args.mintAddress,
         outputAmount: roundedOutputAmount.toString(),
         outputAsset: note.outputAsset,
@@ -1980,7 +1985,11 @@ export async function fetchVantaShieldAccountState(args: {
       }
 
       const swapTransition = transition as VantaSwapNote;
-      const roundedSwapInputAmount = Number(swapTransition.inputAmount.toFixed(6));
+      const roundedSwapInputAmount = Number(
+        swapTransition.inputAmount.toFixed(
+          getShieldAssetAmountDecimals(swapTransition.inputAsset),
+        ),
+      );
 
       if (!amountsMatch(roundedSwapInputAmount, roundedInputAmount)) {
         return [];
@@ -2062,11 +2071,14 @@ export async function fetchVantaShieldAccountState(args: {
     .filter((marker) => marker.asset === "SOL")
     .sort((left, right) => left.createdAt - right.createdAt)
     .flatMap((marker) => {
-      if (marker.transitionKind !== "sol_unshield") {
+      if (marker.transitionKind !== "sol_unshield" && marker.transitionKind !== "swap") {
         return [];
       }
 
-      const transition = solUnshieldNotesById.get(marker.transitionNoteId);
+      const transition =
+        marker.transitionKind === "sol_unshield"
+          ? solUnshieldNotesById.get(marker.transitionNoteId)
+          : swapNotesById.get(marker.transitionNoteId);
       const consumedNote = baseShieldedSolNotes.find((note) => note.noteId === marker.consumedNoteId);
 
       if (
@@ -2078,9 +2090,54 @@ export async function fetchVantaShieldAccountState(args: {
         return [];
       }
 
+      if (marker.transitionKind === "swap") {
+        const swapTransition = transition as VantaSwapNote;
+
+        if (
+          swapTransition.inputAsset !== "SOL" ||
+          !amountsMatch(
+            Number(swapTransition.inputAmount.toFixed(9)),
+            Number(consumedNote.amount.toFixed(9)),
+          )
+        ) {
+          return [];
+        }
+
+        if (swapTransition.outputAsset === accountAsset) {
+          const roundedSwapOutputAmount = Number(
+            swapTransition.outputAmount.toFixed(
+              getShieldAssetAmountDecimals(swapTransition.outputAsset),
+            ),
+          );
+          const swapOutputNote = {
+            amount: roundedSwapOutputAmount,
+            asset: accountAsset,
+            createdAt: swapTransition.createdAt,
+            depositSignature: swapTransition.stateSignature,
+            kind: "shield" as const,
+            mintAddress: args.mintAddress,
+            noteId: swapTransition.outputNoteId,
+            origin: "swap_output" as const,
+            owner: swapTransition.owner,
+            parentNoteId: marker.consumedNoteId,
+            parentSwapNoteId: swapTransition.noteId,
+            stateSignature: `${swapTransition.stateSignature}:swap-output`,
+            vaultOwner: args.vaultOwner,
+          } satisfies VantaShieldNote;
+
+          shieldTokenNotesBySwap.set(swapTransition.noteId, swapOutputNote);
+          allShieldNotesById.set(swapOutputNote.noteId, swapOutputNote);
+        }
+
+        consumedSolNoteIds.add(marker.consumedNoteId);
+        return [marker];
+      }
+
+      const solUnshieldTransition = transition as VantaSolUnshieldNote;
+
       if (
         !amountsMatch(
-          Number(transition.amount.toFixed(9)),
+          Number(solUnshieldTransition.amount.toFixed(9)),
           Number(consumedNote.amount.toFixed(9)),
         )
       ) {
@@ -2143,9 +2200,13 @@ export async function fetchVantaShieldAccountState(args: {
       return {
         ...note,
         consumedByTransitionId:
-          consumingTransition?.kind === "sol_unshield" ? consumingTransition.noteId : undefined,
+          consumingTransition?.kind === "sol_unshield" || consumingTransition?.kind === "swap"
+            ? consumingTransition.noteId
+            : undefined,
         consumedByTransitionKind:
-          consumingTransition?.kind === "sol_unshield" ? "sol_unshield" : undefined,
+          consumingTransition?.kind === "sol_unshield" || consumingTransition?.kind === "swap"
+            ? consumingTransition.kind
+            : undefined,
         lifecycleStatus: spentMarker ? "consumed" : "spendable",
         spentMarkerId: spentMarker?.markerId,
       } satisfies VantaShieldedSolNote;

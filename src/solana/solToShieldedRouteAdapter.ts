@@ -33,12 +33,49 @@ export type SolToShieldedRouteReceipt = {
   transitionNoteId: string;
 };
 
+export type SolToShieldedRouteExecutionRequest = {
+  consumedNoteId: string;
+  inputAmount: string;
+  outputAmount: string;
+  outputAsset: Exclude<ShieldedSwapAssetKey, "SOL">;
+  outputNoteId: string;
+  owner: string;
+  quoteId: string;
+  requester: string;
+  transitionNoteId: string;
+  transitionStateSignature: string;
+  vaultOwner: string;
+};
+
 export function getSolToShieldedRouteAdapterStatus() {
   return {
     configured: liveSolToShieldedSwapRouteAdapter.configured,
     operatorUrl: liveSolToShieldedSwapRouteAdapter.operatorUrl,
     supportedOutputAssets: liveSolToShieldedSwapRouteAdapter.supportedOutputAssets,
   };
+}
+
+function parseSolToShieldedRouteReceipt(
+  value: unknown,
+): SolToShieldedRouteReceipt {
+  const parsed = value as Partial<SolToShieldedRouteReceipt>;
+
+  if (
+    parsed.routeAdapter !== "sol-to-shielded-v1" ||
+    parsed.inputAsset !== "SOL" ||
+    typeof parsed.outputAsset !== "string" ||
+    typeof parsed.outputNoteId !== "string" ||
+    typeof parsed.quoteId !== "string" ||
+    typeof parsed.requestId !== "string" ||
+    typeof parsed.adapterReceiptId !== "string" ||
+    typeof parsed.transitionNoteId !== "string" ||
+    !parsed.protocolSettlementReceipt ||
+    !parsed.proofReceipt
+  ) {
+    throw new Error("The shielded SOL route adapter returned an invalid receipt.");
+  }
+
+  return parsed as SolToShieldedRouteReceipt;
 }
 
 export function assertSolToShieldedRouteReceipt(args: {
@@ -140,4 +177,46 @@ export async function fetchSolToShieldedRouteQuote(args: {
     venuePoolAddress:
       typeof parsed.venuePoolAddress === "string" ? parsed.venuePoolAddress : null,
   };
+}
+
+export async function requestSolToShieldedRouteExecution(
+  args: SolToShieldedRouteExecutionRequest,
+): Promise<SolToShieldedRouteReceipt> {
+  if (!liveSolToShieldedSwapRouteAdapter.operatorUrl) {
+    throw new Error("Shielded SOL route adapter is not configured.");
+  }
+
+  const response = await fetch(`${liveSolToShieldedSwapRouteAdapter.operatorUrl}/execute`, {
+    body: JSON.stringify({
+      consumedNoteId: args.consumedNoteId,
+      inputAmount: args.inputAmount,
+      inputAsset: "SOL",
+      outputAmount: args.outputAmount,
+      outputAsset: args.outputAsset,
+      outputNoteId: args.outputNoteId,
+      owner: args.owner,
+      quoteId: args.quoteId,
+      requester: args.requester,
+      routeAdapter: "sol-to-shielded-v1",
+      transitionNoteId: args.transitionNoteId,
+      transitionStateSignature: args.transitionStateSignature,
+      vaultOwner: args.vaultOwner,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+    signal: AbortSignal.timeout(20_000),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "The shielded SOL route adapter rejected the execution request.");
+  }
+
+  return assertSolToShieldedRouteReceipt({
+    expectedOutputAsset: args.outputAsset,
+    expectedQuoteId: args.quoteId,
+    receipt: parseSolToShieldedRouteReceipt(await response.json()),
+  });
 }

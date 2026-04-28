@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 const adapterSource = readFileSync("src/solana/solToShieldedRouteAdapter.ts", "utf8");
 const capabilitySource = readFileSync("src/solana/shieldedSwapCapability.ts", "utf8");
 const shieldConfigSource = readFileSync("src/solana/shieldConfig.ts", "utf8");
+const swapPageSource = readFileSync("src/pages/SwapPage.tsx", "utf8");
 const viteEnvSource = readFileSync("src/vite-env.d.ts", "utf8");
 
 assert.match(
@@ -23,8 +24,8 @@ assert.match(
 );
 assert.match(
   capabilitySource,
-  /status: "blocked"/,
-  "SOL-to-shielded swap capability must fail closed until UI execution wiring verifies adapter receipts.",
+  /status: "live"/,
+  "Configured SOL-to-shielded swap capability must become live once UI execution wiring verifies adapter receipts.",
 );
 assert.match(
   capabilitySource,
@@ -35,6 +36,16 @@ assert.match(
   adapterSource,
   /assertSolToShieldedRouteReceipt/,
   "SOL-to-shielded adapter must expose a settlement/proof receipt assertion.",
+);
+assert.match(
+  adapterSource,
+  /requestSolToShieldedRouteExecution/,
+  "SOL-to-shielded adapter must expose a typed execution request.",
+);
+assert.match(
+  adapterSource,
+  /\/execute/,
+  "SOL-to-shielded adapter execution must use an explicit execute endpoint.",
 );
 assert.match(
   adapterSource,
@@ -50,6 +61,21 @@ assert.match(
   adapterSource,
   /publicInputCommitment/,
   "SOL-to-shielded adapter must require proof public input commitments.",
+);
+assert.match(
+  swapPageSource,
+  /fetchSolToShieldedRouteQuote/,
+  "Swap UI must request SOL-to-shielded route quotes.",
+);
+assert.match(
+  swapPageSource,
+  /requestSolToShieldedRouteExecution/,
+  "Swap UI must submit SOL-to-shielded executions through the route adapter.",
+);
+assert.match(
+  swapPageSource,
+  /asset: "SOL"/,
+  "Swap UI must finalize shielded SOL spent markers for SOL-to-shielded routes.",
 );
 
 console.log("Vanta SOL-to-shielded route adapter contract: PASS");
