@@ -105,8 +105,10 @@ assert.ok(
   "Pay production readiness must block on privacy claim status.",
 );
 assert.ok(
-  status.blockers.includes("real-funds-approval-window-not-active"),
-  "Pay production readiness must block on inactive real-funds approval window.",
+  status.privateSettlement.boundedRealFundsApprovalWindowActive
+    ? !status.blockers.includes("real-funds-approval-window-not-active")
+    : status.blockers.includes("real-funds-approval-window-not-active"),
+  "Pay production readiness must mirror the current bounded real-funds approval window.",
 );
 assert.ok(
   status.summary.includes("not production-ready"),

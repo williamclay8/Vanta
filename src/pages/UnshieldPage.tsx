@@ -23,6 +23,8 @@ import {
   getLiveShieldTokenAsset,
   liveSwapPair,
   type LiveShieldTokenAssetKey,
+  vantaExplicitMainnetApproval,
+  vantaSolanaCluster,
 } from "@/solana/shieldConfig";
 import {
   VANTA_UNSHIELD_INTENT_TTL_MS,
@@ -782,7 +784,8 @@ export function UnshieldPage() {
         return splitSpentMarkerTransaction.send({
           amount: pendingSplitMarker.amount,
           asset: "VUSD",
-          cluster: "devnet",
+          cluster: vantaSolanaCluster,
+      explicitMainnetApproval: vantaExplicitMainnetApproval,
           connectedWalletAddress: pendingSplitMarker.owner,
           estimatedFees: "wallet-estimated",
           feePayer: pendingSplitMarker.owner,
@@ -1018,7 +1021,8 @@ export function UnshieldPage() {
             return spentMarkerTransaction.send({
               amount: pendingSpentMarker.amount,
               asset: pendingSpentMarker.asset,
-              cluster: "devnet",
+              cluster: vantaSolanaCluster,
+      explicitMainnetApproval: vantaExplicitMainnetApproval,
               connectedWalletAddress: pendingSpentMarker.owner,
               estimatedFees: "wallet-estimated",
               feePayer: pendingSpentMarker.owner,
@@ -1121,7 +1125,8 @@ export function UnshieldPage() {
           return spentMarkerTransaction.send({
             amount: pendingSpentMarker.amount,
             asset: "SOL",
-            cluster: "devnet",
+            cluster: vantaSolanaCluster,
+      explicitMainnetApproval: vantaExplicitMainnetApproval,
             connectedWalletAddress: pendingSpentMarker.owner,
             estimatedFees: "wallet-estimated",
             feePayer: pendingSpentMarker.owner,
@@ -1387,7 +1392,8 @@ export function UnshieldPage() {
     await transitionTransaction.send({
       amount: args.note.amount.toString(),
       asset: args.shieldAsset.assetKey,
-      cluster: "devnet",
+      cluster: vantaSolanaCluster,
+      explicitMainnetApproval: vantaExplicitMainnetApproval,
       connectedWalletAddress: args.shieldAccount.owner,
       estimatedFees: "wallet-estimated",
       feePayer: args.shieldAccount.owner,
@@ -1482,7 +1488,8 @@ export function UnshieldPage() {
     await transitionTransaction.send({
       amount: args.note.amount.toString(),
       asset: "SOL",
-      cluster: "devnet",
+      cluster: vantaSolanaCluster,
+      explicitMainnetApproval: vantaExplicitMainnetApproval,
       connectedWalletAddress: args.shieldAccount.owner,
       estimatedFees: "wallet-estimated",
       feePayer: args.shieldAccount.owner,
@@ -1600,7 +1607,8 @@ export function UnshieldPage() {
           await splitTransitionTransaction.send({
             amount: requestedAmountNumeric.toString(),
             asset: "VUSD",
-            cluster: "devnet",
+            cluster: vantaSolanaCluster,
+      explicitMainnetApproval: vantaExplicitMainnetApproval,
             connectedWalletAddress: activeShieldAccount.owner,
             estimatedFees: "wallet-estimated",
             feePayer: activeShieldAccount.owner,

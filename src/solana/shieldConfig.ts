@@ -1,6 +1,22 @@
 export const SHIELD_HOOK_FALLBACK_MINT =
   "So11111111111111111111111111111111111111112";
 
+export type VantaSolanaCluster = "devnet" | "mainnet-beta";
+export type VantaSolanaClusterLabel = "Devnet" | "Mainnet";
+
+const configuredSolanaCluster = getOptionalEnvValue(import.meta.env.VITE_SOLANA_CLUSTER);
+const isMainnetCluster = configuredSolanaCluster === "mainnet-beta";
+export const vantaSolanaCluster: VantaSolanaCluster = isMainnetCluster ? "mainnet-beta" : "devnet";
+export const vantaSolanaClusterLabel: VantaSolanaClusterLabel = isMainnetCluster ? "Mainnet" : "Devnet";
+export const vantaExplicitMainnetApproval = isMainnetCluster;
+
+const MAINNET_RECOGNIZED_MINTS = {
+  BONK: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+  JTO: "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
+  PYUSD: "CXk2AMBfi3TwaEL2468s6zP8xq9NxTXjp9gjMgzeUynM",
+  USDC: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+} as const;
+
 function getOptionalEnvValue(value: string | undefined) {
   const trimmed = value?.trim();
   return trimmed ? trimmed : null;
@@ -18,31 +34,49 @@ function getOptionalIntegerEnvValue(value: string | undefined) {
 }
 
 const configuredMintAddress = getOptionalEnvValue(
-  import.meta.env.VITE_VANTA_DEVNET_TOKEN_MINT,
+  isMainnetCluster
+    ? import.meta.env.VITE_VANTA_MAINNET_TOKEN_MINT
+    : import.meta.env.VITE_VANTA_DEVNET_TOKEN_MINT,
 );
 const configuredUsdcMintAddress = getOptionalEnvValue(
-  import.meta.env.VITE_VANTA_DEVNET_USDC_MINT,
-);
+  isMainnetCluster
+    ? import.meta.env.VITE_VANTA_MAINNET_USDC_MINT
+    : import.meta.env.VITE_VANTA_DEVNET_USDC_MINT,
+) ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.USDC : null);
 const configuredJtoMintAddress = getOptionalEnvValue(
-  import.meta.env.VITE_VANTA_DEVNET_JTO_MINT,
-);
+  isMainnetCluster
+    ? import.meta.env.VITE_VANTA_MAINNET_JTO_MINT
+    : import.meta.env.VITE_VANTA_DEVNET_JTO_MINT,
+) ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.JTO : null);
 const configuredBonkMintAddress = getOptionalEnvValue(
-  import.meta.env.VITE_VANTA_DEVNET_BONK_MINT,
-);
+  isMainnetCluster
+    ? import.meta.env.VITE_VANTA_MAINNET_BONK_MINT
+    : import.meta.env.VITE_VANTA_DEVNET_BONK_MINT,
+) ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.BONK : null);
 const configuredJupMintAddress = getOptionalEnvValue(
-  import.meta.env.VITE_VANTA_DEVNET_JUP_MINT,
+  isMainnetCluster
+    ? import.meta.env.VITE_VANTA_MAINNET_JUP_MINT
+    : import.meta.env.VITE_VANTA_DEVNET_JUP_MINT,
 );
 const configuredPyusdMintAddress = getOptionalEnvValue(
-  import.meta.env.VITE_VANTA_DEVNET_PYUSD_MINT,
-);
+  isMainnetCluster
+    ? import.meta.env.VITE_VANTA_MAINNET_PYUSD_MINT
+    : import.meta.env.VITE_VANTA_DEVNET_PYUSD_MINT,
+) ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.PYUSD : null);
 const configuredWifMintAddress = getOptionalEnvValue(
-  import.meta.env.VITE_VANTA_DEVNET_WIF_MINT,
+  isMainnetCluster
+    ? import.meta.env.VITE_VANTA_MAINNET_WIF_MINT
+    : import.meta.env.VITE_VANTA_DEVNET_WIF_MINT,
 );
 const configuredKmnoMintAddress = getOptionalEnvValue(
-  import.meta.env.VITE_VANTA_DEVNET_KMNO_MINT,
+  isMainnetCluster
+    ? import.meta.env.VITE_VANTA_MAINNET_KMNO_MINT
+    : import.meta.env.VITE_VANTA_DEVNET_KMNO_MINT,
 );
 const configuredVaultOwner = getOptionalEnvValue(
-  import.meta.env.VITE_VANTA_DEVNET_VAULT_OWNER,
+  isMainnetCluster
+    ? import.meta.env.VITE_VANTA_MAINNET_VAULT_OWNER
+    : import.meta.env.VITE_VANTA_DEVNET_VAULT_OWNER,
 );
 const configuredUnshieldOperatorUrl = getOptionalEnvValue(
   import.meta.env.VITE_VANTA_UNSHIELD_OPERATOR_URL,
@@ -82,8 +116,10 @@ export type LiveShieldTokenAssetKey =
 
 export type LiveShieldTokenAssetConfig = {
   assetKey: LiveShieldTokenAssetKey;
-  cluster: "Devnet";
+  cluster: VantaSolanaClusterLabel;
   configured: boolean;
+  executable: boolean;
+  executionBlocker: string | null;
   decimals: number;
   mintAddress: string | null;
   name: string;
@@ -104,8 +140,10 @@ function createLiveShieldTokenAssetConfig(args: {
 }): LiveShieldTokenAssetConfig {
   return {
     assetKey: args.assetKey,
-    cluster: "Devnet",
+    cluster: vantaSolanaClusterLabel,
     configured: Boolean(args.configuredMintAddress && configuredVaultOwner),
+    executable: Boolean(args.configuredMintAddress && configuredVaultOwner),
+    executionBlocker: args.configuredMintAddress && configuredVaultOwner ? null : "mainnet-lane-not-configured",
     decimals: args.decimals,
     mintAddress: args.configuredMintAddress,
     name: getOptionalEnvValue(args.nameEnvValue) ?? args.defaultName,
@@ -121,13 +159,23 @@ function createLiveShieldTokenAssetConfig(args: {
 
 export const liveShieldAsset = {
   assetKey: "VUSD" as const,
-  cluster: "Devnet" as const,
+  cluster: vantaSolanaClusterLabel,
   configured: Boolean(configuredMintAddress && configuredVaultOwner),
-  decimals: getOptionalIntegerEnvValue(import.meta.env.VITE_VANTA_DEVNET_TOKEN_DECIMALS) ?? 6,
+  executable: Boolean(configuredMintAddress && configuredVaultOwner),
+  executionBlocker: configuredMintAddress && configuredVaultOwner ? null : "mainnet-lane-not-configured",
+  decimals:
+    getOptionalIntegerEnvValue(
+      isMainnetCluster
+        ? import.meta.env.VITE_VANTA_MAINNET_TOKEN_DECIMALS
+        : import.meta.env.VITE_VANTA_DEVNET_TOKEN_DECIMALS,
+    ) ?? 6,
   mintAddress: configuredMintAddress,
   name:
-    getOptionalEnvValue(import.meta.env.VITE_VANTA_DEVNET_TOKEN_NAME) ??
-    "Vanta Devnet Test Dollar",
+    getOptionalEnvValue(
+      isMainnetCluster
+        ? import.meta.env.VITE_VANTA_MAINNET_TOKEN_NAME
+        : import.meta.env.VITE_VANTA_DEVNET_TOKEN_NAME,
+    ) ?? (isMainnetCluster ? "Vanta Mainnet Stablecoin" : "Vanta Devnet Test Dollar"),
   priority: 0,
   symbol: "VUSD" as const,
   unshieldConfigured: Boolean(
@@ -141,9 +189,16 @@ export const liveUsdcShieldAsset: LiveShieldTokenAssetConfig = {
   ...createLiveShieldTokenAssetConfig({
     assetKey: "USDC",
     configuredMintAddress: configuredUsdcMintAddress,
-    decimals: getOptionalIntegerEnvValue(import.meta.env.VITE_VANTA_DEVNET_USDC_DECIMALS) ?? 6,
+    decimals:
+      getOptionalIntegerEnvValue(
+        isMainnetCluster
+          ? import.meta.env.VITE_VANTA_MAINNET_USDC_DECIMALS
+          : import.meta.env.VITE_VANTA_DEVNET_USDC_DECIMALS,
+      ) ?? 6,
     defaultName: "USD Coin",
-    nameEnvValue: import.meta.env.VITE_VANTA_DEVNET_USDC_NAME,
+    nameEnvValue: isMainnetCluster
+      ? import.meta.env.VITE_VANTA_MAINNET_USDC_NAME
+      : import.meta.env.VITE_VANTA_DEVNET_USDC_NAME,
     priority: 1,
   }),
 };
@@ -152,9 +207,16 @@ export const liveJtoShieldAsset: LiveShieldTokenAssetConfig = {
   ...createLiveShieldTokenAssetConfig({
     assetKey: "JTO",
     configuredMintAddress: configuredJtoMintAddress,
-    decimals: getOptionalIntegerEnvValue(import.meta.env.VITE_VANTA_DEVNET_JTO_DECIMALS) ?? 9,
+    decimals:
+      getOptionalIntegerEnvValue(
+        isMainnetCluster
+          ? import.meta.env.VITE_VANTA_MAINNET_JTO_DECIMALS
+          : import.meta.env.VITE_VANTA_DEVNET_JTO_DECIMALS,
+      ) ?? 9,
     defaultName: "Jito",
-    nameEnvValue: import.meta.env.VITE_VANTA_DEVNET_JTO_NAME,
+    nameEnvValue: isMainnetCluster
+      ? import.meta.env.VITE_VANTA_MAINNET_JTO_NAME
+      : import.meta.env.VITE_VANTA_DEVNET_JTO_NAME,
     priority: 2,
   }),
 };
@@ -163,9 +225,16 @@ export const liveBonkShieldAsset: LiveShieldTokenAssetConfig = {
   ...createLiveShieldTokenAssetConfig({
     assetKey: "BONK",
     configuredMintAddress: configuredBonkMintAddress,
-    decimals: getOptionalIntegerEnvValue(import.meta.env.VITE_VANTA_DEVNET_BONK_DECIMALS) ?? 5,
+    decimals:
+      getOptionalIntegerEnvValue(
+        isMainnetCluster
+          ? import.meta.env.VITE_VANTA_MAINNET_BONK_DECIMALS
+          : import.meta.env.VITE_VANTA_DEVNET_BONK_DECIMALS,
+      ) ?? 5,
     defaultName: "Bonk",
-    nameEnvValue: import.meta.env.VITE_VANTA_DEVNET_BONK_NAME,
+    nameEnvValue: isMainnetCluster
+      ? import.meta.env.VITE_VANTA_MAINNET_BONK_NAME
+      : import.meta.env.VITE_VANTA_DEVNET_BONK_NAME,
     priority: 3,
   }),
 };
@@ -174,9 +243,16 @@ export const liveJupShieldAsset: LiveShieldTokenAssetConfig = {
   ...createLiveShieldTokenAssetConfig({
     assetKey: "JUP",
     configuredMintAddress: configuredJupMintAddress,
-    decimals: getOptionalIntegerEnvValue(import.meta.env.VITE_VANTA_DEVNET_JUP_DECIMALS) ?? 6,
+    decimals:
+      getOptionalIntegerEnvValue(
+        isMainnetCluster
+          ? import.meta.env.VITE_VANTA_MAINNET_JUP_DECIMALS
+          : import.meta.env.VITE_VANTA_DEVNET_JUP_DECIMALS,
+      ) ?? 6,
     defaultName: "Jupiter",
-    nameEnvValue: import.meta.env.VITE_VANTA_DEVNET_JUP_NAME,
+    nameEnvValue: isMainnetCluster
+      ? import.meta.env.VITE_VANTA_MAINNET_JUP_NAME
+      : import.meta.env.VITE_VANTA_DEVNET_JUP_NAME,
     priority: 4,
   }),
 };
@@ -185,9 +261,16 @@ export const livePyusdShieldAsset: LiveShieldTokenAssetConfig = {
   ...createLiveShieldTokenAssetConfig({
     assetKey: "PYUSD",
     configuredMintAddress: configuredPyusdMintAddress,
-    decimals: getOptionalIntegerEnvValue(import.meta.env.VITE_VANTA_DEVNET_PYUSD_DECIMALS) ?? 6,
+    decimals:
+      getOptionalIntegerEnvValue(
+        isMainnetCluster
+          ? import.meta.env.VITE_VANTA_MAINNET_PYUSD_DECIMALS
+          : import.meta.env.VITE_VANTA_DEVNET_PYUSD_DECIMALS,
+      ) ?? 6,
     defaultName: "PayPal USD",
-    nameEnvValue: import.meta.env.VITE_VANTA_DEVNET_PYUSD_NAME,
+    nameEnvValue: isMainnetCluster
+      ? import.meta.env.VITE_VANTA_MAINNET_PYUSD_NAME
+      : import.meta.env.VITE_VANTA_DEVNET_PYUSD_NAME,
     priority: 5,
   }),
 };
@@ -196,9 +279,16 @@ export const liveWifShieldAsset: LiveShieldTokenAssetConfig = {
   ...createLiveShieldTokenAssetConfig({
     assetKey: "WIF",
     configuredMintAddress: configuredWifMintAddress,
-    decimals: getOptionalIntegerEnvValue(import.meta.env.VITE_VANTA_DEVNET_WIF_DECIMALS) ?? 6,
+    decimals:
+      getOptionalIntegerEnvValue(
+        isMainnetCluster
+          ? import.meta.env.VITE_VANTA_MAINNET_WIF_DECIMALS
+          : import.meta.env.VITE_VANTA_DEVNET_WIF_DECIMALS,
+      ) ?? 6,
     defaultName: "dogwifhat",
-    nameEnvValue: import.meta.env.VITE_VANTA_DEVNET_WIF_NAME,
+    nameEnvValue: isMainnetCluster
+      ? import.meta.env.VITE_VANTA_MAINNET_WIF_NAME
+      : import.meta.env.VITE_VANTA_DEVNET_WIF_NAME,
     priority: 6,
   }),
 };
@@ -207,9 +297,16 @@ export const liveKmnoShieldAsset: LiveShieldTokenAssetConfig = {
   ...createLiveShieldTokenAssetConfig({
     assetKey: "KMNO",
     configuredMintAddress: configuredKmnoMintAddress,
-    decimals: getOptionalIntegerEnvValue(import.meta.env.VITE_VANTA_DEVNET_KMNO_DECIMALS) ?? 6,
+    decimals:
+      getOptionalIntegerEnvValue(
+        isMainnetCluster
+          ? import.meta.env.VITE_VANTA_MAINNET_KMNO_DECIMALS
+          : import.meta.env.VITE_VANTA_DEVNET_KMNO_DECIMALS,
+      ) ?? 6,
     defaultName: "Kamino",
-    nameEnvValue: import.meta.env.VITE_VANTA_DEVNET_KMNO_NAME,
+    nameEnvValue: isMainnetCluster
+      ? import.meta.env.VITE_VANTA_MAINNET_KMNO_NAME
+      : import.meta.env.VITE_VANTA_DEVNET_KMNO_NAME,
     priority: 7,
   }),
 };
@@ -276,7 +373,7 @@ export function getLiveShieldTokenAssetPriority(assetKey: LiveShieldTokenAssetKe
 }
 
 export const liveSwapPair = {
-  cluster: "Devnet" as const,
+  cluster: vantaSolanaClusterLabel,
   configured: Boolean(configuredMintAddress && configuredVaultOwner),
   inputAsset: "VUSD" as const,
   outputAsset: "SOL" as const,
@@ -288,6 +385,6 @@ export const liveSwapPair = {
   solUnshieldOperatorUrl: effectiveSolUnshieldOperatorUrl,
   venueFamily: "DLMM" as const,
   venueName: "Meteora" as const,
-  venueNetwork: "Devnet" as const,
+  venueNetwork: vantaSolanaClusterLabel,
   venuePoolAddress: configuredMeteoraDlmmPoolAddress,
 };

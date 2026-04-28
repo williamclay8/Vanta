@@ -28,7 +28,7 @@ Avoid:
 - production-ready
 - audited
 - trustless
-- live mainnet private settlement
+- production mainnet private settlement
 - compliance-safe
 - production payment processor
 
@@ -259,4 +259,3 @@ Today is a bounded beta demo, capped at 1 SOL. Not production-ready privacy yet.
 - Burn captions into the video.
 - Stop recording if a wallet prompt shows unexpected destination, amount, or authority.
 - Do not approve anything outside the 1 SOL bounded demo.
-

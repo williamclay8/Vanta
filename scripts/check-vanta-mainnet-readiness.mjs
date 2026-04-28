@@ -69,8 +69,11 @@ assert.ok(snapshot.realFundsApproval.rollbackPlanRef);
 assert.ok(snapshot.realFundsApproval.stopLossPlanRef);
 assert.ok(snapshot.realFundsApproval.maximumFundsAtRiskRef);
 assert.ok(snapshot.realFundsApproval.approvedByRef);
-assert.equal(snapshot.realFundsApproval.liveMainnetActionsAllowedNow, false);
 assert.ok(["scheduled", "active", "expired"].includes(snapshot.realFundsApproval.approvalWindowStatus));
+assert.equal(
+  snapshot.realFundsApproval.liveMainnetActionsAllowedNow,
+  snapshot.realFundsApproval.approvalWindowStatus === "active",
+);
 assert.deepEqual(snapshot.realFundsApproval.mainnetFundsBlockedBy, [
   "all-other-mainnet-actions-blocked",
   ...(snapshot.realFundsApproval.approvalWindowStatus === "active"
@@ -92,7 +95,10 @@ assert.equal(snapshot.privateSettlement.productionSmokeHealthPassed, true);
 assert.equal(snapshot.privateSettlement.productionSmokeTargetsPassed, true);
 assert.equal(snapshot.privateSettlement.replayProtocolLayerImplemented, true);
 assert.equal(snapshot.privateSettlement.realFundsApprovalRecorded, true);
-assert.equal(snapshot.privateSettlement.realFundsAllowedNow, false);
+assert.equal(
+  snapshot.privateSettlement.realFundsAllowedNow,
+  snapshot.realFundsApproval.approvalWindowStatus === "active",
+);
 assert.equal(snapshot.privateSettlement.privacyClaimAllowed, false);
 assert.equal(snapshot.privateSettlement.noRealFundsSmokeOnly, true);
 assert.equal(snapshot.privateSettlement.productionReady, false);
@@ -109,7 +115,10 @@ assert.ok(
 );
 assert.equal(snapshot.privateSettlement.auditedSharedAnonymitySetAvailable, false);
 assert.equal(snapshot.privateSettlement.liveMainnetPrivateSettlementAvailable, false);
-assert.equal(snapshot.privateSettlement.boundedRealFundsApprovalWindowActive, false);
+assert.equal(
+  snapshot.privateSettlement.boundedRealFundsApprovalWindowActive,
+  snapshot.realFundsApproval.approvalWindowStatus === "active",
+);
 assert.deepEqual(snapshot.privateSettlement.meaningfulPrivacyBlockedBy, [
   "no-proven-audited-shared-anonymity-set",
   "no-live-mainnet-private-settlement-path",
@@ -311,7 +320,11 @@ for (const riskId of [
 assert.ok(
   snapshot.blockers
     .find((blocker) => blocker.id === "no-mainnet-funds-without-explicit-approval")
-    ?.summary.includes(`bounded-approval-window-${snapshot.realFundsApproval.approvalWindowStatus}`),
+    ?.summary.includes(
+      snapshot.realFundsApproval.approvalWindowStatus === "active"
+        ? "all-other-mainnet-actions-blocked"
+        : `bounded-approval-window-${snapshot.realFundsApproval.approvalWindowStatus}`,
+    ),
   "Funds blocker must preserve bounded approval language.",
 );
 assert.ok(

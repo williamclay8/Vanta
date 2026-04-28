@@ -13,7 +13,12 @@ import {
 } from "@/solana/shieldedSendCapability";
 import { useVantaShieldState } from "@/solana/useVantaShieldState";
 import { useRealtimeSignatureProgress } from "@/solana/useRealtimeSignatureProgress";
-import { liveShieldAsset, type LiveShieldTokenAssetKey } from "@/solana/shieldConfig";
+import {
+  liveShieldAsset,
+  type LiveShieldTokenAssetKey,
+  vantaExplicitMainnetApproval,
+  vantaSolanaCluster,
+} from "@/solana/shieldConfig";
 import { useVantaShieldAssetRegistryState } from "@/solana/useVantaShieldAssetRegistryState";
 import {
   createPreparedSendMemo,
@@ -671,7 +676,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         return spentMarkerTransaction.send({
           amount: pendingSendBridge?.sentAmountDisplay ?? "0",
           asset: "VUSD",
-          cluster: "devnet",
+          cluster: vantaSolanaCluster,
+          explicitMainnetApproval: vantaExplicitMainnetApproval,
           connectedWalletAddress: pendingSpentMarker.owner,
           estimatedFees: "wallet-estimated",
           feePayer: pendingSpentMarker.owner,
@@ -855,7 +861,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     await sendNoteTransaction.send({
       amount: args.amountNumeric.toString(),
       asset: "VUSD",
-      cluster: "devnet",
+      cluster: vantaSolanaCluster,
+      explicitMainnetApproval: vantaExplicitMainnetApproval,
       connectedWalletAddress: args.shieldAccountState.owner,
       estimatedFees: "wallet-estimated",
       feePayer: args.shieldAccountState.owner,

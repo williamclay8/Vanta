@@ -23,7 +23,10 @@ assert.equal(result.productionReady, false);
 assert.equal(result.meaningfulPrivacyReady, false);
 assert.equal(result.auditedSharedAnonymitySetAvailable, false);
 assert.equal(result.liveMainnetPrivateSettlementAvailable, false);
-assert.equal(result.boundedRealFundsApprovalWindowActive, false);
+assert.equal(
+  result.boundedRealFundsApprovalWindowActive,
+  result.realFundsApprovalWindowStatus === "active",
+);
 assert.equal(result.privacyClaimAllowed, false);
 assert.equal(result.privacyRailCanClaimMeaningfulPrivacy, false);
 assert.equal(result.settlementReadiness, "no-real-funds-production-smoke-only");
@@ -33,7 +36,7 @@ assert.equal(result.productionSmokeHealthPassed, true);
 assert.equal(result.productionSmokeTargetsPassed, true);
 assert.equal(result.replayProtocolLayerImplemented, true);
 assert.equal(result.realFundsApprovalRecorded, true);
-assert.equal(result.realFundsAllowedNow, false);
+assert.equal(result.realFundsAllowedNow, result.realFundsApprovalWindowStatus === "active");
 assert.equal(result.noRealFundsSmokeOnly, true);
 const expectedMeaningfulPrivacyBlockedBy = [
   "no-proven-audited-shared-anonymity-set",

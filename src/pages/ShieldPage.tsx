@@ -20,6 +20,8 @@ import type { UmbraOperationApprovalDisplay } from "@/privacy/umbraOperations";
 import { createShieldAssetCapability } from "@/solana/shieldAssetCapability";
 import {
   type LiveShieldTokenAssetKey,
+  vantaExplicitMainnetApproval,
+  vantaSolanaCluster,
 } from "@/solana/shieldConfig";
 import { selectUniversalShieldTarget } from "@/solana/universalShieldTarget";
 import { useRealtimeSignatureProgress } from "@/solana/useRealtimeSignatureProgress";
@@ -300,7 +302,8 @@ export function ShieldPage(_props: ShieldPageProps) {
     await splShieldTransferTransaction.send({
       amount: amountDisplay,
       asset: selectedShieldAsset.assetKey,
-      cluster: "devnet",
+      cluster: vantaSolanaCluster,
+      explicitMainnetApproval: vantaExplicitMainnetApproval,
       connectedWalletAddress: walletAddress,
       estimatedFees: "wallet-estimated",
       feePayer: walletAddress,
@@ -347,7 +350,8 @@ export function ShieldPage(_props: ShieldPageProps) {
     await nativeSolShieldTransaction.send({
       amount: amountDisplay,
       asset: "SOL",
-      cluster: "devnet",
+      cluster: vantaSolanaCluster,
+      explicitMainnetApproval: vantaExplicitMainnetApproval,
       connectedWalletAddress: walletAddress,
       estimatedFees: "wallet-estimated",
       feePayer: walletAddress,
@@ -622,7 +626,8 @@ export function ShieldPage(_props: ShieldPageProps) {
         return stateTransaction.send({
           amount: pendingShieldAmountDisplay ?? amount,
           asset: selectedShieldAsset.assetKey,
-          cluster: "devnet",
+          cluster: vantaSolanaCluster,
+          explicitMainnetApproval: vantaExplicitMainnetApproval,
           connectedWalletAddress: walletAddress ?? owner,
           estimatedFees: "wallet-estimated",
           feePayer: walletAddress ?? owner,
@@ -889,7 +894,8 @@ export function ShieldPage(_props: ShieldPageProps) {
       await publicRouteTransaction.send({
         amount,
         asset: selectedSourceAsset.symbol,
-        cluster: "devnet",
+        cluster: vantaSolanaCluster,
+        explicitMainnetApproval: vantaExplicitMainnetApproval,
         connectedWalletAddress: walletAddress!,
         estimatedFees: "wallet-estimated",
         feePayer: walletAddress!,

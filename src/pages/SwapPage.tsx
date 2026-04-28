@@ -17,6 +17,8 @@ import {
   liveShieldAsset,
   liveSwapPair,
   type LiveShieldTokenAssetKey,
+  vantaExplicitMainnetApproval,
+  vantaSolanaCluster,
 } from "@/solana/shieldConfig";
 import {
   fetchSwapLaneHealth,
@@ -480,7 +482,8 @@ export function SwapPage() {
           return spentMarkerTransaction.send({
             amount: pendingSwapBridge.input.amountDisplay,
             asset: "VUSD",
-            cluster: "devnet",
+            cluster: vantaSolanaCluster,
+      explicitMainnetApproval: vantaExplicitMainnetApproval,
             connectedWalletAddress: pendingSpentMarker.owner,
             estimatedFees: "wallet-estimated",
             feePayer: pendingSpentMarker.owner,
@@ -858,7 +861,8 @@ export function SwapPage() {
     await swapTransaction.send({
       amount: args.note.amount.toString(),
       asset: "VUSD",
-      cluster: "devnet",
+      cluster: vantaSolanaCluster,
+      explicitMainnetApproval: vantaExplicitMainnetApproval,
       connectedWalletAddress: args.shieldAccountState.owner,
       estimatedFees: "wallet-estimated",
       feePayer: args.shieldAccountState.owner,
