@@ -55,7 +55,7 @@
     "actualPrivateRailRegression": "local-and-role-service-covered",
     "sharedPoolAnonymity": "blocked",
     "relayerSeparation": "blocked",
-    "nullifierRootEnforcement": "operator-and-role-service-covered-not-production-ready",
+    "nullifierRootEnforcement": "actual-private-nullifier-covered-root-freshness-blocked",
     "safeLogging": "local-contract-covered",
     "audit": "packet-template-only",
     "mainnetEvidence": "no-real-funds-smoke-only"
@@ -64,6 +64,7 @@
     "No live mainnet production cohort metrics are recorded.",
     "No asset cohort has at least 1024 distinct live commitments.",
     "No independent reviewer has accepted the anonymity-set measurement.",
+    "No live mainnet accepted-root freshness evidence is recorded for actual-private spends.",
     "No production relayer log-redaction evidence is recorded.",
     "No production deployment separation evidence is recorded.",
     "No third-party audit report and fix-verification packet is recorded.",

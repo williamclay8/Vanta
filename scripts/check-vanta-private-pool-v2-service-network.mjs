@@ -205,10 +205,12 @@ try {
     insecureProduction.stderr.on("data", (chunk) => {
       insecureStderr += chunk.toString("utf8");
     });
-    const insecureExitCode = await waitForExit(insecureProduction);
+    const insecureExitCode = await waitForExit(insecureProduction, 5_000);
     if (insecureExitCode === null) {
       insecureProduction.kill("SIGTERM");
-      throw new Error(`Expected insecure production ${service.role} service to exit.`);
+      throw new Error(
+        `Expected insecure production ${service.role} service to exit. stderr=${insecureStderr}`,
+      );
     }
     assert(
       insecureStderr.includes(service.tokenEnv),
@@ -231,10 +233,12 @@ try {
     storelessProduction.stderr.on("data", (chunk) => {
       storelessStderr += chunk.toString("utf8");
     });
-    const storelessExitCode = await waitForExit(storelessProduction);
+    const storelessExitCode = await waitForExit(storelessProduction, 5_000);
     if (storelessExitCode === null) {
       storelessProduction.kill("SIGTERM");
-      throw new Error(`Expected storeless production ${service.role} service to exit.`);
+      throw new Error(
+        `Expected storeless production ${service.role} service to exit. stderr=${storelessStderr}`,
+      );
     }
     assert(
       storelessStderr.includes(service.storeEnv),

@@ -87,6 +87,10 @@ assert.equal(relayer.productionReady, false);
 assert.equal(relayer.relayerSeparationReady, false);
 assert.equal(nullifier.protocolEnforcementFinalLayerImplemented, true);
 assert.equal(nullifier.protocolEnforcementFinalLayerProductionReady, false);
+assert.equal(
+  nullifier.actualPrivateSpendRootNullifierEnforcement.acceptedRootFreshnessProductionReady,
+  false,
+);
 assert.equal(roleService.productionReady, false);
 assert.equal(productionSmoke.productionReady, false);
 assert.equal(productionSmoke.realFundsAllowed, false);
@@ -96,7 +100,7 @@ assert.equal(packet.evidenceStatus.sharedPoolAnonymity, "blocked");
 assert.equal(packet.evidenceStatus.relayerSeparation, "blocked");
 assert.equal(
   packet.evidenceStatus.nullifierRootEnforcement,
-  "operator-and-role-service-covered-not-production-ready",
+  "actual-private-nullifier-covered-root-freshness-blocked",
 );
 assert.equal(packet.evidenceStatus.safeLogging, "local-contract-covered");
 assert.equal(packet.evidenceStatus.audit, "packet-template-only");
@@ -106,6 +110,7 @@ for (const blocker of [
   "No live mainnet production cohort metrics are recorded.",
   "No asset cohort has at least 1024 distinct live commitments.",
   "No independent reviewer has accepted the anonymity-set measurement.",
+  "No live mainnet accepted-root freshness evidence is recorded for actual-private spends.",
   "No production relayer log-redaction evidence is recorded.",
   "No production deployment separation evidence is recorded.",
   "No third-party audit report and fix-verification packet is recorded.",

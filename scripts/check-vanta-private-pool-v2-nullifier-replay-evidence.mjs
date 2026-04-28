@@ -90,11 +90,23 @@ assert.equal(
 );
 assert.equal(evidence.productionSmokeReplaySimulationStatus, "pass");
 assert.equal(evidence.productionSmokeReplaySimulationHttpStatus, 400);
+assert.deepEqual(evidence.actualPrivateSpendRootNullifierEnforcement, {
+  requestShapeRef: "npm run private-transaction:mvp-check",
+  localNullifierAndOutputAppendRef: "npm run private-pool-v2:local-runtime-check",
+  roleServiceMirrorRef: "npm run private-pool-v2:service-network-check",
+  productionSmokeRef: "ops/mainnet/private-pool-v2-production-smoke.evidence.json#actual-private-spend-simulation",
+  nullifierReplayKeyMode: "private-send:nullifier",
+  acceptedRootPublicInputMode: "accepted-root-bound-in-proof-public-inputs",
+  acceptedRootFreshnessStatus: "blocked-no-live-mainnet-root-freshness-evidence",
+  actualPrivateNullifierReplayProductionReady: false,
+  acceptedRootFreshnessProductionReady: false,
+});
 assert.equal(evidence.noRealFundsSmokeOnly, true);
 assert.equal(evidence.auditedSharedAnonymitySetAvailable, false);
 assert.equal(evidence.liveMainnetPrivateSettlementAvailable, false);
 assert.deepEqual(evidence.productionReplayBlockedBy, [
   "no-real-funds-smoke-only",
+  "no-live-actual-private-accepted-root-freshness-evidence",
   "no-proven-audited-shared-anonymity-set",
   "no-live-mainnet-private-settlement-path",
 ]);
@@ -116,6 +128,10 @@ assert.equal(
 assert.ok(
   evidence.deploymentTruth.includes("no proven audited shared anonymity set"),
   "Evidence must preserve the missing audited-anonymity-set truth.",
+);
+assert.ok(
+  evidence.deploymentTruth.includes("no live mainnet accepted-root freshness evidence"),
+  "Evidence must preserve the missing actual-private root freshness truth.",
 );
 assert.ok(
   evidence.deploymentTruth.includes("live mainnet private settlement is still unavailable"),
