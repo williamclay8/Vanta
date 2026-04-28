@@ -23,6 +23,7 @@ export function createVantaPrivatePoolV2ProductionSmokeStatus() {
     smokeTargetStatuses: evidence.smokeTargets.map((target) => ({
       id: target.id,
       replayStatus: target.replayStatus ?? null,
+      rejectionStatus: target.rejectionStatus ?? null,
       status: target.status,
     })),
     version: "vanta-private-pool-v2-production-smoke-summary-0.1",

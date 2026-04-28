@@ -572,32 +572,6 @@ export function createVantaPayPrivateSettlementAdapter({
     return defaultProtocol;
   }
 
-  async function settleThroughPrivatePoolOperator<T>(body: Record<string, unknown>) {
-    if (!privatePoolOperatorUrl) {
-      return null;
-    }
-
-    const response = await fetch(`${privatePoolOperatorUrl}/private-pool-v2/pay-settlements`, {
-      body: JSON.stringify(body),
-      headers: {
-        "Content-Type": "application/json",
-        ...(privatePoolOperatorAuthToken
-          ? { Authorization: `Bearer ${privatePoolOperatorAuthToken}` }
-          : {}),
-      },
-      method: "POST",
-    });
-    const payload = await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        `Private Pool v2 operator rejected Pay settlement: ${payload.error ?? response.status}`,
-      );
-    }
-
-    return payload as T;
-  }
-
   async function settleProtocolThroughPrivatePoolOperator<T>(body: Record<string, unknown>) {
     if (!privatePoolOperatorUrl) {
       return null;
@@ -859,19 +833,6 @@ export function createVantaPayPrivateSettlementAdapter({
     });
     if (committedOperatorSettlement) {
       return committedOperatorSettlement;
-    }
-
-    const operatorSettlement = await settleThroughPrivatePoolOperator<{
-      privateExitReceipt: VantaPayPrivateExitReceipt;
-    }>({
-      amount,
-      asset,
-      destination,
-      kind: "withdrawal",
-      merchantId,
-    });
-    if (operatorSettlement) {
-      return operatorSettlement.privateExitReceipt;
     }
 
     const activeProtocol = await getActiveProtocol();

@@ -98,8 +98,8 @@
       "status": "pass"
     },
     {
-      "id": "operator-pay-settlement-simulation",
-      "proofReceiptIdPrefix": "ppv2_aa8c083f7b1be",
+      "id": "operator-raw-pay-settlement-rejection",
+      "rejectionStatus": 410,
       "status": "pass"
     }
   ],

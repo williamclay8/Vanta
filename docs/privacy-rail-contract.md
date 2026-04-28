@@ -74,6 +74,8 @@ checkout amount, asset, destination, owner, session, client token, email, and
 merchant id. The configured-operator Pay withdrawal path now routes through
 committed protocol `unshield` settlement with commitment-only economics, route,
 exit, owner, input, and nullifier handles instead of raw `/pay-settlements`.
+The legacy raw Pay settlement endpoint is fail-closed by default and is not a
+production readiness endpoint.
 This is not a completed private payment processor: production privacy claims
 remain blocked until live mainnet settlement, audited anonymity-set evidence,
 relayer-separated production execution, durable production services, and the
