@@ -47,6 +47,7 @@ import {
   type VantaShieldedSolNote,
 } from "@/solana/vantaShieldState";
 import { useWalletState } from "@/data/context/WalletContext";
+import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
 import { requestVantaPrivatePoolV2ProtocolSettlement } from "@/privacy/privatePoolV2ProtocolSettlementClient";
 import {
   createCommittedSwapSettlementTerms,
@@ -151,6 +152,7 @@ function formatReadyAssetOptionLabel(args: {
 }
 
 export function SwapPage() {
+  const { recentShield } = usePrivacyFlow();
   const { walletAddress, walletConnected } = useWalletState();
   const walletSession = useWalletSession();
   const {
@@ -225,14 +227,22 @@ export function SwapPage() {
   const shieldedSolSourceAccount = shieldedSolSourceEntry?.account ?? shieldAccount;
   const selectedSourceAccount =
     selectedSourceAsset === "SOL" ? shieldedSolSourceAccount : selectedTokenSourceEntry?.account ?? null;
+  const recentShieldedSolBalance =
+    recentShield?.asset === "SOL"
+      ? Math.max(recentShield.amount, recentShield.resultingShieldedBalance)
+      : 0;
 
   const getShieldedAssetBalance = useCallback((asset: ShieldedSwapAssetKey) => {
     if (asset === "SOL") {
-      return shieldedSolSourceAccount?.shieldedSolBalance ?? 0;
+      return Math.max(shieldedSolSourceAccount?.shieldedSolBalance ?? 0, recentShieldedSolBalance);
     }
 
     return shieldAssetRegistry.byAssetKey[asset]?.account?.balance ?? 0;
-  }, [shieldAssetRegistry.byAssetKey, shieldedSolSourceAccount?.shieldedSolBalance]);
+  }, [
+    recentShieldedSolBalance,
+    shieldAssetRegistry.byAssetKey,
+    shieldedSolSourceAccount?.shieldedSolBalance,
+  ]);
 
   const readySourceAssetOptions = useMemo(
     () =>
@@ -350,7 +360,7 @@ export function SwapPage() {
   const selectedShieldAsset = getLiveShieldTokenAsset(selectedShieldAssetKey);
   const sourceBalance =
     selectedSourceAsset === "SOL"
-      ? shieldedSolSourceAccount?.shieldedSolBalance ?? 0
+      ? Math.max(shieldedSolSourceAccount?.shieldedSolBalance ?? 0, recentShieldedSolBalance)
       : selectedSourceAccount?.balance ?? 0;
   const exactSpendableNote = useMemo(() => {
     if (

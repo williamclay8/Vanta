@@ -29,6 +29,7 @@ const requiredCapabilityMarkers = [
 const requiredPageMarkers = [
   "selectedSourceAsset",
   "selectedTargetAsset",
+  "recentShield",
   "getShieldedSwapPairCapability",
   "listShieldedSwapAssetOptions",
   "readySourceAssetOptions",
@@ -39,6 +40,7 @@ const requiredPageMarkers = [
   "ready",
   "no shielded notes",
   "shieldAssetRegistry.entries.find((entry) => (entry.account?.shieldedSolBalance ?? 0) > 0)",
+  "recentShield?.asset === \"SOL\"",
   "pendingSpentMarker && pendingSpentMarker.asset === \"SOL\"",
   "shieldAccountState: selectedSourceAccount",
   "selectedSourceOption?.ready",
