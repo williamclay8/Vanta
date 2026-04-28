@@ -65,18 +65,37 @@ function cleanupBrowserLock() {
 }
 
 function runBrowserBatchWithRetry(baseUrl, steps) {
-  try {
-    runBrowserBatch(baseUrl, steps);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
+  let lastError;
 
-    if (!message.includes("daemon exited during startup")) {
-      throw error;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      runBrowserBatch(baseUrl, steps);
+      return;
+    } catch (error) {
+      lastError = error;
+      const messageParts = [error instanceof Error ? error.message : String(error)];
+      if (error && typeof error === "object" && "stdout" in error) {
+        messageParts.push(Buffer.from(error.stdout ?? "").toString("utf8"));
+      }
+      if (error && typeof error === "object" && "stderr" in error) {
+        messageParts.push(Buffer.from(error.stderr ?? "").toString("utf8"));
+      }
+      const message = messageParts.join("\n");
+
+      if (
+        !message.includes("daemon exited during startup") &&
+        !message.includes("daemon closed connection without response") &&
+        !message.includes("status signal: 15 (SIGTERM)")
+      ) {
+        throw error;
+      }
+
+      cleanupBrowserLock();
+      execFileSync("sleep", ["0.25"], { stdio: "ignore" });
     }
-
-    cleanupBrowserLock();
-    runBrowserBatch(baseUrl, steps);
   }
+
+  throw lastError;
 }
 
 async function runScenario({
