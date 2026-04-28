@@ -3,6 +3,9 @@ import {
   type SolanaClient,
   type TransactionInstructionInput,
 } from "@solana/client";
+import { xchacha20poly1305 } from "@noble/ciphers/chacha.js";
+import { sha256 } from "@noble/hashes/sha256";
+import { utf8ToBytes } from "@noble/hashes/utils";
 import {
   ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS,
   getLiveShieldTokenAsset,
@@ -17,6 +20,10 @@ const VANTA_UNSHIELD_MEMO_PREFIX = "vanta:unshield-note:v1:";
 const VANTA_SWAP_MEMO_PREFIX = "vanta:swap-note:v1:";
 const VANTA_SOL_UNSHIELD_MEMO_PREFIX = "vanta:sol-unshield-note:v1:";
 export const VANTA_NATIVE_SOL_SHIELD_MEMO_PREFIX = "vanta:native-sol-shield-note:v1:";
+export const VANTA_SHIELD_MEMO_PREFIX_V2 = "vanta:shield-note:v2:";
+export const VANTA_NATIVE_SOL_SHIELD_MEMO_PREFIX_V2 = "vanta:native-sol-shield-note:v2:";
+const VANTA_SHIELD_MEMO_KEY_DOMAIN_V1 = "vanta-shield-memo-key:v1";
+const VANTA_SHIELD_MEMO_VERSION_BYTE = 0x01;
 const VANTA_SPENT_MARKER_MEMO_PREFIX = "vanta:spent-marker:v1:";
 export const VANTA_NATIVE_SOL_ASSET_ID =
   "So11111111111111111111111111111111111111112";
@@ -356,6 +363,183 @@ function createMemoInstruction(prefix: string, payload: object): TransactionInst
   };
 }
 
+function canonicalJsonStringify(value: unknown): string {
+  if (value === null || typeof value !== "object") {
+    return JSON.stringify(value);
+  }
+
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => canonicalJsonStringify(item)).join(",")}]`;
+  }
+
+  const entries = Object.entries(value as Record<string, unknown>)
+    .filter(([, fieldValue]) => fieldValue !== undefined)
+    .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0));
+
+  return `{${entries
+    .map(([key, fieldValue]) => `${JSON.stringify(key)}:${canonicalJsonStringify(fieldValue)}`)
+    .join(",")}}`;
+}
+
+function base64UrlEncode(bytes: Uint8Array): string {
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 1) {
+    binary += String.fromCharCode(bytes[i]!);
+  }
+  // btoa is available in browsers and modern Node (>= 16) globals.
+  const base64 =
+    typeof btoa === "function"
+      ? btoa(binary)
+      : Buffer.from(bytes).toString("base64");
+  return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function base64UrlDecode(value: string): Uint8Array {
+  const padded = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padLength = (4 - (padded.length % 4)) % 4;
+  const normalized = padded + "=".repeat(padLength);
+  let binary: string;
+  if (typeof atob === "function") {
+    binary = atob(normalized);
+  } else {
+    binary = Buffer.from(normalized, "base64").toString("binary");
+  }
+  const out = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    out[i] = binary.charCodeAt(i);
+  }
+  return out;
+}
+
+function deriveShieldMemoSymmetricKey(ownerPubkey: string): Uint8Array {
+  // TODO(viewing-key): replace this owner-derived placeholder with a proper
+  // ECDH(owner_viewing_key, ephemeral_pubkey) key agreement before mainnet so
+  // anyone scraping the chain cannot reproduce the memo key from a public
+  // pubkey alone. For the v2 prototype we hash the UTF-8 base58-encoded owner
+  // string with a domain separator; this only frustrates passive scrapers.
+  const domain = utf8ToBytes(VANTA_SHIELD_MEMO_KEY_DOMAIN_V1);
+  const owner = utf8ToBytes(ownerPubkey);
+  const material = new Uint8Array(domain.length + owner.length);
+  material.set(domain, 0);
+  material.set(owner, domain.length);
+  return sha256(material);
+}
+
+function createEncryptedMemoInstruction(
+  prefix: string,
+  payload: object,
+  ownerPubkey: string,
+): TransactionInstructionInput {
+  // TODO(viewing-key): replace owner-derived symmetric key with ECDH against
+  // the owner's viewing key + an ephemeral pubkey before mainnet.
+  const key = deriveShieldMemoSymmetricKey(ownerPubkey);
+  const nonce = new Uint8Array(24);
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    crypto.getRandomValues(nonce);
+  } else {
+    // Fallback for environments without WebCrypto. Should not happen in browser
+    // or modern Node (>= 19), but keeps the helper safe under test harnesses.
+    const nodeCrypto = (globalThis as { crypto?: Crypto }).crypto;
+    if (nodeCrypto && typeof nodeCrypto.getRandomValues === "function") {
+      nodeCrypto.getRandomValues(nonce);
+    } else {
+      throw new Error("Vanta shield memo encryption requires crypto.getRandomValues");
+    }
+  }
+  const cipher = xchacha20poly1305(key, nonce);
+  const plaintext = utf8ToBytes(canonicalJsonStringify(payload));
+  const ciphertext = cipher.encrypt(plaintext);
+
+  const body = new Uint8Array(1 + nonce.length + ciphertext.length);
+  body[0] = VANTA_SHIELD_MEMO_VERSION_BYTE;
+  body.set(nonce, 1);
+  body.set(ciphertext, 1 + nonce.length);
+
+  const memoPayload = `${prefix}${base64UrlEncode(body)}`;
+
+  return {
+    accounts: [],
+    data: new TextEncoder().encode(memoPayload),
+    programAddress: toAddress(VANTA_SHIELD_MEMO_PROGRAM),
+  };
+}
+
+function tryDecryptShieldMemoBody<T>(
+  memoText: string,
+  prefix: string,
+  ownerPubkey: string,
+): T | null {
+  if (typeof memoText !== "string") {
+    return null;
+  }
+
+  const trimmed = memoText.trim();
+  const start = trimmed.indexOf(prefix);
+  if (start === -1) {
+    return null;
+  }
+
+  const encoded = trimmed.slice(start + prefix.length).trim();
+  if (encoded.length === 0) {
+    return null;
+  }
+
+  let body: Uint8Array;
+  try {
+    body = base64UrlDecode(encoded);
+  } catch {
+    return null;
+  }
+
+  if (body.length < 1 + 24 + 16) {
+    return null;
+  }
+  if (body[0] !== VANTA_SHIELD_MEMO_VERSION_BYTE) {
+    return null;
+  }
+
+  const nonce = body.slice(1, 1 + 24);
+  const ciphertext = body.slice(1 + 24);
+  const key = deriveShieldMemoSymmetricKey(ownerPubkey);
+
+  let plaintext: Uint8Array;
+  try {
+    const cipher = xchacha20poly1305(key, nonce);
+    plaintext = cipher.decrypt(ciphertext);
+  } catch {
+    return null;
+  }
+
+  try {
+    const text = new TextDecoder().decode(plaintext);
+    return JSON.parse(text) as T;
+  } catch {
+    return null;
+  }
+}
+
+export function tryDecryptShieldMemo(
+  memoText: string,
+  ownerPubkey: string,
+): ShieldMemoPayload | null {
+  return tryDecryptShieldMemoBody<ShieldMemoPayload>(
+    memoText,
+    VANTA_SHIELD_MEMO_PREFIX_V2,
+    ownerPubkey,
+  );
+}
+
+export function tryDecryptNativeSolShieldMemo(
+  memoText: string,
+  ownerPubkey: string,
+): NativeSolShieldMemoPayload | null {
+  return tryDecryptShieldMemoBody<NativeSolShieldMemoPayload>(
+    memoText,
+    VANTA_NATIVE_SOL_SHIELD_MEMO_PREFIX_V2,
+    ownerPubkey,
+  );
+}
+
 function hashString(input: string) {
   let hash = 0xcbf29ce484222325n;
 
@@ -600,17 +784,25 @@ function amountsMatch(left: number, right: number) {
 export function createShieldMemoInstruction(
   payload: Omit<ShieldMemoPayload, "kind" | "noteId">,
 ): TransactionInstructionInput {
-  return createMemoInstruction(VANTA_SHIELD_MEMO_PREFIX, {
+  // The noteId remains derived deterministically so other code that consumes
+  // it stays byte-identical, but it now lives only inside the encrypted
+  // payload so it never appears in cleartext on-chain.
+  const fullPayload: ShieldMemoPayload = {
     ...payload,
     kind: "shield",
     noteId: createShieldNoteId(payload),
-  } satisfies ShieldMemoPayload);
+  };
+  return createEncryptedMemoInstruction(
+    VANTA_SHIELD_MEMO_PREFIX_V2,
+    fullPayload,
+    payload.owner,
+  );
 }
 
 export function createNativeSolShieldMemoInstruction(
   payload: Omit<NativeSolShieldMemoPayload, "kind" | "noteId" | "asset">,
 ): TransactionInstructionInput {
-  return createMemoInstruction(VANTA_NATIVE_SOL_SHIELD_MEMO_PREFIX, {
+  const fullPayload: NativeSolShieldMemoPayload = {
     ...payload,
     asset: "SOL",
     kind: "native_sol_shield",
@@ -618,7 +810,12 @@ export function createNativeSolShieldMemoInstruction(
       ...payload,
       asset: "SOL",
     }),
-  } satisfies NativeSolShieldMemoPayload);
+  };
+  return createEncryptedMemoInstruction(
+    VANTA_NATIVE_SOL_SHIELD_MEMO_PREFIX_V2,
+    fullPayload,
+    payload.owner,
+  );
 }
 
 export function createSendMemoInstruction(
@@ -755,10 +952,67 @@ export function getShieldAccountId(owner: string, mintAddress: string) {
   return `vanta-shield:${owner}:${mintAddress}`;
 }
 
+function shieldNoteFromMemoPayload(
+  parsed: Partial<ShieldMemoPayload>,
+  stateSignature: string,
+): VantaShieldNote | null {
+  if (
+    parsed.kind !== "shield" ||
+    !isShieldTokenAsset(parsed.asset) ||
+    typeof parsed.owner !== "string" ||
+    typeof parsed.mintAddress !== "string" ||
+    typeof parsed.vaultOwner !== "string" ||
+    typeof parsed.depositSignature !== "string" ||
+    typeof parsed.amount !== "string" ||
+    typeof parsed.createdAt !== "number"
+  ) {
+    return null;
+  }
+
+  const parsedAmount = Number(parsed.amount);
+
+  if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+    return null;
+  }
+
+  const noteId =
+    typeof parsed.noteId === "string"
+      ? parsed.noteId
+      : createShieldNoteId({
+          amount: parsed.amount,
+          asset: parsed.asset,
+          createdAt: parsed.createdAt,
+          depositSignature: parsed.depositSignature,
+          mintAddress: parsed.mintAddress,
+          owner: parsed.owner,
+          vaultOwner: parsed.vaultOwner,
+        });
+
+  return {
+    amount: parsedAmount,
+    asset: parsed.asset,
+    createdAt: parsed.createdAt,
+    depositSignature: parsed.depositSignature,
+    kind: "shield",
+    mintAddress: parsed.mintAddress,
+    noteId,
+    origin: "deposit",
+    owner: parsed.owner,
+    stateSignature,
+    vaultOwner: parsed.vaultOwner,
+  };
+}
+
 function parseShieldMemo(
   memo: string | null | undefined,
   stateSignature: string,
+  owner: string,
 ): VantaShieldNote | null {
+  const encryptedPayload = tryDecryptShieldMemo(memo ?? "", owner);
+  if (encryptedPayload) {
+    return shieldNoteFromMemoPayload(encryptedPayload, stateSignature);
+  }
+
   const memoPayload = extractMemoPayload(memo, VANTA_SHIELD_MEMO_PREFIX);
 
   if (!memoPayload) {
@@ -766,62 +1020,73 @@ function parseShieldMemo(
   }
 
   try {
-    const parsed = JSON.parse(memoPayload) as Partial<ShieldMemoPayload>;
-
-    if (
-      parsed.kind !== "shield" ||
-      !isShieldTokenAsset(parsed.asset) ||
-      typeof parsed.owner !== "string" ||
-      typeof parsed.mintAddress !== "string" ||
-      typeof parsed.vaultOwner !== "string" ||
-      typeof parsed.depositSignature !== "string" ||
-      typeof parsed.amount !== "string" ||
-      typeof parsed.createdAt !== "number"
-    ) {
-      return null;
-    }
-
-    const parsedAmount = Number(parsed.amount);
-
-    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
-      return null;
-    }
-
-    const noteId =
-      typeof parsed.noteId === "string"
-        ? parsed.noteId
-        : createShieldNoteId({
-            amount: parsed.amount,
-            asset: parsed.asset,
-            createdAt: parsed.createdAt,
-            depositSignature: parsed.depositSignature,
-            mintAddress: parsed.mintAddress,
-            owner: parsed.owner,
-            vaultOwner: parsed.vaultOwner,
-          });
-
-    return {
-      amount: parsedAmount,
-      asset: parsed.asset,
-      createdAt: parsed.createdAt,
-      depositSignature: parsed.depositSignature,
-      kind: "shield",
-      mintAddress: parsed.mintAddress,
-      noteId,
-      origin: "deposit",
-      owner: parsed.owner,
+    return shieldNoteFromMemoPayload(
+      JSON.parse(memoPayload) as Partial<ShieldMemoPayload>,
       stateSignature,
-      vaultOwner: parsed.vaultOwner,
-    };
+    );
   } catch {
     return null;
   }
 }
 
+function nativeSolShieldNoteFromMemoPayload(
+  parsed: Partial<NativeSolShieldMemoPayload>,
+  stateSignature: string,
+): Omit<VantaShieldedSolNote, "lifecycleStatus"> | null {
+  if (
+    parsed.kind !== "native_sol_shield" ||
+    parsed.asset !== "SOL" ||
+    typeof parsed.assetId !== "string" ||
+    typeof parsed.owner !== "string" ||
+    typeof parsed.vaultOwner !== "string" ||
+    typeof parsed.depositSignature !== "string" ||
+    typeof parsed.amount !== "string" ||
+    typeof parsed.createdAt !== "number"
+  ) {
+    return null;
+  }
+
+  const parsedAmount = Number(parsed.amount);
+
+  if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+    return null;
+  }
+
+  const noteId =
+    typeof parsed.noteId === "string"
+      ? parsed.noteId
+      : createNativeSolShieldNoteId({
+          amount: parsed.amount,
+          asset: "SOL",
+          assetId: parsed.assetId,
+          createdAt: parsed.createdAt,
+          depositSignature: parsed.depositSignature,
+          owner: parsed.owner,
+          vaultOwner: parsed.vaultOwner,
+        });
+
+  return {
+    amount: parsedAmount,
+    asset: "SOL",
+    createdAt: parsed.createdAt,
+    noteId,
+    owner: parsed.owner,
+    sourceSwapNoteId: "native-sol-shield",
+    stateSignature,
+    vaultOwner: parsed.vaultOwner,
+  };
+}
+
 function parseNativeSolShieldMemo(
   memo: string | null | undefined,
   stateSignature: string,
+  owner: string,
 ): Omit<VantaShieldedSolNote, "lifecycleStatus"> | null {
+  const encryptedPayload = tryDecryptNativeSolShieldMemo(memo ?? "", owner);
+  if (encryptedPayload) {
+    return nativeSolShieldNoteFromMemoPayload(encryptedPayload, stateSignature);
+  }
+
   const memoPayload = extractMemoPayload(memo, VANTA_NATIVE_SOL_SHIELD_MEMO_PREFIX);
 
   if (!memoPayload) {
@@ -829,50 +1094,10 @@ function parseNativeSolShieldMemo(
   }
 
   try {
-    const parsed = JSON.parse(memoPayload) as Partial<NativeSolShieldMemoPayload>;
-
-    if (
-      parsed.kind !== "native_sol_shield" ||
-      parsed.asset !== "SOL" ||
-      typeof parsed.assetId !== "string" ||
-      typeof parsed.owner !== "string" ||
-      typeof parsed.vaultOwner !== "string" ||
-      typeof parsed.depositSignature !== "string" ||
-      typeof parsed.amount !== "string" ||
-      typeof parsed.createdAt !== "number"
-    ) {
-      return null;
-    }
-
-    const parsedAmount = Number(parsed.amount);
-
-    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
-      return null;
-    }
-
-    const noteId =
-      typeof parsed.noteId === "string"
-        ? parsed.noteId
-        : createNativeSolShieldNoteId({
-            amount: parsed.amount,
-            asset: "SOL",
-            assetId: parsed.assetId,
-            createdAt: parsed.createdAt,
-            depositSignature: parsed.depositSignature,
-            owner: parsed.owner,
-            vaultOwner: parsed.vaultOwner,
-          });
-
-    return {
-      amount: parsedAmount,
-      asset: "SOL",
-      createdAt: parsed.createdAt,
-      noteId,
-      owner: parsed.owner,
-      sourceSwapNoteId: "native-sol-shield",
+    return nativeSolShieldNoteFromMemoPayload(
+      JSON.parse(memoPayload) as Partial<NativeSolShieldMemoPayload>,
       stateSignature,
-      vaultOwner: parsed.vaultOwner,
-    };
+    );
   } catch {
     return null;
   }
@@ -1268,7 +1493,7 @@ export async function fetchVantaShieldAccountState(args: {
   const depositShieldNotes = signatures
     .filter((item: (typeof signatures)[number]) => item.err === null)
     .map((item: (typeof signatures)[number]) =>
-      parseShieldMemo(item.memo, item.signature.toString()),
+      parseShieldMemo(item.memo, item.signature.toString(), args.owner),
     )
     .filter((note: VantaShieldNote | null): note is VantaShieldNote => {
       return (
@@ -1282,7 +1507,7 @@ export async function fetchVantaShieldAccountState(args: {
   const directShieldedSolNotes = signatures
     .filter((item: (typeof signatures)[number]) => item.err === null)
     .map((item: (typeof signatures)[number]) =>
-      parseNativeSolShieldMemo(item.memo, item.signature.toString()),
+      parseNativeSolShieldMemo(item.memo, item.signature.toString(), args.owner),
     )
     .filter((note: Omit<VantaShieldedSolNote, "lifecycleStatus"> | null): note is Omit<VantaShieldedSolNote, "lifecycleStatus"> => {
       return note !== null && note.owner === args.owner && note.vaultOwner === args.vaultOwner;
