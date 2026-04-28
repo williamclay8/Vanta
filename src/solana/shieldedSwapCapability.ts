@@ -1,4 +1,5 @@
 import {
+  isNativeSolShieldConfigured,
   listAllLiveShieldTokenAssets,
   liveSolToShieldedSwapRouteAdapter,
   liveSwapPair,
@@ -42,7 +43,7 @@ export function listShieldedSwapAssetOptions(): ShieldedSwapAssetOption[] {
       symbol: asset.symbol,
     })),
     {
-      configured: liveSwapPair.configured,
+      configured: isNativeSolShieldConfigured(),
       label: SHIELDED_SWAP_ASSET_LABELS.SOL,
       symbol: "SOL" as const,
     },

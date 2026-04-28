@@ -23,6 +23,7 @@ const requiredCapabilityMarkers = [
   "Shielded WIF",
   "Shielded KMNO",
   "Shielded SOL",
+  "isNativeSolShieldConfigured",
 ];
 
 const requiredPageMarkers = [
@@ -30,6 +31,13 @@ const requiredPageMarkers = [
   "selectedTargetAsset",
   "getShieldedSwapPairCapability",
   "listShieldedSwapAssetOptions",
+  "readySourceAssetOptions",
+  "formatReadyAssetOptionLabel",
+  "preferredReadySourceAsset",
+  "ready",
+  "no shielded notes",
+  "selectedSourceOption?.ready",
+  "setSelectedSourceAsset(preferredReadySourceAsset.symbol)",
   "sourcePairCapability",
   "This shielded pair needs a private route adapter before it can execute.",
 ];
@@ -38,6 +46,10 @@ const forbiddenPageMarkers = [
   'listExecutableShieldedAssets().filter((asset) => asset.symbol === "SOL")',
   "selectedShieldedSourceAsset",
   "disabled\n                      onChange",
+];
+
+const forbiddenCapabilityMarkers = [
+  'configured: liveSwapPair.configured,\n      label: SHIELDED_SWAP_ASSET_LABELS.SOL',
 ];
 
 const failures = [];
@@ -57,6 +69,12 @@ for (const marker of requiredPageMarkers) {
 for (const marker of forbiddenPageMarkers) {
   if (swapPageSource.includes(marker)) {
     failures.push(`SwapPage.tsx must not retain VUSD/SOL-only marker: ${marker}`);
+  }
+}
+
+for (const marker of forbiddenCapabilityMarkers) {
+  if (capabilitySource.includes(marker)) {
+    failures.push(`shieldedSwapCapability.ts must not gate shielded SOL availability on the legacy swap pair: ${marker}`);
   }
 }
 

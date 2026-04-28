@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useWalletSession } from "@solana/react-hooks";
 import { isBetaMode } from "@/config/deploymentMode";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
@@ -133,6 +133,23 @@ function isLiveShieldTokenAssetKey(asset: ShieldedSwapAssetKey): asset is LiveSh
   return asset !== "SOL";
 }
 
+function formatReadyAssetOptionLabel(args: {
+  balance: number;
+  configured: boolean;
+  label: string;
+  symbol: ShieldedSwapAssetKey;
+}) {
+  if (!args.configured) {
+    return `${args.label} - not configured`;
+  }
+
+  if (args.balance <= 0) {
+    return `${args.label} - no shielded notes`;
+  }
+
+  return `${args.label} - ${formatAssetAmount(args.balance, args.symbol)} ready`;
+}
+
 export function SwapPage() {
   const { walletAddress, walletConnected } = useWalletState();
   const walletSession = useWalletSession();
@@ -203,6 +220,86 @@ export function SwapPage() {
     selectedTargetAsset === "SOL" ? null : shieldAssetRegistry.byAssetKey[selectedTargetAsset];
   const selectedSourceAccount =
     selectedSourceAsset === "SOL" ? shieldAccount : selectedTokenSourceEntry?.account ?? null;
+
+  const getShieldedAssetBalance = useCallback((asset: ShieldedSwapAssetKey) => {
+    if (asset === "SOL") {
+      return shieldAccount?.shieldedSolBalance ?? 0;
+    }
+
+    return shieldAssetRegistry.byAssetKey[asset]?.account?.balance ?? 0;
+  }, [shieldAccount?.shieldedSolBalance, shieldAssetRegistry.byAssetKey]);
+
+  const readySourceAssetOptions = useMemo(
+    () =>
+      shieldedSwapAssets
+        .map((asset, index) => {
+          const balance = getShieldedAssetBalance(asset.symbol);
+
+          return {
+            ...asset,
+            balance,
+            index,
+            ready: asset.configured && balance > 0,
+          };
+        })
+        .sort((left, right) => {
+          if (left.ready !== right.ready) {
+            return left.ready ? -1 : 1;
+          }
+
+          if (left.configured !== right.configured) {
+            return left.configured ? -1 : 1;
+          }
+
+          return left.index - right.index;
+        }),
+    [
+      shieldAccount?.shieldedSolBalance,
+      getShieldedAssetBalance,
+      shieldedSwapAssets,
+    ],
+  );
+
+  const preferredReadySourceAsset = useMemo(
+    () => readySourceAssetOptions.find((asset) => asset.ready) ?? null,
+    [readySourceAssetOptions],
+  );
+
+  useEffect(() => {
+    if (!preferredReadySourceAsset) {
+      return;
+    }
+
+    const selectedSourceOption = readySourceAssetOptions.find(
+      (asset) => asset.symbol === selectedSourceAsset,
+    );
+
+    if (selectedSourceOption?.ready || selectedSourceAsset === preferredReadySourceAsset.symbol) {
+      return;
+    }
+
+    setSelectedSourceAsset(preferredReadySourceAsset.symbol);
+    setStatus("idle");
+    setFlowError(null);
+    setQuote(null);
+    setQuoteError(null);
+
+    if (selectedTargetAsset === preferredReadySourceAsset.symbol) {
+      const nextTargetAsset = shieldedSwapAssets.find(
+        (asset) => asset.symbol !== preferredReadySourceAsset.symbol,
+      );
+
+      if (nextTargetAsset) {
+        setSelectedTargetAsset(nextTargetAsset.symbol);
+      }
+    }
+  }, [
+    preferredReadySourceAsset,
+    readySourceAssetOptions,
+    selectedSourceAsset,
+    selectedTargetAsset,
+    shieldedSwapAssets,
+  ]);
 
   const spendableNotes = useMemo(() => {
     const baseSpendableNotes =
@@ -1351,9 +1448,14 @@ export function SwapPage() {
                         setQuoteError(null);
                       }}
                     >
-                      {shieldedSwapAssets.map((asset) => (
+                      {readySourceAssetOptions.map((asset) => (
                         <option key={asset.symbol} value={asset.symbol}>
-                          {asset.label}
+                          {formatReadyAssetOptionLabel({
+                            balance: asset.balance,
+                            configured: asset.configured,
+                            label: asset.label,
+                            symbol: asset.symbol,
+                          })}
                         </option>
                       ))}
                     </select>
