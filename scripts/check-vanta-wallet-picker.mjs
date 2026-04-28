@@ -34,6 +34,21 @@ requireIncludes(
   "Wallet context must expose every discovered Wallet Standard connector.",
 );
 requireIncludes(
+  walletContext,
+  "fetchWalletLamportsFallback",
+  "Wallet context must include an explicit RPC fallback for native SOL balance recovery.",
+);
+requireIncludes(
+  walletContext,
+  "fallbackLamportsValue",
+  "Wallet context must use fallback lamports when the wallet balance hook has not hydrated.",
+);
+requireIncludes(
+  walletContext,
+  "new Connection(endpoint, \"confirmed\")",
+  "Wallet context SOL balance fallback must use the configured Solana endpoint.",
+);
+requireIncludes(
   appLayout,
   "sortedWalletConnectors.map",
   "App layout must render every discovered wallet connector, not only the preferred wallet.",

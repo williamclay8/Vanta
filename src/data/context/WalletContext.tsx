@@ -1,14 +1,16 @@
 import {
   createContext,
+  useEffect,
   useContext,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
+import { Connection, PublicKey } from "@solana/web3.js";
 import { useBalance, useWalletConnection } from "@solana/react-hooks";
 import type { WalletConnector } from "@solana/client";
 import type { ActiveWalletTopology } from "@/privateVault/privateVaultTypes";
-import { solanaClusterLabel } from "@/solana/client";
+import { endpoint, solanaClusterLabel } from "@/solana/client";
 import {
   createFreshWalletRecord,
   exportFreshWalletRecoveryFile,
@@ -89,8 +91,26 @@ function pickPreferredWalletConnector(connectors: readonly WalletConnector[]) {
   })[0];
 }
 
+let walletBalanceFallbackConnection: Connection | null = null;
+
+function getWalletBalanceFallbackConnection() {
+  if (!walletBalanceFallbackConnection) {
+    walletBalanceFallbackConnection = new Connection(endpoint, "confirmed");
+  }
+
+  return walletBalanceFallbackConnection;
+}
+
+async function fetchWalletLamportsFallback(address: string) {
+  return BigInt(
+    await getWalletBalanceFallbackConnection().getBalance(new PublicKey(address), "confirmed"),
+  );
+}
+
 export function WalletProvider({ children }: { children: ReactNode }) {
   const [freshWallet, setFreshWallet] = useState<FreshWalletRecord | null>(null);
+  const [fallbackLamportsValue, setFallbackLamportsValue] = useState<bigint | null>(null);
+  const [fallbackBalanceFetching, setFallbackBalanceFetching] = useState(false);
   const {
     connect,
     connected,
@@ -104,10 +124,49 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   } = useWalletConnection();
   const address = wallet?.account.address?.toString() ?? null;
   const balance = useBalance(address ?? undefined);
-  const lamportsValue =
+  const hookLamportsValue =
     typeof balance.lamports === "bigint" ? balance.lamports : null;
+  const lamportsValue = hookLamportsValue ?? fallbackLamportsValue;
   const solBalance =
     lamportsValue !== null ? Number(lamportsValue) / 1_000_000_000 : null;
+
+  useEffect(() => {
+    if (!address) {
+      setFallbackLamportsValue(null);
+      setFallbackBalanceFetching(false);
+      return;
+    }
+
+    if (hookLamportsValue !== null) {
+      setFallbackLamportsValue(null);
+      setFallbackBalanceFetching(false);
+      return;
+    }
+
+    let cancelled = false;
+    setFallbackBalanceFetching(true);
+
+    fetchWalletLamportsFallback(address)
+      .then((nextLamportsValue) => {
+        if (!cancelled) {
+          setFallbackLamportsValue(nextLamportsValue);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setFallbackLamportsValue(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setFallbackBalanceFetching(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [address, hookLamportsValue]);
   const preferredWalletConnector = useMemo(
     () => pickPreferredWalletConnector(connectors),
     [connectors],
@@ -158,7 +217,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       },
       lamportsBalance: lamportsValue,
       solBalance,
-      balanceFetching: balance.fetching,
+      balanceFetching: balance.fetching || fallbackBalanceFetching,
       clusterLabel: solanaClusterLabel,
     }),
     [
@@ -172,6 +231,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       currentConnector?.name,
       disconnect,
       freshWallet,
+      fallbackBalanceFetching,
       isReady,
       lamportsValue,
       preferredWalletConnector,
