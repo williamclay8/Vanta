@@ -1,5 +1,6 @@
 import {
   listAllLiveShieldTokenAssets,
+  liveSolToShieldedSwapRouteAdapter,
   liveSwapPair,
 } from "@/solana/shieldConfig";
 import type { ShieldedSwapAssetKey } from "@/solana/publicSwapRoute";
@@ -12,7 +13,10 @@ export type ShieldedSwapAssetOption = {
 
 export type ShieldedSwapPairCapability = {
   blockers: readonly string[];
-  executionMode: "operator-vusd-sol" | "needs-private-route-adapter";
+  executionMode:
+    | "operator-vusd-sol"
+    | "operator-sol-to-shielded"
+    | "needs-private-route-adapter";
   inputAsset: ShieldedSwapAssetKey;
   outputAsset: ShieldedSwapAssetKey;
   status: "live" | "blocked";
@@ -70,6 +74,29 @@ export function getShieldedSwapPairCapability(args: {
       inputAsset: args.inputAsset,
       outputAsset: args.outputAsset,
       status: "live",
+    };
+  }
+
+  if (args.inputAsset === "SOL" && args.outputAsset !== "SOL") {
+    if (
+      liveSolToShieldedSwapRouteAdapter.configured &&
+      liveSolToShieldedSwapRouteAdapter.supportedOutputAssets.includes(args.outputAsset)
+    ) {
+      return {
+        blockers: ["Shielded SOL route adapter is configured, but execution is blocked until the UI submits and verifies the SOL-to-shielded settlement receipt."],
+        executionMode: "operator-sol-to-shielded",
+        inputAsset: args.inputAsset,
+        outputAsset: args.outputAsset,
+        status: "blocked",
+      };
+    }
+
+    return {
+      blockers: ["Shielded SOL to shielded asset needs the SOL route adapter before it can execute."],
+      executionMode: "needs-private-route-adapter",
+      inputAsset: args.inputAsset,
+      outputAsset: args.outputAsset,
+      status: "blocked",
     };
   }
 

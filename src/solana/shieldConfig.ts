@@ -87,6 +87,9 @@ const configuredUnshieldOperatorUrl = getOptionalEnvValue(
 const configuredSwapOperatorUrl = getOptionalEnvValue(
   import.meta.env.VITE_VANTA_SWAP_OPERATOR_URL,
 );
+const configuredSolToShieldedSwapOperatorUrl = getOptionalEnvValue(
+  import.meta.env.VITE_VANTA_SOL_TO_SHIELDED_SWAP_OPERATOR_URL,
+);
 const configuredSolUnshieldOperatorUrl = getOptionalEnvValue(
   import.meta.env.VITE_VANTA_SOL_UNSHIELD_OPERATOR_URL,
 );
@@ -392,4 +395,13 @@ export const liveSwapPair = {
   venueName: "Meteora" as const,
   venueNetwork: vantaSolanaClusterLabel,
   venuePoolAddress: configuredMeteoraDlmmPoolAddress,
+};
+
+export const liveSolToShieldedSwapRouteAdapter = {
+  configured: Boolean(configuredSolToShieldedSwapOperatorUrl),
+  inputAsset: "SOL" as const,
+  operatorUrl: configuredSolToShieldedSwapOperatorUrl,
+  supportedOutputAssets: listLiveShieldTokenAssets()
+    .filter((asset) => Boolean(asset.configured && asset.mintAddress && asset.vaultOwner))
+    .map((asset) => asset.assetKey),
 };

@@ -10,6 +10,7 @@ interface ImportMetaEnv {
   readonly VITE_VANTA_DEVNET_TOKEN_NAME?: string;
   readonly VITE_VANTA_UNSHIELD_OPERATOR_URL?: string;
   readonly VITE_VANTA_SWAP_OPERATOR_URL?: string;
+  readonly VITE_VANTA_SOL_TO_SHIELDED_SWAP_OPERATOR_URL?: string;
   readonly VITE_VANTA_SOL_UNSHIELD_OPERATOR_URL?: string;
   readonly VITE_VANTA_METEORA_DLMM_POOL_ADDRESS?: string;
   readonly VITE_VANTA_ENABLE_PEER_ONRAMP?: string;

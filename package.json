@@ -166,7 +166,7 @@
     "protocol:amount-placeholders-check": "node scripts/check-vanta-protocol-amount-placeholders.mjs",
     "send:requires-shielded-state-check": "node scripts/check-vanta-send-requires-shielded-state.mjs",
     "swap:requires-shielded-state-check": "node scripts/check-vanta-swap-requires-shielded-state.mjs",
-    "swap:capability-check": "node scripts/check-vanta-shielded-swap-capability.mjs",
+    "swap:capability-check": "node scripts/check-vanta-shielded-swap-capability.mjs && node scripts/check-vanta-sol-to-shielded-route-adapter.mjs",
     "swap:committed-settlement-check": "node scripts/check-vanta-swap-committed-settlement-bridge.mjs",
     "swap:trust-packet": "node scripts/print-vanta-private-core-swap-trust-packet.mjs",
     "swap:trust-packet-json": "node scripts/print-vanta-private-core-swap-trust-packet.mjs --json",
