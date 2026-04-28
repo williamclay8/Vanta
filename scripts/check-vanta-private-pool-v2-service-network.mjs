@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
 
@@ -122,6 +123,20 @@ function serviceNetworkTestEnv(overrides = {}) {
     ),
     ...overrides,
   };
+}
+
+function hashHex(...parts) {
+  return `0x${createHash("sha256").update(parts.join("\u001f")).digest("hex")}`;
+}
+
+function serviceNetworkAppendRoot(treeId, leafIndex, commitment) {
+  return hashHex(
+    "vanta-private-pool-v2-service-network-0.1",
+    "root",
+    treeId,
+    String(leafIndex),
+    commitment,
+  );
 }
 
 for (const service of services) {
@@ -431,6 +446,122 @@ try {
     restoredCommitments.parsed?.commitments?.length === 1,
     "Expected indexer service to restore accepted commitments after restart.",
   );
+
+  const sendInputCommitment = restoredCommitments.parsed.commitments[0];
+  const privateSendRequest = {
+    amountBaseUnits: "1",
+    assetId: "hidden:economic-terms",
+    circuitPublicInputs: ["send-public-input-hash:field:service-network-send-public-input-hash"],
+    intent: "private-send",
+    publicInputs: [
+      "vanta-private-pool-v2-send-proof-request-0.1:version",
+      `input-root:${sendInputCommitment.merkleRoot}`,
+      `input-commitment:${sendInputCommitment.commitment}`,
+      "nullifier:field:service-network-send-nullifier",
+      "recipient-output-commitment:field:service-network-send-recipient-output",
+      "recipient-leaf-index:1",
+      `recipient-output-root:${serviceNetworkAppendRoot(
+        sendInputCommitment.treeId,
+        1,
+        "field:service-network-send-recipient-output",
+      )}`,
+      "change-output-commitment:field:service-network-send-change-output",
+      "change-leaf-index:2",
+      `change-output-root:${serviceNetworkAppendRoot(
+        sendInputCommitment.treeId,
+        2,
+        "field:service-network-send-change-output",
+      )}`,
+      "asset-id-commitment:field:service-network-send-asset",
+      "economics-commitment:field:service-network-send-economics",
+      "owner-commitment:field:service-network-send-owner",
+      "send-context-tag:field:service-network-send-context",
+    ],
+  };
+  const privateSendProof = await requestJson(serviceUrls.get("prover"), "/v1/proofs", {
+    body: JSON.stringify({ request: privateSendRequest }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(privateSendProof.ok, privateSendProof.text || "Expected private-send proof response.");
+  const privateSendReceipt = await requestJson(serviceUrls.get("verifier"), "/v1/proofs/accept", {
+    body: JSON.stringify({ proof: privateSendProof.parsed, request: privateSendRequest }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(privateSendReceipt.ok, privateSendReceipt.text || "Expected private-send verifier receipt.");
+  assert(privateSendReceipt.parsed?.intent === "private-send", "Expected private-send receipt intent.");
+  assert(
+    privateSendReceipt.parsed?.replayKey === "private-send:field:service-network-send-nullifier",
+    "Expected private-send receipt to replay-key by nullifier.",
+  );
+  const privateSendNullifier = await requestJson(
+    serviceUrls.get("indexer"),
+    `/v1/nullifiers/${encodeURIComponent("field:service-network-send-nullifier")}`,
+    { headers: { Authorization: `Bearer ${authToken}` } },
+  );
+  assert(
+    privateSendNullifier.parsed?.nullifier?.nullifier === "field:service-network-send-nullifier",
+    "Expected private-send verifier acceptance to register the send nullifier through the indexer service.",
+  );
+  const privateSendCommitments = await requestJson(
+    serviceUrls.get("indexer"),
+    "/v1/commitments?treeId=vanta-service-network-test-tree",
+    { headers: { Authorization: `Bearer ${authToken}` } },
+  );
+  assert(privateSendCommitments.ok, privateSendCommitments.text || "Expected private-send commitments.");
+  assert(
+    privateSendCommitments.parsed?.commitments?.length === 3,
+    "Expected private-send verifier acceptance to append recipient and change commitments.",
+  );
+  assert(
+    privateSendCommitments.parsed.commitments[1]?.commitment ===
+      "field:service-network-send-recipient-output",
+    "Expected private-send recipient output commitment to be indexed.",
+  );
+  assert(
+    privateSendCommitments.parsed.commitments[2]?.commitment === "field:service-network-send-change-output",
+    "Expected private-send change output commitment to be indexed.",
+  );
+  const privateSendReplay = await requestJson(serviceUrls.get("verifier"), "/v1/proofs/accept", {
+    body: JSON.stringify({ proof: privateSendProof.parsed, request: privateSendRequest }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(!privateSendReplay.ok, "Expected duplicate private-send proof receipt to be rejected.");
+
+  const tamperedPrivateSendRequest = {
+    ...privateSendRequest,
+    publicInputs: privateSendRequest.publicInputs.map((input) =>
+      input.startsWith("change-output-root:") ? "change-output-root:field:wrong-service-root" : input,
+    ),
+  };
+  const tamperedPrivateSendProof = await requestJson(serviceUrls.get("prover"), "/v1/proofs", {
+    body: JSON.stringify({ request: tamperedPrivateSendRequest }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(tamperedPrivateSendProof.ok, tamperedPrivateSendProof.text || "Expected tampered send proof.");
+  const tamperedPrivateSendReceipt = await requestJson(serviceUrls.get("verifier"), "/v1/proofs/accept", {
+    body: JSON.stringify({
+      proof: tamperedPrivateSendProof.parsed,
+      request: tamperedPrivateSendRequest,
+    }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(!tamperedPrivateSendReceipt.ok, "Expected tampered private-send output root to be rejected.");
+  const afterTamperCommitments = await requestJson(
+    serviceUrls.get("indexer"),
+    "/v1/commitments?treeId=vanta-service-network-test-tree",
+    { headers: { Authorization: `Bearer ${authToken}` } },
+  );
+  assert(
+    afterTamperCommitments.parsed?.commitments?.length === 3,
+    "Expected rejected private-send transition not to append partial remote outputs.",
+  );
+
+  console.log("private-pool-v2 service-network private-send transition: PASS");
 
   const replayReceipt = await requestJson(serviceUrls.get("verifier"), "/v1/proofs/accept", {
     body: JSON.stringify({ proof: proof.parsed, request: shieldRequest }),

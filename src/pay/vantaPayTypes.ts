@@ -104,6 +104,38 @@ export type VantaPayReceiptStatus = "paid" | "pending" | "refunded";
 
 export type VantaPayRefundStatus = "refunded" | "failed";
 
+export type VantaPayReceiptPacketAudience =
+  | "merchant_internal"
+  | "buyer_shareable"
+  | "operator_verification";
+
+export type VantaPayReceiptPacketFieldVisibility =
+  | "visible"
+  | "redacted"
+  | "selective_disclosure";
+
+export type VantaPayReceiptPrivacyContractField = {
+  field: string;
+  merchantInternal: VantaPayReceiptPacketFieldVisibility;
+  buyerShareable: VantaPayReceiptPacketFieldVisibility;
+  operatorVerification: VantaPayReceiptPacketFieldVisibility;
+  note: string;
+};
+
+export type VantaPayReceiptPrivacyContract = {
+  version: "vanta-pay-receipt-privacy-contract-0.1";
+  audiences: readonly VantaPayReceiptPacketAudience[];
+  claimControls: {
+    fully_private_pay_claim: false;
+    production_privacy_claims_locked: true;
+  };
+  claimSummary: "production privacy claims remain locked";
+  currentTruth: "receipt-backed test settlement";
+  fields: readonly VantaPayReceiptPrivacyContractField[];
+  packetStates: readonly ["draft_request", "checkout_issued", "receipt_pending", "receipt_packet_ready"];
+  verificationSurfaces: readonly string[];
+};
+
 export type VantaPayDestinationType =
   | "wallet_address"
   | "treasury_address"
@@ -225,6 +257,36 @@ export type VantaPayReceipt = {
   auditDisclosureId: string | null;
   privateRailReceiptId: string;
   status: VantaPayReceiptStatus;
+};
+
+export type VantaPayReceiptRedactedReference = {
+  idPrefix: string | null;
+  redacted: true;
+};
+
+export type VantaPayReceiptPublicView = {
+  amount: string;
+  asset: VantaPayAsset;
+  checkoutSessionId: string;
+  createdAt: string;
+  customer: {
+    emailCollected: boolean;
+    emailRedacted: true;
+  };
+  invoiceReference: string | null;
+  merchantId: string;
+  object: "receipt_public_view";
+  orderId: string | null;
+  paymentId: string;
+  privateSettlement: {
+    auditDisclosure: VantaPayReceiptRedactedReference;
+    policyMode: "legible-trust";
+    productionReady: false;
+    railReceipt: VantaPayReceiptRedactedReference;
+  };
+  receiptId: string;
+  status: VantaPayReceiptStatus;
+  version: "vanta-pay-receipt-public-view-0.1";
 };
 
 export type VantaPayRefundCreateInput = {

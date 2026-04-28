@@ -15,6 +15,8 @@ export type VantaTokenActionMode =
   | "route-to-shield"
   | "operator-vusd-send"
   | "operator-vusd-sol"
+  | "operator-token-unshield"
+  | "operator-sol-unshield"
   | "beta-local-pay"
   | "not-configured"
   | "adapter-required";
@@ -28,6 +30,16 @@ export type VantaTokenActionAvailability = {
   visible: boolean;
 };
 
+export type VantaTokenCapabilityLane = {
+  boundary:
+    | "routeable-public-input"
+    | "configured-shield-target"
+    | "pool-backed-private-asset";
+  reason: string | null;
+  ready: boolean;
+  status: "ready" | "blocked" | "not-applicable";
+};
+
 export type VantaTokenAvailability = {
   configured: boolean;
   decimals: number;
@@ -37,8 +49,12 @@ export type VantaTokenAvailability = {
   reason: string | null;
   send: VantaTokenActionAvailability;
   shield: VantaTokenActionAvailability;
+  publicInput: VantaTokenCapabilityLane;
+  shieldTarget: VantaTokenCapabilityLane;
+  poolBackedPrivateAsset: VantaTokenCapabilityLane;
   swapFrom: VantaTokenActionAvailability;
   swapTo: VantaTokenActionAvailability;
+  unshield: VantaTokenActionAvailability;
   symbol: VantaPaymentSuiteTokenSymbol;
   walletVisible: boolean;
 };
@@ -60,6 +76,10 @@ function action(args: {
   };
 }
 
+function capabilityLane(args: VantaTokenCapabilityLane): VantaTokenCapabilityLane {
+  return args;
+}
+
 function isLiveShieldToken(symbol: VantaPaymentSuiteTokenSymbol): symbol is LiveShieldTokenAssetKey {
   return symbol !== "SOL" && symbol !== "USDT";
 }
@@ -77,12 +97,27 @@ function configuredForShield(symbol: VantaPaymentSuiteTokenSymbol) {
   return asset.configured && Boolean(asset.mintAddress && asset.vaultOwner);
 }
 
+function configuredForUnshield(symbol: VantaPaymentSuiteTokenSymbol) {
+  if (symbol === "SOL") {
+    return liveSwapPair.configured && Boolean(liveSwapPair.solUnshieldOperatorUrl);
+  }
+
+  if (!isLiveShieldToken(symbol)) {
+    return false;
+  }
+
+  return getLiveShieldTokenAsset(symbol).unshieldConfigured;
+}
+
 export function listVantaTokenAvailability(): VantaTokenAvailability[] {
   return listVantaTokenCatalogEntries().map((entry) => {
     const configured = configuredForShield(entry.symbol);
+    const unshieldConfigured = configuredForUnshield(entry.symbol);
     const isPayAsset = (VANTA_PAY_ASSET_SYMBOLS as readonly string[]).includes(entry.symbol);
     const isVusd = entry.symbol === "VUSD";
     const isSol = entry.symbol === "SOL";
+    const routeablePublicInput = entry.shieldFamily || isPayAsset;
+    const configuredShieldTarget = configured && entry.shieldFamily;
 
     return {
       configured,
@@ -106,6 +141,16 @@ export function listVantaTokenAvailability(): VantaTokenAvailability[] {
             ? null
             : "Private send for this asset needs a private send adapter.",
       }),
+      publicInput: capabilityLane({
+        boundary: "routeable-public-input",
+        ready: routeablePublicInput,
+        status: routeablePublicInput ? "ready" : "not-applicable",
+        reason: routeablePublicInput
+          ? entry.shieldFamily
+            ? "This asset can enter Shield directly when configured, or serve as a route target."
+            : "This asset can route into a configured shield target before privacy begins."
+          : "This asset is not part of the current wallet-routeable token surface.",
+      }),
       shield: action({
         executable: configured,
         label: `Shield ${entry.symbol}`,
@@ -116,6 +161,23 @@ export function listVantaTokenAvailability(): VantaTokenAvailability[] {
             ? "Configure this shield asset before live shielding."
             : "This asset must route into a configured shield target before shielding.",
         visible: entry.shieldFamily || isPayAsset,
+      }),
+      shieldTarget: capabilityLane({
+        boundary: "configured-shield-target",
+        ready: configuredShieldTarget,
+        status: configuredShieldTarget ? "ready" : entry.shieldFamily ? "blocked" : "not-applicable",
+        reason: configuredShieldTarget
+          ? null
+          : entry.shieldFamily
+            ? "Configure this shield asset before it can be a direct Shield target."
+            : "This token is routeable only; it is not a configured Shield target.",
+      }),
+      poolBackedPrivateAsset: capabilityLane({
+        boundary: "pool-backed-private-asset",
+        ready: false,
+        status: "blocked",
+        reason:
+          "Private Pool v2 production anonymity-set readiness is still blocked; do not claim this asset is fully private.",
       }),
       swapFrom: action({
         executable: isVusd && liveSwapPair.configured,
@@ -134,6 +196,23 @@ export function listVantaTokenAvailability(): VantaTokenAvailability[] {
           isSol && liveSwapPair.configured
             ? null
             : "Route not ready yet for this shielded asset.",
+      }),
+      unshield: action({
+        executable: unshieldConfigured,
+        label: `Unshield ${entry.symbol}`,
+        mode: unshieldConfigured
+          ? isSol
+            ? "operator-sol-unshield"
+            : "operator-token-unshield"
+          : entry.shieldFamily
+            ? "not-configured"
+            : "adapter-required",
+        reason: unshieldConfigured
+          ? null
+          : entry.shieldFamily
+            ? "Configure this asset's unshield operator before it can return to a public wallet."
+            : "This token is not a current shielded Unshield lane.",
+        visible: entry.shieldFamily,
       }),
       symbol: entry.symbol,
       walletVisible: entry.shieldFamily || isPayAsset,

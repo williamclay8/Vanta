@@ -39,12 +39,24 @@ function resolveStatus(executionPreview) {
   return "ready";
 }
 
+function assertNoRawCommittedSettlementFields(committedSettlementRequests) {
+  for (const request of committedSettlementRequests?.requests ?? []) {
+    for (const rawField of ["amount", "asset", "destination", "owner"]) {
+      if (rawField in request) {
+        throw new Error(`Strategy private-rail operator run rejects raw ${rawField}.`);
+      }
+    }
+  }
+}
+
 function cloneRecord(record) {
   return structuredClone(record);
 }
 
 export function createVantaStrategyRuntime() {
   const strategies = new Map();
+  const operatorRuns = new Map();
+  const operatorRunIndex = new Map();
   const requestIndex = new Map();
 
   function getRecord(strategyId) {
@@ -102,12 +114,64 @@ export function createVantaStrategyRuntime() {
       return cloneRecord(record);
     },
 
+    createPrivateRailOperatorRun({ committedSettlementRequests, operatorHandoff, strategyId }) {
+      const strategy = getRecord(strategyId);
+      assertNoRawCommittedSettlementFields(committedSettlementRequests);
+
+      if (operatorHandoff?.operatorPlaintextStrategyShared !== false) {
+        throw new Error("Strategy private-rail operator run requires a redacted handoff.");
+      }
+
+      if (operatorHandoff?.liveSubmission !== false || committedSettlementRequests?.liveSubmission !== false) {
+        throw new Error("Strategy private-rail operator run must remain queued before live execution is enabled.");
+      }
+
+      const fingerprint = stableJson({
+        committedSettlementRequests,
+        operatorHandoff,
+        strategyId,
+      });
+      const existingId = operatorRunIndex.get(fingerprint);
+
+      if (existingId) {
+        return cloneRecord(operatorRuns.get(existingId));
+      }
+
+      const id = hashId("vstrun", fingerprint);
+      const record = {
+        blockers: [
+          "live-strategy-scheduler-not-enabled",
+          "route-quote-privacy-not-production-proven",
+          "production-anonymity-set-not-proven",
+          "audit-and-mainnet-gates-not-cleared",
+        ],
+        committedSettlementRequestCount: committedSettlementRequests.requests.length,
+        committedSettlementRequests,
+        createdAt: new Date(0).toISOString(),
+        id,
+        liveSubmission: false,
+        object: "strategy_private_rail_operator_run",
+        operatorHandoff,
+        operatorPlaintextStrategyShared: false,
+        status: "queued",
+        strategyId: strategy.id,
+      };
+
+      operatorRuns.set(id, record);
+      operatorRunIndex.set(fingerprint, id);
+      return cloneRecord(record);
+    },
+
     getStrategy(strategyId) {
       return cloneRecord(getRecord(strategyId));
     },
 
     listStrategies() {
       return Array.from(strategies.values()).map((record) => cloneRecord(record));
+    },
+
+    listPrivateRailOperatorRuns() {
+      return Array.from(operatorRuns.values()).map((record) => cloneRecord(record));
     },
 
     pauseStrategy(strategyId) {

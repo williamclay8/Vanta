@@ -86,7 +86,12 @@ try {
   }
 
   const [
-    { createVantaPrivatePoolV2ClaimProofRequest, createVantaPrivatePoolV2ShieldProofRequest },
+    {
+      createVantaPrivatePoolV2ClaimProofRequest,
+      createVantaPrivatePoolV2SendProofRequest,
+      createVantaPrivatePoolV2ShieldProofRequest,
+      createVantaPrivatePoolV2SwapToShieldedProofRequest,
+    },
     { createVantaPrivatePoolV2LocalIndexer },
     { createVantaPrivatePoolV2LocalProver },
     { createVantaPrivatePoolV2LocalRelayer },
@@ -269,6 +274,281 @@ try {
     "already been accepted",
   );
   console.log("local verifier nullifier replay rejection: PASS");
+
+  const sendPlanningIndexer = createVantaPrivatePoolV2LocalIndexer();
+  const sendVerifierIndexer = createVantaPrivatePoolV2LocalIndexer();
+  const sendInputPlanningCommitment = sendPlanningIndexer.appendCommitment({
+    assetId: "USDC",
+    commitment: "field:send-input-commitment",
+    treeId: "vanta-test-tree",
+  });
+  sendVerifierIndexer.appendCommitment({
+    assetId: "USDC",
+    commitment: "field:send-input-commitment",
+    treeId: "vanta-test-tree",
+  });
+  const sendRecipientPlanningCommitment = sendPlanningIndexer.appendCommitment({
+    assetId: "USDC",
+    commitment: "field:send-recipient-output-commitment",
+    treeId: "vanta-test-tree",
+  });
+  const sendChangePlanningCommitment = sendPlanningIndexer.appendCommitment({
+    assetId: "USDC",
+    commitment: "field:send-change-output-commitment",
+    treeId: "vanta-test-tree",
+  });
+  const sendProofRequest = createVantaPrivatePoolV2SendProofRequest({
+    assetIdCommitment: "field:send-asset-id-commitment",
+    changeLeafIndex: String(sendChangePlanningCommitment.leafIndex),
+    changeOutputCommitment: sendChangePlanningCommitment.commitment,
+    changeOutputRoot: sendChangePlanningCommitment.merkleRoot,
+    economicsCommitment: "field:send-economics-commitment",
+    inputCommitment: sendInputPlanningCommitment.commitment,
+    inputRoot: sendInputPlanningCommitment.merkleRoot,
+    nullifier: "field:send-nullifier",
+    ownerCommitment: "field:send-owner-commitment",
+    recipientLeafIndex: String(sendRecipientPlanningCommitment.leafIndex),
+    recipientOutputCommitment: sendRecipientPlanningCommitment.commitment,
+    recipientOutputRoot: sendRecipientPlanningCommitment.merkleRoot,
+    sendContextTag: "field:send-context-tag",
+    sendPublicInputHash: "field:send-public-input-hash",
+  });
+  const sendProof = await prover.prove(sendProofRequest);
+  assert(
+    await prover.verify({ proof: sendProof, request: sendProofRequest }),
+    "Expected local private-send proof to verify.",
+  );
+  console.log("local private-send proof verify: PASS");
+
+  const sendVerifierRegistry = createVantaPrivatePoolV2LocalVerifierRegistry({
+    indexer: sendVerifierIndexer,
+    prover,
+  });
+  const sendReceipt = await sendVerifierRegistry.acceptProof({
+    proof: sendProof,
+    request: sendProofRequest,
+  });
+  assert(sendReceipt.intent === "private-send", "Expected private-send receipt.");
+  assert(sendReceipt.replayKey === "private-send:field:send-nullifier", "Expected nullifier replay key.");
+  assert(
+    (await sendVerifierIndexer.getNullifier("field:send-nullifier"))?.nullifier ===
+      "field:send-nullifier",
+    "Expected verifier registry to register private-send nullifier.",
+  );
+  const sendVerifierCommitments = await sendVerifierIndexer.listCommitments({
+    assetId: "USDC",
+    treeId: "vanta-test-tree",
+  });
+  assert(sendVerifierCommitments.length === 3, "Expected input plus two send output commitments.");
+  assert(
+    sendVerifierCommitments[1]?.commitment === sendRecipientPlanningCommitment.commitment,
+    "Expected verifier registry to append recipient output commitment.",
+  );
+  assert(
+    sendVerifierCommitments[1]?.merkleRoot === sendRecipientPlanningCommitment.merkleRoot,
+    "Expected recipient output root to match verifier indexer root.",
+  );
+  assert(
+    sendVerifierCommitments[2]?.commitment === sendChangePlanningCommitment.commitment,
+    "Expected verifier registry to append change output commitment.",
+  );
+  assert(
+    sendVerifierCommitments[2]?.merkleRoot === sendChangePlanningCommitment.merkleRoot,
+    "Expected change output root to match verifier indexer root.",
+  );
+  console.log("local verifier private-send nullifier and output append: PASS");
+
+  await expectRejection(
+    () =>
+      sendVerifierRegistry.acceptProof({
+        proof: sendProof,
+        request: sendProofRequest,
+      }),
+    "already been accepted",
+  );
+  console.log("local verifier private-send receipt replay rejection: PASS");
+
+  const sendSpentIndexer = createVantaPrivatePoolV2LocalIndexer();
+  sendSpentIndexer.appendCommitment({
+    assetId: "USDC",
+    commitment: "field:send-input-commitment",
+    treeId: "vanta-test-tree",
+  });
+  sendSpentIndexer.registerNullifier({
+    nullifier: "field:send-nullifier",
+    spentAtSlot: 999_999n,
+  });
+  await expectRejection(
+    () =>
+      createVantaPrivatePoolV2LocalVerifierRegistry({
+        indexer: sendSpentIndexer,
+        prover,
+      }).acceptProof({
+        proof: sendProof,
+        request: sendProofRequest,
+      }),
+    "already registered",
+  );
+  console.log("local verifier private-send spent nullifier rejection: PASS");
+
+  const sendAtomicityIndexer = createVantaPrivatePoolV2LocalIndexer();
+  sendAtomicityIndexer.appendCommitment({
+    assetId: "USDC",
+    commitment: "field:send-input-commitment",
+    treeId: "vanta-test-tree",
+  });
+  const tamperedChangeRootRequest = {
+    ...sendProofRequest,
+    publicInputs: sendProofRequest.publicInputs.map((input) =>
+      input.startsWith("change-output-root:") ? "change-output-root:field:wrong-root" : input,
+    ),
+  };
+  const tamperedChangeRootProof = await prover.prove(tamperedChangeRootRequest);
+  await expectRejection(
+    () =>
+      createVantaPrivatePoolV2LocalVerifierRegistry({
+        indexer: sendAtomicityIndexer,
+        prover,
+      }).acceptProof({
+        proof: tamperedChangeRootProof,
+        request: tamperedChangeRootRequest,
+      }),
+    "change output root",
+  );
+  assert(
+    (await sendAtomicityIndexer.getNullifier("field:send-nullifier")) === null,
+    "Expected rejected private-send transition not to register a nullifier.",
+  );
+  assert(
+    (
+      await sendAtomicityIndexer.listCommitments({
+        assetId: "USDC",
+        treeId: "vanta-test-tree",
+      })
+    ).length === 1,
+    "Expected rejected private-send transition not to append partial outputs.",
+  );
+  console.log("local verifier private-send atomic rejection: PASS");
+
+  const swapPlanningIndexer = createVantaPrivatePoolV2LocalIndexer();
+  const swapVerifierIndexer = createVantaPrivatePoolV2LocalIndexer();
+  const swapInputPlanningCommitment = swapPlanningIndexer.appendCommitment({
+    assetId: "USDC",
+    commitment: "field:swap-input-commitment",
+    treeId: "vanta-test-tree",
+  });
+  swapVerifierIndexer.appendCommitment({
+    assetId: "USDC",
+    commitment: "field:swap-input-commitment",
+    treeId: "vanta-test-tree",
+  });
+  const swapOutputPlanningCommitment = swapPlanningIndexer.appendCommitment({
+    assetId: "USDC",
+    commitment: "field:swap-output-commitment",
+    treeId: "vanta-test-tree",
+  });
+  const swapProofRequest = createVantaPrivatePoolV2SwapToShieldedProofRequest({
+    economicsCommitment: "field:swap-economics-commitment",
+    inputCommitment: swapInputPlanningCommitment.commitment,
+    inputRoot: swapInputPlanningCommitment.merkleRoot,
+    nullifierOrReplayCommitment: "field:swap-nullifier",
+    outputCommitment: swapOutputPlanningCommitment.commitment,
+    outputLeafIndex: String(swapOutputPlanningCommitment.leafIndex),
+    outputRoot: swapOutputPlanningCommitment.merkleRoot,
+    ownerCommitment: "field:swap-owner-commitment",
+    routeCommitment: "field:swap-route-commitment",
+    settlementCommitment: "field:swap-settlement-commitment",
+    swapContextTag: "field:swap-context-tag",
+    swapPublicInputHash: "field:swap-public-input-hash",
+  });
+  const swapProof = await prover.prove(swapProofRequest);
+  assert(
+    await prover.verify({ proof: swapProof, request: swapProofRequest }),
+    "Expected local swap-to-shielded proof to verify.",
+  );
+  console.log("local swap-to-shielded proof verify: PASS");
+
+  const swapVerifierRegistry = createVantaPrivatePoolV2LocalVerifierRegistry({
+    indexer: swapVerifierIndexer,
+    prover,
+  });
+  const swapReceipt = await swapVerifierRegistry.acceptProof({
+    proof: swapProof,
+    request: swapProofRequest,
+  });
+  assert(swapReceipt.intent === "swap-to-shielded", "Expected swap-to-shielded receipt.");
+  assert(
+    swapReceipt.replayKey === "swap-to-shielded:field:swap-nullifier",
+    "Expected swap-to-shielded nullifier replay key.",
+  );
+  assert(
+    (await swapVerifierIndexer.getNullifier("field:swap-nullifier"))?.nullifier ===
+      "field:swap-nullifier",
+    "Expected verifier registry to register swap-to-shielded nullifier.",
+  );
+  const swapVerifierCommitments = await swapVerifierIndexer.listCommitments({
+    assetId: "USDC",
+    treeId: "vanta-test-tree",
+  });
+  assert(swapVerifierCommitments.length === 2, "Expected input plus swap output commitment.");
+  assert(
+    swapVerifierCommitments[1]?.commitment === swapOutputPlanningCommitment.commitment,
+    "Expected verifier registry to append swap output commitment.",
+  );
+  assert(
+    swapVerifierCommitments[1]?.merkleRoot === swapOutputPlanningCommitment.merkleRoot,
+    "Expected swap output root to match verifier indexer root.",
+  );
+  console.log("local verifier swap-to-shielded nullifier and output append: PASS");
+
+  await expectRejection(
+    () =>
+      swapVerifierRegistry.acceptProof({
+        proof: swapProof,
+        request: swapProofRequest,
+      }),
+    "already been accepted",
+  );
+  console.log("local verifier swap-to-shielded receipt replay rejection: PASS");
+
+  const tamperedSwapRootIndexer = createVantaPrivatePoolV2LocalIndexer();
+  tamperedSwapRootIndexer.appendCommitment({
+    assetId: "USDC",
+    commitment: "field:swap-input-commitment",
+    treeId: "vanta-test-tree",
+  });
+  const tamperedSwapRootRequest = {
+    ...swapProofRequest,
+    publicInputs: swapProofRequest.publicInputs.map((input) =>
+      input.startsWith("output-root:") ? "output-root:field:wrong-root" : input,
+    ),
+  };
+  const tamperedSwapRootProof = await prover.prove(tamperedSwapRootRequest);
+  await expectRejection(
+    () =>
+      createVantaPrivatePoolV2LocalVerifierRegistry({
+        indexer: tamperedSwapRootIndexer,
+        prover,
+      }).acceptProof({
+        proof: tamperedSwapRootProof,
+        request: tamperedSwapRootRequest,
+      }),
+    "Swap-to-shielded output root",
+  );
+  assert(
+    (await tamperedSwapRootIndexer.getNullifier("field:swap-nullifier")) === null,
+    "Expected rejected swap-to-shielded transition not to register a nullifier.",
+  );
+  assert(
+    (
+      await tamperedSwapRootIndexer.listCommitments({
+        assetId: "USDC",
+        treeId: "vanta-test-tree",
+      })
+    ).length === 1,
+    "Expected rejected swap-to-shielded transition not to append partial outputs.",
+  );
+  console.log("local verifier swap-to-shielded atomic rejection: PASS");
 
   await expectRejection(
     () =>

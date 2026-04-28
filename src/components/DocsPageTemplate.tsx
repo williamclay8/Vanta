@@ -27,6 +27,7 @@ export function DocsPageTemplate({
       <header className="docs-page__header product-intro">
         {badge ? <DocsStatusBadge badge={badge} /> : null}
         <div className="docs-page__intro">
+          <span className="docs-page__eyebrow product-intro__eyebrow">Vanta Docs</span>
           <h1>{title}</h1>
           <p>{summary}</p>
         </div>

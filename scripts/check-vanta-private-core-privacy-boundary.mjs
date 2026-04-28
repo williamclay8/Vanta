@@ -76,7 +76,7 @@ try {
   );
 
   const descriptors = listVantaPrivacyBoundaryDescriptors();
-  assert(descriptors.length === 5, "Expected five current privacy lane descriptors.");
+  assert(descriptors.length === 8, "Expected eight current privacy lane descriptors.");
 
   for (const descriptor of descriptors) {
     if (descriptor.tier !== "v2-hidden-economic-terms") {
@@ -199,6 +199,148 @@ try {
       `Expected ${lane} to keep blockers before any hidden-economic-terms claim.`,
     );
   }
+
+  const privatePoolSend = getVantaPrivacyBoundaryDescriptor("private-pool-v2-send");
+  assert(
+    privatePoolSend.tier === "v1.5-hash-bound-public-request-terms",
+    "Expected private-pool-v2-send to stay hash-bound public-request tier.",
+  );
+  assert(
+    !laneHidesEconomicTerms("private-pool-v2-send"),
+    "Expected private-pool-v2-send not to claim hidden economic terms yet.",
+  );
+  for (const field of ["asset", "amount", "release-destination"]) {
+    assert(
+      !privatePoolSend.publicDisclosure.includes(field) &&
+        !privatePoolSend.publicRequestDisclosure.includes(field),
+      `Private Pool v2 Send descriptor must not disclose raw ${field}.`,
+    );
+  }
+  for (const field of [
+    "state-root",
+    "input-commitment",
+    "nullifier",
+    "recipient-commitment",
+    "recipient-leaf-index",
+    "recipient-output-root",
+    "change-commitment",
+    "change-leaf-index",
+    "change-output-root",
+    "asset-commitment",
+    "economics-commitment",
+    "owner-commitment",
+    "context-tag",
+  ]) {
+    assert(
+      privatePoolSend.publicRequestDisclosure.includes(field),
+      `Expected private-pool-v2-send request disclosure to include ${field}.`,
+    );
+  }
+  assert(
+    !privatePoolSend.blockersToHiddenEconomicTerms.includes("real private-send circuit"),
+    "Private-pool-v2-send should not keep the real circuit blocker after the executable circuit check lands.",
+  );
+  assert(
+    privatePoolSend.blockersToHiddenEconomicTerms.includes(
+      "production-deployed live private-send transition evidence",
+    ),
+    "Expected private-pool-v2-send to keep the live production transition evidence blocker.",
+  );
+
+  const privatePoolSwap = getVantaPrivacyBoundaryDescriptor("private-pool-v2-swap");
+  assert(
+    privatePoolSwap.tier === "v1.5-hash-bound-public-request-terms",
+    "Expected private-pool-v2-swap to stay hash-bound public-request tier.",
+  );
+  assert(
+    !laneHidesEconomicTerms("private-pool-v2-swap"),
+    "Expected private-pool-v2-swap not to claim hidden economic terms yet.",
+  );
+  for (const field of ["input-asset", "output-asset", "input-amount", "output-amount"]) {
+    assert(
+      !privatePoolSwap.publicDisclosure.includes(field) &&
+        !privatePoolSwap.publicRequestDisclosure.includes(field),
+      `Private Pool v2 Swap descriptor must not disclose raw ${field}.`,
+    );
+  }
+  for (const field of [
+    "state-root",
+    "input-commitment",
+    "nullifier",
+    "output-commitment",
+    "route-commitment",
+    "economics-commitment",
+    "owner-commitment",
+    "context-tag",
+  ]) {
+    assert(
+      privatePoolSwap.publicRequestDisclosure.includes(field),
+      `Expected private-pool-v2-swap request disclosure to include ${field}.`,
+    );
+  }
+  assert(
+    privatePoolSwap.blockersToHiddenEconomicTerms.includes(
+      "atomic nullifier registration and swap output commitment append",
+    ),
+    "Expected private-pool-v2-swap to keep the verifier/indexer transition blocker.",
+  );
+  assert(
+    privatePoolSwap.blockersToHiddenEconomicTerms.includes(
+      "quote and route privacy before operator settlement",
+    ),
+    "Expected private-pool-v2-swap to keep the quote/route privacy blocker.",
+  );
+  assert(
+    privatePoolSwap.truthLabel.includes("local proof-request boundary") &&
+      privatePoolSwap.truthLabel.includes("without raw input/output asset or amount disclosure") &&
+      privatePoolSwap.truthLabel.includes("production privacy remain blocked"),
+    "Expected private-pool-v2-swap truth label to describe the local proof-request boundary without overclaiming.",
+  );
+
+  const privatePoolUnshield = getVantaPrivacyBoundaryDescriptor("private-pool-v2-unshield");
+  assert(
+    privatePoolUnshield.tier === "v1.5-hash-bound-public-request-terms",
+    "Expected private-pool-v2-unshield to stay hash-bound public-request tier.",
+  );
+  assert(
+    !laneHidesEconomicTerms("private-pool-v2-unshield"),
+    "Expected private-pool-v2-unshield not to claim hidden economic terms yet.",
+  );
+  for (const field of ["asset", "amount", "release-destination", "relayer", "relayer-fee"]) {
+    assert(
+      !privatePoolUnshield.publicDisclosure.includes(field) &&
+        !privatePoolUnshield.publicRequestDisclosure.includes(field),
+      `Private Pool v2 Unshield descriptor must not disclose raw ${field}.`,
+    );
+  }
+  for (const field of [
+    "state-root",
+    "input-commitment",
+    "nullifier",
+    "route-commitment",
+    "economics-commitment",
+    "owner-commitment",
+    "context-tag",
+  ]) {
+    assert(
+      privatePoolUnshield.publicRequestDisclosure.includes(field),
+      `Expected private-pool-v2-unshield request disclosure to include ${field}.`,
+    );
+  }
+  assert(
+    privatePoolUnshield.blockersToHiddenEconomicTerms.includes(
+      "atomic nullifier registration and private exit settlement mutation",
+    ),
+    "Expected private-pool-v2-unshield to keep the verifier/indexer exit mutation blocker.",
+  );
+  assert(
+    privatePoolUnshield.blockersToHiddenEconomicTerms.includes("relayer-separated exit execution"),
+    "Expected private-pool-v2-unshield to keep the relayer separation blocker.",
+  );
+  assert(
+    privatePoolUnshield.truthLabel.includes("committed operator/protocol acceptance"),
+    "Expected private-pool-v2-unshield truth label to mention committed operator/protocol acceptance.",
+  );
 
   for (const descriptor of descriptors) {
     if (descriptor.tier === "v2-hidden-economic-terms") {

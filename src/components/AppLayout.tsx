@@ -328,7 +328,10 @@ export function AppLayout() {
       <header className="app-header" data-product-topbar>
         <NavLink to="/" className="app-header__brand" aria-label="Vanta home">
           <BrandMark />
-          <strong>Vanta</strong>
+          <span className="app-header__brand-copy">
+            <strong>Vanta</strong>
+            <small>Private settlement beta</small>
+          </span>
         </NavLink>
 
         <div className="app-header__tabs-rail">

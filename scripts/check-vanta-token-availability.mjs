@@ -141,6 +141,24 @@ try {
       availability.includes("Route not ready yet"),
     "Expected token availability to preserve current live send/swap truth.",
   );
+  assert(
+    availability.includes("publicInput: VantaTokenCapabilityLane") &&
+      availability.includes("shieldTarget: VantaTokenCapabilityLane") &&
+      availability.includes("poolBackedPrivateAsset: VantaTokenCapabilityLane") &&
+      availability.includes("unshield: VantaTokenActionAvailability"),
+    "Expected token availability to expose the canonical routeable public input, configured shield target, pool-backed private asset, and unshield map.",
+  );
+  assert(
+    availability.includes('"routeable-public-input"') &&
+      availability.includes('"configured-shield-target"') &&
+      availability.includes('"pool-backed-private-asset"'),
+    "Expected token availability to name each canonical token capability boundary.",
+  );
+  assert(
+    availability.includes("operator-sol-unshield") &&
+      availability.includes("operator-token-unshield"),
+    "Expected token availability to distinguish SOL and token unshield operator lanes.",
+  );
 
   console.log("token availability: PASS");
 } finally {

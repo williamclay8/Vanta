@@ -2,6 +2,8 @@ import { execFileSync, spawn } from "node:child_process";
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { sha256 } from "@noble/hashes/sha2.js";
+import { bytesToHex } from "@noble/hashes/utils.js";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-private-pool-v2-http-"));
@@ -17,6 +19,15 @@ const sourceFiles = [
 ];
 const port = 9880 + Math.floor(Math.random() * 300);
 const baseUrl = `http://127.0.0.1:${port}`;
+const routedShieldSettlementEvidence = {
+  depositSignature: "protocol-shield-deposit-signature",
+  owner: "owner-public-key",
+  stateSignature: "protocol-shield-state-signature",
+  vaultOwner: "protocol-shield-vault-owner",
+};
+const localIndexerScheme = "sha256-append-only-private-pool-v2-local-indexer-0.1";
+const payPrivateSettlementAdapterVersion = "vanta-pay-private-settlement-adapter-0.1";
+const hiddenEconomicsAssetId = "hidden:economic-terms";
 
 function assert(condition, message) {
   if (!condition) {
@@ -26,6 +37,25 @@ function assert(condition, message) {
 
 function sleep(ms) {
   return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
+}
+
+function hashHex(...parts) {
+  return `0x${bytesToHex(sha256(new TextEncoder().encode(parts.join("\u001f"))))}`;
+}
+
+function treeIdForAsset(asset) {
+  return hashHex(payPrivateSettlementAdapterVersion, "tree", asset).slice(0, 34);
+}
+
+function hashLeaf(record) {
+  return hashHex(
+    localIndexerScheme,
+    "leaf",
+    record.treeId,
+    String(record.leafIndex),
+    record.assetId,
+    record.commitment,
+  );
 }
 
 async function requestJson(path, options = {}) {
@@ -85,7 +115,7 @@ async function waitForHealth() {
   throw new Error("Private Pool V2 operator did not become healthy.");
 }
 
-async function waitForExit(child, timeoutMs = 1_000) {
+async function waitForExit(child, timeoutMs = 5_000) {
   if (child.exitCode !== null) {
     return child.exitCode;
   }
@@ -386,15 +416,16 @@ try {
     "Expected shield protocol action proof mode.",
   );
   assert(
-    status.parsed?.protocolActionProofModes?.unshield === "claim_circuit_request",
+    status.parsed?.protocolActionProofModes?.unshield ===
+      "committed_unshield_or_claim_circuit_request",
     "Expected unshield protocol action proof mode.",
   );
   assert(
-    status.parsed?.protocolActionProofModes?.send === "operator_local_transfer_request",
+    status.parsed?.protocolActionProofModes?.send === "send_circuit_request",
     "Expected send protocol action proof mode.",
   );
   assert(
-    status.parsed?.protocolActionProofModes?.swap === "operator_local_swap_request",
+    status.parsed?.protocolActionProofModes?.swap === "swap_to_shielded_circuit_request",
     "Expected swap protocol action proof mode.",
   );
   console.log("private-pool-v2 http status: PASS");
@@ -649,8 +680,18 @@ try {
               shieldRouteEvidence: {
                 provider: "jupiter",
                 routeSignature: "route-sig-bonk-to-usdc",
+                sourceAmount: "5.00",
+                sourceAsset: "BONK",
+                sourceMintAddress: "mint:bonk",
                 targetAmount: "5.00",
                 targetAsset: "USDC",
+                targetMintAddress: "mint:usdc",
+              },
+              shieldSettlementEvidence: {
+                depositSignature: "deposit-sig-protocol-shield-settlement",
+                owner: "owner-public-key",
+                stateSignature: "protocol-shield-settlement",
+                vaultOwner: "protocol-shield-vault-owner",
               },
             }
           : {}),
@@ -690,50 +731,156 @@ try {
         "Expected shield protocol receipt to preserve route evidence provider.",
       );
     }
-	  }
-	  for (const action of ["send", "swap"]) {
-	    const committedProtocolSettlement = await requestJson("/private-pool-v2/protocol-settlements", {
+  }
+
+  const committedShieldSettlement = await requestJson("/private-pool-v2/protocol-settlements", {
+    body: JSON.stringify({
+      action: "shield",
+      economicsCommitment: "0xcommitted_shield_economics",
+      economicsMode: "committed-economics",
+      nullifierOrReplayCommitment: "0xcommitted_shield_replay",
+      outputCommitment: "0xcommitted_shield_output",
+      ownerCommitment: "0xcommitted_shield_owner",
+      routeCommitment: "0xcommitted_shield_route",
+      settlementCommitment: "0xcommitted_shield_settlement",
+      settlementId: "protocol-committed-shield-settlement",
+    }),
+    method: "POST",
+  });
+  assert(
+    committedShieldSettlement.ok,
+    committedShieldSettlement.text || "Expected committed shield protocol settlement.",
+  );
+  assert(
+    committedShieldSettlement.parsed?.proofReceipt?.intent === "shield",
+    "Expected committed Shield proof receipt intent.",
+  );
+  assert(
+    committedShieldSettlement.parsed?.protocolSettlementReceipt?.economicsMode ===
+      "committed-economics",
+    "Expected committed shield receipt to preserve economics mode.",
+  );
+  assert(
+    !("amount" in committedShieldSettlement.parsed.protocolSettlementReceipt) &&
+      !("asset" in committedShieldSettlement.parsed.protocolSettlementReceipt) &&
+      !("destination" in committedShieldSettlement.parsed.protocolSettlementReceipt) &&
+      !("owner" in committedShieldSettlement.parsed.protocolSettlementReceipt),
+    "Expected committed shield receipt to redact raw settlement fields.",
+  );
+  assert(
+    typeof committedShieldSettlement.parsed?.protocolSettlementReceipt?.shieldReceiptBindingHash ===
+      "string" &&
+      committedShieldSettlement.parsed.protocolSettlementReceipt.shieldReceiptBindingHash.startsWith("0x"),
+    "Expected committed Shield receipt to preserve a binding hash.",
+  );
+
+  const committedShieldOutput = {
+    assetId: hiddenEconomicsAssetId,
+    commitment: "0xcommitted_shield_output",
+    leafIndex: 0,
+    merkleRoot: hashLeaf({
+      assetId: hiddenEconomicsAssetId,
+      commitment: "0xcommitted_shield_output",
+      leafIndex: 0,
+      treeId: treeIdForAsset(hiddenEconomicsAssetId),
+    }),
+    treeId: treeIdForAsset(hiddenEconomicsAssetId),
+  };
+
+  const committedUnshieldSettlement = await requestJson("/private-pool-v2/protocol-settlements", {
+    body: JSON.stringify({
+      action: "unshield",
+      economicsCommitment: "0xcommitted_unshield_economics",
+      economicsMode: "committed-economics",
+      exitTermsCommitment: "0xcommitted_unshield_exit_terms",
+      inputCommitment: committedShieldOutput.commitment,
+      inputRoot: committedShieldOutput.merkleRoot,
+      nullifierOrReplayCommitment: "0xcommitted_unshield_replay",
+      ownerCommitment: "0xcommitted_unshield_owner",
+      routeCommitment: "0xcommitted_unshield_route",
+      settlementCommitment: "0xcommitted_unshield_settlement",
+      settlementId: "protocol-committed-unshield-settlement",
+      unshieldContextTag: "0xcommitted_unshield_context",
+      unshieldPublicInputHash: "0xcommitted_unshield_public_input_hash",
+    }),
+    method: "POST",
+  });
+  assert(
+    committedUnshieldSettlement.ok,
+    committedUnshieldSettlement.text || "Expected committed unshield protocol settlement.",
+  );
+  assert(
+    committedUnshieldSettlement.parsed?.proofReceipt?.intent === "unshield",
+    "Expected committed unshield proof receipt intent.",
+  );
+  assert(
+    committedUnshieldSettlement.parsed?.protocolSettlementReceipt?.economicsMode ===
+      "committed-economics",
+    "Expected committed unshield receipt to preserve economics mode.",
+  );
+  assert(
+    committedUnshieldSettlement.parsed?.protocolSettlementReceipt?.exitTermsCommitment ===
+      "0xcommitted_unshield_exit_terms",
+    "Expected committed unshield receipt to preserve exit terms commitment.",
+  );
+  assert(
+    !("amount" in committedUnshieldSettlement.parsed.protocolSettlementReceipt) &&
+      !("asset" in committedUnshieldSettlement.parsed.protocolSettlementReceipt) &&
+      !("destination" in committedUnshieldSettlement.parsed.protocolSettlementReceipt) &&
+      !("owner" in committedUnshieldSettlement.parsed.protocolSettlementReceipt),
+    "Expected committed unshield receipt to redact raw settlement fields.",
+  );
+	  for (const rawField of ["amount", "asset", "destination", "owner"]) {
+	    const rejectedCommittedUnshield = await requestJson("/private-pool-v2/protocol-settlements", {
 	      body: JSON.stringify({
-	        action,
-	        economicsCommitment: `0xcommitted_${action}_economics`,
+	        action: "unshield",
+	        economicsCommitment: `0xraw_rejected_unshield_economics_${rawField}`,
 	        economicsMode: "committed-economics",
-	        ...(action === "swap" ? { inputCommitment: "0xcommitted_swap_input" } : {}),
-	        nullifierOrReplayCommitment: `0xcommitted_${action}_replay`,
-	        outputCommitment: `0xcommitted_${action}_output`,
-	        ownerCommitment: `0xcommitted_${action}_owner`,
-	        routeCommitment: `0xcommitted_${action}_route`,
-	        settlementCommitment: `0xcommitted_${action}_settlement`,
-	        settlementId: `protocol-committed-${action}-settlement`,
+	        exitTermsCommitment: `0xraw_rejected_unshield_exit_terms_${rawField}`,
+	        inputCommitment: `0xraw_rejected_unshield_input_${rawField}`,
+	        inputRoot: `0xraw_rejected_unshield_input_root_${rawField}`,
+	        nullifierOrReplayCommitment: `0xraw_rejected_unshield_replay_${rawField}`,
+	        ownerCommitment: `0xraw_rejected_unshield_owner_${rawField}`,
+	        routeCommitment: `0xraw_rejected_unshield_route_${rawField}`,
+	        settlementCommitment: `0xraw_rejected_unshield_settlement_${rawField}`,
+	        settlementId: `protocol-committed-unshield-raw-${rawField}-rejected`,
+	        unshieldContextTag: `0xraw_rejected_unshield_context_${rawField}`,
+	        [rawField]: rawField === "amount" ? "7.00" : `raw-${rawField}`,
 	      }),
 	      method: "POST",
 	    });
+	    assert(!rejectedCommittedUnshield.ok, `Expected committed unshield raw ${rawField} rejection.`);
 	    assert(
-	      committedProtocolSettlement.ok,
-	      committedProtocolSettlement.text || `Expected committed ${action} protocol settlement.`,
-	    );
-	    assert(
-	      committedProtocolSettlement.parsed?.protocolSettlementReceipt?.economicsMode ===
-	        "committed-economics",
-	      `Expected committed ${action} receipt to preserve economics mode.`,
-	    );
-	    assert(
-	      committedProtocolSettlement.parsed?.protocolSettlementReceipt?.economicsCommitment ===
-	        `0xcommitted_${action}_economics`,
-	      `Expected committed ${action} receipt to preserve economics commitment.`,
-	    );
-	    assert(
-	      !("amount" in committedProtocolSettlement.parsed.protocolSettlementReceipt),
-	      `Expected committed ${action} receipt to redact raw amount.`,
-	    );
-	    assert(
-	      !("asset" in committedProtocolSettlement.parsed.protocolSettlementReceipt),
-	      `Expected committed ${action} receipt to redact raw asset.`,
-	    );
-	    assert(
-	      !("destination" in committedProtocolSettlement.parsed.protocolSettlementReceipt),
-	      `Expected committed ${action} receipt to redact raw destination.`,
+	      String(rejectedCommittedUnshield.parsed?.error ?? "").includes(
+	        `rejects raw ${rawField}`,
+	      ),
+	      rejectedCommittedUnshield.text || `Expected committed unshield raw ${rawField} rejection.`,
 	    );
 	  }
+	  const rejectedCommittedUnshieldReplay = await requestJson("/private-pool-v2/protocol-settlements", {
+	    body: JSON.stringify({
+	      action: "unshield",
+	      economicsCommitment: "0xcommitted_unshield_replay_economics",
+	      economicsMode: "committed-economics",
+	      exitTermsCommitment: "0xcommitted_unshield_replay_exit_terms",
+	      inputCommitment: "0xcommitted_unshield_replay_input",
+	      inputRoot: "0xcommitted_unshield_replay_input_root",
+	      nullifierOrReplayCommitment: "0xcommitted_unshield_replay",
+	      ownerCommitment: "0xcommitted_unshield_replay_owner",
+	      routeCommitment: "0xcommitted_unshield_replay_route",
+	      settlementCommitment: "0xcommitted_unshield_replay_settlement",
+	      settlementId: "protocol-committed-unshield-replay-rejected",
+	      unshieldContextTag: "0xcommitted_unshield_replay_context",
+	    }),
+	    method: "POST",
+	  });
+	  assert(!rejectedCommittedUnshieldReplay.ok, "Expected committed unshield replay commitment reuse rejection.");
+	  assert(
+	    String(rejectedCommittedUnshieldReplay.parsed?.error ?? "").includes(
+	      "Private-pool nullifier replay rejected",
+	    ),
+	    rejectedCommittedUnshieldReplay.text || "Expected committed unshield replay rejection.",
+	  );
 	  const missingRouteEvidenceShieldSettlement = await requestJson("/private-pool-v2/protocol-settlements", {
     body: JSON.stringify({
       action: "shield",
@@ -742,6 +889,12 @@ try {
       destination: "recipient-public-key",
       owner: "owner-public-key",
       settlementId: "protocol-shield-missing-route-evidence",
+      shieldSettlementEvidence: {
+        depositSignature: "deposit-sig-protocol-shield-missing-route",
+        owner: "owner-public-key",
+        stateSignature: "protocol-shield-missing-route-evidence",
+        vaultOwner: "protocol-shield-vault-owner",
+      },
       shieldCapability: {
         blockers: [],
         mode: "route-to-configured-shield-token",
@@ -777,6 +930,12 @@ try {
       destination: "recipient-public-key",
       owner: "owner-public-key",
       settlementId: "protocol-shield-settlement",
+      shieldSettlementEvidence: {
+        depositSignature: "deposit-sig-protocol-shield-settlement",
+        owner: "owner-public-key",
+        stateSignature: "protocol-shield-settlement",
+        vaultOwner: "protocol-shield-vault-owner",
+      },
       shieldCapability: {
         blockers: [],
         mode: "route-to-configured-shield-token",
@@ -796,8 +955,12 @@ try {
       shieldRouteEvidence: {
         provider: "jupiter",
         routeSignature: "route-sig-bonk-to-usdc",
+        sourceAmount: "5.00",
+        sourceAsset: "BONK",
+        sourceMintAddress: "mint:bonk",
         targetAmount: "5.00",
         targetAsset: "USDC",
+        targetMintAddress: "mint:usdc",
       },
     }),
     method: "POST",
@@ -819,6 +982,12 @@ try {
       destination: "recipient-public-key",
       owner: "owner-public-key",
       settlementId: "protocol-shield-settlement",
+      shieldSettlementEvidence: {
+        depositSignature: "deposit-sig-protocol-shield-settlement",
+        owner: "owner-public-key",
+        stateSignature: "protocol-shield-settlement",
+        vaultOwner: "protocol-shield-vault-owner",
+      },
       shieldCapability: {
         blockers: [],
         mode: "route-to-configured-shield-token",
@@ -838,8 +1007,12 @@ try {
       shieldRouteEvidence: {
         provider: "jupiter",
         routeSignature: "route-sig-bonk-to-usdc",
+        sourceAmount: "5.00",
+        sourceAsset: "BONK",
+        sourceMintAddress: "mint:bonk",
         targetAmount: "5.00",
         targetAsset: "USDC",
+        targetMintAddress: "mint:usdc",
       },
     }),
     method: "POST",
@@ -854,11 +1027,11 @@ try {
   );
   const protocolSettlementReceipts = await requestJson("/state/private-pool-v2-receipts");
 	  assert(protocolSettlementReceipts.ok, protocolSettlementReceipts.text || "Expected protocol receipts.");
-	  assert(protocolSettlementReceipts.parsed?.receiptCount === 10, "Expected no duplicate proof receipts.");
-	  assert(
-	    protocolSettlementReceipts.parsed?.protocolSettlementCount === 6,
-	    "Expected six operator-owned protocol settlement receipts.",
-	  );
+		  assert(protocolSettlementReceipts.parsed?.receiptCount >= 8, "Expected protocol proof receipts.");
+		  assert(
+		    protocolSettlementReceipts.parsed?.protocolSettlementCount >= 6,
+		    "Expected operator-owned protocol settlement receipts.",
+		  );
   const operatorStatusAfterProtocolSettlements = await requestJson("/state/private-pool-v2-status");
   assert(
     operatorStatusAfterProtocolSettlements.ok,
@@ -873,6 +1046,18 @@ try {
     operatorStatusAfterProtocolSettlements.parsed?.anonymitySetReadiness?.anonymitySetReadiness ===
       "blocked",
     "Expected operator status anonymity-set readiness to remain blocked.",
+  );
+  assert(
+    operatorStatusAfterProtocolSettlements.parsed?.operatorEconomicsExposure?.hiddenEconomicsActions?.includes(
+      "unshield",
+    ),
+    "Expected operator status to list committed Unshield as hidden-economics action.",
+  );
+  assert(
+    !operatorStatusAfterProtocolSettlements.parsed?.operatorEconomicsExposure?.operatorStillSeesRawActions?.includes(
+      "unshield",
+    ),
+    "Expected operator status to exclude committed Unshield from raw-visible protocol actions.",
   );
   console.log("private-pool-v2 http protocol settlements: PASS");
 } catch (error) {

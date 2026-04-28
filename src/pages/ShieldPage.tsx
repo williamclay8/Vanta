@@ -13,6 +13,8 @@ import {
   type PublicToVusdQuote,
 } from "@/solana/publicSwapRoute";
 import { requestVantaPrivatePoolV2ProtocolSettlement } from "@/privacy/privatePoolV2ProtocolSettlementClient";
+import { runShieldWithDecoys } from "@/privacy/shieldDecoyBatcher";
+import { createVantaShieldCommittedEconomicsSettlementRequest } from "@/privacy/vantaShieldCommittedSettlement";
 import { createUmbraShieldActionApprovalReview } from "@/privacy/umbraShieldActionReview";
 import type { UmbraOperationApprovalDisplay } from "@/privacy/umbraOperations";
 import { createShieldAssetCapability } from "@/solana/shieldAssetCapability";
@@ -24,6 +26,7 @@ import { useRealtimeSignatureProgress } from "@/solana/useRealtimeSignatureProgr
 import { buildSplTokenShieldTransferInstructions } from "@/solana/splShieldTransfer";
 import { useWalletPublicAssets } from "@/solana/useWalletPublicAssets";
 import { useVantaShieldAssetRegistryState } from "@/solana/useVantaShieldAssetRegistryState";
+import { useVantaShieldViewingKey } from "@/solana/useVantaShieldViewingKey";
 import {
   createNativeSolShieldMemoInstruction,
   createShieldMemoInstruction,
@@ -109,6 +112,7 @@ export function ShieldPage(_props: ShieldPageProps) {
   const { recentShield, runPrivateCoreShield, setRecentShield } = usePrivacyFlow();
   const { solBalance, walletAddress, walletConnected } = useWalletState();
   const shieldRegistry = useVantaShieldAssetRegistryState();
+  const viewingKey = useVantaShieldViewingKey();
   const [selectedSourceAssetId, setSelectedSourceAssetId] = useState("native:SOL");
   const [amount, setAmount] = useState("");
   const [status, setStatus] = useState<ShieldStatus>("idle");
@@ -560,6 +564,7 @@ export function ShieldPage(_props: ShieldPageProps) {
       pendingShieldAmount === null ||
       !pendingDepositSignature ||
       !selectedShieldAsset?.vaultOwner ||
+      !viewingKey?.publicKey ||
       (pendingShieldAsset !== "SOL" && !selectedShieldAsset?.mintAddress) ||
       (pendingShieldAsset !== "SOL" && !supportedToken?.owner) ||
       (pendingShieldAsset === "SOL" && !walletAddress)
@@ -584,23 +589,29 @@ export function ShieldPage(_props: ShieldPageProps) {
         const instructions = [
           ...priorityFeeInstructions,
           pendingShieldAsset === "SOL"
-            ? createNativeSolShieldMemoInstruction({
-                amount: pendingShieldAmountDisplay ?? amount,
-                assetId: VANTA_NATIVE_SOL_ASSET_ID,
-                createdAt: Date.now(),
-                depositSignature: pendingDepositSignature,
-                owner,
-                vaultOwner,
-              })
-            : createShieldMemoInstruction({
-                amount: pendingShieldAmountDisplay ?? amount,
-                asset: selectedShieldAsset.assetKey,
-                createdAt: Date.now(),
-                depositSignature: pendingDepositSignature,
-                mintAddress,
-                owner,
-                vaultOwner,
-              }),
+            ? createNativeSolShieldMemoInstruction(
+                {
+                  amount: pendingShieldAmountDisplay ?? amount,
+                  assetId: VANTA_NATIVE_SOL_ASSET_ID,
+                  createdAt: Date.now(),
+                  depositSignature: pendingDepositSignature,
+                  owner,
+                  vaultOwner,
+                },
+                { viewingPublicKey: viewingKey?.publicKey },
+              )
+            : createShieldMemoInstruction(
+                {
+                  amount: pendingShieldAmountDisplay ?? amount,
+                  asset: selectedShieldAsset.assetKey,
+                  createdAt: Date.now(),
+                  depositSignature: pendingDepositSignature,
+                  mintAddress,
+                  owner,
+                  vaultOwner,
+                },
+                { viewingPublicKey: viewingKey?.publicKey },
+              ),
         ];
 
         return stateTransaction.send({
@@ -640,6 +651,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     splShieldTransferWait.waitStatus,
     stateTransaction,
     supportedToken,
+    viewingKey?.publicKey,
     walletAddress,
   ]);
 
@@ -686,10 +698,72 @@ export function ShieldPage(_props: ShieldPageProps) {
             : null;
         const nextBalance = Number((targetShieldedBalance + pendingShieldAmount).toFixed(6));
 
+        if (!pendingProtocolSettlement?.capability.sourceAsset || !walletAddress) {
+          throw new Error("Shield protocol settlement is missing its source asset or owner.");
+        }
+
+        if (!pendingProtocolSettlement.capability.targetShieldAsset) {
+          throw new Error("Shield protocol settlement is missing its target shield asset.");
+        }
+
+        if (!pendingDepositSignature) {
+          throw new Error("Shield protocol settlement is missing its deposit signature.");
+        }
+
+        const committedRequest = createVantaShieldCommittedEconomicsSettlementRequest({
+          amount: pendingShieldAmountDisplay,
+          depositSignature: pendingDepositSignature,
+          owner: walletAddress,
+          routeEvidence: pendingProtocolSettlement.routeEvidence,
+          settlementId: stateTransaction.signature!,
+          shieldCapability: pendingProtocolSettlement.capability,
+          sourceAsset: pendingProtocolSettlement.capability.sourceAsset.symbol,
+          vaultOwner: selectedShieldAsset.vaultOwner!,
+        });
+        const protocolSettlement = await runShieldWithDecoys(() =>
+          requestVantaPrivatePoolV2ProtocolSettlement(committedRequest),
+        );
+
+        if (!protocolSettlement) {
+          throw new Error("Private Pool v2 Shield receipt was not returned.");
+        }
+
+        if (protocolSettlement.protocolSettlementReceipt.economicsMode !== "committed-economics") {
+          throw new Error("Private Pool v2 Shield receipt is not in committed-economics mode.");
+        }
+
+        if (
+          protocolSettlement.protocolSettlementReceipt.economicsCommitment !==
+          committedRequest.economicsCommitment
+        ) {
+          throw new Error("Private Pool v2 Shield receipt economics commitment does not match the request.");
+        }
+
+        if (
+          protocolSettlement.protocolSettlementReceipt.settlementCommitment !==
+          committedRequest.settlementCommitment
+        ) {
+          throw new Error("Private Pool v2 Shield receipt settlement commitment does not match the request.");
+        }
+
+        if (protocolSettlement.protocolSettlementReceipt.settlementId !== committedRequest.settlementId) {
+          throw new Error("Private Pool v2 Shield receipt settlement id does not match the committed request.");
+        }
+
+        if (protocolSettlement.protocolSettlementReceipt.action !== "shield") {
+          throw new Error("Private Pool v2 Shield receipt action does not match Shield.");
+        }
+
+        if (protocolSettlement.proofReceipt?.intent !== "shield") {
+          throw new Error("Private Pool v2 Shield proof receipt intent does not match Shield.");
+        }
+
         setRecentShield({
           amount: pendingShieldAmount,
           asset: pendingShieldAsset ?? selectedShieldAsset.assetKey,
           depositSignature: pendingDepositSignature ?? undefined,
+          protocolSettlementReceipt: protocolSettlement.protocolSettlementReceipt,
+          proofReceipt: protocolSettlement.proofReceipt,
           resultingShieldedBalance: nextBalance,
           settlement: "confirmed_deposit",
           signature: stateTransaction.signature ?? undefined,
@@ -706,21 +780,6 @@ export function ShieldPage(_props: ShieldPageProps) {
                 }
               : undefined,
         });
-
-        if (pendingProtocolSettlement?.capability.sourceAsset && walletAddress) {
-          void requestVantaPrivatePoolV2ProtocolSettlement({
-            action: "shield",
-            amount: pendingShieldAmountDisplay,
-            asset: pendingProtocolSettlement.capability.sourceAsset.symbol,
-            destination:
-              pendingProtocolSettlement.capability.targetShieldAsset?.mintAddress ??
-              selectedShieldAsset.mintAddress!,
-            owner: walletAddress,
-            settlementId: stateTransaction.signature!,
-            shieldCapability: pendingProtocolSettlement.capability,
-            shieldRouteEvidence: pendingProtocolSettlement.routeEvidence,
-          }).catch(() => null);
-        }
 
         setPendingShieldAmount(null);
         setPendingShieldAmountDisplay(null);
@@ -743,7 +802,7 @@ export function ShieldPage(_props: ShieldPageProps) {
         setFlowError(
           toErrorMessage(
             error,
-            "Shield settled, but the canonical shield bridge could not be recorded.",
+            "Shield settled, but the Private Pool v2 Shield receipt could not be verified.",
           ),
         );
       });
@@ -891,6 +950,11 @@ export function ShieldPage(_props: ShieldPageProps) {
           <span className="eyebrow product-intro__eyebrow">Add privacy</span>
           <h2>Shield</h2>
           <p>Shield an asset so you can send, swap, or hold it privately.</p>
+        </div>
+
+        <div className="module-state">
+          <strong>Private entry</strong>
+          <p>Supported assets enter Vanta before private actions begin.</p>
         </div>
       </div>
 

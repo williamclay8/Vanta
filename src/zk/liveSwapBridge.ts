@@ -110,6 +110,7 @@ export type LiveSwapCanonicalRecord = {
     artifacts: CanonicalNoteArtifacts;
     insertion: {
       index: number;
+      previousRoot: string;
       root: string;
       leafCount: number;
     };
@@ -152,6 +153,22 @@ export type LiveSwapDiagnosticsSummary = {
   operatorRequestId?: string;
   venueSummary: string;
   quoteId: string;
+};
+
+export type LiveSwapCommittedSettlementTerms = {
+  economicsCommitment: string;
+  inputCommitment: string;
+  inputRoot: string;
+  nullifierOrReplayCommitment: string;
+  outputCommitment: string;
+  outputLeafIndex: string;
+  outputRoot: string;
+  ownerCommitment: string;
+  routeCommitment: string;
+  settlementCommitment: string;
+  settlementId: string;
+  swapContextTag: string;
+  swapPublicInputHash: string;
 };
 
 export async function recordCanonicalSwapFromLiveSwap(
@@ -241,6 +258,7 @@ export async function recordCanonicalSwapFromLiveSwap(
       artifacts,
       insertion: {
         index: insertion.index,
+        previousRoot: insertion.previousRoot,
         root: insertion.snapshot.root.value,
         leafCount: insertion.snapshot.leafCount,
       },
@@ -257,6 +275,96 @@ export async function recordCanonicalSwapFromLiveSwap(
 
   persistCanonicalSwapRecord(record);
   return record;
+}
+
+export async function createCommittedSwapSettlementTerms(
+  record: LiveSwapCanonicalRecord,
+): Promise<LiveSwapCommittedSettlementTerms> {
+  const inputCommitment = record.inputReference.canonicalCommitment;
+  const nullifierOrReplayCommitment = record.consumption?.nullifierStub.value;
+
+  if (!inputCommitment) {
+    throw new Error(
+      "Committed Swap settlement requires a canonical input commitment before receipt registration.",
+    );
+  }
+
+  if (!nullifierOrReplayCommitment) {
+    throw new Error(
+      "Committed Swap settlement requires canonical replay/nullifier material before receipt registration.",
+    );
+  }
+
+  const settlementId = `swap:${record.recordId}`;
+  const outputCommitment = record.outputSuccessor.artifacts.commitment.value;
+
+  const economicsCommitment = await createSwapSettlementCommitment(record, "economics", [
+    record.liveSwap.inputAsset,
+    record.liveSwap.inputMintAddress,
+    record.liveSwap.inputAmountDisplay,
+    record.liveSwap.outputAsset,
+    record.liveSwap.outputAssetId,
+    record.liveSwap.outputAmountDisplay,
+    record.liveSwap.quoteId,
+    record.liveSwap.quoteTimestamp,
+    record.liveSwap.quoteExpiresAt,
+  ]);
+  const ownerCommitment = await createSwapSettlementCommitment(record, "owner", [
+    record.liveSwap.owner,
+    record.liveSwap.vaultOwner,
+  ]);
+  const routeCommitment = await createSwapSettlementCommitment(record, "route", [
+    record.liveSwap.venueFamily,
+    record.liveSwap.venueName,
+    record.liveSwap.venueNetwork,
+    record.liveSwap.venuePoolAddress,
+    record.liveSwap.quoteId,
+    record.liveSwap.quoteTimestamp,
+    record.liveSwap.quoteExpiresAt,
+  ]);
+  const settlementCommitment = await createSwapSettlementCommitment(record, "settlement", [
+    record.recordId,
+    record.liveSwap.transitionSignature,
+    record.liveSwap.spentMarkerSignature,
+    record.outputSuccessor.insertion.root,
+    outputCommitment,
+    inputCommitment,
+    nullifierOrReplayCommitment,
+  ]);
+  const swapContextTag = await createSwapSettlementCommitment(record, "swap-context", [
+    record.lifecycleLinkage?.recordLifecycleId,
+    record.lifecycleLinkage?.lineageId,
+    record.liveSwap.transitionNoteId,
+    record.liveSwap.operatorRequestId,
+  ]);
+
+  return {
+    economicsCommitment,
+    inputCommitment,
+    inputRoot: record.outputSuccessor.insertion.previousRoot,
+    nullifierOrReplayCommitment,
+    outputCommitment,
+    outputLeafIndex: String(record.outputSuccessor.insertion.index),
+    outputRoot: record.outputSuccessor.insertion.root,
+    ownerCommitment,
+    routeCommitment,
+    settlementCommitment,
+    settlementId,
+    swapContextTag,
+    swapPublicInputHash: await createSwapSettlementCommitment(record, "swap-public-input", [
+      record.outputSuccessor.insertion.previousRoot,
+      inputCommitment,
+      nullifierOrReplayCommitment,
+      settlementCommitment,
+      routeCommitment,
+      economicsCommitment,
+      outputCommitment,
+      record.outputSuccessor.insertion.index,
+      record.outputSuccessor.insertion.root,
+      ownerCommitment,
+      swapContextTag,
+    ]),
+  };
 }
 
 export function listCanonicalSwapRecords(): LiveSwapCanonicalRecord[] {
@@ -388,7 +496,7 @@ function resolveCanonicalInputReference(
 
 async function insertCommitmentIntoCanonicalShieldedState(
   commitment: CanonicalNoteArtifacts["commitment"],
-): Promise<ShieldedCommitmentInsertionRecord> {
+): Promise<ShieldedCommitmentInsertionRecord & { previousRoot: string }> {
   const state = AppendOnlyShieldedState.empty();
 
   for (const record of listCanonicalShieldRecords()) {
@@ -405,7 +513,12 @@ async function insertCommitmentIntoCanonicalShieldedState(
     await state.insertCommitment(record.outputSuccessor.artifacts.commitment);
   }
 
-  return state.insertCommitment(commitment);
+  const previousSnapshot = await state.getSnapshot();
+  const insertion = await state.insertCommitment(commitment);
+  return {
+    ...insertion,
+    previousRoot: previousSnapshot.root.value,
+  };
 }
 
 function persistCanonicalSwapRecord(record: LiveSwapCanonicalRecord) {
@@ -433,6 +546,23 @@ function createOwnerContext(
 
 function createCanonicalSolAssetId(assetId: string) {
   return `solana:native:${assetId}`;
+}
+
+async function createSwapSettlementCommitment(
+  record: LiveSwapCanonicalRecord,
+  label: string,
+  parts: readonly unknown[],
+) {
+  const payload = JSON.stringify({
+    domain: "vanta.swap.committed-settlement.v0",
+    label,
+    recordId: record.recordId,
+    parts,
+  });
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(payload));
+  return `0x${Array.from(new Uint8Array(digest), (byte) =>
+    byte.toString(16).padStart(2, "0"),
+  ).join("")}`;
 }
 
 function decimalAmountToBaseUnits(value: string, decimals: number): bigint {

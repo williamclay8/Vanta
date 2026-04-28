@@ -17,10 +17,23 @@ const targets = {
     circuitName: "vanta_private_pool_v2_claim_entry",
     fixtureWriterPath: resolve(repoRoot, "scripts/write-vanta-private-pool-v2-claim-fixture.mjs"),
   },
+  send: {
+    circuitDir: resolve(repoRoot, "zk/noir/vanta_private_pool_v2_send_entry"),
+    circuitName: "vanta_private_pool_v2_send_entry",
+    fixtureWriterPath: resolve(repoRoot, "scripts/write-vanta-private-pool-v2-send-fixture.mjs"),
+  },
+  "swap-to-shielded": {
+    circuitDir: resolve(repoRoot, "zk/noir/vanta_private_pool_v2_swap_to_shielded_entry"),
+    circuitName: "vanta_private_pool_v2_swap_to_shielded_entry",
+    fixtureWriterPath: resolve(
+      repoRoot,
+      "scripts/write-vanta-private-pool-v2-swap-to-shielded-fixture.mjs",
+    ),
+  },
 };
 
 if (!targets[target]) {
-  console.error('Expected target "shield" or "claim".');
+  console.error('Expected target "shield", "claim", "send", or "swap-to-shielded".');
   process.exit(1);
 }
 

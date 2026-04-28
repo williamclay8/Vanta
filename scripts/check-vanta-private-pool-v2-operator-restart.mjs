@@ -126,7 +126,13 @@ async function loadFixtureRuntime() {
   }
 
   const [
-    { createVantaPrivatePoolV2ClaimProofRequest, createVantaPrivatePoolV2ShieldProofRequest },
+    {
+      createVantaPrivatePoolV2ClaimProofRequest,
+      createVantaPrivatePoolV2SendProofRequest,
+      createVantaPrivatePoolV2ShieldProofRequest,
+      createVantaPrivatePoolV2SwapToShieldedProofRequest,
+      createVantaPrivatePoolV2UnshieldProofRequest,
+    },
     { createVantaPrivatePoolV2LocalIndexer },
     { createVantaPrivatePoolV2LocalProver },
   ] = await Promise.all([
@@ -146,6 +152,21 @@ async function loadFixtureRuntime() {
   const secondCommitment = indexer.appendCommitment({
     assetId: "USDC",
     commitment: "field:restart-second-shield-output-commitment",
+    treeId: "vanta-restart-tree",
+  });
+  const sendRecipientCommitment = indexer.appendCommitment({
+    assetId: "USDC",
+    commitment: "field:restart-send-recipient-output-commitment",
+    treeId: "vanta-restart-tree",
+  });
+  const sendChangeCommitment = indexer.appendCommitment({
+    assetId: "USDC",
+    commitment: "field:restart-send-change-output-commitment",
+    treeId: "vanta-restart-tree",
+  });
+  const swapOutputCommitment = indexer.appendCommitment({
+    assetId: "USDC",
+    commitment: "field:restart-swap-output-commitment",
     treeId: "vanta-restart-tree",
   });
   const merkleProof = await indexer.getMerkleProof(firstCommitment.commitment);
@@ -183,14 +204,62 @@ async function loadFixtureRuntime() {
     ownerCommitment: "field:restart-owner",
     quote,
   });
+  const sendRequest = createVantaPrivatePoolV2SendProofRequest({
+    assetIdCommitment: "field:restart-send-asset-id-commitment",
+    changeLeafIndex: String(sendChangeCommitment.leafIndex),
+    changeOutputCommitment: sendChangeCommitment.commitment,
+    changeOutputRoot: sendChangeCommitment.merkleRoot,
+    economicsCommitment: "field:restart-send-economics-commitment",
+    inputCommitment: secondCommitment.commitment,
+    inputRoot: secondCommitment.merkleRoot,
+    nullifier: "field:restart-send-nullifier",
+    ownerCommitment: "field:restart-second-owner",
+    recipientLeafIndex: String(sendRecipientCommitment.leafIndex),
+    recipientOutputCommitment: sendRecipientCommitment.commitment,
+    recipientOutputRoot: sendRecipientCommitment.merkleRoot,
+    sendContextTag: "field:restart-send-context-tag",
+    sendPublicInputHash: "field:restart-send-public-input-hash",
+  });
+  const swapRequest = createVantaPrivatePoolV2SwapToShieldedProofRequest({
+    economicsCommitment: "field:restart-swap-economics-commitment",
+    inputCommitment: sendRecipientCommitment.commitment,
+    inputRoot: sendChangeCommitment.merkleRoot,
+    nullifierOrReplayCommitment: "field:restart-swap-nullifier",
+    outputCommitment: swapOutputCommitment.commitment,
+    outputLeafIndex: String(swapOutputCommitment.leafIndex),
+    outputRoot: swapOutputCommitment.merkleRoot,
+    ownerCommitment: "field:restart-swap-owner-commitment",
+    routeCommitment: "field:restart-swap-route-commitment",
+    settlementCommitment: "field:restart-swap-settlement-commitment",
+    swapContextTag: "field:restart-swap-context-tag",
+    swapPublicInputHash: "field:restart-swap-public-input-hash",
+  });
+  const unshieldRequest = createVantaPrivatePoolV2UnshieldProofRequest({
+    economicsCommitment: "field:restart-unshield-economics-commitment",
+    exitTermsCommitment: "field:restart-unshield-exit-terms-commitment",
+    inputCommitment: swapOutputCommitment.commitment,
+    inputRoot: swapOutputCommitment.merkleRoot,
+    nullifierOrReplayCommitment: "field:restart-unshield-nullifier",
+    ownerCommitment: "field:restart-unshield-owner-commitment",
+    routeCommitment: "field:restart-unshield-route-commitment",
+    settlementCommitment: "field:restart-unshield-settlement-commitment",
+    unshieldContextTag: "field:restart-unshield-context-tag",
+    unshieldPublicInputHash: "field:restart-unshield-public-input-hash",
+  });
 
   return {
     claimProof: await prover.prove(claimRequest),
     claimRequest,
+    sendProof: await prover.prove(sendRequest),
+    sendRequest,
     secondShieldProof: await prover.prove(secondShieldRequest),
     secondShieldRequest,
     shieldProof: await prover.prove(shieldRequest),
     shieldRequest,
+    swapProof: await prover.prove(swapRequest),
+    swapRequest,
+    unshieldProof: await prover.prove(unshieldRequest),
+    unshieldRequest,
   };
 }
 
@@ -258,6 +327,47 @@ try {
   });
   assert(claimReceipt.ok, claimReceipt.text || "Expected claim proof receipt.");
 
+  const secondShieldReceipt = await requestJson("/private-pool-v2/proofs", {
+    body: encodePayload({
+      proof: fixture.secondShieldProof,
+      request: fixture.secondShieldRequest,
+    }),
+    method: "POST",
+  });
+  assert(
+    secondShieldReceipt.ok,
+    secondShieldReceipt.text || "Expected second shield proof receipt before restart.",
+  );
+  assert(
+    secondShieldReceipt.parsed?.receipt?.intent === "shield",
+    "Expected second shield receipt intent.",
+  );
+
+  const sendReceipt = await requestJson("/private-pool-v2/proofs", {
+    body: encodePayload({ proof: fixture.sendProof, request: fixture.sendRequest }),
+    method: "POST",
+  });
+  assert(sendReceipt.ok, sendReceipt.text || "Expected private-send proof receipt before restart.");
+
+  const swapReceipt = await requestJson("/private-pool-v2/proofs", {
+    body: encodePayload({ proof: fixture.swapProof, request: fixture.swapRequest }),
+    method: "POST",
+  });
+  assert(
+    swapReceipt.ok,
+    swapReceipt.text || "Expected swap-to-shielded proof receipt before restart.",
+  );
+
+  const unshieldReceipt = await requestJson("/private-pool-v2/proofs", {
+    body: encodePayload({ proof: fixture.unshieldProof, request: fixture.unshieldRequest }),
+    method: "POST",
+  });
+  assert(
+    unshieldReceipt.ok,
+    unshieldReceipt.text || "Expected unshield proof receipt before restart.",
+  );
+  console.log("private-pool-v2 restart committed transitions accepted: PASS");
+
   const payCheckoutSettlement = await requestJson("/private-pool-v2/pay-settlements", {
     body: JSON.stringify({
       kind: "checkout",
@@ -284,6 +394,12 @@ try {
       destination: "restart-protocol-destination",
       owner: "restart-protocol-owner",
       settlementId: "protocol-restart-shield",
+      shieldSettlementEvidence: {
+        depositSignature: "restart-protocol-deposit-signature",
+        owner: "restart-protocol-owner",
+        stateSignature: "protocol-restart-shield",
+        vaultOwner: "restart-protocol-vault-owner",
+      },
     }),
     method: "POST",
   });
@@ -306,22 +422,38 @@ try {
     writtenStore.protocolSettlements?.[0]?.settlementFingerprint?.startsWith("0x"),
     "Expected persisted protocol settlement fingerprint.",
   );
-  writtenStore.protocolSettlements[0].settlementFingerprint = hashHex(
-    "protocol-settlement",
-    "shield",
-    "protocol-restart-shield",
-    "restart-protocol-destination",
-    "restart-protocol-owner",
-    "7.00",
-    "USDC",
-    "direct-configured-token",
-    "USDC",
-    "USDC",
-    "USDC",
-    "",
-    "",
-    "",
-    "",
+  assert(
+    writtenStore.commitments?.some(
+      (commitment) =>
+        commitment.commitment === "field:restart-send-recipient-output-commitment",
+    ),
+    "Expected persisted private-send recipient output commitment.",
+  );
+  assert(
+    writtenStore.commitments?.some(
+      (commitment) => commitment.commitment === "field:restart-send-change-output-commitment",
+    ),
+    "Expected persisted private-send change output commitment.",
+  );
+  assert(
+    writtenStore.commitments?.some(
+      (commitment) => commitment.commitment === "field:restart-swap-output-commitment",
+    ),
+    "Expected persisted swap-to-shielded output commitment.",
+  );
+  assert(
+    writtenStore.nullifiers?.some((record) => record.nullifier === "field:restart-send-nullifier"),
+    "Expected persisted private-send nullifier.",
+  );
+  assert(
+    writtenStore.nullifiers?.some((record) => record.nullifier === "field:restart-swap-nullifier"),
+    "Expected persisted swap-to-shielded nullifier.",
+  );
+  assert(
+    writtenStore.nullifiers?.some(
+      (record) => record.nullifier === "field:restart-unshield-nullifier",
+    ),
+    "Expected persisted unshield nullifier.",
   );
   writeFileSync(storePath, JSON.stringify(writtenStore, null, 2));
   console.log("private-pool-v2 restart store write: PASS");
@@ -332,7 +464,7 @@ try {
 
   const restoredReceipts = await requestJson("/state/private-pool-v2-receipts");
   assert(restoredReceipts.ok, restoredReceipts.text || "Expected restored receipts response.");
-  assert(restoredReceipts.parsed?.receiptCount === 4, "Expected four restored receipts.");
+  assert(restoredReceipts.parsed?.receiptCount === 8, "Expected eight restored receipts.");
   assert(
     restoredReceipts.parsed?.paySettlementCount === 1,
     "Expected one restored Pay settlement receipt.",
@@ -370,6 +502,12 @@ try {
       destination: "restart-protocol-destination",
       owner: "restart-protocol-owner",
       settlementId: "protocol-restart-shield",
+      shieldSettlementEvidence: {
+        depositSignature: "restart-protocol-deposit-signature",
+        owner: "restart-protocol-owner",
+        stateSignature: "protocol-restart-shield",
+        vaultOwner: "restart-protocol-vault-owner",
+      },
     }),
     method: "POST",
   });
@@ -387,6 +525,12 @@ try {
       destination: "restart-protocol-destination",
       owner: "restart-protocol-owner",
       settlementId: "protocol-restart-shield",
+      shieldSettlementEvidence: {
+        depositSignature: "restart-protocol-deposit-signature",
+        owner: "restart-protocol-owner",
+        stateSignature: "protocol-restart-shield",
+        vaultOwner: "restart-protocol-vault-owner",
+      },
     }),
     method: "POST",
   });
@@ -401,30 +545,13 @@ try {
 
   const restoredStatus = await requestJson("/state/private-pool-v2-status");
   assert(restoredStatus.ok, restoredStatus.text || "Expected restored status response.");
-  assert(restoredStatus.parsed?.receiptCount === 4, "Expected restored status receipt count.");
+  assert(restoredStatus.parsed?.receiptCount === 8, "Expected restored status receipt count.");
   assert(
     restoredStatus.parsed?.nullifierReplayGuard?.mode ===
       "claim-preflight-and-accepted-reservation",
     "Expected restored status to expose nullifier replay guard mode.",
   );
   console.log("private-pool-v2 restart status restored: PASS");
-
-  const secondShieldReceipt = await requestJson("/private-pool-v2/proofs", {
-    body: encodePayload({
-      proof: fixture.secondShieldProof,
-      request: fixture.secondShieldRequest,
-    }),
-    method: "POST",
-  });
-  assert(
-    secondShieldReceipt.ok,
-    secondShieldReceipt.text || "Expected second shield proof receipt after restart.",
-  );
-  assert(
-    secondShieldReceipt.parsed?.receipt?.intent === "shield",
-    "Expected second shield receipt intent.",
-  );
-  console.log("private-pool-v2 restart commitment tree restored: PASS");
 
   const replay = await requestJson("/private-pool-v2/proofs", {
     body: encodePayload({ proof: fixture.claimProof, request: fixture.claimRequest }),
@@ -438,6 +565,43 @@ try {
     replay.text || "Expected restarted replay error.",
   );
   console.log("private-pool-v2 restart claim replay rejection: PASS");
+
+  for (const { label, proof, request } of [
+    {
+      label: "private-send",
+      proof: fixture.sendProof,
+      request: fixture.sendRequest,
+    },
+    {
+      label: "swap-to-shielded",
+      proof: fixture.swapProof,
+      request: fixture.swapRequest,
+    },
+    {
+      label: "unshield",
+      proof: fixture.unshieldProof,
+      request: fixture.unshieldRequest,
+    },
+  ]) {
+    const transitionReplay = await requestJson("/private-pool-v2/proofs", {
+      body: encodePayload({ proof, request }),
+      method: "POST",
+    });
+    assert(!transitionReplay.ok, `Expected restarted operator to reject ${label} replay.`);
+    assert(
+      String(transitionReplay.parsed?.error ?? transitionReplay.text).includes(
+        "already been accepted",
+      ) ||
+        String(transitionReplay.parsed?.error ?? transitionReplay.text).includes(
+          "already registered",
+        ) ||
+        String(transitionReplay.parsed?.error ?? transitionReplay.text).includes(
+          "nullifier replay rejected",
+        ),
+      transitionReplay.text || `Expected restarted ${label} replay error.`,
+    );
+  }
+  console.log("private-pool-v2 restart committed transition replay rejection: PASS");
 } catch (error) {
   console.error(error instanceof Error ? error.message : String(error));
   if (server.logs.stdout.trim()) {

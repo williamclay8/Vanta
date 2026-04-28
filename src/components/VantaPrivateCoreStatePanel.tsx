@@ -2145,12 +2145,12 @@ export function VantaPrivateCoreStatePanel({
               </strong>
             </div>
             <div className="review-row">
-              <span>Latest send amount</span>
+              <span>Latest send recipient commitment</span>
               <strong>
                 {operatorSendError
                   ? operatorSendError
-                  : latestOperatorSend?.sendAmount
-                    ? `${latestOperatorSend.sendAmount} / ${latestOperatorSend.changeAmount}`
+                  : latestOperatorSend?.recipientCommitment
+                    ? abbreviate(latestOperatorSend.recipientCommitment)
                     : "Unavailable"}
               </strong>
             </div>
@@ -2361,22 +2361,22 @@ export function VantaPrivateCoreStatePanel({
               <strong>{operatorProofReleaseLinkStatus ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
-              <span>Operator release destination</span>
+              <span>Operator release nullifier</span>
               <strong>
                 {operatorReleaseError
                   ? operatorReleaseError
-                  : latestOperatorRelease?.releaseDestination
-                    ? abbreviate(latestOperatorRelease.releaseDestination)
+                  : latestOperatorRelease?.nullifier
+                    ? abbreviate(latestOperatorRelease.nullifier)
                     : "Unavailable"}
               </strong>
             </div>
             <div className="review-row">
-              <span>Operator released value</span>
+              <span>Operator release request</span>
               <strong>
                 {operatorReleaseError
                   ? operatorReleaseError
-                  : latestOperatorRelease?.releasedAmount && latestOperatorRelease?.releasedAssetId
-                    ? `${latestOperatorRelease.releasedAmount} / ${abbreviate(latestOperatorRelease.releasedAssetId)}`
+                  : latestOperatorRelease?.requestId
+                    ? abbreviate(latestOperatorRelease.requestId)
                     : "Unavailable"}
               </strong>
             </div>

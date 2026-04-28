@@ -32,12 +32,20 @@ function serializeReceipt(receipt) {
 }
 
 function nullifiersFromReceipts(receipts) {
-  return receipts
-    .filter((receipt) => receipt.replayKey.startsWith("claim:"))
-    .map((receipt) => ({
-      nullifier: receipt.replayKey.slice("claim:".length),
-      spentAtSlot: receipt.recordedAtSlot,
-    }));
+  const prefixes = ["claim:", "private-send:", "swap-to-shielded:", "unshield:"];
+  return receipts.flatMap((receipt) => {
+    const prefix = prefixes.find((candidate) => receipt.replayKey.startsWith(candidate));
+    if (!prefix) {
+      return [];
+    }
+
+    return [
+      {
+        nullifier: receipt.replayKey.slice(prefix.length),
+        spentAtSlot: receipt.recordedAtSlot,
+      },
+    ];
+  });
 }
 
 function serializeNullifier(record) {

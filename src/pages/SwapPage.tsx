@@ -38,7 +38,11 @@ import {
   type VantaShieldNote,
 } from "@/solana/vantaShieldState";
 import { useWalletState } from "@/data/context/WalletContext";
-import { recordCanonicalSwapFromLiveSwap } from "@/zk/liveSwapBridge";
+import { requestVantaPrivatePoolV2ProtocolSettlement } from "@/privacy/privatePoolV2ProtocolSettlementClient";
+import {
+  createCommittedSwapSettlementTerms,
+  recordCanonicalSwapFromLiveSwap,
+} from "@/zk/liveSwapBridge";
 import { useVantaSafeSendTransaction } from "@/wallet/useVantaSafeSendTransaction";
 import { signWalletMessageIntentWithSafety } from "@/wallet/walletMessageIntentSafety.mjs";
 
@@ -696,7 +700,7 @@ export function SwapPage() {
     }
 
     try {
-      await recordCanonicalSwapFromLiveSwap({
+      const canonicalRecord = await recordCanonicalSwapFromLiveSwap({
         createdAt: pendingSwapBridge.createdAt,
         owner: pendingSwapBridge.owner,
         vaultOwner: pendingSwapBridge.vaultOwner,
@@ -732,13 +736,24 @@ export function SwapPage() {
           quoteExpiresAt: pendingSwapBridge.venue.quoteExpiresAt,
         },
       });
+      const committedSettlementTerms =
+        await createCommittedSwapSettlementTerms(canonicalRecord);
+      const settlementReceipt = await requestVantaPrivatePoolV2ProtocolSettlement({
+        action: "swap",
+        economicsMode: "committed-economics",
+        ...committedSettlementTerms,
+      });
+      if (settlementReceipt?.proofReceipt?.intent !== "swap-to-shielded") {
+        throw new Error("Committed Swap settlement did not return a swap-to-shielded proof receipt.");
+      }
       setSwapBridgeError(null);
     } catch (error) {
       setSwapBridgeError(
         error instanceof Error
           ? error.message
-          : "Swap completed, but canonical swap diagnostics could not be retained.",
+          : "Swap completed, but the committed swap-to-shielded proof receipt could not be registered.",
       );
+      throw error;
     }
   }
 
@@ -939,6 +954,11 @@ export function SwapPage() {
           <span className="eyebrow product-intro__eyebrow">Trade shielded</span>
           <h2>Swap</h2>
           <p>Record a swap transition from shielded state.</p>
+        </div>
+
+        <div className="module-state">
+          <strong>Constrained route</strong>
+          <p>Current live execution stays on the supported shielded pair.</p>
         </div>
       </div>
 

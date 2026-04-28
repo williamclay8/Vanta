@@ -302,6 +302,12 @@ const PRIVATE_CORE_SUPPORTED_SEND_INPUT_ROOT_POLICY =
 const PRIVATE_CORE_SUPPORTED_SEND_OUTPUT_REGISTRATION_POLICY =
   "resulting-root-must-register-as-recipient-or-change-output";
 const PRIVATE_CORE_SUPPORTED_PROOF_SYSTEM = "noir-acir-ultrahonk-bbjs";
+const PRIVATE_CORE_OPERATOR_WITNESS_MODE =
+  process.env.VANTA_PRIVATE_CORE_OPERATOR_WITNESS_MODE ?? "local-prover-dev";
+const PRIVATE_CORE_OPERATOR_WITNESS_MATERIAL_POLICY =
+  PRIVATE_CORE_OPERATOR_WITNESS_MODE === "strict-no-witness"
+    ? "reject-private-witness-material"
+    : "local-prover-dev-accepts-private-witness-material";
 const PRIVATE_CORE_SUPPORTED_UNSHIELD_CIRCUIT = "vanta_private_core_single_note_unshield";
 const PRIVATE_CORE_SUPPORTED_SEND_CIRCUIT = "vanta_private_core_single_note_send";
 const PRIVATE_CORE_SUPPORTED_UNSHIELD_MERKLE_DEPTH = 3;
@@ -677,6 +683,7 @@ const server = createServer(async (request, response) => {
   if (request.method === "POST" && request.url === "/private-core/unshield-proof") {
     try {
       const body = await readJsonBody(request);
+      assertPrivateCoreWitnessMaterialPolicy(body);
       const proofReceipt = await proveAndVerifyVantaPrivateCoreUnshield({
         witnessPackage: body.witnessPackage,
       });
@@ -1007,6 +1014,7 @@ const server = createServer(async (request, response) => {
   if (request.method === "POST" && request.url === "/private-core/register-root") {
     try {
       const body = await readJsonBody(request);
+      assertPrivateCoreWitnessMaterialPolicy(body);
       const proofReceipt = await proveAndVerifyVantaPrivateCoreUnshield({
         witnessPackage: body?.witnessPackage,
       });
@@ -1071,6 +1079,7 @@ const server = createServer(async (request, response) => {
   if (request.method === "POST" && request.url === "/private-core/unshield-consume") {
     try {
       const body = await readJsonBody(request);
+      assertPrivateCoreWitnessMaterialPolicy(body);
       const proofReceipt = await proveAndVerifyVantaPrivateCoreUnshield({
         witnessPackage: body.witnessPackage,
       });
@@ -2774,6 +2783,8 @@ function buildPrivateCoreContractState() {
     supportedRecipientModel: PRIVATE_CORE_SUPPORTED_RECIPIENT_MODEL,
     supportedReleaseDestinationModel: PRIVATE_CORE_SUPPORTED_RELEASE_DESTINATION_MODEL,
     supportedProofSystem: PRIVATE_CORE_SUPPORTED_PROOF_SYSTEM,
+    operatorWitnessMode: PRIVATE_CORE_OPERATOR_WITNESS_MODE,
+    operatorWitnessMaterialPolicy: PRIVATE_CORE_OPERATOR_WITNESS_MATERIAL_POLICY,
     supportedUnshieldCircuit: PRIVATE_CORE_SUPPORTED_UNSHIELD_CIRCUIT,
     supportedSendCircuit: PRIVATE_CORE_SUPPORTED_SEND_CIRCUIT,
     supportedUnshieldMerkleDepth: PRIVATE_CORE_SUPPORTED_UNSHIELD_MERKLE_DEPTH,
@@ -4071,6 +4082,18 @@ async function readJsonBody(request) {
 
   const raw = Buffer.concat(chunks).toString("utf8");
   return JSON.parse(raw || "{}");
+}
+
+function assertPrivateCoreWitnessMaterialPolicy(body) {
+  if (PRIVATE_CORE_OPERATOR_WITNESS_MODE !== "strict-no-witness") {
+    return;
+  }
+
+  if (body?.witnessPackage?.privateWitness) {
+    throw new Error(
+      "Private-core strict no-witness operator mode rejects witnessPackage.privateWitness.",
+    );
+  }
 }
 
 function loadEnvFile(fileName) {

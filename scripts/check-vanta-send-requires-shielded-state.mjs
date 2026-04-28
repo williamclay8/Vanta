@@ -32,7 +32,13 @@ const requiredPageMarkers = [
   "Shield the asset first",
   "selectedSpendableNote",
   "needs-private-send-adapter",
-  "disabled={isBetaMode || !isRealSendReady",
+];
+
+const requiredPrivateCorePrimarySendMarkers = [
+  "const isPrivateCoreVusdSendReady =",
+  "selectedAsset === \"VUSD\"",
+  "privateCoreSendPreview?.boundary.readiness === \"ready\"",
+  "!isPrivateCoreVusdSendReady",
 ];
 
 const requiredCapabilityMarkers = [
@@ -60,6 +66,27 @@ for (const marker of requiredPageMarkers) {
   if (!sendPageSource.includes(marker)) {
     failures.push(`Send page missing shield-first marker: ${marker}`);
   }
+}
+
+for (const marker of requiredPrivateCorePrimarySendMarkers) {
+  if (!sendPageSource.includes(marker)) {
+    failures.push(`Send page missing primary private-core send marker: ${marker}`);
+  }
+}
+
+const handleSendMatch = sendPageSource.match(
+  /async function handleSend\(\) \{[\s\S]*?\n  \}/,
+);
+
+if (!handleSendMatch) {
+  failures.push("Send page must expose handleSend for the primary Send action.");
+} else if (
+  !handleSendMatch[0].includes("privateCoreSendPreview") &&
+  !handleSendMatch[0].includes("handlePrivateCoreSendProof")
+) {
+  failures.push(
+    "Primary handleSend must route supported VUSD sends through the private-core send path.",
+  );
 }
 
 for (const marker of requiredCapabilityMarkers) {

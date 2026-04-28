@@ -2,23 +2,23 @@ import { useMemo, useState } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
 import { VANTA_PAY_ASSET_SYMBOLS, type VantaPayAsset } from "@/pay/vantaPayAssets";
 import { VANTA_PAY_MERCHANT_COMMAND_CENTER } from "@/pay/vantaPayMerchantCommandCenter";
+import { getVantaPayReceiptPrivacyContract } from "@/pay/vantaPayReceiptPrivacyContract";
+import { createVantaPayRuntime } from "@/pay/vantaPayRuntime";
+import type {
+  VantaPayCheckoutSession,
+  VantaPayPayment,
+  VantaPayPrivateRailReceipt,
+  VantaPayReceipt,
+} from "@/pay/vantaPayTypes";
 
 type CheckoutMode = "hosted" | "embedded" | "modal";
 type PayLifecyclePhase = "draft" | "checkout_created" | "settlement_complete";
 
-type TestCheckoutRecord = {
-  amount: string;
-  asset: VantaPayAsset;
-  auditDisclosureId?: string;
-  checkoutSessionId: string;
-  checkoutUrl: string;
-  clientToken: string;
-  createdAt: string;
-  customer: string;
-  paymentId?: string;
-  privateRailReceiptId?: string;
-  receiptId?: string;
-  title: string;
+type PayCheckoutRecord = {
+  payment?: VantaPayPayment;
+  privateRailReceipt?: VantaPayPrivateRailReceipt;
+  receipt?: VantaPayReceipt;
+  session: VantaPayCheckoutSession;
 };
 
 function PayButton({
@@ -116,13 +116,16 @@ function PaySelect({
 }
 
 export function PayPage() {
+  const payRuntime = useMemo(() => createVantaPayRuntime(), []);
+  const merchant = useMemo(() => payRuntime.getMerchant(), [payRuntime]);
+  const receiptPrivacyContract = useMemo(() => getVantaPayReceiptPrivacyContract(), []);
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
   const [asset, setAsset] = useState<VantaPayAsset>("USDC");
   const [customerEmail, setCustomerEmail] = useState("");
   const [checkoutMode, setCheckoutMode] = useState<CheckoutMode>("hosted");
   const [phase, setPhase] = useState<PayLifecyclePhase>("draft");
-  const [checkoutRecord, setCheckoutRecord] = useState<TestCheckoutRecord | null>(null);
+  const [checkoutRecord, setCheckoutRecord] = useState<PayCheckoutRecord | null>(null);
   const [copied, setCopied] = useState(false);
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
 
@@ -157,35 +160,14 @@ export function PayPage() {
     ? `vanta.test/pay/${title.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`
     : "vanta.test/pay/new-request";
   const createdRecord = checkoutRecord;
-  const currentSessionId = createdRecord?.checkoutSessionId ?? "Not created yet";
-  const currentClientToken = createdRecord?.clientToken ?? "Not issued yet";
+  const currentSessionId = createdRecord?.session.id ?? "Not created yet";
+  const currentClientToken = createdRecord?.session.clientToken ?? "Not issued yet";
   const requestStatus =
     phase === "settlement_complete"
       ? "Payment record completed"
       : phase === "checkout_created"
         ? "Checkout session created"
         : "Draft";
-
-  function buildCheckoutSessionRecord() {
-    const slug =
-      title
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "") || "payment";
-    const timestamp = Date.now().toString(36);
-
-    return {
-      amount: amount.trim(),
-      asset,
-      checkoutSessionId: `checkout_session_test_${slug}_${timestamp}`,
-      checkoutUrl,
-      clientToken: `client_token_test_${timestamp}`,
-      createdAt: new Date().toLocaleString(),
-      customer: customerLabel,
-      title: paymentLabel,
-    } satisfies TestCheckoutRecord;
-  }
 
   function createCheckoutSession() {
     setHasAttemptedSubmit(true);
@@ -195,7 +177,22 @@ export function PayPage() {
       return null;
     }
 
-    const nextRecord = buildCheckoutSessionRecord();
+    const session = payRuntime.createCheckoutSession({
+      amount: amount.trim(),
+      cancelUrl: merchant.callbackUrls.cancelUrl,
+      collectEmail: Boolean(customerEmail.trim()),
+      currency: asset,
+      customerEmail: customerEmail.trim() || undefined,
+      lineItems: [{ amount: amount.trim(), name: paymentLabel, quantity: 1 }],
+      merchantId: merchant.id,
+      metadata: {
+        request_title: paymentLabel,
+      },
+      mode: "payment",
+      successUrl: merchant.callbackUrls.successUrl,
+      uiMode: checkoutMode,
+    });
+    const nextRecord = { session } satisfies PayCheckoutRecord;
 
     setPhase("checkout_created");
     setCheckoutRecord(nextRecord);
@@ -207,20 +204,19 @@ export function PayPage() {
       return;
     }
 
-    const slug =
-      createdRecord.title
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "") || "payment";
-    const timestamp = Date.now().toString(36);
+    const privateRailReceipt = payRuntime.createPrivateRailReceipt({
+      checkoutSessionId: createdRecord.session.id,
+      rail: createdRecord.session.privacyRoute.rail,
+    });
+    const completion = payRuntime.completeCheckoutSession(createdRecord.session.id, {
+      privateRailReceiptId: privateRailReceipt.id,
+    });
 
     setCheckoutRecord({
       ...createdRecord,
-      auditDisclosureId: `audit_disclosure_test_${slug}_${timestamp}`,
-      paymentId: `payment_test_${slug}_${timestamp}`,
-      privateRailReceiptId: `private_rail_test_${slug}_${timestamp}`,
-      receiptId: `receipt_test_${slug}_${timestamp}`,
+      payment: completion.payment,
+      privateRailReceipt,
+      receipt: completion.receipt,
     });
     setPhase("settlement_complete");
   }
@@ -232,7 +228,7 @@ export function PayPage() {
     }
 
     try {
-      await navigator.clipboard?.writeText(record.checkoutUrl);
+      await navigator.clipboard?.writeText(record.session.checkoutUrl);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1800);
     } catch {
@@ -362,7 +358,7 @@ export function PayPage() {
                 <dl className="pay-request-meta">
                   <div>
                     <dt>Test link</dt>
-                    <dd>{createdRecord?.checkoutUrl ?? checkoutUrl}</dd>
+                    <dd>{createdRecord?.session.checkoutUrl ?? checkoutUrl}</dd>
                   </div>
                   <div>
                     <dt>Checkout type</dt>
@@ -398,6 +394,7 @@ export function PayPage() {
               <div className="pay-trust-line">
                 <span>Local operator harness</span>
                 <span>Payment record</span>
+                <span>{phase === "settlement_complete" ? "Receipt packet ready" : "Receipt packet pending"}</span>
                 <span>
                   {phase === "settlement_complete"
                     ? "Private rail receipt confirmed"
@@ -457,22 +454,26 @@ export function PayPage() {
               <section className="pay-record-panel" aria-live="polite">
                 <div>
                   <span>Payment records</span>
-                  <strong>{createdRecord ? createdRecord.title : "No test checkout session created yet."}</strong>
+                  <strong>
+                    {createdRecord
+                      ? createdRecord.session.lineItems[0]?.name
+                      : "No test checkout session created yet."}
+                  </strong>
                 </div>
                 {createdRecord ? (
                   <dl className="pay-record-list">
                     <div>
                       <dt>Checkout session</dt>
-                      <dd>{createdRecord.checkoutSessionId}</dd>
+                      <dd>{createdRecord.session.id}</dd>
                     </div>
                     <div>
                       <dt>Client token</dt>
-                      <dd>{createdRecord.clientToken}</dd>
+                      <dd>{createdRecord.session.clientToken}</dd>
                     </div>
                     <div>
                       <dt>Amount</dt>
                       <dd>
-                        {createdRecord.amount} {createdRecord.asset}
+                        {createdRecord.session.amount} {createdRecord.session.currency}
                       </dd>
                     </div>
                     <div>
@@ -481,25 +482,25 @@ export function PayPage() {
                     </div>
                     <div>
                       <dt>Customer</dt>
-                      <dd>{createdRecord.customer}</dd>
+                      <dd>{createdRecord.session.customerEmail ?? "No customer email"}</dd>
                     </div>
                     {phase === "settlement_complete" ? (
                       <>
                         <div>
                           <dt>Payment</dt>
-                          <dd>{createdRecord.paymentId}</dd>
+                          <dd>{createdRecord.payment?.id}</dd>
                         </div>
                         <div>
                           <dt>Receipt</dt>
-                          <dd>{createdRecord.receiptId}</dd>
+                          <dd>{createdRecord.receipt?.id}</dd>
                         </div>
                         <div>
                           <dt>Private rail receipt</dt>
-                          <dd>{createdRecord.privateRailReceiptId}</dd>
+                          <dd>{createdRecord.privateRailReceipt?.id}</dd>
                         </div>
                         <div>
                           <dt>Audit disclosure</dt>
-                          <dd>{createdRecord.auditDisclosureId}</dd>
+                          <dd>{createdRecord.receipt?.auditDisclosureId}</dd>
                         </div>
                       </>
                     ) : null}
@@ -513,16 +514,60 @@ export function PayPage() {
                     </div>
                     <div>
                       <dt>Created</dt>
-                      <dd>{createdRecord.createdAt}</dd>
+                      <dd>{createdRecord.session.createdAt}</dd>
                     </div>
                   </dl>
                 ) : (
                   <p>No test checkout session created yet.</p>
                 )}
-                {phase === "settlement_complete" ? (
+                {phase === "settlement_complete" && createdRecord ? (
                   <p>No production funds moved. Production privacy claims remain locked.</p>
                 ) : null}
               </section>
+
+              {phase === "settlement_complete" && createdRecord?.receipt ? (
+                <section className="pay-record-panel pay-record-panel--receipt-packet" aria-label="Receipt packet">
+                  <div>
+                    <span>Receipt packet</span>
+                    <strong>Receipt packet ready</strong>
+                  </div>
+                  <dl className="pay-record-list">
+                    <div>
+                      <dt>Visible to merchant</dt>
+                      <dd>
+                        Payment record, receipt ID, customer context, and audit disclosure reference.
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Visible to buyer</dt>
+                      <dd>
+                        Receipt status and payment reference; customer details and internal IDs use
+                        selective disclosure.
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Kept private</dt>
+                      <dd>
+                        Client token, raw private economics, and operator-only settlement details.
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Verified by</dt>
+                      <dd>{receiptPrivacyContract.verificationSurfaces[0]}</dd>
+                    </div>
+                    <div>
+                      <dt>Proof receipt ID</dt>
+                      <dd>{createdRecord?.privateRailReceipt?.id}</dd>
+                    </div>
+                    <div>
+                      <dt>Claim status</dt>
+                      <dd>
+                        {receiptPrivacyContract.currentTruth}; production privacy claims remain locked.
+                      </dd>
+                    </div>
+                  </dl>
+                </section>
+              ) : null}
 
               <div className="pay-suite-plain-rows" aria-label="More payment records">
                 <p>

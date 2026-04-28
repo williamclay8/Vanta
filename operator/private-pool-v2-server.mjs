@@ -306,7 +306,10 @@ const {
 const {
   createVantaPrivatePoolV2ClaimProofRequest,
   createVantaPrivatePoolV2HiddenEconomicsProofRequest,
+  createVantaPrivatePoolV2SendProofRequest,
   createVantaPrivatePoolV2ShieldProofRequest,
+  createVantaPrivatePoolV2SwapToShieldedProofRequest,
+  createVantaPrivatePoolV2UnshieldProofRequest,
 } = await import(pathToFileURL(join(tempJsDir, "privatePoolV2ProofRequests.js")).href);
 const { createPrivatePoolV2ShieldProofRequestFromCapability } = await import(
   pathToFileURL(join(tempJsDir, "privatePoolV2ShieldCapabilityAdapter.js")).href
@@ -401,12 +404,13 @@ const protocolSettlementReceipts = [...(persistedState.protocolSettlements ?? []
 const textEncoder = new TextEncoder();
 const VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION =
   "vanta-pay-private-settlement-adapter-0.1";
+const VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID = "hidden:economic-terms";
 const settlementPolicy = VANTA_PRIVATE_POOL_V2_SETTLEMENT_POLICY;
 const protocolActionProofModes = {
-  send: "operator_local_transfer_request",
+  send: "send_circuit_request",
   shield: "shield_circuit_request",
-  swap: "operator_local_swap_request",
-  unshield: "claim_circuit_request",
+  swap: "swap_to_shielded_circuit_request",
+  unshield: "committed_unshield_or_claim_circuit_request",
 };
 
 function hashHex(...parts) {
@@ -507,22 +511,70 @@ function validateProtocolSettlementBody(body) {
     ? requireNonEmptyString(body.economicsMode, "economicsMode")
     : "raw-operator-visible";
   if (economicsMode === "committed-economics") {
-    if (action !== "send" && action !== "swap") {
-      throw new Error("Committed economics protocol settlement only supports send and swap.");
+    if (action !== "shield" && action !== "send" && action !== "swap" && action !== "unshield") {
+      throw new Error("Committed economics protocol settlement only supports shield, send, swap, and unshield.");
     }
     for (const rawField of ["amount", "asset", "destination", "owner"]) {
       if (body[rawField] !== undefined && body[rawField] !== null) {
         throw new Error(`Committed economics protocol settlement rejects raw ${rawField}.`);
       }
     }
-    if (action === "swap") {
+    if (action === "send") {
+      requireNonEmptyString(body.assetIdCommitment, "assetIdCommitment");
+      requireNonEmptyString(body.changeLeafIndex, "changeLeafIndex");
+      requireNonEmptyString(body.changeOutputCommitment, "changeOutputCommitment");
+      requireNonEmptyString(body.changeOutputRoot, "changeOutputRoot");
+      requireNonEmptyString(body.inputRoot, "inputRoot");
       requireNonEmptyString(body.inputCommitment, "inputCommitment");
+      requireNonEmptyString(body.outputCommitment, "outputCommitment");
+      requireNonEmptyString(body.outputLeafIndex, "outputLeafIndex");
+      requireNonEmptyString(body.outputRoot, "outputRoot");
+      requireNonEmptyString(body.sendContextTag, "sendContextTag");
+    }
+    if (action === "swap") {
+      requireNonEmptyString(body.inputRoot, "inputRoot");
+      requireNonEmptyString(body.inputCommitment, "inputCommitment");
+      requireNonEmptyString(body.outputCommitment, "outputCommitment");
+      requireNonEmptyString(body.outputLeafIndex, "outputLeafIndex");
+      requireNonEmptyString(body.outputRoot, "outputRoot");
+      requireNonEmptyString(body.swapContextTag, "swapContextTag");
+    }
+    if (action === "unshield") {
+      requireNonEmptyString(body.inputRoot, "inputRoot");
+      requireNonEmptyString(body.inputCommitment, "inputCommitment");
+      requireNonEmptyString(body.exitTermsCommitment, "exitTermsCommitment");
+      requireNonEmptyString(body.unshieldContextTag, "unshieldContextTag");
     }
 
     return {
       action,
+      assetIdCommitment:
+        typeof body.assetIdCommitment === "string" && body.assetIdCommitment.trim().length > 0
+          ? body.assetIdCommitment
+          : undefined,
+      changeLeafIndex:
+        typeof body.changeLeafIndex === "string" && body.changeLeafIndex.trim().length > 0
+          ? body.changeLeafIndex
+          : undefined,
+      changeOutputCommitment:
+        typeof body.changeOutputCommitment === "string" &&
+        body.changeOutputCommitment.trim().length > 0
+          ? body.changeOutputCommitment
+          : undefined,
+      changeOutputRoot:
+        typeof body.changeOutputRoot === "string" && body.changeOutputRoot.trim().length > 0
+          ? body.changeOutputRoot
+          : undefined,
       economicsCommitment: requireNonEmptyString(body.economicsCommitment, "economicsCommitment"),
       economicsMode,
+      exitTermsCommitment:
+        typeof body.exitTermsCommitment === "string" && body.exitTermsCommitment.trim().length > 0
+          ? body.exitTermsCommitment
+          : undefined,
+      inputRoot:
+        typeof body.inputRoot === "string" && body.inputRoot.trim().length > 0
+          ? body.inputRoot
+          : undefined,
       inputCommitment:
         typeof body.inputCommitment === "string" && body.inputCommitment.trim().length > 0
           ? body.inputCommitment
@@ -535,9 +587,44 @@ function validateProtocolSettlementBody(body) {
         typeof body.outputCommitment === "string" && body.outputCommitment.trim().length > 0
           ? body.outputCommitment
           : undefined,
+      outputLeafIndex:
+        typeof body.outputLeafIndex === "string" && body.outputLeafIndex.trim().length > 0
+          ? body.outputLeafIndex
+          : undefined,
+      outputRoot:
+        typeof body.outputRoot === "string" && body.outputRoot.trim().length > 0
+          ? body.outputRoot
+          : undefined,
       ownerCommitment: requireNonEmptyString(body.ownerCommitment, "ownerCommitment"),
       routeCommitment: requireNonEmptyString(body.routeCommitment, "routeCommitment"),
+      sendContextTag:
+        typeof body.sendContextTag === "string" && body.sendContextTag.trim().length > 0
+          ? body.sendContextTag
+          : undefined,
+      sendPublicInputHash:
+        typeof body.sendPublicInputHash === "string" &&
+        body.sendPublicInputHash.trim().length > 0
+          ? body.sendPublicInputHash
+          : undefined,
       settlementCommitment: requireNonEmptyString(body.settlementCommitment, "settlementCommitment"),
+      swapContextTag:
+        typeof body.swapContextTag === "string" && body.swapContextTag.trim().length > 0
+          ? body.swapContextTag
+          : undefined,
+      swapPublicInputHash:
+        typeof body.swapPublicInputHash === "string" &&
+        body.swapPublicInputHash.trim().length > 0
+          ? body.swapPublicInputHash
+          : undefined,
+      unshieldContextTag:
+        typeof body.unshieldContextTag === "string" && body.unshieldContextTag.trim().length > 0
+          ? body.unshieldContextTag
+          : undefined,
+      unshieldPublicInputHash:
+        typeof body.unshieldPublicInputHash === "string" &&
+        body.unshieldPublicInputHash.trim().length > 0
+          ? body.unshieldPublicInputHash
+          : undefined,
       settlementId,
     };
   }
@@ -547,18 +634,24 @@ function validateProtocolSettlementBody(body) {
   }
 
   const asset = requireNonEmptyString(body.asset, "asset");
+  const owner = requireNonEmptyString(body.owner, "owner");
+  const shieldCapability = normalizeProtocolShieldCapability(body.shieldCapability, body.asset);
   return {
     action,
     amount: normalizeAmount(body.amount, asset),
     asset,
     destination: requireNonEmptyString(body.destination, "destination"),
     economicsMode,
-    owner: requireNonEmptyString(body.owner, "owner"),
+    owner,
     settlementId,
-    shieldCapability: normalizeProtocolShieldCapability(body.shieldCapability, body.asset),
+    shieldCapability,
+    shieldSettlementEvidence:
+      action === "shield"
+        ? normalizeProtocolShieldSettlementEvidence(body.shieldSettlementEvidence, owner, settlementId)
+        : undefined,
     shieldRouteEvidence: normalizeProtocolShieldRouteEvidence(
       body.shieldRouteEvidence,
-      normalizeProtocolShieldCapability(body.shieldCapability, body.asset),
+      shieldCapability,
     ),
   };
 }
@@ -634,6 +727,41 @@ function normalizeProtocolShieldRouteEvidence(rawEvidence, shieldCapability) {
     shieldCapability.targetShieldAsset.assetKey,
     "Routed shield evidence target asset conflicts with shield capability target.",
   );
+  const sourceAsset =
+    typeof rawEvidence.sourceAsset === "string" && rawEvidence.sourceAsset.trim().length > 0
+      ? rawEvidence.sourceAsset
+      : undefined;
+  if (sourceAsset) {
+    assertMatches(
+      sourceAsset,
+      shieldCapability.sourceAsset.symbol,
+      "Routed shield evidence source asset conflicts with shield capability source.",
+    );
+  }
+  const sourceMintAddress =
+    typeof rawEvidence.sourceMintAddress === "string" &&
+    rawEvidence.sourceMintAddress.trim().length > 0
+      ? rawEvidence.sourceMintAddress
+      : undefined;
+  if (sourceMintAddress) {
+    assertMatches(
+      sourceMintAddress,
+      shieldCapability.sourceAsset.mintAddress,
+      "Routed shield evidence source mint conflicts with shield capability source.",
+    );
+  }
+  const targetMintAddress =
+    typeof rawEvidence.targetMintAddress === "string" &&
+    rawEvidence.targetMintAddress.trim().length > 0
+      ? rawEvidence.targetMintAddress
+      : undefined;
+  if (targetMintAddress) {
+    assertMatches(
+      targetMintAddress,
+      shieldCapability.targetShieldAsset.mintAddress,
+      "Routed shield evidence target mint conflicts with shield capability target.",
+    );
+  }
 
   return {
     provider: requireNonEmptyString(rawEvidence.provider, "shieldRouteEvidence.provider"),
@@ -641,8 +769,44 @@ function normalizeProtocolShieldRouteEvidence(rawEvidence, shieldCapability) {
       rawEvidence.routeSignature,
       "shieldRouteEvidence.routeSignature",
     ),
+    sourceAmount:
+      typeof rawEvidence.sourceAmount === "string" && rawEvidence.sourceAmount.trim().length > 0
+        ? normalizeAmount(rawEvidence.sourceAmount, rawEvidence.sourceAsset ?? shieldCapability.sourceAsset.symbol)
+        : undefined,
+    sourceAsset,
+    sourceMintAddress,
     targetAmount: normalizeAmount(rawEvidence.targetAmount, targetAsset),
     targetAsset,
+    targetMintAddress,
+  };
+}
+
+function normalizeProtocolShieldSettlementEvidence(rawEvidence, owner, settlementId) {
+  if (!rawEvidence) {
+    throw new Error("Private Pool v2 shield settlement requires shieldSettlementEvidence.");
+  }
+
+  const stateSignature = requireNonEmptyString(
+    rawEvidence.stateSignature,
+    "shieldSettlementEvidence.stateSignature",
+  );
+  assertMatches(
+    stateSignature,
+    settlementId,
+    "Shield settlement state signature conflicts with settlement id.",
+  );
+
+  const evidenceOwner = requireNonEmptyString(rawEvidence.owner, "shieldSettlementEvidence.owner");
+  assertMatches(evidenceOwner, owner, "Shield settlement owner evidence conflicts with owner.");
+
+  return {
+    depositSignature: requireNonEmptyString(
+      rawEvidence.depositSignature,
+      "shieldSettlementEvidence.depositSignature",
+    ),
+    owner: evidenceOwner,
+    stateSignature,
+    vaultOwner: requireNonEmptyString(rawEvidence.vaultOwner, "shieldSettlementEvidence.vaultOwner"),
   };
 }
 
@@ -681,19 +845,34 @@ function assertPayCheckoutReplayMatches(existingSettlement, session, amount, ass
 function protocolSettlementFingerprint({
   action,
   amount,
+  assetIdCommitment,
   asset,
+  changeLeafIndex,
+  changeOutputCommitment,
+  changeOutputRoot,
   destination,
   economicsCommitment,
   economicsMode,
+  exitTermsCommitment,
+  inputRoot,
   inputCommitment,
   nullifierOrReplayCommitment,
   outputCommitment,
+  outputLeafIndex,
+  outputRoot,
   owner,
   ownerCommitment,
   routeCommitment,
+  sendContextTag,
+  sendPublicInputHash,
   settlementId,
   settlementCommitment,
+  swapContextTag,
+  swapPublicInputHash,
+  unshieldContextTag,
+  unshieldPublicInputHash,
   shieldCapability,
+  shieldSettlementEvidence,
   shieldRouteEvidence,
 }) {
   if ((economicsMode ?? "raw-operator-visible") === "raw-operator-visible") {
@@ -709,10 +888,18 @@ function protocolSettlementFingerprint({
       shieldCapability?.sourceAsset?.mintAddress ?? "",
       shieldCapability?.targetShieldAsset?.assetKey ?? "",
       shieldCapability?.targetShieldAsset?.mintAddress ?? "",
+      shieldSettlementEvidence?.depositSignature ?? "",
+      shieldSettlementEvidence?.owner ?? "",
+      shieldSettlementEvidence?.stateSignature ?? "",
+      shieldSettlementEvidence?.vaultOwner ?? "",
       shieldRouteEvidence?.provider ?? "",
       shieldRouteEvidence?.routeSignature ?? "",
+      shieldRouteEvidence?.sourceAmount ?? "",
+      shieldRouteEvidence?.sourceAsset ?? "",
+      shieldRouteEvidence?.sourceMintAddress ?? "",
       shieldRouteEvidence?.targetAmount ?? "",
       shieldRouteEvidence?.targetAsset ?? "",
+      shieldRouteEvidence?.targetMintAddress ?? "",
     );
   }
 
@@ -721,13 +908,27 @@ function protocolSettlementFingerprint({
 	    action,
 	    settlementId,
 	    economicsMode,
+	    assetIdCommitment,
+	    changeLeafIndex,
+	    changeOutputCommitment,
+	    changeOutputRoot,
 	    economicsCommitment,
+	    exitTermsCommitment,
+	    inputRoot,
 	    inputCommitment,
 	    nullifierOrReplayCommitment,
 	    outputCommitment,
+	    outputLeafIndex,
+	    outputRoot,
 	    ownerCommitment,
 	    routeCommitment,
+	    sendContextTag,
+	    sendPublicInputHash,
 	    settlementCommitment,
+	    swapContextTag,
+	    swapPublicInputHash,
+	    unshieldContextTag,
+	    unshieldPublicInputHash,
 	  );
 	}
 
@@ -737,14 +938,29 @@ function assertProtocolReplayMatches(
     destination,
     economicsCommitment,
     economicsMode,
+    exitTermsCommitment,
+    assetIdCommitment,
+    changeLeafIndex,
+    changeOutputCommitment,
+    changeOutputRoot,
+    inputRoot,
     inputCommitment,
     nullifierOrReplayCommitment,
     outputCommitment,
+    outputLeafIndex,
+    outputRoot,
     owner,
     ownerCommitment,
     routeCommitment,
+    sendContextTag,
+    sendPublicInputHash,
     settlementCommitment,
+    swapContextTag,
+    swapPublicInputHash,
+    unshieldContextTag,
+    unshieldPublicInputHash,
     shieldCapability,
+    shieldSettlementEvidence,
     shieldRouteEvidence,
   },
   action,
@@ -784,19 +1000,34 @@ function assertProtocolReplayMatches(
     protocolSettlementFingerprint({
       action,
       amount,
+      assetIdCommitment,
       asset,
+      changeLeafIndex,
+      changeOutputCommitment,
+      changeOutputRoot,
       destination,
       economicsCommitment,
       economicsMode,
+      exitTermsCommitment,
+      inputRoot,
       inputCommitment,
       nullifierOrReplayCommitment,
       outputCommitment,
+      outputLeafIndex,
+      outputRoot,
       owner,
       ownerCommitment,
       routeCommitment,
+      sendContextTag,
+      sendPublicInputHash,
       settlementId,
       settlementCommitment,
+      swapContextTag,
+      swapPublicInputHash,
+      unshieldContextTag,
+      unshieldPublicInputHash,
       shieldCapability,
+      shieldSettlementEvidence,
       shieldRouteEvidence,
     }),
     `Protocol settlement ${settlementId} conflicts with existing settlement inputs.`,
@@ -907,13 +1138,88 @@ function commitmentFromShieldRequest(proofRequest) {
   };
 }
 
+function commitmentsFromStatefulRequest(proofRequest) {
+  if (proofRequest.intent !== "private-send" && proofRequest.intent !== "swap-to-shielded") {
+    return [];
+  }
+
+  const inputCommitment = readPublicInput(proofRequest, "input-commitment:");
+  const inputRecord = persistedCommitments.find(
+    (commitment) => commitment.commitment === inputCommitment,
+  );
+  if (!inputRecord) {
+    return [];
+  }
+
+  if (proofRequest.intent === "private-send") {
+    const recipientOutputCommitment = readPublicInput(proofRequest, "recipient-output-commitment:");
+    const recipientLeafIndex = readPublicInput(proofRequest, "recipient-leaf-index:");
+    const recipientOutputRoot = readPublicInput(proofRequest, "recipient-output-root:");
+    const changeOutputCommitment = readPublicInput(proofRequest, "change-output-commitment:");
+    const changeLeafIndex = readPublicInput(proofRequest, "change-leaf-index:");
+    const changeOutputRoot = readPublicInput(proofRequest, "change-output-root:");
+
+    if (
+      !recipientOutputCommitment ||
+      !recipientLeafIndex ||
+      !recipientOutputRoot ||
+      !changeOutputCommitment ||
+      !changeLeafIndex ||
+      !changeOutputRoot
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        assetId: inputRecord.assetId,
+        commitment: recipientOutputCommitment,
+        leafIndex: Number(recipientLeafIndex),
+        merkleRoot: recipientOutputRoot,
+        treeId: inputRecord.treeId,
+      },
+      {
+        assetId: inputRecord.assetId,
+        commitment: changeOutputCommitment,
+        leafIndex: Number(changeLeafIndex),
+        merkleRoot: changeOutputRoot,
+        treeId: inputRecord.treeId,
+      },
+    ];
+  }
+
+  const outputCommitment = readPublicInput(proofRequest, "output-commitment:");
+  const outputLeafIndex = readPublicInput(proofRequest, "output-leaf-index:");
+  const outputRoot = readPublicInput(proofRequest, "output-root:");
+  if (!outputCommitment || !outputLeafIndex || !outputRoot) {
+    return [];
+  }
+
+  return [
+    {
+      assetId: inputRecord.assetId,
+      commitment: outputCommitment,
+      leafIndex: Number(outputLeafIndex),
+      merkleRoot: outputRoot,
+      treeId: inputRecord.treeId,
+    },
+  ];
+}
+
 function nullifiersFromReceipts(receipts) {
   return receipts
-    .filter((receipt) => receipt.replayKey.startsWith("claim:"))
-    .map((receipt) => ({
-      nullifier: receipt.replayKey.slice("claim:".length),
-      spentAtSlot: receipt.recordedAtSlot,
-    }));
+    .map((receipt) => {
+      for (const prefix of ["claim:", "private-send:", "swap-to-shielded:", "unshield:"]) {
+        if (receipt.replayKey.startsWith(prefix)) {
+          return {
+            nullifier: receipt.replayKey.slice(prefix.length),
+            spentAtSlot: receipt.recordedAtSlot,
+          };
+        }
+      }
+      return null;
+    })
+    .filter(Boolean);
 }
 
 function shadowCommitmentsFromReceipts(receipts) {
@@ -924,18 +1230,22 @@ function shadowCommitmentsFromReceipts(receipts) {
 
 async function persistReceipts(acceptedRequest) {
   const receipts = runtime.verifierRegistry?.receipts ?? [];
-  const acceptedCommitment = commitmentFromShieldRequest(acceptedRequest);
+  const acceptedCommitments = [
+    commitmentFromShieldRequest(acceptedRequest),
+    ...commitmentsFromStatefulRequest(acceptedRequest),
+  ].filter(Boolean);
 
-  if (
-    acceptedCommitment &&
-    !persistedCommitments.some(
-      (commitment) =>
-        commitment.treeId === acceptedCommitment.treeId &&
-        commitment.leafIndex === acceptedCommitment.leafIndex &&
-        commitment.commitment === acceptedCommitment.commitment,
-    )
-  ) {
-    persistedCommitments.push(acceptedCommitment);
+  for (const acceptedCommitment of acceptedCommitments) {
+    if (
+      !persistedCommitments.some(
+        (commitment) =>
+          commitment.treeId === acceptedCommitment.treeId &&
+          commitment.leafIndex === acceptedCommitment.leafIndex &&
+          commitment.commitment === acceptedCommitment.commitment,
+      )
+    ) {
+      persistedCommitments.push(acceptedCommitment);
+    }
   }
 
   await receiptStore.save({
@@ -949,17 +1259,29 @@ async function persistReceipts(acceptedRequest) {
 }
 
 async function enforceClaimNullifierPreflight(request, requestId) {
-  if (request.intent !== "claim") {
+  if (
+    request.intent !== "claim" &&
+    request.intent !== "unshield" &&
+    request.intent !== "swap-to-shielded"
+  ) {
     return;
   }
 
-  const nullifier = readProofRequestInput(request, "nullifier:");
+  const nullifier =
+    request.intent === "unshield" || request.intent === "swap-to-shielded"
+      ? readProofRequestInput(request, "nullifier-or-replay-commitment:")
+      : readProofRequestInput(request, "nullifier:");
   if (!nullifier) {
-    throw new Error("Claim proof requires a nullifier replay guard input.");
+    throw new Error("Claim or committed unshield proof requires a nullifier replay guard input.");
   }
 
   const decision = await nullifierReplayGuard.check({
-    context: "private-pool-v2-claim",
+    context:
+      request.intent === "unshield"
+        ? "private-pool-v2-unshield"
+        : request.intent === "swap-to-shielded"
+          ? "private-pool-v2-swap-to-shielded"
+          : "private-pool-v2-claim",
     nullifier,
     requestId,
   });
@@ -970,19 +1292,31 @@ async function enforceClaimNullifierPreflight(request, requestId) {
 }
 
 async function reserveAcceptedClaimNullifier(request, requestId) {
-  if (request.intent !== "claim") {
+  if (
+    request.intent !== "claim" &&
+    request.intent !== "unshield" &&
+    request.intent !== "swap-to-shielded"
+  ) {
     return null;
   }
 
-  const nullifier = readProofRequestInput(request, "nullifier:");
+  const nullifier =
+    request.intent === "unshield" || request.intent === "swap-to-shielded"
+      ? readProofRequestInput(request, "nullifier-or-replay-commitment:")
+      : readProofRequestInput(request, "nullifier:");
   if (!nullifier) {
-    throw new Error("Accepted claim proof requires a nullifier replay guard input.");
+    throw new Error("Accepted claim or committed unshield proof requires a nullifier replay guard input.");
   }
 
   const assetId = request.assetId ?? readProofRequestInput(request, "asset-id:") ?? "unknown";
   const decision = await nullifierReplayGuard.reserve({
     assetId,
-    context: "private-pool-v2-claim",
+    context:
+      request.intent === "unshield"
+        ? "private-pool-v2-unshield"
+        : request.intent === "swap-to-shielded"
+          ? "private-pool-v2-swap-to-shielded"
+          : "private-pool-v2-claim",
     nullifier,
     requestId,
   });
@@ -995,18 +1329,30 @@ async function reserveAcceptedClaimNullifier(request, requestId) {
 }
 
 async function recordAcceptedClaimNullifier(request, requestId, claimReceiptId) {
-  if (request.intent !== "claim") {
+  if (
+    request.intent !== "claim" &&
+    request.intent !== "unshield" &&
+    request.intent !== "swap-to-shielded"
+  ) {
     return null;
   }
 
-  const nullifier = readProofRequestInput(request, "nullifier:");
+  const nullifier =
+    request.intent === "unshield" || request.intent === "swap-to-shielded"
+      ? readProofRequestInput(request, "nullifier-or-replay-commitment:")
+      : readProofRequestInput(request, "nullifier:");
   if (!nullifier) {
-    throw new Error("Accepted claim proof requires a nullifier replay guard input.");
+    throw new Error("Accepted claim or committed unshield proof requires a nullifier replay guard input.");
   }
 
   return await nullifierReplayGuard.markAccepted({
     claimReceiptId,
-    context: "private-pool-v2-claim",
+    context:
+      request.intent === "unshield"
+        ? "private-pool-v2-unshield"
+        : request.intent === "swap-to-shielded"
+          ? "private-pool-v2-swap-to-shielded"
+          : "private-pool-v2-claim",
     nullifier,
     requestId,
   });
@@ -1031,8 +1377,8 @@ async function statusPayload() {
         (settlement) =>
           settlement.protocolSettlementReceipt?.economicsMode === "committed-economics",
       ).length,
-      hiddenEconomicsActions: ["send", "swap"],
-      operatorStillSeesRawActions: ["shield", "unshield", "pay_checkout", "pay_withdrawal"],
+      hiddenEconomicsActions: ["shield", "send", "swap", "unshield"],
+      operatorStillSeesRawActions: ["raw-shield", "raw-unshield", "pay_checkout", "pay_withdrawal"],
       rawSettlementCount: protocolSettlementReceipts.filter(
         (settlement) =>
           (settlement.protocolSettlementReceipt?.economicsMode ?? "raw-operator-visible") ===
@@ -1266,19 +1612,34 @@ async function proveAndAcceptProtocolSettlement(body) {
   const {
     action,
     amount,
+    assetIdCommitment,
     asset,
+    changeLeafIndex,
+    changeOutputCommitment,
+    changeOutputRoot,
     destination,
     economicsCommitment,
     economicsMode,
+    exitTermsCommitment,
+    inputRoot,
     inputCommitment,
     nullifierOrReplayCommitment,
     outputCommitment,
+    outputLeafIndex,
+    outputRoot,
     owner,
     ownerCommitment,
     routeCommitment,
+    sendContextTag,
+    sendPublicInputHash,
     settlementId,
     settlementCommitment,
+    swapContextTag,
+    swapPublicInputHash,
+    unshieldContextTag,
+    unshieldPublicInputHash,
     shieldCapability,
+    shieldSettlementEvidence,
     shieldRouteEvidence,
   } = validateProtocolSettlementBody(body);
   const existingSettlement = protocolSettlementReceipts.find(
@@ -1291,16 +1652,31 @@ async function proveAndAcceptProtocolSettlement(body) {
       existingSettlement,
       {
         destination,
+        assetIdCommitment,
+        changeLeafIndex,
+        changeOutputCommitment,
+        changeOutputRoot,
         economicsCommitment,
         economicsMode,
+        exitTermsCommitment,
+        inputRoot,
         inputCommitment,
         nullifierOrReplayCommitment,
         outputCommitment,
+        outputLeafIndex,
+        outputRoot,
         owner,
         ownerCommitment,
         routeCommitment,
+        sendContextTag,
+        sendPublicInputHash,
         settlementCommitment,
+        swapContextTag,
+        swapPublicInputHash,
+        unshieldContextTag,
+        unshieldPublicInputHash,
         shieldCapability,
+        shieldSettlementEvidence,
         shieldRouteEvidence,
       },
       action,
@@ -1313,7 +1689,37 @@ async function proveAndAcceptProtocolSettlement(body) {
 
   let request;
 
-  if (action === "shield") {
+  if (action === "shield" && economicsMode === "committed-economics") {
+    const targetAsset = VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID;
+    const treeId = treeIdForAsset(targetAsset);
+    const existingCommitments = await runtime.indexer.listCommitments({ treeId });
+    const leaf = {
+      assetId: targetAsset,
+      commitment: outputCommitment,
+      leafIndex: existingCommitments.length,
+      treeId,
+    };
+    const outputRoot = merkleRootFor(treeId, [...existingCommitments, leaf]);
+    request = {
+      amountBaseUnits: 1n,
+      assetId: targetAsset,
+      intent: "shield",
+      publicInputs: [
+        "vanta-private-pool-v2-hidden-economics-proof-request-0.1:version",
+        "intent:shield",
+        `tree-id:${treeId}`,
+        `leaf-index:${leaf.leafIndex}`,
+        `target-asset:${targetAsset}`,
+        `output-commitment:${outputCommitment}`,
+        `output-root:${outputRoot}`,
+        `settlement-commitment:${settlementCommitment}`,
+        `owner-commitment:${ownerCommitment}`,
+        `nullifier-or-replay-commitment:${nullifierOrReplayCommitment}`,
+        `route-commitment:${routeCommitment}`,
+        `economics-commitment:${economicsCommitment}`,
+      ],
+    };
+  } else if (action === "shield") {
     const targetAsset = shieldCapability.targetShieldAsset.assetKey;
     const treeId = treeIdForAsset(targetAsset);
     const existingCommitments = await runtime.indexer.listCommitments({ treeId });
@@ -1339,14 +1745,31 @@ async function proveAndAcceptProtocolSettlement(body) {
             "shield-route-evidence",
             shieldRouteEvidence.provider,
             shieldRouteEvidence.routeSignature,
+            shieldRouteEvidence.sourceAmount ?? "",
+            shieldRouteEvidence.sourceAsset ?? "",
+            shieldRouteEvidence.sourceMintAddress ?? "",
             shieldRouteEvidence.targetAmount,
             shieldRouteEvidence.targetAsset,
+            shieldRouteEvidence.targetMintAddress ?? "",
           )
         : undefined,
       treeCommitment: {
         ...leaf,
         merkleRoot: merkleRootFor(treeId, [...existingCommitments, leaf]),
       },
+    });
+  } else if (action === "unshield" && economicsMode === "committed-economics") {
+    request = createVantaPrivatePoolV2UnshieldProofRequest({
+      economicsCommitment,
+      exitTermsCommitment,
+      inputCommitment,
+      inputRoot,
+      nullifierOrReplayCommitment,
+      ownerCommitment,
+      routeCommitment,
+      settlementCommitment,
+      unshieldContextTag,
+      unshieldPublicInputHash,
     });
   } else if (action === "unshield") {
     const targetAsset = asset;
@@ -1382,16 +1805,37 @@ async function proveAndAcceptProtocolSettlement(body) {
       ownerCommitment: hashHex("owner", owner),
       quote,
     });
-  } else if ((action === "send" || action === "swap") && economicsMode === "committed-economics") {
-    request = createVantaPrivatePoolV2HiddenEconomicsProofRequest({
+  } else if (action === "send" && economicsMode === "committed-economics") {
+    request = createVantaPrivatePoolV2SendProofRequest({
+      assetIdCommitment,
+      changeLeafIndex,
+      ...(changeOutputCommitment ? { changeOutputCommitment } : {}),
+      changeOutputRoot,
       economicsCommitment,
       inputCommitment,
-      intent: action === "send" ? "private-send" : "swap-to-shielded",
+      inputRoot,
+      nullifier: nullifierOrReplayCommitment,
+      ownerCommitment,
+      recipientLeafIndex: outputLeafIndex,
+      recipientOutputCommitment: outputCommitment,
+      recipientOutputRoot: outputRoot,
+      sendContextTag,
+      ...(sendPublicInputHash ? { sendPublicInputHash } : {}),
+    });
+  } else if (action === "swap" && economicsMode === "committed-economics") {
+    request = createVantaPrivatePoolV2SwapToShieldedProofRequest({
+      economicsCommitment,
+      inputCommitment,
+      inputRoot,
       nullifierOrReplayCommitment,
       outputCommitment,
+      outputLeafIndex,
+      outputRoot,
       ownerCommitment,
       routeCommitment,
       settlementCommitment,
+      swapContextTag,
+      swapPublicInputHash,
     });
   } else if (action === "send" || action === "swap") {
     const targetAsset = asset;
@@ -1450,6 +1894,7 @@ async function proveAndAcceptProtocolSettlement(body) {
       ? {
           economicsCommitment,
           economicsMode,
+          ...(exitTermsCommitment ? { exitTermsCommitment } : {}),
           settlementCommitment,
         }
       : {
@@ -1458,22 +1903,53 @@ async function proveAndAcceptProtocolSettlement(body) {
         }),
     id: hashId("proto", action, settlementId, proofReceipt.receiptId),
     object: "protocol_settlement_receipt",
+    ...(proofReceipt.shadowCommitments?.operatorVisibleTermsCommitment
+      ? {
+          operatorVisibleTermsCommitment:
+            proofReceipt.shadowCommitments.operatorVisibleTermsCommitment,
+        }
+      : {}),
     proofReceiptId: `ppv2_${proofReceipt.receiptId.slice(2, 26)}`,
+    proofReceiptPublicInputCommitment: proofReceipt.publicInputCommitment,
     settlementId,
     ...(action === "shield"
       ? {
-          shieldCapabilityMode: shieldCapability.mode,
-          sourceAsset: shieldCapability.sourceAsset.symbol,
-          sourceMintAddress: shieldCapability.sourceAsset.mintAddress,
-          targetAsset: shieldCapability.targetShieldAsset.assetKey,
-          targetMintAddress: shieldCapability.targetShieldAsset.mintAddress,
-          ...(shieldRouteEvidence
+          shieldReceiptBindingHash: hashHex(
+            "shield-receipt-binding",
+            settlementId,
+            proofReceipt.receiptId,
+            proofReceipt.publicInputCommitment,
+            proofReceipt.shadowCommitments?.operatorVisibleTermsCommitment ?? "",
+            economicsMode === "committed-economics" ? economicsCommitment : shieldSettlementEvidence.depositSignature,
+            economicsMode === "committed-economics" ? settlementCommitment : shieldSettlementEvidence.stateSignature,
+            economicsMode === "committed-economics" ? ownerCommitment : shieldSettlementEvidence.owner,
+            economicsMode === "committed-economics" ? routeCommitment : shieldSettlementEvidence.vaultOwner,
+          ),
+          ...(economicsMode === "committed-economics"
             ? {
-                routeProvider: shieldRouteEvidence.provider,
-                routeSignature: shieldRouteEvidence.routeSignature,
-                routeTargetAmount: shieldRouteEvidence.targetAmount,
+                committedOutputRoot: readProofRequestInput(request, "output-root:"),
               }
-            : {}),
+            : {
+                shieldCapabilityMode: shieldCapability.mode,
+                depositSignature: shieldSettlementEvidence.depositSignature,
+                owner: shieldSettlementEvidence.owner,
+                sourceAsset: shieldCapability.sourceAsset.symbol,
+                sourceMintAddress: shieldCapability.sourceAsset.mintAddress,
+                stateSignature: shieldSettlementEvidence.stateSignature,
+                targetAsset: shieldCapability.targetShieldAsset.assetKey,
+                targetMintAddress: shieldCapability.targetShieldAsset.mintAddress,
+                vaultOwner: shieldSettlementEvidence.vaultOwner,
+                ...(shieldRouteEvidence
+                  ? {
+                      routeProvider: shieldRouteEvidence.provider,
+                      routeSignature: shieldRouteEvidence.routeSignature,
+                      routeSourceAmount: shieldRouteEvidence.sourceAmount,
+                      routeSourceAsset: shieldRouteEvidence.sourceAsset,
+                      routeSourceMintAddress: shieldRouteEvidence.sourceMintAddress,
+                      routeTargetAmount: shieldRouteEvidence.targetAmount,
+                    }
+                  : {}),
+              }),
         }
       : {}),
     status: "confirmed",
@@ -1485,19 +1961,34 @@ async function proveAndAcceptProtocolSettlement(body) {
 	    settlementFingerprint: protocolSettlementFingerprint({
 	      action,
 	      amount,
+	      assetIdCommitment,
 	      asset,
+	      changeLeafIndex,
+	      changeOutputCommitment,
+	      changeOutputRoot,
 	      destination,
 	      economicsCommitment,
 	      economicsMode,
+	      exitTermsCommitment,
+	      inputRoot,
 	      inputCommitment,
 	      nullifierOrReplayCommitment,
 	      outputCommitment,
+	      outputLeafIndex,
+	      outputRoot,
 	      owner,
 	      ownerCommitment,
 	      routeCommitment,
+	      sendContextTag,
+	      sendPublicInputHash,
 	      settlementId,
 	      settlementCommitment,
-	      shieldCapability,
+	      swapContextTag,
+	      swapPublicInputHash,
+	      unshieldContextTag,
+	      unshieldPublicInputHash,
+        shieldCapability,
+        shieldSettlementEvidence,
       shieldRouteEvidence,
     }),
   };
@@ -1568,6 +2059,13 @@ const server = createServer(async (request, response) => {
         receipt,
         status: await statusPayload(),
       });
+      return;
+    }
+
+    if (request.method === "POST" && request.url === "/private-pool-v2/decoy-commitments") {
+      const body = await readRequestBody(request);
+      requireNonEmptyString(body.commitment, "commitment");
+      sendJson(response, 204, {});
       return;
     }
 

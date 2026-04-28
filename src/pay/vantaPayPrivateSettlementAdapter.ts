@@ -15,9 +15,21 @@ import type {
 export const VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION =
   "vanta-pay-private-settlement-adapter-0.1" as const;
 export const VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY = {
+  acceptedCheckoutSettlementBoundary: "committed-economics-protocol-settlement",
+  acceptedCheckoutSettlementVerificationCommand: "npm run pay:committed-checkout-acceptance-check",
+  checkoutProofBoundary: "hidden-economics-request",
+  checkoutSettlementRoute: "committed-economics-protocol-settlement",
+  hiddenEconomicsProductionPrivacyClaimAllowed: false,
   lifecycleModel: "preview-approve-execute-settle",
+  operatorSeesRawSettlementTerms: false,
+  proofBoundaryVerificationCommand: "npm run pay:hidden-economics-request-check",
+  rawEconomicTermsInAcceptedCheckoutSettlement: false,
+  rawEconomicTermsInLiveCheckoutSettlement: false,
+  rawEconomicTermsInLiveWithdrawalSettlement: false,
+  rawEconomicTermsInProofRequest: false,
   refundState: "merchant-visible",
   withdrawalState: "merchant-visible",
+  withdrawalProofBoundary: "committed-exit-terms-protocol-settlement",
   reconciliationState: "merchant-visible",
 } as const;
 
@@ -40,7 +52,90 @@ export type VantaPaySettleWithdrawalArgs = {
   merchantId: string;
 };
 
+export type VantaPayCheckoutCommittedEconomicsSettlementRequest = {
+  action: "send";
+  assetIdCommitment: string;
+  changeLeafIndex: string;
+  changeOutputCommitment: string;
+  changeOutputRoot: string;
+  economicsCommitment: string;
+  economicsMode: "committed-economics";
+  inputCommitment: string;
+  inputRoot: string;
+  nullifierOrReplayCommitment: string;
+  outputCommitment: string;
+  outputLeafIndex: string;
+  outputRoot: string;
+  ownerCommitment: string;
+  recipientLeafIndex: string;
+  recipientOutputCommitment: string;
+  recipientOutputRoot: string;
+  routeCommitment: string;
+  sendContextTag: string;
+  sendPublicInputHash: string;
+  settlementCommitment: string;
+  settlementId: string;
+};
+
+export type VantaPayWithdrawalCommittedEconomicsSettlementRequest = {
+  action: "unshield";
+  economicsCommitment: string;
+  economicsMode: "committed-economics";
+  exitTermsCommitment: string;
+  inputCommitment: string;
+  inputRoot: string;
+  nullifierOrReplayCommitment: string;
+  ownerCommitment: string;
+  routeCommitment: string;
+  settlementCommitment: string;
+  settlementId: string;
+  unshieldContextTag: string;
+  unshieldPublicInputHash: string;
+};
+
+type VantaPayCommittedCheckoutProtocolSettlementResponse = {
+  kind: "protocol_settlement";
+  proofReceipt?: {
+    intent: string;
+    receiptId: string;
+  };
+  protocolSettlementReceipt: {
+    economicsMode?: string;
+    id: string;
+    object: "protocol_settlement_receipt";
+    proofReceiptId: string;
+    settlementId: string;
+    status: "confirmed";
+  };
+};
+
+type VantaPayCommittedWithdrawalProtocolSettlementResponse = {
+  kind: "protocol_settlement";
+  proofReceipt?: {
+    intent: string;
+    receiptId: string;
+  };
+  protocolSettlementReceipt: {
+    economicsMode?: string;
+    id: string;
+    object: "protocol_settlement_receipt";
+    proofReceiptId: string;
+    settlementId: string;
+    status: "confirmed";
+  };
+};
+
+type VantaPayCommittedSeedProtocolSettlementResponse = {
+  proofReceipt?: {
+    publicInputs?: readonly string[];
+  };
+  protocolSettlementReceipt?: {
+    committedOutputRoot?: string;
+  };
+};
+
 const defaultNow = "2026-04-19T20:10:00.000Z";
+const hiddenEconomicsAssetId = "hidden:economic-terms";
 const textEncoder = new TextEncoder();
 
 function hashHex(...parts: readonly string[]) {
@@ -187,6 +282,278 @@ async function createVantaPrivatePoolV2ClaimProofRequest(args: unknown) {
   return buildClaimProofRequest(args as never);
 }
 
+async function createVantaPrivatePoolV2HiddenEconomicsProofRequest(args: unknown) {
+  // This helper intentionally loads the hidden-economics factory only when Pay needs it.
+  const { createVantaPrivatePoolV2HiddenEconomicsProofRequest: buildHiddenEconomicsRequest } =
+    await import("../privacy/privatePoolV2ProofRequests");
+  return buildHiddenEconomicsRequest(args as never);
+}
+
+export async function createVantaPayCheckoutHiddenEconomicsProofRequest(
+  session: VantaPayCheckoutSession,
+) {
+  const outputCommitment = hashHex(
+    VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+    "checkout-output",
+    session.id,
+    session.clientToken,
+    session.amount,
+    session.currency,
+  );
+
+  return createVantaPrivatePoolV2HiddenEconomicsProofRequest({
+    economicsCommitment: hashHex(
+      VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+      "checkout-economics",
+      session.amount,
+      session.currency,
+    ),
+    intent: "private-send",
+    nullifierOrReplayCommitment: hashHex(
+      VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+      "checkout-replay",
+      session.id,
+    ),
+    outputCommitment,
+    ownerCommitment: hashHex("merchant", session.merchantId),
+    routeCommitment: hashHex(
+      VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+      "checkout-route",
+      session.privacyRoute.routeId,
+    ),
+    settlementCommitment: hashHex(
+      VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+      "checkout-settlement",
+      session.id,
+      outputCommitment,
+    ),
+  });
+}
+
+export function createVantaPayCheckoutCommittedEconomicsSettlementRequest(
+  session: VantaPayCheckoutSession,
+): VantaPayCheckoutCommittedEconomicsSettlementRequest {
+  const assetIdCommitment = hashHex(
+    VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+    "checkout-send-asset-id",
+    assetIdForAsset(session.currency),
+  );
+  const inputCommitment = hashHex(
+    VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+    "checkout-send-input-note",
+    session.id,
+    session.clientToken,
+  );
+  const nullifierOrReplayCommitment = hashHex(
+    VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+    "checkout-send-nullifier",
+    inputCommitment,
+    session.clientToken,
+  );
+  const treeId = treeIdForAsset(hiddenEconomicsAssetId as VantaPayAsset);
+  const inputLeaf = {
+    assetId: hiddenEconomicsAssetId,
+    commitment: inputCommitment,
+    leafIndex: 0,
+    treeId,
+  };
+  const inputRoot = merkleRootFor(treeId, [inputLeaf]);
+  const ownerCommitment = hashHex("merchant", session.merchantId);
+  const recipientOutputCommitment = hashHex(
+    VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+    "checkout-send-recipient-output",
+    session.id,
+    session.clientToken,
+    session.amount,
+    session.currency,
+  );
+  const recipientLeafIndex = "1";
+  const recipientLeaf = {
+    assetId: hiddenEconomicsAssetId,
+    commitment: recipientOutputCommitment,
+    leafIndex: Number(recipientLeafIndex),
+    treeId,
+  };
+  const recipientOutputRoot = merkleRootFor(treeId, [inputLeaf, recipientLeaf]);
+  const changeOutputCommitment = hashHex(
+    VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+    "checkout-send-change-output",
+    session.id,
+    inputCommitment,
+    recipientOutputCommitment,
+  );
+  const changeLeafIndex = "2";
+  const changeLeaf = {
+    assetId: hiddenEconomicsAssetId,
+    commitment: changeOutputCommitment,
+    leafIndex: Number(changeLeafIndex),
+    treeId,
+  };
+  const changeOutputRoot = merkleRootFor(treeId, [inputLeaf, recipientLeaf, changeLeaf]);
+  const economicsCommitment = hashHex(
+    VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+    "checkout-economics",
+    session.amount,
+    session.currency,
+  );
+  const routeCommitment = hashHex(
+    VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+    "checkout-route",
+    session.privacyRoute.routeId,
+  );
+  const sendContextTag = hashHex(
+    VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+    "checkout-send-context",
+    routeCommitment,
+    ownerCommitment,
+  );
+  const settlementCommitment = hashHex(
+    VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+    "checkout-settlement",
+    session.id,
+    recipientOutputCommitment,
+    changeOutputCommitment,
+  );
+  const sendPublicInputHash = hashHex(
+    VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+    "checkout-send-public-inputs",
+    inputRoot,
+    inputCommitment,
+    nullifierOrReplayCommitment,
+    recipientOutputCommitment,
+    recipientLeafIndex,
+    recipientOutputRoot,
+    changeOutputCommitment,
+    changeLeafIndex,
+    changeOutputRoot,
+    assetIdCommitment,
+    economicsCommitment,
+    ownerCommitment,
+    sendContextTag,
+  );
+
+  return {
+    action: "send",
+    assetIdCommitment,
+    changeLeafIndex,
+    changeOutputCommitment,
+    changeOutputRoot,
+    economicsCommitment,
+    economicsMode: "committed-economics",
+    inputCommitment,
+    inputRoot,
+    nullifierOrReplayCommitment,
+    outputCommitment: recipientOutputCommitment,
+    outputLeafIndex: recipientLeafIndex,
+    outputRoot: recipientOutputRoot,
+    ownerCommitment,
+    recipientLeafIndex,
+    recipientOutputCommitment,
+    recipientOutputRoot,
+    routeCommitment,
+    sendContextTag,
+    sendPublicInputHash,
+    settlementCommitment,
+    settlementId: hashId("pay_checkout", session.id),
+  };
+}
+
+export function createVantaPayWithdrawalCommittedEconomicsSettlementRequest({
+  amount,
+  asset,
+  destination,
+  merchantId,
+}: VantaPaySettleWithdrawalArgs): VantaPayWithdrawalCommittedEconomicsSettlementRequest {
+  const normalizedAmount = normalizeAmount(amount, asset);
+  const inputCommitment = hashHex(
+    VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+    "withdrawal-input-note",
+    merchantId,
+    destination,
+    normalizedAmount,
+    asset,
+  );
+  const treeId = treeIdForAsset(hiddenEconomicsAssetId as VantaPayAsset);
+  const inputRoot = merkleRootFor(treeId, [
+    {
+      assetId: hiddenEconomicsAssetId,
+      commitment: inputCommitment,
+      leafIndex: 0,
+      treeId,
+    },
+  ]);
+  const ownerCommitment = hashHex("merchant", merchantId);
+  const economicsCommitment = hashHex(
+    VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+    "withdrawal-economics",
+    normalizedAmount,
+    asset,
+  );
+  const exitTermsCommitment = hashHex(
+    VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+    "withdrawal-exit-terms",
+    destination,
+    normalizedAmount,
+    asset,
+  );
+  const nullifierOrReplayCommitment = hashHex(
+    VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+    "withdrawal-nullifier",
+    inputCommitment,
+    destination,
+    normalizedAmount,
+    asset,
+  );
+  const routeCommitment = hashHex(
+    VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+    "withdrawal-route",
+    merchantId,
+    asset,
+  );
+  const settlementCommitment = hashHex(
+    VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+    "withdrawal-settlement",
+    inputCommitment,
+    exitTermsCommitment,
+    economicsCommitment,
+  );
+  const unshieldContextTag = hashHex(
+    VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+    "withdrawal-unshield-context",
+    routeCommitment,
+    ownerCommitment,
+  );
+  const unshieldPublicInputHash = hashHex(
+    VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+    "withdrawal-unshield-public-inputs",
+    inputRoot,
+    inputCommitment,
+    nullifierOrReplayCommitment,
+    settlementCommitment,
+    routeCommitment,
+    exitTermsCommitment,
+    economicsCommitment,
+    ownerCommitment,
+    unshieldContextTag,
+  );
+
+  return {
+    action: "unshield",
+    economicsCommitment,
+    economicsMode: "committed-economics",
+    exitTermsCommitment,
+    inputCommitment,
+    inputRoot,
+    nullifierOrReplayCommitment,
+    ownerCommitment,
+    routeCommitment,
+    settlementCommitment,
+    settlementId: hashId("pay_withdrawal", merchantId, destination, normalizedAmount, asset),
+    unshieldContextTag,
+    unshieldPublicInputHash,
+  };
+}
+
 export function createVantaPayPrivateSettlementAdapter({
   now = defaultNow,
   privatePoolOperatorAuthToken,
@@ -231,17 +598,200 @@ export function createVantaPayPrivateSettlementAdapter({
     return payload as T;
   }
 
+  async function settleProtocolThroughPrivatePoolOperator<T>(body: Record<string, unknown>) {
+    if (!privatePoolOperatorUrl) {
+      return null;
+    }
+
+    const response = await fetch(`${privatePoolOperatorUrl}/private-pool-v2/protocol-settlements`, {
+      body: JSON.stringify(body),
+      headers: {
+        "Content-Type": "application/json",
+        ...(privatePoolOperatorAuthToken
+          ? { Authorization: `Bearer ${privatePoolOperatorAuthToken}` }
+          : {}),
+      },
+      method: "POST",
+    });
+    const payload = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        `Private Pool v2 operator rejected Pay protocol settlement: ${
+          payload.error ?? response.status
+        }`,
+      );
+    }
+
+    return payload as T;
+  }
+
+  async function settleCommittedCheckoutThroughPrivatePoolOperator(
+    session: VantaPayCheckoutSession,
+  ) {
+    if (!privatePoolOperatorUrl) {
+      return null;
+    }
+
+    const committedRequest = createVantaPayCheckoutCommittedEconomicsSettlementRequest(session);
+    await settleProtocolThroughPrivatePoolOperator<unknown>({
+      action: "shield",
+      economicsCommitment: committedRequest.economicsCommitment,
+      economicsMode: "committed-economics",
+      nullifierOrReplayCommitment: `${committedRequest.nullifierOrReplayCommitment}:seed`,
+      outputCommitment: committedRequest.inputCommitment,
+      ownerCommitment: committedRequest.ownerCommitment,
+      routeCommitment: committedRequest.routeCommitment,
+      settlementCommitment: `${committedRequest.settlementCommitment}:seed`,
+      settlementId: `${committedRequest.settlementId}_input`,
+    });
+    const response = await fetch(`${privatePoolOperatorUrl}/private-pool-v2/protocol-settlements`, {
+      body: JSON.stringify(committedRequest),
+      headers: {
+        "Content-Type": "application/json",
+        ...(privatePoolOperatorAuthToken
+          ? { Authorization: `Bearer ${privatePoolOperatorAuthToken}` }
+          : {}),
+      },
+      method: "POST",
+    });
+    const payload = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        `Private Pool v2 operator rejected Pay committed checkout settlement: ${
+          payload.error ?? response.status
+        }`,
+      );
+    }
+
+    const settlement = payload as VantaPayCommittedCheckoutProtocolSettlementResponse;
+    if (
+      settlement.kind !== "protocol_settlement" ||
+      settlement.protocolSettlementReceipt?.object !== "protocol_settlement_receipt" ||
+      settlement.protocolSettlementReceipt.status !== "confirmed" ||
+      settlement.protocolSettlementReceipt.economicsMode !== "committed-economics" ||
+      settlement.protocolSettlementReceipt.settlementId !== committedRequest.settlementId ||
+      settlement.proofReceipt?.intent !== "private-send"
+    ) {
+      throw new Error("Private Pool v2 operator returned an invalid Pay committed checkout settlement.");
+    }
+
+    return {
+      amount: session.amount,
+      asset: session.currency,
+      auditDisclosureId: hashId("aud", session.id, settlement.protocolSettlementReceipt.id),
+      checkoutSessionId: session.id,
+      createdAt: now,
+      id: hashId("prail", session.id, settlement.protocolSettlementReceipt.id),
+      object: "private_rail_receipt",
+      proofReceiptId: settlement.protocolSettlementReceipt.proofReceiptId,
+      rail,
+      status: "confirmed",
+    } satisfies VantaPayPrivateRailReceipt;
+  }
+
+  async function settleCommittedWithdrawalThroughPrivatePoolOperator({
+    amount,
+    asset,
+    destination,
+    merchantId,
+  }: VantaPaySettleWithdrawalArgs) {
+    if (!privatePoolOperatorUrl) {
+      return null;
+    }
+
+    const initialCommittedRequest = createVantaPayWithdrawalCommittedEconomicsSettlementRequest({
+      amount,
+      asset,
+      destination,
+      merchantId,
+    });
+    const seedSettlement =
+      await settleProtocolThroughPrivatePoolOperator<VantaPayCommittedSeedProtocolSettlementResponse>({
+      action: "shield",
+      economicsCommitment: initialCommittedRequest.economicsCommitment,
+      economicsMode: "committed-economics",
+      nullifierOrReplayCommitment: `${initialCommittedRequest.nullifierOrReplayCommitment}:seed`,
+      outputCommitment: initialCommittedRequest.inputCommitment,
+      ownerCommitment: initialCommittedRequest.ownerCommitment,
+      routeCommitment: initialCommittedRequest.routeCommitment,
+      settlementCommitment: `${initialCommittedRequest.settlementCommitment}:seed`,
+      settlementId: `${initialCommittedRequest.settlementId}_input`,
+    });
+    const seedInputRoot =
+      seedSettlement?.protocolSettlementReceipt?.committedOutputRoot ??
+      seedSettlement?.proofReceipt?.publicInputs
+        ?.find((input) => input.startsWith("output-root:"))
+        ?.slice("output-root:".length);
+    const resolvedInputRoot = seedInputRoot ?? initialCommittedRequest.inputRoot;
+    const committedRequest = {
+      ...initialCommittedRequest,
+      inputRoot: resolvedInputRoot,
+      unshieldPublicInputHash: hashHex(
+        VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+        "withdrawal-unshield-public-inputs",
+        resolvedInputRoot,
+        initialCommittedRequest.inputCommitment,
+        initialCommittedRequest.nullifierOrReplayCommitment,
+        initialCommittedRequest.settlementCommitment,
+        initialCommittedRequest.routeCommitment,
+        initialCommittedRequest.exitTermsCommitment,
+        initialCommittedRequest.economicsCommitment,
+        initialCommittedRequest.ownerCommitment,
+        initialCommittedRequest.unshieldContextTag,
+      ),
+    };
+    const response = await fetch(`${privatePoolOperatorUrl}/private-pool-v2/protocol-settlements`, {
+      body: JSON.stringify(committedRequest),
+      headers: {
+        "Content-Type": "application/json",
+        ...(privatePoolOperatorAuthToken
+          ? { Authorization: `Bearer ${privatePoolOperatorAuthToken}` }
+          : {}),
+      },
+      method: "POST",
+    });
+    const payload = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        `Private Pool v2 operator rejected Pay committed withdrawal settlement: ${
+          payload.error ?? response.status
+        }`,
+      );
+    }
+
+    const settlement = payload as VantaPayCommittedWithdrawalProtocolSettlementResponse;
+    if (
+      settlement.kind !== "protocol_settlement" ||
+      settlement.protocolSettlementReceipt?.object !== "protocol_settlement_receipt" ||
+      settlement.protocolSettlementReceipt.status !== "confirmed" ||
+      settlement.protocolSettlementReceipt.economicsMode !== "committed-economics" ||
+      settlement.protocolSettlementReceipt.settlementId !== committedRequest.settlementId ||
+      settlement.proofReceipt?.intent !== "unshield"
+    ) {
+      throw new Error("Private Pool v2 operator returned an invalid Pay committed withdrawal settlement.");
+    }
+
+    return {
+      amount: normalizeAmount(amount, asset),
+      asset,
+      createdAt: now,
+      destination,
+      id: hashId("pexit", settlement.protocolSettlementReceipt.id, destination),
+      object: "private_exit_receipt",
+      rail,
+      status: "confirmed",
+    } satisfies VantaPayPrivateExitReceipt;
+  }
+
   async function settleCheckoutSession({
     session,
   }: VantaPaySettleCheckoutSessionArgs): Promise<VantaPayPrivateRailReceipt> {
-    const operatorSettlement = await settleThroughPrivatePoolOperator<{
-      privateRailReceipt: VantaPayPrivateRailReceipt;
-    }>({
-      kind: "checkout",
-      session,
-    });
+    const operatorSettlement = await settleCommittedCheckoutThroughPrivatePoolOperator(session);
     if (operatorSettlement) {
-      return operatorSettlement.privateRailReceipt;
+      return operatorSettlement;
     }
 
     const activeProtocol = await getActiveProtocol();
@@ -301,6 +851,16 @@ export function createVantaPayPrivateSettlementAdapter({
     destination,
     merchantId,
   }: VantaPaySettleWithdrawalArgs): Promise<VantaPayPrivateExitReceipt> {
+    const committedOperatorSettlement = await settleCommittedWithdrawalThroughPrivatePoolOperator({
+      amount,
+      asset,
+      destination,
+      merchantId,
+    });
+    if (committedOperatorSettlement) {
+      return committedOperatorSettlement;
+    }
+
     const operatorSettlement = await settleThroughPrivatePoolOperator<{
       privateExitReceipt: VantaPayPrivateExitReceipt;
     }>({

@@ -14,6 +14,8 @@ const sourceFiles = [
   "privatePoolV2Types.ts",
   "privatePoolV2ProofRequests.ts",
   "privatePoolV2ShieldCircuitFixture.ts",
+  "privatePoolV2SendCircuitFixture.ts",
+  "privatePoolV2SwapToShieldedCircuitFixture.ts",
   "privatePoolV2ClaimCircuitFixture.ts",
 ];
 
@@ -105,6 +107,16 @@ try {
     computeVantaPrivatePoolV2ClaimPublicInputHash,
     createVantaPrivatePoolV2ClaimCircuitFixture,
   } = await import(pathToFileURL(join(tempJsDir, "privatePoolV2ClaimCircuitFixture.js")).href);
+  const {
+    computeVantaPrivatePoolV2SendPublicInputHash,
+    createVantaPrivatePoolV2SendCircuitFixture,
+  } = await import(pathToFileURL(join(tempJsDir, "privatePoolV2SendCircuitFixture.js")).href);
+  const {
+    computeVantaPrivatePoolV2SwapToShieldedPublicInputHash,
+    createVantaPrivatePoolV2SwapToShieldedCircuitFixture,
+  } = await import(
+    pathToFileURL(join(tempJsDir, "privatePoolV2SwapToShieldedCircuitFixture.js")).href
+  );
 
   const shield = createVantaPrivatePoolV2ShieldCircuitFixture();
   const shieldEntries = parsePublicInputs(shield.proofRequest.publicInputs);
@@ -215,6 +227,131 @@ try {
     "Expected claim proof request to expose only the computed hash on the circuit-public lane.",
   );
   console.log("private pool v2 claim public-input hash alignment: PASS");
+
+  const send = createVantaPrivatePoolV2SendCircuitFixture();
+  const sendEntries = parsePublicInputs(send.proofRequest.publicInputs);
+  const sendMap = toMap(sendEntries);
+  const sendWitness = send.witness;
+
+  assertOrder(
+    sendEntries,
+    [
+      "vanta-private-pool-v2-send-proof-request-0.1",
+      "input-root",
+      "input-commitment",
+      "nullifier",
+      "recipient-output-commitment",
+      "recipient-leaf-index",
+      "recipient-output-root",
+      "change-output-commitment",
+      "change-leaf-index",
+      "change-output-root",
+      "asset-id-commitment",
+      "economics-commitment",
+      "owner-commitment",
+      "send-context-tag",
+    ],
+    "send",
+  );
+  assertValue(sendMap, "input-root", sendWitness.input_root, "send");
+  assertValue(sendMap, "input-commitment", sendWitness.input_commitment, "send");
+  assertValue(sendMap, "nullifier", sendWitness.nullifier, "send");
+  assertValue(sendMap, "recipient-output-commitment", sendWitness.recipient_output_commitment, "send");
+  assertValue(sendMap, "recipient-leaf-index", sendWitness.recipient_leaf_index, "send");
+  assertValue(sendMap, "recipient-output-root", sendWitness.recipient_output_root, "send");
+  assertValue(sendMap, "change-output-commitment", sendWitness.change_output_commitment, "send");
+  assertValue(sendMap, "change-leaf-index", sendWitness.change_leaf_index, "send");
+  assertValue(sendMap, "change-output-root", sendWitness.change_output_root, "send");
+  assertValue(sendMap, "asset-id-commitment", sendWitness.asset_id_commitment, "send");
+  assertValue(sendMap, "economics-commitment", sendWitness.economics_commitment, "send");
+  assertValue(sendMap, "owner-commitment", sendWitness.owner_commitment, "send");
+  assertValue(sendMap, "send-context-tag", sendWitness.send_context_tag, "send");
+
+  const sendOutputTransition = poseidon4([
+    sendWitness.recipient_leaf_index,
+    sendWitness.recipient_output_root,
+    sendWitness.change_leaf_index,
+    sendWitness.change_output_root,
+  ]);
+  assert(sendOutputTransition > 0n, "Expected send output transition to be derived.");
+  assert(
+    computeVantaPrivatePoolV2SendPublicInputHash(sendWitness) === send.sendPublicInputHash,
+    "Expected send fixture hash to match Noir public hash preimage.",
+  );
+  assert(
+    JSON.stringify(send.proofRequest.circuitPublicInputs) ===
+      JSON.stringify([`send-public-input-hash:${send.sendPublicInputHash.toString(10)}`]),
+    "Expected send proof request to expose only the computed hash on the circuit-public lane.",
+  );
+  console.log("private pool v2 send public-input hash alignment: PASS");
+
+  const swap = createVantaPrivatePoolV2SwapToShieldedCircuitFixture();
+  const swapEntries = parsePublicInputs(swap.proofRequest.publicInputs);
+  const swapMap = toMap(swapEntries);
+  const swapWitness = swap.witness;
+
+  assertOrder(
+    swapEntries,
+    [
+      "vanta-private-pool-v2-swap-to-shielded-proof-request-0.1",
+      "input-root",
+      "input-commitment",
+      "nullifier-or-replay-commitment",
+      "settlement-commitment",
+      "route-commitment",
+      "economics-commitment",
+      "output-commitment",
+      "output-leaf-index",
+      "output-root",
+      "owner-commitment",
+      "swap-context-tag",
+    ],
+    "swap-to-shielded",
+  );
+  assertValue(swapMap, "input-root", swapWitness.input_root, "swap-to-shielded");
+  assertValue(swapMap, "input-commitment", swapWitness.input_commitment, "swap-to-shielded");
+  assertValue(
+    swapMap,
+    "nullifier-or-replay-commitment",
+    swapWitness.nullifier_or_replay_commitment,
+    "swap-to-shielded",
+  );
+  assertValue(
+    swapMap,
+    "settlement-commitment",
+    swapWitness.settlement_commitment,
+    "swap-to-shielded",
+  );
+  assertValue(swapMap, "route-commitment", swapWitness.route_commitment, "swap-to-shielded");
+  assertValue(
+    swapMap,
+    "economics-commitment",
+    swapWitness.economics_commitment,
+    "swap-to-shielded",
+  );
+  assertValue(swapMap, "output-commitment", swapWitness.output_commitment, "swap-to-shielded");
+  assertValue(swapMap, "output-leaf-index", swapWitness.output_leaf_index, "swap-to-shielded");
+  assertValue(swapMap, "output-root", swapWitness.output_root, "swap-to-shielded");
+  assertValue(swapMap, "owner-commitment", swapWitness.owner_commitment, "swap-to-shielded");
+  assertValue(swapMap, "swap-context-tag", swapWitness.swap_context_tag, "swap-to-shielded");
+
+  const swapOutputRoot = poseidon3([
+    swapWitness.input_root,
+    swapWitness.output_commitment,
+    swapWitness.output_leaf_index,
+  ]);
+  assert(swapOutputRoot === swapWitness.output_root, "Expected swap output root to be derived.");
+  assert(
+    computeVantaPrivatePoolV2SwapToShieldedPublicInputHash(swapWitness) ===
+      swap.swapPublicInputHash,
+    "Expected swap-to-shielded fixture hash to match Noir public hash preimage.",
+  );
+  assert(
+    JSON.stringify(swap.proofRequest.circuitPublicInputs) ===
+      JSON.stringify([`swap-public-input-hash:${swap.swapPublicInputHash.toString(10)}`]),
+    "Expected swap-to-shielded proof request to expose only the computed hash on the circuit-public lane.",
+  );
+  console.log("private pool v2 swap-to-shielded public-input hash alignment: PASS");
 } catch (error) {
   const stdout = String(error.stdout ?? "");
   const stderr = String(error.stderr ?? "");

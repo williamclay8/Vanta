@@ -20,11 +20,19 @@ assert.equal(evidence.roleStorageRef, "npm run private-pool-v2:role-storage-chec
 assert.equal(evidence.serviceTopologyRef, "npm run mainnet:service-topology-check");
 assert.equal(evidence.serviceDeploymentEvidenceRef, "ops/mainnet/service-deployment.evidence.json");
 assert.equal(evidence.remoteRuntimeMode, "remote-services");
-assert.equal(evidence.barrierKind, "verifier-receipt-idempotency-and-indexer-nullifier-registration");
+assert.equal(
+  evidence.barrierKind,
+  "verifier-receipt-idempotency-indexer-nullifier-registration-and-private-send-output-append",
+);
 assert.equal(evidence.localOnlyVerification, true);
 assert.equal(evidence.operatorRemoteServicesSettlementSmokeCovered, true);
 assert.deepEqual(evidence.restartRestorationCoveredRoles, ["indexer", "prover", "relayer", "verifier"]);
-assert.deepEqual(evidence.verifierToIndexerRequiredChecks, ["root-currentness-smoke", "nullifier-replay-smoke"]);
+assert.deepEqual(evidence.verifierToIndexerRequiredChecks, [
+  "root-currentness-smoke",
+  "nullifier-replay-smoke",
+  "private-send-output-append-smoke",
+  "private-send-atomic-rejection-smoke",
+]);
 assert.ok(
   evidence.deploymentTruth.includes("duplicate verifier receipts"),
   "Role-service replay evidence must record duplicate receipt rejection.",
@@ -32,6 +40,14 @@ assert.ok(
 assert.ok(
   evidence.deploymentTruth.includes("nullifier registration"),
   "Role-service replay evidence must record nullifier registration.",
+);
+assert.ok(
+  evidence.deploymentTruth.includes("private-send nullifier plus recipient/change output append"),
+  "Role-service replay evidence must record private-send output append.",
+);
+assert.ok(
+  evidence.deploymentTruth.includes("tampered private-send root rejection"),
+  "Role-service replay evidence must record private-send atomic rejection.",
 );
 
 const serialized = JSON.stringify(evidence);

@@ -4,6 +4,7 @@ import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
 import { useWalletState } from "@/data/context/WalletContext";
 import { describePricingForSurface } from "@/pricing/vantaPricing";
 import { createStrategyPlan, type VantaStrategyPlan } from "@/strategy/strategyPlanner.mjs";
+import { getStrategyPrivateRailTrustContract } from "@/strategy/strategyPrivateRailTrustContract";
 import {
   STRATEGY_CUSTOM_TIME_WINDOW,
   STRATEGY_DESTINATION_CONNECTED_WALLET,
@@ -164,10 +165,11 @@ function StrategySelect({
 
 export function StrategyPage() {
   const [form, setForm] = useState<StrategyFormState>(defaultForm);
-  const { privateCoreOwner } = usePrivacyFlow();
+  const { privateCoreHoldState, privateCoreOwner } = usePrivacyFlow();
   const { walletAddressShort, walletConnected } = useWalletState();
   const strategyPair = deriveStrategyPair(form);
   const privateOwnerShort = abbreviatePrivateOwner(privateCoreOwner.publicKey);
+  const strategyPrivateRailTrustContract = useMemo(() => getStrategyPrivateRailTrustContract(), []);
 
   const parsedAmount = useMemo(() => parseStrategyAmount(form.totalSize), [form.totalSize]);
   const parsedSlippage = useMemo(() => parseStrategySlippageBps(form.maxSlippage), [form.maxSlippage]);
@@ -284,6 +286,10 @@ export function StrategyPage() {
             <span className="strategy-kicker product-intro__eyebrow">Plan trades</span>
             <h1 id="strategy-title">Strategy</h1>
             <p>{modeCopy}</p>
+          </div>
+          <div className="module-state">
+            <strong>Preview only</strong>
+            <p>Build a local plan while live execution remains gated.</p>
           </div>
         </header>
 
@@ -508,6 +514,37 @@ export function StrategyPage() {
             <strong>{strategyPricing.feeLabel}</strong>
             <span>{strategyPricing.passThroughLabel}</span>
           </div>
+          <section className="strategy-private-rail-panel" aria-label="Strategy private rail packet">
+            <div className="strategy-card__header">
+              <div>
+                <span className="strategy-kicker">Private rail packet</span>
+                <h2>Hash-bound proof-public Strategy preview</h2>
+              </div>
+              <strong>{privateCoreHoldState ? "Ready to preview" : "Shielded private-core note required"}</strong>
+            </div>
+            <div className="strategy-prerequisite-grid">
+              <div className="strategy-prerequisite-item">
+                <span>Current truth</span>
+                <strong>{strategyPrivateRailTrustContract.currentTruth}</strong>
+                <small>Preview-only handoff; no live private strategy execution is submitted here.</small>
+              </div>
+              <div className="strategy-prerequisite-item">
+                <span>Operator plaintext strategy shared</span>
+                <strong>No</strong>
+                <small>Raw pair, total notional, child notional, and schedule stay outside the handoff packet.</small>
+              </div>
+              <div className="strategy-prerequisite-item">
+                <span>Production privacy claim</span>
+                <strong>Locked</strong>
+                <small>Fully-private and production-ready claims remain blocked until the matching gates prove them.</small>
+              </div>
+              <div className="strategy-prerequisite-item">
+                <span>Reviewer command</span>
+                <strong>npm run strategy:private-rail-check</strong>
+                <small>{strategyPrivateRailTrustContract.verificationSurfaces[1]}</small>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     </section>

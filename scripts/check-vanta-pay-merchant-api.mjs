@@ -76,9 +76,14 @@ async function requestJson(path, options = {}) {
   return { ok: response.ok, parsed, status: response.status, text };
 }
 
-async function requestPrivatePoolJson(path, { authToken } = {}) {
+async function requestPrivatePoolJson(path, { authToken, body, method = "GET" } = {}) {
   const response = await fetch(`${privatePoolBaseUrl}${path}`, {
-    headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+    ...(body ? { body } : {}),
+    headers: {
+      ...(body ? { "Content-Type": "application/json" } : {}),
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+    },
+    method,
   });
   const text = await response.text();
   return {
@@ -360,6 +365,44 @@ try {
     "Merchant API must expose merchant-visible reconciliation state.",
   );
   assert(
+    status.privateSettlement.checkoutProofBoundary === "hidden-economics-request",
+    "Merchant API must expose the Pay checkout hidden-economics proof boundary.",
+  );
+  assert(
+    status.privateSettlement.withdrawalProofBoundary ===
+      "committed-exit-terms-protocol-settlement",
+    "Merchant API must expose the committed withdrawal proof boundary.",
+  );
+  assert(
+    status.privateSettlement.rawEconomicTermsInLiveWithdrawalSettlement === false,
+    "Merchant API must expose the live withdrawal settlement redaction state.",
+  );
+  assert(
+    status.privateSettlement.rawEconomicTermsInProofRequest === false,
+    "Merchant API must expose the checkout proof request redaction state.",
+  );
+  assert(
+    status.privateSettlement.acceptedCheckoutSettlementBoundary ===
+      "committed-economics-protocol-settlement",
+    "Merchant API must expose the committed checkout acceptance boundary.",
+  );
+  assert(
+    status.privateSettlement.checkoutSettlementRoute === "committed-economics-protocol-settlement",
+    "Merchant API must expose the committed live checkout settlement route.",
+  );
+  assert(
+    status.privateSettlement.rawEconomicTermsInAcceptedCheckoutSettlement === false,
+    "Merchant API must expose the committed checkout settlement redaction state.",
+  );
+  assert(
+    status.privateSettlement.rawEconomicTermsInLiveCheckoutSettlement === false,
+    "Merchant API must expose the live checkout settlement redaction state.",
+  );
+  assert(
+    status.privateSettlement.hiddenEconomicsProductionPrivacyClaimAllowed === false,
+    "Merchant API must keep hidden-economics production privacy claims locked.",
+  );
+  assert(
     settlementAdapter.privateSettlement?.lifecycleModel === "preview-approve-execute-settle",
     "Private settlement adapter must expose the merchant lifecycle model.",
   );
@@ -374,6 +417,16 @@ try {
   assert(
     settlementAdapter.privateSettlement?.reconciliationState === "merchant-visible",
     "Private settlement adapter must expose merchant-visible reconciliation state.",
+  );
+  assert(
+    settlementAdapter.privateSettlement?.proofBoundaryVerificationCommand ===
+      "npm run pay:hidden-economics-request-check",
+    "Private settlement adapter must expose the Pay hidden-economics verification command.",
+  );
+  assert(
+    settlementAdapter.privateSettlement?.acceptedCheckoutSettlementVerificationCommand ===
+      "npm run pay:committed-checkout-acceptance-check",
+    "Private settlement adapter must expose the Pay committed checkout acceptance command.",
   );
   const privateRailReceipt = await settlementAdapter.settleCheckoutSession({
     session,
@@ -801,11 +854,36 @@ try {
     const receipts = await requestJson("/v1/receipts");
     assert(receipts.ok, receipts.text || "Expected receipts response.");
     assert(receipts.parsed?.data?.length === 1, "Expected one receipt.");
+    assert(
+      receipts.parsed?.data?.[0]?.object === "receipt_public_view",
+      "Expected receipt list to return public receipt views.",
+    );
+    assert(
+      receipts.parsed?.data?.[0]?.receiptId === completed.parsed.receipt.id,
+      "Expected public receipt view to preserve receipt id.",
+    );
+    assert(
+      receipts.parsed?.data?.[0]?.customer?.emailRedacted === true,
+      "Expected public receipt view to redact customer email.",
+    );
+    assert(
+      !JSON.stringify(receipts.parsed.data[0]).includes("buyer@example.com"),
+      "Expected receipt list public view to omit raw customer email.",
+    );
     console.log("vanta-pay api receipts: PASS");
 
     const receiptDetail = await requestJson(`/v1/receipts/${completed.parsed.receipt.id}`);
     assert(receiptDetail.ok, receiptDetail.text || "Expected receipt detail response.");
-    assert(receiptDetail.parsed?.id === completed.parsed.receipt.id, "Expected receipt detail id.");
+    assert(receiptDetail.parsed?.receiptId === completed.parsed.receipt.id, "Expected receipt detail id.");
+    assert(receiptDetail.parsed?.object === "receipt_public_view", "Expected receipt detail public view.");
+    assert(
+      receiptDetail.parsed?.privateSettlement?.railReceipt?.redacted === true,
+      "Expected receipt detail to redact the private rail receipt.",
+    );
+    assert(
+      !JSON.stringify(receiptDetail.parsed).includes(completed.parsed.receipt.privateRailReceiptId),
+      "Expected receipt detail to omit full private rail receipt id.",
+    );
     console.log("vanta-pay api receipt detail: PASS");
 
     const apiPaymentLink = await requestJson("/v1/payment-links", {
@@ -1043,8 +1121,25 @@ try {
       "Expected Pay settlements to submit receipts to the Private Pool v2 operator.",
     );
     assert(
-      privatePoolReceipts.parsed?.paySettlementCount >= 2,
-      "Expected Pay settlements to be proved and accepted by the Private Pool v2 operator settlement endpoint.",
+      privatePoolReceipts.parsed?.protocolSettlementCount >= 1,
+      "Expected Pay checkout and withdrawal settlement to use committed protocol settlements.",
+    );
+    assert(
+      privatePoolReceipts.parsed?.paySettlementCount === 0,
+      "Expected Pay operator route to avoid raw pay-settlements for checkout and withdrawal.",
+    );
+    assert(
+      privatePoolReceipts.parsed?.protocolSettlements?.some((record) => {
+        const serialized = JSON.stringify(record);
+        return (
+          record.protocolSettlementReceipt?.action === "unshield" &&
+          record.protocolSettlementReceipt?.economicsMode === "committed-economics" &&
+          record.proofReceipt?.intent === "unshield" &&
+          !serialized.includes("25.00") &&
+          !serialized.includes("Treasury")
+        );
+      }),
+      "Expected Pay withdrawal to register a committed unshield settlement without raw terms.",
     );
     console.log("vanta-pay private-pool operator settlement: PASS");
 

@@ -435,23 +435,15 @@ try {
         ? "Legacy incomplete"
         : "Unavailable",
   );
-  printLine(
-    "Latest send amount",
-    typeof summary.latestSend?.sendAmount === "string" ? summary.latestSend.sendAmount : "Unavailable",
-  );
+  printLine("Latest send recipient commitment", abbreviate(summary.latestSend?.recipientCommitment));
   printLine("Send records", String(summary.sendRecordCount ?? 0));
-  printLine("Latest release", abbreviate(summary.latestRelease?.nullifier));
+  printLine("Latest release nullifier", abbreviate(summary.latestRelease?.nullifier));
   printLine("Latest release proof", abbreviate(summary.latestRelease?.proofId));
   printLine("Latest release linked proof", abbreviate(summary.latestReleaseProof?.proofId));
   printLine("Release authorization", humanizeReleaseAuthorization(summary.latestRelease?.authorizationBasis));
   printLine("Release root policy", humanizeReleaseRootPolicy(summary.latestRelease?.rootPolicy));
-  printLine("Release destination", abbreviate(summary.latestRelease?.releaseDestination));
-  printLine(
-    "Released value",
-    summary.latestRelease?.releasedAmount && summary.latestRelease?.releasedAssetId
-      ? `${summary.latestRelease.releasedAmount} / ${abbreviate(summary.latestRelease.releasedAssetId)}`
-      : "Unavailable",
-  );
+  printLine("Latest release request", abbreviate(summary.latestRelease?.requestId));
+  printLine("Latest release root", abbreviate(summary.latestRelease?.root));
   printLine("Release records", String(summary.releaseRecordCount ?? 0));
   printLine("Proof/send link", summary.proofSendLinkStatus ?? "Unavailable");
   printLine("Proof/consume link", summary.proofConsumeLinkStatus ?? "Unavailable");

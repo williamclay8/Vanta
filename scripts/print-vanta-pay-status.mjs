@@ -149,6 +149,10 @@ const result = {
     "pay:merchant-trust-status-json",
     "pay:merchant-trust-status-check",
     "pay:approval-packet-check",
+    "pay:receipt-privacy-contract-check",
+    "pay:receipt-public-view-check",
+    "pay:hidden-economics-request-check",
+    "pay:committed-checkout-acceptance-check",
     "pay:merchant-api-check",
     "pay:browser-check",
     "pay:verify",
@@ -177,11 +181,35 @@ if (jsonMode) {
   }
   console.log("- merchant trust surface: npm run pay:merchant-trust-status");
   console.log("- approval packet contract: npm run pay:approval-packet-check");
+  console.log("- receipt privacy contract: npm run pay:receipt-privacy-contract-check");
+  console.log("- receipt public view: npm run pay:receipt-public-view-check");
   console.log(`- settlement lifecycle: ${result.privateSettlement.lifecycleModel}`);
+  console.log(`- checkout proof boundary: ${result.privateSettlement.checkoutProofBoundary}`);
+  console.log(`- checkout settlement route: ${result.privateSettlement.checkoutSettlementRoute}`);
+  console.log(
+    `- accepted checkout settlement boundary: ${result.privateSettlement.acceptedCheckoutSettlementBoundary}`,
+  );
+  console.log(`- withdrawal proof boundary: ${result.privateSettlement.withdrawalProofBoundary}`);
+  console.log(
+    `- raw economics in Pay proof request: ${String(result.privateSettlement.rawEconomicTermsInProofRequest)}`,
+  );
+  console.log(
+    `- raw economics in accepted checkout settlement: ${String(result.privateSettlement.rawEconomicTermsInAcceptedCheckoutSettlement)}`,
+  );
+  console.log(
+    `- raw economics in live checkout settlement: ${String(result.privateSettlement.rawEconomicTermsInLiveCheckoutSettlement)}`,
+  );
+  console.log(
+    `- hidden-economics production privacy claim allowed: ${String(result.privateSettlement.hiddenEconomicsProductionPrivacyClaimAllowed)}`,
+  );
+  console.log(`- proof boundary verification: ${result.privateSettlement.proofBoundaryVerificationCommand}`);
+  console.log(
+    `- accepted checkout verification: ${result.privateSettlement.acceptedCheckoutSettlementVerificationCommand}`,
+  );
   console.log(`- refunds: ${result.privateSettlement.refundState}`);
   console.log(`- withdrawals: ${result.privateSettlement.withdrawalState}`);
   console.log(`- reconciliation: ${result.privateSettlement.reconciliationState}`);
   console.log(
-    "- canonical verification: npm run pay:verify (includes npm run pay:merchant-trust-status-check and npm run pay:approval-packet-check)",
+    "- canonical verification: npm run pay:verify (includes merchant trust, approval packet, receipt privacy, receipt public-view, Pay hidden-economics boundary, and committed checkout acceptance checks)",
   );
 }

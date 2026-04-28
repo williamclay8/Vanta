@@ -63,9 +63,13 @@ export type PublicToVusdQuote = {
 
 export type PublicShieldRouteEvidence = {
   provider: "jupiter" | "meteora";
+  sourceAmount: string;
+  sourceAsset: string;
+  sourceMintAddress: string;
   routeSignature: string;
   targetAmount: string;
   targetAsset: LiveShieldTokenAssetKey;
+  targetMintAddress: string;
 };
 
 const DEFAULT_ALLOWED_SLIPPAGE_BPS = 50;
@@ -448,7 +452,11 @@ export function createPublicShieldRouteEvidence(args: {
   return {
     provider: args.quote.venueName === "Jupiter" ? "jupiter" : "meteora",
     routeSignature: args.routeSignature,
+    sourceAmount: args.quote.inputAmount,
+    sourceAsset: args.quote.inputAssetSymbol,
+    sourceMintAddress: args.quote.inputMint,
     targetAmount,
     targetAsset: args.quote.outputAsset,
+    targetMintAddress: args.quote.outputMint,
   };
 }

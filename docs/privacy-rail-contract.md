@@ -56,12 +56,75 @@ circuit plumbing, but they do not satisfy the meaningful-privacy refs below and
 do not hide asset, amount, route, destination, relayer, or nullifier terms from
 the current operator.
 
-Current local protocol Send/Swap committed-economics settlement requests move
+Current local protocol Send/Swap/Unshield committed-economics settlement requests move
 raw amount, asset, destination, and owner fields out of the operator
 request/receipt shape when callers supply settlement, route, replay, owner, and
 economics commitments. This is a useful typed operator boundary, but it still
 does not satisfy the meaningful-privacy refs below and must not be described as
 audited production privacy or a live anonymity set.
+
+Current local Pay checkout proof requests can use a hidden-economics boundary
+that exposes commitment-only settlement, route, replay/nullifier, owner,
+economics, and output handles. Operator-backed live Pay checkout now routes
+through the Private Pool v2 committed protocol `send` endpoint: the checker
+starts the local operator, runs `settleCheckoutSession`, verifies no raw
+`/pay-settlements` checkout record is created, and confirms the committed
+protocol settlement id is recorded. The committed request/receipt omits raw
+checkout amount, asset, destination, owner, session, client token, email, and
+merchant id. The configured-operator Pay withdrawal path now routes through
+committed protocol `unshield` settlement with commitment-only economics, route,
+exit, owner, input, and nullifier handles instead of raw `/pay-settlements`.
+This is not a completed private payment processor: production privacy claims
+remain blocked until live mainnet settlement, audited anonymity-set evidence,
+relayer-separated production execution, durable production services, and the
+strict readiness gate are satisfied.
+
+Current local Private Pool v2 Send proof requests and the executable Send
+circuit fixture bind an input root, input commitment, nullifier,
+recipient/change commitments, recipient/change leaf indices, recipient/change
+output roots, asset commitment, economics commitment, owner commitment, and send
+context tag while using the hidden-economics asset/amount sentinels. Local
+verifier/indexer acceptance now rejects spent send nullifiers and applies the
+recipient/change output append atomically, and the separated role-service
+harness mirrors the same private-send nullifier/output transition with
+tampered-root rejection. This is still not a completed production private Send
+rail: live production transition evidence, recipient discovery, relayer
+separation, anonymity evidence, audit, and production evidence are still missing.
+
+Current local Private Pool v2 Swap proof requests, executable circuit fixture,
+committed protocol settlement path, and local verifier/indexer acceptance bind
+an input root, input commitment, nullifier/replay commitment, settlement
+commitment, route commitment, economics commitment, output commitment, output
+leaf index, output root, owner commitment, swap context tag, and swap
+public-input hash without raw input/output asset or amount fields in the typed
+proof-request disclosure. The local verifier/indexer applies the
+swap-to-shielded nullifier registration and output append atomically. This is
+still not a completed production private Swap rail: quote and route privacy
+before operator settlement, relayer separation, live venue privacy, anonymity-set
+evidence, audit, and production evidence remain missing.
+
+Current local Strategy private-rail packets can derive a redacted Private Core
+send/swap handoff from a scratch shield simulation and map that handoff into
+committed-economics Private Pool v2 Send and Swap request packets. Those packets
+carry roots, nullifiers, commitments, proof-public hashes, and context tags, not
+raw pair, total notional, child notional, schedule, private witness material, or
+ciphertexts. The local Strategy operator runtime can accept and queue those
+redacted packets while keeping `liveSubmission: false`; it also rejects raw
+amount/asset/destination/owner fields on the committed request path. This is
+still a local request/trust-packet boundary: Strategy does not yet submit live
+private execution, run a production scheduler, hide quote and route formation,
+prove an anonymity set, or satisfy audit/mainnet gates.
+
+Current local Private Pool v2 Unshield proof requests and committed protocol
+settlement acceptance bind an input root, input commitment, nullifier/replay
+commitment, settlement commitment, route commitment, exit-terms commitment,
+economics commitment, owner commitment, and unshield context tag while using
+hidden-economics sentinels for raw destination/asset/amount. The committed
+operator path rejects raw destination, asset, amount, and owner fields and emits
+commitment-only Unshield receipts. The local verifier/indexer applies the
+unshield replay/nullifier registration and exit transition atomically. This is
+still not a completed private Unshield rail: relayer-separated execution, safe
+logging, anonymity-set evidence, audit, and production evidence remain missing.
 
 The checked Private Pool v2 anonymity-set readiness surface is fail-closed. It
 requires at least 1024 distinct production commitments per asset cohort, excludes
@@ -81,9 +144,19 @@ It cannot claim meaningful privacy until Vanta has refs for:
 Current checked refs:
 
 - `npm run private-pool-v2:hidden-economics-request-check`
+- `npm run private-pool-v2:send-proof-request-check`
+- `npm run private-pool-v2:swap-to-shielded-proof-request-check`
+- `npm run private-pool-v2:unshield-proof-request-check`
+- `npm run private-pool-v2:send-circuit-check`
+- `npm run private-pool-v2:swap-to-shielded-circuit-check`
+- `npm run private-pool-v2:swap-to-shielded-prove`
 - `npm run private-pool-v2:anonymity-set-readiness-check`
 - `npm run private-pool-v2:protocol-client-check`
 - `npm run private-pool-v2:http-smoke`
+- `npm run strategy:private-rail-check`
+- `npm run strategy:committed-settlement-check`
+- `npm run strategy:operator-runtime-check`
+- `npm run strategy:privacy-readiness-check`
 - `ops/mainnet/private-pool-v2-production-smoke.evidence.json`
 - `ops/mainnet/private-pool-v2-nullifier-replay.evidence.json`
 - `ops/mainnet/private-pool-v2-role-service-replay.evidence.json`

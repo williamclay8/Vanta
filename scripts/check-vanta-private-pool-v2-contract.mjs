@@ -76,17 +76,21 @@ const requiredFiles = [
   },
   {
     path: "src/privacy/privatePoolV2ProofRequests.ts",
-	    exports: [
-	      "VANTA_PRIVATE_POOL_V2_SHIELD_PROOF_REQUEST_VERSION",
-	      "VANTA_PRIVATE_POOL_V2_CLAIM_PROOF_REQUEST_VERSION",
-	      "VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_PROOF_REQUEST_VERSION",
-	      "VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID",
-	      "VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_AMOUNT_BASE_UNITS",
-	      "createVantaPrivatePoolV2ShieldProofRequest",
-	      "createVantaPrivatePoolV2ClaimProofRequest",
-	      "createVantaPrivatePoolV2HiddenEconomicsProofRequest",
-	    ],
-	  },
+    exports: [
+      "VANTA_PRIVATE_POOL_V2_SHIELD_PROOF_REQUEST_VERSION",
+      "VANTA_PRIVATE_POOL_V2_CLAIM_PROOF_REQUEST_VERSION",
+      "VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_PROOF_REQUEST_VERSION",
+      "VANTA_PRIVATE_POOL_V2_SEND_PROOF_REQUEST_VERSION",
+      "VANTA_PRIVATE_POOL_V2_SWAP_TO_SHIELDED_PROOF_REQUEST_VERSION",
+      "VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID",
+      "VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_AMOUNT_BASE_UNITS",
+      "createVantaPrivatePoolV2ShieldProofRequest",
+      "createVantaPrivatePoolV2ClaimProofRequest",
+      "createVantaPrivatePoolV2HiddenEconomicsProofRequest",
+      "createVantaPrivatePoolV2SendProofRequest",
+      "createVantaPrivatePoolV2SwapToShieldedProofRequest",
+    ],
+  },
   {
     path: "src/privacy/privatePoolV2ShieldCapabilityAdapter.ts",
     exports: [
@@ -110,6 +114,28 @@ const requiredFiles = [
       "computeVantaPrivatePoolV2ClaimNullifier",
       "computeVantaPrivatePoolV2ClaimPublicInputHash",
       "serializeVantaPrivatePoolV2ClaimCircuitFixtureToToml",
+    ],
+  },
+  {
+    path: "src/privacy/privatePoolV2SendCircuitFixture.ts",
+    exports: [
+      "VANTA_PRIVATE_POOL_V2_SEND_CIRCUIT_FIXTURE_VERSION",
+      "createVantaPrivatePoolV2SendCircuitFixture",
+      "computeVantaPrivatePoolV2SendAppendRoot",
+      "computeVantaPrivatePoolV2SendNullifier",
+      "computeVantaPrivatePoolV2SendPublicInputHash",
+      "serializeVantaPrivatePoolV2SendCircuitFixtureToToml",
+    ],
+  },
+  {
+    path: "src/privacy/privatePoolV2SwapToShieldedCircuitFixture.ts",
+    exports: [
+      "VANTA_PRIVATE_POOL_V2_SWAP_TO_SHIELDED_CIRCUIT_FIXTURE_VERSION",
+      "createVantaPrivatePoolV2SwapToShieldedCircuitFixture",
+      "computeVantaPrivatePoolV2SwapToShieldedAppendRoot",
+      "computeVantaPrivatePoolV2SwapToShieldedNullifierOrReplayCommitment",
+      "computeVantaPrivatePoolV2SwapToShieldedPublicInputHash",
+      "serializeVantaPrivatePoolV2SwapToShieldedCircuitFixtureToToml",
     ],
   },
 ];
@@ -146,12 +172,69 @@ const requiredTextFiles = [
     ],
   },
   {
+    path: "zk/noir/vanta_private_pool_v2_send_entry/Nargo.toml",
+    markers: ["vanta_private_pool_v2_send_entry", "poseidon"],
+  },
+  {
+    path: "zk/noir/vanta_private_pool_v2_send_entry/src/main.nr",
+    markers: [
+      "bind_send_public_inputs",
+      "compute_nullifier",
+      "compute_append_root",
+      "assert(computed_nullifier == nullifier)",
+      "assert(computed_recipient_output_root == recipient_output_root)",
+      "assert(computed_change_output_root == change_output_root)",
+      "assert(computed_public_input_hash == send_public_input_hash)",
+    ],
+  },
+  {
+    path: "zk/noir/vanta_private_pool_v2_swap_to_shielded_entry/Nargo.toml",
+    markers: ["vanta_private_pool_v2_swap_to_shielded_entry", "poseidon"],
+  },
+  {
+    path: "zk/noir/vanta_private_pool_v2_swap_to_shielded_entry/src/main.nr",
+    markers: [
+      "bind_swap_public_inputs",
+      "compute_nullifier",
+      "compute_append_root",
+      "assert(computed_nullifier_or_replay_commitment == nullifier_or_replay_commitment)",
+      "assert(computed_output_root == output_root)",
+      "assert(computed_public_input_hash == swap_public_input_hash)",
+    ],
+  },
+  {
     path: "scripts/check-vanta-private-pool-v2-shield-circuit.mjs",
     markers: ["invalid-binding", "invalid-root", "fixture restore: PASS"],
   },
   {
     path: "scripts/check-vanta-private-pool-v2-claim-circuit.mjs",
     markers: ["invalid-binding", "invalid-nullifier", "fixture restore: PASS"],
+  },
+  {
+    path: "scripts/check-vanta-private-pool-v2-send-circuit.mjs",
+    markers: [
+      "invalid-binding",
+      "invalid-nullifier",
+      "invalid-output-root",
+      "fixture restore: PASS",
+    ],
+  },
+  {
+    path: "scripts/check-vanta-private-pool-v2-swap-to-shielded-circuit.mjs",
+    markers: [
+      "invalid-binding",
+      "invalid-nullifier",
+      "invalid-output-root",
+      "fixture restore: PASS",
+    ],
+  },
+  {
+    path: "scripts/write-vanta-private-pool-v2-send-fixture.mjs",
+    markers: [
+      "privatePoolV2SendCircuitFixture.ts",
+      "createVantaPrivatePoolV2SendCircuitFixture",
+      "serializeVantaPrivatePoolV2SendCircuitFixtureToToml",
+    ],
   },
   {
     path: "scripts/write-vanta-private-pool-v2-claim-fixture.mjs",
@@ -162,6 +245,14 @@ const requiredTextFiles = [
     ],
   },
   {
+    path: "scripts/write-vanta-private-pool-v2-swap-to-shielded-fixture.mjs",
+    markers: [
+      "privatePoolV2SwapToShieldedCircuitFixture.ts",
+      "createVantaPrivatePoolV2SwapToShieldedCircuitFixture",
+      "serializeVantaPrivatePoolV2SwapToShieldedCircuitFixtureToToml",
+    ],
+  },
+  {
     path: "scripts/check-vanta-private-pool-v2-local-runtime.mjs",
     markers: [
       "local indexer append: PASS",
@@ -169,6 +260,8 @@ const requiredTextFiles = [
       "local verifier shield receipt: PASS",
       "local verifier claim receipt: PASS",
       "local verifier nullifier replay rejection: PASS",
+      "local verifier private-send nullifier and output append: PASS",
+      "local verifier private-send atomic rejection: PASS",
       "local indexer nullifier replay rejection: PASS",
       "local claim proof verify: PASS",
       "local prover tamper rejection: PASS",
@@ -184,6 +277,25 @@ const requiredTextFiles = [
     ],
   },
   {
+    path: "operator/private-pool-v2-service-network.mjs",
+    markers: [
+      "applyPrivateSendTransition",
+      "/v1/private-sends",
+      "isStatefulPrivateSendRequest",
+      "private-send:${nullifier}",
+      "recipientOutputCommitment",
+      "changeOutputCommitment",
+    ],
+  },
+  {
+    path: "scripts/check-vanta-private-pool-v2-service-network.mjs",
+    markers: [
+      "private-pool-v2 service-network private-send transition: PASS",
+      "private-send:field:service-network-send-nullifier",
+      "Expected rejected private-send transition not to append partial remote outputs.",
+    ],
+  },
+  {
     path: "scripts/check-vanta-private-pool-v2-shield-proof-request.mjs",
     markers: [
       "shield proof request public inputs: PASS",
@@ -191,6 +303,15 @@ const requiredTextFiles = [
       "shield proof request owner guard: PASS",
       "claim proof request public inputs: PASS",
       "claim proof request nullifier guard: PASS",
+    ],
+  },
+  {
+    path: "scripts/check-vanta-private-pool-v2-swap-to-shielded-proof-request.mjs",
+    markers: [
+      "private-pool-v2 swap proof request public inputs: PASS",
+      "private-pool-v2 swap proof request input-root guard: PASS",
+      "private-pool-v2 swap proof request output guard: PASS",
+      "swap-public-input-hash:field:swap-public-input-hash",
     ],
   },
   {
@@ -214,6 +335,8 @@ const requiredTextFiles = [
     path: "scripts/prove-vanta-private-pool-v2-circuit.mjs",
     markers: [
       "barretenberg-ultrahonk",
+      "swap-to-shielded",
+      "vanta_private_pool_v2_swap_to_shielded_entry",
       "proof generation: PASS",
       "proof verification: PASS",
     ],
@@ -227,6 +350,8 @@ const requiredTextFiles = [
       "receiptCount",
       "settlementPolicy",
       "verifierRegistry",
+      "private-pool-v2:swap-to-shielded-circuit-check",
+      "private-pool-v2:swap-to-shielded-prove",
       "private-pool-v2:verify",
     ],
   },
@@ -289,9 +414,10 @@ const requiredTextFiles = [
   {
     path: "scripts/check-vanta-private-pool-v2-operator-restart.mjs",
     markers: [
+      "private-pool-v2 restart committed transitions accepted: PASS",
       "private-pool-v2 restart receipts restored: PASS",
-      "private-pool-v2 restart commitment tree restored: PASS",
       "private-pool-v2 restart claim replay rejection: PASS",
+      "private-pool-v2 restart committed transition replay rejection: PASS",
     ],
   },
 ];
@@ -303,21 +429,31 @@ const requiredPackageScripts = [
   "private-pool-v2:local-relayer-check",
   "private-pool-v2:local-prover-check",
   "private-pool-v2:local-verifier-check",
-	  "private-pool-v2:shield-proof-request-check",
-	  "private-pool-v2:hidden-economics-request-check",
-	  "private-pool-v2:shield-capability-adapter-check",
+  "private-pool-v2:shield-proof-request-check",
+  "private-pool-v2:send-proof-request-check",
+  "private-pool-v2:swap-to-shielded-proof-request-check",
+  "private-pool-v2:hidden-economics-request-check",
+  "private-pool-v2:shield-capability-adapter-check",
   "private-pool-v2:shield-circuit-check",
+  "private-pool-v2:send-circuit-check",
+  "private-pool-v2:swap-to-shielded-circuit-check",
   "private-pool-v2:local-runtime-check",
   "private-pool-v2:claim-proof-request-check",
   "private-pool-v2:verify",
   "private-pool-v2:claim-circuit-check",
   "private-pool-v2:shield-prove",
+  "private-pool-v2:send-prove",
+  "private-pool-v2:swap-to-shielded-prove",
   "private-pool-v2:claim-prove",
   "private-pool-v2:status",
   "private-pool-v2:status-json",
   "private-pool-v2:operator",
   "private-pool-v2:http-smoke",
   "private-pool-v2:restart-check",
+  "private-pool-v2:service-network-check",
+  "private-pool-v2:role-storage-check",
+  "private-pool-v2:protocol-client-check",
+  "private-pool-v2:postgres-store-check",
 ];
 
 const failures = [];

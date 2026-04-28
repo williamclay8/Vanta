@@ -42,6 +42,32 @@ assert.equal(status.productionReady, false);
 assert.equal(status.mainnetReady, false);
 assert.equal(status.strictReadyGateCommand, "npm run pay:production-readiness-check");
 assert.equal(status.payStatus.productionReady, false);
+assert.equal(status.payStatus.privateSettlement.checkoutProofBoundary, "hidden-economics-request");
+assert.equal(
+  status.payStatus.privateSettlement.acceptedCheckoutSettlementBoundary,
+  "committed-economics-protocol-settlement",
+);
+assert.equal(
+  status.payStatus.privateSettlement.checkoutSettlementRoute,
+  "committed-economics-protocol-settlement",
+);
+assert.equal(
+  status.payStatus.privateSettlement.withdrawalProofBoundary,
+  "committed-exit-terms-protocol-settlement",
+);
+assert.equal(status.payStatus.privateSettlement.rawEconomicTermsInProofRequest, false);
+assert.equal(status.payStatus.privateSettlement.rawEconomicTermsInAcceptedCheckoutSettlement, false);
+assert.equal(status.payStatus.privateSettlement.rawEconomicTermsInLiveCheckoutSettlement, false);
+assert.equal(status.payStatus.privateSettlement.rawEconomicTermsInLiveWithdrawalSettlement, false);
+assert.equal(status.payStatus.privateSettlement.hiddenEconomicsProductionPrivacyClaimAllowed, false);
+assert.equal(
+  status.payStatus.privateSettlement.proofBoundaryVerificationCommand,
+  "npm run pay:hidden-economics-request-check",
+);
+assert.equal(
+  status.payStatus.privateSettlement.acceptedCheckoutSettlementVerificationCommand,
+  "npm run pay:committed-checkout-acceptance-check",
+);
 assert.equal(status.payStatus.capabilities.durableStoreConfigured, false);
 assert.equal(status.payStatus.capabilities.productionDurableStoreConfigured, false);
 assert.equal(status.payStatus.capabilities.privatePoolOperatorConfigured, false);

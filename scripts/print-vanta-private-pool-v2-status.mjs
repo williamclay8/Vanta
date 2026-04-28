@@ -22,10 +22,10 @@ const sourceFiles = [
   "privatePoolV2SettlementPolicy.ts",
 ];
 const protocolActionProofModes = {
-  send: "operator_local_transfer_request",
+  send: "send_circuit_request",
   shield: "shield_circuit_request",
-  swap: "operator_local_swap_request",
-  unshield: "claim_circuit_request",
+  swap: "swap_to_shielded_circuit_request",
+  unshield: "committed_unshield_or_claim_circuit_request",
 };
 
 function copySource(relativePath) {
@@ -125,8 +125,12 @@ try {
       "private-pool-v2:contract-check",
       "private-pool-v2:local-runtime-check",
       "private-pool-v2:shield-circuit-check",
+      "private-pool-v2:send-circuit-check",
+      "private-pool-v2:swap-to-shielded-circuit-check",
       "private-pool-v2:claim-circuit-check",
       "private-pool-v2:shield-prove",
+      "private-pool-v2:send-prove",
+      "private-pool-v2:swap-to-shielded-prove",
       "private-pool-v2:claim-prove",
       "private-pool-v2:verify",
     ],

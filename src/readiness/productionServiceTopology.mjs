@@ -18,7 +18,7 @@ const services = [
     ],
     requiredStorage: ["commitments", "merkle_roots", "nullifiers", "indexer_cursors"],
     health: ["/health", "/v1/roots/latest"],
-    readiness: ["/v1/commitments", "/v1/nullifiers/:nullifier"],
+    readiness: ["/v1/commitments", "/v1/nullifiers/:nullifier", "/v1/private-sends"],
     deploymentGuards,
   },
   {
@@ -115,10 +115,15 @@ const serviceEdges = [
   {
     from: "verifier",
     to: "indexer",
-    purpose: "confirm roots and nullifiers before accepting receipts",
+    purpose: "confirm roots, nullifiers, and private-send output appends before accepting receipts",
     auth: "mutual-service-auth",
     failurePolicy: "fail-closed",
-    requiredChecks: ["root-currentness-smoke", "nullifier-replay-smoke"],
+    requiredChecks: [
+      "root-currentness-smoke",
+      "nullifier-replay-smoke",
+      "private-send-output-append-smoke",
+      "private-send-atomic-rejection-smoke",
+    ],
   },
   {
     from: "relayer",

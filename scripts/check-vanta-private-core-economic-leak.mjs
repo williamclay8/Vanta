@@ -60,6 +60,102 @@ function assertPackageWiring() {
   );
 }
 
+function assertOperatorStatusRedactsSendAmount() {
+  const statusSource = readFileSync(
+    resolve(repoRoot, "scripts/print-vanta-private-core-operator-status.mjs"),
+    "utf8",
+  );
+  const statePanelSource = readFileSync(
+    resolve(repoRoot, "src/components/VantaPrivateCoreStatePanel.tsx"),
+    "utf8",
+  );
+
+  assert(
+    !statusSource.includes('"Latest send amount"'),
+    "Operator status output must not label raw private-core send amount as a public status line.",
+  );
+  assert(
+    !statusSource.includes("summary.latestSend.sendAmount"),
+    "Operator status output must not print latestSend.sendAmount.",
+  );
+  assert(
+    statusSource.includes('"Latest send recipient commitment"'),
+    "Operator status output must expose a public-boundary-safe send commitment instead.",
+  );
+  assert(
+    !statePanelSource.includes("<span>Latest send amount</span>"),
+    "Private-core state panel must not label raw private-core send amount as a public status row.",
+  );
+  assert(
+    !statePanelSource.includes("latestOperatorSend?.sendAmount"),
+    "Private-core state panel must not print latestOperatorSend.sendAmount.",
+  );
+  assert(
+    statePanelSource.includes("<span>Latest send recipient commitment</span>"),
+    "Private-core state panel must expose a public-boundary-safe send commitment instead.",
+  );
+}
+
+function assertOperatorStatusRedactsReleaseEconomics() {
+  const statusSource = readFileSync(
+    resolve(repoRoot, "scripts/print-vanta-private-core-operator-status.mjs"),
+    "utf8",
+  );
+  const statePanelSource = readFileSync(
+    resolve(repoRoot, "src/components/VantaPrivateCoreStatePanel.tsx"),
+    "utf8",
+  );
+
+  for (const label of ['"Release destination"', '"Released value"']) {
+    assert(
+      !statusSource.includes(label),
+      `Operator status output must not label raw private-core ${label} as a public status line.`,
+    );
+  }
+  for (const field of [
+    "summary.latestRelease?.releaseDestination",
+    "summary.latestRelease?.releasedAmount",
+    "summary.latestRelease?.releasedAssetId",
+  ]) {
+    assert(
+      !statusSource.includes(field),
+      `Operator status output must not print ${field}.`,
+    );
+  }
+  assert(
+    statusSource.includes('"Latest release nullifier"'),
+    "Operator status output must expose a public-boundary-safe release nullifier instead.",
+  );
+  assert(
+    statusSource.includes('"Latest release request"'),
+    "Operator status output must expose a public-boundary-safe release request id instead.",
+  );
+
+  for (const label of [
+    "<span>Operator release destination</span>",
+    "<span>Operator released value</span>",
+  ]) {
+    assert(
+      !statePanelSource.includes(label),
+      `Private-core state panel must not label raw private-core ${label} as a public status row.`,
+    );
+  }
+  for (const field of [
+    "latestOperatorRelease.releaseDestination",
+    "latestOperatorRelease?.releasedAmount",
+    "latestOperatorRelease?.releasedAssetId",
+  ]) {
+    assert(
+      !statePanelSource.includes(field),
+      `Private-core state panel must not print ${field}.`,
+    );
+  }
+  assert(
+    statePanelSource.includes("<span>Operator release nullifier</span>"),
+    "Private-core state panel must expose a public-boundary-safe release nullifier instead.",
+  );
+}
+
 function compileProofBoundaries() {
   mkdirSync(tempTsDir, { recursive: true });
 
@@ -193,6 +289,8 @@ function assertLane(args) {
 
 try {
   assertPackageWiring();
+  assertOperatorStatusRedactsSendAmount();
+  assertOperatorStatusRedactsReleaseEconomics();
   compileProofBoundaries();
 
   const sendModule = await import(pathToFileURL(join(tempJsDir, "vantaPrivateCoreSendProof.js")).href);

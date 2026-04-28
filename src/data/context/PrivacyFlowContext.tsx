@@ -1,3 +1,5 @@
+import { sha256 } from "@noble/hashes/sha2.js";
+import { bytesToHex } from "@noble/hashes/utils.js";
 import {
   useCallback,
   createContext,
@@ -72,7 +74,10 @@ import {
 import {
   fetchVantaPrivatePoolV2ProtocolSettlementStatus,
   requestVantaPrivatePoolV2ProtocolSettlement,
+  type VantaPrivatePoolV2ProofReceipt,
+  type VantaProtocolSettlementRequest,
   type VantaPrivatePoolV2SettlementStatus,
+  type VantaProtocolSettlementReceipt,
   type VantaProtocolShieldCapability,
 } from "@/privacy/privatePoolV2ProtocolSettlementClient";
 
@@ -104,13 +109,85 @@ async function recordPrivatePoolV2ProtocolSettlement(args: {
   owner: string;
   settlementId: string;
   shieldCapability?: VantaProtocolShieldCapability | null;
-}) {
+} | VantaProtocolSettlementRequest) {
   try {
     return await requestVantaPrivatePoolV2ProtocolSettlement(args);
   } catch {
     // The shared Private Pool v2 operator is optional in local UI sessions.
     return null;
   }
+}
+
+function hashPrivatePoolV2CommittedTerm(...parts: readonly string[]) {
+  return `0x${bytesToHex(sha256(new TextEncoder().encode(parts.join("\u001f"))))}`;
+}
+
+function buildPrivateCoreUnshieldCommittedSettlement(args: {
+  proofBoundary: VantaPrivateCoreUnshieldProofBoundaryV0;
+  sourceArtifacts: ReturnType<typeof deriveVantaPrivateCoreSourceArtifactsFromHeldNote>;
+  nullifier: string;
+  ownerPublicKey: string;
+}) {
+  const { proofBoundary, sourceArtifacts } = args;
+  const sourceInputs = proofBoundary.publicInputs;
+  const proofInputs = proofBoundary.noirWitnessPackage.publicInputs;
+  const economicsCommitment = hashPrivatePoolV2CommittedTerm(
+    "vanta.private-core.unshield.economics-commitment.v0",
+    sourceInputs.assetId,
+    sourceInputs.amount,
+  );
+  const exitTermsCommitment = hashPrivatePoolV2CommittedTerm(
+    "vanta.private-core.unshield.exit-terms-commitment.v0",
+    sourceInputs.releaseDestination,
+    sourceInputs.assetId,
+    sourceInputs.amount,
+  );
+  const ownerCommitment = hashPrivatePoolV2CommittedTerm(
+    "vanta.private-core.unshield.owner-commitment.v0",
+    args.ownerPublicKey,
+  );
+  const routeCommitment = hashPrivatePoolV2CommittedTerm(
+    "vanta.private-core.unshield.route-commitment.v0",
+    sourceInputs.releaseDestination,
+    sourceInputs.consumeContextTag ?? "none",
+  );
+  const settlementCommitment = hashPrivatePoolV2CommittedTerm(
+    "vanta.private-core.unshield.settlement-commitment.v0",
+    sourceArtifacts.noteCommitment,
+    args.nullifier,
+    proofInputs.unshield_economic_terms_hash,
+    proofInputs.state_root,
+  );
+  const unshieldPublicInputHash = hashPrivatePoolV2CommittedTerm(
+    "vanta.private-core.unshield.public-input-hash.v0",
+    proofInputs.state_root,
+    proofInputs.nullifier,
+    proofInputs.unshield_economic_terms_hash,
+    proofInputs.note_version,
+    proofInputs.consume_context_tag_hi ?? "0",
+    proofInputs.consume_context_tag_lo ?? "0",
+  );
+
+  return {
+    economicsCommitment,
+    economicsMode: "committed-economics" as const,
+    exitTermsCommitment,
+    inputCommitment: sourceArtifacts.noteCommitment,
+    inputRoot: sourceArtifacts.witnessRoot,
+    nullifierOrReplayCommitment: hashPrivatePoolV2CommittedTerm(
+      "vanta.private-core.unshield.nullifier-replay-commitment.v0",
+      args.nullifier,
+    ),
+    ownerCommitment,
+    routeCommitment,
+    settlementCommitment,
+    unshieldContextTag: sourceInputs.consumeContextTag ?? hashPrivatePoolV2CommittedTerm(
+      "vanta.private-core.unshield.context-tag.v0",
+      sourceArtifacts.noteCommitment,
+      args.nullifier,
+    ),
+    unshieldPublicInputHash,
+  };
 }
 
 function formatPrivateCoreAssetAmount(assetId: string, amount: bigint) {
@@ -142,6 +219,8 @@ export type RecentShieldContext = {
   signature?: string;
   settlement?: "confirmed_deposit";
   timestamp: number;
+  protocolSettlementReceipt?: VantaProtocolSettlementReceipt;
+  proofReceipt?: VantaPrivatePoolV2ProofReceipt;
   zkBridge?: {
     commitment: string;
     insertionIndex: number;
@@ -2267,16 +2346,26 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         setPrivateCoreOperatorReleaseError(message);
       }
       const result = privateCoreLedger.unshield(privateCoreHoldState.heldNote);
+      const committedUnshieldSettlement = buildPrivateCoreUnshieldCommittedSettlement({
+        proofBoundary,
+        sourceArtifacts: sourceHoldArtifacts,
+        nullifier: result.nullifier.value,
+        ownerPublicKey: privateCoreOwner.publicKey,
+      });
       void recordPrivatePoolV2ProtocolSettlement({
         action: "unshield",
-        amount: formatPrivateCoreAssetAmount(
-          privateCoreHoldState.heldNote.note.assetId,
-          privateCoreHoldState.heldNote.note.amount,
-        ).split(" ")[0] ?? privateCoreHoldState.heldNote.note.amount.toString(10),
-        asset: privateCoreHoldState.heldNote.note.assetId === VANTA_PRIVATE_CORE_SOL_ASSET_ID ? "SOL" : "VUSD",
-        destination: VANTA_PRIVATE_CORE_DEMO_RELEASE_DESTINATION,
-        owner: privateCoreOwner.publicKey,
+        economicsCommitment: committedUnshieldSettlement.economicsCommitment,
+        economicsMode: "committed-economics",
+        exitTermsCommitment: committedUnshieldSettlement.exitTermsCommitment,
+        inputCommitment: committedUnshieldSettlement.inputCommitment,
+        inputRoot: committedUnshieldSettlement.inputRoot,
+        nullifierOrReplayCommitment: committedUnshieldSettlement.nullifierOrReplayCommitment,
+        ownerCommitment: committedUnshieldSettlement.ownerCommitment,
+        routeCommitment: committedUnshieldSettlement.routeCommitment,
+        settlementCommitment: committedUnshieldSettlement.settlementCommitment,
         settlementId: result.nullifier.value,
+        unshieldContextTag: committedUnshieldSettlement.unshieldContextTag,
+        unshieldPublicInputHash: committedUnshieldSettlement.unshieldPublicInputHash,
       }).then(() => refreshPrivatePoolV2ProtocolSettlementStatus());
       const sourceUnshieldArtifacts = deriveVantaPrivateCoreSourceArtifactsFromUnshieldResult(result);
       const sourceProofConsistency = summarizeVantaPrivateCoreUnshieldProofEnvelopeConsistency({

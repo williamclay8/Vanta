@@ -12,7 +12,8 @@ function buildStatus() {
   const replayEdge = topology.serviceEdges.find((edge) => edge.from === "verifier" && edge.to === "indexer");
 
   return {
-    barrierKind: "verifier-receipt-idempotency-and-indexer-nullifier-registration",
+    barrierKind:
+      "verifier-receipt-idempotency-indexer-nullifier-registration-and-private-send-output-append",
     checkedAt: new Date().toISOString(),
     localOnlyVerification: true,
     localOnlyWarning:
@@ -30,6 +31,8 @@ function buildStatus() {
     serviceEdgesCovered: [
       "prover-to-verifier-proof-roundtrip",
       "verifier-to-indexer-commitment-append",
+      "verifier-to-indexer-private-send-nullifier-and-output-append",
+      "verifier-to-indexer-private-send-tampered-root-rejection",
       "verifier-duplicate-receipt-rejection",
       "relayer-quote-and-submit-after-restart",
       "operator-remote-services-pay-settlement-smoke",
@@ -56,7 +59,7 @@ if (checkMode) {
   assert.equal(result.remoteRuntimeMode, "remote-services");
   assert.equal(
     result.barrierKind,
-    "verifier-receipt-idempotency-and-indexer-nullifier-registration",
+    "verifier-receipt-idempotency-indexer-nullifier-registration-and-private-send-output-append",
   );
   assert.equal(result.roleServiceNetworkCommand, "npm run private-pool-v2:service-network-check");
   assert.equal(result.roleStorageCommand, "npm run private-pool-v2:role-storage-check");
@@ -65,12 +68,22 @@ if (checkMode) {
   assert.equal(result.operatorRemoteServicesSettlementSmokeCovered, true);
   assert.equal(result.servicesDeployedCount, 5);
   assert.ok(result.serviceEdgesCovered.includes("verifier-duplicate-receipt-rejection"));
+  assert.ok(
+    result.serviceEdgesCovered.includes(
+      "verifier-to-indexer-private-send-nullifier-and-output-append",
+    ),
+  );
+  assert.ok(
+    result.serviceEdgesCovered.includes("verifier-to-indexer-private-send-tampered-root-rejection"),
+  );
   assert.ok(result.serviceEdgesCovered.includes("operator-remote-services-pay-settlement-smoke"));
   assert.equal(result.verifierToIndexerEdge?.auth, "mutual-service-auth");
   assert.equal(result.verifierToIndexerEdge?.failurePolicy, "fail-closed");
   assert.deepEqual(result.verifierToIndexerEdge?.requiredChecks, [
     "root-currentness-smoke",
     "nullifier-replay-smoke",
+    "private-send-output-append-smoke",
+    "private-send-atomic-rejection-smoke",
   ]);
 }
 

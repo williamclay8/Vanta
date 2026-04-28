@@ -25,6 +25,42 @@ export type VantaPrivatePoolV2LocalVerifierRegistryArgs = {
       nullifier: string;
       spentAtSlot?: bigint | null;
     }) => { nullifier: string; spentAtSlot: bigint | null };
+    applyPrivateSendTransition?: (args: {
+      changeLeafIndex: number;
+      changeOutputCommitment: string;
+      changeOutputRoot: string;
+      inputCommitment: string;
+      inputRoot: string;
+      nullifier: string;
+      recipientLeafIndex: number;
+      recipientOutputCommitment: string;
+      recipientOutputRoot: string;
+      spentAtSlot?: bigint | null;
+    }) => Promise<{
+      changeCommitment: VantaPrivatePoolV2Commitment;
+      nullifier: { nullifier: string; spentAtSlot: bigint | null };
+      recipientCommitment: VantaPrivatePoolV2Commitment;
+    }>;
+    applySwapToShieldedTransition?: (args: {
+      inputCommitment: string;
+      inputRoot: string;
+      nullifierOrReplayCommitment: string;
+      outputCommitment: string;
+      outputLeafIndex: number;
+      outputRoot: string;
+      spentAtSlot?: bigint | null;
+    }) => Promise<{
+      nullifier: { nullifier: string; spentAtSlot: bigint | null };
+      outputCommitment: VantaPrivatePoolV2Commitment;
+    }>;
+    applyPrivateUnshieldExitTransition?: (args: {
+      inputCommitment: string;
+      inputRoot: string;
+      nullifierOrReplayCommitment: string;
+      spentAtSlot?: bigint | null;
+    }) => Promise<{
+      nullifier: { nullifier: string; spentAtSlot: bigint | null };
+    }>;
   };
   prover: VantaPrivatePoolV2Prover;
   receipts?: readonly VantaPrivatePoolV2ProofReceipt[];
@@ -79,6 +115,33 @@ function replayKeyForRequest(request: VantaPrivatePoolV2ProofRequest) {
     return `claim:${nullifier}`;
   }
 
+  if (request.intent === "private-send") {
+    const nullifier = readPublicInput(request, "nullifier:");
+    if (nullifier) {
+      return `private-send:${nullifier}`;
+    }
+  }
+
+  if (request.intent === "swap-to-shielded") {
+    const nullifierOrReplayCommitment = readPublicInput(
+      request,
+      "nullifier-or-replay-commitment:",
+    );
+    if (nullifierOrReplayCommitment) {
+      return `swap-to-shielded:${nullifierOrReplayCommitment}`;
+    }
+  }
+
+  if (request.intent === "unshield") {
+    const nullifierOrReplayCommitment = readPublicInput(
+      request,
+      "nullifier-or-replay-commitment:",
+    );
+    if (nullifierOrReplayCommitment) {
+      return `unshield:${nullifierOrReplayCommitment}`;
+    }
+  }
+
   return `${request.intent}:${request.publicInputs.join("|")}`;
 }
 
@@ -112,6 +175,24 @@ function assertShadowCommitmentsMatchRequest(request: VantaPrivatePoolV2ProofReq
   }
 
   return canonical;
+}
+
+function isStatefulPrivateSendRequest(request: VantaPrivatePoolV2ProofRequest) {
+  return request.publicInputs.some((input) =>
+    input.startsWith("vanta-private-pool-v2-send-proof-request-0.1:version"),
+  );
+}
+
+function isStatefulSwapToShieldedRequest(request: VantaPrivatePoolV2ProofRequest) {
+  return request.publicInputs.some((input) =>
+    input.startsWith("vanta-private-pool-v2-swap-to-shielded-proof-request-0.1:version"),
+  );
+}
+
+function isStatefulPrivateUnshieldRequest(request: VantaPrivatePoolV2ProofRequest) {
+  return request.publicInputs.some((input) =>
+    input.startsWith("vanta-private-pool-v2-unshield-proof-request-0.1:version"),
+  );
 }
 
 export class VantaPrivatePoolV2LocalVerifierRegistry {
@@ -209,6 +290,124 @@ export class VantaPrivatePoolV2LocalVerifierRegistry {
 
       this.#indexer.registerNullifier({
         nullifier,
+        spentAtSlot: this.#currentSlot,
+      });
+    }
+
+    if (request.intent === "private-send" && isStatefulPrivateSendRequest(request)) {
+      const inputCommitment = requirePublicInput(request, "input-commitment:");
+      const inputRoot = requirePublicInput(request, "input-root:");
+      const nullifier = requirePublicInput(request, "nullifier:");
+      const recipientOutputCommitment = requirePublicInput(
+        request,
+        "recipient-output-commitment:",
+      );
+      const recipientLeafIndex = Number(requirePublicInput(request, "recipient-leaf-index:"));
+      const recipientOutputRoot = requirePublicInput(request, "recipient-output-root:");
+      const changeOutputCommitment = requirePublicInput(request, "change-output-commitment:");
+      const changeLeafIndex = Number(requirePublicInput(request, "change-leaf-index:"));
+      const changeOutputRoot = requirePublicInput(request, "change-output-root:");
+
+      if (!Number.isSafeInteger(recipientLeafIndex) || recipientLeafIndex < 0) {
+        throw new Error("Private-send proof receipt requires a valid recipient leaf index.");
+      }
+
+      if (!Number.isSafeInteger(changeLeafIndex) || changeLeafIndex < 0) {
+        throw new Error("Private-send proof receipt requires a valid change leaf index.");
+      }
+
+      if (await this.#indexer.getNullifier(nullifier)) {
+        throw new Error(`Private-pool nullifier ${nullifier} is already registered.`);
+      }
+
+      if (!this.#indexer.registerNullifier) {
+        throw new Error("Private-send proof receipt requires a nullifier registry.");
+      }
+
+      if (!this.#indexer.appendCommitment) {
+        throw new Error("Private-send proof receipt requires a commitment indexer.");
+      }
+
+      if (!this.#indexer.applyPrivateSendTransition) {
+        throw new Error("Private-send proof receipt requires an atomic send transition indexer.");
+      }
+
+      await this.#indexer.applyPrivateSendTransition({
+        changeLeafIndex,
+        changeOutputCommitment,
+        changeOutputRoot,
+        inputCommitment,
+        inputRoot,
+        nullifier,
+        recipientLeafIndex,
+        recipientOutputCommitment,
+        recipientOutputRoot,
+        spentAtSlot: this.#currentSlot,
+      });
+    }
+
+    if (request.intent === "swap-to-shielded" && isStatefulSwapToShieldedRequest(request)) {
+      const inputCommitment = requirePublicInput(request, "input-commitment:");
+      const inputRoot = requirePublicInput(request, "input-root:");
+      const nullifierOrReplayCommitment = requirePublicInput(
+        request,
+        "nullifier-or-replay-commitment:",
+      );
+      const outputCommitment = requirePublicInput(request, "output-commitment:");
+      const outputLeafIndex = Number(requirePublicInput(request, "output-leaf-index:"));
+      const outputRoot = requirePublicInput(request, "output-root:");
+
+      if (!Number.isSafeInteger(outputLeafIndex) || outputLeafIndex < 0) {
+        throw new Error("Swap-to-shielded proof receipt requires a valid output leaf index.");
+      }
+
+      if (await this.#indexer.getNullifier(nullifierOrReplayCommitment)) {
+        throw new Error(`Private-pool nullifier ${nullifierOrReplayCommitment} is already registered.`);
+      }
+
+      if (!this.#indexer.registerNullifier) {
+        throw new Error("Swap-to-shielded proof receipt requires a nullifier registry.");
+      }
+
+      if (!this.#indexer.appendCommitment) {
+        throw new Error("Swap-to-shielded proof receipt requires a commitment indexer.");
+      }
+
+      if (!this.#indexer.applySwapToShieldedTransition) {
+        throw new Error("Swap-to-shielded proof receipt requires an atomic swap transition indexer.");
+      }
+
+      await this.#indexer.applySwapToShieldedTransition({
+        inputCommitment,
+        inputRoot,
+        nullifierOrReplayCommitment,
+        outputCommitment,
+        outputLeafIndex,
+        outputRoot,
+        spentAtSlot: this.#currentSlot,
+      });
+    }
+
+    if (request.intent === "unshield" && isStatefulPrivateUnshieldRequest(request)) {
+      const inputCommitment = requirePublicInput(request, "input-commitment:");
+      const inputRoot = requirePublicInput(request, "input-root:");
+      const nullifierOrReplayCommitment = requirePublicInput(
+        request,
+        "nullifier-or-replay-commitment:",
+      );
+
+      if (await this.#indexer.getNullifier(nullifierOrReplayCommitment)) {
+        throw new Error(`Private-pool nullifier ${nullifierOrReplayCommitment} is already registered.`);
+      }
+
+      if (!this.#indexer.applyPrivateUnshieldExitTransition) {
+        throw new Error("Private unshield proof receipt requires an atomic exit transition indexer.");
+      }
+
+      await this.#indexer.applyPrivateUnshieldExitTransition({
+        inputCommitment,
+        inputRoot,
+        nullifierOrReplayCommitment,
         spentAtSlot: this.#currentSlot,
       });
     }

@@ -45,6 +45,7 @@ const sourceFiles = [
   "pay/vantaPayAssets.ts",
   "pay/vantaPayTypes.ts",
   "pay/vantaPayRuntime.ts",
+  "pay/vantaPayReceiptPublicView.ts",
   "pay/vantaPayPrivateSettlementAdapter.ts",
   "privacy/protocolAdapter.ts",
   "privacy/umbraCapabilityProfile.ts",
@@ -471,6 +472,9 @@ const { VANTA_PAY_ASSET_SYMBOLS, getVantaPayAssetDecimals } = await import(
 const { createVantaPayPrivateSettlementAdapter } = await import(
   pathToFileURL(join(tempJsDir, "pay/vantaPayPrivateSettlementAdapter.js")).href
 );
+const { buildVantaPayReceiptPublicView } = await import(
+  pathToFileURL(join(tempJsDir, "pay/vantaPayReceiptPublicView.js")).href
+);
 const supportedAssets = new Set(VANTA_PAY_ASSET_SYMBOLS);
 const defaultSnapshot = { stateVersion: VANTA_PAY_STORE_SCHEMA_VERSION };
 const snapshotStore = databaseUrl
@@ -631,14 +635,14 @@ const server = createServer(async (request, response) => {
     }
 
     if (request.method === "GET" && url.pathname === "/v1/receipts") {
-      sendJson(response, 200, { data: runtime.listReceipts() });
+      sendJson(response, 200, { data: runtime.listReceipts().map(buildVantaPayReceiptPublicView) });
       return;
     }
 
     const receiptMatch = url.pathname.match(/^\/v1\/receipts\/([^/]+)$/);
     if (request.method === "GET" && receiptMatch) {
       const receipt = runtime.getReceipt(receiptMatch[1]);
-      sendJson(response, receipt ? 200 : 404, receipt ?? { error: "Receipt not found." });
+      sendJson(response, receipt ? 200 : 404, receipt ? buildVantaPayReceiptPublicView(receipt) : { error: "Receipt not found." });
       return;
     }
 

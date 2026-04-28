@@ -10,8 +10,8 @@ export function DocsLayout() {
         <NavLink to="/docs" className="docs-shell__brand" aria-label="Vanta Docs home">
           <BrandMark />
           <div className="docs-shell__brand-copy">
-            <strong>Vanta Docs</strong>
-            <span>Public handbook</span>
+            <strong>Vanta</strong>
+            <span>Docs handbook</span>
           </div>
         </NavLink>
         <div className="docs-shell__topbar-actions">

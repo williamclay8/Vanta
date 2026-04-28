@@ -21,6 +21,51 @@ export type VantaPrivatePoolV2RegisterNullifierArgs = {
   spentAtSlot?: bigint | null;
 };
 
+export type VantaPrivatePoolV2ApplyPrivateSendTransitionArgs = {
+  changeLeafIndex: number;
+  changeOutputCommitment: string;
+  changeOutputRoot: string;
+  inputCommitment: string;
+  inputRoot: string;
+  nullifier: string;
+  recipientLeafIndex: number;
+  recipientOutputCommitment: string;
+  recipientOutputRoot: string;
+  spentAtSlot?: bigint | null;
+};
+
+export type VantaPrivatePoolV2PrivateSendTransitionResult = {
+  changeCommitment: VantaPrivatePoolV2Commitment;
+  nullifier: VantaPrivatePoolV2Nullifier;
+  recipientCommitment: VantaPrivatePoolV2Commitment;
+};
+
+export type VantaPrivatePoolV2ApplySwapToShieldedTransitionArgs = {
+  inputCommitment: string;
+  inputRoot: string;
+  nullifierOrReplayCommitment: string;
+  outputCommitment: string;
+  outputLeafIndex: number;
+  outputRoot: string;
+  spentAtSlot?: bigint | null;
+};
+
+export type VantaPrivatePoolV2SwapToShieldedTransitionResult = {
+  nullifier: VantaPrivatePoolV2Nullifier;
+  outputCommitment: VantaPrivatePoolV2Commitment;
+};
+
+export type VantaPrivatePoolV2ApplyPrivateUnshieldExitTransitionArgs = {
+  inputCommitment: string;
+  inputRoot: string;
+  nullifierOrReplayCommitment: string;
+  spentAtSlot?: bigint | null;
+};
+
+export type VantaPrivatePoolV2PrivateUnshieldExitTransitionResult = {
+  nullifier: VantaPrivatePoolV2Nullifier;
+};
+
 type MerkleLayer = readonly string[];
 
 function hashParts(...parts: readonly string[]) {
@@ -198,6 +243,198 @@ export class VantaPrivatePoolV2LocalIndexer implements VantaPrivatePoolV2Indexer
 
     this.#nullifiers.set(nullifier, record);
     return record;
+  }
+
+  async applyPrivateSendTransition({
+    changeLeafIndex,
+    changeOutputCommitment,
+    changeOutputRoot,
+    inputCommitment,
+    inputRoot,
+    nullifier,
+    recipientLeafIndex,
+    recipientOutputCommitment,
+    recipientOutputRoot,
+    spentAtSlot = null,
+  }: VantaPrivatePoolV2ApplyPrivateSendTransitionArgs): Promise<VantaPrivatePoolV2PrivateSendTransitionResult> {
+    if (this.#nullifiers.has(nullifier)) {
+      throw new Error(`Private-pool nullifier ${nullifier} is already registered.`);
+    }
+
+    const inputRecord = this.#commitments.find(
+      (candidate) => candidate.commitment === inputCommitment,
+    );
+    if (!inputRecord) {
+      throw new Error(`Unknown private-pool commitment ${inputCommitment}.`);
+    }
+
+    const treeCommitments = this.#treeCommitments(inputRecord.treeId);
+    const currentInputRoot = currentRoot(inputRecord.treeId, treeCommitments);
+    if (currentInputRoot !== inputRoot) {
+      throw new Error("Private-send proof input root does not match verifier indexer root.");
+    }
+
+    if (treeCommitments.length !== recipientLeafIndex) {
+      throw new Error(
+        `Private-send recipient leaf index ${recipientLeafIndex} does not match next verifier leaf ${treeCommitments.length}.`,
+      );
+    }
+
+    if (changeLeafIndex !== recipientLeafIndex + 1) {
+      throw new Error("Private-send change leaf index must follow recipient leaf index.");
+    }
+
+    const recipientWithoutRoot = {
+      assetId: inputRecord.assetId,
+      commitment: recipientOutputCommitment,
+      leafIndex: recipientLeafIndex,
+      treeId: inputRecord.treeId,
+    };
+    const recipientCommitment = {
+      ...recipientWithoutRoot,
+      merkleRoot: currentRoot(inputRecord.treeId, [
+        ...treeCommitments,
+        { ...recipientWithoutRoot, merkleRoot: "" },
+      ]),
+    } satisfies VantaPrivatePoolV2Commitment;
+
+    if (recipientCommitment.merkleRoot !== recipientOutputRoot) {
+      throw new Error("Private-send recipient output root does not match verifier indexer root.");
+    }
+
+    const changeWithoutRoot = {
+      assetId: inputRecord.assetId,
+      commitment: changeOutputCommitment,
+      leafIndex: changeLeafIndex,
+      treeId: inputRecord.treeId,
+    };
+    const changeCommitment = {
+      ...changeWithoutRoot,
+      merkleRoot: currentRoot(inputRecord.treeId, [
+        ...treeCommitments,
+        recipientCommitment,
+        { ...changeWithoutRoot, merkleRoot: "" },
+      ]),
+    } satisfies VantaPrivatePoolV2Commitment;
+
+    if (changeCommitment.merkleRoot !== changeOutputRoot) {
+      throw new Error("Private-send change output root does not match verifier indexer root.");
+    }
+
+    const nullifierRecord = {
+      nullifier,
+      spentAtSlot,
+    } satisfies VantaPrivatePoolV2Nullifier;
+
+    this.#commitments.push(recipientCommitment, changeCommitment);
+    this.#nullifiers.set(nullifier, nullifierRecord);
+
+    return {
+      changeCommitment,
+      nullifier: nullifierRecord,
+      recipientCommitment,
+    };
+  }
+
+  async applySwapToShieldedTransition({
+    inputCommitment,
+    inputRoot,
+    nullifierOrReplayCommitment,
+    outputCommitment,
+    outputLeafIndex,
+    outputRoot,
+    spentAtSlot = null,
+  }: VantaPrivatePoolV2ApplySwapToShieldedTransitionArgs): Promise<VantaPrivatePoolV2SwapToShieldedTransitionResult> {
+    if (this.#nullifiers.has(nullifierOrReplayCommitment)) {
+      throw new Error(`Private-pool nullifier ${nullifierOrReplayCommitment} is already registered.`);
+    }
+
+    const inputRecord = this.#commitments.find(
+      (candidate) => candidate.commitment === inputCommitment,
+    );
+    if (!inputRecord) {
+      throw new Error(`Unknown private-pool commitment ${inputCommitment}.`);
+    }
+
+    const treeCommitments = this.#treeCommitments(inputRecord.treeId);
+    const currentInputRoot = currentRoot(inputRecord.treeId, treeCommitments);
+    if (currentInputRoot !== inputRoot) {
+      throw new Error("Swap-to-shielded proof input root does not match verifier indexer root.");
+    }
+
+    if (treeCommitments.length !== outputLeafIndex) {
+      throw new Error(
+        `Swap-to-shielded output leaf index ${outputLeafIndex} does not match next verifier leaf ${treeCommitments.length}.`,
+      );
+    }
+
+    const outputWithoutRoot = {
+      assetId: inputRecord.assetId,
+      commitment: outputCommitment,
+      leafIndex: outputLeafIndex,
+      treeId: inputRecord.treeId,
+    };
+    const outputRecord = {
+      ...outputWithoutRoot,
+      merkleRoot: currentRoot(inputRecord.treeId, [
+        ...treeCommitments,
+        { ...outputWithoutRoot, merkleRoot: "" },
+      ]),
+    } satisfies VantaPrivatePoolV2Commitment;
+
+    if (outputRecord.merkleRoot !== outputRoot) {
+      throw new Error("Swap-to-shielded output root does not match verifier indexer root.");
+    }
+
+    const nullifierRecord = {
+      nullifier: nullifierOrReplayCommitment,
+      spentAtSlot,
+    } satisfies VantaPrivatePoolV2Nullifier;
+
+    this.#commitments.push(outputRecord);
+    this.#nullifiers.set(nullifierOrReplayCommitment, nullifierRecord);
+
+    return {
+      nullifier: nullifierRecord,
+      outputCommitment: outputRecord,
+    };
+  }
+
+  async applyPrivateUnshieldExitTransition({
+    inputCommitment,
+    inputRoot,
+    nullifierOrReplayCommitment,
+    spentAtSlot = null,
+  }: VantaPrivatePoolV2ApplyPrivateUnshieldExitTransitionArgs): Promise<VantaPrivatePoolV2PrivateUnshieldExitTransitionResult> {
+    if (this.#nullifiers.has(nullifierOrReplayCommitment)) {
+      throw new Error(`Private-pool nullifier ${nullifierOrReplayCommitment} is already registered.`);
+    }
+
+    const inputRecord = this.#commitments.find(
+      (candidate) => candidate.commitment === inputCommitment,
+    );
+    if (!inputRecord) {
+      throw new Error(`Unknown private-pool commitment ${inputCommitment}.`);
+    }
+
+    const currentInputRoot = currentRoot(
+      inputRecord.treeId,
+      this.#treeCommitments(inputRecord.treeId),
+    );
+    if (currentInputRoot !== inputRoot) {
+      throw new Error("Private unshield proof input root does not match verifier indexer root.");
+    }
+
+    const nullifierRecord = {
+      nullifier: nullifierOrReplayCommitment,
+      spentAtSlot,
+    } satisfies VantaPrivatePoolV2Nullifier;
+
+    this.#nullifiers.set(nullifierOrReplayCommitment, nullifierRecord);
+
+    return {
+      nullifier: nullifierRecord,
+    };
   }
 
   #treeCommitments(treeId: string) {

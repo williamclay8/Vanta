@@ -95,6 +95,7 @@ try {
     VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_AMOUNT_BASE_UNITS,
     VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID,
     createVantaPrivatePoolV2HiddenEconomicsProofRequest,
+    createVantaPrivatePoolV2UnshieldProofRequest,
   } = await import(pathToFileURL(join(tempJsDir, "privatePoolV2ProofRequests.js")).href);
 
   const baseArgs = {
@@ -115,8 +116,12 @@ try {
     inputCommitment: "field:input-note",
     intent: "swap-to-shielded",
   });
+  const shieldRequest = createVantaPrivatePoolV2HiddenEconomicsProofRequest({
+    ...baseArgs,
+    intent: "shield",
+  });
 
-  for (const request of [sendRequest, swapRequest]) {
+  for (const request of [sendRequest, swapRequest, shieldRequest]) {
     assert(
       request.assetId === VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID,
       "Expected redacted hidden-economics asset id.",
@@ -149,6 +154,7 @@ try {
         "settlement-commitment:field:settlement",
         "owner-commitment:field:owner",
         "nullifier-or-replay-commitment:field:replay",
+        "nullifier:field:replay",
         "route-commitment:field:route",
         "economics-commitment:field:economics",
         "output-commitment:field:output-note",
@@ -174,13 +180,68 @@ try {
   );
   console.log("private-pool-v2 hidden economics swap request: PASS");
 
+  assert(
+    JSON.stringify(shieldRequest.publicInputs) ===
+      JSON.stringify([
+        "vanta-private-pool-v2-hidden-economics-proof-request-0.1:version",
+        "intent:shield",
+        "settlement-commitment:field:settlement",
+        "owner-commitment:field:owner",
+        "nullifier-or-replay-commitment:field:replay",
+        "route-commitment:field:route",
+        "economics-commitment:field:economics",
+        "output-commitment:field:output-note",
+      ]),
+    "Expected stable Shield hidden-economics public-input ordering.",
+  );
+  console.log("private-pool-v2 hidden economics shield request: PASS");
+
+  const unshieldRequest = createVantaPrivatePoolV2UnshieldProofRequest({
+    economicsCommitment: "field:economics",
+    exitTermsCommitment: "field:exit-terms",
+    inputCommitment: "field:input-note",
+    inputRoot: "field:input-root",
+    nullifierOrReplayCommitment: "field:replay",
+    ownerCommitment: "field:owner",
+    routeCommitment: "field:route",
+    settlementCommitment: "field:settlement",
+    unshieldContextTag: "field:unshield-context",
+    unshieldPublicInputHash: "field:unshield-public-input-hash",
+  });
+  assert(
+    unshieldRequest.assetId === VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID,
+    "Expected private unshield request to use the hidden-economics asset id.",
+  );
+  assert(
+    unshieldRequest.amountBaseUnits === VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_AMOUNT_BASE_UNITS,
+    "Expected private unshield request to use the hidden-economics amount sentinel.",
+  );
+  assert(
+    JSON.stringify(unshieldRequest.circuitPublicInputs) ===
+      JSON.stringify(["unshield-public-input-hash:field:unshield-public-input-hash"]),
+    "Expected private unshield circuit public inputs to be hash-only.",
+  );
+  assertNoRawTerms(unshieldRequest, [
+    "USDC",
+    "1000000",
+    "recipient-public-address",
+    "settlement-id:checkout_123",
+    "asset:",
+    "asset-id:",
+    "amount:",
+    "destination:",
+    "relayer:",
+    "relayer-fee:",
+  ]);
+  console.log("private-pool-v2 hidden economics unshield request: PASS");
+
   await expectRejection(
     () =>
       createVantaPrivatePoolV2HiddenEconomicsProofRequest({
         ...baseArgs,
         intent: "claim",
       }),
-    "only supports private-send and swap-to-shielded",
+    "only supports shield, private-send, and swap-to-shielded",
   );
   console.log("private-pool-v2 hidden economics intent guard: PASS");
 } catch (error) {

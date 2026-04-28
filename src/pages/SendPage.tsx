@@ -518,6 +518,11 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     recipient,
     selectedAsset,
   ]);
+  const isPrivateCoreVusdSendReady =
+    selectedAsset === "VUSD" &&
+    selectedSendCapability.executionMode === "operator-vusd-send" &&
+    selectedSendCapability.status === "live" &&
+    privateCoreSendPreview?.boundary.readiness === "ready";
 
   const recentShieldLabel =
     recentShield &&
@@ -868,7 +873,18 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       return;
     }
 
-    if (isRealSendReady && shieldAccount && selectedSpendableNote && liveShieldAsset.mintAddress) {
+    if (isPrivateCoreVusdSendReady) {
+      await handlePrivateCoreSendProof();
+      return;
+    }
+
+    if (
+      selectedSendCapability.executionMode !== "operator-vusd-send" &&
+      isRealSendReady &&
+      shieldAccount &&
+      selectedSpendableNote &&
+      liveShieldAsset.mintAddress
+    ) {
       try {
         await performLiveSendFromNote({
           amountNumeric: parsedAmount,
@@ -969,8 +985,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       : selectedSendCapability.executionMode === "needs-private-send-adapter"
         ? selectedSendCapability.blockers[0] ??
           "This shielded asset needs a private send adapter before it can execute."
-      : isRealSendReady
-      ? "Ready to record a shielded-state send transition."
+      : isPrivateCoreVusdSendReady
+      ? "Ready to verify a private-core send transition."
       : !selectedSpendableNote
         ? "Shield the asset first, then return here to send it."
         : "Enter a valid amount and destination address.";
@@ -1124,7 +1140,13 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   onClick={() => {
                     void handleSend();
                   }}
-                  disabled={isBetaMode || !isRealSendReady || status === "sending" || status === "settling"}
+                  disabled={
+                    isBetaMode ||
+                    !isPrivateCoreVusdSendReady ||
+                    privateCoreSendExecution.status === "running" ||
+                    status === "sending" ||
+                    status === "settling"
+                  }
                 >
                   {isBetaMode ? "Beta mode" : "Send from shielded state"}
                 </button>

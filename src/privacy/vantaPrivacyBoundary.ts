@@ -11,6 +11,9 @@ export type VantaPrivacyLane =
   | "private-core-swap"
   | "private-core-unshield"
   | "private-pool-v2-shield"
+  | "private-pool-v2-send"
+  | "private-pool-v2-swap"
+  | "private-pool-v2-unshield"
   | "private-pool-v2-claim";
 
 export type VantaPrivacyDisclosureField =
@@ -25,7 +28,11 @@ export type VantaPrivacyDisclosureField =
   | "output-amount"
   | "release-destination"
   | "recipient-commitment"
+  | "recipient-leaf-index"
+  | "recipient-output-root"
   | "change-commitment"
+  | "change-leaf-index"
+  | "change-output-root"
   | "output-commitment"
   | "note-version"
   | "context-tag"
@@ -41,6 +48,8 @@ export type VantaPrivacyDisclosureField =
   | "relayer"
   | "relayer-fee"
   | "quote-expiry"
+  | "asset-commitment"
+  | "economics-commitment"
   | "economic-terms-hash";
 
 export type VantaPrivacyBoundaryDescriptor = {
@@ -69,6 +78,13 @@ const hiddenEconomicTermBlockers = [
   "production root history and nullifier set",
   "relayer-separated execution",
   "audited prover/verifier key boundary",
+] as const;
+
+const privateUnshieldBlockers = [
+  "atomic nullifier registration and private exit settlement mutation",
+  "relayer-separated exit execution",
+  "safe private-exit logging and receipt redaction",
+  ...hiddenEconomicTermBlockers,
 ] as const;
 
 export const VANTA_PRIVACY_BOUNDARY_DESCRIPTORS = [
@@ -181,6 +197,136 @@ export const VANTA_PRIVACY_BOUNDARY_DESCRIPTORS = [
     tier: "v1.5-hash-bound-public-request-terms",
     truthLabel:
       "Private Pool v2 Claim hash-binds public request terms in-circuit; the request/operator layer still sees them.",
+  },
+  {
+    blockersToHiddenEconomicTerms: [
+      "production-deployed live private-send transition evidence",
+      "recipient encrypted-note discovery",
+      ...hiddenEconomicTermBlockers,
+    ],
+    contractVersion: VANTA_PRIVACY_BOUNDARY_CONTRACT_VERSION,
+    hiddenWitnessMaterial: [
+      "send-witness-secret",
+      "private-membership-path",
+      "raw asset",
+      "raw amount",
+      "raw recipient",
+      "private recipient note material",
+      "private change note material",
+    ],
+    lane: "private-pool-v2-send",
+    laneLabel: "Private Pool v2 Send",
+    publicDisclosure: [
+      "state-root",
+      "input-commitment",
+      "nullifier",
+      "recipient-commitment",
+      "recipient-leaf-index",
+      "recipient-output-root",
+      "change-commitment",
+      "change-leaf-index",
+      "change-output-root",
+      "asset-commitment",
+      "economics-commitment",
+      "owner-commitment",
+      "context-tag",
+    ],
+    publicRequestDisclosure: [
+      "state-root",
+      "input-commitment",
+      "nullifier",
+      "recipient-commitment",
+      "recipient-leaf-index",
+      "recipient-output-root",
+      "change-commitment",
+      "change-leaf-index",
+      "change-output-root",
+      "asset-commitment",
+      "economics-commitment",
+      "owner-commitment",
+      "context-tag",
+    ],
+    tier: "v1.5-hash-bound-public-request-terms",
+    truthLabel:
+      "Private Pool v2 Send has a local proof-request/circuit boundary plus checked local verifier/indexer mutation; recipient discovery, deployed enforcement, and production privacy remain blocked.",
+  },
+  {
+    blockersToHiddenEconomicTerms: [
+      "atomic nullifier registration and swap output commitment append",
+      "quote and route privacy before operator settlement",
+      ...hiddenEconomicTermBlockers,
+    ],
+    contractVersion: VANTA_PRIVACY_BOUNDARY_CONTRACT_VERSION,
+    hiddenWitnessMaterial: [
+      "swap-witness-secret",
+      "private-membership-path",
+      "raw input asset",
+      "raw output asset",
+      "raw input amount",
+      "raw output amount",
+      "private route terms",
+      "private output note material",
+    ],
+    lane: "private-pool-v2-swap",
+    laneLabel: "Private Pool v2 Swap",
+    publicDisclosure: [
+      "state-root",
+      "input-commitment",
+      "nullifier",
+      "output-commitment",
+      "route-commitment",
+      "economics-commitment",
+      "owner-commitment",
+      "context-tag",
+    ],
+    publicRequestDisclosure: [
+      "state-root",
+      "input-commitment",
+      "nullifier",
+      "output-commitment",
+      "route-commitment",
+      "economics-commitment",
+      "owner-commitment",
+      "context-tag",
+    ],
+    tier: "v1.5-hash-bound-public-request-terms",
+    truthLabel:
+      "Private Pool v2 Swap has a local proof-request boundary without raw input/output asset or amount disclosure at that typed layer; quote privacy, atomic verifier state transition, and production privacy remain blocked.",
+  },
+  {
+    blockersToHiddenEconomicTerms: privateUnshieldBlockers,
+    contractVersion: VANTA_PRIVACY_BOUNDARY_CONTRACT_VERSION,
+    hiddenWitnessMaterial: [
+      "claim-witness-secret",
+      "private-membership-path",
+      "raw release destination",
+      "raw asset",
+      "raw amount",
+      "private relayer quote terms",
+    ],
+    lane: "private-pool-v2-unshield",
+    laneLabel: "Private Pool v2 Unshield",
+    publicDisclosure: [
+      "state-root",
+      "input-commitment",
+      "nullifier",
+      "route-commitment",
+      "economics-commitment",
+      "owner-commitment",
+      "context-tag",
+    ],
+    publicRequestDisclosure: [
+      "state-root",
+      "input-commitment",
+      "nullifier",
+      "route-commitment",
+      "economics-commitment",
+      "owner-commitment",
+      "context-tag",
+    ],
+    tier: "v1.5-hash-bound-public-request-terms",
+    truthLabel:
+      "Private Pool v2 Unshield has a local proof-request boundary plus committed operator/protocol acceptance without raw destination, asset, or amount on that path; atomic exit mutation, relayer separation, and production privacy remain blocked.",
   },
 ] as const satisfies readonly VantaPrivacyBoundaryDescriptor[];
 

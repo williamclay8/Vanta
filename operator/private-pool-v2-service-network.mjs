@@ -289,6 +289,90 @@ function createIndexerState({ snapshotStore, storePath } = {}) {
   }
 
   return {
+    async applyPrivateSendTransition({
+      changeLeafIndex,
+      changeOutputCommitment,
+      changeOutputRoot,
+      inputCommitment,
+      inputRoot,
+      nullifier,
+      recipientLeafIndex,
+      recipientOutputCommitment,
+      recipientOutputRoot,
+      spentAtSlot = 1_000_000n,
+    }) {
+      await ensureLoaded();
+      if (nullifiers.has(nullifier)) {
+        throw new Error(`Private-pool nullifier ${nullifier} is already registered.`);
+      }
+
+      const inputRecord = commitments.find((record) => record.commitment === inputCommitment);
+      if (!inputRecord) {
+        throw new Error(`Unknown private-pool commitment ${inputCommitment}.`);
+      }
+      if (inputRecord.merkleRoot !== inputRoot) {
+        throw new Error("Private-send proof input root does not match indexer root.");
+      }
+
+      const treeCommitments = commitments.filter((record) => record.treeId === inputRecord.treeId);
+      if (treeCommitments.length !== recipientLeafIndex) {
+        throw new Error(
+          `Private-send recipient leaf index ${recipientLeafIndex} does not match next indexer leaf ${treeCommitments.length}.`,
+        );
+      }
+      if (changeLeafIndex !== recipientLeafIndex + 1) {
+        throw new Error("Private-send change leaf index must follow recipient leaf index.");
+      }
+
+      const recipientCommitment = {
+        assetId: inputRecord.assetId,
+        commitment: recipientOutputCommitment,
+        leafIndex: recipientLeafIndex,
+        merkleRoot: hashHex(
+          serviceVersion,
+          "root",
+          inputRecord.treeId,
+          String(recipientLeafIndex),
+          recipientOutputCommitment,
+        ),
+        treeId: inputRecord.treeId,
+      };
+      if (recipientCommitment.merkleRoot !== recipientOutputRoot) {
+        throw new Error("Private-send recipient output root does not match indexer root.");
+      }
+
+      const changeCommitment = {
+        assetId: inputRecord.assetId,
+        commitment: changeOutputCommitment,
+        leafIndex: changeLeafIndex,
+        merkleRoot: hashHex(
+          serviceVersion,
+          "root",
+          inputRecord.treeId,
+          String(changeLeafIndex),
+          changeOutputCommitment,
+        ),
+        treeId: inputRecord.treeId,
+      };
+      if (changeCommitment.merkleRoot !== changeOutputRoot) {
+        throw new Error("Private-send change output root does not match indexer root.");
+      }
+
+      const nullifierRecord = {
+        nullifier,
+        spentAtSlot,
+      };
+
+      commitments.push(recipientCommitment, changeCommitment);
+      nullifiers.set(nullifier, nullifierRecord);
+      await save();
+
+      return {
+        changeCommitment,
+        nullifier: nullifierRecord,
+        recipientCommitment,
+      };
+    },
     async appendCommitment({ assetId, commitment, treeId }) {
       await ensureLoaded();
       const leafIndex = commitments.filter((record) => record.treeId === treeId).length;
@@ -539,7 +623,23 @@ function replayKeyFor(request) {
     return `shield:${commitment ?? request.publicInputs?.join("|") ?? "unknown"}`;
   }
 
+  if (request?.intent === "private-send") {
+    const nullifier = readPublicInput(request, "nullifier:");
+    if (nullifier) {
+      return `private-send:${nullifier}`;
+    }
+  }
+
   return `${request?.intent ?? "proof"}:${request?.publicInputs?.join("|") ?? "unknown"}`;
+}
+
+function isStatefulPrivateSendRequest(request) {
+  return Boolean(
+    request?.intent === "private-send" &&
+      request?.publicInputs?.some((input) =>
+        String(input).startsWith("vanta-private-pool-v2-send-proof-request-0.1:version"),
+      ),
+  );
 }
 
 async function postIndexerJson(path, body) {
@@ -550,7 +650,7 @@ async function postIndexerJson(path, body) {
 
   const authToken = process.env.VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN;
   const response = await fetch(`${baseUrl}${path}`, {
-    body: JSON.stringify(body),
+    body: JSON.stringify(normalizeForJson(body)),
     headers: {
       "Content-Type": "application/json",
       ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
@@ -578,6 +678,21 @@ async function mirrorAcceptedProofToIndexer(request) {
   if (request?.intent === "claim") {
     const nullifier = requirePublicInput(request, "nullifier:");
     return await postIndexerJson("/v1/nullifiers", { nullifier });
+  }
+
+  if (isStatefulPrivateSendRequest(request)) {
+    return await postIndexerJson("/v1/private-sends", {
+      changeLeafIndex: Number(requirePublicInput(request, "change-leaf-index:")),
+      changeOutputCommitment: requirePublicInput(request, "change-output-commitment:"),
+      changeOutputRoot: requirePublicInput(request, "change-output-root:"),
+      inputCommitment: requirePublicInput(request, "input-commitment:"),
+      inputRoot: requirePublicInput(request, "input-root:"),
+      nullifier: requirePublicInput(request, "nullifier:"),
+      recipientLeafIndex: Number(requirePublicInput(request, "recipient-leaf-index:")),
+      recipientOutputCommitment: requirePublicInput(request, "recipient-output-commitment:"),
+      recipientOutputRoot: requirePublicInput(request, "recipient-output-root:"),
+      spentAtSlot: 1_000_000n,
+    });
   }
 
   return null;
@@ -678,6 +793,21 @@ async function createServiceHandlers(role, {
       sendJson(response, 200, {
         ...basePayload(role),
         commitment: await indexerState.appendCommitment(body),
+      });
+      return true;
+    }
+
+    if (request.method === "POST" && url.pathname === "/v1/private-sends") {
+      const body = await readRequestBody(request);
+      sendJson(response, 200, {
+        ...basePayload(role),
+        transition: await indexerState.applyPrivateSendTransition({
+          ...body,
+          changeLeafIndex: Number(body.changeLeafIndex),
+          recipientLeafIndex: Number(body.recipientLeafIndex),
+          spentAtSlot:
+            body.spentAtSlot === undefined ? 1_000_000n : toBigInt(body.spentAtSlot),
+        }),
       });
       return true;
     }

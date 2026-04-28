@@ -121,7 +121,7 @@ function checkLandingViewport(width, height) {
     throw new Error(`Landing route should stay at /, got ${result.path}.`);
   }
 
-  if (!result.headline.includes("Privacy rails")) {
+  if (!result.headline.includes("Make supported Solana activity") || !result.headline.includes("less public")) {
     throw new Error(`Landing headline missing: ${result.headline}`);
   }
 
