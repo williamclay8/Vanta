@@ -18,6 +18,8 @@ const PRODUCTION_GATE_BLOCKERS = [
     requiredEvidenceRefs: [
       "VANTA_PRIVATE_POOL_V2_ANONYMITY_SET_REF",
       "VANTA_PRIVATE_POOL_V2_PRODUCTION_ANONYMITY_METRICS_REF",
+      "ops/mainnet/private-pool-v2-anonymity-set.evidence.json",
+      "npm run private-pool-v2:anonymity-set-evidence-check",
       "npm run private-pool-v2:anonymity-set-readiness-check",
     ],
   },
@@ -34,8 +36,10 @@ const PRODUCTION_GATE_BLOCKERS = [
     inputKey: "relayerSeparationReady",
     requiredEvidenceRefs: [
       "VANTA_PRIVATE_POOL_V2_RELAYER_SEPARATION_REF",
-      "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
-      "npm run mainnet:role-service-replay-evidence-check",
+      "VANTA_PRIVATE_POOL_V2_RELAYER_LOG_REDACTION_REF",
+      "VANTA_PRIVATE_POOL_V2_RELAYER_DEPLOYMENT_SEPARATION_REF",
+      "ops/mainnet/private-pool-v2-relayer-separation.evidence.json",
+      "npm run private-pool-v2:relayer-separation-evidence-check",
     ],
   },
 ];

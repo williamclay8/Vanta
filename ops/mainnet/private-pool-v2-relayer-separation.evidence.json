@@ -1,0 +1,84 @@
+{
+  "version": "vanta-private-pool-v2-relayer-separation-evidence-0.1",
+  "mainnetReady": false,
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "relayerSeparationReady": false,
+  "secretPolicy": "references-only-no-secret-values",
+  "purpose": "Refs-only relayer-separation evidence packet for Private Pool v2. This packet separates privacy-role separation from role-service replay correctness.",
+  "currentArchitecture": {
+    "relayerRole": "claim quote and submit service",
+    "operatorRole": "settlement orchestrator and protocol receipt surface",
+    "verifierRole": "proof and receipt verification",
+    "indexerRole": "root, nullifier, and output state"
+  },
+  "relayerMaySee": [
+    "claim quote request metadata required for relayer fee calculation",
+    "serialized transaction material required for public chain submission",
+    "public endpoint request timing",
+    "service auth context as configured by production secrets"
+  ],
+  "relayerMustNotSee": [
+    "user private witness",
+    "viewing keys",
+    "raw hidden-economics amount on committed settlement paths",
+    "raw hidden-economics asset on committed settlement paths",
+    "raw hidden-economics owner on committed settlement paths",
+    "raw private route or quote details on committed route paths",
+    "customer private inputs",
+    "wallet private keys or seed phrases"
+  ],
+  "requiredRefs": [
+    "VANTA_PRIVATE_POOL_V2_RELAYER_SEPARATION_REF",
+    "VANTA_PRIVATE_POOL_V2_RELAYER_LOG_REDACTION_REF",
+    "VANTA_PRIVATE_POOL_V2_RELAYER_DEPLOYMENT_SEPARATION_REF",
+    "VANTA_PRIVATE_POOL_V2_AUDIT_REF"
+  ],
+  "currentEvidenceRefs": [
+    "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
+    "ops/mainnet/private-pool-v2-route-health.evidence.json",
+    "npm run private-pool-v2:service-network-check",
+    "npm run mainnet:role-service-replay-evidence-check"
+  ],
+  "separationChecks": [
+    {
+      "id": "role-service-replay-barrier",
+      "status": "local-harness-covered",
+      "ref": "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
+      "privacyMeaning": "replay correctness only; not sufficient relayer privacy separation"
+    },
+    {
+      "id": "production-relayer-log-redaction",
+      "status": "not-recorded",
+      "ref": "VANTA_PRIVATE_POOL_V2_RELAYER_LOG_REDACTION_REF",
+      "privacyMeaning": "required before relayer separation can be claimed"
+    },
+    {
+      "id": "production-deployment-separation",
+      "status": "not-recorded",
+      "ref": "VANTA_PRIVATE_POOL_V2_RELAYER_DEPLOYMENT_SEPARATION_REF",
+      "privacyMeaning": "required before relayer separation can be claimed"
+    },
+    {
+      "id": "independent-review",
+      "status": "not-recorded",
+      "ref": "VANTA_PRIVATE_POOL_V2_AUDIT_REF",
+      "privacyMeaning": "required before relayer separation can be claimed"
+    }
+  ],
+  "productionBlockers": [
+    "Relayer separation is not proven by role-service replay evidence alone.",
+    "No production relayer log-redaction evidence is recorded.",
+    "No production deployment separation evidence is recorded.",
+    "No independent reviewer has accepted the relayer separation boundary."
+  ],
+  "forbiddenInGit": [
+    "auth tokens",
+    "database URLs",
+    "wallet keys",
+    "seed phrases",
+    "signed transactions",
+    "customer private inputs",
+    "raw hidden-economics terms"
+  ]
+}

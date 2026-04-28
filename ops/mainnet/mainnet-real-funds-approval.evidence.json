@@ -1,6 +1,6 @@
 {
   "version": "vanta-mainnet-real-funds-approval-evidence-0.1",
-  "checkedAt": "2026-04-24T04:26:52.903Z",
+  "checkedAt": "2026-04-28T14:19:27.539Z",
   "mainnetReady": false,
   "productionReady": false,
   "realFundsAllowed": true,
@@ -26,16 +26,16 @@
   ],
   "approvalRecord": {
     "status": "approved",
-    "approvalRecordRef": "VANTA_MAINNET_LIVE_001_APPROVAL_RECORD_REF",
-    "approvedActionRef": "launch-runbook/vanta-mainnet-live-001",
-    "approvedActionSummary": "Enable live mainnet private settlement smoke with maximum 0.05 SOL at risk",
+    "approvalRecordRef": "VANTA_MAINNET_DEMO_2026_04_28_APPROVAL_RECORD_REF",
+    "approvedActionRef": "demo-day/vanta-mainnet-bounded-demo-2026-04-28",
+    "approvedActionSummary": "Bounded mainnet demo for Shield, Send, Swap, and Unshield with maximum 0.05 SOL at risk",
     "approvedEnvironment": "mainnet",
-    "approvedFeePayerRef": "wallet/public-fee-payer-vanta-mainnet",
-    "approvedLaunchWindowRef": "2026-04-24T15:00:00-16:00:00 America/Chicago",
+    "approvedFeePayerRef": "wallet/public-fee-payer-vanta-mainnet-demo",
+    "approvedLaunchWindowRef": "2026-04-28T10:00:00-12:00:00 America/Los_Angeles",
     "rollbackPlanRef": "runbook/disable-private-pool-v2-services-and-live-actions",
     "stopLossPlanRef": "max-0.05-sol-or-first-failed-settlement",
     "maximumFundsAtRiskRef": "0.05 SOL",
-    "approvedByRef": "Clay / founder approval / 2026-04-23"
+    "approvedByRef": "Clay/founder-approval/2026-04-28"
   },
   "requiredBeforeApproval": [
     "approvedActionSummary must name one exact action or transaction class",

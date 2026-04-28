@@ -40,6 +40,7 @@ const expectedMeaningfulPrivacyBlockedBy = [
   "no-live-mainnet-private-settlement-path",
   "no-third-party-audit",
   "no-production-anonymity-set-metrics",
+  "no-production-relayer-separation-evidence",
   "no-proven-audited-shared-anonymity-set",
   "no-live-mainnet-private-settlement-path",
   ...(result.boundedRealFundsApprovalWindowActive ? [] : ["no-active-bounded-real-funds-approval-window"]),

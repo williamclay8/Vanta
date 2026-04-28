@@ -58,6 +58,22 @@ assert.ok(
   "Shield readiness must name anonymity-set evidence.",
 );
 assert.ok(
+  readiness.requiredEvidenceRefs.includes("ops/mainnet/private-pool-v2-anonymity-set.evidence.json"),
+  "Shield readiness must name anonymity-set evidence packet.",
+);
+assert.ok(
+  readiness.requiredEvidenceRefs.includes("npm run private-pool-v2:anonymity-set-evidence-check"),
+  "Shield readiness must name anonymity-set evidence check.",
+);
+assert.ok(
+  readiness.requiredEvidenceRefs.includes("ops/mainnet/private-pool-v2-relayer-separation.evidence.json"),
+  "Shield readiness must name relayer-separation evidence packet.",
+);
+assert.ok(
+  readiness.requiredEvidenceRefs.includes("npm run private-pool-v2:relayer-separation-evidence-check"),
+  "Shield readiness must name relayer-separation evidence check.",
+);
+assert.ok(
   readiness.requiredEvidenceRefs.includes("VANTA_PRIVATE_POOL_V2_AUDIT_REF"),
   "Shield readiness must name audit evidence.",
 );

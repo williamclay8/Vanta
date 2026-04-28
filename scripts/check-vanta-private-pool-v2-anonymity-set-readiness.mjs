@@ -33,8 +33,13 @@ assert.deepEqual(result.assetCohortRules.required, [
 ]);
 assert.deepEqual(result.relayerSeparation.requiredEvidenceRefs, [
   "VANTA_PRIVATE_POOL_V2_RELAYER_SEPARATION_REF",
-  "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
+  "ops/mainnet/private-pool-v2-relayer-separation.evidence.json",
+  "npm run private-pool-v2:relayer-separation-evidence-check",
 ]);
+assert.ok(
+  result.relayerSeparation.currentTruth.includes("not relayer privacy separation"),
+  "Relayer separation truth must not conflate replay correctness with privacy separation.",
+);
 assert.deepEqual(result.nullifierUniqueness.requiredEvidenceRefs, [
   "ops/mainnet/private-pool-v2-nullifier-replay.evidence.json",
   "npm run mainnet:nullifier-replay-evidence-check",
@@ -50,6 +55,8 @@ assert.deepEqual(result.safeLogging.required, [
 
 for (const ref of [
   "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
+  "ops/mainnet/private-pool-v2-anonymity-set.evidence.json",
+  "ops/mainnet/private-pool-v2-relayer-separation.evidence.json",
   "ops/mainnet/private-pool-v2-nullifier-replay.evidence.json",
   "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
   "ops/mainnet/private-pool-v2-route-health.evidence.json",
@@ -63,6 +70,8 @@ for (const ref of [
   "VANTA_PRIVATE_POOL_V2_ANONYMITY_SET_REF",
   "VANTA_PRIVATE_POOL_V2_PRODUCTION_ANONYMITY_METRICS_REF",
   "VANTA_PRIVATE_POOL_V2_RELAYER_SEPARATION_REF",
+  "VANTA_PRIVATE_POOL_V2_RELAYER_LOG_REDACTION_REF",
+  "VANTA_PRIVATE_POOL_V2_RELAYER_DEPLOYMENT_SEPARATION_REF",
 ]) {
   assert.ok(result.requiredEvidenceRefs.includes(ref), `Missing required evidence ref: ${ref}`);
 }
@@ -72,6 +81,7 @@ for (const blocker of [
   "no-live-mainnet-private-settlement-path",
   "no-third-party-audit",
   "no-production-anonymity-set-metrics",
+  "no-production-relayer-separation-evidence",
 ]) {
   assert.ok(result.blockers.includes(blocker), `Missing blocker: ${blocker}`);
 }
@@ -103,6 +113,16 @@ assert.equal(
   packageJson.scripts["private-pool-v2:anonymity-set-readiness-check"],
   "node scripts/check-vanta-private-pool-v2-anonymity-set-readiness.mjs",
   "package.json must expose private-pool-v2:anonymity-set-readiness-check.",
+);
+assert.equal(
+  packageJson.scripts["private-pool-v2:anonymity-set-evidence-check"],
+  "node scripts/check-vanta-private-pool-v2-anonymity-set-evidence.mjs",
+  "package.json must expose private-pool-v2:anonymity-set-evidence-check.",
+);
+assert.equal(
+  packageJson.scripts["private-pool-v2:relayer-separation-evidence-check"],
+  "node scripts/check-vanta-private-pool-v2-relayer-separation-evidence.mjs",
+  "package.json must expose private-pool-v2:relayer-separation-evidence-check.",
 );
 assert.ok(
   packageJson.scripts["private-pool-v2:verify"].includes(

@@ -115,6 +115,7 @@ assert.deepEqual(snapshot.privateSettlement.meaningfulPrivacyBlockedBy, [
   "no-live-mainnet-private-settlement-path",
   "no-third-party-audit",
   "no-production-anonymity-set-metrics",
+  "no-production-relayer-separation-evidence",
   ...(snapshot.privateSettlement.boundedRealFundsApprovalWindowActive ? [] : ["no-active-bounded-real-funds-approval-window"]),
 ]);
 assert.equal(snapshot.walletSigning.checkedEvidenceRef, "ops/mainnet/wallet-signing-safety.evidence.json");

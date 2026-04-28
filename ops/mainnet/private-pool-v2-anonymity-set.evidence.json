@@ -1,0 +1,58 @@
+{
+  "version": "vanta-private-pool-v2-anonymity-set-evidence-0.1",
+  "mainnetReady": false,
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "meaningfulPrivacyReady": false,
+  "secretPolicy": "references-only-no-secret-values",
+  "purpose": "Refs-only production anonymity-set evidence packet for Private Pool v2. This packet records the schema and current blocker state; it is not production anonymity evidence yet.",
+  "minimumDistinctCommitments": 1024,
+  "measurementPolicy": {
+    "cohortBasis": "per-asset-pool",
+    "excludeTestFixtures": true,
+    "excludeNoRealFundsSmokeReceipts": true,
+    "excludeOperatorSeededDemoNotes": true,
+    "requireLiveMainnetCommitments": true,
+    "requireIndependentReview": true
+  },
+  "requiredRefs": [
+    "VANTA_PRIVATE_POOL_V2_ANONYMITY_SET_REF",
+    "VANTA_PRIVATE_POOL_V2_PRODUCTION_ANONYMITY_METRICS_REF",
+    "VANTA_PRIVATE_POOL_V2_AUDIT_REF",
+    "VANTA_PRIVATE_POOL_V2_LIVE_MAINNET_SETTLEMENT_REF"
+  ],
+  "cohorts": [
+    {
+      "id": "vusd-mainnet-private-pool-v2",
+      "assetCohort": "VUSD",
+      "poolRef": "VANTA_PRIVATE_POOL_V2_VUSD_POOL_REF",
+      "distinctCommitmentCount": 0,
+      "meetsMinimumDistinctCommitments": false,
+      "metricsRef": "VANTA_PRIVATE_POOL_V2_VUSD_ANONYMITY_METRICS_REF",
+      "measurementWindowRef": "VANTA_PRIVATE_POOL_V2_VUSD_ANONYMITY_WINDOW_REF",
+      "reviewerRef": "VANTA_PRIVATE_POOL_V2_AUDIT_REF",
+      "status": "not-measured"
+    }
+  ],
+  "currentEvidenceRefs": [
+    "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
+    "ops/mainnet/private-pool-v2-route-health.evidence.json",
+    "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
+    "npm run private-pool-v2:anonymity-set-readiness-check"
+  ],
+  "productionBlockers": [
+    "No live mainnet production cohort metrics are recorded.",
+    "No asset cohort has at least 1024 distinct live commitments.",
+    "No independent reviewer has accepted the anonymity-set measurement.",
+    "No audited shared anonymity set exists."
+  ],
+  "forbiddenInGit": [
+    "wallet private keys",
+    "seed phrases",
+    "raw user addresses tied to private deposits",
+    "customer private inputs",
+    "raw transaction signing material",
+    "bearer tokens",
+    "database URLs"
+  ]
+}
