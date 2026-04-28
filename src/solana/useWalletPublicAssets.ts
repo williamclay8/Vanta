@@ -399,9 +399,9 @@ export function useWalletPublicAssets(args: {
 
   const assets = useMemo(() => {
     const nextAssets: WalletPublicAsset[] = [];
-    const hasNativeSolBalance = Number.isFinite(args.solBalance) && (args.solBalance ?? 0) > 0;
+    const hasConnectedWallet = Boolean(args.walletAddress);
 
-    if (hasNativeSolBalance) {
+    if (hasConnectedWallet) {
       nextAssets.push({
         balance: Number(args.solBalance ?? 0),
         decimals: 9,
@@ -414,7 +414,7 @@ export function useWalletPublicAssets(args: {
     }
 
     for (const asset of splAssets) {
-      if (hasNativeSolBalance && asset.mintAddress === liveSwapPair.solAssetId) {
+      if (hasConnectedWallet && asset.mintAddress === liveSwapPair.solAssetId) {
         continue;
       }
 
@@ -422,7 +422,7 @@ export function useWalletPublicAssets(args: {
     }
 
     return nextAssets;
-  }, [args.solBalance, splAssets]);
+  }, [args.solBalance, args.walletAddress, splAssets]);
 
   return {
     assets,

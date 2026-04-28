@@ -30,6 +30,14 @@ if (!walletAssetsSource.includes("args.decimals > 0")) {
   failures.push("Wallet public assets must not expose zero-decimal NFT-style SPL accounts as Shield source options.");
 }
 
+if (!walletAssetsSource.includes("const hasConnectedWallet = Boolean(args.walletAddress)")) {
+  failures.push("Wallet public assets must keep native SOL selectable for connected wallets even before balance recovery reports a positive value.");
+}
+
+if (!walletAssetsSource.includes("balance: Number(args.solBalance ?? 0)")) {
+  failures.push("Wallet public assets must surface native SOL with a numeric fallback balance so Shield can show insufficient-balance copy instead of hiding SOL.");
+}
+
 if (!walletAssetsSource.includes("getTokenMetadata")) {
   failures.push("Wallet public assets must read Token-2022 token metadata when available.");
 }
