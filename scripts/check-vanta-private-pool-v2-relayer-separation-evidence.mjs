@@ -21,12 +21,14 @@ assert.equal(evidence.currentArchitecture.relayerRole, "claim quote and submit s
 
 for (const visible of [
   "claim quote request metadata required for relayer fee calculation",
+  "relayer fee-payer identity or epoch required for public chain submission",
   "serialized transaction material required for public chain submission",
 ]) {
   assert.ok(evidence.relayerMaySee.includes(visible), `Missing relayer may-see item: ${visible}`);
 }
 
 for (const hidden of [
+  "payer funding wallet or source wallet",
   "user private witness",
   "viewing keys",
   "raw hidden-economics amount on committed settlement paths",
@@ -47,8 +49,16 @@ for (const ref of [
   assert.ok(evidence.requiredRefs.includes(ref), `Missing relayer separation ref: ${ref}`);
 }
 
+for (const ref of [
+  "ops/mainnet/actual-private-production-evidence.packet.json",
+  "npm run private-transaction:mvp-check",
+]) {
+  assert.ok(evidence.currentEvidenceRefs.includes(ref), `Missing current relayer evidence ref: ${ref}`);
+}
+
 const checksById = new Map(evidence.separationChecks.map((check) => [check.id, check]));
 assert.equal(checksById.get("role-service-replay-barrier")?.status, "local-harness-covered");
+assert.equal(checksById.get("same-fee-payer-linkage-barrier")?.status, "local-regression-covered");
 assert.equal(checksById.get("production-relayer-log-redaction")?.status, "not-recorded");
 assert.equal(checksById.get("production-deployment-separation")?.status, "not-recorded");
 assert.equal(checksById.get("independent-review")?.status, "not-recorded");
@@ -56,9 +66,18 @@ assert.ok(
   checksById.get("role-service-replay-barrier")?.privacyMeaning.includes("not sufficient relayer privacy separation"),
   "Role-service replay must not masquerade as relayer privacy separation.",
 );
+assert.ok(
+  checksById.get("same-fee-payer-linkage-barrier")?.privacyMeaning.includes("distinct from the payer source wallet"),
+  "Same-fee-payer linkage barrier must require a distinct relayer fee payer.",
+);
+assert.ok(
+  checksById.get("same-fee-payer-linkage-barrier")?.privacyMeaning.includes("must not expose payer source wallet"),
+  "Same-fee-payer linkage barrier must forbid source-wallet exposure.",
+);
 
 for (const blocker of [
   "Relayer separation is not proven by role-service replay evidence alone.",
+  "Same-fee-payer linkage is only locally regression-guarded; no production relayer submission evidence is recorded.",
   "No production relayer log-redaction evidence is recorded.",
   "No production deployment separation evidence is recorded.",
   "No independent reviewer has accepted the relayer separation boundary.",
