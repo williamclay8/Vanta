@@ -654,6 +654,10 @@ try {
     "Expected committed Shield proof receipt intent.",
   );
   assert(
+    committedShieldSettlement.parsed?.proofReceipt?.assetId === hiddenEconomicsAssetId,
+    "Expected committed Shield proof receipt to use hidden-economics asset sentinel.",
+  );
+  assert(
     committedShieldSettlement.parsed?.protocolSettlementReceipt?.economicsMode ===
       "committed-economics",
     "Expected committed shield receipt to preserve economics mode.",

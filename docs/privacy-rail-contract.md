@@ -144,7 +144,10 @@ claim committed settlement packets, viewing-key encrypted memos, beta
 backup/restore custody, native/SPL entry support, route evidence, and decoy
 writes. It still cannot claim fully private, live private, production, or
 mainnet-ready Shield until production anonymity-set evidence, durable services,
-relayer separation, independent audit, live mainnet settlement, and production key-custody evidence are complete.
+relayer separation, independent audit, live mainnet settlement, and production key-custody evidence are complete. The human and JSON readiness surfaces expose
+local capabilities, production gate blockers, external gate blockers, required
+evidence refs, `strictReady: false`, and `claimAllowed: false`; they must not be
+used as a Shield-ready signal.
 
 It cannot claim meaningful privacy until Vanta has refs for:
 
@@ -154,6 +157,7 @@ It cannot claim meaningful privacy until Vanta has refs for:
 - `VANTA_PRIVATE_POOL_V2_PRODUCTION_ANONYMITY_METRICS_REF`
 - `VANTA_PRIVATE_POOL_V2_RELAYER_SEPARATION_REF`
 - `VANTA_PRIVATE_POOL_V2_NULLIFIER_ENFORCEMENT_REF`
+- `VANTA_SHIELD_PRODUCTION_KEY_CUSTODY_REF`
 
 Current checked refs:
 
@@ -165,6 +169,8 @@ Current checked refs:
 - `npm run private-pool-v2:swap-to-shielded-circuit-check`
 - `npm run private-pool-v2:swap-to-shielded-prove`
 - `npm run private-pool-v2:anonymity-set-readiness-check`
+- `npm run shield:privacy-readiness`
+- `npm run shield:privacy-readiness-json`
 - `npm run shield:privacy-readiness-check`
 - `npm run private-pool-v2:protocol-client-check`
 - `npm run private-pool-v2:http-smoke`

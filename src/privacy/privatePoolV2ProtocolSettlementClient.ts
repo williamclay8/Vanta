@@ -486,6 +486,10 @@ export function validateVantaPrivatePoolV2ProtocolSettlementResponse({
         "Committed Shield protocol settlement proof receipt intent is not shield.",
       );
       requireProtocolSettlementCondition(
+        response.proofReceipt?.assetId === "hidden:economic-terms",
+        "Committed Shield proof receipt must use the hidden-economics asset sentinel.",
+      );
+      requireProtocolSettlementCondition(
         typeof receipt.shieldReceiptBindingHash === "string" &&
           receipt.shieldReceiptBindingHash.startsWith("0x"),
         "Committed Shield protocol settlement receipt is missing a binding hash.",

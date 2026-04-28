@@ -42,7 +42,7 @@ If something can spend funds, authenticate to a service, decrypt data, or access
 | Wallet signing safety | Proof the app never asks users to blindly sign unsafe transactions | Frontend/security engineer | Browser test results, screenshots, approval-flow notes | Private wallet keys, seed phrase, signed real-fund txs |
 | Third-party security audit | Outside experts review circuits, operators, wallet flows, and infra assumptions | Security audit firm or independent cryptography/security reviewer | Audit scope, report reference, finding status | NDA-only details unless cleared, exploit details in public docs |
 | Legal/compliance/custody | Lawyers/compliance people confirm what can be launched and where | Crypto lawyer, compliance advisor, custody specialist | Review reference, launch-scope decision, custody model decision | Privileged legal advice unless cleared, customer data |
-| Mainnet funds approval | A human approves a specific real-funds action | Clay or designated launch approver | Approval record reference, approved action, launch window | Wallet private key, seed phrase, keypair file |
+| Mainnet funds approval | A human approves one specific bounded real-funds action, not general mainnet funds | Clay or designated launch approver | Approval record reference, approved action, launch window | Wallet private key, seed phrase, keypair file |
 | Monitoring/incident response | Dashboards and alerts so operators know when something breaks or is abused | DevOps/SRE/security operator | Dashboard links, alert routing, incident runbook reference | Log ingestion secrets, alert provider API keys |
 
 ## First Practical Path
@@ -120,7 +120,7 @@ Codex cannot honestly clear these gates without external evidence:
 - real database backup and restore evidence
 - third-party security audit
 - legal/compliance/custody signoff
-- explicit approval before mainnet funds
+- new explicit approval before any mainnet-funds action
 
 This is not Codex being timid. This is the line between building the system and claiming responsibility for real-world launch risk.
 
@@ -165,15 +165,15 @@ As of April 20, 2026:
 - Private Pool v2 production smoke evidence: `ops/mainnet/private-pool-v2-production-smoke.evidence.json` records authenticated no-real-funds production smoke across deployed indexer, prover, relayer, verifier, and operator services.
 - Private Pool v2 production service setup guide: `docs/production-private-pool-v2-service-setup.md` records the current Render inventory and deployed production indexer, prover, relayer, verifier, and operator services.
 - Mainnet approval gates template: `ops/mainnet/mainnet-approval-gates.template.json` records refs for secret-manager-backed credentials, production smoke evidence, third-party audit, legal/compliance/custody review, and explicit mainnet-funds approval.
-- Mainnet approval gates evidence: `ops/mainnet/mainnet-approval-gates.evidence.json` records the current launch-control truth: technical smoke/migration/partial restore evidence is linked, audit, legal/compliance/custody, secret-manager audit/rotation, provider backup controls, and Pay restore readback are operator-skipped controls, and explicit mainnet funds approval is bounded to one beta private-pool smoke with maximum `0.05 SOL` at risk.
+- Mainnet approval gates evidence: `ops/mainnet/mainnet-approval-gates.evidence.json` records the current launch-control truth: technical smoke/migration/partial restore evidence is linked, audit, legal/compliance/custody, secret-manager audit/rotation, provider backup controls, and Pay restore readback are operator-skipped controls. The recorded real-funds approval was bounded to one beta private-pool smoke with maximum `0.05 SOL` at risk, and its April 24, 2026 launch window is now expired.
 - Mainnet approval gates status: `npm run mainnet:approval-gates-status` prints the current gate state without exposing secrets.
 - Mainnet real-funds approval packet: `ops/mainnet/mainnet-real-funds-approval.evidence.json` records the exact approved action, launch window, fee-payer ref, rollback ref, stop-loss ref, bounded funds-at-risk ref, and approver ref for the beta private-pool smoke only.
 - Security reviewer: not chosen.
 - Legal/compliance reviewer: not chosen.
 - Target environment: staging first.
-- Mainnet funds: not approved.
+- General mainnet funds: not approved. Prior bounded beta private-pool smoke approval window: expired on April 24, 2026; not reusable.
 
-Next practical step: keep the live scope inside the bounded beta private-pool approval recorded in `ops/mainnet/mainnet-real-funds-approval.evidence.json`, or create a new approval before changing the action, launch window, fee payer, or funds at risk. Pay restore readback, provider backup/PITR/encryption/access-audit/least-privilege evidence, secret-manager audit/rotation evidence, audit, and legal/compliance/custody review are operator-skipped controls, not completed controls. Do not paste credentials, legal text, audit exploit details, wallet keys, or signed transactions.
+Next practical step: record a new bounded approval before any live mainnet action, including any repeat of the beta private-pool smoke, because the approval recorded in `ops/mainnet/mainnet-real-funds-approval.evidence.json` is historical and expired. Pay restore readback, provider backup/PITR/encryption/access-audit/least-privilege evidence, secret-manager audit/rotation evidence, audit, and legal/compliance/custody review are operator-skipped controls, not completed controls. Do not paste credentials, legal text, audit exploit details, wallet keys, or signed transactions.
 
 ## Pay Production Release Checklist
 
