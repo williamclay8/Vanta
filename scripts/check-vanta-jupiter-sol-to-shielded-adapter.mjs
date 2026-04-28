@@ -14,6 +14,8 @@ assert.match(serverSource, /routeAdapter: "sol-to-shielded-v1"/);
 assert.match(serverSource, /intent: "swap-to-shielded"/);
 assert.match(serverSource, /economicsMode: "committed-economics"/);
 assert.match(serverSource, /sendRawTransaction/);
+assert.match(serverSource, /const mainnetReady =/);
+assert.doesNotMatch(serverSource, /mainnetReady: false/);
 
 async function waitForHealth(baseUrl) {
   const deadline = Date.now() + 10_000;

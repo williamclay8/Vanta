@@ -184,6 +184,25 @@ function configuredAssets() {
     .filter(Boolean);
 }
 
+function getMainnetReadiness({ liquidityKeypair }) {
+  const supportedOutputAssets = configuredAssets().map((asset) => asset.symbol);
+  const mainnetReady =
+    cluster === "mainnet-beta" &&
+    executionMode === "live" &&
+    Boolean(jupiterQuoteUrl) &&
+    Boolean(jupiterSwapUrl) &&
+    Boolean(liquidityKeypair) &&
+    Boolean(privatePoolOperatorUrl) &&
+    Number.isFinite(maxInputSol) &&
+    maxInputSol > 0 &&
+    supportedOutputAssets.length > 0;
+
+  return {
+    mainnetReady,
+    supportedOutputAssets,
+  };
+}
+
 function getAsset(symbol) {
   const asset = configuredAssets().find((entry) => entry.symbol === String(symbol).toUpperCase());
   if (!asset) {
@@ -581,18 +600,19 @@ const server = createServer(async (request, response) => {
 
     if (request.method === "GET" && url.pathname === "/health") {
       const liquidityKeypair = loadLiquidityKeypair();
+      const readiness = getMainnetReadiness({ liquidityKeypair });
       sendJson(response, 200, {
         cluster,
         executionMode,
         jupiterQuoteConfigured: Boolean(jupiterQuoteUrl),
         jupiterSwapConfigured: Boolean(jupiterSwapUrl),
         liquidityWalletConfigured: Boolean(liquidityKeypair),
-        mainnetReady: false,
+        mainnetReady: readiness.mainnetReady,
         maxInputSol,
         ok: true,
         privatePoolSettlementConfigured: Boolean(privatePoolOperatorUrl),
         service: "vanta-sol-to-shielded-jupiter-route-adapter",
-        supportedOutputAssets: configuredAssets().map((asset) => asset.symbol),
+        supportedOutputAssets: readiness.supportedOutputAssets,
       });
       return;
     }
