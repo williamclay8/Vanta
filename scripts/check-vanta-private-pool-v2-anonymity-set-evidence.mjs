@@ -38,6 +38,10 @@ for (const ref of [
 }
 
 assert.ok(Array.isArray(evidence.cohorts) && evidence.cohorts.length > 0, "Anonymity evidence must list cohorts.");
+assert.ok(
+  evidence.cohorts.some((cohort) => cohort.assetCohort === "stablecoin-usdc-v1"),
+  "Anonymity evidence must track the actual-private stablecoin-usdc-v1 cohort.",
+);
 for (const cohort of evidence.cohorts) {
   assert.ok(cohort.id, "Cohort must have id.");
   assert.ok(cohort.assetCohort, `${cohort.id} must have asset cohort.`);
@@ -86,6 +90,10 @@ assert.ok(
 assert.ok(
   packageJson.scripts["mainnet:preflight"].includes("npm run private-pool-v2:anonymity-set-evidence-check"),
   "mainnet:preflight must include anonymity-set evidence check.",
+);
+assert.ok(
+  evidence.currentEvidenceRefs.includes("ops/mainnet/actual-private-production-evidence.packet.json"),
+  "Anonymity evidence must reference the actual-private production evidence packet.",
 );
 
 console.log("Vanta Private Pool v2 anonymity-set evidence check: PASS");

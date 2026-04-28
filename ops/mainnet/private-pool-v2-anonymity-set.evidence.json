@@ -23,6 +23,17 @@
   ],
   "cohorts": [
     {
+      "id": "stablecoin-usdc-v1-mainnet-private-pool-v2",
+      "assetCohort": "stablecoin-usdc-v1",
+      "poolRef": "VANTA_PRIVATE_POOL_V2_STABLECOIN_USDC_V1_POOL_REF",
+      "distinctCommitmentCount": 0,
+      "meetsMinimumDistinctCommitments": false,
+      "metricsRef": "VANTA_PRIVATE_POOL_V2_STABLECOIN_USDC_V1_ANONYMITY_METRICS_REF",
+      "measurementWindowRef": "VANTA_PRIVATE_POOL_V2_STABLECOIN_USDC_V1_ANONYMITY_WINDOW_REF",
+      "reviewerRef": "VANTA_PRIVATE_POOL_V2_AUDIT_REF",
+      "status": "not-measured"
+    },
+    {
       "id": "vusd-mainnet-private-pool-v2",
       "assetCohort": "VUSD",
       "poolRef": "VANTA_PRIVATE_POOL_V2_VUSD_POOL_REF",
@@ -35,6 +46,7 @@
     }
   ],
   "currentEvidenceRefs": [
+    "ops/mainnet/actual-private-production-evidence.packet.json",
     "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
     "ops/mainnet/private-pool-v2-route-health.evidence.json",
     "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",

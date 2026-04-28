@@ -55,6 +55,7 @@ assert.deepEqual(result.safeLogging.required, [
 
 for (const ref of [
   "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
+  "ops/mainnet/actual-private-production-evidence.packet.json",
   "ops/mainnet/private-pool-v2-anonymity-set.evidence.json",
   "ops/mainnet/private-pool-v2-relayer-separation.evidence.json",
   "ops/mainnet/private-pool-v2-nullifier-replay.evidence.json",

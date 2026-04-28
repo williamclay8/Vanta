@@ -46,6 +46,7 @@ export function createVantaPrivatePoolV2AnonymitySetReadiness() {
       ],
     },
     currentEvidenceRefs: [
+      "ops/mainnet/actual-private-production-evidence.packet.json",
       "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
       "ops/mainnet/private-pool-v2-anonymity-set.evidence.json",
       "ops/mainnet/private-pool-v2-relayer-separation.evidence.json",
