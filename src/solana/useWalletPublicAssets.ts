@@ -53,6 +53,10 @@ function abbreviateMint(value: string) {
   return `${value.slice(0, 4)}...${value.slice(-4)}`;
 }
 
+function formatUnknownWalletAssetLabel(mintAddress: string) {
+  return `Unknown token (${abbreviateMint(mintAddress)})`;
+}
+
 function getAssetSortPriority(symbol: string) {
   if (symbol === "SOL") {
     return 100;
@@ -133,9 +137,9 @@ export function useWalletPublicAssets(args: {
             decimals,
             id: mintAddress,
             kind: "spl",
-            label: known?.label ?? abbreviateMint(mintAddress),
+            label: known?.label ?? formatUnknownWalletAssetLabel(mintAddress),
             mintAddress,
-            symbol: known?.symbol ?? abbreviateMint(mintAddress),
+            symbol: known?.symbol ?? formatUnknownWalletAssetLabel(mintAddress),
           });
         }
 

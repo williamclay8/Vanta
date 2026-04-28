@@ -14,6 +14,18 @@ if (!walletAssetsSource.includes("listLiveShieldTokenAssets({ configuredOnly: fa
   failures.push("Wallet public assets must label every known shield asset, even before it is executable.");
 }
 
+if (!walletAssetsSource.includes("formatUnknownWalletAssetLabel")) {
+  failures.push("Wallet public assets must format unknown SPL tokens with a clear unknown-token label.");
+}
+
+if (walletAssetsSource.includes("label: known?.label ?? abbreviateMint(mintAddress)")) {
+  failures.push("Unknown wallet token labels must not fall back to mint-only text.");
+}
+
+if (walletAssetsSource.includes("symbol: known?.symbol ?? abbreviateMint(mintAddress)")) {
+  failures.push("Unknown wallet token symbols must not fall back to mint-only text.");
+}
+
 if (!shieldPageSource.includes("formatShieldSourceAssetOptionLabel")) {
   failures.push("Shield page must format source asset options through the human-readable label helper.");
 }
