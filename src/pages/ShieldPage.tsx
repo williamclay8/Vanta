@@ -24,6 +24,7 @@ import {
   vantaSolanaCluster,
 } from "@/solana/shieldConfig";
 import { selectUniversalShieldTarget } from "@/solana/universalShieldTarget";
+import { resolveUserVaultOwner } from "@/solana/userVaultOwner";
 import { useRealtimeSignatureProgress } from "@/solana/useRealtimeSignatureProgress";
 import { buildSplTokenShieldTransferInstructions } from "@/solana/splShieldTransfer";
 import { useWalletPublicAssets } from "@/solana/useWalletPublicAssets";
@@ -138,7 +139,7 @@ export function ShieldPage(_props: ShieldPageProps) {
   const executableShieldTargets = useMemo(
     () =>
       shieldRegistry.configuredEntries.filter(
-        (entry) => entry.asset.configured && entry.asset.mintAddress && entry.asset.vaultOwner,
+        (entry) => entry.asset.configured && entry.asset.mintAddress,
       ),
     [shieldRegistry.configuredEntries],
   );
@@ -183,7 +184,27 @@ export function ShieldPage(_props: ShieldPageProps) {
       sourceAsset: selectedSourceAsset,
     });
   }, [executableShieldTargets, selectedSourceAsset]);
-  const selectedShieldAsset = selectedRegistryEntry?.asset ?? null;
+  const configuredSelectedShieldAsset = selectedRegistryEntry?.asset ?? null;
+  const selectedVaultOwnerResolution = useMemo(
+    () =>
+      resolveUserVaultOwner({
+        configuredVaultOwner: configuredSelectedShieldAsset?.vaultOwner ?? null,
+        walletAddress,
+      }),
+    [configuredSelectedShieldAsset?.vaultOwner, walletAddress],
+  );
+  const selectedShieldAsset = useMemo(
+    () =>
+      configuredSelectedShieldAsset
+        ? {
+            ...configuredSelectedShieldAsset,
+            vaultOwner: selectedVaultOwnerResolution.liveDepositEnabled
+              ? selectedVaultOwnerResolution.vaultOwner
+              : null,
+          }
+        : null,
+    [configuredSelectedShieldAsset, selectedVaultOwnerResolution],
+  );
   const shieldAccount = selectedRegistryEntry?.account ?? null;
   const shieldStateError = selectedRegistryEntry?.error ?? null;
   const shieldStateReady = selectedRegistryEntry?.isReady ?? false;
@@ -930,6 +951,8 @@ export function ShieldPage(_props: ShieldPageProps) {
     validationMessage = `${publicAssetsError} Refresh the page or try another wallet RPC.`;
   } else if (!selectedSourceAsset) {
     validationMessage = "No wallet assets are currently available to shield.";
+  } else if (selectedVaultOwnerResolution.kind === "derived-pda") {
+    validationMessage = selectedVaultOwnerResolution.blocker;
   } else if (!selectedShieldAsset?.mintAddress || !selectedShieldAsset.vaultOwner) {
     validationMessage = "The selected shield target is not configured.";
   } else if (capability.blockers.length > 0) {

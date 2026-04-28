@@ -78,6 +78,9 @@ const configuredVaultOwner = getOptionalEnvValue(
     ? import.meta.env.VITE_VANTA_MAINNET_VAULT_OWNER
     : import.meta.env.VITE_VANTA_DEVNET_VAULT_OWNER,
 );
+const configuredVaultDerivationProgramId = getOptionalEnvValue(
+  import.meta.env.VITE_VANTA_VAULT_DERIVATION_PROGRAM_ID,
+);
 const configuredUnshieldOperatorUrl = getOptionalEnvValue(
   import.meta.env.VITE_VANTA_UNSHIELD_OPERATOR_URL,
 );
@@ -130,6 +133,8 @@ export type LiveShieldTokenAssetConfig = {
   vaultOwner: string | null;
 };
 
+const hasVaultOwnerPath = Boolean(configuredVaultOwner || configuredVaultDerivationProgramId);
+
 function createLiveShieldTokenAssetConfig(args: {
   assetKey: LiveShieldTokenAssetKey;
   configuredMintAddress: string | null;
@@ -141,7 +146,7 @@ function createLiveShieldTokenAssetConfig(args: {
   return {
     assetKey: args.assetKey,
     cluster: vantaSolanaClusterLabel,
-    configured: Boolean(args.configuredMintAddress && configuredVaultOwner),
+    configured: Boolean(args.configuredMintAddress && hasVaultOwnerPath),
     executable: Boolean(args.configuredMintAddress && configuredVaultOwner),
     executionBlocker: args.configuredMintAddress && configuredVaultOwner ? null : "mainnet-lane-not-configured",
     decimals: args.decimals,
@@ -160,7 +165,7 @@ function createLiveShieldTokenAssetConfig(args: {
 export const liveShieldAsset = {
   assetKey: "VUSD" as const,
   cluster: vantaSolanaClusterLabel,
-  configured: Boolean(configuredMintAddress && configuredVaultOwner),
+  configured: Boolean(configuredMintAddress && hasVaultOwnerPath),
   executable: Boolean(configuredMintAddress && configuredVaultOwner),
   executionBlocker: configuredMintAddress && configuredVaultOwner ? null : "mainnet-lane-not-configured",
   decimals:

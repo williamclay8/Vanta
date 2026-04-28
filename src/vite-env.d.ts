@@ -4,6 +4,7 @@ interface ImportMetaEnv {
   readonly VITE_SOLANA_RPC_URL?: string;
   readonly VITE_SOLANA_READ_RPC_FALLBACK_URLS?: string;
   readonly VITE_SOLANA_WS_URL?: string;
+  readonly VITE_VANTA_VAULT_DERIVATION_PROGRAM_ID?: string;
   readonly VITE_VANTA_DEVNET_TOKEN_MINT?: string;
   readonly VITE_VANTA_DEVNET_VAULT_OWNER?: string;
   readonly VITE_VANTA_DEVNET_TOKEN_NAME?: string;
