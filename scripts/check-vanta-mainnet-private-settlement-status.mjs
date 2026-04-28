@@ -58,6 +58,7 @@ assert.deepEqual(result.checkedEvidenceRefs, [
   "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
   "ops/mainnet/private-pool-v2-nullifier-replay.evidence.json",
   "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
+  "ops/mainnet/actual-private-production-evidence.packet.json",
   "ops/mainnet/service-deployment.evidence.json",
   "ops/mainnet/mainnet-real-funds-approval.evidence.json",
 ]);
@@ -107,6 +108,15 @@ assert.equal(
 assert.ok(
   packageJson.scripts["mainnet:preflight"].includes("npm run mainnet:private-settlement-check"),
   "mainnet:preflight must include the private settlement status check.",
+);
+assert.equal(
+  packageJson.scripts["mainnet:actual-private-production-evidence-check"],
+  "node scripts/check-vanta-actual-private-production-evidence.mjs",
+  "package.json must expose mainnet:actual-private-production-evidence-check.",
+);
+assert.ok(
+  packageJson.scripts["mainnet:preflight"].includes("npm run mainnet:actual-private-production-evidence-check"),
+  "mainnet:preflight must include actual-private production evidence check.",
 );
 
 console.log("Vanta mainnet private settlement status check: PASS");

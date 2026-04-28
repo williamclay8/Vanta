@@ -1,0 +1,84 @@
+{
+  "version": "vanta-actual-private-production-evidence-0.1",
+  "mainnetReady": false,
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "meaningfulPrivacyReady": false,
+  "secretPolicy": "references-only-no-secret-values",
+  "purpose": "Unified production evidence packet for the actual-private Vanta rail. This packet ties together shared-pool anonymity, relayer separation, root/nullifier enforcement, safe logging, audit, and mainnet evidence without storing secrets or claiming production privacy.",
+  "activePrivacyRailId": "vanta-private-pool-v2",
+  "targetPublicTranscript": [
+    "pool id",
+    "asset cohort",
+    "accepted root",
+    "nullifier",
+    "output commitments",
+    "proof public-input hash",
+    "receipt commitment",
+    "relayer identity or epoch"
+  ],
+  "forbiddenPublicTranscript": [
+    "source wallet",
+    "merchant settlement address",
+    "raw amount",
+    "raw asset",
+    "note secret",
+    "input commitment",
+    "input leaf index",
+    "deposit signature",
+    "plaintext memo",
+    "same fee payer linkage"
+  ],
+  "evidenceRefs": {
+    "sharedPoolAnonymity": "ops/mainnet/private-pool-v2-anonymity-set.evidence.json",
+    "relayerSeparation": "ops/mainnet/private-pool-v2-relayer-separation.evidence.json",
+    "nullifierRootEnforcement": "ops/mainnet/private-pool-v2-nullifier-replay.evidence.json",
+    "roleServiceReplay": "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
+    "safeLogging": "npm run ops:safe-telemetry-check",
+    "auditPackage": "docs/audit-package.md",
+    "mainnetPrivateSettlement": "npm run mainnet:private-settlement-check",
+    "productionSmoke": "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
+    "actualPrivateRailRegression": "npm run private-transaction:mvp-check"
+  },
+  "requiredCommands": [
+    "npm run private-transaction:mvp-check",
+    "npm run private-pool-v2:anonymity-set-evidence-check",
+    "npm run private-pool-v2:relayer-separation-evidence-check",
+    "npm run mainnet:nullifier-replay-evidence-check",
+    "npm run mainnet:role-service-replay-evidence-check",
+    "npm run ops:safe-telemetry-check",
+    "npm run audit:package-check",
+    "npm run mainnet:private-settlement-check",
+    "npm run mainnet:production-smoke-evidence-check"
+  ],
+  "evidenceStatus": {
+    "actualPrivateRailRegression": "local-and-role-service-covered",
+    "sharedPoolAnonymity": "blocked",
+    "relayerSeparation": "blocked",
+    "nullifierRootEnforcement": "operator-and-role-service-covered-not-production-ready",
+    "safeLogging": "local-contract-covered",
+    "audit": "packet-template-only",
+    "mainnetEvidence": "no-real-funds-smoke-only"
+  },
+  "productionBlockers": [
+    "No live mainnet production cohort metrics are recorded.",
+    "No asset cohort has at least 1024 distinct live commitments.",
+    "No independent reviewer has accepted the anonymity-set measurement.",
+    "No production relayer log-redaction evidence is recorded.",
+    "No production deployment separation evidence is recorded.",
+    "No third-party audit report and fix-verification packet is recorded.",
+    "No live mainnet private settlement path is proven.",
+    "No active bounded real-funds approval window is available."
+  ],
+  "forbiddenInGit": [
+    "auth tokens",
+    "database URLs",
+    "wallet keys",
+    "seed phrases",
+    "signed transactions",
+    "customer private inputs",
+    "raw hidden-economics terms",
+    "raw user addresses tied to private deposits"
+  ],
+  "userFacingRule": "Do not claim Vanta is completely private, Solscan-untrackable in production, anonymous, audited, or mainnet-private until this packet and every referenced evidence packet flips the matching readiness flags through reviewed production evidence."
+}
