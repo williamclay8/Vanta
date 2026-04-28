@@ -100,6 +100,10 @@ function formatWalletAssetLoadError(error: unknown) {
   return "Wallet token balances could not be loaded.";
 }
 
+function isShieldableSplTokenAmount(args: { decimals: number; uiAmount: number }) {
+  return Number.isFinite(args.uiAmount) && args.uiAmount > 0 && args.decimals > 0;
+}
+
 function cleanTokenMetadataText(value: string | null | undefined) {
   const cleaned = value?.replace(/\0/gu, "").trim();
   return cleaned ? cleaned : null;
@@ -318,7 +322,7 @@ export function useWalletPublicAssets(args: {
           const uiAmount = Number(tokenAmount?.uiAmount ?? 0);
           const decimals = Number(tokenAmount?.decimals ?? 0);
 
-          if (!mintAddress || !Number.isFinite(uiAmount) || uiAmount <= 0) {
+          if (!mintAddress || !isShieldableSplTokenAmount({ decimals, uiAmount })) {
             continue;
           }
 

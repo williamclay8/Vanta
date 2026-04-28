@@ -22,6 +22,14 @@ if (!walletAssetsSource.includes("resolveWalletTokenMetadataLabels")) {
   failures.push("Wallet public assets must attempt on-chain metadata resolution before using the unknown-token fallback.");
 }
 
+if (!walletAssetsSource.includes("isShieldableSplTokenAmount")) {
+  failures.push("Wallet public assets must filter shield source options through an explicit shieldable SPL token predicate.");
+}
+
+if (!walletAssetsSource.includes("args.decimals > 0")) {
+  failures.push("Wallet public assets must not expose zero-decimal NFT-style SPL accounts as Shield source options.");
+}
+
 if (!walletAssetsSource.includes("getTokenMetadata")) {
   failures.push("Wallet public assets must read Token-2022 token metadata when available.");
 }

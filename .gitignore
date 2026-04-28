@@ -3,6 +3,8 @@
 .env.operator
 .env.operator.local
 .env.render.local
+wallet/
+*.keypair.json
 node_modules/
 dist/
 *.tsbuildinfo
