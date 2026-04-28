@@ -115,6 +115,11 @@ export function ShieldPage(_props: ShieldPageProps) {
   const viewingKey = useVantaShieldViewingKey();
   const [selectedSourceAssetId, setSelectedSourceAssetId] = useState("native:SOL");
   const [amount, setAmount] = useState("");
+  const [viewingKeyBackupText, setViewingKeyBackupText] = useState("");
+  const [viewingKeyImportText, setViewingKeyImportText] = useState("");
+  const [viewingKeyCustodyStatus, setViewingKeyCustodyStatus] = useState<
+    "idle" | "exported" | "imported" | "reset" | "failed"
+  >("idle");
   const [status, setStatus] = useState<ShieldStatus>("idle");
   const [flowError, setFlowError] = useState<string | null>(null);
   const [pendingShieldAmount, setPendingShieldAmount] = useState<number | null>(null);
@@ -1058,6 +1063,100 @@ export function ShieldPage(_props: ShieldPageProps) {
 
               <p className="shield-helper shield-helper--meta">{routeLabel}</p>
               <p className="shield-helper">{validationMessage}</p>
+
+              <details className="shield-viewing-key-panel">
+                <summary>
+                  <span>Viewing key</span>
+                  <strong>{viewingKey ? "Ready" : "Connect wallet"}</strong>
+                </summary>
+                <div className="shield-viewing-key-panel__body">
+                  <div className="shield-viewing-key-panel__actions">
+                    <button
+                      className="button button-ghost"
+                      type="button"
+                      disabled={!viewingKey}
+                      onClick={() => {
+                        if (!viewingKey) {
+                          return;
+                        }
+
+                        setViewingKeyBackupText(viewingKey.exportText);
+                        setViewingKeyCustodyStatus("exported");
+                      }}
+                    >
+                      Export
+                    </button>
+                    <button
+                      className="button button-ghost"
+                      type="button"
+                      disabled={!viewingKey || viewingKeyImportText.trim() === ""}
+                      onClick={() => {
+                        if (!viewingKey) {
+                          return;
+                        }
+
+                        try {
+                          viewingKey.importText(viewingKeyImportText);
+                          setViewingKeyBackupText("");
+                          setViewingKeyImportText("");
+                          setViewingKeyCustodyStatus("imported");
+                        } catch {
+                          setViewingKeyCustodyStatus("failed");
+                        }
+                      }}
+                    >
+                      Import
+                    </button>
+                    <button
+                      className="button button-ghost"
+                      type="button"
+                      disabled={!viewingKey}
+                      onClick={() => {
+                        if (!viewingKey) {
+                          return;
+                        }
+
+                        viewingKey.reset();
+                        setViewingKeyBackupText("");
+                        setViewingKeyImportText("");
+                        setViewingKeyCustodyStatus("reset");
+                      }}
+                    >
+                      Rotate
+                    </button>
+                  </div>
+                  <label className="shield-viewing-key-panel__field">
+                    <span>Backup</span>
+                    <textarea
+                      readOnly
+                      value={viewingKeyBackupText}
+                      placeholder="Export to show the recovery key."
+                    />
+                  </label>
+                  <label className="shield-viewing-key-panel__field">
+                    <span>Restore</span>
+                    <textarea
+                      value={viewingKeyImportText}
+                      onChange={(event) => {
+                        setViewingKeyImportText(event.target.value);
+                        setViewingKeyCustodyStatus("idle");
+                      }}
+                      placeholder="Paste a Shield viewing key backup."
+                    />
+                  </label>
+                  {viewingKeyCustodyStatus !== "idle" && (
+                    <p className="shield-helper shield-helper--meta">
+                      {viewingKeyCustodyStatus === "exported"
+                        ? "Backup ready."
+                        : viewingKeyCustodyStatus === "imported"
+                          ? "Viewing key restored."
+                          : viewingKeyCustodyStatus === "reset"
+                            ? "Viewing key rotated."
+                            : "Viewing key import failed."}
+                    </p>
+                  )}
+                </div>
+              </details>
 
               <div className="shield-form__actions">
                 <button

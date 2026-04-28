@@ -683,12 +683,14 @@ try {
     method: "POST",
   });
   assert(
-    remotePaySettlement.ok,
-    remotePaySettlement.text || operatorStderr || "Expected remote operator Pay settlement.",
+    !remotePaySettlement.ok && remotePaySettlement.status >= 400,
+    remotePaySettlement.text || operatorStderr || "Expected remote operator raw Pay settlement rejection.",
   );
   assert(
-    remotePaySettlement.parsed?.privateRailReceipt?.proofReceiptId?.startsWith("ppv2_"),
-    "Expected remote operator Pay settlement to return a Private Pool v2 proof receipt.",
+    String(remotePaySettlement.parsed?.error ?? "").includes(
+      "Legacy raw Pay settlements are disabled",
+    ),
+    "Expected remote operator Pay settlement rejection to point to committed protocol settlements.",
   );
 
   console.log("private-pool-v2 remote operator service network: PASS");

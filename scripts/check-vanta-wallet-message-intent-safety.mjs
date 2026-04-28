@@ -5,7 +5,7 @@ import {
   validateWalletMessageIntentSafetySummary,
 } from "../src/wallet/walletMessageIntentSafety.mjs";
 
-const now = 1_777_000_000_000;
+const now = Date.now();
 const baseInput = {
   amount: "12.50",
   asset: "VUSD",

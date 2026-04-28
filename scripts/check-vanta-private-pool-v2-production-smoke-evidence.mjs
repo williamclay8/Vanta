@@ -35,7 +35,7 @@ for (const targetId of [
   "proof-roundtrip-simulation",
   "nullifier-replay-simulation",
   "relayer-claim-submit-simulation",
-  "operator-pay-settlement-simulation",
+  "operator-raw-pay-settlement-rejection",
 ]) {
   const target = evidence.smokeTargets.find((candidate) => candidate.id === targetId);
   assert.ok(target, `Missing smoke target evidence for ${targetId}.`);
@@ -44,6 +44,10 @@ for (const targetId of [
 
 const replayTarget = evidence.smokeTargets.find((candidate) => candidate.id === "nullifier-replay-simulation");
 assert.equal(replayTarget.replayStatus, 400, "Nullifier replay smoke must record rejected duplicate status.");
+const rawPayTarget = evidence.smokeTargets.find(
+  (candidate) => candidate.id === "operator-raw-pay-settlement-rejection",
+);
+assert.equal(rawPayTarget.rejectionStatus, 410, "Raw Pay settlement smoke must record fail-closed status.");
 
 const source = JSON.stringify(evidence);
 for (const forbidden of [

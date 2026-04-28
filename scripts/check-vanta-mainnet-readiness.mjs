@@ -220,11 +220,12 @@ for (const targetId of [
   "proof-roundtrip-simulation",
   "nullifier-replay-simulation",
   "relayer-claim-submit-simulation",
-  "operator-pay-settlement-simulation",
+  "operator-raw-pay-settlement-rejection",
 ]) {
   assert.equal(smokeTargets.get(targetId)?.status, "pass", `Missing passing smoke target ${targetId}.`);
 }
 assert.equal(smokeTargets.get("nullifier-replay-simulation")?.replayStatus, 400);
+assert.equal(smokeTargets.get("operator-raw-pay-settlement-rejection")?.rejectionStatus, 410);
 assert.equal(snapshot.productionServiceDeployment.checkedEvidenceRef, "ops/mainnet/service-deployment.evidence.json");
 assert.equal(snapshot.productionServiceDeployment.mainnetReady, false);
 assert.equal(snapshot.productionServiceDeployment.productionReady, false);

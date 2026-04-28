@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useWalletState } from "@/data/context/WalletContext";
 import {
   createVantaShieldViewingKeypair,
@@ -8,6 +8,12 @@ import {
 } from "@/solana/vantaShieldViewingKey";
 
 const STORAGE_PREFIX = "vanta:shield:viewing-key:0.1";
+
+export type VantaShieldViewingKeyControls = VantaShieldViewingKeypair & {
+  exportText: string;
+  importText: (serializedKeypair: string) => void;
+  reset: () => void;
+};
 
 function storageKeyForOwner(owner: string) {
   return `${STORAGE_PREFIX}:${owner}`;
@@ -33,6 +39,16 @@ function loadOrCreateViewingKey(owner: string): VantaShieldViewingKeypair | null
   return keypair;
 }
 
+function serializeViewingKeypair(keypair: VantaShieldViewingKeypair): string {
+  return JSON.stringify(exportVantaShieldViewingKeypair(keypair), null, 2);
+}
+
+function parseViewingKeypair(serializedKeypair: string): VantaShieldViewingKeypair {
+  return importVantaShieldViewingKeypair(
+    JSON.parse(serializedKeypair) as VantaShieldViewingKeypair,
+  );
+}
+
 export function useVantaShieldViewingKey() {
   const { walletAddress, walletConnected } = useWalletState();
   const [keypair, setKeypair] = useState<VantaShieldViewingKeypair | null>(null);
@@ -46,5 +62,45 @@ export function useVantaShieldViewingKey() {
     setKeypair(loadOrCreateViewingKey(walletAddress));
   }, [walletAddress, walletConnected]);
 
-  return keypair;
+  const importText = useCallback(
+    (serializedKeypair: string) => {
+      if (!walletConnected || !walletAddress || typeof window === "undefined") {
+        throw new Error("Connect a wallet before importing a Shield viewing key.");
+      }
+
+      const importedKeypair = parseViewingKeypair(serializedKeypair);
+      window.localStorage.setItem(
+        storageKeyForOwner(walletAddress),
+        serializeViewingKeypair(importedKeypair),
+      );
+      setKeypair(importedKeypair);
+    },
+    [walletAddress, walletConnected],
+  );
+
+  const reset = useCallback(() => {
+    if (!walletConnected || !walletAddress || typeof window === "undefined") {
+      throw new Error("Connect a wallet before resetting a Shield viewing key.");
+    }
+
+    const nextKeypair = createVantaShieldViewingKeypair();
+    window.localStorage.setItem(
+      storageKeyForOwner(walletAddress),
+      serializeViewingKeypair(nextKeypair),
+    );
+    setKeypair(nextKeypair);
+  }, [walletAddress, walletConnected]);
+
+  return useMemo<VantaShieldViewingKeyControls | null>(() => {
+    if (!keypair) {
+      return null;
+    }
+
+    return {
+      ...keypair,
+      exportText: serializeViewingKeypair(keypair),
+      importText,
+      reset,
+    };
+  }, [importText, keypair, reset]);
 }

@@ -435,7 +435,7 @@ try {
   assert(emptyReceipts.parsed?.receiptCount === 0, "Expected empty receipt state.");
   console.log("private-pool-v2 http empty receipts: PASS");
 
-  const malformedPaySettlement = await requestJson("/private-pool-v2/pay-settlements", {
+  const rejectedPayCheckoutSettlement = await requestJson("/private-pool-v2/pay-settlements", {
     body: JSON.stringify({
       kind: "checkout",
       session: {
@@ -447,11 +447,15 @@ try {
     }),
     method: "POST",
   });
-  assert(!malformedPaySettlement.ok, "Expected malformed Pay settlement to be rejected.");
+  assert(!rejectedPayCheckoutSettlement.ok, "Expected raw Pay checkout settlement to be rejected.");
   assert(
-    String(malformedPaySettlement.parsed?.error ?? "").includes("clientToken"),
-    malformedPaySettlement.text || "Expected malformed Pay settlement validation error.",
+    rejectedPayCheckoutSettlement.status === 410 &&
+      String(rejectedPayCheckoutSettlement.parsed?.error ?? "").includes(
+        "Legacy raw Pay settlements are disabled",
+      ),
+    rejectedPayCheckoutSettlement.text || "Expected raw Pay checkout fail-closed error.",
   );
+  console.log("private-pool-v2 http raw Pay checkout rejection: PASS");
 
   const malformedProtocolSettlement = await requestJson("/private-pool-v2/protocol-settlements", {
     body: JSON.stringify({
@@ -514,75 +518,7 @@ try {
   assert(finalReceipts.parsed?.receiptCount === 2, "Expected two accepted receipts.");
   console.log("private-pool-v2 http final receipts: PASS");
 
-  const payCheckoutSettlement = await requestJson("/private-pool-v2/pay-settlements", {
-    body: JSON.stringify({
-      kind: "checkout",
-      session: {
-        amount: "125.00",
-        clientToken: "vtok_operator_http",
-        currency: "USDC",
-        id: "vcs_operator_http",
-        merchantId: "mrc_123",
-      },
-    }),
-    method: "POST",
-  });
-  assert(payCheckoutSettlement.ok, payCheckoutSettlement.text || "Expected Pay checkout settlement.");
-  assert(
-    payCheckoutSettlement.parsed?.privateRailReceipt?.proofReceiptId?.startsWith("ppv2_"),
-    "Expected Pay checkout private rail proof receipt.",
-  );
-  assert(
-    String(payCheckoutSettlement.parsed?.settlementFingerprint ?? "").startsWith("0x"),
-    "Expected Pay checkout settlement fingerprint.",
-  );
-  console.log("private-pool-v2 http pay checkout settlement: PASS");
-
-  const repeatedPayCheckoutSettlement = await requestJson("/private-pool-v2/pay-settlements", {
-    body: JSON.stringify({
-      kind: "checkout",
-      session: {
-        amount: "125.00",
-        clientToken: "vtok_operator_http",
-        currency: "USDC",
-        id: "vcs_operator_http",
-        merchantId: "mrc_123",
-      },
-    }),
-    method: "POST",
-  });
-  assert(
-    repeatedPayCheckoutSettlement.ok,
-    repeatedPayCheckoutSettlement.text || "Expected repeated Pay checkout settlement to be idempotent.",
-  );
-  assert(
-    repeatedPayCheckoutSettlement.parsed?.privateRailReceipt?.id ===
-      payCheckoutSettlement.parsed?.privateRailReceipt?.id,
-    "Expected repeated Pay checkout settlement to return the existing receipt.",
-  );
-  const conflictingPayCheckoutSettlement = await requestJson("/private-pool-v2/pay-settlements", {
-    body: JSON.stringify({
-      kind: "checkout",
-      session: {
-        amount: "126.00",
-        clientToken: "vtok_operator_http_conflict",
-        currency: "USDC",
-        id: "vcs_operator_http",
-        merchantId: "mrc_123",
-      },
-    }),
-    method: "POST",
-  });
-  assert(
-    !conflictingPayCheckoutSettlement.ok,
-    "Expected conflicting Pay checkout settlement replay to be rejected.",
-  );
-  assert(
-    String(conflictingPayCheckoutSettlement.parsed?.error ?? "").includes("conflicts"),
-    conflictingPayCheckoutSettlement.text || "Expected conflicting Pay checkout error.",
-  );
-
-  const payWithdrawalSettlement = await requestJson("/private-pool-v2/pay-settlements", {
+  const rejectedPayWithdrawalSettlement = await requestJson("/private-pool-v2/pay-settlements", {
     body: JSON.stringify({
       amount: "25.00",
       asset: "USDC",
@@ -592,62 +528,24 @@ try {
     }),
     method: "POST",
   });
-  assert(payWithdrawalSettlement.ok, payWithdrawalSettlement.text || "Expected Pay withdrawal settlement.");
+  assert(!rejectedPayWithdrawalSettlement.ok, "Expected raw Pay withdrawal settlement to be rejected.");
   assert(
-    payWithdrawalSettlement.parsed?.privateExitReceipt?.id?.startsWith("pexit_"),
-    "Expected Pay withdrawal private exit receipt.",
+    rejectedPayWithdrawalSettlement.status === 410 &&
+      String(rejectedPayWithdrawalSettlement.parsed?.error ?? "").includes(
+        "Legacy raw Pay settlements are disabled",
+      ),
+    rejectedPayWithdrawalSettlement.text || "Expected raw Pay withdrawal fail-closed error.",
   );
-  assert(
-    String(payWithdrawalSettlement.parsed?.settlementFingerprint ?? "").startsWith("0x"),
-    "Expected Pay withdrawal settlement fingerprint.",
-  );
-  const repeatedPayWithdrawalSettlement = await requestJson("/private-pool-v2/pay-settlements", {
-    body: JSON.stringify({
-      amount: "25.00",
-      asset: "USDC",
-      destination: "Treasury",
-      kind: "withdrawal",
-      merchantId: "mrc_123",
-    }),
-    method: "POST",
-  });
-  assert(
-    repeatedPayWithdrawalSettlement.ok,
-    repeatedPayWithdrawalSettlement.text || "Expected repeated Pay withdrawal to be idempotent.",
-  );
-  assert(
-    repeatedPayWithdrawalSettlement.parsed?.settlementFingerprint ===
-      payWithdrawalSettlement.parsed?.settlementFingerprint,
-    "Expected repeated Pay withdrawal to return the existing fingerprint.",
-  );
-  const conflictingPayWithdrawalSettlement = await requestJson("/private-pool-v2/pay-settlements", {
-    body: JSON.stringify({
-      amount: "26.00",
-      asset: "USDC",
-      destination: "Treasury",
-      kind: "withdrawal",
-      merchantId: "mrc_123",
-    }),
-    method: "POST",
-  });
-  assert(
-    !conflictingPayWithdrawalSettlement.ok,
-    "Expected conflicting Pay withdrawal replay to be rejected.",
-  );
-  assert(
-    String(conflictingPayWithdrawalSettlement.parsed?.error ?? "").includes("conflicts"),
-    conflictingPayWithdrawalSettlement.text || "Expected conflicting Pay withdrawal error.",
-  );
-  console.log("private-pool-v2 http pay withdrawal settlement: PASS");
+  console.log("private-pool-v2 http raw Pay withdrawal rejection: PASS");
 
   const paySettlementReceipts = await requestJson("/state/private-pool-v2-receipts");
   assert(paySettlementReceipts.ok, paySettlementReceipts.text || "Expected Pay settlement receipts.");
-  assert(paySettlementReceipts.parsed?.receiptCount === 4, "Expected four accepted receipts.");
+  assert(paySettlementReceipts.parsed?.receiptCount === 2, "Expected two accepted receipts.");
   assert(
-    paySettlementReceipts.parsed?.paySettlementCount === 2,
-    "Expected two operator-owned Pay settlement receipts.",
+    paySettlementReceipts.parsed?.paySettlementCount === 0,
+    "Expected zero operator-owned raw Pay settlement receipts.",
   );
-  console.log("private-pool-v2 http pay settlement receipts: PASS");
+  console.log("private-pool-v2 http raw Pay settlement fail-closed receipts: PASS");
 
 	  for (const action of ["shield", "send", "swap", "unshield"]) {
     const isShield = action === "shield";
@@ -1059,6 +957,19 @@ try {
     ),
     "Expected operator status to exclude committed Unshield from raw-visible protocol actions.",
   );
+  assert(
+    operatorStatusAfterProtocolSettlements.parsed?.operatorEconomicsExposure
+      ?.legacyRawPaySettlementEndpointEnabled === false,
+    "Expected operator status to expose disabled legacy raw Pay settlement endpoint.",
+  );
+  for (const rawPayAction of ["pay_checkout", "pay_withdrawal"]) {
+    assert(
+      !operatorStatusAfterProtocolSettlements.parsed?.operatorEconomicsExposure?.operatorStillSeesRawActions?.includes(
+        rawPayAction,
+      ),
+      `Expected operator status to exclude ${rawPayAction} from raw-visible actions by default.`,
+    );
+  }
   console.log("private-pool-v2 http protocol settlements: PASS");
 } catch (error) {
   console.error(error instanceof Error ? error.message : String(error));

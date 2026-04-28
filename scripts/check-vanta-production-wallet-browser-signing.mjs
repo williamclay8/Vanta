@@ -1,7 +1,8 @@
 import { execFileSync } from "node:child_process";
-import { strict as assert } from "node:assert";
+import { rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
-const session = `vanta-prod-wallet-${Date.now()}`;
 const baseUrl = process.env.VANTA_PUBLIC_APP_URL?.trim() || "https://vantaprivacy.xyz";
 const routes = [
   { page: "Shield", path: "/app/shield", routeText: "SHIELD" },
@@ -10,79 +11,56 @@ const routes = [
   { page: "Unshield", path: "/app/unshield", routeText: "UNSHIELD" },
 ];
 
-function runBrowserCommand(args, options = {}) {
-  const output = execFileSync("gsd-browser", ["--session", session, ...args], {
-    encoding: "utf8",
-    stdio: options.stdio ?? "pipe",
-  });
-
-  return typeof output === "string" ? output.trim() : "";
-}
-
-function safeStopDaemon() {
+function stopBrowserDaemon() {
   try {
     execFileSync("gsd-browser", ["daemon", "stop"], { stdio: "ignore" });
   } catch {
     // The daemon may already be stopped.
   }
+
+  rmSync(join(tmpdir(), "chromiumoxide-runner"), { recursive: true, force: true });
 }
 
-function probeRoute(route) {
-  runBrowserCommand(["navigate", `${baseUrl}${route.path}`], { stdio: "ignore" });
-  runBrowserCommand(["wait-for", "--condition", "network_idle"], { stdio: "ignore" });
-
-  const probe = `(async () => {
-    const body = document.body.innerText;
-    return {
-      path: location.pathname,
-      routeTextVisible: body.includes(${JSON.stringify(route.routeText)}),
-      vantaBetaVisible: body.includes("Vanta Beta"),
-      betaBannerVisible: body.includes("VANTA BETA"),
-      settlementOfflineVisible: body.includes("No funds move in this mode. Live private settlement is offline until production services are resumed."),
-      betaModeVisible: body.includes("BETA MODE"),
-      awaitingWalletVisible: body.includes("Awaiting wallet confirmation"),
-      mainnetBetaVisible: body.includes("mainnet-beta"),
-      privateKeyVisible: body.includes("private key"),
-      seedPhraseVisible: body.includes("seed phrase"),
-      connectVisible: body.includes("CONNECT"),
-      freshWalletVisible: body.includes("FRESH WALLET"),
-    };
-  })()`;
-
-  const result = JSON.parse(runBrowserCommand(["eval", probe]));
-
-  assert.equal(result.path, route.path, `Unexpected path for ${route.page}.`);
-  assert.equal(result.routeTextVisible, true, `${route.page} must keep the primary route text visible.`);
-  if (result.vantaBetaVisible || result.settlementOfflineVisible || result.betaModeVisible) {
-    const blockers = [];
-    if (result.vantaBetaVisible || result.betaBannerVisible) {
-      blockers.push("live public app still serves the beta banner");
-    }
-    if (result.settlementOfflineVisible) {
-      blockers.push("live public app still serves the settlement-offline banner");
-    }
-    if (result.betaModeVisible) {
-      blockers.push("live action button still renders Beta mode");
-    }
-    throw new Error(`${route.page} is still blocked for live submission: ${blockers.join("; ")}. Check Render env and remove VITE_VANTA_DEPLOYMENT_MODE=beta before rerunning this command.`);
-  }
-  assert.equal(result.betaBannerVisible, false, `${route.page} must not show the live beta-mode banner.`);
-  assert.equal(result.settlementOfflineVisible, false, `${route.page} must not show the settlement-offline banner.`);
-  assert.equal(result.betaModeVisible, false, `${route.page} must not show the beta-mode footer label.`);
-  assert.equal(result.awaitingWalletVisible, false, `${route.page} must not expose an awaiting-wallet state by default.`);
-  assert.equal(result.mainnetBetaVisible, false, `${route.page} must not expose raw mainnet-beta cluster copy.`);
-  assert.equal(result.privateKeyVisible, false, `${route.page} must not expose private-key copy.`);
-  assert.equal(result.seedPhraseVisible, false, `${route.page} must not expose seed-phrase copy.`);
-  assert.equal(result.connectVisible, true, `${route.page} must keep the connect wallet trigger visible.`);
-  assert.equal(result.freshWalletVisible, true, `${route.page} must keep the fresh wallet path visible.`);
+function routeAssertSteps(route) {
+  return [
+    { action: "navigate", url: `${baseUrl}${route.path}` },
+    { action: "wait_for", condition: "network_idle" },
+    {
+      action: "assert",
+      checks: [
+        { kind: "url_contains", text: route.path },
+        { kind: "text_visible", text: route.routeText },
+        { kind: "text_visible", text: "CONNECT" },
+        { kind: "text_visible", text: "FRESH WALLET" },
+        { kind: "text_hidden", text: "Vanta Beta" },
+        { kind: "text_hidden", text: "VANTA BETA" },
+        {
+          kind: "text_hidden",
+          text: "No funds move in this mode. Live private settlement is offline until production services are resumed.",
+        },
+        { kind: "text_hidden", text: "BETA MODE" },
+        { kind: "text_hidden", text: "Awaiting wallet confirmation" },
+        { kind: "text_hidden", text: "mainnet-beta" },
+        { kind: "text_hidden", text: "private key" },
+        { kind: "text_hidden", text: "seed phrase" },
+        { kind: "no_console_errors" },
+      ],
+    },
+  ];
 }
+
+const steps = routes.flatMap(routeAssertSteps);
 
 try {
-  for (const route of routes) {
-    probeRoute(route);
-  }
+  stopBrowserDaemon();
+  execFileSync("gsd-browser", ["batch", "--steps", JSON.stringify(steps), "--summary-only"], {
+    stdio: "pipe",
+  });
 
   console.log("Vanta production wallet browser signing check: PASS");
+} catch (error) {
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exitCode = 1;
 } finally {
-  safeStopDaemon();
+  stopBrowserDaemon();
 }

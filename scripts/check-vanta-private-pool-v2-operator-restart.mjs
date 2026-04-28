@@ -368,7 +368,7 @@ try {
   );
   console.log("private-pool-v2 restart committed transitions accepted: PASS");
 
-  const payCheckoutSettlement = await requestJson("/private-pool-v2/pay-settlements", {
+  const rejectedPayCheckoutSettlement = await requestJson("/private-pool-v2/pay-settlements", {
     body: JSON.stringify({
       kind: "checkout",
       session: {
@@ -382,8 +382,12 @@ try {
     method: "POST",
   });
   assert(
-    payCheckoutSettlement.ok,
-    payCheckoutSettlement.text || "Expected Pay checkout settlement before restart.",
+    !rejectedPayCheckoutSettlement.ok &&
+      rejectedPayCheckoutSettlement.status === 410 &&
+      String(rejectedPayCheckoutSettlement.parsed?.error ?? "").includes(
+        "Legacy raw Pay settlements are disabled",
+      ),
+    rejectedPayCheckoutSettlement.text || "Expected raw Pay checkout settlement to fail closed.",
   );
 
   const protocolShieldSettlement = await requestJson("/private-pool-v2/protocol-settlements", {
@@ -414,10 +418,7 @@ try {
     writtenStore.settlementPolicy?.version === "vanta-private-pool-v2-settlement-policy-0.1",
     "Expected private-pool-v2 receipt store settlement policy version.",
   );
-  assert(
-    writtenStore.paySettlements?.[0]?.settlementFingerprint?.startsWith("0x"),
-    "Expected persisted Pay settlement fingerprint.",
-  );
+  assert(writtenStore.paySettlements?.length === 0, "Expected no persisted raw Pay settlements.");
   assert(
     writtenStore.protocolSettlements?.[0]?.settlementFingerprint?.startsWith("0x"),
     "Expected persisted protocol settlement fingerprint.",
@@ -464,35 +465,16 @@ try {
 
   const restoredReceipts = await requestJson("/state/private-pool-v2-receipts");
   assert(restoredReceipts.ok, restoredReceipts.text || "Expected restored receipts response.");
-  assert(restoredReceipts.parsed?.receiptCount === 8, "Expected eight restored receipts.");
+  assert(restoredReceipts.parsed?.receiptCount === 7, "Expected seven restored receipts.");
   assert(
-    restoredReceipts.parsed?.paySettlementCount === 1,
-    "Expected one restored Pay settlement receipt.",
+    restoredReceipts.parsed?.paySettlementCount === 0,
+    "Expected zero restored raw Pay settlement receipts.",
   );
   assert(
     restoredReceipts.parsed?.protocolSettlementCount === 1,
     "Expected one restored protocol settlement receipt.",
   );
   console.log("private-pool-v2 restart receipts restored: PASS");
-
-  const repeatedPayCheckoutSettlement = await requestJson("/private-pool-v2/pay-settlements", {
-    body: JSON.stringify({
-      kind: "checkout",
-      session: {
-        amount: "42.00",
-        clientToken: "vtok_restart",
-        currency: "USDC",
-        id: "vcs_restart",
-        merchantId: "mrc_restart",
-      },
-    }),
-    method: "POST",
-  });
-  assert(
-    repeatedPayCheckoutSettlement.ok,
-    repeatedPayCheckoutSettlement.text ||
-      "Expected restored Pay checkout settlement to be idempotent.",
-  );
 
   const repeatedProtocolShieldSettlement = await requestJson("/private-pool-v2/protocol-settlements", {
     body: JSON.stringify({
@@ -545,7 +527,7 @@ try {
 
   const restoredStatus = await requestJson("/state/private-pool-v2-status");
   assert(restoredStatus.ok, restoredStatus.text || "Expected restored status response.");
-  assert(restoredStatus.parsed?.receiptCount === 8, "Expected restored status receipt count.");
+  assert(restoredStatus.parsed?.receiptCount === 7, "Expected restored status receipt count.");
   assert(
     restoredStatus.parsed?.nullifierReplayGuard?.mode ===
       "claim-preflight-and-accepted-reservation",

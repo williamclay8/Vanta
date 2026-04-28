@@ -348,14 +348,18 @@ async function run() {
     }),
     method: "POST",
   });
-  const paySettlement = assertOk(paySettlementResponse, "operator Pay settlement smoke");
   assert.ok(
-    paySettlement.privateRailReceipt?.proofReceiptId?.startsWith("ppv2_"),
-    "Operator Pay settlement should return a Private Pool v2 proof receipt.",
+    !paySettlementResponse.ok && paySettlementResponse.status === 410,
+    "Operator raw Pay settlement endpoint should fail closed in production smoke.",
+  );
+  assert.match(
+    String(paySettlementResponse.parsed?.error ?? ""),
+    /Legacy raw Pay settlements are disabled/,
+    "Operator raw Pay rejection should direct callers to committed protocol settlements.",
   );
   evidence.smokeTargets.push({
-    id: "operator-pay-settlement-simulation",
-    proofReceiptIdPrefix: paySettlement.privateRailReceipt.proofReceiptId.slice(0, 18),
+    id: "operator-raw-pay-settlement-rejection",
+    rejectionStatus: paySettlementResponse.status,
     status: "pass",
   });
 

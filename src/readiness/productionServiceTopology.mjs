@@ -72,9 +72,9 @@ const services = [
       "VANTA_PRIVATE_POOL_V2_RELAYER_URL",
       "VANTA_PRIVATE_POOL_V2_VERIFIER_URL",
     ],
-    requiredStorage: ["pay_settlements", "protocol_settlements", "operator_idempotency_keys"],
+    requiredStorage: ["protocol_settlements", "operator_idempotency_keys"],
     health: ["/health", "/state/private-pool-v2-status"],
-    readiness: ["/state/private-pool-v2-status", "/private-pool-v2/protocol-settlements", "/private-pool-v2/pay-settlements"],
+    readiness: ["/state/private-pool-v2-status", "/private-pool-v2/protocol-settlements"],
     deploymentGuards,
   },
 ];

@@ -99,13 +99,39 @@ function runBrowserBatch() {
   });
 }
 
+function isDaemonStartupError(error) {
+  const message = error instanceof Error ? error.message : String(error);
+  const stdoutText = String(error?.stdout ?? "");
+  const stderrText = String(error?.stderr ?? "");
+  const combined = [message, stdoutText, stderrText].join("\n");
+
+  return combined.includes("daemon exited during startup");
+}
+
 function runBrowserCommand(args, options = {}) {
   const commandArgs = ["--session", browserSession, ...args];
 
-  const output = execFileSync("gsd-browser", commandArgs, {
-    encoding: "utf8",
-    stdio: options.stdio ?? "pipe",
-  });
+  let output;
+  try {
+    output = execFileSync("gsd-browser", commandArgs, {
+      encoding: "utf8",
+      stdio: "pipe",
+    });
+  } catch (error) {
+    if (!isDaemonStartupError(error)) {
+      throw error;
+    }
+
+    cleanupBrowserLock();
+    output = execFileSync("gsd-browser", commandArgs, {
+      encoding: "utf8",
+      stdio: "pipe",
+    });
+  }
+
+  if (options.stdio === "ignore") {
+    return "";
+  }
 
   return typeof output === "string" ? output.trim() : "";
 }
@@ -139,9 +165,7 @@ function runBrowserBatchWithRetry() {
   try {
     runBrowserBatch();
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-
-    if (!message.includes("daemon exited during startup")) {
+    if (!isDaemonStartupError(error)) {
       throw error;
     }
 

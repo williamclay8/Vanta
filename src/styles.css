@@ -4819,6 +4819,66 @@ input {
   color: #ffb4b4;
 }
 
+.shield-viewing-key-panel {
+  border: 1px solid rgba(0, 229, 200, 0.1);
+  background: rgba(0, 229, 200, 0.025);
+  padding: 12px;
+}
+
+.shield-viewing-key-panel summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.shield-viewing-key-panel summary::-webkit-details-marker {
+  display: none;
+}
+
+.shield-viewing-key-panel summary span,
+.shield-viewing-key-panel__field span {
+  color: var(--muted-strong);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.shield-viewing-key-panel summary strong {
+  color: var(--text);
+  font-size: 0.82rem;
+}
+
+.shield-viewing-key-panel__body {
+  display: grid;
+  gap: 10px;
+  padding-top: 12px;
+}
+
+.shield-viewing-key-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.shield-viewing-key-panel__field {
+  display: grid;
+  gap: 6px;
+}
+
+.shield-viewing-key-panel textarea {
+  min-height: 72px;
+  width: 100%;
+  resize: vertical;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(3, 8, 10, 0.48);
+  color: var(--text);
+  font: 0.78rem/1.5 "Inter", sans-serif;
+  padding: 10px;
+}
+
 .percent-row {
   display: flex;
   flex-wrap: wrap;

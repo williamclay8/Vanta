@@ -188,6 +188,7 @@
     "shield:committed-settlement-check": "node scripts/check-vanta-shield-committed-settlement.mjs",
     "shield:memo-encryption-check": "node scripts/check-vanta-shield-memo-encryption.mjs",
     "shield:viewing-key-ui-check": "node scripts/check-vanta-shield-viewing-key-ui.mjs",
+    "shield:viewing-key-custody-check": "node scripts/check-vanta-shield-viewing-key-custody.mjs",
     "shield:decoy-batcher-check": "node scripts/check-vanta-shield-decoy-batcher.mjs",
     "umbra:adapter-check": "node scripts/check-vanta-umbra-adapter.mjs",
     "umbra:adapter-check-json": "node scripts/check-vanta-umbra-adapter.mjs --json",

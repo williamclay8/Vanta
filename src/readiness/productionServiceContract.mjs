@@ -65,7 +65,7 @@ const services = [
     label: "Vanta Operator Gateway",
     deploymentStatus: "deployed-render-verified-pending-controls",
     requiredChecks: ["service-auth", "settlement-idempotency", "conflicting-replay-rejection"],
-    requiredEndpoints: ["/health", "/state/private-pool-v2-status", "/private-pool-v2/protocol-settlements", "/private-pool-v2/pay-settlements"],
+    requiredEndpoints: ["/health", "/state/private-pool-v2-status", "/private-pool-v2/protocol-settlements"],
     requiredEnv: [
       "VANTA_PRIVATE_POOL_V2_DATABASE_URL",
       "VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN",

@@ -73,6 +73,10 @@ function assertProductionAuthToken() {
 
 assertProductionAuthToken();
 
+const allowLegacyPaySettlements =
+  process.env.VANTA_PRIVATE_POOL_V2_ALLOW_LEGACY_PAY_SETTLEMENTS === "true" &&
+  process.env.NODE_ENV !== "production";
+
 function copySource(relativePath) {
   writeFileSync(
     join(tempTsDir, relativePath),
@@ -1378,7 +1382,8 @@ async function statusPayload() {
           settlement.protocolSettlementReceipt?.economicsMode === "committed-economics",
       ).length,
       hiddenEconomicsActions: ["shield", "send", "swap", "unshield"],
-      operatorStillSeesRawActions: ["raw-shield", "raw-unshield", "pay_checkout", "pay_withdrawal"],
+      legacyRawPaySettlementEndpointEnabled: allowLegacyPaySettlements,
+      operatorStillSeesRawActions: ["raw-shield", "raw-unshield"],
       rawSettlementCount: protocolSettlementReceipts.filter(
         (settlement) =>
           (settlement.protocolSettlementReceipt?.economicsMode ?? "raw-operator-visible") ===
@@ -2070,6 +2075,15 @@ const server = createServer(async (request, response) => {
     }
 
     if (request.method === "POST" && request.url === "/private-pool-v2/pay-settlements") {
+      if (!allowLegacyPaySettlements) {
+        sendJson(response, 410, {
+          error:
+            "Legacy raw Pay settlements are disabled. Use /private-pool-v2/protocol-settlements with committed economics.",
+          ok: false,
+        });
+        return;
+      }
+
       const body = await readRequestBody(request);
 
       if (body.kind === "checkout") {
