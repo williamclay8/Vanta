@@ -341,9 +341,13 @@ try {
   );
   printLine(
     "Supported send root basis",
-    contract.supportedSendResultingRootBasis === "proof-public-expected-root"
-      ? "Proof-public expected root"
+    contract.supportedSendResultingRootBasis === "proof-linked-input-expected-root"
+      ? "Proof-linked input expected root"
       : "Unavailable",
+  );
+  printLine(
+    "Supported send root basis note",
+    contract.supportedSendResultingRootBasisNote ?? "Unavailable",
   );
   printLine(
     "Supported send input-root policy",

@@ -197,7 +197,11 @@ try {
     contractState.parsed?.supportedNoteVersion !== 0 ||
     contractState.parsed?.supportedRootRegistrationProvenance !==
       "shield-input|send-recipient-output|send-change-output|swap-output" ||
-    contractState.parsed?.supportedSendResultingRootBasis !== "proof-public-expected-root" ||
+    contractState.parsed?.supportedSendResultingRootBasis !== "proof-linked-input-expected-root" ||
+    typeof contractState.parsed?.supportedSendResultingRootBasisNote !== "string" ||
+    !contractState.parsed.supportedSendResultingRootBasisNote.includes(
+      "does not claim the root is a circuit-public input or fully operator-derived",
+    ) ||
     contractState.parsed?.supportedSendInputRootPolicy !==
       "latest-registered-root-with-linked-registration-proof" ||
     contractState.parsed?.supportedSendOutputRegistrationPolicy !==
@@ -296,6 +300,7 @@ try {
     "supportedNoteVersion",
     "supportedRootRegistrationProvenance",
     "supportedSendResultingRootBasis",
+    "supportedSendResultingRootBasisNote",
     "supportedSendInputRootPolicy",
     "supportedSendOutputRegistrationPolicy",
     "supportedRecipientModel",

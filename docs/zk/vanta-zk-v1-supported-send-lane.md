@@ -99,7 +99,8 @@ The supported `v1` lane currently keeps these assumptions explicit:
 - owner authorization remains off-circuit
 - proving-lane truth remains distinct from source-layer artifacts
 - root validity/currentness is enforced by the narrow operator-backed state model
-- resulting-root provenance is still explicit operator state, not an in-circuit transition proof
+- resulting-root provenance is a proof-linked-input expected root plus downstream recipient/change output-root registration
+- the v1 Send resulting root is not claimed as a circuit-public input or fully operator-derived from complete tree state
 
 These assumptions are allowed for the narrow `v1` lane only because they are stated openly in code, UI, and docs.
 

@@ -222,9 +222,13 @@ try {
   );
   printLine(
     "Supported send root basis",
-    summary.supportedSendResultingRootBasis === "proof-public-expected-root"
-      ? "Proof-public expected root"
+    summary.supportedSendResultingRootBasis === "proof-linked-input-expected-root"
+      ? "Proof-linked input expected root"
       : "Unavailable",
+  );
+  printLine(
+    "Supported send root basis note",
+    summary.supportedSendResultingRootBasisNote ?? "Unavailable",
   );
   printLine(
     "Supported send input-root policy",

@@ -278,7 +278,7 @@ try {
     !sendTransitionResponse.ok ||
     sendTransitionResponse.parsed?.verified !== true ||
     sendTransitionResponse.parsed?.sendRecorded !== true ||
-    sendTransitionResponse.parsed?.resultingRootBasis !== "proof-public-expected-root" ||
+    sendTransitionResponse.parsed?.resultingRootBasis !== "proof-linked-input-expected-root" ||
     typeof sendTransitionResponse.parsed?.proofId !== "string"
   ) {
     throw new Error(sendTransitionResponse.text || "operator-backed send transition failed");
@@ -346,7 +346,7 @@ try {
     !summary.ok ||
     summary.parsed?.currentRoot !== heldChange.witness.root ||
     summary.parsed?.latestSend?.proofId !== sendTransitionResponse.parsed.proofId ||
-    summary.parsed?.latestSend?.resultingRootBasis !== "proof-public-expected-root" ||
+    summary.parsed?.latestSend?.resultingRootBasis !== "proof-linked-input-expected-root" ||
     summary.parsed?.latestConsume?.proofId !== consumeResponse.parsed.proofId ||
     summary.parsed?.latestRelease?.proofId !== consumeResponse.parsed.proofId ||
     summary.parsed?.latestRelease?.releasedAmount !== "20000000" ||
@@ -450,7 +450,7 @@ try {
     "Send proof records: 1",
     "Latest send transition:",
     "Latest send linked proof:",
-    "Latest send resulting-root basis: proof-public-expected-root",
+    "Latest send resulting-root basis: proof-linked-input-expected-root",
     "Latest send resulting root:",
     "Latest release nullifier:",
     "Latest release proof:",

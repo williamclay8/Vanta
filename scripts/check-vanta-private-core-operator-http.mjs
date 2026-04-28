@@ -272,7 +272,7 @@ try {
     initialSummaryState.parsed?.supportedNoteVersion !== 0 ||
     initialSummaryState.parsed?.supportedRootRegistrationProvenance !==
       "shield-input|send-recipient-output|send-change-output|swap-output" ||
-    initialSummaryState.parsed?.supportedSendResultingRootBasis !== "proof-public-expected-root" ||
+    initialSummaryState.parsed?.supportedSendResultingRootBasis !== "proof-linked-input-expected-root" ||
     initialSummaryState.parsed?.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     initialSummaryState.parsed?.supportedReleaseDestinationModel !==
       "32-byte-release-destination-field" ||
@@ -968,7 +968,7 @@ try {
     summaryStateAfterConsume.parsed?.supportedNoteVersion !== 0 ||
     summaryStateAfterConsume.parsed?.supportedRootRegistrationProvenance !==
       "shield-input|send-recipient-output|send-change-output|swap-output" ||
-    summaryStateAfterConsume.parsed?.supportedSendResultingRootBasis !== "proof-public-expected-root" ||
+    summaryStateAfterConsume.parsed?.supportedSendResultingRootBasis !== "proof-linked-input-expected-root" ||
     summaryStateAfterConsume.parsed?.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     summaryStateAfterConsume.parsed?.supportedReleaseDestinationModel !==
       "32-byte-release-destination-field" ||
@@ -1085,7 +1085,7 @@ try {
     summaryStateAfterRelease.parsed?.supportedNoteVersion !== 0 ||
     summaryStateAfterRelease.parsed?.supportedRootRegistrationProvenance !==
       "shield-input|send-recipient-output|send-change-output|swap-output" ||
-    summaryStateAfterRelease.parsed?.supportedSendResultingRootBasis !== "proof-public-expected-root" ||
+    summaryStateAfterRelease.parsed?.supportedSendResultingRootBasis !== "proof-linked-input-expected-root" ||
     summaryStateAfterRelease.parsed?.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     summaryStateAfterRelease.parsed?.supportedReleaseDestinationModel !==
       "32-byte-release-destination-field" ||

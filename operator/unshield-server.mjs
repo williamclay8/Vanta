@@ -299,7 +299,9 @@ const PRIVATE_CORE_SUPPORTED_NOTE_SCHEMA = "note-v0";
 const PRIVATE_CORE_SUPPORTED_NOTE_VERSION = 0;
 const PRIVATE_CORE_SUPPORTED_ROOT_REGISTRATION_PROVENANCE =
   "shield-input|send-recipient-output|send-change-output|swap-output";
-const PRIVATE_CORE_SUPPORTED_SEND_RESULTING_ROOT_BASIS = "proof-public-expected-root";
+const PRIVATE_CORE_SUPPORTED_SEND_RESULTING_ROOT_BASIS = "proof-linked-input-expected-root";
+const PRIVATE_CORE_SUPPORTED_SEND_RESULTING_ROOT_BASIS_NOTE =
+  "The Send resulting root is an operator-accepted expected post-send root tied to a proof-linked latest input root; v1 does not claim the root is a circuit-public input or fully operator-derived from complete tree state, and downstream continuity requires recipient/change output-root registration.";
 const PRIVATE_CORE_SUPPORTED_SEND_INPUT_ROOT_POLICY =
   "latest-registered-root-with-linked-registration-proof";
 const PRIVATE_CORE_SUPPORTED_SEND_OUTPUT_REGISTRATION_POLICY =
@@ -2769,6 +2771,8 @@ function buildPrivateCoreContractState() {
     supportedRootRegistrationProvenance:
       PRIVATE_CORE_SUPPORTED_ROOT_REGISTRATION_PROVENANCE,
     supportedSendResultingRootBasis: PRIVATE_CORE_SUPPORTED_SEND_RESULTING_ROOT_BASIS,
+    supportedSendResultingRootBasisNote:
+      PRIVATE_CORE_SUPPORTED_SEND_RESULTING_ROOT_BASIS_NOTE,
     supportedSendInputRootPolicy: PRIVATE_CORE_SUPPORTED_SEND_INPUT_ROOT_POLICY,
     supportedSendOutputRegistrationPolicy:
       PRIVATE_CORE_SUPPORTED_SEND_OUTPUT_REGISTRATION_POLICY,
@@ -2896,6 +2900,7 @@ function summarizePrivateCoreContractMirrorStatus(args) {
     "supportedNoteVersion",
     "supportedRootRegistrationProvenance",
     "supportedSendResultingRootBasis",
+    "supportedSendResultingRootBasisNote",
     "supportedSendInputRootPolicy",
     "supportedSendOutputRegistrationPolicy",
     "supportedSwapResultingRootBasis",
@@ -3977,7 +3982,7 @@ function summarizePrivateCoreSendRecord(args) {
         ? args.releaseCandidateId
         : null,
     recipientCommitment: sourcePublicInputs.recipientCommitment,
-    resultingRootBasis: "proof-public-expected-root",
+    resultingRootBasis: "proof-linked-input-expected-root",
     resultingRoot: typeof args.resultingRoot === "string" ? args.resultingRoot : null,
     sendAmount: sourcePublicInputs.sendAmount,
     sendId: [
