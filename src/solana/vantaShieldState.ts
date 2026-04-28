@@ -11,6 +11,10 @@ import {
   getLiveShieldTokenAsset,
   type LiveShieldTokenAssetKey,
 } from "@/solana/shieldConfig";
+import {
+  decryptVantaShieldMemoWithViewingKey,
+  encryptVantaShieldMemoToViewingKey,
+} from "@/solana/vantaShieldViewingKey";
 
 export const VANTA_SHIELD_MEMO_PROGRAM =
   "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
@@ -27,6 +31,14 @@ const VANTA_SHIELD_MEMO_VERSION_BYTE = 0x01;
 const VANTA_SPENT_MARKER_MEMO_PREFIX = "vanta:spent-marker:v1:";
 export const VANTA_NATIVE_SOL_ASSET_ID =
   "So11111111111111111111111111111111111111112";
+
+type ShieldMemoEncryptionOptions = {
+  viewingPublicKey?: string | null;
+};
+
+type ShieldMemoDecryptionOptions = {
+  viewingSecretKey?: string | null;
+};
 
 export type VantaShieldTokenAsset = LiveShieldTokenAssetKey;
 
@@ -429,9 +441,24 @@ function createEncryptedMemoInstruction(
   prefix: string,
   payload: object,
   ownerPubkey: string,
+  options: ShieldMemoEncryptionOptions = {},
 ): TransactionInstructionInput {
-  // TODO(viewing-key): replace owner-derived symmetric key with ECDH against
-  // the owner's viewing key + an ephemeral pubkey before mainnet.
+  if (options.viewingPublicKey) {
+    return {
+      accounts: [],
+      data: new TextEncoder().encode(
+        encryptVantaShieldMemoToViewingKey({
+          payload,
+          prefix,
+          viewingPublicKey: options.viewingPublicKey,
+        }),
+      ),
+      programAddress: toAddress(VANTA_SHIELD_MEMO_PROGRAM),
+    };
+  }
+
+  // Legacy fallback for already-written v2 memos and non-browser test callers
+  // that have not yet been passed an explicit viewing key.
   const key = deriveShieldMemoSymmetricKey(ownerPubkey);
   const nonce = new Uint8Array(24);
   if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
@@ -468,9 +495,21 @@ function tryDecryptShieldMemoBody<T>(
   memoText: string,
   prefix: string,
   ownerPubkey: string,
+  options: ShieldMemoDecryptionOptions = {},
 ): T | null {
   if (typeof memoText !== "string") {
     return null;
+  }
+
+  if (options.viewingSecretKey) {
+    const viewingKeyPayload = decryptVantaShieldMemoWithViewingKey<T>({
+      memoText,
+      prefix,
+      viewingSecretKey: options.viewingSecretKey,
+    });
+    if (viewingKeyPayload) {
+      return viewingKeyPayload;
+    }
   }
 
   const trimmed = memoText.trim();
@@ -521,22 +560,26 @@ function tryDecryptShieldMemoBody<T>(
 export function tryDecryptShieldMemo(
   memoText: string,
   ownerPubkey: string,
+  options: ShieldMemoDecryptionOptions = {},
 ): ShieldMemoPayload | null {
   return tryDecryptShieldMemoBody<ShieldMemoPayload>(
     memoText,
     VANTA_SHIELD_MEMO_PREFIX_V2,
     ownerPubkey,
+    options,
   );
 }
 
 export function tryDecryptNativeSolShieldMemo(
   memoText: string,
   ownerPubkey: string,
+  options: ShieldMemoDecryptionOptions = {},
 ): NativeSolShieldMemoPayload | null {
   return tryDecryptShieldMemoBody<NativeSolShieldMemoPayload>(
     memoText,
     VANTA_NATIVE_SOL_SHIELD_MEMO_PREFIX_V2,
     ownerPubkey,
+    options,
   );
 }
 
@@ -783,6 +826,7 @@ function amountsMatch(left: number, right: number) {
 
 export function createShieldMemoInstruction(
   payload: Omit<ShieldMemoPayload, "kind" | "noteId">,
+  options: ShieldMemoEncryptionOptions = {},
 ): TransactionInstructionInput {
   // The noteId remains derived deterministically so other code that consumes
   // it stays byte-identical, but it now lives only inside the encrypted
@@ -796,11 +840,13 @@ export function createShieldMemoInstruction(
     VANTA_SHIELD_MEMO_PREFIX_V2,
     fullPayload,
     payload.owner,
+    options,
   );
 }
 
 export function createNativeSolShieldMemoInstruction(
   payload: Omit<NativeSolShieldMemoPayload, "kind" | "noteId" | "asset">,
+  options: ShieldMemoEncryptionOptions = {},
 ): TransactionInstructionInput {
   const fullPayload: NativeSolShieldMemoPayload = {
     ...payload,
@@ -815,6 +861,7 @@ export function createNativeSolShieldMemoInstruction(
     VANTA_NATIVE_SOL_SHIELD_MEMO_PREFIX_V2,
     fullPayload,
     payload.owner,
+    options,
   );
 }
 
@@ -1007,8 +1054,9 @@ function parseShieldMemo(
   memo: string | null | undefined,
   stateSignature: string,
   owner: string,
+  options: ShieldMemoDecryptionOptions = {},
 ): VantaShieldNote | null {
-  const encryptedPayload = tryDecryptShieldMemo(memo ?? "", owner);
+  const encryptedPayload = tryDecryptShieldMemo(memo ?? "", owner, options);
   if (encryptedPayload) {
     return shieldNoteFromMemoPayload(encryptedPayload, stateSignature);
   }
@@ -1081,8 +1129,9 @@ function parseNativeSolShieldMemo(
   memo: string | null | undefined,
   stateSignature: string,
   owner: string,
+  options: ShieldMemoDecryptionOptions = {},
 ): Omit<VantaShieldedSolNote, "lifecycleStatus"> | null {
-  const encryptedPayload = tryDecryptNativeSolShieldMemo(memo ?? "", owner);
+  const encryptedPayload = tryDecryptNativeSolShieldMemo(memo ?? "", owner, options);
   if (encryptedPayload) {
     return nativeSolShieldNoteFromMemoPayload(encryptedPayload, stateSignature);
   }
@@ -1480,6 +1529,7 @@ export async function fetchVantaShieldAccountState(args: {
   mintAddress: string;
   owner: string;
   vaultOwner: string;
+  viewingSecretKey?: string | null;
 }) {
   const accountAsset = resolveShieldTokenAssetFromMint(args.mintAddress) ?? "VUSD";
   const ownerAddress = toAddress(args.owner);
@@ -1493,7 +1543,9 @@ export async function fetchVantaShieldAccountState(args: {
   const depositShieldNotes = signatures
     .filter((item: (typeof signatures)[number]) => item.err === null)
     .map((item: (typeof signatures)[number]) =>
-      parseShieldMemo(item.memo, item.signature.toString(), args.owner),
+      parseShieldMemo(item.memo, item.signature.toString(), args.owner, {
+        viewingSecretKey: args.viewingSecretKey,
+      }),
     )
     .filter((note: VantaShieldNote | null): note is VantaShieldNote => {
       return (
@@ -1507,7 +1559,9 @@ export async function fetchVantaShieldAccountState(args: {
   const directShieldedSolNotes = signatures
     .filter((item: (typeof signatures)[number]) => item.err === null)
     .map((item: (typeof signatures)[number]) =>
-      parseNativeSolShieldMemo(item.memo, item.signature.toString(), args.owner),
+      parseNativeSolShieldMemo(item.memo, item.signature.toString(), args.owner, {
+        viewingSecretKey: args.viewingSecretKey,
+      }),
     )
     .filter((note: Omit<VantaShieldedSolNote, "lifecycleStatus"> | null): note is Omit<VantaShieldedSolNote, "lifecycleStatus"> => {
       return note !== null && note.owner === args.owner && note.vaultOwner === args.vaultOwner;

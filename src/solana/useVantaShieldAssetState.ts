@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useSolanaClient } from "@solana/react-hooks";
 import { useWalletState } from "@/data/context/WalletContext";
 import { fetchLocallyReleasedSolNoteIds } from "@/solana/operatorStateClient";
+import { useVantaShieldViewingKey } from "@/solana/useVantaShieldViewingKey";
 import {
   fetchVantaShieldAccountState,
   type VantaShieldAccountState,
@@ -23,6 +24,7 @@ export function useVantaShieldAssetState(args: {
 }): VantaShieldAssetStateResult {
   const client = useSolanaClient();
   const { walletAddress, walletConnected } = useWalletState();
+  const viewingKey = useVantaShieldViewingKey();
   const [account, setAccount] = useState<VantaShieldAccountState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -44,6 +46,7 @@ export function useVantaShieldAssetState(args: {
           mintAddress: args.mintAddress,
           owner: walletAddress,
           vaultOwner: args.vaultOwner,
+          viewingSecretKey: viewingKey?.secretKey,
         }),
         args.includeLocallyReleasedSolNotes
           ? fetchLocallyReleasedSolNoteIds().catch(() => new Set<string>())
@@ -67,6 +70,7 @@ export function useVantaShieldAssetState(args: {
     args.mintAddress,
     args.vaultOwner,
     client,
+    viewingKey?.secretKey,
     walletAddress,
     walletConnected,
   ]);

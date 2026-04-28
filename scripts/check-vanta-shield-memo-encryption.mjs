@@ -12,6 +12,7 @@ const tempJsDir = join(tempRoot, "js");
 // constants for token asset keys. We stub it here so the script can run
 // under plain Node without needing Vite's import.meta.env.
 const sourceFiles = [
+  "solana/vantaShieldViewingKey.ts",
   "solana/vantaShieldState.ts",
 ];
 
@@ -40,6 +41,10 @@ function copySource(relativePath) {
     .replace(
       /from "@\/solana\/shieldConfig"/g,
       'from "./shieldConfig"',
+    )
+    .replace(
+      /from "@\/solana\/vantaShieldViewingKey"/g,
+      'from "./vantaShieldViewingKey"',
     );
   writeFileSync(
     join(tempTsDir, relativePath),
@@ -126,12 +131,22 @@ try {
   const shieldStateModule = await import(
     pathToFileURL(join(tempJsDir, "solana/vantaShieldState.js")).href
   );
+  const viewingKeyModule = await import(
+    pathToFileURL(join(tempJsDir, "solana/vantaShieldViewingKey.js")).href
+  );
   const {
     createShieldMemoInstruction,
     createNativeSolShieldMemoInstruction,
     tryDecryptShieldMemo,
     tryDecryptNativeSolShieldMemo,
   } = shieldStateModule;
+  const {
+    createVantaShieldViewingKeypair,
+    decryptVantaShieldMemoWithViewingKey,
+    encryptVantaShieldMemoToViewingKey,
+    exportVantaShieldViewingKeypair,
+    importVantaShieldViewingKeypair,
+  } = viewingKeyModule;
 
   // ---- SPL token shield path -------------------------------------------------
   const ownerPubkey = "OWNER_PUBLIC_KEY_PLACEHOLDER_BASE58";
@@ -252,6 +267,90 @@ try {
   assert(
     noPrefixNativeSol === null,
     "Native SOL memo decryption without v2 prefix must return null.",
+  );
+
+  // ---- Viewing-key ECDH path ------------------------------------------------
+  const viewingKeypair = createVantaShieldViewingKeypair();
+  const exportedViewingKeypair = exportVantaShieldViewingKeypair(viewingKeypair);
+  const importedViewingKeypair = importVantaShieldViewingKeypair(exportedViewingKeypair);
+  assert(
+    importedViewingKeypair.publicKey === viewingKeypair.publicKey,
+    "Imported viewing key public key mismatch.",
+  );
+  assert(
+    importedViewingKeypair.secretKey === viewingKeypair.secretKey,
+    "Imported viewing key secret key mismatch.",
+  );
+
+  const ecdhMemoText = encryptVantaShieldMemoToViewingKey({
+    payload: shieldPayload,
+    prefix: VANTA_SHIELD_MEMO_PREFIX_V2,
+    viewingPublicKey: viewingKeypair.publicKey,
+  });
+  assert(
+    ecdhMemoText.startsWith(VANTA_SHIELD_MEMO_PREFIX_V2),
+    "Viewing-key memo must use the Shield v2 prefix.",
+  );
+  assertNoLeak(ecdhMemoText, [
+    shieldPayload.amount,
+    shieldPayload.asset,
+    shieldPayload.depositSignature,
+    shieldPayload.mintAddress,
+    shieldPayload.owner,
+    shieldPayload.vaultOwner,
+  ]);
+  assert(
+    tryDecryptShieldMemo(ecdhMemoText, ownerPubkey) === null,
+    "Owner public key alone must not decrypt viewing-key Shield memos.",
+  );
+
+  const viewingDecryptedShield = decryptVantaShieldMemoWithViewingKey({
+    memoText: ecdhMemoText,
+    prefix: VANTA_SHIELD_MEMO_PREFIX_V2,
+    viewingSecretKey: viewingKeypair.secretKey,
+  });
+  assert(viewingDecryptedShield !== null, "Viewing private key must decrypt Shield memo.");
+  assert(
+    viewingDecryptedShield.amount === shieldPayload.amount,
+    "Viewing-key decrypted Shield amount mismatch.",
+  );
+  assert(
+    decryptVantaShieldMemoWithViewingKey({
+      memoText: ecdhMemoText,
+      prefix: VANTA_SHIELD_MEMO_PREFIX_V2,
+      viewingSecretKey: createVantaShieldViewingKeypair().secretKey,
+    }) === null,
+    "Wrong viewing private key must not decrypt Shield memo.",
+  );
+
+  const viewingInstruction = createShieldMemoInstruction(shieldPayload, {
+    viewingPublicKey: viewingKeypair.publicKey,
+  });
+  const viewingInstructionMemoText = decodeMemoText(viewingInstruction);
+  assertNoLeak(viewingInstructionMemoText, [
+    shieldPayload.amount,
+    shieldPayload.asset,
+    shieldPayload.depositSignature,
+    shieldPayload.mintAddress,
+    shieldPayload.owner,
+    shieldPayload.vaultOwner,
+  ]);
+  assert(
+    tryDecryptShieldMemo(viewingInstructionMemoText, ownerPubkey) === null,
+    "Owner public key alone must not decrypt instruction-created viewing-key Shield memos.",
+  );
+  const viewingInstructionPayload = tryDecryptShieldMemo(
+    viewingInstructionMemoText,
+    ownerPubkey,
+    { viewingSecretKey: viewingKeypair.secretKey },
+  );
+  assert(
+    viewingInstructionPayload !== null,
+    "tryDecryptShieldMemo must decrypt instruction-created viewing-key memos when passed the viewing secret.",
+  );
+  assert(
+    viewingInstructionPayload.amount === shieldPayload.amount,
+    "Instruction-created viewing-key Shield amount mismatch.",
   );
 
   console.log("vanta shield memo encryption: PASS");
