@@ -99,6 +99,7 @@ const packet = {
     preflight: "npm run mainnet:actual-private-settlement-live",
     execute: "node scripts/run-vanta-actual-private-mainnet-settlement-evidence.mjs --live --execute",
     executorCheck: packageJson.scripts["mainnet:actual-private-settlement-executor-check"],
+    productionCapabilityCheck: packageJson.scripts["mainnet:actual-private-production-capability-check"],
     evidencePreview: packageJson.scripts["mainnet:actual-private-settlement-evidence-preview"],
   },
   approvalTextTemplate:
@@ -115,6 +116,13 @@ const packet = {
     },
   },
   settlementPlanJsonShape: Object.fromEntries(planFields.map(([field]) => [field, `<${field}>`])),
+  productionCapabilityGate: {
+    evidenceRef: "ops/mainnet/actual-private-production-capability.evidence.json",
+    requiredStatusPath: "/state/private-pool-v2-status",
+    requiredSendProofMode: "actual_private_spend_circuit_request",
+    staleSendProofMode: "send_circuit_request",
+    executeAllowedWhenStale: false,
+  },
   shellExportTemplate: shellExports(refs),
   forbiddenOutputValues: [
     "wallet private keys",

@@ -40,6 +40,10 @@ assert.match(packet.approvalTextTemplate, /0\.025 SOL/);
 assert.equal(packet.commands.preflight, "npm run mainnet:actual-private-settlement-live");
 assert.equal(packet.commands.execute, "node scripts/run-vanta-actual-private-mainnet-settlement-evidence.mjs --live --execute");
 assert.equal(packet.commands.executorCheck, packageJson.scripts["mainnet:actual-private-settlement-executor-check"]);
+assert.equal(
+  packet.commands.productionCapabilityCheck,
+  packageJson.scripts["mainnet:actual-private-production-capability-check"],
+);
 assert.equal(packet.commands.evidencePreview, packageJson.scripts["mainnet:actual-private-settlement-evidence-preview"]);
 
 assert.equal(packet.requiredEnvironment.walletPublicKeyRef, "VANTA_ACTUAL_PRIVATE_MAINNET_WALLET_PUBLIC_KEY_REF");
@@ -65,6 +69,15 @@ assert.equal(
   packet.requiredEnvironment.acknowledgements.VANTA_ACTUAL_PRIVATE_MAINNET_SETTLEMENT_EXECUTE_ACK,
   "I_UNDERSTAND_THIS_WILL_REQUEST_A_MAINNET_PRIVATE_SETTLEMENT",
 );
+
+assert.equal(
+  packet.productionCapabilityGate.evidenceRef,
+  "ops/mainnet/actual-private-production-capability.evidence.json",
+);
+assert.equal(packet.productionCapabilityGate.requiredStatusPath, "/state/private-pool-v2-status");
+assert.equal(packet.productionCapabilityGate.requiredSendProofMode, "actual_private_spend_circuit_request");
+assert.equal(packet.productionCapabilityGate.staleSendProofMode, "send_circuit_request");
+assert.equal(packet.productionCapabilityGate.executeAllowedWhenStale, false);
 
 assert.ok(packet.shellExportTemplate.some((line) => line.includes("VANTA_ACTUAL_PRIVATE_MAINNET_WALLET_PUBLIC_KEY_REF")));
 assert.ok(packet.shellExportTemplate.some((line) => line.includes("VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN")));
