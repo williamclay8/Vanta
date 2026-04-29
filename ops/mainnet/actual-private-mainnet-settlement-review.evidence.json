@@ -1,0 +1,74 @@
+{
+  "version": "vanta-actual-private-mainnet-settlement-review-evidence-0.1",
+  "checkedAt": "2026-04-29T04:02:00Z",
+  "reviewStatus": "reviewed-blocked",
+  "mainnetReady": false,
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "liveMainnetSettlementProven": false,
+  "secretPolicy": "references-only-no-secret-values",
+  "reviewedSettlementRefs": {
+    "operatorReceiptRef": "operator-receipt:ppv2_5dc58490314d855c5060eace",
+    "protocolSettlementRef": "operator-protocol-settlement:proto_1ef774cec8a4964fd8a4650b",
+    "approvalWindowRef": "2026-04-28T20:55:00-22:20:00 America/Los_Angeles"
+  },
+  "passedChecks": [
+    {
+      "id": "operator-receipt-found",
+      "evidenceRef": "GET /state/private-pool-v2-receipts filtered to proto_1ef774cec8a4964fd8a4650b",
+      "result": "pass"
+    },
+    {
+      "id": "operator-receipt-shape",
+      "evidenceRef": "operator receipt action send, committed economics, private-send proof, hidden:economic-terms sentinel",
+      "result": "pass"
+    },
+    {
+      "id": "operator-public-transcript-redaction",
+      "evidenceRef": "operator receipt review found no source wallet, merchant settlement address, raw amount, raw asset, input commitment, input leaf index, deposit signature, plaintext memo, signed transaction, private key, seed phrase, or bearer token",
+      "result": "pass"
+    },
+    {
+      "id": "indexer-nullifier-found",
+      "evidenceRef": "GET /v1/nullifiers/nullifier%3Aactual-private-live-candidate-2055-2220",
+      "result": "pass"
+    },
+    {
+      "id": "indexer-output-commitments-found",
+      "evidenceRef": "GET /v1/commitments?treeId=pool%3Astablecoin-usdc-v1 found merchant and change outputs",
+      "result": "pass"
+    },
+    {
+      "id": "accepted-root-current",
+      "evidenceRef": "GET /v1/roots/latest?treeId=pool%3Astablecoin-usdc-v1 returned 0x7cfdeac18172b47a07054157447ea133f0678659cb054c4e68777c98417c1c1f",
+      "result": "pass"
+    }
+  ],
+  "failedOrBlockedChecks": [
+    {
+      "id": "solscan-relayer-spend-transaction",
+      "requiredEvidence": "A Solscan transaction signature submitted by the relayer fee payer, not the source funding wallet.",
+      "observedEvidence": "operator-protocol-settlement:proto_1ef774cec8a4964fd8a4650b is an operator receipt id, not a Solana transaction signature.",
+      "result": "blocked"
+    },
+    {
+      "id": "shared-cohort-deposit-transaction",
+      "requiredEvidence": "A live mainnet deposit transaction into the named shared cohort.",
+      "observedEvidence": "review:shared-cohort-deposit-ref-not-yet-solscan-final-reviewed-2055-2220 is a placeholder review ref.",
+      "result": "blocked"
+    },
+    {
+      "id": "live-nullifier-replay-rejection",
+      "requiredEvidence": "A live duplicate nullifier replay rejection against production after the settlement.",
+      "observedEvidence": "The nullifier is present in the production indexer, but a duplicate live settlement request was not run because the single-run approval window was consumed and blocked from reuse.",
+      "result": "blocked"
+    }
+  ],
+  "finalVerdict": "Do not claim Solscan-untrackable or live-mainnet-private settlement from this packet. The production operator accepted and indexed an actual-private committed settlement, but final on-chain relayer/deposit/replay evidence is still missing.",
+  "nextRequiredEvidence": [
+    "Capture a real relayer-submitted Solana transaction signature for the private spend.",
+    "Capture the shared-cohort deposit Solana transaction signature.",
+    "Run or otherwise obtain a reviewed duplicate-nullifier rejection ref under a fresh approval that explicitly permits that replay check, or add a no-funds replay-check endpoint that cannot submit settlement.",
+    "Update the settlement evidence packet only after those refs are real, not placeholder review refs."
+  ]
+}

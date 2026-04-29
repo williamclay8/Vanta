@@ -40,6 +40,7 @@
     "mainnetPrivateSettlement": "npm run mainnet:private-settlement-check",
     "liveMainnetSettlementTemplate": "ops/mainnet/actual-private-mainnet-settlement.evidence.template.json",
     "liveMainnetSettlementEvidence": "ops/mainnet/actual-private-mainnet-settlement.evidence.json",
+    "liveMainnetSettlementReview": "ops/mainnet/actual-private-mainnet-settlement-review.evidence.json",
     "productionCapability": "ops/mainnet/actual-private-production-capability.evidence.json",
     "productionSmoke": "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
     "actualPrivateRailRegression": "npm run private-transaction:mvp-check"
@@ -55,6 +56,7 @@
     "npm run mainnet:private-settlement-check",
     "npm run mainnet:actual-private-production-capability-check",
     "npm run mainnet:actual-private-settlement-evidence-check",
+    "npm run mainnet:actual-private-settlement-review-check",
     "npm run mainnet:production-smoke-evidence-check"
   ],
   "evidenceStatus": {
@@ -65,7 +67,7 @@
     "safeLogging": "local-contract-covered",
     "audit": "packet-template-only",
     "productionCapability": "production-operator-send-proof-mode-aligned",
-    "mainnetEvidence": "live-refs-collected-awaiting-review"
+    "mainnetEvidence": "live-refs-reviewed-blocked"
   },
   "productionBlockers": [
     "No live mainnet production cohort metrics are recorded.",
@@ -75,7 +77,7 @@
     "No production relayer log-redaction evidence is recorded.",
     "No production deployment separation evidence is recorded.",
     "No third-party audit report and fix-verification packet is recorded.",
-    "Live actual-private settlement refs are collected but still awaiting final review.",
+    "Live actual-private settlement refs were reviewed and remain blocked by missing Solscan relayer spend, shared-cohort deposit, and live replay rejection evidence.",
     "No active bounded real-funds approval window is available."
   ],
   "forbiddenInGit": [

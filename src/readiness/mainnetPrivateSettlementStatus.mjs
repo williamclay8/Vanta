@@ -11,12 +11,17 @@ const actualPrivateSettlementEvidencePath = new URL(
   "../../ops/mainnet/actual-private-mainnet-settlement.evidence.json",
   import.meta.url,
 );
+const actualPrivateSettlementReviewPath = new URL(
+  "../../ops/mainnet/actual-private-mainnet-settlement-review.evidence.json",
+  import.meta.url,
+);
 
 export function createVantaMainnetPrivateSettlementStatus() {
   const productionSmokeEvidence = JSON.parse(readFileSync(productionSmokeEvidencePath, "utf8"));
   const routeHealthEvidence = JSON.parse(readFileSync(routeHealthEvidencePath, "utf8"));
   const nullifierReplayEvidence = JSON.parse(readFileSync(nullifierReplayEvidencePath, "utf8"));
   const actualPrivateSettlementEvidence = JSON.parse(readFileSync(actualPrivateSettlementEvidencePath, "utf8"));
+  const actualPrivateSettlementReview = JSON.parse(readFileSync(actualPrivateSettlementReviewPath, "utf8"));
   const realFundsApproval = createVantaMainnetRealFundsApprovalStatus();
   const anonymitySetReadiness = createVantaPrivatePoolV2AnonymitySetReadiness();
   const privacyRail = createVantaPrivacyRailContract({ activeRailId: "vanta-private-pool-v2" });
@@ -59,6 +64,7 @@ export function createVantaMainnetPrivateSettlementStatus() {
       "ops/mainnet/actual-private-production-evidence.packet.json",
       "ops/mainnet/actual-private-mainnet-settlement.evidence.template.json",
       "ops/mainnet/actual-private-mainnet-settlement.evidence.json",
+      "ops/mainnet/actual-private-mainnet-settlement-review.evidence.json",
       "ops/mainnet/actual-private-mainnet-settlement-stop-condition.evidence.json",
       "ops/mainnet/service-deployment.evidence.json",
       "ops/mainnet/mainnet-real-funds-approval.evidence.json",
@@ -67,6 +73,8 @@ export function createVantaMainnetPrivateSettlementStatus() {
     actualPrivateMainnetEvidence: {
       evidenceRefs: actualPrivateSettlementEvidence.evidenceRefs,
       evidenceStatus: actualPrivateSettlementEvidence.currentStatus,
+      reviewStatus: actualPrivateSettlementReview.reviewStatus,
+      reviewVerdict: actualPrivateSettlementReview.finalVerdict,
       liveMainnetSettlementProven: actualPrivateSettlementEvidence.liveMainnetSettlementProven === true,
       noRealFundsSmokeTargetPassed: actualPrivateSmokeTarget?.status === "pass",
       noRealFundsSmokeTranscript: actualPrivateSmokeTarget?.publicTranscript ?? "missing",
@@ -79,8 +87,10 @@ export function createVantaMainnetPrivateSettlementStatus() {
         "reviewer packet proving no source wallet, merchant address, raw amount, input commitment, input leaf index, deposit signature, plaintext memo, or same-fee-payer linkage appears in the public spend transcript",
       ],
       status:
-        actualPrivateSettlementEvidence.currentStatus === "filled-refs-awaiting-review"
-          ? "live-refs-collected-awaiting-review"
+        actualPrivateSettlementReview.reviewStatus === "reviewed-blocked"
+          ? "live-refs-reviewed-blocked"
+          : actualPrivateSettlementEvidence.currentStatus === "filled-refs-awaiting-review"
+            ? "live-refs-collected-awaiting-review"
           : "no-real-funds-smoke-only",
     },
     lastRouteHealthRef: routeHealthEvidence.lastAuthenticatedReadinessRef,

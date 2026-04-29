@@ -49,6 +49,9 @@ assert.deepEqual(result.actualPrivateMainnetEvidence, {
     sharedCohortDepositTxRef: "review:shared-cohort-deposit-ref-not-yet-solscan-final-reviewed-2055-2220",
   },
   evidenceStatus: "filled-refs-awaiting-review",
+  reviewStatus: "reviewed-blocked",
+  reviewVerdict:
+    "Do not claim Solscan-untrackable or live-mainnet-private settlement from this packet. The production operator accepted and indexed an actual-private committed settlement, but final on-chain relayer/deposit/replay evidence is still missing.",
   liveMainnetSettlementProven: false,
   noRealFundsSmokeTargetPassed: true,
   noRealFundsSmokeTranscript: "pool-cohort-root-nullifier-output-context-only",
@@ -60,7 +63,7 @@ assert.deepEqual(result.actualPrivateMainnetEvidence, {
     "post-settlement nullifier replay rejection against the live production store",
     "reviewer packet proving no source wallet, merchant address, raw amount, input commitment, input leaf index, deposit signature, plaintext memo, or same-fee-payer linkage appears in the public spend transcript",
   ],
-  status: "live-refs-collected-awaiting-review",
+  status: "live-refs-reviewed-blocked",
 });
 assert.equal(result.realFundsApprovalRecorded, true);
 assert.equal(result.realFundsAllowedNow, result.boundedRealFundsApprovalWindowActive);
@@ -89,6 +92,7 @@ assert.deepEqual(result.checkedEvidenceRefs, [
   "ops/mainnet/actual-private-production-evidence.packet.json",
   "ops/mainnet/actual-private-mainnet-settlement.evidence.template.json",
   "ops/mainnet/actual-private-mainnet-settlement.evidence.json",
+  "ops/mainnet/actual-private-mainnet-settlement-review.evidence.json",
   "ops/mainnet/actual-private-mainnet-settlement-stop-condition.evidence.json",
   "ops/mainnet/service-deployment.evidence.json",
   "ops/mainnet/mainnet-real-funds-approval.evidence.json",

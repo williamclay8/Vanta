@@ -18,6 +18,7 @@ const anonymity = readJson("ops/mainnet/private-pool-v2-anonymity-set.evidence.j
 const relayer = readJson("ops/mainnet/private-pool-v2-relayer-separation.evidence.json");
 const nullifier = readJson("ops/mainnet/private-pool-v2-nullifier-replay.evidence.json");
 const actualPrivateSettlement = readJson("ops/mainnet/actual-private-mainnet-settlement.evidence.json");
+const actualPrivateSettlementReview = readJson("ops/mainnet/actual-private-mainnet-settlement-review.evidence.json");
 const productionCapability = readJson("ops/mainnet/actual-private-production-capability.evidence.json");
 const productionSmoke = readJson("ops/mainnet/private-pool-v2-production-smoke.evidence.json");
 const roleService = readJson("ops/mainnet/private-pool-v2-role-service-replay.evidence.json");
@@ -74,6 +75,10 @@ assert.equal(
   packet.evidenceRefs.liveMainnetSettlementEvidence,
   "ops/mainnet/actual-private-mainnet-settlement.evidence.json",
 );
+assert.equal(
+  packet.evidenceRefs.liveMainnetSettlementReview,
+  "ops/mainnet/actual-private-mainnet-settlement-review.evidence.json",
+);
 assert.equal(packet.evidenceRefs.productionCapability, "ops/mainnet/actual-private-production-capability.evidence.json");
 assert.equal(packet.evidenceRefs.productionSmoke, "ops/mainnet/private-pool-v2-production-smoke.evidence.json");
 assert.equal(packet.evidenceRefs.actualPrivateRailRegression, "npm run private-transaction:mvp-check");
@@ -89,6 +94,7 @@ for (const command of [
   "npm run mainnet:private-settlement-check",
   "npm run mainnet:actual-private-production-capability-check",
   "npm run mainnet:actual-private-settlement-evidence-check",
+  "npm run mainnet:actual-private-settlement-review-check",
   "npm run mainnet:production-smoke-evidence-check",
 ]) {
   assert.ok(packet.requiredCommands.includes(command), `Missing required command: ${command}`);
@@ -113,6 +119,9 @@ assert.equal(productionCapability.capabilityDecision?.reason, "actual-private-op
 assert.equal(productionCapability.settlementPostAllowed, true);
 assert.equal(actualPrivateSettlement.currentStatus, "filled-refs-awaiting-review");
 assert.equal(actualPrivateSettlement.liveMainnetSettlementProven, false);
+assert.equal(actualPrivateSettlementReview.reviewStatus, "reviewed-blocked");
+assert.equal(actualPrivateSettlementReview.liveMainnetSettlementProven, false);
+assert.equal(actualPrivateSettlementReview.privacyClaimAllowed, false);
 assert.equal(
   actualPrivateSettlement.evidenceRefs?.operatorReceiptRef,
   "operator-receipt:ppv2_5dc58490314d855c5060eace",
@@ -134,7 +143,7 @@ assert.equal(
 assert.equal(packet.evidenceStatus.safeLogging, "local-contract-covered");
 assert.equal(packet.evidenceStatus.audit, "packet-template-only");
 assert.equal(packet.evidenceStatus.productionCapability, "production-operator-send-proof-mode-aligned");
-assert.equal(packet.evidenceStatus.mainnetEvidence, "live-refs-collected-awaiting-review");
+assert.equal(packet.evidenceStatus.mainnetEvidence, "live-refs-reviewed-blocked");
 
 for (const blocker of [
   "No live mainnet production cohort metrics are recorded.",
@@ -144,7 +153,7 @@ for (const blocker of [
   "No production relayer log-redaction evidence is recorded.",
   "No production deployment separation evidence is recorded.",
   "No third-party audit report and fix-verification packet is recorded.",
-  "Live actual-private settlement refs are collected but still awaiting final review.",
+  "Live actual-private settlement refs were reviewed and remain blocked by missing Solscan relayer spend, shared-cohort deposit, and live replay rejection evidence.",
   "No active bounded real-funds approval window is available.",
 ]) {
   assert.ok(packet.productionBlockers.includes(blocker), `Missing production blocker: ${blocker}`);
