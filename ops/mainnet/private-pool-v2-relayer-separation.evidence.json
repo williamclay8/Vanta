@@ -40,8 +40,10 @@
     "ops/mainnet/actual-private-production-evidence.packet.json",
     "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
     "ops/mainnet/private-pool-v2-route-health.evidence.json",
+    "ops/mainnet/private-pool-v2-services.manifest.json#relayer",
     "npm run private-transaction:mvp-check",
     "npm run private-pool-v2:service-network-check",
+    "npm run ops:safe-telemetry-check",
     "npm run mainnet:role-service-replay-evidence-check"
   ],
   "separationChecks": [
@@ -59,15 +61,15 @@
     },
     {
       "id": "production-relayer-log-redaction",
-      "status": "not-recorded",
-      "ref": "VANTA_PRIVATE_POOL_V2_RELAYER_LOG_REDACTION_REF",
-      "privacyMeaning": "required before relayer separation can be claimed"
+      "status": "local-contract-covered-production-review-not-recorded",
+      "ref": "npm run ops:safe-telemetry-check",
+      "privacyMeaning": "local safe-telemetry redaction covers auth tokens, database URLs, wallet keys, signed transaction material, and private inputs; production log review remains required before relayer separation can be claimed"
     },
     {
       "id": "production-deployment-separation",
-      "status": "not-recorded",
-      "ref": "VANTA_PRIVATE_POOL_V2_RELAYER_DEPLOYMENT_SEPARATION_REF",
-      "privacyMeaning": "required before relayer separation can be claimed"
+      "status": "manifest-covered-independent-review-not-recorded",
+      "ref": "ops/mainnet/private-pool-v2-services.manifest.json#relayer",
+      "privacyMeaning": "manifest records a distinct production relayer service id, URL, auth secret ref, database secret ref, and fee-wallet ref; independent production review remains required before relayer separation can be claimed"
     },
     {
       "id": "independent-review",
@@ -79,8 +81,8 @@
   "productionBlockers": [
     "Relayer separation is not proven by role-service replay evidence alone.",
     "Same-fee-payer linkage is only locally regression-guarded; no production relayer submission evidence is recorded.",
-    "No production relayer log-redaction evidence is recorded.",
-    "No production deployment separation evidence is recorded.",
+    "Production relayer log redaction is locally contract-covered but not independently reviewed.",
+    "Production relayer deployment separation is manifest-covered but not independently reviewed.",
     "No independent reviewer has accepted the relayer separation boundary."
   ],
   "forbiddenInGit": [

@@ -27,7 +27,7 @@ export function createVantaPrivatePoolV2AnonymitySetReadiness() {
         "npm run private-pool-v2:relayer-separation-evidence-check",
       ],
       currentTruth:
-        "role-service replay evidence proves correctness barriers; it is not relayer privacy separation evidence",
+        "role-service replay evidence proves correctness barriers; local safe-telemetry and service manifest checks cover parts of relayer separation; independent production review and live relayer-submitted spend evidence are still required",
     },
     nullifierUniqueness: {
       requiredEvidenceRefs: [
@@ -60,15 +60,14 @@ export function createVantaPrivatePoolV2AnonymitySetReadiness() {
       "VANTA_PRIVATE_POOL_V2_ANONYMITY_SET_REF",
       "VANTA_PRIVATE_POOL_V2_PRODUCTION_ANONYMITY_METRICS_REF",
       "VANTA_PRIVATE_POOL_V2_RELAYER_SEPARATION_REF",
-      "VANTA_PRIVATE_POOL_V2_RELAYER_LOG_REDACTION_REF",
-      "VANTA_PRIVATE_POOL_V2_RELAYER_DEPLOYMENT_SEPARATION_REF",
     ],
     blockers: [
       "no-proven-audited-shared-anonymity-set",
       "no-live-mainnet-private-settlement-path",
       "no-third-party-audit",
       "no-production-anonymity-set-metrics",
-      "no-production-relayer-separation-evidence",
+      "no-independent-production-relayer-separation-review",
+      "no-live-relayer-submitted-spend-evidence",
     ],
     nonClaims: [
       "no anonymity guarantee",

@@ -130,7 +130,8 @@ assert.deepEqual(snapshot.privateSettlement.meaningfulPrivacyBlockedBy, [
   "no-live-mainnet-private-settlement-path",
   "no-third-party-audit",
   "no-production-anonymity-set-metrics",
-  "no-production-relayer-separation-evidence",
+  "no-independent-production-relayer-separation-review",
+  "no-live-relayer-submitted-spend-evidence",
   "no-live-actual-private-mainnet-settlement-evidence",
   ...(snapshot.privateSettlement.boundedRealFundsApprovalWindowActive ? [] : ["no-active-bounded-real-funds-approval-window"]),
 ]);

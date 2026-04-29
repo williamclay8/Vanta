@@ -51,7 +51,9 @@ for (const ref of [
 
 for (const ref of [
   "ops/mainnet/actual-private-production-evidence.packet.json",
+  "ops/mainnet/private-pool-v2-services.manifest.json#relayer",
   "npm run private-transaction:mvp-check",
+  "npm run ops:safe-telemetry-check",
 ]) {
   assert.ok(evidence.currentEvidenceRefs.includes(ref), `Missing current relayer evidence ref: ${ref}`);
 }
@@ -59,8 +61,14 @@ for (const ref of [
 const checksById = new Map(evidence.separationChecks.map((check) => [check.id, check]));
 assert.equal(checksById.get("role-service-replay-barrier")?.status, "local-harness-covered");
 assert.equal(checksById.get("same-fee-payer-linkage-barrier")?.status, "local-regression-covered");
-assert.equal(checksById.get("production-relayer-log-redaction")?.status, "not-recorded");
-assert.equal(checksById.get("production-deployment-separation")?.status, "not-recorded");
+assert.equal(
+  checksById.get("production-relayer-log-redaction")?.status,
+  "local-contract-covered-production-review-not-recorded",
+);
+assert.equal(
+  checksById.get("production-deployment-separation")?.status,
+  "manifest-covered-independent-review-not-recorded",
+);
 assert.equal(checksById.get("independent-review")?.status, "not-recorded");
 assert.ok(
   checksById.get("role-service-replay-barrier")?.privacyMeaning.includes("not sufficient relayer privacy separation"),
@@ -74,12 +82,20 @@ assert.ok(
   checksById.get("same-fee-payer-linkage-barrier")?.privacyMeaning.includes("must not expose payer source wallet"),
   "Same-fee-payer linkage barrier must forbid source-wallet exposure.",
 );
+assert.ok(
+  checksById.get("production-relayer-log-redaction")?.privacyMeaning.includes("local safe-telemetry redaction covers"),
+  "Relayer log-redaction check must point at local safe-telemetry coverage.",
+);
+assert.ok(
+  checksById.get("production-deployment-separation")?.privacyMeaning.includes("distinct production relayer service id"),
+  "Deployment separation check must point at manifest-covered relayer separation.",
+);
 
 for (const blocker of [
   "Relayer separation is not proven by role-service replay evidence alone.",
   "Same-fee-payer linkage is only locally regression-guarded; no production relayer submission evidence is recorded.",
-  "No production relayer log-redaction evidence is recorded.",
-  "No production deployment separation evidence is recorded.",
+  "Production relayer log redaction is locally contract-covered but not independently reviewed.",
+  "Production relayer deployment separation is manifest-covered but not independently reviewed.",
   "No independent reviewer has accepted the relayer separation boundary.",
 ]) {
   assert.ok(evidence.productionBlockers.includes(blocker), `Missing relayer blocker: ${blocker}`);
