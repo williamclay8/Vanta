@@ -292,6 +292,7 @@ const report = {
       status: "blocked",
       activePrivacyRailId: "vanta-private-pool-v2",
       approvedActionRef: expectedActionRef,
+      browserHandoffRoute: "/app/actual-private-settlement",
       maximumFundsAtRiskRef: expectedMaximumFundsAtRisk,
       maximumFundsAtRiskLamports: expectedMaximumFundsAtRiskLamports,
       actions: [
@@ -345,7 +346,7 @@ const report = {
       requiredValueRef: expectedAck,
     },
     requiredNextStep:
-      "Implement and review a separate no-secret transaction builder/signing boundary before any live mainnet submission is possible.",
+      "Use the browser handoff route for the source-wallet deposit path, then implement the relayer-submitted private spend evidence writer before any live mainnet submission is possible.",
   },
 };
 

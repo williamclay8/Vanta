@@ -9,6 +9,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { PrivateVaultProvider } from "@/data/context/PrivateVaultContext";
 import { PrivacyFlowProvider } from "@/data/context/PrivacyFlowContext";
 import { WalletProvider } from "@/data/context/WalletContext";
+import { ActualPrivateSettlementPage } from "@/pages/ActualPrivateSettlementPage";
 import { LaunchPage } from "@/pages/LaunchPage";
 import { PayPage } from "@/pages/PayPage";
 import { PrivacyReviewPage } from "@/pages/PrivacyReviewPage";
@@ -121,6 +122,7 @@ function App() {
           <Route path="pay" element={<PayPage />} />
           <Route path="launch" element={<LaunchPage />} />
           <Route path="privacy-review" element={<PrivacyReviewPage />} />
+          <Route path="actual-private-settlement" element={<ActualPrivateSettlementPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/app/shield" replace />} />
       </Routes>
