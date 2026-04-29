@@ -56,6 +56,30 @@ for (const service of report.phases.services.required) {
   assert.ok(!service.sanitizedValue?.includes("Bearer "), `${service.env} leaked a bearer token.`);
 }
 
+const manifestFallbackRun = spawnSync("node", [runnerPath, "--dry-run"], {
+  cwd: repoRoot,
+  encoding: "utf8",
+  env: executorEnv({
+    VANTA_PRIVATE_POOL_V2_OPERATOR_URL_REF: "",
+    VANTA_PRIVATE_POOL_V2_INDEXER_URL_REF: "",
+    VANTA_PRIVATE_POOL_V2_RELAYER_URL_REF: "",
+    VANTA_PRIVATE_POOL_V2_PROVER_URL_REF: "",
+    VANTA_PRIVATE_POOL_V2_VERIFIER_URL_REF: "",
+  }),
+});
+assert.equal(manifestFallbackRun.status, 0, manifestFallbackRun.stderr || manifestFallbackRun.stdout);
+const manifestFallbackReport = JSON.parse(manifestFallbackRun.stdout);
+const urlFallbackServices = manifestFallbackReport.phases.services.required.filter(
+  (service) => service.valuePolicy === "url-ref-or-sanitized-url",
+);
+assert.equal(urlFallbackServices.length, 5);
+for (const service of urlFallbackServices) {
+  assert.equal(service.status, "ready", `${service.env} must resolve from the production services manifest.`);
+  assert.equal(service.valueSource, "production-service-manifest");
+  assert.equal(service.manifestRef, "ops/mainnet/private-pool-v2-services.manifest.json");
+  assert.match(service.sanitizedValue, /^https:\/\/vanta-prod-private-pool-v2-/);
+}
+
 assert.deepEqual(report.phases.settlementPlan.actions, [
   "validate-bounded-approval",
   "validate-wallet-public-key-ref",
@@ -112,6 +136,11 @@ assert.equal(
   packageJson.scripts["mainnet:actual-private-settlement-executor-check"],
   "node scripts/check-vanta-actual-private-mainnet-settlement-executor.mjs",
   "package.json must expose mainnet:actual-private-settlement-executor-check.",
+);
+assert.equal(
+  packageJson.scripts["mainnet:actual-private-settlement-live"],
+  "node scripts/run-vanta-actual-private-mainnet-settlement-evidence.mjs --live",
+  "mainnet:actual-private-settlement-live must run the executor in live-preflight mode.",
 );
 assert.ok(
   packageJson.scripts["mainnet:preflight"].includes("npm run mainnet:actual-private-settlement-executor-check"),

@@ -1,8 +1,10 @@
 import { strict as assert } from "node:assert";
+import { readFileSync } from "node:fs";
 
 import { createVantaMainnetRealFundsApprovalStatus } from "../src/readiness/mainnetRealFundsApprovalStatus.mjs";
 
 const args = new Set(process.argv.slice(2));
+const productionServicesManifestPath = new URL("../ops/mainnet/private-pool-v2-services.manifest.json", import.meta.url);
 const mode = args.has("--live") ? "live-preflight" : "dry-run";
 const dryRun = mode === "dry-run";
 const expectedAck = "I_UNDERSTAND_THIS_RUN_CAN_MOVE_MAINNET_FUNDS";
@@ -21,26 +23,31 @@ const walletEnv = {
 const serviceEnv = [
   {
     env: "VANTA_PRIVATE_POOL_V2_OPERATOR_URL_REF",
+    manifestServiceId: "operator",
     kind: "operator-url",
     valuePolicy: "url-ref-or-sanitized-url",
   },
   {
     env: "VANTA_PRIVATE_POOL_V2_INDEXER_URL_REF",
+    manifestServiceId: "indexer",
     kind: "indexer-url",
     valuePolicy: "url-ref-or-sanitized-url",
   },
   {
     env: "VANTA_PRIVATE_POOL_V2_RELAYER_URL_REF",
+    manifestServiceId: "relayer",
     kind: "relayer-url",
     valuePolicy: "url-ref-or-sanitized-url",
   },
   {
     env: "VANTA_PRIVATE_POOL_V2_PROVER_URL_REF",
+    manifestServiceId: "prover",
     kind: "prover-url",
     valuePolicy: "url-ref-or-sanitized-url",
   },
   {
     env: "VANTA_PRIVATE_POOL_V2_VERIFIER_URL_REF",
+    manifestServiceId: "verifier",
     kind: "verifier-url",
     valuePolicy: "url-ref-or-sanitized-url",
   },
@@ -135,9 +142,36 @@ function forbiddenIds(value) {
   return forbiddenSecretPatterns.filter((pattern) => pattern.test(value)).map((pattern) => pattern.id);
 }
 
-function evaluateEnv(spec) {
+function readProductionServiceManifestUrls() {
+  const manifest = JSON.parse(readFileSync(productionServicesManifestPath, "utf8"));
+  const manifestUrls = new Map();
+  for (const service of manifest.services ?? []) {
+    const id = typeof service.id === "string" ? service.id.trim() : "";
+    const url = typeof service.deployedService?.url === "string" ? service.deployedService.url.trim() : "";
+    const sanitizedUrl = sanitizeUrl(url);
+    if (id && sanitizedUrl) {
+      manifestUrls.set(id, sanitizedUrl);
+    }
+  }
+  return manifestUrls;
+}
+
+function evaluateEnv(spec, manifestUrls = new Map()) {
   const rawValue = process.env[spec.env]?.trim() ?? "";
+  const manifestUrl = spec.manifestServiceId ? manifestUrls.get(spec.manifestServiceId) : null;
   if (!rawValue) {
+    if (spec.valuePolicy === "url-ref-or-sanitized-url" && manifestUrl) {
+      return {
+        env: spec.env,
+        kind: spec.kind,
+        status: "ready",
+        valuePolicy: spec.valuePolicy,
+        sanitizedValue: manifestUrl,
+        valueSource: "production-service-manifest",
+        manifestRef: "ops/mainnet/private-pool-v2-services.manifest.json",
+        manifestServiceId: spec.manifestServiceId,
+      };
+    }
     return {
       env: spec.env,
       kind: spec.kind,
@@ -225,7 +259,8 @@ assert.equal(
 );
 
 const wallet = evaluateEnv(walletEnv);
-const services = serviceEnv.map(evaluateEnv);
+const manifestUrls = readProductionServiceManifestUrls();
+const services = serviceEnv.map((service) => evaluateEnv(service, manifestUrls));
 const actionMatchesApproval = approvalStatus.approvalActionRef === expectedActionRef;
 const capMatchesApproval = approvalStatus.maximumFundsAtRiskRef === expectedMaximumFundsAtRisk;
 const ackAccepted = dryRun ? false : ack === expectedAck;
