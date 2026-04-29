@@ -1,6 +1,6 @@
 {
   "version": "vanta-mainnet-approval-gates-evidence-0.1",
-  "checkedAt": "2026-04-29T00:51:34.084Z",
+  "checkedAt": "2026-04-29T03:02:45.200Z",
   "mainnetReady": false,
   "productionReady": false,
   "realFundsAllowed": true,
@@ -118,11 +118,11 @@
       "approvedActionSummary": "One actual-private mainnet settlement evidence run with maximum 0.025 SOL at risk",
       "approvedActionRef": "actual-private/mainnet-settlement-evidence-run-2026-04-28",
       "approvedFeePayerRef": "wallet/public-fee-payer-vanta-mainnet-demo",
-      "approvedLaunchWindowRef": "2026-04-28T18:00:00-19:00:00 America/Los_Angeles",
+      "approvedLaunchWindowRef": "2026-04-28T20:10:00-20:40:00 America/Los_Angeles",
       "rollbackPlanRef": "runbook/disable-private-pool-v2-services-and-live-actions",
       "stopLossPlanRef": "stop-after-first-failed-settlement-unexpected-solscan-linkage-nullifier-replay-failure-or-0.025-sol-cap",
       "maximumFundsAtRiskRef": "0.025 SOL",
-      "approvedByRef": "Clay/founder-approval/2026-04-28-actual-private-settlement",
+      "approvedByRef": "Clay/founder-approval/2026-04-28-actual-private-settlement-2010-2040",
       "requiredRefs": [
         "VANTA_MAINNET_APPROVAL_RECORD_REF",
         "VANTA_APPROVED_FEE_PAYER_REF",
