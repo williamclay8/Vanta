@@ -1,0 +1,16 @@
+{
+  "version": "vanta-actual-private-mainnet-settlement-stop-condition-0.1",
+  "secretPolicy": "references-only-no-secret-values",
+  "status": "stop-condition-fired",
+  "approvalActionRef": "actual-private/mainnet-settlement-evidence-run-2026-04-28",
+  "approvalWindowRef": "2026-04-28T20:10:00-20:40:00 America/Los_Angeles",
+  "maximumFundsAtRiskRef": "0.025 SOL",
+  "firedAtRef": "2026-04-28T20:16:45 America/Los_Angeles",
+  "stopConditionRef": "stop-after-first-failed-settlement-unexpected-solscan-linkage-nullifier-replay-failure-or-0.025-sol-cap",
+  "reasonRef": "operator-rejected-request-before-settlement-submission:missing-assetIdCommitment",
+  "fundsMoved": false,
+  "operatorTokenPrinted": false,
+  "walletSecretPrinted": false,
+  "signedTransactionPrinted": false,
+  "requiredNextStep": "Do not execute again under this approval window. Record a fresh bounded approval window before any new live settlement request."
+}

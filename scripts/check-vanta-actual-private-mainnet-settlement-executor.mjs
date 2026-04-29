@@ -8,9 +8,11 @@ import { createVantaMainnetRealFundsApprovalStatus } from "../src/readiness/main
 const repoRoot = resolve(import.meta.dirname, "..");
 const runnerPath = resolve(repoRoot, "scripts/run-vanta-actual-private-mainnet-settlement-evidence.mjs");
 const packagePath = resolve(repoRoot, "package.json");
+const stopConditionPath = resolve(repoRoot, "ops/mainnet/actual-private-mainnet-settlement-stop-condition.evidence.json");
 
 const runnerSource = readFileSync(runnerPath, "utf8");
 const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
+const stopConditionEvidence = JSON.parse(readFileSync(stopConditionPath, "utf8"));
 const approvalStatus = createVantaMainnetRealFundsApprovalStatus();
 
 const dryRun = spawnSync("node", [runnerPath, "--dry-run"], {
@@ -40,6 +42,15 @@ assert.equal(report.phases.approval.actionMatchesApproval, true);
 assert.equal(report.phases.approval.expectedMaximumFundsAtRisk, "0.025 SOL");
 assert.equal(report.phases.approval.capMatchesApproval, true);
 assert.equal(report.phases.approval.liveMainnetActionsAllowedNow, approvalStatus.liveMainnetActionsAllowedNow);
+assert.equal(
+  report.phases.approval.stopCondition.evidenceRef,
+  "ops/mainnet/actual-private-mainnet-settlement-stop-condition.evidence.json",
+);
+assert.equal(report.phases.approval.stopCondition.fundsMoved, false);
+if (stopConditionEvidence.approvalWindowRef === approvalStatus.approvalWindowRef) {
+  assert.equal(report.phases.approval.stopCondition.appliesToCurrentApproval, true);
+  assert.ok(report.finalBlocker.blockers.includes("stop-condition-already-fired-for-approval-window"));
+}
 
 assert.equal(report.phases.wallet.status, "ready");
 assert.equal(report.phases.wallet.requiredEnv, "VANTA_ACTUAL_PRIVATE_MAINNET_WALLET_PUBLIC_KEY_REF");

@@ -7,6 +7,10 @@ import { createVantaMainnetRealFundsApprovalStatus } from "../src/readiness/main
 
 const args = new Set(process.argv.slice(2));
 const productionServicesManifestPath = new URL("../ops/mainnet/private-pool-v2-services.manifest.json", import.meta.url);
+const stopConditionEvidencePath = new URL(
+  "../ops/mainnet/actual-private-mainnet-settlement-stop-condition.evidence.json",
+  import.meta.url,
+);
 const mode = args.has("--live") ? "live-preflight" : "dry-run";
 const dryRun = mode === "dry-run";
 const expectedAck = "I_UNDERSTAND_THIS_RUN_CAN_MOVE_MAINNET_FUNDS";
@@ -375,6 +379,37 @@ function compactBlockers(values) {
   return [...new Set(values.filter(Boolean))];
 }
 
+function readStopConditionEvidence() {
+  try {
+    const evidence = JSON.parse(readFileSync(stopConditionEvidencePath, "utf8"));
+    const appliesToCurrentApproval =
+      evidence?.status === "stop-condition-fired" &&
+      evidence?.approvalActionRef === approvalStatus.approvalActionRef &&
+      evidence?.approvalWindowRef === approvalStatus.approvalWindowRef &&
+      evidence?.maximumFundsAtRiskRef === approvalStatus.maximumFundsAtRiskRef;
+    return {
+      appliesToCurrentApproval,
+      evidenceRef: "ops/mainnet/actual-private-mainnet-settlement-stop-condition.evidence.json",
+      fundsMoved: evidence?.fundsMoved === true,
+      reasonRef: typeof evidence?.reasonRef === "string" ? evidence.reasonRef : null,
+      requiredNextStep:
+        typeof evidence?.requiredNextStep === "string"
+          ? evidence.requiredNextStep
+          : "Record a fresh bounded approval window before any new live settlement request.",
+      status: evidence?.status === "stop-condition-fired" ? "fired" : "not-fired",
+    };
+  } catch {
+    return {
+      appliesToCurrentApproval: false,
+      evidenceRef: "ops/mainnet/actual-private-mainnet-settlement-stop-condition.evidence.json",
+      fundsMoved: false,
+      reasonRef: null,
+      requiredNextStep: "No stop-condition evidence applies to the current approval window.",
+      status: "not-recorded",
+    };
+  }
+}
+
 assert.equal(
   approvalStatus.approvalActionRef,
   expectedActionRef,
@@ -393,6 +428,7 @@ const planInputs = planEnv.map(evaluatePlanInput);
 const rawSettlementPlanInput = evaluateRawSettlementPlanInput();
 const operatorUrl = services.find((service) => service.kind === "operator-url");
 const operatorSecret = evaluateSecretPresence("VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN");
+const stopCondition = readStopConditionEvidence();
 const actionMatchesApproval = approvalStatus.approvalActionRef === expectedActionRef;
 const capMatchesApproval = approvalStatus.maximumFundsAtRiskRef === expectedMaximumFundsAtRisk;
 const ackAccepted = dryRun ? false : ack === expectedAck;
@@ -407,6 +443,7 @@ const readyToRequestSettlement =
   actionMatchesApproval &&
   capMatchesApproval &&
   approvalStatus.liveMainnetActionsAllowedNow &&
+  !stopCondition.appliesToCurrentApproval &&
   wallet.status === "ready" &&
   servicesReady &&
   planReady &&
@@ -434,6 +471,7 @@ const blockers = compactBlockers([
   actionMatchesApproval ? null : "approved-action-mismatch",
   capMatchesApproval ? null : "approved-funds-cap-mismatch",
   approvalStatus.liveMainnetActionsAllowedNow ? null : "bounded-approval-window-not-active",
+  stopCondition.appliesToCurrentApproval ? "stop-condition-already-fired-for-approval-window" : null,
   dryRun ? "dry-run-mode-never-moves-funds" : null,
   !dryRun && !ackAccepted ? "missing-live-mainnet-settlement-ack" : null,
   wallet.status === "ready" ? null : "wallet-public-key-ref-not-ready",
@@ -457,7 +495,10 @@ const report = {
   phases: {
     approval: {
       status:
-        actionMatchesApproval && capMatchesApproval && approvalStatus.liveMainnetActionsAllowedNow
+        actionMatchesApproval &&
+        capMatchesApproval &&
+        approvalStatus.liveMainnetActionsAllowedNow &&
+        !stopCondition.appliesToCurrentApproval
           ? "ready"
           : "blocked",
       approvalActionRef: approvalStatus.approvalActionRef,
@@ -478,6 +519,7 @@ const report = {
       realFundsApprovalRecorded: approvalStatus.realFundsApprovalRecorded,
       rollbackPlanRef: approvalStatus.rollbackPlanRef,
       stopLossPlanRef: approvalStatus.stopLossPlanRef,
+      stopCondition,
       requiredNextStep: approvalStatus.requiredNextStep,
     },
     wallet: {
@@ -550,6 +592,7 @@ const report = {
       ],
       evidenceTemplateRef: "ops/mainnet/actual-private-mainnet-settlement.evidence.template.json",
       requiredReviewerRefs: [
+        "VANTA_ACTUAL_PRIVATE_ASSET_ID_COMMITMENT_REVIEW_REF",
         "VANTA_ACTUAL_PRIVATE_SHARED_COHORT_DEPOSIT_TX_REF",
         "VANTA_ACTUAL_PRIVATE_RELAYER_SUBMITTED_SPEND_TX_REF",
         "VANTA_ACTUAL_PRIVATE_OPERATOR_RECEIPT_REF",
@@ -576,7 +619,9 @@ const report = {
       requiredValueRef: expectedExecuteAck,
     },
     requiredNextStep:
-      "Record a fresh bounded approval window, supply the refs-only wallet and settlement-plan inputs, provide the raw operator token via secret env, and set both ACKs before requesting a live operator settlement.",
+      stopCondition.appliesToCurrentApproval
+        ? stopCondition.requiredNextStep
+        : "Record a fresh bounded approval window, supply the refs-only wallet and settlement-plan inputs, provide the raw operator token via secret env, and set both ACKs before requesting a live operator settlement.",
   },
 };
 
