@@ -93,11 +93,12 @@ async function stopOperator() {
   operator = null;
 }
 
-async function startOperator() {
+async function startOperator(extraEnv = {}) {
   operator = spawn(process.execPath, [resolve(repoRoot, "operator/private-pool-v2-server.mjs")], {
     cwd: repoRoot,
     env: {
       ...process.env,
+      ...extraEnv,
       VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN: authToken,
       VANTA_PRIVATE_POOL_V2_OPERATOR_HOST: "127.0.0.1",
       VANTA_PRIVATE_POOL_V2_OPERATOR_PORT: String(port),
@@ -448,6 +449,57 @@ try {
     conflictingSettlement.error || "Expected conflicting replay error.",
   );
   console.log("vanta-pay committed checkout conflict rejection: PASS");
+
+  await stopOperator();
+  rmSync(storePath, { force: true });
+  await startOperator({
+    VANTA_PRIVATE_POOL_V2_REQUIRE_RELAYER_SERIALIZED_TRANSACTION: "true",
+  });
+  const txGateRequest = {
+    ...committedRequest,
+    changeOutputCommitment: `${committedRequest.changeOutputCommitment}:tx-gate`,
+    nullifierOrReplayCommitment: `${committedRequest.nullifierOrReplayCommitment}:tx-gate`,
+    outputCommitment: `${committedRequest.outputCommitment}:tx-gate`,
+    privateSpendContextHash: `${committedRequest.privateSpendContextHash}:tx-gate`,
+    privateSpendPublicInputHash: `${committedRequest.privateSpendPublicInputHash}:tx-gate`,
+    settlementCommitment: `${committedRequest.settlementCommitment}:tx-gate`,
+  };
+  const missingRelayerTransaction = await requestJson("/private-pool-v2/protocol-settlements", {
+    body: JSON.stringify({
+      ...txGateRequest,
+      settlementId: `${committedRequest.settlementId}_requires_tx`,
+    }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  }).then(
+    () => ({ ok: true, error: "" }),
+    (error) => ({ ok: false, error: error instanceof Error ? error.message : String(error) }),
+  );
+  assert(!missingRelayerTransaction.ok, "Expected missing relayer serialized transaction rejection.");
+  assert(
+    missingRelayerTransaction.error.includes("requires relayerSerializedTransaction"),
+    missingRelayerTransaction.error || "Expected relayer transaction gate error.",
+  );
+  const withRelayerTransaction = await requestJson("/private-pool-v2/protocol-settlements", {
+    body: JSON.stringify({
+      ...txGateRequest,
+      changeOutputCommitment: `${txGateRequest.changeOutputCommitment}:with-tx`,
+      nullifierOrReplayCommitment: `${txGateRequest.nullifierOrReplayCommitment}:with-tx`,
+      outputCommitment: `${txGateRequest.outputCommitment}:with-tx`,
+      privateSpendContextHash: `${txGateRequest.privateSpendContextHash}:with-tx`,
+      privateSpendPublicInputHash: `${txGateRequest.privateSpendPublicInputHash}:with-tx`,
+      relayerSerializedTransaction: `base64:${Buffer.from("actual-private-relayer-transaction").toString("base64")}`,
+      settlementId: `${committedRequest.settlementId}_with_tx`,
+      settlementCommitment: `${txGateRequest.settlementCommitment}:with-tx`,
+    }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(
+    withRelayerTransaction?.relayerSubmissionAttempt?.status === "not-solscan-evidence",
+    "Expected local relayer transaction submission attempt to remain non-Solscan evidence.",
+  );
+  console.log("vanta-pay committed checkout relayer transaction gate: PASS");
 
   await stopOperator();
   rmSync(storePath, { force: true });

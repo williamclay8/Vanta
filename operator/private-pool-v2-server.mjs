@@ -476,6 +476,10 @@ function isSolanaTransactionSignature(value) {
   return typeof value === "string" && /^[1-9A-HJ-NP-Za-km-z]{64,88}$/.test(value);
 }
 
+function isBase64SerializedTransaction(value) {
+  return typeof value === "string" && /^(?:base64:)?[A-Za-z0-9+/]+={0,2}$/.test(value) && value.length >= 16;
+}
+
 function normalizeAmount(value, asset) {
   const normalized = requireNonEmptyString(value, "amount");
   if (!/^\d+(?:\.\d+)?$/.test(normalized)) {
@@ -678,6 +682,7 @@ function validateProtocolSettlementBody(body) {
       poolId: optionalNonEmptyString(body.poolId),
       privateSpendContextHash: optionalNonEmptyString(body.privateSpendContextHash),
       privateSpendPublicInputHash: optionalNonEmptyString(body.privateSpendPublicInputHash),
+      relayerSerializedTransaction: optionalNonEmptyString(body.relayerSerializedTransaction),
       routeCommitment: requireNonEmptyString(body.routeCommitment, "routeCommitment"),
       sendContextTag:
         typeof body.sendContextTag === "string" && body.sendContextTag.trim().length > 0
@@ -949,6 +954,7 @@ function protocolSettlementFingerprint({
   poolId,
   privateSpendContextHash,
   privateSpendPublicInputHash,
+  relayerSerializedTransaction,
   routeCommitment,
   sendContextTag,
   sendPublicInputHash,
@@ -1013,6 +1019,7 @@ function protocolSettlementFingerprint({
 	    poolId,
 	    privateSpendContextHash,
 	    privateSpendPublicInputHash,
+	    relayerSerializedTransaction ? hashHex("relayer-serialized-transaction", relayerSerializedTransaction) : "",
 	    routeCommitment,
 	    sendContextTag,
 	    sendPublicInputHash,
@@ -1048,6 +1055,7 @@ function assertProtocolReplayMatches(
 	    poolId,
 	    privateSpendContextHash,
 	    privateSpendPublicInputHash,
+	    relayerSerializedTransaction,
 	    routeCommitment,
     sendContextTag,
     sendPublicInputHash,
@@ -1119,6 +1127,7 @@ function assertProtocolReplayMatches(
     poolId,
     privateSpendContextHash,
     privateSpendPublicInputHash,
+    relayerSerializedTransaction,
     routeCommitment,
       sendContextTag,
       sendPublicInputHash,
@@ -1466,20 +1475,33 @@ async function checkProofRequestNullifierReplay(request, requestId) {
   };
 }
 
-async function submitActualPrivateSpendToRelayer({ proofReceipt, protocolSettlementReceipt, request }) {
+async function submitActualPrivateSpendToRelayer({
+  proofReceipt,
+  protocolSettlementReceipt,
+  relayerSerializedTransaction,
+  request,
+}) {
   if (request.intent !== "private-send" || typeof runtime.relayer?.submitPrivateSpend !== "function") {
     return null;
+  }
+
+  if (process.env.VANTA_PRIVATE_POOL_V2_REQUIRE_RELAYER_SERIALIZED_TRANSACTION === "true") {
+    if (!isBase64SerializedTransaction(relayerSerializedTransaction)) {
+      throw new Error("Actual-private live relayer submission requires relayerSerializedTransaction base64 bytes.");
+    }
   }
 
   const submission = await runtime.relayer.submitPrivateSpend({
     proofReceiptId: protocolSettlementReceipt.proofReceiptId,
     publicInputCommitment: proofReceipt.publicInputCommitment,
-    serializedTransaction: JSON.stringify({
-      action: protocolSettlementReceipt.action,
-      proofReceiptPublicInputCommitment: protocolSettlementReceipt.proofReceiptPublicInputCommitment,
-      settlementCommitment: protocolSettlementReceipt.settlementCommitment,
-      settlementId: protocolSettlementReceipt.settlementId,
-    }),
+    serializedTransaction:
+      relayerSerializedTransaction ??
+      JSON.stringify({
+        action: protocolSettlementReceipt.action,
+        proofReceiptPublicInputCommitment: protocolSettlementReceipt.proofReceiptPublicInputCommitment,
+        settlementCommitment: protocolSettlementReceipt.settlementCommitment,
+        settlementId: protocolSettlementReceipt.settlementId,
+      }),
     settlementId: protocolSettlementReceipt.settlementId,
   });
 
@@ -1768,6 +1790,7 @@ async function proveAndAcceptProtocolSettlement(body) {
     poolId,
     privateSpendContextHash,
     privateSpendPublicInputHash,
+    relayerSerializedTransaction,
     routeCommitment,
     sendContextTag,
     sendPublicInputHash,
@@ -1811,6 +1834,7 @@ async function proveAndAcceptProtocolSettlement(body) {
         poolId,
         privateSpendContextHash,
         privateSpendPublicInputHash,
+        relayerSerializedTransaction,
         routeCommitment,
         sendContextTag,
         sendPublicInputHash,
@@ -2117,6 +2141,7 @@ async function proveAndAcceptProtocolSettlement(body) {
   const onChainSubmission = await submitActualPrivateSpendToRelayer({
     proofReceipt,
     protocolSettlementReceipt,
+    relayerSerializedTransaction,
     request,
   });
   const settlement = {
@@ -2167,6 +2192,7 @@ async function proveAndAcceptProtocolSettlement(body) {
       poolId,
       privateSpendContextHash,
       privateSpendPublicInputHash,
+      relayerSerializedTransaction,
       routeCommitment,
 	      sendContextTag,
 	      sendPublicInputHash,
