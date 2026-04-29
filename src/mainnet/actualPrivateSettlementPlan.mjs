@@ -40,6 +40,7 @@ export function createVantaActualPrivateSettlementPlan(input) {
   const request = {
     action: "send",
     assetCohort: requireText(input.assetCohort, "assetCohort"),
+    assetIdCommitment: requireText(input.assetIdCommitment, "assetIdCommitment"),
     acceptedRoot: requireText(input.acceptedRoot, "acceptedRoot"),
     changeOutputCommitment: requireText(input.changeOutputCommitment, "changeOutputCommitment"),
     economicsCommitment: requireText(input.economicsCommitment, "economicsCommitment"),
@@ -62,6 +63,7 @@ export function createVantaActualPrivateSettlementPlan(input) {
     publicTranscriptTerms: [
       "pool-id",
       "asset-cohort",
+      "asset-id-commitment",
       "accepted-root",
       "nullifier",
       "output-commitment-0",

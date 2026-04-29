@@ -5,6 +5,7 @@ import { createVantaActualPrivateSettlementPlan } from "../src/mainnet/actualPri
 const requiredFields = [
   ["acceptedRoot", "VANTA_ACTUAL_PRIVATE_ACCEPTED_ROOT"],
   ["assetCohort", "VANTA_ACTUAL_PRIVATE_ASSET_COHORT"],
+  ["assetIdCommitment", "VANTA_ACTUAL_PRIVATE_ASSET_ID_COMMITMENT"],
   ["changeOutputCommitment", "VANTA_ACTUAL_PRIVATE_CHANGE_OUTPUT_COMMITMENT"],
   ["economicsCommitment", "VANTA_ACTUAL_PRIVATE_ECONOMICS_COMMITMENT"],
   ["nullifier", "VANTA_ACTUAL_PRIVATE_NULLIFIER"],

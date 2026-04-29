@@ -8,6 +8,7 @@ import {
 const plan = createVantaActualPrivateSettlementPlan({
   acceptedRoot: "root:actual-private-demo",
   assetCohort: "stablecoin-usdc-v1",
+  assetIdCommitment: "commitment:asset-id",
   changeOutputCommitment: "commitment:change-output",
   economicsCommitment: "commitment:economics",
   nullifier: "nullifier:actual-private-demo",
@@ -25,6 +26,7 @@ assert.equal(plan.operatorEndpoint, "/private-pool-v2/protocol-settlements");
 assert.equal(plan.request.action, "send");
 assert.equal(plan.request.economicsMode, "committed-economics");
 assert.equal(plan.request.assetCohort, "stablecoin-usdc-v1");
+assert.equal(plan.request.assetIdCommitment, "commitment:asset-id");
 assert.equal(plan.request.nullifierOrReplayCommitment, "nullifier:actual-private-demo");
 assert.deepEqual(validateVantaActualPrivateSettlementPlan(plan), {
   accepted: true,

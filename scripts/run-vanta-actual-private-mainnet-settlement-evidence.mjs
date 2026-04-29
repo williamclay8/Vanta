@@ -91,6 +91,7 @@ const serviceEnv = [
 const planEnv = [
   { env: "VANTA_ACTUAL_PRIVATE_ACCEPTED_ROOT_REF", field: "acceptedRoot" },
   { env: "VANTA_ACTUAL_PRIVATE_ASSET_COHORT_REF", field: "assetCohort" },
+  { env: "VANTA_ACTUAL_PRIVATE_ASSET_ID_COMMITMENT_REF", field: "assetIdCommitment" },
   { env: "VANTA_ACTUAL_PRIVATE_CHANGE_OUTPUT_COMMITMENT_REF", field: "changeOutputCommitment" },
   { env: "VANTA_ACTUAL_PRIVATE_ECONOMICS_COMMITMENT_REF", field: "economicsCommitment" },
   { env: "VANTA_ACTUAL_PRIVATE_NULLIFIER_REF", field: "nullifier" },

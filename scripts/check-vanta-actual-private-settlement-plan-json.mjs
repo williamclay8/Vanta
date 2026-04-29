@@ -11,6 +11,7 @@ const env = {
   ...process.env,
   VANTA_ACTUAL_PRIVATE_ACCEPTED_ROOT: "root:actual-private-live-candidate",
   VANTA_ACTUAL_PRIVATE_ASSET_COHORT: "stablecoin-usdc-v1",
+  VANTA_ACTUAL_PRIVATE_ASSET_ID_COMMITMENT: "commitment:asset-id",
   VANTA_ACTUAL_PRIVATE_CHANGE_OUTPUT_COMMITMENT: "commitment:change-output",
   VANTA_ACTUAL_PRIVATE_ECONOMICS_COMMITMENT: "commitment:economics",
   VANTA_ACTUAL_PRIVATE_NULLIFIER: "nullifier:actual-private-live-candidate",
@@ -36,9 +37,10 @@ assert.equal(run.stderr, "");
 const planJson = JSON.parse(run.stdout);
 assert.equal(planJson.acceptedRoot, env.VANTA_ACTUAL_PRIVATE_ACCEPTED_ROOT);
 assert.equal(planJson.assetCohort, "stablecoin-usdc-v1");
+assert.equal(planJson.assetIdCommitment, env.VANTA_ACTUAL_PRIVATE_ASSET_ID_COMMITMENT);
 assert.equal(planJson.nullifier, env.VANTA_ACTUAL_PRIVATE_NULLIFIER);
 assert.equal(planJson.privateSpendPublicInputHash, env.VANTA_ACTUAL_PRIVATE_SPEND_PUBLIC_INPUT_HASH);
-assert.equal(Object.keys(planJson).length, 13);
+assert.equal(Object.keys(planJson).length, 14);
 
 const exportRun = spawnSync("node", [scriptPath, "--export"], {
   cwd: repoRoot,

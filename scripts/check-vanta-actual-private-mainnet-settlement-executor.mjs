@@ -109,7 +109,7 @@ assert.equal(report.phases.settlementPlan.maximumFundsAtRiskLamports, 25_000_000
 assert.equal(report.phases.settlementPlan.transactionConstruction, "implemented-reviewed-plan-boundary");
 assert.equal(report.phases.settlementPlan.transactionSigning, "not-local-wallet-signing-operator-relayer-submits");
 assert.equal(report.phases.settlementPlan.transactionSubmission, "implemented-but-disabled-without-execute-ack");
-assert.equal(report.phases.settlementPlan.requiredInputs.length, 13);
+assert.equal(report.phases.settlementPlan.requiredInputs.length, 14);
 for (const input of report.phases.settlementPlan.requiredInputs) {
   assert.equal(input.status, "ready", `${input.env} must be ready in the checked executor fixture.`);
   assert.equal(input.valueSource, "reference");
@@ -236,6 +236,7 @@ function executorEnv(overrides = {}) {
     VANTA_ACTUAL_PRIVATE_MAINNET_WALLET_PUBLIC_KEY_REF: "VANTA_ACTUAL_PRIVATE_MAINNET_WALLET_PUBLIC_KEY_REF",
     VANTA_ACTUAL_PRIVATE_ACCEPTED_ROOT_REF: "VANTA_ACTUAL_PRIVATE_ACCEPTED_ROOT_REF",
     VANTA_ACTUAL_PRIVATE_ASSET_COHORT_REF: "VANTA_ACTUAL_PRIVATE_ASSET_COHORT_REF",
+    VANTA_ACTUAL_PRIVATE_ASSET_ID_COMMITMENT_REF: "VANTA_ACTUAL_PRIVATE_ASSET_ID_COMMITMENT_REF",
     VANTA_ACTUAL_PRIVATE_CHANGE_OUTPUT_COMMITMENT_REF: "VANTA_ACTUAL_PRIVATE_CHANGE_OUTPUT_COMMITMENT_REF",
     VANTA_ACTUAL_PRIVATE_ECONOMICS_COMMITMENT_REF: "VANTA_ACTUAL_PRIVATE_ECONOMICS_COMMITMENT_REF",
     VANTA_ACTUAL_PRIVATE_NULLIFIER_REF: "VANTA_ACTUAL_PRIVATE_NULLIFIER_REF",

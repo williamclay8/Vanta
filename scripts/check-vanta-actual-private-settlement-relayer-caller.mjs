@@ -9,6 +9,7 @@ import {
 const plan = createVantaActualPrivateSettlementPlan({
   acceptedRoot: "root:actual-private-demo",
   assetCohort: "stablecoin-usdc-v1",
+  assetIdCommitment: "commitment:asset-id",
   changeOutputCommitment: "commitment:change-output",
   economicsCommitment: "commitment:economics",
   nullifier: "nullifier:actual-private-demo",
@@ -70,6 +71,7 @@ assert.equal(result.evidenceRefs.relayerSubmittedSpendTxRef, "operator-protocol-
 
 const body = JSON.parse(calls[0].body);
 assert.equal(body.action, "send");
+assert.equal(body.assetIdCommitment, "commitment:asset-id");
 assert.equal(body.economicsMode, "committed-economics");
 for (const forbidden of [
   "amount",
