@@ -50,6 +50,7 @@ export function createVantaMainnetPrivateSettlementStatus() {
       "ops/mainnet/private-pool-v2-nullifier-replay.evidence.json",
       "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
       "ops/mainnet/actual-private-production-evidence.packet.json",
+      "ops/mainnet/actual-private-mainnet-settlement.evidence.template.json",
       "ops/mainnet/service-deployment.evidence.json",
       "ops/mainnet/mainnet-real-funds-approval.evidence.json",
     ],
