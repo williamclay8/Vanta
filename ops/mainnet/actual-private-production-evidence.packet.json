@@ -63,7 +63,7 @@
     "nullifierRootEnforcement": "actual-private-nullifier-covered-root-freshness-blocked",
     "safeLogging": "local-contract-covered",
     "audit": "packet-template-only",
-    "productionCapability": "blocked-stale-operator-send-proof-mode",
+    "productionCapability": "production-operator-send-proof-mode-aligned",
     "mainnetEvidence": "no-real-funds-smoke-only"
   },
   "productionBlockers": [
@@ -74,7 +74,6 @@
     "No production relayer log-redaction evidence is recorded.",
     "No production deployment separation evidence is recorded.",
     "No third-party audit report and fix-verification packet is recorded.",
-    "Production Private Pool v2 status still advertises legacy Send proof mode instead of actual-private Send proof mode.",
     "No live mainnet private settlement path is proven.",
     "No active bounded real-funds approval window is available."
   ],

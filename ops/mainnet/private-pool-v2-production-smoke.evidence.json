@@ -1,9 +1,9 @@
 {
-  "checkedAt": "2026-04-23T10:28:35.565Z",
+  "checkedAt": "2026-04-29T03:49:53.447Z",
   "mainnetReady": false,
   "productionReady": false,
   "realFundsAllowed": false,
-  "runId": "prod-smoke-1776940115564-d1493a08",
+  "runId": "prod-smoke-1777434593446-dc0f7272",
   "services": [
     {
       "health": {
@@ -82,26 +82,26 @@
     },
     {
       "id": "proof-roundtrip-simulation",
-      "proofCommitmentPrefix": "0x2665c641661cbb3b",
-      "receiptIdPrefix": "0x21692bc6e6d4ea2e",
+      "proofCommitmentPrefix": "0x52da3f461732acdb",
+      "receiptIdPrefix": "0xd666626d9e18950c",
       "status": "pass"
     },
     {
       "id": "nullifier-replay-simulation",
-      "receiptIdPrefix": "0x358c74006ad810a2",
+      "receiptIdPrefix": "0x2adcaceb1140f5f3",
       "replayStatus": 400,
       "status": "pass"
     },
     {
       "id": "actual-private-spend-simulation",
-      "proofCommitmentPrefix": "0xactualprivate",
-      "receiptIdPrefix": "0xactualprivate",
+      "proofCommitmentPrefix": "0xf9ad5c283b1010ec",
       "publicTranscript": "pool-cohort-root-nullifier-output-context-only",
+      "receiptIdPrefix": "0x730002e36e8aaaa5",
       "status": "pass"
     },
     {
       "id": "relayer-claim-submit-simulation",
-      "signaturePrefix": "0xef40c1b31aa3f467",
+      "signaturePrefix": "0x84c666e843dc0be2",
       "status": "pass"
     },
     {

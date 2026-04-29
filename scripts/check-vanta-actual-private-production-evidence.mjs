@@ -103,9 +103,9 @@ assert.equal(
 assert.equal(roleService.productionReady, false);
 assert.equal(productionCapability.productionReady, false);
 assert.equal(productionCapability.realFundsAllowed, false);
-assert.equal(productionCapability.capabilityDecision?.accepted, false);
-assert.equal(productionCapability.capabilityDecision?.reason, "operator-send-proof-mode-not-actual-private");
-assert.equal(productionCapability.settlementPostAllowed, false);
+assert.equal(productionCapability.capabilityDecision?.accepted, true);
+assert.equal(productionCapability.capabilityDecision?.reason, "actual-private-operator-capability-ready");
+assert.equal(productionCapability.settlementPostAllowed, true);
 assert.equal(productionSmoke.productionReady, false);
 assert.equal(productionSmoke.realFundsAllowed, false);
 
@@ -118,7 +118,7 @@ assert.equal(
 );
 assert.equal(packet.evidenceStatus.safeLogging, "local-contract-covered");
 assert.equal(packet.evidenceStatus.audit, "packet-template-only");
-assert.equal(packet.evidenceStatus.productionCapability, "blocked-stale-operator-send-proof-mode");
+assert.equal(packet.evidenceStatus.productionCapability, "production-operator-send-proof-mode-aligned");
 assert.equal(packet.evidenceStatus.mainnetEvidence, "no-real-funds-smoke-only");
 
 for (const blocker of [
@@ -129,7 +129,6 @@ for (const blocker of [
   "No production relayer log-redaction evidence is recorded.",
   "No production deployment separation evidence is recorded.",
   "No third-party audit report and fix-verification packet is recorded.",
-  "Production Private Pool v2 status still advertises legacy Send proof mode instead of actual-private Send proof mode.",
   "No live mainnet private settlement path is proven.",
   "No active bounded real-funds approval window is available.",
 ]) {

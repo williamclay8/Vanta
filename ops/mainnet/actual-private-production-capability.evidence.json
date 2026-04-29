@@ -10,14 +10,14 @@
     "send": "actual_private_spend_circuit_request"
   },
   "observedProtocolActionProofModes": {
-    "send": "send_circuit_request"
+    "send": "actual_private_spend_circuit_request"
   },
-  "observedAtRef": "2026-04-28 status-only authenticated production probe",
+  "observedAtRef": "2026-04-29T03:49Z status-only authenticated production probe after Render deploy dep-d7onu54vikkc73cr3nd0",
   "capabilityDecision": {
-    "accepted": false,
-    "reason": "operator-send-proof-mode-not-actual-private"
+    "accepted": true,
+    "reason": "actual-private-operator-capability-ready"
   },
-  "settlementPostAllowed": false,
+  "settlementPostAllowed": true,
   "fundsMoved": false,
   "evidenceRefs": {
     "relayerCallerGate": "src/mainnet/actualPrivateSettlementRelayerCaller.mjs#validateVantaActualPrivateOperatorCapability",
@@ -25,9 +25,9 @@
     "productionEvidencePacket": "ops/mainnet/actual-private-production-evidence.packet.json"
   },
   "productionBlockers": [
-    "Production Private Pool v2 status must advertise protocolActionProofModes.send as actual_private_spend_circuit_request.",
-    "Production operator deployment/capability alignment is required before another actual-private live settlement execute request.",
-    "Do not reintroduce source-state fields to satisfy the stale legacy Send path."
+    "A fresh bounded real-funds approval window is required before another actual-private live settlement execute request.",
+    "The previous approval window stopped after the first failed request and must not be reused.",
+    "Do not reintroduce source-state fields into the actual-private request."
   ],
   "forbiddenWorkarounds": [
     "input commitment",

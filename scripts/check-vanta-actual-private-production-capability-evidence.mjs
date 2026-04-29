@@ -22,10 +22,10 @@ assert.equal(
   evidence.requiredProtocolActionProofModes?.send,
   "actual_private_spend_circuit_request",
 );
-assert.equal(evidence.observedProtocolActionProofModes?.send, "send_circuit_request");
-assert.equal(evidence.capabilityDecision?.accepted, false);
-assert.equal(evidence.capabilityDecision?.reason, "operator-send-proof-mode-not-actual-private");
-assert.equal(evidence.settlementPostAllowed, false);
+assert.equal(evidence.observedProtocolActionProofModes?.send, "actual_private_spend_circuit_request");
+assert.equal(evidence.capabilityDecision?.accepted, true);
+assert.equal(evidence.capabilityDecision?.reason, "actual-private-operator-capability-ready");
+assert.equal(evidence.settlementPostAllowed, true);
 assert.equal(evidence.fundsMoved, false);
 assert.equal(
   evidence.evidenceRefs?.relayerCallerGate,
@@ -41,9 +41,9 @@ assert.equal(
 );
 
 for (const blocker of [
-  "Production Private Pool v2 status must advertise protocolActionProofModes.send as actual_private_spend_circuit_request.",
-  "Production operator deployment/capability alignment is required before another actual-private live settlement execute request.",
-  "Do not reintroduce source-state fields to satisfy the stale legacy Send path.",
+  "A fresh bounded real-funds approval window is required before another actual-private live settlement execute request.",
+  "The previous approval window stopped after the first failed request and must not be reused.",
+  "Do not reintroduce source-state fields into the actual-private request.",
 ]) {
   assert.ok(evidence.productionBlockers.includes(blocker), `Missing production blocker: ${blocker}`);
 }
@@ -72,10 +72,10 @@ assert.ok(
 );
 assert.equal(
   productionPacket.evidenceStatus.productionCapability,
-  "blocked-stale-operator-send-proof-mode",
+  "production-operator-send-proof-mode-aligned",
 );
 assert.ok(
-  productionPacket.productionBlockers.includes(
+  !productionPacket.productionBlockers.includes(
     "Production Private Pool v2 status still advertises legacy Send proof mode instead of actual-private Send proof mode.",
   ),
 );
