@@ -53,6 +53,14 @@ export function validateVantaActualPrivateSettlementResponse({ plan, response })
   return { accepted: true, reason: "actual-private-settlement-response-ready" };
 }
 
+export function validateVantaActualPrivateOperatorCapability({ status }) {
+  if (status?.protocolActionProofModes?.send !== "actual_private_spend_circuit_request") {
+    return { accepted: false, reason: "operator-send-proof-mode-not-actual-private" };
+  }
+
+  return { accepted: true, reason: "actual-private-operator-capability-ready" };
+}
+
 export async function requestVantaActualPrivateSettlementViaRelayer({
   authToken,
   fetchImpl = fetch,
@@ -66,6 +74,21 @@ export async function requestVantaActualPrivateSettlementViaRelayer({
 
   const token = requireText(authToken, "authToken");
   const baseUrl = normalizeBaseUrl(operatorBaseUrl);
+  const statusResponse = await fetchImpl(`${baseUrl}/state/private-pool-v2-status`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    method: "GET",
+  });
+  const statusPayload = await statusResponse.json();
+  if (!statusResponse.ok) {
+    throw new Error(statusPayload?.error ?? `Actual-private operator status failed: ${statusResponse.status}`);
+  }
+  const capabilityDecision = validateVantaActualPrivateOperatorCapability({ status: statusPayload });
+  if (!capabilityDecision.accepted) {
+    throw new Error(`Actual-private operator capability rejected: ${capabilityDecision.reason}`);
+  }
+
   const response = await fetchImpl(`${baseUrl}${plan.operatorEndpoint}`, {
     body: JSON.stringify(plan.request),
     headers: {

@@ -3,6 +3,7 @@ import { strict as assert } from "node:assert";
 import { createVantaActualPrivateSettlementPlan } from "../src/mainnet/actualPrivateSettlementPlan.mjs";
 import {
   requestVantaActualPrivateSettlementViaRelayer,
+  validateVantaActualPrivateOperatorCapability,
   validateVantaActualPrivateSettlementResponse,
 } from "../src/mainnet/actualPrivateSettlementRelayerCaller.mjs";
 
@@ -34,6 +35,19 @@ const result = await requestVantaActualPrivateSettlementViaRelayer({
   plan,
   async fetchImpl(url, init) {
     calls.push({ body: init.body, headers: init.headers, method: init.method, url });
+    if (init.method === "GET") {
+      return {
+        ok: true,
+        async json() {
+          return {
+            protocolActionProofModes: {
+              send: "actual_private_spend_circuit_request",
+            },
+          };
+        },
+        status: 200,
+      };
+    }
     return {
       ok: true,
       async json() {
@@ -65,15 +79,18 @@ const result = await requestVantaActualPrivateSettlementViaRelayer({
   },
 });
 
-assert.equal(calls.length, 1);
-assert.equal(calls[0].url, "https://operator.example.invalid/private-pool-v2/protocol-settlements");
-assert.equal(calls[0].method, "POST");
+assert.equal(calls.length, 2);
+assert.equal(calls[0].url, "https://operator.example.invalid/state/private-pool-v2-status");
+assert.equal(calls[0].method, "GET");
 assert.equal(calls[0].headers.Authorization, "Bearer test-token-not-printed");
+assert.equal(calls[1].url, "https://operator.example.invalid/private-pool-v2/protocol-settlements");
+assert.equal(calls[1].method, "POST");
+assert.equal(calls[1].headers.Authorization, "Bearer test-token-not-printed");
 assert.equal(result.responseDecision.accepted, true);
 assert.equal(result.evidenceRefs.operatorReceiptRef, "operator-receipt:ppv2_receipt");
 assert.equal(result.evidenceRefs.relayerSubmittedSpendTxRef, "operator-protocol-settlement:proto:actual-private-demo");
 
-const body = JSON.parse(calls[0].body);
+const body = JSON.parse(calls[1].body);
 assert.equal(body.action, "send");
 assert.equal(body.assetIdCommitment, "commitment:asset-id");
 assert.equal(body.changeLeafIndex, "43");
@@ -94,6 +111,17 @@ for (const forbidden of [
 ]) {
   assert.equal(Object.hasOwn(body, forbidden), false, `Relayer caller body leaked ${forbidden}.`);
 }
+
+assert.equal(
+  validateVantaActualPrivateOperatorCapability({
+    status: {
+      protocolActionProofModes: {
+        send: "send_circuit_request",
+      },
+    },
+  }).accepted,
+  false,
+);
 
 assert.equal(
   validateVantaActualPrivateSettlementResponse({
@@ -120,6 +148,32 @@ await assert.rejects(
       },
     }),
   /credential-bearing/,
+);
+
+await assert.rejects(
+  () =>
+    requestVantaActualPrivateSettlementViaRelayer({
+      authToken: "token",
+      operatorBaseUrl: "https://operator.example.invalid",
+      plan,
+      async fetchImpl(url, init) {
+        if (init.method === "GET") {
+          return {
+            ok: true,
+            async json() {
+              return {
+                protocolActionProofModes: {
+                  send: "send_circuit_request",
+                },
+              };
+            },
+            status: 200,
+          };
+        }
+        throw new Error(`settlement POST must not run when capability is stale: ${url}`);
+      },
+    }),
+  /operator-send-proof-mode-not-actual-private/,
 );
 
 console.log("Vanta actual-private settlement relayer caller check: PASS");
