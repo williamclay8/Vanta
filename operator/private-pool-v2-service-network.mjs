@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "
 import { dirname, resolve } from "node:path";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
+import { createVantaPrivatePoolV2SolanaRelayerSubmitterFromEnv } from "../src/privacy/privatePoolV2SolanaRelayerSubmission.mjs";
 import { createPrivatePoolV2RoleSnapshotStore } from "../src/storage/vantaPrivatePoolV2RoleSnapshotStore.mjs";
 
 const serviceVersion = "vanta-private-pool-v2-service-network-0.1";
@@ -521,6 +522,10 @@ function createRelayerState({ snapshotStore, storePath } = {}) {
   let quotes = new Map();
   let claims = new Map();
   let privateSpends = new Map();
+  const liveSolanaSubmitter =
+    process.env.VANTA_PRIVATE_POOL_V2_RELAYER_SOLANA_SUBMISSION_MODE === "live"
+      ? createVantaPrivatePoolV2SolanaRelayerSubmitterFromEnv(process.env)
+      : null;
 
   async function ensureLoaded() {
     if (loaded) {
@@ -597,15 +602,28 @@ function createRelayerState({ snapshotStore, storePath } = {}) {
         throw new Error(`Private spend ${settlementId} has already been submitted.`);
       }
 
-      const submission = {
+      const baseSubmission = {
         proofReceiptId: String(proofReceiptId),
         publicInputCommitment: String(publicInputCommitment),
-        relayerId: `vanta-service-relayer:${hashHex(serviceVersion, "private-spend", String(settlementId)).slice(2, 18)}`,
         serializedTransaction: String(serializedTransaction),
         settlementId: String(settlementId),
-        signature: hashHex(serviceVersion, "private-spend", key, String(serializedTransaction)),
-        submittedBy: "relayer",
       };
+      const liveSubmission = liveSolanaSubmitter
+        ? await liveSolanaSubmitter.submitPrivateSpend(baseSubmission)
+        : null;
+      const submission = liveSubmission
+        ? {
+            ...baseSubmission,
+            relayerId: liveSubmission.relayerId,
+            signature: liveSubmission.signature,
+            submittedBy: liveSubmission.submittedBy,
+          }
+        : {
+            ...baseSubmission,
+            relayerId: `vanta-service-relayer:${hashHex(serviceVersion, "private-spend", String(settlementId)).slice(2, 18)}`,
+            signature: hashHex(serviceVersion, "private-spend", key, String(serializedTransaction)),
+            submittedBy: "relayer",
+          };
       privateSpends.set(key, submission);
       await save();
       return submission;
