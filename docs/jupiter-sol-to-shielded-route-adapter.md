@@ -56,7 +56,7 @@ Do not set `VANTA_SOL_TO_SHIELDED_ADAPTER_AUTH_TOKEN` directly on a browser-call
 - The adapter liquidity wallet signs the public swap transaction.
 - The adapter enforces a cumulative SOL cap from local state.
 - The app only accepts an execution if the adapter returns `sol-to-shielded-v1`, `committed-economics`, and `swap-to-shielded` receipt fields.
-- No deploy should describe this as production-private or fully private mainnet settlement.
+- No deploy should describe this as privacy-complete or live private settlement.
 
 ## Verification
 
