@@ -10,6 +10,7 @@ const writeMode = process.argv.includes("--write");
 
 const requiredEnv = [
   "VANTA_ACTUAL_PRIVATE_BOUNDED_APPROVAL_WINDOW_REF",
+  "VANTA_ACTUAL_PRIVATE_ASSET_ID_COMMITMENT_REVIEW_REF",
   "VANTA_ACTUAL_PRIVATE_SHARED_COHORT_DEPOSIT_TX_REF",
   "VANTA_ACTUAL_PRIVATE_RELAYER_SUBMITTED_SPEND_TX_REF",
   "VANTA_ACTUAL_PRIVATE_OPERATOR_RECEIPT_REF",
@@ -63,6 +64,7 @@ function buildEvidence() {
     currentStatus: "filled-refs-awaiting-review",
     evidenceRefs: {
       acceptedRootFreshnessRef: refs.VANTA_ACTUAL_PRIVATE_ACCEPTED_ROOT_FRESHNESS_REF,
+      assetIdCommitmentReviewRef: refs.VANTA_ACTUAL_PRIVATE_ASSET_ID_COMMITMENT_REVIEW_REF,
       auditOrReviewerRef: refs.VANTA_ACTUAL_PRIVATE_AUDIT_OR_REVIEWER_REF,
       boundedApprovalWindowRef: refs.VANTA_ACTUAL_PRIVATE_BOUNDED_APPROVAL_WINDOW_REF,
       nullifierReplayRejectionRef: refs.VANTA_ACTUAL_PRIVATE_NULLIFIER_REPLAY_REJECTION_REF,

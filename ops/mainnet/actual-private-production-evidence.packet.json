@@ -10,6 +10,7 @@
   "targetPublicTranscript": [
     "pool id",
     "asset cohort",
+    "asset id commitment",
     "accepted root",
     "nullifier",
     "output commitments",

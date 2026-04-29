@@ -19,7 +19,7 @@ const requiredPhrases = [
   "ops/mainnet/production-key-custody.template.json",
   "Out of scope",
   "Circuit review",
-  "actual-private spend public transcripts exclude source wallet",
+  "actual-private spend public transcripts include the asset-id commitment",
   "Operator review",
   "Browser and wallet review",
   "Custody and key-management review",

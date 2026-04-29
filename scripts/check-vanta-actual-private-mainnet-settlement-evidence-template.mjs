@@ -41,6 +41,7 @@ for (const term of productionPacket.forbiddenPublicTranscript) {
 
 for (const check of [
   "deposit transaction appends into the named shared cohort",
+  "asset-id commitment is present in the operator-reviewed public transcript without exposing the raw asset",
   "spend transaction is submitted by the relayer fee payer, not the source funding wallet",
   "operator receipt binds accepted root, nullifier, output commitments, and proof public-input hash",
   "accepted root is current or within the reviewed root window at spend acceptance",
@@ -55,6 +56,7 @@ for (const blocker of [
   "No filled live actual-private settlement evidence packet is recorded.",
   "No active bounded approval window is available for a live actual-private run.",
   "No live shared-cohort deposit transaction reference is recorded.",
+  "No live asset-id commitment transcript review reference is recorded.",
   "No live relayer-submitted spend transaction reference is recorded.",
   "No live accepted-root freshness evidence is recorded.",
   "No live nullifier replay rejection evidence is recorded.",

@@ -31,6 +31,7 @@ assert.equal(packet.secretPolicy, "references-only-no-secret-values");
 for (const allowed of [
   "pool id",
   "asset cohort",
+  "asset id commitment",
   "accepted root",
   "nullifier",
   "output commitments",

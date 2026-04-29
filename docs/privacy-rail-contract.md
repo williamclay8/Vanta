@@ -82,8 +82,9 @@ relayer-separated production execution, durable production services, and the
 strict readiness gate are satisfied.
 
 Current actual-private Private Pool v2 Send proof requests bind a pool id, asset
-cohort, accepted root, nullifier, output commitments, context hash, and proof
-public-input hash while using hidden-economics asset/amount sentinels. The local
+cohort, asset-id commitment, accepted root, nullifier, output commitments,
+context hash, and proof public-input hash while using hidden-economics
+asset/amount sentinels. The local
 verifier/indexer and separated role-service harness now accept that stricter
 request shape by registering the nullifier and appending output commitments
 without source wallet, merchant settlement address, raw amount, note secret,

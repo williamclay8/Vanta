@@ -11,6 +11,7 @@
   "requiredPreflightRef": "npm run mainnet:preflight",
   "requiredLiveEvidenceRefs": {
     "boundedApprovalWindowRef": "VANTA_ACTUAL_PRIVATE_BOUNDED_APPROVAL_WINDOW_REF",
+    "assetIdCommitmentReviewRef": "VANTA_ACTUAL_PRIVATE_ASSET_ID_COMMITMENT_REVIEW_REF",
     "sharedCohortDepositTxRef": "VANTA_ACTUAL_PRIVATE_SHARED_COHORT_DEPOSIT_TX_REF",
     "relayerSubmittedSpendTxRef": "VANTA_ACTUAL_PRIVATE_RELAYER_SUBMITTED_SPEND_TX_REF",
     "operatorReceiptRef": "VANTA_ACTUAL_PRIVATE_OPERATOR_RECEIPT_REF",
@@ -23,6 +24,7 @@
   "requiredPublicTranscriptTerms": [
     "pool id",
     "asset cohort",
+    "asset id commitment",
     "accepted root",
     "nullifier",
     "output commitments",
@@ -44,6 +46,7 @@
   ],
   "requiredChecksAfterLiveRun": [
     "deposit transaction appends into the named shared cohort",
+    "asset-id commitment is present in the operator-reviewed public transcript without exposing the raw asset",
     "spend transaction is submitted by the relayer fee payer, not the source funding wallet",
     "operator receipt binds accepted root, nullifier, output commitments, and proof public-input hash",
     "accepted root is current or within the reviewed root window at spend acceptance",
@@ -56,6 +59,7 @@
     "No filled live actual-private settlement evidence packet is recorded.",
     "No active bounded approval window is available for a live actual-private run.",
     "No live shared-cohort deposit transaction reference is recorded.",
+    "No live asset-id commitment transcript review reference is recorded.",
     "No live relayer-submitted spend transaction reference is recorded.",
     "No live accepted-root freshness evidence is recorded.",
     "No live nullifier replay rejection evidence is recorded.",

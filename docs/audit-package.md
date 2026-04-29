@@ -49,7 +49,7 @@ npm run private-pool-v2:verify
 Reviewers should inspect:
 
 - whether public inputs bind to the thing being proved
-- whether actual-private spend public transcripts exclude source wallet, merchant settlement address, raw amount, note secret, input commitment, input leaf index, deposit signature, plaintext memo, and same-fee-payer linkage
+- whether actual-private spend public transcripts include the asset-id commitment while excluding source wallet, merchant settlement address, raw amount, raw asset, note secret, input commitment, input leaf index, deposit signature, plaintext memo, and same-fee-payer linkage
 - whether nullifiers and replay checks prevent the same private state from being reused
 - whether valid fixtures pass and invalid fixtures fail
 - whether proof artifacts can be reproduced

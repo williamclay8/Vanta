@@ -15,6 +15,7 @@ const okRun = spawnSync("node", [writerPath, "--dry-run"], {
   env: {
     ...process.env,
     VANTA_ACTUAL_PRIVATE_ACCEPTED_ROOT_FRESHNESS_REF: "solscan-root-review:actual-private-demo-root",
+    VANTA_ACTUAL_PRIVATE_ASSET_ID_COMMITMENT_REVIEW_REF: "review:asset-id-commitment-present-raw-asset-hidden",
     VANTA_ACTUAL_PRIVATE_AUDIT_OR_REVIEWER_REF: "reviewer:clay-mainnet-evidence-packet",
     VANTA_ACTUAL_PRIVATE_BOUNDED_APPROVAL_WINDOW_REF: "approval-window:2026-04-28T18:00:00-19:00:00-America-Los_Angeles",
     VANTA_ACTUAL_PRIVATE_NULLIFIER_REPLAY_REJECTION_REF: "operator-nullifier-replay:rejected-duplicate",
@@ -37,7 +38,8 @@ assert.equal(evidence.liveMainnetSettlementProven, false);
 assert.equal(evidence.currentStatus, "filled-refs-awaiting-review");
 assert.equal(evidence.secretPolicy, "references-only-no-secret-values");
 assert.equal(evidence.activePrivacyRailId, "vanta-private-pool-v2");
-assert.equal(Object.keys(evidence.evidenceRefs).length, 9);
+assert.equal(evidence.evidenceRefs.assetIdCommitmentReviewRef, "review:asset-id-commitment-present-raw-asset-hidden");
+assert.equal(Object.keys(evidence.evidenceRefs).length, 10);
 
 const serialized = JSON.stringify(evidence);
 for (const forbidden of [
@@ -64,6 +66,7 @@ const blockedRun = spawnSync("node", [writerPath, "--dry-run"], {
   env: {
     ...process.env,
     VANTA_ACTUAL_PRIVATE_ACCEPTED_ROOT_FRESHNESS_REF: "ok-root-ref",
+    VANTA_ACTUAL_PRIVATE_ASSET_ID_COMMITMENT_REVIEW_REF: "ok-asset-id-commitment-review-ref",
     VANTA_ACTUAL_PRIVATE_AUDIT_OR_REVIEWER_REF: "ok-reviewer-ref",
     VANTA_ACTUAL_PRIVATE_BOUNDED_APPROVAL_WINDOW_REF: "ok-window-ref",
     VANTA_ACTUAL_PRIVATE_NULLIFIER_REPLAY_REJECTION_REF: "ok-replay-ref",
