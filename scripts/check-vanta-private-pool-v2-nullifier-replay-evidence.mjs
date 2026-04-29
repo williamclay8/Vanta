@@ -108,7 +108,7 @@ assert.deepEqual(evidence.productionReplayBlockedBy, [
   "no-real-funds-smoke-only",
   "no-live-actual-private-accepted-root-freshness-evidence",
   "no-proven-audited-shared-anonymity-set",
-  "no-live-mainnet-private-settlement-path",
+  "no-proven-live-mainnet-private-settlement-evidence",
 ]);
 assert.equal(
   evidence.protocolEnforcementFinalLayerImplemented,
@@ -134,7 +134,7 @@ assert.ok(
   "Evidence must preserve the missing actual-private root freshness truth.",
 );
 assert.ok(
-  evidence.deploymentTruth.includes("live mainnet private settlement is still unavailable"),
+  evidence.deploymentTruth.includes("proven live mainnet private settlement evidence is still unavailable"),
   "Evidence must preserve the missing live private-settlement truth.",
 );
 

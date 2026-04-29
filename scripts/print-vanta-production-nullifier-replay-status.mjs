@@ -250,7 +250,7 @@ if (checkMode) {
   assert.deepEqual(result.productionReplayBlockedBy, [
     "no-real-funds-smoke-only",
     "no-proven-audited-shared-anonymity-set",
-    "no-live-mainnet-private-settlement-path",
+    "no-proven-live-mainnet-private-settlement-evidence",
   ]);
   assert.equal(
     result.protocolEnforcementFinalLayerImplemented,

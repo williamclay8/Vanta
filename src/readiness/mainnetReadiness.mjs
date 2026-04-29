@@ -24,7 +24,7 @@ const blockerDefinitions = [
     id: "final-nullifier-replay-enforcement",
     severity: "critical",
     buildSummary:
-      "Keep the deployed Postgres-backed operator replay guard, verified role-service replay barrier, and no-real-funds production smoke replay rejection fresh while the checked replay blockers remain no-real-funds-smoke-only, no-proven-audited-shared-anonymity-set, and no-live-mainnet-private-settlement-path.",
+      "Keep the deployed Postgres-backed operator replay guard, verified role-service replay barrier, and no-real-funds production smoke replay rejection fresh while the checked replay blockers remain no-real-funds-smoke-only, no-proven-audited-shared-anonymity-set, and no-proven-live-mainnet-private-settlement-evidence.",
   },
   {
     id: "wallet-backed-browser-signing-safety",

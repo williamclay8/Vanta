@@ -81,7 +81,7 @@ for (const ref of [
 
 for (const blocker of [
   "no-proven-audited-shared-anonymity-set",
-  "no-live-mainnet-private-settlement-path",
+  "no-proven-live-mainnet-private-settlement-evidence",
   "no-third-party-audit",
   "no-production-anonymity-set-metrics",
   "no-independent-production-relayer-separation-review",

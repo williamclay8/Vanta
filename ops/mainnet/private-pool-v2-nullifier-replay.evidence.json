@@ -37,13 +37,13 @@
     "no-real-funds-smoke-only",
     "no-live-actual-private-accepted-root-freshness-evidence",
     "no-proven-audited-shared-anonymity-set",
-    "no-live-mainnet-private-settlement-path"
+    "no-proven-live-mainnet-private-settlement-evidence"
   ],
   "protocolEnforcementLayer": "operator-claim-preflight-plus-verifier-receipt-idempotency-plus-indexer-nullifier-registration",
   "protocolEnforcementFinalLayerImplemented": true,
   "protocolEnforcementFinalLayerProductionReady": false,
   "operatorStatusProductionReady": false,
   "safety": "No auth token values, database URLs, bearer values, wallet keys, or signed transaction material are stored in this evidence file.",
-  "deploymentTruth": "This evidence records the deployed Postgres-backed operator replay reservation barrier, the checked role-service replay packet covering duplicate verifier receipt rejection and indexer-backed nullifier registration, the local and role-service actual-private spend path that replay-keys by nullifier and appends output commitments, the live operator truth that the final protocol replay layer is implemented through verifier receipt idempotency plus indexer nullifier registration, and the no-real-funds production smoke replay rejection. The lane still remains non-ready because it only has no-real-funds smoke evidence, there is no live mainnet accepted-root freshness evidence for actual-private spends, there is no proven audited shared anonymity set, and live mainnet private settlement is still unavailable.",
+  "deploymentTruth": "This evidence records the deployed Postgres-backed operator replay reservation barrier, the checked role-service replay packet covering duplicate verifier receipt rejection and indexer-backed nullifier registration, the local and role-service actual-private spend path that replay-keys by nullifier and appends output commitments, the live operator truth that the final protocol replay layer is implemented through verifier receipt idempotency plus indexer nullifier registration, and the no-real-funds production smoke replay rejection. The lane still remains non-ready because it only has no-real-funds smoke evidence, there is no live mainnet accepted-root freshness evidence for actual-private spends, there is no proven audited shared anonymity set, and proven live mainnet private settlement evidence is still unavailable.",
   "nextOperatorAction": "Keep the authenticated production nullifier replay status command, the checked role-service replay packet, and the production smoke replay simulation fresh while no-real-funds smoke remains the only live settlement proof, audited shared-anonymity-set evidence remains unavailable, and live mainnet private settlement stays unavailable."
 }

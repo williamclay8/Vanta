@@ -71,13 +71,13 @@ assert.equal(result.realFundsAllowedNow, result.boundedRealFundsApprovalWindowAc
 assert.equal(result.noRealFundsSmokeOnly, true);
 const expectedMeaningfulPrivacyBlockedBy = [
   "no-proven-audited-shared-anonymity-set",
-  "no-live-mainnet-private-settlement-path",
+  "no-proven-live-mainnet-private-settlement-evidence",
   "no-third-party-audit",
   "no-production-anonymity-set-metrics",
   "no-independent-production-relayer-separation-review",
   "no-live-relayer-submitted-spend-evidence",
   "no-proven-audited-shared-anonymity-set",
-  "no-live-mainnet-private-settlement-path",
+  "no-proven-live-mainnet-private-settlement-evidence",
   "no-live-actual-private-mainnet-settlement-evidence",
   ...(result.boundedRealFundsApprovalWindowActive ? [] : ["no-active-bounded-real-funds-approval-window"]),
 ];
@@ -112,7 +112,7 @@ assert.ok(
   "Private settlement status must preserve the missing audited-anonymity-set truth.",
 );
 assert.ok(
-  result.deploymentTruth.includes("no live mainnet private settlement path"),
+  result.deploymentTruth.includes("no proven live mainnet private settlement evidence"),
   "Private settlement status must preserve the missing live-mainnet-settlement truth.",
 );
 assert.ok(
