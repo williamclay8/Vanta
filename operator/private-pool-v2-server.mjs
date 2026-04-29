@@ -251,6 +251,44 @@ function readProofRequestInput(request, prefix) {
   return request.publicInputs?.find((input) => String(input).startsWith(prefix))?.slice(prefix.length) ?? null;
 }
 
+function proofRequestReplayContext(request) {
+  if (request.intent === "private-send") {
+    return "private-pool-v2-private-send";
+  }
+
+  if (request.intent === "swap-to-shielded") {
+    return "private-pool-v2-swap-to-shielded";
+  }
+
+  if (request.intent === "unshield") {
+    return "private-pool-v2-unshield";
+  }
+
+  if (request.intent === "claim") {
+    return "private-pool-v2-claim";
+  }
+
+  return null;
+}
+
+function replayNullifierFromProofRequest(request) {
+  const context = proofRequestReplayContext(request);
+  if (!context) {
+    return null;
+  }
+
+  return request.intent === "claim"
+    ? readProofRequestInput(request, "nullifier:")
+    : readProofRequestInput(request, "nullifier:") ??
+        readProofRequestInput(request, "nullifier-or-replay-commitment:");
+}
+
+function serializeReplayGuardSnapshot(snapshot) {
+  return JSON.stringify(snapshot, (_, value) =>
+    typeof value === "bigint" ? value.toString() : value,
+  );
+}
+
 function compileRuntime() {
   mkdirSync(tempTsDir, { recursive: true });
 
@@ -387,7 +425,15 @@ function createRuntime() {
 const runtime = createRuntime();
 const restoredNullifierRecords = (persistedState.nullifiers ?? []).map((record) => ({
   assetId: "restored-private-pool-v2-claim",
-  context: "private-pool-v2-claim",
+  context:
+    record.context ??
+    (record.intent === "private-send"
+      ? "private-pool-v2-private-send"
+      : record.intent === "swap-to-shielded"
+        ? "private-pool-v2-swap-to-shielded"
+        : record.intent === "unshield"
+          ? "private-pool-v2-unshield"
+          : "private-pool-v2-claim"),
   nullifier: record.nullifier,
   recordedAt: new Date(Number(record.spentAtSlot ?? 0n)).toISOString(),
   requestId: `restored:${record.nullifier}`,
@@ -1264,6 +1310,15 @@ function nullifiersFromReceipts(receipts) {
       for (const prefix of ["claim:", "private-send:", "swap-to-shielded:", "unshield:"]) {
         if (receipt.replayKey.startsWith(prefix)) {
           return {
+            context:
+              prefix === "private-send:"
+                ? "private-pool-v2-private-send"
+                : prefix === "swap-to-shielded:"
+                  ? "private-pool-v2-swap-to-shielded"
+                  : prefix === "unshield:"
+                    ? "private-pool-v2-unshield"
+                    : "private-pool-v2-claim",
+            intent: prefix.slice(0, -1),
             nullifier: receipt.replayKey.slice(prefix.length),
             spentAtSlot: receipt.recordedAtSlot,
           };
@@ -1311,29 +1366,18 @@ async function persistReceipts(acceptedRequest) {
 }
 
 async function enforceClaimNullifierPreflight(request, requestId) {
-  if (
-    request.intent !== "claim" &&
-    request.intent !== "unshield" &&
-    request.intent !== "swap-to-shielded"
-  ) {
+  const context = proofRequestReplayContext(request);
+  if (!context) {
     return;
   }
 
-  const nullifier =
-    request.intent === "unshield" || request.intent === "swap-to-shielded"
-      ? readProofRequestInput(request, "nullifier-or-replay-commitment:")
-      : readProofRequestInput(request, "nullifier:");
+  const nullifier = replayNullifierFromProofRequest(request);
   if (!nullifier) {
-    throw new Error("Claim or committed unshield proof requires a nullifier replay guard input.");
+    throw new Error("Private-pool proof requires a nullifier replay guard input.");
   }
 
   const decision = await nullifierReplayGuard.check({
-    context:
-      request.intent === "unshield"
-        ? "private-pool-v2-unshield"
-        : request.intent === "swap-to-shielded"
-          ? "private-pool-v2-swap-to-shielded"
-          : "private-pool-v2-claim",
+    context,
     nullifier,
     requestId,
   });
@@ -1344,31 +1388,20 @@ async function enforceClaimNullifierPreflight(request, requestId) {
 }
 
 async function reserveAcceptedClaimNullifier(request, requestId) {
-  if (
-    request.intent !== "claim" &&
-    request.intent !== "unshield" &&
-    request.intent !== "swap-to-shielded"
-  ) {
+  const context = proofRequestReplayContext(request);
+  if (!context) {
     return null;
   }
 
-  const nullifier =
-    request.intent === "unshield" || request.intent === "swap-to-shielded"
-      ? readProofRequestInput(request, "nullifier-or-replay-commitment:")
-      : readProofRequestInput(request, "nullifier:");
+  const nullifier = replayNullifierFromProofRequest(request);
   if (!nullifier) {
-    throw new Error("Accepted claim or committed unshield proof requires a nullifier replay guard input.");
+    throw new Error("Accepted private-pool proof requires a nullifier replay guard input.");
   }
 
   const assetId = request.assetId ?? readProofRequestInput(request, "asset-id:") ?? "unknown";
   const decision = await nullifierReplayGuard.reserve({
     assetId,
-    context:
-      request.intent === "unshield"
-        ? "private-pool-v2-unshield"
-        : request.intent === "swap-to-shielded"
-          ? "private-pool-v2-swap-to-shielded"
-          : "private-pool-v2-claim",
+    context,
     nullifier,
     requestId,
   });
@@ -1381,33 +1414,52 @@ async function reserveAcceptedClaimNullifier(request, requestId) {
 }
 
 async function recordAcceptedClaimNullifier(request, requestId, claimReceiptId) {
-  if (
-    request.intent !== "claim" &&
-    request.intent !== "unshield" &&
-    request.intent !== "swap-to-shielded"
-  ) {
+  const context = proofRequestReplayContext(request);
+  if (!context) {
     return null;
   }
 
-  const nullifier =
-    request.intent === "unshield" || request.intent === "swap-to-shielded"
-      ? readProofRequestInput(request, "nullifier-or-replay-commitment:")
-      : readProofRequestInput(request, "nullifier:");
+  const nullifier = replayNullifierFromProofRequest(request);
   if (!nullifier) {
-    throw new Error("Accepted claim or committed unshield proof requires a nullifier replay guard input.");
+    throw new Error("Accepted private-pool proof requires a nullifier replay guard input.");
   }
 
   return await nullifierReplayGuard.markAccepted({
     claimReceiptId,
-    context:
-      request.intent === "unshield"
-        ? "private-pool-v2-unshield"
-        : request.intent === "swap-to-shielded"
-          ? "private-pool-v2-swap-to-shielded"
-          : "private-pool-v2-claim",
+    context,
     nullifier,
     requestId,
   });
+}
+
+async function checkProofRequestNullifierReplay(request, requestId) {
+  const context = proofRequestReplayContext(request);
+  if (!context) {
+    throw new Error("Private-pool replay check requires a guarded proof intent.");
+  }
+
+  const nullifier = replayNullifierFromProofRequest(request);
+  if (!nullifier) {
+    throw new Error("Private-pool replay check requires a nullifier replay guard input.");
+  }
+
+  const before = await nullifierReplayGuard.snapshot();
+  const decision = await nullifierReplayGuard.check({
+    context,
+    nullifier,
+    requestId,
+  });
+  const after = await nullifierReplayGuard.snapshot();
+
+  return {
+    accepted: decision.accepted,
+    context,
+    decision,
+    kind: "Private Pool V2 nullifier replay check",
+    mutated: serializeReplayGuardSnapshot(before) !== serializeReplayGuardSnapshot(after),
+    nullifierRef: `nullifier:${hashHex("nullifier-replay-check-ref", context, nullifier).slice(2, 18)}`,
+    requestId,
+  };
 }
 
 async function statusPayload() {
@@ -2143,6 +2195,27 @@ const server = createServer(async (request, response) => {
         receipt,
         status: await statusPayload(),
       });
+      return;
+    }
+
+    if (request.method === "POST" && request.url === "/private-pool-v2/nullifier-replay-checks") {
+      const body = await readRequestBody(request);
+      const proofRequest = body.request
+        ? toProofRequest(body.request)
+        : {
+            amountBaseUnits: 1n,
+            assetId: body.assetId ?? VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID,
+            intent: requireNonEmptyString(body.intent, "intent"),
+            publicInputs: [
+              `intent:${requireNonEmptyString(body.intent, "intent")}`,
+              `nullifier:${requireNonEmptyString(body.nullifier, "nullifier")}`,
+            ],
+          };
+      const requestId =
+        body.requestId ??
+        body.proof?.publicInputCommitment ??
+        proofRequest.publicInputs?.join("|");
+      sendJson(response, 200, await checkProofRequestNullifierReplay(proofRequest, requestId));
       return;
     }
 

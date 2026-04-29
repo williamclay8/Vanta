@@ -400,6 +400,26 @@ try {
   ]);
   console.log("vanta-pay committed checkout acceptance: PASS");
 
+  const replayReview = await requestJson("/private-pool-v2/nullifier-replay-checks", {
+    body: serialize({
+      request: directSendProofRequest,
+      requestId: "review-only-conflicting-private-send-nullifier",
+    }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(
+    replayReview.kind === "Private Pool V2 nullifier replay check",
+    "Expected replay review endpoint response.",
+  );
+  assert(
+    replayReview.accepted === false && replayReview.decision?.replay === true,
+    "Expected review-only private-send nullifier replay rejection.",
+  );
+  assert(replayReview.context === "private-pool-v2-private-send", "Expected private-send replay context.");
+  assert(replayReview.mutated === false, "Expected review-only replay check to avoid mutation.");
+  console.log("vanta-pay committed checkout no-funds replay review: PASS");
+
   const repeatedSettlement = await requestJson("/private-pool-v2/protocol-settlements", {
     body: JSON.stringify(committedRequest),
     headers: { Authorization: `Bearer ${authToken}` },
