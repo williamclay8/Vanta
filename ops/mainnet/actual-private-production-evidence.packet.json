@@ -39,6 +39,7 @@
     "auditPackage": "docs/audit-package.md",
     "mainnetPrivateSettlement": "npm run mainnet:private-settlement-check",
     "liveMainnetSettlementTemplate": "ops/mainnet/actual-private-mainnet-settlement.evidence.template.json",
+    "productionCapability": "ops/mainnet/actual-private-production-capability.evidence.json",
     "productionSmoke": "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
     "actualPrivateRailRegression": "npm run private-transaction:mvp-check"
   },
@@ -51,6 +52,7 @@
     "npm run ops:safe-telemetry-check",
     "npm run audit:package-check",
     "npm run mainnet:private-settlement-check",
+    "npm run mainnet:actual-private-production-capability-check",
     "npm run mainnet:actual-private-settlement-evidence-check",
     "npm run mainnet:production-smoke-evidence-check"
   ],
@@ -61,6 +63,7 @@
     "nullifierRootEnforcement": "actual-private-nullifier-covered-root-freshness-blocked",
     "safeLogging": "local-contract-covered",
     "audit": "packet-template-only",
+    "productionCapability": "blocked-stale-operator-send-proof-mode",
     "mainnetEvidence": "no-real-funds-smoke-only"
   },
   "productionBlockers": [
@@ -71,6 +74,7 @@
     "No production relayer log-redaction evidence is recorded.",
     "No production deployment separation evidence is recorded.",
     "No third-party audit report and fix-verification packet is recorded.",
+    "Production Private Pool v2 status still advertises legacy Send proof mode instead of actual-private Send proof mode.",
     "No live mainnet private settlement path is proven.",
     "No active bounded real-funds approval window is available."
   ],

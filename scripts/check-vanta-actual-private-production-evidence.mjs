@@ -17,6 +17,7 @@ const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
 const anonymity = readJson("ops/mainnet/private-pool-v2-anonymity-set.evidence.json");
 const relayer = readJson("ops/mainnet/private-pool-v2-relayer-separation.evidence.json");
 const nullifier = readJson("ops/mainnet/private-pool-v2-nullifier-replay.evidence.json");
+const productionCapability = readJson("ops/mainnet/actual-private-production-capability.evidence.json");
 const productionSmoke = readJson("ops/mainnet/private-pool-v2-production-smoke.evidence.json");
 const roleService = readJson("ops/mainnet/private-pool-v2-role-service-replay.evidence.json");
 
@@ -68,6 +69,7 @@ assert.equal(
   packet.evidenceRefs.liveMainnetSettlementTemplate,
   "ops/mainnet/actual-private-mainnet-settlement.evidence.template.json",
 );
+assert.equal(packet.evidenceRefs.productionCapability, "ops/mainnet/actual-private-production-capability.evidence.json");
 assert.equal(packet.evidenceRefs.productionSmoke, "ops/mainnet/private-pool-v2-production-smoke.evidence.json");
 assert.equal(packet.evidenceRefs.actualPrivateRailRegression, "npm run private-transaction:mvp-check");
 
@@ -80,6 +82,7 @@ for (const command of [
   "npm run ops:safe-telemetry-check",
   "npm run audit:package-check",
   "npm run mainnet:private-settlement-check",
+  "npm run mainnet:actual-private-production-capability-check",
   "npm run mainnet:actual-private-settlement-evidence-check",
   "npm run mainnet:production-smoke-evidence-check",
 ]) {
@@ -98,6 +101,11 @@ assert.equal(
   false,
 );
 assert.equal(roleService.productionReady, false);
+assert.equal(productionCapability.productionReady, false);
+assert.equal(productionCapability.realFundsAllowed, false);
+assert.equal(productionCapability.capabilityDecision?.accepted, false);
+assert.equal(productionCapability.capabilityDecision?.reason, "operator-send-proof-mode-not-actual-private");
+assert.equal(productionCapability.settlementPostAllowed, false);
 assert.equal(productionSmoke.productionReady, false);
 assert.equal(productionSmoke.realFundsAllowed, false);
 
@@ -110,6 +118,7 @@ assert.equal(
 );
 assert.equal(packet.evidenceStatus.safeLogging, "local-contract-covered");
 assert.equal(packet.evidenceStatus.audit, "packet-template-only");
+assert.equal(packet.evidenceStatus.productionCapability, "blocked-stale-operator-send-proof-mode");
 assert.equal(packet.evidenceStatus.mainnetEvidence, "no-real-funds-smoke-only");
 
 for (const blocker of [
@@ -120,6 +129,7 @@ for (const blocker of [
   "No production relayer log-redaction evidence is recorded.",
   "No production deployment separation evidence is recorded.",
   "No third-party audit report and fix-verification packet is recorded.",
+  "Production Private Pool v2 status still advertises legacy Send proof mode instead of actual-private Send proof mode.",
   "No live mainnet private settlement path is proven.",
   "No active bounded real-funds approval window is available.",
 ]) {

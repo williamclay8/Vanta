@@ -1,0 +1,43 @@
+{
+  "version": "vanta-actual-private-production-capability-evidence-0.1",
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "realFundsAllowed": false,
+  "secretPolicy": "references-only-no-secret-values",
+  "purpose": "Refs-only production operator capability evidence for actual-private settlement. This records whether the deployed Private Pool v2 operator advertises the actual-private Send proof mode before any settlement POST is allowed.",
+  "operatorStatusEndpointRef": "production Private Pool v2 operator /state/private-pool-v2-status",
+  "requiredProtocolActionProofModes": {
+    "send": "actual_private_spend_circuit_request"
+  },
+  "observedProtocolActionProofModes": {
+    "send": "send_circuit_request"
+  },
+  "observedAtRef": "2026-04-28 status-only authenticated production probe",
+  "capabilityDecision": {
+    "accepted": false,
+    "reason": "operator-send-proof-mode-not-actual-private"
+  },
+  "settlementPostAllowed": false,
+  "fundsMoved": false,
+  "evidenceRefs": {
+    "relayerCallerGate": "src/mainnet/actualPrivateSettlementRelayerCaller.mjs#validateVantaActualPrivateOperatorCapability",
+    "relayerCallerCheck": "npm run mainnet:actual-private-settlement-relayer-caller-check",
+    "productionEvidencePacket": "ops/mainnet/actual-private-production-evidence.packet.json"
+  },
+  "productionBlockers": [
+    "Production Private Pool v2 status must advertise protocolActionProofModes.send as actual_private_spend_circuit_request.",
+    "Production operator deployment/capability alignment is required before another actual-private live settlement execute request.",
+    "Do not reintroduce source-state fields to satisfy the stale legacy Send path."
+  ],
+  "forbiddenWorkarounds": [
+    "input commitment",
+    "input root",
+    "input leaf index",
+    "send context tag",
+    "source wallet",
+    "raw asset",
+    "raw amount",
+    "destination",
+    "owner"
+  ]
+}
