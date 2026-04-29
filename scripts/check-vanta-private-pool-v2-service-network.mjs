@@ -798,6 +798,37 @@ try {
   });
   assert(!actualPrivateSpendReplay.ok, "Expected duplicate actual-private spend receipt to be rejected.");
 
+  const privateSpendSubmission = await requestJson(serviceUrls.get("relayer"), "/v1/private-spends/submit", {
+    body: JSON.stringify({
+      proofReceiptId: actualPrivateSpendReceipt.parsed.receiptId,
+      publicInputCommitment: actualPrivateSpendReceipt.parsed.publicInputCommitment,
+      serializedTransaction: "serialized-private-spend-service-network-test",
+      settlementId: "settlement:service-network-actual-private",
+    }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(privateSpendSubmission.ok, privateSpendSubmission.text || "Expected private spend relayer submission.");
+  assert(
+    privateSpendSubmission.parsed?.submittedBy === "relayer",
+    "Expected private spend submission to be marked relayer-submitted.",
+  );
+  assert(
+    String(privateSpendSubmission.parsed?.signature ?? "").startsWith("0x"),
+    "Expected local service-network private spend signature to remain deterministic mock evidence.",
+  );
+  const duplicatePrivateSpendSubmission = await requestJson(serviceUrls.get("relayer"), "/v1/private-spends/submit", {
+    body: JSON.stringify({
+      proofReceiptId: actualPrivateSpendReceipt.parsed.receiptId,
+      publicInputCommitment: actualPrivateSpendReceipt.parsed.publicInputCommitment,
+      serializedTransaction: "serialized-private-spend-service-network-test",
+      settlementId: "settlement:service-network-actual-private",
+    }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(!duplicatePrivateSpendSubmission.ok, "Expected duplicate private spend relayer submission to be rejected.");
+
   console.log("private-pool-v2 service-network actual-private spend transition: PASS");
 
   const replayReceipt = await requestJson(serviceUrls.get("verifier"), "/v1/proofs/accept", {

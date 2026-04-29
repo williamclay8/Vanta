@@ -38,6 +38,12 @@ export type VantaPrivatePoolV2ClaimQuote = {
   relayerId: string;
 };
 
+export type VantaPrivatePoolV2PrivateSpendSubmission = {
+  relayerId: string;
+  signature: string;
+  submittedBy: "relayer";
+};
+
 export type VantaPrivatePoolV2ProofIntent =
   | "shield"
   | "private-send"
@@ -95,6 +101,12 @@ export interface VantaPrivatePoolV2Relayer {
     quote: VantaPrivatePoolV2ClaimQuote;
     serializedTransaction: string;
   }): Promise<{ relayerId: string; signature: string }>;
+  submitPrivateSpend?(args: {
+    proofReceiptId: string;
+    publicInputCommitment: string;
+    settlementId: string;
+    serializedTransaction: string;
+  }): Promise<VantaPrivatePoolV2PrivateSpendSubmission>;
 }
 
 export interface VantaPrivatePoolV2Prover {

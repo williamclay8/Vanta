@@ -472,6 +472,10 @@ function hashId(prefix, ...parts) {
   return `${prefix}_${bytesToHex(sha256(textEncoder.encode(parts.join("\u001f")))).slice(0, 24)}`;
 }
 
+function isSolanaTransactionSignature(value) {
+  return typeof value === "string" && /^[1-9A-HJ-NP-Za-km-z]{64,88}$/.test(value);
+}
+
 function normalizeAmount(value, asset) {
   const normalized = requireNonEmptyString(value, "amount");
   if (!/^\d+(?:\.\d+)?$/.test(normalized)) {
@@ -1462,6 +1466,31 @@ async function checkProofRequestNullifierReplay(request, requestId) {
   };
 }
 
+async function submitActualPrivateSpendToRelayer({ proofReceipt, protocolSettlementReceipt, request }) {
+  if (request.intent !== "private-send" || typeof runtime.relayer?.submitPrivateSpend !== "function") {
+    return null;
+  }
+
+  const submission = await runtime.relayer.submitPrivateSpend({
+    proofReceiptId: protocolSettlementReceipt.proofReceiptId,
+    publicInputCommitment: proofReceipt.publicInputCommitment,
+    serializedTransaction: JSON.stringify({
+      action: protocolSettlementReceipt.action,
+      proofReceiptPublicInputCommitment: protocolSettlementReceipt.proofReceiptPublicInputCommitment,
+      settlementCommitment: protocolSettlementReceipt.settlementCommitment,
+      settlementId: protocolSettlementReceipt.settlementId,
+    }),
+    settlementId: protocolSettlementReceipt.settlementId,
+  });
+
+  return {
+    relayerId: submission.relayerId,
+    signature: submission.signature,
+    submittedBy: submission.submittedBy,
+    solanaSignatureAccepted: isSolanaTransactionSignature(submission.signature),
+  };
+}
+
 async function statusPayload() {
   const anonymitySetReadiness = createVantaPrivatePoolV2AnonymitySetReadiness();
   const readiness = runtime.readiness();
@@ -2085,8 +2114,32 @@ async function proveAndAcceptProtocolSettlement(body) {
       : {}),
     status: "confirmed",
   };
+  const onChainSubmission = await submitActualPrivateSpendToRelayer({
+    proofReceipt,
+    protocolSettlementReceipt,
+    request,
+  });
   const settlement = {
     kind: "protocol_settlement",
+    ...(onChainSubmission?.solanaSignatureAccepted
+      ? {
+          onChainSubmission: {
+            relayerId: onChainSubmission.relayerId,
+            signature: onChainSubmission.signature,
+            submittedBy: onChainSubmission.submittedBy,
+          },
+        }
+      : {}),
+    ...(onChainSubmission && !onChainSubmission.solanaSignatureAccepted
+      ? {
+          relayerSubmissionAttempt: {
+            relayerId: onChainSubmission.relayerId,
+            signatureRef: `non-solana-signature:${hashHex("relayer-submission-attempt", onChainSubmission.signature).slice(2, 18)}`,
+            status: "not-solscan-evidence",
+            submittedBy: onChainSubmission.submittedBy,
+          },
+        }
+      : {}),
     proofReceipt,
     protocolSettlementReceipt,
 	    settlementFingerprint: protocolSettlementFingerprint({

@@ -239,6 +239,14 @@ export function createVantaPrivatePoolV2RemoteRelayer(args: RemoteServiceArgs): 
         signature: String(response.signature),
       };
     },
+    async submitPrivateSpend(body) {
+      const response: any = await client.post("/v1/private-spends/submit", body);
+      return {
+        relayerId: String(response.relayerId),
+        signature: String(response.signature),
+        submittedBy: "relayer",
+      } as const;
+    },
   };
 }
 

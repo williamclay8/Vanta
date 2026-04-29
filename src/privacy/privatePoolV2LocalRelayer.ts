@@ -15,6 +15,17 @@ export type VantaPrivatePoolV2LocalRelayerClaim = {
   submittedAtSlot: bigint;
 };
 
+export type VantaPrivatePoolV2LocalRelayerPrivateSpend = {
+  proofReceiptId: string;
+  publicInputCommitment: string;
+  relayerId: string;
+  serializedTransaction: string;
+  settlementId: string;
+  signature: string;
+  submittedAtSlot: bigint;
+  submittedBy: "relayer";
+};
+
 export type VantaPrivatePoolV2LocalRelayerArgs = {
   currentSlot?: bigint;
   feeBps?: bigint;
@@ -34,6 +45,7 @@ export class VantaPrivatePoolV2LocalRelayer implements VantaPrivatePoolV2Relayer
   #claims = new Map<string, VantaPrivatePoolV2LocalRelayerClaim>();
   #currentSlot: bigint;
   #feeBps: bigint;
+  #privateSpends = new Map<string, VantaPrivatePoolV2LocalRelayerPrivateSpend>();
   #quoteTtlSlots: bigint;
   #quotes = new Map<string, VantaPrivatePoolV2ClaimQuote>();
   #relayerId: string;
@@ -52,6 +64,10 @@ export class VantaPrivatePoolV2LocalRelayer implements VantaPrivatePoolV2Relayer
 
   get submittedClaims() {
     return [...this.#claims.values()];
+  }
+
+  get submittedPrivateSpends() {
+    return [...this.#privateSpends.values()];
   }
 
   advanceSlot(slots: bigint) {
@@ -136,6 +152,48 @@ export class VantaPrivatePoolV2LocalRelayer implements VantaPrivatePoolV2Relayer
     return {
       relayerId: quote.relayerId,
       signature,
+    };
+  }
+
+  async submitPrivateSpend({
+    proofReceiptId,
+    publicInputCommitment,
+    serializedTransaction,
+    settlementId,
+  }: {
+    proofReceiptId: string;
+    publicInputCommitment: string;
+    serializedTransaction: string;
+    settlementId: string;
+  }) {
+    const key = [settlementId, proofReceiptId, publicInputCommitment].join(":");
+    if (this.#privateSpends.has(key)) {
+      throw new Error(`Private spend ${settlementId} has already been submitted.`);
+    }
+
+    const signature = hashParts(
+      this.scheme,
+      "private-spend",
+      key,
+      serializedTransaction,
+      this.#currentSlot.toString(),
+    );
+    const submission = {
+      proofReceiptId,
+      publicInputCommitment,
+      relayerId: this.#relayerId,
+      serializedTransaction,
+      settlementId,
+      signature,
+      submittedAtSlot: this.#currentSlot,
+      submittedBy: "relayer",
+    } satisfies VantaPrivatePoolV2LocalRelayerPrivateSpend;
+    this.#privateSpends.set(key, submission);
+
+    return {
+      relayerId: submission.relayerId,
+      signature,
+      submittedBy: submission.submittedBy,
     };
   }
 

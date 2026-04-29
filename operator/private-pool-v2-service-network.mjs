@@ -520,6 +520,7 @@ function createRelayerState({ snapshotStore, storePath } = {}) {
   let loaded = false;
   let quotes = new Map();
   let claims = new Map();
+  let privateSpends = new Map();
 
   async function ensureLoaded() {
     if (loaded) {
@@ -531,12 +532,19 @@ function createRelayerState({ snapshotStore, storePath } = {}) {
       : readSnapshot(storePath, { claims: [], quotes: [] });
     quotes = new Map((snapshot.quotes ?? []).map((quote) => [quoteKey(quote), quote]));
     claims = new Map((snapshot.claims ?? []).map((claim) => [quoteKey(claim.quote), claim]));
+    privateSpends = new Map(
+      (snapshot.privateSpends ?? []).map((submission) => [
+        [submission.settlementId, submission.proofReceiptId, submission.publicInputCommitment].join(":"),
+        submission,
+      ]),
+    );
     loaded = true;
   }
 
   async function save() {
     const snapshot = {
       claims: [...claims.values()],
+      privateSpends: [...privateSpends.values()],
       quotes: [...quotes.values()],
     };
     if (snapshotStore) {
@@ -576,6 +584,31 @@ function createRelayerState({ snapshotStore, storePath } = {}) {
       claims.set(key, claim);
       await save();
       return claim;
+    },
+    async submitPrivateSpend({
+      proofReceiptId,
+      publicInputCommitment,
+      serializedTransaction,
+      settlementId,
+    }) {
+      await ensureLoaded();
+      const key = [settlementId, proofReceiptId, publicInputCommitment].join(":");
+      if (privateSpends.has(key)) {
+        throw new Error(`Private spend ${settlementId} has already been submitted.`);
+      }
+
+      const submission = {
+        proofReceiptId: String(proofReceiptId),
+        publicInputCommitment: String(publicInputCommitment),
+        relayerId: `vanta-service-relayer:${hashHex(serviceVersion, "private-spend", String(settlementId)).slice(2, 18)}`,
+        serializedTransaction: String(serializedTransaction),
+        settlementId: String(settlementId),
+        signature: hashHex(serviceVersion, "private-spend", key, String(serializedTransaction)),
+        submittedBy: "relayer",
+      };
+      privateSpends.set(key, submission);
+      await save();
+      return submission;
     },
   };
 }
@@ -986,6 +1019,12 @@ async function createServiceHandlers(role, {
     if (request.method === "POST" && request.url === "/v1/claims/submit") {
       const body = await readRequestBody(request);
       sendJson(response, 200, await relayerState.submitClaim(body));
+      return true;
+    }
+
+    if (request.method === "POST" && request.url === "/v1/private-spends/submit") {
+      const body = await readRequestBody(request);
+      sendJson(response, 200, await relayerState.submitPrivateSpend(body));
       return true;
     }
 
