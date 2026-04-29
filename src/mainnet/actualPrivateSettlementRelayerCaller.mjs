@@ -21,6 +21,10 @@ function normalizeBaseUrl(value) {
   return parsed.toString().replace(/\/+$/, "");
 }
 
+function isSolanaTransactionSignature(value) {
+  return typeof value === "string" && /^[1-9A-HJ-NP-Za-km-z]{64,88}$/.test(value);
+}
+
 export function validateVantaActualPrivateSettlementResponse({ plan, response }) {
   if (response?.kind !== "protocol_settlement") {
     return { accepted: false, reason: "invalid-response-kind" };
@@ -48,6 +52,14 @@ export function validateVantaActualPrivateSettlementResponse({ plan, response })
   }
   if (!response.protocolSettlementReceipt?.proofReceiptPublicInputCommitment) {
     return { accepted: false, reason: "missing-proof-public-input-commitment" };
+  }
+  if (response.onChainSubmission) {
+    if (!isSolanaTransactionSignature(response.onChainSubmission.signature)) {
+      return { accepted: false, reason: "invalid-relayer-solana-signature" };
+    }
+    if (response.onChainSubmission.submittedBy !== "relayer") {
+      return { accepted: false, reason: "invalid-relayer-submitter" };
+    }
   }
 
   return { accepted: true, reason: "actual-private-settlement-response-ready" };
@@ -111,7 +123,10 @@ export async function requestVantaActualPrivateSettlementViaRelayer({
   return {
     evidenceRefs: {
       operatorReceiptRef: `operator-receipt:${payload.protocolSettlementReceipt.proofReceiptId}`,
-      relayerSubmittedSpendTxRef: `operator-protocol-settlement:${payload.protocolSettlementReceipt.id}`,
+      protocolSettlementRef: `operator-protocol-settlement:${payload.protocolSettlementReceipt.id}`,
+      relayerSubmittedSpendTxRef: payload.onChainSubmission?.signature
+        ? `solana-tx:${payload.onChainSubmission.signature}`
+        : null,
     },
     response: payload,
     responseDecision,

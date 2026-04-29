@@ -30,7 +30,8 @@ assert.equal(report.version, "vanta-actual-private-mainnet-settlement-executor-p
 assert.equal(report.mode, "dry-run");
 assert.equal(report.movesFunds, false);
 assert.equal(report.executeRequested, false);
-assert.equal(report.transactionSubmissionImplemented, true);
+assert.equal(report.operatorSettlementRequestImplemented, true);
+assert.equal(report.solanaRelayerSubmissionImplemented, false);
 assert.ok(Date.parse(report.checkedAt), "Dry-run report must include a parseable checkedAt timestamp.");
 
 for (const phase of ["approval", "wallet", "services", "settlementPlan", "evidencePolicy"]) {
@@ -120,7 +121,11 @@ assert.equal(report.phases.settlementPlan.operatorEndpoint, "/private-pool-v2/pr
 assert.equal(report.phases.settlementPlan.maximumFundsAtRiskLamports, 25_000_000);
 assert.equal(report.phases.settlementPlan.transactionConstruction, "implemented-reviewed-plan-boundary");
 assert.equal(report.phases.settlementPlan.transactionSigning, "not-local-wallet-signing-operator-relayer-submits");
-assert.equal(report.phases.settlementPlan.transactionSubmission, "implemented-but-disabled-without-execute-ack");
+assert.equal(report.phases.settlementPlan.transactionSubmission, "operator-settlement-request-disabled-without-execute-ack");
+assert.equal(
+  report.phases.settlementPlan.solanaRelayerSubmission,
+  "blocked-until-operator-response-includes-reviewed-relayer-solana-signature",
+);
 assert.equal(report.phases.settlementPlan.requiredInputs.length, 18);
 for (const input of report.phases.settlementPlan.requiredInputs) {
   assert.equal(input.status, "ready", `${input.env} must be ready in the checked executor fixture.`);

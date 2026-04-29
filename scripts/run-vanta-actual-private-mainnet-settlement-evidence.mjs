@@ -495,7 +495,8 @@ const report = {
   mode,
   executeRequested,
   movesFunds: false,
-  transactionSubmissionImplemented: true,
+  operatorSettlementRequestImplemented: true,
+  solanaRelayerSubmissionImplemented: false,
   phases: {
     approval: {
       status:
@@ -570,7 +571,11 @@ const report = {
       operatorEndpoint: "/private-pool-v2/protocol-settlements",
       transactionConstruction: "implemented-reviewed-plan-boundary",
       transactionSigning: "not-local-wallet-signing-operator-relayer-submits",
-      transactionSubmission: executeRequested ? "enabled-when-all-gates-ready" : "implemented-but-disabled-without-execute-ack",
+      transactionSubmission: executeRequested
+        ? "operator-settlement-request-enabled-when-all-gates-ready"
+        : "operator-settlement-request-disabled-without-execute-ack",
+      solanaRelayerSubmission:
+        "blocked-until-operator-response-includes-reviewed-relayer-solana-signature",
       noFundsMovementReason:
         executeRequested
           ? "Execution was requested but remains fail-closed unless every live gate is ready."

@@ -88,7 +88,8 @@ assert.equal(calls[1].method, "POST");
 assert.equal(calls[1].headers.Authorization, "Bearer test-token-not-printed");
 assert.equal(result.responseDecision.accepted, true);
 assert.equal(result.evidenceRefs.operatorReceiptRef, "operator-receipt:ppv2_receipt");
-assert.equal(result.evidenceRefs.relayerSubmittedSpendTxRef, "operator-protocol-settlement:proto:actual-private-demo");
+assert.equal(result.evidenceRefs.protocolSettlementRef, "operator-protocol-settlement:proto:actual-private-demo");
+assert.equal(result.evidenceRefs.relayerSubmittedSpendTxRef, null);
 
 const body = JSON.parse(calls[1].body);
 assert.equal(body.action, "send");
@@ -135,6 +136,34 @@ assert.equal(
     },
   }).accepted,
   false,
+);
+
+assert.equal(
+  validateVantaActualPrivateSettlementResponse({
+    plan,
+    response: {
+      ...result.response,
+      onChainSubmission: {
+        signature: "operator-protocol-settlement:proto:actual-private-demo",
+        submittedBy: "relayer",
+      },
+    },
+  }).reason,
+  "invalid-relayer-solana-signature",
+);
+
+assert.equal(
+  validateVantaActualPrivateSettlementResponse({
+    plan,
+    response: {
+      ...result.response,
+      onChainSubmission: {
+        signature: "4".repeat(88),
+        submittedBy: "source-wallet",
+      },
+    },
+  }).reason,
+  "invalid-relayer-submitter",
 );
 
 await assert.rejects(

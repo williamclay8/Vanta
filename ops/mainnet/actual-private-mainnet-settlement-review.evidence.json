@@ -60,7 +60,7 @@
     {
       "id": "live-nullifier-replay-rejection",
       "requiredEvidence": "A live duplicate nullifier replay rejection against production after the settlement.",
-      "observedEvidence": "The nullifier is present in the production indexer, but a duplicate live settlement request was not run because the single-run approval window was consumed and blocked from reuse.",
+      "observedEvidence": "The nullifier is present in the production indexer. A repo-owned no-funds replay-check endpoint now exists locally, but it is not yet deployed/probed in production, and the duplicate live settlement request was not run because the single-run approval window was consumed and blocked from reuse.",
       "result": "blocked"
     }
   ],
@@ -68,7 +68,7 @@
   "nextRequiredEvidence": [
     "Capture a real relayer-submitted Solana transaction signature for the private spend.",
     "Capture the shared-cohort deposit Solana transaction signature.",
-    "Run or otherwise obtain a reviewed duplicate-nullifier rejection ref under a fresh approval that explicitly permits that replay check, or add a no-funds replay-check endpoint that cannot submit settlement.",
+    "Deploy and probe the no-funds replay-check endpoint against the production operator so duplicate-nullifier rejection can be reviewed without submitting another settlement.",
     "Update the settlement evidence packet only after those refs are real, not placeholder review refs."
   ]
 }
