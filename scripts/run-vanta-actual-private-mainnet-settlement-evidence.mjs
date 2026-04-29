@@ -357,6 +357,9 @@ function evaluateRawSettlementPlanInput() {
   try {
     const parsed = JSON.parse(rawValue);
     const planInput = Object.fromEntries(planEnv.map((spec) => [spec.field, parsed[spec.field]]));
+    if (typeof parsed.relayerSerializedTransaction === "string" && parsed.relayerSerializedTransaction.trim()) {
+      planInput.relayerSerializedTransaction = parsed.relayerSerializedTransaction.trim();
+    }
     createVantaActualPrivateSettlementPlan(planInput);
     return {
       env: "VANTA_ACTUAL_PRIVATE_SETTLEMENT_PLAN_JSON",
@@ -570,6 +573,13 @@ const report = {
       ],
       operatorEndpoint: "/private-pool-v2/protocol-settlements",
       transactionConstruction: "implemented-reviewed-plan-boundary",
+      relayerSerializedTransaction:
+        executeRequested && rawSettlementPlanInput.status === "ready"
+          ? {
+              present: Boolean(rawSettlementPlanInput.planInput?.relayerSerializedTransaction),
+              valuePolicy: "raw-unsigned-transaction-bytes-presence-only-never-printed",
+            }
+          : undefined,
       transactionSigning: "not-local-wallet-signing-operator-relayer-submits",
       transactionSubmission: executeRequested
         ? "operator-settlement-request-enabled-when-all-gates-ready"

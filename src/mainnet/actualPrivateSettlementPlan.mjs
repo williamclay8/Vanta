@@ -36,6 +36,23 @@ function assertNoForbiddenKeys(value, path = "request") {
   }
 }
 
+function normalizeOptionalBase64Transaction(value) {
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
+
+  const text = requireText(value, "relayerSerializedTransaction");
+  const base64 = text.startsWith("base64:") ? text.slice("base64:".length) : text;
+  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(base64) || base64.length % 4 !== 0) {
+    throw new Error("Actual-private settlement plan requires base64 relayerSerializedTransaction.");
+  }
+  if (Buffer.from(base64, "base64").length === 0) {
+    throw new Error("Actual-private settlement plan requires non-empty relayerSerializedTransaction.");
+  }
+
+  return `base64:${base64}`;
+}
+
 export function createVantaActualPrivateSettlementPlan(input) {
   const request = {
     action: "send",
@@ -59,6 +76,10 @@ export function createVantaActualPrivateSettlementPlan(input) {
     settlementCommitment: requireText(input.settlementCommitment, "settlementCommitment"),
     settlementId: requireText(input.settlementId, "settlementId"),
   };
+  const relayerSerializedTransaction = normalizeOptionalBase64Transaction(input.relayerSerializedTransaction);
+  if (relayerSerializedTransaction) {
+    request.relayerSerializedTransaction = relayerSerializedTransaction;
+  }
 
   assertNoForbiddenKeys(request);
 
@@ -104,6 +125,15 @@ export function validateVantaActualPrivateSettlementPlan(plan) {
 
   if (plan.request?.action !== "send" || plan.request?.economicsMode !== "committed-economics") {
     return { accepted: false, reason: "invalid-action-or-economics-mode" };
+  }
+
+  try {
+    normalizeOptionalBase64Transaction(plan.request?.relayerSerializedTransaction);
+  } catch (error) {
+    return {
+      accepted: false,
+      reason: error instanceof Error ? error.message : String(error),
+    };
   }
 
   return { accepted: true, reason: "actual-private-settlement-plan-ready" };

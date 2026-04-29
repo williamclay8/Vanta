@@ -14,6 +14,28 @@ const runnerSource = readFileSync(runnerPath, "utf8");
 const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
 const stopConditionEvidence = JSON.parse(readFileSync(stopConditionPath, "utf8"));
 const approvalStatus = createVantaMainnetRealFundsApprovalStatus();
+const fixtureRelayerSerializedTransaction = `base64:${Buffer.from([1, 2, 3, 4]).toString("base64")}`;
+const fixtureSettlementPlanJson = JSON.stringify({
+  acceptedRoot: "VANTA_ACTUAL_PRIVATE_ACCEPTED_ROOT_REF",
+  assetCohort: "VANTA_ACTUAL_PRIVATE_ASSET_COHORT_REF",
+  assetIdCommitment: "VANTA_ACTUAL_PRIVATE_ASSET_ID_COMMITMENT_REF",
+  changeLeafIndex: "VANTA_ACTUAL_PRIVATE_CHANGE_LEAF_INDEX_REF",
+  changeOutputCommitment: "VANTA_ACTUAL_PRIVATE_CHANGE_OUTPUT_COMMITMENT_REF",
+  changeOutputRoot: "VANTA_ACTUAL_PRIVATE_CHANGE_OUTPUT_ROOT_REF",
+  economicsCommitment: "VANTA_ACTUAL_PRIVATE_ECONOMICS_COMMITMENT_REF",
+  nullifier: "VANTA_ACTUAL_PRIVATE_NULLIFIER_REF",
+  outputCommitment: "VANTA_ACTUAL_PRIVATE_OUTPUT_COMMITMENT_REF",
+  outputLeafIndex: "VANTA_ACTUAL_PRIVATE_OUTPUT_LEAF_INDEX_REF",
+  outputRoot: "VANTA_ACTUAL_PRIVATE_OUTPUT_ROOT_REF",
+  ownerCommitment: "VANTA_ACTUAL_PRIVATE_OWNER_COMMITMENT_REF",
+  poolId: "VANTA_ACTUAL_PRIVATE_POOL_ID_REF",
+  privateSpendContextHash: "VANTA_ACTUAL_PRIVATE_SPEND_CONTEXT_HASH_REF",
+  privateSpendPublicInputHash: "VANTA_ACTUAL_PRIVATE_SPEND_PUBLIC_INPUT_HASH_REF",
+  relayerSerializedTransaction: fixtureRelayerSerializedTransaction,
+  routeCommitment: "VANTA_ACTUAL_PRIVATE_ROUTE_COMMITMENT_REF",
+  settlementCommitment: "VANTA_ACTUAL_PRIVATE_SETTLEMENT_COMMITMENT_REF",
+  settlementId: "VANTA_ACTUAL_PRIVATE_SETTLEMENT_ID_REF",
+});
 
 const dryRun = spawnSync("node", [runnerPath, "--dry-run"], {
   cwd: repoRoot,
@@ -226,6 +248,11 @@ assert.equal(executeWithoutSecretReport.executeRequested, true);
 assert.equal(executeWithoutSecretReport.finalBlocker.executeAck.accepted, true);
 assert.ok(executeWithoutSecretReport.finalBlocker.blockers.includes("VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN:not-ready"));
 assert.equal(executeWithoutSecretReport.phases.operatorSecret.sanitizedValue, undefined);
+assert.deepEqual(executeWithoutSecretReport.phases.settlementPlan.relayerSerializedTransaction, {
+  present: true,
+  valuePolicy: "raw-unsigned-transaction-bytes-presence-only-never-printed",
+});
+assert.ok(!executeWithoutSecret.stdout.includes(fixtureRelayerSerializedTransaction));
 
 const rawToken = ["Bearer", "abcdefghijklmnopqrstuvwxyz0123456789"].join(" ");
 const redactionRun = spawnSync("node", [runnerPath, "--dry-run"], {
@@ -269,6 +296,7 @@ function executorEnv(overrides = {}) {
     VANTA_ACTUAL_PRIVATE_ROUTE_COMMITMENT_REF: "VANTA_ACTUAL_PRIVATE_ROUTE_COMMITMENT_REF",
     VANTA_ACTUAL_PRIVATE_SETTLEMENT_COMMITMENT_REF: "VANTA_ACTUAL_PRIVATE_SETTLEMENT_COMMITMENT_REF",
     VANTA_ACTUAL_PRIVATE_SETTLEMENT_ID_REF: "VANTA_ACTUAL_PRIVATE_SETTLEMENT_ID_REF",
+    VANTA_ACTUAL_PRIVATE_SETTLEMENT_PLAN_JSON: fixtureSettlementPlanJson,
     VANTA_PRIVATE_POOL_V2_OPERATOR_URL_REF: "https://operator.example.invalid/vanta-private-pool-v2",
     VANTA_PRIVATE_POOL_V2_INDEXER_URL_REF: "https://indexer.example.invalid/vanta-private-pool-v2",
     VANTA_PRIVATE_POOL_V2_RELAYER_URL_REF: "https://relayer.example.invalid/vanta-private-pool-v2",

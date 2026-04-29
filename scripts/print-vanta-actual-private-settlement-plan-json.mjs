@@ -22,6 +22,7 @@ const requiredFields = [
   ["settlementCommitment", "VANTA_ACTUAL_PRIVATE_SETTLEMENT_COMMITMENT"],
   ["settlementId", "VANTA_ACTUAL_PRIVATE_SETTLEMENT_ID"],
 ];
+const optionalFields = [["relayerSerializedTransaction", "VANTA_ACTUAL_PRIVATE_RELAYER_SERIALIZED_TRANSACTION"]];
 
 const forbiddenFragments = [
   "Bearer ",
@@ -62,6 +63,12 @@ function shellQuote(value) {
 }
 
 const input = Object.fromEntries(requiredFields.map(([field, env]) => [field, readRequiredEnv(env)]));
+for (const [field, env] of optionalFields) {
+  const value = process.env[env]?.trim() ?? "";
+  if (value) {
+    input[field] = value;
+  }
+}
 const plan = createVantaActualPrivateSettlementPlan(input);
 const planJson = JSON.stringify(input);
 const serializedPlan = JSON.stringify(plan);

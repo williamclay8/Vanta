@@ -25,6 +25,14 @@ const plan = createVantaActualPrivateSettlementPlan({
   settlementCommitment: "commitment:settlement",
   settlementId: "settlement:actual-private-demo",
 });
+const relayerSerializedTransaction = `base64:${Buffer.from([1, 2, 3, 4]).toString("base64")}`;
+const planWithRelayerTransaction = createVantaActualPrivateSettlementPlan({
+  ...plan.request,
+  nullifier: plan.request.nullifierOrReplayCommitment,
+  privateSpendContextHash: plan.request.privateSpendContextHash,
+  privateSpendPublicInputHash: plan.request.privateSpendPublicInputHash,
+  relayerSerializedTransaction,
+});
 
 assert.equal(plan.operatorEndpoint, "/private-pool-v2/protocol-settlements");
 assert.equal(plan.request.action, "send");
@@ -37,6 +45,11 @@ assert.equal(plan.request.nullifierOrReplayCommitment, "nullifier:actual-private
 assert.equal(plan.request.outputLeafIndex, "42");
 assert.equal(plan.request.outputRoot, "root:merchant-output");
 assert.deepEqual(validateVantaActualPrivateSettlementPlan(plan), {
+  accepted: true,
+  reason: "actual-private-settlement-plan-ready",
+});
+assert.equal(planWithRelayerTransaction.request.relayerSerializedTransaction, relayerSerializedTransaction);
+assert.deepEqual(validateVantaActualPrivateSettlementPlan(planWithRelayerTransaction), {
   accepted: true,
   reason: "actual-private-settlement-plan-ready",
 });
@@ -68,5 +81,19 @@ const rejected = {
 
 assert.equal(validateVantaActualPrivateSettlementPlan(rejected).accepted, false);
 assert.match(validateVantaActualPrivateSettlementPlan(rejected).reason, /forbids request\.amount/);
+
+const rejectedRelayerTransaction = {
+  ...plan,
+  request: {
+    ...plan.request,
+    relayerSerializedTransaction: "not base64",
+  },
+};
+
+assert.equal(validateVantaActualPrivateSettlementPlan(rejectedRelayerTransaction).accepted, false);
+assert.match(
+  validateVantaActualPrivateSettlementPlan(rejectedRelayerTransaction).reason,
+  /base64 relayerSerializedTransaction/,
+);
 
 console.log("Vanta actual-private settlement plan check: PASS");
