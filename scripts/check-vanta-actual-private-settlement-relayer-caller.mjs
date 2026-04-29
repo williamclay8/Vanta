@@ -10,10 +10,14 @@ const plan = createVantaActualPrivateSettlementPlan({
   acceptedRoot: "root:actual-private-demo",
   assetCohort: "stablecoin-usdc-v1",
   assetIdCommitment: "commitment:asset-id",
+  changeLeafIndex: "43",
   changeOutputCommitment: "commitment:change-output",
+  changeOutputRoot: "root:change-output",
   economicsCommitment: "commitment:economics",
   nullifier: "nullifier:actual-private-demo",
   outputCommitment: "commitment:merchant-output",
+  outputLeafIndex: "42",
+  outputRoot: "root:merchant-output",
   ownerCommitment: "commitment:owner",
   poolId: "pool:stablecoin-usdc-v1",
   privateSpendContextHash: "context:actual-private-demo",
@@ -72,7 +76,11 @@ assert.equal(result.evidenceRefs.relayerSubmittedSpendTxRef, "operator-protocol-
 const body = JSON.parse(calls[0].body);
 assert.equal(body.action, "send");
 assert.equal(body.assetIdCommitment, "commitment:asset-id");
+assert.equal(body.changeLeafIndex, "43");
+assert.equal(body.changeOutputRoot, "root:change-output");
 assert.equal(body.economicsMode, "committed-economics");
+assert.equal(body.outputLeafIndex, "42");
+assert.equal(body.outputRoot, "root:merchant-output");
 for (const forbidden of [
   "amount",
   "asset",

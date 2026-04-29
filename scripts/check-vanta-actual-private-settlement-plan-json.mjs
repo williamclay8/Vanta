@@ -12,10 +12,14 @@ const env = {
   VANTA_ACTUAL_PRIVATE_ACCEPTED_ROOT: "root:actual-private-live-candidate",
   VANTA_ACTUAL_PRIVATE_ASSET_COHORT: "stablecoin-usdc-v1",
   VANTA_ACTUAL_PRIVATE_ASSET_ID_COMMITMENT: "commitment:asset-id",
+  VANTA_ACTUAL_PRIVATE_CHANGE_LEAF_INDEX: "43",
   VANTA_ACTUAL_PRIVATE_CHANGE_OUTPUT_COMMITMENT: "commitment:change-output",
+  VANTA_ACTUAL_PRIVATE_CHANGE_OUTPUT_ROOT: "root:change-output",
   VANTA_ACTUAL_PRIVATE_ECONOMICS_COMMITMENT: "commitment:economics",
   VANTA_ACTUAL_PRIVATE_NULLIFIER: "nullifier:actual-private-live-candidate",
   VANTA_ACTUAL_PRIVATE_OUTPUT_COMMITMENT: "commitment:merchant-output",
+  VANTA_ACTUAL_PRIVATE_OUTPUT_LEAF_INDEX: "42",
+  VANTA_ACTUAL_PRIVATE_OUTPUT_ROOT: "root:merchant-output",
   VANTA_ACTUAL_PRIVATE_OWNER_COMMITMENT: "commitment:owner",
   VANTA_ACTUAL_PRIVATE_POOL_ID: "pool:stablecoin-usdc-v1",
   VANTA_ACTUAL_PRIVATE_SPEND_CONTEXT_HASH: "context:actual-private-live-candidate",
@@ -38,9 +42,13 @@ const planJson = JSON.parse(run.stdout);
 assert.equal(planJson.acceptedRoot, env.VANTA_ACTUAL_PRIVATE_ACCEPTED_ROOT);
 assert.equal(planJson.assetCohort, "stablecoin-usdc-v1");
 assert.equal(planJson.assetIdCommitment, env.VANTA_ACTUAL_PRIVATE_ASSET_ID_COMMITMENT);
+assert.equal(planJson.changeLeafIndex, env.VANTA_ACTUAL_PRIVATE_CHANGE_LEAF_INDEX);
+assert.equal(planJson.changeOutputRoot, env.VANTA_ACTUAL_PRIVATE_CHANGE_OUTPUT_ROOT);
 assert.equal(planJson.nullifier, env.VANTA_ACTUAL_PRIVATE_NULLIFIER);
+assert.equal(planJson.outputLeafIndex, env.VANTA_ACTUAL_PRIVATE_OUTPUT_LEAF_INDEX);
+assert.equal(planJson.outputRoot, env.VANTA_ACTUAL_PRIVATE_OUTPUT_ROOT);
 assert.equal(planJson.privateSpendPublicInputHash, env.VANTA_ACTUAL_PRIVATE_SPEND_PUBLIC_INPUT_HASH);
-assert.equal(Object.keys(planJson).length, 14);
+assert.equal(Object.keys(planJson).length, 18);
 
 const exportRun = spawnSync("node", [scriptPath, "--export"], {
   cwd: repoRoot,

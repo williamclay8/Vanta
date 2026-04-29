@@ -9,10 +9,14 @@ const plan = createVantaActualPrivateSettlementPlan({
   acceptedRoot: "root:actual-private-demo",
   assetCohort: "stablecoin-usdc-v1",
   assetIdCommitment: "commitment:asset-id",
+  changeLeafIndex: "43",
   changeOutputCommitment: "commitment:change-output",
+  changeOutputRoot: "root:change-output",
   economicsCommitment: "commitment:economics",
   nullifier: "nullifier:actual-private-demo",
   outputCommitment: "commitment:merchant-output",
+  outputLeafIndex: "42",
+  outputRoot: "root:merchant-output",
   ownerCommitment: "commitment:owner",
   poolId: "pool:stablecoin-usdc-v1",
   privateSpendContextHash: "context:actual-private-demo",
@@ -27,7 +31,11 @@ assert.equal(plan.request.action, "send");
 assert.equal(plan.request.economicsMode, "committed-economics");
 assert.equal(plan.request.assetCohort, "stablecoin-usdc-v1");
 assert.equal(plan.request.assetIdCommitment, "commitment:asset-id");
+assert.equal(plan.request.changeLeafIndex, "43");
+assert.equal(plan.request.changeOutputRoot, "root:change-output");
 assert.equal(plan.request.nullifierOrReplayCommitment, "nullifier:actual-private-demo");
+assert.equal(plan.request.outputLeafIndex, "42");
+assert.equal(plan.request.outputRoot, "root:merchant-output");
 assert.deepEqual(validateVantaActualPrivateSettlementPlan(plan), {
   accepted: true,
   reason: "actual-private-settlement-plan-ready",

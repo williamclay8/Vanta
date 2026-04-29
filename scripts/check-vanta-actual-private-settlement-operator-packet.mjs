@@ -49,7 +49,7 @@ for (const service of packet.requiredEnvironment.serviceRefs) {
   assert.match(service.tokenRefValue, /_AUTH_TOKEN_REF$/);
 }
 
-assert.equal(packet.requiredEnvironment.planRefs.length, 14);
+assert.equal(packet.requiredEnvironment.planRefs.length, 18);
 for (const planRef of packet.requiredEnvironment.planRefs) {
   assert.match(planRef.env, /^VANTA_ACTUAL_PRIVATE_[A-Z_]+_REF$/);
   assert.equal(typeof packet.settlementPlanJsonShape[planRef.field], "string");
