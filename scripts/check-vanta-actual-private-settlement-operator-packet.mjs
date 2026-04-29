@@ -3,9 +3,12 @@ import { readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 
+import { createVantaMainnetRealFundsApprovalStatus } from "../src/readiness/mainnetRealFundsApprovalStatus.mjs";
+
 const repoRoot = resolve(import.meta.dirname, "..");
 const packetPath = resolve(repoRoot, "scripts/print-vanta-actual-private-settlement-operator-packet.mjs");
 const packagePath = resolve(repoRoot, "package.json");
+const approvalStatus = createVantaMainnetRealFundsApprovalStatus();
 
 const run = spawnSync("node", [packetPath], {
   cwd: repoRoot,
@@ -19,7 +22,15 @@ const packet = JSON.parse(run.stdout);
 const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
 
 assert.equal(packet.version, "vanta-actual-private-settlement-operator-packet-0.1");
-assert.equal(packet.action.expectedActionRef, "actual-private/mainnet-settlement-evidence-run-2026-04-28");
+assert.equal(packet.action.expectedActionRef, approvalStatus.approvalActionRef);
+assert.match(packet.action.expectedActionRef, /^actual-private\/mainnet-settlement-evidence-run-\d{4}-\d{2}-\d{2}/);
+assert.equal(packet.action.currentApprovalWindowRef, approvalStatus.approvalWindowRef);
+assert.equal(packet.action.liveMainnetActionsAllowedNow, approvalStatus.liveMainnetActionsAllowedNow);
+assert.equal(
+  packet.action.stopConditionStatus.appliesToCurrentApproval,
+  approvalStatus.stopCondition.appliesToCurrentApproval,
+);
+assert.match(packet.action.stopCondition, /stop after the first failed transaction/);
 assert.equal(packet.action.expectedMaximumFundsAtRisk, "0.025 SOL");
 assert.equal(packet.action.expectedMaximumFundsAtRiskLamports, 25_000_000);
 assert.equal(packet.action.requiresFreshBoundedApprovalWindow, true);

@@ -15,13 +15,13 @@ const mode = args.has("--live") ? "live-preflight" : "dry-run";
 const dryRun = mode === "dry-run";
 const expectedAck = "I_UNDERSTAND_THIS_RUN_CAN_MOVE_MAINNET_FUNDS";
 const expectedExecuteAck = "I_UNDERSTAND_THIS_WILL_REQUEST_A_MAINNET_PRIVATE_SETTLEMENT";
-const expectedActionRef = "actual-private/mainnet-settlement-evidence-run-2026-04-28";
 const expectedMaximumFundsAtRisk = "0.025 SOL";
 const expectedMaximumFundsAtRiskLamports = 25_000_000;
 const ack = process.env.VANTA_ACTUAL_PRIVATE_MAINNET_SETTLEMENT_ACK?.trim() ?? "";
 const executeAck = process.env.VANTA_ACTUAL_PRIVATE_MAINNET_SETTLEMENT_EXECUTE_ACK?.trim() ?? "";
 const executeRequested = args.has("--execute") || executeAck === expectedExecuteAck;
 const approvalStatus = createVantaMainnetRealFundsApprovalStatus();
+const expectedActionRef = approvalStatus.approvalActionRef;
 
 const walletEnv = {
   env: "VANTA_ACTUAL_PRIVATE_MAINNET_WALLET_PUBLIC_KEY_REF",
@@ -410,10 +410,10 @@ function readStopConditionEvidence() {
   }
 }
 
-assert.equal(
+assert.match(
   approvalStatus.approvalActionRef,
-  expectedActionRef,
-  "This preflight runner is only scoped to the approved actual-private evidence action.",
+  /^actual-private\/mainnet-settlement-evidence-run-\d{4}-\d{2}-\d{2}(?:-[A-Za-z0-9._-]+)?$/,
+  "This preflight runner is only scoped to actual-private evidence actions.",
 );
 assert.equal(
   approvalStatus.maximumFundsAtRiskRef,

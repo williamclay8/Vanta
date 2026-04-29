@@ -1,11 +1,16 @@
 import { readFileSync } from "node:fs";
 
+import { createVantaMainnetRealFundsApprovalStatus } from "../src/readiness/mainnetRealFundsApprovalStatus.mjs";
+
 const packagePath = new URL("../package.json", import.meta.url);
 const servicesManifestPath = new URL("../ops/mainnet/private-pool-v2-services.manifest.json", import.meta.url);
 
-const expectedActionRef = "actual-private/mainnet-settlement-evidence-run-2026-04-28";
+const approvalStatus = createVantaMainnetRealFundsApprovalStatus();
+const expectedActionRef = approvalStatus.approvalActionRef;
 const expectedMaximumFundsAtRisk = "0.025 SOL";
 const expectedMaximumFundsAtRiskLamports = 25_000_000;
+const stopConditionText =
+  "stop after the first failed transaction, unexpected Solscan linkage, nullifier replay failure, or total risk cap hit";
 const liveAck = "I_UNDERSTAND_THIS_RUN_CAN_MOVE_MAINNET_FUNDS";
 const executeAck = "I_UNDERSTAND_THIS_WILL_REQUEST_A_MAINNET_PRIVATE_SETTLEMENT";
 
@@ -78,11 +83,13 @@ const packet = {
   purpose: "refs-only operator packet for clearing the actual-private live settlement blockers without printing secrets",
   action: {
     expectedActionRef,
+    currentApprovalWindowRef: approvalStatus.approvalWindowRef,
+    liveMainnetActionsAllowedNow: approvalStatus.liveMainnetActionsAllowedNow,
+    stopConditionStatus: approvalStatus.stopCondition,
     expectedMaximumFundsAtRisk,
     expectedMaximumFundsAtRiskLamports,
     requiresFreshBoundedApprovalWindow: true,
-    stopCondition:
-      "stop after the first failed transaction, unexpected Solscan linkage, nullifier replay failure, or total risk cap hit",
+    stopCondition: stopConditionText,
   },
   commands: {
     preflight: "npm run mainnet:actual-private-settlement-live",

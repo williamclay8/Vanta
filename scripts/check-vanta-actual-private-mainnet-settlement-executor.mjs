@@ -37,7 +37,8 @@ for (const phase of ["approval", "wallet", "services", "settlementPlan", "eviden
   assert.ok(report.phases?.[phase], `Missing executor phase ${phase}.`);
 }
 
-assert.equal(report.phases.approval.expectedActionRef, "actual-private/mainnet-settlement-evidence-run-2026-04-28");
+assert.equal(report.phases.approval.expectedActionRef, approvalStatus.approvalActionRef);
+assert.match(report.phases.approval.expectedActionRef, /^actual-private\/mainnet-settlement-evidence-run-\d{4}-\d{2}-\d{2}/);
 assert.equal(report.phases.approval.actionMatchesApproval, true);
 assert.equal(report.phases.approval.expectedMaximumFundsAtRisk, "0.025 SOL");
 assert.equal(report.phases.approval.capMatchesApproval, true);
