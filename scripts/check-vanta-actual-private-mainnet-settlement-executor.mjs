@@ -60,9 +60,11 @@ assert.deepEqual(report.phases.settlementPlan.actions, [
   "validate-bounded-approval",
   "validate-wallet-public-key-ref",
   "validate-production-service-refs",
+  "build-actual-private-operator-settlement-plan",
   "build-reviewed-actual-private-settlement-plan",
   "stop-before-signing-or-submission",
 ]);
+assert.equal(report.phases.settlementPlan.operatorEndpoint, "/private-pool-v2/protocol-settlements");
 assert.equal(report.phases.settlementPlan.maximumFundsAtRiskLamports, 25_000_000);
 assert.equal(report.phases.settlementPlan.transactionSubmission, "not-implemented");
 assert.equal(report.phases.evidencePolicy.secretPolicy, "references-only-no-secret-values");

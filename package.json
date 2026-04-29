@@ -105,6 +105,7 @@
     "mainnet:actual-private-settlement-evidence-preview": "node scripts/write-vanta-actual-private-mainnet-settlement-evidence.mjs --dry-run",
     "mainnet:actual-private-settlement-evidence-write": "node scripts/write-vanta-actual-private-mainnet-settlement-evidence.mjs --write",
     "mainnet:actual-private-settlement-evidence-writer-check": "node scripts/check-vanta-actual-private-mainnet-settlement-evidence-writer.mjs",
+    "mainnet:actual-private-settlement-plan-check": "node scripts/check-vanta-actual-private-settlement-plan.mjs",
     "mainnet:actual-private-settlement-live": "node scripts/run-vanta-actual-private-mainnet-settlement-evidence.mjs",
     "wallet:signing-safety-check": "node scripts/check-vanta-wallet-signing-safety.mjs",
     "wallet:browser-signing-safety-check": "node scripts/check-vanta-wallet-browser-signing-safety.mjs",
