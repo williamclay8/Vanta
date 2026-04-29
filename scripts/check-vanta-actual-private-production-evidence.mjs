@@ -17,6 +17,7 @@ const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
 const anonymity = readJson("ops/mainnet/private-pool-v2-anonymity-set.evidence.json");
 const relayer = readJson("ops/mainnet/private-pool-v2-relayer-separation.evidence.json");
 const nullifier = readJson("ops/mainnet/private-pool-v2-nullifier-replay.evidence.json");
+const actualPrivateSettlement = readJson("ops/mainnet/actual-private-mainnet-settlement.evidence.json");
 const productionCapability = readJson("ops/mainnet/actual-private-production-capability.evidence.json");
 const productionSmoke = readJson("ops/mainnet/private-pool-v2-production-smoke.evidence.json");
 const roleService = readJson("ops/mainnet/private-pool-v2-role-service-replay.evidence.json");
@@ -69,6 +70,10 @@ assert.equal(
   packet.evidenceRefs.liveMainnetSettlementTemplate,
   "ops/mainnet/actual-private-mainnet-settlement.evidence.template.json",
 );
+assert.equal(
+  packet.evidenceRefs.liveMainnetSettlementEvidence,
+  "ops/mainnet/actual-private-mainnet-settlement.evidence.json",
+);
 assert.equal(packet.evidenceRefs.productionCapability, "ops/mainnet/actual-private-production-capability.evidence.json");
 assert.equal(packet.evidenceRefs.productionSmoke, "ops/mainnet/private-pool-v2-production-smoke.evidence.json");
 assert.equal(packet.evidenceRefs.actualPrivateRailRegression, "npm run private-transaction:mvp-check");
@@ -106,6 +111,16 @@ assert.equal(productionCapability.realFundsAllowed, false);
 assert.equal(productionCapability.capabilityDecision?.accepted, true);
 assert.equal(productionCapability.capabilityDecision?.reason, "actual-private-operator-capability-ready");
 assert.equal(productionCapability.settlementPostAllowed, true);
+assert.equal(actualPrivateSettlement.currentStatus, "filled-refs-awaiting-review");
+assert.equal(actualPrivateSettlement.liveMainnetSettlementProven, false);
+assert.equal(
+  actualPrivateSettlement.evidenceRefs?.operatorReceiptRef,
+  "operator-receipt:ppv2_5dc58490314d855c5060eace",
+);
+assert.equal(
+  actualPrivateSettlement.evidenceRefs?.relayerSubmittedSpendTxRef,
+  "operator-protocol-settlement:proto_1ef774cec8a4964fd8a4650b",
+);
 assert.equal(productionSmoke.productionReady, false);
 assert.equal(productionSmoke.realFundsAllowed, false);
 
@@ -119,7 +134,7 @@ assert.equal(
 assert.equal(packet.evidenceStatus.safeLogging, "local-contract-covered");
 assert.equal(packet.evidenceStatus.audit, "packet-template-only");
 assert.equal(packet.evidenceStatus.productionCapability, "production-operator-send-proof-mode-aligned");
-assert.equal(packet.evidenceStatus.mainnetEvidence, "no-real-funds-smoke-only");
+assert.equal(packet.evidenceStatus.mainnetEvidence, "live-refs-collected-awaiting-review");
 
 for (const blocker of [
   "No live mainnet production cohort metrics are recorded.",
@@ -129,7 +144,7 @@ for (const blocker of [
   "No production relayer log-redaction evidence is recorded.",
   "No production deployment separation evidence is recorded.",
   "No third-party audit report and fix-verification packet is recorded.",
-  "No live mainnet private settlement path is proven.",
+  "Live actual-private settlement refs are collected but still awaiting final review.",
   "No active bounded real-funds approval window is available.",
 ]) {
   assert.ok(packet.productionBlockers.includes(blocker), `Missing production blocker: ${blocker}`);

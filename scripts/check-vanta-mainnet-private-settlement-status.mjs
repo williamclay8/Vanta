@@ -36,6 +36,19 @@ assert.equal(result.productionSmokeHealthPassed, true);
 assert.equal(result.productionSmokeTargetsPassed, true);
 assert.equal(result.replayProtocolLayerImplemented, true);
 assert.deepEqual(result.actualPrivateMainnetEvidence, {
+  evidenceRefs: {
+    acceptedRootFreshnessRef: "review:accepted-root-freshness-pending-final-review-2055-2220",
+    assetIdCommitmentReviewRef: "review:asset-id-commitment-present-raw-asset-hidden-2055-2220",
+    auditOrReviewerRef: "reviewer:clay-mainnet-evidence-packet-2055-2220",
+    boundedApprovalWindowRef: "approval-window:2026-04-28T20:55:00-22:20:00-America-Los_Angeles",
+    nullifierReplayRejectionRef: "review:nullifier-replay-live-retry-not-run-stop-condition-preserved-2055-2220",
+    operatorReceiptRef: "operator-receipt:ppv2_5dc58490314d855c5060eace",
+    publicTranscriptReviewRef: "review:public-transcript-no-forbidden-linkage-fields-operator-accepted-2055-2220",
+    relayerSubmittedSpendTxRef: "operator-protocol-settlement:proto_1ef774cec8a4964fd8a4650b",
+    safeTelemetryReviewRef: "review:safe-telemetry-no-secret-output-execute-2055-2220",
+    sharedCohortDepositTxRef: "review:shared-cohort-deposit-ref-not-yet-solscan-final-reviewed-2055-2220",
+  },
+  evidenceStatus: "filled-refs-awaiting-review",
   liveMainnetSettlementProven: false,
   noRealFundsSmokeTargetPassed: true,
   noRealFundsSmokeTranscript: "pool-cohort-root-nullifier-output-context-only",
@@ -47,7 +60,7 @@ assert.deepEqual(result.actualPrivateMainnetEvidence, {
     "post-settlement nullifier replay rejection against the live production store",
     "reviewer packet proving no source wallet, merchant address, raw amount, input commitment, input leaf index, deposit signature, plaintext memo, or same-fee-payer linkage appears in the public spend transcript",
   ],
-  status: "no-real-funds-smoke-only",
+  status: "live-refs-collected-awaiting-review",
 });
 assert.equal(result.realFundsApprovalRecorded, true);
 assert.equal(result.realFundsAllowedNow, result.boundedRealFundsApprovalWindowActive);
@@ -75,6 +88,7 @@ assert.deepEqual(result.checkedEvidenceRefs, [
   "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
   "ops/mainnet/actual-private-production-evidence.packet.json",
   "ops/mainnet/actual-private-mainnet-settlement.evidence.template.json",
+  "ops/mainnet/actual-private-mainnet-settlement.evidence.json",
   "ops/mainnet/actual-private-mainnet-settlement-stop-condition.evidence.json",
   "ops/mainnet/service-deployment.evidence.json",
   "ops/mainnet/mainnet-real-funds-approval.evidence.json",

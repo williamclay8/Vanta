@@ -1,0 +1,36 @@
+{
+  "activePrivacyRailId": "vanta-private-pool-v2",
+  "checkedAt": "2026-04-29T03:57:41.267Z",
+  "currentStatus": "filled-refs-awaiting-review",
+  "evidenceRefs": {
+    "acceptedRootFreshnessRef": "review:accepted-root-freshness-pending-final-review-2055-2220",
+    "assetIdCommitmentReviewRef": "review:asset-id-commitment-present-raw-asset-hidden-2055-2220",
+    "auditOrReviewerRef": "reviewer:clay-mainnet-evidence-packet-2055-2220",
+    "boundedApprovalWindowRef": "approval-window:2026-04-28T20:55:00-22:20:00-America-Los_Angeles",
+    "nullifierReplayRejectionRef": "review:nullifier-replay-live-retry-not-run-stop-condition-preserved-2055-2220",
+    "operatorReceiptRef": "operator-receipt:ppv2_5dc58490314d855c5060eace",
+    "publicTranscriptReviewRef": "review:public-transcript-no-forbidden-linkage-fields-operator-accepted-2055-2220",
+    "relayerSubmittedSpendTxRef": "operator-protocol-settlement:proto_1ef774cec8a4964fd8a4650b",
+    "safeTelemetryReviewRef": "review:safe-telemetry-no-secret-output-execute-2055-2220",
+    "sharedCohortDepositTxRef": "review:shared-cohort-deposit-ref-not-yet-solscan-final-reviewed-2055-2220"
+  },
+  "liveMainnetSettlementProven": false,
+  "mainnetReady": false,
+  "privacyClaimAllowed": false,
+  "productionReady": false,
+  "requiredApprovalRef": "ops/mainnet/mainnet-real-funds-approval.evidence.json",
+  "requiredChecksAfterLiveRun": [
+    "deposit transaction appends into the named shared cohort",
+    "asset-id commitment is present in the operator-reviewed public transcript without exposing the raw asset",
+    "spend transaction is submitted by the relayer fee payer, not the source funding wallet",
+    "operator receipt binds accepted root, nullifier, output commitments, and proof public-input hash",
+    "accepted root is current or within the reviewed root window at spend acceptance",
+    "duplicate nullifier replay is rejected against the live production store",
+    "public transcript review finds no forbidden linkage terms",
+    "safe telemetry review finds no forbidden private inputs or signing material"
+  ],
+  "requiredPreflightRef": "npm run mainnet:preflight",
+  "secretPolicy": "references-only-no-secret-values",
+  "templateRef": "ops/mainnet/actual-private-mainnet-settlement.evidence.template.json",
+  "version": "vanta-actual-private-mainnet-settlement-evidence-0.1"
+}

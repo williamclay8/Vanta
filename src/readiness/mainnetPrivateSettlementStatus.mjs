@@ -7,11 +7,16 @@ import { createVantaPrivacyRailContract } from "./privacyRailContract.mjs";
 const productionSmokeEvidencePath = new URL("../../ops/mainnet/private-pool-v2-production-smoke.evidence.json", import.meta.url);
 const routeHealthEvidencePath = new URL("../../ops/mainnet/private-pool-v2-route-health.evidence.json", import.meta.url);
 const nullifierReplayEvidencePath = new URL("../../ops/mainnet/private-pool-v2-nullifier-replay.evidence.json", import.meta.url);
+const actualPrivateSettlementEvidencePath = new URL(
+  "../../ops/mainnet/actual-private-mainnet-settlement.evidence.json",
+  import.meta.url,
+);
 
 export function createVantaMainnetPrivateSettlementStatus() {
   const productionSmokeEvidence = JSON.parse(readFileSync(productionSmokeEvidencePath, "utf8"));
   const routeHealthEvidence = JSON.parse(readFileSync(routeHealthEvidencePath, "utf8"));
   const nullifierReplayEvidence = JSON.parse(readFileSync(nullifierReplayEvidencePath, "utf8"));
+  const actualPrivateSettlementEvidence = JSON.parse(readFileSync(actualPrivateSettlementEvidencePath, "utf8"));
   const realFundsApproval = createVantaMainnetRealFundsApprovalStatus();
   const anonymitySetReadiness = createVantaPrivatePoolV2AnonymitySetReadiness();
   const privacyRail = createVantaPrivacyRailContract({ activeRailId: "vanta-private-pool-v2" });
@@ -53,13 +58,16 @@ export function createVantaMainnetPrivateSettlementStatus() {
       "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
       "ops/mainnet/actual-private-production-evidence.packet.json",
       "ops/mainnet/actual-private-mainnet-settlement.evidence.template.json",
+      "ops/mainnet/actual-private-mainnet-settlement.evidence.json",
       "ops/mainnet/actual-private-mainnet-settlement-stop-condition.evidence.json",
       "ops/mainnet/service-deployment.evidence.json",
       "ops/mainnet/mainnet-real-funds-approval.evidence.json",
     ],
     deploymentTruth: `Vanta Private Pool v2 currently has authenticated route-health across deployed production role services, no-real-funds production smoke coverage, and a deployed final replay protocol layer, but it still must not be presented as live mainnet private settlement because there is no proven audited shared anonymity set, no live mainnet private settlement path, and ${approvalWindowTruth}.`,
     actualPrivateMainnetEvidence: {
-      liveMainnetSettlementProven: false,
+      evidenceRefs: actualPrivateSettlementEvidence.evidenceRefs,
+      evidenceStatus: actualPrivateSettlementEvidence.currentStatus,
+      liveMainnetSettlementProven: actualPrivateSettlementEvidence.liveMainnetSettlementProven === true,
       noRealFundsSmokeTargetPassed: actualPrivateSmokeTarget?.status === "pass",
       noRealFundsSmokeTranscript: actualPrivateSmokeTarget?.publicTranscript ?? "missing",
       requiredLiveEvidence: [
@@ -70,7 +78,10 @@ export function createVantaMainnetPrivateSettlementStatus() {
         "post-settlement nullifier replay rejection against the live production store",
         "reviewer packet proving no source wallet, merchant address, raw amount, input commitment, input leaf index, deposit signature, plaintext memo, or same-fee-payer linkage appears in the public spend transcript",
       ],
-      status: "no-real-funds-smoke-only",
+      status:
+        actualPrivateSettlementEvidence.currentStatus === "filled-refs-awaiting-review"
+          ? "live-refs-collected-awaiting-review"
+          : "no-real-funds-smoke-only",
     },
     lastRouteHealthRef: routeHealthEvidence.lastAuthenticatedReadinessRef,
     lastSmokeRef: "npm run mainnet:private-pool-v2-production-smoke-check",

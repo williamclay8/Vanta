@@ -39,6 +39,7 @@
     "auditPackage": "docs/audit-package.md",
     "mainnetPrivateSettlement": "npm run mainnet:private-settlement-check",
     "liveMainnetSettlementTemplate": "ops/mainnet/actual-private-mainnet-settlement.evidence.template.json",
+    "liveMainnetSettlementEvidence": "ops/mainnet/actual-private-mainnet-settlement.evidence.json",
     "productionCapability": "ops/mainnet/actual-private-production-capability.evidence.json",
     "productionSmoke": "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
     "actualPrivateRailRegression": "npm run private-transaction:mvp-check"
@@ -64,7 +65,7 @@
     "safeLogging": "local-contract-covered",
     "audit": "packet-template-only",
     "productionCapability": "production-operator-send-proof-mode-aligned",
-    "mainnetEvidence": "no-real-funds-smoke-only"
+    "mainnetEvidence": "live-refs-collected-awaiting-review"
   },
   "productionBlockers": [
     "No live mainnet production cohort metrics are recorded.",
@@ -74,7 +75,7 @@
     "No production relayer log-redaction evidence is recorded.",
     "No production deployment separation evidence is recorded.",
     "No third-party audit report and fix-verification packet is recorded.",
-    "No live mainnet private settlement path is proven.",
+    "Live actual-private settlement refs are collected but still awaiting final review.",
     "No active bounded real-funds approval window is available."
   ],
   "forbiddenInGit": [
