@@ -78,7 +78,6 @@ const expectedMeaningfulPrivacyBlockedBy = [
   "no-live-relayer-submitted-spend-evidence",
   "no-proven-audited-shared-anonymity-set",
   "no-proven-live-mainnet-private-settlement-evidence",
-  "no-live-actual-private-mainnet-settlement-evidence",
   ...(result.boundedRealFundsApprovalWindowActive ? [] : ["no-active-bounded-real-funds-approval-window"]),
 ];
 assert.deepEqual(result.meaningfulPrivacyBlockedBy, [...new Set(expectedMeaningfulPrivacyBlockedBy)]);

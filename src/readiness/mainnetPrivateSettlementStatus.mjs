@@ -41,7 +41,6 @@ export function createVantaMainnetPrivateSettlementStatus() {
   const meaningfulPrivacyBlockedBy = [
     "no-proven-audited-shared-anonymity-set",
     "no-proven-live-mainnet-private-settlement-evidence",
-    "no-live-actual-private-mainnet-settlement-evidence",
     ...(boundedRealFundsApprovalWindowActive ? [] : ["no-active-bounded-real-funds-approval-window"]),
   ];
   const approvalWindowTruth = boundedRealFundsApprovalWindowActive
