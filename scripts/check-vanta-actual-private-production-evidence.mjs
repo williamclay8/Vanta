@@ -63,6 +63,10 @@ assert.equal(packet.evidenceRefs.roleServiceReplay, "ops/mainnet/private-pool-v2
 assert.equal(packet.evidenceRefs.safeLogging, "npm run ops:safe-telemetry-check");
 assert.equal(packet.evidenceRefs.auditPackage, "docs/audit-package.md");
 assert.equal(packet.evidenceRefs.mainnetPrivateSettlement, "npm run mainnet:private-settlement-check");
+assert.equal(
+  packet.evidenceRefs.liveMainnetSettlementTemplate,
+  "ops/mainnet/actual-private-mainnet-settlement.evidence.template.json",
+);
 assert.equal(packet.evidenceRefs.productionSmoke, "ops/mainnet/private-pool-v2-production-smoke.evidence.json");
 assert.equal(packet.evidenceRefs.actualPrivateRailRegression, "npm run private-transaction:mvp-check");
 
@@ -75,6 +79,7 @@ for (const command of [
   "npm run ops:safe-telemetry-check",
   "npm run audit:package-check",
   "npm run mainnet:private-settlement-check",
+  "npm run mainnet:actual-private-settlement-evidence-check",
   "npm run mainnet:production-smoke-evidence-check",
 ]) {
   assert.ok(packet.requiredCommands.includes(command), `Missing required command: ${command}`);

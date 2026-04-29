@@ -37,6 +37,7 @@
     "safeLogging": "npm run ops:safe-telemetry-check",
     "auditPackage": "docs/audit-package.md",
     "mainnetPrivateSettlement": "npm run mainnet:private-settlement-check",
+    "liveMainnetSettlementTemplate": "ops/mainnet/actual-private-mainnet-settlement.evidence.template.json",
     "productionSmoke": "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
     "actualPrivateRailRegression": "npm run private-transaction:mvp-check"
   },
@@ -49,6 +50,7 @@
     "npm run ops:safe-telemetry-check",
     "npm run audit:package-check",
     "npm run mainnet:private-settlement-check",
+    "npm run mainnet:actual-private-settlement-evidence-check",
     "npm run mainnet:production-smoke-evidence-check"
   ],
   "evidenceStatus": {
