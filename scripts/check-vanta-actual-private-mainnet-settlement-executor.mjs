@@ -27,7 +27,8 @@ const report = JSON.parse(dryRun.stdout);
 assert.equal(report.version, "vanta-actual-private-mainnet-settlement-executor-preflight-0.1");
 assert.equal(report.mode, "dry-run");
 assert.equal(report.movesFunds, false);
-assert.equal(report.transactionSubmissionImplemented, false);
+assert.equal(report.executeRequested, false);
+assert.equal(report.transactionSubmissionImplemented, true);
 assert.ok(Date.parse(report.checkedAt), "Dry-run report must include a parseable checkedAt timestamp.");
 
 for (const phase of ["approval", "wallet", "services", "settlementPlan", "evidencePolicy"]) {
@@ -86,11 +87,18 @@ assert.deepEqual(report.phases.settlementPlan.actions, [
   "validate-production-service-refs",
   "build-actual-private-operator-settlement-plan",
   "build-reviewed-actual-private-settlement-plan",
-  "stop-before-signing-or-submission",
+  "request-operator-protocol-settlement-via-relayer-caller-when-execute-ack-is-present",
 ]);
 assert.equal(report.phases.settlementPlan.operatorEndpoint, "/private-pool-v2/protocol-settlements");
 assert.equal(report.phases.settlementPlan.maximumFundsAtRiskLamports, 25_000_000);
-assert.equal(report.phases.settlementPlan.transactionSubmission, "not-implemented");
+assert.equal(report.phases.settlementPlan.transactionConstruction, "implemented-reviewed-plan-boundary");
+assert.equal(report.phases.settlementPlan.transactionSigning, "not-local-wallet-signing-operator-relayer-submits");
+assert.equal(report.phases.settlementPlan.transactionSubmission, "implemented-but-disabled-without-execute-ack");
+assert.equal(report.phases.settlementPlan.requiredInputs.length, 13);
+for (const input of report.phases.settlementPlan.requiredInputs) {
+  assert.equal(input.status, "ready", `${input.env} must be ready in the checked executor fixture.`);
+  assert.equal(input.valueSource, "reference");
+}
 assert.equal(report.phases.evidencePolicy.secretPolicy, "references-only-no-secret-values");
 assert.equal(report.phases.evidencePolicy.forbiddenSecretRedaction, "enforced");
 assert.ok(Array.isArray(report.finalBlocker.blockers));
@@ -103,7 +111,8 @@ if (approvalStatus.liveMainnetActionsAllowedNow) {
   assert.ok(report.finalBlocker.blockers.includes("bounded-approval-window-not-active"));
 }
 assert.ok(report.finalBlocker.blockers.includes("dry-run-mode-never-moves-funds"));
-assert.ok(report.finalBlocker.blockers.includes("transaction-submission-not-implemented-by-design"));
+assert.ok(!report.finalBlocker.blockers.includes("transaction-submission-not-implemented-by-design"));
+assert.equal(report.finalBlocker.executeAck.accepted, false);
 
 const serialized = JSON.stringify(report);
 for (const forbidden of [
@@ -131,6 +140,10 @@ for (const forbiddenSourceTerm of [
 ]) {
   assert.ok(!runnerSource.includes(forbiddenSourceTerm), `Runner must not implement transaction submission: ${forbiddenSourceTerm}`);
 }
+assert.ok(
+  runnerSource.includes("requestVantaActualPrivateSettlementViaRelayer"),
+  "Runner must be wired to the reviewed relayer settlement caller.",
+);
 
 assert.equal(
   packageJson.scripts["mainnet:actual-private-settlement-executor-check"],
@@ -158,8 +171,29 @@ assert.equal(liveWithoutAck.status, 1, "Live mode must fail closed without the e
 assert.equal(liveWithoutAck.stderr, "", "Live mode fail-closed report must stay JSON-only on stdout.");
 const liveWithoutAckReport = JSON.parse(liveWithoutAck.stdout);
 assert.equal(liveWithoutAckReport.mode, "live-preflight");
+assert.equal(liveWithoutAckReport.executeRequested, false);
 assert.equal(liveWithoutAckReport.finalBlocker.liveAck.accepted, false);
+assert.equal(liveWithoutAckReport.finalBlocker.executeAck.accepted, false);
 assert.ok(liveWithoutAckReport.finalBlocker.blockers.includes("missing-live-mainnet-settlement-ack"));
+assert.ok(liveWithoutAckReport.finalBlocker.blockers.includes("live-settlement-execute-ack-not-set"));
+
+const executeWithoutSecret = spawnSync("node", [runnerPath, "--live", "--execute"], {
+  cwd: repoRoot,
+  encoding: "utf8",
+  env: executorEnv({
+    VANTA_ACTUAL_PRIVATE_MAINNET_SETTLEMENT_ACK: "I_UNDERSTAND_THIS_RUN_CAN_MOVE_MAINNET_FUNDS",
+    VANTA_ACTUAL_PRIVATE_MAINNET_SETTLEMENT_EXECUTE_ACK:
+      "I_UNDERSTAND_THIS_WILL_REQUEST_A_MAINNET_PRIVATE_SETTLEMENT",
+    VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN: "",
+  }),
+});
+assert.equal(executeWithoutSecret.status, 1, "Execute mode must fail closed without the raw operator token secret env.");
+assert.equal(executeWithoutSecret.stderr, "", "Execute mode fail-closed report must stay JSON-only on stdout.");
+const executeWithoutSecretReport = JSON.parse(executeWithoutSecret.stdout);
+assert.equal(executeWithoutSecretReport.executeRequested, true);
+assert.equal(executeWithoutSecretReport.finalBlocker.executeAck.accepted, true);
+assert.ok(executeWithoutSecretReport.finalBlocker.blockers.includes("VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN:not-ready"));
+assert.equal(executeWithoutSecretReport.phases.operatorSecret.sanitizedValue, undefined);
 
 const rawToken = ["Bearer", "abcdefghijklmnopqrstuvwxyz0123456789"].join(" ");
 const redactionRun = spawnSync("node", [runnerPath, "--dry-run"], {
@@ -185,6 +219,19 @@ function executorEnv(overrides = {}) {
   return {
     ...process.env,
     VANTA_ACTUAL_PRIVATE_MAINNET_WALLET_PUBLIC_KEY_REF: "VANTA_ACTUAL_PRIVATE_MAINNET_WALLET_PUBLIC_KEY_REF",
+    VANTA_ACTUAL_PRIVATE_ACCEPTED_ROOT_REF: "VANTA_ACTUAL_PRIVATE_ACCEPTED_ROOT_REF",
+    VANTA_ACTUAL_PRIVATE_ASSET_COHORT_REF: "VANTA_ACTUAL_PRIVATE_ASSET_COHORT_REF",
+    VANTA_ACTUAL_PRIVATE_CHANGE_OUTPUT_COMMITMENT_REF: "VANTA_ACTUAL_PRIVATE_CHANGE_OUTPUT_COMMITMENT_REF",
+    VANTA_ACTUAL_PRIVATE_ECONOMICS_COMMITMENT_REF: "VANTA_ACTUAL_PRIVATE_ECONOMICS_COMMITMENT_REF",
+    VANTA_ACTUAL_PRIVATE_NULLIFIER_REF: "VANTA_ACTUAL_PRIVATE_NULLIFIER_REF",
+    VANTA_ACTUAL_PRIVATE_OUTPUT_COMMITMENT_REF: "VANTA_ACTUAL_PRIVATE_OUTPUT_COMMITMENT_REF",
+    VANTA_ACTUAL_PRIVATE_OWNER_COMMITMENT_REF: "VANTA_ACTUAL_PRIVATE_OWNER_COMMITMENT_REF",
+    VANTA_ACTUAL_PRIVATE_POOL_ID_REF: "VANTA_ACTUAL_PRIVATE_POOL_ID_REF",
+    VANTA_ACTUAL_PRIVATE_SPEND_CONTEXT_HASH_REF: "VANTA_ACTUAL_PRIVATE_SPEND_CONTEXT_HASH_REF",
+    VANTA_ACTUAL_PRIVATE_SPEND_PUBLIC_INPUT_HASH_REF: "VANTA_ACTUAL_PRIVATE_SPEND_PUBLIC_INPUT_HASH_REF",
+    VANTA_ACTUAL_PRIVATE_ROUTE_COMMITMENT_REF: "VANTA_ACTUAL_PRIVATE_ROUTE_COMMITMENT_REF",
+    VANTA_ACTUAL_PRIVATE_SETTLEMENT_COMMITMENT_REF: "VANTA_ACTUAL_PRIVATE_SETTLEMENT_COMMITMENT_REF",
+    VANTA_ACTUAL_PRIVATE_SETTLEMENT_ID_REF: "VANTA_ACTUAL_PRIVATE_SETTLEMENT_ID_REF",
     VANTA_PRIVATE_POOL_V2_OPERATOR_URL_REF: "https://operator.example.invalid/vanta-private-pool-v2",
     VANTA_PRIVATE_POOL_V2_INDEXER_URL_REF: "https://indexer.example.invalid/vanta-private-pool-v2",
     VANTA_PRIVATE_POOL_V2_RELAYER_URL_REF: "https://relayer.example.invalid/vanta-private-pool-v2",

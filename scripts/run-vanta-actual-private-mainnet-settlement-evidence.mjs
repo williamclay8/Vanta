@@ -1,6 +1,8 @@
 import { strict as assert } from "node:assert";
 import { readFileSync } from "node:fs";
 
+import { createVantaActualPrivateSettlementPlan } from "../src/mainnet/actualPrivateSettlementPlan.mjs";
+import { requestVantaActualPrivateSettlementViaRelayer } from "../src/mainnet/actualPrivateSettlementRelayerCaller.mjs";
 import { createVantaMainnetRealFundsApprovalStatus } from "../src/readiness/mainnetRealFundsApprovalStatus.mjs";
 
 const args = new Set(process.argv.slice(2));
@@ -8,10 +10,13 @@ const productionServicesManifestPath = new URL("../ops/mainnet/private-pool-v2-s
 const mode = args.has("--live") ? "live-preflight" : "dry-run";
 const dryRun = mode === "dry-run";
 const expectedAck = "I_UNDERSTAND_THIS_RUN_CAN_MOVE_MAINNET_FUNDS";
+const expectedExecuteAck = "I_UNDERSTAND_THIS_WILL_REQUEST_A_MAINNET_PRIVATE_SETTLEMENT";
 const expectedActionRef = "actual-private/mainnet-settlement-evidence-run-2026-04-28";
 const expectedMaximumFundsAtRisk = "0.025 SOL";
 const expectedMaximumFundsAtRiskLamports = 25_000_000;
 const ack = process.env.VANTA_ACTUAL_PRIVATE_MAINNET_SETTLEMENT_ACK?.trim() ?? "";
+const executeAck = process.env.VANTA_ACTUAL_PRIVATE_MAINNET_SETTLEMENT_EXECUTE_ACK?.trim() ?? "";
+const executeRequested = args.has("--execute") || executeAck === expectedExecuteAck;
 const approvalStatus = createVantaMainnetRealFundsApprovalStatus();
 
 const walletEnv = {
@@ -76,6 +81,22 @@ const serviceEnv = [
     kind: "verifier-auth-token",
     valuePolicy: "token-ref-only",
   },
+];
+
+const planEnv = [
+  { env: "VANTA_ACTUAL_PRIVATE_ACCEPTED_ROOT_REF", field: "acceptedRoot" },
+  { env: "VANTA_ACTUAL_PRIVATE_ASSET_COHORT_REF", field: "assetCohort" },
+  { env: "VANTA_ACTUAL_PRIVATE_CHANGE_OUTPUT_COMMITMENT_REF", field: "changeOutputCommitment" },
+  { env: "VANTA_ACTUAL_PRIVATE_ECONOMICS_COMMITMENT_REF", field: "economicsCommitment" },
+  { env: "VANTA_ACTUAL_PRIVATE_NULLIFIER_REF", field: "nullifier" },
+  { env: "VANTA_ACTUAL_PRIVATE_OUTPUT_COMMITMENT_REF", field: "outputCommitment" },
+  { env: "VANTA_ACTUAL_PRIVATE_OWNER_COMMITMENT_REF", field: "ownerCommitment" },
+  { env: "VANTA_ACTUAL_PRIVATE_POOL_ID_REF", field: "poolId" },
+  { env: "VANTA_ACTUAL_PRIVATE_SPEND_CONTEXT_HASH_REF", field: "privateSpendContextHash" },
+  { env: "VANTA_ACTUAL_PRIVATE_SPEND_PUBLIC_INPUT_HASH_REF", field: "privateSpendPublicInputHash" },
+  { env: "VANTA_ACTUAL_PRIVATE_ROUTE_COMMITMENT_REF", field: "routeCommitment" },
+  { env: "VANTA_ACTUAL_PRIVATE_SETTLEMENT_COMMITMENT_REF", field: "settlementCommitment" },
+  { env: "VANTA_ACTUAL_PRIVATE_SETTLEMENT_ID_REF", field: "settlementId" },
 ];
 
 const forbiddenSecretPatterns = [
@@ -243,6 +264,85 @@ function evaluateEnv(spec, manifestUrls = new Map()) {
   };
 }
 
+function evaluatePlanInput(spec) {
+  return evaluateEnv({
+    env: spec.env,
+    kind: `settlement-plan-${spec.field}`,
+    valuePolicy: "reference-or-sanitized-plan-term-only",
+  });
+}
+
+function evaluateSecretPresence(env) {
+  const rawValue = process.env[env]?.trim() ?? "";
+  if (!rawValue) {
+    return {
+      env,
+      status: "blocked",
+      valuePolicy: "raw-secret-env-presence-only",
+      blocker: "missing-required-secret-env",
+      secretMaterialPrinted: false,
+    };
+  }
+  return {
+    env,
+    status: "ready",
+    valuePolicy: "raw-secret-env-presence-only",
+    valueSource: "secret-env",
+    sanitizedValue: "PRESENT_REDACTED",
+    secretMaterialPrinted: false,
+  };
+}
+
+function evaluateRawSettlementPlanInput() {
+  const rawValue = process.env.VANTA_ACTUAL_PRIVATE_SETTLEMENT_PLAN_JSON?.trim() ?? "";
+  if (!rawValue) {
+    return {
+      env: "VANTA_ACTUAL_PRIVATE_SETTLEMENT_PLAN_JSON",
+      status: "blocked",
+      valuePolicy: "raw-plan-json-presence-only-never-printed",
+      blocker: "missing-required-plan-json-env",
+      secretMaterialPrinted: false,
+    };
+  }
+
+  const forbidden = forbiddenIds(rawValue);
+  if (forbidden.length > 0) {
+    return {
+      env: "VANTA_ACTUAL_PRIVATE_SETTLEMENT_PLAN_JSON",
+      status: "blocked",
+      valuePolicy: "raw-plan-json-presence-only-never-printed",
+      sanitizedValue: "FORBIDDEN_RAW_VALUE_REDACTED",
+      blocker: "forbidden-secret-like-value-redacted",
+      forbiddenPatternIds: forbidden,
+      secretMaterialPrinted: false,
+    };
+  }
+
+  try {
+    const parsed = JSON.parse(rawValue);
+    const planInput = Object.fromEntries(planEnv.map((spec) => [spec.field, parsed[spec.field]]));
+    createVantaActualPrivateSettlementPlan(planInput);
+    return {
+      env: "VANTA_ACTUAL_PRIVATE_SETTLEMENT_PLAN_JSON",
+      status: "ready",
+      valuePolicy: "raw-plan-json-presence-only-never-printed",
+      sanitizedValue: "PRESENT_VALIDATED_REDACTED",
+      planInput,
+      secretMaterialPrinted: false,
+    };
+  } catch (error) {
+    return {
+      env: "VANTA_ACTUAL_PRIVATE_SETTLEMENT_PLAN_JSON",
+      status: "blocked",
+      valuePolicy: "raw-plan-json-presence-only-never-printed",
+      sanitizedValue: "INVALID_PLAN_JSON_REDACTED",
+      blocker: "invalid-required-plan-json-env",
+      reason: error instanceof Error ? error.message : String(error),
+      secretMaterialPrinted: false,
+    };
+  }
+}
+
 function compactBlockers(values) {
   return [...new Set(values.filter(Boolean))];
 }
@@ -261,9 +361,46 @@ assert.equal(
 const wallet = evaluateEnv(walletEnv);
 const manifestUrls = readProductionServiceManifestUrls();
 const services = serviceEnv.map((service) => evaluateEnv(service, manifestUrls));
+const planInputs = planEnv.map(evaluatePlanInput);
+const rawSettlementPlanInput = evaluateRawSettlementPlanInput();
+const operatorUrl = services.find((service) => service.kind === "operator-url");
+const operatorSecret = evaluateSecretPresence("VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN");
 const actionMatchesApproval = approvalStatus.approvalActionRef === expectedActionRef;
 const capMatchesApproval = approvalStatus.maximumFundsAtRiskRef === expectedMaximumFundsAtRisk;
 const ackAccepted = dryRun ? false : ack === expectedAck;
+const executeAckAccepted = !executeRequested ? false : executeAck === expectedExecuteAck;
+const planReady = planInputs.every((input) => input.status === "ready");
+const servicesReady = services.every((service) => service.status === "ready");
+const readyToRequestSettlement =
+  !dryRun &&
+  executeRequested &&
+  ackAccepted &&
+  executeAckAccepted &&
+  actionMatchesApproval &&
+  capMatchesApproval &&
+  approvalStatus.liveMainnetActionsAllowedNow &&
+  wallet.status === "ready" &&
+  servicesReady &&
+  planReady &&
+  rawSettlementPlanInput.status === "ready" &&
+  operatorUrl?.status === "ready" &&
+  operatorSecret.status === "ready";
+
+let settlementExecution = null;
+if (readyToRequestSettlement) {
+  const plan = createVantaActualPrivateSettlementPlan(rawSettlementPlanInput.planInput);
+  const result = await requestVantaActualPrivateSettlementViaRelayer({
+    authToken: process.env.VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN,
+    operatorBaseUrl: operatorUrl.sanitizedValue,
+    plan,
+  });
+  settlementExecution = {
+    status: "submitted",
+    evidenceRefs: result.evidenceRefs,
+    responseDecision: result.responseDecision,
+    secretMaterialPrinted: false,
+  };
+}
 
 const blockers = compactBlockers([
   actionMatchesApproval ? null : "approved-action-mismatch",
@@ -273,15 +410,22 @@ const blockers = compactBlockers([
   !dryRun && !ackAccepted ? "missing-live-mainnet-settlement-ack" : null,
   wallet.status === "ready" ? null : "wallet-public-key-ref-not-ready",
   ...services.map((service) => (service.status === "ready" ? null : `${service.env}:not-ready`)),
-  "transaction-submission-not-implemented-by-design",
+  ...planInputs.map((input) => (input.status === "ready" ? null : `${input.env}:not-ready`)),
+  executeRequested && rawSettlementPlanInput.status !== "ready"
+    ? "VANTA_ACTUAL_PRIVATE_SETTLEMENT_PLAN_JSON:not-ready"
+    : null,
+  executeRequested && !executeAckAccepted ? "missing-live-mainnet-settlement-execute-ack" : null,
+  executeRequested && operatorSecret.status !== "ready" ? "VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN:not-ready" : null,
+  !executeRequested && !dryRun ? "live-settlement-execute-ack-not-set" : null,
 ]);
 
 const report = {
   version: "vanta-actual-private-mainnet-settlement-executor-preflight-0.1",
   checkedAt: new Date().toISOString(),
   mode,
+  executeRequested,
   movesFunds: false,
-  transactionSubmissionImplemented: false,
+  transactionSubmissionImplemented: true,
   phases: {
     approval: {
       status:
@@ -318,33 +462,48 @@ const report = {
       secretMaterialPrinted: false,
     },
     services: {
-      status: services.every((service) => service.status === "ready") ? "ready" : "blocked",
+      status: servicesReady ? "ready" : "blocked",
       valuePolicy: "urls-may-be-sanitized-tokens-must-be-refs",
       required: services,
       secretMaterialPrinted: false,
     },
     settlementPlan: {
-      status: "blocked",
+      status: planReady ? "ready" : "blocked",
       activePrivacyRailId: "vanta-private-pool-v2",
       approvedActionRef: expectedActionRef,
       browserHandoffRoute: "/app/actual-private-settlement",
       maximumFundsAtRiskRef: expectedMaximumFundsAtRisk,
       maximumFundsAtRiskLamports: expectedMaximumFundsAtRiskLamports,
+      requiredInputs: planInputs,
+      executionPlanJson: executeRequested
+        ? {
+            env: rawSettlementPlanInput.env,
+            status: rawSettlementPlanInput.status,
+            valuePolicy: rawSettlementPlanInput.valuePolicy,
+            sanitizedValue: rawSettlementPlanInput.sanitizedValue,
+            blocker: rawSettlementPlanInput.blocker,
+            secretMaterialPrinted: false,
+          }
+        : undefined,
       actions: [
         "validate-bounded-approval",
         "validate-wallet-public-key-ref",
         "validate-production-service-refs",
         "build-actual-private-operator-settlement-plan",
         "build-reviewed-actual-private-settlement-plan",
-        "stop-before-signing-or-submission",
+        "request-operator-protocol-settlement-via-relayer-caller-when-execute-ack-is-present",
       ],
       operatorEndpoint: "/private-pool-v2/protocol-settlements",
-      transactionConstruction: "not-implemented",
-      transactionSigning: "not-implemented",
-      transactionSubmission: "not-implemented",
+      transactionConstruction: "implemented-reviewed-plan-boundary",
+      transactionSigning: "not-local-wallet-signing-operator-relayer-submits",
+      transactionSubmission: executeRequested ? "enabled-when-all-gates-ready" : "implemented-but-disabled-without-execute-ack",
       noFundsMovementReason:
-        "This reviewed first slice is a dry-run/preflight executor contract only; it intentionally stops before signing or submission.",
+        executeRequested
+          ? "Execution was requested but remains fail-closed unless every live gate is ready."
+          : "Live preflight stops before the relayer request unless the separate execute ACK is set.",
+      execution: settlementExecution,
     },
+    operatorSecret: executeRequested ? operatorSecret : undefined,
     evidencePolicy: {
       status: "ready",
       secretPolicy: "references-only-no-secret-values",
@@ -382,8 +541,14 @@ const report = {
       accepted: ackAccepted,
       requiredValueRef: expectedAck,
     },
+    executeAck: {
+      requiredForSettlementRequest: true,
+      env: "VANTA_ACTUAL_PRIVATE_MAINNET_SETTLEMENT_EXECUTE_ACK",
+      accepted: executeAckAccepted,
+      requiredValueRef: expectedExecuteAck,
+    },
     requiredNextStep:
-      "Use the browser handoff route for the source-wallet deposit path, then implement the relayer-submitted private spend evidence writer before any live mainnet submission is possible.",
+      "Supply the refs-only wallet and settlement-plan inputs, production token refs, raw operator token via secret env, and the execute ACK before requesting a live operator settlement.",
   },
 };
 
