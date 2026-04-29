@@ -99,6 +99,7 @@
     "mainnet:private-settlement-check": "node scripts/check-vanta-mainnet-private-settlement-status.mjs",
     "mainnet:actual-private-production-evidence-check": "node scripts/check-vanta-actual-private-production-evidence.mjs",
     "mainnet:actual-private-settlement-evidence-check": "node scripts/check-vanta-actual-private-mainnet-settlement-evidence-template.mjs",
+    "mainnet:actual-private-settlement-live": "node scripts/run-vanta-actual-private-mainnet-settlement-evidence.mjs",
     "wallet:signing-safety-check": "node scripts/check-vanta-wallet-signing-safety.mjs",
     "wallet:browser-signing-safety-check": "node scripts/check-vanta-wallet-browser-signing-safety.mjs",
     "wallet:picker-check": "node scripts/check-vanta-wallet-picker.mjs",
