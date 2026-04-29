@@ -58,26 +58,31 @@ const serviceEnv = [
   },
   {
     env: "VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN_REF",
+    manifestServiceId: "operator",
     kind: "operator-auth-token",
     valuePolicy: "token-ref-only",
   },
   {
     env: "VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN_REF",
+    manifestServiceId: "indexer",
     kind: "indexer-auth-token",
     valuePolicy: "token-ref-only",
   },
   {
     env: "VANTA_PRIVATE_POOL_V2_RELAYER_AUTH_TOKEN_REF",
+    manifestServiceId: "relayer",
     kind: "relayer-auth-token",
     valuePolicy: "token-ref-only",
   },
   {
     env: "VANTA_PRIVATE_POOL_V2_PROVER_AUTH_TOKEN_REF",
+    manifestServiceId: "prover",
     kind: "prover-auth-token",
     valuePolicy: "token-ref-only",
   },
   {
     env: "VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN_REF",
+    manifestServiceId: "verifier",
     kind: "verifier-auth-token",
     valuePolicy: "token-ref-only",
   },
@@ -163,23 +168,33 @@ function forbiddenIds(value) {
   return forbiddenSecretPatterns.filter((pattern) => pattern.test(value)).map((pattern) => pattern.id);
 }
 
-function readProductionServiceManifestUrls() {
+function readProductionServiceManifestRefs() {
   const manifest = JSON.parse(readFileSync(productionServicesManifestPath, "utf8"));
-  const manifestUrls = new Map();
+  const manifestRefs = new Map();
   for (const service of manifest.services ?? []) {
     const id = typeof service.id === "string" ? service.id.trim() : "";
     const url = typeof service.deployedService?.url === "string" ? service.deployedService.url.trim() : "";
     const sanitizedUrl = sanitizeUrl(url);
+    const authSecretRef =
+      typeof service.deployedService?.auth?.secretRef === "string"
+        ? service.deployedService.auth.secretRef.trim()
+        : "";
     if (id && sanitizedUrl) {
-      manifestUrls.set(id, sanitizedUrl);
+      manifestRefs.set(`${id}:url`, sanitizedUrl);
+    }
+    if (id && isRefValue(authSecretRef)) {
+      manifestRefs.set(`${id}:authSecretRef`, authSecretRef);
     }
   }
-  return manifestUrls;
+  return manifestRefs;
 }
 
-function evaluateEnv(spec, manifestUrls = new Map()) {
+function evaluateEnv(spec, manifestRefs = new Map()) {
   const rawValue = process.env[spec.env]?.trim() ?? "";
-  const manifestUrl = spec.manifestServiceId ? manifestUrls.get(spec.manifestServiceId) : null;
+  const manifestUrl = spec.manifestServiceId ? manifestRefs.get(`${spec.manifestServiceId}:url`) : null;
+  const manifestAuthSecretRef = spec.manifestServiceId
+    ? manifestRefs.get(`${spec.manifestServiceId}:authSecretRef`)
+    : null;
   if (!rawValue) {
     if (spec.valuePolicy === "url-ref-or-sanitized-url" && manifestUrl) {
       return {
@@ -188,6 +203,18 @@ function evaluateEnv(spec, manifestUrls = new Map()) {
         status: "ready",
         valuePolicy: spec.valuePolicy,
         sanitizedValue: manifestUrl,
+        valueSource: "production-service-manifest",
+        manifestRef: "ops/mainnet/private-pool-v2-services.manifest.json",
+        manifestServiceId: spec.manifestServiceId,
+      };
+    }
+    if (spec.valuePolicy === "token-ref-only" && manifestAuthSecretRef) {
+      return {
+        env: spec.env,
+        kind: spec.kind,
+        status: "ready",
+        valuePolicy: spec.valuePolicy,
+        sanitizedValue: manifestAuthSecretRef,
         valueSource: "production-service-manifest",
         manifestRef: "ops/mainnet/private-pool-v2-services.manifest.json",
         manifestServiceId: spec.manifestServiceId,
@@ -359,8 +386,8 @@ assert.equal(
 );
 
 const wallet = evaluateEnv(walletEnv);
-const manifestUrls = readProductionServiceManifestUrls();
-const services = serviceEnv.map((service) => evaluateEnv(service, manifestUrls));
+const manifestRefs = readProductionServiceManifestRefs();
+const services = serviceEnv.map((service) => evaluateEnv(service, manifestRefs));
 const planInputs = planEnv.map(evaluatePlanInput);
 const rawSettlementPlanInput = evaluateRawSettlementPlanInput();
 const operatorUrl = services.find((service) => service.kind === "operator-url");
@@ -548,7 +575,7 @@ const report = {
       requiredValueRef: expectedExecuteAck,
     },
     requiredNextStep:
-      "Supply the refs-only wallet and settlement-plan inputs, production token refs, raw operator token via secret env, and the execute ACK before requesting a live operator settlement.",
+      "Record a fresh bounded approval window, supply the refs-only wallet and settlement-plan inputs, provide the raw operator token via secret env, and set both ACKs before requesting a live operator settlement.",
   },
 };
 

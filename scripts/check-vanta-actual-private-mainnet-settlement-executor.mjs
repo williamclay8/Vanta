@@ -66,6 +66,11 @@ const manifestFallbackRun = spawnSync("node", [runnerPath, "--dry-run"], {
     VANTA_PRIVATE_POOL_V2_RELAYER_URL_REF: "",
     VANTA_PRIVATE_POOL_V2_PROVER_URL_REF: "",
     VANTA_PRIVATE_POOL_V2_VERIFIER_URL_REF: "",
+    VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN_REF: "",
+    VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN_REF: "",
+    VANTA_PRIVATE_POOL_V2_RELAYER_AUTH_TOKEN_REF: "",
+    VANTA_PRIVATE_POOL_V2_PROVER_AUTH_TOKEN_REF: "",
+    VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN_REF: "",
   }),
 });
 assert.equal(manifestFallbackRun.status, 0, manifestFallbackRun.stderr || manifestFallbackRun.stdout);
@@ -73,12 +78,22 @@ const manifestFallbackReport = JSON.parse(manifestFallbackRun.stdout);
 const urlFallbackServices = manifestFallbackReport.phases.services.required.filter(
   (service) => service.valuePolicy === "url-ref-or-sanitized-url",
 );
+const tokenFallbackServices = manifestFallbackReport.phases.services.required.filter(
+  (service) => service.valuePolicy === "token-ref-only",
+);
 assert.equal(urlFallbackServices.length, 5);
 for (const service of urlFallbackServices) {
   assert.equal(service.status, "ready", `${service.env} must resolve from the production services manifest.`);
   assert.equal(service.valueSource, "production-service-manifest");
   assert.equal(service.manifestRef, "ops/mainnet/private-pool-v2-services.manifest.json");
   assert.match(service.sanitizedValue, /^https:\/\/vanta-prod-private-pool-v2-/);
+}
+assert.equal(tokenFallbackServices.length, 5);
+for (const service of tokenFallbackServices) {
+  assert.equal(service.status, "ready", `${service.env} must resolve its ref name from the production services manifest.`);
+  assert.equal(service.valueSource, "production-service-manifest");
+  assert.equal(service.manifestRef, "ops/mainnet/private-pool-v2-services.manifest.json");
+  assert.match(service.sanitizedValue, /_AUTH_TOKEN_REF$/);
 }
 
 assert.deepEqual(report.phases.settlementPlan.actions, [
