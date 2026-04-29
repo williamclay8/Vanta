@@ -72,16 +72,22 @@ assert.ok(snapshot.realFundsApproval.approvedByRef);
 assert.ok(["scheduled", "active", "expired"].includes(snapshot.realFundsApproval.approvalWindowStatus));
 assert.equal(
   snapshot.realFundsApproval.liveMainnetActionsAllowedNow,
-  snapshot.realFundsApproval.approvalWindowStatus === "active",
+  snapshot.realFundsApproval.approvalWindowStatus === "active" &&
+    !snapshot.realFundsApproval.stopCondition.appliesToCurrentApproval,
 );
 assert.deepEqual(snapshot.realFundsApproval.mainnetFundsBlockedBy, [
   "all-other-mainnet-actions-blocked",
   ...(snapshot.realFundsApproval.approvalWindowStatus === "active"
     ? []
     : [`bounded-approval-window-${snapshot.realFundsApproval.approvalWindowStatus}`]),
+  ...(snapshot.realFundsApproval.stopCondition.appliesToCurrentApproval
+    ? ["stop-condition-already-fired-for-approval-window"]
+    : []),
 ]);
 assert.ok(
-  snapshot.realFundsApproval.approvalWindowStatus === "active"
+  snapshot.realFundsApproval.stopCondition.appliesToCurrentApproval
+    ? snapshot.realFundsApproval.requiredNextStep.includes("Do not execute again under this approval window")
+    : snapshot.realFundsApproval.approvalWindowStatus === "active"
     ? snapshot.realFundsApproval.requiredNextStep.includes("Keep live actions inside")
     : snapshot.realFundsApproval.approvalWindowStatus === "scheduled"
       ? snapshot.realFundsApproval.requiredNextStep.includes("Wait for the approved launch window to open")
@@ -97,7 +103,7 @@ assert.equal(snapshot.privateSettlement.replayProtocolLayerImplemented, true);
 assert.equal(snapshot.privateSettlement.realFundsApprovalRecorded, true);
 assert.equal(
   snapshot.privateSettlement.realFundsAllowedNow,
-  snapshot.realFundsApproval.approvalWindowStatus === "active",
+  snapshot.realFundsApproval.liveMainnetActionsAllowedNow,
 );
 assert.equal(snapshot.privateSettlement.privacyClaimAllowed, false);
 assert.equal(snapshot.privateSettlement.noRealFundsSmokeOnly, true);
@@ -117,7 +123,7 @@ assert.equal(snapshot.privateSettlement.auditedSharedAnonymitySetAvailable, fals
 assert.equal(snapshot.privateSettlement.liveMainnetPrivateSettlementAvailable, false);
 assert.equal(
   snapshot.privateSettlement.boundedRealFundsApprovalWindowActive,
-  snapshot.realFundsApproval.approvalWindowStatus === "active",
+  snapshot.realFundsApproval.liveMainnetActionsAllowedNow,
 );
 assert.deepEqual(snapshot.privateSettlement.meaningfulPrivacyBlockedBy, [
   "no-proven-audited-shared-anonymity-set",
@@ -323,7 +329,9 @@ assert.ok(
     .find((blocker) => blocker.id === "no-mainnet-funds-without-explicit-approval")
     ?.summary.includes(
       snapshot.realFundsApproval.approvalWindowStatus === "active"
-        ? "all-other-mainnet-actions-blocked"
+        ? snapshot.realFundsApproval.stopCondition.appliesToCurrentApproval
+          ? "stop-condition-already-fired-for-approval-window"
+          : "all-other-mainnet-actions-blocked"
         : `bounded-approval-window-${snapshot.realFundsApproval.approvalWindowStatus}`,
     ),
   "Funds blocker must preserve bounded approval language.",

@@ -27,7 +27,7 @@ export function createVantaMainnetPrivateSettlementStatus() {
   const actualPrivateSmokeTarget = productionSmokeEvidence.smokeTargets.find(
     (target) => target.id === "actual-private-spend-simulation",
   );
-  const boundedRealFundsApprovalWindowActive = realFundsApproval.approvalWindowStatus === "active";
+  const boundedRealFundsApprovalWindowActive = realFundsApproval.liveMainnetActionsAllowedNow;
   const meaningfulPrivacyBlockedBy = [
     "no-proven-audited-shared-anonymity-set",
     "no-live-mainnet-private-settlement-path",
@@ -36,7 +36,9 @@ export function createVantaMainnetPrivateSettlementStatus() {
   ];
   const approvalWindowTruth = boundedRealFundsApprovalWindowActive
     ? "the current bounded real-funds approval window is active"
-    : "there is no active bounded real-funds approval window";
+    : realFundsApproval.stopCondition.appliesToCurrentApproval
+      ? "the bounded real-funds approval window has already hit its stop condition"
+      : "there is no active bounded real-funds approval window";
 
   return {
     activePrivacyRailId: privacyRail.activeRailId,
@@ -51,6 +53,7 @@ export function createVantaMainnetPrivateSettlementStatus() {
       "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
       "ops/mainnet/actual-private-production-evidence.packet.json",
       "ops/mainnet/actual-private-mainnet-settlement.evidence.template.json",
+      "ops/mainnet/actual-private-mainnet-settlement-stop-condition.evidence.json",
       "ops/mainnet/service-deployment.evidence.json",
       "ops/mainnet/mainnet-real-funds-approval.evidence.json",
     ],
@@ -86,6 +89,7 @@ export function createVantaMainnetPrivateSettlementStatus() {
     realFundsApprovalRecorded: realFundsApproval.realFundsApprovalRecorded,
     realFundsAllowedNow: realFundsApproval.liveMainnetActionsAllowedNow,
     realFundsApprovalWindowStatus: realFundsApproval.approvalWindowStatus,
+    realFundsStopCondition: realFundsApproval.stopCondition,
     replayProtocolLayerImplemented: nullifierReplayEvidence.protocolEnforcementFinalLayerImplemented === true,
     routeHealthAuthenticatedPassed,
     routeHealthPublicPassed,

@@ -25,7 +25,7 @@ assert.equal(result.auditedSharedAnonymitySetAvailable, false);
 assert.equal(result.liveMainnetPrivateSettlementAvailable, false);
 assert.equal(
   result.boundedRealFundsApprovalWindowActive,
-  result.realFundsApprovalWindowStatus === "active",
+  result.realFundsApprovalWindowStatus === "active" && !result.realFundsStopCondition.appliesToCurrentApproval,
 );
 assert.equal(result.privacyClaimAllowed, false);
 assert.equal(result.privacyRailCanClaimMeaningfulPrivacy, false);
@@ -50,7 +50,7 @@ assert.deepEqual(result.actualPrivateMainnetEvidence, {
   status: "no-real-funds-smoke-only",
 });
 assert.equal(result.realFundsApprovalRecorded, true);
-assert.equal(result.realFundsAllowedNow, result.realFundsApprovalWindowStatus === "active");
+assert.equal(result.realFundsAllowedNow, result.boundedRealFundsApprovalWindowActive);
 assert.equal(result.noRealFundsSmokeOnly, true);
 const expectedMeaningfulPrivacyBlockedBy = [
   "no-proven-audited-shared-anonymity-set",
@@ -75,6 +75,7 @@ assert.deepEqual(result.checkedEvidenceRefs, [
   "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
   "ops/mainnet/actual-private-production-evidence.packet.json",
   "ops/mainnet/actual-private-mainnet-settlement.evidence.template.json",
+  "ops/mainnet/actual-private-mainnet-settlement-stop-condition.evidence.json",
   "ops/mainnet/service-deployment.evidence.json",
   "ops/mainnet/mainnet-real-funds-approval.evidence.json",
 ]);
@@ -97,6 +98,8 @@ assert.ok(
 assert.ok(
   result.boundedRealFundsApprovalWindowActive
     ? result.deploymentTruth.includes("current bounded real-funds approval window is active")
+    : result.realFundsStopCondition.appliesToCurrentApproval
+      ? result.deploymentTruth.includes("bounded real-funds approval window has already hit its stop condition")
     : result.deploymentTruth.includes("no active bounded real-funds approval window"),
   "Private settlement status must preserve the current bounded-approval-window truth.",
 );

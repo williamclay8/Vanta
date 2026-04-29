@@ -20,8 +20,8 @@ if (checkMode) {
   assert.equal(status.productionReady, false, "Production readiness must remain false.");
   assert.equal(
     status.liveMainnetActionsAllowedNow,
-    status.approvalWindowStatus === "active",
-    "Live mainnet action allowance must match the active approval window.",
+    status.approvalWindowStatus === "active" && !status.stopCondition.appliesToCurrentApproval,
+    "Live mainnet action allowance must match the active approval window and stop-condition gate.",
   );
 }
 
@@ -33,6 +33,8 @@ if (jsonMode || checkMode) {
   console.log(`- approvalActionSummary: ${status.approvalActionSummary}`);
   console.log(`- approvalWindowStatus: ${status.approvalWindowStatus}`);
   console.log(`- approvalWindowRef: ${status.approvalWindowRef}`);
+  console.log(`- stopConditionStatus: ${status.stopCondition.status}`);
+  console.log(`- stopConditionApplies: ${String(status.stopCondition.appliesToCurrentApproval)}`);
   console.log(`- liveMainnetActionsAllowedNow: ${String(status.liveMainnetActionsAllowedNow)}`);
   console.log(`- approvalActionRef: ${status.approvalActionRef}`);
   console.log(`- feePayerRef: ${status.feePayerRef}`);
