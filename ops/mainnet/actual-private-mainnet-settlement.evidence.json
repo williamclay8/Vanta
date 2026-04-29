@@ -9,8 +9,9 @@
     "boundedApprovalWindowRef": "approval-window:2026-04-28T20:55:00-22:20:00-America-Los_Angeles",
     "nullifierReplayRejectionRef": "review:nullifier-replay-live-retry-not-run-stop-condition-preserved-2055-2220",
     "operatorReceiptRef": "operator-receipt:ppv2_5dc58490314d855c5060eace",
+    "protocolSettlementRef": "operator-protocol-settlement:proto_1ef774cec8a4964fd8a4650b",
     "publicTranscriptReviewRef": "review:public-transcript-no-forbidden-linkage-fields-operator-accepted-2055-2220",
-    "relayerSubmittedSpendTxRef": "operator-protocol-settlement:proto_1ef774cec8a4964fd8a4650b",
+    "relayerSubmittedSpendTxRef": null,
     "safeTelemetryReviewRef": "review:safe-telemetry-no-secret-output-execute-2055-2220",
     "sharedCohortDepositTxRef": "review:shared-cohort-deposit-ref-not-yet-solscan-final-reviewed-2055-2220"
   },

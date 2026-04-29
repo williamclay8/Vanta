@@ -127,8 +127,13 @@ assert.equal(
   "operator-receipt:ppv2_5dc58490314d855c5060eace",
 );
 assert.equal(
-  actualPrivateSettlement.evidenceRefs?.relayerSubmittedSpendTxRef,
+  actualPrivateSettlement.evidenceRefs?.protocolSettlementRef,
   "operator-protocol-settlement:proto_1ef774cec8a4964fd8a4650b",
+);
+assert.equal(
+  actualPrivateSettlement.evidenceRefs?.relayerSubmittedSpendTxRef,
+  null,
+  "Relayer spend tx ref must remain null until a real Solana signature exists.",
 );
 assert.equal(productionSmoke.productionReady, false);
 assert.equal(productionSmoke.realFundsAllowed, false);

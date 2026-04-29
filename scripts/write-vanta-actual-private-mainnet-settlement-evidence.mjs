@@ -14,6 +14,7 @@ const requiredEnv = [
   "VANTA_ACTUAL_PRIVATE_SHARED_COHORT_DEPOSIT_TX_REF",
   "VANTA_ACTUAL_PRIVATE_RELAYER_SUBMITTED_SPEND_TX_REF",
   "VANTA_ACTUAL_PRIVATE_OPERATOR_RECEIPT_REF",
+  "VANTA_ACTUAL_PRIVATE_PROTOCOL_SETTLEMENT_REF",
   "VANTA_ACTUAL_PRIVATE_ACCEPTED_ROOT_FRESHNESS_REF",
   "VANTA_ACTUAL_PRIVATE_NULLIFIER_REPLAY_REJECTION_REF",
   "VANTA_ACTUAL_PRIVATE_PUBLIC_TRANSCRIPT_REVIEW_REF",
@@ -47,6 +48,16 @@ function readRequiredRef(name) {
   return value;
 }
 
+function readRequiredSolanaTxRef(name) {
+  const value = readRequiredRef(name);
+  const signature = value.startsWith("solscan:") ? value.slice("solscan:".length) : value;
+  assert.ok(
+    /^[1-9A-HJ-NP-Za-km-z]{64,88}$/.test(signature),
+    `${name} must be a Solana transaction signature ref, not an operator receipt or placeholder.`,
+  );
+  return value;
+}
+
 function assertRefLike(name, value) {
   assert.ok(
     value.endsWith("_REF") || /^[A-Za-z0-9/_:.\-#]+$/.test(value),
@@ -57,6 +68,12 @@ function assertRefLike(name, value) {
 function buildEvidence() {
   const template = JSON.parse(readFileSync(templatePath, "utf8"));
   const refs = Object.fromEntries(requiredEnv.map((name) => [name, readRequiredRef(name)]));
+  refs.VANTA_ACTUAL_PRIVATE_SHARED_COHORT_DEPOSIT_TX_REF = readRequiredSolanaTxRef(
+    "VANTA_ACTUAL_PRIVATE_SHARED_COHORT_DEPOSIT_TX_REF",
+  );
+  refs.VANTA_ACTUAL_PRIVATE_RELAYER_SUBMITTED_SPEND_TX_REF = readRequiredSolanaTxRef(
+    "VANTA_ACTUAL_PRIVATE_RELAYER_SUBMITTED_SPEND_TX_REF",
+  );
 
   return {
     activePrivacyRailId: template.activePrivacyRailId,
@@ -69,6 +86,7 @@ function buildEvidence() {
       boundedApprovalWindowRef: refs.VANTA_ACTUAL_PRIVATE_BOUNDED_APPROVAL_WINDOW_REF,
       nullifierReplayRejectionRef: refs.VANTA_ACTUAL_PRIVATE_NULLIFIER_REPLAY_REJECTION_REF,
       operatorReceiptRef: refs.VANTA_ACTUAL_PRIVATE_OPERATOR_RECEIPT_REF,
+      protocolSettlementRef: refs.VANTA_ACTUAL_PRIVATE_PROTOCOL_SETTLEMENT_REF,
       publicTranscriptReviewRef: refs.VANTA_ACTUAL_PRIVATE_PUBLIC_TRANSCRIPT_REVIEW_REF,
       relayerSubmittedSpendTxRef: refs.VANTA_ACTUAL_PRIVATE_RELAYER_SUBMITTED_SPEND_TX_REF,
       safeTelemetryReviewRef: refs.VANTA_ACTUAL_PRIVATE_SAFE_TELEMETRY_REVIEW_REF,

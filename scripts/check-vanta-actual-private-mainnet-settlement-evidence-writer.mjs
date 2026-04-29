@@ -8,6 +8,8 @@ const writerPath = resolve(repoRoot, "scripts/write-vanta-actual-private-mainnet
 const packagePath = resolve(repoRoot, "package.json");
 const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
 const writerSource = readFileSync(writerPath, "utf8");
+const fixtureRelayerSignature = "4".repeat(88);
+const fixtureDepositSignature = "5".repeat(88);
 
 const okRun = spawnSync("node", [writerPath, "--dry-run"], {
   cwd: repoRoot,
@@ -20,10 +22,11 @@ const okRun = spawnSync("node", [writerPath, "--dry-run"], {
     VANTA_ACTUAL_PRIVATE_BOUNDED_APPROVAL_WINDOW_REF: "approval-window:2026-04-28T18:00:00-19:00:00-America-Los_Angeles",
     VANTA_ACTUAL_PRIVATE_NULLIFIER_REPLAY_REJECTION_REF: "operator-nullifier-replay:rejected-duplicate",
     VANTA_ACTUAL_PRIVATE_OPERATOR_RECEIPT_REF: "operator-receipt:actual-private-settlement",
+    VANTA_ACTUAL_PRIVATE_PROTOCOL_SETTLEMENT_REF: "operator-protocol-settlement:actual-private-settlement",
     VANTA_ACTUAL_PRIVATE_PUBLIC_TRANSCRIPT_REVIEW_REF: "review:public-transcript-no-linkage",
-    VANTA_ACTUAL_PRIVATE_RELAYER_SUBMITTED_SPEND_TX_REF: "solscan:relayer-spend-tx",
+    VANTA_ACTUAL_PRIVATE_RELAYER_SUBMITTED_SPEND_TX_REF: `solscan:${fixtureRelayerSignature}`,
     VANTA_ACTUAL_PRIVATE_SAFE_TELEMETRY_REVIEW_REF: "review:safe-telemetry-no-private-inputs",
-    VANTA_ACTUAL_PRIVATE_SHARED_COHORT_DEPOSIT_TX_REF: "solscan:shared-cohort-deposit-tx",
+    VANTA_ACTUAL_PRIVATE_SHARED_COHORT_DEPOSIT_TX_REF: `solscan:${fixtureDepositSignature}`,
   },
 });
 
@@ -39,7 +42,10 @@ assert.equal(evidence.currentStatus, "filled-refs-awaiting-review");
 assert.equal(evidence.secretPolicy, "references-only-no-secret-values");
 assert.equal(evidence.activePrivacyRailId, "vanta-private-pool-v2");
 assert.equal(evidence.evidenceRefs.assetIdCommitmentReviewRef, "review:asset-id-commitment-present-raw-asset-hidden");
-assert.equal(Object.keys(evidence.evidenceRefs).length, 10);
+assert.equal(evidence.evidenceRefs.protocolSettlementRef, "operator-protocol-settlement:actual-private-settlement");
+assert.equal(evidence.evidenceRefs.relayerSubmittedSpendTxRef, `solscan:${fixtureRelayerSignature}`);
+assert.equal(evidence.evidenceRefs.sharedCohortDepositTxRef, `solscan:${fixtureDepositSignature}`);
+assert.equal(Object.keys(evidence.evidenceRefs).length, 11);
 
 const serialized = JSON.stringify(evidence);
 for (const forbidden of [
@@ -71,6 +77,7 @@ const blockedRun = spawnSync("node", [writerPath, "--dry-run"], {
     VANTA_ACTUAL_PRIVATE_BOUNDED_APPROVAL_WINDOW_REF: "ok-window-ref",
     VANTA_ACTUAL_PRIVATE_NULLIFIER_REPLAY_REJECTION_REF: "ok-replay-ref",
     VANTA_ACTUAL_PRIVATE_OPERATOR_RECEIPT_REF: "ok-receipt-ref",
+    VANTA_ACTUAL_PRIVATE_PROTOCOL_SETTLEMENT_REF: "ok-protocol-ref",
     VANTA_ACTUAL_PRIVATE_PUBLIC_TRANSCRIPT_REVIEW_REF: "ok-transcript-ref",
     VANTA_ACTUAL_PRIVATE_RELAYER_SUBMITTED_SPEND_TX_REF: "signedTransaction:raw",
     VANTA_ACTUAL_PRIVATE_SAFE_TELEMETRY_REVIEW_REF: "ok-telemetry-ref",
@@ -80,6 +87,29 @@ const blockedRun = spawnSync("node", [writerPath, "--dry-run"], {
 
 assert.notEqual(blockedRun.status, 0, "Writer must reject secret-like evidence refs.");
 assert.ok(!blockedRun.stdout.includes("signedTransaction:raw"), "Writer must not echo rejected signed transaction material.");
+
+const operatorRefAsRelayerTxRun = spawnSync("node", [writerPath, "--dry-run"], {
+  cwd: repoRoot,
+  encoding: "utf8",
+  env: {
+    ...process.env,
+    VANTA_ACTUAL_PRIVATE_ACCEPTED_ROOT_FRESHNESS_REF: "ok-root-ref",
+    VANTA_ACTUAL_PRIVATE_ASSET_ID_COMMITMENT_REVIEW_REF: "ok-asset-id-commitment-review-ref",
+    VANTA_ACTUAL_PRIVATE_AUDIT_OR_REVIEWER_REF: "ok-reviewer-ref",
+    VANTA_ACTUAL_PRIVATE_BOUNDED_APPROVAL_WINDOW_REF: "ok-window-ref",
+    VANTA_ACTUAL_PRIVATE_NULLIFIER_REPLAY_REJECTION_REF: "ok-replay-ref",
+    VANTA_ACTUAL_PRIVATE_OPERATOR_RECEIPT_REF: "ok-receipt-ref",
+    VANTA_ACTUAL_PRIVATE_PROTOCOL_SETTLEMENT_REF: "operator-protocol-settlement:actual-private-settlement",
+    VANTA_ACTUAL_PRIVATE_PUBLIC_TRANSCRIPT_REVIEW_REF: "ok-transcript-ref",
+    VANTA_ACTUAL_PRIVATE_RELAYER_SUBMITTED_SPEND_TX_REF:
+      "operator-protocol-settlement:actual-private-settlement",
+    VANTA_ACTUAL_PRIVATE_SAFE_TELEMETRY_REVIEW_REF: "ok-telemetry-ref",
+    VANTA_ACTUAL_PRIVATE_SHARED_COHORT_DEPOSIT_TX_REF: `solscan:${fixtureDepositSignature}`,
+  },
+});
+
+assert.notEqual(operatorRefAsRelayerTxRun.status, 0, "Writer must reject operator refs in the relayer tx slot.");
+assert.match(operatorRefAsRelayerTxRun.stderr, /Solana transaction signature ref/);
 
 for (const forbiddenSourceTerm of ["sendRawTransaction", "sendAndConfirmTransaction", "Keypair.fromSecretKey", "bs58.decode"]) {
   assert.ok(!writerSource.includes(forbiddenSourceTerm), `Evidence writer must not submit transactions: ${forbiddenSourceTerm}`);

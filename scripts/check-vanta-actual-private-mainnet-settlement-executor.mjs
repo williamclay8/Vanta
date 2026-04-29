@@ -53,7 +53,7 @@ assert.equal(report.mode, "dry-run");
 assert.equal(report.movesFunds, false);
 assert.equal(report.executeRequested, false);
 assert.equal(report.operatorSettlementRequestImplemented, true);
-assert.equal(report.solanaRelayerSubmissionImplemented, false);
+assert.equal(report.solanaRelayerSubmissionImplemented, true);
 assert.ok(Date.parse(report.checkedAt), "Dry-run report must include a parseable checkedAt timestamp.");
 
 for (const phase of ["approval", "wallet", "services", "settlementPlan", "evidencePolicy"]) {
@@ -146,7 +146,7 @@ assert.equal(report.phases.settlementPlan.transactionSigning, "not-local-wallet-
 assert.equal(report.phases.settlementPlan.transactionSubmission, "operator-settlement-request-disabled-without-execute-ack");
 assert.equal(
   report.phases.settlementPlan.solanaRelayerSubmission,
-  "blocked-until-operator-response-includes-reviewed-relayer-solana-signature",
+  "implemented-operator-relayer-submits-reviewed-transaction-bytes-live-evidence-still-required",
 );
 assert.equal(report.phases.settlementPlan.requiredInputs.length, 18);
 for (const input of report.phases.settlementPlan.requiredInputs) {

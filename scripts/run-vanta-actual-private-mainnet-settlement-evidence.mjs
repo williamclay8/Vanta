@@ -499,7 +499,7 @@ const report = {
   executeRequested,
   movesFunds: false,
   operatorSettlementRequestImplemented: true,
-  solanaRelayerSubmissionImplemented: false,
+  solanaRelayerSubmissionImplemented: true,
   phases: {
     approval: {
       status:
@@ -585,7 +585,7 @@ const report = {
         ? "operator-settlement-request-enabled-when-all-gates-ready"
         : "operator-settlement-request-disabled-without-execute-ack",
       solanaRelayerSubmission:
-        "blocked-until-operator-response-includes-reviewed-relayer-solana-signature",
+        "implemented-operator-relayer-submits-reviewed-transaction-bytes-live-evidence-still-required",
       noFundsMovementReason:
         executeRequested
           ? "Execution was requested but remains fail-closed unless every live gate is ready."

@@ -58,6 +58,7 @@ for (const blocker of [
   "No live shared-cohort deposit transaction reference is recorded.",
   "No live asset-id commitment transcript review reference is recorded.",
   "No live relayer-submitted spend transaction reference is recorded.",
+  "No operator protocol settlement reference is recorded.",
   "No live accepted-root freshness evidence is recorded.",
   "No live nullifier replay rejection evidence is recorded.",
   "No reviewer packet has accepted the public transcript as free of forbidden linkage terms.",
