@@ -98,6 +98,62 @@ export function AppDashboardPage() {
         ? { href: "/app/send", label: "Review Send" }
         : { href: "/app/shield", label: "Start with Shield" };
 
+  const packageIdentity =
+    privateCoreReleasePackageState?.packageIdentityLabel ??
+    "No package identity yet";
+  const packageGate =
+    privateCoreReleasePackageState?.gateStatusLabel ??
+    "Gate not available";
+  const packageGenerated =
+    privateCoreReleasePackageState?.summaryGeneratedLabel ??
+    "Generated after a package exists";
+  const packageLineage =
+    privateCoreReleasePackageState?.lineageSummaryLabel ??
+    privateCoreReleaseHandoffState?.noteSummary ??
+    "Lineage appears after send and unshield evidence exist";
+
+  const trustPacketFacts = [
+    {
+      label: "Packet",
+      value: packageIdentity,
+      detail: `${releaseStatus} · ${packageGenerated}`,
+    },
+    {
+      label: "Gate",
+      value: packageGate,
+      detail: privateCoreReleasePackageState?.gatePrimaryNote ?? releaseNote,
+    },
+    {
+      label: "Lineage",
+      value: packageLineage,
+      detail: "Connects proof, send, release, and operator status when available.",
+    },
+    {
+      label: "Boundary",
+      value: "Beta/test settlement",
+      detail: "Not production-ready, anonymous, untraceable, or live mainnet-private.",
+    },
+  ];
+
+  const verificationSurfaces = [
+    {
+      command: "private-core:operator-status",
+      purpose: "Human operator state",
+    },
+    {
+      command: "private-core:operator-status-json",
+      purpose: "Machine-readable state",
+    },
+    {
+      command: "private-core:release-package",
+      purpose: "Trust packet summary",
+    },
+    {
+      command: "private-core:release-package-json",
+      purpose: "Trust packet JSON",
+    },
+  ];
+
   const actions: DashboardActionCard[] = [
     {
       badge: shieldedBalance > 0 || hasShieldedSol ? "Ready" : "Start",
@@ -141,13 +197,20 @@ export function AppDashboardPage() {
 
   return (
     <section className="dashboard-page dashboard-page--minimal">
-      <div className="dashboard-focus-card">
+      <div className="dashboard-trust-hero">
         <div className="dashboard-focus-card__copy">
-          <span className="eyebrow">Status</span>
-          <h2>Beta readiness status</h2>
-          <p>{statusLine}</p>
+          <span className="eyebrow">Trust Status</span>
+          <h2>What Vanta can honestly prove right now</h2>
+          <p>
+            This is the counterparty-facing truth surface: beta state, usable lane,
+            receipt package, and the verification boundary before anyone trusts a
+            private settlement.
+          </p>
 
           <div className="dashboard-focus-card__chips">
+            <span>Beta</span>
+            <span>No production funds</span>
+            <span>Receipt-backed where available</span>
             <span>{positionSummary.networkLabel}</span>
             <span>{stageLabel}</span>
             {positionSummary.latestActionTimestamp ? (
@@ -156,7 +219,26 @@ export function AppDashboardPage() {
           </div>
         </div>
 
-        <div className="dashboard-focus-card__stats">
+        <div className="dashboard-trust-packet" aria-label="Latest trust packet">
+          <span className="eyebrow">Latest Trust Packet</span>
+          <h3>{releaseStatus}</h3>
+          <p>{releaseNote}</p>
+          <dl>
+            {trustPacketFacts.map((fact) => (
+              <div key={fact.label}>
+                <dt>{fact.label}</dt>
+                <dd>
+                  <strong>{fact.value}</strong>
+                  <small>{fact.detail}</small>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </div>
+
+      <div className="dashboard-readiness-row">
+        <div className="dashboard-focus-card__stats" aria-label="Current local state">
           <article>
             <span>Shielded USDC</span>
             <strong>{isValueUnavailable ? "Unavailable" : formatUsdcAmount(shieldedBalance)}</strong>
@@ -183,6 +265,26 @@ export function AppDashboardPage() {
               {positionSummary.spendableNoteCount} token · {positionSummary.spendableShieldedSolNoteCount} SOL
             </small>
           </article>
+        </div>
+
+        <div className="dashboard-verification-card" aria-label="Reviewer verification surfaces">
+          <span className="eyebrow">Reviewer Verification</span>
+          <h3>Operator-visible, beta-truthful, reproducible</h3>
+          <p>
+            A reviewer or counterparty should be able to inspect the packet and run
+            the matching operator/status command instead of trusting marketing copy.
+          </p>
+          <Link className="button button-primary" to={primaryHref ?? "/app/send"}>
+            {privateCoreReleasePackageState ? "Verify packet" : "Create packet"}
+          </Link>
+          <div className="dashboard-verification-card__commands">
+            {verificationSurfaces.map((surface) => (
+              <div key={surface.command}>
+                <code>npm run {surface.command}</code>
+                <small>{surface.purpose}</small>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

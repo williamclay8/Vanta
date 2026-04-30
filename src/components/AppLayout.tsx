@@ -13,7 +13,7 @@ import type { PeerOnrampFulfillment, PeerOnrampLaunchState } from "@/peer/peerOn
 import { useWalletPublicAssets } from "@/solana/useWalletPublicAssets";
 
 const appLinks = [
-  { to: "/app/dashboard", label: "Status", action: "Readiness", end: false },
+  { to: "/app/dashboard", label: "Trust", action: "Status", end: false, variant: "trust" },
   { to: "/app/shield", label: "Shield", action: "Add funds", end: false },
   { to: "/app/send", label: "Send", action: "Send shielded", end: false },
   { to: "/app/swap", label: "Swap", action: "Trade shielded", end: false },
@@ -313,7 +313,13 @@ export function AppLayout() {
                 end={link.end}
                 aria-label={`${link.label}: ${link.action}`}
                 className={({ isActive }) =>
-                  isActive ? "app-header__tab app-header__tab--active" : "app-header__tab"
+                  [
+                    "app-header__tab",
+                    link.variant === "trust" ? "app-header__tab--trust" : null,
+                    isActive ? "app-header__tab--active" : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" ")
                 }
               >
                 <span>{link.label}</span>

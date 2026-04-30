@@ -37,9 +37,13 @@ function runBrowserBatch() {
       action: "assert",
       checks: [
         { kind: "url_contains", text: "/app/dashboard" },
-        { kind: "selector_visible", selector: ".dashboard-focus-card" },
+        { kind: "selector_visible", selector: ".dashboard-trust-hero" },
+        { kind: "selector_visible", selector: ".dashboard-trust-packet" },
+        { kind: "selector_visible", selector: ".dashboard-verification-card" },
         { kind: "selector_visible", selector: ".dashboard-next-step-card" },
-        { kind: "text_visible", text: "Beta readiness status" },
+        { kind: "text_visible", text: "What Vanta can honestly prove right now" },
+        { kind: "text_visible", text: "Latest Trust Packet" },
+        { kind: "text_visible", text: "Reviewer Verification" },
         { kind: "text_visible", text: "Shielded SOL available" },
         { kind: "text_visible", text: "Actionable notes" },
         { kind: "no_console_errors" },
@@ -123,6 +127,7 @@ function isDaemonStartupError(error) {
 
   return (
     combined.includes("daemon exited during startup") ||
+    combined.includes("daemon did not start within") ||
     combined.includes("daemon closed connection without response") ||
     combined.includes("daemon connection failed") ||
     combined.includes("ETIMEDOUT")
@@ -275,7 +280,7 @@ function runDesktopTabClickContinuityProbe() {
         !result.shellPresent ||
         result.routeFramePath !== `/app/${path}` ||
         result.mainHeight < 120 ||
-        !result.activeTab?.startsWith(path === "dashboard" ? "Status" : path[0].toUpperCase() + path.slice(1))
+        !result.activeTab?.startsWith(path === "dashboard" ? "Trust" : path[0].toUpperCase() + path.slice(1))
       ) {
         throw new Error(`Desktop tab click dropped or blanked the app shell: ${JSON.stringify(result)}`);
       }

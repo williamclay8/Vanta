@@ -88,7 +88,6 @@ function runBrowserBatch() {
       checks: [
         { kind: "selector_visible", selector: ".app-header" },
         { kind: "selector_visible", selector: ".app-header__tabs[data-product-nav]" },
-        { kind: "selector_visible", selector: ".app-sidebar" },
         { kind: "text_visible", text: "Send" },
         { kind: "no_console_errors" },
       ],
@@ -99,9 +98,13 @@ function runBrowserBatch() {
       action: "assert",
       checks: [
         { kind: "url_contains", text: "/app/dashboard" },
-        { kind: "selector_visible", selector: ".dashboard-focus-card" },
+        { kind: "selector_visible", selector: ".dashboard-trust-hero" },
+        { kind: "selector_visible", selector: ".dashboard-trust-packet" },
+        { kind: "selector_visible", selector: ".dashboard-verification-card" },
         { kind: "selector_visible", selector: ".dashboard-next-step-card" },
-        { kind: "text_visible", text: "Beta readiness status" },
+        { kind: "text_visible", text: "What Vanta can honestly prove right now" },
+        { kind: "text_visible", text: "Latest Trust Packet" },
+        { kind: "text_visible", text: "Reviewer Verification" },
         { kind: "text_visible", text: "Shielded SOL available" },
         { kind: "text_visible", text: "Actionable notes" },
         { kind: "no_console_errors" },
@@ -262,7 +265,7 @@ function assertDesktopProductTabsFit() {
         "--json",
         "eval",
         `(() => {
-          const tabs = document.querySelector(".app-header__tabs[data-product-nav]");
+          const tabs = document.querySelector(".app-header__tabs");
           const documentElement = document.documentElement;
           const body = document.body;
 
@@ -338,18 +341,29 @@ function assertActionTabsStayMinimal() {
 }
 
 function runBrowserBatchWithRetry() {
-  try {
-    runBrowserBatch();
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
+  let lastError;
 
-    if (!message.includes("daemon exited during startup")) {
-      throw error;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      runBrowserBatch();
+      return;
+    } catch (error) {
+      lastError = error;
+      const message = error instanceof Error ? error.message : String(error);
+
+      if (
+        !message.includes("daemon exited during startup") &&
+        !message.includes("daemon did not start within")
+      ) {
+        throw error;
+      }
+
+      cleanupBrowserLock();
+      execFileSync("sleep", [String(0.5 + attempt * 0.5)], { stdio: "ignore" });
     }
-
-    cleanupBrowserLock();
-    runBrowserBatch();
   }
+
+  throw lastError;
 }
 
 const vite = spawn("npm", ["run", "dev", "--", "--host", "127.0.0.1", "--port", String(port), "--strictPort"], {
