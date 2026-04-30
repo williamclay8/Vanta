@@ -261,6 +261,9 @@ export function ShieldPage(_props: ShieldPageProps) {
   const targetShieldedBalance = isNativeSolShield
     ? shieldAccount?.shieldedSolBalance ?? 0
     : shieldedBalance;
+  const targetShieldedBalanceReadUnavailable =
+    Boolean(walletConnected && capability.targetShieldAsset) &&
+    (supportedToken?.status === "error" || Boolean(shieldStateError));
   const latestRecoverableSolDeposit = recoverableSolDeposits[0] ?? null;
   const nativeSolShieldBlockedByRecoverableDeposit =
     isNativeSolShield && Boolean(latestRecoverableSolDeposit);
@@ -388,13 +391,11 @@ export function ShieldPage(_props: ShieldPageProps) {
     ? "Connect wallet"
     : !capability.targetShieldAsset
       ? "Choose asset"
-      : supportedToken?.status === "loading" || supportedToken?.isFetching || shieldStateRefreshing
-        ? "Loading..."
-        : supportedToken?.status === "error" || shieldStateError
-          ? "Temporarily unavailable"
-          : targetShieldSymbol
-            ? formatAssetAmount(targetShieldedBalance, targetShieldSymbol)
-            : "Choose asset";
+    : supportedToken?.status === "loading" || supportedToken?.isFetching || shieldStateRefreshing
+      ? "Loading..."
+      : targetShieldSymbol
+        ? formatAssetAmount(targetShieldedBalance, targetShieldSymbol)
+        : "Choose asset";
 
   async function beginShieldTransfer(
     amountDisplay: string,
@@ -1145,14 +1146,10 @@ export function ShieldPage(_props: ShieldPageProps) {
     validationMessage = capability.blockers[0] ?? "This asset is not currently supported.";
   } else if (supportedToken?.status === "loading" || supportedToken?.isFetching) {
     validationMessage = "Refreshing the target shield asset balance.";
-  } else if (supportedToken?.status === "error") {
-    validationMessage = "The app could not read the target shield asset balance.";
   } else if (!shieldStateReady) {
     validationMessage = "This shield route is not ready yet.";
   } else if (shieldStateRefreshing) {
     validationMessage = "Refreshing Vanta shielded state.";
-  } else if (shieldStateError) {
-    validationMessage = shieldStateError;
   } else if (amount.trim() === "") {
     validationMessage = "Enter an amount to shield.";
   } else if (selectedSourceBalanceStatus === "loading") {
@@ -1283,6 +1280,12 @@ export function ShieldPage(_props: ShieldPageProps) {
               </div>
 
               <p className="shield-helper shield-helper--meta">{routeLabel}</p>
+              {targetShieldedBalanceReadUnavailable && (
+                <p className="shield-helper shield-helper--meta">
+                  Shielded balance read is delayed by the RPC endpoint; new Shield actions can
+                  still proceed through wallet approval and state recording.
+                </p>
+              )}
               <p className="shield-helper">{validationMessage}</p>
               {isNativeSolShield && (
                 <div className="shield-recovery-panel">
