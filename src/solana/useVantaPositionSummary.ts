@@ -11,6 +11,7 @@ export type VantaPositionSummary = {
   liveAsset: string;
   networkLabel: string;
   publicBalance: number;
+  pendingRecoveredShieldedSolBalance: number;
   registryError: string | null;
   registryRefreshing: boolean;
   shieldedBalance: number;
@@ -29,21 +30,36 @@ export function useVantaPositionSummary(): VantaPositionSummary {
 
   return useMemo(() => {
     const account = primaryEntry.account;
-    const spendableShieldedSolNotesById = new Map<string, VantaShieldedSolNote>();
+    const confirmedShieldedSolNotesByKey = new Map<string, VantaShieldedSolNote>();
+    const pendingRecoveredShieldedSolNotesByKey = new Map<string, VantaShieldedSolNote>();
     for (const entry of shieldRegistry.entries) {
       for (const note of entry.account?.spendableShieldedSolNotes ?? []) {
-        spendableShieldedSolNotesById.set(note.noteId, note);
+        const noteKey = note.depositSignature ? `deposit:${note.depositSignature}` : note.noteId;
+
+        if (note.stateSignature.startsWith("local-sol-recovery:")) {
+          pendingRecoveredShieldedSolNotesByKey.set(noteKey, note);
+        } else {
+          confirmedShieldedSolNotesByKey.set(noteKey, note);
+          pendingRecoveredShieldedSolNotesByKey.delete(noteKey);
+        }
       }
     }
     const shieldedSolBalance = Number(
-      [...spendableShieldedSolNotesById.values()]
+      [...confirmedShieldedSolNotesByKey.values()]
+        .reduce((sum, note) => sum + note.amount, 0)
+        .toFixed(9),
+    );
+    const pendingRecoveredShieldedSolBalance = Number(
+      [...pendingRecoveredShieldedSolNotesByKey.values()]
         .reduce((sum, note) => sum + note.amount, 0)
         .toFixed(9),
     );
     const shieldedSolEntry =
       shieldRegistry.entries.find((entry) =>
         entry.account?.spendableShieldedSolNotes.some((note) =>
-          spendableShieldedSolNotesById.has(note.noteId),
+          confirmedShieldedSolNotesByKey.has(
+            note.depositSignature ? `deposit:${note.depositSignature}` : note.noteId,
+          ),
         ),
       ) ?? primaryEntry;
     const shieldedSolAccount = shieldedSolEntry.account;
@@ -86,6 +102,7 @@ export function useVantaPositionSummary(): VantaPositionSummary {
       latestActionTimestamp: latestActivity?.createdAt ?? null,
       liveAsset: primaryAsset.symbol,
       networkLabel: clusterLabel,
+      pendingRecoveredShieldedSolBalance,
       publicBalance,
       registryError,
       registryRefreshing,

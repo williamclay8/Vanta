@@ -63,10 +63,15 @@ for (const [label, source] of [
   );
 }
 assert.ok(
-  positionSummaryHookSource.includes("spendableShieldedSolNotesById") &&
+  positionSummaryHookSource.includes("confirmedShieldedSolNotesByKey") &&
     positionSummaryHookSource.includes("new Map<string, VantaShieldedSolNote>()") &&
     positionSummaryHookSource.includes("entry.account?.spendableShieldedSolNotes ?? []"),
   "Status shielded SOL must dedupe spendable SOL notes across the shield asset registry.",
+);
+assert.ok(
+  positionSummaryHookSource.includes('note.stateSignature.startsWith("local-sol-recovery:")') &&
+    positionSummaryHookSource.includes("pendingRecoveredShieldedSolBalance"),
+  "Status confirmed shielded SOL must not include local-recovery-only notes.",
 );
 assert.ok(
   shieldAssetStateSource.indexOf("const accountWithRecoveredSolNotes = mergeRecoveredNativeSolShieldNotes(") <

@@ -1699,6 +1699,14 @@ input {
   font-variant-numeric: tabular-nums;
 }
 
+.dashboard-focus-card__stats small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
 .dashboard-release-card {
   grid-template-columns: 1fr auto;
   align-items: end;
