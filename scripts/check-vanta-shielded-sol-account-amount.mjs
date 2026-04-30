@@ -8,6 +8,7 @@ const noteStatePanelSource = readFileSync(resolve("src/components/NoteStatePanel
 const positionSummarySource = readFileSync(resolve("src/components/PositionSummary.tsx"), "utf8");
 const shieldStateSource = readFileSync(resolve("src/solana/vantaShieldState.ts"), "utf8");
 const shieldAssetStateSource = readFileSync(resolve("src/solana/useVantaShieldAssetState.ts"), "utf8");
+const positionSummaryHookSource = readFileSync(resolve("src/solana/useVantaPositionSummary.ts"), "utf8");
 const meteoraContextSource = readFileSync(resolve("operator/meteora-dlmm-context.mjs"), "utf8");
 
 assert.ok(
@@ -53,7 +54,7 @@ assert.ok(
 
 for (const [label, source] of [
   ["dashboard", dashboardSource],
-  ["position summary hook", readFileSync(resolve("src/solana/useVantaPositionSummary.ts"), "utf8")],
+  ["position summary hook", positionSummaryHookSource],
 ]) {
   assert.ok(
     source.includes("shieldRegistry.entries.find((entry) => (entry.account?.shieldedSolBalance ?? 0) > 0)") ||
@@ -61,6 +62,17 @@ for (const [label, source] of [
     `${label} must source shielded SOL from the registry entry that actually has shielded SOL, not only the primary USDC account.`,
   );
 }
+assert.ok(
+  positionSummaryHookSource.includes("spendableShieldedSolNotesById") &&
+    positionSummaryHookSource.includes("new Map<string, VantaShieldedSolNote>()") &&
+    positionSummaryHookSource.includes("entry.account?.spendableShieldedSolNotes ?? []"),
+  "Status shielded SOL must dedupe spendable SOL notes across the shield asset registry.",
+);
+assert.ok(
+  shieldAssetStateSource.indexOf("const accountWithRecoveredSolNotes = mergeRecoveredNativeSolShieldNotes(") <
+    shieldAssetStateSource.indexOf("reconcileLocallyReleasedSolNotes(accountWithRecoveredSolNotes, locallyReleasedSolNoteIds)"),
+  "Recovered native SOL notes must be merged before locally released SOL reconciliation so released notes cannot reappear as spendable.",
+);
 
 for (const [label, source] of [
   ["shield state", shieldStateSource],

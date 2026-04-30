@@ -17,7 +17,7 @@ function formatUsdcAmount(value: number) {
 
   return `${value.toLocaleString(undefined, {
     minimumFractionDigits: 2,
-    maximumFractionDigits: 6,
+    maximumFractionDigits: 2,
   })} USDC`;
 }
 
@@ -30,6 +30,7 @@ export function AppDashboardPage() {
 
   const shieldedBalance = positionSummary.shieldedBalance;
   const shieldedSolBalance = positionSummary.shieldedSolBalance;
+  const pendingRecoveredShieldedSolBalance = positionSummary.pendingRecoveredShieldedSolBalance;
   const spendableNoteCount = positionSummary.spendableNoteCount;
 
   const isValueUnavailable = Boolean(positionSummary.registryError);
@@ -111,6 +112,11 @@ export function AppDashboardPage() {
           <article>
             <span>Shielded SOL</span>
             <strong>{isValueUnavailable ? "Unavailable" : formatVantaSolAmount(shieldedSolBalance)}</strong>
+            {pendingRecoveredShieldedSolBalance > 0 && (
+              <small>
+                {formatVantaSolAmount(pendingRecoveredShieldedSolBalance)} pending local recovery
+              </small>
+            )}
           </article>
           <article>
             <span>Spendable notes</span>
