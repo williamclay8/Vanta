@@ -53,17 +53,17 @@ export function useVantaShieldAssetState(args: {
           ? fetchLocallyReleasedSolNoteIds().catch(() => new Set<string>())
           : Promise.resolve(new Set<string>()),
       ]);
-      const reconciledAccount = args.includeLocallyReleasedSolNotes
-        ? reconcileLocallyReleasedSolNotes(nextAccount, locallyReleasedSolNoteIds)
-        : nextAccount;
+      const accountWithRecoveredSolNotes = mergeRecoveredNativeSolShieldNotes(
+        nextAccount,
+        loadRecoveredNativeSolShieldNotes({
+          owner: walletAddress,
+          vaultOwner: args.vaultOwner,
+        }),
+      );
       setAccount(
-        mergeRecoveredNativeSolShieldNotes(
-          reconciledAccount,
-          loadRecoveredNativeSolShieldNotes({
-            owner: walletAddress,
-            vaultOwner: args.vaultOwner,
-          }),
-        ),
+        args.includeLocallyReleasedSolNotes
+          ? reconcileLocallyReleasedSolNotes(accountWithRecoveredSolNotes, locallyReleasedSolNoteIds)
+          : accountWithRecoveredSolNotes,
       );
     } catch (nextError) {
       setError(

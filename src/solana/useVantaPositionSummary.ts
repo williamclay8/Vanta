@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useWalletState } from "@/data/context/WalletContext";
 import { getPrimaryLiveShieldTokenAsset } from "@/solana/shieldConfig";
 import { useVantaShieldAssetRegistryState } from "@/solana/useVantaShieldAssetRegistryState";
+import type { VantaShieldedSolNote } from "@/solana/vantaShieldState";
 
 export type VantaPositionSummary = {
   assetLabel: string;
@@ -28,16 +29,29 @@ export function useVantaPositionSummary(): VantaPositionSummary {
 
   return useMemo(() => {
     const account = primaryEntry.account;
+    const spendableShieldedSolNotesById = new Map<string, VantaShieldedSolNote>();
+    for (const entry of shieldRegistry.entries) {
+      for (const note of entry.account?.spendableShieldedSolNotes ?? []) {
+        spendableShieldedSolNotesById.set(note.noteId, note);
+      }
+    }
+    const shieldedSolBalance = Number(
+      [...spendableShieldedSolNotesById.values()]
+        .reduce((sum, note) => sum + note.amount, 0)
+        .toFixed(9),
+    );
     const shieldedSolEntry =
-      shieldRegistry.entries.find((entry) => (entry.account?.shieldedSolBalance ?? 0) > 0) ??
-      primaryEntry;
+      shieldRegistry.entries.find((entry) =>
+        entry.account?.spendableShieldedSolNotes.some((note) =>
+          spendableShieldedSolNotesById.has(note.noteId),
+        ),
+      ) ?? primaryEntry;
     const shieldedSolAccount = shieldedSolEntry.account;
     const publicBalance = primaryEntry.publicBalance;
     const registryError =
       primaryEntry.error ?? (shieldedSolEntry === primaryEntry ? null : shieldedSolEntry.error);
     const registryRefreshing = primaryEntry.isRefreshing || shieldedSolEntry.isRefreshing;
     const shieldedBalance = account?.balance ?? 0;
-    const shieldedSolBalance = shieldedSolAccount?.shieldedSolBalance ?? 0;
     const spendableNoteCount = account?.spendableShieldNotes.length ?? 0;
     const swapCount = account?.swapNotes.length ?? 0;
     const latestActivity =
