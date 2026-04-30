@@ -18,6 +18,7 @@ const production = readJson("ops/mainnet/actual-private-production-evidence.pack
 const settlementReview = readJson("ops/mainnet/actual-private-mainnet-settlement-review.evidence.json");
 const relayerReview = readJson("ops/mainnet/private-pool-v2-production-relayer-review.evidence.json");
 const anonymity = readJson("ops/mainnet/private-pool-v2-anonymity-set.evidence.json");
+const hardBlockers = readJson("ops/mainnet/actual-private-hard-blockers.packet.json");
 
 const mainnetRefs = {
   network: "mainnet-beta",
@@ -73,6 +74,10 @@ assert.equal(
   relayerReview.currentReviewRefs.spendProgramConfigRef,
 );
 assert.equal(packet.freshReviewerPacketRun.approvalActionRef, "reviewer-packet/mainnet-evidence-run-2026-04-29-1849-2049");
+assert.equal(packet.freshReviewerPacketRun.approvalWindowStatus, "expired");
+if (hardBlockers.stopBoundary?.liveMainnetActionsAllowedNow === false) {
+  assert.notEqual(packet.freshReviewerPacketRun.approvalWindowStatus, "active");
+}
 assert.equal(packet.freshReviewerPacketRun.fundsMoved, false);
 assert.equal(packet.freshReviewerPacketRun.liveTransactionSubmitted, false);
 assert.equal(packet.freshReviewerPacketRun.maximumFundsAtRiskRef, "0.015 SOL");

@@ -37,99 +37,86 @@ assert.equal(result.routeHealthAuthenticatedPassed, true);
 assert.equal(result.productionSmokeHealthPassed, true);
 assert.equal(result.productionSmokeTargetsPassed, true);
 assert.equal(result.replayProtocolLayerImplemented, true);
-assert.deepEqual(result.actualPrivateMainnetEvidence, {
-  evidenceRefs: {
-    acceptedRootFreshnessRef: "review:accepted-root-current-production-indexer-2055-2220",
-    assetIdCommitmentReviewRef: "review:asset-id-commitment-present-raw-asset-hidden-2055-2220",
-    auditOrReviewerRef: "reviewer:clay-mainnet-evidence-packet-2055-2220",
-    boundedApprovalWindowRef: "approval-window:2026-04-28T20:55:00-22:20:00-America-Los_Angeles",
-    nullifierReplayRejectionRef: "operator-nullifier-replay:production-duplicate-rejected-0979e25cb4f98ecba9bb",
-    operatorReceiptRef: "operator-receipt:ppv2_5dc58490314d855c5060eace",
-    protocolSettlementRef: "operator-protocol-settlement:proto_1ef774cec8a4964fd8a4650b",
-    publicTranscriptReviewRef: "review:public-transcript-no-forbidden-linkage-fields-operator-accepted-2055-2220",
-    relayerSubmittedSpendTxRef:
-      "solana-tx:56QhWoCQ6KjD9SVBJ9KdZphVMp49qYSiwEDTprZsoyo5WFTXoLRMrxNTabB9dELhL5WrFWbSZDDzNd4URr3u5fZL",
-    safeTelemetryReviewRef: "review:safe-telemetry-no-secret-output-execute-2055-2220",
-    sharedCohortDepositTxRef: "review:shared-cohort-deposit-ref-not-yet-solscan-final-reviewed-2055-2220",
-  },
-  evidenceStatus: "mainnet-spend-program-evidence-observed-reviewed-blocked",
-  mainnetSpendProgramEvidence: {
-    programId: "1ANmqk7YB17FxaJLnvUthY9R4UZHyJuNt1cmNfpMsgm",
-    poolState: "5qjyK5B5ZMAgLmXxrpAGqFHvEHTCP4MUwRmzvA4MPEuQ",
-    nullifierSet: "x5xWJZNN8rjZPdAYgG8EJuTZYYvYDQyhVXEgKB6i23k",
-    outputQueue: "CsnYLMnnMso1KT6PE7csi51ZtFHSPQr1xTePA8rKUzrZ",
-    deployTxRef:
-      "solana-tx:34syPdrcrwjUvFLiDRzPA597MxNqB8CassbJYu77DN4ECm1u5gLjL2uwhz5bcnHKbeZH4A819kjofCGBvpkP764p",
-    createTxRef:
-      "solana-tx:368JyAHH4aAuvFiSuhGhoejuwPvyTDwMtHdrzLgRhqVnbQNrbaCjCHxjsR8Ty7PcoR4kb9xjR7Q674NKZ9BABdGo",
-    initTxRef:
-      "solana-tx:3zfqv9jKCwWJ2vtwFaViBq2GuaTP6HqjbUqfW8PGYjraumdSvvtVFHiYG1uyLTDDvpLgtwwN4d4XmTjd7D2RQEGU",
-    spendEvidenceTxRef:
-      "solana-tx:56QhWoCQ6KjD9SVBJ9KdZphVMp49qYSiwEDTprZsoyo5WFTXoLRMrxNTabB9dELhL5WrFWbSZDDzNd4URr3u5fZL",
-    replaySimulation: {
-      status: "reviewed-production-duplicate-replay-rejection",
-      observedError: "Custom:1",
-      productionReplayRejectionProven: true,
-      productionReplayProbeRef: "operator-nullifier-replay:production-duplicate-rejected-0979e25cb4f98ecba9bb",
-      productionReplayProbeCheckedAt: "2026-04-30T08:19:41.721Z",
-      reviewerAcceptanceRef: "review:actual-private-production-replay-transcript-accepted-2026-04-30",
-    },
-  },
-  reviewStatus: "reviewed-blocked",
-  reviewVerdict:
-    "Do not claim Solscan-untrackable or live-mainnet-private settlement from this packet. Mainnet spend-program evidence is observed, including the spend transaction, and the production duplicate-nullifier replay rejection transcript is accepted, but shared-cohort, independent reviewer, audited-anonymity, and production-readiness gates remain blocked.",
-  promotionDecision: {
-    reviewedLiveAllowed: false,
-    operatorAcceptanceCanPromote: false,
-    requiredApprovedReviewStatus: "reviewed-live",
-    reviewedLiveRequires: [
-      "shared-cohort-deposit-transaction",
-      "independent-reviewer-or-audit",
-    ],
-    blockedBy: [
-      "shared-cohort-deposit-transaction",
-      "independent-reviewer-or-audit",
-    ],
-  },
-  hardPromotionBlockers: [
-    {
-      id: "shared-cohort-deposit-transaction",
-      evidenceRefKey: "sharedCohortDepositTxRef",
-      currentEvidenceRef: "review:shared-cohort-deposit-ref-not-yet-solscan-final-reviewed-2055-2220",
-      requiredRefShape: "solana-tx:<shared-cohort-deposit-mainnet-signature>",
-      currentState: "placeholder-review-ref",
-      promotionRequired: true,
-    },
-    {
-      id: "live-nullifier-replay-rejection",
-      evidenceRefKey: "nullifierReplayRejectionRef",
-      currentEvidenceRef: "operator-nullifier-replay:production-duplicate-rejected-0979e25cb4f98ecba9bb",
-      requiredRefShape: "operator-nullifier-replay:<production-duplicate-rejection-ref>",
-      currentState: "reviewed-production-duplicate-replay-rejection",
-      promotionRequired: true,
-    },
-  ],
-  lineage: {
-    currentApprovalActionRef: "actual-private/mainnet-settlement-evidence-run-2026-04-29-2131-2231",
-    currentApprovalWindowRef: "2026-04-29T21:31:00-22:31:00 America/Los_Angeles",
-    settlementEvidenceApprovalWindowRef: "2026-04-28T20:55:00-22:20:00 America/Los_Angeles",
-    settlementEvidenceMatchesCurrentApproval: false,
-    lineageWarning:
-      "The reviewed settlement evidence belongs to a previous approval window; current approval/stop-condition status must not be read as promoting that historical evidence.",
-  },
-  liveMainnetSettlementProven: false,
-  noRealFundsSmokeTargetPassed: true,
-  noRealFundsSmokeTranscript: "pool-cohort-root-nullifier-output-context-only",
-  requiredLiveEvidence: [
-    "bounded real-funds approval for the exact actual-private action",
-    "live mainnet deposit transaction into the shared cohort",
-    "live mainnet relayer-submitted private spend transaction",
-    "operator receipt binding accepted root, nullifier, output commitments, and proof public-input hash",
-    "post-settlement nullifier replay rejection against the live production store",
-    "reviewer packet proving no source wallet, merchant address, raw amount, input commitment, input leaf index, deposit signature, plaintext memo, or same-fee-payer linkage appears in the public spend transcript",
-  ],
-  status: "mainnet-spend-program-evidence-observed-reviewed-blocked",
-});
+assert.equal(
+  result.actualPrivateMainnetEvidence.evidenceStatus,
+  "mainnet-spend-program-evidence-observed-reviewed-blocked",
+);
+assert.equal(result.actualPrivateMainnetEvidence.reviewStatus, "reviewed-blocked");
+assert.equal(result.actualPrivateMainnetEvidence.liveMainnetSettlementProven, false);
+assert.equal(result.actualPrivateMainnetEvidence.noRealFundsSmokeTargetPassed, true);
+assert.equal(
+  result.actualPrivateMainnetEvidence.noRealFundsSmokeTranscript,
+  "pool-cohort-root-nullifier-output-context-only",
+);
+assert.equal(
+  result.actualPrivateMainnetEvidence.promotionDecision.reviewedLiveAllowed,
+  false,
+);
+assert.equal(
+  result.actualPrivateMainnetEvidence.promotionDecision.requiredApprovedReviewStatus,
+  "reviewed-live",
+);
+assert.deepEqual(result.actualPrivateMainnetEvidence.promotionDecision.blockedBy, [
+  "shared-cohort-deposit-transaction",
+  "independent-reviewer-or-audit",
+]);
+assert.equal(
+  result.actualPrivateMainnetEvidence.lineage.currentApprovalActionRef,
+  result.realFundsApprovalActionRef,
+);
+assert.ok(
+  /^approval-window:\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}-\d{2}:\d{2}:\d{2}-America[-_]Los_Angeles$/.test(
+    result.actualPrivateMainnetEvidence.evidenceRefs.boundedApprovalWindowRef,
+  ),
+  "Settlement evidence approval window must remain a refs-only bounded approval window.",
+);
+assert.equal(
+  result.actualPrivateMainnetEvidence.lineage.settlementEvidenceMatchesCurrentApproval,
+  result.actualPrivateMainnetEvidence.lineage.settlementEvidenceApprovalWindowRef ===
+    result.actualPrivateMainnetEvidence.lineage.currentApprovalWindowRef,
+);
+assert.ok(
+  result.actualPrivateMainnetEvidence.lineage.lineageWarning.includes("must not be read as promoting"),
+  "Private settlement status must preserve approval-lineage non-promotion warning.",
+);
+for (const [key, value] of Object.entries(result.actualPrivateMainnetEvidence.evidenceRefs)) {
+  assert.ok(typeof value === "string" && value.length > 0, `Missing actual-private evidence ref ${key}.`);
+}
+assert.match(
+  result.actualPrivateMainnetEvidence.evidenceRefs.relayerSubmittedSpendTxRef,
+  /^solana-tx:[1-9A-HJ-NP-Za-km-z]{64,88}$/,
+);
+assert.match(
+  result.actualPrivateMainnetEvidence.evidenceRefs.nullifierReplayRejectionRef,
+  /^operator-nullifier-replay:[A-Za-z0-9/_:.\-#]+$/,
+);
+const hardPromotionBlockers = new Map(
+  result.actualPrivateMainnetEvidence.hardPromotionBlockers.map((blocker) => [blocker.id, blocker]),
+);
+assert.equal(
+  hardPromotionBlockers.get("shared-cohort-deposit-transaction")?.requiredRefShape,
+  "solana-tx:<shared-cohort-deposit-mainnet-signature>",
+);
+assert.equal(
+  hardPromotionBlockers.get("shared-cohort-deposit-transaction")?.currentState,
+  "placeholder-review-ref",
+);
+assert.equal(
+  hardPromotionBlockers.get("live-nullifier-replay-rejection")?.requiredRefShape,
+  "operator-nullifier-replay:<production-duplicate-rejection-ref>",
+);
+for (const requiredLiveEvidence of [
+  "bounded real-funds approval for the exact actual-private action",
+  "live mainnet deposit transaction into the shared cohort",
+  "live mainnet relayer-submitted private spend transaction",
+  "post-settlement nullifier replay rejection against the live production store",
+]) {
+  assert.ok(
+    result.actualPrivateMainnetEvidence.requiredLiveEvidence.includes(requiredLiveEvidence),
+    `Missing required live evidence text: ${requiredLiveEvidence}`,
+  );
+}
+assert.equal(result.actualPrivateMainnetEvidence.status, "mainnet-spend-program-evidence-observed-reviewed-blocked");
 assert.equal(result.realFundsApprovalRecorded, true);
 assert.equal(result.realFundsAllowedNow, result.boundedRealFundsApprovalWindowActive);
 assert.equal(

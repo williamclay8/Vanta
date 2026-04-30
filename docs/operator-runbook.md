@@ -315,10 +315,10 @@ npm run mainnet:abuse-observability-evidence-check
 
 For the current Render-native only decision, the next operator steps are:
 
-1. Create or confirm Render-native logs / dashboards / alerts / retention for `vanta-pay`
-2. Create or confirm the same provider controls for `vanta-private-pool-v2`
+1. Create or confirm Render-native alerts and retention for `vanta-pay`
+2. Create or confirm Render-native alerts and retention for `vanta-private-pool-v2`
 3. Create production service refs for `vanta-strategy` and `vanta-operator-control-plane`
-4. Only then record equivalent observability refs for those last two services
+4. Only then record Render-native log, metrics, alerts, and retention refs for those last two services
 
 Pay and Private Pool v2 also have a shared rate-limit seam at:
 
@@ -326,7 +326,7 @@ Pay and Private Pool v2 also have a shared rate-limit seam at:
 src/ops/vantaRateLimit.mjs
 ```
 
-The current fallback limiter is intentionally marked `productionReady: false`; it provides a fail-closed operator control point when no database is configured. The same module now also exposes a Postgres-backed durable shared-window limiter that the Pay and Private Pool v2 operator services prefer when their production database URL is configured. Incident workflow evidence is now checked through `npm run mainnet:production-incident-workflow-evidence-check`; production observability is still not complete until deployed runtime evidence plus provider log sink, metrics, alerts, dashboards, and retention evidence are all fresh.
+The current fallback limiter is intentionally marked `productionReady: false`; it provides a fail-closed operator control point when no database is configured. The same module now also exposes a Postgres-backed durable shared-window limiter that the Pay and Private Pool v2 operator services prefer when their production database URL is configured. Incident workflow evidence is now checked through `npm run mainnet:production-incident-workflow-evidence-check`; production observability is still not complete until deployed runtime evidence plus Render-native log, metrics, alerts, dashboards, and retention evidence are fresh across the full production surface.
 
 Pay and Private Pool v2 also emit shared privacy-safe JSON telemetry through:
 

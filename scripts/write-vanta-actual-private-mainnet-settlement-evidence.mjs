@@ -10,6 +10,8 @@ const templatePath = resolve(repoRoot, "ops/mainnet/actual-private-mainnet-settl
 const dryRun = process.argv.includes("--dry-run") || !process.argv.includes("--write");
 const writeMode = process.argv.includes("--write");
 const allowHistoricalApproval = process.argv.includes("--allow-historical-approval");
+const allowConsumedApprovalEvidence = process.argv.includes("--allow-consumed-approval-evidence");
+let approvalLineageStatus = "current-approval";
 
 const requiredEnv = [
   "VANTA_ACTUAL_PRIVATE_BOUNDED_APPROVAL_WINDOW_REF",
@@ -74,6 +76,19 @@ function readRequiredCurrentApprovalWindowRef(name) {
     allowHistoricalApproval || matchesCurrentApproval,
     `${name} must match the current bounded approval window (${currentWindowRef}) unless --allow-historical-approval is explicitly set.`,
   );
+
+  if (matchesCurrentApproval && approvalStatus.stopCondition.appliesToCurrentApproval) {
+    assert.ok(
+      allowConsumedApprovalEvidence,
+      `${name} points to the current consumed approval window. Use --allow-consumed-approval-evidence to write non-promoting historical consumed-approval evidence, or record a fresh bounded approval window.`,
+    );
+    approvalLineageStatus = "consumed-approval";
+  } else if (!matchesCurrentApproval) {
+    approvalLineageStatus = "historical-approval";
+  } else {
+    approvalLineageStatus = "current-approval";
+  }
+
   return matchesCurrentApproval ? currentWindowRef : value;
 }
 
@@ -112,7 +127,10 @@ function buildEvidence() {
   return {
     activePrivacyRailId: template.activePrivacyRailId,
     checkedAt: new Date().toISOString(),
-    currentStatus: "filled-refs-awaiting-review",
+    currentStatus:
+      approvalLineageStatus === "current-approval"
+        ? "filled-refs-awaiting-review"
+        : `${approvalLineageStatus}-refs-awaiting-review`,
     evidenceRefs: {
       acceptedRootFreshnessRef: refs.VANTA_ACTUAL_PRIVATE_ACCEPTED_ROOT_FRESHNESS_REF,
       assetIdCommitmentReviewRef: refs.VANTA_ACTUAL_PRIVATE_ASSET_ID_COMMITMENT_REVIEW_REF,

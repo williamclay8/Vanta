@@ -384,7 +384,7 @@ Purpose: make production operation observable without logging secrets or private
 Evidence needed:
 
 - `VANTA_MONITORING_DASHBOARD_REF`
-- provider-backed log sink reference
+- provider-backed or Render-native log sink reference
 - alert routing reference
 - on-call owner reference
 - `VANTA_INCIDENT_RUNBOOK_REF`
@@ -398,13 +398,16 @@ Verification:
 
 ```bash
 npm run mainnet:abuse-observability-check
+npm run mainnet:abuse-observability-evidence-check
+npm run mainnet:render-native-observability-evidence-check
+npm run mainnet:production-incident-workflow-evidence-check
 npm run ops:rate-limit-check
 npm run ops:safe-telemetry-check
 npm run mainnet:observability-sink-check
 npm run operator:runbook-check
 ```
 
-Current checked truth: the deployed operator already uses the preferred Postgres durable shared-window rate limiter and incident workflow refs are configured, but provider-backed log sink, dashboards, alerts, and retention controls are still pending.
+Current checked truth: the deployed operator already uses the preferred Postgres durable shared-window rate limiter, Pay and Private Pool v2 have verified Render-native log and metrics evidence, and incident workflow refs are configured, but alert policies, retention policy, and Strategy/operator-control-plane production service observability controls are still pending.
 
 ## Production Claim Gate
 

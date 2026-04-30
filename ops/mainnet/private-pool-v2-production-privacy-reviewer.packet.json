@@ -52,7 +52,7 @@
   "freshReviewerPacketRun": {
     "approvalActionRef": "reviewer-packet/mainnet-evidence-run-2026-04-29-1849-2049",
     "approvalStatusCommand": "npm run mainnet:real-funds-approval-status-check",
-    "approvalWindowStatus": "active",
+    "approvalWindowStatus": "expired",
     "fundsMoved": false,
     "liveTransactionSubmitted": false,
     "maximumFundsAtRiskRef": "0.015 SOL",

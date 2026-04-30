@@ -11,6 +11,9 @@ const POOL_STATE_LEN = 56;
 const QUEUE_HEADER_LEN = 16;
 const HASH_LEN = 32;
 const OUTPUT_RECORD_LEN = HASH_LEN * 3;
+const INIT_INSTRUCTION_TAG = 0;
+const SPEND_INSTRUCTION_TAG = 1;
+const SPEND_INSTRUCTION_DATA_BYTES = 129;
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const anonymityEvidencePath = resolve(repoRoot, "ops/mainnet/private-pool-v2-anonymity-set.evidence.json");
@@ -72,6 +75,19 @@ const plan = {
     requiredMinimumOutputQueueSlots,
     accountByteSizes,
     totalNewAccountDataBytes,
+    spendProgramContract: {
+      programRef: "programs/vanta_private_pool_v2_spend/README.md",
+      slotCount: requiredMinimumOutputQueueSlots,
+      poolStateBytes: accountByteSizes.poolState,
+      nullifierSetBytes: accountByteSizes.nullifierSet,
+      outputQueueBytes: accountByteSizes.outputQueue,
+      initInstructionTag: INIT_INSTRUCTION_TAG,
+      spendInstructionTag: SPEND_INSTRUCTION_TAG,
+      spendInstructionDataBytes: SPEND_INSTRUCTION_DATA_BYTES,
+      additionalSpendInstructionsRequired: requiredAdditionalOutputRecords,
+      unsignedPlanningOnly: true,
+      signsOrSubmitsTransactions: false,
+    },
   },
   practicalTransactionClassesAfterFreshApproval: [
     {

@@ -170,6 +170,11 @@ assert.equal(
   0,
   historicalApprovalWindowRun.stderr || historicalApprovalWindowRun.stdout,
 );
+assert.equal(
+  JSON.parse(historicalApprovalWindowRun.stdout).currentStatus,
+  "historical-approval-refs-awaiting-review",
+  "Historical approval evidence must not use the fresh filled-refs status.",
+);
 
 const reviewRefAsReplayRun = spawnSync("node", [writerPath, "--dry-run"], {
   cwd: repoRoot,
@@ -197,6 +202,18 @@ assert.match(reviewRefAsReplayRun.stderr, /operator-nullifier-replay:<production
 for (const forbiddenSourceTerm of ["sendRawTransaction", "sendAndConfirmTransaction", "Keypair.fromSecretKey", "bs58.decode"]) {
   assert.ok(!writerSource.includes(forbiddenSourceTerm), `Evidence writer must not submit transactions: ${forbiddenSourceTerm}`);
 }
+assert.ok(
+  writerSource.includes("allowConsumedApprovalEvidence"),
+  "Evidence writer must include an explicit consumed-approval evidence mode.",
+);
+assert.ok(
+  writerSource.includes("approvalStatus.stopCondition.appliesToCurrentApproval"),
+  "Evidence writer must inspect the current approval stop condition before writing fresh evidence.",
+);
+assert.ok(
+  writerSource.includes("consumed-approval"),
+  "Evidence writer must have a non-promoting consumed approval status.",
+);
 
 assert.equal(
   packageJson.scripts["mainnet:actual-private-settlement-evidence-preview"],

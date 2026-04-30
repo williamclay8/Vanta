@@ -141,6 +141,9 @@ assertGateIncludes("production-storage", "verificationCommands", "npm run mainne
 assertGateIncludes("secret-manager", "requiredEvidence", "ops/mainnet/production-secret-manager.template.json");
 assertGateIncludes("secret-manager", "requiredEvidence", "Doppler service token reference names");
 assertGateIncludes("monitoring-incident-response", "requiredEvidence", "ops/mainnet/production-observability.template.json");
+assertGateIncludes("monitoring-incident-response", "verificationCommands", "npm run mainnet:render-native-observability-evidence-check");
+assertGateIncludes("monitoring-incident-response", "verificationCommands", "npm run mainnet:abuse-observability-evidence-check");
+assertGateIncludes("monitoring-incident-response", "verificationCommands", "npm run mainnet:production-incident-workflow-evidence-check");
 assertGateIncludes("monitoring-incident-response", "verificationCommands", "npm run ops:safe-telemetry-check");
 assertGateIncludes("monitoring-incident-response", "verificationCommands", "npm run mainnet:observability-sink-check");
 assertGateIncludes("wallet-signing-safety", "verificationCommands", "npm run wallet:browser-signing-safety-check");

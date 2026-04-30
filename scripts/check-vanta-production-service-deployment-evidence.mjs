@@ -82,7 +82,7 @@ assert.ok(
   "Service deployment evidence must preserve configured incident workflow truth.",
 );
 assert.ok(
-  evidence.deploymentTruth.includes("Render-native log sink, metrics dashboards, alert policies, retention policy, and real-funds readiness"),
+  evidence.deploymentTruth.includes("alert policies, retention policy, Strategy/operator-control-plane production service observability controls, and real-funds readiness"),
   "Service deployment evidence must preserve the exact remaining pending controls.",
 );
 assert.ok(

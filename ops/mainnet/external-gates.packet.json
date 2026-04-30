@@ -350,7 +350,7 @@
       "status": "not-provisioned",
       "externalGate": true,
       "owner": "site-reliability-and-security-operator",
-      "summary": "Keep production observability blocked while provider-backed log sink, dashboards, alerts, and retention controls are still pending; incident workflow refs are configured.",
+      "summary": "Keep production observability blocked while Render-native alert policies, retention controls, and Strategy/operator-control-plane observability controls are still pending; Pay and Private Pool v2 Render-native log and metrics evidence is verified, and incident workflow refs are configured.",
       "requiredEvidence": [
         "monitoring dashboard reference",
         "ops/mainnet/production-observability.template.json references-only observability template",
@@ -370,6 +370,9 @@
       ],
       "verificationCommands": [
         "npm run mainnet:abuse-observability-check",
+        "npm run mainnet:abuse-observability-evidence-check",
+        "npm run mainnet:render-native-observability-evidence-check",
+        "npm run mainnet:production-incident-workflow-evidence-check",
         "npm run ops:rate-limit-check",
         "npm run ops:safe-telemetry-check",
         "npm run mainnet:observability-sink-check",

@@ -40,6 +40,11 @@ assert.deepEqual(
   snapshot.abuseObservability.pendingObservabilityControls,
   observabilityControls.pendingObservabilityControls,
 );
+assert.deepEqual(snapshot.abuseObservability.servicesWithVerifiedRenderNativeLogAndMetrics, ["vanta-pay", "vanta-private-pool-v2"]);
+assert.deepEqual(snapshot.abuseObservability.servicesPendingRenderNativeLogAndMetrics, [
+  "vanta-strategy",
+  "vanta-operator-control-plane",
+]);
 assert.ok(
   snapshot.blockers
     .find((blocker) => blocker.id === "abuse-rate-limit-observability")
@@ -53,6 +58,10 @@ assert.ok(
 assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:render-native-observability-evidence-check"),
   "Readiness required commands must include Render-native observability evidence check.",
+);
+assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:production-incident-workflow-evidence-check"),
+  "Readiness required commands must include production incident workflow evidence check.",
 );
 assert.equal(snapshot.nullifierReplay.runtimeMode, "remote-services");
 assert.equal(
@@ -138,6 +147,10 @@ assert.equal(
 assert.equal(snapshot.privateSettlement.anonymitySetReadiness?.anonymitySetReadiness, "blocked");
 assert.equal(snapshot.privateSettlement.anonymitySetReadiness?.minimumDistinctCommitments, 1024);
 assert.equal(snapshot.privateSettlement.anonymitySetReadiness?.liveMainnetPrivateSettlementAvailable, false);
+assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:actual-private-cohort-scale-plan-check"),
+  "Readiness required commands must include actual-private cohort scale plan check.",
+);
 assert.ok(
   snapshot.privateSettlement.deploymentTruth.includes("must not be presented as live mainnet private settlement"),
 );

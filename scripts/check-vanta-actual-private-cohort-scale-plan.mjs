@@ -43,6 +43,17 @@ assert.equal(plan.scaleRequirement.accountByteSizes.poolState, 56);
 assert.equal(plan.scaleRequirement.accountByteSizes.nullifierSet, 16400);
 assert.equal(plan.scaleRequirement.accountByteSizes.outputQueue, 49168);
 assert.equal(plan.scaleRequirement.totalNewAccountDataBytes, 65624);
+assert.equal(plan.scaleRequirement.spendProgramContract.programRef, "programs/vanta_private_pool_v2_spend/README.md");
+assert.equal(plan.scaleRequirement.spendProgramContract.slotCount, 512);
+assert.equal(plan.scaleRequirement.spendProgramContract.poolStateBytes, 56);
+assert.equal(plan.scaleRequirement.spendProgramContract.nullifierSetBytes, 16400);
+assert.equal(plan.scaleRequirement.spendProgramContract.outputQueueBytes, 49168);
+assert.equal(plan.scaleRequirement.spendProgramContract.initInstructionTag, 0);
+assert.equal(plan.scaleRequirement.spendProgramContract.spendInstructionTag, 1);
+assert.equal(plan.scaleRequirement.spendProgramContract.spendInstructionDataBytes, 129);
+assert.equal(plan.scaleRequirement.spendProgramContract.additionalSpendInstructionsRequired, 511);
+assert.equal(plan.scaleRequirement.spendProgramContract.unsignedPlanningOnly, true);
+assert.equal(plan.scaleRequirement.spendProgramContract.signsOrSubmitsTransactions, false);
 assert.equal(plan.practicalTransactionClassesAfterFreshApproval.length, 4);
 assert.ok(
   plan.practicalTransactionClassesAfterFreshApproval.some(
