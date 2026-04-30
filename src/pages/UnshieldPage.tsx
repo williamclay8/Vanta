@@ -33,6 +33,7 @@ import {
 } from "@/solana/unshieldAuth";
 import { requestOperatorUnshield } from "@/solana/unshieldOperatorClient";
 import { useVantaShieldAssetRegistryState } from "@/solana/useVantaShieldAssetRegistryState";
+import { useVantaShieldState } from "@/solana/useVantaShieldState";
 import {
   createPreparedSendMemo,
   createPreparedSolUnshieldMemo,
@@ -403,6 +404,7 @@ export function UnshieldPage() {
   const { walletAddress, walletAddressShort, walletConnected } = useWalletState();
   const walletSession = useWalletSession();
   const shieldRegistry = useVantaShieldAssetRegistryState();
+  const canonicalShieldState = useVantaShieldState();
   const vusdShieldEntry = shieldRegistry.byAssetKey.VUSD;
   const [selectedLane, setSelectedLane] = useState<UnshieldLane>("VUSD");
   const [requestedAmountInput, setRequestedAmountInput] = useState("");
@@ -475,7 +477,9 @@ export function UnshieldPage() {
       ) as Record<LiveShieldTokenAssetKey, NonNullable<typeof vusdShieldEntry.account>["spendableShieldNotes"]>,
     [shieldRegistry.byAssetKey, vusdShieldEntry.account],
   );
-  const spendableSolNotes = vusdShieldEntry.account?.spendableShieldedSolNotes ?? [];
+  const solShieldAccount = canonicalShieldState.account ?? vusdShieldEntry.account;
+  const solShieldStateError = canonicalShieldState.error ?? vusdShieldEntry.error;
+  const spendableSolNotes = solShieldAccount?.spendableShieldedSolNotes ?? [];
 
   useEffect(() => {
     const availableLanes = [
@@ -1507,7 +1511,7 @@ export function UnshieldPage() {
       return;
     }
 
-    const activeShieldAccount = selectedLane === "SOL" ? vusdShieldEntry.account : selectedShieldAccount;
+    const activeShieldAccount = selectedLane === "SOL" ? solShieldAccount : selectedShieldAccount;
 
     if (!activeShieldAccount || !vusdShieldEntry.asset.vaultOwner) {
       return;
@@ -1667,8 +1671,8 @@ export function UnshieldPage() {
     )
   ) {
     validationMessage = "Refreshing wallet and Vanta state from devnet.";
-  } else if (selectedLane === "SOL" && vusdShieldEntry.error) {
-    validationMessage = vusdShieldEntry.error;
+  } else if (selectedLane === "SOL" && solShieldStateError) {
+    validationMessage = solShieldStateError;
   } else if (selectedLane !== "SOL" && selectedShieldEntry?.error) {
     validationMessage = selectedShieldEntry.error;
   } else if (selectedLane === "SOL" && !liveSwapPair.solUnshieldOperatorUrl) {
