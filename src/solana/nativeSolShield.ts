@@ -112,6 +112,24 @@ function readTransferLamports(instruction: unknown, owner: string, vaultOwner: s
   return Number.isFinite(lamports) && lamports > 0 ? lamports : null;
 }
 
+async function fetchParsedTransactionsOneAtATime(
+  connection: Connection,
+  signatures: string[],
+) {
+  const transactions = [];
+
+  for (const signature of signatures) {
+    const [transaction] = await connection.getParsedTransactions([signature], {
+      commitment: "confirmed",
+      maxSupportedTransactionVersion: 0,
+    });
+
+    transactions.push(transaction);
+  }
+
+  return transactions;
+}
+
 export async function fetchNativeSolShieldDepositCandidates(args: {
   existingDepositSignatures?: ReadonlySet<string>;
   limit?: number;
@@ -133,10 +151,7 @@ export async function fetchNativeSolShieldDepositCandidates(args: {
     return [];
   }
 
-  const transactions = await connection.getParsedTransactions(candidateSignatures, {
-    commitment: "confirmed",
-    maxSupportedTransactionVersion: 0,
-  });
+  const transactions = await fetchParsedTransactionsOneAtATime(connection, candidateSignatures);
 
   return transactions.flatMap((transaction, index): NativeSolShieldDepositCandidate[] => {
     if (!transaction) {

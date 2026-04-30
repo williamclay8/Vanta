@@ -103,8 +103,16 @@ assert.ok(
   "Native SOL deposit discovery must inspect parsed wallet transactions.",
 );
 assert.ok(
+  nativeSolShieldSource.includes("fetchParsedTransactionsOneAtATime"),
+  "Native SOL deposit discovery must avoid batched getTransaction requests that public RPC endpoints reject.",
+);
+assert.ok(
   nativeSolShieldSource.includes("existingDepositSignatures"),
   "Native SOL deposit discovery must de-duplicate already recorded deposit signatures.",
+);
+assert.ok(
+  shieldPageSource.includes("toRecoverableSolDepositsErrorMessage"),
+  "Shield page must translate native SOL recovery RPC failures into user-facing language.",
 );
 
 const tokenAvailabilitySource = readFileSync(resolve("src/solana/tokenAvailability.ts"), "utf8");
