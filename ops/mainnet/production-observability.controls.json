@@ -15,14 +15,14 @@
       "service": "vanta-pay",
       "controls": {
         "logSink": {
-          "status": "pending",
-          "evidenceRef": "render-native-log-source/vanta-pay-production-pending",
-          "verificationRef": "npm run mainnet:observability-sink-check"
+          "status": "verified",
+          "evidenceRef": "ops/mainnet/render-native-observability.evidence.json#vanta-pay-log-sink",
+          "verificationRef": "npm run mainnet:render-native-observability-evidence-check"
         },
         "metricsDashboard": {
-          "status": "pending",
-          "evidenceRef": "render-native-dashboard/vanta-pay-production-pending",
-          "verificationRef": "npm run mainnet:observability-sink-check"
+          "status": "verified",
+          "evidenceRef": "ops/mainnet/render-native-observability.evidence.json#vanta-pay-metrics-dashboard",
+          "verificationRef": "npm run mainnet:render-native-observability-evidence-check"
         },
         "alertPolicy": {
           "status": "pending",
@@ -45,14 +45,14 @@
       "service": "vanta-private-pool-v2",
       "controls": {
         "logSink": {
-          "status": "pending",
-          "evidenceRef": "render-native-log-source/vanta-private-pool-v2-production-pending",
-          "verificationRef": "npm run mainnet:observability-sink-check"
+          "status": "verified",
+          "evidenceRef": "ops/mainnet/render-native-observability.evidence.json#vanta-private-pool-v2-log-sink",
+          "verificationRef": "npm run mainnet:render-native-observability-evidence-check"
         },
         "metricsDashboard": {
-          "status": "pending",
-          "evidenceRef": "render-native-dashboard/vanta-private-pool-v2-production-pending",
-          "verificationRef": "npm run mainnet:observability-sink-check"
+          "status": "verified",
+          "evidenceRef": "ops/mainnet/render-native-observability.evidence.json#vanta-private-pool-v2-metrics-dashboard",
+          "verificationRef": "npm run mainnet:render-native-observability-evidence-check"
         },
         "alertPolicy": {
           "status": "pending",

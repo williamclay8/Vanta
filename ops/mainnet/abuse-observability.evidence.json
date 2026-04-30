@@ -30,6 +30,11 @@
     "vanta-pay",
     "vanta-private-pool-v2"
   ],
+  "renderNativeObservabilityEvidenceRef": "ops/mainnet/render-native-observability.evidence.json",
+  "servicesWithVerifiedRenderNativeLogAndMetrics": [
+    "vanta-pay",
+    "vanta-private-pool-v2"
+  ],
   "operatorEventSinkKind": "noop-operator-event-sink",
   "operatorEventSinkProductionReady": false,
   "operatorEventSinkSource": "src/ops/vantaOperatorEventSink.mjs",
@@ -74,6 +79,6 @@
     }
   ],
   "safety": "No provider API keys, webhook URLs, source tokens, bearer values, wallet keys, signed transaction material, or database URLs are stored in this evidence file.",
-  "deploymentTruth": "This evidence proves the current Render-native observability contract, safe telemetry source, narrow Pay audit-event sink boundary, the available Postgres-backed rate-limit implementation, authenticated deployed Private Pool v2 operator audit-sink/rate-limit/storage truth, Strategy local safe telemetry plus local no-op audit-sink queue coverage, and configured operator-runbook incident workflow refs. The deployed operator now reports the preferred Postgres durable shared-window rate limiter. Pay and Private Pool v2 already have production Render service refs and can be wired into Render-native logs, dashboards, alerts, and retention next; Strategy still needs a production service ref before Render-native observability wiring, and the operator control plane still lacks a production service ref. Production observability remains explicitly incomplete while those per-service provider controls are still pending.",
-  "nextOperatorAction": "Keep the abuse/observability status, authenticated deployed runtime status, Strategy local operator audit-sink coverage, incident workflow runbook refs, and evidence commands fresh; wire Render-native log sink, dashboards, alerts, and retention first for vanta-pay and vanta-private-pool-v2, then record production service refs before attempting production wiring for vanta-strategy and vanta-operator-control-plane."
+  "deploymentTruth": "This evidence proves the current Render-native observability contract, safe telemetry source, narrow Pay audit-event sink boundary, the available Postgres-backed rate-limit implementation, authenticated deployed Private Pool v2 operator audit-sink/rate-limit/storage truth, Strategy local safe telemetry plus local no-op audit-sink queue coverage, and configured operator-runbook incident workflow refs. The deployed operator now reports the preferred Postgres durable shared-window rate limiter. Pay and Private Pool v2 already have production Render service refs, and their Render-native log sink plus metrics dashboard evidence is now verified through ops/mainnet/render-native-observability.evidence.json; Strategy still needs a production service ref before Render-native observability wiring, and the operator control plane still lacks a production service ref. Production observability remains explicitly incomplete while alert policies, retention policy, and the missing-service provider controls are still pending.",
+  "nextOperatorAction": "Keep the abuse/observability status, authenticated deployed runtime status, Strategy local operator audit-sink coverage, incident workflow runbook refs, and Render-native log/metrics evidence commands fresh; configure alert policies and retention for vanta-pay and vanta-private-pool-v2, then record production service refs before attempting production wiring for vanta-strategy and vanta-operator-control-plane."
 }

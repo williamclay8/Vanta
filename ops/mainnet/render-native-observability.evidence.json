@@ -1,0 +1,98 @@
+{
+  "version": "vanta-render-native-observability-evidence-0.1",
+  "checkedAt": "2026-04-30T12:49:38.155Z",
+  "workspaceRef": "render-workspace:tea-d7j37af7f7vs739ii8rg",
+  "mainnetReady": false,
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "secretPolicy": "references-only-no-provider-secrets",
+  "purpose": "Refs-only evidence that Render-native logs and metrics are available for deployed Pay and Private Pool v2 production services. This is not alert-policy, retention-policy, audit, or production-readiness evidence.",
+  "verifiedServices": [
+    {
+      "service": "vanta-pay",
+      "renderServiceRef": "srv-d7j3ggqqqhas739for80",
+      "dashboardRef": "https://dashboard.render.com/web/srv-d7j3ggqqqhas739for80",
+      "productionUrlRef": "https://vanta-0wwi.onrender.com",
+      "logEvidenceRef": "render-logs:vanta-pay:2026-04-30T12:49Z:health-safe-telemetry",
+      "metricEvidenceRef": "render-metrics:vanta-pay:2026-04-30T11:49Z-12:49Z:cpu-memory-http-latency-instance",
+      "verifiedControlIds": [
+        "render-native-log-sink",
+        "metrics-dashboards"
+      ],
+      "observedSafeTelemetry": {
+        "event": "operator_http_request",
+        "service": "vanta-pay",
+        "path": "/health",
+        "statusCode": 200,
+        "queryPresent": false,
+        "remoteAddressShape": "sha256:<redacted-hash>",
+        "rawRemoteAddressStoredInEvidence": false
+      },
+      "observedMetrics": [
+        "cpu_usage",
+        "memory_usage",
+        "http_request_count",
+        "http_latency",
+        "instance_count"
+      ]
+    },
+    {
+      "service": "vanta-private-pool-v2",
+      "renderServiceRef": "srv-d7jgl3d8nd3s73a9efng",
+      "dashboardRef": "https://dashboard.render.com/web/srv-d7jgl3d8nd3s73a9efng",
+      "productionUrlRef": "https://vanta-prod-private-pool-v2-operator.onrender.com",
+      "roleServiceRefs": [
+        "srv-d7jfqru7r5hc73b6oelg",
+        "srv-d7jg4arbc2fs73c1449g",
+        "srv-d7jg9jrbc2fs73c161gg",
+        "srv-d7jgf7n7f7vs73ebdu40",
+        "srv-d7jgl3d8nd3s73a9efng"
+      ],
+      "logEvidenceRef": "render-logs:vanta-private-pool-v2-operator:2026-04-30T12:41Z:safe-telemetry-rejected-root-request",
+      "metricEvidenceRef": "render-metrics:vanta-private-pool-v2-operator:2026-04-30T11:49Z-12:49Z:cpu-memory-http-latency-instance",
+      "verifiedControlIds": [
+        "render-native-log-sink",
+        "metrics-dashboards"
+      ],
+      "observedSafeTelemetry": {
+        "event": "operator_http_request",
+        "service": "vanta-private-pool-v2",
+        "path": "/",
+        "statusCode": 401,
+        "queryPresent": false,
+        "remoteAddressShape": "sha256:<redacted-hash>",
+        "rawRemoteAddressStoredInEvidence": false
+      },
+      "observedMetrics": [
+        "cpu_usage",
+        "memory_usage",
+        "http_request_count",
+        "http_latency",
+        "instance_count"
+      ]
+    }
+  ],
+  "stillPendingControls": [
+    "alert-policies",
+    "retention-policy",
+    "strategy-production-service-ref",
+    "operator-control-plane-production-service-ref",
+    "strategy-render-native-log-sink",
+    "strategy-metrics-dashboard",
+    "operator-control-plane-render-native-log-sink",
+    "operator-control-plane-metrics-dashboard"
+  ],
+  "canonicalVerificationCommands": [
+    "npm run mainnet:render-native-observability-evidence-check",
+    "npm run mainnet:abuse-observability-evidence-check",
+    "npm run mainnet:observability-sink-check",
+    "npm run mainnet:service-deployment-evidence-check"
+  ],
+  "nonClaims": [
+    "no alert policy configured claim",
+    "no retention policy configured claim",
+    "no production observability completion claim",
+    "no provider secret or webhook evidence stored in git"
+  ],
+  "safety": "No provider API keys, webhook URLs, source tokens, bearer values, wallet keys, signed transaction material, database URLs, raw IP addresses, or raw request/response bodies are stored in this evidence file."
+}

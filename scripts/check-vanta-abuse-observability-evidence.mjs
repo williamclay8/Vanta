@@ -141,16 +141,26 @@ assert.ok(
   "Abuse/observability evidence must preserve the remaining missing operator production service ref.",
 );
 assert.ok(
-  evidence.deploymentTruth.includes("per-service provider controls are still pending"),
+  evidence.deploymentTruth.includes("alert policies, retention policy, and the missing-service provider controls are still pending"),
   "Abuse/observability evidence must preserve the explicit per-service pending provider-controls truth.",
 );
 assert.ok(
-  evidence.nextOperatorAction.includes("first for vanta-pay and vanta-private-pool-v2"),
+  evidence.nextOperatorAction.includes("configure alert policies and retention for vanta-pay and vanta-private-pool-v2"),
   "Abuse/observability evidence must preserve the per-service wiring order.",
 );
 assert.ok(
   evidence.nextOperatorAction.includes("vanta-strategy and vanta-operator-control-plane"),
   "Abuse/observability evidence must preserve the missing-service follow-up order.",
+);
+assert.equal(
+  evidence.renderNativeObservabilityEvidenceRef,
+  "ops/mainnet/render-native-observability.evidence.json",
+  "Abuse/observability evidence must link the Render-native log/metrics evidence packet.",
+);
+assert.deepEqual(
+  evidence.servicesWithVerifiedRenderNativeLogAndMetrics,
+  ["vanta-pay", "vanta-private-pool-v2"],
+  "Abuse/observability evidence must preserve the services with verified Render-native log and metrics evidence.",
 );
 
 const serialized = JSON.stringify(evidence);
@@ -216,6 +226,11 @@ assert.equal(
   packageJson.scripts["mainnet:abuse-observability-evidence-check"],
   "node scripts/check-vanta-abuse-observability-evidence.mjs",
   "package.json must expose mainnet:abuse-observability-evidence-check.",
+);
+assert.equal(
+  packageJson.scripts["mainnet:render-native-observability-evidence-check"],
+  "node scripts/check-vanta-render-native-observability-evidence.mjs",
+  "package.json must expose mainnet:render-native-observability-evidence-check.",
 );
 assert.ok(
   packageJson.scripts["mainnet:preflight"].includes("npm run mainnet:abuse-observability-evidence-check"),

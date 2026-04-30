@@ -85,6 +85,10 @@ assert.ok(
   evidence.deploymentTruth.includes("Render-native log sink, metrics dashboards, alert policies, retention policy, and real-funds readiness"),
   "Service deployment evidence must preserve the exact remaining pending controls.",
 );
+assert.ok(
+  evidence.deploymentTruth.includes("Render-native log sink and metrics dashboards are verified for Pay and Private Pool v2"),
+  "Service deployment evidence must preserve the verified Pay/Private Pool v2 Render-native log and metrics truth.",
+);
 
 const serialized = JSON.stringify(evidence);
 for (const forbidden of [
