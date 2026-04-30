@@ -97,21 +97,21 @@ assert.equal(
   "operator-nullifier-replay:<production-duplicate-rejection-ref>",
 );
 assert.equal(packet.freshReviewerPacketRun.actualPrivateReplayProbeLastObserved.httpStatus, 200);
-assert.equal(packet.freshReviewerPacketRun.actualPrivateReplayProbeLastObserved.accepted, true);
-assert.equal(packet.freshReviewerPacketRun.actualPrivateReplayProbeLastObserved.replay, false);
+assert.equal(packet.freshReviewerPacketRun.actualPrivateReplayProbeLastObserved.accepted, false);
+assert.equal(packet.freshReviewerPacketRun.actualPrivateReplayProbeLastObserved.replay, true);
 assert.equal(packet.freshReviewerPacketRun.actualPrivateReplayProbeLastObserved.mutated, false);
-assert.equal(packet.freshReviewerPacketRun.actualPrivateReplayProbeLastObserved.reason, "durable-nullifier-available");
-assert.equal(packet.freshReviewerPacketRun.actualPrivateReplayProbeLastObserved.operatorNullifierReplayRef, null);
+assert.equal(packet.freshReviewerPacketRun.actualPrivateReplayProbeLastObserved.reason, "conflicting-durable-nullifier-replay");
 assert.equal(
-  packet.freshReviewerPacketRun.actualPrivateReplayProbeLastObserved.reconciliationBlocker,
-  "production-replay-guard-missing-reviewed-nullifier",
+  packet.freshReviewerPacketRun.actualPrivateReplayProbeLastObserved.operatorNullifierReplayRef,
+  "operator-nullifier-replay:production-duplicate-rejected-0979e25cb4f98ecba9bb",
 );
+assert.equal(packet.freshReviewerPacketRun.actualPrivateReplayProbeLastObserved.reconciliationBlocker, null);
 assert.equal(packet.freshReviewerPacketRun.noFundsReplayStatus.nullifierReplayGuardStorageMode, "postgres-unique-index");
 assert.equal(packet.freshReviewerPacketRun.noFundsReplayStatus.nullifierReplayAcceptedCount, 0);
 assert.equal(packet.freshReviewerPacketRun.noFundsReplayStatus.nullifierReplayReservedCount, 0);
 assert.equal(packet.freshReviewerPacketRun.noFundsReplayStatus.finalProtocolLayerImplemented, true);
 assert.equal(packet.freshReviewerPacketRun.noFundsReplayStatus.productionReady, false);
-assert.equal(packet.freshReviewerPacketRun.duplicateNullifierReplayPromotionSatisfied, false);
+assert.equal(packet.freshReviewerPacketRun.duplicateNullifierReplayPromotionSatisfied, true);
 assert.equal(packet.currentAnonymityMeasurement.distinctCommitmentCount, anonymity.currentMeasurement.distinctCommitmentCount);
 assert.equal(packet.currentAnonymityMeasurement.minimumDistinctCommitments, anonymity.currentMeasurement.minimumDistinctCommitments);
 assert.equal(packet.currentAnonymityMeasurement.meetsMinimumDistinctCommitments, false);
@@ -131,7 +131,7 @@ for (const id of [
 assert.equal(promotionItems.get("shared-cohort-deposit-transaction").currentRef, null);
 assert.equal(
   promotionItems.get("live-nullifier-replay-rejection").currentRef,
-  "solana-simulation:duplicate-nullifier-custom-1-2026-04-29",
+  "operator-nullifier-replay:production-duplicate-rejected-0979e25cb4f98ecba9bb",
 );
 assert.equal(promotionItems.get("independent-reviewer-or-audit").currentRef, null);
 assert.equal(promotionItems.get("audited-anonymity-set").currentRef, null);

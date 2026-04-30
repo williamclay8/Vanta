@@ -37,14 +37,14 @@
     },
     {
       "id": "authenticated-production-duplicate-replay-rejection",
-      "status": "blocked-no-reviewed-live-rejection",
+      "status": "satisfied-reviewed-production-duplicate-rejection",
       "owner": "operator-with-secret-manager-auth",
       "requiredArtifactShape": "operator-nullifier-replay:<production-duplicate-rejection-ref>",
-      "currentArtifactRef": null,
+      "currentArtifactRef": "operator-nullifier-replay:production-duplicate-rejected-0979e25cb4f98ecba9bb",
       "canonicalCommand": "npm run mainnet:actual-private-replay-reconcile-check",
       "authenticatedOperatorCommand": "doppler run --config prd --project vanta -- npm run mainnet:actual-private-replay-reconcile-auth",
       "mayBeDoneByCodexAlone": false,
-      "truthBoundary": "The authenticated production probe returned accepted=true/replay=false, so it is not duplicate-replay rejection evidence."
+      "truthBoundary": "The authenticated production probe returned accepted=false/replay=true/mutated=false with conflicting-durable-nullifier-replay. This satisfies the production duplicate-replay result only; it is not anonymity, audit, legal/compliance/custody, or production privacy readiness."
     },
     {
       "id": "minimum-live-commitments",

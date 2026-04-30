@@ -71,7 +71,7 @@
     "actualPrivateRailRegression": "local-and-role-service-covered",
     "sharedPoolAnonymity": "blocked",
     "relayerSeparation": "mainnet-spend-transaction-observed-reviewer-blocked",
-    "nullifierRootEnforcement": "actual-private-nullifier-and-root-freshness-review-covered-replay-simulation-only-live-replay-blocked",
+    "nullifierRootEnforcement": "actual-private-nullifier-root-and-production-duplicate-replay-covered",
     "safeLogging": "local-contract-covered",
     "audit": "packet-template-only",
     "productionCapability": "production-operator-send-proof-mode-aligned",
@@ -84,12 +84,10 @@
     "promotionRule": "A production operator receipt, protocol settlement id, or observed spend-program transaction is not enough for live mainnet private settlement readiness. Promotion requires all hard evidence refs below to be real and reviewed.",
     "requiredHardEvidence": [
       "shared-cohort-deposit-transaction",
-      "live-nullifier-replay-rejection",
       "independent-reviewer-or-audit"
     ],
     "currentBlockedBy": [
       "shared-cohort-deposit-transaction",
-      "live-nullifier-replay-rejection",
       "independent-reviewer-or-audit",
       "audited-shared-anonymity-set"
     ]
@@ -98,12 +96,12 @@
     "Live mainnet production cohort metrics are recorded but measured below the 1024 distinct commitment threshold.",
     "No asset cohort has at least 1024 distinct live commitments.",
     "No independent reviewer has accepted the anonymity-set measurement.",
-    "Live accepted-root freshness has operator-review evidence, and replay simulation returned Custom:1, but live production duplicate-nullifier replay rejection remains blocked.",
+    "Live accepted-root freshness has operator-review evidence, and the production duplicate-nullifier replay rejection is accepted.",
     "Production relayer log redaction is locally contract-covered but not independently reviewed.",
     "Production relayer deployment separation is manifest-covered but not independently reviewed.",
     "Production relayer spend-program evidence is observed on mainnet, but independent reviewer acceptance is still missing.",
     "No third-party audit report and fix-verification packet is recorded.",
-    "Live actual-private settlement refs were reviewed and remain blocked by missing shared-cohort deposit, live replay rejection, independent reviewer, and audited-anonymity evidence.",
+    "Live actual-private settlement refs were reviewed and remain blocked by missing shared-cohort deposit, independent reviewer, and audited-anonymity evidence.",
     "No broad reusable real-funds approval exists outside the exact bounded reviewer-packet evidence window."
   ],
   "forbiddenInGit": [

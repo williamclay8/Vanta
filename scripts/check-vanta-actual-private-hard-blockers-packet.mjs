@@ -69,7 +69,10 @@ assert.equal(
 assert.equal(blockers.get("shared-cohort-deposit-transaction").currentArtifactRef, "review:shared-cohort-deposit-ref-not-yet-solscan-final-reviewed-2055-2220");
 assert.equal(blockers.get("shared-cohort-deposit-transaction").requiredArtifactShape, "solana-tx:<shared-cohort-deposit-mainnet-signature>");
 assert.equal(blockers.get("authenticated-production-duplicate-replay-rejection").requiredArtifactShape, "operator-nullifier-replay:<production-duplicate-rejection-ref>");
-assert.equal(blockers.get("authenticated-production-duplicate-replay-rejection").currentArtifactRef, null);
+assert.equal(
+  blockers.get("authenticated-production-duplicate-replay-rejection").currentArtifactRef,
+  "operator-nullifier-replay:production-duplicate-rejected-0979e25cb4f98ecba9bb",
+);
 assert.equal(blockers.get("minimum-live-commitments").currentArtifactRef, "metrics:stablecoin-usdc-v1-distinct-commitments-2-of-1024-2026-04-29");
 assert.equal(blockers.get("third-party-audit-report-and-fix-verification").currentArtifactRef, null);
 assert.equal(blockers.get("legal-compliance-custody-review").currentArtifactRef, null);

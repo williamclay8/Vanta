@@ -98,11 +98,13 @@ assert.deepEqual(evidence.actualPrivateSpendRootNullifierEnforcement, {
   productionSmokeRef: "ops/mainnet/private-pool-v2-production-smoke.evidence.json#actual-private-spend-simulation",
   productionReplayProbeRef: "npm run mainnet:actual-private-replay-probe-check",
   productionReplayReconciliationRef: "npm run mainnet:actual-private-replay-reconcile-check",
+  reviewedProductionReplayRejectionRef: "operator-nullifier-replay:production-duplicate-rejected-0979e25cb4f98ecba9bb",
+  reviewedProductionReplayTranscriptRef: "review:actual-private-production-replay-transcript-accepted-2026-04-30",
   nullifierReplayKeyMode: "private-send:nullifier",
   acceptedRootPublicInputMode: "accepted-root-bound-in-proof-public-inputs",
   acceptedRootFreshnessStatus: "reviewed-live-accepted-root-freshness-evidence-present",
   acceptedRootFreshnessRef: "review:accepted-root-current-production-indexer-2055-2220",
-  actualPrivateNullifierReplayProductionReady: false,
+  actualPrivateNullifierReplayProductionReady: true,
   acceptedRootFreshnessProductionReady: true,
 });
 assert.equal(evidence.noRealFundsSmokeOnly, true);
@@ -110,7 +112,6 @@ assert.equal(evidence.auditedSharedAnonymitySetAvailable, false);
 assert.equal(evidence.liveMainnetPrivateSettlementAvailable, false);
 assert.deepEqual(evidence.productionReplayBlockedBy, [
   "no-real-funds-smoke-only",
-  "no-reviewed-live-production-duplicate-replay-rejection",
   "no-proven-audited-shared-anonymity-set",
   "no-proven-live-mainnet-private-settlement-evidence",
 ]);
@@ -134,12 +135,12 @@ assert.ok(
   "Evidence must preserve the missing audited-anonymity-set truth.",
 );
 assert.ok(
-  evidence.deploymentTruth.includes("accepted-root freshness evidence"),
+  evidence.deploymentTruth.includes("accepted-root freshness"),
   "Evidence must preserve the reviewed actual-private root freshness truth.",
 );
 assert.ok(
-  evidence.deploymentTruth.includes("duplicate-replay probe returned available instead of duplicate"),
-  "Evidence must preserve the authenticated duplicate-replay blocker truth.",
+  evidence.deploymentTruth.includes("accepted authenticated production duplicate-replay probe ref"),
+  "Evidence must preserve the authenticated duplicate-replay acceptance truth.",
 );
 assert.ok(
   evidence.deploymentTruth.includes("proven live mainnet private settlement evidence is still unavailable"),

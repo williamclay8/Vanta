@@ -33,7 +33,6 @@ const actualPrivateHardBlockers = [
 ];
 const actualPrivatePromotionBlockers = [
   "shared-cohort-deposit-transaction",
-  "live-nullifier-replay-rejection",
   "independent-reviewer-or-audit",
 ];
 const spendProgramEvidence = {
@@ -49,8 +48,11 @@ const spendProgramEvidence = {
   programId: "1ANmqk7YB17FxaJLnvUthY9R4UZHyJuNt1cmNfpMsgm",
   replaySimulation: {
     observedError: "Custom:1",
-    productionReplayRejectionProven: false,
-    status: "simulation-only",
+    productionReplayProbeCheckedAt: "2026-04-30T08:19:41.721Z",
+    productionReplayProbeRef: "operator-nullifier-replay:production-duplicate-rejected-0979e25cb4f98ecba9bb",
+    productionReplayRejectionProven: true,
+    reviewerAcceptanceRef: "review:actual-private-production-replay-transcript-accepted-2026-04-30",
+    status: "reviewed-production-duplicate-replay-rejection",
   },
   spendEvidenceTxRef:
     "solana-tx:56QhWoCQ6KjD9SVBJ9KdZphVMp49qYSiwEDTprZsoyo5WFTXoLRMrxNTabB9dELhL5WrFWbSZDDzNd4URr3u5fZL",
@@ -171,10 +173,6 @@ assert.equal(
   nullifier.actualPrivateSpendRootNullifierEnforcement.acceptedRootFreshnessStatus,
   "reviewed-live-accepted-root-freshness-evidence-present",
 );
-assert.ok(
-  nullifier.productionReplayBlockedBy.includes("no-reviewed-live-production-duplicate-replay-rejection"),
-  "Actual-private production evidence must keep live duplicate replay rejection blocked.",
-);
 assert.equal(roleService.productionReady, false);
 assert.equal(productionCapability.productionReady, false);
 assert.equal(productionCapability.realFundsAllowed, false);
@@ -222,7 +220,7 @@ assert.equal(packet.evidenceStatus.actualPrivateRailRegression, "local-and-role-
 assert.equal(packet.evidenceStatus.sharedPoolAnonymity, "blocked");
 assert.equal(
   packet.evidenceStatus.nullifierRootEnforcement,
-  "actual-private-nullifier-and-root-freshness-review-covered-replay-simulation-only-live-replay-blocked",
+  "actual-private-nullifier-root-and-production-duplicate-replay-covered",
 );
 assert.equal(packet.evidenceStatus.safeLogging, "local-contract-covered");
 assert.equal(packet.evidenceStatus.audit, "packet-template-only");
@@ -245,12 +243,12 @@ for (const blocker of [
   "Live mainnet production cohort metrics are recorded but measured below the 1024 distinct commitment threshold.",
   "No asset cohort has at least 1024 distinct live commitments.",
   "No independent reviewer has accepted the anonymity-set measurement.",
-  "Live accepted-root freshness has operator-review evidence, and replay simulation returned Custom:1, but live production duplicate-nullifier replay rejection remains blocked.",
+  "Live accepted-root freshness has operator-review evidence, and the production duplicate-nullifier replay rejection is accepted.",
   "Production relayer log redaction is locally contract-covered but not independently reviewed.",
   "Production relayer deployment separation is manifest-covered but not independently reviewed.",
   "Production relayer spend-program evidence is observed on mainnet, but independent reviewer acceptance is still missing.",
   "No third-party audit report and fix-verification packet is recorded.",
-  "Live actual-private settlement refs were reviewed and remain blocked by missing shared-cohort deposit, live replay rejection, independent reviewer, and audited-anonymity evidence.",
+  "Live actual-private settlement refs were reviewed and remain blocked by missing shared-cohort deposit, independent reviewer, and audited-anonymity evidence.",
   "No broad reusable real-funds approval exists outside the exact bounded reviewer-packet evidence window.",
 ]) {
   assert.ok(packet.productionBlockers.includes(blocker), `Missing production blocker: ${blocker}`);

@@ -61,15 +61,15 @@
     "actualPrivateReplayReconciliationCommand": "doppler run --config prd --project vanta -- npm run mainnet:actual-private-replay-reconcile-auth",
     "actualPrivateReplayProbeRefShape": "operator-nullifier-replay:<production-duplicate-rejection-ref>",
     "actualPrivateReplayProbeLastObserved": {
-      "checkedAt": "2026-04-30T03:59:19.814Z",
+      "checkedAt": "2026-04-30T08:19:41.721Z",
       "httpStatus": 200,
-      "accepted": true,
-      "replay": false,
+      "accepted": false,
+      "replay": true,
       "mutated": false,
-      "reason": "durable-nullifier-available",
-      "operatorNullifierReplayRef": null,
-      "reconciliationBlocker": "production-replay-guard-missing-reviewed-nullifier",
-      "truthBoundary": "Authenticated production probe succeeded without mutation, but the operator replay guard reported the reviewed nullifier as available. This is not duplicate-replay rejection evidence and must not promote the replay blocker."
+      "reason": "conflicting-durable-nullifier-replay",
+      "operatorNullifierReplayRef": "operator-nullifier-replay:production-duplicate-rejected-0979e25cb4f98ecba9bb",
+      "reconciliationBlocker": null,
+      "truthBoundary": "Authenticated production probe succeeded without mutation and returned duplicate replay rejection for the reviewed nullifier. This satisfies only the replay-result promotion input."
     },
     "noFundsReplayStatus": {
       "status": 200,
@@ -85,8 +85,8 @@
       "finalProtocolLayerImplemented": true,
       "productionReady": false
     },
-    "duplicateNullifierReplayPromotionSatisfied": false,
-    "truthBoundary": "Authenticated production replay status was observed without moving funds or submitting a transaction. This is not a live duplicate-nullifier rejection ref and does not satisfy the replay promotion blocker."
+    "duplicateNullifierReplayPromotionSatisfied": true,
+    "truthBoundary": "Authenticated production replay status was observed without moving funds or submitting a transaction. The duplicate-nullifier replay ref is accepted, while shared-cohort, independent review, anonymity, audit, legal/compliance/custody, and production-readiness blockers remain."
   },
   "currentAnonymityMeasurement": {
     "status": "measured-below-threshold",
@@ -108,8 +108,8 @@
     {
       "id": "live-nullifier-replay-rejection",
       "requiredRefShape": "operator-nullifier-replay:<production-duplicate-rejection-ref>",
-      "currentRef": "solana-simulation:duplicate-nullifier-custom-1-2026-04-29",
-      "status": "blocked-simulation-only"
+      "currentRef": "operator-nullifier-replay:production-duplicate-rejected-0979e25cb4f98ecba9bb",
+      "status": "satisfied-reviewed-production-duplicate-replay"
     },
     {
       "id": "independent-reviewer-or-audit",
@@ -211,5 +211,5 @@
     "raw hidden-economics terms",
     "raw user addresses tied to private deposits"
   ],
-  "truthBoundary": "This packet is ready to hand to a reviewer. It does not satisfy the review, audit, anonymity-set, replay, shared-cohort, legal/compliance/custody, or production-readiness blockers by itself."
+  "truthBoundary": "This packet is ready to hand to a reviewer. It now includes an accepted production duplicate-replay ref, but does not satisfy independent review, audit, anonymity-set, shared-cohort, legal/compliance/custody, or production-readiness blockers by itself."
 }

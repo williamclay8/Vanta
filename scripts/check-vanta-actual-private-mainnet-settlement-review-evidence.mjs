@@ -13,7 +13,6 @@ const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
 
 const requiredHardBlockers = [
   "shared-cohort-deposit-transaction",
-  "live-nullifier-replay-rejection",
   "independent-reviewer-or-audit",
 ];
 
@@ -76,14 +75,13 @@ for (const id of [
   "mainnet-spend-program-config-observed",
   "mainnet-spend-program-lifecycle-observed",
   "solscan-relayer-spend-transaction-observed",
-  "replay-simulation-custom-1-observed",
+  "production-duplicate-replay-rejection-observed",
 ]) {
   assert.equal(review.passedChecks.find((check) => check.id === id)?.result, "pass", `Missing passed check ${id}.`);
 }
 
 for (const id of [
   "shared-cohort-deposit-transaction",
-  "live-nullifier-replay-rejection",
   "independent-reviewer-or-audit",
 ]) {
   assert.equal(
@@ -187,7 +185,7 @@ assert.deepEqual(
 
 assert.match(review.finalVerdict, /Do not claim Solscan-untrackable/);
 assert.match(review.finalVerdict, /Mainnet spend-program evidence is observed/);
-assert.match(review.finalVerdict, /shared-cohort, live replay, independent reviewer, audited-anonymity/);
+assert.match(review.finalVerdict, /shared-cohort, independent reviewer, audited-anonymity/);
 
 const serialized = JSON.stringify(review);
 for (const forbidden of [

@@ -512,10 +512,10 @@ assert.ok(
   "Missing actual-private shared-cohort deposit review command.",
 );
 assert.ok(
-  snapshot.nullifierReplay.productionReplayBlockedBy.includes(
+  !snapshot.nullifierReplay.productionReplayBlockedBy.includes(
     "no-reviewed-live-production-duplicate-replay-rejection",
   ),
-  "Nullifier replay blockers must preserve the authenticated duplicate-replay blocker.",
+  "Nullifier replay evidence must preserve the accepted authenticated duplicate-replay result.",
 );
 assert.ok(
   !snapshot.nullifierReplay.productionReplayBlockedBy.includes(

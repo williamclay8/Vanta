@@ -27,11 +27,13 @@
     "productionSmokeRef": "ops/mainnet/private-pool-v2-production-smoke.evidence.json#actual-private-spend-simulation",
     "productionReplayProbeRef": "npm run mainnet:actual-private-replay-probe-check",
     "productionReplayReconciliationRef": "npm run mainnet:actual-private-replay-reconcile-check",
+    "reviewedProductionReplayRejectionRef": "operator-nullifier-replay:production-duplicate-rejected-0979e25cb4f98ecba9bb",
+    "reviewedProductionReplayTranscriptRef": "review:actual-private-production-replay-transcript-accepted-2026-04-30",
     "nullifierReplayKeyMode": "private-send:nullifier",
     "acceptedRootPublicInputMode": "accepted-root-bound-in-proof-public-inputs",
     "acceptedRootFreshnessStatus": "reviewed-live-accepted-root-freshness-evidence-present",
     "acceptedRootFreshnessRef": "review:accepted-root-current-production-indexer-2055-2220",
-    "actualPrivateNullifierReplayProductionReady": false,
+    "actualPrivateNullifierReplayProductionReady": true,
     "acceptedRootFreshnessProductionReady": true
   },
   "noRealFundsSmokeOnly": true,
@@ -39,7 +41,6 @@
   "liveMainnetPrivateSettlementAvailable": false,
   "productionReplayBlockedBy": [
     "no-real-funds-smoke-only",
-    "no-reviewed-live-production-duplicate-replay-rejection",
     "no-proven-audited-shared-anonymity-set",
     "no-proven-live-mainnet-private-settlement-evidence"
   ],
@@ -48,6 +49,6 @@
   "protocolEnforcementFinalLayerProductionReady": false,
   "operatorStatusProductionReady": false,
   "safety": "No auth token values, database URLs, bearer values, wallet keys, or signed transaction material are stored in this evidence file.",
-  "deploymentTruth": "This evidence records the deployed Postgres-backed operator replay reservation barrier, the checked role-service replay packet covering duplicate verifier receipt rejection and indexer-backed nullifier registration, the local and role-service actual-private spend path that replay-keys by nullifier and appends output commitments, the protocol-client regression that an accepted actual-private protocol settlement rejects a duplicate replay probe without mutation, the live operator truth that the final protocol replay layer is implemented through verifier receipt idempotency plus indexer nullifier registration, and the no-real-funds production smoke replay rejection. The reviewed actual-private packet has accepted-root freshness evidence, but the lane still remains non-ready because it only has no-real-funds smoke evidence, the authenticated production duplicate-replay probe returned available instead of duplicate, there is no proven audited shared anonymity set, and proven live mainnet private settlement evidence is still unavailable.",
-  "nextOperatorAction": "Keep the authenticated production nullifier replay status command, the checked role-service replay packet, the protocol-client actual-private replay regression, the production replay probe/reconciliation commands, and the production smoke replay simulation fresh while no-real-funds smoke remains the only promoted replay proof, audited shared-anonymity-set evidence remains unavailable, and live mainnet private settlement stays unavailable."
+  "deploymentTruth": "This evidence records the deployed Postgres-backed operator replay reservation barrier, the checked role-service replay packet covering duplicate verifier receipt rejection and indexer-backed nullifier registration, the local and role-service actual-private spend path that replay-keys by nullifier and appends output commitments, the protocol-client regression that an accepted actual-private protocol settlement rejects a duplicate replay probe without mutation, the live operator truth that the final protocol replay layer is implemented through verifier receipt idempotency plus indexer nullifier registration, the no-real-funds production smoke replay rejection, and the accepted authenticated production duplicate-replay probe ref. The reviewed actual-private packet has accepted-root freshness and duplicate-replay evidence, but the lane still remains non-ready because there is no proven audited shared anonymity set and proven live mainnet private settlement evidence is still unavailable.",
+  "nextOperatorAction": "Keep the authenticated production nullifier replay status command, the checked role-service replay packet, the protocol-client actual-private replay regression, the production replay probe/reconciliation commands, and the production smoke replay simulation fresh while audited shared-anonymity-set evidence remains unavailable and live mainnet private settlement stays unavailable."
 }

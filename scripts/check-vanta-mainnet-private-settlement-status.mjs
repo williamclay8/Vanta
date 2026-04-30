@@ -43,7 +43,7 @@ assert.deepEqual(result.actualPrivateMainnetEvidence, {
     assetIdCommitmentReviewRef: "review:asset-id-commitment-present-raw-asset-hidden-2055-2220",
     auditOrReviewerRef: "reviewer:clay-mainnet-evidence-packet-2055-2220",
     boundedApprovalWindowRef: "approval-window:2026-04-28T20:55:00-22:20:00-America-Los_Angeles",
-    nullifierReplayRejectionRef: "review:nullifier-replay-live-retry-not-run-stop-condition-preserved-2055-2220",
+    nullifierReplayRejectionRef: "operator-nullifier-replay:production-duplicate-rejected-0979e25cb4f98ecba9bb",
     operatorReceiptRef: "operator-receipt:ppv2_5dc58490314d855c5060eace",
     protocolSettlementRef: "operator-protocol-settlement:proto_1ef774cec8a4964fd8a4650b",
     publicTranscriptReviewRef: "review:public-transcript-no-forbidden-linkage-fields-operator-accepted-2055-2220",
@@ -67,26 +67,27 @@ assert.deepEqual(result.actualPrivateMainnetEvidence, {
     spendEvidenceTxRef:
       "solana-tx:56QhWoCQ6KjD9SVBJ9KdZphVMp49qYSiwEDTprZsoyo5WFTXoLRMrxNTabB9dELhL5WrFWbSZDDzNd4URr3u5fZL",
     replaySimulation: {
-      status: "simulation-only",
+      status: "reviewed-production-duplicate-replay-rejection",
       observedError: "Custom:1",
-      productionReplayRejectionProven: false,
+      productionReplayRejectionProven: true,
+      productionReplayProbeRef: "operator-nullifier-replay:production-duplicate-rejected-0979e25cb4f98ecba9bb",
+      productionReplayProbeCheckedAt: "2026-04-30T08:19:41.721Z",
+      reviewerAcceptanceRef: "review:actual-private-production-replay-transcript-accepted-2026-04-30",
     },
   },
   reviewStatus: "reviewed-blocked",
   reviewVerdict:
-    "Do not claim Solscan-untrackable or live-mainnet-private settlement from this packet. Mainnet spend-program evidence is observed, including the spend transaction, but shared-cohort, live replay, independent reviewer, audited-anonymity, and production-readiness gates remain blocked.",
+    "Do not claim Solscan-untrackable or live-mainnet-private settlement from this packet. Mainnet spend-program evidence is observed, including the spend transaction, and the production duplicate-nullifier replay rejection transcript is accepted, but shared-cohort, independent reviewer, audited-anonymity, and production-readiness gates remain blocked.",
   promotionDecision: {
     reviewedLiveAllowed: false,
     operatorAcceptanceCanPromote: false,
     requiredApprovedReviewStatus: "reviewed-live",
     reviewedLiveRequires: [
       "shared-cohort-deposit-transaction",
-      "live-nullifier-replay-rejection",
       "independent-reviewer-or-audit",
     ],
     blockedBy: [
       "shared-cohort-deposit-transaction",
-      "live-nullifier-replay-rejection",
       "independent-reviewer-or-audit",
     ],
   },
@@ -102,9 +103,9 @@ assert.deepEqual(result.actualPrivateMainnetEvidence, {
     {
       id: "live-nullifier-replay-rejection",
       evidenceRefKey: "nullifierReplayRejectionRef",
-      currentEvidenceRef: "review:nullifier-replay-live-retry-not-run-stop-condition-preserved-2055-2220",
+      currentEvidenceRef: "operator-nullifier-replay:production-duplicate-rejected-0979e25cb4f98ecba9bb",
       requiredRefShape: "operator-nullifier-replay:<production-duplicate-rejection-ref>",
-      currentState: "replay-simulation-custom-1-only",
+      currentState: "reviewed-production-duplicate-replay-rejection",
       promotionRequired: true,
     },
   ],

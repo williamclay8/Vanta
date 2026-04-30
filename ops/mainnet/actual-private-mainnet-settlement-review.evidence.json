@@ -60,8 +60,8 @@
       "result": "pass"
     },
     {
-      "id": "replay-simulation-custom-1-observed",
-      "evidenceRef": "simulation-only:Custom:1",
+      "id": "production-duplicate-replay-rejection-observed",
+      "evidenceRef": "operator-nullifier-replay:production-duplicate-rejected-0979e25cb4f98ecba9bb",
       "result": "pass"
     }
   ],
@@ -70,12 +70,6 @@
       "id": "shared-cohort-deposit-transaction",
       "requiredEvidence": "A live mainnet deposit transaction into the named shared cohort.",
       "observedEvidence": "review:shared-cohort-deposit-ref-not-yet-solscan-final-reviewed-2055-2220 is a placeholder review ref.",
-      "result": "blocked"
-    },
-    {
-      "id": "live-nullifier-replay-rejection",
-      "requiredEvidence": "A live duplicate nullifier replay rejection against production after the settlement.",
-      "observedEvidence": "Replay simulation returned Custom:1. This is simulation-only evidence and is not a reviewed live production duplicate-nullifier replay rejection.",
       "result": "blocked"
     },
     {
@@ -91,12 +85,10 @@
     "requiredApprovedReviewStatus": "reviewed-live",
     "reviewedLiveRequires": [
       "shared-cohort-deposit-transaction",
-      "live-nullifier-replay-rejection",
       "independent-reviewer-or-audit"
     ],
     "blockedBy": [
       "shared-cohort-deposit-transaction",
-      "live-nullifier-replay-rejection",
       "independent-reviewer-or-audit"
     ]
   },
@@ -132,7 +124,7 @@
     {
       "id": "live-nullifier-replay-rejection",
       "evidenceRefKey": "nullifierReplayRejectionRef",
-      "currentEvidenceRef": "review:nullifier-replay-live-retry-not-run-stop-condition-preserved-2055-2220",
+      "currentEvidenceRef": "operator-nullifier-replay:production-duplicate-rejected-0979e25cb4f98ecba9bb",
       "requiredRefShape": "operator-nullifier-replay:<production-duplicate-rejection-ref>",
       "forbiddenEvidence": [
         "review:*",
@@ -140,7 +132,7 @@
         "operator-protocol-settlement:*",
         "local-only:*"
       ],
-      "result": "blocked",
+      "result": "pass",
       "promotionRequired": true
     },
     {
@@ -158,10 +150,9 @@
       "promotionRequired": true
     }
   ],
-  "finalVerdict": "Do not claim Solscan-untrackable or live-mainnet-private settlement from this packet. Mainnet spend-program evidence is observed, including the spend transaction, but shared-cohort, live replay, independent reviewer, audited-anonymity, and production-readiness gates remain blocked.",
+  "finalVerdict": "Do not claim Solscan-untrackable or live-mainnet-private settlement from this packet. Mainnet spend-program evidence is observed, including the spend transaction, and the production duplicate-nullifier replay rejection transcript is accepted, but shared-cohort, independent reviewer, audited-anonymity, and production-readiness gates remain blocked.",
   "nextRequiredEvidence": [
     "Capture the shared-cohort deposit Solana transaction signature.",
-    "Deploy and probe the no-funds replay-check endpoint against the production operator so duplicate-nullifier rejection can be reviewed without submitting another settlement; the observed Custom:1 replay simulation is not enough.",
     "Capture independent reviewer or audit acceptance for the mainnet spend-program evidence and public transcript boundary.",
     "Update the settlement evidence packet only after those refs are real, not placeholder review refs."
   ]
