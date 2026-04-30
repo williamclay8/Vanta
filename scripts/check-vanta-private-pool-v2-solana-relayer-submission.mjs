@@ -1,9 +1,12 @@
 import { strict as assert } from "node:assert";
 
+import { Keypair, VersionedTransaction } from "@solana/web3.js";
+
 import {
   createVantaPrivatePoolV2SolanaRelayerSubmitter,
   isVantaSolanaTransactionSignature,
 } from "../src/privacy/privatePoolV2SolanaRelayerSubmission.mjs";
+import { buildVantaPrivatePoolV2ActualPrivateSpendTransaction } from "../src/privacy/privatePoolV2SolanaSpendTransaction.mjs";
 
 const validSignature = "4".repeat(88);
 const calls = [];
@@ -63,6 +66,74 @@ assert.deepEqual(calls, [
 ]);
 assert.equal(isVantaSolanaTransactionSignature(validSignature), true);
 assert.equal(isVantaSolanaTransactionSignature("0xnot-a-solana-signature"), false);
+
+const relayerKeypair = Keypair.generate();
+const spendProgramId = Keypair.generate().publicKey.toBase58();
+const poolState = Keypair.generate().publicKey.toBase58();
+const nullifierSet = Keypair.generate().publicKey.toBase58();
+const outputQueue = Keypair.generate().publicKey.toBase58();
+let submittedSpendTransaction = null;
+const builtSpendTransaction = buildVantaPrivatePoolV2ActualPrivateSpendTransaction({
+  accounts: [
+    { isSigner: false, isWritable: true, pubkey: poolState },
+    { isSigner: false, isWritable: true, pubkey: nullifierSet },
+    { isSigner: false, isWritable: true, pubkey: outputQueue },
+  ],
+  instructionDataBase64: Buffer.from(
+    JSON.stringify({
+      acceptedRoot: "root:reviewed",
+      nullifierCommitment: "nf:reviewed",
+      publicInputHash: "pub:reviewed",
+    }),
+  ).toString("base64"),
+  programId: spendProgramId,
+  recentBlockhash: "11111111111111111111111111111111",
+  relayerFeePayer: relayerKeypair.publicKey.toBase58(),
+});
+const builderIntegratedSubmitter = createVantaPrivatePoolV2SolanaRelayerSubmitter({
+  connection: {
+    async sendRawTransaction(bytes, options) {
+      submittedSpendTransaction = VersionedTransaction.deserialize(bytes);
+      assert.equal(options.skipPreflight, false);
+      return validSignature;
+    },
+    async simulateTransaction(transaction, options) {
+      assert.equal(transaction.message.staticAccountKeys[0].toBase58(), relayerKeypair.publicKey.toBase58());
+      assert.equal(options.sigVerify, true);
+      return { value: { err: null } };
+    },
+  },
+  relayerKeypair,
+});
+const builderIntegratedSubmission = await builderIntegratedSubmitter.submitPrivateSpend({
+  proofReceiptId: "ppv2_builder_integrated",
+  publicInputCommitment: "0xpublic-input-builder",
+  serializedTransaction: builtSpendTransaction.serializedTransaction,
+  settlementId: "settlement:builder-integrated",
+});
+assert.equal(builderIntegratedSubmission.signature, validSignature);
+assert.equal(builderIntegratedSubmission.submittedBy, "relayer");
+assert.equal(builderIntegratedSubmission.relayerId, `solana-relayer:${relayerKeypair.publicKey.toBase58()}`);
+assert.equal(submittedSpendTransaction.message.staticAccountKeys[0].toBase58(), relayerKeypair.publicKey.toBase58());
+assert.notDeepEqual([...submittedSpendTransaction.signatures[0]], new Array(64).fill(0));
+
+const malformedBase64Submitter = createVantaPrivatePoolV2SolanaRelayerSubmitter({
+  connection: fakeConnection,
+  deserializeTransaction() {
+    throw new Error("deserialize must not run for malformed base64");
+  },
+  relayerKeypair: fakeRelayerKeypair,
+});
+await assert.rejects(
+  () =>
+    malformedBase64Submitter.submitPrivateSpend({
+      proofReceiptId: "ppv2_bad_base64",
+      publicInputCommitment: "0xpublic-input",
+      serializedTransaction: "not base64",
+      settlementId: "settlement:bad-base64",
+    }),
+  /requires base64 serializedTransaction/,
+);
 
 const simulationFailureSubmitter = createVantaPrivatePoolV2SolanaRelayerSubmitter({
   connection: {

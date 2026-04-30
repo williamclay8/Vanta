@@ -33,6 +33,7 @@
   "evidenceRefs": {
     "sharedPoolAnonymity": "ops/mainnet/private-pool-v2-anonymity-set.evidence.json",
     "relayerSeparation": "ops/mainnet/private-pool-v2-relayer-separation.evidence.json",
+    "productionRelayerReview": "ops/mainnet/private-pool-v2-production-relayer-review.evidence.json",
     "nullifierRootEnforcement": "ops/mainnet/private-pool-v2-nullifier-replay.evidence.json",
     "roleServiceReplay": "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
     "safeLogging": "npm run ops:safe-telemetry-check",
@@ -41,6 +42,7 @@
     "liveMainnetSettlementTemplate": "ops/mainnet/actual-private-mainnet-settlement.evidence.template.json",
     "liveMainnetSettlementEvidence": "ops/mainnet/actual-private-mainnet-settlement.evidence.json",
     "liveMainnetSettlementReview": "ops/mainnet/actual-private-mainnet-settlement-review.evidence.json",
+    "productionPrivacyReviewerPacket": "ops/mainnet/private-pool-v2-production-privacy-reviewer.packet.json",
     "productionCapability": "ops/mainnet/actual-private-production-capability.evidence.json",
     "productionSmoke": "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
     "actualPrivateRailRegression": "npm run private-transaction:mvp-check"
@@ -49,7 +51,13 @@
     "npm run private-transaction:mvp-check",
     "npm run private-pool-v2:anonymity-set-evidence-check",
     "npm run private-pool-v2:relayer-separation-evidence-check",
+    "npm run private-pool-v2:production-relayer-review-check",
+    "npm run private-pool-v2:production-privacy-reviewer-packet-check",
+    "npm run private-pool-v2:protocol-client-check",
     "npm run mainnet:nullifier-replay-evidence-check",
+    "npm run mainnet:actual-private-replay-probe-check",
+    "npm run mainnet:actual-private-replay-reconcile-check",
+    "npm run mainnet:actual-private-shared-cohort-deposit-review-check",
     "npm run mainnet:role-service-replay-evidence-check",
     "npm run ops:safe-telemetry-check",
     "npm run audit:package-check",
@@ -62,23 +70,41 @@
   "evidenceStatus": {
     "actualPrivateRailRegression": "local-and-role-service-covered",
     "sharedPoolAnonymity": "blocked",
-    "relayerSeparation": "blocked",
-    "nullifierRootEnforcement": "actual-private-nullifier-covered-root-freshness-blocked",
+    "relayerSeparation": "mainnet-spend-transaction-observed-reviewer-blocked",
+    "nullifierRootEnforcement": "actual-private-nullifier-and-root-freshness-review-covered-replay-simulation-only-live-replay-blocked",
     "safeLogging": "local-contract-covered",
     "audit": "packet-template-only",
     "productionCapability": "production-operator-send-proof-mode-aligned",
-    "mainnetEvidence": "live-refs-reviewed-blocked"
+    "mainnetEvidence": "mainnet-spend-program-evidence-observed-reviewed-blocked"
+  },
+  "liveMainnetSettlementPromotion": {
+    "currentStatus": "mainnet-spend-program-evidence-observed-reviewed-blocked",
+    "reviewedLiveStatus": "reviewed-live",
+    "operatorAcceptanceCanPromote": false,
+    "promotionRule": "A production operator receipt, protocol settlement id, or observed spend-program transaction is not enough for live mainnet private settlement readiness. Promotion requires all hard evidence refs below to be real and reviewed.",
+    "requiredHardEvidence": [
+      "shared-cohort-deposit-transaction",
+      "live-nullifier-replay-rejection",
+      "independent-reviewer-or-audit"
+    ],
+    "currentBlockedBy": [
+      "shared-cohort-deposit-transaction",
+      "live-nullifier-replay-rejection",
+      "independent-reviewer-or-audit",
+      "audited-shared-anonymity-set"
+    ]
   },
   "productionBlockers": [
-    "No live mainnet production cohort metrics are recorded.",
+    "Live mainnet production cohort metrics are recorded but measured below the 1024 distinct commitment threshold.",
     "No asset cohort has at least 1024 distinct live commitments.",
     "No independent reviewer has accepted the anonymity-set measurement.",
-    "No live mainnet accepted-root freshness evidence is recorded for actual-private spends.",
+    "Live accepted-root freshness has operator-review evidence, and replay simulation returned Custom:1, but live production duplicate-nullifier replay rejection remains blocked.",
     "Production relayer log redaction is locally contract-covered but not independently reviewed.",
     "Production relayer deployment separation is manifest-covered but not independently reviewed.",
+    "Production relayer spend-program evidence is observed on mainnet, but independent reviewer acceptance is still missing.",
     "No third-party audit report and fix-verification packet is recorded.",
-    "Live actual-private settlement refs were reviewed and remain blocked by missing Solscan relayer spend, shared-cohort deposit, and live replay rejection evidence.",
-    "No active bounded real-funds approval window is available."
+    "Live actual-private settlement refs were reviewed and remain blocked by missing shared-cohort deposit, live replay rejection, independent reviewer, and audited-anonymity evidence.",
+    "No broad reusable real-funds approval exists outside the exact bounded reviewer-packet evidence window."
   ],
   "forbiddenInGit": [
     "auth tokens",

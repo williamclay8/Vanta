@@ -1,0 +1,148 @@
+{
+  "version": "vanta-actual-private-external-artifact-acquisition-0.1",
+  "checkedAt": "2026-04-30T04:40:00.000Z",
+  "mainnetReady": false,
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "secretPolicy": "references-only-no-secret-values",
+  "purpose": "Concrete acquisition packet for the real live/external artifacts needed to unblock actual-private production privacy claims.",
+  "sourcePolicy": "Vendor names are intake candidates, not endorsements or approvals. Engagement, payment, conflicts, scope, and legal advice require human review.",
+  "auditIntakeCandidates": [
+    {
+      "id": "sec3",
+      "name": "Sec3",
+      "sourceUrl": "https://sec3.dev/audit",
+      "fit": "Solana-focused smart contract/security audit candidate."
+    },
+    {
+      "id": "ottersec",
+      "name": "OtterSec",
+      "sourceUrl": "https://osec.io/",
+      "fit": "Blockchain security audit candidate with Solana and zk/security research visibility."
+    },
+    {
+      "id": "veridise",
+      "name": "Veridise",
+      "sourceUrl": "https://veridise.com/audits/",
+      "fit": "ZK and smart-contract audit candidate."
+    },
+    {
+      "id": "blocksec",
+      "name": "BlockSec",
+      "sourceUrl": "https://blocksec.com/solana-audit",
+      "fit": "Solana audit candidate with public Solana audit material."
+    }
+  ],
+  "legalComplianceCustodyCandidates": [
+    {
+      "id": "dlx-law",
+      "name": "DLx Law",
+      "sourceUrl": "https://dlxlaw.com/",
+      "fit": "Blockchain/digital-asset legal and compliance review candidate."
+    },
+    {
+      "id": "dilendorf",
+      "name": "Dilendorf Law Firm",
+      "sourceUrl": "https://dilendorf.com/blockchain-crypto/stablecoin-issuance.html",
+      "fit": "Stablecoin legal review candidate."
+    },
+    {
+      "id": "dla-piper",
+      "name": "DLA Piper",
+      "sourceUrl": "https://www.dlapiper.com/",
+      "fit": "Global digital-assets/legal review candidate."
+    }
+  ],
+  "outreachPacket": {
+    "subject": "Security and launch-readiness review request: Solana private settlement rail",
+    "summary": "Vanta is preparing a beta Solana private-settlement rail for review. We need independent assessment before any production privacy, audit, legal/compliance/custody, or mainnet-ready claim.",
+    "materialsToAttachOrLink": [
+      "docs/audit-package.md",
+      "ops/mainnet/audit-review.packet.template.json",
+      "ops/mainnet/legal-compliance-custody.packet.template.json",
+      "ops/mainnet/production-key-custody.template.json",
+      "ops/mainnet/private-pool-v2-production-privacy-reviewer.packet.json",
+      "ops/mainnet/actual-private-hard-blockers.packet.json",
+      "npm run mainnet:preflight output"
+    ],
+    "ask": [
+      "Confirm scope, availability, estimated timeline, and conflicts.",
+      "Review Solana program, proof boundary, operator/indexer/relayer/prover/verifier services, replay/nullifier handling, wallet signing flows, deployment runbooks, and privacy-claim language.",
+      "Return refs-only deliverables suitable for Vanta evidence packets without raw secrets, wallet keys, signed transactions, privileged legal advice, or under-NDA report text in git."
+    ]
+  },
+  "requiredReturnedArtifacts": [
+    {
+      "id": "third-party-audit-report-and-fix-verification",
+      "requiredRefShape": "audit:<third-party-report-and-fix-verification-ref>",
+      "targetPacket": "ops/mainnet/actual-private-hard-blockers.packet.json",
+      "currentRef": null
+    },
+    {
+      "id": "independent-anonymity-measurement-review",
+      "requiredRefShape": "reviewer:<independent-anonymity-set-measurement-ref>",
+      "targetPacket": "ops/mainnet/private-pool-v2-anonymity-set.evidence.json",
+      "currentRef": null
+    },
+    {
+      "id": "independent-production-relayer-separation-review",
+      "requiredRefShape": "reviewer:<production-relayer-separation-review-ref>",
+      "targetPacket": "ops/mainnet/private-pool-v2-production-relayer-review.evidence.json",
+      "currentRef": null
+    },
+    {
+      "id": "legal-compliance-custody-review",
+      "requiredRefShape": "legal-compliance-custody:<review-and-approval-ref>",
+      "targetPacket": "ops/mainnet/legal-compliance-custody.packet.template.json",
+      "currentRef": null
+    }
+  ],
+  "liveArtifactAcquisition": [
+    {
+      "id": "fresh-bounded-approval",
+      "requiredBefore": [
+        "shared-cohort-deposit-transaction",
+        "authenticated-production-duplicate-replay-rejection",
+        "any real-funds movement"
+      ],
+      "requiredRefShape": "approval-window:<fresh-exact-action-window-America_Los_Angeles>",
+      "canonicalStatusCommand": "npm run mainnet:real-funds-approval-status-check"
+    },
+    {
+      "id": "shared-cohort-deposit-transaction",
+      "requiredRefShape": "solana-tx:<shared-cohort-deposit-mainnet-signature>",
+      "canonicalReviewCommand": "npm run mainnet:actual-private-shared-cohort-deposit-review",
+      "requiresHumanWalletSignature": true
+    },
+    {
+      "id": "authenticated-production-duplicate-replay-rejection",
+      "requiredRefShape": "operator-nullifier-replay:<production-duplicate-rejection-ref>",
+      "canonicalAuthCommand": "doppler run --config prd --project vanta -- npm run mainnet:actual-private-replay-reconcile-auth",
+      "requiresSecretManagerShell": true
+    },
+    {
+      "id": "minimum-live-commitments",
+      "requiredRefShape": "metrics:<1024-plus-distinct-live-commitments-ref>",
+      "canonicalMetricsCommand": "npm run private-pool-v2:anonymity-set-metrics-json",
+      "currentMeasuredDistinctCommitments": 2,
+      "minimumDistinctCommitments": 1024
+    }
+  ],
+  "canonicalVerificationCommands": [
+    "npm run mainnet:actual-private-external-artifact-acquisition-check",
+    "npm run mainnet:actual-private-hard-blockers-check",
+    "npm run mainnet:external-gates-check",
+    "npm run mainnet:external-gates-production-claim-check",
+    "npm run mainnet:preflight"
+  ],
+  "forbiddenInRepo": [
+    "raw audit report contents under NDA",
+    "privileged legal advice",
+    "wallet private keys",
+    "seed phrases",
+    "signed transactions",
+    "auth tokens",
+    "database URLs",
+    "raw customer private inputs"
+  ]
+}

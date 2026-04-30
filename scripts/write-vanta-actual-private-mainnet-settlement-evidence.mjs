@@ -2,11 +2,14 @@ import { strict as assert } from "node:assert";
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
+import { createVantaMainnetRealFundsApprovalStatus } from "../src/readiness/mainnetRealFundsApprovalStatus.mjs";
+
 const repoRoot = resolve(import.meta.dirname, "..");
 const outputPath = resolve(repoRoot, "ops/mainnet/actual-private-mainnet-settlement.evidence.json");
 const templatePath = resolve(repoRoot, "ops/mainnet/actual-private-mainnet-settlement.evidence.template.json");
 const dryRun = process.argv.includes("--dry-run") || !process.argv.includes("--write");
 const writeMode = process.argv.includes("--write");
+const allowHistoricalApproval = process.argv.includes("--allow-historical-approval");
 
 const requiredEnv = [
   "VANTA_ACTUAL_PRIVATE_BOUNDED_APPROVAL_WINDOW_REF",
@@ -50,10 +53,35 @@ function readRequiredRef(name) {
 
 function readRequiredSolanaTxRef(name) {
   const value = readRequiredRef(name);
-  const signature = value.startsWith("solscan:") ? value.slice("solscan:".length) : value;
+  const signature = value.startsWith("solana-tx:") ? value.slice("solana-tx:".length) : value;
   assert.ok(
     /^[1-9A-HJ-NP-Za-km-z]{64,88}$/.test(signature),
-    `${name} must be a Solana transaction signature ref, not an operator receipt or placeholder.`,
+    `${name} must be a solana-tx:<signature> ref or bare Solana transaction signature, not an operator receipt or placeholder.`,
+  );
+  return value.startsWith("solana-tx:") ? value : `solana-tx:${value}`;
+}
+
+function approvalWindowEvidenceRef(windowRef) {
+  return `approval-window:${String(windowRef).replace(" ", "-").replace("/", "_")}`;
+}
+
+function readRequiredCurrentApprovalWindowRef(name) {
+  const value = readRequiredRef(name);
+  const approvalStatus = createVantaMainnetRealFundsApprovalStatus();
+  const currentWindowRef = approvalWindowEvidenceRef(approvalStatus.approvalWindowRef);
+  const matchesCurrentApproval = value === currentWindowRef || value === approvalStatus.approvalWindowRef;
+  assert.ok(
+    allowHistoricalApproval || matchesCurrentApproval,
+    `${name} must match the current bounded approval window (${currentWindowRef}) unless --allow-historical-approval is explicitly set.`,
+  );
+  return matchesCurrentApproval ? currentWindowRef : value;
+}
+
+function readRequiredNullifierReplayRef(name) {
+  const value = readRequiredRef(name);
+  assert.ok(
+    /^operator-nullifier-replay:[A-Za-z0-9/_:.\-#]+$/.test(value),
+    `${name} must be an operator-nullifier-replay:<production-duplicate-rejection-ref> ref, not a review note, simulation label, or placeholder.`,
   );
   return value;
 }
@@ -68,11 +96,17 @@ function assertRefLike(name, value) {
 function buildEvidence() {
   const template = JSON.parse(readFileSync(templatePath, "utf8"));
   const refs = Object.fromEntries(requiredEnv.map((name) => [name, readRequiredRef(name)]));
+  refs.VANTA_ACTUAL_PRIVATE_BOUNDED_APPROVAL_WINDOW_REF = readRequiredCurrentApprovalWindowRef(
+    "VANTA_ACTUAL_PRIVATE_BOUNDED_APPROVAL_WINDOW_REF",
+  );
   refs.VANTA_ACTUAL_PRIVATE_SHARED_COHORT_DEPOSIT_TX_REF = readRequiredSolanaTxRef(
     "VANTA_ACTUAL_PRIVATE_SHARED_COHORT_DEPOSIT_TX_REF",
   );
   refs.VANTA_ACTUAL_PRIVATE_RELAYER_SUBMITTED_SPEND_TX_REF = readRequiredSolanaTxRef(
     "VANTA_ACTUAL_PRIVATE_RELAYER_SUBMITTED_SPEND_TX_REF",
+  );
+  refs.VANTA_ACTUAL_PRIVATE_NULLIFIER_REPLAY_REJECTION_REF = readRequiredNullifierReplayRef(
+    "VANTA_ACTUAL_PRIVATE_NULLIFIER_REPLAY_REJECTION_REF",
   );
 
   return {

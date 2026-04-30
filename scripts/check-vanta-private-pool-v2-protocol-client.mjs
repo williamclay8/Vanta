@@ -374,6 +374,27 @@ try {
       !JSON.stringify(committedSendSettlement).includes("outputLeafIndex"),
     "Expected committed Send settlement response to keep raw asset, amount, destination, and source-state terms redacted.",
   );
+  const committedSendReplayCheck = await requestJson("/private-pool-v2/nullifier-replay-checks", {
+    body: JSON.stringify({
+      intent: "private-send",
+      nullifier: "0xcommittedsend_replay",
+      requestId: "protocol-client-committed-send-duplicate-probe",
+    }),
+    headers: {
+      Authorization: `Bearer ${authToken}`,
+    },
+    method: "POST",
+  });
+  assert(
+    committedSendReplayCheck.ok,
+    committedSendReplayCheck.text || "Expected committed Send duplicate replay check response.",
+  );
+  assert(
+    committedSendReplayCheck.parsed?.accepted === false &&
+      committedSendReplayCheck.parsed?.mutated === false &&
+      committedSendReplayCheck.parsed?.decision?.replay === true,
+    `Expected committed Send nullifier to reject a duplicate replay probe without mutation: ${JSON.stringify(committedSendReplayCheck.parsed)}`,
+  );
 
   await assertRejects(
     async () => {

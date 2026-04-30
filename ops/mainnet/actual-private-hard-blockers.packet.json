@@ -1,0 +1,137 @@
+{
+  "version": "vanta-actual-private-hard-blockers-packet-0.1",
+  "checkedAt": "2026-04-30T04:31:25.296Z",
+  "mainnetReady": false,
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "secretPolicy": "references-only-no-secret-values",
+  "purpose": "Single refs-only operator packet for the remaining actual-private production privacy blockers. This packet is a launch blocker map, not approval, audit, legal, custody, anonymity, or live-settlement evidence.",
+  "stopBoundary": {
+    "liveMainnetActionsAllowedNow": true,
+    "currentApprovalActionRef": "actual-private/mainnet-settlement-evidence-run-2026-04-29-2131-2231",
+    "currentApprovalWindowRef": "2026-04-29T21:31:00-22:31:00 America/Los_Angeles",
+    "stopConditionStatus": "not-applicable-to-current-approval",
+    "fundsMoved": false,
+    "requiredNextStep": "Keep live actions inside the exact approved bounded live action; do not proceed without wallet public key ref, settlement-plan refs, and the live ACKs."
+  },
+  "hardBlockers": [
+    {
+      "id": "fresh-bounded-approval",
+      "status": "ready-active-bounded-approval",
+      "owner": "founder-operator",
+      "requiredArtifactShape": "approval-window:<fresh-exact-action-window-America_Los_Angeles>",
+      "currentArtifactRef": "approval-window:2026-04-29T21:31:00-22:31:00-America-Los_Angeles",
+      "canonicalCommand": "npm run mainnet:real-funds-approval-status-check",
+      "mayBeDoneByCodexAlone": false,
+      "truthBoundary": "A fresh bounded approval is active for the exact actual-private evidence run, but all other mainnet actions remain blocked."
+    },
+    {
+      "id": "shared-cohort-deposit-transaction",
+      "status": "blocked-placeholder-ref",
+      "owner": "founder-operator-with-wallet-approval",
+      "requiredArtifactShape": "solana-tx:<shared-cohort-deposit-mainnet-signature>",
+      "currentArtifactRef": "review:shared-cohort-deposit-ref-not-yet-solscan-final-reviewed-2055-2220",
+      "canonicalCommand": "npm run mainnet:actual-private-shared-cohort-deposit-review-check",
+      "mayBeDoneByCodexAlone": false,
+      "truthBoundary": "The current repo has a reviewer command for this blocker, but no reviewed Solana shared-cohort deposit transaction."
+    },
+    {
+      "id": "authenticated-production-duplicate-replay-rejection",
+      "status": "blocked-no-reviewed-live-rejection",
+      "owner": "operator-with-secret-manager-auth",
+      "requiredArtifactShape": "operator-nullifier-replay:<production-duplicate-rejection-ref>",
+      "currentArtifactRef": null,
+      "canonicalCommand": "npm run mainnet:actual-private-replay-reconcile-check",
+      "authenticatedOperatorCommand": "doppler run --config prd --project vanta -- npm run mainnet:actual-private-replay-reconcile-auth",
+      "mayBeDoneByCodexAlone": false,
+      "truthBoundary": "The authenticated production probe returned accepted=true/replay=false, so it is not duplicate-replay rejection evidence."
+    },
+    {
+      "id": "minimum-live-commitments",
+      "status": "blocked-below-threshold",
+      "owner": "protocol-operator-and-market-usage",
+      "requiredArtifactShape": "metrics:<1024-plus-distinct-live-commitments-ref>",
+      "currentArtifactRef": "metrics:stablecoin-usdc-v1-distinct-commitments-2-of-1024-2026-04-29",
+      "canonicalCommand": "npm run private-pool-v2:anonymity-set-metrics-check",
+      "mayBeDoneByCodexAlone": false,
+      "truthBoundary": "Current measured distinct commitments are 2 of the required 1024."
+    },
+    {
+      "id": "independent-anonymity-measurement-review",
+      "status": "blocked-no-independent-review",
+      "owner": "independent-reviewer",
+      "requiredArtifactShape": "reviewer:<independent-anonymity-set-measurement-ref>",
+      "currentArtifactRef": null,
+      "canonicalCommand": "npm run private-pool-v2:anonymity-set-evidence-check",
+      "mayBeDoneByCodexAlone": false,
+      "truthBoundary": "Repo metrics are not independent reviewer acceptance."
+    },
+    {
+      "id": "independent-production-relayer-separation-review",
+      "status": "blocked-no-independent-review",
+      "owner": "independent-reviewer",
+      "requiredArtifactShape": "reviewer:<production-relayer-separation-review-ref>",
+      "currentArtifactRef": null,
+      "canonicalCommand": "npm run private-pool-v2:production-relayer-review-check",
+      "mayBeDoneByCodexAlone": false,
+      "truthBoundary": "Manifest and local checks do not equal independent production relayer separation review."
+    },
+    {
+      "id": "third-party-audit-report-and-fix-verification",
+      "status": "blocked-no-third-party-audit",
+      "owner": "independent-security-reviewer",
+      "requiredArtifactShape": "audit:<third-party-report-and-fix-verification-ref>",
+      "currentArtifactRef": null,
+      "canonicalCommand": "npm run audit:package-check",
+      "mayBeDoneByCodexAlone": false,
+      "truthBoundary": "No third-party audit report or fix-verification packet is recorded."
+    },
+    {
+      "id": "legal-compliance-custody-review",
+      "status": "blocked-no-external-approval",
+      "owner": "legal-compliance-custody-reviewers",
+      "requiredArtifactShape": "legal-compliance-custody:<review-and-approval-ref>",
+      "currentArtifactRef": null,
+      "canonicalCommand": "npm run mainnet:external-gates-production-claim-check",
+      "mayBeDoneByCodexAlone": false,
+      "truthBoundary": "No legal, compliance, or custody approval exists."
+    }
+  ],
+  "canonicalVerificationCommands": [
+    "npm run mainnet:actual-private-hard-blockers-check",
+    "npm run mainnet:real-funds-approval-status-check",
+    "npm run mainnet:actual-private-shared-cohort-deposit-review-check",
+    "npm run mainnet:actual-private-replay-reconcile-check",
+    "npm run private-pool-v2:anonymity-set-metrics-check",
+    "npm run private-pool-v2:production-privacy-reviewer-packet-check",
+    "npm run mainnet:private-settlement-check",
+    "npm run mainnet:external-gates-production-claim-check",
+    "npm run truth:privacy-claim-gate"
+  ],
+  "forbiddenInGit": [
+    "auth tokens",
+    "database URLs",
+    "wallet keys",
+    "seed phrases",
+    "signed transactions",
+    "raw customer private inputs",
+    "legal advice",
+    "under-NDA audit contents",
+    "raw exploit details"
+  ],
+  "nonClaims": [
+    "not production private",
+    "not mainnet-ready",
+    "not audited",
+    "not anonymous",
+    "not untraceable",
+    "not legal/compliance/custody approved"
+  ],
+  "nextActionOrder": [
+    "Fresh bounded approval must be recorded before any live action.",
+    "Only inside a fresh approval window, produce and review a real shared-cohort deposit Solana transaction.",
+    "Run authenticated production replay reconciliation from a secret-manager shell and require a real duplicate rejection before promotion.",
+    "Grow and independently review the live anonymity set to at least 1024 distinct commitments.",
+    "Obtain independent relayer separation review, third-party audit/fix verification, and legal/compliance/custody approval refs before any production privacy claim."
+  ]
+}

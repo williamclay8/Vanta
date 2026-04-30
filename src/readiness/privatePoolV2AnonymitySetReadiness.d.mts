@@ -9,10 +9,12 @@ export type VantaPrivatePoolV2AnonymitySetReadiness = {
   meaningfulPrivacyReady: false;
   minimumDistinctCommitments: number;
   privacyClaimAllowed: false;
-  productionAnonymityMetricsAvailable: false;
+  productionAnonymityMetricsAvailable: boolean;
+  currentDistinctCommitmentCount: number;
+  currentAnonymityMeasurementStatus: "measured-below-threshold";
   productionReady: false;
   assetCohortRules: { required: string[] };
-  relayerSeparation: { requiredEvidenceRefs: string[] };
+  relayerSeparation: { requiredEvidenceRefs: string[]; currentTruth: string };
   nullifierUniqueness: { requiredEvidenceRefs: string[] };
   safeLogging: { required: string[] };
   currentEvidenceRefs: string[];

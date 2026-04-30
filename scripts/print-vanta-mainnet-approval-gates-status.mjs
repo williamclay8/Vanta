@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
+import { createVantaMainnetRealFundsApprovalStatus } from "../src/readiness/mainnetRealFundsApprovalStatus.mjs";
+
 const repoRoot = resolve(import.meta.dirname, "..");
 const evidencePath = resolve(repoRoot, "ops/mainnet/mainnet-approval-gates.evidence.json");
 const evidence = JSON.parse(readFileSync(evidencePath, "utf8"));
@@ -46,6 +48,7 @@ function zonedDateTimeKey(timeZone) {
 }
 
 function boundedApprovalStatus(gate) {
+  const realFundsApproval = createVantaMainnetRealFundsApprovalStatus();
   const launchWindow = parseLaunchWindowRef(gate?.approvedLaunchWindowRef);
   if (!gate || !launchWindow) {
     return {
@@ -62,6 +65,13 @@ function boundedApprovalStatus(gate) {
   const approvalWindowStatus =
     nowKey < launchWindow.startKey ? "scheduled" : nowKey > launchWindow.endKey ? "expired" : "active";
   const recorded = gate.status === "approved-bounded-action";
+  const stopCondition = realFundsApproval.stopCondition.appliesToCurrentApproval
+    ? realFundsApproval.stopCondition
+    : {
+        appliesToCurrentApproval: false,
+        evidenceRef: realFundsApproval.stopCondition.evidenceRef,
+        status: realFundsApproval.stopCondition.status,
+      };
 
   return {
     approvedActionSummary: gate.approvedActionSummary,
@@ -69,8 +79,9 @@ function boundedApprovalStatus(gate) {
     approvalWindowStatus,
     currentTimeZoneClock: nowKey,
     generalMainnetFundsAllowed: false,
-    liveMainnetActionsAllowedNow: recorded && approvalWindowStatus === "active",
+    liveMainnetActionsAllowedNow: recorded && approvalWindowStatus === "active" && !stopCondition.appliesToCurrentApproval,
     recorded,
+    stopCondition,
   };
 }
 
@@ -93,7 +104,8 @@ const status = {
   checkedAt: evidence.checkedAt,
   mainnetReady: evidence.mainnetReady,
   productionReady: evidence.productionReady,
-  realFundsAllowed: evidence.realFundsAllowed,
+  realFundsAllowedNow: boundedApproval.liveMainnetActionsAllowedNow,
+  boundedRealFundsApprovalRecordedInEvidence: evidence.boundedRealFundsApprovalRecorded === true,
   mainnetClaimAllowed: false,
   productionClaimAllowed: false,
   boundedRealFundsApproval: boundedApproval,
@@ -134,7 +146,10 @@ if (jsonMode) {
   console.log(`- status: ${status.status}`);
   console.log(`- mainnetReady: ${status.mainnetReady}`);
   console.log(`- productionReady: ${status.productionReady}`);
-  console.log(`- realFundsAllowed: ${status.realFundsAllowed}`);
+  console.log(`- realFundsAllowedNow: ${status.realFundsAllowedNow}`);
+  console.log(
+    `- boundedRealFundsApprovalRecordedInEvidence: ${status.boundedRealFundsApprovalRecordedInEvidence}`,
+  );
   console.log(`- mainnetClaimAllowed: ${status.mainnetClaimAllowed}`);
   console.log(`- productionClaimAllowed: ${status.productionClaimAllowed}`);
   console.log(`- boundedRealFundsApprovalRecorded: ${status.boundedRealFundsApprovalRecorded}`);

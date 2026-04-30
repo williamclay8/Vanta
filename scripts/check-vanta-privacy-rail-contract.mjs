@@ -74,7 +74,8 @@ assert.ok(privatePoolRail.requiredEvidence.includes("VANTA_PRIVATE_POOL_V2_PRODU
 assert.ok(privatePoolRail.requiredEvidence.includes("VANTA_PRIVATE_POOL_V2_ANONYMITY_SET_REF"));
 assert.ok(privatePoolRail.requiredEvidence.includes("VANTA_PRIVATE_POOL_V2_PRODUCTION_ANONYMITY_METRICS_REF"));
 assert.ok(privatePoolRail.blockers.includes("no-proven-audited-shared-anonymity-set"));
-assert.ok(privatePoolRail.blockers.includes("no-production-anonymity-set-metrics"));
+assert.ok(privatePoolRail.blockers.includes("production-anonymity-set-measured-below-threshold"));
+assert.ok(privatePoolRail.blockers.includes("no-independent-anonymity-set-measurement-review"));
 assert.ok(privatePoolRail.blockers.some((blocker) => blocker.includes("no-real-funds smoke evidence")));
 assert.ok(privatePoolRail.currentEvidenceRefs.includes("ops/mainnet/private-pool-v2-production-smoke.evidence.json"));
 assert.ok(privatePoolRail.currentEvidenceRefs.includes("ops/mainnet/private-pool-v2-nullifier-replay.evidence.json"));

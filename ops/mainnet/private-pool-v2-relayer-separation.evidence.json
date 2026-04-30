@@ -34,10 +34,12 @@
     "VANTA_PRIVATE_POOL_V2_RELAYER_SEPARATION_REF",
     "VANTA_PRIVATE_POOL_V2_RELAYER_LOG_REDACTION_REF",
     "VANTA_PRIVATE_POOL_V2_RELAYER_DEPLOYMENT_SEPARATION_REF",
+    "VANTA_PRIVATE_POOL_V2_PRODUCTION_RELAYER_REVIEW_REF",
     "VANTA_PRIVATE_POOL_V2_AUDIT_REF"
   ],
   "currentEvidenceRefs": [
     "ops/mainnet/actual-private-production-evidence.packet.json",
+    "ops/mainnet/private-pool-v2-production-relayer-review.evidence.json",
     "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
     "ops/mainnet/private-pool-v2-route-health.evidence.json",
     "ops/mainnet/private-pool-v2-services.manifest.json#relayer",
@@ -72,6 +74,12 @@
       "privacyMeaning": "manifest records a distinct production relayer service id, URL, auth secret ref, database secret ref, and fee-wallet ref; independent production review remains required before relayer separation can be claimed"
     },
     {
+      "id": "production-relayer-configuration-funding-deploy-review",
+      "status": "review-packet-recorded-awaiting-independent-review",
+      "ref": "ops/mainnet/private-pool-v2-production-relayer-review.evidence.json",
+      "privacyMeaning": "dedicated review packet records live Solana submission env, operator transaction-byte gate, relayer fee-payer funding/custody, deploy review, log-redaction review, and mainnet spend-program config; independent review remains required before relayer separation can be claimed"
+    },
+    {
       "id": "independent-review",
       "status": "not-recorded",
       "ref": "VANTA_PRIVATE_POOL_V2_AUDIT_REF",
@@ -83,6 +91,7 @@
     "Same-fee-payer linkage is only locally regression-guarded; no production relayer submission evidence is recorded.",
     "Production relayer log redaction is locally contract-covered but not independently reviewed.",
     "Production relayer deployment separation is manifest-covered but not independently reviewed.",
+    "Production relayer configuration, funding, deploy, and spend-program config refs are recorded but still awaiting independent review.",
     "No independent reviewer has accepted the relayer separation boundary."
   ],
   "forbiddenInGit": [

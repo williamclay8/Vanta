@@ -88,7 +88,7 @@ const blockedBy = [
   "production-anonymity-set",
   "relayer-separation",
   "live-mainnet-settlement",
-  "active-bounded-real-funds-approval-window",
+  "production-scoped-bounded-real-funds-approval-window",
 ];
 
 console.log("Vanta external gates production claim check: PASS");

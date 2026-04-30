@@ -35,9 +35,9 @@
           "verificationRef": "npm run mainnet:observability-sink-check"
         },
         "incidentWorkflow": {
-          "status": "pending",
+          "status": "configured",
           "evidenceRef": "docs/operator-runbook.md#pay-operator",
-          "verificationRef": "docs/operator-runbook.md#pay-operator"
+          "verificationRef": "npm run mainnet:production-incident-workflow-evidence-check"
         }
       }
     },
@@ -65,9 +65,9 @@
           "verificationRef": "npm run mainnet:observability-sink-check"
         },
         "incidentWorkflow": {
-          "status": "pending",
+          "status": "configured",
           "evidenceRef": "docs/operator-runbook.md#private-pool-v2-operator",
-          "verificationRef": "docs/operator-runbook.md#private-pool-v2-operator"
+          "verificationRef": "npm run mainnet:production-incident-workflow-evidence-check"
         }
       }
     },
@@ -95,9 +95,9 @@
           "verificationRef": "npm run mainnet:observability-sink-check"
         },
         "incidentWorkflow": {
-          "status": "pending",
+          "status": "configured",
           "evidenceRef": "docs/operator-runbook.md#readiness-truth",
-          "verificationRef": "docs/operator-runbook.md#readiness-truth"
+          "verificationRef": "npm run mainnet:production-incident-workflow-evidence-check"
         }
       }
     },
@@ -125,9 +125,9 @@
           "verificationRef": "npm run mainnet:observability-sink-check"
         },
         "incidentWorkflow": {
-          "status": "pending",
+          "status": "configured",
           "evidenceRef": "docs/operator-runbook.md#readiness-truth",
-          "verificationRef": "docs/operator-runbook.md#readiness-truth"
+          "verificationRef": "npm run mainnet:production-incident-workflow-evidence-check"
         }
       }
     }

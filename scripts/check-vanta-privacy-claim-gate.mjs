@@ -36,6 +36,14 @@ const privacyClaimsAllowed =
 
 const dangerousClaims = [
   /\bfully private\b/iu,
+  /\bfully anonymous\b/iu,
+  /\banonymous payments?\b/iu,
+  /\buntraceable\b/iu,
+  /\btrustless(?:\s+(?:privacy|settlement|payments?|protocol|system|network))?\b/iu,
+  /\baudited\s+(?:privacy|settlement|payments?|protocol|system|network|private[-\s]?pool)\b/iu,
+  /\b(?:production ready|production-ready)\b/iu,
+  /\b(?:mainnet ready|mainnet-ready)\b/iu,
+  /\bready for mainnet\b/iu,
   /\bproduction-ready private settlement\b/iu,
   /\bmainnet-ready private settlement\b/iu,
   /\blive mainnet private settlement\b/iu,
@@ -46,6 +54,7 @@ const safeContextPatterns = [
   /\bdo not\b/iu,
   /\bdoes not\b/iu,
   /\bnot\b/iu,
+  /\bno\b/iu,
   /\bno broad\b/iu,
   /\bmust not\b/iu,
   /\bcannot claim\b/iu,
@@ -55,11 +64,15 @@ const safeContextPatterns = [
   /\bis false\b/iu,
   /\bfalse\b/u,
   /\bbannedBroadClaims\b/u,
+  /\bbannedPhrases\b/u,
   /\bdangerousClaims\b/u,
+  /\bforbidden_claims\b/u,
   /\bforbidden\b/iu,
+  /\bavoid\b/iu,
   /\blimitations?\b/iu,
   /\buntil\b/iu,
   /\bbefore\b/iu,
+  /\broadmap\b/iu,
   /\bwithout overclaiming\b/iu,
   /\bmove toward\b/iu,
   /\bgoal\b/iu,
@@ -82,7 +95,29 @@ function lineHasDangerousClaim(line) {
 }
 
 function lineIsSafeContext(line, lines, index) {
-  const context = [lines[index - 2], lines[index - 1], line, lines[index + 1], lines[index + 2]]
+  const context = [
+    lines[index - 10],
+    lines[index - 9],
+    lines[index - 8],
+    lines[index - 7],
+    lines[index - 6],
+    lines[index - 5],
+    lines[index - 4],
+    lines[index - 3],
+    lines[index - 2],
+    lines[index - 1],
+    line,
+    lines[index + 1],
+    lines[index + 2],
+    lines[index + 3],
+    lines[index + 4],
+    lines[index + 5],
+    lines[index + 6],
+    lines[index + 7],
+    lines[index + 8],
+    lines[index + 9],
+    lines[index + 10],
+  ]
     .filter(Boolean)
     .join("\n");
   return safeContextPatterns.some((pattern) => pattern.test(context));

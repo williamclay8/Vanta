@@ -44,6 +44,7 @@ for (const ref of [
   "VANTA_PRIVATE_POOL_V2_RELAYER_SEPARATION_REF",
   "VANTA_PRIVATE_POOL_V2_RELAYER_LOG_REDACTION_REF",
   "VANTA_PRIVATE_POOL_V2_RELAYER_DEPLOYMENT_SEPARATION_REF",
+  "VANTA_PRIVATE_POOL_V2_PRODUCTION_RELAYER_REVIEW_REF",
   "VANTA_PRIVATE_POOL_V2_AUDIT_REF",
 ]) {
   assert.ok(evidence.requiredRefs.includes(ref), `Missing relayer separation ref: ${ref}`);
@@ -51,6 +52,7 @@ for (const ref of [
 
 for (const ref of [
   "ops/mainnet/actual-private-production-evidence.packet.json",
+  "ops/mainnet/private-pool-v2-production-relayer-review.evidence.json",
   "ops/mainnet/private-pool-v2-services.manifest.json#relayer",
   "npm run private-transaction:mvp-check",
   "npm run ops:safe-telemetry-check",
@@ -68,6 +70,10 @@ assert.equal(
 assert.equal(
   checksById.get("production-deployment-separation")?.status,
   "manifest-covered-independent-review-not-recorded",
+);
+assert.equal(
+  checksById.get("production-relayer-configuration-funding-deploy-review")?.status,
+  "review-packet-recorded-awaiting-independent-review",
 );
 assert.equal(checksById.get("independent-review")?.status, "not-recorded");
 assert.ok(
@@ -90,12 +96,17 @@ assert.ok(
   checksById.get("production-deployment-separation")?.privacyMeaning.includes("distinct production relayer service id"),
   "Deployment separation check must point at manifest-covered relayer separation.",
 );
+assert.ok(
+  checksById.get("production-relayer-configuration-funding-deploy-review")?.privacyMeaning.includes("mainnet spend-program config"),
+  "Production relayer review check must include the mainnet spend-program config.",
+);
 
 for (const blocker of [
   "Relayer separation is not proven by role-service replay evidence alone.",
   "Same-fee-payer linkage is only locally regression-guarded; no production relayer submission evidence is recorded.",
   "Production relayer log redaction is locally contract-covered but not independently reviewed.",
   "Production relayer deployment separation is manifest-covered but not independently reviewed.",
+  "Production relayer configuration, funding, deploy, and spend-program config refs are recorded but still awaiting independent review.",
   "No independent reviewer has accepted the relayer separation boundary.",
 ]) {
   assert.ok(evidence.productionBlockers.includes(blocker), `Missing relayer blocker: ${blocker}`);

@@ -3,7 +3,7 @@
   "mainnetReady": false,
   "productionReady": false,
   "lastStatusRef": "npm run mainnet:service-deployment-status-check",
-  "routeHealthLastCheckedAt": "2026-04-23T11:50:40.778Z",
+  "routeHealthLastCheckedAt": "2026-04-30T03:20:35Z",
   "manifestRef": "ops/mainnet/private-pool-v2-services.manifest.json",
   "roleServiceReplayEvidenceRef": "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
   "roleServiceNetworkRef": "npm run private-pool-v2:service-network-check",
@@ -24,7 +24,7 @@
   "backupRestoreEvidenceRef": "ops/mainnet/production-backup-restore.evidence.json",
   "realFundsReadinessPending": true,
   "pendingProductionControls": [
-    "observability-controls",
+    "observability-provider-controls",
     "real-funds-readiness"
   ],
   "routeHealthEvidenceRef": "ops/mainnet/private-pool-v2-route-health.evidence.json",
@@ -53,6 +53,6 @@
     }
   ],
   "safety": "No auth token values, database URLs, bearer values, wallet keys, or signed transaction material are stored in this evidence file.",
-  "deploymentTruth": "This evidence proves the five Private Pool v2 role services are deployed on Render with names-only manifest references, authenticated route-health is green, checked role-service replay barrier evidence is green, and no-real-funds production smoke is green. Restore readback is already recorded as passed for Private Pool v2 core, role-service storage, Strategy, and operator storage while Pay/provider backup controls remain explicitly operator-skipped in the backup/restore evidence. The lane still remains non-ready because observability controls and real-funds readiness are pending.",
-  "nextOperatorAction": "Keep deployment status, route-health, checked role-service replay, production smoke, and backup/restore evidence fresh while observability controls and real-funds readiness remain pending."
+  "deploymentTruth": "This evidence proves the five Private Pool v2 role services are deployed on Render with names-only manifest references, authenticated route-health is green, checked role-service replay barrier evidence is green, and no-real-funds production smoke is green. Restore readback is already recorded as passed for Private Pool v2 core, role-service storage, Strategy, and operator storage while Pay/provider backup controls remain explicitly operator-skipped in the backup/restore evidence. Incident workflow evidence is configured; the lane still remains non-ready because Render-native log sink, metrics dashboards, alert policies, retention policy, and real-funds readiness are pending.",
+  "nextOperatorAction": "Keep deployment status, route-health, checked role-service replay, production smoke, backup/restore evidence, and incident workflow evidence fresh while observability provider controls and real-funds readiness remain pending."
 }

@@ -28,7 +28,7 @@ export const VANTA_PRIVATE_POOL_V2_BENCHMARK_ASSETS = UMBRA_MAINNET_SUPPORTED_AS
 
 const privatePoolV2ShieldRoute: VantaPrivacyRouteCapability = {
   description:
-    "Public wallet assets route into a Vanta-owned pool-backed private asset, append a commitment, and hide future movement behind indexer, nullifier, prover, and relayer seams.",
+    "Public wallet assets route into a Vanta-owned pool-backed private asset, append a commitment, and move future activity behind deployed no-real-funds indexer, nullifier, prover, verifier, and relayer seams while audited production privacy remains blocked.",
   id: "vanta-private-pool-v2-public-wallet-to-pool-commitment",
   inputDomain: "public-wallet",
   outputDomain: "anonymous-utxo",
@@ -48,7 +48,7 @@ const privatePoolV2ShieldRoute: VantaPrivacyRouteCapability = {
 
 const privatePoolV2SwapRoute: VantaPrivacyRouteCapability = {
   description:
-    "Any routeable public asset swaps into a pool-backed target mint before entering Vanta Private Pool v2 as an anonymous commitment.",
+    "Any routeable public asset swaps into a pool-backed target mint before entering Vanta Private Pool v2 as a private-pool commitment; live anonymity claims remain blocked until the anonymity, relayer, audit, and reviewer gates pass.",
   id: "vanta-private-pool-v2-public-swap-to-pool-commitment",
   inputDomain: "public-wallet",
   outputDomain: "anonymous-utxo",
@@ -58,7 +58,7 @@ const privatePoolV2SwapRoute: VantaPrivacyRouteCapability = {
 
 const privatePoolV2UnshieldRoute: VantaPrivacyRouteCapability = {
   description:
-    "Anonymous pool commitments exit through a nullifier-bound proof and optional relayer quote, preserving exact-amount exits with hidden change.",
+    "Private-pool commitments exit through a nullifier-bound proof and optional relayer quote, preserving exact-amount exits with hidden change without claiming audited production anonymity.",
   id: "vanta-private-pool-v2-pool-commitment-to-public-wallet",
   inputDomain: "anonymous-utxo",
   outputDomain: "public-wallet",
@@ -69,13 +69,13 @@ const privatePoolV2UnshieldRoute: VantaPrivacyRouteCapability = {
 export function getVantaPrivatePoolV2Readiness(): VantaPrivatePoolV2Readiness {
   return {
     blockers: [
-      "No Vanta-owned append-only commitment tree/indexer is live yet.",
-      "No Vanta-owned nullifier set or relayer submission API is live yet.",
-      "No production prover/verifier key boundary is wired for private-pool v2.",
+      "Deployed role-service and no-real-funds smoke evidence exists, but audited production privacy is not proven.",
+      "Mainnet spend-program evidence exists, but shared-cohort deposit and live duplicate-nullifier replay rejection refs remain blocked.",
+      "No independent reviewer or third-party audit has accepted the anonymity set, relayer separation, or production prover/verifier boundary.",
     ],
     ready: false,
     warnings: [
-      "This is the Option B target contract and benchmark profile, not a live execution lane.",
+      "This is the Private Pool v2 capability target plus deployed no-real-funds evidence, not a production privacy claim.",
       "Public asset breadth still comes from routing into pool-backed target mints before privacy begins.",
     ],
   };

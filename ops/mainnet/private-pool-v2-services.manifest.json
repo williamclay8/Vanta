@@ -69,7 +69,9 @@
         "url": "https://vanta-prod-private-pool-v2-indexer.onrender.com",
         "repo": "https://github.com/williamclay8/Vanta",
         "branch": "main",
-        "commit": "1c92ba969b8bb145df3cd1a254ab54aa9ed3b911",
+        "commit": "5295332757062770d1f2f043fb3f7f239dcf51f4",
+        "lastVerifiedDeployRef": "render:tea-d7j37af7f7vs739ii8rg/srv-d7jfqru7r5hc73b6oelg/dep-d7pcdpl8nd3s73fe4lpg",
+        "lastVerifiedWorkspaceRef": "render:William's workspace",
         "buildCommand": "npm ci && npm run build",
         "buildEnvironment": {
           "NPM_CONFIG_INCLUDE": "dev",
@@ -86,7 +88,7 @@
           "kind": "postgres-jsonb-snapshot-store",
           "secretRef": "VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL_REF"
         },
-        "lastVerifiedAt": "2026-04-23T11:50:40Z",
+        "lastVerifiedAt": "2026-04-30T03:07:48Z",
         "lastVerifiedHealthRef": "curl -fsS https://vanta-prod-private-pool-v2-indexer.onrender.com/health",
         "productionReady": false,
         "mainnetReady": false
@@ -119,7 +121,9 @@
         "url": "https://vanta-prod-private-pool-v2-relayer.onrender.com",
         "repo": "https://github.com/williamclay8/Vanta",
         "branch": "main",
-        "commit": "97fc195254dc8a364074a2029030aeac8170e61f",
+        "commit": "5295332757062770d1f2f043fb3f7f239dcf51f4",
+        "lastVerifiedDeployRef": "render:tea-d7j37af7f7vs739ii8rg/srv-d7jg9jrbc2fs73c161gg/dep-d7pcdpd8nd3s73fe4k8g",
+        "lastVerifiedWorkspaceRef": "render:William's workspace",
         "buildCommand": "npm ci && npm run build",
         "buildEnvironment": {
           "NPM_CONFIG_INCLUDE": "dev",
@@ -140,7 +144,14 @@
           "kind": "public-solana-address-ref",
           "secretRef": "VANTA_PRIVATE_POOL_V2_RELAYER_FEE_WALLET_REF"
         },
-        "lastVerifiedAt": "2026-04-23T11:50:40Z",
+        "spendProgramAccountRefs": {
+          "kind": "public-solana-account-refs",
+          "programIdRef": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID_REF",
+          "poolStateRef": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE_REF",
+          "nullifierSetRef": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET_REF",
+          "outputQueueRef": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE_REF"
+        },
+        "lastVerifiedAt": "2026-04-30T03:07:57Z",
         "lastVerifiedHealthRef": "curl -fsS https://vanta-prod-private-pool-v2-relayer.onrender.com/health",
         "productionReady": false,
         "mainnetReady": false
@@ -153,7 +164,14 @@
         { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_DATABASE_URL", "required": true },
         { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_AUTH_TOKEN", "required": true },
         { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_FEE_WALLET", "required": true },
-        { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_RPC_URL", "required": true }
+        { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_RPC_URL", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_SOLANA_SUBMISSION_MODE", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_FEE_PAYER_KEYPAIR_JSON", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_SOLANA_SUBMIT_ACK", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE", "required": true }
       ],
       "healthChecks": ["/health", "/v1/claims/quote"],
       "persistence": {
@@ -173,7 +191,9 @@
         "url": "https://vanta-prod-private-pool-v2-prover.onrender.com",
         "repo": "https://github.com/williamclay8/Vanta",
         "branch": "main",
-        "commit": "e70e322941f139bcc4e80dcc401d9b6d5e8bbb67",
+        "commit": "5295332757062770d1f2f043fb3f7f239dcf51f4",
+        "lastVerifiedDeployRef": "render:tea-d7j37af7f7vs739ii8rg/srv-d7jg4arbc2fs73c1449g/dep-d7pcdpl8nd3s73fe4kl0",
+        "lastVerifiedWorkspaceRef": "render:William's workspace",
         "buildCommand": "npm ci && npm run build",
         "buildEnvironment": {
           "NPM_CONFIG_INCLUDE": "dev",
@@ -194,7 +214,7 @@
           "kind": "postgres-jsonb-artifact-ref",
           "secretRef": "VANTA_PRIVATE_POOL_V2_PROVER_ARTIFACT_REF"
         },
-        "lastVerifiedAt": "2026-04-23T11:50:40Z",
+        "lastVerifiedAt": "2026-04-30T03:07:16Z",
         "lastVerifiedHealthRef": "curl -fsS https://vanta-prod-private-pool-v2-prover.onrender.com/health",
         "productionReady": false,
         "mainnetReady": false
@@ -228,7 +248,9 @@
         "url": "https://vanta-prod-private-pool-v2-verifier.onrender.com",
         "repo": "https://github.com/williamclay8/Vanta",
         "branch": "main",
-        "commit": "4583bc1ee806cb511eee9f72542a9e81818cadb1",
+        "commit": "5295332757062770d1f2f043fb3f7f239dcf51f4",
+        "lastVerifiedDeployRef": "render:tea-d7j37af7f7vs739ii8rg/srv-d7jgf7n7f7vs73ebdu40/dep-d7pcdpl8nd3s73fe4lc0",
+        "lastVerifiedWorkspaceRef": "render:William's workspace",
         "buildCommand": "npm ci && npm run build",
         "buildEnvironment": {
           "NPM_CONFIG_INCLUDE": "dev",
@@ -249,7 +271,7 @@
           "urlRef": "VANTA_INDEXER_URL_REF",
           "authTokenRef": "VANTA_INDEXER_AUTH_TOKEN_REF"
         },
-        "lastVerifiedAt": "2026-04-23T11:50:40Z",
+        "lastVerifiedAt": "2026-04-30T03:08:17Z",
         "lastVerifiedHealthRef": "curl -fsS https://vanta-prod-private-pool-v2-verifier.onrender.com/health",
         "productionReady": false,
         "mainnetReady": false
@@ -284,7 +306,9 @@
         "url": "https://vanta-prod-private-pool-v2-operator.onrender.com",
         "repo": "https://github.com/williamclay8/Vanta",
         "branch": "main",
-        "commit": "e6584a1dc6ca32b4857ff44dd0ded7289475de9a",
+        "commit": "5295332757062770d1f2f043fb3f7f239dcf51f4",
+        "lastVerifiedDeployRef": "render:tea-d7j37af7f7vs739ii8rg/srv-d7jgl3d8nd3s73a9efng/dep-d7pcdpd8nd3s73fe4jvg",
+        "lastVerifiedWorkspaceRef": "render:William's workspace",
         "buildCommand": "npm ci && npm run build",
         "buildEnvironment": {
           "NPM_CONFIG_INCLUDE": "dev",
@@ -308,7 +332,7 @@
           "relayerUrlRef": "VANTA_RELAYER_URL_REF",
           "verifierUrlRef": "VANTA_VERIFIER_URL_REF"
         },
-        "lastVerifiedAt": "2026-04-23T11:50:40Z",
+        "lastVerifiedAt": "2026-04-30T03:07:10Z",
         "lastVerifiedHealthRef": "curl -fsS https://vanta-prod-private-pool-v2-operator.onrender.com/health",
         "productionReady": false,
         "mainnetReady": false
@@ -328,7 +352,8 @@
         { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_URL", "required": true },
         { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_AUTH_TOKEN", "required": true },
         { "name": "VANTA_PRIVATE_POOL_V2_VERIFIER_URL", "required": true },
-        { "name": "VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN", "required": true }
+        { "name": "VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_REQUIRE_RELAYER_SERIALIZED_TRANSACTION", "required": true }
       ],
       "healthChecks": ["/health", "/state/private-pool-v2-status"],
       "persistence": {

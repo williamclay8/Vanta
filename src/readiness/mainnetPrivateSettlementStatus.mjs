@@ -37,14 +37,29 @@ export function createVantaMainnetPrivateSettlementStatus() {
   const actualPrivateSmokeTarget = productionSmokeEvidence.smokeTargets.find(
     (target) => target.id === "actual-private-spend-simulation",
   );
-  const boundedRealFundsApprovalWindowActive = realFundsApproval.liveMainnetActionsAllowedNow;
+  const actualPrivateSettlementApprovalScoped =
+    typeof realFundsApproval.approvalActionRef === "string" &&
+    realFundsApproval.approvalActionRef.startsWith("actual-private/");
+  const settlementEvidenceApprovalWindowRef =
+    actualPrivateSettlementReview.reviewedSettlementRefs?.approvalWindowRef ?? null;
+  const currentApprovalWindowRef = realFundsApproval.approvalWindowRef;
+  const settlementEvidenceMatchesCurrentApproval =
+    settlementEvidenceApprovalWindowRef === currentApprovalWindowRef;
+  const boundedRealFundsApprovalWindowActive =
+    realFundsApproval.liveMainnetActionsAllowedNow && actualPrivateSettlementApprovalScoped;
+  const reviewedLiveSettlementProven =
+    actualPrivateSettlementReview.reviewStatus === "reviewed-live" &&
+    actualPrivateSettlementReview.promotionDecision?.reviewedLiveAllowed === true &&
+    actualPrivateSettlementEvidence.liveMainnetSettlementProven === true;
   const meaningfulPrivacyBlockedBy = [
     "no-proven-audited-shared-anonymity-set",
     "no-proven-live-mainnet-private-settlement-evidence",
-    ...(boundedRealFundsApprovalWindowActive ? [] : ["no-active-bounded-real-funds-approval-window"]),
+    ...(boundedRealFundsApprovalWindowActive ? [] : ["no-active-actual-private-settlement-approval-window"]),
   ];
   const approvalWindowTruth = boundedRealFundsApprovalWindowActive
-    ? "the current bounded real-funds approval window is active"
+    ? `the current bounded real-funds approval window is active only for ${realFundsApproval.approvalActionRef}`
+    : realFundsApproval.liveMainnetActionsAllowedNow && !actualPrivateSettlementApprovalScoped
+      ? `the current bounded real-funds approval window is active only for ${realFundsApproval.approvalActionRef}, not actual-private settlement`
     : realFundsApproval.stopCondition.appliesToCurrentApproval
       ? "the bounded real-funds approval window has already hit its stop condition"
       : "there is no active bounded real-funds approval window";
@@ -68,13 +83,25 @@ export function createVantaMainnetPrivateSettlementStatus() {
       "ops/mainnet/service-deployment.evidence.json",
       "ops/mainnet/mainnet-real-funds-approval.evidence.json",
     ],
-    deploymentTruth: `Vanta Private Pool v2 currently has authenticated route-health across deployed production role services, no-real-funds production smoke coverage, and a deployed final replay protocol layer, but it still must not be presented as live mainnet private settlement because there is no proven audited shared anonymity set, no proven live mainnet private settlement evidence, and ${approvalWindowTruth}.`,
+    deploymentTruth: `Vanta Private Pool v2 currently has authenticated route-health across deployed production role services, no-real-funds production smoke coverage, a deployed final replay protocol layer, and observed mainnet spend-program evidence, but it still must not be presented as live mainnet private settlement because there is no proven audited shared anonymity set, no reviewed shared-cohort deposit evidence, no reviewed live production replay rejection, and ${approvalWindowTruth}.`,
     actualPrivateMainnetEvidence: {
       evidenceRefs: actualPrivateSettlementEvidence.evidenceRefs,
       evidenceStatus: actualPrivateSettlementEvidence.currentStatus,
+      mainnetSpendProgramEvidence: actualPrivateSettlementEvidence.mainnetSpendProgramEvidence,
       reviewStatus: actualPrivateSettlementReview.reviewStatus,
       reviewVerdict: actualPrivateSettlementReview.finalVerdict,
-      liveMainnetSettlementProven: actualPrivateSettlementEvidence.liveMainnetSettlementProven === true,
+      promotionDecision: actualPrivateSettlementReview.promotionDecision,
+      hardPromotionBlockers: actualPrivateSettlementEvidence.hardPromotionBlockers,
+      lineage: {
+        currentApprovalActionRef: realFundsApproval.approvalActionRef,
+        currentApprovalWindowRef,
+        settlementEvidenceApprovalWindowRef,
+        settlementEvidenceMatchesCurrentApproval,
+        lineageWarning: settlementEvidenceMatchesCurrentApproval
+          ? null
+          : "The reviewed settlement evidence belongs to a previous approval window; current approval/stop-condition status must not be read as promoting that historical evidence.",
+      },
+      liveMainnetSettlementProven: reviewedLiveSettlementProven,
       noRealFundsSmokeTargetPassed: actualPrivateSmokeTarget?.status === "pass",
       noRealFundsSmokeTranscript: actualPrivateSmokeTarget?.publicTranscript ?? "missing",
       requiredLiveEvidence: [
@@ -86,8 +113,10 @@ export function createVantaMainnetPrivateSettlementStatus() {
         "reviewer packet proving no source wallet, merchant address, raw amount, input commitment, input leaf index, deposit signature, plaintext memo, or same-fee-payer linkage appears in the public spend transcript",
       ],
       status:
-        actualPrivateSettlementReview.reviewStatus === "reviewed-blocked"
-          ? "live-refs-reviewed-blocked"
+        reviewedLiveSettlementProven
+          ? "reviewed-live-evidence-path"
+          : actualPrivateSettlementReview.reviewStatus === "reviewed-blocked"
+          ? actualPrivateSettlementEvidence.currentStatus
           : actualPrivateSettlementEvidence.currentStatus === "filled-refs-awaiting-review"
             ? "live-refs-collected-awaiting-review"
           : "no-real-funds-smoke-only",
@@ -106,8 +135,11 @@ export function createVantaMainnetPrivateSettlementStatus() {
     productionReady: false,
     productionSmokeHealthPassed,
     productionSmokeTargetsPassed,
+    privateSettlementApprovalScoped: actualPrivateSettlementApprovalScoped,
     realFundsApprovalRecorded: realFundsApproval.realFundsApprovalRecorded,
-    realFundsAllowedNow: realFundsApproval.liveMainnetActionsAllowedNow,
+    realFundsAllowedNow: boundedRealFundsApprovalWindowActive,
+    realFundsApprovalAllowedNow: realFundsApproval.liveMainnetActionsAllowedNow,
+    realFundsApprovalActionRef: realFundsApproval.approvalActionRef,
     realFundsApprovalWindowStatus: realFundsApproval.approvalWindowStatus,
     realFundsStopCondition: realFundsApproval.stopCondition,
     replayProtocolLayerImplemented: nullifierReplayEvidence.protocolEnforcementFinalLayerImplemented === true,

@@ -10,7 +10,9 @@ export function createVantaPrivatePoolV2AnonymitySetReadiness() {
     meaningfulPrivacyReady: false,
     minimumDistinctCommitments: 1024,
     privacyClaimAllowed: false,
-    productionAnonymityMetricsAvailable: false,
+    productionAnonymityMetricsAvailable: true,
+    currentDistinctCommitmentCount: 2,
+    currentAnonymityMeasurementStatus: "measured-below-threshold",
     productionReady: false,
     assetCohortRules: {
       required: [
@@ -27,7 +29,7 @@ export function createVantaPrivatePoolV2AnonymitySetReadiness() {
         "npm run private-pool-v2:relayer-separation-evidence-check",
       ],
       currentTruth:
-        "role-service replay evidence proves correctness barriers; local safe-telemetry and service manifest checks cover parts of relayer separation; independent production review and live relayer-submitted spend evidence are still required",
+        "role-service replay evidence proves correctness barriers, local safe-telemetry and service manifest checks cover parts of relayer separation, and the mainnet relayer-submitted spend transaction is recorded; independent production review is still required",
     },
     nullifierUniqueness: {
       requiredEvidenceRefs: [
@@ -49,6 +51,7 @@ export function createVantaPrivatePoolV2AnonymitySetReadiness() {
       "ops/mainnet/actual-private-production-evidence.packet.json",
       "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
       "ops/mainnet/private-pool-v2-anonymity-set.evidence.json",
+      "npm run private-pool-v2:anonymity-set-metrics-check",
       "ops/mainnet/private-pool-v2-relayer-separation.evidence.json",
       "ops/mainnet/private-pool-v2-nullifier-replay.evidence.json",
       "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
@@ -65,9 +68,9 @@ export function createVantaPrivatePoolV2AnonymitySetReadiness() {
       "no-proven-audited-shared-anonymity-set",
       "no-proven-live-mainnet-private-settlement-evidence",
       "no-third-party-audit",
-      "no-production-anonymity-set-metrics",
+      "production-anonymity-set-measured-below-threshold",
+      "no-independent-anonymity-set-measurement-review",
       "no-independent-production-relayer-separation-review",
-      "no-live-relayer-submitted-spend-evidence",
     ],
     nonClaims: [
       "no anonymity guarantee",

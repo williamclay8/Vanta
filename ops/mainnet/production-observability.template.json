@@ -5,7 +5,7 @@
   "provider": "render-native-only-selected",
   "secretPolicy": "references-only-no-provider-secrets",
   "telemetrySource": "src/ops/vantaSafeTelemetry.mjs",
-  "summary": "References-only template for Render-native production observability. Better Stack production monitors are intentionally skipped by operator decision; Vanta will rely on Render service logs, Render health/status surfaces, and explicit runbook evidence until stronger dashboards, alerts, retention, and incident routing refs are recorded. Do not store provider source tokens, webhook URLs, API keys, raw database URLs, bearer tokens, wallet keys, or private user inputs here.",
+  "summary": "References-only template for Render-native production observability. Better Stack production monitors are intentionally skipped by operator decision; Vanta will rely on Render service logs, Render health/status surfaces, and configured runbook incident workflow evidence until stronger dashboards, alerts, retention, and provider routing refs are recorded. Do not store provider source tokens, webhook URLs, API keys, raw database URLs, bearer tokens, wallet keys, or private user inputs here.",
   "requiredAlerts": [
     "service_down",
     "5xx_rate_high",
@@ -45,10 +45,9 @@
         "production-log-source-created",
         "metrics-dashboard-created",
         "alert-policy-routed",
-        "incident-runbook-exercised",
         "retention-policy-approved"
       ],
-      "operatorDecision": "Render-native only selected; use Render service logs, Render health/status surfaces, and manual incident response until stronger dashboard, alert, retention, and incident evidence is recorded."
+      "operatorDecision": "Render-native only selected; use Render service logs, Render health/status surfaces, and configured incident workflow evidence until stronger dashboard, alert, retention, and provider-routing evidence is recorded."
     },
     {
       "service": "vanta-private-pool-v2",
@@ -91,10 +90,9 @@
         "production-log-source-created",
         "metrics-dashboard-created",
         "alert-policy-routed",
-        "incident-runbook-exercised",
         "retention-policy-approved"
       ],
-      "operatorDecision": "Render-native only selected; use Render service logs, Render health/status surfaces, and manual incident response until stronger dashboard, alert, retention, and incident evidence is recorded."
+      "operatorDecision": "Render-native only selected; use Render service logs, Render health/status surfaces, and configured incident workflow evidence until stronger dashboard, alert, retention, and provider-routing evidence is recorded."
     },
     {
       "service": "vanta-strategy",
@@ -111,10 +109,9 @@
         "production-log-source-created",
         "metrics-dashboard-created",
         "alert-policy-routed",
-        "incident-runbook-exercised",
         "retention-policy-approved"
       ],
-      "operatorDecision": "Render-native only selected; use Render service logs, Render health/status surfaces, and manual incident response until stronger dashboard, alert, retention, and incident evidence is recorded."
+      "operatorDecision": "Render-native only selected; use Render service logs, Render health/status surfaces, and configured incident workflow evidence until stronger dashboard, alert, retention, and provider-routing evidence is recorded."
     },
     {
       "service": "vanta-operator-control-plane",
@@ -131,10 +128,9 @@
         "production-log-source-created",
         "metrics-dashboard-created",
         "alert-policy-routed",
-        "incident-runbook-exercised",
         "retention-policy-approved"
       ],
-      "operatorDecision": "Render-native only selected; use Render service logs, Render health/status surfaces, and manual incident response until stronger dashboard, alert, retention, and incident evidence is recorded."
+      "operatorDecision": "Render-native only selected; use Render service logs, Render health/status surfaces, and configured incident workflow evidence until stronger dashboard, alert, retention, and provider-routing evidence is recorded."
     }
   ]
 }

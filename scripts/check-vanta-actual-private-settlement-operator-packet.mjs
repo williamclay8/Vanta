@@ -23,7 +23,14 @@ const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
 
 assert.equal(packet.version, "vanta-actual-private-settlement-operator-packet-0.1");
 assert.equal(packet.action.expectedActionRef, approvalStatus.approvalActionRef);
-assert.match(packet.action.expectedActionRef, /^actual-private\/mainnet-settlement-evidence-run-\d{4}-\d{2}-\d{2}/);
+if (approvalStatus.approvalActionRef.startsWith("actual-private/mainnet-settlement-evidence-run-")) {
+  assert.equal(packet.action.actualPrivateActionScoped, true);
+  assert.match(packet.action.expectedActionRef, /^actual-private\/mainnet-settlement-evidence-run-\d{4}-\d{2}-\d{2}/);
+  assert.equal(packet.action.scopeBlocker, null);
+} else {
+  assert.equal(packet.action.actualPrivateActionScoped, false);
+  assert.equal(packet.action.scopeBlocker, "approved-action-not-actual-private-settlement-scope");
+}
 assert.equal(packet.action.currentApprovalWindowRef, approvalStatus.approvalWindowRef);
 assert.equal(packet.action.liveMainnetActionsAllowedNow, approvalStatus.liveMainnetActionsAllowedNow);
 assert.equal(
@@ -31,11 +38,11 @@ assert.equal(
   approvalStatus.stopCondition.appliesToCurrentApproval,
 );
 assert.match(packet.action.stopCondition, /stop after the first failed transaction/);
-assert.equal(packet.action.expectedMaximumFundsAtRisk, "0.025 SOL");
-assert.equal(packet.action.expectedMaximumFundsAtRiskLamports, 25_000_000);
+assert.equal(packet.action.expectedMaximumFundsAtRisk, approvalStatus.maximumFundsAtRiskRef);
+assert.equal(packet.action.expectedMaximumFundsAtRiskLamports, parseSolLamports(approvalStatus.maximumFundsAtRiskRef));
 assert.equal(packet.action.requiresFreshBoundedApprovalWindow, true);
 assert.match(packet.approvalTextTemplate, /fresh exact date\/time range/);
-assert.match(packet.approvalTextTemplate, /0\.025 SOL/);
+assert.ok(packet.approvalTextTemplate.includes(approvalStatus.maximumFundsAtRiskRef));
 
 assert.equal(packet.commands.preflight, "npm run mainnet:actual-private-settlement-live");
 assert.equal(packet.commands.execute, "node scripts/run-vanta-actual-private-mainnet-settlement-evidence.mjs --live --execute");
@@ -52,6 +59,18 @@ for (const service of packet.requiredEnvironment.serviceRefs) {
   assert.match(service.urlValue, /^https:\/\/vanta-prod-private-pool-v2-/);
   assert.match(service.tokenRefValue, /_AUTH_TOKEN_REF$/);
 }
+assert.deepEqual(packet.requiredEnvironment.publicSolanaSpendAccountRefs, {
+  nullifierSetRef: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET_REF",
+  outputQueueRef: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE_REF",
+  poolStateRef: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE_REF",
+  programIdRef: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID_REF",
+});
+assert.deepEqual(packet.requiredEnvironment.publicSolanaSpendRuntimeEnv, {
+  nullifierSet: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET",
+  outputQueue: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE",
+  poolState: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE",
+  programId: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID",
+});
 
 assert.equal(packet.requiredEnvironment.planRefs.length, 18);
 for (const planRef of packet.requiredEnvironment.planRefs) {
@@ -82,6 +101,10 @@ assert.equal(packet.productionCapabilityGate.executeAllowedWhenStale, false);
 assert.ok(packet.shellExportTemplate.some((line) => line.includes("VANTA_ACTUAL_PRIVATE_MAINNET_WALLET_PUBLIC_KEY_REF")));
 assert.ok(packet.shellExportTemplate.some((line) => line.includes("VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN")));
 assert.ok(packet.shellExportTemplate.some((line) => line.includes("VANTA_ACTUAL_PRIVATE_SETTLEMENT_PLAN_JSON")));
+assert.ok(packet.shellExportTemplate.some((line) => line.includes("VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID")));
+assert.ok(packet.shellExportTemplate.some((line) => line.includes("VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE")));
+assert.ok(packet.shellExportTemplate.some((line) => line.includes("VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET")));
+assert.ok(packet.shellExportTemplate.some((line) => line.includes("VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE")));
 
 const serialized = JSON.stringify(packet);
 for (const forbidden of [
@@ -111,3 +134,10 @@ assert.ok(
 );
 
 console.log("Vanta actual-private settlement operator packet check: PASS");
+
+function parseSolLamports(value) {
+  const match = String(value).trim().match(/^(\d+)(?:\.(\d{1,9}))? SOL$/);
+  assert.ok(match, "maximumFundsAtRiskRef must use '<amount> SOL' with at most 9 decimal places.");
+  const [, whole, fraction = ""] = match;
+  return Number(BigInt(whole) * 1_000_000_000n + BigInt(fraction.padEnd(9, "0")));
+}

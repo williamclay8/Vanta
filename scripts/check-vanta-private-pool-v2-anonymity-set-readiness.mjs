@@ -21,7 +21,9 @@ assert.equal(result.privacyClaimAllowed, false);
 assert.equal(result.auditedSharedAnonymitySetAvailable, false);
 assert.equal(result.liveAnonymitySetAvailable, false);
 assert.equal(result.liveMainnetPrivateSettlementAvailable, false);
-assert.equal(result.productionAnonymityMetricsAvailable, false);
+assert.equal(result.productionAnonymityMetricsAvailable, true);
+assert.equal(result.currentDistinctCommitmentCount, 2);
+assert.equal(result.currentAnonymityMeasurementStatus, "measured-below-threshold");
 assert.equal(result.anonymitySetReadiness, "blocked");
 assert.equal(result.minimumDistinctCommitments, 1024);
 
@@ -41,8 +43,12 @@ assert.ok(
   "Relayer separation truth must reflect local and manifest coverage.",
 );
 assert.ok(
-  result.relayerSeparation.currentTruth.includes("independent production review and live relayer-submitted spend evidence are still required"),
-  "Relayer separation truth must keep production review and live spend evidence blocked.",
+  result.relayerSeparation.currentTruth.includes("the mainnet relayer-submitted spend transaction is recorded"),
+  "Relayer separation truth must reflect observed mainnet relayer spend evidence.",
+);
+assert.ok(
+  result.relayerSeparation.currentTruth.includes("independent production review is still required"),
+  "Relayer separation truth must keep independent production review blocked.",
 );
 assert.deepEqual(result.nullifierUniqueness.requiredEvidenceRefs, [
   "ops/mainnet/private-pool-v2-nullifier-replay.evidence.json",
@@ -61,6 +67,7 @@ for (const ref of [
   "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
   "ops/mainnet/actual-private-production-evidence.packet.json",
   "ops/mainnet/private-pool-v2-anonymity-set.evidence.json",
+  "npm run private-pool-v2:anonymity-set-metrics-check",
   "ops/mainnet/private-pool-v2-relayer-separation.evidence.json",
   "ops/mainnet/private-pool-v2-nullifier-replay.evidence.json",
   "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
@@ -83,9 +90,9 @@ for (const blocker of [
   "no-proven-audited-shared-anonymity-set",
   "no-proven-live-mainnet-private-settlement-evidence",
   "no-third-party-audit",
-  "no-production-anonymity-set-metrics",
+  "production-anonymity-set-measured-below-threshold",
+  "no-independent-anonymity-set-measurement-review",
   "no-independent-production-relayer-separation-review",
-  "no-live-relayer-submitted-spend-evidence",
 ]) {
   assert.ok(result.blockers.includes(blocker), `Missing blocker: ${blocker}`);
 }

@@ -133,12 +133,16 @@ assert.ok(
   "Abuse/observability evidence must preserve Strategy local audit-sink coverage.",
 );
 assert.ok(
+  evidence.deploymentTruth.includes("configured operator-runbook incident workflow refs"),
+  "Abuse/observability evidence must preserve the configured incident workflow truth.",
+);
+assert.ok(
   evidence.deploymentTruth.includes("operator control plane still lacks a production service ref"),
   "Abuse/observability evidence must preserve the remaining missing operator production service ref.",
 );
 assert.ok(
-  evidence.deploymentTruth.includes("per-service controls are still pending"),
-  "Abuse/observability evidence must preserve the explicit per-service pending-ops-controls truth.",
+  evidence.deploymentTruth.includes("per-service provider controls are still pending"),
+  "Abuse/observability evidence must preserve the explicit per-service pending provider-controls truth.",
 );
 assert.ok(
   evidence.nextOperatorAction.includes("first for vanta-pay and vanta-private-pool-v2"),

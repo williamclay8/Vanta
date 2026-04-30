@@ -30,15 +30,22 @@ if (checkMode) {
   assert.equal(result.productionSmokeTargetsPassed, true);
   assert.equal(result.replayProtocolLayerImplemented, true);
   assert.equal(result.realFundsApprovalRecorded, true);
-  assert.equal(result.realFundsAllowedNow, false);
+  assert.equal(result.realFundsAllowedNow, result.boundedRealFundsApprovalWindowActive);
+  assert.equal(
+    result.realFundsApprovalAllowedNow,
+    result.realFundsApprovalWindowStatus === "active" && !result.realFundsStopCondition.appliesToCurrentApproval,
+  );
+  assert.equal(result.privateSettlementApprovalScoped, result.realFundsApprovalActionRef.startsWith("actual-private/"));
   assert.ok(
     ["scheduled", "active", "expired"].includes(result.realFundsApprovalWindowStatus),
     "Private settlement status must expose a bounded approval-window status.",
   );
   assert.equal(
     result.boundedRealFundsApprovalWindowActive,
-    result.realFundsApprovalWindowStatus === "active",
-    "boundedRealFundsApprovalWindowActive must mirror the live approval-window status.",
+    result.realFundsApprovalWindowStatus === "active" &&
+      !result.realFundsStopCondition.appliesToCurrentApproval &&
+      result.privateSettlementApprovalScoped,
+    "boundedRealFundsApprovalWindowActive must require a live actual-private settlement approval window.",
   );
   assert.equal(result.noRealFundsSmokeOnly, true);
 }
@@ -56,7 +63,10 @@ if (jsonMode || checkMode) {
   console.log(`- replayProtocolLayerImplemented: ${String(result.replayProtocolLayerImplemented)}`);
   console.log(`- realFundsApprovalRecorded: ${String(result.realFundsApprovalRecorded)}`);
   console.log(`- realFundsAllowedNow: ${String(result.realFundsAllowedNow)}`);
+  console.log(`- realFundsApprovalAllowedNow: ${String(result.realFundsApprovalAllowedNow)}`);
+  console.log(`- realFundsApprovalActionRef: ${result.realFundsApprovalActionRef}`);
   console.log(`- realFundsApprovalWindowStatus: ${result.realFundsApprovalWindowStatus}`);
+  console.log(`- privateSettlementApprovalScoped: ${String(result.privateSettlementApprovalScoped)}`);
   console.log(`- boundedRealFundsApprovalWindowActive: ${String(result.boundedRealFundsApprovalWindowActive)}`);
   console.log(`- auditedSharedAnonymitySetAvailable: ${String(result.auditedSharedAnonymitySetAvailable)}`);
   console.log(`- anonymitySetReadiness: ${result.anonymitySetReadiness.anonymitySetReadiness}`);

@@ -46,6 +46,11 @@
     "VANTA_PRIVATE_POOL_V2_VERIFIER_DATABASE_URL_REF",
     "VANTA_PRIVATE_POOL_V2_PROVER_ARTIFACT_REF",
     "VANTA_PRIVATE_POOL_V2_RELAYER_FEE_WALLET_REF",
+    "VANTA_PRIVATE_POOL_V2_RELAYER_FEE_PAYER_KEYPAIR_JSON_REF",
+    "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID_REF",
+    "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE_REF",
+    "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET_REF",
+    "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE_REF",
     "VANTA_STRATEGY_DATABASE_URL_REF",
     "VANTA_STRATEGY_JUPITER_API_KEY_REF",
     "VANTA_STRATEGY_JITO_AUTH_TOKEN_REF",
@@ -99,7 +104,7 @@
       "status": "blocked",
       "externalGate": true,
       "owner": "infrastructure-operator",
-      "summary": "Mainnet-compatible indexer, relayer, prover, verifier, and operator services are deployed with health, authenticated readiness, replay verification, and no-real-funds production smoke evidence. The gate remains blocked while observability controls, backup/restore maturity, and real-funds readiness are still pending.",
+      "summary": "Mainnet-compatible indexer, relayer, prover, verifier, and operator services are deployed with health, authenticated readiness, replay verification, and no-real-funds production smoke evidence. The gate remains blocked while observability provider controls and real-funds readiness are still pending.",
       "requiredEvidence": [
         "ops/mainnet/service-deployment.evidence.json checked deployment status packet",
         "ops/mainnet/private-pool-v2-route-health.evidence.json authenticated route-health evidence",
@@ -128,7 +133,7 @@
         "npm run mainnet:private-pool-v2-production-smoke-check",
         "npm run mainnet:production-smoke-evidence-check"
       ],
-      "approvalGate": "observability controls, backup/restore maturity, and real-funds readiness are all externally cleared without secret values"
+      "approvalGate": "observability provider controls and real-funds readiness are externally cleared without secret values"
     },
     {
       "id": "production-storage",
@@ -315,7 +320,7 @@
       "status": "blocked",
       "externalGate": true,
       "owner": "human-launch-approver",
-      "summary": "Keep real funds and mainnet transactions blocked outside the bounded beta private-pool smoke action; the recorded 0.05 SOL approval window is now expired.",
+      "summary": "Keep real funds and mainnet transactions blocked outside the currently recorded bounded approval; verify the current action, window, fee-payer ref, and funds cap with npm run mainnet:real-funds-approval-status.",
       "requiredEvidence": [
         "ops/mainnet/mainnet-approval-gates.template.json references-only mainnet approval refs",
         "ops/mainnet/mainnet-approval-gates.evidence.json current blocked mainnet funds status",
@@ -345,7 +350,7 @@
       "status": "not-provisioned",
       "externalGate": true,
       "owner": "site-reliability-and-security-operator",
-      "summary": "Keep production observability blocked while provider-backed log sink, dashboards, alerts, retention, and incident workflow controls are still pending.",
+      "summary": "Keep production observability blocked while provider-backed log sink, dashboards, alerts, and retention controls are still pending; incident workflow refs are configured.",
       "requiredEvidence": [
         "monitoring dashboard reference",
         "ops/mainnet/production-observability.template.json references-only observability template",
@@ -370,7 +375,7 @@
         "npm run mainnet:observability-sink-check",
         "npm run operator:runbook-check"
       ],
-      "approvalGate": "provider-backed log sink, dashboards, alerts, retention, and incident workflow are all externally verified without logging secrets or private inputs"
+      "approvalGate": "provider-backed log sink, dashboards, alerts, and retention are externally verified, while configured incident workflow refs remain fresh and no secrets or private inputs are logged"
     }
   ],
   "stagingEvidence": {

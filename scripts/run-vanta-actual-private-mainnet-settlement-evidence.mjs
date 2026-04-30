@@ -15,13 +15,13 @@ const mode = args.has("--live") ? "live-preflight" : "dry-run";
 const dryRun = mode === "dry-run";
 const expectedAck = "I_UNDERSTAND_THIS_RUN_CAN_MOVE_MAINNET_FUNDS";
 const expectedExecuteAck = "I_UNDERSTAND_THIS_WILL_REQUEST_A_MAINNET_PRIVATE_SETTLEMENT";
-const expectedMaximumFundsAtRisk = "0.025 SOL";
-const expectedMaximumFundsAtRiskLamports = 25_000_000;
 const ack = process.env.VANTA_ACTUAL_PRIVATE_MAINNET_SETTLEMENT_ACK?.trim() ?? "";
 const executeAck = process.env.VANTA_ACTUAL_PRIVATE_MAINNET_SETTLEMENT_EXECUTE_ACK?.trim() ?? "";
 const executeRequested = args.has("--execute") || executeAck === expectedExecuteAck;
 const approvalStatus = createVantaMainnetRealFundsApprovalStatus();
 const expectedActionRef = approvalStatus.approvalActionRef;
+const expectedMaximumFundsAtRisk = approvalStatus.maximumFundsAtRiskRef;
+const expectedMaximumFundsAtRiskLamports = parseSolLamports(expectedMaximumFundsAtRisk);
 
 const walletEnv = {
   env: "VANTA_ACTUAL_PRIVATE_MAINNET_WALLET_PUBLIC_KEY_REF",
@@ -175,6 +175,13 @@ function sanitizePublicKey(value) {
 
 function forbiddenIds(value) {
   return forbiddenSecretPatterns.filter((pattern) => pattern.test(value)).map((pattern) => pattern.id);
+}
+
+function parseSolLamports(value) {
+  const match = String(value).trim().match(/^(\d+)(?:\.(\d{1,9}))? SOL$/);
+  assert.ok(match, "maximumFundsAtRiskRef must use '<amount> SOL' with at most 9 decimal places.");
+  const [, whole, fraction = ""] = match;
+  return Number(BigInt(whole) * 1_000_000_000n + BigInt(fraction.padEnd(9, "0")));
 }
 
 function readProductionServiceManifestRefs() {
@@ -417,11 +424,6 @@ function readStopConditionEvidence() {
   }
 }
 
-assert.match(
-  approvalStatus.approvalActionRef,
-  /^actual-private\/mainnet-settlement-evidence-run-\d{4}-\d{2}-\d{2}(?:-[A-Za-z0-9._-]+)?$/,
-  "This preflight runner is only scoped to actual-private evidence actions.",
-);
 assert.equal(
   approvalStatus.maximumFundsAtRiskRef,
   expectedMaximumFundsAtRisk,
@@ -436,17 +438,26 @@ const rawSettlementPlanInput = evaluateRawSettlementPlanInput();
 const operatorUrl = services.find((service) => service.kind === "operator-url");
 const operatorSecret = evaluateSecretPresence("VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN");
 const stopCondition = readStopConditionEvidence();
+const actualPrivateActionScoped =
+  /^actual-private\/mainnet-settlement-evidence-run-\d{4}-\d{2}-\d{2}(?:-[A-Za-z0-9._-]+)?$/.test(
+    approvalStatus.approvalActionRef,
+  );
 const actionMatchesApproval = approvalStatus.approvalActionRef === expectedActionRef;
 const capMatchesApproval = approvalStatus.maximumFundsAtRiskRef === expectedMaximumFundsAtRisk;
 const ackAccepted = dryRun ? false : ack === expectedAck;
 const executeAckAccepted = !executeRequested ? false : executeAck === expectedExecuteAck;
 const planReady = planInputs.every((input) => input.status === "ready");
 const servicesReady = services.every((service) => service.status === "ready");
+const relayerSerializedTransactionReady =
+  rawSettlementPlanInput.status === "ready" &&
+  typeof rawSettlementPlanInput.planInput?.relayerSerializedTransaction === "string" &&
+  rawSettlementPlanInput.planInput.relayerSerializedTransaction.trim().length > 0;
 const readyToRequestSettlement =
   !dryRun &&
   executeRequested &&
   ackAccepted &&
   executeAckAccepted &&
+  actualPrivateActionScoped &&
   actionMatchesApproval &&
   capMatchesApproval &&
   approvalStatus.liveMainnetActionsAllowedNow &&
@@ -455,6 +466,7 @@ const readyToRequestSettlement =
   servicesReady &&
   planReady &&
   rawSettlementPlanInput.status === "ready" &&
+  relayerSerializedTransactionReady &&
   operatorUrl?.status === "ready" &&
   operatorSecret.status === "ready";
 
@@ -475,6 +487,7 @@ if (readyToRequestSettlement) {
 }
 
 const blockers = compactBlockers([
+  actualPrivateActionScoped ? null : "approved-action-not-actual-private-settlement-scope",
   actionMatchesApproval ? null : "approved-action-mismatch",
   capMatchesApproval ? null : "approved-funds-cap-mismatch",
   approvalStatus.liveMainnetActionsAllowedNow ? null : "bounded-approval-window-not-active",
@@ -487,6 +500,9 @@ const blockers = compactBlockers([
   executeRequested && rawSettlementPlanInput.status !== "ready"
     ? "VANTA_ACTUAL_PRIVATE_SETTLEMENT_PLAN_JSON:not-ready"
     : null,
+  executeRequested && rawSettlementPlanInput.status === "ready" && !relayerSerializedTransactionReady
+    ? "VANTA_ACTUAL_PRIVATE_RELAYER_SERIALIZED_TRANSACTION:not-ready"
+    : null,
   executeRequested && !executeAckAccepted ? "missing-live-mainnet-settlement-execute-ack" : null,
   executeRequested && operatorSecret.status !== "ready" ? "VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN:not-ready" : null,
   !executeRequested && !dryRun ? "live-settlement-execute-ack-not-set" : null,
@@ -497,13 +513,18 @@ const report = {
   checkedAt: new Date().toISOString(),
   mode,
   executeRequested,
-  movesFunds: false,
+  movesFunds: readyToRequestSettlement,
+  fundsMovementRisk:
+    readyToRequestSettlement
+      ? "operator-relayer-settlement-request-enabled"
+      : "blocked-before-operator-relayer-settlement-request",
   operatorSettlementRequestImplemented: true,
   solanaRelayerSubmissionImplemented: true,
   phases: {
     approval: {
       status:
         actionMatchesApproval &&
+        actualPrivateActionScoped &&
         capMatchesApproval &&
         approvalStatus.liveMainnetActionsAllowedNow &&
         !stopCondition.appliesToCurrentApproval
@@ -511,6 +532,7 @@ const report = {
           : "blocked",
       approvalActionRef: approvalStatus.approvalActionRef,
       expectedActionRef,
+      actualPrivateActionScoped,
       actionMatchesApproval,
       approvalActionSummary: approvalStatus.approvalActionSummary,
       approvalEnvironment: approvalStatus.approvalEnvironment,
@@ -576,7 +598,8 @@ const report = {
       relayerSerializedTransaction:
         executeRequested && rawSettlementPlanInput.status === "ready"
           ? {
-              present: Boolean(rawSettlementPlanInput.planInput?.relayerSerializedTransaction),
+              present: relayerSerializedTransactionReady,
+              requiredForOperatorRequest: true,
               valuePolicy: "raw-unsigned-transaction-bytes-presence-only-never-printed",
             }
           : undefined,

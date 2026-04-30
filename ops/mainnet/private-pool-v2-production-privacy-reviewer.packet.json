@@ -1,0 +1,215 @@
+{
+  "version": "vanta-private-pool-v2-production-privacy-reviewer-packet-0.1",
+  "mainnetReady": false,
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "meaningfulPrivacyReady": false,
+  "reviewPacketReady": true,
+  "secretPolicy": "references-only-no-secret-values",
+  "purpose": "Reviewer-facing refs-only packet for the live actual-private Private Pool v2 evidence path. This packet packages what a reviewer can inspect today and preserves the blockers that prevent production privacy claims.",
+  "reviewScope": [
+    "mainnet spend program deploy/init/spend evidence",
+    "public transcript boundary for the observed spend evidence transaction",
+    "production relayer configuration/funding/deploy evidence refs",
+    "current anonymity-set measurement and threshold gap",
+    "nullifier replay evidence boundary",
+    "claim-gate and no-overclaiming controls"
+  ],
+  "publicMainnetRefs": {
+    "network": "mainnet-beta",
+    "programId": "1ANmqk7YB17FxaJLnvUthY9R4UZHyJuNt1cmNfpMsgm",
+    "programDeployTxRef": "solana-tx:34syPdrcrwjUvFLiDRzPA597MxNqB8CassbJYu77DN4ECm1u5gLjL2uwhz5bcnHKbeZH4A819kjofCGBvpkP764p",
+    "createAccountsTxRef": "solana-tx:368JyAHH4aAuvFiSuhGhoejuwPvyTDwMtHdrzLgRhqVnbQNrbaCjCHxjsR8Ty7PcoR4kb9xjR7Q674NKZ9BABdGo",
+    "initTxRef": "solana-tx:3zfqv9jKCwWJ2vtwFaViBq2GuaTP6HqjbUqfW8PGYjraumdSvvtVFHiYG1uyLTDDvpLgtwwN4d4XmTjd7D2RQEGU",
+    "spendEvidenceTxRef": "solana-tx:56QhWoCQ6KjD9SVBJ9KdZphVMp49qYSiwEDTprZsoyo5WFTXoLRMrxNTabB9dELhL5WrFWbSZDDzNd4URr3u5fZL",
+    "poolState": "5qjyK5B5ZMAgLmXxrpAGqFHvEHTCP4MUwRmzvA4MPEuQ",
+    "nullifierSet": "x5xWJZNN8rjZPdAYgG8EJuTZYYvYDQyhVXEgKB6i23k",
+    "outputQueue": "CsnYLMnnMso1KT6PE7csi51ZtFHSPQr1xTePA8rKUzrZ"
+  },
+  "evidencePackets": {
+    "actualPrivateProduction": "ops/mainnet/actual-private-production-evidence.packet.json",
+    "actualPrivateSettlement": "ops/mainnet/actual-private-mainnet-settlement.evidence.json",
+    "actualPrivateSettlementReview": "ops/mainnet/actual-private-mainnet-settlement-review.evidence.json",
+    "productionRelayerReview": "ops/mainnet/private-pool-v2-production-relayer-review.evidence.json",
+    "relayerSeparation": "ops/mainnet/private-pool-v2-relayer-separation.evidence.json",
+    "anonymitySet": "ops/mainnet/private-pool-v2-anonymity-set.evidence.json",
+    "nullifierReplay": "ops/mainnet/private-pool-v2-nullifier-replay.evidence.json",
+    "externalGates": "ops/mainnet/external-gates.packet.json"
+  },
+  "currentReviewerInputs": {
+    "freshBoundedApprovalRef": "Clay/founder-approval/2026-04-29-reviewer-packet-evidence-1849-2049",
+    "freshBoundedApprovalWindowRef": "2026-04-29T18:49:00-20:49:00 America/Los_Angeles",
+    "relayerSubmittedSpendTxRef": "solana-tx:56QhWoCQ6KjD9SVBJ9KdZphVMp49qYSiwEDTprZsoyo5WFTXoLRMrxNTabB9dELhL5WrFWbSZDDzNd4URr3u5fZL",
+    "spendProgramConfigRef": "solana-program-config:mainnet-beta-private-pool-v2-spend-2026-04-29",
+    "configurationReviewRef": "review:relayer-live-config-doppler-prd-redacted-2026-04-29",
+    "fundingReviewRef": "solana-tx:5Ye81vvvmRoVmh18iY21hP6FdbFvJy9LFxQLLkxfnwKF8ecVz831gL1D4TGY9manwyKiw3N5c4myNdWRBgy2ne5L",
+    "custodyReviewRef": "custody:relayer-fee-payer-doppler-prd-2026-04-29",
+    "deployReviewRef": "render-deploy:relayer-dep-d7ovh0d8nd3s739q49a0.operator-dep-d7ovh4hf9bms73fhp0fg",
+    "logRedactionReviewRef": "review:relayer-log-redaction-render-health-safe-telemetry-2026-04-29",
+    "anonymityMetricsCommand": "npm run private-pool-v2:anonymity-set-metrics-json",
+    "claimGateCommand": "npm run truth:privacy-claim-gate"
+  },
+  "freshReviewerPacketRun": {
+    "approvalActionRef": "reviewer-packet/mainnet-evidence-run-2026-04-29-1849-2049",
+    "approvalStatusCommand": "npm run mainnet:real-funds-approval-status-check",
+    "approvalWindowStatus": "active",
+    "fundsMoved": false,
+    "liveTransactionSubmitted": false,
+    "maximumFundsAtRiskRef": "0.015 SOL",
+    "noFundsReplayStatusCommand": "doppler run --config prd --project vanta -- npm run mainnet:nullifier-replay-status-auth",
+    "actualPrivateReplayProbeCommand": "doppler run --config prd --project vanta -- npm run mainnet:actual-private-replay-probe-auth",
+    "actualPrivateReplayReconciliationCommand": "doppler run --config prd --project vanta -- npm run mainnet:actual-private-replay-reconcile-auth",
+    "actualPrivateReplayProbeRefShape": "operator-nullifier-replay:<production-duplicate-rejection-ref>",
+    "actualPrivateReplayProbeLastObserved": {
+      "checkedAt": "2026-04-30T03:59:19.814Z",
+      "httpStatus": 200,
+      "accepted": true,
+      "replay": false,
+      "mutated": false,
+      "reason": "durable-nullifier-available",
+      "operatorNullifierReplayRef": null,
+      "reconciliationBlocker": "production-replay-guard-missing-reviewed-nullifier",
+      "truthBoundary": "Authenticated production probe succeeded without mutation, but the operator replay guard reported the reviewed nullifier as available. This is not duplicate-replay rejection evidence and must not promote the replay blocker."
+    },
+    "noFundsReplayStatus": {
+      "status": 200,
+      "runtimeMode": "remote-services",
+      "storageKind": "postgres-jsonb-snapshot-store",
+      "durableStoreConfigured": true,
+      "nullifierReplayGuardMode": "postgres-durable-claim-preflight-and-accepted-reservation",
+      "nullifierReplayGuardStorageMode": "postgres-unique-index",
+      "nullifierReplayAcceptedCount": 0,
+      "nullifierReplayReservedCount": 0,
+      "layeredReplayStatus": "operator-enforced-plus-role-network-verified-plus-production-smoke-simulated",
+      "protocolEnforcementLayer": "operator-claim-preflight-plus-verifier-receipt-idempotency-plus-indexer-nullifier-registration",
+      "finalProtocolLayerImplemented": true,
+      "productionReady": false
+    },
+    "duplicateNullifierReplayPromotionSatisfied": false,
+    "truthBoundary": "Authenticated production replay status was observed without moving funds or submitting a transaction. This is not a live duplicate-nullifier rejection ref and does not satisfy the replay promotion blocker."
+  },
+  "currentAnonymityMeasurement": {
+    "status": "measured-below-threshold",
+    "assetCohort": "stablecoin-usdc-v1",
+    "outputRecordCount": 1,
+    "outputCommitmentCount": 2,
+    "distinctCommitmentCount": 2,
+    "minimumDistinctCommitments": 1024,
+    "meetsMinimumDistinctCommitments": false,
+    "reviewerAccepted": false
+  },
+  "requiredToPromote": [
+    {
+      "id": "shared-cohort-deposit-transaction",
+      "requiredRefShape": "solana-tx:<shared-cohort-deposit-mainnet-signature>",
+      "currentRef": null,
+      "status": "blocked"
+    },
+    {
+      "id": "live-nullifier-replay-rejection",
+      "requiredRefShape": "operator-nullifier-replay:<production-duplicate-rejection-ref>",
+      "currentRef": "solana-simulation:duplicate-nullifier-custom-1-2026-04-29",
+      "status": "blocked-simulation-only"
+    },
+    {
+      "id": "independent-reviewer-or-audit",
+      "requiredRefShape": "reviewer:<independent-reviewer-or-audit-ref>",
+      "currentRef": null,
+      "status": "blocked"
+    },
+    {
+      "id": "audited-anonymity-set",
+      "requiredRefShape": "audit:<shared-anonymity-set-audit-ref>",
+      "currentRef": null,
+      "status": "blocked"
+    },
+    {
+      "id": "third-party-audit-report-and-fix-verification",
+      "requiredRefShape": "audit:<third-party-report-and-fix-verification-ref>",
+      "currentRef": null,
+      "status": "blocked"
+    },
+    {
+      "id": "minimum-live-commitments",
+      "requiredRefShape": "metrics:<1024-plus-distinct-live-commitments-ref>",
+      "currentRef": "metrics:stablecoin-usdc-v1-distinct-commitments-2-of-1024-2026-04-29",
+      "status": "blocked-below-threshold"
+    }
+  ],
+  "reviewerChecklist": [
+    {
+      "id": "inspect-public-spend-program-refs",
+      "status": "ready",
+      "command": "npm run mainnet:actual-private-production-evidence-check"
+    },
+    {
+      "id": "inspect-production-relayer-boundary",
+      "status": "ready-external-review-required",
+      "command": "npm run private-pool-v2:production-relayer-review-check"
+    },
+    {
+      "id": "inspect-anonymity-threshold-gap",
+      "status": "ready-blocked-below-threshold",
+      "command": "npm run private-pool-v2:anonymity-set-metrics-check"
+    },
+    {
+      "id": "inspect-mainnet-private-settlement-status",
+      "status": "ready-blocked",
+      "command": "npm run mainnet:private-settlement-check"
+    },
+    {
+      "id": "probe-actual-private-production-replay",
+      "status": "ready-auth-required-non-mutating",
+      "command": "npm run mainnet:actual-private-replay-probe-auth"
+    },
+    {
+      "id": "reconcile-actual-private-replay-state",
+      "status": "ready-auth-required-non-mutating",
+      "command": "npm run mainnet:actual-private-replay-reconcile-auth"
+    },
+    {
+      "id": "inspect-shared-cohort-deposit-requirement",
+      "status": "ready-blocked-no-live-solana-tx",
+      "command": "npm run mainnet:actual-private-shared-cohort-deposit-review"
+    },
+    {
+      "id": "inspect-claim-gate",
+      "status": "ready-locked",
+      "command": "npm run truth:privacy-claim-gate"
+    }
+  ],
+  "canonicalVerificationCommands": [
+    "npm run private-pool-v2:production-privacy-reviewer-packet-check",
+    "npm run mainnet:actual-private-production-evidence-check",
+    "npm run mainnet:actual-private-settlement-review-check",
+    "npm run private-pool-v2:production-relayer-review-check",
+    "npm run private-pool-v2:anonymity-set-metrics-check",
+    "npm run private-pool-v2:anonymity-set-evidence-check",
+    "npm run private-pool-v2:relayer-separation-evidence-check",
+    "npm run mainnet:actual-private-replay-probe-check",
+    "npm run mainnet:actual-private-replay-reconcile-check",
+    "npm run mainnet:actual-private-shared-cohort-deposit-review-check",
+    "npm run truth:privacy-claim-gate",
+    "npm run mainnet:private-settlement-check"
+  ],
+  "nonClaims": [
+    "not production private",
+    "not anonymous",
+    "not untraceable",
+    "not audited",
+    "not mainnet-ready private settlement",
+    "not a third-party-reviewed privacy claim"
+  ],
+  "forbiddenInGit": [
+    "auth tokens",
+    "database URLs",
+    "wallet keys",
+    "seed phrases",
+    "fee-payer keypair JSON",
+    "signed transactions",
+    "customer private inputs",
+    "raw hidden-economics terms",
+    "raw user addresses tied to private deposits"
+  ],
+  "truthBoundary": "This packet is ready to hand to a reviewer. It does not satisfy the review, audit, anonymity-set, replay, shared-cohort, legal/compliance/custody, or production-readiness blockers by itself."
+}

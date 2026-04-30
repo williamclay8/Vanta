@@ -13,6 +13,7 @@ operator/.vanta-swap-records.json
 operator/.vanta-sol-unshield-records.json
 operator/.vanta-private-core-*.json
 zk/noir/**/target/
+programs/**/target/
 .tmp/
 .superpowers/
 .vscode/

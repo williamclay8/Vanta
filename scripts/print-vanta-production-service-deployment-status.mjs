@@ -55,7 +55,7 @@ if (checkMode) {
   assert.equal(result.backupRestoreEvidenceRef, "ops/mainnet/production-backup-restore.evidence.json");
   assert.equal(result.realFundsReadinessPending, true);
   assert.deepEqual(result.pendingProductionControls, [
-    "observability-controls",
+    "observability-provider-controls",
     "real-funds-readiness",
   ]);
   assert.deepEqual(result.restoreReadbackCoverage, {

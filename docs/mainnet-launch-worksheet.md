@@ -158,7 +158,7 @@ As of April 20, 2026:
 - Doppler staging setup guide: `docs/doppler-staging-setup.md`.
 - Monitoring provider: Better Stack staging monitors created by operator report; Better Stack production monitors are intentionally skipped by operator decision.
 - Staging monitoring manifest: `ops/mainnet/staging-monitoring.manifest.json` tracks public `/health` monitors only.
-- Operator telemetry: Pay and Private Pool v2 now emit privacy-safe stdout JSON through `src/ops/vantaSafeTelemetry.mjs`; production log sink, metrics, alert routing, audit retention, and incident workflow are not complete.
+- Operator telemetry: Pay and Private Pool v2 now emit privacy-safe stdout JSON through `src/ops/vantaSafeTelemetry.mjs`; incident workflow refs are configured, while production log sink, metrics, alert routing, and audit retention are not complete.
 - Production observability template: `ops/mainnet/production-observability.template.json` records provider-neutral references-only log source, dashboard, alert-policy, incident-runbook, and retention-policy targets.
 - Production observability currently points Private Pool v2 at the live Render production role service refs for indexer, prover, relayer, verifier, and operator. This is inventory alignment only; observability evidence remains pending because production monitors/sinks were skipped.
 - Production backup/restore template: `ops/mainnet/production-backup-restore.template.json` records references-only database, backup policy, PITR, encrypted-backup, restore-drill, access-audit, and least-privilege user targets.
@@ -173,15 +173,15 @@ As of April 20, 2026:
 - Private Pool v2 production smoke evidence: `ops/mainnet/private-pool-v2-production-smoke.evidence.json` records authenticated no-real-funds production smoke across deployed indexer, prover, relayer, verifier, and operator services.
 - Private Pool v2 production service setup guide: `docs/production-private-pool-v2-service-setup.md` records the current Render inventory and deployed production indexer, prover, relayer, verifier, and operator services.
 - Mainnet approval gates template: `ops/mainnet/mainnet-approval-gates.template.json` records refs for secret-manager-backed credentials, production smoke evidence, third-party audit, legal/compliance/custody review, and explicit mainnet-funds approval.
-- Mainnet approval gates evidence: `ops/mainnet/mainnet-approval-gates.evidence.json` records the current launch-control truth: technical smoke/migration/partial restore evidence is linked, audit, legal/compliance/custody, secret-manager audit/rotation, provider backup controls, and Pay restore readback are operator-skipped controls. The recorded real-funds approval was bounded to one beta private-pool smoke with maximum `0.05 SOL` at risk, and its April 24, 2026 launch window is now expired.
+- Mainnet approval gates evidence: `ops/mainnet/mainnet-approval-gates.evidence.json` records the current launch-control truth: technical smoke/migration/partial restore evidence is linked, audit, legal/compliance/custody, secret-manager audit/rotation, provider backup controls, and Pay restore readback are operator-skipped controls. The real-funds approval status is bounded to the exact currently recorded action/window/cap and must be checked with `npm run mainnet:real-funds-approval-status`.
 - Mainnet approval gates status: `npm run mainnet:approval-gates-status` prints the current gate state without exposing secrets.
-- Mainnet real-funds approval packet: `ops/mainnet/mainnet-real-funds-approval.evidence.json` records the exact approved action, launch window, fee-payer ref, rollback ref, stop-loss ref, bounded funds-at-risk ref, and approver ref for the beta private-pool smoke only.
+- Mainnet real-funds approval packet: `ops/mainnet/mainnet-real-funds-approval.evidence.json` records the exact approved action, launch window, fee-payer ref, rollback ref, stop-loss ref, bounded funds-at-risk ref, and approver ref for the current bounded action only.
 - Security reviewer: not chosen.
 - Legal/compliance reviewer: not chosen.
 - Target environment: staging first.
-- General mainnet funds: not approved. Prior bounded beta private-pool smoke approval window: expired on April 24, 2026; not reusable.
+- General mainnet funds: not approved. Any approval is action-, window-, fee-payer-, and cap-scoped; check the current status before any live mainnet action.
 
-Next practical step: record a new bounded approval before any live mainnet action, including any repeat of the beta private-pool smoke, because the approval recorded in `ops/mainnet/mainnet-real-funds-approval.evidence.json` is historical and expired. Pay restore readback, provider backup/PITR/encryption/access-audit/least-privilege evidence, secret-manager audit/rotation evidence, audit, and legal/compliance/custody review are operator-skipped controls, not completed controls. Do not paste credentials, legal text, audit exploit details, wallet keys, or signed transactions.
+Next practical step: record or verify a bounded approval before any live mainnet action, including any repeat or changed action, because approval is not reusable outside the exact recorded action/window/fee-payer/cap. Pay restore readback, provider backup/PITR/encryption/access-audit/least-privilege evidence, secret-manager audit/rotation evidence, audit, and legal/compliance/custody review are operator-skipped controls, not completed controls. Do not paste credentials, legal text, audit exploit details, wallet keys, or signed transactions.
 
 ## Pay Production Release Checklist
 

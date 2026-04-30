@@ -1,0 +1,46 @@
+{
+  "version": "vanta-production-incident-workflow-evidence-0.1",
+  "mainnetReady": false,
+  "productionReady": false,
+  "status": "configured-runbook-tabletop",
+  "checkedRunbookRefs": [
+    "docs/operator-runbook.md#pay-operator",
+    "docs/operator-runbook.md#private-pool-v2-operator",
+    "docs/operator-runbook.md#readiness-truth",
+    "docs/mainnet-deployment-runbook.md#monitoring-and-incident-response",
+    "runbook/disable-private-pool-v2-services-and-beta-actions"
+  ],
+  "exercisedAtRef": "operator-tabletop:2026-04-29-observability-incident-workflow",
+  "exerciseScope": [
+    "vanta-pay",
+    "vanta-private-pool-v2",
+    "vanta-strategy",
+    "vanta-operator-control-plane"
+  ],
+  "exerciseAssertions": [
+    "detect service-health or readiness drift through existing checked commands",
+    "stop bounded beta/live actions before debugging",
+    "preserve logs and evidence refs without copying secrets",
+    "avoid unapproved real-funds actions",
+    "refresh sanitized evidence after incident state is understood",
+    "return readiness and approval surfaces to blocked if the bounded action/window/funds-at-risk contract drifts"
+  ],
+  "configuredControls": [
+    "incident-workflow"
+  ],
+  "stillPendingProviderControls": [
+    "render-native-log-sink",
+    "metrics-dashboards",
+    "alert-policies",
+    "retention-policy"
+  ],
+  "nonClaims": [
+    "not provider-backed alert routing",
+    "not a Render log-sink claim",
+    "not a metrics-dashboard claim",
+    "not a retention-policy claim",
+    "not production-ready",
+    "not mainnet-ready"
+  ],
+  "safety": "No provider API keys, webhook URLs, source tokens, bearer values, wallet keys, signed transaction material, raw database URLs, private user inputs, or secrets are stored in this evidence file."
+}

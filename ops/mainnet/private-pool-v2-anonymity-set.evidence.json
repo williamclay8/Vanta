@@ -5,7 +5,7 @@
   "privacyClaimAllowed": false,
   "meaningfulPrivacyReady": false,
   "secretPolicy": "references-only-no-secret-values",
-  "purpose": "Refs-only production anonymity-set evidence packet for Private Pool v2. This packet records the schema and current blocker state; it is not production anonymity evidence yet.",
+  "purpose": "Refs-only production anonymity-set evidence packet for Private Pool v2. This packet records the measured-below-threshold current blocker state; it is not production anonymity evidence yet.",
   "minimumDistinctCommitments": 1024,
   "measurementPolicy": {
     "cohortBasis": "per-asset-pool",
@@ -26,12 +26,15 @@
       "id": "stablecoin-usdc-v1-mainnet-private-pool-v2",
       "assetCohort": "stablecoin-usdc-v1",
       "poolRef": "VANTA_PRIVATE_POOL_V2_STABLECOIN_USDC_V1_POOL_REF",
-      "distinctCommitmentCount": 0,
+      "distinctCommitmentCount": 2,
       "meetsMinimumDistinctCommitments": false,
       "metricsRef": "VANTA_PRIVATE_POOL_V2_STABLECOIN_USDC_V1_ANONYMITY_METRICS_REF",
       "measurementWindowRef": "VANTA_PRIVATE_POOL_V2_STABLECOIN_USDC_V1_ANONYMITY_WINDOW_REF",
       "reviewerRef": "VANTA_PRIVATE_POOL_V2_AUDIT_REF",
-      "status": "not-measured"
+      "status": "measured-below-threshold",
+      "measurementSource": "ops/mainnet/actual-private-mainnet-settlement-review.evidence.json passed check indexer-output-commitments-found",
+      "outputRecordCount": 1,
+      "outputCommitmentCount": 2
     },
     {
       "id": "vusd-mainnet-private-pool-v2",
@@ -45,15 +48,34 @@
       "status": "not-measured"
     }
   ],
+  "currentMeasurement": {
+    "status": "measured-below-threshold",
+    "measuredAt": "2026-04-29T04:20:00Z",
+    "measurementCommand": "npm run private-pool-v2:anonymity-set-metrics-json",
+    "configuredProgramRef": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID_REF",
+    "configuredOutputQueueRef": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE_REF",
+    "currentMainnetSpendEvidenceRef": "ops/mainnet/actual-private-mainnet-settlement-review.evidence.json",
+    "currentMainnetSpendEvidenceCheckId": "indexer-output-commitments-found",
+    "outputRecordCount": 1,
+    "outputCommitmentCount": 2,
+    "distinctCommitmentCount": 2,
+    "minimumDistinctCommitments": 1024,
+    "meetsMinimumDistinctCommitments": false,
+    "reviewerAccepted": false,
+    "productionReady": false,
+    "privacyClaimAllowed": false
+  },
   "currentEvidenceRefs": [
     "ops/mainnet/actual-private-production-evidence.packet.json",
+    "ops/mainnet/actual-private-mainnet-settlement-review.evidence.json",
     "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
     "ops/mainnet/private-pool-v2-route-health.evidence.json",
     "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
+    "npm run private-pool-v2:anonymity-set-metrics-check",
     "npm run private-pool-v2:anonymity-set-readiness-check"
   ],
   "productionBlockers": [
-    "No live mainnet production cohort metrics are recorded.",
+    "Live mainnet production cohort metrics are measured below threshold.",
     "No asset cohort has at least 1024 distinct live commitments.",
     "No independent reviewer has accepted the anonymity-set measurement.",
     "No audited shared anonymity set exists."

@@ -1,0 +1,84 @@
+# Vanta Private Pool v2 Spend Program
+
+Small native Rust Solana program for anchoring Vanta actual-private spend evidence.
+
+This is intentionally minimal:
+
+- no Anchor
+- no CPIs
+- no token movement
+- no secrets
+- no deploy configuration
+- no proof verification
+
+It records the public evidence produced by an already-verified private spend lane: one nullifier, two output commitments, and a public input hash.
+
+## Instructions
+
+Instruction data is byte-packed.
+
+### `0` - init
+
+Initializes the headers of three already-created, program-owned, writable accounts:
+
+1. `pool_state`
+2. `nullifier_set`
+3. `output_queue`
+
+The init instruction is exactly one byte:
+
+```text
+[0]
+```
+
+Minimum account data sizes:
+
+- `pool_state`: 56 bytes
+- `nullifier_set`: `16 + 32 * slot_count` bytes
+- `output_queue`: `16 + 96 * slot_count` bytes
+
+### `1` - spend
+
+Spend accounts:
+
+1. `pool_state` writable
+2. `nullifier_set` writable
+3. `output_queue` writable
+
+Spend instruction data is exactly 129 bytes:
+
+```text
+[1, nullifier:32, output0:32, output1:32, publicInputHash:32]
+```
+
+Behavior:
+
+- verifies all three accounts are writable and owned by this program
+- verifies account headers were initialized
+- scans every fixed nullifier slot and rejects duplicate nullifiers
+- appends the nullifier to the nullifier set
+- appends `output0`, `output1`, and `publicInputHash` as a fixed output record
+- increments the pool spend count
+- records the latest public input hash in `pool_state`
+
+## Build
+
+If the Solana SBF toolchain is installed:
+
+```bash
+cargo-build-sbf --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml
+```
+
+Native Rust check:
+
+```bash
+cargo check --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml
+```
+
+## Error Codes
+
+- `1`: duplicate nullifier
+- `2`: nullifier set full
+- `3`: output queue full
+- `4`: invalid or uninitialized account header
+- `5`: pool, nullifier, and output counts disagree

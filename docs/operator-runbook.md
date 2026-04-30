@@ -315,8 +315,8 @@ npm run mainnet:abuse-observability-evidence-check
 
 For the current Render-native only decision, the next operator steps are:
 
-1. Create or confirm Render-native logs / dashboards / alerts / retention / incident workflow for `vanta-pay`
-2. Create or confirm the same controls for `vanta-private-pool-v2`
+1. Create or confirm Render-native logs / dashboards / alerts / retention for `vanta-pay`
+2. Create or confirm the same provider controls for `vanta-private-pool-v2`
 3. Create production service refs for `vanta-strategy` and `vanta-operator-control-plane`
 4. Only then record equivalent observability refs for those last two services
 
@@ -326,7 +326,7 @@ Pay and Private Pool v2 also have a shared rate-limit seam at:
 src/ops/vantaRateLimit.mjs
 ```
 
-The current fallback limiter is intentionally marked `productionReady: false`; it provides a fail-closed operator control point when no database is configured. The same module now also exposes a Postgres-backed durable shared-window limiter that the Pay and Private Pool v2 operator services prefer when their production database URL is configured. Production observability is still not complete until the deployed runtime, metrics, alerts, dashboards, retention, and incident workflow evidence are all fresh.
+The current fallback limiter is intentionally marked `productionReady: false`; it provides a fail-closed operator control point when no database is configured. The same module now also exposes a Postgres-backed durable shared-window limiter that the Pay and Private Pool v2 operator services prefer when their production database URL is configured. Incident workflow evidence is now checked through `npm run mainnet:production-incident-workflow-evidence-check`; production observability is still not complete until deployed runtime evidence plus provider log sink, metrics, alerts, dashboards, and retention evidence are all fresh.
 
 Pay and Private Pool v2 also emit shared privacy-safe JSON telemetry through:
 
@@ -577,6 +577,70 @@ VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN=<secret-manager-value>
 
 Store the token values only in the secret manager or deployment environment, never in Git or chat.
 
+### Relayer Serialized Transaction Bytes
+
+Use the checked Solana spend-transaction helper when an approved operator needs real
+`VANTA_ACTUAL_PRIVATE_RELAYER_SERIALIZED_TRANSACTION` bytes for evidence input.
+The helper builds and prints transaction bytes only; it does not sign, send,
+broadcast, or initialize mainnet state.
+
+Required public/operator inputs:
+
+```bash
+VANTA_PRIVATE_POOL_V2_RELAYER_RPC_URL=<rpc-url-from-secret-manager-or-approved-shell>
+VANTA_PRIVATE_POOL_V2_RELAYER_FEE_WALLET=<relayer-fee-payer-public-key>
+VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID=<private-pool-v2-program-id>
+VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE=<pool-state-account>
+VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET=<nullifier-set-account>
+VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE=<output-queue-account>
+```
+
+Provide either explicit instruction bytes:
+
+```bash
+VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_INSTRUCTION_DATA_BASE64=<base64-instruction-bytes>
+```
+
+or the reviewed evidence refs used to construct the instruction payload:
+
+```bash
+VANTA_ACTUAL_PRIVATE_ACCEPTED_ROOT_REF=<reviewed-root-ref>
+VANTA_ACTUAL_PRIVATE_NULLIFIER_REF=<reviewed-nullifier-ref>
+VANTA_ACTUAL_PRIVATE_SPEND_PUBLIC_INPUT_HASH_REF=<reviewed-public-input-hash-ref>
+VANTA_ACTUAL_PRIVATE_SETTLEMENT_COMMITMENT_REF=<reviewed-settlement-commitment-ref>
+VANTA_ACTUAL_PRIVATE_SETTLEMENT_ID_REF=<reviewed-settlement-id-ref>
+```
+
+Optional no-network-blockhash input:
+
+```bash
+VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_RECENT_BLOCKHASH=<recent-blockhash>
+```
+
+Safe no-send command:
+
+```bash
+npm run private-pool-v2:solana-spend-transaction
+```
+
+The command prints:
+
+```bash
+export VANTA_ACTUAL_PRIVATE_RELAYER_SERIALIZED_TRANSACTION='base64:...'
+```
+
+For a metadata-only preview, use:
+
+```bash
+npm run private-pool-v2:solana-spend-transaction -- --json
+```
+
+Do not paste RPC credentials, private keys, seed phrases, signing material, bearer
+tokens, or the resulting serialized transaction into chat, docs, Git, screenshots,
+or issue trackers. Mainnet deploy/init, transaction signing, transaction
+submission, and any real-funds movement remain blocked until Clay gives separate
+explicit approval for that exact action and window.
+
 The external approval template is:
 
 ```text
@@ -605,7 +669,7 @@ npm run mainnet:approval-gates-status-json
 npm run mainnet:approval-gates-evidence-check
 ```
 
-This file records which technical evidence has been captured, which controls were skipped by operator decision, and which bounded real-funds action is approved. It must keep `mainnetReady: false` and `productionReady: false`; `realFundsAllowed` is true only for the bounded beta private-pool smoke approval.
+This file records which technical evidence has been captured, which controls were skipped by operator decision, and which bounded real-funds action is approved. It must keep `mainnetReady: false` and `productionReady: false`; any real-funds allowance is scoped only to the currently recorded bounded approval. Verify current status with `npm run mainnet:real-funds-approval-status`.
 
 Operator decision on April 22, 2026: audit, legal/compliance/custody review, secret-manager audit/rotation evidence, Pay restore readback, and provider backup/PITR/encryption/access-audit/least-privilege evidence were skipped. This is not approval and not evidence that those controls passed.
 
@@ -621,7 +685,7 @@ Verify it with:
 npm run mainnet:real-funds-approval-check
 ```
 
-This packet records bounded approval for the beta mainnet private-pool smoke with maximum `0.05 SOL` at risk during `2026-04-22T14:30:00-15:30:00 America/Chicago`, approved by Clay. It does not approve any other mainnet action and does not make Vanta production-ready. It must never include wallet keys, seed phrases, raw signing credentials, bearer tokens, raw database URLs, or signed transactions.
+This packet records the currently bounded approval action, launch window, fee-payer ref, rollback ref, stop-loss ref, funds cap, and approver ref. It does not approve any other mainnet action and does not make Vanta production-ready. It must never include wallet keys, seed phrases, raw signing credentials, bearer tokens, raw database URLs, or signed transactions.
 
 The live real-funds approval status surface is:
 

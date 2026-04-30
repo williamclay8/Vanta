@@ -22,7 +22,16 @@ function parseKeypairJson(value) {
 function decodeSerializedTransaction(value) {
   const serialized = requireText(value, "serializedTransaction");
   const base64 = serialized.startsWith("base64:") ? serialized.slice("base64:".length) : serialized;
-  return Uint8Array.from(Buffer.from(base64, "base64"));
+  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(base64) || base64.length % 4 !== 0) {
+    throw new Error("Vanta Private Pool v2 Solana relayer requires base64 serializedTransaction.");
+  }
+
+  const bytes = Buffer.from(base64, "base64");
+  if (bytes.length === 0 || bytes.toString("base64") !== base64) {
+    throw new Error("Vanta Private Pool v2 Solana relayer requires base64 serializedTransaction.");
+  }
+
+  return Uint8Array.from(bytes);
 }
 
 export function isVantaSolanaTransactionSignature(value) {

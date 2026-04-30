@@ -103,7 +103,15 @@ assert.equal(snapshot.privateSettlement.replayProtocolLayerImplemented, true);
 assert.equal(snapshot.privateSettlement.realFundsApprovalRecorded, true);
 assert.equal(
   snapshot.privateSettlement.realFundsAllowedNow,
+  snapshot.privateSettlement.boundedRealFundsApprovalWindowActive,
+);
+assert.equal(
+  snapshot.privateSettlement.realFundsApprovalAllowedNow,
   snapshot.realFundsApproval.liveMainnetActionsAllowedNow,
+);
+assert.equal(
+  snapshot.privateSettlement.privateSettlementApprovalScoped,
+  snapshot.realFundsApproval.approvalActionRef.startsWith("actual-private/"),
 );
 assert.equal(snapshot.privateSettlement.privacyClaimAllowed, false);
 assert.equal(snapshot.privateSettlement.noRealFundsSmokeOnly, true);
@@ -123,16 +131,17 @@ assert.equal(snapshot.privateSettlement.auditedSharedAnonymitySetAvailable, fals
 assert.equal(snapshot.privateSettlement.liveMainnetPrivateSettlementAvailable, false);
 assert.equal(
   snapshot.privateSettlement.boundedRealFundsApprovalWindowActive,
-  snapshot.realFundsApproval.liveMainnetActionsAllowedNow,
+  snapshot.realFundsApproval.liveMainnetActionsAllowedNow &&
+    snapshot.privateSettlement.privateSettlementApprovalScoped,
 );
 assert.deepEqual(snapshot.privateSettlement.meaningfulPrivacyBlockedBy, [
   "no-proven-audited-shared-anonymity-set",
   "no-proven-live-mainnet-private-settlement-evidence",
   "no-third-party-audit",
-  "no-production-anonymity-set-metrics",
+  "production-anonymity-set-measured-below-threshold",
+  "no-independent-anonymity-set-measurement-review",
   "no-independent-production-relayer-separation-review",
-  "no-live-relayer-submitted-spend-evidence",
-  ...(snapshot.privateSettlement.boundedRealFundsApprovalWindowActive ? [] : ["no-active-bounded-real-funds-approval-window"]),
+  ...(snapshot.privateSettlement.boundedRealFundsApprovalWindowActive ? [] : ["no-active-actual-private-settlement-approval-window"]),
 ]);
 assert.equal(snapshot.walletSigning.checkedEvidenceRef, "ops/mainnet/wallet-signing-safety.evidence.json");
 assert.equal(snapshot.walletSigning.mainnetReady, false);
@@ -284,7 +293,7 @@ assert.deepEqual(snapshot.productionServiceDeployment.restoreReadbackCoverage, {
 });
 assert.equal(snapshot.productionServiceDeployment.realFundsReadinessPending, true);
 assert.deepEqual(snapshot.productionServiceDeployment.pendingProductionControls, [
-  "observability-controls",
+  "observability-provider-controls",
   "real-funds-readiness",
 ]);
 assert.equal(
@@ -490,6 +499,30 @@ assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:nullifier-replay-evidence-check"),
   "Missing production nullifier replay evidence command.",
 );
+assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:actual-private-replay-probe-check"),
+  "Missing actual-private production replay probe command.",
+);
+assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:actual-private-replay-reconcile-check"),
+  "Missing actual-private production replay reconciliation command.",
+);
+assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:actual-private-shared-cohort-deposit-review-check"),
+  "Missing actual-private shared-cohort deposit review command.",
+);
+assert.ok(
+  snapshot.nullifierReplay.productionReplayBlockedBy.includes(
+    "no-reviewed-live-production-duplicate-replay-rejection",
+  ),
+  "Nullifier replay blockers must preserve the authenticated duplicate-replay blocker.",
+);
+assert.ok(
+  !snapshot.nullifierReplay.productionReplayBlockedBy.includes(
+    "no-live-actual-private-accepted-root-freshness-evidence",
+  ),
+  "Nullifier replay blockers must not retain stale accepted-root freshness blocker.",
+);
 assert.ok(snapshot.requiredCommands.includes("npm run mainnet:preflight"), "Missing mainnet preflight command.");
 assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:external-gates-check"),
@@ -689,9 +722,10 @@ assert.ok(
     (action) =>
       action.includes("render-native-log-sink") &&
       action.includes("metrics-dashboards") &&
-      action.includes("incident-workflow"),
+      action.includes("retention-policy") &&
+      action.includes("incident workflow runbook refs remain configured"),
   ),
-  "Next actions must include the explicit pending observability controls.",
+  "Next actions must include explicit pending provider observability controls and configured incident workflow refs.",
 );
 
 console.log("Vanta mainnet readiness check: PASS");

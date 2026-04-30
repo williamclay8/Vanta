@@ -1,0 +1,169 @@
+{
+  "version": "vanta-private-pool-v2-production-relayer-review-evidence-0.1",
+  "mainnetReady": false,
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "productionRelayerReviewReady": false,
+  "secretPolicy": "references-only-no-secret-values",
+  "purpose": "Refs-only production relayer configuration, funding, and deploy review packet for actual-private Private Pool v2 settlement.",
+  "reviewStatus": "blocked-awaiting-external-review",
+  "reviewScope": [
+    "production relayer live Solana submission configuration",
+    "production actual-private spend program and account configuration",
+    "production operator reviewed-transaction-byte gate",
+    "relayer fee-payer wallet funding and custody",
+    "production relayer deploy identity and environment review",
+    "production relayer log redaction review"
+  ],
+  "requiredProductionEnv": {
+    "relayer": [
+      "VANTA_PRIVATE_POOL_V2_RELAYER_DATABASE_URL",
+      "VANTA_PRIVATE_POOL_V2_RELAYER_AUTH_TOKEN",
+      "VANTA_PRIVATE_POOL_V2_RELAYER_FEE_WALLET",
+      "VANTA_PRIVATE_POOL_V2_RELAYER_RPC_URL",
+      "VANTA_PRIVATE_POOL_V2_RELAYER_SOLANA_SUBMISSION_MODE",
+      "VANTA_PRIVATE_POOL_V2_RELAYER_FEE_PAYER_KEYPAIR_JSON",
+      "VANTA_PRIVATE_POOL_V2_RELAYER_SOLANA_SUBMIT_ACK",
+      "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID",
+      "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE",
+      "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET",
+      "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE"
+    ],
+    "operator": [
+      "VANTA_PRIVATE_POOL_V2_REQUIRE_RELAYER_SERIALIZED_TRANSACTION"
+    ]
+  },
+  "requiredRefShapes": {
+    "configurationReviewRef": "review:relayer-live-config-<date-or-review-id>",
+    "fundingReviewRef": "solana-tx:<relayer-fee-payer-funding-signature>",
+    "custodyReviewRef": "custody:relayer-fee-payer-<review-id>",
+    "spendProgramConfigRef": "solana-program-config:<program-and-account-review-id>",
+    "deployReviewRef": "render-deploy:<relayer-and-operator-deploy-id-or-review-id>",
+    "logRedactionReviewRef": "review:relayer-log-redaction-<date-or-review-id>",
+    "independentReviewerRef": "reviewer:<reviewer-or-audit-ref>"
+  },
+  "currentReviewRefs": {
+    "configurationReviewRef": "review:relayer-live-config-doppler-prd-redacted-2026-04-29",
+    "fundingReviewRef": "solana-tx:5Ye81vvvmRoVmh18iY21hP6FdbFvJy9LFxQLLkxfnwKF8ecVz831gL1D4TGY9manwyKiw3N5c4myNdWRBgy2ne5L",
+    "custodyReviewRef": "custody:relayer-fee-payer-doppler-prd-2026-04-29",
+    "spendProgramConfigRef": "solana-program-config:mainnet-beta-private-pool-v2-spend-2026-04-29",
+    "deployReviewRef": "render-deploy:relayer-dep-d7ovh0d8nd3s739q49a0.operator-dep-d7ovh4hf9bms73fhp0fg",
+    "logRedactionReviewRef": "review:relayer-log-redaction-render-health-safe-telemetry-2026-04-29",
+    "independentReviewerRef": null
+  },
+  "spendProgramConfig": {
+    "network": "mainnet-beta",
+    "programId": "1ANmqk7YB17FxaJLnvUthY9R4UZHyJuNt1cmNfpMsgm",
+    "programDeployRef": "solana-tx:34syPdrcrwjUvFLiDRzPA597MxNqB8CassbJYu77DN4ECm1u5gLjL2uwhz5bcnHKbeZH4A819kjofCGBvpkP764p",
+    "programLoaderRef": "solana-program-loader:BPFLoaderUpgradeab1e11111111111111111111111",
+    "poolState": "5qjyK5B5ZMAgLmXxrpAGqFHvEHTCP4MUwRmzvA4MPEuQ",
+    "nullifierSet": "x5xWJZNN8rjZPdAYgG8EJuTZYYvYDQyhVXEgKB6i23k",
+    "outputQueue": "CsnYLMnnMso1KT6PE7csi51ZtFHSPQr1xTePA8rKUzrZ",
+    "createAccountsRef": "solana-tx:368JyAHH4aAuvFiSuhGhoejuwPvyTDwMtHdrzLgRhqVnbQNrbaCjCHxjsR8Ty7PcoR4kb9xjR7Q674NKZ9BABdGo",
+    "initRef": "solana-tx:3zfqv9jKCwWJ2vtwFaViBq2GuaTP6HqjbUqfW8PGYjraumdSvvtVFHiYG1uyLTDDvpLgtwwN4d4XmTjd7D2RQEGU",
+    "spendEvidenceRef": "solana-tx:56QhWoCQ6KjD9SVBJ9KdZphVMp49qYSiwEDTprZsoyo5WFTXoLRMrxNTabB9dELhL5WrFWbSZDDzNd4URr3u5fZL",
+    "replaySimulationRef": "solana-simulation:duplicate-nullifier-custom-1-2026-04-29",
+    "reviewRef": "solana-program-config:mainnet-beta-private-pool-v2-spend-2026-04-29",
+    "truthBoundary": "Mainnet spend-program deploy/init/spend evidence is recorded as public refs only. This does not create an independent reviewer acceptance, audit claim, anonymity-set claim, or production privacy claim."
+  },
+  "observedExternalBlockers": [
+    {
+      "id": "doppler-production-relayer-live-env-missing",
+      "observedBy": "clay",
+      "observedAtRef": "2026-04-29",
+      "evidenceRef": "doppler:project-vanta-config-prd-secrets-search",
+      "status": "resolved",
+      "resolvedAtRef": "review:relayer-live-config-doppler-prd-redacted-2026-04-29",
+      "missingSecretNames": [
+        "VANTA_PRIVATE_POOL_V2_RELAYER_SOLANA_SUBMISSION_MODE",
+        "VANTA_PRIVATE_POOL_V2_RELAYER_RPC_URL",
+        "VANTA_PRIVATE_POOL_V2_RELAYER_SOLANA_SUBMIT_ACK",
+        "VANTA_PRIVATE_POOL_V2_RELAYER_FEE_PAYER_KEYPAIR_JSON",
+        "VANTA_PRIVATE_POOL_V2_REQUIRE_RELAYER_SERIALIZED_TRANSACTION"
+      ],
+      "secretMaterialPrinted": false
+    }
+  ],
+  "reviewChecklist": [
+    {
+      "id": "relayer-live-submission-mode",
+      "status": "pass",
+      "requiredEvidence": "Production relayer env sets VANTA_PRIVATE_POOL_V2_RELAYER_SOLANA_SUBMISSION_MODE=live.",
+      "currentEvidenceRef": "review:relayer-live-config-doppler-prd-redacted-2026-04-29"
+    },
+    {
+      "id": "relayer-rpc-and-submit-ack",
+      "status": "pass",
+      "requiredEvidence": "Production relayer has mainnet RPC and VANTA_PRIVATE_POOL_V2_RELAYER_SOLANA_SUBMIT_ACK set through the secret manager.",
+      "currentEvidenceRef": "review:relayer-live-config-doppler-prd-redacted-2026-04-29"
+    },
+    {
+      "id": "relayer-fee-payer-key-custody",
+      "status": "pass",
+      "requiredEvidence": "Production relayer fee-payer keypair is present only in the secret manager, with custody, rotation, and revocation review.",
+      "currentEvidenceRef": "custody:relayer-fee-payer-doppler-prd-2026-04-29"
+    },
+    {
+      "id": "relayer-fee-payer-funded",
+      "status": "pass",
+      "requiredEvidence": "A reviewed Solana funding transaction funds the relayer fee payer without exposing private key material.",
+      "currentEvidenceRef": "solana-tx:5Ye81vvvmRoVmh18iY21hP6FdbFvJy9LFxQLLkxfnwKF8ecVz831gL1D4TGY9manwyKiw3N5c4myNdWRBgy2ne5L"
+    },
+    {
+      "id": "operator-transaction-byte-gate",
+      "status": "pass",
+      "requiredEvidence": "Production operator env sets VANTA_PRIVATE_POOL_V2_REQUIRE_RELAYER_SERIALIZED_TRANSACTION=true.",
+      "currentEvidenceRef": "review:relayer-live-config-doppler-prd-redacted-2026-04-29"
+    },
+    {
+      "id": "actual-private-spend-program-configured",
+      "status": "pass",
+      "requiredEvidence": "Production relayer transaction-byte generation has a reviewed mainnet spend program id plus pool state, nullifier set, and output queue accounts.",
+      "currentEvidenceRef": "solana-program-config:mainnet-beta-private-pool-v2-spend-2026-04-29"
+    },
+    {
+      "id": "production-deploy-reviewed",
+      "status": "pass",
+      "requiredEvidence": "Production relayer and operator deploys are reviewed after the env changes and are tied to the checked commit.",
+      "currentEvidenceRef": "render-deploy:relayer-dep-d7ovh0d8nd3s739q49a0.operator-dep-d7ovh4hf9bms73fhp0fg"
+    },
+    {
+      "id": "production-log-redaction-reviewed",
+      "status": "pass",
+      "requiredEvidence": "Production relayer/operator logs are reviewed for no bearer token, database URL, key material, signed transaction bytes, source wallet, raw amount, raw asset, input commitment, input leaf index, deposit signature, or plaintext memo leakage.",
+      "currentEvidenceRef": "review:relayer-log-redaction-render-health-safe-telemetry-2026-04-29"
+    },
+    {
+      "id": "independent-reviewer-accepted",
+      "status": "blocked",
+      "requiredEvidence": "An independent reviewer accepts the production relayer configuration/funding/deploy boundary.",
+      "currentEvidenceRef": null
+    }
+  ],
+  "currentEvidenceRefs": [
+    "ops/mainnet/private-pool-v2-services.manifest.json#relayer",
+    "ops/mainnet/private-pool-v2-services.manifest.json#operator",
+    "ops/mainnet/private-pool-v2-relayer-separation.evidence.json",
+    "npm run private-pool-v2:solana-relayer-submission-check",
+    "npm run private-pool-v2:solana-spend-transaction-builder-check",
+    "npm run private-pool-v2:solana-spend-transaction-check",
+    "npm run ops:safe-telemetry-check",
+    "solana-tx:34syPdrcrwjUvFLiDRzPA597MxNqB8CassbJYu77DN4ECm1u5gLjL2uwhz5bcnHKbeZH4A819kjofCGBvpkP764p",
+    "solana-tx:368JyAHH4aAuvFiSuhGhoejuwPvyTDwMtHdrzLgRhqVnbQNrbaCjCHxjsR8Ty7PcoR4kb9xjR7Q674NKZ9BABdGo",
+    "solana-tx:3zfqv9jKCwWJ2vtwFaViBq2GuaTP6HqjbUqfW8PGYjraumdSvvtVFHiYG1uyLTDDvpLgtwwN4d4XmTjd7D2RQEGU",
+    "solana-tx:56QhWoCQ6KjD9SVBJ9KdZphVMp49qYSiwEDTprZsoyo5WFTXoLRMrxNTabB9dELhL5WrFWbSZDDzNd4URr3u5fZL"
+  ],
+  "productionBlockers": [
+    "No independent reviewer has accepted the production relayer boundary."
+  ],
+  "forbiddenInGit": [
+    "auth tokens",
+    "database URLs",
+    "wallet keys",
+    "seed phrases",
+    "fee-payer keypair JSON",
+    "signed transactions",
+    "customer private inputs",
+    "raw hidden-economics terms"
+  ]
+}

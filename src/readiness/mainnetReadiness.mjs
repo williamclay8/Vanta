@@ -18,13 +18,13 @@ const blockerDefinitions = [
     id: "deployed-indexer-relayer-prover-operator",
     severity: "critical",
     buildSummary:
-      "Keep the service-deployment status/evidence surface fresh while deployed production indexer, relayer, prover, verifier, and operator services continue to show green route-health, replay, and no-real-funds smoke evidence, while restore readback remains explicitly passed for Private Pool v2 core, role-service storage, Strategy, and operator storage, and while the checked pending production controls remain observability-controls and real-funds-readiness.",
+      "Keep the service-deployment status/evidence surface fresh while deployed production indexer, relayer, prover, verifier, and operator services continue to show green route-health, replay, and no-real-funds smoke evidence, while restore readback remains explicitly passed for Private Pool v2 core, role-service storage, Strategy, and operator storage, while incident workflow evidence is configured, and while the checked pending production controls remain observability-provider-controls and real-funds-readiness.",
   },
   {
     id: "final-nullifier-replay-enforcement",
     severity: "critical",
-    buildSummary:
-      "Keep the deployed Postgres-backed operator replay guard, verified role-service replay barrier, and no-real-funds production smoke replay rejection fresh while the checked replay blockers remain no-real-funds-smoke-only, no-proven-audited-shared-anonymity-set, and no-proven-live-mainnet-private-settlement-evidence.",
+    buildSummary: (snapshot) =>
+      `Keep the deployed Postgres-backed operator replay guard, verified role-service replay barrier, local actual-private protocol replay regression, production replay probe/reconciliation commands, and no-real-funds production smoke replay rejection fresh while the checked replay blockers remain ${snapshot.nullifierReplay.productionReplayBlockedBy.join(", ")}.`,
   },
   {
     id: "wallet-backed-browser-signing-safety",
@@ -36,13 +36,13 @@ const blockerDefinitions = [
     id: "abuse-rate-limit-observability",
     severity: "high",
     buildSummary:
-      "Keep the abuse/observability status/evidence surface fresh while Pay and Private Pool v2 are the next services ready for Render-native observability wiring, while Strategy and operator control plane still lack production service refs, and while the checked pending controls remain render-native-log-sink, metrics-dashboards, alert-policies, retention-policy, and incident-workflow.",
+      "Keep the abuse/observability status/evidence surface fresh while Pay and Private Pool v2 are the next services ready for Render-native observability wiring, while Strategy and operator control plane still lack production service refs, while incident workflow runbook refs are configured, and while the checked pending provider controls remain render-native-log-sink, metrics-dashboards, alert-policies, and retention-policy.",
   },
   {
     id: "no-mainnet-funds-without-explicit-approval",
     severity: "critical",
     buildSummary: (snapshot) =>
-      `Allow only the bounded live mainnet private-settlement smoke approved in the real-funds packet while the checked funds blockers remain ${snapshot.realFundsApproval.mainnetFundsBlockedBy.join(", ")}.`,
+      `Allow only the bounded action currently approved in the real-funds packet (${snapshot.realFundsApproval.approvalActionRef}) while the checked funds blockers remain ${snapshot.realFundsApproval.mainnetFundsBlockedBy.join(", ")}.`,
   },
 ];
 
@@ -137,6 +137,9 @@ const requiredCommands = [
   "npm run nullifier:replay-guard-check",
   "npm run mainnet:nullifier-replay-status",
   "npm run mainnet:nullifier-replay-evidence-check",
+  "npm run mainnet:actual-private-replay-probe-check",
+  "npm run mainnet:actual-private-replay-reconcile-check",
+  "npm run mainnet:actual-private-shared-cohort-deposit-review-check",
   "npm run mainnet:role-service-replay-status",
   "npm run mainnet:role-service-replay-evidence-check",
   "npm run mainnet:deployment-manifest-check",
@@ -222,13 +225,13 @@ export function createVantaMainnetReadinessSnapshot() {
   }));
   const nextActions = [
     realFundsApproval.liveMainnetActionsAllowedNow
-      ? "Execute only the approved bounded live mainnet private-settlement smoke during the active approval window; record a new bounded approval packet before changing the action, launch window, fee payer, or maximum funds at risk."
+      ? `Execute only the approved bounded action ${realFundsApproval.approvalActionRef} during the active approval window; record a new bounded approval packet before changing the action, launch window, fee payer, or maximum funds at risk.`
       : realFundsApproval.approvalWindowStatus === "scheduled"
         ? "Wait for the approved live mainnet launch window to open before attempting any real-funds action."
-        : "Record a new bounded approval window before any live mainnet private-pool action or real-funds movement.",
+        : "Record a new bounded approval window before any live mainnet action or real-funds movement.",
     `Keep the service-deployment packet, green route-health, green replay verification, green no-real-funds production smoke evidence, and the checked restore-readback coverage fresh while the checked pending production controls remain ${productionServiceDeployment.pendingProductionControls.join(", ")}.`,
     "Keep operator-skipped controls visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
-    `Keep the abuse/observability status/evidence surface fresh while the checked pending controls remain ${abuseObservability.pendingObservabilityControls.join(", ")}.`,
+    `Keep the abuse/observability status/evidence surface fresh while incident workflow runbook refs remain configured and the checked pending provider controls remain ${abuseObservability.pendingObservabilityControls.join(", ")}.`,
     `Keep the deployed operator replay-status evidence, the Postgres-backed nullifier replay guard, role-service replay verification, and production smoke replay simulation fresh while the checked replay blockers remain ${nullifierReplay.productionReplayBlockedBy.join(", ")}.`,
     `Keep the wallet-signing status/evidence surface, four-page local browser verification, deployed browser verification, and live-send inventory commands fresh while any real-funds action remains bounded by explicit approval.`,
   ];

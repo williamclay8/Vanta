@@ -51,6 +51,7 @@ const report = JSON.parse(dryRun.stdout);
 assert.equal(report.version, "vanta-actual-private-mainnet-settlement-executor-preflight-0.1");
 assert.equal(report.mode, "dry-run");
 assert.equal(report.movesFunds, false);
+assert.equal(report.fundsMovementRisk, "blocked-before-operator-relayer-settlement-request");
 assert.equal(report.executeRequested, false);
 assert.equal(report.operatorSettlementRequestImplemented, true);
 assert.equal(report.solanaRelayerSubmissionImplemented, true);
@@ -61,9 +62,18 @@ for (const phase of ["approval", "wallet", "services", "settlementPlan", "eviden
 }
 
 assert.equal(report.phases.approval.expectedActionRef, approvalStatus.approvalActionRef);
-assert.match(report.phases.approval.expectedActionRef, /^actual-private\/mainnet-settlement-evidence-run-\d{4}-\d{2}-\d{2}/);
+if (approvalStatus.approvalActionRef.startsWith("actual-private/mainnet-settlement-evidence-run-")) {
+  assert.equal(report.phases.approval.actualPrivateActionScoped, true);
+  assert.match(report.phases.approval.expectedActionRef, /^actual-private\/mainnet-settlement-evidence-run-\d{4}-\d{2}-\d{2}/);
+} else {
+  assert.equal(report.phases.approval.actualPrivateActionScoped, false);
+  assert.ok(
+    report.finalBlocker.blockers.includes("approved-action-not-actual-private-settlement-scope"),
+    "Non-settlement approvals must fail closed without breaking preflight.",
+  );
+}
 assert.equal(report.phases.approval.actionMatchesApproval, true);
-assert.equal(report.phases.approval.expectedMaximumFundsAtRisk, "0.025 SOL");
+assert.equal(report.phases.approval.expectedMaximumFundsAtRisk, approvalStatus.maximumFundsAtRiskRef);
 assert.equal(report.phases.approval.capMatchesApproval, true);
 assert.equal(report.phases.approval.liveMainnetActionsAllowedNow, approvalStatus.liveMainnetActionsAllowedNow);
 assert.equal(
@@ -140,7 +150,10 @@ assert.deepEqual(report.phases.settlementPlan.actions, [
   "request-operator-protocol-settlement-via-relayer-caller-when-execute-ack-is-present",
 ]);
 assert.equal(report.phases.settlementPlan.operatorEndpoint, "/private-pool-v2/protocol-settlements");
-assert.equal(report.phases.settlementPlan.maximumFundsAtRiskLamports, 25_000_000);
+assert.equal(
+  report.phases.settlementPlan.maximumFundsAtRiskLamports,
+  parseSolLamports(approvalStatus.maximumFundsAtRiskRef),
+);
 assert.equal(report.phases.settlementPlan.transactionConstruction, "implemented-reviewed-plan-boundary");
 assert.equal(report.phases.settlementPlan.transactionSigning, "not-local-wallet-signing-operator-relayer-submits");
 assert.equal(report.phases.settlementPlan.transactionSubmission, "operator-settlement-request-disabled-without-execute-ack");
@@ -250,9 +263,45 @@ assert.ok(executeWithoutSecretReport.finalBlocker.blockers.includes("VANTA_PRIVA
 assert.equal(executeWithoutSecretReport.phases.operatorSecret.sanitizedValue, undefined);
 assert.deepEqual(executeWithoutSecretReport.phases.settlementPlan.relayerSerializedTransaction, {
   present: true,
+  requiredForOperatorRequest: true,
   valuePolicy: "raw-unsigned-transaction-bytes-presence-only-never-printed",
 });
 assert.ok(!executeWithoutSecret.stdout.includes(fixtureRelayerSerializedTransaction));
+
+const executeWithoutRelayerTransactionPlanJson = JSON.stringify({
+  ...JSON.parse(fixtureSettlementPlanJson),
+  relayerSerializedTransaction: undefined,
+});
+const executeWithoutRelayerTransaction = spawnSync("node", [runnerPath, "--live", "--execute"], {
+  cwd: repoRoot,
+  encoding: "utf8",
+  env: executorEnv({
+    VANTA_ACTUAL_PRIVATE_MAINNET_SETTLEMENT_ACK: "I_UNDERSTAND_THIS_RUN_CAN_MOVE_MAINNET_FUNDS",
+    VANTA_ACTUAL_PRIVATE_MAINNET_SETTLEMENT_EXECUTE_ACK:
+      "I_UNDERSTAND_THIS_WILL_REQUEST_A_MAINNET_PRIVATE_SETTLEMENT",
+    VANTA_ACTUAL_PRIVATE_SETTLEMENT_PLAN_JSON: executeWithoutRelayerTransactionPlanJson,
+    VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN: "operator-secret-present-redacted",
+  }),
+});
+assert.equal(
+  executeWithoutRelayerTransaction.status,
+  1,
+  "Execute mode must fail closed without reviewed relayer transaction bytes.",
+);
+assert.equal(executeWithoutRelayerTransaction.stderr, "", "Execute relayer-byte gate must stay JSON-only on stdout.");
+const executeWithoutRelayerTransactionReport = JSON.parse(executeWithoutRelayerTransaction.stdout);
+assert.equal(executeWithoutRelayerTransactionReport.executeRequested, true);
+assert.ok(
+  executeWithoutRelayerTransactionReport.finalBlocker.blockers.includes(
+    "VANTA_ACTUAL_PRIVATE_RELAYER_SERIALIZED_TRANSACTION:not-ready",
+  ),
+);
+assert.deepEqual(executeWithoutRelayerTransactionReport.phases.settlementPlan.relayerSerializedTransaction, {
+  present: false,
+  requiredForOperatorRequest: true,
+  valuePolicy: "raw-unsigned-transaction-bytes-presence-only-never-printed",
+});
+assert.equal(executeWithoutRelayerTransactionReport.phases.settlementPlan.execution, null);
 
 const rawToken = ["Bearer", "abcdefghijklmnopqrstuvwxyz0123456789"].join(" ");
 const redactionRun = spawnSync("node", [runnerPath, "--dry-run"], {
@@ -273,6 +322,13 @@ assert.equal(redactedOperatorToken.sanitizedValue, "FORBIDDEN_RAW_VALUE_REDACTED
 assert.equal(redactedOperatorToken.blocker, "forbidden-secret-like-value-redacted");
 
 console.log("Vanta actual-private mainnet settlement executor contract check: PASS");
+
+function parseSolLamports(value) {
+  const match = String(value).trim().match(/^(\d+)(?:\.(\d{1,9}))? SOL$/);
+  assert.ok(match, "maximumFundsAtRiskRef must use '<amount> SOL' with at most 9 decimal places.");
+  const [, whole, fraction = ""] = match;
+  return Number(BigInt(whole) * 1_000_000_000n + BigInt(fraction.padEnd(9, "0")));
+}
 
 function executorEnv(overrides = {}) {
   return {

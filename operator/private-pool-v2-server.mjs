@@ -271,6 +271,38 @@ function proofRequestReplayContext(request) {
   return null;
 }
 
+function replayContextFromReplayKey(replayKey) {
+  if (typeof replayKey !== "string") {
+    return null;
+  }
+
+  if (replayKey.startsWith("private-send:")) {
+    return "private-pool-v2-private-send";
+  }
+
+  if (replayKey.startsWith("swap-to-shielded:")) {
+    return "private-pool-v2-swap-to-shielded";
+  }
+
+  if (replayKey.startsWith("unshield:")) {
+    return "private-pool-v2-unshield";
+  }
+
+  if (replayKey.startsWith("claim:")) {
+    return "private-pool-v2-claim";
+  }
+
+  return null;
+}
+
+function nullifierFromReplayKey(replayKey) {
+  if (typeof replayKey !== "string" || !replayKey.includes(":")) {
+    return null;
+  }
+
+  return replayKey.slice(replayKey.indexOf(":") + 1);
+}
+
 function replayNullifierFromProofRequest(request) {
   const context = proofRequestReplayContext(request);
   if (!context) {
@@ -470,6 +502,42 @@ function hashHex(...parts) {
 
 function hashId(prefix, ...parts) {
   return `${prefix}_${bytesToHex(sha256(textEncoder.encode(parts.join("\u001f")))).slice(0, 24)}`;
+}
+
+async function ensureProofReceiptReplayGuarded(proofReceipt, sourceRef) {
+  const context = replayContextFromReplayKey(proofReceipt?.replayKey);
+  const nullifier = nullifierFromReplayKey(proofReceipt?.replayKey);
+  if (!context || !nullifier) {
+    return null;
+  }
+
+  const requestId = `restored:${sourceRef}:${proofReceipt.receiptId ?? nullifier}`;
+  const decision = await nullifierReplayGuard.reserve({
+    assetId: proofReceipt.assetId ?? "unknown",
+    claimReceiptId: proofReceipt.receiptId ?? null,
+    context,
+    nullifier,
+    requestId,
+  });
+
+  if (decision.accepted) {
+    try {
+      await nullifierReplayGuard.markAccepted({
+        claimReceiptId: proofReceipt.receiptId ?? requestId,
+        context,
+        nullifier,
+        requestId,
+      });
+    } catch {
+      // Existing durable replay rows still make duplicate replay probes reject.
+    }
+  }
+
+  return decision;
+}
+
+for (const receipt of runtime.verifierRegistry?.receipts ?? []) {
+  await ensureProofReceiptReplayGuarded(receipt, "startup-proof-receipt-backfill");
 }
 
 function isSolanaTransactionSignature(value) {
@@ -1504,12 +1572,16 @@ async function submitActualPrivateSpendToRelayer({
       }),
     settlementId: protocolSettlementReceipt.settlementId,
   });
+  const solanaSignatureAccepted = isSolanaTransactionSignature(submission.signature);
+  if (process.env.VANTA_PRIVATE_POOL_V2_REQUIRE_RELAYER_SERIALIZED_TRANSACTION === "true" && !solanaSignatureAccepted) {
+    throw new Error("Actual-private live relayer submission did not return a Solana transaction signature.");
+  }
 
   return {
     relayerId: submission.relayerId,
     signature: submission.signature,
     submittedBy: submission.submittedBy,
-    solanaSignatureAccepted: isSolanaTransactionSignature(submission.signature),
+    solanaSignatureAccepted,
   };
 }
 
@@ -1851,6 +1923,10 @@ async function proveAndAcceptProtocolSettlement(body) {
       amount,
       asset,
       settlementId,
+    );
+    await ensureProofReceiptReplayGuarded(
+      existingSettlement.proofReceipt,
+      `protocol-settlement:${existingSettlement.protocolSettlementReceipt?.id ?? settlementId}`,
     );
     return existingSettlement;
   }

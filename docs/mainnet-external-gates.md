@@ -136,7 +136,7 @@ The production service setup guide is:
 docs/production-private-pool-v2-service-setup.md
 ```
 
-It records the current Render inventory, deployed production indexer/prover/relayer/verifier/operator services, the `VANTA_PRIVATE_POOL_V2_RUNTIME_MODE=remote-services` wiring, and the smoke evidence that has been captured. Vanta still remains blocked because observability controls, backup/restore maturity, and real-funds readiness are still pending, and separate audit and legal/compliance/custody gates also remain blocked.
+It records the current Render inventory, deployed production indexer/prover/relayer/verifier/operator services, the `VANTA_PRIVATE_POOL_V2_RUNTIME_MODE=remote-services` wiring, and the smoke evidence that has been captured. Vanta still remains blocked because observability provider controls and real-funds readiness are still pending, and separate audit and legal/compliance/custody gates also remain blocked.
 
 ### Production storage
 
@@ -338,7 +338,7 @@ The current approval-gate evidence surface is:
 ops/mainnet/mainnet-approval-gates.evidence.json
 ```
 
-It records the difference between technical evidence already captured, operator-skipped controls, and bounded approval. It is references-only and must remain `mainnetReady: false` and `productionReady: false`; `realFundsAllowed` is true only for the bounded beta private-pool smoke approval. Do not store legal advice text, under-NDA audit contents, wallet keys, pre-signed transactions, or credential values in this repo.
+It records the difference between technical evidence already captured, operator-skipped controls, and bounded approval. It is references-only and must remain `mainnetReady: false` and `productionReady: false`; any real-funds allowance is limited to the exact currently recorded bounded approval. Check it with `npm run mainnet:real-funds-approval-status`. Do not store legal advice text, under-NDA audit contents, wallet keys, pre-signed transactions, or credential values in this repo.
 
 Operator decision on April 22, 2026: third-party security audit, legal/compliance/custody review, secret-manager audit/rotation evidence, Pay restore readback, and provider backup/PITR/encryption/access-audit/least-privilege evidence were skipped. This is not approval and not evidence that those controls passed.
 
@@ -348,7 +348,7 @@ The real-funds approval packet is:
 ops/mainnet/mainnet-real-funds-approval.evidence.json
 ```
 
-It now records bounded approval for one action: beta mainnet private-pool smoke with maximum `0.05 SOL` at risk during `2026-04-22T14:30:00-15:30:00 America/Chicago`, approved by Clay. That recorded window is now expired. This is not blanket production readiness and does not allow any other mainnet action. It must never contain private keys, seed phrases, signed transactions, bearer tokens, or raw database URLs.
+It records the current bounded approval packet for exactly one action, including the approved window, fee-payer ref, funds cap, rollback ref, stop-loss ref, and approver ref. Verify the live status with `npm run mainnet:real-funds-approval-status`. This is not blanket production readiness and does not allow any other mainnet action. It must never contain private keys, seed phrases, signed transactions, bearer tokens, or raw database URLs.
 
 To refresh this packet safely, use the refs-only writer instead of editing JSON by hand:
 
@@ -404,7 +404,7 @@ npm run mainnet:observability-sink-check
 npm run operator:runbook-check
 ```
 
-Current checked truth: the deployed operator already uses the preferred Postgres durable shared-window rate limiter, but provider-backed log sink, dashboards, alerts, retention, and incident workflow controls are all still pending.
+Current checked truth: the deployed operator already uses the preferred Postgres durable shared-window rate limiter and incident workflow refs are configured, but provider-backed log sink, dashboards, alerts, and retention controls are still pending.
 
 ## Production Claim Gate
 

@@ -17,7 +17,9 @@ if (checkMode) {
   assert.equal(result.auditedSharedAnonymitySetAvailable, false);
   assert.equal(result.liveAnonymitySetAvailable, false);
   assert.equal(result.liveMainnetPrivateSettlementAvailable, false);
-  assert.equal(result.productionAnonymityMetricsAvailable, false);
+  assert.equal(result.productionAnonymityMetricsAvailable, true);
+  assert.equal(result.currentDistinctCommitmentCount, 2);
+  assert.equal(result.currentAnonymityMeasurementStatus, "measured-below-threshold");
   assert.equal(result.anonymitySetReadiness, "blocked");
   assert.ok(result.blockers.includes("no-proven-audited-shared-anonymity-set"));
   assert.ok(result.nonClaims.includes("no anonymity guarantee"));

@@ -94,19 +94,23 @@ assert.deepEqual(evidence.actualPrivateSpendRootNullifierEnforcement, {
   requestShapeRef: "npm run private-transaction:mvp-check",
   localNullifierAndOutputAppendRef: "npm run private-pool-v2:local-runtime-check",
   roleServiceMirrorRef: "npm run private-pool-v2:service-network-check",
+  protocolSettlementReplayGuardRef: "npm run private-pool-v2:protocol-client-check",
   productionSmokeRef: "ops/mainnet/private-pool-v2-production-smoke.evidence.json#actual-private-spend-simulation",
+  productionReplayProbeRef: "npm run mainnet:actual-private-replay-probe-check",
+  productionReplayReconciliationRef: "npm run mainnet:actual-private-replay-reconcile-check",
   nullifierReplayKeyMode: "private-send:nullifier",
   acceptedRootPublicInputMode: "accepted-root-bound-in-proof-public-inputs",
-  acceptedRootFreshnessStatus: "blocked-no-live-mainnet-root-freshness-evidence",
+  acceptedRootFreshnessStatus: "reviewed-live-accepted-root-freshness-evidence-present",
+  acceptedRootFreshnessRef: "review:accepted-root-current-production-indexer-2055-2220",
   actualPrivateNullifierReplayProductionReady: false,
-  acceptedRootFreshnessProductionReady: false,
+  acceptedRootFreshnessProductionReady: true,
 });
 assert.equal(evidence.noRealFundsSmokeOnly, true);
 assert.equal(evidence.auditedSharedAnonymitySetAvailable, false);
 assert.equal(evidence.liveMainnetPrivateSettlementAvailable, false);
 assert.deepEqual(evidence.productionReplayBlockedBy, [
   "no-real-funds-smoke-only",
-  "no-live-actual-private-accepted-root-freshness-evidence",
+  "no-reviewed-live-production-duplicate-replay-rejection",
   "no-proven-audited-shared-anonymity-set",
   "no-proven-live-mainnet-private-settlement-evidence",
 ]);
@@ -130,8 +134,12 @@ assert.ok(
   "Evidence must preserve the missing audited-anonymity-set truth.",
 );
 assert.ok(
-  evidence.deploymentTruth.includes("no live mainnet accepted-root freshness evidence"),
-  "Evidence must preserve the missing actual-private root freshness truth.",
+  evidence.deploymentTruth.includes("accepted-root freshness evidence"),
+  "Evidence must preserve the reviewed actual-private root freshness truth.",
+);
+assert.ok(
+  evidence.deploymentTruth.includes("duplicate-replay probe returned available instead of duplicate"),
+  "Evidence must preserve the authenticated duplicate-replay blocker truth.",
 );
 assert.ok(
   evidence.deploymentTruth.includes("proven live mainnet private settlement evidence is still unavailable"),
@@ -167,6 +175,16 @@ assert.equal(
   packageJson.scripts["mainnet:nullifier-replay-evidence-check"],
   "node scripts/check-vanta-private-pool-v2-nullifier-replay-evidence.mjs",
   "package.json must expose mainnet:nullifier-replay-evidence-check.",
+);
+assert.equal(
+  packageJson.scripts["mainnet:actual-private-replay-probe-check"],
+  "node scripts/check-vanta-actual-private-production-replay-probe.mjs",
+  "package.json must expose mainnet:actual-private-replay-probe-check.",
+);
+assert.equal(
+  packageJson.scripts["mainnet:actual-private-replay-reconcile-check"],
+  "node scripts/check-vanta-actual-private-replay-reconciliation.mjs",
+  "package.json must expose mainnet:actual-private-replay-reconcile-check.",
 );
 assert.ok(
   packageJson.scripts["mainnet:preflight"].includes("npm run mainnet:nullifier-replay-evidence-check"),

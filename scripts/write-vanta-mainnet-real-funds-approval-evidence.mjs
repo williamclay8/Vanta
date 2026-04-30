@@ -142,7 +142,8 @@ function updateApprovalGatesEvidence(record) {
   return {
     ...current,
     checkedAt: new Date().toISOString(),
-    realFundsAllowed: true,
+    realFundsAllowed: false,
+    boundedRealFundsApprovalRecorded: true,
     status: "bounded-real-funds-approval-recorded-with-operator-skipped-controls",
     gates,
     limitations,

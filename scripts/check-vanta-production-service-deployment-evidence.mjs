@@ -43,7 +43,7 @@ assert.deepEqual(evidence.restoreReadbackCoverage, {
 });
 assert.equal(evidence.realFundsReadinessPending, true);
 assert.deepEqual(evidence.pendingProductionControls, [
-  "observability-controls",
+  "observability-provider-controls",
   "real-funds-readiness",
 ]);
 assert.equal(evidence.routeHealthEvidenceRef, "ops/mainnet/private-pool-v2-route-health.evidence.json");
@@ -78,7 +78,11 @@ assert.ok(
   "Service deployment evidence must preserve the operator-skipped backup-control truth.",
 );
 assert.ok(
-  evidence.deploymentTruth.includes("observability controls and real-funds readiness"),
+  evidence.deploymentTruth.includes("Incident workflow evidence is configured"),
+  "Service deployment evidence must preserve configured incident workflow truth.",
+);
+assert.ok(
+  evidence.deploymentTruth.includes("Render-native log sink, metrics dashboards, alert policies, retention policy, and real-funds readiness"),
   "Service deployment evidence must preserve the exact remaining pending controls.",
 );
 
