@@ -23,8 +23,8 @@ const productPoints = [
 
 const appActions = [
   { label: "Shield funds", path: "shield" },
-  { label: "Send from shielded state", path: "send" },
-  { label: "Swap from shielded state", path: "swap" },
+  { label: "Send shielded", path: "send" },
+  { label: "Swap shielded", path: "swap" },
   { label: "Plan execution", path: "strategy" },
   { label: "Unshield funds", path: "unshield" },
   { label: "Collect payments", path: "pay" },
@@ -68,7 +68,7 @@ export function HomePage() {
           <a href="https://x.com/vantaprivacy" target="_blank" rel="noreferrer">
             X
           </a>
-          <Link className="landing-nav__cta" to="/app/send">
+          <Link className="landing-nav__cta" to="/app">
             Open App
           </Link>
         </div>
@@ -86,7 +86,7 @@ export function HomePage() {
         </p>
 
         <div className="landing-minimal__actions">
-          <Link className="landing-btn landing-btn--primary" to="/app/send">
+          <Link className="landing-btn landing-btn--primary" to="/app">
             Enter App
           </Link>
           <a className="landing-btn landing-btn--ghost" href="#what">

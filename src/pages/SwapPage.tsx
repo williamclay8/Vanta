@@ -46,6 +46,7 @@ import {
   type VantaShieldNote,
   type VantaShieldedSolNote,
 } from "@/solana/vantaShieldState";
+import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
 import { useWalletState } from "@/data/context/WalletContext";
 import { requestVantaPrivatePoolV2ProtocolSettlement } from "@/privacy/privatePoolV2ProtocolSettlementClient";
 import {
@@ -149,6 +150,7 @@ function formatReadyAssetOptionLabel(args: {
 }
 
 export function SwapPage() {
+  const { recentShield } = usePrivacyFlow();
   const { walletAddress, walletConnected } = useWalletState();
   const walletSession = useWalletSession();
   const {
@@ -265,8 +267,17 @@ export function SwapPage() {
   );
 
   const preferredReadySourceAsset = useMemo(
-    () => readySourceAssetOptions.find((asset) => asset.ready) ?? null,
-    [readySourceAssetOptions],
+    () =>
+      readySourceAssetOptions.find(
+        (asset) =>
+          asset.ready &&
+          (recentShield?.asset === "SOL"
+            ? asset.symbol === "SOL"
+            : asset.symbol === recentShield?.asset),
+      ) ??
+      readySourceAssetOptions.find((asset) => asset.ready) ??
+      null,
+    [readySourceAssetOptions, recentShield?.asset],
   );
   const availableSourceAssetOptions = useMemo(
     () => readySourceAssetOptions.filter((asset) => asset.ready),

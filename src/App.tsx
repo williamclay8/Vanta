@@ -10,6 +10,7 @@ import { PrivateVaultProvider } from "@/data/context/PrivateVaultContext";
 import { PrivacyFlowProvider } from "@/data/context/PrivacyFlowContext";
 import { WalletProvider } from "@/data/context/WalletContext";
 import { ActualPrivateSettlementPage } from "@/pages/ActualPrivateSettlementPage";
+import { AppDashboardPage } from "@/pages/AppDashboardPage";
 import { LaunchPage } from "@/pages/LaunchPage";
 import { PayPage } from "@/pages/PayPage";
 import { PrivacyReviewPage } from "@/pages/PrivacyReviewPage";
@@ -113,7 +114,8 @@ function App() {
           <Route path="*" element={<Navigate to="/docs" replace />} />
         </Route>
         <Route path="/app" element={<ProductAppRoot />}>
-          <Route index element={<Navigate to="shield" replace />} />
+          <Route index element={<AppDashboardPage />} />
+          <Route path="dashboard" element={<AppDashboardPage />} />
           <Route path="shield" element={<ShieldPage />} />
           <Route path="send" element={<SendPage />} />
           <Route path="swap" element={<SwapPage />} />

@@ -250,51 +250,13 @@ export function AppLayout() {
   useEffect(() => {
     document.body.classList.add("app-body");
 
-    const cursor = document.getElementById("appCursor");
-    const ring = document.getElementById("appCursorRing");
-
-    let mouseX = window.innerWidth / 2;
-    let mouseY = window.innerHeight / 2;
-    let ringX = mouseX;
-    let ringY = mouseY;
-    let frame = 0;
-
-    const handleMouseMove = (event: MouseEvent) => {
-      mouseX = event.clientX;
-      mouseY = event.clientY;
-
-      if (cursor) {
-        cursor.style.left = `${mouseX}px`;
-        cursor.style.top = `${mouseY}px`;
-      }
-    };
-
-    const animateRing = () => {
-      ringX += (mouseX - ringX) * 0.12;
-      ringY += (mouseY - ringY) * 0.12;
-
-      if (ring) {
-        ring.style.left = `${ringX}px`;
-        ring.style.top = `${ringY}px`;
-      }
-
-      frame = window.requestAnimationFrame(animateRing);
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    animateRing();
-
     return () => {
       document.body.classList.remove("app-body");
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.cancelAnimationFrame(frame);
     };
   }, []);
 
   return (
     <div className="app-shell app-shell--minimal" data-product-shell="app">
-      <div className="app-cursor" id="appCursor" aria-hidden="true" />
-      <div className="app-cursor-ring" id="appCursorRing" aria-hidden="true" />
       <div className="app-shell__grid" aria-hidden="true" />
       <div className="app-shell__glow app-shell__glow--left" aria-hidden="true" />
       <div className="app-shell__glow app-shell__glow--right" aria-hidden="true" />

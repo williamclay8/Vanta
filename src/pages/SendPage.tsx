@@ -527,6 +527,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     selectedAsset === "VUSD" &&
     selectedSendCapability.executionMode === "operator-vusd-send" &&
     selectedSendCapability.status === "live" &&
+    liveShieldAsset.unshieldConfigured &&
     privateCoreSendPreview?.boundary.readiness === "ready";
 
   const recentShieldLabel =
@@ -885,31 +886,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       return;
     }
 
-    if (
-      selectedSendCapability.executionMode !== "operator-vusd-send" &&
-      isRealSendReady &&
-      shieldAccount &&
-      selectedSpendableNote &&
-      liveShieldAsset.mintAddress
-    ) {
-      try {
-        await performLiveSendFromNote({
-          amountNumeric: parsedAmount,
-          note: selectedSpendableNote,
-          recipientValue: recipient,
-          shieldAccountState: shieldAccount,
-        });
-      } catch (error) {
-        setPendingSpentMarker(null);
-        setPendingSendBridge(null);
-        setStatus("failed");
-        setFlowError(
-          error instanceof Error ? error.message : "Send request was not approved.",
-        );
-      }
-
-      return;
-    }
+    setStatus("failed");
+    setFlowError("No live private-send adapter is available for the selected asset.");
   }
 
   async function handlePrivateCoreSendProof() {
@@ -992,6 +970,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       : selectedSendCapability.executionMode === "needs-private-send-adapter"
         ? selectedSendCapability.blockers[0] ??
           "This shielded asset needs a private send adapter before it can execute."
+      : !liveShieldAsset.unshieldConfigured
+        ? "Configure the private-core operator endpoint before this send proof can execute."
       : isPrivateCoreVusdSendReady
       ? "Ready to verify a private-core send transition."
       : !selectedSpendableNote
@@ -1155,7 +1135,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                     status === "settling"
                   }
                 >
-                  {isBetaMode ? "Beta mode" : "Send from shielded state"}
+                  {isBetaMode ? "Beta mode" : "Verify private-core send proof"}
                 </button>
               </div>
             </div>
@@ -1491,9 +1471,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
             <div className="status-panel status-panel--success">
               <span>Send proof verified</span>
               <p>
-                The operator verified the send proof and recorded the transition. The recipient now
-                has the sent private value, and the remaining private balance is ready for the next
-                hold or unshield step.
+                The operator verified and recorded the send transition. Recipient delivery or
+                recovery remains a separate supported flow; the remaining private balance is ready
+                for the next hold or unshield step.
               </p>
               <div className="success-metrics">
                 <div className="preview-card preview-card--accent">

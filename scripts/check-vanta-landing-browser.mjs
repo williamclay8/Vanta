@@ -85,14 +85,14 @@ function checkLandingViewport(width, height) {
       `(async () => JSON.stringify({
         path: location.pathname,
         headline: document.querySelector("h1")?.innerText ?? "",
-        hasAppCta: [...document.querySelectorAll("a")].some((link) => link.textContent?.trim() === "Enter App" && link.getAttribute("href") === "/app/send"),
+        hasAppCta: [...document.querySelectorAll("a")].some((link) => link.textContent?.trim() === "Enter App" && link.getAttribute("href") === "/app"),
         hasSharedBrandWordmark: document.querySelector(".landing-nav__wordmark")?.textContent?.trim() === "VANTA",
         hasSharedAtmosphere: Boolean(
           document.querySelector(".landing-minimal__grid") &&
             document.querySelector(".landing-minimal__glow--left") &&
             document.querySelector(".landing-minimal__glow--right"),
         ),
-        hasDocsAndAppPrimaryPaths: ["/docs", "/app/send"].every((href) =>
+        hasDocsAndAppPrimaryPaths: ["/docs", "/app"].every((href) =>
           [...document.querySelectorAll("a")].some((link) => link.getAttribute("href") === href),
         ),
         hasPaymentsCopy: document.body.innerText.includes("Create payment links") && document.body.innerText.includes("merchant settlement preview"),
@@ -126,7 +126,7 @@ function checkLandingViewport(width, height) {
   }
 
   if (!result.hasAppCta) {
-    throw new Error("Landing page must include an Enter App CTA to /app/send.");
+    throw new Error("Landing page must include an Enter App CTA to /app.");
   }
 
   if (!result.hasSharedBrandWordmark) {

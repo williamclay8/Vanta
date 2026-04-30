@@ -1,12 +1,15 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
 import { VANTA_PAY_ASSET_SYMBOLS, type VantaPayAsset } from "@/pay/vantaPayAssets";
 import { VANTA_PAY_MERCHANT_COMMAND_CENTER } from "@/pay/vantaPayMerchantCommandCenter";
 import { getVantaPayReceiptPrivacyContract } from "@/pay/vantaPayReceiptPrivacyContract";
+import { buildVantaPayReceiptPublicView } from "@/pay/vantaPayReceiptPublicView";
 import { createVantaPayRuntime } from "@/pay/vantaPayRuntime";
 import type {
   VantaPayCheckoutSession,
   VantaPayPayment,
+  VantaPayRefund,
+  VantaPayWithdrawal,
   VantaPayPrivateRailReceipt,
   VantaPayReceipt,
 } from "@/pay/vantaPayTypes";
@@ -42,6 +45,14 @@ function PayButton({
       {children}
     </button>
   );
+}
+
+function redactToken(value: string) {
+  if (!value || value === "Not issued yet") {
+    return value;
+  }
+
+  return `${value.slice(0, 6)}...redacted`;
 }
 
 function PayField({
@@ -116,6 +127,7 @@ function PaySelect({
 }
 
 export function PayPage() {
+  const receiptPacketRef = useRef<HTMLElement | null>(null);
   const payRuntime = useMemo(() => createVantaPayRuntime(), []);
   const merchant = useMemo(() => payRuntime.getMerchant(), [payRuntime]);
   const receiptPrivacyContract = useMemo(() => getVantaPayReceiptPrivacyContract(), []);
@@ -128,12 +140,18 @@ export function PayPage() {
   const [checkoutRecord, setCheckoutRecord] = useState<PayCheckoutRecord | null>(null);
   const [copied, setCopied] = useState(false);
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
+  const [latestRefund, setLatestRefund] = useState<VantaPayRefund | null>(null);
+  const [latestWithdrawal, setLatestWithdrawal] = useState<VantaPayWithdrawal | null>(null);
+  const [payActionError, setPayActionError] = useState<string | null>(null);
 
   function resetLifecycleForEdit() {
     if (checkoutRecord || phase !== "draft") {
       setCheckoutRecord(null);
       setPhase("draft");
       setCopied(false);
+      setLatestRefund(null);
+      setLatestWithdrawal(null);
+      setPayActionError(null);
     }
   }
 
@@ -161,7 +179,12 @@ export function PayPage() {
     : "vanta.test/pay/new-request";
   const createdRecord = checkoutRecord;
   const currentSessionId = createdRecord?.session.id ?? "Not created yet";
-  const currentClientToken = createdRecord?.session.clientToken ?? "Not issued yet";
+  const currentClientToken = createdRecord
+    ? redactToken(createdRecord.session.clientToken)
+    : "Not issued yet";
+  const receiptPublicView = createdRecord?.receipt
+    ? buildVantaPayReceiptPublicView(createdRecord.receipt)
+    : null;
   const requestStatus =
     phase === "settlement_complete"
       ? "Payment record completed"
@@ -196,6 +219,9 @@ export function PayPage() {
 
     setPhase("checkout_created");
     setCheckoutRecord(nextRecord);
+    setLatestRefund(null);
+    setLatestWithdrawal(null);
+    setPayActionError(null);
     return nextRecord;
   }
 
@@ -219,20 +245,91 @@ export function PayPage() {
       receipt: completion.receipt,
     });
     setPhase("settlement_complete");
+    setLatestRefund(null);
+    setLatestWithdrawal(null);
+    setPayActionError(null);
   }
 
   async function copyTestLink() {
-    const record = createdRecord ?? createCheckoutSession();
-    if (!record) {
+    if (!createdRecord) {
       return;
     }
 
     try {
-      await navigator.clipboard?.writeText(record.session.checkoutUrl);
+      await navigator.clipboard?.writeText(createdRecord.session.checkoutUrl);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1800);
     } catch {
       setCopied(false);
+    }
+  }
+
+  function previewCheckout() {
+    if (!createdRecord || typeof window === "undefined") {
+      return;
+    }
+
+    window.open(createdRecord.session.checkoutUrl, "_blank", "noopener,noreferrer");
+  }
+
+  function viewReceiptPacket() {
+    receiptPacketRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    receiptPacketRef.current?.focus({ preventScroll: true });
+  }
+
+  function prepareRefund() {
+    if (!createdRecord?.payment || phase !== "settlement_complete") {
+      return;
+    }
+
+    try {
+      const refund = payRuntime.createRefund({
+        amount: createdRecord.payment.amount,
+        idempotencyKey: `local-ui-refund:${createdRecord.payment.id}`,
+        merchantId: merchant.id,
+        paymentId: createdRecord.payment.id,
+        reason: "local-ui-test-refund",
+      });
+      const updatedPayment = payRuntime.getPayment(createdRecord.payment.id) ?? createdRecord.payment;
+
+      setCheckoutRecord({
+        ...createdRecord,
+        payment: updatedPayment,
+      });
+      setLatestRefund(refund);
+      setPayActionError(null);
+    } catch (error) {
+      setPayActionError(error instanceof Error ? error.message : "Local refund could not be prepared.");
+    }
+  }
+
+  function prepareWithdrawal() {
+    if (!createdRecord?.payment || phase !== "settlement_complete") {
+      return;
+    }
+
+    try {
+      const exitReceipt = payRuntime.createPrivateExitReceipt({
+        amount: createdRecord.payment.amount,
+        asset: createdRecord.payment.currency,
+        destination: merchant.payoutSettings.destination,
+        rail: createdRecord.session.privacyRoute.rail,
+      });
+      const withdrawal = payRuntime.createWithdrawal({
+        amount: createdRecord.payment.amount,
+        asset: createdRecord.payment.currency,
+        destination: merchant.payoutSettings.destination,
+        destinationType: merchant.payoutSettings.destinationType,
+        idempotencyKey: `local-ui-withdrawal:${createdRecord.payment.id}`,
+        merchantId: merchant.id,
+        privateExitReceiptId: exitReceipt.id,
+        referenceNote: createdRecord.receipt?.id,
+      });
+
+      setLatestWithdrawal(withdrawal);
+      setPayActionError(null);
+    } catch (error) {
+      setPayActionError(error instanceof Error ? error.message : "Local withdrawal could not be prepared.");
     }
   }
 
@@ -262,7 +359,7 @@ export function PayPage() {
                 <header>
                   <span className="pay-kicker">Request builder</span>
                   <h2 id="pay-details-title">Payment details</h2>
-                  <p>Create a test checkout session before any live approval or settlement.</p>
+                  <p>Create a test checkout session before live approval or production settlement.</p>
                 </header>
 
                 <form
@@ -299,7 +396,10 @@ export function PayPage() {
                   <PaySelect
                     label="Asset"
                     name="payment-asset"
-                    onChange={(value) => setAsset(value as VantaPayAsset)}
+                    onChange={(value) => {
+                      setAsset(value as VantaPayAsset);
+                      resetLifecycleForEdit();
+                    }}
                     options={VANTA_PAY_ASSET_SYMBOLS}
                     value={asset}
                   />
@@ -343,7 +443,7 @@ export function PayPage() {
                     Create checkout session
                   </PayButton>
                   <small className="pay-submit-note">
-                    Creates a test checkout session. Completion requires a confirmed private rail receipt.
+                    Creates a test checkout session. Completion uses a local test private-rail receipt.
                   </small>
                 </form>
               </section>
@@ -383,7 +483,12 @@ export function PayPage() {
             <section className="pay-path-card" aria-label="Transaction status">
               <div className="pay-section-mini-header">
                 <span className="pay-kicker">Transaction status</span>
-                <strong>Approval, execution, and settlement are locked in beta.</strong>
+                <strong>Live approval and execution are locked in beta.</strong>
+                <span>
+                  {phase === "settlement_complete"
+                    ? "Local test settlement complete."
+                    : "Local test settlement can complete after a generated receipt."}
+                </span>
               </div>
               <div className="pay-path-steps">
                 <span data-state={phase !== "draft" ? "active" : "idle"}>Preview</span>
@@ -398,7 +503,7 @@ export function PayPage() {
                 <span>{phase === "settlement_complete" ? "Receipt packet ready" : "Receipt packet pending"}</span>
                 <span>
                   {phase === "settlement_complete"
-                    ? "Private rail receipt confirmed"
+                    ? "Local test private-rail receipt generated"
                     : "Private rail receipt pending"}
                 </span>
                 <span>No production funds moved.</span>
@@ -420,6 +525,7 @@ export function PayPage() {
               <div className="pay-primary-actions" aria-label="Primary payment actions">
                 <button
                   className="pay-workflow-action"
+                  disabled={!createdRecord}
                   onClick={copyTestLink}
                   type="button"
                 >
@@ -428,6 +534,7 @@ export function PayPage() {
                 <button
                   className="pay-workflow-action"
                   disabled={!createdRecord}
+                  onClick={previewCheckout}
                   type="button"
                 >
                   <span>Preview checkout</span>
@@ -441,14 +548,39 @@ export function PayPage() {
                 >
                   <span>Complete test settlement</span>
                 </button>
-                <button className="pay-workflow-action" disabled={phase !== "settlement_complete"} type="button">
+                <button
+                  className="pay-workflow-action"
+                  disabled={phase !== "settlement_complete"}
+                  onClick={viewReceiptPacket}
+                  type="button"
+                >
                   <span>View receipt</span>
                 </button>
-                <button className="pay-workflow-action" disabled type="button">
-                  <span>Prepare refund</span>
+                <button
+                  className="pay-workflow-action"
+                  data-pay-action="issue-test-refund"
+                  disabled={
+                    phase !== "settlement_complete" ||
+                    Boolean(latestRefund) ||
+                    Boolean(latestWithdrawal)
+                  }
+                  onClick={prepareRefund}
+                  type="button"
+                >
+                  <span>Issue test refund</span>
                 </button>
-                <button className="pay-workflow-action" disabled type="button">
-                  <span>Prepare withdrawal</span>
+                <button
+                  className="pay-workflow-action"
+                  data-pay-action="create-test-withdrawal"
+                  disabled={
+                    phase !== "settlement_complete" ||
+                    Boolean(latestWithdrawal) ||
+                    Boolean(latestRefund)
+                  }
+                  onClick={prepareWithdrawal}
+                  type="button"
+                >
+                  <span>Create test withdrawal</span>
                 </button>
               </div>
 
@@ -469,7 +601,7 @@ export function PayPage() {
                     </div>
                     <div>
                       <dt>Client token</dt>
-                      <dd>{createdRecord.session.clientToken}</dd>
+                      <dd>{redactToken(createdRecord.session.clientToken)}</dd>
                     </div>
                     <div>
                       <dt>Amount</dt>
@@ -503,13 +635,31 @@ export function PayPage() {
                           <dt>Audit disclosure</dt>
                           <dd>{createdRecord.receipt?.auditDisclosureId}</dd>
                         </div>
+                        {latestRefund ? (
+                          <div>
+                            <dt>Refund</dt>
+                            <dd>{latestRefund.id}</dd>
+                          </div>
+                        ) : null}
+                        {latestWithdrawal ? (
+                          <div>
+                            <dt>Withdrawal</dt>
+                            <dd>{latestWithdrawal.id}</dd>
+                          </div>
+                        ) : null}
+                        {latestWithdrawal ? (
+                          <div>
+                            <dt>Private exit receipt</dt>
+                            <dd>{latestWithdrawal.privateExitReceiptId}</dd>
+                          </div>
+                        ) : null}
                       </>
                     ) : null}
                     <div>
                       <dt>Rail</dt>
                       <dd>
                         {phase === "settlement_complete"
-                          ? "Private rail receipt confirmed by test harness"
+                          ? "Local test private-rail receipt generated by harness"
                           : "Private rail receipt pending"}
                       </dd>
                     </div>
@@ -524,10 +674,27 @@ export function PayPage() {
                 {phase === "settlement_complete" && createdRecord ? (
                   <p>No production funds moved. Production privacy claims remain locked.</p>
                 ) : null}
+                {payActionError ? <p>{payActionError}</p> : null}
+                {latestRefund ? (
+                  <p>
+                    Local test refund prepared for {latestRefund.amount} {latestRefund.asset}.
+                  </p>
+                ) : null}
+                {latestWithdrawal ? (
+                  <p>
+                    Local test withdrawal prepared for {latestWithdrawal.amount}{" "}
+                    {latestWithdrawal.asset} to {latestWithdrawal.destination}.
+                  </p>
+                ) : null}
               </section>
 
               {phase === "settlement_complete" && createdRecord?.receipt ? (
-                <section className="pay-record-panel pay-record-panel--receipt-packet" aria-label="Receipt packet">
+                <section
+                  ref={receiptPacketRef}
+                  className="pay-record-panel pay-record-panel--receipt-packet"
+                  aria-label="Receipt packet"
+                  tabIndex={-1}
+                >
                   <div>
                     <span>Receipt packet</span>
                     <strong>Receipt packet ready</strong>
@@ -536,20 +703,23 @@ export function PayPage() {
                     <div>
                       <dt>Visible to merchant</dt>
                       <dd>
-                        Payment record, receipt ID, customer context, and audit disclosure reference.
+                        Receipt {receiptPublicView?.receiptId}, payment{" "}
+                        {receiptPublicView?.paymentId}, amount {receiptPublicView?.amount}{" "}
+                        {receiptPublicView?.asset}, and status {receiptPublicView?.status}.
                       </dd>
                     </div>
                     <div>
                       <dt>Visible to buyer</dt>
                       <dd>
-                        Receipt status and payment reference; customer details and internal IDs use
-                        selective disclosure.
+                        Receipt status and payment reference; collected customer email is marked
+                        collected but redacted.
                       </dd>
                     </div>
                     <div>
                       <dt>Kept private</dt>
                       <dd>
-                        Client token, raw private economics, and operator-only settlement details.
+                        Client token, customer email value, raw private economics, and operator-only
+                        settlement details.
                       </dd>
                     </div>
                     <div>
@@ -558,7 +728,9 @@ export function PayPage() {
                     </div>
                     <div>
                       <dt>Proof receipt ID</dt>
-                      <dd>{createdRecord?.privateRailReceipt?.id}</dd>
+                      <dd>
+                        {receiptPublicView?.privateSettlement.railReceipt.idPrefix ?? "prail"}...redacted
+                      </dd>
                     </div>
                     <div>
                       <dt>Claim status</dt>
@@ -581,8 +753,8 @@ export function PayPage() {
                 </p>
                 <p>
                   <span>Operations</span>
-                  Refunds, Withdrawals, Reconciliation, and Subscriptions stay locked until a
-                  completed test record exists.
+                  Refunds and withdrawals can be prepared as local test records after settlement;
+                  reconciliation and subscriptions remain outside this UI.
                 </p>
                 <p>
                   <span>Trust rail</span>

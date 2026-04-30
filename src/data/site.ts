@@ -8,15 +8,15 @@ export type Capability = {
 export const capabilities: Capability[] = [
   {
     title: "Shield",
-    status: "Live / MVP",
+    status: "Beta lane",
     summary: "Enter private state.",
-    details: "The first step for every private workflow in Vanta.",
+    details: "The constrained entry point for current private-core flows.",
   },
   {
     title: "Private Send",
-    status: "Live",
+    status: "Private Core lane",
     summary: "Move value privately.",
-    details: "The first live action built on shielded balances.",
+    details: "Proof-backed where implemented; production privacy claims remain gated.",
   },
   {
     title: "Private Swap",

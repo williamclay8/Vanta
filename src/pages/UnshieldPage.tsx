@@ -1671,6 +1671,10 @@ export function UnshieldPage() {
     validationMessage = vusdShieldEntry.error;
   } else if (selectedLane !== "SOL" && selectedShieldEntry?.error) {
     validationMessage = selectedShieldEntry.error;
+  } else if (selectedLane === "SOL" && !liveSwapPair.solUnshieldOperatorUrl) {
+    validationMessage = "Configure the SOL unshield operator endpoint before shielded SOL can exit.";
+  } else if (selectedLane !== "SOL" && !selectedShieldAsset?.unshieldConfigured) {
+    validationMessage = `Configure the ${selectedLane} unshield operator endpoint before this asset can exit.`;
   } else if (!walletSession?.signMessage) {
     validationMessage = "The connected wallet must support message signing to authorize Unshield.";
   } else if (selectedLane !== "SOL" && !selectedShieldNote) {

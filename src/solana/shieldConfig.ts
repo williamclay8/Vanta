@@ -389,7 +389,7 @@ export function getLiveShieldTokenAssetPriority(assetKey: LiveShieldTokenAssetKe
 
 export const liveSwapPair = {
   cluster: vantaSolanaClusterLabel,
-  configured: Boolean(configuredMintAddress && configuredVaultOwner),
+  configured: Boolean(configuredMintAddress && configuredVaultOwner && effectiveSwapOperatorUrl),
   inputAsset: "VUSD" as const,
   outputAsset: "SOL" as const,
   outputMintAddress: SHIELD_HOOK_FALLBACK_MINT,

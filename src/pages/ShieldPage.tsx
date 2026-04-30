@@ -375,6 +375,24 @@ export function ShieldPage(_props: ShieldPageProps) {
       : publicAssetsError
         ? "Balance recovery unavailable"
         : "No wallet assets available";
+  const sourceBalanceLabel = selectedSourceAsset
+    ? selectedSourceBalanceStatus === "loading"
+      ? "Loading..."
+      : selectedSourceBalanceStatus === "error"
+        ? "Temporarily unavailable"
+        : formatAssetAmount(sourceBalance, selectedSourceAsset.symbol)
+    : sourcePlaceholderLabel;
+  const targetShieldedBalanceLabel = !walletConnected
+    ? "Connect wallet"
+    : !capability.targetShieldAsset
+      ? "Choose asset"
+      : supportedToken?.status === "loading" || supportedToken?.isFetching || shieldStateRefreshing
+        ? "Loading..."
+        : supportedToken?.status === "error" || shieldStateError
+          ? "Temporarily unavailable"
+          : targetShieldSymbol
+            ? formatAssetAmount(targetShieldedBalance, targetShieldSymbol)
+            : "Choose asset";
 
   async function beginShieldTransfer(
     amountDisplay: string,
@@ -721,7 +739,9 @@ export function ShieldPage(_props: ShieldPageProps) {
 
   useEffect(() => {
     const depositConfirmed =
-      pendingShieldAsset === "SOL"
+      pendingNativeSolDepositRecovery
+        ? true
+        : pendingShieldAsset === "SOL"
         ? nativeSolShieldWait.waitStatus === "success"
         : splShieldTransferWait.waitStatus === "success";
 
@@ -899,50 +919,61 @@ export function ShieldPage(_props: ShieldPageProps) {
           sourceAsset: pendingProtocolSettlement.capability.sourceAsset.symbol,
           vaultOwner: selectedShieldAsset.vaultOwner!,
         });
-        const protocolSettlement = await runShieldWithDecoys(() =>
-          requestVantaPrivatePoolV2ProtocolSettlement(committedRequest),
-        );
+        let protocolSettlement: Awaited<
+          ReturnType<typeof requestVantaPrivatePoolV2ProtocolSettlement>
+        > | null = null;
+        let protocolSettlementWarning: string | null = null;
 
-        if (!protocolSettlement) {
-          throw new Error("Private Pool v2 Shield receipt was not returned.");
-        }
+        try {
+          protocolSettlement = await runShieldWithDecoys(() =>
+            requestVantaPrivatePoolV2ProtocolSettlement(committedRequest),
+          );
 
-        if (protocolSettlement.protocolSettlementReceipt.economicsMode !== "committed-economics") {
-          throw new Error("Private Pool v2 Shield receipt is not in committed-economics mode.");
-        }
-
-        if (
-          protocolSettlement.protocolSettlementReceipt.economicsCommitment !==
-          committedRequest.economicsCommitment
-        ) {
-          throw new Error("Private Pool v2 Shield receipt economics commitment does not match the request.");
-        }
-
-        if (
-          protocolSettlement.protocolSettlementReceipt.settlementCommitment !==
-          committedRequest.settlementCommitment
-        ) {
-          throw new Error("Private Pool v2 Shield receipt settlement commitment does not match the request.");
-        }
-
-        if (protocolSettlement.protocolSettlementReceipt.settlementId !== committedRequest.settlementId) {
-          throw new Error("Private Pool v2 Shield receipt settlement id does not match the committed request.");
-        }
-
-        if (protocolSettlement.protocolSettlementReceipt.action !== "shield") {
-          throw new Error("Private Pool v2 Shield receipt action does not match Shield.");
-        }
-
-        if (protocolSettlement.proofReceipt?.intent !== "shield") {
-          throw new Error("Private Pool v2 Shield proof receipt intent does not match Shield.");
+          if (!protocolSettlement) {
+            protocolSettlementWarning =
+              "Private Pool v2 receipt service did not return a Shield receipt.";
+          } else if (protocolSettlement.protocolSettlementReceipt.economicsMode !== "committed-economics") {
+            protocolSettlementWarning =
+              "Private Pool v2 Shield receipt was not in committed-economics mode.";
+          } else if (
+            protocolSettlement.protocolSettlementReceipt.economicsCommitment !==
+            committedRequest.economicsCommitment
+          ) {
+            protocolSettlementWarning =
+              "Private Pool v2 Shield receipt economics commitment did not match the request.";
+          } else if (
+            protocolSettlement.protocolSettlementReceipt.settlementCommitment !==
+            committedRequest.settlementCommitment
+          ) {
+            protocolSettlementWarning =
+              "Private Pool v2 Shield receipt settlement commitment did not match the request.";
+          } else if (
+            protocolSettlement.protocolSettlementReceipt.settlementId !== committedRequest.settlementId
+          ) {
+            protocolSettlementWarning =
+              "Private Pool v2 Shield receipt settlement id did not match the committed request.";
+          } else if (protocolSettlement.protocolSettlementReceipt.action !== "shield") {
+            protocolSettlementWarning =
+              "Private Pool v2 Shield receipt action did not match Shield.";
+          } else if (protocolSettlement.proofReceipt?.intent !== "shield") {
+            protocolSettlementWarning =
+              "Private Pool v2 Shield proof receipt intent did not match Shield.";
+          }
+        } catch (error) {
+          protocolSettlementWarning = toErrorMessage(
+            error,
+            "Private Pool v2 Shield receipt could not be checked.",
+          );
         }
 
         setRecentShield({
           amount: pendingShieldAmount,
           asset: pendingShieldAsset ?? selectedShieldAsset.assetKey,
           depositSignature: pendingDepositSignature ?? undefined,
-          protocolSettlementReceipt: protocolSettlement.protocolSettlementReceipt,
-          proofReceipt: protocolSettlement.proofReceipt,
+          protocolSettlementReceipt: protocolSettlementWarning
+            ? undefined
+            : protocolSettlement?.protocolSettlementReceipt,
+          proofReceipt: protocolSettlementWarning ? undefined : protocolSettlement?.proofReceipt,
           resultingShieldedBalance: nextBalance,
           settlement: "confirmed_deposit",
           signature: activeStateSignature,
@@ -967,7 +998,7 @@ export function ShieldPage(_props: ShieldPageProps) {
         setPendingNativeSolDepositRecovery(false);
         setPendingProtocolSettlement(null);
         setPendingUmbraApprovalDisplay(null);
-        setFlowError(null);
+        setFlowError(protocolSettlementWarning);
         setStatus("complete");
         void supportedToken?.refresh();
       })
@@ -1165,13 +1196,7 @@ export function ShieldPage(_props: ShieldPageProps) {
                 <div className="swap-module__label-row">
                   <span>Amount</span>
                   <div className="send-balance-line shield-helper shield-helper--meta">
-                    Balance: {selectedSourceAsset
-                      ? selectedSourceBalanceStatus === "loading"
-                        ? "Loading..."
-                        : selectedSourceBalanceStatus === "error"
-                          ? "Unavailable"
-                          : formatAssetAmount(sourceBalance, selectedSourceAsset.symbol)
-                      : sourcePlaceholderLabel}
+                    Balance: {sourceBalanceLabel}
                   </div>
                 </div>
                 <div className="send-entry-grid swap-entry-grid">
@@ -1243,12 +1268,12 @@ export function ShieldPage(_props: ShieldPageProps) {
                 <div className="swap-module__label-row">
                   <span>To</span>
                   <div className="send-balance-line shield-helper shield-helper--meta">
-                    Shielded balance: {targetShieldSymbol ? formatAssetAmount(targetShieldedBalance, targetShieldSymbol) : "Unavailable"}
+                    Shielded balance: {targetShieldedBalanceLabel}
                   </div>
                 </div>
                 <div className="swap-quote-line">
                   <strong>{isNativeSolShield ? "Shielded SOL" : capability.targetShieldAsset?.label ?? "Shielded asset"}</strong>
-                  <span>{targetShieldName ?? "Target unavailable"}</span>
+                  <span>{targetShieldName ?? (walletConnected ? "Choose target" : "Connect wallet")}</span>
                 </div>
                 <p className="shield-helper shield-helper--route">
                   Route: {selectedSourceAsset?.symbol ?? "Asset"} {"->"} {capability.targetShieldAsset?.label ?? "Shielded asset"}
@@ -1441,7 +1466,9 @@ export function ShieldPage(_props: ShieldPageProps) {
                 <p>
                   {status === "complete"
                     ? recentShield
-                      ? `${formatAssetAmount(recentShield.amount, recentShield.asset)} is now available in shielded state.`
+                      ? flowError
+                        ? `${formatAssetAmount(recentShield.amount, recentShield.asset)} is now available in shielded state. Receipt check warning: ${flowError}`
+                        : `${formatAssetAmount(recentShield.amount, recentShield.asset)} is now available in shielded state.`
                       : "The selected asset was shielded successfully."
                     : status === "failed"
                       ? flowError ?? "The shield action could not be completed."
