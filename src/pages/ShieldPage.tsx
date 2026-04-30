@@ -355,6 +355,8 @@ export function ShieldPage(_props: ShieldPageProps) {
   const maxAvailableAmount = sourceBalance;
   const routeProgressLabel = publicRouteWait.detailLabel;
   const stateProgressLabel = stateSignatureWait.detailLabel;
+  const sourceAssetsLoading = publicAssetsLoading && !selectedSourceAsset;
+  const sourceAssetsBlocked = Boolean(publicAssetsError) && !selectedSourceAsset;
   const isAmountValid =
     walletConnected &&
     (isNativeSolShield ? !!selectedShieldAsset?.vaultOwner : !!selectedShieldAsset?.mintAddress) &&
@@ -367,12 +369,12 @@ export function ShieldPage(_props: ShieldPageProps) {
     !nativeSolShieldBlockedByRecoverableDeposit;
   const sourceSelectValue = selectedSourceAsset?.id ?? "";
   const sourceSelectDisabled =
-    !walletConnected || publicAssetsLoading || executableSourceAssets.length === 0;
+    !walletConnected || sourceAssetsLoading || executableSourceAssets.length === 0;
   const sourcePlaceholderLabel = !walletConnected
     ? "Connect wallet"
-    : publicAssetsLoading
+    : sourceAssetsLoading
       ? "Loading assets..."
-      : publicAssetsError
+      : sourceAssetsBlocked
         ? "Balance recovery unavailable"
         : "No wallet assets available";
   const sourceBalanceLabel = selectedSourceAsset
@@ -1129,9 +1131,9 @@ export function ShieldPage(_props: ShieldPageProps) {
     validationMessage = "Connect a wallet to shield assets.";
   } else if (isBetaMode) {
     validationMessage = "Beta mode keeps shielding visible but prevents live transfers while production services are offline.";
-  } else if (publicAssetsLoading) {
+  } else if (sourceAssetsLoading) {
     validationMessage = "Loading wallet assets.";
-  } else if (publicAssetsError) {
+  } else if (sourceAssetsBlocked && publicAssetsError) {
     validationMessage = `${publicAssetsError} Refresh the page or try another wallet RPC.`;
   } else if (!selectedSourceAsset) {
     validationMessage = "No wallet assets are currently available to shield.";

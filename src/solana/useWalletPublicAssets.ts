@@ -77,7 +77,7 @@ function getConfiguredWalletReadFallbackEndpoints() {
     .filter(Boolean) ?? [];
   const defaults =
     vantaSolanaCluster === "mainnet-beta"
-      ? ["https://solana-rpc.publicnode.com"]
+      ? ["https://solana-rpc.publicnode.com", "https://api.mainnet-beta.solana.com"]
       : ["https://api.devnet.solana.com"];
 
   return [...new Set([...configured, ...defaults].filter((value) => value !== endpoint))];
