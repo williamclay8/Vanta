@@ -10,6 +10,7 @@ function readRepoFile(path) {
 
 const packageJson = JSON.parse(readRepoFile("package.json"));
 const shieldStateSource = readRepoFile("src/solana/vantaShieldState.ts");
+const unshieldPageSource = readRepoFile("src/pages/UnshieldPage.tsx");
 const unshieldAuthSource = readRepoFile("src/solana/unshieldAuth.ts");
 const solUnshieldAuthSource = readRepoFile("src/solana/solUnshieldAuth.ts");
 const securityLimitations = readRepoFile("SECURITY_LIMITATIONS.md");
@@ -54,6 +55,21 @@ for (const phrase of [
   assert.ok(
     solUnshieldAuthSource.includes(`\`${phrase}:`),
     `SOL unshield signed intent must keep ${phrase} explicit as public/operator-visible exit truth.`,
+  );
+}
+
+for (const phrase of [
+  "shieldRegistry.entries.find((entry) => (entry.account?.shieldedSolBalance ?? 0) > 0)",
+  "entry.account?.spendableShieldedSolNotes.length",
+  "shieldedSolSourceEntry?.account ?? canonicalSolAccount ?? vusdShieldEntry.account",
+  "createRecentShieldedSolNote",
+  "native-sol-recent-shield",
+  "recentShield?.asset === \"SOL\" ? recentShield.resultingShieldedBalance : 0",
+  "Math.max(solShieldAccount?.shieldedSolBalance ?? 0, recentShieldedSolBalance)",
+]) {
+  assert.ok(
+    unshieldPageSource.includes(phrase),
+    `Unshield SOL lane must source shielded SOL from the registry account that actually has SOL: ${phrase}`,
   );
 }
 

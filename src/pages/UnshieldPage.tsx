@@ -41,6 +41,7 @@ import {
   createSpentMarkerInstruction,
   fetchVantaShieldAccountState,
   VANTA_NATIVE_SOL_ASSET_ID,
+  type VantaShieldedSolNote,
 } from "@/solana/vantaShieldState";
 import {
   listCanonicalUnshieldDiagnosticsSummaries,
@@ -144,6 +145,10 @@ function formatShieldedLaneLabel(asset: UnshieldLane) {
   return `Shielded ${asset}`;
 }
 
+function formatAvailableLaneLabel(asset: UnshieldLane, amount: number) {
+  return `${formatShieldedLaneLabel(asset)} - ${formatUnshieldAmount(amount, asset)} available`;
+}
+
 function formatEditableAmount(value: number, decimals: number) {
   return value
     .toFixed(decimals)
@@ -191,6 +196,30 @@ function chooseBestSpendableNote<T extends { amount: number; createdAt: number }
 
     return right.createdAt - left.createdAt;
   })[0] ?? null;
+}
+
+function createRecentShieldedSolNote(args: {
+  amount: number;
+  createdAt: number;
+  depositSignature?: string;
+  owner: string;
+  signature: string;
+  vaultOwner: string;
+}): VantaShieldedSolNote {
+  const depositSignature = args.depositSignature ?? args.signature;
+
+  return {
+    amount: args.amount,
+    asset: "SOL",
+    createdAt: args.createdAt,
+    depositSignature,
+    lifecycleStatus: "spendable",
+    noteId: `vnta_native_sol_recent_${args.owner}_${args.vaultOwner}_${depositSignature}`,
+    owner: args.owner,
+    sourceSwapNoteId: "native-sol-recent-shield",
+    stateSignature: args.signature,
+    vaultOwner: args.vaultOwner,
+  };
 }
 
 export function UnshieldPage() {
@@ -397,6 +426,7 @@ export function UnshieldPage() {
     privateCoreSendState,
     privateCoreSwapState,
     privateCoreUnshieldState,
+    recentShield,
     refreshPrivateCoreOperatorSummary,
     runPrivateCoreReplayAttempt,
     runPrivateCoreUnshield,
@@ -477,9 +507,67 @@ export function UnshieldPage() {
       ) as Record<LiveShieldTokenAssetKey, NonNullable<typeof vusdShieldEntry.account>["spendableShieldNotes"]>,
     [shieldRegistry.byAssetKey, vusdShieldEntry.account],
   );
-  const solShieldAccount = canonicalShieldState.account ?? vusdShieldEntry.account;
-  const solShieldStateError = canonicalShieldState.error ?? vusdShieldEntry.error;
-  const spendableSolNotes = solShieldAccount?.spendableShieldedSolNotes ?? [];
+  const shieldedSolSourceEntry =
+    shieldRegistry.entries.find((entry) => (entry.account?.shieldedSolBalance ?? 0) > 0) ??
+    shieldRegistry.entries.find(
+      (entry) => (entry.account?.spendableShieldedSolNotes.length ?? 0) > 0,
+    ) ??
+    null;
+  const canonicalSolAccount =
+    (canonicalShieldState.account?.shieldedSolBalance ?? 0) > 0 ||
+    (canonicalShieldState.account?.spendableShieldedSolNotes.length ?? 0) > 0
+      ? canonicalShieldState.account
+      : null;
+  const solShieldAccount =
+    shieldedSolSourceEntry?.account ?? canonicalSolAccount ?? vusdShieldEntry.account;
+  const solShieldStateError =
+    shieldedSolSourceEntry?.error ?? canonicalShieldState.error ?? vusdShieldEntry.error;
+  const recentShieldedSolNote = useMemo(() => {
+    if (
+      recentShield?.asset !== "SOL" ||
+      recentShield.amount <= 0 ||
+      !walletAddress ||
+      !vusdShieldEntry.asset.vaultOwner ||
+      !recentShield.signature
+    ) {
+      return null;
+    }
+
+    return createRecentShieldedSolNote({
+      amount: recentShield.amount,
+      createdAt: recentShield.timestamp,
+      depositSignature: recentShield.depositSignature,
+      owner: walletAddress,
+      signature: recentShield.signature,
+      vaultOwner: vusdShieldEntry.asset.vaultOwner,
+    });
+  }, [
+    recentShield?.amount,
+    recentShield?.asset,
+    recentShield?.depositSignature,
+    recentShield?.signature,
+    recentShield?.timestamp,
+    vusdShieldEntry.asset.vaultOwner,
+    walletAddress,
+  ]);
+  const spendableSolNotes = useMemo(() => {
+    const baseNotes = solShieldAccount?.spendableShieldedSolNotes ?? [];
+
+    if (!recentShieldedSolNote) {
+      return baseNotes;
+    }
+
+    const alreadyPresent = baseNotes.some(
+      (note) =>
+        note.noteId === recentShieldedSolNote.noteId ||
+        (note.depositSignature &&
+          note.depositSignature === recentShieldedSolNote.depositSignature),
+    );
+
+    return alreadyPresent ? baseNotes : [recentShieldedSolNote, ...baseNotes];
+  }, [recentShieldedSolNote, solShieldAccount?.spendableShieldedSolNotes]);
+  const recentShieldedSolBalance =
+    recentShield?.asset === "SOL" ? recentShield.resultingShieldedBalance : 0;
 
   useEffect(() => {
     const availableLanes = [
@@ -518,8 +606,40 @@ export function UnshieldPage() {
   }, [selectedLane, selectedShieldNote, selectedSolNote]);
   const selectedFullAmount =
     selectedLane === "SOL"
-      ? selectedSolNote?.amount ?? 0
+      ? Math.max(
+          solShieldAccount?.shieldedSolBalance ?? 0,
+          recentShieldedSolBalance,
+          selectedSolNote?.amount ?? 0,
+        )
       : selectedShieldNote?.amount ?? 0;
+  const availableLaneOptions = useMemo(
+    () =>
+      ([
+        ...ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS,
+        "SOL",
+      ] as UnshieldLane[]).map((lane) => {
+        const amount =
+          lane === "SOL"
+            ? Math.max(solShieldAccount?.shieldedSolBalance ?? 0, recentShieldedSolBalance)
+            : shieldRegistry.byAssetKey[lane].account?.balance ?? 0;
+
+        return {
+          amount,
+          hasSpendableBalance:
+            lane === "SOL"
+              ? spendableSolNotes.length > 0
+              : spendableShieldNotesByLane[lane].length > 0,
+          lane,
+        };
+      }),
+    [
+      shieldRegistry.byAssetKey,
+      solShieldAccount?.shieldedSolBalance,
+      recentShieldedSolBalance,
+      spendableShieldNotesByLane,
+      spendableSolNotes.length,
+    ],
+  );
   const selectedLaneDecimals =
     selectedLane === "SOL" ? 9 : getLiveShieldTokenAsset(selectedLane).decimals;
   const requestedAmountNumeric =
@@ -2367,6 +2487,30 @@ export function UnshieldPage() {
             <small>{formatUnshieldAmount(selectedFullAmount, selectedLane)} available</small>
           </div>
 
+          <div className="unshield-balance-strip" aria-label="Available shielded balances">
+            {availableLaneOptions.map((option) => (
+              <button
+                key={option.lane}
+                className={
+                  option.lane === selectedLane
+                    ? "unshield-balance-pill unshield-balance-pill--active"
+                    : option.hasSpendableBalance
+                      ? "unshield-balance-pill unshield-balance-pill--available"
+                      : "unshield-balance-pill"
+                }
+                type="button"
+                onClick={() => {
+                  setSelectedLane(option.lane);
+                  setStatus("idle");
+                  setFlowError(null);
+                }}
+              >
+                <span>{formatShieldedLaneLabel(option.lane)}</span>
+                <strong>{formatUnshieldAmount(option.amount, option.lane)}</strong>
+              </button>
+            ))}
+          </div>
+
           <div className="shield-form swap-widget unshield-ticket">
             <div className="swap-module unshield-ticket__module">
               <div className="swap-module__field unshield-ticket__field unshield-ticket__field--from">
@@ -2386,12 +2530,9 @@ export function UnshieldPage() {
                       setFlowError(null);
                     }}
                   >
-                    {([
-                      ...shieldRegistry.configuredEntries.map((entry) => entry.asset.assetKey),
-                      "SOL",
-                    ] as UnshieldLane[]).map((lane) => (
-                      <option key={lane} value={lane}>
-                        {formatShieldedLaneLabel(lane)}
+                    {availableLaneOptions.map((option) => (
+                      <option key={option.lane} value={option.lane}>
+                        {formatAvailableLaneLabel(option.lane, option.amount)}
                       </option>
                     ))}
                   </select>
