@@ -17,10 +17,10 @@ const CREATOR_KEYPAIR_PATH =
   process.env.VANTA_DLMM_CREATOR_KEYPAIR ||
   join(homedir(), ".config/solana/id.json");
 
-const VUSD_MINT = new PublicKey("VTi6xDRKPGexsJPgQvAfGv6vqvUdTgcnsCm1bZTd25J");
+const USDC_MINT = new PublicKey("VTi6xDRKPGexsJPgQvAfGv6vqvUdTgcnsCm1bZTd25J");
 const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
 const TOKEN_X = SOL_MINT;
-const TOKEN_Y = VUSD_MINT;
+const TOKEN_Y = USDC_MINT;
 
 const BIN_STEP = Number(process.env.VANTA_DLMM_BIN_STEP || "25");
 const FEE_BPS = Number(process.env.VANTA_DLMM_FEE_BPS || "100");
@@ -66,7 +66,7 @@ async function main() {
     feeBps: FEE_BPS,
     pairAddress: existingPairAddress.toBase58(),
     txSignature: null,
-    vusdMint: VUSD_MINT.toBase58(),
+    usdcMint: USDC_MINT.toBase58(),
   };
 
   if (!pairExistsOnchain) {
@@ -93,7 +93,7 @@ async function main() {
 
   if (!confirmedPairAddress) {
     throw new Error(
-      "The Meteora DLMM pair transaction completed, but the VUSD/SOL pair was not discoverable on-chain afterward.",
+      "The Meteora DLMM pair transaction completed, but the USDC/SOL pair was not discoverable on-chain afterward.",
     );
   }
 

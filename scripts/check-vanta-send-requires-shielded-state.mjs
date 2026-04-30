@@ -35,16 +35,16 @@ const requiredPageMarkers = [
 ];
 
 const requiredPrivateCorePrimarySendMarkers = [
-  "const isPrivateCoreVusdSendReady =",
-  "selectedAsset === \"VUSD\"",
+  "const isPrivateCoreUsdcSendReady =",
+  "selectedAsset === \"USDC\"",
   "privateCoreSendPreview?.boundary.readiness === \"ready\"",
-  "!isPrivateCoreVusdSendReady",
+  "!isPrivateCoreUsdcSendReady",
 ];
 
 const requiredCapabilityMarkers = [
-  "operator-vusd-send",
+  "operator-usdc-send",
   "needs-private-send-adapter",
-  "Shielded VUSD",
+  "Shielded USDC",
   "Shielded USDC",
   "Shielded JTO",
   "Shielded BONK",
@@ -86,7 +86,7 @@ if (!handleSendMatch) {
   !handleSendMatch[0].includes("handlePrivateCoreSendProof")
 ) {
   failures.push(
-    "Primary handleSend must route supported VUSD sends through the private-core send path.",
+    "Primary handleSend must route supported USDC sends through the private-core send path.",
   );
 }
 

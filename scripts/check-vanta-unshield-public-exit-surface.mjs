@@ -61,7 +61,7 @@ for (const phrase of [
 for (const phrase of [
   "shieldRegistry.entries.find((entry) => (entry.account?.shieldedSolBalance ?? 0) > 0)",
   "entry.account?.spendableShieldedSolNotes.length",
-  "shieldedSolSourceEntry?.account ?? canonicalSolAccount ?? vusdShieldEntry.account",
+  "shieldedSolSourceEntry?.account ?? canonicalSolAccount ?? usdcShieldEntry.account",
   "createRecentShieldedSolNote",
   "native-sol-recent-shield",
   "recentShield?.asset === \"SOL\" ? recentShield.resultingShieldedBalance : 0",

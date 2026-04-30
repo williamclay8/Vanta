@@ -5,7 +5,7 @@ This note freezes the current constrained swap lane that Vanta exposes in the na
 ## Supported lane
 
 - `supportedSwapLaneVersion = 1`
-- `supportedSwapLaneKind = single-input-vusd-to-shielded-sol`
+- `supportedSwapLaneKind = single-input-usdc-to-shielded-sol`
 - `supportedSwapLaneStatus = supported`
 - `supportedSwapV1Decision = accepted-narrow-v1-path`
 - `supportedSwapV1Role = adjacent-supported-not-required-for-finish-line`
@@ -19,7 +19,7 @@ This note freezes the current constrained swap lane that Vanta exposes in the na
 
 The current supported swap path is deliberately narrow:
 
-- one private VUSD input note
+- one private USDC input note
 - one operator-backed Meteora-aware quote/execution path
 - one shielded SOL output note
 
@@ -50,7 +50,7 @@ That keeps the product honest while the broader swap work remains intentionally 
 
 When the operator contract reports the current narrow zk v1 support surface, the swap fields should be read as:
 
-- Vanta currently supports one specific `VUSD -> shielded SOL` swap lane
+- Vanta currently supports one specific `USDC -> shielded SOL` swap lane
 - that lane is adjacent supported infrastructure, not a minimum blocker for calling the narrow `zk v1` finish line done
 - that lane is operator-backed and venue-constrained
 - the output remains private-state oriented rather than a plain public SOL payout

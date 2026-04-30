@@ -9,12 +9,12 @@ import {
   type NativeSolShieldDepositCandidate,
 } from "@/solana/nativeSolShield";
 import {
-  buildPublicToVusdSwapInstructions,
+  buildPublicToUsdcSwapInstructions,
   createPublicShieldRouteEvidence,
-  fetchPublicToVusdQuote,
+  fetchPublicToUsdcQuote,
   formatAssetAmount,
   type PublicShieldRouteEvidence,
-  type PublicToVusdQuote,
+  type PublicToUsdcQuote,
 } from "@/solana/publicSwapRoute";
 import { requestVantaPrivatePoolV2ProtocolSettlement } from "@/privacy/privatePoolV2ProtocolSettlementClient";
 import { runShieldWithDecoys } from "@/privacy/shieldDecoyBatcher";
@@ -62,7 +62,7 @@ type ShieldStatus =
 
 type PendingPublicRoute = {
   previousTargetBalance: number;
-  quote: PublicToVusdQuote;
+  quote: PublicToUsdcQuote;
   targetAssetKey: LiveShieldTokenAssetKey;
 };
 
@@ -900,10 +900,10 @@ export function ShieldPage(_props: ShieldPageProps) {
               });
 
         const privateCoreShield =
-          pendingShieldAsset === "VUSD"
+          pendingShieldAsset === "USDC"
             ? runPrivateCoreShield({
                 amountDisplay: pendingShieldAmountDisplay,
-                asset: "VUSD",
+                asset: "USDC",
               })
             : null;
         const nextBalance = Number((targetShieldedBalance + pendingShieldAmount).toFixed(6));
@@ -991,7 +991,7 @@ export function ShieldPage(_props: ShieldPageProps) {
           source: "shield",
           timestamp: Date.now(),
           zkBridge:
-            pendingShieldAsset === "VUSD" && zkRecord
+            pendingShieldAsset === "USDC" && zkRecord
               ? {
                   commitment:
                     privateCoreShield?.sourceNoteCommitment || zkRecord.artifacts.commitment.value,
@@ -1089,12 +1089,12 @@ export function ShieldPage(_props: ShieldPageProps) {
         return;
       }
 
-      const quote = await fetchPublicToVusdQuote({
+      const quote = await fetchPublicToUsdcQuote({
         amount,
         inputAsset: selectedSourceAsset,
         outputAsset: selectedShieldAsset.assetKey,
       });
-      const instructions = await buildPublicToVusdSwapInstructions({
+      const instructions = await buildPublicToUsdcSwapInstructions({
         quote,
         userPublicKey: walletAddress!,
       });

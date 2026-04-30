@@ -192,7 +192,7 @@ const wrongAsset = swapProof.prepareVantaPrivateCoreLiveSwapCandidate({
   quoteExpiresAt: Date.now() + 60_000,
 });
 
-if (wrongAsset.status !== "fallback" || !wrongAsset.note.includes("not a VUSD")) {
+if (wrongAsset.status !== "fallback" || !wrongAsset.note.includes("not a USDC")) {
   throw new Error("expected wrong input asset to force fallback");
 }
 printStatus("private-core swap live path asset-mismatch fallback: PASS");

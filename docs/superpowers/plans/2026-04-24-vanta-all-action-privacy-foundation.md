@@ -34,7 +34,7 @@
 - Modify: `operator/pay-server.mjs`
 - Modify: `package.json`
 
-- [ ] Add a server-safe catalog containing VUSD, USDC, JTO, BONK, JUP, PYUSD, WIF, KMNO, SOL, and USDT.
+- [ ] Add a server-safe catalog containing USDC, USDC, JTO, BONK, JUP, PYUSD, WIF, KMNO, SOL, and USDT.
 - [ ] Add a Pay asset helper that owns accepted Pay assets and decimals.
 - [ ] Derive `VantaPayAsset` from the Pay helper instead of a standalone union.
 - [ ] Replace Pay runtime decimal and accepted-asset duplication with the helper.

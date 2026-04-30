@@ -26,7 +26,7 @@ const vaultOwner = new PublicKey(vaultOwnerValue);
 
 const configuredAssets = [
   {
-    symbol: "VUSD",
+    symbol: "USDC",
     mintAddress:
       process.env.VANTA_DEVNET_TOKEN_MINT ?? process.env.VITE_VANTA_DEVNET_TOKEN_MINT,
     name:

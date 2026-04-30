@@ -295,7 +295,7 @@ try {
     preRestartSummary.parsed?.supportedReleaseLaneStatus !== "supported" ||
     typeof preRestartSummary.parsed?.supportedReleaseLaneNote !== "string" ||
     preRestartSummary.parsed?.supportedSwapLaneVersion !== 1 ||
-    preRestartSummary.parsed?.supportedSwapLaneKind !== "single-input-vusd-to-allowlisted-shielded-output" ||
+    preRestartSummary.parsed?.supportedSwapLaneKind !== "single-input-usdc-to-allowlisted-shielded-output" ||
     preRestartSummary.parsed?.supportedSwapLaneStatus !== "supported" ||
     typeof preRestartSummary.parsed?.supportedSwapLaneNote !== "string" ||
     preRestartSummary.parsed?.supportedSwapV1Decision !== "accepted-narrow-v1-path" ||
@@ -319,7 +319,7 @@ try {
     typeof preRestartSummary.parsed?.supportedZkV1ScopeNote !== "string" ||
     preRestartSummary.parsed?.supportedZkV1RequiredLanes !== "send|unshield|release" ||
     typeof preRestartSummary.parsed?.supportedZkV1RequiredLanesNote !== "string" ||
-    preRestartSummary.parsed?.supportedAssetSymbol !== "VUSD" ||
+    preRestartSummary.parsed?.supportedAssetSymbol !== "USDC" ||
     preRestartSummary.parsed?.supportedEnvironment !== "solana-devnet" ||
     preRestartSummary.parsed?.supportedNoteSchema !== "note-v0" ||
     preRestartSummary.parsed?.supportedNoteVersion !== 0 ||
@@ -403,7 +403,7 @@ try {
     postRestartSummary.parsed?.supportedReleaseLaneStatus !== "supported" ||
     typeof postRestartSummary.parsed?.supportedReleaseLaneNote !== "string" ||
     postRestartSummary.parsed?.supportedSwapLaneVersion !== 1 ||
-    postRestartSummary.parsed?.supportedSwapLaneKind !== "single-input-vusd-to-allowlisted-shielded-output" ||
+    postRestartSummary.parsed?.supportedSwapLaneKind !== "single-input-usdc-to-allowlisted-shielded-output" ||
     postRestartSummary.parsed?.supportedSwapLaneStatus !== "supported" ||
     typeof postRestartSummary.parsed?.supportedSwapLaneNote !== "string" ||
     postRestartSummary.parsed?.supportedSwapV1Decision !== "accepted-narrow-v1-path" ||
@@ -427,7 +427,7 @@ try {
     typeof postRestartSummary.parsed?.supportedZkV1ScopeNote !== "string" ||
     postRestartSummary.parsed?.supportedZkV1RequiredLanes !== "send|unshield|release" ||
     typeof postRestartSummary.parsed?.supportedZkV1RequiredLanesNote !== "string" ||
-    postRestartSummary.parsed?.supportedAssetSymbol !== "VUSD" ||
+    postRestartSummary.parsed?.supportedAssetSymbol !== "USDC" ||
     postRestartSummary.parsed?.supportedEnvironment !== "solana-devnet" ||
     postRestartSummary.parsed?.supportedNoteSchema !== "note-v0" ||
     postRestartSummary.parsed?.supportedNoteVersion !== 0 ||
@@ -620,7 +620,7 @@ try {
     !operatorStatusOutput.includes("Supported send v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported unshield v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported swap lane version: 1") ||
-    !operatorStatusOutput.includes("Supported swap lane kind: Single input VUSD to allowlisted shielded output") ||
+    !operatorStatusOutput.includes("Supported swap lane kind: Single input USDC to allowlisted shielded output") ||
     !operatorStatusOutput.includes("Supported swap lane status: Supported") ||
     !operatorStatusOutput.includes("Supported swap v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported swap venue: Meteora DLMM devnet + operator token output") ||

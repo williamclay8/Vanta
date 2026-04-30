@@ -120,11 +120,11 @@ assert.ok(
 const tokenAvailabilitySource = readFileSync(resolve("src/solana/tokenAvailability.ts"), "utf8");
 assert.ok(
   tokenAvailabilitySource.includes("isNativeSolShieldConfigured"),
-  "Token availability must model native SOL Shield readiness separately from the VUSD/SOL swap pair.",
+  "Token availability must model native SOL Shield readiness separately from the USDC/SOL swap pair.",
 );
 assert.ok(
   !tokenAvailabilitySource.includes('if (symbol === "SOL") {\n    return liveSwapPair.configured;\n  }'),
-  "SOL Shield readiness must not depend on the old liveSwapPair VUSD/SOL configuration.",
+  "SOL Shield readiness must not depend on the old liveSwapPair USDC/SOL configuration.",
 );
 
 console.log("Vanta native SOL shield check: PASS");

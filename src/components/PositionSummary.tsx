@@ -5,7 +5,7 @@ function formatAmount(value: number) {
   return `${value.toLocaleString(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  })} VUSD`;
+  })} USDC`;
 }
 
 function formatLatestTimestamp(timestamp: number | null) {
@@ -38,7 +38,7 @@ export function PositionSummary() {
         <article className="position-summary__card position-summary__card--accent">
           <span>Public Wallet</span>
           <strong>{formatAmount(summary.publicBalance)}</strong>
-          <small>Current live VUSD balance outside the privacy layer.</small>
+          <small>Current live USDC balance outside the privacy layer.</small>
         </article>
 
         <article className="position-summary__card">
@@ -56,7 +56,7 @@ export function PositionSummary() {
         <article className="position-summary__card">
           <span>Spendable Notes</span>
           <strong>{summary.spendableNoteCount}</strong>
-          <small>Spendable VUSD notes available for Send, Swap, or Unshield.</small>
+          <small>Spendable USDC notes available for Send, Swap, or Unshield.</small>
         </article>
       </div>
 

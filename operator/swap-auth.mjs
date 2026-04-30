@@ -40,7 +40,7 @@ export function parseSignedSwapIntent(body) {
   if (
     typeof consumedNoteId !== "string" ||
     typeof inputAmount !== "string" ||
-    inputAsset !== "VUSD" ||
+    inputAsset !== "USDC" ||
     typeof mintAddress !== "string" ||
     typeof outputAmount !== "string" ||
     outputAsset !== "SOL" ||

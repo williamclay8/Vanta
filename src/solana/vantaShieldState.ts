@@ -254,7 +254,7 @@ type ShieldMemoPayload = {
 
 type SendMemoPayload = {
   amount: string;
-  asset: "VUSD";
+  asset: "USDC";
   changeAmount: string;
   changeNoteId?: string;
   consumedNoteId?: string;
@@ -774,7 +774,7 @@ function createChangeNoteId(args: {
 }) {
   return createDeterministicNoteId({
     amount: args.amount,
-    asset: "VUSD",
+    asset: "USDC",
     createdAt: args.createdAt,
     kind: "change",
     mintAddress: args.mintAddress,
@@ -796,7 +796,7 @@ export function createRecipientSelfNoteId(args: {
 }) {
   return createDeterministicNoteId({
     amount: args.amount,
-    asset: "VUSD",
+    asset: "USDC",
     createdAt: args.createdAt,
     kind: "recipient_self",
     mintAddress: args.mintAddress,
@@ -1180,7 +1180,7 @@ function parseSendMemo(
 
     if (
       parsed.kind !== "send" ||
-      parsed.asset !== "VUSD" ||
+      parsed.asset !== "USDC" ||
       typeof parsed.owner !== "string" ||
       typeof parsed.mintAddress !== "string" ||
       typeof parsed.vaultOwner !== "string" ||
@@ -1206,7 +1206,7 @@ function parseSendMemo(
 
     return {
       amount: parsedAmount,
-      asset: "VUSD",
+      asset: "USDC",
       changeAmount: parsedChangeAmount,
       changeNoteId:
         typeof parsed.changeNoteId === "string" ? parsed.changeNoteId : undefined,
@@ -1542,7 +1542,7 @@ export async function fetchVantaShieldAccountState(args: {
   vaultOwner: string;
   viewingSecretKey?: string | null;
 }) {
-  const accountAsset = resolveShieldTokenAssetFromMint(args.mintAddress) ?? "VUSD";
+  const accountAsset = resolveShieldTokenAssetFromMint(args.mintAddress) ?? "USDC";
   const ownerAddress = toAddress(args.owner);
   const signatures = await args.client.runtime.rpc
     .getSignaturesForAddress(ownerAddress, {
@@ -1659,7 +1659,7 @@ export async function fetchVantaShieldAccountState(args: {
       note.noteId ??
       createSendNoteId({
         amount: roundedSentAmount.toString(),
-        asset: "VUSD",
+        asset: "USDC",
         changeAmount: roundedChangeAmount.toString(),
         consumedNoteId: resolvedConsumedNoteId,
         createdAt: note.createdAt,
@@ -1830,13 +1830,13 @@ export async function fetchVantaShieldAccountState(args: {
     })
     .map((sendNote) => {
       return {
-        asset: "VUSD",
+        asset: "USDC",
         assetId: sendNote.mintAddress,
         consumedNoteId: sendNote.consumedNoteId,
         createdAt: sendNote.createdAt,
         kind: "spent_marker" as const,
         markerId: createSpentMarkerId({
-          asset: "VUSD",
+          asset: "USDC",
           assetId: sendNote.mintAddress,
           consumedNoteId: sendNote.consumedNoteId,
           createdAt: sendNote.createdAt,
@@ -2350,8 +2350,8 @@ function deriveLifecycleActivities(args: {
       createdAt: note.createdAt,
       description:
         note.changeAmount > 0
-          ? `Sent ${note.amount.toFixed(2)} VUSD from shielded state and preserved ${note.changeAmount.toFixed(2)} VUSD as a new change note.`
-          : `Sent ${note.amount.toFixed(2)} VUSD from shielded state with no shielded value left over.`,
+          ? `Sent ${note.amount.toFixed(2)} USDC from shielded state and preserved ${note.changeAmount.toFixed(2)} USDC as a new change note.`
+          : `Sent ${note.amount.toFixed(2)} USDC from shielded state with no shielded value left over.`,
       noteId: note.noteId,
       sourceState: "Shielded State",
       targetState: "Shielded State",
@@ -2365,7 +2365,7 @@ function deriveLifecycleActivities(args: {
     return {
       amount: note.amount,
       createdAt: note.createdAt,
-      description: `Created a new spendable change note for ${note.amount.toFixed(2)} VUSD after a partial send.`,
+      description: `Created a new spendable change note for ${note.amount.toFixed(2)} USDC after a partial send.`,
       noteId: note.noteId,
       sourceState: "Shielded State",
       targetState: "Shielded State",
@@ -2402,9 +2402,9 @@ function deriveLifecycleActivities(args: {
 
     return {
       amount: note.inputAmount,
-      amountLabel: `${note.inputAmount.toFixed(2)} VUSD -> ${outputLabel}`,
+      amountLabel: `${note.inputAmount.toFixed(2)} USDC -> ${outputLabel}`,
       createdAt: note.createdAt,
-      description: `Swapped ${note.inputAmount.toFixed(2)} VUSD into ${outputLabel} inside Vanta's constrained shielded lifecycle${venueSuffix}`,
+      description: `Swapped ${note.inputAmount.toFixed(2)} USDC into ${outputLabel} inside Vanta's constrained shielded lifecycle${venueSuffix}`,
       noteId: note.noteId,
       sourceState: "Shielded State",
       targetState: "Shielded State",

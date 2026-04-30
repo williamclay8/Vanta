@@ -19,7 +19,7 @@ const POOL_ADDRESS =
   process.env.VANTA_METEORA_DLMM_POOL_ADDRESS ||
   process.env.VITE_VANTA_METEORA_DLMM_POOL_ADDRESS ||
   "61NMGEcS5M4HT4aJyK4c3qap3YsgXTrbKHn4tNtXVtrU";
-const VUSD_MINT = new PublicKey("VTi6xDRKPGexsJPgQvAfGv6vqvUdTgcnsCm1bZTd25J");
+const USDC_MINT = new PublicKey("VTi6xDRKPGexsJPgQvAfGv6vqvUdTgcnsCm1bZTd25J");
 const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
 
 function loadKeypair(filePath) {
@@ -103,7 +103,7 @@ async function getOwnerTokenBalances(connection, owner) {
         mint: parsed.mint,
       };
     })
-    .filter((entry) => entry.mint === VUSD_MINT.toBase58());
+    .filter((entry) => entry.mint === USDC_MINT.toBase58());
 }
 
 async function main() {
@@ -148,7 +148,7 @@ async function main() {
       };
     }),
     creatorSolBalanceLamports: creatorSolBalance,
-    creatorVusdAccounts: creatorTokenBalances,
+    creatorUsdcAccounts: creatorTokenBalances,
     pool: {
       address: pool.pubkey.toBase58(),
       reserveX: {
@@ -173,17 +173,17 @@ async function main() {
   const cases = [
     {
       amount: "1.000000",
-      inputMint: VUSD_MINT,
+      inputMint: USDC_MINT,
       outputMint: SOL_MINT,
       swapForY:
-        pool.lbPair.tokenXMint.equals(VUSD_MINT) && pool.lbPair.tokenYMint.equals(SOL_MINT),
+        pool.lbPair.tokenXMint.equals(USDC_MINT) && pool.lbPair.tokenYMint.equals(SOL_MINT),
     },
     {
       amount: "0.010000000",
       inputMint: SOL_MINT,
-      outputMint: VUSD_MINT,
+      outputMint: USDC_MINT,
       swapForY:
-        pool.lbPair.tokenXMint.equals(SOL_MINT) && pool.lbPair.tokenYMint.equals(VUSD_MINT),
+        pool.lbPair.tokenXMint.equals(SOL_MINT) && pool.lbPair.tokenYMint.equals(USDC_MINT),
     },
   ];
 

@@ -16,7 +16,7 @@ export type VantaActualPrivateTransactionDenomination =
   (typeof VANTA_ACTUAL_PRIVATE_TRANSACTION_DENOMINATIONS)[number];
 
 export type VantaActualPrivateDepositPublicTranscript = {
-  assetCohort: "stablecoin-usdc-v1" | "stablecoin-vusd-v1";
+  assetCohort: "stablecoin-usdc-v1" | "stablecoin-usdc-v1";
   commitment: string;
   denomination: VantaActualPrivateTransactionDenomination;
   leafIndex: number;
@@ -30,7 +30,7 @@ export type VantaActualPrivateDepositPublicTranscript = {
 
 export type VantaActualPrivateSpendPublicTranscript = {
   acceptedRoot: string;
-  assetCohort: "stablecoin-usdc-v1" | "stablecoin-vusd-v1";
+  assetCohort: "stablecoin-usdc-v1" | "stablecoin-usdc-v1";
   nullifier: string;
   outputCommitments: readonly string[];
   proofPublicInputHash: string;

@@ -103,7 +103,7 @@ function renderText(result) {
 
   if (result.classification === "external_indexer_block") {
     lines.push(
-      "Decision statement: The VUSD -> SOL Meteora DLMM pool exists on-chain, but Meteora devnet's indexed API still does not surface it. Vanta will no longer treat this as ordinary propagation delay. The swap lane is blocked by external indexer availability, and the next step is to either add an alternate context path or temporarily narrow the swap truth until venue context becomes reliably accessible.",
+      "Decision statement: The USDC -> SOL Meteora DLMM pool exists on-chain, but Meteora devnet's indexed API still does not surface it. Vanta will no longer treat this as ordinary propagation delay. The swap lane is blocked by external indexer availability, and the next step is to either add an alternate context path or temporarily narrow the swap truth until venue context becomes reliably accessible.",
     );
   }
 

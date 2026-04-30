@@ -41,8 +41,8 @@ const vantaShieldRoute: VantaPrivacyRouteCapability = {
 
 const vantaConstrainedSwapRoute: VantaPrivacyRouteCapability = {
   description:
-    "Current constrained private-core swap lane consumes a VUSD predecessor and emits shielded SOL successor state.",
-  id: "vanta-local-vusd-to-shielded-sol",
+    "Current constrained private-core swap lane consumes a USDC predecessor and emits shielded SOL successor state.",
+  id: "vanta-local-usdc-to-shielded-sol",
   inputDomain: "confidential-balance",
   outputDomain: "confidential-balance",
   privacy: mergePrivacyFlags({
@@ -53,7 +53,7 @@ const vantaConstrainedSwapRoute: VantaPrivacyRouteCapability = {
 
 const vantaUnshieldRoute: VantaPrivacyRouteCapability = {
   description:
-    "Configured shield-token lanes can exit through the local operator; VUSD supports hidden exact-amount split before exit.",
+    "Configured shield-token lanes can exit through the local operator; USDC supports hidden exact-amount split before exit.",
   id: "vanta-local-shielded-state-to-public-wallet",
   inputDomain: "confidential-balance",
   outputDomain: "public-wallet",

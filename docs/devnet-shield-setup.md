@@ -2,7 +2,7 @@
 
 This repo now supports one real Shield path for one controlled devnet test token.
 
-The supported asset is surfaced in the app as `VUSD` and is backed by:
+The supported asset is surfaced in the app as `USDC` and is backed by:
 - one configured SPL mint
 - one configured Vanta vault owner address
 
@@ -65,7 +65,7 @@ For the first constrained Unshield hardening milestone, the frontend no longer c
 
 The current operator path is now minimally authenticated:
 - the connected wallet signs an explicit Unshield intent message
-- the operator verifies that wallet signature before moving VUSD
+- the operator verifies that wallet signature before moving USDC
 - requests carry a timestamped `requestId`
 - the operator rejects expired and already-seen requests in-memory during local runs
 - the operator confirms the referenced onchain Unshield transition and consumed note are consistent before release
@@ -91,7 +91,7 @@ operator/.vanta-unshield-releases.json
 Delete that file only if you intentionally want to reset the local operator's remembered release history.
 
 The same local operator now also serves the narrow Vanta Private Core verifier lane used by the fixed-depth single-note unshield proof boundary. That means the current operator process is responsible for:
-- authenticated devnet unshield for the live `VUSD` / `SOL` path
+- authenticated devnet unshield for the live `USDC` / `SOL` path
 - private-core proof verification
 - private-core root registration
 - private-core consume / replay enforcement

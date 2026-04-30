@@ -2,9 +2,9 @@
 
 Primary artifact:
 
-- [vanta-vusd-lifecycle.svg](/Users/clay/Desktop/Vanta/docs/architecture/vanta-vusd-lifecycle.svg)
+- [vanta-usdc-lifecycle.svg](/Users/clay/Desktop/Vanta/docs/architecture/vanta-usdc-lifecycle.svg)
 
-This diagram is the current one-page visual for Vanta's constrained real devnet `VUSD` lifecycle:
+This diagram is the current one-page visual for Vanta's constrained real devnet `USDC` lifecycle:
 
 - Public Wallet
 - Vanta Shielded State
@@ -20,9 +20,9 @@ It is intended for:
 
 Current truth reflected in the visual:
 
-- one live asset: `VUSD`
+- one live asset: `USDC`
 - devnet only
-- real `Shield`, `Send`, constrained `Swap VUSD -> SOL`, and `Unshield`
+- real `Shield`, `Send`, constrained `Swap USDC -> SOL`, and `Unshield`
 - chain-resolved note state
 - authenticated operator-backed exit
 

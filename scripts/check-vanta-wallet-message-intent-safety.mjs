@@ -8,7 +8,7 @@ import {
 const now = Date.now();
 const baseInput = {
   amount: "12.50",
-  asset: "VUSD",
+  asset: "USDC",
   connectedWalletAddress: "wallet_abc",
   expiresAt: now + 300_000,
   humanApprovedSummary: true,

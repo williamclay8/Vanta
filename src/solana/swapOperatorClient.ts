@@ -3,7 +3,7 @@ import type { SignedSwapIntent } from "@/solana/swapAuth";
 
 export type SwapQuote = {
   inputAmount: string;
-  inputAsset: "VUSD";
+  inputAsset: "USDC";
   outputAmount: string;
   outputAsset: "SOL";
   pairLabel: string;
@@ -18,7 +18,7 @@ export type SwapQuote = {
 
 export type SwapLaneHealth = {
   checkedAt: number;
-  lane: "VUSD->SOL";
+  lane: "USDC->SOL";
   message: string;
   network: "Devnet";
   poolAddress: string | null;
@@ -55,7 +55,7 @@ export async function fetchSwapLaneHealth(): Promise<SwapLaneHealth> {
       parsed.status !== "degraded" &&
       parsed.status !== "unavailable" &&
       parsed.status !== "misconfigured") ||
-    parsed.lane !== "VUSD->SOL" ||
+    parsed.lane !== "USDC->SOL" ||
     parsed.venueName !== "Meteora" ||
     parsed.venueFamily !== "DLMM" ||
     parsed.network !== "Devnet" ||
@@ -67,7 +67,7 @@ export async function fetchSwapLaneHealth(): Promise<SwapLaneHealth> {
 
   return {
     checkedAt: parsed.checkedAt,
-    lane: "VUSD->SOL",
+    lane: "USDC->SOL",
     message: parsed.message,
     network: "Devnet",
     poolAddress: typeof parsed.poolAddress === "string" ? parsed.poolAddress : null,
@@ -116,7 +116,7 @@ export async function fetchSwapQuote(inputAmount: string): Promise<SwapQuote> {
 
   return {
     inputAmount: parsed.inputAmount,
-    inputAsset: "VUSD",
+    inputAsset: "USDC",
     outputAmount: parsed.outputAmount,
     outputAsset: "SOL",
     pairLabel: parsed.pairLabel,

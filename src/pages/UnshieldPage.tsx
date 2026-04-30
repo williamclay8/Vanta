@@ -435,8 +435,8 @@ export function UnshieldPage() {
   const walletSession = useWalletSession();
   const shieldRegistry = useVantaShieldAssetRegistryState();
   const canonicalShieldState = useVantaShieldState();
-  const vusdShieldEntry = shieldRegistry.byAssetKey.VUSD;
-  const [selectedLane, setSelectedLane] = useState<UnshieldLane>("VUSD");
+  const usdcShieldEntry = shieldRegistry.byAssetKey.USDC;
+  const [selectedLane, setSelectedLane] = useState<UnshieldLane>("USDC");
   const [requestedAmountInput, setRequestedAmountInput] = useState("");
   const [status, setStatus] = useState<UnshieldStatus>("idle");
   const [flowError, setFlowError] = useState<string | null>(null);
@@ -504,8 +504,8 @@ export function UnshieldPage() {
           assetKey,
           shieldRegistry.byAssetKey[assetKey].account?.spendableShieldNotes ?? [],
         ]),
-      ) as Record<LiveShieldTokenAssetKey, NonNullable<typeof vusdShieldEntry.account>["spendableShieldNotes"]>,
-    [shieldRegistry.byAssetKey, vusdShieldEntry.account],
+      ) as Record<LiveShieldTokenAssetKey, NonNullable<typeof usdcShieldEntry.account>["spendableShieldNotes"]>,
+    [shieldRegistry.byAssetKey, usdcShieldEntry.account],
   );
   const shieldedSolSourceEntry =
     shieldRegistry.entries.find((entry) => (entry.account?.shieldedSolBalance ?? 0) > 0) ??
@@ -519,15 +519,15 @@ export function UnshieldPage() {
       ? canonicalShieldState.account
       : null;
   const solShieldAccount =
-    shieldedSolSourceEntry?.account ?? canonicalSolAccount ?? vusdShieldEntry.account;
+    shieldedSolSourceEntry?.account ?? canonicalSolAccount ?? usdcShieldEntry.account;
   const solShieldStateError =
-    shieldedSolSourceEntry?.error ?? canonicalShieldState.error ?? vusdShieldEntry.error;
+    shieldedSolSourceEntry?.error ?? canonicalShieldState.error ?? usdcShieldEntry.error;
   const recentShieldedSolNote = useMemo(() => {
     if (
       recentShield?.asset !== "SOL" ||
       recentShield.amount <= 0 ||
       !walletAddress ||
-      !vusdShieldEntry.asset.vaultOwner ||
+      !usdcShieldEntry.asset.vaultOwner ||
       !recentShield.signature
     ) {
       return null;
@@ -539,7 +539,7 @@ export function UnshieldPage() {
       depositSignature: recentShield.depositSignature,
       owner: walletAddress,
       signature: recentShield.signature,
-      vaultOwner: vusdShieldEntry.asset.vaultOwner,
+      vaultOwner: usdcShieldEntry.asset.vaultOwner,
     });
   }, [
     recentShield?.amount,
@@ -547,7 +547,7 @@ export function UnshieldPage() {
     recentShield?.depositSignature,
     recentShield?.signature,
     recentShield?.timestamp,
-    vusdShieldEntry.asset.vaultOwner,
+    usdcShieldEntry.asset.vaultOwner,
     walletAddress,
   ]);
   const spendableSolNotes = useMemo(() => {
@@ -643,13 +643,13 @@ export function UnshieldPage() {
   const selectedLaneDecimals =
     selectedLane === "SOL" ? 9 : getLiveShieldTokenAsset(selectedLane).decimals;
   const requestedAmountNumeric =
-    selectedLane === "VUSD"
+    selectedLane === "USDC"
       ? parseEditableAmount(requestedAmountInput)
       : selectedFullAmount;
   const selectedAmount =
     requestedAmountNumeric !== null ? requestedAmountNumeric : 0;
   const requiresExactSplit =
-    selectedLane === "VUSD" &&
+    selectedLane === "USDC" &&
     selectedShieldNote !== null &&
     requestedAmountNumeric !== null &&
     requestedAmountNumeric > 0 &&
@@ -780,7 +780,7 @@ export function UnshieldPage() {
     },
   ] as const;
   const hasValidRequestedAmount =
-    selectedLane === "VUSD"
+    selectedLane === "USDC"
       ? requestedAmountNumeric !== null &&
         requestedAmountNumeric > 0 &&
         requestedAmountNumeric <= selectedFullAmount + 0.000001
@@ -791,7 +791,7 @@ export function UnshieldPage() {
     Boolean(walletSession?.signMessage) &&
     canUseLane &&
     hasValidRequestedAmount &&
-    Boolean(vusdShieldEntry.asset.vaultOwner) &&
+    Boolean(usdcShieldEntry.asset.vaultOwner) &&
     (selectedLane === "SOL"
       ? Boolean(liveSwapPair.solUnshieldOperatorUrl)
       : Boolean(selectedShieldAsset?.mintAddress) && Boolean(selectedShieldAsset?.unshieldConfigured));
@@ -894,7 +894,7 @@ export function UnshieldPage() {
         const instructions = [
           ...priorityFeeInstructions,
           createSpentMarkerInstruction({
-            asset: "VUSD",
+            asset: "USDC",
             consumedNoteId: pendingSplitMarker.consumedNoteId,
             createdAt: pendingSplitMarker.createdAt,
             mintAddress: pendingSplitMarker.mintAddress,
@@ -907,7 +907,7 @@ export function UnshieldPage() {
 
         return splitSpentMarkerTransaction.send({
           amount: pendingSplitMarker.amount,
-          asset: "VUSD",
+          asset: "USDC",
           cluster: vantaSolanaCluster,
       explicitMainnetApproval: vantaExplicitMainnetApproval,
           connectedWalletAddress: pendingSplitMarker.owner,
@@ -996,7 +996,7 @@ export function UnshieldPage() {
         const splitMintAddress = selectedShieldAsset.mintAddress;
 
         if (!splitMintAddress) {
-          throw new Error("The VUSD shield mint is unavailable for the exact unshield split.");
+          throw new Error("The USDC shield mint is unavailable for the exact unshield split.");
         }
 
         const refreshedAccount = await fetchVantaShieldAccountState({
@@ -1532,7 +1532,7 @@ export function UnshieldPage() {
 
   async function beginSolUnshieldFromNote(args: {
     note: NonNullable<typeof selectedSolNote>;
-    shieldAccount: NonNullable<typeof vusdShieldEntry.account>;
+    shieldAccount: NonNullable<typeof usdcShieldEntry.account>;
   }) {
     resetDirectUnshieldFlow();
 
@@ -1633,7 +1633,7 @@ export function UnshieldPage() {
 
     const activeShieldAccount = selectedLane === "SOL" ? solShieldAccount : selectedShieldAccount;
 
-    if (!activeShieldAccount || !vusdShieldEntry.asset.vaultOwner) {
+    if (!activeShieldAccount || !usdcShieldEntry.asset.vaultOwner) {
       return;
     }
 
@@ -1650,7 +1650,7 @@ export function UnshieldPage() {
         }
 
         if (
-          selectedLane === "VUSD" &&
+          selectedLane === "USDC" &&
           requestedAmountNumeric !== null &&
           requestedAmountNumeric > 0 &&
           requestedAmountNumeric < selectedShieldNote.amount &&
@@ -1684,7 +1684,7 @@ export function UnshieldPage() {
           );
           const preparedSplit = createPreparedSendMemo({
             amount: requestedAmountNumeric.toString(),
-            asset: "VUSD",
+            asset: "USDC",
             changeAmount: nextChangeAmount.toString(),
             consumedNoteId: selectedShieldNote.noteId,
             createdAt,
@@ -1730,7 +1730,7 @@ export function UnshieldPage() {
 
           await splitTransitionTransaction.send({
             amount: requestedAmountNumeric.toString(),
-            asset: "VUSD",
+            asset: "USDC",
             cluster: vantaSolanaCluster,
       explicitMainnetApproval: vantaExplicitMainnetApproval,
             connectedWalletAddress: activeShieldAccount.owner,
@@ -1777,8 +1777,8 @@ export function UnshieldPage() {
   let validationMessage =
     selectedLane === "SOL"
       ? "Return shielded SOL to your public wallet through the constrained operator path."
-      : selectedLane === "VUSD" && requiresExactSplit
-        ? "Vanta will split your protected VUSD balance privately, keep the remainder shielded, and return only the requested amount."
+      : selectedLane === "USDC" && requiresExactSplit
+        ? "Vanta will split your protected USDC balance privately, keep the remainder shielded, and return only the requested amount."
         : `Return shielded ${selectedLane} to your public wallet through the constrained operator path.`
 
   if (!walletConnected) {
@@ -1805,16 +1805,16 @@ export function UnshieldPage() {
     validationMessage = `No shielded ${selectedLane} balance is currently available to return.`;
   } else if (selectedLane === "SOL" && !selectedSolNote) {
     validationMessage = "No shielded SOL balance is currently available to return.";
-  } else if (selectedLane === "VUSD" && requestedAmountNumeric === null) {
-    validationMessage = "Enter a valid VUSD amount to unshield.";
+  } else if (selectedLane === "USDC" && requestedAmountNumeric === null) {
+    validationMessage = "Enter a valid USDC amount to unshield.";
   } else if (
-    selectedLane === "VUSD" &&
+    selectedLane === "USDC" &&
     requestedAmountNumeric !== null &&
     requestedAmountNumeric <= 0
   ) {
     validationMessage = "Unshield amount must be greater than zero.";
   } else if (
-    selectedLane === "VUSD" &&
+    selectedLane === "USDC" &&
     requestedAmountNumeric !== null &&
     requestedAmountNumeric > selectedFullAmount
   ) {
@@ -2553,7 +2553,7 @@ export function UnshieldPage() {
                 <div className="swap-module__label-row">
                   <span>Amount</span>
                 </div>
-                {selectedLane === "VUSD" ? (
+                {selectedLane === "USDC" ? (
                   <div className="amount-field amount-field--solo">
                     <input
                       aria-label="Unshield amount"
@@ -2604,7 +2604,7 @@ export function UnshieldPage() {
               <span>Awaiting wallet confirmation</span>
               <p>
                 {requiresExactSplit
-                  ? "Approve the private split so Vanta can isolate the exact VUSD amount first."
+                  ? "Approve the private split so Vanta can isolate the exact USDC amount first."
                   : "Approve the constrained unshield transition to return the selected asset."}
               </p>
               {pendingUmbraApprovalDisplay && (

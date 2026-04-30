@@ -12,9 +12,9 @@ const packageSource = readFileSync(resolve(repoRoot, "package.json"), "utf8");
 const requiredCapabilityMarkers = [
   "listShieldedSwapAssetOptions",
   "getShieldedSwapPairCapability",
-  "operator-vusd-sol",
+  "operator-usdc-sol",
   "needs-private-route-adapter",
-  "Shielded VUSD",
+  "Shielded USDC",
   "Shielded USDC",
   "Shielded JTO",
   "Shielded BONK",
@@ -76,7 +76,7 @@ for (const marker of requiredPageMarkers) {
 
 for (const marker of forbiddenPageMarkers) {
   if (swapPageSource.includes(marker)) {
-    failures.push(`SwapPage.tsx must not retain VUSD/SOL-only marker: ${marker}`);
+    failures.push(`SwapPage.tsx must not retain USDC/SOL-only marker: ${marker}`);
   }
 }
 

@@ -434,7 +434,7 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedReleaseV1Decision: "accepted-narrow-v1-path";
   supportedReleaseV1DecisionNote: string;
   supportedSwapLaneVersion: number;
-  supportedSwapLaneKind: "single-input-vusd-to-allowlisted-shielded-output";
+  supportedSwapLaneKind: "single-input-usdc-to-allowlisted-shielded-output";
   supportedSwapLaneStatus: "supported";
   supportedSwapLaneNote: string;
   supportedSwapV1Decision: "accepted-narrow-v1-path";
@@ -503,7 +503,7 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedZkV1ScopeNote: string;
   supportedZkV1RequiredLanes: "send|unshield|release";
   supportedZkV1RequiredLanesNote: string;
-  supportedAssetSymbol: "VUSD";
+  supportedAssetSymbol: "USDC";
   supportedEnvironment: "solana-devnet";
   supportedNoteSchema: "note-v0";
   supportedNoteVersion: number;
@@ -600,7 +600,7 @@ export type VantaPrivateCoreOperatorContractStateResponse = {
   supportedReleaseV1Decision: "accepted-narrow-v1-path";
   supportedReleaseV1DecisionNote: string;
   supportedSwapLaneVersion: number;
-  supportedSwapLaneKind: "single-input-vusd-to-allowlisted-shielded-output";
+  supportedSwapLaneKind: "single-input-usdc-to-allowlisted-shielded-output";
   supportedSwapLaneStatus: "supported";
   supportedSwapLaneNote: string;
   supportedSwapV1Decision: "accepted-narrow-v1-path";
@@ -669,7 +669,7 @@ export type VantaPrivateCoreOperatorContractStateResponse = {
   supportedZkV1ScopeNote: string;
   supportedZkV1RequiredLanes: "send|unshield|release";
   supportedZkV1RequiredLanesNote: string;
-  supportedAssetSymbol: "VUSD";
+  supportedAssetSymbol: "USDC";
   supportedEnvironment: "solana-devnet";
   supportedNoteSchema: "note-v0";
   supportedNoteVersion: number;
@@ -2569,7 +2569,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     parsed.supportedReleaseV1Decision !== "accepted-narrow-v1-path" ||
     typeof parsed.supportedReleaseV1DecisionNote !== "string" ||
     parsed.supportedSwapLaneVersion !== 1 ||
-    parsed.supportedSwapLaneKind !== "single-input-vusd-to-allowlisted-shielded-output" ||
+    parsed.supportedSwapLaneKind !== "single-input-usdc-to-allowlisted-shielded-output" ||
     parsed.supportedSwapLaneStatus !== "supported" ||
     typeof parsed.supportedSwapLaneNote !== "string" ||
     parsed.supportedSwapV1Decision !== "accepted-narrow-v1-path" ||
@@ -2645,7 +2645,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     typeof parsed.supportedZkV1ScopeNote !== "string" ||
     parsed.supportedZkV1RequiredLanes !== "send|unshield|release" ||
     typeof parsed.supportedZkV1RequiredLanesNote !== "string" ||
-    parsed.supportedAssetSymbol !== "VUSD" ||
+    parsed.supportedAssetSymbol !== "USDC" ||
     parsed.supportedEnvironment !== "solana-devnet" ||
     parsed.supportedNoteSchema !== "note-v0" ||
     parsed.supportedNoteVersion !== 0 ||
@@ -2787,7 +2787,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedReleaseV1Decision: "accepted-narrow-v1-path",
     supportedReleaseV1DecisionNote: parsed.supportedReleaseV1DecisionNote,
     supportedSwapLaneVersion: 1,
-    supportedSwapLaneKind: "single-input-vusd-to-allowlisted-shielded-output",
+    supportedSwapLaneKind: "single-input-usdc-to-allowlisted-shielded-output",
     supportedSwapLaneStatus: "supported",
     supportedSwapLaneNote: parsed.supportedSwapLaneNote,
     supportedSwapV1Decision: "accepted-narrow-v1-path",
@@ -2856,7 +2856,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedZkV1ScopeNote: parsed.supportedZkV1ScopeNote,
     supportedZkV1RequiredLanes: "send|unshield|release",
     supportedZkV1RequiredLanesNote: parsed.supportedZkV1RequiredLanesNote,
-    supportedAssetSymbol: "VUSD",
+    supportedAssetSymbol: "USDC",
     supportedEnvironment: "solana-devnet",
     supportedNoteSchema: "note-v0",
     supportedNoteVersion: 0,
@@ -3219,7 +3219,7 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     parsed.supportedReleaseV1Decision !== "accepted-narrow-v1-path" ||
     typeof parsed.supportedReleaseV1DecisionNote !== "string" ||
     parsed.supportedSwapLaneVersion !== 1 ||
-    parsed.supportedSwapLaneKind !== "single-input-vusd-to-allowlisted-shielded-output" ||
+    parsed.supportedSwapLaneKind !== "single-input-usdc-to-allowlisted-shielded-output" ||
     parsed.supportedSwapLaneStatus !== "supported" ||
     typeof parsed.supportedSwapLaneNote !== "string" ||
     parsed.supportedSwapV1Decision !== "accepted-narrow-v1-path" ||
@@ -3295,7 +3295,7 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     typeof parsed.supportedZkV1ScopeNote !== "string" ||
     parsed.supportedZkV1RequiredLanes !== "send|unshield|release" ||
     typeof parsed.supportedZkV1RequiredLanesNote !== "string" ||
-    parsed.supportedAssetSymbol !== "VUSD" ||
+    parsed.supportedAssetSymbol !== "USDC" ||
     parsed.supportedEnvironment !== "solana-devnet" ||
     parsed.supportedNoteSchema !== "note-v0" ||
     parsed.supportedNoteVersion !== 0 ||
@@ -3361,7 +3361,7 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedReleaseV1Decision: "accepted-narrow-v1-path",
     supportedReleaseV1DecisionNote: parsed.supportedReleaseV1DecisionNote,
     supportedSwapLaneVersion: 1,
-    supportedSwapLaneKind: "single-input-vusd-to-allowlisted-shielded-output",
+    supportedSwapLaneKind: "single-input-usdc-to-allowlisted-shielded-output",
     supportedSwapLaneStatus: "supported",
     supportedSwapLaneNote: parsed.supportedSwapLaneNote,
     supportedSwapV1Decision: "accepted-narrow-v1-path",
@@ -3430,7 +3430,7 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedZkV1ScopeNote: parsed.supportedZkV1ScopeNote,
     supportedZkV1RequiredLanes: "send|unshield|release",
     supportedZkV1RequiredLanesNote: parsed.supportedZkV1RequiredLanesNote,
-    supportedAssetSymbol: "VUSD",
+    supportedAssetSymbol: "USDC",
     supportedEnvironment: "solana-devnet",
     supportedNoteSchema: "note-v0",
     supportedNoteVersion: 0,

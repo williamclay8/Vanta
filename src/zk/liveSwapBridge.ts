@@ -24,7 +24,7 @@ import {
 } from "./canonicalLifecycleLinkage";
 
 const LIVE_SWAP_RECORDS_STORAGE_KEY = "vanta.zk.phase1.live-swap-records.v1";
-const DEFAULT_VUSD_DECIMALS = 6;
+const DEFAULT_USDC_DECIMALS = 6;
 const DEFAULT_SOL_DECIMALS = 9;
 
 export type LiveSwapCanonicalizationInput = {
@@ -32,7 +32,7 @@ export type LiveSwapCanonicalizationInput = {
   owner: string;
   vaultOwner: string;
   input: {
-    asset: "VUSD";
+    asset: "USDC";
     mintAddress: string;
     amountDisplay: string;
     noteId: string;
@@ -81,7 +81,7 @@ export type LiveSwapCanonicalRecord = {
   liveSwap: {
     owner: string;
     vaultOwner: string;
-    inputAsset: "VUSD";
+    inputAsset: "USDC";
     inputMintAddress: string;
     inputAmountDisplay: string;
     inputNoteId: string;
@@ -125,7 +125,7 @@ export type LiveSwapDiagnosticsSummary = {
   createdAt: number;
   lifecycleRecordId?: string;
   lineageId?: string;
-  inputAsset: "VUSD";
+  inputAsset: "USDC";
   inputAmountDisplay: string;
   inputLiveNoteId: string;
   inputCanonicalCommitment?: string;
@@ -219,7 +219,7 @@ export async function recordCanonicalSwapFromLiveSwap(
     liveSwap: {
       owner: input.owner,
       vaultOwner: input.vaultOwner,
-      inputAsset: "VUSD",
+      inputAsset: "USDC",
       inputMintAddress: input.input.mintAddress,
       inputAmountDisplay: input.input.amountDisplay,
       inputNoteId: input.input.noteId,

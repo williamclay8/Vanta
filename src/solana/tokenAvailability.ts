@@ -14,8 +14,8 @@ import { VANTA_PAY_ASSET_SYMBOLS } from "@/pay/vantaPayAssets";
 export type VantaTokenActionMode =
   | "direct-shield"
   | "route-to-shield"
-  | "operator-vusd-send"
-  | "operator-vusd-sol"
+  | "operator-usdc-send"
+  | "operator-usdc-sol"
   | "operator-token-unshield"
   | "operator-sol-unshield"
   | "beta-local-pay"
@@ -115,7 +115,7 @@ export function listVantaTokenAvailability(): VantaTokenAvailability[] {
     const configured = configuredForShield(entry.symbol);
     const unshieldConfigured = configuredForUnshield(entry.symbol);
     const isPayAsset = (VANTA_PAY_ASSET_SYMBOLS as readonly string[]).includes(entry.symbol);
-    const isVusd = entry.symbol === "VUSD";
+    const isUsdc = entry.symbol === "USDC";
     const isSol = entry.symbol === "SOL";
     const routeablePublicInput = entry.shieldFamily || isPayAsset;
     const configuredShieldTarget = configured && entry.shieldFamily;
@@ -134,11 +134,11 @@ export function listVantaTokenAvailability(): VantaTokenAvailability[] {
       }),
       reason: configured || entry.symbol === "USDT" ? null : "Configure this asset before live execution.",
       send: action({
-        executable: isVusd && configured,
+        executable: isUsdc && configured,
         label: `Send ${entry.symbol} from shielded balance`,
-        mode: isVusd && configured ? "operator-vusd-send" : "adapter-required",
+        mode: isUsdc && configured ? "operator-usdc-send" : "adapter-required",
         reason:
-          isVusd && configured
+          isUsdc && configured
             ? null
             : "Private send for this asset needs a private send adapter.",
       }),
@@ -181,18 +181,18 @@ export function listVantaTokenAvailability(): VantaTokenAvailability[] {
           "Private Pool v2 production anonymity-set readiness is still blocked; do not claim this asset is fully private.",
       }),
       swapFrom: action({
-        executable: isVusd && liveSwapPair.configured,
+        executable: isUsdc && liveSwapPair.configured,
         label: `Swap from shielded ${entry.symbol}`,
-        mode: isVusd && liveSwapPair.configured ? "operator-vusd-sol" : "adapter-required",
+        mode: isUsdc && liveSwapPair.configured ? "operator-usdc-sol" : "adapter-required",
         reason:
-          isVusd && liveSwapPair.configured
+          isUsdc && liveSwapPair.configured
             ? null
             : "Route not ready yet for this shielded asset.",
       }),
       swapTo: action({
         executable: isSol && liveSwapPair.configured,
         label: `Swap to shielded ${entry.symbol}`,
-        mode: isSol && liveSwapPair.configured ? "operator-vusd-sol" : "adapter-required",
+        mode: isSol && liveSwapPair.configured ? "operator-usdc-sol" : "adapter-required",
         reason:
           isSol && liveSwapPair.configured
             ? null

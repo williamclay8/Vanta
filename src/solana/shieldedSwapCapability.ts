@@ -20,7 +20,7 @@ export type ShieldedSwapAssetOption = {
 export type ShieldedSwapPairCapability = {
   blockers: readonly string[];
   executionMode:
-    | "operator-vusd-sol"
+    | "operator-usdc-sol"
     | "operator-sol-to-shielded"
     | "needs-private-route-adapter";
   inputAsset: ShieldedSwapAssetKey;
@@ -36,7 +36,6 @@ const SHIELDED_SWAP_ASSET_LABELS = {
   PYUSD: "Shielded PYUSD",
   SOL: "Shielded SOL",
   USDC: "Shielded USDC",
-  VUSD: "Shielded VUSD",
   WIF: "Shielded WIF",
 } as const satisfies Record<ShieldedSwapAssetKey, string>;
 
@@ -76,7 +75,7 @@ export function getShieldedSwapPairCapability(args: {
   ) {
     return {
       blockers: [],
-      executionMode: "operator-vusd-sol",
+      executionMode: "operator-usdc-sol",
       inputAsset: args.inputAsset,
       outputAsset: args.outputAsset,
       status: "live",

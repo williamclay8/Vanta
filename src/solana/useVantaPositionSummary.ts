@@ -10,6 +10,8 @@ export type VantaPositionSummary = {
   liveAsset: string;
   networkLabel: string;
   publicBalance: number;
+  registryError: string | null;
+  registryRefreshing: boolean;
   shieldedBalance: number;
   shieldedSolBalance: number;
   spendableNoteCount: number;
@@ -26,12 +28,22 @@ export function useVantaPositionSummary(): VantaPositionSummary {
 
   return useMemo(() => {
     const account = primaryEntry.account;
+    const shieldedSolEntry =
+      shieldRegistry.entries.find((entry) => (entry.account?.shieldedSolBalance ?? 0) > 0) ??
+      primaryEntry;
+    const shieldedSolAccount = shieldedSolEntry.account;
     const publicBalance = primaryEntry.publicBalance;
+    const registryError =
+      primaryEntry.error ?? (shieldedSolEntry === primaryEntry ? null : shieldedSolEntry.error);
+    const registryRefreshing = primaryEntry.isRefreshing || shieldedSolEntry.isRefreshing;
     const shieldedBalance = account?.balance ?? 0;
-    const shieldedSolBalance = account?.shieldedSolBalance ?? 0;
+    const shieldedSolBalance = shieldedSolAccount?.shieldedSolBalance ?? 0;
     const spendableNoteCount = account?.spendableShieldNotes.length ?? 0;
     const swapCount = account?.swapNotes.length ?? 0;
-    const latestActivity = account?.lifecycleActivities[0] ?? null;
+    const latestActivity =
+      shieldedSolBalance > 0
+        ? (shieldedSolAccount?.lifecycleActivities[0] ?? account?.lifecycleActivities[0] ?? null)
+        : (account?.lifecycleActivities[0] ?? null);
 
     let statusLabel = `Connect a wallet to enter the live ${primaryAsset.symbol} path.`;
 
@@ -61,6 +73,8 @@ export function useVantaPositionSummary(): VantaPositionSummary {
       liveAsset: primaryAsset.symbol,
       networkLabel: clusterLabel,
       publicBalance,
+      registryError,
+      registryRefreshing,
       shieldedBalance,
       shieldedSolBalance,
       spendableNoteCount,
@@ -68,5 +82,5 @@ export function useVantaPositionSummary(): VantaPositionSummary {
       swapCount,
       walletConnected,
     } satisfies VantaPositionSummary;
-  }, [clusterLabel, primaryAsset, primaryEntry, walletConnected]);
+  }, [clusterLabel, primaryAsset, primaryEntry, shieldRegistry.entries, walletConnected]);
 }

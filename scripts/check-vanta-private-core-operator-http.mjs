@@ -242,7 +242,7 @@ try {
     initialSummaryState.parsed?.supportedReleaseLaneStatus !== "supported" ||
     typeof initialSummaryState.parsed?.supportedReleaseLaneNote !== "string" ||
     initialSummaryState.parsed?.supportedSwapLaneVersion !== 1 ||
-    initialSummaryState.parsed?.supportedSwapLaneKind !== "single-input-vusd-to-allowlisted-shielded-output" ||
+    initialSummaryState.parsed?.supportedSwapLaneKind !== "single-input-usdc-to-allowlisted-shielded-output" ||
     initialSummaryState.parsed?.supportedSwapLaneStatus !== "supported" ||
     typeof initialSummaryState.parsed?.supportedSwapLaneNote !== "string" ||
     initialSummaryState.parsed?.supportedSwapV1Decision !== "accepted-narrow-v1-path" ||
@@ -266,7 +266,7 @@ try {
     typeof initialSummaryState.parsed?.supportedZkV1ScopeNote !== "string" ||
     initialSummaryState.parsed?.supportedZkV1RequiredLanes !== "send|unshield|release" ||
     typeof initialSummaryState.parsed?.supportedZkV1RequiredLanesNote !== "string" ||
-    initialSummaryState.parsed?.supportedAssetSymbol !== "VUSD" ||
+    initialSummaryState.parsed?.supportedAssetSymbol !== "USDC" ||
     initialSummaryState.parsed?.supportedEnvironment !== "solana-devnet" ||
     initialSummaryState.parsed?.supportedNoteSchema !== "note-v0" ||
     initialSummaryState.parsed?.supportedNoteVersion !== 0 ||
@@ -938,7 +938,7 @@ try {
     summaryStateAfterConsume.parsed?.supportedReleaseLaneStatus !== "supported" ||
     typeof summaryStateAfterConsume.parsed?.supportedReleaseLaneNote !== "string" ||
     summaryStateAfterConsume.parsed?.supportedSwapLaneVersion !== 1 ||
-    summaryStateAfterConsume.parsed?.supportedSwapLaneKind !== "single-input-vusd-to-allowlisted-shielded-output" ||
+    summaryStateAfterConsume.parsed?.supportedSwapLaneKind !== "single-input-usdc-to-allowlisted-shielded-output" ||
     summaryStateAfterConsume.parsed?.supportedSwapLaneStatus !== "supported" ||
     typeof summaryStateAfterConsume.parsed?.supportedSwapLaneNote !== "string" ||
     summaryStateAfterConsume.parsed?.supportedSwapV1Decision !== "accepted-narrow-v1-path" ||
@@ -962,7 +962,7 @@ try {
     typeof summaryStateAfterConsume.parsed?.supportedZkV1ScopeNote !== "string" ||
     summaryStateAfterConsume.parsed?.supportedZkV1RequiredLanes !== "send|unshield|release" ||
     typeof summaryStateAfterConsume.parsed?.supportedZkV1RequiredLanesNote !== "string" ||
-    summaryStateAfterConsume.parsed?.supportedAssetSymbol !== "VUSD" ||
+    summaryStateAfterConsume.parsed?.supportedAssetSymbol !== "USDC" ||
     summaryStateAfterConsume.parsed?.supportedEnvironment !== "solana-devnet" ||
     summaryStateAfterConsume.parsed?.supportedNoteSchema !== "note-v0" ||
     summaryStateAfterConsume.parsed?.supportedNoteVersion !== 0 ||
@@ -1055,7 +1055,7 @@ try {
     summaryStateAfterRelease.parsed?.supportedReleaseLaneStatus !== "supported" ||
     typeof summaryStateAfterRelease.parsed?.supportedReleaseLaneNote !== "string" ||
     summaryStateAfterRelease.parsed?.supportedSwapLaneVersion !== 1 ||
-    summaryStateAfterRelease.parsed?.supportedSwapLaneKind !== "single-input-vusd-to-allowlisted-shielded-output" ||
+    summaryStateAfterRelease.parsed?.supportedSwapLaneKind !== "single-input-usdc-to-allowlisted-shielded-output" ||
     summaryStateAfterRelease.parsed?.supportedSwapLaneStatus !== "supported" ||
     typeof summaryStateAfterRelease.parsed?.supportedSwapLaneNote !== "string" ||
     summaryStateAfterRelease.parsed?.supportedSwapV1Decision !== "accepted-narrow-v1-path" ||
@@ -1079,7 +1079,7 @@ try {
     typeof summaryStateAfterRelease.parsed?.supportedZkV1ScopeNote !== "string" ||
     summaryStateAfterRelease.parsed?.supportedZkV1RequiredLanes !== "send|unshield|release" ||
     typeof summaryStateAfterRelease.parsed?.supportedZkV1RequiredLanesNote !== "string" ||
-    summaryStateAfterRelease.parsed?.supportedAssetSymbol !== "VUSD" ||
+    summaryStateAfterRelease.parsed?.supportedAssetSymbol !== "USDC" ||
     summaryStateAfterRelease.parsed?.supportedEnvironment !== "solana-devnet" ||
     summaryStateAfterRelease.parsed?.supportedNoteSchema !== "note-v0" ||
     summaryStateAfterRelease.parsed?.supportedNoteVersion !== 0 ||
@@ -1256,7 +1256,7 @@ try {
     !operatorStatusOutput.includes("Supported unshield v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported release v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported swap lane version: 1") ||
-    !operatorStatusOutput.includes("Supported swap lane kind: Single input VUSD to allowlisted shielded output") ||
+    !operatorStatusOutput.includes("Supported swap lane kind: Single input USDC to allowlisted shielded output") ||
     !operatorStatusOutput.includes("Supported swap lane status: Supported") ||
     !operatorStatusOutput.includes("Supported swap v1 decision: Accepted narrow v1 path") ||
     !operatorStatusOutput.includes("Supported swap venue: Meteora DLMM devnet + operator token output") ||

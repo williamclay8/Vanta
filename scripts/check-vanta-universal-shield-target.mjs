@@ -18,11 +18,11 @@ function assert(condition, message) {
 const entries = [
   {
     asset: {
-      assetKey: "VUSD",
+      assetKey: "USDC",
       configured: true,
-      mintAddress: "mint:vusd",
+      mintAddress: "mint:usdc",
       priority: 0,
-      symbol: "VUSD",
+      symbol: "USDC",
       vaultOwner: "vault",
     },
   },
@@ -100,8 +100,8 @@ try {
     selectUniversalShieldTarget({
       configuredEntries: entries.filter((entry) => entry.asset.assetKey !== "USDC"),
       sourceAsset: { kind: "spl", mintAddress: "mint:any-spl", symbol: "ANY" },
-    })?.asset.assetKey === "VUSD",
-    "Expected arbitrary SPL source to fall back to VUSD.",
+    })?.asset.assetKey === "USDC",
+    "Expected arbitrary SPL source to fall back to USDC.",
   );
   console.log("universal shield target fallback: PASS");
 

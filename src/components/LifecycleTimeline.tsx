@@ -18,7 +18,7 @@ function formatAmount(value: number, label?: string) {
   return `${value.toLocaleString(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  })} VUSD`;
+  })} USDC`;
 }
 
 function formatDate(timestamp: number) {

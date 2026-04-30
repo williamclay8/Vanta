@@ -16,8 +16,8 @@ const sourceFiles = [
   "solana/vantaShieldState.ts",
 ];
 
-const SHIELD_CONFIG_STUB = `export type LiveShieldTokenAssetKey = "USDC" | "VUSD" | "JTO" | "BONK" | "JUP" | "PYUSD" | "WIF" | "KMNO";
-export const ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS: readonly LiveShieldTokenAssetKey[] = ["USDC", "VUSD", "JTO", "BONK", "JUP", "PYUSD", "WIF", "KMNO"];
+const SHIELD_CONFIG_STUB = `export type LiveShieldTokenAssetKey = "USDC" | "USDC" | "JTO" | "BONK" | "JUP" | "PYUSD" | "WIF" | "KMNO";
+export const ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS: readonly LiveShieldTokenAssetKey[] = ["USDC", "USDC", "JTO", "BONK", "JUP", "PYUSD", "WIF", "KMNO"];
 export function getLiveShieldTokenAsset(assetKey: LiveShieldTokenAssetKey) {
   return {
     assetKey,

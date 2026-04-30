@@ -17,7 +17,7 @@ type UniversalShieldTargetEntry<TAsset extends UniversalShieldTargetAsset> = {
   asset: TAsset;
 };
 
-const ROUTED_SPL_TARGET_PREFERENCE = ["USDC", "USDT", "VUSD", "SOL", "JUP", "JTO", "PYUSD"] as const;
+const ROUTED_SPL_TARGET_PREFERENCE = ["USDC", "USDT", "USDC", "SOL", "JUP", "JTO", "PYUSD"] as const;
 
 function isExecutableTarget<TAsset extends UniversalShieldTargetAsset>(
   entry: UniversalShieldTargetEntry<TAsset>,

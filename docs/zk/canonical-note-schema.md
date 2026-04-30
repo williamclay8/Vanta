@@ -4,7 +4,7 @@
 
 This document defines the first implementation-facing cryptographic artifact for Vanta ZK Phase 1: the canonical note schema.
 
-Vanta already has a proven constrained devnet lifecycle for `Shield`, `Send`, constrained one-way `VUSD -> SOL` swap, and operator-backed `VUSD` and `SOL` unshield. That lifecycle is real, but it is not yet the final zk-private protocol. The canonical note schema is the first step in changing that. It defines the protocol object that future shielded state, commitment insertion, owner recovery, and spend-readiness work should build around.
+Vanta already has a proven constrained devnet lifecycle for `Shield`, `Send`, constrained one-way `USDC -> SOL` swap, and operator-backed `USDC` and `SOL` unshield. That lifecycle is real, but it is not yet the final zk-private protocol. The canonical note schema is the first step in changing that. It defines the protocol object that future shielded state, commitment insertion, owner recovery, and spend-readiness work should build around.
 
 This is not a frontend note model. It is a protocol-level schema for a shielded value object that can later support commitments, encrypted owner recovery, and nullifier-safe spend semantics.
 
@@ -385,7 +385,7 @@ Future canonical view:
 ### Swap note
 
 Current meaning:
-- constrained product flow turning shielded `VUSD` state into shielded `SOL` state through a venue-backed path
+- constrained product flow turning shielded `USDC` state into shielded `SOL` state through a venue-backed path
 
 Future canonical view:
 - protocol-level consumption and creation of canonical notes across asset types, with venue execution and proof semantics layered around the same canonical note object

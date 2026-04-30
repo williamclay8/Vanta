@@ -15,7 +15,7 @@ const DEFAULT_CONTEXT_SOURCE = "api_then_sdk";
 const DEFAULT_SDK_BIN_ARRAY_COUNT = 16;
 const DEFAULT_RPC_URL = "https://api.devnet.solana.com";
 
-export const SWAP_LANE = "VUSD->SOL";
+export const SWAP_LANE = "USDC->SOL";
 export const SWAP_VENUE_NAME = "Meteora";
 export const SWAP_VENUE_FAMILY = "DLMM";
 export const SWAP_NETWORK = "Devnet";
@@ -208,11 +208,11 @@ function getMintLabel(mintAddress) {
     return "SOL";
   }
 
-  const vusdMint =
+  const usdcMint =
     getOptionalEnv("VANTA_DEVNET_TOKEN_MINT") ?? getOptionalEnv("VITE_VANTA_DEVNET_TOKEN_MINT");
 
-  if (vusdMint && mintAddress === vusdMint) {
-    return "VUSD";
+  if (usdcMint && mintAddress === usdcMint) {
+    return "USDC";
   }
 
   return `${mintAddress.slice(0, 4)}...${mintAddress.slice(-4)}`;
@@ -436,7 +436,7 @@ function resolveOutputAmountFromPool(args) {
   const outputIsTokenX = args.outputMint === args.pool.tokenXMint;
 
   if (!((inputIsTokenX && outputIsTokenY) || (inputIsTokenY && outputIsTokenX))) {
-    const error = new Error("Configured Meteora DLMM pool does not match the VUSD -> SOL lane.");
+    const error = new Error("Configured Meteora DLMM pool does not match the USDC -> SOL lane.");
     error.cause = "pair_mismatch";
     throw error;
   }
@@ -508,7 +508,7 @@ async function fetchSdkPoolSnapshot(config, quoteArgs) {
   const pairMatchesReverse = quoteArgs.inputMint === tokenYMint && quoteArgs.outputMint === tokenXMint;
 
   if (!pairMatchesForward && !pairMatchesReverse) {
-    const error = new Error("Configured Meteora DLMM pool does not match the VUSD -> SOL lane.");
+    const error = new Error("Configured Meteora DLMM pool does not match the USDC -> SOL lane.");
     error.cause = "pair_mismatch";
     throw error;
   }
@@ -829,7 +829,7 @@ export async function evaluateSwapLaneHealth(args) {
     return buildHealthResult({
       checkedAt,
       status: "healthy",
-      message: "Meteora-aware VUSD -> SOL swap lane is healthy and execution-ready.",
+      message: "Meteora-aware USDC -> SOL swap lane is healthy and execution-ready.",
       poolAddress: config.poolAddress,
       details: {
         driftBps: Number(driftBps.toFixed(2)),

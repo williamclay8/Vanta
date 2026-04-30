@@ -1,5 +1,4 @@
 export const VANTA_PAYMENT_SUITE_TOKEN_SYMBOLS = [
-  "VUSD",
   "USDC",
   "JTO",
   "BONK",
@@ -30,18 +29,9 @@ export const VANTA_TOKEN_CATALOG = [
   {
     decimals: 6,
     kind: "spl-shield-token",
-    name: "Vanta Devnet Test Dollar",
-    payBetaAccepted: false,
-    priority: 0,
-    shieldFamily: true,
-    symbol: "VUSD",
-  },
-  {
-    decimals: 6,
-    kind: "spl-shield-token",
     name: "USD Coin",
     payBetaAccepted: true,
-    priority: 1,
+    priority: 0,
     shieldFamily: true,
     symbol: "USDC",
   },

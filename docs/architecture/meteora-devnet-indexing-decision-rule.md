@@ -1,6 +1,6 @@
 # Meteora Devnet Indexing Decision Rule
 
-Use this checkpoint for the constrained VUSD -> SOL Meteora DLMM devnet swap lane.
+Use this checkpoint for the constrained USDC -> SOL Meteora DLMM devnet swap lane.
 
 ## Trigger condition
 
@@ -107,7 +107,7 @@ The correct statement is:
 
 Use this exact posture if the threshold is crossed:
 
-> The VUSD -> SOL Meteora DLMM pool exists on-chain, but Meteora devnet's indexed API still does not surface it. Vanta will no longer treat this as ordinary propagation delay. The swap lane is blocked by external indexer availability, and the next step is to either add an alternate context path or temporarily narrow the swap truth until venue context becomes reliably accessible.
+> The USDC -> SOL Meteora DLMM pool exists on-chain, but Meteora devnet's indexed API still does not surface it. Vanta will no longer treat this as ordinary propagation delay. The swap lane is blocked by external indexer availability, and the next step is to either add an alternate context path or temporarily narrow the swap truth until venue context becomes reliably accessible.
 
 ## Operational check
 

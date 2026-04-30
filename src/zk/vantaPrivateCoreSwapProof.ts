@@ -267,7 +267,7 @@ export function prepareVantaPrivateCoreLiveSwapCandidate(args: {
 
   if (args.heldNote.note.assetId !== expectedInputAssetId) {
     return {
-      note: "The current private-core held note is not a VUSD input note, so the swap proof actions are using fixture fallback.",
+      note: "The current private-core held note is not a USDC input note, so the swap proof actions are using fixture fallback.",
       proofBoundary: null,
       status: "fallback",
       transition: null,

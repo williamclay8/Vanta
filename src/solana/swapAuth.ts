@@ -5,7 +5,7 @@ const VANTA_SWAP_INTENT_VERSION = "v2";
 export type SwapIntentPayload = {
   consumedNoteId: string;
   inputAmount: string;
-  inputAsset: "VUSD";
+  inputAsset: "USDC";
   issuedAt: number;
   mintAddress: string;
   outputAmount: string;

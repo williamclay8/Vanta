@@ -351,7 +351,7 @@ These commands cover:
   - `supportedSwapV1Decision = accepted-narrow-v1-path`
   - `supportedShippingDecisionKind = narrow-private-core-zk-v1-shipping`
   - `supportedOperatorSnapshotKind = contract-status-shipping-bundle`
-  - `supportedSwapLaneKind = single-input-vusd-to-shielded-sol`
+  - `supportedSwapLaneKind = single-input-usdc-to-shielded-sol`
   - `supportedSwapVenue = meteora-dlmm-devnet`
 
 ## Private Pool v2 / Option B verification
@@ -685,7 +685,7 @@ The operator contract now freezes the narrow zk-v1 contract surface explicitly:
 - `supportedReleaseV1Decision = accepted-narrow-v1-path`
 - `supportedSwapV1Decision = accepted-narrow-v1-path`
 - `supportedSwapLaneVersion = 1`
-- `supportedSwapLaneKind = single-input-vusd-to-shielded-sol`
+- `supportedSwapLaneKind = single-input-usdc-to-shielded-sol`
 - `supportedSwapLaneStatus = supported`
 - `supportedSwapVenue = meteora-dlmm-devnet`
 - `supportedSwapOutputModel = shielded-sol-output-note`
@@ -695,7 +695,7 @@ The operator contract now freezes the narrow zk-v1 contract surface explicitly:
 - `supportedFlowVersion = 1`
 - `supportedFlowKind = shield-hold-send-unshield-replay-guard`
 - `supportedFlowStatus = supported`
-- `supportedAssetSymbol = VUSD`
+- `supportedAssetSymbol = USDC`
 - `supportedEnvironment = solana-devnet`
 - `supportedNoteSchema = note-v0`
 - `supportedNoteVersion = 0`
@@ -759,10 +759,10 @@ This repository currently contains:
 - Send as the first workflow unlocked by shielded state
 - an app-path Vanta Private Core send-proof check inside the Send experience
 - shared app-level continuity between Shield and Send
-- a constrained real devnet protocol path for `VUSD`
+- a constrained real devnet protocol path for `USDC`
 - direct native SOL shield entry into shielded SOL state
-- authenticated operator-backed Unshield for `VUSD` and `SOL`
-- a constrained one-way live `VUSD -> SOL` swap lane
+- authenticated operator-backed Unshield for `USDC` and `SOL`
+- a constrained one-way live `USDC -> SOL` swap lane
 - a standalone Vanta Private Core proof lane with operator-backed verification
 - roadmap framing for Swap, Pay, and broader Vanta expansion
 
@@ -778,7 +778,7 @@ The current implementation is intentionally product-led. It focuses on:
 
 - app module pages already reserve space for wallet connection, protocol state, proving lifecycle, and transaction status
 - Shield and Send share app-level privacy flow context
-- real wallet-connected state now grounds the live `VUSD` path
+- real wallet-connected state now grounds the live `USDC` path
 - no fake wallet logic is included
 - content and structure are organized for extension into real Solana privacy workflows
 

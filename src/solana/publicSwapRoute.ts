@@ -44,7 +44,7 @@ type JupiterInstructionPayload = {
   }>;
 };
 
-export type PublicToVusdQuote = {
+export type PublicToUsdcQuote = {
   inputAmount: string;
   inputAssetLabel: string;
   inputAssetSymbol: string;
@@ -133,7 +133,7 @@ function toAtomicAmount(value: string, decimals: number) {
 }
 
 function getShieldRouteAsset(asset: ShieldedSwapAssetKey): LiveShieldTokenAssetConfig {
-  return getLiveShieldTokenAsset(asset === "SOL" ? "VUSD" : asset);
+  return getLiveShieldTokenAsset(asset === "SOL" ? "USDC" : asset);
 }
 
 function getShieldRouteDecimals(asset: LiveShieldTokenAssetKey) {
@@ -261,7 +261,7 @@ export function formatAssetAmount(value: number, symbol: string) {
   })} ${symbol}`;
 }
 
-export async function fetchPublicToVusdQuote(args: {
+export async function fetchPublicToUsdcQuote(args: {
   amount: string;
   inputAsset: WalletPublicAsset;
   outputAsset: ShieldedSwapAssetKey;
@@ -290,10 +290,10 @@ export async function fetchPublicToVusdQuote(args: {
       venueNetwork: "Devnet" as const,
       venuePoolAddress: liveSwapPair.venuePoolAddress ?? "",
       binArraysPubkey: [],
-    } satisfies PublicToVusdQuote;
+    } satisfies PublicToUsdcQuote;
   }
 
-  if (args.inputAsset.symbol === "SOL" && outputShieldAsset.assetKey === "VUSD" && liveSwapPair.venuePoolAddress) {
+  if (args.inputAsset.symbol === "SOL" && outputShieldAsset.assetKey === "USDC" && liveSwapPair.venuePoolAddress) {
     try {
       const pool = await getDlmmPool();
       const swapForY = pool.tokenX.publicKey.equals(new PublicKey(args.inputAsset.mintAddress))
@@ -327,7 +327,7 @@ export async function fetchPublicToVusdQuote(args: {
           venueNetwork: "Devnet" as const,
           venuePoolAddress: liveSwapPair.venuePoolAddress ?? "",
           binArraysPubkey: quote.binArraysPubkey.map((pubkey) => pubkey.toBase58()),
-        } satisfies PublicToVusdQuote;
+        } satisfies PublicToUsdcQuote;
       }
     } catch {
       // Fall through to Jupiter below so broader routes still work.
@@ -358,11 +358,11 @@ export async function fetchPublicToVusdQuote(args: {
     venuePoolAddress: "aggregated-route",
     binArraysPubkey: [],
     jupiterQuoteResponse: parsed,
-  } satisfies PublicToVusdQuote;
+  } satisfies PublicToUsdcQuote;
 }
 
-export async function buildPublicToVusdSwapInstructions(args: {
-  quote: PublicToVusdQuote;
+export async function buildPublicToUsdcSwapInstructions(args: {
+  quote: PublicToUsdcQuote;
   userPublicKey: string;
 }) {
   if (!args.quote.outputMint) {
@@ -371,7 +371,7 @@ export async function buildPublicToVusdSwapInstructions(args: {
 
   if (args.quote.venueName === "Meteora") {
     if (args.quote.inputMint === args.quote.outputMint) {
-      throw new Error("A public swap transaction is not required for VUSD input.");
+      throw new Error("A public swap transaction is not required for USDC input.");
     }
 
     const pool = await getDlmmPool();
@@ -435,7 +435,7 @@ export async function buildPublicToVusdSwapInstructions(args: {
 }
 
 export function createPublicShieldRouteEvidence(args: {
-  quote: PublicToVusdQuote;
+  quote: PublicToUsdcQuote;
   routeSignature: string;
   targetAmount?: string | null;
 }): PublicShieldRouteEvidence {

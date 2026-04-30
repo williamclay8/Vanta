@@ -117,7 +117,7 @@ try {
       "proof-backed-consume-latest-registered-root" ||
     contractState.parsed?.supportedReleaseLaneStatus !== "supported" ||
     contractState.parsed?.supportedSwapLaneVersion !== 1 ||
-    contractState.parsed?.supportedSwapLaneKind !== "single-input-vusd-to-allowlisted-shielded-output" ||
+    contractState.parsed?.supportedSwapLaneKind !== "single-input-usdc-to-allowlisted-shielded-output" ||
     contractState.parsed?.supportedSwapLaneStatus !== "supported" ||
     typeof contractState.parsed?.supportedSwapLaneNote !== "string" ||
     contractState.parsed?.supportedSwapV1Decision !== "accepted-narrow-v1-path" ||
@@ -191,7 +191,7 @@ try {
     typeof contractState.parsed?.supportedZkV1ScopeNote !== "string" ||
     contractState.parsed?.supportedZkV1RequiredLanes !== "send|unshield|release" ||
     typeof contractState.parsed?.supportedZkV1RequiredLanesNote !== "string" ||
-    contractState.parsed?.supportedAssetSymbol !== "VUSD" ||
+    contractState.parsed?.supportedAssetSymbol !== "USDC" ||
     contractState.parsed?.supportedEnvironment !== "solana-devnet" ||
     contractState.parsed?.supportedNoteSchema !== "note-v0" ||
     contractState.parsed?.supportedNoteVersion !== 0 ||

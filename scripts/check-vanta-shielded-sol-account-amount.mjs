@@ -38,18 +38,29 @@ for (const [label, source] of [
 assert.ok(
   meteoraContextSource.includes("function getMintDecimals") &&
     meteoraContextSource.includes('getMintLabel(mintAddress) === "SOL" ? 9 : 6'),
-  "Meteora VUSD->SOL quotes must derive SOL output precision from the output mint.",
+  "Meteora USDC->SOL quotes must derive SOL output precision from the output mint.",
 );
 assert.ok(
   meteoraContextSource.includes("const formattedOutputAmount = outputAmount.toFixed(outputDecimals)") &&
     meteoraContextSource.includes("outputAmount: formattedOutputAmount"),
-  "Meteora VUSD->SOL quotes must emit shielded SOL output at 9-decimal account precision.",
+  "Meteora USDC->SOL quotes must emit shielded SOL output at 9-decimal account precision.",
 );
 assert.ok(
   !meteoraContextSource.includes("outputAmount: outputAmount.toFixed(6)") &&
     !meteoraContextSource.includes("quoteOutputAmount.toFixed(6)"),
-  "Meteora VUSD->SOL quotes must not force SOL output amounts through 6-decimal VUSD precision.",
+  "Meteora USDC->SOL quotes must not force SOL output amounts through 6-decimal USDC precision.",
 );
+
+for (const [label, source] of [
+  ["dashboard", dashboardSource],
+  ["position summary hook", readFileSync(resolve("src/solana/useVantaPositionSummary.ts"), "utf8")],
+]) {
+  assert.ok(
+    source.includes("shieldRegistry.entries.find((entry) => (entry.account?.shieldedSolBalance ?? 0) > 0)") ||
+      source.includes("useVantaPositionSummary"),
+    `${label} must source shielded SOL from the registry entry that actually has shielded SOL, not only the primary USDC account.`,
+  );
+}
 
 for (const [label, source] of [
   ["shield state", shieldStateSource],

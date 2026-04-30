@@ -20,10 +20,10 @@ const connection = new Connection(rpcUrl, "confirmed");
 const wallet = loadKeypair(join(homedir(), ".config/solana/id.json"));
 const vault = loadKeypair(join(homedir(), ".config/solana/vanta-devnet-vault.json"));
 const decimals = 6;
-const initialSupplyUi = Number(process.env.VANTA_VUSD_INITIAL_SUPPLY ?? "1000");
+const initialSupplyUi = Number(process.env.VANTA_USDC_INITIAL_SUPPLY ?? "1000");
 
 if (!Number.isFinite(initialSupplyUi) || initialSupplyUi <= 0) {
-  throw new Error("VANTA_VUSD_INITIAL_SUPPLY must be a positive number.");
+  throw new Error("VANTA_USDC_INITIAL_SUPPLY must be a positive number.");
 }
 
 const walletSol = await connection.getBalance(wallet.publicKey, "confirmed");

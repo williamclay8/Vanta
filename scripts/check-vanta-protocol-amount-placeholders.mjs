@@ -36,8 +36,8 @@ if (!unshieldPageSource.includes('const [requestedAmountInput, setRequestedAmoun
   failures.push("Unshield amount state must start empty so the input shows the 0.00 placeholder.");
 }
 
-if (!unshieldPageSource.includes('selectedLane === "VUSD"')) {
-  failures.push("Unshield must preserve the VUSD editable amount lane.");
+if (!unshieldPageSource.includes('selectedLane === "USDC"')) {
+  failures.push("Unshield must preserve the USDC editable amount lane.");
 }
 
 if (

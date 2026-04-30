@@ -165,7 +165,7 @@ const PRIVATE_CORE_SUPPORTED_SEND_LANE_NOTE =
   "Current narrow zk v1 send lane is supported for one input note, one recipient output, and optional change.";
 const PRIVATE_CORE_SUPPORTED_SEND_V1_DECISION = "accepted-narrow-v1-path";
 const PRIVATE_CORE_SUPPORTED_SEND_V1_DECISION_NOTE =
-  "Current operator-backed private send lane is accepted as the narrow zk v1 send path for VUSD on solana-devnet.";
+  "Current operator-backed private send lane is accepted as the narrow zk v1 send path for USDC on solana-devnet.";
 const PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_VERSION = 1;
 const PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_KIND = "single-note-proof-backed-consume";
 const PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_STATUS = "supported";
@@ -173,7 +173,7 @@ const PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_NOTE =
   "Current narrow zk v1 unshield lane is supported for one note consume with proof-backed release recording.";
 const PRIVATE_CORE_SUPPORTED_UNSHIELD_V1_DECISION = "accepted-narrow-v1-path";
 const PRIVATE_CORE_SUPPORTED_UNSHIELD_V1_DECISION_NOTE =
-  "Current operator-backed proof-backed unshield lane is accepted as the narrow zk v1 unshield path for VUSD on solana-devnet.";
+  "Current operator-backed proof-backed unshield lane is accepted as the narrow zk v1 unshield path for USDC on solana-devnet.";
 const PRIVATE_CORE_SUPPORTED_RELEASE_LANE_VERSION = 1;
 const PRIVATE_CORE_SUPPORTED_RELEASE_LANE_KIND = "proof-backed-consume-latest-registered-root";
 const PRIVATE_CORE_SUPPORTED_RELEASE_LANE_STATUS = "supported";
@@ -181,16 +181,16 @@ const PRIVATE_CORE_SUPPORTED_RELEASE_LANE_NOTE =
   "Current narrow zk v1 release lane is supported for proof-backed consume-authorized release under the latest registered root policy.";
 const PRIVATE_CORE_SUPPORTED_RELEASE_V1_DECISION = "accepted-narrow-v1-path";
 const PRIVATE_CORE_SUPPORTED_RELEASE_V1_DECISION_NOTE =
-  "Current operator-backed proof-backed release lane is accepted as the narrow zk v1 release path for VUSD on solana-devnet.";
+  "Current operator-backed proof-backed release lane is accepted as the narrow zk v1 release path for USDC on solana-devnet.";
 const PRIVATE_CORE_SUPPORTED_SWAP_LANE_VERSION = 1;
 const PRIVATE_CORE_SUPPORTED_SWAP_LANE_KIND =
-  "single-input-vusd-to-allowlisted-shielded-output";
+  "single-input-usdc-to-allowlisted-shielded-output";
 const PRIVATE_CORE_SUPPORTED_SWAP_LANE_STATUS = "supported";
 const PRIVATE_CORE_SUPPORTED_SWAP_LANE_NOTE =
-  "Current constrained swap lane supports one VUSD input note into one allowlisted shielded output note through operator-backed execution, including Meteora-aware shielded SOL and direct shielded token output lanes.";
+  "Current constrained swap lane supports one USDC input note into one allowlisted shielded output note through operator-backed execution, including Meteora-aware shielded SOL and direct shielded token output lanes.";
 const PRIVATE_CORE_SUPPORTED_SWAP_V1_DECISION = "accepted-narrow-v1-path";
 const PRIVATE_CORE_SUPPORTED_SWAP_V1_DECISION_NOTE =
-  "Current constrained operator-backed VUSD swap lane is accepted as the narrow zk v1 swap path on solana-devnet for shielded SOL and allowlisted shielded token outputs.";
+  "Current constrained operator-backed USDC swap lane is accepted as the narrow zk v1 swap path on solana-devnet for shielded SOL and allowlisted shielded token outputs.";
 const PRIVATE_CORE_SUPPORTED_SWAP_V1_ROLE =
   "adjacent-supported-not-required-for-finish-line";
 const PRIVATE_CORE_SUPPORTED_SWAP_V1_ROLE_NOTE =
@@ -291,7 +291,7 @@ const PRIVATE_CORE_SUPPORTED_ZK_V1_SCOPE_NOTE =
 const PRIVATE_CORE_SUPPORTED_ZK_V1_REQUIRED_LANES = "send|unshield|release";
 const PRIVATE_CORE_SUPPORTED_ZK_V1_REQUIRED_LANES_NOTE =
   "Minimum zk v1 finish line requires the narrow private-core send, unshield, and release lanes; constrained swap remains adjacent supported infrastructure.";
-const PRIVATE_CORE_SUPPORTED_ASSET_SYMBOL = "VUSD";
+const PRIVATE_CORE_SUPPORTED_ASSET_SYMBOL = "USDC";
 const PRIVATE_CORE_SUPPORTED_ENVIRONMENT = "solana-devnet";
 const PRIVATE_CORE_SUPPORTED_RECIPIENT_MODEL = "hashed-reference-to-owner-key";
 const PRIVATE_CORE_SUPPORTED_RELEASE_DESTINATION_MODEL = "32-byte-release-destination-field";
@@ -339,7 +339,7 @@ if (!swapLaneConfigValidation.valid) {
   console.warn(
     "[vanta.swap.health.startup]",
     JSON.stringify({
-      expectedPair: "VUSD->SOL",
+      expectedPair: "USDC->SOL",
       issues: swapLaneConfigValidation.issues,
       poolAddress: swapLaneConfigValidation.config.poolAddress,
       status: "misconfigured",
@@ -632,7 +632,7 @@ const server = createServer(async (request, response) => {
       const inputAmount = Number(body.inputAmount);
 
       if (
-        body.inputAsset !== "VUSD" ||
+        body.inputAsset !== "USDC" ||
         body.outputAsset !== "SOL" ||
         !Number.isFinite(inputAmount) ||
         inputAmount <= 0
@@ -660,7 +660,7 @@ const server = createServer(async (request, response) => {
       response.end(
         JSON.stringify({
           inputAmount: quote.inputAmount,
-          inputAsset: "VUSD",
+          inputAsset: "USDC",
           outputAmount: quote.outputAmount,
           outputAsset: "SOL",
           pairLabel: quote.pairLabel,
@@ -1246,7 +1246,7 @@ const server = createServer(async (request, response) => {
         intent.owner !== intent.requester ||
         intent.mintAddress !== mintAddress ||
         intent.vaultOwner !== vaultOwner ||
-        intent.inputAsset !== "VUSD" ||
+        intent.inputAsset !== "USDC" ||
         intent.outputAsset !== "SOL" ||
         !Number.isFinite(parsedInputAmount) ||
         parsedInputAmount <= 0 ||
@@ -1329,7 +1329,7 @@ const server = createServer(async (request, response) => {
         completedAt: Date.now(),
         consumedNoteId: intent.consumedNoteId,
         inputAmount: intent.inputAmount,
-        inputAsset: "VUSD",
+        inputAsset: "USDC",
         mintAddress,
         outputAmount: intent.outputAmount,
         outputAsset: "SOL",

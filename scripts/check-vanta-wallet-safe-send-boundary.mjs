@@ -138,7 +138,7 @@ const objectInstructionBoundary = createWalletSafeSendBoundary({
 
 const objectInstructionResult = await runWalletSafeSendBoundary(objectInstructionBoundary, {
   amount: "1",
-  asset: "VUSD",
+  asset: "USDC",
   cluster: "devnet",
   connectedWalletAddress: "payer1111111111111111111111111111111111111",
   estimatedFees: "0.000005 SOL",
@@ -165,7 +165,7 @@ assert.deepEqual(objectInstructionCalls, [
 try {
   await runWalletSafeSendBoundary(objectInstructionBoundary, {
     amount: "1",
-    asset: "VUSD",
+    asset: "USDC",
     cluster: "devnet",
     connectedWalletAddress: "payer1111111111111111111111111111111111111",
     estimatedFees: "0.000005 SOL",

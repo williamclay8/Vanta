@@ -1295,8 +1295,8 @@ function humanizeSupportedReleaseLaneStatus(value) {
 
 function humanizeSupportedSwapLaneKind(value) {
   switch (value) {
-    case "single-input-vusd-to-allowlisted-shielded-output":
-      return "Single input VUSD to allowlisted shielded output";
+    case "single-input-usdc-to-allowlisted-shielded-output":
+      return "Single input USDC to allowlisted shielded output";
     default:
       return "Unavailable";
   }

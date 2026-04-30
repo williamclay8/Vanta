@@ -1,8 +1,7 @@
 import { Link } from "react-router-dom";
 import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
-import { useWalletState } from "@/data/context/WalletContext";
 import { formatVantaSolAmount } from "@/solana/solAmountFormat";
-import { useVantaShieldState } from "@/solana/useVantaShieldState";
+import { useVantaPositionSummary } from "@/solana/useVantaPositionSummary";
 
 type DashboardActionCard = {
   badge: string;
@@ -11,30 +10,48 @@ type DashboardActionCard = {
   title: string;
 };
 
+function formatUsdcAmount(value: number) {
+  if (value > 0 && value < 0.01) {
+    return "<0.01 USDC";
+  }
+
+  return `${value.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 6,
+  })} USDC`;
+}
+
 export function AppDashboardPage() {
-  const { account } = useVantaShieldState();
-  const { clusterLabel, walletConnected } = useWalletState();
+  const positionSummary = useVantaPositionSummary();
   const {
     privateCoreReleaseHandoffState,
     privateCoreReleasePackageState,
   } = usePrivacyFlow();
 
-  const shieldedBalance = account?.balance ?? 0;
-  const shieldedSolBalance = account?.shieldedSolBalance ?? 0;
-  const spendableNoteCount = account?.spendableShieldNotes.length ?? 0;
-  const latestActivity = account?.lifecycleActivities[0] ?? null;
+  const shieldedBalance = positionSummary.shieldedBalance;
+  const shieldedSolBalance = positionSummary.shieldedSolBalance;
+  const spendableNoteCount = positionSummary.spendableNoteCount;
 
-  const stageLabel = !walletConnected
+  const isValueUnavailable = Boolean(positionSummary.registryError);
+  const stageLabel = isValueUnavailable
+    ? "State unavailable"
+    : positionSummary.registryRefreshing
+      ? "Refreshing state"
+      : !positionSummary.walletConnected
     ? "Connect a wallet"
     : shieldedSolBalance > 0
-      ? "Shielded SOL live"
+      ? "Shielded SOL state detected"
       : spendableNoteCount > 0
-        ? "Spendable note live"
+        ? "Spendable note detected"
         : shieldedBalance > 0
           ? "Shielded state present"
-          : "Ready to shield";
+          : "Ready to test Shield";
 
-  const statusLine = !walletConnected
+  const statusLine = isValueUnavailable
+    ? "Vanta could not refresh the local shielded-state view. Values below are temporarily unavailable."
+    : positionSummary.registryRefreshing
+      ? "Refreshing the local shielded-state view before treating balances as current."
+      : !positionSummary.walletConnected
     ? "Connect wallet to start the private-core flow."
     : shieldedSolBalance > 0
       ? "A shielded SOL output is ready for the constrained exit lane."
@@ -42,7 +59,7 @@ export function AppDashboardPage() {
         ? "Constrained shielded state is available; send, swap, and unshield still depend on current route and operator checks."
         : shieldedBalance > 0
           ? "Value is shielded, but there is no current spendable note."
-          : "No live shielded position yet.";
+          : "No shielded test position yet. Start with Shield to create one.";
 
   const releaseStatus =
     privateCoreReleasePackageState?.packageStatusLabel ??
@@ -56,7 +73,7 @@ export function AppDashboardPage() {
   const primaryHref =
     privateCoreReleasePackageState?.packageStatusLabel === "Release package ready"
       ? "/app/unshield"
-      : privateCoreReleaseHandoffState?.nextActionHref ?? "/app/send";
+      : privateCoreReleaseHandoffState?.nextActionHref;
   const primaryLabel =
     privateCoreReleasePackageState?.packageStatusLabel === "Release package ready"
       ? "Review package"
@@ -73,25 +90,27 @@ export function AppDashboardPage() {
     <section className="dashboard-page dashboard-page--minimal">
       <div className="dashboard-focus-card">
         <div className="dashboard-focus-card__copy">
-          <span className="eyebrow">Vanta Home</span>
-          <h2>One private-core lane. One clean handoff.</h2>
+          <span className="eyebrow">Status</span>
+          <h2>Your private settlement status</h2>
           <p>{statusLine}</p>
 
           <div className="dashboard-focus-card__chips">
-            <span>{clusterLabel}</span>
+            <span>{positionSummary.networkLabel}</span>
             <span>{stageLabel}</span>
-            {latestActivity?.title ? <span>{latestActivity.title}</span> : null}
+            {positionSummary.latestActionTimestamp ? (
+              <span>{positionSummary.latestActionLabel}</span>
+            ) : null}
           </div>
         </div>
 
         <div className="dashboard-focus-card__stats">
           <article>
-            <span>Shielded VUSD</span>
-            <strong>{shieldedBalance.toFixed(2)}</strong>
+            <span>Shielded USDC</span>
+            <strong>{isValueUnavailable ? "Unavailable" : formatUsdcAmount(shieldedBalance)}</strong>
           </article>
           <article>
             <span>Shielded SOL</span>
-            <strong>{formatVantaSolAmount(shieldedSolBalance)}</strong>
+            <strong>{isValueUnavailable ? "Unavailable" : formatVantaSolAmount(shieldedSolBalance)}</strong>
           </article>
           <article>
             <span>Spendable notes</span>
@@ -102,7 +121,7 @@ export function AppDashboardPage() {
 
       <div className="dashboard-release-card">
         <div>
-          <span className="eyebrow">Exact Release Package</span>
+          <span className="eyebrow">Reviewer Package</span>
           <h3>{releaseStatus}</h3>
           <p>{releaseNote}</p>
         </div>
@@ -113,9 +132,15 @@ export function AppDashboardPage() {
               "Primary send -> unshield package"}
           </small>
           <div className="dashboard-release-card__actions">
-            <Link className="button button-primary" to={primaryHref}>
-              {primaryLabel}
-            </Link>
+            {primaryHref ? (
+              <Link className="button button-primary" to={primaryHref}>
+                {primaryLabel}
+              </Link>
+            ) : (
+              <button className="button button-primary" type="button" disabled>
+                {primaryLabel}
+              </button>
+            )}
             <Link className="button button-ghost" to="/app/unshield">
               Open handoff
             </Link>

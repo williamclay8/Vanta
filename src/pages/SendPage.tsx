@@ -97,14 +97,14 @@ type PrivateCoreSendExecutionState = {
   status: "idle" | "running" | "verified" | "failed";
 };
 
-const DEFAULT_VUSD_DECIMALS = 6;
+const DEFAULT_USDC_DECIMALS = 6;
 
 function getInitialSendAsset(asset: PrivacyAssetKey | undefined): ShieldedSendAssetKey {
-  return asset ?? "VUSD";
+  return asset ?? "USDC";
 }
 
 function formatBalance(value: number, symbol: PrivacyAssetKey) {
-  if (symbol === "USDC" || symbol === "VUSD") {
+  if (symbol === "USDC") {
     return `${value.toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
@@ -428,7 +428,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
   const selectedShieldAccount =
     selectedAsset === "SOL"
       ? shieldedSolSourceAccount
-      : selectedAsset === "VUSD"
+      : selectedAsset === "USDC"
         ? shieldAccount
         : selectedShieldAssetEntry?.account ?? null;
   const getShieldedSendAssetBalance = useCallback(
@@ -437,7 +437,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         return shieldedSolSourceAccount?.shieldedSolBalance ?? 0;
       }
 
-      if (asset === "VUSD") {
+      if (asset === "USDC") {
         return shieldAccount?.balance ?? 0;
       }
 
@@ -455,7 +455,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         return shieldedSolSourceAccount?.spendableShieldedSolNotes.length ?? 0;
       }
 
-      if (asset === "VUSD") {
+      if (asset === "USDC") {
         return shieldAccount?.spendableShieldNotes.length ?? 0;
       }
 
@@ -563,7 +563,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
   const settleProgressLabel = spentMarkerWait.detailLabel;
   const privateCoreSendPreview = useMemo<PrivateCoreSendPreview | null>(() => {
     if (
-      selectedAsset !== "VUSD" ||
+      selectedAsset !== "USDC" ||
       !privateCoreHoldState ||
       !isRecipientValid ||
       !Number.isFinite(parsedAmount) ||
@@ -573,7 +573,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     }
 
     try {
-      const sendAmountBaseUnits = decimalToBaseUnitsExact(amount, DEFAULT_VUSD_DECIMALS);
+      const sendAmountBaseUnits = decimalToBaseUnitsExact(amount, DEFAULT_USDC_DECIMALS);
       if (sendAmountBaseUnits > privateCoreHoldState.heldNote.note.amount) {
         return null;
       }
@@ -619,9 +619,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     recipient,
     selectedAsset,
   ]);
-  const isPrivateCoreVusdSendReady =
-    selectedAsset === "VUSD" &&
-    selectedSendCapability.executionMode === "operator-vusd-send" &&
+  const isPrivateCoreUsdcSendReady =
+    selectedAsset === "USDC" &&
+    selectedSendCapability.executionMode === "operator-usdc-send" &&
     selectedSendCapability.status === "live" &&
     liveShieldAsset.unshieldConfigured &&
     privateCoreSendPreview?.boundary.readiness === "ready";
@@ -759,7 +759,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         const instructions = [
           ...priorityFeeInstructions,
           createSpentMarkerInstruction({
-            asset: "VUSD",
+            asset: "USDC",
             consumedNoteId: pendingSpentMarker.consumedNoteId,
             createdAt: pendingSpentMarker.createdAt,
             mintAddress: pendingSpentMarker.mintAddress,
@@ -772,7 +772,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
 
         return spentMarkerTransaction.send({
           amount: pendingSendBridge?.sentAmountDisplay ?? "0",
-          asset: "VUSD",
+          asset: "USDC",
           cluster: vantaSolanaCluster,
           explicitMainnetApproval: vantaExplicitMainnetApproval,
           connectedWalletAddress: pendingSpentMarker.owner,
@@ -847,7 +847,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     void refreshShieldState()
       .then(async () => {
         await recordCanonicalSendFromLiveSend({
-          assetSymbol: "VUSD",
+          assetSymbol: "USDC",
           mintAddress,
           owner: shieldAccount.owner,
           vaultOwner: shieldAccount.vaultOwner,
@@ -855,7 +855,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           recipient: pendingSendBridge.recipient,
           sentAmountDisplay: pendingSendBridge.sentAmountDisplay,
           changeAmountDisplay: pendingSendBridge.changeAmountDisplay,
-          tokenDecimals: DEFAULT_VUSD_DECIMALS,
+          tokenDecimals: DEFAULT_USDC_DECIMALS,
           predecessor: pendingSendBridge.predecessor,
           transition: {
             noteId: pendingSendBridge.transition.noteId,
@@ -907,7 +907,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     const createdAt = Date.now();
     const preparedSend = createPreparedSendMemo({
       amount: args.amountNumeric.toString(),
-      asset: "VUSD",
+      asset: "USDC",
       changeAmount: nextChangeAmount.toString(),
       consumedNoteId: args.note.noteId,
       createdAt,
@@ -957,7 +957,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
 
     await sendNoteTransaction.send({
       amount: args.amountNumeric.toString(),
-      asset: "VUSD",
+      asset: "USDC",
       cluster: vantaSolanaCluster,
       explicitMainnetApproval: vantaExplicitMainnetApproval,
       connectedWalletAddress: args.shieldAccountState.owner,
@@ -977,7 +977,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       return;
     }
 
-    if (isPrivateCoreVusdSendReady) {
+    if (isPrivateCoreUsdcSendReady) {
       await handlePrivateCoreSendProof();
       return;
     }
@@ -1056,7 +1056,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
   }
 
   const projectedRemainingBalance =
-    selectedAsset === "VUSD" && isAmountValid && selectedSpendableNote
+    selectedAsset === "USDC" && isAmountValid && selectedSpendableNote
       ? Number(Math.max(selectedBalance - parsedAmount, 0).toFixed(6))
       : selectedBalance;
   const sendHelperMessage = shieldStateError
@@ -1068,7 +1068,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           "This shielded asset needs a private send adapter before it can execute."
       : !liveShieldAsset.unshieldConfigured
         ? "Configure the private-core operator endpoint before this send proof can execute."
-      : isPrivateCoreVusdSendReady
+      : isPrivateCoreUsdcSendReady
       ? "Ready to verify a private-core send transition."
       : !selectedSpendableNote
         ? "Shield the asset first, then return here to send it."
@@ -1225,7 +1225,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   }}
                   disabled={
                     isBetaMode ||
-                    !isPrivateCoreVusdSendReady ||
+                    !isPrivateCoreUsdcSendReady ||
                     privateCoreSendExecution.status === "running" ||
                     status === "sending" ||
                     status === "settling"
@@ -1299,23 +1299,23 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               <span>Send complete</span>
               <p>
                 {lastSentAmount !== null && lastRecipient
-                  ? `${formatBalance(lastSentAmount, "VUSD")} was sent from shielded state for recipient ${lastRecipient}.`
+                  ? `${formatBalance(lastSentAmount, "USDC")} was sent from shielded state for recipient ${lastRecipient}.`
                   : "The constrained Vanta send note was confirmed."}
               </p>
               <div className="success-metrics">
                 <div className="preview-card preview-card--accent">
                   <span>Amount sent</span>
-                  <strong>{formatBalance(lastSentAmount ?? 0, "VUSD")}</strong>
+                  <strong>{formatBalance(lastSentAmount ?? 0, "USDC")}</strong>
                 </div>
                 <div className="preview-card">
                   <span>Residual shielded note</span>
-                  <strong>{formatBalance(lastChangeAmount ?? 0, "VUSD")}</strong>
+                  <strong>{formatBalance(lastChangeAmount ?? 0, "USDC")}</strong>
                 </div>
               </div>
               <div className="success-metrics">
                 <div className="preview-card">
                   <span>Remaining shielded balance</span>
-                  <strong>{formatBalance(shieldAccount?.balance ?? 0, "VUSD")}</strong>
+                  <strong>{formatBalance(shieldAccount?.balance ?? 0, "USDC")}</strong>
                 </div>
                 <div className="preview-card">
                   <span>Spendable notes after send</span>
@@ -1427,7 +1427,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               <span>Held private note</span>
               <strong>
                 {privateCoreHoldState
-                  ? `${formatBaseUnits(privateCoreHoldState.heldNote.note.amount, DEFAULT_VUSD_DECIMALS)} VUSD`
+                  ? `${formatBaseUnits(privateCoreHoldState.heldNote.note.amount, DEFAULT_USDC_DECIMALS)} USDC`
                   : "Unavailable"}
               </strong>
             </div>
@@ -1435,7 +1435,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               <span>Requested send</span>
               <strong>
                 {privateCoreSendPreview
-                  ? `${formatBaseUnits(BigInt(privateCoreSendPreview.sendAmountBaseUnits), DEFAULT_VUSD_DECIMALS)} VUSD`
+                  ? `${formatBaseUnits(BigInt(privateCoreSendPreview.sendAmountBaseUnits), DEFAULT_USDC_DECIMALS)} USDC`
                   : "Not ready"}
               </strong>
             </div>
@@ -1443,7 +1443,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               <span>Projected change</span>
               <strong>
                 {privateCoreSendPreview
-                  ? `${formatBaseUnits(BigInt(privateCoreSendPreview.changeAmountBaseUnits), DEFAULT_VUSD_DECIMALS)} VUSD`
+                  ? `${formatBaseUnits(BigInt(privateCoreSendPreview.changeAmountBaseUnits), DEFAULT_USDC_DECIMALS)} USDC`
                   : "Not ready"}
               </strong>
             </div>
@@ -1483,7 +1483,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               <span>Residual private note</span>
               <strong>
                 {privateCoreHoldState
-                  ? `${formatBaseUnits(privateCoreHoldState.heldNote.note.amount, DEFAULT_VUSD_DECIMALS)} VUSD`
+                  ? `${formatBaseUnits(privateCoreHoldState.heldNote.note.amount, DEFAULT_USDC_DECIMALS)} USDC`
                   : "Unavailable"}
               </strong>
             </div>
@@ -1584,7 +1584,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   <span>Recipient private note</span>
                   <strong>
                     {privateCoreSendPreview
-                      ? `${formatBaseUnits(BigInt(privateCoreSendPreview.sendAmountBaseUnits), DEFAULT_VUSD_DECIMALS)} VUSD`
+                      ? `${formatBaseUnits(BigInt(privateCoreSendPreview.sendAmountBaseUnits), DEFAULT_USDC_DECIMALS)} USDC`
                       : "Unavailable"}
                   </strong>
                 </div>
@@ -1592,7 +1592,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   <span>Residual private note</span>
                   <strong>
                     {privateCoreHoldState
-                      ? `${formatBaseUnits(privateCoreHoldState.heldNote.note.amount, DEFAULT_VUSD_DECIMALS)} VUSD`
+                      ? `${formatBaseUnits(privateCoreHoldState.heldNote.note.amount, DEFAULT_USDC_DECIMALS)} USDC`
                       : "Unavailable"}
                   </strong>
                 </div>
@@ -1853,13 +1853,13 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 <div className="preview-card preview-card--accent">
                   <span>Recipient note</span>
                   <strong>
-                    {formatBaseUnits(BigInt(privateCoreSendState.recipientAmount), DEFAULT_VUSD_DECIMALS)} VUSD
+                    {formatBaseUnits(BigInt(privateCoreSendState.recipientAmount), DEFAULT_USDC_DECIMALS)} USDC
                   </strong>
                 </div>
                 <div className="preview-card">
                   <span>Residual note</span>
                   <strong>
-                    {formatBaseUnits(BigInt(privateCoreSendState.changeAmount), DEFAULT_VUSD_DECIMALS)} VUSD
+                    {formatBaseUnits(BigInt(privateCoreSendState.changeAmount), DEFAULT_USDC_DECIMALS)} USDC
                   </strong>
                 </div>
                 <div className="preview-card">

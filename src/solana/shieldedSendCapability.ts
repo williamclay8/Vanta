@@ -15,7 +15,7 @@ export type ShieldedSendAssetOption = {
 export type ShieldedSendAssetCapability = {
   asset: ShieldedSendAssetKey;
   blockers: readonly string[];
-  executionMode: "operator-vusd-send" | "needs-private-send-adapter";
+  executionMode: "operator-usdc-send" | "needs-private-send-adapter";
   status: "live" | "blocked";
 };
 
@@ -26,7 +26,6 @@ const SHIELDED_SEND_ASSET_LABELS = {
   KMNO: "Shielded KMNO",
   PYUSD: "Shielded PYUSD",
   USDC: "Shielded USDC",
-  VUSD: "Shielded VUSD",
   WIF: "Shielded WIF",
   SOL: "Shielded SOL",
 } as const satisfies Record<ShieldedSendAssetKey, string>;
@@ -55,7 +54,7 @@ export function getShieldedSendAssetCapability(
     return {
       asset,
       blockers: [],
-      executionMode: "operator-vusd-send",
+      executionMode: "operator-usdc-send",
       status: "live",
     };
   }
@@ -63,7 +62,7 @@ export function getShieldedSendAssetCapability(
   if (asset === liveShieldAsset.assetKey) {
     return {
       asset,
-      blockers: ["Configure the VUSD shield asset before live private send can execute."],
+      blockers: ["Configure the USDC shield asset before live private send can execute."],
       executionMode: "needs-private-send-adapter",
       status: "blocked",
     };

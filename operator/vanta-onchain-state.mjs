@@ -104,7 +104,7 @@ function createSwapNoteId(payload) {
 function createChangeNoteId(args) {
   return createDeterministicNoteId({
     amount: args.amount,
-    asset: "VUSD",
+    asset: "USDC",
     createdAt: args.createdAt,
     kind: "change",
     mintAddress: args.mintAddress,
@@ -118,7 +118,7 @@ function createChangeNoteId(args) {
 function createRecipientSelfNoteId(args) {
   return createDeterministicNoteId({
     amount: args.amount,
-    asset: "VUSD",
+    asset: "USDC",
     createdAt: args.createdAt,
     kind: "recipient_self",
     mintAddress: args.mintAddress,
@@ -173,7 +173,7 @@ function parseShieldMemo(memo, stateSignature) {
 
     if (
       parsed.kind !== "shield" ||
-      parsed.asset !== "VUSD" ||
+      parsed.asset !== "USDC" ||
       typeof parsed.owner !== "string" ||
       typeof parsed.mintAddress !== "string" ||
       typeof parsed.vaultOwner !== "string" ||
@@ -192,7 +192,7 @@ function parseShieldMemo(memo, stateSignature) {
 
     return {
       amount: parsedAmount,
-      asset: "VUSD",
+      asset: "USDC",
       createdAt: parsed.createdAt,
       depositSignature: parsed.depositSignature,
       kind: "shield",
@@ -223,7 +223,7 @@ function parseSendMemo(memo, stateSignature) {
 
     if (
       parsed.kind !== "send" ||
-      parsed.asset !== "VUSD" ||
+      parsed.asset !== "USDC" ||
       typeof parsed.owner !== "string" ||
       typeof parsed.mintAddress !== "string" ||
       typeof parsed.vaultOwner !== "string" ||
@@ -249,7 +249,7 @@ function parseSendMemo(memo, stateSignature) {
 
     return {
       amount: parsedAmount,
-      asset: "VUSD",
+      asset: "USDC",
       changeAmount: parsedChangeAmount,
       changeNoteId:
         typeof parsed.changeNoteId === "string" ? parsed.changeNoteId : undefined,
@@ -285,7 +285,7 @@ function parseUnshieldMemo(memo, stateSignature) {
 
     if (
       parsed.kind !== "unshield" ||
-      parsed.asset !== "VUSD" ||
+      parsed.asset !== "USDC" ||
       typeof parsed.owner !== "string" ||
       typeof parsed.mintAddress !== "string" ||
       typeof parsed.vaultOwner !== "string" ||
@@ -304,7 +304,7 @@ function parseUnshieldMemo(memo, stateSignature) {
 
     return {
       amount: parsedAmount,
-      asset: "VUSD",
+      asset: "USDC",
       consumedNoteId:
         typeof parsed.consumedNoteId === "string" ? parsed.consumedNoteId : undefined,
       consumedShieldStateSignature:
@@ -346,7 +346,7 @@ function parseSpentMarkerMemo(memo, stateSignature) {
 
     if (
       parsed.kind !== "spent_marker" ||
-      (parsed.asset !== "VUSD" && parsed.asset !== "SOL") ||
+      (parsed.asset !== "USDC" && parsed.asset !== "SOL") ||
       typeof parsed.owner !== "string" ||
       typeof parsed.vaultOwner !== "string" ||
       typeof parsed.consumedNoteId !== "string" ||
@@ -386,7 +386,7 @@ function parseSpentMarkerMemo(memo, stateSignature) {
         typeof parsed.markerId === "string"
           ? parsed.markerId
           : createSpentMarkerId({
-              asset: "VUSD",
+              asset: "USDC",
               assetId,
               consumedNoteId: parsed.consumedNoteId,
               createdAt: parsed.createdAt,
@@ -439,7 +439,7 @@ function parseSwapMemo(memo, stateSignature) {
 
     if (
       kind !== "swap" ||
-      inputAsset !== "VUSD" ||
+      inputAsset !== "USDC" ||
       outputAsset !== "SOL" ||
       typeof owner !== "string" ||
       typeof mintAddress !== "string" ||
@@ -471,7 +471,7 @@ function parseSwapMemo(memo, stateSignature) {
           : undefined,
       createdAt,
       inputAmount: parsedInputAmount,
-      inputAsset: "VUSD",
+      inputAsset: "USDC",
       kind: "swap",
       mintAddress,
       noteId: typeof noteId === "string" ? noteId : undefined,
@@ -610,7 +610,7 @@ export async function fetchConstrainedOnchainUnshieldContext(args) {
           note.noteId ??
           createSendNoteId({
             amount: roundedSentAmount.toString(),
-            asset: "VUSD",
+            asset: "USDC",
             changeAmount: roundedChangeAmount.toString(),
             consumedNoteId: resolvedConsumedNoteId,
             createdAt: note.createdAt,
@@ -654,7 +654,7 @@ export async function fetchConstrainedOnchainUnshieldContext(args) {
           note.noteId ??
           createUnshieldNoteId({
             amount: roundedAmount.toString(),
-            asset: "VUSD",
+            asset: "USDC",
             consumedNoteId: resolvedConsumedNoteId,
             createdAt: note.createdAt,
             destinationOwner: note.destinationOwner,
@@ -699,7 +699,7 @@ export async function fetchConstrainedOnchainUnshieldContext(args) {
             consumedNoteId: resolvedConsumedNoteId,
             createdAt: note.createdAt,
             inputAmount: roundedInputAmount.toString(),
-            inputAsset: "VUSD",
+            inputAsset: "USDC",
             mintAddress: args.mintAddress,
             outputAmount: roundedOutputAmount.toString(),
             outputAsset: "SOL",
@@ -723,7 +723,7 @@ export async function fetchConstrainedOnchainUnshieldContext(args) {
                     consumedNoteId: resolvedConsumedNoteId,
                     createdAt: note.createdAt,
                     inputAmount: roundedInputAmount.toString(),
-                    inputAsset: "VUSD",
+                    inputAsset: "USDC",
                     mintAddress: args.mintAddress,
                     outputAmount: roundedOutputAmount.toString(),
                     outputAsset: "SOL",
@@ -802,13 +802,13 @@ export async function fetchConstrainedOnchainUnshieldContext(args) {
         ),
     )
     .map((sendNote) => ({
-      asset: "VUSD",
+      asset: "USDC",
       assetId: sendNote.mintAddress,
       consumedNoteId: sendNote.consumedNoteId,
       createdAt: sendNote.createdAt,
       kind: "spent_marker",
       markerId: createSpentMarkerId({
-        asset: "VUSD",
+        asset: "USDC",
         assetId: sendNote.mintAddress,
         consumedNoteId: sendNote.consumedNoteId,
         createdAt: sendNote.createdAt,
@@ -826,7 +826,7 @@ export async function fetchConstrainedOnchainUnshieldContext(args) {
     }));
 
   const shieldSpentMarkers = [...explicitSpentMarkers, ...legacySpentMarkers]
-    .filter((marker) => marker.asset === "VUSD")
+    .filter((marker) => marker.asset === "USDC")
     .sort((left, right) => left.createdAt - right.createdAt)
     .flatMap((marker) => {
       const transition =
@@ -880,7 +880,7 @@ export async function fetchConstrainedOnchainUnshieldContext(args) {
 
           const changeNote = {
             amount: roundedChangeAmount,
-            asset: "VUSD",
+            asset: "USDC",
             createdAt: transition.createdAt,
             depositSignature: transition.stateSignature,
             kind: "shield",
@@ -901,7 +901,7 @@ export async function fetchConstrainedOnchainUnshieldContext(args) {
         if (roundedSentAmount > 0 && transition.recipient === transition.owner) {
           const recipientSelfNote = {
             amount: roundedSentAmount,
-            asset: "VUSD",
+            asset: "USDC",
             createdAt: transition.createdAt,
             depositSignature: transition.stateSignature,
             kind: "shield",
@@ -1120,7 +1120,7 @@ export function assertEligibleSwapTransition(args) {
     transition.venueFamily !== args.venueFamily ||
     transition.venueNetwork !== args.venueNetwork ||
     transition.venuePoolAddress !== args.venuePoolAddress ||
-    transition.inputAsset !== "VUSD" ||
+    transition.inputAsset !== "USDC" ||
     transition.outputAsset !== "SOL" ||
     !amountsMatch(Number(transition.inputAmount.toFixed(6)), Number(args.inputAmount)) ||
     !amountsMatch(Number(transition.outputAmount.toFixed(9)), Number(args.outputAmount))
@@ -1133,11 +1133,11 @@ export function assertEligibleSwapTransition(args) {
   );
 
   if (!consumedNote) {
-    throw new Error("Referenced VUSD note is not currently eligible for swap.");
+    throw new Error("Referenced USDC note is not currently eligible for swap.");
   }
 
   if (!amountsMatch(Number(consumedNote.amount.toFixed(6)), Number(args.inputAmount))) {
-    throw new Error("Referenced VUSD note amount does not match the requested swap amount.");
+    throw new Error("Referenced USDC note amount does not match the requested swap amount.");
   }
 
   const competingTransitions = [

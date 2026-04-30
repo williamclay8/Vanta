@@ -23,10 +23,10 @@ import {
 import { listCanonicalShieldRecords } from "./liveShieldBridge";
 
 const LIVE_SEND_RECORDS_STORAGE_KEY = "vanta.zk.phase1.live-send-records.v1";
-const DEFAULT_VUSD_DECIMALS = 6;
+const DEFAULT_USDC_DECIMALS = 6;
 
 export type LiveSendCanonicalizationInput = {
-  assetSymbol: "VUSD";
+  assetSymbol: "USDC";
   mintAddress: string;
   owner: string;
   vaultOwner: string;
@@ -78,7 +78,7 @@ export type LiveSendCanonicalRecord = {
   createdAt: number;
   lifecycleLinkage?: CanonicalLifecycleRecordLinkage;
   liveSend: {
-    assetSymbol: "VUSD";
+    assetSymbol: "USDC";
     mintAddress: string;
     owner: string;
     vaultOwner: string;
@@ -216,7 +216,7 @@ export async function recordCanonicalSendFromLiveSend(
       outputLifecycleIds,
     },
     liveSend: {
-      assetSymbol: "VUSD",
+      assetSymbol: "USDC",
       mintAddress: input.mintAddress,
       owner: input.owner,
       vaultOwner: input.vaultOwner,
@@ -326,7 +326,7 @@ async function createSuccessorRecord(args: {
     ownerPublicKey: args.ownerPublicKey,
     creationHint: {
       sourceKind: "send",
-      sourceAssetHint: "VUSD",
+      sourceAssetHint: "USDC",
       sourceTxSignatureHint: args.transitionSignature,
       sourceTransitionIdHint: args.transitionNoteId,
     },
@@ -461,7 +461,7 @@ function createCanonicalAssetId(mintAddress: string) {
 function resolveTokenDecimals(value: number | undefined) {
   return Number.isInteger(value) && value !== undefined && value >= 0
     ? value
-    : DEFAULT_VUSD_DECIMALS;
+    : DEFAULT_USDC_DECIMALS;
 }
 
 function decimalAmountToBaseUnits(value: string, decimals: number): bigint {

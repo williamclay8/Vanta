@@ -238,7 +238,7 @@ function formatAmount(baseUnits: string) {
   const raw = baseUnits.padStart(7, "0");
   const whole = raw.slice(0, -6);
   const fraction = raw.slice(-6).replace(/0+$/, "");
-  return `${whole}${fraction ? `.${fraction}` : ""} VUSD`;
+  return `${whole}${fraction ? `.${fraction}` : ""} USDC`;
 }
 
 function formatAssetAmount(assetId: string | null | undefined, baseUnits: string) {
@@ -1547,8 +1547,8 @@ export function VantaPrivateCoreStatePanel({
               <span>Supported swap lane</span>
               <strong>
                 {operatorSupportedSwapLaneKind ===
-                "single-input-vusd-to-allowlisted-shielded-output"
-                  ? `v${String(operatorSupportedSwapLaneVersion ?? 1)} · Single input VUSD to allowlisted shielded output`
+                "single-input-usdc-to-allowlisted-shielded-output"
+                  ? `v${String(operatorSupportedSwapLaneVersion ?? 1)} · Single input USDC to allowlisted shielded output`
                   : "Unavailable"}
               </strong>
             </div>

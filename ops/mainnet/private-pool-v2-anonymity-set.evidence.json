@@ -37,13 +37,13 @@
       "outputCommitmentCount": 2
     },
     {
-      "id": "vusd-mainnet-private-pool-v2",
-      "assetCohort": "VUSD",
-      "poolRef": "VANTA_PRIVATE_POOL_V2_VUSD_POOL_REF",
+      "id": "usdc-mainnet-private-pool-v2",
+      "assetCohort": "USDC",
+      "poolRef": "VANTA_PRIVATE_POOL_V2_USDC_POOL_REF",
       "distinctCommitmentCount": 0,
       "meetsMinimumDistinctCommitments": false,
-      "metricsRef": "VANTA_PRIVATE_POOL_V2_VUSD_ANONYMITY_METRICS_REF",
-      "measurementWindowRef": "VANTA_PRIVATE_POOL_V2_VUSD_ANONYMITY_WINDOW_REF",
+      "metricsRef": "VANTA_PRIVATE_POOL_V2_USDC_ANONYMITY_METRICS_REF",
+      "measurementWindowRef": "VANTA_PRIVATE_POOL_V2_USDC_ANONYMITY_WINDOW_REF",
       "reviewerRef": "VANTA_PRIVATE_POOL_V2_AUDIT_REF",
       "status": "not-measured"
     }

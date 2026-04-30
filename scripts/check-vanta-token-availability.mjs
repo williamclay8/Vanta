@@ -78,13 +78,13 @@ try {
 
   const symbols = catalog.listVantaTokenCatalogEntries().map((entry) => entry.symbol);
   assert(
-    symbols.join("|") === "VUSD|USDC|JTO|BONK|JUP|PYUSD|WIF|KMNO|SOL|USDT",
+    symbols.join("|") === "USDC|JTO|BONK|JUP|PYUSD|WIF|KMNO|SOL|USDT",
     "Expected canonical payment-suite token catalog order.",
   );
 
   const shieldSymbols = catalog.listVantaShieldFamilySymbols();
   assert(
-    shieldSymbols.join("|") === "VUSD|USDC|JTO|BONK|JUP|PYUSD|WIF|KMNO|SOL",
+    shieldSymbols.join("|") === "USDC|JTO|BONK|JUP|PYUSD|WIF|KMNO|SOL",
     "Expected shield family to contain the 8 shield tokens plus SOL.",
   );
 
@@ -136,8 +136,8 @@ try {
 
   const availability = readRepoFile("src/solana/tokenAvailability.ts");
   assert(
-    availability.includes("operator-vusd-send") &&
-      availability.includes("operator-vusd-sol") &&
+    availability.includes("operator-usdc-send") &&
+      availability.includes("operator-usdc-sol") &&
       availability.includes("Route not ready yet"),
     "Expected token availability to preserve current live send/swap truth.",
   );

@@ -788,7 +788,7 @@ function concatBytes(...chunks: Uint8Array[]): Uint8Array {
 
 export function getCanonicalNoteEncodingDeterminismExample() {
   const note = createCanonicalNote({
-    assetId: "example.vusd.devnet",
+    assetId: "example.usdc.devnet",
     amount: "250000",
     ownerPublicKey: "owner-recovery-key-example",
     noteNonce: "0x1111111111111111111111111111111111111111111111111111111111111111",
@@ -797,7 +797,7 @@ export function getCanonicalNoteEncodingDeterminismExample() {
     derivationTag: "0x4444444444444444444444444444444444444444444444444444444444444444",
     creationHint: {
       sourceKind: "shield",
-      sourceAssetHint: "VUSD",
+      sourceAssetHint: "USDC",
       sourceTransitionIdHint: "example-transition",
     },
   });
@@ -840,7 +840,7 @@ function decodeBase64(value: unknown, fieldName: string): Uint8Array {
 
 export async function getCanonicalEncryptedPayloadDeterminismExample() {
   const note = createCanonicalNote({
-    assetId: "example.vusd.devnet",
+    assetId: "example.usdc.devnet",
     amount: "250000",
     ownerPublicKey: "owner-recovery-key-example",
     noteNonce: "0x1111111111111111111111111111111111111111111111111111111111111111",
@@ -849,7 +849,7 @@ export async function getCanonicalEncryptedPayloadDeterminismExample() {
     derivationTag: "0x4444444444444444444444444444444444444444444444444444444444444444",
     creationHint: {
       sourceKind: "shield",
-      sourceAssetHint: "VUSD",
+      sourceAssetHint: "USDC",
       sourceTransitionIdHint: "example-transition",
     },
   });

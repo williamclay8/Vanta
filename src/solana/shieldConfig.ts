@@ -114,7 +114,6 @@ const effectiveSolUnshieldOperatorUrl =
   configuredSolUnshieldOperatorUrl ?? localSolUnshieldOperatorUrl;
 
 export type LiveShieldTokenAssetKey =
-  | "VUSD"
   | "USDC"
   | "JTO"
   | "BONK"
@@ -172,34 +171,6 @@ function createLiveShieldTokenAssetConfig(args: {
   };
 }
 
-export const liveShieldAsset = {
-  assetKey: "VUSD" as const,
-  cluster: vantaSolanaClusterLabel,
-  configured: Boolean(configuredMintAddress && hasVaultOwnerPath),
-  executable: Boolean(configuredMintAddress && configuredVaultOwner),
-  executionBlocker: configuredMintAddress && configuredVaultOwner ? null : "mainnet-lane-not-configured",
-  decimals:
-    getOptionalIntegerEnvValue(
-      isMainnetCluster
-        ? import.meta.env.VITE_VANTA_MAINNET_TOKEN_DECIMALS
-        : import.meta.env.VITE_VANTA_DEVNET_TOKEN_DECIMALS,
-    ) ?? 6,
-  mintAddress: configuredMintAddress,
-  name:
-    getOptionalEnvValue(
-      isMainnetCluster
-        ? import.meta.env.VITE_VANTA_MAINNET_TOKEN_NAME
-        : import.meta.env.VITE_VANTA_DEVNET_TOKEN_NAME,
-    ) ?? (isMainnetCluster ? "Vanta Mainnet Stablecoin" : "Vanta Devnet Test Dollar"),
-  priority: 0,
-  symbol: "VUSD" as const,
-  unshieldConfigured: Boolean(
-    configuredMintAddress && configuredVaultOwner && effectiveUnshieldOperatorUrl,
-  ),
-  unshieldOperatorUrl: effectiveUnshieldOperatorUrl,
-  vaultOwner: configuredVaultOwner,
-};
-
 export const liveUsdcShieldAsset: LiveShieldTokenAssetConfig = {
   ...createLiveShieldTokenAssetConfig({
     assetKey: "USDC",
@@ -217,6 +188,8 @@ export const liveUsdcShieldAsset: LiveShieldTokenAssetConfig = {
     priority: 1,
   }),
 };
+
+export const liveShieldAsset = liveUsdcShieldAsset;
 
 export const liveJtoShieldAsset: LiveShieldTokenAssetConfig = {
   ...createLiveShieldTokenAssetConfig({
@@ -327,7 +300,6 @@ export const liveKmnoShieldAsset: LiveShieldTokenAssetConfig = {
 };
 
 export const ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS = [
-  "VUSD",
   "USDC",
   "JTO",
   "BONK",
@@ -344,7 +316,6 @@ const liveShieldTokenAssetMap: Record<LiveShieldTokenAssetKey, LiveShieldTokenAs
   KMNO: liveKmnoShieldAsset,
   PYUSD: livePyusdShieldAsset,
   USDC: liveUsdcShieldAsset,
-  VUSD: liveShieldAsset,
   WIF: liveWifShieldAsset,
 };
 
@@ -389,8 +360,8 @@ export function getLiveShieldTokenAssetPriority(assetKey: LiveShieldTokenAssetKe
 
 export const liveSwapPair = {
   cluster: vantaSolanaClusterLabel,
-  configured: Boolean(configuredMintAddress && configuredVaultOwner && effectiveSwapOperatorUrl),
-  inputAsset: "VUSD" as const,
+  configured: Boolean(liveShieldAsset.mintAddress && configuredVaultOwner && effectiveSwapOperatorUrl),
+  inputAsset: "USDC" as const,
   outputAsset: "SOL" as const,
   outputMintAddress: SHIELD_HOOK_FALLBACK_MINT,
   outputName: "Solana" as const,

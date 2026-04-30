@@ -19,8 +19,8 @@ const forbiddenMarkers = [
   "implicitShieldStateTransaction",
   "implicit shield",
   "startImplicitShield",
-  "buildPublicToVusdSwapInstructions",
-  "fetchPublicToVusdQuote",
+  "buildPublicToUsdcSwapInstructions",
+  "fetchPublicToUsdcQuote",
   "useWalletPublicAssets",
   "recordCanonicalShieldFromLiveShield",
   "createShieldMemoInstruction",
@@ -56,8 +56,8 @@ if (!packageSource.includes('"swap:requires-shielded-state-check"')) {
   failures.push("package.json must expose swap:requires-shielded-state-check.");
 }
 
-if (!capabilitySource.includes("Shielded VUSD")) {
-  failures.push("Swap capability boundary must expose Shielded VUSD.");
+if (!capabilitySource.includes("Shielded USDC")) {
+  failures.push("Swap capability boundary must expose Shielded USDC.");
 }
 
 if (failures.length > 0) {

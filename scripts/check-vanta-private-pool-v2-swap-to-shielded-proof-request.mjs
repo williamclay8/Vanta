@@ -158,7 +158,7 @@ try {
     "Private swap proof request must not reuse shield/claim operator-visible shadow commitments.",
   );
   assertNoRawTerms(request, [
-    "VUSD",
+    "USDC",
     "SOL",
     "USDC",
     "1000000",

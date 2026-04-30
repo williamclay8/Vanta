@@ -36,7 +36,7 @@ Each descriptor lists public disclosures, hidden witness material, and future bl
 
 Add a server-safe token catalog for:
 
-`VUSD`, `USDC`, `JTO`, `BONK`, `JUP`, `PYUSD`, `WIF`, `KMNO`, `SOL`, `USDT`.
+`USDC`, `USDC`, `JTO`, `BONK`, `JUP`, `PYUSD`, `WIF`, `KMNO`, `SOL`, `USDT`.
 
 Add an app availability adapter layered on `shieldConfig` that exposes per-action availability for Shield, Send, Swap, and Pay. Execution remains gated by existing capability checks. The shared catalog prevents Pay, Send, Swap, and Shield from silently diverging.
 

@@ -86,7 +86,7 @@ import {
 } from "@/privacy/privatePoolV2ProtocolSettlementClient";
 
 export type PrivacyAssetKey =
-  | "VUSD"
+  | "USDC"
   | "USDC"
   | "JTO"
   | "BONK"
@@ -96,9 +96,9 @@ export type PrivacyAssetKey =
   | "KMNO"
   | "SOL";
 
-const VANTA_PRIVATE_CORE_VUSD_ASSET_ID =
+const VANTA_PRIVATE_CORE_USDC_ASSET_ID =
   "0x7675736400000000000000000000000000000000000000000000000000000000" as const;
-const VANTA_PRIVATE_CORE_VUSD_DECIMALS = 6;
+const VANTA_PRIVATE_CORE_USDC_DECIMALS = 6;
 const VANTA_PRIVATE_CORE_SOL_ASSET_ID =
   "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" as const;
 const VANTA_PRIVATE_CORE_SOL_DECIMALS = 9;
@@ -277,8 +277,8 @@ function buildPrivateCoreSendCommittedSettlement(args: {
 }
 
 function formatPrivateCoreAssetAmount(assetId: string, amount: bigint) {
-  if (assetId === VANTA_PRIVATE_CORE_VUSD_ASSET_ID) {
-    return `${formatBaseUnits(amount, VANTA_PRIVATE_CORE_VUSD_DECIMALS)} VUSD`;
+  if (assetId === VANTA_PRIVATE_CORE_USDC_ASSET_ID) {
+    return `${formatBaseUnits(amount, VANTA_PRIVATE_CORE_USDC_DECIMALS)} USDC`;
   }
 
   if (assetId === VANTA_PRIVATE_CORE_SOL_ASSET_ID) {
@@ -2086,13 +2086,13 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   );
 
   const runPrivateCoreShield = useCallback((args: { amountDisplay: string; asset: PrivacyAssetKey }): VantaPrivateCoreShieldState => {
-    if (args.asset !== "VUSD") {
-      throw new Error("Vanta Private Core v0.1 currently supports the VUSD demo lane only.");
+    if (args.asset !== "USDC") {
+      throw new Error("Vanta Private Core v0.1 currently supports the USDC demo lane only.");
     }
 
     const shield = privateCoreLedger.shield({
-      assetId: VANTA_PRIVATE_CORE_VUSD_ASSET_ID,
-      amount: decimalToBaseUnits(args.amountDisplay, VANTA_PRIVATE_CORE_VUSD_DECIMALS),
+      assetId: VANTA_PRIVATE_CORE_USDC_ASSET_ID,
+      amount: decimalToBaseUnits(args.amountDisplay, VANTA_PRIVATE_CORE_USDC_DECIMALS),
       ownerPublicKey: privateCoreOwner.publicKey,
     });
     const hold = privateCoreLedger.hold({
@@ -2174,7 +2174,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
           result.change !== null
             ? "Residual note is current private state"
             : "No residual note remains",
-        noteSummary: `${formatBaseUnits(result.recipient.note.amount, VANTA_PRIVATE_CORE_VUSD_DECIMALS)} VUSD sent privately`,
+        noteSummary: `${formatBaseUnits(result.recipient.note.amount, VANTA_PRIVATE_CORE_USDC_DECIMALS)} USDC sent privately`,
         observationMode: "Local send handoff",
       });
       setPrivateCoreLocalSwapState(null);
@@ -2301,7 +2301,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       void recordPrivatePoolV2ProtocolSettlement({
         action: "swap",
         amount: formatPrivateCoreAssetAmount(result.output.note.assetId, result.output.note.amount).split(" ")[0] ?? result.output.note.amount.toString(10),
-        asset: result.output.note.assetId === VANTA_PRIVATE_CORE_SOL_ASSET_ID ? "SOL" : "VUSD",
+        asset: result.output.note.assetId === VANTA_PRIVATE_CORE_SOL_ASSET_ID ? "SOL" : "USDC",
         destination: result.output.commitment.value,
         owner: privateCoreOwner.publicKey,
         settlementId: result.resultingRoot,
@@ -4282,7 +4282,7 @@ function summarizePrivateCoreOperatorSendState(args: {
       args.latestSend.changeAmount !== "0"
         ? "Residual note expected from send transition"
         : "No residual note remains",
-    noteSummary: `${formatBaseUnits(BigInt(args.latestSend.sendAmount), VANTA_PRIVATE_CORE_VUSD_DECIMALS)} VUSD sent privately`,
+    noteSummary: `${formatBaseUnits(BigInt(args.latestSend.sendAmount), VANTA_PRIVATE_CORE_USDC_DECIMALS)} USDC sent privately`,
     observationMode: "Operator send summary",
   };
 }
