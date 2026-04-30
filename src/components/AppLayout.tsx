@@ -263,7 +263,7 @@ export function AppLayout() {
 
       {isBetaMode && (
         <div className="beta-mode-banner" role="status">
-          <strong>Vanta Beta</strong>
+          <strong>Test mode</strong>
           <span>No funds move in this mode. Live private settlement is offline until production services are resumed.</span>
         </div>
       )}
@@ -292,7 +292,7 @@ export function AppLayout() {
           <BrandMark />
           <span className="app-header__brand-copy">
             <strong>Vanta</strong>
-            <small>Private settlement beta</small>
+            <small>Private settlement</small>
           </span>
         </NavLink>
 
