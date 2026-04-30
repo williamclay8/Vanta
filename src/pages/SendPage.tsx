@@ -10,6 +10,7 @@ import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees"
 import {
   getShieldedSendAssetCapability,
   listShieldedSendAssetOptions,
+  type ShieldedSendAssetKey,
 } from "@/solana/shieldedSendCapability";
 import { useVantaShieldState } from "@/solana/useVantaShieldState";
 import { useRealtimeSignatureProgress } from "@/solana/useRealtimeSignatureProgress";
@@ -98,8 +99,8 @@ type PrivateCoreSendExecutionState = {
 
 const DEFAULT_VUSD_DECIMALS = 6;
 
-function getInitialSendAsset(asset: PrivacyAssetKey | undefined): LiveShieldTokenAssetKey {
-  return asset && asset !== "SOL" ? asset : "VUSD";
+function getInitialSendAsset(asset: PrivacyAssetKey | undefined): ShieldedSendAssetKey {
+  return asset ?? "VUSD";
 }
 
 function formatBalance(value: number, symbol: PrivacyAssetKey) {
@@ -367,8 +368,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     refresh: refreshShieldState,
   } = useVantaShieldState();
   const shieldAssetRegistry = useVantaShieldAssetRegistryState();
-  const sendShieldedAssetOptions = useMemo(() => listShieldedSendAssetOptions(), []);
-  const [selectedAsset, setSelectedAsset] = useState<LiveShieldTokenAssetKey>(
+  const baseSendShieldedAssetOptions = useMemo(() => listShieldedSendAssetOptions(), []);
+  const [selectedAsset, setSelectedAsset] = useState<ShieldedSendAssetKey>(
     getInitialSendAsset(recentShield?.asset),
   );
   const [recipient, setRecipient] = useState("");
@@ -415,13 +416,105 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     () => getShieldedSendAssetCapability(selectedAsset),
     [selectedAsset],
   );
-  const selectedShieldAssetEntry = shieldAssetRegistry.byAssetKey[selectedAsset];
+  const shieldedSolSourceEntry =
+    shieldAssetRegistry.entries.find((entry) => (entry.account?.shieldedSolBalance ?? 0) > 0) ??
+    shieldAssetRegistry.entries.find(
+      (entry) => (entry.account?.spendableShieldedSolNotes.length ?? 0) > 0,
+    ) ??
+    null;
+  const shieldedSolSourceAccount = shieldedSolSourceEntry?.account ?? shieldAccount;
+  const selectedShieldAssetEntry =
+    selectedAsset === "SOL" ? null : shieldAssetRegistry.byAssetKey[selectedAsset];
   const selectedShieldAccount =
-    selectedAsset === "VUSD" ? shieldAccount : selectedShieldAssetEntry?.account ?? null;
+    selectedAsset === "SOL"
+      ? shieldedSolSourceAccount
+      : selectedAsset === "VUSD"
+        ? shieldAccount
+        : selectedShieldAssetEntry?.account ?? null;
+  const getShieldedSendAssetBalance = useCallback(
+    (asset: ShieldedSendAssetKey) => {
+      if (asset === "SOL") {
+        return shieldedSolSourceAccount?.shieldedSolBalance ?? 0;
+      }
+
+      if (asset === "VUSD") {
+        return shieldAccount?.balance ?? 0;
+      }
+
+      return shieldAssetRegistry.byAssetKey[asset]?.account?.balance ?? 0;
+    },
+    [
+      shieldAccount?.balance,
+      shieldAssetRegistry.byAssetKey,
+      shieldedSolSourceAccount?.shieldedSolBalance,
+    ],
+  );
+  const getShieldedSendAssetSpendableNoteCount = useCallback(
+    (asset: ShieldedSendAssetKey) => {
+      if (asset === "SOL") {
+        return shieldedSolSourceAccount?.spendableShieldedSolNotes.length ?? 0;
+      }
+
+      if (asset === "VUSD") {
+        return shieldAccount?.spendableShieldNotes.length ?? 0;
+      }
+
+      return shieldAssetRegistry.byAssetKey[asset]?.account?.spendableShieldNotes.length ?? 0;
+    },
+    [
+      shieldAccount?.spendableShieldNotes.length,
+      shieldAssetRegistry.byAssetKey,
+      shieldedSolSourceAccount?.spendableShieldedSolNotes.length,
+    ],
+  );
+  const sendShieldedAssetOptions = useMemo(
+    () =>
+      baseSendShieldedAssetOptions
+        .map((asset, index) => ({
+          ...asset,
+          balance: getShieldedSendAssetBalance(asset.symbol),
+          index,
+          ready: getShieldedSendAssetSpendableNoteCount(asset.symbol) > 0,
+        }))
+        .sort((left, right) => {
+          if (left.ready !== right.ready) {
+            return left.ready ? -1 : 1;
+          }
+
+          if (left.balance !== right.balance) {
+            return right.balance - left.balance;
+          }
+
+          return left.index - right.index;
+        }),
+    [
+      baseSendShieldedAssetOptions,
+      getShieldedSendAssetBalance,
+      getShieldedSendAssetSpendableNoteCount,
+    ],
+  );
 
   const spendableNotes = useMemo(() => {
-    return selectedShieldAccount?.spendableShieldNotes ?? [];
-  }, [selectedShieldAccount]);
+    return selectedAsset === "SOL"
+      ? selectedShieldAccount?.spendableShieldedSolNotes ?? []
+      : selectedShieldAccount?.spendableShieldNotes ?? [];
+  }, [selectedAsset, selectedShieldAccount]);
+
+  useEffect(() => {
+    if (spendableNotes.length > 0) {
+      return;
+    }
+
+    const preferredReadyAsset = sendShieldedAssetOptions.find((asset) => asset.ready);
+
+    if (!preferredReadyAsset || preferredReadyAsset.symbol === selectedAsset) {
+      return;
+    }
+
+    setSelectedAsset(preferredReadyAsset.symbol);
+    setStatus("idle");
+    setFlowError(null);
+  }, [selectedAsset, sendShieldedAssetOptions, spendableNotes.length]);
 
   useEffect(() => {
     if (!spendableNotes.length) {
@@ -444,7 +537,10 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     return spendableNotes.find((note) => note.noteId === selectedNoteId) ?? null;
   }, [selectedNoteId, spendableNotes]);
 
-  const selectedBalance = selectedShieldAccount?.balance ?? 0;
+  const selectedBalance =
+    selectedAsset === "SOL"
+      ? selectedShieldAccount?.shieldedSolBalance ?? 0
+      : selectedShieldAccount?.balance ?? 0;
   const parsedAmount = Number(amount);
   const maxNoteAmount = selectedSpendableNote?.amount ?? 0;
   const changeAmount =
@@ -1083,7 +1179,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                     aria-label="Send shielded asset"
                     value={selectedAsset}
                     onChange={(event) => {
-                      setSelectedAsset(event.target.value as LiveShieldTokenAssetKey);
+                      setSelectedAsset(event.target.value as ShieldedSendAssetKey);
                       setStatus("idle");
                       setFlowError(null);
                     }}

@@ -4,14 +4,16 @@ import {
   type LiveShieldTokenAssetKey,
 } from "@/solana/shieldConfig";
 
+export type ShieldedSendAssetKey = LiveShieldTokenAssetKey | "SOL";
+
 export type ShieldedSendAssetOption = {
   configured: boolean;
   label: string;
-  symbol: LiveShieldTokenAssetKey;
+  symbol: ShieldedSendAssetKey;
 };
 
 export type ShieldedSendAssetCapability = {
-  asset: LiveShieldTokenAssetKey;
+  asset: ShieldedSendAssetKey;
   blockers: readonly string[];
   executionMode: "operator-vusd-send" | "needs-private-send-adapter";
   status: "live" | "blocked";
@@ -26,18 +28,28 @@ const SHIELDED_SEND_ASSET_LABELS = {
   USDC: "Shielded USDC",
   VUSD: "Shielded VUSD",
   WIF: "Shielded WIF",
-} as const satisfies Record<LiveShieldTokenAssetKey, string>;
+  SOL: "Shielded SOL",
+} as const satisfies Record<ShieldedSendAssetKey, string>;
 
 export function listShieldedSendAssetOptions(): ShieldedSendAssetOption[] {
-  return listAllLiveShieldTokenAssets().map((asset) => ({
+  const tokenOptions = listAllLiveShieldTokenAssets().map((asset) => ({
     configured: asset.configured && Boolean(asset.mintAddress && asset.vaultOwner),
     label: SHIELDED_SEND_ASSET_LABELS[asset.symbol],
     symbol: asset.symbol,
   }));
+
+  return [
+    ...tokenOptions,
+    {
+      configured: true,
+      label: SHIELDED_SEND_ASSET_LABELS.SOL,
+      symbol: "SOL" as const,
+    },
+  ];
 }
 
 export function getShieldedSendAssetCapability(
-  asset: LiveShieldTokenAssetKey,
+  asset: ShieldedSendAssetKey,
 ): ShieldedSendAssetCapability {
   if (asset === liveShieldAsset.assetKey && liveShieldAsset.configured) {
     return {
@@ -52,6 +64,15 @@ export function getShieldedSendAssetCapability(
     return {
       asset,
       blockers: ["Configure the VUSD shield asset before live private send can execute."],
+      executionMode: "needs-private-send-adapter",
+      status: "blocked",
+    };
+  }
+
+  if (asset === "SOL") {
+    return {
+      asset,
+      blockers: ["Shielded SOL is visible in your wallet, but private SOL send needs its send adapter before it can execute."],
       executionMode: "needs-private-send-adapter",
       status: "blocked",
     };

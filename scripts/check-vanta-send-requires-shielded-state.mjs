@@ -52,6 +52,7 @@ const requiredCapabilityMarkers = [
   "Shielded PYUSD",
   "Shielded WIF",
   "Shielded KMNO",
+  "Shielded SOL",
 ];
 
 const failures = [];
