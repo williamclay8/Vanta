@@ -71,6 +71,20 @@ function toErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
 }
 
+function toRecoverableSolDepositsErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error ?? "");
+
+  if (
+    message.includes("-32600") ||
+    message.includes("getTransaction") ||
+    message.toLowerCase().includes("solana rpc")
+  ) {
+    return "Recent SOL vault deposits could not be checked because the Solana RPC endpoint blocked the request.";
+  }
+
+  return toErrorMessage(error, "Recent SOL vault deposits could not be checked.");
+}
+
 function readTokenDecimals(balance: unknown) {
   if (typeof balance !== "object" || balance === null) {
     return undefined;
@@ -282,9 +296,7 @@ export function ShieldPage(_props: ShieldPageProps) {
       .catch((error) => {
         if (!cancelled) {
           setRecoverableSolDeposits([]);
-          setRecoverableSolDepositsError(
-            toErrorMessage(error, "Recent SOL vault deposits could not be checked."),
-          );
+          setRecoverableSolDepositsError(toRecoverableSolDepositsErrorMessage(error));
         }
       })
       .finally(() => {
