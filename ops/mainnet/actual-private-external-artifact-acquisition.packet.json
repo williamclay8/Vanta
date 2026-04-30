@@ -124,11 +124,21 @@
       "id": "minimum-live-commitments",
       "requiredRefShape": "metrics:<1024-plus-distinct-live-commitments-ref>",
       "canonicalMetricsCommand": "npm run private-pool-v2:anonymity-set-metrics-json",
+      "canonicalScalePlanCommand": "npm run mainnet:actual-private-cohort-scale-plan",
       "currentMeasuredDistinctCommitments": 2,
-      "minimumDistinctCommitments": 1024
+      "minimumDistinctCommitments": 1024,
+      "outputCommitmentsPerRecord": 2,
+      "requiredAdditionalDistinctCommitments": 1022,
+      "requiredAdditionalOutputRecords": 511,
+      "targetOutputRecordCount": 512,
+      "requiredMinimumOutputQueueSlots": 512,
+      "requiresFreshBoundedApproval": true,
+      "requiresHumanWalletSignature": true,
+      "truthBoundary": "From the current reviewed evidence, 2 distinct commitments are recorded. Reaching 1024 requires 511 additional accepted output records in the same reviewed live cohort, because each spend/output record contributes two output commitments."
     }
   ],
   "canonicalVerificationCommands": [
+    "npm run mainnet:actual-private-cohort-scale-plan-check",
     "npm run mainnet:actual-private-external-artifact-acquisition-check",
     "npm run mainnet:actual-private-hard-blockers-check",
     "npm run mainnet:external-gates-check",
