@@ -494,10 +494,14 @@ try {
     }),
     headers: { Authorization: `Bearer ${authToken}` },
     method: "POST",
-  });
+  }).then(
+    () => ({ ok: true, error: "" }),
+    (error) => ({ ok: false, error: error instanceof Error ? error.message : String(error) }),
+  );
+  assert(!withRelayerTransaction.ok, "Expected required relayer transaction gate to reject non-Solana submission evidence.");
   assert(
-    withRelayerTransaction?.relayerSubmissionAttempt?.status === "not-solscan-evidence",
-    "Expected local relayer transaction submission attempt to remain non-Solscan evidence.",
+    withRelayerTransaction.error.includes("did not return a Solana transaction signature"),
+    withRelayerTransaction.error || "Expected Solana signature gate error.",
   );
   console.log("vanta-pay committed checkout relayer transaction gate: PASS");
 

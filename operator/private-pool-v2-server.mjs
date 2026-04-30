@@ -1504,12 +1504,16 @@ async function submitActualPrivateSpendToRelayer({
       }),
     settlementId: protocolSettlementReceipt.settlementId,
   });
+  const solanaSignatureAccepted = isSolanaTransactionSignature(submission.signature);
+  if (process.env.VANTA_PRIVATE_POOL_V2_REQUIRE_RELAYER_SERIALIZED_TRANSACTION === "true" && !solanaSignatureAccepted) {
+    throw new Error("Actual-private live relayer submission did not return a Solana transaction signature.");
+  }
 
   return {
     relayerId: submission.relayerId,
     signature: submission.signature,
     submittedBy: submission.submittedBy,
-    solanaSignatureAccepted: isSolanaTransactionSignature(submission.signature),
+    solanaSignatureAccepted,
   };
 }
 

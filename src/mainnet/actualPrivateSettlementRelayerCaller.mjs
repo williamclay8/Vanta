@@ -53,6 +53,9 @@ export function validateVantaActualPrivateSettlementResponse({ plan, response })
   if (!response.protocolSettlementReceipt?.proofReceiptPublicInputCommitment) {
     return { accepted: false, reason: "missing-proof-public-input-commitment" };
   }
+  if (plan.request?.relayerSerializedTransaction && !response.onChainSubmission) {
+    return { accepted: false, reason: "missing-relayer-solana-submission" };
+  }
   if (response.onChainSubmission) {
     if (!isSolanaTransactionSignature(response.onChainSubmission.signature)) {
       return { accepted: false, reason: "invalid-relayer-solana-signature" };

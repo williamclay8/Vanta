@@ -27,6 +27,11 @@ const plan = createVantaActualPrivateSettlementPlan({
   settlementCommitment: "commitment:settlement",
   settlementId: "settlement:actual-private-demo",
 });
+const planWithRelayerTransaction = createVantaActualPrivateSettlementPlan({
+  ...plan.request,
+  nullifier: plan.request.nullifierOrReplayCommitment,
+  relayerSerializedTransaction: `base64:${Buffer.from("actual-private-relayer-transaction").toString("base64")}`,
+});
 
 const calls = [];
 const result = await requestVantaActualPrivateSettlementViaRelayer({
@@ -150,6 +155,14 @@ assert.equal(
     },
   }).reason,
   "invalid-relayer-solana-signature",
+);
+
+assert.equal(
+  validateVantaActualPrivateSettlementResponse({
+    plan: planWithRelayerTransaction,
+    response: result.response,
+  }).reason,
+  "missing-relayer-solana-submission",
 );
 
 assert.equal(
