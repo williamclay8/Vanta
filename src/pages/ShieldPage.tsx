@@ -21,7 +21,10 @@ import { runShieldWithDecoys } from "@/privacy/shieldDecoyBatcher";
 import { createVantaShieldCommittedEconomicsSettlementRequest } from "@/privacy/vantaShieldCommittedSettlement";
 import { createUmbraShieldActionApprovalReview } from "@/privacy/umbraShieldActionReview";
 import type { UmbraOperationApprovalDisplay } from "@/privacy/umbraOperations";
-import { recordRecoveredNativeSolShieldNote } from "@/solana/recoveredNativeSolShieldNotes";
+import {
+  loadRecoveredNativeSolShieldDepositSignatures,
+  recordRecoveredNativeSolShieldNote,
+} from "@/solana/recoveredNativeSolShieldNotes";
 import { createShieldAssetCapability } from "@/solana/shieldAssetCapability";
 import {
   type LiveShieldTokenAssetKey,
@@ -278,11 +281,15 @@ export function ShieldPage(_props: ShieldPageProps) {
     }
 
     let cancelled = false;
-    const existingDepositSignatures = new Set(
+    const existingDepositSignatures = new Set([
       (shieldAccount?.shieldedSolNotes ?? [])
         .map((note) => note.depositSignature)
         .filter((signature): signature is string => typeof signature === "string" && signature.length > 0),
-    );
+      ...loadRecoveredNativeSolShieldDepositSignatures({
+        owner: walletAddress,
+        vaultOwner: selectedShieldAsset.vaultOwner,
+      }),
+    ].flat());
 
     setRecoverableSolDepositsLoading(true);
     setRecoverableSolDepositsError(null);
@@ -530,6 +537,9 @@ export function ShieldPage(_props: ShieldPageProps) {
       owner: walletAddress,
       vaultOwner: selectedShieldAsset.vaultOwner,
     });
+    setRecoverableSolDeposits((deposits) =>
+      deposits.filter((candidate) => candidate.signature !== deposit.signature),
+    );
     setPendingUmbraApprovalDisplay(
       createUmbraShieldActionApprovalReview({
         amountBaseUnits: parseDecimalAmountToBaseUnits(deposit.amountDisplay, 9),

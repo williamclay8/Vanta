@@ -109,3 +109,18 @@ export function loadRecoveredNativeSolShieldNotes(args: {
     .filter((note) => note.owner === args.owner && note.vaultOwner === args.vaultOwner)
     .map(toShieldedSolNote);
 }
+
+export function loadRecoveredNativeSolShieldDepositSignatures(args: {
+  owner: string | null | undefined;
+  vaultOwner: string | null | undefined;
+}) {
+  if (!args.owner || !args.vaultOwner) {
+    return new Set<string>();
+  }
+
+  return new Set(
+    readStoredNotes()
+      .filter((note) => note.owner === args.owner && note.vaultOwner === args.vaultOwner)
+      .map((note) => note.depositSignature),
+  );
+}
