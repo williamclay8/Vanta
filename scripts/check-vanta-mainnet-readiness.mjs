@@ -40,6 +40,20 @@ assert.deepEqual(
   snapshot.abuseObservability.pendingObservabilityControls,
   observabilityControls.pendingObservabilityControls,
 );
+assert.ok(
+  snapshot.blockers
+    .find((blocker) => blocker.id === "abuse-rate-limit-observability")
+    ?.summary.includes("Pay and Private Pool v2 have verified Render-native log and metrics evidence"),
+  "Readiness blocker summary must preserve the verified Pay/Private Pool v2 Render-native log and metrics truth.",
+);
+assert.ok(
+  snapshot.nextActions.some((action) => action.includes("Pay and Private Pool v2 Render-native log/metrics evidence")),
+  "Readiness next actions must preserve the checked Render-native log/metrics evidence follow-up.",
+);
+assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:render-native-observability-evidence-check"),
+  "Readiness required commands must include Render-native observability evidence check.",
+);
 assert.equal(snapshot.nullifierReplay.runtimeMode, "remote-services");
 assert.equal(
   snapshot.nullifierReplay.layeredReplayStatus,

@@ -36,7 +36,7 @@ const blockerDefinitions = [
     id: "abuse-rate-limit-observability",
     severity: "high",
     buildSummary:
-      "Keep the abuse/observability status/evidence surface fresh while Pay and Private Pool v2 are the next services ready for Render-native observability wiring, while Strategy and operator control plane still lack production service refs, while incident workflow runbook refs are configured, and while the checked pending provider controls remain render-native-log-sink, metrics-dashboards, alert-policies, and retention-policy.",
+      "Keep the abuse/observability status/evidence surface fresh while Pay and Private Pool v2 have verified Render-native log and metrics evidence, while their alert policies and retention policies remain pending, while Strategy and operator control plane still lack production service refs, and while incident workflow runbook refs are configured.",
   },
   {
     id: "no-mainnet-funds-without-explicit-approval",
@@ -124,6 +124,7 @@ const requiredCommands = [
   "npm run mainnet:abuse-observability-check",
   "npm run mainnet:abuse-observability-status",
   "npm run mainnet:abuse-observability-evidence-check",
+  "npm run mainnet:render-native-observability-evidence-check",
   "npm run ops:rate-limit-check",
   "npm run ops:operator-event-sink-check",
   "npm run mainnet:production-service-setup-check",
@@ -231,7 +232,7 @@ export function createVantaMainnetReadinessSnapshot() {
         : "Record a new bounded approval window before any live mainnet action or real-funds movement.",
     `Keep the service-deployment packet, green route-health, green replay verification, green no-real-funds production smoke evidence, and the checked restore-readback coverage fresh while the checked pending production controls remain ${productionServiceDeployment.pendingProductionControls.join(", ")}.`,
     "Keep operator-skipped controls visible in operator surfaces without presenting skipped audit, legal/custody, secret rotation, Pay readback, or provider backup controls as completed.",
-    `Keep the abuse/observability status/evidence surface fresh while incident workflow runbook refs remain configured and the checked pending provider controls remain ${abuseObservability.pendingObservabilityControls.join(", ")}.`,
+    `Keep the abuse/observability status/evidence surface fresh while Pay and Private Pool v2 Render-native log/metrics evidence remains checked, incident workflow runbook refs remain configured, and the checked pending provider controls remain ${abuseObservability.pendingObservabilityControls.join(", ")}.`,
     `Keep the deployed operator replay-status evidence, the Postgres-backed nullifier replay guard, role-service replay verification, and production smoke replay simulation fresh while the checked replay blockers remain ${nullifierReplay.productionReplayBlockedBy.join(", ")}.`,
     `Keep the wallet-signing status/evidence surface, four-page local browser verification, deployed browser verification, and live-send inventory commands fresh while any real-funds action remains bounded by explicit approval.`,
   ];
