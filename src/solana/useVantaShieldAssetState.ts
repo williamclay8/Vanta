@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useSolanaClient } from "@solana/react-hooks";
 import { useWalletState } from "@/data/context/WalletContext";
 import { fetchLocallyReleasedSolNoteIds } from "@/solana/operatorStateClient";
+import { loadRecoveredNativeSolShieldNotes } from "@/solana/recoveredNativeSolShieldNotes";
 import { useVantaShieldViewingKey } from "@/solana/useVantaShieldViewingKey";
 import {
   fetchVantaShieldAccountState,
@@ -55,7 +56,15 @@ export function useVantaShieldAssetState(args: {
       const reconciledAccount = args.includeLocallyReleasedSolNotes
         ? reconcileLocallyReleasedSolNotes(nextAccount, locallyReleasedSolNoteIds)
         : nextAccount;
-      setAccount(reconciledAccount);
+      setAccount(
+        mergeRecoveredNativeSolShieldNotes(
+          reconciledAccount,
+          loadRecoveredNativeSolShieldNotes({
+            owner: walletAddress,
+            vaultOwner: args.vaultOwner,
+          }),
+        ),
+      );
     } catch (nextError) {
       setError(
         nextError instanceof Error
@@ -85,6 +94,52 @@ export function useVantaShieldAssetState(args: {
     isReady: Boolean(walletConnected && walletAddress && args.mintAddress && args.vaultOwner),
     isRefreshing,
     refresh,
+  };
+}
+
+function mergeRecoveredNativeSolShieldNotes(
+  account: VantaShieldAccountState,
+  recoveredNotes: readonly VantaShieldedSolNote[],
+): VantaShieldAccountState {
+  if (recoveredNotes.length === 0) {
+    return account;
+  }
+
+  const existingDepositSignatures = new Set(
+    account.shieldedSolNotes
+      .map((note) => note.depositSignature)
+      .filter((signature): signature is string => Boolean(signature)),
+  );
+  const existingNoteIds = new Set(account.shieldedSolNotes.map((note) => note.noteId));
+  const nextRecoveredNotes = recoveredNotes.filter(
+    (note) =>
+      !existingNoteIds.has(note.noteId) &&
+      (!note.depositSignature || !existingDepositSignatures.has(note.depositSignature)),
+  );
+
+  if (nextRecoveredNotes.length === 0) {
+    return account;
+  }
+
+  const shieldedSolNotes = [...account.shieldedSolNotes, ...nextRecoveredNotes].sort(
+    (left, right) => right.createdAt - left.createdAt,
+  );
+  const spendableShieldedSolNotes = shieldedSolNotes.filter(
+    (note) => note.lifecycleStatus === "spendable",
+  );
+  const consumedShieldedSolNotes = shieldedSolNotes.filter(
+    (note) => note.lifecycleStatus === "consumed",
+  );
+  const shieldedSolBalance = Number(
+    spendableShieldedSolNotes.reduce((sum, note) => sum + note.amount, 0).toFixed(9),
+  );
+
+  return {
+    ...account,
+    consumedShieldedSolNotes,
+    shieldedSolBalance,
+    shieldedSolNotes,
+    spendableShieldedSolNotes,
   };
 }
 

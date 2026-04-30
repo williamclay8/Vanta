@@ -69,8 +69,8 @@ assert.ok(
   "Shield page must expose a recovery action for unrecorded native SOL vault deposits.",
 );
 assert.ok(
-  shieldPageSource.includes('asset: pendingShieldAsset === "SOL" ? "SOL" : selectedShieldAsset.assetKey'),
-  "Shield state safety summary must label native SOL recovery/state transactions as SOL.",
+  shieldPageSource.includes("recordRecoveredNativeSolShieldNote"),
+  "Native SOL recovery must record an already-vaulted SOL note without requiring another Phantom transaction.",
 );
 assert.ok(
   shieldPageSource.includes("VANTA_NATIVE_SOL_SAME_TRANSACTION_DEPOSIT_SIGNATURE"),
@@ -81,8 +81,10 @@ assert.ok(
   "Native SOL Shield must submit transfer and shield-state memo in one wallet request.",
 );
 assert.ok(
-  shieldPageSource.includes('pendingShieldAsset === "SOL" && !pendingNativeSolDepositRecovery'),
-  "Native SOL Shield finalization must treat non-recovery SOL as a one-transaction shield path.",
+  shieldPageSource.includes("pendingNativeSolDepositRecovery") &&
+    shieldPageSource.includes("? pendingDepositSignature") &&
+    shieldPageSource.includes("? true"),
+  "Native SOL recovery finalization must use the original deposit signature without a second shield-state transaction.",
 );
 assert.ok(
   shieldPageSource.includes("nativeSolShieldBlockedByRecoverableDeposit"),

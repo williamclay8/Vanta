@@ -21,6 +21,7 @@ import { runShieldWithDecoys } from "@/privacy/shieldDecoyBatcher";
 import { createVantaShieldCommittedEconomicsSettlementRequest } from "@/privacy/vantaShieldCommittedSettlement";
 import { createUmbraShieldActionApprovalReview } from "@/privacy/umbraShieldActionReview";
 import type { UmbraOperationApprovalDisplay } from "@/privacy/umbraOperations";
+import { recordRecoveredNativeSolShieldNote } from "@/solana/recoveredNativeSolShieldNotes";
 import { createShieldAssetCapability } from "@/solana/shieldAssetCapability";
 import {
   type LiveShieldTokenAssetKey,
@@ -524,6 +525,11 @@ export function ShieldPage(_props: ShieldPageProps) {
     setPendingShieldAsset("SOL");
     setPendingNativeSolDepositRecovery(true);
     setPendingProtocolSettlement({ capability, routeEvidence: null });
+    recordRecoveredNativeSolShieldNote({
+      deposit,
+      owner: walletAddress,
+      vaultOwner: selectedShieldAsset.vaultOwner,
+    });
     setPendingUmbraApprovalDisplay(
       createUmbraShieldActionApprovalReview({
         amountBaseUnits: parseDecimalAmountToBaseUnits(deposit.amountDisplay, 9),
@@ -741,23 +747,21 @@ export function ShieldPage(_props: ShieldPageProps) {
   }, [splShieldTransferWait.waitError, splShieldTransferWait.waitStatus]);
 
   useEffect(() => {
-    const depositConfirmed =
-      pendingNativeSolDepositRecovery
-        ? true
-        : pendingShieldAsset === "SOL"
-        ? nativeSolShieldWait.waitStatus === "success"
-        : splShieldTransferWait.waitStatus === "success";
+    if (pendingNativeSolDepositRecovery) {
+      return;
+    }
+
+    const depositConfirmed = splShieldTransferWait.waitStatus === "success";
 
     if (
-      (pendingShieldAsset === "SOL" && !pendingNativeSolDepositRecovery) ||
+      pendingShieldAsset === "SOL" ||
       !depositConfirmed ||
       pendingShieldAmount === null ||
       !pendingDepositSignature ||
       !selectedShieldAsset?.vaultOwner ||
       !viewingKey?.publicKey ||
-      (pendingShieldAsset !== "SOL" && !selectedShieldAsset?.mintAddress) ||
-      (pendingShieldAsset !== "SOL" && !supportedToken?.owner) ||
-      (pendingShieldAsset === "SOL" && !walletAddress)
+      !selectedShieldAsset?.mintAddress ||
+      !supportedToken?.owner
     ) {
       return;
     }
@@ -766,9 +770,8 @@ export function ShieldPage(_props: ShieldPageProps) {
       return;
     }
 
-    const mintAddress =
-      pendingShieldAsset === "SOL" ? VANTA_NATIVE_SOL_ASSET_ID : selectedShieldAsset.mintAddress!;
-    const owner = pendingShieldAsset === "SOL" ? walletAddress! : supportedToken!.owner!;
+    const mintAddress = selectedShieldAsset.mintAddress;
+    const owner = supportedToken.owner;
     const vaultOwner = selectedShieldAsset.vaultOwner;
 
     void buildHeliusPriorityFeeInstructions({
@@ -778,35 +781,23 @@ export function ShieldPage(_props: ShieldPageProps) {
       .then((priorityFeeInstructions) => {
         const instructions = [
           ...priorityFeeInstructions,
-          pendingShieldAsset === "SOL"
-            ? createNativeSolShieldMemoInstruction(
-                {
-                  amount: pendingShieldAmountDisplay ?? amount,
-                  assetId: VANTA_NATIVE_SOL_ASSET_ID,
-                  createdAt: Date.now(),
-                  depositSignature: pendingDepositSignature,
-                  owner,
-                  vaultOwner,
-                },
-                { viewingPublicKey: viewingKey?.publicKey },
-              )
-            : createShieldMemoInstruction(
-                {
-                  amount: pendingShieldAmountDisplay ?? amount,
-                  asset: selectedShieldAsset.assetKey,
-                  createdAt: Date.now(),
-                  depositSignature: pendingDepositSignature,
-                  mintAddress,
-                  owner,
-                  vaultOwner,
-                },
-                { viewingPublicKey: viewingKey?.publicKey },
-              ),
+          createShieldMemoInstruction(
+            {
+              amount: pendingShieldAmountDisplay ?? amount,
+              asset: selectedShieldAsset.assetKey,
+              createdAt: Date.now(),
+              depositSignature: pendingDepositSignature,
+              mintAddress,
+              owner,
+              vaultOwner,
+            },
+            { viewingPublicKey: viewingKey?.publicKey },
+          ),
         ];
 
         return stateTransaction.send({
           amount: pendingShieldAmountDisplay ?? amount,
-          asset: pendingShieldAsset === "SOL" ? "SOL" : selectedShieldAsset.assetKey,
+          asset: selectedShieldAsset.assetKey,
           cluster: vantaSolanaCluster,
           explicitMainnetApproval: vantaExplicitMainnetApproval,
           connectedWalletAddress: walletAddress ?? owner,
@@ -849,14 +840,17 @@ export function ShieldPage(_props: ShieldPageProps) {
   ]);
 
   useEffect(() => {
-    const activeStateSignature =
-      pendingShieldAsset === "SOL" && !pendingNativeSolDepositRecovery
+    const activeStateSignature = pendingNativeSolDepositRecovery
+      ? pendingDepositSignature
+      : pendingShieldAsset === "SOL"
         ? nativeSolShieldTransaction.signature
         : stateTransaction.signature;
     const stateRecorded =
-      pendingShieldAsset === "SOL" && !pendingNativeSolDepositRecovery
-        ? nativeSolShieldWait.waitStatus === "success"
-        : stateSignatureWait.waitStatus === "success";
+      pendingNativeSolDepositRecovery
+        ? true
+        : pendingShieldAsset === "SOL"
+          ? nativeSolShieldWait.waitStatus === "success"
+          : stateSignatureWait.waitStatus === "success";
 
     if (
       !stateRecorded ||
@@ -873,7 +867,11 @@ export function ShieldPage(_props: ShieldPageProps) {
 
     recordedStateSignatureRef.current = activeStateSignature;
 
-    void refreshShieldState()
+    const refreshBeforeCompletion = pendingNativeSolDepositRecovery
+      ? refreshShieldState().catch(() => undefined)
+      : refreshShieldState();
+
+    void refreshBeforeCompletion
       .then(async () => {
         const zkRecord =
           pendingShieldAsset === "SOL"
