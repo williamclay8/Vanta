@@ -11,12 +11,15 @@ export type VantaPositionSummary = {
   liveAsset: string;
   networkLabel: string;
   publicBalance: number;
+  confirmedShieldedSolBalance: number;
   pendingRecoveredShieldedSolBalance: number;
   registryError: string | null;
   registryRefreshing: boolean;
   shieldedBalance: number;
   shieldedSolBalance: number;
+  spendableShieldedSolNoteCount: number;
   spendableNoteCount: number;
+  totalActionableNoteCount: number;
   statusLabel: string;
   swapCount: number;
   walletConnected: boolean;
@@ -37,14 +40,16 @@ export function useVantaPositionSummary(): VantaPositionSummary {
         const noteKey = note.depositSignature ? `deposit:${note.depositSignature}` : note.noteId;
 
         if (note.stateSignature.startsWith("local-sol-recovery:")) {
-          pendingRecoveredShieldedSolNotesByKey.set(noteKey, note);
+          if (!confirmedShieldedSolNotesByKey.has(noteKey)) {
+            pendingRecoveredShieldedSolNotesByKey.set(noteKey, note);
+          }
         } else {
           confirmedShieldedSolNotesByKey.set(noteKey, note);
           pendingRecoveredShieldedSolNotesByKey.delete(noteKey);
         }
       }
     }
-    const shieldedSolBalance = Number(
+    const confirmedShieldedSolBalance = Number(
       [...confirmedShieldedSolNotesByKey.values()]
         .reduce((sum, note) => sum + note.amount, 0)
         .toFixed(9),
@@ -54,12 +59,25 @@ export function useVantaPositionSummary(): VantaPositionSummary {
         .reduce((sum, note) => sum + note.amount, 0)
         .toFixed(9),
     );
+    const shieldedSolBalance = Number(
+      (confirmedShieldedSolBalance + pendingRecoveredShieldedSolBalance).toFixed(9),
+    );
+    const spendableShieldedSolNoteCount = Number(
+      new Set([
+        ...confirmedShieldedSolNotesByKey.keys(),
+        ...pendingRecoveredShieldedSolNotesByKey.keys(),
+      ]).size,
+    );
     const shieldedSolEntry =
       shieldRegistry.entries.find((entry) =>
         entry.account?.spendableShieldedSolNotes.some((note) =>
-          confirmedShieldedSolNotesByKey.has(
-            note.depositSignature ? `deposit:${note.depositSignature}` : note.noteId,
-          ),
+          note.stateSignature.startsWith("local-sol-recovery:")
+            ? pendingRecoveredShieldedSolNotesByKey.has(
+                note.depositSignature ? `deposit:${note.depositSignature}` : note.noteId,
+              )
+            : confirmedShieldedSolNotesByKey.has(
+                note.depositSignature ? `deposit:${note.depositSignature}` : note.noteId,
+              ),
         ),
       ) ?? primaryEntry;
     const shieldedSolAccount = shieldedSolEntry.account;
@@ -69,6 +87,7 @@ export function useVantaPositionSummary(): VantaPositionSummary {
     const registryRefreshing = primaryEntry.isRefreshing || shieldedSolEntry.isRefreshing;
     const shieldedBalance = account?.balance ?? 0;
     const spendableNoteCount = account?.spendableShieldNotes.length ?? 0;
+    const totalActionableNoteCount = spendableNoteCount + spendableShieldedSolNoteCount;
     const swapCount = account?.swapNotes.length ?? 0;
     const latestActivity =
       shieldedSolBalance > 0
@@ -102,15 +121,18 @@ export function useVantaPositionSummary(): VantaPositionSummary {
       latestActionTimestamp: latestActivity?.createdAt ?? null,
       liveAsset: primaryAsset.symbol,
       networkLabel: clusterLabel,
+      confirmedShieldedSolBalance,
       pendingRecoveredShieldedSolBalance,
       publicBalance,
       registryError,
       registryRefreshing,
       shieldedBalance,
       shieldedSolBalance,
+      spendableShieldedSolNoteCount,
       spendableNoteCount,
       statusLabel,
       swapCount,
+      totalActionableNoteCount,
       walletConnected,
     } satisfies VantaPositionSummary;
   }, [clusterLabel, primaryAsset, primaryEntry, shieldRegistry.entries, walletConnected]);

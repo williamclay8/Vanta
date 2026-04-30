@@ -5,6 +5,7 @@ import { useVantaPositionSummary } from "@/solana/useVantaPositionSummary";
 
 type DashboardActionCard = {
   badge: string;
+  detail: string;
   href: string;
   label: string;
   title: string;
@@ -26,24 +27,33 @@ export function AppDashboardPage() {
   const {
     privateCoreReleaseHandoffState,
     privateCoreReleasePackageState,
+    recentShield,
   } = usePrivacyFlow();
 
   const shieldedBalance = positionSummary.shieldedBalance;
-  const shieldedSolBalance = positionSummary.shieldedSolBalance;
+  const recentShieldedSolBalance =
+    recentShield?.asset === "SOL" ? recentShield.resultingShieldedBalance : 0;
+  const shieldedSolBalance = Math.max(
+    positionSummary.shieldedSolBalance,
+    recentShieldedSolBalance,
+  );
   const pendingRecoveredShieldedSolBalance = positionSummary.pendingRecoveredShieldedSolBalance;
-  const spendableNoteCount = positionSummary.spendableNoteCount;
+  const confirmedShieldedSolBalance = positionSummary.confirmedShieldedSolBalance;
+  const spendableNoteCount = positionSummary.totalActionableNoteCount;
 
   const isValueUnavailable = Boolean(positionSummary.registryError);
+  const hasShieldedSol = shieldedSolBalance > 0;
+  const hasSpendableShieldedValue = spendableNoteCount > 0 || hasShieldedSol;
   const stageLabel = isValueUnavailable
     ? "State unavailable"
     : positionSummary.registryRefreshing
       ? "Refreshing state"
       : !positionSummary.walletConnected
     ? "Connect a wallet"
-    : shieldedSolBalance > 0
-      ? "Shielded SOL state detected"
-      : spendableNoteCount > 0
-        ? "Spendable note detected"
+    : hasShieldedSol
+      ? "Shielded SOL available"
+      : hasSpendableShieldedValue
+        ? "Spendable state available"
         : shieldedBalance > 0
           ? "Shielded state present"
           : "Ready to test Shield";
@@ -54,10 +64,10 @@ export function AppDashboardPage() {
       ? "Refreshing the local shielded-state view before treating balances as current."
       : !positionSummary.walletConnected
     ? "Connect wallet to start the private-core flow."
-    : shieldedSolBalance > 0
-      ? "A shielded SOL output is ready for the constrained exit lane."
-      : spendableNoteCount > 0
-        ? "Constrained shielded state is available; send, swap, and unshield still depend on current route and operator checks."
+    : hasShieldedSol
+      ? "Shielded SOL is available. The next useful step is to review the SOL exit lane."
+      : hasSpendableShieldedValue
+        ? "Spendable shielded state is available. Choose the lane you want to test next."
         : shieldedBalance > 0
           ? "Value is shielded, but there is no current spendable note."
           : "No shielded test position yet. Start with Shield to create one.";
@@ -80,11 +90,53 @@ export function AppDashboardPage() {
       ? "Review package"
       : privateCoreReleaseHandoffState?.nextActionLabel ?? "Open primary lane";
 
+  const primaryNextStep = !positionSummary.walletConnected
+    ? { href: "/app/shield", label: "Connect and Shield" }
+    : hasShieldedSol
+      ? { href: "/app/unshield", label: "Review SOL exit" }
+      : hasSpendableShieldedValue
+        ? { href: "/app/send", label: "Review Send" }
+        : { href: "/app/shield", label: "Start with Shield" };
+
   const actions: DashboardActionCard[] = [
-    { badge: "Enter", href: "/app/shield", label: "Open Shield", title: "Shield" },
-    { badge: "Move", href: "/app/send", label: "Open Send", title: "Send" },
-    { badge: "Exit", href: "/app/unshield", label: "Open Unshield", title: "Unshield" },
-    { badge: "Swap", href: "/app/swap", label: "Open Swap", title: "Swap" },
+    {
+      badge: shieldedBalance > 0 || hasShieldedSol ? "Ready" : "Start",
+      detail: shieldedBalance > 0 || hasShieldedSol
+        ? "Add more value or recover a new shielded state."
+        : "Create the first test shielded position.",
+      href: "/app/shield",
+      label: "Open Shield",
+      title: "Shield",
+    },
+    {
+      badge: hasSpendableShieldedValue ? "Available" : "Needs notes",
+      detail: hasSpendableShieldedValue
+        ? "Use spendable shielded state for a private handoff test."
+        : "Send unlocks after a spendable shielded note exists.",
+      href: "/app/send",
+      label: "Open Send",
+      title: "Send",
+    },
+    {
+      badge: hasShieldedSol || hasSpendableShieldedValue ? "Available" : "Needs state",
+      detail: hasShieldedSol
+        ? "Return available shielded SOL through the constrained exit lane."
+        : hasSpendableShieldedValue
+          ? "Exit spendable shielded value when the lane is selected."
+          : "Unshield appears once shielded state is available.",
+      href: "/app/unshield",
+      label: "Open Unshield",
+      title: "Unshield",
+    },
+    {
+      badge: hasSpendableShieldedValue ? "Available" : "Needs notes",
+      detail: hasSpendableShieldedValue
+        ? "Swap from shielded state into the supported output lane."
+        : "Swap needs spendable shielded state first.",
+      href: "/app/swap",
+      label: "Open Swap",
+      title: "Swap",
+    },
   ];
 
   return (
@@ -92,7 +144,7 @@ export function AppDashboardPage() {
       <div className="dashboard-focus-card">
         <div className="dashboard-focus-card__copy">
           <span className="eyebrow">Status</span>
-          <h2>Your private settlement status</h2>
+          <h2>Beta readiness status</h2>
           <p>{statusLine}</p>
 
           <div className="dashboard-focus-card__chips">
@@ -110,19 +162,39 @@ export function AppDashboardPage() {
             <strong>{isValueUnavailable ? "Unavailable" : formatUsdcAmount(shieldedBalance)}</strong>
           </article>
           <article>
-            <span>Shielded SOL</span>
+            <span>Shielded SOL available</span>
             <strong>{isValueUnavailable ? "Unavailable" : formatVantaSolAmount(shieldedSolBalance)}</strong>
+            {recentShieldedSolBalance > positionSummary.shieldedSolBalance && (
+              <small>Includes the latest SOL shield result</small>
+            )}
             {pendingRecoveredShieldedSolBalance > 0 && (
               <small>
-                {formatVantaSolAmount(pendingRecoveredShieldedSolBalance)} pending local recovery
+                Includes {formatVantaSolAmount(pendingRecoveredShieldedSolBalance)} recovered locally
               </small>
+            )}
+            {confirmedShieldedSolBalance > 0 && pendingRecoveredShieldedSolBalance > 0 && (
+              <small>{formatVantaSolAmount(confirmedShieldedSolBalance)} resolved on-chain</small>
             )}
           </article>
           <article>
-            <span>Spendable notes</span>
+            <span>Actionable notes</span>
             <strong>{spendableNoteCount}</strong>
+            <small>
+              {positionSummary.spendableNoteCount} token · {positionSummary.spendableShieldedSolNoteCount} SOL
+            </small>
           </article>
         </div>
+      </div>
+
+      <div className="dashboard-next-step-card">
+        <div>
+          <span className="eyebrow">Next Step</span>
+          <h3>{primaryNextStep.label}</h3>
+          <p>{statusLine}</p>
+        </div>
+        <Link className="button button-primary" to={primaryNextStep.href}>
+          {primaryNextStep.label}
+        </Link>
       </div>
 
       <div className="dashboard-release-card">
@@ -159,6 +231,7 @@ export function AppDashboardPage() {
           <article key={action.title} className="dashboard-action-card dashboard-action-card--minimal">
             <span>{action.badge}</span>
             <h3>{action.title}</h3>
+            <p>{action.detail}</p>
             <Link className="button button-ghost" to={action.href}>
               {action.label}
             </Link>

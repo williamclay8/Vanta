@@ -93,6 +93,20 @@ function runBrowserBatch() {
         { kind: "no_console_errors" },
       ],
     },
+    { action: "click", selector: 'a[href="/app/dashboard"]' },
+    { action: "wait_for", condition: "network_idle" },
+    {
+      action: "assert",
+      checks: [
+        { kind: "url_contains", text: "/app/dashboard" },
+        { kind: "selector_visible", selector: ".dashboard-focus-card" },
+        { kind: "selector_visible", selector: ".dashboard-next-step-card" },
+        { kind: "text_visible", text: "Beta readiness status" },
+        { kind: "text_visible", text: "Shielded SOL available" },
+        { kind: "text_visible", text: "Actionable notes" },
+        { kind: "no_console_errors" },
+      ],
+    },
     { action: "click", selector: 'a[href="/app/shield"]' },
     { action: "wait_for", condition: "network_idle" },
     {
@@ -283,7 +297,7 @@ function assertDesktopProductTabsFit() {
 }
 
 function assertActionTabsStayMinimal() {
-  for (const route of ["/app/shield", "/app/send", "/app/swap", "/app/strategy", "/app/unshield", "/app/pay"]) {
+  for (const route of ["/app/dashboard", "/app/shield", "/app/send", "/app/swap", "/app/strategy", "/app/unshield", "/app/pay"]) {
     execFileSync("gsd-browser", ["--session", browserSession, "navigate", `${baseUrl}${route}`], {
       stdio: "ignore",
     });

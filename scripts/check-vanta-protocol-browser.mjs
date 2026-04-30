@@ -31,6 +31,20 @@ async function waitForVite() {
 
 function runBrowserBatch() {
   const steps = [
+    { action: "navigate", url: `${baseUrl}/app/dashboard` },
+    { action: "wait_for", condition: "network_idle" },
+    {
+      action: "assert",
+      checks: [
+        { kind: "url_contains", text: "/app/dashboard" },
+        { kind: "selector_visible", selector: ".dashboard-focus-card" },
+        { kind: "selector_visible", selector: ".dashboard-next-step-card" },
+        { kind: "text_visible", text: "Beta readiness status" },
+        { kind: "text_visible", text: "Shielded SOL available" },
+        { kind: "text_visible", text: "Actionable notes" },
+        { kind: "no_console_errors" },
+      ],
+    },
     { action: "navigate", url: `${baseUrl}/app/shield` },
     { action: "wait_for", condition: "network_idle" },
     {
@@ -226,7 +240,7 @@ function runDesktopTabClickContinuityProbe() {
     })()`,
     ]);
 
-    for (const path of ["send", "swap", "strategy", "unshield", "pay", "shield"]) {
+    for (const path of ["dashboard", "send", "swap", "strategy", "unshield", "pay", "shield", "dashboard"]) {
       runBrowserCommand(["click", `a[href='/app/${path}']`], { stdio: "ignore" });
       runBrowserCommand(["wait-for", "--condition", "url_contains", "--value", `/app/${path}`], {
         stdio: "ignore",
@@ -260,7 +274,8 @@ function runDesktopTabClickContinuityProbe() {
         result.mainReplaced ||
         !result.shellPresent ||
         result.routeFramePath !== `/app/${path}` ||
-        result.mainHeight < 120
+        result.mainHeight < 120 ||
+        !result.activeTab?.startsWith(path === "dashboard" ? "Status" : path[0].toUpperCase() + path.slice(1))
       ) {
         throw new Error(`Desktop tab click dropped or blanked the app shell: ${JSON.stringify(result)}`);
       }

@@ -1596,6 +1596,7 @@ input {
 }
 
 .dashboard-focus-card,
+.dashboard-next-step-card,
 .dashboard-release-card {
   display: grid;
   gap: 14px;
@@ -1613,6 +1614,7 @@ input {
 }
 
 .dashboard-focus-card::before,
+.dashboard-next-step-card::before,
 .dashboard-release-card::before {
   content: "";
   position: absolute;
@@ -1630,6 +1632,7 @@ input {
 }
 
 .dashboard-focus-card h2,
+.dashboard-next-step-card h3,
 .dashboard-release-card h3 {
   margin: 10px 0 12px;
   font-family: "Syne", sans-serif;
@@ -1637,6 +1640,7 @@ input {
 }
 
 .dashboard-focus-card p,
+.dashboard-next-step-card p,
 .dashboard-release-card p {
   margin: 0;
   color: var(--muted);
@@ -1712,6 +1716,19 @@ input {
   align-items: end;
 }
 
+.dashboard-next-step-card {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  border-color: rgba(141, 185, 255, 0.18);
+  background:
+    linear-gradient(140deg, rgba(141, 185, 255, 0.08), rgba(0, 229, 200, 0.04)),
+    rgba(8, 13, 20, 0.94);
+}
+
+.dashboard-next-step-card .button {
+  justify-self: end;
+}
+
 .dashboard-release-card__meta {
   display: grid;
   gap: 10px;
@@ -1751,6 +1768,13 @@ input {
 .dashboard-action-card--minimal h3 {
   margin: 0;
   font-family: "Syne", sans-serif;
+}
+
+.dashboard-action-card--minimal p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.45;
 }
 
 .dashboard-hero,
@@ -6180,14 +6204,20 @@ input {
   }
 
   .dashboard-focus-card__stats,
+  .dashboard-next-step-card .button,
   .dashboard-release-card__meta {
     width: 100%;
     min-width: 0;
   }
 
   .dashboard-focus-card,
+  .dashboard-next-step-card,
   .dashboard-release-card {
     grid-template-columns: 1fr;
+  }
+
+  .dashboard-next-step-card .button {
+    justify-self: stretch;
   }
 
   .hero-copy h1 {

@@ -5,6 +5,7 @@ import { join } from "node:path";
 
 const baseUrl = process.env.VANTA_PUBLIC_APP_URL?.trim() || "https://vantaprivacy.xyz";
 const routes = [
+  { page: "Status", path: "/app/dashboard", routeText: "BETA READINESS STATUS" },
   { page: "Shield", path: "/app/shield", routeText: "SHIELD" },
   { page: "Send", path: "/app/send", routeText: "SEND SHIELDED" },
   { page: "Swap", path: "/app/swap", routeText: "TRADE SHIELDED" },
@@ -37,6 +38,12 @@ function routeAssertSteps(route) {
         { kind: "text_visible", text: route.routeText },
         { kind: "text_visible", text: "CONNECT" },
         { kind: "text_visible", text: "FRESH WALLET" },
+        ...(route.path === "/app/dashboard"
+          ? [
+              { kind: "text_visible", text: "SHIELDED SOL AVAILABLE" },
+              { kind: "text_visible", text: "ACTIONABLE NOTES" },
+            ]
+          : []),
         { kind: "text_hidden", text: "Vanta Beta" },
         { kind: "text_hidden", text: "VANTA BETA" },
         {
