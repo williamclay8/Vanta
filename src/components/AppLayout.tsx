@@ -13,6 +13,7 @@ import type { PeerOnrampFulfillment, PeerOnrampLaunchState } from "@/peer/peerOn
 import { useWalletPublicAssets } from "@/solana/useWalletPublicAssets";
 
 const appLinks = [
+  { to: "/app/dashboard", label: "Status", action: "Overview", end: false },
   { to: "/app/shield", label: "Shield", action: "Add funds", end: false },
   { to: "/app/send", label: "Send", action: "Send shielded", end: false },
   { to: "/app/swap", label: "Swap", action: "Trade shielded", end: false },
