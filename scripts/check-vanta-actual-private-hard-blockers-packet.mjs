@@ -61,7 +61,7 @@ for (const id of [
   assert.ok(blockers.get(id).truthBoundary, `${id} must include a truth boundary.`);
 }
 
-assert.equal(blockers.get("fresh-bounded-approval").status, "ready-active-bounded-approval");
+assert.equal(blockers.get("fresh-bounded-approval").status, "blocked-expired-bounded-approval");
 assert.equal(
   blockers.get("fresh-bounded-approval").currentArtifactRef,
   `approval-window:${approval.approvalWindowRef.replace(" America/Los_Angeles", "-America-Los_Angeles")}`,

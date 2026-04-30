@@ -483,6 +483,12 @@ if (databaseUrl) {
 }
 const paySettlementReceipts = [...(persistedState.paySettlements ?? [])];
 const protocolSettlementReceipts = [...(persistedState.protocolSettlements ?? [])];
+for (const settlement of protocolSettlementReceipts) {
+  await ensureProofReceiptReplayGuarded(
+    settlement.proofReceipt,
+    `startup-protocol-settlement-backfill:${settlement.protocolSettlementReceipt?.id ?? "unknown"}`,
+  );
+}
 
 const textEncoder = new TextEncoder();
 const VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION =

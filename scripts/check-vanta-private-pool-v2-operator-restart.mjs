@@ -456,6 +456,27 @@ try {
     ),
     "Expected persisted unshield nullifier.",
   );
+  writtenStore.protocolSettlements.push({
+    kind: "protocol_settlement",
+    proofReceipt: {
+      assetId: "USDC",
+      intent: "private-send",
+      publicInputCommitment: "field:restored-protocol-only-public-input-commitment",
+      receiptId: "0xrestoredprotocolonlyprivatesendreceipt",
+      recordedAtSlot: "90210",
+      replayKey: "private-send:field:restored-protocol-only-send-nullifier",
+    },
+    protocolSettlementReceipt: {
+      action: "send",
+      id: "proto_restored_protocol_only_send",
+      object: "protocol_settlement_receipt",
+      proofReceiptId: "ppv2_restoredprotocolonly",
+      proofReceiptPublicInputCommitment: "field:restored-protocol-only-public-input-commitment",
+      settlementId: "protocol-restored-only-send",
+      status: "confirmed",
+    },
+    settlementFingerprint: "0xrestoredprotocolonlysendfingerprint",
+  });
   writeFileSync(storePath, JSON.stringify(writtenStore, null, 2));
   console.log("private-pool-v2 restart store write: PASS");
 
@@ -471,10 +492,31 @@ try {
     "Expected zero restored raw Pay settlement receipts.",
   );
   assert(
-    restoredReceipts.parsed?.protocolSettlementCount === 1,
-    "Expected one restored protocol settlement receipt.",
+    restoredReceipts.parsed?.protocolSettlementCount === 2,
+    "Expected two restored protocol settlement receipts.",
   );
   console.log("private-pool-v2 restart receipts restored: PASS");
+
+  const restoredProtocolOnlyReplay = await requestJson("/private-pool-v2/nullifier-replay-checks", {
+    body: JSON.stringify({
+      intent: "private-send",
+      nullifier: "field:restored-protocol-only-send-nullifier",
+      requestId: "protocol-restored-only-send-review-probe",
+    }),
+    method: "POST",
+  });
+  assert(
+    restoredProtocolOnlyReplay.ok,
+    restoredProtocolOnlyReplay.text ||
+      "Expected restored protocol-only nullifier replay check response.",
+  );
+  assert(
+    restoredProtocolOnlyReplay.parsed?.accepted === false &&
+      restoredProtocolOnlyReplay.parsed?.decision?.replay === true,
+    restoredProtocolOnlyReplay.text ||
+      "Expected protocol-only restored proof receipt nullifier to reject duplicate replay.",
+  );
+  console.log("private-pool-v2 restart protocol settlement replay guard backfill: PASS");
 
   const repeatedProtocolShieldSettlement = await requestJson("/private-pool-v2/protocol-settlements", {
     body: JSON.stringify({

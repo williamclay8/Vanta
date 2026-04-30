@@ -417,6 +417,7 @@ const requiredTextFiles = [
       "private-pool-v2 restart committed transitions accepted: PASS",
       "private-pool-v2 restart receipts restored: PASS",
       "private-pool-v2 restart claim replay rejection: PASS",
+      "private-pool-v2 restart protocol settlement replay guard backfill: PASS",
       "private-pool-v2 restart committed transition replay rejection: PASS",
     ],
   },

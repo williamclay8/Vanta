@@ -7,23 +7,23 @@
   "secretPolicy": "references-only-no-secret-values",
   "purpose": "Single refs-only operator packet for the remaining actual-private production privacy blockers. This packet is a launch blocker map, not approval, audit, legal, custody, anonymity, or live-settlement evidence.",
   "stopBoundary": {
-    "liveMainnetActionsAllowedNow": true,
+    "liveMainnetActionsAllowedNow": false,
     "currentApprovalActionRef": "actual-private/mainnet-settlement-evidence-run-2026-04-29-2131-2231",
     "currentApprovalWindowRef": "2026-04-29T21:31:00-22:31:00 America/Los_Angeles",
     "stopConditionStatus": "not-applicable-to-current-approval",
     "fundsMoved": false,
-    "requiredNextStep": "Keep live actions inside the exact approved bounded live action; do not proceed without wallet public key ref, settlement-plan refs, and the live ACKs."
+    "requiredNextStep": "Record a new bounded approval window before any live mainnet action."
   },
   "hardBlockers": [
     {
       "id": "fresh-bounded-approval",
-      "status": "ready-active-bounded-approval",
+      "status": "blocked-expired-bounded-approval",
       "owner": "founder-operator",
       "requiredArtifactShape": "approval-window:<fresh-exact-action-window-America_Los_Angeles>",
       "currentArtifactRef": "approval-window:2026-04-29T21:31:00-22:31:00-America-Los_Angeles",
       "canonicalCommand": "npm run mainnet:real-funds-approval-status-check",
       "mayBeDoneByCodexAlone": false,
-      "truthBoundary": "A fresh bounded approval is active for the exact actual-private evidence run, but all other mainnet actions remain blocked."
+      "truthBoundary": "The prior bounded approval window is expired; record a fresh exact-action approval before any new live mainnet action."
     },
     {
       "id": "shared-cohort-deposit-transaction",
