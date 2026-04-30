@@ -942,7 +942,7 @@ export function ShieldPage(_props: ShieldPageProps) {
 
           if (!protocolSettlement) {
             protocolSettlementWarning =
-              "Private Pool v2 receipt service did not return a Shield receipt.";
+              "Private Pool v2 Shield receipt was not returned.";
           } else if (protocolSettlement.protocolSettlementReceipt.economicsMode !== "committed-economics") {
             protocolSettlementWarning =
               "Private Pool v2 Shield receipt was not in committed-economics mode.";

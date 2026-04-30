@@ -218,6 +218,10 @@ function getMintLabel(mintAddress) {
   return `${mintAddress.slice(0, 4)}...${mintAddress.slice(-4)}`;
 }
 
+function getMintDecimals(mintAddress) {
+  return getMintLabel(mintAddress) === "SOL" ? 9 : 6;
+}
+
 function decimalAmountToBn(amount, decimals) {
   const normalized = String(amount).trim();
 
@@ -420,6 +424,7 @@ function parsePoolSnapshot(rawSnapshot, poolAddress, priceSide) {
 
 function resolveOutputAmountFromPool(args) {
   const normalizedInputAmount = Number(args.inputAmount);
+  const outputDecimals = getMintDecimals(args.outputMint);
 
   if (!Number.isFinite(normalizedInputAmount) || normalizedInputAmount <= 0) {
     throw new Error("Invalid swap input amount for Meteora quote inference.");
@@ -441,7 +446,7 @@ function resolveOutputAmountFromPool(args) {
     Number.isFinite(args.pool.quoteOutputAmount) &&
     Math.abs(args.pool.quoteInputAmount - normalizedInputAmount) < 0.000001
   ) {
-    return Number(args.pool.quoteOutputAmount.toFixed(6));
+    return Number(args.pool.quoteOutputAmount.toFixed(outputDecimals));
   }
 
   const priceRepresentsYPerX = args.pool.priceSide !== "x_per_y";
@@ -454,7 +459,7 @@ function resolveOutputAmountFromPool(args) {
         ? normalizedInputAmount / args.pool.price
         : normalizedInputAmount * args.pool.price;
 
-  const roundedOutputAmount = Number(outputAmount.toFixed(6));
+  const roundedOutputAmount = Number(outputAmount.toFixed(outputDecimals));
 
   if (!Number.isFinite(roundedOutputAmount) || roundedOutputAmount <= 0) {
     const error = new Error("Meteora DLMM pool context did not produce a valid constrained quote.");
@@ -593,17 +598,21 @@ export async function fetchMeteoraDlmmQuote(args) {
     pool,
   });
   const quoteTimestamp = pool.observedAt;
+  const inputDecimals = getMintDecimals(args.inputMint);
+  const outputDecimals = getMintDecimals(args.outputMint);
+  const formattedInputAmount = Number(args.inputAmount).toFixed(inputDecimals);
+  const formattedOutputAmount = outputAmount.toFixed(outputDecimals);
 
   return {
-    inputAmount: Number(args.inputAmount).toFixed(6),
-    outputAmount: outputAmount.toFixed(6),
+    inputAmount: formattedInputAmount,
+    outputAmount: formattedOutputAmount,
     outputMint: args.outputMint,
     pairLabel: pool.pairLabel,
     poolAddress: pool.poolAddress,
     quoteExpiresAt: quoteTimestamp + validation.config.quoteTtlMs,
     quoteId: createSwapQuoteId({
-      inputAmount: Number(args.inputAmount).toFixed(6),
-      outputAmount: outputAmount.toFixed(6),
+      inputAmount: formattedInputAmount,
+      outputAmount: formattedOutputAmount,
       quoteTimestamp,
       venueFamily: SWAP_VENUE_FAMILY,
       venuePoolAddress: pool.poolAddress,

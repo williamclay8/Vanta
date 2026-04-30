@@ -2,6 +2,7 @@ import {
   getLiveShieldTokenAsset,
   type LiveShieldTokenAssetKey,
 } from "@/solana/shieldConfig";
+import { formatVantaSolAmount } from "@/solana/solAmountFormat";
 import type { VantaShieldAccountState } from "@/solana/vantaShieldState";
 
 type NoteStatePanelProps = {
@@ -21,13 +22,6 @@ function formatAmount(value: number, asset: LiveShieldTokenAssetKey) {
     minimumFractionDigits: Math.min(decimals, 2),
     maximumFractionDigits: decimals,
   })} ${asset}`;
-}
-
-function formatSolAmount(value: number) {
-  return `${value.toLocaleString(undefined, {
-    minimumFractionDigits: 4,
-    maximumFractionDigits: 6,
-  })} SOL`;
 }
 
 function formatDate(timestamp: number) {
@@ -101,7 +95,7 @@ export function NoteStatePanel({
         </div>
         <div className="preview-card">
           <span>Shielded SOL</span>
-          <strong>{formatSolAmount(account.shieldedSolBalance)}</strong>
+          <strong>{formatVantaSolAmount(account.shieldedSolBalance)}</strong>
         </div>
       </div>
 
@@ -163,7 +157,7 @@ export function NoteStatePanel({
             <div key={note.noteId} className="note-state-row note-state-row--sol">
               <div className="note-state-row__header">
                 <div>
-                  <strong>{formatSolAmount(note.amount)}</strong>
+                  <strong>{formatVantaSolAmount(note.amount)}</strong>
                   <span>{abbreviate(note.noteId)}</span>
                 </div>
                 <div className="note-state-chips">

@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
 import { useWalletState } from "@/data/context/WalletContext";
+import { formatVantaSolAmount } from "@/solana/solAmountFormat";
 import { useVantaShieldState } from "@/solana/useVantaShieldState";
 
 type DashboardActionCard = {
@@ -90,7 +91,7 @@ export function AppDashboardPage() {
           </article>
           <article>
             <span>Shielded SOL</span>
-            <strong>{shieldedSolBalance.toFixed(4)}</strong>
+            <strong>{formatVantaSolAmount(shieldedSolBalance)}</strong>
           </article>
           <article>
             <span>Spendable notes</span>

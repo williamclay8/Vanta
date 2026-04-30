@@ -1,3 +1,4 @@
+import { formatVantaSolAmount } from "@/solana/solAmountFormat";
 import { useVantaPositionSummary } from "@/solana/useVantaPositionSummary";
 
 function formatAmount(value: number) {
@@ -5,13 +6,6 @@ function formatAmount(value: number) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })} VUSD`;
-}
-
-function formatSolAmount(value: number) {
-  return `${value.toLocaleString(undefined, {
-    minimumFractionDigits: 4,
-    maximumFractionDigits: 6,
-  })} SOL`;
 }
 
 function formatLatestTimestamp(timestamp: number | null) {
@@ -55,7 +49,7 @@ export function PositionSummary() {
 
         <article className="position-summary__card">
           <span>Shielded SOL</span>
-          <strong>{formatSolAmount(summary.shieldedSolBalance)}</strong>
+          <strong>{formatVantaSolAmount(summary.shieldedSolBalance)}</strong>
           <small>Resolved SOL output currently held inside Vanta after Swap.</small>
         </article>
 

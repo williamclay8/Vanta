@@ -31,9 +31,11 @@ const requiredShieldCompletionMarkers = [
   "committedRequest.settlementCommitment",
   "createVantaShieldCommittedEconomicsSettlementRequest",
   "runShieldWithDecoys",
-  "signature: stateTransaction.signature",
-  "protocolSettlementReceipt: protocolSettlement.protocolSettlementReceipt",
-  "proofReceipt: protocolSettlement.proofReceipt",
+  "signature: activeStateSignature",
+  "protocolSettlementReceipt: protocolSettlementWarning",
+  "protocolSettlement?.protocolSettlementReceipt",
+  "proofReceipt: protocolSettlementWarning",
+  "protocolSettlement?.proofReceipt",
 ];
 
 const failures = [];
