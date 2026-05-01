@@ -9,6 +9,7 @@ function readRepoFile(path) {
 }
 
 const registrySource = readRepoFile("src/solana/useVantaShieldAssetRegistryState.ts");
+const shieldPageSource = readRepoFile("src/pages/ShieldPage.tsx");
 const shieldStateSource = readRepoFile("src/solana/vantaShieldState.ts");
 const unshieldPageSource = readRepoFile("src/pages/UnshieldPage.tsx");
 const sendCapabilitySource = readRepoFile("src/solana/shieldedSendCapability.ts");
@@ -41,6 +42,23 @@ for (const marker of [
     `Shield asset registry must preserve optimistic recent-token visibility marker: ${marker}.`,
   );
 }
+
+for (const marker of [
+  "const recentShieldContext =",
+  "setRecentShield(recentShieldContext)",
+  "Private Pool v2 Shield receipt context was not available for this shield.",
+  "...recentShieldContext",
+]) {
+  assert.ok(
+    shieldPageSource.includes(marker),
+    `Shield completion must commit recent shielded balance before optional receipt checks: ${marker}.`,
+  );
+}
+
+assert.ok(
+  !shieldPageSource.includes('throw new Error("Shield protocol settlement is missing its source asset or owner.")'),
+  "Shield completion must not hide confirmed token shields behind optional receipt context.",
+);
 
 for (const marker of [
   "fetchSignatureMemoEntries",

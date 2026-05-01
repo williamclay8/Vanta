@@ -918,88 +918,14 @@ export function ShieldPage(_props: ShieldPageProps) {
               })
             : null;
         const nextBalance = Number((targetShieldedBalance + pendingShieldAmount).toFixed(6));
-
-        if (!pendingProtocolSettlement?.capability.sourceAsset || !walletAddress) {
-          throw new Error("Shield protocol settlement is missing its source asset or owner.");
-        }
-
-        if (!pendingProtocolSettlement.capability.targetShieldAsset) {
-          throw new Error("Shield protocol settlement is missing its target shield asset.");
-        }
-
-        if (!pendingDepositSignature) {
-          throw new Error("Shield protocol settlement is missing its deposit signature.");
-        }
-
-        const committedRequest = createVantaShieldCommittedEconomicsSettlementRequest({
-          amount: pendingShieldAmountDisplay,
-          depositSignature: pendingDepositSignature,
-          owner: walletAddress,
-          routeEvidence: pendingProtocolSettlement.routeEvidence,
-          settlementId: activeStateSignature,
-          shieldCapability: pendingProtocolSettlement.capability,
-          sourceAsset: pendingProtocolSettlement.capability.sourceAsset.symbol,
-          vaultOwner: selectedShieldAsset.vaultOwner!,
-        });
-        let protocolSettlement: Awaited<
-          ReturnType<typeof requestVantaPrivatePoolV2ProtocolSettlement>
-        > | null = null;
-        let protocolSettlementWarning: string | null = null;
-
-        try {
-          protocolSettlement = await runShieldWithDecoys(() =>
-            requestVantaPrivatePoolV2ProtocolSettlement(committedRequest),
-          );
-
-          if (!protocolSettlement) {
-            protocolSettlementWarning =
-              "Private Pool v2 Shield receipt was not returned.";
-          } else if (protocolSettlement.protocolSettlementReceipt.economicsMode !== "committed-economics") {
-            protocolSettlementWarning =
-              "Private Pool v2 Shield receipt was not in committed-economics mode.";
-          } else if (
-            protocolSettlement.protocolSettlementReceipt.economicsCommitment !==
-            committedRequest.economicsCommitment
-          ) {
-            protocolSettlementWarning =
-              "Private Pool v2 Shield receipt economics commitment did not match the request.";
-          } else if (
-            protocolSettlement.protocolSettlementReceipt.settlementCommitment !==
-            committedRequest.settlementCommitment
-          ) {
-            protocolSettlementWarning =
-              "Private Pool v2 Shield receipt settlement commitment did not match the request.";
-          } else if (
-            protocolSettlement.protocolSettlementReceipt.settlementId !== committedRequest.settlementId
-          ) {
-            protocolSettlementWarning =
-              "Private Pool v2 Shield receipt settlement id did not match the committed request.";
-          } else if (protocolSettlement.protocolSettlementReceipt.action !== "shield") {
-            protocolSettlementWarning =
-              "Private Pool v2 Shield receipt action did not match Shield.";
-          } else if (protocolSettlement.proofReceipt?.intent !== "shield") {
-            protocolSettlementWarning =
-              "Private Pool v2 Shield proof receipt intent did not match Shield.";
-          }
-        } catch (error) {
-          protocolSettlementWarning = toErrorMessage(
-            error,
-            "Private Pool v2 Shield receipt could not be checked.",
-          );
-        }
-
-        setRecentShield({
+        const recentShieldContext = {
           amount: pendingShieldAmount,
           asset: pendingShieldAsset ?? selectedShieldAsset.assetKey,
           depositSignature: pendingDepositSignature ?? undefined,
-          protocolSettlementReceipt: protocolSettlementWarning
-            ? undefined
-            : protocolSettlement?.protocolSettlementReceipt,
-          proofReceipt: protocolSettlementWarning ? undefined : protocolSettlement?.proofReceipt,
           resultingShieldedBalance: nextBalance,
-          settlement: "confirmed_deposit",
+          settlement: "confirmed_deposit" as const,
           signature: activeStateSignature,
-          source: "shield",
+          source: "shield" as const,
           timestamp: Date.now(),
           zkBridge:
             pendingShieldAsset === "USDC" && zkRecord
@@ -1008,9 +934,87 @@ export function ShieldPage(_props: ShieldPageProps) {
                     privateCoreShield?.sourceNoteCommitment || zkRecord.artifacts.commitment.value,
                   insertionIndex: zkRecord.insertion.index,
                   root: privateCoreShield?.sourceMerkleRoot || zkRecord.insertion.root,
-                  source: "canonical_note_v1",
+                  source: "canonical_note_v1" as const,
                 }
               : undefined,
+        };
+
+        setRecentShield(recentShieldContext);
+
+        let protocolSettlement: Awaited<
+          ReturnType<typeof requestVantaPrivatePoolV2ProtocolSettlement>
+        > | null = null;
+        let protocolSettlementWarning: string | null = null;
+
+        if (
+          pendingProtocolSettlement?.capability.sourceAsset &&
+          pendingProtocolSettlement.capability.targetShieldAsset &&
+          pendingDepositSignature &&
+          walletAddress
+        ) {
+          const committedRequest = createVantaShieldCommittedEconomicsSettlementRequest({
+            amount: pendingShieldAmountDisplay,
+            depositSignature: pendingDepositSignature,
+            owner: walletAddress,
+            routeEvidence: pendingProtocolSettlement.routeEvidence,
+            settlementId: activeStateSignature,
+            shieldCapability: pendingProtocolSettlement.capability,
+            sourceAsset: pendingProtocolSettlement.capability.sourceAsset.symbol,
+            vaultOwner: selectedShieldAsset.vaultOwner!,
+          });
+
+          try {
+            protocolSettlement = await runShieldWithDecoys(() =>
+              requestVantaPrivatePoolV2ProtocolSettlement(committedRequest),
+            );
+
+            if (!protocolSettlement) {
+              protocolSettlementWarning =
+                "Private Pool v2 Shield receipt was not returned.";
+            } else if (protocolSettlement.protocolSettlementReceipt.economicsMode !== "committed-economics") {
+              protocolSettlementWarning =
+                "Private Pool v2 Shield receipt was not in committed-economics mode.";
+            } else if (
+              protocolSettlement.protocolSettlementReceipt.economicsCommitment !==
+              committedRequest.economicsCommitment
+            ) {
+              protocolSettlementWarning =
+                "Private Pool v2 Shield receipt economics commitment did not match the request.";
+            } else if (
+              protocolSettlement.protocolSettlementReceipt.settlementCommitment !==
+              committedRequest.settlementCommitment
+            ) {
+              protocolSettlementWarning =
+                "Private Pool v2 Shield receipt settlement commitment did not match the request.";
+            } else if (
+              protocolSettlement.protocolSettlementReceipt.settlementId !== committedRequest.settlementId
+            ) {
+              protocolSettlementWarning =
+                "Private Pool v2 Shield receipt settlement id did not match the committed request.";
+            } else if (protocolSettlement.protocolSettlementReceipt.action !== "shield") {
+              protocolSettlementWarning =
+                "Private Pool v2 Shield receipt action did not match Shield.";
+            } else if (protocolSettlement.proofReceipt?.intent !== "shield") {
+              protocolSettlementWarning =
+                "Private Pool v2 Shield proof receipt intent did not match Shield.";
+            }
+          } catch (error) {
+            protocolSettlementWarning = toErrorMessage(
+              error,
+              "Private Pool v2 Shield receipt could not be checked.",
+            );
+          }
+        } else {
+          protocolSettlementWarning =
+            "Private Pool v2 Shield receipt context was not available for this shield.";
+        }
+
+        setRecentShield({
+          ...recentShieldContext,
+          protocolSettlementReceipt: protocolSettlementWarning
+            ? undefined
+            : protocolSettlement?.protocolSettlementReceipt,
+          proofReceipt: protocolSettlementWarning ? undefined : protocolSettlement?.proofReceipt,
         });
 
         setPendingShieldAmount(null);
