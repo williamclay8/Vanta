@@ -46,6 +46,8 @@ for (const marker of [
   "fetchSignatureMemoEntries",
   "fetchParsedTransactionsOneAtATime",
   "readParsedMemoText",
+  "readParsedMemoPayloadText",
+  '"memo", "data", "message", "text", "info"',
   "getParsedTransactions([signature]",
   "signatureMemoEntries",
 ]) {

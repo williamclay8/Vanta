@@ -885,15 +885,48 @@ function readParsedMemoText(instruction: unknown) {
     return null;
   }
 
-  if (typeof parsedInstruction.parsed === "string") {
-    return parsedInstruction.parsed;
+  return readParsedMemoPayloadText(parsedInstruction.parsed, { allowBareString: true });
+}
+
+function readParsedMemoPayloadText(
+  value: unknown,
+  options: { allowBareString?: boolean } = {},
+): string | null {
+  if (typeof value === "string") {
+    return options.allowBareString ? value : null;
   }
 
-  if (parsedInstruction.parsed && typeof parsedInstruction.parsed === "object") {
-    const parsed = parsedInstruction.parsed as { info?: unknown };
+  if (!value || typeof value !== "object") {
+    return null;
+  }
 
-    if (typeof parsed.info === "string") {
-      return parsed.info;
+  const parsed = value as Record<string, unknown>;
+
+  for (const key of ["memo", "data", "message", "text", "info"]) {
+    const field = parsed[key];
+
+    if (typeof field === "string") {
+      return field;
+    }
+
+    if (field && typeof field === "object") {
+      const memo = readParsedMemoPayloadText(field, { allowBareString: false });
+
+      if (memo) {
+        return memo;
+      }
+    }
+  }
+
+  for (const [key, field] of Object.entries(parsed)) {
+    if (["memo", "data", "message", "text", "info"].includes(key)) {
+      continue;
+    }
+
+    const memo = readParsedMemoPayloadText(field, { allowBareString: false });
+
+    if (memo) {
+      return memo;
     }
   }
 
