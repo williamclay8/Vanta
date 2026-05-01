@@ -113,6 +113,19 @@ function isShieldableSplTokenAmount(args: { decimals: number; uiAmount: number }
   return Number.isFinite(args.uiAmount) && args.uiAmount > 0 && args.decimals > 0;
 }
 
+function readTokenUiAmount(tokenAmount: { uiAmount?: unknown; uiAmountString?: unknown }) {
+  const numericAmount = Number(tokenAmount.uiAmount);
+
+  if (Number.isFinite(numericAmount) && numericAmount > 0) {
+    return numericAmount;
+  }
+
+  const stringAmount =
+    typeof tokenAmount.uiAmountString === "string" ? Number(tokenAmount.uiAmountString) : NaN;
+
+  return Number.isFinite(stringAmount) ? stringAmount : 0;
+}
+
 function cleanTokenMetadataText(value: string | null | undefined) {
   const cleaned = value?.replace(/\0/gu, "").trim();
   return cleaned ? cleaned : null;
@@ -330,7 +343,7 @@ export function useWalletPublicAssets(args: {
           const info = parsed.info;
           const mintAddress = typeof info.mint === "string" ? info.mint : null;
           const tokenAmount = info.tokenAmount;
-          const uiAmount = Number(tokenAmount?.uiAmount ?? 0);
+          const uiAmount = readTokenUiAmount(tokenAmount ?? {});
           const decimals = Number(tokenAmount?.decimals ?? 0);
 
           if (!mintAddress || !isShieldableSplTokenAmount({ decimals, uiAmount })) {

@@ -30,6 +30,14 @@ if (!walletAssetsSource.includes("isShieldableSplTokenAmount")) {
   failures.push("Wallet public assets must filter shield source options through an explicit shieldable SPL token predicate.");
 }
 
+if (!walletAssetsSource.includes("readTokenUiAmount")) {
+  failures.push("Wallet public assets must read uiAmountString when RPC returns uiAmount as null for large token balances.");
+}
+
+if (!walletAssetsSource.includes("tokenAmount.uiAmountString")) {
+  failures.push("Wallet public assets must preserve large-balance tokens such as BONK by parsing tokenAmount.uiAmountString.");
+}
+
 if (!walletAssetsSource.includes("args.decimals > 0")) {
   failures.push("Wallet public assets must not expose zero-decimal NFT-style SPL accounts as Shield source options.");
 }
