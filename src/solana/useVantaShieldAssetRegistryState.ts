@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useSplToken } from "@solana/react-hooks";
 import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
 import { useWalletState } from "@/data/context/WalletContext";
+import { loadRecentShieldTokenNotes } from "@/solana/recentShieldTokenNotes";
 import {
   ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS,
   getLiveShieldTokenAsset,
@@ -98,14 +99,26 @@ export function useVantaShieldAssetRegistryState() {
   });
 
   return useMemo(() => {
+    const mergeAccount = (
+      account: VantaShieldAccountState | null,
+      asset: LiveShieldTokenAssetConfig,
+    ) =>
+      mergeRecentShieldTokenAccount({
+        account,
+        asset,
+        localNotes: loadRecentShieldTokenNotes({
+          asset: asset.assetKey,
+          mintAddress: asset.mintAddress,
+          owner: walletAddress,
+          vaultOwner: asset.vaultOwner,
+        }),
+        recentShield,
+        walletAddress,
+      });
+
     const entries = [
       {
-        account: mergeRecentShieldTokenAccount({
-          account: usdcAccountState.account,
-          asset: usdcAsset,
-          recentShield,
-          walletAddress,
-        }),
+        account: mergeAccount(usdcAccountState.account, usdcAsset),
         asset: usdcAsset,
         error: usdcAccountState.error,
         isReady: usdcAccountState.isReady,
@@ -115,12 +128,7 @@ export function useVantaShieldAssetRegistryState() {
         token: usdcToken,
       },
       {
-        account: mergeRecentShieldTokenAccount({
-          account: jtoAccountState.account,
-          asset: jtoAsset,
-          recentShield,
-          walletAddress,
-        }),
+        account: mergeAccount(jtoAccountState.account, jtoAsset),
         asset: jtoAsset,
         error: jtoAccountState.error,
         isReady: jtoAccountState.isReady,
@@ -130,12 +138,7 @@ export function useVantaShieldAssetRegistryState() {
         token: jtoToken,
       },
       {
-        account: mergeRecentShieldTokenAccount({
-          account: bonkAccountState.account,
-          asset: bonkAsset,
-          recentShield,
-          walletAddress,
-        }),
+        account: mergeAccount(bonkAccountState.account, bonkAsset),
         asset: bonkAsset,
         error: bonkAccountState.error,
         isReady: bonkAccountState.isReady,
@@ -145,12 +148,7 @@ export function useVantaShieldAssetRegistryState() {
         token: bonkToken,
       },
       {
-        account: mergeRecentShieldTokenAccount({
-          account: jupAccountState.account,
-          asset: jupAsset,
-          recentShield,
-          walletAddress,
-        }),
+        account: mergeAccount(jupAccountState.account, jupAsset),
         asset: jupAsset,
         error: jupAccountState.error,
         isReady: jupAccountState.isReady,
@@ -160,12 +158,7 @@ export function useVantaShieldAssetRegistryState() {
         token: jupToken,
       },
       {
-        account: mergeRecentShieldTokenAccount({
-          account: pyusdAccountState.account,
-          asset: pyusdAsset,
-          recentShield,
-          walletAddress,
-        }),
+        account: mergeAccount(pyusdAccountState.account, pyusdAsset),
         asset: pyusdAsset,
         error: pyusdAccountState.error,
         isReady: pyusdAccountState.isReady,
@@ -175,12 +168,7 @@ export function useVantaShieldAssetRegistryState() {
         token: pyusdToken,
       },
       {
-        account: mergeRecentShieldTokenAccount({
-          account: wifAccountState.account,
-          asset: wifAsset,
-          recentShield,
-          walletAddress,
-        }),
+        account: mergeAccount(wifAccountState.account, wifAsset),
         asset: wifAsset,
         error: wifAccountState.error,
         isReady: wifAccountState.isReady,
@@ -190,12 +178,7 @@ export function useVantaShieldAssetRegistryState() {
         token: wifToken,
       },
       {
-        account: mergeRecentShieldTokenAccount({
-          account: kmnoAccountState.account,
-          asset: kmnoAsset,
-          recentShield,
-          walletAddress,
-        }),
+        account: mergeAccount(kmnoAccountState.account, kmnoAsset),
         asset: kmnoAsset,
         error: kmnoAccountState.error,
         isReady: kmnoAccountState.isReady,
@@ -274,14 +257,16 @@ export function useVantaShieldAssetRegistryState() {
 function mergeRecentShieldTokenAccount(args: {
   account: VantaShieldAccountState | null;
   asset: LiveShieldTokenAssetConfig;
+  localNotes: readonly VantaShieldNote[];
   recentShield: ReturnType<typeof usePrivacyFlow>["recentShield"];
   walletAddress: string | null;
 }): VantaShieldAccountState | null {
-  const { asset, recentShield, walletAddress } = args;
+  const { asset, localNotes, recentShield, walletAddress } = args;
   const account =
     args.account ??
     createRecentShieldTokenAccountShell({
       asset,
+      localNotes,
       recentShield,
       walletAddress,
     });
@@ -290,44 +275,64 @@ function mergeRecentShieldTokenAccount(args: {
     !account ||
     !asset.mintAddress ||
     !asset.vaultOwner ||
-    !isRecentShieldTokenContext(recentShield) ||
-    recentShield.asset !== asset.assetKey ||
-    recentShield.amount <= 0
+    (localNotes.length === 0 &&
+      (!isRecentShieldTokenContext(recentShield) ||
+        recentShield.asset !== asset.assetKey ||
+        recentShield.amount <= 0))
   ) {
     return account;
   }
 
-  const recentNote = createRecentShieldTokenNote({
-    account,
-    asset,
-    recentShield,
-  });
-  const alreadyPresent = account.shieldNotes.some(
-    (note) =>
-      note.noteId === recentNote.noteId ||
-      note.stateSignature === recentNote.stateSignature ||
-      (note.depositSignature && note.depositSignature === recentNote.depositSignature),
+  const candidateNotes = [
+    ...localNotes,
+    ...(isRecentShieldTokenContext(recentShield) &&
+    recentShield.asset === asset.assetKey &&
+    recentShield.amount > 0
+      ? [
+          createRecentShieldTokenNote({
+            account,
+            asset,
+            recentShield,
+          }),
+        ]
+      : []),
+  ];
+  const existingKeys = new Set(
+    account.shieldNotes.flatMap((note) => [
+      `note:${note.noteId}`,
+      `state:${note.stateSignature}`,
+      note.depositSignature ? `deposit:${note.depositSignature}` : "",
+    ]),
   );
+  const nextNotes = candidateNotes.filter((note) => {
+    return !(
+      existingKeys.has(`note:${note.noteId}`) ||
+      existingKeys.has(`state:${note.stateSignature}`) ||
+      (note.depositSignature && existingKeys.has(`deposit:${note.depositSignature}`))
+    );
+  });
 
-  if (alreadyPresent) {
+  if (nextNotes.length === 0) {
     return account;
   }
 
-  const shieldNotes = [...account.shieldNotes, recentNote].sort(
+  const shieldNotes = [...account.shieldNotes, ...nextNotes].sort(
     (left, right) => left.createdAt - right.createdAt,
   );
-  const spendableShieldNotes = [recentNote, ...account.spendableShieldNotes].sort(
+  const spendableShieldNotes = [...nextNotes, ...account.spendableShieldNotes].sort(
     (left, right) => right.createdAt - left.createdAt,
   );
-  const noteState = createRecentShieldTokenNoteState(recentNote);
-  const noteStates = [noteState, ...account.noteStates].sort(
+  const nextNoteStates = nextNotes.map(createRecentShieldTokenNoteState);
+  const noteStates = [...nextNoteStates, ...account.noteStates].sort(
     (left, right) => right.createdAt - left.createdAt,
   );
-  const activity = [...account.activity, recentNote].sort(
+  const activity = [...account.activity, ...nextNotes].sort(
     (left, right) => left.createdAt - right.createdAt,
   );
-  const lifecycleActivity = createRecentShieldTokenLifecycleActivity(recentNote);
-  const lifecycleActivities = [lifecycleActivity, ...account.lifecycleActivities].sort(
+  const lifecycleActivities = [
+    ...nextNotes.map(createRecentShieldTokenLifecycleActivity),
+    ...account.lifecycleActivities,
+  ].sort(
     (left, right) => right.createdAt - left.createdAt,
   );
   const balance = Number(
@@ -344,8 +349,8 @@ function mergeRecentShieldTokenAccount(args: {
     noteStates,
     noteStatusSummary: {
       ...account.noteStatusSummary,
-      spendable: account.noteStatusSummary.spendable + 1,
-      total: account.noteStatusSummary.total + 1,
+      spendable: account.noteStatusSummary.spendable + nextNotes.length,
+      total: account.noteStatusSummary.total + nextNotes.length,
     },
     shieldNotes,
     spendableShieldNotes,
@@ -414,6 +419,7 @@ function isRecentShieldTokenContext(
 
 function createRecentShieldTokenAccountShell(args: {
   asset: LiveShieldTokenAssetConfig;
+  localNotes: readonly VantaShieldNote[];
   recentShield: ReturnType<typeof usePrivacyFlow>["recentShield"];
   walletAddress: string | null;
 }): VantaShieldAccountState | null {
@@ -421,8 +427,9 @@ function createRecentShieldTokenAccountShell(args: {
     !args.walletAddress ||
     !args.asset.mintAddress ||
     !args.asset.vaultOwner ||
-    !isRecentShieldTokenContext(args.recentShield) ||
-    args.recentShield.asset !== args.asset.assetKey
+    (args.localNotes.length === 0 &&
+      (!isRecentShieldTokenContext(args.recentShield) ||
+        args.recentShield.asset !== args.asset.assetKey))
   ) {
     return null;
   }

@@ -9,6 +9,7 @@ function readRepoFile(path) {
 }
 
 const registrySource = readRepoFile("src/solana/useVantaShieldAssetRegistryState.ts");
+const recentTokenNotesSource = readRepoFile("src/solana/recentShieldTokenNotes.ts");
 const shieldPageSource = readRepoFile("src/pages/ShieldPage.tsx");
 const shieldStateSource = readRepoFile("src/solana/vantaShieldState.ts");
 const unshieldPageSource = readRepoFile("src/pages/UnshieldPage.tsx");
@@ -31,6 +32,7 @@ const allShieldedLabels = [
 for (const marker of [
   "usePrivacyFlow",
   "recentShield",
+  "loadRecentShieldTokenNotes",
   "mergeRecentShieldTokenAccount",
   "createRecentShieldTokenNote",
   "isRecentShieldTokenContext",
@@ -44,8 +46,21 @@ for (const marker of [
 }
 
 for (const marker of [
+  "vanta.recentShieldTokenNotes.v1",
+  "recordRecentShieldTokenNote",
+  "loadRecentShieldTokenNotes",
+  "VantaShieldNote",
+]) {
+  assert.ok(
+    recentTokenNotesSource.includes(marker),
+    `Recent token shield notes must persist locally while encrypted memo recovery catches up: ${marker}.`,
+  );
+}
+
+for (const marker of [
   "const recentShieldContext =",
   "setRecentShield(recentShieldContext)",
+  "recordRecentShieldTokenNote",
   "Private Pool v2 Shield receipt context was not available for this shield.",
   "...recentShieldContext",
   "const owner = walletAddress",

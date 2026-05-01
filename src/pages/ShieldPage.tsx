@@ -25,6 +25,7 @@ import {
   loadRecoveredNativeSolShieldDepositSignatures,
   recordRecoveredNativeSolShieldNote,
 } from "@/solana/recoveredNativeSolShieldNotes";
+import { recordRecentShieldTokenNote } from "@/solana/recentShieldTokenNotes";
 import { createShieldAssetCapability } from "@/solana/shieldAssetCapability";
 import {
   type LiveShieldTokenAssetKey,
@@ -946,6 +947,7 @@ export function ShieldPage(_props: ShieldPageProps) {
         const nextBalance = Number(
           (activeShieldedBalance + pendingShieldAmount).toFixed(activeShieldTarget.decimals),
         );
+        const recentShieldTimestamp = Date.now();
         const recentShieldContext = {
           amount: pendingShieldAmount,
           asset: pendingShieldAsset ?? activeShieldTarget.assetKey,
@@ -954,7 +956,7 @@ export function ShieldPage(_props: ShieldPageProps) {
           settlement: "confirmed_deposit" as const,
           signature: activeStateSignature,
           source: "shield" as const,
-          timestamp: Date.now(),
+          timestamp: recentShieldTimestamp,
           zkBridge:
             pendingShieldAsset === "USDC" && zkRecord
               ? {
@@ -966,6 +968,19 @@ export function ShieldPage(_props: ShieldPageProps) {
                 }
               : undefined,
         };
+
+        if (pendingShieldAsset !== "SOL") {
+          recordRecentShieldTokenNote({
+            amount: pendingShieldAmount,
+            asset: activeShieldTarget.assetKey,
+            createdAt: recentShieldTimestamp,
+            depositSignature: pendingDepositSignature,
+            mintAddress: activeShieldTarget.mintAddress!,
+            owner: walletAddress!,
+            stateSignature: activeStateSignature,
+            vaultOwner: activeShieldTarget.vaultOwner!,
+          });
+        }
 
         setRecentShield(recentShieldContext);
 
