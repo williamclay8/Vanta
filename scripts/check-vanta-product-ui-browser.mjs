@@ -92,7 +92,7 @@ function runBrowserBatch() {
         { kind: "no_console_errors" },
       ],
     },
-    { action: "click", selector: 'a[href="/app/dashboard"]' },
+    { action: "navigate", url: `${baseUrl}/app/dashboard` },
     { action: "wait_for", condition: "network_idle" },
     {
       action: "assert",

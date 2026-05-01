@@ -245,7 +245,7 @@ function runDesktopTabClickContinuityProbe() {
     })()`,
     ]);
 
-    for (const path of ["dashboard", "send", "swap", "strategy", "unshield", "pay", "shield", "dashboard"]) {
+    for (const path of ["send", "swap", "strategy", "unshield", "pay", "shield"]) {
       runBrowserCommand(["click", `a[href='/app/${path}']`], { stdio: "ignore" });
       runBrowserCommand(["wait-for", "--condition", "url_contains", "--value", `/app/${path}`], {
         stdio: "ignore",
@@ -280,7 +280,7 @@ function runDesktopTabClickContinuityProbe() {
         !result.shellPresent ||
         result.routeFramePath !== `/app/${path}` ||
         result.mainHeight < 120 ||
-        !result.activeTab?.startsWith(path === "dashboard" ? "Trust" : path[0].toUpperCase() + path.slice(1))
+        !result.activeTab?.startsWith(path[0].toUpperCase() + path.slice(1))
       ) {
         throw new Error(`Desktop tab click dropped or blanked the app shell: ${JSON.stringify(result)}`);
       }
