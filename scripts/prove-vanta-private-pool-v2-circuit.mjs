@@ -30,10 +30,20 @@ const targets = {
       "scripts/write-vanta-private-pool-v2-swap-to-shielded-fixture.mjs",
     ),
   },
+  "actual-private-spend": {
+    circuitDir: resolve(repoRoot, "zk/noir/vanta_private_pool_v2_actual_private_spend_entry"),
+    circuitName: "vanta_private_pool_v2_actual_private_spend_entry",
+    fixtureWriterPath: resolve(
+      repoRoot,
+      "scripts/write-vanta-private-pool-v2-actual-private-spend-fixture.mjs",
+    ),
+  },
 };
 
 if (!targets[target]) {
-  console.error('Expected target "shield", "claim", "send", or "swap-to-shielded".');
+  console.error(
+    'Expected target "shield", "claim", "send", "swap-to-shielded", or "actual-private-spend".',
+  );
   process.exit(1);
 }
 

@@ -2,7 +2,7 @@ import type { CSSProperties } from "react";
 import type { DocsBadge } from "@/docs/docsContent";
 
 const badgeLabel: Record<DocsBadge, string> = {
-  "live-now": "Live now",
+  "live-now": "Truth surface",
   preview: "Preview",
   "design-partner-surface": "Design-partner surface",
   "forward-looking": "Forward-looking",

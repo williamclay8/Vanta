@@ -27,6 +27,24 @@ const protocolActionProofModes = {
   swap: "swap_to_shielded_circuit_request",
   unshield: "committed_unshield_or_claim_circuit_request",
 };
+const productionGate = {
+  ready: false,
+  status: "blocked",
+  blockers: [
+    "no-proven-audited-shared-anonymity-set",
+    "no-proven-live-mainnet-private-settlement-evidence",
+    "no-third-party-audit",
+    "production-anonymity-set-measured-below-threshold",
+    "no-independent-production-relayer-separation-review",
+    "no-active-bounded-real-funds-approval-window",
+  ],
+  requiredCommands: [
+    "npm run private-pool-v2:anonymity-set-readiness-check",
+    "npm run mainnet:private-settlement-check",
+    "npm run mainnet:actual-private-settlement-review-check",
+    "npm run mainnet:approval-gates-status-json",
+  ],
+};
 
 function copySource(relativePath) {
   writeFileSync(
@@ -94,8 +112,10 @@ try {
     kind: "Private Pool V2 status",
     network: runtime.network,
     receiptCount: runtime.verifierRegistry?.receipts?.length ?? 0,
-    ok: readiness.ready,
+    ok: readiness.ready && productionGate.ready,
+    localRuntimeReady: readiness.ready,
     productionReady: false,
+    productionGate,
     protocolActionProofModes,
     readiness,
     settlementPolicy: VANTA_PRIVATE_POOL_V2_SETTLEMENT_POLICY,
@@ -127,10 +147,12 @@ try {
       "private-pool-v2:shield-circuit-check",
       "private-pool-v2:send-circuit-check",
       "private-pool-v2:swap-to-shielded-circuit-check",
+      "private-pool-v2:actual-private-spend-circuit-check",
       "private-pool-v2:claim-circuit-check",
       "private-pool-v2:shield-prove",
       "private-pool-v2:send-prove",
       "private-pool-v2:swap-to-shielded-prove",
+      "private-pool-v2:actual-private-spend-prove",
       "private-pool-v2:claim-prove",
       "private-pool-v2:verify",
     ],
@@ -142,8 +164,10 @@ try {
     console.log("Private Pool V2 status");
     console.log(`- contractVersion: ${result.contractVersion}`);
     console.log(`- network: ${result.network}`);
-    console.log(`- ready: ${String(result.ok)}`);
+    console.log(`- localRuntimeReady: ${String(result.localRuntimeReady)}`);
+    console.log(`- productionGate: ${result.productionGate.status}`);
     console.log(`- productionReady: ${String(result.productionReady)}`);
+    console.log(`- productionBlockers: ${result.productionGate.blockers.join(", ")}`);
     console.log(`- receiptCount: ${result.receiptCount}`);
     console.log(`- settlementPolicy: ${result.settlementPolicy.version}`);
     console.log(

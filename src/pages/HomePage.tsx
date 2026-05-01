@@ -23,8 +23,8 @@ const productPoints = [
 
 const appActions = [
   { label: "Shield funds", path: "shield" },
-  { label: "Send shielded", path: "send" },
-  { label: "Swap shielded", path: "swap" },
+  { label: "Send from shielded state", path: "send" },
+  { label: "Swap from shielded state", path: "swap" },
   { label: "Plan execution", path: "strategy" },
   { label: "Unshield funds", path: "unshield" },
   { label: "Collect payments", path: "pay" },

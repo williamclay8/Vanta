@@ -446,7 +446,7 @@ These commands cover the current Vanta-owned Private Pool v2 benchmark lane:
 - the first Noir-backed claim/spend circuit with valid, invalid-binding, and invalid-nullifier fixtures
 - local Barretenberg UltraHonk proof generation and verification for both shield and claim circuits
 - a local verifier/receipt registry that accepts verified shield/claim proofs, records receipts, registers claim nullifiers, and rejects replay
-- human and JSON Private Pool v2 status surfaces showing indexer, prover, relayer, verifier-registry readiness, and `productionReady: false`
+- human and JSON Private Pool v2 status surfaces showing local indexer, prover, relayer, verifier-registry readiness, an explicit fail-closed `productionGate`, and `productionReady: false`
 - a local HTTP operator seam with status, receipt listing, proof submission, shield/claim receipt acceptance, and claim replay rejection
 - deterministic shield/claim shadow commitments on proof receipts and status for reviewer/audit comparison; these are not salted privacy commitments and do not hide raw economics from the current operator
 - operator-owned settlement endpoints for Pay checkout/withdrawal and protocol Shield/Send/Swap/Unshield settlement receipts

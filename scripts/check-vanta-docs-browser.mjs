@@ -119,7 +119,7 @@ function runBrowserBatch() {
       checks: [
         { kind: "url_contains", text: "/docs/trust" },
         { kind: "selector_visible", selector: '[data-docs-badge="live-now"]' },
-        { kind: "text_visible", text: "Live now" },
+        { kind: "text_visible", text: "Truth surface" },
         { kind: "text_visible", text: "Trust" },
         { kind: "text_visible", text: "Trust comes from legibility, not overclaiming." },
         { kind: "text_visible", text: "Read the security limits" },
@@ -133,6 +133,7 @@ function runBrowserBatch() {
       checks: [
         { kind: "url_contains", text: "/docs/security" },
         { kind: "selector_visible", selector: '[data-docs-badge="live-now"]' },
+        { kind: "text_visible", text: "Truth surface" },
         { kind: "text_visible", text: "Security" },
         { kind: "text_visible", text: "Privacy model" },
         { kind: "text_visible", text: "Current constraints" },
