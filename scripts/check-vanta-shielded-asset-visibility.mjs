@@ -65,13 +65,13 @@ for (const marker of [
   "local-token-deposit:",
   "Private Pool v2 Shield receipt context was not available for this shield.",
   "...recentShieldContext",
-  "const owner = walletAddress",
+  "owner: walletAddress",
   "owner: walletAddress!",
   "pendingShieldTarget",
   "const activeShieldTarget = pendingShieldTarget ?? selectedShieldAsset",
   "tokenDecimals: activeShieldTarget.decimals",
   "isConfirmedSignatureStage(splShieldTransferWait.stage)",
-  "isConfirmedSignatureStage(stateSignatureWait.stage)",
+  "VANTA_TOKEN_SAME_TRANSACTION_DEPOSIT_SIGNATURE",
 ]) {
   assert.ok(
     shieldPageSource.includes(marker),
@@ -102,6 +102,10 @@ assert.ok(
   "Shield completion must accept confirmed/finalized signature stages, not only raw waitStatus success.",
 );
 assert.ok(
+  !shieldPageSource.includes("const stateTransaction = useVantaSafeSendTransaction();"),
+  "Direct token Shield must record its shield-state memo in the deposit transaction instead of issuing a second wallet request.",
+);
+assert.ok(
   !shieldPageSource.includes("!supportedToken?.owner") &&
     !shieldPageSource.includes("const owner = supportedToken.owner") &&
     !shieldPageSource.includes("owner: supportedToken!.owner!"),
@@ -116,6 +120,7 @@ for (const marker of [
   '"memo", "data", "message", "text", "info"',
   "getParsedTransactions([signature]",
   "signatureMemoEntries",
+  "VANTA_TOKEN_SAME_TRANSACTION_DEPOSIT_SIGNATURE",
 ]) {
   assert.ok(
     shieldStateSource.includes(marker),

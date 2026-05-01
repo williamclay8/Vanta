@@ -12,16 +12,20 @@ for (const phrase of [
   "const publicRouteTransaction = useVantaSafeSendTransaction();",
   "const splShieldTransferTransaction = useVantaSafeSendTransaction();",
   "const nativeSolShieldTransaction = useVantaSafeSendTransaction();",
-  "const stateTransaction = useVantaSafeSendTransaction();",
   "summaryInstructions",
   "transactionFingerprint",
   "shield-spl-token-transfer",
   "shield-native-sol",
-  "shield-state",
+  "shield-state-memo",
   "shield-public-route",
 ]) {
   assert.ok(source.includes(phrase), `Shield safe-send adoption missing phrase: ${phrase}`);
 }
+
+assert.ok(
+  !source.includes("const stateTransaction = useVantaSafeSendTransaction();"),
+  "Direct token Shield must not ask Phantom for a second memo-only shield-state transaction.",
+);
 
 assert.ok(
   !source.includes("supportedToken.send({"),

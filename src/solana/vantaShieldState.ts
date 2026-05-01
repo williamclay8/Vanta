@@ -29,6 +29,8 @@ export const VANTA_SHIELD_MEMO_PREFIX_V2 = "vanta:shield-note:v2:";
 export const VANTA_NATIVE_SOL_SHIELD_MEMO_PREFIX_V2 = "vanta:native-sol-shield-note:v2:";
 export const VANTA_NATIVE_SOL_SAME_TRANSACTION_DEPOSIT_SIGNATURE =
   "vanta-native-sol-same-transaction-deposit";
+export const VANTA_TOKEN_SAME_TRANSACTION_DEPOSIT_SIGNATURE =
+  "vanta-token-same-transaction-deposit";
 const VANTA_SHIELD_MEMO_KEY_DOMAIN_V1 = "vanta-shield-memo-key:v1";
 const VANTA_SHIELD_MEMO_VERSION_BYTE = 0x01;
 const VANTA_SPENT_MARKER_MEMO_PREFIX = "vanta:spent-marker:v1:";
@@ -1184,14 +1186,19 @@ function shieldNoteFromMemoPayload(
     return null;
   }
 
+  const depositSignature =
+    parsed.depositSignature === VANTA_TOKEN_SAME_TRANSACTION_DEPOSIT_SIGNATURE
+      ? stateSignature
+      : parsed.depositSignature;
   const noteId =
+    parsed.depositSignature !== VANTA_TOKEN_SAME_TRANSACTION_DEPOSIT_SIGNATURE &&
     typeof parsed.noteId === "string"
       ? parsed.noteId
       : createShieldNoteId({
           amount: parsed.amount,
           asset: parsed.asset,
           createdAt: parsed.createdAt,
-          depositSignature: parsed.depositSignature,
+          depositSignature,
           mintAddress: parsed.mintAddress,
           owner: parsed.owner,
           vaultOwner: parsed.vaultOwner,
@@ -1201,7 +1208,7 @@ function shieldNoteFromMemoPayload(
     amount: parsedAmount,
     asset: parsed.asset,
     createdAt: parsed.createdAt,
-    depositSignature: parsed.depositSignature,
+    depositSignature,
     kind: "shield",
     mintAddress: parsed.mintAddress,
     noteId,

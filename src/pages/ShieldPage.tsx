@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
 import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
 import { useWalletState } from "@/data/context/WalletContext";
-import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
 import {
   buildNativeSolShieldTransferInstructions,
   fetchNativeSolShieldDepositCandidates,
@@ -46,6 +45,7 @@ import {
   createShieldMemoInstruction,
   VANTA_NATIVE_SOL_ASSET_ID,
   VANTA_NATIVE_SOL_SAME_TRANSACTION_DEPOSIT_SIGNATURE,
+  VANTA_TOKEN_SAME_TRANSACTION_DEPOSIT_SIGNATURE,
 } from "@/solana/vantaShieldState";
 import { recordCanonicalShieldFromLiveShield } from "@/zk/liveShieldBridge";
 import { useVantaSafeSendTransaction } from "@/wallet/useVantaSafeSendTransaction";
@@ -370,22 +370,12 @@ export function ShieldPage(_props: ShieldPageProps) {
       disabled: !publicRouteTransaction.signature,
     },
   );
-  const stateTransaction = useVantaSafeSendTransaction();
-  const stateSignatureWait = useRealtimeSignatureProgress(
-    stateTransaction.signature ?? undefined,
-    {
-      commitment: "confirmed",
-      disabled: !stateTransaction.signature,
-    },
-  );
-
   const parsedAmount = Number(amount);
   const sourceBalance = selectedSourceAsset?.balance ?? 0;
   const selectedSourceBalanceStatus = selectedSourceAsset?.balanceStatus ?? "ready";
   const selectedSourceBalanceUnavailable = selectedSourceBalanceStatus !== "ready";
   const maxAvailableAmount = sourceBalance;
   const routeProgressLabel = publicRouteWait.detailLabel;
-  const stateProgressLabel = stateSignatureWait.detailLabel;
   const sourceAssetsLoading = publicAssetsLoading && !selectedSourceAsset;
   const sourceAssetsBlocked = Boolean(publicAssetsError) && !selectedSourceAsset;
   const isAmountValid =
@@ -453,13 +443,28 @@ export function ShieldPage(_props: ShieldPageProps) {
     );
     setStatus("awaiting_wallet_confirmation");
 
-    const instructions = await buildSplTokenShieldTransferInstructions({
+    const transferInstructions = await buildSplTokenShieldTransferInstructions({
       amount: amountDisplay,
       decimals: selectedShieldAsset.decimals,
       mintAddress: selectedShieldAsset.mintAddress,
       owner: walletAddress,
       vaultOwner: selectedShieldAsset.vaultOwner,
     });
+    const instructions = [
+      ...transferInstructions,
+      createShieldMemoInstruction(
+        {
+          amount: amountDisplay,
+          asset: selectedShieldAsset.assetKey,
+          createdAt: Date.now(),
+          depositSignature: VANTA_TOKEN_SAME_TRANSACTION_DEPOSIT_SIGNATURE,
+          mintAddress: selectedShieldAsset.mintAddress,
+          owner: walletAddress,
+          vaultOwner: selectedShieldAsset.vaultOwner,
+        },
+        { viewingPublicKey: viewingKey?.publicKey },
+      ),
+    ];
 
     await splShieldTransferTransaction.send({
       amount: amountDisplay,
@@ -476,6 +481,7 @@ export function ShieldPage(_props: ShieldPageProps) {
       summaryInstructions: [
         "ensure-vault-associated-token-account",
         "shield-spl-token-transfer",
+        "shield-state-memo",
       ],
       transactionFingerprint: `shield-spl-token-transfer:${walletAddress}:${selectedShieldAsset.mintAddress}:${selectedShieldAsset.vaultOwner}:${amountDisplay}`,
     });
@@ -772,20 +778,6 @@ export function ShieldPage(_props: ShieldPageProps) {
   ]);
 
   useEffect(() => {
-    if (stateSignatureWait.waitStatus !== "error") {
-      return;
-    }
-
-    setStatus("failed");
-    setFlowError(
-      toErrorMessage(
-        stateSignatureWait.waitError,
-        "The Vanta shield state note was submitted but not confirmed.",
-      ),
-    );
-  }, [stateSignatureWait.waitError, stateSignatureWait.waitStatus]);
-
-  useEffect(() => {
     if (nativeSolShieldWait.waitStatus !== "error") {
       return;
     }
@@ -828,113 +820,17 @@ export function ShieldPage(_props: ShieldPageProps) {
   }, [splShieldTransferWait.waitError, splShieldTransferWait.waitStatus]);
 
   useEffect(() => {
-    if (pendingNativeSolDepositRecovery) {
-      return;
-    }
-
-    const depositConfirmed = isConfirmedSignatureStage(splShieldTransferWait.stage);
-    const activeShieldTarget = pendingShieldTarget ?? selectedShieldAsset;
-
-    if (
-      pendingShieldAsset === "SOL" ||
-      !depositConfirmed ||
-      pendingShieldAmount === null ||
-      !pendingDepositSignature ||
-      !activeShieldTarget?.vaultOwner ||
-      !viewingKey?.publicKey ||
-      !activeShieldTarget?.mintAddress ||
-      !walletAddress
-    ) {
-      return;
-    }
-
-    if (stateTransaction.status === "loading" || stateTransaction.signature) {
-      return;
-    }
-
-    const mintAddress = activeShieldTarget.mintAddress;
-    const owner = walletAddress;
-    const vaultOwner = activeShieldTarget.vaultOwner;
-
-    void buildHeliusPriorityFeeInstructions({
-      accountKeys: [mintAddress, owner, pendingDepositSignature, vaultOwner],
-      action: "shield_state",
-    })
-      .then((priorityFeeInstructions) => {
-        const instructions = [
-          ...priorityFeeInstructions,
-          createShieldMemoInstruction(
-            {
-              amount: pendingShieldAmountDisplay ?? amount,
-              asset: activeShieldTarget.assetKey,
-              createdAt: Date.now(),
-              depositSignature: pendingDepositSignature,
-              mintAddress,
-              owner,
-              vaultOwner,
-            },
-            { viewingPublicKey: viewingKey?.publicKey },
-          ),
-        ];
-
-        return stateTransaction.send({
-          amount: pendingShieldAmountDisplay ?? amount,
-          asset: activeShieldTarget.assetKey,
-          cluster: vantaSolanaCluster,
-          explicitMainnetApproval: vantaExplicitMainnetApproval,
-          connectedWalletAddress: walletAddress,
-          estimatedFees: "wallet-estimated",
-          feePayer: walletAddress,
-          humanApprovedSummary: true,
-          instructions,
-          label: "shield-state",
-          recipient: vaultOwner,
-          summaryInstructions: ["shield-state-memo"],
-          transactionFingerprint: `shield-state:${owner}:${vaultOwner}:${pendingDepositSignature}`,
-        });
-      })
-      .catch((error) => {
-        setStatus("failed");
-        setPendingShieldAmount(null);
-        setPendingShieldAmountDisplay(null);
-        setPendingDepositSignature(null);
-        setPendingShieldAsset(null);
-        setPendingShieldTarget(null);
-        setPendingNativeSolDepositRecovery(false);
-        setPendingUmbraApprovalDisplay(null);
-        setFlowError(
-          toErrorMessage(error, "The Vanta shield state note could not be recorded."),
-        );
-      });
-  }, [
-    amount,
-    pendingDepositSignature,
-    pendingShieldAsset,
-    pendingShieldAmount,
-    pendingShieldAmountDisplay,
-    pendingNativeSolDepositRecovery,
-    nativeSolShieldWait.waitStatus,
-    pendingShieldTarget,
-    selectedShieldAsset,
-    splShieldTransferWait.stage,
-    stateTransaction,
-    supportedToken,
-    viewingKey?.publicKey,
-    walletAddress,
-  ]);
-
-  useEffect(() => {
     const activeStateSignature = pendingNativeSolDepositRecovery
       ? pendingDepositSignature
       : pendingShieldAsset === "SOL"
         ? nativeSolShieldTransaction.signature
-        : stateTransaction.signature;
+        : splShieldTransferTransaction.signature;
     const stateRecorded =
       pendingNativeSolDepositRecovery
           ? true
         : pendingShieldAsset === "SOL"
           ? isConfirmedSignatureStage(nativeSolShieldWait.stage)
-          : isConfirmedSignatureStage(stateSignatureWait.stage);
+          : isConfirmedSignatureStage(splShieldTransferWait.stage);
     const activeShieldTarget = pendingShieldTarget ?? selectedShieldAsset;
     const activeShieldEntry =
       activeShieldTarget && pendingShieldAsset !== "SOL"
@@ -1148,8 +1044,8 @@ export function ShieldPage(_props: ShieldPageProps) {
     selectedShieldAsset,
     setRecentShield,
     shieldRegistry.byAssetKey,
-    stateSignatureWait.stage,
-    stateTransaction.signature,
+    splShieldTransferTransaction.signature,
+    splShieldTransferWait.stage,
     supportedToken,
     targetShieldedBalance,
     walletAddress,
@@ -1175,7 +1071,6 @@ export function ShieldPage(_props: ShieldPageProps) {
     splShieldTransferTransaction.reset();
     nativeSolShieldTransaction.reset();
     supportedToken?.resetSend();
-    stateTransaction.reset();
     setRecentShield(null);
     setFlowError(null);
     setPendingPublicRoute(null);
@@ -1637,9 +1532,6 @@ export function ShieldPage(_props: ShieldPageProps) {
                   <p className="shield-helper shield-helper--meta">
                     {pendingShieldAsset === "SOL" ? nativeSolShieldWait.detailLabel : splShieldTransferWait.detailLabel}
                   </p>
-                )}
-                {stateProgressLabel && status === "entering_shielded_state" && (
-                  <p className="shield-helper shield-helper--meta">{stateProgressLabel}</p>
                 )}
               </div>
             )}
