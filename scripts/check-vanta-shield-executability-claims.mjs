@@ -16,9 +16,14 @@ const walletAssets = readFileSync(
   new URL("../src/solana/useWalletPublicAssets.ts", import.meta.url),
   "utf8",
 );
+const publicRouteInputs = readFileSync(
+  new URL("../src/solana/publicRouteInputAssets.ts", import.meta.url),
+  "utf8",
+);
 const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 
 const shieldFamilyAssets = ["USDC", "JTO", "BONK", "JUP", "PYUSD", "WIF", "KMNO"];
+const routeablePublicInputAssets = ["USDT", "EURC", "USDS", "CBBTC"];
 
 assert.ok(
   shieldConfig.includes("MAINNET_SHIELD_VAULT_OWNER_FALLBACK"),
@@ -50,6 +55,16 @@ assert.ok(
   walletAssets.includes("listLiveShieldTokenAssets({ configuredOnly: false })"),
   "Wallet labels may recognize shield-family assets even before executable status.",
 );
+for (const symbol of routeablePublicInputAssets) {
+  assert.ok(
+    publicRouteInputs.includes(`symbol: "${symbol}"`),
+    `${symbol} must be a recognized routeable public Shield input.`,
+  );
+}
+assert.ok(
+  walletAssets.includes("listPublicRouteInputAssets"),
+  "Wallet labels must recognize routeable public Shield inputs before metadata fallback.",
+);
 assert.ok(
   shieldRegistry.includes("configuredEntries: entries.filter((entry) => entry.asset.executable)"),
   "Shield registry configured entries must expose only executable deposit targets to the Shield page.",
@@ -71,13 +86,26 @@ assert.equal(
   "node scripts/check-vanta-shield-executability-claims.mjs",
   "package.json must expose shield:executability-claims-check.",
 );
+assert.equal(
+  packageJson.scripts["shield:production-assets-check"],
+  "node scripts/check-vanta-production-shield-assets.mjs",
+  "package.json must expose shield:production-assets-check.",
+);
 assert.ok(
   packageJson.scripts["shield:verify"].includes("npm run shield:executability-claims-check"),
   "shield:verify must include shield:executability-claims-check.",
 );
 assert.ok(
+  packageJson.scripts["shield:verify"].includes("npm run shield:production-assets-check"),
+  "shield:verify must include shield:production-assets-check.",
+);
+assert.ok(
   packageJson.scripts["private-core:verify"].includes("npm run shield:executability-claims-check"),
   "private-core:verify must include shield:executability-claims-check.",
+);
+assert.ok(
+  packageJson.scripts["private-core:verify"].includes("npm run shield:production-assets-check"),
+  "private-core:verify must include shield:production-assets-check.",
 );
 assert.ok(
   packageJson.scripts["token-availability:check"].includes("npm run shield:executability-claims-check"),

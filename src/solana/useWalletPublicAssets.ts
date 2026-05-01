@@ -13,6 +13,7 @@ import {
   vantaSolanaCluster,
   type LiveShieldTokenAssetKey,
 } from "@/solana/shieldConfig";
+import { listPublicRouteInputAssets } from "@/solana/publicRouteInputAssets";
 
 export type WalletPublicAsset = {
   balance: number;
@@ -42,6 +43,13 @@ for (const asset of listLiveShieldTokenAssets({ configuredOnly: false })) {
     continue;
   }
 
+  KNOWN_ASSET_LABELS[asset.mintAddress] = {
+    label: asset.name,
+    symbol: asset.symbol,
+  };
+}
+
+for (const asset of listPublicRouteInputAssets()) {
   KNOWN_ASSET_LABELS[asset.mintAddress] = {
     label: asset.name,
     symbol: asset.symbol,

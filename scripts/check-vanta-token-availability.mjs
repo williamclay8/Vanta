@@ -155,6 +155,12 @@ try {
     "Expected token availability to name each canonical token capability boundary.",
   );
   assert(
+    availability.includes("routeableShieldConfigured") &&
+      availability.includes("const shieldExecutable = configured || (!entry.shieldFamily && routeableShieldConfigured)") &&
+      availability.includes('mode: configured ? "direct-shield" : entry.shieldFamily ? "not-configured" : "route-to-shield"'),
+    "Expected routeable public inputs such as USDT to be live Shield executable through a configured shield target.",
+  );
+  assert(
     availability.includes("operator-sol-unshield") &&
       availability.includes("operator-token-unshield"),
     "Expected token availability to distinguish SOL and token unshield operator lanes.",

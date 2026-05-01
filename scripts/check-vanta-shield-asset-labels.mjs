@@ -14,6 +14,10 @@ if (!walletAssetsSource.includes("listLiveShieldTokenAssets({ configuredOnly: fa
   failures.push("Wallet public assets must label every known shield asset, even before it is executable.");
 }
 
+if (!walletAssetsSource.includes("listPublicRouteInputAssets")) {
+  failures.push("Wallet public assets must label recognized routeable public inputs such as USDT/EURC/USDS/cbBTC before metadata fallback.");
+}
+
 if (!walletAssetsSource.includes("formatUnknownWalletAssetLabel")) {
   failures.push("Wallet public assets must format unknown SPL tokens with a clear unknown-token label.");
 }

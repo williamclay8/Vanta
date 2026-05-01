@@ -5,6 +5,7 @@ import {
 } from "@/tokens/vantaTokenCatalog";
 import {
   getLiveShieldTokenAsset,
+  getPrimaryLiveShieldTokenAsset,
   isNativeSolShieldConfigured,
   liveSwapPair,
   type LiveShieldTokenAssetKey,
@@ -118,7 +119,11 @@ export function listVantaTokenAvailability(): VantaTokenAvailability[] {
     const isUsdc = entry.symbol === "USDC";
     const isSol = entry.symbol === "SOL";
     const routeablePublicInput = entry.shieldFamily || isPayAsset;
+    const routeableShieldConfigured = Boolean(
+      routeablePublicInput && getPrimaryLiveShieldTokenAsset().executable,
+    );
     const configuredShieldTarget = configured && entry.shieldFamily;
+    const shieldExecutable = configured || (!entry.shieldFamily && routeableShieldConfigured);
 
     return {
       configured,
@@ -153,10 +158,10 @@ export function listVantaTokenAvailability(): VantaTokenAvailability[] {
           : "This asset is not part of the current wallet-routeable token surface.",
       }),
       shield: action({
-        executable: configured,
+        executable: shieldExecutable,
         label: `Shield ${entry.symbol}`,
         mode: configured ? "direct-shield" : entry.shieldFamily ? "not-configured" : "route-to-shield",
-        reason: configured
+        reason: shieldExecutable
           ? null
           : entry.shieldFamily
             ? "Configure this shield asset before live shielding."

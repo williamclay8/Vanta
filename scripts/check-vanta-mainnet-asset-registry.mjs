@@ -8,8 +8,11 @@ const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.me
 const requiredMainnetMints = {
   BONK: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
   JTO: "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
-  PYUSD: "CXk2AMBfi3TwaEL2468s6zP8xq9NxTXjp9gjMgzeUynM",
+  JUP: "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  KMNO: "KMNo3nJsBXfcpJTVhZcXLW7RmTwTt4GVFE7suUBo9sS",
+  PYUSD: "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
   USDC: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  WIF: "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
 };
 
 assert.ok(
@@ -37,13 +40,6 @@ for (const [symbol, mint] of Object.entries(requiredMainnetMints)) {
   assert.ok(
     envExample.includes(`VITE_VANTA_MAINNET_${symbol}_MINT`),
     `.env.example must document VITE_VANTA_MAINNET_${symbol}_MINT.`,
-  );
-}
-
-for (const symbol of ["JUP", "WIF", "KMNO"]) {
-  assert.ok(
-    envExample.includes(`VITE_VANTA_MAINNET_${symbol}_MINT=`),
-    `.env.example must reserve VITE_VANTA_MAINNET_${symbol}_MINT for operator-supplied mainnet mint refs.`,
   );
 }
 
