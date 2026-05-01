@@ -173,6 +173,12 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    if (hookLamportsValue !== null) {
+      setFallbackBalanceError(null);
+      setFallbackBalanceFetching(false);
+      return;
+    }
+
     let cancelled = false;
     setFallbackBalanceFetching(true);
     setFallbackBalanceError(null);

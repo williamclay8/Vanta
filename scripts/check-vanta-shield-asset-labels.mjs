@@ -38,6 +38,14 @@ if (!walletAssetsSource.includes("tokenAmount.uiAmountString")) {
   failures.push("Wallet public assets must preserve large-balance tokens such as BONK by parsing tokenAmount.uiAmountString.");
 }
 
+if (!walletAssetsSource.includes("Promise.allSettled")) {
+  failures.push("Wallet public assets must tolerate partial RPC failure between SPL Token and Token-2022 account scans.");
+}
+
+if (!walletAssetsSource.includes("assets.length === 0 ? args.solBalanceError")) {
+  failures.push("Wallet public assets must not let a SOL balance error hide ready SPL assets such as BONK.");
+}
+
 if (!walletAssetsSource.includes("args.decimals > 0")) {
   failures.push("Wallet public assets must not expose zero-decimal NFT-style SPL accounts as Shield source options.");
 }
@@ -60,6 +68,10 @@ if (!walletAssetsSource.includes("args.solBalanceError")) {
 
 if (!shieldPageSource.includes("selectedSourceBalanceStatus")) {
   failures.push("Shield page must inspect source balance recovery status before validating shield amounts.");
+}
+
+if (!shieldPageSource.includes('asset.balanceStatus === "ready" && asset.balance > 0')) {
+  failures.push("Shield page must prefer a ready positive-balance asset over an unavailable SOL placeholder.");
 }
 
 if (!shieldPageSource.includes("Loading...")) {

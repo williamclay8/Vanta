@@ -285,12 +285,24 @@ async function getParsedTokenAccountsByOwnerWithFallback(owner: PublicKey) {
 
   for (const connection of connections) {
     try {
-      const [legacyAccounts, token2022Accounts] = await Promise.all([
+      const [legacyResult, token2022Result] = await Promise.allSettled([
         connection.getParsedTokenAccountsByOwner(owner, { programId: TOKEN_PROGRAM_ID }),
         connection.getParsedTokenAccountsByOwner(owner, { programId: TOKEN_2022_PROGRAM_ID }),
       ]);
+      const legacyAccounts =
+        legacyResult.status === "fulfilled" ? legacyResult.value : { value: [] };
+      const token2022Accounts =
+        token2022Result.status === "fulfilled" ? token2022Result.value : { value: [] };
 
-      return { connection, legacyAccounts, token2022Accounts };
+      if (legacyAccounts.value.length > 0 || token2022Accounts.value.length > 0) {
+        return { connection, legacyAccounts, token2022Accounts };
+      }
+
+      if (legacyResult.status === "fulfilled" || token2022Result.status === "fulfilled") {
+        return { connection, legacyAccounts, token2022Accounts };
+      }
+
+      lastError = legacyResult.reason ?? token2022Result.reason;
     } catch (error) {
       lastError = error;
     }
@@ -464,7 +476,7 @@ export function useWalletPublicAssets(args: {
 
   return {
     assets,
-    loading: splAssetsLoading || Boolean(args.solBalanceFetching),
-    error: splAssetsError ?? args.solBalanceError ?? null,
+    loading: splAssetsLoading || (assets.length === 0 && Boolean(args.solBalanceFetching)),
+    error: splAssetsError ?? (assets.length === 0 ? args.solBalanceError ?? null : null),
   };
 }

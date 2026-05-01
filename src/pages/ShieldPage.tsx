@@ -190,22 +190,33 @@ export function ShieldPage(_props: ShieldPageProps) {
   });
 
   const selectedSourceAsset = useMemo(
-    () =>
-      executableSourceAssets.find((asset) => asset.id === selectedSourceAssetId) ??
-      executableSourceAssets[0] ??
-      null,
+    () => {
+      const selectedAsset =
+        executableSourceAssets.find((asset) => asset.id === selectedSourceAssetId) ?? null;
+
+      if (selectedAsset?.balanceStatus === "ready") {
+        return selectedAsset;
+      }
+
+      return (
+        executableSourceAssets.find((asset) => asset.balanceStatus === "ready" && asset.balance > 0) ??
+        selectedAsset ??
+        executableSourceAssets[0] ??
+        null
+      );
+    },
     [executableSourceAssets, selectedSourceAssetId],
   );
 
   useEffect(() => {
-    if (selectedSourceAsset) {
+    if (selectedSourceAsset?.id === selectedSourceAssetId) {
       return;
     }
 
-    if (executableSourceAssets[0]) {
-      setSelectedSourceAssetId(executableSourceAssets[0].id);
+    if (selectedSourceAsset) {
+      setSelectedSourceAssetId(selectedSourceAsset.id);
     }
-  }, [executableSourceAssets, selectedSourceAsset]);
+  }, [selectedSourceAsset, selectedSourceAssetId]);
 
   const selectedRegistryEntry = useMemo(() => {
     if (!executableShieldTargets.length) {
