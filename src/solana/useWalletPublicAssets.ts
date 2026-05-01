@@ -365,6 +365,7 @@ function upsertParsedTokenAccountAsset(
 
   aggregate.set(mintAddress, {
     balance: uiAmount,
+    balanceStatus: "ready",
     decimals,
     id: mintAddress,
     kind: "spl",

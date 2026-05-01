@@ -70,6 +70,10 @@ if (!walletAssetsSource.includes("balanceStatus: nativeSolBalanceStatus")) {
   failures.push("Wallet public assets must carry native SOL balance recovery status so Shield does not present provisional zero as final.");
 }
 
+if (!walletAssetsSource.includes('balanceStatus: "ready"')) {
+  failures.push("Wallet public SPL assets such as BONK must be marked ready so the Shield selector can select them and show their balance.");
+}
+
 if (!walletAssetsSource.includes("args.solBalanceFetching")) {
   failures.push("Wallet public assets must receive native SOL balance fetching state from the wallet context.");
 }
