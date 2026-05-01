@@ -61,6 +61,8 @@ for (const marker of [
   "const recentShieldContext =",
   "setRecentShield(recentShieldContext)",
   "recordRecentShieldTokenNote",
+  "recordedTokenDepositSignatureRef",
+  "local-token-deposit:",
   "Private Pool v2 Shield receipt context was not available for this shield.",
   "...recentShieldContext",
   "const owner = walletAddress",

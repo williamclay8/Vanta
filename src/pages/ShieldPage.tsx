@@ -178,6 +178,7 @@ export function ShieldPage(_props: ShieldPageProps) {
   const [recoverableSolDepositsLoading, setRecoverableSolDepositsLoading] = useState(false);
   const [recoverableSolDepositsError, setRecoverableSolDepositsError] = useState<string | null>(null);
   const recordedStateSignatureRef = useRef<string | null>(null);
+  const recordedTokenDepositSignatureRef = useRef<string | null>(null);
 
   const executableShieldTargets = useMemo(
     () =>
@@ -631,6 +632,42 @@ export function ShieldPage(_props: ShieldPageProps) {
     }
 
     if (splShieldTransferTransaction.status === "success" && splShieldTransferTransaction.signature) {
+      const depositSignature = splShieldTransferTransaction.signature;
+      const activeShieldTarget = pendingShieldTarget ?? selectedShieldAsset;
+      if (
+        recordedTokenDepositSignatureRef.current !== depositSignature &&
+        pendingShieldAsset !== "SOL" &&
+        pendingShieldAmount !== null &&
+        activeShieldTarget?.mintAddress &&
+        activeShieldTarget.vaultOwner &&
+        walletAddress
+      ) {
+        recordedTokenDepositSignatureRef.current = depositSignature;
+        const timestamp = Date.now();
+        recordRecentShieldTokenNote({
+          amount: pendingShieldAmount,
+          asset: activeShieldTarget.assetKey,
+          createdAt: timestamp,
+          depositSignature,
+          mintAddress: activeShieldTarget.mintAddress,
+          owner: walletAddress,
+          stateSignature: `local-token-deposit:${depositSignature}`,
+          vaultOwner: activeShieldTarget.vaultOwner,
+        });
+        setRecentShield({
+          amount: pendingShieldAmount,
+          asset: activeShieldTarget.assetKey,
+          depositSignature,
+          resultingShieldedBalance: Number(
+            ((activeShieldTarget.assetKey === targetShieldSymbol ? targetShieldedBalance : 0) +
+              pendingShieldAmount).toFixed(activeShieldTarget.decimals),
+          ),
+          settlement: "confirmed_deposit",
+          signature: `local-token-deposit:${depositSignature}`,
+          source: "shield",
+          timestamp,
+        });
+      }
       setStatus("entering_shielded_state");
       setPendingDepositSignature(splShieldTransferTransaction.signature);
     }
@@ -638,6 +675,14 @@ export function ShieldPage(_props: ShieldPageProps) {
     splShieldTransferTransaction.error,
     splShieldTransferTransaction.signature,
     splShieldTransferTransaction.status,
+    pendingShieldAmount,
+    pendingShieldAsset,
+    pendingShieldTarget,
+    selectedShieldAsset,
+    setRecentShield,
+    targetShieldSymbol,
+    targetShieldedBalance,
+    walletAddress,
   ]);
 
   useEffect(() => {
@@ -1125,6 +1170,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     }
 
     recordedStateSignatureRef.current = null;
+    recordedTokenDepositSignatureRef.current = null;
     publicRouteTransaction.reset();
     splShieldTransferTransaction.reset();
     nativeSolShieldTransaction.reset();
