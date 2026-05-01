@@ -140,7 +140,7 @@ export function listVantaTokenAvailability(): VantaTokenAvailability[] {
         reason:
           isUsdc && configured
             ? null
-            : "Private send for this asset needs a private send adapter.",
+            : "Private send currently supports shielded USDC.",
       }),
       publicInput: capabilityLane({
         boundary: "routeable-public-input",

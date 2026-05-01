@@ -28,11 +28,11 @@ const entries = [
   },
   {
     asset: {
-      assetKey: "USDC",
+      assetKey: "PYUSD",
       configured: true,
-      mintAddress: "mint:usdc",
+      mintAddress: "mint:pyusd",
       priority: 1,
-      symbol: "USDC",
+      symbol: "PYUSD",
       vaultOwner: "vault",
     },
   },
@@ -100,8 +100,8 @@ try {
     selectUniversalShieldTarget({
       configuredEntries: entries.filter((entry) => entry.asset.assetKey !== "USDC"),
       sourceAsset: { kind: "spl", mintAddress: "mint:any-spl", symbol: "ANY" },
-    })?.asset.assetKey === "USDC",
-    "Expected arbitrary SPL source to fall back to USDC.",
+    })?.asset.assetKey === "PYUSD",
+    "Expected arbitrary SPL source to fall back to the next configured route target.",
   );
   console.log("universal shield target fallback: PASS");
 

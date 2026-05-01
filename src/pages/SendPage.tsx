@@ -470,15 +470,30 @@ export function SendPage({ dashboard = false }: SendPageProps) {
   const sendShieldedAssetOptions = useMemo(
     () =>
       baseSendShieldedAssetOptions
-        .map((asset, index) => ({
-          ...asset,
-          balance: getShieldedSendAssetBalance(asset.symbol),
-          index,
-          ready: getShieldedSendAssetSpendableNoteCount(asset.symbol) > 0,
-        }))
+        .map((asset, index) => {
+          const capability = getShieldedSendAssetCapability(asset.symbol);
+          const spendableNoteCount = getShieldedSendAssetSpendableNoteCount(asset.symbol);
+
+          return {
+            ...asset,
+            balance: getShieldedSendAssetBalance(asset.symbol),
+            executable: capability.status === "live",
+            index,
+            ready: capability.status === "live" && spendableNoteCount > 0,
+            spendableNoteCount,
+          };
+        })
         .sort((left, right) => {
           if (left.ready !== right.ready) {
             return left.ready ? -1 : 1;
+          }
+
+          if (left.spendableNoteCount !== right.spendableNoteCount) {
+            return right.spendableNoteCount - left.spendableNoteCount;
+          }
+
+          if (left.executable !== right.executable) {
+            return left.executable ? -1 : 1;
           }
 
           if (left.balance !== right.balance) {
@@ -983,7 +998,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     }
 
     setStatus("failed");
-    setFlowError("No live private-send adapter is available for the selected asset.");
+    setFlowError("Private send currently supports shielded USDC.");
   }
 
   async function handlePrivateCoreSendProof() {
@@ -1063,9 +1078,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     ? shieldStateError
     : isBetaMode
       ? "Beta mode keeps private send visible but prevents live settlement while production services are offline."
-      : selectedSendCapability.executionMode === "needs-private-send-adapter"
+      : selectedSendCapability.executionMode === "unsupported-private-send-asset"
         ? selectedSendCapability.blockers[0] ??
-          "This shielded asset needs a private send adapter before it can execute."
+          "Private send currently supports shielded USDC."
       : !liveShieldAsset.unshieldConfigured
         ? "Configure the private-core operator endpoint before this send proof can execute."
       : isPrivateCoreUsdcSendReady

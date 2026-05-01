@@ -15,7 +15,7 @@ export type ShieldedSendAssetOption = {
 export type ShieldedSendAssetCapability = {
   asset: ShieldedSendAssetKey;
   blockers: readonly string[];
-  executionMode: "operator-usdc-send" | "needs-private-send-adapter";
+  executionMode: "operator-usdc-send" | "unsupported-private-send-asset";
   status: "live" | "blocked";
 };
 
@@ -63,7 +63,7 @@ export function getShieldedSendAssetCapability(
     return {
       asset,
       blockers: ["Configure the USDC shield asset before live private send can execute."],
-      executionMode: "needs-private-send-adapter",
+      executionMode: "unsupported-private-send-asset",
       status: "blocked",
     };
   }
@@ -71,16 +71,16 @@ export function getShieldedSendAssetCapability(
   if (asset === "SOL") {
     return {
       asset,
-      blockers: ["Shielded SOL is visible in your wallet, but private SOL send needs its send adapter before it can execute."],
-      executionMode: "needs-private-send-adapter",
+      blockers: ["Private send currently supports shielded USDC. Shielded SOL can stay held here until the SOL send lane is implemented."],
+      executionMode: "unsupported-private-send-asset",
       status: "blocked",
     };
   }
 
   return {
     asset,
-    blockers: ["This shielded asset needs a private send adapter before it can execute."],
-    executionMode: "needs-private-send-adapter",
+    blockers: ["Private send currently supports shielded USDC. This asset can stay held here until its send lane is implemented."],
+    executionMode: "unsupported-private-send-asset",
     status: "blocked",
   };
 }

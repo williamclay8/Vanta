@@ -302,6 +302,38 @@ function runDesktopTabClickContinuityProbe() {
   }
 }
 
+function runSendCopyTruthProbe() {
+  try {
+    runBrowserCommand(["navigate", `${baseUrl}/app/send`], { stdio: "ignore" });
+    runBrowserCommand(["wait-for", "--condition", "network_idle"], { stdio: "ignore" });
+
+    const result = JSON.parse(
+      runBrowserCommand([
+        "eval",
+        `(() => {
+        const text = document.body.textContent ?? "";
+
+        return {
+          hasAdapterBacklogCopy: /private send adapter/i.test(text),
+          hasSupportedLaneCopy: text.includes("Private send") || text.includes("private-send lane"),
+          path: location.pathname,
+        };
+      })()`,
+      ]),
+    );
+
+    if (result.path !== "/app/send" || result.hasAdapterBacklogCopy || !result.hasSupportedLaneCopy) {
+      throw new Error(`Send copy truth probe failed: ${JSON.stringify(result)}`);
+    }
+  } catch (error) {
+    if (!isDaemonStartupError(error)) {
+      throw error;
+    }
+
+    console.warn("Vanta protocol send-copy probe skipped: gsd-browser daemon startup unavailable.");
+  }
+}
+
 const vite = spawn("npm", ["run", "dev", "--", "--host", "127.0.0.1", "--port", String(port), "--strictPort"], {
   stdio: ["ignore", "pipe", "pipe"],
 });
@@ -319,6 +351,7 @@ try {
   cleanupBrowserLock();
   const browserAvailable = runBrowserBatchWithRetry();
   if (browserAvailable) {
+    runSendCopyTruthProbe();
     runDesktopTabClickContinuityProbe();
   }
   console.log("vanta protocol browser check: PASS");

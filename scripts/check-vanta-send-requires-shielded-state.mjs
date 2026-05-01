@@ -31,7 +31,7 @@ const requiredPageMarkers = [
   'aria-label="Send shielded asset"',
   "Shield the asset first",
   "selectedSpendableNote",
-  "needs-private-send-adapter",
+  "unsupported-private-send-asset",
 ];
 
 const requiredPrivateCorePrimarySendMarkers = [
@@ -43,7 +43,9 @@ const requiredPrivateCorePrimarySendMarkers = [
 
 const requiredCapabilityMarkers = [
   "operator-usdc-send",
-  "needs-private-send-adapter",
+  "unsupported-private-send-asset",
+  'asset === liveShieldAsset.assetKey && liveShieldAsset.configured',
+  "Private send currently supports shielded USDC.",
   "Shielded USDC",
   "Shielded USDC",
   "Shielded JTO",
@@ -94,6 +96,18 @@ for (const marker of requiredCapabilityMarkers) {
   if (!sendCapabilitySource.includes(marker)) {
     failures.push(`shieldedSendCapability.ts missing marker: ${marker}`);
   }
+}
+
+if (sendPageSource.includes("needs-private-send-adapter")) {
+  failures.push("Send page must not expose adapter-backlog wording for unsupported assets.");
+}
+
+if (sendCapabilitySource.includes("private send adapter")) {
+  failures.push("Send capability blockers must describe supported lanes, not missing adapters.");
+}
+
+if (!sendCapabilitySource.includes("Private send currently supports shielded USDC.")) {
+  failures.push("Send capability blockers must name shielded USDC as the supported private send lane.");
 }
 
 if (!packageSource.includes('"send:requires-shielded-state-check"')) {
