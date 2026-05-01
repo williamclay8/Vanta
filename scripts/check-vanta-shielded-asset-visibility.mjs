@@ -48,6 +48,11 @@ for (const marker of [
   "setRecentShield(recentShieldContext)",
   "Private Pool v2 Shield receipt context was not available for this shield.",
   "...recentShieldContext",
+  "const owner = walletAddress",
+  "owner: walletAddress!",
+  "readTokenDecimals(supportedToken?.balance) ?? selectedShieldAsset.decimals",
+  "isConfirmedSignatureStage(splShieldTransferWait.stage)",
+  "isConfirmedSignatureStage(stateSignatureWait.stage)",
 ]) {
   assert.ok(
     shieldPageSource.includes(marker),
@@ -58,6 +63,17 @@ for (const marker of [
 assert.ok(
   !shieldPageSource.includes('throw new Error("Shield protocol settlement is missing its source asset or owner.")'),
   "Shield completion must not hide confirmed token shields behind optional receipt context.",
+);
+assert.ok(
+  !shieldPageSource.includes('splShieldTransferWait.waitStatus === "success"') &&
+    !shieldPageSource.includes('stateSignatureWait.waitStatus === "success"'),
+  "Shield completion must accept confirmed/finalized signature stages, not only raw waitStatus success.",
+);
+assert.ok(
+  !shieldPageSource.includes("!supportedToken?.owner") &&
+    !shieldPageSource.includes("const owner = supportedToken.owner") &&
+    !shieldPageSource.includes("owner: supportedToken!.owner!"),
+  "Shield state ownership must use the connected wallet, not token hook ownership metadata.",
 );
 
 for (const marker of [

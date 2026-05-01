@@ -34,6 +34,7 @@ import {
 import { selectUniversalShieldTarget } from "@/solana/universalShieldTarget";
 import { resolveUserVaultOwner } from "@/solana/userVaultOwner";
 import { useRealtimeSignatureProgress } from "@/solana/useRealtimeSignatureProgress";
+import type { RealtimeSignatureStage } from "@/solana/useRealtimeSignatureProgress";
 import { buildSplTokenShieldTransferInstructions } from "@/solana/splShieldTransfer";
 import { useWalletPublicAssets } from "@/solana/useWalletPublicAssets";
 import { useVantaShieldAssetRegistryState } from "@/solana/useVantaShieldAssetRegistryState";
@@ -59,6 +60,10 @@ type ShieldStatus =
   | "entering_shielded_state"
   | "complete"
   | "failed";
+
+function isConfirmedSignatureStage(stage: RealtimeSignatureStage) {
+  return stage === "confirmed" || stage === "finalized";
+}
 
 type PendingPublicRoute = {
   previousTargetBalance: number;
@@ -663,7 +668,7 @@ export function ShieldPage(_props: ShieldPageProps) {
   useEffect(() => {
     if (
       !pendingPublicRoute ||
-      publicRouteWait.waitStatus !== "success" ||
+      !isConfirmedSignatureStage(publicRouteWait.stage) ||
       !supportedToken
     ) {
       return;
@@ -707,7 +712,7 @@ export function ShieldPage(_props: ShieldPageProps) {
   }, [
     beginShieldTransfer,
     pendingPublicRoute,
-    publicRouteWait.waitStatus,
+    publicRouteWait.stage,
     publicRouteTransaction.signature,
     selectedShieldAsset?.decimals,
     supportedToken,
@@ -772,7 +777,7 @@ export function ShieldPage(_props: ShieldPageProps) {
       return;
     }
 
-    const depositConfirmed = splShieldTransferWait.waitStatus === "success";
+    const depositConfirmed = isConfirmedSignatureStage(splShieldTransferWait.stage);
 
     if (
       pendingShieldAsset === "SOL" ||
@@ -782,7 +787,7 @@ export function ShieldPage(_props: ShieldPageProps) {
       !selectedShieldAsset?.vaultOwner ||
       !viewingKey?.publicKey ||
       !selectedShieldAsset?.mintAddress ||
-      !supportedToken?.owner
+      !walletAddress
     ) {
       return;
     }
@@ -792,7 +797,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     }
 
     const mintAddress = selectedShieldAsset.mintAddress;
-    const owner = supportedToken.owner;
+    const owner = walletAddress;
     const vaultOwner = selectedShieldAsset.vaultOwner;
 
     void buildHeliusPriorityFeeInstructions({
@@ -821,9 +826,9 @@ export function ShieldPage(_props: ShieldPageProps) {
           asset: selectedShieldAsset.assetKey,
           cluster: vantaSolanaCluster,
           explicitMainnetApproval: vantaExplicitMainnetApproval,
-          connectedWalletAddress: walletAddress ?? owner,
+          connectedWalletAddress: walletAddress,
           estimatedFees: "wallet-estimated",
-          feePayer: walletAddress ?? owner,
+          feePayer: walletAddress,
           humanApprovedSummary: true,
           instructions,
           label: "shield-state",
@@ -853,7 +858,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     pendingNativeSolDepositRecovery,
     nativeSolShieldWait.waitStatus,
     selectedShieldAsset,
-    splShieldTransferWait.waitStatus,
+    splShieldTransferWait.stage,
     stateTransaction,
     supportedToken,
     viewingKey?.publicKey,
@@ -868,10 +873,10 @@ export function ShieldPage(_props: ShieldPageProps) {
         : stateTransaction.signature;
     const stateRecorded =
       pendingNativeSolDepositRecovery
-        ? true
+          ? true
         : pendingShieldAsset === "SOL"
-          ? nativeSolShieldWait.waitStatus === "success"
-          : stateSignatureWait.waitStatus === "success";
+          ? isConfirmedSignatureStage(nativeSolShieldWait.stage)
+          : isConfirmedSignatureStage(stateSignatureWait.stage);
 
     if (
       !stateRecorded ||
@@ -881,7 +886,7 @@ export function ShieldPage(_props: ShieldPageProps) {
       !pendingShieldAmountDisplay ||
       !selectedShieldAsset?.vaultOwner ||
       (pendingShieldAsset !== "SOL" && !selectedShieldAsset?.mintAddress) ||
-      (pendingShieldAsset !== "SOL" && !supportedToken?.owner)
+      (pendingShieldAsset !== "SOL" && !walletAddress)
     ) {
       return;
     }
@@ -904,9 +909,9 @@ export function ShieldPage(_props: ShieldPageProps) {
                 createdAt: Date.now(),
                 depositSignature: pendingDepositSignature ?? undefined,
                 mintAddress: selectedShieldAsset.mintAddress!,
-                owner: supportedToken!.owner!,
+                owner: walletAddress!,
                 stateSignature: activeStateSignature,
-                tokenDecimals: readTokenDecimals(supportedToken!.balance),
+                tokenDecimals: readTokenDecimals(supportedToken?.balance) ?? selectedShieldAsset.decimals,
                 vaultOwner: selectedShieldAsset.vaultOwner!,
               });
 
@@ -1051,12 +1056,12 @@ export function ShieldPage(_props: ShieldPageProps) {
     pendingShieldAmountDisplay,
     pendingProtocolSettlement,
     nativeSolShieldTransaction.signature,
-    nativeSolShieldWait.waitStatus,
+    nativeSolShieldWait.stage,
     refreshShieldState,
     runPrivateCoreShield,
     selectedShieldAsset,
     setRecentShield,
-    stateSignatureWait.waitStatus,
+    stateSignatureWait.stage,
     stateTransaction.signature,
     supportedToken,
     targetShieldedBalance,
