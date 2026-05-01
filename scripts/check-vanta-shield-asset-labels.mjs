@@ -27,7 +27,7 @@ if (!walletAssetsSource.includes("isShieldableSplTokenAmount")) {
 }
 
 if (!walletAssetsSource.includes("isKnownDirectShieldMint")) {
-  failures.push("Wallet public assets must keep Shield source options limited to direct shield-family assets such as BONK.");
+  failures.push("Wallet public assets must keep Shield source options limited to the direct shield-family asset list.");
 }
 
 if (!walletAssetsSource.includes("readTokenUiAmount")) {
@@ -35,7 +35,7 @@ if (!walletAssetsSource.includes("readTokenUiAmount")) {
 }
 
 if (!walletAssetsSource.includes("tokenAmount.uiAmountString")) {
-  failures.push("Wallet public assets must preserve large-balance tokens such as BONK by parsing tokenAmount.uiAmountString.");
+  failures.push("Wallet public assets must preserve large-balance shield-family tokens by parsing tokenAmount.uiAmountString.");
 }
 
 if (!walletAssetsSource.includes("Promise.allSettled")) {
@@ -43,7 +43,7 @@ if (!walletAssetsSource.includes("Promise.allSettled")) {
 }
 
 if (!walletAssetsSource.includes("recoverKnownShieldableTokenAccounts")) {
-  failures.push("Wallet public assets must run a targeted ATA recovery pass for known shieldable assets such as BONK.");
+  failures.push("Wallet public assets must run a targeted ATA recovery pass for every known shieldable asset.");
 }
 
 if (!walletAssetsSource.includes("getAssociatedTokenAddressSync")) {
@@ -55,7 +55,7 @@ if (!walletAssetsSource.includes("getParsedAccountInfo")) {
 }
 
 if (!walletAssetsSource.includes("assets.length === 0 ? args.solBalanceError")) {
-  failures.push("Wallet public assets must not let a SOL balance error hide ready SPL assets such as BONK.");
+  failures.push("Wallet public assets must not let a SOL balance error hide ready shield-family SPL assets.");
 }
 
 if (!walletAssetsSource.includes("args.decimals > 0")) {
@@ -71,7 +71,7 @@ if (!walletAssetsSource.includes("balanceStatus: nativeSolBalanceStatus")) {
 }
 
 if (!walletAssetsSource.includes('balanceStatus: "ready"')) {
-  failures.push("Wallet public SPL assets such as BONK must be marked ready so the Shield selector can select them and show their balance.");
+  failures.push("Wallet public shield-family SPL assets must be marked ready so the Shield selector can select them and show their balance.");
 }
 
 if (!walletAssetsSource.includes("args.solBalanceFetching")) {

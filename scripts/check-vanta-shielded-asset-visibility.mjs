@@ -10,6 +10,7 @@ function readRepoFile(path) {
 
 const registrySource = readRepoFile("src/solana/useVantaShieldAssetRegistryState.ts");
 const recentTokenNotesSource = readRepoFile("src/solana/recentShieldTokenNotes.ts");
+const shieldConfigSource = readRepoFile("src/solana/shieldConfig.ts");
 const shieldPageSource = readRepoFile("src/pages/ShieldPage.tsx");
 const shieldStateSource = readRepoFile("src/solana/vantaShieldState.ts");
 const unshieldPageSource = readRepoFile("src/pages/UnshieldPage.tsx");
@@ -78,6 +79,36 @@ for (const marker of [
     `Shield completion must commit recent shielded balance before optional receipt checks: ${marker}.`,
   );
 }
+
+for (const symbol of directShieldSymbols) {
+  assert.ok(
+    shieldConfigSource.includes(`"${symbol}"`),
+    `${symbol} must remain in the configured direct shield-family asset list.`,
+  );
+  assert.ok(
+    shieldPageSource.includes("asset: selectedShieldAsset.assetKey"),
+    `Direct ${symbol} Shield must write the shield-state memo from the selected target asset key.`,
+  );
+  assert.ok(
+    shieldPageSource.includes("asset: activeShieldTarget.assetKey"),
+    `Direct ${symbol} Shield completion must record visibility from the frozen active shield target.`,
+  );
+  assert.ok(
+    registrySource.includes(`getLiveShieldTokenAsset("${symbol}")`),
+    `${symbol} must have a registry entry that can merge recent local shield notes.`,
+  );
+}
+
+assert.ok(
+  !shieldPageSource.includes('asset: "BONK"') &&
+    !shieldPageSource.includes("pendingShieldAsset === \"BONK\""),
+  "Direct token Shield visibility must stay generic across every shield-family asset, not BONK-specific.",
+);
+assert.ok(
+  shieldPageSource.includes("VANTA_TOKEN_SAME_TRANSACTION_DEPOSIT_SIGNATURE") &&
+    shieldPageSource.includes("shield-state-memo"),
+  "Every direct token Shield must include the shield-state memo in the same wallet request as the token transfer.",
+);
 
 for (const marker of [
   "setPendingShieldTarget(selectedShieldAsset)",

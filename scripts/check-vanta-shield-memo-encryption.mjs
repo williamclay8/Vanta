@@ -16,8 +16,10 @@ const sourceFiles = [
   "solana/vantaShieldState.ts",
 ];
 
-const SHIELD_CONFIG_STUB = `export type LiveShieldTokenAssetKey = "USDC" | "USDC" | "JTO" | "BONK" | "JUP" | "PYUSD" | "WIF" | "KMNO";
-export const ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS: readonly LiveShieldTokenAssetKey[] = ["USDC", "USDC", "JTO", "BONK", "JUP", "PYUSD", "WIF", "KMNO"];
+const DIRECT_SHIELD_ASSETS = ["USDC", "JTO", "BONK", "JUP", "PYUSD", "WIF", "KMNO"];
+
+const SHIELD_CONFIG_STUB = `export type LiveShieldTokenAssetKey = "USDC" | "JTO" | "BONK" | "JUP" | "PYUSD" | "WIF" | "KMNO";
+export const ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS: readonly LiveShieldTokenAssetKey[] = ["USDC", "JTO", "BONK", "JUP", "PYUSD", "WIF", "KMNO"];
 export function getLiveShieldTokenAsset(assetKey: LiveShieldTokenAssetKey) {
   return {
     assetKey,
@@ -139,6 +141,7 @@ try {
     createNativeSolShieldMemoInstruction,
     tryDecryptShieldMemo,
     tryDecryptNativeSolShieldMemo,
+    VANTA_TOKEN_SAME_TRANSACTION_DEPOSIT_SIGNATURE,
   } = shieldStateModule;
   const {
     createVantaShieldViewingKeypair,
@@ -203,6 +206,39 @@ try {
 
   const noPrefixShield = tryDecryptShieldMemo("not-a-shield-memo", ownerPubkey);
   assert(noPrefixShield === null, "Shield memo decryption without v2 prefix must return null.");
+
+  for (const asset of DIRECT_SHIELD_ASSETS) {
+    const assetPayload = {
+      ...shieldPayload,
+      asset,
+      depositSignature: VANTA_TOKEN_SAME_TRANSACTION_DEPOSIT_SIGNATURE,
+      mintAddress: `MintAddressPlaceholder${asset}1111111111111111`,
+    };
+    const assetMemoText = decodeMemoText(createShieldMemoInstruction(assetPayload));
+    assert(
+      assetMemoText.startsWith(VANTA_SHIELD_MEMO_PREFIX_V2),
+      `${asset} Shield memo must use the Shield v2 prefix.`,
+    );
+    assertNoLeak(assetMemoText, [
+      assetPayload.amount,
+      assetPayload.asset,
+      assetPayload.depositSignature,
+      assetPayload.mintAddress,
+      assetPayload.owner,
+      assetPayload.vaultOwner,
+    ]);
+    const decryptedAsset = tryDecryptShieldMemo(assetMemoText, ownerPubkey);
+    assert(decryptedAsset !== null, `${asset} Shield memo decryption returned null.`);
+    assert(decryptedAsset.asset === asset, `${asset} Shield memo asset mismatch.`);
+    assert(
+      decryptedAsset.depositSignature === VANTA_TOKEN_SAME_TRANSACTION_DEPOSIT_SIGNATURE,
+      `${asset} Shield memo must preserve the same-transaction token sentinel until recovery maps it to the transaction signature.`,
+    );
+    assert(
+      typeof decryptedAsset.noteId === "string" && decryptedAsset.noteId.length > 0,
+      `${asset} Shield memo must include a noteId string.`,
+    );
+  }
 
   // ---- Native SOL shield path ----------------------------------------------
   const nativeSolPayload = {
