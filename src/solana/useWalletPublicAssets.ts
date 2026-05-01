@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Connection, PublicKey } from "@solana/web3.js";
 import {
+  getAssociatedTokenAddressSync,
   getTokenMetadata,
   TOKEN_2022_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
@@ -13,7 +14,6 @@ import {
   vantaSolanaCluster,
   type LiveShieldTokenAssetKey,
 } from "@/solana/shieldConfig";
-import { listPublicRouteInputAssets } from "@/solana/publicRouteInputAssets";
 
 export type WalletPublicAsset = {
   balance: number;
@@ -43,13 +43,6 @@ for (const asset of listLiveShieldTokenAssets({ configuredOnly: false })) {
     continue;
   }
 
-  KNOWN_ASSET_LABELS[asset.mintAddress] = {
-    label: asset.name,
-    symbol: asset.symbol,
-  };
-}
-
-for (const asset of listPublicRouteInputAssets()) {
   KNOWN_ASSET_LABELS[asset.mintAddress] = {
     label: asset.name,
     symbol: asset.symbol,
@@ -109,8 +102,29 @@ function formatWalletAssetLoadError(error: unknown) {
   return "Wallet token balances could not be loaded.";
 }
 
-function isShieldableSplTokenAmount(args: { decimals: number; uiAmount: number }) {
-  return Number.isFinite(args.uiAmount) && args.uiAmount > 0 && args.decimals > 0;
+function isKnownDirectShieldMint(mintAddress: string) {
+  const known = KNOWN_ASSET_LABELS[mintAddress];
+
+  return Boolean(known && known.symbol !== "SOL");
+}
+
+function isShieldableSplTokenAmount(args: {
+  decimals: number;
+  mintAddress: string;
+  uiAmount: number;
+}) {
+  return (
+    isKnownDirectShieldMint(args.mintAddress) &&
+    Number.isFinite(args.uiAmount) &&
+    args.uiAmount > 0 &&
+    args.decimals > 0
+  );
+}
+
+function getKnownShieldableMintAddresses() {
+  return listLiveShieldTokenAssets({ configuredOnly: false })
+    .map((asset) => asset.mintAddress)
+    .filter((mintAddress): mintAddress is string => Boolean(mintAddress));
 }
 
 function readTokenUiAmount(tokenAmount: { uiAmount?: unknown; uiAmountString?: unknown }) {
@@ -311,6 +325,94 @@ async function getParsedTokenAccountsByOwnerWithFallback(owner: PublicKey) {
   throw lastError ?? new Error("Wallet token balances could not be loaded.");
 }
 
+function upsertParsedTokenAccountAsset(
+  aggregate: Map<string, WalletPublicAsset>,
+  parsed: unknown,
+) {
+  if (
+    !parsed ||
+    typeof parsed !== "object" ||
+    !("type" in parsed) ||
+    parsed.type !== "account" ||
+    !("info" in parsed)
+  ) {
+    return;
+  }
+
+  const info = parsed.info as {
+    mint?: unknown;
+    tokenAmount?: { decimals?: unknown; uiAmount?: unknown; uiAmountString?: unknown };
+  };
+  const mintAddress = typeof info.mint === "string" ? info.mint : null;
+  const tokenAmount = info.tokenAmount;
+  const uiAmount = readTokenUiAmount(tokenAmount ?? {});
+  const decimals = Number(tokenAmount?.decimals ?? 0);
+
+  if (!mintAddress || !isShieldableSplTokenAmount({ decimals, mintAddress, uiAmount })) {
+    return;
+  }
+
+  const known = KNOWN_ASSET_LABELS[mintAddress];
+  const existing = aggregate.get(mintAddress);
+
+  if (existing) {
+    aggregate.set(mintAddress, {
+      ...existing,
+      balance: Number((existing.balance + uiAmount).toFixed(Math.max(decimals, 6))),
+    });
+    return;
+  }
+
+  aggregate.set(mintAddress, {
+    balance: uiAmount,
+    decimals,
+    id: mintAddress,
+    kind: "spl",
+    label: known?.label ?? formatUnknownWalletAssetLabel(mintAddress),
+    mintAddress,
+    symbol: known?.symbol ?? formatUnknownWalletAssetLabel(mintAddress),
+  });
+}
+
+async function recoverKnownShieldableTokenAccounts(args: {
+  aggregate: Map<string, WalletPublicAsset>;
+  connection: Connection;
+  owner: PublicKey;
+}) {
+  const missingKnownMints = getKnownShieldableMintAddresses()
+    .filter((mintAddress) => !args.aggregate.has(mintAddress));
+
+  if (missingKnownMints.length === 0) {
+    return;
+  }
+
+  await Promise.all(
+    missingKnownMints.flatMap((mintAddress) => {
+      let mint: PublicKey;
+
+      try {
+        mint = new PublicKey(mintAddress);
+      } catch {
+        return [];
+      }
+
+      return [TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID].map(async (programId) => {
+        try {
+          const ata = getAssociatedTokenAddressSync(mint, args.owner, false, programId);
+          const account = await args.connection.getParsedAccountInfo(ata, "confirmed");
+          const parsed = account.value?.data && "parsed" in account.value.data
+            ? account.value.data.parsed
+            : null;
+
+          upsertParsedTokenAccountAsset(args.aggregate, parsed);
+        } catch {
+          // This is a best-effort targeted recovery pass; the broad wallet scan remains authoritative.
+        }
+      });
+    }),
+  );
+}
+
 export function useWalletPublicAssets(args: {
   solBalance: number | null;
   solBalanceError?: string | null;
@@ -347,41 +449,17 @@ export function useWalletPublicAssets(args: {
         const aggregate = new Map<string, WalletPublicAsset>();
 
         for (const account of [...legacyAccounts.value, ...token2022Accounts.value]) {
-          const parsed = account.account.data.parsed;
-          if (!parsed || parsed.type !== "account") {
-            continue;
-          }
+          upsertParsedTokenAccountAsset(aggregate, account.account.data.parsed);
+        }
 
-          const info = parsed.info;
-          const mintAddress = typeof info.mint === "string" ? info.mint : null;
-          const tokenAmount = info.tokenAmount;
-          const uiAmount = readTokenUiAmount(tokenAmount ?? {});
-          const decimals = Number(tokenAmount?.decimals ?? 0);
+        await recoverKnownShieldableTokenAccounts({
+          aggregate,
+          connection,
+          owner,
+        });
 
-          if (!mintAddress || !isShieldableSplTokenAmount({ decimals, uiAmount })) {
-            continue;
-          }
-
-          const known = KNOWN_ASSET_LABELS[mintAddress];
-          const existing = aggregate.get(mintAddress);
-
-          if (existing) {
-            aggregate.set(mintAddress, {
-              ...existing,
-              balance: Number((existing.balance + uiAmount).toFixed(Math.max(decimals, 6))),
-            });
-            continue;
-          }
-
-          aggregate.set(mintAddress, {
-            balance: uiAmount,
-            decimals,
-            id: mintAddress,
-            kind: "spl",
-            label: known?.label ?? formatUnknownWalletAssetLabel(mintAddress),
-            mintAddress,
-            symbol: known?.symbol ?? formatUnknownWalletAssetLabel(mintAddress),
-          });
+        if (cancelled) {
+          return;
         }
 
         const unknownMintAddresses = [...aggregate.values()]

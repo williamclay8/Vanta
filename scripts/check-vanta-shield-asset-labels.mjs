@@ -14,10 +14,6 @@ if (!walletAssetsSource.includes("listLiveShieldTokenAssets({ configuredOnly: fa
   failures.push("Wallet public assets must label every known shield asset, even before it is executable.");
 }
 
-if (!walletAssetsSource.includes("listPublicRouteInputAssets")) {
-  failures.push("Wallet public assets must label recognized routeable public inputs such as USDT/EURC/USDS/cbBTC before metadata fallback.");
-}
-
 if (!walletAssetsSource.includes("formatUnknownWalletAssetLabel")) {
   failures.push("Wallet public assets must format unknown SPL tokens with a clear unknown-token label.");
 }
@@ -30,6 +26,10 @@ if (!walletAssetsSource.includes("isShieldableSplTokenAmount")) {
   failures.push("Wallet public assets must filter shield source options through an explicit shieldable SPL token predicate.");
 }
 
+if (!walletAssetsSource.includes("isKnownDirectShieldMint")) {
+  failures.push("Wallet public assets must keep Shield source options limited to direct shield-family assets such as BONK.");
+}
+
 if (!walletAssetsSource.includes("readTokenUiAmount")) {
   failures.push("Wallet public assets must read uiAmountString when RPC returns uiAmount as null for large token balances.");
 }
@@ -40,6 +40,18 @@ if (!walletAssetsSource.includes("tokenAmount.uiAmountString")) {
 
 if (!walletAssetsSource.includes("Promise.allSettled")) {
   failures.push("Wallet public assets must tolerate partial RPC failure between SPL Token and Token-2022 account scans.");
+}
+
+if (!walletAssetsSource.includes("recoverKnownShieldableTokenAccounts")) {
+  failures.push("Wallet public assets must run a targeted ATA recovery pass for known shieldable assets such as BONK.");
+}
+
+if (!walletAssetsSource.includes("getAssociatedTokenAddressSync")) {
+  failures.push("Wallet public assets must derive known shieldable token ATAs when broad wallet token scans miss a claimed asset.");
+}
+
+if (!walletAssetsSource.includes("getParsedAccountInfo")) {
+  failures.push("Wallet public assets must read targeted known shieldable token accounts directly after the broad wallet scan.");
 }
 
 if (!walletAssetsSource.includes("assets.length === 0 ? args.solBalanceError")) {

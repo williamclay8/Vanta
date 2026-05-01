@@ -56,41 +56,18 @@ const directShieldAssets = [
   },
 ];
 
-const routeableInputAssets = [
-  {
-    decimals: 6,
-    mintAddress: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
-    symbol: "USDT",
-  },
-  {
-    decimals: 6,
-    mintAddress: "HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr",
-    symbol: "EURC",
-  },
-  {
-    decimals: 6,
-    mintAddress: "USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA",
-    symbol: "USDS",
-  },
-  {
-    decimals: 8,
-    mintAddress: "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij",
-    symbol: "CBBTC",
-  },
-];
-
 const jsBundle = readDistJavascript();
 
 assertBundleContains("mainnet vault owner", mainnetVaultOwner);
 assertBundleContains("mainnet RPC fallback", "https://api.mainnet-beta.solana.com");
 assertBundleContains("mainnet cluster", "mainnet-beta");
 
-for (const asset of [...directShieldAssets, ...routeableInputAssets]) {
+for (const asset of directShieldAssets) {
   assertBundleContains(`${asset.symbol} mint`, asset.mintAddress);
 }
 
 const mintChecks = await Promise.all(
-  [...directShieldAssets, ...routeableInputAssets].map((asset) => checkMint(asset)),
+  directShieldAssets.map((asset) => checkMint(asset)),
 );
 
 for (const check of mintChecks) {

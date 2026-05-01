@@ -62,8 +62,8 @@ for (const symbol of routeablePublicInputAssets) {
   );
 }
 assert.ok(
-  walletAssets.includes("listPublicRouteInputAssets"),
-  "Wallet labels must recognize routeable public Shield inputs before metadata fallback.",
+  walletAssets.includes("isKnownDirectShieldMint"),
+  "Shield source options must stay limited to direct shield-family mints rather than arbitrary route inputs.",
 );
 assert.ok(
   shieldRegistry.includes("configuredEntries: entries.filter((entry) => entry.asset.executable)"),
