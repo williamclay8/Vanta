@@ -315,6 +315,7 @@ function runSendCopyTruthProbe() {
 
         return {
           hasAdapterBacklogCopy: /private send adapter/i.test(text),
+          hasSendOperatorEndpointBlocker: text.includes("Configure the private-core operator endpoint before this send proof can execute."),
           hasSupportedLaneCopy: text.includes("Private send") || text.includes("private-send lane"),
           path: location.pathname,
         };
@@ -322,7 +323,12 @@ function runSendCopyTruthProbe() {
       ]),
     );
 
-    if (result.path !== "/app/send" || result.hasAdapterBacklogCopy || !result.hasSupportedLaneCopy) {
+    if (
+      result.path !== "/app/send" ||
+      result.hasAdapterBacklogCopy ||
+      result.hasSendOperatorEndpointBlocker ||
+      !result.hasSupportedLaneCopy
+    ) {
       throw new Error(`Send copy truth probe failed: ${JSON.stringify(result)}`);
     }
   } catch (error) {

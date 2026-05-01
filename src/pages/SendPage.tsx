@@ -638,7 +638,6 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     selectedAsset === "USDC" &&
     selectedSendCapability.executionMode === "operator-usdc-send" &&
     selectedSendCapability.status === "live" &&
-    liveShieldAsset.unshieldConfigured &&
     privateCoreSendPreview?.boundary.readiness === "ready";
 
   const recentShieldLabel =
@@ -1081,8 +1080,6 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       : selectedSendCapability.executionMode === "unsupported-private-send-asset"
         ? selectedSendCapability.blockers[0] ??
           "Private send currently supports shielded USDC."
-      : !liveShieldAsset.unshieldConfigured
-        ? "Configure the private-core operator endpoint before this send proof can execute."
       : isPrivateCoreUsdcSendReady
       ? "Ready to verify a private-core send transition."
       : !selectedSpendableNote

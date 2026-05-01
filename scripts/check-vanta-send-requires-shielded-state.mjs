@@ -21,6 +21,7 @@ const forbiddenMarkers = [
   "coming soon",
   "Coming soon",
   "disabled={disabled}",
+  "Configure the private-core operator endpoint before this send proof can execute.",
 ];
 
 const requiredPageMarkers = [
@@ -63,6 +64,12 @@ for (const marker of forbiddenMarkers) {
   if (sendPageSource.includes(marker)) {
     failures.push(`Send page must not contain auto-shield marker: ${marker}`);
   }
+}
+
+if (sendPageSource.includes("liveShieldAsset.unshieldConfigured")) {
+  failures.push(
+    "Send page must not gate private-core send proof readiness on the unshield operator endpoint.",
+  );
 }
 
 for (const marker of requiredPageMarkers) {
