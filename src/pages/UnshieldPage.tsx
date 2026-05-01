@@ -3023,7 +3023,7 @@ export function UnshieldPage() {
                 )}
               </details>
               <div className="status-actions">
-                <Link className="button button-primary" to="/app">
+                <Link className="button button-primary" to="/app/shield">
                   Back to Home
                 </Link>
                 <Link className="button button-ghost" to="/app/swap">

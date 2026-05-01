@@ -114,7 +114,7 @@ function App() {
           <Route path="*" element={<Navigate to="/docs" replace />} />
         </Route>
         <Route path="/app" element={<ProductAppRoot />}>
-          <Route index element={<AppDashboardPage />} />
+          <Route index element={<Navigate to="/app/shield" replace />} />
           <Route path="dashboard" element={<AppDashboardPage />} />
           <Route path="shield" element={<ShieldPage />} />
           <Route path="send" element={<SendPage />} />

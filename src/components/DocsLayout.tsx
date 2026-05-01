@@ -38,7 +38,7 @@ export function DocsLayout() {
           </nav>
           <div className="docs-shell__actions" data-docs-header-cta>
             <NavLink
-              to="/app/send"
+              to="/app/shield"
               className="docs-shell__app-cta"
               data-docs-open-app-cta
             >

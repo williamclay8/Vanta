@@ -26,7 +26,7 @@ export function TopNav() {
       </nav>
 
       <div className="nav-actions">
-        <NavLink className="button button-ghost" to="/app">
+        <NavLink className="button button-ghost" to="/app/shield">
           Open app
         </NavLink>
       </div>

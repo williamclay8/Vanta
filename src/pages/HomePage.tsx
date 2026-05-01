@@ -68,7 +68,7 @@ export function HomePage() {
           <a href="https://x.com/vantaprivacy" target="_blank" rel="noreferrer">
             X
           </a>
-          <Link className="landing-nav__cta" to="/app">
+          <Link className="landing-nav__cta" to="/app/shield">
             Open App
           </Link>
         </div>
@@ -86,7 +86,7 @@ export function HomePage() {
         </p>
 
         <div className="landing-minimal__actions">
-          <Link className="landing-btn landing-btn--primary" to="/app">
+          <Link className="landing-btn landing-btn--primary" to="/app/shield">
             Enter App
           </Link>
           <a className="landing-btn landing-btn--ghost" href="#what">
