@@ -174,7 +174,7 @@ export function ShieldPage(_props: ShieldPageProps) {
   const executableShieldTargets = useMemo(
     () =>
       shieldRegistry.configuredEntries.filter(
-        (entry) => entry.asset.configured && entry.asset.mintAddress,
+        (entry) => entry.asset.executable,
       ),
     [shieldRegistry.configuredEntries],
   );

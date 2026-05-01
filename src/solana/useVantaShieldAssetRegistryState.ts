@@ -161,7 +161,7 @@ export function useVantaShieldAssetRegistryState() {
 
     return {
       byAssetKey,
-      configuredEntries: entries.filter((entry) => entry.asset.configured && entry.asset.mintAddress),
+      configuredEntries: entries.filter((entry) => entry.asset.executable),
       entries,
       orderedAssetKeys: ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS,
     };

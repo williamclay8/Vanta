@@ -5,7 +5,10 @@ export type VantaSolanaCluster = "devnet" | "mainnet-beta";
 export type VantaSolanaClusterLabel = "Devnet" | "Mainnet";
 
 const configuredSolanaCluster = getOptionalEnvValue(import.meta.env.VITE_SOLANA_CLUSTER);
-const isMainnetCluster = configuredSolanaCluster === "mainnet-beta";
+const effectiveSolanaCluster = import.meta.env.PROD
+  ? "mainnet-beta"
+  : configuredSolanaCluster ?? "devnet";
+const isMainnetCluster = effectiveSolanaCluster === "mainnet-beta";
 export const vantaSolanaCluster: VantaSolanaCluster = isMainnetCluster ? "mainnet-beta" : "devnet";
 export const vantaSolanaClusterLabel: VantaSolanaClusterLabel = isMainnetCluster ? "Mainnet" : "Devnet";
 export const vantaExplicitMainnetApproval = isMainnetCluster;
@@ -19,6 +22,9 @@ const MAINNET_RECOGNIZED_MINTS = {
   USDC: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
   WIF: "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
 } as const;
+
+export const MAINNET_SHIELD_VAULT_OWNER_FALLBACK =
+  "7yUfwUmZMYLg95xJGR762z4WpqfR6hBRqt9mcgNArtdi";
 
 function getOptionalEnvValue(value: string | undefined) {
   const trimmed = value?.trim();
@@ -80,7 +86,7 @@ const configuredVaultOwner = getOptionalEnvValue(
   isMainnetCluster
     ? import.meta.env.VITE_VANTA_MAINNET_VAULT_OWNER
     : import.meta.env.VITE_VANTA_DEVNET_VAULT_OWNER,
-);
+) ?? (isMainnetCluster ? MAINNET_SHIELD_VAULT_OWNER_FALLBACK : null);
 const configuredVaultDerivationProgramId = getOptionalEnvValue(
   import.meta.env.VITE_VANTA_VAULT_DERIVATION_PROGRAM_ID,
 );
