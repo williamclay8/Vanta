@@ -3,6 +3,7 @@ import {
   type SolanaClient,
   type TransactionInstructionInput,
 } from "@solana/client";
+import { Connection } from "@solana/web3.js";
 import { xchacha20poly1305 } from "@noble/ciphers/chacha.js";
 import { sha256 } from "@noble/hashes/sha256";
 import { utf8ToBytes } from "@noble/hashes/utils";
@@ -33,9 +34,27 @@ const VANTA_SHIELD_MEMO_VERSION_BYTE = 0x01;
 const VANTA_SPENT_MARKER_MEMO_PREFIX = "vanta:spent-marker:v1:";
 export const VANTA_NATIVE_SOL_ASSET_ID =
   "So11111111111111111111111111111111111111112";
+const shieldStateRpcEndpoint =
+  (import.meta as ImportMeta & {
+    env?: {
+      PROD?: boolean;
+      VITE_SOLANA_CLUSTER?: string;
+      VITE_SOLANA_RPC_URL?: string;
+    };
+  }).env?.VITE_SOLANA_RPC_URL ??
+  (((import.meta as ImportMeta & { env?: { PROD?: boolean; VITE_SOLANA_CLUSTER?: string } }).env?.PROD ||
+    (import.meta as ImportMeta & { env?: { VITE_SOLANA_CLUSTER?: string } }).env?.VITE_SOLANA_CLUSTER ===
+      "mainnet-beta")
+    ? "https://api.mainnet-beta.solana.com"
+    : "https://api.devnet.solana.com");
 
 type ShieldMemoEncryptionOptions = {
   viewingPublicKey?: string | null;
+};
+
+type SignatureMemoEntry = {
+  memo: string | null;
+  signature: string;
 };
 
 type ShieldMemoDecryptionOptions = {
@@ -827,6 +846,113 @@ function amountsMatch(left: number, right: number) {
   return Math.abs(left - right) <= 0.000001;
 }
 
+async function fetchParsedTransactionsOneAtATime(
+  connection: Connection,
+  signatures: readonly string[],
+) {
+  const transactions = [];
+
+  for (const signature of signatures) {
+    const [transaction] = await connection.getParsedTransactions([signature], {
+      commitment: "confirmed",
+      maxSupportedTransactionVersion: 0,
+    });
+
+    transactions.push(transaction);
+  }
+
+  return transactions;
+}
+
+function readParsedMemoText(instruction: unknown) {
+  if (!instruction || typeof instruction !== "object") {
+    return null;
+  }
+
+  const parsedInstruction = instruction as {
+    parsed?: unknown;
+    program?: unknown;
+    programId?: { toBase58?: () => string } | string;
+  };
+  const programId =
+    typeof parsedInstruction.programId === "string"
+      ? parsedInstruction.programId
+      : parsedInstruction.programId?.toBase58?.();
+  const isMemoInstruction =
+    parsedInstruction.program === "spl-memo" || programId === VANTA_SHIELD_MEMO_PROGRAM;
+
+  if (!isMemoInstruction) {
+    return null;
+  }
+
+  if (typeof parsedInstruction.parsed === "string") {
+    return parsedInstruction.parsed;
+  }
+
+  if (parsedInstruction.parsed && typeof parsedInstruction.parsed === "object") {
+    const parsed = parsedInstruction.parsed as { info?: unknown };
+
+    if (typeof parsed.info === "string") {
+      return parsed.info;
+    }
+  }
+
+  return null;
+}
+
+async function fetchSignatureMemoEntries(args: {
+  owner: string;
+  signatures: readonly { err: unknown; memo?: string | null; signature: unknown }[];
+}) {
+  const confirmedSignatures = args.signatures
+    .filter((item) => item.err === null)
+    .map((item) => ({
+      memo: typeof item.memo === "string" ? item.memo : null,
+      signature: String(item.signature),
+    }));
+  const memoEntries = new Map<string, SignatureMemoEntry>();
+
+  for (const entry of confirmedSignatures) {
+    if (entry.memo) {
+      memoEntries.set(`${entry.signature}:${entry.memo}`, entry);
+    }
+  }
+
+  if (confirmedSignatures.length === 0) {
+    return [];
+  }
+
+  try {
+    const connection = new Connection(shieldStateRpcEndpoint, "confirmed");
+    const transactions = await fetchParsedTransactionsOneAtATime(
+      connection,
+      confirmedSignatures.map((entry) => entry.signature),
+    );
+
+    for (let index = 0; index < transactions.length; index += 1) {
+      const transaction = transactions[index];
+      const signature = confirmedSignatures[index]?.signature;
+
+      if (!transaction || !signature) {
+        continue;
+      }
+
+      for (const instruction of transaction.transaction.message.instructions) {
+        const memo = readParsedMemoText(instruction);
+
+        if (memo) {
+          memoEntries.set(`${signature}:${memo}`, { memo, signature });
+        }
+      }
+    }
+  } catch {
+    // Some public RPCs reject parsed transaction history calls. The signature
+    // summary memo field above is still used when available.
+  }
+
+  return [...memoEntries.values()];
+}
+
 export function createShieldMemoInstruction(
   payload: Omit<ShieldMemoPayload, "kind" | "noteId">,
   options: ShieldMemoEncryptionOptions = {},
@@ -1550,10 +1676,13 @@ export async function fetchVantaShieldAccountState(args: {
       limit: 100,
     })
     .send({ abortSignal: AbortSignal.timeout(20_000) });
+  const signatureMemoEntries = await fetchSignatureMemoEntries({
+    owner: args.owner,
+    signatures,
+  });
 
-  const depositShieldNotes = signatures
-    .filter((item: (typeof signatures)[number]) => item.err === null)
-    .map((item: (typeof signatures)[number]) =>
+  const depositShieldNotes = signatureMemoEntries
+    .map((item) =>
       parseShieldMemo(item.memo, item.signature.toString(), args.owner, {
         viewingSecretKey: args.viewingSecretKey,
       }),
@@ -1567,9 +1696,8 @@ export async function fetchVantaShieldAccountState(args: {
       );
     })
     .sort((left, right) => left.createdAt - right.createdAt);
-  const directShieldedSolNotes = signatures
-    .filter((item: (typeof signatures)[number]) => item.err === null)
-    .map((item: (typeof signatures)[number]) =>
+  const directShieldedSolNotes = signatureMemoEntries
+    .map((item) =>
       parseNativeSolShieldMemo(item.memo, item.signature.toString(), args.owner, {
         viewingSecretKey: args.viewingSecretKey,
       }),
@@ -1588,9 +1716,8 @@ export async function fetchVantaShieldAccountState(args: {
   const consumedNoteIds = new Set<string>();
   const changeNotesByParentSend = new Map<string, VantaShieldNote>();
 
-  const parsedSendNotes = signatures
-    .filter((item: (typeof signatures)[number]) => item.err === null)
-    .map((item: (typeof signatures)[number]) =>
+  const parsedSendNotes = signatureMemoEntries
+    .map((item) =>
       parseSendMemo(item.memo, item.signature.toString()),
     )
     .filter((note): note is NonNullable<typeof note> => {
@@ -1603,9 +1730,8 @@ export async function fetchVantaShieldAccountState(args: {
     })
     .sort((left, right) => left.createdAt - right.createdAt);
 
-  const parsedUnshieldNotes = signatures
-    .filter((item: (typeof signatures)[number]) => item.err === null)
-    .map((item: (typeof signatures)[number]) =>
+  const parsedUnshieldNotes = signatureMemoEntries
+    .map((item) =>
       parseUnshieldMemo(item.memo, item.signature.toString()),
     )
     .filter((note): note is NonNullable<typeof note> => {
@@ -1618,9 +1744,8 @@ export async function fetchVantaShieldAccountState(args: {
     })
     .sort((left, right) => left.createdAt - right.createdAt);
 
-  const parsedSwapNotes = signatures
-    .filter((item: (typeof signatures)[number]) => item.err === null)
-    .map((item: (typeof signatures)[number]) =>
+  const parsedSwapNotes = signatureMemoEntries
+    .map((item) =>
       parseSwapMemo(item.memo, item.signature.toString()),
     )
     .filter((note): note is NonNullable<typeof note> => {
@@ -1632,9 +1757,8 @@ export async function fetchVantaShieldAccountState(args: {
     })
     .sort((left, right) => left.createdAt - right.createdAt);
 
-  const parsedSolUnshieldNotes = signatures
-    .filter((item: (typeof signatures)[number]) => item.err === null)
-    .map((item: (typeof signatures)[number]) =>
+  const parsedSolUnshieldNotes = signatureMemoEntries
+    .map((item) =>
       parseSolUnshieldMemo(item.memo, item.signature.toString()),
     )
     .filter((note): note is NonNullable<typeof note> => {
@@ -1806,9 +1930,8 @@ export async function fetchVantaShieldAccountState(args: {
     candidateSolUnshieldNotes.map((note) => [note.noteId, note] as const),
   );
 
-  const explicitSpentMarkers = signatures
-    .filter((item: (typeof signatures)[number]) => item.err === null)
-    .map((item: (typeof signatures)[number]) =>
+  const explicitSpentMarkers = signatureMemoEntries
+    .map((item) =>
       parseSpentMarkerMemo(item.memo, item.signature.toString()),
     )
     .filter((marker: VantaSpentMarker | null): marker is VantaSpentMarker => {

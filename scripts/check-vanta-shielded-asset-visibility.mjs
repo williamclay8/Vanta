@@ -9,6 +9,7 @@ function readRepoFile(path) {
 }
 
 const registrySource = readRepoFile("src/solana/useVantaShieldAssetRegistryState.ts");
+const shieldStateSource = readRepoFile("src/solana/vantaShieldState.ts");
 const unshieldPageSource = readRepoFile("src/pages/UnshieldPage.tsx");
 const sendCapabilitySource = readRepoFile("src/solana/shieldedSendCapability.ts");
 const swapCapabilitySource = readRepoFile("src/solana/shieldedSwapCapability.ts");
@@ -38,6 +39,19 @@ for (const marker of [
   assert.ok(
     registrySource.includes(marker),
     `Shield asset registry must preserve optimistic recent-token visibility marker: ${marker}.`,
+  );
+}
+
+for (const marker of [
+  "fetchSignatureMemoEntries",
+  "fetchParsedTransactionsOneAtATime",
+  "readParsedMemoText",
+  "getParsedTransactions([signature]",
+  "signatureMemoEntries",
+]) {
+  assert.ok(
+    shieldStateSource.includes(marker),
+    `Shield state recovery must parse Memo instructions when signature summaries omit memo text: ${marker}.`,
   );
 }
 
