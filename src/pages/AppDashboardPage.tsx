@@ -22,6 +22,20 @@ function formatUsdcAmount(value: number) {
   })} USDC`;
 }
 
+function formatShieldedTokenPosition(value: number, symbol: string) {
+  if (symbol === "USDC") {
+    return formatUsdcAmount(value);
+  }
+
+  if (value > 0 && value < 0.00001) {
+    return `<0.00001 ${symbol}`;
+  }
+
+  return `${value.toLocaleString(undefined, {
+    maximumFractionDigits: 5,
+  })} ${symbol}`;
+}
+
 export function AppDashboardPage() {
   const positionSummary = useVantaPositionSummary();
   const {
@@ -31,6 +45,13 @@ export function AppDashboardPage() {
   } = usePrivacyFlow();
 
   const shieldedBalance = positionSummary.shieldedBalance;
+  const shieldedTokenPositions = positionSummary.shieldedTokenPositions;
+  const primaryShieldedTokenPosition =
+    shieldedTokenPositions[0] ?? {
+      balance: shieldedBalance,
+      noteCount: positionSummary.spendableNoteCount,
+      symbol: positionSummary.liveAsset,
+    };
   const recentShieldedSolBalance =
     recentShield?.asset === "SOL" ? recentShield.resultingShieldedBalance : 0;
   const shieldedSolBalance = Math.max(
@@ -240,8 +261,23 @@ export function AppDashboardPage() {
       <div className="dashboard-readiness-row">
         <div className="dashboard-focus-card__stats" aria-label="Current local state">
           <article>
-            <span>Shielded USDC</span>
-            <strong>{isValueUnavailable ? "Unavailable" : formatUsdcAmount(shieldedBalance)}</strong>
+            <span>Shielded {primaryShieldedTokenPosition.symbol}</span>
+            <strong>
+              {isValueUnavailable
+                ? "Unavailable"
+                : formatShieldedTokenPosition(
+                    primaryShieldedTokenPosition.balance,
+                    primaryShieldedTokenPosition.symbol,
+                  )}
+            </strong>
+            {shieldedTokenPositions.length > 1 && (
+              <small>
+                {shieldedTokenPositions
+                  .slice(1)
+                  .map((position) => formatShieldedTokenPosition(position.balance, position.symbol))
+                  .join(" · ")}
+              </small>
+            )}
           </article>
           <article>
             <span>Shielded SOL available</span>

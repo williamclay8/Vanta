@@ -28,6 +28,7 @@ import {
 import { createShieldAssetCapability } from "@/solana/shieldAssetCapability";
 import {
   type LiveShieldTokenAssetKey,
+  type LiveShieldTokenAssetConfig,
   vantaExplicitMainnetApproval,
   vantaSolanaCluster,
 } from "@/solana/shieldConfig";
@@ -163,6 +164,7 @@ export function ShieldPage(_props: ShieldPageProps) {
   const [pendingShieldAmountDisplay, setPendingShieldAmountDisplay] = useState<string | null>(null);
   const [pendingDepositSignature, setPendingDepositSignature] = useState<string | null>(null);
   const [pendingShieldAsset, setPendingShieldAsset] = useState<LiveShieldTokenAssetKey | "SOL" | null>(null);
+  const [pendingShieldTarget, setPendingShieldTarget] = useState<LiveShieldTokenAssetConfig | null>(null);
   const [pendingPublicRoute, setPendingPublicRoute] = useState<PendingPublicRoute | null>(null);
   const [pendingProtocolSettlement, setPendingProtocolSettlement] =
     useState<PendingShieldProtocolSettlement | null>(null);
@@ -434,6 +436,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     setPendingShieldAmountDisplay(amountDisplay);
     setPendingDepositSignature(null);
     setPendingShieldAsset(selectedShieldAsset.assetKey);
+    setPendingShieldTarget(selectedShieldAsset);
     setPendingProtocolSettlement({ capability, routeEvidence });
     const approvalIssuedAt = Date.now();
     setPendingUmbraApprovalDisplay(
@@ -485,6 +488,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     setPendingShieldAmountDisplay(amountDisplay);
     setPendingDepositSignature(null);
     setPendingShieldAsset("SOL");
+    setPendingShieldTarget(selectedShieldAsset);
     setPendingNativeSolDepositRecovery(false);
     setPendingProtocolSettlement({ capability, routeEvidence: null });
     const approvalIssuedAt = Date.now();
@@ -546,6 +550,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     setPendingShieldAmountDisplay(deposit.amountDisplay);
     setPendingDepositSignature(deposit.signature);
     setPendingShieldAsset("SOL");
+    setPendingShieldTarget(selectedShieldAsset);
     setPendingNativeSolDepositRecovery(true);
     setPendingProtocolSettlement({ capability, routeEvidence: null });
     recordRecoveredNativeSolShieldNote({
@@ -582,6 +587,7 @@ export function ShieldPage(_props: ShieldPageProps) {
       setPendingShieldAmountDisplay(null);
       setPendingDepositSignature(null);
       setPendingShieldAsset(null);
+      setPendingShieldTarget(null);
       setPendingNativeSolDepositRecovery(false);
       setPendingPublicRoute(null);
       setPendingUmbraApprovalDisplay(null);
@@ -613,6 +619,7 @@ export function ShieldPage(_props: ShieldPageProps) {
       setPendingShieldAmountDisplay(null);
       setPendingDepositSignature(null);
       setPendingShieldAsset(null);
+      setPendingShieldTarget(null);
       setPendingNativeSolDepositRecovery(false);
       setPendingPublicRoute(null);
       setPendingUmbraApprovalDisplay(null);
@@ -742,6 +749,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     setPendingShieldAmountDisplay(null);
     setPendingDepositSignature(null);
     setPendingShieldAsset(null);
+    setPendingShieldTarget(null);
     setPendingNativeSolDepositRecovery(false);
     setPendingProtocolSettlement(null);
     setPendingUmbraApprovalDisplay(null);
@@ -763,6 +771,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     setPendingShieldAmountDisplay(null);
     setPendingDepositSignature(null);
     setPendingShieldAsset(null);
+    setPendingShieldTarget(null);
     setPendingNativeSolDepositRecovery(false);
     setFlowError(
       toErrorMessage(
@@ -778,15 +787,16 @@ export function ShieldPage(_props: ShieldPageProps) {
     }
 
     const depositConfirmed = isConfirmedSignatureStage(splShieldTransferWait.stage);
+    const activeShieldTarget = pendingShieldTarget ?? selectedShieldAsset;
 
     if (
       pendingShieldAsset === "SOL" ||
       !depositConfirmed ||
       pendingShieldAmount === null ||
       !pendingDepositSignature ||
-      !selectedShieldAsset?.vaultOwner ||
+      !activeShieldTarget?.vaultOwner ||
       !viewingKey?.publicKey ||
-      !selectedShieldAsset?.mintAddress ||
+      !activeShieldTarget?.mintAddress ||
       !walletAddress
     ) {
       return;
@@ -796,9 +806,9 @@ export function ShieldPage(_props: ShieldPageProps) {
       return;
     }
 
-    const mintAddress = selectedShieldAsset.mintAddress;
+    const mintAddress = activeShieldTarget.mintAddress;
     const owner = walletAddress;
-    const vaultOwner = selectedShieldAsset.vaultOwner;
+    const vaultOwner = activeShieldTarget.vaultOwner;
 
     void buildHeliusPriorityFeeInstructions({
       accountKeys: [mintAddress, owner, pendingDepositSignature, vaultOwner],
@@ -810,7 +820,7 @@ export function ShieldPage(_props: ShieldPageProps) {
           createShieldMemoInstruction(
             {
               amount: pendingShieldAmountDisplay ?? amount,
-              asset: selectedShieldAsset.assetKey,
+              asset: activeShieldTarget.assetKey,
               createdAt: Date.now(),
               depositSignature: pendingDepositSignature,
               mintAddress,
@@ -823,7 +833,7 @@ export function ShieldPage(_props: ShieldPageProps) {
 
         return stateTransaction.send({
           amount: pendingShieldAmountDisplay ?? amount,
-          asset: selectedShieldAsset.assetKey,
+          asset: activeShieldTarget.assetKey,
           cluster: vantaSolanaCluster,
           explicitMainnetApproval: vantaExplicitMainnetApproval,
           connectedWalletAddress: walletAddress,
@@ -843,6 +853,7 @@ export function ShieldPage(_props: ShieldPageProps) {
         setPendingShieldAmountDisplay(null);
         setPendingDepositSignature(null);
         setPendingShieldAsset(null);
+        setPendingShieldTarget(null);
         setPendingNativeSolDepositRecovery(false);
         setPendingUmbraApprovalDisplay(null);
         setFlowError(
@@ -857,6 +868,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     pendingShieldAmountDisplay,
     pendingNativeSolDepositRecovery,
     nativeSolShieldWait.waitStatus,
+    pendingShieldTarget,
     selectedShieldAsset,
     splShieldTransferWait.stage,
     stateTransaction,
@@ -877,6 +889,15 @@ export function ShieldPage(_props: ShieldPageProps) {
         : pendingShieldAsset === "SOL"
           ? isConfirmedSignatureStage(nativeSolShieldWait.stage)
           : isConfirmedSignatureStage(stateSignatureWait.stage);
+    const activeShieldTarget = pendingShieldTarget ?? selectedShieldAsset;
+    const activeShieldEntry =
+      activeShieldTarget && pendingShieldAsset !== "SOL"
+        ? shieldRegistry.byAssetKey[activeShieldTarget.assetKey]
+        : null;
+    const activeShieldedBalance =
+      pendingShieldAsset === "SOL"
+        ? targetShieldedBalance
+        : activeShieldEntry?.account?.balance ?? targetShieldedBalance;
 
     if (
       !stateRecorded ||
@@ -884,8 +905,8 @@ export function ShieldPage(_props: ShieldPageProps) {
       recordedStateSignatureRef.current === activeStateSignature ||
       pendingShieldAmount === null ||
       !pendingShieldAmountDisplay ||
-      !selectedShieldAsset?.vaultOwner ||
-      (pendingShieldAsset !== "SOL" && !selectedShieldAsset?.mintAddress) ||
+      !activeShieldTarget?.vaultOwner ||
+      (pendingShieldAsset !== "SOL" && !activeShieldTarget?.mintAddress) ||
       (pendingShieldAsset !== "SOL" && !walletAddress)
     ) {
       return;
@@ -905,14 +926,14 @@ export function ShieldPage(_props: ShieldPageProps) {
             : await recordCanonicalShieldFromLiveShield({
                 amountDisplay: pendingShieldAmountDisplay,
                 amountNumeric: pendingShieldAmount,
-                assetSymbol: selectedShieldAsset.assetKey,
+                assetSymbol: activeShieldTarget.assetKey,
                 createdAt: Date.now(),
                 depositSignature: pendingDepositSignature ?? undefined,
-                mintAddress: selectedShieldAsset.mintAddress!,
+                mintAddress: activeShieldTarget.mintAddress!,
                 owner: walletAddress!,
                 stateSignature: activeStateSignature,
-                tokenDecimals: readTokenDecimals(supportedToken?.balance) ?? selectedShieldAsset.decimals,
-                vaultOwner: selectedShieldAsset.vaultOwner!,
+                tokenDecimals: activeShieldTarget.decimals,
+                vaultOwner: activeShieldTarget.vaultOwner!,
               });
 
         const privateCoreShield =
@@ -922,10 +943,12 @@ export function ShieldPage(_props: ShieldPageProps) {
                 asset: "USDC",
               })
             : null;
-        const nextBalance = Number((targetShieldedBalance + pendingShieldAmount).toFixed(6));
+        const nextBalance = Number(
+          (activeShieldedBalance + pendingShieldAmount).toFixed(activeShieldTarget.decimals),
+        );
         const recentShieldContext = {
           amount: pendingShieldAmount,
-          asset: pendingShieldAsset ?? selectedShieldAsset.assetKey,
+          asset: pendingShieldAsset ?? activeShieldTarget.assetKey,
           depositSignature: pendingDepositSignature ?? undefined,
           resultingShieldedBalance: nextBalance,
           settlement: "confirmed_deposit" as const,
@@ -965,7 +988,7 @@ export function ShieldPage(_props: ShieldPageProps) {
             settlementId: activeStateSignature,
             shieldCapability: pendingProtocolSettlement.capability,
             sourceAsset: pendingProtocolSettlement.capability.sourceAsset.symbol,
-            vaultOwner: selectedShieldAsset.vaultOwner!,
+            vaultOwner: activeShieldTarget.vaultOwner!,
           });
 
           try {
@@ -1026,6 +1049,7 @@ export function ShieldPage(_props: ShieldPageProps) {
         setPendingShieldAmountDisplay(null);
         setPendingDepositSignature(null);
         setPendingShieldAsset(null);
+        setPendingShieldTarget(null);
         setPendingNativeSolDepositRecovery(false);
         setPendingProtocolSettlement(null);
         setPendingUmbraApprovalDisplay(null);
@@ -1038,6 +1062,7 @@ export function ShieldPage(_props: ShieldPageProps) {
         setPendingShieldAmountDisplay(null);
         setPendingDepositSignature(null);
         setPendingShieldAsset(null);
+        setPendingShieldTarget(null);
         setPendingNativeSolDepositRecovery(false);
         setPendingProtocolSettlement(null);
         setPendingUmbraApprovalDisplay(null);
@@ -1055,12 +1080,14 @@ export function ShieldPage(_props: ShieldPageProps) {
     pendingShieldAmount,
     pendingShieldAmountDisplay,
     pendingProtocolSettlement,
+    pendingShieldTarget,
     nativeSolShieldTransaction.signature,
     nativeSolShieldWait.stage,
     refreshShieldState,
     runPrivateCoreShield,
     selectedShieldAsset,
     setRecentShield,
+    shieldRegistry.byAssetKey,
     stateSignatureWait.stage,
     stateTransaction.signature,
     supportedToken,
@@ -1095,6 +1122,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     setPendingShieldAmountDisplay(null);
     setPendingDepositSignature(null);
     setPendingShieldAsset(null);
+    setPendingShieldTarget(null);
     setPendingNativeSolDepositRecovery(false);
     setPendingUmbraApprovalDisplay(null);
 
@@ -1149,6 +1177,7 @@ export function ShieldPage(_props: ShieldPageProps) {
       setPendingShieldAmountDisplay(null);
       setPendingDepositSignature(null);
       setPendingShieldAsset(null);
+      setPendingShieldTarget(null);
       setPendingNativeSolDepositRecovery(false);
       setPendingUmbraApprovalDisplay(null);
     }

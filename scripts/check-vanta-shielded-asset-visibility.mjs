@@ -50,13 +50,28 @@ for (const marker of [
   "...recentShieldContext",
   "const owner = walletAddress",
   "owner: walletAddress!",
-  "readTokenDecimals(supportedToken?.balance) ?? selectedShieldAsset.decimals",
+  "pendingShieldTarget",
+  "const activeShieldTarget = pendingShieldTarget ?? selectedShieldAsset",
+  "tokenDecimals: activeShieldTarget.decimals",
   "isConfirmedSignatureStage(splShieldTransferWait.stage)",
   "isConfirmedSignatureStage(stateSignatureWait.stage)",
 ]) {
   assert.ok(
     shieldPageSource.includes(marker),
     `Shield completion must commit recent shielded balance before optional receipt checks: ${marker}.`,
+  );
+}
+
+for (const marker of [
+  "setPendingShieldTarget(selectedShieldAsset)",
+  "asset: activeShieldTarget.assetKey",
+  "mintAddress: activeShieldTarget.mintAddress!",
+  "vaultOwner: activeShieldTarget.vaultOwner!",
+  "asset: pendingShieldAsset ?? activeShieldTarget.assetKey",
+]) {
+  assert.ok(
+    shieldPageSource.includes(marker),
+    `Shield completion must preserve the target asset selected at approval time: ${marker}.`,
   );
 }
 
@@ -116,6 +131,28 @@ for (const marker of [
   assert.ok(
     unshieldPageSource.includes(marker),
     `Unshield must preserve all shield-family visibility marker: ${marker}.`,
+  );
+}
+
+const dashboardSummarySource = readRepoFile("src/solana/useVantaPositionSummary.ts");
+const dashboardSource = readRepoFile("src/pages/AppDashboardPage.tsx");
+for (const marker of [
+  "shieldedTokenPositions",
+  "shieldRegistry.entries",
+  "spendableShieldNotes.length",
+]) {
+  assert.ok(
+    dashboardSummarySource.includes(marker),
+    `Dashboard summary must aggregate non-primary shielded token positions: ${marker}.`,
+  );
+}
+for (const marker of [
+  "Shielded {primaryShieldedTokenPosition.symbol}",
+  "formatShieldedTokenPosition(position.balance, position.symbol)",
+]) {
+  assert.ok(
+    dashboardSource.includes(marker),
+    `Dashboard must render the active shielded token symbol instead of hard-coding USDC: ${marker}.`,
   );
 }
 

@@ -4,6 +4,12 @@ import { getPrimaryLiveShieldTokenAsset } from "@/solana/shieldConfig";
 import { useVantaShieldAssetRegistryState } from "@/solana/useVantaShieldAssetRegistryState";
 import type { VantaShieldedSolNote } from "@/solana/vantaShieldState";
 
+export type VantaShieldedTokenPosition = {
+  balance: number;
+  noteCount: number;
+  symbol: string;
+};
+
 export type VantaPositionSummary = {
   assetLabel: string;
   latestActionLabel: string;
@@ -16,6 +22,7 @@ export type VantaPositionSummary = {
   registryError: string | null;
   registryRefreshing: boolean;
   shieldedBalance: number;
+  shieldedTokenPositions: VantaShieldedTokenPosition[];
   shieldedSolBalance: number;
   spendableShieldedSolNoteCount: number;
   spendableNoteCount: number;
@@ -85,10 +92,23 @@ export function useVantaPositionSummary(): VantaPositionSummary {
     const registryError =
       primaryEntry.error ?? (shieldedSolEntry === primaryEntry ? null : shieldedSolEntry.error);
     const registryRefreshing = primaryEntry.isRefreshing || shieldedSolEntry.isRefreshing;
+    const shieldedTokenPositions = shieldRegistry.entries
+      .map((entry) => ({
+        balance: entry.account?.balance ?? 0,
+        noteCount: entry.account?.spendableShieldNotes.length ?? 0,
+        symbol: entry.asset.symbol,
+      }))
+      .filter((position) => position.balance > 0 || position.noteCount > 0);
     const shieldedBalance = account?.balance ?? 0;
-    const spendableNoteCount = account?.spendableShieldNotes.length ?? 0;
+    const spendableNoteCount = shieldedTokenPositions.reduce(
+      (sum, position) => sum + position.noteCount,
+      0,
+    );
     const totalActionableNoteCount = spendableNoteCount + spendableShieldedSolNoteCount;
-    const swapCount = account?.swapNotes.length ?? 0;
+    const swapCount = shieldRegistry.entries.reduce(
+      (sum, entry) => sum + (entry.account?.swapNotes.length ?? 0),
+      0,
+    );
     const latestActivity =
       shieldedSolBalance > 0
         ? (shieldedSolAccount?.lifecycleActivities[0] ?? account?.lifecycleActivities[0] ?? null)
@@ -102,7 +122,10 @@ export function useVantaPositionSummary(): VantaPositionSummary {
       statusLabel =
         "Shielded SOL output is now present inside Vanta and can use the constrained SOL unshield lane.";
     } else if (walletConnected && spendableNoteCount > 0) {
-      statusLabel = "Spendable shielded value is available for Send, Swap, or Unshield.";
+      const symbols = shieldedTokenPositions.map((position) => position.symbol).join(", ");
+      statusLabel = symbols
+        ? `Spendable shielded ${symbols} is available for Send, Swap, or Unshield.`
+        : "Spendable shielded value is available for Send, Swap, or Unshield.";
     } else if (walletConnected && shieldedBalance > 0) {
       statusLabel = `Shielded ${primaryAsset.symbol} is present, but no spendable note is currently available.`;
     } else if (walletConnected && publicBalance > 0) {
@@ -127,6 +150,7 @@ export function useVantaPositionSummary(): VantaPositionSummary {
       registryError,
       registryRefreshing,
       shieldedBalance,
+      shieldedTokenPositions,
       shieldedSolBalance,
       spendableShieldedSolNoteCount,
       spendableNoteCount,
