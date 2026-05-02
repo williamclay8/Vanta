@@ -144,6 +144,21 @@ for (const [sourceLabel, source, phrase] of [
   [
     "Unshield page",
     unshieldPageSource,
+    "selectedLane !== \"SOL\" && !selectedShieldAsset?.unshieldOperatorUrl",
+  ],
+  [
+    "Unshield page",
+    unshieldPageSource,
+    "selectedLane !== \"SOL\" && !selectedShieldAsset?.mintAddress",
+  ],
+  [
+    "Unshield page",
+    unshieldPageSource,
+    "selectedLane !== \"SOL\" && !selectedShieldAsset?.vaultOwner",
+  ],
+  [
+    "Unshield page",
+    unshieldPageSource,
     "Private note consumed; proof-backed operator release record recorded.",
   ],
   [

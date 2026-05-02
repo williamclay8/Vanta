@@ -1840,8 +1840,14 @@ export function UnshieldPage() {
     validationMessage =
       solUnshieldOperatorHealthError ??
       "The SOL unshield operator endpoint is configured but not ready for release.";
-  } else if (selectedLane !== "SOL" && !selectedShieldAsset?.unshieldConfigured) {
+  } else if (selectedLane !== "SOL" && !selectedShieldAsset?.unshieldOperatorUrl) {
     validationMessage = `Configure the ${selectedLane} unshield operator endpoint before this asset can exit.`;
+  } else if (selectedLane !== "SOL" && !selectedShieldAsset?.mintAddress) {
+    validationMessage = `${selectedLane} is not configured as a live unshield asset yet.`;
+  } else if (selectedLane !== "SOL" && !selectedShieldAsset?.vaultOwner) {
+    validationMessage = `Configure the ${selectedLane} vault owner before this asset can exit.`;
+  } else if (selectedLane !== "SOL" && !selectedShieldAsset?.unshieldConfigured) {
+    validationMessage = `${selectedLane} unshield is not ready for this wallet state yet.`;
   } else if (!walletSession?.signMessage) {
     validationMessage = "The connected wallet must support message signing to authorize Unshield.";
   } else if (selectedLane !== "SOL" && !selectedShieldNote) {
