@@ -2838,6 +2838,13 @@ input {
   padding: 0 12px;
 }
 
+.amount-field:focus-within,
+.send-asset-field:focus-within {
+  outline: 2px solid rgba(119, 242, 212, 0.62);
+  outline-offset: 3px;
+  border-color: rgba(119, 242, 212, 0.28);
+}
+
 .send-asset-field select {
   width: 100%;
   min-height: 54px;
