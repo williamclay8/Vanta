@@ -969,6 +969,42 @@ try {
     actualPrivateSpendProof.ok,
     actualPrivateSpendProof.text || "Expected actual-private spend proof response.",
   );
+  const noIndexerVerifierPort = basePort + 50;
+  const noIndexerVerifier = spawn("npm", ["run", "private-pool-v2:verifier", "--", "--port", String(noIndexerVerifierPort)], {
+    cwd: repoRoot,
+    env: serviceNetworkTestEnv({
+      VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN: authToken,
+      VANTA_PRIVATE_POOL_V2_VERIFIER_STORE_PATH: join(tempRoot, "verifier-no-indexer-state.json"),
+    }),
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  let noIndexerVerifierStderr = "";
+  noIndexerVerifier.stderr.on("data", (chunk) => {
+    noIndexerVerifierStderr += chunk.toString("utf8");
+  });
+  children.push({
+    child: noIndexerVerifier,
+    role: "verifier-no-indexer",
+    stderr: () => noIndexerVerifierStderr,
+  });
+  const noIndexerVerifierUrl = `http://127.0.0.1:${noIndexerVerifierPort}`;
+  await waitForHealth(noIndexerVerifierUrl);
+  const noIndexerActualPrivateSpendReceipt = await requestJson(
+    noIndexerVerifierUrl,
+    "/v1/proofs/accept",
+    {
+      body: JSON.stringify({
+        proof: actualPrivateSpendProof.parsed,
+        request: actualPrivateSpendRequest,
+      }),
+      headers: { Authorization: `Bearer ${authToken}` },
+      method: "POST",
+    },
+  );
+  assert(
+    !noIndexerActualPrivateSpendReceipt.ok,
+    "Expected actual-private spend verifier acceptance without indexer mirroring to fail closed.",
+  );
   const actualPrivateSpendReceipt = await requestJson(serviceUrls.get("verifier"), "/v1/proofs/accept", {
     body: JSON.stringify({
       proof: actualPrivateSpendProof.parsed,
