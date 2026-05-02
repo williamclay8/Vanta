@@ -33,6 +33,7 @@ for (const phrase of [
   "createWalletTransactionSigner",
   "attachWalletSignerToInstructionAccounts",
   "signer: walletSigner",
+  "authority: signedInstructions.walletSigner",
 ]) {
   assert.ok(source.includes(phrase), `Safe send hook missing required phrase: ${phrase}`);
 }

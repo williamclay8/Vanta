@@ -69,17 +69,20 @@ function attachWalletSignerToInstructionAccounts(
   const walletSigner = createWalletTransactionSigner(walletSession).signer;
   const walletAddress = walletSession.account.address.toString();
 
-  return instructions.map((instruction) => ({
-    ...instruction,
-    accounts: instruction.accounts?.map((account) =>
-      account.address.toString() === walletAddress && account.role >= 2
-        ? {
-            ...account,
-            signer: walletSigner,
-          }
-        : account,
-    ),
-  }));
+  return {
+    instructions: instructions.map((instruction) => ({
+      ...instruction,
+      accounts: instruction.accounts?.map((account) =>
+        account.address.toString() === walletAddress && account.role >= 2
+          ? {
+              ...account,
+              signer: walletSigner,
+            }
+          : account,
+      ),
+    })),
+    walletSigner,
+  };
 }
 
 export function useVantaSafeSendTransaction() {
@@ -94,14 +97,15 @@ export function useVantaSafeSendTransaction() {
           if (!walletSession) {
             throw new Error("Connect a wallet before preparing a Vanta transaction.");
           }
+          const signedInstructions = attachWalletSignerToInstructionAccounts(
+            request.instructions as readonly TransactionInstructionInput[],
+            walletSession,
+          );
 
           return (await client.transaction.prepare({
-            authority: walletSession,
+            authority: signedInstructions.walletSigner,
             feePayer: request.feePayer,
-            instructions: attachWalletSignerToInstructionAccounts(
-              request.instructions as readonly TransactionInstructionInput[],
-              walletSession,
-            ),
+            instructions: signedInstructions.instructions,
           })) as unknown as VantaWalletSafeSendPrepared;
         },
         sendPrepared: async (prepared) =>
