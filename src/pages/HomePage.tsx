@@ -68,14 +68,14 @@ export function HomePage() {
           <a href="https://x.com/vantaprivacy" target="_blank" rel="noreferrer">
             X
           </a>
-          <Link className="landing-nav__cta" to="/app/shield">
+          <Link className="landing-nav__cta" to="/app">
             Open App
           </Link>
         </div>
       </nav>
 
       <section className="landing-minimal__hero">
-        <div className="landing-minimal__kicker">Shield-first Solana privacy</div>
+        <div className="landing-minimal__kicker">Shield-first supported settlement privacy</div>
         <h1>
           Make supported Solana activity
           <span> less public.</span>
@@ -86,7 +86,7 @@ export function HomePage() {
         </p>
 
         <div className="landing-minimal__actions">
-          <Link className="landing-btn landing-btn--primary" to="/app/shield">
+          <Link className="landing-btn landing-btn--primary" to="/app">
             Enter App
           </Link>
           <a className="landing-btn landing-btn--ghost" href="#what">
