@@ -53,6 +53,17 @@ export type VantaPrivatePoolV2LocalVerifierRegistryArgs = {
       nullifier: { nullifier: string; spentAtSlot: bigint | null };
       outputCommitment: VantaPrivatePoolV2Commitment;
     }>;
+    applyActualPrivateSpendTransition?: (args: {
+      acceptedRoot: string;
+      assetCohort: string;
+      nullifier: string;
+      outputCommitments: readonly string[];
+      poolId: string;
+      spentAtSlot?: bigint | null;
+    }) => Promise<{
+      nullifier: { nullifier: string; spentAtSlot: bigint | null };
+      outputCommitments: readonly VantaPrivatePoolV2Commitment[];
+    }>;
     applyPrivateUnshieldExitTransition?: (args: {
       inputCommitment: string;
       inputRoot: string;
@@ -199,9 +210,22 @@ function readActualPrivateSpendOutputCommitments(request: VantaPrivatePoolV2Proo
     return [{ index: Number(match[1]), commitment: match[2] }] as const;
   });
 
-  return outputs
-    .sort((left, right) => left.index - right.index)
-    .map((output) => output.commitment);
+  const sorted = outputs.sort((left, right) => left.index - right.index);
+  if (
+    sorted.length !== 2 ||
+    sorted[0]?.index !== 0 ||
+    sorted[1]?.index !== 1 ||
+    sorted.some((output) => output.commitment.trim().length === 0)
+  ) {
+    throw new Error("Actual private spend proof receipt requires exactly output-commitment-0 and output-commitment-1.");
+  }
+
+  const commitments = sorted.map((output) => output.commitment);
+  if (new Set(commitments).size !== commitments.length) {
+    throw new Error("Actual private spend proof receipt output commitments must be unique.");
+  }
+
+  return commitments;
 }
 
 function isStatefulSwapToShieldedRequest(request: VantaPrivatePoolV2ProofRequest) {
@@ -368,39 +392,28 @@ export class VantaPrivatePoolV2LocalVerifierRegistry {
     }
 
     if (request.intent === "private-send" && isActualPrivateSpendRequest(request)) {
+      const acceptedRoot = requirePublicInput(request, "accepted-root:");
       const nullifier = requirePublicInput(request, "nullifier:");
       const poolId = requirePublicInput(request, "pool-id:");
       const assetCohort = requirePublicInput(request, "asset-cohort:");
       const outputCommitments = readActualPrivateSpendOutputCommitments(request);
 
-      if (outputCommitments.length === 0) {
-        throw new Error("Actual private spend proof receipt requires output commitments.");
-      }
-
       if (await this.#indexer.getNullifier(nullifier)) {
         throw new Error(`Private-pool nullifier ${nullifier} is already registered.`);
       }
 
-      if (!this.#indexer.registerNullifier) {
-        throw new Error("Actual private spend proof receipt requires a nullifier registry.");
+      if (!this.#indexer.applyActualPrivateSpendTransition) {
+        throw new Error("Actual private spend proof receipt requires an atomic actual-private spend transition indexer.");
       }
 
-      if (!this.#indexer.appendCommitment) {
-        throw new Error("Actual private spend proof receipt requires a commitment indexer.");
-      }
-
-      this.#indexer.registerNullifier({
+      await this.#indexer.applyActualPrivateSpendTransition({
+        acceptedRoot,
+        assetCohort,
         nullifier,
+        outputCommitments,
+        poolId,
         spentAtSlot: this.#currentSlot,
       });
-
-      for (const outputCommitment of outputCommitments) {
-        this.#indexer.appendCommitment({
-          assetId: assetCohort,
-          commitment: outputCommitment,
-          treeId: poolId,
-        });
-      }
     }
 
     if (request.intent === "swap-to-shielded" && isStatefulSwapToShieldedRequest(request)) {

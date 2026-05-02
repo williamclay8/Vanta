@@ -55,6 +55,20 @@ export type VantaPrivatePoolV2SwapToShieldedTransitionResult = {
   outputCommitment: VantaPrivatePoolV2Commitment;
 };
 
+export type VantaPrivatePoolV2ApplyActualPrivateSpendTransitionArgs = {
+  acceptedRoot: string;
+  assetCohort: string;
+  nullifier: string;
+  outputCommitments: readonly string[];
+  poolId: string;
+  spentAtSlot?: bigint | null;
+};
+
+export type VantaPrivatePoolV2ActualPrivateSpendTransitionResult = {
+  nullifier: VantaPrivatePoolV2Nullifier;
+  outputCommitments: readonly VantaPrivatePoolV2Commitment[];
+};
+
 export type VantaPrivatePoolV2ApplyPrivateUnshieldExitTransitionArgs = {
   inputCommitment: string;
   inputRoot: string;
@@ -397,6 +411,72 @@ export class VantaPrivatePoolV2LocalIndexer implements VantaPrivatePoolV2Indexer
     return {
       nullifier: nullifierRecord,
       outputCommitment: outputRecord,
+    };
+  }
+
+  async applyActualPrivateSpendTransition({
+    acceptedRoot,
+    assetCohort,
+    nullifier,
+    outputCommitments,
+    poolId,
+    spentAtSlot = null,
+  }: VantaPrivatePoolV2ApplyActualPrivateSpendTransitionArgs): Promise<VantaPrivatePoolV2ActualPrivateSpendTransitionResult> {
+    if (this.#nullifiers.has(nullifier)) {
+      throw new Error(`Private-pool nullifier ${nullifier} is already registered.`);
+    }
+
+    const normalizedOutputs = outputCommitments.map((commitment) => commitment.trim());
+    if (
+      normalizedOutputs.length !== 2 ||
+      normalizedOutputs.some((commitment) => commitment.length === 0)
+    ) {
+      throw new Error("Actual private spend transition requires exactly two output commitments.");
+    }
+
+    if (new Set(normalizedOutputs).size !== normalizedOutputs.length) {
+      throw new Error("Actual private spend transition output commitments must be unique.");
+    }
+
+    const treeCommitments = this.#treeCommitments(poolId);
+    const currentAcceptedRoot = currentRoot(poolId, treeCommitments);
+    if (currentAcceptedRoot !== acceptedRoot) {
+      throw new Error("Actual private spend accepted root does not match verifier indexer root.");
+    }
+
+    const outputRecords: VantaPrivatePoolV2Commitment[] = [];
+    let nextTree = [...treeCommitments];
+
+    for (const [offset, commitment] of normalizedOutputs.entries()) {
+      const recordWithoutRoot = {
+        assetId: assetCohort,
+        commitment,
+        leafIndex: treeCommitments.length + offset,
+        treeId: poolId,
+      };
+      const record = {
+        ...recordWithoutRoot,
+        merkleRoot: currentRoot(poolId, [
+          ...nextTree,
+          { ...recordWithoutRoot, merkleRoot: "" },
+        ]),
+      } satisfies VantaPrivatePoolV2Commitment;
+
+      outputRecords.push(record);
+      nextTree = [...nextTree, record];
+    }
+
+    const nullifierRecord = {
+      nullifier,
+      spentAtSlot,
+    } satisfies VantaPrivatePoolV2Nullifier;
+
+    this.#commitments.push(...outputRecords);
+    this.#nullifiers.set(nullifier, nullifierRecord);
+
+    return {
+      nullifier: nullifierRecord,
+      outputCommitments: outputRecords,
     };
   }
 
