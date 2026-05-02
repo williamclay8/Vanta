@@ -60,25 +60,19 @@ try {
   writeFixture("invalid-direction");
   printStatus("invalid-direction fixture write: PASS");
 
-  try {
-    const invalidExecuteOutput = runNargo(["execute"]);
-    printCapturedOutput(invalidExecuteOutput);
-    throw new Error("invalid-direction fixture unexpectedly succeeded");
-  } catch (error) {
-    if (error instanceof Error && error.message === "invalid-direction fixture unexpectedly succeeded") {
-      throw error;
-    }
+  expectExecuteFailure("invalid-direction");
 
-    const stdout = String(error.stdout ?? "").trim();
-    const stderr = String(error.stderr ?? "").trim();
-    if (stdout) {
-      console.log(stdout);
-    }
-    if (stderr) {
-      console.log(stderr);
-    }
-    printStatus("invalid-direction fixture: expected failure observed");
-  }
+  writeFixture("invalid-leaf-index");
+  printStatus("invalid-leaf-index fixture write: PASS");
+  expectExecuteFailure("invalid-leaf-index");
+
+  writeFixture("invalid-consume-context-split");
+  printStatus("invalid-consume-context-split fixture write: PASS");
+  expectExecuteFailure("invalid-consume-context-split");
+
+  writeFixture("invalid-sibling-limb-collision");
+  printStatus("invalid-sibling-limb-collision fixture write: PASS");
+  expectExecuteFailure("invalid-sibling-limb-collision");
 
   writeFixture("valid");
   restoredValidFixture = true;
@@ -100,5 +94,27 @@ try {
 } finally {
   if (!restoredValidFixture) {
     process.exitCode = 1;
+  }
+}
+
+function expectExecuteFailure(label) {
+  try {
+    const invalidExecuteOutput = runNargo(["execute"]);
+    printCapturedOutput(invalidExecuteOutput);
+    throw new Error(`${label} fixture unexpectedly succeeded`);
+  } catch (error) {
+    if (error instanceof Error && error.message === `${label} fixture unexpectedly succeeded`) {
+      throw error;
+    }
+
+    const stdout = String(error.stdout ?? "").trim();
+    const stderr = String(error.stderr ?? "").trim();
+    if (stdout) {
+      console.log(stdout);
+    }
+    if (stderr) {
+      console.log(stderr);
+    }
+    printStatus(`${label} fixture: expected failure observed`);
   }
 }

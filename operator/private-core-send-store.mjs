@@ -11,6 +11,7 @@ export function createPrivateCoreSendStore(options = {}) {
       DEFAULT_PRIVATE_CORE_SEND_STORE_PATH,
   );
   const state = loadStore(filePath);
+  const reservedInputNullifiers = new Set();
 
   return {
     filePath,
@@ -22,8 +23,25 @@ export function createPrivateCoreSendStore(options = {}) {
         .map(normalizeSendRecord)
         .sort((left, right) => right.completedAt - left.completedAt);
     },
+    hasInputNullifier(inputNullifier) {
+      return this.listSends().some((record) => record.inputNullifier === inputNullifier);
+    },
+    releaseInputNullifier(inputNullifier) {
+      reservedInputNullifiers.delete(inputNullifier);
+    },
+    reserveInputNullifier(inputNullifier) {
+      if (this.hasInputNullifier(inputNullifier) || reservedInputNullifiers.has(inputNullifier)) {
+        throw new Error("Private-core send transition input nullifier is already registered.");
+      }
+      reservedInputNullifiers.add(inputNullifier);
+    },
     recordSend(record) {
-      state.sends[record.sendId] = normalizeSendRecord(record);
+      const normalizedRecord = normalizeSendRecord(record);
+      if (this.hasInputNullifier(normalizedRecord.inputNullifier)) {
+        throw new Error("Private-core send transition input nullifier is already registered.");
+      }
+      state.sends[normalizedRecord.sendId] = normalizedRecord;
+      reservedInputNullifiers.delete(normalizedRecord.inputNullifier);
       persistStore(filePath, state);
     },
   };
@@ -44,11 +62,9 @@ function loadStore(filePath) {
       sends: isRecordMap(parsed.sends) ? parsed.sends : {},
       version: parsed.version === 1 ? 1 : 1,
     };
-  } catch {
-    return {
-      sends: {},
-      version: 1,
-    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Private-core send store could not be read safely: ${message}`);
   }
 }
 

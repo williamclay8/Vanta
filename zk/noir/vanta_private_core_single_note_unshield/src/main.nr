@@ -49,8 +49,13 @@ fn hash_merkle_leaf(commitment: Field) -> Field {
     bn254::hash_1([commitment])
 }
 
-fn hash_merkle_node(left: Field, right: Field, is_current_right: Field) -> Field {
-    bn254::hash_3([left, right, is_current_right])
+fn hash_merkle_node(
+    current: Field,
+    sibling_hi: Field,
+    sibling_lo: Field,
+    is_current_right: Field,
+) -> Field {
+    bn254::hash_4([current, sibling_hi, sibling_lo, is_current_right])
 }
 
 fn assert_direction_bit(bit: Field) {
@@ -66,19 +71,32 @@ fn compute_root(
     let mut current = leaf;
 
     for i in 0..MERKLE_DEPTH {
-        let sibling = membership_path_hi[i] + membership_path_lo[i];
         let is_current_right = membership_path_direction_bits[i];
 
         assert_direction_bit(is_current_right);
-
-        if is_current_right == 1 {
-            current = hash_merkle_node(sibling, current, is_current_right);
-        } else {
-            current = hash_merkle_node(current, sibling, is_current_right);
-        }
+        current = hash_merkle_node(
+            current,
+            membership_path_hi[i],
+            membership_path_lo[i],
+            is_current_right,
+        );
     }
 
     current
+}
+
+fn compute_leaf_index(membership_path_direction_bits: [Field; MERKLE_DEPTH]) -> Field {
+    let mut index = 0;
+    let mut bit_weight = 1;
+
+    for i in 0..MERKLE_DEPTH {
+        let is_current_right = membership_path_direction_bits[i];
+        assert_direction_bit(is_current_right);
+        index = index + is_current_right * bit_weight;
+        bit_weight = bit_weight * 2;
+    }
+
+    index
 }
 
 fn derive_nullifier(
@@ -214,7 +232,8 @@ fn main(
         leaf,
     );
     assert(computed_nullifier == nullifier);
-    assert(leaf_index == leaf_index);
+    let computed_leaf_index = compute_leaf_index(membership_path_direction_bits);
+    assert(leaf_index == computed_leaf_index);
 
     let computed_consume_context_tag = derive_consume_context_tag(
         release_destination_hi,
@@ -226,7 +245,8 @@ fn main(
         note_version,
         nullifier,
     );
-    assert(computed_consume_context_tag == consume_context_tag_hi + consume_context_tag_lo);
+    assert(consume_context_tag_hi == 0);
+    assert(computed_consume_context_tag == consume_context_tag_lo);
 
     let computed_unshield_economic_terms_hash = derive_unshield_economic_terms_hash(
         release_destination_hi,

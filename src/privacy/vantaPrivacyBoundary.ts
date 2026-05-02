@@ -252,7 +252,6 @@ export const VANTA_PRIVACY_BOUNDARY_DESCRIPTORS = [
   },
   {
     blockersToHiddenEconomicTerms: [
-      "atomic nullifier registration and swap output commitment append",
       "quote and route privacy before operator settlement",
       ...hiddenEconomicTermBlockers,
     ],
@@ -291,7 +290,7 @@ export const VANTA_PRIVACY_BOUNDARY_DESCRIPTORS = [
     ],
     tier: "v1.5-hash-bound-public-request-terms",
     truthLabel:
-      "Private Pool v2 Swap has a local proof-request boundary without raw input/output asset or amount disclosure at that typed layer; quote privacy, atomic verifier state transition, and production privacy remain blocked.",
+      "Private Pool v2 Swap has a local proof-request boundary and circuit fixture plus checked local verifier/indexer mutation without raw input/output asset or amount disclosure at that typed layer; quote privacy, live venue privacy, and production privacy remain blocked.",
   },
   {
     blockersToHiddenEconomicTerms: privateUnshieldBlockers,

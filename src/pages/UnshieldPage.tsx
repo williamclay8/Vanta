@@ -17,6 +17,7 @@ import {
   createSolUnshieldIntentPayload,
   signSolUnshieldIntent,
 } from "@/solana/solUnshieldAuth";
+import { fetchSolUnshieldOperatorHealth } from "@/solana/solUnshieldOperatorHealth";
 import { requestOperatorSolUnshield } from "@/solana/solUnshieldOperatorClient";
 import {
   ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS,
@@ -453,6 +454,11 @@ export function UnshieldPage() {
   const [unshieldBridgeError, setUnshieldBridgeError] = useState<string | null>(null);
   const [operatorAuthorizationStarted, setOperatorAuthorizationStarted] = useState(false);
   const [operatorReleaseSignature, setOperatorReleaseSignature] = useState<string | null>(null);
+  const [solUnshieldOperatorHealth, setSolUnshieldOperatorHealth] = useState<
+    "idle" | "checking" | "ready" | "blocked"
+  >("idle");
+  const [solUnshieldOperatorHealthError, setSolUnshieldOperatorHealthError] =
+    useState<string | null>(null);
   const [lastTransitionSignature, setLastTransitionSignature] = useState<string | null>(null);
   const [lastSpentMarkerSignature, setLastSpentMarkerSignature] = useState<string | null>(null);
   const [lastCompletion, setLastCompletion] = useState<{
@@ -604,14 +610,44 @@ export function UnshieldPage() {
   useEffect(() => {
     setRequestedAmountInput("");
   }, [selectedLane, selectedShieldNote, selectedSolNote]);
+  const selectedSolAggregateAmount = Math.max(
+    solShieldAccount?.shieldedSolBalance ?? 0,
+    recentShieldedSolBalance,
+  );
   const selectedFullAmount =
-    selectedLane === "SOL"
-      ? Math.max(
-          solShieldAccount?.shieldedSolBalance ?? 0,
-          recentShieldedSolBalance,
-          selectedSolNote?.amount ?? 0,
-        )
-      : selectedShieldNote?.amount ?? 0;
+    selectedLane === "SOL" ? selectedSolNote?.amount ?? 0 : selectedShieldNote?.amount ?? 0;
+  useEffect(() => {
+    if (selectedLane !== "SOL" || !liveSwapPair.solUnshieldOperatorUrl) {
+      setSolUnshieldOperatorHealth("idle");
+      setSolUnshieldOperatorHealthError(null);
+      return;
+    }
+
+    let cancelled = false;
+    setSolUnshieldOperatorHealth("checking");
+    setSolUnshieldOperatorHealthError(null);
+
+    void fetchSolUnshieldOperatorHealth()
+      .then(() => {
+        if (!cancelled) {
+          setSolUnshieldOperatorHealth("ready");
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setSolUnshieldOperatorHealth("blocked");
+          setSolUnshieldOperatorHealthError(
+            error instanceof Error
+              ? error.message
+              : "The SOL unshield operator is not reachable.",
+          );
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedLane]);
   const availableLaneOptions = useMemo(
     () =>
       ([
@@ -620,7 +656,7 @@ export function UnshieldPage() {
       ] as UnshieldLane[]).map((lane) => {
         const amount =
           lane === "SOL"
-            ? Math.max(solShieldAccount?.shieldedSolBalance ?? 0, recentShieldedSolBalance)
+            ? selectedSolAggregateAmount
             : shieldRegistry.byAssetKey[lane].account?.balance ?? 0;
 
         return {
@@ -636,6 +672,7 @@ export function UnshieldPage() {
       shieldRegistry.byAssetKey,
       solShieldAccount?.shieldedSolBalance,
       recentShieldedSolBalance,
+      selectedSolAggregateAmount,
       spendableShieldNotesByLane,
       spendableSolNotes.length,
     ],
@@ -793,7 +830,7 @@ export function UnshieldPage() {
     hasValidRequestedAmount &&
     Boolean(usdcShieldEntry.asset.vaultOwner) &&
     (selectedLane === "SOL"
-      ? Boolean(liveSwapPair.solUnshieldOperatorUrl)
+      ? Boolean(liveSwapPair.solUnshieldOperatorUrl) && solUnshieldOperatorHealth === "ready"
       : Boolean(selectedShieldAsset?.mintAddress) && Boolean(selectedShieldAsset?.unshieldConfigured));
 
   useEffect(() => {
@@ -1797,6 +1834,12 @@ export function UnshieldPage() {
     validationMessage = selectedShieldEntry.error;
   } else if (selectedLane === "SOL" && !liveSwapPair.solUnshieldOperatorUrl) {
     validationMessage = "Configure the SOL unshield operator endpoint before shielded SOL can exit.";
+  } else if (selectedLane === "SOL" && solUnshieldOperatorHealth === "checking") {
+    validationMessage = "Checking the SOL unshield operator endpoint before enabling the exit.";
+  } else if (selectedLane === "SOL" && solUnshieldOperatorHealth === "blocked") {
+    validationMessage =
+      solUnshieldOperatorHealthError ??
+      "The SOL unshield operator endpoint is configured but not ready for release.";
   } else if (selectedLane !== "SOL" && !selectedShieldAsset?.unshieldConfigured) {
     validationMessage = `Configure the ${selectedLane} unshield operator endpoint before this asset can exit.`;
   } else if (!walletSession?.signMessage) {

@@ -35,7 +35,7 @@ In normal language, it proves that Vanta can exercise the shape of a private set
 
 This is a useful production-shaped harness. It is not a deployed shared anonymity set, not audited privacy, and not a final mainnet rail.
 
-The checked privacy-rail contract is `docs/privacy-rail-contract.md` and `src/readiness/privacyRailContract.mjs`. Its current active rail is `alpha-public-warning`, which means Vanta must not claim meaningful privacy until Umbra mainnet evidence or Vanta Private Pool v2 production evidence is filled.
+The checked privacy-rail contract is `docs/privacy-rail-contract.md` and `src/readiness/privacyRailContract.mjs`. Current Swap production-status surfaces select Vanta Private Pool v2 for the constrained Swap lane, but meaningful privacy and production-private Swap claims remain blocked until live mainnet settlement, quote/route privacy, live venue privacy, relayer separation, audit, and anonymity-set evidence are reviewed.
 
 ## Known limitations
 

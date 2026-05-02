@@ -321,7 +321,7 @@ export function buildVantaPrivateCoreSendProofBoundary(
     compatibilityNotes: [
       "Current app-side input and output note commitments, Merkle hashing, and nullifier derivations still use SHA-256 source-layer semantics.",
       "Current sender authorization is only prechecked off-circuit by recomputing the X25519 public key from the supplied secret key.",
-      "Current send proving boundary is frozen before the first Noir send circuit exists; witness package shape should be treated as the initial proving target, not yet a completed circuit contract.",
+      "Current send proving boundary is wired to the first Noir send circuit, but remains a narrow Private Core lane rather than a production actual-private settlement circuit.",
     ],
     publicInputs,
     privateWitness,

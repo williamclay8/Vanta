@@ -997,7 +997,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     }
 
     setStatus("failed");
-    setFlowError("Private send currently supports shielded USDC.");
+    setFlowError("Private-core send currently supports shielded USDC.");
   }
 
   async function handlePrivateCoreSendProof() {
@@ -1079,7 +1079,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       ? "Beta mode keeps private send visible but prevents live settlement while production services are offline."
       : selectedSendCapability.executionMode === "unsupported-private-send-asset"
         ? selectedSendCapability.blockers[0] ??
-          "Private send currently supports shielded USDC."
+          "Private-core send currently supports shielded USDC."
       : isPrivateCoreUsdcSendReady
       ? "Ready to verify a private-core send transition."
       : !selectedSpendableNote
@@ -1428,7 +1428,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         <article className="send-card">
           <div className="shield-card__header">
             <div>
-              <span>Private send</span>
+              <span>Private-core send</span>
               <h3>Proof lane</h3>
             </div>
             <small>Ready when a private note is held</small>
@@ -1492,7 +1492,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               <strong>{abbreviate(privateCoreOperatorLatestSend?.sendId) ?? "Unavailable"}</strong>
             </div>
             <div className="review-row">
-              <span>Residual private note</span>
+              <span>Residual private-core output</span>
               <strong>
                 {privateCoreHoldState
                   ? `${formatBaseUnits(privateCoreHoldState.heldNote.note.amount, DEFAULT_USDC_DECIMALS)} USDC`
@@ -1549,14 +1549,14 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 privateCoreSendExecution.status === "running"
               }
             >
-              {isBetaMode ? "Beta mode" : "Verify private send proof"}
+              {isBetaMode ? "Beta mode" : "Verify private-core send proof"}
             </button>
           </div>
 
           {privateCoreSendExecution.status === "running" && (
             <div className="status-panel status-panel--processing">
               <span>Verifying send proof</span>
-              <p>Submitting the current private send witness package to the operator.</p>
+              <p>Submitting the current private-core send witness package to the operator.</p>
               <div className="status-bar">
                 <div className="status-bar__fill" />
               </div>
@@ -1566,7 +1566,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           {privateCoreSendExecution.status === "failed" && (
             <div className="status-panel status-panel--failed">
               <span>Send proof failed</span>
-              <p>The operator did not accept the current private send witness package.</p>
+              <p>The operator did not accept the current private-core send witness package.</p>
               {privateCoreSendExecution.errorMessage && (
                 <p className="shield-helper shield-helper--error">
                   {privateCoreSendExecution.errorMessage}
@@ -1593,7 +1593,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   <strong>{privateCoreSendExecution.proofPublicInputCount ?? 0}</strong>
                 </div>
                 <div className="preview-card">
-                  <span>Recipient private note</span>
+                  <span>Recipient output amount</span>
                   <strong>
                     {privateCoreSendPreview
                       ? `${formatBaseUnits(BigInt(privateCoreSendPreview.sendAmountBaseUnits), DEFAULT_USDC_DECIMALS)} USDC`
@@ -1601,7 +1601,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   </strong>
                 </div>
                 <div className="preview-card">
-                  <span>Residual private note</span>
+                  <span>Residual private-core output</span>
                   <strong>
                     {privateCoreHoldState
                       ? `${formatBaseUnits(privateCoreHoldState.heldNote.note.amount, DEFAULT_USDC_DECIMALS)} USDC`
@@ -1855,15 +1855,16 @@ export function SendPage({ dashboard = false }: SendPageProps) {
 
           {privateCoreSendState && privateCoreSendExecution.status !== "verified" && (
             <div className="status-panel status-panel--success">
-              <span>Latest private send</span>
+              <span>Latest private-core send</span>
               <p>
-                The latest private send handoff is still available from shared state, so this flow
-                can resume after refresh. The recipient note remains private, and the sender
-                residual state stays visible for the next hold or unshield step.
+                The latest private-core send handoff is still available from shared state, so this
+                flow can resume after refresh. Recipient delivery and recovery remain separate from
+                this operator proof state; the sender residual state stays visible for the next hold
+                or unshield step.
               </p>
               <div className="success-metrics">
                 <div className="preview-card preview-card--accent">
-                  <span>Recipient note</span>
+                  <span>Recipient output</span>
                   <strong>
                     {formatBaseUnits(BigInt(privateCoreSendState.recipientAmount), DEFAULT_USDC_DECIMALS)} USDC
                   </strong>

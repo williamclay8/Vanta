@@ -33,6 +33,10 @@ export async function requestOperatorSolUnshield(
     throw new Error("The SOL unshield operator did not return a valid request id.");
   }
 
+  if (parsed.requestId !== payload.requestId) {
+    throw new Error("The SOL unshield operator returned a mismatched request id.");
+  }
+
   return {
     requestId: parsed.requestId,
     signature: parsed.signature,

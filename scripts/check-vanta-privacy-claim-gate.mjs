@@ -46,6 +46,10 @@ const dangerousClaims = [
   /\bready for mainnet\b/iu,
   /\bproduction-ready private settlement\b/iu,
   /\bmainnet-ready private settlement\b/iu,
+  /\bproduction[-\s]?private Send\b/iu,
+  /\bmainnet[-\s]?private Send\b/iu,
+  /\bfully private Send\b/iu,
+  /\breal private Send\b/iu,
   /\blive mainnet private settlement\b/iu,
   /\bmeaningfully private\b/iu,
 ];

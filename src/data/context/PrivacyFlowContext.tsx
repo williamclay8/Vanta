@@ -2168,13 +2168,13 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         resultingRootStatusLabel: "Send root pending operator summary",
         resultingRootPrimaryNote:
           "The send resulting root exists locally and is waiting for the next operator summary refresh.",
-        recipientRecoveryStatus: "Recipient note created privately",
-        recipientUnshieldStatus: "Recipient note ready for private hold or unshield",
+        recipientRecoveryStatus: "Recipient output created in private-core state",
+        recipientUnshieldStatus: "Recipient output ready for supported hold or unshield flow",
         residualStateStatus:
           result.change !== null
             ? "Residual note is current private state"
             : "No residual note remains",
-        noteSummary: `${formatBaseUnits(result.recipient.note.amount, VANTA_PRIVATE_CORE_USDC_DECIMALS)} USDC sent privately`,
+        noteSummary: `${formatBaseUnits(result.recipient.note.amount, VANTA_PRIVATE_CORE_USDC_DECIMALS)} USDC private-core send transition recorded`,
         observationMode: "Local send handoff",
       });
       setPrivateCoreLocalSwapState(null);
@@ -4273,16 +4273,16 @@ function summarizePrivateCoreOperatorSendState(args: {
       args.resultingRootPrimaryNote ?? "Operator send resulting-root status unavailable.",
     recipientRecoveryStatus:
       args.linkedProof?.proofId === args.latestSend.proofId
-        ? "Recipient note recorded in operator send state"
-        : "Recipient note pending linked proof",
+        ? "Recipient output recorded in operator send state"
+        : "Recipient output pending linked proof",
     recipientUnshieldStatus: recipientUnshielded
-      ? "Recipient note already unshielded through operator release"
-      : "Recipient note ready for private hold or unshield",
+      ? "Recipient output already unshielded through operator release"
+      : "Recipient output ready for supported hold or unshield flow",
     residualStateStatus:
       args.latestSend.changeAmount !== "0"
         ? "Residual note expected from send transition"
         : "No residual note remains",
-    noteSummary: `${formatBaseUnits(BigInt(args.latestSend.sendAmount), VANTA_PRIVATE_CORE_USDC_DECIMALS)} USDC sent privately`,
+    noteSummary: `${formatBaseUnits(BigInt(args.latestSend.sendAmount), VANTA_PRIVATE_CORE_USDC_DECIMALS)} USDC private-core send transition recorded`,
     observationMode: "Operator send summary",
   };
 }
@@ -4322,14 +4322,14 @@ function mergePrivateCoreSendStateWithOperatorDownstream(args: {
   ) {
     return {
       ...withOperatorRootStatus,
-      recipientUnshieldStatus: "Recipient note already unshielded through operator release",
+      recipientUnshieldStatus: "Recipient output already unshielded through operator release",
     };
   }
 
   if (rootMatchesConsume) {
     return {
       ...withOperatorRootStatus,
-      recipientUnshieldStatus: "Recipient note consumed; awaiting operator release summary",
+      recipientUnshieldStatus: "Recipient output consumed; awaiting operator release summary",
     };
   }
 

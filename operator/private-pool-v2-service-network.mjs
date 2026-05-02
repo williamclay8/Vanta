@@ -412,6 +412,67 @@ function createIndexerState({ snapshotStore, storePath } = {}) {
         recipientCommitment,
       };
     },
+    async applySwapToShieldedTransition({
+      inputCommitment,
+      inputRoot,
+      nullifierOrReplayCommitment,
+      outputCommitment,
+      outputLeafIndex,
+      outputRoot,
+      spentAtSlot = 1_000_000n,
+    }) {
+      await ensureLoaded();
+      if (nullifiers.has(nullifierOrReplayCommitment)) {
+        throw new Error(`Private-pool nullifier ${nullifierOrReplayCommitment} is already registered.`);
+      }
+
+      const inputRecord = commitments.find((record) => record.commitment === inputCommitment);
+      if (!inputRecord) {
+        throw new Error(`Unknown private-pool commitment ${inputCommitment}.`);
+      }
+      const treeCommitments = commitments.filter((record) => record.treeId === inputRecord.treeId);
+      const currentInputRoot = currentMerkleRoot(inputRecord.treeId, treeCommitments);
+      if (currentInputRoot !== inputRoot) {
+        throw new Error("Swap-to-shielded proof input root does not match indexer root.");
+      }
+
+      if (treeCommitments.length !== outputLeafIndex) {
+        throw new Error(
+          `Swap-to-shielded output leaf index ${outputLeafIndex} does not match next indexer leaf ${treeCommitments.length}.`,
+        );
+      }
+
+      const outputWithoutRoot = {
+        assetId: inputRecord.assetId,
+        commitment: outputCommitment,
+        leafIndex: outputLeafIndex,
+        treeId: inputRecord.treeId,
+      };
+      const outputRecord = {
+        ...outputWithoutRoot,
+        merkleRoot: currentMerkleRoot(inputRecord.treeId, [
+          ...treeCommitments,
+          { ...outputWithoutRoot, merkleRoot: "" },
+        ]),
+      };
+      if (outputRecord.merkleRoot !== outputRoot) {
+        throw new Error("Swap-to-shielded output root does not match indexer root.");
+      }
+
+      const nullifierRecord = {
+        nullifier: nullifierOrReplayCommitment,
+        spentAtSlot,
+      };
+
+      commitments.push(outputRecord);
+      nullifiers.set(nullifierOrReplayCommitment, nullifierRecord);
+      await save();
+
+      return {
+        nullifier: nullifierRecord,
+        outputCommitment: outputRecord,
+      };
+    },
     async appendCommitment({ assetId, commitment, treeId }) {
       await ensureLoaded();
       const leafIndex = commitments.filter((record) => record.treeId === treeId).length;
@@ -719,6 +780,13 @@ function replayKeyFor(request) {
     }
   }
 
+  if (request?.intent === "swap-to-shielded") {
+    const nullifierOrReplayCommitment = readPublicInput(request, "nullifier-or-replay-commitment:");
+    if (nullifierOrReplayCommitment) {
+      return `swap-to-shielded:${nullifierOrReplayCommitment}`;
+    }
+  }
+
   return `${request?.intent ?? "proof"}:${request?.publicInputs?.join("|") ?? "unknown"}`;
 }
 
@@ -736,6 +804,15 @@ function isActualPrivateSpendRequest(request) {
     request?.intent === "private-send" &&
       request?.publicInputs?.some((input) =>
         String(input).startsWith("vanta-private-pool-v2-actual-private-spend-proof-request-0.1:version"),
+      ),
+  );
+}
+
+function isStatefulSwapToShieldedRequest(request) {
+  return Boolean(
+    request?.intent === "swap-to-shielded" &&
+      request?.publicInputs?.some((input) =>
+        String(input).startsWith("vanta-private-pool-v2-swap-to-shielded-proof-request-0.1:version"),
       ),
   );
 }
@@ -831,6 +908,18 @@ async function mirrorAcceptedProofToIndexer(request) {
     }
 
     return { nullifier, outputCommitments };
+  }
+
+  if (isStatefulSwapToShieldedRequest(request)) {
+    return await postIndexerJson("/v1/swap-to-shielded", {
+      inputCommitment: requirePublicInput(request, "input-commitment:"),
+      inputRoot: requirePublicInput(request, "input-root:"),
+      nullifierOrReplayCommitment: requirePublicInput(request, "nullifier-or-replay-commitment:"),
+      outputCommitment: requirePublicInput(request, "output-commitment:"),
+      outputLeafIndex: Number(requirePublicInput(request, "output-leaf-index:")),
+      outputRoot: requirePublicInput(request, "output-root:"),
+      spentAtSlot: 1_000_000n,
+    });
   }
 
   return null;
@@ -943,6 +1032,20 @@ async function createServiceHandlers(role, {
           ...body,
           changeLeafIndex: Number(body.changeLeafIndex),
           recipientLeafIndex: Number(body.recipientLeafIndex),
+          spentAtSlot:
+            body.spentAtSlot === undefined ? 1_000_000n : toBigInt(body.spentAtSlot),
+        }),
+      });
+      return true;
+    }
+
+    if (request.method === "POST" && url.pathname === "/v1/swap-to-shielded") {
+      const body = await readRequestBody(request);
+      sendJson(response, 200, {
+        ...basePayload(role),
+        transition: await indexerState.applySwapToShieldedTransition({
+          ...body,
+          outputLeafIndex: Number(body.outputLeafIndex),
           spentAtSlot:
             body.spentAtSlot === undefined ? 1_000_000n : toBigInt(body.spentAtSlot),
         }),

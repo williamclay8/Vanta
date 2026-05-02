@@ -699,6 +699,215 @@ try {
 
   console.log("private-pool-v2 service-network private-send transition: PASS");
 
+  const swapInputCommitment = privateSendCommitments.parsed.commitments[1];
+  const swapOutputCommitment = {
+    assetId: swapInputCommitment.assetId,
+    commitment: "field:service-network-swap-output",
+    leafIndex: 3,
+    treeId: swapInputCommitment.treeId,
+  };
+  const swapOutputRoot = serviceNetworkAppendRoot(
+    privateSendCommitments.parsed.commitments,
+    swapOutputCommitment,
+  );
+  const swapToShieldedRequest = {
+    amountBaseUnits: "1",
+    assetId: "hidden:economic-terms",
+    circuitPublicInputs: [
+      "swap-public-input-hash:field:service-network-swap-public-input-hash",
+    ],
+    intent: "swap-to-shielded",
+    publicInputs: [
+      "vanta-private-pool-v2-swap-to-shielded-proof-request-0.1:version",
+      `input-root:${privateSendCommitments.parsed.commitments[2].merkleRoot}`,
+      `input-commitment:${swapInputCommitment.commitment}`,
+      "nullifier-or-replay-commitment:field:service-network-swap-nullifier",
+      "settlement-commitment:field:service-network-swap-settlement",
+      "route-commitment:field:service-network-swap-route",
+      "economics-commitment:field:service-network-swap-economics",
+      `output-commitment:${swapOutputCommitment.commitment}`,
+      "output-leaf-index:3",
+      `output-root:${swapOutputRoot}`,
+      "owner-commitment:field:service-network-swap-owner",
+      "swap-context-tag:field:service-network-swap-context",
+      "swap-public-input-hash:field:service-network-swap-public-input-hash",
+    ],
+  };
+  const swapToShieldedProof = await requestJson(serviceUrls.get("prover"), "/v1/proofs", {
+    body: JSON.stringify({ request: swapToShieldedRequest }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(swapToShieldedProof.ok, swapToShieldedProof.text || "Expected swap-to-shielded proof response.");
+  const swapToShieldedReceipt = await requestJson(serviceUrls.get("verifier"), "/v1/proofs/accept", {
+    body: JSON.stringify({ proof: swapToShieldedProof.parsed, request: swapToShieldedRequest }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(
+    swapToShieldedReceipt.ok,
+    swapToShieldedReceipt.text || "Expected swap-to-shielded verifier receipt.",
+  );
+  assert(
+    swapToShieldedReceipt.parsed?.intent === "swap-to-shielded",
+    "Expected swap-to-shielded receipt intent.",
+  );
+  assert(
+    swapToShieldedReceipt.parsed?.replayKey ===
+      "swap-to-shielded:field:service-network-swap-nullifier",
+    "Expected swap-to-shielded receipt to replay-key by nullifier/replay commitment.",
+  );
+  const swapNullifier = await requestJson(
+    serviceUrls.get("indexer"),
+    `/v1/nullifiers/${encodeURIComponent("field:service-network-swap-nullifier")}`,
+    { headers: { Authorization: `Bearer ${authToken}` } },
+  );
+  assert(
+    swapNullifier.parsed?.nullifier?.nullifier === "field:service-network-swap-nullifier",
+    "Expected swap-to-shielded verifier acceptance to register the swap nullifier through the indexer service.",
+  );
+  const swapCommitments = await requestJson(
+    serviceUrls.get("indexer"),
+    "/v1/commitments?treeId=vanta-service-network-test-tree",
+    { headers: { Authorization: `Bearer ${authToken}` } },
+  );
+  assert(swapCommitments.ok, swapCommitments.text || "Expected swap-to-shielded commitments.");
+  assert(
+    swapCommitments.parsed?.commitments?.length === 4,
+    "Expected swap-to-shielded verifier acceptance to append the output commitment.",
+  );
+  assert(
+    swapCommitments.parsed.commitments[3]?.commitment === "field:service-network-swap-output",
+    "Expected swap-to-shielded output commitment to be indexed.",
+  );
+  assert(
+    swapCommitments.parsed.commitments[3]?.merkleRoot === swapOutputRoot,
+    "Expected swap-to-shielded output root to match the canonical service-network indexer root.",
+  );
+  const swapReplay = await requestJson(serviceUrls.get("verifier"), "/v1/proofs/accept", {
+    body: JSON.stringify({ proof: swapToShieldedProof.parsed, request: swapToShieldedRequest }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(!swapReplay.ok, "Expected duplicate swap-to-shielded proof receipt to be rejected.");
+
+  const tamperedSwapRequest = {
+    ...swapToShieldedRequest,
+    publicInputs: swapToShieldedRequest.publicInputs.map((input) => {
+      if (input.startsWith("input-root:")) {
+        return `input-root:${swapCommitments.parsed.commitments[3].merkleRoot}`;
+      }
+      if (input.startsWith("nullifier-or-replay-commitment:")) {
+        return "nullifier-or-replay-commitment:field:service-network-bad-root-swap-nullifier";
+      }
+      if (input.startsWith("output-commitment:")) {
+        return "output-commitment:field:service-network-bad-root-swap-output";
+      }
+      if (input.startsWith("output-leaf-index:")) {
+        return "output-leaf-index:4";
+      }
+      return input.startsWith("output-root:") ? "output-root:field:wrong-service-swap-root" : input;
+    }),
+  };
+  const tamperedSwapProof = await requestJson(serviceUrls.get("prover"), "/v1/proofs", {
+    body: JSON.stringify({ request: tamperedSwapRequest }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(tamperedSwapProof.ok, tamperedSwapProof.text || "Expected tampered swap proof.");
+  const tamperedSwapReceipt = await requestJson(serviceUrls.get("verifier"), "/v1/proofs/accept", {
+    body: JSON.stringify({
+      proof: tamperedSwapProof.parsed,
+      request: tamperedSwapRequest,
+    }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(!tamperedSwapReceipt.ok, "Expected tampered swap-to-shielded output root to be rejected.");
+
+  const badLeafSwapRequest = {
+    ...swapToShieldedRequest,
+    publicInputs: swapToShieldedRequest.publicInputs.map((input) => {
+      if (input.startsWith("input-root:")) {
+        return `input-root:${swapCommitments.parsed.commitments[3].merkleRoot}`;
+      }
+      if (input.startsWith("nullifier-or-replay-commitment:")) {
+        return "nullifier-or-replay-commitment:field:service-network-bad-leaf-swap-nullifier";
+      }
+      if (input.startsWith("output-commitment:")) {
+        return "output-commitment:field:service-network-bad-leaf-swap-output";
+      }
+      if (input.startsWith("output-leaf-index:")) {
+        return "output-leaf-index:5";
+      }
+      if (input.startsWith("output-root:")) {
+        return `output-root:${serviceNetworkAppendRoot(swapCommitments.parsed.commitments, {
+          assetId: swapInputCommitment.assetId,
+          commitment: "field:service-network-bad-leaf-swap-output",
+          leafIndex: 4,
+          treeId: swapInputCommitment.treeId,
+        })}`;
+      }
+      return input;
+    }),
+  };
+  const badLeafSwapProof = await requestJson(serviceUrls.get("prover"), "/v1/proofs", {
+    body: JSON.stringify({ request: badLeafSwapRequest }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(badLeafSwapProof.ok, badLeafSwapProof.text || "Expected bad-leaf swap proof.");
+  const badLeafSwapReceipt = await requestJson(serviceUrls.get("verifier"), "/v1/proofs/accept", {
+    body: JSON.stringify({
+      proof: badLeafSwapProof.parsed,
+      request: badLeafSwapRequest,
+    }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(!badLeafSwapReceipt.ok, "Expected bad swap-to-shielded output leaf index to be rejected.");
+
+  const staleSwapRequest = {
+    ...swapToShieldedRequest,
+    publicInputs: swapToShieldedRequest.publicInputs.map((input) => {
+      if (input.startsWith("nullifier-or-replay-commitment:")) {
+        return "nullifier-or-replay-commitment:field:service-network-stale-swap-nullifier";
+      }
+      if (input.startsWith("output-commitment:")) {
+        return "output-commitment:field:service-network-stale-swap-output";
+      }
+      if (input.startsWith("output-leaf-index:")) {
+        return "output-leaf-index:4";
+      }
+      if (input.startsWith("output-root:")) {
+        return `output-root:${serviceNetworkAppendRoot(swapCommitments.parsed.commitments, {
+          assetId: swapInputCommitment.assetId,
+          commitment: "field:service-network-stale-swap-output",
+          leafIndex: 4,
+          treeId: swapInputCommitment.treeId,
+        })}`;
+      }
+      return input;
+    }),
+  };
+  const staleSwapProof = await requestJson(serviceUrls.get("prover"), "/v1/proofs", {
+    body: JSON.stringify({ request: staleSwapRequest }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(staleSwapProof.ok, staleSwapProof.text || "Expected stale-root swap proof response.");
+  const staleSwapReceipt = await requestJson(serviceUrls.get("verifier"), "/v1/proofs/accept", {
+    body: JSON.stringify({
+      proof: staleSwapProof.parsed,
+      request: staleSwapRequest,
+    }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(!staleSwapReceipt.ok, "Expected swap-to-shielded proof with stale input root to be rejected.");
+
+  console.log("private-pool-v2 service-network swap-to-shielded transition: PASS");
+
   const actualPrivateSpendRequest = {
     amountBaseUnits: "1",
     assetId: "hidden:economic-terms",

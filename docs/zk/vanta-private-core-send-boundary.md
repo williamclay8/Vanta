@@ -37,7 +37,7 @@ This boundary exists because `docs/privacy-model.md` defines `v1` around:
 `Public Wallet -> Shield -> Shielded State -> Send`
 
 The repo already has a real unshield lane.
-What `v1` still lacks is the first real private send flow from shielded state.
+What `v1` still lacks is a production-private Send lane; the repo now has the first narrow, operator-backed private-send lane from shielded state.
 
 ## Narrow send statement
 

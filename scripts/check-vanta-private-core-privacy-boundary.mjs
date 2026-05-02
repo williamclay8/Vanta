@@ -279,10 +279,10 @@ try {
     );
   }
   assert(
-    privatePoolSwap.blockersToHiddenEconomicTerms.includes(
+    !privatePoolSwap.blockersToHiddenEconomicTerms.includes(
       "atomic nullifier registration and swap output commitment append",
     ),
-    "Expected private-pool-v2-swap to keep the verifier/indexer transition blocker.",
+    "Private-pool-v2-swap must not list the local verifier/indexer transition as missing after the checked atomic mutation landed.",
   );
   assert(
     privatePoolSwap.blockersToHiddenEconomicTerms.includes(
@@ -292,6 +292,7 @@ try {
   );
   assert(
     privatePoolSwap.truthLabel.includes("local proof-request boundary") &&
+      privatePoolSwap.truthLabel.includes("checked local verifier/indexer mutation") &&
       privatePoolSwap.truthLabel.includes("without raw input/output asset or amount disclosure") &&
       privatePoolSwap.truthLabel.includes("production privacy remain blocked"),
     "Expected private-pool-v2-swap truth label to describe the local proof-request boundary without overclaiming.",

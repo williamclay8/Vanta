@@ -44,7 +44,7 @@ export function DocsHomePage() {
         <article>
           <span>3</span>
           <strong>Use private actions</strong>
-          <p>Send, swap, or pay through the private flows Vanta supports.</p>
+          <p>Use available lanes, with Swap and Pay labeled as constrained or preview surfaces until production-private gates clear.</p>
         </article>
         <article>
           <span>4</span>

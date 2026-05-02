@@ -13,6 +13,13 @@ const shieldStateSource = readRepoFile("src/solana/vantaShieldState.ts");
 const unshieldPageSource = readRepoFile("src/pages/UnshieldPage.tsx");
 const unshieldAuthSource = readRepoFile("src/solana/unshieldAuth.ts");
 const solUnshieldAuthSource = readRepoFile("src/solana/solUnshieldAuth.ts");
+const solUnshieldOperatorClientSource = readRepoFile("src/solana/solUnshieldOperatorClient.ts");
+const unshieldOperatorClientSource = readRepoFile("src/solana/unshieldOperatorClient.ts");
+const solUnshieldOperatorHealthSource = readRepoFile("src/solana/solUnshieldOperatorHealth.ts");
+const shieldConfigSource = readRepoFile("src/solana/shieldConfig.ts");
+const envExampleSource = readRepoFile(".env.example");
+const packageSource = readRepoFile("package.json");
+const unshieldOperatorSource = readRepoFile("operator/unshield-server.mjs");
 const securityLimitations = readRepoFile("SECURITY_LIMITATIONS.md");
 const proofBoundaryDoc = readRepoFile("docs/zk/vanta-private-core-unshield-proof-boundary.md");
 const transactionEvidenceSource = readRepoFile("src/transactions/vantaTransactionEvidence.ts");
@@ -58,6 +65,72 @@ for (const phrase of [
   );
 }
 
+for (const [sourceLabel, source, phrase] of [
+  [
+    "shieldConfig",
+    shieldConfigSource,
+    "VITE_VANTA_SOL_UNSHIELD_OPERATOR_URL",
+  ],
+  [
+    "shieldConfig",
+    shieldConfigSource,
+    "http://127.0.0.1:8789/unshield/sol",
+  ],
+  [
+    "SOL unshield client",
+    solUnshieldOperatorClientSource,
+    "liveSwapPair.solUnshieldOperatorUrl",
+  ],
+  [
+    "SOL unshield client",
+    solUnshieldOperatorClientSource,
+    "parsed.requestId !== payload.requestId",
+  ],
+  [
+    "token unshield client",
+    unshieldOperatorClientSource,
+    "parsed.requestId !== payload.requestId",
+  ],
+  [
+    "SOL unshield health client",
+    solUnshieldOperatorHealthSource,
+    "../../health/sol-unshield",
+  ],
+  [
+    "Unshield page",
+    unshieldPageSource,
+    "fetchSolUnshieldOperatorHealth",
+  ],
+  [
+    "Unshield page",
+    unshieldPageSource,
+    'solUnshieldOperatorHealth === "ready"',
+  ],
+  [
+    "env example",
+    envExampleSource,
+    "VITE_VANTA_SOL_UNSHIELD_OPERATOR_URL=http://127.0.0.1:8789/unshield/sol",
+  ],
+  [
+    "package scripts",
+    packageSource,
+    "\"unshield:sol-operator-endpoint-check\"",
+  ],
+]) {
+  assert.ok(source.includes(phrase), `${sourceLabel} must preserve SOL unshield operator endpoint config: ${phrase}`);
+}
+
+for (const phrase of [
+  "VANTA_UNSHIELD_OPERATOR_MAX_JSON_BODY_BYTES",
+  "JSON request body is too large.",
+  "Expected application/json request body.",
+]) {
+  assert.ok(
+    unshieldOperatorSource.includes(phrase),
+    `Unshield operator must preserve production request-body guard: ${phrase}`,
+  );
+}
+
 for (const phrase of [
   "shieldRegistry.entries.find((entry) => (entry.account?.shieldedSolBalance ?? 0) > 0)",
   "entry.account?.spendableShieldedSolNotes.length",
@@ -65,7 +138,8 @@ for (const phrase of [
   "createRecentShieldedSolNote",
   "native-sol-recent-shield",
   "recentShield?.asset === \"SOL\" ? recentShield.resultingShieldedBalance : 0",
-  "Math.max(solShieldAccount?.shieldedSolBalance ?? 0, recentShieldedSolBalance)",
+  "const selectedSolAggregateAmount = Math.max(",
+  'selectedLane === "SOL" ? selectedSolNote?.amount ?? 0 : selectedShieldNote?.amount ?? 0',
 ]) {
   assert.ok(
     unshieldPageSource.includes(phrase),

@@ -122,6 +122,7 @@ export async function verifyVantaPrivateCoreUnshieldProofArtifact(args) {
       proofHex: proofArtifact.proofHex,
       publicInputCount: proofArtifact.publicInputs.length,
       publicInputs: proofArtifact.publicInputs,
+      sourceArtifacts: proofArtifact.sourceArtifacts,
       sourcePublicInputs: proofArtifact.sourcePublicInputs,
       verifiedPublicInputs: decodeVerifiedProofPublicInputs(proofArtifact.publicInputs),
       verified: true,
@@ -321,6 +322,10 @@ export function normalizeVantaPrivateCoreUnshieldProofArtifact(input) {
     throw new Error("Private-core unshield proof artifact is missing circuit public inputs.");
   }
 
+  if (!proofArtifact.sourceArtifacts || typeof proofArtifact.sourceArtifacts !== "object") {
+    throw new Error("Private-core unshield proof artifact is missing source artifacts.");
+  }
+
   if (
     typeof proofArtifact.proofHex !== "string" ||
     !/^[0-9a-f]+$/i.test(proofArtifact.proofHex) ||
@@ -337,6 +342,11 @@ export function normalizeVantaPrivateCoreUnshieldProofArtifact(input) {
     proofVersion: Number(proofArtifact.proofVersion),
     provingHashLane: proofArtifact.provingHashLane,
     publicInputs: proofArtifact.publicInputs.map((value) => String(value)),
+    sourceArtifacts: {
+      noteCommitment: proofArtifact.sourceArtifacts.noteCommitment,
+      merkleLeaf: proofArtifact.sourceArtifacts.merkleLeaf,
+      witnessRoot: proofArtifact.sourceArtifacts.witnessRoot,
+    },
     sourcePublicInputs: proofArtifact.sourcePublicInputs,
   };
 
@@ -427,6 +437,7 @@ export function assertVantaPrivateCoreSourceArtifactConsistency(sourceArtifacts,
 export function assertVantaPrivateCoreSourceArtifactShapeConsistency(
   sourceArtifacts,
   sourcePublicInputs,
+  proofArtifact = null,
 ) {
   if (!sourceArtifacts || typeof sourceArtifacts !== "object") {
     throw new Error("Private-core source artifacts are required.");
@@ -446,6 +457,29 @@ export function assertVantaPrivateCoreSourceArtifactShapeConsistency(
 
   if (normalizeHex32(sourceArtifacts.witnessRoot) !== normalizeHex32(sourcePublicInputs.stateRoot)) {
     throw new Error("Private-core source artifacts have a mismatched witness root.");
+  }
+
+  if (!proofArtifact?.sourceArtifacts) {
+    throw new Error("Private-core proof artifact is missing source artifacts.");
+  }
+
+  const artifactSourceArtifacts = proofArtifact.sourceArtifacts;
+  if (
+    normalizeHex32(sourceArtifacts.noteCommitment) !==
+    normalizeHex32(artifactSourceArtifacts.noteCommitment)
+  ) {
+    throw new Error("Private-core source artifacts have a mismatched proof-artifact note commitment.");
+  }
+
+  if (normalizeHex32(sourceArtifacts.merkleLeaf) !== normalizeHex32(artifactSourceArtifacts.merkleLeaf)) {
+    throw new Error("Private-core source artifacts have a mismatched proof-artifact Merkle leaf.");
+  }
+
+  if (
+    normalizeHex32(sourceArtifacts.witnessRoot) !==
+    normalizeHex32(artifactSourceArtifacts.witnessRoot)
+  ) {
+    throw new Error("Private-core source artifacts have a mismatched proof-artifact witness root.");
   }
 }
 

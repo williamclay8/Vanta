@@ -121,6 +121,18 @@ function buildSwapTrustPacket({ baseUrl, status }) {
   const latestSwap = summary.latestSwap ?? null;
   const latestSwapProof = summary.latestSwapLinkedProof ?? summary.latestSwapProof ?? null;
   const resultingRootRecord = summary.swapResultingRootRecord ?? null;
+  const proofBacked = Boolean(
+    latestSwapProof?.proofId &&
+      latestSwap?.proofId &&
+      latestSwapProof.proofId === latestSwap.proofId &&
+      latestSwapProof.verified === true &&
+      summary.proofSwapLinkStatus === "linked" &&
+      summary.swapBoundaryStatus === "ready" &&
+      summary.swapResultingRootProofLinkStatus === "linked",
+  );
+  const evidenceStatus = proofBacked
+    ? "proof-linked-swap-transition-observed"
+    : "no-current-swap-proof-evidence";
 
   return {
     version: "vanta-swap-trust-packet-0.1",
@@ -134,12 +146,15 @@ function buildSwapTrustPacket({ baseUrl, status }) {
     },
     claimBoundary: {
       privacyTier: "v1.5-hash-bound-public-request-terms",
-      proofBacked: Boolean(latestSwapProof?.proofId && latestSwap?.proofId),
+      proofBacked,
+      evidenceStatus,
       committedSettlementBridge: "swap:committed-settlement-check",
       fullyPrivate: false,
       productionReady: false,
       safeClaim:
-        "Proof-backed constrained Swap with commitment-oriented reviewer packet; not fully private or production-ready.",
+        proofBacked
+          ? "Proof-linked constrained Swap transition with commitment-oriented reviewer packet; not fully private or production-ready."
+          : "No current Swap proof evidence is available from the operator; this packet is a commitment-oriented readiness surface, not a proof-backed Swap claim.",
     },
     lane: {
       environment: summary.supportedEnvironment ?? null,
@@ -160,6 +175,8 @@ function buildSwapTrustPacket({ baseUrl, status }) {
           outputCommitment: latestSwap.outputCommitment ?? null,
           resultingRoot: latestSwap.resultingRoot ?? null,
           resultingRootBasis: latestSwap.resultingRootBasis ?? null,
+          economicsCommitment: latestSwap.economicsCommitment ?? null,
+          settlementCommitment: latestSwap.settlementCommitment ?? null,
           routeCommitment: commitmentFromParts("swap-route", [
             latestSwap.executionVenueLabel,
             latestSwap.executionQuoteReference,
@@ -172,6 +189,7 @@ function buildSwapTrustPacket({ baseUrl, status }) {
             typeof latestSwap.executionVenueLabel === "string"
               ? latestSwap.executionVenueLabel
               : null,
+          quoteExpiresAt: latestSwap.quoteExpiresAt ?? null,
         }
       : null,
     proof: latestSwapProof
@@ -225,12 +243,22 @@ function buildSwapTrustPacket({ baseUrl, status }) {
         "vault owner",
         "private witness material",
       ],
+      localPrivacyPrimitives: [
+        "swap-to-shielded proof request",
+        "swap-to-shielded executable circuit fixture",
+        "committed-economics protocol settlement receipt",
+        "atomic local verifier/indexer nullifier registration and output append",
+      ],
       remainingBlockers: [
         "quote and route privacy before operator settlement",
-        "atomic nullifier registration and swap output commitment append",
-        "production root and nullifier durability",
+        "relayer separation",
+        "live venue privacy",
+        "production root/nullifier durability with reviewed replay rejection",
+        "safe logging and indexer evidence",
         "anonymity-set readiness",
+        "production evidence",
         "audited prover/verifier key boundary",
+        "fresh bounded real-funds approval for the exact Swap action",
       ],
     },
   };
@@ -249,6 +277,39 @@ function validateSwapTrustPacket(packet) {
     packet.command.check === "npm run swap:trust-packet-check",
     "Swap packet must expose the reviewer check command.",
   );
+  assert(
+    packet.claimBoundary.evidenceStatus ===
+      (packet.claimBoundary.proofBacked
+        ? "proof-linked-swap-transition-observed"
+        : "no-current-swap-proof-evidence"),
+    "Swap packet evidence status must match proof-backed truth.",
+  );
+  if (!packet.claimBoundary.proofBacked) {
+    assert(
+      packet.claimBoundary.safeClaim.includes("No current Swap proof evidence"),
+      "Swap packet must not claim proof-backed Swap when no linked proof evidence is available.",
+    );
+  }
+  if (packet.latestTransition) {
+    for (const field of ["quoteExpiresAt", "economicsCommitment", "settlementCommitment"]) {
+      assert(
+        field in packet.latestTransition,
+        `Swap packet latest transition must expose ${field} when transition evidence exists.`,
+      );
+    }
+  }
+  assert(
+    packet.privacyDisclosure.localPrivacyPrimitives.includes(
+      "atomic local verifier/indexer nullifier registration and output append",
+    ),
+    "Swap packet must expose the checked local atomic verifier/indexer mutation.",
+  );
+  assert(
+    !packet.privacyDisclosure.remainingBlockers.includes(
+      "atomic nullifier registration and swap output commitment append",
+    ),
+    "Swap packet must not list the checked local atomic mutation as a remaining blocker.",
+  );
 
   const serialized = JSON.stringify(packet);
   for (const forbidden of [
@@ -260,6 +321,18 @@ function validateSwapTrustPacket(packet) {
     '"vaultOwner"',
   ]) {
     assert(!serialized.includes(forbidden), `Swap packet must not expose ${forbidden}.`);
+  }
+  for (const blocker of [
+    "quote and route privacy before operator settlement",
+    "relayer separation",
+    "live venue privacy",
+    "anonymity-set readiness",
+    "production evidence",
+  ]) {
+    assert(
+      packet.privacyDisclosure.remainingBlockers.includes(blocker),
+      `Swap packet must preserve production-private blocker: ${blocker}.`,
+    );
   }
 }
 
@@ -290,6 +363,7 @@ function printSwapTrustPacket(packet) {
   printLine("Environment", packet.lane.environment ?? "Unavailable");
   printLine("Venue policy", packet.lane.venuePolicy ?? "Unavailable");
   printLine("Privacy tier", packet.claimBoundary.privacyTier);
+  printLine("Evidence status", packet.claimBoundary.evidenceStatus);
   printLine("Safe claim", packet.claimBoundary.safeClaim);
   printLine("Latest swap", packet.latestTransition?.swapId ?? "Unavailable");
   printLine("Proof", packet.proof?.proofId ?? "Unavailable");
@@ -310,6 +384,10 @@ function printSwapTrustPacket(packet) {
   printLine("Reviewer check", packet.command.check);
   console.log("Not included by default:");
   for (const item of packet.privacyDisclosure.notIncludedByDefault) {
+    console.log(`- ${item}`);
+  }
+  console.log("Local privacy primitives:");
+  for (const item of packet.privacyDisclosure.localPrivacyPrimitives) {
     console.log(`- ${item}`);
   }
   console.log("Remaining blockers:");

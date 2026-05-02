@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Move Vanta toward fully private Shield, Send, Swap, Unshield, and Pay without overclaiming the current protocol. This design lands the first approved foundation slices:
+Move Vanta toward proof-backed, operator-verifiable private-settlement foundations across Shield, Send, Swap, Unshield, and Pay without overclaiming the current protocol. This design lands the first approved foundation slices:
 
 - a machine-readable privacy disclosure contract
 - a unified token availability model

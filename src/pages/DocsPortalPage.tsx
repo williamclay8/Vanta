@@ -25,8 +25,8 @@ export function DocsPortalPage() {
         </p>
         <p>
           The plain version: a normal wallet is public. Vanta starts after a
-          shield action. From there, the app can support private send, swap, and
-          exit paths as those lanes become real.
+          shield action. From there, the app can support gated private actions;
+          Swap remains constrained until its production-status blockers clear.
         </p>
       </section>
 

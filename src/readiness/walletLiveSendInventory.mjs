@@ -55,14 +55,14 @@ export function createWalletLiveSendInventory() {
         currentCallSites: [],
         adoptedCallSites: [
           tx("const splShieldTransferTransaction = useVantaSafeSendTransaction();", "SPL token shield transfer"),
+          tx("VANTA_TOKEN_SAME_TRANSACTION_DEPOSIT_SIGNATURE", "SPL token shield state memo in transfer transaction"),
           tx("const nativeSolShieldTransaction = useVantaSafeSendTransaction();", "native SOL shield transfer"),
-          tx("const stateTransaction = useVantaSafeSendTransaction();", "shield state transition"),
           tx("const publicRouteTransaction = useVantaSafeSendTransaction();", "public shield route transfer"),
         ],
         file: "src/pages/ShieldPage.tsx",
         page: "Shield",
         replacement:
-          "Keep SPL token transfer, native SOL, state, and public-route Shield transactions behind the safe-send hook that prepares, simulates, summarizes, gates, and requests wallet approval.",
+          "Keep SPL token transfer plus same-transaction state memo, native SOL, and public-route Shield transactions behind the safe-send hook that prepares, simulates, summarizes, gates, and requests wallet approval.",
         status: "safe-send-adopted",
       },
       {

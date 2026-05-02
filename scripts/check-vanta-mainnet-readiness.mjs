@@ -704,6 +704,30 @@ assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:private-settlement-check"),
   "Missing private-settlement check command.",
 );
+assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:send-production-status"),
+  "Missing Send production status command.",
+);
+assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:send-production-check"),
+  "Missing Send production check command.",
+);
+assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:swap-production-status"),
+  "Missing Swap production status command.",
+);
+assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:swap-production-check"),
+  "Missing Swap production check command.",
+);
+assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:unshield-production-status"),
+  "Missing Unshield production status command.",
+);
+assert.ok(
+  snapshot.requiredCommands.includes("npm run mainnet:unshield-production-check"),
+  "Missing Unshield production check command.",
+);
 assert.ok(snapshot.requiredCommands.includes("npm run audit:package-check"), "Missing audit package command.");
 assert.ok(
   snapshot.nextActions[0]?.includes("approval window") || snapshot.nextActions[0]?.includes("launch window"),

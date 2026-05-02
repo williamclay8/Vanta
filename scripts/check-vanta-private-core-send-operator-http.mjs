@@ -440,10 +440,31 @@ try {
   }
   printStatus("operator send http resulting-root format gate: PASS");
 
-  const transitionResponse = await requestJson(baseUrl, "/private-core/send-transition", {
-    body: JSON.stringify({ resultingRoot: fixture.send.validResultingRoot, witnessPackage }),
-    method: "POST",
-  });
+  const [firstConcurrentTransition, secondConcurrentTransition] = await Promise.all([
+    requestJson(baseUrl, "/private-core/send-transition", {
+      body: JSON.stringify({ resultingRoot: fixture.send.validResultingRoot, witnessPackage }),
+      method: "POST",
+    }),
+    requestJson(baseUrl, "/private-core/send-transition", {
+      body: JSON.stringify({ resultingRoot: fixture.send.validResultingRoot, witnessPackage }),
+      method: "POST",
+    }),
+  ]);
+  const transitionResponses = [firstConcurrentTransition, secondConcurrentTransition];
+  const acceptedTransitions = transitionResponses.filter((candidate) => candidate.ok);
+  const rejectedTransitions = transitionResponses.filter((candidate) => !candidate.ok);
+  if (
+    acceptedTransitions.length !== 1 ||
+    rejectedTransitions.length !== 1 ||
+    !rejectedTransitions[0]?.text.includes("input nullifier is already registered")
+  ) {
+    throw new Error(
+      `operator send transition concurrency guard failed\n${transitionResponses
+        .map((candidate) => candidate.text)
+        .join("\n---\n")}`,
+    );
+  }
+  const transitionResponse = acceptedTransitions[0];
   if (
     !transitionResponse.ok ||
     transitionResponse.parsed?.verified !== true ||
@@ -454,7 +475,22 @@ try {
   ) {
     throw new Error(transitionResponse.text || "operator send transition endpoint failed");
   }
-  printStatus("operator send http transition: PASS");
+  printStatus("operator send http concurrent transition reservation: PASS");
+
+  const duplicateTransitionResponse = await requestJson(baseUrl, "/private-core/send-transition", {
+    body: JSON.stringify({ resultingRoot: fixture.send.validResultingRoot, witnessPackage }),
+    method: "POST",
+  });
+  if (
+    duplicateTransitionResponse.ok ||
+    !duplicateTransitionResponse.text.includes("input nullifier is already registered")
+  ) {
+    throw new Error(
+      duplicateTransitionResponse.text ||
+        "operator send transition unexpectedly accepted a duplicate input nullifier",
+    );
+  }
+  printStatus("operator send http duplicate nullifier rejection: PASS");
 
   const sendState = await requestJson(baseUrl, "/state/private-core-sends", { method: "GET" });
   if (

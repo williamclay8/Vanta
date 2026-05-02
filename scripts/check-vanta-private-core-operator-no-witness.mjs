@@ -119,6 +119,23 @@ const { proveAndVerifyVantaPrivateCoreUnshield } = await import(
 );
 const fixture = getVantaPrivateCoreFixedDepthUnshieldFixtureV0();
 const witnessPackage = fixture.validBoundary.noirWitnessPackage;
+assert(
+  witnessPackage.provingTreeContract === "poseidon4-current-sibling-hi-sibling-lo-direction-v0",
+  "Witness package must name the v0 direction-tagged proving tree contract.",
+);
+assert(
+  witnessPackage.sourcePublicInputContract ===
+    "sha256-source-inputs-with-poseidon-consume-context-tag-v0",
+  "Witness package must name the source/proving public input split.",
+);
+assert(
+  witnessPackage.consumeContextTagContract === "poseidon-proving-lane-public-field-v0",
+  "Witness package must name the Poseidon consume context tag contract.",
+);
+assert(
+  witnessPackage.publicInputs.consume_context_tag_hi === "0",
+  "Consume context tag high limb must stay zero for the public field ABI.",
+);
 const sourceArtifacts = fixture.validSourceArtifacts;
 const proofReceipt = await proveAndVerifyVantaPrivateCoreUnshield({ witnessPackage });
 const proofArtifact = {
@@ -129,6 +146,7 @@ const proofArtifact = {
   proofVersion: proofReceipt.proofVersion,
   provingHashLane: proofReceipt.provingHashLane,
   publicInputs: proofReceipt.publicInputs,
+  sourceArtifacts,
   sourcePublicInputs: witnessPackage.sourcePublicInputs,
 };
 
@@ -202,6 +220,20 @@ try {
     `/private-core/register-root rejected verifier-only artifact: ${rootResponse.text}`,
   );
   printStatus("strict no-witness /private-core/register-root artifact: PASS");
+
+  const tamperedSourceArtifactsResponse = await requestJson("/private-core/register-root", {
+    proofArtifact,
+    sourceArtifacts: {
+      ...sourceArtifacts,
+      noteCommitment: "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    },
+  });
+  assert(
+    !tamperedSourceArtifactsResponse.ok &&
+      tamperedSourceArtifactsResponse.text.includes("mismatched proof-artifact note commitment"),
+    "strict no-witness register-root accepted source artifacts that diverged from the proof artifact.",
+  );
+  printStatus("strict no-witness proof-artifact source-artifact binding: PASS");
 
   const consumeResponse = await requestJson("/private-core/unshield-consume", {
     proofArtifact,

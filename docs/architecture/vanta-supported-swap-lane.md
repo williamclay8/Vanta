@@ -6,7 +6,7 @@ This note freezes the current constrained swap lane that Vanta exposes in the na
 
 - `supportedSwapLaneVersion = 1`
 - `supportedSwapLaneKind = single-input-usdc-to-shielded-sol`
-- `supportedSwapLaneStatus = supported`
+- `supportedSwapLaneStatus = supported locally / operator-contract supported; not mainnet-production-private`
 - `supportedSwapV1Decision = accepted-narrow-v1-path`
 - `supportedSwapV1Role = adjacent-supported-not-required-for-finish-line`
 - `supportedSwapVenue = meteora-dlmm-devnet`
@@ -24,6 +24,8 @@ The current supported swap path is deliberately narrow:
 - one shielded SOL output note
 
 This is not a claim that arbitrary private swaps are already supported. It is a freeze of the one constrained swap lane the current product/operator contract is willing to describe as supported.
+
+For production-private claims, the authority is `npm run mainnet:swap-production-status-json`, which must remain blocked until quote/route privacy, live venue privacy, reviewed live Swap settlement evidence, replay evidence, audit, anonymity-set evidence, and exact Swap approval all clear.
 
 The operator contract now also says two things at once, explicitly:
 

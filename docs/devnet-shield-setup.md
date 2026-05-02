@@ -14,6 +14,7 @@ Create a local `.env` file from `.env.example` and set:
 VITE_VANTA_DEVNET_TOKEN_MINT=...
 VITE_VANTA_DEVNET_VAULT_OWNER=...
 VITE_VANTA_UNSHIELD_OPERATOR_URL=http://127.0.0.1:8789/unshield
+VITE_VANTA_SOL_UNSHIELD_OPERATOR_URL=http://127.0.0.1:8789/unshield/sol
 
 VANTA_DEVNET_TOKEN_MINT=...
 VANTA_DEVNET_VAULT_OWNER=...
@@ -66,6 +67,7 @@ For the first constrained Unshield hardening milestone, the frontend no longer c
 The current operator path is now minimally authenticated:
 - the connected wallet signs an explicit Unshield intent message
 - the operator verifies that wallet signature before moving USDC
+- the same operator exposes `POST /unshield/sol` for the constrained SOL release lane
 - requests carry a timestamped `requestId`
 - the operator rejects expired and already-seen requests in-memory during local runs
 - the operator confirms the referenced onchain Unshield transition and consumed note are consistent before release
@@ -81,6 +83,31 @@ The operator expects:
 - `VANTA_DEVNET_TOKEN_MINT`
 - `VANTA_DEVNET_VAULT_OWNER`
 - `VANTA_DEVNET_VAULT_SIGNER_SECRET_KEY`
+
+The browser expects:
+- `VITE_VANTA_UNSHIELD_OPERATOR_URL` for SPL token Unshield
+- `VITE_VANTA_SOL_UNSHIELD_OPERATOR_URL` for SOL Unshield
+
+The SOL endpoint can be checked without moving funds:
+
+```bash
+npm run unshield:sol-operator-endpoint-check
+```
+
+That self-hosted check verifies `/health/sol-unshield`, rejects malformed SOL release requests, and confirms the SOL record-state endpoint shape. Live SOL release remains a real devnet transfer and should only be attempted with the intended funded devnet vault signer.
+
+The downstream mainnet-production status surfaces are intentionally blocked until the live evidence gates are satisfied, but they should stay wired into readiness and preflight:
+
+```bash
+npm run mainnet:send-production-status
+npm run mainnet:send-production-check
+npm run mainnet:swap-production-status
+npm run mainnet:swap-production-check
+npm run mainnet:unshield-production-status
+npm run mainnet:unshield-production-check
+```
+
+These are truth surfaces, not launch approvals. They preserve local lane coverage, no-funds operator coverage, live-settlement evidence gaps, bounded-approval state, and privacy-claim blockers for Send, Swap, and Unshield.
 
 By default the operator stores completed release records at:
 

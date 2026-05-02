@@ -4,7 +4,7 @@ import {
   poseidon1,
   poseidon15,
   poseidon2,
-  poseidon3,
+  poseidon4,
   poseidon6,
   poseidon8,
 } from "poseidon-lite";
@@ -42,9 +42,17 @@ export const VANTA_PRIVATE_CORE_UNSHIELD_OWNER_AUTH_MODE_V0 =
 export const VANTA_PRIVATE_CORE_NULLIFIER_KEY_MODE_V0 =
   "note-secret-as-nullifier-key-v0" as const;
 export const VANTA_PRIVATE_CORE_BYTES32_ENCODING_V0 = "bytes32-2x128-be" as const;
+export const VANTA_PRIVATE_CORE_PUBLIC_FIELD_ENCODING_V0 =
+  "bn254-field-public-lo-with-zero-hi-v0" as const;
 export const VANTA_PRIVATE_CORE_AMOUNT_ENCODING_V0 = "u128-2x64-le" as const;
 export const VANTA_PRIVATE_CORE_MERKLE_DIRECTION_BIT_V0 =
   "is_current_right__1_when_sibling_is_left" as const;
+export const VANTA_PRIVATE_CORE_UNSHIELD_PROVING_TREE_CONTRACT_V0 =
+  "poseidon4-current-sibling-hi-sibling-lo-direction-v0" as const;
+export const VANTA_PRIVATE_CORE_UNSHIELD_SOURCE_PUBLIC_INPUT_CONTRACT_V0 =
+  "sha256-source-inputs-with-poseidon-consume-context-tag-v0" as const;
+export const VANTA_PRIVATE_CORE_UNSHIELD_CONSUME_CONTEXT_TAG_CONTRACT_V0 =
+  "poseidon-proving-lane-public-field-v0" as const;
 export const VANTA_PRIVATE_CORE_UNSHIELD_CONSUME_CONTEXT_DOMAIN_V0 =
   "vanta.private-core.unshield-consume-context.v0" as const;
 export const VANTA_PRIVATE_CORE_UNSHIELD_CIRCUIT_MERKLE_DEPTH_V0 = 3 as const;
@@ -58,6 +66,13 @@ export type Bytes32EncodingV0 = {
   encoding: typeof VANTA_PRIVATE_CORE_BYTES32_ENCODING_V0;
   sourceHex: Bytes32Hex;
   hi: FieldDecimalString;
+  lo: FieldDecimalString;
+};
+
+export type PublicFieldEncodingV0 = {
+  encoding: typeof VANTA_PRIVATE_CORE_PUBLIC_FIELD_ENCODING_V0;
+  sourceHex: Bytes32Hex;
+  hi: "0";
   lo: FieldDecimalString;
 };
 
@@ -123,6 +138,9 @@ export type VantaPrivateCoreNoirUnshieldWitnessPackageV0 = {
   proofVersion: typeof VANTA_PRIVATE_CORE_UNSHIELD_PROOF_VERSION_V0;
   merkleDepth: typeof VANTA_PRIVATE_CORE_UNSHIELD_CIRCUIT_MERKLE_DEPTH_V0;
   provingHashLane: typeof VANTA_PRIVATE_CORE_UNSHIELD_PROVING_HASH_LANE_V0;
+  provingTreeContract: typeof VANTA_PRIVATE_CORE_UNSHIELD_PROVING_TREE_CONTRACT_V0;
+  sourcePublicInputContract: typeof VANTA_PRIVATE_CORE_UNSHIELD_SOURCE_PUBLIC_INPUT_CONTRACT_V0;
+  consumeContextTagContract: typeof VANTA_PRIVATE_CORE_UNSHIELD_CONSUME_CONTEXT_TAG_CONTRACT_V0;
   sourcePublicInputs: UnshieldPublicInputsV0;
   publicInputs: {
     state_root: FieldDecimalString;
@@ -265,18 +283,8 @@ export function buildVantaPrivateCoreUnshieldProofBoundary(
   const ownerDerivedPublicKey = derivePublicKeyFromSecretKey(args.ownerSecretKey);
   const ownerSecretMatches = ownerDerivedPublicKey === note.ownerPublicKey;
   const releaseDestination = normalizeHex32(args.releaseDestination, "releaseDestination");
-  const consumeContextTag =
-    args.consumeContextTag ??
-    deriveVantaPrivateCoreConsumeContextTag({
-      commitment: noteCommitment.value,
-      stateRoot: args.heldNote.witness.root,
-      releaseDestination,
-      assetId: note.assetId,
-      amount: note.amount,
-      noteVersion: note.version,
-    });
-  const nullifier = deriveVantaPrivateCoreNullifier(note, args.heldNote.witness);
-  const merkleLeaf = deriveVantaPrivateCoreMerkleLeafHash(noteCommitment.value);
+  const releaseDestinationEncoding = encodeBytes32ToTwoU128Be(releaseDestination);
+  const assetEncoding = encodeBytes32ToTwoU128Be(note.assetId);
   const noteFieldEncoding = encodeNoteFieldsForUnshieldWitness(note);
   const selectedCircuitDepth =
     args.circuitMerkleDepth ?? VANTA_PRIVATE_CORE_UNSHIELD_CIRCUIT_MERKLE_DEPTH_V0;
@@ -284,6 +292,27 @@ export function buildVantaPrivateCoreUnshieldProofBoundary(
     args.heldNote.witness.proof,
     selectedCircuitDepth,
   );
+  const provingNoteCommitment = derivePoseidonNoteCommitmentField(noteFieldEncoding);
+  const provingMerkleLeaf = derivePoseidonMerkleLeafField(provingNoteCommitment);
+  const provingStateRoot = derivePoseidonMerkleRootField(provingMerkleLeaf, merklePathEncoding);
+  const provingNullifier = derivePoseidonNullifierField(
+    noteFieldEncoding.noteSecret,
+    noteFieldEncoding.noteNonce,
+    provingStateRoot,
+    provingMerkleLeaf,
+  );
+  const provingConsumeContext = derivePoseidonConsumeContextField({
+    releaseDestination: releaseDestinationEncoding,
+    assetId: assetEncoding,
+    amount: noteFieldEncoding.amount,
+    noteVersion: note.version,
+    nullifierField: provingNullifier,
+  });
+  const consumeContextTag =
+    args.consumeContextTag ??
+    encodeFieldToPublicPair(provingConsumeContext).sourceHex;
+  const nullifier = deriveVantaPrivateCoreNullifier(note, args.heldNote.witness);
+  const merkleLeaf = deriveVantaPrivateCoreMerkleLeafHash(noteCommitment.value);
   const publicInputs: UnshieldPublicInputsV0 = {
     statement: VANTA_PRIVATE_CORE_PROOF_SYSTEM_V0,
     stateRoot: args.heldNote.witness.root,
@@ -334,6 +363,8 @@ export function buildVantaPrivateCoreUnshieldProofBoundary(
     blockers,
     compatibilityNotes: [
       "Current app-side note commitment, Merkle leaf, Merkle node, and nullifier derivations use SHA-256 semantics.",
+      "The public consumeContextTag is intentionally the Poseidon proving-lane field encoded as a 32-byte hex tag; it is not the legacy SHA-derived source consume context.",
+      "The Noir Merkle root is a v0 proving tree contract over poseidon4(current, sibling_hi, sibling_lo, direction), not a conventional left/right Merkle tree.",
       "Current owner authorization is only prechecked off-circuit by recomputing the X25519 public key from the supplied secret key.",
       "Current nullifier witness uses noteSecret directly as the v0.1 nullifier key witness.",
     ],
@@ -374,11 +405,16 @@ export function createVantaPrivateCoreNoirUnshieldWitnessPackage(args: {
     amount: args.privateWitness.noteFieldEncoding.amount,
     noteVersion: args.publicInputs.noteVersion,
   });
-  // The current Noir circuit binds consume_context_tag as
-  // `consume_context_tag_hi + consume_context_tag_lo`.
-  // Keep the public ABI stable for now, but place the full additive proving-lane
-  // value in `lo` and force `hi = 0` so the circuit and witness package agree.
+  // Keep the two-field public ABI stable while making the binding canonical:
+  // hi must stay zero and lo carries the single proving-lane context field.
   const consumeContextTagEncoding = encodeFieldToPublicPair(consumeContextField);
+  if (
+    args.publicInputs.consumeContextTag !== undefined &&
+    normalizeHex32(args.publicInputs.consumeContextTag, "consumeContextTag") !==
+      consumeContextTagEncoding.sourceHex
+  ) {
+    throw new Error("Unshield consume context tag must match the proving-lane context field.");
+  }
 
   return {
     backend: VANTA_PRIVATE_CORE_UNSHIELD_BACKEND_V0,
@@ -386,6 +422,9 @@ export function createVantaPrivateCoreNoirUnshieldWitnessPackage(args: {
     proofVersion: VANTA_PRIVATE_CORE_UNSHIELD_PROOF_VERSION_V0,
     merkleDepth: VANTA_PRIVATE_CORE_UNSHIELD_CIRCUIT_MERKLE_DEPTH_V0,
     provingHashLane: VANTA_PRIVATE_CORE_UNSHIELD_PROVING_HASH_LANE_V0,
+    provingTreeContract: VANTA_PRIVATE_CORE_UNSHIELD_PROVING_TREE_CONTRACT_V0,
+    sourcePublicInputContract: VANTA_PRIVATE_CORE_UNSHIELD_SOURCE_PUBLIC_INPUT_CONTRACT_V0,
+    consumeContextTagContract: VANTA_PRIVATE_CORE_UNSHIELD_CONSUME_CONTEXT_TAG_CONTRACT_V0,
     sourcePublicInputs: args.publicInputs,
     publicInputs: {
       state_root: stateRootField,
@@ -844,15 +883,13 @@ function derivePoseidonMerkleRootField(
   let current = BigInt(leaf);
 
   for (let index = 0; index < path.depth; index += 1) {
-    const siblingHi = BigInt(path.siblings[index].hi);
-    const siblingLo = BigInt(path.siblings[index].lo);
     const isCurrentRight = path.directionBits[index] === "1" ? 1n : 0n;
-    const sibling = siblingHi + siblingLo;
-    if (isCurrentRight === 1n) {
-      current = poseidon3([sibling, current, isCurrentRight]);
-    } else {
-      current = poseidon3([current, sibling, isCurrentRight]);
-    }
+    current = poseidon4([
+      current,
+      BigInt(path.siblings[index].hi),
+      BigInt(path.siblings[index].lo),
+      isCurrentRight,
+    ]);
   }
 
   return current.toString(10);
@@ -1035,14 +1072,14 @@ function toHex32(value: Uint8Array): Bytes32Hex {
   return `0x${Array.from(value, (byte) => byte.toString(16).padStart(2, "0")).join("")}` as Bytes32Hex;
 }
 
-function encodeFieldToPublicPair(value: FieldDecimalString): Bytes32EncodingV0 {
+function encodeFieldToPublicPair(value: FieldDecimalString): PublicFieldEncodingV0 {
   const normalized = BigInt(value);
   const hi = 0n;
   const lo = normalized;
   return {
-    encoding: VANTA_PRIVATE_CORE_BYTES32_ENCODING_V0,
-    sourceHex: `0x${hi.toString(16).padStart(32, "0")}${lo.toString(16).padStart(32, "0")}` as Bytes32Hex,
-    hi: hi.toString(10),
+    encoding: VANTA_PRIVATE_CORE_PUBLIC_FIELD_ENCODING_V0,
+    sourceHex: `0x${normalized.toString(16).padStart(64, "0")}` as Bytes32Hex,
+    hi: hi.toString(10) as "0",
     lo: lo.toString(10),
   };
 }

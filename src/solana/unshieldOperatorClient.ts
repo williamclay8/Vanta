@@ -33,6 +33,10 @@ export async function requestOperatorUnshield(
     throw new Error("The unshield operator did not return a valid request id.");
   }
 
+  if (parsed.requestId !== payload.requestId) {
+    throw new Error("The unshield operator returned a mismatched request id.");
+  }
+
   return {
     requestId: parsed.requestId,
     signature: parsed.signature,

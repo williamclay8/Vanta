@@ -295,6 +295,32 @@ try {
     throw new Error(sendTransitionResponse.text || "operator-backed send transition failed");
   }
 
+  await stopServer(liveServer);
+  liveServer = null;
+  serverOutput = started.getOutput();
+
+  started = startServer(tempRoot, port);
+  liveServer = started.server;
+  await waitForHealth(baseUrl);
+
+  const duplicateSendAfterRestart = await requestJson(baseUrl, "/private-core/send-transition", {
+    body: JSON.stringify({
+      resultingRoot: previewResult.resultingRoot,
+      witnessPackage: sendBoundary.noirWitnessPackage,
+    }),
+    method: "POST",
+  });
+  if (
+    duplicateSendAfterRestart.ok ||
+    !duplicateSendAfterRestart.text.includes("input nullifier is already registered")
+  ) {
+    throw new Error(
+      duplicateSendAfterRestart.text ||
+        "send transition unexpectedly accepted a duplicate nullifier after restart",
+    );
+  }
+  printStatus("private-core send->unshield restart duplicate nullifier rejection: PASS");
+
   const sendResult = ledger.send(transition);
   const heldRecipient = ledger.hold({
     encryptedPayload: sendResult.recipient.encryptedPayload,

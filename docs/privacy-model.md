@@ -25,7 +25,7 @@ It aims to support:
 
 It does **not** attempt to solve:
 - multi-asset generality
-- private swap
+- production-private or generalized private swap
 - merchant payments
 - production-scale relayer networks
 - full anonymity guarantees across every edge case
@@ -71,7 +71,7 @@ The goals of v1 are practical and product-oriented.
 
 ### Primary goals
 - create a real transition from transparent wallet state into shielded state
-- enable a real send flow from shielded state
+- enable a narrow beta send flow from shielded state without claiming production-private or mainnet-private Send
 - reduce direct public traceability compared with ordinary wallet-to-wallet flows
 - make shielded state understandable to users
 

@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Land the first truthful foundation for fully private all-action Vanta by formalizing privacy disclosures, unifying token availability, and hardening all-action Private Pool v2 settlement smoke.
+**Goal:** Land the first truthful foundation for proof-backed, operator-verifiable all-action private-settlement by formalizing privacy disclosures, unifying token availability, and hardening all-action Private Pool v2 settlement smoke.
 
 **Architecture:** Add pure contract/catalog modules first, then wire narrow checks and existing operator smoke behavior around them. Keep execution semantics unchanged and fail closed wherever the current repo cannot honestly support hidden economic terms.
 

@@ -78,6 +78,10 @@ loadEnvFile(".env.operator");
 loadEnvFile(".env.operator.local");
 
 const port = Number(process.env.VANTA_UNSHIELD_OPERATOR_PORT ?? "8789");
+const MAX_JSON_BODY_BYTES = parsePositiveIntegerEnv(
+  "VANTA_UNSHIELD_OPERATOR_MAX_JSON_BODY_BYTES",
+  1048576,
+);
 const endpoint =
   process.env.SOLANA_RPC_URL ??
   process.env.VITE_SOLANA_RPC_URL ??
@@ -376,6 +380,14 @@ const server = createServer(async (request, response) => {
       health.status === "healthy" || health.status === "degraded" ? 200 : 503,
       { "Content-Type": "application/json" },
     );
+    response.end(JSON.stringify(health));
+    return;
+  }
+
+  if (request.method === "GET" && request.url === "/health/sol-unshield") {
+    const health = evaluateSolUnshieldLaneHealth();
+    writeCorsHeaders(response);
+    response.writeHead(health.ready ? 200 : 503, { "Content-Type": "application/json" });
     response.end(JSON.stringify(health));
     return;
   }
@@ -964,23 +976,35 @@ const server = createServer(async (request, response) => {
       if (resultingRoot === sourcePublicInputs.stateRoot) {
         throw new Error("Private-core send resulting root must differ from the input root.");
       }
-      const proofReceipt = await proveAndVerifyVantaPrivateCoreSend({
-        witnessPackage,
-      });
-      const proofRecord = summarizePrivateCoreSendProofRecord({
-        action: "send-proof",
-        proofReceipt,
-        witnessPackage,
-      });
-      privateCoreSendProofStore.recordProof(proofRecord);
-      const sendRecord = summarizePrivateCoreSendRecord({
-        proofRecord,
-        proofReceipt,
-        releaseCandidateId,
-        resultingRoot,
-        witnessPackage,
-      });
-      privateCoreSendStore.recordSend(sendRecord);
+      privateCoreSendStore.reserveInputNullifier(sourcePublicInputs.inputNullifier);
+      let sendRecorded = false;
+      let proofReceipt;
+      let proofRecord;
+      let sendRecord;
+      try {
+        proofReceipt = await proveAndVerifyVantaPrivateCoreSend({
+          witnessPackage,
+        });
+        proofRecord = summarizePrivateCoreSendProofRecord({
+          action: "send-proof",
+          proofReceipt,
+          witnessPackage,
+        });
+        privateCoreSendProofStore.recordProof(proofRecord);
+        sendRecord = summarizePrivateCoreSendRecord({
+          proofRecord,
+          proofReceipt,
+          releaseCandidateId,
+          resultingRoot,
+          witnessPackage,
+        });
+        privateCoreSendStore.recordSend(sendRecord);
+        sendRecorded = true;
+      } finally {
+        if (!sendRecorded) {
+          privateCoreSendStore.releaseInputNullifier(sourcePublicInputs.inputNullifier);
+        }
+      }
 
       writeCorsHeaders(response);
       response.writeHead(200, { "Content-Type": "application/json" });
@@ -4082,11 +4106,36 @@ function normalizePrivateCoreReleaseCandidateId(value) {
   return normalized;
 }
 
+function parsePositiveIntegerEnv(name, fallback) {
+  const raw = process.env[name];
+  if (raw === undefined || raw === "") {
+    return fallback;
+  }
+
+  const parsed = Number(raw);
+  if (!Number.isSafeInteger(parsed) || parsed <= 0) {
+    throw new Error(`${name} must be a positive safe integer.`);
+  }
+
+  return parsed;
+}
+
 async function readJsonBody(request) {
+  const contentType = request.headers["content-type"];
+  if (contentType && !String(contentType).toLowerCase().includes("application/json")) {
+    throw new Error("Expected application/json request body.");
+  }
+
   const chunks = [];
+  let size = 0;
 
   for await (const chunk of request) {
-    chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+    const buffer = typeof chunk === "string" ? Buffer.from(chunk) : chunk;
+    size += buffer.byteLength;
+    if (size > MAX_JSON_BODY_BYTES) {
+      throw new Error("JSON request body is too large.");
+    }
+    chunks.push(buffer);
   }
 
   const raw = Buffer.concat(chunks).toString("utf8");
@@ -4127,9 +4176,11 @@ function getPrivateCoreUnshieldSourcePublicInputs(body) {
 
 function assertPrivateCoreUnshieldSourceArtifactConsistency(args) {
   if (args.body?.proofArtifact) {
+    const proofArtifact = normalizeVantaPrivateCoreUnshieldProofArtifact(args.body.proofArtifact);
     assertVantaPrivateCoreSourceArtifactShapeConsistency(
       args.sourceArtifacts,
       args.sourcePublicInputs,
+      proofArtifact,
     );
     return;
   }
@@ -4187,6 +4238,45 @@ function solAmountToLamports(amount) {
   }
 
   return lamports;
+}
+
+function evaluateSolUnshieldLaneHealth() {
+  const checks = [];
+
+  checks.push({ check: "rpc-endpoint", ready: Boolean(endpoint) });
+  checks.push({ check: "token-mint", ready: Boolean(mintAddress) });
+  checks.push({ check: "vault-owner", ready: Boolean(vaultOwner) });
+
+  let signerAddress = null;
+  try {
+    signerAddress = loadWeb3KeypairFromEnv(
+      "VANTA_DEVNET_VAULT_SIGNER_SECRET_KEY",
+    ).publicKey.toBase58();
+  } catch {
+    signerAddress = null;
+  }
+
+  checks.push({ check: "vault-signer", ready: Boolean(signerAddress) });
+  checks.push({
+    check: "vault-signer-matches-owner",
+    ready: Boolean(signerAddress && signerAddress === vaultOwner),
+  });
+
+  const ready = checks.every((check) => check.ready);
+
+  return {
+    checks,
+    endpoint: "/unshield/sol",
+    kind: "vanta-sol-unshield-operator-health",
+    note: ready
+      ? "SOL unshield operator endpoint is configured for signed devnet release."
+      : "SOL unshield operator endpoint is reachable but not fully configured for release.",
+    ready,
+    releaseModel: "operator-signed-devnet-sol-transfer",
+    signerAddress,
+    status: ready ? "ready" : "blocked",
+    version: "vanta-sol-unshield-operator-health-0.1",
+  };
 }
 
 function loadWeb3KeypairFromEnv(envKey) {

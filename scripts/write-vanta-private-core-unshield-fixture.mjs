@@ -12,9 +12,16 @@ const outputPath = resolve(
 const fixtureMode = process.argv[2] ?? "valid";
 
 async function main() {
-  if (fixtureMode !== "valid" && fixtureMode !== "invalid-direction") {
+  const supportedFixtureModes = new Set([
+    "valid",
+    "invalid-direction",
+    "invalid-leaf-index",
+    "invalid-consume-context-split",
+    "invalid-sibling-limb-collision",
+  ]);
+  if (!supportedFixtureModes.has(fixtureMode)) {
     throw new Error(
-      'Expected fixture mode "valid" or "invalid-direction". Example: node scripts/write-vanta-private-core-unshield-fixture.mjs invalid-direction',
+      `Expected fixture mode ${Array.from(supportedFixtureModes).join(", ")}. Example: node scripts/write-vanta-private-core-unshield-fixture.mjs invalid-direction`,
     );
   }
 
@@ -77,19 +84,10 @@ async function main() {
 
     const compiledModule = await import(pathToFileURL(compiledProofBoundaryPath).href);
     const fixture = compiledModule.getVantaPrivateCoreFixedDepthUnshieldFixtureV0();
-    const witnessPackage =
-      fixtureMode === "invalid-direction"
-        ? {
-            ...fixture.validBoundary.noirWitnessPackage,
-            privateWitness: {
-              ...fixture.validBoundary.noirWitnessPackage.privateWitness,
-              membership_path_direction_bits:
-                fixture.validBoundary.noirWitnessPackage.privateWitness.membership_path_direction_bits.map(
-                  (bit, index) => (index === 0 ? (bit === "1" ? "0" : "1") : bit),
-                ),
-            },
-          }
-        : fixture.validBoundary.noirWitnessPackage;
+    const witnessPackage = createWitnessPackageForMode(
+      fixture.validBoundary.noirWitnessPackage,
+      fixtureMode,
+    );
     const toml = compiledModule.serializeVantaPrivateCoreNoirUnshieldWitnessPackageToToml(
       witnessPackage,
     );
@@ -99,6 +97,66 @@ async function main() {
   } finally {
     rmSync(tempRoot, { recursive: true, force: true });
   }
+}
+
+function createWitnessPackageForMode(validWitnessPackage, mode) {
+  if (mode === "valid") {
+    return validWitnessPackage;
+  }
+
+  if (mode === "invalid-direction") {
+    return {
+      ...validWitnessPackage,
+      privateWitness: {
+        ...validWitnessPackage.privateWitness,
+        membership_path_direction_bits:
+          validWitnessPackage.privateWitness.membership_path_direction_bits.map((bit, index) =>
+            index === 0 ? (bit === "1" ? "0" : "1") : bit,
+          ),
+      },
+    };
+  }
+
+  if (mode === "invalid-leaf-index") {
+    return {
+      ...validWitnessPackage,
+      privateWitness: {
+        ...validWitnessPackage.privateWitness,
+        leaf_index: String(Number(validWitnessPackage.privateWitness.leaf_index) + 1),
+      },
+    };
+  }
+
+  if (mode === "invalid-consume-context-split") {
+    const contextLo = BigInt(validWitnessPackage.publicInputs.consume_context_tag_lo ?? "0");
+    return {
+      ...validWitnessPackage,
+      publicInputs: {
+        ...validWitnessPackage.publicInputs,
+        consume_context_tag_hi: "1",
+        consume_context_tag_lo: (contextLo - 1n).toString(10),
+      },
+    };
+  }
+
+  if (mode === "invalid-sibling-limb-collision") {
+    const hi = BigInt(validWitnessPackage.privateWitness.membership_path_hi[0]);
+    const lo = BigInt(validWitnessPackage.privateWitness.membership_path_lo[0]);
+    return {
+      ...validWitnessPackage,
+      privateWitness: {
+        ...validWitnessPackage.privateWitness,
+        membership_path_hi: validWitnessPackage.privateWitness.membership_path_hi.map((value, index) =>
+          index === 0 ? (hi + 1n).toString(10) : value,
+        ),
+        membership_path_lo: validWitnessPackage.privateWitness.membership_path_lo.map((value, index) =>
+          index === 0 ? (lo - 1n).toString(10) : value,
+        ),
+      },
+    };
+  }
+
+  throw new Error(`Unsupported fixture mode ${mode}`);
 }
 
 try {

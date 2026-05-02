@@ -50,7 +50,7 @@ const shieldSurface = surfacesByPage.get("Shield");
 assert.equal(shieldSurface.status, "safe-send-adopted", "Shield must reflect safe-send adoption.");
 assert.ok(
   shieldSurface.adoptedCallSites?.length >= 4,
-  "Shield must list SPL, native SOL, state, and public-route transactions as safe-send adopted.",
+  "Shield must list SPL, same-transaction state memo, native SOL, and public-route transactions as safe-send adopted.",
 );
 assert.equal(
   shieldSurface.currentCallSites.length,
