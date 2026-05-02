@@ -173,7 +173,10 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const balance = useBalance(address ?? undefined);
   const hookLamportsValue =
     typeof balance.lamports === "bigint" ? balance.lamports : null;
-  const lamportsValue = fallbackLamportsValue ?? hookLamportsValue;
+  const shouldVerifyHookZeroBalance = hookLamportsValue === 0n;
+  const lamportsValue =
+    fallbackLamportsValue ??
+    (fallbackBalanceFetching && shouldVerifyHookZeroBalance ? null : hookLamportsValue);
   const solBalance =
     lamportsValue !== null ? Number(lamportsValue) / 1_000_000_000 : null;
 
@@ -185,13 +188,15 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    if (hookLamportsValue !== null) {
+    if (hookLamportsValue !== null && hookLamportsValue > 0n) {
+      setFallbackLamportsValue(null);
       setFallbackBalanceError(null);
       setFallbackBalanceFetching(false);
       return;
     }
 
     let cancelled = false;
+    setFallbackLamportsValue(null);
     setFallbackBalanceFetching(true);
     setFallbackBalanceError(null);
 

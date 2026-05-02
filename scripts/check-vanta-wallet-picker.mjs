@@ -45,8 +45,13 @@ requireIncludes(
 );
 requireIncludes(
   walletContext,
-  "const lamportsValue = fallbackLamportsValue ?? hookLamportsValue",
-  "Wallet context must prefer explicit RPC fallback lamports over hook lamports so a stale hook zero cannot mask the real SOL balance.",
+  "fallbackBalanceFetching && shouldVerifyHookZeroBalance ? null : hookLamportsValue",
+  "Wallet context must hide provisional hook zero while fallback balance recovery is still checking browser-readable endpoints.",
+);
+requireIncludes(
+  walletContext,
+  "hookLamportsValue !== null && hookLamportsValue > 0n",
+  "Wallet context must only trust a hook balance immediately when it is positive.",
 );
 requireIncludes(
   walletContext,
@@ -75,8 +80,8 @@ requireIncludes(
 );
 requireIncludes(
   walletContext,
-  '["https://api.devnet.solana.com", MAINNET_WALLET_BALANCE_READ_ENDPOINT]',
-  "Wallet context SOL balance fallback must recover a mainnet public SOL balance when the app is temporarily using devnet operator config.",
+  'MAINNET_WALLET_BALANCE_READ_ENDPOINT]',
+  "Wallet context SOL balance fallback must recover a mainnet public SOL balance even when another endpoint reports zero first.",
 );
 requireIncludes(
   walletContext,
