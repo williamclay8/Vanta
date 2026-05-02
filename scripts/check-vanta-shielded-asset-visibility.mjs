@@ -161,15 +161,19 @@ for (const marker of [
 }
 
 assert.ok(
-  clientSource.includes("VITE_SOLANA_BROWSER_RPC_URL") &&
-    clientSource.includes("VITE_SOLANA_BROWSER_WS_URL") &&
-    !clientSource.includes("VITE_SOLANA_RPC_URL"),
-  "Browser Solana client must not consume server RPC envs; use browser-safe RPC envs or cluster defaults.",
+  clientSource.includes('const defaultSolanaRpcEndpoint = "https://api.mainnet-beta.solana.com"') &&
+    clientSource.includes("export const endpoint = defaultSolanaRpcEndpoint") &&
+    !clientSource.includes("VITE_SOLANA_RPC_URL") &&
+    !clientSource.includes("VITE_SOLANA_BROWSER_RPC_URL"),
+  "Browser Solana client must ignore stale build-time RPC envs and use the mainnet-beta default.",
 );
 assert.ok(
-  shieldStateSource.includes("VITE_SOLANA_BROWSER_RPC_URL") &&
-    !shieldStateSource.includes("VITE_SOLANA_RPC_URL"),
-  "Browser shield-state memo recovery must not consume server RPC envs.",
+  shieldStateSource.includes(
+    'const shieldStateRpcEndpoint = "https://api.mainnet-beta.solana.com"',
+  ) &&
+    !shieldStateSource.includes("VITE_SOLANA_RPC_URL") &&
+    !shieldStateSource.includes("VITE_SOLANA_BROWSER_RPC_URL"),
+  "Browser shield-state memo recovery must ignore stale build-time RPC envs.",
 );
 
 for (const symbol of directShieldSymbols) {

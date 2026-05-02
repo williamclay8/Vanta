@@ -36,19 +36,7 @@ const VANTA_SHIELD_MEMO_VERSION_BYTE = 0x01;
 const VANTA_SPENT_MARKER_MEMO_PREFIX = "vanta:spent-marker:v1:";
 export const VANTA_NATIVE_SOL_ASSET_ID =
   "So11111111111111111111111111111111111111112";
-const shieldStateRpcEndpoint =
-  (import.meta as ImportMeta & {
-    env?: {
-      PROD?: boolean;
-      VITE_SOLANA_BROWSER_RPC_URL?: string;
-      VITE_SOLANA_CLUSTER?: string;
-    };
-  }).env?.VITE_SOLANA_BROWSER_RPC_URL ??
-  (((import.meta as ImportMeta & { env?: { VITE_SOLANA_CLUSTER?: string } }).env?.VITE_SOLANA_CLUSTER ??
-    ((import.meta as ImportMeta & { env?: { PROD?: boolean } }).env?.PROD ? "mainnet-beta" : "mainnet")) ===
-  "mainnet-beta"
-    ? "https://api.mainnet-beta.solana.com"
-    : "https://api.mainnet-beta.solana.com");
+const shieldStateRpcEndpoint = "https://api.mainnet-beta.solana.com";
 
 type ShieldMemoEncryptionOptions = {
   viewingPublicKey?: string | null;

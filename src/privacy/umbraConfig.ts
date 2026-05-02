@@ -41,10 +41,7 @@ function defaultRelayerEndpoint(network: VantaPrivacyNetwork) {
 }
 
 const network = normalizeUmbraNetwork(import.meta.env.VITE_UMBRA_NETWORK);
-const rpcUrl =
-  optionalEnv(import.meta.env.VITE_UMBRA_RPC_URL) ??
-  optionalEnv(import.meta.env.VITE_SOLANA_RPC_URL) ??
-  "https://api.mainnet-beta.solana.com";
+const rpcUrl = optionalEnv(import.meta.env.VITE_UMBRA_RPC_URL) ?? "https://api.mainnet-beta.solana.com";
 
 export const umbraRuntimeConfig: UmbraRuntimeConfig = {
   enabled: optionalEnv(import.meta.env.VITE_VANTA_ENABLE_UMBRA) === "true",
@@ -55,7 +52,6 @@ export const umbraRuntimeConfig: UmbraRuntimeConfig = {
     optionalEnv(import.meta.env.VITE_UMBRA_RELAYER_URL) ?? defaultRelayerEndpoint(network),
   rpcSubscriptionsUrl:
     optionalEnv(import.meta.env.VITE_UMBRA_RPC_SUBSCRIPTIONS_URL) ??
-    optionalEnv(import.meta.env.VITE_SOLANA_WS_URL) ??
     rpcUrl.replace("https://", "wss://").replace("http://", "ws://"),
   rpcUrl,
 };

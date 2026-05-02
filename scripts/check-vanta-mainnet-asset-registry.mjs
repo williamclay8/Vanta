@@ -20,8 +20,8 @@ assert.ok(
   "Shield config must expose the mainnet-beta Solana cluster type.",
 );
 assert.ok(
-  shieldConfig.includes("VITE_SOLANA_CLUSTER"),
-  "Shield config must read VITE_SOLANA_CLUSTER.",
+  shieldConfig.includes("const isMainnetCluster = true"),
+  "Shield config must hard-select mainnet for static production builds.",
 );
 assert.ok(
   shieldConfig.includes("vantaExplicitMainnetApproval"),

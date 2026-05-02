@@ -4,10 +4,7 @@ export const SHIELD_HOOK_FALLBACK_MINT =
 export type VantaSolanaCluster = "mainnet-beta";
 export type VantaSolanaClusterLabel = "Mainnet";
 
-const configuredSolanaCluster = getOptionalEnvValue(import.meta.env.VITE_SOLANA_CLUSTER);
-const effectiveSolanaCluster =
-  configuredSolanaCluster === "mainnet" ? "mainnet-beta" : "mainnet-beta";
-const isMainnetCluster = effectiveSolanaCluster === "mainnet-beta";
+const isMainnetCluster = true;
 export const vantaSolanaCluster: VantaSolanaCluster = "mainnet-beta";
 export const vantaSolanaClusterLabel: VantaSolanaClusterLabel = "Mainnet";
 export const vantaExplicitMainnetApproval = true;
