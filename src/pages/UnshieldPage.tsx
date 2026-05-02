@@ -59,6 +59,7 @@ type UnshieldStatus =
   | "awaiting_confirmation"
   | "transition_ready"
   | "splitting_note"
+  | "split_finalization_ready"
   | "recording_transition"
   | "finalizing_split"
   | "operator_ready"
@@ -450,6 +451,8 @@ export function UnshieldPage() {
   const [pendingFinalizationApproval, setPendingFinalizationApproval] =
     useState<PreparedWalletApproval | null>(null);
   const [pendingSplitMarker, setPendingSplitMarker] = useState<PendingSplitMarker | null>(null);
+  const [pendingSplitFinalizationApproval, setPendingSplitFinalizationApproval] =
+    useState<PreparedWalletApproval | null>(null);
   const [pendingSplitFollowup, setPendingSplitFollowup] = useState<PendingSplitFollowup | null>(null);
   const [pendingUnshieldBridge, setPendingUnshieldBridge] = useState<PendingUnshieldBridge | null>(null);
   const [pendingUmbraApprovalDisplay, setPendingUmbraApprovalDisplay] =
@@ -951,11 +954,11 @@ export function UnshieldPage() {
           }),
         ];
 
-        return splitSpentMarkerTransaction.send({
+        return splitSpentMarkerTransaction.preflight({
           amount: pendingSplitMarker.amount,
           asset: "USDC",
           cluster: vantaSolanaCluster,
-      explicitMainnetApproval: vantaExplicitMainnetApproval,
+          explicitMainnetApproval: vantaExplicitMainnetApproval,
           connectedWalletAddress: pendingSplitMarker.owner,
           estimatedFees: "wallet-estimated",
           feePayer: pendingSplitMarker.owner,
@@ -967,6 +970,16 @@ export function UnshieldPage() {
           transactionFingerprint: `unshield-split-spent-marker:${pendingSplitMarker.owner}:${pendingSplitMarker.consumedNoteId}:${pendingSplitMarker.transitionNoteId}`,
         });
       })
+      .then((splitFinalizationApproval) => {
+        if (splitFinalizationApproval.status === "blocked") {
+          throw new Error(
+            `The hidden split spent marker is blocked before wallet approval: ${splitFinalizationApproval.reason}.`,
+          );
+        }
+
+        setPendingSplitFinalizationApproval(splitFinalizationApproval);
+        setStatus("split_finalization_ready");
+      })
       .catch((error) => {
         setStatus("failed");
         setFlowError(
@@ -975,6 +988,7 @@ export function UnshieldPage() {
             : "The hidden split spent marker could not be submitted.",
         );
         setPendingSplitMarker(null);
+        setPendingSplitFinalizationApproval(null);
         setPendingSplitFollowup(null);
         splitFollowupLaunchRef.current = null;
       });
@@ -998,9 +1012,43 @@ export function UnshieldPage() {
         : "The hidden split spent marker could not be submitted.",
     );
     setPendingSplitMarker(null);
+    setPendingSplitFinalizationApproval(null);
     setPendingSplitFollowup(null);
     splitFollowupLaunchRef.current = null;
   }, [splitSpentMarkerTransaction.error, splitSpentMarkerTransaction.status]);
+
+  const finalizePendingSplitState = useCallback(async () => {
+    if (
+      !pendingSplitFinalizationApproval ||
+      splitSpentMarkerTransaction.status === "loading" ||
+      splitSpentMarkerTransaction.signature
+    ) {
+      return;
+    }
+
+    setStatus("finalizing_split");
+
+    try {
+      await splitSpentMarkerTransaction.sendPrepared(pendingSplitFinalizationApproval);
+      setPendingSplitFinalizationApproval(null);
+    } catch (error) {
+      setStatus("failed");
+      setFlowError(
+        error instanceof Error
+          ? error.message
+          : "The hidden split spent marker could not be approved in the wallet.",
+      );
+      setPendingSplitMarker(null);
+      setPendingSplitFinalizationApproval(null);
+      setPendingSplitFollowup(null);
+      splitFollowupLaunchRef.current = null;
+    }
+  }, [
+    pendingSplitFinalizationApproval,
+    splitSpentMarkerTransaction,
+    splitSpentMarkerTransaction.signature,
+    splitSpentMarkerTransaction.status,
+  ]);
 
   useEffect(() => {
     if (splitSpentMarkerWait.waitStatus !== "error") {
@@ -1014,6 +1062,7 @@ export function UnshieldPage() {
         : "The hidden split spent marker was submitted but not confirmed.",
     );
     setPendingSplitMarker(null);
+    setPendingSplitFinalizationApproval(null);
     setPendingSplitFollowup(null);
     splitFollowupLaunchRef.current = null;
   }, [splitSpentMarkerWait.waitError, splitSpentMarkerWait.waitStatus]);
@@ -1062,6 +1111,7 @@ export function UnshieldPage() {
         }
 
         setPendingSplitMarker(null);
+        setPendingSplitFinalizationApproval(null);
         setPendingSplitFollowup(null);
         splitFollowupLaunchRef.current = null;
         await beginTokenUnshieldFromNote({
@@ -1078,6 +1128,7 @@ export function UnshieldPage() {
             : "The hidden split completed, but Vanta could not recover the exact child note.",
         );
         setPendingSplitMarker(null);
+        setPendingSplitFinalizationApproval(null);
         setPendingSplitFollowup(null);
         splitFollowupLaunchRef.current = null;
       });
@@ -1498,6 +1549,7 @@ export function UnshieldPage() {
     setPendingTransitionApproval(null);
     setPendingFinalizationApproval(null);
     setPendingSpentMarker(null);
+    setPendingSplitFinalizationApproval(null);
     setPendingUnshieldBridge(null);
     setPendingUmbraApprovalDisplay(null);
   }
@@ -1735,6 +1787,7 @@ export function UnshieldPage() {
     splitTransitionTransaction.reset();
     splitSpentMarkerTransaction.reset();
     setPendingSplitMarker(null);
+    setPendingSplitFinalizationApproval(null);
     setPendingSplitFollowup(null);
     splitFollowupLaunchRef.current = null;
 
@@ -1753,6 +1806,7 @@ export function UnshieldPage() {
         ) {
           splitTransitionTransaction.reset();
           splitSpentMarkerTransaction.reset();
+          setPendingSplitFinalizationApproval(null);
           setPendingSplitFollowup(null);
           splitFollowupLaunchRef.current = null;
           setFlowError(null);
@@ -1858,6 +1912,7 @@ export function UnshieldPage() {
       });
     } catch (error) {
       setPendingSplitMarker(null);
+      setPendingSplitFinalizationApproval(null);
       setPendingSplitFollowup(null);
       setPendingSpentMarker(null);
       setPendingUnshieldBridge(null);
@@ -2791,6 +2846,27 @@ export function UnshieldPage() {
               <div className="status-bar">
                 <div className="status-bar__fill" />
               </div>
+            </div>
+          )}
+
+          {status === "split_finalization_ready" && (
+            <div className="status-panel">
+              <span>Ready to finalize split</span>
+              <p>Approve the prepared split spent marker after the first wallet request has closed.</p>
+              <button
+                className="button button-primary"
+                type="button"
+                onClick={() => {
+                  void finalizePendingSplitState();
+                }}
+                disabled={
+                  !pendingSplitFinalizationApproval ||
+                  splitSpentMarkerTransaction.status === "loading" ||
+                  Boolean(splitSpentMarkerTransaction.signature)
+                }
+              >
+                Finalize split in wallet
+              </button>
             </div>
           )}
 
