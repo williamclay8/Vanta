@@ -542,21 +542,25 @@ try {
   const committedSwapInputRecord = {
     assetId: "USDC",
     commitment: committedSwapInputCommitment,
-    leafIndex: 1,
+    leafIndex: 3,
     treeId: committedSendInputTreeId,
   };
   const committedSwapInputRoot = currentRoot(committedSendInputTreeId, [
     committedSendInputRecord,
+    committedSendRecipientRecord,
+    committedSendChangeRecord,
     committedSwapInputRecord,
   ]);
   const committedSwapOutputRecord = {
     assetId: "USDC",
     commitment: "0xcommittedswap_output",
-    leafIndex: 2,
+    leafIndex: 4,
     treeId: committedSendInputTreeId,
   };
   const committedSwapOutputRoot = currentRoot(committedSendInputTreeId, [
     committedSendInputRecord,
+    committedSendRecipientRecord,
+    committedSendChangeRecord,
     committedSwapInputRecord,
     committedSwapOutputRecord,
   ]);
@@ -566,7 +570,7 @@ try {
     inputRoot: committedSwapInputRoot,
     nullifierOrReplayCommitment: "0xcommittedswap_replay",
     outputCommitment: "0xcommittedswap_output",
-    outputLeafIndex: "2",
+    outputLeafIndex: "4",
     outputRoot: committedSwapOutputRoot,
     ownerCommitment: "0xcommittedswap_owner",
     routeCommitment: "0xcommittedswap_route",
@@ -584,7 +588,7 @@ try {
     inputRoot: committedSwapInputRoot,
     nullifierOrReplayCommitment: "0xcommittedswap_replay",
     outputCommitment: "0xcommittedswap_output",
-    outputLeafIndex: "2",
+    outputLeafIndex: "4",
     outputRoot: committedSwapOutputRoot,
     ownerCommitment: "0xcommittedswap_owner",
     routeCommitment: "0xcommittedswap_route",
@@ -651,7 +655,7 @@ try {
         inputRoot: committedSwapOutputRoot,
         nullifierOrReplayCommitment: "0xcommittedswap_replay",
         outputCommitment: "0xcommittedswap_output_second",
-        outputLeafIndex: "2",
+        outputLeafIndex: "4",
         outputRoot: "0xcommittedswap_output_root_second",
         ownerCommitment: "0xcommittedswap_owner_second",
         routeCommitment: "0xcommittedswap_route_second",
