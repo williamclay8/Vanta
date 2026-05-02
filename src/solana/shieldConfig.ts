@@ -110,6 +110,14 @@ const configuredMeteoraDlmmPoolAddress = getOptionalEnvValue(
 );
 
 const allowLocalOperatorFallback = import.meta.env.DEV;
+const productionUnshieldOperatorUrlFallback =
+  !allowLocalOperatorFallback && isMainnetCluster
+    ? "https://vanta-prod-private-pool-v2-operator.onrender.com/unshield"
+    : "";
+const productionSolUnshieldOperatorUrlFallback =
+  !allowLocalOperatorFallback && isMainnetCluster
+    ? "https://vanta-prod-private-pool-v2-operator.onrender.com/unshield/sol"
+    : "";
 const localUnshieldOperatorUrl = allowLocalOperatorFallback
   ? "http://127.0.0.1:8789/unshield"
   : "";
@@ -117,7 +125,10 @@ const localSwapOperatorUrl = allowLocalOperatorFallback ? "http://127.0.0.1:8789
 const localSolUnshieldOperatorUrl = allowLocalOperatorFallback
   ? "http://127.0.0.1:8789/unshield/sol"
   : "";
-const effectiveUnshieldOperatorUrl = configuredUnshieldOperatorUrl ?? localUnshieldOperatorUrl;
+const effectiveUnshieldOperatorUrl =
+  configuredUnshieldOperatorUrl ||
+  productionUnshieldOperatorUrlFallback ||
+  localUnshieldOperatorUrl;
 const effectiveBonkUnshieldOperatorUrl =
   configuredBonkUnshieldOperatorUrl ?? effectiveUnshieldOperatorUrl;
 const effectiveSwapOperatorUrl = configuredSwapOperatorUrl ?? localSwapOperatorUrl;
@@ -134,7 +145,7 @@ function resolveSolUnshieldOperatorUrl(args: {
     return new URL("sol", `${args.sharedUnshieldOperatorUrl.replace(/\/+$/, "")}/`).toString();
   }
 
-  return args.localSolUnshieldOperatorUrl;
+  return productionSolUnshieldOperatorUrlFallback || args.localSolUnshieldOperatorUrl;
 }
 
 const effectiveSolUnshieldOperatorUrl =

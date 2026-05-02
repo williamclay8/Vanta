@@ -97,6 +97,21 @@ for (const [sourceLabel, source, phrase] of [
     "http://127.0.0.1:8789/unshield/sol",
   ],
   [
+    "shieldConfig",
+    shieldConfigSource,
+    "https://vanta-prod-private-pool-v2-operator.onrender.com/unshield",
+  ],
+  [
+    "shieldConfig",
+    shieldConfigSource,
+    "https://vanta-prod-private-pool-v2-operator.onrender.com/unshield/sol",
+  ],
+  [
+    "shieldConfig",
+    shieldConfigSource,
+    "productionSolUnshieldOperatorUrlFallback || args.localSolUnshieldOperatorUrl",
+  ],
+  [
     "SOL unshield client",
     solUnshieldOperatorClientSource,
     "liveSwapPair.solUnshieldOperatorUrl",
