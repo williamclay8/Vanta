@@ -74,13 +74,7 @@ const safeContextPatterns = [
   /\bforbidden\b/iu,
   /\bavoid\b/iu,
   /\blimitations?\b/iu,
-  /\buntil\b/iu,
-  /\bbefore\b/iu,
-  /\broadmap\b/iu,
   /\bwithout overclaiming\b/iu,
-  /\bmove toward\b/iu,
-  /\bgoal\b/iu,
-  /\breports\b/iu,
   /\brequiredPattern\b/u,
   /\bincludes\(/u,
   /\bregex\b/u,
@@ -93,7 +87,6 @@ const safeContextPatterns = [
   /\bbanned\b/iu,
   /\btext_hidden\b/u,
   /\bmissing\b/iu,
-  /\bgreen\b/iu,
 ];
 
 function lineHasDangerousClaim(line) {

@@ -359,8 +359,14 @@ try {
   );
   console.log("local verifier private-send nullifier and output append: PASS");
 
+  const actualPrivateSpendIndexer = createVantaPrivatePoolV2LocalIndexer();
+  const actualPrivateSpendSeed = actualPrivateSpendIndexer.appendCommitment({
+    assetId: "USDC:100",
+    commitment: "field:actual-private-input-commitment",
+    treeId: "pool:stablecoin-usdc-v1:100",
+  });
   const actualPrivateSpendRequest = createVantaPrivatePoolV2ActualPrivateSpendProofRequest({
-    acceptedRoot: "field:actual-private-accepted-root",
+    acceptedRoot: actualPrivateSpendSeed.merkleRoot,
     assetCohort: "USDC:100",
     contextHash: "field:actual-private-context-hash",
     nullifier: "field:actual-private-nullifier",
@@ -394,7 +400,6 @@ try {
     }),
     "Expected actual private spend proof to verify.",
   );
-  const actualPrivateSpendIndexer = createVantaPrivatePoolV2LocalIndexer();
   const actualPrivateSpendRegistry = createVantaPrivatePoolV2LocalVerifierRegistry({
     indexer: actualPrivateSpendIndexer,
     prover,
@@ -417,16 +422,16 @@ try {
     treeId: "pool:stablecoin-usdc-v1:100",
   });
   assert(
-    actualPrivateSpendCommitments.length === 2,
-    "Expected actual private spend acceptance to append both output commitments.",
+    actualPrivateSpendCommitments.length === 3,
+    "Expected actual private spend acceptance to preserve the input commitment and append both output commitments.",
   );
   assert(
-    actualPrivateSpendCommitments[0]?.commitment ===
+    actualPrivateSpendCommitments[1]?.commitment ===
       "field:actual-private-merchant-output-commitment",
     "Expected first actual private spend output commitment to be appended from output-commitment-0.",
   );
   assert(
-    actualPrivateSpendCommitments[1]?.commitment ===
+    actualPrivateSpendCommitments[2]?.commitment ===
       "field:actual-private-change-output-commitment",
     "Expected second actual private spend output commitment to be appended from output-commitment-1.",
   );

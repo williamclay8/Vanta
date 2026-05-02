@@ -254,12 +254,13 @@ export function createVantaActualPrivateTransactionScenario({
     nullifier,
     settlementEpoch,
   );
+  const inputLeafIndex = 2;
   const proofPublicInputHash = computeVantaActualPrivateSpendPublicInputHash({
     acceptedRoot,
     assetCohort,
     contextHash: receiptCommitment,
     inputCommitment,
-    inputLeafIndex: 18,
+    inputLeafIndex,
     nullifier,
     outputCommitments: [merchantOutputCommitment, changeOutputCommitment],
     poolId: "pool:stablecoin-usdc-v1:100",
@@ -270,7 +271,7 @@ export function createVantaActualPrivateTransactionScenario({
       assetCohort,
       commitment: inputCommitment,
       denomination,
-      leafIndex: 18,
+      leafIndex: inputLeafIndex,
       poolAddress: normalizedPool,
       poolEpoch,
       rootAfterAppend: acceptedRoot,
@@ -281,7 +282,7 @@ export function createVantaActualPrivateTransactionScenario({
     secretPacket: {
       changeNoteSecret,
       inputCommitment,
-      inputLeafIndex: 18,
+      inputLeafIndex,
       merchantDisclosureKey: hashTerm("merchant-disclosure-key", normalizedMerchant),
       merchantSettlementAddress: normalizedMerchant,
       noteSecret,

@@ -728,6 +728,22 @@ assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:unshield-production-check"),
   "Missing Unshield production check command.",
 );
+assert.equal(
+  snapshot.preflightCommandCoverage.status,
+  "tracked-with-drift-report",
+  "Readiness snapshot must expose preflight command drift explicitly.",
+);
+for (const command of [
+  "npm run truth:privacy-claim-gate",
+  "npm run mainnet:actual-private-production-evidence-check",
+  "npm run mainnet:production-smoke-evidence-check",
+  "npm run mainnet:transaction-evidence-check",
+]) {
+  assert.ok(
+    !snapshot.preflightCommandCoverage.missingFromRequiredCommands.includes(command),
+    `requiredCommands must include preflight command: ${command}`,
+  );
+}
 assert.ok(snapshot.requiredCommands.includes("npm run audit:package-check"), "Missing audit package command.");
 assert.ok(
   snapshot.nextActions[0]?.includes("approval window") || snapshot.nextActions[0]?.includes("launch window"),

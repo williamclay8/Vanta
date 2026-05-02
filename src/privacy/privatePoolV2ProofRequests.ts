@@ -324,17 +324,11 @@ export function createVantaPrivatePoolV2ActualPrivateSpendProofRequest({
     throw new Error("Actual private spend proof requires unique output commitments.");
   }
 
-  const resolvedPrivateSpendPublicInputHash =
-    privateSpendPublicInputHash ??
-    hashParts(
-      VANTA_PRIVATE_POOL_V2_ACTUAL_PRIVATE_SPEND_PROOF_REQUEST_VERSION,
-      poolId,
-      assetCohort,
-      acceptedRoot,
-      nullifier,
-      contextHash,
-      ...outputCommitments,
-    );
+  if (!privateSpendPublicInputHash?.trim()) {
+    throw new Error("Actual private spend proof requires a Noir-aligned private spend public input hash.");
+  }
+
+  const resolvedPrivateSpendPublicInputHash = privateSpendPublicInputHash;
   const publicInputs = [
     `${VANTA_PRIVATE_POOL_V2_ACTUAL_PRIVATE_SPEND_PROOF_REQUEST_VERSION}:version`,
     `pool-id:${poolId}`,

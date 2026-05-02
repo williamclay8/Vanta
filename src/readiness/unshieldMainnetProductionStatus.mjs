@@ -54,9 +54,9 @@ export function createVantaUnshieldMainnetProductionStatus() {
     liveSettlementProven,
     exactUnshieldApprovalScoped,
     boundedApprovalActive,
-    mainnetReady: false,
+    mainnetReady: productionReady,
     productionReady,
-    privacyClaimAllowed: false,
+    privacyClaimAllowed: productionReady,
     status: productionReady ? "ready" : "blocked",
     blockers: [...new Set(blockers)],
     currentApproval: {

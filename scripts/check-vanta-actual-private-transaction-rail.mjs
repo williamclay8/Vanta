@@ -231,6 +231,18 @@ try {
       message,
     );
   }
+  await expectRejection(
+    () =>
+      createVantaPrivatePoolV2ActualPrivateSpendProofRequest({
+        acceptedRoot: scenario.spendPublicTranscript.acceptedRoot,
+        assetCohort: scenario.spendPublicTranscript.assetCohort,
+        contextHash: scenario.spendPublicTranscript.receiptCommitment,
+        nullifier: `${scenario.spendPublicTranscript.nullifier}:missing-hash`,
+        outputCommitments: scenario.spendPublicTranscript.outputCommitments,
+        poolId: "pool:stablecoin-usdc-v1:100",
+      }),
+    "Noir-aligned private spend public input hash",
+  );
   console.log("actual private exact-two-output negative fixtures: PASS");
   assert(
     spendProofRequest.amountBaseUnits === VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_AMOUNT_BASE_UNITS,

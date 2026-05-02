@@ -16,6 +16,7 @@ npm run mainnet:readiness-json
 npm run mainnet:preflight
 npm run mainnet:readiness-check
 npm run mainnet:external-gates-check
+npm run mainnet:external-gates-production-claim-check
 npm run mainnet:service-contract-check
 npm run mainnet:storage-contract-check
 npm run mainnet:storage-migration-check
@@ -29,6 +30,15 @@ npm run ops:safe-telemetry-check
 npm run mainnet:observability-sink-check
 npm run nullifier:replay-guard-check
 npm run mainnet:deployment-manifest-check
+npm run mainnet:production-smoke-evidence-check
+npm run mainnet:actual-private-production-evidence-check
+npm run mainnet:actual-private-production-capability-check
+npm run mainnet:actual-private-settlement-evidence-check
+npm run mainnet:actual-private-settlement-review-check
+npm run mainnet:role-service-replay-evidence-check
+npm run mainnet:send-production-check
+npm run mainnet:swap-production-check
+npm run mainnet:unshield-production-check
 npm run private-pool-v2:service-network-check
 npm run wallet:signing-safety-check
 npm run wallet:transaction-safety-check
@@ -43,7 +53,13 @@ npm run send:safe-send-adoption-check
 npm run swap:safe-send-adoption-check
 npm run unshield:safe-send-adoption-check
 npm run mainnet:secret-handling-check
+npm run mainnet:approval-gates-check
+npm run mainnet:real-funds-approval-check
+npm run pay:production-readiness-contract-check
 npm run audit:package-check
+npm run truth:transaction-check
+npm run truth:privacy-claim-gate
+npm run mainnet:transaction-evidence-check
 ```
 
 This surface is intentionally conservative. It must continue to report `mainnetReady: false` and `productionReady: false` until the deployed private-settlement, durable-service, audit, key-management, wallet-safety, and legal/custody blockers are actually resolved.

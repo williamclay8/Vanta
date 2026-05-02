@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { createVantaPrivacyRailContract } from "./privacyRailContract.mjs";
 import { createVantaAbuseObservabilityRuntimeStatus } from "./abuseObservabilityRuntimeStatus.mjs";
 import { createVantaNullifierReplayStatus } from "./nullifierReplayStatus.mjs";
@@ -202,8 +204,63 @@ const requiredCommands = [
   "npm run private-pool-v2:verify",
   "npm run pay:verify",
   "npm run protocol:browser-check",
+  "npm run mainnet:external-gates-production-claim-check",
+  "npm run mainnet:production-restore-drill-evidence-check",
+  "npm run mainnet:production-incident-workflow-evidence-check",
+  "npm run mainnet:production-secret-manager-evidence-check",
+  "npm run mainnet:asset-registry-check",
+  "npm run shield:production-assets-check",
+  "npm run private-pool-v2:anonymity-set-evidence-check",
+  "npm run private-pool-v2:relayer-separation-evidence-check",
+  "npm run private-pool-v2:production-relayer-review-check",
+  "npm run private-pool-v2:production-privacy-reviewer-packet-check",
+  "npm run mainnet:actual-private-hard-blockers-check",
+  "npm run mainnet:actual-private-external-artifact-acquisition-check",
+  "npm run mainnet:production-smoke-evidence-check",
+  "npm run mainnet:actual-private-production-evidence-check",
+  "npm run mainnet:actual-private-production-capability-check",
+  "npm run mainnet:actual-private-settlement-evidence-check",
+  "npm run mainnet:actual-private-settlement-review-check",
+  "npm run mainnet:actual-private-settlement-executor-check",
+  "npm run mainnet:actual-private-settlement-operator-packet-check",
+  "npm run mainnet:actual-private-settlement-browser-handoff-check",
+  "npm run mainnet:actual-private-settlement-evidence-writer-check",
+  "npm run mainnet:actual-private-settlement-plan-check",
+  "npm run mainnet:actual-private-settlement-plan-json-check",
+  "npm run mainnet:actual-private-settlement-relayer-caller-check",
+  "npm run private-pool-v2:solana-spend-transaction-builder-check",
+  "npm run private-pool-v2:solana-spend-transaction-check",
+  "npm run private-pool-v2:solana-relayer-submission-check",
+  "npm run private-pool-v2:service-network-check",
+  "npm run wallet:manager-check",
+  "npm run mainnet:real-funds-approval-status-check",
+  "npm run pay:production-readiness-contract-check",
+  "npm run truth:transaction-check",
+  "npm run truth:privacy-claim-gate",
+  "npm run mainnet:transaction-evidence-check",
   "npm run build",
 ];
+
+function getPreflightCommands() {
+  const packageJson = JSON.parse(readFileSync(resolve(process.cwd(), "package.json"), "utf8"));
+  return String(packageJson.scripts?.["mainnet:preflight"] ?? "")
+    .split("&&")
+    .map((command) => command.trim())
+    .filter(Boolean);
+}
+
+function createPreflightCommandCoverage() {
+  const preflightCommands = getPreflightCommands();
+  const requiredSet = new Set(requiredCommands);
+  const preflightSet = new Set(preflightCommands);
+
+  return {
+    status: "tracked-with-drift-report",
+    preflightCommandCount: preflightCommands.length,
+    missingFromRequiredCommands: preflightCommands.filter((command) => !requiredSet.has(command)),
+    requiredButNotInPreflight: requiredCommands.filter((command) => !preflightSet.has(command)),
+  };
+}
 
 export function createVantaMainnetReadinessSnapshot() {
   const score = Math.round(
@@ -217,6 +274,7 @@ export function createVantaMainnetReadinessSnapshot() {
   const walletSigning = createVantaWalletSigningStatus();
   const privatePoolV2ProductionSmoke = createVantaPrivatePoolV2ProductionSmokeStatus();
   const productionServiceDeployment = createVantaProductionServiceDeploymentStatus();
+  const preflightCommandCoverage = createPreflightCommandCoverage();
   const blockers = blockerDefinitions.map((blocker) => ({
     id: blocker.id,
     severity: blocker.severity,
@@ -254,6 +312,7 @@ export function createVantaMainnetReadinessSnapshot() {
     abuseObservability,
     nullifierReplay,
     privateSettlement,
+    preflightCommandCoverage,
     privacyRail,
     privatePoolV2ProductionSmoke,
     productionReady: false,

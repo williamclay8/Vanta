@@ -4,6 +4,7 @@ import type {
   VantaPrivatePoolV2Commitment,
   VantaPrivatePoolV2Protocol,
 } from "../privacy/privatePoolV2Types";
+import { computeVantaActualPrivateSpendPublicInputHash } from "../privacy/actualPrivateTransactionRail";
 import type {
   VantaPayAsset,
   VantaPayCheckoutSession,
@@ -137,6 +138,10 @@ function hashHex(...parts: readonly string[]) {
 
 function hashId(prefix: string, ...parts: readonly string[]) {
   return `${prefix}_${bytesToHex(sha256(textEncoder.encode(parts.join("\u001f")))).slice(0, 24)}`;
+}
+
+function emptyPrivatePoolV2Root(treeId: string) {
+  return hashHex("sha256-append-only-private-pool-v2-local-indexer-0.1", "empty-root", treeId);
 }
 
 function normalizeAmount(value: string, asset: VantaPayAsset) {
@@ -336,12 +341,7 @@ export function createVantaPayCheckoutCommittedEconomicsSettlementRequest(
     "checkout-actual-private-asset-cohort",
     session.currency,
   );
-  const acceptedRoot = hashHex(
-    VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
-    "checkout-actual-private-accepted-root",
-    poolId,
-    assetCohort,
-  );
+  const acceptedRoot = emptyPrivatePoolV2Root(poolId);
   const nullifierOrReplayCommitment = hashHex(
     VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
     "checkout-actual-private-nullifier",
@@ -394,17 +394,21 @@ export function createVantaPayCheckoutCommittedEconomicsSettlementRequest(
     ownerCommitment,
     settlementCommitment,
   );
-  const privateSpendPublicInputHash = hashHex(
-    VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
-    "checkout-actual-private-public-inputs",
-    poolId,
-    assetCohort,
+  const privateSpendPublicInputHash = computeVantaActualPrivateSpendPublicInputHash({
     acceptedRoot,
-    nullifierOrReplayCommitment,
-    recipientOutputCommitment,
-    changeOutputCommitment,
-    privateSpendContextHash,
-  );
+    assetCohort,
+    contextHash: privateSpendContextHash,
+    inputCommitment: hashHex(
+      VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+      "checkout-actual-private-input-commitment",
+      session.id,
+      session.clientToken,
+    ),
+    inputLeafIndex: 0,
+    nullifier: nullifierOrReplayCommitment,
+    outputCommitments: [recipientOutputCommitment, changeOutputCommitment],
+    poolId,
+  });
 
   return {
     action: "send",

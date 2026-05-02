@@ -20,6 +20,7 @@ const sourceFiles = [
   "privacy/protocolAdapter.ts",
   "privacy/umbraCapabilityProfile.ts",
   "privacy/privatePoolV2CapabilityProfile.ts",
+  "privacy/actualPrivateTransactionRail.ts",
   "privacy/privatePoolV2Types.ts",
   "privacy/privatePoolV2LocalIndexer.ts",
   "privacy/privatePoolV2LocalProver.ts",
@@ -480,6 +481,11 @@ try {
     missingRelayerTransaction.error.includes("requires relayerSerializedTransaction"),
     missingRelayerTransaction.error || "Expected relayer transaction gate error.",
   );
+  await stopOperator();
+  rmSync(storePath, { force: true });
+  await startOperator({
+    VANTA_PRIVATE_POOL_V2_REQUIRE_RELAYER_SERIALIZED_TRANSACTION: "true",
+  });
   const withRelayerTransaction = await requestJson("/private-pool-v2/protocol-settlements", {
     body: JSON.stringify({
       ...txGateRequest,

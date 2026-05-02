@@ -294,7 +294,7 @@ try {
     committedSendInputRecord,
   ]);
   const committedSendRecipientRecord = {
-    assetId: "USDC",
+    assetId: "stablecoin-usdc-v1",
     commitment: "0xcommittedsend_recipient_output",
     leafIndex: 1,
     treeId: committedSendInputTreeId,
@@ -304,7 +304,7 @@ try {
     committedSendRecipientRecord,
   ]);
   const committedSendChangeRecord = {
-    assetId: "USDC",
+    assetId: "stablecoin-usdc-v1",
     commitment: "0xcommittedsend_change_output",
     leafIndex: 2,
     treeId: committedSendInputTreeId,
@@ -321,7 +321,7 @@ try {
     contextHash: "0xcommittedsend_context",
     nullifier: "0xcommittedsend_replay",
     outputCommitments: ["0xcommittedsend_recipient_output", "0xcommittedsend_change_output"],
-    poolId: "pool:protocol-client-usdc:100",
+    poolId: committedSendInputTreeId,
     privateSpendPublicInputHash: "0xcommittedsend_public_input_hash",
   });
   const committedSendSettlement = await requestVantaPrivatePoolV2ProtocolSettlement({
@@ -336,7 +336,7 @@ try {
     nullifierOrReplayCommitment: "0xcommittedsend_replay",
     outputCommitment: "0xcommittedsend_recipient_output",
     ownerCommitment: "0xcommittedsend_owner",
-    poolId: "pool:protocol-client-usdc:100",
+    poolId: committedSendInputTreeId,
     privateSpendContextHash: "0xcommittedsend_context",
     privateSpendPublicInputHash: "0xcommittedsend_public_input_hash",
     routeCommitment: "0xcommittedsend_route",
@@ -495,23 +495,78 @@ try {
     "Expected committed Swap settlement to require dedicated state-transition fields.",
   );
 
+  const setupSwap = await requestJson("/private-pool-v2/protocol-settlements", {
+    body: JSON.stringify({
+      action: "shield",
+      amount: "5.00",
+      asset: "USDC",
+      destination: "protocol-client-swap-setup-destination",
+      owner: "protocol-client-swap-setup-owner",
+      settlementId: "protocol-client-committed-swap-setup-shield",
+      shieldCapability: {
+        blockers: [],
+        mode: "direct-configured-token",
+        requiresPublicRoute: false,
+        sourceAsset: {
+          mintAddress: "mint:usdc",
+          symbol: "USDC",
+        },
+        supportsDirectShield: true,
+        targetShieldAsset: {
+          assetKey: "USDC",
+          label: "Shielded USDC",
+          mintAddress: "mint:usdc",
+          name: "USD Coin",
+        },
+      },
+      shieldSettlementEvidence: {
+        depositSignature: "protocol-client-committed-swap-setup-deposit",
+        owner: "protocol-client-swap-setup-owner",
+        stateSignature: "protocol-client-committed-swap-setup-shield",
+        vaultOwner: "protocol-client-committed-swap-setup-vault",
+      },
+    }),
+    headers: {
+      Authorization: `Bearer ${authToken}`,
+    },
+    method: "POST",
+  });
+  assert(setupSwap.ok, `Expected setup swap shield to be accepted: ${setupSwap.text}`);
+  const committedSwapInputCommitment = hashHex(
+    payPrivateSettlementAdapterVersion,
+    "protocol-shield-output",
+    "protocol-client-committed-swap-setup-shield",
+    "5.00",
+    "USDC",
+  );
+  const committedSwapInputRecord = {
+    assetId: "USDC",
+    commitment: committedSwapInputCommitment,
+    leafIndex: 1,
+    treeId: committedSendInputTreeId,
+  };
+  const committedSwapInputRoot = currentRoot(committedSendInputTreeId, [
+    committedSendInputRecord,
+    committedSwapInputRecord,
+  ]);
   const committedSwapOutputRecord = {
     assetId: "USDC",
     commitment: "0xcommittedswap_output",
-    leafIndex: 1,
+    leafIndex: 2,
     treeId: committedSendInputTreeId,
   };
   const committedSwapOutputRoot = currentRoot(committedSendInputTreeId, [
     committedSendInputRecord,
+    committedSwapInputRecord,
     committedSwapOutputRecord,
   ]);
   const committedSwapProofRequest = createVantaPrivatePoolV2SwapToShieldedProofRequest({
     economicsCommitment: "0xcommittedswap_economics",
-    inputCommitment: committedSendInputCommitment,
-    inputRoot: committedSendInputRoot,
+    inputCommitment: committedSwapInputCommitment,
+    inputRoot: committedSwapInputRoot,
     nullifierOrReplayCommitment: "0xcommittedswap_replay",
     outputCommitment: "0xcommittedswap_output",
-    outputLeafIndex: "1",
+    outputLeafIndex: "2",
     outputRoot: committedSwapOutputRoot,
     ownerCommitment: "0xcommittedswap_owner",
     routeCommitment: "0xcommittedswap_route",
@@ -525,11 +580,11 @@ try {
     baseUrl,
     economicsCommitment: "0xcommittedswap_economics",
     economicsMode: "committed-economics",
-    inputCommitment: committedSendInputCommitment,
-    inputRoot: committedSendInputRoot,
+    inputCommitment: committedSwapInputCommitment,
+    inputRoot: committedSwapInputRoot,
     nullifierOrReplayCommitment: "0xcommittedswap_replay",
     outputCommitment: "0xcommittedswap_output",
-    outputLeafIndex: "1",
+    outputLeafIndex: "2",
     outputRoot: committedSwapOutputRoot,
     ownerCommitment: "0xcommittedswap_owner",
     routeCommitment: "0xcommittedswap_route",
@@ -596,7 +651,7 @@ try {
         inputRoot: committedSwapOutputRoot,
         nullifierOrReplayCommitment: "0xcommittedswap_replay",
         outputCommitment: "0xcommittedswap_output_second",
-        outputLeafIndex: "4",
+        outputLeafIndex: "2",
         outputRoot: "0xcommittedswap_output_root_second",
         ownerCommitment: "0xcommittedswap_owner_second",
         routeCommitment: "0xcommittedswap_route_second",
@@ -1054,19 +1109,19 @@ try {
 
   const finalStatus = await fetchVantaPrivatePoolV2ProtocolSettlementStatus({ authToken, baseUrl });
   assert(
-    finalStatus?.protocolSettlementCount === settlementRequests.length + 4,
+    finalStatus?.protocolSettlementCount === settlementRequests.length + 5,
     "Expected typed status to report every protocol settlement.",
   );
   assert(
-    finalStatus?.protocolSettlements?.length === settlementRequests.length + 4,
+    finalStatus?.protocolSettlements?.length === settlementRequests.length + 5,
     "Expected typed status to include every protocol settlement.",
   );
   assert(
-    finalStatus?.receiptCount === settlementRequests.length + 4,
+    finalStatus?.receiptCount === settlementRequests.length + 5,
     "Expected one accepted proof receipt per protocol settlement in typed status.",
   );
   assert(
-    finalStatus?.receipts?.length === settlementRequests.length + 4,
+    finalStatus?.receipts?.length === settlementRequests.length + 5,
     "Expected typed status receipts to include every protocol proof receipt.",
   );
 
@@ -1136,7 +1191,7 @@ try {
 
   const finalOperatorStatus = await fetchVantaPrivatePoolV2OperatorStatus({ authToken, baseUrl });
   assert(
-    finalOperatorStatus?.receiptCount === settlementRequests.length + 4,
+    finalOperatorStatus?.receiptCount === settlementRequests.length + 5,
     "Expected typed operator status to report every protocol proof receipt.",
   );
   assert(
