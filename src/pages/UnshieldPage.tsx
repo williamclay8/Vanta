@@ -62,6 +62,7 @@ type UnshieldStatus =
   | "splitting_note"
   | "recording_transition"
   | "finalizing_split"
+  | "operator_ready"
   | "authorizing_operator"
   | "finalizing_state"
   | "complete"
@@ -1082,7 +1083,7 @@ export function UnshieldPage() {
     splitSpentMarkerWait.waitStatus,
   ]);
 
-  useEffect(() => {
+  const authorizePendingOperatorRelease = useCallback(async () => {
     if (
       transitionWait.waitStatus !== "success" ||
       !pendingSpentMarker ||
@@ -1319,8 +1320,35 @@ export function UnshieldPage() {
     spentMarkerTransaction.signature,
     spentMarkerTransaction.status,
     transitionWait.waitStatus,
+    transitionTransaction.signature,
     walletAddress,
     walletSession,
+  ]);
+
+  useEffect(() => {
+    if (
+      transitionWait.waitStatus !== "success" ||
+      !pendingSpentMarker ||
+      operatorAuthorizationStarted ||
+      spentMarkerTransaction.status === "loading" ||
+      spentMarkerTransaction.signature ||
+      status === "operator_ready" ||
+      status === "authorizing_operator" ||
+      status === "finalizing_state" ||
+      status === "complete" ||
+      status === "failed"
+    ) {
+      return;
+    }
+
+    setStatus("operator_ready");
+  }, [
+    operatorAuthorizationStarted,
+    pendingSpentMarker,
+    spentMarkerTransaction.signature,
+    spentMarkerTransaction.status,
+    status,
+    transitionWait.waitStatus,
   ]);
 
   useEffect(() => {
@@ -2639,6 +2667,8 @@ export function UnshieldPage() {
                     status === "splitting_note" ||
                     status === "recording_transition" ||
                     status === "finalizing_split" ||
+                    status === "operator_ready" ||
+                    status === "authorizing_operator" ||
                     status === "finalizing_state"
                   }
                 >
@@ -2708,6 +2738,23 @@ export function UnshieldPage() {
               <div className="status-bar">
                 <div className="status-bar__fill" />
               </div>
+            </div>
+          )}
+
+          {status === "operator_ready" && (
+            <div className="status-panel">
+              <span>Ready for release approval</span>
+              <p>Approve the signed Unshield release request in your wallet to continue.</p>
+              <button
+                className="button button-primary"
+                type="button"
+                onClick={() => {
+                  void authorizePendingOperatorRelease();
+                }}
+                disabled={!walletSession?.signMessage || operatorAuthorizationStarted}
+              >
+                Approve release in wallet
+              </button>
             </div>
           )}
 
