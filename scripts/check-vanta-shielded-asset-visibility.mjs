@@ -162,18 +162,17 @@ for (const marker of [
 
 assert.ok(
   clientSource.includes('const defaultSolanaRpcEndpoint = "https://api.mainnet-beta.solana.com"') &&
-    clientSource.includes("export const endpoint = defaultSolanaRpcEndpoint") &&
-    !clientSource.includes("VITE_SOLANA_RPC_URL") &&
-    !clientSource.includes("VITE_SOLANA_BROWSER_RPC_URL"),
-  "Browser Solana client must ignore stale build-time RPC envs and use the mainnet-beta default.",
+    clientSource.includes("VITE_SOLANA_BROWSER_RPC_URL") &&
+    clientSource.includes("VITE_SOLANA_RPC_URL") &&
+    clientSource.includes("VITE_SOLANA_BROWSER_WS_URL") &&
+    clientSource.includes("VITE_SOLANA_WS_URL") &&
+    clientSource.includes("export const endpoint = configuredSolanaRpcEndpoint || defaultSolanaRpcEndpoint"),
+  "Browser Solana client must honor explicit browser RPC envs with the mainnet-beta default fallback.",
 );
 assert.ok(
-  shieldStateSource.includes(
-    'const shieldStateRpcEndpoint = "https://api.mainnet-beta.solana.com"',
-  ) &&
-    !shieldStateSource.includes("VITE_SOLANA_RPC_URL") &&
-    !shieldStateSource.includes("VITE_SOLANA_BROWSER_RPC_URL"),
-  "Browser shield-state memo recovery must ignore stale build-time RPC envs.",
+  shieldStateSource.includes('import { endpoint } from "@/solana/client"') &&
+    shieldStateSource.includes("const shieldStateRpcEndpoint = endpoint"),
+  "Browser shield-state memo recovery must share the configured browser Solana RPC endpoint.",
 );
 
 for (const symbol of directShieldSymbols) {

@@ -79,6 +79,24 @@ type PendingShieldProtocolSettlement = {
 };
 
 function toErrorMessage(error: unknown, fallback: string) {
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  const maybeContext =
+    typeof error === "object" && error !== null
+      ? (error as { context?: { message?: unknown; statusCode?: unknown }; __code?: unknown })
+      : null;
+  const code = maybeContext?.__code;
+
+  if (code === 8100002 || message.includes("Solana error #8100002")) {
+    const statusCode = maybeContext?.context?.statusCode;
+    const providerMessage = maybeContext?.context?.message;
+    const detail =
+      typeof statusCode === "number" || typeof providerMessage === "string"
+        ? ` (${[statusCode, providerMessage].filter(Boolean).join(": ")})`
+        : "";
+
+    return `Solana RPC returned an HTTP error${detail}. Shield was not confirmed through the browser RPC endpoint; try again with a browser-compatible mainnet RPC.`;
+  }
+
   return error instanceof Error ? error.message : fallback;
 }
 

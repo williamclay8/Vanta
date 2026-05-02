@@ -12,6 +12,7 @@ import {
   getLiveShieldTokenAsset,
   type LiveShieldTokenAssetKey,
 } from "@/solana/shieldConfig";
+import { endpoint } from "@/solana/client";
 import {
   decryptVantaShieldMemoWithViewingKey,
   encryptVantaShieldMemoToViewingKey,
@@ -36,7 +37,7 @@ const VANTA_SHIELD_MEMO_VERSION_BYTE = 0x01;
 const VANTA_SPENT_MARKER_MEMO_PREFIX = "vanta:spent-marker:v1:";
 export const VANTA_NATIVE_SOL_ASSET_ID =
   "So11111111111111111111111111111111111111112";
-const shieldStateRpcEndpoint = "https://api.mainnet-beta.solana.com";
+const shieldStateRpcEndpoint = endpoint;
 
 type ShieldMemoEncryptionOptions = {
   viewingPublicKey?: string | null;
