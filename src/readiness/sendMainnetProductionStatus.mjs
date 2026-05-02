@@ -31,6 +31,7 @@ export function createVantaSendMainnetProductionStatus() {
     exactSendApprovalScoped &&
     !realFundsApproval.stopCondition.appliesToCurrentApproval;
   const privateCoreOperatorStateRedacted = false;
+  const statefulVerifierIndexerCommitIdempotencyProven = false;
   const productionReady =
     localLaneCovered &&
     actualPrivateSpendCircuitCovered &&
@@ -38,6 +39,7 @@ export function createVantaSendMainnetProductionStatus() {
     liveSettlementProven &&
     boundedApprovalActive &&
     privateCoreOperatorStateRedacted &&
+    statefulVerifierIndexerCommitIdempotencyProven &&
     privateSettlement.auditedSharedAnonymitySetAvailable &&
     privateSettlement.liveMainnetPrivateSettlementAvailable &&
     privateSettlement.privacyClaimAllowed;
@@ -50,6 +52,9 @@ export function createVantaSendMainnetProductionStatus() {
     ...(exactSendApprovalScoped ? [] : ["no-exact-send-bounded-approval-window"]),
     ...(boundedApprovalActive ? [] : realFundsApproval.mainnetFundsBlockedBy),
     ...(privateCoreOperatorStateRedacted ? [] : ["private-core-send-operator-state-exposes-raw-economic-terms"]),
+    ...(statefulVerifierIndexerCommitIdempotencyProven
+      ? []
+      : ["stateful-verifier-indexer-commit-idempotency-not-proven"]),
     ...privateSettlement.meaningfulPrivacyBlockedBy,
     ...(privateSettlement.auditedSharedAnonymitySetAvailable ? [] : ["no-third-party-audit"]),
     ...(privateSettlement.actualPrivateMainnetEvidence.requiredLiveEvidence.includes(
@@ -70,6 +75,7 @@ export function createVantaSendMainnetProductionStatus() {
     exactSendApprovalScoped,
     boundedApprovalActive,
     privateCoreOperatorStateRedacted,
+    statefulVerifierIndexerCommitIdempotencyProven,
     mainnetReady: false,
     productionReady,
     privacyClaimAllowed: false,
@@ -98,6 +104,7 @@ export function createVantaSendMainnetProductionStatus() {
       "Do not treat the current /app/send private-core USDC proof/operator lane as the production actual-private settlement lane.",
       "Do not promote the Private Core Send operator state as production-private while it exposes raw asset, send amount, and change amount in operator JSON.",
       "Use the actual-private spend membership proof path for production Send promotion, not only the older send transition circuit.",
+      "Prove idempotent recovery across verifier receipt storage and indexer nullifier/output transition storage before production promotion.",
       "Record a fresh active bounded approval window for the exact Send/actual-private mainnet action.",
       "Record reviewed live mainnet shared-cohort deposit evidence.",
       "Record reviewed live relayer-submitted private Send settlement evidence for the active approval window.",
@@ -108,6 +115,6 @@ export function createVantaSendMainnetProductionStatus() {
     safety:
       "No auth tokens, database URLs, wallet keys, signed transactions, seed phrases, or raw private inputs are printed.",
     truth:
-      "Send has local safe-send, a private-core USDC proof/operator UI lane, hidden-economics Private Pool v2 request coverage, local circuit coverage, actual-private membership circuit coverage, and no-funds operator smoke coverage. The UI lane is not the production actual-private settlement lane, and its Private Core operator JSON still exposes raw economic terms. Send must not be called mainnet-production-private until live reviewed settlement evidence, exact active real-funds approval, audited/shared anonymity-set evidence, relayer separation review, production replay evidence, transcript review, and raw-term-safe production operator surfaces are all present.",
+      "Send has local safe-send, a private-core USDC proof/operator UI lane, hidden-economics Private Pool v2 request coverage, local circuit coverage, actual-private membership circuit coverage, and no-funds operator smoke coverage. The UI lane is not the production actual-private settlement lane, and its Private Core operator JSON still exposes raw economic terms. Send must not be called mainnet-production-private until live reviewed settlement evidence, exact active real-funds approval, audited/shared anonymity-set evidence, relayer separation review, production replay evidence, transcript review, idempotent verifier/indexer commit recovery, and raw-term-safe production operator surfaces are all present.",
   };
 }

@@ -35,12 +35,14 @@ assert.equal(status.liveSettlementProven, false);
 assert.equal(status.exactSendApprovalScoped, false);
 assert.equal(status.boundedApprovalActive, false);
 assert.equal(status.privateCoreOperatorStateRedacted, false);
+assert.equal(status.statefulVerifierIndexerCommitIdempotencyProven, false);
 
 for (const blocker of [
   "no-reviewed-live-mainnet-send-settlement-evidence",
   "no-exact-send-bounded-approval-window",
   "bounded-approval-window-expired",
   "private-core-send-operator-state-exposes-raw-economic-terms",
+  "stateful-verifier-indexer-commit-idempotency-not-proven",
   "no-proven-audited-shared-anonymity-set",
   "no-proven-live-mainnet-private-settlement-evidence",
   "no-third-party-audit",
