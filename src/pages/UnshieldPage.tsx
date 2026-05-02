@@ -13,9 +13,8 @@ import { useWalletState } from "@/data/context/WalletContext";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
 import { useRealtimeSignatureProgress } from "@/solana/useRealtimeSignatureProgress";
 import {
-  VANTA_SOL_UNSHIELD_INTENT_TTL_MS,
+  createTransitionAuthorizedSolUnshieldIntent,
   createSolUnshieldIntentPayload,
-  signSolUnshieldIntent,
 } from "@/solana/solUnshieldAuth";
 import { fetchSolUnshieldOperatorHealth } from "@/solana/solUnshieldOperatorHealth";
 import { requestOperatorSolUnshield } from "@/solana/solUnshieldOperatorClient";
@@ -28,9 +27,8 @@ import {
   vantaSolanaCluster,
 } from "@/solana/shieldConfig";
 import {
-  VANTA_UNSHIELD_INTENT_TTL_MS,
+  createTransitionAuthorizedUnshieldIntent,
   createUnshieldIntentPayload,
-  signUnshieldIntent,
 } from "@/solana/unshieldAuth";
 import { requestOperatorUnshield } from "@/solana/unshieldOperatorClient";
 import { useVantaShieldAssetRegistryState } from "@/solana/useVantaShieldAssetRegistryState";
@@ -53,7 +51,6 @@ import type { UmbraOperationApprovalDisplay } from "@/privacy/umbraOperations";
 import { createUnshieldTransactionEvidence } from "@/transactions/vantaTransactionEvidence";
 import { useVantaSafeSendTransaction } from "@/wallet/useVantaSafeSendTransaction";
 import type { VantaWalletSafeSendResult } from "@/wallet/walletSafeSendBoundary.mjs";
-import { signWalletMessageIntentWithSafety } from "@/wallet/walletMessageIntentSafety.mjs";
 
 type UnshieldLane = LiveShieldTokenAssetKey | "SOL";
 type UnshieldStatus =
@@ -835,7 +832,6 @@ export function UnshieldPage() {
   const isReady =
     walletConnected &&
     Boolean(walletAddress) &&
-    Boolean(walletSession?.signMessage) &&
     canUseLane &&
     hasValidRequestedAmount &&
     !requiresExactSplit &&
@@ -1100,7 +1096,6 @@ export function UnshieldPage() {
       transitionWait.waitStatus !== "success" ||
       !pendingSpentMarker ||
       !walletAddress ||
-      !walletSession?.signMessage ||
       operatorAuthorizationStarted ||
       operatorAuthorizationLockRef.current === pendingSpentMarker.transitionNoteId ||
       spentMarkerTransaction.status === "loading" ||
@@ -1112,8 +1107,6 @@ export function UnshieldPage() {
     operatorAuthorizationLockRef.current = pendingSpentMarker.transitionNoteId;
     setOperatorAuthorizationStarted(true);
     setStatus("authorizing_operator");
-
-    const signMessage = walletSession.signMessage;
 
     if (pendingSpentMarker.asset !== "SOL") {
       const pendingTokenAsset = getLiveShieldTokenAsset(pendingSpentMarker.asset);
@@ -1130,36 +1123,8 @@ export function UnshieldPage() {
         vaultOwner: pendingSpentMarker.vaultOwner,
       });
 
-      void signUnshieldIntent(unshieldPayload, async (message) => {
-        const messageIntentSignature = await signWalletMessageIntentWithSafety({
-          amount: unshieldPayload.amount,
-          asset: pendingSpentMarker.asset,
-          connectedWalletAddress: walletAddress,
-          expiresAt: unshieldPayload.issuedAt + VANTA_UNSHIELD_INTENT_TTL_MS,
-          humanApprovedSummary: true,
-          intentKind: "unshield-intent",
-          issuedAt: unshieldPayload.issuedAt,
-          message,
-          owner: unshieldPayload.owner,
-          recipient: unshieldPayload.destinationOwner,
-          requestId: unshieldPayload.requestId,
-          requester: unshieldPayload.requester,
-          signMessage,
-        });
-
-        if (
-          !messageIntentSignature.signed ||
-          !messageIntentSignature.signatureBytes ||
-          messageIntentSignature.decision.reason !== "message-intent-ready-for-wallet-approval"
-        ) {
-          throw new Error(`The unshield intent could not be signed: ${messageIntentSignature.decision.reason}.`);
-        }
-
-        return messageIntentSignature.signatureBytes;
-      })
-        .then((signedIntent) =>
-          requestOperatorUnshield(signedIntent, pendingTokenAsset.unshieldOperatorUrl),
-        )
+      void Promise.resolve(createTransitionAuthorizedUnshieldIntent(unshieldPayload))
+        .then((intent) => requestOperatorUnshield(intent, pendingTokenAsset.unshieldOperatorUrl))
         .then(async ({ requestId, signature }) => {
           setOperatorReleaseSignature(signature);
           setLastCompletion((current) =>
@@ -1237,37 +1202,12 @@ export function UnshieldPage() {
       owner: pendingSpentMarker.owner,
       requester: walletAddress,
       transitionNoteId: pendingSpentMarker.transitionNoteId,
+      transitionStateSignature: transitionTransaction.signature ?? undefined,
       vaultOwner: pendingSpentMarker.vaultOwner,
     });
 
-    void signSolUnshieldIntent(solUnshieldPayload, async (message) => {
-      const messageIntentSignature = await signWalletMessageIntentWithSafety({
-        amount: solUnshieldPayload.amount,
-        asset: solUnshieldPayload.asset,
-        connectedWalletAddress: walletAddress,
-        expiresAt: solUnshieldPayload.issuedAt + VANTA_SOL_UNSHIELD_INTENT_TTL_MS,
-        humanApprovedSummary: true,
-        intentKind: "sol-unshield-intent",
-        issuedAt: solUnshieldPayload.issuedAt,
-        message,
-        owner: solUnshieldPayload.owner,
-        recipient: solUnshieldPayload.destinationOwner,
-        requestId: solUnshieldPayload.requestId,
-        requester: solUnshieldPayload.requester,
-        signMessage,
-      });
-
-      if (
-        !messageIntentSignature.signed ||
-        !messageIntentSignature.signatureBytes ||
-        messageIntentSignature.decision.reason !== "message-intent-ready-for-wallet-approval"
-      ) {
-        throw new Error(`The SOL unshield intent could not be signed: ${messageIntentSignature.decision.reason}.`);
-      }
-
-      return messageIntentSignature.signatureBytes;
-    })
-      .then((signedIntent) => requestOperatorSolUnshield(signedIntent))
+    void Promise.resolve(createTransitionAuthorizedSolUnshieldIntent(solUnshieldPayload))
+      .then((intent) => requestOperatorSolUnshield(intent))
       .then(async ({ requestId, signature }) => {
         setOperatorReleaseSignature(signature);
         setLastCompletion((current) =>
@@ -1966,8 +1906,6 @@ export function UnshieldPage() {
     validationMessage = `Configure the ${selectedLane} vault owner before this asset can exit.`;
   } else if (selectedLane !== "SOL" && !selectedShieldAsset?.unshieldConfigured) {
     validationMessage = `${selectedLane} unshield is not ready for this wallet state yet.`;
-  } else if (!walletSession?.signMessage) {
-    validationMessage = "The connected wallet must support message signing to authorize Unshield.";
   } else if (selectedLane !== "SOL" && !selectedShieldNote) {
     validationMessage = `No shielded ${selectedLane} balance is currently available to return.`;
   } else if (selectedLane === "SOL" && !selectedSolNote) {
@@ -2866,7 +2804,7 @@ export function UnshieldPage() {
                 onClick={() => {
                   void authorizePendingOperatorRelease();
                 }}
-                disabled={!walletSession?.signMessage || operatorAuthorizationStarted}
+                disabled={operatorAuthorizationStarted}
               >
                 Approve release in wallet
               </button>

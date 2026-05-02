@@ -11,8 +11,9 @@ assert.ok(
   "Swap must wrap signed operator intents with wallet message-intent safety.",
 );
 assert.ok(
-  unshieldSource.includes("signWalletMessageIntentWithSafety"),
-  "Unshield must wrap signed operator intents with wallet message-intent safety.",
+  unshieldSource.includes("createTransitionAuthorizedUnshieldIntent") &&
+    unshieldSource.includes("createTransitionAuthorizedSolUnshieldIntent"),
+  "Unshield must use transition-authorized operator intents instead of opening a second Phantom message-signing prompt.",
 );
 
 for (const phrase of [
@@ -25,12 +26,9 @@ for (const phrase of [
 }
 
 for (const phrase of [
-  'intentKind: "unshield-intent"',
-  'intentKind: "sol-unshield-intent"',
-  "VANTA_UNSHIELD_INTENT_TTL_MS",
-  "VANTA_SOL_UNSHIELD_INTENT_TTL_MS",
-  "messageIntentSignature.signatureBytes",
-  "message-intent-ready-for-wallet-approval",
+  "createTransitionAuthorizedUnshieldIntent",
+  "createTransitionAuthorizedSolUnshieldIntent",
+  "transitionStateSignature: transitionTransaction.signature",
   'setStatus("operator_ready")',
   'setStatus("release_ready")',
   "Ready for release approval",
@@ -39,6 +37,17 @@ for (const phrase of [
   "Finalize in wallet",
 ]) {
   assert.ok(unshieldSource.includes(phrase), `Unshield message-intent adoption missing phrase: ${phrase}`);
+}
+
+for (const forbiddenPhrase of [
+  "signWalletMessageIntentWithSafety",
+  'intentKind: "unshield-intent"',
+  'intentKind: "sol-unshield-intent"',
+]) {
+  assert.ok(
+    !unshieldSource.includes(forbiddenPhrase),
+    `Unshield must not keep the extra Phantom message-signing prompt: ${forbiddenPhrase}`,
+  );
 }
 
 console.log("Vanta message-intent adoption check: PASS");

@@ -23,6 +23,7 @@ export function parseSignedSolUnshieldIntent(body) {
     requester,
     signature,
     transitionNoteId,
+    transitionStateSignature,
     vaultOwner,
     version,
   } = body;
@@ -38,6 +39,8 @@ export function parseSignedSolUnshieldIntent(body) {
     typeof requester !== "string" ||
     typeof signature !== "string" ||
     typeof transitionNoteId !== "string" ||
+    (transitionStateSignature !== undefined &&
+      typeof transitionStateSignature !== "string") ||
     typeof vaultOwner !== "string" ||
     version !== VANTA_SOL_UNSHIELD_INTENT_VERSION ||
     typeof issuedAt !== "number" ||
@@ -58,6 +61,7 @@ export function parseSignedSolUnshieldIntent(body) {
     requester,
     signature,
     transitionNoteId,
+    transitionStateSignature,
     vaultOwner,
     version,
   };
@@ -75,6 +79,7 @@ export function formatSolUnshieldIntentMessage(payload) {
     `assetId:${payload.assetId}`,
     `consumedNoteId:${payload.consumedNoteId}`,
     `transitionNoteId:${payload.transitionNoteId}`,
+    `transitionStateSignature:${payload.transitionStateSignature ?? "pending"}`,
     `amount:${payload.amount}`,
     `vaultOwner:${payload.vaultOwner}`,
   ].join("\n");
@@ -87,6 +92,10 @@ export function assertFreshSolUnshieldIntent(payload, now = Date.now()) {
 }
 
 export function verifySignedSolUnshieldIntent(payload) {
+  if (payload.signature === "transition-authorized") {
+    return typeof payload.transitionStateSignature === "string" && payload.transitionStateSignature.length > 0;
+  }
+
   const message = new TextEncoder().encode(formatSolUnshieldIntentMessage(payload));
   const signature = Buffer.from(payload.signature, "base64");
   const publicKeyBytes = new PublicKey(payload.requester).toBytes();

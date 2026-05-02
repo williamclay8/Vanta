@@ -87,7 +87,7 @@ const unshieldSurface = surfacesByPage.get("Unshield");
 assert.equal(unshieldSurface.status, "safe-send-adopted", "Unshield must reflect complete wallet-signing boundary adoption.");
 assert.ok(
   unshieldSurface.adoptedCallSites?.length >= 6,
-  "Unshield must list message-intent, spent-marker, transition, and split paths as adopted.",
+  "Unshield must list transition-authorized handoff, spent-marker, transition, and split paths as adopted.",
 );
 assert.equal(unshieldSurface.currentCallSites.length, 0, "Unshield must not keep raw wallet signing pending.");
 
@@ -115,7 +115,19 @@ const adoptedMessageIntentCallSites = inventory.actionSurfaces.flatMap((surface)
 
 assert.equal(transactionCallSites.length, 0, "Protocol tabs must not keep raw transaction send call sites.");
 assert.ok(adoptedTransactionCallSites.length >= 12, "Expected adopted transaction safety boundaries.");
-assert.ok(adoptedMessageIntentCallSites.length >= 3, "Expected adopted signed intent safety boundaries.");
+assert.ok(adoptedMessageIntentCallSites.length >= 1, "Expected adopted signed intent safety boundaries.");
+assert.ok(
+  unshieldSurface.adoptedCallSites?.some((callSite) =>
+    callSite.snippet.includes("createTransitionAuthorizedUnshieldIntent"),
+  ),
+  "Unshield must use the transition-authorized token operator handoff.",
+);
+assert.ok(
+  unshieldSurface.adoptedCallSites?.some((callSite) =>
+    callSite.snippet.includes("createTransitionAuthorizedSolUnshieldIntent"),
+  ),
+  "Unshield must use the transition-authorized SOL operator handoff.",
+);
 assert.ok(
   inventory.messageIntentPolicy.requiredSequence.includes("typed-intent-summary") &&
     inventory.messageIntentPolicy.requiredSequence.includes("wallet-message-approval"),

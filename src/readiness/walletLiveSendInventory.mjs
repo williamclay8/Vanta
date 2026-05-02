@@ -93,8 +93,8 @@ export function createWalletLiveSendInventory() {
       {
         currentCallSites: [],
         adoptedCallSites: [
-          message("signUnshieldIntent(unshieldPayload, async (message) => {", "SPL unshield intent safety boundary"),
-          message("signSolUnshieldIntent(solUnshieldPayload, async (message) => {", "native SOL unshield intent safety boundary"),
+          adapter("createTransitionAuthorizedUnshieldIntent", "SPL unshield transition-authorized operator handoff"),
+          adapter("createTransitionAuthorizedSolUnshieldIntent", "native SOL unshield transition-authorized operator handoff"),
           tx("const splitSpentMarkerTransaction = useVantaSafeSendTransaction();", "partial unshield split spent-marker reservation"),
           tx("const spentMarkerTransaction = useVantaSafeSendTransaction();", "unshield spent-marker reservation"),
           tx("const transitionTransaction = useVantaSafeSendTransaction();", "unshield transition"),
@@ -103,7 +103,7 @@ export function createWalletLiveSendInventory() {
         file: "src/pages/UnshieldPage.tsx",
         page: "Unshield",
         replacement:
-          "Keep unshield signed intents behind the message-intent safety boundary, and keep spent-marker, transition, and split transition transactions behind the safe-send hook that prepares, simulates, summarizes, gates, and requests wallet approval.",
+          "Authorize unshield operator release from the wallet-signed transition signature instead of a second message prompt, and keep spent-marker, transition, and split transition transactions behind the safe-send hook that prepares, simulates, summarizes, gates, and requests wallet approval.",
         status: "safe-send-adopted",
       },
       {

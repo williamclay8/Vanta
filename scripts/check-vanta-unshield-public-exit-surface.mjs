@@ -20,6 +20,8 @@ const shieldConfigSource = readRepoFile("src/solana/shieldConfig.ts");
 const envExampleSource = readRepoFile(".env.example");
 const packageSource = readRepoFile("package.json");
 const unshieldOperatorSource = readRepoFile("operator/unshield-server.mjs");
+const unshieldOperatorAuthSource = readRepoFile("operator/unshield-auth.mjs");
+const solUnshieldOperatorAuthSource = readRepoFile("operator/sol-unshield-auth.mjs");
 const securityLimitations = readRepoFile("SECURITY_LIMITATIONS.md");
 const proofBoundaryDoc = readRepoFile("docs/zk/vanta-private-core-unshield-proof-boundary.md");
 const transactionEvidenceSource = readRepoFile("src/transactions/vantaTransactionEvidence.ts");
@@ -38,6 +40,8 @@ for (const phrase of [
   "Approve release in wallet",
   "Ready to finalize",
   "Finalize in wallet",
+  "createTransitionAuthorizedUnshieldIntent",
+  "createTransitionAuthorizedSolUnshieldIntent",
   "shield the exact USDC amount first",
 ]) {
   assert.ok(
@@ -45,6 +49,24 @@ for (const phrase of [
     `Unshield Phantom-safe public-exit flow missing ${phrase}.`,
   );
 }
+
+assert.ok(
+  !unshieldPageSource.includes("signWalletMessageIntentWithSafety"),
+  "Unshield must not open a separate Phantom signMessage release prompt.",
+);
+assert.ok(
+  unshieldAuthSource.includes('signature: "transition-authorized"'),
+  "Token Unshield auth must preserve transition-authorized intent support.",
+);
+assert.ok(
+  solUnshieldAuthSource.includes('signature: "transition-authorized"'),
+  "SOL Unshield auth must preserve transition-authorized intent support.",
+);
+assert.ok(
+  unshieldOperatorAuthSource.includes('payload.signature === "transition-authorized"') &&
+    solUnshieldOperatorAuthSource.includes('payload.signature === "transition-authorized"'),
+  "Unshield operator must accept transition-authorized intents after on-chain transition verification.",
+);
 
 for (const phrase of [
   "VANTA_UNSHIELD_MEMO_PREFIX",

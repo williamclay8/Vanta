@@ -29,11 +29,22 @@ for (const phrase of [
   "sol-unshield-spent-marker",
   "unshield-split-transition",
   "unshield-split-spent-marker",
-  "signUnshieldIntent(unshieldPayload, async (message) => {",
-  "signSolUnshieldIntent(solUnshieldPayload, async (message) => {",
-  "signWalletMessageIntentWithSafety",
+  "createTransitionAuthorizedUnshieldIntent",
+  "createTransitionAuthorizedSolUnshieldIntent",
+  "transitionStateSignature: transitionTransaction.signature",
 ]) {
   assert.ok(source.includes(phrase), `Unshield safe-send adoption missing phrase: ${phrase}`);
+}
+
+for (const forbiddenPhrase of [
+  "signUnshieldIntent(unshieldPayload",
+  "signSolUnshieldIntent(solUnshieldPayload",
+  "signWalletMessageIntentWithSafety",
+]) {
+  assert.ok(
+    !source.includes(forbiddenPhrase),
+    `Unshield must not preserve the extra Phantom message-signing request: ${forbiddenPhrase}`,
+  );
 }
 
 console.log("Vanta Unshield safe-send adoption check: PASS");

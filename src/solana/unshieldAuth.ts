@@ -21,6 +21,20 @@ export type SignedUnshieldIntent = UnshieldIntentPayload & {
   version: typeof UNHIELD_INTENT_VERSION;
 };
 
+export function createTransitionAuthorizedUnshieldIntent(
+  payload: UnshieldIntentPayload,
+): SignedUnshieldIntent {
+  if (!payload.transitionStateSignature) {
+    throw new Error("Transition-authorized Unshield requires a transition state signature.");
+  }
+
+  return {
+    ...payload,
+    signature: "transition-authorized",
+    version: UNHIELD_INTENT_VERSION,
+  };
+}
+
 export function createUnshieldIntentPayload(
   payload: Omit<UnshieldIntentPayload, "issuedAt" | "requestId">,
 ): UnshieldIntentPayload {

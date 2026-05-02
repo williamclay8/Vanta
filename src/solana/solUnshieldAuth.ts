@@ -13,6 +13,7 @@ export type SolUnshieldIntentPayload = {
   requestId: string;
   requester: string;
   transitionNoteId: string;
+  transitionStateSignature?: string;
   vaultOwner: string;
 };
 
@@ -20,6 +21,20 @@ export type SignedSolUnshieldIntent = SolUnshieldIntentPayload & {
   signature: string;
   version: typeof VANTA_SOL_UNSHIELD_INTENT_VERSION;
 };
+
+export function createTransitionAuthorizedSolUnshieldIntent(
+  payload: SolUnshieldIntentPayload,
+): SignedSolUnshieldIntent {
+  if (!payload.transitionStateSignature) {
+    throw new Error("Transition-authorized SOL Unshield requires a transition state signature.");
+  }
+
+  return {
+    ...payload,
+    signature: "transition-authorized",
+    version: VANTA_SOL_UNSHIELD_INTENT_VERSION,
+  };
+}
 
 export function createSolUnshieldIntentPayload(
   payload: Omit<SolUnshieldIntentPayload, "issuedAt" | "requestId">,
@@ -43,6 +58,7 @@ export function formatSolUnshieldIntentMessage(payload: SolUnshieldIntentPayload
     `assetId:${payload.assetId}`,
     `consumedNoteId:${payload.consumedNoteId}`,
     `transitionNoteId:${payload.transitionNoteId}`,
+    `transitionStateSignature:${payload.transitionStateSignature ?? "pending"}`,
     `amount:${payload.amount}`,
     `vaultOwner:${payload.vaultOwner}`,
   ].join("\n");
