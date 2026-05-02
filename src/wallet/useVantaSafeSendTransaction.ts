@@ -51,6 +51,16 @@ function serializeSimulationError(value: unknown): string | null {
   }
 }
 
+function createBlockedSafeSendError(result: Extract<VantaWalletSafeSendResult, { status: "blocked" }>) {
+  const simulationError = result.summary?.simulationResult?.error;
+
+  if (result.reason === "simulation-failed" && simulationError) {
+    return new Error(`Transaction simulation failed before wallet approval: ${simulationError}`);
+  }
+
+  return new Error(`Transaction blocked before wallet approval: ${result.reason}.`);
+}
+
 export function useVantaSafeSendTransaction() {
   const client = useSolanaClient();
   const walletSession = useWalletSession();
@@ -112,7 +122,7 @@ export function useVantaSafeSendTransaction() {
         const result = await runWalletSafeSendBoundary(boundary, input);
         if (result.status === "blocked") {
           setState({
-            error: result.reason,
+            error: createBlockedSafeSendError(result),
             result,
             signature: null,
             status: "blocked",
@@ -154,7 +164,7 @@ export function useVantaSafeSendTransaction() {
         const result = await prepareWalletSafeSendBoundary(boundary, input);
         if (result.status === "blocked") {
           setState({
-            error: result.reason,
+            error: createBlockedSafeSendError(result),
             result,
             signature: null,
             status: "blocked",

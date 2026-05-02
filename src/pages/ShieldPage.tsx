@@ -64,6 +64,8 @@ type ShieldStatus =
   | "complete"
   | "failed";
 
+const NATIVE_SOL_SHIELD_FEE_RESERVE_SOL = 0.00001;
+
 function isConfirmedSignatureStage(stage: RealtimeSignatureStage) {
   return stage === "confirmed" || stage === "finalized";
 }
@@ -393,7 +395,9 @@ export function ShieldPage(_props: ShieldPageProps) {
   const sourceBalance = selectedSourceAsset?.balance ?? 0;
   const selectedSourceBalanceStatus = selectedSourceAsset?.balanceStatus ?? "ready";
   const selectedSourceBalanceUnavailable = selectedSourceBalanceStatus !== "ready";
-  const maxAvailableAmount = sourceBalance;
+  const maxAvailableAmount = isNativeSolShield
+    ? Math.max(sourceBalance - NATIVE_SOL_SHIELD_FEE_RESERVE_SOL, 0)
+    : sourceBalance;
   const routeProgressLabel = publicRouteWait.detailLabel;
   const sourceAssetsLoading = publicAssetsLoading && !selectedSourceAsset;
   const sourceAssetsBlocked = Boolean(publicAssetsError) && !selectedSourceAsset;
@@ -406,7 +410,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     !selectedSourceBalanceUnavailable &&
     Number.isFinite(parsedAmount) &&
     parsedAmount > 0 &&
-    parsedAmount <= sourceBalance &&
+    parsedAmount <= maxAvailableAmount &&
     !nativeSolShieldBlockedByRecoverableDeposit;
   const sourceSelectValue = selectedSourceAsset?.id ?? "";
   const sourceSelectDisabled =
@@ -1213,6 +1217,8 @@ export function ShieldPage(_props: ShieldPageProps) {
     validationMessage = `${latestRecoverableSolDeposit.amountDisplay} SOL already reached the Vanta vault. Record it as shielded SOL before sending more.`;
   } else if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
     validationMessage = "Enter a valid amount greater than zero.";
+  } else if (isNativeSolShield && parsedAmount > maxAvailableAmount) {
+    validationMessage = `Leave at least ${formatEditableAmount(NATIVE_SOL_SHIELD_FEE_RESERVE_SOL, 9)} SOL for network fees.`;
   } else if (parsedAmount > sourceBalance) {
     validationMessage = `Insufficient ${selectedSourceAsset.symbol} balance.`;
   }

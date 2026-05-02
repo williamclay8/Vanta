@@ -28,6 +28,8 @@ for (const phrase of [
   "safeStatus",
   "status === \"submitted\"",
   "simulationResult",
+  "createBlockedSafeSendError",
+  "Transaction simulation failed before wallet approval",
 ]) {
   assert.ok(source.includes(phrase), `Safe send hook missing required phrase: ${phrase}`);
 }

@@ -87,6 +87,12 @@ assert.ok(
   "Native SOL Shield completion must verify the confirmed transaction actually moved SOL to the Vanta vault before recording shielded SOL.",
 );
 assert.ok(
+  shieldPageSource.includes("NATIVE_SOL_SHIELD_FEE_RESERVE_SOL") &&
+    shieldPageSource.includes("Math.max(sourceBalance - NATIVE_SOL_SHIELD_FEE_RESERVE_SOL, 0)") &&
+    shieldPageSource.includes("Leave at least"),
+  "Native SOL Shield must leave a fee reserve instead of allowing users to shield the full wallet SOL balance.",
+);
+assert.ok(
   shieldPageSource.includes('summaryInstructions: ["native-sol-shield-transfer", "shield-state-memo"]'),
   "Native SOL Shield must submit transfer and shield-state memo in one wallet request.",
 );
