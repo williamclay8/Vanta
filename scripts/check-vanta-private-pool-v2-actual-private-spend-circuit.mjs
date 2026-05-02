@@ -60,7 +60,12 @@ try {
   printCapturedOutput(runNargo(["execute"]));
   console.log("valid fixture: PASS");
 
-  for (const mode of ["invalid-membership-root", "invalid-nullifier", "invalid-binding"]) {
+  for (const mode of [
+    "invalid-membership-root",
+    "invalid-nullifier",
+    "invalid-leaf-index",
+    "invalid-binding",
+  ]) {
     writeFixture(mode);
     console.log(`${mode} fixture write: PASS`);
 

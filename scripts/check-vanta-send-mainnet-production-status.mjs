@@ -32,12 +32,13 @@ assert.equal(status.localLaneCovered, true);
 assert.equal(status.actualPrivateSpendCircuitCovered, true);
 assert.equal(status.noFundsOperatorEndpointCovered, true);
 assert.equal(status.liveSettlementProven, false);
-assert.equal(status.exactSendApprovalScoped, true);
+assert.equal(status.exactSendApprovalScoped, false);
 assert.equal(status.boundedApprovalActive, false);
 assert.equal(status.privateCoreOperatorStateRedacted, false);
 
 for (const blocker of [
   "no-reviewed-live-mainnet-send-settlement-evidence",
+  "no-exact-send-bounded-approval-window",
   "bounded-approval-window-expired",
   "private-core-send-operator-state-exposes-raw-economic-terms",
   "no-proven-audited-shared-anonymity-set",

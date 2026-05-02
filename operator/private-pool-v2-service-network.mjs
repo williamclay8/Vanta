@@ -473,6 +473,60 @@ function createIndexerState({ snapshotStore, storePath } = {}) {
         outputCommitment: outputRecord,
       };
     },
+    async applyActualPrivateSpendTransition({
+      acceptedRoot,
+      assetCohort,
+      nullifier,
+      outputCommitments,
+      poolId,
+      spentAtSlot = 1_000_000n,
+    }) {
+      await ensureLoaded();
+      if (nullifiers.has(nullifier)) {
+        throw new Error(`Private-pool nullifier ${nullifier} is already registered.`);
+      }
+
+      const normalizedOutputs = outputCommitments.map((commitment) => String(commitment).trim());
+      if (
+        normalizedOutputs.length !== 2 ||
+        normalizedOutputs.some((commitment) => commitment.length === 0)
+      ) {
+        throw new Error("Actual private spend transition requires exactly two output commitments.");
+      }
+      if (new Set(normalizedOutputs).size !== normalizedOutputs.length) {
+        throw new Error("Actual private spend transition output commitments must be unique.");
+      }
+
+      const treeCommitments = commitments.filter((record) => record.treeId === poolId);
+      const currentAcceptedRoot = currentMerkleRoot(poolId, treeCommitments);
+      if (currentAcceptedRoot !== acceptedRoot) {
+        throw new Error("Actual private spend accepted root does not match indexer root.");
+      }
+
+      const outputRecords = [];
+      let nextTree = [...treeCommitments];
+      for (const [offset, commitment] of normalizedOutputs.entries()) {
+        const record = {
+          assetId: assetCohort,
+          commitment,
+          leafIndex: treeCommitments.length + offset,
+          treeId: poolId,
+        };
+        record.merkleRoot = currentMerkleRoot(poolId, [...nextTree, record]);
+        outputRecords.push(record);
+        nextTree = [...nextTree, record];
+      }
+
+      const nullifierRecord = { nullifier, spentAtSlot };
+      commitments.push(...outputRecords);
+      nullifiers.set(nullifier, nullifierRecord);
+      await save();
+
+      return {
+        nullifier: nullifierRecord,
+        outputCommitments: outputRecords,
+      };
+    },
     async appendCommitment({ assetId, commitment, treeId }) {
       await ensureLoaded();
       const leafIndex = commitments.filter((record) => record.treeId === treeId).length;
@@ -818,7 +872,7 @@ function isStatefulSwapToShieldedRequest(request) {
 }
 
 function readActualPrivateSpendOutputCommitments(request) {
-  return (request?.publicInputs ?? [])
+  const outputs = (request?.publicInputs ?? [])
     .flatMap((input) => {
       const match = String(input).match(/^output-commitment-(\d+):(.+)$/);
       if (!match) {
@@ -827,8 +881,23 @@ function readActualPrivateSpendOutputCommitments(request) {
 
       return [{ index: Number(match[1]), commitment: match[2] }];
     })
-    .sort((left, right) => left.index - right.index)
-    .map((output) => output.commitment);
+    .sort((left, right) => left.index - right.index);
+
+  if (
+    outputs.length !== 2 ||
+    outputs[0]?.index !== 0 ||
+    outputs[1]?.index !== 1 ||
+    outputs.some((output) => String(output.commitment).trim().length === 0)
+  ) {
+    throw new Error("Actual private spend proof receipt requires exactly output-commitment-0 and output-commitment-1.");
+  }
+
+  const commitments = outputs.map((output) => output.commitment);
+  if (new Set(commitments).size !== commitments.length) {
+    throw new Error("Actual private spend proof receipt output commitments must be unique.");
+  }
+
+  return commitments;
 }
 
 async function postIndexerJson(path, body) {
@@ -885,29 +954,20 @@ async function mirrorAcceptedProofToIndexer(request) {
   }
 
   if (isActualPrivateSpendRequest(request)) {
+    const acceptedRoot = requirePublicInput(request, "accepted-root:");
     const nullifier = requirePublicInput(request, "nullifier:");
     const poolId = requirePublicInput(request, "pool-id:");
     const assetCohort = requirePublicInput(request, "asset-cohort:");
     const outputCommitments = readActualPrivateSpendOutputCommitments(request);
 
-    if (outputCommitments.length === 0) {
-      throw new Error("Actual private spend proof receipt requires output commitments.");
-    }
-
-    await postIndexerJson("/v1/nullifiers", {
+    return await postIndexerJson("/v1/actual-private-spends", {
+      acceptedRoot,
+      assetCohort,
       nullifier,
+      outputCommitments,
+      poolId,
       spentAtSlot: 1_000_000n,
     });
-
-    for (const outputCommitment of outputCommitments) {
-      await postIndexerJson("/v1/commitments", {
-        assetId: assetCohort,
-        commitment: outputCommitment,
-        treeId: poolId,
-      });
-    }
-
-    return { nullifier, outputCommitments };
   }
 
   if (isStatefulSwapToShieldedRequest(request)) {
@@ -1046,6 +1106,19 @@ async function createServiceHandlers(role, {
         transition: await indexerState.applySwapToShieldedTransition({
           ...body,
           outputLeafIndex: Number(body.outputLeafIndex),
+          spentAtSlot:
+            body.spentAtSlot === undefined ? 1_000_000n : toBigInt(body.spentAtSlot),
+        }),
+      });
+      return true;
+    }
+
+    if (request.method === "POST" && url.pathname === "/v1/actual-private-spends") {
+      const body = await readRequestBody(request);
+      sendJson(response, 200, {
+        ...basePayload(role),
+        transition: await indexerState.applyActualPrivateSpendTransition({
+          ...body,
           spentAtSlot:
             body.spentAtSlot === undefined ? 1_000_000n : toBigInt(body.spentAtSlot),
         }),

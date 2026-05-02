@@ -41,6 +41,14 @@ fn compute_nullifier(input_commitment: Field, note_secret: Field, pool_id: Field
     bn254::hash_3([input_commitment, note_secret, pool_id])
 }
 
+fn compute_leaf_index_from_direction_bits(
+    membership_path_direction_bits: [Field; MERKLE_DEPTH],
+) -> Field {
+    membership_path_direction_bits[0]
+        + membership_path_direction_bits[1] * 2
+        + membership_path_direction_bits[2] * 4
+}
+
 fn bind_private_spend_public_inputs(
     request_version: Field,
     pool_id: Field,
@@ -107,6 +115,11 @@ fn main(
 
     let computed_nullifier = compute_nullifier(input_commitment, note_secret, pool_id);
     assert(computed_nullifier == nullifier);
+
+    let computed_leaf_index = compute_leaf_index_from_direction_bits(
+        membership_path_direction_bits,
+    );
+    assert(computed_leaf_index == leaf_index);
 
     let computed_public_input_hash = bind_private_spend_public_inputs(
         request_version,

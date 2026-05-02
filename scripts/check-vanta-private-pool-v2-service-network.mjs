@@ -908,6 +908,24 @@ try {
 
   console.log("private-pool-v2 service-network swap-to-shielded transition: PASS");
 
+  const actualPrivatePoolId = "pool:service-network-actual-private:100";
+  const actualPrivateSeed = await requestJson(serviceUrls.get("indexer"), "/v1/commitments", {
+    body: JSON.stringify({
+      assetId: "stablecoin-usdc-v1",
+      commitment: "field:service-network-actual-private-input",
+      treeId: actualPrivatePoolId,
+    }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(actualPrivateSeed.ok, actualPrivateSeed.text || "Expected actual-private seed commitment.");
+  const actualPrivateRoot = await requestJson(
+    serviceUrls.get("indexer"),
+    `/v1/roots/latest?treeId=${encodeURIComponent(actualPrivatePoolId)}`,
+    { headers: { Authorization: `Bearer ${authToken}` } },
+  );
+  assert(actualPrivateRoot.ok, actualPrivateRoot.text || "Expected actual-private current root.");
+
   const actualPrivateSpendRequest = {
     amountBaseUnits: "1",
     assetId: "hidden:economic-terms",
@@ -917,9 +935,9 @@ try {
     intent: "private-send",
     publicInputs: [
       "vanta-private-pool-v2-actual-private-spend-proof-request-0.1:version",
-      "pool-id:pool:service-network-actual-private:100",
+      `pool-id:${actualPrivatePoolId}`,
       "asset-cohort:stablecoin-usdc-v1",
-      "accepted-root:field:service-network-actual-private-root",
+      `accepted-root:${actualPrivateRoot.parsed.root}`,
       "nullifier:field:service-network-actual-private-nullifier",
       "output-commitment-0:field:service-network-actual-private-merchant-output",
       "output-commitment-1:field:service-network-actual-private-change-output",
@@ -980,20 +998,20 @@ try {
   );
   const actualPrivateSpendCommitments = await requestJson(
     serviceUrls.get("indexer"),
-    "/v1/commitments?treeId=pool:service-network-actual-private:100",
+    `/v1/commitments?treeId=${encodeURIComponent(actualPrivatePoolId)}`,
     { headers: { Authorization: `Bearer ${authToken}` } },
   );
   assert(
-    actualPrivateSpendCommitments.parsed?.commitments?.length === 2,
-    "Expected actual-private spend verifier acceptance to append both output commitments.",
+    actualPrivateSpendCommitments.parsed?.commitments?.length === 3,
+    "Expected actual-private spend verifier acceptance to preserve the seed and append both output commitments.",
   );
   assert(
-    actualPrivateSpendCommitments.parsed.commitments[0]?.commitment ===
+    actualPrivateSpendCommitments.parsed.commitments[1]?.commitment ===
       "field:service-network-actual-private-merchant-output",
     "Expected actual-private spend merchant output commitment to be indexed.",
   );
   assert(
-    actualPrivateSpendCommitments.parsed.commitments[1]?.commitment ===
+    actualPrivateSpendCommitments.parsed.commitments[2]?.commitment ===
       "field:service-network-actual-private-change-output",
     "Expected actual-private spend change output commitment to be indexed.",
   );
@@ -1006,6 +1024,81 @@ try {
     method: "POST",
   });
   assert(!actualPrivateSpendReplay.ok, "Expected duplicate actual-private spend receipt to be rejected.");
+
+  const malformedActualPrivateSpendRequest = {
+    ...actualPrivateSpendRequest,
+    publicInputs: actualPrivateSpendRequest.publicInputs.filter(
+      (input) => !input.startsWith("output-commitment-1:"),
+    ).map((input) =>
+      input.startsWith("nullifier:")
+        ? "nullifier:field:service-network-actual-private-malformed-nullifier"
+        : input,
+    ),
+  };
+  const malformedActualPrivateSpendProof = await requestJson(serviceUrls.get("prover"), "/v1/proofs", {
+    body: JSON.stringify({ request: malformedActualPrivateSpendRequest }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(malformedActualPrivateSpendProof.ok, "Expected malformed actual-private proof artifact.");
+  const malformedActualPrivateSpendReceipt = await requestJson(serviceUrls.get("verifier"), "/v1/proofs/accept", {
+    body: JSON.stringify({
+      proof: malformedActualPrivateSpendProof.parsed,
+      request: malformedActualPrivateSpendRequest,
+    }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(
+    !malformedActualPrivateSpendReceipt.ok,
+    "Expected malformed actual-private output shape to be rejected.",
+  );
+
+  const staleActualPrivateSpendRequest = {
+    ...actualPrivateSpendRequest,
+    publicInputs: actualPrivateSpendRequest.publicInputs.map((input) => {
+      if (input.startsWith("accepted-root:")) {
+        return "accepted-root:field:service-network-actual-private-stale-root";
+      }
+      if (input.startsWith("nullifier:")) {
+        return "nullifier:field:service-network-actual-private-stale-root-nullifier";
+      }
+      if (input.startsWith("output-commitment-0:")) {
+        return "output-commitment-0:field:service-network-actual-private-stale-merchant-output";
+      }
+      if (input.startsWith("output-commitment-1:")) {
+        return "output-commitment-1:field:service-network-actual-private-stale-change-output";
+      }
+      return input;
+    }),
+  };
+  const staleActualPrivateSpendProof = await requestJson(serviceUrls.get("prover"), "/v1/proofs", {
+    body: JSON.stringify({ request: staleActualPrivateSpendRequest }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(staleActualPrivateSpendProof.ok, "Expected stale-root actual-private proof artifact.");
+  const staleActualPrivateSpendReceipt = await requestJson(serviceUrls.get("verifier"), "/v1/proofs/accept", {
+    body: JSON.stringify({
+      proof: staleActualPrivateSpendProof.parsed,
+      request: staleActualPrivateSpendRequest,
+    }),
+    headers: { Authorization: `Bearer ${authToken}` },
+    method: "POST",
+  });
+  assert(
+    !staleActualPrivateSpendReceipt.ok,
+    "Expected actual-private spend with stale accepted root to be rejected.",
+  );
+  const afterRejectedActualPrivateSpendCommitments = await requestJson(
+    serviceUrls.get("indexer"),
+    `/v1/commitments?treeId=${encodeURIComponent(actualPrivatePoolId)}`,
+    { headers: { Authorization: `Bearer ${authToken}` } },
+  );
+  assert(
+    afterRejectedActualPrivateSpendCommitments.parsed?.commitments?.length === 3,
+    "Expected rejected actual-private proofs to leave indexer commitments unchanged.",
+  );
 
   const privateSpendSubmission = await requestJson(serviceUrls.get("relayer"), "/v1/private-spends/submit", {
     body: JSON.stringify({

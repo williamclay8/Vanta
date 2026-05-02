@@ -50,6 +50,7 @@ export function createVantaMainnetPrivateSettlementStatus() {
   const reviewedLiveSettlementProven =
     actualPrivateSettlementReview.reviewStatus === "reviewed-live" &&
     actualPrivateSettlementReview.promotionDecision?.reviewedLiveAllowed === true &&
+    settlementEvidenceMatchesCurrentApproval &&
     actualPrivateSettlementEvidence.liveMainnetSettlementProven === true;
   const meaningfulPrivacyBlockedBy = [
     "no-proven-audited-shared-anonymity-set",

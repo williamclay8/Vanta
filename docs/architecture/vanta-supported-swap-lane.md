@@ -5,12 +5,12 @@ This note freezes the current constrained swap lane that Vanta exposes in the na
 ## Supported lane
 
 - `supportedSwapLaneVersion = 1`
-- `supportedSwapLaneKind = single-input-usdc-to-shielded-sol`
+- `supportedSwapLaneKind = single-input-usdc-to-allowlisted-shielded-output`
 - `supportedSwapLaneStatus = supported locally / operator-contract supported; not mainnet-production-private`
 - `supportedSwapV1Decision = accepted-narrow-v1-path`
 - `supportedSwapV1Role = adjacent-supported-not-required-for-finish-line`
-- `supportedSwapVenue = meteora-dlmm-devnet`
-- `supportedSwapOutputModel = shielded-sol-output-note`
+- `supportedSwapVenue = meteora-dlmm-devnet-and-operator-token-output`
+- `supportedSwapOutputModel = allowlisted-shielded-output-note`
 - `supportedSwapResultingRootBasis = client-declared`
 - `supportedSwapInputRootPolicy = latest-registered-root-with-linked-registration-proof`
 - `supportedSwapOutputRegistrationPolicy = resulting-root-must-register-as-swap-output`
@@ -20,8 +20,8 @@ This note freezes the current constrained swap lane that Vanta exposes in the na
 The current supported swap path is deliberately narrow:
 
 - one private USDC input note
-- one operator-backed Meteora-aware quote/execution path
-- one shielded SOL output note
+- one operator-backed Meteora-aware quote/execution path with an operator allowlisted output token
+- one allowlisted shielded output note
 
 This is not a claim that arbitrary private swaps are already supported. It is a freeze of the one constrained swap lane the current product/operator contract is willing to describe as supported.
 
@@ -52,7 +52,7 @@ That keeps the product honest while the broader swap work remains intentionally 
 
 When the operator contract reports the current narrow zk v1 support surface, the swap fields should be read as:
 
-- Vanta currently supports one specific `USDC -> shielded SOL` swap lane
+- Vanta currently supports one specific `USDC -> allowlisted shielded output` swap lane
 - that lane is adjacent supported infrastructure, not a minimum blocker for calling the narrow `zk v1` finish line done
 - that lane is operator-backed and venue-constrained
 - the output remains private-state oriented rather than a plain public SOL payout

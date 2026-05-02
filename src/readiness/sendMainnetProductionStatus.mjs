@@ -25,8 +25,7 @@ export function createVantaSendMainnetProductionStatus() {
     privateSettlement.actualPrivateMainnetEvidence.status === "reviewed-live-evidence-path";
   const exactSendApprovalScoped =
     typeof realFundsApproval.approvalActionRef === "string" &&
-    (realFundsApproval.approvalActionRef.startsWith("actual-private/send") ||
-      realFundsApproval.approvalActionRef.startsWith("actual-private/mainnet-settlement"));
+    realFundsApproval.approvalActionRef.startsWith("actual-private/send");
   const boundedApprovalActive =
     realFundsApproval.liveMainnetActionsAllowedNow &&
     exactSendApprovalScoped &&

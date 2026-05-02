@@ -30,6 +30,7 @@ export type VantaPrivatePoolV2ActualPrivateSpendCircuitFixture = {
 export type VantaPrivatePoolV2ActualPrivateSpendCircuitFixtureMode =
   | "valid"
   | "invalid-binding"
+  | "invalid-leaf-index"
   | "invalid-membership-root"
   | "invalid-nullifier";
 
@@ -37,7 +38,7 @@ const DEFAULT_WITNESS_BASE = {
   asset_cohort: 202n,
   context_hash: 909n,
   input_commitment: 404n,
-  leaf_index: 3n,
+  leaf_index: 5n,
   membership_path: [505n, 606n, 707n],
   membership_path_direction_bits: [1n, 0n, 1n],
   note_secret: 303n,
@@ -153,7 +154,9 @@ export function createVantaPrivatePoolV2ActualPrivateSpendCircuitFixture({
       ? { ...witness, accepted_root: witness.accepted_root + 1n }
       : mode === "invalid-nullifier"
         ? { ...witness, nullifier: witness.nullifier + 1n }
-        : witness;
+        : mode === "invalid-leaf-index"
+          ? { ...witness, leaf_index: witness.leaf_index + 1n }
+          : witness;
   const validPublicHash =
     computeVantaPrivatePoolV2ActualPrivateSpendPublicInputHash(circuitWitness);
   const proofRequest = createVantaPrivatePoolV2ActualPrivateSpendProofRequest({
