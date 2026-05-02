@@ -1,6 +1,7 @@
 import { createServer } from "node:http";
 import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import { createClient } from "@solana/client";
 import { loadKeypairFromEnv } from "@solana/client/server";
 import {
@@ -363,7 +364,7 @@ if (!titanGatewayConfigValidation.valid) {
   );
 }
 
-const server = createServer(async (request, response) => {
+export async function handleUnshieldOperatorRequest(request, response) {
   if (request.method === "OPTIONS") {
     writeCorsHeaders(response);
     response.writeHead(204);
@@ -1684,7 +1685,7 @@ const server = createServer(async (request, response) => {
         : "The unshield operator could not process the request.",
     );
   }
-});
+}
 
 async function waitForEligibleSwapTransition(args) {
   let lastError = null;
@@ -1964,18 +1965,26 @@ function parseSwapMemoPayload(memo) {
   }
 }
 
-server.listen(port, "127.0.0.1", () => {
-  console.log(`Vanta operator listening on http://127.0.0.1:${port}`);
-  console.log(`Vanta release store: ${releaseRecords.filePath}`);
-  console.log(`Vanta private-core proof store: ${privateCoreProofStore.filePath}`);
-  console.log(`Vanta private-core send proof store: ${privateCoreSendProofStore.filePath}`);
-  console.log(`Vanta private-core swap proof store: ${privateCoreSwapProofStore.filePath}`);
-  console.log(`Vanta private-core send store: ${privateCoreSendStore.filePath}`);
-  console.log(`Vanta private-core swap store: ${privateCoreSwapStore.filePath}`);
-  console.log(`Vanta private-core release store: ${privateCoreReleaseRecords.filePath}`);
-  console.log(`Vanta swap store: ${swapRecords.filePath}`);
-  console.log(`Vanta SOL unshield store: ${solUnshieldRecords.filePath}`);
-});
+if (isDirectRun()) {
+  const server = createServer(handleUnshieldOperatorRequest);
+
+  server.listen(port, "127.0.0.1", () => {
+    console.log(`Vanta operator listening on http://127.0.0.1:${port}`);
+    console.log(`Vanta release store: ${releaseRecords.filePath}`);
+    console.log(`Vanta private-core proof store: ${privateCoreProofStore.filePath}`);
+    console.log(`Vanta private-core send proof store: ${privateCoreSendProofStore.filePath}`);
+    console.log(`Vanta private-core swap proof store: ${privateCoreSwapProofStore.filePath}`);
+    console.log(`Vanta private-core send store: ${privateCoreSendStore.filePath}`);
+    console.log(`Vanta private-core swap store: ${privateCoreSwapStore.filePath}`);
+    console.log(`Vanta private-core release store: ${privateCoreReleaseRecords.filePath}`);
+    console.log(`Vanta swap store: ${swapRecords.filePath}`);
+    console.log(`Vanta SOL unshield store: ${solUnshieldRecords.filePath}`);
+  });
+}
+
+function isDirectRun() {
+  return process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+}
 
 function writeCorsHeaders(response) {
   response.setHeader("Access-Control-Allow-Origin", "*");

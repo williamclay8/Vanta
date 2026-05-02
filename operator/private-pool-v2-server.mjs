@@ -137,6 +137,46 @@ function sendJson(response, status, payload) {
   response.end(`${JSON.stringify(normalizeForJson(payload), null, 2)}\n`);
 }
 
+function writeBrowserCorsHeaders(response) {
+  response.setHeader("Access-Control-Allow-Origin", "*");
+  response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+}
+
+function isPublicUnshieldRoute(request) {
+  return (
+    request.url === "/unshield" ||
+    request.url === "/unshield/sol" ||
+    request.url === "/health/sol-unshield" ||
+    request.url === "/state/sol-unshield-records"
+  );
+}
+
+let unshieldOperatorHandlerPromise = null;
+
+async function handlePublicUnshieldRoute(request, response) {
+  try {
+    unshieldOperatorHandlerPromise ??= import("./unshield-server.mjs").then(
+      (module) => module.handleUnshieldOperatorRequest,
+    );
+    const handleUnshieldOperatorRequest = await unshieldOperatorHandlerPromise;
+    await handleUnshieldOperatorRequest(request, response);
+  } catch (error) {
+    writeBrowserCorsHeaders(response);
+    response.writeHead(503, { "Content-Type": "application/json" });
+    response.end(
+      `${JSON.stringify(
+        {
+          error: error instanceof Error ? error.message : "Unshield operator route is not available.",
+          ok: false,
+        },
+        null,
+        2,
+      )}\n`,
+    );
+  }
+}
+
 const rateLimiter = databaseUrl
   ? await createPostgresRateLimiterFromDatabaseUrl({
       databaseUrl,
@@ -2306,12 +2346,24 @@ const server = createServer(async (request, response) => {
   });
 
   try {
+    if (request.method === "OPTIONS" && isPublicUnshieldRoute(request)) {
+      writeBrowserCorsHeaders(response);
+      response.writeHead(204);
+      response.end();
+      return;
+    }
+
     if (request.method === "GET" && request.url === "/health") {
       sendJson(response, 200, { ok: true });
       return;
     }
 
     if (!(await enforceRateLimit(request, response, telemetryContext))) {
+      return;
+    }
+
+    if (isPublicUnshieldRoute(request)) {
+      await handlePublicUnshieldRoute(request, response);
       return;
     }
 

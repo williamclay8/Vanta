@@ -343,6 +343,15 @@ try {
 
   const unauthenticatedStatus = await requestJsonAt(authBaseUrl, "/state/private-pool-v2-status");
   assert(unauthenticatedStatus.status === 401, "Expected auth-protected status endpoint.");
+  const unshieldPreflight = await requestJsonAt(authBaseUrl, "/unshield", {
+    headers: {
+      "Access-Control-Request-Headers": "content-type",
+      "Access-Control-Request-Method": "POST",
+      Origin: "https://vantaprivacy.xyz",
+    },
+    method: "OPTIONS",
+  });
+  assert(unshieldPreflight.status === 204, "Expected public Unshield preflight to bypass bearer auth.");
   const authenticatedStatus = await requestJsonAt(authBaseUrl, "/state/private-pool-v2-status", {
     headers: { Authorization: "Bearer vanta-private-pool-v2-test-token" },
   });

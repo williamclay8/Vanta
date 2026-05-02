@@ -1142,13 +1142,49 @@ export function UnshieldPage() {
     splitSpentMarkerWait.waitStatus,
   ]);
 
-  const authorizePendingOperatorRelease = useCallback(async () => {
+  const operatorReleaseDisabledReason = useMemo(() => {
+    if (!pendingSpentMarker) {
+      return "Prepare an Unshield note before releasing through the operator.";
+    }
+
+    if (!walletAddress) {
+      return "Connect the shield owner wallet before releasing through the operator.";
+    }
+
+    if (walletAddress !== pendingSpentMarker.owner) {
+      return "Reconnect the wallet that owns this shielded note before releasing through the operator.";
+    }
+
+    if (operatorAuthorizationStarted) {
+      return "The operator release request is already in progress.";
+    }
+
+    if (operatorAuthorizationLockRef.current === pendingSpentMarker.transitionNoteId) {
+      return "The operator release request is already locked for this note.";
+    }
+
     if (
-      !pendingSpentMarker ||
-      !walletAddress ||
-      operatorAuthorizationStarted ||
-      operatorAuthorizationLockRef.current === pendingSpentMarker.transitionNoteId
+      pendingSpentMarker.asset !== "SOL" &&
+      !getLiveShieldTokenAsset(pendingSpentMarker.asset).unshieldOperatorUrl
     ) {
+      return `Configure the ${pendingSpentMarker.asset} unshield operator endpoint before release.`;
+    }
+
+    if (pendingSpentMarker.asset === "SOL" && !liveSwapPair.solUnshieldOperatorUrl) {
+      return "Configure the SOL unshield operator endpoint before release.";
+    }
+
+    return null;
+  }, [
+    liveSwapPair.solUnshieldOperatorUrl,
+    operatorAuthorizationStarted,
+    pendingSpentMarker,
+    walletAddress,
+  ]);
+
+  const authorizePendingOperatorRelease = useCallback(async () => {
+    if (operatorReleaseDisabledReason || !pendingSpentMarker || !walletAddress) {
+      setFlowError(operatorReleaseDisabledReason ?? "Prepare an Unshield note before releasing through the operator.");
       return;
     }
 
@@ -1156,100 +1192,69 @@ export function UnshieldPage() {
     setOperatorAuthorizationStarted(true);
     setStatus("authorizing_operator");
 
-    if (pendingSpentMarker.asset !== "SOL") {
-      const pendingTokenAsset = getLiveShieldTokenAsset(pendingSpentMarker.asset);
+    try {
+      const releaseResult =
+        pendingSpentMarker.asset !== "SOL"
+          ? await requestOperatorUnshield(
+              createOperatorDirectUnshieldIntent(
+                createUnshieldIntentPayload({
+                  amount: pendingSpentMarker.amount,
+                  destinationOwner: pendingSpentMarker.owner,
+                  mintAddress: getLiveShieldTokenAsset(pendingSpentMarker.asset).mintAddress ?? "",
+                  noteId: pendingSpentMarker.consumedNoteId,
+                  owner: pendingSpentMarker.owner,
+                  requester: pendingSpentMarker.owner,
+                  transitionNoteId: pendingSpentMarker.transitionNoteId,
+                  vaultOwner: pendingSpentMarker.vaultOwner,
+                }),
+              ),
+              getLiveShieldTokenAsset(pendingSpentMarker.asset).unshieldOperatorUrl,
+            )
+          : await requestOperatorSolUnshield(
+              createOperatorDirectSolUnshieldIntent(
+                createSolUnshieldIntentPayload({
+                  amount: pendingSpentMarker.amount,
+                  asset: "SOL",
+                  assetId: liveSwapPair.solAssetId,
+                  consumedNoteId: pendingSpentMarker.consumedNoteId,
+                  destinationOwner: pendingSpentMarker.owner,
+                  owner: pendingSpentMarker.owner,
+                  requester: pendingSpentMarker.owner,
+                  transitionNoteId: pendingSpentMarker.transitionNoteId,
+                  vaultOwner: pendingSpentMarker.vaultOwner,
+                }),
+              ),
+            );
 
-      const unshieldPayload = createUnshieldIntentPayload({
-        amount: pendingSpentMarker.amount,
-        destinationOwner: walletAddress,
-        mintAddress: pendingTokenAsset.mintAddress ?? "",
-        noteId: pendingSpentMarker.consumedNoteId,
-        owner: pendingSpentMarker.owner,
-        requester: walletAddress,
-        transitionNoteId: pendingSpentMarker.transitionNoteId,
-        vaultOwner: pendingSpentMarker.vaultOwner,
-      });
-
-      void Promise.resolve(createOperatorDirectUnshieldIntent(unshieldPayload))
-        .then((intent) => requestOperatorUnshield(intent, pendingTokenAsset.unshieldOperatorUrl))
-        .then(({ requestId, signature }) => {
-          setOperatorReleaseSignature(signature);
-          setLastCompletion((current) =>
-            current ? { ...current, requestId } : current,
-          );
-          setStatus("complete");
-          setFlowError(null);
-          setUnshieldBridgeError(null);
-          setOperatorAuthorizationStarted(false);
-          operatorAuthorizationLockRef.current = null;
-          setPendingSpentMarker(null);
-          setPendingUnshieldBridge(null);
-          void Promise.all(shieldRegistry.configuredEntries.flatMap((entry) => [
-            entry.refresh(),
-            entry.token.refresh(),
-          ]));
-        })
-        .catch((error) => {
-          setStatus("failed");
-          setFlowError(
-            error instanceof Error
-              ? error.message
-              : `The ${pendingSpentMarker.asset} unshield operator could not process the request.`,
-          );
-          setOperatorAuthorizationStarted(false);
-          operatorAuthorizationLockRef.current = null;
-          setPendingSpentMarker(null);
-          setPendingUnshieldBridge(null);
-        });
-
-      return;
+      setOperatorReleaseSignature(releaseResult.signature);
+      setLastCompletion((current) =>
+        current ? { ...current, requestId: releaseResult.requestId } : current,
+      );
+      setStatus("complete");
+      setFlowError(null);
+      setUnshieldBridgeError(null);
+      setPendingSpentMarker(null);
+      setPendingUnshieldBridge(null);
+      void Promise.all(shieldRegistry.configuredEntries.flatMap((entry) => [
+        entry.refresh(),
+        entry.token.refresh(),
+      ]));
+    } catch (error) {
+      setStatus("failed");
+      setFlowError(
+        error instanceof Error
+          ? error.message
+          : `The ${pendingSpentMarker.asset} unshield operator could not process the request.`,
+      );
+      setPendingSpentMarker(null);
+      setPendingUnshieldBridge(null);
+    } finally {
+      setOperatorAuthorizationStarted(false);
+      operatorAuthorizationLockRef.current = null;
     }
-
-    const solUnshieldPayload = createSolUnshieldIntentPayload({
-      amount: pendingSpentMarker.amount,
-      asset: "SOL",
-      assetId: liveSwapPair.solAssetId,
-      consumedNoteId: pendingSpentMarker.consumedNoteId,
-      destinationOwner: walletAddress,
-      owner: pendingSpentMarker.owner,
-      requester: walletAddress,
-      transitionNoteId: pendingSpentMarker.transitionNoteId,
-      vaultOwner: pendingSpentMarker.vaultOwner,
-    });
-
-    void Promise.resolve(createOperatorDirectSolUnshieldIntent(solUnshieldPayload))
-      .then((intent) => requestOperatorSolUnshield(intent))
-      .then(({ requestId, signature }) => {
-        setOperatorReleaseSignature(signature);
-        setLastCompletion((current) =>
-          current ? { ...current, requestId } : current,
-        );
-        setStatus("complete");
-        setFlowError(null);
-        setUnshieldBridgeError(null);
-        setOperatorAuthorizationStarted(false);
-        operatorAuthorizationLockRef.current = null;
-        setPendingSpentMarker(null);
-        setPendingUnshieldBridge(null);
-        void Promise.all(shieldRegistry.configuredEntries.flatMap((entry) => [
-          entry.refresh(),
-          entry.token.refresh(),
-        ]));
-      })
-      .catch((error) => {
-        setStatus("failed");
-        setFlowError(
-          error instanceof Error
-            ? error.message
-            : "The SOL unshield operator could not process the request.",
-        );
-        setOperatorAuthorizationStarted(false);
-        operatorAuthorizationLockRef.current = null;
-        setPendingSpentMarker(null);
-        setPendingUnshieldBridge(null);
-      });
   }, [
-    operatorAuthorizationStarted,
+    operatorReleaseDisabledReason,
+    liveSwapPair.solAssetId,
     pendingSpentMarker,
     shieldRegistry.configuredEntries,
     walletAddress,
@@ -2707,13 +2712,16 @@ export function UnshieldPage() {
             <div className="status-panel">
               <span>Ready for operator release</span>
               <p>Release the selected note through the configured operator. This Unshield step does not open Phantom.</p>
+              {operatorReleaseDisabledReason && (
+                <p className="status-panel__warning">{operatorReleaseDisabledReason}</p>
+              )}
               <button
                 className="button button-primary"
                 type="button"
                 onClick={() => {
                   void authorizePendingOperatorRelease();
                 }}
-                disabled={operatorAuthorizationStarted}
+                disabled={Boolean(operatorReleaseDisabledReason)}
               >
                 Release through operator
               </button>
