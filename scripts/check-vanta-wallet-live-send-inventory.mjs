@@ -29,6 +29,7 @@ for (const surface of inventory.actionSurfaces) {
   assert.ok(
     [
       "private-core-active-legacy-safe-send-dormant",
+      "operator-direct-active-split-safe-send-dormant",
       "requires-wallet-backed-simulation-gate",
       "safe-send-adopted",
       "wallet-adapter-summary-bound",
@@ -84,10 +85,14 @@ assert.ok(
 assert.equal(swapSurface.currentCallSites.length, 0, "Swap must not keep raw wallet signing pending.");
 
 const unshieldSurface = surfacesByPage.get("Unshield");
-assert.equal(unshieldSurface.status, "safe-send-adopted", "Unshield must reflect complete wallet-signing boundary adoption.");
+assert.equal(
+  unshieldSurface.status,
+  "operator-direct-active-split-safe-send-dormant",
+  "Unshield must reflect the active operator-direct release lane while Phantom blocks the domain.",
+);
 assert.ok(
-  unshieldSurface.adoptedCallSites?.length >= 6,
-  "Unshield must list transition-authorized handoff, spent-marker, transition, and split paths as adopted.",
+  unshieldSurface.adoptedCallSites?.length >= 4,
+  "Unshield must list operator-direct handoff and dormant split safe-send paths as adopted.",
 );
 assert.equal(unshieldSurface.currentCallSites.length, 0, "Unshield must not keep raw wallet signing pending.");
 
@@ -114,19 +119,19 @@ const adoptedMessageIntentCallSites = inventory.actionSurfaces.flatMap((surface)
 );
 
 assert.equal(transactionCallSites.length, 0, "Protocol tabs must not keep raw transaction send call sites.");
-assert.ok(adoptedTransactionCallSites.length >= 12, "Expected adopted transaction safety boundaries.");
+assert.ok(adoptedTransactionCallSites.length >= 10, "Expected adopted transaction safety boundaries.");
 assert.ok(adoptedMessageIntentCallSites.length >= 1, "Expected adopted signed intent safety boundaries.");
 assert.ok(
   unshieldSurface.adoptedCallSites?.some((callSite) =>
-    callSite.snippet.includes("createTransitionAuthorizedUnshieldIntent"),
+    callSite.snippet.includes("createOperatorDirectUnshieldIntent"),
   ),
-  "Unshield must use the transition-authorized token operator handoff.",
+  "Unshield must use the operator-direct token operator handoff.",
 );
 assert.ok(
   unshieldSurface.adoptedCallSites?.some((callSite) =>
-    callSite.snippet.includes("createTransitionAuthorizedSolUnshieldIntent"),
+    callSite.snippet.includes("createOperatorDirectSolUnshieldIntent"),
   ),
-  "Unshield must use the transition-authorized SOL operator handoff.",
+  "Unshield must use the operator-direct SOL operator handoff.",
 );
 assert.ok(
   inventory.messageIntentPolicy.requiredSequence.includes("typed-intent-summary") &&

@@ -1099,6 +1099,41 @@ export function assertEligibleUnshieldTransition(args) {
   return transition;
 }
 
+export function assertEligibleDirectUnshieldRelease(args) {
+  if (args.destinationOwner !== args.owner) {
+    throw new Error("Operator-direct unshield can only release to the note owner.");
+  }
+
+  const consumedNote = args.context.spendableShieldNotes.find(
+    (note) => note.noteId === args.noteId,
+  );
+
+  if (!consumedNote) {
+    throw new Error("Referenced shield note is not currently eligible for unshield release.");
+  }
+
+  if (
+    consumedNote.owner !== args.owner ||
+    consumedNote.mintAddress !== args.mintAddress ||
+    consumedNote.vaultOwner !== args.vaultOwner ||
+    !amountsMatch(Number(consumedNote.amount.toFixed(6)), Number(args.amount))
+  ) {
+    throw new Error("Referenced shield note does not match the operator-direct unshield request.");
+  }
+
+  const competingTransitions = [
+    ...args.context.candidateSendNotes.filter((note) => note.consumedNoteId === args.noteId),
+    ...args.context.candidateSwapNotes.filter((note) => note.consumedNoteId === args.noteId),
+    ...args.context.candidateUnshieldNotes.filter((note) => note.consumedNoteId === args.noteId),
+  ];
+
+  if (competingTransitions.length > 0) {
+    throw new Error("Referenced note already has another constrained transition pending.");
+  }
+
+  return consumedNote;
+}
+
 export function assertEligibleSwapTransition(args) {
   const transition = args.context.candidateSwapNotes.find(
     (note) => note.noteId === args.transitionNoteId,
@@ -1195,4 +1230,36 @@ export function assertEligibleSolUnshieldTransition(args) {
   }
 
   return transition;
+}
+
+export function assertEligibleDirectSolUnshieldRelease(args) {
+  if (args.destinationOwner !== args.owner) {
+    throw new Error("Operator-direct SOL unshield can only release to the note owner.");
+  }
+
+  const consumedNote = args.context.spendableShieldedSolNotes.find(
+    (note) => note.noteId === args.consumedNoteId,
+  );
+
+  if (!consumedNote) {
+    throw new Error("Referenced shielded SOL note is not currently eligible for unshield release.");
+  }
+
+  if (
+    consumedNote.owner !== args.owner ||
+    consumedNote.asset !== "SOL" ||
+    !amountsMatch(Number(consumedNote.amount.toFixed(9)), Number(args.amount))
+  ) {
+    throw new Error("Referenced shielded SOL note does not match the operator-direct release request.");
+  }
+
+  const competingTransitions = args.context.candidateSolUnshieldNotes.filter(
+    (note) => note.consumedNoteId === args.consumedNoteId,
+  );
+
+  if (competingTransitions.length > 0) {
+    throw new Error("Referenced shielded SOL note already has another constrained transition pending.");
+  }
+
+  return consumedNote;
 }

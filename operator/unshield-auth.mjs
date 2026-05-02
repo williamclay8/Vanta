@@ -88,6 +88,13 @@ export function assertFreshUnshieldIntent(payload, now = Date.now()) {
 }
 
 export function verifySignedUnshieldIntent(payload) {
+  if (payload.signature === "operator-direct") {
+    return (
+      payload.transitionNoteId.startsWith("direct:") &&
+      payload.transitionNoteId === `direct:${payload.noteId}`
+    );
+  }
+
   if (payload.signature === "transition-authorized") {
     return typeof payload.transitionStateSignature === "string" && payload.transitionStateSignature.length > 0;
   }

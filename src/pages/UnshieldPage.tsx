@@ -13,7 +13,7 @@ import { useWalletState } from "@/data/context/WalletContext";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
 import { useRealtimeSignatureProgress } from "@/solana/useRealtimeSignatureProgress";
 import {
-  createTransitionAuthorizedSolUnshieldIntent,
+  createOperatorDirectSolUnshieldIntent,
   createSolUnshieldIntentPayload,
 } from "@/solana/solUnshieldAuth";
 import { fetchSolUnshieldOperatorHealth } from "@/solana/solUnshieldOperatorHealth";
@@ -27,7 +27,7 @@ import {
   vantaSolanaCluster,
 } from "@/solana/shieldConfig";
 import {
-  createTransitionAuthorizedUnshieldIntent,
+  createOperatorDirectUnshieldIntent,
   createUnshieldIntentPayload,
 } from "@/solana/unshieldAuth";
 import { requestOperatorUnshield } from "@/solana/unshieldOperatorClient";
@@ -1144,13 +1144,10 @@ export function UnshieldPage() {
 
   const authorizePendingOperatorRelease = useCallback(async () => {
     if (
-      transitionWait.waitStatus !== "success" ||
       !pendingSpentMarker ||
       !walletAddress ||
       operatorAuthorizationStarted ||
-      operatorAuthorizationLockRef.current === pendingSpentMarker.transitionNoteId ||
-      spentMarkerTransaction.status === "loading" ||
-      spentMarkerTransaction.signature
+      operatorAuthorizationLockRef.current === pendingSpentMarker.transitionNoteId
     ) {
       return;
     }
@@ -1170,63 +1167,27 @@ export function UnshieldPage() {
         owner: pendingSpentMarker.owner,
         requester: walletAddress,
         transitionNoteId: pendingSpentMarker.transitionNoteId,
-        transitionStateSignature: transitionTransaction.signature ?? undefined,
         vaultOwner: pendingSpentMarker.vaultOwner,
       });
 
-      void Promise.resolve(createTransitionAuthorizedUnshieldIntent(unshieldPayload))
+      void Promise.resolve(createOperatorDirectUnshieldIntent(unshieldPayload))
         .then((intent) => requestOperatorUnshield(intent, pendingTokenAsset.unshieldOperatorUrl))
-        .then(async ({ requestId, signature }) => {
+        .then(({ requestId, signature }) => {
           setOperatorReleaseSignature(signature);
           setLastCompletion((current) =>
             current ? { ...current, requestId } : current,
           );
-          const priorityFeeInstructions = await buildHeliusPriorityFeeInstructions({
-            accountKeys: [
-              pendingSpentMarker.assetId,
-              pendingSpentMarker.consumedNoteId,
-              pendingSpentMarker.owner,
-              pendingSpentMarker.transitionNoteId,
-              pendingSpentMarker.vaultOwner,
-              walletAddress,
-            ],
-            action: "state_finalize",
-          });
-          const finalizationApproval = await spentMarkerTransaction.preflight({
-            amount: pendingSpentMarker.amount,
-            asset: pendingSpentMarker.asset,
-            cluster: vantaSolanaCluster,
-            explicitMainnetApproval: vantaExplicitMainnetApproval,
-            connectedWalletAddress: pendingSpentMarker.owner,
-            estimatedFees: "wallet-estimated",
-            feePayer: pendingSpentMarker.owner,
-            humanApprovedSummary: true,
-            instructions: [
-              ...priorityFeeInstructions,
-              createSpentMarkerInstruction({
-                asset: pendingSpentMarker.asset,
-                assetId: pendingTokenAsset.mintAddress ?? "",
-                consumedNoteId: pendingSpentMarker.consumedNoteId,
-                createdAt: pendingSpentMarker.createdAt,
-                mintAddress: pendingTokenAsset.mintAddress ?? undefined,
-                owner: pendingSpentMarker.owner,
-                transitionKind: "unshield",
-                transitionNoteId: pendingSpentMarker.transitionNoteId,
-                vaultOwner: pendingSpentMarker.vaultOwner,
-              }),
-            ],
-            label: "unshield-spent-marker",
-            recipient: pendingSpentMarker.vaultOwner,
-            summaryInstructions: ["unshield-spent-marker"],
-            transactionFingerprint: `unshield-spent-marker:${pendingSpentMarker.owner}:${pendingSpentMarker.consumedNoteId}:${pendingSpentMarker.transitionNoteId}`,
-          });
-
-          if (finalizationApproval.status === "blocked") {
-            throw new Error(`The unshield spent marker is blocked before wallet approval: ${finalizationApproval.reason}.`);
-          }
-
-          setPendingFinalizationApproval(finalizationApproval);
-          setStatus("release_ready");
+          setStatus("complete");
+          setFlowError(null);
+          setUnshieldBridgeError(null);
+          setOperatorAuthorizationStarted(false);
+          operatorAuthorizationLockRef.current = null;
+          setPendingSpentMarker(null);
+          setPendingUnshieldBridge(null);
+          void Promise.all(shieldRegistry.configuredEntries.flatMap((entry) => [
+            entry.refresh(),
+            entry.token.refresh(),
+          ]));
         })
         .catch((error) => {
           setStatus("failed");
@@ -1253,62 +1214,27 @@ export function UnshieldPage() {
       owner: pendingSpentMarker.owner,
       requester: walletAddress,
       transitionNoteId: pendingSpentMarker.transitionNoteId,
-      transitionStateSignature: transitionTransaction.signature ?? undefined,
       vaultOwner: pendingSpentMarker.vaultOwner,
     });
 
-    void Promise.resolve(createTransitionAuthorizedSolUnshieldIntent(solUnshieldPayload))
+    void Promise.resolve(createOperatorDirectSolUnshieldIntent(solUnshieldPayload))
       .then((intent) => requestOperatorSolUnshield(intent))
-      .then(async ({ requestId, signature }) => {
+      .then(({ requestId, signature }) => {
         setOperatorReleaseSignature(signature);
         setLastCompletion((current) =>
           current ? { ...current, requestId } : current,
         );
-        const priorityFeeInstructions = await buildHeliusPriorityFeeInstructions({
-          accountKeys: [
-            pendingSpentMarker.assetId,
-            pendingSpentMarker.consumedNoteId,
-            pendingSpentMarker.owner,
-            pendingSpentMarker.transitionNoteId,
-            pendingSpentMarker.vaultOwner,
-            walletAddress,
-          ],
-          action: "state_finalize",
-        });
-        const finalizationApproval = await spentMarkerTransaction.preflight({
-          amount: pendingSpentMarker.amount,
-          asset: "SOL",
-          cluster: vantaSolanaCluster,
-          explicitMainnetApproval: vantaExplicitMainnetApproval,
-          connectedWalletAddress: pendingSpentMarker.owner,
-          estimatedFees: "wallet-estimated",
-          feePayer: pendingSpentMarker.owner,
-          humanApprovedSummary: true,
-          instructions: [
-            ...priorityFeeInstructions,
-            createSpentMarkerInstruction({
-              asset: "SOL",
-              assetId: VANTA_NATIVE_SOL_ASSET_ID,
-              consumedNoteId: pendingSpentMarker.consumedNoteId,
-              createdAt: pendingSpentMarker.createdAt,
-              owner: pendingSpentMarker.owner,
-              transitionKind: "sol_unshield",
-              transitionNoteId: pendingSpentMarker.transitionNoteId,
-              vaultOwner: pendingSpentMarker.vaultOwner,
-            }),
-          ],
-          label: "sol-unshield-spent-marker",
-          recipient: pendingSpentMarker.vaultOwner,
-          summaryInstructions: ["sol-unshield-spent-marker"],
-          transactionFingerprint: `sol-unshield-spent-marker:${pendingSpentMarker.owner}:${pendingSpentMarker.consumedNoteId}:${pendingSpentMarker.transitionNoteId}`,
-        });
-
-        if (finalizationApproval.status === "blocked") {
-          throw new Error(`The SOL unshield spent marker is blocked before wallet approval: ${finalizationApproval.reason}.`);
-        }
-
-        setPendingFinalizationApproval(finalizationApproval);
-        setStatus("release_ready");
+        setStatus("complete");
+        setFlowError(null);
+        setUnshieldBridgeError(null);
+        setOperatorAuthorizationStarted(false);
+        operatorAuthorizationLockRef.current = null;
+        setPendingSpentMarker(null);
+        setPendingUnshieldBridge(null);
+        void Promise.all(shieldRegistry.configuredEntries.flatMap((entry) => [
+          entry.refresh(),
+          entry.token.refresh(),
+        ]));
       })
       .catch((error) => {
         setStatus("failed");
@@ -1325,13 +1251,8 @@ export function UnshieldPage() {
   }, [
     operatorAuthorizationStarted,
     pendingSpentMarker,
-    spentMarkerTransaction,
-    spentMarkerTransaction.signature,
-    spentMarkerTransaction.status,
-    transitionWait.waitStatus,
-    transitionTransaction.signature,
+    shieldRegistry.configuredEntries,
     walletAddress,
-    walletSession,
   ]);
 
   const approvePreparedUnshieldTransition = useCallback(async () => {
@@ -1584,16 +1505,7 @@ export function UnshieldPage() {
       }),
     );
     setStatus("awaiting_confirmation");
-    const prepared = createPreparedUnshieldMemo({
-      amount: args.note.amount.toString(),
-      asset: args.shieldAsset.assetKey,
-      consumedNoteId: args.note.noteId,
-      createdAt,
-      destinationOwner,
-      mintAddress,
-      owner: args.shieldAccount.owner,
-      vaultOwner: args.shieldAccount.vaultOwner,
-    });
+    const directTransitionNoteId = `direct:${args.note.noteId}`;
 
     setPendingSpentMarker({
       amount: args.note.amount.toString(),
@@ -1604,7 +1516,7 @@ export function UnshieldPage() {
       createdAt,
       owner: args.shieldAccount.owner,
       transitionKind: "unshield",
-      transitionNoteId: prepared.noteId,
+      transitionNoteId: directTransitionNoteId,
       vaultOwner: args.shieldAccount.vaultOwner,
     });
     setPendingUnshieldBridge({
@@ -1623,51 +1535,16 @@ export function UnshieldPage() {
         stateSignature: args.note.stateSignature,
       },
       transition: {
-        noteId: prepared.noteId,
+        noteId: directTransitionNoteId,
       },
       vaultOwner: args.shieldAccount.vaultOwner,
     });
     setLastCompletion({
       amount: args.note.amount,
       asset: args.shieldAsset.assetKey,
-      transitionNoteId: prepared.noteId,
+      transitionNoteId: directTransitionNoteId,
     });
-    const priorityFeeInstructions = await buildHeliusPriorityFeeInstructions({
-      accountKeys: [
-        args.note.noteId,
-        mintAddress,
-        args.shieldAccount.owner,
-        prepared.noteId,
-        args.shieldAccount.vaultOwner,
-        walletAddress,
-      ],
-      action: "unshield_transition",
-    });
-
-    const instructions = [...priorityFeeInstructions, prepared.instruction];
-
-    const transitionApproval = await transitionTransaction.preflight({
-      amount: args.note.amount.toString(),
-      asset: args.shieldAsset.assetKey,
-      cluster: vantaSolanaCluster,
-      explicitMainnetApproval: vantaExplicitMainnetApproval,
-      connectedWalletAddress: args.shieldAccount.owner,
-      estimatedFees: "wallet-estimated",
-      feePayer: args.shieldAccount.owner,
-      humanApprovedSummary: true,
-      instructions,
-      label: "unshield-transition",
-      recipient: walletAddress ?? args.shieldAccount.owner,
-      summaryInstructions: ["unshield-transition"],
-      transactionFingerprint: `unshield-transition:${args.shieldAccount.owner}:${args.note.noteId}:${prepared.noteId}`,
-    });
-
-    if (transitionApproval.status === "blocked") {
-      throw new Error(`The unshield transition is blocked before wallet approval: ${transitionApproval.reason}.`);
-    }
-
-    setPendingTransitionApproval(transitionApproval);
-    setStatus("transition_ready");
+    setStatus("operator_ready");
   }
 
   async function beginSolUnshieldFromNote(args: {
@@ -1690,16 +1567,7 @@ export function UnshieldPage() {
       }),
     );
     setStatus("awaiting_confirmation");
-    const prepared = createPreparedSolUnshieldMemo({
-      amount: args.note.amount.toString(),
-      asset: "SOL",
-      assetId: liveSwapPair.solAssetId,
-      consumedNoteId: args.note.noteId,
-      createdAt,
-      destinationOwner,
-      owner: args.shieldAccount.owner,
-      vaultOwner: args.shieldAccount.vaultOwner,
-    });
+    const directTransitionNoteId = `direct:${args.note.noteId}`;
 
     setPendingSpentMarker({
       amount: args.note.amount.toString(),
@@ -1710,7 +1578,7 @@ export function UnshieldPage() {
       createdAt,
       owner: args.shieldAccount.owner,
       transitionKind: "sol_unshield",
-      transitionNoteId: prepared.noteId,
+      transitionNoteId: directTransitionNoteId,
       vaultOwner: args.shieldAccount.vaultOwner,
     });
     setPendingUnshieldBridge({
@@ -1726,51 +1594,16 @@ export function UnshieldPage() {
         sourceSwapNoteId: args.note.sourceSwapNoteId,
       },
       transition: {
-        noteId: prepared.noteId,
+        noteId: directTransitionNoteId,
       },
       vaultOwner: args.shieldAccount.vaultOwner,
     });
     setLastCompletion({
       amount: args.note.amount,
       asset: "SOL",
-      transitionNoteId: prepared.noteId,
+      transitionNoteId: directTransitionNoteId,
     });
-    const priorityFeeInstructions = await buildHeliusPriorityFeeInstructions({
-      accountKeys: [
-        args.note.noteId,
-        liveSwapPair.solAssetId,
-        args.shieldAccount.owner,
-        prepared.noteId,
-        args.shieldAccount.vaultOwner,
-        walletAddress,
-      ],
-      action: "sol_unshield_transition",
-    });
-
-    const instructions = [...priorityFeeInstructions, prepared.instruction];
-
-    const transitionApproval = await transitionTransaction.preflight({
-      amount: args.note.amount.toString(),
-      asset: "SOL",
-      cluster: vantaSolanaCluster,
-      explicitMainnetApproval: vantaExplicitMainnetApproval,
-      connectedWalletAddress: args.shieldAccount.owner,
-      estimatedFees: "wallet-estimated",
-      feePayer: args.shieldAccount.owner,
-      humanApprovedSummary: true,
-      instructions,
-      label: "sol-unshield-transition",
-      recipient: walletAddress ?? args.shieldAccount.owner,
-      summaryInstructions: ["sol-unshield-transition"],
-      transactionFingerprint: `sol-unshield-transition:${args.shieldAccount.owner}:${args.note.noteId}:${prepared.noteId}`,
-    });
-
-    if (transitionApproval.status === "blocked") {
-      throw new Error(`The SOL unshield transition is blocked before wallet approval: ${transitionApproval.reason}.`);
-    }
-
-    setPendingTransitionApproval(transitionApproval);
-    setStatus("transition_ready");
+    setStatus("operator_ready");
   }
 
   async function handleUnshield() {
@@ -2872,8 +2705,8 @@ export function UnshieldPage() {
 
           {status === "operator_ready" && (
             <div className="status-panel">
-              <span>Ready for release approval</span>
-              <p>Approve the signed Unshield release request in your wallet to continue.</p>
+              <span>Ready for operator release</span>
+              <p>Release the selected note through the configured operator. This Unshield step does not open Phantom.</p>
               <button
                 className="button button-primary"
                 type="button"
@@ -2882,7 +2715,7 @@ export function UnshieldPage() {
                 }}
                 disabled={operatorAuthorizationStarted}
               >
-                Approve release in wallet
+                Release through operator
               </button>
             </div>
           )}
@@ -2890,7 +2723,7 @@ export function UnshieldPage() {
           {status === "authorizing_operator" && (
             <div className="status-panel status-panel--processing">
               <span>Authorizing public release</span>
-              <p>Approve the public release for this {selectedLane} exit.</p>
+              <p>Requesting the constrained public release for this {selectedLane} exit.</p>
               <div className="status-bar">
                 <div className="status-bar__fill" />
               </div>

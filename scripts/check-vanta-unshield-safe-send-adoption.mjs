@@ -17,21 +17,15 @@ assert.ok(
 );
 
 for (const phrase of [
-  "const transitionTransaction = useVantaSafeSendTransaction();",
-  "const spentMarkerTransaction = useVantaSafeSendTransaction();",
   "const splitTransitionTransaction = useVantaSafeSendTransaction();",
   "const splitSpentMarkerTransaction = useVantaSafeSendTransaction();",
   "summaryInstructions",
   "transactionFingerprint",
-  "unshield-transition",
-  "sol-unshield-transition",
-  "unshield-spent-marker",
-  "sol-unshield-spent-marker",
   "unshield-split-transition",
   "unshield-split-spent-marker",
-  "createTransitionAuthorizedUnshieldIntent",
-  "createTransitionAuthorizedSolUnshieldIntent",
-  "transitionStateSignature: transitionTransaction.signature",
+  "createOperatorDirectUnshieldIntent",
+  "createOperatorDirectSolUnshieldIntent",
+  "Release through operator",
 ]) {
   assert.ok(source.includes(phrase), `Unshield safe-send adoption missing phrase: ${phrase}`);
 }

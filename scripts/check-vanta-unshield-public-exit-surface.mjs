@@ -28,20 +28,11 @@ const transactionEvidenceSource = readRepoFile("src/transactions/vantaTransactio
 const transactionEvidenceCheck = readRepoFile("scripts/check-vanta-transaction-evidence.mjs");
 
 for (const phrase of [
-  "pendingTransitionApproval",
-  "pendingFinalizationApproval",
-  "transitionTransaction.preflight",
-  "transitionTransaction.sendPrepared",
-  "spentMarkerTransaction.preflight",
-  "spentMarkerTransaction.sendPrepared",
-  "Ready for transition approval",
-  "Approve transition in wallet",
-  "Ready for release approval",
-  "Approve release in wallet",
-  "Ready to finalize",
-  "Finalize in wallet",
-  "createTransitionAuthorizedUnshieldIntent",
-  "createTransitionAuthorizedSolUnshieldIntent",
+  "createOperatorDirectUnshieldIntent",
+  "createOperatorDirectSolUnshieldIntent",
+  "Ready for operator release",
+  "Release through operator",
+  "direct:${args.note.noteId}",
   "shield the exact USDC amount first",
 ]) {
   assert.ok(
@@ -55,17 +46,17 @@ assert.ok(
   "Unshield must not open a separate Phantom signMessage release prompt.",
 );
 assert.ok(
-  unshieldAuthSource.includes('signature: "transition-authorized"'),
-  "Token Unshield auth must preserve transition-authorized intent support.",
+  unshieldAuthSource.includes('signature: "operator-direct"'),
+  "Token Unshield auth must support operator-direct release intents.",
 );
 assert.ok(
-  solUnshieldAuthSource.includes('signature: "transition-authorized"'),
-  "SOL Unshield auth must preserve transition-authorized intent support.",
+  solUnshieldAuthSource.includes('signature: "operator-direct"'),
+  "SOL Unshield auth must support operator-direct release intents.",
 );
 assert.ok(
-  unshieldOperatorAuthSource.includes('payload.signature === "transition-authorized"') &&
-    solUnshieldOperatorAuthSource.includes('payload.signature === "transition-authorized"'),
-  "Unshield operator must accept transition-authorized intents after on-chain transition verification.",
+  unshieldOperatorAuthSource.includes('payload.signature === "operator-direct"') &&
+    solUnshieldOperatorAuthSource.includes('payload.signature === "operator-direct"'),
+  "Unshield operator must accept checked operator-direct release intents.",
 );
 
 for (const phrase of [

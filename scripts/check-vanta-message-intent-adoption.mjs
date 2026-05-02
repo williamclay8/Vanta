@@ -11,9 +11,9 @@ assert.ok(
   "Swap must wrap signed operator intents with wallet message-intent safety.",
 );
 assert.ok(
-  unshieldSource.includes("createTransitionAuthorizedUnshieldIntent") &&
-    unshieldSource.includes("createTransitionAuthorizedSolUnshieldIntent"),
-  "Unshield must use transition-authorized operator intents instead of opening a second Phantom message-signing prompt.",
+  unshieldSource.includes("createOperatorDirectUnshieldIntent") &&
+    unshieldSource.includes("createOperatorDirectSolUnshieldIntent"),
+  "Unshield must use operator-direct release intents instead of opening Phantom on a blocked domain.",
 );
 
 for (const phrase of [
@@ -26,15 +26,11 @@ for (const phrase of [
 }
 
 for (const phrase of [
-  "createTransitionAuthorizedUnshieldIntent",
-  "createTransitionAuthorizedSolUnshieldIntent",
-  "transitionStateSignature: transitionTransaction.signature",
+  "createOperatorDirectUnshieldIntent",
+  "createOperatorDirectSolUnshieldIntent",
   'setStatus("operator_ready")',
-  'setStatus("release_ready")',
-  "Ready for release approval",
-  "Approve release in wallet",
-  "Ready to finalize",
-  "Finalize in wallet",
+  "Ready for operator release",
+  "Release through operator",
 ]) {
   assert.ok(unshieldSource.includes(phrase), `Unshield message-intent adoption missing phrase: ${phrase}`);
 }

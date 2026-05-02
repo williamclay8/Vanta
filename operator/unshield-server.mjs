@@ -42,6 +42,8 @@ import {
   validateTitanGatewayConfig,
 } from "./titan-gateway-advisory.mjs";
 import {
+  assertEligibleDirectSolUnshieldRelease,
+  assertEligibleDirectUnshieldRelease,
   assertEligibleSolUnshieldTransition,
   assertEligibleSwapTransition,
   assertEligibleUnshieldTransition,
@@ -1445,16 +1447,28 @@ const server = createServer(async (request, response) => {
         vaultOwner,
       });
 
-      assertEligibleSolUnshieldTransition({
-        amount: intent.amount,
-        assetId: intent.assetId,
-        context: onchainContext,
-        consumedNoteId: intent.consumedNoteId,
-        destinationOwner: intent.destinationOwner,
-        owner: intent.owner,
-        transitionNoteId: intent.transitionNoteId,
-        vaultOwner,
-      });
+      if (intent.signature === "operator-direct") {
+        assertEligibleDirectSolUnshieldRelease({
+          amount: intent.amount,
+          assetId: intent.assetId,
+          context: onchainContext,
+          consumedNoteId: intent.consumedNoteId,
+          destinationOwner: intent.destinationOwner,
+          owner: intent.owner,
+          vaultOwner,
+        });
+      } else {
+        assertEligibleSolUnshieldTransition({
+          amount: intent.amount,
+          assetId: intent.assetId,
+          context: onchainContext,
+          consumedNoteId: intent.consumedNoteId,
+          destinationOwner: intent.destinationOwner,
+          owner: intent.owner,
+          transitionNoteId: intent.transitionNoteId,
+          vaultOwner,
+        });
+      }
 
       const keypair = loadWeb3KeypairFromEnv("VANTA_DEVNET_VAULT_SIGNER_SECRET_KEY");
       const signerAddress = keypair.publicKey.toBase58();
@@ -1578,17 +1592,36 @@ const server = createServer(async (request, response) => {
       throw new Error("This unshield transition has already been finalized.");
     }
 
-    await waitForEligibleUnshieldTransition({
-      amount: intent.amount,
-      client,
-      destinationOwner: intent.destinationOwner,
-      mintAddress: intent.mintAddress,
-      noteId: intent.noteId,
-      owner: intent.owner,
-      transitionNoteId: intent.transitionNoteId,
-      transitionStateSignature: intent.transitionStateSignature,
-      vaultOwner,
-    });
+    if (intent.signature === "operator-direct") {
+      const onchainContext = await fetchConstrainedOnchainUnshieldContext({
+        client,
+        mintAddress: intent.mintAddress,
+        owner: intent.owner,
+        vaultOwner,
+      });
+
+      assertEligibleDirectUnshieldRelease({
+        amount: intent.amount,
+        context: onchainContext,
+        destinationOwner: intent.destinationOwner,
+        mintAddress: intent.mintAddress,
+        noteId: intent.noteId,
+        owner: intent.owner,
+        vaultOwner,
+      });
+    } else {
+      await waitForEligibleUnshieldTransition({
+        amount: intent.amount,
+        client,
+        destinationOwner: intent.destinationOwner,
+        mintAddress: intent.mintAddress,
+        noteId: intent.noteId,
+        owner: intent.owner,
+        transitionNoteId: intent.transitionNoteId,
+        transitionStateSignature: intent.transitionStateSignature,
+        vaultOwner,
+      });
+    }
 
     const keypair = await loadKeypairFromEnv("VANTA_DEVNET_VAULT_SIGNER_SECRET_KEY");
     const signerAddress = keypair.signer.address.toString();
