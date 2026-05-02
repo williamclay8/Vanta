@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { poseidon2, poseidon3, poseidon4 } from "poseidon-lite";
+import { poseidon2, poseidon3, poseidon4, poseidon6, poseidon11 } from "poseidon-lite";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-private-pool-v2-hash-alignment-"));
@@ -17,6 +17,7 @@ const sourceFiles = [
   "privatePoolV2SendCircuitFixture.ts",
   "privatePoolV2SwapToShieldedCircuitFixture.ts",
   "privatePoolV2ClaimCircuitFixture.ts",
+  "privatePoolV2ActualPrivateSpendCircuitFixture.ts",
 ];
 
 function assert(condition, message) {
@@ -116,6 +117,12 @@ try {
     createVantaPrivatePoolV2SwapToShieldedCircuitFixture,
   } = await import(
     pathToFileURL(join(tempJsDir, "privatePoolV2SwapToShieldedCircuitFixture.js")).href
+  );
+  const {
+    computeVantaPrivatePoolV2ActualPrivateSpendPublicInputHash,
+    createVantaPrivatePoolV2ActualPrivateSpendCircuitFixture,
+  } = await import(
+    pathToFileURL(join(tempJsDir, "privatePoolV2ActualPrivateSpendCircuitFixture.js")).href
   );
 
   const shield = createVantaPrivatePoolV2ShieldCircuitFixture();
@@ -352,6 +359,108 @@ try {
     "Expected swap-to-shielded proof request to expose only the computed hash on the circuit-public lane.",
   );
   console.log("private pool v2 swap-to-shielded public-input hash alignment: PASS");
+
+  const actualPrivateSpend = createVantaPrivatePoolV2ActualPrivateSpendCircuitFixture();
+  const actualPrivateSpendEntries = parsePublicInputs(actualPrivateSpend.proofRequest.publicInputs);
+  const actualPrivateSpendMap = toMap(actualPrivateSpendEntries);
+  const actualPrivateSpendWitness = actualPrivateSpend.witness;
+
+  assertOrder(
+    actualPrivateSpendEntries,
+    [
+      "vanta-private-pool-v2-actual-private-spend-proof-request-0.1",
+      "pool-id",
+      "asset-cohort",
+      "accepted-root",
+      "nullifier",
+      "output-commitment-0",
+      "output-commitment-1",
+      "context-hash",
+      "private-spend-public-input-hash",
+    ],
+    "actual-private-spend",
+  );
+  assertValue(actualPrivateSpendMap, "pool-id", actualPrivateSpendWitness.pool_id, "actual-private-spend");
+  assertValue(
+    actualPrivateSpendMap,
+    "asset-cohort",
+    actualPrivateSpendWitness.asset_cohort,
+    "actual-private-spend",
+  );
+  assertValue(
+    actualPrivateSpendMap,
+    "accepted-root",
+    actualPrivateSpendWitness.accepted_root,
+    "actual-private-spend",
+  );
+  assertValue(actualPrivateSpendMap, "nullifier", actualPrivateSpendWitness.nullifier, "actual-private-spend");
+  assertValue(
+    actualPrivateSpendMap,
+    "output-commitment-0",
+    actualPrivateSpendWitness.output_commitment_0,
+    "actual-private-spend",
+  );
+  assertValue(
+    actualPrivateSpendMap,
+    "output-commitment-1",
+    actualPrivateSpendWitness.output_commitment_1,
+    "actual-private-spend",
+  );
+  assertValue(
+    actualPrivateSpendMap,
+    "context-hash",
+    actualPrivateSpendWitness.context_hash,
+    "actual-private-spend",
+  );
+  assertValue(
+    actualPrivateSpendMap,
+    "private-spend-public-input-hash",
+    actualPrivateSpend.privateSpendPublicInputHash,
+    "actual-private-spend",
+  );
+
+  const actualPrivateSpendOutputHash = poseidon2([
+    actualPrivateSpendWitness.output_commitment_0,
+    actualPrivateSpendWitness.output_commitment_1,
+  ]);
+  const actualPrivateSpendMembershipBinding = poseidon6([
+    actualPrivateSpendWitness.accepted_root,
+    actualPrivateSpendWitness.input_commitment,
+    actualPrivateSpendWitness.leaf_index,
+    actualPrivateSpendWitness.membership_path_direction_bits[0],
+    actualPrivateSpendWitness.membership_path_direction_bits[1],
+    actualPrivateSpendWitness.membership_path_direction_bits[2],
+  ]);
+  const actualPrivateSpendPreimage = poseidon11([
+    actualPrivateSpendWitness.request_version,
+    actualPrivateSpendWitness.pool_id,
+    actualPrivateSpendWitness.asset_cohort,
+    actualPrivateSpendMembershipBinding,
+    actualPrivateSpendWitness.nullifier,
+    actualPrivateSpendOutputHash,
+    actualPrivateSpendWitness.context_hash,
+    actualPrivateSpendWitness.output_commitment_0,
+    actualPrivateSpendWitness.output_commitment_1,
+    actualPrivateSpendWitness.accepted_root,
+    actualPrivateSpendWitness.leaf_index,
+  ]);
+  assert(
+    actualPrivateSpendPreimage === actualPrivateSpend.privateSpendPublicInputHash,
+    "Expected actual-private spend public input hash to be derivable from the Noir preimage.",
+  );
+  assert(
+    computeVantaPrivatePoolV2ActualPrivateSpendPublicInputHash(actualPrivateSpendWitness) ===
+      actualPrivateSpend.privateSpendPublicInputHash,
+    "Expected actual-private spend fixture hash to match Noir public hash preimage.",
+  );
+  assert(
+    JSON.stringify(actualPrivateSpend.proofRequest.circuitPublicInputs) ===
+      JSON.stringify([
+        `private-spend-public-input-hash:${actualPrivateSpend.privateSpendPublicInputHash.toString(10)}`,
+      ]),
+    "Expected actual-private spend proof request to expose only the computed hash on the circuit-public lane.",
+  );
+  console.log("private pool v2 actual-private spend public-input hash alignment: PASS");
 } catch (error) {
   const stdout = String(error.stdout ?? "");
   const stderr = String(error.stderr ?? "");
