@@ -93,25 +93,58 @@ const websocketEndpoint =
   process.env.SOLANA_WS_URL ??
   process.env.VITE_SOLANA_WS_URL ??
   endpoint.replace("https://", "wss://").replace("http://", "ws://");
+const configuredCluster =
+  process.env.VANTA_SOLANA_CLUSTER ??
+  process.env.SOLANA_CLUSTER ??
+  process.env.VITE_SOLANA_CLUSTER ??
+  (process.env.NODE_ENV === "production" ? "mainnet-beta" : "devnet");
+const isMainnetCluster = configuredCluster === "mainnet-beta";
+const MAINNET_RECOGNIZED_MINTS = {
+  BONK: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+  JTO: "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
+  JUP: "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  KMNO: "KMNo3nJsBXfcpJTVhZcXLW7RmTwTt4GVFE7suUBo9sS",
+  PYUSD: "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+  USDC: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  WIF: "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
+};
 const mintAddress =
-  process.env.VANTA_DEVNET_TOKEN_MINT ?? process.env.VITE_VANTA_DEVNET_TOKEN_MINT;
+  clusterEnv("TOKEN_MINT") ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.USDC : undefined);
 const usdcMintAddress =
-  process.env.VANTA_DEVNET_USDC_MINT ?? process.env.VITE_VANTA_DEVNET_USDC_MINT;
+  clusterEnv("USDC_MINT") ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.USDC : undefined);
 const jtoMintAddress =
-  process.env.VANTA_DEVNET_JTO_MINT ?? process.env.VITE_VANTA_DEVNET_JTO_MINT;
+  clusterEnv("JTO_MINT") ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.JTO : undefined);
 const bonkMintAddress =
-  process.env.VANTA_DEVNET_BONK_MINT ?? process.env.VITE_VANTA_DEVNET_BONK_MINT;
+  clusterEnv("BONK_MINT") ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.BONK : undefined);
+const jupMintAddress =
+  clusterEnv("JUP_MINT") ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.JUP : undefined);
+const pyusdMintAddress =
+  clusterEnv("PYUSD_MINT") ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.PYUSD : undefined);
+const wifMintAddress =
+  clusterEnv("WIF_MINT") ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.WIF : undefined);
+const kmnoMintAddress =
+  clusterEnv("KMNO_MINT") ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.KMNO : undefined);
 const vaultOwner =
-  process.env.VANTA_DEVNET_VAULT_OWNER ?? process.env.VITE_VANTA_DEVNET_VAULT_OWNER;
+  clusterEnv("VAULT_OWNER") ?? process.env.VANTA_VAULT_OWNER ?? process.env.VITE_VANTA_VAULT_OWNER;
+const vaultSignerSecretKeyEnvName = clusterEnvName("VAULT_SIGNER_SECRET_KEY");
 
 if (!mintAddress || !vaultOwner) {
   throw new Error(
-    "Unshield operator requires VANTA_DEVNET_TOKEN_MINT and VANTA_DEVNET_VAULT_OWNER.",
+    `Unshield operator requires ${isMainnetCluster ? "VANTA_MAINNET" : "VANTA_DEVNET"}_TOKEN_MINT and ${isMainnetCluster ? "VANTA_MAINNET" : "VANTA_DEVNET"}_VAULT_OWNER.`,
   );
 }
 
 const supportedTokenMintAddresses = new Set(
-  [mintAddress, usdcMintAddress, jtoMintAddress, bonkMintAddress].filter(
+  [
+    mintAddress,
+    usdcMintAddress,
+    jtoMintAddress,
+    bonkMintAddress,
+    jupMintAddress,
+    pyusdMintAddress,
+    wifMintAddress,
+    kmnoMintAddress,
+  ].filter(
     (value) => typeof value === "string" && value.length > 0,
   ),
 );
@@ -1471,7 +1504,7 @@ export async function handleUnshieldOperatorRequest(request, response) {
         });
       }
 
-      const keypair = loadWeb3KeypairFromEnv("VANTA_DEVNET_VAULT_SIGNER_SECRET_KEY");
+      const keypair = loadWeb3KeypairFromEnv(vaultSignerSecretKeyEnvName);
       const signerAddress = keypair.publicKey.toBase58();
 
       if (signerAddress !== vaultOwner) {
@@ -1624,7 +1657,7 @@ export async function handleUnshieldOperatorRequest(request, response) {
       });
     }
 
-    const keypair = await loadKeypairFromEnv("VANTA_DEVNET_VAULT_SIGNER_SECRET_KEY");
+    const keypair = await loadKeypairFromEnv(vaultSignerSecretKeyEnvName);
     const signerAddress = keypair.signer.address.toString();
 
     if (signerAddress !== vaultOwner) {
@@ -4162,6 +4195,24 @@ function parsePositiveIntegerEnv(name, fallback) {
   return parsed;
 }
 
+function clusterEnv(suffix) {
+  const envName = clusterEnvName(suffix);
+
+  return envName ? process.env[envName] : undefined;
+}
+
+function clusterEnvName(suffix) {
+  const clusterPrefix = isMainnetCluster ? "MAINNET" : "DEVNET";
+  const candidates = [
+    `VANTA_${clusterPrefix}_${suffix}`,
+    `VITE_VANTA_${clusterPrefix}_${suffix}`,
+    `VANTA_DEVNET_${suffix}`,
+    `VITE_VANTA_DEVNET_${suffix}`,
+  ];
+
+  return candidates.find((key) => process.env[key] !== undefined && process.env[key] !== "") ?? candidates[0];
+}
+
 async function readJsonBody(request) {
   const contentType = request.headers["content-type"];
   if (contentType && !String(contentType).toLowerCase().includes("application/json")) {
@@ -4291,9 +4342,7 @@ function evaluateSolUnshieldLaneHealth() {
 
   let signerAddress = null;
   try {
-    signerAddress = loadWeb3KeypairFromEnv(
-      "VANTA_DEVNET_VAULT_SIGNER_SECRET_KEY",
-    ).publicKey.toBase58();
+    signerAddress = loadWeb3KeypairFromEnv(vaultSignerSecretKeyEnvName).publicKey.toBase58();
   } catch {
     signerAddress = null;
   }

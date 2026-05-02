@@ -44,9 +44,9 @@ const shieldStateRpcEndpoint =
       VITE_SOLANA_RPC_URL?: string;
     };
   }).env?.VITE_SOLANA_RPC_URL ??
-  (((import.meta as ImportMeta & { env?: { PROD?: boolean; VITE_SOLANA_CLUSTER?: string } }).env?.PROD ||
-    (import.meta as ImportMeta & { env?: { VITE_SOLANA_CLUSTER?: string } }).env?.VITE_SOLANA_CLUSTER ===
-      "mainnet-beta")
+  (((import.meta as ImportMeta & { env?: { VITE_SOLANA_CLUSTER?: string } }).env?.VITE_SOLANA_CLUSTER ??
+    ((import.meta as ImportMeta & { env?: { PROD?: boolean } }).env?.PROD ? "mainnet-beta" : "devnet")) ===
+  "mainnet-beta"
     ? "https://api.mainnet-beta.solana.com"
     : "https://api.devnet.solana.com");
 

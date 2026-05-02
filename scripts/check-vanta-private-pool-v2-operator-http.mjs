@@ -28,6 +28,8 @@ const routedShieldSettlementEvidence = {
 const localIndexerScheme = "sha256-append-only-private-pool-v2-local-indexer-0.1";
 const payPrivateSettlementAdapterVersion = "vanta-pay-private-settlement-adapter-0.1";
 const hiddenEconomicsAssetId = "hidden:economic-terms";
+const mainnetUsdcMintAddress = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+const mainnetVaultOwner = "7yUfwUmZMYLg95xJGR762z4WpqfR6hBRqt9mcgNArtdi";
 
 function assert(condition, message) {
   if (!condition) {
@@ -362,6 +364,67 @@ try {
     await new Promise((resolvePromise) => {
       authenticatedServer.once("close", resolvePromise);
       authenticatedServer.kill("SIGTERM");
+    });
+  }
+}
+
+const mainnetUnshieldPort = authPort + 3;
+const mainnetUnshieldBaseUrl = `http://127.0.0.1:${mainnetUnshieldPort}`;
+const mainnetUnshieldServer = spawn("node", ["operator/private-pool-v2-server.mjs"], {
+  cwd: repoRoot,
+  env: {
+    ...process.env,
+    SOLANA_CLUSTER: "mainnet-beta",
+    VANTA_MAINNET_TOKEN_MINT: mainnetUsdcMintAddress,
+    VANTA_MAINNET_USDC_MINT: mainnetUsdcMintAddress,
+    VANTA_MAINNET_VAULT_OWNER: mainnetVaultOwner,
+    VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN: "vanta-private-pool-v2-test-token",
+    VANTA_PRIVATE_POOL_V2_OPERATOR_PORT: String(mainnetUnshieldPort),
+    VANTA_PRIVATE_POOL_V2_STORE_PATH: join(tempRoot, "mainnet-unshield-store.json"),
+  },
+  stdio: ["ignore", "pipe", "pipe"],
+});
+try {
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    try {
+      const response = await requestJsonAt(mainnetUnshieldBaseUrl, "/health");
+      if (response.ok) {
+        break;
+      }
+    } catch {
+      // Server still booting.
+    }
+    await sleep(250);
+  }
+
+  const directUnshield = await requestJsonAt(mainnetUnshieldBaseUrl, "/unshield", {
+    body: JSON.stringify({
+      amount: "1",
+      destinationOwner: mainnetVaultOwner,
+      issuedAt: Date.now(),
+      mintAddress: mainnetUsdcMintAddress,
+      noteId: "mainnet-direct-note",
+      owner: mainnetVaultOwner,
+      requestId: "mainnet-direct-unshield-smoke",
+      requester: mainnetVaultOwner,
+      signature: "operator-direct",
+      transitionNoteId: "direct:mainnet-direct-note",
+      vaultOwner: mainnetVaultOwner,
+      version: "v1",
+    }),
+    method: "POST",
+  });
+  assert(
+    !directUnshield.text.includes("Unshield operator requires VANTA_DEVNET_TOKEN_MINT") &&
+      !directUnshield.text.includes("Invalid authenticated unshield request."),
+    directUnshield.text || "Expected mainnet-shaped Unshield request to pass initial auth shape.",
+  );
+  console.log("private-pool-v2 mainnet unshield route config: PASS");
+} finally {
+  if (mainnetUnshieldServer.exitCode === null) {
+    await new Promise((resolvePromise) => {
+      mainnetUnshieldServer.once("close", resolvePromise);
+      mainnetUnshieldServer.kill("SIGTERM");
     });
   }
 }

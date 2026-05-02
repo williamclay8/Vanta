@@ -46,6 +46,7 @@ function createOperatorEnv({ port, signer, vaultOwner }) {
     VANTA_DEVNET_VAULT_SIGNER_SECRET_KEY: signer
       ? JSON.stringify(Array.from(signer.secretKey))
       : "",
+    VANTA_SOLANA_CLUSTER: "devnet",
     VANTA_PRIVATE_CORE_CONSUME_STORE_PATH: join(tempRoot, `consumes-${port}.json`),
     VANTA_PRIVATE_CORE_PROOF_STORE_PATH: join(tempRoot, `proofs-${port}.json`),
     VANTA_PRIVATE_CORE_RELEASE_STORE_PATH: join(tempRoot, `private-core-releases-${port}.json`),

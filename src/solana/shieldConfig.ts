@@ -5,9 +5,7 @@ export type VantaSolanaCluster = "devnet" | "mainnet-beta";
 export type VantaSolanaClusterLabel = "Devnet" | "Mainnet";
 
 const configuredSolanaCluster = getOptionalEnvValue(import.meta.env.VITE_SOLANA_CLUSTER);
-const effectiveSolanaCluster = import.meta.env.PROD
-  ? "mainnet-beta"
-  : configuredSolanaCluster ?? "devnet";
+const effectiveSolanaCluster = configuredSolanaCluster ?? (import.meta.env.PROD ? "mainnet-beta" : "devnet");
 const isMainnetCluster = effectiveSolanaCluster === "mainnet-beta";
 export const vantaSolanaCluster: VantaSolanaCluster = isMainnetCluster ? "mainnet-beta" : "devnet";
 export const vantaSolanaClusterLabel: VantaSolanaClusterLabel = isMainnetCluster ? "Mainnet" : "Devnet";
