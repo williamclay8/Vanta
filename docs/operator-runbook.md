@@ -821,7 +821,7 @@ Never request, store, or handle private keys, seed phrases, or keypair files.
 
 Before any future live transaction path can request a wallet signature, it must:
 
-- default to devnet or localnet unless mainnet is explicitly selected and approved
+- default to mainnet or localnet unless mainnet is explicitly selected and approved
 - simulate the transaction before signature
 - show cluster, fee payer, recipient, amount, asset, estimated fees, instructions, recent blockhash, and simulation result
 - require explicit human approval before signature
@@ -1172,7 +1172,7 @@ The browser-backed safe-environment signing gate is:
 npm run wallet:browser-signing-safety-check
 ```
 
-It starts the app with devnet configuration, verifies the Shield, Send, Swap, and Unshield browser surfaces do not expose mainnet submission or secret-key language, and verifies the Shield, Swap, and Unshield actions do not advance into wallet-confirmation state when no wallet is connected.
+It starts the app with mainnet configuration, verifies the Shield, Send, Swap, and Unshield browser surfaces do not expose mainnet submission or secret-key language, and verifies the Shield, Swap, and Unshield actions do not advance into wallet-confirmation state when no wallet is connected.
 
 The deployed public-app browser-backed verification gate is:
 

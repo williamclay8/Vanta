@@ -4,7 +4,7 @@ This page says what Vanta is allowed to claim today.
 
 Plain-English summary:
 
-- Vanta has real local and devnet verification work.
+- Vanta has real local and mainnet verification work.
 - Vanta is still a development system.
 - Vanta is not audited.
 - Vanta is not mainnet-production ready.
@@ -65,7 +65,7 @@ The checked privacy-rail contract is `docs/privacy-rail-contract.md` and `src/re
 - Browser-exposed operator tokens are not production secrets: any `VITE_...` token bundled into the app is suitable only for local or controlled test environments, not as a mainnet operator access-control model.
 - Browser UX checks prove navigation and rendering behavior, not wallet security, relayer safety, or cryptographic privacy.
 - Live mainnet submission mode can be enabled in bounded operator windows, but real-funds actions still require explicit approval and must not be presented as production-ready private settlement.
-- Transaction Evidence v0.1 is evidence of the current transaction or receipt trace only; it may include devnet signatures, local/operator receipt ids, and redacted linkage fields, but it does not prove mainnet finality, production settlement, or privacy guarantees. It must not store private inputs, secrets, seed phrases, raw customer data, signed transaction material, or credential-bearing URLs.
+- Transaction Evidence v0.1 is evidence of the current transaction or receipt trace only; it may include mainnet signatures, local/operator receipt ids, and redacted linkage fields, but it does not prove mainnet finality, production settlement, or privacy guarantees. It must not store private inputs, secrets, seed phrases, raw customer data, signed transaction material, or credential-bearing URLs.
 - Never request, store, or handle private keys, seed phrases, or keypair files.
 - Future live transaction paths must simulate before signature, show a human-readable transaction summary, and require explicit human approval before requesting a wallet signature.
 - Future wallet signing paths must pass the executable transaction safety summary boundary before requesting approval.

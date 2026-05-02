@@ -69,7 +69,7 @@ export function useVantaShieldAssetState(args: {
       setError(
         nextError instanceof Error
           ? nextError.message
-          : "Failed to load Vanta shield state from devnet.",
+          : "Failed to load Vanta shield state from mainnet.",
       );
     } finally {
       setIsRefreshing(false);

@@ -22,7 +22,7 @@ export type SwapIntentPayload = {
   vaultOwner: string;
   venueFamily: "DLMM";
   venueName: "Meteora";
-  venueNetwork: "Devnet";
+  venueNetwork: "Mainnet";
   venuePoolAddress: string;
 };
 

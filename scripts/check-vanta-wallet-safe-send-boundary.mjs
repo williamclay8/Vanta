@@ -33,22 +33,22 @@ const boundary = createWalletSafeSendBoundary({
 const accepted = await runWalletSafeSendBoundary(boundary, {
   amount: "0.05",
   asset: "SOL",
-  cluster: "devnet",
+  cluster: "mainnet-beta",
   connectedWalletAddress: "payer1111111111111111111111111111111111111",
   estimatedFees: "0.000005 SOL",
   feePayer: "payer1111111111111111111111111111111111111",
   humanApprovedSummary: true,
   instructions: ["compute-budget", "private-pool-v2-shield"],
-  label: "safe-send-devnet",
+  label: "safe-send-mainnet",
   recipient: "vantaPool111111111111111111111111111111111",
-  transactionFingerprint: "txfp_safe_send_devnet_001",
+  transactionFingerprint: "txfp_safe_send_mainnet_001",
 });
 
 assert.equal(accepted.status, "submitted");
 assert.equal(accepted.signature, "sig_safe_send_001");
 assert.equal(accepted.gate.canRequestWalletSignature, true);
 assert.deepEqual(calls, [
-  ["prepare", "safe-send-devnet"],
+  ["prepare", "safe-send-mainnet"],
   ["simulate", "compute-budget,private-pool-v2-shield"],
   ["sendPrepared", "payer1111111111111111111111111111111111111"],
 ]);
@@ -78,7 +78,7 @@ const failedSimulationBoundary = createWalletSafeSendBoundary({
 const rejected = await runWalletSafeSendBoundary(failedSimulationBoundary, {
   amount: "0.05",
   asset: "SOL",
-  cluster: "devnet",
+  cluster: "mainnet-beta",
   connectedWalletAddress: "payer1111111111111111111111111111111111111",
   estimatedFees: "0.000005 SOL",
   feePayer: "payer1111111111111111111111111111111111111",
@@ -96,7 +96,7 @@ assert.equal(rejected.signature, null);
 const wrongWallet = await runWalletSafeSendBoundary(boundary, {
   amount: "0.05",
   asset: "SOL",
-  cluster: "devnet",
+  cluster: "mainnet-beta",
   connectedWalletAddress: "otherWallet111111111111111111111111111111",
   estimatedFees: "0.000005 SOL",
   feePayer: "payer1111111111111111111111111111111111111",
@@ -139,7 +139,7 @@ const objectInstructionBoundary = createWalletSafeSendBoundary({
 const objectInstructionResult = await runWalletSafeSendBoundary(objectInstructionBoundary, {
   amount: "1",
   asset: "USDC",
-  cluster: "devnet",
+  cluster: "mainnet-beta",
   connectedWalletAddress: "payer1111111111111111111111111111111111111",
   estimatedFees: "0.000005 SOL",
   feePayer: "payer1111111111111111111111111111111111111",
@@ -166,7 +166,7 @@ try {
   await runWalletSafeSendBoundary(objectInstructionBoundary, {
     amount: "1",
     asset: "USDC",
-    cluster: "devnet",
+    cluster: "mainnet-beta",
     connectedWalletAddress: "payer1111111111111111111111111111111111111",
     estimatedFees: "0.000005 SOL",
     feePayer: "payer1111111111111111111111111111111111111",

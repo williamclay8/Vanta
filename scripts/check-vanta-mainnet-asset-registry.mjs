@@ -16,8 +16,8 @@ const requiredMainnetMints = {
 };
 
 assert.ok(
-  shieldConfig.includes('export type VantaSolanaCluster = "devnet" | "mainnet-beta"'),
-  "Shield config must expose a cluster-aware Solana cluster type.",
+  shieldConfig.includes('export type VantaSolanaCluster = "mainnet-beta"'),
+  "Shield config must expose the mainnet-beta Solana cluster type.",
 );
 assert.ok(
   shieldConfig.includes("VITE_SOLANA_CLUSTER"),

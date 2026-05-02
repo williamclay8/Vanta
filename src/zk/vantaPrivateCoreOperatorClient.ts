@@ -441,7 +441,7 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedSwapV1DecisionNote: string;
   supportedSwapV1Role: "adjacent-supported-not-required-for-finish-line";
   supportedSwapV1RoleNote: string;
-  supportedSwapVenue: "meteora-dlmm-devnet-and-operator-token-output";
+  supportedSwapVenue: "meteora-dlmm-mainnet-and-operator-token-output";
   supportedSwapOutputModel: "allowlisted-shielded-output-note";
   supportedFlowKind: "shield-hold-send-unshield-replay-guard";
   supportedFlowNote: string;
@@ -504,7 +504,7 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedZkV1RequiredLanes: "send|unshield|release";
   supportedZkV1RequiredLanesNote: string;
   supportedAssetSymbol: "USDC";
-  supportedEnvironment: "solana-devnet";
+  supportedEnvironment: "solana-mainnet";
   supportedNoteSchema: "note-v0";
   supportedNoteVersion: number;
   supportedRootRegistrationProvenance:
@@ -526,7 +526,7 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedSendMerkleDepth: number;
   supportedReleaseAuthorizationBasis: "proof-backed-consume";
   supportedReleaseRootPolicy: "latest-registered-root";
-  supportedReleaseExecutionModel: "operator-recorded-devnet-release";
+  supportedReleaseExecutionModel: "operator-recorded-mainnet-release";
   supportedReleaseAtomicityModel: "operator-local-atomic-consume-and-release-record";
   supportedReleasePersistenceModel: "json-store-v1";
   ownerAuthorizationMode: "x25519-secret-prechecked-off-circuit";
@@ -607,7 +607,7 @@ export type VantaPrivateCoreOperatorContractStateResponse = {
   supportedSwapV1DecisionNote: string;
   supportedSwapV1Role: "adjacent-supported-not-required-for-finish-line";
   supportedSwapV1RoleNote: string;
-  supportedSwapVenue: "meteora-dlmm-devnet-and-operator-token-output";
+  supportedSwapVenue: "meteora-dlmm-mainnet-and-operator-token-output";
   supportedSwapOutputModel: "allowlisted-shielded-output-note";
   supportedFlowVersion: number;
   supportedFlowKind: "shield-hold-send-unshield-replay-guard";
@@ -670,7 +670,7 @@ export type VantaPrivateCoreOperatorContractStateResponse = {
   supportedZkV1RequiredLanes: "send|unshield|release";
   supportedZkV1RequiredLanesNote: string;
   supportedAssetSymbol: "USDC";
-  supportedEnvironment: "solana-devnet";
+  supportedEnvironment: "solana-mainnet";
   supportedNoteSchema: "note-v0";
   supportedNoteVersion: number;
   supportedRootRegistrationProvenance:
@@ -692,7 +692,7 @@ export type VantaPrivateCoreOperatorContractStateResponse = {
   supportedSendMerkleDepth: number;
   supportedReleaseAuthorizationBasis: "proof-backed-consume";
   supportedReleaseRootPolicy: "latest-registered-root";
-  supportedReleaseExecutionModel: "operator-recorded-devnet-release";
+  supportedReleaseExecutionModel: "operator-recorded-mainnet-release";
   supportedReleaseAtomicityModel: "operator-local-atomic-consume-and-release-record";
   supportedReleasePersistenceModel: "json-store-v1";
   ownerAuthorizationMode: "x25519-secret-prechecked-off-circuit";
@@ -2576,7 +2576,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     typeof parsed.supportedSwapV1DecisionNote !== "string" ||
     parsed.supportedSwapV1Role !== "adjacent-supported-not-required-for-finish-line" ||
     typeof parsed.supportedSwapV1RoleNote !== "string" ||
-    parsed.supportedSwapVenue !== "meteora-dlmm-devnet-and-operator-token-output" ||
+    parsed.supportedSwapVenue !== "meteora-dlmm-mainnet-and-operator-token-output" ||
     parsed.supportedSwapOutputModel !== "allowlisted-shielded-output-note" ||
     parsed.supportedFlowVersion !== 1 ||
     parsed.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
@@ -2646,7 +2646,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     parsed.supportedZkV1RequiredLanes !== "send|unshield|release" ||
     typeof parsed.supportedZkV1RequiredLanesNote !== "string" ||
     parsed.supportedAssetSymbol !== "USDC" ||
-    parsed.supportedEnvironment !== "solana-devnet" ||
+    parsed.supportedEnvironment !== "solana-mainnet" ||
     parsed.supportedNoteSchema !== "note-v0" ||
     parsed.supportedNoteVersion !== 0 ||
     parsed.supportedRootRegistrationProvenance !==
@@ -2671,7 +2671,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     parsed.supportedSendMerkleDepth !== 3 ||
     parsed.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     parsed.supportedReleaseRootPolicy !== "latest-registered-root" ||
-    parsed.supportedReleaseExecutionModel !== "operator-recorded-devnet-release" ||
+    parsed.supportedReleaseExecutionModel !== "operator-recorded-mainnet-release" ||
     parsed.supportedReleaseAtomicityModel !== "operator-local-atomic-consume-and-release-record" ||
     parsed.supportedReleasePersistenceModel !== "json-store-v1" ||
     parsed.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
@@ -2794,7 +2794,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedSwapV1DecisionNote: parsed.supportedSwapV1DecisionNote,
     supportedSwapV1Role: "adjacent-supported-not-required-for-finish-line",
     supportedSwapV1RoleNote: parsed.supportedSwapV1RoleNote,
-    supportedSwapVenue: "meteora-dlmm-devnet-and-operator-token-output",
+    supportedSwapVenue: "meteora-dlmm-mainnet-and-operator-token-output",
     supportedSwapOutputModel: "allowlisted-shielded-output-note",
     supportedFlowVersion: 1,
     supportedFlowKind: "shield-hold-send-unshield-replay-guard",
@@ -2857,7 +2857,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedZkV1RequiredLanes: "send|unshield|release",
     supportedZkV1RequiredLanesNote: parsed.supportedZkV1RequiredLanesNote,
     supportedAssetSymbol: "USDC",
-    supportedEnvironment: "solana-devnet",
+    supportedEnvironment: "solana-mainnet",
     supportedNoteSchema: "note-v0",
     supportedNoteVersion: 0,
     supportedRootRegistrationProvenance:
@@ -2882,7 +2882,7 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedSendMerkleDepth: 3,
     supportedReleaseAuthorizationBasis: "proof-backed-consume",
     supportedReleaseRootPolicy: "latest-registered-root",
-    supportedReleaseExecutionModel: "operator-recorded-devnet-release",
+    supportedReleaseExecutionModel: "operator-recorded-mainnet-release",
     supportedReleaseAtomicityModel: "operator-local-atomic-consume-and-release-record",
     supportedReleasePersistenceModel: "json-store-v1",
     ownerAuthorizationMode: "x25519-secret-prechecked-off-circuit",
@@ -3226,7 +3226,7 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     typeof parsed.supportedSwapV1DecisionNote !== "string" ||
     parsed.supportedSwapV1Role !== "adjacent-supported-not-required-for-finish-line" ||
     typeof parsed.supportedSwapV1RoleNote !== "string" ||
-    parsed.supportedSwapVenue !== "meteora-dlmm-devnet-and-operator-token-output" ||
+    parsed.supportedSwapVenue !== "meteora-dlmm-mainnet-and-operator-token-output" ||
     parsed.supportedSwapOutputModel !== "allowlisted-shielded-output-note" ||
     parsed.supportedFlowVersion !== 1 ||
     parsed.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
@@ -3296,7 +3296,7 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     parsed.supportedZkV1RequiredLanes !== "send|unshield|release" ||
     typeof parsed.supportedZkV1RequiredLanesNote !== "string" ||
     parsed.supportedAssetSymbol !== "USDC" ||
-    parsed.supportedEnvironment !== "solana-devnet" ||
+    parsed.supportedEnvironment !== "solana-mainnet" ||
     parsed.supportedNoteSchema !== "note-v0" ||
     parsed.supportedNoteVersion !== 0 ||
     parsed.supportedRootRegistrationProvenance !==
@@ -3321,7 +3321,7 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     parsed.supportedSendMerkleDepth !== 3 ||
     parsed.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     parsed.supportedReleaseRootPolicy !== "latest-registered-root" ||
-    parsed.supportedReleaseExecutionModel !== "operator-recorded-devnet-release" ||
+    parsed.supportedReleaseExecutionModel !== "operator-recorded-mainnet-release" ||
     parsed.supportedReleaseAtomicityModel !== "operator-local-atomic-consume-and-release-record" ||
     parsed.supportedReleasePersistenceModel !== "json-store-v1" ||
     parsed.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
@@ -3368,7 +3368,7 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedSwapV1DecisionNote: parsed.supportedSwapV1DecisionNote,
     supportedSwapV1Role: "adjacent-supported-not-required-for-finish-line",
     supportedSwapV1RoleNote: parsed.supportedSwapV1RoleNote,
-    supportedSwapVenue: "meteora-dlmm-devnet-and-operator-token-output",
+    supportedSwapVenue: "meteora-dlmm-mainnet-and-operator-token-output",
     supportedSwapOutputModel: "allowlisted-shielded-output-note",
     supportedFlowVersion: 1,
     supportedFlowKind: "shield-hold-send-unshield-replay-guard",
@@ -3431,7 +3431,7 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedZkV1RequiredLanes: "send|unshield|release",
     supportedZkV1RequiredLanesNote: parsed.supportedZkV1RequiredLanesNote,
     supportedAssetSymbol: "USDC",
-    supportedEnvironment: "solana-devnet",
+    supportedEnvironment: "solana-mainnet",
     supportedNoteSchema: "note-v0",
     supportedNoteVersion: 0,
     supportedRootRegistrationProvenance:
@@ -3456,7 +3456,7 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedSendMerkleDepth: 3,
     supportedReleaseAuthorizationBasis: "proof-backed-consume",
     supportedReleaseRootPolicy: "latest-registered-root",
-    supportedReleaseExecutionModel: "operator-recorded-devnet-release",
+    supportedReleaseExecutionModel: "operator-recorded-mainnet-release",
     supportedReleaseAtomicityModel: "operator-local-atomic-consume-and-release-record",
     supportedReleasePersistenceModel: "json-store-v1",
     ownerAuthorizationMode: "x25519-secret-prechecked-off-circuit",

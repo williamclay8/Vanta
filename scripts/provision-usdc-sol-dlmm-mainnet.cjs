@@ -10,9 +10,9 @@ const DLMM = dlmm.default || dlmm;
 const RPC_URL =
   process.env.SOLANA_RPC_URL ||
   process.env.VITE_SOLANA_RPC_URL ||
-  "https://api.devnet.solana.com";
+  "https://api.mainnet-beta.solana.com";
 const DLMM_API_BASE =
-  process.env.VANTA_METEORA_DLMM_API_BASE || "https://dlmm-api.devnet.meteora.ag";
+  process.env.VANTA_METEORA_DLMM_API_BASE || "https://dlmm-api.mainnet.meteora.ag";
 const CREATOR_KEYPAIR_PATH =
   process.env.VANTA_DLMM_CREATOR_KEYPAIR ||
   join(homedir(), ".config/solana/id.json");
@@ -110,7 +110,7 @@ async function main() {
 }
 
 async function derivePairAddress() {
-  const programId = new PublicKey(DLMM.LBCLMM_PROGRAM_IDS.devnet);
+  const programId = new PublicKey(DLMM.LBCLMM_PROGRAM_IDS.mainnet);
   const [pairAddress] = DLMM.deriveCustomizablePermissionlessLbPair(
     TOKEN_X,
     TOKEN_Y,

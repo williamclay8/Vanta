@@ -113,7 +113,7 @@ For the accepted narrow shipping definition, what remains is mostly:
 For the broader Vanta product vision, the next meaningful work is:
 
 1. stronger owner-auth semantics if off-circuit auth should no longer be accepted
-2. stronger release execution semantics beyond the current operator-recorded devnet model
+2. stronger release execution semantics beyond the current operator-recorded mainnet model
 3. broader private payment and privacy-suite workflows
 4. deciding whether swap ever graduates from support-only to minimum-finish-line scope
 

@@ -491,7 +491,7 @@ function parseSwapMemo(memo, stateSignature) {
       stateSignature,
       venueFamily: venueFamily === "DLMM" ? "DLMM" : undefined,
       venueName: venueName === "Meteora" ? "Meteora" : undefined,
-      venueNetwork: venueNetwork === "Devnet" ? "Devnet" : undefined,
+      venueNetwork: venueNetwork === "Mainnet" ? "Mainnet" : undefined,
       venuePoolAddress:
         typeof venuePoolAddress === "string" ? venuePoolAddress : undefined,
       vaultOwner,

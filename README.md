@@ -42,7 +42,7 @@ Today, Vanta is a constrained development system, not a finished network.
 Working or inspectable today:
 
 - wallet connection and public balance detection
-- shield flows for supported devnet assets
+- shield flows for supported mainnet assets
 - shielded state inside Vanta
 - constrained send, swap, and unshield paths
 - a `/app/pay` Vanta Pay Suite preview focused on payment creation, hosted/embedded/modal checkout modes, payment links, invoices, subscriptions, refunds, withdrawals, reconciliation, developer controls, route preview, receipt preview, transaction evidence, and beta state
@@ -177,7 +177,7 @@ npm run mainnet:readiness-check
 
 These commands prove the current app compiles, the user-facing surfaces render, the Pay control plane stays aligned with its trust surfaces, the private-core proof lane is demo-ready, transaction language is bounded by current implementation truth, and the repo is still honest about not being production-ready yet.
 
-`Transaction Evidence v0.1` is a reviewer-facing trace for current devnet, local, preview, and operator-harness flows. It can name transaction summaries, simulation/approval requirements, signatures or operator request ids when present, confirmation status when present, and proof/root/nullifier or settlement receipt linkage when present. It is not mainnet finality, audit approval, custody proof, live privacy proof, or production settlement.
+`Transaction Evidence v0.1` is a reviewer-facing trace for current mainnet, local, preview, and operator-harness flows. It can name transaction summaries, simulation/approval requirements, signatures or operator request ids when present, confirmation status when present, and proof/root/nullifier or settlement receipt linkage when present. It is not mainnet finality, audit approval, custody proof, live privacy proof, or production settlement.
 
 ## Private Core verification
 
@@ -352,7 +352,7 @@ These commands cover:
   - `supportedShippingDecisionKind = narrow-private-core-zk-v1-shipping`
   - `supportedOperatorSnapshotKind = contract-status-shipping-bundle`
   - `supportedSwapLaneKind = single-input-usdc-to-shielded-sol`
-  - `supportedSwapVenue = meteora-dlmm-devnet`
+  - `supportedSwapVenue = meteora-dlmm-mainnet`
 
 ## Private Pool v2 / Option B verification
 
@@ -687,7 +687,7 @@ The operator contract now freezes the narrow zk-v1 contract surface explicitly:
 - `supportedSwapLaneVersion = 1`
 - `supportedSwapLaneKind = single-input-usdc-to-shielded-sol`
 - `supportedSwapLaneStatus = supported`
-- `supportedSwapVenue = meteora-dlmm-devnet`
+- `supportedSwapVenue = meteora-dlmm-mainnet`
 - `supportedSwapOutputModel = shielded-sol-output-note`
 - `supportedSwapResultingRootBasis = client-declared`
 - `supportedSwapInputRootPolicy = latest-registered-root-with-linked-registration-proof`
@@ -696,7 +696,7 @@ The operator contract now freezes the narrow zk-v1 contract surface explicitly:
 - `supportedFlowKind = shield-hold-send-unshield-replay-guard`
 - `supportedFlowStatus = supported`
 - `supportedAssetSymbol = USDC`
-- `supportedEnvironment = solana-devnet`
+- `supportedEnvironment = solana-mainnet`
 - `supportedNoteSchema = note-v0`
 - `supportedNoteVersion = 0`
 - `supportedRootRegistrationProvenance = shield-input|send-recipient-output|send-change-output|swap-output`
@@ -712,7 +712,7 @@ The operator contract now freezes the narrow zk-v1 contract surface explicitly:
 - `supportedSendMerkleDepth = 3`
 - `supportedReleaseAuthorizationBasis = proof-backed-consume`
 - `supportedReleaseRootPolicy = latest-registered-root`
-- `supportedReleaseExecutionModel = operator-recorded-devnet-release`
+- `supportedReleaseExecutionModel = operator-recorded-mainnet-release`
 - `supportedReleaseAtomicityModel = operator-local-atomic-consume-and-release-record`
 - `supportedReleasePersistenceModel = json-store-v1`
 - `supportedReleaseV1Decision = accepted-narrow-v1-path`
@@ -739,7 +739,7 @@ The live operator summary layers dynamic verifier-side state on top of that cont
 - `supportedSendMerkleDepth = 3`
 - `supportedReleaseAuthorizationBasis = proof-backed-consume`
 - `supportedReleaseRootPolicy = latest-registered-root`
-- `supportedReleaseExecutionModel = operator-recorded-devnet-release`
+- `supportedReleaseExecutionModel = operator-recorded-mainnet-release`
 - `supportedReleaseAtomicityModel = operator-local-atomic-consume-and-release-record`
 - `supportedReleasePersistenceModel = json-store-v1`
 - `ownerAuthorizationDecision = accepted-v1-off-circuit-precheck`
@@ -759,7 +759,7 @@ This repository currently contains:
 - Send as the first workflow unlocked by shielded state
 - an app-path Vanta Private Core send-proof check inside the Send experience
 - shared app-level continuity between Shield and Send
-- a constrained real devnet protocol path for `USDC`
+- a constrained real mainnet protocol path for `USDC`
 - direct native SOL shield entry into shielded SOL state
 - authenticated operator-backed Unshield for `USDC` and `SOL`
 - a constrained one-way live `USDC -> SOL` swap lane

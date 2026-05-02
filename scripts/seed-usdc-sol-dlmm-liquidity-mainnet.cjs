@@ -11,7 +11,7 @@ const DLMM = dlmmModule.default || dlmmModule;
 const RPC_URL =
   process.env.SOLANA_RPC_URL ||
   process.env.VITE_SOLANA_RPC_URL ||
-  "https://api.devnet.solana.com";
+  "https://api.mainnet-beta.solana.com";
 const CREATOR_KEYPAIR_PATH =
   process.env.VANTA_DLMM_CREATOR_KEYPAIR ||
   join(homedir(), ".config/solana/id.json");

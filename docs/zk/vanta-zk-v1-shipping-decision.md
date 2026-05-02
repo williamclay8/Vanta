@@ -71,7 +71,7 @@ It does **not** upgrade the current assumptions into final-form protocol claims.
 The following still remain explicit limitations of the shipped narrow `v1`:
 
 - owner authorization remains off-circuit
-- release remains the accepted operator-recorded devnet release model
+- release remains the accepted operator-recorded mainnet release model
 - nullifier-key choice remains the accepted temporary `v1` choice
 - swap is not part of the minimum finish line
 - broader privacy-suite/product scope remains future work

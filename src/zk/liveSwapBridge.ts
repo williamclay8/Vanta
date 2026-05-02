@@ -56,7 +56,7 @@ export type LiveSwapCanonicalizationInput = {
   venue: {
     family: "DLMM";
     name: "Meteora";
-    network: "Devnet";
+    network: "Mainnet";
     poolAddress: string;
     quoteId: string;
     quoteTimestamp: number;
@@ -97,7 +97,7 @@ export type LiveSwapCanonicalRecord = {
     operatorRequestId?: string;
     venueFamily: "DLMM";
     venueName: "Meteora";
-    venueNetwork: "Devnet";
+    venueNetwork: "Mainnet";
     venuePoolAddress: string;
     quoteId: string;
     quoteTimestamp: number;

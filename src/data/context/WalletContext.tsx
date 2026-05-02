@@ -11,7 +11,6 @@ import { useBalance, useWalletConnection } from "@solana/react-hooks";
 import type { WalletConnector } from "@solana/client";
 import type { ActiveWalletTopology } from "@/privateVault/privateVaultTypes";
 import { endpoint, solanaClusterLabel } from "@/solana/client";
-import { vantaSolanaCluster } from "@/solana/shieldConfig";
 import {
   createFreshWalletRecord,
   exportFreshWalletRecoveryFile,
@@ -101,10 +100,7 @@ function getConfiguredWalletBalanceReadEndpoints() {
   const configured = import.meta.env.VITE_SOLANA_READ_RPC_FALLBACK_URLS?.split(",")
     .map((value) => value.trim())
     .filter(Boolean) ?? [];
-  const defaults =
-    vantaSolanaCluster === "mainnet-beta"
-      ? [MAINNET_WALLET_BALANCE_READ_ENDPOINT]
-      : ["https://api.devnet.solana.com", MAINNET_WALLET_BALANCE_READ_ENDPOINT];
+  const defaults = [MAINNET_WALLET_BALANCE_READ_ENDPOINT];
 
   return [...new Set([endpoint, ...configured, ...defaults])];
 }

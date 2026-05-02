@@ -142,11 +142,11 @@ function createOperatorEnv(tempRoot, port) {
     ...process.env,
     PATH: `${process.env.HOME}/.nargo/bin:${process.env.PATH ?? ""}`,
     VANTA_UNSHIELD_OPERATOR_PORT: String(port),
-    VANTA_DEVNET_TOKEN_MINT:
-      process.env.VANTA_DEVNET_TOKEN_MINT ??
+    VANTA_MAINNET_TOKEN_MINT:
+      process.env.VANTA_MAINNET_TOKEN_MINT ??
       "8j9mJY4hPW4N1pQ6XJk4oL9bQ4u8sF3o6T2jW7vF6dEm",
-    VANTA_DEVNET_VAULT_OWNER:
-      process.env.VANTA_DEVNET_VAULT_OWNER ??
+    VANTA_MAINNET_VAULT_OWNER:
+      process.env.VANTA_MAINNET_VAULT_OWNER ??
       "Gk7m3rV2Q5uH4pL9sW8xD1nB6cT3yF7kJ2qR5mN8pZ1",
     VANTA_PRIVATE_CORE_CONSUME_STORE_PATH: join(tempRoot, "consumes.json"),
     VANTA_PRIVATE_CORE_PROOF_STORE_PATH: join(tempRoot, "proofs.json"),
@@ -437,7 +437,7 @@ try {
     "Supported unshield lane note: Current narrow zk v1 unshield lane is supported for one note consume with proof-backed release recording.",
     "Supported release lane note: Current narrow zk v1 release lane is supported for proof-backed consume-authorized release under the latest registered root policy.",
     "Supported swap lane note: Current constrained swap lane supports one USDC input note into one allowlisted shielded output note through operator-backed execution, including Meteora-aware shielded SOL and direct shielded token output lanes.",
-    "Supported swap venue: Meteora DLMM devnet + operator token output",
+    "Supported swap venue: Meteora DLMM mainnet + operator token output",
     "Supported flow version: 1",
     "Supported flow kind: Shield / hold / send / unshield / replay guard",
     "Supported flow status: Supported",
@@ -449,7 +449,7 @@ try {
     "Supported zk v1 required lanes: send|unshield|release",
     "Supported zk v1 required lanes note: Minimum zk v1 finish line requires the narrow private-core send, unshield, and release lanes; constrained swap remains adjacent supported infrastructure.",
     "Supported asset: USDC",
-    "Supported environment: solana-devnet",
+    "Supported environment: solana-mainnet",
     "Supported proof system: Noir ACIR / UltraHonk / bb.js",
     "Supported operator status note: Canonical long-form live operator-status surface composed from the bundled snapshot plus the dedicated shipping artifact.",
     "Supported operator snapshot note: Canonical bundled machine-readable operator artifact containing the frozen contract, live status summary, and canonical shipping decision surfaces together.",

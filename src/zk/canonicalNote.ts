@@ -788,7 +788,7 @@ function concatBytes(...chunks: Uint8Array[]): Uint8Array {
 
 export function getCanonicalNoteEncodingDeterminismExample() {
   const note = createCanonicalNote({
-    assetId: "example.usdc.devnet",
+    assetId: "example.usdc.mainnet",
     amount: "250000",
     ownerPublicKey: "owner-recovery-key-example",
     noteNonce: "0x1111111111111111111111111111111111111111111111111111111111111111",
@@ -840,7 +840,7 @@ function decodeBase64(value: unknown, fieldName: string): Uint8Array {
 
 export async function getCanonicalEncryptedPayloadDeterminismExample() {
   const note = createCanonicalNote({
-    assetId: "example.usdc.devnet",
+    assetId: "example.usdc.mainnet",
     amount: "250000",
     ownerPublicKey: "owner-recovery-key-example",
     noteNonce: "0x1111111111111111111111111111111111111111111111111111111111111111",

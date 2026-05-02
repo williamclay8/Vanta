@@ -137,7 +137,7 @@ This completes the first real Vanta loop.
 ## Recommended environment
 
 Vanta MVP-Real should begin in:
-- devnet
+- mainnet
 - or another controlled test environment
 
 It should **not** begin on mainnet.
@@ -152,7 +152,7 @@ Vanta MVP-Real should support exactly **one asset** first.
 
 Preferred approach:
 - controlled test asset
-- or one simple devnet-supported asset
+- or one simple mainnet-supported asset
 
 Do not expand to multiple assets until the first loop is stable.
 

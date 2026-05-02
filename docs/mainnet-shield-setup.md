@@ -1,6 +1,6 @@
-# Devnet Shield Setup
+# Mainnet Shield Setup
 
-This repo now supports one real Shield path for one controlled devnet test token.
+This repo now supports one real Shield path for one controlled mainnet test token.
 
 The supported asset is surfaced in the app as `USDC` and is backed by:
 - one configured SPL mint
@@ -11,32 +11,32 @@ The supported asset is surfaced in the app as `USDC` and is backed by:
 Create a local `.env` file from `.env.example` and set:
 
 ```bash
-VITE_VANTA_DEVNET_TOKEN_MINT=...
-VITE_VANTA_DEVNET_VAULT_OWNER=...
+VITE_VANTA_MAINNET_TOKEN_MINT=...
+VITE_VANTA_MAINNET_VAULT_OWNER=...
 VITE_VANTA_UNSHIELD_OPERATOR_URL=http://127.0.0.1:8789/unshield
 VITE_VANTA_BONK_UNSHIELD_OPERATOR_URL=http://127.0.0.1:8789/unshield
 VITE_VANTA_SOL_UNSHIELD_OPERATOR_URL=http://127.0.0.1:8789/unshield/sol
 
-VANTA_DEVNET_TOKEN_MINT=...
-VANTA_DEVNET_VAULT_OWNER=...
-VANTA_DEVNET_VAULT_SIGNER_SECRET_KEY=[...]
+VANTA_MAINNET_TOKEN_MINT=...
+VANTA_MAINNET_VAULT_OWNER=...
+VANTA_MAINNET_VAULT_SIGNER_SECRET_KEY=[...]
 ```
 
 Optional:
 
 ```bash
-VITE_VANTA_DEVNET_TOKEN_NAME=Vanta Devnet Test Dollar
-VITE_SOLANA_RPC_URL=https://api.devnet.solana.com
-VITE_SOLANA_WS_URL=wss://api.devnet.solana.com
+VITE_VANTA_MAINNET_TOKEN_NAME=Vanta Mainnet Test Dollar
+VITE_SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
+VITE_SOLANA_WS_URL=wss://api.mainnet-beta.solana.com
 VANTA_UNSHIELD_OPERATOR_PORT=8789
 ```
 
 ## Suggested SPL CLI setup
 
-Point Solana CLI at devnet:
+Point Solana CLI at mainnet:
 
 ```bash
-solana config set --url devnet
+solana config set --url mainnet
 ```
 
 Create a controlled mint:
@@ -58,12 +58,12 @@ spl-token mint <TOKEN_MINT> 1000
 ```
 
 Choose a vault owner address for Vanta's first constrained Shield flow. This can be:
-- a dedicated devnet wallet address
-- a treasury-style devnet address used only for the first shield milestone
+- a dedicated mainnet wallet address
+- a treasury-style mainnet address used only for the first shield milestone
 
-The app's real Shield action transfers the supported token from the connected wallet to the configured vault owner on devnet.
+The app's real Shield action transfers the supported token from the connected wallet to the configured vault owner on mainnet.
 
-For the first constrained Unshield hardening milestone, the frontend no longer carries the vault signer. Instead, a tiny local operator service holds the devnet signer and performs the real return transfer back to Public Wallet.
+For the first constrained Unshield hardening milestone, the frontend no longer carries the vault signer. Instead, a tiny local operator service holds the mainnet signer and performs the real return transfer back to Public Wallet.
 
 The current operator path is now minimally authenticated:
 - the connected wallet signs an explicit Unshield intent message
@@ -81,9 +81,9 @@ npm run operator:unshield
 ```
 
 The operator expects:
-- `VANTA_DEVNET_TOKEN_MINT`
-- `VANTA_DEVNET_VAULT_OWNER`
-- `VANTA_DEVNET_VAULT_SIGNER_SECRET_KEY`
+- `VANTA_MAINNET_TOKEN_MINT`
+- `VANTA_MAINNET_VAULT_OWNER`
+- `VANTA_MAINNET_VAULT_SIGNER_SECRET_KEY`
 
 The browser expects:
 - `VITE_VANTA_UNSHIELD_OPERATOR_URL` for SPL token Unshield
@@ -96,7 +96,7 @@ The SOL endpoint can be checked without moving funds:
 npm run unshield:sol-operator-endpoint-check
 ```
 
-That self-hosted check verifies `/health/sol-unshield`, rejects malformed SOL release requests, and confirms the SOL record-state endpoint shape. Live SOL release remains a real devnet transfer and should only be attempted with the intended funded devnet vault signer.
+That self-hosted check verifies `/health/sol-unshield`, rejects malformed SOL release requests, and confirms the SOL record-state endpoint shape. Live SOL release remains a real mainnet transfer and should only be attempted with the intended funded mainnet vault signer.
 
 The downstream mainnet-production status surfaces are intentionally blocked until the live evidence gates are satisfied, but they should stay wired into readiness and preflight:
 
@@ -120,7 +120,7 @@ operator/.vanta-unshield-releases.json
 Delete that file only if you intentionally want to reset the local operator's remembered release history.
 
 The same local operator now also serves the narrow Vanta Private Core verifier lane used by the fixed-depth single-note unshield proof boundary. That means the current operator process is responsible for:
-- authenticated devnet unshield for the live `USDC` / `SOL` path
+- authenticated mainnet unshield for the live `USDC` / `SOL` path
 - private-core proof verification
 - private-core root registration
 - private-core consume / replay enforcement
@@ -255,12 +255,12 @@ These commands currently prove:
 - supported token balance detection
 - wallet-signed SPL token transfer into the configured Vanta vault owner
 - confirmed shield receipt reflected in app state
-- constrained real Unshield back to Public Wallet through a local operator-backed devnet path
+- constrained real Unshield back to Public Wallet through a local operator-backed mainnet path
 - operator-backed Vanta Private Core proof / consume / replay-rejection lane with summary-driven verifier state
 
 ## What remains intentionally narrow
 
-- shielded state is represented in-app from confirmed devnet deposit receipts
+- shielded state is represented in-app from confirmed mainnet deposit receipts
 - this is the first real Shield milestone, not the final Vanta protocol architecture
 - Private Send remains the next real protocol milestone
 - the current Vanta Private Core lane is still the first narrow single-note unshield boundary, not the full final zk protocol

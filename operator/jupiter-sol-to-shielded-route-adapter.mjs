@@ -10,12 +10,12 @@ import {
 
 const host = process.env.HOST ?? process.env.VANTA_SOL_TO_SHIELDED_ADAPTER_HOST ?? "0.0.0.0";
 const port = Number(process.env.PORT ?? process.env.VANTA_SOL_TO_SHIELDED_ADAPTER_PORT ?? "8798");
-const cluster = process.env.VANTA_SOLANA_CLUSTER === "devnet" ? "devnet" : "mainnet-beta";
-const venueNetwork = cluster === "devnet" ? "Devnet" : "Mainnet";
+const cluster = "mainnet-beta";
+const venueNetwork = "Mainnet";
 const rpcUrl =
   process.env.VANTA_SOLANA_RPC_URL ??
   process.env.VITE_SOLANA_RPC_URL ??
-  (cluster === "devnet" ? "https://api.devnet.solana.com" : "https://api.mainnet-beta.solana.com");
+  "https://api.mainnet-beta.solana.com";
 const jupiterQuoteUrl =
   process.env.VANTA_JUPITER_QUOTE_URL ?? "https://api.jup.ag/swap/v1/quote";
 const jupiterSwapUrl =

@@ -137,11 +137,11 @@ function createOperatorEnv(tempRoot, port) {
     ...process.env,
     PATH: `${process.env.HOME}/.nargo/bin:${process.env.PATH ?? ""}`,
     VANTA_UNSHIELD_OPERATOR_PORT: String(port),
-    VANTA_DEVNET_TOKEN_MINT:
-      process.env.VANTA_DEVNET_TOKEN_MINT ??
+    VANTA_MAINNET_TOKEN_MINT:
+      process.env.VANTA_MAINNET_TOKEN_MINT ??
       "8j9mJY4hPW4N1pQ6XJk4oL9bQ4u8sF3o6T2jW7vF6dEm",
-    VANTA_DEVNET_VAULT_OWNER:
-      process.env.VANTA_DEVNET_VAULT_OWNER ??
+    VANTA_MAINNET_VAULT_OWNER:
+      process.env.VANTA_MAINNET_VAULT_OWNER ??
       "Gk7m3rV2Q5uH4pL9sW8xD1nB6cT3yF7kJ2qR5mN8pZ1",
     VANTA_PRIVATE_CORE_CONSUME_STORE_PATH: join(tempRoot, "consumes.json"),
     VANTA_PRIVATE_CORE_PROOF_STORE_PATH: join(tempRoot, "proofs.json"),
@@ -303,7 +303,7 @@ try {
     preRestartSummary.parsed?.supportedSwapV1Role !==
       "adjacent-supported-not-required-for-finish-line" ||
     typeof preRestartSummary.parsed?.supportedSwapV1RoleNote !== "string" ||
-    preRestartSummary.parsed?.supportedSwapVenue !== "meteora-dlmm-devnet-and-operator-token-output" ||
+    preRestartSummary.parsed?.supportedSwapVenue !== "meteora-dlmm-mainnet-and-operator-token-output" ||
     preRestartSummary.parsed?.supportedSwapOutputModel !== "allowlisted-shielded-output-note" ||
     preRestartSummary.parsed?.supportedSwapResultingRootBasis !== "client-declared" ||
     preRestartSummary.parsed?.supportedSwapInputRootPolicy !==
@@ -320,7 +320,7 @@ try {
     preRestartSummary.parsed?.supportedZkV1RequiredLanes !== "send|unshield|release" ||
     typeof preRestartSummary.parsed?.supportedZkV1RequiredLanesNote !== "string" ||
     preRestartSummary.parsed?.supportedAssetSymbol !== "USDC" ||
-    preRestartSummary.parsed?.supportedEnvironment !== "solana-devnet" ||
+    preRestartSummary.parsed?.supportedEnvironment !== "solana-mainnet" ||
     preRestartSummary.parsed?.supportedNoteSchema !== "note-v0" ||
     preRestartSummary.parsed?.supportedNoteVersion !== 0 ||
     preRestartSummary.parsed?.supportedRootRegistrationProvenance !==
@@ -411,7 +411,7 @@ try {
     postRestartSummary.parsed?.supportedSwapV1Role !==
       "adjacent-supported-not-required-for-finish-line" ||
     typeof postRestartSummary.parsed?.supportedSwapV1RoleNote !== "string" ||
-    postRestartSummary.parsed?.supportedSwapVenue !== "meteora-dlmm-devnet-and-operator-token-output" ||
+    postRestartSummary.parsed?.supportedSwapVenue !== "meteora-dlmm-mainnet-and-operator-token-output" ||
     postRestartSummary.parsed?.supportedSwapOutputModel !== "allowlisted-shielded-output-note" ||
     postRestartSummary.parsed?.supportedSwapResultingRootBasis !== "client-declared" ||
     postRestartSummary.parsed?.supportedSwapInputRootPolicy !==
@@ -428,7 +428,7 @@ try {
     postRestartSummary.parsed?.supportedZkV1RequiredLanes !== "send|unshield|release" ||
     typeof postRestartSummary.parsed?.supportedZkV1RequiredLanesNote !== "string" ||
     postRestartSummary.parsed?.supportedAssetSymbol !== "USDC" ||
-    postRestartSummary.parsed?.supportedEnvironment !== "solana-devnet" ||
+    postRestartSummary.parsed?.supportedEnvironment !== "solana-mainnet" ||
     postRestartSummary.parsed?.supportedNoteSchema !== "note-v0" ||
     postRestartSummary.parsed?.supportedNoteVersion !== 0 ||
     postRestartSummary.parsed?.supportedRootRegistrationProvenance !==
@@ -623,7 +623,7 @@ try {
     !operatorStatusOutput.includes("Supported swap lane kind: Single input USDC to allowlisted shielded output") ||
     !operatorStatusOutput.includes("Supported swap lane status: Supported") ||
     !operatorStatusOutput.includes("Supported swap v1 decision: Accepted narrow v1 path") ||
-    !operatorStatusOutput.includes("Supported swap venue: Meteora DLMM devnet + operator token output") ||
+    !operatorStatusOutput.includes("Supported swap venue: Meteora DLMM mainnet + operator token output") ||
     !operatorStatusOutput.includes("Supported swap output model: Allowlisted shielded output note") ||
     !operatorStatusOutput.includes("Supported swap root basis: Client-declared") ||
     !operatorStatusOutput.includes(
@@ -639,7 +639,7 @@ try {
       "Supported send output registration: Resulting root must register as recipient or change output",
     ) ||
     !operatorStatusOutput.includes("Supported release v1 decision: Accepted narrow v1 path") ||
-    !operatorStatusOutput.includes("Supported release execution: Operator-recorded devnet release") ||
+    !operatorStatusOutput.includes("Supported release execution: Operator-recorded mainnet release") ||
     !operatorStatusOutput.includes(
       "Supported release atomicity: Operator-local atomic consume + release record",
     ) ||

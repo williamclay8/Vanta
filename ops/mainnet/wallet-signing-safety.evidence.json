@@ -30,7 +30,7 @@
   "liveMainnetSubmissionEnabled": true,
   "mainnetSubmissionExplicitlyBlocked": false,
   "browserVerificationMode": "local-dev-server-gsd-browser",
-  "browserVerificationCluster": "devnet-or-localnet",
+  "browserVerificationCluster": "mainnet-or-localnet",
   "browserVerifiedProtocolPages": [
     "Shield",
     "Send",

@@ -3,7 +3,7 @@ export type VantaPrivacyProtocolId =
   | "umbra-external"
   | "vanta-private-pool-v2";
 
-export type VantaPrivacyNetwork = "mainnet" | "devnet" | "localnet";
+export type VantaPrivacyNetwork = "mainnet" | "localnet";
 
 export type VantaPrivacyAsset = {
   decimals: number;

@@ -5,7 +5,7 @@ export type SolUnshieldOperatorHealth = {
   kind: "vanta-sol-unshield-operator-health";
   note: string;
   ready: boolean;
-  releaseModel: "operator-signed-devnet-sol-transfer";
+  releaseModel: "operator-signed-mainnet-sol-transfer";
   signerAddress: string | null;
   status: "ready" | "blocked";
   version: "vanta-sol-unshield-operator-health-0.1";

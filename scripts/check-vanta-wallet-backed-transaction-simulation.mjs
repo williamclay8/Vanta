@@ -5,10 +5,10 @@ import {
 } from "../src/wallet/walletBackedTransactionSimulation.mjs";
 import { createTransactionSafetySummary } from "../src/wallet/transactionSafetySummary.mjs";
 
-const simulatedDevnetSummary = createTransactionSafetySummary({
+const simulatedMainnetSummary = createTransactionSafetySummary({
   amount: "0.05",
   asset: "SOL",
-  cluster: "devnet",
+  cluster: "mainnet-beta",
   estimatedFees: "0.000005 SOL",
   feePayer: "payer1111111111111111111111111111111111111",
   instructions: ["compute-budget", "private-pool-v2-shield"],
@@ -21,10 +21,10 @@ const simulatedDevnetSummary = createTransactionSafetySummary({
 });
 
 const readyGate = createWalletBackedTransactionSimulationGate({
-  connectedWalletAddress: simulatedDevnetSummary.feePayer,
+  connectedWalletAddress: simulatedMainnetSummary.feePayer,
   humanApprovedSummary: true,
-  summary: simulatedDevnetSummary,
-  transactionFingerprint: "txfp_devnet_private_pool_v2_shield_001",
+  summary: simulatedMainnetSummary,
+  transactionFingerprint: "txfp_mainnet_private_pool_v2_shield_001",
 });
 
 assert.equal(readyGate.kind, "vanta-wallet-backed-transaction-simulation-gate");
@@ -33,14 +33,14 @@ assert.equal(readyGate.requiresWalletSignature, true);
 assert.equal(readyGate.requiresSimulationBeforeSignature, true);
 assert.equal(readyGate.transactionMutableAfterSummary, false);
 assert.equal(readyGate.privateKeyMaterialHandled, false);
-assert.equal(readyGate.cluster, "devnet");
-assert.equal(readyGate.walletAddress, simulatedDevnetSummary.feePayer);
+assert.equal(readyGate.cluster, "mainnet");
+assert.equal(readyGate.walletAddress, simulatedMainnetSummary.feePayer);
 assert.equal(validateWalletBackedTransactionSimulationGate(readyGate).accepted, true);
 
 const missingWalletGate = createWalletBackedTransactionSimulationGate({
   connectedWalletAddress: "",
   humanApprovedSummary: true,
-  summary: simulatedDevnetSummary,
+  summary: simulatedMainnetSummary,
   transactionFingerprint: "txfp_missing_wallet",
 });
 
@@ -48,7 +48,7 @@ assert.equal(missingWalletGate.canRequestWalletSignature, false);
 assert.equal(validateWalletBackedTransactionSimulationGate(missingWalletGate).reason, "wallet-not-connected");
 
 const failedSimulationSummary = createTransactionSafetySummary({
-  ...simulatedDevnetSummary,
+  ...simulatedMainnetSummary,
   simulationResult: {
     error: "insufficient funds",
     logs: [],
@@ -67,9 +67,9 @@ assert.equal(failedSimulationGate.canRequestWalletSignature, false);
 assert.equal(validateWalletBackedTransactionSimulationGate(failedSimulationGate).reason, "simulation-failed");
 
 const mutableTransactionGate = createWalletBackedTransactionSimulationGate({
-  connectedWalletAddress: simulatedDevnetSummary.feePayer,
+  connectedWalletAddress: simulatedMainnetSummary.feePayer,
   humanApprovedSummary: true,
-  summary: simulatedDevnetSummary,
+  summary: simulatedMainnetSummary,
   transactionFingerprint: "txfp_mutable_transaction",
   transactionMutableAfterSummary: true,
 });
@@ -78,7 +78,7 @@ assert.equal(mutableTransactionGate.canRequestWalletSignature, false);
 assert.equal(validateWalletBackedTransactionSimulationGate(mutableTransactionGate).reason, "transaction-mutated-after-summary");
 
 const unapprovedMainnetSummary = createTransactionSafetySummary({
-  ...simulatedDevnetSummary,
+  ...simulatedMainnetSummary,
   cluster: "mainnet-beta",
 });
 
@@ -93,9 +93,9 @@ assert.equal(unapprovedMainnetGate.canRequestWalletSignature, false);
 assert.equal(validateWalletBackedTransactionSimulationGate(unapprovedMainnetGate).reason, "mainnet-approval-required");
 
 const noHumanApprovalGate = createWalletBackedTransactionSimulationGate({
-  connectedWalletAddress: simulatedDevnetSummary.feePayer,
+  connectedWalletAddress: simulatedMainnetSummary.feePayer,
   humanApprovedSummary: false,
-  summary: simulatedDevnetSummary,
+  summary: simulatedMainnetSummary,
   transactionFingerprint: "txfp_no_human_approval",
 });
 
@@ -103,7 +103,7 @@ assert.equal(noHumanApprovalGate.canRequestWalletSignature, false);
 assert.equal(validateWalletBackedTransactionSimulationGate(noHumanApprovalGate).reason, "human-approval-required");
 
 const missingSummaryGate = createWalletBackedTransactionSimulationGate({
-  connectedWalletAddress: simulatedDevnetSummary.feePayer,
+  connectedWalletAddress: simulatedMainnetSummary.feePayer,
   humanApprovedSummary: true,
   summary: null,
   transactionFingerprint: "txfp_missing_summary",

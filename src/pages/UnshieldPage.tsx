@@ -1778,7 +1778,7 @@ export function UnshieldPage() {
       (entry) => entry.isRefreshing || entry.token.isFetching,
     )
   ) {
-    validationMessage = "Refreshing wallet and Vanta state from devnet.";
+    validationMessage = "Refreshing wallet and Vanta state from mainnet.";
   } else if (selectedLane === "SOL" && solShieldStateError) {
     validationMessage = solShieldStateError;
   } else if (selectedLane !== "SOL" && selectedShieldEntry?.error) {

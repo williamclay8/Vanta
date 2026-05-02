@@ -45,10 +45,10 @@ const shieldStateRpcEndpoint =
     };
   }).env?.VITE_SOLANA_BROWSER_RPC_URL ??
   (((import.meta as ImportMeta & { env?: { VITE_SOLANA_CLUSTER?: string } }).env?.VITE_SOLANA_CLUSTER ??
-    ((import.meta as ImportMeta & { env?: { PROD?: boolean } }).env?.PROD ? "mainnet-beta" : "devnet")) ===
+    ((import.meta as ImportMeta & { env?: { PROD?: boolean } }).env?.PROD ? "mainnet-beta" : "mainnet")) ===
   "mainnet-beta"
     ? "https://api.mainnet-beta.solana.com"
-    : "https://api.devnet.solana.com");
+    : "https://api.mainnet-beta.solana.com");
 
 type ShieldMemoEncryptionOptions = {
   viewingPublicKey?: string | null;
@@ -117,7 +117,7 @@ export type VantaSwapNote = {
   vaultOwner: string;
   venueFamily?: "Aggregator" | "DLMM";
   venueName?: string;
-  venueNetwork?: "Devnet" | "Mainnet";
+  venueNetwork?: "Mainnet";
   venuePoolAddress?: string;
 };
 
@@ -322,7 +322,7 @@ type SwapMemoPayload = {
   vaultOwner: string;
   venueFamily?: "Aggregator" | "DLMM";
   venueName?: string;
-  venueNetwork?: "Devnet" | "Mainnet";
+  venueNetwork?: "Mainnet";
   venuePoolAddress?: string;
 };
 
@@ -346,7 +346,7 @@ type SwapMemoWirePayload = {
   vn?: string;
   vo: string;
   vp?: string;
-  vw?: "Devnet" | "Mainnet";
+  vw?: "Mainnet";
 };
 
 type SolUnshieldMemoPayload = {
@@ -1688,7 +1688,7 @@ function parseSwapMemo(
       vaultOwner,
       venueFamily: venueFamily === "DLMM" ? "DLMM" : undefined,
       venueName: venueName === "Meteora" ? "Meteora" : undefined,
-      venueNetwork: venueNetwork === "Devnet" ? "Devnet" : undefined,
+      venueNetwork: venueNetwork === "Mainnet" ? "Mainnet" : undefined,
       venuePoolAddress:
         typeof venuePoolAddress === "string" ? venuePoolAddress : undefined,
     };
@@ -2556,7 +2556,7 @@ function deriveLifecycleActivities(args: {
   const swapActivities = args.swapNotes.map((note) => {
     const venueSuffix =
       note.venueName && note.venueFamily
-        ? ` via ${note.venueName} ${note.venueFamily} on devnet.`
+        ? ` via ${note.venueName} ${note.venueFamily} on mainnet.`
         : ".";
     const outputLabel =
       note.outputAsset === "SOL"

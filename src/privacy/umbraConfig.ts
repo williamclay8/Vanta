@@ -17,20 +17,16 @@ function optionalEnv(value: string | undefined) {
 function normalizeUmbraNetwork(value: string | undefined): VantaPrivacyNetwork {
   const normalized = optionalEnv(value)?.toLowerCase();
 
-  if (normalized === "mainnet" || normalized === "devnet" || normalized === "localnet") {
+  if (normalized === "mainnet" || normalized === "localnet") {
     return normalized;
   }
 
-  return "devnet";
+  return "mainnet";
 }
 
 function defaultIndexerEndpoint(network: VantaPrivacyNetwork) {
   if (network === "mainnet") {
     return "https://utxo-indexer.api.umbraprivacy.com";
-  }
-
-  if (network === "devnet") {
-    return "https://utxo-indexer.api-devnet.umbraprivacy.com";
   }
 
   return import.meta.env.DEV ? "http://127.0.0.1:8899" : "";
@@ -41,10 +37,6 @@ function defaultRelayerEndpoint(network: VantaPrivacyNetwork) {
     return "https://relayer.api.umbraprivacy.com";
   }
 
-  if (network === "devnet") {
-    return "https://relayer.api-devnet.umbraprivacy.com";
-  }
-
   return import.meta.env.DEV ? "http://127.0.0.1:8788" : "";
 }
 
@@ -52,7 +44,7 @@ const network = normalizeUmbraNetwork(import.meta.env.VITE_UMBRA_NETWORK);
 const rpcUrl =
   optionalEnv(import.meta.env.VITE_UMBRA_RPC_URL) ??
   optionalEnv(import.meta.env.VITE_SOLANA_RPC_URL) ??
-  "https://api.devnet.solana.com";
+  "https://api.mainnet-beta.solana.com";
 
 export const umbraRuntimeConfig: UmbraRuntimeConfig = {
   enabled: optionalEnv(import.meta.env.VITE_VANTA_ENABLE_UMBRA) === "true",

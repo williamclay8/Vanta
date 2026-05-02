@@ -77,13 +77,13 @@ export function useRealtimeSignatureProgress(
   const detailLabel = useMemo(() => {
     switch (stage) {
       case "submitted":
-        return "Submitted to devnet and waiting for landing.";
+        return "Submitted to mainnet and waiting for landing.";
       case "landed":
-        return "Landed on devnet. Awaiting confirmed status.";
+        return "Landed on mainnet. Awaiting confirmed status.";
       case "confirmed":
         return "Confirmed through the websocket-backed signature watcher.";
       case "finalized":
-        return "Finalized on devnet.";
+        return "Finalized on mainnet.";
       case "failed":
         return "The submitted signature did not confirm cleanly.";
       case "idle":

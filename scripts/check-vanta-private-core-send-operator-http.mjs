@@ -159,11 +159,11 @@ function startServer() {
       ...process.env,
       PATH: `${process.env.HOME}/.nargo/bin:${process.env.PATH ?? ""}`,
       VANTA_UNSHIELD_OPERATOR_PORT: String(port),
-      VANTA_DEVNET_TOKEN_MINT:
-        process.env.VANTA_DEVNET_TOKEN_MINT ??
+      VANTA_MAINNET_TOKEN_MINT:
+        process.env.VANTA_MAINNET_TOKEN_MINT ??
         "8j9mJY4hPW4N1pQ6XJk4oL9bQ4u8sF3o6T2jW7vF6dEm",
-      VANTA_DEVNET_VAULT_OWNER:
-        process.env.VANTA_DEVNET_VAULT_OWNER ??
+      VANTA_MAINNET_VAULT_OWNER:
+        process.env.VANTA_MAINNET_VAULT_OWNER ??
         "Gk7m3rV2Q5uH4pL9sW8xD1nB6cT3yF7kJ2qR5mN8pZ1",
       VANTA_PRIVATE_CORE_CONSUME_STORE_PATH: join(tempRoot, "consumes.json"),
       VANTA_PRIVATE_CORE_PROOF_STORE_PATH: join(tempRoot, "proofs.json"),
@@ -296,7 +296,7 @@ try {
     summaryState.parsed?.supportedSwapV1Role !==
       "adjacent-supported-not-required-for-finish-line" ||
     typeof summaryState.parsed?.supportedSwapV1RoleNote !== "string" ||
-    summaryState.parsed?.supportedSwapVenue !== "meteora-dlmm-devnet-and-operator-token-output" ||
+    summaryState.parsed?.supportedSwapVenue !== "meteora-dlmm-mainnet-and-operator-token-output" ||
     summaryState.parsed?.supportedSwapOutputModel !== "allowlisted-shielded-output-note" ||
     summaryState.parsed?.supportedFlowVersion !== 1 ||
     summaryState.parsed?.supportedFlowKind !== "shield-hold-send-unshield-replay-guard" ||
@@ -308,7 +308,7 @@ try {
     summaryState.parsed?.supportedZkV1RequiredLanes !== "send|unshield|release" ||
     typeof summaryState.parsed?.supportedZkV1RequiredLanesNote !== "string" ||
     summaryState.parsed?.supportedAssetSymbol !== "USDC" ||
-    summaryState.parsed?.supportedEnvironment !== "solana-devnet" ||
+    summaryState.parsed?.supportedEnvironment !== "solana-mainnet" ||
     summaryState.parsed?.supportedNoteSchema !== "note-v0" ||
     summaryState.parsed?.supportedNoteVersion !== 0 ||
     summaryState.parsed?.supportedRootRegistrationProvenance !==

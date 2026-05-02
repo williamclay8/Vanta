@@ -67,11 +67,11 @@ const server = spawn("node", ["operator/unshield-server.mjs"], {
     ...process.env,
     PATH: `${process.env.HOME}/.nargo/bin:${process.env.PATH ?? ""}`,
     VANTA_UNSHIELD_OPERATOR_PORT: String(port),
-    VANTA_DEVNET_TOKEN_MINT:
-      process.env.VANTA_DEVNET_TOKEN_MINT ??
+    VANTA_MAINNET_TOKEN_MINT:
+      process.env.VANTA_MAINNET_TOKEN_MINT ??
       "8j9mJY4hPW4N1pQ6XJk4oL9bQ4u8sF3o6T2jW7vF6dEm",
-    VANTA_DEVNET_VAULT_OWNER:
-      process.env.VANTA_DEVNET_VAULT_OWNER ??
+    VANTA_MAINNET_VAULT_OWNER:
+      process.env.VANTA_MAINNET_VAULT_OWNER ??
       "Gk7m3rV2Q5uH4pL9sW8xD1nB6cT3yF7kJ2qR5mN8pZ1",
     VANTA_PRIVATE_CORE_CONSUME_STORE_PATH: join(tempRoot, "consumes.json"),
     VANTA_PRIVATE_CORE_PROOF_STORE_PATH: join(tempRoot, "proofs.json"),
@@ -125,7 +125,7 @@ try {
     contractState.parsed?.supportedSwapV1Role !==
       "adjacent-supported-not-required-for-finish-line" ||
     typeof contractState.parsed?.supportedSwapV1RoleNote !== "string" ||
-    contractState.parsed?.supportedSwapVenue !== "meteora-dlmm-devnet-and-operator-token-output" ||
+    contractState.parsed?.supportedSwapVenue !== "meteora-dlmm-mainnet-and-operator-token-output" ||
     contractState.parsed?.supportedSwapOutputModel !== "allowlisted-shielded-output-note" ||
     contractState.parsed?.supportedSwapResultingRootBasis !== "client-declared" ||
     contractState.parsed?.supportedSwapInputRootPolicy !==
@@ -192,7 +192,7 @@ try {
     contractState.parsed?.supportedZkV1RequiredLanes !== "send|unshield|release" ||
     typeof contractState.parsed?.supportedZkV1RequiredLanesNote !== "string" ||
     contractState.parsed?.supportedAssetSymbol !== "USDC" ||
-    contractState.parsed?.supportedEnvironment !== "solana-devnet" ||
+    contractState.parsed?.supportedEnvironment !== "solana-mainnet" ||
     contractState.parsed?.supportedNoteSchema !== "note-v0" ||
     contractState.parsed?.supportedNoteVersion !== 0 ||
     contractState.parsed?.supportedRootRegistrationProvenance !==
@@ -215,7 +215,7 @@ try {
     contractState.parsed?.supportedReleaseV1Decision !== "accepted-narrow-v1-path" ||
     typeof contractState.parsed?.supportedReleaseV1DecisionNote !== "string" ||
     contractState.parsed?.supportedReleaseRootPolicy !== "latest-registered-root" ||
-    contractState.parsed?.supportedReleaseExecutionModel !== "operator-recorded-devnet-release" ||
+    contractState.parsed?.supportedReleaseExecutionModel !== "operator-recorded-mainnet-release" ||
     contractState.parsed?.supportedReleaseAtomicityModel !==
       "operator-local-atomic-consume-and-release-record" ||
     contractState.parsed?.supportedReleasePersistenceModel !== "json-store-v1" ||

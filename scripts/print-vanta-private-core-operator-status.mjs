@@ -1313,8 +1313,8 @@ function humanizeSupportedSwapLaneStatus(value) {
 
 function humanizeSupportedSwapVenue(value) {
   switch (value) {
-    case "meteora-dlmm-devnet-and-operator-token-output":
-      return "Meteora DLMM devnet + operator token output";
+    case "meteora-dlmm-mainnet-and-operator-token-output":
+      return "Meteora DLMM mainnet + operator token output";
     default:
       return "Unavailable";
   }
@@ -1421,8 +1421,8 @@ function humanizeReleaseRootPolicy(value) {
 
 function humanizeReleaseExecutionModel(value) {
   switch (value) {
-    case "operator-recorded-devnet-release":
-      return "Operator-recorded devnet release";
+    case "operator-recorded-mainnet-release":
+      return "Operator-recorded mainnet release";
     default:
       return "Unavailable";
   }

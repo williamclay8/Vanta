@@ -75,13 +75,13 @@ export function getVantaLocalCapabilityProfile(): VantaPrivacyCapabilityProfile 
       hiddenChangeOutputs: true,
     }),
     infrastructure: ["wallet", "rpc", "operator"],
-    network: "devnet",
+    network: "mainnet",
     protocolId: "vanta-local-private-core",
     routes: [vantaShieldRoute, vantaConstrainedSwapRoute, vantaUnshieldRoute],
     summary:
       "Current Vanta lane: minimal UX over local private-core/operator state, broad public routing into configured shield-token lanes, and constrained proof-backed send/swap/unshield flows.",
     trustBoundary:
-      "Vanta app, configured devnet vaults, local operator, current proof lanes, and browser-local shielded state reconstruction.",
+      "Vanta app, configured mainnet vaults, local operator, current proof lanes, and browser-local shielded state reconstruction.",
   };
 }
 

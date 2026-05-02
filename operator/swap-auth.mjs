@@ -56,7 +56,7 @@ export function parseSignedSwapIntent(body) {
     typeof transitionStateSignature !== "string" ||
     venueFamily !== "DLMM" ||
     venueName !== "Meteora" ||
-    venueNetwork !== "Devnet" ||
+    venueNetwork !== "Mainnet" ||
     typeof venuePoolAddress !== "string" ||
     typeof vaultOwner !== "string" ||
     version !== VANTA_SWAP_INTENT_VERSION ||

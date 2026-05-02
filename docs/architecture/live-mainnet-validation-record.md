@@ -1,4 +1,4 @@
-# Live Devnet Validation Record
+# Live Mainnet Validation Record
 
 Run outcome: `full pass`
 
@@ -6,7 +6,7 @@ Run outcome: `full pass`
 
 `Public Wallet -> Shield USDC -> Shielded USDC -> Swap USDC -> shielded SOL -> Unshield USDC -> Public Wallet -> Unshield SOL -> Public Wallet`
 
-This proof is for Vanta's constrained devnet lifecycle only.
+This proof is for Vanta's constrained mainnet lifecycle only.
 
 ## Transaction signatures
 
@@ -58,11 +58,11 @@ The main blocker was state incoherence across on-chain transitions, operator-loc
 
 ## Final truthful product status
 
-Vanta's constrained devnet lifecycle is now proven live for:
+Vanta's constrained mainnet lifecycle is now proven live for:
 - `Shield`
 - `Send`
 - `Swap USDC -> shielded SOL`
 - `Unshield USDC`
 - `Unshield SOL`
 
-The product remains intentionally narrow, devnet-only, and not yet the final zk privacy system.
+The product remains intentionally narrow, mainnet-only, and not yet the final zk privacy system.

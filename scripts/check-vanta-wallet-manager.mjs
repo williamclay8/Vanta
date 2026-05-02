@@ -30,6 +30,6 @@ const ids = new Set(registry.wallets.map((wallet) => wallet.id));
 assert.ok(ids.has("mainnet-spend-program-deployer"));
 assert.ok(ids.has("mainnet-spend-program-id"));
 assert.ok(ids.has("mainnet-relayer-fee-payer"));
-assert.ok(ids.has("devnet-cli-wallet"));
+assert.ok(ids.has("mainnet-cli-wallet"));
 
 console.log("Vanta wallet manager contract check: PASS");

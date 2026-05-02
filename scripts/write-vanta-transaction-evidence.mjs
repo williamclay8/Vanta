@@ -59,7 +59,7 @@ function resolveSolanaRpcUrl() {
     readFlagValue("--solana-rpc-url") ??
     process.env.SOLANA_RPC_URL ??
     process.env.VITE_SOLANA_RPC_URL ??
-    "https://api.devnet.solana.com";
+    "https://api.mainnet-beta.solana.com";
 
   return value.trim();
 }
@@ -321,7 +321,7 @@ console.log(
           ? "SOLANA_RPC_URL"
           : solanaRpcUrl === process.env.VITE_SOLANA_RPC_URL
             ? "VITE_SOLANA_RPC_URL"
-            : "https://api.devnet.solana.com",
+            : "https://api.mainnet-beta.solana.com",
       transitionSignatureCaptured: Boolean(unshieldTransitionSignature),
       version: "vanta-transaction-evidence-writer-0.1",
       wroteEvidence: writeMode,

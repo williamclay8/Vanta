@@ -15,10 +15,10 @@ import {
   mintTo,
 } from "@solana/spl-token";
 
-const rpcUrl = process.env.SOLANA_RPC_URL ?? clusterApiUrl("devnet");
+const rpcUrl = process.env.SOLANA_RPC_URL ?? clusterApiUrl("mainnet-beta");
 const connection = new Connection(rpcUrl, "confirmed");
 const wallet = loadKeypair(join(homedir(), ".config/solana/id.json"));
-const vault = loadKeypair(join(homedir(), ".config/solana/vanta-devnet-vault.json"));
+const vault = loadKeypair(join(homedir(), ".config/solana/vanta-mainnet-vault.json"));
 const decimals = 6;
 const initialSupplyUi = Number(process.env.VANTA_USDC_INITIAL_SUPPLY ?? "1000");
 
@@ -30,11 +30,11 @@ const walletSol = await connection.getBalance(wallet.publicKey, "confirmed");
 const vaultSol = await connection.getBalance(vault.publicKey, "confirmed");
 
 if (walletSol <= 0) {
-  throw new Error("Active wallet has no devnet SOL.");
+  throw new Error("Active wallet has no mainnet SOL.");
 }
 
 if (vaultSol <= 0) {
-  throw new Error("Vault signer has no devnet SOL.");
+  throw new Error("Vault signer has no mainnet SOL.");
 }
 
 const mint = await createMint(

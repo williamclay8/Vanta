@@ -11,7 +11,7 @@ import { dirname, resolve } from "node:path";
 const VERSION = "vanta-wallet-manager-0.1";
 const DEFAULT_REGISTRY_PATH = `${homedir()}/.config/vanta/wallet-manager.json`;
 const MAINNET_RPC_URL = process.env.SOLANA_MAINNET_RPC_URL || "https://api.mainnet-beta.solana.com";
-const DEVNET_RPC_URL = process.env.SOLANA_DEVNET_RPC_URL || "https://api.devnet.solana.com";
+const MAINNET_RPC_URL = process.env.SOLANA_MAINNET_RPC_URL || "https://api.mainnet-beta.solana.com";
 
 const KNOWN_WALLETS = [
   {
@@ -42,13 +42,13 @@ const KNOWN_WALLETS = [
     notes: "Production relayer fee payer. Keep separate from deploy authority unless explicitly approved.",
   },
   {
-    id: "devnet-cli-wallet",
-    cluster: "devnet",
-    role: "developer-devnet-cli",
+    id: "mainnet-cli-wallet",
+    cluster: "mainnet-beta",
+    role: "developer-mainnet-cli",
     publicKey: "Bg3SzSnz7tr8SF6DDtxMFoRStxPiQxptf3zvRJ7TkF6H",
     keypairPath: `${homedir()}/.config/solana/id.json`,
-    fundingPolicy: "devnet-only",
-    notes: "Default CLI devnet wallet. Do not use for mainnet production operations.",
+    fundingPolicy: "mainnet-only",
+    notes: "Default CLI mainnet wallet. Do not use for mainnet production operations.",
   },
 ];
 
@@ -148,7 +148,7 @@ async function attachBalances(registry) {
   checkRegistry(registry);
   const connections = {
     "mainnet-beta": new Connection(MAINNET_RPC_URL, "confirmed"),
-    devnet: new Connection(DEVNET_RPC_URL, "confirmed"),
+    mainnet: new Connection(MAINNET_RPC_URL, "confirmed"),
   };
 
   const wallets = [];

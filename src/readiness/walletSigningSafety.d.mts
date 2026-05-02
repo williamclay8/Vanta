@@ -1,6 +1,6 @@
 export type VantaWalletSigningSafetyPolicy = {
   blockedActions: string[];
-  defaultCluster: "devnet-or-localnet";
+  defaultCluster: "mainnet-or-localnet";
   liveMainnetSubmissionEnabled: true;
   mainnetReady: false;
   neverStorePrivateKeys: boolean;

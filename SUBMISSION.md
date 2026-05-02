@@ -26,7 +26,7 @@ The current demo has three parts:
 
 The Pay demo focuses on a simple merchant question: can I create and review a payment request, see the records around it, and understand what is still a preview? Deeper merchant API and settlement contracts remain verifiable behind the tab.
 
-Vanta is intentionally honest about its status: it has real devnet and local verification lanes, but it is not production-ready, audited, or mainnet-ready yet.
+Vanta is intentionally honest about its status: it has real mainnet and local verification lanes, but it is not production-ready, audited, or mainnet-ready yet.
 
 ## Full description
 
@@ -127,7 +127,7 @@ For demo day, the product is bigger than that MVP wedge:
 
 ## Current implementation status
 
-Vanta currently supports a constrained real devnet lifecycle for `USDC` plus a direct native SOL shield-entry lane.
+Vanta currently supports a constrained real mainnet lifecycle for `USDC` plus a direct native SOL shield-entry lane.
 
 ### Live now
 - real wallet connection
@@ -139,7 +139,7 @@ Vanta currently supports a constrained real devnet lifecycle for `USDC` plus a d
 - real onchain shield notes
 - real onchain native SOL shield-state notes
 - real onchain send notes
-- real constrained `USDC -> SOL` Meteora devnet swap
+- real constrained `USDC -> SOL` Meteora mainnet swap
 - real shielded `SOL` output notes
 - operator-backed constrained unshield back to Public Wallet
 - operator-backed constrained shielded `SOL` unshield back to Public Wallet
@@ -545,7 +545,7 @@ The current frozen operator-backed private-core contract now states the narrow a
 - `supportedReleaseV1Decision = accepted-narrow-v1-path`
 - `supportedSwapV1Decision = accepted-narrow-v1-path`
 - `supportedSwapLaneKind = single-input-usdc-to-shielded-sol`
-- `supportedSwapVenue = meteora-dlmm-devnet`
+- `supportedSwapVenue = meteora-dlmm-mainnet`
 
 These commands do not make the protocol finished, but they do make the current first zk boundary concrete and repeatable.
 
@@ -600,11 +600,11 @@ The project is intentionally product-led:
 
 ## Demo script - 30 seconds
 
-Vanta is a privacy layer for Solana that makes private value movement feel like a product instead of a cryptography demo. Today, the app already supports a constrained devnet shielded-state loop for `USDC` and native SOL, and the real `/app/pay` surface now opens on a Vanta Pay Suite preview with payment creation, checkout modes, payment links, invoices, subscriptions, refunds, withdrawals, reconciliation, developer controls, route preview, receipt preview, transaction evidence, and beta disabled state. Underneath that, the repo includes a real Private Core proof lane, so the zk boundary is executable, not hypothetical.
+Vanta is a privacy layer for Solana that makes private value movement feel like a product instead of a cryptography demo. Today, the app already supports a constrained mainnet shielded-state loop for `USDC` and native SOL, and the real `/app/pay` surface now opens on a Vanta Pay Suite preview with payment creation, checkout modes, payment links, invoices, subscriptions, refunds, withdrawals, reconciliation, developer controls, route preview, receipt preview, transaction evidence, and beta disabled state. Underneath that, the repo includes a real Private Core proof lane, so the zk boundary is executable, not hypothetical.
 
 ## Demo script - 60 seconds
 
-Solana is fast and accessible, but it is transparent by default. Vanta is our answer: a privacy layer that starts with shielding, because shielded state is the cleanest entrypoint for useful private workflows. Today, Vanta already supports a constrained real devnet lifecycle for `USDC` and direct native SOL shield entry: users can connect a wallet, shield into Vanta, evolve note-based state through Send and a constrained `USDC -> SOL` swap lane, and unshield through authenticated operator-backed flows that verify the referenced transition before release and persist release records across restarts. The wallet picker also includes a contextual Peer top-up recovery path for disconnected or unfunded users.
+Solana is fast and accessible, but it is transparent by default. Vanta is our answer: a privacy layer that starts with shielding, because shielded state is the cleanest entrypoint for useful private workflows. Today, Vanta already supports a constrained real mainnet lifecycle for `USDC` and direct native SOL shield entry: users can connect a wallet, shield into Vanta, evolve note-based state through Send and a constrained `USDC -> SOL` swap lane, and unshield through authenticated operator-backed flows that verify the referenced transition before release and persist release records across restarts. The wallet picker also includes a contextual Peer top-up recovery path for disconnected or unfunded users.
 
 The demo wedge goes further than the wallet flow. The real `/app/pay` surface is now a Vanta Pay Suite preview: payment creation, checkout modes, payment links, invoices, subscriptions, refunds, withdrawals, reconciliation, developer controls, route preview, receipt preview, transaction evidence, and beta disabled state. That keeps the private-settlement story legible while showing the embedded merchant surface Vanta is growing toward.
 
@@ -616,7 +616,7 @@ Underneath the product, the repo also includes a standalone Vanta Private Core p
 
 ### Does Vanta actually work today?
 
-Yes, in a constrained devnet form. Users can connect a wallet, shield `USDC` into Vanta's note-based state, shield native SOL directly into shielded SOL state, execute constrained Send transitions, swap through a constrained one-way `USDC -> SOL` lane, and unshield both `USDC` and shielded `SOL` back to Public Wallet through authenticated operator-backed flows with onchain transition verification. The app also includes a merchant-demo Pay surface and a contextual Peer top-up recovery path in the wallet picker. The implementation is still early and does not yet provide final zk privacy semantics.
+Yes, in a constrained mainnet form. Users can connect a wallet, shield `USDC` into Vanta's note-based state, shield native SOL directly into shielded SOL state, execute constrained Send transitions, swap through a constrained one-way `USDC -> SOL` lane, and unshield both `USDC` and shielded `SOL` back to Public Wallet through authenticated operator-backed flows with onchain transition verification. The app also includes a merchant-demo Pay surface and a contextual Peer top-up recovery path in the wallet picker. The implementation is still early and does not yet provide final zk privacy semantics.
 
 Separately, the repo also contains a real standalone private-core proof lane for the first single-note unshield consume boundary.
 
@@ -701,7 +701,7 @@ The same operator contract now also versions the supported narrow unshield lane:
 - `supportedSwapLaneVersion = 1`
 - `supportedSwapLaneKind = single-input-usdc-to-shielded-sol`
 - `supportedSwapLaneStatus = supported`
-- `supportedSwapVenue = meteora-dlmm-devnet`
+- `supportedSwapVenue = meteora-dlmm-mainnet`
 - `supportedSwapOutputModel = shielded-sol-output-note`
 - `supportedSwapResultingRootBasis = client-declared`
 - `supportedSwapInputRootPolicy = latest-registered-root-with-linked-registration-proof`
@@ -710,7 +710,7 @@ The same operator contract now also versions the supported narrow unshield lane:
 - `supportedFlowKind = shield-hold-send-unshield-replay-guard`
 - `supportedFlowStatus = supported`
 - `supportedAssetSymbol = USDC`
-- `supportedEnvironment = solana-devnet`
+- `supportedEnvironment = solana-mainnet`
 - `supportedNoteSchema = note-v0`
 - `supportedNoteVersion = 0`
 - `supportedRootRegistrationProvenance = shield-input|send-recipient-output|send-change-output|swap-output`
@@ -724,7 +724,7 @@ The same operator contract now also versions the supported narrow unshield lane:
 - `supportedSendMerkleDepth = 3`
 - `supportedReleaseAuthorizationBasis = proof-backed-consume`
 - `supportedReleaseRootPolicy = latest-registered-root`
-- `supportedReleaseExecutionModel = operator-recorded-devnet-release`
+- `supportedReleaseExecutionModel = operator-recorded-mainnet-release`
 - `supportedReleaseAtomicityModel = operator-local-atomic-consume-and-release-record`
 - `supportedReleasePersistenceModel = json-store-v1`
 - `supportedOwnerAuthorizationMode = off-circuit-prechecked-v0-1`
@@ -762,7 +762,7 @@ Because send alone lacks a clean product foundation. Shield + Private Send forms
 
 ### What is live now versus roadmap?
 
-The current implementation supports a constrained real devnet lifecycle for `USDC` with real wallet connection, real deposit-backed Shield, note-based state evolution through Send, a constrained one-way `USDC -> SOL` swap lane, direct native SOL shield entry into shielded SOL state, constrained operator-backed `USDC` and `SOL` unshield, Strategy planning/runtime surfaces, a wallet-picker Peer recovery path, and a real Pay merchant harness with trust-status surfaces, approval-packet checks, signed webhooks, browser checks, Postgres-backed staging persistence, and a Render staging connection to the Private Pool v2 operator. What is still roadmap is the broader version of all of that: final zk/privacy semantics, generalized assets, production merchant settlement, and mainnet-ready private infrastructure.
+The current implementation supports a constrained real mainnet lifecycle for `USDC` with real wallet connection, real deposit-backed Shield, note-based state evolution through Send, a constrained one-way `USDC -> SOL` swap lane, direct native SOL shield entry into shielded SOL state, constrained operator-backed `USDC` and `SOL` unshield, Strategy planning/runtime surfaces, a wallet-picker Peer recovery path, and a real Pay merchant harness with trust-status surfaces, approval-packet checks, signed webhooks, browser checks, Postgres-backed staging persistence, and a Render staging connection to the Private Pool v2 operator. What is still roadmap is the broader version of all of that: final zk/privacy semantics, generalized assets, production merchant settlement, and mainnet-ready private infrastructure.
 
 The repo also includes the first Vanta Private Core proof lane with local proof generation, operator-backed verification, and replay rejection, but broader zk product completion remains future work.
 

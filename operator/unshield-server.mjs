@@ -88,7 +88,7 @@ const MAX_JSON_BODY_BYTES = parsePositiveIntegerEnv(
 const endpoint =
   process.env.SOLANA_RPC_URL ??
   process.env.VITE_SOLANA_RPC_URL ??
-  "https://api.devnet.solana.com";
+  "https://api.mainnet-beta.solana.com";
 const websocketEndpoint =
   process.env.SOLANA_WS_URL ??
   process.env.VITE_SOLANA_WS_URL ??
@@ -97,7 +97,7 @@ const configuredCluster =
   process.env.VANTA_SOLANA_CLUSTER ??
   process.env.SOLANA_CLUSTER ??
   process.env.VITE_SOLANA_CLUSTER ??
-  (process.env.NODE_ENV === "production" ? "mainnet-beta" : "devnet");
+  (process.env.NODE_ENV === "production" ? "mainnet-beta" : "mainnet");
 const isMainnetCluster = configuredCluster === "mainnet-beta";
 const MAINNET_RECOGNIZED_MINTS = {
   BONK: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
@@ -130,7 +130,7 @@ const vaultSignerSecretKeyEnvName = clusterEnvName("VAULT_SIGNER_SECRET_KEY");
 
 if (!mintAddress || !vaultOwner) {
   throw new Error(
-    `Unshield operator requires ${isMainnetCluster ? "VANTA_MAINNET" : "VANTA_DEVNET"}_TOKEN_MINT and ${isMainnetCluster ? "VANTA_MAINNET" : "VANTA_DEVNET"}_VAULT_OWNER.`,
+    `Unshield operator requires ${isMainnetCluster ? "VANTA_MAINNET" : "VANTA_MAINNET"}_TOKEN_MINT and ${isMainnetCluster ? "VANTA_MAINNET" : "VANTA_MAINNET"}_VAULT_OWNER.`,
   );
 }
 
@@ -205,7 +205,7 @@ const PRIVATE_CORE_SUPPORTED_SEND_LANE_NOTE =
   "Current narrow zk v1 send lane is supported for one input note, one recipient output, and optional change.";
 const PRIVATE_CORE_SUPPORTED_SEND_V1_DECISION = "accepted-narrow-v1-path";
 const PRIVATE_CORE_SUPPORTED_SEND_V1_DECISION_NOTE =
-  "Current operator-backed private send lane is accepted as the narrow zk v1 send path for USDC on solana-devnet.";
+  "Current operator-backed private send lane is accepted as the narrow zk v1 send path for USDC on solana-mainnet.";
 const PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_VERSION = 1;
 const PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_KIND = "single-note-proof-backed-consume";
 const PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_STATUS = "supported";
@@ -213,7 +213,7 @@ const PRIVATE_CORE_SUPPORTED_UNSHIELD_LANE_NOTE =
   "Current narrow zk v1 unshield lane is supported for one note consume with proof-backed release recording.";
 const PRIVATE_CORE_SUPPORTED_UNSHIELD_V1_DECISION = "accepted-narrow-v1-path";
 const PRIVATE_CORE_SUPPORTED_UNSHIELD_V1_DECISION_NOTE =
-  "Current operator-backed proof-backed unshield lane is accepted as the narrow zk v1 unshield path for USDC on solana-devnet.";
+  "Current operator-backed proof-backed unshield lane is accepted as the narrow zk v1 unshield path for USDC on solana-mainnet.";
 const PRIVATE_CORE_SUPPORTED_RELEASE_LANE_VERSION = 1;
 const PRIVATE_CORE_SUPPORTED_RELEASE_LANE_KIND = "proof-backed-consume-latest-registered-root";
 const PRIVATE_CORE_SUPPORTED_RELEASE_LANE_STATUS = "supported";
@@ -221,7 +221,7 @@ const PRIVATE_CORE_SUPPORTED_RELEASE_LANE_NOTE =
   "Current narrow zk v1 release lane is supported for proof-backed consume-authorized release under the latest registered root policy.";
 const PRIVATE_CORE_SUPPORTED_RELEASE_V1_DECISION = "accepted-narrow-v1-path";
 const PRIVATE_CORE_SUPPORTED_RELEASE_V1_DECISION_NOTE =
-  "Current operator-backed proof-backed release lane is accepted as the narrow zk v1 release path for USDC on solana-devnet.";
+  "Current operator-backed proof-backed release lane is accepted as the narrow zk v1 release path for USDC on solana-mainnet.";
 const PRIVATE_CORE_SUPPORTED_SWAP_LANE_VERSION = 1;
 const PRIVATE_CORE_SUPPORTED_SWAP_LANE_KIND =
   "single-input-usdc-to-allowlisted-shielded-output";
@@ -230,13 +230,13 @@ const PRIVATE_CORE_SUPPORTED_SWAP_LANE_NOTE =
   "Current constrained swap lane supports one USDC input note into one allowlisted shielded output note through operator-backed execution, including Meteora-aware shielded SOL and direct shielded token output lanes.";
 const PRIVATE_CORE_SUPPORTED_SWAP_V1_DECISION = "accepted-narrow-v1-path";
 const PRIVATE_CORE_SUPPORTED_SWAP_V1_DECISION_NOTE =
-  "Current constrained operator-backed USDC swap lane is accepted as the narrow zk v1 swap path on solana-devnet for shielded SOL and allowlisted shielded token outputs.";
+  "Current constrained operator-backed USDC swap lane is accepted as the narrow zk v1 swap path on solana-mainnet for shielded SOL and allowlisted shielded token outputs.";
 const PRIVATE_CORE_SUPPORTED_SWAP_V1_ROLE =
   "adjacent-supported-not-required-for-finish-line";
 const PRIVATE_CORE_SUPPORTED_SWAP_V1_ROLE_NOTE =
   "Current constrained swap lane is supported operator-backed infrastructure in the repo, but it is not required for the minimum zk v1 finish line.";
 const PRIVATE_CORE_SUPPORTED_SWAP_VENUE =
-  "meteora-dlmm-devnet-and-operator-token-output";
+  "meteora-dlmm-mainnet-and-operator-token-output";
 const PRIVATE_CORE_SUPPORTED_SWAP_OUTPUT_MODEL = "allowlisted-shielded-output-note";
 const PRIVATE_CORE_SUPPORTED_SWAP_RESULTING_ROOT_BASIS = "client-declared";
 const PRIVATE_CORE_SUPPORTED_SWAP_INPUT_ROOT_POLICY =
@@ -332,7 +332,7 @@ const PRIVATE_CORE_SUPPORTED_ZK_V1_REQUIRED_LANES = "send|unshield|release";
 const PRIVATE_CORE_SUPPORTED_ZK_V1_REQUIRED_LANES_NOTE =
   "Minimum zk v1 finish line requires the narrow private-core send, unshield, and release lanes; constrained swap remains adjacent supported infrastructure.";
 const PRIVATE_CORE_SUPPORTED_ASSET_SYMBOL = "USDC";
-const PRIVATE_CORE_SUPPORTED_ENVIRONMENT = "solana-devnet";
+const PRIVATE_CORE_SUPPORTED_ENVIRONMENT = "solana-mainnet";
 const PRIVATE_CORE_SUPPORTED_RECIPIENT_MODEL = "hashed-reference-to-owner-key";
 const PRIVATE_CORE_SUPPORTED_RELEASE_DESTINATION_MODEL = "32-byte-release-destination-field";
 const PRIVATE_CORE_SUPPORTED_NOTE_SCHEMA = "note-v0";
@@ -359,7 +359,7 @@ const PRIVATE_CORE_SUPPORTED_UNSHIELD_MERKLE_DEPTH = 3;
 const PRIVATE_CORE_SUPPORTED_SEND_MERKLE_DEPTH = 3;
 const PRIVATE_CORE_RELEASE_AUTHORIZATION_BASIS = "proof-backed-consume";
 const PRIVATE_CORE_RELEASE_ROOT_POLICY = "latest-registered-root";
-const PRIVATE_CORE_RELEASE_EXECUTION_MODEL = "operator-recorded-devnet-release";
+const PRIVATE_CORE_RELEASE_EXECUTION_MODEL = "operator-recorded-mainnet-release";
 const PRIVATE_CORE_RELEASE_ATOMICITY_MODEL = "operator-local-atomic-consume-and-release-record";
 const PRIVATE_CORE_RELEASE_PERSISTENCE_MODEL = "json-store-v1";
 const PRIVATE_CORE_OWNER_AUTH_MODE = "x25519-secret-prechecked-off-circuit";
@@ -4202,12 +4202,12 @@ function clusterEnv(suffix) {
 }
 
 function clusterEnvName(suffix) {
-  const clusterPrefix = isMainnetCluster ? "MAINNET" : "DEVNET";
+  const clusterPrefix = isMainnetCluster ? "MAINNET" : "MAINNET";
   const candidates = [
     `VANTA_${clusterPrefix}_${suffix}`,
     `VITE_VANTA_${clusterPrefix}_${suffix}`,
-    `VANTA_DEVNET_${suffix}`,
-    `VITE_VANTA_DEVNET_${suffix}`,
+    `VANTA_MAINNET_${suffix}`,
+    `VITE_VANTA_MAINNET_${suffix}`,
   ];
 
   return candidates.find((key) => process.env[key] !== undefined && process.env[key] !== "") ?? candidates[0];
@@ -4360,10 +4360,10 @@ function evaluateSolUnshieldLaneHealth() {
     endpoint: "/unshield/sol",
     kind: "vanta-sol-unshield-operator-health",
     note: ready
-      ? "SOL unshield operator endpoint is configured for signed devnet release."
+      ? "SOL unshield operator endpoint is configured for signed mainnet release."
       : "SOL unshield operator endpoint is reachable but not fully configured for release.",
     ready,
-    releaseModel: "operator-signed-devnet-sol-transfer",
+    releaseModel: "operator-signed-mainnet-sol-transfer",
     signerAddress,
     status: ready ? "ready" : "blocked",
     version: "vanta-sol-unshield-operator-health-0.1",

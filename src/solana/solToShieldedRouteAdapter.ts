@@ -16,7 +16,7 @@ export type SolToShieldedRouteQuote = {
   routeAdapter: "sol-to-shielded-v1";
   venueFamily: "Aggregator" | "DLMM";
   venueName: string;
-  venueNetwork: "Mainnet" | "Devnet";
+  venueNetwork: "Mainnet";
   venuePoolAddress: string | null;
 };
 
@@ -157,7 +157,7 @@ export async function fetchSolToShieldedRouteQuote(args: {
     typeof parsed.quoteExpiresAt !== "number" ||
     (parsed.venueFamily !== "Aggregator" && parsed.venueFamily !== "DLMM") ||
     typeof parsed.venueName !== "string" ||
-    (parsed.venueNetwork !== "Mainnet" && parsed.venueNetwork !== "Devnet")
+    (parsed.venueNetwork !== "Mainnet" && parsed.venueNetwork !== "Mainnet")
   ) {
     throw new Error("The shielded SOL route adapter returned an invalid quote.");
   }

@@ -15,7 +15,7 @@
   "flows": [
     {
       "flow": "shield",
-      "scope": "devnet-wallet-tx",
+      "scope": "mainnet-wallet-tx",
       "wallet": {
         "status": "signature-recorded-when-user-approves",
         "signature": null,
@@ -32,7 +32,7 @@
         "liveMainnetFundsMoved": false
       },
       "reviewNotes": [
-        "Shield can submit wallet-backed devnet/local transactions when the user approves, but this artifact does not record a point-in-time signature."
+        "Shield can submit wallet-backed mainnet/local transactions when the user approves, but this artifact does not record a point-in-time signature."
       ],
       "observedAt": "2026-04-24T13:29:08.862Z"
     },
@@ -156,6 +156,6 @@
     }
   ],
   "safety": "This evidence file is refs-only. It must not store private inputs, seed phrases, signed transaction material, signed intent payloads, bearer values, database URLs, raw customer data, or credential-bearing URLs.",
-  "deploymentTruth": "Transaction Evidence v0.1 records the current devnet, local, preview, and operator-harness trace boundary. It does not prove mainnet finality, production settlement, audit approval, custody, or privacy guarantees.",
+  "deploymentTruth": "Transaction Evidence v0.1 records the current mainnet, local, preview, and operator-harness trace boundary. It does not prove mainnet finality, production settlement, audit approval, custody, or privacy guarantees.",
   "nextOperatorAction": "Add point-in-time signature, slot, account-diff, proof, nullifier, root, and redacted operator receipt evidence when a flow moves from preview or local harness into a real settlement path."
 }

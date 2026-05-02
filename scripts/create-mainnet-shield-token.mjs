@@ -15,13 +15,13 @@ import {
   mintTo,
 } from "@solana/spl-token";
 
-const rpcUrl = process.env.SOLANA_RPC_URL ?? clusterApiUrl("devnet");
+const rpcUrl = process.env.SOLANA_RPC_URL ?? clusterApiUrl("mainnet-beta");
 const connection = new Connection(rpcUrl, "confirmed");
 const wallet = loadKeypair(join(homedir(), ".config/solana/id.json"));
-const vault = loadKeypair(join(homedir(), ".config/solana/vanta-devnet-vault.json"));
+const vault = loadKeypair(join(homedir(), ".config/solana/vanta-mainnet-vault.json"));
 
 const symbol = (process.env.VANTA_SHIELD_TOKEN_SYMBOL ?? process.argv[2] ?? "").trim();
-const name = (process.env.VANTA_SHIELD_TOKEN_NAME ?? process.argv[3] ?? `${symbol} Devnet Test`).trim();
+const name = (process.env.VANTA_SHIELD_TOKEN_NAME ?? process.argv[3] ?? `${symbol} Mainnet Test`).trim();
 const decimals = Number(process.env.VANTA_SHIELD_TOKEN_DECIMALS ?? process.argv[4] ?? "6");
 const initialSupplyUi = Number(
   process.env.VANTA_SHIELD_TOKEN_INITIAL_SUPPLY ?? process.argv[5] ?? "100000",
@@ -29,7 +29,7 @@ const initialSupplyUi = Number(
 
 if (!symbol) {
   throw new Error(
-    'Expected token symbol. Example: node scripts/create-devnet-shield-token.mjs JTO "Jito Devnet Test" 9 10000',
+    'Expected token symbol. Example: node scripts/create-mainnet-shield-token.mjs JTO "Jito Mainnet Test" 9 10000',
   );
 }
 
@@ -45,11 +45,11 @@ const walletSol = await connection.getBalance(wallet.publicKey, "confirmed");
 const vaultSol = await connection.getBalance(vault.publicKey, "confirmed");
 
 if (walletSol <= 0) {
-  throw new Error("Active wallet has no devnet SOL.");
+  throw new Error("Active wallet has no mainnet SOL.");
 }
 
 if (vaultSol <= 0) {
-  throw new Error("Vault signer has no devnet SOL.");
+  throw new Error("Vault signer has no mainnet SOL.");
 }
 
 const mint = await createMint(

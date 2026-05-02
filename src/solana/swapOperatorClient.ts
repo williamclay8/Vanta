@@ -12,7 +12,7 @@ export type SwapQuote = {
   quoteTimestamp: number;
   venueFamily: "DLMM";
   venueName: "Meteora";
-  venueNetwork: "Devnet";
+  venueNetwork: "Mainnet";
   venuePoolAddress: string;
 };
 
@@ -20,7 +20,7 @@ export type SwapLaneHealth = {
   checkedAt: number;
   lane: "USDC->SOL";
   message: string;
-  network: "Devnet";
+  network: "Mainnet";
   poolAddress: string | null;
   reason:
     | "config_error"
@@ -58,7 +58,7 @@ export async function fetchSwapLaneHealth(): Promise<SwapLaneHealth> {
     parsed.lane !== "USDC->SOL" ||
     parsed.venueName !== "Meteora" ||
     parsed.venueFamily !== "DLMM" ||
-    parsed.network !== "Devnet" ||
+    parsed.network !== "Mainnet" ||
     typeof parsed.message !== "string" ||
     typeof parsed.checkedAt !== "number"
   ) {
@@ -69,7 +69,7 @@ export async function fetchSwapLaneHealth(): Promise<SwapLaneHealth> {
     checkedAt: parsed.checkedAt,
     lane: "USDC->SOL",
     message: parsed.message,
-    network: "Devnet",
+    network: "Mainnet",
     poolAddress: typeof parsed.poolAddress === "string" ? parsed.poolAddress : null,
     reason: parsed.reason ?? null,
     status: parsed.status,
@@ -109,7 +109,7 @@ export async function fetchSwapQuote(inputAmount: string): Promise<SwapQuote> {
     typeof parsed.pairLabel !== "string" ||
     parsed.venueName !== "Meteora" ||
     parsed.venueFamily !== "DLMM" ||
-    parsed.venueNetwork !== "Devnet"
+    parsed.venueNetwork !== "Mainnet"
   ) {
     throw new Error("The swap operator returned an invalid quote.");
   }
@@ -125,7 +125,7 @@ export async function fetchSwapQuote(inputAmount: string): Promise<SwapQuote> {
     quoteTimestamp: parsed.quoteTimestamp,
     venueFamily: "DLMM",
     venueName: "Meteora",
-    venueNetwork: "Devnet",
+    venueNetwork: "Mainnet",
     venuePoolAddress: parsed.venuePoolAddress,
   };
 }

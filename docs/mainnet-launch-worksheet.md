@@ -168,7 +168,7 @@ As of April 20, 2026:
 - Production infrastructure references are now cross-linked in `ops/mainnet/external-gates.packet.json`; `npm run mainnet:external-gates-check` fails if the storage, secret-manager, observability, or browser wallet-signing references drift out of the packet.
 - Private Pool v2 deployed-service client boundary exists at `src/privacy/privatePoolV2RemoteServices.ts`; `npm run private-pool-v2:remote-services-check` verifies HTTPS clients for indexer, relayer, prover, verifier registry, and remote runtime assembly.
 - Nullifier/replay protection now has a Postgres-backed reservation adapter at `src/privacy/postgresNullifierReplayStore.mjs`; the production operator refuses file-only replay storage and requires `VANTA_PRIVATE_POOL_V2_DATABASE_URL`, while the final deployed protocol enforcement layer and audit are still blocked.
-- Browser wallet-signing safety now has a devnet/local browser command: `npm run wallet:browser-signing-safety-check`.
+- Browser wallet-signing safety now has a mainnet/local browser command: `npm run wallet:browser-signing-safety-check`.
 - Private Pool v2 production smoke template: `ops/mainnet/private-pool-v2-production-smoke.template.json` records no-real-funds smoke evidence refs for deployed indexer, prover, relayer, verifier, and operator services.
 - Private Pool v2 production smoke evidence: `ops/mainnet/private-pool-v2-production-smoke.evidence.json` records authenticated no-real-funds production smoke across deployed indexer, prover, relayer, verifier, and operator services.
 - Private Pool v2 production service setup guide: `docs/production-private-pool-v2-service-setup.md` records the current Render inventory and deployed production indexer, prover, relayer, verifier, and operator services.

@@ -1,15 +1,16 @@
 export const SHIELD_HOOK_FALLBACK_MINT =
   "So11111111111111111111111111111111111111112";
 
-export type VantaSolanaCluster = "devnet" | "mainnet-beta";
-export type VantaSolanaClusterLabel = "Devnet" | "Mainnet";
+export type VantaSolanaCluster = "mainnet-beta";
+export type VantaSolanaClusterLabel = "Mainnet";
 
 const configuredSolanaCluster = getOptionalEnvValue(import.meta.env.VITE_SOLANA_CLUSTER);
-const effectiveSolanaCluster = configuredSolanaCluster ?? (import.meta.env.PROD ? "mainnet-beta" : "devnet");
+const effectiveSolanaCluster =
+  configuredSolanaCluster === "mainnet" ? "mainnet-beta" : "mainnet-beta";
 const isMainnetCluster = effectiveSolanaCluster === "mainnet-beta";
-export const vantaSolanaCluster: VantaSolanaCluster = isMainnetCluster ? "mainnet-beta" : "devnet";
-export const vantaSolanaClusterLabel: VantaSolanaClusterLabel = isMainnetCluster ? "Mainnet" : "Devnet";
-export const vantaExplicitMainnetApproval = isMainnetCluster;
+export const vantaSolanaCluster: VantaSolanaCluster = "mainnet-beta";
+export const vantaSolanaClusterLabel: VantaSolanaClusterLabel = "Mainnet";
+export const vantaExplicitMainnetApproval = true;
 
 const MAINNET_RECOGNIZED_MINTS = {
   BONK: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
@@ -41,49 +42,31 @@ function getOptionalIntegerEnvValue(value: string | undefined) {
 }
 
 const configuredMintAddress = getOptionalEnvValue(
-  isMainnetCluster
-    ? import.meta.env.VITE_VANTA_MAINNET_TOKEN_MINT
-    : import.meta.env.VITE_VANTA_DEVNET_TOKEN_MINT,
+  import.meta.env.VITE_VANTA_MAINNET_TOKEN_MINT,
 );
 const configuredUsdcMintAddress = getOptionalEnvValue(
-  isMainnetCluster
-    ? import.meta.env.VITE_VANTA_MAINNET_USDC_MINT
-    : import.meta.env.VITE_VANTA_DEVNET_USDC_MINT,
+  import.meta.env.VITE_VANTA_MAINNET_USDC_MINT,
 ) ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.USDC : null);
 const configuredJtoMintAddress = getOptionalEnvValue(
-  isMainnetCluster
-    ? import.meta.env.VITE_VANTA_MAINNET_JTO_MINT
-    : import.meta.env.VITE_VANTA_DEVNET_JTO_MINT,
+  import.meta.env.VITE_VANTA_MAINNET_JTO_MINT,
 ) ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.JTO : null);
 const configuredBonkMintAddress = getOptionalEnvValue(
-  isMainnetCluster
-    ? import.meta.env.VITE_VANTA_MAINNET_BONK_MINT
-    : import.meta.env.VITE_VANTA_DEVNET_BONK_MINT,
+  import.meta.env.VITE_VANTA_MAINNET_BONK_MINT,
 ) ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.BONK : null);
 const configuredJupMintAddress = getOptionalEnvValue(
-  isMainnetCluster
-    ? import.meta.env.VITE_VANTA_MAINNET_JUP_MINT
-    : import.meta.env.VITE_VANTA_DEVNET_JUP_MINT,
+  import.meta.env.VITE_VANTA_MAINNET_JUP_MINT,
 ) ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.JUP : null);
 const configuredPyusdMintAddress = getOptionalEnvValue(
-  isMainnetCluster
-    ? import.meta.env.VITE_VANTA_MAINNET_PYUSD_MINT
-    : import.meta.env.VITE_VANTA_DEVNET_PYUSD_MINT,
+  import.meta.env.VITE_VANTA_MAINNET_PYUSD_MINT,
 ) ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.PYUSD : null);
 const configuredWifMintAddress = getOptionalEnvValue(
-  isMainnetCluster
-    ? import.meta.env.VITE_VANTA_MAINNET_WIF_MINT
-    : import.meta.env.VITE_VANTA_DEVNET_WIF_MINT,
+  import.meta.env.VITE_VANTA_MAINNET_WIF_MINT,
 ) ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.WIF : null);
 const configuredKmnoMintAddress = getOptionalEnvValue(
-  isMainnetCluster
-    ? import.meta.env.VITE_VANTA_MAINNET_KMNO_MINT
-    : import.meta.env.VITE_VANTA_DEVNET_KMNO_MINT,
+  import.meta.env.VITE_VANTA_MAINNET_KMNO_MINT,
 ) ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.KMNO : null);
 const configuredVaultOwner = getOptionalEnvValue(
-  isMainnetCluster
-    ? import.meta.env.VITE_VANTA_MAINNET_VAULT_OWNER
-    : import.meta.env.VITE_VANTA_DEVNET_VAULT_OWNER,
+  import.meta.env.VITE_VANTA_MAINNET_VAULT_OWNER,
 ) ?? (isMainnetCluster ? MAINNET_SHIELD_VAULT_OWNER_FALLBACK : null);
 const configuredVaultDerivationProgramId = getOptionalEnvValue(
   import.meta.env.VITE_VANTA_VAULT_DERIVATION_PROGRAM_ID,
@@ -226,12 +209,12 @@ export const liveUsdcShieldAsset: LiveShieldTokenAssetConfig = {
       getOptionalIntegerEnvValue(
         isMainnetCluster
           ? import.meta.env.VITE_VANTA_MAINNET_USDC_DECIMALS
-          : import.meta.env.VITE_VANTA_DEVNET_USDC_DECIMALS,
+          : import.meta.env.VITE_VANTA_MAINNET_USDC_DECIMALS,
       ) ?? 6,
     defaultName: "USD Coin",
     nameEnvValue: isMainnetCluster
       ? import.meta.env.VITE_VANTA_MAINNET_USDC_NAME
-      : import.meta.env.VITE_VANTA_DEVNET_USDC_NAME,
+      : import.meta.env.VITE_VANTA_MAINNET_USDC_NAME,
     priority: 1,
   }),
 };
@@ -246,12 +229,12 @@ export const liveJtoShieldAsset: LiveShieldTokenAssetConfig = {
       getOptionalIntegerEnvValue(
         isMainnetCluster
           ? import.meta.env.VITE_VANTA_MAINNET_JTO_DECIMALS
-          : import.meta.env.VITE_VANTA_DEVNET_JTO_DECIMALS,
+          : import.meta.env.VITE_VANTA_MAINNET_JTO_DECIMALS,
       ) ?? 9,
     defaultName: "Jito",
     nameEnvValue: isMainnetCluster
       ? import.meta.env.VITE_VANTA_MAINNET_JTO_NAME
-      : import.meta.env.VITE_VANTA_DEVNET_JTO_NAME,
+      : import.meta.env.VITE_VANTA_MAINNET_JTO_NAME,
     priority: 2,
   }),
 };
@@ -264,12 +247,12 @@ export const liveBonkShieldAsset: LiveShieldTokenAssetConfig = {
       getOptionalIntegerEnvValue(
         isMainnetCluster
           ? import.meta.env.VITE_VANTA_MAINNET_BONK_DECIMALS
-          : import.meta.env.VITE_VANTA_DEVNET_BONK_DECIMALS,
+          : import.meta.env.VITE_VANTA_MAINNET_BONK_DECIMALS,
       ) ?? 5,
     defaultName: "Bonk",
     nameEnvValue: isMainnetCluster
       ? import.meta.env.VITE_VANTA_MAINNET_BONK_NAME
-      : import.meta.env.VITE_VANTA_DEVNET_BONK_NAME,
+      : import.meta.env.VITE_VANTA_MAINNET_BONK_NAME,
     priority: 3,
     unshieldOperatorUrl: effectiveBonkUnshieldOperatorUrl,
   }),
@@ -283,12 +266,12 @@ export const liveJupShieldAsset: LiveShieldTokenAssetConfig = {
       getOptionalIntegerEnvValue(
         isMainnetCluster
           ? import.meta.env.VITE_VANTA_MAINNET_JUP_DECIMALS
-          : import.meta.env.VITE_VANTA_DEVNET_JUP_DECIMALS,
+          : import.meta.env.VITE_VANTA_MAINNET_JUP_DECIMALS,
       ) ?? 6,
     defaultName: "Jupiter",
     nameEnvValue: isMainnetCluster
       ? import.meta.env.VITE_VANTA_MAINNET_JUP_NAME
-      : import.meta.env.VITE_VANTA_DEVNET_JUP_NAME,
+      : import.meta.env.VITE_VANTA_MAINNET_JUP_NAME,
     priority: 4,
   }),
 };
@@ -301,12 +284,12 @@ export const livePyusdShieldAsset: LiveShieldTokenAssetConfig = {
       getOptionalIntegerEnvValue(
         isMainnetCluster
           ? import.meta.env.VITE_VANTA_MAINNET_PYUSD_DECIMALS
-          : import.meta.env.VITE_VANTA_DEVNET_PYUSD_DECIMALS,
+          : import.meta.env.VITE_VANTA_MAINNET_PYUSD_DECIMALS,
       ) ?? 6,
     defaultName: "PayPal USD",
     nameEnvValue: isMainnetCluster
       ? import.meta.env.VITE_VANTA_MAINNET_PYUSD_NAME
-      : import.meta.env.VITE_VANTA_DEVNET_PYUSD_NAME,
+      : import.meta.env.VITE_VANTA_MAINNET_PYUSD_NAME,
     priority: 5,
   }),
 };
@@ -319,12 +302,12 @@ export const liveWifShieldAsset: LiveShieldTokenAssetConfig = {
       getOptionalIntegerEnvValue(
         isMainnetCluster
           ? import.meta.env.VITE_VANTA_MAINNET_WIF_DECIMALS
-          : import.meta.env.VITE_VANTA_DEVNET_WIF_DECIMALS,
+          : import.meta.env.VITE_VANTA_MAINNET_WIF_DECIMALS,
       ) ?? 6,
     defaultName: "dogwifhat",
     nameEnvValue: isMainnetCluster
       ? import.meta.env.VITE_VANTA_MAINNET_WIF_NAME
-      : import.meta.env.VITE_VANTA_DEVNET_WIF_NAME,
+      : import.meta.env.VITE_VANTA_MAINNET_WIF_NAME,
     priority: 6,
   }),
 };
@@ -337,12 +320,12 @@ export const liveKmnoShieldAsset: LiveShieldTokenAssetConfig = {
       getOptionalIntegerEnvValue(
         isMainnetCluster
           ? import.meta.env.VITE_VANTA_MAINNET_KMNO_DECIMALS
-          : import.meta.env.VITE_VANTA_DEVNET_KMNO_DECIMALS,
+          : import.meta.env.VITE_VANTA_MAINNET_KMNO_DECIMALS,
       ) ?? 6,
     defaultName: "Kamino",
     nameEnvValue: isMainnetCluster
       ? import.meta.env.VITE_VANTA_MAINNET_KMNO_NAME
-      : import.meta.env.VITE_VANTA_DEVNET_KMNO_NAME,
+      : import.meta.env.VITE_VANTA_MAINNET_KMNO_NAME,
     priority: 7,
   }),
 };

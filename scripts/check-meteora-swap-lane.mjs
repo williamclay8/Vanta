@@ -1,6 +1,6 @@
 const DEFAULT_POOL_ADDRESS = "61NMGEcS5M4HT4aJyK4c3qap3YsgXTrbKHn4tNtXVtrU";
 const DEFAULT_BLOCKED_AFTER = "2026-04-08";
-const DEFAULT_API_BASE = "https://dlmm-api.devnet.meteora.ag";
+const DEFAULT_API_BASE = "https://dlmm-api.mainnet.meteora.ag";
 
 function parseArgs(argv) {
   const options = {
@@ -52,7 +52,7 @@ function classifyPairStatus({ bodyText, checkedAt, options, response }) {
       pairUrl,
       poolAddress: options.poolAddress,
       statusCode: response.status,
-      summary: "Meteora devnet indexed API resolves the configured pool.",
+      summary: "Meteora mainnet indexed API resolves the configured pool.",
       thresholdCrossed,
     };
   }
@@ -70,8 +70,8 @@ function classifyPairStatus({ bodyText, checkedAt, options, response }) {
       poolAddress: options.poolAddress,
       statusCode: response.status,
       summary: thresholdCrossed
-        ? "The pool exists on-chain but Meteora devnet indexed API still does not surface it, so the lane is blocked by external indexer availability."
-        : "The pool still is not surfaced by Meteora devnet indexed API and remains under propagation watch.",
+        ? "The pool exists on-chain but Meteora mainnet indexed API still does not surface it, so the lane is blocked by external indexer availability."
+        : "The pool still is not surfaced by Meteora mainnet indexed API and remains under propagation watch.",
       thresholdCrossed,
     };
   }
@@ -103,7 +103,7 @@ function renderText(result) {
 
   if (result.classification === "external_indexer_block") {
     lines.push(
-      "Decision statement: The USDC -> SOL Meteora DLMM pool exists on-chain, but Meteora devnet's indexed API still does not surface it. Vanta will no longer treat this as ordinary propagation delay. The swap lane is blocked by external indexer availability, and the next step is to either add an alternate context path or temporarily narrow the swap truth until venue context becomes reliably accessible.",
+      "Decision statement: The USDC -> SOL Meteora DLMM pool exists on-chain, but Meteora mainnet's indexed API still does not surface it. Vanta will no longer treat this as ordinary propagation delay. The swap lane is blocked by external indexer availability, and the next step is to either add an alternate context path or temporarily narrow the swap truth until venue context becomes reliably accessible.",
     );
   }
 

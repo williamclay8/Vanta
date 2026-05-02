@@ -4,10 +4,10 @@ import {
   validateTransactionSafetySummary,
 } from "../src/wallet/transactionSafetySummary.mjs";
 
-const safeDevnetSummary = createTransactionSafetySummary({
+const safeMainnetSummary = createTransactionSafetySummary({
   amount: "1.25",
   asset: "USDC",
-  cluster: "devnet",
+  cluster: "mainnet-beta",
   estimatedFees: "0.000005 SOL",
   feePayer: "payer1111111111111111111111111111111111111",
   instructions: ["transfer-checked", "memo"],
@@ -19,13 +19,13 @@ const safeDevnetSummary = createTransactionSafetySummary({
   },
 });
 
-assert.equal(safeDevnetSummary.kind, "vanta-transaction-safety-summary");
-assert.equal(safeDevnetSummary.mainnetSubmissionAllowed, false);
-assert.equal(safeDevnetSummary.requiresHumanApproval, true);
-assert.equal(validateTransactionSafetySummary(safeDevnetSummary).accepted, true);
+assert.equal(safeMainnetSummary.kind, "vanta-transaction-safety-summary");
+assert.equal(safeMainnetSummary.mainnetSubmissionAllowed, false);
+assert.equal(safeMainnetSummary.requiresHumanApproval, true);
+assert.equal(validateTransactionSafetySummary(safeMainnetSummary).accepted, true);
 
 const blockedMainnetSummary = createTransactionSafetySummary({
-  ...safeDevnetSummary,
+  ...safeMainnetSummary,
   cluster: "mainnet-beta",
 });
 
@@ -34,7 +34,7 @@ assert.equal(blockedMainnetDecision.accepted, false);
 assert.equal(blockedMainnetDecision.reason, "mainnet-approval-required");
 
 const approvedMainnetSummary = createTransactionSafetySummary({
-  ...safeDevnetSummary,
+  ...safeMainnetSummary,
   cluster: "mainnet-beta",
   explicitMainnetApproval: true,
 });
@@ -42,7 +42,7 @@ const approvedMainnetSummary = createTransactionSafetySummary({
 assert.equal(validateTransactionSafetySummary(approvedMainnetSummary).accepted, true);
 
 const failedSimulationSummary = createTransactionSafetySummary({
-  ...safeDevnetSummary,
+  ...safeMainnetSummary,
   simulationResult: {
     error: "insufficient funds",
     logs: [],
@@ -57,7 +57,7 @@ assert.equal(failedSimulationDecision.reason, "simulation-failed");
 assert.throws(
   () =>
     createTransactionSafetySummary({
-      ...safeDevnetSummary,
+      ...safeMainnetSummary,
       feePayer: "",
     }),
   /feePayer/i,

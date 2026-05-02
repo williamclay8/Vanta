@@ -40,13 +40,13 @@ async function reservePort() {
 function createOperatorEnv({ port, signer, vaultOwner }) {
   return {
     ...process.env,
-    SOLANA_RPC_URL: "https://api.devnet.solana.com",
-    VANTA_DEVNET_TOKEN_MINT: "So11111111111111111111111111111111111111112",
-    VANTA_DEVNET_VAULT_OWNER: vaultOwner,
-    VANTA_DEVNET_VAULT_SIGNER_SECRET_KEY: signer
+    SOLANA_RPC_URL: "https://api.mainnet-beta.solana.com",
+    VANTA_MAINNET_TOKEN_MINT: "So11111111111111111111111111111111111111112",
+    VANTA_MAINNET_VAULT_OWNER: vaultOwner,
+    VANTA_MAINNET_VAULT_SIGNER_SECRET_KEY: signer
       ? JSON.stringify(Array.from(signer.secretKey))
       : "",
-    VANTA_SOLANA_CLUSTER: "devnet",
+    VANTA_SOLANA_CLUSTER: "mainnet-beta",
     VANTA_PRIVATE_CORE_CONSUME_STORE_PATH: join(tempRoot, `consumes-${port}.json`),
     VANTA_PRIVATE_CORE_PROOF_STORE_PATH: join(tempRoot, `proofs-${port}.json`),
     VANTA_PRIVATE_CORE_RELEASE_STORE_PATH: join(tempRoot, `private-core-releases-${port}.json`),
@@ -164,7 +164,7 @@ try {
       assert.equal(health.status, 200, health.text);
       assert.equal(health.body?.ready, true, "Expected configured SOL unshield health.");
       assert.equal(health.body?.endpoint, "/unshield/sol");
-      assert.equal(health.body?.releaseModel, "operator-signed-devnet-sol-transfer");
+      assert.equal(health.body?.releaseModel, "operator-signed-mainnet-sol-transfer");
       assert.equal(health.body?.signerAddress, readyKeypair.publicKey.toBase58());
       printStatus("SOL unshield operator health ready: PASS");
 

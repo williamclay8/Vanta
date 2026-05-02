@@ -128,11 +128,11 @@ const server = spawn("node", ["operator/unshield-server.mjs"], {
     ...process.env,
     PATH: `${process.env.HOME}/.nargo/bin:${process.env.PATH ?? ""}`,
     VANTA_UNSHIELD_OPERATOR_PORT: String(port),
-    VANTA_DEVNET_TOKEN_MINT:
-      process.env.VANTA_DEVNET_TOKEN_MINT ??
+    VANTA_MAINNET_TOKEN_MINT:
+      process.env.VANTA_MAINNET_TOKEN_MINT ??
       "8j9mJY4hPW4N1pQ6XJk4oL9bQ4u8sF3o6T2jW7vF6dEm",
-    VANTA_DEVNET_VAULT_OWNER:
-      process.env.VANTA_DEVNET_VAULT_OWNER ??
+    VANTA_MAINNET_VAULT_OWNER:
+      process.env.VANTA_MAINNET_VAULT_OWNER ??
       "Gk7m3rV2Q5uH4pL9sW8xD1nB6cT3yF7kJ2qR5mN8pZ1",
     VANTA_PRIVATE_CORE_CONSUME_STORE_PATH: join(tempRoot, "consumes.json"),
     VANTA_PRIVATE_CORE_PROOF_STORE_PATH: join(tempRoot, "proofs.json"),
@@ -250,7 +250,7 @@ try {
     initialSummaryState.parsed?.supportedSwapV1Role !==
       "adjacent-supported-not-required-for-finish-line" ||
     typeof initialSummaryState.parsed?.supportedSwapV1RoleNote !== "string" ||
-    initialSummaryState.parsed?.supportedSwapVenue !== "meteora-dlmm-devnet-and-operator-token-output" ||
+    initialSummaryState.parsed?.supportedSwapVenue !== "meteora-dlmm-mainnet-and-operator-token-output" ||
     initialSummaryState.parsed?.supportedSwapOutputModel !== "allowlisted-shielded-output-note" ||
     initialSummaryState.parsed?.supportedSwapResultingRootBasis !== "client-declared" ||
     initialSummaryState.parsed?.supportedSwapInputRootPolicy !==
@@ -267,7 +267,7 @@ try {
     initialSummaryState.parsed?.supportedZkV1RequiredLanes !== "send|unshield|release" ||
     typeof initialSummaryState.parsed?.supportedZkV1RequiredLanesNote !== "string" ||
     initialSummaryState.parsed?.supportedAssetSymbol !== "USDC" ||
-    initialSummaryState.parsed?.supportedEnvironment !== "solana-devnet" ||
+    initialSummaryState.parsed?.supportedEnvironment !== "solana-mainnet" ||
     initialSummaryState.parsed?.supportedNoteSchema !== "note-v0" ||
     initialSummaryState.parsed?.supportedNoteVersion !== 0 ||
     initialSummaryState.parsed?.supportedRootRegistrationProvenance !==
@@ -946,7 +946,7 @@ try {
     summaryStateAfterConsume.parsed?.supportedSwapV1Role !==
       "adjacent-supported-not-required-for-finish-line" ||
     typeof summaryStateAfterConsume.parsed?.supportedSwapV1RoleNote !== "string" ||
-    summaryStateAfterConsume.parsed?.supportedSwapVenue !== "meteora-dlmm-devnet-and-operator-token-output" ||
+    summaryStateAfterConsume.parsed?.supportedSwapVenue !== "meteora-dlmm-mainnet-and-operator-token-output" ||
     summaryStateAfterConsume.parsed?.supportedSwapOutputModel !== "allowlisted-shielded-output-note" ||
     summaryStateAfterConsume.parsed?.supportedSwapResultingRootBasis !== "client-declared" ||
     summaryStateAfterConsume.parsed?.supportedSwapInputRootPolicy !==
@@ -963,7 +963,7 @@ try {
     summaryStateAfterConsume.parsed?.supportedZkV1RequiredLanes !== "send|unshield|release" ||
     typeof summaryStateAfterConsume.parsed?.supportedZkV1RequiredLanesNote !== "string" ||
     summaryStateAfterConsume.parsed?.supportedAssetSymbol !== "USDC" ||
-    summaryStateAfterConsume.parsed?.supportedEnvironment !== "solana-devnet" ||
+    summaryStateAfterConsume.parsed?.supportedEnvironment !== "solana-mainnet" ||
     summaryStateAfterConsume.parsed?.supportedNoteSchema !== "note-v0" ||
     summaryStateAfterConsume.parsed?.supportedNoteVersion !== 0 ||
     summaryStateAfterConsume.parsed?.supportedRootRegistrationProvenance !==
@@ -1063,7 +1063,7 @@ try {
     summaryStateAfterRelease.parsed?.supportedSwapV1Role !==
       "adjacent-supported-not-required-for-finish-line" ||
     typeof summaryStateAfterRelease.parsed?.supportedSwapV1RoleNote !== "string" ||
-    summaryStateAfterRelease.parsed?.supportedSwapVenue !== "meteora-dlmm-devnet-and-operator-token-output" ||
+    summaryStateAfterRelease.parsed?.supportedSwapVenue !== "meteora-dlmm-mainnet-and-operator-token-output" ||
     summaryStateAfterRelease.parsed?.supportedSwapOutputModel !== "allowlisted-shielded-output-note" ||
     summaryStateAfterRelease.parsed?.supportedSwapResultingRootBasis !== "client-declared" ||
     summaryStateAfterRelease.parsed?.supportedSwapInputRootPolicy !==
@@ -1080,7 +1080,7 @@ try {
     summaryStateAfterRelease.parsed?.supportedZkV1RequiredLanes !== "send|unshield|release" ||
     typeof summaryStateAfterRelease.parsed?.supportedZkV1RequiredLanesNote !== "string" ||
     summaryStateAfterRelease.parsed?.supportedAssetSymbol !== "USDC" ||
-    summaryStateAfterRelease.parsed?.supportedEnvironment !== "solana-devnet" ||
+    summaryStateAfterRelease.parsed?.supportedEnvironment !== "solana-mainnet" ||
     summaryStateAfterRelease.parsed?.supportedNoteSchema !== "note-v0" ||
     summaryStateAfterRelease.parsed?.supportedNoteVersion !== 0 ||
     summaryStateAfterRelease.parsed?.supportedRootRegistrationProvenance !==
@@ -1259,7 +1259,7 @@ try {
     !operatorStatusOutput.includes("Supported swap lane kind: Single input USDC to allowlisted shielded output") ||
     !operatorStatusOutput.includes("Supported swap lane status: Supported") ||
     !operatorStatusOutput.includes("Supported swap v1 decision: Accepted narrow v1 path") ||
-    !operatorStatusOutput.includes("Supported swap venue: Meteora DLMM devnet + operator token output") ||
+    !operatorStatusOutput.includes("Supported swap venue: Meteora DLMM mainnet + operator token output") ||
     !operatorStatusOutput.includes("Supported swap output model: Allowlisted shielded output note") ||
     !operatorStatusOutput.includes("Supported swap root basis: Client-declared") ||
     !operatorStatusOutput.includes(
@@ -1314,7 +1314,7 @@ try {
     !operatorStatusOutput.includes(
       "Supported shipping artifact endpoint: /state/private-core-shipping-artifact",
     ) ||
-    !operatorStatusOutput.includes("Supported release execution: Operator-recorded devnet release") ||
+    !operatorStatusOutput.includes("Supported release execution: Operator-recorded mainnet release") ||
     !operatorStatusOutput.includes(
       "Supported release atomicity: Operator-local atomic consume + release record",
     ) ||

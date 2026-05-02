@@ -9,7 +9,7 @@ export type VantaTransactionEvidenceFlow = "shield" | "send" | "swap" | "unshiel
 
 export type VantaTransactionEvidenceScope =
   | "preview"
-  | "devnet-wallet-tx"
+  | "mainnet-wallet-tx"
   | "local-operator-harness"
   | "production";
 
@@ -243,7 +243,7 @@ export function createTransactionEvidencePacket(args: {
     safety:
       "This evidence file is refs-only. It must not store private inputs, seed phrases, signed transaction material, signed intent payloads, bearer values, database URLs, raw customer data, or credential-bearing URLs.",
     deploymentTruth:
-      "Transaction Evidence v0.1 records the current devnet, local, preview, and operator-harness trace boundary. It does not prove mainnet finality, production settlement, audit approval, custody, or privacy guarantees.",
+      "Transaction Evidence v0.1 records the current mainnet, local, preview, and operator-harness trace boundary. It does not prove mainnet finality, production settlement, audit approval, custody, or privacy guarantees.",
     nextOperatorAction:
       "Add point-in-time signature, slot, account-diff, proof, nullifier, root, and redacted operator receipt evidence when a flow moves from preview or local harness into a real settlement path.",
   };

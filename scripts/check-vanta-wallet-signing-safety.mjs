@@ -10,7 +10,7 @@ assert.equal(policy.requiresExplicitHumanApproval, true);
 assert.equal(policy.requiresSimulationBeforeSignature, true);
 assert.equal(policy.requiresTransactionSummaryBeforeSignature, true);
 assert.equal(policy.neverStorePrivateKeys, true);
-assert.equal(policy.defaultCluster, "devnet-or-localnet");
+assert.equal(policy.defaultCluster, "mainnet-or-localnet");
 assert.ok(policy.requiredSummaryFields.includes("cluster"));
 assert.ok(policy.requiredSummaryFields.includes("feePayer"));
 assert.ok(policy.requiredSummaryFields.includes("recipient"));

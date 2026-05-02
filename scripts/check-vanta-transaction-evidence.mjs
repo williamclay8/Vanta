@@ -73,7 +73,7 @@ assert.ok(
 
 for (const flow of evidence.flows.filter((candidate) => candidate.flow !== "unshield")) {
   assert.ok(
-    ["preview", "devnet-wallet-tx", "local-operator-harness"].includes(flow.scope),
+    ["preview", "mainnet-wallet-tx", "local-operator-harness"].includes(flow.scope),
     `${flow.flow} must use a bounded evidence scope.`,
   );
   assert.notEqual(flow.settlement?.status, "live-mainnet-settlement-complete", `${flow.flow} must not overclaim settlement.`);

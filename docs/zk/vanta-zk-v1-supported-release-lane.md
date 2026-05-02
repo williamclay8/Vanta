@@ -51,7 +51,7 @@ The supported release lane is currently expressed in operator/runtime terms as:
 - `supportedZkV1RequiredLanes = send|unshield|release`
 - `supportedReleaseAuthorizationBasis = proof-backed-consume`
 - `supportedReleaseRootPolicy = latest-registered-root`
-- `supportedReleaseExecutionModel = operator-recorded-devnet-release`
+- `supportedReleaseExecutionModel = operator-recorded-mainnet-release`
 - `supportedReleaseAtomicityModel = operator-local-atomic-consume-and-release-record`
 - `supportedReleasePersistenceModel = json-store-v1`
 

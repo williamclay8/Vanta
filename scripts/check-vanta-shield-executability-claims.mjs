@@ -32,7 +32,7 @@ assert.ok(
 assert.ok(
   shieldConfig.includes('import.meta.env.PROD\n  ? "mainnet-beta"') &&
     solanaClient.includes('import.meta.env.PROD\n  ? "mainnet-beta"'),
-  "Production static builds must force mainnet so stale Render devnet env cannot block real-wallet assets.",
+  "Production static builds must force mainnet so stale Render mainnet env cannot block real-wallet assets.",
 );
 assert.ok(
   shieldConfig.includes("VITE_VANTA_MAINNET_VAULT_OWNER") &&

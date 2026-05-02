@@ -1560,8 +1560,8 @@ export function VantaPrivateCoreStatePanel({
               <span>Supported swap venue</span>
               <strong>
                 {operatorSupportedSwapVenue ===
-                "meteora-dlmm-devnet-and-operator-token-output"
-                  ? "Meteora DLMM devnet + operator token output"
+                "meteora-dlmm-mainnet-and-operator-token-output"
+                  ? "Meteora DLMM mainnet + operator token output"
                   : "Unavailable"}
               </strong>
             </div>
@@ -1784,8 +1784,8 @@ export function VantaPrivateCoreStatePanel({
             <div className="review-row">
               <span>Supported release execution</span>
               <strong>
-                {operatorSupportedReleaseExecutionModel === "operator-recorded-devnet-release"
-                  ? "Operator-recorded devnet release"
+                {operatorSupportedReleaseExecutionModel === "operator-recorded-mainnet-release"
+                  ? "Operator-recorded mainnet release"
                   : "Unavailable"}
               </strong>
             </div>

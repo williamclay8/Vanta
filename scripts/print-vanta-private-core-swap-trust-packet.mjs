@@ -28,11 +28,11 @@ function createOperatorEnv(tempRoot, port) {
     ...process.env,
     PATH: `${process.env.HOME}/.nargo/bin:${process.env.PATH ?? ""}`,
     VANTA_UNSHIELD_OPERATOR_PORT: String(port),
-    VANTA_DEVNET_TOKEN_MINT:
-      process.env.VANTA_DEVNET_TOKEN_MINT ??
+    VANTA_MAINNET_TOKEN_MINT:
+      process.env.VANTA_MAINNET_TOKEN_MINT ??
       "8j9mJY4hPW4N1pQ6XJk4oL9bQ4u8sF3o6T2jW7vF6dEm",
-    VANTA_DEVNET_VAULT_OWNER:
-      process.env.VANTA_DEVNET_VAULT_OWNER ??
+    VANTA_MAINNET_VAULT_OWNER:
+      process.env.VANTA_MAINNET_VAULT_OWNER ??
       "Gk7m3rV2Q5uH4pL9sW8xD1nB6cT3yF7kJ2qR5mN8pZ1",
     VANTA_PRIVATE_CORE_CONSUME_STORE_PATH: join(tempRoot, "consumes.json"),
     VANTA_PRIVATE_CORE_PROOF_STORE_PATH: join(tempRoot, "proofs.json"),

@@ -95,7 +95,7 @@ const lanes = {
   protocolTabs: {
     readiness: 50,
     status: "browser-verified-local",
-    truth: "Shield, Send, Swap, Strategy, and Unshield have browser checks, and the protocol wallet-signing lane now has a sanitized production status/evidence surface proving Shield, Send, Swap, and Unshield live call sites stay behind safe-send or message-intent boundaries with the Umbra adapter fail-closed behind a summary-bound approval gate while browser-backed signing verification explicitly covers Shield, Send, Swap, and Unshield on both the local/devnet lane and the deployed public app. It is still not production-ready because real-funds actions remain bounded by explicit approval and meaningful-privacy blockers remain unresolved.",
+    truth: "Shield, Send, Swap, Strategy, and Unshield have browser checks, and the protocol wallet-signing lane now has a sanitized production status/evidence surface proving Shield, Send, Swap, and Unshield live call sites stay behind safe-send or message-intent boundaries with the Umbra adapter fail-closed behind a summary-bound approval gate while browser-backed signing verification explicitly covers Shield, Send, Swap, and Unshield on both the local/mainnet lane and the deployed public app. It is still not production-ready because real-funds actions remain bounded by explicit approval and meaningful-privacy blockers remain unresolved.",
   },
   strategy: {
     readiness: 42,

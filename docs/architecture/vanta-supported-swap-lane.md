@@ -9,7 +9,7 @@ This note freezes the current constrained swap lane that Vanta exposes in the na
 - `supportedSwapLaneStatus = supported locally / operator-contract supported; not mainnet-production-private`
 - `supportedSwapV1Decision = accepted-narrow-v1-path`
 - `supportedSwapV1Role = adjacent-supported-not-required-for-finish-line`
-- `supportedSwapVenue = meteora-dlmm-devnet-and-operator-token-output`
+- `supportedSwapVenue = meteora-dlmm-mainnet-and-operator-token-output`
 - `supportedSwapOutputModel = allowlisted-shielded-output-note`
 - `supportedSwapResultingRootBasis = client-declared`
 - `supportedSwapInputRootPolicy = latest-registered-root-with-linked-registration-proof`

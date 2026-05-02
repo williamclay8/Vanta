@@ -415,7 +415,7 @@ try {
     method: "POST",
   });
   assert(
-    !directUnshield.text.includes("Unshield operator requires VANTA_DEVNET_TOKEN_MINT") &&
+    !directUnshield.text.includes("Unshield operator requires VANTA_MAINNET_TOKEN_MINT") &&
       !directUnshield.text.includes("Invalid authenticated unshield request."),
     directUnshield.text || "Expected mainnet-shaped Unshield request to pass initial auth shape.",
   );

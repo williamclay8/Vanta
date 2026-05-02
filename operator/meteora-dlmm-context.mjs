@@ -13,12 +13,12 @@ const DEFAULT_HEALTH_INPUT_AMOUNT = "1.000000";
 const DEFAULT_MAX_SOURCE_AGE_MS = 120_000;
 const DEFAULT_CONTEXT_SOURCE = "api_then_sdk";
 const DEFAULT_SDK_BIN_ARRAY_COUNT = 16;
-const DEFAULT_RPC_URL = "https://api.devnet.solana.com";
+const DEFAULT_RPC_URL = "https://api.mainnet-beta.solana.com";
 
 export const SWAP_LANE = "USDC->SOL";
 export const SWAP_VENUE_NAME = "Meteora";
 export const SWAP_VENUE_FAMILY = "DLMM";
-export const SWAP_NETWORK = "Devnet";
+export const SWAP_NETWORK = "Mainnet";
 
 function getOptionalEnv(name) {
   const value = process.env[name]?.trim();
@@ -209,7 +209,7 @@ function getMintLabel(mintAddress) {
   }
 
   const usdcMint =
-    getOptionalEnv("VANTA_DEVNET_TOKEN_MINT") ?? getOptionalEnv("VITE_VANTA_DEVNET_TOKEN_MINT");
+    getOptionalEnv("VANTA_MAINNET_TOKEN_MINT") ?? getOptionalEnv("VITE_VANTA_MAINNET_TOKEN_MINT");
 
   if (usdcMint && mintAddress === usdcMint) {
     return "USDC";
@@ -481,7 +481,7 @@ async function fetchApiPoolSnapshot(config) {
   });
 
   if (!response.ok) {
-    const error = new Error(`Meteora DLMM devnet context request failed with ${response.status}.`);
+    const error = new Error(`Meteora DLMM mainnet context request failed with ${response.status}.`);
     error.cause = "pool_unreachable";
     throw error;
   }
@@ -650,7 +650,7 @@ export function assertMeteoraExecutionDrift(args) {
 
   if (bpsDifference(latestOutputAmount, quotedOutputAmount) > maxDriftBps) {
     throw new Error(
-      "Meteora DLMM devnet context moved outside the constrained execution tolerance. Refresh the quote and try again.",
+      "Meteora DLMM mainnet context moved outside the constrained execution tolerance. Refresh the quote and try again.",
     );
   }
 }

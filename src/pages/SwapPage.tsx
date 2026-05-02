@@ -90,7 +90,7 @@ type PendingSwapBridge = {
   venue: {
     family: "Aggregator" | "DLMM";
     name: string;
-    network: "Devnet" | "Mainnet";
+    network: "Mainnet";
     poolAddress: string;
     quoteExpiresAt: number;
     quoteId: string;
@@ -189,7 +189,7 @@ export function SwapPage() {
     transitionNoteId: string;
     venueFamily: "Aggregator" | "DLMM";
     venueName: string;
-    venueNetwork: "Devnet" | "Mainnet";
+    venueNetwork: "Mainnet";
     venuePoolAddress: string;
   } | null>(null);
   const swapTransaction = useVantaSafeSendTransaction();
@@ -665,7 +665,7 @@ export function SwapPage() {
       vaultOwner: pendingSwapBridge.vaultOwner,
       venueFamily: "DLMM",
       venueName: "Meteora",
-      venueNetwork: "Devnet",
+      venueNetwork: "Mainnet",
       venuePoolAddress: pendingSwapBridge.venue.poolAddress,
     });
 
@@ -1030,7 +1030,7 @@ export function SwapPage() {
         venue: {
           family: "DLMM",
           name: "Meteora",
-          network: "Devnet",
+          network: "Mainnet",
           poolAddress: pendingSwapBridge.venue.poolAddress,
           quoteId: pendingSwapBridge.venue.quoteId,
           quoteTimestamp: pendingSwapBridge.venue.quoteTimestamp,

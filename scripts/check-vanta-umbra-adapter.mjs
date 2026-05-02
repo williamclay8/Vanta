@@ -98,7 +98,7 @@ function buildRuntimeDefaults() {
   const rpcUrl =
     optionalEnv(process.env.VITE_UMBRA_RPC_URL) ??
     optionalEnv(process.env.VITE_SOLANA_RPC_URL) ??
-    "https://api.devnet.solana.com";
+    "https://api.mainnet-beta.solana.com";
 
   return {
     enabled: optionalEnv(process.env.VITE_VANTA_ENABLE_UMBRA) === "true",
@@ -120,8 +120,8 @@ function defaultIndexerEndpoint(network) {
     return "https://utxo-indexer.api.umbraprivacy.com";
   }
 
-  if (network === "devnet") {
-    return "https://utxo-indexer.api-devnet.umbraprivacy.com";
+  if (network === "mainnet") {
+    return "https://utxo-indexer.api-mainnet.umbraprivacy.com";
   }
 
   return "http://127.0.0.1:8899";
@@ -132,8 +132,8 @@ function defaultRelayerEndpoint(network) {
     return "https://relayer.api.umbraprivacy.com";
   }
 
-  if (network === "devnet") {
-    return "https://relayer.api-devnet.umbraprivacy.com";
+  if (network === "mainnet") {
+    return "https://relayer.api-mainnet.umbraprivacy.com";
   }
 
   return "http://127.0.0.1:8788";
@@ -171,11 +171,11 @@ function loadEnvFile(relativePath) {
 function normalizeNetwork(value) {
   const normalized = optionalEnv(value)?.toLowerCase();
 
-  if (normalized === "mainnet" || normalized === "devnet" || normalized === "localnet") {
+  if (normalized === "mainnet" || normalized === "localnet") {
     return normalized;
   }
 
-  return "devnet";
+  return "mainnet";
 }
 
 function optionalEnv(value) {

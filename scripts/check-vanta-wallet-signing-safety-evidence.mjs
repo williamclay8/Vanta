@@ -32,7 +32,7 @@ assert.equal(evidence.liveSendInventoryRef, "npm run wallet:live-send-inventory-
 assert.equal(evidence.liveMainnetSubmissionEnabled, true);
 assert.equal(evidence.mainnetSubmissionExplicitlyBlocked, false);
 assert.equal(evidence.browserVerificationMode, "local-dev-server-gsd-browser");
-assert.equal(evidence.browserVerificationCluster, "devnet-or-localnet");
+assert.equal(evidence.browserVerificationCluster, "mainnet-or-localnet");
 assert.deepEqual(evidence.browserVerifiedProtocolPages, ["Shield", "Send", "Swap", "Unshield"]);
 assert.equal(evidence.requiresExplicitHumanApproval, true);
 assert.equal(evidence.requiresSimulationBeforeSignature, true);

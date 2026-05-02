@@ -159,7 +159,7 @@ export function planShieldRoute({
       profile: vantaProfile,
       supported: true,
       warnings: [
-        "Vanta-local shielding is usable for configured devnet shield tokens, but it is not yet Umbra-level shared UTXO anonymity.",
+        "Vanta-local shielding is usable for configured mainnet shield tokens, but it is not yet Umbra-level shared UTXO anonymity.",
       ],
     } satisfies VantaPrivacyRouteAssessment;
 

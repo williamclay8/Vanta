@@ -9,7 +9,7 @@ export function createVantaWalletSigningSafetyPolicy() {
       "simulation-bypass",
       "unsigned-transaction-mutation-after-summary",
     ],
-    defaultCluster: "devnet-or-localnet",
+    defaultCluster: "mainnet-or-localnet",
     liveMainnetSubmissionEnabled: true,
     mainnetReady: false,
     neverStorePrivateKeys: true,

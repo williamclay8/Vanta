@@ -55,7 +55,7 @@ export type PublicToUsdcQuote = {
   outputMint: string;
   venueFamily: "Aggregator" | "DLMM";
   venueName: "Jupiter" | "Meteora";
-  venueNetwork: "Devnet";
+  venueNetwork: "Mainnet";
   venuePoolAddress: string;
   binArraysPubkey: string[];
   jupiterQuoteResponse?: JupiterQuoteResponse;
@@ -91,7 +91,7 @@ function getConnection() {
 
 async function getDlmmPool() {
   if (!liveSwapPair.venuePoolAddress) {
-    throw new Error("Swap requires one configured Meteora DLMM devnet pool.");
+    throw new Error("Swap requires one configured Meteora DLMM mainnet pool.");
   }
 
   if (!cachedPool || cachedPoolAddress !== liveSwapPair.venuePoolAddress) {
@@ -287,7 +287,7 @@ export async function fetchPublicToUsdcQuote(args: {
       outputMint: outputShieldAsset.mintAddress,
       venueFamily: "DLMM" as const,
       venueName: "Meteora" as const,
-      venueNetwork: "Devnet" as const,
+      venueNetwork: "Mainnet" as const,
       venuePoolAddress: liveSwapPair.venuePoolAddress ?? "",
       binArraysPubkey: [],
     } satisfies PublicToUsdcQuote;
@@ -324,7 +324,7 @@ export async function fetchPublicToUsdcQuote(args: {
           outputMint: outputShieldAsset.mintAddress,
           venueFamily: "DLMM" as const,
           venueName: "Meteora" as const,
-          venueNetwork: "Devnet" as const,
+          venueNetwork: "Mainnet" as const,
           venuePoolAddress: liveSwapPair.venuePoolAddress ?? "",
           binArraysPubkey: quote.binArraysPubkey.map((pubkey) => pubkey.toBase58()),
         } satisfies PublicToUsdcQuote;
@@ -354,7 +354,7 @@ export async function fetchPublicToUsdcQuote(args: {
     outputMint: outputShieldAsset.mintAddress,
     venueFamily: "Aggregator" as const,
     venueName: "Jupiter" as const,
-    venueNetwork: "Devnet" as const,
+    venueNetwork: "Mainnet" as const,
     venuePoolAddress: "aggregated-route",
     binArraysPubkey: [],
     jupiterQuoteResponse: parsed,

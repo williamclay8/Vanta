@@ -13,13 +13,13 @@ import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { resolve } from "node:path";
 
-const RPC_URL = process.env.SOLANA_RPC_URL || "https://api.devnet.solana.com";
+const RPC_URL = process.env.SOLANA_RPC_URL || "https://api.mainnet-beta.solana.com";
 const PROGRAM_ID = requireEnv("VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID");
 const KEYPAIR_PATH = process.env.SOLANA_KEYPAIR || `${homedir()}/.config/solana/id.json`;
-const SLOT_COUNT = Number.parseInt(process.env.VANTA_PRIVATE_POOL_V2_DEVNET_SMOKE_SLOT_COUNT || "4", 10);
+const SLOT_COUNT = Number.parseInt(process.env.VANTA_PRIVATE_POOL_V2_MAINNET_SMOKE_SLOT_COUNT || "4", 10);
 const CLUSTER = process.env.VANTA_PRIVATE_POOL_V2_SPEND_PROGRAM_SMOKE_CLUSTER || inferCluster(RPC_URL);
 const APPROVAL = approvalToken(CLUSTER);
-const APPROVAL_ENV_NAME = "VANTA_PRIVATE_POOL_V2_DEVNET_SMOKE_APPROVAL";
+const APPROVAL_ENV_NAME = "VANTA_PRIVATE_POOL_V2_MAINNET_SMOKE_APPROVAL";
 const MAX_SOL_AT_RISK = Number.parseFloat(process.env.VANTA_PRIVATE_POOL_V2_SPEND_PROGRAM_SMOKE_MAX_SOL || "0");
 
 const POOL_STATE_LEN = 56;
@@ -27,7 +27,7 @@ const NULLIFIER_SET_LEN = 16 + 32 * SLOT_COUNT;
 const OUTPUT_QUEUE_LEN = 16 + 96 * SLOT_COUNT;
 
 if (!Number.isInteger(SLOT_COUNT) || SLOT_COUNT < 2 || SLOT_COUNT > 64) {
-  throw new Error("VANTA_PRIVATE_POOL_V2_DEVNET_SMOKE_SLOT_COUNT must be an integer from 2 to 64.");
+  throw new Error("VANTA_PRIVATE_POOL_V2_MAINNET_SMOKE_SLOT_COUNT must be an integer from 2 to 64.");
 }
 
 const connection = new Connection(RPC_URL, "confirmed");
@@ -182,7 +182,7 @@ async function simulate(label, transaction, signers, avoidBlockhash = "") {
   transaction.recentBlockhash = await latestDistinctBlockhash(avoidBlockhash);
   transaction.sign(...signers);
   const result = await connection.simulateTransaction(transaction);
-  if (process.env.VANTA_PRIVATE_POOL_V2_DEVNET_SMOKE_VERBOSE === "true") {
+  if (process.env.VANTA_PRIVATE_POOL_V2_MAINNET_SMOKE_VERBOSE === "true") {
     console.error(`${label} simulation`, JSON.stringify(result.value, null, 2));
   }
   return result;
@@ -196,7 +196,7 @@ async function latestDistinctBlockhash(avoidBlockhash) {
     }
     await new Promise((resolveDelay) => setTimeout(resolveDelay, 500));
   }
-  throw new Error("Timed out waiting for a fresh devnet blockhash.");
+  throw new Error("Timed out waiting for a fresh mainnet blockhash.");
 }
 
 function bytes32(fill) {
@@ -215,7 +215,7 @@ function loadKeypair(path) {
 function requireEnv(name) {
   const value = process.env[name]?.trim();
   if (!value) {
-    throw new Error(`Missing ${name}. Deploy the program to devnet first and pass its program id.`);
+    throw new Error(`Missing ${name}. Deploy the program to mainnet first and pass its program id.`);
   }
   return value;
 }
@@ -224,8 +224,8 @@ function inferCluster(rpcUrl) {
   if (rpcUrl.includes("mainnet")) {
     return "mainnet-beta";
   }
-  if (rpcUrl.includes("devnet")) {
-    return "devnet";
+  if (rpcUrl.includes("mainnet")) {
+    return "mainnet";
   }
   return "custom";
 }
@@ -234,5 +234,5 @@ function approvalToken(cluster) {
   if (cluster === "mainnet-beta") {
     return "I_APPROVE_VANTA_MAINNET_SPEND_PROGRAM_SMOKE";
   }
-  return "I_APPROVE_VANTA_DEVNET_SPEND_PROGRAM_SMOKE";
+  return "I_APPROVE_VANTA_MAINNET_SPEND_PROGRAM_SMOKE";
 }

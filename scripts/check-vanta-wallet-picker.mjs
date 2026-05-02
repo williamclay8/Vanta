@@ -109,8 +109,8 @@ if (
 }
 requireIncludes(
   walletContext,
-  'vantaSolanaCluster === "mainnet-beta"',
-  "Wallet context SOL balance fallback must choose mainnet read endpoints without mixing in devnet while recovering mainnet balances.",
+  "const defaults = [MAINNET_WALLET_BALANCE_READ_ENDPOINT]",
+  "Wallet context SOL balance fallback must choose mainnet read endpoints while recovering mainnet balances.",
 );
 requireIncludes(
   appLayout,

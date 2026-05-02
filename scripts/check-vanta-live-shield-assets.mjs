@@ -12,12 +12,12 @@ loadEnvFile(".env.operator.local");
 const rpcUrl =
   process.env.SOLANA_RPC_URL ??
   process.env.VITE_SOLANA_RPC_URL ??
-  "https://api.devnet.solana.com";
+  "https://api.mainnet-beta.solana.com";
 const vaultOwnerValue =
-  process.env.VANTA_DEVNET_VAULT_OWNER ?? process.env.VITE_VANTA_DEVNET_VAULT_OWNER;
+  process.env.VANTA_MAINNET_VAULT_OWNER ?? process.env.VITE_VANTA_MAINNET_VAULT_OWNER;
 
 if (!vaultOwnerValue) {
-  throw new Error("Expected VANTA_DEVNET_VAULT_OWNER or VITE_VANTA_DEVNET_VAULT_OWNER.");
+  throw new Error("Expected VANTA_MAINNET_VAULT_OWNER or VITE_VANTA_MAINNET_VAULT_OWNER.");
 }
 
 const connection = new Connection(rpcUrl, "confirmed");
@@ -28,66 +28,66 @@ const configuredAssets = [
   {
     symbol: "USDC",
     mintAddress:
-      process.env.VANTA_DEVNET_TOKEN_MINT ?? process.env.VITE_VANTA_DEVNET_TOKEN_MINT,
+      process.env.VANTA_MAINNET_TOKEN_MINT ?? process.env.VITE_VANTA_MAINNET_TOKEN_MINT,
     name:
-      process.env.VITE_VANTA_DEVNET_TOKEN_NAME ?? "Vanta Devnet Test Dollar",
-    decimals: Number(process.env.VITE_VANTA_DEVNET_TOKEN_DECIMALS ?? "6"),
+      process.env.VITE_VANTA_MAINNET_TOKEN_NAME ?? "Vanta Mainnet Test Dollar",
+    decimals: Number(process.env.VITE_VANTA_MAINNET_TOKEN_DECIMALS ?? "6"),
   },
   {
     symbol: "USDC",
     mintAddress:
-      process.env.VANTA_DEVNET_USDC_MINT ?? process.env.VITE_VANTA_DEVNET_USDC_MINT,
+      process.env.VANTA_MAINNET_USDC_MINT ?? process.env.VITE_VANTA_MAINNET_USDC_MINT,
     name:
-      process.env.VITE_VANTA_DEVNET_USDC_NAME ?? "USD Coin (Devnet)",
-    decimals: Number(process.env.VITE_VANTA_DEVNET_USDC_DECIMALS ?? "6"),
+      process.env.VITE_VANTA_MAINNET_USDC_NAME ?? "USD Coin (Mainnet)",
+    decimals: Number(process.env.VITE_VANTA_MAINNET_USDC_DECIMALS ?? "6"),
   },
   {
     symbol: "JTO",
     mintAddress:
-      process.env.VANTA_DEVNET_JTO_MINT ?? process.env.VITE_VANTA_DEVNET_JTO_MINT,
+      process.env.VANTA_MAINNET_JTO_MINT ?? process.env.VITE_VANTA_MAINNET_JTO_MINT,
     name:
-      process.env.VITE_VANTA_DEVNET_JTO_NAME ?? "Jito (Devnet Test)",
-    decimals: Number(process.env.VITE_VANTA_DEVNET_JTO_DECIMALS ?? "9"),
+      process.env.VITE_VANTA_MAINNET_JTO_NAME ?? "Jito (Mainnet Test)",
+    decimals: Number(process.env.VITE_VANTA_MAINNET_JTO_DECIMALS ?? "9"),
   },
   {
     symbol: "BONK",
     mintAddress:
-      process.env.VANTA_DEVNET_BONK_MINT ?? process.env.VITE_VANTA_DEVNET_BONK_MINT,
+      process.env.VANTA_MAINNET_BONK_MINT ?? process.env.VITE_VANTA_MAINNET_BONK_MINT,
     name:
-      process.env.VITE_VANTA_DEVNET_BONK_NAME ?? "Bonk (Devnet Test)",
-    decimals: Number(process.env.VITE_VANTA_DEVNET_BONK_DECIMALS ?? "5"),
+      process.env.VITE_VANTA_MAINNET_BONK_NAME ?? "Bonk (Mainnet Test)",
+    decimals: Number(process.env.VITE_VANTA_MAINNET_BONK_DECIMALS ?? "5"),
   },
   {
     symbol: "JUP",
     mintAddress:
-      process.env.VANTA_DEVNET_JUP_MINT ?? process.env.VITE_VANTA_DEVNET_JUP_MINT,
+      process.env.VANTA_MAINNET_JUP_MINT ?? process.env.VITE_VANTA_MAINNET_JUP_MINT,
     name:
-      process.env.VITE_VANTA_DEVNET_JUP_NAME ?? "Jupiter (Devnet Test)",
-    decimals: Number(process.env.VITE_VANTA_DEVNET_JUP_DECIMALS ?? "6"),
+      process.env.VITE_VANTA_MAINNET_JUP_NAME ?? "Jupiter (Mainnet Test)",
+    decimals: Number(process.env.VITE_VANTA_MAINNET_JUP_DECIMALS ?? "6"),
   },
   {
     symbol: "PYUSD",
     mintAddress:
-      process.env.VANTA_DEVNET_PYUSD_MINT ?? process.env.VITE_VANTA_DEVNET_PYUSD_MINT,
+      process.env.VANTA_MAINNET_PYUSD_MINT ?? process.env.VITE_VANTA_MAINNET_PYUSD_MINT,
     name:
-      process.env.VITE_VANTA_DEVNET_PYUSD_NAME ?? "PayPal USD (Devnet Test)",
-    decimals: Number(process.env.VITE_VANTA_DEVNET_PYUSD_DECIMALS ?? "6"),
+      process.env.VITE_VANTA_MAINNET_PYUSD_NAME ?? "PayPal USD (Mainnet Test)",
+    decimals: Number(process.env.VITE_VANTA_MAINNET_PYUSD_DECIMALS ?? "6"),
   },
   {
     symbol: "WIF",
     mintAddress:
-      process.env.VANTA_DEVNET_WIF_MINT ?? process.env.VITE_VANTA_DEVNET_WIF_MINT,
+      process.env.VANTA_MAINNET_WIF_MINT ?? process.env.VITE_VANTA_MAINNET_WIF_MINT,
     name:
-      process.env.VITE_VANTA_DEVNET_WIF_NAME ?? "dogwifhat (Devnet Test)",
-    decimals: Number(process.env.VITE_VANTA_DEVNET_WIF_DECIMALS ?? "6"),
+      process.env.VITE_VANTA_MAINNET_WIF_NAME ?? "dogwifhat (Mainnet Test)",
+    decimals: Number(process.env.VITE_VANTA_MAINNET_WIF_DECIMALS ?? "6"),
   },
   {
     symbol: "KMNO",
     mintAddress:
-      process.env.VANTA_DEVNET_KMNO_MINT ?? process.env.VITE_VANTA_DEVNET_KMNO_MINT,
+      process.env.VANTA_MAINNET_KMNO_MINT ?? process.env.VITE_VANTA_MAINNET_KMNO_MINT,
     name:
-      process.env.VITE_VANTA_DEVNET_KMNO_NAME ?? "Kamino (Devnet Test)",
-    decimals: Number(process.env.VITE_VANTA_DEVNET_KMNO_DECIMALS ?? "6"),
+      process.env.VITE_VANTA_MAINNET_KMNO_NAME ?? "Kamino (Mainnet Test)",
+    decimals: Number(process.env.VITE_VANTA_MAINNET_KMNO_DECIMALS ?? "6"),
   },
 ].filter((asset) => asset.mintAddress);
 
@@ -102,7 +102,7 @@ for (const asset of configuredAssets) {
   const mintInfo = await connection.getParsedAccountInfo(mint, "confirmed");
 
   if (!mintInfo.value) {
-    throw new Error(`${asset.symbol} mint ${asset.mintAddress} is not present on devnet.`);
+    throw new Error(`${asset.symbol} mint ${asset.mintAddress} is not present on mainnet.`);
   }
 
   const walletAta = await getAssociatedTokenAddress(mint, wallet.publicKey);

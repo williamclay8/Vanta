@@ -4,7 +4,7 @@
 
 This document defines the first implementation-facing cryptographic artifact for Vanta ZK Phase 1: the canonical note schema.
 
-Vanta already has a proven constrained devnet lifecycle for `Shield`, `Send`, constrained one-way `USDC -> SOL` swap, and operator-backed `USDC` and `SOL` unshield. That lifecycle is real, but it is not yet the final zk-private protocol. The canonical note schema is the first step in changing that. It defines the protocol object that future shielded state, commitment insertion, owner recovery, and spend-readiness work should build around.
+Vanta already has a proven constrained mainnet lifecycle for `Shield`, `Send`, constrained one-way `USDC -> SOL` swap, and operator-backed `USDC` and `SOL` unshield. That lifecycle is real, but it is not yet the final zk-private protocol. The canonical note schema is the first step in changing that. It defines the protocol object that future shielded state, commitment insertion, owner recovery, and spend-readiness work should build around.
 
 This is not a frontend note model. It is a protocol-level schema for a shielded value object that can later support commitments, encrypted owner recovery, and nullifier-safe spend semantics.
 
@@ -414,7 +414,7 @@ This document does not finalize:
 - final recipient privacy UX
 - final wallet key hierarchy
 
-It also does not claim that Vanta is already zk-private today. The current live devnet lifecycle remains a constrained real protocol loop, not the final privacy core.
+It also does not claim that Vanta is already zk-private today. The current live mainnet lifecycle remains a constrained real protocol loop, not the final privacy core.
 
 ## Recommended Immediate Next Steps
 

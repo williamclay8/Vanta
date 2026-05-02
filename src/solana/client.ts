@@ -1,11 +1,8 @@
 import { autoDiscover, createClient, type WalletConnector } from "@solana/client";
 
 const configuredSolanaCluster = import.meta.env.VITE_SOLANA_CLUSTER?.trim();
-const effectiveSolanaCluster = configuredSolanaCluster || (import.meta.env.PROD ? "mainnet-beta" : "devnet");
-const defaultSolanaRpcEndpoint =
-  effectiveSolanaCluster === "mainnet-beta"
-    ? "https://api.mainnet-beta.solana.com"
-    : "https://api.devnet.solana.com";
+const effectiveSolanaCluster = configuredSolanaCluster === "mainnet" ? "mainnet-beta" : "mainnet-beta";
+const defaultSolanaRpcEndpoint = "https://api.mainnet-beta.solana.com";
 
 export const endpoint =
   import.meta.env.VITE_SOLANA_BROWSER_RPC_URL ??
@@ -29,5 +26,4 @@ export function createSolanaClient(
   });
 }
 
-export const solanaClusterLabel =
-  effectiveSolanaCluster === "mainnet-beta" ? "Mainnet" : "Devnet";
+export const solanaClusterLabel = "Mainnet";
