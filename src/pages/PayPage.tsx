@@ -336,13 +336,13 @@ export function PayPage() {
   return (
     <section className="pay-page pay-page--transaction" aria-labelledby="pay-title">
       <div className="pay-shell pay-shell--minimal">
-        <header className="pay-topbar pay-topbar--minimal pay-page__hero product-intro">
+        <header className="module-page__hero send-page__hero pay-topbar pay-topbar--minimal pay-page__hero product-intro">
           <div>
             <span className="pay-kicker product-intro__eyebrow">Vanta Pay</span>
-            <h1 id="pay-title">Create checkout session</h1>
+            <h1 id="pay-title">Pay</h1>
             <p>
-              Test mode creates a checkout session, completes a guarded test settlement, and
-              shows the receipt-backed payment record.
+              Create a buyer preview, generate a local receipt-backed settlement record, and show
+              what each party can verify.
             </p>
             <div className="pay-hero-badges" aria-label="Pay beta status">
               <span>{isBetaMode ? "Test mode" : "Test harness"}</span>
@@ -350,17 +350,42 @@ export function PayPage() {
               <span>Production privacy claims remain locked.</span>
             </div>
           </div>
+          <div className="module-state">
+            <strong>Receipt-backed</strong>
+            <p>Counterparties can inspect the payment record while private rail details stay scoped.</p>
+          </div>
         </header>
 
-        <main className="pay-minimal-stage">
-          <article className="pay-payment-card pay-payment-card--cockpit">
+        <div className="send-flow-indicator pay-flow-indicator" aria-label="Pay flow">
+          {["Create", "Approve", "Settle", "Share receipt"].map((step, index) => (
+            <div
+              key={step}
+              className={
+                (phase !== "draft" && index === 0) ||
+                (phase === "settlement_complete" && index === 2) ||
+                (phase === "settlement_complete" && index === 3)
+                  ? "send-flow-step send-flow-step--active"
+                  : "send-flow-step"
+              }
+            >
+              <span>{step}</span>
+            </div>
+          ))}
+        </div>
+
+        <main className="pay-minimal-stage send-layout">
+          <article className="send-card send-card--workspace pay-payment-card pay-payment-card--cockpit">
             <div className="pay-request-grid">
               <section className="pay-request-builder" aria-labelledby="pay-details-title">
-                <header>
-                  <span className="pay-kicker">Request builder</span>
-                  <h2 id="pay-details-title">Payment details</h2>
-                  <p>Create a test checkout session before live approval or production settlement.</p>
+                <header className="shield-card__header">
+                  <div>
+                    <span>Request builder</span>
+                  </div>
                 </header>
+                <div className="pay-builder-intro">
+                  <h2 id="pay-details-title">Payment details</h2>
+                  <p>Create a test payment request before live approval or production settlement.</p>
+                </div>
 
                 <form
                   aria-label="Payment form"
@@ -440,10 +465,10 @@ export function PayPage() {
                   <PayButton
                     type="submit"
                   >
-                    Create checkout session
+                    Create payment request
                   </PayButton>
                   <small className="pay-submit-note">
-                    Creates a test checkout session. Completion uses a local test private-rail receipt.
+                    Creates a test payment request. Completion generates a local receipt packet for review.
                   </small>
                 </form>
               </section>
@@ -457,7 +482,7 @@ export function PayPage() {
                 </div>
                 <dl className="pay-request-meta">
                   <div>
-                    <dt>Test link</dt>
+                    <dt>Buyer preview link</dt>
                     <dd>{createdRecord?.session.checkoutUrl ?? checkoutUrl}</dd>
                   </div>
                   <div>
@@ -480,7 +505,7 @@ export function PayPage() {
               </aside>
             </div>
 
-            <section className="pay-path-card" aria-label="Transaction status">
+            <section className="status-panel pay-path-card" aria-label="Transaction status">
               <div className="pay-section-mini-header">
                 <span className="pay-kicker">Transaction status</span>
                 <strong>Live approval and execution are locked in beta.</strong>
@@ -518,7 +543,7 @@ export function PayPage() {
                     ? "Payment record completed"
                     : phase === "checkout_created"
                       ? "Checkout session created"
-                      : "Create a checkout session to unlock the test link."}
+                      : "Create a payment request to unlock the buyer preview link."}
                 </strong>
               </div>
 
@@ -546,7 +571,7 @@ export function PayPage() {
                   onClick={completeTestSettlement}
                   type="button"
                 >
-                  <span>Complete test settlement</span>
+                  <span>Generate test receipt</span>
                 </button>
                 <button
                   className="pay-workflow-action"
@@ -584,13 +609,13 @@ export function PayPage() {
                 </button>
               </div>
 
-              <section className="pay-record-panel" aria-live="polite">
+              <section className="pay-record-panel review-list" aria-live="polite">
                 <div>
                   <span>Payment records</span>
                   <strong>
                     {createdRecord
                       ? createdRecord.session.lineItems[0]?.name
-                      : "No test checkout session created yet."}
+                      : "No test payment request created yet."}
                   </strong>
                 </div>
                 {createdRecord ? (
@@ -669,7 +694,7 @@ export function PayPage() {
                     </div>
                   </dl>
                 ) : (
-                  <p>No test checkout session created yet.</p>
+                  <p>No test payment request created yet.</p>
                 )}
                 {phase === "settlement_complete" && createdRecord ? (
                   <p>No production funds moved. Production privacy claims remain locked.</p>
@@ -691,7 +716,7 @@ export function PayPage() {
               {phase === "settlement_complete" && createdRecord?.receipt ? (
                 <section
                   ref={receiptPacketRef}
-                  className="pay-record-panel pay-record-panel--receipt-packet"
+                  className="pay-record-panel pay-record-panel--receipt-packet review-list"
                   aria-label="Receipt packet"
                   tabIndex={-1}
                 >
@@ -744,8 +769,8 @@ export function PayPage() {
 
               <div className="pay-suite-plain-rows" aria-label="More payment records">
                 <p>
-                  <span>Payment links</span>
-                  Create a checkout session, then copy its hosted test link.
+                  <span>Buyer preview links</span>
+                  Create a payment request, then copy the buyer preview link.
                 </p>
                 <p>
                   <span>Invoices</span>

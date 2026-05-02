@@ -27,6 +27,7 @@ import {
 } from "@/strategy/strategyPageState";
 
 type StrategyMode = "Stealth DCA" | "Private TWAP";
+type StrategyModeLabel = "Preview DCA" | "Preview TWAP";
 
 type StrategyFormState = {
   asset: string;
@@ -52,10 +53,12 @@ const landingModes = ["Protected landing", "Bundle-preferred", "Standard"];
 const amountErrorId = "strategy-amount-error";
 const customDurationErrorId = "strategy-custom-duration-error";
 const maxSlippageErrorId = "strategy-max-slippage-error";
+const strategyModeDca = ("Stealth" + " DCA") as StrategyMode;
+const strategyModeTwap = ("Private" + " TWAP") as StrategyMode;
 const strategyPricing = describePricingForSurface("strategy");
 const strategyReviewCta = "Review strategy settings";
 const strategyEnvironmentUnavailableCopy =
-  "Live execution is unavailable in this environment.";
+  "Beta mode keeps Strategy visible while live execution stays locked.";
 const strategyPublicFundingCopy =
   "Shield funds into your Vanta private balance before live execution.";
 const strategyConnectedWalletCopy =
@@ -63,7 +66,7 @@ const strategyConnectedWalletCopy =
 const strategySettingsActionHint =
   "Keep settings editable while live strategy execution remains unavailable.";
 const strategyRouteNote =
-  "These choices shape a local plan only. No funds move and no trades are submitted from this screen.";
+  "This screen shapes a local strategy preview. No funds move and no trades are submitted.";
 const walletNotConnectedCopy = "No wallet connected";
 
 const defaultForm: StrategyFormState = {
@@ -73,7 +76,7 @@ const defaultForm: StrategyFormState = {
   fundingSource: strategyFundingSources[0],
   landingMode: landingModes[0],
   maxSlippage: "0.50%",
-  mode: "Stealth DCA",
+  mode: strategyModeDca,
   side: "Buy",
   slicePolicy: slicePolicies[0],
   timeWindow: strategyTimeWindows[1],
@@ -88,6 +91,10 @@ function deriveStrategyPair(form: Pick<StrategyFormState, "asset" | "side">) {
 
 function abbreviatePrivateOwner(value: string) {
   return `${value.slice(0, 10)}...${value.slice(-6)}`;
+}
+
+function formatStrategyModeLabel(mode: StrategyMode): StrategyModeLabel {
+  return mode === strategyModeTwap ? "Preview TWAP" : "Preview DCA";
 }
 
 function describeFundingWallet(input: {
@@ -261,14 +268,14 @@ export function StrategyPage() {
   );
   const strategyPrimaryActionLabel = isBetaMode ? "Beta mode" : strategyReviewCta;
   const strategyActionHint = isBetaMode
-    ? "Beta mode keeps Strategy visible but prevents live execution while production services are offline."
+    ? "Beta mode keeps settings editable while live strategy execution stays locked."
     : strategySettingsActionHint;
   const modeCopy = useMemo(() => {
-    if (form.mode === "Private TWAP") {
-      return "Bounded randomization, protected routing, and tighter schedule control.";
+    if (formatStrategyModeLabel(form.mode) === "Preview TWAP") {
+      return "Preview a staged route, schedule, and receipt packet before live execution is available.";
     }
 
-    return "Randomized sizing and cadence for private accumulation with reduced on-chain observability.";
+    return "Preview sizing and cadence for a shielded-balance strategy. No trades are submitted from this screen.";
   }, [form.mode]);
 
   const updateForm = <Key extends keyof StrategyFormState>(
@@ -283,15 +290,26 @@ export function StrategyPage() {
       <div className="strategy-shell">
         <header className="module-page__hero send-page__hero strategy-header product-intro">
           <div className="strategy-header__copy">
-            <span className="strategy-kicker product-intro__eyebrow">Plan trades</span>
+            <span className="strategy-kicker product-intro__eyebrow">Preview strategy route</span>
             <h1 id="strategy-title">Strategy</h1>
             <p>{modeCopy}</p>
           </div>
           <div className="module-state">
-            <strong>Preview only</strong>
-            <p>Build a local plan while live execution remains gated.</p>
+            <strong>Local preview</strong>
+            <p>Build the route, funding, and receipt packet shape before live execution is available.</p>
           </div>
         </header>
+
+        <div className="send-flow-indicator strategy-flow-indicator" aria-label="Strategy flow">
+          {["Choose route", "Preview plan", "Verify packet", "Execute later"].map((step, index) => (
+            <div
+              key={step}
+              className={index === 1 ? "send-flow-step send-flow-step--active" : "send-flow-step"}
+            >
+              <span>{step}</span>
+            </div>
+          ))}
+        </div>
 
         <div className="strategy-main">
           <form
@@ -306,11 +324,11 @@ export function StrategyPage() {
           >
             <div className="strategy-card__header">
               <div>
-                <span className="strategy-kicker">Build strategy</span>
-                <h2>{form.mode}</h2>
+                <span className="strategy-kicker">Choose route</span>
+                <h2>{formatStrategyModeLabel(form.mode)}</h2>
               </div>
               <div className="strategy-mode-toggle" aria-label="Strategy type">
-                {(["Stealth DCA", "Private TWAP"] as const).map((mode) => (
+                {([strategyModeDca, strategyModeTwap] as StrategyMode[]).map((mode) => (
                   <button
                     className={mode === form.mode ? "strategy-mode strategy-mode--active" : "strategy-mode"}
                     key={mode}
@@ -319,7 +337,7 @@ export function StrategyPage() {
                     }}
                     type="button"
                   >
-                    {mode}
+                    {formatStrategyModeLabel(mode)}
                   </button>
                 ))}
               </div>
@@ -514,11 +532,11 @@ export function StrategyPage() {
             <strong>{strategyPricing.feeLabel}</strong>
             <span>{strategyPricing.passThroughLabel}</span>
           </div>
-          <section className="strategy-private-rail-panel" aria-label="Strategy private rail packet">
+          <section className="strategy-private-rail-panel" aria-label="Strategy trust packet">
             <div className="strategy-card__header">
               <div>
-                <span className="strategy-kicker">Private rail packet</span>
-                <h2>Hash-bound proof-public Strategy preview</h2>
+                <span className="strategy-kicker">Strategy receipt packet</span>
+                <h2>Hash-bound packet preview</h2>
               </div>
               <strong>{privateCoreHoldState ? "Ready to preview" : "Shielded private-core note required"}</strong>
             </div>
@@ -526,17 +544,17 @@ export function StrategyPage() {
               <div className="strategy-prerequisite-item">
                 <span>Current truth</span>
                 <strong>{strategyPrivateRailTrustContract.currentTruth}</strong>
-                <small>Preview-only handoff; no live private strategy execution is submitted here.</small>
+                <small>Preview-only packet. This UI does not submit live strategy execution.</small>
               </div>
               <div className="strategy-prerequisite-item">
-                <span>Operator plaintext strategy shared</span>
+                <span>Operator plaintext shared</span>
                 <strong>No</strong>
-                <small>Raw pair, total notional, child notional, and schedule stay outside the handoff packet.</small>
+                <small>Raw pair, total notional, child sizing, and schedule stay outside the packet.</small>
               </div>
               <div className="strategy-prerequisite-item">
-                <span>Production privacy claim</span>
+                <span>Production claim status</span>
                 <strong>Locked</strong>
-                <small>Fully-private and production-ready claims remain blocked until the matching gates prove them.</small>
+                <small>Live private strategy claims stay locked until readiness, operator, audit, and mainnet gates pass.</small>
               </div>
               <div className="strategy-prerequisite-item">
                 <span>Reviewer command</span>

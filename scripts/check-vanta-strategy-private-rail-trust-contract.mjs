@@ -50,12 +50,12 @@ const railSource = requireMarkers("src/strategy/strategyPrivateRail.ts", [
 const pageSource = requireMarkers("src/pages/StrategyPage.tsx", [
   "getStrategyPrivateRailTrustContract",
   "strategyPrivateRailTrustContract",
-  "Strategy private rail packet",
-  "Private rail packet",
-  "Hash-bound proof-public Strategy preview",
-  "Operator plaintext strategy shared",
+  "Strategy trust packet",
+  "Strategy receipt packet",
+  "Proof-backed packet preview",
+  "Operator plaintext shared",
   "Shielded private-core note required",
-  "Fully-private and production-ready claims remain blocked until the matching gates prove them.",
+  "Live private strategy claims stay locked until readiness, operator, audit, and mainnet gates pass.",
   "npm run strategy:private-rail-check",
 ]);
 

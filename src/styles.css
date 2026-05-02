@@ -3198,6 +3198,10 @@ input {
   justify-items: stretch;
 }
 
+.pay-page .module-page__hero.product-intro {
+  margin-inline: auto;
+}
+
 .pay-topbar:not(.product-intro),
 .pay-section-header,
 .pay-hero,
@@ -3361,6 +3365,10 @@ input {
   border-radius: 22px;
 }
 
+.pay-page__hero.product-intro.pay-topbar {
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.42fr);
+}
+
 .pay-page__hero.pay-topbar h1 {
   font-size: clamp(2.7rem, 5.6vw, 4.7rem);
   line-height: 1;
@@ -3497,6 +3505,21 @@ input {
   display: grid;
   gap: 12px;
   justify-items: center;
+}
+
+.pay-minimal-stage.send-layout {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: stretch;
+}
+
+.pay-flow-indicator,
+.strategy-flow-indicator {
+  margin-bottom: 0;
+}
+
+.pay-builder-intro {
+  display: grid;
+  gap: 6px;
 }
 
 .pay-action-card {
@@ -4743,6 +4766,9 @@ input {
 .strategy-shell {
   display: grid;
   gap: 0;
+}
+
+.strategy-shell {
   width: 100%;
 }
 
