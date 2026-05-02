@@ -9,6 +9,7 @@ function readRepoFile(path) {
 }
 
 const registrySource = readRepoFile("src/solana/useVantaShieldAssetRegistryState.ts");
+const clientSource = readRepoFile("src/solana/client.ts");
 const recentTokenNotesSource = readRepoFile("src/solana/recentShieldTokenNotes.ts");
 const shieldConfigSource = readRepoFile("src/solana/shieldConfig.ts");
 const shieldPageSource = readRepoFile("src/pages/ShieldPage.tsx");
@@ -158,6 +159,18 @@ for (const marker of [
     `Shield state recovery must parse Memo instructions when signature summaries omit memo text: ${marker}.`,
   );
 }
+
+assert.ok(
+  clientSource.includes("VITE_SOLANA_BROWSER_RPC_URL") &&
+    clientSource.includes("VITE_SOLANA_BROWSER_WS_URL") &&
+    !clientSource.includes("VITE_SOLANA_RPC_URL"),
+  "Browser Solana client must not consume server RPC envs; use browser-safe RPC envs or cluster defaults.",
+);
+assert.ok(
+  shieldStateSource.includes("VITE_SOLANA_BROWSER_RPC_URL") &&
+    !shieldStateSource.includes("VITE_SOLANA_RPC_URL"),
+  "Browser shield-state memo recovery must not consume server RPC envs.",
+);
 
 for (const symbol of directShieldSymbols) {
   assert.ok(

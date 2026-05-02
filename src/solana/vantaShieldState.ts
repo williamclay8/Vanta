@@ -40,10 +40,10 @@ const shieldStateRpcEndpoint =
   (import.meta as ImportMeta & {
     env?: {
       PROD?: boolean;
+      VITE_SOLANA_BROWSER_RPC_URL?: string;
       VITE_SOLANA_CLUSTER?: string;
-      VITE_SOLANA_RPC_URL?: string;
     };
-  }).env?.VITE_SOLANA_RPC_URL ??
+  }).env?.VITE_SOLANA_BROWSER_RPC_URL ??
   (((import.meta as ImportMeta & { env?: { VITE_SOLANA_CLUSTER?: string } }).env?.VITE_SOLANA_CLUSTER ??
     ((import.meta as ImportMeta & { env?: { PROD?: boolean } }).env?.PROD ? "mainnet-beta" : "devnet")) ===
   "mainnet-beta"

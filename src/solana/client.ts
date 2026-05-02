@@ -2,15 +2,17 @@ import { autoDiscover, createClient, type WalletConnector } from "@solana/client
 
 const configuredSolanaCluster = import.meta.env.VITE_SOLANA_CLUSTER?.trim();
 const effectiveSolanaCluster = configuredSolanaCluster || (import.meta.env.PROD ? "mainnet-beta" : "devnet");
+const defaultSolanaRpcEndpoint =
+  effectiveSolanaCluster === "mainnet-beta"
+    ? "https://api.mainnet-beta.solana.com"
+    : "https://api.devnet.solana.com";
 
 export const endpoint =
-  import.meta.env.VITE_SOLANA_RPC_URL ??
-  (effectiveSolanaCluster === "mainnet-beta"
-    ? "https://api.mainnet-beta.solana.com"
-    : "https://api.devnet.solana.com");
+  import.meta.env.VITE_SOLANA_BROWSER_RPC_URL ??
+  defaultSolanaRpcEndpoint;
 
 export const websocketEndpoint =
-  import.meta.env.VITE_SOLANA_WS_URL ??
+  import.meta.env.VITE_SOLANA_BROWSER_WS_URL ??
   endpoint.replace("https://", "wss://").replace("http://", "ws://");
 
 export function discoverWalletConnectors() {
