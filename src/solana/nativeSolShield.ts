@@ -81,7 +81,11 @@ function formatLamportsAsSol(lamports: number) {
   return `${whole}.${fractional}`.replace(/(\.\d*?[1-9])0+$/u, "$1").replace(/\.0+$/u, "");
 }
 
-function readTransferLamports(instruction: unknown, owner: string, vaultOwner: string) {
+export function readNativeSolShieldTransferLamports(
+  instruction: unknown,
+  owner: string,
+  vaultOwner: string,
+) {
   if (typeof instruction !== "object" || instruction === null) {
     return null;
   }
@@ -130,6 +134,72 @@ async function fetchParsedTransactionsOneAtATime(
   return transactions;
 }
 
+function amountDisplayToLamports(amountDisplay: string) {
+  return Number(solToLamports(amountDisplay));
+}
+
+export function readNativeSolShieldTransactionTransferLamports(args: {
+  owner: string;
+  transaction: unknown;
+  vaultOwner: string;
+}) {
+  const instructions =
+    typeof args.transaction === "object" && args.transaction !== null
+      ? (args.transaction as {
+          transaction?: { message?: { instructions?: unknown } };
+        }).transaction?.message?.instructions
+      : null;
+
+  if (!Array.isArray(instructions)) {
+    return null;
+  }
+
+  return instructions
+    .map((instruction) =>
+      readNativeSolShieldTransferLamports(instruction, args.owner, args.vaultOwner),
+    )
+    .find((lamports): lamports is number => typeof lamports === "number") ?? null;
+}
+
+export function hasMatchingNativeSolShieldTransfer(args: {
+  amountDisplay: string;
+  owner: string;
+  transaction: unknown;
+  vaultOwner: string;
+}) {
+  const transferLamports = readNativeSolShieldTransactionTransferLamports({
+    owner: args.owner,
+    transaction: args.transaction,
+    vaultOwner: args.vaultOwner,
+  });
+
+  if (!transferLamports) {
+    return false;
+  }
+
+  return transferLamports === amountDisplayToLamports(args.amountDisplay);
+}
+
+export async function verifyNativeSolShieldDepositSignature(args: {
+  amountDisplay: string;
+  owner: string;
+  signature: string;
+  vaultOwner: string;
+}) {
+  const connection = new Connection(endpoint, "confirmed");
+  const transaction = await connection.getParsedTransaction(args.signature, {
+    commitment: "confirmed",
+    maxSupportedTransactionVersion: 0,
+  });
+
+  return hasMatchingNativeSolShieldTransfer({
+    amountDisplay: args.amountDisplay,
+    owner: args.owner,
+    transaction,
+    vaultOwner: args.vaultOwner,
+  });
+}
+
 export async function fetchNativeSolShieldDepositCandidates(args: {
   existingDepositSignatures?: ReadonlySet<string>;
   limit?: number;
@@ -160,7 +230,7 @@ export async function fetchNativeSolShieldDepositCandidates(args: {
 
     const signature = candidateSignatures[index];
     const transferLamports = transaction.transaction.message.instructions
-      .map((instruction) => readTransferLamports(instruction, args.owner, vaultOwner))
+      .map((instruction) => readNativeSolShieldTransferLamports(instruction, args.owner, vaultOwner))
       .find((lamports): lamports is number => typeof lamports === "number");
 
     if (!transferLamports) {

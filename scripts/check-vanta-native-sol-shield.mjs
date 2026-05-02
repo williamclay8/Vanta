@@ -27,6 +27,11 @@ assert.ok(
   "Shield state must include direct SOL shield notes.",
 );
 assert.ok(
+  shieldStateSource.includes("hasMatchingNativeSolShieldTransfer") &&
+    shieldStateSource.includes("transaction: item.transaction"),
+  "Direct SOL shield notes must be backed by a matching confirmed owner-to-vault SOL transfer in the same transaction.",
+);
+assert.ok(
   shieldStateSource.includes("...directShieldedSolNotes"),
   "Shielded SOL notes must include direct native SOL shield entries.",
 );
@@ -75,6 +80,11 @@ assert.ok(
 assert.ok(
   shieldPageSource.includes("VANTA_NATIVE_SOL_SAME_TRANSACTION_DEPOSIT_SIGNATURE"),
   "Native SOL Shield must bind the same transaction as both transfer and shield-state record.",
+);
+assert.ok(
+  shieldPageSource.includes("verifyNativeSolShieldDepositSignature") &&
+    shieldPageSource.includes("no matching SOL transfer to the Vanta vault was confirmed"),
+  "Native SOL Shield completion must verify the confirmed transaction actually moved SOL to the Vanta vault before recording shielded SOL.",
 );
 assert.ok(
   shieldPageSource.includes('summaryInstructions: ["native-sol-shield-transfer", "shield-state-memo"]'),

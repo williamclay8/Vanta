@@ -13,6 +13,7 @@ import {
   type LiveShieldTokenAssetKey,
 } from "@/solana/shieldConfig";
 import { endpoint } from "@/solana/client";
+import { hasMatchingNativeSolShieldTransfer } from "@/solana/nativeSolShield";
 import {
   decryptVantaShieldMemoWithViewingKey,
   encryptVantaShieldMemoToViewingKey,
@@ -46,6 +47,7 @@ type ShieldMemoEncryptionOptions = {
 type SignatureMemoEntry = {
   memo: string | null;
   signature: string;
+  transaction?: unknown;
 };
 
 type ShieldMemoDecryptionOptions = {
@@ -965,7 +967,7 @@ async function fetchSignatureMemoEntries(args: {
         const memo = readParsedMemoText(instruction);
 
         if (memo) {
-          memoEntries.set(`${signature}:${memo}`, { memo, signature });
+          memoEntries.set(`${signature}:${memo}`, { memo, signature, transaction });
         }
       }
     }
@@ -1726,11 +1728,24 @@ export async function fetchVantaShieldAccountState(args: {
     })
     .sort((left, right) => left.createdAt - right.createdAt);
   const directShieldedSolNotes = signatureMemoEntries
-    .map((item) =>
-      parseNativeSolShieldMemo(item.memo, item.signature.toString(), args.owner, {
+    .map((item) => {
+      const note = parseNativeSolShieldMemo(item.memo, item.signature.toString(), args.owner, {
         viewingSecretKey: args.viewingSecretKey,
-      }),
-    )
+      });
+
+      if (!note) {
+        return null;
+      }
+
+      return hasMatchingNativeSolShieldTransfer({
+        amountDisplay: note.amount.toFixed(9),
+        owner: args.owner,
+        transaction: item.transaction,
+        vaultOwner: args.vaultOwner,
+      })
+        ? note
+        : null;
+    })
     .filter((note: Omit<VantaShieldedSolNote, "lifecycleStatus"> | null): note is Omit<VantaShieldedSolNote, "lifecycleStatus"> => {
       return note !== null && note.owner === args.owner && note.vaultOwner === args.vaultOwner;
     })

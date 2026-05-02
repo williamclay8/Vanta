@@ -5,6 +5,7 @@ import { useWalletState } from "@/data/context/WalletContext";
 import {
   buildNativeSolShieldTransferInstructions,
   fetchNativeSolShieldDepositCandidates,
+  verifyNativeSolShieldDepositSignature,
   type NativeSolShieldDepositCandidate,
 } from "@/solana/nativeSolShield";
 import {
@@ -400,6 +401,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     walletConnected &&
     (isNativeSolShield ? !!selectedShieldAsset?.vaultOwner : !!selectedShieldAsset?.mintAddress) &&
     !!selectedShieldAsset?.vaultOwner &&
+    !!viewingKey?.publicKey &&
     !!selectedSourceAsset &&
     !selectedSourceBalanceUnavailable &&
     Number.isFinite(parsedAmount) &&
@@ -903,6 +905,24 @@ export function ShieldPage(_props: ShieldPageProps) {
                 asset: "USDC",
               })
             : null;
+        if (
+          pendingShieldAsset === "SOL" &&
+          !pendingNativeSolDepositRecovery &&
+          walletAddress
+        ) {
+          const nativeSolTransferConfirmed = await verifyNativeSolShieldDepositSignature({
+            amountDisplay: pendingShieldAmountDisplay,
+            owner: walletAddress,
+            signature: activeStateSignature,
+            vaultOwner: activeShieldTarget.vaultOwner!,
+          });
+
+          if (!nativeSolTransferConfirmed) {
+            throw new Error(
+              "Shield memo was found, but no matching SOL transfer to the Vanta vault was confirmed.",
+            );
+          }
+        }
         const nextBalance = Number(
           (activeShieldedBalance + pendingShieldAmount).toFixed(activeShieldTarget.decimals),
         );
@@ -1173,6 +1193,8 @@ export function ShieldPage(_props: ShieldPageProps) {
     validationMessage = selectedVaultOwnerResolution.blocker;
   } else if (!selectedShieldAsset?.mintAddress || !selectedShieldAsset.vaultOwner) {
     validationMessage = "The selected shield target is not configured.";
+  } else if (!viewingKey?.publicKey) {
+    validationMessage = "Shield needs a local viewing key before it can write recoverable shield-state memos.";
   } else if (capability.blockers.length > 0) {
     validationMessage = capability.blockers[0] ?? "This asset is not currently supported.";
   } else if (supportedToken?.status === "loading" || supportedToken?.isFetching) {

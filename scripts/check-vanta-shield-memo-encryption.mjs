@@ -30,6 +30,12 @@ export function getLiveShieldTokenAsset(assetKey: LiveShieldTokenAssetKey) {
   };
 }
 `;
+const SOLANA_CLIENT_STUB = `export const endpoint = "https://api.mainnet-beta.solana.com";
+`;
+const NATIVE_SOL_SHIELD_STUB = `export function hasMatchingNativeSolShieldTransfer(_args) {
+  return false;
+}
+`;
 
 function assert(condition, message) {
   if (!condition) {
@@ -47,6 +53,14 @@ function copySource(relativePath) {
     .replace(
       /from "@\/solana\/vantaShieldViewingKey"/g,
       'from "./vantaShieldViewingKey"',
+    )
+    .replace(
+      /from "@\/solana\/client"/g,
+      'from "./client"',
+    )
+    .replace(
+      /from "@\/solana\/nativeSolShield"/g,
+      'from "./nativeSolShield"',
     );
   writeFileSync(
     join(tempTsDir, relativePath),
@@ -57,6 +71,8 @@ function copySource(relativePath) {
 function writeStubShieldConfig() {
   mkdirSync(join(tempTsDir, "solana"), { recursive: true });
   writeFileSync(join(tempTsDir, "solana/shieldConfig.ts"), SHIELD_CONFIG_STUB);
+  writeFileSync(join(tempTsDir, "solana/client.ts"), SOLANA_CLIENT_STUB);
+  writeFileSync(join(tempTsDir, "solana/nativeSolShield.ts"), NATIVE_SOL_SHIELD_STUB);
 }
 
 function patchRelativeImports(relativePath) {
@@ -103,7 +119,12 @@ try {
   }
   writeStubShieldConfig();
 
-  const allFiles = [...sourceFiles, "solana/shieldConfig.ts"];
+  const allFiles = [
+    ...sourceFiles,
+    "solana/shieldConfig.ts",
+    "solana/client.ts",
+    "solana/nativeSolShield.ts",
+  ];
 
   execFileSync(
     resolve(repoRoot, "node_modules/.bin/tsc"),
