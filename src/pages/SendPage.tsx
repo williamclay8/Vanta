@@ -1076,7 +1076,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
   const sendHelperMessage = shieldStateError
     ? shieldStateError
     : isBetaMode
-      ? "Beta mode keeps private send visible but prevents live settlement while production services are offline."
+      ? "Beta mode keeps private-core send visible but prevents live settlement while production evidence, approval, audit, replay, and operator-surface gates remain blocked."
       : selectedSendCapability.executionMode === "unsupported-private-send-asset"
         ? selectedSendCapability.blockers[0] ??
           "Private-core send currently supports shielded USDC."

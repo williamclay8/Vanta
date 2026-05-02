@@ -264,7 +264,7 @@ export function AppLayout() {
       {isBetaMode && (
         <div className="beta-mode-banner" role="status">
           <strong>Test mode</strong>
-          <span>No funds move in this mode. Live private settlement is offline until production services are resumed.</span>
+          <span>No funds move in this mode. Live private settlement stays blocked until evidence, approval, audit, replay, and operator-surface gates clear.</span>
         </div>
       )}
 

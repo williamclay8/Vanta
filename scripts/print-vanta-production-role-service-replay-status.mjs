@@ -13,11 +13,11 @@ function buildStatus() {
 
   return {
     barrierKind:
-      "verifier-receipt-idempotency-indexer-nullifier-registration-and-private-send-output-append",
+      "smoke-verified-verifier-receipt-and-indexer-nullifier-output-barrier",
     checkedAt: new Date().toISOString(),
     localOnlyVerification: true,
     localOnlyWarning:
-      "This packet is based on the deterministic local/staging role-service network check, not on authenticated live production settlement traffic.",
+      "This packet is based on the deterministic local/staging role-service network check, not on authenticated live production settlement traffic. It does not prove split-commit recovery, multi-replica role-state safety, or production idempotent verifier/indexer commits.",
     mainnetReady: false,
     operatorRemoteServicesSettlementSmokeCovered: true,
     productionReady: false,
@@ -36,6 +36,11 @@ function buildStatus() {
       "verifier-duplicate-receipt-rejection",
       "relayer-quote-and-submit-after-restart",
       "operator-remote-services-pay-settlement-smoke",
+    ],
+    unprovenProductionRecoveryChecks: [
+      "split-commit-recovery-between-indexer-transition-and-verifier-receipt",
+      "multi-replica-role-state-write-concurrency-safety",
+      "idempotent-verifier-indexer-commit-retry",
     ],
     serviceTopologyRef: "npm run mainnet:service-topology-check",
     servicesDeployedCount: deploymentEvidence.services?.length ?? 0,
@@ -59,7 +64,7 @@ if (checkMode) {
   assert.equal(result.remoteRuntimeMode, "remote-services");
   assert.equal(
     result.barrierKind,
-    "verifier-receipt-idempotency-indexer-nullifier-registration-and-private-send-output-append",
+    "smoke-verified-verifier-receipt-and-indexer-nullifier-output-barrier",
   );
   assert.equal(result.roleServiceNetworkCommand, "npm run private-pool-v2:service-network-check");
   assert.equal(result.roleStorageCommand, "npm run private-pool-v2:role-storage-check");
@@ -77,6 +82,16 @@ if (checkMode) {
     result.serviceEdgesCovered.includes("verifier-to-indexer-private-send-tampered-root-rejection"),
   );
   assert.ok(result.serviceEdgesCovered.includes("operator-remote-services-pay-settlement-smoke"));
+  assert.ok(
+    result.unprovenProductionRecoveryChecks.includes(
+      "split-commit-recovery-between-indexer-transition-and-verifier-receipt",
+    ),
+  );
+  assert.ok(
+    result.unprovenProductionRecoveryChecks.includes(
+      "multi-replica-role-state-write-concurrency-safety",
+    ),
+  );
   assert.equal(result.verifierToIndexerEdge?.auth, "mutual-service-auth");
   assert.equal(result.verifierToIndexerEdge?.failurePolicy, "fail-closed");
   assert.deepEqual(result.verifierToIndexerEdge?.requiredChecks, [

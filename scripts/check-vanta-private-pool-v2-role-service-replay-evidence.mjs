@@ -22,7 +22,7 @@ assert.equal(evidence.serviceDeploymentEvidenceRef, "ops/mainnet/service-deploym
 assert.equal(evidence.remoteRuntimeMode, "remote-services");
 assert.equal(
   evidence.barrierKind,
-  "verifier-receipt-idempotency-indexer-nullifier-registration-and-private-send-output-append",
+  "smoke-verified-verifier-receipt-and-indexer-nullifier-output-barrier",
 );
 assert.equal(evidence.localOnlyVerification, true);
 assert.equal(evidence.operatorRemoteServicesSettlementSmokeCovered, true);
@@ -48,6 +48,14 @@ assert.ok(
 assert.ok(
   evidence.deploymentTruth.includes("tampered private-send root rejection"),
   "Role-service replay evidence must record private-send atomic rejection.",
+);
+assert.ok(
+  evidence.deploymentTruth.includes("does not prove split-commit recovery"),
+  "Role-service replay evidence must not overclaim production idempotent recovery.",
+);
+assert.ok(
+  evidence.deploymentTruth.includes("multi-replica role-state safety"),
+  "Role-service replay evidence must carry the multi-replica role-state limitation.",
 );
 
 const serialized = JSON.stringify(evidence);
