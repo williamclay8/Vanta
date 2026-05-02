@@ -221,5 +221,16 @@ if (findings.length > 0) {
 }
 
 console.log("Vanta secret exposure check: PASS");
-console.log("Scanned repo files contain no raw-looking API keys, bearer tokens, database URLs, or private key blocks.");
+const scannedSources = ["tracked"];
+if (options.includeStaged) {
+  scannedSources.push("staged");
+}
+if (options.includeUntracked) {
+  scannedSources.push("untracked");
+}
+console.log(
+  `Scanned ${scannedSources.join(
+    " + ",
+  )} files contain no raw-looking API keys, bearer tokens, database URLs, or private key blocks.`,
+);
 console.log(JSON.stringify({ scannedCounts }, null, 2));
