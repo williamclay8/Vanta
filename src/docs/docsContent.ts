@@ -50,7 +50,7 @@ export const docsPages: DocsPageMeta[] = [
     slug: "/docs",
     title: "Vanta Docs",
     summary:
-      "Start here to understand what Vanta is, why it is useful, what works today, and what is still unfinished.",
+      "Start here to understand Vanta as beta, policy-safe private settlement for Solana stablecoin flows: what is useful, what can be verified, and what is still unfinished.",
     track: "shared",
     section: "home",
     badge: "design-partner-surface",
@@ -60,14 +60,14 @@ export const docsPages: DocsPageMeta[] = [
     nextStep: {
       label: "Start with Vanta Portal",
       href: "/docs/portal",
-      description: "See the crypto-native path into private state.",
+      description: "See how supported stablecoin flows enter private state.",
     },
   },
   {
     slug: "/docs/portal",
     title: "Vanta Portal",
     summary:
-      "Portal is the wallet path: shield supported assets into Vanta, use supported private actions, and unshield when needed.",
+      "Portal is the wallet path for supported Solana stablecoin flows: shield into Vanta, use supported private actions, and unshield when needed.",
     track: "portal",
     section: "portal",
     badge: "preview",
@@ -78,14 +78,14 @@ export const docsPages: DocsPageMeta[] = [
     nextStep: {
       label: "See how Vanta Pay builds on Portal",
       href: "/docs/pay",
-      description: "Follow the merchant-facing settlement story.",
+      description: "Follow how the same private-settlement rails become useful to merchants.",
     },
   },
   {
     slug: "/docs/pay",
     title: "Vanta Pay",
     summary:
-      "Pay is the merchant preview: payment requests, checkout, settlement status, refunds, withdrawals, and receipts in plain business language.",
+      "Pay is the merchant preview: private checkout and settlement records, proof-backed receipts, status, refunds, withdrawals, and reconciliation in plain business language.",
     track: "pay",
     section: "pay",
     badge: "forward-looking",
@@ -97,14 +97,14 @@ export const docsPages: DocsPageMeta[] = [
       label: "Review trust surfaces",
       href: "/docs/trust",
       description:
-        "See approval boundaries, operator truth, and verification commands.",
+        "See receipt, approval, operator, and verification boundaries.",
     },
   },
   {
     slug: "/docs/trust",
     title: "Trust",
     summary:
-      "Trust means the product says plainly what is live, what is a preview, who approves each step, and what commands prove it.",
+      "Trust means the product says plainly what happened, what remains private, who can verify it, what is live, and what is still preview-only.",
     track: "shared",
     section: "trust",
     badge: "live-now",
@@ -122,7 +122,7 @@ export const docsPages: DocsPageMeta[] = [
     slug: "/docs/security",
     title: "Security",
     summary:
-      "Security explains the current limits in normal language, including why Vanta is not production-ready yet.",
+      "Security explains the current beta limits in normal language, including why Vanta is not production-ready private settlement yet.",
     track: "shared",
     section: "security",
     badge: "live-now",
@@ -140,7 +140,7 @@ export const docsPages: DocsPageMeta[] = [
     slug: "/docs/roadmap",
     title: "Roadmap",
     summary:
-      "The roadmap shows how today's wallet and merchant previews can grow into the larger Vanta system without pretending it is finished.",
+      "The roadmap shows how today's wallet and merchant previews can grow into counterparty-useful private settlement without pretending it is finished.",
     track: "shared",
     section: "roadmap",
     badge: "forward-looking",

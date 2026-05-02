@@ -12,18 +12,24 @@ export function DocsPayPage() {
     <DocsPageTemplate
       title={page.title}
       summary={page.summary}
-      readFirst="Vanta Pay is a merchant preview for private checkout and settlement records. It is not a live production payment processor yet."
+      readFirst="Vanta Pay is a merchant preview for private checkout, settlement records, and trust packets. It is not a live production payment processor yet."
       badge={page.badge}
       nextStep={page.nextStep}
     >
       <section className="docs-page-section">
         <h2>What Vanta Pay is</h2>
         <p>
-          Vanta Pay applies the same shield-first idea to payments. Instead of
-          asking a business to understand privacy infrastructure, Pay starts
-          with normal merchant work: create a payment request, review checkout,
-          see settlement status, handle refunds and withdrawals, and keep
-          receipts.
+          Vanta Pay applies the same shield-first private-settlement idea to
+          commerce. Instead of asking a business to understand privacy
+          infrastructure, Pay starts with normal merchant work: create a payment
+          request, review checkout, see settlement status, handle refunds and
+          withdrawals, keep receipts, and reconcile what happened.
+        </p>
+        <p>
+          The merchant should not only hear that a payment was private. The
+          useful artifact is the receipt or trust packet: what happened, what
+          can be proven, what stayed private, who can verify it, and what action
+          comes next.
         </p>
       </section>
 
@@ -39,19 +45,19 @@ export function DocsPayPage() {
             </p>
           </article>
           <article className="docs-connection-card">
-            <h3>Clear payment records</h3>
+            <h3>Counterparty-useful receipts</h3>
             <p>
-              The Pay surface should say what happened, what still needs
-              approval, what remains visible, and whether the payment is only a
-              preview.
+              The Pay surface should tell the merchant what happened, what can
+              be checked, what remains private, and whether the payment is only
+              a preview.
             </p>
           </article>
           <article className="docs-connection-card">
-            <h3>Same privacy model</h3>
+            <h3>Same settlement model</h3>
             <p>
               Pay is the business version of the same idea Portal explains:
-              move value into a more private flow, do useful work, and keep the
-              exit path understandable.
+              move supported stablecoin value into a more private flow, do
+              useful work, and keep the proof and exit paths understandable.
             </p>
           </article>
         </div>
@@ -71,7 +77,7 @@ export function DocsPayPage() {
         <ul className="docs-bullet-list">
           <li>The default `/app/pay` tab is a merchant preview, not production payment infrastructure.</li>
           <li>It shows the payment request path first, then supporting records like refunds, withdrawals, receipts, and reconciliation.</li>
-          <li>Beta, no-funds, privacy-readiness, route, receipt, and transaction-evidence limits stay visible.</li>
+          <li>Beta, no-funds, privacy-readiness, route, receipt, trust-packet, and transaction-evidence limits stay visible.</li>
           <li>The backend verification commands remain the place to inspect deeper merchant API and settlement behavior.</li>
         </ul>
       </section>
@@ -82,7 +88,7 @@ export function DocsPayPage() {
           Portal explains how assets enter Vanta&apos;s private area. Pay explains
           why that matters for commerce: merchants need checkout, approvals,
           settlement status, refunds, withdrawals, receipts, and reconciliation
-          records they can understand.
+          records they can understand and share with the right counterparty.
         </p>
       </section>
     </DocsPageTemplate>

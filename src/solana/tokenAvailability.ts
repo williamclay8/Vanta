@@ -7,6 +7,7 @@ import {
   getLiveShieldTokenAsset,
   getPrimaryLiveShieldTokenAsset,
   isNativeSolShieldConfigured,
+  isNativeSolUnshieldConfigured,
   liveSwapPair,
   type LiveShieldTokenAssetKey,
 } from "@/solana/shieldConfig";
@@ -101,7 +102,7 @@ function configuredForShield(symbol: VantaPaymentSuiteTokenSymbol) {
 
 function configuredForUnshield(symbol: VantaPaymentSuiteTokenSymbol) {
   if (symbol === "SOL") {
-    return liveSwapPair.configured && Boolean(liveSwapPair.solUnshieldOperatorUrl);
+    return isNativeSolUnshieldConfigured();
   }
 
   if (!isLiveShieldToken(symbol)) {

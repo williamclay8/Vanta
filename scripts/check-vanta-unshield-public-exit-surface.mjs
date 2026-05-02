@@ -74,6 +74,26 @@ for (const [sourceLabel, source, phrase] of [
   [
     "shieldConfig",
     shieldConfigSource,
+    "VITE_VANTA_BONK_UNSHIELD_OPERATOR_URL",
+  ],
+  [
+    "shieldConfig",
+    shieldConfigSource,
+    "configuredBonkUnshieldOperatorUrl ?? effectiveUnshieldOperatorUrl",
+  ],
+  [
+    "shieldConfig",
+    shieldConfigSource,
+    "resolveSolUnshieldOperatorUrl",
+  ],
+  [
+    "shieldConfig",
+    shieldConfigSource,
+    'new URL("sol", `${args.sharedUnshieldOperatorUrl.replace(/\\/+$/, "")}/`).toString()',
+  ],
+  [
+    "shieldConfig",
+    shieldConfigSource,
     "http://127.0.0.1:8789/unshield/sol",
   ],
   [
@@ -105,6 +125,16 @@ for (const [sourceLabel, source, phrase] of [
     "Unshield page",
     unshieldPageSource,
     'solUnshieldOperatorHealth === "ready"',
+  ],
+  [
+    "Unshield page",
+    unshieldPageSource,
+    "Private note consumed; proof-backed operator release record recorded.",
+  ],
+  [
+    "env example",
+    envExampleSource,
+    "VITE_VANTA_BONK_UNSHIELD_OPERATOR_URL=http://127.0.0.1:8789/unshield",
   ],
   [
     "env example",

@@ -22,6 +22,30 @@ assert.equal(status.productionReady, false);
 assert.equal(status.privacyClaimAllowed, false);
 assert.equal(status.status, "blocked");
 assert.equal(status.localLaneCovered, true);
+assert.equal(status.actualPrivateUnshieldPlan.localPlanCovered, true);
+assert.equal(status.actualPrivateUnshieldPlan.action, "unshield");
+assert.equal(status.actualPrivateUnshieldPlan.operatorEndpoint, "/private-pool-v2/protocol-settlements");
+assert.equal(
+  status.actualPrivateUnshieldPlan.requiredOperatorProofMode,
+  "committed_unshield_or_claim_circuit_request",
+);
+assert.equal(status.runtimeProductionControls.covered, false);
+assert.equal(status.runtimeProductionControls.privatePoolV2RuntimeMode, "remote-services");
+assert.equal(
+  status.runtimeProductionControls.privatePoolV2StorageKind,
+  "postgres-jsonb-snapshot-store",
+);
+assert.equal(status.runtimeProductionControls.operatorEventSinkProductionReady, false);
+for (const blocker of [
+  "observability-provider-controls-pending",
+  "real-funds-readiness-pending",
+  "operator-event-sink-not-production-ready",
+]) {
+  assert.ok(
+    status.runtimeProductionControls.pending.includes(blocker),
+    `Unshield runtime production controls missing blocker: ${blocker}`,
+  );
+}
 assert.equal(status.noFundsOperatorEndpointCovered, true);
 assert.equal(status.liveSettlementProven, false);
 assert.equal(status.exactUnshieldApprovalScoped, false);
@@ -30,6 +54,8 @@ assert.equal(status.boundedApprovalActive, false);
 for (const blocker of [
   "no-reviewed-live-mainnet-unshield-settlement-evidence",
   "no-exact-unshield-bounded-approval-window",
+  "observability-provider-controls-pending",
+  "operator-event-sink-not-production-ready",
   "bounded-approval-window-expired",
   "no-proven-audited-shared-anonymity-set",
   "no-proven-live-mainnet-private-settlement-evidence",
@@ -45,6 +71,10 @@ for (const [key, command] of Object.entries({
   realFundsApprovalStatus: "npm run --silent mainnet:real-funds-approval-status-json",
   unshieldNoFundsEndpoint: "npm run unshield:sol-operator-endpoint-check",
   unshieldPublicExitSurface: "npm run unshield:public-exit-surface-check",
+  unshieldActualPrivatePlan: "npm run mainnet:actual-private-settlement-plan-check",
+  unshieldActualPrivatePlanJson: "npm run mainnet:actual-private-settlement-plan-json-check",
+  runtimeProductionControls: "npm run mainnet:abuse-observability-runtime-status-auth",
+  serviceDeploymentStatus: "npm run mainnet:service-deployment-status-check",
   walletSigningStatus: "npm run mainnet:wallet-signing-status-check",
 })) {
   assert.equal(status.evidenceRefs[key], command, `Unshield status evidence ref mismatch for ${key}.`);

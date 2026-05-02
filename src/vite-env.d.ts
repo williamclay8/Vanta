@@ -57,6 +57,7 @@ interface ImportMetaEnv {
   readonly VITE_VANTA_DEVNET_WIF_DECIMALS?: string;
   readonly VITE_VANTA_DEVNET_KMNO_DECIMALS?: string;
   readonly VITE_VANTA_UNSHIELD_OPERATOR_URL?: string;
+  readonly VITE_VANTA_BONK_UNSHIELD_OPERATOR_URL?: string;
   readonly VITE_VANTA_SWAP_OPERATOR_URL?: string;
   readonly VITE_VANTA_SOL_TO_SHIELDED_SWAP_OPERATOR_URL?: string;
   readonly VITE_VANTA_SOL_UNSHIELD_OPERATOR_URL?: string;

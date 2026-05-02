@@ -34,6 +34,7 @@ const badgeStyle: Record<DocsBadge, CSSProperties> = {
 export function DocsStatusBadge({ badge }: { badge: DocsBadge }) {
   return (
     <span
+      className="docs-status-badge"
       data-docs-badge={badge}
       style={{
         display: "inline-flex",

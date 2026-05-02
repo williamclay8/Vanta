@@ -93,6 +93,9 @@ const configuredVaultDerivationProgramId = getOptionalEnvValue(
 const configuredUnshieldOperatorUrl = getOptionalEnvValue(
   import.meta.env.VITE_VANTA_UNSHIELD_OPERATOR_URL,
 );
+const configuredBonkUnshieldOperatorUrl = getOptionalEnvValue(
+  import.meta.env.VITE_VANTA_BONK_UNSHIELD_OPERATOR_URL,
+);
 const configuredSwapOperatorUrl = getOptionalEnvValue(
   import.meta.env.VITE_VANTA_SWAP_OPERATOR_URL,
 );
@@ -115,9 +118,31 @@ const localSolUnshieldOperatorUrl = allowLocalOperatorFallback
   ? "http://127.0.0.1:8789/unshield/sol"
   : "";
 const effectiveUnshieldOperatorUrl = configuredUnshieldOperatorUrl ?? localUnshieldOperatorUrl;
+const effectiveBonkUnshieldOperatorUrl =
+  configuredBonkUnshieldOperatorUrl ?? effectiveUnshieldOperatorUrl;
 const effectiveSwapOperatorUrl = configuredSwapOperatorUrl ?? localSwapOperatorUrl;
+function resolveSolUnshieldOperatorUrl(args: {
+  configuredSolUnshieldOperatorUrl: string | null;
+  sharedUnshieldOperatorUrl: string;
+  localSolUnshieldOperatorUrl: string;
+}) {
+  if (args.configuredSolUnshieldOperatorUrl) {
+    return args.configuredSolUnshieldOperatorUrl;
+  }
+
+  if (args.sharedUnshieldOperatorUrl) {
+    return new URL("sol", `${args.sharedUnshieldOperatorUrl.replace(/\/+$/, "")}/`).toString();
+  }
+
+  return args.localSolUnshieldOperatorUrl;
+}
+
 const effectiveSolUnshieldOperatorUrl =
-  configuredSolUnshieldOperatorUrl ?? localSolUnshieldOperatorUrl;
+  resolveSolUnshieldOperatorUrl({
+    configuredSolUnshieldOperatorUrl,
+    localSolUnshieldOperatorUrl,
+    sharedUnshieldOperatorUrl: effectiveUnshieldOperatorUrl,
+  });
 
 export type LiveShieldTokenAssetKey =
   | "USDC"
@@ -150,6 +175,10 @@ export function isNativeSolShieldConfigured() {
   return Boolean(configuredVaultOwner);
 }
 
+export function isNativeSolUnshieldConfigured() {
+  return Boolean(configuredVaultOwner && effectiveSolUnshieldOperatorUrl);
+}
+
 function createLiveShieldTokenAssetConfig(args: {
   assetKey: LiveShieldTokenAssetKey;
   configuredMintAddress: string | null;
@@ -157,7 +186,10 @@ function createLiveShieldTokenAssetConfig(args: {
   defaultName: string;
   nameEnvValue?: string;
   priority: number;
+  unshieldOperatorUrl?: string;
 }): LiveShieldTokenAssetConfig {
+  const unshieldOperatorUrl = args.unshieldOperatorUrl ?? effectiveUnshieldOperatorUrl;
+
   return {
     assetKey: args.assetKey,
     cluster: vantaSolanaClusterLabel,
@@ -170,9 +202,9 @@ function createLiveShieldTokenAssetConfig(args: {
     priority: args.priority,
     symbol: args.assetKey,
     unshieldConfigured: Boolean(
-      args.configuredMintAddress && configuredVaultOwner && effectiveUnshieldOperatorUrl,
+      args.configuredMintAddress && configuredVaultOwner && unshieldOperatorUrl,
     ),
-    unshieldOperatorUrl: effectiveUnshieldOperatorUrl,
+    unshieldOperatorUrl,
     vaultOwner: configuredVaultOwner,
   };
 }
@@ -230,6 +262,7 @@ export const liveBonkShieldAsset: LiveShieldTokenAssetConfig = {
       ? import.meta.env.VITE_VANTA_MAINNET_BONK_NAME
       : import.meta.env.VITE_VANTA_DEVNET_BONK_NAME,
     priority: 3,
+    unshieldOperatorUrl: effectiveBonkUnshieldOperatorUrl,
   }),
 };
 

@@ -32,6 +32,23 @@ const planWithRelayerTransaction = createVantaActualPrivateSettlementPlan({
   nullifier: plan.request.nullifierOrReplayCommitment,
   relayerSerializedTransaction: `base64:${Buffer.from("actual-private-relayer-transaction").toString("base64")}`,
 });
+const unshieldPlan = createVantaActualPrivateSettlementPlan({
+  action: "unshield",
+  assetCohort: "stablecoin-usdc-v1",
+  assetIdCommitment: "commitment:asset-id",
+  economicsCommitment: "commitment:economics",
+  exitTermsCommitment: "commitment:exit-terms",
+  inputCommitment: "commitment:input-note",
+  inputRoot: "root:input",
+  nullifier: "nullifier:actual-private-unshield-demo",
+  ownerCommitment: "commitment:owner",
+  poolId: "pool:stablecoin-usdc-v1",
+  routeCommitment: "commitment:route",
+  settlementCommitment: "commitment:unshield-settlement",
+  settlementId: "settlement:actual-private-unshield-demo",
+  unshieldContextTag: "context:actual-private-unshield-demo",
+  unshieldPublicInputHash: "public-input-hash:actual-private-unshield-demo",
+});
 
 const calls = [];
 const result = await requestVantaActualPrivateSettlementViaRelayer({
@@ -47,6 +64,7 @@ const result = await requestVantaActualPrivateSettlementViaRelayer({
           return {
             protocolActionProofModes: {
               send: "actual_private_spend_circuit_request",
+              unshield: "committed_unshield_or_claim_circuit_request",
             },
           };
         },
@@ -95,6 +113,36 @@ assert.equal(result.responseDecision.accepted, true);
 assert.equal(result.evidenceRefs.operatorReceiptRef, "operator-receipt:ppv2_receipt");
 assert.equal(result.evidenceRefs.protocolSettlementRef, "operator-protocol-settlement:proto:actual-private-demo");
 assert.equal(result.evidenceRefs.relayerSubmittedSpendTxRef, null);
+
+assert.equal(
+  validateVantaActualPrivateSettlementResponse({
+    plan: unshieldPlan,
+    response: {
+      kind: "protocol_settlement",
+      proofReceipt: {
+        assetId: "hidden:economic-terms",
+        intent: "unshield",
+        publicInputCommitment: "commitment:proof-public-input",
+        receiptId: "receipt:actual-private-unshield-demo",
+        replayKey: "unshield:nullifier:actual-private-unshield-demo",
+      },
+      protocolSettlementReceipt: {
+        action: "unshield",
+        economicsCommitment: "commitment:economics",
+        economicsMode: "committed-economics",
+        exitTermsCommitment: "commitment:exit-terms",
+        id: "proto:actual-private-unshield-demo",
+        object: "protocol_settlement_receipt",
+        proofReceiptId: "ppv2_unshield_receipt",
+        proofReceiptPublicInputCommitment: "commitment:proof-public-input",
+        settlementCommitment: "commitment:unshield-settlement",
+        settlementId: "settlement:actual-private-unshield-demo",
+        status: "confirmed",
+      },
+    },
+  }).accepted,
+  true,
+);
 
 const body = JSON.parse(calls[1].body);
 assert.equal(body.action, "send");
@@ -206,6 +254,7 @@ await assert.rejects(
               return {
                 protocolActionProofModes: {
                   send: "send_circuit_request",
+                  unshield: "committed_unshield_or_claim_circuit_request",
                 },
               };
             },
@@ -216,6 +265,18 @@ await assert.rejects(
       },
     }),
   /operator-send-proof-mode-not-actual-private/,
+);
+
+assert.equal(
+  validateVantaActualPrivateOperatorCapability({
+    status: {
+      protocolActionProofModes: {
+        send: "actual_private_spend_circuit_request",
+        unshield: "unshield_circuit_request",
+      },
+    },
+  }).reason,
+  "operator-unshield-proof-mode-not-committed",
 );
 
 console.log("Vanta actual-private settlement relayer caller check: PASS");

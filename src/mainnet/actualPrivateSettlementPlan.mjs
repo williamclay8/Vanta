@@ -5,7 +5,6 @@ const forbiddenRequestKeys = new Set([
   "amount",
   "asset",
   "destination",
-  "inputCommitment",
   "inputLeafIndex",
   "merchantSettlementAddress",
   "owner",
@@ -53,29 +52,68 @@ function normalizeOptionalBase64Transaction(value) {
   return `base64:${base64}`;
 }
 
+function normalizeAction(value) {
+  if (value === undefined || value === null || value === "") {
+    return "send";
+  }
+
+  const action = requireText(value, "action");
+  if (action !== "send" && action !== "unshield") {
+    throw new Error("Actual-private settlement plan action must be send or unshield.");
+  }
+
+  return action;
+}
+
 export function createVantaActualPrivateSettlementPlan(input) {
-  const request = {
-    action: "send",
+  const action = normalizeAction(input.action);
+  const baseRequest = {
+    action,
     assetCohort: requireText(input.assetCohort, "assetCohort"),
     assetIdCommitment: requireText(input.assetIdCommitment, "assetIdCommitment"),
-    acceptedRoot: requireText(input.acceptedRoot, "acceptedRoot"),
-    changeLeafIndex: requireText(input.changeLeafIndex, "changeLeafIndex"),
-    changeOutputCommitment: requireText(input.changeOutputCommitment, "changeOutputCommitment"),
-    changeOutputRoot: requireText(input.changeOutputRoot, "changeOutputRoot"),
     economicsCommitment: requireText(input.economicsCommitment, "economicsCommitment"),
     economicsMode: "committed-economics",
     nullifierOrReplayCommitment: requireText(input.nullifier, "nullifier"),
-    outputCommitment: requireText(input.outputCommitment, "outputCommitment"),
-    outputLeafIndex: requireText(input.outputLeafIndex, "outputLeafIndex"),
-    outputRoot: requireText(input.outputRoot, "outputRoot"),
     ownerCommitment: requireText(input.ownerCommitment, "ownerCommitment"),
     poolId: requireText(input.poolId, "poolId"),
-    privateSpendContextHash: requireText(input.privateSpendContextHash, "privateSpendContextHash"),
-    privateSpendPublicInputHash: requireText(input.privateSpendPublicInputHash, "privateSpendPublicInputHash"),
     routeCommitment: requireText(input.routeCommitment, "routeCommitment"),
     settlementCommitment: requireText(input.settlementCommitment, "settlementCommitment"),
     settlementId: requireText(input.settlementId, "settlementId"),
   };
+  const request =
+    action === "unshield"
+      ? {
+          ...baseRequest,
+          exitTermsCommitment: requireText(input.exitTermsCommitment, "exitTermsCommitment"),
+          inputCommitment: requireText(input.inputCommitment, "inputCommitment"),
+          inputRoot: requireText(input.inputRoot, "inputRoot"),
+          unshieldContextTag: requireText(input.unshieldContextTag, "unshieldContextTag"),
+          unshieldPublicInputHash: requireText(
+            input.unshieldPublicInputHash,
+            "unshieldPublicInputHash",
+          ),
+        }
+      : {
+          ...baseRequest,
+          acceptedRoot: requireText(input.acceptedRoot, "acceptedRoot"),
+          changeLeafIndex: requireText(input.changeLeafIndex, "changeLeafIndex"),
+          changeOutputCommitment: requireText(
+            input.changeOutputCommitment,
+            "changeOutputCommitment",
+          ),
+          changeOutputRoot: requireText(input.changeOutputRoot, "changeOutputRoot"),
+          outputCommitment: requireText(input.outputCommitment, "outputCommitment"),
+          outputLeafIndex: requireText(input.outputLeafIndex, "outputLeafIndex"),
+          outputRoot: requireText(input.outputRoot, "outputRoot"),
+          privateSpendContextHash: requireText(
+            input.privateSpendContextHash,
+            "privateSpendContextHash",
+          ),
+          privateSpendPublicInputHash: requireText(
+            input.privateSpendPublicInputHash,
+            "privateSpendPublicInputHash",
+          ),
+        };
   const relayerSerializedTransaction = normalizeOptionalBase64Transaction(input.relayerSerializedTransaction);
   if (relayerSerializedTransaction) {
     request.relayerSerializedTransaction = relayerSerializedTransaction;
@@ -99,6 +137,11 @@ export function createVantaActualPrivateSettlementPlan(input) {
       "output-commitment-1",
       "context-hash",
       "private-spend-public-input-hash",
+      "input-root-for-unshield-only",
+      "input-commitment-for-unshield-only",
+      "exit-terms-commitment-for-unshield-only",
+      "unshield-context-tag-for-unshield-only",
+      "unshield-public-input-hash-for-unshield-only",
     ],
     request,
     version: VANTA_ACTUAL_PRIVATE_SETTLEMENT_PLAN_VERSION,
@@ -123,8 +166,56 @@ export function validateVantaActualPrivateSettlementPlan(plan) {
     };
   }
 
-  if (plan.request?.action !== "send" || plan.request?.economicsMode !== "committed-economics") {
+  if (
+    (plan.request?.action !== "send" && plan.request?.action !== "unshield") ||
+    plan.request?.economicsMode !== "committed-economics"
+  ) {
     return { accepted: false, reason: "invalid-action-or-economics-mode" };
+  }
+
+  const requiredFields =
+    plan.request.action === "unshield"
+      ? [
+          "assetCohort",
+          "assetIdCommitment",
+          "economicsCommitment",
+          "exitTermsCommitment",
+          "inputCommitment",
+          "inputRoot",
+          "nullifierOrReplayCommitment",
+          "ownerCommitment",
+          "poolId",
+          "routeCommitment",
+          "settlementCommitment",
+          "settlementId",
+          "unshieldContextTag",
+          "unshieldPublicInputHash",
+        ]
+      : [
+          "acceptedRoot",
+          "assetCohort",
+          "assetIdCommitment",
+          "changeLeafIndex",
+          "changeOutputCommitment",
+          "changeOutputRoot",
+          "economicsCommitment",
+          "nullifierOrReplayCommitment",
+          "outputCommitment",
+          "outputLeafIndex",
+          "outputRoot",
+          "ownerCommitment",
+          "poolId",
+          "privateSpendContextHash",
+          "privateSpendPublicInputHash",
+          "routeCommitment",
+          "settlementCommitment",
+          "settlementId",
+        ];
+
+  for (const field of requiredFields) {
+    if (typeof plan.request?.[field] !== "string" || plan.request[field].trim().length === 0) {
+      return { accepted: false, reason: `missing-${field}` };
+    }
   }
 
   try {

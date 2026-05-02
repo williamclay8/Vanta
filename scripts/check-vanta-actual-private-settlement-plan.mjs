@@ -33,6 +33,23 @@ const planWithRelayerTransaction = createVantaActualPrivateSettlementPlan({
   privateSpendPublicInputHash: plan.request.privateSpendPublicInputHash,
   relayerSerializedTransaction,
 });
+const unshieldPlan = createVantaActualPrivateSettlementPlan({
+  action: "unshield",
+  assetCohort: "stablecoin-usdc-v1",
+  assetIdCommitment: "commitment:asset-id",
+  economicsCommitment: "commitment:economics",
+  exitTermsCommitment: "commitment:exit-terms",
+  inputCommitment: "commitment:input-note",
+  inputRoot: "root:input",
+  nullifier: "nullifier:actual-private-unshield-demo",
+  ownerCommitment: "commitment:owner",
+  poolId: "pool:stablecoin-usdc-v1",
+  routeCommitment: "commitment:route",
+  settlementCommitment: "commitment:settlement",
+  settlementId: "settlement:actual-private-unshield-demo",
+  unshieldContextTag: "context:actual-private-unshield-demo",
+  unshieldPublicInputHash: "public-input-hash:actual-private-unshield-demo",
+});
 
 assert.equal(plan.operatorEndpoint, "/private-pool-v2/protocol-settlements");
 assert.equal(plan.request.action, "send");
@@ -53,6 +70,21 @@ assert.deepEqual(validateVantaActualPrivateSettlementPlan(planWithRelayerTransac
   accepted: true,
   reason: "actual-private-settlement-plan-ready",
 });
+assert.equal(unshieldPlan.operatorEndpoint, "/private-pool-v2/protocol-settlements");
+assert.equal(unshieldPlan.request.action, "unshield");
+assert.equal(unshieldPlan.request.economicsMode, "committed-economics");
+assert.equal(unshieldPlan.request.exitTermsCommitment, "commitment:exit-terms");
+assert.equal(unshieldPlan.request.inputCommitment, "commitment:input-note");
+assert.equal(unshieldPlan.request.inputRoot, "root:input");
+assert.equal(unshieldPlan.request.unshieldContextTag, "context:actual-private-unshield-demo");
+assert.equal(
+  unshieldPlan.request.unshieldPublicInputHash,
+  "public-input-hash:actual-private-unshield-demo",
+);
+assert.deepEqual(validateVantaActualPrivateSettlementPlan(unshieldPlan), {
+  accepted: true,
+  reason: "actual-private-settlement-plan-ready",
+});
 
 const serialized = JSON.stringify(plan);
 for (const forbidden of [
@@ -69,6 +101,24 @@ for (const forbidden of [
   "rawAsset",
 ]) {
   assert.ok(!serialized.includes(forbidden), `Actual-private settlement plan leaked forbidden term ${forbidden}.`);
+}
+
+const serializedUnshield = JSON.stringify(unshieldPlan);
+for (const forbidden of [
+  "\"amount\"",
+  "\"asset\"",
+  "\"destination\"",
+  "inputLeafIndex",
+  "merchantSettlementAddress",
+  "payerSourceWallet",
+  "sourceWallet",
+  "rawAmount",
+  "rawAsset",
+]) {
+  assert.ok(
+    !serializedUnshield.includes(forbidden),
+    `Actual-private Unshield settlement plan leaked forbidden term ${forbidden}.`,
+  );
 }
 
 const rejected = {
@@ -95,5 +145,16 @@ assert.match(
   validateVantaActualPrivateSettlementPlan(rejectedRelayerTransaction).reason,
   /base64 relayerSerializedTransaction/,
 );
+
+const rejectedUnshield = {
+  ...unshieldPlan,
+  request: {
+    ...unshieldPlan.request,
+    exitTermsCommitment: "",
+  },
+};
+
+assert.equal(validateVantaActualPrivateSettlementPlan(rejectedUnshield).accepted, false);
+assert.equal(validateVantaActualPrivateSettlementPlan(rejectedUnshield).reason, "missing-exitTermsCommitment");
 
 console.log("Vanta actual-private settlement plan check: PASS");

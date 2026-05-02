@@ -28,6 +28,16 @@ const env = {
   VANTA_ACTUAL_PRIVATE_SETTLEMENT_COMMITMENT: "commitment:settlement",
   VANTA_ACTUAL_PRIVATE_SETTLEMENT_ID: "settlement:actual-private-live-candidate",
 };
+const unshieldEnv = {
+  ...env,
+  VANTA_ACTUAL_PRIVATE_ACTION: "unshield",
+  VANTA_ACTUAL_PRIVATE_EXIT_TERMS_COMMITMENT: "commitment:exit-terms",
+  VANTA_ACTUAL_PRIVATE_INPUT_COMMITMENT: "commitment:input-note",
+  VANTA_ACTUAL_PRIVATE_INPUT_ROOT: "root:input",
+  VANTA_ACTUAL_PRIVATE_UNSHIELD_CONTEXT_TAG: "context:actual-private-unshield-live-candidate",
+  VANTA_ACTUAL_PRIVATE_UNSHIELD_PUBLIC_INPUT_HASH:
+    "public-input-hash:actual-private-unshield-live-candidate",
+};
 
 const run = spawnSync("node", [scriptPath], {
   cwd: repoRoot,
@@ -48,7 +58,27 @@ assert.equal(planJson.nullifier, env.VANTA_ACTUAL_PRIVATE_NULLIFIER);
 assert.equal(planJson.outputLeafIndex, env.VANTA_ACTUAL_PRIVATE_OUTPUT_LEAF_INDEX);
 assert.equal(planJson.outputRoot, env.VANTA_ACTUAL_PRIVATE_OUTPUT_ROOT);
 assert.equal(planJson.privateSpendPublicInputHash, env.VANTA_ACTUAL_PRIVATE_SPEND_PUBLIC_INPUT_HASH);
-assert.equal(Object.keys(planJson).length, 18);
+assert.equal(planJson.action, "send");
+assert.equal(Object.keys(planJson).length, 19);
+
+const unshieldRun = spawnSync("node", [scriptPath], {
+  cwd: repoRoot,
+  encoding: "utf8",
+  env: unshieldEnv,
+});
+assert.equal(unshieldRun.status, 0, unshieldRun.stderr || unshieldRun.stdout);
+assert.equal(unshieldRun.stderr, "");
+
+const unshieldPlanJson = JSON.parse(unshieldRun.stdout);
+assert.equal(unshieldPlanJson.action, "unshield");
+assert.equal(unshieldPlanJson.exitTermsCommitment, unshieldEnv.VANTA_ACTUAL_PRIVATE_EXIT_TERMS_COMMITMENT);
+assert.equal(unshieldPlanJson.inputCommitment, unshieldEnv.VANTA_ACTUAL_PRIVATE_INPUT_COMMITMENT);
+assert.equal(unshieldPlanJson.inputRoot, unshieldEnv.VANTA_ACTUAL_PRIVATE_INPUT_ROOT);
+assert.equal(unshieldPlanJson.unshieldContextTag, unshieldEnv.VANTA_ACTUAL_PRIVATE_UNSHIELD_CONTEXT_TAG);
+assert.equal(
+  unshieldPlanJson.unshieldPublicInputHash,
+  unshieldEnv.VANTA_ACTUAL_PRIVATE_UNSHIELD_PUBLIC_INPUT_HASH,
+);
 
 const exportRun = spawnSync("node", [scriptPath, "--export"], {
   cwd: repoRoot,
@@ -62,7 +92,6 @@ for (const forbidden of [
   "amount",
   "asset",
   "destination",
-  "inputCommitment",
   "inputLeafIndex",
   "merchantSettlementAddress",
   "payerSourceWallet",
@@ -71,6 +100,11 @@ for (const forbidden of [
   "sourceWallet",
 ]) {
   assert.equal(Object.hasOwn(planJson, forbidden), false, `Plan JSON must not contain key ${forbidden}.`);
+  assert.equal(
+    Object.hasOwn(unshieldPlanJson, forbidden),
+    false,
+    `Unshield plan JSON must not contain key ${forbidden}.`,
+  );
 }
 
 const serialized = JSON.stringify(planJson);

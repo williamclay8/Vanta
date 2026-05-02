@@ -14,6 +14,7 @@ Create a local `.env` file from `.env.example` and set:
 VITE_VANTA_DEVNET_TOKEN_MINT=...
 VITE_VANTA_DEVNET_VAULT_OWNER=...
 VITE_VANTA_UNSHIELD_OPERATOR_URL=http://127.0.0.1:8789/unshield
+VITE_VANTA_BONK_UNSHIELD_OPERATOR_URL=http://127.0.0.1:8789/unshield
 VITE_VANTA_SOL_UNSHIELD_OPERATOR_URL=http://127.0.0.1:8789/unshield/sol
 
 VANTA_DEVNET_TOKEN_MINT=...
@@ -86,6 +87,7 @@ The operator expects:
 
 The browser expects:
 - `VITE_VANTA_UNSHIELD_OPERATOR_URL` for SPL token Unshield
+- `VITE_VANTA_BONK_UNSHIELD_OPERATOR_URL` for BONK Unshield when BONK needs a distinct SPL operator endpoint; it falls back to `VITE_VANTA_UNSHIELD_OPERATOR_URL`
 - `VITE_VANTA_SOL_UNSHIELD_OPERATOR_URL` for SOL Unshield
 
 The SOL endpoint can be checked without moving funds:

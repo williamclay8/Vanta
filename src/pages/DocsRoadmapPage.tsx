@@ -22,14 +22,14 @@ export function DocsRoadmapPage() {
           Vanta&apos;s roadmap is merchant-first in product language, even though
           Portal remains the easiest way to understand how the system works.
           Pay is the flagship direction because merchants have a concrete
-          problem: they need private checkout and settlement to feel like normal
-          operations, not a protocol diagram.
+          problem: they need private checkout and stablecoin settlement to feel
+          like normal operations, not a protocol diagram.
         </p>
         <p>
           That does not make Portal secondary. Portal explains where privacy
           begins and how the current lanes fit together. Today&apos;s repo truth is
-          still preview checkout plus merchant control-plane visibility, not a
-          live merchant network.
+          still beta private-settlement rails, preview checkout, and merchant
+          control-plane visibility, not a live merchant network.
         </p>
       </section>
 
@@ -39,23 +39,25 @@ export function DocsRoadmapPage() {
           <article className="docs-connection-card">
             <h3>Portal explains the model</h3>
             <p>
-              Portal gives the simple system path: shield into Vanta, use a
-              supported private action, and unshield when needed.
+              Portal gives the simple system path: shield supported stablecoins
+              into Vanta, use a supported private action, and unshield when
+              needed.
             </p>
           </article>
           <article className="docs-connection-card">
             <h3>Pay packages the story</h3>
             <p>
               Pay takes the same system and frames it around business needs:
-              approval, settlement visibility, payouts, and reconciliation.
+              approval, settlement visibility, receipts, payouts, and
+              reconciliation.
             </p>
           </article>
           <article className="docs-connection-card">
-            <h3>Shared truth still governs both</h3>
+            <h3>Trust packets connect both</h3>
             <p>
               Neither path should outrun the current operator or readiness
-              truth. The roadmap only works if those pages keep telling the
-              same story.
+              truth. The roadmap only works if receipts stay useful to the
+              counterparty and beta limits stay visible.
             </p>
           </article>
         </div>
@@ -63,6 +65,14 @@ export function DocsRoadmapPage() {
 
       <section className="docs-page-section">
         <h2>Roadmap phases</h2>
+        <div className="docs-callout docs-callout--warm">
+          <strong>Every phase has a truth gate.</strong>
+          <p>
+            A roadmap item is not a production claim. It becomes stronger only
+            when the matching proof, operator, service, browser, and security
+            checks say the surface is ready.
+          </p>
+        </div>
         <div className="docs-step-grid" aria-label="Roadmap phases">
           {roadmap.map((phase, index) => (
             <article className="docs-step-card" key={phase.phase}>
@@ -81,6 +91,7 @@ export function DocsRoadmapPage() {
         <ul className="docs-bullet-list">
           <li>Do not imply a finished merchant network before the work exists.</li>
           <li>Keep Portal and Pay connected as one system, not two disconnected brands.</li>
+          <li>Make each private action produce or point to a receipt, trust packet, status, or verification artifact.</li>
           <li>Keep preview, demo, control-plane, constrained, and live surfaces clearly labeled as the roadmap evolves.</li>
           <li>Use plain customer language first, then link to technical proof when readers need it.</li>
         </ul>

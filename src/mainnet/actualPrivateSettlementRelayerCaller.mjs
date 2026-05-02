@@ -29,7 +29,7 @@ export function validateVantaActualPrivateSettlementResponse({ plan, response })
   if (response?.kind !== "protocol_settlement") {
     return { accepted: false, reason: "invalid-response-kind" };
   }
-  if (response.protocolSettlementReceipt?.action !== "send") {
+  if (response.protocolSettlementReceipt?.action !== plan.request.action) {
     return { accepted: false, reason: "invalid-receipt-action" };
   }
   if (response.protocolSettlementReceipt?.economicsMode !== "committed-economics") {
@@ -41,14 +41,26 @@ export function validateVantaActualPrivateSettlementResponse({ plan, response })
   if (response.protocolSettlementReceipt?.settlementCommitment !== plan.request.settlementCommitment) {
     return { accepted: false, reason: "settlement-commitment-mismatch" };
   }
-  if (response.proofReceipt?.intent !== "private-send") {
+  const expectedIntent = plan.request.action === "unshield" ? "unshield" : "private-send";
+  const expectedReplayKeyPrefix = plan.request.action === "unshield" ? "unshield" : "private-send";
+
+  if (response.proofReceipt?.intent !== expectedIntent) {
     return { accepted: false, reason: "invalid-proof-intent" };
   }
   if (response.proofReceipt?.assetId !== "hidden:economic-terms") {
     return { accepted: false, reason: "invalid-hidden-asset" };
   }
-  if (response.proofReceipt?.replayKey !== `private-send:${plan.request.nullifierOrReplayCommitment}`) {
+  if (
+    response.proofReceipt?.replayKey !==
+    `${expectedReplayKeyPrefix}:${plan.request.nullifierOrReplayCommitment}`
+  ) {
     return { accepted: false, reason: "replay-key-mismatch" };
+  }
+  if (
+    plan.request.action === "unshield" &&
+    response.protocolSettlementReceipt?.exitTermsCommitment !== plan.request.exitTermsCommitment
+  ) {
+    return { accepted: false, reason: "exit-terms-commitment-mismatch" };
   }
   if (!response.protocolSettlementReceipt?.proofReceiptPublicInputCommitment) {
     return { accepted: false, reason: "missing-proof-public-input-commitment" };
@@ -71,6 +83,12 @@ export function validateVantaActualPrivateSettlementResponse({ plan, response })
 export function validateVantaActualPrivateOperatorCapability({ status }) {
   if (status?.protocolActionProofModes?.send !== "actual_private_spend_circuit_request") {
     return { accepted: false, reason: "operator-send-proof-mode-not-actual-private" };
+  }
+  if (
+    status?.protocolActionProofModes?.unshield !==
+    "committed_unshield_or_claim_circuit_request"
+  ) {
+    return { accepted: false, reason: "operator-unshield-proof-mode-not-committed" };
   }
 
   return { accepted: true, reason: "actual-private-operator-capability-ready" };

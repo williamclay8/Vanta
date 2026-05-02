@@ -2324,7 +2324,7 @@ export function UnshieldPage() {
             </span>
             <p>
               {privateCoreUnshieldState.consumeSucceeded
-                ? "Funds unshielded successfully."
+                ? "Private note consumed; proof-backed operator release record recorded."
                 : privateCoreUnshieldState.replayRejected
                   ? privateCoreUnshieldState.errorMessage ?? "Replay was rejected."
                   : privateCoreUnshieldState.errorMessage ?? "Waiting for the next action."}
