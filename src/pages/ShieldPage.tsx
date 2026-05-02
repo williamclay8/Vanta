@@ -3,6 +3,7 @@ import { isBetaMode } from "@/config/deploymentMode";
 import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
 import { useWalletState } from "@/data/context/WalletContext";
 import {
+  assertNativeSolShieldSourceAccountReady,
   buildNativeSolShieldTransferInstructions,
   fetchNativeSolShieldDepositCandidates,
   verifyNativeSolShieldDepositSignature,
@@ -98,6 +99,10 @@ function toErrorMessage(error: unknown, fallback: string) {
         : "";
 
     return `Solana RPC returned an HTTP error${detail}. Shield was not confirmed through the browser RPC endpoint; try again with a browser-compatible mainnet RPC.`;
+  }
+
+  if (message.includes("AccountNotFound")) {
+    return "The connected wallet account was not found on Solana mainnet. Fund this wallet with mainnet SOL before shielding.";
   }
 
   return error instanceof Error ? error.message : fallback;
@@ -535,6 +540,11 @@ export function ShieldPage(_props: ShieldPageProps) {
       }),
     );
     setStatus("awaiting_wallet_confirmation");
+
+    await assertNativeSolShieldSourceAccountReady({
+      amountDisplay,
+      owner: walletAddress,
+    });
 
     const instructions = [
       ...buildNativeSolShieldTransferInstructions({

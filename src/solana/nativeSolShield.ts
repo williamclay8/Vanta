@@ -200,6 +200,28 @@ export async function verifyNativeSolShieldDepositSignature(args: {
   });
 }
 
+export async function assertNativeSolShieldSourceAccountReady(args: {
+  amountDisplay: string;
+  owner: string;
+}) {
+  const lamports = solToLamports(args.amountDisplay);
+  const ownerPublicKey = new PublicKey(args.owner);
+  const connection = new Connection(endpoint, "confirmed");
+  const accountInfo = await connection.getAccountInfo(ownerPublicKey, "confirmed");
+
+  if (!accountInfo) {
+    throw new Error(
+      "The connected wallet account was not found on Solana mainnet. Fund this wallet with mainnet SOL before shielding.",
+    );
+  }
+
+  if (BigInt(accountInfo.lamports) <= lamports) {
+    throw new Error(
+      "The connected wallet does not have enough mainnet SOL left for both the shield amount and network fees.",
+    );
+  }
+}
+
 export async function fetchNativeSolShieldDepositCandidates(args: {
   existingDepositSignatures?: ReadonlySet<string>;
   limit?: number;

@@ -87,6 +87,11 @@ assert.ok(
   "Native SOL Shield completion must verify the confirmed transaction actually moved SOL to the Vanta vault before recording shielded SOL.",
 );
 assert.ok(
+  shieldPageSource.includes("assertNativeSolShieldSourceAccountReady") &&
+    shieldPageSource.includes('message.includes("AccountNotFound")'),
+  "Shield page must translate missing mainnet wallet-account simulation failures into actionable copy.",
+);
+assert.ok(
   shieldPageSource.includes("NATIVE_SOL_SHIELD_FEE_RESERVE_SOL") &&
     shieldPageSource.includes("Math.max(sourceBalance - NATIVE_SOL_SHIELD_FEE_RESERVE_SOL, 0)") &&
     shieldPageSource.includes("Leave at least"),
@@ -112,6 +117,12 @@ assert.ok(
 );
 
 const nativeSolShieldSource = readFileSync(resolve("src/solana/nativeSolShield.ts"), "utf8");
+assert.ok(
+  nativeSolShieldSource.includes("assertNativeSolShieldSourceAccountReady") &&
+    nativeSolShieldSource.includes("getAccountInfo(ownerPublicKey") &&
+    nativeSolShieldSource.includes("was not found on Solana mainnet"),
+  "Native SOL Shield must verify the connected wallet account exists on mainnet before building the wallet transaction.",
+);
 assert.ok(
   nativeSolShieldSource.includes("fetchNativeSolShieldDepositCandidates"),
   "Native SOL shield helper must expose recoverable vault deposit discovery.",
