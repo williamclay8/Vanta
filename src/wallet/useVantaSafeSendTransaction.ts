@@ -5,6 +5,7 @@ import type {
   TransactionPrepared,
   TransactionSendOptions,
 } from "@solana/client";
+import { createWalletTransactionSigner } from "@solana/client";
 import {
   createWalletSafeSendBoundary,
   prepareWalletSafeSendBoundary,
@@ -61,6 +62,26 @@ function createBlockedSafeSendError(result: Extract<VantaWalletSafeSendResult, {
   return new Error(`Transaction blocked before wallet approval: ${result.reason}.`);
 }
 
+function attachWalletSignerToInstructionAccounts(
+  instructions: readonly TransactionInstructionInput[],
+  walletSession: NonNullable<ReturnType<typeof useWalletSession>>,
+) {
+  const walletSigner = createWalletTransactionSigner(walletSession).signer;
+  const walletAddress = walletSession.account.address.toString();
+
+  return instructions.map((instruction) => ({
+    ...instruction,
+    accounts: instruction.accounts?.map((account) =>
+      account.address.toString() === walletAddress && account.role >= 2
+        ? {
+            ...account,
+            signer: walletSigner,
+          }
+        : account,
+    ),
+  }));
+}
+
 export function useVantaSafeSendTransaction() {
   const client = useSolanaClient();
   const walletSession = useWalletSession();
@@ -77,7 +98,10 @@ export function useVantaSafeSendTransaction() {
           return (await client.transaction.prepare({
             authority: walletSession,
             feePayer: request.feePayer,
-            instructions: request.instructions as readonly TransactionInstructionInput[],
+            instructions: attachWalletSignerToInstructionAccounts(
+              request.instructions as readonly TransactionInstructionInput[],
+              walletSession,
+            ),
           })) as unknown as VantaWalletSafeSendPrepared;
         },
         sendPrepared: async (prepared) =>
