@@ -13,8 +13,9 @@ import { useWalletState } from "@/data/context/WalletContext";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
 import { useRealtimeSignatureProgress } from "@/solana/useRealtimeSignatureProgress";
 import {
-  createOperatorDirectSolUnshieldIntent,
   createSolUnshieldIntentPayload,
+  signSolUnshieldIntent,
+  VANTA_SOL_UNSHIELD_INTENT_TTL_MS,
 } from "@/solana/solUnshieldAuth";
 import { fetchSolUnshieldOperatorHealth } from "@/solana/solUnshieldOperatorHealth";
 import { requestOperatorSolUnshield } from "@/solana/solUnshieldOperatorClient";
@@ -51,6 +52,7 @@ import type { UmbraOperationApprovalDisplay } from "@/privacy/umbraOperations";
 import { createUnshieldTransactionEvidence } from "@/transactions/vantaTransactionEvidence";
 import { useVantaSafeSendTransaction } from "@/wallet/useVantaSafeSendTransaction";
 import type { VantaWalletSafeSendResult } from "@/wallet/walletSafeSendBoundary.mjs";
+import { signWalletMessageIntentWithSafety } from "@/wallet/walletMessageIntentSafety.mjs";
 
 type UnshieldLane = LiveShieldTokenAssetKey | "SOL";
 type UnshieldStatus =
@@ -1210,21 +1212,57 @@ export function UnshieldPage() {
               ),
               getLiveShieldTokenAsset(pendingSpentMarker.asset).unshieldOperatorUrl,
             )
-          : await requestOperatorSolUnshield(
-              createOperatorDirectSolUnshieldIntent(
-                createSolUnshieldIntentPayload({
-                  amount: pendingSpentMarker.amount,
-                  asset: "SOL",
-                  assetId: liveSwapPair.solAssetId,
-                  consumedNoteId: pendingSpentMarker.consumedNoteId,
-                  destinationOwner: pendingSpentMarker.owner,
-                  owner: pendingSpentMarker.owner,
-                  requester: pendingSpentMarker.owner,
-                  transitionNoteId: pendingSpentMarker.transitionNoteId,
-                  vaultOwner: pendingSpentMarker.vaultOwner,
-                }),
-              ),
-            );
+          : await (async () => {
+              const signMessage = walletSession?.signMessage;
+
+              if (!signMessage) {
+                throw new Error("The connected wallet must support message signing.");
+              }
+
+              const payload = createSolUnshieldIntentPayload({
+                amount: pendingSpentMarker.amount,
+                asset: "SOL",
+                assetId: liveSwapPair.solAssetId,
+                consumedNoteId: pendingSpentMarker.consumedNoteId,
+                destinationOwner: pendingSpentMarker.owner,
+                owner: pendingSpentMarker.owner,
+                requester: pendingSpentMarker.owner,
+                transitionNoteId: pendingSpentMarker.transitionNoteId,
+                vaultOwner: pendingSpentMarker.vaultOwner,
+              });
+
+              const signedIntent = await signSolUnshieldIntent(payload, async (message) => {
+                const messageIntentSignature = await signWalletMessageIntentWithSafety({
+                  amount: payload.amount,
+                  asset: payload.asset,
+                  connectedWalletAddress: walletAddress,
+                  expiresAt: payload.issuedAt + VANTA_SOL_UNSHIELD_INTENT_TTL_MS,
+                  humanApprovedSummary: true,
+                  intentKind: "sol-unshield-intent",
+                  issuedAt: payload.issuedAt,
+                  message,
+                  owner: payload.owner,
+                  recipient: payload.destinationOwner,
+                  requestId: payload.requestId,
+                  requester: payload.requester,
+                  signMessage,
+                });
+
+                if (
+                  !messageIntentSignature.signed ||
+                  !messageIntentSignature.signatureBytes ||
+                  messageIntentSignature.decision.reason !== "message-intent-ready-for-wallet-approval"
+                ) {
+                  throw new Error(
+                    `The SOL unshield intent could not be signed: ${messageIntentSignature.decision.reason}.`,
+                  );
+                }
+
+                return messageIntentSignature.signatureBytes;
+              });
+
+              return requestOperatorSolUnshield(signedIntent);
+            })();
 
       setOperatorReleaseSignature(releaseResult.signature);
       setLastCompletion((current) =>
@@ -1258,6 +1296,7 @@ export function UnshieldPage() {
     pendingSpentMarker,
     shieldRegistry.configuredEntries,
     walletAddress,
+    walletSession?.signMessage,
   ]);
 
   const approvePreparedUnshieldTransition = useCallback(async () => {

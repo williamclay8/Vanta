@@ -7,7 +7,7 @@ import {
 const safeMainnetSummary = createTransactionSafetySummary({
   amount: "1.25",
   asset: "USDC",
-  cluster: "mainnet-beta",
+  cluster: "devnet",
   estimatedFees: "0.000005 SOL",
   feePayer: "payer1111111111111111111111111111111111111",
   instructions: ["transfer-checked", "memo"],

@@ -685,7 +685,7 @@ input {
   position: relative;
   z-index: 90;
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   grid-template-areas: "brand tabs wallet";
   align-items: center;
   gap: 16px;
@@ -780,7 +780,7 @@ input {
   display: inline-flex;
   grid-area: tabs;
   justify-self: center;
-  width: clamp(720px, 58vw, 820px);
+  width: min(760px, 54vw);
   max-width: 100%;
   min-width: 0;
 }
@@ -1437,7 +1437,7 @@ input {
 }
 
 .app-content--minimal {
-  width: min(840px, calc(100vw - 48px));
+  width: min(1080px, calc(100vw - 48px));
   margin: 0 auto;
   padding: 0;
 }
@@ -1636,7 +1636,7 @@ input {
 
 .dashboard-trust-hero {
   grid-template-columns: minmax(0, 1fr) minmax(320px, 0.78fr);
-  align-items: end;
+  align-items: center;
   padding: 24px;
   border-color: rgba(141, 185, 255, 0.18);
   background:
@@ -1664,14 +1664,14 @@ input {
 .dashboard-verification-card h3,
 .dashboard-trust-packet h3 {
   margin: 10px 0 12px;
-  font-family: "Syne", sans-serif;
-  letter-spacing: -0.04em;
+  font-family: "Manrope", system-ui, sans-serif;
+  letter-spacing: 0;
 }
 
 .dashboard-trust-hero h2 {
-  max-width: 10.8ch;
-  font-size: clamp(2.45rem, 6vw, 4.75rem);
-  line-height: 0.96;
+  max-width: 12ch;
+  font-size: clamp(2.8rem, 6.3vw, 5.2rem);
+  line-height: 1;
   text-wrap: balance;
 }
 
@@ -1682,7 +1682,8 @@ input {
 .dashboard-trust-packet p {
   margin: 0;
   color: var(--muted);
-  line-height: 1.55;
+  font-size: clamp(0.98rem, 1.25vw, 1.08rem);
+  line-height: 1.62;
   max-width: 42ch;
 }
 
@@ -2115,9 +2116,11 @@ input {
   position: relative;
   isolation: isolate;
   display: grid;
-  gap: 10px;
-  justify-items: center;
-  padding: 22px;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.42fr);
+  gap: clamp(18px, 3.2vw, 38px);
+  align-items: end;
+  justify-items: stretch;
+  padding: clamp(22px, 3vw, 30px);
   border-radius: 10px;
   border: 1px solid rgba(246, 248, 245, 0.1);
   background:
@@ -2128,7 +2131,7 @@ input {
     0 0 0 1px rgba(246, 248, 245, 0.025),
     0 20px 58px rgba(0, 0, 0, 0.26),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  text-align: center;
+  text-align: left;
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
 }
@@ -2146,7 +2149,7 @@ input {
 
 .product-intro__eyebrow {
   color: var(--accent);
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.24em;
   text-transform: uppercase;
@@ -2156,7 +2159,7 @@ input {
 .product-intro h2 {
   margin: 0;
   font-family: "Manrope", system-ui, sans-serif;
-  font-size: clamp(2.25rem, 5.2vw, 3.9rem);
+  font-size: clamp(2.7rem, 5.8vw, 4.7rem);
   font-weight: 800;
   line-height: 1;
   letter-spacing: 0;
@@ -2164,7 +2167,8 @@ input {
 }
 
 .product-intro p {
-  max-width: 560px;
+  max-width: 66ch;
+  font-size: clamp(1rem, 1.35vw, 1.12rem);
   margin: 0;
   color: rgba(243, 247, 242, 0.68);
   line-height: 1.6;
@@ -2173,9 +2177,9 @@ input {
 
 .module-page__hero.product-intro {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  justify-items: center;
-  width: min(100%, 960px);
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.42fr);
+  justify-items: stretch;
+  width: min(100%, 1080px);
   margin-inline: auto;
 }
 
@@ -2234,7 +2238,7 @@ input {
 
 .module-state {
   max-width: 360px;
-  padding: 18px;
+  padding: 20px;
   border-radius: 8px;
   border: 1px solid rgba(246, 248, 245, 0.1);
   background:
@@ -2246,7 +2250,7 @@ input {
 }
 
 .product-intro .module-state {
-  justify-self: center;
+  justify-self: stretch;
 }
 
 .module-state strong {
@@ -2256,8 +2260,8 @@ input {
 
 .module-state p {
   margin-top: 8px;
-  font-size: 0.82rem;
-  line-height: 1.55;
+  font-size: 0.9rem;
+  line-height: 1.6;
 }
 
 .module-grid {
@@ -3113,8 +3117,20 @@ input {
   grid-template-columns: minmax(0, 1fr);
 }
 
+.send-page > .product-intro {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  text-align: center;
+}
+
 .send-page > .product-intro > div:first-child {
   text-align: center;
+}
+
+.send-page > .product-intro h1,
+.send-page > .product-intro h2 {
+  margin-inline: auto;
+  width: 100%;
 }
 
 .send-page .send-layout > .send-card:not(.send-card--workspace),
@@ -3311,17 +3327,17 @@ input {
 }
 
 .pay-topbar--minimal {
-  grid-template-columns: 1fr;
-  justify-items: center;
-  text-align: center;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: start;
+  text-align: left;
 }
 
 .pay-topbar--minimal .pay-subnav {
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .pay-page__hero {
-  width: min(960px, 100%);
+  width: min(1080px, 100%);
 }
 
 .pay-page__hero.pay-topbar {
@@ -3330,16 +3346,16 @@ input {
 }
 
 .pay-page__hero.pay-topbar h1 {
-  font-size: clamp(2.3rem, 5vw, 3.9rem);
-  line-height: 0.96;
-  letter-spacing: -0.04em;
+  font-size: clamp(2.7rem, 5.6vw, 4.7rem);
+  line-height: 1;
+  letter-spacing: 0;
 }
 
 .pay-hero-badges,
 .product-intro__badges {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 8px;
   margin-top: 14px;
 }
@@ -4649,15 +4665,15 @@ input {
   display: grid;
   gap: 10px;
   max-width: 720px;
-  justify-items: center;
-  text-align: center;
+  justify-items: start;
+  text-align: left;
 }
 
 .strategy-header h1,
 .strategy-card h2 {
   margin: 0;
   font-family: "Syne", sans-serif;
-  letter-spacing: -0.035em;
+  letter-spacing: 0;
   text-wrap: balance;
 }
 
@@ -6160,6 +6176,7 @@ input {
   }
 
   .product-intro {
+    grid-template-columns: 1fr;
     justify-items: start;
     padding: 14px;
     border-radius: 18px;
@@ -6173,15 +6190,15 @@ input {
 
   .product-intro h1,
   .product-intro h2 {
-    font-size: clamp(1.7rem, 8vw, 2.45rem);
-    letter-spacing: -0.045em;
+    font-size: clamp(2rem, 9vw, 2.8rem);
+    letter-spacing: 0;
     line-height: 1;
   }
 
   .product-intro p {
     max-width: none;
-    font-size: 0.88rem;
-    line-height: 1.45;
+    font-size: 0.96rem;
+    line-height: 1.55;
   }
 
   .product-intro .module-state {
@@ -6190,13 +6207,13 @@ input {
   }
 
   .pay-page__hero.product-intro.pay-topbar h1 {
-    font-size: clamp(1.75rem, 8vw, 2.35rem);
+    font-size: clamp(2rem, 9vw, 2.75rem);
     line-height: 1;
   }
 
   .pay-page__hero.product-intro.pay-topbar p {
-    font-size: 0.86rem;
-    line-height: 1.45;
+    font-size: 0.96rem;
+    line-height: 1.55;
   }
 
   .pay-page__hero .pay-hero-badges {
@@ -6510,15 +6527,15 @@ input {
 .landing-minimal__truth {
   position: relative;
   z-index: 2;
-  width: min(960px, calc(100vw - 48px));
+  width: min(1080px, calc(100vw - 48px));
   margin: 0 auto;
 }
 
 .landing-minimal__hero {
   display: grid;
-  justify-items: center;
+  justify-items: start;
   padding: 46px 0 42px;
-  text-align: center;
+  text-align: left;
 }
 
 .landing-minimal__kicker,
@@ -6532,11 +6549,11 @@ input {
 }
 
 .landing-minimal__hero h1 {
-  max-width: 720px;
+  max-width: 850px;
   margin: 14px 0 0;
   color: var(--landing-ice);
   font-family: "Manrope", system-ui, sans-serif;
-  font-size: clamp(2.9rem, 6.4vw, 5.75rem);
+  font-size: clamp(3.35rem, 7vw, 6.4rem);
   font-weight: 800;
   letter-spacing: 0;
   line-height: 0.98;
@@ -6552,10 +6569,10 @@ input {
 }
 
 .landing-minimal__hero p {
-  max-width: 610px;
-  margin: 24px auto 0;
+  max-width: 690px;
+  margin: 24px 0 0;
   color: var(--landing-ice-dim);
-  font-size: 1rem;
+  font-size: clamp(1.02rem, 1.35vw, 1.14rem);
   line-height: 1.8;
   text-wrap: pretty;
 }
@@ -6563,7 +6580,7 @@ input {
 .landing-minimal__actions {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 12px;
   margin-top: 34px;
 }
@@ -7612,16 +7629,16 @@ input {
 
   .landing-minimal__hero h1 {
     margin-top: 14px;
-    font-size: clamp(2.6rem, 13.5vw, 3.65rem);
-    letter-spacing: -0.055em;
+    font-size: clamp(2.9rem, 14vw, 4rem);
+    letter-spacing: 0;
     line-height: 0.98;
   }
 
   .landing-minimal__hero p {
     max-width: 34rem;
     margin-top: 18px;
-    font-size: 0.9rem;
-    line-height: 1.68;
+    font-size: 0.98rem;
+    line-height: 1.72;
   }
 
   .landing-minimal__actions {

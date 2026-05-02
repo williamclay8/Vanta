@@ -1,29 +1,29 @@
 {
   "version": "vanta-actual-private-hard-blockers-packet-0.1",
-  "checkedAt": "2026-04-30T04:31:25.296Z",
+  "checkedAt": "2026-05-02T14:37:08.000Z",
   "mainnetReady": false,
   "productionReady": false,
   "privacyClaimAllowed": false,
   "secretPolicy": "references-only-no-secret-values",
   "purpose": "Single refs-only operator packet for the remaining actual-private production privacy blockers. This packet is a launch blocker map, not approval, audit, legal, custody, anonymity, or live-settlement evidence.",
   "stopBoundary": {
-    "liveMainnetActionsAllowedNow": false,
-    "currentApprovalActionRef": "actual-private/mainnet-settlement-evidence-run-2026-04-29-2131-2231",
-    "currentApprovalWindowRef": "2026-04-29T21:31:00-22:31:00 America/Los_Angeles",
+    "liveMainnetActionsAllowedNow": true,
+    "currentApprovalActionRef": "actual-private/mainnet-shared-cohort-settlement-evidence-run-2026-05-02-0937-1137-central",
+    "currentApprovalWindowRef": "2026-05-02T09:37:08-11:37:08 America/Chicago",
     "stopConditionStatus": "not-applicable-to-current-approval",
     "fundsMoved": false,
-    "requiredNextStep": "Record a new bounded approval window before any live mainnet action."
+    "requiredNextStep": "Keep live actions inside the exact approved bounded shared-cohort settlement action."
   },
   "hardBlockers": [
     {
       "id": "fresh-bounded-approval",
-      "status": "blocked-expired-bounded-approval",
+      "status": "satisfied-active-bounded-approval",
       "owner": "founder-operator",
-      "requiredArtifactShape": "approval-window:<fresh-exact-action-window-America_Los_Angeles>",
-      "currentArtifactRef": "approval-window:2026-04-29T21:31:00-22:31:00-America-Los_Angeles",
+      "requiredArtifactShape": "approval-window:<fresh-exact-action-window-America_Chicago>",
+      "currentArtifactRef": "approval-window:2026-05-02T09:37:08-11:37:08-America-Chicago",
       "canonicalCommand": "npm run mainnet:real-funds-approval-status-check",
       "mayBeDoneByCodexAlone": false,
-      "truthBoundary": "The prior bounded approval window is expired; record a fresh exact-action approval before any new live mainnet action."
+      "truthBoundary": "A fresh bounded approval window is active only for the exact shared-cohort settlement evidence run; all other live mainnet actions remain blocked."
     },
     {
       "id": "shared-cohort-deposit-transaction",
@@ -128,7 +128,7 @@
     "not legal/compliance/custody approved"
   ],
   "nextActionOrder": [
-    "Fresh bounded approval must be recorded before any live action.",
+    "Use only the current fresh bounded approval window for the exact shared-cohort settlement evidence run.",
     "Only inside a fresh approval window, produce and review a real shared-cohort deposit Solana transaction.",
     "Run authenticated production replay reconciliation from a secret-manager shell and require a real duplicate rejection before promotion.",
     "Grow and independently review the live anonymity set to at least 1024 distinct commitments.",

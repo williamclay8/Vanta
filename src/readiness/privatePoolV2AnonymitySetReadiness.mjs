@@ -1,4 +1,14 @@
+import { readFileSync } from "node:fs";
+
+const anonymitySetEvidencePath = new URL(
+  "../../ops/mainnet/private-pool-v2-anonymity-set.evidence.json",
+  import.meta.url,
+);
+
 export function createVantaPrivatePoolV2AnonymitySetReadiness() {
+  const anonymitySetEvidence = JSON.parse(readFileSync(anonymitySetEvidencePath, "utf8"));
+  const currentMeasurement = anonymitySetEvidence.currentMeasurement;
+
   return {
     version: "vanta-private-pool-v2-anonymity-set-readiness-0.1",
     railId: "vanta-private-pool-v2",
@@ -8,11 +18,11 @@ export function createVantaPrivatePoolV2AnonymitySetReadiness() {
     liveMainnetPrivateSettlementAvailable: false,
     mainnetReady: false,
     meaningfulPrivacyReady: false,
-    minimumDistinctCommitments: 1024,
+    minimumDistinctCommitments: currentMeasurement.minimumDistinctCommitments,
     privacyClaimAllowed: false,
     productionAnonymityMetricsAvailable: true,
-    currentDistinctCommitmentCount: 2,
-    currentAnonymityMeasurementStatus: "measured-below-threshold",
+    currentDistinctCommitmentCount: currentMeasurement.distinctCommitmentCount,
+    currentAnonymityMeasurementStatus: currentMeasurement.status,
     productionReady: false,
     assetCohortRules: {
       required: [

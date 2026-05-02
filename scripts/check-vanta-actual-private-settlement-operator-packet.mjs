@@ -23,9 +23,15 @@ const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
 
 assert.equal(packet.version, "vanta-actual-private-settlement-operator-packet-0.1");
 assert.equal(packet.action.expectedActionRef, approvalStatus.approvalActionRef);
-if (approvalStatus.approvalActionRef.startsWith("actual-private/mainnet-settlement-evidence-run-")) {
+if (
+  approvalStatus.approvalActionRef.startsWith("actual-private/mainnet-settlement-evidence-run-") ||
+  approvalStatus.approvalActionRef.startsWith("actual-private/mainnet-shared-cohort-settlement-evidence-run-")
+) {
   assert.equal(packet.action.actualPrivateActionScoped, true);
-  assert.match(packet.action.expectedActionRef, /^actual-private\/mainnet-settlement-evidence-run-\d{4}-\d{2}-\d{2}/);
+  assert.match(
+    packet.action.expectedActionRef,
+    /^actual-private\/mainnet-(?:shared-cohort-settlement|settlement)-evidence-run-\d{4}-\d{2}-\d{2}/,
+  );
   assert.equal(packet.action.scopeBlocker, null);
 } else {
   assert.equal(packet.action.actualPrivateActionScoped, false);

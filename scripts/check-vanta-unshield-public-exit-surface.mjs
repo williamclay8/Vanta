@@ -29,7 +29,8 @@ const transactionEvidenceCheck = readRepoFile("scripts/check-vanta-transaction-e
 
 for (const phrase of [
   "createOperatorDirectUnshieldIntent",
-  "createOperatorDirectSolUnshieldIntent",
+  "signSolUnshieldIntent",
+  "signWalletMessageIntentWithSafety",
   "Ready for operator release",
   "Release through operator",
   "direct:${args.note.noteId}",
@@ -42,8 +43,8 @@ for (const phrase of [
 }
 
 assert.ok(
-  !unshieldPageSource.includes("signWalletMessageIntentWithSafety"),
-  "Unshield must not open a separate Phantom signMessage release prompt.",
+  unshieldPageSource.includes('intentKind: "sol-unshield-intent"'),
+  "SOL Unshield must preserve a typed wallet message-intent release prompt.",
 );
 assert.ok(
   unshieldAuthSource.includes('signature: "operator-direct"'),

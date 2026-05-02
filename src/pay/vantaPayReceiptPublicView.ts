@@ -46,6 +46,17 @@ export function buildVantaPayReceiptPublicView(
     },
     receiptId: receipt.id,
     status: receipt.status,
+    verification: {
+      claimBoundary: "receipt-backed-test-settlement-not-production-private",
+      commands: [
+        "npm run pay:receipt-public-view-check",
+        "npm run pay:receipt-privacy-contract-check",
+        "npm run programmatic-privacy:contract-check",
+      ],
+      operatorStatusSurface: "npm run pay:production-readiness-json",
+      productionReady: false,
+      redactionPolicy: "customer-email-and-full-private-settlement-refs-redacted",
+    },
     version: VANTA_PAY_RECEIPT_PUBLIC_VIEW_VERSION,
   };
 }

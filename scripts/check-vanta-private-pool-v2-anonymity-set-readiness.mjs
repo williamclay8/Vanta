@@ -11,6 +11,9 @@ assert.ok(existsSync(readinessPath), "Missing src/readiness/privatePoolV2Anonymi
 const { createVantaPrivatePoolV2AnonymitySetReadiness } = await import(`file://${readinessPath}`);
 const result = createVantaPrivatePoolV2AnonymitySetReadiness();
 const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
+const evidence = JSON.parse(
+  readFileSync(resolve(repoRoot, "ops/mainnet/private-pool-v2-anonymity-set.evidence.json"), "utf8"),
+);
 
 assert.equal(result.version, "vanta-private-pool-v2-anonymity-set-readiness-0.1");
 assert.equal(result.railId, "vanta-private-pool-v2");
@@ -22,10 +25,22 @@ assert.equal(result.auditedSharedAnonymitySetAvailable, false);
 assert.equal(result.liveAnonymitySetAvailable, false);
 assert.equal(result.liveMainnetPrivateSettlementAvailable, false);
 assert.equal(result.productionAnonymityMetricsAvailable, true);
-assert.equal(result.currentDistinctCommitmentCount, 2);
-assert.equal(result.currentAnonymityMeasurementStatus, "measured-below-threshold");
+assert.equal(
+  result.currentDistinctCommitmentCount,
+  evidence.currentMeasurement.distinctCommitmentCount,
+  "Readiness must derive current distinct commitment count from anonymity-set evidence.",
+);
+assert.equal(
+  result.currentAnonymityMeasurementStatus,
+  evidence.currentMeasurement.status,
+  "Readiness must derive measurement status from anonymity-set evidence.",
+);
 assert.equal(result.anonymitySetReadiness, "blocked");
-assert.equal(result.minimumDistinctCommitments, 1024);
+assert.equal(
+  result.minimumDistinctCommitments,
+  evidence.currentMeasurement.minimumDistinctCommitments,
+  "Readiness must derive minimum distinct commitments from anonymity-set evidence.",
+);
 
 assert.deepEqual(result.assetCohortRules.required, [
   "single asset cohort per pool",

@@ -1,6 +1,6 @@
 {
   "version": "vanta-mainnet-real-funds-approval-evidence-0.1",
-  "checkedAt": "2026-04-30T04:31:17.258Z",
+  "checkedAt": "2026-05-02T14:37:08.000Z",
   "mainnetReady": false,
   "productionReady": false,
   "realFundsAllowed": true,
@@ -26,16 +26,16 @@
   ],
   "approvalRecord": {
     "status": "approved",
-    "approvalRecordRef": "VANTA_ACTUAL_PRIVATE_MAINNET_SETTLEMENT_2026_04_29_2131_2231_APPROVAL_RECORD_REF",
-    "approvedActionRef": "actual-private/mainnet-settlement-evidence-run-2026-04-29-2131-2231",
-    "approvedActionSummary": "One Vanta mainnet-beta actual-private settlement evidence run with maximum 0.015 SOL at risk",
+    "approvalRecordRef": "VANTA_MAINNET_SHARED_COHORT_SETTLEMENT_APPROVAL_REF",
+    "approvedActionRef": "actual-private/mainnet-shared-cohort-settlement-evidence-run-2026-05-02-0937-1137-central",
+    "approvedActionSummary": "One Vanta mainnet-beta shared-cohort deposit plus actual-private settlement evidence run with maximum 0.015 SOL at risk",
     "approvedEnvironment": "mainnet-beta",
     "approvedFeePayerRef": "wallet/public-fee-payer-vanta-mainnet-5pzJsEVARN5Ly6H1AjbbVofY6Fjr68FbkT6y8ozx3Ymi",
-    "approvedLaunchWindowRef": "2026-04-29T21:31:00-22:31:00 America/Los_Angeles",
+    "approvedLaunchWindowRef": "2026-05-02T09:37:08-11:37:08 America/Chicago",
     "rollbackPlanRef": "runbook/disable-private-pool-v2-services-and-live-actions",
     "stopLossPlanRef": "stop-after-one-live-transaction-failed-preflight-unexpected-solscan-linkage-replay-check-failure-missing-reviewer-packet-invariant-or-0.015-sol-cap",
     "maximumFundsAtRiskRef": "0.015 SOL",
-    "approvedByRef": "Clay/founder-approval/2026-04-29-actual-private-settlement-2131-2231"
+    "approvedByRef": "Clay/founder-approval/2026-05-02-shared-cohort-settlement-0937-1137-central"
   },
   "requiredBeforeApproval": [
     "approvedActionSummary must name one exact action or transaction class",

@@ -8,7 +8,7 @@ const servicesManifestPath = new URL("../ops/mainnet/private-pool-v2-services.ma
 const approvalStatus = createVantaMainnetRealFundsApprovalStatus();
 const expectedActionRef = approvalStatus.approvalActionRef;
 const actualPrivateActionScoped =
-  /^actual-private\/mainnet-settlement-evidence-run-\d{4}-\d{2}-\d{2}(?:-[A-Za-z0-9._-]+)?$/.test(
+  /^actual-private\/mainnet-(?:shared-cohort-settlement|settlement)-evidence-run-\d{4}-\d{2}-\d{2}(?:-[A-Za-z0-9._-]+)?$/.test(
     expectedActionRef,
   );
 const expectedMaximumFundsAtRisk = approvalStatus.maximumFundsAtRiskRef;

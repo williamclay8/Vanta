@@ -22,6 +22,10 @@ function requireText(value, fieldName) {
   return value.trim();
 }
 
+function optionalText(value) {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+}
+
 function assertNoForbiddenKeys(value, path = "request") {
   if (!value || typeof value !== "object") {
     return;
@@ -96,15 +100,12 @@ export function createVantaActualPrivateSettlementPlan(input) {
       : {
           ...baseRequest,
           acceptedRoot: requireText(input.acceptedRoot, "acceptedRoot"),
-          changeLeafIndex: requireText(input.changeLeafIndex, "changeLeafIndex"),
-          changeOutputCommitment: requireText(
-            input.changeOutputCommitment,
-            "changeOutputCommitment",
-          ),
-          changeOutputRoot: requireText(input.changeOutputRoot, "changeOutputRoot"),
+          ...(optionalText(input.changeLeafIndex) ? { changeLeafIndex: optionalText(input.changeLeafIndex) } : {}),
+          changeOutputCommitment: requireText(input.changeOutputCommitment, "changeOutputCommitment"),
+          ...(optionalText(input.changeOutputRoot) ? { changeOutputRoot: optionalText(input.changeOutputRoot) } : {}),
           outputCommitment: requireText(input.outputCommitment, "outputCommitment"),
-          outputLeafIndex: requireText(input.outputLeafIndex, "outputLeafIndex"),
-          outputRoot: requireText(input.outputRoot, "outputRoot"),
+          ...(optionalText(input.outputLeafIndex) ? { outputLeafIndex: optionalText(input.outputLeafIndex) } : {}),
+          ...(optionalText(input.outputRoot) ? { outputRoot: optionalText(input.outputRoot) } : {}),
           privateSpendContextHash: requireText(
             input.privateSpendContextHash,
             "privateSpendContextHash",
@@ -195,14 +196,10 @@ export function validateVantaActualPrivateSettlementPlan(plan) {
           "acceptedRoot",
           "assetCohort",
           "assetIdCommitment",
-          "changeLeafIndex",
           "changeOutputCommitment",
-          "changeOutputRoot",
           "economicsCommitment",
           "nullifierOrReplayCommitment",
           "outputCommitment",
-          "outputLeafIndex",
-          "outputRoot",
           "ownerCommitment",
           "poolId",
           "privateSpendContextHash",

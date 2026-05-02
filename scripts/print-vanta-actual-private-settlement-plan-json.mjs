@@ -15,14 +15,16 @@ const requiredFields = [
 ];
 const sendFields = [
   ["acceptedRoot", "VANTA_ACTUAL_PRIVATE_ACCEPTED_ROOT"],
-  ["changeLeafIndex", "VANTA_ACTUAL_PRIVATE_CHANGE_LEAF_INDEX"],
   ["changeOutputCommitment", "VANTA_ACTUAL_PRIVATE_CHANGE_OUTPUT_COMMITMENT"],
-  ["changeOutputRoot", "VANTA_ACTUAL_PRIVATE_CHANGE_OUTPUT_ROOT"],
   ["outputCommitment", "VANTA_ACTUAL_PRIVATE_OUTPUT_COMMITMENT"],
-  ["outputLeafIndex", "VANTA_ACTUAL_PRIVATE_OUTPUT_LEAF_INDEX"],
-  ["outputRoot", "VANTA_ACTUAL_PRIVATE_OUTPUT_ROOT"],
   ["privateSpendContextHash", "VANTA_ACTUAL_PRIVATE_SPEND_CONTEXT_HASH"],
   ["privateSpendPublicInputHash", "VANTA_ACTUAL_PRIVATE_SPEND_PUBLIC_INPUT_HASH"],
+];
+const optionalSendFields = [
+  ["changeLeafIndex", "VANTA_ACTUAL_PRIVATE_CHANGE_LEAF_INDEX"],
+  ["changeOutputRoot", "VANTA_ACTUAL_PRIVATE_CHANGE_OUTPUT_ROOT"],
+  ["outputLeafIndex", "VANTA_ACTUAL_PRIVATE_OUTPUT_LEAF_INDEX"],
+  ["outputRoot", "VANTA_ACTUAL_PRIVATE_OUTPUT_ROOT"],
 ];
 const unshieldFields = [
   ["exitTermsCommitment", "VANTA_ACTUAL_PRIVATE_EXIT_TERMS_COMMITMENT"],
@@ -85,6 +87,14 @@ assert.ok(
 input.action = action;
 for (const [field, env] of (action === "unshield" ? unshieldFields : sendFields)) {
   input[field] = readRequiredEnv(env);
+}
+if (action === "send") {
+  for (const [field, env] of optionalSendFields) {
+    const value = process.env[env]?.trim() ?? "";
+    if (value) {
+      input[field] = value;
+    }
+  }
 }
 for (const [field, env] of optionalFields) {
   const value = process.env[env]?.trim() ?? "";

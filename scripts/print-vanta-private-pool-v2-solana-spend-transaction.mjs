@@ -18,8 +18,18 @@ function shellQuote(value) {
   return `'${value.replaceAll("'", "'\\''")}'`;
 }
 
-function commitmentBytes(fieldName) {
-  const text = readRequiredEnv(fieldName);
+function readRequiredCommitmentEnv(...fieldNames) {
+  for (const fieldName of fieldNames) {
+    const value = readOptionalEnv(fieldName);
+    if (value) {
+      return { fieldName, value };
+    }
+  }
+  throw new Error(`Missing required public Solana spend transaction input ${fieldNames.join(" or ")}.`);
+}
+
+function commitmentBytes(...fieldNames) {
+  const { fieldName, value: text } = readRequiredCommitmentEnv(...fieldNames);
   const hex = text.startsWith("0x") ? text.slice(2) : text;
   if (!/^[0-9a-fA-F]{64}$/.test(hex)) {
     throw new Error(`${fieldName} must be a 32-byte hex commitment.`);
@@ -35,10 +45,16 @@ function instructionDataBase64FromEnv() {
 
   return Buffer.concat([
     Buffer.from([1]),
-    commitmentBytes("VANTA_ACTUAL_PRIVATE_NULLIFIER_REF"),
-    commitmentBytes("VANTA_ACTUAL_PRIVATE_OUTPUT_COMMITMENT_REF"),
-    commitmentBytes("VANTA_ACTUAL_PRIVATE_CHANGE_OUTPUT_COMMITMENT_REF"),
-    commitmentBytes("VANTA_ACTUAL_PRIVATE_SPEND_PUBLIC_INPUT_HASH_REF"),
+    commitmentBytes("VANTA_ACTUAL_PRIVATE_NULLIFIER", "VANTA_ACTUAL_PRIVATE_NULLIFIER_REF"),
+    commitmentBytes("VANTA_ACTUAL_PRIVATE_OUTPUT_COMMITMENT", "VANTA_ACTUAL_PRIVATE_OUTPUT_COMMITMENT_REF"),
+    commitmentBytes(
+      "VANTA_ACTUAL_PRIVATE_CHANGE_OUTPUT_COMMITMENT",
+      "VANTA_ACTUAL_PRIVATE_CHANGE_OUTPUT_COMMITMENT_REF",
+    ),
+    commitmentBytes(
+      "VANTA_ACTUAL_PRIVATE_SPEND_PUBLIC_INPUT_HASH",
+      "VANTA_ACTUAL_PRIVATE_SPEND_PUBLIC_INPUT_HASH_REF",
+    ),
   ]).toString("base64");
 }
 

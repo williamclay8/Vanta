@@ -12,8 +12,9 @@ assert.ok(
 );
 assert.ok(
   unshieldSource.includes("createOperatorDirectUnshieldIntent") &&
-    unshieldSource.includes("createOperatorDirectSolUnshieldIntent"),
-  "Unshield must use operator-direct release intents instead of opening Phantom on a blocked domain.",
+    unshieldSource.includes("signSolUnshieldIntent") &&
+    unshieldSource.includes("signWalletMessageIntentWithSafety"),
+  "Unshield must keep SPL operator-direct release and SOL typed message-intent release boundaries.",
 );
 
 for (const phrase of [
@@ -27,7 +28,8 @@ for (const phrase of [
 
 for (const phrase of [
   "createOperatorDirectUnshieldIntent",
-  "createOperatorDirectSolUnshieldIntent",
+  "signSolUnshieldIntent",
+  'intentKind: "sol-unshield-intent"',
   'setStatus("operator_ready")',
   "Ready for operator release",
   "Release through operator",
@@ -36,13 +38,11 @@ for (const phrase of [
 }
 
 for (const forbiddenPhrase of [
-  "signWalletMessageIntentWithSafety",
   'intentKind: "unshield-intent"',
-  'intentKind: "sol-unshield-intent"',
 ]) {
   assert.ok(
     !unshieldSource.includes(forbiddenPhrase),
-    `Unshield must not keep the extra Phantom message-signing prompt: ${forbiddenPhrase}`,
+    `Unshield must not keep the unsupported extra token Unshield message-signing prompt: ${forbiddenPhrase}`,
   );
 }
 

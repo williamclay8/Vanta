@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import { validateVantaActualPrivateSettlementPlan } from "./actualPrivateSettlementPlan.mjs";
 
 function requireText(value, fieldName) {
@@ -23,6 +25,40 @@ function normalizeBaseUrl(value) {
 
 function isSolanaTransactionSignature(value) {
   return typeof value === "string" && /^[1-9A-HJ-NP-Za-km-z]{64,88}$/.test(value);
+}
+
+function hashRef(prefix, value) {
+  return `${prefix}:${createHash("sha256").update(JSON.stringify(value)).digest("hex").slice(0, 24)}`;
+}
+
+function validateAcceptedPublicInputs({ acceptedPublicInputs, plan }) {
+  if (!acceptedPublicInputs) {
+    return { accepted: true, reason: "accepted-public-inputs-not-present" };
+  }
+  if (plan.request.action !== "send") {
+    return { accepted: false, reason: "accepted-public-inputs-only-valid-for-send" };
+  }
+
+  const requiredMatches = [
+    ["acceptedRoot", "acceptedRoot"],
+    ["assetCohort", "assetCohort"],
+    ["changeOutputCommitment", "changeOutputCommitment"],
+    ["nullifierOrReplayCommitment", "nullifierOrReplayCommitment"],
+    ["outputCommitment", "outputCommitment"],
+    ["poolId", "poolId"],
+    ["privateSpendContextHash", "privateSpendContextHash"],
+    ["privateSpendPublicInputHash", "privateSpendPublicInputHash"],
+  ];
+  for (const [responseField, planField] of requiredMatches) {
+    if (acceptedPublicInputs?.[responseField] !== plan.request?.[planField]) {
+      return { accepted: false, reason: `accepted-public-input-${responseField}-mismatch` };
+    }
+  }
+  if (acceptedPublicInputs.proofReceiptPublicInputCommitment !== plan.responseProofReceiptPublicInputCommitment) {
+    return { accepted: false, reason: "accepted-public-inputs-missing-proof-commitment" };
+  }
+
+  return { accepted: true, reason: "accepted-public-inputs-match-plan" };
 }
 
 export function validateVantaActualPrivateSettlementResponse({ plan, response }) {
@@ -64,6 +100,17 @@ export function validateVantaActualPrivateSettlementResponse({ plan, response })
   }
   if (!response.protocolSettlementReceipt?.proofReceiptPublicInputCommitment) {
     return { accepted: false, reason: "missing-proof-public-input-commitment" };
+  }
+  const acceptedPublicInputsDecision = validateAcceptedPublicInputs({
+    acceptedPublicInputs: response.acceptedPublicInputs,
+    plan: {
+      ...plan,
+      responseProofReceiptPublicInputCommitment:
+        response.protocolSettlementReceipt.proofReceiptPublicInputCommitment,
+    },
+  });
+  if (!acceptedPublicInputsDecision.accepted) {
+    return acceptedPublicInputsDecision;
   }
   if (plan.request?.relayerSerializedTransaction && !response.onChainSubmission) {
     return { accepted: false, reason: "missing-relayer-solana-submission" };
@@ -147,6 +194,9 @@ export async function requestVantaActualPrivateSettlementViaRelayer({
       protocolSettlementRef: `operator-protocol-settlement:${payload.protocolSettlementReceipt.id}`,
       relayerSubmittedSpendTxRef: payload.onChainSubmission?.signature
         ? `solana-tx:${payload.onChainSubmission.signature}`
+        : null,
+      acceptedPublicInputsRef: payload.acceptedPublicInputs
+        ? hashRef("operator-accepted-public-inputs", payload.acceptedPublicInputs)
         : null,
     },
     response: payload,

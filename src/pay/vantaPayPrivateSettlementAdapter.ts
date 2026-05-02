@@ -1,10 +1,10 @@
 import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
+import { poseidon2, poseidon6, poseidon11 } from "poseidon-lite";
 import type {
   VantaPrivatePoolV2Commitment,
   VantaPrivatePoolV2Protocol,
 } from "../privacy/privatePoolV2Types";
-import { computeVantaActualPrivateSpendPublicInputHash } from "../privacy/actualPrivateTransactionRail";
 import type {
   VantaPayAsset,
   VantaPayCheckoutSession,
@@ -131,6 +131,8 @@ type VantaPayCommittedSeedProtocolSettlementResponse = {
 const defaultNow = "2026-04-19T20:10:00.000Z";
 const hiddenEconomicsAssetId = "hidden:economic-terms";
 const textEncoder = new TextEncoder();
+const bn254ScalarField =
+  21888242871839275222246405745257275088548364400416034343698204186575808495617n;
 
 function hashHex(...parts: readonly string[]) {
   return `0x${bytesToHex(sha256(textEncoder.encode(parts.join("\u001f"))))}`;
@@ -138,6 +140,73 @@ function hashHex(...parts: readonly string[]) {
 
 function hashId(prefix: string, ...parts: readonly string[]) {
   return `${prefix}_${bytesToHex(sha256(textEncoder.encode(parts.join("\u001f")))).slice(0, 24)}`;
+}
+
+function fieldFromTerm(...parts: readonly string[]) {
+  return BigInt(hashHex(...parts)) % bn254ScalarField;
+}
+
+function fieldString(value: bigint) {
+  return value.toString(10);
+}
+
+function directionBitsForLeafIndex(leafIndex: number): readonly [bigint, bigint, bigint] {
+  return [
+    BigInt(leafIndex & 1),
+    BigInt((leafIndex >> 1) & 1),
+    BigInt((leafIndex >> 2) & 1),
+  ] as const;
+}
+
+function computePayActualPrivateSpendPublicInputHash({
+  acceptedRoot,
+  assetCohort,
+  contextHash,
+  inputCommitment,
+  inputLeafIndex,
+  nullifier,
+  outputCommitments,
+  poolId,
+  requestVersion = "vanta-private-pool-v2-actual-private-spend-proof-request-0.1",
+}: {
+  acceptedRoot: string;
+  assetCohort: string;
+  contextHash: string;
+  inputCommitment: string;
+  inputLeafIndex: number;
+  nullifier: string;
+  outputCommitments: readonly [string, string];
+  poolId: string;
+  requestVersion?: string;
+}) {
+  const directionBits = directionBitsForLeafIndex(inputLeafIndex);
+  const outputCommitment0 = fieldFromTerm("actual-private-output-commitment-0", outputCommitments[0]);
+  const outputCommitment1 = fieldFromTerm("actual-private-output-commitment-1", outputCommitments[1]);
+  const outputCommitmentHash = poseidon2([outputCommitment0, outputCommitment1]);
+  const membershipBinding = poseidon6([
+    fieldFromTerm("actual-private-accepted-root", acceptedRoot),
+    fieldFromTerm("actual-private-input-commitment", inputCommitment),
+    BigInt(inputLeafIndex),
+    directionBits[0],
+    directionBits[1],
+    directionBits[2],
+  ]);
+
+  return fieldString(
+    poseidon11([
+      fieldFromTerm("actual-private-request-version", requestVersion),
+      fieldFromTerm("actual-private-pool-id", poolId),
+      fieldFromTerm("actual-private-asset-cohort", assetCohort),
+      membershipBinding,
+      fieldFromTerm("actual-private-nullifier", nullifier),
+      outputCommitmentHash,
+      fieldFromTerm("actual-private-context-hash", contextHash),
+      outputCommitment0,
+      outputCommitment1,
+      fieldFromTerm("actual-private-accepted-root", acceptedRoot),
+      BigInt(inputLeafIndex),
+    ]),
+  );
 }
 
 function emptyPrivatePoolV2Root(treeId: string) {
@@ -394,7 +463,7 @@ export function createVantaPayCheckoutCommittedEconomicsSettlementRequest(
     ownerCommitment,
     settlementCommitment,
   );
-  const privateSpendPublicInputHash = computeVantaActualPrivateSpendPublicInputHash({
+  const privateSpendPublicInputHash = computePayActualPrivateSpendPublicInputHash({
     acceptedRoot,
     assetCohort,
     contextHash: privateSpendContextHash,

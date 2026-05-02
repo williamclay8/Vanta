@@ -61,10 +61,13 @@ for (const id of [
   assert.ok(blockers.get(id).truthBoundary, `${id} must include a truth boundary.`);
 }
 
-assert.equal(blockers.get("fresh-bounded-approval").status, "blocked-expired-bounded-approval");
+assert.equal(
+  blockers.get("fresh-bounded-approval").status,
+  approval.liveMainnetActionsAllowedNow ? "satisfied-active-bounded-approval" : "blocked-expired-bounded-approval",
+);
 assert.equal(
   blockers.get("fresh-bounded-approval").currentArtifactRef,
-  `approval-window:${approval.approvalWindowRef.replace(" America/Los_Angeles", "-America-Los_Angeles")}`,
+  `approval-window:${approval.approvalWindowRef.replace(" ", "-").replace("/", "-")}`,
 );
 assert.equal(blockers.get("shared-cohort-deposit-transaction").currentArtifactRef, "review:shared-cohort-deposit-ref-not-yet-solscan-final-reviewed-2055-2220");
 assert.equal(blockers.get("shared-cohort-deposit-transaction").requiredArtifactShape, "solana-tx:<shared-cohort-deposit-mainnet-signature>");

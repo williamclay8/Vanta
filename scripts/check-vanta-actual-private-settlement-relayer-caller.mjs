@@ -76,6 +76,18 @@ const result = await requestVantaActualPrivateSettlementViaRelayer({
       async json() {
         return {
           kind: "protocol_settlement",
+          acceptedPublicInputs: {
+            acceptedRoot: "root:actual-private-demo",
+            assetCohort: "stablecoin-usdc-v1",
+            changeOutputCommitment: "commitment:change-output",
+            nullifierOrReplayCommitment: "nullifier:actual-private-demo",
+            outputCommitment: "commitment:merchant-output",
+            poolId: "pool:stablecoin-usdc-v1",
+            privateSpendContextHash: "context:actual-private-demo",
+            privateSpendPublicInputHash: "public-input-hash:actual-private-demo",
+            proofReceiptPublicInputCommitment: "commitment:proof-public-input",
+            version: "vanta-actual-private-accepted-public-inputs-0.1",
+          },
           proofReceipt: {
             assetId: "hidden:economic-terms",
             intent: "private-send",
@@ -113,6 +125,7 @@ assert.equal(result.responseDecision.accepted, true);
 assert.equal(result.evidenceRefs.operatorReceiptRef, "operator-receipt:ppv2_receipt");
 assert.equal(result.evidenceRefs.protocolSettlementRef, "operator-protocol-settlement:proto:actual-private-demo");
 assert.equal(result.evidenceRefs.relayerSubmittedSpendTxRef, null);
+assert.match(result.evidenceRefs.acceptedPublicInputsRef, /^operator-accepted-public-inputs:[0-9a-f]{24}$/);
 
 assert.equal(
   validateVantaActualPrivateSettlementResponse({
@@ -175,6 +188,20 @@ assert.equal(
     },
   }).accepted,
   false,
+);
+
+assert.equal(
+  validateVantaActualPrivateSettlementResponse({
+    plan,
+    response: {
+      ...result.response,
+      acceptedPublicInputs: {
+        ...result.response.acceptedPublicInputs,
+        outputCommitment: "commitment:wrong-output",
+      },
+    },
+  }).reason,
+  "accepted-public-input-outputCommitment-mismatch",
 );
 
 assert.equal(

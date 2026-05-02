@@ -4,9 +4,20 @@ const checkReady = args.includes("--check-ready");
 const jsonMode = args.includes("--json");
 
 try {
-  const shippingCheck = await requestJson("/state/private-core-shipping-decision-check");
-  const candidateCheck = await requestJson("/state/private-core-release-candidate-check");
-  const packageCheck = await requestJson("/state/private-core-release-package-check");
+  const shippingResult = await requestJsonResult("/state/private-core-shipping-decision-check");
+  const candidateResult = await requestJsonResult("/state/private-core-release-candidate-check");
+  const packageResult = await requestJsonResult("/state/private-core-release-package-check");
+
+  const operatorOk = [shippingResult, candidateResult, packageResult].every((result) => result.ok);
+  const operatorError = [shippingResult, candidateResult, packageResult]
+    .filter((result) => !result.ok)
+    .map((result) => result.error)
+    .filter(Boolean)
+    .join(" · ");
+
+  const shippingCheck = shippingResult.data;
+  const candidateCheck = candidateResult.data;
+  const packageCheck = packageResult.data;
 
   const shippingDecision = shippingCheck?.decision ?? {};
   const candidate = candidateCheck?.candidate ?? {};
@@ -19,6 +30,8 @@ try {
     packageDecisionNote: packageCheck?.decisionNote ?? null,
     packageDecisionStatus: packageCheck?.decisionStatus ?? null,
     shippingDecision,
+    operatorOk,
+    operatorError,
   });
 
   if (checkReady && surface.readinessStatusRaw !== "ready") {
@@ -62,6 +75,8 @@ function buildReleaseReadinessSurface(args) {
   const consistencyReady = consistency.statusRaw === "matched";
   const readinessStatusRaw =
     shippingReady && candidateReady && packageReady && consistencyReady ? "ready" : "blocked";
+  const operatorOk = typeof args.operatorOk === "boolean" ? args.operatorOk : true;
+  const operatorError = typeof args.operatorError === "string" ? args.operatorError : "";
   const readinessNote =
     readinessStatusRaw === "ready"
       ? "Primary send -> unshield release lane is coherent, package-ready, and reviewer-ready."
@@ -70,10 +85,14 @@ function buildReleaseReadinessSurface(args) {
       : args.packageDecisionNote ??
         args.candidateDecisionNote ??
         shippingDecision?.decisionNote ??
-        "Release-readiness blocker unavailable.";
+        (operatorOk
+          ? "Release-readiness blocker unavailable."
+          : `Operator unreachable; start private-core operator or set VANTA_PRIVATE_CORE_OPERATOR_BASE_URL. ${operatorError || "Fetch failed."}`);
 
   return {
     operator: baseUrl,
+    operatorOk,
+    operatorError: operatorError || null,
     readinessVersion: 1,
     readinessKind: "primary-send-unshield-release-readiness",
     readinessStatusRaw,
@@ -139,6 +158,10 @@ function buildReleaseReadinessSurface(args) {
 
 function printReleaseReadinessSurface(surface, writer = console.log) {
   printLine("Operator", surface.operator, writer);
+  printLine("Operator reachable", surface.operatorOk ? "Yes" : "No", writer);
+  if (surface.operatorError) {
+    printLine("Operator error", surface.operatorError, writer);
+  }
   printLine("Readiness version", String(surface.readinessVersion), writer);
   printLine("Readiness kind", surface.readinessKind, writer);
   printLine("Readiness status", surface.readinessStatus, writer);
@@ -336,6 +359,16 @@ async function requestJson(path) {
   }
 
   return parsed;
+}
+
+async function requestJsonResult(path) {
+  try {
+    const data = await requestJson(path);
+    return { ok: true, data, error: "" };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Fetch failed";
+    return { ok: false, data: null, error: message };
+  }
 }
 
 function resolveBaseUrl(cliArgs) {

@@ -2266,8 +2266,30 @@ async function proveAndAcceptProtocolSettlement(body) {
     relayerSerializedTransaction,
     request,
   });
+  const acceptedPublicInputs =
+    action === "send" && economicsMode === "committed-economics" && hasActualPrivateSendFields({
+      acceptedRoot,
+      assetCohort,
+      outputCommitment,
+      poolId,
+      privateSpendContextHash,
+    })
+      ? {
+          acceptedRoot,
+          assetCohort,
+          changeOutputCommitment,
+          nullifierOrReplayCommitment,
+          outputCommitment,
+          poolId,
+          privateSpendContextHash,
+          privateSpendPublicInputHash: privateSpendPublicInputHash || sendPublicInputHash,
+          proofReceiptPublicInputCommitment: proofReceipt.publicInputCommitment,
+          version: "vanta-actual-private-accepted-public-inputs-0.1",
+        }
+      : null;
   const settlement = {
     kind: "protocol_settlement",
+    ...(acceptedPublicInputs ? { acceptedPublicInputs } : {}),
     ...(onChainSubmission?.solanaSignatureAccepted
       ? {
           onChainSubmission: {

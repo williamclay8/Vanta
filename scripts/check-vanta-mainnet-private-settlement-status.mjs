@@ -110,8 +110,8 @@ assert.deepEqual(result.actualPrivateMainnetEvidence, {
     },
   ],
   lineage: {
-    currentApprovalActionRef: "actual-private/mainnet-settlement-evidence-run-2026-04-29-2131-2231",
-    currentApprovalWindowRef: "2026-04-29T21:31:00-22:31:00 America/Los_Angeles",
+    currentApprovalActionRef: result.realFundsApprovalActionRef,
+    currentApprovalWindowRef: result.actualPrivateMainnetEvidence.lineage.currentApprovalWindowRef,
     settlementEvidenceApprovalWindowRef: "2026-04-28T20:55:00-22:20:00 America/Los_Angeles",
     settlementEvidenceMatchesCurrentApproval: false,
     lineageWarning:

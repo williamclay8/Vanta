@@ -87,8 +87,8 @@ assert.equal(swapSurface.currentCallSites.length, 0, "Swap must not keep raw wal
 const unshieldSurface = surfacesByPage.get("Unshield");
 assert.equal(
   unshieldSurface.status,
-  "operator-direct-active-split-safe-send-dormant",
-  "Unshield must reflect the active operator-direct release lane while Phantom blocks the domain.",
+  "safe-send-adopted",
+  "Unshield must reflect SPL operator-direct release, SOL message-intent release, and dormant split safe-send boundaries.",
 );
 assert.ok(
   unshieldSurface.adoptedCallSites?.length >= 4,
@@ -129,9 +129,9 @@ assert.ok(
 );
 assert.ok(
   unshieldSurface.adoptedCallSites?.some((callSite) =>
-    callSite.snippet.includes("createOperatorDirectSolUnshieldIntent"),
+    callSite.snippet.includes("signSolUnshieldIntent"),
   ),
-  "Unshield must use the operator-direct SOL operator handoff.",
+  "Unshield must use the SOL message-intent safety handoff.",
 );
 assert.ok(
   inventory.messageIntentPolicy.requiredSequence.includes("typed-intent-summary") &&

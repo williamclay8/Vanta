@@ -62,9 +62,15 @@ for (const phase of ["approval", "wallet", "services", "settlementPlan", "eviden
 }
 
 assert.equal(report.phases.approval.expectedActionRef, approvalStatus.approvalActionRef);
-if (approvalStatus.approvalActionRef.startsWith("actual-private/mainnet-settlement-evidence-run-")) {
+if (
+  approvalStatus.approvalActionRef.startsWith("actual-private/mainnet-settlement-evidence-run-") ||
+  approvalStatus.approvalActionRef.startsWith("actual-private/mainnet-shared-cohort-settlement-evidence-run-")
+) {
   assert.equal(report.phases.approval.actualPrivateActionScoped, true);
-  assert.match(report.phases.approval.expectedActionRef, /^actual-private\/mainnet-settlement-evidence-run-\d{4}-\d{2}-\d{2}/);
+  assert.match(
+    report.phases.approval.expectedActionRef,
+    /^actual-private\/mainnet-(?:shared-cohort-settlement|settlement)-evidence-run-\d{4}-\d{2}-\d{2}/,
+  );
 } else {
   assert.equal(report.phases.approval.actualPrivateActionScoped, false);
   assert.ok(
@@ -302,6 +308,36 @@ assert.deepEqual(executeWithoutRelayerTransactionReport.phases.settlementPlan.re
   valuePolicy: "raw-unsigned-transaction-bytes-presence-only-never-printed",
 });
 assert.equal(executeWithoutRelayerTransactionReport.phases.settlementPlan.execution, null);
+
+const planJsonOnlyRun = spawnSync("node", [runnerPath, "--live", "--execute"], {
+  cwd: repoRoot,
+  encoding: "utf8",
+  env: executorEnv({
+    VANTA_ACTUAL_PRIVATE_MAINNET_SETTLEMENT_ACK: "I_UNDERSTAND_THIS_RUN_CAN_MOVE_MAINNET_FUNDS",
+    VANTA_ACTUAL_PRIVATE_MAINNET_SETTLEMENT_EXECUTE_ACK:
+      "I_UNDERSTAND_THIS_WILL_REQUEST_A_MAINNET_PRIVATE_SETTLEMENT",
+    VANTA_ACTUAL_PRIVATE_ACCEPTED_ROOT_REF: "",
+    VANTA_ACTUAL_PRIVATE_ASSET_COHORT_REF: "",
+    VANTA_ACTUAL_PRIVATE_ASSET_ID_COMMITMENT_REF: "",
+    VANTA_ACTUAL_PRIVATE_CHANGE_OUTPUT_COMMITMENT_REF: "",
+    VANTA_ACTUAL_PRIVATE_ECONOMICS_COMMITMENT_REF: "",
+    VANTA_ACTUAL_PRIVATE_NULLIFIER_REF: "",
+    VANTA_ACTUAL_PRIVATE_OUTPUT_COMMITMENT_REF: "",
+    VANTA_ACTUAL_PRIVATE_OWNER_COMMITMENT_REF: "",
+    VANTA_ACTUAL_PRIVATE_POOL_ID_REF: "",
+    VANTA_ACTUAL_PRIVATE_SPEND_CONTEXT_HASH_REF: "",
+    VANTA_ACTUAL_PRIVATE_SPEND_PUBLIC_INPUT_HASH_REF: "",
+    VANTA_ACTUAL_PRIVATE_ROUTE_COMMITMENT_REF: "",
+    VANTA_ACTUAL_PRIVATE_SETTLEMENT_COMMITMENT_REF: "",
+    VANTA_ACTUAL_PRIVATE_SETTLEMENT_ID_REF: "",
+    VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN: "",
+  }),
+});
+assert.equal(planJsonOnlyRun.status, 1, "Plan JSON alone must satisfy duplicate plan-term readiness but still fail without operator token/approval gates.");
+const planJsonOnlyReport = JSON.parse(planJsonOnlyRun.stdout);
+assert.equal(planJsonOnlyReport.phases.settlementPlan.executionPlanJson.status, "ready");
+assert.ok(!planJsonOnlyReport.finalBlocker.blockers.some((blocker) => /VANTA_ACTUAL_PRIVATE_.*_REF:not-ready/.test(blocker)));
+assert.ok(planJsonOnlyReport.finalBlocker.blockers.includes("VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN:not-ready"));
 
 const rawToken = ["Bearer", "abcdefghijklmnopqrstuvwxyz0123456789"].join(" ");
 const redactionRun = spawnSync("node", [runnerPath, "--dry-run"], {

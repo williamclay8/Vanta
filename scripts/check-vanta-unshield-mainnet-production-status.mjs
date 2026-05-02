@@ -51,16 +51,17 @@ assert.equal(status.liveSettlementProven, false);
 assert.equal(status.exactUnshieldApprovalScoped, false);
 assert.equal(status.boundedApprovalActive, false);
 
-for (const blocker of [
+const expectedBlockers = [
   "no-reviewed-live-mainnet-unshield-settlement-evidence",
   "no-exact-unshield-bounded-approval-window",
   "observability-provider-controls-pending",
   "operator-event-sink-not-production-ready",
-  "bounded-approval-window-expired",
+  ...(status.currentApproval.approvalWindowStatus === "active" ? [] : ["bounded-approval-window-expired"]),
   "no-proven-audited-shared-anonymity-set",
   "no-proven-live-mainnet-private-settlement-evidence",
   "no-third-party-audit",
-]) {
+];
+for (const blocker of expectedBlockers) {
   assert.ok(status.blockers.includes(blocker), `Unshield mainnet production status missing blocker: ${blocker}`);
 }
 

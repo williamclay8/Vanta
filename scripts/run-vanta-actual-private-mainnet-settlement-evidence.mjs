@@ -93,24 +93,24 @@ const serviceEnv = [
 ];
 
 const planEnv = [
-  { env: "VANTA_ACTUAL_PRIVATE_ACCEPTED_ROOT_REF", field: "acceptedRoot" },
-  { env: "VANTA_ACTUAL_PRIVATE_ASSET_COHORT_REF", field: "assetCohort" },
-  { env: "VANTA_ACTUAL_PRIVATE_ASSET_ID_COMMITMENT_REF", field: "assetIdCommitment" },
-  { env: "VANTA_ACTUAL_PRIVATE_CHANGE_LEAF_INDEX_REF", field: "changeLeafIndex" },
-  { env: "VANTA_ACTUAL_PRIVATE_CHANGE_OUTPUT_COMMITMENT_REF", field: "changeOutputCommitment" },
-  { env: "VANTA_ACTUAL_PRIVATE_CHANGE_OUTPUT_ROOT_REF", field: "changeOutputRoot" },
-  { env: "VANTA_ACTUAL_PRIVATE_ECONOMICS_COMMITMENT_REF", field: "economicsCommitment" },
-  { env: "VANTA_ACTUAL_PRIVATE_NULLIFIER_REF", field: "nullifier" },
-  { env: "VANTA_ACTUAL_PRIVATE_OUTPUT_COMMITMENT_REF", field: "outputCommitment" },
-  { env: "VANTA_ACTUAL_PRIVATE_OUTPUT_LEAF_INDEX_REF", field: "outputLeafIndex" },
-  { env: "VANTA_ACTUAL_PRIVATE_OUTPUT_ROOT_REF", field: "outputRoot" },
-  { env: "VANTA_ACTUAL_PRIVATE_OWNER_COMMITMENT_REF", field: "ownerCommitment" },
-  { env: "VANTA_ACTUAL_PRIVATE_POOL_ID_REF", field: "poolId" },
-  { env: "VANTA_ACTUAL_PRIVATE_SPEND_CONTEXT_HASH_REF", field: "privateSpendContextHash" },
-  { env: "VANTA_ACTUAL_PRIVATE_SPEND_PUBLIC_INPUT_HASH_REF", field: "privateSpendPublicInputHash" },
-  { env: "VANTA_ACTUAL_PRIVATE_ROUTE_COMMITMENT_REF", field: "routeCommitment" },
-  { env: "VANTA_ACTUAL_PRIVATE_SETTLEMENT_COMMITMENT_REF", field: "settlementCommitment" },
-  { env: "VANTA_ACTUAL_PRIVATE_SETTLEMENT_ID_REF", field: "settlementId" },
+  { env: "VANTA_ACTUAL_PRIVATE_ACCEPTED_ROOT_REF", field: "acceptedRoot", required: true },
+  { env: "VANTA_ACTUAL_PRIVATE_ASSET_COHORT_REF", field: "assetCohort", required: true },
+  { env: "VANTA_ACTUAL_PRIVATE_ASSET_ID_COMMITMENT_REF", field: "assetIdCommitment", required: true },
+  { env: "VANTA_ACTUAL_PRIVATE_CHANGE_LEAF_INDEX_REF", field: "changeLeafIndex", required: false },
+  { env: "VANTA_ACTUAL_PRIVATE_CHANGE_OUTPUT_COMMITMENT_REF", field: "changeOutputCommitment", required: true },
+  { env: "VANTA_ACTUAL_PRIVATE_CHANGE_OUTPUT_ROOT_REF", field: "changeOutputRoot", required: false },
+  { env: "VANTA_ACTUAL_PRIVATE_ECONOMICS_COMMITMENT_REF", field: "economicsCommitment", required: true },
+  { env: "VANTA_ACTUAL_PRIVATE_NULLIFIER_REF", field: "nullifier", required: true },
+  { env: "VANTA_ACTUAL_PRIVATE_OUTPUT_COMMITMENT_REF", field: "outputCommitment", required: true },
+  { env: "VANTA_ACTUAL_PRIVATE_OUTPUT_LEAF_INDEX_REF", field: "outputLeafIndex", required: false },
+  { env: "VANTA_ACTUAL_PRIVATE_OUTPUT_ROOT_REF", field: "outputRoot", required: false },
+  { env: "VANTA_ACTUAL_PRIVATE_OWNER_COMMITMENT_REF", field: "ownerCommitment", required: true },
+  { env: "VANTA_ACTUAL_PRIVATE_POOL_ID_REF", field: "poolId", required: true },
+  { env: "VANTA_ACTUAL_PRIVATE_SPEND_CONTEXT_HASH_REF", field: "privateSpendContextHash", required: true },
+  { env: "VANTA_ACTUAL_PRIVATE_SPEND_PUBLIC_INPUT_HASH_REF", field: "privateSpendPublicInputHash", required: true },
+  { env: "VANTA_ACTUAL_PRIVATE_ROUTE_COMMITMENT_REF", field: "routeCommitment", required: true },
+  { env: "VANTA_ACTUAL_PRIVATE_SETTLEMENT_COMMITMENT_REF", field: "settlementCommitment", required: true },
+  { env: "VANTA_ACTUAL_PRIVATE_SETTLEMENT_ID_REF", field: "settlementId", required: true },
 ];
 
 const forbiddenSecretPatterns = [
@@ -363,9 +363,13 @@ function evaluateRawSettlementPlanInput() {
 
   try {
     const parsed = JSON.parse(rawValue);
-    const planInput = Object.fromEntries(planEnv.map((spec) => [spec.field, parsed[spec.field]]));
-    if (typeof parsed.relayerSerializedTransaction === "string" && parsed.relayerSerializedTransaction.trim()) {
-      planInput.relayerSerializedTransaction = parsed.relayerSerializedTransaction.trim();
+    const request = parsed?.request && typeof parsed.request === "object" ? parsed.request : parsed;
+    const planInput = {
+      ...request,
+      nullifier: request.nullifier ?? request.nullifierOrReplayCommitment,
+    };
+    if (typeof request.relayerSerializedTransaction === "string" && request.relayerSerializedTransaction.trim()) {
+      planInput.relayerSerializedTransaction = request.relayerSerializedTransaction.trim();
     }
     createVantaActualPrivateSettlementPlan(planInput);
     return {
@@ -439,14 +443,15 @@ const operatorUrl = services.find((service) => service.kind === "operator-url");
 const operatorSecret = evaluateSecretPresence("VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN");
 const stopCondition = readStopConditionEvidence();
 const actualPrivateActionScoped =
-  /^actual-private\/mainnet-settlement-evidence-run-\d{4}-\d{2}-\d{2}(?:-[A-Za-z0-9._-]+)?$/.test(
+  /^actual-private\/mainnet-(?:shared-cohort-settlement|settlement)-evidence-run-\d{4}-\d{2}-\d{2}(?:-[A-Za-z0-9._-]+)?$/.test(
     approvalStatus.approvalActionRef,
   );
 const actionMatchesApproval = approvalStatus.approvalActionRef === expectedActionRef;
 const capMatchesApproval = approvalStatus.maximumFundsAtRiskRef === expectedMaximumFundsAtRisk;
 const ackAccepted = dryRun ? false : ack === expectedAck;
 const executeAckAccepted = !executeRequested ? false : executeAck === expectedExecuteAck;
-const planReady = planInputs.every((input) => input.status === "ready");
+const planRefsReady = planInputs.every((input, index) => !planEnv[index].required || input.status === "ready");
+const planReady = rawSettlementPlanInput.status === "ready" || planRefsReady;
 const servicesReady = services.every((service) => service.status === "ready");
 const relayerSerializedTransactionReady =
   rawSettlementPlanInput.status === "ready" &&
@@ -496,7 +501,11 @@ const blockers = compactBlockers([
   !dryRun && !ackAccepted ? "missing-live-mainnet-settlement-ack" : null,
   wallet.status === "ready" ? null : "wallet-public-key-ref-not-ready",
   ...services.map((service) => (service.status === "ready" ? null : `${service.env}:not-ready`)),
-  ...planInputs.map((input) => (input.status === "ready" ? null : `${input.env}:not-ready`)),
+  ...planInputs.map((input, index) =>
+    rawSettlementPlanInput.status === "ready" || input.status === "ready" || !planEnv[index].required
+      ? null
+      : `${input.env}:not-ready`,
+  ),
   executeRequested && rawSettlementPlanInput.status !== "ready"
     ? "VANTA_ACTUAL_PRIVATE_SETTLEMENT_PLAN_JSON:not-ready"
     : null,

@@ -30,8 +30,14 @@ assert.ok(
   "Mainnet shield deposits must have a canonical public vault-owner fallback for static deploys.",
 );
 assert.ok(
-  shieldConfig.includes('import.meta.env.PROD\n  ? "mainnet-beta"') &&
-    solanaClient.includes('import.meta.env.PROD\n  ? "mainnet-beta"'),
+  (
+    shieldConfig.includes('import.meta.env.PROD\n  ? "mainnet-beta"') ||
+    shieldConfig.includes('export const vantaSolanaCluster: VantaSolanaCluster = "mainnet-beta"')
+  ) &&
+    (
+      solanaClient.includes('import.meta.env.PROD\n  ? "mainnet-beta"') ||
+      solanaClient.includes('export const solanaClusterLabel = "Mainnet"')
+    ),
   "Production static builds must force mainnet so stale Render mainnet env cannot block real-wallet assets.",
 );
 assert.ok(

@@ -35,16 +35,17 @@ assert.equal(status.liveSettlementProven, false);
 assert.equal(status.exactSwapApprovalScoped, false);
 assert.equal(status.boundedApprovalActive, false);
 
-for (const blocker of [
+const expectedBlockers = [
   "no-exact-swap-bounded-approval-window",
   "swap-quote-route-privacy-not-production-proven",
   "swap-live-venue-privacy-not-production-proven",
   "no-reviewed-live-mainnet-swap-settlement-evidence",
-  "bounded-approval-window-expired",
+  ...(status.currentApproval.approvalWindowStatus === "active" ? [] : ["bounded-approval-window-expired"]),
   "no-proven-audited-shared-anonymity-set",
   "no-proven-live-mainnet-private-settlement-evidence",
   "no-third-party-audit",
-]) {
+];
+for (const blocker of expectedBlockers) {
   assert.ok(status.blockers.includes(blocker), `Swap mainnet production status missing blocker: ${blocker}`);
 }
 

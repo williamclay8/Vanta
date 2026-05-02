@@ -11,7 +11,6 @@ import { dirname, resolve } from "node:path";
 const VERSION = "vanta-wallet-manager-0.1";
 const DEFAULT_REGISTRY_PATH = `${homedir()}/.config/vanta/wallet-manager.json`;
 const MAINNET_RPC_URL = process.env.SOLANA_MAINNET_RPC_URL || "https://api.mainnet-beta.solana.com";
-const MAINNET_RPC_URL = process.env.SOLANA_MAINNET_RPC_URL || "https://api.mainnet-beta.solana.com";
 
 const KNOWN_WALLETS = [
   {
@@ -105,13 +104,35 @@ function loadOrBuildRegistry() {
   }
 
   const registry = JSON.parse(readFileSync(DEFAULT_REGISTRY_PATH, "utf8"));
-  return {
+  const normalized = {
     ...registry,
     wallets: registry.wallets.map((wallet) => ({
       ...wallet,
       keypairPath: resolve(wallet.keypairPath),
     })),
   };
+  const knownWalletIds = new Set(KNOWN_WALLETS.map((wallet) => wallet.id));
+  const missingKnownWallets = KNOWN_WALLETS.filter(
+    (knownWallet) => !normalized.wallets.some((wallet) => wallet.id === knownWallet.id),
+  ).map((wallet) => ({
+    ...wallet,
+    keypairPath: resolve(wallet.keypairPath),
+  }));
+
+  if (missingKnownWallets.length === 0) {
+    return normalized;
+  }
+
+  const migrated = {
+    ...normalized,
+    updatedAt: new Date().toISOString(),
+    wallets: [
+      ...normalized.wallets.filter((wallet) => knownWalletIds.has(wallet.id)),
+      ...missingKnownWallets,
+    ],
+  };
+  saveRegistry(migrated);
+  return migrated;
 }
 
 function saveRegistry(registry) {

@@ -24,7 +24,8 @@ for (const phrase of [
   "unshield-split-transition",
   "unshield-split-spent-marker",
   "createOperatorDirectUnshieldIntent",
-  "createOperatorDirectSolUnshieldIntent",
+  "signSolUnshieldIntent",
+  'intentKind: "sol-unshield-intent"',
   "Release through operator",
 ]) {
   assert.ok(source.includes(phrase), `Unshield safe-send adoption missing phrase: ${phrase}`);
@@ -33,11 +34,10 @@ for (const phrase of [
 for (const forbiddenPhrase of [
   "signUnshieldIntent(unshieldPayload",
   "signSolUnshieldIntent(solUnshieldPayload",
-  "signWalletMessageIntentWithSafety",
 ]) {
   assert.ok(
     !source.includes(forbiddenPhrase),
-    `Unshield must not preserve the extra Phantom message-signing request: ${forbiddenPhrase}`,
+    `Unshield must not preserve the unsupported direct message-signing request: ${forbiddenPhrase}`,
   );
 }
 

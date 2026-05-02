@@ -44,6 +44,7 @@ async function loadPrivateSettlementSummary() {
     "privacy/umbraCapabilityProfile.ts",
     "privacy/protocolAdapter.ts",
     "privacy/privatePoolV2SettlementPolicy.ts",
+    "privacy/actualPrivateTransactionRail.ts",
   ];
 
   try {

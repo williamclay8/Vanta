@@ -304,7 +304,7 @@ export function createVantaMainnetReadinessSnapshot() {
     version: "vanta-mainnet-readiness-0.1",
     blockers,
     decision: "blocked",
-    generatedAt: new Date(0).toISOString(),
+    generatedAt: new Date().toISOString(),
     operatorSkippedControls,
     lanes,
     mainnetReady: false,

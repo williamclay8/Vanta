@@ -10,6 +10,7 @@ const simulatedMainnetSummary = createTransactionSafetySummary({
   asset: "SOL",
   cluster: "mainnet-beta",
   estimatedFees: "0.000005 SOL",
+  explicitMainnetApproval: true,
   feePayer: "payer1111111111111111111111111111111111111",
   instructions: ["compute-budget", "private-pool-v2-shield"],
   recipient: "vantaPool111111111111111111111111111111111",
@@ -33,7 +34,7 @@ assert.equal(readyGate.requiresWalletSignature, true);
 assert.equal(readyGate.requiresSimulationBeforeSignature, true);
 assert.equal(readyGate.transactionMutableAfterSummary, false);
 assert.equal(readyGate.privateKeyMaterialHandled, false);
-assert.equal(readyGate.cluster, "mainnet");
+assert.equal(readyGate.cluster, "mainnet-beta");
 assert.equal(readyGate.walletAddress, simulatedMainnetSummary.feePayer);
 assert.equal(validateWalletBackedTransactionSimulationGate(readyGate).accepted, true);
 
@@ -80,6 +81,7 @@ assert.equal(validateWalletBackedTransactionSimulationGate(mutableTransactionGat
 const unapprovedMainnetSummary = createTransactionSafetySummary({
   ...simulatedMainnetSummary,
   cluster: "mainnet-beta",
+  explicitMainnetApproval: false,
 });
 
 const unapprovedMainnetGate = createWalletBackedTransactionSimulationGate({

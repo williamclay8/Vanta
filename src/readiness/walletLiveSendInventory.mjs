@@ -94,15 +94,15 @@ export function createWalletLiveSendInventory() {
         currentCallSites: [],
         adoptedCallSites: [
           adapter("createOperatorDirectUnshieldIntent", "SPL unshield operator-direct release handoff"),
-          adapter("createOperatorDirectSolUnshieldIntent", "native SOL unshield operator-direct release handoff"),
+          message("signSolUnshieldIntent", "native SOL unshield message-intent safety boundary"),
           tx("const splitSpentMarkerTransaction = useVantaSafeSendTransaction();", "partial unshield split spent-marker reservation"),
           tx("const splitTransitionTransaction = useVantaSafeSendTransaction();", "partial unshield split transition"),
         ],
         file: "src/pages/UnshieldPage.tsx",
         page: "Unshield",
         replacement:
-          "Keep full-note Unshield on the operator-direct release lane while Phantom blocks the public domain, and keep the dormant partial split path behind the safe-send hook that prepares, simulates, summarizes, gates, and requests wallet approval.",
-        status: "operator-direct-active-split-safe-send-dormant",
+          "Keep SPL Unshield on the operator-direct release lane, keep SOL Unshield behind the message-intent safety boundary, and keep the dormant partial split path behind the safe-send hook that prepares, simulates, summarizes, gates, and requests wallet approval.",
+        status: "safe-send-adopted",
       },
       {
         currentCallSites: [],

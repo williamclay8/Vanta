@@ -286,6 +286,17 @@ export type VantaPayReceiptPublicView = {
   };
   receiptId: string;
   status: VantaPayReceiptStatus;
+  verification: {
+    claimBoundary: "receipt-backed-test-settlement-not-production-private";
+    commands: readonly [
+      "npm run pay:receipt-public-view-check",
+      "npm run pay:receipt-privacy-contract-check",
+      "npm run programmatic-privacy:contract-check",
+    ];
+    operatorStatusSurface: "npm run pay:production-readiness-json";
+    productionReady: false;
+    redactionPolicy: "customer-email-and-full-private-settlement-refs-redacted";
+  };
   version: "vanta-pay-receipt-public-view-0.1";
 };
 
