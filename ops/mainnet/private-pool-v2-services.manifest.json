@@ -4,6 +4,12 @@
   "mainnetReady": false,
   "productionReady": false,
   "secretPolicy": "names-only-no-secret-values",
+  "renderWorkspace": {
+    "provider": "render",
+    "workspaceName": "William's workspace",
+    "workspaceId": "tea-d7j37af7f7vs739ii8rg",
+    "failClosedInstruction": "Do not continue Render provider work while the selected workspace is empty or different."
+  },
   "stagingDeployments": [
     {
       "id": "pay",

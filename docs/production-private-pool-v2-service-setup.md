@@ -8,6 +8,8 @@ It does not make Vanta production-ready or mainnet-ready. It records what must e
 
 As of April 20, 2026, Render has two Vanta staging web services and five production Private Pool v2 role services:
 
+Use Render workspace `William's workspace` for this inventory. Workspace id: `tea-d7j37af7f7vs739ii8rg`. Do not continue Render provider work while the selected workspace is empty or different.
+
 - Pay staging service: `Vanta`, `srv-d7j3ggqqqhas739for80`, `https://vanta-0wwi.onrender.com`, start command `npm run pay:operator`.
 - Private Pool v2 staging service: `vanta-staging-private-pool-v2`, `srv-d7j4aod7vvec73ahsqlg`, `https://vanta-staging-private-pool-v2.onrender.com`, start command `npm run private-pool-v2:operator`.
 - Production indexer service: `vanta-prod-private-pool-v2-indexer`, `srv-d7jfqru7r5hc73b6oelg`, `https://vanta-prod-private-pool-v2-indexer.onrender.com`, start command `npm run private-pool-v2:indexer`.
@@ -108,6 +110,7 @@ The smoke path must use deterministic no-real-funds inputs. real funds are not a
 The live no-real-funds smoke runner is:
 
 ```bash
+npm run mainnet:render-workspace-check
 npm run mainnet:private-pool-v2-production-smoke-env
 npm run mainnet:private-pool-v2-production-smoke-live
 ```

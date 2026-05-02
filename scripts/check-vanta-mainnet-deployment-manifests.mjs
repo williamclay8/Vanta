@@ -14,6 +14,13 @@ assert.equal(manifest.mainnetReady, false);
 assert.equal(manifest.productionReady, false);
 assert.equal(manifest.network, "mainnet-beta");
 assert.equal(manifest.secretPolicy, "names-only-no-secret-values");
+assert.equal(manifest.renderWorkspace?.provider, "render");
+assert.equal(manifest.renderWorkspace?.workspaceName, "William's workspace");
+assert.equal(manifest.renderWorkspace?.workspaceId, "tea-d7j37af7f7vs739ii8rg");
+assert.ok(
+  manifest.renderWorkspace?.failClosedInstruction?.includes("empty or different"),
+  "Manifest must fail closed when the selected Render workspace is empty or different.",
+);
 assert.ok(
   Array.isArray(manifest.stagingDeployments),
   "Manifest must include secrets-safe staging deployment references.",

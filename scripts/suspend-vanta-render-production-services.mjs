@@ -1,4 +1,6 @@
 const apply = process.argv.includes("--apply");
+const expectedRenderWorkspaceId = "tea-d7j37af7f7vs739ii8rg";
+const expectedRenderWorkspaceName = "William's workspace";
 
 const services = [
   { id: "srv-d7jfqru7r5hc73b6oelg", name: "vanta-prod-private-pool-v2-indexer" },
@@ -16,6 +18,16 @@ function requireRenderApiKey() {
   }
 
   return token;
+}
+
+function requireRenderWorkspaceGuard() {
+  const workspaceId = process.env.RENDER_WORKSPACE_ID ?? process.env.RENDER_OWNER_ID;
+
+  if (workspaceId !== expectedRenderWorkspaceId) {
+    throw new Error(
+      `Refusing Render production service suspension until RENDER_WORKSPACE_ID=${expectedRenderWorkspaceId} (${expectedRenderWorkspaceName}) is set.`,
+    );
+  }
 }
 
 async function suspendService({ id, name }, token) {
@@ -43,6 +55,7 @@ async function suspendService({ id, name }, token) {
 
 if (!apply) {
   console.log("Vanta production Render suspend dry run");
+  console.log(`Expected Render workspace: ${expectedRenderWorkspaceName} (${expectedRenderWorkspaceId})`);
   console.log("No services were changed. Re-run with --apply and RENDER_API_KEY to suspend.");
   for (const service of services) {
     console.log(`- ${service.name} (${service.id})`);
@@ -51,6 +64,7 @@ if (!apply) {
 }
 
 const token = requireRenderApiKey();
+requireRenderWorkspaceGuard();
 const results = [];
 
 for (const service of services) {

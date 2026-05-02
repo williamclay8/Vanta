@@ -10,6 +10,18 @@ Do not paste secrets into chat, git, screenshots, docs, issue comments, or shell
 
 Only refs, service names, public URLs, evidence IDs, and non-secret hostnames belong in the repo. Never commit raw bearer tokens, API keys, raw database URLs, wallet keys, seed phrases, or signed transaction material.
 
+## Render Workspace Rule
+
+Before any Render provider action, select Render workspace `William's workspace`.
+
+- Workspace id: `tea-d7j37af7f7vs739ii8rg`
+- Do not continue Render provider work while the selected workspace is empty or different.
+- If the Render connector reports no selected workspace or cannot list workspaces, pause provider work and reselect `William's workspace` before inspecting services, logs, env vars, databases, deploys, or live status.
+- If the connector stays unhealthy after selection, run `RENDER_API_KEY=<secret> npm run mainnet:render-api-workspace-check` from a secret-backed shell to confirm the key still reaches the expected workspace without printing the key.
+- If service list/detail calls still fail through MCP, run `RENDER_API_KEY=<secret> npm run mainnet:render-api-services-check` from a secret-backed shell to confirm the expected Vanta service ids are reachable in the expected workspace.
+- This workspace selection is not approval to deploy, change billing, reveal secrets, or mutate production-like state.
+- Verify the tracked workspace contract with `npm run mainnet:render-workspace-check`.
+
 ## Canonical Deployment Inputs
 
 The checked production service inventory is:
@@ -74,6 +86,7 @@ Run these before treating a deploy as healthy:
 
 ```bash
 npm run build
+npm run mainnet:render-workspace-check
 npm run mainnet:production-service-setup-check
 npm run mainnet:deployment-manifest-check
 npm run mainnet:deployment-runbook-check

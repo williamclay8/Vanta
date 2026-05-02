@@ -14,6 +14,10 @@ const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
 const requiredPhrases = [
   "# Production Private Pool v2 Service Setup",
   "Current Render inventory",
+  "William's workspace",
+  "tea-d7j37af7f7vs739ii8rg",
+  "Do not continue Render provider work while the selected workspace is empty or different",
+  "npm run mainnet:render-workspace-check",
   "vanta-staging-private-pool-v2",
   "https://vanta-staging-private-pool-v2.onrender.com",
   "https://vanta-0wwi.onrender.com",
