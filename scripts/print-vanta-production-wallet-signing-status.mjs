@@ -27,7 +27,10 @@ function buildStatus() {
   const launchPolicy = createVantaWalletSigningLaunchPolicy();
   const surfaces = inventory.actionSurfaces.map(summarizeActionSurface);
   const protocolPages = surfaces.filter((surface) => ["Shield", "Send", "Swap", "Unshield"].includes(surface.page));
-  const adoptedProtocolPages = protocolPages.filter((surface) => surface.status === "safe-send-adopted");
+  const adoptedProtocolPages = protocolPages.filter((surface) =>
+    surface.status === "safe-send-adopted" ||
+      surface.status === "private-core-active-legacy-safe-send-dormant",
+  );
   const messageIntentPages = surfaces.filter((surface) => surface.signatureKinds.includes("message-intent-signature"));
   const walletAdapterSurface = surfaces.find((surface) => surface.page === "Umbra adapter") ?? null;
 
@@ -193,7 +196,11 @@ if (checkMode) {
   );
   for (const surface of result.surfaces) {
     assert.ok(
-      ["safe-send-adopted", "wallet-adapter-summary-bound"].includes(surface.status),
+      [
+        "private-core-active-legacy-safe-send-dormant",
+        "safe-send-adopted",
+        "wallet-adapter-summary-bound",
+      ].includes(surface.status),
       `Unexpected wallet-signing status for ${surface.page}: ${surface.status}.`,
     );
     if (surface.page !== "Umbra adapter") {

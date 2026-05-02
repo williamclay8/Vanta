@@ -74,8 +74,8 @@ export function createWalletLiveSendInventory() {
         file: "src/pages/SendPage.tsx",
         page: "Send",
         replacement:
-          "Keep spent-marker and send-note transactions behind the safe-send hook that prepares, simulates, summarizes, gates, and requests wallet approval.",
-        status: "safe-send-adopted",
+          "Keep dormant legacy spent-marker and send-note transactions behind the safe-send hook that prepares, simulates, summarizes, gates, and requests wallet approval, and treat the active Send surface as the Private Core proof/operator lane with no wallet transaction submission.",
+        status: "private-core-active-legacy-safe-send-dormant",
       },
       {
         currentCallSites: [],

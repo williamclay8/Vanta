@@ -27,7 +27,12 @@ for (const page of ["Shield", "Send", "Swap", "Unshield"]) {
 
 for (const surface of inventory.actionSurfaces) {
   assert.ok(
-    ["requires-wallet-backed-simulation-gate", "safe-send-adopted", "wallet-adapter-summary-bound"].includes(surface.status),
+    [
+      "private-core-active-legacy-safe-send-dormant",
+      "requires-wallet-backed-simulation-gate",
+      "safe-send-adopted",
+      "wallet-adapter-summary-bound",
+    ].includes(surface.status),
     `${surface.page} has unknown wallet-send adoption status: ${surface.status}`,
   );
   assert.ok(surface.file.startsWith("src/"), `${surface.page} inventory must use repo-relative source files.`);
@@ -59,10 +64,14 @@ assert.equal(
 );
 
 const sendSurface = surfacesByPage.get("Send");
-assert.equal(sendSurface.status, "safe-send-adopted", "Send must reflect safe-send adoption.");
+assert.equal(
+  sendSurface.status,
+  "private-core-active-legacy-safe-send-dormant",
+  "Send must label the active Private Core proof lane separately from dormant legacy safe-send transactions.",
+);
 assert.ok(
   sendSurface.adoptedCallSites?.length >= 2,
-  "Send must list spent-marker and send-note transactions as safe-send adopted.",
+  "Send must preserve legacy spent-marker and send-note safe-send call sites.",
 );
 assert.equal(sendSurface.currentCallSites.length, 0, "Send must not keep raw generic transaction sends pending.");
 

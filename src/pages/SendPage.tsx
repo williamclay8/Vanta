@@ -1420,7 +1420,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           {shieldStateRefreshing && status === "idle" && (
             <div className="status-panel status-panel--processing">
               <span>Refreshing state</span>
-              <p>Loading the latest spendable shield notes and residual change notes from devnet.</p>
+              <p>Loading the latest spendable shield notes and residual change notes from the active cluster.</p>
             </div>
           )}
         </article>
