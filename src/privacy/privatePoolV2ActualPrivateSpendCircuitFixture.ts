@@ -30,6 +30,7 @@ export type VantaPrivatePoolV2ActualPrivateSpendCircuitFixture = {
 export type VantaPrivatePoolV2ActualPrivateSpendCircuitFixtureMode =
   | "valid"
   | "invalid-binding"
+  | "invalid-direction-bit"
   | "invalid-leaf-index"
   | "invalid-membership-root"
   | "invalid-nullifier";
@@ -149,14 +150,16 @@ export function createVantaPrivatePoolV2ActualPrivateSpendCircuitFixture({
   mode?: VantaPrivatePoolV2ActualPrivateSpendCircuitFixtureMode;
   witness?: VantaPrivatePoolV2ActualPrivateSpendCircuitWitness;
 } = {}): VantaPrivatePoolV2ActualPrivateSpendCircuitFixture {
-  const circuitWitness =
+  const circuitWitness: VantaPrivatePoolV2ActualPrivateSpendCircuitWitness =
     mode === "invalid-membership-root"
       ? { ...witness, accepted_root: witness.accepted_root + 1n }
       : mode === "invalid-nullifier"
         ? { ...witness, nullifier: witness.nullifier + 1n }
-        : mode === "invalid-leaf-index"
-          ? { ...witness, leaf_index: witness.leaf_index + 1n }
-          : witness;
+        : mode === "invalid-direction-bit"
+          ? { ...witness, membership_path_direction_bits: [2n, 0n, 1n] as const }
+          : mode === "invalid-leaf-index"
+            ? { ...witness, leaf_index: witness.leaf_index + 1n }
+            : witness;
   const validPublicHash =
     computeVantaPrivatePoolV2ActualPrivateSpendPublicInputHash(circuitWitness);
   const proofRequest = createVantaPrivatePoolV2ActualPrivateSpendProofRequest({

@@ -63,6 +63,7 @@ try {
   for (const mode of [
     "invalid-membership-root",
     "invalid-nullifier",
+    "invalid-direction-bit",
     "invalid-leaf-index",
     "invalid-binding",
   ]) {

@@ -125,7 +125,7 @@ export type VantaPrivatePoolV2ActualPrivateSpendProofRequestArgs = {
   assetCohort: string;
   contextHash: string;
   nullifier: string;
-  outputCommitments: readonly string[];
+  outputCommitments: readonly [string, string];
   poolId: string;
   privateSpendPublicInputHash?: string;
 };
@@ -313,8 +313,15 @@ export function createVantaPrivatePoolV2ActualPrivateSpendProofRequest({
     throw new Error("Actual private spend proof requires a context hash.");
   }
 
-  if (outputCommitments.length === 0 || outputCommitments.some((commitment) => !commitment.trim())) {
-    throw new Error("Actual private spend proof requires at least one output commitment.");
+  if (
+    outputCommitments.length !== 2 ||
+    outputCommitments.some((commitment) => !commitment.trim())
+  ) {
+    throw new Error("Actual private spend proof requires exactly two output commitments.");
+  }
+
+  if (new Set(outputCommitments).size !== outputCommitments.length) {
+    throw new Error("Actual private spend proof requires unique output commitments.");
   }
 
   const resolvedPrivateSpendPublicInputHash =

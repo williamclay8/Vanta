@@ -903,7 +903,7 @@ function readActualPrivateSpendOutputCommitments(request) {
 async function postIndexerJson(path, body) {
   const baseUrl = process.env.VANTA_PRIVATE_POOL_V2_INDEXER_URL?.replace(/\/+$/, "");
   if (!baseUrl) {
-    return null;
+    throw new Error("Private Pool v2 stateful verifier acceptance requires VANTA_PRIVATE_POOL_V2_INDEXER_URL.");
   }
 
   const authToken = process.env.VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN;
