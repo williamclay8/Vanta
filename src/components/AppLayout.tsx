@@ -220,6 +220,11 @@ export function AppLayout() {
     }
 
     window.requestAnimationFrame(() => {
+      if (window.getComputedStyle(tabs).display === "grid") {
+        tabs.scrollTo({ left: 0, behavior: "auto" });
+        return;
+      }
+
       const targetScrollLeft = activeTab.offsetLeft - (tabs.clientWidth - activeTab.offsetWidth) / 2;
 
       tabs.scrollTo({

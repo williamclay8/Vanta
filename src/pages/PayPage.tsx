@@ -334,9 +334,9 @@ export function PayPage() {
   }
 
   return (
-    <section className="pay-page pay-page--transaction" aria-labelledby="pay-title">
+    <section className="send-page pay-page pay-page--transaction" aria-labelledby="pay-title">
       <div className="pay-shell pay-shell--minimal">
-        <header className="module-page__hero send-page__hero pay-topbar pay-topbar--minimal pay-page__hero product-intro">
+        <header className="module-page__hero send-page__hero pay-page__hero product-intro">
           <div>
             <span className="pay-kicker product-intro__eyebrow">Vanta Pay</span>
             <h1 id="pay-title">Pay</h1>
@@ -374,7 +374,7 @@ export function PayPage() {
         </div>
 
         <main className="pay-minimal-stage send-layout">
-          <article className="send-card send-card--workspace pay-payment-card pay-payment-card--cockpit">
+          <article className="send-card send-card--workspace">
             <div className="pay-request-grid">
               <section className="pay-request-builder" aria-labelledby="pay-details-title">
                 <header className="shield-card__header">
