@@ -858,6 +858,10 @@ input {
   transform: translateY(-1px);
 }
 
+.app-header__tab:active {
+  transform: translateY(0) scale(0.96);
+}
+
 .app-header__tab:focus-visible,
 .app-header__account-trigger:focus-visible,
 .pay-subnav__item:focus-visible {
@@ -3468,6 +3472,10 @@ input {
   border-color: rgba(119, 242, 212, 0.14);
   background: rgba(119, 242, 212, 0.045);
   color: var(--accent);
+}
+
+.pay-subnav__item:active {
+  transform: translateY(0) scale(0.96);
 }
 
 .pay-subnav__item--active {
