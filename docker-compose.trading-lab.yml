@@ -1,0 +1,22 @@
+services:
+  trading-lab-api:
+    image: node:22-alpine
+    working_dir: /workspace
+    command: node apps/trading-lab-api/server.mjs
+    ports:
+      - "5299:5299"
+    volumes:
+      - .:/workspace:ro
+    environment:
+      TRADING_LAB_API_PORT: "5299"
+
+  trading-lab-web:
+    image: node:22-alpine
+    working_dir: /workspace
+    command: node apps/trading-lab-web/server.mjs
+    ports:
+      - "5199:5199"
+    volumes:
+      - .:/workspace:ro
+    environment:
+      TRADING_LAB_WEB_PORT: "5199"
