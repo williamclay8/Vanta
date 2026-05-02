@@ -712,6 +712,14 @@ npm run mainnet:real-funds-approval-status-check
 
 It evaluates the current bounded approval record against the approved launch window and prints whether live mainnet actions are allowed now. This keeps `approval recorded` separate from `approval window active` so expired windows do not get mistaken for current permission.
 
+The status surface also reports a `stopCondition` block from:
+
+```text
+ops/mainnet/actual-private-mainnet-settlement-stop-condition.evidence.json
+```
+
+This stop-condition is a **one-shot guard**: when `stopCondition.appliesToCurrentApproval` is true and `stopCondition.status` is `fired`, the approval window is treated as consumed and `liveMainnetActionsAllowedNow` stays false even if the launch window is active. If a stop-condition evidence file exists but `appliesToCurrentApproval` is false, treat it as historical evidence for a different approval identity, not proof that the current approval was consumed or safe to reuse.
+
 ## Pay Operator
 
 Start the local Pay merchant API operator:

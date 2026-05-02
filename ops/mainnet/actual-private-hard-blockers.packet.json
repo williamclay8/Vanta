@@ -1,29 +1,29 @@
 {
   "version": "vanta-actual-private-hard-blockers-packet-0.1",
-  "checkedAt": "2026-05-02T14:37:08.000Z",
+  "checkedAt": "2026-05-02T17:05:00.000Z",
   "mainnetReady": false,
   "productionReady": false,
   "privacyClaimAllowed": false,
   "secretPolicy": "references-only-no-secret-values",
   "purpose": "Single refs-only operator packet for the remaining actual-private production privacy blockers. This packet is a launch blocker map, not approval, audit, legal, custody, anonymity, or live-settlement evidence.",
   "stopBoundary": {
-    "liveMainnetActionsAllowedNow": true,
+    "liveMainnetActionsAllowedNow": false,
     "currentApprovalActionRef": "actual-private/mainnet-shared-cohort-settlement-evidence-run-2026-05-02-0937-1137-central",
     "currentApprovalWindowRef": "2026-05-02T09:37:08-11:37:08 America/Chicago",
     "stopConditionStatus": "not-applicable-to-current-approval",
     "fundsMoved": false,
-    "requiredNextStep": "Keep live actions inside the exact approved bounded shared-cohort settlement action."
+    "requiredNextStep": "Record a new bounded approval window before any live mainnet action."
   },
   "hardBlockers": [
     {
       "id": "fresh-bounded-approval",
-      "status": "satisfied-active-bounded-approval",
+      "status": "blocked-expired-bounded-approval",
       "owner": "founder-operator",
       "requiredArtifactShape": "approval-window:<fresh-exact-action-window-America_Chicago>",
       "currentArtifactRef": "approval-window:2026-05-02T09:37:08-11:37:08-America-Chicago",
       "canonicalCommand": "npm run mainnet:real-funds-approval-status-check",
       "mayBeDoneByCodexAlone": false,
-      "truthBoundary": "A fresh bounded approval window is active only for the exact shared-cohort settlement evidence run; all other live mainnet actions remain blocked."
+      "truthBoundary": "A fresh bounded approval window must be active for the exact shared-cohort settlement evidence run; all other live mainnet actions remain blocked."
     },
     {
       "id": "shared-cohort-deposit-transaction",
