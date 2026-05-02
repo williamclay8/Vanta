@@ -62,6 +62,17 @@ export type VantaWalletSafeSendResult =
       };
       gate: VantaWalletBackedTransactionSimulationGate;
       prepared: VantaWalletSafeSendPrepared;
+      signature: null;
+      status: "prepared";
+      summary: VantaTransactionSafetySummary;
+    }
+  | {
+      decision: {
+        accepted: true;
+        reason: string;
+      };
+      gate: VantaWalletBackedTransactionSimulationGate;
+      prepared: VantaWalletSafeSendPrepared;
       signature: string;
       status: "submitted";
       summary: VantaTransactionSafetySummary;
@@ -73,7 +84,17 @@ export function createWalletSafeSendBoundary(dependencies: {
   simulate: VantaWalletSafeSendBoundary["simulate"];
 }): VantaWalletSafeSendBoundary;
 
+export function prepareWalletSafeSendBoundary(
+  boundary: VantaWalletSafeSendBoundary,
+  input: VantaWalletSafeSendInput,
+): Promise<Extract<VantaWalletSafeSendResult, { status: "blocked" | "prepared" }>>;
+
+export function sendPreparedWalletSafeSendBoundary(
+  boundary: VantaWalletSafeSendBoundary,
+  preparedApproval: Extract<VantaWalletSafeSendResult, { status: "prepared" }>,
+): Promise<Extract<VantaWalletSafeSendResult, { status: "submitted" }>>;
+
 export function runWalletSafeSendBoundary(
   boundary: VantaWalletSafeSendBoundary,
   input: VantaWalletSafeSendInput,
-): Promise<VantaWalletSafeSendResult>;
+): Promise<Exclude<VantaWalletSafeSendResult, { status: "prepared" }>>;

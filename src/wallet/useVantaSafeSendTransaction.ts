@@ -7,7 +7,9 @@ import type {
 } from "@solana/client";
 import {
   createWalletSafeSendBoundary,
+  prepareWalletSafeSendBoundary,
   runWalletSafeSendBoundary,
+  sendPreparedWalletSafeSendBoundary,
 } from "./walletSafeSendBoundary.mjs";
 import type {
   VantaWalletSafeSendInput,
@@ -15,8 +17,9 @@ import type {
   VantaWalletSafeSendResult,
 } from "./walletSafeSendBoundary.mjs";
 
-type VantaSafeSendStatus = "idle" | "loading" | "submitted" | "blocked" | "error";
-type VantaSafeSendHookStatus = "idle" | "loading" | "success" | "error";
+type VantaSafeSendStatus = "idle" | "loading" | "prepared" | "submitted" | "blocked" | "error";
+type VantaSafeSendHookStatus = "idle" | "loading" | "prepared" | "success" | "error";
+type VantaWalletPreparedApproval = Extract<VantaWalletSafeSendResult, { status: "prepared" }>;
 
 type VantaSafeSendState = {
   error: unknown;
@@ -138,6 +141,78 @@ export function useVantaSafeSendTransaction() {
     },
     [boundary],
   );
+  const preflight = useCallback(
+    async (input: VantaWalletSafeSendInput) => {
+      setState({
+        error: null,
+        result: null,
+        signature: null,
+        status: "loading",
+      });
+
+      try {
+        const result = await prepareWalletSafeSendBoundary(boundary, input);
+        if (result.status === "blocked") {
+          setState({
+            error: result.reason,
+            result,
+            signature: null,
+            status: "blocked",
+          });
+
+          return result;
+        }
+
+        setState({
+          error: null,
+          result,
+          signature: null,
+          status: "prepared",
+        });
+
+        return result;
+      } catch (error) {
+        setState({
+          error,
+          result: null,
+          signature: null,
+          status: "error",
+        });
+        throw error;
+      }
+    },
+    [boundary],
+  );
+  const sendPrepared = useCallback(
+    async (preparedApproval: VantaWalletPreparedApproval) => {
+      setState((current) => ({
+        ...current,
+        error: null,
+        status: "loading",
+      }));
+
+      try {
+        const result = await sendPreparedWalletSafeSendBoundary(boundary, preparedApproval);
+        setState({
+          error: null,
+          result,
+          signature: result.signature,
+          status: result.status,
+        });
+
+        return result;
+      } catch (error) {
+        setState({
+          error,
+          result: null,
+          signature: null,
+          status: "error",
+        });
+        throw error;
+      }
+    },
+    [boundary],
+  );
 
   const reset = useCallback(() => {
     setState(initialState);
@@ -152,10 +227,12 @@ export function useVantaSafeSendTransaction() {
   return {
     error: state.error,
     isSending: state.status === "loading",
+    preflight,
     reset,
     result: state.result,
     safeStatus: state.status,
     send,
+    sendPrepared,
     signature: state.signature,
     status,
   };

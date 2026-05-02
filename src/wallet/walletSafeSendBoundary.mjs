@@ -56,7 +56,7 @@ export function createWalletSafeSendBoundary(dependencies) {
   };
 }
 
-export async function runWalletSafeSendBoundary(boundary, input) {
+export async function prepareWalletSafeSendBoundary(boundary, input) {
   if (boundary?.kind !== "vanta-wallet-safe-send-boundary") {
     throw new Error("Vanta wallet safe send boundary received an invalid boundary.");
   }
@@ -104,14 +104,40 @@ export async function runWalletSafeSendBoundary(boundary, input) {
     };
   }
 
-  const signature = await boundary.sendPrepared(prepared);
-
   return {
     decision,
     gate,
     prepared,
-    signature,
-    status: "submitted",
+    signature: null,
+    status: "prepared",
     summary,
   };
+}
+
+export async function sendPreparedWalletSafeSendBoundary(boundary, preparedApproval) {
+  if (boundary?.kind !== "vanta-wallet-safe-send-boundary") {
+    throw new Error("Vanta wallet safe send boundary received an invalid boundary.");
+  }
+
+  if (preparedApproval?.status !== "prepared" || !preparedApproval.prepared) {
+    throw new Error("Vanta wallet safe send boundary requires a prepared approval.");
+  }
+
+  const signature = await boundary.sendPrepared(preparedApproval.prepared);
+
+  return {
+    ...preparedApproval,
+    signature,
+    status: "submitted",
+  };
+}
+
+export async function runWalletSafeSendBoundary(boundary, input) {
+  const preparedApproval = await prepareWalletSafeSendBoundary(boundary, input);
+
+  if (preparedApproval.status === "blocked") {
+    return preparedApproval;
+  }
+
+  return sendPreparedWalletSafeSendBoundary(boundary, preparedApproval);
 }

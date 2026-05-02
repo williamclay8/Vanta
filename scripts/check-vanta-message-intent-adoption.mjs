@@ -31,6 +31,12 @@ for (const phrase of [
   "VANTA_SOL_UNSHIELD_INTENT_TTL_MS",
   "messageIntentSignature.signatureBytes",
   "message-intent-ready-for-wallet-approval",
+  'setStatus("operator_ready")',
+  'setStatus("release_ready")',
+  "Ready for release approval",
+  "Approve release in wallet",
+  "Ready to finalize",
+  "Finalize in wallet",
 ]) {
   assert.ok(unshieldSource.includes(phrase), `Unshield message-intent adoption missing phrase: ${phrase}`);
 }

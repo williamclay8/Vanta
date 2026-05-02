@@ -26,6 +26,27 @@ const transactionEvidenceSource = readRepoFile("src/transactions/vantaTransactio
 const transactionEvidenceCheck = readRepoFile("scripts/check-vanta-transaction-evidence.mjs");
 
 for (const phrase of [
+  "pendingTransitionApproval",
+  "pendingFinalizationApproval",
+  "transitionTransaction.preflight",
+  "transitionTransaction.sendPrepared",
+  "spentMarkerTransaction.preflight",
+  "spentMarkerTransaction.sendPrepared",
+  "Ready for transition approval",
+  "Approve transition in wallet",
+  "Ready for release approval",
+  "Approve release in wallet",
+  "Ready to finalize",
+  "Finalize in wallet",
+  "shield the exact USDC amount first",
+]) {
+  assert.ok(
+    unshieldPageSource.includes(phrase),
+    `Unshield Phantom-safe public-exit flow missing ${phrase}.`,
+  );
+}
+
+for (const phrase of [
   "VANTA_UNSHIELD_MEMO_PREFIX",
   "VANTA_SOL_UNSHIELD_MEMO_PREFIX",
   "createPreparedUnshieldMemo",
