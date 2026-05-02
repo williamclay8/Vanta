@@ -70,8 +70,23 @@ requireIncludes(
 );
 requireIncludes(
   walletContext,
-  "https://solana-rpc.publicnode.com",
+  'const MAINNET_WALLET_BALANCE_READ_ENDPOINT = "https://solana-rpc.publicnode.com"',
   "Wallet context SOL balance fallback must include a browser-accessible public mainnet RPC endpoint.",
+);
+requireIncludes(
+  walletContext,
+  '["https://api.devnet.solana.com", MAINNET_WALLET_BALANCE_READ_ENDPOINT]',
+  "Wallet context SOL balance fallback must recover a mainnet public SOL balance when the app is temporarily using devnet operator config.",
+);
+requireIncludes(
+  walletContext,
+  "if (nextBalance > 0n)",
+  "Wallet context SOL balance fallback must not stop on a provisional zero from the wrong cluster.",
+);
+requireIncludes(
+  walletContext,
+  "firstZeroBalance ??= nextBalance",
+  "Wallet context SOL balance fallback must still return zero when every readable endpoint reports zero.",
 );
 requireIncludes(
   walletContext,

@@ -95,6 +95,7 @@ function pickPreferredWalletConnector(connectors: readonly WalletConnector[]) {
 }
 
 const walletBalanceFallbackConnections = new Map<string, Connection>();
+const MAINNET_WALLET_BALANCE_READ_ENDPOINT = "https://solana-rpc.publicnode.com";
 
 function getConfiguredWalletBalanceReadEndpoints() {
   const configured = import.meta.env.VITE_SOLANA_READ_RPC_FALLBACK_URLS?.split(",")
@@ -102,8 +103,8 @@ function getConfiguredWalletBalanceReadEndpoints() {
     .filter(Boolean) ?? [];
   const defaults =
     vantaSolanaCluster === "mainnet-beta"
-      ? ["https://solana-rpc.publicnode.com", "https://api.mainnet-beta.solana.com"]
-      : ["https://api.devnet.solana.com"];
+      ? [MAINNET_WALLET_BALANCE_READ_ENDPOINT]
+      : ["https://api.devnet.solana.com", MAINNET_WALLET_BALANCE_READ_ENDPOINT];
 
   return [...new Set([endpoint, ...configured, ...defaults])];
 }
@@ -123,19 +124,30 @@ function getWalletBalanceFallbackConnection(fallbackEndpoint: string) {
 
 async function fetchWalletLamportsFallback(address: string) {
   const publicKey = new PublicKey(address);
+  let firstZeroBalance: bigint | null = null;
   let lastError: unknown = null;
 
   for (const fallbackEndpoint of getConfiguredWalletBalanceReadEndpoints()) {
     try {
-      return BigInt(
+      const nextBalance = BigInt(
         await getWalletBalanceFallbackConnection(fallbackEndpoint).getBalance(
           publicKey,
           "confirmed",
         ),
       );
+
+      if (nextBalance > 0n) {
+        return nextBalance;
+      }
+
+      firstZeroBalance ??= nextBalance;
     } catch (error) {
       lastError = error;
     }
+  }
+
+  if (firstZeroBalance !== null) {
+    return firstZeroBalance;
   }
 
   throw lastError ?? new Error("Wallet SOL balance could not be loaded.");
