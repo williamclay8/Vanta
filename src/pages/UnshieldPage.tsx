@@ -64,6 +64,7 @@ type UnshieldStatus =
   | "finalizing_split"
   | "operator_ready"
   | "authorizing_operator"
+  | "release_ready"
   | "finalizing_state"
   | "complete"
   | "failed";
@@ -1153,49 +1154,7 @@ export function UnshieldPage() {
           setLastCompletion((current) =>
             current ? { ...current, requestId } : current,
           );
-          setStatus("finalizing_state");
-          return buildHeliusPriorityFeeInstructions({
-            accountKeys: [
-              pendingSpentMarker.assetId,
-              pendingSpentMarker.consumedNoteId,
-              pendingSpentMarker.owner,
-              pendingSpentMarker.transitionNoteId,
-              pendingSpentMarker.vaultOwner,
-              walletAddress,
-            ],
-            action: "state_finalize",
-          }).then((priorityFeeInstructions) => {
-            const instructions = [
-              ...priorityFeeInstructions,
-              createSpentMarkerInstruction({
-                asset: pendingSpentMarker.asset,
-                assetId: pendingTokenAsset.mintAddress ?? "",
-                consumedNoteId: pendingSpentMarker.consumedNoteId,
-                createdAt: pendingSpentMarker.createdAt,
-                mintAddress: pendingTokenAsset.mintAddress ?? undefined,
-                owner: pendingSpentMarker.owner,
-                transitionKind: "unshield",
-                transitionNoteId: pendingSpentMarker.transitionNoteId,
-                vaultOwner: pendingSpentMarker.vaultOwner,
-              }),
-            ];
-
-            return spentMarkerTransaction.send({
-              amount: pendingSpentMarker.amount,
-              asset: pendingSpentMarker.asset,
-              cluster: vantaSolanaCluster,
-      explicitMainnetApproval: vantaExplicitMainnetApproval,
-              connectedWalletAddress: pendingSpentMarker.owner,
-              estimatedFees: "wallet-estimated",
-              feePayer: pendingSpentMarker.owner,
-              humanApprovedSummary: true,
-              instructions,
-              label: "unshield-spent-marker",
-              recipient: pendingSpentMarker.vaultOwner,
-              summaryInstructions: ["unshield-spent-marker"],
-              transactionFingerprint: `unshield-spent-marker:${pendingSpentMarker.owner}:${pendingSpentMarker.consumedNoteId}:${pendingSpentMarker.transitionNoteId}`,
-            });
-          });
+          setStatus("release_ready");
         })
         .catch((error) => {
           setStatus("failed");
@@ -1258,48 +1217,7 @@ export function UnshieldPage() {
         setLastCompletion((current) =>
           current ? { ...current, requestId } : current,
         );
-        setStatus("finalizing_state");
-        return buildHeliusPriorityFeeInstructions({
-          accountKeys: [
-            pendingSpentMarker.assetId,
-            pendingSpentMarker.consumedNoteId,
-            pendingSpentMarker.owner,
-            pendingSpentMarker.transitionNoteId,
-            pendingSpentMarker.vaultOwner,
-            walletAddress,
-          ],
-          action: "state_finalize",
-        }).then((priorityFeeInstructions) => {
-          const instructions = [
-            ...priorityFeeInstructions,
-            createSpentMarkerInstruction({
-              asset: "SOL",
-              assetId: VANTA_NATIVE_SOL_ASSET_ID,
-              consumedNoteId: pendingSpentMarker.consumedNoteId,
-              createdAt: pendingSpentMarker.createdAt,
-              owner: pendingSpentMarker.owner,
-              transitionKind: "sol_unshield",
-              transitionNoteId: pendingSpentMarker.transitionNoteId,
-              vaultOwner: pendingSpentMarker.vaultOwner,
-            }),
-          ];
-
-          return spentMarkerTransaction.send({
-            amount: pendingSpentMarker.amount,
-            asset: "SOL",
-            cluster: vantaSolanaCluster,
-      explicitMainnetApproval: vantaExplicitMainnetApproval,
-            connectedWalletAddress: pendingSpentMarker.owner,
-            estimatedFees: "wallet-estimated",
-            feePayer: pendingSpentMarker.owner,
-            humanApprovedSummary: true,
-            instructions,
-            label: "sol-unshield-spent-marker",
-            recipient: pendingSpentMarker.vaultOwner,
-            summaryInstructions: ["sol-unshield-spent-marker"],
-            transactionFingerprint: `sol-unshield-spent-marker:${pendingSpentMarker.owner}:${pendingSpentMarker.consumedNoteId}:${pendingSpentMarker.transitionNoteId}`,
-          });
-        });
+        setStatus("release_ready");
       })
       .catch((error) => {
         setStatus("failed");
@@ -1325,6 +1243,88 @@ export function UnshieldPage() {
     walletSession,
   ]);
 
+  const finalizePendingUnshieldState = useCallback(async () => {
+    if (
+      !pendingSpentMarker ||
+      !walletAddress ||
+      spentMarkerTransaction.status === "loading" ||
+      spentMarkerTransaction.signature
+    ) {
+      return;
+    }
+
+    setStatus("finalizing_state");
+
+    try {
+      const priorityFeeInstructions = await buildHeliusPriorityFeeInstructions({
+        accountKeys: [
+          pendingSpentMarker.assetId,
+          pendingSpentMarker.consumedNoteId,
+          pendingSpentMarker.owner,
+          pendingSpentMarker.transitionNoteId,
+          pendingSpentMarker.vaultOwner,
+          walletAddress,
+        ],
+        action: "state_finalize",
+      });
+      const isSolUnshield = pendingSpentMarker.asset === "SOL";
+      const pendingTokenAsset =
+        pendingSpentMarker.asset === "SOL"
+          ? null
+          : getLiveShieldTokenAsset(pendingSpentMarker.asset);
+      const instructions = [
+        ...priorityFeeInstructions,
+        createSpentMarkerInstruction({
+          asset: pendingSpentMarker.asset,
+          assetId: isSolUnshield
+            ? VANTA_NATIVE_SOL_ASSET_ID
+            : pendingTokenAsset?.mintAddress ?? "",
+          consumedNoteId: pendingSpentMarker.consumedNoteId,
+          createdAt: pendingSpentMarker.createdAt,
+          mintAddress: pendingTokenAsset?.mintAddress ?? undefined,
+          owner: pendingSpentMarker.owner,
+          transitionKind: pendingSpentMarker.transitionKind,
+          transitionNoteId: pendingSpentMarker.transitionNoteId,
+          vaultOwner: pendingSpentMarker.vaultOwner,
+        }),
+      ];
+
+      await spentMarkerTransaction.send({
+        amount: pendingSpentMarker.amount,
+        asset: pendingSpentMarker.asset,
+        cluster: vantaSolanaCluster,
+        explicitMainnetApproval: vantaExplicitMainnetApproval,
+        connectedWalletAddress: pendingSpentMarker.owner,
+        estimatedFees: "wallet-estimated",
+        feePayer: pendingSpentMarker.owner,
+        humanApprovedSummary: true,
+        instructions,
+        label: isSolUnshield ? "sol-unshield-spent-marker" : "unshield-spent-marker",
+        recipient: pendingSpentMarker.vaultOwner,
+        summaryInstructions: [
+          isSolUnshield ? "sol-unshield-spent-marker" : "unshield-spent-marker",
+        ],
+        transactionFingerprint: `${isSolUnshield ? "sol-unshield" : "unshield"}-spent-marker:${pendingSpentMarker.owner}:${pendingSpentMarker.consumedNoteId}:${pendingSpentMarker.transitionNoteId}`,
+      });
+    } catch (error) {
+      setStatus("failed");
+      setFlowError(
+        error instanceof Error
+          ? error.message
+          : "The spent marker could not be submitted.",
+      );
+      setOperatorAuthorizationStarted(false);
+      operatorAuthorizationLockRef.current = null;
+      setPendingUnshieldBridge(null);
+    }
+  }, [
+    pendingSpentMarker,
+    spentMarkerTransaction,
+    spentMarkerTransaction.signature,
+    spentMarkerTransaction.status,
+    walletAddress,
+  ]);
+
   useEffect(() => {
     if (
       transitionWait.waitStatus !== "success" ||
@@ -1334,6 +1334,7 @@ export function UnshieldPage() {
       spentMarkerTransaction.signature ||
       status === "operator_ready" ||
       status === "authorizing_operator" ||
+      status === "release_ready" ||
       status === "finalizing_state" ||
       status === "complete" ||
       status === "failed"
@@ -2669,6 +2670,7 @@ export function UnshieldPage() {
                     status === "finalizing_split" ||
                     status === "operator_ready" ||
                     status === "authorizing_operator" ||
+                    status === "release_ready" ||
                     status === "finalizing_state"
                   }
                 >
@@ -2765,6 +2767,27 @@ export function UnshieldPage() {
               <div className="status-bar">
                 <div className="status-bar__fill" />
               </div>
+            </div>
+          )}
+
+          {status === "release_ready" && (
+            <div className="status-panel">
+              <span>Ready to finalize</span>
+              <p>Approve one final wallet request to record the spent marker and refresh Vanta state.</p>
+              <button
+                className="button button-primary"
+                type="button"
+                onClick={() => {
+                  void finalizePendingUnshieldState();
+                }}
+                disabled={
+                  !pendingSpentMarker ||
+                  spentMarkerTransaction.status === "loading" ||
+                  Boolean(spentMarkerTransaction.signature)
+                }
+              >
+                Finalize in wallet
+              </button>
             </div>
           )}
 
