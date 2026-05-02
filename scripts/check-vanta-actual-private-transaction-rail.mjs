@@ -85,6 +85,7 @@ try {
     VANTA_ACTUAL_PRIVATE_TRANSACTION_RAIL_VERSION,
     VantaActualPrivateNullifierSet,
     analyzeVantaActualPrivateTransactionScenario,
+    computeVantaActualPrivateSpendPublicInputHash,
     createVantaActualPrivateTransactionScenario,
   }, {
     VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_AMOUNT_BASE_UNITS,
@@ -179,6 +180,59 @@ try {
     "Actual private spend request must use the hidden-economics asset sentinel.",
   );
   assert(
+    scenario.spendPublicTranscript.proofPublicInputHash ===
+      computeVantaActualPrivateSpendPublicInputHash({
+        acceptedRoot: scenario.spendPublicTranscript.acceptedRoot,
+        assetCohort: scenario.spendPublicTranscript.assetCohort,
+        contextHash: scenario.spendPublicTranscript.receiptCommitment,
+        inputCommitment: scenario.secretPacket.inputCommitment,
+        inputLeafIndex: scenario.secretPacket.inputLeafIndex,
+        nullifier: scenario.spendPublicTranscript.nullifier,
+        outputCommitments: scenario.spendPublicTranscript.outputCommitments,
+        poolId: "pool:stablecoin-usdc-v1:100",
+      }),
+    "Actual private spend transcript must use the shared Poseidon public-input hash builder.",
+  );
+  for (const [label, outputCommitments, message] of [
+    ["one-output", [scenario.spendPublicTranscript.outputCommitments[0]], "exactly two output commitments"],
+    [
+      "three-output",
+      [
+        scenario.spendPublicTranscript.outputCommitments[0],
+        scenario.spendPublicTranscript.outputCommitments[1],
+        "field:extra-output",
+      ],
+      "exactly two output commitments",
+    ],
+    [
+      "blank-output",
+      [scenario.spendPublicTranscript.outputCommitments[0], " "],
+      "exactly two output commitments",
+    ],
+    [
+      "duplicate-output",
+      [
+        scenario.spendPublicTranscript.outputCommitments[0],
+        scenario.spendPublicTranscript.outputCommitments[0],
+      ],
+      "unique output commitments",
+    ],
+  ]) {
+    await expectRejection(
+      () =>
+        createVantaPrivatePoolV2ActualPrivateSpendProofRequest({
+          acceptedRoot: scenario.spendPublicTranscript.acceptedRoot,
+          assetCohort: scenario.spendPublicTranscript.assetCohort,
+          contextHash: scenario.spendPublicTranscript.receiptCommitment,
+          nullifier: `${scenario.spendPublicTranscript.nullifier}:${label}`,
+          outputCommitments,
+          poolId: "pool:stablecoin-usdc-v1:100",
+        }),
+      message,
+    );
+  }
+  console.log("actual private exact-two-output negative fixtures: PASS");
+  assert(
     spendProofRequest.amountBaseUnits === VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_AMOUNT_BASE_UNITS,
     "Actual private spend request must use the hidden-economics amount sentinel.",
   );
@@ -239,12 +293,36 @@ try {
   console.log("actual private Solscan linkage negative fixtures: PASS");
 
   const indexer = createVantaPrivatePoolV2LocalIndexer();
+  const seededInput = indexer.appendCommitment({
+    assetId: scenario.spendPublicTranscript.assetCohort,
+    commitment: scenario.secretPacket.inputCommitment,
+    treeId: "pool:stablecoin-usdc-v1:100",
+  });
+  const indexedProofPublicInputHash = computeVantaActualPrivateSpendPublicInputHash({
+    acceptedRoot: seededInput.merkleRoot,
+    assetCohort: scenario.spendPublicTranscript.assetCohort,
+    contextHash: scenario.spendPublicTranscript.receiptCommitment,
+    inputCommitment: scenario.secretPacket.inputCommitment,
+    inputLeafIndex: scenario.secretPacket.inputLeafIndex,
+    nullifier: scenario.spendPublicTranscript.nullifier,
+    outputCommitments: scenario.spendPublicTranscript.outputCommitments,
+    poolId: "pool:stablecoin-usdc-v1:100",
+  });
+  const indexedSpendProofRequest = createVantaPrivatePoolV2ActualPrivateSpendProofRequest({
+    acceptedRoot: seededInput.merkleRoot,
+    assetCohort: scenario.spendPublicTranscript.assetCohort,
+    contextHash: scenario.spendPublicTranscript.receiptCommitment,
+    nullifier: scenario.spendPublicTranscript.nullifier,
+    outputCommitments: scenario.spendPublicTranscript.outputCommitments,
+    poolId: "pool:stablecoin-usdc-v1:100",
+    privateSpendPublicInputHash: indexedProofPublicInputHash,
+  });
   const prover = createVantaPrivatePoolV2LocalProver();
   const verifier = createVantaPrivatePoolV2LocalVerifierRegistry({ indexer, prover });
-  const spendProof = await prover.prove(spendProofRequest);
+  const spendProof = await prover.prove(indexedSpendProofRequest);
   const receipt = await verifier.acceptProof({
     proof: spendProof,
-    request: spendProofRequest,
+    request: indexedSpendProofRequest,
   });
   const acceptedCommitments = await indexer.listCommitments({
     assetId: scenario.spendPublicTranscript.assetCohort,
@@ -257,17 +335,17 @@ try {
     "Expected verifier to register actual private spend nullifier.",
   );
   assert(
-    acceptedCommitments.length === scenario.spendPublicTranscript.outputCommitments.length,
-    "Expected verifier to append actual private spend output commitments.",
+    acceptedCommitments.length === scenario.spendPublicTranscript.outputCommitments.length + 1,
+    "Expected verifier to preserve the input commitment and append actual private spend output commitments.",
   );
   assert(
-    acceptedCommitments.every((commitment, index) =>
+    acceptedCommitments.slice(1).every((commitment, index) =>
       commitment.commitment === scenario.spendPublicTranscript.outputCommitments[index]
     ),
     "Expected verifier output commitments to match the actual private spend request.",
   );
   await expectRejection(
-    () => verifier.acceptProof({ proof: spendProof, request: spendProofRequest }),
+    () => verifier.acceptProof({ proof: spendProof, request: indexedSpendProofRequest }),
     "already been accepted",
   );
   console.log("actual private verifier acceptance: PASS");

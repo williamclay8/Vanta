@@ -1,5 +1,6 @@
 import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
+import { poseidon2, poseidon6, poseidon11 } from "poseidon-lite";
 
 export const VANTA_ACTUAL_PRIVATE_TRANSACTION_RAIL_VERSION =
   "vanta-actual-private-transaction-rail-0.1" as const;
@@ -32,7 +33,7 @@ export type VantaActualPrivateSpendPublicTranscript = {
   acceptedRoot: string;
   assetCohort: "stablecoin-usdc-v1" | "stablecoin-usdc-v1";
   nullifier: string;
-  outputCommitments: readonly string[];
+  outputCommitments: readonly [string, string];
   proofPublicInputHash: string;
   proofSystem: "noir-ultrahonk-bn254";
   receiptCommitment: string;
@@ -81,8 +82,78 @@ export type VantaActualPrivateTransactionAnalysisOptions = {
   plaintextMemo?: string | null;
 };
 
+const BN254_SCALAR_FIELD =
+  21888242871839275222246405745257275088548364400416034343698204186575808495617n;
+
 function hashTerm(...parts: readonly string[]) {
   return `0x${bytesToHex(sha256(new TextEncoder().encode(parts.join("\u001f"))))}`;
+}
+
+function fieldFromTerm(...parts: readonly string[]) {
+  return BigInt(hashTerm(...parts)) % BN254_SCALAR_FIELD;
+}
+
+function fieldString(value: bigint) {
+  return value.toString(10);
+}
+
+function directionBitsForLeafIndex(leafIndex: number): readonly [bigint, bigint, bigint] {
+  return [
+    BigInt(leafIndex & 1),
+    BigInt((leafIndex >> 1) & 1),
+    BigInt((leafIndex >> 2) & 1),
+  ] as const;
+}
+
+export function computeVantaActualPrivateSpendPublicInputHash({
+  acceptedRoot,
+  assetCohort,
+  contextHash,
+  inputCommitment,
+  inputLeafIndex,
+  nullifier,
+  outputCommitments,
+  poolId,
+  requestVersion = "vanta-private-pool-v2-actual-private-spend-proof-request-0.1",
+}: {
+  acceptedRoot: string;
+  assetCohort: string;
+  contextHash: string;
+  inputCommitment: string;
+  inputLeafIndex: number;
+  nullifier: string;
+  outputCommitments: readonly [string, string];
+  poolId: string;
+  requestVersion?: string;
+}) {
+  const directionBits = directionBitsForLeafIndex(inputLeafIndex);
+  const outputCommitment0 = fieldFromTerm("actual-private-output-commitment-0", outputCommitments[0]);
+  const outputCommitment1 = fieldFromTerm("actual-private-output-commitment-1", outputCommitments[1]);
+  const outputCommitmentHash = poseidon2([outputCommitment0, outputCommitment1]);
+  const membershipBinding = poseidon6([
+    fieldFromTerm("actual-private-accepted-root", acceptedRoot),
+    fieldFromTerm("actual-private-input-commitment", inputCommitment),
+    BigInt(inputLeafIndex),
+    directionBits[0],
+    directionBits[1],
+    directionBits[2],
+  ]);
+
+  return fieldString(
+    poseidon11([
+      fieldFromTerm("actual-private-request-version", requestVersion),
+      fieldFromTerm("actual-private-pool-id", poolId),
+      fieldFromTerm("actual-private-asset-cohort", assetCohort),
+      membershipBinding,
+      fieldFromTerm("actual-private-nullifier", nullifier),
+      outputCommitmentHash,
+      fieldFromTerm("actual-private-context-hash", contextHash),
+      outputCommitment0,
+      outputCommitment1,
+      fieldFromTerm("actual-private-accepted-root", acceptedRoot),
+      BigInt(inputLeafIndex),
+    ]),
+  );
 }
 
 function requireNonEmpty(value: string, fieldName: string) {
@@ -183,15 +254,16 @@ export function createVantaActualPrivateTransactionScenario({
     nullifier,
     settlementEpoch,
   );
-  const proofPublicInputHash = hashTerm(
-    "private-spend-public-inputs",
+  const proofPublicInputHash = computeVantaActualPrivateSpendPublicInputHash({
     acceptedRoot,
+    assetCohort,
+    contextHash: receiptCommitment,
+    inputCommitment,
+    inputLeafIndex: 18,
     nullifier,
-    merchantOutputCommitment,
-    changeOutputCommitment,
-    receiptCommitment,
-    normalizedRelayerId,
-  );
+    outputCommitments: [merchantOutputCommitment, changeOutputCommitment],
+    poolId: "pool:stablecoin-usdc-v1:100",
+  });
 
   return {
     depositPublicTranscript: {
