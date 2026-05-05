@@ -153,6 +153,14 @@ function writeBrowserCorsHeaders(response) {
   response.setHeader("Access-Control-Allow-Headers", "Content-Type");
 }
 
+function writePublicShieldReceiptHeaders(response) {
+  writeBrowserCorsHeaders(response);
+  response.setHeader(
+    "X-Vanta-Shield-Receipt-Deposit-Evidence",
+    browserShieldDepositEvidenceMode,
+  );
+}
+
 function isPublicUnshieldRoute(request) {
   return (
     request.url === "/unshield" ||
@@ -196,7 +204,7 @@ async function handlePublicUnshieldRoute(request, response) {
 }
 
 async function handlePublicBrowserShieldReceiptRoute(request, response) {
-  writeBrowserCorsHeaders(response);
+  writePublicShieldReceiptHeaders(response);
 
   if (request.method !== "POST") {
     sendJson(response, 405, {
@@ -2699,7 +2707,11 @@ const server = createServer(async (request, response) => {
 
   try {
     if (request.method === "OPTIONS" && isPublicBrowserCorsRoute(request)) {
-      writeBrowserCorsHeaders(response);
+      if (isPublicBrowserShieldReceiptRoute(request)) {
+        writePublicShieldReceiptHeaders(response);
+      } else {
+        writeBrowserCorsHeaders(response);
+      }
       response.writeHead(204);
       response.end();
       return;
@@ -2831,7 +2843,11 @@ const server = createServer(async (request, response) => {
     sendJson(response, 404, { error: "Not found." });
   } catch (error) {
     if (isPublicBrowserCorsRoute(request)) {
-      writeBrowserCorsHeaders(response);
+      if (isPublicBrowserShieldReceiptRoute(request)) {
+        writePublicShieldReceiptHeaders(response);
+      } else {
+        writeBrowserCorsHeaders(response);
+      }
     }
     sendJson(response, 400, {
       error: error instanceof Error ? error.message : String(error),

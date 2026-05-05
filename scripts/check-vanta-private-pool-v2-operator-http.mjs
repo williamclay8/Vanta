@@ -80,7 +80,7 @@ async function requestJson(path, options = {}) {
     parsed = null;
   }
 
-  return { ok: response.ok, parsed, status: response.status, text };
+  return { headers: response.headers, ok: response.ok, parsed, status: response.status, text };
 }
 
 async function requestJsonAt(base, path, options = {}) {
@@ -100,7 +100,7 @@ async function requestJsonAt(base, path, options = {}) {
     parsed = null;
   }
 
-  return { ok: response.ok, parsed, status: response.status, text };
+  return { headers: response.headers, ok: response.ok, parsed, status: response.status, text };
 }
 
 async function waitForHealth() {
@@ -409,6 +409,11 @@ try {
   assert(
     browserShieldPreflight.status === 204,
     "Expected browser Shield receipt preflight to bypass bearer auth without exposing the operator token.",
+  );
+  assert(
+    browserShieldPreflight.headers.get("x-vanta-shield-receipt-deposit-evidence") ===
+      "local-skip",
+    "Expected browser Shield receipt preflight to expose local deposit-evidence mode for deploy verification.",
   );
   const browserShieldReceiptFixture = createBrowserShieldReceiptFixture("browser-shield");
   const browserShieldReceipt = await requestJsonAt(authBaseUrl, browserShieldReceiptPath, {

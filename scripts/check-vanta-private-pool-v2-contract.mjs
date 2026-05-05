@@ -440,6 +440,7 @@ const requiredTextFiles = [
       "/private-pool-v2/proofs",
       "/private-pool-v2/public/shield-receipts",
       "VANTA_PRIVATE_POOL_V2_PUBLIC_SHIELD_RECEIPT_DEPOSIT_EVIDENCE_MODE",
+      "X-Vanta-Shield-Receipt-Deposit-Evidence",
       "getParsedTransaction",
     ],
   },
