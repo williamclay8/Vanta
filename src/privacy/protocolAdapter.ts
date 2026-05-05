@@ -46,12 +46,18 @@ export type VantaPrivacyRouteCapability = {
 
 export type VantaPrivacyCapabilityProfile = {
   assets: readonly VantaPrivacyAsset[];
+  claimScope?: string;
+  currentVerifiedPrivacyFlags?: VantaPrivacyCapabilityFlags;
   flags: VantaPrivacyCapabilityFlags;
   infrastructure: readonly VantaPrivacyInfrastructureRequirement[];
   network: VantaPrivacyNetwork;
+  privacyClaimAllowed?: boolean;
+  productionPrivateReady?: boolean;
   protocolId: VantaPrivacyProtocolId;
+  requiredBlockingEvidence?: readonly string[];
   routes: readonly VantaPrivacyRouteCapability[];
   summary: string;
+  targetPrivacyFlags?: VantaPrivacyCapabilityFlags;
   trustBoundary: string;
 };
 

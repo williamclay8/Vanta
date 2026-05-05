@@ -20,7 +20,7 @@ for (const phrase of [
 for (const phrase of [
   "createUmbraShieldActionApprovalReview",
   "pendingUmbraApprovalDisplay",
-  "Private rail approval",
+  "Vault transfer approval",
   "Wallet approval",
 ]) {
   assert.ok(shieldSource.includes(phrase), `Shield page missing Umbra review phrase: ${phrase}`);

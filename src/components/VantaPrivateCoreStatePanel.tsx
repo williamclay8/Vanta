@@ -654,18 +654,18 @@ export function VantaPrivateCoreStatePanel({
           {unshieldState?.replayRejected
             ? "Replay rejected"
             : unshieldState?.consumeSucceeded
-              ? "Private note consumed"
+              ? "Local note consumed"
               : holdState?.privateNoteRecovered
-                ? "Private note ready"
+                ? "Local note ready"
                 : shieldState
-                  ? "Private note live"
+                  ? "Local note created"
                 : "Awaiting shield"}
         </small>
       </div>
 
       <div className="preview-grid note-state-summary">
         <div className="preview-card preview-card--accent">
-          <span>Private note</span>
+          <span>Local note</span>
           <strong>
             {unshieldState?.replayRejected || unshieldState?.consumeSucceeded
               ? "Consumed"
@@ -675,7 +675,7 @@ export function VantaPrivateCoreStatePanel({
           </strong>
         </div>
         <div className="preview-card">
-          <span>Held privately</span>
+          <span>Recovered locally</span>
           <strong>
             {unshieldState?.replayRejected || unshieldState?.consumeSucceeded
               ? "Consumed"
@@ -1222,8 +1222,8 @@ export function VantaPrivateCoreStatePanel({
         </div>
       ) : (
         <p className="shield-review-note">
-          Shield from the current UI to mint one Vanta Private Core private note, recover it privately,
-          and then consume it once through the replay-safe demo lane.
+          Shield USDC from the current UI to create one local Vanta Private Core note, recover it in
+          this browser, and then consume it once through the replay-safe demo lane.
         </p>
       )}
 

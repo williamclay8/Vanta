@@ -92,6 +92,10 @@ assert.ok(
   "Shield page must translate missing mainnet wallet-account simulation failures into actionable copy.",
 );
 assert.ok(
+  shieldPageSource.includes("VANTA_NATIVE_SOL_ACCOUNT_NOT_ACTIVE_MESSAGE"),
+  "Shield page must reuse the native SOL inactive-account copy for wallet-account simulation failures.",
+);
+assert.ok(
   shieldPageSource.includes("NATIVE_SOL_SHIELD_FEE_RESERVE_SOL") &&
     shieldPageSource.includes("Math.max(sourceBalance - NATIVE_SOL_SHIELD_FEE_RESERVE_SOL, 0)") &&
     shieldPageSource.includes("Leave at least"),
@@ -120,8 +124,9 @@ const nativeSolShieldSource = readFileSync(resolve("src/solana/nativeSolShield.t
 assert.ok(
   nativeSolShieldSource.includes("assertNativeSolShieldSourceAccountReady") &&
     nativeSolShieldSource.includes("getAccountInfo(ownerPublicKey") &&
-    nativeSolShieldSource.includes("was not found on Solana mainnet"),
-  "Native SOL Shield must verify the connected wallet account exists on mainnet before building the wallet transaction.",
+    nativeSolShieldSource.includes("VANTA_NATIVE_SOL_ACCOUNT_NOT_ACTIVE_MESSAGE") &&
+    nativeSolShieldSource.includes("no active SOL balance on Solana mainnet yet"),
+  "Native SOL Shield must verify the connected wallet account has an active mainnet SOL balance before building the wallet transaction.",
 );
 assert.ok(
   nativeSolShieldSource.includes("fetchNativeSolShieldDepositCandidates"),

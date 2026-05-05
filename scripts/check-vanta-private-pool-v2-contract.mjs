@@ -17,13 +17,13 @@ const requiredFiles = [
       "VantaPrivatePoolV2Protocol",
     ],
   },
-  {
-    path: "src/privacy/privatePoolV2CapabilityProfile.ts",
-    exports: [
-      "getVantaPrivatePoolV2CapabilityProfile",
-      "createVantaPrivatePoolV2PrivacyAdapter",
-    ],
-  },
+	  {
+	    path: "src/privacy/privatePoolV2CapabilityProfile.ts",
+	    exports: [
+	      "getVantaPrivatePoolV2CapabilityProfile",
+	      "createVantaPrivatePoolV2PrivacyAdapter",
+	    ],
+	  },
   {
     path: "src/privacy/privatePoolV2Benchmark.ts",
     exports: ["getVantaPrivatePoolV2BenchmarkSnapshot"],
@@ -155,6 +155,16 @@ const requiredTextFiles = [
   {
     path: "src/privacy/privatePoolV2SettlementPolicy.ts",
     markers: ["productionDurableStoreRequired"],
+  },
+  {
+    path: "src/privacy/privatePoolV2CapabilityProfile.ts",
+    markers: [
+      "currentVerifiedPrivacyFlags",
+      "targetPrivacyFlags",
+      "privacyClaimAllowed: false",
+      "productionPrivateReady: false",
+      "requiredBlockingEvidence",
+    ],
   },
   {
     path: "zk/noir/vanta_private_pool_v2_shield_entry/Nargo.toml",
@@ -386,11 +396,16 @@ const requiredTextFiles = [
       "fixture restore: PASS",
     ],
   },
-  {
-    path: "scripts/print-vanta-private-pool-v2-status.mjs",
-    markers: [
-      "Private Pool V2 status",
-      "nullifierReplayGuard",
+	  {
+	    path: "scripts/print-vanta-private-pool-v2-status.mjs",
+	    markers: [
+	      "Private Pool V2 status",
+	      "currentVerifiedPrivacyFlags",
+	      "targetPrivacyFlags",
+	      "privacyClaimAllowed",
+	      "productionPrivateReady",
+	      "requiredBlockingEvidence",
+	      "nullifierReplayGuard",
       "productionGate",
       "productionBlockers",
       "protocolActionProofModes",
@@ -401,7 +416,7 @@ const requiredTextFiles = [
       "private-pool-v2:swap-to-shielded-prove",
       "private-pool-v2:verify",
     ],
-  },
+	  },
   {
     path: "operator/private-pool-v2-server.mjs",
     markers: [

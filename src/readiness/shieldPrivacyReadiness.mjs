@@ -5,6 +5,7 @@ const CURRENT_LOCAL_CAPABILITY_INPUTS = {
   committedSettlementReady: true,
   decoyBatchingReady: true,
   nativeSolShieldReady: true,
+  shieldEntryProofReady: true,
   routeEvidenceReady: true,
   universalTargetReady: true,
   viewingKeyCustodyReady: true,
@@ -74,9 +75,13 @@ const GATE_BLOCKERS = [...PRODUCTION_GATE_BLOCKERS, ...EXTERNAL_GATE_BLOCKERS];
 
 const CURRENT_EVIDENCE_REFS = [
   "npm run shield:committed-settlement-check",
+  "npm run private-pool-v2:shield-proof-request-check",
+  "npm run private-pool-v2:shield-circuit-check",
+  "npm run private-pool-v2:shield-prove",
   "npm run shield:memo-encryption-check",
   "npm run shield:viewing-key-custody-check",
   "npm run shield:decoy-batcher-check",
+  "npm run shield:ui-claim-boundary-check",
   "npm run shield:native-sol-check",
   "npm run shield:route-evidence-check",
   "npm run shield:privacy-readiness-check",
@@ -107,6 +112,7 @@ export function createVantaShieldPrivacyReadiness(input = {}) {
   const viewingKeyCustodyReady = input.viewingKeyCustodyReady === true;
   const decoyBatchingReady = input.decoyBatchingReady === true;
   const nativeSolShieldReady = input.nativeSolShieldReady === true;
+  const shieldEntryProofReady = input.shieldEntryProofReady === true;
   const universalTargetReady = input.universalTargetReady === true;
   const routeEvidenceReady = input.routeEvidenceReady === true;
   const productionGateBlockers = PRODUCTION_GATE_BLOCKERS.map((blocker) =>
@@ -130,6 +136,7 @@ export function createVantaShieldPrivacyReadiness(input = {}) {
     viewingKeyCustodyReady &&
     decoyBatchingReady &&
     nativeSolShieldReady &&
+    shieldEntryProofReady &&
     universalTargetReady &&
     routeEvidenceReady;
   const productionEvidenceReady = blockers.length === 0;
@@ -143,12 +150,13 @@ export function createVantaShieldPrivacyReadiness(input = {}) {
     failClosed: true,
     gateCommand: "npm run shield:privacy-readiness-check",
     currentTruth:
-      "local Shield uses committed settlement packets, viewing-key encrypted memos, beta backup/restore custody, native/SPL entry support, route evidence, and decoy writes; production privacy claims remain blocked",
+      "local Shield uses committed settlement packets, a proof-bound Private Pool v2 Shield entry circuit, viewing-key encrypted memos, beta backup/restore custody, native/SPL entry support, route evidence, and decoy writes; production privacy claims remain blocked",
     localCommittedSettlementReady: committedSettlementReady,
     localViewingKeyMemoReady: viewingKeyMemoReady,
     localViewingKeyCustodyReady: viewingKeyCustodyReady,
     localDecoyBatchingReady: decoyBatchingReady,
     localNativeSolShieldReady: nativeSolShieldReady,
+    localShieldEntryProofReady: shieldEntryProofReady,
     localUniversalTargetReady: universalTargetReady,
     localRouteEvidenceReady: routeEvidenceReady,
     localCapabilities: {
@@ -157,6 +165,7 @@ export function createVantaShieldPrivacyReadiness(input = {}) {
       viewingKeyCustodyReady,
       decoyBatchingReady,
       nativeSolShieldReady,
+      shieldEntryProofReady,
       universalTargetReady,
       routeEvidenceReady,
     },

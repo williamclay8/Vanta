@@ -95,6 +95,9 @@ try {
   const { createVantaPrivatePoolV2MockRuntime } = await import(
     pathToFileURL(join(tempJsDir, "privatePoolV2MockRuntime.js")).href
   );
+  const { getVantaPrivatePoolV2CapabilityProfile } = await import(
+    pathToFileURL(join(tempJsDir, "privatePoolV2CapabilityProfile.js")).href
+  );
   const { VANTA_PRIVATE_POOL_V2_SETTLEMENT_POLICY } = await import(
     pathToFileURL(join(tempJsDir, "privatePoolV2SettlementPolicy.js")).href
   );
@@ -103,6 +106,7 @@ try {
   );
   const runtime = createVantaPrivatePoolV2MockRuntime();
   const readiness = runtime.readiness();
+  const capabilityProfile = getVantaPrivatePoolV2CapabilityProfile();
   const nullifierReplayGuard = createNullifierReplayGuard();
   const guardedNullifiers = nullifierReplayGuard.snapshot();
   const acceptedGuardedNullifiers = guardedNullifiers.filter((record) => record.status === "accepted");
@@ -115,6 +119,12 @@ try {
     ok: readiness.ready && productionGate.ready,
     localRuntimeReady: readiness.ready,
     productionReady: false,
+    privacyClaimAllowed: capabilityProfile.privacyClaimAllowed === true,
+    productionPrivateReady: capabilityProfile.productionPrivateReady === true,
+    claimScope: capabilityProfile.claimScope,
+    currentVerifiedPrivacyFlags: capabilityProfile.currentVerifiedPrivacyFlags,
+    targetPrivacyFlags: capabilityProfile.targetPrivacyFlags,
+    requiredBlockingEvidence: capabilityProfile.requiredBlockingEvidence,
     productionGate,
     protocolActionProofModes,
     readiness,

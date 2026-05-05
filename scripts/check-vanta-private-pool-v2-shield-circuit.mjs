@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { rmSync } from "node:fs";
 import { resolve } from "node:path";
 
 const repoRoot = resolve(import.meta.dirname, "..");
@@ -32,6 +33,10 @@ function runNargo(args) {
   return runCommand("nargo", args, { cwd: circuitDir, env: nargoEnv });
 }
 
+function clearCircuitTarget() {
+  rmSync(resolve(circuitDir, "target"), { recursive: true, force: true });
+}
+
 function printCapturedOutput(output) {
   const trimmed = output.trim();
   if (trimmed) {
@@ -43,9 +48,11 @@ try {
   writeFixture("valid");
   console.log("valid fixture write: PASS");
 
+  clearCircuitTarget();
   printCapturedOutput(runNargo(["check"]));
   console.log("nargo check: PASS");
 
+  clearCircuitTarget();
   printCapturedOutput(runNargo(["execute"]));
   console.log("valid fixture: PASS");
 
@@ -53,6 +60,7 @@ try {
   console.log("invalid-binding fixture write: PASS");
 
   try {
+    clearCircuitTarget();
     printCapturedOutput(runNargo(["execute"]));
     throw new Error("invalid-binding fixture unexpectedly succeeded");
   } catch (error) {
@@ -75,6 +83,7 @@ try {
   console.log("invalid-root fixture write: PASS");
 
   try {
+    clearCircuitTarget();
     printCapturedOutput(runNargo(["execute"]));
     throw new Error("invalid-root fixture unexpectedly succeeded");
   } catch (error) {

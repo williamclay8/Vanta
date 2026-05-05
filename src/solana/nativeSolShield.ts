@@ -16,6 +16,9 @@ export type NativeSolShieldDepositCandidate = {
   vaultOwner: string;
 };
 
+export const VANTA_NATIVE_SOL_ACCOUNT_NOT_ACTIVE_MESSAGE =
+  "This wallet address has no active SOL balance on Solana mainnet yet. Add a small amount of mainnet SOL for network fees, then try Shield again.";
+
 function toInstructionInput(instruction: TransactionInstruction): TransactionInstructionInput {
   return {
     accounts: instruction.keys.map((account) => ({
@@ -210,9 +213,7 @@ export async function assertNativeSolShieldSourceAccountReady(args: {
   const accountInfo = await connection.getAccountInfo(ownerPublicKey, "confirmed");
 
   if (!accountInfo) {
-    throw new Error(
-      "The connected wallet account was not found on Solana mainnet. Fund this wallet with mainnet SOL before shielding.",
-    );
+    throw new Error(VANTA_NATIVE_SOL_ACCOUNT_NOT_ACTIVE_MESSAGE);
   }
 
   if (BigInt(accountInfo.lamports) <= lamports) {

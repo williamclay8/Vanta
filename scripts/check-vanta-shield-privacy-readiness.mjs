@@ -15,6 +15,7 @@ const readiness = createVantaShieldPrivacyReadiness({
   productionKeyCustodyReady: false,
   relayerSeparationReady: false,
   routeEvidenceReady: true,
+  shieldEntryProofReady: true,
   universalTargetReady: true,
   viewingKeyCustodyReady: true,
   viewingKeyMemoReady: true,
@@ -29,6 +30,7 @@ assert.equal(readiness.localViewingKeyMemoReady, true);
 assert.equal(readiness.localViewingKeyCustodyReady, true);
 assert.equal(readiness.localDecoyBatchingReady, true);
 assert.equal(readiness.localNativeSolShieldReady, true);
+assert.equal(readiness.localShieldEntryProofReady, true);
 assert.equal(readiness.localUniversalTargetReady, true);
 assert.equal(readiness.localRouteEvidenceReady, true);
 assert.equal(readiness.localCapabilities.committedSettlementReady, true);
@@ -36,6 +38,7 @@ assert.equal(readiness.localCapabilities.viewingKeyMemoReady, true);
 assert.equal(readiness.localCapabilities.viewingKeyCustodyReady, true);
 assert.equal(readiness.localCapabilities.decoyBatchingReady, true);
 assert.equal(readiness.localCapabilities.nativeSolShieldReady, true);
+assert.equal(readiness.localCapabilities.shieldEntryProofReady, true);
 assert.equal(readiness.localCapabilities.universalTargetReady, true);
 assert.equal(readiness.localCapabilities.routeEvidenceReady, true);
 assert.equal(readiness.claimAllowed, false);
@@ -85,7 +88,18 @@ assert.ok(
   readiness.currentEvidenceRefs.includes("npm run shield:privacy-readiness-check"),
   "Shield readiness must name its check command as current evidence.",
 );
+assert.ok(
+  readiness.currentEvidenceRefs.includes("npm run shield:ui-claim-boundary-check"),
+  "Shield readiness must name UI claim-boundary evidence.",
+);
+assert.ok(
+  readiness.currentEvidenceRefs.includes("npm run private-pool-v2:shield-proof-request-check") &&
+    readiness.currentEvidenceRefs.includes("npm run private-pool-v2:shield-circuit-check") &&
+    readiness.currentEvidenceRefs.includes("npm run private-pool-v2:shield-prove"),
+  "Shield readiness must name Private Pool v2 shield proof checks as current evidence.",
+);
 assert.ok(readiness.currentTruth.includes("viewing-key encrypted memos"));
+assert.ok(readiness.currentTruth.includes("proof-bound Private Pool v2 Shield entry circuit"));
 assert.ok(readiness.currentTruth.includes("production privacy claims remain blocked"));
 assert.ok(readiness.blockers.includes("production-anonymity-set"));
 assert.ok(readiness.blockers.includes("durable-production-services"));
@@ -106,6 +120,7 @@ const allInputsReady = createVantaShieldPrivacyReadiness({
   productionKeyCustodyReady: true,
   relayerSeparationReady: true,
   routeEvidenceReady: true,
+  shieldEntryProofReady: true,
   universalTargetReady: true,
   viewingKeyCustodyReady: true,
   viewingKeyMemoReady: true,
@@ -134,8 +149,15 @@ assert.ok(
 assert.ok(
   packageJson.scripts["shield:verify"].includes("npm run shield:memo-encryption-check") &&
     packageJson.scripts["shield:verify"].includes("npm run shield:viewing-key-custody-check") &&
-    packageJson.scripts["shield:verify"].includes("npm run shield:decoy-batcher-check"),
-  "shield:verify must include memo, custody, and decoy privacy checks.",
+    packageJson.scripts["shield:verify"].includes("npm run shield:decoy-batcher-check") &&
+    packageJson.scripts["shield:verify"].includes("npm run shield:ui-claim-boundary-check"),
+  "shield:verify must include memo, custody, decoy, and UI claim-boundary privacy checks.",
+);
+assert.ok(
+  packageJson.scripts["shield:verify"].includes("npm run private-pool-v2:shield-proof-request-check") &&
+    packageJson.scripts["shield:verify"].includes("npm run private-pool-v2:shield-circuit-check") &&
+    packageJson.scripts["shield:verify"].includes("npm run private-pool-v2:shield-prove"),
+  "shield:verify must include Private Pool v2 shield proof checks.",
 );
 assert.ok(
   packageJson.scripts["mainnet:preflight"].includes("npm run shield:privacy-readiness-check"),

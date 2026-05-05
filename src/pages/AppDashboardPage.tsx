@@ -72,7 +72,7 @@ export function AppDashboardPage() {
       : !positionSummary.walletConnected
     ? "Connect a wallet"
     : hasShieldedSol
-      ? "Shielded SOL available"
+      ? "Local SOL shield state available"
       : hasSpendableShieldedValue
         ? "Spendable state available"
         : shieldedBalance > 0
@@ -86,7 +86,7 @@ export function AppDashboardPage() {
       : !positionSummary.walletConnected
     ? "Connect wallet to start the private-core flow."
     : hasShieldedSol
-      ? "Shielded SOL is available. The next useful step is to review the SOL exit lane."
+      ? "Local SOL shield state is available. Review the SOL exit lane without treating it as production-private."
       : hasSpendableShieldedValue
         ? "Spendable shielded state is available. Choose the lane you want to test next."
         : shieldedBalance > 0
@@ -280,7 +280,7 @@ export function AppDashboardPage() {
             )}
           </article>
           <article>
-            <span>Shielded SOL available</span>
+            <span>Local SOL shield state</span>
             <strong>{isValueUnavailable ? "Unavailable" : formatVantaSolAmount(shieldedSolBalance)}</strong>
             {recentShieldedSolBalance > positionSummary.shieldedSolBalance && (
               <small>Includes the latest SOL shield result</small>

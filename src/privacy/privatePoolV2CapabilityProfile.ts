@@ -66,6 +66,23 @@ const privatePoolV2UnshieldRoute: VantaPrivacyRouteCapability = {
   status: "planned",
 };
 
+const privatePoolV2TargetPrivacyFlags = mergePrivacyFlags(
+  EMPTY_PRIVACY_FLAGS,
+  privatePoolV2ShieldRoute.privacy,
+);
+
+const privatePoolV2CurrentVerifiedPrivacyFlags = mergePrivacyFlags(EMPTY_PRIVACY_FLAGS);
+
+const PRIVATE_POOL_V2_REQUIRED_BLOCKING_EVIDENCE = [
+  "VANTA_PRIVATE_POOL_V2_ANONYMITY_SET_REF",
+  "VANTA_PRIVATE_POOL_V2_PRODUCTION_ANONYMITY_METRICS_REF",
+  "VANTA_PRIVATE_POOL_V2_RELAYER_SEPARATION_REF",
+  "VANTA_PRIVATE_POOL_V2_AUDIT_REF",
+  "npm run private-pool-v2:anonymity-set-readiness-check",
+  "npm run private-pool-v2:relayer-separation-evidence-check",
+  "npm run mainnet:private-settlement-check",
+];
+
 export function getVantaPrivatePoolV2Readiness(): VantaPrivatePoolV2Readiness {
   return {
     blockers: [
@@ -84,13 +101,20 @@ export function getVantaPrivatePoolV2Readiness(): VantaPrivatePoolV2Readiness {
 export function getVantaPrivatePoolV2CapabilityProfile(): VantaPrivacyCapabilityProfile {
   return {
     assets: VANTA_PRIVATE_POOL_V2_BENCHMARK_ASSETS,
-    flags: mergePrivacyFlags(EMPTY_PRIVACY_FLAGS, privatePoolV2ShieldRoute.privacy),
+    claimScope:
+      "target-capability-only; current verified production privacy flags stay false until evidence gates pass",
+    currentVerifiedPrivacyFlags: privatePoolV2CurrentVerifiedPrivacyFlags,
+    flags: privatePoolV2CurrentVerifiedPrivacyFlags,
     infrastructure: ["wallet", "rpc", "rpc-subscriptions", "indexer", "relayer", "web-zk-prover"],
     network: "mainnet",
+    privacyClaimAllowed: false,
+    productionPrivateReady: false,
     protocolId: "vanta-private-pool-v2",
+    requiredBlockingEvidence: PRIVATE_POOL_V2_REQUIRED_BLOCKING_EVIDENCE,
     routes: [privatePoolV2ShieldRoute, privatePoolV2SwapRoute, privatePoolV2UnshieldRoute],
     summary:
       "Vanta Private Pool v2 target: Vanta-owned shared UTXO pool semantics with routeable public entry, commitment indexing, nullifier spends, relayed exits, selective viewing, and exact-amount hidden change.",
+    targetPrivacyFlags: privatePoolV2TargetPrivacyFlags,
     trustBoundary:
       "Vanta-owned pool program, commitment indexer, nullifier set, relayer, prover/verifying-key delivery, configured RPC, and the user's wallet signer.",
   };

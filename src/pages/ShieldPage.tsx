@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
-import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
+import { usePrivacyFlow, type RecentShieldContext } from "@/data/context/PrivacyFlowContext";
 import { useWalletState } from "@/data/context/WalletContext";
 import {
   assertNativeSolShieldSourceAccountReady,
   buildNativeSolShieldTransferInstructions,
   fetchNativeSolShieldDepositCandidates,
+  VANTA_NATIVE_SOL_ACCOUNT_NOT_ACTIVE_MESSAGE,
   verifyNativeSolShieldDepositSignature,
   type NativeSolShieldDepositCandidate,
 } from "@/solana/nativeSolShield";
@@ -102,7 +103,7 @@ function toErrorMessage(error: unknown, fallback: string) {
   }
 
   if (message.includes("AccountNotFound")) {
-    return "The connected wallet account was not found on Solana mainnet. Fund this wallet with mainnet SOL before shielding.";
+    return VANTA_NATIVE_SOL_ACCOUNT_NOT_ACTIVE_MESSAGE;
   }
 
   return error instanceof Error ? error.message : fallback;
@@ -165,6 +166,25 @@ function formatShieldSourceAssetOptionLabel(asset: {
   }
 
   return `${asset.label} (${asset.symbol})`;
+}
+
+function describeRecentShieldCompletion(recentShield: RecentShieldContext, warning: string | null) {
+  const amountLabel = formatAssetAmount(recentShield.amount, recentShield.asset);
+  const suffix = warning ? ` Receipt check warning: ${warning}` : "";
+
+  if (recentShield.claimTier === "proof_receipt_verified") {
+    return `${amountLabel} has a verified local Shield proof receipt.${suffix}`;
+  }
+
+  if (recentShield.claimTier === "local_private_core_note") {
+    return `${amountLabel} was recorded as a local Private Core note; production privacy remains blocked.${suffix}`;
+  }
+
+  if (recentShield.claimTier === "local_shield_state") {
+    return `${amountLabel} was recorded in local shield-state; proof-backed production privacy remains blocked.${suffix}`;
+  }
+
+  return `${amountLabel} reached the Vanta vault as a public deposit; local shield-state proof is still unavailable.${suffix}`;
 }
 
 export function ShieldPage(_props: ShieldPageProps) {
@@ -697,6 +717,7 @@ export function ShieldPage(_props: ShieldPageProps) {
         setRecentShield({
           amount: pendingShieldAmount,
           asset: activeShieldTarget.assetKey,
+          claimTier: "public_vault_deposit",
           depositSignature,
           resultingShieldedBalance: Number(
             ((activeShieldTarget.assetKey === targetShieldSymbol ? targetShieldedBalance : 0) +
@@ -919,6 +940,12 @@ export function ShieldPage(_props: ShieldPageProps) {
                 asset: "USDC",
               })
             : null;
+        const initialClaimTier: RecentShieldContext["claimTier"] =
+          privateCoreShield
+            ? "local_private_core_note"
+            : pendingShieldAsset === "SOL"
+              ? "public_vault_deposit"
+              : "local_shield_state";
         if (
           pendingShieldAsset === "SOL" &&
           !pendingNativeSolDepositRecovery &&
@@ -944,6 +971,7 @@ export function ShieldPage(_props: ShieldPageProps) {
         const recentShieldContext = {
           amount: pendingShieldAmount,
           asset: pendingShieldAsset ?? activeShieldTarget.assetKey,
+          claimTier: initialClaimTier,
           depositSignature: pendingDepositSignature ?? undefined,
           resultingShieldedBalance: nextBalance,
           settlement: "confirmed_deposit" as const,
@@ -1047,6 +1075,9 @@ export function ShieldPage(_props: ShieldPageProps) {
 
         setRecentShield({
           ...recentShieldContext,
+          claimTier: protocolSettlementWarning
+            ? recentShieldContext.claimTier
+            : "proof_receipt_verified",
           protocolSettlementReceipt: protocolSettlementWarning
             ? undefined
             : protocolSettlement?.protocolSettlementReceipt,
@@ -1532,18 +1563,18 @@ export function ShieldPage(_props: ShieldPageProps) {
                       : status === "shielding_in_progress"
                         ? "Shielding in progress"
                         : status === "entering_shielded_state"
-                          ? "Adding to private balance"
+                          ? "Recording local shield state"
                           : status === "complete"
-                            ? "Shield complete"
+                            ? recentShield?.claimTier === "proof_receipt_verified"
+                              ? "Shield proof receipt verified"
+                              : "Shield deposit recorded"
                             : "Shield failed"}
                 </span>
                 <p>
                   {status === "complete"
                     ? recentShield
-                      ? flowError
-                        ? `${formatAssetAmount(recentShield.amount, recentShield.asset)} is now available in shielded state. Receipt check warning: ${flowError}`
-                        : `${formatAssetAmount(recentShield.amount, recentShield.asset)} is now available in shielded state.`
-                      : "The selected asset was shielded successfully."
+                      ? describeRecentShieldCompletion(recentShield, flowError)
+                      : "The selected asset was recorded, but proof-backed Shield state was not confirmed."
                     : status === "failed"
                       ? flowError ?? "The shield action could not be completed."
                       : status === "routing_public_swap"
@@ -1551,13 +1582,13 @@ export function ShieldPage(_props: ShieldPageProps) {
                         : status === "shielding_in_progress"
                           ? "Submitting the shield transfer into the Vanta vault."
                         : status === "entering_shielded_state"
-                            ? "Adding this to your private balance."
+                            ? "Recording local shield-state evidence."
                             : "Approve the shield action in your wallet to continue."}
                 </p>
                 {pendingUmbraApprovalDisplay && status !== "complete" && status !== "failed" && (
                   <details className="shield-approval-review" aria-label="Wallet approval review">
                     <summary>
-                      <span>Private rail approval</span>
+                      <span>Vault transfer approval</span>
                       <strong>{pendingUmbraApprovalDisplay.walletPrompt}</strong>
                     </summary>
                     <div className="shield-approval-review__rows">

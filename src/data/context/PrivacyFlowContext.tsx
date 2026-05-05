@@ -299,6 +299,11 @@ function abbreviatePrivateCoreValue(value: string | null | undefined) {
 export type RecentShieldContext = {
   asset: PrivacyAssetKey;
   amount: number;
+  claimTier:
+    | "public_vault_deposit"
+    | "local_shield_state"
+    | "local_private_core_note"
+    | "proof_receipt_verified";
   resultingShieldedBalance: number;
   source: "shield";
   depositSignature?: string;

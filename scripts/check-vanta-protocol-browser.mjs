@@ -44,7 +44,7 @@ function runBrowserBatch() {
         { kind: "text_visible", text: "What Vanta can honestly prove right now" },
         { kind: "text_visible", text: "Latest Trust Packet" },
         { kind: "text_visible", text: "Reviewer Verification" },
-        { kind: "text_visible", text: "Shielded SOL available" },
+        { kind: "text_visible", text: "Local SOL shield state" },
         { kind: "text_visible", text: "Actionable notes" },
         { kind: "no_console_errors" },
       ],
