@@ -323,6 +323,7 @@ function defaultPrivatePoolReceiptApiUrl() {
   };
   const explicitReceiptApiUrl = meta.env?.VITE_VANTA_PRIVATE_POOL_V2_RECEIPT_API_URL;
   const fallbackOperatorUrl = meta.env?.VITE_VANTA_PRIVATE_POOL_V2_OPERATOR_URL;
+  const browserFallbackUrl = getBrowserPrivatePoolReceiptApiFallbackUrl();
 
   if (typeof explicitReceiptApiUrl === "string" && explicitReceiptApiUrl.trim()) {
     return explicitReceiptApiUrl;
@@ -332,7 +333,25 @@ function defaultPrivatePoolReceiptApiUrl() {
     return fallbackOperatorUrl;
   }
 
+  if (browserFallbackUrl) {
+    return browserFallbackUrl;
+  }
+
   return meta.env?.PROD ? VANTA_PRODUCTION_PRIVATE_POOL_V2_RECEIPT_API_URL : null;
+}
+
+function getBrowserPrivatePoolReceiptApiFallbackUrl() {
+  const hostname = typeof window === "undefined" ? "" : window.location.hostname;
+
+  if (
+    hostname === "vantaprivacy.xyz" ||
+    hostname === "www.vantaprivacy.xyz" ||
+    hostname.endsWith(".onrender.com")
+  ) {
+    return VANTA_PRODUCTION_PRIVATE_POOL_V2_RECEIPT_API_URL;
+  }
+
+  return null;
 }
 
 function authHeaders(authToken?: string | null): Record<string, string> {
@@ -716,11 +735,17 @@ export async function requestVantaPrivatePoolV2BrowserShieldReceipt({
   opening,
   request,
 }: VantaBrowserShieldReceiptRequest): Promise<VantaProtocolSettlementResponse | null> {
-  if (!baseUrl) {
+  const resolvedBaseUrl = baseUrl ?? getBrowserPrivatePoolReceiptApiFallbackUrl();
+
+  if (!resolvedBaseUrl) {
     return null;
   }
 
-  const response = await fetch(`${baseUrl}/private-pool-v2/public/shield-receipts`, {
+  if (!resolvedBaseUrl.trim()) {
+    throw new Error("Hosted Vanta Shield builds must have a Private Pool v2 receipt API URL.");
+  }
+
+  const response = await fetch(`${resolvedBaseUrl}/private-pool-v2/public/shield-receipts`, {
     body: JSON.stringify({
       opening: serializeVantaShieldCommittedEconomicsSettlementOpening(opening),
       request,

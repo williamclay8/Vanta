@@ -4,6 +4,10 @@ import { resolve } from "node:path";
 const repoRoot = resolve(import.meta.dirname, "..");
 const publicSwapRouteSource = readFileSync(resolve(repoRoot, "src/solana/publicSwapRoute.ts"), "utf8");
 const shieldPageSource = readFileSync(resolve(repoRoot, "src/pages/ShieldPage.tsx"), "utf8");
+const protocolSettlementClientSource = readFileSync(
+  resolve(repoRoot, "src/privacy/privatePoolV2ProtocolSettlementClient.ts"),
+  "utf8",
+);
 
 const requiredMarkers = [
   "createPublicShieldRouteEvidence",
@@ -38,6 +42,15 @@ const requiredShieldCompletionMarkers = [
   "protocolSettlement?.proofReceipt",
 ];
 
+const requiredBrowserReceiptClientMarkers = [
+  "getBrowserPrivatePoolReceiptApiFallbackUrl",
+  "window.location.hostname",
+  "vantaprivacy.xyz",
+  "onrender.com",
+  "VANTA_PRODUCTION_PRIVATE_POOL_V2_RECEIPT_API_URL",
+  "Hosted Vanta Shield builds must have a Private Pool v2 receipt API URL.",
+];
+
 const failures = [];
 
 for (const marker of requiredMarkers) {
@@ -49,6 +62,12 @@ for (const marker of requiredMarkers) {
 for (const marker of requiredShieldCompletionMarkers) {
   if (!shieldPageSource.includes(marker)) {
     failures.push(`Missing Shield completion receipt-binding marker: ${marker}`);
+  }
+}
+
+for (const marker of requiredBrowserReceiptClientMarkers) {
+  if (!protocolSettlementClientSource.includes(marker)) {
+    failures.push(`Missing browser Shield receipt API fallback marker: ${marker}`);
   }
 }
 
