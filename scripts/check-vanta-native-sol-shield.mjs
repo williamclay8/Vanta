@@ -179,11 +179,18 @@ assert.ok(
 );
 assert.ok(
   nativeSolShieldSource.includes("NATIVE_SOL_SHIELD_RPC_RETRY_DELAYS_MS") &&
+    nativeSolShieldSource.includes("NATIVE_SOL_SHIELD_PARSED_TRANSACTION_RETRY_DELAYS_MS") &&
     nativeSolShieldSource.includes("readNativeSolShieldSignatures") &&
+    nativeSolShieldSource.includes("readNativeSolShieldParsedTransactionAttempt") &&
     nativeSolShieldSource.includes("readNativeSolShieldParsedTransaction") &&
     nativeSolShieldSource.includes("readNativeSolShieldParsedTransactions") &&
     nativeSolShieldSource.includes("isSolanaRpcRateLimitError"),
   "Native SOL Shield recovery and deposit confirmation must retry rate-limited browser RPC reads through the shared read endpoints.",
+);
+assert.ok(
+  nativeSolShieldSource.includes("Confirmed native SOL Shield transaction was not yet available from the browser RPC") &&
+    nativeSolShieldSource.includes("transaction !== null"),
+  "Native SOL Shield confirmation must retry temporarily missing parsed transactions before calling a same-transaction SOL transfer absent.",
 );
 assert.ok(
   shieldPageSource.includes("isSolanaRpcRateLimitError") &&

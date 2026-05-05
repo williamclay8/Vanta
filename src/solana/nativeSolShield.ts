@@ -43,6 +43,7 @@ export function isNativeSolSourceAccountNotReadyError(error: unknown) {
 
 const cachedBalanceReadConnections = new Map<string, Connection>();
 const NATIVE_SOL_SHIELD_RPC_RETRY_DELAYS_MS = [250, 750, 1_500] as const;
+const NATIVE_SOL_SHIELD_PARSED_TRANSACTION_RETRY_DELAYS_MS = [500, 1_500, 3_000, 5_000, 8_000] as const;
 
 function getNativeSolShieldBalanceReadEndpoints() {
   return readRpcFallbackEndpoints;
@@ -254,21 +255,36 @@ async function readNativeSolShieldParsedTransactions(signatures: string[]) {
   const transactions = [];
 
   for (const signature of signatures) {
-    const [transaction] = await retryNativeSolShieldRpcRead((connection) =>
-      connection.getParsedTransactions([signature], {
-        commitment: "confirmed",
-        maxSupportedTransactionVersion: 0,
-      }),
-    );
-
-    transactions.push(transaction);
+    transactions.push(await readNativeSolShieldParsedTransactionAttempt(signature));
   }
 
   return transactions;
 }
 
 async function readNativeSolShieldParsedTransaction(signature: string) {
-  const [transaction] = await readNativeSolShieldParsedTransactions([signature]);
+  for (const delayMs of [0, ...NATIVE_SOL_SHIELD_PARSED_TRANSACTION_RETRY_DELAYS_MS]) {
+    if (delayMs > 0) {
+      await wait(delayMs);
+    }
+
+    const transaction = await readNativeSolShieldParsedTransactionAttempt(signature);
+
+    if (transaction !== null) {
+      return transaction;
+    }
+  }
+
+  return null;
+}
+
+async function readNativeSolShieldParsedTransactionAttempt(signature: string) {
+  const [transaction] = await retryNativeSolShieldRpcRead((connection) =>
+    connection.getParsedTransactions([signature], {
+      commitment: "confirmed",
+      maxSupportedTransactionVersion: 0,
+    }),
+  );
+
   return transaction ?? null;
 }
 
@@ -325,6 +341,12 @@ export async function verifyNativeSolShieldDepositSignature(args: {
   vaultOwner: string;
 }) {
   const transaction = await readNativeSolShieldParsedTransaction(args.signature);
+
+  if (!transaction) {
+    throw new Error(
+      "Confirmed native SOL Shield transaction was not yet available from the browser RPC. Wait a moment and use balance recovery; Vanta did not ask for another transfer.",
+    );
+  }
 
   return hasMatchingNativeSolShieldTransfer({
     amountDisplay: args.amountDisplay,
