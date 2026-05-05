@@ -143,6 +143,13 @@ function createOperatorEnv(tempRoot, port) {
     VANTA_MAINNET_VAULT_OWNER:
       process.env.VANTA_MAINNET_VAULT_OWNER ??
       "Gk7m3rV2Q5uH4pL9sW8xD1nB6cT3yF7kJ2qR5mN8pZ1",
+    SOLANA_RPC_URL: "https://solana-rpc.publicnode.com",
+    SOLANA_WS_URL: "wss://solana-rpc.publicnode.com",
+    VITE_SOLANA_BROWSER_RPC_URL: "https://solana-rpc.publicnode.com",
+    VITE_SOLANA_BROWSER_WS_URL: "wss://solana-rpc.publicnode.com",
+    VITE_SOLANA_READ_RPC_FALLBACK_URLS: "",
+    VITE_SOLANA_RPC_URL: "https://solana-rpc.publicnode.com",
+    VITE_SOLANA_WS_URL: "wss://solana-rpc.publicnode.com",
     VANTA_PRIVATE_CORE_CONSUME_STORE_PATH: join(tempRoot, "consumes.json"),
     VANTA_PRIVATE_CORE_PROOF_STORE_PATH: join(tempRoot, "proofs.json"),
     VANTA_PRIVATE_CORE_SEND_PROOF_STORE_PATH: join(tempRoot, "send-proofs.json"),

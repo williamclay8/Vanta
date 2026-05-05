@@ -59,7 +59,9 @@ for (const [key, command] of Object.entries({
   privatePoolV2SendProofRequest: "npm run private-pool-v2:send-proof-request-check",
   privatePoolV2Verify: "npm run private-pool-v2:verify",
   realFundsApprovalStatus: "npm run --silent mainnet:real-funds-approval-status-json",
+  sendBalanceLedger: "npm run send:balance-ledger-check",
   sendSafeSend: "npm run send:safe-send-adoption-check",
+  sendTrustPacket: "npm run send:trust-packet-check",
   walletSigningStatus: "npm run mainnet:wallet-signing-status-check",
 })) {
   assert.equal(status.evidenceRefs[key], command, `Send status evidence ref mismatch for ${key}.`);

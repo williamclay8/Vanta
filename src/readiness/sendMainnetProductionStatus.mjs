@@ -93,6 +93,8 @@ export function createVantaSendMainnetProductionStatus() {
       realFundsApprovalStatus: "npm run --silent mainnet:real-funds-approval-status-json",
       walletSigningStatus: "npm run mainnet:wallet-signing-status-check",
       sendSafeSend: "npm run send:safe-send-adoption-check",
+      sendBalanceLedger: "npm run send:balance-ledger-check",
+      sendTrustPacket: "npm run send:trust-packet-check",
       privatePoolV2SendProofRequest: "npm run private-pool-v2:send-proof-request-check",
       privatePoolV2SendCircuit: "npm run private-pool-v2:send-circuit-check",
       actualPrivateSpendCircuit: "npm run private-pool-v2:actual-private-spend-circuit-check",

@@ -6,6 +6,8 @@ import {
   type SerializedCanonicalNoteV1,
   toSerializedCanonicalNote,
 } from "./canonicalNote";
+import { sha256 } from "@noble/hashes/sha2.js";
+import { bytesToHex } from "@noble/hashes/utils.js";
 import type { CanonicalNullifierBasis } from "./canonicalNote";
 import {
   createCanonicalConsumptionRecord,
@@ -57,18 +59,32 @@ export type CanonicalPredecessorReference = {
   nullifierBasis?: CanonicalNullifierBasis;
 };
 
+type LiveSendSuccessorArtifacts = {
+  commitment: CanonicalNoteArtifacts["commitment"];
+  encryptedPayload?: CanonicalNoteArtifacts["encryptedPayload"];
+  encryptedPayloadCommitment?: string;
+  nullifierBasis: CanonicalNoteArtifacts["nullifierBasis"];
+};
+
 export type LiveSendCanonicalSuccessorRecord = {
   kind: "recipient" | "change";
   amountDisplay: string;
-  canonicalNote: SerializedCanonicalNoteV1;
-  artifacts: CanonicalNoteArtifacts;
+  canonicalNote?: SerializedCanonicalNoteV1;
+  redactedCanonicalNote?: {
+    amountCommitment: string;
+    assetIdCommitment: string;
+    ownerPublicKeyCommitment: string;
+  };
+  artifacts: LiveSendSuccessorArtifacts;
   insertion: {
     index: number;
     root: string;
     leafCount: number;
   };
   liveNoteId?: string;
+  liveNoteReferenceHash?: string;
   liveStateSignature?: string;
+  liveStateSignatureHash?: string;
   lifecycle?: CanonicalLifecycleOutputLinkage;
 };
 
@@ -80,15 +96,23 @@ export type LiveSendCanonicalRecord = {
   liveSend: {
     assetSymbol: "USDC";
     mintAddress: string;
-    owner: string;
-    vaultOwner: string;
-    recipient: string;
-    sentAmountDisplay: string;
-    changeAmountDisplay: string;
+    owner?: string;
+    ownerReferenceHash?: string;
+    vaultOwner?: string;
+    vaultOwnerReferenceHash?: string;
+    recipient?: string;
+    redactedRecipientReference?: string;
+    sentAmountDisplay?: string;
+    sentAmountCommitment?: string;
+    changeAmountDisplay?: string;
+    changeAmountCommitment?: string;
     tokenDecimals: number;
-    predecessorNoteId: string;
-    predecessorStateSignature: string;
-    transitionNoteId: string;
+    predecessorNoteId?: string;
+    predecessorNoteReferenceHash?: string;
+    predecessorStateSignature?: string;
+    predecessorStateSignatureHash?: string;
+    transitionNoteId?: string;
+    transitionNoteReferenceHash?: string;
     transitionSignature: string;
     spentMarkerSignature?: string;
   };
@@ -259,7 +283,14 @@ export function listCanonicalSendRecords(): LiveSendCanonicalRecord[] {
       return [];
     }
 
-    return parsed.filter(isLiveSendCanonicalRecord);
+    const records = parsed.filter(isLiveSendCanonicalRecord);
+    const redactedRecords = records.map(redactLiveSendRecordForPersistence);
+
+    if (JSON.stringify(records) !== JSON.stringify(redactedRecords)) {
+      storage.setItem(LIVE_SEND_RECORDS_STORAGE_KEY, JSON.stringify(redactedRecords));
+    }
+
+    return redactedRecords;
   } catch {
     return [];
   }
@@ -284,7 +315,7 @@ export function listCanonicalSendDiagnosticsSummaries(): LiveSendDiagnosticsSumm
       canonicalNullifierStub: record.consumption?.nullifierStub.value,
       transitionSignature: record.liveSend.transitionSignature,
       spentMarkerSignature: record.liveSend.spentMarkerSignature,
-      recipient: record.liveSend.recipient,
+      recipient: record.liveSend.recipient ?? record.liveSend.redactedRecipientReference ?? "redacted",
       successors: record.successors.map((successor) => ({
         kind: successor.kind,
         lifecycleId: successor.lifecycle?.lifecycleId,
@@ -295,10 +326,16 @@ export function listCanonicalSendDiagnosticsSummaries(): LiveSendDiagnosticsSumm
         snapshotRoot: successor.insertion.root,
         snapshotLeafCount: successor.insertion.leafCount,
         amountDisplay: successor.amountDisplay,
-        assetId: successor.canonicalNote.assetId,
-        ownerPublicKey: successor.canonicalNote.ownerPublicKey,
-        liveNoteId: successor.liveNoteId,
-        liveStateSignature: successor.liveStateSignature,
+        assetId:
+          successor.canonicalNote?.assetId ??
+          successor.redactedCanonicalNote?.assetIdCommitment ??
+          "redacted",
+        ownerPublicKey:
+          successor.canonicalNote?.ownerPublicKey ??
+          successor.redactedCanonicalNote?.ownerPublicKeyCommitment ??
+          "redacted",
+        liveNoteId: successor.liveNoteId ?? successor.liveNoteReferenceHash,
+        liveStateSignature: successor.liveStateSignature ?? successor.liveStateSignatureHash,
       })),
     }))
     .sort((left, right) => right.createdAt - left.createdAt);
@@ -333,11 +370,12 @@ async function createSuccessorRecord(args: {
   });
   const artifacts = await deriveCanonicalNoteArtifacts(canonicalNote, args.ownerContext);
   const insertion = await insertCommitmentIntoCanonicalShieldedState(artifacts.commitment);
+  const serializedCanonicalNote = toSerializedCanonicalNote(canonicalNote);
 
   return {
     kind: args.kind,
     amountDisplay: args.amountDisplay,
-    canonicalNote: toSerializedCanonicalNote(canonicalNote),
+    canonicalNote: serializedCanonicalNote,
     artifacts,
     insertion: {
       index: insertion.index,
@@ -382,10 +420,19 @@ function resolveCanonicalPredecessorReference(
     };
   }
 
+  const predecessorNoteReferenceHash = redactLiveSendReference("predecessor-note-id", liveNoteId);
+  const predecessorStateSignatureHash = redactLiveSendReference(
+    "predecessor-state-signature",
+    liveStateSignature,
+  );
+
   for (const record of listCanonicalSendRecords()) {
     const successorMatch = record.successors.find(
       (successor) =>
-        successor.liveNoteId === liveNoteId || successor.liveStateSignature === liveStateSignature,
+        successor.liveNoteId === liveNoteId ||
+        successor.liveStateSignature === liveStateSignature ||
+        successor.liveNoteReferenceHash === predecessorNoteReferenceHash ||
+        successor.liveStateSignatureHash === predecessorStateSignatureHash,
     );
 
     if (successorMatch) {
@@ -442,8 +489,155 @@ function persistCanonicalSendRecord(record: LiveSendCanonicalRecord) {
     return;
   }
 
-  const nextRecords = [...listCanonicalSendRecords(), record];
+  const nextRecords = [
+    ...listCanonicalSendRecords().map(redactLiveSendRecordForPersistence),
+    redactLiveSendRecordForPersistence(record),
+  ];
   storage.setItem(LIVE_SEND_RECORDS_STORAGE_KEY, JSON.stringify(nextRecords));
+}
+
+function redactLiveSendRecordForPersistence(record: LiveSendCanonicalRecord): LiveSendCanonicalRecord {
+  return {
+    recordId: record.recordId,
+    source: record.source,
+    createdAt: record.createdAt,
+    lifecycleLinkage: record.lifecycleLinkage
+      ? {
+          recordLifecycleId: redactLiveSendReference(
+            "lifecycle-record-id",
+            record.lifecycleLinkage.recordLifecycleId,
+          ),
+          lineageId: redactLiveSendReference("lifecycle-lineage-id", record.lifecycleLinkage.lineageId),
+          predecessorLifecycleId: redactLiveSendReference(
+            "lifecycle-predecessor-id",
+            record.lifecycleLinkage.predecessorLifecycleId,
+          ),
+          outputLifecycleIds: record.lifecycleLinkage.outputLifecycleIds.map((outputLifecycleId) =>
+            redactLiveSendReference("lifecycle-output-id", outputLifecycleId),
+          ),
+          endpointLifecycleId: record.lifecycleLinkage.endpointLifecycleId
+            ? redactLiveSendReference(
+                "lifecycle-endpoint-id",
+                record.lifecycleLinkage.endpointLifecycleId,
+              )
+            : undefined,
+        }
+      : undefined,
+    liveSend: {
+      assetSymbol: record.liveSend.assetSymbol,
+      mintAddress: record.liveSend.mintAddress,
+      ownerReferenceHash: redactLiveSendHeldOutValue("owner"),
+      vaultOwnerReferenceHash: redactLiveSendHeldOutValue("vault-owner"),
+      redactedRecipientReference: redactLiveSendHeldOutValue("recipient"),
+      sentAmountCommitment: redactLiveSendHeldOutValue("sent-amount"),
+      changeAmountCommitment: redactLiveSendHeldOutValue("change-amount"),
+      tokenDecimals: record.liveSend.tokenDecimals,
+      predecessorNoteReferenceHash: redactLiveSendReference(
+        "predecessor-note-id",
+        record.liveSend.predecessorNoteId ?? record.liveSend.predecessorNoteReferenceHash,
+      ),
+      predecessorStateSignatureHash: redactLiveSendReference(
+        "predecessor-state-signature",
+        record.liveSend.predecessorStateSignature ?? record.liveSend.predecessorStateSignatureHash,
+      ),
+      transitionNoteReferenceHash: redactLiveSendReference(
+        "transition-note-id",
+        record.liveSend.transitionNoteId ?? record.liveSend.transitionNoteReferenceHash,
+      ),
+      transitionSignature: record.liveSend.transitionSignature,
+      spentMarkerSignature: record.liveSend.spentMarkerSignature,
+    },
+    predecessor: {
+      liveNoteId: redactLiveSendReference("predecessor-note-id", record.predecessor.liveNoteId),
+      liveStateSignature: redactLiveSendReference(
+        "predecessor-state-signature",
+        record.predecessor.liveStateSignature,
+      ),
+      canonicalCommitment: record.predecessor.canonicalCommitment,
+      canonicalRecordSource: record.predecessor.canonicalRecordSource,
+      lifecycle: record.predecessor.lifecycle
+        ? {
+            lifecycleId: redactLiveSendReference(
+              "predecessor-lifecycle-id",
+              record.predecessor.lifecycle.lifecycleId,
+            ),
+            lineageId: redactLiveSendReference(
+              "predecessor-lineage-id",
+              record.predecessor.lifecycle.lineageId,
+            ),
+            resolution: record.predecessor.lifecycle.resolution,
+          }
+        : undefined,
+      nullifierBasis: record.predecessor.nullifierBasis,
+    },
+    successors: record.successors.map(redactLiveSendSuccessorForPersistence),
+  };
+}
+
+function redactLiveSendSuccessorForPersistence(
+  successor: LiveSendCanonicalSuccessorRecord,
+): LiveSendCanonicalSuccessorRecord {
+  return {
+    kind: successor.kind,
+    amountDisplay: "committed",
+    redactedCanonicalNote: successor.canonicalNote
+      ? {
+          amountCommitment: redactLiveSendHeldOutValue("successor-amount"),
+          assetIdCommitment: redactLiveSendReference("successor-asset-id", successor.canonicalNote.assetId),
+          ownerPublicKeyCommitment: redactLiveSendHeldOutValue("successor-owner-public-key"),
+        }
+      : successor.redactedCanonicalNote,
+    artifacts: redactLiveSendArtifactsForPersistence(successor.artifacts),
+    insertion: successor.insertion,
+    liveNoteReferenceHash: redactLiveSendReference(
+      "predecessor-note-id",
+      successor.liveNoteId ?? successor.liveNoteReferenceHash,
+    ),
+    liveStateSignatureHash: redactLiveSendReference(
+      "predecessor-state-signature",
+      successor.liveStateSignature ?? successor.liveStateSignatureHash,
+    ),
+    lifecycle: successor.lifecycle
+      ? {
+          lifecycleId: redactLiveSendReference(
+            "successor-lifecycle-id",
+            successor.lifecycle.lifecycleId,
+          ),
+          lineageId: redactLiveSendReference("successor-lineage-id", successor.lifecycle.lineageId),
+          predecessorLifecycleId: redactLiveSendReference(
+            "successor-predecessor-lifecycle-id",
+            successor.lifecycle.predecessorLifecycleId,
+          ),
+          branchRole: successor.lifecycle.branchRole,
+        }
+      : undefined,
+  };
+}
+
+function redactLiveSendReference(domain: string, value: string | undefined) {
+  if (value?.startsWith("sha256:")) {
+    return value;
+  }
+
+  return `sha256:${bytesToHex(
+    sha256(new TextEncoder().encode(`vanta-live-send-redaction:${domain}:${value ?? "unset"}`)),
+  )}`;
+}
+
+function redactLiveSendHeldOutValue(domain: string) {
+  return `redacted:${domain}:held-out-of-browser-storage`;
+}
+
+function redactLiveSendArtifactsForPersistence(
+  artifacts: LiveSendSuccessorArtifacts,
+): LiveSendSuccessorArtifacts {
+  return {
+    commitment: artifacts.commitment,
+    encryptedPayloadCommitment:
+      artifacts.encryptedPayloadCommitment ??
+      "redacted:encrypted-payload:held-out-of-browser-storage",
+    nullifierBasis: artifacts.nullifierBasis,
+  };
 }
 
 function createOwnerContext(owner: string, mintAddress: string, vaultOwner: string): CanonicalNoteOwnerContext {

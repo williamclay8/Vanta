@@ -884,6 +884,12 @@ function validateProtocolSettlementBody(body) {
     throw new Error(`Unknown protocol settlement economics mode ${economicsMode}.`);
   }
 
+  if (action === "send") {
+    throw new Error(
+      "Private Pool v2 Send protocol settlement requires committed-economics; raw operator-visible Send terms are blocked.",
+    );
+  }
+
   const asset = requireNonEmptyString(body.asset, "asset");
   const owner = requireNonEmptyString(body.owner, "owner");
   const shieldCapability = normalizeProtocolShieldCapability(body.shieldCapability, body.asset);

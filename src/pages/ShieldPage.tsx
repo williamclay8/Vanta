@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
-import { usePrivacyFlow, type RecentShieldContext } from "@/data/context/PrivacyFlowContext";
+import {
+  usePrivacyFlow,
+  type RecentShieldContext,
+  type VantaPrivateCoreLedgerBinding,
+} from "@/data/context/PrivacyFlowContext";
 import { useWalletState } from "@/data/context/WalletContext";
 import {
   assertNativeSolShieldSourceAccountReady,
@@ -970,6 +974,25 @@ export function ShieldPage(_props: ShieldPageProps) {
             ? runPrivateCoreShield({
                 amountDisplay: pendingShieldAmountDisplay,
                 asset: "USDC",
+                sourceLedgerBinding: zkRecord
+                  ? ({
+                      amountBaseUnits: zkRecord.canonicalNote.amount,
+                      asset: "USDC",
+                      basis: "canonical-spendable-note-ledger",
+                      canonicalCommitment: zkRecord.artifacts.commitment.value,
+                      canonicalNullifierBasis: zkRecord.artifacts.nullifierBasis.value,
+                      canonicalRoot: zkRecord.insertion.root,
+                      depositSignature: pendingDepositSignature ?? undefined,
+                      mintAddress: activeShieldTarget.mintAddress!,
+                      noteStateSignature: activeStateSignature,
+                      owner: walletAddress!,
+                      source: "live_shield_v1",
+                      vaultOwner: activeShieldTarget.vaultOwner!,
+                    } satisfies Omit<
+                      VantaPrivateCoreLedgerBinding,
+                      "privateCoreCommitment" | "privateCoreNullifier" | "privateCoreRoot"
+                    >)
+                  : null,
               })
             : null;
         const initialClaimTier: RecentShieldContext["claimTier"] =

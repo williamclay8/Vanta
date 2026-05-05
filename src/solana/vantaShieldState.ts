@@ -1987,39 +1987,7 @@ export async function fetchVantaShieldAccountState(args: {
     })
     .sort((left, right) => left.createdAt - right.createdAt);
 
-  const legacySpentMarkers = candidateSendNotes
-    .filter((sendNote) => {
-      return !explicitSpentMarkers.some(
-        (marker) =>
-          marker.transitionKind === "send" &&
-          marker.transitionNoteId === sendNote.noteId,
-      );
-    })
-    .map((sendNote) => {
-      return {
-        asset: "USDC",
-        assetId: sendNote.mintAddress,
-        consumedNoteId: sendNote.consumedNoteId,
-        createdAt: sendNote.createdAt,
-        kind: "spent_marker" as const,
-        markerId: createSpentMarkerId({
-          asset: "USDC",
-          assetId: sendNote.mintAddress,
-          consumedNoteId: sendNote.consumedNoteId,
-          createdAt: sendNote.createdAt,
-          mintAddress: sendNote.mintAddress,
-          owner: sendNote.owner,
-          transitionKind: "send",
-          transitionNoteId: sendNote.noteId,
-          vaultOwner: sendNote.vaultOwner,
-        }),
-        owner: sendNote.owner,
-        stateSignature: `${sendNote.stateSignature}:legacy-spent`,
-        transitionKind: "send" as const,
-        transitionNoteId: sendNote.noteId,
-        vaultOwner: sendNote.vaultOwner,
-      } satisfies VantaSpentMarker;
-    });
+  const legacySpentMarkers: VantaSpentMarker[] = [];
   const shieldedSolNotesBySwap = new Map<
     string,
     Omit<VantaShieldedSolNote, "lifecycleStatus">
@@ -2343,6 +2311,34 @@ export async function fetchVantaShieldAccountState(args: {
       ...validSolUnshieldNotes,
     ].map((transition) => [transition.consumedNoteId, transition] as const),
   );
+  const pendingSendByConsumedNoteId = new Map(
+    candidateSendNotes
+      .filter((note) => {
+        if (transitionByConsumedNoteId.has(note.consumedNoteId)) {
+          return false;
+        }
+
+        const consumedShieldNote = allShieldNotesById.get(note.consumedNoteId);
+
+        if (!consumedShieldNote || consumedNoteIds.has(note.consumedNoteId)) {
+          return false;
+        }
+
+        const roundedInputAmount = Number(consumedShieldNote.amount.toFixed(6));
+        const roundedSentAmount = Number(note.amount.toFixed(6));
+        const roundedChangeAmount = Number(note.changeAmount.toFixed(6));
+
+        return (
+          roundedSentAmount > 0 &&
+          roundedSentAmount <= roundedInputAmount &&
+          amountsMatch(
+            Number((roundedSentAmount + roundedChangeAmount).toFixed(6)),
+            roundedInputAmount,
+          )
+        );
+      })
+      .map((note) => [note.consumedNoteId, note] as const),
+  );
   const pendingUnshieldByConsumedNoteId = new Map(
     candidateUnshieldNotes.map((note) => [note.consumedNoteId, note] as const),
   );
@@ -2368,6 +2364,7 @@ export async function fetchVantaShieldAccountState(args: {
     return (
       !consumedNoteIds.has(note.noteId) &&
       !transitionByConsumedNoteId.has(note.noteId) &&
+      !pendingSendByConsumedNoteId.has(note.noteId) &&
       !pendingUnshieldByConsumedNoteId.has(note.noteId)
     );
   });
@@ -2420,10 +2417,17 @@ export async function fetchVantaShieldAccountState(args: {
     .sort((left, right) => right.createdAt - left.createdAt)
     .map((note) => {
       const spentMarker = spentMarkerByConsumedNoteId.get(note.noteId);
+      const pendingSendTransition = pendingSendByConsumedNoteId.get(note.noteId);
       const pendingUnshieldTransition = pendingUnshieldByConsumedNoteId.get(note.noteId);
       const consumingTransition =
-        transitionByConsumedNoteId.get(note.noteId) ?? pendingUnshieldTransition;
-      const lifecycleStatus = spentMarker ? "consumed" : pendingUnshieldTransition ? "pending" : "spendable";
+        transitionByConsumedNoteId.get(note.noteId) ??
+        pendingSendTransition ??
+        pendingUnshieldTransition;
+      const lifecycleStatus = spentMarker
+        ? "consumed"
+        : pendingSendTransition ? "pending"
+          : pendingUnshieldTransition ? "pending"
+            : "spendable";
 
       return {
         amount: note.amount,

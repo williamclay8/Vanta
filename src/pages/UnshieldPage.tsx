@@ -531,7 +531,7 @@ export function UnshieldPage() {
     },
   );
 
-  const spendableShieldNotesByLane = useMemo(
+  const canonicalSpendableShieldNotesByLane = useMemo(
     () =>
       ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS.reduce(
         (nextNotesByLane, assetKey) => {
@@ -570,7 +570,7 @@ export function UnshieldPage() {
   useEffect(() => {
     const availableLanes = [
       ...ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS.map((assetKey) =>
-        spendableShieldNotesByLane[assetKey].length > 0 ? assetKey : null,
+        canonicalSpendableShieldNotesByLane[assetKey].length > 0 ? assetKey : null,
       ),
       spendableSolNotes.length > 0 ? "SOL" : null,
     ].filter(Boolean) as UnshieldLane[];
@@ -583,7 +583,7 @@ export function UnshieldPage() {
       setSelectedLane(availableLanes[0]);
     }
   }, [
-    spendableShieldNotesByLane,
+    canonicalSpendableShieldNotesByLane,
     selectedLane,
     spendableSolNotes.length,
   ]);
@@ -598,7 +598,7 @@ export function UnshieldPage() {
   const selectedShieldNote =
     selectedLane === "SOL"
       ? null
-      : chooseBestSpendableNote(spendableShieldNotesByLane[selectedLane]);
+      : chooseBestSpendableNote(canonicalSpendableShieldNotesByLane[selectedLane]);
   useEffect(() => {
     setRequestedAmountInput("");
   }, [selectedLane, selectedShieldNote, selectedSolNote]);
@@ -646,19 +646,19 @@ export function UnshieldPage() {
         const amount =
           lane === "SOL"
             ? selectedSolAggregateAmount
-            : sumSpendableAmounts(spendableShieldNotesByLane[lane], 6);
+            : sumSpendableAmounts(canonicalSpendableShieldNotesByLane[lane], 6);
 
         return {
           amount,
           hasSpendableBalance:
             lane === "SOL"
               ? spendableSolNotes.length > 0
-              : spendableShieldNotesByLane[lane].length > 0,
+              : canonicalSpendableShieldNotesByLane[lane].length > 0,
           lane,
         };
       }),
     [
-      spendableShieldNotesByLane,
+      canonicalSpendableShieldNotesByLane,
       selectedSolAggregateAmount,
       spendableSolNotes.length,
     ],
@@ -2552,7 +2552,7 @@ export function UnshieldPage() {
             <small>{formatUnshieldAmount(selectedFullAmount, selectedLane)} selected note</small>
           </div>
 
-          <div className="unshield-balance-strip" aria-label="Available shielded balances">
+          <div className="unshield-balance-strip" aria-label="Ledger spendable shielded balances">
             {availableLaneOptions.map((option) => (
               <button
                 key={option.lane}

@@ -409,6 +409,10 @@ try {
     "Expected committed Send proof receipt to use the hidden-economics asset sentinel.",
   );
   assert(
+    committedSendSettlement?.proofReceipt?.replayKey === "private-send:0xcommittedsend_replay",
+    "Expected committed Send proof receipt replay key to bind to the request nullifier/replay commitment.",
+  );
+  assert(
     committedSendProofRequest.amountBaseUnits ===
       VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_AMOUNT_BASE_UNITS,
     "Expected committed Send proof request to use the hidden-economics amount sentinel.",
@@ -426,6 +430,53 @@ try {
       !JSON.stringify(committedSendSettlement).includes("inputRoot") &&
       !JSON.stringify(committedSendSettlement).includes("outputLeafIndex"),
     "Expected committed Send settlement response to keep raw asset, amount, destination, and source-state terms redacted.",
+  );
+  await assertRejects(
+    () =>
+      Promise.resolve(
+        validateVantaPrivatePoolV2ProtocolSettlementResponse({
+          request: {
+            action: "send",
+            acceptedRoot: "0xcommittedsend_root",
+            assetCohort: "USDC",
+            economicsCommitment: "0xcommittedsend_economics",
+            economicsMode: "committed-economics",
+            nullifierOrReplayCommitment: "0xcommittedsend_replay",
+            outputCommitment: "0xcommittedsend_recipient_output",
+            ownerCommitment: "0xcommittedsend_owner",
+            poolId: committedSendInputTreeId,
+            privateSpendContextHash: "0xcommittedsend_context",
+            routeCommitment: "0xcommittedsend_route",
+            settlementCommitment: "0xcommittedsend_settlement",
+            settlementId: "protocol-client-committed-send",
+          },
+          response: {
+            kind: "protocol_settlement",
+            proofReceipt: {
+              assetId: VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID,
+              intent: "private-send",
+              publicInputCommitment: "0xcommittedsend_public_input_commitment",
+              receiptId: "0xcommittedsendbadreplay",
+              recordedAtSlot: "1",
+              replayKey: "private-send:wrong-replay-key",
+            },
+            protocolSettlementReceipt: {
+              action: "send",
+              economicsCommitment: "0xcommittedsend_economics",
+              economicsMode: "committed-economics",
+              id: "proto_bad_send_replay",
+              object: "protocol_settlement_receipt",
+              proofReceiptId: "ppv2_committedsendbadrepla",
+              proofReceiptPublicInputCommitment: "0xcommittedsend_public_input_commitment",
+              settlementCommitment: "0xcommittedsend_settlement",
+              settlementId: "protocol-client-committed-send",
+              status: "confirmed",
+            },
+          },
+        }),
+      ),
+    "Committed Send proof receipt replay key does not match",
+    "Expected committed Send response validation to reject a spliced replay key.",
   );
   const committedSendReplayCheck = await requestJson("/private-pool-v2/nullifier-replay-checks", {
     body: JSON.stringify({
@@ -901,16 +952,6 @@ try {
       shieldRouteEvidence: null,
     },
     {
-      action: "send",
-      amount: "4.00",
-      asset: "USDC",
-      authToken,
-      baseUrl,
-      destination: "protocol-client-send-destination",
-      owner: "protocol-client-owner",
-      settlementId: "protocol-client-send",
-    },
-    {
       action: "swap",
       amount: "5.00",
       asset: "USDC",
@@ -1041,6 +1082,22 @@ try {
       ),
     "proof id does not match the proof receipt",
     "Expected Shield settlement validation to reject a spliced proof receipt id.",
+  );
+
+  await assertRejects(
+    () =>
+      requestVantaPrivatePoolV2ProtocolSettlement({
+        action: "send",
+        amount: "4.00",
+        asset: "USDC",
+        authToken,
+        baseUrl,
+        destination: "protocol-client-send-destination",
+        owner: "protocol-client-owner",
+        settlementId: "protocol-client-rejected-raw-send",
+      }),
+    "Send protocol settlement requires committed-economics",
+    "Expected raw operator-visible Send protocol settlement to fail closed.",
   );
 
   for (const settlementRequest of settlementRequests) {

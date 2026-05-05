@@ -585,7 +585,14 @@ type PrivacyFlowContextValue = {
     nextShieldState: VantaPrivateCoreShieldState | null;
     result: SwapResultV0;
   };
-  runPrivateCoreShield: (args: { amountDisplay: string; asset: PrivacyAssetKey }) => VantaPrivateCoreShieldState;
+  runPrivateCoreShield: (args: {
+    amountDisplay: string;
+    asset: PrivacyAssetKey;
+    sourceLedgerBinding?: Omit<
+      VantaPrivateCoreLedgerBinding,
+      "privateCoreCommitment" | "privateCoreNullifier" | "privateCoreRoot"
+    > | null;
+  }) => VantaPrivateCoreShieldState;
   runPrivateCoreUnshield: () => Promise<VantaPrivateCoreUnshieldState>;
   runPrivateCoreReplayAttempt: () => Promise<VantaPrivateCoreUnshieldState>;
   setPrivateCoreHoldState: (value: VantaPrivateCoreHoldState | null) => void;
@@ -658,6 +665,24 @@ export type VantaPrivateCoreShieldState = {
   noteVersion: number;
 };
 
+export type VantaPrivateCoreLedgerBinding = {
+  asset: PrivacyAssetKey;
+  basis: "canonical-spendable-note-ledger";
+  canonicalCommitment: string;
+  canonicalNullifierBasis: string;
+  canonicalRoot: string;
+  depositSignature?: string;
+  mintAddress: string;
+  noteStateSignature: string;
+  owner: string;
+  privateCoreCommitment: string;
+  privateCoreNullifier: string;
+  privateCoreRoot: string;
+  source: "live_shield_v1";
+  vaultOwner: string;
+  amountBaseUnits: string;
+};
+
 export type VantaPrivateCoreHoldState = {
   heldNote: HeldNoteViewV0;
   privateNoteRecovered: boolean;
@@ -711,6 +736,7 @@ export type VantaPrivateCoreHoldState = {
   proofLeafIndex: number;
   proofPathDepth: number;
   noteSummary: string;
+  sourceLedgerBinding: VantaPrivateCoreLedgerBinding | null;
 };
 
 export type VantaPrivateCoreSendState = {
@@ -1960,7 +1986,14 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
   );
 
   const buildPrivateCorePresentedState = useCallback(
-    (args: { hold: HeldNoteViewV0; shieldArtifact: ShieldArtifactV0 }) => {
+    (args: {
+      hold: HeldNoteViewV0;
+      shieldArtifact: ShieldArtifactV0;
+      sourceLedgerBinding?: Omit<
+        VantaPrivateCoreLedgerBinding,
+        "privateCoreCommitment" | "privateCoreNullifier" | "privateCoreRoot"
+      > | null;
+    }) => {
       const provingPreview = buildVantaPrivateCoreUnshieldProofBoundary({
         heldNote: args.hold,
         ownerSecretKey: privateCoreOwner.secretKey,
@@ -2026,6 +2059,15 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         noteType: args.shieldArtifact.note.noteType,
         noteVersion: args.shieldArtifact.note.version,
       };
+      const sourceLedgerBinding = args.sourceLedgerBinding
+        ? ({
+            ...args.sourceLedgerBinding,
+            privateCoreCommitment:
+              sourceHoldArtifacts.noteCommitment ?? args.hold.commitment.value,
+            privateCoreNullifier: sourceProofPreviewEnvelope.publicInputs.nullifier,
+            privateCoreRoot: sourceHoldArtifacts.witnessRoot ?? args.hold.witness.root,
+          } satisfies VantaPrivateCoreLedgerBinding)
+        : null;
 
       const holdState: VantaPrivateCoreHoldState = {
         heldNote: args.hold,
@@ -2083,6 +2125,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
           args.shieldArtifact.note.assetId,
           args.shieldArtifact.note.amount,
         )} private note`,
+        sourceLedgerBinding,
       };
 
       return { holdState, shieldState };
@@ -2090,7 +2133,14 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     [privateCoreOwner.secretKey],
   );
 
-  const runPrivateCoreShield = useCallback((args: { amountDisplay: string; asset: PrivacyAssetKey }): VantaPrivateCoreShieldState => {
+  const runPrivateCoreShield = useCallback((args: {
+    amountDisplay: string;
+    asset: PrivacyAssetKey;
+    sourceLedgerBinding?: Omit<
+      VantaPrivateCoreLedgerBinding,
+      "privateCoreCommitment" | "privateCoreNullifier" | "privateCoreRoot"
+    > | null;
+  }): VantaPrivateCoreShieldState => {
     if (args.asset !== "USDC") {
       throw new Error("Vanta Private Core v0.1 currently supports the USDC demo lane only.");
     }
@@ -2108,6 +2158,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       buildPrivateCorePresentedState({
         hold,
         shieldArtifact: shield,
+        sourceLedgerBinding: args.sourceLedgerBinding ?? null,
       });
 
     setPrivateCoreRecentShield(nextShieldState);

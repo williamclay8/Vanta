@@ -537,13 +537,19 @@ export function validateVantaPrivatePoolV2ProtocolSettlementResponse({
       );
     }
     if (request.action === "send") {
+      const proofReceipt = response.proofReceipt;
       requireProtocolSettlementCondition(
-        response.proofReceipt?.intent === "private-send",
+        proofReceipt?.intent === "private-send",
         "Committed Send protocol settlement proof receipt intent is not private-send.",
       );
       requireProtocolSettlementCondition(
-        response.proofReceipt?.assetId === "hidden:economic-terms",
+        proofReceipt?.assetId === "hidden:economic-terms",
         "Committed Send proof receipt must use the hidden-economics asset sentinel.",
+      );
+      requireProtocolSettlementCondition(
+        proofReceipt !== undefined &&
+          proofReceipt.replayKey === `private-send:${request.nullifierOrReplayCommitment}`,
+        "Committed Send proof receipt replay key does not match the request nullifier/replay commitment.",
       );
     }
     if (request.action === "shield") {

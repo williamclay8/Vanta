@@ -76,10 +76,62 @@ import {
 } from "./private-core-proof.mjs";
 import { createReleaseRecordStore } from "./release-record-store.mjs";
 
+function installOperatorLogSecretRedaction() {
+  const streams = [process.stderr, process.stdout];
+
+  for (const stream of streams) {
+    const originalWrite = stream.write.bind(stream);
+    stream.write = (chunk, encoding, callback) => {
+      if (typeof chunk === "string") {
+        return originalWrite(redactSecretBearingUrls(chunk), encoding, callback);
+      }
+
+      if (Buffer.isBuffer(chunk)) {
+        return originalWrite(
+          Buffer.from(redactSecretBearingUrls(chunk.toString("utf8")), "utf8"),
+          encoding,
+          callback,
+        );
+      }
+
+      return originalWrite(chunk, encoding, callback);
+    };
+  }
+}
+
+function redactSecretBearingUrls(value) {
+  return value.replace(/https?:\/\/[^\s'"<>)}\]]+/g, (candidate) => {
+    try {
+      const url = new URL(candidate);
+      let redacted = false;
+
+      for (const key of [...url.searchParams.keys()]) {
+        if (isSensitiveUrlParam(key)) {
+          url.searchParams.set(key, "redacted");
+          redacted = true;
+        }
+      }
+
+      return redacted ? url.toString() : candidate;
+    } catch {
+      return candidate.replace(
+        /([?&][^=\s&]*(?:api[-_]?key|access[-_]?token|token|secret|signature|sig)[^=]*=)[^&\s'"]+/gi,
+        "$1redacted",
+      );
+    }
+  });
+}
+
+function isSensitiveUrlParam(key) {
+  return /(?:api[-_]?key|access[-_]?token|token|secret|signature|sig)/i.test(key);
+}
+
 loadEnvFile(".env");
 loadEnvFile(".env.local");
 loadEnvFile(".env.operator");
 loadEnvFile(".env.operator.local");
+
+installOperatorLogSecretRedaction();
 
 const port = Number(process.env.VANTA_UNSHIELD_OPERATOR_PORT ?? "8789");
 const MAX_JSON_BODY_BYTES = parsePositiveIntegerEnv(

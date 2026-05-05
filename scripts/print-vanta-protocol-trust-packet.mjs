@@ -58,35 +58,43 @@ const packets = {
     },
     action: "send",
     counterparty: "recipient-or-reviewer",
-    artifact: "Private Send proof/settlement receipt lineage",
+    artifact: "Ledger-gated Send receipt/trust-packet lineage with current operator-witness limitation",
     claimBoundary: {
-      privacyTier: "local-proof-backed-private-send-not-production-private",
+      privacyTier: "ledger-gated-operator-witness-send-not-production-private",
       proofBacked: false,
       evidenceStatus: "no-current-send-proof-evidence",
       fullyPrivate: false,
       productionReady: false,
       safeClaim:
-        "Send has a shaped proof/receipt lineage contract, but this packet is not current proof-backed and is not production-private until live shared-pool, relayer, anonymity, and review gates pass.",
+        "Send has a canonical ledger gate and shaped receipt lineage, but the current Private Core operator lane receives a witness package and is not production-private until live shared-pool, relayer, anonymity, replay, redaction, and review gates pass.",
     },
+    spendabilityBasis: "canonical-spendable-note-ledger",
     visibleFields: [
       "proof id",
       "input root",
-      "nullifier",
+      "nullifier or replay commitment",
       "output commitment",
       "recipient commitment",
       "operator link status",
+      "canonical spendable-note ledger basis",
+    ],
+    operatorVisibleFields: [
+      "operator-visible-in-current-private-core-lane: witness package",
+      "operator-visible-in-current-private-core-lane: send/change amounts inside witness",
+      "operator-visible-in-current-private-core-lane: membership path inside witness",
     ],
     hiddenFields: [
-      "raw amount where hidden-economics is claimed",
-      "raw destination",
-      "wallet owner",
-      "private witness material",
+      "raw amount in shareable trust packet",
+      "raw destination in shareable trust packet",
+      "wallet owner in shareable trust packet",
+      "private witness material in shareable trust packet",
       "auth tokens",
     ],
     verificationCommands: [
       "npm run private-core:send-check",
       "npm run private-core:send-committed-settlement-check",
       "npm run send:requires-shielded-state-check",
+      "npm run send:balance-ledger-check",
       "npm run programmatic-privacy:contract-check",
     ],
   },
@@ -160,6 +168,21 @@ if (checkMode) {
   assert.ok(packet.claimBoundary.safeClaim.includes("not"));
   assert.ok(packet.verificationCommands.includes("npm run programmatic-privacy:contract-check"));
   assert.ok(packet.remainingBlockers.includes("audited shared anonymity set"));
+
+  if (packet.action === "send") {
+    assert.equal(packet.spendabilityBasis, "canonical-spendable-note-ledger");
+    assert.ok(packet.verificationCommands.includes("npm run send:balance-ledger-check"));
+    assert.ok(
+      packet.operatorVisibleFields?.some((field) =>
+        field.includes("operator-visible-in-current-private-core-lane"),
+      ),
+      "Send packet must name the current operator-visible witness limitation.",
+    );
+    assert.ok(
+      !packet.claimBoundary.privacyTier.includes("proof-backed"),
+      "Send packet must not be called proof-backed when current proof evidence is absent.",
+    );
+  }
 
   const serialized = JSON.stringify(packet);
   for (const forbidden of [

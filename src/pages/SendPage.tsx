@@ -31,6 +31,7 @@ import {
   listCanonicalSendDiagnosticsSummaries,
   recordCanonicalSendFromLiveSend,
 } from "@/zk/liveSendBridge";
+import { listCanonicalShieldRecords } from "@/zk/liveShieldBridge";
 import {
   buildVantaPrivateCoreSendProofEnvelope,
   buildVantaPrivateCoreSendTransition,
@@ -149,6 +150,14 @@ function formatOperatorSummaryFreshness(value: number | null) {
     minute: "2-digit",
     second: "2-digit",
   });
+}
+
+function noteAmountToBaseUnits(note: VantaShieldNote, decimals: number) {
+  return decimalToBaseUnitsExact(note.amount.toFixed(decimals), decimals);
+}
+
+function sumSpendableNoteAmounts(notes: { amount: number }[]) {
+  return Number(notes.reduce((sum, note) => sum + note.amount, 0).toFixed(6));
 }
 
 export function SendPage({ dashboard = false }: SendPageProps) {
@@ -417,11 +426,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     [selectedAsset],
   );
   const shieldedSolSourceEntry =
-    shieldAssetRegistry.entries.find((entry) => (entry.account?.shieldedSolBalance ?? 0) > 0) ??
     shieldAssetRegistry.entries.find(
       (entry) => (entry.account?.spendableShieldedSolNotes.length ?? 0) > 0,
-    ) ??
-    null;
+    ) ?? null;
   const shieldedSolSourceAccount = shieldedSolSourceEntry?.account ?? shieldAccount;
   const selectedShieldAssetEntry =
     selectedAsset === "SOL" ? null : shieldAssetRegistry.byAssetKey[selectedAsset];
@@ -434,7 +441,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
   const getShieldedSendAssetBalance = useCallback(
     (asset: ShieldedSendAssetKey) => {
       if (asset === "SOL") {
-        return shieldedSolSourceAccount?.shieldedSolBalance ?? 0;
+        return sumSpendableNoteAmounts(shieldedSolSourceAccount?.spendableShieldedSolNotes ?? []);
       }
 
       if (asset === "USDC") {
@@ -446,7 +453,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     [
       shieldAccount?.balance,
       shieldAssetRegistry.byAssetKey,
-      shieldedSolSourceAccount?.shieldedSolBalance,
+      shieldedSolSourceAccount?.spendableShieldedSolNotes,
     ],
   );
   const getShieldedSendAssetSpendableNoteCount = useCallback(
@@ -552,9 +559,51 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     return spendableNotes.find((note) => note.noteId === selectedNoteId) ?? null;
   }, [selectedNoteId, spendableNotes]);
 
+  const selectedCanonicalSendLedgerNote = useMemo(() => {
+    if (
+      selectedAsset !== "USDC" ||
+      !selectedSpendableNote ||
+      selectedSpendableNote.asset !== "USDC" ||
+      selectedSpendableNote.noteId.startsWith("local-") ||
+      selectedSpendableNote.stateSignature.startsWith("local-")
+    ) {
+      return null;
+    }
+
+    return selectedSpendableNote;
+  }, [selectedAsset, selectedSpendableNote]);
+
+  const selectedCanonicalSendLedgerAmountBaseUnits = useMemo(() => {
+    if (!selectedCanonicalSendLedgerNote) {
+      return null;
+    }
+
+    try {
+      return noteAmountToBaseUnits(selectedCanonicalSendLedgerNote, DEFAULT_USDC_DECIMALS);
+    } catch {
+      return null;
+    }
+  }, [selectedCanonicalSendLedgerNote]);
+  const selectedCanonicalShieldRecord = useMemo(() => {
+    if (!selectedCanonicalSendLedgerNote) {
+      return null;
+    }
+
+    return (
+      listCanonicalShieldRecords().find(
+        (record) =>
+          record.liveShield.stateSignature === selectedCanonicalSendLedgerNote.stateSignature &&
+          record.liveShield.assetSymbol === selectedCanonicalSendLedgerNote.asset &&
+          record.liveShield.mintAddress === selectedCanonicalSendLedgerNote.mintAddress &&
+          record.liveShield.owner === selectedCanonicalSendLedgerNote.owner &&
+          record.liveShield.vaultOwner === selectedCanonicalSendLedgerNote.vaultOwner,
+      ) ?? null
+    );
+  }, [selectedCanonicalSendLedgerNote]);
+
   const selectedBalance =
     selectedAsset === "SOL"
-      ? selectedShieldAccount?.shieldedSolBalance ?? 0
+      ? sumSpendableNoteAmounts(selectedShieldAccount?.spendableShieldedSolNotes ?? [])
       : selectedShieldAccount?.balance ?? 0;
   const parsedAmount = Number(amount);
   const maxNoteAmount = selectedSpendableNote?.amount ?? 0;
@@ -574,12 +623,139 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     isAmountValid &&
     isRecipientValid &&
     Boolean(liveShieldAsset.mintAddress);
+  const privateCoreHeldAmountMatchesLedgerNote =
+    Boolean(privateCoreHoldState) &&
+    selectedCanonicalSendLedgerAmountBaseUnits !== null &&
+    privateCoreHoldState?.heldNote.note.amount === selectedCanonicalSendLedgerAmountBaseUnits;
+  const privateCoreHeldLedgerBindingMatchesSelectedNote =
+    Boolean(privateCoreHoldState?.sourceLedgerBinding) &&
+    Boolean(selectedCanonicalSendLedgerNote) &&
+    Boolean(selectedCanonicalShieldRecord) &&
+    selectedCanonicalSendLedgerAmountBaseUnits !== null &&
+    privateCoreHoldState?.sourceLedgerBinding?.basis === "canonical-spendable-note-ledger" &&
+    privateCoreHoldState.sourceLedgerBinding.source === "live_shield_v1" &&
+    privateCoreHoldState.sourceLedgerBinding.asset === selectedCanonicalSendLedgerNote?.asset &&
+    privateCoreHoldState.sourceLedgerBinding.noteStateSignature ===
+      selectedCanonicalSendLedgerNote?.stateSignature &&
+    privateCoreHoldState.sourceLedgerBinding.amountBaseUnits ===
+      selectedCanonicalSendLedgerAmountBaseUnits.toString(10) &&
+    privateCoreHoldState.sourceLedgerBinding.mintAddress ===
+      selectedCanonicalSendLedgerNote?.mintAddress &&
+    privateCoreHoldState.sourceLedgerBinding.owner === selectedCanonicalSendLedgerNote?.owner &&
+    privateCoreHoldState.sourceLedgerBinding.vaultOwner ===
+      selectedCanonicalSendLedgerNote?.vaultOwner &&
+    privateCoreHoldState.sourceLedgerBinding.canonicalCommitment ===
+      selectedCanonicalShieldRecord?.artifacts.commitment.value &&
+    privateCoreHoldState.sourceLedgerBinding.canonicalRoot ===
+      selectedCanonicalShieldRecord?.insertion.root &&
+    privateCoreHoldState.sourceLedgerBinding.canonicalNullifierBasis ===
+      selectedCanonicalShieldRecord?.artifacts.nullifierBasis.value &&
+    privateCoreHoldState.sourceLedgerBinding.privateCoreCommitment ===
+      privateCoreHoldState.heldNote.commitment.value &&
+    privateCoreHoldState.sourceLedgerBinding.privateCoreRoot ===
+      privateCoreHoldState.heldNote.witness.root;
+  const sendLedgerGateStatus = useMemo(() => {
+    const basis = "canonical-spendable-note-ledger";
+
+    if (selectedAsset !== "USDC") {
+      return {
+        basis,
+        detail: "Private Core Send currently supports the shielded USDC ledger lane only.",
+        primaryNote: null,
+        ready: false,
+        statusLabel: "Unsupported asset",
+      };
+    }
+
+    if (!selectedCanonicalSendLedgerNote) {
+      return {
+        basis,
+        detail:
+          "Send requires a canonical ledger-spendable note before the private-core proof lane can run.",
+        primaryNote: null,
+        ready: false,
+        statusLabel: "No canonical note",
+      };
+    }
+
+    if (!privateCoreHoldState) {
+      return {
+        basis,
+        detail:
+          "Send requires a canonical ledger-spendable note and a matching held private-core note.",
+        primaryNote: selectedCanonicalSendLedgerNote,
+        ready: false,
+        statusLabel: "No held private note",
+      };
+    }
+
+    if (!privateCoreHeldAmountMatchesLedgerNote) {
+      return {
+        basis,
+        detail:
+          "The held private-core note does not match the selected canonical ledger note; refresh the shielded state before sending.",
+        primaryNote: selectedCanonicalSendLedgerNote,
+        ready: false,
+        statusLabel: "Ledger mismatch",
+      };
+    }
+
+    if (!selectedCanonicalShieldRecord) {
+      return {
+        basis,
+        detail:
+          "The selected ledger note is missing canonical shield commitment/root evidence; refresh the shielded state before sending.",
+        primaryNote: selectedCanonicalSendLedgerNote,
+        ready: false,
+        statusLabel: "Missing ledger proof",
+      };
+    }
+
+    if (!privateCoreHeldLedgerBindingMatchesSelectedNote) {
+      return {
+        basis,
+        detail:
+          "The held private-core note is not bound to the selected canonical ledger note; select the matching Shield note or refresh before sending.",
+        primaryNote: selectedCanonicalSendLedgerNote,
+        ready: false,
+        statusLabel: "Ledger binding mismatch",
+      };
+    }
+
+    if (!isAmountValid || !isRecipientValid) {
+      return {
+        basis,
+        detail: "Enter a valid amount and destination address for the selected ledger note.",
+        primaryNote: selectedCanonicalSendLedgerNote,
+        ready: false,
+        statusLabel: "Waiting for input",
+      };
+    }
+
+    return {
+      basis,
+      detail: "Ready from canonical spendable-note ledger.",
+      primaryNote: selectedCanonicalSendLedgerNote,
+      ready: true,
+      statusLabel: "Ready",
+    };
+  }, [
+    isAmountValid,
+    isRecipientValid,
+    privateCoreHeldLedgerBindingMatchesSelectedNote,
+    privateCoreHeldAmountMatchesLedgerNote,
+    privateCoreHoldState,
+    selectedAsset,
+    selectedCanonicalShieldRecord,
+    selectedCanonicalSendLedgerNote,
+  ]);
   const sendProgressLabel = sendNoteWait.detailLabel;
   const settleProgressLabel = spentMarkerWait.detailLabel;
   const privateCoreSendPreview = useMemo<PrivateCoreSendPreview | null>(() => {
     if (
       selectedAsset !== "USDC" ||
       !privateCoreHoldState ||
+      !sendLedgerGateStatus.ready ||
       !isRecipientValid ||
       !Number.isFinite(parsedAmount) ||
       parsedAmount <= 0
@@ -632,12 +808,14 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreHoldState,
     privateCoreOwner.secretKey,
     recipient,
+    sendLedgerGateStatus.ready,
     selectedAsset,
   ]);
   const isPrivateCoreUsdcSendReady =
     selectedAsset === "USDC" &&
     selectedSendCapability.executionMode === "operator-usdc-send" &&
     selectedSendCapability.status === "live" &&
+    sendLedgerGateStatus.ready &&
     privateCoreSendPreview?.boundary.readiness === "ready";
 
   const recentShieldLabel =
@@ -1005,6 +1183,25 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       return;
     }
 
+    if (!sendLedgerGateStatus.ready) {
+      const errorMessage =
+        sendLedgerGateStatus.detail ||
+        "Send requires a canonical ledger-spendable note before the private-core proof lane can run.";
+
+      setStatus("failed");
+      setFlowError(errorMessage);
+      setPrivateCoreSendExecution({
+        errorMessage,
+        latestProofAction: null,
+        latestProofId: null,
+        latestSendId: null,
+        proofFieldCount: null,
+        proofPublicInputCount: null,
+        status: "failed",
+      });
+      return;
+    }
+
     if (!privateCoreSendPreview) {
       return;
     }
@@ -1081,7 +1278,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         ? selectedSendCapability.blockers[0] ??
           "Private-core send currently supports shielded USDC."
       : isPrivateCoreUsdcSendReady
-      ? "Ready to verify a private-core send transition."
+      ? "Ready to verify a ledger-gated private-core send transition."
+      : !sendLedgerGateStatus.ready && selectedAsset === "USDC"
+        ? sendLedgerGateStatus.detail
       : !selectedSpendableNote
         ? "Shield the asset first, then return here to send it."
         : "Enter a valid amount and destination address.";
@@ -1436,6 +1635,18 @@ export function SendPage({ dashboard = false }: SendPageProps) {
 
           <div className="review-list">
             <div className="review-row">
+              <span>Ledger basis</span>
+              <strong>{sendLedgerGateStatus.basis}</strong>
+            </div>
+            <div className="review-row">
+              <span>Ledger note</span>
+              <strong>{abbreviate(selectedCanonicalSendLedgerNote?.noteId) ?? "Unavailable"}</strong>
+            </div>
+            <div className="review-row">
+              <span>Ledger gate</span>
+              <strong>{sendLedgerGateStatus.statusLabel}</strong>
+            </div>
+            <div className="review-row">
               <span>Held private note</span>
               <strong>
                 {privateCoreHoldState
@@ -1530,9 +1741,10 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           </div>
 
           <p className="shield-review-note">
-            This is the currently supported narrow private-send lane for Vanta zk v1. It proves
-            the current held note can support one recipient output and one optional change output,
-            then asks the operator to verify the frozen send witness package over HTTP.
+            This is the currently supported narrow private-send lane for Vanta zk v1. It only runs
+            after the selected USDC note is spendable in the canonical ledger, proves the held note
+            can support one recipient output and one optional change output, then asks the operator
+            to verify the frozen witness package over HTTP.
           </p>
 
           <div className="status-actions">
@@ -1544,8 +1756,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               }}
               disabled={
                 isBetaMode ||
-                !privateCoreSendPreview ||
-                privateCoreSendPreview.boundary.readiness !== "ready" ||
+                !isPrivateCoreUsdcSendReady ||
                 privateCoreSendExecution.status === "running"
               }
             >
