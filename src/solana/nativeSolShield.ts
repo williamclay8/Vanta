@@ -6,7 +6,7 @@ import {
   SystemProgram,
   type TransactionInstruction,
 } from "@solana/web3.js";
-import { endpoint } from "@/solana/client";
+import { endpoint, readRpcFallbackEndpoints } from "@/solana/client";
 
 export type NativeSolShieldDepositCandidate = {
   amount: number;
@@ -43,12 +43,7 @@ export function isNativeSolSourceAccountNotReadyError(error: unknown) {
 const cachedBalanceReadConnections = new Map<string, Connection>();
 
 function getNativeSolShieldBalanceReadEndpoints() {
-  const configured = import.meta.env.VITE_SOLANA_READ_RPC_FALLBACK_URLS?.split(",")
-    .map((value) => value.trim())
-    .filter(Boolean) ?? [];
-  const defaults = ["https://solana-rpc.publicnode.com", "https://api.mainnet-beta.solana.com"];
-
-  return [...new Set([endpoint, ...configured, ...defaults])];
+  return readRpcFallbackEndpoints;
 }
 
 function getBalanceReadConnection(readEndpoint: string) {

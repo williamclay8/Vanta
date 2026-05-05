@@ -161,13 +161,16 @@ for (const marker of [
 }
 
 assert.ok(
-  clientSource.includes('const defaultSolanaRpcEndpoint = "https://api.mainnet-beta.solana.com"') &&
+  clientSource.includes('const defaultSolanaRpcEndpoint = "https://solana-rpc.publicnode.com"') &&
+    clientSource.includes('const fallbackMainnetSolanaRpcEndpoint = "https://api.mainnet-beta.solana.com"') &&
     clientSource.includes("VITE_SOLANA_BROWSER_RPC_URL") &&
     clientSource.includes("VITE_SOLANA_RPC_URL") &&
     clientSource.includes("VITE_SOLANA_BROWSER_WS_URL") &&
     clientSource.includes("VITE_SOLANA_WS_URL") &&
-    clientSource.includes("export const endpoint = configuredSolanaRpcEndpoint || defaultSolanaRpcEndpoint"),
-  "Browser Solana client must honor explicit browser RPC envs with the mainnet-beta default fallback.",
+    clientSource.includes("isForbiddenMainnetRpcEndpoint") &&
+    clientSource.includes("resolveMainnetBrowserRpcEndpoint") &&
+    clientSource.includes("export const endpoint = configuredSolanaRpcEndpoint"),
+  "Browser Solana client must honor explicit mainnet browser RPC envs while rejecting devnet/testnet/local endpoints in production mainnet builds.",
 );
 assert.ok(
   shieldStateSource.includes('import { endpoint } from "@/solana/client"') &&

@@ -128,20 +128,23 @@ assert.ok(
 );
 
 const nativeSolShieldSource = readFileSync(resolve("src/solana/nativeSolShield.ts"), "utf8");
+const solanaClientSource = readFileSync(resolve("src/solana/client.ts"), "utf8");
 assert.ok(
   !shieldPageSource.includes("no active SOL balance") &&
     !nativeSolShieldSource.includes("no active SOL balance"),
   "Native SOL Shield must not claim a wallet has no active SOL when the failing AccountNotFound may be a different required account or RPC read miss.",
 );
 assert.ok(
-  nativeSolShieldSource.includes("assertNativeSolShieldSourceAccountReady") &&
+    nativeSolShieldSource.includes("assertNativeSolShieldSourceAccountReady") &&
     nativeSolShieldSource.includes("knownLamportsBalance") &&
     nativeSolShieldSource.includes("fetchNativeSolShieldLamports") &&
     nativeSolShieldSource.includes("getBalance(ownerPublicKey") &&
-    nativeSolShieldSource.includes("VITE_SOLANA_READ_RPC_FALLBACK_URLS") &&
+    nativeSolShieldSource.includes("readRpcFallbackEndpoints") &&
+    solanaClientSource.includes("VITE_SOLANA_READ_RPC_FALLBACK_URLS") &&
+    solanaClientSource.includes("isForbiddenMainnetRpcEndpoint") &&
     nativeSolShieldSource.includes("VANTA_NATIVE_SOL_ACCOUNT_NOT_ACTIVE_MESSAGE") &&
     nativeSolShieldSource.includes("VantaNativeSolSourceAccountNotReadyError"),
-  "Native SOL Shield must verify spendable mainnet SOL using recovered wallet balance or balance-read RPC fallbacks before building the wallet transaction.",
+  "Native SOL Shield must verify spendable mainnet SOL using recovered wallet balance or sanitized mainnet balance-read RPC fallbacks before building the wallet transaction.",
 );
 assert.ok(
   nativeSolShieldSource.includes("fetchNativeSolShieldDepositCandidates"),

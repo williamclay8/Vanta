@@ -8,6 +8,7 @@ function read(path) {
 }
 
 const appLayout = read("src/components/AppLayout.tsx");
+const clientSource = read("src/solana/client.ts");
 const walletContext = read("src/data/context/WalletContext.tsx");
 const styles = read("src/styles.css");
 const mobileBrowserCheck = read("scripts/check-vanta-mobile-browser.mjs");
@@ -74,14 +75,14 @@ requireIncludes(
   "Wallet context SOL balance fallback must use the configurable browser read-RPC endpoint list.",
 );
 requireIncludes(
-  walletContext,
-  'const MAINNET_WALLET_BALANCE_READ_ENDPOINT = "https://solana-rpc.publicnode.com"',
-  "Wallet context SOL balance fallback must include a browser-accessible public mainnet RPC endpoint.",
+  clientSource,
+  'const defaultSolanaRpcEndpoint = "https://solana-rpc.publicnode.com"',
+  "Mainnet browser RPC defaults must use a browser-accessible public mainnet endpoint.",
 );
 requireIncludes(
   walletContext,
-  'MAINNET_WALLET_BALANCE_READ_ENDPOINT]',
-  "Wallet context SOL balance fallback must recover a mainnet public SOL balance even when another endpoint reports zero first.",
+  "return readRpcFallbackEndpoints;",
+  "Wallet context SOL balance fallback must share the sanitized mainnet read-RPC endpoints.",
 );
 requireIncludes(
   walletContext,
@@ -94,23 +95,19 @@ requireIncludes(
   "Wallet context SOL balance fallback must still return zero when every readable endpoint reports zero.",
 );
 requireIncludes(
-  walletContext,
+  clientSource,
   "VITE_SOLANA_READ_RPC_FALLBACK_URLS",
   "Wallet context SOL balance fallback must honor configured read-RPC fallback endpoints.",
 );
-if (
-  /getConfiguredWalletBalanceReadEndpoints[\s\S]*?https:\/\/api\.mainnet-beta\.solana\.com/u.test(
-    walletContext,
-  )
-) {
-  failures.push(
-    "Wallet context SOL balance fallback must not depend on api.mainnet-beta.solana.com because it returns 403 from the production browser origin.",
-  );
-}
 requireIncludes(
-  walletContext,
-  "const defaults = [MAINNET_WALLET_BALANCE_READ_ENDPOINT]",
-  "Wallet context SOL balance fallback must choose mainnet read endpoints while recovering mainnet balances.",
+  clientSource,
+  "isForbiddenMainnetRpcEndpoint",
+  "Browser Solana client must reject devnet/testnet/local RPC endpoints for the mainnet app.",
+);
+requireIncludes(
+  clientSource,
+  "readRpcFallbackEndpoints",
+  "Browser Solana client must expose shared sanitized mainnet read-RPC fallbacks.",
 );
 requireIncludes(
   appLayout,

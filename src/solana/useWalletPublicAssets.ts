@@ -6,12 +6,11 @@ import {
   TOKEN_2022_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { endpoint } from "@/solana/client";
+import { endpoint, readRpcFallbackEndpoints } from "@/solana/client";
 import {
   getLiveShieldTokenAssetPriority,
   listLiveShieldTokenAssets,
   liveSwapPair,
-  vantaSolanaCluster,
   type LiveShieldTokenAssetKey,
 } from "@/solana/shieldConfig";
 
@@ -73,15 +72,7 @@ function getFallbackConnection(fallbackEndpoint: string) {
 }
 
 function getConfiguredWalletReadFallbackEndpoints() {
-  const configured = import.meta.env.VITE_SOLANA_READ_RPC_FALLBACK_URLS?.split(",")
-    .map((value) => value.trim())
-    .filter(Boolean) ?? [];
-  const defaults =
-    vantaSolanaCluster === "mainnet-beta"
-      ? ["https://solana-rpc.publicnode.com", "https://api.mainnet-beta.solana.com"]
-      : ["https://api.mainnet-beta.solana.com"];
-
-  return [...new Set([...configured, ...defaults].filter((value) => value !== endpoint))];
+  return readRpcFallbackEndpoints.filter((value) => value !== endpoint);
 }
 
 function abbreviateMint(value: string) {

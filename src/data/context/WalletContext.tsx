@@ -10,7 +10,7 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { useBalance, useWalletConnection } from "@solana/react-hooks";
 import type { WalletConnector } from "@solana/client";
 import type { ActiveWalletTopology } from "@/privateVault/privateVaultTypes";
-import { endpoint, solanaClusterLabel } from "@/solana/client";
+import { readRpcFallbackEndpoints, solanaClusterLabel } from "@/solana/client";
 import {
   createFreshWalletRecord,
   exportFreshWalletRecoveryFile,
@@ -94,15 +94,8 @@ function pickPreferredWalletConnector(connectors: readonly WalletConnector[]) {
 }
 
 const walletBalanceFallbackConnections = new Map<string, Connection>();
-const MAINNET_WALLET_BALANCE_READ_ENDPOINT = "https://solana-rpc.publicnode.com";
-
 function getConfiguredWalletBalanceReadEndpoints() {
-  const configured = import.meta.env.VITE_SOLANA_READ_RPC_FALLBACK_URLS?.split(",")
-    .map((value) => value.trim())
-    .filter(Boolean) ?? [];
-  const defaults = [MAINNET_WALLET_BALANCE_READ_ENDPOINT];
-
-  return [...new Set([endpoint, ...configured, ...defaults])];
+  return readRpcFallbackEndpoints;
 }
 
 function getWalletBalanceFallbackConnection(fallbackEndpoint: string) {
