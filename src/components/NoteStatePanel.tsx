@@ -112,10 +112,16 @@ export function NoteStatePanel({
                   className={
                     note.lifecycleStatus === "spendable"
                       ? "note-state-chip note-state-chip--spendable"
+                      : note.lifecycleStatus === "pending"
+                        ? "note-state-chip note-state-chip--pending"
                       : "note-state-chip note-state-chip--consumed"
                   }
                 >
-                  {note.lifecycleStatus === "spendable" ? "Spendable" : "Consumed"}
+                  {note.lifecycleStatus === "spendable"
+                    ? "Spendable"
+                    : note.lifecycleStatus === "pending"
+                      ? "Pending"
+                      : "Consumed"}
                 </span>
                 {note.sourceType === "change_derived" && (
                   <span className="note-state-chip note-state-chip--change">

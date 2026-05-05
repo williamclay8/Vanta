@@ -32,18 +32,31 @@ const allShieldedLabels = [
 ];
 
 for (const marker of [
+  "getLiveShieldTokenAsset(\"USDC\")",
+  "getLiveShieldTokenAsset(\"BONK\")",
+  "getLiveShieldTokenAsset(\"JUP\")",
+  "useVantaShieldAssetState",
+  "account: usdcAccountState.account",
+  "account: bonkAccountState.account",
+  "account: jupAccountState.account",
+]) {
+  assert.ok(
+    registrySource.includes(marker),
+    `Shield asset registry must preserve canonical shield-family asset visibility marker: ${marker}.`,
+  );
+}
+
+for (const marker of [
   "usePrivacyFlow",
-  "recentShield",
   "loadRecentShieldTokenNotes",
   "mergeRecentShieldTokenAccount",
   "createRecentShieldTokenNote",
   "isRecentShieldTokenContext",
-  "spendableShieldNotes",
-  "noteStatusSummary",
+  "spendableShieldNotes = [...nextNotes",
 ]) {
   assert.ok(
-    registrySource.includes(marker),
-    `Shield asset registry must preserve optimistic recent-token visibility marker: ${marker}.`,
+    !registrySource.includes(marker),
+    `Shield asset registry must not merge optimistic recent-token records into spendable balances: ${marker}.`,
   );
 }
 
@@ -51,13 +64,19 @@ for (const marker of [
   "vanta.recentShieldTokenNotes.v1",
   "recordRecentShieldTokenNote",
   "loadRecentShieldTokenNotes",
-  "VantaShieldNote",
+  "PendingRecentShieldTokenNote",
+  "pendingNoteId",
 ]) {
   assert.ok(
     recentTokenNotesSource.includes(marker),
-    `Recent token shield notes must persist locally while encrypted memo recovery catches up: ${marker}.`,
+    `Recent token shield notes must persist as pending recovery hints while encrypted memo recovery catches up: ${marker}.`,
   );
 }
+
+assert.ok(
+  !recentTokenNotesSource.includes("VantaShieldNote"),
+  "Recent token shield notes must not reuse canonical VantaShieldNote shape before ledger reconciliation.",
+);
 
 for (const marker of [
   "const recentShieldContext =",
@@ -96,7 +115,7 @@ for (const symbol of directShieldSymbols) {
   );
   assert.ok(
     registrySource.includes(`getLiveShieldTokenAsset("${symbol}")`),
-    `${symbol} must have a registry entry that can merge recent local shield notes.`,
+    `${symbol} must have a canonical registry entry.`,
   );
 }
 
@@ -183,7 +202,7 @@ for (const symbol of directShieldSymbols) {
   assert.ok(
     registrySource.includes(`asset: ${symbol.toLowerCase()}Asset`) ||
       registrySource.includes(`asset: ${symbol === "USDC" ? "usdc" : symbol.toLowerCase()}Asset`),
-    `${symbol} registry entry must pass through recent Shield note merge.`,
+    `${symbol} registry entry must pass through canonical account state.`,
   );
   assert.ok(
     registrySource.includes(`assetKey: "${symbol}"`) ||

@@ -41,7 +41,6 @@ export function AppDashboardPage() {
   const {
     privateCoreReleaseHandoffState,
     privateCoreReleasePackageState,
-    recentShield,
   } = usePrivacyFlow();
 
   const shieldedBalance = positionSummary.shieldedBalance;
@@ -52,12 +51,7 @@ export function AppDashboardPage() {
       noteCount: positionSummary.spendableNoteCount,
       symbol: positionSummary.liveAsset,
     };
-  const recentShieldedSolBalance =
-    recentShield?.asset === "SOL" ? recentShield.resultingShieldedBalance : 0;
-  const shieldedSolBalance = Math.max(
-    positionSummary.shieldedSolBalance,
-    recentShieldedSolBalance,
-  );
+  const shieldedSolBalance = positionSummary.shieldedSolBalance;
   const pendingRecoveredShieldedSolBalance = positionSummary.pendingRecoveredShieldedSolBalance;
   const confirmedShieldedSolBalance = positionSummary.confirmedShieldedSolBalance;
   const spendableNoteCount = positionSummary.totalActionableNoteCount;
@@ -72,7 +66,7 @@ export function AppDashboardPage() {
       : !positionSummary.walletConnected
     ? "Connect a wallet"
     : hasShieldedSol
-      ? "Local SOL shield state available"
+      ? "Verified SOL shield state available"
       : hasSpendableShieldedValue
         ? "Spendable state available"
         : shieldedBalance > 0
@@ -86,7 +80,7 @@ export function AppDashboardPage() {
       : !positionSummary.walletConnected
     ? "Connect wallet to start the private-core flow."
     : hasShieldedSol
-      ? "Local SOL shield state is available. Review the SOL exit lane without treating it as production-private."
+      ? "Verified spendable SOL notes are available. Review the SOL exit lane without treating it as production-private."
       : hasSpendableShieldedValue
         ? "Spendable shielded state is available. Choose the lane you want to test next."
         : shieldedBalance > 0
@@ -280,14 +274,11 @@ export function AppDashboardPage() {
             )}
           </article>
           <article>
-            <span>Local SOL shield state</span>
+            <span>Verified SOL shield state</span>
             <strong>{isValueUnavailable ? "Unavailable" : formatVantaSolAmount(shieldedSolBalance)}</strong>
-            {recentShieldedSolBalance > positionSummary.shieldedSolBalance && (
-              <small>Includes the latest SOL shield result</small>
-            )}
             {pendingRecoveredShieldedSolBalance > 0 && (
               <small>
-                Includes {formatVantaSolAmount(pendingRecoveredShieldedSolBalance)} recovered locally
+                Pending recovery: {formatVantaSolAmount(pendingRecoveredShieldedSolBalance)}
               </small>
             )}
             {confirmedShieldedSolBalance > 0 && pendingRecoveredShieldedSolBalance > 0 && (

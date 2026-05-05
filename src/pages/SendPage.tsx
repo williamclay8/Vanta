@@ -1115,13 +1115,13 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       {recentShield ? (
         <div className="send-context-banner">
           <div>
-            <span>Ready</span>
-            <h3>{formatBalance(recentShield.amount, recentShield.asset)} shielded.</h3>
-            <p>Send now or keep holding privately.</p>
+            <span>Syncing</span>
+            <h3>{formatBalance(recentShield.amount, recentShield.asset)} deposit recorded.</h3>
+            <p>Wait for shield-state reconciliation before sending.</p>
           </div>
           <div className="send-context-banner__meta">
-            <strong>{formatBalance(recentShield.resultingShieldedBalance, recentShield.asset)}</strong>
-            <small>Current shielded balance</small>
+            <strong>Pending</strong>
+            <small>Not spendable yet</small>
           </div>
         </div>
       ) : (

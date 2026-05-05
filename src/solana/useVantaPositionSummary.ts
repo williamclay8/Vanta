@@ -43,17 +43,23 @@ export function useVantaPositionSummary(): VantaPositionSummary {
     const confirmedShieldedSolNotesByKey = new Map<string, VantaShieldedSolNote>();
     const pendingRecoveredShieldedSolNotesByKey = new Map<string, VantaShieldedSolNote>();
     for (const entry of shieldRegistry.entries) {
+      for (const note of entry.account?.shieldedSolNotes ?? []) {
+        const noteKey = note.depositSignature ? `deposit:${note.depositSignature}` : note.noteId;
+
+        if (
+          note.lifecycleStatus === "pending" &&
+          note.stateSignature.startsWith("local-sol-recovery:") &&
+          !confirmedShieldedSolNotesByKey.has(noteKey)
+        ) {
+          pendingRecoveredShieldedSolNotesByKey.set(noteKey, note);
+        }
+      }
+
       for (const note of entry.account?.spendableShieldedSolNotes ?? []) {
         const noteKey = note.depositSignature ? `deposit:${note.depositSignature}` : note.noteId;
 
-        if (note.stateSignature.startsWith("local-sol-recovery:")) {
-          if (!confirmedShieldedSolNotesByKey.has(noteKey)) {
-            pendingRecoveredShieldedSolNotesByKey.set(noteKey, note);
-          }
-        } else {
-          confirmedShieldedSolNotesByKey.set(noteKey, note);
-          pendingRecoveredShieldedSolNotesByKey.delete(noteKey);
-        }
+        confirmedShieldedSolNotesByKey.set(noteKey, note);
+        pendingRecoveredShieldedSolNotesByKey.delete(noteKey);
       }
     }
     const confirmedShieldedSolBalance = Number(
@@ -66,25 +72,14 @@ export function useVantaPositionSummary(): VantaPositionSummary {
         .reduce((sum, note) => sum + note.amount, 0)
         .toFixed(9),
     );
-    const shieldedSolBalance = Number(
-      (confirmedShieldedSolBalance + pendingRecoveredShieldedSolBalance).toFixed(9),
-    );
-    const spendableShieldedSolNoteCount = Number(
-      new Set([
-        ...confirmedShieldedSolNotesByKey.keys(),
-        ...pendingRecoveredShieldedSolNotesByKey.keys(),
-      ]).size,
-    );
+    const shieldedSolBalance = confirmedShieldedSolBalance;
+    const spendableShieldedSolNoteCount = confirmedShieldedSolNotesByKey.size;
     const shieldedSolEntry =
       shieldRegistry.entries.find((entry) =>
         entry.account?.spendableShieldedSolNotes.some((note) =>
-          note.stateSignature.startsWith("local-sol-recovery:")
-            ? pendingRecoveredShieldedSolNotesByKey.has(
-                note.depositSignature ? `deposit:${note.depositSignature}` : note.noteId,
-              )
-            : confirmedShieldedSolNotesByKey.has(
-                note.depositSignature ? `deposit:${note.depositSignature}` : note.noteId,
-              ),
+          confirmedShieldedSolNotesByKey.has(
+            note.depositSignature ? `deposit:${note.depositSignature}` : note.noteId,
+          ),
         ),
       ) ?? primaryEntry;
     const shieldedSolAccount = shieldedSolEntry.account;
@@ -121,6 +116,9 @@ export function useVantaPositionSummary(): VantaPositionSummary {
     } else if (walletConnected && shieldedSolBalance > 0) {
       statusLabel =
         "Shielded SOL output is now present inside Vanta and can use the constrained SOL unshield lane.";
+    } else if (walletConnected && pendingRecoveredShieldedSolBalance > 0) {
+      statusLabel =
+        "A recovered SOL deposit is pending shield-state reconciliation before it becomes spendable.";
     } else if (walletConnected && spendableNoteCount > 0) {
       const symbols = shieldedTokenPositions.map((position) => position.symbol).join(", ");
       statusLabel = symbols

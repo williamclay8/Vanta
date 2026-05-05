@@ -70,20 +70,22 @@ assert.ok(
 );
 assert.ok(
   positionSummaryHookSource.includes('note.stateSignature.startsWith("local-sol-recovery:")') &&
+    positionSummaryHookSource.includes('note.lifecycleStatus === "pending"') &&
     positionSummaryHookSource.includes("pendingRecoveredShieldedSolBalance"),
-  "Status must expose local-recovery shielded SOL separately from confirmed on-chain SOL.",
+  "Status must expose pending local-recovery shielded SOL separately from confirmed on-chain SOL.",
 );
 assert.ok(
-  positionSummaryHookSource.includes("confirmedShieldedSolBalance + pendingRecoveredShieldedSolBalance") &&
+  positionSummaryHookSource.includes("const shieldedSolBalance = confirmedShieldedSolBalance") &&
     positionSummaryHookSource.includes("spendableShieldedSolNoteCount") &&
     positionSummaryHookSource.includes("totalActionableNoteCount"),
-  "Status shielded SOL must display the full deduped spendable SOL amount and expose actionable note counts.",
+  "Status shielded SOL must display only confirmed spendable SOL and expose actionable note counts.",
 );
 assert.ok(
-  dashboardSource.includes('recentShield?.asset === "SOL"') &&
-    dashboardSource.includes("Math.max(") &&
-    dashboardSource.includes("Includes the latest SOL shield result"),
-  "Status tab must include the immediate recent SOL shield result before registry refresh catches up.",
+  !dashboardSource.includes('recentShield?.asset === "SOL"') &&
+    !dashboardSource.includes("recentShieldedSolBalance") &&
+    !dashboardSource.includes("Includes the latest SOL shield result") &&
+    dashboardSource.includes("Verified SOL shield state"),
+  "Status tab must not present immediate recent SOL shield results as current shielded balance.",
 );
 assert.ok(
   shieldAssetStateSource.indexOf("const accountWithRecoveredSolNotes = mergeRecoveredNativeSolShieldNotes(") <

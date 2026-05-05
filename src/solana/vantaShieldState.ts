@@ -170,7 +170,7 @@ export type VantaShieldActivity =
   | VantaSolUnshieldNote
   | VantaSpentMarker;
 
-export type VantaNoteLifecycleStatus = "spendable" | "consumed";
+export type VantaNoteLifecycleStatus = "spendable" | "pending" | "consumed";
 
 export type VantaAppNoteState = {
   amount: number;

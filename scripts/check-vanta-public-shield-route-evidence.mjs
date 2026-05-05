@@ -15,13 +15,13 @@ const requiredMarkers = [
   "targetAmount",
   "targetAsset: args.quote.outputAsset",
   "targetMintAddress: args.quote.outputMint",
-  "requestVantaPrivatePoolV2ProtocolSettlement",
+  "requestVantaPrivatePoolV2BrowserShieldReceipt",
   "routeEvidence: pendingProtocolSettlement.routeEvidence",
   "selectUniversalShieldTarget",
 ];
 
 const requiredShieldCompletionMarkers = [
-  "requestVantaPrivatePoolV2ProtocolSettlement(committedRequest)",
+  "requestVantaPrivatePoolV2BrowserShieldReceipt(committedSettlement)",
   "Private Pool v2 Shield receipt was not returned.",
   "protocolSettlement.protocolSettlementReceipt.settlementId !== committedRequest.settlementId",
   "protocolSettlement.protocolSettlementReceipt.action !== \"shield\"",
@@ -29,7 +29,7 @@ const requiredShieldCompletionMarkers = [
   "protocolSettlement.protocolSettlementReceipt.economicsMode !== \"committed-economics\"",
   "committedRequest.economicsCommitment",
   "committedRequest.settlementCommitment",
-  "createVantaShieldCommittedEconomicsSettlementRequest",
+  "createVantaShieldCommittedEconomicsSettlement",
   "runShieldWithDecoys",
   "signature: activeStateSignature",
   "protocolSettlementReceipt: protocolSettlementWarning",
@@ -52,7 +52,10 @@ for (const marker of requiredShieldCompletionMarkers) {
   }
 }
 
-if (shieldPageSource.includes("void requestVantaPrivatePoolV2ProtocolSettlement")) {
+if (
+  shieldPageSource.includes("void requestVantaPrivatePoolV2ProtocolSettlement") ||
+  shieldPageSource.includes("void requestVantaPrivatePoolV2BrowserShieldReceipt")
+) {
   failures.push("Shield completion must not fire-and-forget the Private Pool v2 settlement request.");
 }
 

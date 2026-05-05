@@ -1,9 +1,8 @@
 import type { LiveShieldTokenAssetKey } from "@/solana/shieldConfig";
-import type { VantaShieldNote } from "@/solana/vantaShieldState";
 
 const STORAGE_KEY = "vanta.recentShieldTokenNotes.v1";
 
-type StoredRecentShieldTokenNote = {
+export type PendingRecentShieldTokenNote = {
   amount: number;
   asset: LiveShieldTokenAssetKey;
   createdAt: number;
@@ -13,6 +12,8 @@ type StoredRecentShieldTokenNote = {
   stateSignature: string;
   vaultOwner: string;
 };
+
+type StoredRecentShieldTokenNote = PendingRecentShieldTokenNote;
 
 function canUseLocalStorage() {
   return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
@@ -68,19 +69,12 @@ function createRecentShieldTokenNoteId(note: {
   return `vnta_recent_token_${note.asset}_${note.owner}_${note.vaultOwner}_${note.stateSignature}`;
 }
 
-function toShieldNote(note: StoredRecentShieldTokenNote): VantaShieldNote {
+function toPendingRecentShieldTokenNote(
+  note: StoredRecentShieldTokenNote,
+): PendingRecentShieldTokenNote & { pendingNoteId: string } {
   return {
-    amount: note.amount,
-    asset: note.asset,
-    createdAt: note.createdAt,
-    depositSignature: note.depositSignature,
-    kind: "shield",
-    mintAddress: note.mintAddress,
-    noteId: createRecentShieldTokenNoteId(note),
-    origin: "deposit",
-    owner: note.owner,
-    stateSignature: note.stateSignature,
-    vaultOwner: note.vaultOwner,
+    ...note,
+    pendingNoteId: createRecentShieldTokenNoteId(note),
   };
 }
 
@@ -116,7 +110,7 @@ export function recordRecentShieldTokenNote(args: {
   );
 
   writeStoredNotes([...existingNotes, nextNote]);
-  return toShieldNote(nextNote);
+  return toPendingRecentShieldTokenNote(nextNote);
 }
 
 export function loadRecentShieldTokenNotes(args: {
@@ -137,5 +131,5 @@ export function loadRecentShieldTokenNotes(args: {
         note.vaultOwner === args.vaultOwner &&
         note.mintAddress === args.mintAddress,
     )
-    .map(toShieldNote);
+    .map(toPendingRecentShieldTokenNote);
 }

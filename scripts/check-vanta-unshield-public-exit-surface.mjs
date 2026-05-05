@@ -230,15 +230,25 @@ for (const phrase of [
   "shieldRegistry.entries.find((entry) => (entry.account?.shieldedSolBalance ?? 0) > 0)",
   "entry.account?.spendableShieldedSolNotes.length",
   "shieldedSolSourceEntry?.account ?? canonicalSolAccount ?? usdcShieldEntry.account",
-  "createRecentShieldedSolNote",
-  "native-sol-recent-shield",
-  "recentShield?.asset === \"SOL\" ? recentShield.resultingShieldedBalance : 0",
-  "const selectedSolAggregateAmount = Math.max(",
+  "const spendableSolNotes = solShieldAccount?.spendableShieldedSolNotes ?? []",
+  "const selectedSolAggregateAmount = solShieldAccount?.shieldedSolBalance ?? 0",
   'selectedLane === "SOL" ? selectedSolNote?.amount ?? 0 : selectedShieldNote?.amount ?? 0',
 ]) {
   assert.ok(
     unshieldPageSource.includes(phrase),
     `Unshield SOL lane must source shielded SOL from the registry account that actually has SOL: ${phrase}`,
+  );
+}
+
+for (const phrase of [
+  "createRecentShieldedSolNote",
+  "native-sol-recent-shield",
+  "recentShieldedSolBalance",
+  "const selectedSolAggregateAmount = Math.max(",
+]) {
+  assert.ok(
+    !unshieldPageSource.includes(phrase),
+    `Unshield SOL lane must not synthesize spendable SOL from optimistic recent state: ${phrase}`,
   );
 }
 

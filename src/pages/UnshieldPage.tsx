@@ -205,28 +205,23 @@ function chooseBestSpendableNote<T extends { amount: number; createdAt: number }
   })[0] ?? null;
 }
 
-function createRecentShieldedSolNote(args: {
-  amount: number;
-  createdAt: number;
-  depositSignature?: string;
-  owner: string;
-  signature: string;
-  vaultOwner: string;
-}): VantaShieldedSolNote {
-  const depositSignature = args.depositSignature ?? args.signature;
+function assertCanonicalTokenSpendableNote(note: { noteId: string; stateSignature: string }) {
+  if (
+    note.noteId.startsWith("vnta_recent_") ||
+    note.stateSignature.startsWith("local-token-deposit:")
+  ) {
+    throw new Error("Vanta is still syncing this shielded token note; it is not spendable yet.");
+  }
+}
 
-  return {
-    amount: args.amount,
-    asset: "SOL",
-    createdAt: args.createdAt,
-    depositSignature,
-    lifecycleStatus: "spendable",
-    noteId: `vnta_native_sol_recent_${args.owner}_${args.vaultOwner}_${depositSignature}`,
-    owner: args.owner,
-    sourceSwapNoteId: "native-sol-recent-shield",
-    stateSignature: args.signature,
-    vaultOwner: args.vaultOwner,
-  };
+function assertCanonicalSolSpendableNote(note: VantaShieldedSolNote) {
+  if (
+    note.lifecycleStatus !== "spendable" ||
+    note.noteId.startsWith("vnta_native_sol_recent_") ||
+    note.stateSignature.startsWith("local-sol-recovery:")
+  ) {
+    throw new Error("Vanta is still syncing this shielded SOL note; it is not spendable yet.");
+  }
 }
 
 export function UnshieldPage() {
@@ -433,7 +428,6 @@ export function UnshieldPage() {
     privateCoreSendState,
     privateCoreSwapState,
     privateCoreUnshieldState,
-    recentShield,
     refreshPrivateCoreOperatorSummary,
     runPrivateCoreReplayAttempt,
     runPrivateCoreUnshield,
@@ -540,52 +534,7 @@ export function UnshieldPage() {
     shieldedSolSourceEntry?.account ?? canonicalSolAccount ?? usdcShieldEntry.account;
   const solShieldStateError =
     shieldedSolSourceEntry?.error ?? canonicalShieldState.error ?? usdcShieldEntry.error;
-  const recentShieldedSolNote = useMemo(() => {
-    if (
-      recentShield?.asset !== "SOL" ||
-      recentShield.amount <= 0 ||
-      !walletAddress ||
-      !usdcShieldEntry.asset.vaultOwner ||
-      !recentShield.signature
-    ) {
-      return null;
-    }
-
-    return createRecentShieldedSolNote({
-      amount: recentShield.amount,
-      createdAt: recentShield.timestamp,
-      depositSignature: recentShield.depositSignature,
-      owner: walletAddress,
-      signature: recentShield.signature,
-      vaultOwner: usdcShieldEntry.asset.vaultOwner,
-    });
-  }, [
-    recentShield?.amount,
-    recentShield?.asset,
-    recentShield?.depositSignature,
-    recentShield?.signature,
-    recentShield?.timestamp,
-    usdcShieldEntry.asset.vaultOwner,
-    walletAddress,
-  ]);
-  const spendableSolNotes = useMemo(() => {
-    const baseNotes = solShieldAccount?.spendableShieldedSolNotes ?? [];
-
-    if (!recentShieldedSolNote) {
-      return baseNotes;
-    }
-
-    const alreadyPresent = baseNotes.some(
-      (note) =>
-        note.noteId === recentShieldedSolNote.noteId ||
-        (note.depositSignature &&
-          note.depositSignature === recentShieldedSolNote.depositSignature),
-    );
-
-    return alreadyPresent ? baseNotes : [recentShieldedSolNote, ...baseNotes];
-  }, [recentShieldedSolNote, solShieldAccount?.spendableShieldedSolNotes]);
-  const recentShieldedSolBalance =
-    recentShield?.asset === "SOL" ? recentShield.resultingShieldedBalance : 0;
+  const spendableSolNotes = solShieldAccount?.spendableShieldedSolNotes ?? [];
 
   useEffect(() => {
     const availableLanes = [
@@ -622,10 +571,7 @@ export function UnshieldPage() {
   useEffect(() => {
     setRequestedAmountInput("");
   }, [selectedLane, selectedShieldNote, selectedSolNote]);
-  const selectedSolAggregateAmount = Math.max(
-    solShieldAccount?.shieldedSolBalance ?? 0,
-    recentShieldedSolBalance,
-  );
+  const selectedSolAggregateAmount = solShieldAccount?.shieldedSolBalance ?? 0;
   const selectedFullAmount =
     selectedLane === "SOL" ? selectedSolNote?.amount ?? 0 : selectedShieldNote?.amount ?? 0;
   useEffect(() => {
@@ -683,7 +629,6 @@ export function UnshieldPage() {
     [
       shieldRegistry.byAssetKey,
       solShieldAccount?.shieldedSolBalance,
-      recentShieldedSolBalance,
       selectedSolAggregateAmount,
       spendableShieldNotesByLane,
       spendableSolNotes.length,
@@ -1524,6 +1469,8 @@ export function UnshieldPage() {
     shieldAccount: NonNullable<typeof selectedShieldAccount>;
     shieldAsset: NonNullable<typeof selectedShieldAsset>;
   }) {
+    assertCanonicalTokenSpendableNote(args.note);
+
     const mintAddress = args.shieldAsset.mintAddress;
 
     if (!mintAddress) {
@@ -1595,6 +1542,8 @@ export function UnshieldPage() {
     note: NonNullable<typeof selectedSolNote>;
     shieldAccount: NonNullable<typeof usdcShieldEntry.account>;
   }) {
+    assertCanonicalSolSpendableNote(args.note);
+
     resetDirectUnshieldFlow();
 
     const createdAt = Date.now();
@@ -1673,6 +1622,8 @@ export function UnshieldPage() {
         if (!selectedShieldNote || !selectedShieldAsset?.mintAddress) {
           return;
         }
+
+        assertCanonicalTokenSpendableNote(selectedShieldNote);
 
         if (
           selectedLane === "USDC" &&
@@ -1783,6 +1734,7 @@ export function UnshieldPage() {
       if (!selectedSolNote) {
         return;
       }
+      assertCanonicalSolSpendableNote(selectedSolNote);
       await beginSolUnshieldFromNote({
         note: selectedSolNote,
         shieldAccount: activeShieldAccount,

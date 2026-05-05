@@ -63,7 +63,7 @@ function toShieldedSolNote(note: StoredRecoveredNativeSolShieldNote): VantaShiel
     asset: "SOL",
     createdAt: note.createdAt,
     depositSignature: note.depositSignature,
-    lifecycleStatus: "spendable",
+    lifecycleStatus: "pending",
     noteId: createRecoveredNativeSolShieldNoteId(note),
     owner: note.owner,
     sourceSwapNoteId: "native-sol-recovery",
