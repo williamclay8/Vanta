@@ -16,8 +16,90 @@ export type NativeSolShieldDepositCandidate = {
   vaultOwner: string;
 };
 
+export const VANTA_NATIVE_SOL_SOURCE_ACCOUNT_NOT_READY_CODE =
+  "VANTA_NATIVE_SOL_SOURCE_ACCOUNT_NOT_READY";
 export const VANTA_NATIVE_SOL_ACCOUNT_NOT_ACTIVE_MESSAGE =
-  "This wallet address has no active SOL balance on Solana mainnet yet. Add a small amount of mainnet SOL for network fees, then try Shield again.";
+  "Vanta could not confirm a spendable mainnet SOL balance for this wallet. Refresh balances or try another browser-compatible mainnet RPC; Shield needs a small SOL reserve for network fees.";
+export const VANTA_NATIVE_SOL_BALANCE_UNAVAILABLE_MESSAGE =
+  "Vanta could not check this wallet's mainnet SOL balance through the configured RPC endpoints. Your wallet may still have SOL; refresh balances or try another browser-compatible mainnet RPC.";
+
+export class VantaNativeSolSourceAccountNotReadyError extends Error {
+  readonly code = VANTA_NATIVE_SOL_SOURCE_ACCOUNT_NOT_READY_CODE;
+
+  constructor(message = VANTA_NATIVE_SOL_ACCOUNT_NOT_ACTIVE_MESSAGE) {
+    super(message);
+    this.name = "VantaNativeSolSourceAccountNotReadyError";
+  }
+}
+
+export function isNativeSolSourceAccountNotReadyError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    (error as { code?: unknown }).code === VANTA_NATIVE_SOL_SOURCE_ACCOUNT_NOT_READY_CODE
+  );
+}
+
+const cachedBalanceReadConnections = new Map<string, Connection>();
+
+function getNativeSolShieldBalanceReadEndpoints() {
+  const configured = import.meta.env.VITE_SOLANA_READ_RPC_FALLBACK_URLS?.split(",")
+    .map((value) => value.trim())
+    .filter(Boolean) ?? [];
+  const defaults = ["https://solana-rpc.publicnode.com", "https://api.mainnet-beta.solana.com"];
+
+  return [...new Set([endpoint, ...configured, ...defaults])];
+}
+
+function getBalanceReadConnection(readEndpoint: string) {
+  const cachedConnection = cachedBalanceReadConnections.get(readEndpoint);
+
+  if (cachedConnection) {
+    return cachedConnection;
+  }
+
+  const connection = new Connection(readEndpoint, "confirmed");
+  cachedBalanceReadConnections.set(readEndpoint, connection);
+  return connection;
+}
+
+function normalizeKnownLamportsBalance(value: bigint | number | null | undefined) {
+  if (typeof value === "bigint") {
+    return value >= 0n ? value : null;
+  }
+
+  if (typeof value === "number" && Number.isFinite(value) && value >= 0) {
+    return BigInt(Math.floor(value));
+  }
+
+  return null;
+}
+
+async function fetchNativeSolShieldLamports(ownerPublicKey: PublicKey) {
+  let firstZeroBalance: bigint | null = null;
+
+  for (const readEndpoint of getNativeSolShieldBalanceReadEndpoints()) {
+    try {
+      const lamports = BigInt(
+        await getBalanceReadConnection(readEndpoint).getBalance(ownerPublicKey, "confirmed"),
+      );
+
+      if (lamports > 0n) {
+        return lamports;
+      }
+
+      firstZeroBalance ??= lamports;
+    } catch (error) {
+      void error;
+    }
+  }
+
+  if (firstZeroBalance !== null) {
+    return firstZeroBalance;
+  }
+
+  throw new Error(VANTA_NATIVE_SOL_BALANCE_UNAVAILABLE_MESSAGE);
+}
 
 function toInstructionInput(instruction: TransactionInstruction): TransactionInstructionInput {
   return {
@@ -205,18 +287,20 @@ export async function verifyNativeSolShieldDepositSignature(args: {
 
 export async function assertNativeSolShieldSourceAccountReady(args: {
   amountDisplay: string;
+  knownLamportsBalance?: bigint | number | null;
   owner: string;
 }) {
   const lamports = solToLamports(args.amountDisplay);
   const ownerPublicKey = new PublicKey(args.owner);
-  const connection = new Connection(endpoint, "confirmed");
-  const accountInfo = await connection.getAccountInfo(ownerPublicKey, "confirmed");
+  const knownLamportsBalance = normalizeKnownLamportsBalance(args.knownLamportsBalance);
+  const availableLamports =
+    knownLamportsBalance ?? await fetchNativeSolShieldLamports(ownerPublicKey);
 
-  if (!accountInfo) {
-    throw new Error(VANTA_NATIVE_SOL_ACCOUNT_NOT_ACTIVE_MESSAGE);
+  if (availableLamports <= 0n) {
+    throw new VantaNativeSolSourceAccountNotReadyError();
   }
 
-  if (BigInt(accountInfo.lamports) <= lamports) {
+  if (availableLamports <= lamports) {
     throw new Error(
       "The connected wallet does not have enough mainnet SOL left for both the shield amount and network fees.",
     );

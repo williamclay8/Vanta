@@ -6,6 +6,7 @@ import {
   assertNativeSolShieldSourceAccountReady,
   buildNativeSolShieldTransferInstructions,
   fetchNativeSolShieldDepositCandidates,
+  isNativeSolSourceAccountNotReadyError,
   VANTA_NATIVE_SOL_ACCOUNT_NOT_ACTIVE_MESSAGE,
   verifyNativeSolShieldDepositSignature,
   type NativeSolShieldDepositCandidate,
@@ -67,6 +68,8 @@ type ShieldStatus =
   | "failed";
 
 const NATIVE_SOL_SHIELD_FEE_RESERVE_SOL = 0.00001;
+const VANTA_SHIELD_REQUIRED_ACCOUNT_NOT_FOUND_MESSAGE =
+  "Solana could not find one of the required mainnet accounts for this Shield transaction. This does not mean your wallet has no SOL; refresh Vanta balances or try another browser-compatible mainnet RPC, then try Shield again.";
 
 function isConfirmedSignatureStage(stage: RealtimeSignatureStage) {
   return stage === "confirmed" || stage === "finalized";
@@ -102,8 +105,12 @@ function toErrorMessage(error: unknown, fallback: string) {
     return `Solana RPC returned an HTTP error${detail}. Shield was not confirmed through the browser RPC endpoint; try again with a browser-compatible mainnet RPC.`;
   }
 
-  if (message.includes("AccountNotFound")) {
+  if (isNativeSolSourceAccountNotReadyError(error)) {
     return VANTA_NATIVE_SOL_ACCOUNT_NOT_ACTIVE_MESSAGE;
+  }
+
+  if (message.includes("AccountNotFound")) {
+    return VANTA_SHIELD_REQUIRED_ACCOUNT_NOT_FOUND_MESSAGE;
   }
 
   return error instanceof Error ? error.message : fallback;
@@ -190,6 +197,7 @@ function describeRecentShieldCompletion(recentShield: RecentShieldContext, warni
 export function ShieldPage(_props: ShieldPageProps) {
   const { recentShield, runPrivateCoreShield, setRecentShield } = usePrivacyFlow();
   const {
+    lamportsBalance,
     solBalance,
     solBalanceError,
     solBalanceFetching,
@@ -563,6 +571,7 @@ export function ShieldPage(_props: ShieldPageProps) {
 
     await assertNativeSolShieldSourceAccountReady({
       amountDisplay,
+      knownLamportsBalance: lamportsBalance,
       owner: walletAddress,
     });
 

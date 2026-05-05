@@ -88,12 +88,19 @@ assert.ok(
 );
 assert.ok(
   shieldPageSource.includes("assertNativeSolShieldSourceAccountReady") &&
-    shieldPageSource.includes('message.includes("AccountNotFound")'),
-  "Shield page must translate missing mainnet wallet-account simulation failures into actionable copy.",
+    shieldPageSource.includes("knownLamportsBalance: lamportsBalance"),
+  "Native SOL Shield must pass the wallet balance already recovered by the page into the source-account guard.",
 );
 assert.ok(
-  shieldPageSource.includes("VANTA_NATIVE_SOL_ACCOUNT_NOT_ACTIVE_MESSAGE"),
-  "Shield page must reuse the native SOL inactive-account copy for wallet-account simulation failures.",
+  shieldPageSource.includes("isNativeSolSourceAccountNotReadyError") &&
+    shieldPageSource.includes("VANTA_NATIVE_SOL_ACCOUNT_NOT_ACTIVE_MESSAGE"),
+  "Shield page must reserve inactive-SOL copy for the typed native SOL source-account guard.",
+);
+assert.ok(
+  shieldPageSource.includes('message.includes("AccountNotFound")') &&
+    shieldPageSource.includes("VANTA_SHIELD_REQUIRED_ACCOUNT_NOT_FOUND_MESSAGE") &&
+    shieldPageSource.includes("This does not mean your wallet has no SOL"),
+  "Shield page must not translate generic Solana AccountNotFound failures into a false no-SOL-wallet claim.",
 );
 assert.ok(
   shieldPageSource.includes("NATIVE_SOL_SHIELD_FEE_RESERVE_SOL") &&
@@ -122,11 +129,19 @@ assert.ok(
 
 const nativeSolShieldSource = readFileSync(resolve("src/solana/nativeSolShield.ts"), "utf8");
 assert.ok(
+  !shieldPageSource.includes("no active SOL balance") &&
+    !nativeSolShieldSource.includes("no active SOL balance"),
+  "Native SOL Shield must not claim a wallet has no active SOL when the failing AccountNotFound may be a different required account or RPC read miss.",
+);
+assert.ok(
   nativeSolShieldSource.includes("assertNativeSolShieldSourceAccountReady") &&
-    nativeSolShieldSource.includes("getAccountInfo(ownerPublicKey") &&
+    nativeSolShieldSource.includes("knownLamportsBalance") &&
+    nativeSolShieldSource.includes("fetchNativeSolShieldLamports") &&
+    nativeSolShieldSource.includes("getBalance(ownerPublicKey") &&
+    nativeSolShieldSource.includes("VITE_SOLANA_READ_RPC_FALLBACK_URLS") &&
     nativeSolShieldSource.includes("VANTA_NATIVE_SOL_ACCOUNT_NOT_ACTIVE_MESSAGE") &&
-    nativeSolShieldSource.includes("no active SOL balance on Solana mainnet yet"),
-  "Native SOL Shield must verify the connected wallet account has an active mainnet SOL balance before building the wallet transaction.",
+    nativeSolShieldSource.includes("VantaNativeSolSourceAccountNotReadyError"),
+  "Native SOL Shield must verify spendable mainnet SOL using recovered wallet balance or balance-read RPC fallbacks before building the wallet transaction.",
 );
 assert.ok(
   nativeSolShieldSource.includes("fetchNativeSolShieldDepositCandidates"),
