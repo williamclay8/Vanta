@@ -2,11 +2,23 @@ import { autoDiscover, createClient, type WalletConnector } from "@solana/client
 
 const defaultSolanaRpcEndpoint = "https://solana-rpc.publicnode.com";
 const defaultSolanaWebsocketEndpoint = "wss://solana-rpc.publicnode.com";
-const fallbackMainnetSolanaRpcEndpoint = "https://api.mainnet-beta.solana.com";
+const browserBlockedMainnetRpcHosts = new Set(["api.mainnet-beta.solana.com"]);
+
+export function isBrowserBlockedMainnetRpcEndpoint(value: string) {
+  try {
+    return browserBlockedMainnetRpcHosts.has(new URL(value).hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+}
 
 export function isForbiddenMainnetRpcEndpoint(value: string) {
-  return /(^|\b)(devnet|testnet)(\b|\.|-)|localhost|127\.0\.0\.1|0\.0\.0\.0/u.test(
-    value.toLowerCase(),
+  const normalized = value.toLowerCase();
+
+  return (
+    /(^|\b)(devnet|testnet)(\b|\.|-)|localhost|127\.0\.0\.1|0\.0\.0\.0/u.test(
+      normalized,
+    ) || isBrowserBlockedMainnetRpcEndpoint(value)
   );
 }
 
@@ -60,7 +72,6 @@ export const websocketEndpoint =
 export const readRpcFallbackEndpoints = [
   endpoint,
   ...parseMainnetReadRpcFallbackEndpoints(import.meta.env.VITE_SOLANA_READ_RPC_FALLBACK_URLS),
-  fallbackMainnetSolanaRpcEndpoint,
 ].filter((value, index, values) => values.indexOf(value) === index);
 
 export function discoverWalletConnectors() {

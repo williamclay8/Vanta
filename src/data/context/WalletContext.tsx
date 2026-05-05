@@ -94,6 +94,7 @@ function pickPreferredWalletConnector(connectors: readonly WalletConnector[]) {
 }
 
 const walletBalanceFallbackConnections = new Map<string, Connection>();
+const walletBalanceRetryDelaysMs = [250, 750, 1_500] as const;
 function getConfiguredWalletBalanceReadEndpoints() {
   return readRpcFallbackEndpoints;
 }
@@ -111,27 +112,39 @@ function getWalletBalanceFallbackConnection(fallbackEndpoint: string) {
   return connection;
 }
 
+function waitForWalletBalanceRetry(delayMs: number) {
+  return new Promise((resolve) => {
+    globalThis.setTimeout(resolve, delayMs);
+  });
+}
+
 async function fetchWalletLamportsFallback(address: string) {
   const publicKey = new PublicKey(address);
   let firstZeroBalance: bigint | null = null;
   let lastError: unknown = null;
 
-  for (const fallbackEndpoint of getConfiguredWalletBalanceReadEndpoints()) {
-    try {
-      const nextBalance = BigInt(
-        await getWalletBalanceFallbackConnection(fallbackEndpoint).getBalance(
-          publicKey,
-          "confirmed",
-        ),
-      );
+  for (const retryDelayMs of [0, ...walletBalanceRetryDelaysMs]) {
+    if (retryDelayMs > 0) {
+      await waitForWalletBalanceRetry(retryDelayMs);
+    }
 
-      if (nextBalance > 0n) {
-        return nextBalance;
+    for (const fallbackEndpoint of getConfiguredWalletBalanceReadEndpoints()) {
+      try {
+        const nextBalance = BigInt(
+          await getWalletBalanceFallbackConnection(fallbackEndpoint).getBalance(
+            publicKey,
+            "confirmed",
+          ),
+        );
+
+        if (nextBalance > 0n) {
+          return nextBalance;
+        }
+
+        firstZeroBalance ??= nextBalance;
+      } catch (error) {
+        lastError = error;
       }
-
-      firstZeroBalance ??= nextBalance;
-    } catch (error) {
-      lastError = error;
     }
   }
 

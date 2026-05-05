@@ -59,7 +59,8 @@ const directShieldAssets = [
 const jsBundle = readDistJavascript();
 
 assertBundleContains("mainnet vault owner", mainnetVaultOwner);
-assertBundleContains("mainnet RPC fallback", "https://api.mainnet-beta.solana.com");
+assertBundleContains("browser mainnet RPC default", "https://solana-rpc.publicnode.com");
+assertBundleContains("browser-blocked mainnet RPC guard", "api.mainnet-beta.solana.com");
 assertBundleContains("mainnet cluster", "mainnet-beta");
 
 for (const asset of directShieldAssets) {

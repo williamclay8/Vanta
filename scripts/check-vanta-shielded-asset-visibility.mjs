@@ -162,7 +162,8 @@ for (const marker of [
 
 assert.ok(
   clientSource.includes('const defaultSolanaRpcEndpoint = "https://solana-rpc.publicnode.com"') &&
-    clientSource.includes('const fallbackMainnetSolanaRpcEndpoint = "https://api.mainnet-beta.solana.com"') &&
+    clientSource.includes("isBrowserBlockedMainnetRpcEndpoint") &&
+    clientSource.includes("api.mainnet-beta.solana.com") &&
     clientSource.includes("VITE_SOLANA_BROWSER_RPC_URL") &&
     clientSource.includes("VITE_SOLANA_RPC_URL") &&
     clientSource.includes("VITE_SOLANA_BROWSER_WS_URL") &&

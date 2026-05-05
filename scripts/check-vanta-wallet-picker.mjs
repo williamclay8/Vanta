@@ -41,6 +41,11 @@ requireIncludes(
 );
 requireIncludes(
   walletContext,
+  "walletBalanceRetryDelaysMs",
+  "Wallet context native SOL balance recovery must retry transient browser RPC failures before surfacing unavailable state.",
+);
+requireIncludes(
+  walletContext,
   "fallbackLamportsValue",
   "Wallet context must use fallback lamports when the wallet balance hook has not hydrated.",
 );
@@ -103,6 +108,11 @@ requireIncludes(
   clientSource,
   "isForbiddenMainnetRpcEndpoint",
   "Browser Solana client must reject devnet/testnet/local RPC endpoints for the mainnet app.",
+);
+requireIncludes(
+  clientSource,
+  "isBrowserBlockedMainnetRpcEndpoint",
+  "Browser Solana client must reject browser-blocked public mainnet RPC endpoints that return access-forbidden from the live app.",
 );
 requireIncludes(
   clientSource,
