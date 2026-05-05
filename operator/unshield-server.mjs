@@ -973,24 +973,43 @@ export async function handleUnshieldOperatorRequest(request, response) {
         throw new Error("Private-core swap resulting root must differ from the input root.");
       }
 
-      const proofReceipt = await proveAndVerifyVantaPrivateCoreSwap({
-        witnessPackage,
-      });
-      const proofRecord = summarizePrivateCoreSwapProofRecord({
-        action: "swap-proof",
-        proofReceipt,
-        witnessPackage,
-      });
-      privateCoreSwapProofStore.recordProof(proofRecord);
-      const swapRecord = summarizePrivateCoreSwapRecord({
-        executionQuoteReference: body?.executionQuoteReference,
-        executionVenueLabel: body?.executionVenueLabel,
-        proofRecord,
-        proofReceipt,
-        resultingRoot,
-        witnessPackage,
-      });
-      privateCoreSwapStore.recordSwap(swapRecord);
+      privateCoreSwapStore.reserveInputNullifier(
+        sourcePublicInputs.inputNullifier,
+        inputArtifacts.noteCommitment,
+      );
+      let swapRecorded = false;
+      let proofReceipt;
+      let proofRecord;
+      let swapRecord;
+      try {
+        proofReceipt = await proveAndVerifyVantaPrivateCoreSwap({
+          witnessPackage,
+        });
+        proofRecord = summarizePrivateCoreSwapProofRecord({
+          action: "swap-proof",
+          proofReceipt,
+          witnessPackage,
+        });
+        privateCoreSwapProofStore.recordProof(proofRecord);
+        swapRecord = summarizePrivateCoreSwapRecord({
+          executionQuoteReference: body?.executionQuoteReference,
+          executionVenueLabel: body?.executionVenueLabel,
+          inputCommitment: inputArtifacts.noteCommitment,
+          proofRecord,
+          proofReceipt,
+          resultingRoot,
+          witnessPackage,
+        });
+        privateCoreSwapStore.recordSwap(swapRecord);
+        swapRecorded = true;
+      } finally {
+        if (!swapRecorded) {
+          privateCoreSwapStore.releaseInputNullifier(
+            sourcePublicInputs.inputNullifier,
+            inputArtifacts.noteCommitment,
+          );
+        }
+      }
 
       writeCorsHeaders(response);
       response.writeHead(200, { "Content-Type": "application/json" });
@@ -4325,6 +4344,7 @@ function summarizePrivateCoreSwapRecord(args) {
       typeof args.executionVenueLabel === "string" && args.executionVenueLabel.length > 0
         ? args.executionVenueLabel
         : null,
+    inputCommitment: typeof args.inputCommitment === "string" ? args.inputCommitment : "",
     inputAssetId: sourcePublicInputs.inputAssetId,
     inputNullifier: sourcePublicInputs.inputNullifier,
     inputRoot: sourcePublicInputs.stateRoot,

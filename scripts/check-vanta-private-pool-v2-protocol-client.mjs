@@ -711,6 +711,10 @@ try {
     "Expected committed Swap proof receipt to use the hidden-economics asset sentinel.",
   );
   assert(
+    committedSwapSettlement?.proofReceipt?.replayKey === "swap-to-shielded:0xcommittedswap_replay",
+    "Expected committed Swap proof receipt replay key to bind the request nullifier/replay commitment.",
+  );
+  assert(
     committedSwapProofRequest.amountBaseUnits ===
       VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_AMOUNT_BASE_UNITS,
     "Expected committed Swap proof request to use the hidden-economics amount sentinel.",
@@ -749,6 +753,40 @@ try {
 
   await assertRejects(
     () =>
+      Promise.resolve(
+        validateVantaPrivatePoolV2ProtocolSettlementResponse({
+          request: {
+            action: "swap",
+            economicsCommitment: "0xcommittedswap_economics",
+            economicsMode: "committed-economics",
+            inputCommitment: committedSwapInputCommitment,
+            inputRoot: committedSwapInputRoot,
+            nullifierOrReplayCommitment: "0xcommittedswap_replay",
+            outputCommitment: "0xcommittedswap_output",
+            outputLeafIndex: "4",
+            outputRoot: committedSwapOutputRoot,
+            ownerCommitment: "0xcommittedswap_owner",
+            routeCommitment: "0xcommittedswap_route",
+            settlementCommitment: "0xcommittedswap_settlement",
+            settlementId: "protocol-client-committed-swap",
+            swapContextTag: "0xcommittedswap_context",
+            swapPublicInputHash: "0xcommittedswap_public_input_hash",
+          },
+          response: {
+            ...committedSwapSettlement,
+            proofReceipt: {
+              ...committedSwapSettlement.proofReceipt,
+              replayKey: "swap-to-shielded:0xspliced_replay",
+            },
+          },
+        }),
+      ),
+    "Committed Swap proof receipt replay key does not match the request nullifier/replay commitment.",
+    "Expected committed Swap response validation to reject a spliced replay key.",
+  );
+
+  await assertRejects(
+    () =>
       requestVantaPrivatePoolV2ProtocolSettlement({
         action: "swap",
         authToken,
@@ -766,6 +804,7 @@ try {
         settlementCommitment: "0xcommittedswap_settlement_second",
         settlementId: "protocol-client-committed-swap-replay",
         swapContextTag: "0xcommittedswap_context_second",
+        swapPublicInputHash: "0xcommittedswap_public_input_hash_second",
       }),
     "Private-pool nullifier replay rejected",
     "Expected committed Swap replay commitment reuse to be rejected.",
@@ -1336,8 +1375,8 @@ try {
     "Expected typed operator status raw-action list to exclude committed Unshield.",
   );
   assert(
-    !finalOperatorStatus?.operatorEconomicsExposure?.operatorStillSeesRawActions?.includes("swap"),
-    "Expected typed operator status raw-action list to exclude committed Swap.",
+    finalOperatorStatus?.operatorEconomicsExposure?.operatorStillSeesRawActions?.includes("swap"),
+    "Expected typed operator status to disclose that Swap route/transition records still expose raw economics.",
   );
   assert(
     finalOperatorStatus?.anonymitySetReadiness?.version ===

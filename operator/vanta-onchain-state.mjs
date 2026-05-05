@@ -8,6 +8,10 @@ const VANTA_SOL_UNSHIELD_MEMO_PREFIX = "vanta:sol-unshield-note:v1:";
 const VANTA_SPENT_MARKER_MEMO_PREFIX = "vanta:spent-marker:v1:";
 const VANTA_NATIVE_SOL_ASSET_ID = "So11111111111111111111111111111111111111112";
 
+function getSwapAssetAmountDecimals(asset) {
+  return asset === "SOL" ? 9 : 6;
+}
+
 function hashString(input) {
   let hash = 0xcbf29ce484222325n;
 
@@ -437,10 +441,15 @@ function parseSwapMemo(memo, stateSignature) {
     const venueNetwork = parsed.venueNetwork ?? parsed.vw;
     const venuePoolAddress = parsed.venuePoolAddress ?? parsed.vp;
 
+    const supportedInputAsset =
+      typeof inputAsset === "string" && (inputAsset === "SOL" || inputAsset.length > 0);
+    const supportedOutputAsset =
+      typeof outputAsset === "string" && (outputAsset === "SOL" || outputAsset.length > 0);
+
     if (
       kind !== "swap" ||
-      inputAsset !== "USDC" ||
-      outputAsset !== "SOL" ||
+      !supportedInputAsset ||
+      !supportedOutputAsset ||
       typeof owner !== "string" ||
       typeof mintAddress !== "string" ||
       typeof vaultOwner !== "string" ||
@@ -471,12 +480,12 @@ function parseSwapMemo(memo, stateSignature) {
           : undefined,
       createdAt,
       inputAmount: parsedInputAmount,
-      inputAsset: "USDC",
+      inputAsset,
       kind: "swap",
       mintAddress,
       noteId: typeof noteId === "string" ? noteId : undefined,
       outputAmount: parsedOutputAmount,
-      outputAsset: "SOL",
+      outputAsset,
       outputNoteId: typeof outputNoteId === "string" ? outputNoteId : undefined,
       owner,
       quoteExpiresAt:
@@ -489,8 +498,9 @@ function parseSwapMemo(memo, stateSignature) {
           ? quoteTimestamp
           : undefined,
       stateSignature,
-      venueFamily: venueFamily === "DLMM" ? "DLMM" : undefined,
-      venueName: venueName === "Meteora" ? "Meteora" : undefined,
+      venueFamily:
+        venueFamily === "DLMM" || venueFamily === "Aggregator" ? venueFamily : undefined,
+      venueName: typeof venueName === "string" ? venueName : undefined,
       venueNetwork: venueNetwork === "Mainnet" ? "Mainnet" : undefined,
       venuePoolAddress:
         typeof venuePoolAddress === "string" ? venuePoolAddress : undefined,
@@ -686,8 +696,12 @@ export async function fetchConstrainedOnchainUnshieldContext(args) {
         return null;
       }
 
-      const roundedInputAmount = Number(note.inputAmount.toFixed(6));
-      const roundedOutputAmount = Number(note.outputAmount.toFixed(9));
+      const roundedInputAmount = Number(
+        note.inputAmount.toFixed(getSwapAssetAmountDecimals(note.inputAsset)),
+      );
+      const roundedOutputAmount = Number(
+        note.outputAmount.toFixed(getSwapAssetAmountDecimals(note.outputAsset)),
+      );
 
       return {
         ...note,
@@ -699,10 +713,10 @@ export async function fetchConstrainedOnchainUnshieldContext(args) {
             consumedNoteId: resolvedConsumedNoteId,
             createdAt: note.createdAt,
             inputAmount: roundedInputAmount.toString(),
-            inputAsset: "USDC",
+            inputAsset: note.inputAsset,
             mintAddress: args.mintAddress,
             outputAmount: roundedOutputAmount.toString(),
-            outputAsset: "SOL",
+            outputAsset: note.outputAsset,
             owner: note.owner,
             quoteId: note.quoteId,
             vaultOwner: note.vaultOwner,
@@ -712,7 +726,7 @@ export async function fetchConstrainedOnchainUnshieldContext(args) {
           typeof note.outputNoteId === "string"
             ? note.outputNoteId
             : createDeterministicNoteId({
-                asset: "SOL",
+                asset: note.outputAsset,
                 createdAt: note.createdAt,
                 kind: "swap_output",
                 outputAmount: roundedOutputAmount.toString(),
@@ -723,10 +737,10 @@ export async function fetchConstrainedOnchainUnshieldContext(args) {
                     consumedNoteId: resolvedConsumedNoteId,
                     createdAt: note.createdAt,
                     inputAmount: roundedInputAmount.toString(),
-                    inputAsset: "USDC",
+                    inputAsset: note.inputAsset,
                     mintAddress: args.mintAddress,
                     outputAmount: roundedOutputAmount.toString(),
-                    outputAsset: "SOL",
+                    outputAsset: note.outputAsset,
                     owner: note.owner,
                     quoteId: note.quoteId,
                     vaultOwner: note.vaultOwner,
@@ -939,7 +953,10 @@ export async function fetchConstrainedOnchainUnshieldContext(args) {
         return [marker];
       }
 
-      if (!amountsMatch(Number(transition.inputAmount.toFixed(6)), roundedInputAmount)) {
+      if (
+        transition.inputAsset === "SOL" ||
+        !amountsMatch(Number(transition.inputAmount.toFixed(6)), roundedInputAmount)
+      ) {
         return [];
       }
 
@@ -960,13 +977,44 @@ export async function fetchConstrainedOnchainUnshieldContext(args) {
         marker.transitionNoteId === note.noteId,
     ),
   );
-  const validSwapNotes = candidateSwapNotes.filter((note) =>
+  const validShieldInputSwapNotes = candidateSwapNotes.filter((note) =>
     shieldSpentMarkers.some(
       (marker) =>
         marker.transitionKind === "swap" && marker.transitionNoteId === note.noteId,
     ),
   );
-  const shieldedSolNotes = validSwapNotes
+  const transitionByConsumedNoteId = new Map(
+    [...validSendNotes, ...validUnshieldNotes, ...validShieldInputSwapNotes].map((transition) => [
+      transition.consumedNoteId,
+      transition,
+    ]),
+  );
+  const pendingSwapByConsumedNoteId = new Map(
+    candidateSwapNotes
+      .filter((note) => {
+        if (note.inputAsset === "SOL") {
+          return false;
+        }
+
+        if (transitionByConsumedNoteId.has(note.consumedNoteId)) {
+          return false;
+        }
+
+        const consumedShieldNote = allShieldNotesById.get(note.consumedNoteId);
+
+        return (
+          consumedShieldNote !== undefined &&
+          !consumedNoteIds.has(note.consumedNoteId) &&
+          amountsMatch(
+            Number(note.inputAmount.toFixed(6)),
+            Number(consumedShieldNote.amount.toFixed(6)),
+          )
+        );
+      })
+      .map((note) => [note.consumedNoteId, note]),
+  );
+  const shieldedSolNotes = validShieldInputSwapNotes
+    .filter((note) => note.outputAsset === "SOL")
     .map((note) => ({
       amount: Number(note.outputAmount.toFixed(9)),
       asset: "SOL",
@@ -980,16 +1028,20 @@ export async function fetchConstrainedOnchainUnshieldContext(args) {
   const shieldedSolNotesById = new Map(
     shieldedSolNotes.map((note) => [note.noteId, note]),
   );
+  const shieldTokenNotesBySolSwap = new Map();
 
   const solSpentMarkers = explicitSpentMarkers
     .filter((marker) => marker.asset === "SOL")
     .sort((left, right) => left.createdAt - right.createdAt)
     .flatMap((marker) => {
-      if (marker.transitionKind !== "sol_unshield") {
+      if (marker.transitionKind !== "sol_unshield" && marker.transitionKind !== "swap") {
         return [];
       }
 
-      const transition = solUnshieldNotesById.get(marker.transitionNoteId);
+      const transition =
+        marker.transitionKind === "sol_unshield"
+          ? solUnshieldNotesById.get(marker.transitionNoteId)
+          : swapNotesById.get(marker.transitionNoteId);
       const consumedSolNote = shieldedSolNotesById.get(marker.consumedNoteId);
 
       if (
@@ -999,6 +1051,43 @@ export async function fetchConstrainedOnchainUnshieldContext(args) {
         consumedSolNoteIds.has(marker.consumedNoteId)
       ) {
         return [];
+      }
+
+      if (marker.transitionKind === "swap") {
+        if (
+          transition.inputAsset !== "SOL" ||
+          !amountsMatch(
+            Number(transition.inputAmount.toFixed(9)),
+            Number(consumedSolNote.amount.toFixed(9)),
+          )
+        ) {
+          return [];
+        }
+
+        if (transition.outputAsset === "USDC") {
+          const roundedOutputAmount = Number(transition.outputAmount.toFixed(6));
+          const outputNote = {
+            amount: roundedOutputAmount,
+            asset: "USDC",
+            createdAt: transition.createdAt,
+            depositSignature: transition.stateSignature,
+            kind: "shield",
+            mintAddress: args.mintAddress,
+            noteId: transition.outputNoteId,
+            origin: "swap_output",
+            owner: transition.owner,
+            parentNoteId: marker.consumedNoteId,
+            parentSwapNoteId: transition.noteId,
+            stateSignature: `${transition.stateSignature}:swap-output`,
+            vaultOwner: args.vaultOwner,
+          };
+
+          shieldTokenNotesBySolSwap.set(transition.noteId, outputNote);
+          allShieldNotesById.set(outputNote.noteId, outputNote);
+        }
+
+        consumedSolNoteIds.add(marker.consumedNoteId);
+        return [marker];
       }
 
       if (!amountsMatch(Number(transition.amount.toFixed(9)), Number(consumedSolNote.amount.toFixed(9)))) {
@@ -1015,10 +1104,50 @@ export async function fetchConstrainedOnchainUnshieldContext(args) {
   const recipientSelfNotes = [...recipientSelfNotesByParentSend.values()].sort(
     (left, right) => left.createdAt - right.createdAt,
   );
-  const shieldNotes = [...depositShieldNotes, ...changeNotes, ...recipientSelfNotes].sort(
+  const swapOutputShieldNotes = [...shieldTokenNotesBySolSwap.values()].sort(
     (left, right) => left.createdAt - right.createdAt,
   );
-  const spendableShieldNotes = shieldNotes.filter((note) => !consumedNoteIds.has(note.noteId));
+  const validSolInputSwapNotes = candidateSwapNotes.filter((note) =>
+    solSpentMarkers.some(
+      (marker) =>
+        marker.transitionKind === "swap" && marker.transitionNoteId === note.noteId,
+    ),
+  );
+  const validSolInputSwapByConsumedNoteId = new Map(
+    validSolInputSwapNotes.map((note) => [note.consumedNoteId, note]),
+  );
+  const pendingSolSwapByConsumedNoteId = new Map(
+    candidateSwapNotes
+      .filter((note) => {
+        if (note.inputAsset !== "SOL") {
+          return false;
+        }
+
+        if (validSolInputSwapByConsumedNoteId.has(note.consumedNoteId)) {
+          return false;
+        }
+
+        const consumedSolNote = shieldedSolNotesById.get(note.consumedNoteId);
+
+        return (
+          consumedSolNote !== undefined &&
+          !consumedSolNoteIds.has(note.consumedNoteId) &&
+          amountsMatch(
+            Number(note.inputAmount.toFixed(9)),
+            Number(consumedSolNote.amount.toFixed(9)),
+          )
+        );
+      })
+      .map((note) => [note.consumedNoteId, note]),
+  );
+  const shieldNotes = [...depositShieldNotes, ...changeNotes, ...recipientSelfNotes, ...swapOutputShieldNotes].sort(
+    (left, right) => left.createdAt - right.createdAt,
+  );
+  const spendableShieldNotes = shieldNotes.filter(
+    (note) =>
+      !consumedNoteIds.has(note.noteId) &&
+      !pendingSwapByConsumedNoteId.has(note.noteId),
+  );
   const validSolUnshieldNotes = candidateSolUnshieldNotes.filter((note) =>
     solSpentMarkers.some(
       (marker) =>
@@ -1027,9 +1156,14 @@ export async function fetchConstrainedOnchainUnshieldContext(args) {
     ),
   );
   const spendableShieldedSolNotes = shieldedSolNotes.filter(
-    (note) => !consumedSolNoteIds.has(note.noteId),
+    (note) =>
+      !consumedSolNoteIds.has(note.noteId) &&
+      !pendingSolSwapByConsumedNoteId.has(note.noteId),
   );
   const spentMarkers = [...shieldSpentMarkers, ...solSpentMarkers].sort(
+    (left, right) => left.createdAt - right.createdAt,
+  );
+  const validSwapNotes = [...validShieldInputSwapNotes, ...validSolInputSwapNotes].sort(
     (left, right) => left.createdAt - right.createdAt,
   );
 
@@ -1221,9 +1355,14 @@ export function assertEligibleSolUnshieldTransition(args) {
     throw new Error("Referenced shielded SOL note amount does not match the requested release.");
   }
 
-  const competingTransitions = args.context.candidateSolUnshieldNotes.filter(
-    (note) => note.consumedNoteId === args.consumedNoteId,
-  );
+  const competingTransitions = [
+    ...args.context.candidateSolUnshieldNotes.filter(
+      (note) => note.consumedNoteId === args.consumedNoteId,
+    ),
+    ...args.context.candidateSwapNotes.filter(
+      (note) => note.inputAsset === "SOL" && note.consumedNoteId === args.consumedNoteId,
+    ),
+  ];
 
   if (competingTransitions.some((note) => note.noteId !== args.transitionNoteId)) {
     throw new Error("Referenced shielded SOL note already has another constrained transition pending.");
@@ -1253,9 +1392,14 @@ export function assertEligibleDirectSolUnshieldRelease(args) {
     throw new Error("Referenced shielded SOL note does not match the wallet-authorized direct release request.");
   }
 
-  const competingTransitions = args.context.candidateSolUnshieldNotes.filter(
-    (note) => note.consumedNoteId === args.consumedNoteId,
-  );
+  const competingTransitions = [
+    ...args.context.candidateSolUnshieldNotes.filter(
+      (note) => note.consumedNoteId === args.consumedNoteId,
+    ),
+    ...args.context.candidateSwapNotes.filter(
+      (note) => note.inputAsset === "SOL" && note.consumedNoteId === args.consumedNoteId,
+    ),
+  ];
 
   if (competingTransitions.length > 0) {
     throw new Error("Referenced shielded SOL note already has another constrained transition pending.");

@@ -1997,7 +1997,7 @@ async function statusPayload() {
       ).length,
       hiddenEconomicsActions: ["shield", "send", "swap", "unshield"],
       legacyRawPaySettlementEndpointEnabled: allowLegacyPaySettlements,
-      operatorStillSeesRawActions: ["raw-shield", "raw-unshield"],
+      operatorStillSeesRawActions: ["raw-shield", "raw-unshield", "swap"],
       rawSettlementCount: protocolSettlementReceipts.filter(
         (settlement) =>
           (settlement.protocolSettlementReceipt?.economicsMode ?? "raw-operator-visible") ===

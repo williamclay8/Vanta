@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { spawn } from "node:child_process";
 import { readFileSync } from "node:fs";
 
@@ -14,8 +15,41 @@ assert.match(serverSource, /routeAdapter: "sol-to-shielded-v1"/);
 assert.match(serverSource, /intent: "swap-to-shielded"/);
 assert.match(serverSource, /economicsMode: "committed-economics"/);
 assert.match(serverSource, /sendRawTransaction/);
+assert.match(serverSource, /routePlanHash/);
+assert.match(serverSource, /slippageBps/);
+assert.match(serverSource, /inputMintAddress/);
+assert.match(serverSource, /outputMintAddress/);
+assert.match(serverSource, /quoteExpiresAt/);
+assert.match(serverSource, /quoteTimestamp/);
 assert.match(serverSource, /const mainnetReady =/);
+assert.match(serverSource, /hidden:economic-terms/);
+assert.match(serverSource, /outputLeafIndex/);
+assert.match(serverSource, /publicSwapSignature/);
+assert.match(serverSource, /validateCommittedSwapSettlementResponse/);
+assert.match(serverSource, /return validateCommittedSwapSettlementResponse/);
+assert.match(serverSource, /receipt\.economicsCommitment === request\.economicsCommitment/);
 assert.doesNotMatch(serverSource, /mainnetReady: false/);
+const liveSettlementValidationIndex = serverSource.indexOf(
+  "return validateCommittedSwapSettlementResponse",
+  serverSource.indexOf("const payload = await response.json()"),
+);
+const executionStateMutationIndex = serverSource.indexOf(
+  "state.consumedInputSol =",
+  serverSource.indexOf("async function handleExecute"),
+);
+assert.ok(
+  liveSettlementValidationIndex !== -1 && liveSettlementValidationIndex < executionStateMutationIndex,
+  "Jupiter adapter must validate committed settlement before mutating adapter state.",
+);
+
+function hashHex(...parts) {
+  const hash = createHash("sha256");
+  for (const part of parts) {
+    hash.update(String(part));
+    hash.update("\0");
+  }
+  return `0x${hash.digest("hex")}`;
+}
 
 async function waitForHealth(baseUrl) {
   const deadline = Date.now() + 10_000;
@@ -78,6 +112,13 @@ async function main() {
     assert.equal(quote.outputAsset, "USDC");
     assert.equal(quote.venueName, "Jupiter");
     assert.equal(quote.venueFamily, "Aggregator");
+    assert.equal(quote.inputMintAddress, "So11111111111111111111111111111111111111112");
+    assert.equal(typeof quote.outputMintAddress, "string");
+    assert.equal(typeof quote.routeProvider, "string");
+    assert.equal(typeof quote.routePlanHash, "string");
+    assert.equal(typeof quote.slippageBps, "number");
+    assert.equal(typeof quote.quoteTimestamp, "number");
+    assert.equal(typeof quote.quoteExpiresAt, "number");
     assert.match(quote.quoteId, /^0x[0-9a-f]+$/);
 
     const executeResponse = await fetch(`${baseUrl}/execute`, {
@@ -85,13 +126,20 @@ async function main() {
         consumedNoteId: "note_sol_demo",
         inputAmount: quote.inputAmount,
         inputAsset: "SOL",
+        inputMintAddress: quote.inputMintAddress,
         outputAmount: quote.outputAmount,
         outputAsset: "USDC",
+        outputMintAddress: quote.outputMintAddress,
         outputNoteId: "note_usdc_output_demo",
         owner: "DemoOwner111111111111111111111111111111111",
+        quoteExpiresAt: quote.quoteExpiresAt,
         quoteId: quote.quoteId,
+        quoteTimestamp: quote.quoteTimestamp,
         requester: "DemoRequester1111111111111111111111111111",
         routeAdapter: "sol-to-shielded-v1",
+        routePlanHash: quote.routePlanHash,
+        routeProvider: quote.routeProvider,
+        slippageBps: quote.slippageBps,
         transitionNoteId: "swap_transition_demo",
         transitionStateSignature: "demo_transition_signature",
         vaultOwner: "DemoVault11111111111111111111111111111111",
@@ -106,11 +154,34 @@ async function main() {
     assert.equal(executeResponse.ok, true, receipt.error);
     assert.equal(receipt.routeAdapter, "sol-to-shielded-v1");
     assert.equal(receipt.inputAsset, "SOL");
+    assert.equal(receipt.inputMintAddress, quote.inputMintAddress);
     assert.equal(receipt.outputAsset, "USDC");
+    assert.equal(receipt.outputMintAddress, quote.outputMintAddress);
+    assert.equal(typeof receipt.outputLeafIndex, "string");
     assert.equal(receipt.outputNoteId, "note_usdc_output_demo");
+    assert.equal(typeof receipt.publicSwapSignature, "string");
+    assert.equal(receipt.quoteExpiresAt, quote.quoteExpiresAt);
+    assert.equal(receipt.quoteTimestamp, quote.quoteTimestamp);
+    assert.equal(receipt.routePlanHash, quote.routePlanHash);
+    assert.equal(receipt.routeProvider, quote.routeProvider);
+    assert.equal(receipt.slippageBps, quote.slippageBps);
     assert.equal(receipt.protocolSettlementReceipt.action, "swap");
     assert.equal(receipt.protocolSettlementReceipt.economicsMode, "committed-economics");
+    assert.equal(
+      receipt.protocolSettlementReceipt.proofReceiptPublicInputCommitment,
+      receipt.proofReceipt.publicInputCommitment,
+    );
+    assert.equal(receipt.proofReceipt.assetId, "hidden:economic-terms");
     assert.equal(receipt.proofReceipt.intent, "swap-to-shielded");
+    assert.equal(
+      receipt.proofReceipt.replayKey,
+      `swap-to-shielded:${hashHex(
+        "nullifier",
+        "note_sol_demo",
+        "swap_transition_demo",
+        "demo_transition_signature",
+      )}`,
+    );
     assert.ok(receipt.proofReceipt.publicInputCommitment);
   } finally {
     child.kill("SIGTERM");

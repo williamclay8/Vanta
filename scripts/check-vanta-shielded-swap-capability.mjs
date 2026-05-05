@@ -29,7 +29,6 @@ const requiredCapabilityMarkers = [
 const requiredPageMarkers = [
   "selectedSourceAsset",
   "selectedTargetAsset",
-  "recentShield",
   "getShieldedSwapPairCapability",
   "listShieldedSwapAssetOptions",
   "readySourceAssetOptions",
@@ -41,19 +40,22 @@ const requiredPageMarkers = [
   "ready",
   "No shielded assets ready",
   "shieldAssetRegistry.entries.find((entry) => (entry.account?.shieldedSolBalance ?? 0) > 0)",
-  "recentShield?.asset === \"SOL\"",
   "pendingSpentMarker && pendingSpentMarker.asset === \"SOL\"",
   "shieldAccountState: selectedSourceAccount",
   "selectedSourceOption?.ready",
   "setSelectedSourceAsset(preferredReadySourceAsset.symbol)",
   "sourcePairCapability",
-  "This shielded pair needs a private route adapter before it can execute.",
+  "sourcePairCapability.status !== \"live\"",
+  "{shieldedSwapAssets.map((asset) => (",
+  "!isReady ||",
+  "This shielded pair needs a route adapter with committed settlement evidence before it can execute.",
 ];
 
 const forbiddenPageMarkers = [
   'listExecutableShieldedAssets().filter((asset) => asset.symbol === "SOL")',
   "selectedShieldedSourceAsset",
   "disabled\n                      onChange",
+  "recentShield",
 ];
 
 const forbiddenCapabilityMarkers = [

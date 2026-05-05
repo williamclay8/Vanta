@@ -46,11 +46,11 @@ import {
   type VantaShieldNote,
   type VantaShieldedSolNote,
 } from "@/solana/vantaShieldState";
-import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
 import { useWalletState } from "@/data/context/WalletContext";
 import { requestVantaPrivatePoolV2ProtocolSettlement } from "@/privacy/privatePoolV2ProtocolSettlementClient";
 import {
   createCommittedSwapSettlementTerms,
+  persistCanonicalSwapRecord,
   recordCanonicalSwapFromLiveSwap,
 } from "@/zk/liveSwapBridge";
 import { useVantaSafeSendTransaction } from "@/wallet/useVantaSafeSendTransaction";
@@ -89,16 +89,29 @@ type PendingSwapBridge = {
   };
   venue: {
     family: "Aggregator" | "DLMM";
+    inputMintAddress?: string;
     name: string;
     network: "Mainnet";
+    outputMintAddress?: string;
     poolAddress: string;
     quoteExpiresAt: number;
     quoteId: string;
     quoteTimestamp: number;
+    routePlanHash?: string;
+    routeProvider?: string;
+    slippageBps?: number;
   };
 };
 
 type ActiveSwapQuote = SwapQuote | SolToShieldedRouteQuote;
+const STALE_EXECUTION_QUOTE_MESSAGE =
+  "The latest live quote expired, so the swap path is blocked until a fresh quote is available.";
+
+function assertFreshExecutionQuote(freshQuote: ActiveSwapQuote) {
+  if (freshQuote.quoteExpiresAt <= Date.now()) {
+    throw new Error(STALE_EXECUTION_QUOTE_MESSAGE);
+  }
+}
 
 type SwapStatus =
   | "idle"
@@ -150,7 +163,6 @@ function formatReadyAssetOptionLabel(args: {
 }
 
 export function SwapPage() {
-  const { recentShield } = usePrivacyFlow();
   const { walletAddress, walletConnected } = useWalletState();
   const walletSession = useWalletSession();
   const {
@@ -268,16 +280,8 @@ export function SwapPage() {
 
   const preferredReadySourceAsset = useMemo(
     () =>
-      readySourceAssetOptions.find(
-        (asset) =>
-          asset.ready &&
-          (recentShield?.asset === "SOL"
-            ? asset.symbol === "SOL"
-            : asset.symbol === recentShield?.asset),
-      ) ??
-      readySourceAssetOptions.find((asset) => asset.ready) ??
-      null,
-    [readySourceAssetOptions, recentShield?.asset],
+      readySourceAssetOptions.find((asset) => asset.ready) ?? null,
+    [readySourceAssetOptions],
   );
   const availableSourceAssetOptions = useMemo(
     () => readySourceAssetOptions.filter((asset) => asset.ready),
@@ -563,12 +567,19 @@ export function SwapPage() {
       void requestSolToShieldedRouteExecution({
         consumedNoteId: pendingSwapBridge.input.noteId,
         inputAmount: pendingSwapBridge.input.amountDisplay,
+        inputMintAddress: pendingSwapBridge.venue.inputMintAddress ?? VANTA_NATIVE_SOL_ASSET_ID,
         outputAmount: pendingSwapBridge.output.amountDisplay,
         outputAsset: pendingSwapBridge.output.asset as Exclude<ShieldedSwapAssetKey, "SOL">,
+        outputMintAddress: pendingSwapBridge.venue.outputMintAddress ?? pendingSwapBridge.output.assetId,
         outputNoteId: pendingSwapBridge.output.noteId,
         owner: pendingSwapBridge.owner,
+        quoteExpiresAt: pendingSwapBridge.venue.quoteExpiresAt,
         quoteId: pendingSwapBridge.venue.quoteId,
+        quoteTimestamp: pendingSwapBridge.venue.quoteTimestamp,
         requester: walletAddress,
+        routePlanHash: pendingSwapBridge.venue.routePlanHash ?? "",
+        routeProvider: pendingSwapBridge.venue.routeProvider ?? pendingSwapBridge.venue.name,
+        slippageBps: pendingSwapBridge.venue.slippageBps ?? 0,
         transitionNoteId: pendingSpentMarker.transitionNoteId,
         transitionStateSignature: transitionSignature,
         vaultOwner: pendingSwapBridge.vaultOwner,
@@ -1001,42 +1012,45 @@ export function SwapPage() {
     }
 
     try {
-      const canonicalRecord = await recordCanonicalSwapFromLiveSwap({
-        createdAt: pendingSwapBridge.createdAt,
-        owner: pendingSwapBridge.owner,
-        vaultOwner: pendingSwapBridge.vaultOwner,
-        input: {
-          asset: "USDC",
-          mintAddress: pendingSwapBridge.input.mintAddress,
-          amountDisplay: pendingSwapBridge.input.amountDisplay,
-          noteId: pendingSwapBridge.input.noteId,
-          stateSignature: pendingSwapBridge.input.stateSignature,
+      const canonicalRecord = await recordCanonicalSwapFromLiveSwap(
+        {
+          createdAt: pendingSwapBridge.createdAt,
+          owner: pendingSwapBridge.owner,
+          vaultOwner: pendingSwapBridge.vaultOwner,
+          input: {
+            asset: "USDC",
+            mintAddress: pendingSwapBridge.input.mintAddress,
+            amountDisplay: pendingSwapBridge.input.amountDisplay,
+            noteId: pendingSwapBridge.input.noteId,
+            stateSignature: pendingSwapBridge.input.stateSignature,
+          },
+          output: {
+            asset: "SOL",
+            assetId: pendingSwapBridge.output.assetId,
+            amountDisplay: pendingSwapBridge.output.amountDisplay,
+            noteId: pendingSwapBridge.output.noteId,
+            stateSignature: `${params.transitionSignature}:sol-output`,
+          },
+          transition: {
+            noteId: pendingSwapBridge.transition.noteId,
+            signature: params.transitionSignature,
+            spentMarkerSignature: params.spentMarkerSignature,
+          },
+          operator: {
+            requestId: lastSwapSummary.requestId,
+          },
+          venue: {
+            family: "DLMM",
+            name: "Meteora",
+            network: "Mainnet",
+            poolAddress: pendingSwapBridge.venue.poolAddress,
+            quoteId: pendingSwapBridge.venue.quoteId,
+            quoteTimestamp: pendingSwapBridge.venue.quoteTimestamp,
+            quoteExpiresAt: pendingSwapBridge.venue.quoteExpiresAt,
+          },
         },
-        output: {
-          asset: "SOL",
-          assetId: pendingSwapBridge.output.assetId,
-          amountDisplay: pendingSwapBridge.output.amountDisplay,
-          noteId: pendingSwapBridge.output.noteId,
-          stateSignature: `${params.transitionSignature}:sol-output`,
-        },
-        transition: {
-          noteId: pendingSwapBridge.transition.noteId,
-          signature: params.transitionSignature,
-          spentMarkerSignature: params.spentMarkerSignature,
-        },
-        operator: {
-          requestId: lastSwapSummary.requestId,
-        },
-        venue: {
-          family: "DLMM",
-          name: "Meteora",
-          network: "Mainnet",
-          poolAddress: pendingSwapBridge.venue.poolAddress,
-          quoteId: pendingSwapBridge.venue.quoteId,
-          quoteTimestamp: pendingSwapBridge.venue.quoteTimestamp,
-          quoteExpiresAt: pendingSwapBridge.venue.quoteExpiresAt,
-        },
-      });
+        { persist: false },
+      );
       const committedSettlementTerms =
         await createCommittedSwapSettlementTerms(canonicalRecord);
       const settlementReceipt = await requestVantaPrivatePoolV2ProtocolSettlement({
@@ -1047,6 +1061,7 @@ export function SwapPage() {
       if (settlementReceipt?.proofReceipt?.intent !== "swap-to-shielded") {
         throw new Error("Committed Swap settlement did not return a swap-to-shielded proof receipt.");
       }
+      persistCanonicalSwapRecord(canonicalRecord);
       setSwapBridgeError(null);
     } catch (error) {
       setSwapBridgeError(
@@ -1251,12 +1266,17 @@ export function SwapPage() {
       },
       venue: {
         family: args.swapQuote.venueFamily,
+        inputMintAddress: args.swapQuote.inputMintAddress,
         name: args.swapQuote.venueName,
         network: args.swapQuote.venueNetwork,
+        outputMintAddress: args.swapQuote.outputMintAddress,
         poolAddress: args.swapQuote.venuePoolAddress ?? "",
         quoteId: args.swapQuote.quoteId,
         quoteTimestamp: args.swapQuote.quoteTimestamp,
         quoteExpiresAt: args.swapQuote.quoteExpiresAt,
+        routePlanHash: args.swapQuote.routePlanHash,
+        routeProvider: args.swapQuote.routeProvider,
+        slippageBps: args.swapQuote.slippageBps,
       },
     });
     setLastSwapSummary({
@@ -1322,6 +1342,7 @@ export function SwapPage() {
     ) {
       const freshQuote =
         quote && isQuoteFresh ? (quote as SwapQuote) : await fetchSwapQuote(parsedAmount.toString());
+      assertFreshExecutionQuote(freshQuote);
       setQuote(freshQuote);
 
       try {
@@ -1354,6 +1375,7 @@ export function SwapPage() {
               inputAmount: parsedAmount.toString(),
               outputAsset: selectedTargetAsset,
             });
+      assertFreshExecutionQuote(freshQuote);
       setQuote(freshQuote);
 
       try {
@@ -1381,7 +1403,7 @@ export function SwapPage() {
   } else if (sourcePairCapability.status !== "live") {
     validationMessage =
       sourcePairCapability.blockers[0] ??
-      "This shielded pair needs a private route adapter before it can execute.";
+      "This shielded pair needs a route adapter with committed settlement evidence before it can execute.";
   } else if (!selectedShieldAsset.configured) {
     validationMessage = `Shielded ${selectedSourceAsset} is not configured yet.`;
   } else if (requiresPrivateSwap && usesLegacyUsdcSolOperator && !liveSwapPair.configured) {
@@ -1419,14 +1441,14 @@ export function SwapPage() {
     <section className="send-page swap-page">
       <div className="module-page__hero send-page__hero product-intro">
         <div>
-          <span className="eyebrow product-intro__eyebrow">Trade shielded</span>
+          <span className="eyebrow product-intro__eyebrow">Shielded swap</span>
           <h2>Swap</h2>
           <p>Record a swap transition from shielded state.</p>
         </div>
 
         <div className="module-state">
           <strong>Constrained route</strong>
-          <p>Current live execution stays on the supported shielded pair.</p>
+          <p>Current live execution is constrained; route settlement remains operator-visible.</p>
         </div>
       </div>
 
@@ -1602,26 +1624,26 @@ export function SwapPage() {
                   {status === "awaiting_confirmation"
                     ? "Awaiting wallet confirmation"
                     : status === "recording_transition"
-                      ? "Starting private swap"
+                      ? "Recording swap transition"
                       : status === "authorizing_operator"
                         ? "Authorizing swap"
                         : status === "finalizing_state"
                           ? "Finalizing shielded state"
                           : status === "complete"
-                            ? "Swap complete"
+                            ? "Swap recorded"
                             : "Swap failed"}
                 </span>
                 <p>
                   {status === "complete" && selectedTargetAsset === "SOL" && lastSwapSummary
-                    ? `Swapped ${formatAssetAmount(lastSwapSummary.inputAmount, "USDC")} into ${formatAssetAmount(lastSwapSummary.outputAmount, "SOL")}.`
+                    ? `Recorded ${formatAssetAmount(lastSwapSummary.inputAmount, "USDC")} into ${formatAssetAmount(lastSwapSummary.outputAmount, "SOL")} with committed receipt checks.`
                     : status === "complete"
-                      ? `Converted ${formatAssetAmount(parsedAmount, selectedSourceAsset)} into shielded ${selectedTargetAsset}.`
+                      ? `Recorded ${formatAssetAmount(parsedAmount, selectedSourceAsset)} into shielded ${selectedTargetAsset}; route settlement remains operator-visible.`
                     : status === "failed"
                       ? flowError ?? "The swap could not be completed."
-                    : status === "authorizing_operator"
-                        ? "Authorizing the swap route."
+                      : status === "authorizing_operator"
+                        ? "Authorizing the operator-visible route settlement."
                       : status === "finalizing_state"
-                          ? `Updating your private balance with the new shielded ${selectedTargetAsset}.`
+                          ? `Registering spent-marker and committed receipt evidence for shielded ${selectedTargetAsset}.`
                           : "Approve the swap in your wallet to continue."}
                 </p>
                 {quote &&

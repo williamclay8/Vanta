@@ -199,8 +199,8 @@ export type VantaPrivateCorePreparedLiveSwapCandidateV0 =
   | {
       status: "blocked";
       note: string;
-      transition: SwapTransitionV0;
-      proofBoundary: VantaPrivateCoreSwapProofBoundaryV0;
+      transition: SwapTransitionV0 | null;
+      proofBoundary: VantaPrivateCoreSwapProofBoundaryV0 | null;
     }
   | {
       status: "fallback";
@@ -251,12 +251,12 @@ export function prepareVantaPrivateCoreLiveSwapCandidate(args: {
   if (
     typeof args.quoteExpiresAt === "number" &&
     Number.isFinite(args.quoteExpiresAt) &&
-    (args.nowMs ?? Date.now()) > args.quoteExpiresAt
+    (args.nowMs ?? Date.now()) >= args.quoteExpiresAt
   ) {
     return {
-      note: "The latest live quote expired, so the swap proof actions are using fixture fallback.",
+      note: "The latest live quote expired, so the swap path is blocked until a fresh quote is available.",
       proofBoundary: null,
-      status: "fallback",
+      status: "blocked",
       transition: null,
     };
   }

@@ -155,10 +155,15 @@ const staleQuote = swapProof.prepareVantaPrivateCoreLiveSwapCandidate({
   quoteExpiresAt: Date.now() - 1,
 });
 
-if (staleQuote.status !== "fallback" || !staleQuote.note.includes("expired")) {
-  throw new Error("expected stale quote to force fallback");
+if (
+  staleQuote.status !== "blocked" ||
+  !staleQuote.note.includes(
+    "The latest live quote expired, so the swap path is blocked until a fresh quote is available.",
+  )
+) {
+  throw new Error("expected stale quote to block execution");
 }
-printStatus("private-core swap live path stale-quote fallback: PASS");
+printStatus("private-core swap live path stale-quote blocked: PASS");
 
 const mismatchedAmount = swapProof.prepareVantaPrivateCoreLiveSwapCandidate({
   heldNote,

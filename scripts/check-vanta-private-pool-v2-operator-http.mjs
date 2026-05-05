@@ -1186,6 +1186,12 @@ try {
     "Expected operator status to exclude committed Unshield from raw-visible protocol actions.",
   );
   assert(
+    operatorStatusAfterProtocolSettlements.parsed?.operatorEconomicsExposure?.operatorStillSeesRawActions?.includes(
+      "swap",
+    ),
+    "Expected operator status to disclose that Swap route/transition records still expose raw economics.",
+  );
+  assert(
     operatorStatusAfterProtocolSettlements.parsed?.operatorEconomicsExposure
       ?.legacyRawPaySettlementEndpointEnabled === false,
     "Expected operator status to expose disabled legacy raw Pay settlement endpoint.",

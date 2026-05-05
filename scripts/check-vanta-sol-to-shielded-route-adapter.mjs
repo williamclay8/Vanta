@@ -29,7 +29,7 @@ assert.match(
 );
 assert.match(
   capabilitySource,
-  /Shielded SOL to shielded asset needs the SOL route adapter/,
+  /Shielded SOL to shielded asset needs a SOL route adapter with committed settlement evidence/,
   "Shielded swap capability must fail closed when the SOL route adapter is absent.",
 );
 assert.match(
@@ -42,6 +42,24 @@ assert.match(
   /requestSolToShieldedRouteExecution/,
   "SOL-to-shielded adapter must expose a typed execution request.",
 );
+for (const marker of [
+  "inputMintAddress",
+  "outputLeafIndex",
+  "outputMintAddress",
+  "outputNoteId",
+  "publicSwapSignature",
+  "quoteExpiresAt",
+  "quoteTimestamp",
+  "routePlanHash",
+  "routeProvider",
+  "slippageBps",
+]) {
+  assert.match(
+    adapterSource,
+    new RegExp(marker),
+    `SOL-to-shielded adapter must bind ${marker} into quotes, requests, and receipts.`,
+  );
+}
 assert.match(
   adapterSource,
   /\/execute/,
@@ -54,13 +72,38 @@ assert.match(
 );
 assert.match(
   adapterSource,
+  /validateVantaPrivatePoolV2ProtocolSettlementResponse/,
+  "SOL-to-shielded adapter must run committed settlement response validation.",
+);
+assert.match(
+  adapterSource,
+  /receipt\.outputNoteId !== request\.outputNoteId/,
+  "SOL-to-shielded adapter must reject receipts with spliced output notes.",
+);
+assert.match(
+  adapterSource,
+  /receipt\.transitionNoteId !== request\.transitionNoteId/,
+  "SOL-to-shielded adapter must reject receipts with spliced transition notes.",
+);
+assert.match(
+  adapterSource,
   /proofReceipt\.intent !== "swap-to-shielded"/,
   "SOL-to-shielded adapter must require swap-to-shielded proof receipts.",
 );
 assert.match(
   adapterSource,
+  /proofReceipt\.assetId !== "hidden:economic-terms"/,
+  "SOL-to-shielded adapter must require the hidden-economics proof sentinel.",
+);
+assert.match(
+  adapterSource,
   /publicInputCommitment/,
   "SOL-to-shielded adapter must require proof public input commitments.",
+);
+assert.match(
+  adapterSource,
+  /proofReceipt\.replayKey !== expectedReplayKey/,
+  "SOL-to-shielded adapter must require exact request-bound replay keys.",
 );
 assert.match(
   swapPageSource,

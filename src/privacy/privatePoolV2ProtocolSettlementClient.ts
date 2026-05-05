@@ -1,3 +1,7 @@
+import { sha256 } from "@noble/hashes/sha2.js";
+import { bytesToHex } from "@noble/hashes/utils.js";
+
+import { createVantaPrivatePoolV2SwapToShieldedProofRequest } from "./privatePoolV2ProofRequests";
 import {
   serializeVantaShieldCommittedEconomicsSettlementOpening,
   type VantaShieldCommittedEconomicsSettlementOpening,
@@ -6,6 +10,8 @@ import {
 
 const VANTA_PRODUCTION_PRIVATE_POOL_V2_RECEIPT_API_URL =
   "https://vanta-prod-private-pool-v2-operator.onrender.com" as const;
+const VANTA_PRIVATE_POOL_V2_LOCAL_PROVER_SCHEME =
+  "sha256-private-pool-v2-local-prover-0.1" as const;
 
 export type VantaProtocolSettlementAction = "shield" | "send" | "swap" | "unshield";
 
@@ -148,6 +154,16 @@ type VantaCommittedEconomicsSendSettlementTerms = VantaCommittedEconomicsSettlem
   sendPublicInputHash: string;
 };
 
+type VantaCommittedEconomicsSwapSettlementTerms = VantaCommittedEconomicsSettlementTerms & {
+  inputCommitment: string;
+  inputRoot: string;
+  outputCommitment: string;
+  outputLeafIndex: string;
+  outputRoot: string;
+  swapContextTag: string;
+  swapPublicInputHash: string;
+};
+
 type VantaActualPrivateCommittedEconomicsSendSettlementTerms =
   VantaCommittedEconomicsSettlementTerms & {
     acceptedRoot: string;
@@ -165,7 +181,10 @@ export type VantaCommittedEconomicsProtocolSettlementRequest =
       | VantaActualPrivateCommittedEconomicsSendSettlementTerms
     ))
   | (VantaCommittedEconomicsProtocolSettlementRequestBase & {
-      action: "shield" | "swap" | "unshield";
+      action: "swap";
+    } & VantaCommittedEconomicsSwapSettlementTerms)
+  | (VantaCommittedEconomicsProtocolSettlementRequestBase & {
+      action: "shield" | "unshield";
     } & VantaCommittedEconomicsSettlementTerms);
 
 export type VantaProtocolSettlementRequest =
@@ -365,6 +384,33 @@ function requireProtocolSettlementCondition(condition: boolean, message: string)
   }
 }
 
+function hashProtocolSettlementParts(...parts: readonly string[]) {
+  return `0x${bytesToHex(
+    sha256(new TextEncoder().encode(parts.join("\u001f"))),
+  )}`;
+}
+
+function expectedLocalProofPublicInputCommitment(request: {
+  amountBaseUnits: bigint;
+  assetId: string;
+  circuitPublicInputs?: readonly string[];
+  intent: string;
+  publicInputs: readonly string[];
+}) {
+  const serializedRequest = JSON.stringify({
+    amountBaseUnits: request.amountBaseUnits.toString(),
+    assetId: request.assetId,
+    circuitPublicInputs: [...(request.circuitPublicInputs ?? request.publicInputs)],
+    intent: request.intent,
+  });
+
+  return hashProtocolSettlementParts(
+    VANTA_PRIVATE_POOL_V2_LOCAL_PROVER_SCHEME,
+    "public-inputs",
+    serializedRequest,
+  );
+}
+
 export function validateVantaPrivatePoolV2ProtocolSettlementResponse({
   request,
   response,
@@ -527,14 +573,54 @@ export function validateVantaPrivatePoolV2ProtocolSettlementResponse({
       );
     }
     if (request.action === "swap") {
+      const proofReceipt = response.proofReceipt;
+      const expectedSwapProofRequest = createVantaPrivatePoolV2SwapToShieldedProofRequest({
+        economicsCommitment: request.economicsCommitment,
+        inputCommitment: request.inputCommitment,
+        inputRoot: request.inputRoot,
+        nullifierOrReplayCommitment: request.nullifierOrReplayCommitment,
+        outputCommitment: request.outputCommitment,
+        outputLeafIndex: request.outputLeafIndex,
+        outputRoot: request.outputRoot,
+        ownerCommitment: request.ownerCommitment,
+        routeCommitment: request.routeCommitment,
+        settlementCommitment: request.settlementCommitment,
+        swapContextTag: request.swapContextTag,
+        swapPublicInputHash: request.swapPublicInputHash,
+      });
       requireProtocolSettlementCondition(
-        response.proofReceipt?.intent === "swap-to-shielded",
+        proofReceipt?.intent === "swap-to-shielded",
         "Committed Swap protocol settlement proof receipt intent is not swap-to-shielded.",
       );
       requireProtocolSettlementCondition(
-        response.proofReceipt?.assetId === "hidden:economic-terms",
+        proofReceipt?.assetId === "hidden:economic-terms",
         "Committed Swap proof receipt must use the hidden-economics asset sentinel.",
       );
+      requireProtocolSettlementCondition(
+        proofReceipt !== undefined &&
+          proofReceipt.replayKey === `swap-to-shielded:${request.nullifierOrReplayCommitment}`,
+        "Committed Swap proof receipt replay key does not match the request nullifier/replay commitment.",
+      );
+      requireProtocolSettlementCondition(
+        proofReceipt?.publicInputCommitment ===
+          expectedLocalProofPublicInputCommitment(expectedSwapProofRequest),
+        "Committed Swap proof receipt public input commitment does not match the request.",
+      );
+      for (const [fieldName, fieldValue] of [
+        ["inputCommitment", request.inputCommitment],
+        ["inputRoot", request.inputRoot],
+        ["outputCommitment", request.outputCommitment],
+        ["outputLeafIndex", request.outputLeafIndex],
+        ["outputRoot", request.outputRoot],
+        ["routeCommitment", request.routeCommitment],
+        ["swapContextTag", request.swapContextTag],
+        ["swapPublicInputHash", request.swapPublicInputHash],
+      ] as const) {
+        requireProtocolSettlementCondition(
+          typeof fieldValue === "string" && fieldValue.trim().length > 0,
+          `Committed Swap protocol settlement request is missing ${fieldName}.`,
+        );
+      }
     }
     if (request.action === "send") {
       const proofReceipt = response.proofReceipt;

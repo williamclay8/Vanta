@@ -15,7 +15,7 @@ import { useWalletPublicAssets } from "@/solana/useWalletPublicAssets";
 const appLinks = [
   { to: "/app/shield", label: "Shield", action: "Add funds", end: false },
   { to: "/app/send", label: "Send", action: "Send shielded", end: false },
-  { to: "/app/swap", label: "Swap", action: "Trade shielded", end: false },
+  { to: "/app/swap", label: "Swap", action: "Swap shielded", end: false },
   { to: "/app/strategy", label: "Strategy", action: "Plan trades", end: false },
   { to: "/app/unshield", label: "Unshield", action: "Move out", end: false },
   { to: "/app/pay", label: "Pay", action: "Get paid", end: false },

@@ -97,7 +97,9 @@ export function getShieldedSwapPairCapability(args: {
     }
 
     return {
-      blockers: ["Shielded SOL to shielded asset needs the SOL route adapter before it can execute."],
+      blockers: [
+        "Shielded SOL to shielded asset needs a SOL route adapter with committed settlement evidence before it can execute.",
+      ],
       executionMode: "needs-private-route-adapter",
       inputAsset: args.inputAsset,
       outputAsset: args.outputAsset,
@@ -106,7 +108,9 @@ export function getShieldedSwapPairCapability(args: {
   }
 
   return {
-    blockers: ["This shielded pair needs a private route adapter before it can execute."],
+    blockers: [
+      "This shielded pair needs a route adapter with committed settlement evidence before it can execute.",
+    ],
     executionMode: "needs-private-route-adapter",
     inputAsset: args.inputAsset,
     outputAsset: args.outputAsset,

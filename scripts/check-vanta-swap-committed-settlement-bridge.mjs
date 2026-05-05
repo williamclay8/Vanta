@@ -20,6 +20,12 @@ assert(
   "Swap page must derive committed settlement terms from the canonical swap bridge.",
 );
 assert(
+  swapPage.includes("{ persist: false }") &&
+    swapPage.indexOf("persistCanonicalSwapRecord(canonicalRecord)") >
+      swapPage.indexOf("proofReceipt?.intent !== \"swap-to-shielded\""),
+  "Swap output note must not be treated complete unless committed settlement receipt exists or output root is registered as swap-output.",
+);
+assert(
   swapPage.includes('action: "swap"') && swapPage.includes('economicsMode: "committed-economics"'),
   "Swap settlement request must use committed-economics mode for action swap.",
 );

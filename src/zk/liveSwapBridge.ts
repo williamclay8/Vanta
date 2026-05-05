@@ -173,6 +173,7 @@ export type LiveSwapCommittedSettlementTerms = {
 
 export async function recordCanonicalSwapFromLiveSwap(
   input: LiveSwapCanonicalizationInput,
+  options: { persist?: boolean } = {},
 ): Promise<LiveSwapCanonicalRecord> {
   const existing = listCanonicalSwapRecords().find(
     (record) => record.liveSwap.transitionSignature === input.transition.signature,
@@ -273,7 +274,9 @@ export async function recordCanonicalSwapFromLiveSwap(
     },
   };
 
-  persistCanonicalSwapRecord(record);
+  if (options.persist !== false) {
+    persistCanonicalSwapRecord(record);
+  }
   return record;
 }
 
@@ -521,14 +524,19 @@ async function insertCommitmentIntoCanonicalShieldedState(
   };
 }
 
-function persistCanonicalSwapRecord(record: LiveSwapCanonicalRecord) {
+export function persistCanonicalSwapRecord(record: LiveSwapCanonicalRecord) {
   const storage = getStorage();
 
   if (!storage) {
     return;
   }
 
-  const nextRecords = [...listCanonicalSwapRecords(), record];
+  const existingRecords = listCanonicalSwapRecords();
+  if (existingRecords.some((existingRecord) => existingRecord.recordId === record.recordId)) {
+    return;
+  }
+
+  const nextRecords = [...existingRecords, record];
   storage.setItem(LIVE_SWAP_RECORDS_STORAGE_KEY, JSON.stringify(nextRecords));
 }
 

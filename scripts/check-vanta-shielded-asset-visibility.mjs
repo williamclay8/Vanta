@@ -265,7 +265,9 @@ assert.ok(
   "Send visibility must stay truthful: non-USDC shielded assets are visible but execution-blocked.",
 );
 assert.ok(
-  swapCapabilitySource.includes("This shielded pair needs a private route adapter before it can execute.") &&
+  swapCapabilitySource.includes(
+    "This shielded pair needs a route adapter with committed settlement evidence before it can execute.",
+  ) &&
     swapCapabilitySource.includes("needs-private-route-adapter"),
   "Swap visibility must stay truthful: unsupported pairs are visible but execution-blocked.",
 );

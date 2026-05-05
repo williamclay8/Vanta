@@ -3,6 +3,8 @@ import { resolve } from "node:path";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const swapPageSource = readFileSync(resolve(repoRoot, "src/pages/SwapPage.tsx"), "utf8");
+const shieldStateSource = readFileSync(resolve(repoRoot, "src/solana/vantaShieldState.ts"), "utf8");
+const operatorShieldStateSource = readFileSync(resolve(repoRoot, "operator/vanta-onchain-state.mjs"), "utf8");
 const capabilitySource = readFileSync(
   resolve(repoRoot, "src/solana/shieldedSwapCapability.ts"),
   "utf8",
@@ -24,6 +26,7 @@ const forbiddenMarkers = [
   "useWalletPublicAssets",
   "recordCanonicalShieldFromLiveShield",
   "createShieldMemoInstruction",
+  "recentShield",
   "Vanta will shield",
   "automatically",
   "Routing public swap",
@@ -35,6 +38,8 @@ const requiredMarkers = [
   "selectedSourceAsset",
   "sourcePairCapability",
   "exactSpendableNote",
+  "freshQuote.quoteExpiresAt <= Date.now()",
+  "The latest live quote expired, so the swap path is blocked until a fresh quote is available.",
   "!isReady ||",
 ];
 
@@ -50,6 +55,42 @@ for (const marker of requiredMarkers) {
   if (!swapPageSource.includes(marker)) {
     failures.push(`Swap page missing shield-first marker: ${marker}`);
   }
+}
+
+for (const marker of [
+  "pendingSwapByConsumedNoteId",
+  "pendingSolSwapByConsumedNoteId",
+  "!pendingSwapByConsumedNoteId.has(note.noteId)",
+  "!pendingSolSwapByConsumedNoteId.has(note.noteId)",
+]) {
+  if (!shieldStateSource.includes(marker)) {
+    failures.push(`Swap ledger must exclude pending swap source notes from spendable state: ${marker}`);
+  }
+}
+
+if (!/pendingSolSwapTransition[\s\S]{0,260}lifecycleStatus[\s\S]{0,260}"pending"/.test(shieldStateSource)) {
+  failures.push("Shielded SOL swap sources must become lifecycleStatus=pending before spent-marker finality.");
+}
+
+for (const marker of [
+  "pendingSwapByConsumedNoteId",
+  "pendingSolSwapByConsumedNoteId",
+  "marker.transitionKind !== \"sol_unshield\" && marker.transitionKind !== \"swap\"",
+  "transition.inputAsset !== \"SOL\"",
+  "!pendingSwapByConsumedNoteId.has(note.noteId)",
+  "!pendingSolSwapByConsumedNoteId.has(note.noteId)",
+]) {
+  if (!operatorShieldStateSource.includes(marker)) {
+    failures.push(`Operator swap resolver must exclude pending swap source notes from spendable state: ${marker}`);
+  }
+}
+
+if (!/createSolUnshieldNoteId\(\{[\s\S]{0,120}asset: "SOL"/.test(operatorShieldStateSource)) {
+  failures.push("Operator SOL-unshield fallback ids must keep asset=SOL, not swap output asset.");
+}
+
+if (!/candidateSwapNotes\.filter\([\s\S]{0,220}note\.inputAsset === "SOL"[\s\S]{0,220}note\.consumedNoteId === args\.consumedNoteId/.test(operatorShieldStateSource)) {
+  failures.push("Operator SOL unshield eligibility must reject competing SOL-input swap transitions.");
 }
 
 if (!packageSource.includes('"swap:requires-shielded-state-check"')) {

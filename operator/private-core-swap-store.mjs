@@ -11,6 +11,8 @@ export function createPrivateCoreSwapStore(options = {}) {
       DEFAULT_PRIVATE_CORE_SWAP_STORE_PATH,
   );
   const state = loadStore(filePath);
+  const reservedInputCommitments = new Set();
+  const reservedInputNullifiers = new Set();
 
   return {
     filePath,
@@ -22,8 +24,44 @@ export function createPrivateCoreSwapStore(options = {}) {
         .map(normalizeSwapRecord)
         .sort((left, right) => right.completedAt - left.completedAt);
     },
+    hasInputCommitment(inputCommitment) {
+      return this.listSwaps().some((record) => record.inputCommitment === inputCommitment);
+    },
+    hasInputNullifier(inputNullifier) {
+      return this.listSwaps().some((record) => record.inputNullifier === inputNullifier);
+    },
+    releaseInputNullifier(inputNullifier, inputCommitment = null) {
+      reservedInputNullifiers.delete(inputNullifier);
+      if (inputCommitment) {
+        reservedInputCommitments.delete(inputCommitment);
+      }
+    },
+    reserveInputNullifier(inputNullifier, inputCommitment = null) {
+      if (
+        this.hasInputNullifier(inputNullifier) ||
+        reservedInputNullifiers.has(inputNullifier) ||
+        (inputCommitment &&
+          (this.hasInputCommitment(inputCommitment) ||
+            reservedInputCommitments.has(inputCommitment)))
+      ) {
+        throw new Error("Duplicate private-core swap input nullifier is already registered.");
+      }
+      reservedInputNullifiers.add(inputNullifier);
+      if (inputCommitment) {
+        reservedInputCommitments.add(inputCommitment);
+      }
+    },
     recordSwap(record) {
-      state.swaps[record.swapId] = normalizeSwapRecord(record);
+      const normalizedRecord = normalizeSwapRecord(record);
+      if (
+        this.hasInputNullifier(normalizedRecord.inputNullifier) ||
+        this.hasInputCommitment(normalizedRecord.inputCommitment)
+      ) {
+        throw new Error("Duplicate private-core swap input nullifier is already registered.");
+      }
+      state.swaps[normalizedRecord.swapId] = normalizedRecord;
+      reservedInputNullifiers.delete(normalizedRecord.inputNullifier);
+      reservedInputCommitments.delete(normalizedRecord.inputCommitment);
       persistStore(filePath, state);
     },
   };
@@ -74,6 +112,7 @@ function normalizeSwapRecord(record) {
       typeof record?.executionVenueLabel === "string" && record.executionVenueLabel.length > 0
         ? record.executionVenueLabel
         : null,
+    inputCommitment: typeof record?.inputCommitment === "string" ? record.inputCommitment : "",
     inputAssetId: typeof record?.inputAssetId === "string" ? record.inputAssetId : "",
     inputNullifier: typeof record?.inputNullifier === "string" ? record.inputNullifier : "",
     inputRoot: typeof record?.inputRoot === "string" ? record.inputRoot : "",

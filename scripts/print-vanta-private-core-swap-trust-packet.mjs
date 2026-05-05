@@ -181,13 +181,13 @@ function buildSwapTrustPacket({ baseUrl, status }) {
             latestSwap.executionVenueLabel,
             latestSwap.executionQuoteReference,
           ]),
-          quoteReference:
+          quoteReferenceCommitment:
             typeof latestSwap.executionQuoteReference === "string"
-              ? latestSwap.executionQuoteReference
+              ? commitmentFromParts("swap-quote-reference", [latestSwap.executionQuoteReference])
               : null,
-          venueLabel:
+          venueLabelCommitment:
             typeof latestSwap.executionVenueLabel === "string"
-              ? latestSwap.executionVenueLabel
+              ? commitmentFromParts("swap-venue-label", [latestSwap.executionVenueLabel])
               : null,
           quoteExpiresAt: latestSwap.quoteExpiresAt ?? null,
         }
@@ -243,6 +243,11 @@ function buildSwapTrustPacket({ baseUrl, status }) {
         "vault owner",
         "private witness material",
       ],
+      operatorVisibleRawEconomics: [
+        "raw input/output amounts remain operator-visible in private-core swap-transition records",
+        "route adapter and live venue paths can still see raw input/output assets, quote id, route, slippage, and pool metadata",
+        "public SPL memo beta execution still serializes raw swap terms until commitment-only swap memos replace it",
+      ],
       localPrivacyPrimitives: [
         "swap-to-shielded proof request",
         "swap-to-shielded executable circuit fixture",
@@ -257,6 +262,7 @@ function buildSwapTrustPacket({ baseUrl, status }) {
         "safe logging and indexer evidence",
         "anonymity-set readiness",
         "production evidence",
+        "proof coverage is limited to local/operator-linked transition evidence; quote route, live venue privacy, anonymity set, and production settlement remain unproven",
         "audited prover/verifier key boundary",
         "fresh bounded real-funds approval for the exact Swap action",
       ],
@@ -291,7 +297,13 @@ function validateSwapTrustPacket(packet) {
     );
   }
   if (packet.latestTransition) {
-    for (const field of ["quoteExpiresAt", "economicsCommitment", "settlementCommitment"]) {
+    for (const field of [
+      "quoteExpiresAt",
+      "economicsCommitment",
+      "settlementCommitment",
+      "quoteReferenceCommitment",
+      "venueLabelCommitment",
+    ]) {
       assert(
         field in packet.latestTransition,
         `Swap packet latest transition must expose ${field} when transition evidence exists.`,
@@ -303,6 +315,18 @@ function validateSwapTrustPacket(packet) {
       "atomic local verifier/indexer nullifier registration and output append",
     ),
     "Swap packet must expose the checked local atomic verifier/indexer mutation.",
+  );
+  assert(
+    packet.privacyDisclosure.operatorVisibleRawEconomics.includes(
+      "raw input/output amounts remain operator-visible in private-core swap-transition records",
+    ),
+    "Swap packet must disclose operator-visible raw economics that remain outside the committed packet.",
+  );
+  assert(
+    packet.privacyDisclosure.remainingBlockers.includes(
+      "proof coverage is limited to local/operator-linked transition evidence; quote route, live venue privacy, anonymity set, and production settlement remain unproven",
+    ),
+    "Swap packet must preserve the proof-coverage limitation.",
   );
   assert(
     !packet.privacyDisclosure.remainingBlockers.includes(

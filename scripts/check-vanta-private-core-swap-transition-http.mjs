@@ -267,6 +267,28 @@ try {
     `operator swap transition: PASS (${transitionResponse.parsed.proofFieldCount} fields / ${transitionResponse.parsed.publicInputCount} public inputs)`,
   );
 
+  const duplicateTransitionResponse = await requestJson(baseUrl, "/private-core/swap-transition", {
+    body: JSON.stringify({
+      executionQuoteReference: `${executionQuoteReference}-duplicate`,
+      executionVenueLabel,
+      resultingRoot,
+      witnessPackage: swapWitnessPackage,
+    }),
+    method: "POST",
+  });
+  if (
+    duplicateTransitionResponse.ok ||
+    !duplicateTransitionResponse.text.includes(
+      "Duplicate private-core swap input nullifier is already registered.",
+    )
+  ) {
+    throw new Error(
+      duplicateTransitionResponse.text ||
+        "operator swap transition duplicate nullifier guard did not fire",
+    );
+  }
+  printStatus("operator swap transition duplicate input guard: PASS");
+
   const swapState = await requestJson(baseUrl, "/state/private-core-swaps", { method: "GET" });
   if (
     !swapState.ok ||

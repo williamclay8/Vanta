@@ -1677,8 +1677,9 @@ function parseSwapMemo(
           : undefined,
       stateSignature,
       vaultOwner,
-      venueFamily: venueFamily === "DLMM" ? "DLMM" : undefined,
-      venueName: venueName === "Meteora" ? "Meteora" : undefined,
+      venueFamily:
+        venueFamily === "DLMM" || venueFamily === "Aggregator" ? venueFamily : undefined,
+      venueName: typeof venueName === "string" ? venueName : undefined,
       venueNetwork: venueNetwork === "Mainnet" ? "Mainnet" : undefined,
       venuePoolAddress:
         typeof venuePoolAddress === "string" ? venuePoolAddress : undefined,
@@ -2193,7 +2194,7 @@ export async function fetchVantaShieldAccountState(args: {
         marker.transitionNoteId === note.noteId,
     );
   });
-  const validSwapNotes = candidateSwapNotes.filter((note) => {
+  const validShieldInputSwapNotes = candidateSwapNotes.filter((note) => {
     return shieldSpentMarkers.some(
       (marker) =>
         marker.transitionKind === "swap" && marker.transitionNoteId === note.noteId,
@@ -2201,14 +2202,10 @@ export async function fetchVantaShieldAccountState(args: {
   });
   const baseShieldedSolNotes = [
     ...directShieldedSolNotes,
-    ...validSwapNotes
+    ...validShieldInputSwapNotes
       .map((note) => shieldedSolNotesBySwap.get(note.noteId))
       .filter((note): note is NonNullable<typeof note> => note !== undefined),
   ];
-  const swapOutputNotes = validSwapNotes
-    .map((note) => shieldTokenNotesBySwap.get(note.noteId))
-    .filter((note): note is NonNullable<typeof note> => note !== undefined)
-    .sort((left, right) => left.createdAt - right.createdAt);
 
   const solSpentMarkers = explicitSpentMarkers
     .filter((marker) => marker.asset === "SOL")
@@ -2297,6 +2294,20 @@ export async function fetchVantaShieldAccountState(args: {
         marker.transitionNoteId === note.noteId,
     );
   });
+  const validSolInputSwapNotes = candidateSwapNotes.filter((note) => {
+    return solSpentMarkers.some(
+      (marker) =>
+        marker.transitionKind === "swap" && marker.transitionNoteId === note.noteId,
+    );
+  });
+  const validSwapNotes = [
+    ...validShieldInputSwapNotes,
+    ...validSolInputSwapNotes,
+  ].sort((left, right) => left.createdAt - right.createdAt);
+  const swapOutputNotes = validSwapNotes
+    .map((note) => shieldTokenNotesBySwap.get(note.noteId))
+    .filter((note): note is NonNullable<typeof note> => note !== undefined)
+    .sort((left, right) => left.createdAt - right.createdAt);
   const spentMarkers = [...shieldSpentMarkers, ...solSpentMarkers].sort(
     (left, right) => left.createdAt - right.createdAt,
   );
@@ -2342,8 +2353,62 @@ export async function fetchVantaShieldAccountState(args: {
   const pendingUnshieldByConsumedNoteId = new Map(
     candidateUnshieldNotes.map((note) => [note.consumedNoteId, note] as const),
   );
+  const pendingSwapByConsumedNoteId = new Map(
+    candidateSwapNotes
+      .filter((note) => {
+        if (
+          note.inputAsset === "SOL" ||
+          transitionByConsumedNoteId.has(note.consumedNoteId)
+        ) {
+          return false;
+        }
+
+        const consumedShieldNote = allShieldNotesById.get(note.consumedNoteId);
+
+        if (
+          !consumedShieldNote ||
+          consumedShieldNote.asset !== note.inputAsset ||
+          consumedNoteIds.has(note.consumedNoteId)
+        ) {
+          return false;
+        }
+
+        const inputDecimals = getShieldAssetAmountDecimals(note.inputAsset);
+
+        return amountsMatch(
+          Number(note.inputAmount.toFixed(inputDecimals)),
+          Number(consumedShieldNote.amount.toFixed(inputDecimals)),
+        );
+      })
+      .map((note) => [note.consumedNoteId, note] as const),
+  );
   const pendingSolUnshieldByConsumedNoteId = new Map(
     candidateSolUnshieldNotes.map((note) => [note.consumedNoteId, note] as const),
+  );
+  const pendingSolSwapByConsumedNoteId = new Map(
+    candidateSwapNotes
+      .filter((note) => {
+        if (
+          note.inputAsset !== "SOL" ||
+          transitionByConsumedNoteId.has(note.consumedNoteId) ||
+          consumedSolNoteIds.has(note.consumedNoteId)
+        ) {
+          return false;
+        }
+
+        const consumedSolNote = baseShieldedSolNotes.find(
+          (solNote) => solNote.noteId === note.consumedNoteId,
+        );
+
+        return (
+          consumedSolNote !== undefined &&
+          amountsMatch(
+            Number(note.inputAmount.toFixed(9)),
+            Number(consumedSolNote.amount.toFixed(9)),
+          )
+        );
+      })
+      .map((note) => [note.consumedNoteId, note] as const),
   );
 
   const changeNotes = [...changeNotesByParentSend.values()].sort((left, right) => {
@@ -2365,18 +2430,22 @@ export async function fetchVantaShieldAccountState(args: {
       !consumedNoteIds.has(note.noteId) &&
       !transitionByConsumedNoteId.has(note.noteId) &&
       !pendingSendByConsumedNoteId.has(note.noteId) &&
-      !pendingUnshieldByConsumedNoteId.has(note.noteId)
+      !pendingUnshieldByConsumedNoteId.has(note.noteId) &&
+      !pendingSwapByConsumedNoteId.has(note.noteId)
     );
   });
   const shieldedSolNotes = baseShieldedSolNotes
     .map((note) => {
       const spentMarker = spentMarkerByConsumedNoteId.get(note.noteId);
       const pendingUnshieldTransition = pendingSolUnshieldByConsumedNoteId.get(note.noteId);
+      const pendingSolSwapTransition = pendingSolSwapByConsumedNoteId.get(note.noteId);
       const consumingTransition =
-        transitionByConsumedNoteId.get(note.noteId) ?? pendingUnshieldTransition;
+        transitionByConsumedNoteId.get(note.noteId) ??
+        pendingUnshieldTransition ??
+        pendingSolSwapTransition;
       const lifecycleStatus = spentMarker
         ? "consumed"
-        : pendingUnshieldTransition
+        : pendingUnshieldTransition || pendingSolSwapTransition
           ? "pending"
           : "spendable";
 
@@ -2399,7 +2468,8 @@ export async function fetchVantaShieldAccountState(args: {
     return (
       note.lifecycleStatus === "spendable" &&
       !transitionByConsumedNoteId.has(note.noteId) &&
-      !pendingSolUnshieldByConsumedNoteId.has(note.noteId)
+      !pendingSolUnshieldByConsumedNoteId.has(note.noteId) &&
+      !pendingSolSwapByConsumedNoteId.has(note.noteId)
     );
   });
   const consumedShieldedSolNotes = shieldedSolNotes.filter((note) => {
@@ -2419,15 +2489,18 @@ export async function fetchVantaShieldAccountState(args: {
       const spentMarker = spentMarkerByConsumedNoteId.get(note.noteId);
       const pendingSendTransition = pendingSendByConsumedNoteId.get(note.noteId);
       const pendingUnshieldTransition = pendingUnshieldByConsumedNoteId.get(note.noteId);
+      const pendingSwapTransition = pendingSwapByConsumedNoteId.get(note.noteId);
       const consumingTransition =
         transitionByConsumedNoteId.get(note.noteId) ??
         pendingSendTransition ??
-        pendingUnshieldTransition;
+        pendingUnshieldTransition ??
+        pendingSwapTransition;
       const lifecycleStatus = spentMarker
         ? "consumed"
         : pendingSendTransition ? "pending"
           : pendingUnshieldTransition ? "pending"
-            : "spendable";
+            : pendingSwapTransition ? "pending"
+              : "spendable";
 
       return {
         amount: note.amount,

@@ -35,6 +35,11 @@ const liquidityKeypairPath = process.env.VANTA_SOL_TO_SHIELDED_LIQUIDITY_KEYPAIR
 const slippageBps = Number(process.env.VANTA_SOL_TO_SHIELDED_SLIPPAGE_BPS ?? "50");
 const quoteTtlMs = Number(process.env.VANTA_SOL_TO_SHIELDED_QUOTE_TTL_MS ?? "30000");
 const nativeSolMint = "So11111111111111111111111111111111111111112";
+const routeProvider = "Jupiter";
+const privatePoolV2HiddenEconomicsAssetId = "hidden:economic-terms";
+const privatePoolV2LocalProverScheme = "sha256-private-pool-v2-local-prover-0.1";
+const privatePoolV2SwapToShieldedProofRequestVersion =
+  "vanta-private-pool-v2-swap-to-shielded-proof-request-0.1";
 
 const defaultMainnetAssets = {
   BONK: {
@@ -79,6 +84,116 @@ function hashHex(...parts) {
     hash.update("\0");
   }
   return `0x${hash.digest("hex")}`;
+}
+
+function hashProtocolSettlementParts(...parts) {
+  return `0x${createHash("sha256").update(parts.join("\u001f")).digest("hex")}`;
+}
+
+function localSwapProofPublicInputCommitment({
+  economicsCommitment,
+  inputCommitment,
+  inputRoot,
+  nullifierOrReplayCommitment,
+  outputCommitment,
+  outputLeafIndex,
+  outputRoot,
+  ownerCommitment,
+  routeCommitment,
+  settlementCommitment,
+  swapContextTag,
+  swapPublicInputHash,
+}) {
+  const serializedRequest = JSON.stringify({
+    amountBaseUnits: "1",
+    assetId: privatePoolV2HiddenEconomicsAssetId,
+    circuitPublicInputs: [`swap-public-input-hash:${swapPublicInputHash}`],
+    intent: "swap-to-shielded",
+  });
+
+  return hashProtocolSettlementParts(
+    privatePoolV2LocalProverScheme,
+    "public-inputs",
+    serializedRequest,
+  );
+}
+
+function requireSettlementCondition(condition, message) {
+  if (!condition) {
+    throw new Error(message);
+  }
+}
+
+function validateCommittedSwapSettlementResponse({ request, response }) {
+  const receipt = response?.protocolSettlementReceipt;
+  const proofReceipt = response?.proofReceipt;
+  const expectedProofPublicInputCommitment = localSwapProofPublicInputCommitment(request);
+
+  requireSettlementCondition(
+    response?.kind === "protocol_settlement",
+    "Private Pool v2 settlement response kind is invalid.",
+  );
+  requireSettlementCondition(
+    receipt?.object === "protocol_settlement_receipt",
+    "Private Pool v2 settlement receipt object is invalid.",
+  );
+  requireSettlementCondition(
+    receipt.action === "swap",
+    "Private Pool v2 settlement receipt action does not match the SOL route request.",
+  );
+  requireSettlementCondition(
+    receipt.economicsMode === "committed-economics",
+    "Private Pool v2 settlement receipt must use committed economics.",
+  );
+  requireSettlementCondition(
+    receipt.economicsCommitment === request.economicsCommitment,
+    "Private Pool v2 settlement receipt economics commitment does not match the SOL route request.",
+  );
+  requireSettlementCondition(
+    receipt.settlementId === request.settlementId,
+    "Private Pool v2 settlement receipt id does not match the SOL route request.",
+  );
+  requireSettlementCondition(
+    receipt.settlementCommitment === request.settlementCommitment,
+    "Private Pool v2 settlement receipt commitment does not match the SOL route request.",
+  );
+  requireSettlementCondition(
+    receipt.status === "confirmed",
+    "Private Pool v2 settlement receipt is not confirmed.",
+  );
+  requireSettlementCondition(
+    proofReceipt?.intent === "swap-to-shielded",
+    "Private Pool v2 proof receipt intent is not swap-to-shielded.",
+  );
+  requireSettlementCondition(
+    proofReceipt?.assetId === privatePoolV2HiddenEconomicsAssetId,
+    "Private Pool v2 proof receipt must use the hidden-economics asset sentinel.",
+  );
+  requireSettlementCondition(
+    proofReceipt?.replayKey === `swap-to-shielded:${request.nullifierOrReplayCommitment}`,
+    "Private Pool v2 proof receipt replay key does not match the SOL route request.",
+  );
+  requireSettlementCondition(
+    proofReceipt?.publicInputCommitment === expectedProofPublicInputCommitment,
+    "Private Pool v2 proof receipt public input commitment does not match the SOL route request.",
+  );
+  requireSettlementCondition(
+    receipt.proofReceiptId === `ppv2_${proofReceipt.receiptId.slice(2, 26)}`,
+    "Private Pool v2 settlement receipt proof id does not match the proof receipt.",
+  );
+  requireSettlementCondition(
+    receipt.proofReceiptPublicInputCommitment === proofReceipt.publicInputCommitment,
+    "Private Pool v2 settlement receipt public input commitment does not match the proof receipt.",
+  );
+
+  for (const rawField of ["amount", "asset", "destination", "owner"]) {
+    requireSettlementCondition(
+      !(rawField in receipt),
+      `Private Pool v2 committed settlement receipt leaked raw ${rawField}.`,
+    );
+  }
+
+  return response;
 }
 
 function readState() {
@@ -285,25 +400,42 @@ async function requestJupiterQuote({ inputAmount, outputAsset }) {
   }
 
   const quoteTimestamp = Date.now();
+  const quoteExpiresAt = quoteTimestamp + quoteTtlMs;
+  const routePlanHash = hashHex(
+    "jupiter-route-plan",
+    JSON.stringify(quoteResponse.routePlan ?? []),
+  );
   const quoteId = hashHex(
     "jupiter-sol-to-shielded-quote",
+    "sol-to-shielded-v1",
+    routeProvider,
+    nativeSolMint,
+    asset.mintAddress,
     outputAsset,
     quoteResponse.inAmount,
     quoteResponse.outAmount,
+    slippageBps,
+    routePlanHash,
     quoteTimestamp,
+    quoteExpiresAt,
   );
   const outputAmount = atomicToDecimal(quoteResponse.outAmount, asset.decimals);
   const quote = {
     inputAmount,
     inputAsset: "SOL",
+    inputMintAddress: nativeSolMint,
     outputAmount,
     outputAsset: asset.symbol,
-    quoteExpiresAt: quoteTimestamp + quoteTtlMs,
+    outputMintAddress: asset.mintAddress,
+    quoteExpiresAt,
     quoteId,
     quoteTimestamp,
     routeAdapter: "sol-to-shielded-v1",
+    routePlanHash,
+    routeProvider,
+    slippageBps,
     venueFamily: "Aggregator",
-    venueName: "Jupiter",
+    venueName: routeProvider,
     venueNetwork,
     venuePoolAddress: "jupiter-metis",
   };
@@ -396,8 +528,13 @@ async function requestProtocolSettlement({ body, outputLeafIndex, publicSwapSign
     "economics",
     quoteEntry.quote.inputAmount,
     quoteEntry.quote.outputAmount,
+    "SOL",
     body.outputAsset,
+    body.inputMintAddress,
+    body.outputMintAddress,
     body.quoteId,
+    body.quoteExpiresAt,
+    body.slippageBps,
   );
   const inputCommitment = hashHex("input", body.consumedNoteId, body.inputAmount, "SOL");
   const inputRoot = hashHex("input-root", body.consumedNoteId, body.vaultOwner);
@@ -418,10 +555,14 @@ async function requestProtocolSettlement({ body, outputLeafIndex, publicSwapSign
   const ownerCommitment = hashHex("owner", body.owner, body.vaultOwner);
   const routeCommitment = hashHex(
     "route",
-    "jupiter",
+    routeProvider,
     publicSwapSignature,
     body.quoteId,
-    quoteEntry.quoteResponse.routePlan ? JSON.stringify(quoteEntry.quoteResponse.routePlan) : "",
+    body.routePlanHash,
+    body.slippageBps,
+    body.inputMintAddress,
+    body.outputMintAddress,
+    body.quoteExpiresAt,
   );
   const settlementCommitment = hashHex(
     "settlement",
@@ -445,31 +586,53 @@ async function requestProtocolSettlement({ body, outputLeafIndex, publicSwapSign
     ownerCommitment,
     swapContextTag,
   );
+  const expectedSettlementRequest = {
+    action: "swap",
+    economicsCommitment,
+    economicsMode: "committed-economics",
+    inputCommitment,
+    inputRoot,
+    nullifierOrReplayCommitment,
+    outputCommitment,
+    outputLeafIndex,
+    outputRoot,
+    ownerCommitment,
+    routeCommitment,
+    settlementCommitment,
+    settlementId,
+    swapContextTag,
+    swapPublicInputHash,
+  };
 
   if (executionMode === "mock") {
+    const proofPublicInputCommitment = localSwapProofPublicInputCommitment(expectedSettlementRequest);
     const proofReceipt = {
-      assetId: "vanta-private-pool-v2-hidden-economics-asset",
+      assetId: privatePoolV2HiddenEconomicsAssetId,
       intent: "swap-to-shielded",
-      publicInputCommitment: swapPublicInputHash,
+      publicInputCommitment: proofPublicInputCommitment,
       receiptId: hashHex("mock-proof-receipt", settlementId),
       recordedAtSlot: "mock",
-      replayKey: nullifierOrReplayCommitment,
+      replayKey: `swap-to-shielded:${nullifierOrReplayCommitment}`,
     };
-    return {
-      proofReceipt,
-      protocolSettlementReceipt: {
-        action: "swap",
-        economicsCommitment,
-        economicsMode: "committed-economics",
-        id: hashHex("mock-protocol-receipt", settlementId),
-        object: "protocol_settlement_receipt",
-        proofReceiptId: `ppv2_${proofReceipt.receiptId.slice(2, 26)}`,
-        proofReceiptPublicInputCommitment: proofReceipt.publicInputCommitment,
-        settlementCommitment,
-        settlementId,
-        status: "confirmed",
+    return validateCommittedSwapSettlementResponse({
+      request: expectedSettlementRequest,
+      response: {
+        kind: "protocol_settlement",
+        proofReceipt,
+        protocolSettlementReceipt: {
+          action: "swap",
+          economicsCommitment,
+          economicsMode: "committed-economics",
+          id: hashHex("mock-protocol-receipt", settlementId),
+          object: "protocol_settlement_receipt",
+          proofReceiptId: `ppv2_${proofReceipt.receiptId.slice(2, 26)}`,
+          proofReceiptPublicInputCommitment: proofReceipt.publicInputCommitment,
+          settlementCommitment,
+          settlementId,
+          status: "confirmed",
+        },
       },
-    };
+    });
   }
 
   if (!privatePoolOperatorUrl) {
@@ -507,7 +670,10 @@ async function requestProtocolSettlement({ body, outputLeafIndex, publicSwapSign
     throw new Error(payload.error ?? `Private Pool v2 settlement failed with HTTP ${response.status}.`);
   }
 
-  return payload;
+  return validateCommittedSwapSettlementResponse({
+    request: expectedSettlementRequest,
+    response: payload,
+  });
 }
 
 async function handleQuote(body) {
@@ -531,15 +697,22 @@ async function handleExecute(body) {
     throw new Error("Execution quote is missing or expired. Refresh the quote and try again.");
   }
 
-  if (Date.now() > quoteEntry.quote.quoteExpiresAt) {
+  if (Date.now() >= quoteEntry.quote.quoteExpiresAt) {
     quoteStore.delete(body.quoteId);
     throw new Error("Execution quote expired. Refresh the quote and try again.");
   }
 
   if (
     quoteEntry.quote.outputAsset !== body.outputAsset ||
+    quoteEntry.quote.inputMintAddress !== body.inputMintAddress ||
+    quoteEntry.quote.outputMintAddress !== body.outputMintAddress ||
     quoteEntry.quote.inputAmount !== body.inputAmount ||
-    quoteEntry.quote.outputAmount !== body.outputAmount
+    quoteEntry.quote.outputAmount !== body.outputAmount ||
+    quoteEntry.quote.quoteTimestamp !== body.quoteTimestamp ||
+    quoteEntry.quote.quoteExpiresAt !== body.quoteExpiresAt ||
+    quoteEntry.quote.routeProvider !== body.routeProvider ||
+    quoteEntry.quote.routePlanHash !== body.routePlanHash ||
+    quoteEntry.quote.slippageBps !== body.slippageBps
   ) {
     throw new Error("Execution request does not match the active Jupiter quote.");
   }
@@ -559,14 +732,22 @@ async function handleExecute(body) {
   const receipt = {
     adapterReceiptId: hashHex("adapter-receipt", body.quoteId, publicSwapSignature),
     inputAsset: "SOL",
+    inputMintAddress: body.inputMintAddress,
+    outputLeafIndex,
     outputAsset: body.outputAsset,
+    outputMintAddress: body.outputMintAddress,
     outputNoteId: body.outputNoteId,
     proofReceipt: settlement.proofReceipt,
     protocolSettlementReceipt: settlement.protocolSettlementReceipt,
     publicSwapSignature,
+    quoteExpiresAt: body.quoteExpiresAt,
     quoteId: body.quoteId,
+    quoteTimestamp: body.quoteTimestamp,
     requestId: hashHex("adapter-request", body.quoteId, body.transitionNoteId),
     routeAdapter: "sol-to-shielded-v1",
+    routePlanHash: body.routePlanHash,
+    routeProvider: body.routeProvider,
+    slippageBps: body.slippageBps,
     transitionNoteId: body.transitionNoteId,
   };
 
