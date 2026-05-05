@@ -14,8 +14,10 @@ const sourceFiles = [
   "protocolAdapter.ts",
   "privatePoolV2Types.ts",
   "privatePoolV2ProofRequests.ts",
+  "privatePoolV2ProtocolSettlementClient.ts",
   "privatePoolV2LocalIndexer.ts",
   "privatePoolV2LocalProver.ts",
+  "vantaShieldCommittedSettlement.ts",
 ];
 const port = 9880 + Math.floor(Math.random() * 300);
 const baseUrl = `http://127.0.0.1:${port}`;
@@ -30,6 +32,7 @@ const payPrivateSettlementAdapterVersion = "vanta-pay-private-settlement-adapter
 const hiddenEconomicsAssetId = "hidden:economic-terms";
 const mainnetUsdcMintAddress = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 const mainnetVaultOwner = "7yUfwUmZMYLg95xJGR762z4WpqfR6hBRqt9mcgNArtdi";
+const browserShieldReceiptPath = "/private-pool-v2/public/shield-receipts";
 
 function assert(condition, message) {
   if (!condition) {
@@ -181,10 +184,15 @@ async function loadFixtureRuntime() {
     { createVantaPrivatePoolV2ClaimProofRequest, createVantaPrivatePoolV2ShieldProofRequest },
     { createVantaPrivatePoolV2LocalIndexer },
     { createVantaPrivatePoolV2LocalProver },
+    {
+      createVantaShieldCommittedEconomicsSettlement,
+      serializeVantaShieldCommittedEconomicsSettlementOpening,
+    },
   ] = await Promise.all([
     import(pathToFileURL(join(tempJsDir, "privatePoolV2ProofRequests.js")).href),
     import(pathToFileURL(join(tempJsDir, "privatePoolV2LocalIndexer.js")).href),
     import(pathToFileURL(join(tempJsDir, "privatePoolV2LocalProver.js")).href),
+    import(pathToFileURL(join(tempJsDir, "vantaShieldCommittedSettlement.js")).href),
   ]);
 
   const indexer = createVantaPrivatePoolV2LocalIndexer();
@@ -223,6 +231,8 @@ async function loadFixtureRuntime() {
   return {
     claimProof: await prover.prove(claimRequest),
     claimRequest,
+    createVantaShieldCommittedEconomicsSettlement,
+    serializeVantaShieldCommittedEconomicsSettlementOpening,
     shieldProof: await prover.prove(shieldRequest),
     shieldRequest,
   };
@@ -242,6 +252,40 @@ function encodePayload({ proof, request }) {
 }
 
 const fixture = await loadFixtureRuntime();
+
+function createBrowserShieldReceiptFixture(label) {
+  const settlement = fixture.createVantaShieldCommittedEconomicsSettlement({
+    amount: "0.0100",
+    depositSignature: `${label}-deposit-signature`,
+    owner: "owner-public-key",
+    routeEvidence: null,
+    settlementId: `${label}-state-signature`,
+    shieldCapability: {
+      blockers: [],
+      mode: "direct-native-sol",
+      requiresPublicRoute: false,
+      sourceAsset: {
+        mintAddress: "SOL",
+        symbol: "SOL",
+      },
+      supportsDirectShield: true,
+      targetShieldAsset: {
+        assetKey: "SOL",
+        label: "Shielded SOL",
+        mintAddress: "SOL",
+        name: "SOL",
+      },
+    },
+    sourceAsset: "SOL",
+    vaultOwner: mainnetVaultOwner,
+  });
+
+  return {
+    opening: fixture.serializeVantaShieldCommittedEconomicsSettlementOpening(settlement.opening),
+    request: settlement.request,
+  };
+}
+
 const insecureProductionServer = spawn("node", ["operator/private-pool-v2-server.mjs"], {
   cwd: repoRoot,
   env: {
@@ -354,6 +398,108 @@ try {
     method: "OPTIONS",
   });
   assert(unshieldPreflight.status === 204, "Expected public Unshield preflight to bypass bearer auth.");
+  const browserShieldPreflight = await requestJsonAt(authBaseUrl, browserShieldReceiptPath, {
+    headers: {
+      "Access-Control-Request-Headers": "content-type",
+      "Access-Control-Request-Method": "POST",
+      Origin: "https://vantaprivacy.xyz",
+    },
+    method: "OPTIONS",
+  });
+  assert(
+    browserShieldPreflight.status === 204,
+    "Expected browser Shield receipt preflight to bypass bearer auth without exposing the operator token.",
+  );
+  const browserShieldReceiptFixture = createBrowserShieldReceiptFixture("browser-shield");
+  const browserShieldReceipt = await requestJsonAt(authBaseUrl, browserShieldReceiptPath, {
+    body: JSON.stringify(browserShieldReceiptFixture),
+    headers: {
+      Origin: "https://vantaprivacy.xyz",
+    },
+    method: "POST",
+  });
+  assert(
+    browserShieldReceipt.ok,
+    browserShieldReceipt.text || "Expected browser-safe committed Shield receipt route.",
+  );
+  assert(
+    browserShieldReceipt.parsed?.proofReceipt?.intent === "shield",
+    "Expected browser-safe Shield receipt to preserve Shield proof intent.",
+  );
+  assert(
+    browserShieldReceipt.parsed?.protocolSettlementReceipt?.economicsMode === "committed-economics",
+    "Expected browser-safe Shield receipt to stay in committed-economics mode.",
+  );
+  assert(
+    !("amount" in browserShieldReceipt.parsed.protocolSettlementReceipt) &&
+      !("owner" in browserShieldReceipt.parsed.protocolSettlementReceipt),
+    "Browser-safe Shield receipt must not expose raw amount or owner fields.",
+  );
+  const tamperedBrowserShieldReceiptFixture = createBrowserShieldReceiptFixture("browser-shield-tamper");
+  const tamperedBrowserShieldReceipt = await requestJsonAt(authBaseUrl, browserShieldReceiptPath, {
+    body: JSON.stringify({
+      opening: {
+        ...tamperedBrowserShieldReceiptFixture.opening,
+        output: {
+          ...tamperedBrowserShieldReceiptFixture.opening.output,
+          preimageParts: [
+            ...tamperedBrowserShieldReceiptFixture.opening.output.preimageParts.slice(0, 4),
+            "tampered-deposit-signature",
+          ],
+        },
+      },
+      request: tamperedBrowserShieldReceiptFixture.request,
+    }),
+    headers: {
+      Origin: "https://vantaprivacy.xyz",
+    },
+    method: "POST",
+  });
+  assert(
+    !tamperedBrowserShieldReceipt.ok &&
+      String(tamperedBrowserShieldReceipt.parsed?.error ?? "").includes("opening"),
+    tamperedBrowserShieldReceipt.text || "Expected mismatched browser Shield opening to be rejected.",
+  );
+  const rejectedRawBrowserShieldReceipt = await requestJsonAt(authBaseUrl, browserShieldReceiptPath, {
+    body: JSON.stringify({
+      opening: browserShieldReceiptFixture.opening,
+      request: {
+        action: "shield",
+        amount: "1",
+        asset: "SOL",
+        destination: "vanta-vault",
+        owner: "owner-public-key",
+        settlementId: "raw-browser-shield",
+      },
+    }),
+    headers: {
+      Origin: "https://vantaprivacy.xyz",
+    },
+    method: "POST",
+  });
+  assert(
+    !rejectedRawBrowserShieldReceipt.ok &&
+      String(rejectedRawBrowserShieldReceipt.parsed?.error ?? "").includes("committed Shield"),
+    rejectedRawBrowserShieldReceipt.text || "Expected raw browser Shield receipt to be rejected.",
+  );
+  const rejectedBrowserSendReceipt = await requestJsonAt(authBaseUrl, browserShieldReceiptPath, {
+    body: JSON.stringify({
+      opening: browserShieldReceiptFixture.opening,
+      request: {
+        ...browserShieldReceiptFixture.request,
+        action: "send",
+      },
+    }),
+    headers: {
+      Origin: "https://vantaprivacy.xyz",
+    },
+    method: "POST",
+  });
+  assert(
+    !rejectedBrowserSendReceipt.ok &&
+      String(rejectedBrowserSendReceipt.parsed?.error ?? "").includes("committed Shield"),
+    rejectedBrowserSendReceipt.text || "Expected browser receipt route to reject non-Shield actions.",
+  );
   const authenticatedStatus = await requestJsonAt(authBaseUrl, "/state/private-pool-v2-status", {
     headers: { Authorization: "Bearer vanta-private-pool-v2-test-token" },
   });

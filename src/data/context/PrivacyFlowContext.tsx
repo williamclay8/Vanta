@@ -612,7 +612,7 @@ const initialPrivatePoolV2ProtocolSettlementStatus: VantaPrivatePoolV2ProtocolSe
   lastProtocolSettlementId: null,
   paySettlementCount: 0,
   primaryNote:
-    "Configure VITE_VANTA_PRIVATE_POOL_V2_OPERATOR_URL to show live Private Pool v2 settlement status.",
+    "Configure VITE_VANTA_PRIVATE_POOL_V2_RECEIPT_API_URL to request browser-safe Private Pool v2 Shield receipts.",
   protocolSettlementCount: 0,
   receiptCount: 0,
   statusLabel: "Private Pool v2 operator not configured",

@@ -457,8 +457,8 @@ These commands cover the current Vanta-owned Private Pool v2 benchmark lane:
 - machine-readable protocol action proof modes that distinguish current shield/claim circuit request coverage from local send/swap operator proof-request harnesses
 - settlement fingerprints on Pay checkout, Pay withdrawal, and protocol settlement responses for auditability and replay/conflict comparison
 - local operator store schema v2, including persisted settlement policy and persisted settlement fingerprints
-- typed app-side operator-status, protocol-settlement, and settlement-status client for Shield, Send, Swap, and Unshield when `VITE_VANTA_PRIVATE_POOL_V2_OPERATOR_URL` is configured
-- optional browser/app bearer-token header support through `VITE_VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN` for protected local operator environments
+- typed app-side operator-status, protected protocol-settlement, settlement-status, and browser-safe Shield receipt clients when the relevant Private Pool v2 endpoint is configured
+- browser Shield receipts use `VITE_VANTA_PRIVATE_POOL_V2_RECEIPT_API_URL`, default production builds to the public production receipt API, and never require a browser-exposed operator bearer token
 - app context state for Private Pool v2 protocol settlement health without exposing protocol vocabulary to normal users
 - a durable local operator store with restart-safe shield/claim receipt restoration, Pay/protocol settlement receipt restoration, shield commitment-tree restoration, and post-restart claim replay rejection
 - optional Private Pool v2 Postgres JSONB snapshot persistence through `VANTA_PRIVATE_POOL_V2_DATABASE_URL`, verified by `npm run private-pool-v2:postgres-store-check`

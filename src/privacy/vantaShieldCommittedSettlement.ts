@@ -1,5 +1,5 @@
 import { sha256 } from "@noble/hashes/sha256";
-import { bytesToHex } from "@noble/hashes/utils";
+import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
 
 import type {
   VantaCommittedEconomicsProtocolSettlementRequest,
@@ -132,6 +132,11 @@ export type VantaShieldCommittedEconomicsSettlementOpeningField = {
   preimageParts: readonly string[];
 };
 
+export type VantaShieldCommittedEconomicsSettlementSerializedOpeningField = {
+  nonce: string;
+  preimageParts: readonly string[];
+};
+
 export type VantaShieldCommittedEconomicsSettlementOpening = {
   economics: VantaShieldCommittedEconomicsSettlementOpeningField;
   route: VantaShieldCommittedEconomicsSettlementOpeningField;
@@ -140,6 +145,17 @@ export type VantaShieldCommittedEconomicsSettlementOpening = {
   replay: VantaShieldCommittedEconomicsSettlementOpeningField;
   settlement: VantaShieldCommittedEconomicsSettlementOpeningField;
   source: VantaShieldCommittedEconomicsSettlementOpeningField;
+  settlementIdPreimageParts: readonly string[];
+};
+
+export type VantaShieldCommittedEconomicsSettlementSerializedOpening = {
+  economics: VantaShieldCommittedEconomicsSettlementSerializedOpeningField;
+  route: VantaShieldCommittedEconomicsSettlementSerializedOpeningField;
+  output: VantaShieldCommittedEconomicsSettlementSerializedOpeningField;
+  owner: VantaShieldCommittedEconomicsSettlementSerializedOpeningField;
+  replay: VantaShieldCommittedEconomicsSettlementSerializedOpeningField;
+  settlement: VantaShieldCommittedEconomicsSettlementSerializedOpeningField;
+  source: VantaShieldCommittedEconomicsSettlementSerializedOpeningField;
   settlementIdPreimageParts: readonly string[];
 };
 
@@ -311,6 +327,81 @@ export function createVantaShieldCommittedEconomicsSettlementRequest(
   args: VantaShieldCommittedEconomicsSettlementArgs,
 ): VantaShieldCommittedEconomicsSettlementRequest {
   return createVantaShieldCommittedEconomicsSettlement(args).request;
+}
+
+function serializeOpeningField({
+  nonce,
+  preimageParts,
+}: VantaShieldCommittedEconomicsSettlementOpeningField): VantaShieldCommittedEconomicsSettlementSerializedOpeningField {
+  return {
+    nonce: `0x${bytesToHex(nonce)}`,
+    preimageParts: [...preimageParts],
+  };
+}
+
+function parseOpeningField(
+  field: VantaShieldCommittedEconomicsSettlementSerializedOpeningField,
+  label: string,
+): VantaShieldCommittedEconomicsSettlementOpeningField {
+  if (!field || typeof field !== "object") {
+    throw new Error(`Committed Shield settlement opening requires ${label}.`);
+  }
+
+  const nonceHex = typeof field.nonce === "string" ? field.nonce.replace(/^0x/i, "") : "";
+  if (!/^[0-9a-fA-F]{64}$/.test(nonceHex)) {
+    throw new Error(`Committed Shield settlement opening requires ${label}.nonce as 32-byte hex.`);
+  }
+
+  if (
+    !Array.isArray(field.preimageParts) ||
+    field.preimageParts.some((part) => typeof part !== "string")
+  ) {
+    throw new Error(`Committed Shield settlement opening requires ${label}.preimageParts.`);
+  }
+
+  return {
+    nonce: hexToBytes(nonceHex),
+    preimageParts: [...field.preimageParts],
+  };
+}
+
+export function serializeVantaShieldCommittedEconomicsSettlementOpening(
+  opening: VantaShieldCommittedEconomicsSettlementOpening,
+): VantaShieldCommittedEconomicsSettlementSerializedOpening {
+  return {
+    economics: serializeOpeningField(opening.economics),
+    route: serializeOpeningField(opening.route),
+    output: serializeOpeningField(opening.output),
+    owner: serializeOpeningField(opening.owner),
+    replay: serializeOpeningField(opening.replay),
+    settlement: serializeOpeningField(opening.settlement),
+    source: serializeOpeningField(opening.source),
+    settlementIdPreimageParts: [...opening.settlementIdPreimageParts],
+  };
+}
+
+export function parseVantaShieldCommittedEconomicsSettlementOpening(
+  opening: VantaShieldCommittedEconomicsSettlementSerializedOpening,
+): VantaShieldCommittedEconomicsSettlementOpening {
+  if (
+    !opening ||
+    typeof opening !== "object" ||
+    !Array.isArray(opening.settlementIdPreimageParts) ||
+    opening.settlementIdPreimageParts.some((part) => typeof part !== "string")
+  ) {
+    throw new Error("Committed Shield settlement opening requires settlementIdPreimageParts.");
+  }
+
+  return {
+    economics: parseOpeningField(opening.economics, "economics"),
+    route: parseOpeningField(opening.route, "route"),
+    output: parseOpeningField(opening.output, "output"),
+    owner: parseOpeningField(opening.owner, "owner"),
+    replay: parseOpeningField(opening.replay, "replay"),
+    settlement: parseOpeningField(opening.settlement, "settlement"),
+    source: parseOpeningField(opening.source, "source"),
+    settlementIdPreimageParts: [...opening.settlementIdPreimageParts],
+  };
 }
 
 export function verifyVantaShieldCommittedEconomicsCommitment({

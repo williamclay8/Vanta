@@ -147,6 +147,7 @@ function compileClient() {
     "privatePoolV2Types.ts",
     "privatePoolV2ProofRequests.ts",
     "privatePoolV2ProtocolSettlementClient.ts",
+    "vantaShieldCommittedSettlement.ts",
   ];
 
   for (const file of clientSourceFiles) {
@@ -221,9 +222,13 @@ try {
   const {
     fetchVantaPrivatePoolV2OperatorStatus,
     fetchVantaPrivatePoolV2ProtocolSettlementStatus,
+    requestVantaPrivatePoolV2BrowserShieldReceipt,
     requestVantaPrivatePoolV2ProtocolSettlement,
     validateVantaPrivatePoolV2ProtocolSettlementResponse,
   } = await import(pathToFileURL(join(tempJsDir, "privatePoolV2ProtocolSettlementClient.js")).href);
+  const { createVantaShieldCommittedEconomicsSettlement } = await import(
+    pathToFileURL(join(tempJsDir, "vantaShieldCommittedSettlement.js")).href
+  );
   assert(
     typeof validateVantaPrivatePoolV2ProtocolSettlementResponse === "function",
     "Expected typed protocol settlement client to export response validation.",
@@ -238,6 +243,54 @@ try {
 
   const emptyStatus = await fetchVantaPrivatePoolV2ProtocolSettlementStatus({ authToken, baseUrl });
   assert(emptyStatus?.protocolSettlementCount === 0, "Expected empty protocol settlement status.");
+
+  const browserShieldFixture = createVantaShieldCommittedEconomicsSettlement({
+    amount: "0.0100",
+    depositSignature: "protocol-client-browser-shield-deposit",
+    owner: "protocol-client-browser-shield-owner",
+    routeEvidence: null,
+    settlementId: "protocol-client-browser-shield-state",
+    shieldCapability: {
+      blockers: [],
+      mode: "direct-native-sol",
+      requiresPublicRoute: false,
+      sourceAsset: {
+        mintAddress: "SOL",
+        symbol: "SOL",
+      },
+      supportsDirectShield: true,
+      targetShieldAsset: {
+        assetKey: "SOL",
+        label: "Shielded SOL",
+        mintAddress: "SOL",
+        name: "SOL",
+      },
+    },
+    sourceAsset: "SOL",
+    vaultOwner: "protocol-client-browser-shield-vault",
+  });
+  const browserShieldReceipt = await requestVantaPrivatePoolV2BrowserShieldReceipt({
+    baseUrl,
+    ...browserShieldFixture,
+  });
+  assert(
+    browserShieldReceipt?.protocolSettlementReceipt?.economicsMode === "committed-economics",
+    "Expected browser Shield receipt client to use committed economics.",
+  );
+  assert(
+    browserShieldReceipt?.protocolSettlementReceipt?.action === "shield",
+    "Expected browser Shield receipt client to preserve Shield action.",
+  );
+  assert(
+    browserShieldReceipt?.protocolSettlementReceipt?.settlementId ===
+      browserShieldFixture.request.settlementId,
+    "Expected browser Shield receipt client to preserve committed settlement id.",
+  );
+  assert(
+    !("amount" in browserShieldReceipt.protocolSettlementReceipt) &&
+      !("owner" in browserShieldReceipt.protocolSettlementReceipt),
+    "Expected browser Shield receipt client response to redact raw amount and owner.",
+  );
 
   const setupShield = await requestJson("/private-pool-v2/protocol-settlements", {
     body: JSON.stringify({
@@ -1113,19 +1166,19 @@ try {
 
   const finalStatus = await fetchVantaPrivatePoolV2ProtocolSettlementStatus({ authToken, baseUrl });
   assert(
-    finalStatus?.protocolSettlementCount === settlementRequests.length + 5,
+    finalStatus?.protocolSettlementCount === settlementRequests.length + 6,
     "Expected typed status to report every protocol settlement.",
   );
   assert(
-    finalStatus?.protocolSettlements?.length === settlementRequests.length + 5,
+    finalStatus?.protocolSettlements?.length === settlementRequests.length + 6,
     "Expected typed status to include every protocol settlement.",
   );
   assert(
-    finalStatus?.receiptCount === settlementRequests.length + 5,
+    finalStatus?.receiptCount === settlementRequests.length + 6,
     "Expected one accepted proof receipt per protocol settlement in typed status.",
   );
   assert(
-    finalStatus?.receipts?.length === settlementRequests.length + 5,
+    finalStatus?.receipts?.length === settlementRequests.length + 6,
     "Expected typed status receipts to include every protocol proof receipt.",
   );
 
@@ -1195,11 +1248,11 @@ try {
 
   const finalOperatorStatus = await fetchVantaPrivatePoolV2OperatorStatus({ authToken, baseUrl });
   assert(
-    finalOperatorStatus?.receiptCount === settlementRequests.length + 5,
+    finalOperatorStatus?.receiptCount === settlementRequests.length + 6,
     "Expected typed operator status to report every protocol proof receipt.",
   );
   assert(
-    finalOperatorStatus?.operatorEconomicsExposure?.committedSettlementCount === 3,
+    finalOperatorStatus?.operatorEconomicsExposure?.committedSettlementCount === 4,
     `Expected typed operator status to report committed economics settlement count; received ${finalOperatorStatus?.operatorEconomicsExposure?.committedSettlementCount}.`,
   );
   assert(

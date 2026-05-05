@@ -47,10 +47,12 @@ const sourceFiles = [
   "privatePoolV2LocalRelayer.ts",
   "privatePoolV2LocalVerifierRegistry.ts",
   "privatePoolV2MockRuntime.ts",
+  "privatePoolV2ProtocolSettlementClient.ts",
   "privatePoolV2RemoteServices.ts",
   "privatePoolV2ProofRequests.ts",
   "privatePoolV2ShieldCapabilityAdapter.ts",
   "privatePoolV2SettlementPolicy.ts",
+  "vantaShieldCommittedSettlement.ts",
 ];
 
 function assertProductionAuthToken() {
@@ -152,6 +154,14 @@ function isPublicUnshieldRoute(request) {
   );
 }
 
+function isPublicBrowserShieldReceiptRoute(request) {
+  return request.url === "/private-pool-v2/public/shield-receipts";
+}
+
+function isPublicBrowserCorsRoute(request) {
+  return isPublicUnshieldRoute(request) || isPublicBrowserShieldReceiptRoute(request);
+}
+
 let unshieldOperatorHandlerPromise = null;
 
 async function handlePublicUnshieldRoute(request, response) {
@@ -175,6 +185,22 @@ async function handlePublicUnshieldRoute(request, response) {
       )}\n`,
     );
   }
+}
+
+async function handlePublicBrowserShieldReceiptRoute(request, response) {
+  writeBrowserCorsHeaders(response);
+
+  if (request.method !== "POST") {
+    sendJson(response, 405, {
+      error: "Browser committed Shield receipt route only accepts POST.",
+      ok: false,
+    });
+    return;
+  }
+
+  const body = await readRequestBody(request);
+  const settlementRequest = validateBrowserShieldReceiptBody(body);
+  sendJson(response, 200, await proveAndAcceptProtocolSettlement(settlementRequest));
 }
 
 const rateLimiter = databaseUrl
@@ -435,6 +461,10 @@ const { VANTA_PRIVATE_POOL_V2_SETTLEMENT_POLICY } = await import(
 const { getVantaPrivatePoolV2CapabilityProfile } = await import(
   pathToFileURL(join(tempJsDir, "privatePoolV2CapabilityProfile.js")).href
 );
+const {
+  parseVantaShieldCommittedEconomicsSettlementOpening,
+  verifyVantaShieldCommittedEconomicsSettlementOpening,
+} = await import(pathToFileURL(join(tempJsDir, "vantaShieldCommittedSettlement.js")).href);
 const persistedState = await receiptStore.load();
 const persistedCommitments = [...persistedState.commitments];
 const runtimeProfile = getVantaPrivatePoolV2CapabilityProfile();
@@ -726,6 +756,9 @@ function validateProtocolSettlementBody(body) {
         "Private Pool v2 settlement requires actual-private send fields or full stateful send terms.",
       );
     }
+    if (action === "shield") {
+      requireNonEmptyString(body.outputCommitment, "outputCommitment");
+    }
     if (action === "swap") {
       requireNonEmptyString(body.inputRoot, "inputRoot");
       requireNonEmptyString(body.inputCommitment, "inputCommitment");
@@ -855,6 +888,167 @@ function validateProtocolSettlementBody(body) {
       shieldCapability,
     ),
   };
+}
+
+function requireCommitmentHex(value, label) {
+  const normalized = requireNonEmptyString(value, label);
+  if (!/^0x[0-9a-fA-F]{64}$/.test(normalized)) {
+    throw new Error(`Browser committed Shield receipt requires ${label} as a 32-byte hex commitment.`);
+  }
+
+  return normalized;
+}
+
+function assertOpeningFieldShape(opening, field, tag, length) {
+  const preimageParts = opening[field]?.preimageParts;
+  if (!Array.isArray(preimageParts) || preimageParts.length !== length || preimageParts[0] !== tag) {
+    throw new Error(`Browser committed Shield receipt opening has invalid ${field} preimage shape.`);
+  }
+
+  for (const part of preimageParts) {
+    if (typeof part !== "string") {
+      throw new Error(`Browser committed Shield receipt opening has invalid ${field} preimage part.`);
+    }
+  }
+
+  return preimageParts;
+}
+
+function assertBrowserCommittedShieldOpeningShape(opening) {
+  const source = assertOpeningFieldShape(opening, "source", "source", 4);
+  const route = assertOpeningFieldShape(opening, "route", "route", 9);
+  const output = assertOpeningFieldShape(opening, "output", "output", 5);
+  const economics = assertOpeningFieldShape(opening, "economics", "economics", 4);
+  const owner = assertOpeningFieldShape(opening, "owner", "owner", 3);
+  const replay = assertOpeningFieldShape(opening, "replay", "replay", 3);
+  const settlement = assertOpeningFieldShape(opening, "settlement", "settlement", 4);
+
+  if (opening.settlementIdPreimageParts.length !== 1 || !opening.settlementIdPreimageParts[0]) {
+    throw new Error("Browser committed Shield receipt opening requires one settlement id preimage.");
+  }
+
+  for (const [value, label] of [
+    [source[1], "opening.source.sourceAsset"],
+    [source[2], "opening.source.sourceMintAddress"],
+    [source[3], "opening.source.amount"],
+    [route[1], "opening.route.provider"],
+    [route[3], "opening.route.sourceAmount"],
+    [route[4], "opening.route.sourceAsset"],
+    [route[5], "opening.route.sourceMintAddress"],
+    [route[6], "opening.route.targetAmount"],
+    [route[7], "opening.route.targetAsset"],
+    [route[8], "opening.route.targetMintAddress"],
+    [output[1], "opening.output.targetAsset"],
+    [output[2], "opening.output.targetMintAddress"],
+    [output[4], "opening.output.depositSignature"],
+    [owner[1], "opening.owner.owner"],
+    [owner[2], "opening.owner.vaultOwner"],
+  ]) {
+    requireNonEmptyString(value, label);
+  }
+
+  const rawSettlementId = opening.settlementIdPreimageParts[0];
+  if (output[3] !== rawSettlementId || replay[1] !== rawSettlementId || settlement[1] !== rawSettlementId) {
+    throw new Error("Browser committed Shield receipt opening settlement ids do not match.");
+  }
+
+  if (output[4] !== replay[2]) {
+    throw new Error("Browser committed Shield receipt opening deposit signatures do not match.");
+  }
+
+  if (source[1] !== route[4] || source[2] !== route[5] || source[3] !== route[3]) {
+    throw new Error("Browser committed Shield receipt opening source terms do not match route terms.");
+  }
+
+  if (output[1] !== route[7] || output[2] !== route[8]) {
+    throw new Error("Browser committed Shield receipt opening output terms do not match route terms.");
+  }
+
+  requireCommitmentHex(economics[1], "opening.economics.sourceCommitment");
+  requireCommitmentHex(economics[2], "opening.economics.routeCommitment");
+  requireCommitmentHex(economics[3], "opening.economics.outputCommitment");
+  requireCommitmentHex(settlement[2], "opening.settlement.sourceCommitment");
+  requireCommitmentHex(settlement[3], "opening.settlement.outputCommitment");
+}
+
+function validateBrowserShieldReceiptBody(body) {
+  if (!body || typeof body !== "object" || !body.request || !body.opening) {
+    throw new Error("Browser committed Shield receipt route requires a committed Shield request and opening.");
+  }
+
+  if (typeof body.request !== "object" || Array.isArray(body.request)) {
+    throw new Error("Browser committed Shield receipt route requires request to be an object.");
+  }
+
+  const allowedRequestFields = new Set([
+    "action",
+    "economicsCommitment",
+    "economicsMode",
+    "nullifierOrReplayCommitment",
+    "outputCommitment",
+    "ownerCommitment",
+    "routeCommitment",
+    "settlementCommitment",
+    "settlementId",
+  ]);
+  for (const field of Object.keys(body.request)) {
+    if (!allowedRequestFields.has(field)) {
+      throw new Error(`Browser committed Shield receipt route rejects request.${field}.`);
+    }
+  }
+
+  const forbiddenFields = [
+    "amount",
+    "asset",
+    "destination",
+    "owner",
+    "shieldCapability",
+    "shieldSettlementEvidence",
+    "shieldRouteEvidence",
+    "inputRoot",
+    "exitTermsCommitment",
+    "swapContextTag",
+    "sendContextTag",
+    "unshieldContextTag",
+    "relayerSerializedTransaction",
+  ];
+  for (const field of forbiddenFields) {
+    if (body.request[field] !== undefined && body.request[field] !== null) {
+      throw new Error(`Browser committed Shield receipt route rejects ${field}.`);
+    }
+  }
+
+  if (body.request.action !== "shield" || body.request.economicsMode !== "committed-economics") {
+    throw new Error("Browser receipt route only accepts committed Shield receipt requests.");
+  }
+
+  const settlementRequest = validateProtocolSettlementBody(body.request);
+
+  for (const field of [
+    "economicsCommitment",
+    "nullifierOrReplayCommitment",
+    "outputCommitment",
+    "ownerCommitment",
+    "routeCommitment",
+    "settlementCommitment",
+    "settlementId",
+  ]) {
+    requireCommitmentHex(body.request[field], `request.${field}`);
+  }
+
+  const opening = parseVantaShieldCommittedEconomicsSettlementOpening(body.opening);
+  assertBrowserCommittedShieldOpeningShape(opening);
+
+  if (
+    !verifyVantaShieldCommittedEconomicsSettlementOpening({
+      opening,
+      request: settlementRequest,
+    })
+  ) {
+    throw new Error("Browser committed Shield receipt opening does not match the committed Shield request.");
+  }
+
+  return settlementRequest;
 }
 
 function normalizeProtocolShieldCapability(rawCapability, fallbackAsset) {
@@ -2368,7 +2562,7 @@ const server = createServer(async (request, response) => {
   });
 
   try {
-    if (request.method === "OPTIONS" && isPublicUnshieldRoute(request)) {
+    if (request.method === "OPTIONS" && isPublicBrowserCorsRoute(request)) {
       writeBrowserCorsHeaders(response);
       response.writeHead(204);
       response.end();
@@ -2386,6 +2580,11 @@ const server = createServer(async (request, response) => {
 
     if (isPublicUnshieldRoute(request)) {
       await handlePublicUnshieldRoute(request, response);
+      return;
+    }
+
+    if (isPublicBrowserShieldReceiptRoute(request)) {
+      await handlePublicBrowserShieldReceiptRoute(request, response);
       return;
     }
 
@@ -2495,6 +2694,9 @@ const server = createServer(async (request, response) => {
 
     sendJson(response, 404, { error: "Not found." });
   } catch (error) {
+    if (isPublicBrowserCorsRoute(request)) {
+      writeBrowserCorsHeaders(response);
+    }
     sendJson(response, 400, {
       error: error instanceof Error ? error.message : String(error),
       ok: false,

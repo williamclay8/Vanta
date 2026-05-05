@@ -19,9 +19,9 @@ import {
   type PublicShieldRouteEvidence,
   type PublicToUsdcQuote,
 } from "@/solana/publicSwapRoute";
-import { requestVantaPrivatePoolV2ProtocolSettlement } from "@/privacy/privatePoolV2ProtocolSettlementClient";
+import { requestVantaPrivatePoolV2BrowserShieldReceipt } from "@/privacy/privatePoolV2ProtocolSettlementClient";
 import { runShieldWithDecoys } from "@/privacy/shieldDecoyBatcher";
-import { createVantaShieldCommittedEconomicsSettlementRequest } from "@/privacy/vantaShieldCommittedSettlement";
+import { createVantaShieldCommittedEconomicsSettlement } from "@/privacy/vantaShieldCommittedSettlement";
 import { createUmbraShieldActionApprovalReview } from "@/privacy/umbraShieldActionReview";
 import type { UmbraOperationApprovalDisplay } from "@/privacy/umbraOperations";
 import {
@@ -1015,7 +1015,7 @@ export function ShieldPage(_props: ShieldPageProps) {
         setRecentShield(recentShieldContext);
 
         let protocolSettlement: Awaited<
-          ReturnType<typeof requestVantaPrivatePoolV2ProtocolSettlement>
+          ReturnType<typeof requestVantaPrivatePoolV2BrowserShieldReceipt>
         > | null = null;
         let protocolSettlementWarning: string | null = null;
 
@@ -1025,7 +1025,7 @@ export function ShieldPage(_props: ShieldPageProps) {
           pendingDepositSignature &&
           walletAddress
         ) {
-          const committedRequest = createVantaShieldCommittedEconomicsSettlementRequest({
+          const committedSettlement = createVantaShieldCommittedEconomicsSettlement({
             amount: pendingShieldAmountDisplay,
             depositSignature: pendingDepositSignature,
             owner: walletAddress,
@@ -1035,10 +1035,11 @@ export function ShieldPage(_props: ShieldPageProps) {
             sourceAsset: pendingProtocolSettlement.capability.sourceAsset.symbol,
             vaultOwner: activeShieldTarget.vaultOwner!,
           });
+          const committedRequest = committedSettlement.request;
 
           try {
             protocolSettlement = await runShieldWithDecoys(() =>
-              requestVantaPrivatePoolV2ProtocolSettlement(committedRequest),
+              requestVantaPrivatePoolV2BrowserShieldReceipt(committedSettlement),
             );
 
             if (!protocolSettlement) {

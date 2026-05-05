@@ -812,16 +812,15 @@ These refs are staging evidence only. They do not clear production secret-manage
 
 ## Browser Client Operator Settings
 
-For local or controlled test environments only:
+For local or controlled test environments:
 
 ```bash
-VITE_VANTA_PRIVATE_POOL_V2_OPERATOR_URL=http://127.0.0.1:8797
-VITE_VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN=
+VITE_VANTA_PRIVATE_POOL_V2_RECEIPT_API_URL=http://127.0.0.1:8797
 ```
 
-Do not use browser-exposed operator tokens as production secrets.
+Production browser builds default to `https://vanta-prod-private-pool-v2-operator.onrender.com` for the public Shield receipt route when `VITE_VANTA_PRIVATE_POOL_V2_RECEIPT_API_URL` is unset.
 
-Any `VITE_...` value is bundled into the client and must be treated as public or test-only.
+Do not use browser-exposed operator tokens as production secrets. Do not put operator bearer tokens in `VITE_...` variables; any `VITE_...` value is bundled into the client and must be treated as public.
 
 ## Wallet Signing Safety
 

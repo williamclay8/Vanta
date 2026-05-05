@@ -438,6 +438,7 @@ const requiredTextFiles = [
       "/state/private-pool-v2-status",
       "/state/private-pool-v2-receipts",
       "/private-pool-v2/proofs",
+      "/private-pool-v2/public/shield-receipts",
     ],
   },
   {
@@ -457,8 +458,7 @@ const requiredTextFiles = [
       "VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN",
       "VANTA_PRIVATE_POOL_V2_STORE_PATH",
       "VANTA_PRIVATE_POOL_V2_DATABASE_URL",
-      "VITE_VANTA_PRIVATE_POOL_V2_OPERATOR_URL",
-      "VITE_VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN",
+      "VITE_VANTA_PRIVATE_POOL_V2_RECEIPT_API_URL",
     ],
   },
   {
