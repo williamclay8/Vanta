@@ -66,12 +66,14 @@ import {
   deriveVantaPrivateCoreSendInputArtifactsFromWitnessPackage,
   deriveVantaPrivateCoreSwapInputArtifactsFromWitnessPackage,
   normalizeVantaPrivateCoreUnshieldProofArtifact,
+  normalizeVantaPrivateCoreSendProofArtifact,
   normalizeVantaPrivateCoreSendWitnessPackage,
   normalizeVantaPrivateCoreSwapWitnessPackage,
   normalizeVantaPrivateCoreWitnessPackage,
   proveAndVerifyVantaPrivateCoreSend,
   proveAndVerifyVantaPrivateCoreSwap,
   proveAndVerifyVantaPrivateCoreUnshield,
+  verifyVantaPrivateCoreSendProofArtifact,
   verifyVantaPrivateCoreUnshieldProofArtifact,
 } from "./private-core-proof.mjs";
 import { createReleaseRecordStore } from "./release-record-store.mjs";
@@ -842,16 +844,19 @@ export async function handleUnshieldOperatorRequest(request, response) {
   if (request.method === "POST" && request.url === "/private-core/send-proof") {
     try {
       const body = await readJsonBody(request);
-      const witnessPackage = normalizeVantaPrivateCoreSendWitnessPackage(body?.witnessPackage);
-      const proofReceipt = await proveAndVerifyVantaPrivateCoreSend({
-        witnessPackage,
-      });
+      assertPrivateCoreWitnessMaterialPolicy(body, { lane: "send" });
+      const proofReceipt = await resolvePrivateCoreSendProofReceipt(body);
       privateCoreSendProofStore.recordProof(
-        summarizePrivateCoreSendProofRecord({
-          action: "send-proof",
-          proofReceipt,
-          witnessPackage,
-        }),
+        body?.proofArtifact
+          ? summarizePrivateCoreSendProofRecordFromVerifiedPublicInputs({
+              action: "send-proof",
+              proofReceipt,
+            })
+          : summarizePrivateCoreSendProofRecord({
+              action: "send-proof",
+              proofReceipt,
+              witnessPackage: normalizeVantaPrivateCoreSendWitnessPackage(body?.witnessPackage),
+            }),
       );
 
       writeCorsHeaders(response);
@@ -1024,44 +1029,46 @@ export async function handleUnshieldOperatorRequest(request, response) {
   if (request.method === "POST" && request.url === "/private-core/send-transition") {
     try {
       const body = await readJsonBody(request);
-      const witnessPackage = normalizeVantaPrivateCoreSendWitnessPackage(body?.witnessPackage);
+      assertPrivateCoreWitnessMaterialPolicy(body, { lane: "send" });
       const releaseCandidateId = normalizePrivateCoreReleaseCandidateId(body?.releaseCandidateId);
-      const sourcePublicInputs = witnessPackage.sourcePublicInputs;
-      const inputArtifacts = deriveVantaPrivateCoreSendInputArtifactsFromWitnessPackage(witnessPackage);
+      const proofReceipt = await resolvePrivateCoreSendProofReceipt(body);
+      const sendProofTerms = getPrivateCoreSendProofTerms(body, proofReceipt);
 
-      if (!privateCoreRootStore.hasRoot(sourcePublicInputs.stateRoot)) {
+      if (!privateCoreRootStore.hasRoot(sendProofTerms.inputRoot)) {
         throw new Error("Private-core send transition input root is not registered.");
       }
 
       const latestRootRecord = privateCoreRootStore.getLatestRoot();
-      if (!latestRootRecord || latestRootRecord.root !== sourcePublicInputs.stateRoot) {
+      if (!latestRootRecord || latestRootRecord.root !== sendProofTerms.inputRoot) {
         throw new Error("Private-core send transition input root is not the latest registered root.");
       }
 
-      if (latestRootRecord.assetId !== inputArtifacts.assetId) {
-        throw new Error("Private-core send transition asset does not match the registered input root.");
-      }
+      if (sendProofTerms.mode === "witness-package") {
+        if (latestRootRecord.assetId !== sendProofTerms.inputArtifacts.assetId) {
+          throw new Error("Private-core send transition asset does not match the registered input root.");
+        }
 
-      if (latestRootRecord.amount !== inputArtifacts.amount) {
-        throw new Error("Private-core send transition amount basis does not match the registered input root.");
-      }
+        if (latestRootRecord.amount !== sendProofTerms.inputArtifacts.amount) {
+          throw new Error("Private-core send transition amount basis does not match the registered input root.");
+        }
 
-      if (latestRootRecord.noteCommitment !== inputArtifacts.noteCommitment) {
-        throw new Error(
-          "Private-core send transition source note commitment does not match the registered input root.",
-        );
-      }
+        if (latestRootRecord.noteCommitment !== sendProofTerms.inputArtifacts.noteCommitment) {
+          throw new Error(
+            "Private-core send transition source note commitment does not match the registered input root.",
+          );
+        }
 
-      if (latestRootRecord.merkleLeaf !== inputArtifacts.merkleLeaf) {
-        throw new Error(
-          "Private-core send transition source Merkle leaf does not match the registered input root.",
-        );
-      }
+        if (latestRootRecord.merkleLeaf !== sendProofTerms.inputArtifacts.merkleLeaf) {
+          throw new Error(
+            "Private-core send transition source Merkle leaf does not match the registered input root.",
+          );
+        }
 
-      if (latestRootRecord.witnessRoot !== inputArtifacts.witnessRoot) {
-        throw new Error(
-          "Private-core send transition source witness root does not match the registered input root.",
-        );
+        if (latestRootRecord.witnessRoot !== sendProofTerms.inputArtifacts.witnessRoot) {
+          throw new Error(
+            "Private-core send transition source witness root does not match the registered input root.",
+          );
+        }
       }
 
       const latestRootLinkedProof =
@@ -1087,36 +1094,46 @@ export async function handleUnshieldOperatorRequest(request, response) {
         body?.resultingRoot,
         "Private-core send resulting root",
       );
-      if (resultingRoot === sourcePublicInputs.stateRoot) {
+      if (resultingRoot === sendProofTerms.inputRoot) {
         throw new Error("Private-core send resulting root must differ from the input root.");
       }
-      privateCoreSendStore.reserveInputNullifier(sourcePublicInputs.inputNullifier);
+      privateCoreSendStore.reserveInputNullifier(sendProofTerms.inputNullifier);
       let sendRecorded = false;
-      let proofReceipt;
       let proofRecord;
       let sendRecord;
       try {
-        proofReceipt = await proveAndVerifyVantaPrivateCoreSend({
-          witnessPackage,
-        });
-        proofRecord = summarizePrivateCoreSendProofRecord({
-          action: "send-proof",
-          proofReceipt,
-          witnessPackage,
-        });
+        proofRecord =
+          sendProofTerms.mode === "proof-artifact"
+            ? summarizePrivateCoreSendProofRecordFromVerifiedPublicInputs({
+                action: "send-proof",
+                proofReceipt,
+              })
+            : summarizePrivateCoreSendProofRecord({
+                action: "send-proof",
+                proofReceipt,
+                witnessPackage: sendProofTerms.witnessPackage,
+              });
         privateCoreSendProofStore.recordProof(proofRecord);
-        sendRecord = summarizePrivateCoreSendRecord({
-          proofRecord,
-          proofReceipt,
-          releaseCandidateId,
-          resultingRoot,
-          witnessPackage,
-        });
+        sendRecord =
+          sendProofTerms.mode === "proof-artifact"
+            ? summarizePrivateCoreSendRecordFromVerifiedPublicInputs({
+                proofRecord,
+                proofReceipt,
+                releaseCandidateId,
+                resultingRoot,
+              })
+            : summarizePrivateCoreSendRecord({
+                proofRecord,
+                proofReceipt,
+                releaseCandidateId,
+                resultingRoot,
+                witnessPackage: sendProofTerms.witnessPackage,
+              });
         privateCoreSendStore.recordSend(sendRecord);
         sendRecorded = true;
       } finally {
         if (!sendRecorded) {
-          privateCoreSendStore.releaseInputNullifier(sourcePublicInputs.inputNullifier);
+          privateCoreSendStore.releaseInputNullifier(sendProofTerms.inputNullifier);
         }
       }
 
@@ -1134,10 +1151,11 @@ export async function handleUnshieldOperatorRequest(request, response) {
           resultingRoot: sendRecord.resultingRoot,
           changeCommitment: sendRecord.changeCommitment,
           proofId: sendRecord.proofId,
-          sendAmount: sendRecord.sendAmount,
+          redactionBasis: sendRecord.redactionBasis ?? null,
+          sendAmount: sendRecord.sendAmount ?? null,
           sendId: sendRecord.sendId,
           sendRecorded: true,
-          changeAmount: sendRecord.changeAmount,
+          changeAmount: sendRecord.changeAmount ?? null,
         }),
       );
     } catch (error) {
@@ -4229,6 +4247,39 @@ function summarizePrivateCoreSendProofRecord(args) {
   };
 }
 
+function summarizePrivateCoreSendProofRecordFromVerifiedPublicInputs(args) {
+  const verifiedPublicInputs = args.proofReceipt.verifiedPublicInputs;
+  const completedAt = Date.now();
+
+  return {
+    action: args.action,
+    assetId: null,
+    amount: null,
+    backend: args.proofReceipt.backend,
+    circuit: args.proofReceipt.circuit,
+    completedAt,
+    noteVersion: verifiedPublicInputs.noteVersion,
+    nullifier: verifiedPublicInputs.provingInputNullifier,
+    proofFieldCount: args.proofReceipt.proofFieldCount,
+    proofId: [
+      "private-core-send-proof",
+      args.action,
+      verifiedPublicInputs.provingInputNullifier,
+      verifiedPublicInputs.provingStateRoot,
+      String(completedAt),
+    ].join(":"),
+    proofVersion: args.proofReceipt.proofVersion,
+    provingHashLane: args.proofReceipt.provingHashLane,
+    publicInputCount: args.proofReceipt.publicInputCount,
+    recipientCommitment: verifiedPublicInputs.provingRecipientCommitment,
+    redactionBasis: "proof-artifact-public-inputs-only",
+    releaseDestination: verifiedPublicInputs.provingRecipientCommitment,
+    root: verifiedPublicInputs.provingStateRoot,
+    sendEconomicTermsHash: verifiedPublicInputs.sendEconomicTermsHash,
+    verified: args.proofReceipt.verified === true,
+  };
+}
+
 function summarizePrivateCoreSwapProofRecord(args) {
   const witnessPackage = normalizeVantaPrivateCoreSwapWitnessPackage(args.witnessPackage);
   const sourcePublicInputs = witnessPackage.sourcePublicInputs;
@@ -4323,6 +4374,40 @@ function summarizePrivateCoreSendRecord(args) {
       "private-core-send",
       sourcePublicInputs.inputNullifier,
       sourcePublicInputs.stateRoot,
+      String(completedAt),
+    ].join(":"),
+  };
+}
+
+function summarizePrivateCoreSendRecordFromVerifiedPublicInputs(args) {
+  const verifiedPublicInputs = args.proofReceipt.verifiedPublicInputs;
+  const completedAt = Date.now();
+
+  return {
+    assetId: null,
+    changeAmount: null,
+    changeCommitment: normalizeZeroHexAsNull(verifiedPublicInputs.provingChangeCommitment),
+    completedAt,
+    inputNullifier: verifiedPublicInputs.provingInputNullifier,
+    inputRoot: verifiedPublicInputs.provingStateRoot,
+    noteVersion: verifiedPublicInputs.noteVersion,
+    proofFieldCount: args.proofReceipt.proofFieldCount,
+    proofId: args.proofRecord.proofId,
+    publicInputCount: args.proofReceipt.publicInputCount,
+    redactionBasis: "proof-artifact-public-inputs-only",
+    releaseCandidateId:
+      typeof args.releaseCandidateId === "string" && args.releaseCandidateId.length > 0
+        ? args.releaseCandidateId
+        : null,
+    recipientCommitment: verifiedPublicInputs.provingRecipientCommitment,
+    resultingRootBasis: "proof-linked-input-expected-root",
+    resultingRoot: typeof args.resultingRoot === "string" ? args.resultingRoot : null,
+    sendAmount: null,
+    sendEconomicTermsHash: verifiedPublicInputs.sendEconomicTermsHash,
+    sendId: [
+      "private-core-send",
+      verifiedPublicInputs.provingInputNullifier,
+      verifiedPublicInputs.provingStateRoot,
       String(completedAt),
     ].join(":"),
   };
@@ -4470,14 +4555,36 @@ async function readJsonBody(request) {
   return JSON.parse(raw || "{}");
 }
 
-function assertPrivateCoreWitnessMaterialPolicy(body) {
+function assertPrivateCoreWitnessMaterialPolicy(body, options = {}) {
   if (PRIVATE_CORE_OPERATOR_WITNESS_MODE !== "strict-no-witness") {
     return;
   }
 
-  if (body?.witnessPackage?.privateWitness) {
+  if (!body || typeof body !== "object") {
+    return;
+  }
+
+  if (Object.hasOwn(body, "witnessPackage")) {
     throw new Error(
-      "Private-core strict no-witness operator mode rejects witnessPackage.privateWitness.",
+      "Private-core strict no-witness operator mode rejects any witnessPackage material.",
+    );
+  }
+
+  if (Object.hasOwn(body, "privateWitness") || Object.hasOwn(body, "noirWitnessPackage")) {
+    throw new Error(
+      "Private-core strict no-witness operator mode rejects raw private witness sidecars.",
+    );
+  }
+
+  if (Object.hasOwn(body, "sourcePublicInputs")) {
+    throw new Error(
+      "Private-core strict no-witness operator mode rejects top-level sourcePublicInputs sidecars.",
+    );
+  }
+
+  if (options.lane === "send" && Object.hasOwn(body, "sourceArtifacts")) {
+    throw new Error(
+      "Private-core strict no-witness Send mode rejects sourceArtifacts sidecars.",
     );
   }
 }
@@ -4494,12 +4601,55 @@ async function resolvePrivateCoreUnshieldProofReceipt(body) {
   });
 }
 
+async function resolvePrivateCoreSendProofReceipt(body) {
+  if (body?.proofArtifact) {
+    return verifyVantaPrivateCoreSendProofArtifact({
+      proofArtifact: body.proofArtifact,
+    });
+  }
+
+  return proveAndVerifyVantaPrivateCoreSend({
+    witnessPackage: body?.witnessPackage,
+  });
+}
+
 function getPrivateCoreUnshieldSourcePublicInputs(body) {
   if (body?.proofArtifact) {
     return normalizeVantaPrivateCoreUnshieldProofArtifact(body.proofArtifact).sourcePublicInputs;
   }
 
   return normalizeVantaPrivateCoreWitnessPackage(body?.witnessPackage).sourcePublicInputs;
+}
+
+function getPrivateCoreSendProofTerms(body, proofReceipt) {
+  if (body?.proofArtifact) {
+    normalizeVantaPrivateCoreSendProofArtifact(body.proofArtifact);
+    const verifiedPublicInputs = proofReceipt.verifiedPublicInputs;
+    return {
+      changeCommitment: normalizeZeroHexAsNull(verifiedPublicInputs.provingChangeCommitment),
+      inputNullifier: verifiedPublicInputs.provingInputNullifier,
+      inputRoot: verifiedPublicInputs.provingStateRoot,
+      mode: "proof-artifact",
+      noteVersion: verifiedPublicInputs.noteVersion,
+      recipientCommitment: verifiedPublicInputs.provingRecipientCommitment,
+      sendEconomicTermsHash: verifiedPublicInputs.sendEconomicTermsHash,
+    };
+  }
+
+  const witnessPackage = normalizeVantaPrivateCoreSendWitnessPackage(body?.witnessPackage);
+  const sourcePublicInputs = witnessPackage.sourcePublicInputs;
+
+  return {
+    changeCommitment: sourcePublicInputs.changeCommitment,
+    inputArtifacts: deriveVantaPrivateCoreSendInputArtifactsFromWitnessPackage(witnessPackage),
+    inputNullifier: sourcePublicInputs.inputNullifier,
+    inputRoot: sourcePublicInputs.stateRoot,
+    mode: "witness-package",
+    noteVersion: sourcePublicInputs.noteVersion,
+    recipientCommitment: sourcePublicInputs.recipientCommitment,
+    sourcePublicInputs,
+    witnessPackage,
+  };
 }
 
 function assertPrivateCoreUnshieldSourceArtifactConsistency(args) {
@@ -4514,6 +4664,11 @@ function assertPrivateCoreUnshieldSourceArtifactConsistency(args) {
   }
 
   assertVantaPrivateCoreSourceArtifactConsistency(args.sourceArtifacts, args.body?.witnessPackage);
+}
+
+function normalizeZeroHexAsNull(value) {
+  const zero = "0x0000000000000000000000000000000000000000000000000000000000000000";
+  return value === zero ? null : value;
 }
 
 function loadEnvFile(fileName) {

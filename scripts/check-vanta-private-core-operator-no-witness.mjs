@@ -113,7 +113,7 @@ async function expectWitnessRejection(path, body) {
   const response = await requestJson(path, body);
   assert(!response.ok, `${path} unexpectedly accepted private witness material.`);
   assert(
-    response.text.includes("strict no-witness operator mode rejects witnessPackage.privateWitness"),
+    response.text.includes("strict no-witness operator mode rejects any witnessPackage material"),
     `${path} rejected with the wrong message: ${response.text}`,
   );
   printStatus(`strict no-witness ${path}: PASS`);

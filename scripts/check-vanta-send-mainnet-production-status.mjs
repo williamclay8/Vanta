@@ -34,14 +34,15 @@ assert.equal(status.noFundsOperatorEndpointCovered, true);
 assert.equal(status.liveSettlementProven, false);
 assert.equal(status.exactSendApprovalScoped, false);
 assert.equal(status.boundedApprovalActive, false);
-assert.equal(status.privateCoreOperatorStateRedacted, false);
+assert.equal(status.privateCoreSendNoWitnessBoundaryCovered, true);
+assert.equal(status.privateCoreSendProofArtifactCovered, true);
+assert.equal(status.privateCoreOperatorStateRedacted, true);
 assert.equal(status.statefulVerifierIndexerCommitIdempotencyProven, false);
 
 const expectedBlockers = [
   "no-reviewed-live-mainnet-send-settlement-evidence",
   "no-exact-send-bounded-approval-window",
   ...(status.currentApproval.approvalWindowStatus === "active" ? [] : ["bounded-approval-window-expired"]),
-  "private-core-send-operator-state-exposes-raw-economic-terms",
   "stateful-verifier-indexer-commit-idempotency-not-proven",
   "no-proven-audited-shared-anonymity-set",
   "no-proven-live-mainnet-private-settlement-evidence",
@@ -55,6 +56,13 @@ for (const [key, command] of Object.entries({
   actualPrivateSpendCircuit: "npm run private-pool-v2:actual-private-spend-circuit-check",
   mainnetPreflight: "npm run mainnet:preflight",
   privateSettlementStatus: "npm run --silent mainnet:private-settlement-status-json",
+  publicTranscriptReview: "npm run private-pool-v2:production-privacy-reviewer-packet-check",
+  sendLiveEvidenceContract: "npm run mainnet:send-live-evidence-contract-check",
+  sendNoWitnessOperatorBoundary: "npm run private-core:send-operator-no-witness-check",
+  sendNullifierReplayNoWitness: "npm run private-core:send-nullifier-replay-no-witness-check",
+  sendOperatorRedaction: "npm run private-core:send-operator-redaction-check",
+  sendProductionPrivacyClaimGate: "npm run send:production-privacy-claim-gate",
+  sendProofArtifactConsistency: "npm run private-core:send-proof-artifact-consistency-check",
   privatePoolV2SendCircuit: "npm run private-pool-v2:send-circuit-check",
   privatePoolV2SendProofRequest: "npm run private-pool-v2:send-proof-request-check",
   privatePoolV2Verify: "npm run private-pool-v2:verify",

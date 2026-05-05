@@ -131,6 +131,55 @@ export async function verifyVantaPrivateCoreUnshieldProofArtifact(args) {
   }
 }
 
+export async function verifyVantaPrivateCoreSendProofArtifact(args) {
+  const proofArtifact = normalizeVantaPrivateCoreSendProofArtifact(args.proofArtifact);
+
+  runNargo(["compile"], canonicalSendCircuitDir);
+  const compiledProgram = JSON.parse(
+    readFileSync(
+      join(canonicalSendCircuitDir, "target", "vanta_private_core_single_note_send.json"),
+      "utf8",
+    ),
+  );
+
+  const api = await Barretenberg.new({ threads: 1 });
+  try {
+    const backend = new UltraHonkBackend(compiledProgram.bytecode, api);
+    const proofData = {
+      proof: Buffer.from(proofArtifact.proofHex, "hex"),
+      publicInputs: proofArtifact.publicInputs,
+    };
+    const verified = await backend.verifyProof(proofData);
+
+    if (!verified) {
+      throw new Error("Private-core Send proof artifact verification returned false.");
+    }
+
+    assertSendProofPublicInputsMatchWitnessPackage({
+      expectedPublicInputs: extractExpectedSendProofPublicInputs({
+        publicInputs: proofArtifact.circuitPublicInputs,
+      }),
+      proofPublicInputs: proofArtifact.publicInputs,
+    });
+
+    return {
+      backend: proofArtifact.backend,
+      circuit: proofArtifact.circuit,
+      proofVersion: proofArtifact.proofVersion,
+      provingHashLane: proofArtifact.provingHashLane,
+      proofByteLength: proofData.proof.length,
+      proofFieldCount: Math.floor(proofData.proof.length / 32),
+      proofHex: proofArtifact.proofHex,
+      publicInputCount: proofArtifact.publicInputs.length,
+      publicInputs: proofArtifact.publicInputs,
+      verifiedPublicInputs: decodeVerifiedSendProofPublicInputs(proofArtifact.publicInputs),
+      verified: true,
+    };
+  } finally {
+    await api.destroy();
+  }
+}
+
 export async function proveAndVerifyVantaPrivateCoreSend(args) {
   const witnessPackage = normalizeVantaPrivateCoreSendWitnessPackage(args.witnessPackage);
   mkdirSync(resolve(repoRoot, ".tmp"), { recursive: true });
@@ -183,6 +232,7 @@ export async function proveAndVerifyVantaPrivateCoreSend(args) {
         provingHashLane: witnessPackage.provingHashLane,
         proofByteLength: proofData.proof.length,
         proofFieldCount: Math.floor(proofData.proof.length / 32),
+        proofHex: Buffer.from(proofData.proof).toString("hex"),
         publicInputCount: proofData.publicInputs.length,
         publicInputs: proofData.publicInputs,
         verifiedPublicInputs: decodeVerifiedSendProofPublicInputs(proofData.publicInputs),
@@ -379,6 +429,84 @@ export function normalizeVantaPrivateCoreSendWitnessPackage(input) {
   assertSendWitnessPackagePublicInputConsistency(witnessPackage);
 
   return witnessPackage;
+}
+
+export function normalizeVantaPrivateCoreSendProofArtifact(input) {
+  if (!input || typeof input !== "object") {
+    throw new Error("Expected a private-core Send proof artifact object.");
+  }
+
+  const proofArtifact = input;
+
+  if (proofArtifact.circuit !== "vanta_private_core_single_note_send") {
+    throw new Error("Unsupported private-core Send proof artifact circuit.");
+  }
+
+  if (proofArtifact.backend !== "barretenberg-ultrahonk") {
+    throw new Error("Unsupported private-core Send proof artifact backend.");
+  }
+
+  if (proofArtifact.provingHashLane !== "poseidon-bn254-proving-lane-v0") {
+    throw new Error("Unsupported private-core Send proof artifact hash lane.");
+  }
+
+  if (proofArtifact.privateWitness || proofArtifact.witnessPackage) {
+    throw new Error("Private-core Send proof artifact must not include private witness material.");
+  }
+
+  if (proofArtifact.sourcePublicInputs) {
+    throw new Error("Private-core Send proof artifact must not include raw source public inputs.");
+  }
+
+  if (!Array.isArray(proofArtifact.publicInputs)) {
+    throw new Error("Private-core Send proof artifact is missing ordered public inputs.");
+  }
+
+  if (!proofArtifact.circuitPublicInputs || typeof proofArtifact.circuitPublicInputs !== "object") {
+    throw new Error("Private-core Send proof artifact is missing circuit public inputs.");
+  }
+
+  if (
+    typeof proofArtifact.proofHex !== "string" ||
+    !/^[0-9a-f]+$/i.test(proofArtifact.proofHex) ||
+    proofArtifact.proofHex.length % 2 !== 0
+  ) {
+    throw new Error("Private-core Send proof artifact is missing canonical proof hex.");
+  }
+
+  const normalized = {
+    backend: proofArtifact.backend,
+    circuit: proofArtifact.circuit,
+    circuitPublicInputs: {
+      state_root: String(proofArtifact.circuitPublicInputs.state_root),
+      input_nullifier: String(proofArtifact.circuitPublicInputs.input_nullifier),
+      recipient_commitment: String(proofArtifact.circuitPublicInputs.recipient_commitment),
+      change_commitment: String(proofArtifact.circuitPublicInputs.change_commitment),
+      send_economic_terms_hash: String(
+        proofArtifact.circuitPublicInputs.send_economic_terms_hash,
+      ),
+      note_version: String(proofArtifact.circuitPublicInputs.note_version),
+      send_context_tag_hi: String(proofArtifact.circuitPublicInputs.send_context_tag_hi ?? "0"),
+      send_context_tag_lo: String(proofArtifact.circuitPublicInputs.send_context_tag_lo ?? "0"),
+    },
+    proofHex: proofArtifact.proofHex.toLowerCase(),
+    proofVersion: Number(proofArtifact.proofVersion),
+    provingHashLane: proofArtifact.provingHashLane,
+    publicInputs: proofArtifact.publicInputs.map((value) => String(value)),
+  };
+
+  if (String(normalized.circuitPublicInputs.send_context_tag_hi) !== "0") {
+    throw new Error("Private-core Send proof artifact context high public input must be zero.");
+  }
+
+  assertSendProofPublicInputsMatchWitnessPackage({
+    expectedPublicInputs: extractExpectedSendProofPublicInputs({
+      publicInputs: normalized.circuitPublicInputs,
+    }),
+    proofPublicInputs: normalized.publicInputs,
+  });
+
+  return normalized;
 }
 
 export function normalizeVantaPrivateCoreSwapWitnessPackage(input) {

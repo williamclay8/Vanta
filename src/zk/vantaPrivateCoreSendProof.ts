@@ -187,6 +187,16 @@ export type VantaPrivateCoreNoirSendWitnessPackageV0 = {
   };
 };
 
+export type VantaPrivateCoreSendProofArtifactV0 = {
+  backend: "barretenberg-ultrahonk";
+  circuit: typeof VANTA_PRIVATE_CORE_SEND_CIRCUIT_V0;
+  circuitPublicInputs: VantaPrivateCoreNoirSendWitnessPackageV0["publicInputs"];
+  proofHex: string;
+  proofVersion: typeof VANTA_PRIVATE_CORE_SEND_PROOF_VERSION_V0;
+  provingHashLane: typeof VANTA_PRIVATE_CORE_SEND_PROVING_HASH_LANE_V0;
+  publicInputs: string[];
+};
+
 export type VantaPrivateCoreSendProofBoundaryV0 = {
   kind: typeof VANTA_PRIVATE_CORE_SEND_PROOF_KIND_V0;
   version: typeof VANTA_PRIVATE_CORE_SEND_PROOF_VERSION_V0;
@@ -198,6 +208,7 @@ export type VantaPrivateCoreSendProofBoundaryV0 = {
   publicInputs: SendPublicInputsV0;
   privateWitness: SendPrivateWitnessV0;
   noirWitnessPackage: VantaPrivateCoreNoirSendWitnessPackageV0;
+  proofArtifact: VantaPrivateCoreSendProofArtifactV0 | null;
 };
 
 export type VantaPrivateCoreFixedDepthSendFixtureV0 = {
@@ -326,6 +337,7 @@ export function buildVantaPrivateCoreSendProofBoundary(
     publicInputs,
     privateWitness,
     noirWitnessPackage,
+    proofArtifact: null,
   };
 }
 

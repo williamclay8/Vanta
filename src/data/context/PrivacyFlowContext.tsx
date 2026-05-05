@@ -743,9 +743,9 @@ export type VantaPrivateCoreSendState = {
   releaseCandidateId: string | null;
   recipientCommitment: string;
   recipientPayloadCommitment: string | null;
-  recipientAmount: string;
+  recipientAmount: string | null;
   changeCommitment: string | null;
-  changeAmount: string;
+  changeAmount: string | null;
   resultingRoot: string | null;
   resultingRootStatusLabel: string;
   resultingRootPrimaryNote: string;
@@ -4313,8 +4313,13 @@ function summarizePrivateCoreOperatorSendState(args: {
   const recipientUnshielded =
     args.latestConsume?.root === args.latestSend.resultingRoot &&
     args.latestRelease?.root === args.latestSend.resultingRoot &&
+    args.latestSend.sendAmount !== null &&
     args.latestRelease?.releasedAmount === args.latestSend.sendAmount &&
     args.latestConsume?.proofId === args.latestRelease?.proofId;
+  const sendAmountLabel =
+    args.latestSend.sendAmount === null
+      ? "amount-redacted no-witness"
+      : `${formatBaseUnits(BigInt(args.latestSend.sendAmount), VANTA_PRIVATE_CORE_USDC_DECIMALS)} USDC`;
 
   return {
     releaseCandidateId: args.latestSend.releaseCandidateId ?? null,
@@ -4335,10 +4340,12 @@ function summarizePrivateCoreOperatorSendState(args: {
       ? "Recipient output already unshielded through operator release"
       : "Recipient output ready for supported hold or unshield flow",
     residualStateStatus:
-      args.latestSend.changeAmount !== "0"
+      args.latestSend.changeAmount === null
+        ? "Residual note amount hidden by no-witness operator state"
+        : args.latestSend.changeAmount !== "0"
         ? "Residual note expected from send transition"
         : "No residual note remains",
-    noteSummary: `${formatBaseUnits(BigInt(args.latestSend.sendAmount), VANTA_PRIVATE_CORE_USDC_DECIMALS)} USDC private-core send transition recorded`,
+    noteSummary: `${sendAmountLabel} private-core send transition recorded`,
     observationMode: "Operator send summary",
   };
 }
@@ -4368,7 +4375,9 @@ function mergePrivateCoreSendStateWithOperatorDownstream(args: {
 
   const rootMatchesConsume = args.latestConsume?.root === withOperatorRootStatus.resultingRoot;
   const rootMatchesRelease = args.latestRelease?.root === withOperatorRootStatus.resultingRoot;
-  const releaseMatchesAmount = args.latestRelease?.releasedAmount === withOperatorRootStatus.recipientAmount;
+  const releaseMatchesAmount =
+    withOperatorRootStatus.recipientAmount !== null &&
+    args.latestRelease?.releasedAmount === withOperatorRootStatus.recipientAmount;
 
   if (
     rootMatchesConsume &&

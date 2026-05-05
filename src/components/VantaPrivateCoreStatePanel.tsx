@@ -234,7 +234,11 @@ function abbreviate(value: string | null | undefined) {
   return `${value.slice(0, 10)}...${value.slice(-6)}`;
 }
 
-function formatAmount(baseUnits: string) {
+function formatAmount(baseUnits: string | null) {
+  if (baseUnits === null) {
+    return "Amount hidden";
+  }
+
   const raw = baseUnits.padStart(7, "0");
   const whole = raw.slice(0, -6);
   const fraction = raw.slice(-6).replace(/0+$/, "");

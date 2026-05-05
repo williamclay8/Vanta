@@ -1219,6 +1219,13 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     try {
       const previewResult = previewPrivateCoreSendTransition(privateCoreSendPreview.transition);
       const releaseCandidateId = ["private-core-release-candidate", crypto.randomUUID()].join(":");
+      const noWitnessProofArtifact = privateCoreSendPreview.boundary.proofArtifact;
+
+      if (!noWitnessProofArtifact) {
+        throw new Error(
+          "Private Core Send now requires a locally generated no-witness proof artifact before the operator can record a Send. Browser proving for this beta lane is not enabled yet, so Send is blocked instead of sending witness material to the operator.",
+        );
+      }
 
       if (privateCoreHoldState) {
         await ensurePrivateCoreOperatorRootKnown({
@@ -1235,9 +1242,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       }
 
       const sendReceipt = await requestVantaPrivateCoreOperatorSendTransition({
+        proofArtifact: noWitnessProofArtifact,
         releaseCandidateId,
         resultingRoot: previewResult.resultingRoot,
-        witnessPackage: privateCoreSendPreview.boundary.noirWitnessPackage,
       });
       runPrivateCoreSendTransition(privateCoreSendPreview.transition, {
         releaseCandidateId: sendReceipt.releaseCandidateId ?? releaseCandidateId,
@@ -2077,13 +2084,17 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 <div className="preview-card preview-card--accent">
                   <span>Recipient output</span>
                   <strong>
-                    {formatBaseUnits(BigInt(privateCoreSendState.recipientAmount), DEFAULT_USDC_DECIMALS)} USDC
+                    {privateCoreSendState.recipientAmount
+                      ? `${formatBaseUnits(BigInt(privateCoreSendState.recipientAmount), DEFAULT_USDC_DECIMALS)} USDC`
+                      : "Amount hidden"}
                   </strong>
                 </div>
                 <div className="preview-card">
                   <span>Residual note</span>
                   <strong>
-                    {formatBaseUnits(BigInt(privateCoreSendState.changeAmount), DEFAULT_USDC_DECIMALS)} USDC
+                    {privateCoreSendState.changeAmount
+                      ? `${formatBaseUnits(BigInt(privateCoreSendState.changeAmount), DEFAULT_USDC_DECIMALS)} USDC`
+                      : "Amount hidden"}
                   </strong>
                 </div>
                 <div className="preview-card">

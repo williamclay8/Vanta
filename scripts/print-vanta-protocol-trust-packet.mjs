@@ -58,15 +58,16 @@ const packets = {
     },
     action: "send",
     counterparty: "recipient-or-reviewer",
-    artifact: "Ledger-gated Send receipt/trust-packet lineage with current operator-witness limitation",
+    artifact:
+      "Ledger-gated Send receipt/trust-packet lineage with repo-checked no-witness proof-artifact operator boundary",
     claimBoundary: {
-      privacyTier: "ledger-gated-operator-witness-send-not-production-private",
+      privacyTier: "ledger-gated-no-witness-proof-artifact-beta-not-production-private",
       proofBacked: false,
-      evidenceStatus: "no-current-send-proof-evidence",
+      evidenceStatus: "repo-checked-no-witness-send-proof-artifact-no-live-settlement-evidence",
       fullyPrivate: false,
       productionReady: false,
       safeClaim:
-        "Send has a canonical ledger gate and shaped receipt lineage, but the current Private Core operator lane receives a witness package and is not production-private until live shared-pool, relayer, anonymity, replay, redaction, and review gates pass.",
+        "Send has a canonical ledger gate and a repo-checked no-witness proof-artifact operator boundary, but browser Send execution is blocked until a local proof artifact is available and the lane is not production-private until live shared-pool, relayer, anonymity, replay, redaction, and review gates pass.",
     },
     spendabilityBasis: "canonical-spendable-note-ledger",
     visibleFields: [
@@ -79,9 +80,12 @@ const packets = {
       "canonical spendable-note ledger basis",
     ],
     operatorVisibleFields: [
-      "operator-visible-in-current-private-core-lane: witness package",
-      "operator-visible-in-current-private-core-lane: send/change amounts inside witness",
-      "operator-visible-in-current-private-core-lane: membership path inside witness",
+      "repo-checked-no-witness-lane: proof artifact",
+      "repo-checked-no-witness-lane: public input transcript",
+      "repo-checked-no-witness-lane: input root",
+      "repo-checked-no-witness-lane: input nullifier",
+      "repo-checked-no-witness-lane: recipient/change commitments",
+      "non-production local-prover-dev mode remains blocked from production privacy claims",
     ],
     hiddenFields: [
       "raw amount in shareable trust packet",
@@ -92,9 +96,15 @@ const packets = {
     ],
     verificationCommands: [
       "npm run private-core:send-check",
+      "npm run private-core:send-proof-artifact-consistency-check",
+      "npm run private-core:send-operator-no-witness-check",
+      "npm run private-core:send-operator-redaction-check",
+      "npm run private-core:send-nullifier-replay-no-witness-check",
       "npm run private-core:send-committed-settlement-check",
       "npm run send:requires-shielded-state-check",
       "npm run send:balance-ledger-check",
+      "npm run send:production-privacy-claim-gate",
+      "npm run mainnet:send-live-evidence-contract-check",
       "npm run programmatic-privacy:contract-check",
     ],
   },
@@ -162,7 +172,10 @@ const packet = {
 if (checkMode) {
   assert.equal(packet.action, action);
   assert.equal(packet.claimBoundary.proofBacked, false);
-  assert.ok(packet.claimBoundary.evidenceStatus.startsWith("no-current-"));
+  assert.ok(
+    packet.claimBoundary.evidenceStatus.startsWith("no-current-") ||
+      packet.claimBoundary.evidenceStatus.includes("no-live-settlement-evidence"),
+  );
   assert.equal(packet.claimBoundary.fullyPrivate, false);
   assert.equal(packet.claimBoundary.productionReady, false);
   assert.ok(packet.claimBoundary.safeClaim.includes("not"));
@@ -173,14 +186,20 @@ if (checkMode) {
     assert.equal(packet.spendabilityBasis, "canonical-spendable-note-ledger");
     assert.ok(packet.verificationCommands.includes("npm run send:balance-ledger-check"));
     assert.ok(
-      packet.operatorVisibleFields?.some((field) =>
-        field.includes("operator-visible-in-current-private-core-lane"),
-      ),
-      "Send packet must name the current operator-visible witness limitation.",
+      packet.verificationCommands.includes("npm run private-core:send-operator-no-witness-check"),
+      "Send packet must name the no-witness Send guard.",
     );
     assert.ok(
-      !packet.claimBoundary.privacyTier.includes("proof-backed"),
-      "Send packet must not be called proof-backed when current proof evidence is absent.",
+      packet.operatorVisibleFields?.some((field) =>
+        field.includes("repo-checked-no-witness-lane"),
+      ),
+      "Send packet must name the repo-checked no-witness operator boundary.",
+    );
+    assert.ok(
+      packet.operatorVisibleFields?.some((field) =>
+        field.includes("non-production local-prover-dev mode"),
+      ),
+      "Send packet must preserve the local-prover-dev non-production limitation.",
     );
   }
 

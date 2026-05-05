@@ -1,6 +1,6 @@
 import { liveShieldAsset } from "@/solana/shieldConfig";
 import type { VantaPrivateCoreOperatorSourceArtifactBundleV0 } from "@/zk/vantaPrivateCore";
-import type { VantaPrivateCoreNoirSendWitnessPackageV0 } from "@/zk/vantaPrivateCoreSendProof";
+import type { VantaPrivateCoreSendProofArtifactV0 } from "@/zk/vantaPrivateCoreSendProof";
 import type { VantaPrivateCoreNoirSwapWitnessPackageV0 } from "@/zk/vantaPrivateCoreSwapProof";
 import type { VantaPrivateCoreNoirUnshieldWitnessPackageV0 } from "@/zk/vantaPrivateCoreUnshieldProof";
 
@@ -17,7 +17,7 @@ export type VantaPrivateCoreProofOperatorResponse = {
 };
 
 export type VantaPrivateCoreSendOperatorResponse = VantaPrivateCoreProofOperatorResponse & {
-  changeAmount: string;
+  changeAmount: string | null;
   changeCommitment: string | null;
   completedAt: number;
   inputNullifier: string;
@@ -27,7 +27,8 @@ export type VantaPrivateCoreSendOperatorResponse = VantaPrivateCoreProofOperator
   recipientCommitment: string;
   resultingRootBasis: "proof-linked-input-expected-root";
   resultingRoot: string | null;
-  sendAmount: string;
+  redactionBasis: string | null;
+  sendAmount: string | null;
   sendId: string;
   sendRecorded: boolean;
 };
@@ -96,8 +97,8 @@ export type VantaPrivateCoreOperatorProofStateResponse = {
 
 export type VantaPrivateCoreOperatorSendProofRecord = {
   action: "send-proof";
-  assetId: string;
-  amount: string;
+  assetId: string | null;
+  amount: string | null;
   backend: string;
   circuit: string;
   completedAt: number;
@@ -108,8 +109,11 @@ export type VantaPrivateCoreOperatorSendProofRecord = {
   proofVersion: number;
   provingHashLane: string;
   publicInputCount: number;
-  releaseDestination: string;
+  recipientCommitment?: string;
+  redactionBasis?: string | null;
+  releaseDestination: string | null;
   root: string;
+  sendEconomicTermsHash?: string;
   verified: boolean;
 };
 
@@ -189,8 +193,8 @@ export type VantaPrivateCoreOperatorSwapStateResponse = {
 };
 
 export type VantaPrivateCoreOperatorSendRecord = {
-  assetId: string;
-  changeAmount: string;
+  assetId: string | null;
+  changeAmount: string | null;
   changeCommitment: string | null;
   completedAt: number;
   inputNullifier: string;
@@ -199,11 +203,13 @@ export type VantaPrivateCoreOperatorSendRecord = {
   proofFieldCount: number;
   proofId: string;
   publicInputCount: number;
+  redactionBasis: string | null;
   releaseCandidateId: string | null;
   recipientCommitment: string;
   resultingRootBasis: "proof-linked-input-expected-root";
   resultingRoot: string | null;
-  sendAmount: string;
+  sendAmount: string | null;
+  sendEconomicTermsHash: string | null;
   sendId: string;
 };
 
@@ -1544,11 +1550,11 @@ export async function requestVantaPrivateCoreOperatorProof(args: {
 }
 
 export async function requestVantaPrivateCoreOperatorSendProof(args: {
-  witnessPackage: VantaPrivateCoreNoirSendWitnessPackageV0;
+  proofArtifact: VantaPrivateCoreSendProofArtifactV0;
 }): Promise<VantaPrivateCoreProofOperatorResponse> {
   const response = await fetch(getPrivateCoreSendProofOperatorUrl(), {
     body: JSON.stringify({
-      witnessPackage: args.witnessPackage,
+      proofArtifact: args.proofArtifact,
     }),
     headers: {
       "Content-Type": "application/json",
@@ -1719,15 +1725,15 @@ export async function requestVantaPrivateCoreOperatorSwapTransition(args: {
 }
 
 export async function requestVantaPrivateCoreOperatorSendTransition(args: {
+  proofArtifact: VantaPrivateCoreSendProofArtifactV0;
   releaseCandidateId?: string | null;
-  witnessPackage: VantaPrivateCoreNoirSendWitnessPackageV0;
   resultingRoot: string;
 }): Promise<VantaPrivateCoreSendOperatorResponse> {
   const response = await fetch(getPrivateCoreSendTransitionOperatorUrl(), {
     body: JSON.stringify({
+      proofArtifact: args.proofArtifact,
       releaseCandidateId: args.releaseCandidateId ?? null,
       resultingRoot: args.resultingRoot,
-      witnessPackage: args.witnessPackage,
     }),
     headers: {
       "Content-Type": "application/json",
@@ -1755,7 +1761,6 @@ export async function requestVantaPrivateCoreOperatorSendTransition(args: {
       typeof parsed.releaseCandidateId !== "string") ||
     typeof parsed.recipientCommitment !== "string" ||
     parsed.resultingRootBasis !== "proof-linked-input-expected-root" ||
-    typeof parsed.sendAmount !== "string" ||
     typeof parsed.sendId !== "string"
   ) {
     throw new Error("The private-core send operator returned an invalid transition summary.");
@@ -1763,7 +1768,7 @@ export async function requestVantaPrivateCoreOperatorSendTransition(args: {
 
   return {
     backend: parsed.backend ?? "barretenberg-ultrahonk",
-    changeAmount: parsed.changeAmount ?? "0",
+    changeAmount: typeof parsed.changeAmount === "string" ? parsed.changeAmount : null,
     changeCommitment: parsed.changeCommitment ?? null,
     circuit: parsed.circuit ?? "vanta_private_core_single_note_send",
     completedAt: parsed.completedAt,
@@ -1781,9 +1786,10 @@ export async function requestVantaPrivateCoreOperatorSendTransition(args: {
       ? parsed.publicInputs.filter((value): value is string => typeof value === "string")
       : [],
     recipientCommitment: parsed.recipientCommitment,
+    redactionBasis: typeof parsed.redactionBasis === "string" ? parsed.redactionBasis : null,
     resultingRootBasis: "proof-linked-input-expected-root",
     resultingRoot: typeof parsed.resultingRoot === "string" ? parsed.resultingRoot : null,
-    sendAmount: parsed.sendAmount,
+    sendAmount: typeof parsed.sendAmount === "string" ? parsed.sendAmount : null,
     sendId: parsed.sendId,
     sendRecorded: true,
     verified: true,
@@ -4386,8 +4392,12 @@ function isSendProofRecord(value: unknown): value is VantaPrivateCoreOperatorSen
     typeof value === "object" &&
     value !== null &&
     (value as VantaPrivateCoreOperatorSendProofRecord).action === "send-proof" &&
-    typeof (value as VantaPrivateCoreOperatorSendProofRecord).assetId === "string" &&
-    typeof (value as VantaPrivateCoreOperatorSendProofRecord).amount === "string" &&
+    (((value as VantaPrivateCoreOperatorSendProofRecord).assetId === null ||
+      (value as VantaPrivateCoreOperatorSendProofRecord).assetId === undefined) ||
+      typeof (value as VantaPrivateCoreOperatorSendProofRecord).assetId === "string") &&
+    (((value as VantaPrivateCoreOperatorSendProofRecord).amount === null ||
+      (value as VantaPrivateCoreOperatorSendProofRecord).amount === undefined) ||
+      typeof (value as VantaPrivateCoreOperatorSendProofRecord).amount === "string") &&
     typeof (value as VantaPrivateCoreOperatorSendProofRecord).backend === "string" &&
     typeof (value as VantaPrivateCoreOperatorSendProofRecord).circuit === "string" &&
     typeof (value as VantaPrivateCoreOperatorSendProofRecord).completedAt === "number" &&
@@ -4398,8 +4408,19 @@ function isSendProofRecord(value: unknown): value is VantaPrivateCoreOperatorSen
     typeof (value as VantaPrivateCoreOperatorSendProofRecord).proofVersion === "number" &&
     typeof (value as VantaPrivateCoreOperatorSendProofRecord).provingHashLane === "string" &&
     typeof (value as VantaPrivateCoreOperatorSendProofRecord).publicInputCount === "number" &&
-    typeof (value as VantaPrivateCoreOperatorSendProofRecord).releaseDestination === "string" &&
+    (((value as VantaPrivateCoreOperatorSendProofRecord).recipientCommitment === null ||
+      (value as VantaPrivateCoreOperatorSendProofRecord).recipientCommitment === undefined) ||
+      typeof (value as VantaPrivateCoreOperatorSendProofRecord).recipientCommitment === "string") &&
+    (((value as VantaPrivateCoreOperatorSendProofRecord).redactionBasis === null ||
+      (value as VantaPrivateCoreOperatorSendProofRecord).redactionBasis === undefined) ||
+      typeof (value as VantaPrivateCoreOperatorSendProofRecord).redactionBasis === "string") &&
+    (((value as VantaPrivateCoreOperatorSendProofRecord).releaseDestination === null ||
+      (value as VantaPrivateCoreOperatorSendProofRecord).releaseDestination === undefined) ||
+      typeof (value as VantaPrivateCoreOperatorSendProofRecord).releaseDestination === "string") &&
     typeof (value as VantaPrivateCoreOperatorSendProofRecord).root === "string" &&
+    (((value as VantaPrivateCoreOperatorSendProofRecord).sendEconomicTermsHash === null ||
+      (value as VantaPrivateCoreOperatorSendProofRecord).sendEconomicTermsHash === undefined) ||
+      typeof (value as VantaPrivateCoreOperatorSendProofRecord).sendEconomicTermsHash === "string") &&
     typeof (value as VantaPrivateCoreOperatorSendProofRecord).verified === "boolean"
   );
 }
@@ -4461,8 +4482,12 @@ function isSendRecord(value: unknown): value is VantaPrivateCoreOperatorSendReco
   return (
     typeof value === "object" &&
     value !== null &&
-    typeof (value as VantaPrivateCoreOperatorSendRecord).assetId === "string" &&
-    typeof (value as VantaPrivateCoreOperatorSendRecord).changeAmount === "string" &&
+    (((value as VantaPrivateCoreOperatorSendRecord).assetId === null ||
+      (value as VantaPrivateCoreOperatorSendRecord).assetId === undefined) ||
+      typeof (value as VantaPrivateCoreOperatorSendRecord).assetId === "string") &&
+    (((value as VantaPrivateCoreOperatorSendRecord).changeAmount === null ||
+      (value as VantaPrivateCoreOperatorSendRecord).changeAmount === undefined) ||
+      typeof (value as VantaPrivateCoreOperatorSendRecord).changeAmount === "string") &&
     (((value as VantaPrivateCoreOperatorSendRecord).changeCommitment === null ||
       (value as VantaPrivateCoreOperatorSendRecord).changeCommitment === undefined) ||
       typeof (value as VantaPrivateCoreOperatorSendRecord).changeCommitment === "string") &&
@@ -4473,6 +4498,9 @@ function isSendRecord(value: unknown): value is VantaPrivateCoreOperatorSendReco
     typeof (value as VantaPrivateCoreOperatorSendRecord).proofFieldCount === "number" &&
     typeof (value as VantaPrivateCoreOperatorSendRecord).proofId === "string" &&
     typeof (value as VantaPrivateCoreOperatorSendRecord).publicInputCount === "number" &&
+    (((value as VantaPrivateCoreOperatorSendRecord).redactionBasis === null ||
+      (value as VantaPrivateCoreOperatorSendRecord).redactionBasis === undefined) ||
+      typeof (value as VantaPrivateCoreOperatorSendRecord).redactionBasis === "string") &&
     (((value as VantaPrivateCoreOperatorSendRecord).releaseCandidateId === null ||
       (value as VantaPrivateCoreOperatorSendRecord).releaseCandidateId === undefined) ||
       typeof (value as VantaPrivateCoreOperatorSendRecord).releaseCandidateId === "string") &&
@@ -4482,7 +4510,12 @@ function isSendRecord(value: unknown): value is VantaPrivateCoreOperatorSendReco
     (((value as VantaPrivateCoreOperatorSendRecord).resultingRoot === null ||
       (value as VantaPrivateCoreOperatorSendRecord).resultingRoot === undefined) ||
       typeof (value as VantaPrivateCoreOperatorSendRecord).resultingRoot === "string") &&
-    typeof (value as VantaPrivateCoreOperatorSendRecord).sendAmount === "string" &&
+    (((value as VantaPrivateCoreOperatorSendRecord).sendAmount === null ||
+      (value as VantaPrivateCoreOperatorSendRecord).sendAmount === undefined) ||
+      typeof (value as VantaPrivateCoreOperatorSendRecord).sendAmount === "string") &&
+    (((value as VantaPrivateCoreOperatorSendRecord).sendEconomicTermsHash === null ||
+      (value as VantaPrivateCoreOperatorSendRecord).sendEconomicTermsHash === undefined) ||
+      typeof (value as VantaPrivateCoreOperatorSendRecord).sendEconomicTermsHash === "string") &&
     typeof (value as VantaPrivateCoreOperatorSendRecord).sendId === "string"
   );
 }

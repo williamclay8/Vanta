@@ -81,8 +81,13 @@ function isRecordMap(value) {
 
 function normalizeSendRecord(record) {
   return {
-    assetId: typeof record?.assetId === "string" ? record.assetId : "",
-    changeAmount: typeof record?.changeAmount === "string" ? record.changeAmount : "0",
+    assetId: typeof record?.assetId === "string" ? record.assetId : null,
+    changeAmount:
+      typeof record?.changeAmount === "string"
+        ? record.changeAmount
+        : record?.changeAmount === null
+          ? null
+          : "0",
     changeCommitment: typeof record?.changeCommitment === "string" ? record.changeCommitment : null,
     completedAt: typeof record?.completedAt === "number" ? record.completedAt : 0,
     inputNullifier: typeof record?.inputNullifier === "string" ? record.inputNullifier : "",
@@ -91,6 +96,10 @@ function normalizeSendRecord(record) {
     proofFieldCount: typeof record?.proofFieldCount === "number" ? record.proofFieldCount : 0,
     proofId: typeof record?.proofId === "string" ? record.proofId : "",
     publicInputCount: typeof record?.publicInputCount === "number" ? record.publicInputCount : 0,
+    redactionBasis:
+      typeof record?.redactionBasis === "string" && record.redactionBasis.length > 0
+        ? record.redactionBasis
+        : null,
     releaseCandidateId:
       typeof record?.releaseCandidateId === "string" && record.releaseCandidateId.length > 0
         ? record.releaseCandidateId
@@ -101,7 +110,16 @@ function normalizeSendRecord(record) {
         ? record.resultingRoot
         : null,
     resultingRootBasis: "proof-linked-input-expected-root",
-    sendAmount: typeof record?.sendAmount === "string" ? record.sendAmount : "0",
+    sendAmount:
+      typeof record?.sendAmount === "string"
+        ? record.sendAmount
+        : record?.sendAmount === null
+          ? null
+          : "0",
+    sendEconomicTermsHash:
+      typeof record?.sendEconomicTermsHash === "string" && record.sendEconomicTermsHash.length > 0
+        ? record.sendEconomicTermsHash
+        : null,
     sendId: typeof record?.sendId === "string" ? record.sendId : "",
   };
 }

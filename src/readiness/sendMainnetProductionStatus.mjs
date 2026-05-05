@@ -30,7 +30,9 @@ export function createVantaSendMainnetProductionStatus() {
     realFundsApproval.liveMainnetActionsAllowedNow &&
     exactSendApprovalScoped &&
     !realFundsApproval.stopCondition.appliesToCurrentApproval;
-  const privateCoreOperatorStateRedacted = false;
+  const privateCoreSendNoWitnessBoundaryCovered = true;
+  const privateCoreSendProofArtifactCovered = true;
+  const privateCoreOperatorStateRedacted = true;
   const statefulVerifierIndexerCommitIdempotencyProven = false;
   const productionReady =
     localLaneCovered &&
@@ -74,6 +76,8 @@ export function createVantaSendMainnetProductionStatus() {
     liveSettlementProven,
     exactSendApprovalScoped,
     boundedApprovalActive,
+    privateCoreSendNoWitnessBoundaryCovered,
+    privateCoreSendProofArtifactCovered,
     privateCoreOperatorStateRedacted,
     statefulVerifierIndexerCommitIdempotencyProven,
     mainnetReady: productionReady,
@@ -95,16 +99,26 @@ export function createVantaSendMainnetProductionStatus() {
       sendSafeSend: "npm run send:safe-send-adoption-check",
       sendBalanceLedger: "npm run send:balance-ledger-check",
       sendTrustPacket: "npm run send:trust-packet-check",
+      sendNoWitnessOperatorBoundary: "npm run private-core:send-operator-no-witness-check",
+      sendProofArtifactConsistency: "npm run private-core:send-proof-artifact-consistency-check",
+      sendOperatorRedaction: "npm run private-core:send-operator-redaction-check",
+      sendNullifierReplayNoWitness: "npm run private-core:send-nullifier-replay-no-witness-check",
+      sendProductionPrivacyClaimGate: "npm run send:production-privacy-claim-gate",
+      sendLiveEvidenceContract: "npm run mainnet:send-live-evidence-contract-check",
       privatePoolV2SendProofRequest: "npm run private-pool-v2:send-proof-request-check",
       privatePoolV2SendCircuit: "npm run private-pool-v2:send-circuit-check",
       actualPrivateSpendCircuit: "npm run private-pool-v2:actual-private-spend-circuit-check",
+      liveSendSettlementEvidence: "npm run mainnet:actual-private-settlement-review-check",
+      publicTranscriptReview: "npm run private-pool-v2:production-privacy-reviewer-packet-check",
+      thirdPartyAudit: "npm run mainnet:external-gates-production-claim-check",
       privatePoolV2Verify: "npm run private-pool-v2:verify",
       mainnetPreflight: "npm run mainnet:preflight",
     },
     requiredBeforeProduction: [
       "Keep Send wallet approvals behind safe-send transaction summaries.",
       "Do not treat the current /app/send private-core USDC proof/operator lane as the production actual-private settlement lane.",
-      "Do not promote the Private Core Send operator state as production-private while it exposes raw asset, send amount, and change amount in operator JSON.",
+      "Keep browser Send fail-closed until a locally generated no-witness Send proof artifact is available; do not fall back to sending witness packages to the operator.",
+      "Do not promote the repo-checked no-witness Private Core Send lane as production-private until live/deployed evidence proves the same boundary is running.",
       "Use the actual-private spend membership proof path for production Send promotion, not only the older send transition circuit.",
       "Prove idempotent recovery across verifier receipt storage and indexer nullifier/output transition storage before production promotion.",
       "Record a fresh active bounded approval window for the exact Send/actual-private mainnet action.",
@@ -117,6 +131,6 @@ export function createVantaSendMainnetProductionStatus() {
     safety:
       "No auth tokens, database URLs, wallet keys, signed transactions, seed phrases, or raw private inputs are printed.",
     truth:
-      "Send has local safe-send, a private-core USDC proof/operator UI lane, hidden-economics Private Pool v2 request coverage, local circuit coverage, actual-private membership circuit coverage, and no-funds operator smoke coverage. The UI lane is not the production actual-private settlement lane, and its Private Core operator JSON still exposes raw economic terms. Send must not be called mainnet-production-private until live reviewed settlement evidence, exact active real-funds approval, audited/shared anonymity-set evidence, relayer separation review, production replay evidence, transcript review, idempotent verifier/indexer commit recovery, and raw-term-safe production operator surfaces are all present.",
+      "Send has local safe-send, canonical ledger gating, a repo-checked no-witness proof-artifact Private Core Send operator boundary, hidden-economics Private Pool v2 request coverage, local circuit coverage, actual-private membership circuit coverage, and no-funds operator smoke coverage. Browser Send execution is fail-closed until a local proof artifact is available, and this Private Core lane is not the production actual-private settlement lane. Send must not be called mainnet-production-private until live reviewed settlement evidence, exact active real-funds approval, audited/shared anonymity-set evidence, relayer separation review, production replay evidence, transcript review, idempotent verifier/indexer commit recovery, and deployed raw-term-safe production operator surfaces are all present.",
   };
 }

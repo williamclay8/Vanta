@@ -175,15 +175,17 @@ requireNotIncludes(
 );
 
 for (const marker of [
-  '"ledger-gated-operator-witness-send-not-production-private"',
+  '"ledger-gated-no-witness-proof-artifact-beta-not-production-private"',
   "operatorVisibleFields",
-  "operator-visible-in-current-private-core-lane",
+  "repo-checked-no-witness-lane",
+  "non-production local-prover-dev mode remains blocked from production privacy claims",
   "npm run send:balance-ledger-check",
+  "npm run private-core:send-operator-no-witness-check",
 ]) {
   requireIncludes(
     trustPacketSource,
     marker,
-    `Send trust packet must preserve ledger/operator-limitation marker: ${marker}`,
+    `Send trust packet must preserve ledger/no-witness limitation marker: ${marker}`,
   );
 }
 
