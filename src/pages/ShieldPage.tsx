@@ -29,6 +29,10 @@ import {
   loadRecoveredNativeSolShieldDepositSignatures,
   recordRecoveredNativeSolShieldNote,
 } from "@/solana/recoveredNativeSolShieldNotes";
+import {
+  loadVerifiedNativeSolShieldDepositSignatures,
+  recordVerifiedNativeSolShieldNote,
+} from "@/solana/verifiedNativeSolShieldNotes";
 import { recordRecentShieldTokenNote } from "@/solana/recentShieldTokenNotes";
 import { createShieldAssetCapability } from "@/solana/shieldAssetCapability";
 import {
@@ -369,6 +373,10 @@ export function ShieldPage(_props: ShieldPageProps) {
         .map((note) => note.depositSignature)
         .filter((signature): signature is string => typeof signature === "string" && signature.length > 0),
       ...loadRecoveredNativeSolShieldDepositSignatures({
+        owner: walletAddress,
+        vaultOwner: selectedShieldAsset.vaultOwner,
+      }),
+      ...loadVerifiedNativeSolShieldDepositSignatures({
         owner: walletAddress,
         vaultOwner: selectedShieldAsset.vaultOwner,
       }),
@@ -1096,6 +1104,22 @@ export function ShieldPage(_props: ShieldPageProps) {
         } else {
           protocolSettlementWarning =
             "Private Pool v2 Shield receipt context was not available for this shield.";
+        }
+
+        if (
+          pendingShieldAsset === "SOL" &&
+          protocolSettlement && !protocolSettlementWarning &&
+          walletAddress
+        ) {
+          recordVerifiedNativeSolShieldNote({
+            amount: pendingShieldAmount,
+            createdAt: recentShieldTimestamp,
+            depositSignature: pendingDepositSignature ?? activeStateSignature,
+            owner: walletAddress,
+            stateSignature: activeStateSignature,
+            vaultOwner: activeShieldTarget.vaultOwner!,
+          });
+          await refreshShieldState().catch(() => undefined);
         }
 
         setRecentShield({

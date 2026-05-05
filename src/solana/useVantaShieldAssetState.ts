@@ -8,6 +8,7 @@ import {
 } from "@/solana/operatorStateClient";
 import { loadRecoveredNativeSolShieldNotes } from "@/solana/recoveredNativeSolShieldNotes";
 import { useVantaShieldViewingKey } from "@/solana/useVantaShieldViewingKey";
+import { loadVerifiedNativeSolShieldNotes } from "@/solana/verifiedNativeSolShieldNotes";
 import {
   fetchVantaShieldAccountState,
   type VantaShieldAccountState,
@@ -68,10 +69,16 @@ export function useVantaShieldAssetState(args: {
       ]);
       const accountWithRecoveredSolNotes = mergeRecoveredNativeSolShieldNotes(
         nextAccount,
-        loadRecoveredNativeSolShieldNotes({
-          owner: walletAddress,
-          vaultOwner: args.vaultOwner,
-        }),
+        dedupeLocalNativeSolShieldNotes([
+          ...loadVerifiedNativeSolShieldNotes({
+            owner: walletAddress,
+            vaultOwner: args.vaultOwner,
+          }),
+          ...loadRecoveredNativeSolShieldNotes({
+            owner: walletAddress,
+            vaultOwner: args.vaultOwner,
+          }),
+        ]),
       );
       const accountWithReleasedTokenNotes = reconcileLocallyReleasedShieldNotes(
         accountWithRecoveredSolNotes,
@@ -116,6 +123,23 @@ export function useVantaShieldAssetState(args: {
     isRefreshing,
     refresh,
   };
+}
+
+function dedupeLocalNativeSolShieldNotes(
+  notes: readonly VantaShieldedSolNote[],
+): VantaShieldedSolNote[] {
+  const notesByKey = new Map<string, VantaShieldedSolNote>();
+
+  for (const note of notes) {
+    const key = note.depositSignature ? `deposit:${note.depositSignature}` : note.noteId;
+    const existingNote = notesByKey.get(key);
+
+    if (!existingNote || (existingNote.lifecycleStatus !== "spendable" && note.lifecycleStatus === "spendable")) {
+      notesByKey.set(key, note);
+    }
+  }
+
+  return [...notesByKey.values()];
 }
 
 function reconcileLocallyReleasedShieldNotes(

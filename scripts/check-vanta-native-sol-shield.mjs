@@ -2,6 +2,14 @@ import { strict as assert } from "node:assert";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
+function readRepoFile(path) {
+  try {
+    return readFileSync(resolve(path), "utf8");
+  } catch {
+    return "";
+  }
+}
+
 const shieldStateSource = readFileSync(
   resolve("src/solana/vantaShieldState.ts"),
   "utf8",
@@ -45,6 +53,11 @@ assert.ok(
 );
 
 const shieldPageSource = readFileSync(resolve("src/pages/ShieldPage.tsx"), "utf8");
+const verifiedNativeSolNotesSource = readRepoFile("src/solana/verifiedNativeSolShieldNotes.ts");
+const shieldAssetStateSource = readFileSync(
+  resolve("src/solana/useVantaShieldAssetState.ts"),
+  "utf8",
+);
 const realtimeSignatureProgressSource = readFileSync(
   resolve("src/solana/useRealtimeSignatureProgress.ts"),
   "utf8",
@@ -81,6 +94,13 @@ assert.ok(
 assert.ok(
   shieldPageSource.includes("recordRecoveredNativeSolShieldNote"),
   "Native SOL recovery must record an already-vaulted SOL note without requiring another Phantom transaction.",
+);
+assert.ok(
+  shieldPageSource.includes("recordVerifiedNativeSolShieldNote") &&
+    shieldPageSource.includes("pendingShieldAsset === \"SOL\"") &&
+    shieldPageSource.includes("protocolSettlement && !protocolSettlementWarning") &&
+    shieldPageSource.includes("await refreshShieldState()"),
+  "Native SOL Shield receipt verification must promote the deposit into the local spendable SOL ledger and refresh the balance.",
 );
 assert.ok(
   shieldPageSource.includes("VANTA_NATIVE_SOL_SAME_TRANSACTION_DEPOSIT_SIGNATURE"),
@@ -154,6 +174,22 @@ assert.ok(
 assert.ok(
   nativeSolShieldSource.includes("fetchNativeSolShieldDepositCandidates"),
   "Native SOL shield helper must expose recoverable vault deposit discovery.",
+);
+assert.ok(
+  verifiedNativeSolNotesSource.includes("vanta.verifiedNativeSolShieldNotes.v1") &&
+    verifiedNativeSolNotesSource.includes("recordVerifiedNativeSolShieldNote") &&
+    verifiedNativeSolNotesSource.includes("loadVerifiedNativeSolShieldNotes") &&
+    verifiedNativeSolNotesSource.includes("loadVerifiedNativeSolShieldDepositSignatures") &&
+    verifiedNativeSolNotesSource.includes('lifecycleStatus: "spendable"') &&
+    verifiedNativeSolNotesSource.includes("local-sol-receipt:"),
+  "Receipt-verified native SOL deposits must have a local spendable ledger-note store distinct from pending recovery notes.",
+);
+assert.ok(
+  shieldAssetStateSource.includes("loadVerifiedNativeSolShieldNotes") &&
+    shieldAssetStateSource.includes("loadRecoveredNativeSolShieldNotes") &&
+    shieldAssetStateSource.includes("dedupeLocalNativeSolShieldNotes") &&
+    shieldAssetStateSource.includes('note.lifecycleStatus === "spendable"'),
+  "Shield asset state must merge receipt-verified native SOL notes while keeping pending recovery notes out of spendable SOL.",
 );
 assert.ok(
   nativeSolShieldSource.includes("getParsedTransactions"),
