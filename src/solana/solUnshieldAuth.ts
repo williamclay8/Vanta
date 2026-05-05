@@ -36,20 +36,6 @@ export function createTransitionAuthorizedSolUnshieldIntent(
   };
 }
 
-export function createOperatorDirectSolUnshieldIntent(
-  payload: SolUnshieldIntentPayload,
-): SignedSolUnshieldIntent {
-  if (!payload.transitionNoteId.startsWith("direct:")) {
-    throw new Error("Operator-direct SOL Unshield requires a direct transition reference.");
-  }
-
-  return {
-    ...payload,
-    signature: "operator-direct",
-    version: VANTA_SOL_UNSHIELD_INTENT_VERSION,
-  };
-}
-
 export function createSolUnshieldIntentPayload(
   payload: Omit<SolUnshieldIntentPayload, "issuedAt" | "requestId">,
 ): SolUnshieldIntentPayload {

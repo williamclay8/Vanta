@@ -28,8 +28,9 @@ import {
   vantaSolanaCluster,
 } from "@/solana/shieldConfig";
 import {
-  createOperatorDirectUnshieldIntent,
   createUnshieldIntentPayload,
+  signUnshieldIntent,
+  VANTA_UNSHIELD_INTENT_TTL_MS,
 } from "@/solana/unshieldAuth";
 import { requestOperatorUnshield } from "@/solana/unshieldOperatorClient";
 import { useVantaShieldAssetRegistryState } from "@/solana/useVantaShieldAssetRegistryState";
@@ -123,6 +124,13 @@ type PendingUnshieldBridge = {
   vaultOwner: string;
 };
 
+type SpendableTokenNote = {
+  amount: number;
+  createdAt: number;
+  noteId: string;
+  stateSignature: string;
+};
+
 function formatShieldTokenAmount(value: number, asset: LiveShieldTokenAssetKey) {
   const decimals = Math.min(getLiveShieldTokenAsset(asset).decimals, 6);
   return `${value.toLocaleString(undefined, {
@@ -153,7 +161,7 @@ function formatShieldedLaneLabel(asset: UnshieldLane) {
 }
 
 function formatAvailableLaneLabel(asset: UnshieldLane, amount: number) {
-  return `${formatShieldedLaneLabel(asset)} - ${formatUnshieldAmount(amount, asset)} available`;
+  return `${formatShieldedLaneLabel(asset)} - ${formatUnshieldAmount(amount, asset)} ledger spendable`;
 }
 
 function formatEditableAmount(value: number, decimals: number) {
@@ -205,23 +213,37 @@ function chooseBestSpendableNote<T extends { amount: number; createdAt: number }
   })[0] ?? null;
 }
 
-function assertCanonicalTokenSpendableNote(note: { noteId: string; stateSignature: string }) {
-  if (
+function isCanonicalTokenSpendableNote(note: { noteId: string; stateSignature: string }) {
+  return !(
     note.noteId.startsWith("vnta_recent_") ||
     note.stateSignature.startsWith("local-token-deposit:")
-  ) {
+  );
+}
+
+function assertCanonicalTokenSpendableNote(note: { noteId: string; stateSignature: string }) {
+  if (!isCanonicalTokenSpendableNote(note)) {
     throw new Error("Vanta is still syncing this shielded token note; it is not spendable yet.");
   }
 }
 
-function assertCanonicalSolSpendableNote(note: VantaShieldedSolNote) {
-  if (
+function isCanonicalSolSpendableNote(note: VantaShieldedSolNote) {
+  return (
     note.lifecycleStatus !== "spendable" ||
     note.noteId.startsWith("vnta_native_sol_recent_") ||
     note.stateSignature.startsWith("local-sol-recovery:")
-  ) {
+  )
+    ? false
+    : true;
+}
+
+function assertCanonicalSolSpendableNote(note: VantaShieldedSolNote) {
+  if (!isCanonicalSolSpendableNote(note)) {
     throw new Error("Vanta is still syncing this shielded SOL note; it is not spendable yet.");
   }
+}
+
+function sumSpendableAmounts(notes: readonly { amount: number }[], decimals: number) {
+  return Number(notes.reduce((sum, note) => sum + note.amount, 0).toFixed(decimals));
 }
 
 export function UnshieldPage() {
@@ -509,15 +531,18 @@ export function UnshieldPage() {
     },
   );
 
-  const spendableShieldNotesByLane = useMemo(
+  const canonicalSpendableShieldNotesByLane = useMemo(
     () =>
-      Object.fromEntries(
-        ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS.map((assetKey) => [
-          assetKey,
-          shieldRegistry.byAssetKey[assetKey].account?.spendableShieldNotes ?? [],
-        ]),
-      ) as Record<LiveShieldTokenAssetKey, NonNullable<typeof usdcShieldEntry.account>["spendableShieldNotes"]>,
-    [shieldRegistry.byAssetKey, usdcShieldEntry.account],
+      ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS.reduce(
+        (nextNotesByLane, assetKey) => {
+          nextNotesByLane[assetKey] = (
+            shieldRegistry.byAssetKey[assetKey].account?.spendableShieldNotes ?? []
+          ).filter(isCanonicalTokenSpendableNote);
+          return nextNotesByLane;
+        },
+        {} as Record<LiveShieldTokenAssetKey, SpendableTokenNote[]>,
+      ),
+    [shieldRegistry.byAssetKey],
   );
   const shieldedSolSourceEntry =
     shieldRegistry.entries.find((entry) => (entry.account?.shieldedSolBalance ?? 0) > 0) ??
@@ -534,12 +559,18 @@ export function UnshieldPage() {
     shieldedSolSourceEntry?.account ?? canonicalSolAccount ?? usdcShieldEntry.account;
   const solShieldStateError =
     shieldedSolSourceEntry?.error ?? canonicalShieldState.error ?? usdcShieldEntry.error;
-  const spendableSolNotes = solShieldAccount?.spendableShieldedSolNotes ?? [];
+  const spendableSolNotes = useMemo(
+    () =>
+      (solShieldAccount?.spendableShieldedSolNotes ?? []).filter(
+        isCanonicalSolSpendableNote,
+      ),
+    [solShieldAccount],
+  );
 
   useEffect(() => {
     const availableLanes = [
       ...ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS.map((assetKey) =>
-        spendableShieldNotesByLane[assetKey].length > 0 ? assetKey : null,
+        canonicalSpendableShieldNotesByLane[assetKey].length > 0 ? assetKey : null,
       ),
       spendableSolNotes.length > 0 ? "SOL" : null,
     ].filter(Boolean) as UnshieldLane[];
@@ -552,8 +583,8 @@ export function UnshieldPage() {
       setSelectedLane(availableLanes[0]);
     }
   }, [
+    canonicalSpendableShieldNotesByLane,
     selectedLane,
-    spendableShieldNotesByLane,
     spendableSolNotes.length,
   ]);
   const selectedSolNote = useMemo(
@@ -567,11 +598,11 @@ export function UnshieldPage() {
   const selectedShieldNote =
     selectedLane === "SOL"
       ? null
-      : chooseBestSpendableNote(spendableShieldNotesByLane[selectedLane]);
+      : chooseBestSpendableNote(canonicalSpendableShieldNotesByLane[selectedLane]);
   useEffect(() => {
     setRequestedAmountInput("");
   }, [selectedLane, selectedShieldNote, selectedSolNote]);
-  const selectedSolAggregateAmount = solShieldAccount?.shieldedSolBalance ?? 0;
+  const selectedSolAggregateAmount = sumSpendableAmounts(spendableSolNotes, 9);
   const selectedFullAmount =
     selectedLane === "SOL" ? selectedSolNote?.amount ?? 0 : selectedShieldNote?.amount ?? 0;
   useEffect(() => {
@@ -615,22 +646,20 @@ export function UnshieldPage() {
         const amount =
           lane === "SOL"
             ? selectedSolAggregateAmount
-            : shieldRegistry.byAssetKey[lane].account?.balance ?? 0;
+            : sumSpendableAmounts(canonicalSpendableShieldNotesByLane[lane], 6);
 
         return {
           amount,
           hasSpendableBalance:
             lane === "SOL"
               ? spendableSolNotes.length > 0
-              : spendableShieldNotesByLane[lane].length > 0,
+              : canonicalSpendableShieldNotesByLane[lane].length > 0,
           lane,
         };
       }),
     [
-      shieldRegistry.byAssetKey,
-      solShieldAccount?.shieldedSolBalance,
+      canonicalSpendableShieldNotesByLane,
       selectedSolAggregateAmount,
-      spendableShieldNotesByLane,
       spendableSolNotes.length,
     ],
   );
@@ -1142,21 +1171,58 @@ export function UnshieldPage() {
     try {
       const releaseResult =
         pendingSpentMarker.asset !== "SOL"
-          ? await requestOperatorUnshield(
-              createOperatorDirectUnshieldIntent(
-                createUnshieldIntentPayload({
-                  amount: pendingSpentMarker.amount,
-                  destinationOwner: pendingSpentMarker.owner,
-                  mintAddress: getLiveShieldTokenAsset(pendingSpentMarker.asset).mintAddress ?? "",
-                  noteId: pendingSpentMarker.consumedNoteId,
-                  owner: pendingSpentMarker.owner,
-                  requester: pendingSpentMarker.owner,
-                  transitionNoteId: pendingSpentMarker.transitionNoteId,
-                  vaultOwner: pendingSpentMarker.vaultOwner,
-                }),
-              ),
-              getLiveShieldTokenAsset(pendingSpentMarker.asset).unshieldOperatorUrl,
-            )
+          ? await (async () => {
+              const signMessage = walletSession?.signMessage;
+
+              if (!signMessage) {
+                throw new Error("The connected wallet must support message signing.");
+              }
+
+              const tokenAsset = pendingSpentMarker.asset as LiveShieldTokenAssetKey;
+              const shieldAsset = getLiveShieldTokenAsset(tokenAsset);
+              const payload = createUnshieldIntentPayload({
+                amount: pendingSpentMarker.amount,
+                destinationOwner: pendingSpentMarker.owner,
+                mintAddress: shieldAsset.mintAddress ?? "",
+                noteId: pendingSpentMarker.consumedNoteId,
+                owner: pendingSpentMarker.owner,
+                requester: pendingSpentMarker.owner,
+                transitionNoteId: pendingSpentMarker.transitionNoteId,
+                vaultOwner: pendingSpentMarker.vaultOwner,
+              });
+
+              const signedIntent = await signUnshieldIntent(payload, async (message) => {
+                const messageIntentSignature = await signWalletMessageIntentWithSafety({
+                  amount: payload.amount,
+                  asset: tokenAsset,
+                  connectedWalletAddress: walletAddress,
+                  expiresAt: payload.issuedAt + VANTA_UNSHIELD_INTENT_TTL_MS,
+                  humanApprovedSummary: true,
+                  intentKind: "unshield-intent",
+                  issuedAt: payload.issuedAt,
+                  message,
+                  owner: payload.owner,
+                  recipient: payload.destinationOwner,
+                  requestId: payload.requestId,
+                  requester: payload.requester,
+                  signMessage,
+                });
+
+                if (
+                  !messageIntentSignature.signed ||
+                  !messageIntentSignature.signatureBytes ||
+                  messageIntentSignature.decision.reason !== "message-intent-ready-for-wallet-approval"
+                ) {
+                  throw new Error(
+                    `The token unshield intent could not be signed: ${messageIntentSignature.decision.reason}.`,
+                  );
+                }
+
+                return messageIntentSignature.signatureBytes;
+              });
+
+              return requestOperatorUnshield(signedIntent, shieldAsset.unshieldOperatorUrl);
+            })()
           : await (async () => {
               const signMessage = walletSession?.signMessage;
 
@@ -1791,9 +1857,9 @@ export function UnshieldPage() {
   } else if (selectedLane !== "SOL" && !selectedShieldAsset?.unshieldConfigured) {
     validationMessage = `${selectedLane} unshield is not ready for this wallet state yet.`;
   } else if (selectedLane !== "SOL" && !selectedShieldNote) {
-    validationMessage = `No shielded ${selectedLane} balance is currently available to return.`;
+    validationMessage = `No ledger-spendable shielded ${selectedLane} note is currently available to return.`;
   } else if (selectedLane === "SOL" && !selectedSolNote) {
-    validationMessage = "No shielded SOL balance is currently available to return.";
+    validationMessage = "No ledger-spendable shielded SOL note is currently available to return.";
   } else if (selectedLane === "USDC" && requestedAmountNumeric === null) {
     validationMessage = "Enter a valid USDC amount to unshield.";
   } else if (requiresExactSplit) {
@@ -1809,8 +1875,16 @@ export function UnshieldPage() {
     requestedAmountNumeric !== null &&
     requestedAmountNumeric > selectedFullAmount
   ) {
-    validationMessage = "Unshield amount cannot exceed the available shielded balance.";
+    validationMessage = "Unshield amount cannot exceed the selected ledger-spendable note.";
   }
+  const completionEvidenceLabel = operatorReleaseSignature
+    ? "Operator release signature returned"
+    : currentUnshieldTransactionEvidence.operator.status === "recorded" &&
+        currentUnshieldTransactionEvidence.proof.status === "verified"
+      ? "Proof-backed release record retained"
+      : currentUnshieldTransactionEvidence.wallet.status === "signature-recorded"
+        ? "Transition signature captured"
+        : "Pending operator release";
 
   return (
     <section className="send-page unshield-page">
@@ -2475,10 +2549,10 @@ export function UnshieldPage() {
               <span>Exit ticket</span>
               <h3>{selectedLane} to public wallet</h3>
             </div>
-            <small>{formatUnshieldAmount(selectedFullAmount, selectedLane)} available</small>
+            <small>{formatUnshieldAmount(selectedFullAmount, selectedLane)} selected note</small>
           </div>
 
-          <div className="unshield-balance-strip" aria-label="Available shielded balances">
+          <div className="unshield-balance-strip" aria-label="Ledger spendable shielded balances">
             {availableLaneOptions.map((option) => (
               <button
                 key={option.lane}
@@ -2508,7 +2582,7 @@ export function UnshieldPage() {
                 <div className="swap-module__label-row">
                   <span>Shielded asset</span>
                   <div className="send-balance-line shield-helper shield-helper--meta">
-                    Available: {formatUnshieldAmount(selectedFullAmount, selectedLane)}
+                    Spendable note: {formatUnshieldAmount(selectedFullAmount, selectedLane)}
                   </div>
                 </div>
                 <div className="send-asset-field">
@@ -2774,14 +2848,14 @@ export function UnshieldPage() {
             <div className="status-panel status-panel--success">
               <span>
                 {operatorReleaseSignature
-                  ? `${lastCompletion.asset} unshield complete`
+                  ? `${lastCompletion.asset} operator release reported`
                   : `${lastCompletion.asset} exit transition recorded`}
               </span>
               <p>
                 {operatorReleaseSignature
                   ? lastCompletion.asset === "SOL"
-                    ? `${formatSolAmount(lastCompletion.amount)} returned to Public Wallet and the source shielded SOL note is now consumed.`
-                    : `${formatShieldTokenAmount(lastCompletion.amount, lastCompletion.asset)} returned to Public Wallet and the source shielded ${lastCompletion.asset} note is no longer spendable.`
+                    ? `${formatSolAmount(lastCompletion.amount)} has an operator release signature. Verify the public exit transaction before treating funds as moved; the source shielded SOL note is blocked from reuse by the release record.`
+                    : `${formatShieldTokenAmount(lastCompletion.amount, lastCompletion.asset)} has an operator release signature. Verify the public exit transaction before treating funds as moved; the source shielded ${lastCompletion.asset} note is blocked from reuse by the release record.`
                   : lastCompletion.asset === "SOL"
                     ? `${formatSolAmount(lastCompletion.amount)} exit transition was recorded. Operator release is still pending.`
                     : `${formatShieldTokenAmount(lastCompletion.amount, lastCompletion.asset)} exit transition was recorded. Operator release is still pending.`}
@@ -2789,13 +2863,7 @@ export function UnshieldPage() {
               <div className="preview-grid unshield-evidence-grid">
                 <div className="preview-card preview-card--accent">
                   <span>Transaction evidence</span>
-                  <strong>
-                    {currentUnshieldTransactionEvidence.operator.status === "recorded"
-                      ? "Proof-backed release record"
-                      : currentUnshieldTransactionEvidence.wallet.status === "signature-recorded"
-                        ? "Transition signature captured"
-                        : "Pending operator release"}
-                  </strong>
+                  <strong>{completionEvidenceLabel}</strong>
                 </div>
                 <div className="preview-card">
                   <span>Operator release</span>
@@ -2811,7 +2879,7 @@ export function UnshieldPage() {
                 </div>
                 <div className="review-row">
                   <span>Operator request</span>
-                  <strong>{lastCompletion.requestId ? abbreviate(lastCompletion.requestId) : "Accepted"}</strong>
+                  <strong>{lastCompletion.requestId ? abbreviate(lastCompletion.requestId) : "Pending receipt"}</strong>
                 </div>
                 <div className="review-row">
                   <span>Settlement scope</span>
@@ -3038,8 +3106,8 @@ export function UnshieldPage() {
                       <strong>{currentUnshieldZkDiagnostics.asset}</strong>
                     </div>
                     <div className="review-row">
-                      <span>Consumed live note</span>
-                      <strong>{abbreviate(currentUnshieldZkDiagnostics.consumedLiveNoteId)}</strong>
+                      <span>Consumed note ref</span>
+                      <strong>{abbreviate(currentUnshieldZkDiagnostics.consumedReferenceHash)}</strong>
                     </div>
                     <div className="review-row">
                       <span>Canonical consumed ref</span>
@@ -3087,10 +3155,10 @@ export function UnshieldPage() {
                         <strong>{abbreviate(currentUnshieldZkDiagnostics.spentMarkerSignature)}</strong>
                       </div>
                     )}
-                    {currentUnshieldZkDiagnostics.sourceSwapNoteId && (
+                    {currentUnshieldZkDiagnostics.sourceSwapNoteReferenceHash && (
                       <div className="review-row">
-                        <span>Source swap note</span>
-                        <strong>{abbreviate(currentUnshieldZkDiagnostics.sourceSwapNoteId)}</strong>
+                        <span>Source swap ref</span>
+                        <strong>{abbreviate(currentUnshieldZkDiagnostics.sourceSwapNoteReferenceHash)}</strong>
                       </div>
                     )}
                   </div>

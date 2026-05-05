@@ -147,9 +147,10 @@ export function createVantaUnshieldMainnetProductionStatus() {
     evidenceRefs: {
       privateSettlementStatus: "npm run --silent mainnet:private-settlement-status-json",
       realFundsApprovalStatus: "npm run --silent mainnet:real-funds-approval-status-json",
-      walletSigningStatus: "npm run mainnet:wallet-signing-status-check",
-      unshieldNoFundsEndpoint: "npm run unshield:sol-operator-endpoint-check",
-      unshieldPublicExitSurface: "npm run unshield:public-exit-surface-check",
+	      walletSigningStatus: "npm run mainnet:wallet-signing-status-check",
+	      unshieldBalanceLedger: "npm run unshield:balance-ledger-check",
+	      unshieldNoFundsEndpoint: "npm run unshield:sol-operator-endpoint-check",
+	      unshieldPublicExitSurface: "npm run unshield:public-exit-surface-check",
       privateCoreVerify: "npm run private-core:verify",
       unshieldActualPrivatePlan: "npm run mainnet:actual-private-settlement-plan-check",
       unshieldActualPrivatePlanJson: "npm run mainnet:actual-private-settlement-plan-json-check",

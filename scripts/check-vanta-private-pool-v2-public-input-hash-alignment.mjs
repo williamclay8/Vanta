@@ -100,10 +100,14 @@ try {
     patchRelativeImports(file);
   }
 
-  const {
-    computeVantaPrivatePoolV2ShieldPublicInputHash,
-    createVantaPrivatePoolV2ShieldCircuitFixture,
-  } = await import(pathToFileURL(join(tempJsDir, "privatePoolV2ShieldCircuitFixture.js")).href);
+	  const {
+	    computeVantaPrivatePoolV2UnshieldPublicInputHash,
+	    createVantaPrivatePoolV2UnshieldProofRequest,
+	  } = await import(pathToFileURL(join(tempJsDir, "privatePoolV2ProofRequests.js")).href);
+	  const {
+	    computeVantaPrivatePoolV2ShieldPublicInputHash,
+	    createVantaPrivatePoolV2ShieldCircuitFixture,
+	  } = await import(pathToFileURL(join(tempJsDir, "privatePoolV2ShieldCircuitFixture.js")).href);
   const {
     computeVantaPrivatePoolV2ClaimPublicInputHash,
     createVantaPrivatePoolV2ClaimCircuitFixture,
@@ -290,9 +294,63 @@ try {
       JSON.stringify([`send-public-input-hash:${send.sendPublicInputHash.toString(10)}`]),
     "Expected send proof request to expose only the computed hash on the circuit-public lane.",
   );
-  console.log("private pool v2 send public-input hash alignment: PASS");
+	  console.log("private pool v2 send public-input hash alignment: PASS");
 
-  const swap = createVantaPrivatePoolV2SwapToShieldedCircuitFixture();
+	  const unshieldArgs = {
+	    economicsCommitment: "501",
+	    exitTermsCommitment: "502",
+	    inputCommitment: "503",
+	    inputRoot: "504",
+	    nullifierOrReplayCommitment: "505",
+	    ownerCommitment: "506",
+	    routeCommitment: "507",
+	    settlementCommitment: "508",
+	    unshieldContextTag: "509",
+	  };
+	  const unshield = {
+	    proofRequest: createVantaPrivatePoolV2UnshieldProofRequest(unshieldArgs),
+	    unshieldPublicInputHash: computeVantaPrivatePoolV2UnshieldPublicInputHash(unshieldArgs),
+	  };
+	  const unshieldEntries = parsePublicInputs(unshield.proofRequest.publicInputs);
+	  const unshieldMap = toMap(unshieldEntries);
+
+	  assertOrder(
+	    unshieldEntries,
+	    [
+	      "vanta-private-pool-v2-unshield-proof-request-0.1",
+	      "input-root",
+	      "input-commitment",
+	      "nullifier-or-replay-commitment",
+	      "settlement-commitment",
+	      "route-commitment",
+	      "exit-terms-commitment",
+	      "economics-commitment",
+	      "owner-commitment",
+	      "unshield-context-tag",
+	    ],
+	    "unshield",
+	  );
+	  for (const [label, value] of [
+	    ["input-root", unshieldArgs.inputRoot],
+	    ["input-commitment", unshieldArgs.inputCommitment],
+	    ["nullifier-or-replay-commitment", unshieldArgs.nullifierOrReplayCommitment],
+	    ["settlement-commitment", unshieldArgs.settlementCommitment],
+	    ["route-commitment", unshieldArgs.routeCommitment],
+	    ["exit-terms-commitment", unshieldArgs.exitTermsCommitment],
+	    ["economics-commitment", unshieldArgs.economicsCommitment],
+	    ["owner-commitment", unshieldArgs.ownerCommitment],
+	    ["unshield-context-tag", unshieldArgs.unshieldContextTag],
+	  ]) {
+	    assertValue(unshieldMap, label, value, "unshield");
+	  }
+	  assert(
+	    JSON.stringify(unshield.proofRequest.circuitPublicInputs) ===
+	      JSON.stringify([`unshield-public-input-hash:${unshield.unshieldPublicInputHash}`]),
+	    "Expected unshield proof request to expose only the computed hash on the circuit-public lane.",
+	  );
+	  console.log("private pool v2 unshield public-input hash alignment: PASS");
+
+	  const swap = createVantaPrivatePoolV2SwapToShieldedCircuitFixture();
   const swapEntries = parsePublicInputs(swap.proofRequest.publicInputs);
   const swapMap = toMap(swapEntries);
   const swapWitness = swap.witness;

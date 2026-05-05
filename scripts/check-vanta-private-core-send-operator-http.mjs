@@ -19,7 +19,7 @@ function sleep(ms) {
 }
 
 async function waitForHealth(baseUrl) {
-  for (let attempt = 0; attempt < 40; attempt += 1) {
+  for (let attempt = 0; attempt < 80; attempt += 1) {
     try {
       const response = await fetch(`${baseUrl}/state/private-core-summary`);
       if (response.ok) {
@@ -32,7 +32,9 @@ async function waitForHealth(baseUrl) {
     await sleep(250);
   }
 
-  throw new Error("operator server did not become ready in time");
+  throw new Error(
+    `operator server did not become ready in time\nstdout:\n${stdout}\nstderr:\n${stderr}`,
+  );
 }
 
 async function stopServer(server) {

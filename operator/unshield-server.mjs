@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { createServer } from "node:http";
 import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
@@ -198,6 +199,8 @@ const swapTransitionLookupDelayMs = Number(
 const VANTA_UNSHIELD_MEMO_PREFIX = "vanta:unshield-note:v1:";
 const VANTA_SWAP_MEMO_PREFIX = "vanta:swap-note:v1:";
 const VANTA_MEMO_PROGRAM_ID = "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
+const VANTA_UNSHIELD_CONSUMED_NOTE_REFERENCE_HASH_DOMAIN =
+  "vanta-unshield-consumed-note-reference-v1";
 const PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION = 1;
 const PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND = "single-input-single-recipient-optional-change";
 const PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS = "supported";
@@ -348,7 +351,8 @@ const PRIVATE_CORE_SUPPORTED_SEND_OUTPUT_REGISTRATION_POLICY =
   "resulting-root-must-register-as-recipient-or-change-output";
 const PRIVATE_CORE_SUPPORTED_PROOF_SYSTEM = "noir-acir-ultrahonk-bbjs";
 const PRIVATE_CORE_OPERATOR_WITNESS_MODE =
-  process.env.VANTA_PRIVATE_CORE_OPERATOR_WITNESS_MODE ?? "local-prover-dev";
+  process.env.VANTA_PRIVATE_CORE_OPERATOR_WITNESS_MODE ??
+  (process.env.NODE_ENV === "production" ? "strict-no-witness" : "local-prover-dev");
 const PRIVATE_CORE_OPERATOR_WITNESS_MATERIAL_POLICY =
   PRIVATE_CORE_OPERATOR_WITNESS_MODE === "strict-no-witness"
     ? "reject-private-witness-material"
@@ -433,7 +437,24 @@ export async function handleUnshieldOperatorRequest(request, response) {
     response.writeHead(200, { "Content-Type": "application/json" });
     response.end(
       JSON.stringify({
-        consumedNoteIds: solUnshieldRecords.listConsumedNoteIds(),
+        stateVersion: 1,
+        consumedNoteReferenceHashes: solUnshieldRecords
+          .listConsumedNoteIds()
+          .map(createUnshieldConsumedNoteReferenceHash),
+      }),
+    );
+    return;
+  }
+
+  if (request.method === "GET" && request.url === "/state/unshield-records") {
+    writeCorsHeaders(response);
+    response.writeHead(200, { "Content-Type": "application/json" });
+    response.end(
+      JSON.stringify({
+        stateVersion: 1,
+        consumedNoteReferenceHashes: releaseRecords
+          .listConsumedNoteIds()
+          .map(createUnshieldConsumedNoteReferenceHash),
       }),
     );
     return;
@@ -739,11 +760,16 @@ export async function handleUnshieldOperatorRequest(request, response) {
       assertPrivateCoreWitnessMaterialPolicy(body);
       const proofReceipt = await resolvePrivateCoreUnshieldProofReceipt(body);
       privateCoreProofStore.recordProof(
-        summarizePrivateCoreProofRecordFromSourcePublicInputs({
-          action: "proof-only",
-          proofReceipt,
-          sourcePublicInputs: getPrivateCoreUnshieldSourcePublicInputs(body),
-        }),
+        body?.proofArtifact
+          ? summarizePrivateCoreProofRecordFromVerifiedPublicInputs({
+              action: "proof-only",
+              proofReceipt,
+            })
+          : summarizePrivateCoreProofRecordFromSourcePublicInputs({
+              action: "proof-only",
+              proofReceipt,
+              sourcePublicInputs: getPrivateCoreUnshieldSourcePublicInputs(body),
+            }),
       );
 
       writeCorsHeaders(response);
@@ -1083,6 +1109,12 @@ export async function handleUnshieldOperatorRequest(request, response) {
       const sourceArtifacts = body?.sourceArtifacts;
       const root = sourcePublicInputs?.stateRoot;
 
+      if (body?.proofArtifact) {
+        throw new Error(
+          "Private-core no-witness root registration requires a validated source/proving lineage artifact; v0.1 fails closed for proof-artifact root registration.",
+        );
+      }
+
       if (typeof root !== "string" || root.length === 0) {
         throw new Error("Private-core root registration request is missing a source root.");
       }
@@ -1145,6 +1177,12 @@ export async function handleUnshieldOperatorRequest(request, response) {
       const sourcePublicInputs = getPrivateCoreUnshieldSourcePublicInputs(body);
       const sourceArtifacts = body?.sourceArtifacts;
       const nullifier = sourcePublicInputs?.nullifier;
+
+      if (body?.proofArtifact) {
+        throw new Error(
+          "Private-core no-witness consume requires a validated owner authorization artifact; v0.1 does not implement that validator and fails closed for proof-artifact consumes.",
+        );
+      }
 
       if (typeof nullifier !== "string" || nullifier.length === 0) {
         throw new Error("Private-core consume request is missing a source nullifier.");
@@ -1481,7 +1519,7 @@ export async function handleUnshieldOperatorRequest(request, response) {
         vaultOwner,
       });
 
-      if (intent.signature === "operator-direct") {
+      if (isWalletDirectSolUnshieldIntent(intent)) {
         assertEligibleDirectSolUnshieldRelease({
           amount: intent.amount,
           assetId: intent.assetId,
@@ -1537,6 +1575,12 @@ export async function handleUnshieldOperatorRequest(request, response) {
       processedSolUnshieldRequestIds.add(intent.requestId);
       processedSolUnshieldNoteIds.add(intent.consumedNoteId);
       processedSolUnshieldTransitionNoteIds.add(intent.transitionNoteId);
+      const releaseReceipt = createUnshieldOperatorReleaseReceipt({
+        consumedNoteId: intent.consumedNoteId,
+        intent,
+        releaseSignature: signature,
+        transitionNoteId: intent.transitionNoteId,
+      });
       solUnshieldRecords.recordRelease({
         amount: intent.amount,
         asset: "SOL",
@@ -1556,6 +1600,7 @@ export async function handleUnshieldOperatorRequest(request, response) {
       response.end(
         JSON.stringify({
           consumedNoteId: intent.consumedNoteId,
+          releaseReceipt,
           requestId: intent.requestId,
           signature,
         }),
@@ -1626,7 +1671,7 @@ export async function handleUnshieldOperatorRequest(request, response) {
       throw new Error("This unshield transition has already been finalized.");
     }
 
-    if (intent.signature === "operator-direct") {
+    if (isWalletDirectUnshieldIntent(intent)) {
       const onchainContext = await fetchConstrainedOnchainUnshieldContext({
         client,
         mintAddress: intent.mintAddress,
@@ -1687,6 +1732,12 @@ export async function handleUnshieldOperatorRequest(request, response) {
     processedRequestIds.add(intent.requestId);
     processedNoteIds.add(intent.noteId);
     processedTransitionNoteIds.add(intent.transitionNoteId);
+    const releaseReceipt = createUnshieldOperatorReleaseReceipt({
+      consumedNoteId: intent.noteId,
+      intent,
+      releaseSignature: signature.toString(),
+      transitionNoteId: intent.transitionNoteId,
+    });
     releaseRecords.recordRelease({
       amount: intent.amount,
       completedAt: Date.now(),
@@ -1704,6 +1755,8 @@ export async function handleUnshieldOperatorRequest(request, response) {
     response.writeHead(200, { "Content-Type": "application/json" });
     response.end(
       JSON.stringify({
+        consumedNoteId: intent.noteId,
+        releaseReceipt,
         noteId: intent.noteId,
         requestId: intent.requestId,
         signature: signature.toString(),
@@ -1718,6 +1771,68 @@ export async function handleUnshieldOperatorRequest(request, response) {
         : "The unshield operator could not process the request.",
     );
   }
+}
+
+function createUnshieldOperatorReleaseReceipt(args) {
+  const proofStatus =
+    isDirectUnshieldTransitionReference(args.intent)
+      ? "not-provided-wallet-authorized-public-exit"
+      : "not-provided-transition-authorized-public-exit";
+  const intentHash = hashReleaseIntent(args.intent);
+
+  return {
+    kind: "vanta-unshield-operator-release-receipt-v1",
+    requestId: args.intent.requestId,
+    consumedNoteId: args.consumedNoteId,
+    transitionNoteId: args.transitionNoteId,
+    releaseSignature: args.releaseSignature,
+    releaseIntentHash: intentHash,
+    proofStatus,
+    replayStatus: "accepted-first-use",
+    spendabilityBasis: "canonical-spendable-note-ledger",
+  };
+}
+
+function hashReleaseIntent(intent) {
+  const publicIntent = {
+    amount: intent.amount,
+    asset: intent.asset ?? "token",
+    assetId: intent.assetId ?? intent.mintAddress,
+    consumedNoteId: intent.consumedNoteId ?? intent.noteId,
+    destinationOwner: intent.destinationOwner,
+    issuedAt: intent.issuedAt,
+    owner: intent.owner,
+    requestId: intent.requestId,
+    requester: intent.requester,
+    transitionNoteId: intent.transitionNoteId,
+    vaultOwner: intent.vaultOwner,
+    version: intent.version,
+  };
+
+  return `sha256:${createHash("sha256")
+    .update(JSON.stringify(publicIntent))
+    .digest("hex")}`;
+}
+
+function isWalletDirectUnshieldIntent(intent) {
+  return (
+    intent.signature !== "transition-authorized" &&
+    intent.transitionNoteId === `direct:${intent.noteId}` &&
+    !intent.transitionStateSignature
+  );
+}
+
+function isWalletDirectSolUnshieldIntent(intent) {
+  return (
+    intent.signature !== "transition-authorized" &&
+    intent.transitionNoteId === `direct:${intent.consumedNoteId}` &&
+    !intent.transitionStateSignature
+  );
+}
+
+function isDirectUnshieldTransitionReference(intent) {
+  const consumedNoteId = intent.consumedNoteId ?? intent.noteId;
+  return typeof consumedNoteId === "string" && intent.transitionNoteId === `direct:${consumedNoteId}`;
 }
 
 async function waitForEligibleSwapTransition(args) {
@@ -2166,6 +2281,7 @@ function buildPrivateCoreSummaryState() {
     swapResultingRootNote: swapResultingRootStatus.note,
     swapResultingRootStatus: swapResultingRootStatus.status,
   });
+  const ownerAuthorizationRuntimeStatus = summarizePrivateCoreOwnerAuthorizationRuntimeStatus();
   const boundaryStatus = summarizePrivateCoreBoundaryStatus({
     currentRoot: currentRootRecord?.root ?? null,
     currentRootProofLinkStatus,
@@ -2207,6 +2323,8 @@ function buildPrivateCoreSummaryState() {
     sendContinuityStatus: sendContinuity.status,
     swapContinuityNote: swapContinuity.note,
     swapContinuityStatus: swapContinuity.status,
+    ownerAuthorizationRuntimeStatus: ownerAuthorizationRuntimeStatus.status,
+    ownerAuthorizationRuntimeNote: ownerAuthorizationRuntimeStatus.note,
     currentRoot: currentRootRecord?.root ?? null,
     currentRecord: currentRootRecord,
     rootRecords,
@@ -2280,6 +2398,8 @@ function buildPrivateCoreSummaryState() {
     boundaryStatus: boundaryStatus.status,
     contractMirrorNote: contractMirrorStatus.note,
     contractMirrorStatus: contractMirrorStatus.status,
+    ownerAuthorizationRuntimeNote: ownerAuthorizationRuntimeStatus.note,
+    ownerAuthorizationRuntimeStatus: ownerAuthorizationRuntimeStatus.status,
     releaseBoundaryNote: releaseBoundaryStatus.note,
     releaseBoundaryStatus: releaseBoundaryStatus.status,
     requiredLanesNote: requiredLanesStatus.note,
@@ -2328,6 +2448,8 @@ function buildPrivateCoreShippingDecisionState() {
     contractMirrorNote: summaryState.contractMirrorNote,
     boundaryStatus: summaryState.boundaryStatus,
     boundaryNote: summaryState.boundaryNote,
+    ownerAuthorizationRuntimeStatus: summaryState.ownerAuthorizationRuntimeStatus,
+    ownerAuthorizationRuntimeNote: summaryState.ownerAuthorizationRuntimeNote,
   };
 }
 
@@ -2360,6 +2482,8 @@ function humanizePrivateCoreShippingStatus(value) {
   switch (value) {
     case "ready-narrow-v1":
       return "Ready narrow v1";
+    case "owner-authorization-runtime-blocked":
+      return "Owner authorization blocked";
     case "required-lanes-mismatch":
       return "Required lanes mismatch";
     case "release-boundary-mismatch":
@@ -3206,6 +3330,13 @@ function summarizePrivateCoreZkV1ShippingStatus(args) {
     };
   }
 
+  if (args.ownerAuthorizationRuntimeStatus === "strict-no-witness-consume-blocked") {
+    return {
+      status: "owner-authorization-runtime-blocked",
+      note: args.ownerAuthorizationRuntimeNote,
+    };
+  }
+
   if (args.boundaryStatus !== "coherent") {
     return {
       status: "boundary-mismatch",
@@ -3230,6 +3361,22 @@ function summarizePrivateCoreZkV1ShippingStatus(args) {
   return {
     status: "ready-narrow-v1",
     note: "Minimum zk v1 required lanes are coherent and the operator boundary remains contract-coherent enough to ship the frozen narrow lane.",
+  };
+}
+
+function summarizePrivateCoreOwnerAuthorizationRuntimeStatus() {
+  if (PRIVATE_CORE_OPERATOR_WITNESS_MODE === "strict-no-witness") {
+    return {
+      status: "strict-no-witness-consume-blocked",
+      note:
+        "Strict no-witness mode rejects private witness material, and v0.1 does not yet implement a validated owner authorization artifact for proof-artifact consumes.",
+    };
+  }
+
+  return {
+    status: "local-prover-dev-witness-precheck",
+    note:
+      "Local prover development mode prechecks the owner secret off-circuit from witness material; this is not a production no-witness consume path.",
   };
 }
 
@@ -3961,6 +4108,42 @@ function summarizePrivateCoreProofRecordFromSourcePublicInputs(args) {
     root: sourcePublicInputs.stateRoot,
     verified: args.proofReceipt.verified === true,
   };
+}
+
+function summarizePrivateCoreProofRecordFromVerifiedPublicInputs(args) {
+  const verifiedPublicInputs = args.proofReceipt.verifiedPublicInputs;
+  const completedAt = Date.now();
+
+  return {
+    action: args.action,
+    assetId: null,
+    amount: null,
+    backend: args.proofReceipt.backend,
+    circuit: args.proofReceipt.circuit,
+    completedAt,
+    noteVersion: verifiedPublicInputs.noteVersion,
+    nullifier: verifiedPublicInputs.provingNullifier,
+    proofFieldCount: args.proofReceipt.proofFieldCount,
+    proofId: [
+      "private-core-proof",
+      args.action,
+      verifiedPublicInputs.provingNullifier,
+      verifiedPublicInputs.provingStateRoot,
+      String(completedAt),
+    ].join(":"),
+    proofVersion: args.proofReceipt.proofVersion,
+    provingHashLane: args.proofReceipt.provingHashLane,
+    publicInputCount: args.proofReceipt.publicInputCount,
+    releaseDestination: null,
+    root: verifiedPublicInputs.provingStateRoot,
+    verified: args.proofReceipt.verified === true,
+  };
+}
+
+function createUnshieldConsumedNoteReferenceHash(noteId) {
+  return `sha256:${createHash("sha256")
+    .update(`${VANTA_UNSHIELD_CONSUMED_NOTE_REFERENCE_HASH_DOMAIN}:${noteId}`)
+    .digest("hex")}`;
 }
 
 function summarizePrivateCoreSendProofRecord(args) {

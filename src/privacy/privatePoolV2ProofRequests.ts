@@ -105,6 +105,11 @@ export type VantaPrivatePoolV2UnshieldProofRequestArgs = {
   unshieldPublicInputHash?: string;
 };
 
+export type VantaPrivatePoolV2UnshieldPublicInputHashArgs = Omit<
+  VantaPrivatePoolV2UnshieldProofRequestArgs,
+  "unshieldPublicInputHash"
+>;
+
 export type VantaPrivatePoolV2SwapToShieldedProofRequestArgs = {
   economicsCommitment: string;
   inputCommitment: string;
@@ -134,6 +139,40 @@ function hashParts(...parts: readonly string[]) {
   return `0x${bytesToHex(
     sha256(new TextEncoder().encode(parts.join("\u001f"))),
   )}`;
+}
+
+export function computeVantaPrivatePoolV2UnshieldPublicInputHash({
+  economicsCommitment,
+  exitTermsCommitment,
+  inputCommitment,
+  inputRoot,
+  nullifierOrReplayCommitment,
+  ownerCommitment,
+  routeCommitment,
+  settlementCommitment,
+  unshieldContextTag,
+}: VantaPrivatePoolV2UnshieldPublicInputHashArgs) {
+  return hashParts(
+    VANTA_PRIVATE_POOL_V2_UNSHIELD_PROOF_REQUEST_VERSION,
+    "input-root",
+    inputRoot,
+    "input-commitment",
+    inputCommitment,
+    "nullifier-or-replay-commitment",
+    nullifierOrReplayCommitment,
+    "settlement-commitment",
+    settlementCommitment,
+    "route-commitment",
+    routeCommitment,
+    "exit-terms-commitment",
+    exitTermsCommitment,
+    "economics-commitment",
+    economicsCommitment,
+    "owner-commitment",
+    ownerCommitment,
+    "unshield-context-tag",
+    unshieldContextTag,
+  );
 }
 
 export function createVantaPrivatePoolV2ShadowCommitments(args: {
@@ -522,7 +561,6 @@ export function createVantaPrivatePoolV2UnshieldProofRequest({
   routeCommitment,
   settlementCommitment,
   unshieldContextTag,
-  unshieldPublicInputHash,
 }: VantaPrivatePoolV2UnshieldProofRequestArgs): VantaPrivatePoolV2ProofRequest {
   if (!inputRoot.trim()) {
     throw new Error("Private unshield proof request requires an input root.");
@@ -560,12 +598,22 @@ export function createVantaPrivatePoolV2UnshieldProofRequest({
     throw new Error("Private unshield proof request requires an unshield context tag.");
   }
 
+  const resolvedUnshieldPublicInputHash = computeVantaPrivatePoolV2UnshieldPublicInputHash({
+    economicsCommitment,
+    exitTermsCommitment,
+    inputCommitment,
+    inputRoot,
+    nullifierOrReplayCommitment,
+    ownerCommitment,
+    routeCommitment,
+    settlementCommitment,
+    unshieldContextTag,
+  });
+
   return {
     amountBaseUnits: VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_AMOUNT_BASE_UNITS,
     assetId: VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID,
-    ...(unshieldPublicInputHash
-      ? { circuitPublicInputs: [`unshield-public-input-hash:${unshieldPublicInputHash}`] }
-      : {}),
+    circuitPublicInputs: [`unshield-public-input-hash:${resolvedUnshieldPublicInputHash}`],
     intent: "unshield",
     publicInputs: [
       `${VANTA_PRIVATE_POOL_V2_UNSHIELD_PROOF_REQUEST_VERSION}:version`,

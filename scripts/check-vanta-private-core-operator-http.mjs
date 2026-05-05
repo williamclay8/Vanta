@@ -483,6 +483,7 @@ try {
       sourceArtifacts: {
         noteCommitment: "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
         merkleLeaf: sourceArtifacts.merkleLeaf,
+        nullifier: sourceArtifacts.nullifier,
         witnessRoot: sourceArtifacts.witnessRoot,
       },
       witnessPackage,
@@ -505,6 +506,7 @@ try {
       expectedMessage: "missing a note commitment",
       sourceArtifacts: {
         merkleLeaf: sourceArtifacts.merkleLeaf,
+        nullifier: sourceArtifacts.nullifier,
         witnessRoot: sourceArtifacts.witnessRoot,
       },
     },
@@ -512,6 +514,7 @@ try {
       expectedMessage: "missing a Merkle leaf",
       sourceArtifacts: {
         noteCommitment: sourceArtifacts.noteCommitment,
+        nullifier: sourceArtifacts.nullifier,
         witnessRoot: sourceArtifacts.witnessRoot,
       },
     },
@@ -520,6 +523,15 @@ try {
       sourceArtifacts: {
         noteCommitment: sourceArtifacts.noteCommitment,
         merkleLeaf: sourceArtifacts.merkleLeaf,
+        nullifier: sourceArtifacts.nullifier,
+      },
+    },
+    {
+      expectedMessage: "missing a nullifier",
+      sourceArtifacts: {
+        noteCommitment: sourceArtifacts.noteCommitment,
+        merkleLeaf: sourceArtifacts.merkleLeaf,
+        witnessRoot: sourceArtifacts.witnessRoot,
       },
     },
   ]) {
@@ -555,6 +567,13 @@ try {
       sourceArtifacts: {
         ...sourceArtifacts,
         witnessRoot: "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      },
+    },
+    {
+      expectedMessage: "mismatched source nullifier",
+      sourceArtifacts: {
+        ...sourceArtifacts,
+        nullifier: "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
       },
     },
   ]) {
@@ -736,6 +755,7 @@ try {
       sourceArtifacts: {
         noteCommitment: "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
         merkleLeaf: sourceArtifacts.merkleLeaf,
+        nullifier: sourceArtifacts.nullifier,
         witnessRoot: sourceArtifacts.witnessRoot,
       },
       witnessPackage,
@@ -758,6 +778,7 @@ try {
       expectedMessage: "missing a note commitment",
       sourceArtifacts: {
         merkleLeaf: sourceArtifacts.merkleLeaf,
+        nullifier: sourceArtifacts.nullifier,
         witnessRoot: sourceArtifacts.witnessRoot,
       },
     },
@@ -765,6 +786,7 @@ try {
       expectedMessage: "missing a Merkle leaf",
       sourceArtifacts: {
         noteCommitment: sourceArtifacts.noteCommitment,
+        nullifier: sourceArtifacts.nullifier,
         witnessRoot: sourceArtifacts.witnessRoot,
       },
     },
@@ -773,6 +795,15 @@ try {
       sourceArtifacts: {
         noteCommitment: sourceArtifacts.noteCommitment,
         merkleLeaf: sourceArtifacts.merkleLeaf,
+        nullifier: sourceArtifacts.nullifier,
+      },
+    },
+    {
+      expectedMessage: "missing a nullifier",
+      sourceArtifacts: {
+        noteCommitment: sourceArtifacts.noteCommitment,
+        merkleLeaf: sourceArtifacts.merkleLeaf,
+        witnessRoot: sourceArtifacts.witnessRoot,
       },
     },
   ]) {
@@ -808,6 +839,13 @@ try {
       sourceArtifacts: {
         ...sourceArtifacts,
         witnessRoot: "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      },
+    },
+    {
+      expectedMessage: "mismatched source nullifier",
+      sourceArtifacts: {
+        ...sourceArtifacts,
+        nullifier: "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
       },
     },
   ]) {

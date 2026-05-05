@@ -23,8 +23,9 @@ for (const phrase of [
   "transactionFingerprint",
   "unshield-split-transition",
   "unshield-split-spent-marker",
-  "createOperatorDirectUnshieldIntent",
+  "signUnshieldIntent",
   "signSolUnshieldIntent",
+  'intentKind: "unshield-intent"',
   'intentKind: "sol-unshield-intent"',
   "Release through operator",
 ]) {
@@ -34,6 +35,7 @@ for (const phrase of [
 for (const forbiddenPhrase of [
   "signUnshieldIntent(unshieldPayload",
   "signSolUnshieldIntent(solUnshieldPayload",
+  "createOperatorDirectUnshieldIntent",
 ]) {
   assert.ok(
     !source.includes(forbiddenPhrase),

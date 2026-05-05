@@ -123,11 +123,13 @@ const packets = {
       "wallet keys",
       "full private-core release receipt by default",
     ],
-    verificationCommands: [
-      "npm run unshield:public-exit-surface-check",
-      "npm run private-core:unshield-committed-settlement-check",
-      "npm run unshield:safe-send-adoption-check",
-      "npm run programmatic-privacy:contract-check",
+	    verificationCommands: [
+	      "npm run unshield:balance-ledger-check",
+	      "npm run unshield:public-exit-surface-check",
+	      "npm run unshield:sol-operator-endpoint-check",
+	      "npm run private-core:unshield-committed-settlement-check",
+	      "npm run unshield:safe-send-adoption-check",
+	      "npm run programmatic-privacy:contract-check",
     ],
   },
 };

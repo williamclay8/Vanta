@@ -1,12 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
 import { useSolanaClient } from "@solana/react-hooks";
 import { useWalletState } from "@/data/context/WalletContext";
-import { fetchLocallyReleasedSolNoteIds } from "@/solana/operatorStateClient";
+import {
+  createUnshieldConsumedNoteReferenceHash,
+  fetchLocallyReleasedSolNoteReferenceHashes,
+  fetchLocallyReleasedUnshieldNoteReferenceHashes,
+} from "@/solana/operatorStateClient";
 import { loadRecoveredNativeSolShieldNotes } from "@/solana/recoveredNativeSolShieldNotes";
 import { useVantaShieldViewingKey } from "@/solana/useVantaShieldViewingKey";
 import {
   fetchVantaShieldAccountState,
   type VantaShieldAccountState,
+  type VantaShieldNote,
   type VantaShieldedSolNote,
 } from "@/solana/vantaShieldState";
 
@@ -21,6 +26,7 @@ type VantaShieldAssetStateResult = {
 export function useVantaShieldAssetState(args: {
   includeLocallyReleasedSolNotes?: boolean;
   mintAddress: string | null;
+  unshieldOperatorUrl?: string | null;
   vaultOwner: string | null;
 }): VantaShieldAssetStateResult {
   const client = useSolanaClient();
@@ -41,7 +47,11 @@ export function useVantaShieldAssetState(args: {
     setError(null);
 
     try {
-      const [nextAccount, locallyReleasedSolNoteIds] = await Promise.all([
+      const [
+        nextAccount,
+        locallyReleasedSolNoteReferenceHashes,
+        locallyReleasedTokenNoteReferenceHashes,
+      ] = await Promise.all([
         fetchVantaShieldAccountState({
           client,
           mintAddress: args.mintAddress,
@@ -50,7 +60,10 @@ export function useVantaShieldAssetState(args: {
           viewingSecretKey: viewingKey?.secretKey,
         }),
         args.includeLocallyReleasedSolNotes
-          ? fetchLocallyReleasedSolNoteIds().catch(() => new Set<string>())
+          ? fetchLocallyReleasedSolNoteReferenceHashes().catch(() => new Set<string>())
+          : Promise.resolve(new Set<string>()),
+        args.unshieldOperatorUrl
+          ? fetchLocallyReleasedUnshieldNoteReferenceHashes(args.unshieldOperatorUrl)
           : Promise.resolve(new Set<string>()),
       ]);
       const accountWithRecoveredSolNotes = mergeRecoveredNativeSolShieldNotes(
@@ -60,10 +73,17 @@ export function useVantaShieldAssetState(args: {
           vaultOwner: args.vaultOwner,
         }),
       );
+      const accountWithReleasedTokenNotes = reconcileLocallyReleasedShieldNotes(
+        accountWithRecoveredSolNotes,
+        locallyReleasedTokenNoteReferenceHashes,
+      );
       setAccount(
         args.includeLocallyReleasedSolNotes
-          ? reconcileLocallyReleasedSolNotes(accountWithRecoveredSolNotes, locallyReleasedSolNoteIds)
-          : accountWithRecoveredSolNotes,
+          ? reconcileLocallyReleasedSolNotes(
+              accountWithReleasedTokenNotes,
+              locallyReleasedSolNoteReferenceHashes,
+            )
+          : accountWithReleasedTokenNotes,
       );
     } catch (nextError) {
       setError(
@@ -77,6 +97,7 @@ export function useVantaShieldAssetState(args: {
   }, [
     args.includeLocallyReleasedSolNotes,
     args.mintAddress,
+    args.unshieldOperatorUrl,
     args.vaultOwner,
     client,
     viewingKey?.secretKey,
@@ -94,6 +115,54 @@ export function useVantaShieldAssetState(args: {
     isReady: Boolean(walletConnected && walletAddress && args.mintAddress && args.vaultOwner),
     isRefreshing,
     refresh,
+  };
+}
+
+function reconcileLocallyReleasedShieldNotes(
+  account: VantaShieldAccountState,
+  locallyReleasedNoteReferenceHashes: Set<string>,
+): VantaShieldAccountState {
+  if (locallyReleasedNoteReferenceHashes.size === 0) {
+    return account;
+  }
+
+  const keepSpendableNote = (note: VantaShieldNote) => {
+    return !locallyReleasedNoteReferenceHashes.has(createUnshieldConsumedNoteReferenceHash(note.noteId));
+  };
+  const spendableShieldNotes = account.spendableShieldNotes.filter(keepSpendableNote);
+  const locallyReleasedNotes = account.spendableShieldNotes.filter((note) =>
+    locallyReleasedNoteReferenceHashes.has(createUnshieldConsumedNoteReferenceHash(note.noteId)),
+  );
+  const spentShieldNotes = [...account.spentShieldNotes, ...locallyReleasedNotes].sort(
+    (left, right) => right.createdAt - left.createdAt,
+  );
+  const noteStates = account.noteStates.map((noteState) =>
+    locallyReleasedNoteReferenceHashes.has(createUnshieldConsumedNoteReferenceHash(noteState.noteId))
+      ? {
+          ...noteState,
+          consumedByTransitionKind: "unshield" as const,
+          lifecycleStatus: "consumed" as const,
+        }
+      : noteState,
+  );
+  const noteStatusSummary = {
+    changeDerived: noteStates.filter((note) => note.sourceType === "change_derived").length,
+    consumed: noteStates.filter((note) => note.lifecycleStatus === "consumed").length,
+    swapDerived: noteStates.filter((note) => note.sourceType === "swap_derived").length,
+    spendable: noteStates.filter((note) => note.lifecycleStatus === "spendable").length,
+    total: noteStates.length,
+  };
+  const balance = Number(
+    spendableShieldNotes.reduce((sum, note) => sum + note.amount, 0).toFixed(6),
+  );
+
+  return {
+    ...account,
+    balance,
+    noteStates,
+    noteStatusSummary,
+    spendableShieldNotes,
+    spentShieldNotes,
   };
 }
 
@@ -145,20 +214,26 @@ function mergeRecoveredNativeSolShieldNotes(
 
 function reconcileLocallyReleasedSolNotes(
   account: VantaShieldAccountState,
-  locallyReleasedSolNoteIds: Set<string>,
+  locallyReleasedSolNoteReferenceHashes: Set<string>,
 ): VantaShieldAccountState {
-  if (locallyReleasedSolNoteIds.size === 0) {
+  if (locallyReleasedSolNoteReferenceHashes.size === 0) {
     return account;
   }
 
   const keepSpendableSolNote = (note: VantaShieldedSolNote) => {
-    return !locallyReleasedSolNoteIds.has(note.noteId);
+    return !locallyReleasedSolNoteReferenceHashes.has(
+      createUnshieldConsumedNoteReferenceHash(note.noteId),
+    );
   };
   const spendableShieldedSolNotes = account.spendableShieldedSolNotes.filter(keepSpendableSolNote);
   const consumedShieldedSolNotes = [
     ...account.consumedShieldedSolNotes,
     ...account.spendableShieldedSolNotes
-      .filter((note) => locallyReleasedSolNoteIds.has(note.noteId))
+      .filter((note) =>
+        locallyReleasedSolNoteReferenceHashes.has(
+          createUnshieldConsumedNoteReferenceHash(note.noteId),
+        ),
+      )
       .map((note) => ({
         ...note,
         consumedByTransitionKind: "sol_unshield" as const,

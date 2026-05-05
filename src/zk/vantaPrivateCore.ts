@@ -370,6 +370,7 @@ export type VantaPrivateCoreOperatorSourceArtifactBundleV0 = VantaPrivateCoreSou
   noteCommitment: Bytes32Hex;
   merkleLeaf: Bytes32Hex;
   witnessRoot: Bytes32Hex;
+  nullifier: Bytes32Hex;
 };
 
 export type VantaPrivateCoreUnshieldProofEnvelopeSummaryV0 = {
@@ -1317,6 +1318,7 @@ export function deriveVantaPrivateCoreSourceArtifactsFromHeldNote(
     noteCommitment: heldNote.commitment.value,
     merkleLeaf: deriveVantaPrivateCoreMerkleLeafHash(heldNote.commitment.value),
     witnessRoot: heldNote.witness.root,
+    nullifier: deriveVantaPrivateCoreNullifier(heldNote.note, heldNote.witness).value,
   };
 }
 

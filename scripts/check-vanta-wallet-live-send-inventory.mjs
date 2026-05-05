@@ -29,7 +29,7 @@ for (const surface of inventory.actionSurfaces) {
   assert.ok(
     [
       "private-core-active-legacy-safe-send-dormant",
-      "operator-direct-active-split-safe-send-dormant",
+      "message-intent-active-split-safe-send-dormant",
       "requires-wallet-backed-simulation-gate",
       "safe-send-adopted",
       "wallet-adapter-summary-bound",
@@ -88,11 +88,11 @@ const unshieldSurface = surfacesByPage.get("Unshield");
 assert.equal(
   unshieldSurface.status,
   "safe-send-adopted",
-  "Unshield must reflect SPL operator-direct release, SOL message-intent release, and dormant split safe-send boundaries.",
+  "Unshield must reflect token/SOL message-intent release and dormant split safe-send boundaries.",
 );
 assert.ok(
   unshieldSurface.adoptedCallSites?.length >= 4,
-  "Unshield must list operator-direct handoff and dormant split safe-send paths as adopted.",
+  "Unshield must list message-intent handoffs and dormant split safe-send paths as adopted.",
 );
 assert.equal(unshieldSurface.currentCallSites.length, 0, "Unshield must not keep raw wallet signing pending.");
 
@@ -123,9 +123,9 @@ assert.ok(adoptedTransactionCallSites.length >= 10, "Expected adopted transactio
 assert.ok(adoptedMessageIntentCallSites.length >= 1, "Expected adopted signed intent safety boundaries.");
 assert.ok(
   unshieldSurface.adoptedCallSites?.some((callSite) =>
-    callSite.snippet.includes("createOperatorDirectUnshieldIntent"),
+    callSite.snippet.includes("signUnshieldIntent"),
   ),
-  "Unshield must use the operator-direct token operator handoff.",
+  "Unshield must use the token message-intent safety handoff.",
 );
 assert.ok(
   unshieldSurface.adoptedCallSites?.some((callSite) =>

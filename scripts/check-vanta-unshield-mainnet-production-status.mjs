@@ -67,10 +67,11 @@ for (const blocker of expectedBlockers) {
 
 for (const [key, command] of Object.entries({
   mainnetPreflight: "npm run mainnet:preflight",
-  privateCoreVerify: "npm run private-core:verify",
-  privateSettlementStatus: "npm run --silent mainnet:private-settlement-status-json",
-  realFundsApprovalStatus: "npm run --silent mainnet:real-funds-approval-status-json",
-  unshieldNoFundsEndpoint: "npm run unshield:sol-operator-endpoint-check",
+	  privateCoreVerify: "npm run private-core:verify",
+	  privateSettlementStatus: "npm run --silent mainnet:private-settlement-status-json",
+	  realFundsApprovalStatus: "npm run --silent mainnet:real-funds-approval-status-json",
+	  unshieldBalanceLedger: "npm run unshield:balance-ledger-check",
+	  unshieldNoFundsEndpoint: "npm run unshield:sol-operator-endpoint-check",
   unshieldPublicExitSurface: "npm run unshield:public-exit-surface-check",
   unshieldActualPrivatePlan: "npm run mainnet:actual-private-settlement-plan-check",
   unshieldActualPrivatePlanJson: "npm run mainnet:actual-private-settlement-plan-json-check",

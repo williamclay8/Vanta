@@ -558,7 +558,7 @@ try {
       owner: mainnetVaultOwner,
       requestId: "mainnet-direct-unshield-smoke",
       requester: mainnetVaultOwner,
-      signature: "operator-direct",
+      signature: "not-a-valid-wallet-signature",
       transitionNoteId: "direct:mainnet-direct-note",
       vaultOwner: mainnetVaultOwner,
       version: "v1",
@@ -567,8 +567,9 @@ try {
   });
   assert(
     !directUnshield.text.includes("Unshield operator requires VANTA_MAINNET_TOKEN_MINT") &&
-      !directUnshield.text.includes("Invalid authenticated unshield request."),
-    directUnshield.text || "Expected mainnet-shaped Unshield request to pass initial auth shape.",
+      !directUnshield.text.includes("Invalid authenticated unshield request.") &&
+      directUnshield.text.includes("Wallet signature verification failed"),
+    directUnshield.text || "Expected mainnet-shaped Unshield request to reach wallet signature verification.",
   );
   console.log("private-pool-v2 mainnet unshield route config: PASS");
 } finally {

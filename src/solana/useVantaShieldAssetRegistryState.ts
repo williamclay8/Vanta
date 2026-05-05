@@ -32,30 +32,43 @@ export function useVantaShieldAssetRegistryState() {
   const usdcAccountState = useVantaShieldAssetState({
     includeLocallyReleasedSolNotes: true,
     mintAddress: usdcAsset.mintAddress,
+    unshieldOperatorUrl: usdcAsset.unshieldOperatorUrl,
     vaultOwner: usdcAsset.vaultOwner,
   });
   const jtoAccountState = useVantaShieldAssetState({
+    includeLocallyReleasedSolNotes: true,
     mintAddress: jtoAsset.mintAddress,
+    unshieldOperatorUrl: jtoAsset.unshieldOperatorUrl,
     vaultOwner: jtoAsset.vaultOwner,
   });
   const bonkAccountState = useVantaShieldAssetState({
+    includeLocallyReleasedSolNotes: true,
     mintAddress: bonkAsset.mintAddress,
+    unshieldOperatorUrl: bonkAsset.unshieldOperatorUrl,
     vaultOwner: bonkAsset.vaultOwner,
   });
   const jupAccountState = useVantaShieldAssetState({
+    includeLocallyReleasedSolNotes: true,
     mintAddress: jupAsset.mintAddress,
+    unshieldOperatorUrl: jupAsset.unshieldOperatorUrl,
     vaultOwner: jupAsset.vaultOwner,
   });
   const pyusdAccountState = useVantaShieldAssetState({
+    includeLocallyReleasedSolNotes: true,
     mintAddress: pyusdAsset.mintAddress,
+    unshieldOperatorUrl: pyusdAsset.unshieldOperatorUrl,
     vaultOwner: pyusdAsset.vaultOwner,
   });
   const wifAccountState = useVantaShieldAssetState({
+    includeLocallyReleasedSolNotes: true,
     mintAddress: wifAsset.mintAddress,
+    unshieldOperatorUrl: wifAsset.unshieldOperatorUrl,
     vaultOwner: wifAsset.vaultOwner,
   });
   const kmnoAccountState = useVantaShieldAssetState({
+    includeLocallyReleasedSolNotes: true,
     mintAddress: kmnoAsset.mintAddress,
+    unshieldOperatorUrl: kmnoAsset.unshieldOperatorUrl,
     vaultOwner: kmnoAsset.vaultOwner,
   });
 

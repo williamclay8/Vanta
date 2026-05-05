@@ -35,20 +35,6 @@ export function createTransitionAuthorizedUnshieldIntent(
   };
 }
 
-export function createOperatorDirectUnshieldIntent(
-  payload: UnshieldIntentPayload,
-): SignedUnshieldIntent {
-  if (!payload.transitionNoteId.startsWith("direct:")) {
-    throw new Error("Operator-direct Unshield requires a direct transition reference.");
-  }
-
-  return {
-    ...payload,
-    signature: "operator-direct",
-    version: UNHIELD_INTENT_VERSION,
-  };
-}
-
 export function createUnshieldIntentPayload(
   payload: Omit<UnshieldIntentPayload, "issuedAt" | "requestId">,
 ): UnshieldIntentPayload {

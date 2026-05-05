@@ -1118,7 +1118,7 @@ export function assertEligibleDirectUnshieldRelease(args) {
     consumedNote.vaultOwner !== args.vaultOwner ||
     !amountsMatch(Number(consumedNote.amount.toFixed(6)), Number(args.amount))
   ) {
-    throw new Error("Referenced shield note does not match the operator-direct unshield request.");
+    throw new Error("Referenced shield note does not match the wallet-authorized direct unshield request.");
   }
 
   const competingTransitions = [
@@ -1250,7 +1250,7 @@ export function assertEligibleDirectSolUnshieldRelease(args) {
     consumedNote.asset !== "SOL" ||
     !amountsMatch(Number(consumedNote.amount.toFixed(9)), Number(args.amount))
   ) {
-    throw new Error("Referenced shielded SOL note does not match the operator-direct release request.");
+    throw new Error("Referenced shielded SOL note does not match the wallet-authorized direct release request.");
   }
 
   const competingTransitions = args.context.candidateSolUnshieldNotes.filter(

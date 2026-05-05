@@ -3,6 +3,7 @@ import { cpSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } f
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Barretenberg, UltraHonkBackend } from "@aztec/bb.js";
+import { x25519 } from "@noble/curves/ed25519.js";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { poseidon8 } from "poseidon-lite";
 
@@ -122,8 +123,6 @@ export async function verifyVantaPrivateCoreUnshieldProofArtifact(args) {
       proofHex: proofArtifact.proofHex,
       publicInputCount: proofArtifact.publicInputs.length,
       publicInputs: proofArtifact.publicInputs,
-      sourceArtifacts: proofArtifact.sourceArtifacts,
-      sourcePublicInputs: proofArtifact.sourcePublicInputs,
       verifiedPublicInputs: decodeVerifiedProofPublicInputs(proofArtifact.publicInputs),
       verified: true,
     };
@@ -346,6 +345,7 @@ export function normalizeVantaPrivateCoreUnshieldProofArtifact(input) {
       noteCommitment: proofArtifact.sourceArtifacts.noteCommitment,
       merkleLeaf: proofArtifact.sourceArtifacts.merkleLeaf,
       witnessRoot: proofArtifact.sourceArtifacts.witnessRoot,
+      nullifier: proofArtifact.sourceArtifacts.nullifier,
     },
     sourcePublicInputs: proofArtifact.sourcePublicInputs,
   };
@@ -356,6 +356,7 @@ export function normalizeVantaPrivateCoreUnshieldProofArtifact(input) {
     }),
     proofPublicInputs: normalized.publicInputs,
   });
+  assertUnshieldProofArtifactSourcePublicInputConsistency(normalized);
 
   return normalized;
 }
@@ -417,6 +418,10 @@ export function assertVantaPrivateCoreSourceArtifactConsistency(sourceArtifacts,
     throw new Error("Private-core source artifacts are missing a witness root.");
   }
 
+  if (typeof sourceArtifacts.nullifier !== "string") {
+    throw new Error("Private-core source artifacts are missing a nullifier.");
+  }
+
   const expectedNoteCommitment = deriveSourceNoteCommitmentFromWitnessPackage(witnessPackage);
   const expectedMerkleLeaf = deriveSourceMerkleLeaf(expectedNoteCommitment);
   const expectedWitnessRoot = normalizeHex32(witnessPackage.sourcePublicInputs.stateRoot);
@@ -431,6 +436,11 @@ export function assertVantaPrivateCoreSourceArtifactConsistency(sourceArtifacts,
 
   if (normalizeHex32(sourceArtifacts.witnessRoot) !== expectedWitnessRoot) {
     throw new Error("Private-core source artifacts have a mismatched witness root.");
+  }
+
+  const expectedSourceNullifier = deriveSourceNullifierFromUnshieldWitnessPackage(witnessPackage);
+  if (normalizeHex32(sourceArtifacts.nullifier) !== expectedSourceNullifier) {
+    throw new Error("Private-core source artifacts have a mismatched source nullifier.");
   }
 }
 
@@ -459,6 +469,10 @@ export function assertVantaPrivateCoreSourceArtifactShapeConsistency(
     throw new Error("Private-core source artifacts have a mismatched witness root.");
   }
 
+  if (normalizeHex32(sourceArtifacts.nullifier) !== normalizeHex32(sourcePublicInputs.nullifier)) {
+    throw new Error("Private-core source artifacts have a mismatched source nullifier.");
+  }
+
   if (!proofArtifact?.sourceArtifacts) {
     throw new Error("Private-core proof artifact is missing source artifacts.");
   }
@@ -480,6 +494,13 @@ export function assertVantaPrivateCoreSourceArtifactShapeConsistency(
     normalizeHex32(artifactSourceArtifacts.witnessRoot)
   ) {
     throw new Error("Private-core source artifacts have a mismatched proof-artifact witness root.");
+  }
+
+  if (
+    normalizeHex32(sourceArtifacts.nullifier) !==
+    normalizeHex32(artifactSourceArtifacts.nullifier)
+  ) {
+    throw new Error("Private-core source artifacts have a mismatched proof-artifact source nullifier.");
   }
 }
 
@@ -764,6 +785,19 @@ function assertWitnessPackagePublicInputConsistency(witnessPackage) {
     throw new Error("Private-core witness package is missing source public inputs.");
   }
   const privateWitness = witnessPackage.privateWitness;
+  const ownerPublicKey = decodeBytes32FromTwoU128Be(
+    privateWitness.owner_public_key_hi,
+    privateWitness.owner_public_key_lo,
+  );
+  const ownerSecretKey = decodeBytes32FromTwoU128Be(
+    privateWitness.owner_secret_key_hi,
+    privateWitness.owner_secret_key_lo,
+  );
+  const derivedOwnerPublicKey = deriveX25519PublicKey(ownerSecretKey);
+
+  if (ownerPublicKey !== derivedOwnerPublicKey) {
+    throw new Error("Private-core witness package owner secret does not derive the note owner public key.");
+  }
 
   const decodedReleaseDestination = decodeBytes32FromTwoU128Be(
     privateWitness.release_destination_hi,
@@ -802,6 +836,86 @@ function assertWitnessPackagePublicInputConsistency(witnessPackage) {
 
   if (String(sourcePublicInputs.noteVersion) !== String(publicInputs.note_version)) {
     throw new Error("Private-core witness package has mismatched note-version public inputs.");
+  }
+
+  const expectedSourceNullifier = deriveSourceNullifierFromUnshieldWitnessPackage(witnessPackage);
+  if (normalizeHex32(sourcePublicInputs.nullifier) !== expectedSourceNullifier) {
+    throw new Error("Private-core witness package has mismatched source nullifier.");
+  }
+
+  assertUnshieldSourcePublicInputsMatchCircuitPublicInputs({
+    circuitPublicInputs: publicInputs,
+    sourcePublicInputs,
+  });
+}
+
+function assertUnshieldProofArtifactSourcePublicInputConsistency(proofArtifact) {
+  assertUnshieldSourcePublicInputsMatchCircuitPublicInputs({
+    circuitPublicInputs: proofArtifact.circuitPublicInputs,
+    sourcePublicInputs: proofArtifact.sourcePublicInputs,
+  });
+  assertVantaPrivateCoreSourceArtifactShapeConsistency(
+    proofArtifact.sourceArtifacts,
+    proofArtifact.sourcePublicInputs,
+    proofArtifact,
+  );
+}
+
+function assertUnshieldSourcePublicInputsMatchCircuitPublicInputs(args) {
+  const sourcePublicInputs = args.sourcePublicInputs;
+  const circuitPublicInputs = args.circuitPublicInputs;
+
+  if (!sourcePublicInputs || typeof sourcePublicInputs !== "object") {
+    throw new Error("Private-core unshield source public inputs are missing.");
+  }
+
+  const releaseDestination = encodeHex32ToTwoU128Be(sourcePublicInputs.releaseDestination);
+  const assetId = encodeHex32ToTwoU128Be(sourcePublicInputs.assetId);
+  const amount = encodeU128ToTwoU64Le(BigInt(String(sourcePublicInputs.amount)));
+  const noteVersion = String(sourcePublicInputs.noteVersion);
+  const expectedEconomicTermsHash = poseidon8([
+    BigInt(releaseDestination.hi),
+    BigInt(releaseDestination.lo),
+    BigInt(assetId.hi),
+    BigInt(assetId.lo),
+    BigInt(amount.lo),
+    BigInt(amount.hi),
+    BigInt(noteVersion),
+    0n,
+  ]).toString(10);
+
+  if (String(circuitPublicInputs.unshield_economic_terms_hash) !== expectedEconomicTermsHash) {
+    throw new Error("Private-core unshield source public inputs do not match the proof economic terms.");
+  }
+
+  if (String(circuitPublicInputs.note_version) !== noteVersion) {
+    throw new Error("Private-core unshield source public inputs do not match the proof note version.");
+  }
+
+  const expectedConsumeContext = poseidon8([
+    BigInt(releaseDestination.hi),
+    BigInt(releaseDestination.lo),
+    BigInt(assetId.hi),
+    BigInt(assetId.lo),
+    BigInt(amount.lo),
+    BigInt(amount.hi),
+    BigInt(noteVersion),
+    BigInt(String(circuitPublicInputs.nullifier)),
+  ]).toString(10);
+
+  if (String(circuitPublicInputs.consume_context_tag_hi ?? "0") !== "0") {
+    throw new Error("Private-core unshield consume context high public input must be zero.");
+  }
+
+  if (String(circuitPublicInputs.consume_context_tag_lo ?? "0") !== expectedConsumeContext) {
+    throw new Error("Private-core unshield source public inputs do not match the proof consume context.");
+  }
+
+  if (
+    sourcePublicInputs.consumeContextTag !== undefined &&
+    normalizeHex32(sourcePublicInputs.consumeContextTag) !== fieldElementToHex32(expectedConsumeContext)
+  ) {
+    throw new Error("Private-core unshield source public inputs have a mismatched consume context tag.");
   }
 }
 
@@ -1107,6 +1221,27 @@ function deriveSourceNoteCommitmentFromWitnessPackage(witnessPackage) {
   );
 }
 
+function deriveSourceNullifierFromUnshieldWitnessPackage(witnessPackage) {
+  const privateWitness = witnessPackage.privateWitness;
+  const noteCommitment = deriveSourceNoteCommitmentFromWitnessPackage(witnessPackage);
+  const merkleLeaf = deriveSourceMerkleLeaf(noteCommitment);
+
+  return normalizeHex32(
+    `0x${Buffer.from(
+      sha256(
+        concatBytes(
+          encodeDomain("vanta.private-core.nullifier.v0"),
+          hexToBytes(decodeBytes32FromTwoU128Be(privateWitness.note_secret_hi, privateWitness.note_secret_lo)),
+          hexToBytes(decodeBytes32FromTwoU128Be(privateWitness.note_nonce_hi, privateWitness.note_nonce_lo)),
+          hexToBytes(noteCommitment),
+          hexToBytes(normalizeHex32(witnessPackage.sourcePublicInputs.stateRoot)),
+          hexToBytes(merkleLeaf),
+        ),
+      ),
+    ).toString("hex")}`,
+  );
+}
+
 function deriveSourceMerkleLeaf(noteCommitment) {
   return normalizeHex32(
     `0x${Buffer.from(
@@ -1119,6 +1254,25 @@ function decodeBytes32FromTwoU128Be(hi, lo) {
   const hiHex = BigInt(hi).toString(16).padStart(32, "0");
   const loHex = BigInt(lo).toString(16).padStart(32, "0");
   return normalizeHex32(`0x${hiHex}${loHex}`);
+}
+
+function encodeHex32ToTwoU128Be(value) {
+  const normalized = normalizeHex32(value).slice(2);
+  return {
+    hi: BigInt(`0x${normalized.slice(0, 32)}`).toString(10),
+    lo: BigInt(`0x${normalized.slice(32, 64)}`).toString(10),
+  };
+}
+
+function encodeU128ToTwoU64Le(value) {
+  const normalized = BigInt(value);
+  if (normalized < 0n || normalized > (1n << 128n) - 1n) {
+    throw new Error(`Expected an unsigned 128-bit integer, received ${String(value)}.`);
+  }
+  return {
+    lo: (normalized & ((1n << 64n) - 1n)).toString(10),
+    hi: (normalized >> 64n).toString(10),
+  };
 }
 
 function decodeU128FromTwoU64Le(lo, hi) {
@@ -1137,6 +1291,18 @@ function normalizeHex32(value) {
   }
 
   return normalized;
+}
+
+function fieldElementToHex32(value) {
+  const normalized = BigInt(value);
+  if (normalized < 0n) {
+    throw new Error("Expected a non-negative field element.");
+  }
+  return normalizeHex32(`0x${normalized.toString(16).padStart(64, "0")}`);
+}
+
+function deriveX25519PublicKey(secretKey) {
+  return normalizeHex32(`0x${Buffer.from(x25519.getPublicKey(hexToBytes(secretKey))).toString("hex")}`);
 }
 
 function encodeDomain(value) {

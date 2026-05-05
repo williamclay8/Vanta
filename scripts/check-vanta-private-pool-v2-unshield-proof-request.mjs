@@ -91,29 +91,33 @@ try {
     patchRelativeImports(file);
   }
 
-  const {
-    VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_AMOUNT_BASE_UNITS,
-    VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID,
-    createVantaPrivatePoolV2UnshieldProofRequest,
-  } = await import(pathToFileURL(join(tempJsDir, "privatePoolV2ProofRequests.js")).href);
+	  const {
+	    VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_AMOUNT_BASE_UNITS,
+	    VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID,
+	    computeVantaPrivatePoolV2UnshieldPublicInputHash,
+	    createVantaPrivatePoolV2UnshieldProofRequest,
+	  } = await import(pathToFileURL(join(tempJsDir, "privatePoolV2ProofRequests.js")).href);
 
   assert(
     typeof createVantaPrivatePoolV2UnshieldProofRequest === "function",
     "Expected createVantaPrivatePoolV2UnshieldProofRequest export.",
   );
 
-  const request = createVantaPrivatePoolV2UnshieldProofRequest({
-    economicsCommitment: "field:economics",
-    exitTermsCommitment: "field:exit-terms",
-    inputCommitment: "field:input-note",
+	  const requestArgs = {
+	    economicsCommitment: "field:economics",
+	    exitTermsCommitment: "field:exit-terms",
+	    inputCommitment: "field:input-note",
     inputRoot: "field:input-root",
     nullifierOrReplayCommitment: "field:nullifier",
     ownerCommitment: "field:owner",
-    routeCommitment: "field:route",
-    settlementCommitment: "field:settlement",
-    unshieldContextTag: "field:unshield-context",
-    unshieldPublicInputHash: "field:unshield-public-input-hash",
-  });
+	    routeCommitment: "field:route",
+	    settlementCommitment: "field:settlement",
+	    unshieldContextTag: "field:unshield-context",
+	    unshieldPublicInputHash: "field:unshield-public-input-hash",
+	  };
+	  const request = createVantaPrivatePoolV2UnshieldProofRequest(requestArgs);
+	  const expectedUnshieldPublicInputHash =
+	    computeVantaPrivatePoolV2UnshieldPublicInputHash(requestArgs);
 
   assert(request.intent === "unshield", "Expected unshield intent.");
   assert(
@@ -140,11 +144,11 @@ try {
       ]),
     "Expected stable private unshield proof public-input ordering.",
   );
-  assert(
-    JSON.stringify(request.circuitPublicInputs) ===
-      JSON.stringify(["unshield-public-input-hash:field:unshield-public-input-hash"]),
-    "Expected private unshield circuit public inputs to be hash-only.",
-  );
+	  assert(
+	    JSON.stringify(request.circuitPublicInputs) ===
+	      JSON.stringify([`unshield-public-input-hash:${expectedUnshieldPublicInputHash}`]),
+	    "Expected private unshield circuit public inputs to use the computed request hash.",
+	  );
   assert(
     request.operatorVisibleTerms === undefined,
     "Private unshield proof request must not mark raw terms as operator-visible.",

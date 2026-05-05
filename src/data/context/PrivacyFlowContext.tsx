@@ -2476,7 +2476,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         ownerCommitment: committedUnshieldSettlement.ownerCommitment,
         routeCommitment: committedUnshieldSettlement.routeCommitment,
         settlementCommitment: committedUnshieldSettlement.settlementCommitment,
-        settlementId: result.nullifier.value,
+        settlementId: committedUnshieldSettlement.settlementCommitment,
         unshieldContextTag: committedUnshieldSettlement.unshieldContextTag,
         unshieldPublicInputHash: committedUnshieldSettlement.unshieldPublicInputHash,
       }).then(() => refreshPrivatePoolV2ProtocolSettlementStatus());

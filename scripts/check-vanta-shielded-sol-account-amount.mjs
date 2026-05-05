@@ -89,8 +89,12 @@ assert.ok(
 );
 assert.ok(
   shieldAssetStateSource.indexOf("const accountWithRecoveredSolNotes = mergeRecoveredNativeSolShieldNotes(") <
-    shieldAssetStateSource.indexOf("reconcileLocallyReleasedSolNotes(accountWithRecoveredSolNotes, locallyReleasedSolNoteIds)"),
-  "Recovered native SOL notes must be merged before locally released SOL reconciliation so released notes cannot reappear as spendable.",
+    shieldAssetStateSource.indexOf("const accountWithReleasedTokenNotes = reconcileLocallyReleasedShieldNotes(") &&
+    shieldAssetStateSource.indexOf("const accountWithReleasedTokenNotes = reconcileLocallyReleasedShieldNotes(") <
+      shieldAssetStateSource.indexOf(
+        "reconcileLocallyReleasedSolNotes(\n              accountWithReleasedTokenNotes,\n              locallyReleasedSolNoteReferenceHashes,",
+      ),
+  "Recovered native SOL notes must be merged before token and SOL release reconciliation so released notes cannot reappear as spendable.",
 );
 
 for (const [label, source] of [

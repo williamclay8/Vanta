@@ -78,8 +78,15 @@ async function requestJson(path, body) {
     method: "POST",
   });
   const text = await response.text();
+  let parsedBody = null;
+  try {
+    parsedBody = text ? JSON.parse(text) : null;
+  } catch {
+    parsedBody = null;
+  }
 
   return {
+    body: parsedBody,
     ok: response.ok,
     status: response.status,
     text,
@@ -192,7 +199,25 @@ try {
     summary.operatorWitnessMaterialPolicy === "reject-private-witness-material",
     "Expected operator summary to expose strict no-witness material policy.",
   );
+  assert(
+    summary.ownerAuthorizationRuntimeStatus === "strict-no-witness-consume-blocked",
+    "Expected strict no-witness summary to block consumes until owner-authorization validation exists.",
+  );
+  assert(
+    summary.zkV1ShippingStatus === "owner-authorization-runtime-blocked",
+    "Expected strict no-witness shipping status to remain blocked on owner-authorization validation.",
+  );
   printStatus("strict no-witness summary policy: PASS");
+
+  const shippingDecision = await fetch(`${baseUrl}/state/private-core-shipping-decision`).then(
+    (response) => response.json(),
+  );
+  assert(
+    shippingDecision.decisionStatus === "blocked" &&
+      shippingDecision.shippingStatus === "owner-authorization-runtime-blocked",
+    "Expected strict no-witness shipping decision to remain blocked.",
+  );
+  printStatus("strict no-witness shipping decision gate: PASS");
 
   await expectWitnessRejection("/private-core/unshield-proof", { witnessPackage });
   await expectWitnessRejection("/private-core/register-root", {
@@ -209,46 +234,107 @@ try {
     proofOnlyResponse.ok,
     `/private-core/unshield-proof rejected verifier-only artifact: ${proofOnlyResponse.text}`,
   );
+  assert(
+    proofOnlyResponse.body?.sourcePublicInputs === undefined,
+    "strict no-witness proof response must not echo untrusted source public inputs.",
+  );
+  assert(
+    proofOnlyResponse.body?.sourceArtifacts === undefined,
+    "strict no-witness proof response must not echo untrusted source artifacts.",
+  );
+  assert(
+    typeof proofOnlyResponse.body?.verifiedPublicInputs?.provingStateRoot === "string",
+    "strict no-witness proof response must expose transcript-bound proving root.",
+  );
+  assert(
+    typeof proofOnlyResponse.body?.verifiedPublicInputs?.provingNullifier === "string",
+    "strict no-witness proof response must expose transcript-bound proving nullifier.",
+  );
   printStatus("strict no-witness /private-core/unshield-proof artifact: PASS");
+
+  const tamperedSourceInputsResponse = await requestJson("/private-core/unshield-proof", {
+    proofArtifact: {
+      ...proofArtifact,
+      sourcePublicInputs: {
+        ...proofArtifact.sourcePublicInputs,
+        releaseDestination: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      },
+    },
+  });
+  assert(
+    !tamperedSourceInputsResponse.ok &&
+      tamperedSourceInputsResponse.text.includes("source public inputs do not match"),
+    "strict no-witness proof-artifact accepted source public inputs that diverged from the verified proof terms.",
+  );
+  printStatus("strict no-witness proof-artifact source-input binding: PASS");
+
+  const tamperedSourceRootResponse = await requestJson("/private-core/unshield-proof", {
+    proofArtifact: {
+      ...proofArtifact,
+      sourcePublicInputs: {
+        ...proofArtifact.sourcePublicInputs,
+        stateRoot: "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      },
+    },
+  });
+  assert(
+    !tamperedSourceRootResponse.ok &&
+      tamperedSourceRootResponse.text.includes("witness root"),
+    "strict no-witness proof-artifact accepted a source state root that diverged from the verified proof transcript.",
+  );
+  printStatus("strict no-witness proof-artifact state-root binding: PASS");
+
+  const tamperedSourceNullifierResponse = await requestJson("/private-core/unshield-proof", {
+    proofArtifact: {
+      ...proofArtifact,
+      sourcePublicInputs: {
+        ...proofArtifact.sourcePublicInputs,
+        nullifier: "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      },
+    },
+  });
+  assert(
+    !tamperedSourceNullifierResponse.ok &&
+      tamperedSourceNullifierResponse.text.includes("nullifier"),
+    "strict no-witness proof-artifact accepted a source nullifier that diverged from the verified proof transcript.",
+  );
+  printStatus("strict no-witness proof-artifact nullifier binding: PASS");
 
   const rootResponse = await requestJson("/private-core/register-root", {
     proofArtifact,
     sourceArtifacts,
   });
   assert(
-    rootResponse.ok,
-    `/private-core/register-root rejected verifier-only artifact: ${rootResponse.text}`,
+    !rootResponse.ok &&
+      rootResponse.text.includes("validated source/proving lineage artifact"),
+    "strict no-witness register-root accepted a proof artifact without validated source/proving lineage.",
   );
-  printStatus("strict no-witness /private-core/register-root artifact: PASS");
-
-  const tamperedSourceArtifactsResponse = await requestJson("/private-core/register-root", {
-    proofArtifact,
-    sourceArtifacts: {
-      ...sourceArtifacts,
-      noteCommitment: "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-    },
-  });
-  assert(
-    !tamperedSourceArtifactsResponse.ok &&
-      tamperedSourceArtifactsResponse.text.includes("mismatched proof-artifact note commitment"),
-    "strict no-witness register-root accepted source artifacts that diverged from the proof artifact.",
-  );
-  printStatus("strict no-witness proof-artifact source-artifact binding: PASS");
+  printStatus("strict no-witness /private-core/register-root source/proving lineage gate: PASS");
 
   const consumeResponse = await requestJson("/private-core/unshield-consume", {
     proofArtifact,
     sourceArtifacts,
   });
   assert(
-    consumeResponse.ok,
-    `/private-core/unshield-consume rejected verifier-only artifact: ${consumeResponse.text}`,
+    !consumeResponse.ok && consumeResponse.text.includes("validated owner authorization artifact"),
+    "strict no-witness consume accepted a proof-only artifact without owner authorization.",
   );
-  const consumeBody = JSON.parse(consumeResponse.text);
+  printStatus("strict no-witness /private-core/unshield-consume owner-auth gate: PASS");
+
+  const placeholderAuthConsumeResponse = await requestJson("/private-core/unshield-consume", {
+    proofArtifact,
+    ownerAuthorizationArtifact: {
+      kind: "placeholder-owner-authorization-artifact",
+      signature: "not-validated",
+    },
+    sourceArtifacts,
+  });
   assert(
-    consumeBody.releaseRecorded === true && consumeBody.verified === true,
-    "Expected verifier-only consume artifact to record a verified release.",
+    !placeholderAuthConsumeResponse.ok &&
+      placeholderAuthConsumeResponse.text.includes("validated owner authorization artifact"),
+    "strict no-witness consume accepted a placeholder owner authorization artifact.",
   );
-  printStatus("strict no-witness /private-core/unshield-consume artifact: PASS");
+  printStatus("strict no-witness /private-core/unshield-consume validated owner-auth gate: PASS");
 } finally {
   if (server.exitCode === null) {
     await new Promise((resolvePromise) => {

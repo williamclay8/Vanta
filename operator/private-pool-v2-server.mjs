@@ -166,6 +166,7 @@ function isPublicUnshieldRoute(request) {
     request.url === "/unshield" ||
     request.url === "/unshield/sol" ||
     request.url === "/health/sol-unshield" ||
+    request.url === "/state/unshield-records" ||
     request.url === "/state/sol-unshield-records"
   );
 }

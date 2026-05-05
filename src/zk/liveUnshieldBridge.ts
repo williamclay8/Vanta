@@ -1,6 +1,8 @@
 import { listCanonicalSendRecords } from "./liveSendBridge";
 import { listCanonicalShieldRecords } from "./liveShieldBridge";
 import { listCanonicalSwapRecords } from "./liveSwapBridge";
+import { sha256 } from "@noble/hashes/sha2.js";
+import { bytesToHex } from "@noble/hashes/utils.js";
 import type { CanonicalNullifierBasis } from "./canonicalNote";
 import {
   createCanonicalConsumptionRecord,
@@ -45,8 +47,8 @@ export type LiveUnshieldCanonicalizationInput = {
 };
 
 export type CanonicalConsumedReference = {
-  liveNoteId: string;
-  liveStateSignature: string;
+  liveNoteReferenceHash: string;
+  liveStateSignatureHash: string;
   canonicalCommitment?: string;
   canonicalRecordSource?: "live_shield_v1" | "live_send_v1" | "live_swap_v1";
   lifecycle?: CanonicalLifecycleLinkReference;
@@ -62,14 +64,14 @@ export type LiveUnshieldCanonicalRecord = {
     amountDisplay: string;
     asset: LiveUnshieldAsset;
     assetId: string;
-    consumedNoteId: string;
-    consumedStateSignature: string;
+    consumedNoteReferenceHash: string;
+    consumedStateSignatureHash: string;
     destinationOwner: string;
     mintAddress?: string;
     operatorReleaseSignature?: string;
     operatorRequestId?: string;
     owner: string;
-    sourceSwapNoteId?: string;
+    sourceSwapNoteReferenceHash?: string;
     spentMarkerSignature?: string;
     transitionNoteId: string;
     transitionSignature: string;
@@ -90,7 +92,7 @@ export type LiveUnshieldDiagnosticsSummary = {
   lineageId?: string;
   asset: LiveUnshieldAsset;
   amountDisplay: string;
-  consumedLiveNoteId: string;
+  consumedReferenceHash: string;
   consumedCanonicalCommitment?: string;
   consumedCanonicalRecordSource?: "live_shield_v1" | "live_send_v1" | "live_swap_v1";
   consumedLifecycleId?: string;
@@ -104,7 +106,7 @@ export type LiveUnshieldDiagnosticsSummary = {
   destinationOwner: string;
   operatorReleaseSignature?: string;
   operatorRequestId?: string;
-  sourceSwapNoteId?: string;
+  sourceSwapNoteReferenceHash?: string;
   spentMarkerSignature?: string;
   transitionSignature: string;
   transitionNoteId: string;
@@ -123,6 +125,14 @@ export async function recordCanonicalUnshieldFromLiveUnshield(
 
   const consumed = resolveCanonicalConsumedReference(
     input.consumed.noteId,
+    input.consumed.stateSignature,
+  );
+  const consumedNoteReferenceHash = redactLiveUnshieldReference(
+    "consumed-note-id",
+    input.consumed.noteId,
+  );
+  const consumedStateSignatureHash = redactLiveUnshieldReference(
+    "consumed-state-signature",
     input.consumed.stateSignature,
   );
   const recordLifecycleId = createCanonicalLifecycleRecordId("unshield", input.transition.signature);
@@ -157,14 +167,16 @@ export async function recordCanonicalUnshieldFromLiveUnshield(
       amountDisplay: input.amountDisplay,
       asset: input.asset,
       assetId: input.assetId,
-      consumedNoteId: input.consumed.noteId,
-      consumedStateSignature: input.consumed.stateSignature,
+      consumedNoteReferenceHash,
+      consumedStateSignatureHash,
       destinationOwner: input.destinationOwner,
       mintAddress: input.mintAddress,
       operatorReleaseSignature: input.operator?.releaseSignature,
       operatorRequestId: input.operator?.requestId,
       owner: input.owner,
-      sourceSwapNoteId: input.consumed.sourceSwapNoteId,
+      sourceSwapNoteReferenceHash: input.consumed.sourceSwapNoteId
+        ? redactLiveUnshieldReference("source-swap-note-id", input.consumed.sourceSwapNoteId)
+        : undefined,
       spentMarkerSignature: input.transition.spentMarkerSignature,
       transitionNoteId: input.transition.noteId,
       transitionSignature: input.transition.signature,
@@ -204,7 +216,9 @@ export function listCanonicalUnshieldRecords(): LiveUnshieldCanonicalRecord[] {
       return [];
     }
 
-    return parsed.filter(isLiveUnshieldCanonicalRecord);
+    return parsed
+      .map(normalizeLiveUnshieldCanonicalRecord)
+      .filter((record): record is LiveUnshieldCanonicalRecord => record !== null);
   } catch {
     return [];
   }
@@ -219,7 +233,7 @@ export function listCanonicalUnshieldDiagnosticsSummaries(): LiveUnshieldDiagnos
       lineageId: record.lifecycleLinkage?.lineageId,
       asset: record.liveUnshield.asset,
       amountDisplay: record.liveUnshield.amountDisplay,
-      consumedLiveNoteId: record.liveUnshield.consumedNoteId,
+      consumedReferenceHash: record.liveUnshield.consumedNoteReferenceHash,
       consumedCanonicalCommitment: record.consumed.canonicalCommitment,
       consumedCanonicalRecordSource: record.consumed.canonicalRecordSource,
       consumedLifecycleId: record.consumed.lifecycle?.lifecycleId,
@@ -233,7 +247,7 @@ export function listCanonicalUnshieldDiagnosticsSummaries(): LiveUnshieldDiagnos
       destinationOwner: record.liveUnshield.destinationOwner,
       operatorReleaseSignature: record.liveUnshield.operatorReleaseSignature,
       operatorRequestId: record.liveUnshield.operatorRequestId,
-      sourceSwapNoteId: record.liveUnshield.sourceSwapNoteId,
+      sourceSwapNoteReferenceHash: record.liveUnshield.sourceSwapNoteReferenceHash,
       spentMarkerSignature: record.liveUnshield.spentMarkerSignature,
       transitionSignature: record.liveUnshield.transitionSignature,
       transitionNoteId: record.liveUnshield.transitionNoteId,
@@ -248,11 +262,16 @@ function resolveCanonicalConsumedReference(
   const shieldMatch = listCanonicalShieldRecords().find(
     (record) => record.recordId === liveStateSignature || record.liveShield.stateSignature === liveStateSignature,
   );
+  const liveNoteReferenceHash = redactLiveUnshieldReference("consumed-note-id", liveNoteId);
+  const liveStateSignatureHash = redactLiveUnshieldReference(
+    "consumed-state-signature",
+    liveStateSignature,
+  );
 
   if (shieldMatch) {
     return {
-      liveNoteId,
-      liveStateSignature,
+      liveNoteReferenceHash,
+      liveStateSignatureHash,
       canonicalCommitment: shieldMatch.artifacts.commitment.value,
       canonicalRecordSource: "live_shield_v1",
       lifecycle: shieldMatch.lifecycleLinkage
@@ -276,8 +295,8 @@ function resolveCanonicalConsumedReference(
 
     if (successorMatch) {
       return {
-        liveNoteId,
-        liveStateSignature,
+        liveNoteReferenceHash,
+        liveStateSignatureHash,
         canonicalCommitment: successorMatch.artifacts.commitment.value,
         canonicalRecordSource: "live_send_v1",
         lifecycle: successorMatch.lifecycle
@@ -300,8 +319,8 @@ function resolveCanonicalConsumedReference(
       record.outputSuccessor.liveStateSignature === liveStateSignature
     ) {
       return {
-        liveNoteId,
-        liveStateSignature,
+        liveNoteReferenceHash,
+        liveStateSignatureHash,
         canonicalCommitment: record.outputSuccessor.artifacts.commitment.value,
         canonicalRecordSource: "live_swap_v1",
         lifecycle: record.outputSuccessor.lifecycle
@@ -319,12 +338,18 @@ function resolveCanonicalConsumedReference(
   }
 
   return {
-    liveNoteId,
-    liveStateSignature,
+    liveNoteReferenceHash,
+    liveStateSignatureHash,
     lifecycle: {
       resolution: "unresolved",
     },
   };
+}
+
+function redactLiveUnshieldReference(label: string, value: string) {
+  return `sha256:${bytesToHex(
+    sha256(new TextEncoder().encode(`vanta-live-unshield-${label}-v1:${value}`)),
+  )}`;
 }
 
 function persistCanonicalUnshieldRecord(record: LiveUnshieldCanonicalRecord) {
@@ -344,6 +369,83 @@ function getStorage(): Storage | null {
   }
 
   return globalThis.localStorage ?? null;
+}
+
+function normalizeLiveUnshieldCanonicalRecord(value: unknown): LiveUnshieldCanonicalRecord | null {
+  if (!isLiveUnshieldCanonicalRecord(value)) {
+    return null;
+  }
+
+  const legacyLiveUnshield = value.liveUnshield as typeof value.liveUnshield & {
+    consumedNoteId?: string;
+    consumedStateSignature?: string;
+    sourceSwapNoteId?: string;
+  };
+  const legacyConsumed = value.consumed as typeof value.consumed & {
+    liveNoteId?: string;
+    liveStateSignature?: string;
+  };
+  const consumedNoteReferenceHash =
+    value.liveUnshield.consumedNoteReferenceHash ??
+    (typeof legacyLiveUnshield.consumedNoteId === "string"
+      ? redactLiveUnshieldReference("consumed-note-id", legacyLiveUnshield.consumedNoteId)
+      : legacyConsumed.liveNoteId
+        ? redactLiveUnshieldReference("consumed-note-id", legacyConsumed.liveNoteId)
+        : "sha256:unavailable");
+  const consumedStateSignatureHash =
+    value.liveUnshield.consumedStateSignatureHash ??
+    (typeof legacyLiveUnshield.consumedStateSignature === "string"
+      ? redactLiveUnshieldReference(
+          "consumed-state-signature",
+          legacyLiveUnshield.consumedStateSignature,
+        )
+      : legacyConsumed.liveStateSignature
+        ? redactLiveUnshieldReference("consumed-state-signature", legacyConsumed.liveStateSignature)
+        : "sha256:unavailable");
+
+  return {
+    ...value,
+    liveUnshield: {
+      amountDisplay: value.liveUnshield.amountDisplay,
+      asset: value.liveUnshield.asset,
+      assetId: value.liveUnshield.assetId,
+      consumedNoteReferenceHash,
+      consumedStateSignatureHash,
+      destinationOwner: value.liveUnshield.destinationOwner,
+      mintAddress: value.liveUnshield.mintAddress,
+      operatorReleaseSignature: value.liveUnshield.operatorReleaseSignature,
+      operatorRequestId: value.liveUnshield.operatorRequestId,
+      owner: value.liveUnshield.owner,
+      sourceSwapNoteReferenceHash:
+        value.liveUnshield.sourceSwapNoteReferenceHash ??
+        (typeof legacyLiveUnshield.sourceSwapNoteId === "string"
+          ? redactLiveUnshieldReference("source-swap-note-id", legacyLiveUnshield.sourceSwapNoteId)
+          : undefined),
+      spentMarkerSignature: value.liveUnshield.spentMarkerSignature,
+      transitionNoteId: value.liveUnshield.transitionNoteId,
+      transitionSignature: value.liveUnshield.transitionSignature,
+      vaultOwner: value.liveUnshield.vaultOwner,
+    },
+    consumed: {
+      canonicalCommitment: value.consumed.canonicalCommitment,
+      canonicalRecordSource: value.consumed.canonicalRecordSource,
+      lifecycle: value.consumed.lifecycle,
+      liveNoteReferenceHash:
+        value.consumed.liveNoteReferenceHash ??
+        (legacyConsumed.liveNoteId
+          ? redactLiveUnshieldReference("consumed-note-id", legacyConsumed.liveNoteId)
+          : consumedNoteReferenceHash),
+      liveStateSignatureHash:
+        value.consumed.liveStateSignatureHash ??
+        (legacyConsumed.liveStateSignature
+          ? redactLiveUnshieldReference(
+              "consumed-state-signature",
+              legacyConsumed.liveStateSignature,
+            )
+          : consumedStateSignatureHash),
+      nullifierBasis: value.consumed.nullifierBasis,
+    },
+  };
 }
 
 function isLiveUnshieldCanonicalRecord(value: unknown): value is LiveUnshieldCanonicalRecord {

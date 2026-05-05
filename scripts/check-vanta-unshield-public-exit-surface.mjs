@@ -28,7 +28,7 @@ const transactionEvidenceSource = readRepoFile("src/transactions/vantaTransactio
 const transactionEvidenceCheck = readRepoFile("scripts/check-vanta-transaction-evidence.mjs");
 
 for (const phrase of [
-  "createOperatorDirectUnshieldIntent",
+  "signUnshieldIntent",
   "signSolUnshieldIntent",
   "signWalletMessageIntentWithSafety",
   "Ready for operator release",
@@ -47,17 +47,18 @@ assert.ok(
   "SOL Unshield must preserve a typed wallet message-intent release prompt.",
 );
 assert.ok(
-  unshieldAuthSource.includes('signature: "operator-direct"'),
-  "Token Unshield auth must support operator-direct release intents.",
+  unshieldPageSource.includes('intentKind: "unshield-intent"'),
+  "Token Unshield must preserve a typed wallet message-intent release prompt.",
 );
 assert.ok(
-  solUnshieldAuthSource.includes('signature: "operator-direct"'),
-  "SOL Unshield auth must support operator-direct release intents.",
+  !unshieldAuthSource.includes('signature: "operator-direct"') &&
+    !solUnshieldAuthSource.includes('signature: "operator-direct"'),
+  "Unshield auth must not mint unauthenticated operator-direct sentinel signatures.",
 );
 assert.ok(
-  unshieldOperatorAuthSource.includes('payload.signature === "operator-direct"') &&
-    solUnshieldOperatorAuthSource.includes('payload.signature === "operator-direct"'),
-  "Unshield operator must accept checked operator-direct release intents.",
+  !unshieldOperatorAuthSource.includes('payload.signature === "operator-direct"') &&
+    !solUnshieldOperatorAuthSource.includes('payload.signature === "operator-direct"'),
+  "Unshield operator auth must not accept operator-direct sentinel signatures.",
 );
 
 for (const phrase of [
@@ -191,11 +192,11 @@ for (const [sourceLabel, source, phrase] of [
     unshieldPageSource,
     "selectedLane !== \"SOL\" && !selectedShieldAsset?.vaultOwner",
   ],
-  [
-    "Unshield page",
-    unshieldPageSource,
-    "Private note consumed; proof-backed operator release record recorded.",
-  ],
+	  [
+	    "Unshield page",
+	    unshieldPageSource,
+	    "Operator release signature returned",
+	  ],
   [
     "env example",
     envExampleSource,
@@ -227,13 +228,13 @@ for (const phrase of [
 }
 
 for (const phrase of [
-  "shieldRegistry.entries.find((entry) => (entry.account?.shieldedSolBalance ?? 0) > 0)",
-  "entry.account?.spendableShieldedSolNotes.length",
-  "shieldedSolSourceEntry?.account ?? canonicalSolAccount ?? usdcShieldEntry.account",
-  "const spendableSolNotes = solShieldAccount?.spendableShieldedSolNotes ?? []",
-  "const selectedSolAggregateAmount = solShieldAccount?.shieldedSolBalance ?? 0",
-  'selectedLane === "SOL" ? selectedSolNote?.amount ?? 0 : selectedShieldNote?.amount ?? 0',
-]) {
+	  "shieldRegistry.entries.find((entry) => (entry.account?.shieldedSolBalance ?? 0) > 0)",
+	  "entry.account?.spendableShieldedSolNotes.length",
+	  "shieldedSolSourceEntry?.account ?? canonicalSolAccount ?? usdcShieldEntry.account",
+	  "const spendableSolNotes = useMemo(",
+	  "sumSpendableAmounts(spendableSolNotes, 9)",
+	  'selectedLane === "SOL" ? selectedSolNote?.amount ?? 0 : selectedShieldNote?.amount ?? 0',
+	]) {
   assert.ok(
     unshieldPageSource.includes(phrase),
     `Unshield SOL lane must source shielded SOL from the registry account that actually has SOL: ${phrase}`,
@@ -241,11 +242,13 @@ for (const phrase of [
 }
 
 for (const phrase of [
-  "createRecentShieldedSolNote",
-  "native-sol-recent-shield",
-  "recentShieldedSolBalance",
-  "const selectedSolAggregateAmount = Math.max(",
-]) {
+	  "createRecentShieldedSolNote",
+	  "native-sol-recent-shield",
+	  "recentShieldedSolBalance",
+	  "const selectedSolAggregateAmount = Math.max(",
+	  "unshield complete",
+	  "returned to Public Wallet",
+	]) {
   assert.ok(
     !unshieldPageSource.includes(phrase),
     `Unshield SOL lane must not synthesize spendable SOL from optimistic recent state: ${phrase}`,

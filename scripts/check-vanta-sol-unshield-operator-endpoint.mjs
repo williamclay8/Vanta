@@ -55,7 +55,7 @@ function createOperatorEnv({ port, signer, vaultOwner }) {
     VANTA_PRIVATE_CORE_SEND_STORE_PATH: join(tempRoot, `sends-${port}.json`),
     VANTA_PRIVATE_CORE_SWAP_PROOF_STORE_PATH: join(tempRoot, `swap-proofs-${port}.json`),
     VANTA_PRIVATE_CORE_SWAP_STORE_PATH: join(tempRoot, `swaps-${port}.json`),
-    VANTA_RELEASE_RECORD_STORE_PATH: join(tempRoot, `releases-${port}.json`),
+	    VANTA_UNSHIELD_RELEASE_STORE_PATH: join(tempRoot, `releases-${port}.json`),
     VANTA_SOL_UNSHIELD_RECORD_STORE_PATH: join(tempRoot, `sol-unshields-${port}.json`),
     VANTA_SWAP_RECORD_STORE_PATH: join(tempRoot, `swap-records-${port}.json`),
     VANTA_UNSHIELD_OPERATOR_PORT: String(port),
@@ -178,8 +178,19 @@ try {
 
       const records = await requestJson(baseUrl, "/state/sol-unshield-records");
       assert.equal(records.status, 200, records.text);
-      assert.deepEqual(records.body?.consumedNoteIds, []);
-      printStatus("SOL unshield record state endpoint: PASS");
+      assert.equal(records.body?.stateVersion, 1);
+      assert.deepEqual(records.body?.consumedNoteReferenceHashes, []);
+      assert.equal(records.body?.consumedNoteIds, undefined);
+      assert.equal(records.body?.records, undefined);
+      printStatus("SOL unshield hashed record state endpoint: PASS");
+
+      const tokenRecords = await requestJson(baseUrl, "/state/unshield-records");
+      assert.equal(tokenRecords.status, 200, tokenRecords.text);
+      assert.equal(tokenRecords.body?.stateVersion, 1);
+      assert.deepEqual(tokenRecords.body?.consumedNoteReferenceHashes, []);
+      assert.equal(tokenRecords.body?.consumedNoteIds, undefined);
+      assert.equal(tokenRecords.body?.records, undefined);
+      printStatus("Token unshield hashed record state endpoint: PASS");
     },
   );
 

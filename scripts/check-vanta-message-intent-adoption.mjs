@@ -11,10 +11,10 @@ assert.ok(
   "Swap must wrap signed operator intents with wallet message-intent safety.",
 );
 assert.ok(
-  unshieldSource.includes("createOperatorDirectUnshieldIntent") &&
+  unshieldSource.includes("signUnshieldIntent") &&
     unshieldSource.includes("signSolUnshieldIntent") &&
     unshieldSource.includes("signWalletMessageIntentWithSafety"),
-  "Unshield must keep SPL operator-direct release and SOL typed message-intent release boundaries.",
+  "Unshield must keep token and SOL typed message-intent release boundaries.",
 );
 
 for (const phrase of [
@@ -27,8 +27,9 @@ for (const phrase of [
 }
 
 for (const phrase of [
-  "createOperatorDirectUnshieldIntent",
+  "signUnshieldIntent",
   "signSolUnshieldIntent",
+  'intentKind: "unshield-intent"',
   'intentKind: "sol-unshield-intent"',
   'setStatus("operator_ready")',
   "Ready for operator release",
@@ -38,11 +39,12 @@ for (const phrase of [
 }
 
 for (const forbiddenPhrase of [
-  'intentKind: "unshield-intent"',
+  "createOperatorDirectUnshieldIntent",
+  'signature: "operator-direct"',
 ]) {
   assert.ok(
     !unshieldSource.includes(forbiddenPhrase),
-    `Unshield must not keep the unsupported extra token Unshield message-signing prompt: ${forbiddenPhrase}`,
+    `Unshield must not keep unauthenticated operator-direct token release behavior: ${forbiddenPhrase}`,
   );
 }
 

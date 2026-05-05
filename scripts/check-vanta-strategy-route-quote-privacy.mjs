@@ -22,6 +22,7 @@ async function loadCompiledModules() {
 
     for (const file of [
       "privacy/privatePoolV2ProtocolSettlementClient.ts",
+      "privacy/vantaShieldCommittedSettlement.ts",
       "strategy/strategyPrivateRail.ts",
       "strategy/strategyPrivateRailSettlement.ts",
       "strategy/strategyPrivateRailTrustContract.ts",

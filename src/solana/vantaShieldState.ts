@@ -2343,6 +2343,12 @@ export async function fetchVantaShieldAccountState(args: {
       ...validSolUnshieldNotes,
     ].map((transition) => [transition.consumedNoteId, transition] as const),
   );
+  const pendingUnshieldByConsumedNoteId = new Map(
+    candidateUnshieldNotes.map((note) => [note.consumedNoteId, note] as const),
+  );
+  const pendingSolUnshieldByConsumedNoteId = new Map(
+    candidateSolUnshieldNotes.map((note) => [note.consumedNoteId, note] as const),
+  );
 
   const changeNotes = [...changeNotesByParentSend.values()].sort((left, right) => {
     return left.createdAt - right.createdAt;
@@ -2359,18 +2365,23 @@ export async function fetchVantaShieldAccountState(args: {
     return consumedNoteIds.has(note.noteId);
   });
   const spendableShieldNotes = shieldNotes.filter((note) => {
-    // Once a note already has a constrained transition recorded on-chain,
-    // keep it out of the spendable set even before the spent marker lands.
-    // This avoids presenting notes as reusable when swap/send/unshield has
-    // already reserved them and the UI is just waiting on finalization.
     return (
-      !consumedNoteIds.has(note.noteId) && !transitionByConsumedNoteId.has(note.noteId)
+      !consumedNoteIds.has(note.noteId) &&
+      !transitionByConsumedNoteId.has(note.noteId) &&
+      !pendingUnshieldByConsumedNoteId.has(note.noteId)
     );
   });
   const shieldedSolNotes = baseShieldedSolNotes
     .map((note) => {
       const spentMarker = spentMarkerByConsumedNoteId.get(note.noteId);
-      const consumingTransition = transitionByConsumedNoteId.get(note.noteId);
+      const pendingUnshieldTransition = pendingSolUnshieldByConsumedNoteId.get(note.noteId);
+      const consumingTransition =
+        transitionByConsumedNoteId.get(note.noteId) ?? pendingUnshieldTransition;
+      const lifecycleStatus = spentMarker
+        ? "consumed"
+        : pendingUnshieldTransition
+          ? "pending"
+          : "spendable";
 
       return {
         ...note,
@@ -2382,14 +2393,11 @@ export async function fetchVantaShieldAccountState(args: {
           consumingTransition?.kind === "sol_unshield" || consumingTransition?.kind === "swap"
             ? consumingTransition.kind
             : undefined,
-        lifecycleStatus: spentMarker ? "consumed" : "spendable",
+        lifecycleStatus,
         spentMarkerId: spentMarker?.markerId,
       } satisfies VantaShieldedSolNote;
     })
     .sort((left, right) => right.createdAt - left.createdAt);
-  const pendingSolUnshieldByConsumedNoteId = new Set(
-    candidateSolUnshieldNotes.map((note) => note.consumedNoteId),
-  );
   const spendableShieldedSolNotes = shieldedSolNotes.filter((note) => {
     return (
       note.lifecycleStatus === "spendable" &&
@@ -2412,7 +2420,10 @@ export async function fetchVantaShieldAccountState(args: {
     .sort((left, right) => right.createdAt - left.createdAt)
     .map((note) => {
       const spentMarker = spentMarkerByConsumedNoteId.get(note.noteId);
-      const consumingTransition = transitionByConsumedNoteId.get(note.noteId);
+      const pendingUnshieldTransition = pendingUnshieldByConsumedNoteId.get(note.noteId);
+      const consumingTransition =
+        transitionByConsumedNoteId.get(note.noteId) ?? pendingUnshieldTransition;
+      const lifecycleStatus = spentMarker ? "consumed" : pendingUnshieldTransition ? "pending" : "spendable";
 
       return {
         amount: note.amount,
@@ -2420,7 +2431,7 @@ export async function fetchVantaShieldAccountState(args: {
         consumedByTransitionId: consumingTransition?.noteId,
         consumedByTransitionKind: consumingTransition?.kind,
         createdAt: note.createdAt,
-        lifecycleStatus: spentMarker ? "consumed" : "spendable",
+        lifecycleStatus,
         noteId: note.noteId,
         parentNoteId: note.parentNoteId,
         parentSendNoteId: note.parentSendNoteId,
