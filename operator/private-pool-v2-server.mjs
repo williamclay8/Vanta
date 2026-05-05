@@ -5,6 +5,7 @@ import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
+import { Connection, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import {
   createInMemoryRateLimiter,
   createPostgresRateLimiterFromDatabaseUrl,
@@ -32,6 +33,13 @@ const operatorAuthToken = process.env.VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN;
 const rateLimitPerMinute = Number(process.env.VANTA_PRIVATE_POOL_V2_RATE_LIMIT_PER_MINUTE ?? "600");
 const databaseUrl = process.env.VANTA_PRIVATE_POOL_V2_DATABASE_URL;
 const runtimeMode = process.env.VANTA_PRIVATE_POOL_V2_RUNTIME_MODE ?? "local-benchmark";
+const browserShieldDepositEvidenceMode =
+  process.env.VANTA_PRIVATE_POOL_V2_PUBLIC_SHIELD_RECEIPT_DEPOSIT_EVIDENCE_MODE ??
+  (process.env.NODE_ENV === "production" ? "required" : "local-skip");
+const browserShieldDepositEvidenceRpcUrl =
+  process.env.VANTA_PRIVATE_POOL_V2_PUBLIC_SHIELD_RECEIPT_RPC_URL ??
+  process.env.SOLANA_RPC_URL ??
+  "https://solana-rpc.publicnode.com";
 const tempParent = resolve(repoRoot, ".tmp");
 mkdirSync(tempParent, { recursive: true });
 const tempRoot = mkdtempSync(resolve(tempParent, "vanta-private-pool-v2-operator-"));
@@ -199,7 +207,7 @@ async function handlePublicBrowserShieldReceiptRoute(request, response) {
   }
 
   const body = await readRequestBody(request);
-  const settlementRequest = validateBrowserShieldReceiptBody(body);
+  const settlementRequest = await validateBrowserShieldReceiptBody(body);
   sendJson(response, 200, await proveAndAcceptProtocolSettlement(settlementRequest));
 }
 
@@ -971,7 +979,134 @@ function assertBrowserCommittedShieldOpeningShape(opening) {
   requireCommitmentHex(settlement[3], "opening.settlement.outputCommitment");
 }
 
-function validateBrowserShieldReceiptBody(body) {
+function decimalAmountToBaseUnits(amount, decimals) {
+  if (typeof amount !== "string" || !/^\d+(?:\.\d+)?$/.test(amount)) {
+    throw new Error("Browser committed Shield receipt deposit evidence requires a decimal amount.");
+  }
+
+  const [wholePart, fractionalPart = ""] = amount.split(".");
+  if (fractionalPart.length > decimals) {
+    throw new Error("Browser committed Shield receipt deposit evidence amount has too many decimals.");
+  }
+
+  return BigInt(`${wholePart}${fractionalPart.padEnd(decimals, "0")}`.replace(/^0+(?=\d)/, "") || "0");
+}
+
+function parsedAccountKeyAddress(accountKey) {
+  if (typeof accountKey === "string") {
+    return accountKey;
+  }
+
+  const publicKey = accountKey?.pubkey;
+  if (typeof publicKey === "string") {
+    return publicKey;
+  }
+
+  if (publicKey && typeof publicKey.toBase58 === "function") {
+    return publicKey.toBase58();
+  }
+
+  return null;
+}
+
+function parsedTransactionHasSigner(transaction, signer) {
+  const accountKeys = transaction?.transaction?.message?.accountKeys;
+  if (!Array.isArray(accountKeys)) {
+    return false;
+  }
+
+  return accountKeys.some(
+    (accountKey) => accountKey?.signer === true && parsedAccountKeyAddress(accountKey) === signer,
+  );
+}
+
+function readNativeSolTransferLamports(instruction, owner, vaultOwner) {
+  const parsed = instruction?.parsed;
+  if (!parsed || typeof parsed !== "object") {
+    return null;
+  }
+
+  if (parsed.type !== "transfer") {
+    return null;
+  }
+
+  if (parsed.info?.source !== owner || parsed.info?.destination !== vaultOwner) {
+    return null;
+  }
+
+  const lamports = Number(parsed.info?.lamports);
+  if (!Number.isSafeInteger(lamports) || lamports <= 0) {
+    return null;
+  }
+
+  return BigInt(lamports);
+}
+
+function readNativeSolDepositTransferLamports(transaction, owner, vaultOwner) {
+  const instructions = transaction?.transaction?.message?.instructions;
+  if (!Array.isArray(instructions)) {
+    return null;
+  }
+
+  return instructions
+    .map((instruction) => readNativeSolTransferLamports(instruction, owner, vaultOwner))
+    .find((lamports) => typeof lamports === "bigint") ?? null;
+}
+
+async function assertBrowserShieldDepositEvidence(opening) {
+  if (browserShieldDepositEvidenceMode !== "required") {
+    return;
+  }
+
+  const source = opening.source.preimageParts;
+  const output = opening.output.preimageParts;
+  const owner = opening.owner.preimageParts;
+  const sourceAsset = source[1];
+  const sourceMintAddress = source[2];
+  const amount = source[3];
+  const depositSignature = output[4];
+  const ownerAddress = owner[1];
+  const vaultOwner = owner[2];
+  const nativeSolMints = new Set(["SOL", "So11111111111111111111111111111111111111112"]);
+
+  if (sourceAsset !== "SOL" && !nativeSolMints.has(sourceMintAddress)) {
+    throw new Error("Browser committed Shield receipt currently requires native SOL deposit evidence.");
+  }
+
+  const connection = new Connection(browserShieldDepositEvidenceRpcUrl, "confirmed");
+  const transaction = await connection.getParsedTransaction(depositSignature, {
+    commitment: "confirmed",
+    maxSupportedTransactionVersion: 0,
+  });
+
+  if (!transaction) {
+    throw new Error("Browser committed Shield receipt deposit signature was not found on Solana.");
+  }
+
+  if (transaction.meta?.err) {
+    throw new Error("Browser committed Shield receipt deposit transaction failed on Solana.");
+  }
+
+  if (!parsedTransactionHasSigner(transaction, ownerAddress)) {
+    throw new Error("Browser committed Shield receipt deposit transaction signer does not match owner.");
+  }
+
+  const expectedLamports = decimalAmountToBaseUnits(amount, 9);
+  if (expectedLamports <= 0n || expectedLamports > BigInt(Number.MAX_SAFE_INTEGER)) {
+    throw new Error("Browser committed Shield receipt deposit amount is outside native SOL bounds.");
+  }
+
+  const transferLamports = readNativeSolDepositTransferLamports(
+    transaction,
+    ownerAddress,
+    vaultOwner,
+  );
+  if (transferLamports !== expectedLamports) {
+    throw new Error("Browser committed Shield receipt deposit transfer does not match owner, vault, and amount.");
+  }
+}
+
+async function validateBrowserShieldReceiptBody(body) {
   if (!body || typeof body !== "object" || !body.request || !body.opening) {
     throw new Error("Browser committed Shield receipt route requires a committed Shield request and opening.");
   }
@@ -1038,6 +1173,7 @@ function validateBrowserShieldReceiptBody(body) {
 
   const opening = parseVantaShieldCommittedEconomicsSettlementOpening(body.opening);
   assertBrowserCommittedShieldOpeningShape(opening);
+  await assertBrowserShieldDepositEvidence(opening);
 
   if (
     !verifyVantaShieldCommittedEconomicsSettlementOpening({

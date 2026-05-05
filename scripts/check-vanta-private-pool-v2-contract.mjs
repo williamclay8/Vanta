@@ -439,6 +439,8 @@ const requiredTextFiles = [
       "/state/private-pool-v2-receipts",
       "/private-pool-v2/proofs",
       "/private-pool-v2/public/shield-receipts",
+      "VANTA_PRIVATE_POOL_V2_PUBLIC_SHIELD_RECEIPT_DEPOSIT_EVIDENCE_MODE",
+      "getParsedTransaction",
     ],
   },
   {
@@ -458,6 +460,8 @@ const requiredTextFiles = [
       "VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN",
       "VANTA_PRIVATE_POOL_V2_STORE_PATH",
       "VANTA_PRIVATE_POOL_V2_DATABASE_URL",
+      "VANTA_PRIVATE_POOL_V2_PUBLIC_SHIELD_RECEIPT_DEPOSIT_EVIDENCE_MODE",
+      "VANTA_PRIVATE_POOL_V2_PUBLIC_SHIELD_RECEIPT_RPC_URL",
       "VITE_VANTA_PRIVATE_POOL_V2_RECEIPT_API_URL",
     ],
   },
