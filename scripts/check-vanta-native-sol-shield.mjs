@@ -45,6 +45,11 @@ assert.ok(
 );
 
 const shieldPageSource = readFileSync(resolve("src/pages/ShieldPage.tsx"), "utf8");
+const realtimeSignatureProgressSource = readFileSync(
+  resolve("src/solana/useRealtimeSignatureProgress.ts"),
+  "utf8",
+);
+const solanaRpcErrorsSource = readFileSync(resolve("src/solana/rpcErrors.ts"), "utf8");
 assert.ok(
   shieldPageSource.includes("beginNativeSolShieldTransfer"),
   "Shield page must have a native SOL shield path.",
@@ -165,6 +170,32 @@ assert.ok(
 assert.ok(
   shieldPageSource.includes("toRecoverableSolDepositsErrorMessage"),
   "Shield page must translate native SOL recovery RPC failures into user-facing language.",
+);
+assert.ok(
+  solanaRpcErrorsSource.includes("isSolanaRpcRateLimitError") &&
+    solanaRpcErrorsSource.includes("Rate limit exceeded") &&
+    solanaRpcErrorsSource.includes("Too Many Requests"),
+  "Native SOL Shield must classify public Solana RPC rate-limit responses without leaking provider JSON.",
+);
+assert.ok(
+  nativeSolShieldSource.includes("NATIVE_SOL_SHIELD_RPC_RETRY_DELAYS_MS") &&
+    nativeSolShieldSource.includes("readNativeSolShieldSignatures") &&
+    nativeSolShieldSource.includes("readNativeSolShieldParsedTransaction") &&
+    nativeSolShieldSource.includes("readNativeSolShieldParsedTransactions") &&
+    nativeSolShieldSource.includes("isSolanaRpcRateLimitError"),
+  "Native SOL Shield recovery and deposit confirmation must retry rate-limited browser RPC reads through the shared read endpoints.",
+);
+assert.ok(
+  shieldPageSource.includes("isSolanaRpcRateLimitError") &&
+    shieldPageSource.includes("nativeSolShieldWait.waitError") &&
+    shieldPageSource.includes("The public Solana RPC is rate-limited while checking recent SOL vault deposits."),
+  "Shield page must keep rate-limited submitted SOL deposits recoverable and show user-safe recovery copy.",
+);
+assert.ok(
+  realtimeSignatureProgressSource.includes("isSolanaRpcRateLimitError") &&
+    realtimeSignatureProgressSource.includes("waitErrorIsRateLimited") &&
+    realtimeSignatureProgressSource.includes("signatureStatusErrorIsRateLimited"),
+  "Signature progress must not classify a transient public RPC 429 as a failed submitted Shield transaction.",
 );
 
 const tokenAvailabilitySource = readFileSync(resolve("src/solana/tokenAvailability.ts"), "utf8");

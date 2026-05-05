@@ -6,7 +6,8 @@ import {
   SystemProgram,
   type TransactionInstruction,
 } from "@solana/web3.js";
-import { endpoint, readRpcFallbackEndpoints } from "@/solana/client";
+import { readRpcFallbackEndpoints } from "@/solana/client";
+import { isSolanaRpcRateLimitError } from "@/solana/rpcErrors";
 
 export type NativeSolShieldDepositCandidate = {
   amount: number;
@@ -41,6 +42,7 @@ export function isNativeSolSourceAccountNotReadyError(error: unknown) {
 }
 
 const cachedBalanceReadConnections = new Map<string, Connection>();
+const NATIVE_SOL_SHIELD_RPC_RETRY_DELAYS_MS = [250, 750, 1_500] as const;
 
 function getNativeSolShieldBalanceReadEndpoints() {
   return readRpcFallbackEndpoints;
@@ -56,6 +58,44 @@ function getBalanceReadConnection(readEndpoint: string) {
   const connection = new Connection(readEndpoint, "confirmed");
   cachedBalanceReadConnections.set(readEndpoint, connection);
   return connection;
+}
+
+function wait(ms: number) {
+  return new Promise((resolve) => {
+    globalThis.setTimeout(resolve, ms);
+  });
+}
+
+async function retryNativeSolShieldRpcRead<T>(
+  operation: (connection: Connection) => Promise<T>,
+) {
+  let lastError: unknown = null;
+
+  for (const readEndpoint of getNativeSolShieldBalanceReadEndpoints()) {
+    const connection = getBalanceReadConnection(readEndpoint);
+
+    for (const delayMs of [0, ...NATIVE_SOL_SHIELD_RPC_RETRY_DELAYS_MS]) {
+      if (delayMs > 0) {
+        await wait(delayMs);
+      }
+
+      try {
+        return await operation(connection);
+      } catch (error) {
+        lastError = error;
+
+        if (!isSolanaRpcRateLimitError(error)) {
+          break;
+        }
+      }
+    }
+  }
+
+  if (lastError instanceof Error) {
+    throw lastError;
+  }
+
+  throw new Error("Native SOL Shield browser RPC read failed.");
 }
 
 function normalizeKnownLamportsBalance(value: bigint | number | null | undefined) {
@@ -200,18 +240,36 @@ async function fetchParsedTransactionsOneAtATime(
   connection: Connection,
   signatures: string[],
 ) {
+  void connection;
+  return readNativeSolShieldParsedTransactions(signatures);
+}
+
+async function readNativeSolShieldSignatures(ownerPublicKey: PublicKey, limit: number) {
+  return retryNativeSolShieldRpcRead((connection) =>
+    connection.getSignaturesForAddress(ownerPublicKey, { limit }),
+  );
+}
+
+async function readNativeSolShieldParsedTransactions(signatures: string[]) {
   const transactions = [];
 
   for (const signature of signatures) {
-    const [transaction] = await connection.getParsedTransactions([signature], {
-      commitment: "confirmed",
-      maxSupportedTransactionVersion: 0,
-    });
+    const [transaction] = await retryNativeSolShieldRpcRead((connection) =>
+      connection.getParsedTransactions([signature], {
+        commitment: "confirmed",
+        maxSupportedTransactionVersion: 0,
+      }),
+    );
 
     transactions.push(transaction);
   }
 
   return transactions;
+}
+
+async function readNativeSolShieldParsedTransaction(signature: string) {
+  const [transaction] = await readNativeSolShieldParsedTransactions([signature]);
+  return transaction ?? null;
 }
 
 function amountDisplayToLamports(amountDisplay: string) {
@@ -266,11 +324,7 @@ export async function verifyNativeSolShieldDepositSignature(args: {
   signature: string;
   vaultOwner: string;
 }) {
-  const connection = new Connection(endpoint, "confirmed");
-  const transaction = await connection.getParsedTransaction(args.signature, {
-    commitment: "confirmed",
-    maxSupportedTransactionVersion: 0,
-  });
+  const transaction = await readNativeSolShieldParsedTransaction(args.signature);
 
   return hasMatchingNativeSolShieldTransfer({
     amountDisplay: args.amountDisplay,
@@ -311,10 +365,7 @@ export async function fetchNativeSolShieldDepositCandidates(args: {
   const ownerPublicKey = new PublicKey(args.owner);
   const vaultOwner = new PublicKey(args.vaultOwner).toBase58();
   const existingDepositSignatures = args.existingDepositSignatures ?? new Set<string>();
-  const connection = new Connection(endpoint, "confirmed");
-  const signatures = await connection.getSignaturesForAddress(ownerPublicKey, {
-    limit: args.limit ?? 30,
-  });
+  const signatures = await readNativeSolShieldSignatures(ownerPublicKey, args.limit ?? 30);
   const candidateSignatures = signatures
     .filter((signature) => signature.err === null && !existingDepositSignatures.has(signature.signature))
     .map((signature) => signature.signature);
@@ -323,7 +374,10 @@ export async function fetchNativeSolShieldDepositCandidates(args: {
     return [];
   }
 
-  const transactions = await fetchParsedTransactionsOneAtATime(connection, candidateSignatures);
+  const transactions = await fetchParsedTransactionsOneAtATime(
+    getBalanceReadConnection(getNativeSolShieldBalanceReadEndpoints()[0]),
+    candidateSignatures,
+  );
 
   return transactions.flatMap((transaction, index): NativeSolShieldDepositCandidate[] => {
     if (!transaction) {

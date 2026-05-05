@@ -24,6 +24,7 @@ import { runShieldWithDecoys } from "@/privacy/shieldDecoyBatcher";
 import { createVantaShieldCommittedEconomicsSettlement } from "@/privacy/vantaShieldCommittedSettlement";
 import { createUmbraShieldActionApprovalReview } from "@/privacy/umbraShieldActionReview";
 import type { UmbraOperationApprovalDisplay } from "@/privacy/umbraOperations";
+import { isSolanaRpcRateLimitError } from "@/solana/rpcErrors";
 import {
   loadRecoveredNativeSolShieldDepositSignatures,
   recordRecoveredNativeSolShieldNote,
@@ -94,6 +95,10 @@ function toErrorMessage(error: unknown, fallback: string) {
       : null;
   const code = maybeContext?.__code;
 
+  if (isSolanaRpcRateLimitError(error)) {
+    return "The public Solana RPC is rate-limited while checking this Shield transaction. Vanta did not ask for another transfer; wait a moment or use recovery if the deposit already landed.";
+  }
+
   if (code === 8100002 || message.includes("Solana error #8100002")) {
     const statusCode = maybeContext?.context?.statusCode;
     const providerMessage = maybeContext?.context?.message;
@@ -118,6 +123,10 @@ function toErrorMessage(error: unknown, fallback: string) {
 
 function toRecoverableSolDepositsErrorMessage(error: unknown) {
   const message = error instanceof Error ? error.message : String(error ?? "");
+
+  if (isSolanaRpcRateLimitError(error)) {
+    return "The public Solana RPC is rate-limited while checking recent SOL vault deposits. Try again in a moment; Vanta will not ask for another transfer.";
+  }
 
   if (
     message.includes("-32600") ||
@@ -842,7 +851,10 @@ export function ShieldPage(_props: ShieldPageProps) {
   ]);
 
   useEffect(() => {
-    if (nativeSolShieldWait.waitStatus !== "error") {
+    if (
+      nativeSolShieldWait.waitStatus !== "error" ||
+      isSolanaRpcRateLimitError(nativeSolShieldWait.waitError)
+    ) {
       return;
     }
 
@@ -864,7 +876,10 @@ export function ShieldPage(_props: ShieldPageProps) {
   }, [nativeSolShieldWait.waitError, nativeSolShieldWait.waitStatus]);
 
   useEffect(() => {
-    if (splShieldTransferWait.waitStatus !== "error") {
+    if (
+      splShieldTransferWait.waitStatus !== "error" ||
+      isSolanaRpcRateLimitError(splShieldTransferWait.waitError)
+    ) {
       return;
     }
 

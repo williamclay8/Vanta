@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useSignatureStatus, useWaitForSignature } from "@solana/react-hooks";
+import { isSolanaRpcRateLimitError } from "@/solana/rpcErrors";
 
 export type RealtimeSignatureStage =
   | "idle"
@@ -42,13 +43,21 @@ export function useRealtimeSignatureProgress(
   });
 
   const confirmationStatus = signatureStatus.confirmationStatus;
+  const waitErrorIsRateLimited =
+    wait.waitStatus === "error" && isSolanaRpcRateLimitError(wait.waitError);
+  const signatureStatusErrorIsRateLimited =
+    Boolean(signatureStatus.error) && isSolanaRpcRateLimitError(signatureStatus.error);
 
   const stage = useMemo<RealtimeSignatureStage>(() => {
     if (!signature || disabled) {
       return "idle";
     }
 
-    if (wait.waitStatus === "error" || signatureStatus.error || signatureStatus.signatureStatus?.err) {
+    if (
+      (wait.waitStatus === "error" && !waitErrorIsRateLimited) ||
+      (signatureStatus.error && !signatureStatusErrorIsRateLimited) ||
+      signatureStatus.signatureStatus?.err
+    ) {
       return "failed";
     }
 
@@ -70,13 +79,19 @@ export function useRealtimeSignatureProgress(
     disabled,
     signature,
     signatureStatus.error,
+    signatureStatusErrorIsRateLimited,
     signatureStatus.signatureStatus?.err,
+    waitErrorIsRateLimited,
     wait.waitStatus,
   ]);
 
   const detailLabel = useMemo(() => {
     switch (stage) {
       case "submitted":
+        if (waitErrorIsRateLimited || signatureStatusErrorIsRateLimited) {
+          return "Submitted to mainnet; the public RPC is rate-limited, so confirmation is still being checked.";
+        }
+
         return "Submitted to mainnet and waiting for landing.";
       case "landed":
         return "Landed on mainnet. Awaiting confirmed status.";
@@ -89,7 +104,7 @@ export function useRealtimeSignatureProgress(
       case "idle":
         return null;
     }
-  }, [stage]);
+  }, [signatureStatusErrorIsRateLimited, stage, waitErrorIsRateLimited]);
 
   return {
     ...wait,
