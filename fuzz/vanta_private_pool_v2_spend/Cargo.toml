@@ -1,0 +1,31 @@
+[package]
+name = "vanta_private_pool_v2_spend_fuzz"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[dependencies]
+crucible-fuzzer = { git = "https://github.com/asymmetric-research/crucible", tag = "v0.1.0" }
+crucible-test-context = { git = "https://github.com/asymmetric-research/crucible", tag = "v0.1.0" }
+
+anchor-lang = "1.0.1"
+solana-keypair = "3.1"
+solana-pubkey = "3.0"
+solana-signer = "3.0"
+
+anyhow = "1.0"
+arbitrary = { version = "1", features = ["derive"] }
+bytemuck = "1.14"
+ctor = "0.6"
+ctrlc = "3.4"
+libafl = { version = "0.15.1", features = ["std", "cli", "prelude"] }
+libafl_bolts = { version = "0.15.1", features = ["std"] }
+
+[[bin]]
+name = "invariant_test"
+path = "src/main.rs"
+
+[features]
+invariant_test = []
