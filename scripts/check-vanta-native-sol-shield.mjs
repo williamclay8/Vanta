@@ -103,7 +103,7 @@ assert.ok(
   "Native SOL Shield receipt verification must promote the deposit into the local spendable SOL ledger and refresh the balance.",
 );
 assert.ok(
-  /const targetShieldedBalanceLabel[\s\S]{0,500}!\s*isNativeSolShield[\s\S]{0,220}supportedToken\?\.status === "loading"[\s\S]{0,220}shieldStateRefreshing/.test(
+  /const targetShieldedBalanceLabel[\s\S]{0,500}!\s*isNativeSolShield[\s\S]{0,260}supportedToken\?\.status === "loading"[\s\S]{0,260}targetShieldStateRefreshing/.test(
     shieldPageSource,
   ),
   "Shield page must not hide a ledger-derived Shielded SOL balance behind the selected SPL token loader.",
@@ -267,6 +267,15 @@ assert.ok(
     shieldPageSource.includes("if (repaired || receiptHydrationMissing)") &&
     shieldPageSource.includes("void refreshShieldState().catch(() => undefined)"),
   "Shield page must retry balance hydration when a verified SOL receipt note already exists but the visible shielded SOL balance is still stale.",
+);
+assert.ok(
+  shieldPageSource.includes("nativeSolShieldSourceEntry") &&
+    shieldPageSource.includes("shieldRegistry.entries.find((entry) => (entry.account?.shieldedSolBalance ?? 0) > 0)") &&
+    shieldPageSource.includes("entry.account?.spendableShieldedSolNotes.length ?? 0") &&
+    shieldPageSource.includes("const nativeSolShieldAccount = nativeSolShieldSourceEntry?.account ?? shieldAccount") &&
+    shieldPageSource.includes("const targetShieldStateRefreshing") &&
+    shieldPageSource.includes("targetShieldedBalance <= 0"),
+  "Shield page must display receipt-backed native SOL from the registry lane that actually hydrated the local spendable SOL ledger, without hiding a non-zero SOL balance behind background refresh.",
 );
 assert.ok(
   nativeSolShieldSource.includes("getParsedTransactions"),

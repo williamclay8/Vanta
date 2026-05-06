@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 
 const formatterSource = readFileSync(resolve("src/solana/solAmountFormat.ts"), "utf8");
 const dashboardSource = readFileSync(resolve("src/pages/AppDashboardPage.tsx"), "utf8");
+const shieldPageSource = readFileSync(resolve("src/pages/ShieldPage.tsx"), "utf8");
 const noteStatePanelSource = readFileSync(resolve("src/components/NoteStatePanel.tsx"), "utf8");
 const positionSummarySource = readFileSync(resolve("src/components/PositionSummary.tsx"), "utf8");
 const shieldStateSource = readFileSync(resolve("src/solana/vantaShieldState.ts"), "utf8");
@@ -54,6 +55,7 @@ assert.ok(
 
 for (const [label, source] of [
   ["dashboard", dashboardSource],
+  ["shield page", shieldPageSource],
   ["position summary hook", positionSummaryHookSource],
 ]) {
   assert.ok(
@@ -62,6 +64,12 @@ for (const [label, source] of [
     `${label} must source shielded SOL from the registry entry that actually has shielded SOL, not only the primary USDC account.`,
   );
 }
+assert.ok(
+  shieldPageSource.includes("nativeSolShieldSourceEntry") &&
+    shieldPageSource.includes("const nativeSolShieldAccount = nativeSolShieldSourceEntry?.account ?? shieldAccount") &&
+    shieldPageSource.includes("targetShieldedBalance <= 0"),
+  "Shield page must keep a hydrated native SOL balance visible during background refresh instead of reverting the Shielded balance field to Loading.",
+);
 assert.ok(
   positionSummaryHookSource.includes("confirmedShieldedSolNotesByKey") &&
     positionSummaryHookSource.includes("new Map<string, VantaShieldedSolNote>()") &&

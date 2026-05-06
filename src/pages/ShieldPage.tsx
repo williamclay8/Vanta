@@ -398,6 +398,22 @@ export function ShieldPage(_props: ShieldPageProps) {
   const publicBalance = selectedRegistryEntry?.publicBalance ?? 0;
   const shieldedBalance = shieldAccount?.balance ?? 0;
   const isNativeSolShield = selectedSourceAsset?.kind === "native" && selectedSourceAsset.symbol === "SOL";
+  const nativeSolShieldSourceEntry = useMemo(
+    () =>
+      shieldRegistry.entries.find((entry) => (entry.account?.shieldedSolBalance ?? 0) > 0) ??
+      shieldRegistry.entries.find(
+        (entry) => (entry.account?.spendableShieldedSolNotes.length ?? 0) > 0,
+      ) ??
+      null,
+    [shieldRegistry.entries],
+  );
+  const nativeSolShieldAccount = nativeSolShieldSourceEntry?.account ?? shieldAccount;
+  const targetShieldStateError = isNativeSolShield
+    ? nativeSolShieldSourceEntry?.error ?? shieldStateError
+    : shieldStateError;
+  const targetShieldStateRefreshing = isNativeSolShield
+    ? nativeSolShieldSourceEntry?.isRefreshing ?? shieldStateRefreshing
+    : shieldStateRefreshing;
   const capability = useMemo(
     () =>
       createShieldAssetCapability({
@@ -410,11 +426,11 @@ export function ShieldPage(_props: ShieldPageProps) {
   const targetShieldSymbol = capability.targetShieldAsset?.assetKey;
   const targetShieldName = capability.targetShieldAsset?.name;
   const targetShieldedBalance = isNativeSolShield
-    ? shieldAccount?.shieldedSolBalance ?? 0
+    ? nativeSolShieldAccount?.shieldedSolBalance ?? 0
     : shieldedBalance;
   const targetShieldedBalanceReadUnavailable =
     Boolean(walletConnected && capability.targetShieldAsset) &&
-    (supportedToken?.status === "error" || Boolean(shieldStateError));
+    (supportedToken?.status === "error" || Boolean(targetShieldStateError));
   const latestRecoverableSolDeposit = recoverableSolDeposits[0] ?? null;
   const nativeSolShieldBlockedByRecoverableDeposit =
     isNativeSolShield && Boolean(latestRecoverableSolDeposit);
@@ -649,8 +665,9 @@ export function ShieldPage(_props: ShieldPageProps) {
     : !capability.targetShieldAsset
       ? "Choose asset"
     : (!isNativeSolShield &&
-          (supportedToken?.status === "loading" || supportedToken?.isFetching)) ||
-        shieldStateRefreshing
+          ((supportedToken?.status === "loading" || supportedToken?.isFetching) ||
+            targetShieldStateRefreshing)) ||
+        (isNativeSolShield && targetShieldStateRefreshing && targetShieldedBalance <= 0)
       ? "Loading..."
       : targetShieldSymbol
         ? formatAssetAmount(targetShieldedBalance, targetShieldSymbol)
