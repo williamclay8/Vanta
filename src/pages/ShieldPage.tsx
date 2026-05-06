@@ -219,6 +219,12 @@ function describeRecentShieldCompletion(recentShield: RecentShieldContext, warni
   return `${amountLabel} reached the Vanta vault as a public deposit; local shield-state proof is still unavailable.${suffix}`;
 }
 
+function isMissingBrowserCommittedShieldReceiptDepositSignatureWarning(warning: string | null) {
+  return Boolean(
+    warning?.includes("Browser committed Shield receipt deposit signature was not found on Solana"),
+  );
+}
+
 function repairVerifiedNativeSolShieldNote(args: {
   amount: number;
   createdAt: number;
@@ -560,6 +566,21 @@ export function ShieldPage(_props: ShieldPageProps) {
     targetShieldedBalance,
     walletAddress,
   ]);
+
+  useEffect(() => {
+    if (
+      status !== "complete" ||
+      recentShield?.asset !== "SOL" ||
+      recentShield.claimTier !== "public_vault_deposit" ||
+      !isMissingBrowserCommittedShieldReceiptDepositSignatureWarning(flowError)
+    ) {
+      return;
+    }
+
+    setRecentShield(null);
+    setFlowError(null);
+    setStatus("recovery_recorded");
+  }, [flowError, recentShield, setRecentShield, status]);
 
   const publicRouteTransaction = useVantaSafeSendTransaction();
   const splShieldTransferTransaction = useVantaSafeSendTransaction();

@@ -141,6 +141,13 @@ assert.ok(
   "Native SOL recovery must use a dedicated recovery-recorded UI path and must not run the fresh Shield receipt verification flow.",
 );
 assert.ok(
+  shieldPageSource.includes("isMissingBrowserCommittedShieldReceiptDepositSignatureWarning") &&
+    /useEffect\(\(\) => \{[\s\S]{0,900}isMissingBrowserCommittedShieldReceiptDepositSignatureWarning\(flowError\)[\s\S]{0,900}setRecentShield\(null\)[\s\S]{0,900}setFlowError\(null\)[\s\S]{0,900}setStatus\("recovery_recorded"\)/.test(
+      shieldPageSource,
+    ),
+  "Shield page must self-heal stale browser committed Shield receipt deposit-signature warnings into the recovery-only UI state.",
+);
+assert.ok(
   shieldPageSource.includes("VANTA_NATIVE_SOL_SAME_TRANSACTION_DEPOSIT_SIGNATURE"),
   "Native SOL Shield must bind the same transaction as both transfer and shield-state record.",
 );
