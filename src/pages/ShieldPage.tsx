@@ -1312,12 +1312,6 @@ export function ShieldPage(_props: ShieldPageProps) {
                   : null,
               })
             : null;
-        const initialClaimTier: RecentShieldContext["claimTier"] =
-          privateCoreShield
-            ? "local_private_core_note"
-            : pendingShieldAsset === "SOL"
-              ? "public_vault_deposit"
-              : "local_shield_state";
         if (
           pendingShieldAsset === "SOL" &&
           walletAddress
@@ -1335,10 +1329,39 @@ export function ShieldPage(_props: ShieldPageProps) {
             );
           }
         }
+        const recentShieldTimestamp = Date.now();
+        const nativeSolLocalShieldStateNote =
+          pendingShieldAsset === "SOL" &&
+          activeDepositSignature &&
+          walletAddress
+            ? recordVerifiedNativeSolShieldNote({
+                amount: pendingShieldAmount,
+                createdAt: recentShieldTimestamp,
+                depositSignature: activeDepositSignature,
+                owner: walletAddress,
+                stateSignature: activeStateSignature,
+                vaultOwner: activeShieldTarget.vaultOwner!,
+              })
+            : null;
+
+        if (nativeSolLocalShieldStateNote) {
+          await refreshNativeSolShieldState({
+            signatureHint: activeStateSignature,
+            vaultOwner: activeShieldTarget.vaultOwner!,
+          }).catch(() => undefined);
+        }
+
+        const initialClaimTier: RecentShieldContext["claimTier"] =
+          privateCoreShield
+            ? "local_private_core_note"
+            : pendingShieldAsset === "SOL" && nativeSolLocalShieldStateNote
+              ? "local_shield_state"
+              : pendingShieldAsset === "SOL"
+                ? "public_vault_deposit"
+                : "local_shield_state";
         const nextBalance = Number(
           (activeShieldedBalance + pendingShieldAmount).toFixed(activeShieldTarget.decimals),
         );
-        const recentShieldTimestamp = Date.now();
         const recentShieldContext = {
           amount: pendingShieldAmount,
           asset: pendingShieldAsset ?? activeShieldTarget.assetKey,

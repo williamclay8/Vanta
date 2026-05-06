@@ -103,6 +103,16 @@ assert.ok(
   "Native SOL Shield receipt verification must promote the deposit into the local spendable SOL ledger and refresh the balance.",
 );
 assert.ok(
+  shieldPageSource.includes("nativeSolLocalShieldStateNote") &&
+    /const nativeSolLocalShieldStateNote[\s\S]{0,1600}recordVerifiedNativeSolShieldNote\([\s\S]{0,1600}claimTier: initialClaimTier/.test(
+      shieldPageSource,
+    ) &&
+    /const nativeSolLocalShieldStateNote[\s\S]{0,5000}requestVantaPrivatePoolV2BrowserShieldReceipt/.test(
+      shieldPageSource,
+    ),
+  "Native SOL Shield must persist a local spendable SOL note from same-transaction evidence before the proof-receipt check, so Unshield and remounts can read it.",
+);
+assert.ok(
   /const targetShieldedBalanceLabel[\s\S]{0,500}!\s*isNativeSolShield[\s\S]{0,260}supportedToken\?\.status === "loading"[\s\S]{0,260}targetShieldStateRefreshing/.test(
     shieldPageSource,
   ),
@@ -250,8 +260,9 @@ assert.ok(
     verifiedNativeSolNotesSource.includes("loadVerifiedNativeSolShieldNotes") &&
     verifiedNativeSolNotesSource.includes("loadVerifiedNativeSolShieldDepositSignatures") &&
     verifiedNativeSolNotesSource.includes('lifecycleStatus: "spendable"') &&
-    verifiedNativeSolNotesSource.includes("local-sol-receipt:"),
-  "Receipt-verified native SOL deposits must have a local spendable ledger-note store distinct from pending recovery notes.",
+    verifiedNativeSolNotesSource.includes('sourceSwapNoteId: "native-sol-shield-state"') &&
+    verifiedNativeSolNotesSource.includes("local-sol-shield-state:"),
+  "Verified native SOL shield-state deposits must have a local spendable ledger-note store distinct from pending recovery notes.",
 );
 assert.ok(
   shieldPageSource.includes("const activeDepositSignature =") &&

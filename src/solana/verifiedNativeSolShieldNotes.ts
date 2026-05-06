@@ -91,8 +91,8 @@ function toShieldedSolNote(note: StoredVerifiedNativeSolShieldNote): VantaShield
     lifecycleStatus: "spendable",
     noteId: createVerifiedNativeSolShieldNoteId(note),
     owner: note.owner,
-    sourceSwapNoteId: "native-sol-receipt",
-    stateSignature: `local-sol-receipt:${note.stateSignature}`,
+    sourceSwapNoteId: "native-sol-shield-state",
+    stateSignature: `local-sol-shield-state:${note.stateSignature}`,
     vaultOwner: note.vaultOwner,
   };
 }
