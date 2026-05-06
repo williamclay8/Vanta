@@ -36,9 +36,10 @@ const requiredShieldCompletionMarkers = [
   "createVantaShieldCommittedEconomicsSettlement",
   "runShieldWithDecoys",
   "signature: activeStateSignature",
-  "protocolSettlementReceipt: protocolSettlementWarning",
+  "const receiptVerified = !protocolSettlementWarning",
+  "protocolSettlementReceipt: receiptVerified",
   "protocolSettlement?.protocolSettlementReceipt",
-  "proofReceipt: protocolSettlementWarning",
+  "proofReceipt: receiptVerified",
   "protocolSettlement?.proofReceipt",
 ];
 

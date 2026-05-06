@@ -214,7 +214,7 @@ for (const symbol of directShieldSymbols) {
 for (const marker of [
   "ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS",
   "...ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS",
-  'aria-label="Available shielded balances"',
+  'aria-label="Ledger spendable shielded balances"',
   'aria-label="Unshield asset"',
   "availableLaneOptions.map",
   "formatShieldedLaneLabel(option.lane)",

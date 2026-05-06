@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
 import {
   usePrivacyFlow,
@@ -75,6 +75,7 @@ type ShieldStatus =
   | "failed";
 
 const NATIVE_SOL_SHIELD_FEE_RESERVE_SOL = 0.00001;
+const SHIELD_STATE_HYDRATION_RETRY_DELAYS_MS = [400, 1_200, 3_000, 6_000] as const;
 const VANTA_SHIELD_REQUIRED_ACCOUNT_NOT_FOUND_MESSAGE =
   "Solana could not find one of the required mainnet accounts for this Shield transaction. This does not mean your wallet has no SOL; refresh Vanta balances or try another browser-compatible mainnet RPC, then try Shield again.";
 
@@ -298,6 +299,7 @@ export function ShieldPage(_props: ShieldPageProps) {
   const recordedTokenDepositSignatureRef = useRef<string | null>(null);
   const repairedNativeSolReceiptRef = useRef<string | null>(null);
   const autoRecoverSolDepositSignatureRef = useRef<string | null>(null);
+  const shieldStateHydrationTimeoutsRef = useRef<number[]>([]);
 
   const executableShieldTargets = useMemo(
     () =>
@@ -385,7 +387,8 @@ export function ShieldPage(_props: ShieldPageProps) {
   const shieldStateError = selectedRegistryEntry?.error ?? null;
   const shieldStateReady = selectedRegistryEntry?.isReady ?? false;
   const shieldStateRefreshing = selectedRegistryEntry?.isRefreshing ?? false;
-  const refreshShieldState = selectedRegistryEntry?.refresh ?? (async () => {});
+  const refreshShieldState =
+    selectedRegistryEntry?.refresh ?? (async (_options?: { signatureHint?: string | null }) => {});
   const supportedToken = selectedRegistryEntry?.token ?? null;
   const publicBalance = selectedRegistryEntry?.publicBalance ?? 0;
   const shieldedBalance = shieldAccount?.balance ?? 0;
@@ -410,6 +413,39 @@ export function ShieldPage(_props: ShieldPageProps) {
   const latestRecoverableSolDeposit = recoverableSolDeposits[0] ?? null;
   const nativeSolShieldBlockedByRecoverableDeposit =
     isNativeSolShield && Boolean(latestRecoverableSolDeposit);
+
+  const clearShieldStateHydrationRetries = useCallback(() => {
+    if (typeof window !== "undefined") {
+      for (const timeoutId of shieldStateHydrationTimeoutsRef.current) {
+        window.clearTimeout(timeoutId);
+      }
+    }
+
+    shieldStateHydrationTimeoutsRef.current = [];
+  }, []);
+
+  const queueShieldStateHydrationRetries = useCallback((signatureHint?: string | null) => {
+    clearShieldStateHydrationRetries();
+
+    if (typeof window === "undefined" || typeof window.setTimeout !== "function") {
+      void refreshShieldState({ signatureHint }).catch(() => undefined);
+      return;
+    }
+
+    for (const delayMs of SHIELD_STATE_HYDRATION_RETRY_DELAYS_MS) {
+      const timeoutId = window.setTimeout(() => {
+        shieldStateHydrationTimeoutsRef.current =
+          shieldStateHydrationTimeoutsRef.current.filter(
+            (queuedTimeoutId) => queuedTimeoutId !== timeoutId,
+          );
+        void refreshShieldState({ signatureHint }).catch(() => undefined);
+      }, delayMs);
+
+      shieldStateHydrationTimeoutsRef.current.push(timeoutId);
+    }
+  }, [clearShieldStateHydrationRetries, refreshShieldState]);
+
+  useEffect(() => clearShieldStateHydrationRetries, [clearShieldStateHydrationRetries]);
 
   useEffect(() => {
     if (!isNativeSolShield || !walletAddress || !selectedShieldAsset?.vaultOwner) {
@@ -1084,8 +1120,8 @@ export function ShieldPage(_props: ShieldPageProps) {
     recordedStateSignatureRef.current = activeStateSignature;
 
     const refreshBeforeCompletion = pendingNativeSolDepositRecovery
-      ? refreshShieldState().catch(() => undefined)
-      : refreshShieldState();
+      ? refreshShieldState({ signatureHint: activeStateSignature }).catch(() => undefined)
+      : refreshShieldState({ signatureHint: activeStateSignature });
 
     void refreshBeforeCompletion
       .then(async () => {
@@ -1282,16 +1318,20 @@ export function ShieldPage(_props: ShieldPageProps) {
           await refreshShieldState().catch(() => undefined);
         }
 
+        const receiptVerified = !protocolSettlementWarning;
+
         setRecentShield({
           ...recentShieldContext,
-          claimTier: protocolSettlementWarning
-            ? recentShieldContext.claimTier
-            : "proof_receipt_verified",
-          protocolSettlementReceipt: protocolSettlementWarning
-            ? undefined
-            : protocolSettlement?.protocolSettlementReceipt,
-          proofReceipt: protocolSettlementWarning ? undefined : protocolSettlement?.proofReceipt,
+          claimTier: receiptVerified ? "proof_receipt_verified" : recentShieldContext.claimTier,
+          protocolSettlementReceipt: receiptVerified
+            ? protocolSettlement?.protocolSettlementReceipt
+            : undefined,
+          proofReceipt: receiptVerified ? protocolSettlement?.proofReceipt : undefined,
         });
+
+        if (receiptVerified) {
+          queueShieldStateHydrationRetries(activeStateSignature);
+        }
 
         setPendingShieldAmount(null);
         setPendingShieldAmountDisplay(null);
@@ -1331,6 +1371,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     pendingShieldTarget,
     nativeSolShieldTransaction.signature,
     nativeSolShieldWait.stage,
+    queueShieldStateHydrationRetries,
     refreshShieldState,
     runPrivateCoreShield,
     selectedShieldAsset,

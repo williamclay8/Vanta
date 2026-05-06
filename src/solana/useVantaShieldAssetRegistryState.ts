@@ -16,7 +16,7 @@ export type VantaShieldAssetRegistryEntry = {
   isReady: boolean;
   isRefreshing: boolean;
   publicBalance: number;
-  refresh: () => Promise<void>;
+  refresh: ReturnType<typeof useVantaShieldAssetState>["refresh"];
   token: ReturnType<typeof useSplToken>;
 };
 

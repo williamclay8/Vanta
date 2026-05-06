@@ -24,12 +24,16 @@ import {
   type VantaShieldedSolNote,
 } from "@/solana/vantaShieldState";
 
+export type VantaShieldAssetStateRefreshOptions = {
+  signatureHint?: string | null;
+};
+
 type VantaShieldAssetStateResult = {
   account: VantaShieldAccountState | null;
   error: string | null;
   isReady: boolean;
   isRefreshing: boolean;
-  refresh: () => Promise<void>;
+  refresh: (options?: VantaShieldAssetStateRefreshOptions) => Promise<void>;
 };
 
 export function useVantaShieldAssetState(args: {
@@ -45,7 +49,7 @@ export function useVantaShieldAssetState(args: {
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (options: VantaShieldAssetStateRefreshOptions = {}) => {
     if (!walletConnected || !walletAddress || !args.mintAddress || !args.vaultOwner) {
       setAccount(null);
       setError(null);
@@ -79,6 +83,7 @@ export function useVantaShieldAssetState(args: {
           client,
           mintAddress: args.mintAddress,
           owner: walletAddress,
+          signatureHints: options.signatureHint ? [options.signatureHint] : undefined,
           vaultOwner: args.vaultOwner,
           viewingSecretKey: viewingKey?.secretKey,
         });

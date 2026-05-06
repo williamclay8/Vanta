@@ -1697,6 +1697,7 @@ export async function fetchVantaShieldAccountState(args: {
   client: SolanaClient;
   mintAddress: string;
   owner: string;
+  signatureHints?: readonly string[];
   vaultOwner: string;
   viewingSecretKey?: string | null;
 }) {
@@ -1708,9 +1709,17 @@ export async function fetchVantaShieldAccountState(args: {
       limit: 100,
     })
     .send({ abortSignal: AbortSignal.timeout(20_000) });
+  const signatureHintEntries = [...(args.signatureHints ?? [])]
+    .map((signature) => signature.trim())
+    .filter((signature) => signature.length > 0)
+    .map((signature) => ({
+      err: null,
+      memo: null,
+      signature,
+    }));
   const signatureMemoEntries = await fetchSignatureMemoEntries({
     owner: args.owner,
-    signatures,
+    signatures: [...signatureHintEntries, ...signatures],
   });
 
   const depositShieldNotes = signatureMemoEntries

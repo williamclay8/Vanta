@@ -25,16 +25,19 @@ function hasNearby(source, left, right, maxDistance = 500) {
 }
 
 const appDashboardSource = readRepoFile("src/pages/AppDashboardPage.tsx");
+const shieldPageSource = readRepoFile("src/pages/ShieldPage.tsx");
 const unshieldPageSource = readRepoFile("src/pages/UnshieldPage.tsx");
 const recoveredNativeSolShieldNotesSource = readRepoFile(
   "src/solana/recoveredNativeSolShieldNotes.ts",
 );
 const shieldAssetStateSource = readRepoFile("src/solana/useVantaShieldAssetState.ts");
 const shieldAssetRegistrySource = readRepoFile("src/solana/useVantaShieldAssetRegistryState.ts");
+const shieldStateSource = readRepoFile("src/solana/vantaShieldState.ts");
 const sendPageSource = readRepoFile("src/pages/SendPage.tsx");
 const packageJson = JSON.parse(readRepoFile("package.json"));
 
 const appDashboardCompact = compact(appDashboardSource);
+const shieldPageCompact = compact(shieldPageSource);
 const unshieldCompact = compact(unshieldPageSource);
 const shieldAssetStateCompact = compact(shieldAssetStateSource);
 const recoveredNotesUsePendingLifecycle = /lifecycleStatus:\s*"pending"/.test(
@@ -162,6 +165,83 @@ if (
 ) {
   failures.push(
     "useVantaShieldAssetRegistryState must not merge browser-local recent token records into spendable token notes.",
+  );
+}
+
+for (const marker of [
+  "SHIELD_STATE_HYDRATION_RETRY_DELAYS_MS",
+  "shieldStateHydrationTimeoutsRef",
+  "clearShieldStateHydrationRetries",
+  "queueShieldStateHydrationRetries",
+]) {
+  if (!shieldPageSource.includes(marker)) {
+    failures.push(
+      `ShieldPage must retry ledger hydration after a receipt-backed Shield completes: ${marker}.`,
+    );
+  }
+}
+
+if (
+  !hasNearby(
+    shieldPageSource,
+    /const receiptVerified = !protocolSettlementWarning/g,
+    /queueShieldStateHydrationRetries\(activeStateSignature\)/,
+    1_000,
+  ) &&
+  !hasNearby(
+    shieldPageSource,
+    /queueShieldStateHydrationRetries\(activeStateSignature\)/g,
+    /const receiptVerified = !protocolSettlementWarning/,
+    1_000,
+  )
+) {
+  failures.push(
+    "ShieldPage must queue ledger hydration retries from the proof-receipt completion path.",
+  );
+}
+
+for (const marker of [
+  "queueShieldStateHydrationRetries(activeStateSignature)",
+  "refreshShieldState({ signatureHint: activeStateSignature })",
+]) {
+  if (!shieldPageSource.includes(marker)) {
+    failures.push(
+      `ShieldPage must hydrate ledger state from the just-confirmed Shield signature: ${marker}.`,
+    );
+  }
+}
+
+for (const marker of [
+  "type VantaShieldAssetStateRefreshOptions",
+  "signatureHint?: string | null",
+  "signatureHints:",
+]) {
+  if (!shieldAssetStateSource.includes(marker)) {
+    failures.push(
+      `useVantaShieldAssetState must pass a direct Shield signature hint into ledger recovery: ${marker}.`,
+    );
+  }
+}
+
+for (const marker of [
+  "signatureHints?: readonly string[]",
+  "...(args.signatureHints ?? [])",
+  "err: null",
+]) {
+  if (!shieldStateSource.includes(marker)) {
+    failures.push(
+      `fetchVantaShieldAccountState must include direct signature hints before broad history indexing: ${marker}.`,
+    );
+  }
+}
+
+if (
+  /queueShieldStateHydrationRetries\([^)]*(recentShield|resultingShieldedBalance)/.test(
+    shieldPageCompact,
+  )
+) {
+  failures.push(
+    "ShieldPage hydration retries must refresh canonical ledger state, not pass optimistic recentShield balances into the ledger.",
   );
 }
 

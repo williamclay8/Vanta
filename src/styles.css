@@ -89,6 +89,15 @@ a {
   text-decoration: none;
 }
 
+:where(a, button, summary, input, select, textarea, [role="button"], [tabindex]):focus-visible {
+  outline: 2px solid rgba(119, 242, 212, 0.62);
+  outline-offset: 3px;
+}
+
+:where(a, button, summary, input, select, textarea, [role="button"], [tabindex]):focus:not(:focus-visible) {
+  outline: none;
+}
+
 button {
   font: inherit;
 }
@@ -181,6 +190,24 @@ input {
 
 .nav-links a {
   font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 10px;
+  border-radius: 999px;
+  transition:
+    transform 140ms var(--ease-out),
+    color 140ms var(--ease-out),
+    background 140ms var(--ease-out);
+}
+
+.nav-links a:hover {
+  color: var(--text);
+  background: rgba(246, 248, 245, 0.05);
+}
+
+.nav-links a:active {
+  transform: scale(0.96);
 }
 
 .nav-actions {

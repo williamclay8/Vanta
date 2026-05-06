@@ -10,92 +10,72 @@ try {
   const statusState = checkReady ? rawStatusState?.status ?? {} : rawStatusState ?? {};
   const summary = statusState?.summary ?? {};
   const shippingDecision = statusState?.shippingDecision ?? {};
-  const payload = {
-    operator: baseUrl,
-    statusVersion: statusState?.statusVersion ?? null,
-    statusKind: statusState?.statusKind ?? null,
-    snapshotVersion: statusState?.snapshotVersion ?? null,
-    snapshotKind: statusState?.snapshotKind ?? null,
-    shippingArtifactVersion: statusState?.shippingArtifactVersion ?? null,
-    shippingArtifactKind: statusState?.shippingArtifactKind ?? null,
-    summary,
-    shippingDecision,
-  };
+  const payload = buildOperatorStatusSurface(statusState, summary, shippingDecision);
 
   if (checkReady && rawStatusState?.decisionStatus !== "ready-to-ship") {
+    const writer = console.error;
     if (jsonMode) {
-      console.error(JSON.stringify(payload, null, 2));
+      writer(JSON.stringify(payload, null, 2));
     } else {
-      printStatusSurface(baseUrl, statusState, summary, shippingDecision, console.error);
-      printLine(
-        "Supported shipping decision note",
-        summary.supportedShippingDecisionNote ?? "Unavailable",
-        console.error,
-      );
-      printLine(
-        "Supported operator status note",
-        summary.supportedOperatorStatusNote ?? "Unavailable",
-        console.error,
-      );
+      printStatusSurface(baseUrl, statusState, summary, shippingDecision, writer);
+      printLine("Supported shipping decision note", summary.supportedShippingDecisionNote ?? "Unavailable", writer);
+      printLine("Supported operator status note", summary.supportedOperatorStatusNote ?? "Unavailable", writer);
       printLine(
         "Supported operator snapshot gate version",
         String(summary.supportedOperatorSnapshotGateVersion ?? "unknown"),
-        console.error,
+        writer,
       );
       printLine(
         "Supported shipping decision gate note",
         summary.supportedShippingDecisionGateNote ?? "Unavailable",
-        console.error,
+        writer,
       );
       printLine(
         "Supported operator status gate note",
         summary.supportedOperatorStatusGateNote ?? "Unavailable",
-        console.error,
+        writer,
       );
       printLine(
         "Supported operator snapshot gate kind",
         summary.supportedOperatorSnapshotGateKind ?? "Unavailable",
-        console.error,
+        writer,
       );
       printLine(
         "Supported operator snapshot gate note",
         summary.supportedOperatorSnapshotGateNote ?? "Unavailable",
-        console.error,
+        writer,
       );
-      printLine(
-        "Supported operator snapshot note",
-        summary.supportedOperatorSnapshotNote ?? "Unavailable",
-        console.error,
-      );
+      printLine("Supported operator snapshot note", summary.supportedOperatorSnapshotNote ?? "Unavailable", writer);
       printLine(
         "Supported shipping artifact gate version",
         String(summary.supportedShippingArtifactGateVersion ?? "unknown"),
-        console.error,
+        writer,
       );
       printLine(
         "Supported shipping artifact gate kind",
         summary.supportedShippingArtifactGateKind ?? "Unavailable",
-        console.error,
+        writer,
       );
       printLine(
         "Supported shipping artifact gate note",
         summary.supportedShippingArtifactGateNote ?? "Unavailable",
-        console.error,
+        writer,
       );
-      printLine(
-        "Supported shipping artifact note",
-        summary.supportedShippingArtifactNote ?? "Unavailable",
-        console.error,
-      );
+      printLine("Supported shipping artifact note", summary.supportedShippingArtifactNote ?? "Unavailable", writer);
     }
-    throw new Error(
-      [
-        `Operator status decision status: ${humanizeShippingDecisionStatus(
-          rawStatusState?.decisionStatus,
-        )}`,
-        `Operator status decision note: ${rawStatusState?.decisionNote ?? "Unavailable"}`,
-      ].join("\n"),
+
+    printLine(
+      "Operator status decision status",
+      humanizeShippingDecisionStatus(rawStatusState?.decisionStatus),
+      writer,
     );
+    printLine(
+      "Operator status decision note",
+      rawStatusState?.decisionNote ?? "Unavailable",
+      writer,
+    );
+    process.exitCode = 1;
+    process.exit(1);
   }
 
   if (jsonMode) {
@@ -457,9 +437,50 @@ try {
   printLine("Boundary status", humanizeBoundaryStatus(summary.boundaryStatus));
   printLine("Boundary note", summary.boundaryNote ?? "Unavailable");
 } catch (error) {
+  const surface = buildOperatorStatusSurface(createUnreachableStatusState(error));
+  const writer = checkReady ? console.error : console.log;
+
+  if (jsonMode) {
+    writer(JSON.stringify(surface, null, 2));
+  } else {
+    printStatusSurface(
+      baseUrl,
+      surface,
+      surface.summary ?? {},
+      surface.shippingDecision ?? {},
+      writer,
+    );
+  }
+
+  if (checkReady) {
+    process.exitCode = 1;
+  }
+}
+
+function buildOperatorStatusSurface(statusState, summary, shippingDecision) {
+  return {
+    operator: baseUrl,
+    operatorError: statusState?.operatorError ?? null,
+    operatorReachable: statusState?.operatorReachable !== false,
+    statusVersion: statusState?.statusVersion ?? null,
+    statusKind: statusState?.statusKind ?? null,
+    snapshotVersion: statusState?.snapshotVersion ?? null,
+    snapshotKind: statusState?.snapshotKind ?? null,
+    shippingArtifactVersion: statusState?.shippingArtifactVersion ?? null,
+    shippingArtifactKind: statusState?.shippingArtifactKind ?? null,
+    summary: summary ?? {},
+    shippingDecision: shippingDecision ?? {},
+  };
+}
+
+function createUnreachableStatusState(error) {
   const message = error instanceof Error ? error.message : String(error);
-  console.error(`private-core operator status: FAIL\n${message}`);
-  process.exitCode = 1;
+  return {
+    operatorReachable: false,
+    operatorError: message || "Operator unreachable",
+    summary: {},
+    shippingDecision: {},
+  };
 }
 
 function resolveBaseUrl(args) {
