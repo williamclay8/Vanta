@@ -10,6 +10,19 @@ Current status:
 - `productionReady: false`
 - meaningful privacy claims are blocked
 
+## Trust packets (counterparty artifacts)
+
+Vanta’s privacy posture is only useful when it produces a shareable, bounded artifact a counterparty can verify.
+
+These action-specific trust packets are the canonical machine-readable surfaces for “what happened, what can be proven, what remains private, and what is still blocked”:
+
+- `npm run shield:trust-packet-check` (JSON: `npm run shield:trust-packet-json`)
+- `npm run send:trust-packet-check` (JSON: `npm run send:trust-packet-json`)
+- `npm run swap:trust-packet-check` (JSON: `npm run swap:trust-packet-json`)
+- `npm run unshield:trust-packet-check` (JSON: `npm run unshield:trust-packet-json`)
+
+These commands must remain fail-closed: they should never imply “production-private”, “fully private”, “anonymity”, “audited”, or “mainnet-ready” unless the matching gates are actually satisfied.
+
 ## Rails
 
 ### `alpha-public-warning`
