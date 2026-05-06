@@ -1,6 +1,9 @@
 import type { VantaShieldedSolNote } from "@/solana/vantaShieldState";
 
-const STORAGE_KEY = "vanta.verifiedNativeSolShieldNotes.v1";
+export const VERIFIED_NATIVE_SOL_SHIELD_NOTES_STORAGE_KEY =
+  "vanta.verifiedNativeSolShieldNotes.v1";
+export const VERIFIED_NATIVE_SOL_SHIELD_NOTES_CHANGED_EVENT =
+  "vanta:verified-native-sol-shield-notes-changed";
 
 type StoredVerifiedNativeSolShieldNote = {
   amount: number;
@@ -21,7 +24,9 @@ function readStoredNotes() {
   }
 
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? "[]");
+    const parsed = JSON.parse(
+      window.localStorage.getItem(VERIFIED_NATIVE_SOL_SHIELD_NOTES_STORAGE_KEY) ?? "[]",
+    );
 
     return Array.isArray(parsed)
       ? parsed.filter((note): note is StoredVerifiedNativeSolShieldNote => {
@@ -47,7 +52,26 @@ function writeStoredNotes(notes: readonly StoredVerifiedNativeSolShieldNote[]) {
     return;
   }
 
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+  window.localStorage.setItem(
+    VERIFIED_NATIVE_SOL_SHIELD_NOTES_STORAGE_KEY,
+    JSON.stringify(notes),
+  );
+}
+
+function notifyVerifiedNativeSolShieldNotesChanged(note: StoredVerifiedNativeSolShieldNote) {
+  if (typeof window === "undefined" || typeof window.dispatchEvent !== "function") {
+    return;
+  }
+
+  window.dispatchEvent(
+    new CustomEvent(VERIFIED_NATIVE_SOL_SHIELD_NOTES_CHANGED_EVENT, {
+      detail: {
+        depositSignature: note.depositSignature,
+        owner: note.owner,
+        vaultOwner: note.vaultOwner,
+      },
+    }),
+  );
 }
 
 function createVerifiedNativeSolShieldNoteId(note: {
@@ -99,6 +123,7 @@ export function recordVerifiedNativeSolShieldNote(args: {
   );
 
   writeStoredNotes([...existingNotes, nextNote]);
+  notifyVerifiedNativeSolShieldNotesChanged(nextNote);
   return toShieldedSolNote(nextNote);
 }
 

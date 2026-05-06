@@ -200,6 +200,10 @@ assert.ok(
 );
 assert.ok(
   verifiedNativeSolNotesSource.includes("vanta.verifiedNativeSolShieldNotes.v1") &&
+    verifiedNativeSolNotesSource.includes("VERIFIED_NATIVE_SOL_SHIELD_NOTES_CHANGED_EVENT") &&
+    verifiedNativeSolNotesSource.includes("VERIFIED_NATIVE_SOL_SHIELD_NOTES_STORAGE_KEY") &&
+    verifiedNativeSolNotesSource.includes("window.dispatchEvent") &&
+    verifiedNativeSolNotesSource.includes("CustomEvent") &&
     verifiedNativeSolNotesSource.includes("recordVerifiedNativeSolShieldNote") &&
     verifiedNativeSolNotesSource.includes("hasVerifiedNativeSolShieldNote") &&
     verifiedNativeSolNotesSource.includes("loadVerifiedNativeSolShieldNotes") &&
@@ -209,11 +213,22 @@ assert.ok(
   "Receipt-verified native SOL deposits must have a local spendable ledger-note store distinct from pending recovery notes.",
 );
 assert.ok(
+  shieldPageSource.includes("const activeDepositSignature =") &&
+    shieldPageSource.includes("pendingDepositSignature ?? activeStateSignature") &&
+    shieldPageSource.includes("depositSignature: activeDepositSignature") &&
+    shieldPageSource.includes("depositSignature: activeDepositSignature ?? undefined"),
+  "Native SOL Shield finalization must use the confirmed same-transaction signature as the receipt deposit signature even if pendingDepositSignature state has not caught up.",
+);
+assert.ok(
   shieldAssetStateSource.includes("loadVerifiedNativeSolShieldNotes") &&
+    shieldAssetStateSource.includes("VERIFIED_NATIVE_SOL_SHIELD_NOTES_CHANGED_EVENT") &&
+    shieldAssetStateSource.includes("VERIFIED_NATIVE_SOL_SHIELD_NOTES_STORAGE_KEY") &&
+    /window\.addEventListener\(\s*VERIFIED_NATIVE_SOL_SHIELD_NOTES_CHANGED_EVENT/.test(shieldAssetStateSource) &&
+    shieldAssetStateSource.includes('window.addEventListener("storage"') &&
     shieldAssetStateSource.includes("loadRecoveredNativeSolShieldNotes") &&
     shieldAssetStateSource.includes("dedupeLocalNativeSolShieldNotes") &&
     shieldAssetStateSource.includes('note.lifecycleStatus === "spendable"'),
-  "Shield asset state must merge receipt-verified native SOL notes while keeping pending recovery notes out of spendable SOL.",
+  "Shield asset state must react to receipt-verified native SOL note writes and merge them while keeping pending recovery notes out of spendable SOL.",
 );
 assert.ok(
   shieldAssetStateSource.includes("loadLocalNativeSolShieldNotes") &&
@@ -223,6 +238,13 @@ assert.ok(
     shieldAssetStateSource.includes("setError(null)") &&
     shieldAssetStateSource.includes("mergeRecoveredNativeSolShieldNotes("),
   "Shield asset state must populate receipt-backed native SOL balances from local verified notes even when the browser shield-state fetch is unavailable.",
+);
+assert.ok(
+  shieldPageSource.includes("receiptHydrationMissing") &&
+    shieldPageSource.includes("const repaired = repairVerifiedNativeSolShieldNote") &&
+    shieldPageSource.includes("if (repaired || receiptHydrationMissing)") &&
+    shieldPageSource.includes("void refreshShieldState().catch(() => undefined)"),
+  "Shield page must retry balance hydration when a verified SOL receipt note already exists but the visible shielded SOL balance is still stale.",
 );
 assert.ok(
   nativeSolShieldSource.includes("getParsedTransactions"),

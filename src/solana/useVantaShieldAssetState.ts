@@ -8,7 +8,11 @@ import {
 } from "@/solana/operatorStateClient";
 import { loadRecoveredNativeSolShieldNotes } from "@/solana/recoveredNativeSolShieldNotes";
 import { useVantaShieldViewingKey } from "@/solana/useVantaShieldViewingKey";
-import { loadVerifiedNativeSolShieldNotes } from "@/solana/verifiedNativeSolShieldNotes";
+import {
+  VERIFIED_NATIVE_SOL_SHIELD_NOTES_CHANGED_EVENT,
+  VERIFIED_NATIVE_SOL_SHIELD_NOTES_STORAGE_KEY,
+  loadVerifiedNativeSolShieldNotes,
+} from "@/solana/verifiedNativeSolShieldNotes";
 import {
   getLiveShieldTokenAssetByMint,
   type LiveShieldTokenAssetKey,
@@ -140,6 +144,50 @@ export function useVantaShieldAssetState(args: {
 
   useEffect(() => {
     void refresh();
+  }, [refresh]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.addEventListener !== "function") {
+      return;
+    }
+
+    let refreshQueued = false;
+    const queueRefresh = () => {
+      if (refreshQueued) {
+        return;
+      }
+
+      refreshQueued = true;
+      window.setTimeout(() => {
+        refreshQueued = false;
+        void refresh();
+      }, 0);
+    };
+    const handleVerifiedNativeSolShieldNotesChanged = () => {
+      queueRefresh();
+    };
+    const handleStorageChanged = (event: StorageEvent) => {
+      if (
+        event.key === VERIFIED_NATIVE_SOL_SHIELD_NOTES_STORAGE_KEY ||
+        event.key === null
+      ) {
+        queueRefresh();
+      }
+    };
+
+    window.addEventListener(
+      VERIFIED_NATIVE_SOL_SHIELD_NOTES_CHANGED_EVENT,
+      handleVerifiedNativeSolShieldNotesChanged,
+    );
+    window.addEventListener("storage", handleStorageChanged);
+
+    return () => {
+      window.removeEventListener(
+        VERIFIED_NATIVE_SOL_SHIELD_NOTES_CHANGED_EVENT,
+        handleVerifiedNativeSolShieldNotesChanged,
+      );
+      window.removeEventListener("storage", handleStorageChanged);
+    };
   }, [refresh]);
 
   return {

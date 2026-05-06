@@ -492,7 +492,13 @@ export function ShieldPage(_props: ShieldPageProps) {
       return;
     }
 
-    const repairKey = `${walletAddress}:${vaultOwner}:${depositSignature}`;
+    const expectedReceiptBalance = recentShield.resultingShieldedBalance;
+    const receiptHydrationMissing =
+      Number.isFinite(expectedReceiptBalance) &&
+      targetShieldedBalance + 0.000000001 < expectedReceiptBalance;
+    const repairKey = `${walletAddress}:${vaultOwner}:${depositSignature}:${
+      receiptHydrationMissing ? "missing" : "hydrated"
+    }`;
 
     if (repairedNativeSolReceiptRef.current === repairKey) {
       return;
@@ -500,22 +506,23 @@ export function ShieldPage(_props: ShieldPageProps) {
 
     repairedNativeSolReceiptRef.current = repairKey;
 
-    if (
-      repairVerifiedNativeSolShieldNote({
-        amount: recentShield.amount,
-        createdAt: recentShield.timestamp,
-        depositSignature,
-        owner: walletAddress,
-        stateSignature,
-        vaultOwner,
-      })
-    ) {
+    const repaired = repairVerifiedNativeSolShieldNote({
+      amount: recentShield.amount,
+      createdAt: recentShield.timestamp,
+      depositSignature,
+      owner: walletAddress,
+      stateSignature,
+      vaultOwner,
+    });
+
+    if (repaired || receiptHydrationMissing) {
       void refreshShieldState().catch(() => undefined);
     }
   }, [
     recentShield,
     refreshShieldState,
     selectedShieldAsset?.vaultOwner,
+    targetShieldedBalance,
     walletAddress,
   ]);
 
@@ -1044,6 +1051,7 @@ export function ShieldPage(_props: ShieldPageProps) {
       : pendingShieldAsset === "SOL"
         ? nativeSolShieldTransaction.signature
         : splShieldTransferTransaction.signature;
+    const activeDepositSignature = pendingDepositSignature ?? activeStateSignature;
     const stateRecorded =
       pendingNativeSolDepositRecovery
           ? true
@@ -1089,7 +1097,7 @@ export function ShieldPage(_props: ShieldPageProps) {
                 amountNumeric: pendingShieldAmount,
                 assetSymbol: activeShieldTarget.assetKey,
                 createdAt: Date.now(),
-                depositSignature: pendingDepositSignature ?? undefined,
+                depositSignature: activeDepositSignature ?? undefined,
                 mintAddress: activeShieldTarget.mintAddress!,
                 owner: walletAddress!,
                 stateSignature: activeStateSignature,
@@ -1110,7 +1118,7 @@ export function ShieldPage(_props: ShieldPageProps) {
                       canonicalCommitment: zkRecord.artifacts.commitment.value,
                       canonicalNullifierBasis: zkRecord.artifacts.nullifierBasis.value,
                       canonicalRoot: zkRecord.insertion.root,
-                      depositSignature: pendingDepositSignature ?? undefined,
+                      depositSignature: activeDepositSignature ?? undefined,
                       mintAddress: activeShieldTarget.mintAddress!,
                       noteStateSignature: activeStateSignature,
                       owner: walletAddress!,
@@ -1155,7 +1163,7 @@ export function ShieldPage(_props: ShieldPageProps) {
           amount: pendingShieldAmount,
           asset: pendingShieldAsset ?? activeShieldTarget.assetKey,
           claimTier: initialClaimTier,
-          depositSignature: pendingDepositSignature ?? undefined,
+          depositSignature: activeDepositSignature ?? undefined,
           resultingShieldedBalance: nextBalance,
           settlement: "confirmed_deposit" as const,
           signature: activeStateSignature,
@@ -1178,7 +1186,7 @@ export function ShieldPage(_props: ShieldPageProps) {
             amount: pendingShieldAmount,
             asset: activeShieldTarget.assetKey,
             createdAt: recentShieldTimestamp,
-            depositSignature: pendingDepositSignature,
+            depositSignature: activeDepositSignature,
             mintAddress: activeShieldTarget.mintAddress!,
             owner: walletAddress!,
             stateSignature: activeStateSignature,
@@ -1196,12 +1204,12 @@ export function ShieldPage(_props: ShieldPageProps) {
         if (
           pendingProtocolSettlement?.capability.sourceAsset &&
           pendingProtocolSettlement.capability.targetShieldAsset &&
-          pendingDepositSignature &&
+          activeDepositSignature &&
           walletAddress
         ) {
           const committedSettlement = createVantaShieldCommittedEconomicsSettlement({
             amount: pendingShieldAmountDisplay,
-            depositSignature: pendingDepositSignature,
+            depositSignature: activeDepositSignature,
             owner: walletAddress,
             routeEvidence: pendingProtocolSettlement.routeEvidence,
             settlementId: activeStateSignature,
@@ -1260,12 +1268,13 @@ export function ShieldPage(_props: ShieldPageProps) {
         if (
           pendingShieldAsset === "SOL" &&
           protocolSettlement && !protocolSettlementWarning &&
+          activeDepositSignature &&
           walletAddress
         ) {
           recordVerifiedNativeSolShieldNote({
             amount: pendingShieldAmount,
             createdAt: recentShieldTimestamp,
-            depositSignature: pendingDepositSignature ?? activeStateSignature,
+            depositSignature: activeDepositSignature,
             owner: walletAddress,
             stateSignature: activeStateSignature,
             vaultOwner: activeShieldTarget.vaultOwner!,
