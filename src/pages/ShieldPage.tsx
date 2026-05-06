@@ -298,7 +298,6 @@ export function ShieldPage(_props: ShieldPageProps) {
   const recordedStateSignatureRef = useRef<string | null>(null);
   const recordedTokenDepositSignatureRef = useRef<string | null>(null);
   const repairedNativeSolReceiptRef = useRef<string | null>(null);
-  const autoRecoverSolDepositSignatureRef = useRef<string | null>(null);
   const shieldStateHydrationTimeoutsRef = useRef<number[]>([]);
 
   const executableShieldTargets = useMemo(
@@ -809,32 +808,6 @@ export function ShieldPage(_props: ShieldPageProps) {
     setFlowError(null);
     setStatus("entering_shielded_state");
   }
-
-  useEffect(() => {
-    if (
-      isBetaMode ||
-      !isNativeSolShield ||
-      !latestRecoverableSolDeposit ||
-      !walletAddress ||
-      !selectedShieldAsset?.vaultOwner ||
-      (status !== "idle" && status !== "complete")
-    ) {
-      return;
-    }
-
-    if (autoRecoverSolDepositSignatureRef.current === latestRecoverableSolDeposit.signature) {
-      return;
-    }
-
-    autoRecoverSolDepositSignatureRef.current = latestRecoverableSolDeposit.signature;
-    beginNativeSolShieldDepositRecovery(latestRecoverableSolDeposit);
-  }, [
-    isNativeSolShield,
-    latestRecoverableSolDeposit,
-    selectedShieldAsset?.vaultOwner,
-    status,
-    walletAddress,
-  ]);
 
   useEffect(() => {
     if (nativeSolShieldTransaction.status === "loading") {

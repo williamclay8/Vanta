@@ -118,12 +118,14 @@ assert.ok(
   "Shield page must repair missing local spendable SOL ledger notes from an already verified native SOL proof receipt.",
 );
 assert.ok(
-  shieldPageSource.includes("autoRecoverSolDepositSignatureRef") &&
-    shieldPageSource.includes("beginNativeSolShieldDepositRecovery(latestRecoverableSolDeposit)") &&
+  !shieldPageSource.includes("autoRecoverSolDepositSignatureRef") &&
+    !/useEffect\(\(\) => \{[\s\S]{0,900}beginNativeSolShieldDepositRecovery\(latestRecoverableSolDeposit\)/.test(
+      shieldPageSource,
+    ) &&
     !/existingDepositSignatures[\s\S]{0,900}loadRecoveredNativeSolShieldDepositSignatures/.test(
       shieldPageSource,
     ),
-  "Native SOL recovery must keep unverified recovered deposits retryable and auto-register recoverable vault SOL instead of hiding it from the balance path.",
+  "Native SOL recovery must keep unverified recovered deposits retryable, but it must not auto-record vault SOL or show a Shield receipt status without an explicit recovery click.",
 );
 assert.ok(
   shieldPageSource.includes("VANTA_NATIVE_SOL_SAME_TRANSACTION_DEPOSIT_SIGNATURE"),
