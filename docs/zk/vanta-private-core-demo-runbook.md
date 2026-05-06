@@ -132,6 +132,8 @@ Use `private-core:operator-status-check` when a human wants the full live operat
 
 Use `private-core:operator-status-check-json` when that same tooling wants the full live operator-status JSON as a strict machine-readable ready gate instead of only the compact shipping slice. It also reads `/state/private-core-status-check`.
 
+If no operator is reachable, `private-core:operator-status-json` prints a machine-readable `operatorReachable: false` surface (plus `operatorError`) instead of failing with an unparseable fetch error. Use this for offline status snapshots. The strict `private-core:operator-status-check-json` command still fails when the operator is unreachable, but now remains machine-readable.
+
 That long-form status surface is now itself frozen in the operator contract via:
 - `supportedOperatorStatusVersion = 1`
 - `supportedOperatorStatusKind = long-form-live-status`

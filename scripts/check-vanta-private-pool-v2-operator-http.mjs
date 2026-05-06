@@ -771,7 +771,7 @@ try {
   );
   console.log("private-pool-v2 http raw Pay settlement fail-closed receipts: PASS");
 
-	  for (const action of ["shield", "send", "swap", "unshield"]) {
+  for (const action of ["shield", "send", "swap", "unshield"]) {
     const isShield = action === "shield";
     const protocolSettlement = await requestJson("/private-pool-v2/protocol-settlements", {
       body: JSON.stringify({
@@ -820,6 +820,20 @@ try {
       }),
       method: "POST",
     });
+
+    if (action === "send") {
+      assert(
+        !protocolSettlement.ok,
+        "Expected raw operator-visible Send protocol settlement to fail closed.",
+      );
+      assert(
+        String(protocolSettlement.parsed?.error ?? protocolSettlement.text).includes(
+          "committed-economics",
+        ),
+        protocolSettlement.text || "Expected committed-economics fail-closed Send error.",
+      );
+      continue;
+    }
     assert(protocolSettlement.ok, protocolSettlement.text || `Expected ${action} protocol settlement.`);
     assert(
       protocolSettlement.parsed?.protocolSettlementReceipt?.action === action,
@@ -1152,12 +1166,12 @@ try {
     conflictingProtocolShieldSettlement.text || "Expected conflicting protocol settlement error.",
   );
   const protocolSettlementReceipts = await requestJson("/state/private-pool-v2-receipts");
-	  assert(protocolSettlementReceipts.ok, protocolSettlementReceipts.text || "Expected protocol receipts.");
-		  assert(protocolSettlementReceipts.parsed?.receiptCount >= 8, "Expected protocol proof receipts.");
-		  assert(
-		    protocolSettlementReceipts.parsed?.protocolSettlementCount >= 6,
-		    "Expected operator-owned protocol settlement receipts.",
-		  );
+  assert(protocolSettlementReceipts.ok, protocolSettlementReceipts.text || "Expected protocol receipts.");
+  assert(protocolSettlementReceipts.parsed?.receiptCount >= 7, "Expected protocol proof receipts.");
+  assert(
+    protocolSettlementReceipts.parsed?.protocolSettlementCount >= 5,
+    "Expected operator-owned protocol settlement receipts.",
+  );
   const operatorStatusAfterProtocolSettlements = await requestJson("/state/private-pool-v2-status");
   assert(
     operatorStatusAfterProtocolSettlements.ok,

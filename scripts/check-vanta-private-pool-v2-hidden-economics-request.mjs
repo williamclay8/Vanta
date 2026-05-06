@@ -94,6 +94,7 @@ try {
   const {
     VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_AMOUNT_BASE_UNITS,
     VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID,
+    computeVantaPrivatePoolV2UnshieldPublicInputHash,
     createVantaPrivatePoolV2HiddenEconomicsProofRequest,
     createVantaPrivatePoolV2UnshieldProofRequest,
   } = await import(pathToFileURL(join(tempJsDir, "privatePoolV2ProofRequests.js")).href);
@@ -206,7 +207,17 @@ try {
     routeCommitment: "field:route",
     settlementCommitment: "field:settlement",
     unshieldContextTag: "field:unshield-context",
-    unshieldPublicInputHash: "field:unshield-public-input-hash",
+  });
+  const expectedUnshieldPublicInputHash = computeVantaPrivatePoolV2UnshieldPublicInputHash({
+    economicsCommitment: "field:economics",
+    exitTermsCommitment: "field:exit-terms",
+    inputCommitment: "field:input-note",
+    inputRoot: "field:input-root",
+    nullifierOrReplayCommitment: "field:replay",
+    ownerCommitment: "field:owner",
+    routeCommitment: "field:route",
+    settlementCommitment: "field:settlement",
+    unshieldContextTag: "field:unshield-context",
   });
   assert(
     unshieldRequest.assetId === VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID,
@@ -218,8 +229,8 @@ try {
   );
   assert(
     JSON.stringify(unshieldRequest.circuitPublicInputs) ===
-      JSON.stringify(["unshield-public-input-hash:field:unshield-public-input-hash"]),
-    "Expected private unshield circuit public inputs to be hash-only.",
+      JSON.stringify([`unshield-public-input-hash:${expectedUnshieldPublicInputHash}`]),
+    "Expected private unshield circuit public inputs to be hash-only and computed.",
   );
   assertNoRawTerms(unshieldRequest, [
     "USDC",
