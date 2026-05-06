@@ -128,6 +128,19 @@ assert.ok(
   "Native SOL recovery must keep unverified recovered deposits retryable, but it must not auto-record vault SOL or show a Shield receipt status without an explicit recovery click.",
 );
 assert.ok(
+  !/function beginNativeSolShieldDepositRecovery[\s\S]{0,1300}setPendingProtocolSettlement\(\{ capability, routeEvidence: null \}\)/.test(
+    shieldPageSource,
+  ) &&
+    !shieldPageSource.includes("pendingNativeSolDepositRecovery\n          ? true") &&
+    !/pendingNativeSolDepositRecovery[\s\S]{0,3500}requestVantaPrivatePoolV2BrowserShieldReceipt/.test(
+      shieldPageSource,
+    ) &&
+    shieldPageSource.includes('"recovery_recorded"') &&
+    shieldPageSource.includes("SOL recovery recorded") &&
+    shieldPageSource.includes("No new transfer was submitted"),
+  "Native SOL recovery must use a dedicated recovery-recorded UI path and must not run the fresh Shield receipt verification flow.",
+);
+assert.ok(
   shieldPageSource.includes("VANTA_NATIVE_SOL_SAME_TRANSACTION_DEPOSIT_SIGNATURE"),
   "Native SOL Shield must bind the same transaction as both transfer and shield-state record.",
 );
@@ -163,10 +176,10 @@ assert.ok(
   "Native SOL Shield must submit transfer and shield-state memo in one wallet request.",
 );
 assert.ok(
-  shieldPageSource.includes("pendingNativeSolDepositRecovery") &&
-    shieldPageSource.includes("? pendingDepositSignature") &&
-    shieldPageSource.includes("? true"),
-  "Native SOL recovery finalization must use the original deposit signature without a second shield-state transaction.",
+  shieldPageSource.includes("beginNativeSolShieldDepositRecovery") &&
+    shieldPageSource.includes("recordRecoveredNativeSolShieldNote") &&
+    shieldPageSource.includes("refreshShieldState({ signatureHint: deposit.signature })"),
+  "Native SOL recovery must record the original deposit signature without a second shield-state transaction.",
 );
 assert.ok(
   shieldPageSource.includes("nativeSolShieldBlockedByRecoverableDeposit"),
