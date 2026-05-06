@@ -29,11 +29,9 @@ import { createVantaShieldCommittedEconomicsSettlement } from "@/privacy/vantaSh
 import { createUmbraShieldActionApprovalReview } from "@/privacy/umbraShieldActionReview";
 import type { UmbraOperationApprovalDisplay } from "@/privacy/umbraOperations";
 import { isSolanaRpcHttpAccessError, isSolanaRpcRateLimitError } from "@/solana/rpcErrors";
+import { recordRecoveredNativeSolShieldNote } from "@/solana/recoveredNativeSolShieldNotes";
 import {
-  loadRecoveredNativeSolShieldDepositSignatures,
-  recordRecoveredNativeSolShieldNote,
-} from "@/solana/recoveredNativeSolShieldNotes";
-import {
+  hasVerifiedNativeSolShieldNote,
   loadVerifiedNativeSolShieldDepositSignatures,
   recordVerifiedNativeSolShieldNote,
 } from "@/solana/verifiedNativeSolShieldNotes";
@@ -219,6 +217,46 @@ function describeRecentShieldCompletion(recentShield: RecentShieldContext, warni
   return `${amountLabel} reached the Vanta vault as a public deposit; local shield-state proof is still unavailable.${suffix}`;
 }
 
+function repairVerifiedNativeSolShieldNote(args: {
+  amount: number;
+  createdAt: number;
+  depositSignature: string | null | undefined;
+  owner: string | null | undefined;
+  stateSignature: string | null | undefined;
+  vaultOwner: string | null | undefined;
+}) {
+  if (
+    !args.depositSignature ||
+    !args.owner ||
+    !args.stateSignature ||
+    !args.vaultOwner ||
+    !Number.isFinite(args.amount) ||
+    args.amount <= 0
+  ) {
+    return false;
+  }
+
+  if (
+    hasVerifiedNativeSolShieldNote({
+      depositSignature: args.depositSignature,
+      owner: args.owner,
+      vaultOwner: args.vaultOwner,
+    })
+  ) {
+    return false;
+  }
+
+  recordVerifiedNativeSolShieldNote({
+    amount: args.amount,
+    createdAt: args.createdAt,
+    depositSignature: args.depositSignature,
+    owner: args.owner,
+    stateSignature: args.stateSignature,
+    vaultOwner: args.vaultOwner,
+  });
+  return true;
+}
+
 export function ShieldPage(_props: ShieldPageProps) {
   const { recentShield, runPrivateCoreShield, setRecentShield } = usePrivacyFlow();
   const {
@@ -258,6 +296,8 @@ export function ShieldPage(_props: ShieldPageProps) {
   const [recoverableSolDepositsError, setRecoverableSolDepositsError] = useState<string | null>(null);
   const recordedStateSignatureRef = useRef<string | null>(null);
   const recordedTokenDepositSignatureRef = useRef<string | null>(null);
+  const repairedNativeSolReceiptRef = useRef<string | null>(null);
+  const autoRecoverSolDepositSignatureRef = useRef<string | null>(null);
 
   const executableShieldTargets = useMemo(
     () =>
@@ -384,10 +424,6 @@ export function ShieldPage(_props: ShieldPageProps) {
       (shieldAccount?.shieldedSolNotes ?? [])
         .map((note) => note.depositSignature)
         .filter((signature): signature is string => typeof signature === "string" && signature.length > 0),
-      ...loadRecoveredNativeSolShieldDepositSignatures({
-        owner: walletAddress,
-        vaultOwner: selectedShieldAsset.vaultOwner,
-      }),
       ...loadVerifiedNativeSolShieldDepositSignatures({
         owner: walletAddress,
         vaultOwner: selectedShieldAsset.vaultOwner,
@@ -426,6 +462,60 @@ export function ShieldPage(_props: ShieldPageProps) {
     isNativeSolShield,
     selectedShieldAsset?.vaultOwner,
     shieldAccount?.shieldedSolNotes,
+    walletAddress,
+  ]);
+
+  useEffect(() => {
+    if (
+      !recentShield ||
+      recentShield.claimTier !== "proof_receipt_verified" ||
+      recentShield.asset !== "SOL" ||
+      !walletAddress
+    ) {
+      return;
+    }
+
+    const depositSignature =
+      recentShield.depositSignature ??
+      recentShield.protocolSettlementReceipt?.depositSignature ??
+      null;
+    const stateSignature =
+      recentShield.signature ??
+      recentShield.protocolSettlementReceipt?.stateSignature ??
+      null;
+    const vaultOwner =
+      recentShield.protocolSettlementReceipt?.vaultOwner ??
+      selectedShieldAsset?.vaultOwner ??
+      null;
+
+    if (!depositSignature || !stateSignature || !vaultOwner) {
+      return;
+    }
+
+    const repairKey = `${walletAddress}:${vaultOwner}:${depositSignature}`;
+
+    if (repairedNativeSolReceiptRef.current === repairKey) {
+      return;
+    }
+
+    repairedNativeSolReceiptRef.current = repairKey;
+
+    if (
+      repairVerifiedNativeSolShieldNote({
+        amount: recentShield.amount,
+        createdAt: recentShield.timestamp,
+        depositSignature,
+        owner: walletAddress,
+        stateSignature,
+        vaultOwner,
+      })
+    ) {
+      void refreshShieldState().catch(() => undefined);
+    }
+  }, [
+    recentShield,
+    refreshShieldState,
+    selectedShieldAsset?.vaultOwner,
     walletAddress,
   ]);
 
@@ -495,7 +585,9 @@ export function ShieldPage(_props: ShieldPageProps) {
     ? "Connect wallet"
     : !capability.targetShieldAsset
       ? "Choose asset"
-    : supportedToken?.status === "loading" || supportedToken?.isFetching || shieldStateRefreshing
+    : (!isNativeSolShield &&
+          (supportedToken?.status === "loading" || supportedToken?.isFetching)) ||
+        shieldStateRefreshing
       ? "Loading..."
       : targetShieldSymbol
         ? formatAssetAmount(targetShieldedBalance, targetShieldSymbol)
@@ -674,6 +766,32 @@ export function ShieldPage(_props: ShieldPageProps) {
     setFlowError(null);
     setStatus("entering_shielded_state");
   }
+
+  useEffect(() => {
+    if (
+      isBetaMode ||
+      !isNativeSolShield ||
+      !latestRecoverableSolDeposit ||
+      !walletAddress ||
+      !selectedShieldAsset?.vaultOwner ||
+      (status !== "idle" && status !== "complete")
+    ) {
+      return;
+    }
+
+    if (autoRecoverSolDepositSignatureRef.current === latestRecoverableSolDeposit.signature) {
+      return;
+    }
+
+    autoRecoverSolDepositSignatureRef.current = latestRecoverableSolDeposit.signature;
+    beginNativeSolShieldDepositRecovery(latestRecoverableSolDeposit);
+  }, [
+    isNativeSolShield,
+    latestRecoverableSolDeposit,
+    selectedShieldAsset?.vaultOwner,
+    status,
+    walletAddress,
+  ]);
 
   useEffect(() => {
     if (nativeSolShieldTransaction.status === "loading") {

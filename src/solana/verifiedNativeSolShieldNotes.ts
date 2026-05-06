@@ -115,6 +115,23 @@ export function loadVerifiedNativeSolShieldNotes(args: {
     .map(toShieldedSolNote);
 }
 
+export function hasVerifiedNativeSolShieldNote(args: {
+  depositSignature: string | null | undefined;
+  owner: string | null | undefined;
+  vaultOwner: string | null | undefined;
+}) {
+  if (!args.depositSignature || !args.owner || !args.vaultOwner) {
+    return false;
+  }
+
+  return readStoredNotes().some(
+    (note) =>
+      note.depositSignature === args.depositSignature &&
+      note.owner === args.owner &&
+      note.vaultOwner === args.vaultOwner,
+  );
+}
+
 export function loadVerifiedNativeSolShieldDepositSignatures(args: {
   owner: string | null | undefined;
   vaultOwner: string | null | undefined;

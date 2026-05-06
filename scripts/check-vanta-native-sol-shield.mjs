@@ -103,6 +103,29 @@ assert.ok(
   "Native SOL Shield receipt verification must promote the deposit into the local spendable SOL ledger and refresh the balance.",
 );
 assert.ok(
+  /const targetShieldedBalanceLabel[\s\S]{0,500}!\s*isNativeSolShield[\s\S]{0,220}supportedToken\?\.status === "loading"[\s\S]{0,220}shieldStateRefreshing/.test(
+    shieldPageSource,
+  ),
+  "Shield page must not hide a ledger-derived Shielded SOL balance behind the selected SPL token loader.",
+);
+assert.ok(
+  shieldPageSource.includes("repairVerifiedNativeSolShieldNote") &&
+    shieldPageSource.includes('recentShield.claimTier !== "proof_receipt_verified"') &&
+    shieldPageSource.includes('recentShield.asset !== "SOL"') &&
+    shieldPageSource.includes("hasVerifiedNativeSolShieldNote") &&
+    shieldPageSource.includes("recordVerifiedNativeSolShieldNote") &&
+    shieldPageSource.includes("void refreshShieldState().catch(() => undefined)"),
+  "Shield page must repair missing local spendable SOL ledger notes from an already verified native SOL proof receipt.",
+);
+assert.ok(
+  shieldPageSource.includes("autoRecoverSolDepositSignatureRef") &&
+    shieldPageSource.includes("beginNativeSolShieldDepositRecovery(latestRecoverableSolDeposit)") &&
+    !/existingDepositSignatures[\s\S]{0,900}loadRecoveredNativeSolShieldDepositSignatures/.test(
+      shieldPageSource,
+    ),
+  "Native SOL recovery must keep unverified recovered deposits retryable and auto-register recoverable vault SOL instead of hiding it from the balance path.",
+);
+assert.ok(
   shieldPageSource.includes("VANTA_NATIVE_SOL_SAME_TRANSACTION_DEPOSIT_SIGNATURE"),
   "Native SOL Shield must bind the same transaction as both transfer and shield-state record.",
 );
@@ -178,6 +201,7 @@ assert.ok(
 assert.ok(
   verifiedNativeSolNotesSource.includes("vanta.verifiedNativeSolShieldNotes.v1") &&
     verifiedNativeSolNotesSource.includes("recordVerifiedNativeSolShieldNote") &&
+    verifiedNativeSolNotesSource.includes("hasVerifiedNativeSolShieldNote") &&
     verifiedNativeSolNotesSource.includes("loadVerifiedNativeSolShieldNotes") &&
     verifiedNativeSolNotesSource.includes("loadVerifiedNativeSolShieldDepositSignatures") &&
     verifiedNativeSolNotesSource.includes('lifecycleStatus: "spendable"') &&
