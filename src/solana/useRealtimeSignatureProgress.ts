@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useSignatureStatus, useWaitForSignature } from "@solana/react-hooks";
-import { isSolanaRpcRateLimitError } from "@/solana/rpcErrors";
+import { isSolanaRpcHttpAccessError, isSolanaRpcRateLimitError } from "@/solana/rpcErrors";
 
 export type RealtimeSignatureStage =
   | "idle"
@@ -47,6 +47,10 @@ export function useRealtimeSignatureProgress(
     wait.waitStatus === "error" && isSolanaRpcRateLimitError(wait.waitError);
   const signatureStatusErrorIsRateLimited =
     Boolean(signatureStatus.error) && isSolanaRpcRateLimitError(signatureStatus.error);
+  const waitErrorIsRpcAccessBlocked =
+    wait.waitStatus === "error" && isSolanaRpcHttpAccessError(wait.waitError);
+  const signatureStatusErrorIsRpcAccessBlocked =
+    Boolean(signatureStatus.error) && isSolanaRpcHttpAccessError(signatureStatus.error);
 
   const stage = useMemo<RealtimeSignatureStage>(() => {
     if (!signature || disabled) {
@@ -54,8 +58,8 @@ export function useRealtimeSignatureProgress(
     }
 
     if (
-      (wait.waitStatus === "error" && !waitErrorIsRateLimited) ||
-      (signatureStatus.error && !signatureStatusErrorIsRateLimited) ||
+      (wait.waitStatus === "error" && !waitErrorIsRateLimited && !waitErrorIsRpcAccessBlocked) ||
+      (signatureStatus.error && !signatureStatusErrorIsRateLimited && !signatureStatusErrorIsRpcAccessBlocked) ||
       signatureStatus.signatureStatus?.err
     ) {
       return "failed";
@@ -79,8 +83,10 @@ export function useRealtimeSignatureProgress(
     disabled,
     signature,
     signatureStatus.error,
+    signatureStatusErrorIsRpcAccessBlocked,
     signatureStatusErrorIsRateLimited,
     signatureStatus.signatureStatus?.err,
+    waitErrorIsRpcAccessBlocked,
     waitErrorIsRateLimited,
     wait.waitStatus,
   ]);
@@ -88,6 +94,10 @@ export function useRealtimeSignatureProgress(
   const detailLabel = useMemo(() => {
     switch (stage) {
       case "submitted":
+        if (waitErrorIsRpcAccessBlocked || signatureStatusErrorIsRpcAccessBlocked) {
+          return "Submitted to mainnet; the browser RPC endpoint blocked access, so confirmation is unavailable from this endpoint.";
+        }
+
         if (waitErrorIsRateLimited || signatureStatusErrorIsRateLimited) {
           return "Submitted to mainnet; the public RPC is rate-limited, so confirmation is still being checked.";
         }
@@ -104,7 +114,13 @@ export function useRealtimeSignatureProgress(
       case "idle":
         return null;
     }
-  }, [signatureStatusErrorIsRateLimited, stage, waitErrorIsRateLimited]);
+  }, [
+    signatureStatusErrorIsRateLimited,
+    signatureStatusErrorIsRpcAccessBlocked,
+    stage,
+    waitErrorIsRateLimited,
+    waitErrorIsRpcAccessBlocked,
+  ]);
 
   return {
     ...wait,

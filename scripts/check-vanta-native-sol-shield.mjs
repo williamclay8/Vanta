@@ -214,6 +214,20 @@ assert.ok(
   "Native SOL Shield must classify public Solana RPC rate-limit responses without leaking provider JSON.",
 );
 assert.ok(
+  solanaRpcErrorsSource.includes("isSolanaRpcHttpAccessError") &&
+    solanaRpcErrorsSource.includes("8100002") &&
+    solanaRpcErrorsSource.includes("Access forbidden") &&
+    solanaRpcErrorsSource.includes("forbidden"),
+  "Native SOL Shield must classify browser RPC HTTP access failures such as 403 Access forbidden and Solana transport error #8100002.",
+);
+assert.ok(
+  shieldPageSource.includes("isSolanaRpcHttpAccessError") &&
+    shieldPageSource.includes("browser RPC endpoint blocked access") &&
+    !shieldPageSource.includes("403: {") &&
+    !shieldPageSource.includes('error":{"code":403'),
+  "Shield page must translate forbidden browser RPC failures into user-safe copy without leaking provider JSON.",
+);
+assert.ok(
   nativeSolShieldSource.includes("NATIVE_SOL_SHIELD_RPC_RETRY_DELAYS_MS") &&
     nativeSolShieldSource.includes("NATIVE_SOL_SHIELD_PARSED_TRANSACTION_RETRY_DELAYS_MS") &&
     nativeSolShieldSource.includes("readNativeSolShieldSignatures") &&
@@ -239,6 +253,17 @@ assert.ok(
     realtimeSignatureProgressSource.includes("waitErrorIsRateLimited") &&
     realtimeSignatureProgressSource.includes("signatureStatusErrorIsRateLimited"),
   "Signature progress must not classify a transient public RPC 429 as a failed submitted Shield transaction.",
+);
+assert.ok(
+  realtimeSignatureProgressSource.includes("isSolanaRpcHttpAccessError") &&
+    realtimeSignatureProgressSource.includes("waitErrorIsRpcAccessBlocked") &&
+    realtimeSignatureProgressSource.includes("signatureStatusErrorIsRpcAccessBlocked"),
+  "Signature progress must not classify a forbidden public RPC status read as a failed submitted Shield transaction.",
+);
+assert.ok(
+  shieldPageSource.includes("isSolanaRpcHttpAccessError(nativeSolShieldWait.waitError)") &&
+    shieldPageSource.includes("isSolanaRpcHttpAccessError(splShieldTransferWait.waitError)"),
+  "Shield page must keep submitted Shield deposits recoverable when confirmation reads are blocked by the browser RPC.",
 );
 
 const tokenAvailabilitySource = readFileSync(resolve("src/solana/tokenAvailability.ts"), "utf8");

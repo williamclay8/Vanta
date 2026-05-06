@@ -60,3 +60,19 @@ export function isSolanaRpcRateLimitError(error: unknown) {
     text.includes("Too Many Requests".toLowerCase())
   );
 }
+
+export function isSolanaRpcHttpAccessError(error: unknown) {
+  const text = collectRpcErrorText(error).toLowerCase();
+  const hasSolanaHttpTransportError =
+    text.includes("8100002") || text.includes("solana error #8100002");
+  const hasHttpAccessStatus =
+    text.includes("401") ||
+    text.includes("403") ||
+    text.includes("unauthorized") ||
+    text.includes("forbidden") ||
+    text.includes("Access forbidden".toLowerCase()) ||
+    text.includes("missing api key") ||
+    text.includes("api key is not allowed");
+
+  return hasHttpAccessStatus || hasSolanaHttpTransportError;
+}

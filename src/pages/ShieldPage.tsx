@@ -28,7 +28,7 @@ import { runShieldWithDecoys } from "@/privacy/shieldDecoyBatcher";
 import { createVantaShieldCommittedEconomicsSettlement } from "@/privacy/vantaShieldCommittedSettlement";
 import { createUmbraShieldActionApprovalReview } from "@/privacy/umbraShieldActionReview";
 import type { UmbraOperationApprovalDisplay } from "@/privacy/umbraOperations";
-import { isSolanaRpcRateLimitError } from "@/solana/rpcErrors";
+import { isSolanaRpcHttpAccessError, isSolanaRpcRateLimitError } from "@/solana/rpcErrors";
 import {
   loadRecoveredNativeSolShieldDepositSignatures,
   recordRecoveredNativeSolShieldNote,
@@ -107,6 +107,10 @@ function toErrorMessage(error: unknown, fallback: string) {
     return "The public Solana RPC is rate-limited while checking this Shield transaction. Vanta did not ask for another transfer; wait a moment or use recovery if the deposit already landed.";
   }
 
+  if (isSolanaRpcHttpAccessError(error)) {
+    return "The browser RPC endpoint blocked access while checking this Shield transaction. Vanta did not ask for another transfer; try a browser-compatible mainnet RPC or use recovery if the deposit already landed.";
+  }
+
   if (code === 8100002 || message.includes("Solana error #8100002")) {
     const statusCode = maybeContext?.context?.statusCode;
     const providerMessage = maybeContext?.context?.message;
@@ -134,6 +138,10 @@ function toRecoverableSolDepositsErrorMessage(error: unknown) {
 
   if (isSolanaRpcRateLimitError(error)) {
     return "The public Solana RPC is rate-limited while checking recent SOL vault deposits. Try again in a moment; Vanta will not ask for another transfer.";
+  }
+
+  if (isSolanaRpcHttpAccessError(error)) {
+    return "Recent SOL vault deposits could not be checked because the browser RPC endpoint blocked access. Try a browser-compatible mainnet RPC; Vanta will not ask for another transfer.";
   }
 
   if (
@@ -865,7 +873,8 @@ export function ShieldPage(_props: ShieldPageProps) {
   useEffect(() => {
     if (
       nativeSolShieldWait.waitStatus !== "error" ||
-      isSolanaRpcRateLimitError(nativeSolShieldWait.waitError)
+      isSolanaRpcRateLimitError(nativeSolShieldWait.waitError) ||
+      isSolanaRpcHttpAccessError(nativeSolShieldWait.waitError)
     ) {
       return;
     }
@@ -890,7 +899,8 @@ export function ShieldPage(_props: ShieldPageProps) {
   useEffect(() => {
     if (
       splShieldTransferWait.waitStatus !== "error" ||
-      isSolanaRpcRateLimitError(splShieldTransferWait.waitError)
+      isSolanaRpcRateLimitError(splShieldTransferWait.waitError) ||
+      isSolanaRpcHttpAccessError(splShieldTransferWait.waitError)
     ) {
       return;
     }

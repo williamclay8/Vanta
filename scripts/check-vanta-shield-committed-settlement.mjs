@@ -8,6 +8,9 @@ const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-shield-committed-sett
 const tempTsDir = join(tempRoot, "ts");
 const tempJsDir = join(tempRoot, "js");
 const sourceFiles = [
+  "privacy/protocolAdapter.ts",
+  "privacy/privatePoolV2Types.ts",
+  "privacy/privatePoolV2ProofRequests.ts",
   "privacy/privatePoolV2ProtocolSettlementClient.ts",
   "privacy/vantaShieldCommittedSettlement.ts",
 ];
