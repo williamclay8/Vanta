@@ -414,6 +414,12 @@ export function ShieldPage(_props: ShieldPageProps) {
   const targetShieldStateRefreshing = isNativeSolShield
     ? nativeSolShieldSourceEntry?.isRefreshing ?? shieldStateRefreshing
     : shieldStateRefreshing;
+  const verifiedNativeSolReceiptBalance =
+    recentShield?.claimTier === "proof_receipt_verified" &&
+    recentShield.asset === "SOL" &&
+    Number.isFinite(recentShield.resultingShieldedBalance)
+      ? recentShield.resultingShieldedBalance
+      : null;
   const capability = useMemo(
     () =>
       createShieldAssetCapability({
@@ -426,7 +432,10 @@ export function ShieldPage(_props: ShieldPageProps) {
   const targetShieldSymbol = capability.targetShieldAsset?.assetKey;
   const targetShieldName = capability.targetShieldAsset?.name;
   const targetShieldedBalance = isNativeSolShield
-    ? nativeSolShieldAccount?.shieldedSolBalance ?? 0
+    ? Math.max(
+        nativeSolShieldAccount?.shieldedSolBalance ?? 0,
+        verifiedNativeSolReceiptBalance ?? 0,
+      )
     : shieldedBalance;
   const targetShieldedBalanceReadUnavailable =
     Boolean(walletConnected && capability.targetShieldAsset) &&
@@ -445,11 +454,42 @@ export function ShieldPage(_props: ShieldPageProps) {
     shieldStateHydrationTimeoutsRef.current = [];
   }, []);
 
-  const queueShieldStateHydrationRetries = useCallback((signatureHint?: string | null) => {
+  const refreshNativeSolShieldState = useCallback(async ({
+    signatureHint,
+    vaultOwner,
+  }: {
+    signatureHint?: string | null;
+    vaultOwner: string | null;
+  }) => {
+    const refreshes = new Set([
+      refreshShieldState,
+      ...shieldRegistry.entries
+        .filter((entry) => entry.asset.vaultOwner === vaultOwner)
+        .map((entry) => entry.refresh),
+    ]);
+
+    await Promise.all(
+      [...refreshes].map((refresh) =>
+        refresh({ signatureHint }).catch(() => undefined),
+      ),
+    );
+  }, [refreshShieldState, shieldRegistry.entries]);
+
+  const queueShieldStateHydrationRetries = useCallback((
+    signatureHint?: string | null,
+    nativeSolVaultOwner?: string | null,
+  ) => {
     clearShieldStateHydrationRetries();
+    const refreshHydrationState = () =>
+      nativeSolVaultOwner
+        ? refreshNativeSolShieldState({
+            signatureHint,
+            vaultOwner: nativeSolVaultOwner,
+          })
+        : refreshShieldState({ signatureHint });
 
     if (typeof window === "undefined" || typeof window.setTimeout !== "function") {
-      void refreshShieldState({ signatureHint }).catch(() => undefined);
+      void refreshHydrationState().catch(() => undefined);
       return;
     }
 
@@ -459,12 +499,16 @@ export function ShieldPage(_props: ShieldPageProps) {
           shieldStateHydrationTimeoutsRef.current.filter(
             (queuedTimeoutId) => queuedTimeoutId !== timeoutId,
           );
-        void refreshShieldState({ signatureHint }).catch(() => undefined);
+        void refreshHydrationState().catch(() => undefined);
       }, delayMs);
 
       shieldStateHydrationTimeoutsRef.current.push(timeoutId);
     }
-  }, [clearShieldStateHydrationRetries, refreshShieldState]);
+  }, [
+    clearShieldStateHydrationRetries,
+    refreshNativeSolShieldState,
+    refreshShieldState,
+  ]);
 
   useEffect(() => clearShieldStateHydrationRetries, [clearShieldStateHydrationRetries]);
 
@@ -573,11 +617,13 @@ export function ShieldPage(_props: ShieldPageProps) {
     });
 
     if (repaired || receiptHydrationMissing) {
-      void refreshShieldState().catch(() => undefined);
+      void refreshNativeSolShieldState({ signatureHint: stateSignature, vaultOwner }).catch(
+        () => undefined,
+      );
     }
   }, [
     recentShield,
-    refreshShieldState,
+    refreshNativeSolShieldState,
     selectedShieldAsset?.vaultOwner,
     targetShieldedBalance,
     walletAddress,
@@ -834,7 +880,10 @@ export function ShieldPage(_props: ShieldPageProps) {
     setRecentShield(null);
     setFlowError(null);
     setStatus("recovery_recorded");
-    void refreshShieldState({ signatureHint: deposit.signature }).catch(() => undefined);
+    void refreshNativeSolShieldState({
+      signatureHint: deposit.signature,
+      vaultOwner: selectedShieldAsset.vaultOwner,
+    }).catch(() => undefined);
   }
 
   useEffect(() => {
@@ -1306,7 +1355,10 @@ export function ShieldPage(_props: ShieldPageProps) {
             stateSignature: activeStateSignature,
             vaultOwner: activeShieldTarget.vaultOwner!,
           });
-          await refreshShieldState().catch(() => undefined);
+          await refreshNativeSolShieldState({
+            signatureHint: activeStateSignature,
+            vaultOwner: activeShieldTarget.vaultOwner!,
+          }).catch(() => undefined);
         }
 
         const receiptVerified = !protocolSettlementWarning;
@@ -1321,7 +1373,10 @@ export function ShieldPage(_props: ShieldPageProps) {
         });
 
         if (receiptVerified) {
-          queueShieldStateHydrationRetries(activeStateSignature);
+          queueShieldStateHydrationRetries(
+            activeStateSignature,
+            pendingShieldAsset === "SOL" ? activeShieldTarget.vaultOwner! : null,
+          );
         }
 
         setPendingShieldAmount(null);
@@ -1361,6 +1416,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     nativeSolShieldTransaction.signature,
     nativeSolShieldWait.stage,
     queueShieldStateHydrationRetries,
+    refreshNativeSolShieldState,
     refreshShieldState,
     runPrivateCoreShield,
     selectedShieldAsset,

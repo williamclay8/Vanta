@@ -185,12 +185,12 @@ if (
   !hasNearby(
     shieldPageSource,
     /const receiptVerified = !protocolSettlementWarning/g,
-    /queueShieldStateHydrationRetries\(activeStateSignature\)/,
+    /queueShieldStateHydrationRetries\(\s*activeStateSignature/,
     1_000,
   ) &&
   !hasNearby(
     shieldPageSource,
-    /queueShieldStateHydrationRetries\(activeStateSignature\)/g,
+    /queueShieldStateHydrationRetries\(\s*activeStateSignature/g,
     /const receiptVerified = !protocolSettlementWarning/,
     1_000,
   )
@@ -201,8 +201,8 @@ if (
 }
 
 for (const marker of [
-  "queueShieldStateHydrationRetries(activeStateSignature)",
-  "refreshShieldState({ signatureHint: activeStateSignature })",
+  "queueShieldStateHydrationRetries(",
+  "signatureHint: activeStateSignature",
 ]) {
   if (!shieldPageSource.includes(marker)) {
     failures.push(

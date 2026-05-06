@@ -359,23 +359,15 @@ function mergeRecoveredNativeSolShieldNotes(
     return account;
   }
 
-  const existingDepositSignatures = new Set(
-    account.shieldedSolNotes
-      .map((note) => note.depositSignature)
-      .filter((signature): signature is string => Boolean(signature)),
-  );
-  const existingNoteIds = new Set(account.shieldedSolNotes.map((note) => note.noteId));
-  const nextRecoveredNotes = recoveredNotes.filter(
-    (note) =>
-      !existingNoteIds.has(note.noteId) &&
-      (!note.depositSignature || !existingDepositSignatures.has(note.depositSignature)),
-  );
+  const notesByKey = new Map<string, VantaShieldedSolNote>();
 
-  if (nextRecoveredNotes.length === 0) {
-    return account;
+  for (const note of [...account.shieldedSolNotes, ...recoveredNotes]) {
+    const key = nativeSolNoteMergeKey(note);
+    const existing = notesByKey.get(key);
+    notesByKey.set(key, selectPreferredNativeSolShieldNote(existing, note));
   }
 
-  const shieldedSolNotes = [...account.shieldedSolNotes, ...nextRecoveredNotes].sort(
+  const shieldedSolNotes = [...notesByKey.values()].sort(
     (left, right) => right.createdAt - left.createdAt,
   );
   const spendableShieldedSolNotes = shieldedSolNotes.filter(
@@ -395,6 +387,36 @@ function mergeRecoveredNativeSolShieldNotes(
     shieldedSolNotes,
     spendableShieldedSolNotes,
   };
+}
+
+function nativeSolNoteMergeKey(note: VantaShieldedSolNote) {
+  return note.depositSignature ? `deposit:${note.depositSignature}` : note.noteId;
+}
+
+function selectPreferredNativeSolShieldNote(
+  existing: VantaShieldedSolNote | undefined,
+  candidate: VantaShieldedSolNote,
+) {
+  if (!existing) {
+    return candidate;
+  }
+
+  if (existing.lifecycleStatus === "consumed") {
+    return existing;
+  }
+
+  if (candidate.lifecycleStatus === "consumed") {
+    return candidate;
+  }
+
+  if (
+    existing.lifecycleStatus !== "spendable" &&
+    candidate.lifecycleStatus === "spendable"
+  ) {
+    return candidate;
+  }
+
+  return existing;
 }
 
 function reconcileLocallyReleasedSolNotes(
