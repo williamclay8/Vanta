@@ -192,6 +192,15 @@ assert.ok(
   "Shield asset state must merge receipt-verified native SOL notes while keeping pending recovery notes out of spendable SOL.",
 );
 assert.ok(
+  shieldAssetStateSource.includes("loadLocalNativeSolShieldNotes") &&
+    shieldAssetStateSource.includes("createLocalNativeSolShieldAccountState") &&
+    shieldAssetStateSource.includes("localAccountFallback") &&
+    shieldAssetStateSource.includes("throw nextError") &&
+    shieldAssetStateSource.includes("setError(null)") &&
+    shieldAssetStateSource.includes("mergeRecoveredNativeSolShieldNotes("),
+  "Shield asset state must populate receipt-backed native SOL balances from local verified notes even when the browser shield-state fetch is unavailable.",
+);
+assert.ok(
   nativeSolShieldSource.includes("getParsedTransactions"),
   "Native SOL deposit discovery must inspect parsed wallet transactions.",
 );

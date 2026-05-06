@@ -10,6 +10,10 @@ import { loadRecoveredNativeSolShieldNotes } from "@/solana/recoveredNativeSolSh
 import { useVantaShieldViewingKey } from "@/solana/useVantaShieldViewingKey";
 import { loadVerifiedNativeSolShieldNotes } from "@/solana/verifiedNativeSolShieldNotes";
 import {
+  getLiveShieldTokenAssetByMint,
+  type LiveShieldTokenAssetKey,
+} from "@/solana/shieldConfig";
+import {
   fetchVantaShieldAccountState,
   type VantaShieldAccountState,
   type VantaShieldNote,
@@ -48,18 +52,14 @@ export function useVantaShieldAssetState(args: {
     setError(null);
 
     try {
+      const localNativeSolShieldNotes = loadLocalNativeSolShieldNotes({
+        owner: walletAddress,
+        vaultOwner: args.vaultOwner,
+      });
       const [
-        nextAccount,
         locallyReleasedSolNoteReferenceHashes,
         locallyReleasedTokenNoteReferenceHashes,
       ] = await Promise.all([
-        fetchVantaShieldAccountState({
-          client,
-          mintAddress: args.mintAddress,
-          owner: walletAddress,
-          vaultOwner: args.vaultOwner,
-          viewingSecretKey: viewingKey?.secretKey,
-        }),
         args.includeLocallyReleasedSolNotes
           ? fetchLocallyReleasedSolNoteReferenceHashes().catch(() => new Set<string>())
           : Promise.resolve(new Set<string>()),
@@ -67,18 +67,44 @@ export function useVantaShieldAssetState(args: {
           ? fetchLocallyReleasedUnshieldNoteReferenceHashes(args.unshieldOperatorUrl)
           : Promise.resolve(new Set<string>()),
       ]);
+
+      let nextAccount: VantaShieldAccountState;
+
+      try {
+        nextAccount = await fetchVantaShieldAccountState({
+          client,
+          mintAddress: args.mintAddress,
+          owner: walletAddress,
+          vaultOwner: args.vaultOwner,
+          viewingSecretKey: viewingKey?.secretKey,
+        });
+      } catch (nextError) {
+        const localAccountFallback = createLocalNativeSolShieldAccountState({
+          mintAddress: args.mintAddress,
+          notes: localNativeSolShieldNotes,
+          owner: walletAddress,
+          vaultOwner: args.vaultOwner,
+        });
+
+        if (!localAccountFallback) {
+          throw nextError;
+        }
+
+        setAccount(
+          args.includeLocallyReleasedSolNotes
+            ? reconcileLocallyReleasedSolNotes(
+                localAccountFallback,
+                locallyReleasedSolNoteReferenceHashes,
+              )
+            : localAccountFallback,
+        );
+        setError(null);
+        return;
+      }
+
       const accountWithRecoveredSolNotes = mergeRecoveredNativeSolShieldNotes(
         nextAccount,
-        dedupeLocalNativeSolShieldNotes([
-          ...loadVerifiedNativeSolShieldNotes({
-            owner: walletAddress,
-            vaultOwner: args.vaultOwner,
-          }),
-          ...loadRecoveredNativeSolShieldNotes({
-            owner: walletAddress,
-            vaultOwner: args.vaultOwner,
-          }),
-        ]),
+        localNativeSolShieldNotes,
       );
       const accountWithReleasedTokenNotes = reconcileLocallyReleasedShieldNotes(
         accountWithRecoveredSolNotes,
@@ -125,6 +151,16 @@ export function useVantaShieldAssetState(args: {
   };
 }
 
+function loadLocalNativeSolShieldNotes(args: {
+  owner: string;
+  vaultOwner: string;
+}): VantaShieldedSolNote[] {
+  return dedupeLocalNativeSolShieldNotes([
+    ...loadVerifiedNativeSolShieldNotes(args),
+    ...loadRecoveredNativeSolShieldNotes(args),
+  ]);
+}
+
 function dedupeLocalNativeSolShieldNotes(
   notes: readonly VantaShieldedSolNote[],
 ): VantaShieldedSolNote[] {
@@ -140,6 +176,78 @@ function dedupeLocalNativeSolShieldNotes(
   }
 
   return [...notesByKey.values()];
+}
+
+function createLocalNativeSolShieldAccountState(args: {
+  mintAddress: string;
+  notes: readonly VantaShieldedSolNote[];
+  owner: string;
+  vaultOwner: string;
+}): VantaShieldAccountState | null {
+  if (args.notes.length === 0) {
+    return null;
+  }
+
+  const asset = getLiveShieldTokenAssetByMint(args.mintAddress)?.assetKey ?? "USDC";
+  const shieldedSolNotes = [...args.notes].sort((left, right) => right.createdAt - left.createdAt);
+  const spendableShieldedSolNotes = shieldedSolNotes.filter(
+    (note) => note.lifecycleStatus === "spendable",
+  );
+  const consumedShieldedSolNotes = shieldedSolNotes.filter(
+    (note) => note.lifecycleStatus === "consumed",
+  );
+  const shieldedSolBalance = Number(
+    spendableShieldedSolNotes.reduce((sum, note) => sum + note.amount, 0).toFixed(9),
+  );
+  const lifecycleActivities = shieldedSolNotes.map((note) => ({
+    amount: note.amount,
+    amountLabel: `${note.amount.toFixed(4)} SOL`,
+    createdAt: note.createdAt,
+    description:
+      note.lifecycleStatus === "spendable"
+        ? "Receipt-backed native SOL Shield note resolved from local verified evidence."
+        : "Native SOL Shield deposit is pending shield-state reconciliation.",
+    impact: "public_to_shielded" as const,
+    noteId: note.noteId,
+    sourceState: "Public Wallet" as const,
+    targetState: "Shielded State" as const,
+    title: note.lifecycleStatus === "spendable" ? "Shielded SOL verified" : "Shielded SOL pending",
+    type: "shield" as const,
+  }));
+
+  return {
+    accountId: `local-native-sol:${args.owner}:${args.vaultOwner}:${args.mintAddress}`,
+    activity: [],
+    asset: asset as LiveShieldTokenAssetKey,
+    balance: 0,
+    changeNotes: [],
+    consumedShieldedSolNotes,
+    lifecycleActivities,
+    mintAddress: args.mintAddress,
+    noteStates: [],
+    noteStatusSummary: {
+      changeDerived: 0,
+      consumed: 0,
+      spendable: 0,
+      swapDerived: 0,
+      total: 0,
+    },
+    owner: args.owner,
+    sendNotes: [],
+    shieldNotes: [],
+    shieldedSolBalance,
+    shieldedSolNotes,
+    solUnshieldNotes: [],
+    source: "vanta_onchain_notes",
+    spendableShieldedSolNotes,
+    spendableShieldNotes: [],
+    spentMarkers: [],
+    spentShieldNotes: [],
+    status: "ready",
+    swapNotes: [],
+    unshieldNotes: [],
+    vaultOwner: args.vaultOwner,
+  } satisfies VantaShieldAccountState;
 }
 
 function reconcileLocallyReleasedShieldNotes(
