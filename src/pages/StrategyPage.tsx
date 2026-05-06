@@ -536,7 +536,7 @@ export function StrategyPage() {
             <div className="shield-card__header strategy-card__header">
               <div>
                 <span className="strategy-kicker">Strategy receipt packet</span>
-                <h2>Proof-backed packet preview</h2>
+                <h2>Hash-bound packet preview</h2>
               </div>
               <strong>{privateCoreHoldState ? "Ready to preview" : "Shielded private-core note required"}</strong>
             </div>

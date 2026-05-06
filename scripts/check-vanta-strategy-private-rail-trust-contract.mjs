@@ -52,7 +52,7 @@ const pageSource = requireMarkers("src/pages/StrategyPage.tsx", [
   "strategyPrivateRailTrustContract",
   "Strategy trust packet",
   "Strategy receipt packet",
-  "Proof-backed packet preview",
+  "Hash-bound packet preview",
   "Operator plaintext shared",
   "Shielded private-core note required",
   "Live private strategy claims stay locked until readiness, operator, audit, and mainnet gates pass.",
