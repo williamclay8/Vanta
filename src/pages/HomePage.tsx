@@ -75,7 +75,7 @@ export function HomePage() {
       </nav>
 
       <section className="landing-minimal__hero">
-        <div className="landing-minimal__kicker">Shield-first supported settlement privacy</div>
+        <div className="landing-minimal__kicker">Privacy rails for supported settlement</div>
         <h1>
           Make supported Solana activity
           <span> less public.</span>

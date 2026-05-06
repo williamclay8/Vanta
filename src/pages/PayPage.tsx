@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
 import { VANTA_PAY_ASSET_SYMBOLS, type VantaPayAsset } from "@/pay/vantaPayAssets";
 import { VANTA_PAY_MERCHANT_COMMAND_CENTER } from "@/pay/vantaPayMerchantCommandCenter";
+import { VANTA_PAY_MERCHANT_DEMO_CONTENT } from "@/pay/vantaPayMerchantDemoContent";
 import { getVantaPayReceiptPrivacyContract } from "@/pay/vantaPayReceiptPrivacyContract";
 import { buildVantaPayReceiptPublicView } from "@/pay/vantaPayReceiptPublicView";
 import { createVantaPayRuntime } from "@/pay/vantaPayRuntime";
@@ -350,9 +351,10 @@ export function PayPage() {
               <span>Production privacy claims remain locked.</span>
             </div>
           </div>
-          <div className="module-state">
-            <strong>Receipt-backed</strong>
-            <p>Counterparties can inspect the payment record while private rail details stay scoped.</p>
+          <div className="module-state module-state--pay-demo">
+            <span className="pay-kicker">{VANTA_PAY_MERCHANT_DEMO_CONTENT.eyebrow}</span>
+            <strong>{VANTA_PAY_MERCHANT_DEMO_CONTENT.title}</strong>
+            <p>{VANTA_PAY_MERCHANT_DEMO_CONTENT.body}</p>
           </div>
         </header>
 
@@ -575,6 +577,7 @@ export function PayPage() {
                 </button>
                 <button
                   className="pay-workflow-action"
+                  data-pay-action="view-receipt"
                   disabled={phase !== "settlement_complete"}
                   onClick={viewReceiptPacket}
                   type="button"
@@ -771,6 +774,34 @@ export function PayPage() {
                 <p>
                   <span>Buyer preview links</span>
                   Create a payment request, then copy the buyer preview link.
+                </p>
+                <p>
+                  <span>Settlement lifecycle</span>
+                  Preview, approve, execute, and settle stay separate.
+                </p>
+                <p>
+                  <span>Privacy readiness</span>
+                  Production privacy claims are not enabled yet.
+                </p>
+                <p>
+                  <span>Operator status</span>
+                  Pay status and merchant API checks remain the source of truth.
+                </p>
+                <p>
+                  <span>Settlement queue</span>
+                  Awaiting approval packet.
+                </p>
+                <p>
+                  <span>Refunds: merchant-visible</span>
+                  Refund actions preserve idempotency and receipt-adjusted balances.
+                </p>
+                <p>
+                  <span>Withdrawals: merchant-visible</span>
+                  Withdrawals require a private-exit receipt before completed status.
+                </p>
+                <p>
+                  <span>Reconciliation: merchant-visible</span>
+                  Payments, receipts, refunds, withdrawals, and private receipts share stable IDs.
                 </p>
                 <p>
                   <span>Invoices</span>
