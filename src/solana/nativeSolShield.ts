@@ -44,6 +44,10 @@ export function isNativeSolSourceAccountNotReadyError(error: unknown) {
 const cachedBalanceReadConnections = new Map<string, Connection>();
 const NATIVE_SOL_SHIELD_RPC_RETRY_DELAYS_MS = [250, 750, 1_500] as const;
 const NATIVE_SOL_SHIELD_PARSED_TRANSACTION_RETRY_DELAYS_MS = [500, 1_500, 3_000, 5_000, 8_000] as const;
+const VANTA_NATIVE_SOL_SHIELD_MEMO_PREFIXES = [
+  "vanta:native-sol-shield-note:v1:",
+  "vanta:native-sol-shield-note:v2:",
+] as const;
 
 function getNativeSolShieldBalanceReadEndpoints() {
   return readRpcFallbackEndpoints;
@@ -292,6 +296,93 @@ function amountDisplayToLamports(amountDisplay: string) {
   return Number(solToLamports(amountDisplay));
 }
 
+function readParsedMemoPayloadText(
+  value: unknown,
+  options: { allowBareString?: boolean } = {},
+): string | null {
+  if (typeof value === "string") {
+    return options.allowBareString ? value : null;
+  }
+
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const parsed = value as Record<string, unknown>;
+
+  for (const key of ["memo", "data", "message", "text", "info"]) {
+    const field = parsed[key];
+
+    if (typeof field === "string") {
+      return field;
+    }
+
+    if (field && typeof field === "object") {
+      const memo = readParsedMemoPayloadText(field, { allowBareString: false });
+
+      if (memo) {
+        return memo;
+      }
+    }
+  }
+
+  for (const [key, field] of Object.entries(parsed)) {
+    if (["memo", "data", "message", "text", "info"].includes(key)) {
+      continue;
+    }
+
+    const memo = readParsedMemoPayloadText(field, { allowBareString: false });
+
+    if (memo) {
+      return memo;
+    }
+  }
+
+  return null;
+}
+
+function readParsedMemoText(instruction: unknown) {
+  if (!instruction || typeof instruction !== "object") {
+    return null;
+  }
+
+  const parsedInstruction = instruction as {
+    parsed?: unknown;
+    program?: unknown;
+    programId?: { toBase58?: () => string } | string;
+  };
+  const programId =
+    typeof parsedInstruction.programId === "string"
+      ? parsedInstruction.programId
+      : parsedInstruction.programId?.toBase58?.();
+  const isMemoInstruction =
+    parsedInstruction.program === "spl-memo" || programId === "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
+
+  if (!isMemoInstruction) {
+    return null;
+  }
+
+  return readParsedMemoPayloadText(parsedInstruction.parsed, { allowBareString: true });
+}
+
+function transactionContainsNativeSolShieldMemo(transaction: unknown) {
+  const instructions =
+    typeof transaction === "object" && transaction !== null
+      ? (transaction as {
+          transaction?: { message?: { instructions?: unknown } };
+        }).transaction?.message?.instructions
+      : null;
+
+  if (!Array.isArray(instructions)) {
+    return false;
+  }
+
+  return instructions.some((instruction) => {
+    const memo = readParsedMemoText(instruction);
+    return VANTA_NATIVE_SOL_SHIELD_MEMO_PREFIXES.some((prefix) => memo?.includes(prefix));
+  });
+}
+
 export function readNativeSolShieldTransactionTransferLamports(args: {
   owner: string;
   transaction: unknown;
@@ -403,6 +494,10 @@ export async function fetchNativeSolShieldDepositCandidates(args: {
 
   return transactions.flatMap((transaction, index): NativeSolShieldDepositCandidate[] => {
     if (!transaction) {
+      return [];
+    }
+
+    if (transactionContainsNativeSolShieldMemo(transaction)) {
       return [];
     }
 

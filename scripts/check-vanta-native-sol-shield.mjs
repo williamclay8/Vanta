@@ -222,6 +222,24 @@ assert.ok(
   "Native SOL shield helper must expose recoverable vault deposit discovery.",
 );
 assert.ok(
+  nativeSolShieldSource.includes("VANTA_NATIVE_SOL_SHIELD_MEMO_PREFIXES") &&
+    nativeSolShieldSource.includes("transactionContainsNativeSolShieldMemo") &&
+    /transactionContainsNativeSolShieldMemo\(transaction\)[\s\S]{0,400}return \[\]/.test(
+      nativeSolShieldSource,
+    ),
+  "Native SOL recovery discovery must skip transactions that already contain a Vanta native SOL Shield memo.",
+);
+assert.ok(
+  shieldPageSource.includes("recordSameSessionNativeSolShieldDeposit") &&
+    shieldPageSource.includes("nativeSolShieldTransaction.signature") &&
+    shieldPageSource.includes("pendingDepositSignature") &&
+    shieldPageSource.includes("claimTier: \"local_shield_state\"") &&
+    /function beginNativeSolShieldDepositRecovery[\s\S]{0,900}recordSameSessionNativeSolShieldDeposit\(deposit\)/.test(
+      shieldPageSource,
+    ),
+  "Native SOL recovery must promote the active same-session Shield signature into local shield state instead of pending recovery.",
+);
+assert.ok(
   verifiedNativeSolNotesSource.includes("vanta.verifiedNativeSolShieldNotes.v1") &&
     verifiedNativeSolNotesSource.includes("VERIFIED_NATIVE_SOL_SHIELD_NOTES_CHANGED_EVENT") &&
     verifiedNativeSolNotesSource.includes("VERIFIED_NATIVE_SOL_SHIELD_NOTES_STORAGE_KEY") &&

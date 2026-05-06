@@ -303,6 +303,7 @@ export function ShieldPage(_props: ShieldPageProps) {
   const [recoverableSolDepositsError, setRecoverableSolDepositsError] = useState<string | null>(null);
   const recordedStateSignatureRef = useRef<string | null>(null);
   const recordedTokenDepositSignatureRef = useRef<string | null>(null);
+  const queuedNativeSolHydrationSignatureRef = useRef<string | null>(null);
   const repairedNativeSolReceiptRef = useRef<string | null>(null);
   const shieldStateHydrationTimeoutsRef = useRef<number[]>([]);
 
@@ -857,9 +858,95 @@ export function ShieldPage(_props: ShieldPageProps) {
     });
   }
 
+  function recordSameSessionNativeSolShieldDeposit(deposit: NativeSolShieldDepositCandidate) {
+    if (!walletAddress || !selectedShieldAsset?.vaultOwner) {
+      return false;
+    }
+
+    const activeShieldTarget = selectedShieldAsset;
+    const activeVaultOwner = selectedShieldAsset.vaultOwner;
+    if (!activeVaultOwner) {
+      return false;
+    }
+    const isActiveSameSessionShield =
+      deposit.signature === nativeSolShieldTransaction.signature ||
+      deposit.signature === pendingDepositSignature ||
+      (recentShield?.asset === "SOL" &&
+        (deposit.signature === recentShield.signature ||
+          deposit.signature === recentShield.depositSignature));
+
+    if (!isActiveSameSessionShield) {
+      return false;
+    }
+
+    const sameSessionAmount =
+      pendingShieldAmount ??
+      (recentShield?.asset === "SOL" ? recentShield.amount : null);
+    const amountMatches =
+      sameSessionAmount !== null &&
+      Number.isFinite(sameSessionAmount) &&
+      Math.abs(sameSessionAmount - deposit.amount) <= 0.000000001;
+    const refreshSameSessionShieldState = () => {
+      void refreshNativeSolShieldState({
+        signatureHint: deposit.signature,
+        vaultOwner: activeVaultOwner,
+      }).catch(() => undefined);
+      queueShieldStateHydrationRetries(deposit.signature, activeVaultOwner);
+    };
+
+    setRecoverableSolDeposits((deposits) =>
+      deposits.filter((candidate) => candidate.signature !== deposit.signature),
+    );
+    setPendingDepositSignature(deposit.signature);
+    setPendingShieldAsset("SOL");
+    setPendingShieldTarget(activeShieldTarget);
+    setFlowError(null);
+
+    if (!amountMatches || sameSessionAmount === null) {
+      setStatus("entering_shielded_state");
+      refreshSameSessionShieldState();
+      return true;
+    }
+
+    const recordedAt = Date.now();
+    recordVerifiedNativeSolShieldNote({
+      amount: sameSessionAmount,
+      createdAt: recordedAt,
+      depositSignature: deposit.signature,
+      owner: walletAddress,
+      stateSignature: deposit.signature,
+      vaultOwner: activeVaultOwner,
+    });
+    setRecentShield({
+      amount: sameSessionAmount,
+      asset: "SOL",
+      claimTier: "local_shield_state",
+      depositSignature: deposit.signature,
+      resultingShieldedBalance: Number((targetShieldedBalance + sameSessionAmount).toFixed(9)),
+      settlement: "confirmed_deposit",
+      signature: deposit.signature,
+      source: "shield",
+      timestamp: recordedAt,
+    });
+    setPendingShieldAmount(null);
+    setPendingShieldAmountDisplay(null);
+    setPendingDepositSignature(null);
+    setPendingShieldAsset(null);
+    setPendingShieldTarget(null);
+    setPendingProtocolSettlement(null);
+    setPendingUmbraApprovalDisplay(null);
+    setStatus("complete");
+    refreshSameSessionShieldState();
+    return true;
+  }
+
   function beginNativeSolShieldDepositRecovery(deposit: NativeSolShieldDepositCandidate) {
     if (!walletAddress || !selectedSourceAsset?.mintAddress || !selectedShieldAsset?.vaultOwner) {
       throw new Error("Native SOL shield recovery target is not configured.");
+    }
+
+    if (recordSameSessionNativeSolShieldDeposit(deposit)) {
+      return;
     }
 
     recordRecoveredNativeSolShieldNote({
@@ -910,11 +997,28 @@ export function ShieldPage(_props: ShieldPageProps) {
     if (nativeSolShieldTransaction.status === "success" && nativeSolShieldTransaction.signature) {
       setStatus("entering_shielded_state");
       setPendingDepositSignature(nativeSolShieldTransaction.signature);
+      if (
+        selectedShieldAsset?.vaultOwner &&
+        queuedNativeSolHydrationSignatureRef.current !== nativeSolShieldTransaction.signature
+      ) {
+        queuedNativeSolHydrationSignatureRef.current = nativeSolShieldTransaction.signature;
+        void refreshNativeSolShieldState({
+          signatureHint: nativeSolShieldTransaction.signature,
+          vaultOwner: selectedShieldAsset.vaultOwner,
+        }).catch(() => undefined);
+        queueShieldStateHydrationRetries(
+          nativeSolShieldTransaction.signature,
+          selectedShieldAsset.vaultOwner,
+        );
+      }
     }
   }, [
     nativeSolShieldTransaction.error,
     nativeSolShieldTransaction.signature,
     nativeSolShieldTransaction.status,
+    queueShieldStateHydrationRetries,
+    refreshNativeSolShieldState,
+    selectedShieldAsset?.vaultOwner,
   ]);
 
   useEffect(() => {
@@ -1445,6 +1549,7 @@ export function ShieldPage(_props: ShieldPageProps) {
 
     recordedStateSignatureRef.current = null;
     recordedTokenDepositSignatureRef.current = null;
+    queuedNativeSolHydrationSignatureRef.current = null;
     publicRouteTransaction.reset();
     splShieldTransferTransaction.reset();
     nativeSolShieldTransaction.reset();

@@ -258,7 +258,7 @@ function createLocalNativeSolShieldAccountState(args: {
     createdAt: note.createdAt,
     description:
       note.lifecycleStatus === "spendable"
-        ? "Receipt-backed native SOL Shield note resolved from local verified evidence."
+        ? "Locally verified native SOL Shield note resolved from transaction evidence."
         : "Native SOL Shield deposit is pending shield-state reconciliation.",
     impact: "public_to_shielded" as const,
     noteId: note.noteId,
