@@ -2565,7 +2565,10 @@ export function UnshieldPage() {
               <div className="swap-module__field unshield-ticket__field unshield-ticket__field--from">
                 <div className="swap-module__label-row">
                   <span>Shielded asset</span>
-                  <div className="send-balance-line shield-helper shield-helper--meta">
+                  <div
+                    aria-label="Ledger spendable shielded balances"
+                    className="send-balance-line shield-helper shield-helper--meta"
+                  >
                     Spendable note: {formatUnshieldAmount(selectedFullAmount, selectedLane)}
                   </div>
                 </div>
@@ -2577,7 +2580,7 @@ export function UnshieldPage() {
                   >
                     {availableLaneOptions.map((option) => (
                       <option key={option.lane} value={option.lane}>
-                        {formatAvailableLaneLabel(option.lane, option.amount)}
+                        {`${formatShieldedLaneLabel(option.lane)} - ${formatUnshieldAmount(option.amount, option.lane)} ledger spendable`}
                       </option>
                     ))}
                   </select>

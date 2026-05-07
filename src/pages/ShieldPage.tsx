@@ -52,6 +52,7 @@ import { buildSplTokenShieldTransferInstructions } from "@/solana/splShieldTrans
 import { useWalletPublicAssets } from "@/solana/useWalletPublicAssets";
 import { useVantaShieldAssetRegistryState } from "@/solana/useVantaShieldAssetRegistryState";
 import { useVantaShieldViewingKey } from "@/solana/useVantaShieldViewingKey";
+import { toVantaWalletAuthorizationRecoveryMessage } from "@/wallet/walletAuthorizationError.mjs";
 import {
   createNativeSolShieldMemoInstruction,
   createShieldMemoInstruction,
@@ -103,6 +104,11 @@ function toErrorMessage(error: unknown, fallback: string) {
       ? (error as { context?: { message?: unknown; statusCode?: unknown }; __code?: unknown })
       : null;
   const code = maybeContext?.__code;
+  const walletAuthorizationMessage = toVantaWalletAuthorizationRecoveryMessage(error);
+
+  if (walletAuthorizationMessage) {
+    return walletAuthorizationMessage;
+  }
 
   if (isSolanaRpcRateLimitError(error)) {
     return "The public Solana RPC is rate-limited while checking this Shield transaction. Vanta did not ask for another transfer; wait a moment or use recovery if the deposit already landed.";

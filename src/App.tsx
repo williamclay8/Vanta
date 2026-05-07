@@ -1,10 +1,7 @@
 import React, { Suspense, lazy } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { SolanaProvider } from "@solana/react-hooks";
-import {
-  type WalletConnector,
-  watchWalletStandardConnectors,
-} from "@solana/client";
+import type { WalletConnector } from "@solana/client";
 import { AppLayout } from "@/components/AppLayout";
 import { PrivateVaultProvider } from "@/data/context/PrivateVaultContext";
 import { PrivacyFlowProvider } from "@/data/context/PrivacyFlowContext";
@@ -22,6 +19,7 @@ import { UnshieldPage } from "@/pages/UnshieldPage";
 import {
   createSolanaClient,
   discoverWalletConnectors,
+  watchVantaWalletStandardConnectors,
 } from "@/solana/client";
 const DocsLayout = lazy(() =>
   import("@/components/DocsLayout").then((m) => ({ default: m.DocsLayout })),
@@ -66,7 +64,7 @@ function SolanaRootProvider({ children }: { children: React.ReactNode }) {
   );
 
   React.useEffect(() => {
-    const stopWatching = watchWalletStandardConnectors((nextConnectors) => {
+    const stopWatching = watchVantaWalletStandardConnectors((nextConnectors) => {
       setWalletConnectors((currentConnectors) => {
         const currentSignature = getConnectorSignature(currentConnectors);
         const nextSignature = getConnectorSignature(nextConnectors);

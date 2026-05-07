@@ -186,7 +186,7 @@
     "umbra:unshield-action-review-check": "node scripts/check-vanta-umbra-unshield-action-review.mjs",
     "wallet:live-send-inventory-check": "node scripts/check-vanta-wallet-live-send-inventory.mjs",
     "wallet:safe-send-boundary-check": "node scripts/check-vanta-wallet-safe-send-boundary.mjs",
-    "wallet:safe-send-hook-check": "node scripts/check-vanta-wallet-safe-send-hook.mjs",
+    "wallet:safe-send-hook-check": "node scripts/check-vanta-wallet-safe-send-hook.mjs && node scripts/check-vanta-wallet-authorization-error.mjs",
     "shield:safe-send-adoption-check": "node scripts/check-vanta-shield-safe-send-adoption.mjs",
     "send:safe-send-adoption-check": "node scripts/check-vanta-send-safe-send-adoption.mjs",
     "swap:safe-send-adoption-check": "node scripts/check-vanta-swap-safe-send-adoption.mjs",
