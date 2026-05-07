@@ -49,11 +49,15 @@ assert(
 for (const phrase of [
   "isCanonicalTokenSpendableNote",
   "isCanonicalSolSpendableNote",
+  'stateSignature.startsWith("local-sol-shield-state:")',
+  'sourceSwapNoteId === "native-sol-shield-state"',
   "canonicalSpendableShieldNotesByLane",
   "sumSpendableAmounts(spendableSolNotes, 9)",
   "sumSpendableAmounts(canonicalSpendableShieldNotesByLane[lane], 6)",
   'aria-label="Unshield asset"',
-  "formatAvailableLaneLabel(option.lane, option.amount)",
+  "formatShieldedLaneLabel(option.lane)",
+  "formatUnshieldAmount(option.amount, option.lane)",
+  "ledger spendable",
   "selected ledger-spendable note",
   "Operator release signature returned",
 ]) {
@@ -113,12 +117,20 @@ assert(
 
 assert(
   operatorStateClientSource.includes("createUnshieldConsumedNoteReferenceHash") &&
+    operatorStateClientSource.includes("recordLocallyReleasedSolNoteReferenceHash") &&
+    operatorStateClientSource.includes("loadLocallyReleasedSolNoteReferenceHashes") &&
     operatorStateClientSource.includes("fetchLocallyReleasedUnshieldNoteReferenceHashes") &&
     operatorStateClientSource.includes("fetchLocallyReleasedSolNoteReferenceHashes") &&
     operatorStateClientSource.includes("../state/unshield-records") &&
     operatorStateClientSource.includes("consumedNoteReferenceHashes") &&
     operatorStateClientSource.includes("parseConsumedNoteReferenceHashes"),
   "operatorStateClient must fetch hashed token/SOL Unshield release records by consumed note reference hash.",
+);
+assert(
+  solOperatorClientSource.includes("recordLocallyReleasedSolNoteReferenceHash(payload.consumedNoteId)") &&
+    shieldAssetStateSource.includes("LOCALLY_RELEASED_SOL_NOTE_REFERENCE_HASHES_CHANGED_EVENT") &&
+    shieldAssetStateSource.includes("LOCALLY_RELEASED_SOL_NOTE_REFERENCE_HASHES_STORAGE_KEY"),
+  "SOL Unshield must record local release state immediately and refresh shield asset state when local SOL release reconciliation changes.",
 );
 assert(
   shieldAssetStateSource.includes("fetchLocallyReleasedUnshieldNoteReferenceHashes") &&

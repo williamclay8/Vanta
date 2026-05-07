@@ -78,9 +78,10 @@ assert.ok(
 );
 assert.ok(
   positionSummaryHookSource.includes('note.stateSignature.startsWith("local-sol-recovery:")') &&
+    positionSummaryHookSource.includes('note.stateSignature.startsWith("local-sol-shield-state:")') &&
     positionSummaryHookSource.includes('note.lifecycleStatus === "pending"') &&
     positionSummaryHookSource.includes("pendingRecoveredShieldedSolBalance"),
-  "Status must expose pending local-recovery shielded SOL separately from confirmed on-chain SOL.",
+  "Status must expose pending local SOL evidence separately from confirmed on-chain SOL.",
 );
 assert.ok(
   positionSummaryHookSource.includes("const shieldedSolBalance = confirmedShieldedSolBalance") &&
@@ -100,7 +101,7 @@ assert.ok(
     shieldAssetStateSource.indexOf("const accountWithReleasedTokenNotes = reconcileLocallyReleasedShieldNotes(") &&
     shieldAssetStateSource.indexOf("const accountWithReleasedTokenNotes = reconcileLocallyReleasedShieldNotes(") <
       shieldAssetStateSource.indexOf(
-        "reconcileLocallyReleasedSolNotes(\n              accountWithReleasedTokenNotes,\n              locallyReleasedSolNoteReferenceHashes,",
+        "reconcileLocallyReleasedSolNotes(\n            accountWithReleasedTokenNotes,\n            locallyReleasedSolNoteReferenceHashes,",
       ),
   "Recovered native SOL notes must be merged before token and SOL release reconciliation so released notes cannot reappear as spendable.",
 );

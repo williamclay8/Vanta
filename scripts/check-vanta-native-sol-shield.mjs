@@ -100,7 +100,7 @@ assert.ok(
     shieldPageSource.includes("pendingShieldAsset === \"SOL\"") &&
     shieldPageSource.includes("protocolSettlement && !protocolSettlementWarning") &&
     shieldPageSource.includes("await refreshNativeSolShieldState"),
-  "Native SOL Shield receipt verification must promote the deposit into the local spendable SOL ledger and refresh the balance.",
+  "Native SOL Shield receipt verification must persist pending local receipt evidence and refresh the canonical SOL ledger.",
 );
 assert.ok(
   shieldPageSource.includes("nativeSolLocalShieldStateNote") &&
@@ -110,7 +110,7 @@ assert.ok(
     /const nativeSolLocalShieldStateNote[\s\S]{0,5000}requestVantaPrivatePoolV2BrowserShieldReceipt/.test(
       shieldPageSource,
     ),
-  "Native SOL Shield must persist a local spendable SOL note from same-transaction evidence before the proof-receipt check, so Unshield and remounts can read it.",
+  "Native SOL Shield must persist pending local same-transaction receipt evidence before the proof-receipt check, so remounts can hydrate the canonical ledger.",
 );
 assert.ok(
   /const targetShieldedBalanceLabel[\s\S]{0,500}!\s*isNativeSolShield[\s\S]{0,260}supportedToken\?\.status === "loading"[\s\S]{0,260}targetShieldStateRefreshing/.test(
@@ -125,7 +125,7 @@ assert.ok(
     shieldPageSource.includes("hasVerifiedNativeSolShieldNote") &&
     shieldPageSource.includes("recordVerifiedNativeSolShieldNote") &&
     shieldPageSource.includes("refreshNativeSolShieldState"),
-  "Shield page must repair missing local spendable SOL ledger notes from an already verified native SOL proof receipt.",
+  "Shield page must repair missing pending local SOL receipt evidence from an already verified native SOL proof receipt.",
 );
 assert.ok(
   !shieldPageSource.includes("autoRecoverSolDepositSignatureRef") &&
@@ -259,10 +259,10 @@ assert.ok(
     verifiedNativeSolNotesSource.includes("hasVerifiedNativeSolShieldNote") &&
     verifiedNativeSolNotesSource.includes("loadVerifiedNativeSolShieldNotes") &&
     verifiedNativeSolNotesSource.includes("loadVerifiedNativeSolShieldDepositSignatures") &&
-    verifiedNativeSolNotesSource.includes('lifecycleStatus: "spendable"') &&
+    verifiedNativeSolNotesSource.includes('lifecycleStatus: "pending"') &&
     verifiedNativeSolNotesSource.includes('sourceSwapNoteId: "native-sol-shield-state"') &&
     verifiedNativeSolNotesSource.includes("local-sol-shield-state:"),
-  "Verified native SOL shield-state deposits must have a local spendable ledger-note store distinct from pending recovery notes.",
+  "Verified native SOL shield-state deposits must stay local pending evidence until the on-chain memo/transfer ledger reconstructs them as spendable.",
 );
 assert.ok(
   shieldPageSource.includes("const activeDepositSignature =") &&
@@ -289,15 +289,29 @@ assert.ok(
     shieldAssetStateSource.includes("throw nextError") &&
     shieldAssetStateSource.includes("setError(null)") &&
     shieldAssetStateSource.includes("mergeRecoveredNativeSolShieldNotes("),
-  "Shield asset state must populate receipt-backed native SOL balances from local verified notes even when the browser shield-state fetch is unavailable.",
+  "Shield asset state must keep local verified native SOL notes available as pending evidence when browser shield-state fetch is unavailable.",
 );
 assert.ok(
   shieldAssetStateSource.includes("selectPreferredNativeSolShieldNote") &&
-    shieldAssetStateSource.includes('candidate.lifecycleStatus === "spendable"') &&
     shieldAssetStateSource.includes('existing.lifecycleStatus === "consumed"') &&
+    shieldAssetStateSource.includes('candidate.lifecycleStatus === "consumed"') &&
+    /if \(\s*existing\.lifecycleStatus !== "spendable"\s*\) \{\s*return existing;\s*\}/.test(
+      shieldAssetStateSource,
+    ) &&
+    !/candidate\.sourceSwapNoteId === "native-sol-shield-state"[\s\S]{0,180}existing\.sourceSwapNoteId === "native-sol-shield"/.test(
+      shieldAssetStateSource,
+    ) &&
     shieldAssetStateSource.includes("nativeSolNoteMergeKey") &&
     !/existingDepositSignatures[\s\S]{0,500}nextRecoveredNotes/.test(shieldAssetStateSource),
-  "Shield asset state must merge local verified native SOL receipt notes by spendability so same-deposit pending/recovery notes cannot suppress a spendable verified receipt.",
+  "Shield asset state must preserve canonical native SOL lifecycle and must not promote local verified same-deposit aliases over raw on-chain spendable evidence.",
+);
+assert.ok(
+  shieldAssetStateSource.includes("reconcileVaultBackedSolNotes") &&
+    shieldAssetStateSource.includes("vaultSolLamports ?? 0n") &&
+    !/vaultSolLamports === null\s*\|\|\s*account\.spendableShieldedSolNotes\.length === 0/.test(
+      shieldAssetStateSource,
+    ),
+  "Shield asset state must fail closed when native SOL vault backing cannot be read, rather than leaving spendable SOL visible.",
 );
 assert.ok(
   shieldPageSource.includes("receiptHydrationMissing") &&
@@ -315,11 +329,11 @@ assert.ok(
   "Shield page must refresh the registry lane matching the verified native SOL vault owner, not only the currently selected lane.",
 );
 assert.ok(
-  shieldPageSource.includes("recordVerifiedNativeSolShieldNote") &&
+    shieldPageSource.includes("recordVerifiedNativeSolShieldNote") &&
     shieldPageSource.includes("await refreshNativeSolShieldState({") &&
     shieldPageSource.includes("signatureHint: activeStateSignature") &&
     shieldPageSource.includes("vaultOwner: activeShieldTarget.vaultOwner!"),
-  "Native SOL proof-receipt finalization must persist the local spendable note and refresh the matching vault lane with the just-confirmed signature.",
+  "Native SOL proof-receipt finalization must persist pending local receipt evidence and refresh the matching vault lane with the just-confirmed signature.",
 );
 assert.ok(
   /const repaired = repairVerifiedNativeSolShieldNote\([\s\S]{0,900}if \(repaired \|\| receiptHydrationMissing\)[\s\S]{0,700}refreshNativeSolShieldState\(\{\s*signatureHint:\s*stateSignature,\s*vaultOwner\s*\}\)/.test(
@@ -334,7 +348,7 @@ assert.ok(
     shieldPageSource.includes("const nativeSolShieldAccount = nativeSolShieldSourceEntry?.account ?? shieldAccount") &&
     shieldPageSource.includes("const targetShieldStateRefreshing") &&
     shieldPageSource.includes("targetShieldedBalance <= 0"),
-  "Shield page must display receipt-backed native SOL from the registry lane that actually hydrated the local spendable SOL ledger, without hiding a non-zero SOL balance behind background refresh.",
+  "Shield page must display on-chain ledger-backed native SOL from the registry lane that actually hydrated spendable SOL, without hiding a non-zero SOL balance behind background refresh.",
 );
 assert.ok(
   !shieldPageSource.includes("verifiedNativeSolReceiptBalance") &&

@@ -38,9 +38,15 @@ const unshieldPageSource = readRepoFile("src/pages/UnshieldPage.tsx");
 const recoveredNativeSolShieldNotesSource = readRepoFile(
   "src/solana/recoveredNativeSolShieldNotes.ts",
 );
+const nativeSolShieldSource = readRepoFile("src/solana/nativeSolShield.ts");
 const shieldAssetStateSource = readRepoFile("src/solana/useVantaShieldAssetState.ts");
 const shieldAssetRegistrySource = readRepoFile("src/solana/useVantaShieldAssetRegistryState.ts");
 const shieldStateSource = readRepoFile("src/solana/vantaShieldState.ts");
+const operatorStateClientSource = readRepoFile("src/solana/operatorStateClient.ts");
+const solUnshieldOperatorClientSource = readRepoFile("src/solana/solUnshieldOperatorClient.ts");
+const verifiedNativeSolShieldNotesSource = readOptionalRepoFile(
+  "src/solana/verifiedNativeSolShieldNotes.ts",
+);
 const verifiedSplShieldNotesSource = readOptionalRepoFile(
   "src/solana/verifiedSplShieldNotes.ts",
 );
@@ -166,6 +172,91 @@ if (
 if (recoveredNotesUsePendingLifecycle && !shieldAssetStateFiltersSpendableLifecycle) {
   failures.push(
     "useVantaShieldAssetState must keep lifecycleStatus=pending recovered SOL notes out of spendableShieldedSolNotes.",
+  );
+}
+
+for (const marker of [
+  "LOCALLY_RELEASED_SOL_NOTE_REFERENCE_HASHES_STORAGE_KEY",
+  "LOCALLY_RELEASED_SOL_NOTE_REFERENCE_HASHES_CHANGED_EVENT",
+  "loadLocallyReleasedSolNoteReferenceHashes",
+  "recordLocallyReleasedSolNoteReferenceHash",
+]) {
+  if (!operatorStateClientSource.includes(marker)) {
+    failures.push(
+      `operatorStateClient must keep local SOL release reconciliation available when the operator state endpoint lags or is unavailable: ${marker}.`,
+    );
+  }
+}
+
+if (
+  !operatorStateClientSource.includes("new Set([...localReferenceHashes, ...remoteReferenceHashes])")
+) {
+  failures.push(
+    "fetchLocallyReleasedSolNoteReferenceHashes must merge local SOL release hashes with the remote operator state endpoint.",
+  );
+}
+
+if (!nativeSolShieldSource.includes("fetchNativeSolShieldVaultLamports")) {
+  failures.push(
+    "Native SOL Shield must expose a vault lamport read for solvency reconciliation.",
+  );
+}
+
+for (const marker of [
+  "fetchNativeSolShieldVaultLamports",
+  "reconcileVaultBackedSolNotes",
+  "vaultSolLamports",
+  "vaultSolLamports ?? 0n",
+  "remainingVaultLamports",
+  'lifecycleStatus: "pending"',
+]) {
+  if (!shieldAssetStateSource.includes(marker)) {
+    failures.push(
+      `useVantaShieldAssetState must cap spendable native SOL notes to currently vault-backed SOL: ${marker}.`,
+    );
+  }
+}
+
+if (/vaultSolLamports === null\s*\|\|\s*account\.spendableShieldedSolNotes\.length === 0/.test(
+  shieldAssetStateSource,
+)) {
+  failures.push(
+    "useVantaShieldAssetState must fail closed when the native SOL vault backing read is unavailable instead of leaving spendable notes visible.",
+  );
+}
+
+const vaultReconciliationSource = shieldAssetStateSource.slice(
+  shieldAssetStateSource.indexOf("function reconcileVaultBackedSolNotes("),
+);
+if (
+  !vaultReconciliationSource.includes('lifecycleStatus: "pending" as const') ||
+  /lifecycleStatus:\s*"spendable"\s+as const/u.test(vaultReconciliationSource)
+) {
+  failures.push(
+    "reconcileVaultBackedSolNotes must be demotion-only: unbacked spendable SOL may become pending, but vault reconciliation must never promote SOL to spendable.",
+  );
+}
+
+for (const marker of [
+  "LOCALLY_RELEASED_SOL_NOTE_REFERENCE_HASHES_CHANGED_EVENT",
+  "LOCALLY_RELEASED_SOL_NOTE_REFERENCE_HASHES_STORAGE_KEY",
+]) {
+  if (!shieldAssetStateSource.includes(marker)) {
+    failures.push(
+      `useVantaShieldAssetState must refresh when local SOL release reconciliation changes: ${marker}.`,
+    );
+  }
+}
+
+if (!solUnshieldOperatorClientSource.includes("recordLocallyReleasedSolNoteReferenceHash")) {
+  failures.push(
+    "SOL Unshield client must record the consumed note reference locally as soon as the operator release receipt is validated.",
+  );
+}
+
+if (!verifiedNativeSolShieldNotesSource.includes('lifecycleStatus: "pending"')) {
+  failures.push(
+    "Verified native SOL local notes must remain pending recovery evidence until the on-chain memo/transfer ledger reconstructs them as spendable.",
   );
 }
 
@@ -298,6 +389,16 @@ for (const marker of [
       `fetchVantaShieldAccountState must include direct signature hints before broad history indexing: ${marker}.`,
     );
   }
+}
+
+if (
+  !/if \(\s*existing\.lifecycleStatus !== "spendable"\s*\) \{\s*return existing;\s*\}/.test(
+    shieldAssetStateSource,
+  )
+) {
+  failures.push(
+    "Native SOL note merging must preserve existing pending or consumed canonical state over a local spendable same-deposit fallback.",
+  );
 }
 
 if (

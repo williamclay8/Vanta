@@ -1,4 +1,5 @@
 import { liveSwapPair } from "@/solana/shieldConfig";
+import { recordLocallyReleasedSolNoteReferenceHash } from "@/solana/operatorStateClient";
 import type { SignedSolUnshieldIntent } from "@/solana/solUnshieldAuth";
 
 type SolUnshieldOperatorResponse = {
@@ -61,6 +62,7 @@ export async function requestOperatorSolUnshield(
     signature: parsed.signature,
     transitionNoteId: payload.transitionNoteId,
   });
+  recordLocallyReleasedSolNoteReferenceHash(payload.consumedNoteId);
 
   return {
     consumedNoteId: parsed.consumedNoteId,

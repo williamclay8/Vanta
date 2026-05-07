@@ -522,7 +522,7 @@ export function ShieldPage(_props: ShieldPageProps) {
 
     let cancelled = false;
     const existingDepositSignatures = new Set([
-      (shieldAccount?.shieldedSolNotes ?? [])
+      (nativeSolShieldAccount?.shieldedSolNotes ?? [])
         .map((note) => note.depositSignature)
         .filter((signature): signature is string => typeof signature === "string" && signature.length > 0),
       ...loadVerifiedNativeSolShieldDepositSignatures({
@@ -561,8 +561,8 @@ export function ShieldPage(_props: ShieldPageProps) {
     };
   }, [
     isNativeSolShield,
+    nativeSolShieldAccount?.shieldedSolNotes,
     selectedShieldAsset?.vaultOwner,
-    shieldAccount?.shieldedSolNotes,
     walletAddress,
   ]);
 

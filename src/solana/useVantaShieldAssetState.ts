@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useSolanaClient } from "@solana/react-hooks";
 import { useWalletState } from "@/data/context/WalletContext";
 import {
+  LOCALLY_RELEASED_SOL_NOTE_REFERENCE_HASHES_CHANGED_EVENT,
+  LOCALLY_RELEASED_SOL_NOTE_REFERENCE_HASHES_STORAGE_KEY,
   createUnshieldConsumedNoteReferenceHash,
   fetchLocallyReleasedSolNoteReferenceHashes,
   fetchLocallyReleasedUnshieldNoteReferenceHashes,
@@ -22,6 +24,10 @@ import {
   getLiveShieldTokenAssetByMint,
   type LiveShieldTokenAssetKey,
 } from "@/solana/shieldConfig";
+import {
+  fetchNativeSolShieldVaultLamports,
+  solToLamports,
+} from "@/solana/nativeSolShield";
 import {
   fetchVantaShieldAccountState,
   type VantaShieldAccountState,
@@ -77,6 +83,7 @@ export function useVantaShieldAssetState(args: {
       const [
         locallyReleasedSolNoteReferenceHashes,
         locallyReleasedTokenNoteReferenceHashes,
+        vaultSolLamports,
       ] = await Promise.all([
         args.includeLocallyReleasedSolNotes
           ? fetchLocallyReleasedSolNoteReferenceHashes().catch(() => new Set<string>())
@@ -84,6 +91,9 @@ export function useVantaShieldAssetState(args: {
         args.unshieldOperatorUrl
           ? fetchLocallyReleasedUnshieldNoteReferenceHashes(args.unshieldOperatorUrl)
           : Promise.resolve(new Set<string>()),
+        args.includeLocallyReleasedSolNotes
+          ? fetchNativeSolShieldVaultLamports(args.vaultOwner).catch(() => null)
+          : Promise.resolve(null),
       ]);
 
       let nextAccount: VantaShieldAccountState;
@@ -121,13 +131,16 @@ export function useVantaShieldAssetState(args: {
           throw nextError;
         }
 
+        const locallyReleasedAccount = args.includeLocallyReleasedSolNotes
+          ? reconcileLocallyReleasedSolNotes(
+              localAccountFallback,
+              locallyReleasedSolNoteReferenceHashes,
+            )
+          : localAccountFallback;
         setAccount(
           args.includeLocallyReleasedSolNotes
-            ? reconcileLocallyReleasedSolNotes(
-                localAccountFallback,
-                locallyReleasedSolNoteReferenceHashes,
-              )
-            : localAccountFallback,
+            ? reconcileVaultBackedSolNotes(locallyReleasedAccount, vaultSolLamports)
+            : locallyReleasedAccount,
         );
         setError(null);
         return;
@@ -145,13 +158,16 @@ export function useVantaShieldAssetState(args: {
         accountWithRecoveredSolNotes,
         locallyReleasedTokenNoteReferenceHashes,
       );
+      const accountWithReleasedSolNotes = args.includeLocallyReleasedSolNotes
+        ? reconcileLocallyReleasedSolNotes(
+            accountWithReleasedTokenNotes,
+            locallyReleasedSolNoteReferenceHashes,
+          )
+        : accountWithReleasedTokenNotes;
       setAccount(
         args.includeLocallyReleasedSolNotes
-          ? reconcileLocallyReleasedSolNotes(
-              accountWithReleasedTokenNotes,
-              locallyReleasedSolNoteReferenceHashes,
-            )
-          : accountWithReleasedTokenNotes,
+          ? reconcileVaultBackedSolNotes(accountWithReleasedSolNotes, vaultSolLamports)
+          : accountWithReleasedSolNotes,
       );
     } catch (nextError) {
       setError(
@@ -200,10 +216,14 @@ export function useVantaShieldAssetState(args: {
     const handleVerifiedSplShieldNotesChanged = () => {
       queueRefresh();
     };
+    const handleLocallyReleasedSolNotesChanged = () => {
+      queueRefresh();
+    };
     const handleStorageChanged = (event: StorageEvent) => {
       if (
         event.key === VERIFIED_NATIVE_SOL_SHIELD_NOTES_STORAGE_KEY ||
         event.key === VERIFIED_SPL_SHIELD_NOTES_STORAGE_KEY ||
+        event.key === LOCALLY_RELEASED_SOL_NOTE_REFERENCE_HASHES_STORAGE_KEY ||
         event.key === null
       ) {
         queueRefresh();
@@ -218,6 +238,10 @@ export function useVantaShieldAssetState(args: {
       VERIFIED_SPL_SHIELD_NOTES_CHANGED_EVENT,
       handleVerifiedSplShieldNotesChanged,
     );
+    window.addEventListener(
+      LOCALLY_RELEASED_SOL_NOTE_REFERENCE_HASHES_CHANGED_EVENT,
+      handleLocallyReleasedSolNotesChanged,
+    );
     window.addEventListener("storage", handleStorageChanged);
 
     return () => {
@@ -228,6 +252,10 @@ export function useVantaShieldAssetState(args: {
       window.removeEventListener(
         VERIFIED_SPL_SHIELD_NOTES_CHANGED_EVENT,
         handleVerifiedSplShieldNotesChanged,
+      );
+      window.removeEventListener(
+        LOCALLY_RELEASED_SOL_NOTE_REFERENCE_HASHES_CHANGED_EVENT,
+        handleLocallyReleasedSolNotesChanged,
       );
       window.removeEventListener("storage", handleStorageChanged);
     };
@@ -599,11 +627,8 @@ function selectPreferredNativeSolShieldNote(
     return candidate;
   }
 
-  if (
-    existing.lifecycleStatus !== "spendable" &&
-    candidate.lifecycleStatus === "spendable"
-  ) {
-    return candidate;
+  if (existing.lifecycleStatus !== "spendable") {
+    return existing;
   }
 
   return existing;
@@ -639,6 +664,60 @@ function reconcileLocallyReleasedSolNotes(
   ].sort((left, right) => right.createdAt - left.createdAt);
   const shieldedSolNotes = [...spendableShieldedSolNotes, ...consumedShieldedSolNotes].sort(
     (left, right) => right.createdAt - left.createdAt,
+  );
+  const shieldedSolBalance = Number(
+    spendableShieldedSolNotes.reduce((sum, note) => sum + note.amount, 0).toFixed(9),
+  );
+
+  return {
+    ...account,
+    consumedShieldedSolNotes,
+    shieldedSolBalance,
+    shieldedSolNotes,
+    spendableShieldedSolNotes,
+  };
+}
+
+function reconcileVaultBackedSolNotes(
+  account: VantaShieldAccountState,
+  vaultSolLamports: bigint | null,
+): VantaShieldAccountState {
+  if (account.spendableShieldedSolNotes.length === 0) {
+    return account;
+  }
+
+  // Native SOL is only spendable when the current vault backing read succeeds.
+  let remainingVaultLamports = vaultSolLamports ?? 0n;
+  const backedSpendableNoteIds = new Set<string>();
+
+  for (const note of [...account.spendableShieldedSolNotes].sort(
+    (left, right) => right.createdAt - left.createdAt,
+  )) {
+    const noteLamports = solToLamports(note.amount.toFixed(9));
+
+    if (noteLamports <= remainingVaultLamports) {
+      backedSpendableNoteIds.add(note.noteId);
+      remainingVaultLamports -= noteLamports;
+    }
+  }
+
+  if (backedSpendableNoteIds.size === account.spendableShieldedSolNotes.length) {
+    return account;
+  }
+
+  const shieldedSolNotes = account.shieldedSolNotes.map((note) =>
+    note.lifecycleStatus === "spendable" && !backedSpendableNoteIds.has(note.noteId)
+      ? {
+          ...note,
+          lifecycleStatus: "pending" as const,
+        }
+      : note,
+  );
+  const spendableShieldedSolNotes = shieldedSolNotes.filter(
+    (note) => note.lifecycleStatus === "spendable",
+  );
+  const consumedShieldedSolNotes = shieldedSolNotes.filter(
+    (note) => note.lifecycleStatus === "consumed",
   );
   const shieldedSolBalance = Number(
     spendableShieldedSolNotes.reduce((sum, note) => sum + note.amount, 0).toFixed(9),

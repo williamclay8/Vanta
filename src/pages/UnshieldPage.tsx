@@ -230,7 +230,9 @@ function isCanonicalSolSpendableNote(note: VantaShieldedSolNote) {
   return (
     note.lifecycleStatus !== "spendable" ||
     note.noteId.startsWith("vnta_native_sol_recent_") ||
-    note.stateSignature.startsWith("local-sol-recovery:")
+    note.stateSignature.startsWith("local-sol-recovery:") ||
+    note.stateSignature.startsWith("local-sol-shield-state:") ||
+    note.sourceSwapNoteId === "native-sol-shield-state"
   )
     ? false
     : true;

@@ -42,6 +42,10 @@ export function isNativeSolSourceAccountNotReadyError(error: unknown) {
 }
 
 const cachedBalanceReadConnections = new Map<string, Connection>();
+const cachedVaultLamportsReads = new Map<string, {
+  expiresAt: number;
+  promise: Promise<bigint>;
+}>();
 const NATIVE_SOL_SHIELD_RPC_RETRY_DELAYS_MS = [250, 750, 1_500] as const;
 const NATIVE_SOL_SHIELD_PARSED_TRANSACTION_RETRY_DELAYS_MS = [500, 1_500, 3_000, 5_000, 8_000] as const;
 const VANTA_NATIVE_SOL_SHIELD_MEMO_PREFIXES = [
@@ -139,6 +143,27 @@ async function fetchNativeSolShieldLamports(ownerPublicKey: PublicKey) {
   }
 
   throw new Error(VANTA_NATIVE_SOL_BALANCE_UNAVAILABLE_MESSAGE);
+}
+
+export function fetchNativeSolShieldVaultLamports(vaultOwner: string) {
+  const now = Date.now();
+  const cachedRead = cachedVaultLamportsReads.get(vaultOwner);
+
+  if (cachedRead && cachedRead.expiresAt > now) {
+    return cachedRead.promise;
+  }
+
+  const promise = fetchNativeSolShieldLamports(new PublicKey(vaultOwner));
+  cachedVaultLamportsReads.set(vaultOwner, {
+    expiresAt: now + 5_000,
+    promise,
+  });
+
+  void promise.catch(() => {
+    cachedVaultLamportsReads.delete(vaultOwner);
+  });
+
+  return promise;
 }
 
 function toInstructionInput(instruction: TransactionInstruction): TransactionInstructionInput {

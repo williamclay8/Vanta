@@ -48,7 +48,8 @@ export function useVantaPositionSummary(): VantaPositionSummary {
 
         if (
           note.lifecycleStatus === "pending" &&
-          note.stateSignature.startsWith("local-sol-recovery:") &&
+          (note.stateSignature.startsWith("local-sol-recovery:") ||
+            note.stateSignature.startsWith("local-sol-shield-state:")) &&
           !confirmedShieldedSolNotesByKey.has(noteKey)
         ) {
           pendingRecoveredShieldedSolNotesByKey.set(noteKey, note);
