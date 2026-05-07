@@ -43,6 +43,12 @@ const requiredShieldCompletionMarkers = [
   "protocolSettlement?.proofReceipt",
 ];
 
+const requiredPublicRouteConfirmationRecoveryMarkers = [
+  "publicRouteWait.waitStatus !== \"error\"",
+  "isSolanaRpcRateLimitError(publicRouteWait.waitError)",
+  "isSolanaRpcHttpAccessError(publicRouteWait.waitError)",
+];
+
 const requiredBrowserReceiptClientMarkers = [
   "getBrowserPrivatePoolReceiptApiFallbackUrl",
   "window.location.hostname",
@@ -63,6 +69,12 @@ for (const marker of requiredMarkers) {
 for (const marker of requiredShieldCompletionMarkers) {
   if (!shieldPageSource.includes(marker)) {
     failures.push(`Missing Shield completion receipt-binding marker: ${marker}`);
+  }
+}
+
+for (const marker of requiredPublicRouteConfirmationRecoveryMarkers) {
+  if (!shieldPageSource.includes(marker)) {
+    failures.push(`Missing recoverable public-route confirmation marker: ${marker}`);
   }
 }
 

@@ -160,8 +160,23 @@ function formatShieldedLaneLabel(asset: UnshieldLane) {
   return `Shielded ${asset}`;
 }
 
-function formatAvailableLaneLabel(asset: UnshieldLane, amount: number) {
-  return `${formatShieldedLaneLabel(asset)} - ${formatUnshieldAmount(amount, asset)} ledger spendable`;
+function formatAvailableLaneOptionLabel(option: {
+  amount: number;
+  lane: UnshieldLane;
+  pendingAmount?: number;
+}) {
+  const spendableLabel =
+    `${formatShieldedLaneLabel(option.lane)} - ${formatUnshieldAmount(option.amount, option.lane)} ledger spendable`;
+
+  if (option.lane !== "SOL" || !option.pendingAmount || option.pendingAmount <= 0) {
+    return spendableLabel;
+  }
+
+  const pendingLabel = `${formatUnshieldAmount(option.pendingAmount, "SOL")} pending shield-state`;
+
+  return option.amount > 0
+    ? `${spendableLabel}, ${pendingLabel}`
+    : `${formatShieldedLaneLabel(option.lane)} - ${pendingLabel}`;
 }
 
 function formatEditableAmount(value: number, decimals: number) {
@@ -236,6 +251,20 @@ function isCanonicalSolSpendableNote(note: VantaShieldedSolNote) {
   )
     ? false
     : true;
+}
+
+function isVisibleSolShieldStateNote(note: VantaShieldedSolNote) {
+  return note.lifecycleStatus !== "consumed";
+}
+
+function isPendingLocalSolShieldStateNote(note: VantaShieldedSolNote) {
+  return (
+    note.lifecycleStatus === "pending" &&
+    (note.stateSignature.startsWith("local-sol-recovery:") ||
+      note.stateSignature.startsWith("local-sol-shield-state:") ||
+      note.sourceSwapNoteId === "native-sol-recovery" ||
+      note.sourceSwapNoteId === "native-sol-shield-state")
+  );
 }
 
 function assertCanonicalSolSpendableNote(note: VantaShieldedSolNote) {
@@ -557,14 +586,25 @@ export function UnshieldPage() {
     shieldRegistry.entries.find(
       (entry) => (entry.account?.spendableShieldedSolNotes.length ?? 0) > 0,
     ) ??
+    shieldRegistry.entries.find((entry) =>
+      (entry.account?.shieldedSolNotes ?? []).some(isPendingLocalSolShieldStateNote),
+    ) ??
     null;
   const canonicalSolAccount =
     (canonicalShieldState.account?.shieldedSolBalance ?? 0) > 0 ||
-    (canonicalShieldState.account?.spendableShieldedSolNotes.length ?? 0) > 0
+    (canonicalShieldState.account?.spendableShieldedSolNotes.length ?? 0) > 0 ||
+    (canonicalShieldState.account?.shieldedSolNotes ?? []).some(isPendingLocalSolShieldStateNote)
       ? canonicalShieldState.account
       : null;
   const solShieldAccount =
     shieldedSolSourceEntry?.account ?? canonicalSolAccount ?? usdcShieldEntry.account;
+  const visibleSolNotes = useMemo(
+    () =>
+      (solShieldAccount?.shieldedSolNotes ?? []).filter(
+        isVisibleSolShieldStateNote,
+      ),
+    [solShieldAccount],
+  );
   const spendableSolNotes = useMemo(
     () =>
       (solShieldAccount?.spendableShieldedSolNotes ?? []).filter(
@@ -572,8 +612,12 @@ export function UnshieldPage() {
       ),
     [solShieldAccount],
   );
+  const pendingSolNotes = useMemo(
+    () => visibleSolNotes.filter(isPendingLocalSolShieldStateNote),
+    [visibleSolNotes],
+  );
   const solShieldStateError =
-    spendableSolNotes.length > 0
+    spendableSolNotes.length > 0 || pendingSolNotes.length > 0
       ? null
       : canonicalShieldState.error;
 
@@ -582,7 +626,7 @@ export function UnshieldPage() {
       ...ALL_LIVE_SHIELD_TOKEN_ASSET_KEYS.map((assetKey) =>
         canonicalSpendableShieldNotesByLane[assetKey].length > 0 ? assetKey : null,
       ),
-      spendableSolNotes.length > 0 ? "SOL" : null,
+      spendableSolNotes.length > 0 || pendingSolNotes.length > 0 ? "SOL" : null,
     ].filter(Boolean) as UnshieldLane[];
 
     if (availableLanes.length === 0) {
@@ -594,6 +638,7 @@ export function UnshieldPage() {
     }
   }, [
     canonicalSpendableShieldNotesByLane,
+    pendingSolNotes.length,
     selectedLane,
     spendableSolNotes.length,
   ]);
@@ -613,8 +658,13 @@ export function UnshieldPage() {
     setRequestedAmountInput("");
   }, [selectedLane, selectedShieldNote, selectedSolNote]);
   const selectedSolAggregateAmount = sumSpendableAmounts(spendableSolNotes, 9);
+  const selectedSolPendingAmount = sumSpendableAmounts(pendingSolNotes, 9);
+  const selectedSolDisplayAmount =
+    selectedSolAggregateAmount > 0 ? selectedSolAggregateAmount : selectedSolPendingAmount;
   const selectedFullAmount =
     selectedLane === "SOL" ? selectedSolNote?.amount ?? 0 : selectedShieldNote?.amount ?? 0;
+  const selectedDisplayAmount =
+    selectedLane === "SOL" ? selectedSolDisplayAmount : selectedFullAmount;
   useEffect(() => {
     if (selectedLane !== "SOL" || !liveSwapPair.solUnshieldOperatorUrl) {
       setSolUnshieldOperatorHealth("idle");
@@ -665,11 +715,13 @@ export function UnshieldPage() {
               ? spendableSolNotes.length > 0
               : canonicalSpendableShieldNotesByLane[lane].length > 0,
           lane,
+          pendingAmount: lane === "SOL" ? selectedSolPendingAmount : 0,
         };
       }),
     [
       canonicalSpendableShieldNotesByLane,
       selectedSolAggregateAmount,
+      selectedSolPendingAmount,
       spendableSolNotes.length,
     ],
   );
@@ -1850,6 +1902,8 @@ export function UnshieldPage() {
     validationMessage = solShieldStateError;
   } else if (selectedLane !== "SOL" && selectedShieldEntry?.error) {
     validationMessage = selectedShieldEntry.error;
+  } else if (selectedLane === "SOL" && !selectedSolNote && selectedSolPendingAmount > 0) {
+    validationMessage = `${formatUnshieldAmount(selectedSolPendingAmount, "SOL")} is visible as pending shield-state; wait for ledger reconciliation before unshielding.`;
   } else if (selectedLane === "SOL" && !liveSwapPair.solUnshieldOperatorUrl) {
     validationMessage = "Configure the SOL unshield operator endpoint before shielded SOL can exit.";
   } else if (selectedLane === "SOL" && solUnshieldOperatorHealth === "checking") {
@@ -2559,7 +2613,11 @@ export function UnshieldPage() {
               <span>Exit ticket</span>
               <h3>{selectedLane} to public wallet</h3>
             </div>
-            <small>{formatUnshieldAmount(selectedFullAmount, selectedLane)} selected note</small>
+            <small>
+              {selectedLane === "SOL" && !selectedSolNote && selectedSolPendingAmount > 0
+                ? `${formatUnshieldAmount(selectedSolPendingAmount, "SOL")} pending shield-state`
+                : `${formatUnshieldAmount(selectedFullAmount, selectedLane)} selected note`}
+            </small>
           </div>
 
           <div className="shield-form swap-widget unshield-ticket">
@@ -2571,7 +2629,9 @@ export function UnshieldPage() {
                     aria-label="Ledger spendable shielded balances"
                     className="send-balance-line shield-helper shield-helper--meta"
                   >
-                    Spendable note: {formatUnshieldAmount(selectedFullAmount, selectedLane)}
+                    {selectedLane === "SOL" && !selectedSolNote && selectedSolPendingAmount > 0
+                      ? `Pending shield-state: ${formatUnshieldAmount(selectedSolPendingAmount, "SOL")}`
+                      : `Spendable note: ${formatUnshieldAmount(selectedFullAmount, selectedLane)}`}
                   </div>
                 </div>
                 <div className="send-asset-field">
@@ -2582,7 +2642,7 @@ export function UnshieldPage() {
                   >
                     {availableLaneOptions.map((option) => (
                       <option key={option.lane} value={option.lane}>
-                        {`${formatShieldedLaneLabel(option.lane)} - ${formatUnshieldAmount(option.amount, option.lane)} ledger spendable`}
+                        {formatAvailableLaneOptionLabel(option)}
                       </option>
                     ))}
                   </select>
@@ -2620,8 +2680,12 @@ export function UnshieldPage() {
                   </div>
                 ) : (
                   <div className="unshield-fixed-field unshield-fixed-field--amount">
-                    <strong>{formatEditableAmount(selectedFullAmount, selectedLaneDecimals)}</strong>
-                    <small>{selectedLane} fixed note exit</small>
+                    <strong>{formatEditableAmount(selectedDisplayAmount, selectedLaneDecimals)}</strong>
+                    <small>
+                      {selectedLane === "SOL" && !selectedSolNote && selectedSolPendingAmount > 0
+                        ? "SOL pending ledger reconciliation"
+                        : `${selectedLane} fixed note exit`}
+                    </small>
                   </div>
                 )}
               </div>

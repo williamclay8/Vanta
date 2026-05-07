@@ -45,6 +45,7 @@ export function getLiveShieldTokenAsset(assetKey: LiveShieldTokenAssetKey) {
 }
 `;
 const SOLANA_CLIENT_STUB = `export const endpoint = "https://api.mainnet-beta.solana.com";
+export const readRpcFallbackEndpoints = [endpoint];
 `;
 const NATIVE_SOL_SHIELD_STUB = `export function hasMatchingNativeSolShieldTransfer(_args) {
   return false;

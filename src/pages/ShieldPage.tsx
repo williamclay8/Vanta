@@ -1122,7 +1122,12 @@ export function ShieldPage(_props: ShieldPageProps) {
   }, [publicRouteTransaction.error, publicRouteTransaction.status]);
 
   useEffect(() => {
-    if (!pendingPublicRoute || publicRouteWait.waitStatus !== "error") {
+    if (
+      !pendingPublicRoute ||
+      publicRouteWait.waitStatus !== "error" ||
+      isSolanaRpcRateLimitError(publicRouteWait.waitError) ||
+      isSolanaRpcHttpAccessError(publicRouteWait.waitError)
+    ) {
       return;
     }
 

@@ -12,7 +12,7 @@ import {
   getLiveShieldTokenAsset,
   type LiveShieldTokenAssetKey,
 } from "@/solana/shieldConfig";
-import { endpoint } from "@/solana/client";
+import { endpoint, readRpcFallbackEndpoints } from "@/solana/client";
 import { hasMatchingNativeSolShieldTransfer } from "@/solana/nativeSolShield";
 import {
   decryptVantaShieldMemoWithViewingKey,
@@ -39,6 +39,11 @@ const VANTA_SPENT_MARKER_MEMO_PREFIX = "vanta:spent-marker:v1:";
 export const VANTA_NATIVE_SOL_ASSET_ID =
   "So11111111111111111111111111111111111111112";
 const shieldStateRpcEndpoint = endpoint;
+const shieldStateReadRpcEndpoints = readRpcFallbackEndpoints.includes(
+  shieldStateRpcEndpoint,
+)
+  ? readRpcFallbackEndpoints
+  : [shieldStateRpcEndpoint, ...readRpcFallbackEndpoints];
 
 type ShieldMemoEncryptionOptions = {
   viewingPublicKey?: string | null;
@@ -948,32 +953,38 @@ async function fetchSignatureMemoEntries(args: {
     return [];
   }
 
-  try {
-    const connection = new Connection(shieldStateRpcEndpoint, "confirmed");
-    const transactions = await fetchParsedTransactionsOneAtATime(
-      connection,
-      confirmedSignatures.map((entry) => entry.signature),
-    );
+  for (const readEndpoint of shieldStateReadRpcEndpoints) {
+    try {
+      const connection = new Connection(readEndpoint, "confirmed");
+      const transactions = await fetchParsedTransactionsOneAtATime(
+        connection,
+        confirmedSignatures.map((entry) => entry.signature),
+      );
 
-    for (let index = 0; index < transactions.length; index += 1) {
-      const transaction = transactions[index];
-      const signature = confirmedSignatures[index]?.signature;
+      for (let index = 0; index < transactions.length; index += 1) {
+        const transaction = transactions[index];
+        const signature = confirmedSignatures[index]?.signature;
 
-      if (!transaction || !signature) {
-        continue;
-      }
+        if (!transaction || !signature) {
+          continue;
+        }
 
-      for (const instruction of transaction.transaction.message.instructions) {
-        const memo = readParsedMemoText(instruction);
+        for (const instruction of transaction.transaction.message.instructions) {
+          const memo = readParsedMemoText(instruction);
 
-        if (memo) {
-          memoEntries.set(`${signature}:${memo}`, { memo, signature, transaction });
+          if (memo) {
+            memoEntries.set(`${signature}:${memo}`, {
+              memo,
+              signature,
+              transaction,
+            });
+          }
         }
       }
+    } catch {
+      // Some public RPCs reject parsed transaction history calls. Keep trying
+      // browser-safe read fallbacks before relying on signature summaries.
     }
-  } catch {
-    // Some public RPCs reject parsed transaction history calls. The signature
-    // summary memo field above is still used when available.
   }
 
   return [...memoEntries.values()];
@@ -1708,7 +1719,14 @@ export async function fetchVantaShieldAccountState(args: {
       commitment: "confirmed",
       limit: 100,
     })
-    .send({ abortSignal: AbortSignal.timeout(20_000) });
+    .send({ abortSignal: AbortSignal.timeout(20_000) })
+    .catch((error) => {
+      if ((args.signatureHints?.length ?? 0) > 0) {
+        return [];
+      }
+
+      throw error;
+    });
   const signatureHintEntries = [...(args.signatureHints ?? [])]
     .map((signature) => signature.trim())
     .filter((signature) => signature.length > 0)

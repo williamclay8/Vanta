@@ -229,9 +229,17 @@ assert.ok(
   "Browser Solana client must honor explicit mainnet browser RPC envs while rejecting devnet/testnet/local endpoints in production mainnet builds.",
 );
 assert.ok(
-  shieldStateSource.includes('import { endpoint } from "@/solana/client"') &&
-    shieldStateSource.includes("const shieldStateRpcEndpoint = endpoint"),
-  "Browser shield-state memo recovery must share the configured browser Solana RPC endpoint.",
+  shieldStateSource.includes('import { endpoint, readRpcFallbackEndpoints } from "@/solana/client"') &&
+    shieldStateSource.includes("const shieldStateReadRpcEndpoints = readRpcFallbackEndpoints") &&
+    shieldStateSource.includes("for (const readEndpoint of shieldStateReadRpcEndpoints)") &&
+    shieldStateSource.includes('new Connection(readEndpoint, "confirmed")'),
+  "Browser shield-state memo recovery must use the configured browser Solana RPC read fallback endpoints.",
+);
+assert.ok(
+  shieldStateSource.includes("(args.signatureHints?.length ?? 0) > 0") &&
+    shieldStateSource.includes("return []") &&
+    shieldStateSource.includes("throw error"),
+  "Shield state recovery must preserve direct signature hints when broad wallet-history RPC reads are temporarily unavailable.",
 );
 
 for (const symbol of directShieldSymbols) {
