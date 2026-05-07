@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "vite-env:contract-check": "node scripts/check-vanta-vite-env-contract.mjs",
     "active-memory:check": "node scripts/check-vanta-active-memory-flow.mjs",
     "design:contract-check": "node scripts/check-vanta-design-contract.mjs",
     "truth:transaction-check": "node scripts/check-vanta-transaction-truth.mjs",
@@ -256,7 +257,7 @@
     "pay-tab:copy-check": "node scripts/check-vanta-pay-tab-copy.mjs",
     "pay:doc-truth-check": "node scripts/check-vanta-pay-doc-truth.mjs",
     "token-capability-map:check": "node scripts/check-vanta-token-capability-map.mjs",
-    "token-availability:check": "node scripts/check-vanta-token-availability.mjs && npm run token-capability-map:check && npm run shield:executability-claims-check",
+    "token-availability:check": "npm run vite-env:contract-check && node scripts/check-vanta-token-availability.mjs && npm run token-capability-map:check && npm run shield:executability-claims-check",
     "strategy:planner-check": "node scripts/check-vanta-strategy-planner.mjs",
     "strategy:execution-adapter-check": "node scripts/check-vanta-strategy-execution-adapter.mjs",
     "strategy:runtime-check": "node scripts/check-vanta-strategy-runtime.mjs",
