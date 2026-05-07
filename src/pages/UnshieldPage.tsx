@@ -558,8 +558,6 @@ export function UnshieldPage() {
       : null;
   const solShieldAccount =
     shieldedSolSourceEntry?.account ?? canonicalSolAccount ?? usdcShieldEntry.account;
-  const solShieldStateError =
-    shieldedSolSourceEntry?.error ?? canonicalShieldState.error ?? usdcShieldEntry.error;
   const spendableSolNotes = useMemo(
     () =>
       (solShieldAccount?.spendableShieldedSolNotes ?? []).filter(
@@ -567,6 +565,10 @@ export function UnshieldPage() {
       ),
     [solShieldAccount],
   );
+  const solShieldStateError =
+    spendableSolNotes.length > 0
+      ? null
+      : canonicalShieldState.error;
 
   useEffect(() => {
     const availableLanes = [

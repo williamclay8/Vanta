@@ -124,6 +124,19 @@ assert(
   shieldAssetRegistrySource.includes("unshieldOperatorUrl: asset.unshieldOperatorUrl"),
   "Every shield asset registry entry must pass its token Unshield operator URL for release reconciliation.",
 );
+assert(
+  !unshieldPageSource.includes(
+    "shieldedSolSourceEntry?.error ?? canonicalShieldState.error ?? usdcShieldEntry.error",
+  ),
+  "SOL Unshield validation must not surface token registry release-state errors from the selected SOL source entry.",
+);
+assert(
+  unshieldPageSource.includes("spendableSolNotes.length > 0") &&
+    unshieldPageSource.includes("const solShieldStateError =") &&
+    unshieldPageSource.includes("? null") &&
+    unshieldPageSource.includes(": canonicalShieldState.error;"),
+  "SOL Unshield validation must ignore shield-state errors once a canonical ledger-spendable SOL note exists.",
+);
 
 for (const phrase of [
   '"/state/unshield-records"',
