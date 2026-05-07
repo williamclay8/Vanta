@@ -337,13 +337,11 @@ assert.ok(
   "Shield page must display receipt-backed native SOL from the registry lane that actually hydrated the local spendable SOL ledger, without hiding a non-zero SOL balance behind background refresh.",
 );
 assert.ok(
-  shieldPageSource.includes("verifiedNativeSolReceiptBalance") &&
-    shieldPageSource.includes('recentShield.claimTier === "proof_receipt_verified"') &&
-    shieldPageSource.includes('recentShield.asset === "SOL"') &&
-    shieldPageSource.includes("Math.max(") &&
-    shieldPageSource.includes("nativeSolShieldAccount?.shieldedSolBalance ?? 0") &&
-    shieldPageSource.includes("verifiedNativeSolReceiptBalance ?? 0"),
-  "Shield page must let a verified native SOL proof receipt populate the displayed Shielded balance immediately while ledger hydration catches up.",
+  !shieldPageSource.includes("verifiedNativeSolReceiptBalance") &&
+    /const targetShieldedBalance = isNativeSolShield\s*\?\s*nativeSolShieldAccount\?\.shieldedSolBalance \?\? 0\s*: shieldedBalance;/.test(
+      shieldPageSource,
+    ),
+  "Shield page must keep the displayed native SOL Shielded balance ledger-derived instead of inflating it from recent proof receipt context.",
 );
 assert.ok(
   nativeSolShieldSource.includes("getParsedTransactions"),

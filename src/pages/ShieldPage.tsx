@@ -423,12 +423,6 @@ export function ShieldPage(_props: ShieldPageProps) {
   const targetShieldStateRefreshing = isNativeSolShield
     ? nativeSolShieldSourceEntry?.isRefreshing ?? shieldStateRefreshing
     : shieldStateRefreshing;
-  const verifiedNativeSolReceiptBalance =
-    recentShield?.claimTier === "proof_receipt_verified" &&
-    recentShield.asset === "SOL" &&
-    Number.isFinite(recentShield.resultingShieldedBalance)
-      ? recentShield.resultingShieldedBalance
-      : null;
   const capability = useMemo(
     () =>
       createShieldAssetCapability({
@@ -441,10 +435,7 @@ export function ShieldPage(_props: ShieldPageProps) {
   const targetShieldSymbol = capability.targetShieldAsset?.assetKey;
   const targetShieldName = capability.targetShieldAsset?.name;
   const targetShieldedBalance = isNativeSolShield
-    ? Math.max(
-        nativeSolShieldAccount?.shieldedSolBalance ?? 0,
-        verifiedNativeSolReceiptBalance ?? 0,
-      )
+    ? nativeSolShieldAccount?.shieldedSolBalance ?? 0
     : shieldedBalance;
   const targetShieldedBalanceReadUnavailable =
     Boolean(walletConnected && capability.targetShieldAsset) &&

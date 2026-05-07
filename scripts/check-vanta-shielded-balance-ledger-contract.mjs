@@ -310,6 +310,28 @@ if (
   );
 }
 
+const targetShieldedBalanceMatch = shieldPageSource.match(
+  /const targetShieldedBalance = isNativeSolShield[\s\S]{0,700}?: shieldedBalance;/,
+);
+
+if (!targetShieldedBalanceMatch) {
+  failures.push("ShieldPage must keep an explicit targetShieldedBalance assignment.");
+} else if (
+  /Math\s*\.\s*max|recentShield|resultingShieldedBalance|verifiedNativeSolReceiptBalance/.test(
+    targetShieldedBalanceMatch[0],
+  )
+) {
+  failures.push(
+    "ShieldPage visible Shielded balance must come from ledger-derived shield state, not optimistic recent Shield receipt context.",
+  );
+}
+
+if (shieldPageSource.includes("verifiedNativeSolReceiptBalance")) {
+  failures.push(
+    "ShieldPage must not promote proof-receipt resultingShieldedBalance into the visible Shielded balance.",
+  );
+}
+
 if (
   hasNearby(
     sendPageSource,
