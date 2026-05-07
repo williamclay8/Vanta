@@ -320,8 +320,8 @@
           "NPM_CONFIG_INCLUDE": "dev",
           "NPM_CONFIG_PRODUCTION": "false"
         },
-        "healthChecks": ["/health"],
-        "readinessChecks": ["/state/private-pool-v2-status"],
+        "healthChecks": ["/health", "/health/sol-unshield"],
+        "readinessChecks": ["/state/private-pool-v2-status", "/state/sol-unshield-records"],
         "auth": {
           "kind": "bearer-token",
           "secretRef": "VANTA_OPERATOR_AUTH_TOKEN_REF"
@@ -359,9 +359,13 @@
         { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_AUTH_TOKEN", "required": true },
         { "name": "VANTA_PRIVATE_POOL_V2_VERIFIER_URL", "required": true },
         { "name": "VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN", "required": true },
-        { "name": "VANTA_PRIVATE_POOL_V2_REQUIRE_RELAYER_SERIALIZED_TRANSACTION", "required": true }
+        { "name": "VANTA_PRIVATE_POOL_V2_REQUIRE_RELAYER_SERIALIZED_TRANSACTION", "required": true },
+        { "name": "VANTA_MAINNET_TOKEN_MINT", "required": true },
+        { "name": "VANTA_MAINNET_VAULT_OWNER", "required": true },
+        { "name": "VANTA_MAINNET_VAULT_SIGNER_SECRET_KEY", "required": true },
+        { "name": "SOLANA_RPC_URL", "required": true }
       ],
-      "healthChecks": ["/health", "/state/private-pool-v2-status"],
+      "healthChecks": ["/health", "/state/private-pool-v2-status", "/health/sol-unshield"],
       "persistence": {
         "required": true,
         "kind": "durable-database"

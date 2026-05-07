@@ -89,6 +89,12 @@ The production operator should receive these from Doppler or the approved produc
 - `VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN` from `VANTA_VERIFIER_AUTH_TOKEN_REF`
 - `VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL`, `VANTA_PRIVATE_POOL_V2_PROVER_DATABASE_URL`, `VANTA_PRIVATE_POOL_V2_RELAYER_DATABASE_URL`, and `VANTA_PRIVATE_POOL_V2_VERIFIER_DATABASE_URL` from production database refs, never from git or chat.
 - `VANTA_PRIVATE_POOL_V2_DATABASE_URL` from a production database ref for the operator shared settlement store, never from git or chat.
+- `SOLANA_RPC_URL` from an approved production Solana RPC ref for the SOL unshield release lane.
+- `VANTA_MAINNET_TOKEN_MINT` from the approved mainnet token mint ref for the SOL unshield release lane.
+- `VANTA_MAINNET_VAULT_OWNER` from the approved mainnet vault-owner ref for the SOL unshield release lane.
+- `VANTA_MAINNET_VAULT_SIGNER_SECRET_KEY` from the approved production signer ref for the SOL unshield release lane. The signer public key must match `VANTA_MAINNET_VAULT_OWNER`; never paste or commit this key material.
+
+The operator's public health contract must include both `/health` and `/health/sol-unshield`. A green `/health` only proves the Private Pool v2 wrapper is alive; `/health/sol-unshield` is the route that proves the SOL unshield release lane can load its mainnet mint, vault owner, RPC, and signer configuration.
 
 ## Production smoke evidence
 

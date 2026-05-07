@@ -84,6 +84,10 @@ const expectedEnvNames = {
     "VANTA_PRIVATE_POOL_V2_RUNTIME_MODE",
     "VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN",
     "VANTA_PRIVATE_POOL_V2_VERIFIER_URL",
+    "VANTA_MAINNET_TOKEN_MINT",
+    "VANTA_MAINNET_VAULT_OWNER",
+    "VANTA_MAINNET_VAULT_SIGNER_SECRET_KEY",
+    "SOLANA_RPC_URL",
   ],
   prover: [
     "VANTA_PRIVATE_POOL_V2_PROVER_ARTIFACT_PATH",
@@ -130,6 +134,20 @@ for (const serviceId of ["indexer", "relayer", "prover", "verifier", "operator"]
     );
   }
   assert.ok(service.healthChecks.length > 0, `${serviceId} must declare health checks.`);
+  if (serviceId === "operator") {
+    assert.ok(
+      service.healthChecks.includes("/health/sol-unshield"),
+      "operator must declare the SOL unshield health route.",
+    );
+    assert.ok(
+      service.deployedService.healthChecks.includes("/health/sol-unshield"),
+      "operator deployed service metadata must declare the SOL unshield health route.",
+    );
+    assert.ok(
+      service.deployedService.readinessChecks.includes("/state/sol-unshield-records"),
+      "operator deployed service metadata must declare the SOL unshield state route.",
+    );
+  }
   assert.ok(service.persistence.required === true, `${serviceId} must require persistence.`);
 }
 
