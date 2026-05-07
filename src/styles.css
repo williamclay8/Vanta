@@ -2944,58 +2944,6 @@ input {
   margin-top: 14px;
 }
 
-.unshield-balance-strip {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
-  gap: 8px;
-  margin-top: 14px;
-}
-
-.unshield-balance-pill {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-  min-height: 58px;
-  padding: 10px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.035);
-  color: var(--muted);
-  text-align: left;
-  cursor: pointer;
-}
-
-.unshield-balance-pill:hover,
-.unshield-balance-pill--available {
-  border-color: rgba(0, 229, 200, 0.22);
-  background: rgba(0, 229, 200, 0.045);
-  color: var(--text);
-}
-
-.unshield-balance-pill--active {
-  border-color: rgba(0, 229, 200, 0.46);
-  background: rgba(0, 229, 200, 0.08);
-  color: var(--text);
-}
-
-.unshield-balance-pill span {
-  overflow: hidden;
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.unshield-balance-pill strong {
-  overflow: hidden;
-  color: inherit;
-  font-size: 0.95rem;
-  font-variant-numeric: tabular-nums;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .unshield-ticket__module {
   grid-template-columns: minmax(180px, 1fr) minmax(160px, 0.9fr) minmax(150px, 0.75fr);
   align-items: end;

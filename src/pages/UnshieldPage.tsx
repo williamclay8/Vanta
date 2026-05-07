@@ -496,6 +496,11 @@ export function UnshieldPage() {
     transitionNoteId: string;
   } | null>(null);
   const [privateCoreActionPending, setPrivateCoreActionPending] = useState(false);
+  const selectUnshieldLane = useCallback((nextLane: UnshieldLane) => {
+    setSelectedLane(nextLane);
+    setStatus("idle");
+    setFlowError(null);
+  }, []);
   const operatorAuthorizationLockRef = useRef<string | null>(null);
   const splitFollowupLaunchRef = useRef<string | null>(null);
   const transitionTransaction = useVantaSafeSendTransaction();
@@ -2555,30 +2560,6 @@ export function UnshieldPage() {
             <small>{formatUnshieldAmount(selectedFullAmount, selectedLane)} selected note</small>
           </div>
 
-          <div className="unshield-balance-strip" aria-label="Ledger spendable shielded balances">
-            {availableLaneOptions.map((option) => (
-              <button
-                key={option.lane}
-                className={
-                  option.lane === selectedLane
-                    ? "unshield-balance-pill unshield-balance-pill--active"
-                    : option.hasSpendableBalance
-                      ? "unshield-balance-pill unshield-balance-pill--available"
-                      : "unshield-balance-pill"
-                }
-                type="button"
-                onClick={() => {
-                  setSelectedLane(option.lane);
-                  setStatus("idle");
-                  setFlowError(null);
-                }}
-              >
-                <span>{formatShieldedLaneLabel(option.lane)}</span>
-                <strong>{formatUnshieldAmount(option.amount, option.lane)}</strong>
-              </button>
-            ))}
-          </div>
-
           <div className="shield-form swap-widget unshield-ticket">
             <div className="swap-module unshield-ticket__module">
               <div className="swap-module__field unshield-ticket__field unshield-ticket__field--from">
@@ -2592,11 +2573,7 @@ export function UnshieldPage() {
                   <select
                     aria-label="Unshield asset"
                     value={selectedLane}
-                    onChange={(event) => {
-                      setSelectedLane(event.target.value as UnshieldLane);
-                      setStatus("idle");
-                      setFlowError(null);
-                    }}
+                    onChange={(event) => selectUnshieldLane(event.target.value as UnshieldLane)}
                   >
                     {availableLaneOptions.map((option) => (
                       <option key={option.lane} value={option.lane}>

@@ -363,6 +363,65 @@ function assertActionTabsStayMinimal() {
   }
 }
 
+function assertUnshieldAssetSelectorStaysCompact() {
+  for (const width of [1440, 390]) {
+    execFileSync(
+      "gsd-browser",
+      ["--session", browserSession, "set-viewport", "--width", String(width), "--height", "900"],
+      { stdio: "ignore" },
+    );
+    execFileSync("gsd-browser", ["--session", browserSession, "navigate", `${baseUrl}/app/unshield`], {
+      stdio: "ignore",
+    });
+    execFileSync("gsd-browser", ["--session", browserSession, "wait-for", "--condition", "network_idle"], {
+      stdio: "ignore",
+    });
+
+    const rawResult = execFileSync(
+      "gsd-browser",
+      [
+        "--session",
+        browserSession,
+        "--json",
+        "eval",
+        `(() => {
+          const page = document.querySelector(".unshield-page");
+          const ticket = document.querySelector(".unshield-ticket");
+          const module = document.querySelector(".unshield-ticket__module");
+          const selector = document.querySelector('select[aria-label="Unshield asset"]');
+          const legacyAssetStrip = document.querySelector(".unshield-balance-strip, .unshield-balance-pill");
+          const documentOverflow = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) - window.innerWidth;
+
+          return {
+            ok:
+              page instanceof HTMLElement &&
+              ticket instanceof HTMLElement &&
+              module instanceof HTMLElement &&
+              selector instanceof HTMLSelectElement &&
+              selector.options.length >= 2 &&
+              legacyAssetStrip === null &&
+              documentOverflow <= 2,
+            documentOverflow,
+            hasLegacyAssetStrip: legacyAssetStrip !== null,
+            optionCount: selector instanceof HTMLSelectElement ? selector.options.length : 0,
+            route: window.location.pathname,
+            width: window.innerWidth,
+          };
+        })()`,
+      ],
+      { encoding: "utf8" },
+    );
+
+    const result = JSON.parse(rawResult);
+    const rawValue = result.result ?? result.value ?? result;
+    const value = typeof rawValue === "string" ? JSON.parse(rawValue) : rawValue;
+
+    if (!value.ok) {
+      throw new Error(`Unshield asset selector is not compact at ${width}px: ${JSON.stringify(value)}`);
+    }
+  }
+}
+
 function runBrowserBatchWithRetry() {
   let lastError;
 
@@ -412,6 +471,7 @@ try {
   assertSendWorkspaceCardCentered();
   assertDesktopProductTabsFit();
   assertActionTabsStayMinimal();
+  assertUnshieldAssetSelectorStaysCompact();
   console.log("vanta product ui browser check: PASS");
 } catch (error) {
   if (stdout) {

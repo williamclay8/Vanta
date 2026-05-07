@@ -19,6 +19,7 @@ function countOccurrences(source, needle) {
 
 const packageJson = JSON.parse(readRepoFile("package.json"));
 const unshieldPageSource = readRepoFile("src/pages/UnshieldPage.tsx");
+const stylesSource = readRepoFile("src/styles.css");
 const shieldStateSource = readRepoFile("src/solana/vantaShieldState.ts");
 const shieldAssetStateSource = readRepoFile("src/solana/useVantaShieldAssetState.ts");
 const shieldAssetRegistrySource = readRepoFile("src/solana/useVantaShieldAssetRegistryState.ts");
@@ -51,11 +52,25 @@ for (const phrase of [
   "canonicalSpendableShieldNotesByLane",
   "sumSpendableAmounts(spendableSolNotes, 9)",
   "sumSpendableAmounts(canonicalSpendableShieldNotesByLane[lane], 6)",
-  "Ledger spendable shielded balances",
+  'aria-label="Unshield asset"',
+  "formatAvailableLaneLabel(option.lane, option.amount)",
   "selected ledger-spendable note",
   "Operator release signature returned",
 ]) {
   assert(unshieldPageSource.includes(phrase), `UnshieldPage must preserve ledger-only UI/actionability phrase: ${phrase}`);
+}
+for (const forbidden of [
+  "unshield-balance-strip",
+  "unshield-balance-pill",
+]) {
+  assert(
+    !unshieldPageSource.includes(forbidden),
+    `UnshieldPage must not render every asset lane as a side-by-side option strip: ${forbidden}`,
+  );
+  assert(
+    !stylesSource.includes(forbidden),
+    `Unshield styles must not preserve the side-by-side asset option strip: ${forbidden}`,
+  );
 }
 
 for (const phrase of [
