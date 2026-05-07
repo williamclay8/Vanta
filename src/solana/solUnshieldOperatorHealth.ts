@@ -11,6 +11,26 @@ export type SolUnshieldOperatorHealth = {
   version: "vanta-sol-unshield-operator-health-0.1";
 };
 
+type SolUnshieldOperatorErrorPayload = {
+  error?: unknown;
+  note?: unknown;
+};
+
+function extractSolUnshieldOperatorErrorMessage(
+  parsed: SolUnshieldOperatorErrorPayload,
+  fallback: string,
+) {
+  if (typeof parsed.note === "string" && parsed.note.trim()) {
+    return parsed.note.trim();
+  }
+
+  if (typeof parsed.error === "string" && parsed.error.trim()) {
+    return parsed.error.trim();
+  }
+
+  return fallback;
+}
+
 export async function fetchSolUnshieldOperatorHealth(): Promise<SolUnshieldOperatorHealth> {
   const operatorUrl = liveSwapPair.solUnshieldOperatorUrl.replace(/\/+$/, "");
   const healthUrl = new URL(
@@ -22,11 +42,18 @@ export async function fetchSolUnshieldOperatorHealth(): Promise<SolUnshieldOpera
     signal: AbortSignal.timeout(5_000),
   });
   const responseText = await response.text();
-  let parsed: Partial<SolUnshieldOperatorHealth>;
+  let parsed: Partial<SolUnshieldOperatorHealth> & SolUnshieldOperatorErrorPayload;
   try {
-    parsed = JSON.parse(responseText || "{}") as Partial<SolUnshieldOperatorHealth>;
+    parsed = JSON.parse(responseText || "{}") as Partial<SolUnshieldOperatorHealth> &
+      SolUnshieldOperatorErrorPayload;
   } catch {
     throw new Error("The SOL unshield operator health payload was invalid.");
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      extractSolUnshieldOperatorErrorMessage(parsed, "The SOL unshield operator is not ready."),
+    );
   }
 
   if (
@@ -39,7 +66,7 @@ export async function fetchSolUnshieldOperatorHealth(): Promise<SolUnshieldOpera
     throw new Error("The SOL unshield operator health payload was invalid.");
   }
 
-  if (!response.ok || parsed.ready !== true) {
+  if (parsed.ready !== true) {
     throw new Error(parsed.note ?? "The SOL unshield operator is not ready.");
   }
 

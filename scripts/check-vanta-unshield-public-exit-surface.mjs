@@ -168,6 +168,21 @@ for (const [sourceLabel, source, phrase] of [
     "../../health/sol-unshield",
   ],
   [
+    "SOL unshield health client",
+    solUnshieldOperatorHealthSource,
+    "type SolUnshieldOperatorErrorPayload",
+  ],
+  [
+    "SOL unshield health client",
+    solUnshieldOperatorHealthSource,
+    "extractSolUnshieldOperatorErrorMessage(parsed",
+  ],
+  [
+    "SOL unshield health client",
+    solUnshieldOperatorHealthSource,
+    "if (!response.ok)",
+  ],
+  [
     "Unshield page",
     unshieldPageSource,
     "fetchSolUnshieldOperatorHealth",
