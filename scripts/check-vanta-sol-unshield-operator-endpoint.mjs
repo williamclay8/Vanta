@@ -214,6 +214,42 @@ try {
       printStatus("SOL unshield operator health signer mismatch: PASS");
     },
   );
+
+  const fallbackVaultOwnerPort = await reservePort();
+  const fallbackVaultOwnerEnv = createOperatorEnv({
+    port: fallbackVaultOwnerPort,
+    signer: null,
+    vaultOwner: "",
+  });
+  fallbackVaultOwnerEnv.VANTA_MAINNET_VAULT_OWNER = "";
+  fallbackVaultOwnerEnv.VITE_VANTA_MAINNET_VAULT_OWNER = "";
+  fallbackVaultOwnerEnv.VANTA_VAULT_OWNER = "";
+  fallbackVaultOwnerEnv.VITE_VANTA_VAULT_OWNER = "";
+
+  await withOperator(fallbackVaultOwnerEnv, async (baseUrl) => {
+    const health = await requestJson(baseUrl, "/health/sol-unshield");
+    assert.equal(health.status, 503, health.text);
+    assert.equal(
+      health.body?.kind,
+      "vanta-sol-unshield-operator-health",
+      "Expected missing env vault owner to still expose shaped SOL health.",
+    );
+    assert.equal(
+      health.body?.checks?.some(
+        (check) => check.check === "vault-owner" && check.ready === true,
+      ),
+      true,
+      "Expected SOL health to use the public mainnet vault-owner fallback.",
+    );
+    assert.equal(
+      health.body?.checks?.some(
+        (check) => check.check === "vault-signer" && check.ready === false,
+      ),
+      true,
+      "Expected SOL health to remain blocked without a signer secret.",
+    );
+    printStatus("SOL unshield public vault-owner fallback health: PASS");
+  });
 } finally {
   rmSync(tempRoot, { force: true, recursive: true });
 }

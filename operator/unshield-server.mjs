@@ -169,6 +169,8 @@ const MAINNET_RECOGNIZED_MINTS = {
   USX: "6FrrzDk5mQARGc1TDYoyVnSyRdds1t4PbtohCD6p3tgG",
   WIF: "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
 };
+const MAINNET_SHIELD_VAULT_OWNER_FALLBACK =
+  "7yUfwUmZMYLg95xJGR762z4WpqfR6hBRqt9mcgNArtdi";
 const mintAddress =
   clusterEnv("TOKEN_MINT") ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.USDC : undefined);
 const usdcMintAddress =
@@ -198,7 +200,10 @@ const wifMintAddress =
 const kmnoMintAddress =
   clusterEnv("KMNO_MINT") ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.KMNO : undefined);
 const vaultOwner =
-  clusterEnv("VAULT_OWNER") ?? process.env.VANTA_VAULT_OWNER ?? process.env.VITE_VANTA_VAULT_OWNER;
+  clusterEnv("VAULT_OWNER") ??
+  nonEmptyEnv("VANTA_VAULT_OWNER") ??
+  nonEmptyEnv("VITE_VANTA_VAULT_OWNER") ??
+  (isMainnetCluster ? MAINNET_SHIELD_VAULT_OWNER_FALLBACK : undefined);
 const vaultSignerSecretKeyEnvName = clusterEnvName("VAULT_SIGNER_SECRET_KEY");
 
 if (!mintAddress || !vaultOwner) {
@@ -4561,8 +4566,15 @@ function parsePositiveIntegerEnv(name, fallback) {
 
 function clusterEnv(suffix) {
   const envName = clusterEnvName(suffix);
+  const value = envName ? process.env[envName]?.trim() : undefined;
 
-  return envName ? process.env[envName] : undefined;
+  return value ? value : undefined;
+}
+
+function nonEmptyEnv(envName) {
+  const value = process.env[envName]?.trim();
+
+  return value ? value : undefined;
 }
 
 function clusterEnvName(suffix) {
