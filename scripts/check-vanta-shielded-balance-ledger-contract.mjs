@@ -7,6 +7,14 @@ function readRepoFile(path) {
   return readFileSync(resolve(repoRoot, path), "utf8");
 }
 
+function readOptionalRepoFile(path) {
+  try {
+    return readRepoFile(path);
+  } catch {
+    return "";
+  }
+}
+
 function compact(source) {
   return source.replace(/\s+/g, " ");
 }
@@ -33,6 +41,9 @@ const recoveredNativeSolShieldNotesSource = readRepoFile(
 const shieldAssetStateSource = readRepoFile("src/solana/useVantaShieldAssetState.ts");
 const shieldAssetRegistrySource = readRepoFile("src/solana/useVantaShieldAssetRegistryState.ts");
 const shieldStateSource = readRepoFile("src/solana/vantaShieldState.ts");
+const verifiedSplShieldNotesSource = readOptionalRepoFile(
+  "src/solana/verifiedSplShieldNotes.ts",
+);
 const sendPageSource = readRepoFile("src/pages/SendPage.tsx");
 const packageJson = JSON.parse(readRepoFile("package.json"));
 
@@ -161,10 +172,64 @@ if (recoveredNotesUsePendingLifecycle && !shieldAssetStateFiltersSpendableLifecy
 if (
   /loadRecentShieldTokenNotes|createRecentShieldTokenAccountShell|mergeRecentShieldTokenAccount|spendableShieldNotes = \[\.\.\.nextNotes/.test(
     shieldAssetRegistrySource,
+  ) ||
+  /loadRecentShieldTokenNotes|createRecentShieldTokenAccountShell|mergeRecentShieldTokenAccount|spendableShieldNotes = \[\.\.\.nextNotes/.test(
+    shieldAssetStateSource,
   )
 ) {
   failures.push(
-    "useVantaShieldAssetRegistryState must not merge browser-local recent token records into spendable token notes.",
+    "Shield asset state/registry must not merge browser-local recent token records into spendable token notes.",
+  );
+}
+
+for (const marker of [
+  "VERIFIED_SPL_SHIELD_NOTES_STORAGE_KEY",
+  "VERIFIED_SPL_SHIELD_NOTES_CHANGED_EVENT",
+  "recordVerifiedSplShieldNote",
+  "loadVerifiedSplShieldNotes",
+  "hasVerifiedSplShieldNote",
+]) {
+  if (!verifiedSplShieldNotesSource.includes(marker)) {
+    failures.push(
+      `Verified SPL Shield notes must have a durable local shield-state registry marker: ${marker}.`,
+    );
+  }
+}
+
+if (!verifiedSplShieldNotesSource.includes("VantaShieldNote")) {
+  failures.push(
+    "Verified SPL Shield notes must materialize canonical VantaShieldNote evidence, unlike recentShieldTokenNotes.",
+  );
+}
+
+if (!verifiedSplShieldNotesSource.includes("vanta.verifiedSplShieldNotes.v1")) {
+  failures.push(
+    "Verified SPL Shield notes must use a dedicated storage key instead of reusing recent token notes.",
+  );
+}
+
+if (
+  !shieldAssetStateSource.includes("loadVerifiedSplShieldNotes") ||
+  !shieldAssetStateSource.includes("mergeVerifiedSplShieldNotes") ||
+  !shieldAssetStateSource.includes("createLocalSplShieldAccountState")
+) {
+  failures.push(
+    "useVantaShieldAssetState must merge verified SPL token notes and fall back to them when RPC shield-state recovery is unavailable.",
+  );
+}
+
+if (
+  !shieldAssetStateSource.includes("VERIFIED_SPL_SHIELD_NOTES_CHANGED_EVENT") ||
+  !shieldAssetStateSource.includes("VERIFIED_SPL_SHIELD_NOTES_STORAGE_KEY")
+) {
+  failures.push(
+    "useVantaShieldAssetState must refresh same-tab and cross-tab when verified SPL token notes change.",
+  );
+}
+
+if (!shieldPageSource.includes("recordVerifiedSplShieldNote")) {
+  failures.push(
+    "ShieldPage must record a verified SPL token shield-state note after the same-transaction Shield memo/deposit path confirms.",
   );
 }
 

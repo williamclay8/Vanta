@@ -58,6 +58,14 @@ for (const phrase of [
   assert(unshieldPageSource.includes(phrase), `UnshieldPage must preserve ledger-only UI/actionability phrase: ${phrase}`);
 }
 
+for (const phrase of [
+  "loadVerifiedSplShieldNotes",
+  "mergeVerifiedSplShieldNotes",
+  "reconcileLocallyReleasedShieldNotes",
+]) {
+  assert(shieldAssetStateSource.includes(phrase), `useVantaShieldAssetState must preserve verified SPL note hydration before release reconciliation: ${phrase}`);
+}
+
 for (const forbidden of [
   "createRecentShieldedSolNote",
   "native-sol-recent-shield",
@@ -107,11 +115,13 @@ assert(
   "useVantaShieldAssetState must reconcile local token release records into consumed ledger state.",
 );
 assert(
-  countOccurrences(shieldAssetRegistrySource, "includeLocallyReleasedSolNotes: true") === 7,
-  "Every shield asset registry entry must opt into local SOL release reconciliation because Unshield can source SOL from any registry account.",
+  shieldAssetRegistrySource.includes("includeLocallyReleasedSolNotes: true") &&
+    shieldAssetRegistrySource.includes("useVantaShieldAssetRegistryEntry(\"USDT\")") &&
+    shieldAssetRegistrySource.includes("useVantaShieldAssetRegistryEntry(\"JupUSD\")"),
+  "Every shield asset registry entry must opt into local SOL release reconciliation through the shared registry-entry hook.",
 );
 assert(
-  countOccurrences(shieldAssetRegistrySource, "unshieldOperatorUrl:") === 7,
+  shieldAssetRegistrySource.includes("unshieldOperatorUrl: asset.unshieldOperatorUrl"),
   "Every shield asset registry entry must pass its token Unshield operator URL for release reconciliation.",
 );
 

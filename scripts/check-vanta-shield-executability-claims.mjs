@@ -22,8 +22,30 @@ const publicRouteInputs = readFileSync(
 );
 const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 
-const shieldFamilyAssets = ["USDC", "JTO", "BONK", "JUP", "PYUSD", "WIF", "KMNO"];
-const routeablePublicInputAssets = ["USDT", "EURC", "USDS", "CBBTC"];
+const shieldFamilyAssets = [
+  "USDC",
+  "USDT",
+  "EURC",
+  "USDS",
+  "USX",
+  "USD1",
+  "JupUSD",
+  "JTO",
+  "BONK",
+  "JUP",
+  "PYUSD",
+  "WIF",
+  "KMNO",
+];
+const routeablePublicInputAssets = [
+  "USDT",
+  "EURC",
+  "USDS",
+  "USX",
+  "USD1",
+  "JupUSD",
+  "CBBTC",
+];
 
 assert.ok(
   shieldConfig.includes("MAINNET_SHIELD_VAULT_OWNER_FALLBACK"),
@@ -46,7 +68,7 @@ assert.ok(
   "Mainnet vault-owner env must still be supported before falling back to the canonical public vault owner.",
 );
 assert.ok(
-  shieldConfig.includes("executable: Boolean(args.configuredMintAddress && configuredVaultOwner)"),
+  shieldConfig.includes("executable: Boolean(args.configuredMintAddress && configuredVaultOwner && !adapterRequired)"),
   "Shield token executable status must require both mint and concrete vault owner.",
 );
 

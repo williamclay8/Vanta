@@ -4,7 +4,21 @@ import { strict as assert } from "node:assert";
 
 const shieldPath = resolve(import.meta.dirname, "../src/pages/ShieldPage.tsx");
 const source = readFileSync(shieldPath, "utf8");
-const directShieldSymbols = ["USDC", "JTO", "BONK", "JUP", "PYUSD", "WIF", "KMNO"];
+const directShieldSymbols = [
+  "USDC",
+  "USDT",
+  "EURC",
+  "USDS",
+  "USX",
+  "USD1",
+  "JupUSD",
+  "JTO",
+  "BONK",
+  "JUP",
+  "PYUSD",
+  "WIF",
+  "KMNO",
+];
 
 assert.ok(source.includes("useVantaSafeSendTransaction"), "Shield must import the Vanta safe-send hook.");
 assert.ok(!source.includes("useSendTransaction"), "Shield must not use raw useSendTransaction for generic transactions.");

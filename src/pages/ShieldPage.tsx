@@ -35,6 +35,7 @@ import {
   loadVerifiedNativeSolShieldDepositSignatures,
   recordVerifiedNativeSolShieldNote,
 } from "@/solana/verifiedNativeSolShieldNotes";
+import { recordVerifiedSplShieldNote } from "@/solana/verifiedSplShieldNotes";
 import { recordRecentShieldTokenNote } from "@/solana/recentShieldTokenNotes";
 import { createShieldAssetCapability } from "@/solana/shieldAssetCapability";
 import {
@@ -288,6 +289,7 @@ export function ShieldPage(_props: ShieldPageProps) {
   const [flowError, setFlowError] = useState<string | null>(null);
   const [pendingShieldAmount, setPendingShieldAmount] = useState<number | null>(null);
   const [pendingShieldAmountDisplay, setPendingShieldAmountDisplay] = useState<string | null>(null);
+  const [pendingShieldMemoCreatedAt, setPendingShieldMemoCreatedAt] = useState<number | null>(null);
   const [pendingDepositSignature, setPendingDepositSignature] = useState<string | null>(null);
   const [pendingShieldAsset, setPendingShieldAsset] = useState<LiveShieldTokenAssetKey | "SOL" | null>(null);
   const [pendingShieldTarget, setPendingShieldTarget] = useState<LiveShieldTokenAssetConfig | null>(null);
@@ -731,6 +733,8 @@ export function ShieldPage(_props: ShieldPageProps) {
 
     setPendingShieldAmount(amountNumeric);
     setPendingShieldAmountDisplay(amountDisplay);
+    const shieldMemoCreatedAt = Date.now();
+    setPendingShieldMemoCreatedAt(shieldMemoCreatedAt);
     setPendingDepositSignature(null);
     setPendingShieldAsset(selectedShieldAsset.assetKey);
     setPendingShieldTarget(selectedShieldAsset);
@@ -761,7 +765,7 @@ export function ShieldPage(_props: ShieldPageProps) {
         {
           amount: amountDisplay,
           asset: selectedShieldAsset.assetKey,
-          createdAt: Date.now(),
+          createdAt: shieldMemoCreatedAt,
           depositSignature: VANTA_TOKEN_SAME_TRANSACTION_DEPOSIT_SIGNATURE,
           mintAddress: selectedShieldAsset.mintAddress,
           owner: walletAddress,
@@ -799,6 +803,7 @@ export function ShieldPage(_props: ShieldPageProps) {
 
     setPendingShieldAmount(amountNumeric);
     setPendingShieldAmountDisplay(amountDisplay);
+    setPendingShieldMemoCreatedAt(null);
     setPendingDepositSignature(null);
     setPendingShieldAsset("SOL");
     setPendingShieldTarget(selectedShieldAsset);
@@ -930,6 +935,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     });
     setPendingShieldAmount(null);
     setPendingShieldAmountDisplay(null);
+    setPendingShieldMemoCreatedAt(null);
     setPendingDepositSignature(null);
     setPendingShieldAsset(null);
     setPendingShieldTarget(null);
@@ -959,6 +965,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     );
     setPendingShieldAmount(null);
     setPendingShieldAmountDisplay(null);
+    setPendingShieldMemoCreatedAt(null);
     setPendingDepositSignature(null);
     setPendingShieldAsset(null);
     setPendingShieldTarget(null);
@@ -983,6 +990,7 @@ export function ShieldPage(_props: ShieldPageProps) {
       setStatus("failed");
       setPendingShieldAmount(null);
       setPendingShieldAmountDisplay(null);
+      setPendingShieldMemoCreatedAt(null);
       setPendingDepositSignature(null);
       setPendingShieldAsset(null);
       setPendingShieldTarget(null);
@@ -1031,6 +1039,7 @@ export function ShieldPage(_props: ShieldPageProps) {
       setStatus("failed");
       setPendingShieldAmount(null);
       setPendingShieldAmountDisplay(null);
+      setPendingShieldMemoCreatedAt(null);
       setPendingDepositSignature(null);
       setPendingShieldAsset(null);
       setPendingShieldTarget(null);
@@ -1195,6 +1204,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     setStatus("failed");
     setPendingShieldAmount(null);
     setPendingShieldAmountDisplay(null);
+    setPendingShieldMemoCreatedAt(null);
     setPendingDepositSignature(null);
     setPendingShieldAsset(null);
     setPendingShieldTarget(null);
@@ -1220,6 +1230,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     setStatus("failed");
     setPendingShieldAmount(null);
     setPendingShieldAmountDisplay(null);
+    setPendingShieldMemoCreatedAt(null);
     setPendingDepositSignature(null);
     setPendingShieldAsset(null);
     setPendingShieldTarget(null);
@@ -1330,6 +1341,22 @@ export function ShieldPage(_props: ShieldPageProps) {
           }
         }
         const recentShieldTimestamp = Date.now();
+        const splLocalShieldStateNote =
+          pendingShieldAsset !== "SOL" &&
+          activeDepositSignature &&
+          walletAddress
+            ? recordVerifiedSplShieldNote({
+                amount: pendingShieldAmount,
+                amountDisplay: pendingShieldAmountDisplay,
+                asset: activeShieldTarget.assetKey,
+                createdAt: pendingShieldMemoCreatedAt ?? recentShieldTimestamp,
+                depositSignature: activeDepositSignature,
+                mintAddress: activeShieldTarget.mintAddress!,
+                owner: walletAddress,
+                stateSignature: activeStateSignature,
+                vaultOwner: activeShieldTarget.vaultOwner!,
+              })
+            : null;
         const nativeSolLocalShieldStateNote =
           pendingShieldAsset === "SOL" &&
           activeDepositSignature &&
@@ -1358,7 +1385,9 @@ export function ShieldPage(_props: ShieldPageProps) {
               ? "local_shield_state"
               : pendingShieldAsset === "SOL"
                 ? "public_vault_deposit"
-                : "local_shield_state";
+                : splLocalShieldStateNote
+                  ? "local_shield_state"
+                  : "public_vault_deposit";
         const nextBalance = Number(
           (activeShieldedBalance + pendingShieldAmount).toFixed(activeShieldTarget.decimals),
         );
@@ -1508,6 +1537,7 @@ export function ShieldPage(_props: ShieldPageProps) {
 
         setPendingShieldAmount(null);
         setPendingShieldAmountDisplay(null);
+        setPendingShieldMemoCreatedAt(null);
         setPendingDepositSignature(null);
         setPendingShieldAsset(null);
         setPendingShieldTarget(null);
@@ -1520,6 +1550,7 @@ export function ShieldPage(_props: ShieldPageProps) {
       .catch((error) => {
         setPendingShieldAmount(null);
         setPendingShieldAmountDisplay(null);
+        setPendingShieldMemoCreatedAt(null);
         setPendingDepositSignature(null);
         setPendingShieldAsset(null);
         setPendingShieldTarget(null);
@@ -1538,6 +1569,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     pendingShieldAsset,
     pendingShieldAmount,
     pendingShieldAmountDisplay,
+    pendingShieldMemoCreatedAt,
     pendingProtocolSettlement,
     pendingShieldTarget,
     nativeSolShieldTransaction.signature,
@@ -1582,6 +1614,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     setPendingPublicRoute(null);
     setPendingShieldAmount(null);
     setPendingShieldAmountDisplay(null);
+    setPendingShieldMemoCreatedAt(null);
     setPendingDepositSignature(null);
     setPendingShieldAsset(null);
     setPendingShieldTarget(null);
@@ -1636,6 +1669,7 @@ export function ShieldPage(_props: ShieldPageProps) {
       setPendingPublicRoute(null);
       setPendingShieldAmount(null);
       setPendingShieldAmountDisplay(null);
+      setPendingShieldMemoCreatedAt(null);
       setPendingDepositSignature(null);
       setPendingShieldAsset(null);
       setPendingShieldTarget(null);

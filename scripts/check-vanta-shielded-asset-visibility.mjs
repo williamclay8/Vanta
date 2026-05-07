@@ -11,6 +11,7 @@ function readRepoFile(path) {
 const registrySource = readRepoFile("src/solana/useVantaShieldAssetRegistryState.ts");
 const clientSource = readRepoFile("src/solana/client.ts");
 const recentTokenNotesSource = readRepoFile("src/solana/recentShieldTokenNotes.ts");
+const verifiedSplTokenNotesSource = readRepoFile("src/solana/verifiedSplShieldNotes.ts");
 const shieldConfigSource = readRepoFile("src/solana/shieldConfig.ts");
 const shieldPageSource = readRepoFile("src/pages/ShieldPage.tsx");
 const shieldStateSource = readRepoFile("src/solana/vantaShieldState.ts");
@@ -19,9 +20,29 @@ const sendCapabilitySource = readRepoFile("src/solana/shieldedSendCapability.ts"
 const swapCapabilitySource = readRepoFile("src/solana/shieldedSwapCapability.ts");
 const packageJson = JSON.parse(readRepoFile("package.json"));
 
-const directShieldSymbols = ["USDC", "JTO", "BONK", "JUP", "PYUSD", "WIF", "KMNO"];
+const directShieldSymbols = [
+  "USDC",
+  "USDT",
+  "EURC",
+  "USDS",
+  "USX",
+  "USD1",
+  "JupUSD",
+  "JTO",
+  "BONK",
+  "JUP",
+  "PYUSD",
+  "WIF",
+  "KMNO",
+];
 const allShieldedLabels = [
   "Shielded USDC",
+  "Shielded USDT",
+  "Shielded EURC",
+  "Shielded USDS",
+  "Shielded USX",
+  "Shielded USD1",
+  "Shielded JupUSD",
   "Shielded JTO",
   "Shielded BONK",
   "Shielded JUP",
@@ -32,13 +53,15 @@ const allShieldedLabels = [
 ];
 
 for (const marker of [
-  "getLiveShieldTokenAsset(\"USDC\")",
-  "getLiveShieldTokenAsset(\"BONK\")",
-  "getLiveShieldTokenAsset(\"JUP\")",
+  "useVantaShieldAssetRegistryEntry(\"USDC\")",
+  "useVantaShieldAssetRegistryEntry(\"USDT\")",
+  "useVantaShieldAssetRegistryEntry(\"EURC\")",
+  "useVantaShieldAssetRegistryEntry(\"USDS\")",
+  "useVantaShieldAssetRegistryEntry(\"USX\")",
+  "useVantaShieldAssetRegistryEntry(\"USD1\")",
+  "useVantaShieldAssetRegistryEntry(\"JupUSD\")",
   "useVantaShieldAssetState",
-  "account: usdcAccountState.account",
-  "account: bonkAccountState.account",
-  "account: jupAccountState.account",
+  "configuredEntries: entries.filter((entry) => entry.asset.executable)",
 ]) {
   assert.ok(
     registrySource.includes(marker),
@@ -79,9 +102,22 @@ assert.ok(
 );
 
 for (const marker of [
+  "vanta.verifiedSplShieldNotes.v1",
+  "recordVerifiedSplShieldNote",
+  "loadVerifiedSplShieldNotes",
+  "VantaShieldNote",
+]) {
+  assert.ok(
+    verifiedSplTokenNotesSource.includes(marker),
+    `Verified SPL token notes must persist canonical local Shield evidence: ${marker}.`,
+  );
+}
+
+for (const marker of [
   "const recentShieldContext =",
   "setRecentShield(recentShieldContext)",
   "recordRecentShieldTokenNote",
+  "recordVerifiedSplShieldNote",
   "recordedTokenDepositSignatureRef",
   "local-token-deposit:",
   "Private Pool v2 Shield receipt context was not available for this shield.",
@@ -114,7 +150,7 @@ for (const symbol of directShieldSymbols) {
     `Direct ${symbol} Shield completion must record visibility from the frozen active shield target.`,
   );
   assert.ok(
-    registrySource.includes(`getLiveShieldTokenAsset("${symbol}")`),
+    registrySource.includes(`useVantaShieldAssetRegistryEntry("${symbol}")`),
     `${symbol} must have a canonical registry entry.`,
   );
 }
@@ -200,13 +236,11 @@ assert.ok(
 
 for (const symbol of directShieldSymbols) {
   assert.ok(
-    registrySource.includes(`asset: ${symbol.toLowerCase()}Asset`) ||
-      registrySource.includes(`asset: ${symbol === "USDC" ? "usdc" : symbol.toLowerCase()}Asset`),
+    registrySource.includes(`useVantaShieldAssetRegistryEntry("${symbol}")`),
     `${symbol} registry entry must pass through canonical account state.`,
   );
   assert.ok(
-    registrySource.includes(`assetKey: "${symbol}"`) ||
-      registrySource.includes(`getLiveShieldTokenAsset("${symbol}")`),
+    shieldConfigSource.includes(`"${symbol}"`),
     `${symbol} must stay in the direct Shield asset registry.`,
   );
 }

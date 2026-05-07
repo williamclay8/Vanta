@@ -84,7 +84,16 @@ function capabilityLane(args: VantaTokenCapabilityLane): VantaTokenCapabilityLan
 }
 
 function isLiveShieldToken(symbol: VantaPaymentSuiteTokenSymbol): symbol is LiveShieldTokenAssetKey {
-  return symbol !== "SOL" && symbol !== "USDT";
+  if (symbol === "SOL") {
+    return false;
+  }
+
+  try {
+    getLiveShieldTokenAsset(symbol as LiveShieldTokenAssetKey);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function configuredForShield(symbol: VantaPaymentSuiteTokenSymbol) {
@@ -119,6 +128,13 @@ export function listVantaTokenAvailability(): VantaTokenAvailability[] {
     const isPayAsset = (VANTA_PAY_ASSET_SYMBOLS as readonly string[]).includes(entry.symbol);
     const isUsdc = entry.symbol === "USDC";
     const isSol = entry.symbol === "SOL";
+    const shieldAsset = isLiveShieldToken(entry.symbol)
+      ? getLiveShieldTokenAsset(entry.symbol)
+      : null;
+    const shieldBlockerReason =
+      shieldAsset?.executionBlocker === "token-2022-adapter-required"
+        ? "Token-2022 extensions need an adapter review before direct Shield execution."
+        : "Configure this shield asset before live shielding.";
     const routeablePublicInput = entry.shieldFamily || isPayAsset;
     const routeableShieldConfigured = Boolean(
       routeablePublicInput && getPrimaryLiveShieldTokenAsset().executable,
@@ -138,7 +154,11 @@ export function listVantaTokenAvailability(): VantaTokenAvailability[] {
         reason: isPayAsset ? null : "Not accepted by the current Pay beta asset set.",
         visible: isPayAsset,
       }),
-      reason: configured || entry.symbol === "USDT" ? null : "Configure this asset before live execution.",
+      reason: configured ? null : shieldAsset?.executionBlocker === "token-2022-adapter-required"
+        ? shieldBlockerReason
+        : entry.shieldFamily
+          ? "Configure this asset before live execution."
+          : null,
       send: action({
         executable: isUsdc && configured,
         label: `Send ${entry.symbol} from shielded balance`,
@@ -165,7 +185,7 @@ export function listVantaTokenAvailability(): VantaTokenAvailability[] {
         reason: shieldExecutable
           ? null
           : entry.shieldFamily
-            ? "Configure this shield asset before live shielding."
+            ? shieldBlockerReason
             : "This asset must route into a configured shield target before shielding.",
         visible: entry.shieldFamily || isPayAsset,
       }),
@@ -176,7 +196,7 @@ export function listVantaTokenAvailability(): VantaTokenAvailability[] {
         reason: configuredShieldTarget
           ? null
           : entry.shieldFamily
-            ? "Configure this shield asset before it can be a direct Shield target."
+            ? shieldBlockerReason
             : "This token is routeable only; it is not a configured Shield target.",
       }),
       poolBackedPrivateAsset: capabilityLane({
@@ -217,7 +237,9 @@ export function listVantaTokenAvailability(): VantaTokenAvailability[] {
         reason: unshieldConfigured
           ? null
           : entry.shieldFamily
-            ? "Configure this asset's unshield operator before it can return to a public wallet."
+            ? shieldAsset?.executionBlocker === "token-2022-adapter-required"
+              ? shieldBlockerReason
+              : "Configure this asset's unshield operator before it can return to a public wallet."
             : "This token is not a current shielded Unshield lane.",
         visible: entry.shieldFamily,
       }),

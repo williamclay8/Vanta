@@ -78,22 +78,27 @@ try {
 
   const symbols = catalog.listVantaTokenCatalogEntries().map((entry) => entry.symbol);
   assert(
-    symbols.join("|") === "USDC|JTO|BONK|JUP|PYUSD|WIF|KMNO|SOL|USDT",
+    symbols.join("|") === "USDC|USDT|EURC|USDS|USX|USD1|JupUSD|JTO|BONK|JUP|PYUSD|WIF|KMNO|SOL",
     "Expected canonical payment-suite token catalog order.",
   );
 
   const shieldSymbols = catalog.listVantaShieldFamilySymbols();
   assert(
-    shieldSymbols.join("|") === "USDC|JTO|BONK|JUP|PYUSD|WIF|KMNO|SOL",
-    "Expected shield family to contain the 8 shield tokens plus SOL.",
+    shieldSymbols.join("|") === "USDC|USDT|EURC|USDS|USX|USD1|JupUSD|JTO|BONK|JUP|PYUSD|WIF|KMNO|SOL",
+    "Expected shield family to contain the Phase 1 stablecoin expansion plus existing shield assets and SOL.",
   );
 
   assert(
-    payAssets.VANTA_PAY_ASSET_SYMBOLS.join("|") === "USDC|SOL|USDT",
-    "Expected Pay accepted assets to be USDC, SOL, USDT.",
+    payAssets.VANTA_PAY_ASSET_SYMBOLS.join("|") === "USDC|SOL|USDT|EURC|USDS|USX|USD1|JupUSD",
+    "Expected Pay accepted assets to include the Phase 1 plain-SPL stablecoin batch.",
   );
   assert(payAssets.getVantaPayAssetDecimals("USDC") === 6, "Expected USDC Pay decimals.");
   assert(payAssets.getVantaPayAssetDecimals("USDT") === 6, "Expected USDT Pay decimals.");
+  assert(payAssets.getVantaPayAssetDecimals("EURC") === 6, "Expected EURC Pay decimals.");
+  assert(payAssets.getVantaPayAssetDecimals("USDS") === 6, "Expected USDS Pay decimals.");
+  assert(payAssets.getVantaPayAssetDecimals("USX") === 6, "Expected USX Pay decimals.");
+  assert(payAssets.getVantaPayAssetDecimals("USD1") === 6, "Expected USD1 Pay decimals.");
+  assert(payAssets.getVantaPayAssetDecimals("JupUSD") === 6, "Expected JupUSD Pay decimals.");
   assert(payAssets.getVantaPayAssetDecimals("SOL") === 9, "Expected SOL Pay decimals.");
 
   const payTypes = readRepoFile("src/pay/vantaPayTypes.ts");

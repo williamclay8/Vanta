@@ -1,7 +1,6 @@
 import { toAddress, type TransactionInstructionInput } from "@solana/client";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
-  TOKEN_2022_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
   createAssociatedTokenAccountIdempotentInstruction,
   createTransferCheckedInstruction,
@@ -16,7 +15,6 @@ import { endpoint } from "@/solana/client";
 
 const SUPPORTED_TOKEN_PROGRAM_IDS = [
   TOKEN_PROGRAM_ID.toBase58(),
-  TOKEN_2022_PROGRAM_ID.toBase58(),
 ] as const;
 
 let cachedConnection: Connection | null = null;
@@ -82,7 +80,7 @@ async function resolveTokenProgramId(mintAddress: PublicKey) {
   }
 
   if (!SUPPORTED_TOKEN_PROGRAM_IDS.includes(owner as (typeof SUPPORTED_TOKEN_PROGRAM_IDS)[number])) {
-    throw new Error("Shielding currently supports SPL Token and Token-2022 mints.");
+    throw new Error("Direct Shield currently supports legacy SPL Token mints; Token-2022 assets need an adapter review.");
   }
 
   return new PublicKey(owner);

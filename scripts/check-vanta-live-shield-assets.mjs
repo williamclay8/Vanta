@@ -42,6 +42,54 @@ const configuredAssets = [
     decimals: Number(process.env.VITE_VANTA_MAINNET_USDC_DECIMALS ?? "6"),
   },
   {
+    symbol: "USDT",
+    mintAddress:
+      process.env.VANTA_MAINNET_USDT_MINT ?? process.env.VITE_VANTA_MAINNET_USDT_MINT,
+    name:
+      process.env.VITE_VANTA_MAINNET_USDT_NAME ?? "Tether USD (Mainnet Test)",
+    decimals: Number(process.env.VITE_VANTA_MAINNET_USDT_DECIMALS ?? "6"),
+  },
+  {
+    symbol: "EURC",
+    mintAddress:
+      process.env.VANTA_MAINNET_EURC_MINT ?? process.env.VITE_VANTA_MAINNET_EURC_MINT,
+    name:
+      process.env.VITE_VANTA_MAINNET_EURC_NAME ?? "Euro Coin (Mainnet Test)",
+    decimals: Number(process.env.VITE_VANTA_MAINNET_EURC_DECIMALS ?? "6"),
+  },
+  {
+    symbol: "USDS",
+    mintAddress:
+      process.env.VANTA_MAINNET_USDS_MINT ?? process.env.VITE_VANTA_MAINNET_USDS_MINT,
+    name:
+      process.env.VITE_VANTA_MAINNET_USDS_NAME ?? "USDS (Mainnet Test)",
+    decimals: Number(process.env.VITE_VANTA_MAINNET_USDS_DECIMALS ?? "6"),
+  },
+  {
+    symbol: "USX",
+    mintAddress:
+      process.env.VANTA_MAINNET_USX_MINT ?? process.env.VITE_VANTA_MAINNET_USX_MINT,
+    name:
+      process.env.VITE_VANTA_MAINNET_USX_NAME ?? "USX (Mainnet Test)",
+    decimals: Number(process.env.VITE_VANTA_MAINNET_USX_DECIMALS ?? "6"),
+  },
+  {
+    symbol: "USD1",
+    mintAddress:
+      process.env.VANTA_MAINNET_USD1_MINT ?? process.env.VITE_VANTA_MAINNET_USD1_MINT,
+    name:
+      process.env.VITE_VANTA_MAINNET_USD1_NAME ?? "USD1 (Mainnet Test)",
+    decimals: Number(process.env.VITE_VANTA_MAINNET_USD1_DECIMALS ?? "6"),
+  },
+  {
+    symbol: "JupUSD",
+    mintAddress:
+      process.env.VANTA_MAINNET_JUPUSD_MINT ?? process.env.VITE_VANTA_MAINNET_JUPUSD_MINT,
+    name:
+      process.env.VITE_VANTA_MAINNET_JUPUSD_NAME ?? "Jupiter USD (Mainnet Test)",
+    decimals: Number(process.env.VITE_VANTA_MAINNET_JUPUSD_DECIMALS ?? "6"),
+  },
+  {
     symbol: "JTO",
     mintAddress:
       process.env.VANTA_MAINNET_JTO_MINT ?? process.env.VITE_VANTA_MAINNET_JTO_MINT,

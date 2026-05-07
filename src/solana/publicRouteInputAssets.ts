@@ -1,4 +1,11 @@
-export type PublicRouteInputAssetSymbol = "USDT" | "EURC" | "USDS" | "CBBTC";
+export type PublicRouteInputAssetSymbol =
+  | "USDT"
+  | "EURC"
+  | "USDS"
+  | "USX"
+  | "USD1"
+  | "JupUSD"
+  | "CBBTC";
 
 export type PublicRouteInputAssetConfig = {
   decimals: number;
@@ -25,6 +32,24 @@ export const PUBLIC_ROUTE_INPUT_ASSETS = [
     mintAddress: "USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA",
     name: "USDS",
     symbol: "USDS",
+  },
+  {
+    decimals: 6,
+    mintAddress: "6FrrzDk5mQARGc1TDYoyVnSyRdds1t4PbtohCD6p3tgG",
+    name: "USX",
+    symbol: "USX",
+  },
+  {
+    decimals: 6,
+    mintAddress: "USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB",
+    name: "USD1",
+    symbol: "USD1",
+  },
+  {
+    decimals: 6,
+    mintAddress: "JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD",
+    name: "Jupiter USD",
+    symbol: "JupUSD",
   },
   {
     decimals: 8,

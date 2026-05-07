@@ -25,6 +25,36 @@ const directShieldAssets = [
     symbol: "USDC",
   },
   {
+    decimals: 6,
+    mintAddress: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+    symbol: "USDT",
+  },
+  {
+    decimals: 6,
+    mintAddress: "HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr",
+    symbol: "EURC",
+  },
+  {
+    decimals: 6,
+    mintAddress: "USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA",
+    symbol: "USDS",
+  },
+  {
+    decimals: 6,
+    mintAddress: "6FrrzDk5mQARGc1TDYoyVnSyRdds1t4PbtohCD6p3tgG",
+    symbol: "USX",
+  },
+  {
+    decimals: 6,
+    mintAddress: "USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB",
+    symbol: "USD1",
+  },
+  {
+    decimals: 6,
+    mintAddress: "JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD",
+    symbol: "JupUSD",
+  },
+  {
     decimals: 9,
     mintAddress: "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
     symbol: "JTO",
@@ -38,11 +68,6 @@ const directShieldAssets = [
     decimals: 6,
     mintAddress: "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
     symbol: "JUP",
-  },
-  {
-    decimals: 6,
-    mintAddress: "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
-    symbol: "PYUSD",
   },
   {
     decimals: 6,
@@ -108,6 +133,12 @@ async function checkMint(asset) {
   const tokenProgramId = accountInfo.value.owner;
   const tokenProgramLabel = getTokenProgramLabel(tokenProgramId);
   const decimals = Number(accountInfo.value.data.parsed.info.decimals);
+
+  if (!tokenProgramId.equals(TOKEN_PROGRAM_ID)) {
+    throw new Error(
+      `${asset.symbol} direct Shield mint must be a legacy SPL Token mint; received ${tokenProgramLabel}.`,
+    );
+  }
 
   if (decimals !== asset.decimals) {
     throw new Error(

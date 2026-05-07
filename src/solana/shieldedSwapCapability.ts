@@ -30,12 +30,18 @@ export type ShieldedSwapPairCapability = {
 
 const SHIELDED_SWAP_ASSET_LABELS = {
   BONK: "Shielded BONK",
+  EURC: "Shielded EURC",
   JTO: "Shielded JTO",
   JUP: "Shielded JUP",
+  JupUSD: "Shielded JupUSD",
   KMNO: "Shielded KMNO",
   PYUSD: "Shielded PYUSD",
   SOL: "Shielded SOL",
+  USD1: "Shielded USD1",
   USDC: "Shielded USDC",
+  USDS: "Shielded USDS",
+  USDT: "Shielded USDT",
+  USX: "Shielded USX",
   WIF: "Shielded WIF",
 } as const satisfies Record<ShieldedSwapAssetKey, string>;
 

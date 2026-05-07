@@ -87,7 +87,12 @@ import {
 
 export type PrivacyAssetKey =
   | "USDC"
-  | "USDC"
+  | "USDT"
+  | "EURC"
+  | "USDS"
+  | "USX"
+  | "USD1"
+  | "JupUSD"
   | "JTO"
   | "BONK"
   | "JUP"

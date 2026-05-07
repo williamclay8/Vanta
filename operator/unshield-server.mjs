@@ -156,17 +156,35 @@ const configuredCluster =
 const isMainnetCluster = configuredCluster === "mainnet-beta";
 const MAINNET_RECOGNIZED_MINTS = {
   BONK: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+  EURC: "HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr",
   JTO: "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
   JUP: "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  JupUSD: "JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD",
   KMNO: "KMNo3nJsBXfcpJTVhZcXLW7RmTwTt4GVFE7suUBo9sS",
   PYUSD: "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+  USD1: "USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB",
   USDC: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  USDS: "USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA",
+  USDT: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+  USX: "6FrrzDk5mQARGc1TDYoyVnSyRdds1t4PbtohCD6p3tgG",
   WIF: "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
 };
 const mintAddress =
   clusterEnv("TOKEN_MINT") ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.USDC : undefined);
 const usdcMintAddress =
   clusterEnv("USDC_MINT") ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.USDC : undefined);
+const usdtMintAddress =
+  clusterEnv("USDT_MINT") ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.USDT : undefined);
+const eurcMintAddress =
+  clusterEnv("EURC_MINT") ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.EURC : undefined);
+const usdsMintAddress =
+  clusterEnv("USDS_MINT") ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.USDS : undefined);
+const usxMintAddress =
+  clusterEnv("USX_MINT") ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.USX : undefined);
+const usd1MintAddress =
+  clusterEnv("USD1_MINT") ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.USD1 : undefined);
+const jupusdMintAddress =
+  clusterEnv("JUPUSD_MINT") ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.JupUSD : undefined);
 const jtoMintAddress =
   clusterEnv("JTO_MINT") ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.JTO : undefined);
 const bonkMintAddress =
@@ -193,6 +211,12 @@ const supportedTokenMintAddresses = new Set(
   [
     mintAddress,
     usdcMintAddress,
+    usdtMintAddress,
+    eurcMintAddress,
+    usdsMintAddress,
+    usxMintAddress,
+    usd1MintAddress,
+    jupusdMintAddress,
     jtoMintAddress,
     bonkMintAddress,
     jupMintAddress,

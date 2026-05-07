@@ -14,6 +14,11 @@ import {
   loadVerifiedNativeSolShieldNotes,
 } from "@/solana/verifiedNativeSolShieldNotes";
 import {
+  VERIFIED_SPL_SHIELD_NOTES_CHANGED_EVENT,
+  VERIFIED_SPL_SHIELD_NOTES_STORAGE_KEY,
+  loadVerifiedSplShieldNotes,
+} from "@/solana/verifiedSplShieldNotes";
+import {
   getLiveShieldTokenAssetByMint,
   type LiveShieldTokenAssetKey,
 } from "@/solana/shieldConfig";
@@ -64,6 +69,11 @@ export function useVantaShieldAssetState(args: {
         owner: walletAddress,
         vaultOwner: args.vaultOwner,
       });
+      const localSplShieldNotes = loadVerifiedSplShieldNotes({
+        mintAddress: args.mintAddress,
+        owner: walletAddress,
+        vaultOwner: args.vaultOwner,
+      });
       const [
         locallyReleasedSolNoteReferenceHashes,
         locallyReleasedTokenNoteReferenceHashes,
@@ -88,12 +98,24 @@ export function useVantaShieldAssetState(args: {
           viewingSecretKey: viewingKey?.secretKey,
         });
       } catch (nextError) {
-        const localAccountFallback = createLocalNativeSolShieldAccountState({
+        const localSplAccountFallback = createLocalSplShieldAccountState({
+          mintAddress: args.mintAddress,
+          notes: localSplShieldNotes,
+          owner: walletAddress,
+          vaultOwner: args.vaultOwner,
+        });
+        const localNativeSolAccountFallback = createLocalNativeSolShieldAccountState({
           mintAddress: args.mintAddress,
           notes: localNativeSolShieldNotes,
           owner: walletAddress,
           vaultOwner: args.vaultOwner,
         });
+        const localAccountFallback = localSplAccountFallback
+          ? mergeRecoveredNativeSolShieldNotes(
+              localSplAccountFallback,
+              localNativeSolShieldNotes,
+            )
+          : localNativeSolAccountFallback;
 
         if (!localAccountFallback) {
           throw nextError;
@@ -111,8 +133,12 @@ export function useVantaShieldAssetState(args: {
         return;
       }
 
-      const accountWithRecoveredSolNotes = mergeRecoveredNativeSolShieldNotes(
+      const accountWithVerifiedSplNotes = mergeVerifiedSplShieldNotes(
         nextAccount,
+        localSplShieldNotes,
+      );
+      const accountWithRecoveredSolNotes = mergeRecoveredNativeSolShieldNotes(
+        accountWithVerifiedSplNotes,
         localNativeSolShieldNotes,
       );
       const accountWithReleasedTokenNotes = reconcileLocallyReleasedShieldNotes(
@@ -171,9 +197,13 @@ export function useVantaShieldAssetState(args: {
     const handleVerifiedNativeSolShieldNotesChanged = () => {
       queueRefresh();
     };
+    const handleVerifiedSplShieldNotesChanged = () => {
+      queueRefresh();
+    };
     const handleStorageChanged = (event: StorageEvent) => {
       if (
         event.key === VERIFIED_NATIVE_SOL_SHIELD_NOTES_STORAGE_KEY ||
+        event.key === VERIFIED_SPL_SHIELD_NOTES_STORAGE_KEY ||
         event.key === null
       ) {
         queueRefresh();
@@ -184,12 +214,20 @@ export function useVantaShieldAssetState(args: {
       VERIFIED_NATIVE_SOL_SHIELD_NOTES_CHANGED_EVENT,
       handleVerifiedNativeSolShieldNotesChanged,
     );
+    window.addEventListener(
+      VERIFIED_SPL_SHIELD_NOTES_CHANGED_EVENT,
+      handleVerifiedSplShieldNotesChanged,
+    );
     window.addEventListener("storage", handleStorageChanged);
 
     return () => {
       window.removeEventListener(
         VERIFIED_NATIVE_SOL_SHIELD_NOTES_CHANGED_EVENT,
         handleVerifiedNativeSolShieldNotesChanged,
+      );
+      window.removeEventListener(
+        VERIFIED_SPL_SHIELD_NOTES_CHANGED_EVENT,
+        handleVerifiedSplShieldNotesChanged,
       );
       window.removeEventListener("storage", handleStorageChanged);
     };
@@ -303,6 +341,53 @@ function createLocalNativeSolShieldAccountState(args: {
   } satisfies VantaShieldAccountState;
 }
 
+function createLocalSplShieldAccountState(args: {
+  mintAddress: string;
+  notes: readonly VantaShieldNote[];
+  owner: string;
+  vaultOwner: string;
+}): VantaShieldAccountState | null {
+  if (args.notes.length === 0) {
+    return null;
+  }
+
+  const asset = getLiveShieldTokenAssetByMint(args.mintAddress)?.assetKey ?? args.notes[0]?.asset ?? "USDC";
+
+  return mergeVerifiedSplShieldNotes({
+    accountId: `local-spl-shield:${args.owner}:${args.vaultOwner}:${args.mintAddress}`,
+    activity: [],
+    asset,
+    balance: 0,
+    changeNotes: [],
+    consumedShieldedSolNotes: [],
+    lifecycleActivities: [],
+    mintAddress: args.mintAddress,
+    noteStates: [],
+    noteStatusSummary: {
+      changeDerived: 0,
+      consumed: 0,
+      spendable: 0,
+      swapDerived: 0,
+      total: 0,
+    },
+    owner: args.owner,
+    sendNotes: [],
+    shieldedSolBalance: 0,
+    shieldedSolNotes: [],
+    shieldNotes: [],
+    solUnshieldNotes: [],
+    source: "vanta_onchain_notes",
+    spendableShieldedSolNotes: [],
+    spendableShieldNotes: [],
+    spentMarkers: [],
+    spentShieldNotes: [],
+    status: "ready",
+    swapNotes: [],
+    unshieldNotes: [],
+    vaultOwner: args.vaultOwner,
+  }, args.notes);
+}
+
 function reconcileLocallyReleasedShieldNotes(
   account: VantaShieldAccountState,
   locallyReleasedNoteReferenceHashes: Set<string>,
@@ -346,6 +431,111 @@ function reconcileLocallyReleasedShieldNotes(
     balance,
     noteStates,
     noteStatusSummary,
+    spendableShieldNotes,
+    spentShieldNotes,
+  };
+}
+
+function mergeVerifiedSplShieldNotes(
+  account: VantaShieldAccountState,
+  verifiedNotes: readonly VantaShieldNote[],
+): VantaShieldAccountState {
+  if (verifiedNotes.length === 0) {
+    return account;
+  }
+
+  const notesById = new Map<string, VantaShieldNote>();
+
+  for (const note of [...account.shieldNotes, ...verifiedNotes]) {
+    notesById.set(note.noteId, note);
+  }
+
+  const shieldNotes = [...notesById.values()].sort(
+    (left, right) => left.createdAt - right.createdAt,
+  );
+  const consumedNoteIds = new Set([
+    ...account.spentShieldNotes.map((note) => note.noteId),
+    ...account.spentMarkers
+      .filter((marker) => marker.asset !== "SOL")
+      .map((marker) => marker.consumedNoteId),
+  ]);
+  const spentMarkerByConsumedNoteId = new Map(
+    account.spentMarkers.map((marker) => [marker.consumedNoteId, marker] as const),
+  );
+  const spentShieldNotes = shieldNotes.filter((note) => consumedNoteIds.has(note.noteId));
+  const spendableShieldNotes = shieldNotes.filter((note) => !consumedNoteIds.has(note.noteId));
+  const noteStatesById = new Map(account.noteStates.map((note) => [note.noteId, note] as const));
+
+  for (const note of shieldNotes) {
+    if (noteStatesById.has(note.noteId)) {
+      continue;
+    }
+
+    const spentMarker = spentMarkerByConsumedNoteId.get(note.noteId);
+    noteStatesById.set(note.noteId, {
+      amount: note.amount,
+      asset: note.asset,
+      consumedByTransitionId: spentMarker?.transitionNoteId,
+      consumedByTransitionKind: spentMarker?.transitionKind,
+      createdAt: note.createdAt,
+      lifecycleStatus: spentMarker ? "consumed" : "spendable",
+      noteId: note.noteId,
+      parentNoteId: note.parentNoteId,
+      parentSendNoteId: note.parentSendNoteId,
+      sourceType:
+        note.origin === "change"
+          ? "change_derived"
+          : note.origin === "swap_output"
+            ? "swap_derived"
+            : "deposit",
+      spentMarkerId: spentMarker?.markerId,
+      stateSignature: note.stateSignature,
+    });
+  }
+
+  const noteStates = [...noteStatesById.values()].sort(
+    (left, right) => right.createdAt - left.createdAt,
+  );
+  const noteStatusSummary = {
+    changeDerived: noteStates.filter((note) => note.sourceType === "change_derived").length,
+    consumed: noteStates.filter((note) => note.lifecycleStatus === "consumed").length,
+    spendable: noteStates.filter((note) => note.lifecycleStatus === "spendable").length,
+    swapDerived: noteStates.filter((note) => note.sourceType === "swap_derived").length,
+    total: noteStates.length,
+  };
+  const balance = Number(
+    spendableShieldNotes.reduce((sum, note) => sum + note.amount, 0).toFixed(6),
+  );
+  const existingActivityKeys = new Set(
+    account.activity.map((item) => "noteId" in item ? item.noteId : item.stateSignature),
+  );
+  const localShieldActivities = shieldNotes
+    .filter((note) => !existingActivityKeys.has(note.noteId))
+    .map((note) => ({
+      amount: note.amount,
+      amountLabel: `${note.amount.toFixed(Math.min(getLiveShieldTokenAssetByMint(note.mintAddress)?.decimals ?? 6, 4))} ${note.asset}`,
+      createdAt: note.createdAt,
+      description:
+        "Locally verified SPL Shield note resolved from same-transaction shield evidence.",
+      impact: "public_to_shielded" as const,
+      noteId: note.noteId,
+      sourceState: "Public Wallet" as const,
+      targetState: "Shielded State" as const,
+      title: `Shielded ${note.asset} verified`,
+      type: "shield" as const,
+    }));
+
+  return {
+    ...account,
+    activity: [...account.activity, ...shieldNotes.filter((note) => !existingActivityKeys.has(note.noteId))]
+      .sort((left, right) => left.createdAt - right.createdAt),
+    balance,
+    lifecycleActivities: [...account.lifecycleActivities, ...localShieldActivities].sort(
+      (left, right) => right.createdAt - left.createdAt,
+    ),
+    noteStates,
+    noteStatusSummary,
+    shieldNotes,
     spendableShieldNotes,
     spentShieldNotes,
   };

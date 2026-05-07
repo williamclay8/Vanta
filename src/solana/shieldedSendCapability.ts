@@ -21,11 +21,17 @@ export type ShieldedSendAssetCapability = {
 
 const SHIELDED_SEND_ASSET_LABELS = {
   BONK: "Shielded BONK",
+  EURC: "Shielded EURC",
   JTO: "Shielded JTO",
   JUP: "Shielded JUP",
+  JupUSD: "Shielded JupUSD",
   KMNO: "Shielded KMNO",
   PYUSD: "Shielded PYUSD",
+  USD1: "Shielded USD1",
   USDC: "Shielded USDC",
+  USDS: "Shielded USDS",
+  USDT: "Shielded USDT",
+  USX: "Shielded USX",
   WIF: "Shielded WIF",
   SOL: "Shielded SOL",
 } as const satisfies Record<ShieldedSendAssetKey, string>;
